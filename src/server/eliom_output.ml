@@ -62,7 +62,7 @@ type 'a caml_content
 type unknown_content
 
 let cast_unknown_content_kind (x:(unknown_content, http_service) kind) : ('a, 'b) kind =
-  Result_types.cast_result ( Result_types.cast_kind x)
+  Result_types.cast_result (Result_types.cast_kind x)
 let cast_http_result = Result_types.cast_result
 
 (******************************************************************************)
@@ -72,7 +72,7 @@ let cast_http_result = Result_types.cast_result
 module Html5_make_reg_base
   (Html5_content : Ocsigen_http_frame.HTTP_CONTENT
                    with type t = HTML5_types.html HTML5.elt
-		   and type options = Http_headers.accept Lazy.t)
+                   and type options = Http_headers.accept Lazy.t)
   = struct
 
   open HTML5.M
@@ -269,8 +269,8 @@ module Xhtml_forms_base = struct
   let cons_hidden_fieldset fields content =
     let fieldset =
       XHTML.M.fieldset
-	~a:[a_style "display: none;"]
-	fields in
+        ~a:[a_style "display: none;"]
+        fields in
     (fieldset :: content :> form_content_elt_list)
 
   let make_input ?(a=[]) ?(checked=false) ~typ ?name ?src ?value () =
@@ -418,7 +418,7 @@ module Xhtml_forms = struct
                    ?keep_nl_params:[ `All | `Persistent | `None ] ->
                    ?nl_params: Eliom_parameters.nl_params_set ->
                    ?xhr:bool ->
-		   ('gn -> form_content elt list) -> form elt :>
+                   ('gn -> form_content elt list) -> form elt :>
                    ?absolute:bool ->
                    ?absolute_path:bool ->
                    ?https:bool ->
@@ -554,378 +554,378 @@ module Xhtml_forms = struct
       | `Text ]
 
   let int_input = (int_input :
-		     ?a:input_attrib attrib list -> input_type:full_input_type ->
-		    ?name:'a -> ?value:int -> unit -> input elt :>
-		    ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
-		    ?name:'a -> ?value:int -> unit -> [> input ] elt)
+                     ?a:input_attrib attrib list -> input_type:full_input_type ->
+                    ?name:'a -> ?value:int -> unit -> input elt :>
+                    ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
+                    ?name:'a -> ?value:int -> unit -> [> input ] elt)
 
   let int32_input = (int32_input :
-		       ?a:input_attrib attrib list -> input_type:full_input_type ->
-		      ?name:'a -> ?value:int32 -> unit -> input elt :>
-		      ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
-		      ?name:'a -> ?value:int32 -> unit -> [> input ] elt)
+                       ?a:input_attrib attrib list -> input_type:full_input_type ->
+                      ?name:'a -> ?value:int32 -> unit -> input elt :>
+                      ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
+                      ?name:'a -> ?value:int32 -> unit -> [> input ] elt)
 
   let int64_input = (int64_input :
-		       ?a:input_attrib attrib list -> input_type:full_input_type ->
-		      ?name:'a -> ?value:int64 -> unit -> input elt :>
-		      ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
-		      ?name:'a -> ?value:int64 -> unit -> [> input ] elt)
+                       ?a:input_attrib attrib list -> input_type:full_input_type ->
+                      ?name:'a -> ?value:int64 -> unit -> input elt :>
+                      ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
+                      ?name:'a -> ?value:int64 -> unit -> [> input ] elt)
 
   let float_input = (float_input :
-		       ?a:input_attrib attrib list -> input_type:full_input_type ->
-		      ?name:'a -> ?value:float -> unit -> input elt :>
-		      ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
-		      ?name:'a -> ?value:float -> unit -> [> input ] elt)
+                       ?a:input_attrib attrib list -> input_type:full_input_type ->
+                      ?name:'a -> ?value:float -> unit -> input elt :>
+                      ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
+                      ?name:'a -> ?value:float -> unit -> [> input ] elt)
 
   let string_input = (string_input :
-			?a:input_attrib attrib list -> input_type:full_input_type ->
-		       ?name:'a -> ?value:string -> unit -> input elt :>
-		       ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
-		       ?name:'a -> ?value:string -> unit -> [> input ] elt)
+                        ?a:input_attrib attrib list -> input_type:full_input_type ->
+                       ?name:'a -> ?value:string -> unit -> input elt :>
+                       ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
+                       ?name:'a -> ?value:string -> unit -> [> input ] elt)
 
   let user_type_input = (user_type_input :
                            ('a -> string) ->
-			  ?a:input_attrib attrib list -> input_type:full_input_type ->
-			  ?name:'b -> ?value:'a -> unit -> input elt :>
+                          ?a:input_attrib attrib list -> input_type:full_input_type ->
+                          ?name:'b -> ?value:'a -> unit -> input elt :>
                           ('a -> string) ->
-			  ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
-			  ?name:'b -> ?value:'a -> unit -> [> input ] elt)
+                          ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
+                          ?name:'b -> ?value:'a -> unit -> [> input ] elt)
 
   let raw_input = (raw_input :
-		     ?a:input_attrib attrib list -> input_type:full_input_type ->
-		    ?name:string -> ?value:string -> unit -> input elt :>
-		    ?a:input_attrib attrib list ->
-		    input_type:[< basic_input_type | `Button | `Reset ] ->
-		    ?name:string -> ?value:string -> unit -> [> input ] elt)
+                     ?a:input_attrib attrib list -> input_type:full_input_type ->
+                    ?name:string -> ?value:string -> unit -> input elt :>
+                    ?a:input_attrib attrib list ->
+                    input_type:[< basic_input_type | `Button | `Reset ] ->
+                    ?name:string -> ?value:string -> unit -> [> input ] elt)
 
   let file_input = (file_input :
-		      ?a:input_attrib attrib list -> name:'a ->
-		     unit -> input elt :>
-		     ?a:input_attrib attrib list -> name:'a ->
-		     unit -> [> input ] elt)
+                      ?a:input_attrib attrib list -> name:'a ->
+                     unit -> input elt :>
+                     ?a:input_attrib attrib list -> name:'a ->
+                     unit -> [> input ] elt)
 
   let image_input = (image_input :
-		       ?a:input_attrib attrib list -> name:'a ->
-		      ?src:uri -> unit -> input elt :>
-		      ?a:input_attrib attrib list -> name:'a ->
-		      ?src:uri -> unit -> [> input ] elt)
+                       ?a:input_attrib attrib list -> name:'a ->
+                      ?src:uri -> unit -> input elt :>
+                      ?a:input_attrib attrib list -> name:'a ->
+                      ?src:uri -> unit -> [> input ] elt)
 
   let int_image_input = (int_image_input :
-			   ?a:input_attrib attrib list ->
-			  name:'a -> value:int ->
-			  ?src:uri -> unit -> input elt :>
-			  ?a:input_attrib attrib list ->
-			  name:'a -> value:int ->
-			  ?src:uri -> unit -> [> input ] elt)
+                           ?a:input_attrib attrib list ->
+                          name:'a -> value:int ->
+                          ?src:uri -> unit -> input elt :>
+                          ?a:input_attrib attrib list ->
+                          name:'a -> value:int ->
+                          ?src:uri -> unit -> [> input ] elt)
 
   let int32_image_input = (int32_image_input :
-			     ?a:input_attrib attrib list ->
-			    name:'a -> value:int32 ->
-			    ?src:uri -> unit -> input elt :>
-			    ?a:input_attrib attrib list ->
-			    name:'a -> value:int32 ->
-			    ?src:uri -> unit -> [> input ] elt)
+                             ?a:input_attrib attrib list ->
+                            name:'a -> value:int32 ->
+                            ?src:uri -> unit -> input elt :>
+                            ?a:input_attrib attrib list ->
+                            name:'a -> value:int32 ->
+                            ?src:uri -> unit -> [> input ] elt)
 
   let int64_image_input = (int64_image_input :
-			     ?a:input_attrib attrib list ->
-			    name:'a -> value:int64 ->
-			    ?src:uri -> unit -> input elt :>
-			    ?a:input_attrib attrib list ->
-			    name:'a -> value:int64 ->
-			    ?src:uri -> unit -> [> input ] elt)
+                             ?a:input_attrib attrib list ->
+                            name:'a -> value:int64 ->
+                            ?src:uri -> unit -> input elt :>
+                            ?a:input_attrib attrib list ->
+                            name:'a -> value:int64 ->
+                            ?src:uri -> unit -> [> input ] elt)
 
   let float_image_input = (float_image_input :
-			     ?a:input_attrib attrib list ->
-			    name:'a -> value:float ->
-			    ?src:uri -> unit -> input elt :>
-			    ?a:input_attrib attrib list ->
-			    name:'a -> value:float ->
-			    ?src:uri -> unit -> [> input ] elt)
+                             ?a:input_attrib attrib list ->
+                            name:'a -> value:float ->
+                            ?src:uri -> unit -> input elt :>
+                            ?a:input_attrib attrib list ->
+                            name:'a -> value:float ->
+                            ?src:uri -> unit -> [> input ] elt)
 
   let string_image_input = (string_image_input :
-			      ?a:input_attrib attrib list ->
-			     name:'a -> value:string ->
-			     ?src:uri -> unit -> input elt :>
-			     ?a:input_attrib attrib list ->
-			     name:'a -> value:string ->
-			     ?src:uri -> unit -> [> input ] elt)
+                              ?a:input_attrib attrib list ->
+                             name:'a -> value:string ->
+                             ?src:uri -> unit -> input elt :>
+                             ?a:input_attrib attrib list ->
+                             name:'a -> value:string ->
+                             ?src:uri -> unit -> [> input ] elt)
 
   let user_type_image_input = (user_type_image_input :
-				 ('a -> string) ->
-				?a:input_attrib attrib list ->
-				name:'b -> value:'a ->
-				?src:uri -> unit -> input elt :>
-				('a -> string) ->
-				?a:input_attrib attrib list ->
-				name:'b -> value:'a ->
-				?src:uri -> unit -> [> input ] elt)
+                                 ('a -> string) ->
+                                ?a:input_attrib attrib list ->
+                                name:'b -> value:'a ->
+                                ?src:uri -> unit -> input elt :>
+                                ('a -> string) ->
+                                ?a:input_attrib attrib list ->
+                                name:'b -> value:'a ->
+                                ?src:uri -> unit -> [> input ] elt)
 
   let raw_image_input = (raw_image_input :
-			   ?a:input_attrib attrib list ->
-			  name:string -> value:string -> ?src:uri -> unit -> input elt :>
-			  ?a:input_attrib attrib list ->
-			  name:string -> value:string -> ?src:uri -> unit -> [> input ] elt)
+                           ?a:input_attrib attrib list ->
+                          name:string -> value:string -> ?src:uri -> unit -> input elt :>
+                          ?a:input_attrib attrib list ->
+                          name:string -> value:string -> ?src:uri -> unit -> [> input ] elt)
 
   let bool_checkbox = (bool_checkbox :
-			 ?a:(input_attrib attrib list ) -> ?checked:bool ->
-			name:'a -> unit -> input elt :>
-			?a:(input_attrib attrib list ) -> ?checked:bool ->
-			name:'a -> unit -> [> input ] elt)
+                         ?a:(input_attrib attrib list) -> ?checked:bool ->
+                        name:'a -> unit -> input elt :>
+                        ?a:(input_attrib attrib list) -> ?checked:bool ->
+                        name:'a -> unit -> [> input ] elt)
 
   let int_checkbox = (int_checkbox :
-			?a:input_attrib attrib list -> ?checked:bool ->
-		       name:[ `Set of int ] param_name -> value:int -> unit -> input elt :>
-		       ?a:input_attrib attrib list -> ?checked:bool ->
-		       name:[ `Set of int ] param_name -> value:int -> unit -> [> input ] elt)
+                        ?a:input_attrib attrib list -> ?checked:bool ->
+                       name:[ `Set of int ] param_name -> value:int -> unit -> input elt :>
+                       ?a:input_attrib attrib list -> ?checked:bool ->
+                       name:[ `Set of int ] param_name -> value:int -> unit -> [> input ] elt)
 
   let int32_checkbox = (int32_checkbox :
-			  ?a:input_attrib attrib list -> ?checked:bool ->
-			 name:[ `Set of int32 ] param_name -> value:int32 -> unit -> input elt :>
-			 ?a:input_attrib attrib list -> ?checked:bool ->
-			 name:[ `Set of int32 ] param_name -> value:int32 -> unit -> [> input ] elt)
+                          ?a:input_attrib attrib list -> ?checked:bool ->
+                         name:[ `Set of int32 ] param_name -> value:int32 -> unit -> input elt :>
+                         ?a:input_attrib attrib list -> ?checked:bool ->
+                         name:[ `Set of int32 ] param_name -> value:int32 -> unit -> [> input ] elt)
 
   let int64_checkbox = (int64_checkbox :
-			  ?a:input_attrib attrib list -> ?checked:bool ->
-			 name:[ `Set of int64 ] param_name -> value:int64 -> unit -> input elt :>
-			 ?a:input_attrib attrib list -> ?checked:bool ->
-			 name:[ `Set of int64 ] param_name -> value:int64 -> unit -> [> input ] elt)
+                          ?a:input_attrib attrib list -> ?checked:bool ->
+                         name:[ `Set of int64 ] param_name -> value:int64 -> unit -> input elt :>
+                         ?a:input_attrib attrib list -> ?checked:bool ->
+                         name:[ `Set of int64 ] param_name -> value:int64 -> unit -> [> input ] elt)
 
   let float_checkbox = (float_checkbox :
-			  ?a:input_attrib attrib list -> ?checked:bool ->
-			 name:[ `Set of float ] param_name -> value:float -> unit -> input elt :>
-			 ?a:input_attrib attrib list -> ?checked:bool ->
-			 name:[ `Set of float ] param_name -> value:float -> unit -> [> input ] elt)
+                          ?a:input_attrib attrib list -> ?checked:bool ->
+                         name:[ `Set of float ] param_name -> value:float -> unit -> input elt :>
+                         ?a:input_attrib attrib list -> ?checked:bool ->
+                         name:[ `Set of float ] param_name -> value:float -> unit -> [> input ] elt)
 
   let string_checkbox = (string_checkbox :
-			   ?a:input_attrib attrib list -> ?checked:bool ->
-			  name:[ `Set of string ] param_name -> value:string -> unit -> input elt :>
-			  ?a:input_attrib attrib list -> ?checked:bool ->
-			  name:[ `Set of string ] param_name -> value:string -> unit -> [> input ] elt)
+                           ?a:input_attrib attrib list -> ?checked:bool ->
+                          name:[ `Set of string ] param_name -> value:string -> unit -> input elt :>
+                          ?a:input_attrib attrib list -> ?checked:bool ->
+                          name:[ `Set of string ] param_name -> value:string -> unit -> [> input ] elt)
 
   let user_type_checkbox = (user_type_checkbox :
-			      ('a -> string) ->
-			     ?a:input_attrib attrib list -> ?checked:bool ->
-			     name:[ `Set of 'a ] param_name -> value:'a -> unit -> input elt :>
-			     ('a -> string) ->
-			     ?a:input_attrib attrib list -> ?checked:bool ->
-			     name:[ `Set of 'a ] param_name -> value:'a -> unit -> [> input ] elt)
+                              ('a -> string) ->
+                             ?a:input_attrib attrib list -> ?checked:bool ->
+                             name:[ `Set of 'a ] param_name -> value:'a -> unit -> input elt :>
+                             ('a -> string) ->
+                             ?a:input_attrib attrib list -> ?checked:bool ->
+                             name:[ `Set of 'a ] param_name -> value:'a -> unit -> [> input ] elt)
 
   let raw_checkbox = (raw_checkbox :
-			?a:input_attrib attrib list -> ?checked:bool ->
-		       name:string -> value:string -> unit -> input elt :>
-		       ?a:input_attrib attrib list -> ?checked:bool ->
-		       name:string -> value:string -> unit -> [> input ] elt)
+                        ?a:input_attrib attrib list -> ?checked:bool ->
+                       name:string -> value:string -> unit -> input elt :>
+                       ?a:input_attrib attrib list -> ?checked:bool ->
+                       name:string -> value:string -> unit -> [> input ] elt)
 
 
   let string_radio = (string_radio :
-			?a:(input_attrib attrib list ) -> ?checked:bool ->
-		       name:'a -> value:string -> unit -> input elt :>
-		       ?a:(input_attrib attrib list ) -> ?checked:bool ->
-		       name:'a -> value:string -> unit -> [> input ] elt)
+                        ?a:(input_attrib attrib list) -> ?checked:bool ->
+                       name:'a -> value:string -> unit -> input elt :>
+                       ?a:(input_attrib attrib list) -> ?checked:bool ->
+                       name:'a -> value:string -> unit -> [> input ] elt)
 
   let int_radio = (int_radio :
-                     ?a:(input_attrib attrib list ) -> ?checked:bool ->
-		    name:'a -> value:int -> unit -> input elt :>
-                    ?a:(input_attrib attrib list ) -> ?checked:bool ->
-		    name:'a -> value:int -> unit -> [> input ] elt)
+                     ?a:(input_attrib attrib list) -> ?checked:bool ->
+                    name:'a -> value:int -> unit -> input elt :>
+                    ?a:(input_attrib attrib list) -> ?checked:bool ->
+                    name:'a -> value:int -> unit -> [> input ] elt)
 
   let int32_radio = (int32_radio :
-                       ?a:(input_attrib attrib list ) -> ?checked:bool ->
-		      name:'a -> value:int32 -> unit -> input elt :>
-                      ?a:(input_attrib attrib list ) -> ?checked:bool ->
-		      name:'a -> value:int32 -> unit -> [> input ] elt)
+                       ?a:(input_attrib attrib list) -> ?checked:bool ->
+                      name:'a -> value:int32 -> unit -> input elt :>
+                      ?a:(input_attrib attrib list) -> ?checked:bool ->
+                      name:'a -> value:int32 -> unit -> [> input ] elt)
 
   let int64_radio = (int64_radio :
-                       ?a:(input_attrib attrib list ) -> ?checked:bool ->
-		      name:'a -> value:int64 -> unit -> input elt :>
-                      ?a:(input_attrib attrib list ) -> ?checked:bool ->
-		      name:'a -> value:int64 -> unit -> [> input ] elt)
+                       ?a:(input_attrib attrib list) -> ?checked:bool ->
+                      name:'a -> value:int64 -> unit -> input elt :>
+                      ?a:(input_attrib attrib list) -> ?checked:bool ->
+                      name:'a -> value:int64 -> unit -> [> input ] elt)
 
   let float_radio = (float_radio :
-                       ?a:(input_attrib attrib list ) -> ?checked:bool ->
-		      name:'a -> value:float -> unit -> input elt :>
-                      ?a:(input_attrib attrib list ) -> ?checked:bool ->
-		      name:'a -> value:float -> unit -> [> input ] elt)
+                       ?a:(input_attrib attrib list) -> ?checked:bool ->
+                      name:'a -> value:float -> unit -> input elt :>
+                      ?a:(input_attrib attrib list) -> ?checked:bool ->
+                      name:'a -> value:float -> unit -> [> input ] elt)
 
   let user_type_radio = (user_type_radio :
-			   ('a -> string) ->
-                          ?a:(input_attrib attrib list ) -> ?checked:bool ->
-			  name:'b -> value:'a -> unit -> input elt :>
-			  ('a -> string) ->
+                           ('a -> string) ->
+                          ?a:(input_attrib attrib list) -> ?checked:bool ->
+                          name:'b -> value:'a -> unit -> input elt :>
+                          ('a -> string) ->
 
-                          ?a:(input_attrib attrib list ) -> ?checked:bool ->
-			  name:'b -> value:'a -> unit -> [> input ] elt)
+                          ?a:(input_attrib attrib list) -> ?checked:bool ->
+                          name:'b -> value:'a -> unit -> [> input ] elt)
 
   let raw_radio = (raw_radio :
-                     ?a:(input_attrib attrib list ) -> ?checked:bool ->
-		    name:string -> value:string -> unit -> input elt :>
-                    ?a:(input_attrib attrib list ) -> ?checked:bool ->
-		    name:string -> value:string -> unit -> [> input ] elt)
+                     ?a:(input_attrib attrib list) -> ?checked:bool ->
+                    name:string -> value:string -> unit -> input elt :>
+                    ?a:(input_attrib attrib list) -> ?checked:bool ->
+                    name:string -> value:string -> unit -> [> input ] elt)
 
   let textarea = (textarea :
-		    ?a:textarea_attrib attrib list ->
-		   name:'a -> ?value:string ->
-		   rows:int -> cols:int ->
-		   unit -> textarea elt :>
-		   ?a:textarea_attrib attrib list ->
-		   name:'a -> ?value:string ->
-		   rows:int -> cols:int ->
-		   unit -> [> textarea ] elt)
+                    ?a:textarea_attrib attrib list ->
+                   name:'a -> ?value:string ->
+                   rows:int -> cols:int ->
+                   unit -> textarea elt :>
+                   ?a:textarea_attrib attrib list ->
+                   name:'a -> ?value:string ->
+                   rows:int -> cols:int ->
+                   unit -> [> textarea ] elt)
 
   let raw_textarea = (raw_textarea :
-			?a:textarea_attrib attrib list ->
-		       name:string -> ?value:string ->
-		       rows:int -> cols:int ->
-		       unit -> textarea elt :>
-		       ?a:textarea_attrib attrib list ->
-		       name:string -> ?value:string ->
-		       rows:int -> cols:int ->
-		       unit -> [> textarea ] elt)
+                        ?a:textarea_attrib attrib list ->
+                       name:string -> ?value:string ->
+                       rows:int -> cols:int ->
+                       unit -> textarea elt :>
+                       ?a:textarea_attrib attrib list ->
+                       name:string -> ?value:string ->
+                       rows:int -> cols:int ->
+                       unit -> [> textarea ] elt)
 
   let raw_select = (raw_select :
-		      ?a:select_attrib attrib list ->
-		     name:string ->
-		     string select_opt ->
-		     string select_opt list -> select elt :>
-		     ?a:select_attrib attrib list ->
-		     name:string ->
-		     string select_opt ->
-		     string select_opt list -> [> select ] elt)
+                      ?a:select_attrib attrib list ->
+                     name:string ->
+                     string select_opt ->
+                     string select_opt list -> select elt :>
+                     ?a:select_attrib attrib list ->
+                     name:string ->
+                     string select_opt ->
+                     string select_opt list -> [> select ] elt)
 
   let int_select = (int_select :
-		      ?a:select_attrib attrib list ->
-		     name:'a ->
-		     int select_opt ->
-		     int select_opt list -> select elt :>
-		     ?a:select_attrib attrib list ->
-		     name:'a ->
-		     int select_opt ->
-		     int select_opt list -> [> select ] elt)
+                      ?a:select_attrib attrib list ->
+                     name:'a ->
+                     int select_opt ->
+                     int select_opt list -> select elt :>
+                     ?a:select_attrib attrib list ->
+                     name:'a ->
+                     int select_opt ->
+                     int select_opt list -> [> select ] elt)
 
   let int32_select = (int32_select :
-			?a:select_attrib attrib list ->
-		       name:'a ->
-		       int32 select_opt ->
-		       int32 select_opt list -> select elt :>
-		       ?a:select_attrib attrib list ->
-		       name:'a ->
-		       int32 select_opt ->
-		       int32 select_opt list -> [> select ] elt)
+                        ?a:select_attrib attrib list ->
+                       name:'a ->
+                       int32 select_opt ->
+                       int32 select_opt list -> select elt :>
+                       ?a:select_attrib attrib list ->
+                       name:'a ->
+                       int32 select_opt ->
+                       int32 select_opt list -> [> select ] elt)
 
   let int64_select = (int64_select :
-			?a:select_attrib attrib list ->
-		       name:'a ->
-		       int64 select_opt ->
-		       int64 select_opt list -> select elt :>
-		       ?a:select_attrib attrib list ->
-		       name:'a ->
-		       int64 select_opt ->
-		       int64 select_opt list -> [> select ] elt)
+                        ?a:select_attrib attrib list ->
+                       name:'a ->
+                       int64 select_opt ->
+                       int64 select_opt list -> select elt :>
+                       ?a:select_attrib attrib list ->
+                       name:'a ->
+                       int64 select_opt ->
+                       int64 select_opt list -> [> select ] elt)
 
   let float_select = (float_select :
-			?a:select_attrib attrib list ->
-		       name:'a ->
-		       float select_opt ->
-		       float select_opt list -> select elt :>
-		       ?a:select_attrib attrib list ->
-		       name:'a ->
-		       float select_opt ->
-		       float select_opt list -> [> select ] elt)
+                        ?a:select_attrib attrib list ->
+                       name:'a ->
+                       float select_opt ->
+                       float select_opt list -> select elt :>
+                       ?a:select_attrib attrib list ->
+                       name:'a ->
+                       float select_opt ->
+                       float select_opt list -> [> select ] elt)
 
   let string_select = (string_select :
-			 ?a:select_attrib attrib list ->
-			name:'a ->
-			string select_opt ->
-			string select_opt list -> select elt :>
-			?a:select_attrib attrib list ->
-			name:'a ->
-			string select_opt ->
-			string select_opt list -> [> select ] elt)
+                         ?a:select_attrib attrib list ->
+                        name:'a ->
+                        string select_opt ->
+                        string select_opt list -> select elt :>
+                        ?a:select_attrib attrib list ->
+                        name:'a ->
+                        string select_opt ->
+                        string select_opt list -> [> select ] elt)
 
   let user_type_select = (user_type_select :
-			    ('a -> string) ->
-			   ?a:select_attrib attrib list ->
-			   name:'b ->
-			   'a select_opt ->
-			   'a select_opt list -> select elt :>
-			   ('a -> string) ->
-			   ?a:select_attrib attrib list ->
-			   name:'b ->
-			   'a select_opt ->
-			   'a select_opt list -> [> select ] elt)
+                            ('a -> string) ->
+                           ?a:select_attrib attrib list ->
+                           name:'b ->
+                           'a select_opt ->
+                           'a select_opt list -> select elt :>
+                           ('a -> string) ->
+                           ?a:select_attrib attrib list ->
+                           name:'b ->
+                           'a select_opt ->
+                           'a select_opt list -> [> select ] elt)
 
 
   let raw_multiple_select = (raw_multiple_select :
-			       ?a:select_attrib attrib list ->
-			      name:string ->
-			      string select_opt ->
-			      string select_opt list -> select elt :>
-			      ?a:select_attrib attrib list ->
-			      name:string ->
-			      string select_opt ->
-			      string select_opt list -> [> select ] elt)
+                               ?a:select_attrib attrib list ->
+                              name:string ->
+                              string select_opt ->
+                              string select_opt list -> select elt :>
+                              ?a:select_attrib attrib list ->
+                              name:string ->
+                              string select_opt ->
+                              string select_opt list -> [> select ] elt)
 
   let int_multiple_select = (int_multiple_select :
-			       ?a:select_attrib attrib list ->
-			      name:'a ->
-			      int select_opt ->
-			      int select_opt list -> select elt :>
-			      ?a:select_attrib attrib list ->
-			      name:'a ->
-			      int select_opt ->
-			      int select_opt list -> [> select ] elt)
+                               ?a:select_attrib attrib list ->
+                              name:'a ->
+                              int select_opt ->
+                              int select_opt list -> select elt :>
+                              ?a:select_attrib attrib list ->
+                              name:'a ->
+                              int select_opt ->
+                              int select_opt list -> [> select ] elt)
 
   let int32_multiple_select = (int32_multiple_select :
-				 ?a:select_attrib attrib list ->
-				name:'a ->
-				int32 select_opt ->
-				int32 select_opt list -> select elt :>
-				?a:select_attrib attrib list ->
-				name:'a ->
-				int32 select_opt ->
-				int32 select_opt list -> [> select ] elt)
+                                 ?a:select_attrib attrib list ->
+                                name:'a ->
+                                int32 select_opt ->
+                                int32 select_opt list -> select elt :>
+                                ?a:select_attrib attrib list ->
+                                name:'a ->
+                                int32 select_opt ->
+                                int32 select_opt list -> [> select ] elt)
 
   let int64_multiple_select = (int64_multiple_select :
-				 ?a:select_attrib attrib list ->
-				name:'a ->
-				int64 select_opt ->
-				int64 select_opt list -> select elt :>
-				?a:select_attrib attrib list ->
-				name:'a ->
-				int64 select_opt ->
-				int64 select_opt list -> [> select ] elt)
+                                 ?a:select_attrib attrib list ->
+                                name:'a ->
+                                int64 select_opt ->
+                                int64 select_opt list -> select elt :>
+                                ?a:select_attrib attrib list ->
+                                name:'a ->
+                                int64 select_opt ->
+                                int64 select_opt list -> [> select ] elt)
 
   let float_multiple_select = (float_multiple_select :
-				 ?a:select_attrib attrib list ->
-				name:'a ->
-				float select_opt ->
-				float select_opt list -> select elt :>
-				?a:select_attrib attrib list ->
-				name:'a ->
-				float select_opt ->
-				float select_opt list -> [> select ] elt)
+                                 ?a:select_attrib attrib list ->
+                                name:'a ->
+                                float select_opt ->
+                                float select_opt list -> select elt :>
+                                ?a:select_attrib attrib list ->
+                                name:'a ->
+                                float select_opt ->
+                                float select_opt list -> [> select ] elt)
 
   let string_multiple_select = (string_multiple_select :
-				  ?a:select_attrib attrib list ->
-				 name:'a ->
-				 string select_opt ->
-				 string select_opt list -> select elt :>
-				 ?a:select_attrib attrib list ->
-				 name:'a ->
-				 string select_opt ->
-				 string select_opt list -> [> select ] elt)
+                                  ?a:select_attrib attrib list ->
+                                 name:'a ->
+                                 string select_opt ->
+                                 string select_opt list -> select elt :>
+                                 ?a:select_attrib attrib list ->
+                                 name:'a ->
+                                 string select_opt ->
+                                 string select_opt list -> [> select ] elt)
 
   let user_type_multiple_select = (user_type_multiple_select :
-				     ('a -> string) ->
-				    ?a:select_attrib attrib list ->
-				    name:'b ->
-				    'a select_opt ->
-				    'a select_opt list -> select elt :>
-				    ('a -> string) ->
-				    ?a:select_attrib attrib list ->
-				    name:'b ->
-				    'a select_opt ->
-				    'a select_opt list -> [> select ] elt)
+                                     ('a -> string) ->
+                                    ?a:select_attrib attrib list ->
+                                    name:'b ->
+                                    'a select_opt ->
+                                    'a select_opt list -> select elt :>
+                                    ('a -> string) ->
+                                    ?a:select_attrib attrib list ->
+                                    name:'b ->
+                                    'a select_opt ->
+                                    'a select_opt list -> [> select ] elt)
 
   type button_type =
       [ `Button
@@ -934,72 +934,72 @@ module Xhtml_forms = struct
       ]
 
   let string_button = (string_button :
-			 ?a:button_attrib attrib list ->
-			name:'a -> value:string ->
-			button_content elt list -> button elt :>
-			?a:button_attrib attrib list ->
-			name:'a -> value:string ->
-			button_content elt list -> [> button ] elt)
+                         ?a:button_attrib attrib list ->
+                        name:'a -> value:string ->
+                        button_content elt list -> button elt :>
+                        ?a:button_attrib attrib list ->
+                        name:'a -> value:string ->
+                        button_content elt list -> [> button ] elt)
 
   let int_button = (int_button :
-		      ?a:button_attrib attrib list ->
-		     name:'a -> value:int ->
-		     button_content elt list -> button elt :>
-		     ?a:button_attrib attrib list ->
-		     name:'a -> value:int ->
-		     button_content elt list -> [> button ] elt)
+                      ?a:button_attrib attrib list ->
+                     name:'a -> value:int ->
+                     button_content elt list -> button elt :>
+                     ?a:button_attrib attrib list ->
+                     name:'a -> value:int ->
+                     button_content elt list -> [> button ] elt)
 
   let int32_button = (int32_button :
-			?a:button_attrib attrib list ->
-		       name:'a -> value:int32 ->
-		       button_content elt list -> button elt :>
-		       ?a:button_attrib attrib list ->
-		       name:'a -> value:int32 ->
-		       button_content elt list -> [> button ] elt)
+                        ?a:button_attrib attrib list ->
+                       name:'a -> value:int32 ->
+                       button_content elt list -> button elt :>
+                       ?a:button_attrib attrib list ->
+                       name:'a -> value:int32 ->
+                       button_content elt list -> [> button ] elt)
 
   let int64_button = (int64_button :
-			?a:button_attrib attrib list ->
-		       name:'a -> value:int64 ->
-		       button_content elt list -> button elt :>
-		       ?a:button_attrib attrib list ->
-		       name:'a -> value:int64 ->
-		       button_content elt list -> [> button ] elt)
+                        ?a:button_attrib attrib list ->
+                       name:'a -> value:int64 ->
+                       button_content elt list -> button elt :>
+                       ?a:button_attrib attrib list ->
+                       name:'a -> value:int64 ->
+                       button_content elt list -> [> button ] elt)
 
   let float_button = (float_button :
-			?a:button_attrib attrib list ->
-		       name:'a -> value:float ->
-		       button_content elt list -> button elt :>
-		       ?a:button_attrib attrib list ->
-		       name:'a -> value:float ->
-		       button_content elt list -> [> button ] elt)
+                        ?a:button_attrib attrib list ->
+                       name:'a -> value:float ->
+                       button_content elt list -> button elt :>
+                       ?a:button_attrib attrib list ->
+                       name:'a -> value:float ->
+                       button_content elt list -> [> button ] elt)
 
   let user_type_button = (user_type_button :
-			    ('a -> string) ->
-			   ?a:button_attrib attrib list ->
-			   name:'b -> value:'a ->
-			   button_content elt list -> button elt :>
-			   ('a -> string) ->
-			   ?a:button_attrib attrib list ->
-			   name:'b -> value:'a ->
-			   button_content elt list -> [> button ] elt)
+                            ('a -> string) ->
+                           ?a:button_attrib attrib list ->
+                           name:'b -> value:'a ->
+                           button_content elt list -> button elt :>
+                           ('a -> string) ->
+                           ?a:button_attrib attrib list ->
+                           name:'b -> value:'a ->
+                           button_content elt list -> [> button ] elt)
 
   let raw_button = (raw_button :
-		      ?a:button_attrib attrib list ->
-		     button_type:button_type ->
-		     name:string -> value:string ->
-		     button_content elt list -> button elt :>
-		     ?a:button_attrib attrib list ->
-		     button_type:[< button_type ] ->
-		     name:string -> value:string ->
-		     button_content elt list -> [> button ] elt)
+                      ?a:button_attrib attrib list ->
+                     button_type:button_type ->
+                     name:string -> value:string ->
+                     button_content elt list -> button elt :>
+                     ?a:button_attrib attrib list ->
+                     button_type:[< button_type ] ->
+                     name:string -> value:string ->
+                     button_content elt list -> [> button ] elt)
 
   let button = (button :
-		  ?a:button_attrib attrib list ->
-		 button_type:button_type ->
-		 button_content elt list -> button elt :>
-		 ?a:button_attrib attrib list ->
-		 button_type:[< button_type ] ->
-		 button_content elt list -> [> button ] elt)
+                  ?a:button_attrib attrib list ->
+                 button_type:button_type ->
+                 button_content elt list -> button elt :>
+                 ?a:button_attrib attrib list ->
+                 button_type:[< button_type ] ->
+                 button_content elt list -> [> button ] elt)
 
   let a_for = (a_for: _ -> [ `For ] attrib :> _ -> [> `For ] attrib)
 
@@ -1039,7 +1039,7 @@ module Xhtml_make_reg_base
          res_content_type = (match content_type with
            | None -> r.Ocsigen_http_frame.res_content_type
            | _ -> content_type
-         );
+        );
          res_headers = (match headers with
            | None -> r.Ocsigen_http_frame.res_headers
            | Some headers ->
@@ -1113,20 +1113,20 @@ module Make_TypedXML_Registration
         lwt r = Cont_content.result_of_content content in
         Lwt.return
           { r with
-	    Ocsigen_http_frame.
+            Ocsigen_http_frame.
             res_code    = code_of_code_option code;
             res_charset = (match charset with
               | None -> Some (Eliom_config.get_config_default_charset ())
               | _ -> charset);
             res_content_type = (match content_type with
-	      | None -> r.Ocsigen_http_frame.res_content_type
-	      | _ -> content_type
+              | None -> r.Ocsigen_http_frame.res_content_type
+              | _ -> content_type
             );
             res_headers = (match headers with
               | None -> r.Ocsigen_http_frame.res_headers
               | Some headers ->
                 Http_headers.with_defaults
-		  headers r.Ocsigen_http_frame.res_headers
+                  headers r.Ocsigen_http_frame.res_headers
             );
           }
 
@@ -1161,7 +1161,7 @@ let add_cache_header cache headers =
       headers
       <-< (Http_headers.cache_control, "max-age: "^ string_of_int duration)
       <-< (Http_headers.expires,
-	   Ocsigen_http_com.gmtdate (Unix.time () +. float_of_int duration))
+           Ocsigen_http_com.gmtdate (Unix.time () +. float_of_int duration))
 
 
 module Text_reg_base = struct
@@ -1535,8 +1535,8 @@ module Action_reg_base = struct
       let open Ocsigen_extensions in
       let open Ocsigen_http_frame in
       match (si.Eliom_common.si_nonatt_info,
-		       si.Eliom_common.si_state_info,
-		       ri.request_info.ri_method) with
+                       si.Eliom_common.si_state_info,
+                       ri.request_info.ri_method) with
         | (Eliom_common.RNa_no,
            (Eliom_common.RAtt_no, Eliom_common.RAtt_no),
            Ocsigen_http_frame.Http_header.GET) ->
@@ -1550,21 +1550,21 @@ module Action_reg_base = struct
             (Lazy.force ri.request_info.ri_cookies)
             all_cookie_info
             user_cookies
-	  in
-	  lwt all_new_cookies =
-	    Eliommod_cookies.compute_cookies_to_send
-	      sitedata
+          in
+          lwt all_new_cookies =
+            Eliommod_cookies.compute_cookies_to_send
+              sitedata
               all_cookie_info
               user_cookies in
 
-	  (* Now tab cookies:
+          (* Now tab cookies:
              As tab cookies are sent only by Eliom_app services,
              we just need to keep them in rc.
              If the fallback service is not Eliom_app, they will
              be lost.
-	  *)
-	  let rc = Eliom_request_info.get_request_cache_sp sp in
-	  Polytables.set
+          *)
+          let rc = Eliom_request_info.get_request_cache_sp sp in
+          Polytables.set
             ~table:rc
             ~key:Eliom_common.tab_cookie_action_info_key
             ~value:(sp.Eliom_common.sp_tab_cookie_info,
@@ -1572,10 +1572,10 @@ module Action_reg_base = struct
                     si.Eliom_common.si_tab_cookies
             );
 
-	  (* Now removing some parameters to decide the following service: *)
-	  match (si.Eliom_common.si_nonatt_info,
-		 si.Eliom_common.si_state_info,
-		 ri.request_info.ri_method) with
+          (* Now removing some parameters to decide the following service: *)
+          match (si.Eliom_common.si_nonatt_info,
+                 si.Eliom_common.si_state_info,
+                 ri.request_info.ri_method) with
             | (Eliom_common.RNa_get_ _,
                (_, Eliom_common.RAtt_no),
                Ocsigen_http_frame.Http_header.GET)
@@ -1589,28 +1589,28 @@ module Action_reg_base = struct
               (* no post params, GET attached coservice *)
               ->
               Polytables.set
-		ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
-		Eliom_common.eliom_params_after_action
-		(si.Eliom_common.si_all_get_params,
-		 si.Eliom_common.si_all_post_params, (* is Some [] *)
-		 si.Eliom_common.si_nl_get_params,
-		 si.Eliom_common.si_nl_post_params,
-		 si.Eliom_common.si_all_get_but_nl);
-		(*VVV Also put all_cookie_info in this,
-		  to avoid update_cookie_table and get_cookie_info (?)
-		*)
-		let ri =
-		  { ri.request_info with
+                ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+                Eliom_common.eliom_params_after_action
+                (si.Eliom_common.si_all_get_params,
+                 si.Eliom_common.si_all_post_params, (* is Some [] *)
+                 si.Eliom_common.si_nl_get_params,
+                 si.Eliom_common.si_nl_post_params,
+                 si.Eliom_common.si_all_get_but_nl);
+                (*VVV Also put all_cookie_info in this,
+                  to avoid update_cookie_table and get_cookie_info (?)
+                *)
+                let ri =
+                  { ri.request_info with
                     ri_cookies= lazy ric;
                     ri_get_params =
                       lazy si.Eliom_common.si_other_get_params;
-		  (* Here we modify ri,
+                  (* Here we modify ri,
                      thus the request can be taken by other extensions,
                      with its new parameters *)
-		  }
-		in
-		lwt () = Eliommod_pagegen.update_cookie_table sitedata all_cookie_info in
-		send_directly ri (Ocsigen_extensions.compute_result
+                  }
+                in
+                lwt () = Eliommod_pagegen.update_cookie_table sitedata all_cookie_info in
+                send_directly ri (Ocsigen_extensions.compute_result
                                     ~previous_cookies:all_new_cookies ri)
 
             | (Eliom_common.RNa_post_ _, (_, _), _)
@@ -1619,57 +1619,57 @@ module Action_reg_base = struct
               (* retry without POST params *)
 
               Polytables.set
-		ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
-		Eliom_common.eliom_params_after_action
-		(si.Eliom_common.si_all_get_params,
-		 si.Eliom_common.si_all_post_params,
-		 si.Eliom_common.si_nl_get_params,
-		 si.Eliom_common.si_nl_post_params,
-		 si.Eliom_common.si_all_get_but_nl);
+                ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+                Eliom_common.eliom_params_after_action
+                (si.Eliom_common.si_all_get_params,
+                 si.Eliom_common.si_all_post_params,
+                 si.Eliom_common.si_nl_get_params,
+                 si.Eliom_common.si_nl_post_params,
+                 si.Eliom_common.si_all_get_but_nl);
               let ri =
-		{ ri.request_info with
-		  ri_method = Ocsigen_http_frame.Http_header.GET;
-		  ri_cookies= lazy ric;
-		  ri_get_params =
+                { ri.request_info with
+                  ri_method = Ocsigen_http_frame.Http_header.GET;
+                  ri_cookies= lazy ric;
+                  ri_get_params =
                     lazy si.Eliom_common.si_other_get_params;
-		  ri_post_params = Some (fun _ -> Lwt.return []);
-		  ri_files = Some (fun _ -> Lwt.return []);
-		}
+                  ri_post_params = Some (fun _ -> Lwt.return []);
+                  ri_files = Some (fun _ -> Lwt.return []);
+                }
               in
               lwt () = Eliommod_pagegen.update_cookie_table sitedata all_cookie_info in
               send_directly ri (Ocsigen_extensions.compute_result
-				  ~previous_cookies:all_new_cookies ri)
+                                  ~previous_cookies:all_new_cookies ri)
 
             | _ ->
               (* retry without POST params *)
-	      (*VVV
-		Warning: is it possible to have an Eliom service with POST method
-		but no POST parameter?
-		--> may loop...
-		(we impose GET to prevent that)
-	      *)
+              (*VVV
+                Warning: is it possible to have an Eliom service with POST method
+                but no POST parameter?
+                --> may loop...
+                (we impose GET to prevent that)
+              *)
               Polytables.set
-		ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
-		Eliom_common.eliom_params_after_action
-		(si.Eliom_common.si_all_get_params,
-		 si.Eliom_common.si_all_post_params,
-		 si.Eliom_common.si_nl_get_params,
-		 si.Eliom_common.si_nl_post_params,
-		 si.Eliom_common.si_all_get_but_nl);
+                ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+                Eliom_common.eliom_params_after_action
+                (si.Eliom_common.si_all_get_params,
+                 si.Eliom_common.si_all_post_params,
+                 si.Eliom_common.si_nl_get_params,
+                 si.Eliom_common.si_nl_post_params,
+                 si.Eliom_common.si_all_get_but_nl);
               let ri =
-		{ ri.request_info with
-		  ri_method = Ocsigen_http_frame.Http_header.GET;
-		  ri_cookies= lazy ric;
-		  ri_get_params =
+                { ri.request_info with
+                  ri_method = Ocsigen_http_frame.Http_header.GET;
+                  ri_cookies= lazy ric;
+                  ri_get_params =
                     lazy si.Eliom_common.si_other_get_params;
-		  ri_post_params = Some (fun _ -> Lwt.return []);
-		  ri_files = Some (fun _ -> Lwt.return []);
-		}
+                  ri_post_params = Some (fun _ -> Lwt.return []);
+                  ri_files = Some (fun _ -> Lwt.return []);
+                }
               in
               lwt () =
-		Eliommod_pagegen.update_cookie_table sitedata all_cookie_info in
+                Eliommod_pagegen.update_cookie_table sitedata all_cookie_info in
               send_directly ri (Ocsigen_extensions.compute_result
-				  ~previous_cookies:all_new_cookies ri)
+                                  ~previous_cookies:all_new_cookies ri)
 
 end
 
@@ -2174,9 +2174,9 @@ module Caml_reg_base = struct
       ?content_type ?headers content =
     Result_types.cast_kind_lwt
       (Text.send ?charset ?code
-	 ?content_type ?headers
-	 (content,
-	  Eliom_services.eliom_appl_answer_content_type))
+         ?content_type ?headers
+         (content,
+          Eliom_services.eliom_appl_answer_content_type))
 
 end
 
@@ -2203,7 +2203,7 @@ module Caml = struct
     lwt content = prepare_data content in
     Result_types.cast_result_lwt
       (M.send ?options ?charset ?code
-	 ?content_type ?headers content)
+         ?content_type ?headers content)
 
   let register
       ?scope
@@ -2255,7 +2255,7 @@ module Caml = struct
                                       ?headers
                                       ?secure_session
                                       ?https
-				      ?priority
+                                      ?priority
                                       ~path
                                       ~get_params
                                       ?error_handler:(make_eh error_handler)
@@ -2361,7 +2361,7 @@ module Caml = struct
                                       ?headers
                                       ?secure_session
                                       ?https
-				      ?priority
+                                      ?priority
                                       ~fallback:(Eliom_services.untype_service_ fallback)
                                       ~post_params
                                       ?error_handler:(make_eh error_handler)
@@ -2493,11 +2493,11 @@ module Eliom_appl_reg_make_param
     HTML5.create_named_elt
       ~id:eliom_appl_script_id
       (Html5.js_script
-	 ~a:(if async then [HTML5.a_async `Async] else [] )
-	 ~uri:(Html5.make_uri
-		 ~service:(Eliom_services.static_dir ())
-		 [Appl_params.application_name ^ ".js"])
-	 ())
+         ~a:(if async then [HTML5.a_async `Async] else [] )
+         ~uri:(Html5.make_uri
+                 ~service:(Eliom_services.static_dir ())
+                 [Appl_params.application_name ^ ".js"])
+         ())
   let application_script =
     (application_script
      : ?async:_ -> unit -> [ `Script ] HTML5.elt
@@ -2512,18 +2512,18 @@ module Eliom_appl_reg_make_param
 
     let script =
       Printf.sprintf
-	("var eliom_appl_sitedata = \'%s\';\n"
- 	 ^^ "var eliom_appl_process_info = \'%s\'\n"
-	 ^^ "var eliom_request_data;\n"
-	 ^^ "var eliom_request_cookies;\n"
+        ("var eliom_appl_sitedata = \'%s\';\n"
+          ^^ "var eliom_appl_process_info = \'%s\'\n"
+         ^^ "var eliom_request_data;\n"
+         ^^ "var eliom_request_cookies;\n"
          ^^ "var eliom_request_template;\n")
-	(Eliom_types.jsmarshal (Eliommod_cli.client_sitedata sp))
-	(Eliom_types.jsmarshal (sp.Eliom_common.sp_client_process_info))
+        (Eliom_types.jsmarshal (Eliommod_cli.client_sitedata sp))
+        (Eliom_types.jsmarshal (sp.Eliom_common.sp_client_process_info))
     in
 
     Lwt.return
       (HTML5.create_named_elt ~id:eliom_appl_data_script_id
-	 (HTML5.M.script (cdata_script script)))
+         (HTML5.M.script (cdata_script script)))
 
   let make_eliom_data_script ~sp page =
 
@@ -2532,49 +2532,49 @@ module Eliom_appl_reg_make_param
        cookies should be calculated after wrapping. *)
     let eliom_data =
       Eliom_wrap.wrap
-	{ Eliom_types.
-	  ejs_event_handler_table = XML.make_event_handler_table (HTML5.toelt page);
-	  ejs_onload              = Eliom_services.get_onload sp;
-	  ejs_onunload            = Eliom_services.get_onunload sp;
-	  ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;
-	} in
+        { Eliom_types.
+          ejs_event_handler_table = XML.make_event_handler_table (HTML5.toelt page);
+          ejs_onload              = Eliom_services.get_onload sp;
+          ejs_onunload            = Eliom_services.get_onunload sp;
+          ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;
+        } in
 
     lwt tab_cookies =
       Eliommod_cookies.compute_cookies_to_send
-	sp.Eliom_common.sp_sitedata
-	sp.Eliom_common.sp_tab_cookie_info
-	sp.Eliom_common.sp_user_tab_cookies
+        sp.Eliom_common.sp_sitedata
+        sp.Eliom_common.sp_tab_cookie_info
+        sp.Eliom_common.sp_user_tab_cookies
     in
 
     lwt template = Eliom_references.get request_template in
     let script =
       Printf.sprintf
-	("eliom_request_data = \'%s\';\n"
-	 ^^ "eliom_request_cookies = \'%s\';\n"
-	 ^^ "eliom_request_template = \'%s\';\n")
-	(Eliom_types.jsmarshal eliom_data)
-	(Eliom_types.jsmarshal tab_cookies)
-	(Eliom_types.jsmarshal (template: string option))
+        ("eliom_request_data = \'%s\';\n"
+         ^^ "eliom_request_cookies = \'%s\';\n"
+         ^^ "eliom_request_template = \'%s\';\n")
+        (Eliom_types.jsmarshal eliom_data)
+        (Eliom_types.jsmarshal tab_cookies)
+        (Eliom_types.jsmarshal (template: string option))
     in
     Lwt.return (HTML5.M.script (cdata_script script))
 
   let split_page page :
-      ( HTML5_types.html_attrib HTML5.attrib list
-	* ( HTML5_types.head_attrib HTML5.attrib list
-	    * [ HTML5_types.title ] HTML5.elt
-	    * HTML5_types.head_content_fun HTML5.elt list )
-	* HTML5_types.body HTML5.elt ) =
+      (HTML5_types.html_attrib HTML5.attrib list
+        * (HTML5_types.head_attrib HTML5.attrib list
+            * [ HTML5_types.title ] HTML5.elt
+            * HTML5_types.head_content_fun HTML5.elt list)
+        * HTML5_types.body HTML5.elt ) =
     match XML.content page with
       | XML.Node (_, html_attribs, [head; body]) ->
-	begin match XML.content head with
-	  | XML.Node (_, head_attribs, head_elts) ->
-	    ( List.map HTML5.to_attrib html_attribs,
-	      ( List.map HTML5.to_attrib head_attribs,
-		HTML5.tot (List.hd head_elts),
-		HTML5.totl (List.tl head_elts) ),
-	      HTML5.tot body )
-	  | _ -> assert false
-	end
+        begin match XML.content head with
+          | XML.Node (_, head_attribs, head_elts) ->
+            (List.map HTML5.to_attrib html_attribs,
+              (List.map HTML5.to_attrib head_attribs,
+               HTML5.tot (List.hd head_elts),
+               HTML5.totl (List.tl head_elts)),
+             HTML5.tot body)
+          | _ -> assert false
+        end
       | _ -> assert false
 
   let add_eliom_scripts ~sp page =
@@ -2585,23 +2585,25 @@ module Eliom_appl_reg_make_param
       ~https:(Eliom_request_info.get_csp_ssl ())
       ~host:(Eliom_request_info.get_csp_hostname ())
       ~port:(Eliom_request_info.get_csp_server_port ())
-      (String.concat "/" (""::Eliom_request_info.get_csp_original_full_path ())) in
+      (String.concat "/" (""::Eliom_request_info.get_csp_original_full_path ()))
+    in
 
     (* First we build a fake page to build the ref_tree... *)
-    let	( html_attribs, (head_attribs, title, head_elts), body ) =
+    let (html_attribs, (head_attribs, title, head_elts), body) =
       split_page (HTML5.toelt page) in
     let head_elts =
          appl_data_script
-      :: HTML5.M.base ~a:[a_id Eliom_common_base.base_elt_id; HTML5.a_href (HTML5.uri_of_string base_url)] ()
-      :: ( if List.exists is_eliom_appl_script head_elts
-           then head_elts
-	   else ( head_elts
-		  @ [application_script ()] ) )
+      :: HTML5.M.base ~a:[a_id Eliom_common_base.base_elt_id;
+                          HTML5.a_href (HTML5.uri_of_string base_url)] ()
+      :: (if List.exists is_eliom_appl_script head_elts
+          then head_elts
+          else (head_elts
+                @ [application_script ()]))
     in
     let fake_page =
       HTML5.M.html ~a:html_attribs
-	(HTML5.M.head ~a:head_attribs title head_elts)
-	body in
+        (HTML5.M.head ~a:head_attribs title head_elts)
+        body in
     lwt data_script = make_eliom_data_script ~sp fake_page in
 
     (* Then we replace the faked data_script *)
@@ -2609,11 +2611,11 @@ module Eliom_appl_reg_make_param
       List.hd head_elts :: data_script :: (List.tl head_elts) in
     Lwt.return
       (HTML5.M.html ~a:html_attribs
-	 (HTML5.M.head ~a:head_attribs title head_elts)
-	 body )
+         (HTML5.M.head ~a:head_attribs title head_elts)
+         body)
 
   let remove_eliom_scripts page =
-    let ( html_attribs, (head_attribs, title, head_elts), body ) =
+    let (html_attribs, (head_attribs, title, head_elts), body) =
       split_page (HTML5.toelt page) in
     let head_elts = List.filter (fun x -> not (is_eliom_appl_script x)) head_elts in
     Lwt.return
@@ -2640,8 +2642,8 @@ module Eliom_appl_reg_make_param
 
     lwt page =
       match sp.Eliom_common.sp_client_appl_name, options.do_not_launch with
-	| None, true -> remove_eliom_scripts content
-	| _ -> add_eliom_scripts ~sp content in
+        | None, true -> remove_eliom_scripts content
+        | _ -> add_eliom_scripts ~sp content in
 
     let ri = Eliom_request_info.get_ri () in
     let accept = ri.Ocsigen_extensions.ri_accept in
@@ -2663,19 +2665,19 @@ module Eliom_appl_reg_make_param
     let headers = Http_headers.replace
       (Http_headers.name Eliom_common_base.response_url_header)
       (Url.make_absolute_url
-	 ~https:(Eliom_request_info.get_ssl ())
-	 ~host:(Eliom_request_info.get_hostname ())
-	 ~port:(Eliom_request_info.get_server_port ())
-	 ("/"
-	  ^ try Polytables.get ~table:rc ~key:Eliom_mkreg.suffix_redir_uri_key
-	     (* If it is a suffix service with redirection, the uri has already been
-		computed in rc *)
-	  with Not_found ->
-	    let get_params =
-	      match ri.Ocsigen_extensions.ri_get_params_string with
-	      | None -> ""
-	      | Some p -> "?" ^ p in
-	    ri.Ocsigen_extensions.ri_original_full_path_string ^ get_params))
+         ~https:(Eliom_request_info.get_ssl ())
+         ~host:(Eliom_request_info.get_hostname ())
+         ~port:(Eliom_request_info.get_server_port ())
+         ("/"
+          ^ try Polytables.get ~table:rc ~key:Eliom_mkreg.suffix_redir_uri_key
+             (* If it is a suffix service with redirection, the uri has already been
+                computed in rc *)
+          with Not_found ->
+            let get_params =
+              match ri.Ocsigen_extensions.ri_get_params_string with
+              | None -> ""
+              | Some p -> "?" ^ p in
+            ri.Ocsigen_extensions.ri_original_full_path_string ^ get_params))
       headers
     in
 
@@ -2686,7 +2688,7 @@ module Eliom_appl_reg_make_param
         res_charset = (match charset with
           | None -> Some (Eliom_config.get_config_default_charset ())
           | _ -> charset
-	);
+        );
         res_content_type =
           if Eliom_request_info.expecting_process_page ()
           then r.Ocsigen_http_frame.res_content_type
@@ -2796,11 +2798,11 @@ module String_redir_reg_base = struct
 
   type page = Url.uri
   type options = [ `MovedPermanently
-		 | `Found
-		 | `SeeOther
-		 | `NotNodifed
-		 | `UseProxy
-		 | `TemporaryRedirect ]
+                 | `Found
+                 | `SeeOther
+                 | `NotNodifed
+                 | `UseProxy
+                 | `TemporaryRedirect ]
   type return = http_service
   type result = (browser_content, http_service) kind
 
@@ -2838,13 +2840,13 @@ module String_redir_reg_base = struct
       let code = match code with
         | Some c -> c
         | None ->
-	  match options with
-	  | `MovedPermanently -> 301
-	  | `Found -> 302
-	  | `SeeOther -> 303
-	  | `NotNodifed -> 304
-	  | `UseProxy -> 305
-	  | `TemporaryRedirect -> 307
+          match options with
+          | `MovedPermanently -> 301
+          | `Found -> 302
+          | `SeeOther -> 303
+          | `NotNodifed -> 304
+          | `UseProxy -> 305
+          | `TemporaryRedirect -> 307
       in
       Lwt.return
         {empty_result with
@@ -2877,11 +2879,11 @@ module Redir_reg_base = struct
         Eliom_services.service
 
   type options =  [ `MovedPermanently
-		  | `Found
-		  | `SeeOther
-		  | `NotNodifed
-		  | `UseProxy
-		  | `TemporaryRedirect ]
+                  | `Found
+                  | `SeeOther
+                  | `NotNodifed
+                  | `UseProxy
+                  | `TemporaryRedirect ]
 
   type 'a return = 'a
 
@@ -2925,13 +2927,13 @@ module Redir_reg_base = struct
         let code = match code with
           | Some c -> c
           | None ->
-	  match options with
-	  | `MovedPermanently -> 301
-	  | `Found -> 302
-	  | `SeeOther -> 303
-	  | `NotNodifed -> 304
-	  | `UseProxy -> 305
-	  | `TemporaryRedirect -> 307
+          match options with
+          | `MovedPermanently -> 301
+          | `Found -> 302
+          | `SeeOther -> 303
+          | `NotNodifed -> 304
+          | `UseProxy -> 305
+          | `TemporaryRedirect -> 307
         in
         Lwt.return
           {empty_result with
