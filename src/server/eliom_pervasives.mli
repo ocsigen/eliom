@@ -103,8 +103,10 @@ module XML : sig
 
   (** {2 Base functions } *)
 
-  (** See {% <<a_api project="tyxml" | module type XML_sigs.Iterable >> %}. *)
   include XML_sigs.Iterable
+
+  (** Typed interface for building valid HTML5 tree (DOM semantics). See
+      {% <<a_api project="tyxml" | module type HTML5_sigs.T >> %}. *)
 
   (** {2 Unique nodes } *)
 
@@ -231,9 +233,9 @@ module HTML5 : sig
 
   (** {2 Dom semantics} *)
 
-  include HTML5_sigs.T with module XML := XML and module SVG := SVG
-
   (** Cf. <<a_api project="tyxml"|module HTML5_sigs.T>>. *)
+
+  include HTML5_sigs.T with module XML := XML and module SVG := SVG
 
   (** Typed interface for building valid HTML5 tree (DOM semantics). See
       {% <<a_api project="tyxml" | module type HTML5_sigs.T >> %}. *)

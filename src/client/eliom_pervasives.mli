@@ -283,6 +283,8 @@ module HTML5 : sig
 
   (** {2 Dom semantics} *)
 
+  (** Cf. <<a_api project="tyxml"|module HTML5_sigs.T>>. *)
+
   include HTML5_sigs.T with module XML := XML
 		       and module SVG := SVG
 
