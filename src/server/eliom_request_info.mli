@@ -22,7 +22,7 @@
     information about current request.
  *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 open Ocsigen_extensions
 open Ocsigen_cookies

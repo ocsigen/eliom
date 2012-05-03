@@ -23,7 +23,7 @@
 open Ocsigen_extensions
 open Ocsigen_cookies
 
-open Eliom_pervasives
+open Eliom_lib
 
 (** Page not found *)
 exception Eliom_404

@@ -22,7 +22,7 @@
     chapter="misc" fragment="basic_menu"| menu>>%} or {% <<a_manual
     chapter="misc" fragment="hier_menu"| hierarchical site>>%}. *)
 
-open Eliom_pervasives
+open Eliom_lib
 open Eliom_services
 open Eliom_parameters
 open Eliom_state

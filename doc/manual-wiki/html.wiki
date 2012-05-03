@@ -3,12 +3,12 @@
 Ocsigen provides several ways to generate and type xhtml pages.
 
 * The default technique to produce HTML5 pages using Eliom is the
-   <<a_api | module Eliom_pervasives.HTML5.M >>
+   <<a_api | module Eliom_lib.HTML5.M >>
    module. It is the only one supported for client side Eliom programs.
    This module provides a typing based on OCaml's polymorphic variants,
    which ensures at compile time, that the pages you will generate will
    respect the recommendations of the W3C (or be very close).
-   There also exists another module, <<a_api | module Eliom_pervasives.XHTML.M >>
+   There also exists another module, <<a_api | module Eliom_lib.XHTML.M >>
    that implements XHTML 1.1.
 * It is also possible to use a syntax extension to write your pages with the
    usual XHTML syntax. This solution is also typed with polymorphic variants

@@ -20,7 +20,7 @@
 
 (** Non-attached services                                                   *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 open Lwt
 open Ocsigen_extensions

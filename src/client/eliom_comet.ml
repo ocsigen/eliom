@@ -21,7 +21,7 @@
 
 (* This file is for client-side comet-programming. *)
 
-open Eliom_pervasives
+open Eliom_lib
 module Ecb = Eliom_comet_base
 
 module Configuration =

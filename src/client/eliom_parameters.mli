@@ -21,7 +21,7 @@
 (** See documentation in the server side version:
     {% <<a_api subproject="server"|module Eliom_parameters>>%}. *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 type ('a, +'b, +'c) params_type
 

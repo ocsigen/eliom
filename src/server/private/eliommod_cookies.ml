@@ -20,7 +20,7 @@
 
 (** Cookie management                                                       *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 open Lwt
 open Ocsigen_cookies
@@ -28,7 +28,7 @@ open Ocsigen_cookies
 include Eliom_cookies_base
 
 (*****************************************************************************)
-let make_new_session_id = String.make_cryptographic_safe
+let make_new_session_id = make_cryptographic_safe_string
 
 
 

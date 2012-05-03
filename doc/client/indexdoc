@@ -1,13 +1,13 @@
 {1 Eliom client API}
 
 {!modules:
-Eliom_pervasives
+Eliom_lib
 }
 
 {2 HTML}
 
 {!modules:
-Eliom_pervasives.HTML5
+Eliom_lib.HTML5
 Eliom_output.Html5
 Eliom_dom
 }

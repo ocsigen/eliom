@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_pervasives
+open Eliom_lib
 module JsTable = Eliommod_jstable
 
 (* == Closure *)
@@ -196,7 +196,7 @@ module Html5 = struct
 
   let _ =
     Eliom_unwrap.register_unwrapper
-      (Eliom_unwrap.id_of_int Eliom_pervasives_base.tyxml_unwrap_id_int)
+      (Eliom_unwrap.id_of_int Eliom_lib_base.tyxml_unwrap_id_int)
       (fun tmp_elt ->
         let elt = match tmp_elt.tmp_elt with
           | RELazy elt -> Eliom_lazy.force elt
@@ -644,12 +644,12 @@ let register_event_handlers node attribs =
 
 let get_element_cookies_info elt =
   Js.Opt.to_option
-    (Js.Opt.map (elt##getAttribute(Js.string Eliom_pervasives_base.RawXML.ce_call_service_attrib))
+    (Js.Opt.map (elt##getAttribute(Js.string Eliom_lib_base.RawXML.ce_call_service_attrib))
        (fun s -> of_json (Js.to_string s)))
 
 let get_element_template elt =
   Js.Opt.to_option
-    (Js.Opt.map (elt##getAttribute(Js.string Eliom_pervasives_base.RawXML.ce_template_attrib))
+    (Js.Opt.map (elt##getAttribute(Js.string Eliom_lib_base.RawXML.ce_template_attrib))
        (fun s -> Js.to_string s))
 
 let a_handler =
@@ -671,7 +671,7 @@ let form_handler =
 
 let relink_process_node (node:Dom_html.element Js.t) =
   let id = Js.Opt.get
-    (node##getAttribute(Js.string Eliom_pervasives_base.RawXML.node_id_attrib))
+    (node##getAttribute(Js.string Eliom_lib_base.RawXML.node_id_attrib))
     (fun () -> error "unique node without id attribute") in
   Js.Optdef.case (find_process_node id)
     (fun () -> register_process_node id (node:>Dom.node Js.t))
@@ -687,7 +687,7 @@ let relink_process_node (node:Dom_html.element Js.t) =
 
 let relink_request_node (node:Dom_html.element Js.t) =
   let id = Js.Opt.get
-    (node##getAttribute(Js.string Eliom_pervasives_base.RawXML.node_id_attrib))
+    (node##getAttribute(Js.string Eliom_lib_base.RawXML.node_id_attrib))
     (fun () -> error "unique node without id attribute") in
   Js.Optdef.case (find_request_node id)
     (fun () -> register_request_node id (node:>Dom.node Js.t))
@@ -707,11 +707,11 @@ let relink_request_nodes root =
 
 let relink_closure_node root onload table (node:Dom_html.element Js.t) =
   let aux attr =
-    if attr##value##substring(0,Eliom_pervasives_base.RawXML.closure_attr_prefix_len) =
-      Js.string Eliom_pervasives_base.RawXML.closure_attr_prefix
+    if attr##value##substring(0,Eliom_lib_base.RawXML.closure_attr_prefix_len) =
+      Js.string Eliom_lib_base.RawXML.closure_attr_prefix
     then
       let cid = Js.to_bytestring (attr##value##substring_toEnd(
-        Eliom_pervasives_base.RawXML.closure_attr_prefix_len)) in
+        Eliom_lib_base.RawXML.closure_attr_prefix_len)) in
       let (id,args) = XML.ClosureMap.find cid table in
       let closure = raw_event_handler id args in
       if attr##name = Js.string "onload" then

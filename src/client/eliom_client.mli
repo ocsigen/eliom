@@ -20,7 +20,7 @@
 
 (** Call server side services and change the current page. *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 (** Call a server side service and change the current page.
     If the service belongs to the same application,

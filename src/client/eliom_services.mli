@@ -22,7 +22,7 @@
     defined on client side. *)
 
 open Eliom_parameters
-open Eliom_pervasives
+open Eliom_lib
 
 (** {2 Types of services} *)
 

@@ -20,7 +20,7 @@
 
 (** Garbage collection of services and session data *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 open Lwt
 
@@ -138,7 +138,7 @@ let rec gc_timeouted_services now tables =
   >>= fun () ->
   tables.Eliom_common.table_services <- 
     List.filter
-    (fun r -> !(thd3 r) <> Eliom_common.Vide)
+    (fun r -> !(Tuple3.thd r) <> Eliom_common.Vide)
     tables.Eliom_common.table_services;
   Lwt.return ()
 

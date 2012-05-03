@@ -5,7 +5,7 @@ OCAMLDOC := ${OCAMLFIND} ocamldoc
 
 ODOC := $(addprefix ../../src/server/,$(DOC:.mli=.odoc))
 
-doc: odoc api-html/index.html api-man/Eliom_pervasives.server.3o
+doc: odoc api-html/index.html api-man/Eliom_lib.server.3o
 wikidoc: odoc api-wiki/index.wiki
 
 odoc:
@@ -15,7 +15,7 @@ api-html/index.html: indexdoc ${ODOC}
 	mkdir -p api-html
 	$(OCAMLDOC) ${LIBS} -d api-html -intro indexdoc $(addprefix -load ,${ODOC}) -html
 
-api-man/Eliom_pervasives.server.3o: ${ODOC}
+api-man/Eliom_lib.server.3o: ${ODOC}
 	mkdir -p api-man
 	$(OCAMLDOC) ${LIBS} -d api-man -man-mini $(addprefix -load ,${ODOC}) -man \
 	  -man-section 3o -man-suffix server.3o

@@ -22,7 +22,7 @@
 
 open Lwt
 
-open Eliom_pervasives
+open Eliom_lib
 open Eliom_common
 open Eliom_parameters
 open Eliom_services

@@ -57,7 +57,7 @@
 
 open Ocsigen_extensions
 
-open Eliom_pervasives
+open Eliom_lib
 
 (** Abstract type for service parameters. See for example the
     parameter [~get_param] of {!val:Eliom_services.service}.

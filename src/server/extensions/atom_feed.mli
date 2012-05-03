@@ -20,7 +20,7 @@
 
 (** Everything we need to make an atom feed. *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 (*
  * types {{{

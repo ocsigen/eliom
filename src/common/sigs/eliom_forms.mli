@@ -2,7 +2,7 @@
 (* When modifying this interface, please ensure that the ocamldoc is
    coherent with the ocamldoc from Eliom_uri. *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 open Eliom_parameters
 open Eliom_services

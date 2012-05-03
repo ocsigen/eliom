@@ -54,7 +54,7 @@ module Ocamlduce_content =
 
     let print x =
       let b = Buffer.create 256 in
-      XHTML_duce.P.print ~advert:Ocsigen_pervasives.advert ~output:(Buffer.add_string b) x;
+      XHTML_duce.P.print ~advert:Ocsigen_lib.advert ~output:(Buffer.add_string b) x;
       Buffer.contents b
 
     let get_etag c =
@@ -308,7 +308,7 @@ module TypedXML_content(TypedXML: XML_sigs_duce.TypedXML) = struct
   let print (x: TypedXML.doc) =
     let b = Buffer.create 256 in
     Print.print
-      ~advert:Ocsigen_pervasives.advert
+      ~advert:Ocsigen_lib.advert
       ~output:(Buffer.add_string b) x;
     Buffer.contents b
 

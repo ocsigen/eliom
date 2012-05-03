@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 (* The following lines are for Eliom_bus, Eliom_comet and Eliom_react to be linked. *)
 let _a = Eliom_react.force_link

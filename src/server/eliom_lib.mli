@@ -19,82 +19,31 @@
 
 (** Pervasives module for Eliom : it extends the OCaml stdlib and should always be opened. *)
 
+include module type of Ocsigen_lib
+  with type poly = Ocsigen_lib.poly
+  and type yesnomaybe = Ocsigen_lib.yesnomaybe
+  and type ('a, 'b) leftright = ('a, 'b) Ocsigen_lib.leftright
+  and type 'a Clist.t = 'a Ocsigen_lib.Clist.t
+  and type 'a Clist.node = 'a Ocsigen_lib.Clist.node
+  and type Ip_address.t = Ocsigen_lib.Ip_address.t
+
+include module type of Eliom_lib_base
+  with type 'a client_expr = 'a Eliom_lib_base.client_expr
+
 (** {2 Pervasives} *)
 
 exception Eliom_Internal_Error of string
 
-type ('a, 'b) leftright = Left of 'a | Right of 'b
-
-val map_option : ('a -> 'b) -> 'a option -> 'b option
-val iter_option : ('a -> unit) -> 'a option -> unit
-
-val fst3 : 'a * 'b * 'c -> 'a
-val snd3 : 'a * 'b * 'c -> 'b
-val thd3 : 'a * 'b * 'c -> 'c
-
 type file_info = Ocsigen_extensions.file_info
-
-(**/**)
-
-val (>>=) : 'a Lwt.t -> ('a -> 'b Lwt.t) -> 'b Lwt.t
-val (>|=) : 'a Lwt.t -> ('a -> 'b) -> 'b Lwt.t
-val (!!) : 'a Lazy.t -> 'a
-
-external id : 'a -> 'a = "%identity"
 
 val to_json : ?typ:'a Deriving_Json.t -> 'a -> string
 val of_json : ?typ:'a Deriving_Json.t -> string -> 'a
-val debug: ('a, unit, string, unit) format4 -> 'a
-
-type poly (* Warning: do not use [poly array]... *)
-val to_poly: 'a -> poly
-type 'a client_expr = int64 * poly
-
-(**/**)
-
-(** {2 Standard libraries extensions } *)
-
-(** Extension of the [List] module from the OCaml standard library. *)
-module List : sig
-  include module type of List
-  val assoc_remove : 'a -> ('a * 'b) list -> 'b * ('a * 'b) list
-  val remove_all_assoc : 'a -> ('a * 'b) list -> ('a * 'b) list
-  val remove_first_if_any : 'a -> 'a list -> 'a list
-  val remove_first_if_any_q : 'a -> 'a list -> 'a list
-  val map_filter : ('a -> 'b option) -> 'a list -> 'b list
-end
-
-(** Extension of the [String] module from the OCaml standard library. *)
-module String : sig
-
-  include module type of String
-
-  val basic_sep : char -> string -> string * string
-  val sep : char -> string -> string * string
-  val split : ?multisep:bool -> char -> string -> string list
-
-  val first_diff : string -> string -> int -> int -> int
-  val may_append : string -> sep:string -> string -> string (* WAS add_to_string *)
-  val may_concat : string -> sep:string -> string -> string (* WAS concat_strings *)
-
-  val make_cryptographic_safe : unit -> string
-
-  module Table : Map.S with type key = string
-                        and type 'a t = 'a Ocsigen_pervasives.String.Table.t
-  module Set : Set.S with type elt = string
-		     and type t = Ocsigen_pervasives.String.Set.t
-end
-
-(** Standard operations on integer. *)
-module Int : sig
-  module Table : Map.S with type key = int
-end
 
 (** {2 TyXML}
 
     XML tree manipulation within Eliom is based on the TyXML library
     but use a custom representation for XML values (see
-    {!XML}). Then, [Eliom_pervasives] redefines the three high level
+    {!XML}). Then, [Eliom_lib] redefines the three high level
     interfaces ({!SVG}, {!HTML5} and {!XHTML}) that are provided by
     TyXML for valid XML tree creation and printing. *)
 
@@ -124,7 +73,7 @@ module XML : sig
       information on {% <<a_manual chapter="client"
       fragment="syntax"|syntax extension>>%}). Such values are expected
       by functions like {!Eliom_services.on_load} or
-      {!Eliom_pervasives.HTML5.a_onclick}. The type parameter is the
+      {!Eliom_lib.HTML5.a_onclick}. The type parameter is the
       type of the javascript event expected by the handler, for
       example {% <<a_api project="js_of_ocaml" | type
       Dom_html.mouseEvent>>%} or {% <<a_api project="js_of_ocaml" | type
@@ -147,7 +96,7 @@ module XML : sig
 
   val event_handler_of_string : string -> event_handler
   val string_of_event_handler : event_handler -> string
-  val event_handler_of_js : int64 -> poly -> #Dom_html.event caml_event_handler
+  val event_handler_of_js : int64 -> Ocsigen_lib_base.poly -> #Dom_html.event caml_event_handler
   val event_handler_of_service :
     ( [ `A | `Form_get | `Form_post ]
       * (bool * string list) option
@@ -156,7 +105,7 @@ module XML : sig
   (* Deprecated alias. *)
   val event_of_string : string -> event_handler
   val string_of_handler : event_handler -> string
-  val event_of_js : int64 -> poly -> #Dom_html.event caml_event_handler
+  val event_of_js : int64 -> Ocsigen_lib_base.poly -> #Dom_html.event caml_event_handler
   val event_of_service :
     ( [ `A | `Form_get | `Form_post ]
       * (bool * string list) option
@@ -207,11 +156,11 @@ module SVG : sig
   (** The type of global SVG element identifier. *)
   type +'a id
 
-  (** See {!Eliom_pervasives.HTML5.new_elt_id} *)
+  (** See {!Eliom_lib.HTML5.new_elt_id} *)
   val new_elt_id: ?global:bool -> unit -> 'a id
-  (** See {!Eliom_pervasives.HTML5.create_named_elt} *)
+  (** See {!Eliom_lib.HTML5.create_named_elt} *)
   val create_named_elt: id:'a id -> 'a elt -> 'a elt
-  (** See {!Eliom_pervasives.HTML5.create_global_elt} *)
+  (** See {!Eliom_lib.HTML5.create_global_elt} *)
   val create_global_elt: 'a elt -> 'a elt
 
   (** {2 Printer} *)
@@ -488,43 +437,3 @@ module XHTML : sig
 
 end
 
-
-(** {2 Other libraries} *)
-
-(** Helpers for Url manipulations *)
-module Url : sig
-
-  type t = Ocsigen_pervasives.Url.t
-  type uri = Ocsigen_pervasives.Url.uri
-  type path = Ocsigen_pervasives.Url.path
-
-  val make_absolute_url :
-      https:bool -> host:string -> port:int -> uri -> t
-
-  val remove_slash_at_beginning : path -> path
-  val remove_internal_slash : path -> path
-  val is_prefix_skip_end_slash : string list -> string list -> bool
-  val change_empty_list : path -> path
-
-  val string_of_url_path : encode:bool -> path -> uri
-
-  val make_encoded_parameters : (string * string) list -> uri
-
-  val encode : ?plus:bool -> string -> string
-  val decode : ?plus:bool -> string -> string
-
-end
-
-(** Helpers for IP addresses manipulations *)
-module Ip_address : sig
-
-  type t = Ocsigen_pervasives.Ip_address.t =
-    | IPv4 of int32
-    | IPv6 of int64 * int64
-
-  val parse : string -> t * (t option)
-
-  val network_of_ip : t -> int32 -> int64 * int64 -> t
-  val inet6_addr_loopback : t
-
-end

@@ -26,7 +26,7 @@
    - Antother part is sent with each request
 *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 let (>>>) x f = f x
 

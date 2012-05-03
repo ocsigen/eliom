@@ -26,7 +26,7 @@
 (*****************************************************************************)
 (*****************************************************************************)
 
-open Eliom_pervasives
+open Eliom_lib
 
 open Lwt
 open Ocsigen_http_frame
@@ -164,7 +164,7 @@ let new_sitedata =
                by removing the group from its dlist: *)
             Eliommod_sessiongroups.Data.remove_group fullbrowsersessgrp;
             (* Then we close all group tables: *)
-            let key = match thd3 fullbrowsersessgrp with
+            let key = match Tuple3.thd fullbrowsersessgrp with
               | Left a -> a
               | _ -> Eliom_common.default_group_name
             in
@@ -737,7 +737,7 @@ let parse_config hostpattern conf_info site_dir =
               scope
 	  in
           f
-            ?fullsessname:(map_option make_fullsessname state_name_oo)
+            ?fullsessname:(Option.map make_fullsessname state_name_oo)
             ?cookie_scope:(Some cookie_type)
             ~recompute_expdates:false
             true

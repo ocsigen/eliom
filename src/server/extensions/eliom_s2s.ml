@@ -17,7 +17,7 @@
  *)
 (* Server To Server communication *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 open Lwt
 open Ocsigen_stream
@@ -41,7 +41,7 @@ let strip ?(sep = '.') v s = try
   with Not_found -> None
 
 let strip2 ?sep v (name, value) =
-    map_option (fun y -> y, value) (strip ?sep v name)
+    Option.map (fun y -> y, value) (strip ?sep v name)
 
 
 (* Parameters *)

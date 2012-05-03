@@ -18,7 +18,7 @@
 
 (** OpenID identification *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 (** This module implements the Relying Party of the OpenID specification,
     in stateful mode. *)

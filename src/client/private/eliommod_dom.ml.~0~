@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_lib
+open Eliom_pervasives
 
 class type ['node] unsafe_nodeList = object
   method item : int -> 'node Js.t Js.meth
@@ -84,20 +84,20 @@ let ancessor =
   else slow_ancessor
 
 let fast_select_request_nodes root =
-  root##querySelectorAll(Js.string ("."^Eliom_lib_base.RawXML.request_node_class))
+  root##querySelectorAll(Js.string ("."^Eliom_pervasives_base.RawXML.request_node_class))
 
 let fast_select_nodes root =
   if !Eliom_config.debug_timings then
     Firebug.console##time(Js.string "fast_select_nodes");
   let a_nodeList : Dom_html.element Dom.nodeList Js.t =
-    root##querySelectorAll(Js.string ("a."^Eliom_lib_base.RawXML.ce_call_service_class)) in
+    root##querySelectorAll(Js.string ("a."^Eliom_pervasives_base.RawXML.ce_call_service_class)) in
   let a_nodeList : Dom_html.anchorElement Dom.nodeList Js.t = Js.Unsafe.coerce a_nodeList in
   let form_nodeList : Dom_html.element Dom.nodeList Js.t =
-    root##querySelectorAll(Js.string ("form."^Eliom_lib_base.RawXML.ce_call_service_class)) in
+    root##querySelectorAll(Js.string ("form."^Eliom_pervasives_base.RawXML.ce_call_service_class)) in
   let form_nodeList : Dom_html.formElement Dom.nodeList Js.t = Js.Unsafe.coerce form_nodeList in
-  let process_node_nodeList = root##querySelectorAll(Js.string ("."^Eliom_lib_base.RawXML.process_node_class)) in
+  let process_node_nodeList = root##querySelectorAll(Js.string ("."^Eliom_pervasives_base.RawXML.process_node_class)) in
   let closure_nodeList =
-    root##querySelectorAll(Js.string ("."^Eliom_lib_base.RawXML.ce_registered_closure_class)) in
+    root##querySelectorAll(Js.string ("."^Eliom_pervasives_base.RawXML.ce_registered_closure_class)) in
   if !Eliom_config.debug_timings then
     Firebug.console##timeEnd(Js.string "fast_select_nodes");
   a_nodeList, form_nodeList, process_node_nodeList, closure_nodeList
@@ -108,11 +108,11 @@ let slow_has_classes (node:Dom_html.element Js.t) =
   let found_process_node = ref false in
   let found_closure = ref false in
   for i = 0 to (classes##length) - 1 do
-    found_call_service := (Js.array_get classes i == Js.def (Js.string Eliom_lib_base.RawXML.ce_call_service_class))
+    found_call_service := (Js.array_get classes i == Js.def (Js.string Eliom_pervasives_base.RawXML.ce_call_service_class))
     || !found_call_service;
-    found_process_node := (Js.array_get classes i == Js.def (Js.string Eliom_lib_base.RawXML.process_node_class))
+    found_process_node := (Js.array_get classes i == Js.def (Js.string Eliom_pervasives_base.RawXML.process_node_class))
     || !found_process_node;
-    found_closure := (Js.array_get classes i == Js.def (Js.string Eliom_lib_base.RawXML.ce_registered_closure_class))
+    found_closure := (Js.array_get classes i == Js.def (Js.string Eliom_pervasives_base.RawXML.ce_registered_closure_class))
     || !found_closure;
   done;
   !found_call_service,!found_process_node,!found_closure
@@ -121,18 +121,18 @@ let slow_has_request_class (node:Dom_html.element Js.t) =
   let classes = Js.str_array (node##className##split(Js.string " ")) in
   let found_request_node = ref false in
   for i = 0 to (classes##length) - 1 do
-    found_request_node := (Js.array_get classes i == Js.def (Js.string Eliom_lib_base.RawXML.request_node_class))
+    found_request_node := (Js.array_get classes i == Js.def (Js.string Eliom_pervasives_base.RawXML.request_node_class))
     || !found_request_node;
   done;
   !found_request_node
 
 let fast_has_classes (node:Dom_html.element Js.t) =
-  Js.to_bool (node##classList##contains((Js.string Eliom_lib_base.RawXML.ce_call_service_class))),
-  Js.to_bool (node##classList##contains((Js.string Eliom_lib_base.RawXML.process_node_class))),
-  Js.to_bool (node##classList##contains((Js.string Eliom_lib_base.RawXML.ce_registered_closure_class)))
+  Js.to_bool (node##classList##contains((Js.string Eliom_pervasives_base.RawXML.ce_call_service_class))),
+  Js.to_bool (node##classList##contains((Js.string Eliom_pervasives_base.RawXML.process_node_class))),
+  Js.to_bool (node##classList##contains((Js.string Eliom_pervasives_base.RawXML.ce_registered_closure_class)))
 
 let fast_has_request_class (node:Dom_html.element Js.t) =
-  Js.to_bool (node##classList##contains((Js.string Eliom_lib_base.RawXML.request_node_class)))
+  Js.to_bool (node##classList##contains((Js.string Eliom_pervasives_base.RawXML.request_node_class)))
 
 let has_classes : Dom_html.element Js.t -> (bool*bool*bool) =
   if test_classList ()
@@ -299,14 +299,14 @@ let copy_element (e:Dom.element Js.t)
   let rec aux (e:Dom.element Js.t) =
     let copy = Dom_html.document##createElement(e##tagName) in
     let node_id = Js.Opt.to_option
-      (e##getAttribute(Js.string Eliom_lib_base.RawXML.node_id_attrib)) in
+      (e##getAttribute(Js.string Eliom_pervasives_base.RawXML.node_id_attrib)) in
     match node_id with
       | Some id when registered_process_node id ->
-	Js.Opt.iter
-	  (e##getAttribute(Js.string "class"))
-	  (fun classes -> copy##setAttribute(Js.string "class",classes));
-	copy##setAttribute(Js.string Eliom_pervasives_base.RawXML.node_id_attrib,id);
-	Some copy
+        Js.Opt.iter
+          (e##getAttribute(Js.string "class"))
+          (fun classes -> copy##setAttribute(Js.string "class",classes));
+        copy##setAttribute(Js.string Eliom_pervasives_base.RawXML.node_id_attrib,id);
+        Some copy
       | _ ->
         let add_attribute a =
           Js.Opt.iter (Dom.CoerceTo.attr a)

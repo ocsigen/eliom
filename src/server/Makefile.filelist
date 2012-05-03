@@ -1,5 +1,5 @@
 
-INTF := eliom_pervasives.cmi        \
+INTF := eliom_lib.cmi        \
         eliom_cookies.cmi           \
         eliom_common.cmi            \
         eliom_types.cmi             \
@@ -56,7 +56,7 @@ NATIMPL += eliom_duce.cmxs
 endif
 endif
 
-NOP4  := eliom_pervasives.mli \
+NOP4  := eliom_lib.mli \
          eliom_duce.mli       \
          eliom_duce_tools.mli \
          eliom_duce_types.mli \

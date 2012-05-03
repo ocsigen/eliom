@@ -115,12 +115,12 @@ p ~a:[a_onclick {{ Dom_html.window##alert(Js.string "clicked!") }}]
 
 Those client-side code block are classical OCaml values ; their type
 is <<a_api project="eliom" | type
-Eliom_pervasives.XML.caml_event_handler >>. Inside those code-block,
+Eliom_lib.XML.caml_event_handler >>. Inside those code-block,
 an implicit {{{_ev}}} variable represent the javascript <<a_api
 project="js_of_ocaml" text="event object" | type Dom_html.event >>.
 On client side, this specific syntax is not required: function like
 <<a_api subproject="client" text="a_onclick"|
-val Eliom_pervasives.HTML5.a_onclick >> expect a function of type
+val Eliom_lib.HTML5.a_onclick >> expect a function of type
 {{{#Dom_html.event -> unit}}} as parameter.
 
 ====@@id="syntax%"@@ Using server side values on client side
@@ -398,10 +398,10 @@ two different page will produce two distinct nodes. If you want to
 define a element reference that is preserved accross the different
 page of an application, you must explicitely name this element with
 the function <<a_api subproject="server" | val
-Eliom_pervasives.HTML5.create_named_elt >>, that take as parameters an
+Eliom_lib.HTML5.create_named_elt >>, that take as parameters an
 element identifier and a non named element.  Element identifiers are
 created with the function <<a_api subproject="server" | val
-Eliom_pervasives.HTML5.new_elt_id >>. See also section <<a_manual
+Eliom_lib.HTML5.new_elt_id >>. See also section <<a_manual
 chapter="client" fragment="global" |Global elements of an
 application>>.
 
@@ -422,7 +422,7 @@ instance is used in every page that references the element.
 
 You could create a global element with the function <<a_api
 subproject="client" text="HTML5.create_global_elt"| val
-Eliom_pervasives.HTML5.create_global_elt >>.
+Eliom_lib.HTML5.create_global_elt >>.
 
 <<code language="ocaml"|
 val create_global_elt: 'a elt -> 'a elt

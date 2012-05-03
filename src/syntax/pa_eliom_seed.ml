@@ -172,7 +172,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	| _ -> assert false
       let extract_event_handler_type = function
 	  (* | <:sig_item< val $id$ : ($t$ option ref) >> -> *)
-	| Ast.SgVal (_loc, id, <:ctyp< ($t$ Eliom_pervasives.XML.caml_event_handler option ref) >>) ->
+	| Ast.SgVal (_loc, id, <:ctyp< ($t$ Eliom_lib.XML.caml_event_handler option ref) >>) ->
 	    let len = String.length id - event_handler_ident_prefix_len in
 	    Int64.of_string (String.sub id event_handler_ident_prefix_len len),
 	    suppress_underscore t
@@ -489,12 +489,12 @@ module Make(Syntax : Camlp4.Sig.Camlp4Syntax) = struct
 
   implem: FIRST
     [[ (sil, stopped) = implem LEVEL "top" ->
-      ( <:str_item< open Eliom_pervasives >>:: sil , stopped) ]
+      ( <:str_item< open Eliom_lib >>:: sil , stopped) ]
   | "top" [] ];
 
   interf: FIRST
     [[ (sil, stopped) = interf LEVEL "top" ->
-      ( <:sig_item< open Eliom_pervasives >> :: sil , stopped) ]
+      ( <:sig_item< open Eliom_lib >> :: sil , stopped) ]
   | "top" [] ];
 
   END

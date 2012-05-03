@@ -20,7 +20,7 @@
 
 (** Types shared by client and server. *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 type sitedata = {
   site_dir: string list;

@@ -29,7 +29,7 @@
 
 (** {% <<outline>> %}*)
 
-open Eliom_pervasives
+open Eliom_lib
 
 (** {2 Type definitions} *)
 

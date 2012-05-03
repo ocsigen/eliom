@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_pervasives
+open Eliom_lib
 open Ocsigen_cookies
 
 include Eliom_cookies_base
@@ -65,7 +65,7 @@ let get_cookies_to_send host https path =
   let now = now () in
   Cookies.fold
     (fun cpath t cookies_to_send ->
-      if List.is_prefix_skip_end_slash
+      if Url.is_prefix_skip_end_slash
           (Url.remove_slash_at_beginning cpath)
           (Url.remove_slash_at_beginning path)
       then CookiesTable.fold

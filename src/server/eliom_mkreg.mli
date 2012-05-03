@@ -24,7 +24,7 @@
    It is used for example in {!Eliom_output}.
  *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 open Ocsigen_extensions
 open Eliom_state

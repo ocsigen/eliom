@@ -25,7 +25,7 @@ Manage server-side state.
 
 *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 open Ocsigen_extensions
 

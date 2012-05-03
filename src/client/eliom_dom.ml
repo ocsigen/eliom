@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 let get_node elt = (Eliom_client.Html5.of_element elt :> Dom.node Js.t)
 let get_unique_node name (elt: 'a HTML5.elt) : Dom.node Js.t =
@@ -358,7 +358,7 @@ module Css = struct
     Js.to_bytestring (elt##style##minWidth)
   let opacity elt =
     let elt = get_unique_elt "Css.opacity" elt in
-    map_option Js.to_bytestring (Js.Optdef.to_option (elt##style##opacity))
+    Option.map Js.to_bytestring (Js.Optdef.to_option (elt##style##opacity))
   let outline elt =
     let elt = get_unique_elt "Css.outline" elt in
     Js.to_bytestring (elt##style##outline)

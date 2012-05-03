@@ -1,4 +1,4 @@
-open Eliom_pervasives
+open Eliom_lib
 open Ocsigen_cookies
 
 type cookie = Ocsigen_cookies.cookie =

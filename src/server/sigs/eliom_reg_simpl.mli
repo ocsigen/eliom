@@ -1,4 +1,4 @@
-open Eliom_pervasives
+open Eliom_lib
 open Eliom_parameters
 open Eliom_services
 

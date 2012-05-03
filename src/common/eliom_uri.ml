@@ -19,7 +19,7 @@
  *)
 
 
-open Eliom_pervasives
+open Eliom_lib
 
 open Eliom_parameters
 open Eliom_services
@@ -328,7 +328,7 @@ let make_uri_components
         then uri ^ suff
         else String.concat "/" [uri; suff]
   in
-  let fragment = map_option Url.encode fragment in
+  let fragment = Option.map Url.encode fragment in
   (uri, (params@pregetparams), fragment)
 
 

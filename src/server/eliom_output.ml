@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 open Eliom_services
 open Eliom_parameters
@@ -1332,8 +1332,7 @@ module HtmlText_forms_base = struct
   type button_type_t = string
 
   let hidden = "hidden"
-(*  let text = "text"
-  let password = "password" *)
+  (* let text = "text" let password = "password" *)
   let checkbox = "checkbox"
   let radio = "radio"
   let submit = "submit"
@@ -1383,7 +1382,7 @@ module HtmlText_forms_base = struct
   let empty_seq = ""
   let cons_hidden_fieldset fields content =
     "<fieldset style=\"display: none;\">"
-    ^ Eliom_pervasives.String.concat "" fields
+    ^ Eliom_lib.String.concat "" fields
     ^ "</fieldset>"
     ^ content
 

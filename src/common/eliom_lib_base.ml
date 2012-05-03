@@ -1,46 +1,13 @@
+
+open Ocsigen_lib_base
+
 exception Eliom_Internal_Error of string
 
-external id : 'a -> 'a = "%identity"
-
-let (>>=) = Lwt.(>>=)
-let (>|=) = Lwt.(>|=)
-let (!!) = Lazy.force
-
-let comp f g x = f (g x)
-let uncurry2 f (x, y) = f x y
-
-type yesnomaybe = Yes | No | Maybe
-type ('a, 'b) leftright = Left of 'a | Right of 'b
-
-let map_option f = function
-  | None -> None
-  | Some v -> Some (f v)
-
-let iter_option f = function
-  | None -> ()
-  | Some v -> (f v)
-
-let fst3 (a, _, _) = a
-let snd3 (_, a, _) = a
-let thd3 (_, _, a) = a
-
-type poly
-external to_poly : 'a -> poly = "%identity"
-external from_poly : poly -> 'a = "%identity"
+(**/**)
 
 type 'a client_expr = int64 * poly
 
-module List_base = struct
-  let map_filter f l =
-    let rec aux acc = function
-      | [] -> acc
-      | t::q ->
-	match f t with
-	  | None -> aux acc q
-	  | Some r -> aux (r::acc) q
-    in
-    List.rev (aux [] l)
-end
+(**/**)
 
 let tyxml_unwrap_id_int = 1
 

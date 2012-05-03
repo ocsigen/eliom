@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 let make_full_named_group_name_ ~cookie_scope sitedata g =
   (sitedata.Eliom_common.site_dir_string, cookie_scope, Left g)
@@ -156,7 +156,7 @@ struct
         | None, _ -> assert false
         | Some v, _ -> v
       in
-      let cookie_scope = snd3 sess_grp in
+      let cookie_scope = Tuple3.snd sess_grp in
       let cl = Ocsigen_cache.Dlist.create size in
       Ocsigen_cache.Dlist.set_finaliser_after
         (fun node ->
@@ -190,7 +190,7 @@ struct
           | _ -> None
       in
       let group_of_group_data =
-        map_option
+        Option.map
           (A.create_group_of_group_data sitedata) node_in_group_of_group
       in
       GroupTable.add grouptable sess_grp (group_of_group_data, cl);

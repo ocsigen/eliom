@@ -2644,7 +2644,7 @@ let dead_links =
 
 let () = My_appl.register ~service:live1 (fun () () ->
     Eliom_services.onload {{ debug "Page 1 loading"; pinger := Some (loop 2. 0 loop_counter) }};
-    Eliom_services.onunload {{ debug "Page 1 unloading"; iter_option Lwt.cancel !pinger }};
+    Eliom_services.onunload {{ debug "Page 1 unloading"; Option.iter Lwt.cancel !pinger }};
     Lwt.return
       (make_page [h1 [pcdata "Page one"]; live_description; live_links; dead_links]))
 
@@ -3217,7 +3217,7 @@ let _ =
   let r,push = React.S.create 0
 
   let react_node node r =
-    let init = React.S.value r in
+    let _init = React.S.value r in
     let node_dom = Eliom_client.Html5.of_element node in
     let s = React.S.map (fun sons ->
       List.iter (fun n -> ignore (node_dom##removeChild((n:> Dom.node Js.t))))
@@ -3261,7 +3261,7 @@ let caml_service_with_onload' =
                   (Dom_html.handler (fun _ -> Dom_html.window##alert(Js.string "clicked!"); Js._true))
                   Js._true);
         () }};
-      Lwt.return (node : HTML5_types.div Eliom_pervasives.HTML5.M.elt))
+      Lwt.return (node : HTML5_types.div Eliom_lib.HTML5.M.elt))
 
 let caml_service_with_onload =
   My_appl.register_service
@@ -3718,17 +3718,17 @@ let () =
   Printf.printf "*************************************\n";
   Printf.printf "* Eliom_config.parse_config results *\n%!";
   Printf.printf "optional-elt@optional-attr: %s\n%!"
-    (Ocsigen_pervasives.Option.get
+    (Ocsigen_lib.Option.get
        (fun () -> "---") !elt1_a1);
   Printf.printf "optional-elt@obligatory-attr: %s\n%!"
-    (Ocsigen_pervasives.Option.get (fun () -> "---") !elt1_a2);
+    (Ocsigen_lib.Option.get (fun () -> "---") !elt1_a2);
   Printf.printf "optional-elt init called: %b\n%!" !elt1_init_called;
   Printf.printf "optional-elt > obligatory-elt PCDATA: %s\n%!"
-    (Ocsigen_pervasives.Option.get (fun () -> "---") !elt1_e1_pcdata);
+    (Ocsigen_lib.Option.get (fun () -> "---") !elt1_e1_pcdata);
   Printf.printf "obligatory-elt@optional-attr-b: %s\n%!"
-    (Ocsigen_pervasives.Option.get (fun () -> "---") !x1);
+    (Ocsigen_lib.Option.get (fun () -> "---") !x1);
   Printf.printf "obligatory-elt@obligatory-attr-b: %s\n%!"
-    (Ocsigen_pervasives.Option.get (fun () -> "---") !x2);
+    (Ocsigen_lib.Option.get (fun () -> "---") !x2);
   Printf.printf "obligatory-elt ATTRIBUTES: %s\n%!"
     (String.concat " " !elt2_other_attributes);
   Printf.printf "obligatory-elt ELEMENTS: %s\n%!"

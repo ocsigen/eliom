@@ -18,7 +18,7 @@
 
 (* TODO: factorize function with eliom_duce_tools? *)
 
-open Eliom_pervasives
+open Eliom_lib
 open Eliom_services
 
 include Eliom_tools_common

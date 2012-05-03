@@ -51,9 +51,12 @@ The main predefined output modules are:
 <<paragraph| Generating content for the browser >>
 
 ;<<a_api| module Eliom_output.Html5 >> (and <<a_api| module Eliom_output.Xhtml >>)
-: Allows to register functions that generate html5 pages statically checked using polymorphic variant types. You may use constructor functions from <<a_api | module Eliom_pervasives.HTML5.M >> (resp <<a_api | module Eliom_pervasives.XHTML.M >>) or a syntax extension close to the standard html syntax.
+: Allows to register functions that generate html5 pages statically checked
+using polymorphic variant types. You may use constructor functions from <<a_api
+| module Eliom_lib.HTML5.M >> (resp <<a_api | module Eliom_lib.XHTML.M >>) or a syntax extension close to the standard html syntax.
 ;<<a_api| module Eliom_output.Flow5 >> (and <<a_api| module Eliom_output.Blocks >>)
-: Allows to register functions that generate a portion of page using <<a_api | module Eliom_pervasives.HTML5.M >> (resp <<a_api | module Eliom_pervasives.XHTML.M >>) or the syntax extension. (useful for <<span class="code"|XMLHttpRequest>> requests for example). Do not use with Eliom application: use <<a_api| module Eliom_output.Caml >> instead.
+: Allows to register functions that generate a portion of page using <<a_api |
+module Eliom_lib.HTML5.M >> (resp <<a_api | module Eliom_lib.XHTML.M >>) or the syntax extension. (useful for <<span class="code"|XMLHttpRequest>> requests for example). Do not use with Eliom application: use <<a_api| module Eliom_output.Caml >> instead.
 ;<<a_api| module Eliom_duce.Xhtml >>
 : Allows to register functions that generate XHTML 1.1 pages   statically checked using <<span class="code"|OCamlduce>>. Typing is   stricter, and you need a modified version of the OCaml compiler   (OCamlduce).
 ;<<a_api| module Eliom_output.HtmlText >>

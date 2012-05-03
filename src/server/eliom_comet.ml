@@ -21,7 +21,7 @@
 
 (* TODO: handle ended stream ( and on client side too ) *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 (* Shortening names of modules *)
 module OFrame  = Ocsigen_http_frame
@@ -73,7 +73,7 @@ let fallback_global_service =
       ~get_params:Eliom_parameters.unit
       (fun () () -> Lwt.return (error_msg "request with no post parameters or there isn't any registered site comet channel")))
 
-let new_id = String.make_cryptographic_safe
+let new_id = make_cryptographic_safe_string
 
 (* ocsigenserver needs to be modified for this to be configurable:
    the connection is closed after a fixed time if the server does not send anything.

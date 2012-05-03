@@ -7,6 +7,6 @@ type result = result
 (**/**)
 
 (* Dummy open as an incantation for the Camlp4-Ocamldoc deity... *)
-open Eliom_pervasives
+open Eliom_lib
 
 include "eliom_reg_simpl.mli"

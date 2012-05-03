@@ -1,7 +1,7 @@
 {1 Server API}
 
 {!modules:
-Eliom_pervasives
+Eliom_lib
 Eliom_common
 Eliom_config
 Eliom_request_info
@@ -10,9 +10,9 @@ Eliom_request_info
 {2 HTML}
 
 {!modules:
-Eliom_pervasives.HTML5
+Eliom_lib.HTML5
 Eliom_output.Html5
-Eliom_pervasives.XHTML
+Eliom_lib.XHTML
 }
 
 {2 Services creation and service handler}

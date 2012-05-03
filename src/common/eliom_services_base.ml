@@ -19,7 +19,7 @@
 
 (* Manipulation of services - this code can be use on server or client side. *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 open Lwt
 open Lazy

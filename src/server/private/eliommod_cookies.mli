@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_pervasives
+open Eliom_lib
 open Ocsigen_cookies
 
 val cookieset_to_json : Ocsigen_cookies.cookieset -> string

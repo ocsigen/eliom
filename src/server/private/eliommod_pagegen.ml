@@ -20,7 +20,7 @@
 
 (** Page generation *)
 
-open Eliom_pervasives
+open Eliom_lib
 open Lwt
 
 module Xhtml_content = Ocsigen_senders.Make_XML_Content(XML)(XHTML.M)

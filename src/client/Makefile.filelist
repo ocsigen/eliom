@@ -1,6 +1,6 @@
 
 INTF := eliom_lazy.cmi        \
-        eliom_pervasives.cmi        \
+        eliom_lib.cmi        \
         eliom_parameters.cmi        \
         eliom_services.cmi          \
         eliom_uri.cmi               \
@@ -21,7 +21,7 @@ STUBS := dlleliom_client.so \
 	 libeliom_client.a  \
 	 eliom_client.js    \
 
-NOP4 := eliom_pervasives.mli
+NOP4 := eliom_lib.mli
 
 DOC := ${INTF:.cmi=.mli} \
        eliom_output_base.mli \

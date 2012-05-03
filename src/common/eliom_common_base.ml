@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_pervasives
+open Eliom_lib
 
 open Ocsigen_cookies
 
@@ -235,7 +235,7 @@ type sess_info =
 
 (************ unwrapping identifiers *********************)
 
-let tyxml_unwrap_id_int = Eliom_pervasives_base.tyxml_unwrap_id_int (* 1 *)
+let tyxml_unwrap_id_int = Eliom_lib_base.tyxml_unwrap_id_int (* 1 *)
 let comet_channel_unwrap_id_int = 2
 let react_up_unwrap_id_int = 3
 let react_down_unwrap_id_int = 4

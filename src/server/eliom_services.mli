@@ -29,7 +29,7 @@
 
 open Ocsigen_extensions
 
-open Eliom_pervasives
+open Eliom_lib
 open Eliom_parameters
 
 

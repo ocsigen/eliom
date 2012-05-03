@@ -1,5 +1,5 @@
 
-open Eliom_pervasives
+open Eliom_lib
 
 include Eliom_output_base
 
