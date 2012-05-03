@@ -988,8 +988,9 @@ end
 
 module Html5_forms = struct
 
-  module DOM = MakeApplForms(Open_Html5_forms(Eliom_mkforms.MakeForms(Html5_forms_base(HTML5.DOM))))
-  include DOM
-  module M = MakeApplForms(Open_Html5_forms(Eliom_mkforms.MakeForms(Html5_forms_base(HTML5.M))))
+  module D = MakeApplForms(Open_Html5_forms(Eliom_mkforms.MakeForms(Html5_forms_base(HTML5.D))))
+  include D
+
+  module F = MakeApplForms(Open_Html5_forms(Eliom_mkforms.MakeForms(Html5_forms_base(HTML5.F))))
 
 end

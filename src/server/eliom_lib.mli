@@ -54,9 +54,6 @@ module XML : sig
 
   include XML_sigs.Iterable
 
-  (** Typed interface for building valid HTML5 tree (DOM semantics). See
-      {% <<a_api project="tyxml" | module type HTML5_sigs.T >> %}. *)
-
   (** {2 Unique nodes } *)
 
   (** Unique nodes are XML nodes that are manipulated 'by reference'
@@ -136,7 +133,7 @@ module SVG : sig
 
   (** Typed interface for building valid SVG tree (DOM semantics). See
       {% <<a_api project="tyxml" | module type SVG_sigs.T >> %}. *)
-  module DOM : SVG_sigs.T with module XML := XML
+  module D : SVG_sigs.T with module XML := XML
 		        and type 'a elt = 'a elt
 		        and type 'a attrib = 'a attrib
 		        and type uri = uri
@@ -146,7 +143,7 @@ module SVG : sig
   (** Typed interface for building valid SVG tree (functional
       semantics). See {% <<a_api project="tyxml" | module type
       SVG_sigs.T >> %}. *)
-  module M : SVG_sigs.T with module XML := XML
+  module F : SVG_sigs.T with module XML := XML
 		        and type 'a elt = 'a elt
 		        and type 'a attrib = 'a attrib
 		        and type uri = uri
@@ -167,8 +164,8 @@ module SVG : sig
 
   (** SVG printer.
       See {% <<a_api project="tyxml" | module type XML_sigs.TypedSimplePrinter >> %}. *)
-  module P : XML_sigs.TypedSimplePrinter with type 'a elt := 'a M.elt
-					  and type doc := M.doc
+  module P : XML_sigs.TypedSimplePrinter with type 'a elt := 'a F.elt
+					  and type doc := F.doc
 
 end
 
@@ -188,10 +185,10 @@ module HTML5 : sig
 
   (** Typed interface for building valid HTML5 tree (DOM semantics). See
       {% <<a_api project="tyxml" | module type HTML5_sigs.T >> %}. *)
-  module DOM : sig
+  module D : sig
 
     (** See {% <<a_api project="tyxml" | module type HTML5_sigs.T >> %}. *)
-    include HTML5_sigs.T with module XML := XML and module SVG := SVG.DOM
+    include HTML5_sigs.T with module XML := XML and module SVG := SVG.D
 		         and type 'a elt = 'a elt
 		         and type 'a attrib = 'a attrib
 		         and type uri = uri
@@ -215,10 +212,10 @@ module HTML5 : sig
   (** Typed interface for building valid HTML5 tree (functional
       semantics). See {% <<a_api project="tyxml" | module type
       HTML5_sigs.T >> %}. *)
-  module M : sig
+  module F : sig
 
     (** See {% <<a_api project="tyxml" | module type HTML5_sigs.T >> %}. *)
-    include HTML5_sigs.T with module XML := XML and module SVG := SVG.M
+    include HTML5_sigs.T with module XML := XML and module SVG := SVG.F
 		         and type 'a elt = 'a elt
 		         and type 'a attrib = 'a attrib
 		         and type uri = uri
@@ -264,8 +261,8 @@ module HTML5 : sig
 
   (** {{:http://dev.w3.org/html5/html-xhtml-author-guide/}"Polyglot"} HTML5 printer.
      See {% <<a_api project="tyxml" | module type XML_sigs.TypedSimplePrinter >> %}. *)
-  module P : XML_sigs.TypedSimplePrinter with type 'a elt := 'a M.elt
-					  and type doc := M.doc
+  module P : XML_sigs.TypedSimplePrinter with type 'a elt := 'a F.elt
+					  and type doc := F.doc
 
   (** {2 Event handlers} *)
 
@@ -355,7 +352,7 @@ end
 module XHTML : sig
 
   (** Typed interface for building valid XHTML (Strict) tree. *)
-  module M : sig
+  module F : sig
 
     include XHTML_sigs.T with module XML := XML
 
@@ -378,8 +375,8 @@ module XHTML : sig
       [text/html]. This however has some
       {{:http://hixie.ch/advocacy/xhtml}limitations}. *)
   module P : XML_sigs.TypedSimplePrinter
-    with type 'a elt := 'a M.elt
-    and type doc := M.doc
+    with type 'a elt := 'a F.elt
+    and type doc := F.doc
 
   (** Typed interface for building valid XHTML (1.0 Strict) tree. *)
   module M_01_00 : sig

@@ -18,16 +18,16 @@
       <p>With Ocsigen, you don't write one file for each URL.
           You write a caml module (cmo or cma) for your whole website.</p>
       <p>
-          The <code>XHTML.M</code> module defines functions to construct html.
+          The <code>XHTML.F</code> module defines functions to construct html.
           The <code>Ocsigen</code> module gives access to all the
           functions you need to communicate with the Ocsigen server,
           and <code>Ocsigen.Xhtml</code> defines all the functions you need
-          to create new services that use the XHTML.M module.
+          to create new services that use the XHTML.F module.
           As the second one redefines some functions of the first one,
           open them in this order:
       </p>
 *html*)
-open XHTML.M
+open XHTML.F
 open Ocsigen
 open Ocsigen.Xhtml
 open Lwt
@@ -89,9 +89,9 @@ let coucou =
     </div>
     <div class="twocol2">
         <p>You have the following error message:</p>
-<pre>This expression has type ([&gt; `PCDATA ] as 'a) XHTML.M.elt
+<pre>This expression has type ([&gt; `PCDATA ] as 'a) XHTML.F.elt
 but is here used with type
-([&lt; XHTML.M.block ] as 'b) XHTML.M.elt
+([&lt; XHTML.F.block ] as 'b) XHTML.F.elt
 Type 'a is not compatible with type
 'b =
   [&lt; `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset
@@ -149,7 +149,7 @@ let coucou1 =
    &lt;/html<span class="Cnonalphakeyword">&gt;</span> &gt;&gt;</pre>
       <p>
         We recommand to use preferably
-        the functions from <code>XHTML.M</code>, as you will (almost)
+        the functions from <code>XHTML.F</code>, as you will (almost)
         always get valid xhtml.
         Use the syntax extension for example to enclose already created pieces
         of html, and verify the validity of your pages with the
@@ -162,7 +162,7 @@ let coucou1 =
 (*              ["http://theorie.physik.uni-wuerzburg.de/~ohl/xhtml/"] *)
               unit unit ())
            sp <:xmllist< More info >> ()$
-        on <code>XHTML.M</code>.
+        on <code>XHTML.F</code>.
       </p>
       <p>
        $a xhtmlsyntax sp <:xmllist< More info >> ()$ on the syntax extension.
@@ -171,7 +171,7 @@ let coucou1 =
       <div class="encadre">
         <h3>Ocsigen and OCamlDuce</h3>
         <p>If OCamlDuce is installed on your system, it is now possible to use
-        it instead of XHTML.M to typecheck your pages. You get a stronger
+        it instead of XHTML.F to typecheck your pages. You get a stronger
         typing
         and more flexibility (easier to use other XML types, easier to parse
         incoming XML data, etc.).</p>
@@ -581,7 +581,7 @@ let my_service_with_get_and_post = register_new_post_service
        <p> To create a POST form, use the <code>post_form</code> function,
            possibly applied to GET parameters (if any).
            Here <code>form2</code> is a page containig a form
-           to the service <code>post</code> (using XHTML.M's functions)
+           to the service <code>post</code> (using XHTML.F's functions)
            and <code>form3</code> (defined using the syntax extension)
            contains a form to <code>post2</code>, with a GET parameter.
            <code>form4</code> is a form to an external page.
@@ -1394,7 +1394,7 @@ wakeup w "HELLO");
     <div class="twocol1">
       <h3>Images, CSS, Javascript</h3>
       <p>
-      To include an image, use simply the function <code>XHTML.M.img</code>:
+      To include an image, use simply the function <code>XHTML.F.img</code>:
       </p>
       <pre>img <span class="Clabel">~alt:</span>"Ocsigen"
     <span class="Clabel">~src:</span>(<span class="Cem">make_uri</span> (static_dir sp) sp <span class="Cstring">"ocsigen1024.jpg"</span>)

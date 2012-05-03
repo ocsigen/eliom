@@ -177,7 +177,7 @@ module SVG : sig
 
   (** Typed interface for building valid SVG tree (DOM semantics). See
       {% <<a_api project="tyxml" | module type SVG_sigs.T >> %}. *)
-  module DOM: SVG_sigs.T with module XML := XML
+  module D: SVG_sigs.T with module XML := XML
 		         and type 'a elt = 'a elt
 		         and type 'a attrib = 'a attrib
 		         and type uri = uri
@@ -187,7 +187,7 @@ module SVG : sig
   (** Typed interface for building valid SVG tree (functional
       semantics). See {% <<a_api project="tyxml" | module type
       SVG_sigs.T >> %}. *)
-  module M : SVG_sigs.T with module XML := XML
+  module F : SVG_sigs.T with module XML := XML
 		        and type 'a elt = 'a elt
 		        and type 'a attrib = 'a attrib
 		        and type uri = uri
@@ -223,10 +223,10 @@ module HTML5 : sig
 
   (** Typed interface for building valid HTML5 tree (DOM semantics). See
       {% <<a_api project="tyxml" | module type HTML5_sigs.T >> %}. *)
-  module DOM: sig
+  module D: sig
 
     include HTML5_sigs.T with module XML := XML
-		         and module SVG := SVG.DOM
+		         and module SVG := SVG.D
 		         and type 'a elt = 'a elt
 		         and type 'a attrib = 'a attrib
 		         and type uri = uri
@@ -248,10 +248,10 @@ module HTML5 : sig
   (** Typed interface for building valid HTML5 tree (functional
       semantics). See {% <<a_api project="tyxml" | module type
       HTML5_sigs.T >> %}. *)
-  module M : sig
+  module F : sig
 
     (** See {% <<a_api project="tyxml" | module type HTML5_sigs.T >> %}. *)
-    include HTML5_sigs.T with module XML := XML and module SVG := SVG.M
+    include HTML5_sigs.T with module XML := XML and module SVG := SVG.F
 		         and type 'a elt = 'a elt
 		         and type 'a attrib = 'a attrib
 		         and type uri = uri

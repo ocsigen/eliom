@@ -148,12 +148,12 @@ module Html5_forms : sig
 
   (** {2 Dom semantics} *)
 
-  module DOM : "sigs/eliom_html5_forms.mli"
+  module D : "sigs/eliom_html5_forms.mli"
   include "sigs/eliom_html5_forms.mli"
 
   (** {2 Functional semantics} *)
 
-  module M : "sigs/eliom_html5_forms.mli"
+  module F : "sigs/eliom_html5_forms.mli"
 
 end
 
@@ -161,8 +161,8 @@ end
     an instance of both the {!modtype:Registration} and {!Forms} abstract
     signatures. *)
 module Html5 : sig
-  module DOM : "sigs/eliom_html5_forms.mli"
-  module M : "sigs/eliom_html5_forms.mli"
+  module D : "sigs/eliom_html5_forms.mli"
+  module F : "sigs/eliom_html5_forms.mli"
   include "sigs/eliom_html5_reg.mli"
   include "sigs/eliom_html5_forms.mli"
 end
@@ -299,7 +299,7 @@ module Blocks5 : "sigs/eliom_reg.mli"
     XHTML page. This is an instance of the {!Registration} abstract
     signature. *)
 module Blocks : "sigs/eliom_reg.mli"
-  subst type page    := XHTML_types.body_content XHTML.M.elt list
+  subst type page    := XHTML_types.body_content XHTML.F.elt list
   and type options := unit
   and type return  := http_service
   and type result  := (block_content, http_service) kind

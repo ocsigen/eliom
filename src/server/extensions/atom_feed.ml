@@ -23,7 +23,7 @@ open Eliom_lib
 (*
  * types {{{
  *)
-type uri = XHTML.M.uri
+type uri = XHTML.F.uri
 type lang = string
 type base = uri
 type ncname = string
@@ -31,7 +31,7 @@ type dateConstruct = string
 type emailAddress = string
 type mediaType = string
 type length = int
-type href = XHTML.M.uri
+type href = XHTML.F.uri
 type hrefLang = string
 type rel = string
 type ltitle = string
@@ -132,7 +132,7 @@ let rec c_pcdata l = match l with | [] -> [] | a::r -> XML.pcdata a :: c_pcdata
 r
 
 let xhtmlDiv b = XML.node ~a:[(XML.string_attrib "xmlns"
-      "http://www.w3.org/1999/xhtml")] "div" (XHTML.M.toeltl b)
+      "http://www.w3.org/1999/xhtml")] "div" (XHTML.F.toeltl b)
 
 let inlineC ?(meta = []) ?(html = false) c = `Content (XML.node ~a:(a_type (if
             html then "html" else "text") :: metaAttr_extract meta) "content"

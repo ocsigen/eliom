@@ -142,7 +142,7 @@ val inlineC : ?meta:[> metaAttr ] list
 
 (** An xhtml content, embedded in a div *)
 val xhtmlC : ?meta:[> metaAttr ] list
-   -> ([ `PCDATA | XHTML_types.flow ] XHTML.M.elt list)
+   -> ([ `PCDATA | XHTML_types.flow ] XHTML.F.elt list)
    -> [> `Content of content ]
 
 (** Inline content from another kind *)
@@ -163,7 +163,7 @@ val plain : ?meta:[> metaAttr ] list
 
 (** XHTML text construct *)
 val xhtml : ?meta:[> metaAttr ] list
-   -> [ `PCDATA | XHTML_types.flow ] XHTML.M.elt list
+   -> [ `PCDATA | XHTML_types.flow ] XHTML.F.elt list
    -> textConstruct
 
 (** Rights tag *)

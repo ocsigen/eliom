@@ -279,7 +279,7 @@ module Html5 = struct
       (node :> Dom.node Js.t)
 
   let rebuild_node elt =
-    let node = Js.Unsafe.coerce (rebuild_node (HTML5.M.toelt elt)) in
+    let node = Js.Unsafe.coerce (rebuild_node (HTML5.F.toelt elt)) in
     run_load_events (List.rev !on_load_scripts);
     on_load_scripts := [];
     node

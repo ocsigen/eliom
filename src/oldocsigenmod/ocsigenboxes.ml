@@ -17,7 +17,7 @@
  *)
 
 
-open XHTML.M
+open XHTML.F
 open Ocsigen.Xhtml
 
 let menu ?(classe=[])  first l current server_params =

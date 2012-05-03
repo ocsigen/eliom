@@ -1286,7 +1286,7 @@ module MakeForms = functor
 
 
 module Xhtmlreg_ = struct
-  open XHTML.M
+  open XHTML.F
   open Xhtmltypes
 
   type page = xhtml elt
@@ -1297,12 +1297,12 @@ module Xhtmlreg_ = struct
 end
 
 module Xhtmlforms_ = struct
-  open XHTML.M
+  open XHTML.F
   open Xhtmltypes
 
   type form_content_elt = form_content elt
   type form_content_elt_list = form_content elt list
-  type uri = XHTML.M.uri
+  type uri = XHTML.F.uri
   type a_content_elt = a_content elt
   type a_content_elt_list = a_content elt list
   type div_content_elt = div_content elt
@@ -1321,13 +1321,13 @@ module Xhtmlforms_ = struct
 
   type pcdata_elt = pcdata elt
 
-  type a_attrib_t = Xhtmltypes.a_attrib XHTML.M.attrib list
-  type form_attrib_t = Xhtmltypes.form_attrib XHTML.M.attrib list
-  type input_attrib_t = Xhtmltypes.input_attrib XHTML.M.attrib list
-  type textarea_attrib_t = Xhtmltypes.textarea_attrib XHTML.M.attrib list
-  type select_attrib_t = Xhtmltypes.select_attrib XHTML.M.attrib list
-  type link_attrib_t = Xhtmltypes.link_attrib XHTML.M.attrib list
-  type script_attrib_t = Xhtmltypes.script_attrib XHTML.M.attrib list
+  type a_attrib_t = Xhtmltypes.a_attrib XHTML.F.attrib list
+  type form_attrib_t = Xhtmltypes.form_attrib XHTML.F.attrib list
+  type input_attrib_t = Xhtmltypes.input_attrib XHTML.F.attrib list
+  type textarea_attrib_t = Xhtmltypes.textarea_attrib XHTML.F.attrib list
+  type select_attrib_t = Xhtmltypes.select_attrib XHTML.F.attrib list
+  type link_attrib_t = Xhtmltypes.link_attrib XHTML.F.attrib list
+  type script_attrib_t = Xhtmltypes.script_attrib XHTML.F.attrib list
 
   type input_type_t =
       [`Button | `Checkbox | `File | `Hidden | `Image
@@ -1341,13 +1341,13 @@ module Xhtmlforms_ = struct
   let submit = `Submit
   let file = `File
 
-  let uri_of_string = XHTML.M.uri_of_string
+  let uri_of_string = XHTML.F.uri_of_string
 
   let empty_seq = []
   let cons_form a l = a::l
 
   let make_a ?(a=[]) ~href l : a_elt =
-    XHTML.M.a ~a:((a_href (uri_of_string href))::a) l
+    XHTML.F.a ~a:((a_href (uri_of_string href))::a) l
 
   let make_get_form ?(a=[]) ~action elt1 elts : form_elt =
     form ~a:((a_method `Get)::a)
@@ -1359,7 +1359,7 @@ module Xhtmlforms_ = struct
       None -> a
     | Some i -> (a_id i)::a)
     in
-    form ~a:((XHTML.M.a_enctype "multipart/form-data")::
+    form ~a:((XHTML.F.a_enctype "multipart/form-data")::
              (* Always Multipart!!! How to test if there is a file?? *)
              (a_method `Post)::
              (if inline then (a_class ["inline"])::aa else aa))
@@ -1426,22 +1426,22 @@ module Xhtmlreg = MakeRegister(Xhtmlreg_)
 
 (* As we want -> [> a ] elt and not -> [ a ] elt, we define a new module: *)
 module Xhtml = struct
-  open XHTML.M
+  open XHTML.F
   open Xhtmltypes
   include Xhtmlforms
   include Xhtmlreg
-  let a = (a : ?a:([< Xhtmltypes.a_attrib > `Href ] XHTML.M.attrib list) ->
+  let a = (a : ?a:([< Xhtmltypes.a_attrib > `Href ] XHTML.F.attrib list) ->
     ('get, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, unit param_name)
       service ->
         server_params ->
-          Xhtmltypes.a_content XHTML.M.elt list ->
-            'get -> Xhtmltypes.a XHTML.M.elt
-                :> ?a:([< Xhtmltypes.a_attrib > `Href ] XHTML.M.attrib list) ->
+          Xhtmltypes.a_content XHTML.F.elt list ->
+            'get -> Xhtmltypes.a XHTML.F.elt
+                :> ?a:([< Xhtmltypes.a_attrib > `Href ] XHTML.F.attrib list) ->
                   ('get, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, unit param_name)
                     service ->
                       server_params ->
-                        Xhtmltypes.a_content XHTML.M.elt list ->
-                          'get -> [> Xhtmltypes.a] XHTML.M.elt)
+                        Xhtmltypes.a_content XHTML.F.elt list ->
+                          'get -> [> Xhtmltypes.a] XHTML.F.elt)
 
   let css_link =
     (css_link : ?a:([< link_attrib > `Href `Rel `Type ] attrib list) ->
@@ -1623,11 +1623,11 @@ module Xhtml = struct
   let textarea = (textarea
                     : ?a:([< textarea_attrib > `Name ] attrib list ) ->
                       string param_name -> rows:number -> cols:number ->
-                        [ `PCDATA ] XHTML.M.elt ->
+                        [ `PCDATA ] XHTML.F.elt ->
                           textarea elt
                             :> ?a:([< textarea_attrib > `Name ] attrib list ) ->
                               string param_name -> rows:number -> cols:number ->
-                                [ `PCDATA ] XHTML.M.elt ->
+                                [ `PCDATA ] XHTML.F.elt ->
                                   [> textarea ] elt)
 
   let select = (select
@@ -1692,7 +1692,7 @@ end
 (****************************************************************************)
 
 module Textreg_ = struct
-  open XHTML.M
+  open XHTML.F
   open Xhtmltypes
 
   type page = string
@@ -1703,7 +1703,7 @@ module Textreg_ = struct
 end
 
 module Textforms_ = struct
-  open XHTML.M
+  open XHTML.F
   open Xhtmltypes
 
   type page = string

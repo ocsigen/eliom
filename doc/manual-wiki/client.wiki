@@ -337,8 +337,8 @@ value and by reference>>.
 When defining a service that returns an HTML5 page with Eliom we
 usually use the module {{{HTML5.M}}}. When programming client/server
 application with Eliom, we usualy prefer to use the module
-{{{HTML5.DOM}}} or its shorter alias {{{HTML5}}}. This is because
-elements build with {{{HTML5.DOM}}} are sent to the client by
+{{{HTML5.D}}} or its shorter alias {{{HTML5}}}. This is because
+elements build with {{{HTML5.D}}} are sent to the client by
 reference while elements build with {{{HTML5.M}}} are sent by value.
 
 Sending elements by reference allows to easily manipulate elements
@@ -349,7 +349,7 @@ included in the initial html document from event handlers, as the
 let main_service =
   My_appl.register_service ~path:[""] ~get_params:Eliom_parameters.unit
     (fun () () ->
-       let open HTML5.DOM in
+       let open HTML5.D in
        let input = input ~a:[a_input_type `Text] () in
        let onclick_handler =
 	 {{ let v =
@@ -393,7 +393,7 @@ addEventlistener, ...) directly on HTML5 elements that follow the DOM
 semantics.
 
 By default, a reference on an element is only valid in the current
-HTTP request: hence, sending an element build with {{{HTML5.DOM}}} in
+HTTP request: hence, sending an element build with {{{HTML5.D}}} in
 two different page will produce two distinct nodes. If you want to
 define a element reference that is preserved accross the different
 page of an application, you must explicitely name this element with

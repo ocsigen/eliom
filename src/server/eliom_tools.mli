@@ -221,14 +221,14 @@ module Xhtml : sig
     (([< get_service_kind ] as 'a,
       [< registrable ] as 'b,
       [< Eliom_output.non_caml_service ] as 'c) one_page *
-        XHTML_types.a_content XHTML.M.elt list)
+        XHTML_types.a_content XHTML.F.elt list)
     ->
     (('a, 'b, 'c) one_page *
-        XHTML_types.a_content XHTML.M.elt list)
+        XHTML_types.a_content XHTML.F.elt list)
       list ->
     ?service:('a, 'b, 'c) one_page ->
     unit ->
-    [> `Ul ] XHTML.M.elt
+    [> `Ul ] XHTML.F.elt
 
 (** {2 Hierchical sites } *)
 
@@ -253,11 +253,11 @@ module Xhtml : sig
     ?whole_tree:bool ->
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     XHTML_types.a_content XHTML.M.elt list)
+     XHTML_types.a_content XHTML.F.elt list)
       hierarchical_site ->
     ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
     unit ->
-    [> `Ul ] XHTML.M.elt list
+    [> `Ul ] XHTML.F.elt list
 
 
 
@@ -279,11 +279,11 @@ module Xhtml : sig
     ?id:string ->
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     XHTML_types.a_content XHTML.M.elt list)
+     XHTML_types.a_content XHTML.F.elt list)
       hierarchical_site ->
     ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
     unit ->
-    [> `Ul ] XHTML.M.elt list
+    [> `Ul ] XHTML.F.elt list
 
   (** The function [structure_links site ()] returns the tags [<link
       rel="subsection" ...>] and [<link rev="subsection" ...>] for the
@@ -295,11 +295,11 @@ module Xhtml : sig
   val structure_links :
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     XHTML_types.a_content XHTML.M.elt list)
+     XHTML_types.a_content XHTML.F.elt list)
     hierarchical_site ->
     ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
     unit ->
-    [> `Link ] XHTML.M.elt list
+    [> `Link ] XHTML.F.elt list
 
   (** An auxiliary function for creating an HTML head elements. Resources (JS,
       CSS) are taken from the static directory. *)
@@ -308,6 +308,6 @@ module Xhtml : sig
     ?css:string list list ->
     ?js:string list list ->
     unit ->
-    XHTML_types.head XHTML.M.elt
+    XHTML_types.head XHTML.F.elt
 end
 

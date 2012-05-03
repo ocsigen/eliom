@@ -29,7 +29,7 @@ let string_prefix s1 s2 =
 
 module Xhtml = struct
   open XHTML_types
-  open XHTML.M
+  open XHTML.F
   open Eliom_output.Xhtml
 
   let a_ul classes id level =
@@ -132,7 +132,7 @@ module Xhtml = struct
       ?service
       () =
     
-    let rec depth_first_fun pages level pos : [ `Ul ] XHTML.M.elt list =
+    let rec depth_first_fun pages level pos : [ `Ul ] XHTML.F.elt list =
       let rec one_item first last i s =
         let (classe, pos2, deplier) =
           match pos with
@@ -170,17 +170,17 @@ module Xhtml = struct
               ((a page text ())::
                   if deplier || whole_tree then
                     (depth_first_fun hsl (level+1) pos2
-                       : [ `Ul ] XHTML.M.elt list
-                     :> [< XHTML_types.li_content > `Ul ] XHTML.M.elt list)
+                       : [ `Ul ] XHTML.F.elt list
+                     :> [< XHTML_types.li_content > `Ul ] XHTML.F.elt list)
                   else [])
           | (text, Site_tree (Not_clickable, hsl)) ->
             li ~a:attclass
-              ((text : XHTML_types.a_content XHTML.M.elt list
-                :> XHTML_types.li_content XHTML.M.elt list)@
+              ((text : XHTML_types.a_content XHTML.F.elt list
+                :> XHTML_types.li_content XHTML.F.elt list)@
                   if deplier || whole_tree then
                     (depth_first_fun hsl (level+1) pos2
-                       : [ `Ul ] XHTML.M.elt list
-                     :> [< XHTML_types.li_content > `Ul ] XHTML.M.elt list)
+                       : [ `Ul ] XHTML.F.elt list
+                     :> [< XHTML_types.li_content > `Ul ] XHTML.F.elt list)
                   else [])
 
       and one_menu first i = function
@@ -195,7 +195,7 @@ module Xhtml = struct
     in
 
     (depth_first_fun pages 0 (find_in_hierarchy service the_menu)
-       : [ `Ul ] XHTML.M.elt list :> [> `Ul ] XHTML.M.elt list)
+       : [ `Ul ] XHTML.F.elt list :> [> `Ul ] XHTML.F.elt list)
 
 
   let hierarchical_menu_breadth_first
@@ -206,7 +206,7 @@ module Xhtml = struct
       () =
 
     let rec breadth_first_fun pages level pos
-        : [ `Ul ] XHTML.M.elt list =
+        : [ `Ul ] XHTML.F.elt list =
       let rec one_item first last i s =
         let (classe, pos2, deplier) =
           match pos with
@@ -262,7 +262,7 @@ module Xhtml = struct
 
     in
     (breadth_first_fun pages 0 (find_in_hierarchy service the_menu)
-       : [ `Ul ] XHTML.M.elt list :> [> `Ul ] XHTML.M.elt list)
+       : [ `Ul ] XHTML.F.elt list :> [> `Ul ] XHTML.F.elt list)
 
 
   let structure_links (default, pages) ?service () =
@@ -327,7 +327,7 @@ end
 
 module Html5 = struct
   open HTML5_types
-  open HTML5.M
+  open HTML5.F
   open Eliom_output.Html5
     
   let a_ul classes id level =

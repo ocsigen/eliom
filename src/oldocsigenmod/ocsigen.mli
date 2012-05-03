@@ -26,7 +26,7 @@
    - To create links or forms etc.
  *)
 
-open XHTML.M
+open XHTML.F
 open Xhtmltypes
 open Ocsigen_extensions
 
@@ -377,7 +377,7 @@ module Xhtml : sig
     ('get, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, unit param_name)
       service ->
         server_params ->
-          a_content elt list -> 'get -> [> a] XHTML.M.elt
+          a_content elt list -> 'get -> [> a] XHTML.F.elt
 (** [a service sp cont ()] creates a link from [current] to [service].
    The text of
    the link is [cont]. For example [cont] may be something like
@@ -387,7 +387,7 @@ module Xhtml : sig
    For example [a service sp cont (42,"hello")]
 
    The [~a] optional parameter is used for extra attributes
-   (see the module XHTML.M) *)
+   (see the module XHTML.F) *)
 
   val css_link : ?a:(link_attrib attrib list) ->
     uri -> [> link ] elt
@@ -513,7 +513,7 @@ module Xhtml : sig
 (** Creates a radio [<input>] tag with user_type content *)
 
   val textarea : ?a:(textarea_attrib attrib list ) ->
-    string param_name -> rows:number -> cols:number -> [ `PCDATA ] XHTML.M.elt ->
+    string param_name -> rows:number -> cols:number -> [ `PCDATA ] XHTML.F.elt ->
       [> textarea ] elt
 (** Creates a [<textarea>] tag *)
 

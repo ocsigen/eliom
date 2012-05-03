@@ -23,8 +23,8 @@ open Eliom_lib
 module Html5_forms : sig
 
   include "sigs/eliom_html5_forms.mli"
-  module DOM : "sigs/eliom_html5_forms.mli"
-  module M : "sigs/eliom_html5_forms.mli"
+  module D : "sigs/eliom_html5_forms.mli"
+  module F : "sigs/eliom_html5_forms.mli"
 
 end
 

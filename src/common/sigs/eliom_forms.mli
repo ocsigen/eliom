@@ -163,7 +163,7 @@ val make_string_uri :
     equivalent to [f ()].
 
     For XML tree build with TyXML, like {!HTML5}, {!XHTML} or
-    {!SVG.M}, the function [f] is applied each time the XML tree is
+    {!SVG.F}, the function [f] is applied each time the XML tree is
     sent to the client (either as page content or as a marshalled
     OCaml value). Hence, the function is always evaluated in the
     context of a service handler.

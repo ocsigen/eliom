@@ -1,14 +1,14 @@
 (** Predefined boxes for Ocsigenmod *)
 
-val menu : ?classe:XHTML.M.nmtoken list ->
+val menu : ?classe:XHTML.F.nmtoken list ->
        ((unit,unit, [<`Internal_Service of [<`Public_Service | `Local_Service] | `External_Service],[<`WithSuffix|`WithoutSuffix] as 'tipo,unit Ocsigen.param_name, unit Ocsigen.param_name)
-        Ocsigen.service * Xhtmltypes.a_content XHTML.M.elt list)
+        Ocsigen.service * Xhtmltypes.a_content XHTML.F.elt list)
         ->
        ((unit,unit, [<`Internal_Service of [<`Public_Service | `Local_Service] | `External_Service],[<`WithSuffix|`WithoutSuffix] as 'tipo,unit Ocsigen.param_name, unit Ocsigen.param_name)
-        Ocsigen.service * Xhtmltypes.a_content XHTML.M.elt list)
+        Ocsigen.service * Xhtmltypes.a_content XHTML.F.elt list)
        list ->
        (unit,unit, [<`Internal_Service of [<`Public_Service | `Local_Service] | `External_Service],'tipo, unit Ocsigen.param_name, unit Ocsigen.param_name) Ocsigen.service ->
-       Ocsigen.server_params -> [> `Ul ] XHTML.M.elt
+       Ocsigen.server_params -> [> `Ul ] XHTML.F.elt
 
 (** Creates a menu
 

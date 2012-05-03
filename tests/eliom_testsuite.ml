@@ -1,7 +1,7 @@
 let (>>=) = Lwt.(>>=)
 let (>|=) = Lwt.(>|=)
 
-open HTML5.M
+open HTML5.F
 open Eliom_output.Html5
 open Eliom_testsuite1
 open Eliom_testsuite2

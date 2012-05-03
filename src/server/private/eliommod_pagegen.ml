@@ -23,7 +23,7 @@
 open Eliom_lib
 open Lwt
 
-module Xhtml_content = Ocsigen_senders.Make_XML_Content(XML)(XHTML.M)
+module Xhtml_content = Ocsigen_senders.Make_XML_Content(XML)(XHTML.F)
 
 (*****************************************************************************)
 (* Exception handler for the site                                            *)

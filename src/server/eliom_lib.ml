@@ -16,7 +16,7 @@ let of_json ?typ s =
 
 module XML = struct
 
-  include Eliom_lib_base.RawXML
+  include RawXML
 
   type econtent =
     | Empty
@@ -199,7 +199,7 @@ end
 
 module SVG = struct
 
-  module DOM = SVG_f.Make(struct
+  module D = SVG_f.Make(struct
     include XML
 
     let make elt = make_request_node (make elt)
@@ -219,9 +219,9 @@ module SVG = struct
 
   end)
 
-  include DOM
+  include D
 
-  module M = SVG_f.Make(XML)
+  module F = SVG_f.Make(XML)
 
   type 'a id = string (* FIXME invariant type parameter ? *)
   let new_elt_id: ?global:bool -> unit -> 'a id = XML.make_node_name
@@ -230,12 +230,12 @@ module SVG = struct
   let create_global_elt elt =
     tot (XML.make_process_node (toelt elt))
 
-  module P = XML_print.MakeTypedSimple(XML)(M)
+  module P = XML_print.MakeTypedSimple(XML)(F)
 end
 
 module HTML5 = struct
 
-  module DOM = struct
+  module D = struct
 
     include HTML5_f.Make(struct
       include XML
@@ -255,7 +255,7 @@ module HTML5 = struct
       let lazy_node ?(a = []) name children =
         make_lazy (Eliom_lazy.from_fun (fun () -> (Node (name, a, Eliom_lazy.force children))))
 
-    end)(SVG.DOM)
+    end)(SVG.D)
 
     type ('a, 'b, 'c) lazy_plus =
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
@@ -428,10 +428,10 @@ module HTML5 = struct
 
   end
 
-  include DOM
+  include D
 
-  module M = struct
-    include HTML5_f.Make(XML)(SVG.M)
+  module F = struct
+    include HTML5_f.Make(XML)(SVG.F)
 
     type ('a, 'b, 'c) lazy_plus =
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
@@ -541,13 +541,13 @@ module HTML5 = struct
     tot (XML.make_process_node (toelt elt))
   let have_id name elt = XML.get_node_id (toelt elt) = XML.ProcessId name
 
-  module P = XML_print.MakeTypedSimple(XML)(M)
+  module P = XML_print.MakeTypedSimple(XML)(F)
 
 end
 
 module XHTML = struct
 
-  module M = struct
+  module F = struct
 
     include XHTML_f.Make(XML)
 
@@ -595,7 +595,7 @@ module XHTML = struct
 
   end
 
-  module P = XML_print.MakeTypedSimple(XML)(M)
+  module P = XML_print.MakeTypedSimple(XML)(F)
   module P_01_01 = XML_print.MakeTypedSimple(XML)(M_01_01)
   module P_01_00 = XML_print.MakeTypedSimple(XML)(M_01_00)
 

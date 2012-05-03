@@ -131,7 +131,7 @@ module XML = struct
   let event_handler_of_function (ev: #Dom_html.event Js.t -> unit) =
     Caml (CE_client_closure (Obj.magic ev))
 
-  (* Deprecated: HTML5.M.a_on* functions are redefinied on the client
+  (* Deprecated: HTML5.F.a_on* functions are redefinied on the client
      to call event_handler_of_function. *)
   let event_of_function ev = ev
 
@@ -171,7 +171,7 @@ end
 
 module SVG = struct
 
-  module DOM = SVG_f.Make(struct
+  module D = SVG_f.Make(struct
     include XML
 
     let make elt = make_request_node (make elt)
@@ -191,9 +191,9 @@ module SVG = struct
 
   end)
 
-  include DOM
+  include D
 
-  module M = SVG_f.Make(XML)
+  module F = SVG_f.Make(XML)
 
   type 'a id = string (* FIXME invariant type parameter ? *)
   let new_elt_id: ?global:bool -> unit -> 'a id = XML.make_node_name
@@ -206,7 +206,7 @@ end
 
 module HTML5 = struct
 
-  module DOM = struct
+  module D = struct
 
     include HTML5_f.Make(struct
       include XML
@@ -226,7 +226,7 @@ module HTML5 = struct
       let lazy_node ?(a = []) name children =
         make (Node (name, a, Eliom_lazy.force children))
 
-    end)(SVG.DOM)
+    end)(SVG.D)
 
     let raw_a_onabort = a_onabort
     let raw_a_onafterprint = a_onafterprint
@@ -380,10 +380,10 @@ module HTML5 = struct
 
   end
 
-  include DOM
+  include D
 
-  module M = struct
-    include HTML5_f.Make(XML)(SVG.M)
+  module F = struct
+    include HTML5_f.Make(XML)(SVG.F)
 
     let a_onabort ev = a_onabort (XML.event_handler_of_function ev)
     let a_onafterprint ev = a_onafterprint (XML.event_handler_of_function ev)

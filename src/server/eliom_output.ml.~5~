@@ -19,6 +19,7 @@
  *)
 
 open Eliom_lib
+
 open Eliom_services
 open Eliom_parameters
 
@@ -74,7 +75,7 @@ module Html5_make_reg_base
                    and type options = Http_headers.accept Lazy.t)
   = struct
 
-  open HTML5.F
+  open HTML5.M
   open HTML5_types
 
   type page = xhtml elt
@@ -162,48 +163,48 @@ type button_type =
 
 module Xhtml_forms_base = struct
 
-  type uri = XHTML.F.uri
-  type pcdata_elt = XHTML_types.pcdata XHTML.F.elt
+  type uri = XHTML.M.uri
+  type pcdata_elt = XHTML_types.pcdata XHTML.M.elt
 
-  type form_elt = XHTML_types.form XHTML.F.elt
-  type form_content_elt = XHTML_types.form_content XHTML.F.elt
-  type form_content_elt_list = XHTML_types.form_content XHTML.F.elt list
-  type form_attrib_t = XHTML_types.form_attrib XHTML.F.attrib list
+  type form_elt = XHTML_types.form XHTML.M.elt
+  type form_content_elt = XHTML_types.form_content XHTML.M.elt
+  type form_content_elt_list = XHTML_types.form_content XHTML.M.elt list
+  type form_attrib_t = XHTML_types.form_attrib XHTML.M.attrib list
 
-  type 'a a_elt = XHTML_types.a XHTML.F.elt
-  type 'a a_elt_list = XHTML_types.a XHTML.F.elt list
-  type 'a a_content_elt = XHTML_types.a_content XHTML.F.elt
-  type 'a a_content_elt_list = XHTML_types.a_content XHTML.F.elt list
-  type a_attrib_t = XHTML_types.a_attrib XHTML.F.attrib list
+  type 'a a_elt = XHTML_types.a XHTML.M.elt
+  type 'a a_elt_list = XHTML_types.a XHTML.M.elt list
+  type 'a a_content_elt = XHTML_types.a_content XHTML.M.elt
+  type 'a a_content_elt_list = XHTML_types.a_content XHTML.M.elt list
+  type a_attrib_t = XHTML_types.a_attrib XHTML.M.attrib list
 
-  type link_elt = XHTML_types.link XHTML.F.elt
-  type link_attrib_t = XHTML_types.link_attrib XHTML.F.attrib list
+  type link_elt = XHTML_types.link XHTML.M.elt
+  type link_attrib_t = XHTML_types.link_attrib XHTML.M.attrib list
 
-  type script_elt = XHTML_types.script XHTML.F.elt
-  type script_attrib_t = XHTML_types.script_attrib XHTML.F.attrib list
+  type script_elt = XHTML_types.script XHTML.M.elt
+  type script_attrib_t = XHTML_types.script_attrib XHTML.M.attrib list
 
-  type textarea_elt = XHTML_types.textarea XHTML.F.elt
-  type textarea_attrib_t = XHTML_types.textarea_attrib XHTML.F.attrib list
+  type textarea_elt = XHTML_types.textarea XHTML.M.elt
+  type textarea_attrib_t = XHTML_types.textarea_attrib XHTML.M.attrib list
 
-  type input_elt = XHTML_types.input XHTML.F.elt
-  type input_attrib_t = XHTML_types.input_attrib XHTML.F.attrib list
+  type input_elt = XHTML_types.input XHTML.M.elt
+  type input_attrib_t = XHTML_types.input_attrib XHTML.M.attrib list
 
-  type select_elt = XHTML_types.select XHTML.F.elt
-  type select_content_elt = XHTML_types.select_content XHTML.F.elt
-  type select_content_elt_list = XHTML_types.select_content XHTML.F.elt list
-  type select_attrib_t = XHTML_types.select_attrib XHTML.F.attrib list
+  type select_elt = XHTML_types.select XHTML.M.elt
+  type select_content_elt = XHTML_types.select_content XHTML.M.elt
+  type select_content_elt_list = XHTML_types.select_content XHTML.M.elt list
+  type select_attrib_t = XHTML_types.select_attrib XHTML.M.attrib list
 
-  type button_elt = XHTML_types.button XHTML.F.elt
-  type button_content_elt = XHTML_types.button_content XHTML.F.elt
-  type button_content_elt_list = XHTML_types.button_content XHTML.F.elt list
-  type button_attrib_t = XHTML_types.button_attrib XHTML.F.attrib list
+  type button_elt = XHTML_types.button XHTML.M.elt
+  type button_content_elt = XHTML_types.button_content XHTML.M.elt
+  type button_content_elt_list = XHTML_types.button_content XHTML.M.elt list
+  type button_attrib_t = XHTML_types.button_attrib XHTML.M.attrib list
 
-  type option_elt = XHTML_types.selectoption XHTML.F.elt
-  type option_elt_list = XHTML_types.selectoption XHTML.F.elt list
-  type optgroup_attrib_t = [ XHTML_types.common | `Disabled ] XHTML.F.attrib list
-  type option_attrib_t = XHTML_types.option_attrib XHTML.F.attrib list
+  type option_elt = XHTML_types.selectoption XHTML.M.elt
+  type option_elt_list = XHTML_types.selectoption XHTML.M.elt list
+  type optgroup_attrib_t = [ XHTML_types.common | `Disabled ] XHTML.M.attrib list
+  type option_attrib_t = XHTML_types.option_attrib XHTML.M.attrib list
 
-  open XHTML.F
+  open XHTML.M
   open XHTML_types
 
   type input_type_t = full_input_type
@@ -232,7 +233,7 @@ module Xhtml_forms_base = struct
       | None -> a
       | Some v -> a_href v :: a
     in
-    XHTML.F.a ~a l
+    XHTML.M.a ~a l
 
   let make_empty_form_content () = p [pcdata ""] (**** à revoir !!!!! *)
   let remove_first = function
@@ -258,7 +259,7 @@ module Xhtml_forms_base = struct
     let elt1 = Eliom_lazy.from_fun (fun () -> fst (Eliom_lazy.force elts))
     and elts = Eliom_lazy.from_fun (fun () -> snd (Eliom_lazy.force elts)) in
     let r =
-      lazy_form ~a:((XHTML.F.a_enctype "multipart/form-data")::
+      lazy_form ~a:((XHTML.M.a_enctype "multipart/form-data")::
              (* Always Multipart!!! How to test if there is a file?? *)
                   (a_method `Post)::
                   (if inline then (a_class ["inline"])::aa else aa))
@@ -269,7 +270,7 @@ module Xhtml_forms_base = struct
   let empty_seq = []
   let cons_hidden_fieldset fields content =
     let fieldset =
-      XHTML.F.fieldset
+      XHTML.M.fieldset
         ~a:[a_style "display: none;"]
         fields in
     (fieldset :: content :> form_content_elt_list)
@@ -327,7 +328,7 @@ module Xhtml_forms_base = struct
   let make_js_script ?(a=[]) ~uri () =
     script ~a:((a_src uri)::a) ~contenttype:"text/javascript" (pcdata "")
 
-  type for_attrib = [`For] XHTML.F.attrib
+  type for_attrib = [`For] XHTML.M.attrib
   let make_for_attrib = a_for
 
 end
@@ -337,7 +338,7 @@ end
 
 module Xhtml_forms = struct
 
-  open XHTML.F
+  open XHTML.M
   open XHTML_types
 
   module Xhtml_forms_closed = Eliom_mkforms.MakeForms(Xhtml_forms_base)
@@ -362,7 +363,7 @@ module Xhtml_forms = struct
             ?nl_params: Eliom_parameters.nl_params_set ->
             ?xhr:bool ->
             a_content elt list -> 'get ->
-            a XHTML.F.elt :>
+            a XHTML.M.elt :>
               ?absolute:bool ->
             ?absolute_path:bool ->
             ?https:bool ->
@@ -377,7 +378,7 @@ module Xhtml_forms = struct
             ?nl_params: Eliom_parameters.nl_params_set ->
             ?xhr:bool ->
             a_content elt list -> 'get ->
-            [> a] XHTML.F.elt)
+            [> a] XHTML.M.elt)
 
   let css_link = (css_link :
                     ?a:(link_attrib attrib list) ->
@@ -1007,10 +1008,10 @@ end
 
 module Xhtml_make_reg_base
   (Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
-   with type t = XHTML_types.xhtml XHTML.F.elt
+   with type t = XHTML_types.xhtml XHTML.M.elt
    and type options = Http_headers.accept Lazy.t) = struct
 
-  open XHTML.F
+  open XHTML.M
   open XHTML_types
 
   type page = xhtml elt
@@ -1047,7 +1048,7 @@ module Xhtml_make_reg_base
 end
 
 module Xhtml_reg_base =
-  Xhtml_make_reg_base(Ocsigen_senders.Make_XML_Content(XML)(XHTML.F))
+  Xhtml_make_reg_base(Ocsigen_senders.Make_XML_Content(XML)(XHTML.M))
 
 module Xhtml_registration = Eliom_mkreg.MakeRegister(Xhtml_reg_base)
 
@@ -1133,7 +1134,7 @@ module Make_TypedXML_Registration
 
   end
 
-module Blocks = Make_TypedXML_Registration(XML)(XHTML.F)(struct
+module Blocks = Make_TypedXML_Registration(XML)(XHTML.M)(struct
   type content = XHTML_types.body_content
 end)
 
@@ -2518,7 +2519,7 @@ module Eliom_appl_reg_make_param
 
     Lwt.return
       (HTML5.create_named_elt ~id:eliom_appl_data_script_id
-	 (HTML5.M.script (cdata_script script)))
+         (HTML5.M.script (cdata_script script)))
 
   let make_eliom_data_script ~sp page =
 
@@ -2551,7 +2552,7 @@ module Eliom_appl_reg_make_param
         (Eliom_types.jsmarshal tab_cookies)
         (Eliom_types.jsmarshal (template: string option))
     in
-    Lwt.return (HTML5.F.script (cdata_script script))
+    Lwt.return (HTML5.M.script (cdata_script script))
 
   let split_page page :
       (HTML5_types.html_attrib HTML5.attrib list
@@ -2589,16 +2590,17 @@ module Eliom_appl_reg_make_param
     in
     let head_elts =
          appl_data_script
-      :: HTML5.M.base ~a:[a_id Eliom_common_base.base_elt_id; HTML5.a_href (HTML5.uri_of_string base_url)] ()
-      :: ( if List.exists is_eliom_appl_script head_elts
-           then head_elts
-	   else ( head_elts
-		  @ [application_script ()] ) )
+      :: HTML5.M.base ~a:[a_id Eliom_common_base.base_elt_id;
+                          HTML5.a_href (HTML5.uri_of_string base_url)] ()
+      :: (if List.exists is_eliom_appl_script head_elts
+          then head_elts
+          else (head_elts
+                @ [application_script ()]))
     in
     let fake_page =
       HTML5.M.html ~a:html_attribs
-	(HTML5.M.head ~a:head_attribs title head_elts)
-	body in
+        (HTML5.M.head ~a:head_attribs title head_elts)
+        body in
     lwt data_script = make_eliom_data_script ~sp fake_page in
 
     (* Then we replace the faked data_script *)
@@ -2606,16 +2608,16 @@ module Eliom_appl_reg_make_param
       List.hd head_elts :: data_script :: (List.tl head_elts) in
     Lwt.return
       (HTML5.M.html ~a:html_attribs
-	 (HTML5.M.head ~a:head_attribs title head_elts)
-	 body )
+         (HTML5.M.head ~a:head_attribs title head_elts)
+         body)
 
   let remove_eliom_scripts page =
     let (html_attribs, (head_attribs, title, head_elts), body) =
       split_page (HTML5.toelt page) in
     let head_elts = List.filter (fun x -> not (is_eliom_appl_script x)) head_elts in
     Lwt.return
-      (HTML5.F.html ~a:html_attribs
-         (HTML5.F.head ~a:head_attribs title head_elts)
+      (HTML5.M.html ~a:html_attribs
+         (HTML5.M.head ~a:head_attribs title head_elts)
          body )
 
   let send_appl_content = Eliom_services.XSame_appl (Appl_params.application_name, None)

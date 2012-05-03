@@ -650,8 +650,8 @@ let gen page_tree charset ri =
                                    (Ocsigen_senders.send_xhtml_page
                                       ~content:(Error_pages.error_page
                                                   "error"
-                                                  [XHTML.M.p
-                                                     [XHTML.M.pcdata
+                                                  [XHTML.F.p
+                                                     [XHTML.F.pcdata
                                                         "Ocsigenmod Error: redirection after action \
                                                         is experimental in Ocsigenmod (it works only for \
                                                             ocsigenmod pages for now, and I \

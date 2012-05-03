@@ -4,7 +4,8 @@
 (* TODO: include some missing parts in the manual *)
 
 open Lwt
-open HTML5.M
+open Eliom_lib
+open HTML5.F
 open Ocsigen_cookies
 open Eliom_services
 open Eliom_parameters
@@ -33,7 +34,7 @@ let coucou1 =
            </html> >>)
 
 let coucou_xhtml =
-  let open XHTML.M in
+  let open XHTML.F in
   Eliom_output.Xhtml.register_service
     ~path:["coucou_xhtml"]
     ~get_params:unit
@@ -48,6 +49,7 @@ let coucou1_xthml =
     ~path:["coucou1_xhtml"]
     ~get_params:Eliom_parameters.unit
     (fun () () ->
+      let open XHTML.F in
       return
         <:xhtml< <html>
              <head><title></title></head>
@@ -279,7 +281,7 @@ let links = register_service ["rep";"links"] unit
               ())
            [pcdata "OCaml on wikipedia"]
            ["OCaml"]; br ();
-         HTML5.M.a
+         HTML5.F.a
            ~a:[a_href (XML.uri_of_string "http://en.wikipedia.org/wiki/OCaml")]
            [pcdata "OCaml on wikipedia"]
        ]])))
