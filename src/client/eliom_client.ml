@@ -408,6 +408,8 @@ module Html5 = struct
   let of_video = rebuild_node
   let of_wbr = rebuild_node
 
+  let of_pcdata = rebuild_node
+
 end
 
 (* == Associate data to state of the History API.

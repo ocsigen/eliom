@@ -130,6 +130,8 @@ module Html5 : sig
   val of_element : 'a HTML5.elt -> Dom_html.element Js.t
   val of_heading : HTML5_types.heading HTML5.elt -> Dom_html.headingElement Js.t
 
+  val of_pcdata : [> `Pcdata] HTML5.elt -> Dom.text Js.t
+
   val of_abbr : [> `Abbr] HTML5.elt -> Dom_html.element Js.t
   val of_acronym : [> `Acronym] HTML5.elt -> Dom_html.element Js.t
   val of_address : [> `Address] HTML5.elt -> Dom_html.element Js.t
