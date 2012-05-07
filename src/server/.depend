@@ -69,8 +69,6 @@ eliom_mkforms.cmo: eliom_uri.cmi eliom_services.cmi eliom_pervasives.cmi \
     eliom_parameters.cmi eliom_lazy.cmi eliom_common.cmi eliom_mkforms.cmi
 eliom_mkforms.cmx: eliom_uri.cmx eliom_services.cmx eliom_pervasives.cmx \
     eliom_parameters.cmx eliom_lazy.cmx eliom_common.cmx eliom_mkforms.cmi
-eliom_mkforms.cmi: eliom_services.cmi eliom_pervasives.cmi \
-    eliom_parameters.cmi eliom_lazy.cmi
 eliom_mkreg.cmo: private/eliommod_services.cmi \
     private/eliommod_naservices.cmi private/eliommod_cookies.cmi \
     eliom_uri.cmi eliom_state.cmi eliom_services.cmi eliom_request_info.cmi \

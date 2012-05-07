@@ -117,6 +117,8 @@ module Html5_make_reg_base
 
 end
 
+
+
 module Html5_reg_base =
   Html5_make_reg_base(Ocsigen_senders.Make_XML_Content(XML)(HTML5))
 
@@ -300,9 +302,9 @@ module Xhtml_forms_base = struct
     in
     button ~a:((a_button_type button_type)::a) c
 
-  let make_textarea ?(a=[]) ~name ?(value="") ~rows ~cols () =
+  let make_textarea ?(a=[]) ~name ?(value="") () =
     let a3 = (a_name name)::a in
-    textarea ~a:a3 ~rows ~cols (pcdata value)
+    textarea ~a:a3 ~rows:10 ~cols:50 (pcdata value)
 
   let make_select ?(a=[]) ~multiple ~name elt elts =
     let a = if multiple then (a_multiple `Multiple)::a else a in
@@ -765,21 +767,17 @@ module Xhtml_forms = struct
   let textarea = (textarea :
                     ?a:textarea_attrib attrib list ->
                    name:'a -> ?value:string ->
-                   rows:int -> cols:int ->
                    unit -> textarea elt :>
                    ?a:textarea_attrib attrib list ->
                    name:'a -> ?value:string ->
-                   rows:int -> cols:int ->
                    unit -> [> textarea ] elt)
 
   let raw_textarea = (raw_textarea :
                         ?a:textarea_attrib attrib list ->
                        name:string -> ?value:string ->
-                       rows:int -> cols:int ->
                        unit -> textarea elt :>
                        ?a:textarea_attrib attrib list ->
                        name:string -> ?value:string ->
-                       rows:int -> cols:int ->
                        unit -> [> textarea ] elt)
 
   let raw_select = (raw_select :
@@ -1416,9 +1414,8 @@ module HtmlText_forms_base = struct
     in
     "<button type=\""^button_type^"\" "^a2^">"^c^"</button>"
 
-  let make_textarea ?(a="") ~name:name ?(value="") ~rows ~cols () =
-    "<textarea name=\""^name^"\" rows=\""^(string_of_int rows)^
-    "\" cols=\""^(string_of_int cols)^"\" "^a^">"^value^"</textarea>"
+  let make_textarea ?(a="") ~name:name ?(value="") () =
+    "<textarea name=\""^name^"\" "^a^">"^value^"</textarea>"
 
   let make_select ?(a="") ~multiple ~name elt elts =
     "<select "^(if multiple then "multiple=\"multiple\" " else "")^

@@ -81,7 +81,7 @@ val make_button : ?a:button_attrib_t -> button_type:button_type_t ->
   button_content_elt_list -> button_elt
 val make_textarea :
   ?a:textarea_attrib_t ->
-  name:string -> ?value:string -> rows:int -> cols:int ->
+  name:string -> ?value:string ->
   unit -> textarea_elt
 val make_select :
   ?a:select_attrib_t ->

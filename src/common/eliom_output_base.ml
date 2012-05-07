@@ -208,9 +208,9 @@ end) = struct
     in
     button ~a:((a_button_type button_type)::a) c
 
-  let make_textarea ?(a=[]) ~name ?(value="") ~rows ~cols () =
+  let make_textarea ?(a=[]) ~name ?(value="") () =
     let a3 = (a_name name)::a in
-    textarea ~a:((a_rows rows)::(a_cols cols)::a3) (pcdata value)
+    textarea ~a:a3 (pcdata value)
 
   let make_select ?(a=[]) ~multiple ~name elt elts =
     let a = if multiple then (a_multiple `Multiple)::a else a in
@@ -652,21 +652,17 @@ module Open_Html5_forms =
     let textarea = (textarea :
                       ?a:textarea_attrib attrib list ->
                      name:'a -> ?value:string ->
-                     rows:int -> cols:int ->
                      unit -> textarea elt :>
                      ?a:textarea_attrib attrib list ->
                      name:'a -> ?value:string ->
-                     rows:int -> cols:int ->
                      unit -> [> textarea ] elt)
 
     let raw_textarea = (raw_textarea :
                           ?a:textarea_attrib attrib list ->
                          name:string -> ?value:string ->
-                         rows:int -> cols:int ->
                          unit -> textarea elt :>
                          ?a:textarea_attrib attrib list ->
                          name:string -> ?value:string ->
-                         rows:int -> cols:int ->
                          unit -> [> textarea ] elt)
 
     let raw_select = (raw_select :

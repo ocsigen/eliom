@@ -690,14 +690,13 @@ val button :
 val textarea :
   ?a:textarea_attrib_t ->
   name:[< string setoneradio ] param_name -> ?value:string ->
-  rows:int -> cols:int -> unit -> textarea_elt
+  unit -> textarea_elt
 
 
 (** Creates a [<textarea>] tag for untyped form *)
 val raw_textarea :
   ?a:textarea_attrib_t ->
-  name:string -> ?value:string ->
-  rows:int -> cols:int -> unit -> textarea_elt
+  name:string -> ?value:string -> unit -> textarea_elt
 
 
 type 'a soption =
