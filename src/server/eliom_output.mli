@@ -18,9 +18,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** Eliom services registration and forms creation for various kind of
+(** Eliom services registration and forms creation for various kinds of
     page content: Eliom application, valid {!HTML5} or {!XHTML},
-    actions, redirections, static files, …. See the Eliom manual for
+    actions, redirections, static files, … *)
+
+(** See the Eliom manual for
     more information on {% <<a_manual chapter="services" | services
     >>%} and {% <<a_manual chapter="outputs" | predefined outputs
     >>%}. *)

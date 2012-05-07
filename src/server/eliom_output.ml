@@ -2587,7 +2587,8 @@ module Eliom_appl_reg_make_param
 
     (* First we build a fake page to build the ref_tree... *)
     let (html_attribs, (head_attribs, title, head_elts), body) =
-      split_page (HTML5.toelt page) in
+      split_page (HTML5.toelt page)
+    in
     let head_elts =
          appl_data_script
       :: HTML5.M.base ~a:[a_id Eliom_common_base.base_elt_id;

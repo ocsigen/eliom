@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** Ad-hoc runtime-type representation for service parameters.
+(** Ad-hoc runtime type representation for service parameters.
 
     See the Eliom manual for more information about {% <<a_manual
     chapter="params"|service parameters>>%}.
