@@ -33,7 +33,7 @@ type chan_id = string
 
 let encode_downgoing s =
   Eliom_comet_base.Json_answer.to_string
-    (Eliom_comet_base.Statefull_messages (Array.of_list s))
+    (Eliom_comet_base.Stateful_messages (Array.of_list s))
 
 let encode_global_downgoing s =
   Eliom_comet_base.Json_answer.to_string
@@ -248,7 +248,7 @@ struct
 	(fun () -> really_wait_data requests)
 
   let handle_request () = function
-    | Ecb.Statefull _ -> failwith "attempting to request data on stateless service with a statefull request"
+    | Ecb.Stateful _ -> failwith "attempting to request data on stateless service with a stateful request"
     | Ecb.Stateless requests ->
       let requests = List.map get_channel (Array.to_list requests) in
       lwt res =
@@ -279,7 +279,7 @@ struct
 
 end
 
-module Statefull :
+module Stateful :
 (** String channels on wich is build the module Channels *)
 sig
 
@@ -465,8 +465,8 @@ end = struct
     let f () req =
       match req with
       | Ecb.Stateless _ ->
-	failwith "attempting to request data on statefull service with a stateless request"
-      | Ecb.Statefull (Ecb.Request_data number) ->
+	failwith "attempting to request data on stateful service with a stateless request"
+      | Ecb.Stateful (Ecb.Request_data number) ->
 	OMsg.debug2 (Printf.sprintf "eliom: comet: received request %i" number);
 	(* if a new connection occurs for a service, we reply
 	   immediately to the previous with no data. *)
@@ -499,7 +499,7 @@ end = struct
 	      | e ->
 		set_inactive handler;
 		Lwt.fail e )
-      | Ecb.Statefull (Ecb.Commands commands) ->
+      | Ecb.Stateful (Ecb.Commands commands) ->
 	update_inactive handler;
 	List.iter (function
 	  | Ecb.Register channel -> register_channel handler channel
@@ -659,7 +659,7 @@ end = struct
   type 'a channel =
     | Stateless of Stateless.channel
     | Stateless_newest of Stateless.channel
-    | Statefull of Statefull.t
+    | Stateful of Stateful.t
     | External of 'a Ecb.wrapped_channel
 
   type 'a t = {
@@ -669,10 +669,10 @@ end = struct
 
   let get_wrapped t =
     match t.channel with
-      | Statefull channel ->
-	Ecb.Statefull_channel
-	  (Statefull.get_service channel,
-	   Ecb.chan_id_of_string (Statefull.get_id channel))
+      | Stateful channel ->
+	Ecb.Stateful_channel
+	  (Stateful.get_service channel,
+	   Ecb.chan_id_of_string (Stateful.get_id channel))
       | Stateless channel ->
 	Ecb.Stateless_channel
 	  (Stateless.get_service (),
@@ -731,13 +731,13 @@ end = struct
     (Url.encode ~plus:false
        (Marshal.to_string value []))
 
-  let create_statefull_channel ?scope ?name stream =
-    Statefull
-      (Statefull.create ?scope ?name
+  let create_stateful_channel ?scope ?name stream =
+    Stateful
+      (Stateful.create ?scope ?name
 	 (Lwt_stream.map
 	    (function
 	      | Ecb.Closed ->
-		OMsg.debug2 (Printf.sprintf "eliom: closed in statefull channels: this is an error: this should not be possible");
+		OMsg.debug2 (Printf.sprintf "eliom: closed in stateful channels: this is an error: this should not be possible");
 		Ecb.Closed
 	      | Ecb.Full -> Ecb.Full
 	      | Ecb.Data s -> Ecb.Data (marshal s)) stream))
@@ -752,14 +752,14 @@ end = struct
       (Stateless.create ?name ~size:1
 	 (Lwt_stream.map marshal stream))
 
-  let create_statefull ?scope ?name ?(size=1000) stream =
+  let create_stateful ?scope ?name ?(size=1000) stream =
     let stream = limit_stream ~size stream in
-    { channel = create_statefull_channel ?scope ?name stream;
+    { channel = create_stateful_channel ?scope ?name stream;
       channel_mark = channel_mark () }
 
   let create_unlimited ?scope ?name stream =
     let stream = Lwt_stream.map (fun x -> Ecb.Data x) stream in
-    { channel = create_statefull_channel ?scope ?name stream;
+    { channel = create_stateful_channel ?scope ?name stream;
       channel_mark = channel_mark () }
 
   let create_stateless ?name ?(size=1000) stream =
@@ -776,8 +776,8 @@ end = struct
 
   let create ?scope ?name ?(size=1000) stream =
     match scope with
-      | None -> create_statefull ?name ~size stream
-      | Some ((`Client_process n) as scope) -> create_statefull ~scope ?name ~size stream
+      | None -> create_stateful ?name ~size stream
+      | Some ((`Client_process n) as scope) -> create_stateful ~scope ?name ~size stream
       | Some `Site -> create_stateless ?name ~size stream
 
   let external_channel ?(history=1) ?(newest=false) ~prefix ~name () =
@@ -795,7 +795,7 @@ end = struct
                              Ecb.Last_kind last));
       channel_mark = channel_mark () }
 
-  let wait_timeout = Statefull.wait_timeout
+  let wait_timeout = Stateful.wait_timeout
 
 end
 
