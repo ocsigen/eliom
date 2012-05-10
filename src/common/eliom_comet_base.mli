@@ -38,14 +38,14 @@ type command =
   | Close of string
 deriving (Json)
 
-type comet_statefull_request =
+type comet_stateful_request =
   | Request_data of int
   | Commands of command array
 deriving (Json)
 
 type comet_request =
   | Stateless of comet_stateless_request
-  | Statefull of comet_statefull_request
+  | Stateful of comet_stateful_request
 deriving (Json)
 
 val comet_request_param :
@@ -61,7 +61,7 @@ deriving (Json)
 
 type answer =
   | Stateless_messages of ( string * (string * int) channel_data ) array
-  | Statefull_messages of ( string * string channel_data ) array
+  | Stateful_messages of ( string * string channel_data ) array
   | Timeout
   | Process_closed
   | Comet_error of string
@@ -91,7 +91,7 @@ type stateless_kind =
   | Last_kind of int option
 
 type 'a wrapped_channel =
-  | Statefull_channel of (comet_service * 'a chan_id)
+  | Stateful_channel of (comet_service * 'a chan_id)
   | Stateless_channel of (comet_service * 'a chan_id * stateless_kind)
 
 

@@ -136,7 +136,7 @@ exception Comet_error of string
 
 type chan_id = string
 
-type statefull_message = ( chan_id * string Ecb.channel_data ) list
+type stateful_message = ( chan_id * string Ecb.channel_data ) list
 type stateless_message = ( chan_id * (string * int) Ecb.channel_data ) list
 
 module Service_handler : sig
@@ -145,10 +145,10 @@ module Service_handler : sig
 
   type 'a kind
   type stateless
-  type statefull
+  type stateful
 
   val stateless : stateless kind
-  val statefull : statefull kind
+  val stateful : stateful kind
 
   val make : Ecb.comet_service -> 'a kind -> 'a t
 
@@ -164,11 +164,11 @@ module Service_handler : sig
 
   val restart : 'a t -> unit
 
-  val add_channel_statefull : statefull t -> chan_id -> unit
+  val add_channel_stateful : stateful t -> chan_id -> unit
 
   val add_channel_stateless : stateless t -> chan_id -> Ecb.stateless_kind -> unit
 
-  val stop_waiting : statefull t -> chan_id -> unit
+  val stop_waiting : stateful t -> chan_id -> unit
   val close : 'a t -> chan_id -> unit
 
 end =
@@ -190,7 +190,7 @@ struct
 	mutable active_channels : String.Set.t;
       }
 
-  type statefull_state = int ref (* id of the next request *)
+  type stateful_state = int ref (* id of the next request *)
 
   type stateless_state_ = {
     count : int;
@@ -200,19 +200,19 @@ struct
   type stateless_state = (stateless_state_ String.Table.t) ref (* index for each channel of the last message *)
 
   type channel_state =
-    | Statefull_state of statefull_state
+    | Stateful_state of stateful_state
     | Stateless_state of stateless_state
 
   type kind' =
-    | Statefull
+    | Stateful
     | Stateless
 
   type 'a kind = kind'
   type stateless
-  type statefull
+  type stateful
 
   let stateless : stateless kind = Stateless
-  let statefull : statefull kind = Statefull
+  let stateful : stateful kind = Stateful
 
   type 'a t =
       {
@@ -283,7 +283,7 @@ struct
 
   let make_request hd =
     match hd.hd_state with
-      | Statefull_state count -> (Ecb.Statefull (Ecb.Request_data !count))
+      | Stateful_state count -> (Ecb.Stateful (Ecb.Request_data !count))
       | Stateless_state map ->
 	let l = String.Table.fold (fun channel { position } l -> (channel,position)::l) !map [] in
 	Ecb.Stateless (Array.of_list l)
@@ -293,18 +293,18 @@ struct
     if String.Set.is_empty hd.hd_activity.active_channels
     then set_activity hd false
 
-  let update_statefull_state hd message =
+  let update_stateful_state hd message =
     match hd.hd_state with
-      | Statefull_state r ->
+      | Stateful_state r ->
 	incr r;
 	List.iter (function
 	  | ( chan_id, Ecb.Data _ ) -> ()
 	  | ( chan_id, Ecb.Closed ) ->
-	    debug "Eliom_comet.update_statefull_state: received Closed: should not happen, this is an eliom bug, please report it"
+	    debug "Eliom_comet.update_stateful_state: received Closed: should not happen, this is an eliom bug, please report it"
 	  | ( chan_id, Ecb.Full ) ->
 	    stop_waiting hd chan_id) message
       | Stateless_state _ ->
-	raise (Comet_error ("update_statefull_state on stateless one"))
+	raise (Comet_error ("update_stateful_state on stateless one"))
 
   let set_position pos value =
     match pos with
@@ -342,8 +342,8 @@ struct
 	    !r message
 	in
 	r := table
-      | Statefull_state _ ->
-	raise (Comet_error ("update_stateless_state on statefull one"))
+      | Stateful_state _ ->
+	raise (Comet_error ("update_stateless_state on stateful one"))
 
   let call_service hd =
     lwt () = Configuration.sleep_before_next_request () in
@@ -404,9 +404,9 @@ struct
                 let l = Array.to_list l in
 		update_stateless_state hd l;
 		Lwt.return (drop_message_index l)
-	      | Ecb.Statefull_messages l ->
+	      | Ecb.Stateful_messages l ->
                 let l = Array.to_list l in
-		update_statefull_state hd l;
+		update_stateful_state hd l;
 		Lwt.return (add_no_index l)
           with
 	    | Eliom_request.Failed_request 0 ->
@@ -429,14 +429,14 @@ struct
     ignore
       (try_lwt
 	  call_service_after_load_end hd.hd_service ()
-	    (Ecb.Statefull (Ecb.Commands command))
+	    (Ecb.Stateful (Ecb.Commands command))
        with
 	 | e -> debug "Eliom_comet: request failed: exception %s" (Printexc.to_string e);
 	   Lwt.return "")
 
   let close hd chan_id =
     match hd.hd_state with
-      | Statefull_state _ ->
+      | Stateful_state _ ->
 	stop_waiting hd chan_id;
 	call_commands hd [|Ecb.Close chan_id|]
       | Stateless_state map ->
@@ -450,7 +450,7 @@ struct
 	  | Not_found ->
 	    debug "Eliom_comet: trying to close a non existent channel: %s" chan_id
 
-  let add_channel_statefull hd chan_id =
+  let add_channel_stateful hd chan_id =
     hd.hd_activity.active_channels <- String.Set.add chan_id hd.hd_activity.active_channels;
     call_commands hd [|Eliom_comet_base.Register chan_id|]
 
@@ -471,7 +471,7 @@ struct
     in
     hd.hd_activity.active_channels <- String.Set.add chan_id hd.hd_activity.active_channels;
     match hd.hd_state with
-      | Statefull_state _ -> assert false
+      | Stateful_state _ -> assert false
       | Stateless_state map ->
 	begin
 	  let state =
@@ -508,7 +508,7 @@ struct
   let make hd_service hd_kind =
     let hd_state = match hd_kind with
 	| Stateless -> Stateless_state (ref String.Table.empty)
-	| Statefull -> Statefull_state (ref 0)
+	| Stateful -> Stateful_state (ref 0)
     in
     let hd = {
       hd_service;
@@ -530,7 +530,7 @@ let handler_stream hd =
     (Lwt_stream.from (fun () ->
       lwt s = Service_handler.wait_data hd in Lwt.return (Some s)))
 
-let statefull_handler_table : (Ecb.comet_service, Service_handler.statefull handler) Hashtbl.t
+let stateful_handler_table : (Ecb.comet_service, Service_handler.stateful handler) Hashtbl.t
     = Hashtbl.create 1
 let stateless_handler_table : (Ecb.comet_service, Service_handler.stateless handler) Hashtbl.t
     = Hashtbl.create 1
@@ -543,11 +543,11 @@ let init (service:Ecb.comet_service) kind table =
   Hashtbl.add table service hd;
   hd
 
-let get_statefull_hd (service:Ecb.comet_service) : Service_handler.statefull handler =
+let get_stateful_hd (service:Ecb.comet_service) : Service_handler.stateful handler =
   try
-    Hashtbl.find statefull_handler_table service
+    Hashtbl.find stateful_handler_table service
   with
-    | Not_found -> init service Service_handler.statefull statefull_handler_table
+    | Not_found -> init service Service_handler.stateful stateful_handler_table
 
 let get_stateless_hd (service:Ecb.comet_service) : Service_handler.stateless handler =
   try
@@ -558,20 +558,20 @@ let get_stateless_hd (service:Ecb.comet_service) : Service_handler.stateless han
 let activate () =
   let f _ { hd_service_handler } = Service_handler.set_activity hd_service_handler true in
   Hashtbl.iter f stateless_handler_table;
-  Hashtbl.iter f statefull_handler_table
+  Hashtbl.iter f stateful_handler_table
 
 let restart () =
   let f _ { hd_service_handler } = Service_handler.restart hd_service_handler in
   Hashtbl.iter f stateless_handler_table;
-  Hashtbl.iter f statefull_handler_table
+  Hashtbl.iter f stateful_handler_table
 
-let close_statefull chan_service chan_id =
-  let { hd_service_handler } = get_statefull_hd chan_service in
+let close_stateful chan_service chan_id =
+  let { hd_service_handler } = get_stateful_hd chan_service in
   Service_handler.close hd_service_handler (Ecb.string_of_chan_id chan_id)
 
 let close = function
-  | Ecb.Statefull_channel (chan_service,chan_id) ->
-    let { hd_service_handler } = get_statefull_hd chan_service in
+  | Ecb.Stateful_channel (chan_service,chan_id) ->
+    let { hd_service_handler } = get_stateful_hd chan_service in
     Service_handler.close hd_service_handler (Ecb.string_of_chan_id chan_id)
   | Ecb.Stateless_channel (chan_service,chan_id,kind) ->
     let { hd_service_handler } = get_stateless_hd chan_service in
@@ -584,7 +584,7 @@ type position_relation =
   | Greater (* stateless newest channels *)
 
 type position =
-  | No_position  (* statefull channels*)
+  | No_position  (* stateful channels*)
   | Position of position_relation * ( int option ref ) (* stateless channels *)
 
 let position_of_kind = function
@@ -638,11 +638,11 @@ let register' hd position (chan_service:Ecb.comet_service) (chan_id:'a Ecb.chan_
   (* protect the stream from cancels *)
   Lwt_stream.from (fun () -> protect_and_close (Lwt_stream.get stream))
 
-let register_statefull ?(wake=true) service chan_id =
-  let hd = get_statefull_hd service in
+let register_stateful ?(wake=true) service chan_id =
+  let hd = get_stateful_hd service in
   let stream = register' hd No_position service chan_id in
   let chan_id = Ecb.string_of_chan_id chan_id in
-  Service_handler.add_channel_statefull hd.hd_service_handler chan_id;
+  Service_handler.add_channel_stateful hd.hd_service_handler chan_id;
   if wake then Service_handler.activate hd.hd_service_handler;
   stream
 
@@ -656,8 +656,8 @@ let register_stateless ?(wake=true) service chan_id kind =
 
 let register ?(wake=true) (wrapped_chan:'a Ecb.wrapped_channel) =
   match wrapped_chan with
-    | Ecb.Statefull_channel (s,c) ->
-      register_statefull ~wake s c
+    | Ecb.Stateful_channel (s,c) ->
+      register_stateful ~wake s c
     | Ecb.Stateless_channel (s,c,kind) ->
       register_stateless ~wake s c kind
 
@@ -668,7 +668,7 @@ let () = Eliom_unwrap.register_unwrapper Eliom_common.comet_channel_unwrap_id in
 let is_active () =
   let f _ hd active = active && Service_handler.is_active hd.hd_service_handler in
   ( Hashtbl.fold f stateless_handler_table true )
-  && ( Hashtbl.fold f statefull_handler_table true )
+  && ( Hashtbl.fold f stateful_handler_table true )
 
 module Channels =
 struct

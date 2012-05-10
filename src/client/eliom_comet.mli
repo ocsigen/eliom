@@ -41,7 +41,7 @@ exception Channel_full
 
 (** [Process_closed] is raised when reading on a channel and the
     server side of the application closed the client process.
-    This apply only to statefull channels *)
+    This apply only to stateful channels *)
 exception Process_closed
 
 (** [Process_closed] is raised when reading on a channel and the

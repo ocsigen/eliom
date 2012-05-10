@@ -114,8 +114,8 @@ let rec send ?(expecting_process_page = false) ?cookies_info
   let rec aux i ?cookies_info ?(get_args=[]) ?post_args ?form_arg url =
     let (https, path) = match cookies_info with
       | Some c -> c
-      (* CCC Is it really nescessary to allow to specify cookie_info here ?
-         hence, is it nescessary to send it with the links ? ( attribute data-eliom-cookie-info ) *)
+      (* CCC Is it really necessary to allow to specify cookie_info here?
+         hence, is it necessary to send it with the links? (attribute data-eliom-cookie-info) *)
       | None -> get_cookie_info_for_uri url
     in
     let host = match Url.url_of_string url with

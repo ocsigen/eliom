@@ -42,7 +42,7 @@ val change_page :
   ?nl_params:Eliom_parameters.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> unit Lwt.t
 
-(** Call a server side service that return a Caml value. *)
+(** Call a server side service that return an OCaml value. *)
 val call_caml_service :
   ?absolute:bool ->
   ?absolute_path:bool ->
