@@ -23,6 +23,7 @@
     chapter="misc" fragment="hier_menu"| hierarchical site>>%}. *)
 
 open Eliom_lib
+open Eliom_content
 open Eliom_services
 open Eliom_parameters
 open Eliom_state

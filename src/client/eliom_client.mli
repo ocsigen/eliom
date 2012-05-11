@@ -126,6 +126,7 @@ val in_onload : unit -> bool
 val on_unload : (unit -> unit) -> unit
 
 module Html5 : sig
+  open Eliom_content_core
 
   val of_element : 'a HTML5.elt -> Dom_html.element Js.t
   val of_heading : HTML5_types.heading HTML5.elt -> Dom_html.headingElement Js.t

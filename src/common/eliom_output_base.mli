@@ -19,6 +19,7 @@
  *)
 
 open Eliom_lib
+open Eliom_content_core
 
 module Html5_forms : sig
 

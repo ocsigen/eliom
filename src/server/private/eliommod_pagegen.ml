@@ -21,6 +21,7 @@
 (** Page generation *)
 
 open Eliom_lib
+open Eliom_content
 open Lwt
 
 module Xhtml_content = Ocsigen_senders.Make_XML_Content(XML)(XHTML.F)

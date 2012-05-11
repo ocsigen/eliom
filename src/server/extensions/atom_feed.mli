@@ -21,6 +21,7 @@
 (** Everything we need to make an atom feed. *)
 
 open Eliom_lib
+open Eliom_content_core
 
 (*
  * types {{{

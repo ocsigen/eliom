@@ -30,6 +30,7 @@
 open Ocsigen_extensions
 
 open Eliom_lib
+open Eliom_content_core
 open Eliom_parameters
 
 

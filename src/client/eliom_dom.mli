@@ -19,6 +19,7 @@
  *)
 
 open Eliom_lib
+open Eliom_content
 open HTML5
 
 (** Dom manipulation.
@@ -77,22 +78,22 @@ module Named: sig
       those functions raise with [Not_found]. *)
 
   (** see [appendChild] *)
-  val appendChild: ?before:'a elt -> 'b id -> 'c elt -> unit
+  val appendChild: ?before:'a elt -> 'b Id.id -> 'c elt -> unit
   (** see [appendChilds] *)
-  val appendChilds: ?before:'a elt -> 'b id ->  'c elt list -> unit
+  val appendChilds: ?before:'a elt -> 'b Id.id ->  'c elt list -> unit
   (** see [removeChild] *)
-  val removeChild: 'a id -> 'b elt -> unit
+  val removeChild: 'a Id.id -> 'b elt -> unit
   (** see [replaceChild] *)
-  val replaceChild: 'a id -> 'b elt -> 'c elt -> unit
+  val replaceChild: 'a Id.id -> 'b elt -> 'c elt -> unit
   (** see [removeAllChild] *)
-  val removeAllChild: 'a id -> unit
+  val removeAllChild: 'a Id.id -> unit
   (** see [replaceAllChild] *)
-  val replaceAllChild: 'a id -> 'b elt list -> unit
+  val replaceAllChild: 'a Id.id -> 'b elt list -> unit
 
   (** see [addEventListener] *)
   val addEventListener:
     ?capture:bool ->
-    'a id ->
+    'a Id.id ->
     (#Dom_html.event as 'b) Js.t Dom_html.Event.typ ->
     ('a elt -> 'b Js.t -> bool) ->
     Dom_html.event_listener_id

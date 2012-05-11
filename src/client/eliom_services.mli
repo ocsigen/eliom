@@ -23,6 +23,7 @@
 
 open Eliom_parameters
 open Eliom_lib
+open Eliom_content_core
 
 (** {2 Types of services} *)
 

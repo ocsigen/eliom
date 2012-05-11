@@ -19,6 +19,8 @@
  *)
 
 open Eliom_lib
+open Eliom_content_core
+
 module JsTable = Eliommod_jstable
 
 (* == Closure *)

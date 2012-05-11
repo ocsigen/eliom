@@ -30,6 +30,7 @@
 (** {% <<outline>> %}*)
 
 open Eliom_lib
+open Eliom_content_core
 
 (** {2 Type definitions} *)
 

@@ -17,6 +17,7 @@
  *)
 
 open Eliom_lib
+open Eliom_content
 open XHTML.F
 
 let page_error_param_type l =

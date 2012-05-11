@@ -19,6 +19,7 @@
  *)
 
 open Eliom_lib
+open Eliom_content
 
 let get_node elt = (Eliom_client.Html5.of_element elt :> Dom.node Js.t)
 let get_unique_node name (elt: 'a HTML5.elt) : Dom.node Js.t =
@@ -119,7 +120,7 @@ let addEventListener ?capture target event handler =
 
 module Named = struct
   let get_element id =
-    let id = HTML5.string_of_id id in
+    let id = HTML5.Id.string_of_id id in
     let node = Eliom_client.getElementById id in
     Js.Opt.case
       (Dom_html.CoerceTo.element node)

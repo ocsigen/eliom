@@ -8,6 +8,7 @@
 \.o$
 \.a$
 \.so$
+\.sw[po]$
 ^Makefile.config$
 ^baselib/ocsigen_config.ml$
 ^doc/client/api-html

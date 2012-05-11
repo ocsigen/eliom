@@ -19,6 +19,7 @@
  *)
 
 open Eliom_lib
+open Eliom_content_core
 open Eliom_services
 open Eliom_parameters
 
@@ -2482,10 +2483,10 @@ module Eliom_appl_reg_make_param
 
   let result_of_http_result = Result_types.cast_result
 
-  let eliom_appl_script_id : [ `Script ] HTML5.id =
-    HTML5.new_elt_id ~global:true ()
+  let eliom_appl_script_id : [ `Script ] HTML5.Id.id =
+    HTML5.Id.new_elt_id ~global:true ()
   let application_script ?(async = false) () =
-    HTML5.create_named_elt
+    HTML5.Id.create_named_elt
       ~id:eliom_appl_script_id
       (Html5.js_script
 	 ~a:(if async then [HTML5.D.a_async `Async] else [] )
@@ -2498,10 +2499,10 @@ module Eliom_appl_reg_make_param
      : ?async:_ -> unit -> [ `Script ] HTML5.elt
      :> ?async:_ -> unit -> [> `Script ] HTML5.elt)
   let is_eliom_appl_script elt =
-    HTML5.have_id eliom_appl_script_id elt
+    HTML5.Id.have_id eliom_appl_script_id elt
 
   let eliom_appl_data_script_id =
-    HTML5.new_elt_id ~global:true ()
+    HTML5.Id.new_elt_id ~global:true ()
 
   let make_eliom_appl_data_script ~sp =
 
@@ -2517,7 +2518,7 @@ module Eliom_appl_reg_make_param
     in
 
     Lwt.return
-      (HTML5.create_named_elt ~id:eliom_appl_data_script_id
+      (HTML5.Id.create_named_elt ~id:eliom_appl_data_script_id
 	 (HTML5.F.script (cdata_script script)))
 
   let make_eliom_data_script ~sp page =

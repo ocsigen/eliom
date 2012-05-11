@@ -1,11 +1,12 @@
 
-INTF := eliom_lazy.cmi        \
-        eliom_lib.cmi        \
+INTF := eliom_lazy.cmi              \
+        eliom_lib.cmi               \
         eliom_parameters.cmi        \
         eliom_services.cmi          \
         eliom_uri.cmi               \
         eliom_mkforms.cmi           \
         eliom_output.cmi            \
+        eliom_content.cmi           \
         eliom_comet.cmi             \
         eliom_react.cmi             \
         eliom_bus.cmi               \
@@ -24,6 +25,7 @@ STUBS := dlleliom_client.so \
 NOP4 := eliom_lib.mli
 
 DOC := ${INTF:.cmi=.mli} \
+       eliom_content_core.mli \
        eliom_output_base.mli \
        eliom_types_base.mli \
        eliom_comet_base.mli \

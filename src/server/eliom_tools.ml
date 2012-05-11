@@ -19,6 +19,7 @@
 (* TODO: factorize function with eliom_duce_tools? *)
 
 open Eliom_lib
+open Eliom_content_core
 open Eliom_services
 
 include Eliom_tools_common
@@ -608,10 +609,10 @@ module Html5 = struct
     let open Eliom_output.Html5_forms in
     let mk_css_link path =
       let uri = make_uri (Eliom_services.static_dir ()) path in
-      HTML5.create_global_elt (css_link ~uri ()) in
+      HTML5.Id.create_global_elt (css_link ~uri ()) in
     let mk_js_script path =
       let uri = make_uri  (Eliom_services.static_dir ()) path in
-      HTML5.create_global_elt (js_script ~uri ()) in
+      HTML5.Id.create_global_elt (js_script ~uri ()) in
     head
       (title (pcdata ttl))
       List.(map mk_css_link css @ map mk_js_script js)
