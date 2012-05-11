@@ -19,14 +19,14 @@ For instance:
 <<code language="ocaml"|
 let pi_service =
   Eliom_output.Caml.register_service
-    ~path:["pi service"]
-    ~get_params:unit
+    ~path:["pi"]
+    ~get_params:Eliom_parameters.unit
     (fun () () -> Lwt.return 3.1415926535)
 
 let _ =
   My_appl.register_service
     ~path:["pi service"]
-    ~get_params:unit
+    ~get_params:Eliom_parameters.unit
     (fun () () ->
       Eliom_services.onload
       {{
@@ -35,7 +35,7 @@ let _ =
       }};
       Lwt.return
         (HTML5.html
-           (HTML5.head (HTML5.title (HTML5.pcdata "pi")))
+           (HTML5.head (HTML5.title (HTML5.pcdata "pi")) [])
            (HTML5.body [])))
 >>
 
