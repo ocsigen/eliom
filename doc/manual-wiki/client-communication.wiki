@@ -30,8 +30,9 @@ let _ =
     (fun () () ->
       Eliom_services.onload
       {{
-        lwt pi = Eliom_client.call_caml_service ~service:%pi_service () () in
-	Dom_html.window##alert(Js.string ("pi = "^(float_of_string pi)))
+        Lwt.ignore.result(
+          lwt pi = Eliom_client.call_caml_service ~service:%pi_service () () in
+	  Lwt.return (Dom_html.window##alert(Js.string ("pi = "^(string_of_float pi)))))
       }};
       Lwt.return
         (HTML5.html
