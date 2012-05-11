@@ -14,10 +14,10 @@ let reference_scope_site =
     ~path:["reference_scope_site"]
     ~get_params:Eliom_parameters.unit
     (fun () () ->
-       let show = function None -> HTML5.entity "#x2012" | Some str -> HTML5.pcdata str in
+       let show = function None -> HTML5.D.entity "#x2012" | Some str -> HTML5.D.pcdata str in
        lwt v = Lwt.map show (Eliom_references.get Eliom_testsuite_global.eref) in
        lwt v' = Lwt.map show (Eliom_references.get Eliom_testsuite_global.eref') in
-       Lwt.return HTML5.(
+       Lwt.return HTML5.D.(
          html
            (head (title (pcdata "")) [])
            (body [

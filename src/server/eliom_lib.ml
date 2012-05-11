@@ -219,16 +219,18 @@ module SVG = struct
 
   end)
 
-  include D
-
   module F = SVG_f.Make(XML)
+
+  type +'a elt = 'a F.elt
+  type +'a attrib = 'a F.attrib
+  type uri = F.uri
 
   type 'a id = string (* FIXME invariant type parameter ? *)
   let new_elt_id: ?global:bool -> unit -> 'a id = XML.make_node_name
   let create_named_elt ~(id : 'a id) elt =
-    tot (XML.make_process_node ~id (toelt elt))
+    D.tot (XML.make_process_node ~id (D.toelt elt))
   let create_global_elt elt =
-    tot (XML.make_process_node (toelt elt))
+    D.tot (XML.make_process_node (D.toelt elt))
 
   module P = XML_print.MakeTypedSimple(XML)(F)
 end
@@ -266,7 +268,6 @@ module HTML5 = struct
 		(fun () ->
 		  toelt (Eliom_lazy.force elt1)
 		  :: toeltl (Eliom_lazy.force elts))))
-
 
     let raw_a_onabort = a_onabort
     let raw_a_onafterprint = a_onafterprint
@@ -428,8 +429,6 @@ module HTML5 = struct
 
   end
 
-  include D
-
   module F = struct
     include HTML5_f.Make(XML)(SVG.F)
 
@@ -442,6 +441,76 @@ module HTML5 = struct
 		(fun () ->
 		  toelt (Eliom_lazy.force elt1)
 		  :: toeltl (Eliom_lazy.force elts))))
+
+    let raw_a_onabort = a_onabort
+    let raw_a_onafterprint = a_onafterprint
+    let raw_a_onbeforeprint = a_onbeforeprint
+    let raw_a_onbeforeunload = a_onbeforeunload
+    let raw_a_onblur = a_onblur
+    let raw_a_oncanplay = a_oncanplay
+    let raw_a_oncanplaythrough = a_oncanplaythrough
+    let raw_a_onchange = a_onchange
+    let raw_a_onclick = a_onclick
+    let raw_a_oncontextmenu = a_oncontextmenu
+    let raw_a_ondblclick = a_ondblclick
+    let raw_a_ondrag = a_ondrag
+    let raw_a_ondragend = a_ondragend
+    let raw_a_ondragenter = a_ondragenter
+    let raw_a_ondragleave = a_ondragleave
+    let raw_a_ondragover = a_ondragover
+    let raw_a_ondragstart = a_ondragstart
+    let raw_a_ondrop = a_ondrop
+    let raw_a_ondurationchange = a_ondurationchange
+    let raw_a_onemptied = a_onemptied
+    let raw_a_onended = a_onended
+    let raw_a_onerror = a_onerror
+    let raw_a_onfocus = a_onfocus
+    let raw_a_onformchange = a_onformchange
+    let raw_a_onforminput = a_onforminput
+    let raw_a_onhashchange = a_onhashchange
+    let raw_a_oninput = a_oninput
+    let raw_a_oninvalid = a_oninvalid
+    let raw_a_onmousedown = a_onmousedown
+    let raw_a_onmouseup = a_onmouseup
+    let raw_a_onmouseover = a_onmouseover
+    let raw_a_onmousemove = a_onmousemove
+    let raw_a_onmouseout = a_onmouseout
+    let raw_a_onmousewheel = a_onmousewheel
+    let raw_a_onoffline = a_onoffline
+    let raw_a_ononline = a_ononline
+    let raw_a_onpause = a_onpause
+    let raw_a_onplay = a_onplay
+    let raw_a_onplaying = a_onplaying
+    let raw_a_onpagehide = a_onpagehide
+    let raw_a_onpageshow = a_onpageshow
+    let raw_a_onpopstate = a_onpopstate
+    let raw_a_onprogress = a_onprogress
+    let raw_a_onratechange = a_onratechange
+    let raw_a_onreadystatechange = a_onreadystatechange
+    let raw_a_onredo = a_onredo
+    let raw_a_onresize = a_onresize
+    let raw_a_onscroll = a_onscroll
+    let raw_a_onseeked = a_onseeked
+    let raw_a_onseeking = a_onseeking
+    let raw_a_onselect = a_onselect
+    let raw_a_onshow = a_onshow
+    let raw_a_onstalled = a_onstalled
+    let raw_a_onstorage = a_onstorage
+    let raw_a_onsubmit = a_onsubmit
+    let raw_a_onsuspend = a_onsuspend
+    let raw_a_ontimeupdate = a_ontimeupdate
+    let raw_a_onundo = a_onundo
+    let raw_a_onunload = a_onunload
+    let raw_a_onvolumechange = a_onvolumechange
+    let raw_a_onwaiting = a_onwaiting
+    let raw_a_onkeypress = a_onkeypress
+    let raw_a_onkeydown = a_onkeydown
+    let raw_a_onkeyup = a_onkeyup
+    let raw_a_onload = a_onload
+    let raw_a_onloadeddata = a_onloadeddata
+    let raw_a_onloadedmetadata = a_onloadedmetadata
+    let raw_a_onloadstart = a_onloadstart
+    let raw_a_onmessage = a_onmessage
 
     let a_onabort ev = a_onabort (XML.Caml ev)
     let a_onafterprint ev = a_onafterprint (XML.Caml ev)
@@ -533,13 +602,17 @@ module HTML5 = struct
 
   end
 
+  type +'a elt = 'a F.elt
+  type +'a attrib = 'a F.attrib
+  type uri = F.uri
+
   type 'a id = string (* FIXME invariant type parameter ? *)
   let new_elt_id: ?global:bool -> unit -> 'a id = XML.make_node_name
   let create_named_elt ~(id : 'a id) elt =
-    tot (XML.make_process_node ~id (toelt elt))
+    D.tot (XML.make_process_node ~id (D.toelt elt))
   let create_global_elt elt =
-    tot (XML.make_process_node (toelt elt))
-  let have_id name elt = XML.get_node_id (toelt elt) = XML.ProcessId name
+    D.tot (XML.make_process_node (D.toelt elt))
+  let have_id name elt = XML.get_node_id (D.toelt elt) = XML.ProcessId name
 
   module P = XML_print.MakeTypedSimple(XML)(F)
 

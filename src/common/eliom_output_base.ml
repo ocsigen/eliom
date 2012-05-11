@@ -57,7 +57,7 @@ type button_type =
 (*****************************************************************************)
 
 module Html5_forms_base(HTML5 : sig
-  include HTML5_sigs.T with module XML := XML and module SVG := SVG
+  include HTML5_sigs.T with module XML := XML and module SVG := SVG.D
                        and type 'a elt = 'a HTML5.elt
                        and type 'a attrib = 'a HTML5.attrib
                        and type uri = HTML5.uri
@@ -912,7 +912,7 @@ module MakeApplForms(Forms: "sigs/eliom_html5_forms.mli") = struct
     let a =
       if xhr then
         let info = make_info ~https `A service in
-        HTML5.raw_a_onclick (XML.event_handler_of_service info) :: a
+        HTML5.D.raw_a_onclick (XML.event_handler_of_service info) :: a
       else
         a
     in
@@ -928,7 +928,7 @@ module MakeApplForms(Forms: "sigs/eliom_html5_forms.mli") = struct
     let a =
       if get_xhr xhr then
         let info = make_info ~https `Form_get service in
-        HTML5.raw_a_onsubmit (XML.event_handler_of_service info) :: a
+        HTML5.D.raw_a_onsubmit (XML.event_handler_of_service info) :: a
       else
         a
     in
@@ -943,7 +943,7 @@ module MakeApplForms(Forms: "sigs/eliom_html5_forms.mli") = struct
     let a =
       if get_xhr xhr then
         let info = make_info ~https `Form_get service in
-        HTML5.raw_a_onsubmit (XML.event_handler_of_service info) :: a
+        HTML5.D.raw_a_onsubmit (XML.event_handler_of_service info) :: a
       else
         a
     in
@@ -959,7 +959,7 @@ module MakeApplForms(Forms: "sigs/eliom_html5_forms.mli") = struct
     let a =
       if get_xhr xhr then
         let info = make_info ~https `Form_post service in
-        HTML5.raw_a_onsubmit (XML.event_handler_of_service info) :: a
+        HTML5.D.raw_a_onsubmit (XML.event_handler_of_service info) :: a
       else
         a
     in
@@ -975,7 +975,7 @@ module MakeApplForms(Forms: "sigs/eliom_html5_forms.mli") = struct
     let a =
       if get_xhr xhr then
         let info = make_info ~https `Form_post service in
-        HTML5.raw_a_onsubmit (XML.event_handler_of_service info) :: a
+        HTML5.D.raw_a_onsubmit (XML.event_handler_of_service info) :: a
       else
         a
     in

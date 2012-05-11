@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** Pervasives module for Eliom : it extends the OCaml stdlib and should always be opened. *)
+(** Pervasives module for Eliom-server: it extends the OCaml stdlib and should always be opened. *)
 
 include module type of Ocsigen_lib
   with type poly = Ocsigen_lib.poly
@@ -127,9 +127,11 @@ module SVG : sig
       semantics>> %} for SVG tree manipulated by client/server
       application. *)
 
-  (** {2 Dom semantics} *)
+  type +'a elt
+  type 'a attrib
+  type uri = XML.uri
 
-  include SVG_sigs.T with module XML := XML
+  (** {2 Dom semantics} *)
 
   (** Typed interface for building valid SVG tree (DOM semantics). See
       {% <<a_api project="tyxml" | module type SVG_sigs.T >> %}. *)
@@ -177,11 +179,11 @@ module HTML5 : sig
       semantics>> %} for HTML5 tree manipulated by client/server
       application. *)
 
+  type +'a elt
+  type +'a attrib
+  type uri = XML.uri
+
   (** {2 Dom semantics} *)
-
-  (** Cf. <<a_api project="tyxml"|module HTML5_sigs.T>>. *)
-
-  include HTML5_sigs.T with module XML := XML and module SVG := SVG
 
   (** Typed interface for building valid HTML5 tree (DOM semantics). See
       {% <<a_api project="tyxml" | module type HTML5_sigs.T >> %}. *)
@@ -195,6 +197,10 @@ module HTML5 : sig
 
     (** {2 Event handlers} *)
 
+    (**/**)
+    include "sigs/eliom_html5_event_handler_raw.mli"
+    (**/**)
+
     (** Redefine event handler attributes to simplify their usage. *)
     include "sigs/eliom_html5_event_handler.mli"
 
@@ -204,6 +210,7 @@ module HTML5 : sig
 
     val lazy_form:
       ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus
+    (**/**)
 
   end
 
@@ -222,6 +229,10 @@ module HTML5 : sig
 
     (** {2 Event handlers} *)
 
+    (**/**)
+    include "sigs/eliom_html5_event_handler_raw.mli"
+    (**/**)
+
     (** Redefine event handler attributes to simplify their usage. *)
     include "sigs/eliom_html5_event_handler.mli"
 
@@ -231,6 +242,7 @@ module HTML5 : sig
 
     val lazy_form:
       ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus
+    (**/**)
 
   end
 
@@ -264,88 +276,6 @@ module HTML5 : sig
   module P : XML_sigs.TypedSimplePrinter with type 'a elt := 'a F.elt
 					  and type doc := F.doc
 
-  (** {2 Event handlers} *)
-
-  (** Redefine event handler attributes to simplify their usage. *)
-  include "sigs/eliom_html5_event_handler.mli"
-
-  (**/**)
-  val raw_a_onabort : XML.event_handler -> [> | `OnAbort] attrib
-  val raw_a_onafterprint : XML.event_handler -> [> | `OnAfterPrint] attrib
-  val raw_a_onbeforeprint : XML.event_handler -> [> | `OnBeforePrint] attrib
-  val raw_a_onbeforeunload : XML.event_handler -> [> | `OnBeforeUnload] attrib
-  val raw_a_onblur : XML.event_handler -> [> | `OnBlur] attrib
-  val raw_a_oncanplay : XML.event_handler -> [> | `OnCanPlay] attrib
-  val raw_a_oncanplaythrough : XML.event_handler -> [> | `OnCanPlayThrough] attrib
-  val raw_a_onchange : XML.event_handler -> [> | `OnChange] attrib
-  val raw_a_onclick : XML.event_handler -> [> | `OnClick] attrib
-  val raw_a_oncontextmenu : XML.event_handler -> [> | `OnContextMenu] attrib
-  val raw_a_ondblclick : XML.event_handler -> [> | `OnDblClick] attrib
-  val raw_a_ondrag : XML.event_handler -> [> | `OnDrag] attrib
-  val raw_a_ondragend : XML.event_handler -> [> | `OnDragEnd] attrib
-  val raw_a_ondragenter : XML.event_handler -> [> | `OnDragEnter] attrib
-  val raw_a_ondragleave : XML.event_handler -> [> | `OnDragLeave] attrib
-  val raw_a_ondragover : XML.event_handler -> [> | `OnDragOver] attrib
-  val raw_a_ondragstart : XML.event_handler -> [> | `OnDragStart] attrib
-  val raw_a_ondrop : XML.event_handler -> [> | `OnDrop] attrib
-  val raw_a_ondurationchange : XML.event_handler -> [> | `OnDurationChange] attrib
-  val raw_a_onemptied : XML.event_handler -> [> | `OnEmptied] attrib
-  val raw_a_onended : XML.event_handler -> [> | `OnEnded] attrib
-  val raw_a_onerror : XML.event_handler -> [> | `OnError] attrib
-  val raw_a_onfocus : XML.event_handler -> [> | `OnFocus] attrib
-  val raw_a_onformchange : XML.event_handler -> [> | `OnFormChange] attrib
-  val raw_a_onforminput : XML.event_handler -> [> | `OnFormInput] attrib
-  val raw_a_onhashchange : XML.event_handler -> [> | `OnHashChange] attrib
-  val raw_a_oninput : XML.event_handler -> [> | `OnInput] attrib
-  val raw_a_oninvalid : XML.event_handler -> [> | `OnInvalid] attrib
-  val raw_a_onmousedown : XML.event_handler -> [> | `OnMouseDown] attrib
-  val raw_a_onmouseup : XML.event_handler -> [> | `OnMouseUp] attrib
-  val raw_a_onmouseover : XML.event_handler -> [> | `OnMouseOver] attrib
-  val raw_a_onmousemove : XML.event_handler -> [> | `OnMouseMove] attrib
-  val raw_a_onmouseout : XML.event_handler -> [> | `OnMouseOut] attrib
-  val raw_a_onmousewheel : XML.event_handler -> [> | `OnMouseWheel] attrib
-  val raw_a_onoffline : XML.event_handler -> [> | `OnOffLine] attrib
-  val raw_a_ononline : XML.event_handler -> [> | `OnOnLine] attrib
-  val raw_a_onpause : XML.event_handler -> [> | `OnPause] attrib
-  val raw_a_onplay : XML.event_handler -> [> | `OnPlay] attrib
-  val raw_a_onplaying : XML.event_handler -> [> | `OnPlaying] attrib
-  val raw_a_onpagehide : XML.event_handler -> [> | `OnPageHide] attrib
-  val raw_a_onpageshow : XML.event_handler -> [> | `OnPageShow] attrib
-  val raw_a_onpopstate : XML.event_handler -> [> | `OnPopState] attrib
-  val raw_a_onprogress : XML.event_handler -> [> | `OnProgress] attrib
-  val raw_a_onratechange : XML.event_handler -> [> | `OnRateChange] attrib
-  val raw_a_onreadystatechange : XML.event_handler -> [> | `OnReadyStateChange] attrib
-  val raw_a_onredo : XML.event_handler -> [> | `OnRedo] attrib
-  val raw_a_onresize : XML.event_handler -> [> | `OnResize] attrib
-  val raw_a_onscroll : XML.event_handler -> [> | `OnScroll] attrib
-  val raw_a_onseeked : XML.event_handler -> [> | `OnSeeked] attrib
-  val raw_a_onseeking : XML.event_handler -> [> | `OnSeeking] attrib
-  val raw_a_onselect : XML.event_handler -> [> | `OnSelect] attrib
-  val raw_a_onshow : XML.event_handler -> [> | `OnShow] attrib
-  val raw_a_onstalled : XML.event_handler -> [> | `OnStalled] attrib
-  val raw_a_onstorage : XML.event_handler -> [> | `OnStorage] attrib
-  val raw_a_onsubmit : XML.event_handler -> [> | `OnSubmit] attrib
-  val raw_a_onsuspend : XML.event_handler -> [> | `OnSuspend] attrib
-  val raw_a_ontimeupdate : XML.event_handler -> [> | `OnTimeUpdate] attrib
-  val raw_a_onundo : XML.event_handler -> [> | `OnUndo] attrib
-  val raw_a_onunload : XML.event_handler -> [> | `OnUnload] attrib
-  val raw_a_onvolumechange : XML.event_handler -> [> | `OnVolumeChange] attrib
-  val raw_a_onwaiting : XML.event_handler -> [> | `OnWaiting] attrib
-  val raw_a_onkeypress : XML.event_handler -> [> | `OnKeyPress] attrib
-  val raw_a_onkeydown : XML.event_handler -> [> | `OnKeyDown] attrib
-  val raw_a_onkeyup : XML.event_handler -> [> | `OnKeyUp] attrib
-  val raw_a_onload : XML.event_handler -> [> | `OnLoad] attrib
-  val raw_a_onloadeddata : XML.event_handler -> [> | `OnLoadedData] attrib
-  val raw_a_onloadedmetadata : XML.event_handler -> [> | `OnLoadedMetaData] attrib
-  val raw_a_onloadstart : XML.event_handler -> [> | `OnLoadStart] attrib
-  val raw_a_onmessage : XML.event_handler -> [> | `OnMessage] attrib
-
-  type ('a, 'b, 'c) lazy_plus =
-      ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
-
-  val lazy_form:
-    ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus
-
 end
 
 (** Building and printing valid XHTML tree. *)
@@ -363,6 +293,7 @@ module XHTML : sig
     val lazy_form:
       action:XML.uri ->
       ([< XHTML_types.form_attrib ], [< XHTML_types.form_content ], [> XHTML_types.form ]) lazy_plus
+    (**/**)
 
   end
 
@@ -391,6 +322,7 @@ module XHTML : sig
     val lazy_form:
       action:XML.uri ->
       ([< XHTML_types.form_attrib ], [< XHTML_types.form_content ], [> XHTML_types.form ]) lazy_plus
+    (**/**)
 
   end
 
@@ -418,6 +350,7 @@ module XHTML : sig
     val lazy_form:
       action:XML.uri ->
       ([< XHTML_types.form_attrib ], [< XHTML_types.form_content ], [> XHTML_types.form ]) lazy_plus
+    (**/**)
 
   end
 

@@ -22,10 +22,10 @@ open Eliom_lib
 
 let get_node elt = (Eliom_client.Html5.of_element elt :> Dom.node Js.t)
 let get_unique_node name (elt: 'a HTML5.elt) : Dom.node Js.t =
-  match XML.get_node (HTML5.toelt elt) with
+  match XML.get_node (HTML5.D.toelt elt) with
   | XML.DomNode node -> node
   | XML.TyXMLNode desc ->
-      match XML.get_node_id (HTML5.toelt elt) with
+      match XML.get_node_id (HTML5.D.toelt elt) with
       | XML.NoId -> failwith (Printf.sprintf "Non unique node (%s)" name)
       | _ -> get_node elt
 
@@ -110,7 +110,7 @@ let childElements elt =
 
 let raw_addEventListener ?(capture = false) node event handler =
   Dom_html.addEventListener node event
-    (Dom_html.full_handler (fun n e -> Js.bool (handler (HTML5.tot (XML.make_dom (n :> Dom.node Js.t))) e)))
+    (Dom_html.full_handler (fun n e -> Js.bool (handler (HTML5.D.tot (XML.make_dom (n :> Dom.node Js.t))) e)))
     (Js.bool capture)
 
 let addEventListener ?capture target event handler =
