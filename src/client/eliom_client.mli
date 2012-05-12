@@ -138,3 +138,4 @@ val load_eliom_data :
 val register_closure: int64 -> ('a -> Dom_html.event Js.t -> unit) -> unit
 
 val getElementById : string -> Dom.node Js.t
+val rebuild_node : 'a Eliom_content_core.HTML5.elt -> < .. > Js.t

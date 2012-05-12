@@ -303,56 +303,6 @@ module HTML5 = struct
 		  toelt (Eliom_lazy.force elt1)
 		  :: toeltl (Eliom_lazy.force elts))))
 
-    module Of_dom = struct
-      let rebuild_xml (node: 'a Js.t) : 'a elt =
-        Obj.magic { XML.elt = XML.DomNode (node :> Dom.node Js.t); node_id = XML.NoId }
-      let element : Dom_html.element Js.t -> 'a elt = rebuild_xml
-      let html : Dom_html.htmlElement Js.t -> HTML5_types.html elt = rebuild_xml
-      let head : Dom_html.headElement Js.t -> HTML5_types.head elt = rebuild_xml
-      let link : Dom_html.linkElement Js.t -> HTML5_types.link elt = rebuild_xml
-      let title : Dom_html.titleElement Js.t -> HTML5_types.title elt = rebuild_xml
-      let meta : Dom_html.metaElement Js.t -> HTML5_types.meta elt = rebuild_xml
-      let base : Dom_html.baseElement Js.t -> HTML5_types.base elt = rebuild_xml
-      let style : Dom_html.styleElement Js.t -> HTML5_types.style elt = rebuild_xml
-      let body : Dom_html.bodyElement Js.t -> HTML5_types.body elt = rebuild_xml
-      let form : Dom_html.formElement Js.t -> HTML5_types.form elt = rebuild_xml
-      let optGroup : Dom_html.optGroupElement Js.t -> HTML5_types.optgroup elt = rebuild_xml
-      let option : Dom_html.optionElement Js.t -> HTML5_types.selectoption elt = rebuild_xml
-      let select : Dom_html.selectElement Js.t -> HTML5_types.select elt = rebuild_xml
-      let input : Dom_html.inputElement Js.t -> HTML5_types.input elt = rebuild_xml
-      let textArea : Dom_html.textAreaElement Js.t -> HTML5_types.textarea elt = rebuild_xml
-      let button : Dom_html.buttonElement Js.t -> HTML5_types.button elt = rebuild_xml
-      let label : Dom_html.labelElement Js.t -> HTML5_types.label elt = rebuild_xml
-      let fieldSet : Dom_html.fieldSetElement Js.t -> HTML5_types.fieldset elt = rebuild_xml
-      let legend : Dom_html.legendElement Js.t -> HTML5_types.legend elt = rebuild_xml
-      let uList : Dom_html.uListElement Js.t -> HTML5_types.ul elt = rebuild_xml
-      let oList : Dom_html.oListElement Js.t -> HTML5_types.ol elt = rebuild_xml
-      let dList : Dom_html.dListElement Js.t -> [`Dl] elt = rebuild_xml
-      let li : Dom_html.liElement Js.t -> HTML5_types.li elt = rebuild_xml
-      let div : Dom_html.divElement Js.t -> HTML5_types.div elt = rebuild_xml
-      let paragraph : Dom_html.paragraphElement Js.t -> HTML5_types.p elt = rebuild_xml
-      let heading : Dom_html.headingElement Js.t -> HTML5_types.heading elt = rebuild_xml
-      let quote : Dom_html.quoteElement Js.t -> HTML5_types.blockquote elt = rebuild_xml
-      let pre : Dom_html.preElement Js.t -> HTML5_types.pre elt = rebuild_xml
-      let br : Dom_html.brElement Js.t -> HTML5_types.br elt = rebuild_xml
-      let hr : Dom_html.hrElement Js.t -> HTML5_types.hr elt = rebuild_xml
-      let anchor : Dom_html.anchorElement Js.t -> 'a HTML5_types.a elt = rebuild_xml
-      let image : Dom_html.imageElement Js.t -> [`Img] elt = rebuild_xml
-      let object_ : Dom_html.objectElement Js.t -> 'a HTML5_types.object_ elt = rebuild_xml
-      let param : Dom_html.paramElement Js.t -> HTML5_types.param elt = rebuild_xml
-      let area : Dom_html.areaElement Js.t -> HTML5_types.area elt = rebuild_xml
-      let map : Dom_html.mapElement Js.t -> 'a HTML5_types.map elt = rebuild_xml
-      let script : Dom_html.scriptElement Js.t -> HTML5_types.script elt = rebuild_xml
-      let tableCell : Dom_html.tableCellElement Js.t -> [ HTML5_types.td | HTML5_types.td ] elt = rebuild_xml
-      let tableRow : Dom_html.tableRowElement Js.t -> HTML5_types.tr elt = rebuild_xml
-      let tableCol : Dom_html.tableColElement Js.t -> HTML5_types.col elt = rebuild_xml
-      let tableSection : Dom_html.tableSectionElement Js.t -> [ HTML5_types.tfoot | HTML5_types.thead | HTML5_types.tbody ] elt = rebuild_xml
-      let tableCaption : Dom_html.tableCaptionElement Js.t -> HTML5_types.caption elt = rebuild_xml
-      let table : Dom_html.tableElement Js.t -> HTML5_types.table elt = rebuild_xml
-      let canvas : Dom_html.canvasElement Js.t -> 'a HTML5_types.canvas elt = rebuild_xml
-      let iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt = rebuild_xml
-    end
-
   end
 
   module F = struct
@@ -525,6 +475,56 @@ module HTML5 = struct
       D.tot (XML.make_process_node (D.toelt elt))
 
     let string_of_id x = x
+  end
+
+  module Of_dom = struct
+    let rebuild_xml (node: 'a Js.t) : 'a F.elt =
+      Obj.magic { XML.elt = XML.DomNode (node :> Dom.node Js.t); node_id = XML.NoId }
+    let element : Dom_html.element Js.t -> 'a elt = rebuild_xml
+    let html : Dom_html.htmlElement Js.t -> HTML5_types.html elt = rebuild_xml
+    let head : Dom_html.headElement Js.t -> HTML5_types.head elt = rebuild_xml
+    let link : Dom_html.linkElement Js.t -> HTML5_types.link elt = rebuild_xml
+    let title : Dom_html.titleElement Js.t -> HTML5_types.title elt = rebuild_xml
+    let meta : Dom_html.metaElement Js.t -> HTML5_types.meta elt = rebuild_xml
+    let base : Dom_html.baseElement Js.t -> HTML5_types.base elt = rebuild_xml
+    let style : Dom_html.styleElement Js.t -> HTML5_types.style elt = rebuild_xml
+    let body : Dom_html.bodyElement Js.t -> HTML5_types.body elt = rebuild_xml
+    let form : Dom_html.formElement Js.t -> HTML5_types.form elt = rebuild_xml
+    let optGroup : Dom_html.optGroupElement Js.t -> HTML5_types.optgroup elt = rebuild_xml
+    let option : Dom_html.optionElement Js.t -> HTML5_types.selectoption elt = rebuild_xml
+    let select : Dom_html.selectElement Js.t -> HTML5_types.select elt = rebuild_xml
+    let input : Dom_html.inputElement Js.t -> HTML5_types.input elt = rebuild_xml
+    let textArea : Dom_html.textAreaElement Js.t -> HTML5_types.textarea elt = rebuild_xml
+    let button : Dom_html.buttonElement Js.t -> HTML5_types.button elt = rebuild_xml
+    let label : Dom_html.labelElement Js.t -> HTML5_types.label elt = rebuild_xml
+    let fieldSet : Dom_html.fieldSetElement Js.t -> HTML5_types.fieldset elt = rebuild_xml
+    let legend : Dom_html.legendElement Js.t -> HTML5_types.legend elt = rebuild_xml
+    let uList : Dom_html.uListElement Js.t -> HTML5_types.ul elt = rebuild_xml
+    let oList : Dom_html.oListElement Js.t -> HTML5_types.ol elt = rebuild_xml
+    let dList : Dom_html.dListElement Js.t -> [`Dl] elt = rebuild_xml
+    let li : Dom_html.liElement Js.t -> HTML5_types.li elt = rebuild_xml
+    let div : Dom_html.divElement Js.t -> HTML5_types.div elt = rebuild_xml
+    let paragraph : Dom_html.paragraphElement Js.t -> HTML5_types.p elt = rebuild_xml
+    let heading : Dom_html.headingElement Js.t -> HTML5_types.heading elt = rebuild_xml
+    let quote : Dom_html.quoteElement Js.t -> HTML5_types.blockquote elt = rebuild_xml
+    let pre : Dom_html.preElement Js.t -> HTML5_types.pre elt = rebuild_xml
+    let br : Dom_html.brElement Js.t -> HTML5_types.br elt = rebuild_xml
+    let hr : Dom_html.hrElement Js.t -> HTML5_types.hr elt = rebuild_xml
+    let anchor : Dom_html.anchorElement Js.t -> 'a HTML5_types.a elt = rebuild_xml
+    let image : Dom_html.imageElement Js.t -> [`Img] elt = rebuild_xml
+    let object_ : Dom_html.objectElement Js.t -> 'a HTML5_types.object_ elt = rebuild_xml
+    let param : Dom_html.paramElement Js.t -> HTML5_types.param elt = rebuild_xml
+    let area : Dom_html.areaElement Js.t -> HTML5_types.area elt = rebuild_xml
+    let map : Dom_html.mapElement Js.t -> 'a HTML5_types.map elt = rebuild_xml
+    let script : Dom_html.scriptElement Js.t -> HTML5_types.script elt = rebuild_xml
+    let tableCell : Dom_html.tableCellElement Js.t -> [ HTML5_types.td | HTML5_types.td ] elt = rebuild_xml
+    let tableRow : Dom_html.tableRowElement Js.t -> HTML5_types.tr elt = rebuild_xml
+    let tableCol : Dom_html.tableColElement Js.t -> HTML5_types.col elt = rebuild_xml
+    let tableSection : Dom_html.tableSectionElement Js.t -> [ HTML5_types.tfoot | HTML5_types.thead | HTML5_types.tbody ] elt = rebuild_xml
+    let tableCaption : Dom_html.tableCaptionElement Js.t -> HTML5_types.caption elt = rebuild_xml
+    let table : Dom_html.tableElement Js.t -> HTML5_types.table elt = rebuild_xml
+    let canvas : Dom_html.canvasElement Js.t -> 'a HTML5_types.canvas elt = rebuild_xml
+    let iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt = rebuild_xml
   end
 
 end

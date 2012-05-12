@@ -1,4 +1,5 @@
 
+open Eliom_lib
 open Eliom_content_core
 
 module XML = XML
@@ -26,8 +27,141 @@ module HTML5 = struct
   type 'a attrib = 'a F.attrib
   type uri = F.uri
 
+  module Of_dom = HTML5.Of_dom
+
+  module To_dom = struct
+
+    open Eliom_client
+
+    let element = rebuild_node
+    let heading = rebuild_node
+
+    let a = rebuild_node
+    let abbr = rebuild_node
+    let acronym = rebuild_node
+    let address = rebuild_node
+    let applet = rebuild_node
+    let area = rebuild_node
+    let article = rebuild_node
+    let aside = rebuild_node
+    let audio = rebuild_node
+    let b = rebuild_node
+    let base = rebuild_node
+    let basefont = rebuild_node
+    let bdi = rebuild_node
+    let bdo = rebuild_node
+    let big = rebuild_node
+    let blockquote = rebuild_node
+    let body = rebuild_node
+    let br = rebuild_node
+    let button = rebuild_node
+    let canvas = rebuild_node
+    let caption = rebuild_node
+    let center = rebuild_node
+    let cite = rebuild_node
+    let code = rebuild_node
+    let col = rebuild_node
+    let colgroup = rebuild_node
+    let command = rebuild_node
+    let datalist = rebuild_node
+    let dd = rebuild_node
+    let del = rebuild_node
+    let details = rebuild_node
+    let dfn = rebuild_node
+    let dir = rebuild_node
+    let div = rebuild_node
+    let dl = rebuild_node
+    let dt = rebuild_node
+    let em = rebuild_node
+    let embed = rebuild_node
+    let fieldset = rebuild_node
+    let figcaption = rebuild_node
+    let figure = rebuild_node
+    let font = rebuild_node
+    let footer = rebuild_node
+    let form = rebuild_node
+    let frame = rebuild_node
+    let frameset = rebuild_node
+    let h1 = rebuild_node
+    let h2 = rebuild_node
+    let h3 = rebuild_node
+    let h4 = rebuild_node
+    let h5 = rebuild_node
+    let h6 = rebuild_node
+    let head = rebuild_node
+    let header = rebuild_node
+    let hgroup = rebuild_node
+    let hr = rebuild_node
+    let html = rebuild_node
+    let i = rebuild_node
+    let iframe = rebuild_node
+    let img = rebuild_node
+    let input = rebuild_node
+    let ins = rebuild_node
+    let keygen = rebuild_node
+    let kbd = rebuild_node
+    let label = rebuild_node
+    let legend = rebuild_node
+    let li = rebuild_node
+    let link = rebuild_node
+    let map = rebuild_node
+    let mark = rebuild_node
+    let menu = rebuild_node
+    let meta = rebuild_node
+    let meter = rebuild_node
+    let nav = rebuild_node
+    let noframes = rebuild_node
+    let noscript = rebuild_node
+    let object_ = rebuild_node
+    let ol = rebuild_node
+    let optgroup = rebuild_node
+    let option = rebuild_node
+    let output = rebuild_node
+    let p = rebuild_node
+    let param = rebuild_node
+    let pre = rebuild_node
+    let progress = rebuild_node
+    let q = rebuild_node
+    let rp = rebuild_node
+    let rt = rebuild_node
+    let ruby = rebuild_node
+    let s = rebuild_node
+    let samp = rebuild_node
+    let script = rebuild_node
+    let section = rebuild_node
+    let select = rebuild_node
+    let small = rebuild_node
+    let source = rebuild_node
+    let span = rebuild_node
+    let strike = rebuild_node
+    let strong = rebuild_node
+    let style = rebuild_node
+    let sub = rebuild_node
+    let summary = rebuild_node
+    let sup = rebuild_node
+    let table = rebuild_node
+    let tbody = rebuild_node
+    let td = rebuild_node
+    let textarea = rebuild_node
+    let tfoot = rebuild_node
+    let th = rebuild_node
+    let thead = rebuild_node
+    let time = rebuild_node
+    let title = rebuild_node
+    let tr = rebuild_node
+    let track = rebuild_node
+    let tt = rebuild_node
+    let u = rebuild_node
+    let ul = rebuild_node
+    let var = rebuild_node
+    let video = rebuild_node
+    let wbr = rebuild_node
+
+    let pcdata = rebuild_node
+  end
+
   module Manip = struct
-    let get_node elt = (HTML5.To_dom.element elt :> Dom.node Js.t)
+    let get_node elt = (To_dom.element elt :> Dom.node Js.t)
     let get_unique_node name (elt: 'a HTML5.elt) : Dom.node Js.t =
       match XML.get_node (HTML5.D.toelt elt) with
       | XML.DomNode node -> node
@@ -742,237 +876,5 @@ module HTML5 = struct
         let elt = get_unique_elt "SetCss.zIndex" elt in
         elt##style##zIndex <- Js.bytestring v
     end
-  end
-
-  module Of_dom = HTML5.Of_dom
-
-  module To_dom = struct
-
-    (* Type for partially unwrapped elt. *)
-    type tmp_recontent =
-      (* arguments ('econtent') are already unwrapped. *)
-      | RELazy of XML.econtent Eliom_lazy.request
-      | RE of XML.econtent
-    type tmp_elt = {
-      (* to be unwrapped *)
-      tmp_elt : tmp_recontent;
-      tmp_node_id : XML.node_id;
-    }
-
-    let _ =
-      Eliom_unwrap.register_unwrapper
-        (Eliom_unwrap.id_of_int Eliom_lib_base.tyxml_unwrap_id_int)
-        (fun tmp_elt ->
-          let elt = match tmp_elt.tmp_elt with
-            | RELazy elt -> Eliom_lazy.force elt
-            | RE elt -> elt
-          in
-          (* Do not rebuild dom node while unwrapping, otherwise we
-             don't have control on when "onload" event handlers are
-             triggered. *)
-          match tmp_elt.tmp_node_id with
-          | XML.ProcessId process_id as id ->
-              Js.Optdef.case (find_process_node (Js.bytestring process_id))
-                (fun () -> XML.make ~id elt)
-                (fun elt -> XML.make_dom ~id elt)
-          | XML.RequestId request_id as id ->
-              Js.Optdef.case (find_request_node (Js.bytestring request_id))
-                (fun () -> XML.make ~id elt)
-                (fun elt -> XML.make_dom ~id elt)
-          | XML.NoId as id -> XML.make ~id elt)
-
-    let rebuild_attrib node name a = match a with
-      | XML.AFloat f -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject f)
-      | XML.AInt i -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject i)
-      | XML.AStr s ->
-        node##setAttribute(Js.string name, Js.string s)
-      | XML.AStrL (XML.Space, sl) ->
-        node##setAttribute(Js.string name, Js.string (String.concat " " sl))
-      | XML.AStrL (XML.Comma, sl) ->
-        node##setAttribute(Js.string name, Js.string (String.concat "," sl))
-
-    let rebuild_rattrib node ra = match XML.racontent ra with
-      | XML.RA a -> rebuild_attrib node (XML.aname ra) a
-      | XML.RACamlEventHandler ev -> register_event_handler node (XML.aname ra, ev)
-      | XML.RALazyStr s ->
-          node##setAttribute(Js.string (XML.aname ra), Js.string s)
-      | XML.RALazyStrL (XML.Space, l) ->
-          node##setAttribute(Js.string (XML.aname ra), Js.string (String.concat " " l))
-      | XML.RALazyStrL (XML.Comma, l) ->
-          node##setAttribute(Js.string (XML.aname ra), Js.string (String.concat "," l))
-
-    let rec rebuild_node elt =
-      match XML.get_node elt with
-      | XML.DomNode node ->
-          (* assert (XML.get_node_id node <> NoId); *)
-          node
-      | XML.TyXMLNode raw_elt ->
-          match XML.get_node_id elt with
-          | XML.NoId -> raw_rebuild_node raw_elt
-          | XML.RequestId _ ->
-              (* Do not look in request_nodes hashtbl: such elements have
-                 been bind while unwrapping nodes. *)
-              let node = raw_rebuild_node raw_elt in
-              XML.set_dom_node elt node;
-              node
-          | XML.ProcessId id ->
-            let id = (Js.string id) in
-            Js.Optdef.case (find_process_node id)
-              (fun () ->
-                let node = raw_rebuild_node (XML.content elt) in
-                register_process_node id node;
-                node)
-              (fun n -> (n:> Dom.node Js.t))
-
-
-    and raw_rebuild_node = function
-      | XML.Empty
-      | XML.Comment _ ->
-          (* FIXME *)
-          (Dom_html.document##createTextNode (Js.string "") :> Dom.node Js.t)
-      | XML.EncodedPCDATA s
-      | XML.PCDATA s -> (Dom_html.document##createTextNode (Js.string s) :> Dom.node Js.t)
-      | XML.Entity s -> assert false (* FIXME *)
-      | XML.Leaf (name,attribs) ->
-        let node = Dom_html.document##createElement (Js.string name) in
-        List.iter (rebuild_rattrib node) attribs;
-        (node :> Dom.node Js.t)
-      | XML.Node (name,attribs,childrens) ->
-        let node = Dom_html.document##createElement (Js.string name) in
-        List.iter (rebuild_rattrib node) attribs;
-        List.iter (fun c -> Dom.appendChild node (rebuild_node c)) childrens;
-        (node :> Dom.node Js.t)
-
-    let rebuild_node elt =
-      let node = Js.Unsafe.coerce (rebuild_node (HTML5.F.toelt elt)) in
-      run_load_events (List.rev !on_load_scripts);
-      on_load_scripts := [];
-      node
-
-    let of_element = rebuild_node
-    let of_heading = rebuild_node
-
-    let of_a = rebuild_node
-    let of_abbr = rebuild_node
-    let of_acronym = rebuild_node
-    let of_address = rebuild_node
-    let of_applet = rebuild_node
-    let of_area = rebuild_node
-    let of_article = rebuild_node
-    let of_aside = rebuild_node
-    let of_audio = rebuild_node
-    let of_b = rebuild_node
-    let of_base = rebuild_node
-    let of_basefont = rebuild_node
-    let of_bdi = rebuild_node
-    let of_bdo = rebuild_node
-    let of_big = rebuild_node
-    let of_blockquote = rebuild_node
-    let of_body = rebuild_node
-    let of_br = rebuild_node
-    let of_button = rebuild_node
-    let of_canvas = rebuild_node
-    let of_caption = rebuild_node
-    let of_center = rebuild_node
-    let of_cite = rebuild_node
-    let of_code = rebuild_node
-    let of_col = rebuild_node
-    let of_colgroup = rebuild_node
-    let of_command = rebuild_node
-    let of_datalist = rebuild_node
-    let of_dd = rebuild_node
-    let of_del = rebuild_node
-    let of_details = rebuild_node
-    let of_dfn = rebuild_node
-    let of_dir = rebuild_node
-    let of_div = rebuild_node
-    let of_dl = rebuild_node
-    let of_dt = rebuild_node
-    let of_em = rebuild_node
-    let of_embed = rebuild_node
-    let of_fieldset = rebuild_node
-    let of_figcaption = rebuild_node
-    let of_figure = rebuild_node
-    let of_font = rebuild_node
-    let of_footer = rebuild_node
-    let of_form = rebuild_node
-    let of_frame = rebuild_node
-    let of_frameset = rebuild_node
-    let of_h1 = rebuild_node
-    let of_h2 = rebuild_node
-    let of_h3 = rebuild_node
-    let of_h4 = rebuild_node
-    let of_h5 = rebuild_node
-    let of_h6 = rebuild_node
-    let of_head = rebuild_node
-    let of_header = rebuild_node
-    let of_hgroup = rebuild_node
-    let of_hr = rebuild_node
-    let of_html = rebuild_node
-    let of_i = rebuild_node
-    let of_iframe = rebuild_node
-    let of_img = rebuild_node
-    let of_input = rebuild_node
-    let of_ins = rebuild_node
-    let of_keygen = rebuild_node
-    let of_kbd = rebuild_node
-    let of_label = rebuild_node
-    let of_legend = rebuild_node
-    let of_li = rebuild_node
-    let of_link = rebuild_node
-    let of_map = rebuild_node
-    let of_mark = rebuild_node
-    let of_menu = rebuild_node
-    let of_meta = rebuild_node
-    let of_meter = rebuild_node
-    let of_nav = rebuild_node
-    let of_noframes = rebuild_node
-    let of_noscript = rebuild_node
-    let of_object = rebuild_node
-    let of_ol = rebuild_node
-    let of_optgroup = rebuild_node
-    let of_option = rebuild_node
-    let of_output = rebuild_node
-    let of_p = rebuild_node
-    let of_param = rebuild_node
-    let of_pre = rebuild_node
-    let of_progress = rebuild_node
-    let of_q = rebuild_node
-    let of_rp = rebuild_node
-    let of_rt = rebuild_node
-    let of_ruby = rebuild_node
-    let of_s = rebuild_node
-    let of_samp = rebuild_node
-    let of_script = rebuild_node
-    let of_section = rebuild_node
-    let of_select = rebuild_node
-    let of_small = rebuild_node
-    let of_source = rebuild_node
-    let of_span = rebuild_node
-    let of_strike = rebuild_node
-    let of_strong = rebuild_node
-    let of_style = rebuild_node
-    let of_sub = rebuild_node
-    let of_summary = rebuild_node
-    let of_sup = rebuild_node
-    let of_table = rebuild_node
-    let of_tbody = rebuild_node
-    let of_td = rebuild_node
-    let of_textarea = rebuild_node
-    let of_tfoot = rebuild_node
-    let of_th = rebuild_node
-    let of_thead = rebuild_node
-    let of_time = rebuild_node
-    let of_title = rebuild_node
-    let of_tr = rebuild_node
-    let of_track = rebuild_node
-    let of_tt = rebuild_node
-    let of_u = rebuild_node
-    let of_ul = rebuild_node
-    let of_var = rebuild_node
-    let of_video = rebuild_node
-    let of_wbr = rebuild_node
-
-    let of_pcdata = rebuild_node
   end
 end

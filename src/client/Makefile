@@ -36,6 +36,7 @@ ${COMMON_PFILES} ${COMMON_SFILES}: %: ../common/%
 FILES := private/eliommod_jstable.ml \
 	 eliom_unwrap.ml eliom_lazy.ml \
 	 eliom_lib_base.ml eliom_lib.ml \
+	 eliom_content_core.ml eliom_content.ml \
 	 eliom_common_base.ml eliom_common.ml \
 	 eliom_cookies_base.ml \
          private/eliommod_cookies.ml \
@@ -49,7 +50,6 @@ FILES := private/eliommod_jstable.ml \
 	 eliom_request.ml \
          private/eliommod_dom.ml \
 	 eliom_client.ml \
-	 eliom_dom.ml \
 	 eliom_mkforms.ml \
 	 eliom_output_base.ml eliom_output.ml \
 	 eliom_comet_base.ml eliom_comet.ml \

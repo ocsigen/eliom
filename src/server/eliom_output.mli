@@ -150,7 +150,6 @@ module Html5_forms : sig
   (** {2 Dom semantics} *)
 
   module D : "sigs/eliom_html5_forms.mli"
-  include "sigs/eliom_html5_forms.mli"
 
   (** {2 Functional semantics} *)
 
@@ -165,7 +164,6 @@ module Html5 : sig
   module D : "sigs/eliom_html5_forms.mli"
   module F : "sigs/eliom_html5_forms.mli"
   include "sigs/eliom_html5_reg.mli"
-  include "sigs/eliom_html5_forms.mli"
 end
 
 (** {2 Using XHTML with services } *)

@@ -329,7 +329,7 @@ end
 module Html5 = struct
   open HTML5_types
   open HTML5.F
-  open Eliom_output.Html5
+  open Eliom_output.Html5.D
     
   let a_ul classes id level =
     let classes = [a_class classes] in
@@ -567,7 +567,7 @@ module Html5 = struct
         | None -> endlist
         | Some s ->
           (link ~rel: [ `Next ] (* ?? *)
-             ~href: (Eliom_output.Html5.make_uri ~service: s ()) ()) :: endlist
+             ~href: (Eliom_output.Html5.D.make_uri ~service: s ()) ()) :: endlist
     in
     let make_rel s =
     (* s is a subsection of mine *)

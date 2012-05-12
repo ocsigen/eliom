@@ -5,7 +5,7 @@
 
 open Lwt
 open Eliom_lib
-open HTML5.F
+open Eliom_content.HTML5.F
 open Ocsigen_cookies
 open Eliom_services
 open Eliom_parameters

@@ -23,7 +23,6 @@ open Eliom_content_core
 
 module Html5_forms : sig
 
-  include "sigs/eliom_html5_forms.mli"
   module D : "sigs/eliom_html5_forms.mli"
   module F : "sigs/eliom_html5_forms.mli"
 

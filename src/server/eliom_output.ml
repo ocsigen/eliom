@@ -2488,9 +2488,9 @@ module Eliom_appl_reg_make_param
   let application_script ?(async = false) () =
     HTML5.Id.create_named_elt
       ~id:eliom_appl_script_id
-      (Html5.js_script
+      (Html5.D.js_script
 	 ~a:(if async then [HTML5.D.a_async `Async] else [] )
-	 ~uri:(Html5.make_uri
+	 ~uri:(Html5.D.make_uri
 		 ~service:(Eliom_services.static_dir ())
 		 [Appl_params.application_name ^ ".js"])
 	 ())

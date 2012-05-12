@@ -873,3 +873,105 @@ let () =
         lwt () = wait_load_end () in
         auto_change_page first_fragment;
         Lwt.return ())
+
+(* Type for partially unwrapped elt. *)
+type tmp_recontent =
+  (* arguments ('econtent') are already unwrapped. *)
+  | RELazy of XML.econtent Eliom_lazy.request
+  | RE of XML.econtent
+type tmp_elt = {
+  (* to be unwrapped *)
+  tmp_elt : tmp_recontent;
+  tmp_node_id : XML.node_id;
+}
+
+let _ =
+  Eliom_unwrap.register_unwrapper
+    (Eliom_unwrap.id_of_int Eliom_lib_base.tyxml_unwrap_id_int)
+    (fun tmp_elt ->
+      let elt = match tmp_elt.tmp_elt with
+        | RELazy elt -> Eliom_lazy.force elt
+        | RE elt -> elt
+      in
+      (* Do not rebuild dom node while unwrapping, otherwise we
+         don't have control on when "onload" event handlers are
+         triggered. *)
+      match tmp_elt.tmp_node_id with
+      | XML.ProcessId process_id as id ->
+          Js.Optdef.case (find_process_node (Js.bytestring process_id))
+            (fun () -> XML.make ~id elt)
+            (fun elt -> XML.make_dom ~id elt)
+      | XML.RequestId request_id as id ->
+          Js.Optdef.case (find_request_node (Js.bytestring request_id))
+            (fun () -> XML.make ~id elt)
+            (fun elt -> XML.make_dom ~id elt)
+      | XML.NoId as id -> XML.make ~id elt)
+
+let rebuild_attrib node name a = match a with
+  | XML.AFloat f -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject f)
+  | XML.AInt i -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject i)
+  | XML.AStr s ->
+    node##setAttribute(Js.string name, Js.string s)
+  | XML.AStrL (XML.Space, sl) ->
+    node##setAttribute(Js.string name, Js.string (String.concat " " sl))
+  | XML.AStrL (XML.Comma, sl) ->
+    node##setAttribute(Js.string name, Js.string (String.concat "," sl))
+
+let rebuild_rattrib node ra = match XML.racontent ra with
+  | XML.RA a -> rebuild_attrib node (XML.aname ra) a
+  | XML.RACamlEventHandler ev -> register_event_handler node (XML.aname ra, ev)
+  | XML.RALazyStr s ->
+      node##setAttribute(Js.string (XML.aname ra), Js.string s)
+  | XML.RALazyStrL (XML.Space, l) ->
+      node##setAttribute(Js.string (XML.aname ra), Js.string (String.concat " " l))
+  | XML.RALazyStrL (XML.Comma, l) ->
+      node##setAttribute(Js.string (XML.aname ra), Js.string (String.concat "," l))
+
+let rec rebuild_node elt =
+  match XML.get_node elt with
+  | XML.DomNode node ->
+      (* assert (XML.get_node_id node <> NoId); *)
+      node
+  | XML.TyXMLNode raw_elt ->
+      match XML.get_node_id elt with
+      | XML.NoId -> raw_rebuild_node raw_elt
+      | XML.RequestId _ ->
+          (* Do not look in request_nodes hashtbl: such elements have
+             been bind while unwrapping nodes. *)
+          let node = raw_rebuild_node raw_elt in
+          XML.set_dom_node elt node;
+          node
+      | XML.ProcessId id ->
+        let id = (Js.string id) in
+        Js.Optdef.case (find_process_node id)
+          (fun () ->
+            let node = raw_rebuild_node (XML.content elt) in
+            register_process_node id node;
+            node)
+          (fun n -> (n:> Dom.node Js.t))
+
+
+and raw_rebuild_node = function
+  | XML.Empty
+  | XML.Comment _ ->
+      (* FIXME *)
+      (Dom_html.document##createTextNode (Js.string "") :> Dom.node Js.t)
+  | XML.EncodedPCDATA s
+  | XML.PCDATA s -> (Dom_html.document##createTextNode (Js.string s) :> Dom.node Js.t)
+  | XML.Entity s -> assert false (* FIXME *)
+  | XML.Leaf (name,attribs) ->
+    let node = Dom_html.document##createElement (Js.string name) in
+    List.iter (rebuild_rattrib node) attribs;
+    (node :> Dom.node Js.t)
+  | XML.Node (name,attribs,childrens) ->
+    let node = Dom_html.document##createElement (Js.string name) in
+    List.iter (rebuild_rattrib node) attribs;
+    List.iter (fun c -> Dom.appendChild node (rebuild_node c)) childrens;
+    (node :> Dom.node Js.t)
+
+let rebuild_node elt =
+  let node = Js.Unsafe.coerce (rebuild_node (HTML5.F.toelt elt)) in
+  run_load_events (List.rev !on_load_scripts);
+  on_load_scripts := [];
+  node
+

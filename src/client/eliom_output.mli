@@ -7,13 +7,17 @@ type non_caml_service = [ appl_service | http_service ]
 
 (** Eliom service registration and forms creation for HTML5 page *)
 module Html5 : sig
-  include "sigs/eliom_html5_forms.mli"
+  module D : "sigs/eliom_html5_forms.mli"
+  module F : "sigs/eliom_html5_forms.mli"
   (**/**)
   type return = http_service
 end
 
 (** Eliom forms creation for HTML5 *)
-module Html5_forms : "sigs/eliom_html5_forms.mli"
+module Html5_forms : sig
+  module D : "sigs/eliom_html5_forms.mli"
+  module F : "sigs/eliom_html5_forms.mli"
+end
 
 (**/**)
 

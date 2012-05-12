@@ -2,6 +2,8 @@
 (*****************************************************************************)
 (** References of scope site *)
 
+open Eliom_content
+
 let reference_scope_site =
   let action =
     Eliom_output.Action.register_post_coservice'
@@ -31,10 +33,10 @@ let reference_scope_site =
                pcdata ", persistent "; i [v'];
              ];
              pcdata "Enter a new string for both references";
-             Eliom_output.Html5.post_form
+             Eliom_output.Html5.D.post_form
                ~service:action
                (fun name ->
-                  [Eliom_output.Html5.string_input ~input_type:`Text ~name ()])
+                  [Eliom_output.Html5.D.string_input ~input_type:`Text ~name ()])
                ()
            ])
        ))
