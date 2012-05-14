@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** Eliom services registration and forms creation for various kinds of
+(** Eliom services registration for various kinds of
     page content: Eliom application, valid {!HTML5} or {!XHTML},
     actions, redirections, static files, … *)
 
@@ -131,10 +131,6 @@ module type Registration = sig
   include "sigs/eliom_reg_simpl.mli"
 end
 
-(** Abstract signature for links and forms creation functions. For
-    concrete instance see {!Html5}, {!Xhtml} or {!HtmlText}. *)
-module type Forms = "sigs/eliom_forms.mli"
-
 (** {2 Using HTML5 with services } *)
 
 (** Eliom service registration for services that returns HTML5
@@ -142,49 +138,25 @@ module type Forms = "sigs/eliom_forms.mli"
     the {!Registration} abstract signature. *)
 module Html5_registration : "sigs/eliom_html5_reg.mli"
 
-(** Eliom forms creation for HTML5. This is a subset of the {!Html5}
-    module and an instance of the {!Forms} abstract
-    signature. *)
-module Html5_forms : sig
 
-  (** {2 Dom semantics} *)
-
-  module D : "sigs/eliom_html5_forms.mli"
-
-  (** {2 Functional semantics} *)
-
-  module F : "sigs/eliom_html5_forms.mli"
-
-end
-
-(** Eliom service registration and forms creation for HTML5 page. This
-    an instance of both the {!modtype:Registration} and {!Forms} abstract
-    signatures. *)
+(** Eliom service registration for HTML5 page. This
+    an instance the {!modtype:Registration} abstract signatures. *)
 module Html5 : sig
-  module D : "sigs/eliom_html5_forms.mli"
-  module F : "sigs/eliom_html5_forms.mli"
   include "sigs/eliom_html5_reg.mli"
 end
 
 (** {2 Using XHTML with services } *)
 
-(** Eliom service registration and forms creation for XHTML page. This
-    an instance of both the {!Registration} and {!Forms} abstract
-    signatures. *)
+(** Eliom service registration for XHTML page. This
+    an instance the {!Registration} abstract signatures. *)
 module Xhtml : sig
   include "sigs/eliom_xhtml_reg.mli"
-  include "sigs/eliom_xhtml_forms.mli"
 end
 
 (** Eliom service registration for services that returns XHTML
     page. This is a subset of the {!Xhtml} module and an instance of
     the {!Registration} abstract signature. *)
 module Xhtml_registration : "sigs/eliom_xhtml_reg.mli"
-
-(** Eliom forms creation for XHTML page. This is a subset of the
-    {!Xhtml} module and an instance of the {!Forms} abstract
-    signature. *)
-module Xhtml_forms : "sigs/eliom_xhtml_forms.mli"
 
 (** {2 Eliom client/server applications} *)
 
@@ -320,58 +292,16 @@ module Make_TypedXML_Registration
 (** {2 Untyped pages} *)
 
 (** Eliom service registration and forms creation for untyped HTML
-    page. This an instance of both the {!Registration} and {!Forms}
-    abstract signatures. The page content is a [string] that must
+    page. This an instance the {!Registration}
+    abstract signature. The page content is a [string] that must
     contains valid HTML and the content type is always [text/html]. *)
-module HtmlText : sig
+module Html_text : sig
 
   include "sigs/eliom_reg.mli"
     subst type page    := string
     and type options := unit
     and type return  := http_service
     and type result  := (browser_content, http_service) kind
-
-  include "sigs/eliom_forms.mli"
-  subst type uri := string
-  and type pcdata_elt := string
-
-  and type form_elt := string
-  and type form_content_elt := string
-  and type form_content_elt_list := string
-  and type form_attrib_t := string
-
-  and type 'a a_elt := string
-  and type 'a a_content_elt := string
-  and type 'a a_content_elt_list := string
-  and type a_attrib_t := string
-
-  and type link_elt := string
-  and type link_attrib_t := string
-
-  and type script_elt := string
-  and type script_attrib_t := string
-
-  and type textarea_elt := string
-  and type textarea_attrib_t := string
-
-  and type input_elt := string
-  and type input_attrib_t := string
-
-  and type select_elt := string
-  and type select_attrib_t := string
-
-  and type button_elt := string
-  and type button_content_elt := string
-  and type button_content_elt_list := string
-  and type button_attrib_t := string
-
-  and type optgroup_attrib_t := string
-  and type option_attrib_t := string
-
-  and type input_type_t := string
-  and type raw_input_type_t := string
-  and type button_type_t := string
-  and type for_attrib := string
 
 end
 

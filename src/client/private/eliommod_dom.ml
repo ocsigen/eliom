@@ -302,11 +302,11 @@ let copy_element (e:Dom.element Js.t)
       (e##getAttribute(Js.string Eliom_lib_base.RawXML.node_id_attrib)) in
     match node_id with
       | Some id when registered_process_node id ->
-	Js.Opt.iter
-	  (e##getAttribute(Js.string "class"))
-	  (fun classes -> copy##setAttribute(Js.string "class",classes));
-	copy##setAttribute(Js.string Eliom_pervasives_base.RawXML.node_id_attrib,id);
-	Some copy
+        Js.Opt.iter
+          (e##getAttribute(Js.string "class"))
+          (fun classes -> copy##setAttribute(Js.string "class",classes));
+        copy##setAttribute(Js.string Eliom_lib_base.RawXML.node_id_attrib,id);
+        Some copy
       | _ ->
         let add_attribute a =
           Js.Opt.iter (Dom.CoerceTo.attr a)

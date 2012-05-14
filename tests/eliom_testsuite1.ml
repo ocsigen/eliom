@@ -5,7 +5,8 @@
 
 open Lwt
 open Eliom_lib
-open Eliom_content.HTML5.F
+open Eliom_content
+open HTML5.F
 open Ocsigen_cookies
 open Eliom_services
 open Eliom_parameters
@@ -22,6 +23,7 @@ let coucou =
            (head (title (pcdata "")) [])
            (body [h1 [pcdata "Hallo!"]])))
 
+(* FIXME
 let coucou1 =
   register_service
     ~path:["coucou1"]
@@ -32,6 +34,7 @@ let coucou1 =
              <head><title></title></head>
              <body><h1>Coucou</h1></body>
            </html> >>)
+ *)
 
 let coucou_xhtml =
   let open XHTML.F in
@@ -57,13 +60,13 @@ let coucou1_xthml =
            </html> >>)
 
 let coucoutext =
-  Eliom_output.HtmlText.register_service
+  Eliom_output.Html_text.register_service
     ~path:["coucoutext"]
     ~get_params:Eliom_parameters.unit
     (fun () () ->
       return
         ("<html>n'importe quoi "^
-         (Eliom_output.HtmlText.a coucou "clic" ())^
+         (Eliom_content.Html_text.a coucou "clic" ())^
          "</html>"))
 (*wiki*
           
@@ -263,17 +266,17 @@ let links = register_service ["rep";"links"] unit
      (head (title (pcdata "Links")) [])
      (body
        [p
-        [Eliom_output.Html5.a coucou [pcdata "coucou"] (); br ();
-         Eliom_output.Html5.a hello [pcdata "hello"] (); br ();
-         Eliom_output.Html5.a default
+        [HTML5.D.a coucou [pcdata "coucou"] (); br ();
+         HTML5.D.a hello [pcdata "hello"] (); br ();
+         HTML5.D.a default
            [pcdata "default page of the dir"] (); br ();
-         Eliom_output.Html5.a uasuffix
+         HTML5.D.a uasuffix
            [pcdata "uasuffix"] (2007,06); br ();
-         Eliom_output.Html5.a coucou_params
+         HTML5.D.a coucou_params
            [pcdata "coucou_params"] (42,(22,"ciao")); br ();
-         Eliom_output.Html5.a raw_serv
+         HTML5.D.a raw_serv
            [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
-         Eliom_output.Html5.a
+         HTML5.D.a
            (external_service
               ~prefix:"http://fr.wikipedia.org"
               ~path:["wiki";""]
@@ -281,7 +284,7 @@ let links = register_service ["rep";"links"] unit
               ())
            [pcdata "OCaml on wikipedia"]
            ["OCaml"]; br ();
-         HTML5.F.a
+         HTML5.F.raw_a
            ~a:[a_href (XML.uri_of_string "http://en.wikipedia.org/wiki/OCaml")]
            [pcdata "OCaml on wikipedia"]
        ]])))
@@ -318,16 +321,16 @@ let essai =
 let create_form =
   (fun (number_name, (number2_name, string_name)) ->
     [p [pcdata "Write an int: ";
-        Eliom_output.Html5.int_input ~input_type:`Text ~name:number_name ();
+        HTML5.D.int_input ~input_type:`Text ~name:number_name ();
         pcdata "Write another int: ";
-        Eliom_output.Html5.int_input ~input_type:`Text ~name:number2_name ();
+        HTML5.D.int_input ~input_type:`Text ~name:number2_name ();
         pcdata "Write a string: ";
-        Eliom_output.Html5.string_input ~input_type:`Text ~name:string_name ();
-        Eliom_output.Html5.string_input ~input_type:`Submit ~value:"Click" ()]])
+        HTML5.D.string_input ~input_type:`Text ~name:string_name ();
+        HTML5.D.string_input ~input_type:`Submit ~value:"Click" ()]])
 
 let form = register_service ["form"] unit
   (fun () () ->
-     let f = Eliom_output.Html5.get_form coucou_params create_form in
+     let f = HTML5.D.get_form coucou_params create_form in
      return
        (html
          (head (title (pcdata "")) [])
@@ -344,13 +347,13 @@ let raw_form = register_service
            (head (title (pcdata "")) [])
            (body
               [h1 [pcdata "Any Form"];
-               Eliom_output.Html5.get_form raw_serv
+               HTML5.D.get_form raw_serv
                  (fun () ->
                    [p [pcdata "Form to raw_serv: ";
-                       Eliom_output.Html5.raw_input ~input_type:`Text ~name:"plop" ();
-                       Eliom_output.Html5.raw_input ~input_type:`Text ~name:"plip" ();
-                       Eliom_output.Html5.raw_input ~input_type:`Text ~name:"plap" ();
-                       Eliom_output.Html5.string_input ~input_type:`Submit ~value:"Click" ()]])
+                       HTML5.D.raw_input ~input_type:`Text ~name:"plop" ();
+                       HTML5.D.raw_input ~input_type:`Text ~name:"plip" ();
+                       HTML5.D.raw_input ~input_type:`Text ~name:"plap" ();
+                       HTML5.D.string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
 (*wiki*
 
@@ -416,7 +419,7 @@ POST forms
 let form2 = register_service ["form2"] unit
   (fun () () ->
      let f =
-       (Eliom_output.Html5.post_form my_service_with_post_params
+       (HTML5.D.post_form my_service_with_post_params
           (fun chaine ->
             [p [pcdata "Write a string: ";
                 string_input ~input_type:`Text ~name:chaine ()]]) ()) in
@@ -428,7 +431,7 @@ let form2 = register_service ["form2"] unit
 let form3 = register_service ["form3"] unit
   (fun () () ->
      let f  =
-       (Eliom_output.Html5.post_form my_service_with_get_and_post
+       (HTML5.D.post_form my_service_with_get_and_post
           (fun chaine ->
             <:html5list< <p> Write a string:
                     $string_input ~input_type:`Text ~name:chaine ()$ </p> >>)
@@ -441,7 +444,7 @@ let form3 = register_service ["form3"] unit
 let form4 = register_service ["form4"] unit
   (fun () () ->
      let f  =
-       (Eliom_output.Html5.post_form
+       (HTML5.D.post_form
           (external_post_service
              ~prefix:"http://www.petizomverts.com"
              ~path:["zebulon"]
@@ -556,16 +559,16 @@ let session_data_example_handler _ _  =
            | Eliom_state.Data name ->
                p [pcdata ("Hello "^name);
                   br ();
-                  Eliom_output.Html5.a
+                  HTML5.D.a
                     session_data_example_close
                     [pcdata "close session"] ()]
            | Eliom_state.Data_session_expired
            | Eliom_state.No_data ->
-               Eliom_output.Html5.post_form
+               HTML5.D.post_form
                  session_data_example_with_post_params
                  (fun login ->
                    [p [pcdata "login: ";
-                       Eliom_output.Html5.string_input
+                       HTML5.D.string_input
                          ~input_type:`Text ~name:login ()]]) ()
          ]))
 
@@ -582,7 +585,7 @@ let session_data_example_with_post_params_handler _ login =
        (body
           [p [pcdata ("Welcome " ^ login ^ ". You are now connected.");
               br ();
-              Eliom_output.Html5.a session_data_example
+              HTML5.D.a session_data_example
                 [pcdata "Try again"] ()
             ]]))
 
@@ -602,18 +605,18 @@ let session_data_example_close_handler () () =
         | Eliom_state.Data_session_expired -> p [pcdata "Your session has expired."]
         | Eliom_state.No_data -> p [pcdata "You were not connected."]
         | Eliom_state.Data _ -> p [pcdata "You have been disconnected."]);
-        p [Eliom_output.Html5.a session_data_example [pcdata "Retry"] () ]]))
+        p [HTML5.D.a session_data_example [pcdata "Retry"] () ]]))
 
 
 (* -------------------------------------------------------- *)
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_output.Html5.register
+  HTML5.D.register
     session_data_example_close session_data_example_close_handler;
-  Eliom_output.Html5.register
+  HTML5.D.register
     session_data_example session_data_example_handler;
-  Eliom_output.Html5.register
+  HTML5.D.register
     session_data_example_with_post_params
     session_data_example_with_post_params_handler
 

@@ -189,14 +189,16 @@ module HTML5 : sig
 		         and type 'a attrib = 'a attrib
 		         and type uri = uri
 
+
     (** {2 Event handlers} *)
+
+    (** Redefine event handler attributes to simplify their usage. *)
+    include "sigs/eliom_html5_event_handler.mli"
+    include "sigs/eliom_html5_forms.mli"
 
     (**/**)
     include "sigs/eliom_html5_event_handler_raw.mli"
     (**/**)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_html5_event_handler.mli"
 
     (**/**)
     type ('a, 'b, 'c) lazy_plus =
@@ -220,12 +222,13 @@ module HTML5 : sig
 		         and type 'a attrib = 'a attrib
 		         and type uri = uri
 
+    (** Redefine event handler attributes to simplify their usage. *)
+    include "sigs/eliom_html5_event_handler.mli"
+    include "sigs/eliom_html5_forms.mli"
+
     (**/**)
     include "sigs/eliom_html5_event_handler_raw.mli"
     (**/**)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_html5_event_handler.mli"
 
     (**/**)
     type ('a, 'b, 'c) lazy_plus =

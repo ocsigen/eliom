@@ -13,20 +13,14 @@ struct
   type return = http_service
 end
 
-module Html5 =
-struct
-  include Html5_forms
-  include Base
-end
-
+module Html5 = Base
 module Xhtml = Base
-module XhtmlForms = Base
 module Redirection = Base
 module Blocks = Base
 module Blocks5 = Base
 
 
-module HtmlText = Base
+module Html_text = Base
 module CssText = Base
 module Text = Base
 module Action = Base

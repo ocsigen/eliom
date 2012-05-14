@@ -19,7 +19,7 @@
 (* TODO: factorize function with eliom_duce_tools? *)
 
 open Eliom_lib
-open Eliom_content_core
+open Eliom_content
 open Eliom_services
 
 include Eliom_tools_common
@@ -313,7 +313,6 @@ module Xhtml = struct
     with Not_found -> []
 
   let head ~title:ttl ?(css=[]) ?(js=[]) () =
-    let open Eliom_output.Xhtml_forms in
     let mk_css_link path =
       let uri = make_uri (Eliom_services.static_dir ()) path in
       (* XHTML.create_global_elt ( *)css_link ~uri ()(* ) *) in
@@ -328,9 +327,8 @@ end
 
 module Html5 = struct
   open HTML5_types
-  open HTML5.F
-  open Eliom_output.Html5.D
-    
+  open HTML5.D
+
   let a_ul classes id level =
     let classes = [a_class classes] in
     match id, level with
@@ -567,7 +565,7 @@ module Html5 = struct
         | None -> endlist
         | Some s ->
           (link ~rel: [ `Next ] (* ?? *)
-             ~href: (Eliom_output.Html5.D.make_uri ~service: s ()) ()) :: endlist
+             ~href: (make_uri ~service: s ()) ()) :: endlist
     in
     let make_rel s =
     (* s is a subsection of mine *)
@@ -606,7 +604,6 @@ module Html5 = struct
     with Not_found -> []
 
   let head ~title:ttl ?(css=[]) ?(js=[]) () =
-    let open Eliom_output.Html5_forms in
     let mk_css_link path =
       let uri = make_uri (Eliom_services.static_dir ()) path in
       HTML5.Id.create_global_elt (css_link ~uri ()) in

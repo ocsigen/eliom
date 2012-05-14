@@ -12,7 +12,6 @@ INTF := eliom_lazy.cmi              \
         eliom_bus.cmi               \
         eliom_unwrap.cmi            \
 	\
-        eliom_dom.cmi               \
         eliom_client.cmi            \
 
 IMPL := ${PROJECTNAME}_client.cma      \

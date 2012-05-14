@@ -1,6 +1,10 @@
 
 open Eliom_content_core
 
+(** Abstract signature for links and forms creation functions. For
+    concrete instance see {!Html5}, {!Xhtml} or {!Html_text}. *)
+module type Forms = "sigs/eliom_forms.mli"
+
 (** {2 TyXML}
 
     XML tree manipulation within Eliom is based on the TyXML library
@@ -14,7 +18,12 @@ module XML : sig
 
   (** {2 Base functions } *)
 
-  include XML_sigs.Iterable with type uri = XML.uri and type separator = XML.separator and type acontent = XML.acontent and type attrib = XML.attrib and type elt = XML.elt
+  include XML_sigs.Iterable
+    with type uri = XML.uri
+    and type separator = XML.separator
+    and type acontent = XML.acontent
+    and type attrib = XML.attrib
+    and type elt = XML.elt
 
   (** {2 Unique nodes } *)
 
@@ -37,7 +46,7 @@ module XML : sig
       example {% <<a_api project="js_of_ocaml" | type
       Dom_html.mouseEvent>>%} or {% <<a_api project="js_of_ocaml" | type
       Dom_html.keyboardEvent >>%}. *)
-  type -'a caml_event_handler constraint 'a = #Dom_html.event
+  type -'a caml_event_handler = 'a XML.caml_event_handler constraint 'a = #Dom_html.event
 
   (**/**)
 
@@ -47,8 +56,8 @@ module XML : sig
   val uri_of_fun: (unit -> string) -> uri
 
   (* Building ref tree. *)
-  type event_handler_table (* Concrete on client-side only. *)
-  type node_id
+  type event_handler_table = XML.event_handler_table (* Concrete on client-side only. *)
+  type node_id = XML.node_id
   val get_node_id : elt -> node_id
   val make_event_handler_table : elt -> event_handler_table
 
@@ -154,15 +163,19 @@ module HTML5 : sig
 		         and type 'a elt = 'a HTML5.elt
 		         and type 'a attrib = 'a HTML5.attrib
 		         and type uri = HTML5.uri
+    (* TODO Hide untyped [a], [input]. *)
+    val raw_a : ([< HTML5_types.a_attrib ], 'a, [> `A of 'a ]) star
+    val raw_input : ([< HTML5_types.input_attrib ], [> HTML5_types.input ]) nullary
 
     (** {2 Event handlers} *)
+
+    (** Redefine event handler attributes to simplify their usage. *)
+    include "sigs/eliom_html5_event_handler.mli"
+    include "sigs/eliom_html5_forms.mli"
 
     (**/**)
     include "sigs/eliom_html5_event_handler_raw.mli"
     (**/**)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_html5_event_handler.mli"
 
     (**/**)
     type ('a, 'b, 'c) lazy_plus =
@@ -185,15 +198,19 @@ module HTML5 : sig
 		         and type 'a elt = 'a F.elt
 		         and type 'a attrib = 'a F.attrib
 		         and type uri = F.uri
+    (* TODO Hide untyped [a], [input]. *)
+    val raw_a : ([< HTML5_types.a_attrib ], 'a, [> `A of 'a ]) star
+    val raw_input : ([< HTML5_types.input_attrib ], [> HTML5_types.input ]) nullary
 
     (** {2 Event handlers} *)
+
+    (** Redefine event handler attributes to simplify their usage. *)
+    include "sigs/eliom_html5_event_handler.mli"
+    include "sigs/eliom_html5_forms.mli"
 
     (**/**)
     include "sigs/eliom_html5_event_handler_raw.mli"
     (**/**)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_html5_event_handler.mli"
 
     (**/**)
     type ('a, 'b, 'c) lazy_plus =
@@ -254,6 +271,12 @@ module XHTML : sig
       and type 'a attrib = 'a XHTML.F.attrib
       and type uri = XHTML.F.uri
 
+    (* TODO Hide untyped [a], [input]. *)
+    val raw_a : ([< XHTML_types.a_attrib ], [< XHTML_types.a_content ], [> XHTML_types.a ]) star
+    val raw_input : ([< XHTML_types.input_attrib ], [> XHTML_types.input ]) nullary
+
+    include "sigs/eliom_xhtml_forms.mli"
+
     (**/**)
     type ('a, 'b, 'c) lazy_plus =
         ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
@@ -268,12 +291,22 @@ module XHTML : sig
 
   (** Typed interface for building valid XHTML (1.0 Strict) tree. *)
   module F_01_00 : sig
+(* TODO replicate (similar) for other F/D modules
+(** Eliom service registration for XHTML page. This
+    an instance the {!Registration} abstract signatures. *)
+ *)
 
     (** See {% <<a_api project="tyxml" | module type XHTML_sigs.T >> %}. *)
     include XHTML_sigs.T with module XML := XML
       with type +'a elt = 'a XHTML.F_01_00.elt
       and type 'a attrib = 'a XHTML.F_01_00.attrib
       and type uri = XHTML.F_01_00.uri
+
+    (* TODO Hide untyped [a], [input]. *)
+    val raw_a : ([< XHTML_types.a_attrib ], [< XHTML_types.a_content ], [> XHTML_types.a ]) star
+    val raw_input : ([< XHTML_types.input_attrib ], [> XHTML_types.input ]) nullary
+
+    include "sigs/eliom_xhtml_forms.mli"
 
     (**/**)
     type ('a, 'b, 'c) lazy_plus =
@@ -294,6 +327,12 @@ module XHTML : sig
       with type +'a elt = 'a XHTML.F_01_01.elt
       and type 'a attrib = 'a XHTML.F_01_01.attrib
       and type uri = XHTML.F_01_01.uri
+
+    (* TODO Hide untyped [a], [input]. *)
+    val raw_a : ([< XHTML_types.a_attrib ], [< XHTML_types.a_content ], [> XHTML_types.a ]) star
+    val raw_input : ([< XHTML_types.input_attrib ], [> XHTML_types.input ]) nullary
+
+    include "sigs/eliom_xhtml_forms.mli"
 
     (**/**)
     type ('a, 'b, 'c) lazy_plus =
@@ -342,3 +381,46 @@ module XHTML : sig
 end
 
 
+module Html_text : sig
+  include "sigs/eliom_forms.mli"
+    subst type uri := string
+    and type pcdata_elt := string
+
+    and type form_elt := string
+    and type form_content_elt := string
+    and type form_content_elt_list := string
+    and type form_attrib_t := string
+
+    and type 'a a_elt := string
+    and type 'a a_content_elt := string
+    and type 'a a_content_elt_list := string
+    and type a_attrib_t := string
+
+    and type link_elt := string
+    and type link_attrib_t := string
+
+    and type script_elt := string
+    and type script_attrib_t := string
+
+    and type textarea_elt := string
+    and type textarea_attrib_t := string
+
+    and type input_elt := string
+    and type input_attrib_t := string
+
+    and type select_elt := string
+    and type select_attrib_t := string
+
+    and type button_elt := string
+    and type button_content_elt := string
+    and type button_content_elt_list := string
+    and type button_attrib_t := string
+
+    and type optgroup_attrib_t := string
+    and type option_attrib_t := string
+
+    and type input_type_t := string
+    and type raw_input_type_t := string
+    and type button_type_t := string
+    and type for_attrib := string
+end

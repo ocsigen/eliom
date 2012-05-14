@@ -5,33 +5,19 @@ type appl_service = [ `Appl ]
 type http_service = [ `Http ]
 type non_caml_service = [ appl_service | http_service ]
 
-(** Eliom service registration and forms creation for HTML5 page *)
-module Html5 : sig
-  module D : "sigs/eliom_html5_forms.mli"
-  module F : "sigs/eliom_html5_forms.mli"
-  (**/**)
-  type return = http_service
-end
-
-(** Eliom forms creation for HTML5 *)
-module Html5_forms : sig
-  module D : "sigs/eliom_html5_forms.mli"
-  module F : "sigs/eliom_html5_forms.mli"
-end
-
 (**/**)
 
 module type Base = sig
   type return = http_service
 end
 
+module Html5 : Base
 module Xhtml : Base
-module XhtmlForms : Base
 module Redirection : Base
 module Blocks : Base
 module Blocks5 : Base
 
-module HtmlText : Base
+module Html_text : Base
 module CssText : Base
 module Text : Base
 module Action : Base

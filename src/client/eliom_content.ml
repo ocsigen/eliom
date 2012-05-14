@@ -18,8 +18,15 @@ end
 
 module HTML5 = struct
 
-  module F = HTML5.F
-  module D = HTML5.D
+  module F = struct
+    include HTML5.F
+    include Eliom_output_base.Html5_forms.F
+  end
+
+  module D = struct
+    include HTML5.D
+    include Eliom_output_base.Html5_forms.D
+  end
 
   module Id = HTML5.Id
 
