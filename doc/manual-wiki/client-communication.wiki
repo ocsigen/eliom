@@ -29,11 +29,15 @@ let _ =
     ~get_params:Eliom_parameters.unit
     (fun () () ->
       Eliom_services.onload
-      {{
-        Lwt.ignore.result(
-          lwt pi = Eliom_client.call_caml_service ~service:%pi_service () () in
-	  Lwt.return (Dom_html.window##alert(Js.string ("pi = "^(string_of_float pi)))))
-      }};
+	{{
+          Lwt.ignore.result(
+            lwt pi =
+	      Eliom_client.call_caml_service ~service:%pi_service () ()
+            in
+	    Lwt.return (
+	      Dom_html.window##alert(Js.string
+				       ("pi = "^(string_of_float pi)))))
+	}};
       Lwt.return
         (HTML5.html
            (HTML5.head (HTML5.title (HTML5.pcdata "pi")) [])
