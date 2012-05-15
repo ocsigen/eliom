@@ -30,7 +30,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   (* Server side code emission *)
   let closure_call _loc num args =
-    <:expr< XML.event_handler_of_js $`int64:num$ (Eliom_lib.to_poly $args$) >>
+    <:expr< Eliom_content.XML.event_handler_of_js $`int64:num$ (Eliom_lib.to_poly $args$) >>
 
   let arg_ids = ref []
   let arg_collection = ref []

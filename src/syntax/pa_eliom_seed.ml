@@ -172,7 +172,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	| _ -> assert false
       let extract_event_handler_type = function
 	  (* | <:sig_item< val $id$ : ($t$ option ref) >> -> *)
-	| Ast.SgVal (_loc, id, <:ctyp< ($t$ Eliom_lib.XML.caml_event_handler option ref) >>)
+	| Ast.SgVal (_loc, id, <:ctyp< ($t$ Eliom_content.XML.caml_event_handler option ref) >>)
 	| Ast.SgVal (_loc, id, <:ctyp< ($t$ Eliom_compatibility.XML.caml_event_handler option ref) >>) ->
 	    let len = String.length id - event_handler_ident_prefix_len in
 	    Int64.of_string (String.sub id event_handler_ident_prefix_len len),
