@@ -42,7 +42,7 @@ eliom_duce_sigs.mli:: eliom_duce_sigs.mlp sigs/eliom_reg.mli sigs/eliom_reg_simp
 
 FILES := eliom_wrap.ml eliom_lazy.ml \
          eliom_lib_base.ml eliom_lib.ml \
-	 eliom_content_core.ml eliom_content.ml \
+	 eliom_content_core.ml \
 	 eliom_cookies.ml \
 	 eliom_common_base.ml eliom_common.ml \
 	 eliom_request_info.ml \
@@ -72,13 +72,16 @@ FILES := eliom_wrap.ml eliom_lazy.ml \
          eliom_config.ml \
          eliom_uri.ml \
 	 eliom_mkforms.ml \
+	 eliom_output_base.ml \
+	 eliom_content.ml \
 	 eliom_mkreg.ml \
-	 eliom_output_base.ml eliom_output.ml \
+	 eliom_output.ml \
 	 eliom_comet_base.ml eliom_comet.ml  \
          eliom_tools_common.ml \
 	 eliom_tools.ml \
 	 eliom_react.ml \
 	 eliom_bus.ml \
+	 eliom_compatibility.ml \
 	 extensions/eliom_s2s.ml extensions/eliom_openid.ml \
 	 extensions/atom_feed.ml extensions/eliom_atom.ml
 

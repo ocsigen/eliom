@@ -11,8 +11,11 @@ INTF := eliom_lazy.cmi              \
         eliom_react.cmi             \
         eliom_bus.cmi               \
         eliom_unwrap.cmi            \
+        eliom_compatibility.cmi     \
 	\
         eliom_client.cmi            \
+
+NO_MLI := eliom_compatibility.cmi
 
 IMPL := ${PROJECTNAME}_client.cma      \
         ${PROJECTNAME}_client_main.cmo \
@@ -23,8 +26,7 @@ STUBS := dlleliom_client.so \
 
 NOP4 := eliom_lib.mli
 
-DOC := ${INTF:.cmi=.mli} \
+DOC := ${subst .cmi,.mli, ${filter-out ${NO_MLI}, ${INTF}}} \
        eliom_types_base.mli \
        eliom_comet_base.mli \
-
 

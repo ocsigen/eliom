@@ -28,6 +28,8 @@ INTF := eliom_lib.cmi               \
         extensions/atom_feed.cmi    \
         extensions/eliom_atom.cmi   \
 
+NO_MLI := eliom_compatibility.cmi
+
 DUCE_INTF = eliom_duce.cmi       \
             eliom_duce_sigs.cmi  \
             eliom_duce_types.cmi \
@@ -62,7 +64,7 @@ NOP4  := eliom_lib.mli \
          eliom_duce_tools.mli \
          eliom_duce_types.mli \
 
-DOC := ${filter-out ${DUCE_INTF:.cmi=.mli}, ${INTF:.cmi=.mli}} \
+DOC := ${subst .cmi,.mli, ${filter-out ${NO_MLI}, ${INTF}}} \
        eliom_types_base.mli  \
        eliom_comet_base.mli  \
 
