@@ -264,184 +264,186 @@ module HTML5 : sig
     val string_of_id : 'a id -> string
   end
 
-  (** Conversion of Javascript DOM elements to HTML5 elts (with DOM semantics of course). *)
+  (** Conversion of Javascript DOM elements to HTML5 elts (with DOM semantics of course).
+      One conversion function per source type. *)
   module Of_dom : sig
-    val element : Dom_html.element Js.t -> 'a elt
-    val html : Dom_html.htmlElement Js.t -> HTML5_types.html elt
-    val head : Dom_html.headElement Js.t -> HTML5_types.head elt
-    val link : Dom_html.linkElement Js.t -> HTML5_types.link elt
-    val title : Dom_html.titleElement Js.t -> HTML5_types.title elt
-    val meta : Dom_html.metaElement Js.t -> HTML5_types.meta elt
-    val base : Dom_html.baseElement Js.t -> HTML5_types.base elt
-    val style : Dom_html.styleElement Js.t -> HTML5_types.style elt
-    val body : Dom_html.bodyElement Js.t -> HTML5_types.body elt
-    val form : Dom_html.formElement Js.t -> HTML5_types.form elt
-    val optGroup : Dom_html.optGroupElement Js.t -> HTML5_types.optgroup elt
-    val option : Dom_html.optionElement Js.t -> HTML5_types.selectoption elt
-    val select : Dom_html.selectElement Js.t -> HTML5_types.select elt
-    val input : Dom_html.inputElement Js.t -> HTML5_types.input elt
-    val textArea : Dom_html.textAreaElement Js.t -> HTML5_types.textarea elt
-    val button : Dom_html.buttonElement Js.t -> HTML5_types.button elt
-    val label : Dom_html.labelElement Js.t -> HTML5_types.label elt
-    val fieldSet : Dom_html.fieldSetElement Js.t -> HTML5_types.fieldset elt
-    val legend : Dom_html.legendElement Js.t -> HTML5_types.legend elt
-    val uList : Dom_html.uListElement Js.t -> HTML5_types.ul elt
-    val oList : Dom_html.oListElement Js.t -> HTML5_types.ol elt
-    val dList : Dom_html.dListElement Js.t -> [`Dl] elt
-    val li : Dom_html.liElement Js.t -> HTML5_types.li elt
-    val div : Dom_html.divElement Js.t -> HTML5_types.div elt
-    val paragraph : Dom_html.paragraphElement Js.t -> HTML5_types.p elt
-    val heading : Dom_html.headingElement Js.t -> HTML5_types.heading elt
-    val quote : Dom_html.quoteElement Js.t -> HTML5_types.blockquote elt
-    val pre : Dom_html.preElement Js.t -> HTML5_types.pre elt
-    val br : Dom_html.brElement Js.t -> HTML5_types.br elt
-    val hr : Dom_html.hrElement Js.t -> HTML5_types.hr elt
-    val anchor : Dom_html.anchorElement Js.t -> 'a HTML5_types.a elt
-    val image : Dom_html.imageElement Js.t -> [`Img] elt
-    val object_ : Dom_html.objectElement Js.t -> 'a HTML5_types.object_ elt
-    val param : Dom_html.paramElement Js.t -> HTML5_types.param elt
-    val area : Dom_html.areaElement Js.t -> HTML5_types.area elt
-    val map : Dom_html.mapElement Js.t -> 'a HTML5_types.map elt
-    val script : Dom_html.scriptElement Js.t -> HTML5_types.script elt
-    val tableCell : Dom_html.tableCellElement Js.t -> [ HTML5_types.td | HTML5_types.td ] elt
-    val tableRow : Dom_html.tableRowElement Js.t -> HTML5_types.tr elt
-    val tableCol : Dom_html.tableColElement Js.t -> HTML5_types.col elt
-    val tableSection : Dom_html.tableSectionElement Js.t -> [ HTML5_types.tfoot | HTML5_types.thead | HTML5_types.tbody ] elt
-    val tableCaption : Dom_html.tableCaptionElement Js.t -> HTML5_types.caption elt
-    val table : Dom_html.tableElement Js.t -> HTML5_types.table elt
-    val canvas : Dom_html.canvasElement Js.t -> 'a HTML5_types.canvas elt
-    val iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt
+    val of_element : Dom_html.element Js.t -> 'a elt
+    val of_html : Dom_html.htmlElement Js.t -> HTML5_types.html elt
+    val of_head : Dom_html.headElement Js.t -> HTML5_types.head elt
+    val of_link : Dom_html.linkElement Js.t -> HTML5_types.link elt
+    val of_title : Dom_html.titleElement Js.t -> HTML5_types.title elt
+    val of_meta : Dom_html.metaElement Js.t -> HTML5_types.meta elt
+    val of_base : Dom_html.baseElement Js.t -> HTML5_types.base elt
+    val of_style : Dom_html.styleElement Js.t -> HTML5_types.style elt
+    val of_body : Dom_html.bodyElement Js.t -> HTML5_types.body elt
+    val of_form : Dom_html.formElement Js.t -> HTML5_types.form elt
+    val of_optGroup : Dom_html.optGroupElement Js.t -> HTML5_types.optgroup elt
+    val of_option : Dom_html.optionElement Js.t -> HTML5_types.selectoption elt
+    val of_select : Dom_html.selectElement Js.t -> HTML5_types.select elt
+    val of_input : Dom_html.inputElement Js.t -> HTML5_types.input elt
+    val of_textArea : Dom_html.textAreaElement Js.t -> HTML5_types.textarea elt
+    val of_button : Dom_html.buttonElement Js.t -> HTML5_types.button elt
+    val of_label : Dom_html.labelElement Js.t -> HTML5_types.label elt
+    val of_fieldSet : Dom_html.fieldSetElement Js.t -> HTML5_types.fieldset elt
+    val of_legend : Dom_html.legendElement Js.t -> HTML5_types.legend elt
+    val of_uList : Dom_html.uListElement Js.t -> HTML5_types.ul elt
+    val of_oList : Dom_html.oListElement Js.t -> HTML5_types.ol elt
+    val of_dList : Dom_html.dListElement Js.t -> [`Dl] elt
+    val of_li : Dom_html.liElement Js.t -> HTML5_types.li elt
+    val of_div : Dom_html.divElement Js.t -> HTML5_types.div elt
+    val of_paragraph : Dom_html.paragraphElement Js.t -> HTML5_types.p elt
+    val of_heading : Dom_html.headingElement Js.t -> HTML5_types.heading elt
+    val of_quote : Dom_html.quoteElement Js.t -> HTML5_types.blockquote elt
+    val of_pre : Dom_html.preElement Js.t -> HTML5_types.pre elt
+    val of_br : Dom_html.brElement Js.t -> HTML5_types.br elt
+    val of_hr : Dom_html.hrElement Js.t -> HTML5_types.hr elt
+    val of_anchor : Dom_html.anchorElement Js.t -> 'a HTML5_types.a elt
+    val of_image : Dom_html.imageElement Js.t -> [`Img] elt
+    val of_object : Dom_html.objectElement Js.t -> 'a HTML5_types.object_ elt
+    val of_param : Dom_html.paramElement Js.t -> HTML5_types.param elt
+    val of_area : Dom_html.areaElement Js.t -> HTML5_types.area elt
+    val of_map : Dom_html.mapElement Js.t -> 'a HTML5_types.map elt
+    val of_script : Dom_html.scriptElement Js.t -> HTML5_types.script elt
+    val of_tableCell : Dom_html.tableCellElement Js.t -> [ HTML5_types.td | HTML5_types.td ] elt
+    val of_tableRow : Dom_html.tableRowElement Js.t -> HTML5_types.tr elt
+    val of_tableCol : Dom_html.tableColElement Js.t -> HTML5_types.col elt
+    val of_tableSection : Dom_html.tableSectionElement Js.t -> [ HTML5_types.tfoot | HTML5_types.thead | HTML5_types.tbody ] elt
+    val of_tableCaption : Dom_html.tableCaptionElement Js.t -> HTML5_types.caption elt
+    val of_table : Dom_html.tableElement Js.t -> HTML5_types.table elt
+    val of_canvas : Dom_html.canvasElement Js.t -> 'a HTML5_types.canvas elt
+    val of_iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt
   end
 
-  (** Conversion from HTML5 [elt]s to Javascript DOM elements ([<: Dom_html.element Js.t]). *)
+  (** Conversion from HTML5 [elt]s to Javascript DOM elements ([<: Dom_html.element Js.t]).
+      One conversion function per source type. *)
   module To_dom : sig
 
-    val element : 'a elt -> Dom_html.element Js.t
-    val heading : HTML5_types.heading elt -> Dom_html.headingElement Js.t
+    val of_element : 'a elt -> Dom_html.element Js.t
+    val of_heading : HTML5_types.heading elt -> Dom_html.headingElement Js.t
 
-    val pcdata : [> `Pcdata] elt -> Dom.text Js.t
+    val of_pcdata : [> `Pcdata] elt -> Dom.text Js.t
 
-    val abbr : [> `Abbr] elt -> Dom_html.element Js.t
-    val acronym : [> `Acronym] elt -> Dom_html.element Js.t
-    val address : [> `Address] elt -> Dom_html.element Js.t
-    val applet : [> `Applet] elt -> Dom_html.element Js.t
-    val article : [> `Article] elt -> Dom_html.element Js.t
-    val aside : [> `Aside] elt -> Dom_html.element Js.t
-    val audio : [> `Audio] elt -> Dom_html.element Js.t
-    val b : [> `B] elt -> Dom_html.element Js.t
-    val basefont : [> `basefont] elt -> Dom_html.element Js.t
-    val bdi : [> `Bdi] elt -> Dom_html.element Js.t
-    val bdo : [> `Bdo] elt -> Dom_html.element Js.t
-    val big : [> `Big] elt -> Dom_html.element Js.t
-    val center : [> `Center] elt -> Dom_html.element Js.t
-    val cite : [> `Cite] elt -> Dom_html.element Js.t
-    val code : [> `Code] elt -> Dom_html.element Js.t
-    val colgroup : [> `Colgroup] elt -> Dom_html.element Js.t
-    val command : [> `Command] elt -> Dom_html.element Js.t
-    val datalist : [> `Datalist] elt -> Dom_html.element Js.t
-    val dd : [> `Dd] elt -> Dom_html.element Js.t
-    val del : [> `Del] elt -> Dom_html.element Js.t
-    val details : [> `Details] elt -> Dom_html.element Js.t
-    val dfn : [> `Dfn] elt -> Dom_html.element Js.t
-    val dir : [> `Dir] elt -> Dom_html.element Js.t
-    val dt : [> `Dt] elt -> Dom_html.element Js.t
-    val em : [> `Em] elt -> Dom_html.element Js.t
-    val embed : [> `Embed] elt -> Dom_html.element Js.t
-    val figcaption : [> `Figcaption] elt -> Dom_html.element Js.t
-    val figure : [> `Figure] elt -> Dom_html.element Js.t
-    val font : [> `Font] elt -> Dom_html.element Js.t
-    val footer : [> `Footer] elt -> Dom_html.element Js.t
-    val frame : [> `Frame] elt -> Dom_html.element Js.t
-    val frameset : [> `Frameset] elt -> Dom_html.element Js.t
-    val h1 : HTML5_types.heading elt -> Dom_html.headingElement Js.t
-    val h2 : HTML5_types.heading elt -> Dom_html.headingElement Js.t
-    val h3 : HTML5_types.heading elt -> Dom_html.headingElement Js.t
-    val h4 : HTML5_types.heading elt -> Dom_html.headingElement Js.t
-    val h5 : HTML5_types.heading elt -> Dom_html.headingElement Js.t
-    val h6 : HTML5_types.heading elt -> Dom_html.headingElement Js.t
-    val header : [> `Header] elt -> Dom_html.element Js.t
-    val hgroup : [> `Hgroup] elt -> Dom_html.element Js.t
-    val i : [> `I] elt -> Dom_html.element Js.t
-    val ins : [> `Ins] elt -> Dom_html.element Js.t
-    val keygen : [> `Keygen] elt -> Dom_html.element Js.t
-    val kbd : [> `Kbd] elt -> Dom_html.element Js.t
-    val mark : [> `Mark] elt -> Dom_html.element Js.t
-    val menu : [> `Menu] elt -> Dom_html.element Js.t
-    val meter : [> `Meter] elt -> Dom_html.element Js.t
-    val nav : [> `Nav] elt -> Dom_html.element Js.t
-    val noframes : [> `Noframes] elt -> Dom_html.element Js.t
-    val noscript : [> `Noscript] elt -> Dom_html.element Js.t
-    val output : [> `Output] elt -> Dom_html.element Js.t
-    val progress : [> `Progress] elt -> Dom_html.element Js.t
-    val q : [> `Q] elt -> Dom_html.element Js.t
-    val rp : [> `Rp] elt -> Dom_html.element Js.t
-    val rt : [> `Rt] elt -> Dom_html.element Js.t
-    val ruby : [> `Ruby] elt -> Dom_html.element Js.t
-    val s : [> `S] elt -> Dom_html.element Js.t
-    val samp : [> `Samp] elt -> Dom_html.element Js.t
-    val section : [> `Section] elt -> Dom_html.element Js.t
-    val small : [> `Small] elt -> Dom_html.element Js.t
-    val source : [> `Source] elt -> Dom_html.element Js.t
-    val span : [> `Span] elt -> Dom_html.element Js.t
-    val strike : [> `Strike] elt -> Dom_html.element Js.t
-    val strong : [> `Strong] elt -> Dom_html.element Js.t
-    val sub : [> `Sub] elt -> Dom_html.element Js.t
-    val summary : [> `Summary] elt -> Dom_html.element Js.t
-    val sup : [> `Sup] elt -> Dom_html.element Js.t
-    val th : [> `Th] elt -> Dom_html.element Js.t
-    val time : [> `Time] elt -> Dom_html.element Js.t
-    val track : [> `Track] elt -> Dom_html.element Js.t
-    val tt : [> `Tt] elt -> Dom_html.element Js.t
-    val u : [> `U] elt -> Dom_html.element Js.t
-    val var : [> `Var] elt -> Dom_html.element Js.t
-    val video : [> `Video] elt -> Dom_html.element Js.t
-    val wbr : [> `Wbr] elt -> Dom_html.element Js.t
+    val of_abbr : [> `Abbr] elt -> Dom_html.element Js.t
+    val of_acronym : [> `Acronym] elt -> Dom_html.element Js.t
+    val of_address : [> `Address] elt -> Dom_html.element Js.t
+    val of_applet : [> `Applet] elt -> Dom_html.element Js.t
+    val of_article : [> `Article] elt -> Dom_html.element Js.t
+    val of_aside : [> `Aside] elt -> Dom_html.element Js.t
+    val of_audio : [> `Audio] elt -> Dom_html.element Js.t
+    val of_b : [> `B] elt -> Dom_html.element Js.t
+    val of_basefont : [> `basefont] elt -> Dom_html.element Js.t
+    val of_bdi : [> `Bdi] elt -> Dom_html.element Js.t
+    val of_bdo : [> `Bdo] elt -> Dom_html.element Js.t
+    val of_big : [> `Big] elt -> Dom_html.element Js.t
+    val of_center : [> `Center] elt -> Dom_html.element Js.t
+    val of_cite : [> `Cite] elt -> Dom_html.element Js.t
+    val of_code : [> `Code] elt -> Dom_html.element Js.t
+    val of_colgroup : [> `Colgroup] elt -> Dom_html.element Js.t
+    val of_command : [> `Command] elt -> Dom_html.element Js.t
+    val of_datalist : [> `Datalist] elt -> Dom_html.element Js.t
+    val of_dd : [> `Dd] elt -> Dom_html.element Js.t
+    val of_del : [> `Del] elt -> Dom_html.element Js.t
+    val of_details : [> `Details] elt -> Dom_html.element Js.t
+    val of_dfn : [> `Dfn] elt -> Dom_html.element Js.t
+    val of_dir : [> `Dir] elt -> Dom_html.element Js.t
+    val of_dt : [> `Dt] elt -> Dom_html.element Js.t
+    val of_em : [> `Em] elt -> Dom_html.element Js.t
+    val of_embed : [> `Embed] elt -> Dom_html.element Js.t
+    val of_figcaption : [> `Figcaption] elt -> Dom_html.element Js.t
+    val of_figure : [> `Figure] elt -> Dom_html.element Js.t
+    val of_font : [> `Font] elt -> Dom_html.element Js.t
+    val of_footer : [> `Footer] elt -> Dom_html.element Js.t
+    val of_frame : [> `Frame] elt -> Dom_html.element Js.t
+    val of_frameset : [> `Frameset] elt -> Dom_html.element Js.t
+    val of_h1 : HTML5_types.heading elt -> Dom_html.headingElement Js.t
+    val of_h2 : HTML5_types.heading elt -> Dom_html.headingElement Js.t
+    val of_h3 : HTML5_types.heading elt -> Dom_html.headingElement Js.t
+    val of_h4 : HTML5_types.heading elt -> Dom_html.headingElement Js.t
+    val of_h5 : HTML5_types.heading elt -> Dom_html.headingElement Js.t
+    val of_h6 : HTML5_types.heading elt -> Dom_html.headingElement Js.t
+    val of_header : [> `Header] elt -> Dom_html.element Js.t
+    val of_hgroup : [> `Hgroup] elt -> Dom_html.element Js.t
+    val of_i : [> `I] elt -> Dom_html.element Js.t
+    val of_ins : [> `Ins] elt -> Dom_html.element Js.t
+    val of_keygen : [> `Keygen] elt -> Dom_html.element Js.t
+    val of_kbd : [> `Kbd] elt -> Dom_html.element Js.t
+    val of_mark : [> `Mark] elt -> Dom_html.element Js.t
+    val of_menu : [> `Menu] elt -> Dom_html.element Js.t
+    val of_meter : [> `Meter] elt -> Dom_html.element Js.t
+    val of_nav : [> `Nav] elt -> Dom_html.element Js.t
+    val of_noframes : [> `Noframes] elt -> Dom_html.element Js.t
+    val of_noscript : [> `Noscript] elt -> Dom_html.element Js.t
+    val of_output : [> `Output] elt -> Dom_html.element Js.t
+    val of_progress : [> `Progress] elt -> Dom_html.element Js.t
+    val of_q : [> `Q] elt -> Dom_html.element Js.t
+    val of_rp : [> `Rp] elt -> Dom_html.element Js.t
+    val of_rt : [> `Rt] elt -> Dom_html.element Js.t
+    val of_ruby : [> `Ruby] elt -> Dom_html.element Js.t
+    val of_s : [> `S] elt -> Dom_html.element Js.t
+    val of_samp : [> `Samp] elt -> Dom_html.element Js.t
+    val of_section : [> `Section] elt -> Dom_html.element Js.t
+    val of_small : [> `Small] elt -> Dom_html.element Js.t
+    val of_source : [> `Source] elt -> Dom_html.element Js.t
+    val of_span : [> `Span] elt -> Dom_html.element Js.t
+    val of_strike : [> `Strike] elt -> Dom_html.element Js.t
+    val of_strong : [> `Strong] elt -> Dom_html.element Js.t
+    val of_sub : [> `Sub] elt -> Dom_html.element Js.t
+    val of_summary : [> `Summary] elt -> Dom_html.element Js.t
+    val of_sup : [> `Sup] elt -> Dom_html.element Js.t
+    val of_th : [> `Th] elt -> Dom_html.element Js.t
+    val of_time : [> `Time] elt -> Dom_html.element Js.t
+    val of_track : [> `Track] elt -> Dom_html.element Js.t
+    val of_tt : [> `Tt] elt -> Dom_html.element Js.t
+    val of_u : [> `U] elt -> Dom_html.element Js.t
+    val of_var : [> `Var] elt -> Dom_html.element Js.t
+    val of_video : [> `Video] elt -> Dom_html.element Js.t
+    val of_wbr : [> `Wbr] elt -> Dom_html.element Js.t
 
-    val html : HTML5_types.html elt -> Dom_html.htmlElement Js.t
-    val head : HTML5_types.head elt -> Dom_html.headElement Js.t
-    val link : HTML5_types.link elt -> Dom_html.linkElement Js.t
-    val title : HTML5_types.title elt -> Dom_html.titleElement Js.t
-    val meta : HTML5_types.meta elt -> Dom_html.metaElement Js.t
-    val base : HTML5_types.base elt -> Dom_html.baseElement Js.t
-    val style : HTML5_types.style elt -> Dom_html.styleElement Js.t
-    val body : HTML5_types.body elt -> Dom_html.bodyElement Js.t
-    val form : HTML5_types.form elt -> Dom_html.formElement Js.t
-    val optgroup : HTML5_types.optgroup elt -> Dom_html.optGroupElement Js.t
-    val option : HTML5_types.selectoption elt -> Dom_html.optionElement Js.t
-    val select : HTML5_types.select elt -> Dom_html.selectElement Js.t
-    val input : HTML5_types.input elt -> Dom_html.inputElement Js.t
-    val textarea : HTML5_types.textarea elt -> Dom_html.textAreaElement Js.t
-    val button : HTML5_types.button elt -> Dom_html.buttonElement Js.t
-    val label : HTML5_types.label elt -> Dom_html.labelElement Js.t
-    val fieldset : HTML5_types.fieldset elt -> Dom_html.fieldSetElement Js.t
-    val legend : HTML5_types.legend elt -> Dom_html.legendElement Js.t
-    val ul : HTML5_types.ul elt -> Dom_html.uListElement Js.t
-    val ol : HTML5_types.ol elt -> Dom_html.oListElement Js.t
-    val dl : [`Dl] elt -> Dom_html.dListElement Js.t
-    val li : HTML5_types.li elt -> Dom_html.liElement Js.t
-    val div : HTML5_types.div elt -> Dom_html.divElement Js.t
-    val p : HTML5_types.p elt -> Dom_html.paragraphElement Js.t
-    val blockquote : HTML5_types.blockquote elt -> Dom_html.quoteElement Js.t
-    val pre : HTML5_types.pre elt -> Dom_html.preElement Js.t
-    val br : HTML5_types.br elt -> Dom_html.brElement Js.t
-    val hr : HTML5_types.hr elt -> Dom_html.hrElement Js.t
-    val a : 'a HTML5_types.a elt -> Dom_html.anchorElement Js.t
-    val img : [`Img] elt -> Dom_html.imageElement Js.t
-    val object_ : 'a HTML5_types.object_ elt -> Dom_html.objectElement Js.t
-    val param : HTML5_types.param elt -> Dom_html.paramElement Js.t
-    val area : HTML5_types.area elt -> Dom_html.areaElement Js.t
-    val map : 'a HTML5_types.map elt -> Dom_html.mapElement Js.t
-    val script : HTML5_types.script elt -> Dom_html.scriptElement Js.t
-    val td : [ HTML5_types.td | HTML5_types.td ] elt -> Dom_html.tableCellElement Js.t
-    val tr : HTML5_types.tr elt -> Dom_html.tableRowElement Js.t
-    val col : HTML5_types.col elt -> Dom_html.tableColElement Js.t
-    val tfoot : HTML5_types.tfoot elt -> Dom_html.tableSectionElement Js.t
-    val thead : HTML5_types.thead elt -> Dom_html.tableSectionElement Js.t
-    val tbody : HTML5_types.tbody elt -> Dom_html.tableSectionElement Js.t
-    val caption : HTML5_types.caption elt -> Dom_html.tableCaptionElement Js.t
-    val table : HTML5_types.table elt -> Dom_html.tableElement Js.t
-    val canvas : 'a HTML5_types.canvas elt -> Dom_html.canvasElement Js.t
-    val iframe : HTML5_types.iframe elt -> Dom_html.iFrameElement Js.t
+    val of_html : HTML5_types.html elt -> Dom_html.htmlElement Js.t
+    val of_head : HTML5_types.head elt -> Dom_html.headElement Js.t
+    val of_link : HTML5_types.link elt -> Dom_html.linkElement Js.t
+    val of_title : HTML5_types.title elt -> Dom_html.titleElement Js.t
+    val of_meta : HTML5_types.meta elt -> Dom_html.metaElement Js.t
+    val of_base : HTML5_types.base elt -> Dom_html.baseElement Js.t
+    val of_style : HTML5_types.style elt -> Dom_html.styleElement Js.t
+    val of_body : HTML5_types.body elt -> Dom_html.bodyElement Js.t
+    val of_form : HTML5_types.form elt -> Dom_html.formElement Js.t
+    val of_optgroup : HTML5_types.optgroup elt -> Dom_html.optGroupElement Js.t
+    val of_option : HTML5_types.selectoption elt -> Dom_html.optionElement Js.t
+    val of_select : HTML5_types.select elt -> Dom_html.selectElement Js.t
+    val of_input : HTML5_types.input elt -> Dom_html.inputElement Js.t
+    val of_textarea : HTML5_types.textarea elt -> Dom_html.textAreaElement Js.t
+    val of_button : HTML5_types.button elt -> Dom_html.buttonElement Js.t
+    val of_label : HTML5_types.label elt -> Dom_html.labelElement Js.t
+    val of_fieldset : HTML5_types.fieldset elt -> Dom_html.fieldSetElement Js.t
+    val of_legend : HTML5_types.legend elt -> Dom_html.legendElement Js.t
+    val of_ul : HTML5_types.ul elt -> Dom_html.uListElement Js.t
+    val of_ol : HTML5_types.ol elt -> Dom_html.oListElement Js.t
+    val of_dl : [`Dl] elt -> Dom_html.dListElement Js.t
+    val of_li : HTML5_types.li elt -> Dom_html.liElement Js.t
+    val of_div : HTML5_types.div elt -> Dom_html.divElement Js.t
+    val of_p : HTML5_types.p elt -> Dom_html.paragraphElement Js.t
+    val of_blockquote : HTML5_types.blockquote elt -> Dom_html.quoteElement Js.t
+    val of_pre : HTML5_types.pre elt -> Dom_html.preElement Js.t
+    val of_br : HTML5_types.br elt -> Dom_html.brElement Js.t
+    val of_hr : HTML5_types.hr elt -> Dom_html.hrElement Js.t
+    val of_a : 'a HTML5_types.a elt -> Dom_html.anchorElement Js.t
+    val of_img : [`Img] elt -> Dom_html.imageElement Js.t
+    val of_object : 'a HTML5_types.object_ elt -> Dom_html.objectElement Js.t
+    val of_param : HTML5_types.param elt -> Dom_html.paramElement Js.t
+    val of_area : HTML5_types.area elt -> Dom_html.areaElement Js.t
+    val of_map : 'a HTML5_types.map elt -> Dom_html.mapElement Js.t
+    val of_script : HTML5_types.script elt -> Dom_html.scriptElement Js.t
+    val of_td : [ HTML5_types.td | HTML5_types.td ] elt -> Dom_html.tableCellElement Js.t
+    val of_tr : HTML5_types.tr elt -> Dom_html.tableRowElement Js.t
+    val of_col : HTML5_types.col elt -> Dom_html.tableColElement Js.t
+    val of_tfoot : HTML5_types.tfoot elt -> Dom_html.tableSectionElement Js.t
+    val of_thead : HTML5_types.thead elt -> Dom_html.tableSectionElement Js.t
+    val of_tbody : HTML5_types.tbody elt -> Dom_html.tableSectionElement Js.t
+    val of_caption : HTML5_types.caption elt -> Dom_html.tableCaptionElement Js.t
+    val of_table : HTML5_types.table elt -> Dom_html.tableElement Js.t
+    val of_canvas : 'a HTML5_types.canvas elt -> Dom_html.canvasElement Js.t
+    val of_iframe : HTML5_types.iframe elt -> Dom_html.iFrameElement Js.t
 
   end
 
