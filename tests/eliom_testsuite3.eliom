@@ -1,5 +1,6 @@
 (*zap* *)
 {shared{
+  open Eliom_compatibility
   open Ocsigen_cookies
 }}
 
@@ -52,7 +53,7 @@ whole application.
 (* for client side only, one can use : {client{ ... }} and for shared code, one
 * can place {shared{ ... }} *)
 {shared{
-open HTML5.F
+open HTML5.M
 }}
 
 (****** server only *******)
@@ -146,7 +147,7 @@ let eliom_caml_tree =
     ~post_params:unit
     (fun () () ->
       Lwt.return
-        HTML5.F.(([div [p [pcdata "Coucou, voici un Div construit avec TyXML sur le serveur"];
+        HTML5.M.(([div [p [pcdata "Coucou, voici un Div construit avec TyXML sur le serveur"];
                         ul [li [pcdata "item1"];
                             li [pcdata "item2"];
                             li [pcdata "item3"];
@@ -280,11 +281,11 @@ where and {{{id}}} an identifier for the value.
 ====Refering to parts of the page in client side code
 *wiki*)
 
-          (let container = HTML5.D.ul [ item () ; item () ; item ()] in
+          (let container = HTML5.DOM.ul [ item () ; item () ; item ()] in
            div [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
                                a_onclick {{
                                  Dom.appendChild
-                                   (Eliom_client.Html5.of_ul %container) (* node is the wrapper keyword for HTML5.F nodes. *)
+                                   (Eliom_client.Html5.of_ul %container) (* node is the wrapper keyword for HTML5.M nodes. *)
                                    (Eliom_client.Html5.of_li (item ()))
                                }}
                   ]
@@ -618,7 +619,7 @@ let uri_test =
     ~get_params:unit
     (fun () () ->
       let div =
-        HTML5.D.div [
+        HTML5.DOM.div [
           p [pcdata "The following URLs are computed either on server or client side. They should be equal."];
           p [pcdata (Eliom_uri.make_string_uri ~service:eliomclient1 ())];
         ]
@@ -648,7 +649,7 @@ let wrapping_big_values = My_appl.register_service
   ~get_params:(int "size")
   (fun size () ->
     let div =
-      HTML5.D.div
+      HTML5.DOM.div
         [pcdata (Printf.sprintf "there should be a line with: list length: %i"
                    size);
          br ()] in
@@ -705,7 +706,7 @@ let gc_service =
 let () =
   My_appl.register wrapping1
     (fun () () ->
-      let list = HTML5.D.ul [] in
+      let list = HTML5.DOM.ul [] in
 
       (* Simple unwrapping *)
       Eliom_services.onload {{
@@ -721,7 +722,7 @@ let () =
       }};
 
       (* Node unwrapping and Caml servive *)
-      let content = HTML5.D.div [] in
+      let content = HTML5.DOM.div [] in
       let unwrapping_div =
 	div ~a:[ a_onclick {{
                    let v = %v1 in
@@ -1006,7 +1007,7 @@ let comet_wrapping =
     ~path:["comet_wrapping"]
     ~get_params:unit
     (fun () () ->
-      let node = HTML5.D.div [pcdata "node created on server side"] in
+      let node = HTML5.DOM.div [pcdata "node created on server side"] in
       let service_stream,push_service = Lwt_stream.create () in
       push_service (Some Eliom_testsuite1.coucou);
       let c_service = Eliom_comet.Channels.create service_stream in
@@ -1021,7 +1022,7 @@ let comet_wrapping =
                         br ();
                         pcdata "this link must not stop the process! (same random number in the container)."]));
       let c_xml = Eliom_comet.Channels.create xml_stream in
-      let div_link = HTML5.D.div [] in
+      let div_link = HTML5.DOM.div [] in
 
       Eliom_services.onload
         {{
@@ -1052,7 +1053,7 @@ let comet_signal_maker name time =
     ~path:[name]
     ~get_params:unit
     (fun () () ->
-      let time_div = HTML5.D.div [] in
+      let time_div = HTML5.DOM.div [] in
       Eliom_services.onload
         {{
           Lwt_react.S.keep
@@ -1086,8 +1087,8 @@ let comet_message_board_maker name message_bus cb =
     (fun () () ->
        cb ();
        Lwt.return (
-         let container = HTML5.D.ul [li [em [pcdata "This is the message board"]]] in
-         let field = input ~a:[a_id "msg"; a_input_type `Text; a_name "message"] () in
+         let container = HTML5.DOM.ul [li [em [pcdata "This is the message board"]]] in
+         let field = input ~a:[a_id "msg"; a_name "message"] ~input_type:`Text () in
          Eliom_services.onload
            {{
              let c = Eliom_comet.Configuration.new_configuration () in
@@ -1177,7 +1178,7 @@ let bus_multiple_times =
     ~path:["multiple_bus"]
     ~get_params:unit
     (fun () () ->
-      let container = HTML5.D.ul [li [em [pcdata "there will be lines"]]] in
+      let container = HTML5.DOM.ul [li [em [pcdata "there will be lines"]]] in
       let onload s message_bus = {{
           let _ =
             try_lwt
@@ -1357,7 +1358,7 @@ let event_service =
     ~get_params:Eliom_parameters.unit
     (fun () () ->
 
-      let make_target s = HTML5.D.p [HTML5.F.a [pcdata s]] in
+      let make_target s = HTML5.DOM.p [HTML5.M.a [pcdata s]] in
       let target1 = make_target "Un seul clic" in
       let target2 = make_target "Annuler le précédent" in
       let target3 = make_target "Drag vers la ligne au dessus une seule fois" in
@@ -1375,7 +1376,7 @@ let event_service =
       let target15 = make_target "Annuler le précédent" in
       let target16 = make_target "Mouse over change color" in
 
-      let targetresult = HTML5.D.p [] in
+      let targetresult = HTML5.DOM.p [] in
       Eliom_services.onload
         {{
           let targetresult = (Eliom_client.Html5.of_p %targetresult) in
@@ -1384,7 +1385,7 @@ let event_service =
             lwt_arr
               (fun ev ->
                 ignore (targetresult##appendChild
-                          ((Eliom_client.Html5.of_element (HTML5.F.pcdata " plip") :> Dom.node Js.t)));
+                          ((Eliom_client.Html5.of_element (HTML5.M.pcdata " plip") :> Dom.node Js.t)));
                 Lwt.return ())
           in
           let handler_long =
@@ -1392,7 +1393,7 @@ let event_service =
               (fun ev ->
                 Lwt_js.sleep 0.7 >>= fun () ->
                 ignore (targetresult##appendChild
-                          ((Eliom_client.Html5.of_element (HTML5.F.pcdata " plop") :> Dom.node Js.t)));
+                          ((Eliom_client.Html5.of_element (HTML5.M.pcdata " plop") :> Dom.node Js.t)));
                 Lwt.return ()
               )
           in
@@ -2596,19 +2597,19 @@ let _ =
   (fun () () ->
     let rec list i n =
       if i >= n  then
-        [HTML5.F.li
+        [HTML5.M.li
           [Eliom_output.Html5.a
               ~fragment:""
               ~service:long_page [pcdata ("Goto TOP")] ()]]
       else
-        HTML5.F.li ~a:[HTML5.F.a_id ("id" ^string_of_int i)]
-          [HTML5.F.pcdata ("Item #" ^ string_of_int i);
-           HTML5.F.pcdata "; ";
+        HTML5.M.li ~a:[HTML5.M.a_id ("id" ^string_of_int i)]
+          [HTML5.M.pcdata ("Item #" ^ string_of_int i);
+           HTML5.M.pcdata "; ";
            Eliom_output.Html5.a
              ~fragment:("id" ^ string_of_int (n-i))
              ~service:long_page [pcdata ("Goto #" ^ string_of_int (n-i))] ();] :: list (i+1) n in
     Lwt.return
-      (make_page [HTML5.F.ul (list 1 100)]))
+      (make_page [HTML5.M.ul (list 1 100)]))
 
 {client{
   let pinger : unit Lwt.t option ref = ref None
@@ -2644,7 +2645,7 @@ let dead_links =
 
 let () = My_appl.register ~service:live1 (fun () () ->
     Eliom_services.onload {{ debug "Page 1 loading"; pinger := Some (loop 2. 0 loop_counter) }};
-    Eliom_services.onunload {{ debug "Page 1 unloading"; Option.iter Lwt.cancel !pinger }};
+    Eliom_services.onunload {{ debug "Page 1 unloading"; iter_option Lwt.cancel !pinger }};
     Lwt.return
       (make_page [h1 [pcdata "Page one"]; live_description; live_links; dead_links]))
 
@@ -2663,7 +2664,7 @@ let () = My_appl.register ~service:live3 (fun () () ->
 
 let formc = My_appl.register_service ["formc"] unit
   (fun () () -> 
-    let div = HTML5.D.div [h3 [pcdata "Forms and links created on client side:"]] in
+    let div = HTML5.DOM.div [h3 [pcdata "Forms and links created on client side:"]] in
     Eliom_services.onload
       {{ 
 
@@ -3037,8 +3038,8 @@ let make_xhr_form ((((((casename,radio),select),multi),text),pass),file) =
 
 let xhr_form_with_file = My_appl.register_service ["xhr_form_with_file"] unit
   (fun () () ->
-    let form = HTML5.D.(post_form block_form_result make_xhr_form ()) in
-    let subpage = HTML5.D.(div []) in
+    let form = HTML5.DOM.(post_form block_form_result make_xhr_form ()) in
+    let subpage = HTML5.DOM.(div []) in
     let launch = p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
       a_onclick {{
         let uri = Eliom_uri.make_string_uri ~service:%block_form_result () in
@@ -3063,7 +3064,7 @@ let global_div =
           [pcdata "global"]])
 
 let local_div =
-  HTML5.D.p ~a:[a_onload {{ debug "Div2: always plop." }}]
+  HTML5.DOM.p ~a:[a_onload {{ debug "Div2: always plop." }}]
     [pcdata "Div2: ";
      span ~a:[a_onload {{ debug "Span inside Div2: always plop";}}]
        [pcdata "local"]]
@@ -3162,7 +3163,7 @@ let relink_test =
     ()
 
 let global_list = HTML5.create_global_elt (ul [li [pcdata "First element"]])
-let local_list = HTML5.D.ul [li [pcdata "First element"]]
+let local_list = HTML5.DOM.ul [li [pcdata "First element"]]
 
 let relink_page () =
   Eliom_services.onload {{
@@ -3200,7 +3201,7 @@ let _ =
 
   let react_div ?a r =
     let init = React.S.value r in
-    let node = HTML5.D.div ?a init in
+    let node = HTML5.DOM.div ?a init in
     let node_dom = Eliom_client.Html5.of_element node in
     let s = React.S.map (fun sons ->
       List.iter (fun n -> ignore (node_dom##removeChild((n:> Dom.node Js.t))))
@@ -3217,7 +3218,7 @@ let _ =
   let r,push = React.S.create 0
 
   let react_node node r =
-    let _init = React.S.value r in
+    let init = React.S.value r in
     let node_dom = Eliom_client.Html5.of_element node in
     let s = React.S.map (fun sons ->
       List.iter (fun n -> ignore (node_dom##removeChild((n:> Dom.node Js.t))))
@@ -3240,7 +3241,7 @@ let () =
   My_appl.register
     react_example
     (fun () () ->
-      let click_div = HTML5.D.div ~a:[a_onclick {{ push (incr count; !count) }}] [] in
+      let click_div = HTML5.DOM.div ~a:[a_onclick {{ push (incr count; !count) }}] [] in
       Eliom_services.onload {{
         react_node %click_div
           (React.S.map (fun i -> [pcdata (Printf.sprintf "value: %i" i)]) r)
@@ -3254,14 +3255,14 @@ let caml_service_with_onload' =
     ~path:["caml_service_with_onload'"]
     ~get_params:Eliom_parameters.unit
     (fun () () ->
-      let node = HTML5.D.div [pcdata "new div"] in
+      let node = HTML5.DOM.div [pcdata "new div"] in
       Eliom_services.onload {{
         let node = Eliom_client.Html5.of_div %node in
         ignore (Dom_html.addEventListener node Dom_html.Event.click
                   (Dom_html.handler (fun _ -> Dom_html.window##alert(Js.string "clicked!"); Js._true))
                   Js._true);
         () }};
-      Lwt.return (node : HTML5_types.div Eliom_lib.HTML5.F.elt))
+      Lwt.return (node : HTML5_types.div Eliom_pervasives.HTML5.M.elt))
 
 let caml_service_with_onload =
   My_appl.register_service
@@ -3288,7 +3289,7 @@ let rec dom_div_tree v width height =
   else
     Array.to_list
       (Array.init width
-         (fun i -> HTML5.D.div (dom_div_tree v width (height-1))))
+         (fun i -> HTML5.DOM.div (dom_div_tree v width (height-1))))
 let dom_div_tree w h = dom_div_tree (ref 0) w h
 
 let rec div_tree v width height =
@@ -3297,7 +3298,7 @@ let rec div_tree v width height =
   else
     Array.to_list
       (Array.init width
-         (fun i -> HTML5.F.div (div_tree v width (height-1))))
+         (fun i -> HTML5.M.div (div_tree v width (height-1))))
 let div_tree w h = div_tree (ref 0) w h
 
 let domnodes_timings = Eliom_services.service
@@ -3330,8 +3331,8 @@ let rec power n m =
 
 let activate_timings_button =
   HTML5.create_global_elt
-    (Eliom_output.Html5_forms.F.string_input
-       ~a:[ HTML5.F.a_onclick {{
+    (Eliom_output.Html5_forms.M.string_input
+       ~a:[ HTML5.M.a_onclick {{
               Eliom_config.debug_timings := not (!Eliom_config.debug_timings);
               change_target_value _ev;
             }}]
@@ -3340,25 +3341,25 @@ let activate_timings_button =
 
 let update_tree service w h =
   let open Eliom_output in
-  Html5_forms.F.get_form ~service (fun (wn,hn) ->
-    [ HTML5.F.fieldset
-        [ HTML5.F.label ~a:[Eliom_output.Html5.a_for wn] [pcdata "Tree width: "];
-          Html5_forms.F.int_input ~name:wn ~input_type:`Text ~value:w ();
-          HTML5.F.label ~a:[Eliom_output.Html5.a_for wn] [pcdata "and height: "];
-          Html5_forms.F.int_input ~name:hn ~input_type:`Text ~value:h ();
-          Html5_forms.F.string_input ~input_type:`Submit ~value:"Update" ();
+  Html5_forms.M.get_form ~service (fun (wn,hn) ->
+    [ HTML5.M.fieldset
+        [ HTML5.M.label ~a:[Eliom_output.Html5.a_for wn] [pcdata "Tree width: "];
+          Html5_forms.M.int_input ~name:wn ~input_type:`Text ~value:w ();
+          HTML5.M.label ~a:[Eliom_output.Html5.a_for wn] [pcdata "and height: "];
+          Html5_forms.M.int_input ~name:hn ~input_type:`Text ~value:h ();
+          Html5_forms.M.string_input ~input_type:`Submit ~value:"Update" ();
         ]
     ])
 
 let _ = My_appl.register
   ~service:domnodes_timings
   (fun (w,h) () ->
-    let div = HTML5.F.div ~a:[a_style "display:none;"] (dom_div_tree w h) in
+    let div = HTML5.M.div ~a:[a_style "display:none;"] (dom_div_tree w h) in
     Lwt.return
       (make_page
-         [HTML5.F.h2 [pcdata (Printf.sprintf "Huge tree of dom nodes (%d^%d = %d)"
+         [HTML5.M.h2 [pcdata (Printf.sprintf "Huge tree of dom nodes (%d^%d = %d)"
                                 w h (power w h))];
-          HTML5.F.p [pcdata "This page contains a hidden tree of dom nodes (a.k.a unique nodes of scope request). ";
+          HTML5.M.p [pcdata "This page contains a hidden tree of dom nodes (a.k.a unique nodes of scope request). ";
                      pcdata "Activate timings and look into the console how the 'relink_request_nodes' value ";
                      pcdata "evolves when the number of unique nodes increase. Then compare timings on the ";
                      Eliom_output.Html5_forms.a nodes_timings
@@ -3371,12 +3372,12 @@ let _ = My_appl.register
 let _ = My_appl.register
   ~service:nodes_timings
   (fun (w,h) () ->
-    let div = HTML5.F.div ~a:[a_style "display:none;"] (div_tree w h) in
+    let div = HTML5.M.div ~a:[a_style "display:none;"] (div_tree w h) in
     Lwt.return
       (make_page
-         [HTML5.F.h2 [pcdata (Printf.sprintf "Huge tree of classical nodes (%d^%d = %d)"
+         [HTML5.M.h2 [pcdata (Printf.sprintf "Huge tree of classical nodes (%d^%d = %d)"
                                 w h (power w h))];
-          HTML5.F.p [Eliom_output.Html5_forms.a domnodes_timings [pcdata "Back to unique nodes."] (w,h)];
+          HTML5.M.p [Eliom_output.Html5_forms.a domnodes_timings [pcdata "Back to unique nodes."] (w,h)];
           activate_timings_button;
           update_tree domnodes_timings w h;
           div]))
@@ -3385,28 +3386,28 @@ let shared_dom_nodes = My_appl.register_service
   ~path:["shared_dom_nodes"]
   ~get_params:unit
   (fun () () ->
-    let li = HTML5.D.li [pcdata "Shared item"] in
-    let li_appl = HTML5.create_global_elt (HTML5.F.li [pcdata "Shared item"]) in
+    let li = HTML5.DOM.li [pcdata "Shared item"] in
+    let li_appl = HTML5.create_global_elt (HTML5.M.li [pcdata "Shared item"]) in
     Lwt.return
       (make_page
-         [HTML5.F.h2 [pcdata "Multiple occurences of a unique node"];
-          HTML5.F.p [pcdata "The following list contains two occurences of a unique node items (of scope request). ";
+         [HTML5.M.h2 [pcdata "Multiple occurences of a unique node"];
+          HTML5.M.p [pcdata "The following list contains two occurences of a unique node items (of scope request). ";
                      pcdata "One between item A and item B ; one between B and C. ";
                      pcdata "Only the second one should be displayed."];
-          HTML5.F.ul [ HTML5.F.li [pcdata "Non-shared item A"];
+          HTML5.M.ul [ HTML5.M.li [pcdata "Non-shared item A"];
                        li;
-                       HTML5.F.li [pcdata "Non-shared item B"];
+                       HTML5.M.li [pcdata "Non-shared item B"];
                        li;
-                       HTML5.F.li [pcdata "Non-shared item B"];];
-          HTML5.F.p [pcdata "It is possible that for a very short period of time the first one appears. ";
+                       HTML5.M.li [pcdata "Non-shared item B"];];
+          HTML5.M.p [pcdata "It is possible that for a very short period of time the first one appears. ";
                      pcdata "However, programmer probably do not want to use multiple occurences of a unique node ";
                      pcdata "and this \"blink\" will be a good reminder of unique node misuse..."];
-          HTML5.F.p [pcdata "Same game with scope application."];
-          HTML5.F.ul [ HTML5.F.li [pcdata "Non-shared item A"];
+          HTML5.M.p [pcdata "Same game with scope application."];
+          HTML5.M.ul [ HTML5.M.li [pcdata "Non-shared item A"];
                        li_appl;
-                       HTML5.F.li [pcdata "Non-shared item B"];
+                       HTML5.M.li [pcdata "Non-shared item B"];
                        li_appl;
-                       HTML5.F.li [pcdata "Non-shared item B"];];
+                       HTML5.M.li [pcdata "Non-shared item B"];];
          ]))
 
 
@@ -3449,7 +3450,7 @@ module Tmpl_1 = Eliom_output.Eliom_tmpl(My_appl)(struct
   let content_id = HTML5.new_elt_id ()
   let make_page contents =
     Lwt.return
-      HTML5.F.(make_page
+      HTML5.M.(make_page
          [h2 [pcdata "Template #1"];
           ul [li [Eliom_output.Html5_forms.a ~service:tmpl1_page1 [pcdata "Page 1"] ()];
               li [Eliom_output.Html5_forms.a ~service:tmpl1_page2 [pcdata "Page 2"] ()];
@@ -3477,7 +3478,7 @@ module Tmpl_2 = Eliom_output.Eliom_tmpl(My_appl)(struct
   let content_id = HTML5.new_elt_id ()
   let make_page contents =
     Lwt.return
-      HTML5.F.(make_page
+      HTML5.M.(make_page
          [h2 [pcdata "Template #2"];
           ul [li [Eliom_output.Html5_forms.a ~service:tmpl1_page1 [pcdata "Page 1 (tmpl1)"] ()];
               li [Eliom_output.Html5_forms.a ~service:tmpl1_page2 [pcdata "Page 2 (tmpl1)"] ()];
@@ -3544,7 +3545,7 @@ let hist_page5 = Eliom_services.service
   ()
 
 let make_hist_page contents =
-  HTML5.F.(make_page
+  HTML5.M.(make_page
              [h2 [pcdata "Test History"];
               ul [li [Eliom_output.Html5_forms.a ~service:hist_page1 [pcdata "Page 1"] ()];
                   li [Eliom_output.Html5_forms.a ~service:hist_page2 [pcdata "Page 2"] ()];
@@ -3623,7 +3624,7 @@ let nlpost_with_nlp =
     nl_params nlpost
 
 let create_form_nl s =
-  (fun () -> [HTML5.F.p [Eliom_output.Html5.string_input ~input_type:`Submit ~value:s ()]])
+  (fun () -> [HTML5.M.p [Eliom_output.Html5.string_input ~input_type:`Submit ~value:s ()]])
 
 let () = My_appl.register nlpost
   (fun () () ->
@@ -3632,7 +3633,7 @@ let () = My_appl.register nlpost
         | None -> "no non localised parameter"
         | Some _ -> "some non localised parameter" in
      Lwt.return
-       HTML5.F.(html
+       HTML5.M.(html
           (head (title (pcdata "")) [])
           (body [div [
             pcdata nlp; br();
@@ -3644,7 +3645,7 @@ let () = My_appl.register nlpost
 let () = My_appl.register nlpost_entry
   (fun () () ->
      Lwt.return
-       HTML5.F.(html
+       HTML5.M.(html
           (head (title (pcdata "")) [])
           (body [div [
             Eliom_output.Html5.post_form nlpost_with_nlp (create_form_nl "with nl param") ((),(12, "ab"));
@@ -3718,17 +3719,17 @@ let () =
   Printf.printf "*************************************\n";
   Printf.printf "* Eliom_config.parse_config results *\n%!";
   Printf.printf "optional-elt@optional-attr: %s\n%!"
-    (Ocsigen_lib.Option.get
+    (Ocsigen_pervasives.Option.get
        (fun () -> "---") !elt1_a1);
   Printf.printf "optional-elt@obligatory-attr: %s\n%!"
-    (Ocsigen_lib.Option.get (fun () -> "---") !elt1_a2);
+    (Ocsigen_pervasives.Option.get (fun () -> "---") !elt1_a2);
   Printf.printf "optional-elt init called: %b\n%!" !elt1_init_called;
   Printf.printf "optional-elt > obligatory-elt PCDATA: %s\n%!"
-    (Ocsigen_lib.Option.get (fun () -> "---") !elt1_e1_pcdata);
+    (Ocsigen_pervasives.Option.get (fun () -> "---") !elt1_e1_pcdata);
   Printf.printf "obligatory-elt@optional-attr-b: %s\n%!"
-    (Ocsigen_lib.Option.get (fun () -> "---") !x1);
+    (Ocsigen_pervasives.Option.get (fun () -> "---") !x1);
   Printf.printf "obligatory-elt@obligatory-attr-b: %s\n%!"
-    (Ocsigen_lib.Option.get (fun () -> "---") !x2);
+    (Ocsigen_pervasives.Option.get (fun () -> "---") !x2);
   Printf.printf "obligatory-elt ATTRIBUTES: %s\n%!"
     (String.concat " " !elt2_other_attributes);
   Printf.printf "obligatory-elt ELEMENTS: %s\n%!"

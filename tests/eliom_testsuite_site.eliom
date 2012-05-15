@@ -1,8 +1,7 @@
 
 (*****************************************************************************)
 (** References of scope site *)
-
-open Eliom_content.HTML5.D
+open Eliom_compatibility
 
 let reference_scope_site =
   let action =
@@ -16,10 +15,10 @@ let reference_scope_site =
     ~path:["reference_scope_site"]
     ~get_params:Eliom_parameters.unit
     (fun () () ->
-       let show = function None -> entity "#x2012" | Some str -> pcdata str in
+       let show = function None -> HTML5.DOM.entity "#x2012" | Some str -> HTML5.pcdata str in
        lwt v = Lwt.map show (Eliom_references.get Eliom_testsuite_global.eref) in
        lwt v' = Lwt.map show (Eliom_references.get Eliom_testsuite_global.eref') in
-       Lwt.return (
+       Lwt.return HTML5.(
          html
            (head (title (pcdata "")) [])
            (body [
@@ -33,10 +32,10 @@ let reference_scope_site =
                pcdata ", persistent "; i [v'];
              ];
              pcdata "Enter a new string for both references";
-             post_form
+             Eliom_output.Html5.post_form
                ~service:action
                (fun name ->
-                  [string_input ~input_type:`Text ~name ()])
+                  [Eliom_output.Html5.string_input ~input_type:`Text ~name ()])
                ()
            ])
        ))

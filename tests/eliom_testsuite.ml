@@ -1,7 +1,8 @@
+open Eliom_compatibility
 let (>>=) = Lwt.(>>=)
 let (>|=) = Lwt.(>|=)
 
-open HTML5.F
+open HTML5.M
 open Eliom_output.Html5
 open Eliom_testsuite1
 open Eliom_testsuite2

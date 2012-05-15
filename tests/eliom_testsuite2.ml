@@ -21,10 +21,11 @@
 
 (* Other examples for Eliom, and various tests *)
 
+open Eliom_compatibility
 open Lwt
 open Eliom_parameters
 open Ocsigen_cookies
-open HTML5.F
+open HTML5.M
 
 (*****************************************************************************)
 (* Test for raw_post_data *)
@@ -315,9 +316,9 @@ let count3 =
       next () >>=
       (fun n ->
         Lwt.return
-         (HTML5.F.html
-          (HTML5.F.head (HTML5.F.title (HTML5.F.pcdata "counter")) [])
-          (HTML5.F.body [HTML5.F.p [HTML5.F.pcdata (string_of_int n)]]))))
+         (HTML5.M.html
+          (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "counter")) [])
+          (HTML5.M.body [HTML5.M.p [HTML5.M.pcdata (string_of_int n)]]))))
 
 
 (*****************************)
@@ -473,7 +474,7 @@ let reference_from_fun =
 (*****************************************************************************)
 
 open Eliom_testsuite1
-open XHTML.F
+open XHTML.M
 open Eliom_output.Xhtml
 open Eliom_output
 open Eliom_services
@@ -873,7 +874,7 @@ let nlpost_with_nlp =
     my_nl_params nlpost
 
 let create_form_nl s =
-  (fun () -> [HTML5.F.p [Eliom_output.Html5.string_input ~input_type:`Submit ~value:s ()]])
+  (fun () -> [HTML5.M.p [Eliom_output.Html5.string_input ~input_type:`Submit ~value:s ()]])
 
 let () = Eliom_output.Html5.register nlpost
   (fun () () ->
@@ -882,7 +883,7 @@ let () = Eliom_output.Html5.register nlpost
         | None -> "no non localised parameter"
         | Some _ -> "some non localised parameter" in
      Lwt.return
-       HTML5.F.(html
+       HTML5.M.(html
           (head (title (pcdata "")) [])
           (body [div [
             pcdata nlp; br();
@@ -893,7 +894,7 @@ let () = Eliom_output.Html5.register nlpost
 let () = Eliom_output.Html5.register nlpost_entry
   (fun () () ->
      Lwt.return
-       HTML5.F.(html
+       HTML5.M.(html
           (head (title (pcdata "")) [])
           (body [div [
             Eliom_output.Html5.post_form nlpost_with_nlp (create_form_nl "with nl param") ((),(12, "ab"));
@@ -1096,7 +1097,7 @@ let optform =
                    ~value:"Click" ()]])
       >>= fun form ->
       let form =
-        (form : XHTML_types.form XHTML.F.elt :> [> XHTML_types.form ] XHTML.F.elt)
+        (form : XHTML_types.form XHTML.M.elt :> [> XHTML_types.form ] XHTML.M.elt)
       in
       return
         (html
@@ -1967,8 +1968,8 @@ let get_param_service =
 let uploadgetform = register_service ["uploadget"] unit
   (fun () () ->
     let f =
-(* ARG        (post_form ~a:[(XHTML.F.a_enctype "multipart/form-data")] fichier2 *)
-     (get_form ~a:[(XHTML.F.a_enctype "multipart/form-data")] ~service:get_param_service
+(* ARG        (post_form ~a:[(XHTML.M.a_enctype "multipart/form-data")] fichier2 *)
+     (get_form ~a:[(XHTML.M.a_enctype "multipart/form-data")] ~service:get_param_service
      (*post_form my_service_with_post_params        *)
         (fun (str, file) ->
           [p [pcdata "Write a string: ";
@@ -2088,7 +2089,7 @@ let sfail =
 (* 2011/08/02 Vincent - Volatile group data
    removing group data or not when no session in the group?*)
 (*zap* *)
-open HTML5.F
+open HTML5.M
 open Eliom_output.Html5
 
 (*zap* *)
@@ -2224,7 +2225,7 @@ let () =
 (* 2011/08/02 Vincent - Persistent group data
    removing group data or not when no session in the group? *)
 (*zap* *)
-open HTML5.F
+open HTML5.M
 
 (*zap* *)
 let scope_name = Eliom_common.create_scope_name "pers_session_group_data_example_state"

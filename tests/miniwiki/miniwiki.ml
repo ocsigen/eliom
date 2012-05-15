@@ -20,7 +20,8 @@
 
 (* open Eliom_pervasives *)
 
-open XHTML.F
+open Eliom_compatibility
+open XHTML.M
 open Eliom_output.Xhtml
 open Eliom_services
 open Eliom_parameters
@@ -176,7 +177,7 @@ let parse_lines lines =
     else (* External link *)
       let url = scheme^":"^page in
       let t = if text = "" then url else text in
-      XHTML.F.a ~a:[a_href (XHTML.F.uri_of_string url)] [pcdata t]
+      XHTML.M.a ~a:[a_href (XHTML.M.uri_of_string url)] [pcdata t]
   in
 
   let rec pcre_first_match str pos =
@@ -349,8 +350,7 @@ let _ =
         post_form service_save_page_post
           (fun chain ->
             [(p [string_input ~input_type:`Submit ~value:"Save" (); br ();
-                 textarea ~name:chain ~rows:30 ~cols:80
-                   ~value:wikitext ()])])
+                 textarea ~name:chain ~value:wikitext ()])])
           page
       in
       wiki_page_contents_html page ~content:[f] () >>= fun c ->
