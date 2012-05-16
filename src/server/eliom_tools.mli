@@ -105,16 +105,16 @@ module Html5 : sig
       corresponding attributes in the generated [<ul>] node. The
       default class for the [<ul>] node is [eliomtools_menu]. *)
   val menu :
-    ?classe:HTML5_types.nmtoken list ->
+    ?classe:Html5_types.nmtoken list ->
     ?id:string ->
     (([< get_service_kind ] as 'a,
       [< registrable ] as 'b,
       [< Eliom_output.non_caml_service ] as 'c) one_page *
-        HTML5_types.flow5_without_interactive HTML5.elt list)
+        Html5_types.flow5_without_interactive Html5.elt list)
       list ->
     ?service:('a, 'b, 'c) one_page ->
     unit ->
-    [> `Ul ] HTML5.elt
+    [> `Ul ] Html5.elt
 
 (** {2 Hierchical sites } *)
 
@@ -133,16 +133,16 @@ module Html5 : sig
       See {!menu} for a description of the optional parameters [id]
       and [classe]. *)
   val hierarchical_menu_depth_first :
-    ?classe:HTML5_types.nmtoken list ->
+    ?classe:Html5_types.nmtoken list ->
     ?id:string ->
     ?whole_tree:bool ->
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     HTML5_types.a_content HTML5.elt list)
+     Html5_types.a_content Html5.elt list)
       hierarchical_site ->
     ?service:('a, 'b, 'c) one_page ->
     unit ->
-    [> `Ul ] HTML5.elt list
+    [> `Ul ] Html5.elt list
 
 
 
@@ -160,15 +160,15 @@ module Html5 : sig
       and [classe].
   *)
   val hierarchical_menu_breadth_first :
-    ?classe:HTML5_types.nmtoken list ->
+    ?classe:Html5_types.nmtoken list ->
     ?id:string ->
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     HTML5_types.a_content HTML5.elt list)
+     Html5_types.a_content Html5.elt list)
       hierarchical_site ->
     ?service:('a, 'b, [< Eliom_output.non_caml_service]) one_page ->
     unit ->
-    [> `Ul ] HTML5.elt list
+    [> `Ul ] Html5.elt list
 
   (** The function [structure_links site ()] returns the tags [<link
       rel="subsection" ...>] and [<link rev="subsection" ...>] for the
@@ -180,11 +180,11 @@ module Html5 : sig
   val structure_links :
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     HTML5_types.a_content HTML5.elt list)
+     Html5_types.a_content Html5.elt list)
     hierarchical_site ->
     ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
     unit ->
-    [> `Link ] HTML5.elt list
+    [> `Link ] Html5.elt list
 
   (** An auxiliary function for creating an HTML head elements. Resources (JS,
       CSS) are taken from the static directory. *)
@@ -193,7 +193,7 @@ module Html5 : sig
     ?css:string list list ->
     ?js:string list list ->
     unit ->
-    HTML5_types.head HTML5.elt
+    Html5_types.head Html5.elt
 end
 
 (** Menu and hierarchical site for XHTML *)
@@ -217,19 +217,19 @@ module Xhtml : sig
       corresponding attributes in the generated [<ul>] node. The
       default class for the [<ul>] node is [eliomtools_menu]. *)
   val menu :
-    ?classe:XHTML_types.nmtoken list ->
+    ?classe:Xhtml_types.nmtoken list ->
     ?id:string ->
     (([< get_service_kind ] as 'a,
       [< registrable ] as 'b,
       [< Eliom_output.non_caml_service ] as 'c) one_page *
-        XHTML_types.a_content XHTML.F.elt list)
+        Xhtml_types.a_content Xhtml.F.elt list)
     ->
     (('a, 'b, 'c) one_page *
-        XHTML_types.a_content XHTML.F.elt list)
+        Xhtml_types.a_content Xhtml.F.elt list)
       list ->
     ?service:('a, 'b, 'c) one_page ->
     unit ->
-    [> `Ul ] XHTML.F.elt
+    [> `Ul ] Xhtml.F.elt
 
 (** {2 Hierchical sites } *)
 
@@ -249,16 +249,16 @@ module Xhtml : sig
       See {!menu} for a description of the optional parameters [id]
       and [classe]. *)
   val hierarchical_menu_depth_first :
-    ?classe:XHTML_types.nmtoken list ->
+    ?classe:Xhtml_types.nmtoken list ->
     ?id:string ->
     ?whole_tree:bool ->
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     XHTML_types.a_content XHTML.F.elt list)
+     Xhtml_types.a_content Xhtml.F.elt list)
       hierarchical_site ->
     ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
     unit ->
-    [> `Ul ] XHTML.F.elt list
+    [> `Ul ] Xhtml.F.elt list
 
 
 
@@ -276,15 +276,15 @@ module Xhtml : sig
       and [classe].
   *)
   val hierarchical_menu_breadth_first :
-    ?classe:XHTML_types.nmtoken list ->
+    ?classe:Xhtml_types.nmtoken list ->
     ?id:string ->
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     XHTML_types.a_content XHTML.F.elt list)
+     Xhtml_types.a_content Xhtml.F.elt list)
       hierarchical_site ->
     ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
     unit ->
-    [> `Ul ] XHTML.F.elt list
+    [> `Ul ] Xhtml.F.elt list
 
   (** The function [structure_links site ()] returns the tags [<link
       rel="subsection" ...>] and [<link rev="subsection" ...>] for the
@@ -296,11 +296,11 @@ module Xhtml : sig
   val structure_links :
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     XHTML_types.a_content XHTML.F.elt list)
+     Xhtml_types.a_content Xhtml.F.elt list)
     hierarchical_site ->
     ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
     unit ->
-    [> `Link ] XHTML.F.elt list
+    [> `Link ] Xhtml.F.elt list
 
   (** An auxiliary function for creating an HTML head elements. Resources (JS,
       CSS) are taken from the static directory. *)
@@ -309,6 +309,6 @@ module Xhtml : sig
     ?css:string list list ->
     ?js:string list list ->
     unit ->
-    XHTML_types.head XHTML.F.elt
+    Xhtml_types.head Xhtml.F.elt
 end
 

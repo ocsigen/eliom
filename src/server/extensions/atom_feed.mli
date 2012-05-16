@@ -26,7 +26,7 @@ open Eliom_content_core
 (*
  * types {{{
  *)
-type uri = XML.uri
+type uri = Xml.uri
 type lang = string
 type base = uri
 type ncname = string
@@ -34,7 +34,7 @@ type dateConstruct = string
 type emailAddress = string
 type mediaType = string
 type length = int
-type href = XML.uri
+type href = Xml.uri
 type hrefLang = string
 type rel = string
 type ltitle = string
@@ -116,22 +116,22 @@ type feedOAttr = [ metaAttr
  * Constructors {{{
  *)
 
-val xml_of_feed : feed -> XML.elt
+val xml_of_feed : feed -> Xml.elt
 
 (*
  * attr converters {{{
-val a_base : base -> XML.attrib
-val a_lang : lang -> XML.attrib
-val a_scheme : scheme -> XML.attrib
-val a_label : label -> XML.attrib
-val a_href : href -> XML.attrib
-val a_rel : rel -> XML.attrib
-val a_hreflang : hrefLang -> XML.attrib
-val a_medtype : mediaType -> XML.attrib
-val a_title : ltitle -> XML.attrib
-val a_length : length -> XML.attrib
-val a_term : term -> XML.attrib
-val a_type : string -> XML.attrib
+val a_base : base -> Xml.attrib
+val a_lang : lang -> Xml.attrib
+val a_scheme : scheme -> Xml.attrib
+val a_label : label -> Xml.attrib
+val a_href : href -> Xml.attrib
+val a_rel : rel -> Xml.attrib
+val a_hreflang : hrefLang -> Xml.attrib
+val a_medtype : mediaType -> Xml.attrib
+val a_title : ltitle -> Xml.attrib
+val a_length : length -> Xml.attrib
+val a_term : term -> Xml.attrib
+val a_type : string -> Xml.attrib
  * }}}
  *)
 
@@ -143,12 +143,12 @@ val inlineC : ?meta:[> metaAttr ] list
 
 (** An xhtml content, embedded in a div *)
 val xhtmlC : ?meta:[> metaAttr ] list
-   -> ([ `PCDATA | XHTML_types.flow ] XHTML.F.elt list)
+   -> ([ `PCDATA | Xhtml_types.flow ] Xhtml.F.elt list)
    -> [> `Content of content ]
 
 (** Inline content from another kind *)
 val inlineOtherC : ?meta:[> metaAttr ] list
-   -> string * XML.elt list
+   -> string * Xml.elt list
    -> [> `Content of content ]
 
 (** Every other content *)
@@ -164,7 +164,7 @@ val plain : ?meta:[> metaAttr ] list
 
 (** XHTML text construct *)
 val xhtml : ?meta:[> metaAttr ] list
-   -> [ `PCDATA | XHTML_types.flow ] XHTML.F.elt list
+   -> [ `PCDATA | Xhtml_types.flow ] Xhtml.F.elt list
    -> textConstruct
 
 (** Rights tag *)
@@ -243,7 +243,7 @@ val logo : uri -> [> `Logo of logo ]
 val category :
   ?meta:[> metaAttr ] list ->
   ?scheme:scheme -> ?label:label -> 
-  term -> XML.elt list -> category
+  term -> Xml.elt list -> category
 
 (** We need a list of categories, this is only a converter from category list
  to `Categories *)

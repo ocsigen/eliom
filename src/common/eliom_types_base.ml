@@ -33,15 +33,15 @@ type sitedata = (* sent while starting the program *)
 
 type eliom_js_page_data = {
   (* Event handlers *)
-  ejs_event_handler_table: XML.event_handler_table;
-  ejs_onload: Dom_html.event XML.caml_event_handler list;
-  ejs_onunload: Dom_html.event XML.caml_event_handler list;
+  ejs_event_handler_table: Xml.event_handler_table;
+  ejs_onload: Dom_html.event Xml.caml_event_handler list;
+  ejs_onunload: Dom_html.event Xml.caml_event_handler list;
   (* Session info *)
   ejs_sess_info: Eliom_common.sess_info;
 }
 
 type 'a eliom_caml_service_data = {
-  ecs_onload: Dom_html.event XML.caml_event_handler list;
+  ecs_onload: Dom_html.event Xml.caml_event_handler list;
   ecs_data: 'a;
 }
 

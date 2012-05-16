@@ -5,7 +5,7 @@
 
 open Eliom_lib
 
-module XML = struct
+module Xml = struct
 
   include RawXML
 
@@ -21,7 +21,7 @@ module XML = struct
     | DomNode of Dom.node Js.t
     | TyXMLNode of econtent
   and elt = {
-    (* See Eliom_client.HTML5 for the 'unwrap' function that convert
+    (* See Eliom_content.Html5.To_dom for the 'unwrap' function that convert
        the server's tree representation into the client one. *)
     mutable elt : node;
     node_id : node_id;
@@ -52,7 +52,7 @@ module XML = struct
   let event_handler_of_function (ev: #Dom_html.event Js.t -> unit) =
     Caml (CE_client_closure (Obj.magic ev))
 
-  (* Deprecated: HTML5.F.a_on* functions are redefinied on the client
+  (* Deprecated: Html5.F.a_on* functions are redefinied on the client
      to call event_handler_of_function. *)
   let event_of_function ev = ev
 
@@ -90,10 +90,10 @@ module XML = struct
 
 end
 
-module SVG = struct
+module Svg = struct
 
-  module D = SVG_f.Make(struct
-    include XML
+  module D = Svg_f.Make(struct
+    include Xml
 
     let make elt = make_request_node (make elt)
     let make_lazy elt = make_request_node (make (Lazy.force elt))
@@ -112,7 +112,7 @@ module SVG = struct
 
   end)
 
-  module F = SVG_f.Make(XML)
+  module F = Svg_f.Make(Xml)
 
   type 'a elt = 'a F.elt
   type 'a attrib = 'a F.attrib
@@ -120,21 +120,21 @@ module SVG = struct
 
   module Id = struct
     type 'a id = string (* FIXME invariant type parameter ? *)
-    let new_elt_id: ?global:bool -> unit -> 'a id = XML.make_node_name
+    let new_elt_id: ?global:bool -> unit -> 'a id = Xml.make_node_name
     let create_named_elt ~(id : 'a id) elt =
-      D.tot (XML.make_process_node ~id (D.toelt elt))
+      D.tot (Xml.make_process_node ~id (D.toelt elt))
     let create_global_elt elt =
-      D.tot (XML.make_process_node (D.toelt elt))
+      D.tot (Xml.make_process_node (D.toelt elt))
   end
 
 end
 
-module HTML5 = struct
+module Html5 = struct
 
   module D = struct
 
-    include HTML5_f.Make(struct
-      include XML
+    include Html5_f.Make(struct
+      include Xml
 
       let make elt = make_request_node (make elt)
       let make_lazy elt = make_request_node (make (Lazy.force elt))
@@ -151,7 +151,7 @@ module HTML5 = struct
       let lazy_node ?(a = []) name children =
         make (Node (name, a, Eliom_lazy.force children))
 
-    end)(SVG.D)
+    end)(Svg.D)
 
     let raw_a_onabort = a_onabort
     let raw_a_onafterprint = a_onafterprint
@@ -223,81 +223,81 @@ module HTML5 = struct
     let raw_a_onloadstart = a_onloadstart
     let raw_a_onmessage = a_onmessage
 
-    let a_onabort ev = a_onabort (XML.event_handler_of_function ev)
-    let a_onafterprint ev = a_onafterprint (XML.event_handler_of_function ev)
-    let a_onbeforeprint ev = a_onbeforeprint (XML.event_handler_of_function ev)
-    let a_onbeforeunload ev = a_onbeforeunload (XML.event_handler_of_function ev)
-    let a_onblur ev = a_onblur (XML.event_handler_of_function ev)
-    let a_oncanplay ev = a_oncanplay (XML.event_handler_of_function ev)
-    let a_oncanplaythrough ev = a_oncanplaythrough (XML.event_handler_of_function ev)
-    let a_onchange ev = a_onchange (XML.event_handler_of_function ev)
-    let a_onclick ev = a_onclick (XML.event_handler_of_function ev)
-    let a_oncontextmenu ev = a_oncontextmenu (XML.event_handler_of_function ev)
-    let a_ondblclick ev = a_ondblclick (XML.event_handler_of_function ev)
-    let a_ondrag ev = a_ondrag (XML.event_handler_of_function ev)
-    let a_ondragend ev = a_ondragend (XML.event_handler_of_function ev)
-    let a_ondragenter ev = a_ondragenter (XML.event_handler_of_function ev)
-    let a_ondragleave ev = a_ondragleave (XML.event_handler_of_function ev)
-    let a_ondragover ev = a_ondragover (XML.event_handler_of_function ev)
-    let a_ondragstart ev = a_ondragstart (XML.event_handler_of_function ev)
-    let a_ondrop ev = a_ondrop (XML.event_handler_of_function ev)
-    let a_ondurationchange ev = a_ondurationchange (XML.event_handler_of_function ev)
-    let a_onemptied ev = a_onemptied (XML.event_handler_of_function ev)
-    let a_onended ev = a_onended (XML.event_handler_of_function ev)
-    let a_onerror ev = a_onerror (XML.event_handler_of_function ev)
-    let a_onfocus ev = a_onfocus (XML.event_handler_of_function ev)
-    let a_onformchange ev = a_onformchange (XML.event_handler_of_function ev)
-    let a_onforminput ev = a_onforminput (XML.event_handler_of_function ev)
-    let a_onhashchange ev = a_onhashchange (XML.event_handler_of_function ev)
-    let a_oninput ev = a_oninput (XML.event_handler_of_function ev)
-    let a_oninvalid ev = a_oninvalid (XML.event_handler_of_function ev)
-    let a_onmousedown ev = a_onmousedown (XML.event_handler_of_function ev)
-    let a_onmouseup ev = a_onmouseup (XML.event_handler_of_function ev)
-    let a_onmouseover ev = a_onmouseover (XML.event_handler_of_function ev)
-    let a_onmousemove ev = a_onmousemove (XML.event_handler_of_function ev)
-    let a_onmouseout ev = a_onmouseout (XML.event_handler_of_function ev)
-    let a_onmousewheel ev = a_onmousewheel (XML.event_handler_of_function ev)
-    let a_onoffline ev = a_onoffline (XML.event_handler_of_function ev)
-    let a_ononline ev = a_ononline (XML.event_handler_of_function ev)
-    let a_onpause ev = a_onpause (XML.event_handler_of_function ev)
-    let a_onplay ev = a_onplay (XML.event_handler_of_function ev)
-    let a_onplaying ev = a_onplaying (XML.event_handler_of_function ev)
-    let a_onpagehide ev = a_onpagehide (XML.event_handler_of_function ev)
-    let a_onpageshow ev = a_onpageshow (XML.event_handler_of_function ev)
-    let a_onpopstate ev = a_onpopstate (XML.event_handler_of_function ev)
-    let a_onprogress ev = a_onprogress (XML.event_handler_of_function ev)
-    let a_onratechange ev = a_onratechange (XML.event_handler_of_function ev)
-    let a_onreadystatechange ev = a_onreadystatechange (XML.event_handler_of_function ev)
-    let a_onredo ev = a_onredo (XML.event_handler_of_function ev)
-    let a_onresize ev = a_onresize (XML.event_handler_of_function ev)
-    let a_onscroll ev = a_onscroll (XML.event_handler_of_function ev)
-    let a_onseeked ev = a_onseeked (XML.event_handler_of_function ev)
-    let a_onseeking ev = a_onseeking (XML.event_handler_of_function ev)
-    let a_onselect ev = a_onselect (XML.event_handler_of_function ev)
-    let a_onshow ev = a_onshow (XML.event_handler_of_function ev)
-    let a_onstalled ev = a_onstalled (XML.event_handler_of_function ev)
-    let a_onstorage ev = a_onstorage (XML.event_handler_of_function ev)
-    let a_onsubmit ev = a_onsubmit (XML.event_handler_of_function ev)
-    let a_onsuspend ev = a_onsuspend (XML.event_handler_of_function ev)
-    let a_ontimeupdate ev = a_ontimeupdate (XML.event_handler_of_function ev)
-    let a_onundo ev = a_onundo (XML.event_handler_of_function ev)
-    let a_onunload ev = a_onunload (XML.event_handler_of_function ev)
-    let a_onvolumechange ev = a_onvolumechange (XML.event_handler_of_function ev)
-    let a_onwaiting ev = a_onwaiting (XML.event_handler_of_function ev)
-    let a_onkeypress ev = a_onkeypress (XML.event_handler_of_function ev)
-    let a_onkeydown ev = a_onkeydown (XML.event_handler_of_function ev)
-    let a_onkeyup ev = a_onkeyup (XML.event_handler_of_function ev)
-    let a_onload ev = a_onload (XML.event_handler_of_function ev)
-    let a_onloadeddata ev = a_onloadeddata (XML.event_handler_of_function ev)
-    let a_onloadedmetadata ev = a_onloadedmetadata (XML.event_handler_of_function ev)
-    let a_onloadstart ev = a_onloadstart (XML.event_handler_of_function ev)
-    let a_onmessage ev = a_onmessage (XML.event_handler_of_function ev)
+    let a_onabort ev = a_onabort (Xml.event_handler_of_function ev)
+    let a_onafterprint ev = a_onafterprint (Xml.event_handler_of_function ev)
+    let a_onbeforeprint ev = a_onbeforeprint (Xml.event_handler_of_function ev)
+    let a_onbeforeunload ev = a_onbeforeunload (Xml.event_handler_of_function ev)
+    let a_onblur ev = a_onblur (Xml.event_handler_of_function ev)
+    let a_oncanplay ev = a_oncanplay (Xml.event_handler_of_function ev)
+    let a_oncanplaythrough ev = a_oncanplaythrough (Xml.event_handler_of_function ev)
+    let a_onchange ev = a_onchange (Xml.event_handler_of_function ev)
+    let a_onclick ev = a_onclick (Xml.event_handler_of_function ev)
+    let a_oncontextmenu ev = a_oncontextmenu (Xml.event_handler_of_function ev)
+    let a_ondblclick ev = a_ondblclick (Xml.event_handler_of_function ev)
+    let a_ondrag ev = a_ondrag (Xml.event_handler_of_function ev)
+    let a_ondragend ev = a_ondragend (Xml.event_handler_of_function ev)
+    let a_ondragenter ev = a_ondragenter (Xml.event_handler_of_function ev)
+    let a_ondragleave ev = a_ondragleave (Xml.event_handler_of_function ev)
+    let a_ondragover ev = a_ondragover (Xml.event_handler_of_function ev)
+    let a_ondragstart ev = a_ondragstart (Xml.event_handler_of_function ev)
+    let a_ondrop ev = a_ondrop (Xml.event_handler_of_function ev)
+    let a_ondurationchange ev = a_ondurationchange (Xml.event_handler_of_function ev)
+    let a_onemptied ev = a_onemptied (Xml.event_handler_of_function ev)
+    let a_onended ev = a_onended (Xml.event_handler_of_function ev)
+    let a_onerror ev = a_onerror (Xml.event_handler_of_function ev)
+    let a_onfocus ev = a_onfocus (Xml.event_handler_of_function ev)
+    let a_onformchange ev = a_onformchange (Xml.event_handler_of_function ev)
+    let a_onforminput ev = a_onforminput (Xml.event_handler_of_function ev)
+    let a_onhashchange ev = a_onhashchange (Xml.event_handler_of_function ev)
+    let a_oninput ev = a_oninput (Xml.event_handler_of_function ev)
+    let a_oninvalid ev = a_oninvalid (Xml.event_handler_of_function ev)
+    let a_onmousedown ev = a_onmousedown (Xml.event_handler_of_function ev)
+    let a_onmouseup ev = a_onmouseup (Xml.event_handler_of_function ev)
+    let a_onmouseover ev = a_onmouseover (Xml.event_handler_of_function ev)
+    let a_onmousemove ev = a_onmousemove (Xml.event_handler_of_function ev)
+    let a_onmouseout ev = a_onmouseout (Xml.event_handler_of_function ev)
+    let a_onmousewheel ev = a_onmousewheel (Xml.event_handler_of_function ev)
+    let a_onoffline ev = a_onoffline (Xml.event_handler_of_function ev)
+    let a_ononline ev = a_ononline (Xml.event_handler_of_function ev)
+    let a_onpause ev = a_onpause (Xml.event_handler_of_function ev)
+    let a_onplay ev = a_onplay (Xml.event_handler_of_function ev)
+    let a_onplaying ev = a_onplaying (Xml.event_handler_of_function ev)
+    let a_onpagehide ev = a_onpagehide (Xml.event_handler_of_function ev)
+    let a_onpageshow ev = a_onpageshow (Xml.event_handler_of_function ev)
+    let a_onpopstate ev = a_onpopstate (Xml.event_handler_of_function ev)
+    let a_onprogress ev = a_onprogress (Xml.event_handler_of_function ev)
+    let a_onratechange ev = a_onratechange (Xml.event_handler_of_function ev)
+    let a_onreadystatechange ev = a_onreadystatechange (Xml.event_handler_of_function ev)
+    let a_onredo ev = a_onredo (Xml.event_handler_of_function ev)
+    let a_onresize ev = a_onresize (Xml.event_handler_of_function ev)
+    let a_onscroll ev = a_onscroll (Xml.event_handler_of_function ev)
+    let a_onseeked ev = a_onseeked (Xml.event_handler_of_function ev)
+    let a_onseeking ev = a_onseeking (Xml.event_handler_of_function ev)
+    let a_onselect ev = a_onselect (Xml.event_handler_of_function ev)
+    let a_onshow ev = a_onshow (Xml.event_handler_of_function ev)
+    let a_onstalled ev = a_onstalled (Xml.event_handler_of_function ev)
+    let a_onstorage ev = a_onstorage (Xml.event_handler_of_function ev)
+    let a_onsubmit ev = a_onsubmit (Xml.event_handler_of_function ev)
+    let a_onsuspend ev = a_onsuspend (Xml.event_handler_of_function ev)
+    let a_ontimeupdate ev = a_ontimeupdate (Xml.event_handler_of_function ev)
+    let a_onundo ev = a_onundo (Xml.event_handler_of_function ev)
+    let a_onunload ev = a_onunload (Xml.event_handler_of_function ev)
+    let a_onvolumechange ev = a_onvolumechange (Xml.event_handler_of_function ev)
+    let a_onwaiting ev = a_onwaiting (Xml.event_handler_of_function ev)
+    let a_onkeypress ev = a_onkeypress (Xml.event_handler_of_function ev)
+    let a_onkeydown ev = a_onkeydown (Xml.event_handler_of_function ev)
+    let a_onkeyup ev = a_onkeyup (Xml.event_handler_of_function ev)
+    let a_onload ev = a_onload (Xml.event_handler_of_function ev)
+    let a_onloadeddata ev = a_onloadeddata (Xml.event_handler_of_function ev)
+    let a_onloadedmetadata ev = a_onloadedmetadata (Xml.event_handler_of_function ev)
+    let a_onloadstart ev = a_onloadstart (Xml.event_handler_of_function ev)
+    let a_onmessage ev = a_onmessage (Xml.event_handler_of_function ev)
 
     type ('a, 'b, 'c) lazy_plus =
         ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     let lazy_form ?(a = []) elt1 elts =
-      tot (XML.lazy_node ~a:(to_xmlattribs a) "form"
+      tot (Xml.lazy_node ~a:(to_xmlattribs a) "form"
 	     (Eliom_lazy.from_fun
 	        (fun () ->
 		  toelt (Eliom_lazy.force elt1)
@@ -307,7 +307,7 @@ module HTML5 = struct
 
   module F = struct
 
-    include HTML5_f.Make(XML)(SVG.F)
+    include Html5_f.Make(Xml)(Svg.F)
 
     let raw_a_onabort = a_onabort
     let raw_a_onafterprint = a_onafterprint
@@ -379,81 +379,81 @@ module HTML5 = struct
     let raw_a_onloadstart = a_onloadstart
     let raw_a_onmessage = a_onmessage
 
-    let a_onabort ev = a_onabort (XML.event_handler_of_function ev)
-    let a_onafterprint ev = a_onafterprint (XML.event_handler_of_function ev)
-    let a_onbeforeprint ev = a_onbeforeprint (XML.event_handler_of_function ev)
-    let a_onbeforeunload ev = a_onbeforeunload (XML.event_handler_of_function ev)
-    let a_onblur ev = a_onblur (XML.event_handler_of_function ev)
-    let a_oncanplay ev = a_oncanplay (XML.event_handler_of_function ev)
-    let a_oncanplaythrough ev = a_oncanplaythrough (XML.event_handler_of_function ev)
-    let a_onchange ev = a_onchange (XML.event_handler_of_function ev)
-    let a_onclick ev = a_onclick (XML.event_handler_of_function ev)
-    let a_oncontextmenu ev = a_oncontextmenu (XML.event_handler_of_function ev)
-    let a_ondblclick ev = a_ondblclick (XML.event_handler_of_function ev)
-    let a_ondrag ev = a_ondrag (XML.event_handler_of_function ev)
-    let a_ondragend ev = a_ondragend (XML.event_handler_of_function ev)
-    let a_ondragenter ev = a_ondragenter (XML.event_handler_of_function ev)
-    let a_ondragleave ev = a_ondragleave (XML.event_handler_of_function ev)
-    let a_ondragover ev = a_ondragover (XML.event_handler_of_function ev)
-    let a_ondragstart ev = a_ondragstart (XML.event_handler_of_function ev)
-    let a_ondrop ev = a_ondrop (XML.event_handler_of_function ev)
-    let a_ondurationchange ev = a_ondurationchange (XML.event_handler_of_function ev)
-    let a_onemptied ev = a_onemptied (XML.event_handler_of_function ev)
-    let a_onended ev = a_onended (XML.event_handler_of_function ev)
-    let a_onerror ev = a_onerror (XML.event_handler_of_function ev)
-    let a_onfocus ev = a_onfocus (XML.event_handler_of_function ev)
-    let a_onformchange ev = a_onformchange (XML.event_handler_of_function ev)
-    let a_onforminput ev = a_onforminput (XML.event_handler_of_function ev)
-    let a_onhashchange ev = a_onhashchange (XML.event_handler_of_function ev)
-    let a_oninput ev = a_oninput (XML.event_handler_of_function ev)
-    let a_oninvalid ev = a_oninvalid (XML.event_handler_of_function ev)
-    let a_onmousedown ev = a_onmousedown (XML.event_handler_of_function ev)
-    let a_onmouseup ev = a_onmouseup (XML.event_handler_of_function ev)
-    let a_onmouseover ev = a_onmouseover (XML.event_handler_of_function ev)
-    let a_onmousemove ev = a_onmousemove (XML.event_handler_of_function ev)
-    let a_onmouseout ev = a_onmouseout (XML.event_handler_of_function ev)
-    let a_onmousewheel ev = a_onmousewheel (XML.event_handler_of_function ev)
-    let a_onoffline ev = a_onoffline (XML.event_handler_of_function ev)
-    let a_ononline ev = a_ononline (XML.event_handler_of_function ev)
-    let a_onpause ev = a_onpause (XML.event_handler_of_function ev)
-    let a_onplay ev = a_onplay (XML.event_handler_of_function ev)
-    let a_onplaying ev = a_onplaying (XML.event_handler_of_function ev)
-    let a_onpagehide ev = a_onpagehide (XML.event_handler_of_function ev)
-    let a_onpageshow ev = a_onpageshow (XML.event_handler_of_function ev)
-    let a_onpopstate ev = a_onpopstate (XML.event_handler_of_function ev)
-    let a_onprogress ev = a_onprogress (XML.event_handler_of_function ev)
-    let a_onratechange ev = a_onratechange (XML.event_handler_of_function ev)
-    let a_onreadystatechange ev = a_onreadystatechange (XML.event_handler_of_function ev)
-    let a_onredo ev = a_onredo (XML.event_handler_of_function ev)
-    let a_onresize ev = a_onresize (XML.event_handler_of_function ev)
-    let a_onscroll ev = a_onscroll (XML.event_handler_of_function ev)
-    let a_onseeked ev = a_onseeked (XML.event_handler_of_function ev)
-    let a_onseeking ev = a_onseeking (XML.event_handler_of_function ev)
-    let a_onselect ev = a_onselect (XML.event_handler_of_function ev)
-    let a_onshow ev = a_onshow (XML.event_handler_of_function ev)
-    let a_onstalled ev = a_onstalled (XML.event_handler_of_function ev)
-    let a_onstorage ev = a_onstorage (XML.event_handler_of_function ev)
-    let a_onsubmit ev = a_onsubmit (XML.event_handler_of_function ev)
-    let a_onsuspend ev = a_onsuspend (XML.event_handler_of_function ev)
-    let a_ontimeupdate ev = a_ontimeupdate (XML.event_handler_of_function ev)
-    let a_onundo ev = a_onundo (XML.event_handler_of_function ev)
-    let a_onunload ev = a_onunload (XML.event_handler_of_function ev)
-    let a_onvolumechange ev = a_onvolumechange (XML.event_handler_of_function ev)
-    let a_onwaiting ev = a_onwaiting (XML.event_handler_of_function ev)
-    let a_onkeypress ev = a_onkeypress (XML.event_handler_of_function ev)
-    let a_onkeydown ev = a_onkeydown (XML.event_handler_of_function ev)
-    let a_onkeyup ev = a_onkeyup (XML.event_handler_of_function ev)
-    let a_onload ev = a_onload (XML.event_handler_of_function ev)
-    let a_onloadeddata ev = a_onloadeddata (XML.event_handler_of_function ev)
-    let a_onloadedmetadata ev = a_onloadedmetadata (XML.event_handler_of_function ev)
-    let a_onloadstart ev = a_onloadstart (XML.event_handler_of_function ev)
-    let a_onmessage ev = a_onmessage (XML.event_handler_of_function ev)
+    let a_onabort ev = a_onabort (Xml.event_handler_of_function ev)
+    let a_onafterprint ev = a_onafterprint (Xml.event_handler_of_function ev)
+    let a_onbeforeprint ev = a_onbeforeprint (Xml.event_handler_of_function ev)
+    let a_onbeforeunload ev = a_onbeforeunload (Xml.event_handler_of_function ev)
+    let a_onblur ev = a_onblur (Xml.event_handler_of_function ev)
+    let a_oncanplay ev = a_oncanplay (Xml.event_handler_of_function ev)
+    let a_oncanplaythrough ev = a_oncanplaythrough (Xml.event_handler_of_function ev)
+    let a_onchange ev = a_onchange (Xml.event_handler_of_function ev)
+    let a_onclick ev = a_onclick (Xml.event_handler_of_function ev)
+    let a_oncontextmenu ev = a_oncontextmenu (Xml.event_handler_of_function ev)
+    let a_ondblclick ev = a_ondblclick (Xml.event_handler_of_function ev)
+    let a_ondrag ev = a_ondrag (Xml.event_handler_of_function ev)
+    let a_ondragend ev = a_ondragend (Xml.event_handler_of_function ev)
+    let a_ondragenter ev = a_ondragenter (Xml.event_handler_of_function ev)
+    let a_ondragleave ev = a_ondragleave (Xml.event_handler_of_function ev)
+    let a_ondragover ev = a_ondragover (Xml.event_handler_of_function ev)
+    let a_ondragstart ev = a_ondragstart (Xml.event_handler_of_function ev)
+    let a_ondrop ev = a_ondrop (Xml.event_handler_of_function ev)
+    let a_ondurationchange ev = a_ondurationchange (Xml.event_handler_of_function ev)
+    let a_onemptied ev = a_onemptied (Xml.event_handler_of_function ev)
+    let a_onended ev = a_onended (Xml.event_handler_of_function ev)
+    let a_onerror ev = a_onerror (Xml.event_handler_of_function ev)
+    let a_onfocus ev = a_onfocus (Xml.event_handler_of_function ev)
+    let a_onformchange ev = a_onformchange (Xml.event_handler_of_function ev)
+    let a_onforminput ev = a_onforminput (Xml.event_handler_of_function ev)
+    let a_onhashchange ev = a_onhashchange (Xml.event_handler_of_function ev)
+    let a_oninput ev = a_oninput (Xml.event_handler_of_function ev)
+    let a_oninvalid ev = a_oninvalid (Xml.event_handler_of_function ev)
+    let a_onmousedown ev = a_onmousedown (Xml.event_handler_of_function ev)
+    let a_onmouseup ev = a_onmouseup (Xml.event_handler_of_function ev)
+    let a_onmouseover ev = a_onmouseover (Xml.event_handler_of_function ev)
+    let a_onmousemove ev = a_onmousemove (Xml.event_handler_of_function ev)
+    let a_onmouseout ev = a_onmouseout (Xml.event_handler_of_function ev)
+    let a_onmousewheel ev = a_onmousewheel (Xml.event_handler_of_function ev)
+    let a_onoffline ev = a_onoffline (Xml.event_handler_of_function ev)
+    let a_ononline ev = a_ononline (Xml.event_handler_of_function ev)
+    let a_onpause ev = a_onpause (Xml.event_handler_of_function ev)
+    let a_onplay ev = a_onplay (Xml.event_handler_of_function ev)
+    let a_onplaying ev = a_onplaying (Xml.event_handler_of_function ev)
+    let a_onpagehide ev = a_onpagehide (Xml.event_handler_of_function ev)
+    let a_onpageshow ev = a_onpageshow (Xml.event_handler_of_function ev)
+    let a_onpopstate ev = a_onpopstate (Xml.event_handler_of_function ev)
+    let a_onprogress ev = a_onprogress (Xml.event_handler_of_function ev)
+    let a_onratechange ev = a_onratechange (Xml.event_handler_of_function ev)
+    let a_onreadystatechange ev = a_onreadystatechange (Xml.event_handler_of_function ev)
+    let a_onredo ev = a_onredo (Xml.event_handler_of_function ev)
+    let a_onresize ev = a_onresize (Xml.event_handler_of_function ev)
+    let a_onscroll ev = a_onscroll (Xml.event_handler_of_function ev)
+    let a_onseeked ev = a_onseeked (Xml.event_handler_of_function ev)
+    let a_onseeking ev = a_onseeking (Xml.event_handler_of_function ev)
+    let a_onselect ev = a_onselect (Xml.event_handler_of_function ev)
+    let a_onshow ev = a_onshow (Xml.event_handler_of_function ev)
+    let a_onstalled ev = a_onstalled (Xml.event_handler_of_function ev)
+    let a_onstorage ev = a_onstorage (Xml.event_handler_of_function ev)
+    let a_onsubmit ev = a_onsubmit (Xml.event_handler_of_function ev)
+    let a_onsuspend ev = a_onsuspend (Xml.event_handler_of_function ev)
+    let a_ontimeupdate ev = a_ontimeupdate (Xml.event_handler_of_function ev)
+    let a_onundo ev = a_onundo (Xml.event_handler_of_function ev)
+    let a_onunload ev = a_onunload (Xml.event_handler_of_function ev)
+    let a_onvolumechange ev = a_onvolumechange (Xml.event_handler_of_function ev)
+    let a_onwaiting ev = a_onwaiting (Xml.event_handler_of_function ev)
+    let a_onkeypress ev = a_onkeypress (Xml.event_handler_of_function ev)
+    let a_onkeydown ev = a_onkeydown (Xml.event_handler_of_function ev)
+    let a_onkeyup ev = a_onkeyup (Xml.event_handler_of_function ev)
+    let a_onload ev = a_onload (Xml.event_handler_of_function ev)
+    let a_onloadeddata ev = a_onloadeddata (Xml.event_handler_of_function ev)
+    let a_onloadedmetadata ev = a_onloadedmetadata (Xml.event_handler_of_function ev)
+    let a_onloadstart ev = a_onloadstart (Xml.event_handler_of_function ev)
+    let a_onmessage ev = a_onmessage (Xml.event_handler_of_function ev)
 
     type ('a, 'b, 'c) lazy_plus =
         ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     let lazy_form ?(a = []) elt1 elts =
-      tot (XML.lazy_node ~a:(to_xmlattribs a) "form"
+      tot (Xml.lazy_node ~a:(to_xmlattribs a) "form"
 	     (Eliom_lazy.from_fun
 	        (fun () ->
 		  toelt (Eliom_lazy.force elt1)
@@ -467,64 +467,64 @@ module HTML5 = struct
 
   module Id = struct
     type 'a id = string (* FIXME invariant type parameter ? *)
-    let new_elt_id: ?global:bool -> unit -> 'a id = XML.make_node_name
+    let new_elt_id: ?global:bool -> unit -> 'a id = Xml.make_node_name
     let new_global_elt_id () = new_elt_id ()
     let create_named_elt ~(id : 'a id) elt =
-      D.tot (XML.make_process_node ~id (D.toelt elt))
+      D.tot (Xml.make_process_node ~id (D.toelt elt))
     let create_global_elt elt =
-      D.tot (XML.make_process_node (D.toelt elt))
+      D.tot (Xml.make_process_node (D.toelt elt))
 
     let string_of_id x = x
   end
 
   module Of_dom = struct
     let rebuild_xml (node: 'a Js.t) : 'a F.elt =
-      Obj.magic { XML.elt = XML.DomNode (node :> Dom.node Js.t); node_id = XML.NoId }
+      Obj.magic { Xml.elt = Xml.DomNode (node :> Dom.node Js.t); node_id = Xml.NoId }
     let of_element : Dom_html.element Js.t -> 'a elt = rebuild_xml
-    let of_html : Dom_html.htmlElement Js.t -> HTML5_types.html elt = rebuild_xml
-    let of_head : Dom_html.headElement Js.t -> HTML5_types.head elt = rebuild_xml
-    let of_link : Dom_html.linkElement Js.t -> HTML5_types.link elt = rebuild_xml
-    let of_title : Dom_html.titleElement Js.t -> HTML5_types.title elt = rebuild_xml
-    let of_meta : Dom_html.metaElement Js.t -> HTML5_types.meta elt = rebuild_xml
-    let of_base : Dom_html.baseElement Js.t -> HTML5_types.base elt = rebuild_xml
-    let of_style : Dom_html.styleElement Js.t -> HTML5_types.style elt = rebuild_xml
-    let of_body : Dom_html.bodyElement Js.t -> HTML5_types.body elt = rebuild_xml
-    let of_form : Dom_html.formElement Js.t -> HTML5_types.form elt = rebuild_xml
-    let of_optGroup : Dom_html.optGroupElement Js.t -> HTML5_types.optgroup elt = rebuild_xml
-    let of_option : Dom_html.optionElement Js.t -> HTML5_types.selectoption elt = rebuild_xml
-    let of_select : Dom_html.selectElement Js.t -> HTML5_types.select elt = rebuild_xml
-    let of_input : Dom_html.inputElement Js.t -> HTML5_types.input elt = rebuild_xml
-    let of_textArea : Dom_html.textAreaElement Js.t -> HTML5_types.textarea elt = rebuild_xml
-    let of_button : Dom_html.buttonElement Js.t -> HTML5_types.button elt = rebuild_xml
-    let of_label : Dom_html.labelElement Js.t -> HTML5_types.label elt = rebuild_xml
-    let of_fieldSet : Dom_html.fieldSetElement Js.t -> HTML5_types.fieldset elt = rebuild_xml
-    let of_legend : Dom_html.legendElement Js.t -> HTML5_types.legend elt = rebuild_xml
-    let of_uList : Dom_html.uListElement Js.t -> HTML5_types.ul elt = rebuild_xml
-    let of_oList : Dom_html.oListElement Js.t -> HTML5_types.ol elt = rebuild_xml
+    let of_html : Dom_html.htmlElement Js.t -> Html5_types.html elt = rebuild_xml
+    let of_head : Dom_html.headElement Js.t -> Html5_types.head elt = rebuild_xml
+    let of_link : Dom_html.linkElement Js.t -> Html5_types.link elt = rebuild_xml
+    let of_title : Dom_html.titleElement Js.t -> Html5_types.title elt = rebuild_xml
+    let of_meta : Dom_html.metaElement Js.t -> Html5_types.meta elt = rebuild_xml
+    let of_base : Dom_html.baseElement Js.t -> Html5_types.base elt = rebuild_xml
+    let of_style : Dom_html.styleElement Js.t -> Html5_types.style elt = rebuild_xml
+    let of_body : Dom_html.bodyElement Js.t -> Html5_types.body elt = rebuild_xml
+    let of_form : Dom_html.formElement Js.t -> Html5_types.form elt = rebuild_xml
+    let of_optGroup : Dom_html.optGroupElement Js.t -> Html5_types.optgroup elt = rebuild_xml
+    let of_option : Dom_html.optionElement Js.t -> Html5_types.selectoption elt = rebuild_xml
+    let of_select : Dom_html.selectElement Js.t -> Html5_types.select elt = rebuild_xml
+    let of_input : Dom_html.inputElement Js.t -> Html5_types.input elt = rebuild_xml
+    let of_textArea : Dom_html.textAreaElement Js.t -> Html5_types.textarea elt = rebuild_xml
+    let of_button : Dom_html.buttonElement Js.t -> Html5_types.button elt = rebuild_xml
+    let of_label : Dom_html.labelElement Js.t -> Html5_types.label elt = rebuild_xml
+    let of_fieldSet : Dom_html.fieldSetElement Js.t -> Html5_types.fieldset elt = rebuild_xml
+    let of_legend : Dom_html.legendElement Js.t -> Html5_types.legend elt = rebuild_xml
+    let of_uList : Dom_html.uListElement Js.t -> Html5_types.ul elt = rebuild_xml
+    let of_oList : Dom_html.oListElement Js.t -> Html5_types.ol elt = rebuild_xml
     let of_dList : Dom_html.dListElement Js.t -> [`Dl] elt = rebuild_xml
-    let of_li : Dom_html.liElement Js.t -> HTML5_types.li elt = rebuild_xml
-    let of_div : Dom_html.divElement Js.t -> HTML5_types.div elt = rebuild_xml
-    let of_paragraph : Dom_html.paragraphElement Js.t -> HTML5_types.p elt = rebuild_xml
-    let of_heading : Dom_html.headingElement Js.t -> HTML5_types.heading elt = rebuild_xml
-    let of_quote : Dom_html.quoteElement Js.t -> HTML5_types.blockquote elt = rebuild_xml
-    let of_pre : Dom_html.preElement Js.t -> HTML5_types.pre elt = rebuild_xml
-    let of_br : Dom_html.brElement Js.t -> HTML5_types.br elt = rebuild_xml
-    let of_hr : Dom_html.hrElement Js.t -> HTML5_types.hr elt = rebuild_xml
-    let of_anchor : Dom_html.anchorElement Js.t -> 'a HTML5_types.a elt = rebuild_xml
+    let of_li : Dom_html.liElement Js.t -> Html5_types.li elt = rebuild_xml
+    let of_div : Dom_html.divElement Js.t -> Html5_types.div elt = rebuild_xml
+    let of_paragraph : Dom_html.paragraphElement Js.t -> Html5_types.p elt = rebuild_xml
+    let of_heading : Dom_html.headingElement Js.t -> Html5_types.heading elt = rebuild_xml
+    let of_quote : Dom_html.quoteElement Js.t -> Html5_types.blockquote elt = rebuild_xml
+    let of_pre : Dom_html.preElement Js.t -> Html5_types.pre elt = rebuild_xml
+    let of_br : Dom_html.brElement Js.t -> Html5_types.br elt = rebuild_xml
+    let of_hr : Dom_html.hrElement Js.t -> Html5_types.hr elt = rebuild_xml
+    let of_anchor : Dom_html.anchorElement Js.t -> 'a Html5_types.a elt = rebuild_xml
     let of_image : Dom_html.imageElement Js.t -> [`Img] elt = rebuild_xml
-    let of_object : Dom_html.objectElement Js.t -> 'a HTML5_types.object_ elt = rebuild_xml
-    let of_param : Dom_html.paramElement Js.t -> HTML5_types.param elt = rebuild_xml
-    let of_area : Dom_html.areaElement Js.t -> HTML5_types.area elt = rebuild_xml
-    let of_map : Dom_html.mapElement Js.t -> 'a HTML5_types.map elt = rebuild_xml
-    let of_script : Dom_html.scriptElement Js.t -> HTML5_types.script elt = rebuild_xml
-    let of_tableCell : Dom_html.tableCellElement Js.t -> [ HTML5_types.td | HTML5_types.td ] elt = rebuild_xml
-    let of_tableRow : Dom_html.tableRowElement Js.t -> HTML5_types.tr elt = rebuild_xml
-    let of_tableCol : Dom_html.tableColElement Js.t -> HTML5_types.col elt = rebuild_xml
-    let of_tableSection : Dom_html.tableSectionElement Js.t -> [ HTML5_types.tfoot | HTML5_types.thead | HTML5_types.tbody ] elt = rebuild_xml
-    let of_tableCaption : Dom_html.tableCaptionElement Js.t -> HTML5_types.caption elt = rebuild_xml
-    let of_table : Dom_html.tableElement Js.t -> HTML5_types.table elt = rebuild_xml
-    let of_canvas : Dom_html.canvasElement Js.t -> 'a HTML5_types.canvas elt = rebuild_xml
-    let of_iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt = rebuild_xml
+    let of_object : Dom_html.objectElement Js.t -> 'a Html5_types.object_ elt = rebuild_xml
+    let of_param : Dom_html.paramElement Js.t -> Html5_types.param elt = rebuild_xml
+    let of_area : Dom_html.areaElement Js.t -> Html5_types.area elt = rebuild_xml
+    let of_map : Dom_html.mapElement Js.t -> 'a Html5_types.map elt = rebuild_xml
+    let of_script : Dom_html.scriptElement Js.t -> Html5_types.script elt = rebuild_xml
+    let of_tableCell : Dom_html.tableCellElement Js.t -> [ Html5_types.td | Html5_types.td ] elt = rebuild_xml
+    let of_tableRow : Dom_html.tableRowElement Js.t -> Html5_types.tr elt = rebuild_xml
+    let of_tableCol : Dom_html.tableColElement Js.t -> Html5_types.col elt = rebuild_xml
+    let of_tableSection : Dom_html.tableSectionElement Js.t -> [ Html5_types.tfoot | Html5_types.thead | Html5_types.tbody ] elt = rebuild_xml
+    let of_tableCaption : Dom_html.tableCaptionElement Js.t -> Html5_types.caption elt = rebuild_xml
+    let of_table : Dom_html.tableElement Js.t -> Html5_types.table elt = rebuild_xml
+    let of_canvas : Dom_html.canvasElement Js.t -> 'a Html5_types.canvas elt = rebuild_xml
+    let of_iFrame : Dom_html.iFrameElement Js.t -> Html5_types.iframe elt = rebuild_xml
   end
 
 end

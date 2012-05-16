@@ -24,7 +24,7 @@ open Ocsigen_http_com
 open Lwt
 open Ocsigen_senders
 open Ocsigen_stream
-open XHTML_types_duce
+open Xhtml_types_duce
 open Ocsigen_extensions
 open Eliom_mkforms
 open Eliom_mkreg
@@ -54,7 +54,7 @@ module Ocamlduce_content =
 
     let print x =
       let b = Buffer.create 256 in
-      XHTML_duce.P.print ~advert:Ocsigen_lib.advert ~output:(Buffer.add_string b) x;
+      Xhtml_duce.P.print ~advert:Ocsigen_lib.advert ~output:(Buffer.add_string b) x;
       Buffer.contents b
 
     let get_etag c =
@@ -296,16 +296,16 @@ end
 (****************************************************************************)
 (****************************************************************************)
 
-module TypedXML_content(TypedXML: XML_sigs_duce.TypedXML) = struct
+module TypedXML_content(Typed_xml: Xml_sigs_duce.Typed_xml) = struct
 
-  module Print = XML_print_duce.MakeTyped(TypedXML)
+  module Print = Xml_print_duce.Make_typed(Typed_xml)
 
-  type t = TypedXML.doc
+  type t = Typed_xml.doc
 
   let get_etag_aux x =
     Some (Digest.to_hex (Digest.string x))
 
-  let print (x: TypedXML.doc) =
+  let print (x: Typed_xml.doc) =
     let b = Buffer.create 256 in
     Print.print
       ~advert:Ocsigen_lib.advert
@@ -325,7 +325,7 @@ module TypedXML_content(TypedXML: XML_sigs_duce.TypedXML) = struct
     Lwt.return
       {default_result with
          res_content_length = Some (Int64.of_int (String.length x));
-         res_content_type = Some TypedXML.Info.content_type;
+         res_content_type = Some Typed_xml.Info.content_type;
          res_etag = md5;
          res_headers= Http_headers.dyn_headers;
          res_stream = (S.make (S.put x), None)
@@ -333,11 +333,11 @@ module TypedXML_content(TypedXML: XML_sigs_duce.TypedXML) = struct
 
 end
 
-module TypedXML_partial_content(TypedXML: XML_sigs_duce.TypedXML) = struct
+module TypedXML_partial_content(Typed_xml: Xml_sigs_duce.Typed_xml) = struct
 
-    module Print = XML_print_duce.MakeTyped(TypedXML)
+    module Print = Xml_print_duce.Make_typed(Typed_xml)
 
-    type t = TypedXML.elt list
+    type t = Typed_xml.elt list
 
     let get_etag_aux x =
       Some (Digest.to_hex (Digest.string x))
@@ -360,7 +360,7 @@ module TypedXML_partial_content(TypedXML: XML_sigs_duce.TypedXML) = struct
       Lwt.return
 	{default_result with
            res_content_length = Some (Int64.of_int (String.length x));
-           res_content_type = Some TypedXML.Info.content_type;
+           res_content_type = Some Typed_xml.Info.content_type;
            res_etag = md5;
            res_headers= Http_headers.dyn_headers;
            res_stream = (S.make (S.put x), None)
@@ -411,26 +411,26 @@ module Make_Registration
 
   end
 
-module Make_TypedXML_Registration(TypedXML: XML_sigs_duce.TypedXML) =
-  Make_Registration(TypedXML_content(TypedXML))
+module Make_TypedXML_Registration(Typed_xml: Xml_sigs_duce.Typed_xml) =
+  Make_Registration(TypedXML_content(Typed_xml))
 
-module Make_Partial_TypedXML_Registration(TypedXML: XML_sigs_duce.TypedXML) =
-  Make_Registration(TypedXML_partial_content(TypedXML))
+module Make_Partial_TypedXML_Registration(Typed_xml: Xml_sigs_duce.Typed_xml) =
+  Make_Registration(TypedXML_partial_content(Typed_xml))
 
 module Blocks = struct
-  include Make_Partial_TypedXML_Registration(XHTML_duce.M)
+  include Make_Partial_TypedXML_Registration(Xhtml_duce.M)
   include Xhtml_forms
 end
 
 (* module Xml = SubXhtml(struct *)
                         (* type content = Ocamlduce.Load.anyxml *)
-                        (* let print f x = XML_print_duce.print ~output:f x *)
+                        (* let print f x = Xml_print_duce.print ~output:f x *)
                       (* end) *)
 
 (* module Xmllist = SubXhtml(struct *)
                             (* type content = Ocamlduce.Load.anyxml list *)
                             (* let print f (x : content) = *)
                               (* List.iter *)
-                                (* (XML_print_duce.print ~output:f) *)
+                                (* (Xml_print_duce.print ~output:f) *)
                                 (* x *)
                           (* end) *)

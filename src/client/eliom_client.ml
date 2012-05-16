@@ -110,7 +110,7 @@ let run_unload_events () =
 
 (* == Helper's functions for Eliom's event handler.
 
-   Allow to convert XML.event_handler to javascript closure and to
+   Allow to convert Xml.event_handler to javascript closure and to
    register them in Dom node.
 
 *)
@@ -154,23 +154,23 @@ let raw_event_handler function_id args =
     (fun f -> (fun ev -> try f args ev; true with False -> false))
 
 let reify_caml_event node ce : #Dom_html.event Js.t -> bool = match ce with
-  | XML.CE_call_service None -> (fun _ -> true)
-  | XML.CE_call_service (Some (`A, cookies_info, tmpl)) ->
+  | Xml.CE_call_service None -> (fun _ -> true)
+  | Xml.CE_call_service (Some (`A, cookies_info, tmpl)) ->
       (fun ev ->
         let node = Js.Opt.get (Dom_html.CoerceTo.a node) (fun () -> error "not an anchor element") in
         raw_a_handler node cookies_info tmpl ev)
-  | XML.CE_call_service (Some ((`Form_get | `Form_post) as kind, cookies_info, tmpl)) ->
+  | Xml.CE_call_service (Some ((`Form_get | `Form_post) as kind, cookies_info, tmpl)) ->
       (fun ev ->
         let form = Js.Opt.get (Dom_html.CoerceTo.form node) (fun () -> error "not a form element") in
         raw_form_handler form kind cookies_info tmpl ev)
-  | XML.CE_client_closure f ->
+  | Xml.CE_client_closure f ->
       (fun ev -> try f ev; true with False -> false)
-  | XML.CE_registered_closure (_, (function_id, args)) ->
+  | Xml.CE_registered_closure (_, (function_id, args)) ->
       raw_event_handler function_id args
 
 let reify_event node ev = match ev with
-  | XML.Raw ev -> Js.Unsafe.variable ev
-  | XML.Caml ce -> reify_caml_event node ce
+  | Xml.Raw ev -> Js.Unsafe.variable ev
+  | Xml.Caml ce -> reify_caml_event node ce
 
 let on_load_scripts = ref []
 let register_event_handler node (name, ev) =
@@ -481,7 +481,7 @@ let relink_closure_node root onload table (node:Dom_html.element Js.t) =
     then
       let cid = Js.to_bytestring (attr##value##substring_toEnd(
         Eliom_lib_base.RawXML.closure_attr_prefix_len)) in
-      let (id,args) = XML.ClosureMap.find cid table in
+      let (id,args) = Xml.ClosureMap.find cid table in
       let closure = raw_event_handler id args in
       if attr##name = Js.string "onload" then
         (if Eliommod_dom.ancessor root node
@@ -877,12 +877,12 @@ let () =
 (* Type for partially unwrapped elt. *)
 type tmp_recontent =
   (* arguments ('econtent') are already unwrapped. *)
-  | RELazy of XML.econtent Eliom_lazy.request
-  | RE of XML.econtent
+  | RELazy of Xml.econtent Eliom_lazy.request
+  | RE of Xml.econtent
 type tmp_elt = {
   (* to be unwrapped *)
   tmp_elt : tmp_recontent;
-  tmp_node_id : XML.node_id;
+  tmp_node_id : Xml.node_id;
 }
 
 let _ =
@@ -897,80 +897,80 @@ let _ =
          don't have control on when "onload" event handlers are
          triggered. *)
       match tmp_elt.tmp_node_id with
-      | XML.ProcessId process_id as id ->
+      | Xml.ProcessId process_id as id ->
           Js.Optdef.case (find_process_node (Js.bytestring process_id))
-            (fun () -> XML.make ~id elt)
-            (fun elt -> XML.make_dom ~id elt)
-      | XML.RequestId request_id as id ->
+            (fun () -> Xml.make ~id elt)
+            (fun elt -> Xml.make_dom ~id elt)
+      | Xml.RequestId request_id as id ->
           Js.Optdef.case (find_request_node (Js.bytestring request_id))
-            (fun () -> XML.make ~id elt)
-            (fun elt -> XML.make_dom ~id elt)
-      | XML.NoId as id -> XML.make ~id elt)
+            (fun () -> Xml.make ~id elt)
+            (fun elt -> Xml.make_dom ~id elt)
+      | Xml.NoId as id -> Xml.make ~id elt)
 
 let rebuild_attrib node name a = match a with
-  | XML.AFloat f -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject f)
-  | XML.AInt i -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject i)
-  | XML.AStr s ->
+  | Xml.AFloat f -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject f)
+  | Xml.AInt i -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject i)
+  | Xml.AStr s ->
     node##setAttribute(Js.string name, Js.string s)
-  | XML.AStrL (XML.Space, sl) ->
+  | Xml.AStrL (Xml.Space, sl) ->
     node##setAttribute(Js.string name, Js.string (String.concat " " sl))
-  | XML.AStrL (XML.Comma, sl) ->
+  | Xml.AStrL (Xml.Comma, sl) ->
     node##setAttribute(Js.string name, Js.string (String.concat "," sl))
 
-let rebuild_rattrib node ra = match XML.racontent ra with
-  | XML.RA a -> rebuild_attrib node (XML.aname ra) a
-  | XML.RACamlEventHandler ev -> register_event_handler node (XML.aname ra, ev)
-  | XML.RALazyStr s ->
-      node##setAttribute(Js.string (XML.aname ra), Js.string s)
-  | XML.RALazyStrL (XML.Space, l) ->
-      node##setAttribute(Js.string (XML.aname ra), Js.string (String.concat " " l))
-  | XML.RALazyStrL (XML.Comma, l) ->
-      node##setAttribute(Js.string (XML.aname ra), Js.string (String.concat "," l))
+let rebuild_rattrib node ra = match Xml.racontent ra with
+  | Xml.RA a -> rebuild_attrib node (Xml.aname ra) a
+  | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
+  | Xml.RALazyStr s ->
+      node##setAttribute(Js.string (Xml.aname ra), Js.string s)
+  | Xml.RALazyStrL (Xml.Space, l) ->
+      node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat " " l))
+  | Xml.RALazyStrL (Xml.Comma, l) ->
+      node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat "," l))
 
 let rec rebuild_node elt =
-  match XML.get_node elt with
-  | XML.DomNode node ->
-      (* assert (XML.get_node_id node <> NoId); *)
+  match Xml.get_node elt with
+  | Xml.DomNode node ->
+      (* assert (Xml.get_node_id node <> NoId); *)
       node
-  | XML.TyXMLNode raw_elt ->
-      match XML.get_node_id elt with
-      | XML.NoId -> raw_rebuild_node raw_elt
-      | XML.RequestId _ ->
+  | Xml.TyXMLNode raw_elt ->
+      match Xml.get_node_id elt with
+      | Xml.NoId -> raw_rebuild_node raw_elt
+      | Xml.RequestId _ ->
           (* Do not look in request_nodes hashtbl: such elements have
              been bind while unwrapping nodes. *)
           let node = raw_rebuild_node raw_elt in
-          XML.set_dom_node elt node;
+          Xml.set_dom_node elt node;
           node
-      | XML.ProcessId id ->
+      | Xml.ProcessId id ->
         let id = (Js.string id) in
         Js.Optdef.case (find_process_node id)
           (fun () ->
-            let node = raw_rebuild_node (XML.content elt) in
+            let node = raw_rebuild_node (Xml.content elt) in
             register_process_node id node;
             node)
           (fun n -> (n:> Dom.node Js.t))
 
 
 and raw_rebuild_node = function
-  | XML.Empty
-  | XML.Comment _ ->
+  | Xml.Empty
+  | Xml.Comment _ ->
       (* FIXME *)
       (Dom_html.document##createTextNode (Js.string "") :> Dom.node Js.t)
-  | XML.EncodedPCDATA s
-  | XML.PCDATA s -> (Dom_html.document##createTextNode (Js.string s) :> Dom.node Js.t)
-  | XML.Entity s -> assert false (* FIXME *)
-  | XML.Leaf (name,attribs) ->
+  | Xml.EncodedPCDATA s
+  | Xml.PCDATA s -> (Dom_html.document##createTextNode (Js.string s) :> Dom.node Js.t)
+  | Xml.Entity s -> assert false (* FIXME *)
+  | Xml.Leaf (name,attribs) ->
     let node = Dom_html.document##createElement (Js.string name) in
     List.iter (rebuild_rattrib node) attribs;
     (node :> Dom.node Js.t)
-  | XML.Node (name,attribs,childrens) ->
+  | Xml.Node (name,attribs,childrens) ->
     let node = Dom_html.document##createElement (Js.string name) in
     List.iter (rebuild_rattrib node) attribs;
     List.iter (fun c -> Dom.appendChild node (rebuild_node c)) childrens;
     (node :> Dom.node Js.t)
 
 let rebuild_node elt =
-  let node = Js.Unsafe.coerce (rebuild_node (HTML5.F.toelt elt)) in
+  let node = Js.Unsafe.coerce (rebuild_node (Html5.F.toelt elt)) in
   run_load_events (List.rev !on_load_scripts);
   on_load_scripts := [];
   node

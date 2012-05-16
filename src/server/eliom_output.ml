@@ -19,7 +19,7 @@
  *)
 
 open Eliom_lib
-open Eliom_content_core
+open Eliom_content
 open Eliom_services
 open Eliom_parameters
 
@@ -71,12 +71,12 @@ let cast_http_result = Result_types.cast_result
 
 module Html5_make_reg_base
   (Html5_content : Ocsigen_http_frame.HTTP_CONTENT
-                   with type t = HTML5_types.html HTML5.elt
+                   with type t = Html5_types.html Eliom_content.Html5.elt
                    and type options = Http_headers.accept Lazy.t)
   = struct
 
-  open HTML5.F
-  open HTML5_types
+  open Eliom_content.Html5.F
+  open Html5_types
 
   type page = xhtml elt
 
@@ -120,7 +120,7 @@ end
 
 
 module Html5_reg_base =
-  Html5_make_reg_base(Ocsigen_senders.Make_XML_Content(XML)(HTML5.D))
+  Html5_make_reg_base(Ocsigen_senders.Make_XML_Content(Xml)(Eliom_content.Html5.D))
 
 module Html5_registration = Eliom_mkreg.MakeRegister(Html5_reg_base)
 
@@ -136,11 +136,11 @@ end
 
 module Xhtml_make_reg_base
   (Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
-   with type t = XHTML_types.xhtml XHTML.F.elt
+   with type t = Xhtml_types.xhtml Xhtml.F.elt
    and type options = Http_headers.accept Lazy.t) = struct
 
-  open XHTML.F
-  open XHTML_types
+  open Xhtml.F
+  open Xhtml_types
 
   type page = xhtml elt
   type return = http_service
@@ -176,7 +176,7 @@ module Xhtml_make_reg_base
 end
 
 module Xhtml_reg_base =
-  Xhtml_make_reg_base(Ocsigen_senders.Make_XML_Content(XML)(XHTML.F))
+  Xhtml_make_reg_base(Ocsigen_senders.Make_XML_Content(Xml)(Xhtml.F))
 
 module Xhtml_registration = Eliom_mkreg.MakeRegister(Xhtml_reg_base)
 
@@ -188,12 +188,12 @@ end
 (****************************************************************************)
 (****************************************************************************)
 
-module Make_TypedXML_Registration
-  (XML: XML_sigs.Iterable)
-  (TypedXML: XML_sigs.TypedXML with module XML := XML)
+module Make_typed_xml_registration
+  (Xml: Xml_sigs.Iterable)
+  (Typed_xml: Xml_sigs.Typed_xml with module Xml := Xml)
   (E : sig type content end) = struct
 
-    module Format = XML_print.MakeTyped(XML)(TypedXML)(Ocsigen_stream.StringStream)
+    module Format = Xml_print.Make_typed(Xml)(Typed_xml)(Ocsigen_stream.StringStream)
 
     let result_of_content_subxhtml get_etag c =
       let x = Format.print_list c in
@@ -210,7 +210,7 @@ module Make_TypedXML_Registration
     module Cont_content =
       (* Pasted from ocsigen_senders.ml and modified *)
       struct
-        type t = E.content TypedXML.elt list
+        type t = E.content Typed_xml.elt list
 
         let get_etag_aux x = None
 
@@ -222,7 +222,7 @@ module Make_TypedXML_Registration
 
     module Cont_reg_base = struct
 
-      type page = E.content TypedXML.elt list
+      type page = E.content Typed_xml.elt list
 
       type options = unit
 
@@ -261,12 +261,12 @@ module Make_TypedXML_Registration
 
   end
 
-module Blocks = Make_TypedXML_Registration(XML)(XHTML.F)(struct
-  type content = XHTML_types.body_content
+module Blocks = Make_typed_xml_registration(Xml)(Eliom_content.Xhtml.F)(struct
+  type content = Xhtml_types.body_content
 end)
 
-module Flow5 = Make_TypedXML_Registration(XML)(HTML5.D)(struct
-  type content = HTML5_types.flow5
+module Flow5 = Make_typed_xml_registration(Xml)(Eliom_content.Html5.D)(struct
+  type content = Html5_types.flow5
 end)
 module Blocks5 = Flow5
 
@@ -1431,12 +1431,12 @@ let request_template = Eliom_references.eref ~scope:Eliom_common.request None
 module Eliom_appl_reg_make_param
   (Html5_content
      : Ocsigen_http_frame.HTTP_CONTENT
-       with type t = [ `Html ] HTML5.elt
+       with type t = [ `Html ] Eliom_content.Html5.elt
        and type options = Http_headers.accept Lazy.t)
   (Appl_params : APPL_PARAMS) = struct
 
-  open HTML5.D
-  open HTML5_types
+  open Eliom_content.Html5.D
+  open Html5_types
 
   type appl
 
@@ -1447,26 +1447,26 @@ module Eliom_appl_reg_make_param
 
   let result_of_http_result = Result_types.cast_result
 
-  let eliom_appl_script_id : [ `Script ] HTML5.Id.id =
-    HTML5.Id.new_elt_id ~global:true ()
+  let eliom_appl_script_id : [ `Script ] Eliom_content.Html5.Id.id =
+    Eliom_content.Html5.Id.new_elt_id ~global:true ()
   let application_script ?(async = false) () =
-    HTML5.Id.create_named_elt
+    Eliom_content.Html5.Id.create_named_elt
       ~id:eliom_appl_script_id
-      (Eliom_content.HTML5.D.js_script
-	 ~a:(if async then [HTML5.D.a_async `Async] else [] )
-	 ~uri:(Eliom_content.HTML5.D.make_uri
+      (Eliom_content.Html5.D.js_script
+	 ~a:(if async then [Eliom_content.Html5.D.a_async `Async] else [] )
+	 ~uri:(Eliom_content.Html5.D.make_uri
 		 ~service:(Eliom_services.static_dir ())
 		 [Appl_params.application_name ^ ".js"])
 	 ())
   let application_script =
     (application_script
-     : ?async:_ -> unit -> [ `Script ] HTML5.elt
-     :> ?async:_ -> unit -> [> `Script ] HTML5.elt)
+     : ?async:_ -> unit -> [ `Script ] Eliom_content.Html5.elt
+     :> ?async:_ -> unit -> [> `Script ] Eliom_content.Html5.elt)
   let is_eliom_appl_script elt =
-    HTML5.Id.have_id eliom_appl_script_id elt
+    Eliom_content.Html5.Id.have_id eliom_appl_script_id elt
 
   let eliom_appl_data_script_id =
-    HTML5.Id.new_elt_id ~global:true ()
+    Eliom_content.Html5.Id.new_elt_id ~global:true ()
 
   let make_eliom_appl_data_script ~sp =
 
@@ -1482,8 +1482,8 @@ module Eliom_appl_reg_make_param
     in
 
     Lwt.return
-      (HTML5.Id.create_named_elt ~id:eliom_appl_data_script_id
-	 (HTML5.F.script (cdata_script script)))
+      (Eliom_content.Html5.Id.create_named_elt ~id:eliom_appl_data_script_id
+	 (Eliom_content.Html5.F.script (cdata_script script)))
 
   let make_eliom_data_script ~sp page =
 
@@ -1493,7 +1493,7 @@ module Eliom_appl_reg_make_param
     let eliom_data =
       Eliom_wrap.wrap
 	{ Eliom_types.
-	  ejs_event_handler_table = XML.make_event_handler_table (HTML5.D.toelt page);
+	  ejs_event_handler_table = Xml.make_event_handler_table (Eliom_content.Html5.D.toelt page);
 	  ejs_onload              = Eliom_services.get_onload sp;
 	  ejs_onunload            = Eliom_services.get_onunload sp;
 	  ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;
@@ -1516,23 +1516,23 @@ module Eliom_appl_reg_make_param
         (Eliom_types.jsmarshal tab_cookies)
         (Eliom_types.jsmarshal (template: string option))
     in
-    Lwt.return (HTML5.F.script (cdata_script script))
+    Lwt.return (Eliom_content.Html5.F.script (cdata_script script))
 
   let split_page page :
-      (HTML5_types.html_attrib HTML5.attrib list
-        * (HTML5_types.head_attrib HTML5.attrib list
-            * [ HTML5_types.title ] HTML5.elt
-            * HTML5_types.head_content_fun HTML5.elt list)
-        * HTML5_types.body HTML5.elt ) =
-    match XML.content page with
-      | XML.Node (_, html_attribs, [head; body]) ->
-	begin match XML.content head with
-	  | XML.Node (_, head_attribs, head_elts) ->
-	    ( List.map HTML5.D.to_attrib html_attribs,
-	      ( List.map HTML5.D.to_attrib head_attribs,
-		HTML5.D.tot (List.hd head_elts),
-		HTML5.D.totl (List.tl head_elts) ),
-	      HTML5.D.tot body )
+      (Html5_types.html_attrib Eliom_content.Html5.attrib list
+        * (Html5_types.head_attrib Eliom_content.Html5.attrib list
+            * [ Html5_types.title ] Eliom_content.Html5.elt
+            * Html5_types.head_content_fun Eliom_content.Html5.elt list)
+        * Html5_types.body Eliom_content.Html5.elt ) =
+    match Xml.content page with
+      | Xml.Node (_, html_attribs, [head; body]) ->
+	begin match Xml.content head with
+	  | Xml.Node (_, head_attribs, head_elts) ->
+	    ( List.map Eliom_content.Html5.D.to_attrib html_attribs,
+	      ( List.map Eliom_content.Html5.D.to_attrib head_attribs,
+		Eliom_content.Html5.D.tot (List.hd head_elts),
+		Eliom_content.Html5.D.totl (List.tl head_elts) ),
+	      Eliom_content.Html5.D.tot body )
 	  | _ -> assert false
 	end
       | _ -> assert false
@@ -1550,18 +1550,18 @@ module Eliom_appl_reg_make_param
 
     (* First we build a fake page to build the ref_tree... *)
     let (html_attribs, (head_attribs, title, head_elts), body) =
-      split_page (HTML5.D.toelt page) in
+      split_page (Eliom_content.Html5.D.toelt page) in
     let head_elts =
          appl_data_script
-      :: HTML5.F.base ~a:[a_id Eliom_common_base.base_elt_id; HTML5.D.a_href (HTML5.D.uri_of_string base_url)] ()
+      :: Eliom_content.Html5.F.base ~a:[a_id Eliom_common_base.base_elt_id; Eliom_content.Html5.D.a_href (Eliom_content_core.Html5.D.uri_of_string base_url)] ()
       :: ( if List.exists is_eliom_appl_script head_elts
            then head_elts
 	   else ( head_elts
 		  @ [application_script ()] ) )
     in
     let fake_page =
-      HTML5.F.html ~a:html_attribs
-	(HTML5.F.head ~a:head_attribs title head_elts)
+      Eliom_content.Html5.F.html ~a:html_attribs
+	(Eliom_content.Html5.F.head ~a:head_attribs title head_elts)
 	body in
     lwt data_script = make_eliom_data_script ~sp fake_page in
 
@@ -1569,17 +1569,17 @@ module Eliom_appl_reg_make_param
     let head_elts =
       List.hd head_elts :: data_script :: (List.tl head_elts) in
     Lwt.return
-      (HTML5.F.html ~a:html_attribs
-	 (HTML5.F.head ~a:head_attribs title head_elts)
+      (Eliom_content.Html5.F.html ~a:html_attribs
+	 (Eliom_content.Html5.F.head ~a:head_attribs title head_elts)
 	 body )
 
   let remove_eliom_scripts page =
     let (html_attribs, (head_attribs, title, head_elts), body) =
-      split_page (HTML5.D.toelt page) in
+      split_page (Eliom_content.Html5.D.toelt page) in
     let head_elts = List.filter (fun x -> not (is_eliom_appl_script x)) head_elts in
     Lwt.return
-      (HTML5.F.html ~a:html_attribs
-         (HTML5.F.head ~a:head_attribs title head_elts)
+      (Eliom_content.Html5.F.html ~a:html_attribs
+         (Eliom_content.Html5.F.head ~a:head_attribs title head_elts)
          body )
 
   let send_appl_content = Eliom_services.XSame_appl (Appl_params.application_name, None)
@@ -1660,11 +1660,11 @@ module Eliom_appl_reg_make_param
   end
 
 module type ELIOM_APPL = sig
-  val application_script : ?async:bool -> unit -> [> `Script ] HTML5.elt
+  val application_script : ?async:bool -> unit -> [> `Script ] Eliom_content.Html5.elt
   val application_name : string
   type appl
   include "sigs/eliom_reg.mli"
-    subst type page    := HTML5_types.html HTML5.elt
+    subst type page    := Html5_types.html Eliom_content.Html5.elt
       and type options := appl_service_options
       and type return  := appl_service
       and type result  := (appl application_content, appl_service) kind
@@ -1675,7 +1675,7 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
 
   module Eliom_appl_reg_param =
     Eliom_appl_reg_make_param
-      (Ocsigen_senders.Make_XML_Content(XML)(HTML5.D))
+      (Ocsigen_senders.Make_XML_Content(Xml)(Eliom_content.Html5.D))
       (Appl_params)
 
   type appl = Eliom_appl_reg_param.appl
@@ -1699,16 +1699,16 @@ end
 module type TMPL_PARAMS = sig
   type t
   val name: string
-  val make_page: t -> HTML5_types.html HTML5.elt Lwt.t
-  val update: t -> Dom_html.event XML.caml_event_handler
+  val make_page: t -> Html5_types.html Eliom_content.Html5.elt Lwt.t
+  val update: t -> Dom_html.event Xml.caml_event_handler
 end
 
 module Eliom_tmpl_reg_make_param
   (Appl : ELIOM_APPL)
   (Tmpl_param : TMPL_PARAMS) = struct
 
-  open HTML5
-  open HTML5_types
+  open Eliom_content.Html5
+  open Html5_types
 
   type page = Tmpl_param.t
   type options = appl_service_options
@@ -1855,7 +1855,7 @@ module Redir_reg_base = struct
 
   let send ?(options = `Found) ?charset ?code
       ?content_type ?headers service =
-    let uri = lazy (Eliom_content.XHTML.F.make_string_uri ~absolute:true ~service ()) in
+    let uri = lazy (Eliom_content.Xhtml.F.make_string_uri ~absolute:true ~service ()) in
     let empty_result = Ocsigen_http_frame.empty_result () in
     let content_type = match content_type with
       | None -> empty_result.Ocsigen_http_frame.res_content_type

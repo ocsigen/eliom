@@ -24,7 +24,7 @@ open Eliom_content_core
 (*
  * types {{{
  *)
-type uri = XHTML.F.uri
+type uri = Xhtml.F.uri
 type lang = string
 type base = uri
 type ncname = string
@@ -32,7 +32,7 @@ type dateConstruct = string
 type emailAddress = string
 type mediaType = string
 type length = int
-type href = XHTML.F.uri
+type href = Xhtml.F.uri
 type hrefLang = string
 type rel = string
 type ltitle = string
@@ -41,21 +41,21 @@ type label = string
 type term = string
 type metaAttr = [ `Base of base | `Lang of lang ]
 type personConstruct = [ `Uri of uri | `Email of emailAddress ]
-type author = XML.elt
-type contributor = XML.elt
-type generator = XML.elt
-type id = XML.elt
-type icon = XML.elt
-type category = XML.elt
-type link = XML.elt
-type logo = XML.elt
-type published = XML.elt
-type updated = XML.elt
-type source = XML.elt
-type entry = XML.elt
-type feed = XML.elt
-type content = XML.elt
-type textConstruct = XML.attrib list * XML.elt list
+type author = Xml.elt
+type contributor = Xml.elt
+type generator = Xml.elt
+type id = Xml.elt
+type icon = Xml.elt
+type category = Xml.elt
+type link = Xml.elt
+type logo = Xml.elt
+type published = Xml.elt
+type updated = Xml.elt
+type source = Xml.elt
+type entry = Xml.elt
+type feed = Xml.elt
+type content = Xml.elt
+type textConstruct = Xml.attrib list * Xml.elt list
 type linkOAttr = [ metaAttr 
    | `Type of string
    | `Rel of rel
@@ -107,18 +107,18 @@ let xml_of_feed f = f
 (*
  * attr converters {{{
  *)
-let a_base = XML.uri_attrib "base"
-let a_lang = XML.string_attrib "lang"
-let a_scheme = XML.string_attrib "scheme"
-let a_label = XML.string_attrib "label"
-let a_href = XML.uri_attrib "href"
-let a_rel = XML.string_attrib "rel"
-let a_hreflang = XML.string_attrib "hreflang"
-let a_medtype = XML.string_attrib "mediatype"
-let a_title = XML.string_attrib "title"
-let a_length = XML.int_attrib "length"
-let a_term = XML.string_attrib "term"
-let a_type = XML.string_attrib "type"
+let a_base = Xml.uri_attrib "base"
+let a_lang = Xml.string_attrib "lang"
+let a_scheme = Xml.string_attrib "scheme"
+let a_label = Xml.string_attrib "label"
+let a_href = Xml.uri_attrib "href"
+let a_rel = Xml.string_attrib "rel"
+let a_hreflang = Xml.string_attrib "hreflang"
+let a_medtype = Xml.string_attrib "mediatype"
+let a_title = Xml.string_attrib "title"
+let a_length = Xml.int_attrib "length"
+let a_term = Xml.string_attrib "term"
+let a_type = Xml.string_attrib "type"
 (*
  * }}}
  *)
@@ -129,39 +129,39 @@ let rec metaAttr_extract l = match l with
    | `Lang a :: r    -> a_lang a :: metaAttr_extract r | _ :: r          ->
    metaAttr_extract r
 
-let rec c_pcdata l = match l with | [] -> [] | a::r -> XML.pcdata a :: c_pcdata
+let rec c_pcdata l = match l with | [] -> [] | a::r -> Xml.pcdata a :: c_pcdata
 r
 
-let xhtmlDiv b = XML.node ~a:[(XML.string_attrib "xmlns"
-      "http://www.w3.org/1999/xhtml")] "div" (XHTML.F.toeltl b)
+let xhtmlDiv b = Xml.node ~a:[(Xml.string_attrib "xmlns"
+      "http://www.w3.org/1999/xhtml")] "div" (Xhtml.F.toeltl b)
 
-let inlineC ?(meta = []) ?(html = false) c = `Content (XML.node ~a:(a_type (if
+let inlineC ?(meta = []) ?(html = false) c = `Content (Xml.node ~a:(a_type (if
             html then "html" else "text") :: metaAttr_extract meta) "content"
       (c_pcdata c))
 
-let xhtmlC ?(meta = []) c = `Content (XML.node ~a:(a_type "xhtml" ::
+let xhtmlC ?(meta = []) c = `Content (Xml.node ~a:(a_type "xhtml" ::
          metaAttr_extract meta) "content" [xhtmlDiv c])
 
-let inlineOtherC ?(meta = []) (a,b) = `Content (XML.node ~a:(a_medtype a ::
+let inlineOtherC ?(meta = []) (a,b) = `Content (Xml.node ~a:(a_medtype a ::
          metaAttr_extract meta) "content" b)
 
-let outOfLineC ?(meta = []) (a,b) = `Content (XML.node ~a:(a_medtype a ::
-         XML.uri_attrib "src" b :: metaAttr_extract meta) "content" [])
+let outOfLineC ?(meta = []) (a,b) = `Content (Xml.node ~a:(a_medtype a ::
+         Xml.uri_attrib "src" b :: metaAttr_extract meta) "content" [])
 
 (*
  * Extraction functions {{{
  *) 
 let rec personConstruct_extract l = match l with 
    | []              -> [] 
-   |`Email a :: r   -> XML.node ~a:[] "email" [(XML.pcdata a)] :: 
+   |`Email a :: r   -> Xml.node ~a:[] "email" [(Xml.pcdata a)] :: 
       personConstruct_extract r 
-   | `Uri a :: r     -> XML.lazy_node ~a:[] "uri" (Eliom_lazy.from_fun (fun () -> [(XML.pcdata (XML.string_of_uri a))])) :: 
+   | `Uri a :: r     -> Xml.lazy_node ~a:[] "uri" (Eliom_lazy.from_fun (fun () -> [(Xml.pcdata (Xml.string_of_uri a))])) :: 
       personConstruct_extract r 
    | _ :: r          -> personConstruct_extract r
 
 let rec linkOAttr_extract l = match l with 
    | []              -> [] 
-   | `Type a :: r    -> XML.string_attrib "type" a :: linkOAttr_extract r 
+   | `Type a :: r    -> Xml.string_attrib "type" a :: linkOAttr_extract r 
    | `Rel a :: r     -> a_rel a :: linkOAttr_extract r 
    | `Medtype a :: r -> a_medtype a :: linkOAttr_extract r 
    | `Hrefl a :: r   -> a_hreflang a :: linkOAttr_extract r 
@@ -178,8 +178,8 @@ let rec sourceOAttr_extract l = match l with
    | `Gen a :: r 
    | `Icon a :: r 
    | `Logo a :: r       -> a :: sourceOAttr_extract r 
-   | `Rights (a,b) :: r -> XML.node ~a "rights" b :: sourceOAttr_extract r 
-   | `Sub (a,b) :: r    -> XML.node ~a "subtitle" b :: sourceOAttr_extract r 
+   | `Rights (a,b) :: r -> Xml.node ~a "rights" b :: sourceOAttr_extract r 
+   | `Sub (a,b) :: r    -> Xml.node ~a "subtitle" b :: sourceOAttr_extract r 
    | _ :: r             -> sourceOAttr_extract r
 
 let rec entryOAttr_extract l = match l with 
@@ -191,8 +191,8 @@ let rec entryOAttr_extract l = match l with
    | `Content a :: r 
    | `Pub a :: r 
    | `Source a :: r     -> a :: entryOAttr_extract r 
-   | `Rights (a,b) :: r -> XML.node ~a "rights" b :: entryOAttr_extract r 
-   | `Sum (a,b) :: r    -> XML.node ~a "summary" b :: entryOAttr_extract r 
+   | `Rights (a,b) :: r -> Xml.node ~a "rights" b :: entryOAttr_extract r 
+   | `Sum (a,b) :: r    -> Xml.node ~a "summary" b :: entryOAttr_extract r 
    | _ :: r             -> entryOAttr_extract r
 
 let rec feedOAttr_extract l = match l with 
@@ -204,8 +204,8 @@ let rec feedOAttr_extract l = match l with
    | `Gen a :: r 
    | `Icon a :: r 
    | `Logo a :: r       -> a :: feedOAttr_extract r 
-   | `Rights (a,b) :: r -> XML.node ~a "rights" b :: feedOAttr_extract r 
-   | `Sub (a,b) :: r    -> XML.node ~a "subtitle" b :: feedOAttr_extract r 
+   | `Rights (a,b) :: r -> Xml.node ~a "rights" b :: feedOAttr_extract r 
+   | `Sub (a,b) :: r    -> Xml.node ~a "subtitle" b :: feedOAttr_extract r 
    | _ :: r          -> feedOAttr_extract r 
  (*
  * }}}
@@ -214,11 +214,11 @@ let rec feedOAttr_extract l = match l with
 (*
  * Textconstructs [Rights, Subtitle, Summary, Title] {{{
  *) 
-let plain ?(meta = []) ?(html = false) content = (XML.string_attrib "type"
-    (if html then "html" else "text"):: metaAttr_extract meta, [XML.pcdata
+let plain ?(meta = []) ?(html = false) content = (Xml.string_attrib "type"
+    (if html then "html" else "text"):: metaAttr_extract meta, [Xml.pcdata
     content])
 
-let xhtml ?(meta = []) content = (XML.string_attrib "type" "xhtml" ::
+let xhtml ?(meta = []) content = (Xml.string_attrib "type" "xhtml" ::
       metaAttr_extract meta, [xhtmlDiv content])
 
 let rights t = `Rights t
@@ -231,35 +231,35 @@ let summary t = `Sum t
  *)
 
 let feed ~updated ~id ~title:(a,b) ?(fields = []) entries = 
-   XML.node ~a:(XML.string_attrib "xmlns" "http://www.w3.org/2005/Atom" :: 
+   Xml.node ~a:(Xml.string_attrib "xmlns" "http://www.w3.org/2005/Atom" :: 
          metaAttr_extract fields) 
          "feed" 
-         (XML.node ~a:[] "updated" [ XML.pcdata (date updated) ] ::
-            XML.lazy_node ~a:[] "id"
+         (Xml.node ~a:[] "updated" [ Xml.pcdata (date updated) ] ::
+            Xml.lazy_node ~a:[] "id"
 	    (Eliom_lazy.from_fun
-	       (fun () -> [ XML.pcdata (XML.string_of_uri id) ])) :: XML.node ~a "title" b ::
+	       (fun () -> [ Xml.pcdata (Xml.string_of_uri id) ])) :: Xml.node ~a "title" b ::
             feedOAttr_extract fields @ entries)
 
 let entry ~updated ~id ~title:(a,b) elt = 
-   XML.node ~a:(metaAttr_extract elt)
+   Xml.node ~a:(metaAttr_extract elt)
          "entry"  
-         (XML.node ~a:[] "updated" [ XML.pcdata (date updated) ] ::  XML.lazy_node ~a:[] "id"
+         (Xml.node ~a:[] "updated" [ Xml.pcdata (date updated) ] ::  Xml.lazy_node ~a:[] "id"
 	    (Eliom_lazy.from_fun
-	       (fun () -> [ XML.pcdata (XML.string_of_uri id) ])) :: XML.node ~a "title" b ::
+	       (fun () -> [ Xml.pcdata (Xml.string_of_uri id) ])) :: Xml.node ~a "title" b ::
             entryOAttr_extract elt)
 
 let source ~updated ~id ~title:(a,b) elt = `Source (
-   XML.node ~a:(metaAttr_extract elt) 
+   Xml.node ~a:(metaAttr_extract elt) 
          "source" 
-         (XML.node ~a:[] "updated" [ XML.pcdata (date updated) ] :: 
-            (XML.lazy_node ~a:[] "id"
+         (Xml.node ~a:[] "updated" [ Xml.pcdata (date updated) ] :: 
+            (Xml.lazy_node ~a:[] "id"
 	       (Eliom_lazy.from_fun
-		  (fun () -> [ XML.pcdata (XML.string_of_uri id) ]))) ::
-		  XML.node
+		  (fun () -> [ Xml.pcdata (Xml.string_of_uri id) ]))) ::
+		  Xml.node
                ~a "title" b :: sourceOAttr_extract elt)
 	 )
 
-let link ?(elt = []) href = XML.leaf ~a:(a_href href :: (linkOAttr_extract elt)
+let link ?(elt = []) href = Xml.leaf ~a:(a_href href :: (linkOAttr_extract elt)
       @ (metaAttr_extract elt)) "link"
 
 let links l = `Links l
@@ -268,34 +268,34 @@ let email s = `Email s
 
 let uri s = `Uri s
 
-let author ?(elt = []) name = XML.node ~a:[] "author" (XML.node ~a:[] "name"
-      [XML.pcdata name] :: personConstruct_extract elt)
+let author ?(elt = []) name = Xml.node ~a:[] "author" (Xml.node ~a:[] "name"
+      [Xml.pcdata name] :: personConstruct_extract elt)
 
 let authors l = `Authors l
 
-let contributor ?(elt = []) name = XML.node ~a:[] "contributor" (XML.node ~a:[]
-      "name" [XML.pcdata name] :: personConstruct_extract elt)
+let contributor ?(elt = []) name = Xml.node ~a:[] "contributor" (Xml.node ~a:[]
+      "name" [Xml.pcdata name] :: personConstruct_extract elt)
 
 let contributors l = `Contribs l
 
-let icon address = `Icon (XML.lazy_node ~a:[] "icon" (Eliom_lazy.from_fun (fun () -> [ XML.pcdata (XML.string_of_uri address) ])))
+let icon address = `Icon (Xml.lazy_node ~a:[] "icon" (Eliom_lazy.from_fun (fun () -> [ Xml.pcdata (Xml.string_of_uri address) ])))
 
-let logo address = `Logo (XML.lazy_node ~a:[] "icon" (Eliom_lazy.from_fun (fun () -> [ XML.pcdata (XML.string_of_uri address) ])))
+let logo address = `Logo (Xml.lazy_node ~a:[] "icon" (Eliom_lazy.from_fun (fun () -> [ Xml.pcdata (Xml.string_of_uri address) ])))
 
 let category ?(meta = []) ?(scheme = "") ?(label = "") term content = 
-   XML.node ~a:(a_scheme scheme :: a_label label :: 
+   Xml.node ~a:(a_scheme scheme :: a_label label :: 
                a_term term :: metaAttr_extract meta)
          "category" 
          content
 
 let categories l = `Cats l
 
-let published d = `Pub (XML.node ~a:[] "published" [ XML.pcdata (date d) ])
+let published d = `Pub (Xml.node ~a:[] "published" [ Xml.pcdata (date d) ])
 
 (*
  * }}}
  *)
 
-let insert_hub_links hubs feed = match XML.content feed with 
-   | XML.Node (b, a, c)  -> XML.node ~a b (List.map 
+let insert_hub_links hubs feed = match Xml.content feed with 
+   | Xml.Node (b, a, c)  -> Xml.node ~a b (List.map 
          (fun uri -> link ~elt:[`Rel ("hub")] uri) hubs @ c) | _ -> assert false

@@ -63,65 +63,65 @@ module Html5_forms : sig
   module D : "sigs/eliom_html5_forms.mli"
 end = struct
 
-  module Html5_forms_base(HTML5 : sig
-    include HTML5_sigs.T with module XML := XML and module SVG := SVG.D
-                         and type 'a elt = 'a HTML5.elt
-                         and type 'a attrib = 'a HTML5.attrib
-                         and type uri = HTML5.uri
+  module Html5_forms_base(Html5 : sig
+    include Html5_sigs.T with module Xml := Xml and module Svg := Svg.D
+                         and type 'a elt = 'a Html5.elt
+                         and type 'a attrib = 'a Html5.attrib
+                         and type uri = Html5.uri
     include "sigs/eliom_html5_event_handler.mli"
     type ('a, 'b, 'c) lazy_plus =
         ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
     val lazy_form:
-      ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus
+      ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_plus
   end) = struct
 
-    type uri = HTML5.uri
-    type pcdata_elt = HTML5_types.pcdata HTML5.elt
+    type uri = Html5.uri
+    type pcdata_elt = Html5_types.pcdata Html5.elt
 
-    type form_elt = HTML5_types.form HTML5.elt
-    type form_content_elt = HTML5_types.form_content HTML5.elt
-    type form_content_elt_list = HTML5_types.form_content HTML5.elt list
-    type form_attrib_t = HTML5_types.form_attrib HTML5.attrib list
+    type form_elt = Html5_types.form Html5.elt
+    type form_content_elt = Html5_types.form_content Html5.elt
+    type form_content_elt_list = Html5_types.form_content Html5.elt list
+    type form_attrib_t = Html5_types.form_attrib Html5.attrib list
 
-    type 'a a_elt = 'a HTML5_types.a HTML5.elt
-    type 'a a_elt_list = 'a HTML5_types.a HTML5.elt list
-    type 'a a_content_elt = 'a HTML5.elt
-    type 'a a_content_elt_list = 'a HTML5.elt list
-    type a_attrib_t = HTML5_types.a_attrib HTML5.attrib list
+    type 'a a_elt = 'a Html5_types.a Html5.elt
+    type 'a a_elt_list = 'a Html5_types.a Html5.elt list
+    type 'a a_content_elt = 'a Html5.elt
+    type 'a a_content_elt_list = 'a Html5.elt list
+    type a_attrib_t = Html5_types.a_attrib Html5.attrib list
 
-    type link_elt = HTML5_types.link HTML5.elt
-    type link_attrib_t = HTML5_types.link_attrib HTML5.attrib list
+    type link_elt = Html5_types.link Html5.elt
+    type link_attrib_t = Html5_types.link_attrib Html5.attrib list
 
-    type script_elt = HTML5_types.script HTML5.elt
-    type script_attrib_t = HTML5_types.script_attrib HTML5.attrib list
+    type script_elt = Html5_types.script Html5.elt
+    type script_attrib_t = Html5_types.script_attrib Html5.attrib list
 
-    type textarea_elt = HTML5_types.textarea HTML5.elt
-    type textarea_attrib_t = HTML5_types.textarea_attrib HTML5.attrib list
+    type textarea_elt = Html5_types.textarea Html5.elt
+    type textarea_attrib_t = Html5_types.textarea_attrib Html5.attrib list
 
-    type input_elt = HTML5_types.input HTML5.elt
-    type input_attrib_t = HTML5_types.input_attrib HTML5.attrib list
+    type input_elt = Html5_types.input Html5.elt
+    type input_attrib_t = Html5_types.input_attrib Html5.attrib list
 
-    type select_elt = HTML5_types.select HTML5.elt
-    type select_content_elt = HTML5_types.select_content HTML5.elt
-    type select_content_elt_list = HTML5_types.select_content HTML5.elt list
-    type select_attrib_t = HTML5_types.select_attrib HTML5.attrib list
+    type select_elt = Html5_types.select Html5.elt
+    type select_content_elt = Html5_types.select_content Html5.elt
+    type select_content_elt_list = Html5_types.select_content Html5.elt list
+    type select_attrib_t = Html5_types.select_attrib Html5.attrib list
 
-    type button_elt = HTML5_types.button HTML5.elt
-    type button_content_elt = HTML5_types.button_content HTML5.elt
-    type button_content_elt_list = HTML5_types.button_content HTML5.elt list
-    type button_attrib_t = HTML5_types.button_attrib HTML5.attrib list
+    type button_elt = Html5_types.button Html5.elt
+    type button_content_elt = Html5_types.button_content Html5.elt
+    type button_content_elt_list = Html5_types.button_content Html5.elt list
+    type button_attrib_t = Html5_types.button_attrib Html5.attrib list
 
-    type option_elt = HTML5_types.selectoption HTML5.elt
-    type option_elt_list = HTML5_types.selectoption HTML5.elt list
-    type optgroup_attrib_t = [ HTML5_types.common | `Disabled ] HTML5.attrib list
-    type option_attrib_t = HTML5_types.option_attrib HTML5.attrib list
+    type option_elt = Html5_types.selectoption Html5.elt
+    type option_elt_list = Html5_types.selectoption Html5.elt list
+    type optgroup_attrib_t = [ Html5_types.common | `Disabled ] Html5.attrib list
+    type option_attrib_t = Html5_types.option_attrib Html5.attrib list
 
     type input_type_t = full_input_type
     type raw_input_type_t = full_input_type
     type button_type_t = button_type
 
-    open HTML5_types
-    open HTML5
+    open Html5_types
+    open Html5
 
     let hidden = `Hidden
     let checkbox = `Checkbox
@@ -132,7 +132,7 @@ end = struct
 
     let buttonsubmit = `Submit
 
-    let uri_of_string = XML.uri_of_fun
+    let uri_of_string = Xml.uri_of_fun
 
     let map_option = List.map
     let map_optgroup f a l = ((f a), List.map f l)
@@ -145,7 +145,7 @@ end = struct
         | None -> a
         | Some href -> a_href href :: a
       in
-      HTML5.a ~a l
+      Html5.a ~a l
 
     let make_empty_form_content () = p [pcdata ""] (**** à revoir !!!!! *)
     let remove_first = function
@@ -157,7 +157,7 @@ end = struct
       let elt1 = Eliom_lazy.from_fun (fun () -> fst (Eliom_lazy.force elts))
       and elts = Eliom_lazy.from_fun (fun () -> snd (Eliom_lazy.force elts)) in
       let r =
-        HTML5.lazy_form ~a:((a_method `Get)::(a_action action)::a) elt1 elts
+        Html5.lazy_form ~a:((a_method `Get)::(a_action action)::a) elt1 elts
       in
       r
 
@@ -171,7 +171,7 @@ end = struct
       let elt1 = Eliom_lazy.from_fun (fun () -> fst (Eliom_lazy.force elts))
       and elts = Eliom_lazy.from_fun (fun () -> snd (Eliom_lazy.force elts)) in
       let r =
-        lazy_form ~a:((HTML5.a_enctype "multipart/form-data")::
+        lazy_form ~a:((Html5.a_enctype "multipart/form-data")::
                   (* Always Multipart!!! How to test if there is a file?? *)
                     (a_action action)::
                     (a_method `Post)::
@@ -183,7 +183,7 @@ end = struct
     let empty_seq = []
     let cons_hidden_fieldset fields content =
       let fieldset =
-        HTML5.fieldset
+        Html5.fieldset
           ~a:[a_style "display: none;"]
           fields in
       (fieldset :: content :> form_content_elt_list)
@@ -240,7 +240,7 @@ end = struct
     let make_js_script ?(a=[]) ~uri () =
       script ~a:(a_mime_type "text/javascript" :: a_src uri :: a) (pcdata "")
 
-    type for_attrib = [`For] HTML5.attrib
+    type for_attrib = [`For] Html5.attrib
     let make_for_attrib = a_for
 
   end
@@ -255,8 +255,8 @@ end = struct
 
     functor (Html5_forms_closed : "sigs/eliom_html5_forms_closed.mli") -> (struct
 
-      open HTML5_types
-      open HTML5
+      open Html5_types
+      open Html5
 
       include Html5_forms_closed
 
@@ -919,7 +919,7 @@ end = struct
       let a =
         if xhr then
           let info = make_info ~https `A service in
-          HTML5.D.raw_a_onclick (XML.event_handler_of_service info) :: a
+          Html5.D.raw_a_onclick (Xml.event_handler_of_service info) :: a
         else
           a
       in
@@ -935,7 +935,7 @@ end = struct
       let a =
         if get_xhr xhr then
           let info = make_info ~https `Form_get service in
-          HTML5.D.raw_a_onsubmit (XML.event_handler_of_service info) :: a
+          Html5.D.raw_a_onsubmit (Xml.event_handler_of_service info) :: a
         else
           a
       in
@@ -950,7 +950,7 @@ end = struct
       let a =
         if get_xhr xhr then
           let info = make_info ~https `Form_get service in
-          HTML5.D.raw_a_onsubmit (XML.event_handler_of_service info) :: a
+          Html5.D.raw_a_onsubmit (Xml.event_handler_of_service info) :: a
         else
           a
       in
@@ -966,7 +966,7 @@ end = struct
       let a =
         if get_xhr xhr then
           let info = make_info ~https `Form_post service in
-          HTML5.D.raw_a_onsubmit (XML.event_handler_of_service info) :: a
+          Html5.D.raw_a_onsubmit (Xml.event_handler_of_service info) :: a
         else
           a
       in
@@ -982,7 +982,7 @@ end = struct
       let a =
         if get_xhr xhr then
           let info = make_info ~https `Form_post service in
-          HTML5.D.raw_a_onsubmit (XML.event_handler_of_service info) :: a
+          Html5.D.raw_a_onsubmit (Xml.event_handler_of_service info) :: a
         else
           a
       in
@@ -993,7 +993,7 @@ end = struct
 
   end
 
-  module F = MakeApplForms(Open_Html5_forms(Eliom_mkforms.MakeForms(Html5_forms_base(HTML5.F))))
-  module D = MakeApplForms(Open_Html5_forms(Eliom_mkforms.MakeForms(Html5_forms_base(HTML5.D))))
+  module F = MakeApplForms(Open_Html5_forms(Eliom_mkforms.MakeForms(Html5_forms_base(Html5.F))))
+  module D = MakeApplForms(Open_Html5_forms(Eliom_mkforms.MakeForms(Html5_forms_base(Html5.D))))
 end
 

@@ -1,5 +1,5 @@
 
-open XHTML_types_duce
+open Xhtml_types_duce
 
 type uri = string
 type pcdata_elt = {{ [ PCDATA ] }}
@@ -59,7 +59,7 @@ type for_attrib = {{ { for=String } }}
   (* type div_content_elt = div_content *)
   (* type div_content_elt_list = flows *)
 
-type html = XHTML_types_duce.html
+type html = Xhtml_types_duce.html
 type anyxml = Ocamlduce.Load.anyxml
-type blocks = XHTML_duce.M.elt list
+type blocks = Xhtml_duce.M.elt list
 

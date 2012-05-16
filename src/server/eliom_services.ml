@@ -534,7 +534,7 @@ let unregister ?scope ?secure service =
    redirection.
 *)
 
-let on_load_key : Dom_html.event XML.caml_event_handler list Polytables.key = Polytables.make_key ()
+let on_load_key : Dom_html.event Xml.caml_event_handler list Polytables.key = Polytables.make_key ()
 
 let get_onload sp =
   let rc = Eliom_request_info.get_request_cache_sp sp in
@@ -542,7 +542,7 @@ let get_onload sp =
     List.rev (Polytables.get ~table:rc ~key:on_load_key)
   with Not_found -> []
 
-let on_unload_key : Dom_html.event XML.caml_event_handler list Polytables.key = Polytables.make_key ()
+let on_unload_key : Dom_html.event Xml.caml_event_handler list Polytables.key = Polytables.make_key ()
 
 let get_onunload sp =
   let rc = Eliom_request_info.get_request_cache_sp sp in

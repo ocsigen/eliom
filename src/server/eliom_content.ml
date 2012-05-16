@@ -4,96 +4,96 @@ open Eliom_content_core
 
 module type Forms = "sigs/eliom_forms.mli"
 
-module XML = XML
+module Xml = Xml
 
-module SVG = struct
+module Svg = struct
 
-  module F = SVG.F
-  module D = SVG.D
+  module F = Svg.F
+  module D = Svg.D
 
-  module Id = SVG.Id
+  module Id = Svg.Id
 
   type +'a elt = 'a F.elt
   type +'a attrib = 'a F.attrib
   type uri = F.uri
 
-  module Printer = SVG.Printer
+  module Printer = Svg.Printer
 
 end
 
-module HTML5 = struct
+module Html5 = struct
 
   module F = struct
-    include HTML5.F
+    include Html5.F
     let raw_a = a
     let raw_input = input
     include Eliom_output_base.Html5_forms.F
   end
 
   module D = struct
-    include HTML5.D
+    include Html5.D
     let raw_a = a
     let raw_input = input
     include Eliom_output_base.Html5_forms.D
   end
 
-  module Id = HTML5.Id
+  module Id = Html5.Id
 
-  module Printer = HTML5.Printer
+  module Printer = Html5.Printer
 
   type +'a elt = 'a F.elt
   type +'a attrib = 'a F.attrib
   type uri = F.uri
 end
 
-module XHTML = struct
+module Xhtml = struct
 
   module Xhtml_forms = struct
     module Forms_base = struct
 
-      type uri = XHTML.F.uri
-      type pcdata_elt = XHTML_types.pcdata XHTML.F.elt
+      type uri = Xhtml.F.uri
+      type pcdata_elt = Xhtml_types.pcdata Xhtml.F.elt
 
-      type form_elt = XHTML_types.form XHTML.F.elt
-      type form_content_elt = XHTML_types.form_content XHTML.F.elt
-      type form_content_elt_list = XHTML_types.form_content XHTML.F.elt list
-      type form_attrib_t = XHTML_types.form_attrib XHTML.F.attrib list
+      type form_elt = Xhtml_types.form Xhtml.F.elt
+      type form_content_elt = Xhtml_types.form_content Xhtml.F.elt
+      type form_content_elt_list = Xhtml_types.form_content Xhtml.F.elt list
+      type form_attrib_t = Xhtml_types.form_attrib Xhtml.F.attrib list
 
-      type 'a a_elt = XHTML_types.a XHTML.F.elt
-      type 'a a_elt_list = XHTML_types.a XHTML.F.elt list
-      type 'a a_content_elt = XHTML_types.a_content XHTML.F.elt
-      type 'a a_content_elt_list = XHTML_types.a_content XHTML.F.elt list
-      type a_attrib_t = XHTML_types.a_attrib XHTML.F.attrib list
+      type 'a a_elt = Xhtml_types.a Xhtml.F.elt
+      type 'a a_elt_list = Xhtml_types.a Xhtml.F.elt list
+      type 'a a_content_elt = Xhtml_types.a_content Xhtml.F.elt
+      type 'a a_content_elt_list = Xhtml_types.a_content Xhtml.F.elt list
+      type a_attrib_t = Xhtml_types.a_attrib Xhtml.F.attrib list
 
-      type link_elt = XHTML_types.link XHTML.F.elt
-      type link_attrib_t = XHTML_types.link_attrib XHTML.F.attrib list
+      type link_elt = Xhtml_types.link Xhtml.F.elt
+      type link_attrib_t = Xhtml_types.link_attrib Xhtml.F.attrib list
 
-      type script_elt = XHTML_types.script XHTML.F.elt
-      type script_attrib_t = XHTML_types.script_attrib XHTML.F.attrib list
+      type script_elt = Xhtml_types.script Xhtml.F.elt
+      type script_attrib_t = Xhtml_types.script_attrib Xhtml.F.attrib list
 
-      type textarea_elt = XHTML_types.textarea XHTML.F.elt
-      type textarea_attrib_t = XHTML_types.textarea_attrib XHTML.F.attrib list
+      type textarea_elt = Xhtml_types.textarea Xhtml.F.elt
+      type textarea_attrib_t = Xhtml_types.textarea_attrib Xhtml.F.attrib list
 
-      type input_elt = XHTML_types.input XHTML.F.elt
-      type input_attrib_t = XHTML_types.input_attrib XHTML.F.attrib list
+      type input_elt = Xhtml_types.input Xhtml.F.elt
+      type input_attrib_t = Xhtml_types.input_attrib Xhtml.F.attrib list
 
-      type select_elt = XHTML_types.select XHTML.F.elt
-      type select_content_elt = XHTML_types.select_content XHTML.F.elt
-      type select_content_elt_list = XHTML_types.select_content XHTML.F.elt list
-      type select_attrib_t = XHTML_types.select_attrib XHTML.F.attrib list
+      type select_elt = Xhtml_types.select Xhtml.F.elt
+      type select_content_elt = Xhtml_types.select_content Xhtml.F.elt
+      type select_content_elt_list = Xhtml_types.select_content Xhtml.F.elt list
+      type select_attrib_t = Xhtml_types.select_attrib Xhtml.F.attrib list
 
-      type button_elt = XHTML_types.button XHTML.F.elt
-      type button_content_elt = XHTML_types.button_content XHTML.F.elt
-      type button_content_elt_list = XHTML_types.button_content XHTML.F.elt list
-      type button_attrib_t = XHTML_types.button_attrib XHTML.F.attrib list
+      type button_elt = Xhtml_types.button Xhtml.F.elt
+      type button_content_elt = Xhtml_types.button_content Xhtml.F.elt
+      type button_content_elt_list = Xhtml_types.button_content Xhtml.F.elt list
+      type button_attrib_t = Xhtml_types.button_attrib Xhtml.F.attrib list
 
-      type option_elt = XHTML_types.selectoption XHTML.F.elt
-      type option_elt_list = XHTML_types.selectoption XHTML.F.elt list
-      type optgroup_attrib_t = [ XHTML_types.common | `Disabled ] XHTML.F.attrib list
-      type option_attrib_t = XHTML_types.option_attrib XHTML.F.attrib list
+      type option_elt = Xhtml_types.selectoption Xhtml.F.elt
+      type option_elt_list = Xhtml_types.selectoption Xhtml.F.elt list
+      type optgroup_attrib_t = [ Xhtml_types.common | `Disabled ] Xhtml.F.attrib list
+      type option_attrib_t = Xhtml_types.option_attrib Xhtml.F.attrib list
 
-      open XHTML.F
-      open XHTML_types
+      open Xhtml.F
+      open Xhtml_types
       open Eliom_output_base
 
       type input_type_t = full_input_type
@@ -109,7 +109,7 @@ module XHTML = struct
 
       let buttonsubmit = `Submit
 
-      let uri_of_string = XML.uri_of_fun
+      let uri_of_string = Xml.uri_of_fun
 
       let map_option = List.map
       let map_optgroup f a l = ((f a), List.map f l)
@@ -122,7 +122,7 @@ module XHTML = struct
           | None -> a
           | Some v -> a_href v :: a
         in
-        XHTML.F.a ~a l
+        Xhtml.F.a ~a l
 
       let make_empty_form_content () = p [pcdata ""] (**** à revoir !!!!! *)
       let remove_first = function
@@ -148,7 +148,7 @@ module XHTML = struct
         let elt1 = Eliom_lazy.from_fun (fun () -> fst (Eliom_lazy.force elts))
         and elts = Eliom_lazy.from_fun (fun () -> snd (Eliom_lazy.force elts)) in
         let r =
-          lazy_form ~a:((XHTML.F.a_enctype "multipart/form-data")::
+          lazy_form ~a:((Xhtml.F.a_enctype "multipart/form-data")::
                  (* Always Multipart!!! How to test if there is a file?? *)
                       (a_method `Post)::
                       (if inline then (a_class ["inline"])::aa else aa))
@@ -159,7 +159,7 @@ module XHTML = struct
       let empty_seq = []
       let cons_hidden_fieldset fields content =
         let fieldset =
-          XHTML.F.fieldset
+          Xhtml.F.fieldset
             ~a:[a_style "display: none;"]
             fields in
         (fieldset :: content :> form_content_elt_list)
@@ -217,15 +217,15 @@ module XHTML = struct
       let make_js_script ?(a=[]) ~uri () =
         script ~a:((a_src uri)::a) ~contenttype:"text/javascript" (pcdata "")
 
-      type for_attrib = [`For] XHTML.F.attrib
+      type for_attrib = [`For] Xhtml.F.attrib
       let make_for_attrib = a_for
 
     end
 
     module F = struct
 
-      open XHTML.F
-      open XHTML_types
+      open Xhtml.F
+      open Xhtml_types
       open Eliom_services
       open Eliom_parameters
 
@@ -236,7 +236,7 @@ module XHTML = struct
 
       open Xhtml_forms_closed
       (*BB I do not include [Xhtml_forms_closed], because we must not include
-         [type url] for later inclusion along XHTML.F *)
+         [type url] for later inclusion along Xhtml.F *)
       type 'a soption = 'a Xhtml_forms_closed.soption
       type 'a select_opt = 'a Xhtml_forms_closed.select_opt =
         | Optgroup of
@@ -266,7 +266,7 @@ module XHTML = struct
                 ?nl_params: Eliom_parameters.nl_params_set ->
                 ?xhr:bool ->
                 a_content elt list -> 'get ->
-                a XHTML.F.elt :>
+                a Xhtml.F.elt :>
                   ?absolute:bool ->
                 ?absolute_path:bool ->
                 ?https:bool ->
@@ -281,7 +281,7 @@ module XHTML = struct
                 ?nl_params: Eliom_parameters.nl_params_set ->
                 ?xhr:bool ->
                 a_content elt list -> 'get ->
-                [> a] XHTML.F.elt)
+                [> a] Xhtml.F.elt)
 
       let css_link = (css_link :
                         ?a:(link_attrib attrib list) ->
@@ -908,26 +908,26 @@ module XHTML = struct
   end
 
   module F = struct
-    include XHTML.F
+    include Xhtml.F
     let raw_a = a
     let raw_input = input
     include Xhtml_forms.F
   end
   module F_01_00 = struct
-    include XHTML.F_01_00
+    include Xhtml.F_01_00
     let raw_a = a
     let raw_input = input
     include Xhtml_forms.F
   end
   module F_01_01 = struct
-    include XHTML.F_01_01
+    include Xhtml.F_01_01
     let raw_a = a
     let raw_input = input
     include Xhtml_forms.F
   end
-  module Printer = XHTML.Printer
-  module Printer_01_00 = XHTML.Printer_01_00
-  module Printer_01_01 = XHTML.Printer_01_01
+  module Printer = Xhtml.Printer
+  module Printer_01_00 = Xhtml.Printer_01_00
+  module Printer_01_01 = Xhtml.Printer_01_01
 
 end
 

@@ -29,8 +29,8 @@ let string_prefix s1 s2 =
     s1 = String.sub s2 0 (String.length s1)
 
 module Xhtml = struct
-  open XHTML_types
-  open XHTML.F
+  open Xhtml_types
+  open Xhtml.F
   open Eliom_output.Xhtml
 
   let a_ul classes id level =
@@ -133,7 +133,7 @@ module Xhtml = struct
       ?service
       () =
     
-    let rec depth_first_fun pages level pos : [ `Ul ] XHTML.F.elt list =
+    let rec depth_first_fun pages level pos : [ `Ul ] Xhtml.F.elt list =
       let rec one_item first last i s =
         let (classe, pos2, deplier) =
           match pos with
@@ -171,17 +171,17 @@ module Xhtml = struct
               ((a page text ())::
                   if deplier || whole_tree then
                     (depth_first_fun hsl (level+1) pos2
-                       : [ `Ul ] XHTML.F.elt list
-                     :> [< XHTML_types.li_content > `Ul ] XHTML.F.elt list)
+                       : [ `Ul ] Xhtml.F.elt list
+                     :> [< Xhtml_types.li_content > `Ul ] Xhtml.F.elt list)
                   else [])
           | (text, Site_tree (Not_clickable, hsl)) ->
             li ~a:attclass
-              ((text : XHTML_types.a_content XHTML.F.elt list
-                :> XHTML_types.li_content XHTML.F.elt list)@
+              ((text : Xhtml_types.a_content Xhtml.F.elt list
+                :> Xhtml_types.li_content Xhtml.F.elt list)@
                   if deplier || whole_tree then
                     (depth_first_fun hsl (level+1) pos2
-                       : [ `Ul ] XHTML.F.elt list
-                     :> [< XHTML_types.li_content > `Ul ] XHTML.F.elt list)
+                       : [ `Ul ] Xhtml.F.elt list
+                     :> [< Xhtml_types.li_content > `Ul ] Xhtml.F.elt list)
                   else [])
 
       and one_menu first i = function
@@ -196,7 +196,7 @@ module Xhtml = struct
     in
 
     (depth_first_fun pages 0 (find_in_hierarchy service the_menu)
-       : [ `Ul ] XHTML.F.elt list :> [> `Ul ] XHTML.F.elt list)
+       : [ `Ul ] Xhtml.F.elt list :> [> `Ul ] Xhtml.F.elt list)
 
 
   let hierarchical_menu_breadth_first
@@ -207,7 +207,7 @@ module Xhtml = struct
       () =
 
     let rec breadth_first_fun pages level pos
-        : [ `Ul ] XHTML.F.elt list =
+        : [ `Ul ] Xhtml.F.elt list =
       let rec one_item first last i s =
         let (classe, pos2, deplier) =
           match pos with
@@ -263,7 +263,7 @@ module Xhtml = struct
 
     in
     (breadth_first_fun pages 0 (find_in_hierarchy service the_menu)
-       : [ `Ul ] XHTML.F.elt list :> [> `Ul ] XHTML.F.elt list)
+       : [ `Ul ] Xhtml.F.elt list :> [> `Ul ] Xhtml.F.elt list)
 
 
   let structure_links (default, pages) ?service () =
@@ -315,10 +315,10 @@ module Xhtml = struct
   let head ~title:ttl ?(css=[]) ?(js=[]) () =
     let mk_css_link path =
       let uri = make_uri (Eliom_services.static_dir ()) path in
-      (* XHTML.create_global_elt ( *)css_link ~uri ()(* ) *) in
+      (* Xhtml.create_global_elt ( *)css_link ~uri ()(* ) *) in
     let mk_js_script path =
       let uri = make_uri  (Eliom_services.static_dir ()) path in
-      (* XHTML.create_global_elt ( *)js_script ~uri ()(* ) *) in
+      (* Xhtml.create_global_elt ( *)js_script ~uri ()(* ) *) in
     head
       (title (pcdata ttl))
       List.(map mk_css_link css @ map mk_js_script js)
@@ -326,8 +326,8 @@ module Xhtml = struct
 end
 
 module Html5 = struct
-  open HTML5_types
-  open HTML5.D
+  open Html5_types
+  open Html5.D
 
   let a_ul classes id level =
     let classes = [a_class classes] in
@@ -606,10 +606,10 @@ module Html5 = struct
   let head ~title:ttl ?(css=[]) ?(js=[]) () =
     let mk_css_link path =
       let uri = make_uri (Eliom_services.static_dir ()) path in
-      HTML5.Id.create_global_elt (css_link ~uri ()) in
+      Html5.Id.create_global_elt (css_link ~uri ()) in
     let mk_js_script path =
       let uri = make_uri  (Eliom_services.static_dir ()) path in
-      HTML5.Id.create_global_elt (js_script ~uri ()) in
+      Html5.Id.create_global_elt (js_script ~uri ()) in
     head
       (title (pcdata ttl))
       List.(map mk_css_link css @ map mk_js_script js)

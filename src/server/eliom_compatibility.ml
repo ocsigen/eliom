@@ -3,24 +3,24 @@ module Ocsigen_pervasives = Eliom_lib
 
 module Eliom_pervasives = struct
   include Eliom_lib
-  module XML = Eliom_content_core.XML
-  module SVG = Eliom_content_core.SVG
+  module XML = Eliom_content_core.Xml
+  module SVG = Eliom_content_core.Svg
   module HTML5 = struct
     module M = struct
-      include Eliom_content.HTML5.F
+      include Eliom_content.Html5.F
       let a = raw_a
       let input = raw_input
     end
     module DOM = struct
-      include Eliom_content.HTML5.D
+      include Eliom_content.Html5.D
       let a = raw_a
       let input = raw_input
     end
-    include Eliom_content.HTML5.Id
+    include Eliom_content.Html5.Id
     include DOM
   end
   module XHTML = struct
-    module M = Eliom_content_core.XHTML.F
+    module M = Eliom_content_core.Xhtml.F
     include M
   end
 end
@@ -37,15 +37,15 @@ module Eliom_output = struct
   }
   let appl_self_redirect = Eliom_output.appl_self_redirect
   module Html5_forms = struct
-    module M : "sigs/eliom_html5_forms.mli" = Eliom_content.HTML5.F
-    module DOM : "sigs/eliom_html5_forms.mli" = Eliom_content.HTML5.D
+    module M : "sigs/eliom_html5_forms.mli" = Eliom_content.Html5.F
+    module DOM : "sigs/eliom_html5_forms.mli" = Eliom_content.Html5.D
     include DOM
   end
   module Html5 = struct
     include Eliom_output.Html5
     include Html5_forms
   end
-  module Xhtml_forms : "sigs/eliom_xhtml_forms.mli" = Eliom_content.XHTML.F
+  module Xhtml_forms : "sigs/eliom_xhtml_forms.mli" = Eliom_content.Xhtml.F
   module Xhtml = struct
     include Eliom_output.Xhtml
     include Xhtml_forms

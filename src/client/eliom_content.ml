@@ -2,13 +2,13 @@
 open Eliom_lib
 open Eliom_content_core
 
-module XML = XML
+module Xml = Xml
 
-module SVG = struct
+module Svg = struct
 
-  module F = SVG.F
-  module D = SVG.D
-  module Id = SVG.Id
+  module F = Svg.F
+  module D = Svg.D
+  module Id = Svg.Id
 
   type 'a elt = 'a F.elt
   type 'a attrib = 'a F.attrib
@@ -16,25 +16,25 @@ module SVG = struct
 
 end
 
-module HTML5 = struct
+module Html5 = struct
 
   module F = struct
-    include HTML5.F
+    include Html5.F
     include Eliom_output_base.Html5_forms.F
   end
 
   module D = struct
-    include HTML5.D
+    include Html5.D
     include Eliom_output_base.Html5_forms.D
   end
 
-  module Id = HTML5.Id
+  module Id = Html5.Id
 
   type 'a elt = 'a F.elt
   type 'a attrib = 'a F.attrib
   type uri = F.uri
 
-  module Of_dom = HTML5.Of_dom
+  module Of_dom = Html5.Of_dom
 
   module To_dom = struct
 
@@ -169,12 +169,12 @@ module HTML5 = struct
 
   module Manip = struct
     let get_node elt = (To_dom.of_element elt :> Dom.node Js.t)
-    let get_unique_node name (elt: 'a HTML5.elt) : Dom.node Js.t =
-      match XML.get_node (HTML5.D.toelt elt) with
-      | XML.DomNode node -> node
-      | XML.TyXMLNode desc ->
-          match XML.get_node_id (HTML5.D.toelt elt) with
-          | XML.NoId -> failwith (Printf.sprintf "Non unique node (%s)" name)
+    let get_unique_node name (elt: 'a Html5.elt) : Dom.node Js.t =
+      match Xml.get_node (Html5.D.toelt elt) with
+      | Xml.DomNode node -> node
+      | Xml.TyXMLNode desc ->
+          match Xml.get_node_id (Html5.D.toelt elt) with
+          | Xml.NoId -> failwith (Printf.sprintf "Non unique node (%s)" name)
           | _ -> get_node elt
 
     let get_unique_elt name elt : Dom_html.element Js.t =
@@ -258,7 +258,7 @@ module HTML5 = struct
 
     let raw_addEventListener ?(capture = false) node event handler =
       Dom_html.addEventListener node event
-        (Dom_html.full_handler (fun n e -> Js.bool (handler (HTML5.D.tot (XML.make_dom (n :> Dom.node Js.t))) e)))
+        (Dom_html.full_handler (fun n e -> Js.bool (handler (Html5.D.tot (Xml.make_dom (n :> Dom.node Js.t))) e)))
         (Js.bool capture)
 
     let addEventListener ?capture target event handler =
@@ -267,7 +267,7 @@ module HTML5 = struct
 
     module Named = struct
       let get_element id =
-        let id = HTML5.Id.string_of_id id in
+        let id = Html5.Id.string_of_id id in
         let node = Eliom_client.getElementById id in
         Js.Opt.case
           (Dom_html.CoerceTo.element node)

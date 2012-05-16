@@ -1,12 +1,12 @@
 
 module Eliom_pervasives = struct
   include Eliom_lib
-  module XML = Eliom_content_core.XML
-  module SVG = Eliom_content_core.SVG
+  module XML = Eliom_content_core.Xml
+  module SVG = Eliom_content_core.Svg
   module HTML5 = struct
-    module M = Eliom_content_core.HTML5.F
-    module DOM = Eliom_content_core.HTML5.D
-    include Eliom_content.HTML5.Id
+    module M = Eliom_content_core.Html5.F
+    module DOM = Eliom_content_core.Html5.D
+    include Eliom_content.Html5.Id
     include DOM
   end
   let iter_option = Eliom_lib.Option.iter
@@ -17,7 +17,7 @@ include Eliom_pervasives
 module Eliom_output = struct
   type http_service = Eliom_output.http_service
   type appl_service = Eliom_output.appl_service
-  module Html5_forms : "sigs/eliom_html5_forms.mli" = Eliom_content.HTML5.D
+  module Html5_forms : "sigs/eliom_html5_forms.mli" = Eliom_content.Html5.D
   module Html5 = struct
     include Eliom_output.Html5
     include Html5_forms
@@ -39,7 +39,7 @@ end
 
 module Eliom_client = struct
   include Eliom_client
-  module Html5 = Eliom_content.HTML5.To_dom
+  module Html5 = Eliom_content.Html5.To_dom
 end
 
-module Eliom_dom = Eliom_content.HTML5.Manip
+module Eliom_dom = Eliom_content.Html5.Manip

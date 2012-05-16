@@ -34,7 +34,7 @@ module Atom_info = struct
   let emptytags = []
 end
 
-module Format = XML_print.MakeSimple(XML)(Atom_info)
+module Format = Xml_print.Make_simple(Xml)(Atom_info)
 
 let result_of_content feed headers =
    let b = Buffer.create 10 in
@@ -118,7 +118,7 @@ let rec ping_hub u address t =
 
 let rec nfu_s hubs address = match hubs with
    | []     -> ()
-   | s :: r -> let u = Neturl.parse_url (XML.string_of_uri s) in ignore (ping_hub u address 1.) ; 
+   | s :: r -> let u = Neturl.parse_url (Xml.string_of_uri s) in ignore (ping_hub u address 1.) ; 
       nfu_s r address
 
 let notify_feed_updates address hubs s = 

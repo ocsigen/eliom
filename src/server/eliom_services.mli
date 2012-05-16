@@ -597,7 +597,7 @@ val unregister :
 
     [onload {{ Firebug.console.debug(Js.string "Hello world!") }}].
 *)
-val onload : Dom_html.event XML.caml_event_handler -> unit
+val onload : Dom_html.event Xml.caml_event_handler -> unit
 
 (** The function [onunload evt] will register the function [evt] to be
     executed on client side when leaving the [Eliom_appl] page
@@ -608,7 +608,7 @@ val onload : Dom_html.event XML.caml_event_handler -> unit
     example:
 
     [onunload {{ Firebug.console.debug(Js.string "Goodbye!") }}].*)
-val onunload : Dom_html.event XML.caml_event_handler -> unit
+val onunload : Dom_html.event Xml.caml_event_handler -> unit
 
 
 
@@ -714,8 +714,8 @@ val get_send_appl_content : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> send_app
 val xhr_with_cookies :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> string option option
 
-val get_onload : Eliom_common.server_params -> Dom_html.event XML.caml_event_handler list
-val get_onunload : Eliom_common.server_params -> Dom_html.event XML.caml_event_handler list
+val get_onload : Eliom_common.server_params -> Dom_html.event Xml.caml_event_handler list
+val get_onunload : Eliom_common.server_params -> Dom_html.event Xml.caml_event_handler list
 
 val pre_wrap :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->

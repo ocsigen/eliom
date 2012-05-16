@@ -36,7 +36,7 @@ val menu :
     list ->
   ?service:('a, 'b, 'c) one_page ->
   unit ->
-  XHTML_types_duce.ul
+  Xhtml_types_duce.ul
 (** Creates a menu
 
    Example:
@@ -78,7 +78,7 @@ val hierarchical_menu_depth_first :
       hierarchical_site ->
   ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
   unit ->
-    {{ [XHTML_types_duce.ul*] }}
+    {{ [Xhtml_types_duce.ul*] }}
 
 
 (**
@@ -102,7 +102,7 @@ val hierarchical_menu_breadth_first :
       hierarchical_site ->
   ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
   unit ->
-    {{ [XHTML_types_duce.ul*] }}
+    {{ [Xhtml_types_duce.ul*] }}
 
 
 (** Returns the tags [<link rel="subsection" ...>] and
@@ -115,5 +115,5 @@ val structure_links :
     hierarchical_site ->
   ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
   unit ->
-  {{ [XHTML_types_duce.link*] }}
+  {{ [Xhtml_types_duce.link*] }}
 

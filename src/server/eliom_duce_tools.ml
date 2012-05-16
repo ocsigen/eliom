@@ -19,7 +19,7 @@
 
 open Eliom_duce.Xhtml
 open Eliom_services
-open XHTML_types_duce
+open Xhtml_types_duce
 open Eliom_tools_common
 
 
@@ -136,8 +136,8 @@ let hierarchical_menu_depth_first
     ?service
     () =
 
-  let rec depth_first_fun pages level pos : {{ [XHTML_types_duce.ul*] }} =
-    let rec one_item first last i s : XHTML_types_duce.li =
+  let rec depth_first_fun pages level pos : {{ [Xhtml_types_duce.ul*] }} =
+    let rec one_item first last i s : Xhtml_types_duce.li =
       let (classe, pos2, deplier) =
         match pos with
         | [] -> ([], [], false)
@@ -186,15 +186,15 @@ let hierarchical_menu_depth_first
                                                         {{ [] }} :}
                                         ] }}
           (* li ~a:attclass
-            ((text : XHTML_types.a_content XHTML.elt list
-                :> XHTML_types.li_content XHTML.elt list)@
+            ((text : Xhtml_types.a_content Xhtml.elt list
+                :> Xhtml_types.li_content Xhtml.elt list)@
              if deplier || whole_tree then
                (depth_first_fun hsl (level+1) pos2
-                  : [ `Ul ] XHTML.elt list
-                  :> [< XHTML_types.li_content > `Ul ] XHTML.elt list)
+                  : [ `Ul ] Xhtml.elt list
+                  :> [< Xhtml_types.li_content > `Ul ] Xhtml.elt list)
              else []) *)
 
-    and one_menu first i l : {{ [XHTML_types_duce.li*] }} = match l with
+    and one_menu first i l : {{ [Xhtml_types_duce.li*] }} = match l with
       | [] -> {{ [] }}
       | [a] -> let aa = one_item first true i a in {{ [ aa ] }}
       | a::l -> 
@@ -221,7 +221,7 @@ let hierarchical_menu_breadth_first
     ?service
     () =
 
-  let rec breadth_first_fun pages level pos : {{ [XHTML_types_duce.ul*] }} =
+  let rec breadth_first_fun pages level pos : {{ [Xhtml_types_duce.ul*] }} =
     let rec one_item first last i s =
       let (classe, pos2, deplier) =
         match pos with

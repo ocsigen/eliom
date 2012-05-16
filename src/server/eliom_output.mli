@@ -19,7 +19,7 @@
  *)
 
 (** Eliom services registration for various kinds of
-    page content: Eliom application, valid {!HTML5} or {!XHTML},
+    page content: Eliom application, valid {!Html5} or {!Xhtml},
     actions, redirections, static files, … *)
 
 (** See the Eliom manual for
@@ -78,7 +78,7 @@ type browser_content = [ `Browser ]
 (** The type [block_content] is a refinement of {!http_service} to be
     used as a phantom type parameters for {!Eliom_output.kind}. It
     means the returned content is a subtree of an XML value. See for
-    example {!Blocks5} or {!Make_TypedXML_Registration}. *)
+    example {!Blocks5} or {!Make_typed_xml_registration}. *)
 type block_content
 
 (** The type [unknown_content] is a refinement of {!http_service} to
@@ -196,7 +196,7 @@ module type ELIOM_APPL = sig
       that represents the javascript part of the application. If you
       do not include this script in the [<head>] node of your page, it
       will be automatically added at the end of the [<head>] node. *)
-  val application_script : ?async:bool -> unit -> [> `Script ] HTML5.elt
+  val application_script : ?async:bool -> unit -> [> `Script ] Eliom_content_core.Html5.elt
 
   (** Unique identifier for this application. Currently, it is just
       the application name as defined by {!Appl_params.application_name}.
@@ -213,7 +213,7 @@ module type ELIOM_APPL = sig
   type appl
 
   include "sigs/eliom_reg.mli"
-    subst type page    := HTML5_types.html HTML5.elt
+    subst type page    := Html5_types.html Eliom_content_core.Html5.elt
       and type options := appl_service_options
       and type return  := appl_service
       and type result  := (appl application_content, appl_service) kind
@@ -230,8 +230,8 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : ELIOM_APPL
 module type TMPL_PARAMS = sig
   type t
   val name: string
-  val make_page: t -> HTML5_types.html HTML5.elt Lwt.t
-  val update: t -> Dom_html.event XML.caml_event_handler
+  val make_page: t -> Html5_types.html Eliom_content_core.Html5.elt Lwt.t
+  val update: t -> Dom_html.event Xml.caml_event_handler
 end
 
 module Eliom_tmpl (Appl : ELIOM_APPL) (Tmpl_param : TMPL_PARAMS): sig
@@ -254,14 +254,14 @@ end
     fragment.
 *)
 module Flow5 : "sigs/eliom_reg.mli"
-  subst type page    := HTML5_types.flow5 HTML5.elt list
+  subst type page    := Html5_types.flow5 Eliom_content_core.Html5.elt list
   and type options := unit
   and type return  := http_service
   and type result  := (block_content, http_service) kind
 
 (** Deprecated alias for {!Flow5}. *)
 module Blocks5 : "sigs/eliom_reg.mli"
-  subst type page    := HTML5_types.flow5 HTML5.elt list
+  subst type page    := Html5_types.flow5 Eliom_content_core.Html5.elt list
   and type options := unit
   and type return  := http_service
   and type result  := (block_content, http_service) kind
@@ -270,7 +270,7 @@ module Blocks5 : "sigs/eliom_reg.mli"
     XHTML page. This is an instance of the {!Registration} abstract
     signature. *)
 module Blocks : "sigs/eliom_reg.mli"
-  subst type page    := XHTML_types.body_content XHTML.F.elt list
+  subst type page    := Xhtml_types.body_content Eliom_content_core.Xhtml.F.elt list
   and type options := unit
   and type return  := http_service
   and type result  := (block_content, http_service) kind
@@ -278,13 +278,13 @@ module Blocks : "sigs/eliom_reg.mli"
 (** Eliom service registration for services that returns fragment of
     TyXML's tree. The returned module is an instance of the
     {!Registration} abstract signature. *)
-module Make_TypedXML_Registration
-  (XML: XML_sigs.Iterable)
-  (TypedXML: XML_sigs.TypedXML with module XML := XML)
+module Make_typed_xml_registration
+  (Xml: Xml_sigs.Iterable)
+  (Typed_xml: Xml_sigs.Typed_xml with module Xml := Xml)
   (E : sig type content end) :
 
   "sigs/eliom_reg.mli"
-  subst type page    := E.content TypedXML.elt list
+  subst type page    := E.content Typed_xml.elt list
   and type options := unit
   and type return  := http_service
   and type result  := (block_content, http_service) kind

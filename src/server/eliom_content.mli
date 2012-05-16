@@ -9,21 +9,21 @@ module type Forms = "sigs/eliom_forms.mli"
 
     XML tree manipulation within Eliom is based on the TyXML library
     but use a custom representation for XML values (see
-    {!XML}). Then, [Eliom_lib] redefines the three high level
-    interfaces ({!SVG}, {!HTML5} and {!XHTML}) that are provided by
+    {!Xml}). Then, [Eliom_lib] redefines the three high level
+    interfaces ({!Svg}, {!Html5} and {!Xhtml}) that are provided by
     TyXML for valid XML tree creation and printing. *)
 
 (** Low-level XML manipulation. *)
-module XML : sig
+module Xml : sig
 
   (** {2 Base functions } *)
 
-  include XML_sigs.Iterable
-    with type uri = XML.uri
-    and type separator = XML.separator
-    and type acontent = XML.acontent
-    and type attrib = XML.attrib
-    and type elt = XML.elt
+  include Xml_sigs.Iterable
+    with type uri = Xml.uri
+    and type separator = Xml.separator
+    and type acontent = Xml.acontent
+    and type attrib = Xml.attrib
+    and type elt = Xml.elt
 
   (** {2 Unique nodes } *)
 
@@ -41,12 +41,12 @@ module XML : sig
       information on {% <<a_manual chapter="client"
       fragment="syntax"|syntax extension>>%}). Such values are expected
       by functions like {!Eliom_services.on_load} or
-      {!Eliom_lib.HTML5.a_onclick}. The type parameter is the
+      {!Eliom_lib.Html5.a_onclick}. The type parameter is the
       type of the javascript event expected by the handler, for
       example {% <<a_api project="js_of_ocaml" | type
       Dom_html.mouseEvent>>%} or {% <<a_api project="js_of_ocaml" | type
       Dom_html.keyboardEvent >>%}. *)
-  type -'a caml_event_handler = 'a XML.caml_event_handler constraint 'a = #Dom_html.event
+  type -'a caml_event_handler = 'a Xml.caml_event_handler constraint 'a = #Dom_html.event
 
   (**/**)
 
@@ -56,8 +56,8 @@ module XML : sig
   val uri_of_fun: (unit -> string) -> uri
 
   (* Building ref tree. *)
-  type event_handler_table = XML.event_handler_table (* Concrete on client-side only. *)
-  type node_id = XML.node_id
+  type event_handler_table = Xml.event_handler_table (* Concrete on client-side only. *)
+  type node_id = Xml.node_id
   val get_node_id : elt -> node_id
   val make_event_handler_table : elt -> event_handler_table
 
@@ -90,7 +90,7 @@ module XML : sig
 end
 
 (** Building and pretty-printing valid SVG tree. *)
-module SVG : sig
+module Svg : sig
 
   (** See the Eliom manual for more information on{% <<a_manual
       chapter="client" fragment="unique"| dom semantics vs. functional
@@ -101,17 +101,17 @@ module SVG : sig
 
   (** Typed interface for building valid SVG tree (functional
       semantics). See {% <<a_api project="tyxml" | module type
-      SVG_sigs.T >> %}. *)
-  module F : SVG_sigs.T with module XML := XML
-		        and type 'a elt = 'a SVG.elt
-		        and type 'a attrib = 'a SVG.attrib
-		        and type uri = SVG.uri
+      Svg_sigs.T >> %}. *)
+  module F : Svg_sigs.T with module Xml := Xml
+		        and type 'a elt = 'a Svg.elt
+		        and type 'a attrib = 'a Svg.attrib
+		        and type uri = Svg.uri
 
   (** {2 Dom semantics} *)
 
   (** Typed interface for building valid SVG tree (DOM semantics). See
-      {% <<a_api project="tyxml" | module type SVG_sigs.T >> %}. *)
-  module D : SVG_sigs.T with module XML := XML
+      {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
+  module D : Svg_sigs.T with module Xml := Xml
 		        and type 'a elt = 'a F.elt
 		        and type 'a attrib = 'a F.attrib
 		        and type uri = F.uri
@@ -126,25 +126,25 @@ module SVG : sig
     (** The type of global SVG element identifier. *)
     type +'a id
 
-    (** See {!Eliom_lib.HTML5.new_elt_id} *)
+    (** See {!Eliom_lib.Html5.new_elt_id} *)
     val new_elt_id: ?global:bool -> unit -> 'a id
-    (** See {!Eliom_lib.HTML5.create_named_elt} *)
+    (** See {!Eliom_lib.Html5.create_named_elt} *)
     val create_named_elt: id:'a id -> 'a elt -> 'a elt
-    (** See {!Eliom_lib.HTML5.create_global_elt} *)
+    (** See {!Eliom_lib.Html5.create_global_elt} *)
     val create_global_elt: 'a elt -> 'a elt
   end
 
   (** {2 Printer} *)
 
   (** SVG printer.
-      See {% <<a_api project="tyxml" | module type XML_sigs.TypedSimplePrinter >> %}. *)
-  module Printer : XML_sigs.TypedSimplePrinter with type 'a elt := 'a F.elt
+      See {% <<a_api project="tyxml" | module type Xml_sigs.Typed_simple_printer >> %}. *)
+  module Printer : Xml_sigs.Typed_simple_printer with type 'a elt := 'a F.elt
 					  and type doc := F.doc
 
 end
 
 (** Building and printing valid (X)HTML5 tree. *)
-module HTML5 : sig
+module Html5 : sig
 
   (** See the Eliom manual for more information on{% <<a_manual
       chapter="client" fragment="unique"| dom semantics vs. functional
@@ -155,17 +155,17 @@ module HTML5 : sig
 
   (** Typed interface for building valid HTML5 tree (functional
       semantics). See {% <<a_api project="tyxml" | module type
-      HTML5_sigs.T >> %}. *)
+      Html5_sigs.T >> %}. *)
   module F : sig
 
-    (** See {% <<a_api project="tyxml" | module type HTML5_sigs.T >> %}. *)
-    include HTML5_sigs.T with module XML := XML and module SVG := SVG.F
-		         and type 'a elt = 'a HTML5.elt
-		         and type 'a attrib = 'a HTML5.attrib
-		         and type uri = HTML5.uri
+    (** See {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+    include Html5_sigs.T with module Xml := Xml and module Svg := Svg.F
+		         and type 'a elt = 'a Html5.elt
+		         and type 'a attrib = 'a Html5.attrib
+		         and type uri = Html5.uri
     (* TODO Hide untyped [a], [input]. *)
-    val raw_a : ([< HTML5_types.a_attrib ], 'a, [> `A of 'a ]) star
-    val raw_input : ([< HTML5_types.input_attrib ], [> HTML5_types.input ]) nullary
+    val raw_a : ([< Html5_types.a_attrib ], 'a, [> `A of 'a ]) star
+    val raw_input : ([< Html5_types.input_attrib ], [> Html5_types.input ]) nullary
 
     (** {2 Event handlers} *)
 
@@ -182,7 +182,7 @@ module HTML5 : sig
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     val lazy_form:
-      ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus
+      ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_plus
     (**/**)
 
   end
@@ -190,17 +190,17 @@ module HTML5 : sig
   (** {2 Dom semantics} *)
 
   (** Typed interface for building valid HTML5 tree (DOM semantics). See
-      {% <<a_api project="tyxml" | module type HTML5_sigs.T >> %}. *)
+      {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
   module D : sig
 
-    (** See {% <<a_api project="tyxml" | module type HTML5_sigs.T >> %}. *)
-    include HTML5_sigs.T with module XML := XML and module SVG := SVG.D
+    (** See {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+    include Html5_sigs.T with module Xml := Xml and module Svg := Svg.D
 		         and type 'a elt = 'a F.elt
 		         and type 'a attrib = 'a F.attrib
 		         and type uri = F.uri
     (* TODO Hide untyped [a], [input]. *)
-    val raw_a : ([< HTML5_types.a_attrib ], 'a, [> `A of 'a ]) star
-    val raw_input : ([< HTML5_types.input_attrib ], [> HTML5_types.input ]) nullary
+    val raw_a : ([< Html5_types.a_attrib ], 'a, [> `A of 'a ]) star
+    val raw_input : ([< Html5_types.input_attrib ], [> Html5_types.input ]) nullary
 
     (** {2 Event handlers} *)
 
@@ -217,7 +217,7 @@ module HTML5 : sig
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     val lazy_form:
-      ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus
+      ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_plus
     (**/**)
 
   end
@@ -254,26 +254,26 @@ module HTML5 : sig
   (** {2 Printer} *)
 
   (** {{:http://dev.w3.org/html5/html-xhtml-author-guide/}"Polyglot"} HTML5 printer.
-     See {% <<a_api project="tyxml" | module type XML_sigs.TypedSimplePrinter >> %}. *)
-  module Printer : XML_sigs.TypedSimplePrinter with type 'a elt := 'a F.elt
+     See {% <<a_api project="tyxml" | module type Xml_sigs.Typed_simple_printer >> %}. *)
+  module Printer : Xml_sigs.Typed_simple_printer with type 'a elt := 'a F.elt
 					  and type doc := F.doc
 
 end
 
 (** Building and printing valid XHTML tree. *)
-module XHTML : sig
+module Xhtml : sig
 
   (** Typed interface for building valid XHTML (Strict) tree. *)
   module F : sig
 
-    include XHTML_sigs.T with module XML := XML
-      with type +'a elt = 'a XHTML.F.elt
-      and type 'a attrib = 'a XHTML.F.attrib
-      and type uri = XHTML.F.uri
+    include Xhtml_sigs.T with module Xml := Xml
+      with type +'a elt = 'a Xhtml.F.elt
+      and type 'a attrib = 'a Xhtml.F.attrib
+      and type uri = Xhtml.F.uri
 
     (* TODO Hide untyped [a], [input]. *)
-    val raw_a : ([< XHTML_types.a_attrib ], [< XHTML_types.a_content ], [> XHTML_types.a ]) star
-    val raw_input : ([< XHTML_types.input_attrib ], [> XHTML_types.input ]) nullary
+    val raw_a : ([< Xhtml_types.a_attrib ], [< Xhtml_types.a_content ], [> Xhtml_types.a ]) star
+    val raw_input : ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ]) nullary
 
     include "sigs/eliom_xhtml_forms.mli"
 
@@ -282,8 +282,8 @@ module XHTML : sig
         ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     val lazy_form:
-      action:XML.uri ->
-      ([< XHTML_types.form_attrib ], [< XHTML_types.form_content ], [> XHTML_types.form ]) lazy_plus
+      action:Xml.uri ->
+      ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ], [> Xhtml_types.form ]) lazy_plus
     (**/**)
 
   end
@@ -296,15 +296,15 @@ module XHTML : sig
     an instance the {!Registration} abstract signatures. *)
  *)
 
-    (** See {% <<a_api project="tyxml" | module type XHTML_sigs.T >> %}. *)
-    include XHTML_sigs.T with module XML := XML
-      with type +'a elt = 'a XHTML.F_01_00.elt
-      and type 'a attrib = 'a XHTML.F_01_00.attrib
-      and type uri = XHTML.F_01_00.uri
+    (** See {% <<a_api project="tyxml" | module type Xhtml_sigs.T >> %}. *)
+    include Xhtml_sigs.T with module Xml := Xml
+      with type +'a elt = 'a Xhtml.F_01_00.elt
+      and type 'a attrib = 'a Xhtml.F_01_00.attrib
+      and type uri = Xhtml.F_01_00.uri
 
     (* TODO Hide untyped [a], [input]. *)
-    val raw_a : ([< XHTML_types.a_attrib ], [< XHTML_types.a_content ], [> XHTML_types.a ]) star
-    val raw_input : ([< XHTML_types.input_attrib ], [> XHTML_types.input ]) nullary
+    val raw_a : ([< Xhtml_types.a_attrib ], [< Xhtml_types.a_content ], [> Xhtml_types.a ]) star
+    val raw_input : ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ]) nullary
 
     include "sigs/eliom_xhtml_forms.mli"
 
@@ -313,8 +313,8 @@ module XHTML : sig
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     val lazy_form:
-      action:XML.uri ->
-      ([< XHTML_types.form_attrib ], [< XHTML_types.form_content ], [> XHTML_types.form ]) lazy_plus
+      action:Xml.uri ->
+      ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ], [> Xhtml_types.form ]) lazy_plus
     (**/**)
 
   end
@@ -322,15 +322,15 @@ module XHTML : sig
   (** Typed interface for building valid XHTML (1.1 Strict) tree. *)
   module F_01_01 : sig
 
-    (** See {% <<a_api project="tyxml" | module type XHTML_sigs.T >> %}. *)
-    include XHTML_sigs.T with module XML := XML
-      with type +'a elt = 'a XHTML.F_01_01.elt
-      and type 'a attrib = 'a XHTML.F_01_01.attrib
-      and type uri = XHTML.F_01_01.uri
+    (** See {% <<a_api project="tyxml" | module type Xhtml_sigs.T >> %}. *)
+    include Xhtml_sigs.T with module Xml := Xml
+      with type +'a elt = 'a Xhtml.F_01_01.elt
+      and type 'a attrib = 'a Xhtml.F_01_01.attrib
+      and type uri = Xhtml.F_01_01.uri
 
     (* TODO Hide untyped [a], [input]. *)
-    val raw_a : ([< XHTML_types.a_attrib ], [< XHTML_types.a_content ], [> XHTML_types.a ]) star
-    val raw_input : ([< XHTML_types.input_attrib ], [> XHTML_types.input ]) nullary
+    val raw_a : ([< Xhtml_types.a_attrib ], [< Xhtml_types.a_content ], [> Xhtml_types.a ]) star
+    val raw_input : ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ]) nullary
 
     include "sigs/eliom_xhtml_forms.mli"
 
@@ -339,42 +339,42 @@ module XHTML : sig
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     val lazy_form:
-      action:XML.uri ->
-      ([< XHTML_types.form_attrib ], [< XHTML_types.form_content ], [> XHTML_types.form ]) lazy_plus
+      action:Xml.uri ->
+      ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ], [> Xhtml_types.form ]) lazy_plus
     (**/**)
 
   end
 
   (** XHTML (latest Strict) printer. See {% <<a_api project="tyxml" |
-      module type XML_sigs.TypedSimplePrinter >> %}. This printer try
+      module type Xml_sigs.Typed_simple_printer >> %}. This printer try
       to follow the {{:http://www.w3.org/TR/xhtml1/#guidelines}W3C
       guidelines} for HTML compatibility. Hence the resulting string
       could be serve as well as [application/xhtml+xml] or
       [text/html]. This however has some
       {{:http://hixie.ch/advocacy/xhtml}limitations}. *)
-  module Printer : XML_sigs.TypedSimplePrinter
+  module Printer : Xml_sigs.Typed_simple_printer
     with type 'a elt := 'a F.elt
     and type doc := F.doc
 
   (** XHTML (1.0 Strict) printer. See {% <<a_api project="tyxml" |
-      module type XML_sigs.TypedSimplePrinter >> %}. This printer try
+      module type Xml_sigs.Typed_simple_printer >> %}. This printer try
       to follow the {{:http://www.w3.org/TR/xhtml1/#guidelines}W3C
       guidelines} for HTML compatibility. Hence the resulting string
       could be serve as well as [application/xhtml+xml] or
       [text/html]. This however has some
       {{:http://hixie.ch/advocacy/xhtml}limitations}. *)
-  module Printer_01_00 : XML_sigs.TypedSimplePrinter
+  module Printer_01_00 : Xml_sigs.Typed_simple_printer
                    with type 'a elt := 'a F_01_00.elt
 		   and type doc := F_01_00.doc
 
   (** XHTML (1.1 Strict) printer. See {% <<a_api project="tyxml" |
-      module type XML_sigs.TypedSimplePrinter >> %}. This printer try
+      module type Xml_sigs.Typed_simple_printer >> %}. This printer try
       to follow the {{:http://www.w3.org/TR/xhtml1/#guidelines}W3C
       guidelines} for HTML compatibility. Hence the resulting string
       could be serve as well as [application/xhtml+xml] or
       [text/html]. This however has some
       {{:http://hixie.ch/advocacy/xhtml}limitations}. *)
-  module Printer_01_01 : XML_sigs.TypedSimplePrinter
+  module Printer_01_01 : Xml_sigs.Typed_simple_printer
                    with type 'a elt := 'a F_01_01.elt
 		   and type doc := F_01_01.doc
 
