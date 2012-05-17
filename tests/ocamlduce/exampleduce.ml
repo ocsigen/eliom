@@ -16,13 +16,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_compatibility_2_1
 
 open Eliom_services
 open Eliom_parameters
 open Eliom_state
 open Eliom_duce.Xhtml
 open Lwt
-open XHTML_types_duce
+open Xhtml_types_duce
 
 let s =
   register_service

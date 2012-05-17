@@ -40,10 +40,10 @@ eliom_common_base.cmo: eliom_lib_base.cmo eliom_lib.cmi
 eliom_common_base.cmx: eliom_lib_base.cmx eliom_lib.cmx
 eliom_common.cmo: eliom_unwrap.cmi eliom_common_base.cmo
 eliom_common.cmx: eliom_unwrap.cmx eliom_common_base.cmx
-eliom_compatibility.cmo: eliom_services.cmi eliom_parameters.cmi \
+eliom_compatibility_2_1.cmo: eliom_services.cmi eliom_parameters.cmi \
     eliom_output.cmi eliom_lib.cmi eliom_content_core.cmo eliom_content.cmi \
     eliom_client.cmi
-eliom_compatibility.cmx: eliom_services.cmx eliom_parameters.cmx \
+eliom_compatibility_2_1.cmx: eliom_services.cmx eliom_parameters.cmx \
     eliom_output.cmx eliom_lib.cmx eliom_content_core.cmx eliom_content.cmx \
     eliom_client.cmx
 eliom_config.cmo:

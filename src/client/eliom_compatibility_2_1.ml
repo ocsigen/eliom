@@ -10,6 +10,11 @@ module Eliom_pervasives = struct
     include DOM
   end
   let iter_option = Eliom_lib.Option.iter
+  (*BB How to provide them without getting this error?
+     Error: Error while linking .../eliom_client.cma(Eliom_compatibility_2_1):
+     Reference to undefined global `Svg_types' at the end? *)
+  (* module SVG_types = Svg_types *)
+  (* module HTML5_types = Html5_types *)
 end
 
 include Eliom_pervasives

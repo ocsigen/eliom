@@ -28,7 +28,7 @@ INTF := eliom_lib.cmi               \
         extensions/atom_feed.cmi    \
         extensions/eliom_atom.cmi   \
 
-NO_MLI := eliom_compatibility.cmi
+NO_MLI := eliom_compatibility_2_1.cmi
 
 DUCE_INTF = eliom_duce.cmi       \
             eliom_duce_sigs.cmi  \

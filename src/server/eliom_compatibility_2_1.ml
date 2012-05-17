@@ -23,6 +23,12 @@ module Eliom_pervasives = struct
     module M = Eliom_content_core.Xhtml.F
     include M
   end
+  (*BB How to provide without getting this error?
+     ocsigenserver: main: Fatal - While loading .../server/eliom.cma: error while linking .../server/eliom.cma.
+     ocsigenserver: main: Reference to undefined global `Svg_types' *)
+  (* module SVG_types = Svg_types *)
+  (* module HTML5_types = Html5_types *)
+  (* module XHTML_types = Xhtml_types *)
 end
 
 include Eliom_pervasives

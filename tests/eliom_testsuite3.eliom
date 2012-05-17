@@ -1,6 +1,6 @@
 (*zap* *)
 {shared{
-  open Eliom_compatibility
+  open Eliom_compatibility_2_1
   open Ocsigen_cookies
 }}
 
@@ -71,7 +71,7 @@ module My_appl =
     end)
 (*wiki* Now I can define my first service belonging to that application: *wiki*)
 
-let header_id : HTML5_types.body_content_fun HTML5.id =
+let header_id : Html5_types.body_content_fun HTML5.id =
   HTML5.new_elt_id ~global:true ()
 let header () =
   HTML5.create_named_elt ~id:header_id
@@ -157,7 +157,7 @@ let eliom_caml_tree =
                         p ~a:[a_onclick
                                  {{ Dom_html.window##alert(Js.string "clicked!") }}]
                           [pcdata "I am a clickable paragraph"];
-                       ]] : HTML5_types.div elt list)))
+                       ]] : Html5_types.div elt list)))
 
 ;; (* This ";;" is necessary in order to have the "shared" following entry being
       parsed as "str_item" (instead of "expr"). This is Camlp4 related, it may
@@ -3262,7 +3262,7 @@ let caml_service_with_onload' =
                   (Dom_html.handler (fun _ -> Dom_html.window##alert(Js.string "clicked!"); Js._true))
                   Js._true);
         () }};
-      Lwt.return (node : HTML5_types.div Eliom_pervasives.HTML5.M.elt))
+      Lwt.return (node : Html5_types.div Eliom_pervasives.HTML5.M.elt))
 
 let caml_service_with_onload =
   My_appl.register_service
@@ -3445,7 +3445,7 @@ let tmpl1_update id contents = {{
 }}
 
 module Tmpl_1 = Eliom_output.Eliom_tmpl(My_appl)(struct
-  type t = HTML5_types.flow5 HTML5.elt list
+  type t = Html5_types.flow5 HTML5.elt list
   let name = "template_one"
   let content_id = HTML5.new_elt_id ()
   let make_page contents =
@@ -3473,7 +3473,7 @@ module Tmpl_1 = Eliom_output.Eliom_tmpl(My_appl)(struct
 end)
 
 module Tmpl_2 = Eliom_output.Eliom_tmpl(My_appl)(struct
-  type t = HTML5_types.flow5 HTML5.elt list
+  type t = Html5_types.flow5 HTML5.elt list
   let name = "template_two"
   let content_id = HTML5.new_elt_id ()
   let make_page contents =

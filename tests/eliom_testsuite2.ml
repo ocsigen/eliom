@@ -21,7 +21,7 @@
 
 (* Other examples for Eliom, and various tests *)
 
-open Eliom_compatibility
+open Eliom_compatibility_2_1
 open Lwt
 open Eliom_parameters
 open Ocsigen_cookies
@@ -1099,7 +1099,7 @@ let optform =
                    ~value:"Click" ()]])
       >>= fun form ->
       let form =
-        (form : XHTML_types.form XHTML.M.elt :> [> XHTML_types.form ] XHTML.M.elt)
+        (form : Xhtml_types.form XHTML.M.elt :> [> Xhtml_types.form ] XHTML.M.elt)
       in
       return
         (html

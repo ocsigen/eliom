@@ -3,7 +3,7 @@
    Take the code in the manual, not here! (and remove duplicates here) *)
 (* TODO: include some missing parts in the manual *)
 
-open Eliom_compatibility
+open Eliom_compatibility_2_1
 open Lwt
 open HTML5.M
 open Ocsigen_cookies
