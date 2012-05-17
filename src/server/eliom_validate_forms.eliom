@@ -26,7 +26,7 @@
    It does not replace a check on the server, as data coming
    from the client should not be strusted.
 
-   The idea is to reuse the information parameters (Eliom_parameters.params_type)
+   The idea is to reuse the information parameters (Eliom_parameter.params_type)
    to check whether a form's value is "valid". 
    
    So you should enforce verification on the parameters via the user_type parameter.
@@ -123,7 +123,7 @@ let _ = Eliom_appl.register
 *)
 open Lwt
 open XHTML.M
-open Eliom_parameters
+open Eliom_parameter
 {client{
   open Lwt
   open Dom_html
@@ -204,7 +204,7 @@ module ValidateForms (Appl :  Eliom_predefmod.XHTMLFORMSSIG ) = struct
    - for now the form checking is done by clicking on a link
    because we can't listen on the onsubmit event of a form
    thanks to eliom
-   - We use Eliom_services.set_on_load that means we can be replaced by any user
+   - We use Eliom_service.set_on_load that means we can be replaced by any user
    script and that we may erase one of his, eliom doesn't provide a add_on_load function
    - We use some getElementById to get an input's contents. This generates htmlcode with
    a lot of useless id's. This should be changed as we can express things like that
@@ -285,7 +285,7 @@ module ValidateForms (Appl :  Eliom_predefmod.XHTMLFORMSSIG ) = struct
       ~sp
       form_contents
     in (* so that side-effects (scripts-filling) take place *)
-    let _ = Eliom_services.set_on_load ~sp 
+    let _ = Eliom_service.set_on_load ~sp 
       (String.concat ";\n" !scripts)
     in
     div [XHTML.M.a ~a:[a_href (uri_of_string "#"); a_onclick submit] [pcdata "Check the form"] ;

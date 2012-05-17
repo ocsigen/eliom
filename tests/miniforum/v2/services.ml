@@ -1,5 +1,5 @@
-open Eliom_services
-open Eliom_parameters
+open Eliom_service
+open Eliom_parameter
 
 
 let mainpage = new_service ~path:[] ~get_params:unit ()

@@ -26,8 +26,8 @@ open Eliom_lib
  *)
 
 open Lwt
-open Eliom_parameters
-open Eliom_services
+open Eliom_parameter
+open Eliom_service
 
 module type FORMS_PARAM = "sigs/eliom_forms_param.mli"
 

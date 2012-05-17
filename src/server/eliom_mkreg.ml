@@ -23,8 +23,8 @@ open Eliom_lib
 open Lwt
 open Ocsigen_extensions
 open Eliom_state
-open Eliom_parameters
-open Eliom_services
+open Eliom_parameter
+open Eliom_service
 open Lazy
 
 let suffix_redir_uri_key = Polytables.make_key ()
@@ -41,9 +41,9 @@ type ('options,'page,'result) param =
 	'page ->
 	Ocsigen_http_frame.result Lwt.t;
 
-      send_appl_content : Eliom_services.send_appl_content;
+      send_appl_content : Eliom_service.send_appl_content;
       (** Whether the service is capable to send application content when
-	  required. This field is usually [Eliom_services.XNever]. This
+	  required. This field is usually [Eliom_service.XNever]. This
 	  value is recorded inside each service just after
 	  registration.  *)
 
@@ -77,13 +77,13 @@ type ('options,'page,'result) param =
    point: we must wait for the page to be generated and then see if it
    is effectively application content. *)
 let check_before name service =
-  match Eliom_services.get_send_appl_content service
+  match Eliom_service.get_send_appl_content service
   (* the appl name of the service *)
   with
-    | Eliom_services.XSame_appl (an, _)
+    | Eliom_service.XSame_appl (an, _)
 	when (an = name)
 	  -> (* Same appl, it is ok *) false
-    | Eliom_services.XAlways -> (* It is an action *) false
+    | Eliom_service.XAlways -> (* It is an action *) false
     | _ -> true
 
 (* This test check if there is a header set only by
@@ -124,7 +124,7 @@ let check_process_redir sp f param =
              String.may_concat
                   ri.Ocsigen_extensions.ri_original_full_path_string
                   ~sep:"?"
-                  (Eliom_parameters.construct_params_string
+                  (Eliom_parameter.construct_params_string
                      (Lazy.force
                         ri.Ocsigen_extensions.ri_get_params)
                   )))
@@ -182,7 +182,7 @@ let register_aux pages
       ~service
       ?(error_handler = fun l -> raise (Eliom_common.Eliom_Typing_Error l))
       page_generator =
-    Eliom_services.set_send_appl_content service (pages.send_appl_content);
+    Eliom_service.set_send_appl_content service (pages.send_appl_content);
     begin
       match get_kind_ service with
 	| `Attached attser ->
@@ -256,13 +256,13 @@ let register_aux pages
 				  ~absolute:true
 				  ~service:
 				  (service :
-				     ('a, 'b, [< Eliom_services.internal_service_kind ],
-				      [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
-				      'return) Eliom_services.service :>
-				     ('a, 'b, Eliom_services.service_kind,
-				      [< Eliom_services.suff ], 'c, 'd,
-				      [< Eliom_services.registrable ], 'return)
-				     Eliom_services.service)
+				     ('a, 'b, [< Eliom_service.internal_service_kind ],
+				      [< Eliom_service.suff ], 'c, 'd, [ `Registrable ],
+				      'return) Eliom_service.service :>
+				     ('a, 'b, Eliom_service.service_kind,
+				      [< Eliom_service.suff ], 'c, 'd,
+				      [< Eliom_service.registrable ], 'return)
+				     Eliom_service.service)
 				  g
 			      in
 			      Lwt.fail
@@ -280,13 +280,13 @@ let register_aux pages
 				  ~absolute_path:true
 				  ~service:
 				  (service :
-				     ('a, 'b, [< Eliom_services.internal_service_kind ],
-				      [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
-				      'return) Eliom_services.service :>
-				     ('a, 'b, Eliom_services.service_kind,
-				      [< Eliom_services.suff ], 'c, 'd,
-				      [< Eliom_services.registrable ], 'return)
-				     Eliom_services.service)
+				     ('a, 'b, [< Eliom_service.internal_service_kind ],
+				      [< Eliom_service.suff ], 'c, 'd, [ `Registrable ],
+				      'return) Eliom_service.service :>
+				     ('a, 'b, Eliom_service.service_kind,
+				      [< Eliom_service.suff ], 'c, 'd,
+				      [< Eliom_service.registrable ], 'return)
+				     Eliom_service.service)
 				  g
 			      in
                               let redir_uri =
@@ -330,11 +330,11 @@ let register_aux pages
                         ?secure:secure_session ~scope ~sp ()),
                       true
               in
-              Eliom_services.set_delayed_post_registration_function
+              Eliom_service.set_delayed_post_registration_function
                 tablereg
                 id
                 (fun ~sp attserget ->
-                  let n = Eliom_services.new_state () in
+                  let n = Eliom_service.new_state () in
                   let attserpost = Eliom_common.SAtt_anon n in
                   let table =
                     if forsession
@@ -362,11 +362,11 @@ let register_aux pages
                     !(Eliom_state.get_session_service_table
                         ?secure:secure_session ~scope ~sp ()), true
               in
-              Eliom_services.set_delayed_get_or_na_registration_function
+              Eliom_service.set_delayed_get_or_na_registration_function
                 tablereg
                 id
                 (fun ~sp ->
-                  let n = Eliom_services.new_state () in
+                  let n = Eliom_service.new_state () in
                   let attserget = Eliom_common.SAtt_anon n in
                   let table =
                     if forsession
@@ -459,7 +459,7 @@ let register_aux pages
                 tablereg
                 id
                 (fun ~sp ->
-                  let n = Eliom_services.new_state () in
+                  let n = Eliom_service.new_state () in
                   let na_name = Eliom_common.SNa_get' n in
                   let table =
                     if forsession
@@ -489,7 +489,7 @@ let register_aux pages
                 tablereg
                 id
                 (fun ~sp ->
-                  let n = Eliom_services.new_state () in
+                  let n = Eliom_service.new_state () in
                   let na_name = Eliom_common.SNa_post' n in
                   let table =
                     if forsession

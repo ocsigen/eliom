@@ -57,18 +57,18 @@ FILES := eliom_wrap.ml eliom_lazy.ml \
 	 private/eliommod_sessadmin.ml \
 	 private/eliommod_timeouts.ml \
 	 eliom_state.ml \
-	 eliom_references.ml \
-	 eliom_extensions.ml \
+	 eliom_reference.ml \
+	 eliom_extension.ml \
 	 private/eliommod_services.ml \
 	 private/eliommod_naservices.ml \
          eliom_types_base.ml eliom_types.ml \
 	 eliom_error_pages.ml \
 	 private/eliommod_pagegen.ml \
 	 private/eliommod.ml \
-         eliom_parameters_base.ml eliom_parameters.ml \
+         eliom_parameter_base.ml eliom_parameter.ml \
 	 eliom_process.ml \
 	 private/eliommod_cli.ml \
-	 eliom_services_base.ml eliom_services.ml \
+	 eliom_service_base.ml eliom_service.ml \
          eliom_config.ml \
          eliom_uri.ml \
 	 eliom_mkforms.ml \

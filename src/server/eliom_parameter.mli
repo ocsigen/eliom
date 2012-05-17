@@ -60,14 +60,14 @@ open Ocsigen_extensions
 open Eliom_lib
 
 (** Abstract type for service parameters. See for example the
-    parameter [~get_param] of {!val:Eliom_services.service}.
+    parameter [~get_param] of {!val:Eliom_service.service}.
 
     - [ 'a] is the type for the OCaml type of the
     parameter as expected by the service handler.
     - [ 'b] is a phantom type, subtype of {!suff}, stating the kind
     of the parameter: suffix or not.
     - [ 'c] is the type of the parameter name, usually an instance of
-    {!Eliom_parameters.param_name}, as used by forms construction
+    {!Eliom_parameter.param_name}, as used by forms construction
     functions (e. g. the last parameter of
     {!Eliom_output.Html5.get_form}), and specialized form widget (see
     for example the section
@@ -277,7 +277,7 @@ val set :
 (** The service takes a list of parameters.
    The first parameter of this function is the name of the list.
    The service handler will receive a list of values.
-   To create the form, an iterator of type {!Eliom_parameters.listnames} is given to
+   To create the form, an iterator of type {!Eliom_parameter.listnames} is given to
    generate the name for each value.
  *)
 val list :

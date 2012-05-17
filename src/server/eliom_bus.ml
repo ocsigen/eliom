@@ -56,8 +56,8 @@ let internal_wrap (bus: 'a t) : 'a Ecb.wrapped_bus * Eliom_common.unwrapper =
 	  | _ ->
 	    register_sender bus.scope
 	      (bus.service:>
-		 ('h, 'a list, [ Eliom_services.internal_service_kind ], 'f, 'c, 'd, 'e, 'g)
-		 Eliom_services.service)
+		 ('h, 'a list, [ Eliom_service.internal_service_kind ], 'f, 'c, 'd, 'e, 'g)
+		 Eliom_service.service)
 	      bus.write;
 	    Eliom_state.set_volatile_data ~table true
   end;
@@ -101,10 +101,10 @@ let create ?scope ?name ?size typ =
 
   (*The service*)
   let post_params =
-    (Eliom_parameters.caml "bus_write" typ_list
-       : ('a, 'aa, 'aaa) Eliom_parameters.params_type)
+    (Eliom_parameter.caml "bus_write" typ_list
+       : ('a, 'aa, 'aaa) Eliom_parameter.params_type)
   in
-  let distant_write = Eliom_services.post_coservice' ?name ~post_params () in
+  let distant_write = Eliom_service.post_coservice' ?name ~post_params () in
   let service_registered =
     match scope with
       | `Site ->

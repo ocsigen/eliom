@@ -100,7 +100,7 @@ type send_appl_content =
 (* the string is the name of the application to which the service
    belongs and the option is the name of template *)
 (** Whether the service is capable to send application content or not.
-    (application content has type Eliom_services.eliom_appl_answer:
+    (application content has type Eliom_service.eliom_appl_answer:
     content of the application container, or xhr redirection ...).
     A link towards a service with send_appl_content = XNever will
     always answer a regular http frame (this will stop the application if
@@ -119,8 +119,8 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) servic
        (string * string) list String.Table.t
        (* non localized parameters *) *
        (string * string) list (* regular parameters *);
-     get_params_type: ('get, 'tipo, 'getnames) Eliom_parameters.params_type;
-     post_params_type: ('post, [`WithoutSuffix], 'postnames) Eliom_parameters.params_type;
+     get_params_type: ('get, 'tipo, 'getnames) Eliom_parameter.params_type;
+     post_params_type: ('post, [`WithoutSuffix], 'postnames) Eliom_parameter.params_type;
      max_use: int option; (* Max number of use of this service *)
      timeout: float option; (* Timeout for this service (the service will
           disappear if it has not been used during this amount of seconds) *)
@@ -139,8 +139,8 @@ constraint 'registr = [< registrable ]
 
 let pre_wrap s =
   {s with
-    get_params_type = Eliom_parameters.wrap_param_type s.get_params_type;
-    post_params_type = Eliom_parameters.wrap_param_type s.post_params_type;
+    get_params_type = Eliom_parameter.wrap_param_type s.get_params_type;
+    post_params_type = Eliom_parameter.wrap_param_type s.post_params_type;
     service_mark = Eliom_common.empty_wrapper ();
   }
 
@@ -190,9 +190,9 @@ let change_get_num service attser n =
 let static_dir_ ?(https = false) () =
   {
     pre_applied_parameters = String.Table.empty, [];
-    get_params_type = Eliom_parameters.suffix 
-      (Eliom_parameters.all_suffix Eliom_common.eliom_suffix_name);
-    post_params_type = Eliom_parameters.unit;
+    get_params_type = Eliom_parameter.suffix 
+      (Eliom_parameter.all_suffix Eliom_common.eliom_suffix_name);
+    post_params_type = Eliom_parameter.unit;
     max_use= None;
     timeout= None;
     kind = `Attached
@@ -222,10 +222,10 @@ let get_static_dir_ ?(https = false)
     {
      pre_applied_parameters = String.Table.empty, [];
      get_params_type = 
-        Eliom_parameters.suffix_prod 
-          (Eliom_parameters.all_suffix Eliom_common.eliom_suffix_name)
+        Eliom_parameter.suffix_prod 
+          (Eliom_parameter.all_suffix Eliom_common.eliom_suffix_name)
           get_params;
-     post_params_type = Eliom_parameters.unit;
+     post_params_type = Eliom_parameter.unit;
      max_use= None;
      timeout= None;
      kind = `Attached
@@ -268,12 +268,12 @@ let rec append_suffix l m = match l with
 let preapply ~service getparams =
   let nlp, preapp = service.pre_applied_parameters in
   let suff, nlp, params =
-    Eliom_parameters.construct_params_list_raw
+    Eliom_parameter.construct_params_list_raw
       nlp service.get_params_type getparams 
   in
   {service with
    pre_applied_parameters = nlp, params@preapp;
-   get_params_type = Eliom_parameters.unit;
+   get_params_type = Eliom_parameter.unit;
    kind = match service.kind with
    | `Attached k -> `Attached {k with
                                subpath = (match suff with
@@ -293,8 +293,8 @@ let void_coservice' =
     max_use= None;
     timeout= None;
     pre_applied_parameters = String.Table.empty, [];
-    get_params_type = Eliom_parameters.unit;
-    post_params_type = Eliom_parameters.unit;
+    get_params_type = Eliom_parameter.unit;
+    post_params_type = Eliom_parameter.unit;
     kind = `Nonattached
       {na_name = Eliom_common.SNa_void_dontkeep;
        na_kind = `Get;
@@ -310,8 +310,8 @@ let https_void_coservice' =
     max_use= None;
     timeout= None;
     pre_applied_parameters = String.Table.empty, [];
-    get_params_type = Eliom_parameters.unit;
-    post_params_type = Eliom_parameters.unit;
+    get_params_type = Eliom_parameter.unit;
+    post_params_type = Eliom_parameter.unit;
     kind = `Nonattached
       {na_name = Eliom_common.SNa_void_dontkeep;
        na_kind = `Get;
@@ -339,13 +339,13 @@ let https_void_hidden_coservice' = {void_coservice' with
 let add_non_localized_get_parameters ~params ~service =
   {service with
      get_params_type = 
-      Eliom_parameters.nl_prod service.get_params_type params
+      Eliom_parameter.nl_prod service.get_params_type params
   }
 
 let add_non_localized_post_parameters ~params ~service =
   {service with
      post_params_type = 
-      Eliom_parameters.nl_prod service.post_params_type params
+      Eliom_parameter.nl_prod service.post_params_type params
   }
 
 let keep_nl_params s = s.keep_nl_params
@@ -409,7 +409,7 @@ let external_service_
     ~get_params
     ~post_params
     () =
-  let suffix = Eliom_parameters.contains_suffix get_params in
+  let suffix = Eliom_parameter.contains_suffix get_params in
   service_aux_aux
     ~https:false (* not used for external links *)
     ~prefix
@@ -454,7 +454,7 @@ let external_service
     ?keep_nl_params
     ~getorpost:`Get
     ~get_params
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     ()
 
 

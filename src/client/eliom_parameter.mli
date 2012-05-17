@@ -19,7 +19,7 @@
  *)
 
 (** See documentation in the server side version:
-    {% <<a_api subproject="server"|module Eliom_parameters>>%}. *)
+    {% <<a_api subproject="server"|module Eliom_parameter>>%}. *)
 
 open Eliom_lib
 

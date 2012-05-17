@@ -18,8 +18,8 @@
 
 (** Predefined boxes for Eliom *)
 
-open Eliom_services
-open Eliom_parameters
+open Eliom_service
+open Eliom_parameter
 open Eliom_state
 open Eliom_tools_common
 
@@ -72,8 +72,8 @@ val hierarchical_menu_depth_first :
   ?classe:string list ->
   ?id:string ->
   ?whole_tree:bool ->
-  ([< Eliom_services.get_service_kind ] as 'a,
-   [< Eliom_services.registrable ] as 'b,
+  ([< Eliom_service.get_service_kind ] as 'a,
+   [< Eliom_service.registrable ] as 'b,
    'elts Eliom_duce_types.a_content_elt_list)
       hierarchical_site ->
   ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
@@ -96,8 +96,8 @@ val hierarchical_menu_depth_first :
 val hierarchical_menu_breadth_first :
   ?classe:string list ->
   ?id:string ->
-  ([< Eliom_services.get_service_kind ] as 'a,
-   [< Eliom_services.registrable ] as 'b,
+  ([< Eliom_service.get_service_kind ] as 'a,
+   [< Eliom_service.registrable ] as 'b,
    'elts Eliom_duce_types.a_content_elt_list)
       hierarchical_site ->
   ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
@@ -109,8 +109,8 @@ val hierarchical_menu_breadth_first :
    [<link rev="subsection" ...>] for the given hierarchical site.
  *)
 val structure_links :
-  ([< Eliom_services.get_service_kind ] as 'a,
-     [< Eliom_services.registrable ] as 'b,
+  ([< Eliom_service.get_service_kind ] as 'a,
+     [< Eliom_service.registrable ] as 'b,
      'elts Eliom_duce_types.a_content_elt_list)
     hierarchical_site ->
   ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->

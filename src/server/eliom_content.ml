@@ -226,8 +226,8 @@ module Xhtml = struct
 
       open Xhtml.F
       open Xhtml_types
-      open Eliom_services
-      open Eliom_parameters
+      open Eliom_service
+      open Eliom_parameter
 
       module Xhtml_forms_closed = Eliom_mkforms.MakeForms(Forms_base)
 
@@ -263,7 +263,7 @@ module Xhtml = struct
                 ?port:int ->
                 ?fragment:string ->
                 ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                ?nl_params: Eliom_parameters.nl_params_set ->
+                ?nl_params: Eliom_parameter.nl_params_set ->
                 ?xhr:bool ->
                 a_content elt list -> 'get ->
                 a Xhtml.F.elt :>
@@ -278,7 +278,7 @@ module Xhtml = struct
                 ?port:int ->
                 ?fragment:string ->
                 ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                ?nl_params: Eliom_parameters.nl_params_set ->
+                ?nl_params: Eliom_parameter.nl_params_set ->
                 ?xhr:bool ->
                 a_content elt list -> 'get ->
                 [> a] Xhtml.F.elt)
@@ -306,7 +306,7 @@ module Xhtml = struct
                        ?port:int ->
                        ?fragment:string ->
                        ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                       ?nl_params: Eliom_parameters.nl_params_set ->
+                       ?nl_params: Eliom_parameter.nl_params_set ->
                        'get -> uri)
 
       let get_form = (get_form :
@@ -321,7 +321,7 @@ module Xhtml = struct
                        ?port:int ->
                        ?fragment:string ->
                        ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                       ?nl_params: Eliom_parameters.nl_params_set ->
+                       ?nl_params: Eliom_parameter.nl_params_set ->
                        ?xhr:bool ->
                        ('gn -> form_content elt list) -> form elt :>
                        ?absolute:bool ->
@@ -335,7 +335,7 @@ module Xhtml = struct
                        ?port:int ->
                        ?fragment:string ->
                        ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                       ?nl_params: Eliom_parameters.nl_params_set ->
+                       ?nl_params: Eliom_parameter.nl_params_set ->
                        ?xhr:bool ->
                        ('gn -> form_content elt list) -> [> form ] elt)
 
@@ -352,7 +352,7 @@ module Xhtml = struct
                            ?port:int ->
                            ?fragment:string ->
                            ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                           ?nl_params: Eliom_parameters.nl_params_set ->
+                           ?nl_params: Eliom_parameter.nl_params_set ->
                            ?xhr:bool ->
                            ('gn -> form_content elt list Lwt.t) -> form elt Lwt.t :>
                            ?absolute:bool ->
@@ -366,7 +366,7 @@ module Xhtml = struct
                            ?port:int ->
                            ?fragment:string ->
                            ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                           ?nl_params: Eliom_parameters.nl_params_set ->
+                           ?nl_params: Eliom_parameter.nl_params_set ->
                            ?xhr:bool ->
                            ('gn -> form_content elt list Lwt.t) ->
                            [> form ] elt Lwt.t)
@@ -385,7 +385,7 @@ module Xhtml = struct
                         ?fragment:string ->
                         ?keep_nl_params:[ `All | `Persistent | `None ] ->
                         ?keep_get_na_params:bool ->
-                        ?nl_params: Eliom_parameters.nl_params_set ->
+                        ?nl_params: Eliom_parameter.nl_params_set ->
                         ?xhr:bool ->
                         ('pn -> form_content elt list) -> 'get -> form elt :>
                         ?absolute:bool ->
@@ -400,7 +400,7 @@ module Xhtml = struct
                         ?fragment:string ->
                         ?keep_nl_params:[ `All | `Persistent | `None ] ->
                         ?keep_get_na_params:bool ->
-                        ?nl_params: Eliom_parameters.nl_params_set ->
+                        ?nl_params: Eliom_parameter.nl_params_set ->
                         ?xhr:bool ->
                         ('pn -> form_content elt list) -> 'get -> [> form ] elt)
 
@@ -417,7 +417,7 @@ module Xhtml = struct
                             ?fragment:string ->
                             ?keep_nl_params:[ `All | `Persistent | `None ] ->
                             ?keep_get_na_params:bool ->
-                            ?nl_params: Eliom_parameters.nl_params_set ->
+                            ?nl_params: Eliom_parameter.nl_params_set ->
                             ?xhr:bool ->
                             ('pn -> form_content elt list Lwt.t) ->
                             'get -> form elt Lwt.t :>
@@ -433,7 +433,7 @@ module Xhtml = struct
                             ?fragment:string ->
                             ?keep_nl_params:[ `All | `Persistent | `None ] ->
                             ?keep_get_na_params:bool ->
-                            ?nl_params: Eliom_parameters.nl_params_set ->
+                            ?nl_params: Eliom_parameter.nl_params_set ->
                             ?xhr:bool ->
                             ('pn -> form_content elt list Lwt.t) -> 'get ->
                             [> form ] elt Lwt.t)

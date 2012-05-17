@@ -10,7 +10,7 @@ The server side of Eliom can communicates to the client other kind of
 data than the raw XML contents of the pages. The wrapper mecanism is
 used to allow the browser side to access to the contents of variables
 declared on server side. For instance when we write
-<<code language="ocaml"| Eliom_services.onload {{ Dom_html.window##alert(Js.string %text) }} >>
+<<code language="ocaml"| Eliom_service.onload {{ Dom_html.window##alert(Js.string %text) }} >>
 the contents of the {{{text}}} variable is sent along the page for the client code to access it.
 
 Server side, when <<code language="ocaml"| {{ Dom_html.window##alert(Js.string %text) }} >>
@@ -24,7 +24,7 @@ multiples times, it will be sent only once, and sharing will be preserved:
 <<code language="ocaml"|let a = ref 0 in
 let b = (1,a) in
 
-Eliom_services.onload
+Eliom_service.onload
  {{
     %a := 42;
     Dom_html.window##alert(Js.string (string_of_int (snd (%b))))
@@ -130,7 +130,7 @@ those below 1024 to be reserved to Eliom internals.
 
 The Eliom types that are marked are:
 
-* <<a_api | type Eliom_services.service>> transformed to <<a_api | type Eliom_services.service>> (but the client side representation)
+* <<a_api | type Eliom_service.service>> transformed to <<a_api | type Eliom_service.service>> (but the client side representation)
 * <<a_api | type Eliom_comet.Channels.t>> transformed to <<a_api project="lwt" | type Lwt_stream.t>>
 * <<a_api | type Eliom_react.Up.t>> transformed to {{{ 'a -> unit }}}
 * <<a_api | type Eliom_react.Down.t>> transformed to {{{ 'a React.E.t }}}

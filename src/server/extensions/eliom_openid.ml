@@ -23,7 +23,7 @@ open Lwt
 open Simplexmlparser
 open Ocsigen_http_frame
 open Cryptokit
-open Eliom_parameters
+open Eliom_parameter
 open Eliom_content.Xhtml
 open Ocsigen_headers
 module Base64 = Netencoding.Base64
@@ -495,7 +495,7 @@ module type HiddenServiceInfo = sig
 end
 
 module Make (S : HiddenServiceInfo) = struct
-  let return_service = Eliom_services.service ~path:S.path ~get_params:any ()
+  let return_service = Eliom_service.service ~path:S.path ~get_params:any ()
 
   let () = Eliom_output.Any.register ~service:return_service S.f
 

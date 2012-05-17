@@ -64,13 +64,13 @@ let comet_global_path = ["__eliom_comet_global__"]
 let fallback_service =
   Eliom_common.lazy_site_value_from_fun
     (fun () -> Comet.register_service ~path:comet_path
-      ~get_params:Eliom_parameters.unit
+      ~get_params:Eliom_parameter.unit
       (fun () () -> Lwt.return process_closed_msg))
 
 let fallback_global_service =
   Eliom_common.lazy_site_value_from_fun
     (fun () -> Comet.register_service ~path:comet_global_path
-      ~get_params:Eliom_parameters.unit
+      ~get_params:Eliom_parameter.unit
       (fun () () -> Lwt.return (error_msg "request with no post parameters or there isn't any registered site comet channel")))
 
 let new_id = make_cryptographic_safe_string
@@ -521,20 +521,20 @@ end = struct
       problem as scope should be used in limited number *)
 
   (* as of now only `Client_process scope are handled: so we only stock scope_name *)
-  type handler_ref_table = (Eliom_common.scope_name,handler option Eliom_references.eref) Hashtbl.t
+  type handler_ref_table = (Eliom_common.scope_name,handler option Eliom_reference.eref) Hashtbl.t
   let handler_ref_table : handler_ref_table = Hashtbl.create 1
 
   (* this is a hack for the create function not to return 'a Lwt.t
      type: This is needed because bus and react create the channel at
      wrapping time, where it is impossible to block *)
   let get_ref eref =
-    match Lwt.state (Eliom_references.get eref) with
+    match Lwt.state (Eliom_reference.get eref) with
       | Lwt.Return v -> v
       | _ ->
 	failwith "Eliom_comet: accessing channel references should not be blocking: this is an eliom bug"
 
   let set_ref eref v =
-    match Lwt.state (Eliom_references.set eref v) with
+    match Lwt.state (Eliom_reference.set eref v) with
       | Lwt.Return () -> ()
       | _ ->
 	failwith "Eliom_comet: accessing channel references should not be blocking: this is an eliom bug"
@@ -545,7 +545,7 @@ end = struct
       Hashtbl.find handler_ref_table scope_name
     with
       | Not_found ->
-	let eref = Eliom_references.eref ~scope:(`Client_process scope_name) None in
+	let eref = Eliom_reference.eref ~scope:(`Client_process scope_name) None in
 	Hashtbl.add handler_ref_table scope_name eref;
 	eref
 
@@ -557,7 +557,7 @@ end = struct
 	begin
 	  let hd_service =
 	    (* CCC ajouter possibilité d'https *)
-	    Eliom_services.post_coservice
+	    Eliom_service.post_coservice
 	      ~fallback:(Eliom_common.force_lazy_site_value fallback_service)
 	      (*~name:"comet" (* CCC faut il mettre un nom ? *)*)
 	      ~post_params:Ecb.comet_request_param
@@ -781,10 +781,10 @@ end = struct
       | Some `Site -> create_stateless ?name ~size stream
 
   let external_channel ?(history=1) ?(newest=false) ~prefix ~name () =
-    let service = Eliom_services.external_post_service
+    let service = Eliom_service.external_post_service
       ~prefix
       ~path:comet_global_path
-      ~get_params:Eliom_parameters.unit
+      ~get_params:Eliom_parameter.unit
       ~post_params:Ecb.comet_request_param
       ()
     in

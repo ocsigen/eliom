@@ -21,8 +21,8 @@
 open Ocsigen_extensions (* for profiling info *)
 open Eliom_output.Xhtml
 open Eliom_output
-open Eliom_services
-open Eliom_parameters
+open Eliom_service
+open Eliom_parameter
 open Eliom_state
 open Unix
 open Lwt

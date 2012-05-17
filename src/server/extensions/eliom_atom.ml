@@ -64,7 +64,7 @@ module Reg_base = struct
    type return = Eliom_output.http_service
    type result = (Eliom_output.browser_content, Eliom_output.http_service) Eliom_output.kind
    let result_of_http_result = Eliom_output.cast_http_result
-   let send_appl_content = Eliom_services.XNever
+   let send_appl_content = Eliom_service.XNever
    let pre_service ?options () = Lwt.return ()
    let send ?options ?charset ?code ?content_type ?headers
      feed = Lwt.return (result_of_content feed headers )
@@ -125,7 +125,7 @@ let notify_feed_updates address hubs s =
    nfu_s hubs address; ()
 
 let register_feed ~path ~hubs address f =
-   let s = Eliom_services.service ~path ~get_params:Eliom_parameters.unit () in
+   let s = Eliom_service.service ~path ~get_params:Eliom_parameter.unit () in
    Reg.register ~service:s 
      (fun () () -> f () >>= fun feed -> Lwt.return
        (Atom_feed.insert_hub_links hubs feed));

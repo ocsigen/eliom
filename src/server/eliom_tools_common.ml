@@ -17,7 +17,7 @@
  *)
 
 
-open Eliom_services
+open Eliom_service
 
 type ('a, 'b, 'c) one_page =
     (unit, unit,
@@ -28,8 +28,8 @@ type ('a, 'b, 'c) one_page =
     constraint 'c = [< Eliom_output.non_caml_service ]
 
 type get_page =
-    (Eliom_services.get_service_kind,
-     Eliom_services.registrable,
+    (Eliom_service.get_service_kind,
+     Eliom_service.registrable,
      Eliom_output.non_caml_service) one_page
   (* constraint 'c = [  ] *)
 
@@ -44,14 +44,14 @@ let level_class = "eliomtools_level"
 type ('a, 'b, 'c) hierarchical_site_item =
   | Disabled
   | Site_tree of ('a, 'b, 'c) hierarchical_site
-constraint 'b = [< Eliom_services.registrable ]
+constraint 'b = [< Eliom_service.registrable ]
 and ('a, 'b) main_page =
   | Main_page of ('a, 'b, Eliom_output.non_caml_service) one_page
   | Default_page of ('a, 'b, Eliom_output.non_caml_service) one_page
   | Not_clickable
-constraint 'b = [< Eliom_services.registrable ]
+constraint 'b = [< Eliom_service.registrable ]
 and ('a, 'b, 'c) hierarchical_site =
       (('a, 'b) main_page *
          ('c * ('a, 'b, 'c) hierarchical_site_item) list)
-constraint 'b = [< Eliom_services.registrable ]
+constraint 'b = [< Eliom_service.registrable ]
 

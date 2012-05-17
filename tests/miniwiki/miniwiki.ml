@@ -23,8 +23,8 @@
 open Eliom_compatibility_2_1
 open XHTML.M
 open Eliom_output.Xhtml
-open Eliom_services
-open Eliom_parameters
+open Eliom_service
+open Eliom_parameter
 open Eliom_state
 
 open Simplexmlparser
@@ -39,7 +39,7 @@ let wiki_view_page = service [] (suffix (string "p")) ()
 let wiki_edit_page = service ["edit"] (string "p") ()
 let wiki_start = Eliom_output.Redirection.register_service [] unit
     (fun _ _ ->
-       Lwt.return (Eliom_services.preapply wiki_view_page "WikiStart"))
+       Lwt.return (Eliom_service.preapply wiki_view_page "WikiStart"))
 
 let finally_ handler f x =
   catch

@@ -55,7 +55,7 @@ type 'a eref = ('a, [ `Volatile | `Persistent ]) eref'
     {!Eliom_common.Eliom_site_information_not_available}. If you are
     using static linking, you must delay the call to this function
     until the configuration file is read, using
-    {!Eliom_services.register_eliom_module}. Otherwise you will also
+    {!Eliom_service.register_eliom_module}. Otherwise you will also
     get this exception.}
 *)
 val eref :
@@ -65,14 +65,14 @@ val eref :
   'a ->
   'a eref
 
-(** The function [eref_from_fun] works like the above {!Eliom_references.eref},
+(** The function [eref_from_fun] works like the above {!Eliom_reference.eref},
     but instead of providing a value for the initial content, a function [f] for
     {e creating the initial content} is provided (cf. also {!Lazy.lazy_from_fun}).
 
     In each scope, the function [f] is called for creating the value of the
-    reference the first time the reference is read (by {!Eliom_references.get}),
-    if the value has not been set explicitly before (by {!Eliom_references.set});
-    or if the reference was reset (by {!Eliom_references.reset}) before.
+    reference the first time the reference is read (by {!Eliom_reference.get}),
+    if the value has not been set explicitly before (by {!Eliom_reference.set});
+    or if the reference was reset (by {!Eliom_reference.reset}) before.
   *)
 val eref_from_fun :
   scope:[< Eliom_common.all_scope ] ->
@@ -133,12 +133,12 @@ val unset : 'a eref -> unit Lwt.t
 (* That function introduces a Lwt cooperation point only for persistent
    references. *)
 
-(** Same functions as in [Eliom_references] but a non-Lwt interface
+(** Same functions as in [Eliom_reference] but a non-Lwt interface
     for non-persistent Eliom references. *)
 module Volatile : sig
   (** The type of volatile Eliom references.
-      Note that [('a Eliom_references.Volatile.eref :> 'a Eliom_references.eref)], i.e. whereever you can use an ['a
-      Eliom_references.eref] you can also use an ['a Eliom_references.Volatile.eref :> 'a Eliom_references.eref].  *)
+      Note that [('a Eliom_reference.Volatile.eref :> 'a Eliom_reference.eref)], i.e. whereever you can use an ['a
+      Eliom_reference.eref] you can also use an ['a Eliom_reference.Volatile.eref :> 'a Eliom_reference.eref].  *)
   type 'a eref = ('a, [`Volatile]) eref'
   val eref : scope:[< Eliom_common.all_scope] -> ?secure:bool -> 'a -> 'a eref
   val eref_from_fun : scope:[< Eliom_common.all_scope] -> ?secure:bool -> (unit -> 'a) -> 'a eref

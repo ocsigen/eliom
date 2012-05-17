@@ -4,8 +4,8 @@ INTF := eliom_lib.cmi               \
         eliom_cookies.cmi           \
         eliom_common.cmi            \
         eliom_types.cmi             \
-        eliom_parameters.cmi        \
-        eliom_services.cmi          \
+        eliom_parameter.cmi         \
+        eliom_service.cmi          \
         eliom_config.cmi            \
         eliom_request_info.cmi      \
         eliom_state.cmi             \
@@ -20,8 +20,8 @@ INTF := eliom_lib.cmi               \
         eliom_tools_common.cmi      \
         eliom_tools.cmi             \
         eliom_mkreg.cmi             \
-        eliom_references.cmi        \
-        eliom_extensions.cmi        \
+        eliom_reference.cmi        \
+        eliom_extension.cmi         \
         \
 	extensions/eliom_s2s.cmi    \
         extensions/eliom_openid.cmi \

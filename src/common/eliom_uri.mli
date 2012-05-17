@@ -24,8 +24,8 @@ open Lwt
 
 open Eliom_lib
 open Eliom_common
-open Eliom_parameters
-open Eliom_services
+open Eliom_parameter
+open Eliom_service
 
 (** {2 Compute service's URL}
 
@@ -141,14 +141,14 @@ val make_string_uri_ :
   ?https:bool ->
   service:('a, 'b,
            [< `Attached of
-               (Eliom_services.attached_service_kind,
-                [< Eliom_services.getpost ])
-                 Eliom_services.a_s
+               (Eliom_service.attached_service_kind,
+                [< Eliom_service.getpost ])
+                 Eliom_service.a_s
            | `Nonattached of
-               [< Eliom_services.getpost ] Eliom_services.na_s ],
-           [< Eliom_services.suff ], 'c, 'd,
-           [< Eliom_services.registrable ], 'e)
-    Eliom_services.service ->
+               [< Eliom_service.getpost ] Eliom_service.na_s ],
+           [< Eliom_service.suff ], 'c, 'd,
+           [< Eliom_service.registrable ], 'e)
+    Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -160,10 +160,10 @@ val make_post_uri_components__ :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
-           [< `Attached of ([> `External ], 'c) Eliom_services.a_s
-           | `Nonattached of 'd Eliom_services.na_s ],
+           [< `Attached of ([> `External ], 'c) Eliom_service.a_s
+           | `Nonattached of 'd Eliom_service.na_s ],
            [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h)
-    Eliom_services.service ->
+    Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -225,10 +225,10 @@ val make_proto_prefix :
 val make_cookies_info :
   bool option *
   ('a, 'b,
-   [< `Attached of ([> `External ], 'c) Eliom_services.a_s
+   [< `Attached of ([> `External ], 'c) Eliom_service.a_s
    | `Nonattached of 'd ],
    [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h)
-           Eliom_services.service ->
+           Eliom_service.service ->
   (bool * Url.path) option
 
 

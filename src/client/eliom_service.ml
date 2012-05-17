@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-include Eliom_services_base
+include Eliom_service_base
 
 let xhr_with_cookies s =
   if is_external s then

@@ -44,7 +44,7 @@ exception Eliom_Typing_Error of (string * exn) list
     In particular, you cannot use the function before the configuration file
     is read for example when you are using {e static linking}.
     In that case you must
-    delay the function call using {!Eliom_services.register_eliom_module}.
+    delay the function call using {!Eliom_service.register_eliom_module}.
 *)
 exception Eliom_site_information_not_available of string
 

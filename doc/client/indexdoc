@@ -15,7 +15,7 @@ Eliom_dom
 {2 Services creation and manipulation}
 
 {!modules:
-Eliom_services
+Eliom_service
 Eliom_client
 Eliom_client.Html5
 }

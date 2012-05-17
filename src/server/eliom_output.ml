@@ -20,8 +20,8 @@
 
 open Eliom_lib
 open Eliom_content
-open Eliom_services
-open Eliom_parameters
+open Eliom_service
+open Eliom_parameter
 
 let code_of_code_option = function
   | None -> 200
@@ -88,7 +88,7 @@ module Html5_make_reg_base
 
   let result_of_http_result = Result_types.cast_result
 
-  let send_appl_content = Eliom_services.XNever
+  let send_appl_content = Eliom_service.XNever
 
   let send
       ?(options = ()) ?charset ?code
@@ -149,7 +149,7 @@ module Xhtml_make_reg_base
 
   let result_of_http_result = Result_types.cast_result
 
-  let send_appl_content = Eliom_services.XNever
+  let send_appl_content = Eliom_service.XNever
 
   let send ?options ?charset ?code ?content_type ?headers content =
     let accept =
@@ -232,7 +232,7 @@ module Make_typed_xml_registration
 
       let result_of_http_result = Result_types.cast_result
 
-      let send_appl_content = Eliom_services.XNever
+      let send_appl_content = Eliom_service.XNever
 
       let send ?options ?charset ?code ?content_type ?headers content =
         lwt r = Cont_content.result_of_content content in
@@ -261,14 +261,14 @@ module Make_typed_xml_registration
 
   end
 
-module Blocks = Make_typed_xml_registration(Xml)(Eliom_content.Xhtml.F)(struct
+module Block = Make_typed_xml_registration(Xml)(Eliom_content.Xhtml.F)(struct
   type content = Xhtml_types.body_content
 end)
 
 module Flow5 = Make_typed_xml_registration(Xml)(Eliom_content.Html5.D)(struct
   type content = Html5_types.flow5
 end)
-module Blocks5 = Flow5
+module Block5 = Flow5
 
 
 (****************************************************************************)
@@ -301,7 +301,7 @@ module Text_reg_base = struct
 
   let result_of_http_result = Result_types.cast_result
 
-  let send_appl_content = Eliom_services.XNever
+  let send_appl_content = Eliom_service.XNever
 
   let send ?options ?charset ?code ?content_type ?headers content =
     lwt r = Ocsigen_senders.Text_content.result_of_content content in
@@ -343,7 +343,7 @@ module CssText_reg_base = struct
 
   let result_of_http_result = Result_types.cast_result
 
-  let send_appl_content = Eliom_services.XNever
+  let send_appl_content = Eliom_service.XNever
 
   let send ?options ?charset ?code ?content_type ?headers content =
     lwt r =
@@ -386,7 +386,7 @@ module HtmlText_reg_base = struct
 
   let result_of_http_result = Result_types.cast_result
 
-  let send_appl_content = Eliom_services.XNever
+  let send_appl_content = Eliom_service.XNever
 
   let send ?options ?charset ?code ?content_type ?headers content =
     lwt r =
@@ -437,7 +437,7 @@ module Action_reg_base = struct
 
   let result_of_http_result = Result_types.cast_result
 
-  let send_appl_content = Eliom_services.XAlways
+  let send_appl_content = Eliom_service.XAlways
   (* The post action service will decide later *)
 
   let send_directly =
@@ -651,7 +651,7 @@ module Unit_reg_base = struct
 
   let result_of_http_result = Result_types.cast_result
 
-  let send_appl_content = Eliom_services.XNever
+  let send_appl_content = Eliom_service.XNever
 
   let send ?options ?charset ?(code = 204)
       ?content_type ?headers content =
@@ -691,8 +691,8 @@ module Any_reg_base = struct
 
   let result_of_http_result = Result_types.cast_result
 
-(*  let send_appl_content = Eliom_services.XNever *)
-  let send_appl_content = Eliom_services.XAlways
+(*  let send_appl_content = Eliom_service.XNever *)
+  let send_appl_content = Eliom_service.XAlways
 
   let send ?options ?charset ?code
       ?content_type ?headers (res:('a, 'b) kind) =
@@ -742,8 +742,8 @@ let http_redirect = appl_self_redirect
 (*****************************************************************************)
 (*****************************************************************************)
 
-(* Files is a module allowing to register services that send files *)
-module Files_reg_base = struct
+(* File is a module allowing to register services that send files *)
+module File_reg_base = struct
 
   type page = string
   type options = int
@@ -752,7 +752,7 @@ module Files_reg_base = struct
 
   let result_of_http_result = Result_types.cast_result
 
-  let send_appl_content = Eliom_services.XNever
+  let send_appl_content = Eliom_service.XNever
 
   let send ?options ?charset ?code
       ?content_type ?headers filename =
@@ -793,9 +793,9 @@ module Files_reg_base = struct
 
 end
 
-module Files =
+module File =
 struct
-  include Eliom_mkreg.MakeRegister(Files_reg_base)
+  include Eliom_mkreg.MakeRegister(File_reg_base)
   let check_file filename =
     let sp = Eliom_common.get_sp () in
     let request = Eliom_request_info.get_request_sp sp in
@@ -821,7 +821,7 @@ module Streamlist_reg_base = struct
 
   let result_of_http_result = Result_types.cast_result
 
-  let send_appl_content = Eliom_services.XNever
+  let send_appl_content = Eliom_service.XNever
 
   let send ?options ?charset ?code
       ?content_type ?headers content =
@@ -965,7 +965,7 @@ module Customize
       ?max_use
       ?timeout
       ?https
-      ~fallback:(Eliom_services.untype_service_ fallback)
+      ~fallback:(Eliom_service.untype_service_ fallback)
       ~get_params
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
@@ -1031,7 +1031,7 @@ module Customize
       ?secure_session
       ?https
       ?priority
-      ~fallback:(Eliom_services.untype_service_ fallback)
+      ~fallback:(Eliom_service.untype_service_ fallback)
       ~post_params
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
@@ -1070,7 +1070,7 @@ module Customize
       ?max_use
       ?timeout
       ?https
-      ~fallback:(Eliom_services.untype_service_ fallback)
+      ~fallback:(Eliom_service.untype_service_ fallback)
       ~post_params
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
@@ -1128,7 +1128,7 @@ module Caml_reg_base = struct
 
   let result_of_http_result x = x
 
-  let send_appl_content = Eliom_services.XNever
+  let send_appl_content = Eliom_service.XNever
 
   let send ?options ?charset ?code
       ?content_type ?headers content =
@@ -1136,7 +1136,7 @@ module Caml_reg_base = struct
       (Text.send ?charset ?code
          ?content_type ?headers
          (content,
-          Eliom_services.eliom_appl_answer_content_type))
+          Eliom_service.eliom_appl_answer_content_type))
 
 end
 
@@ -1146,7 +1146,7 @@ module Caml = struct
 
   let prepare_data data =
     let sp = Eliom_common.get_sp () in
-    let r = { Eliom_types.ecs_onload = Eliom_services.get_onload sp;
+    let r = { Eliom_types.ecs_onload = Eliom_service.get_onload sp;
               ecs_data = data } in
     Lwt.return (Eliom_types.encode_eliom_data r)
 
@@ -1176,7 +1176,7 @@ module Caml = struct
       ~(service : ('get, 'post,
                    [< internal_service_kind ],
                    [< suff ], 'gn, 'pn, [ `Registrable ],
-                   'return Eliom_parameters.caml) service)
+                   'return Eliom_parameter.caml) service)
       ?(error_handler : ((string * exn) list -> 'return Lwt.t) option)
       (f : ('get -> 'post -> 'return Lwt.t)) =
     M.register
@@ -1187,7 +1187,7 @@ module Caml = struct
       ?content_type
       ?headers
       ?secure_session
-      ~service:(Eliom_services.untype_service_ service)
+      ~service:(Eliom_service.untype_service_ service)
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
@@ -1206,7 +1206,7 @@ module Caml = struct
       ~get_params
       ?error_handler
       f =
-    Eliom_services.untype_service_ (M.register_service
+    Eliom_service.untype_service_ (M.register_service
                                       ?scope
                                       ?options
                                       ?charset
@@ -1240,7 +1240,7 @@ module Caml = struct
       ~get_params
       ?error_handler
       f =
-    Eliom_services.untype_service_ (M.register_coservice
+    Eliom_service.untype_service_ (M.register_coservice
                                       ?scope
                                       ?options
                                       ?charset
@@ -1255,7 +1255,7 @@ module Caml = struct
                                       ?max_use
                                       ?timeout
                                       ?https
-                                      ~fallback:(Eliom_services.untype_service_ fallback)
+                                      ~fallback:(Eliom_service.untype_service_ fallback)
                                       ~get_params
                                       ?error_handler:(make_eh error_handler)
                                       (make_service_handler f))
@@ -1278,7 +1278,7 @@ module Caml = struct
       ~get_params
       ?error_handler
       f =
-    Eliom_services.untype_service_ (M.register_coservice'
+    Eliom_service.untype_service_ (M.register_coservice'
                                       ?scope
                                       ?options
                                       ?charset
@@ -1312,7 +1312,7 @@ module Caml = struct
       ~post_params
       ?error_handler
       f =
-    Eliom_services.untype_service_ (M.register_post_service
+    Eliom_service.untype_service_ (M.register_post_service
                                       ?scope
                                       ?options
                                       ?charset
@@ -1322,7 +1322,7 @@ module Caml = struct
                                       ?secure_session
                                       ?https
                                       ?priority
-                                      ~fallback:(Eliom_services.untype_service_ fallback)
+                                      ~fallback:(Eliom_service.untype_service_ fallback)
                                       ~post_params
                                       ?error_handler:(make_eh error_handler)
                                       (make_service_handler f))
@@ -1346,7 +1346,7 @@ module Caml = struct
       ~post_params
       ?error_handler
       f =
-    Eliom_services.untype_service_ (M.register_post_coservice
+    Eliom_service.untype_service_ (M.register_post_coservice
                                       ?scope
                                       ?options
                                       ?charset
@@ -1361,7 +1361,7 @@ module Caml = struct
                                       ?max_use
                                       ?timeout
                                       ?https
-                                      ~fallback:(Eliom_services.untype_service_ fallback)
+                                      ~fallback:(Eliom_service.untype_service_ fallback)
                                       ~post_params
                                       ?error_handler:(make_eh error_handler)
                                       (make_service_handler f))
@@ -1385,7 +1385,7 @@ module Caml = struct
       ~post_params
       ?error_handler
       f =
-    Eliom_services.untype_service_ (M.register_post_coservice'
+    Eliom_service.untype_service_ (M.register_post_coservice'
                                       ?scope
                                       ?options
                                       ?charset
@@ -1426,7 +1426,7 @@ end
 
 let comet_service_key = Polytables.make_key ()
 
-let request_template = Eliom_references.eref ~scope:Eliom_common.request None
+let request_template = Eliom_reference.eref ~scope:Eliom_common.request None
 
 module Eliom_appl_reg_make_param
   (Html5_content
@@ -1455,7 +1455,7 @@ module Eliom_appl_reg_make_param
       (Eliom_content.Html5.D.js_script
 	 ~a:(if async then [Eliom_content.Html5.D.a_async `Async] else [] )
 	 ~uri:(Eliom_content.Html5.D.make_uri
-		 ~service:(Eliom_services.static_dir ())
+		 ~service:(Eliom_service.static_dir ())
 		 [Appl_params.application_name ^ ".js"])
 	 ())
   let application_script =
@@ -1494,8 +1494,8 @@ module Eliom_appl_reg_make_param
       Eliom_wrap.wrap
 	{ Eliom_types.
 	  ejs_event_handler_table = Eliom_content.Xml.make_event_handler_table (Eliom_content.Html5.D.toelt page);
-	  ejs_onload              = Eliom_services.get_onload sp;
-	  ejs_onunload            = Eliom_services.get_onunload sp;
+	  ejs_onload              = Eliom_service.get_onload sp;
+	  ejs_onunload            = Eliom_service.get_onunload sp;
 	  ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;
 	} in
 
@@ -1506,7 +1506,7 @@ module Eliom_appl_reg_make_param
         sp.Eliom_common.sp_user_tab_cookies
     in
 
-    lwt template = Eliom_references.get request_template in
+    lwt template = Eliom_reference.get request_template in
     let script =
       Printf.sprintf
         ("eliom_request_data = \'%s\';\n"
@@ -1582,7 +1582,7 @@ module Eliom_appl_reg_make_param
          (Eliom_content.Html5.F.head ~a:head_attribs title head_elts)
          body )
 
-  let send_appl_content = Eliom_services.XSame_appl (Appl_params.application_name, None)
+  let send_appl_content = Eliom_service.XSame_appl (Appl_params.application_name, None)
 
   let send ?(options = default_appl_service_options) ?charset ?code
       ?content_type ?headers content =
@@ -1717,23 +1717,23 @@ module Eliom_tmpl_reg_make_param
 
   let result_of_http_result = Result_types.cast_result
 
-  let send_appl_content = Eliom_services.XSame_appl (Appl.application_name, Some Tmpl_param.name)
+  let send_appl_content = Eliom_service.XSame_appl (Appl.application_name, Some Tmpl_param.name)
 
   let nl_template =
-    Eliom_parameters.make_non_localized_parameters
+    Eliom_parameter.make_non_localized_parameters
       ~prefix:"eliom" ~name:"template"
-      (Eliom_parameters.string "name")
+      (Eliom_parameter.string "name")
 
   let send ?(options = default_appl_service_options) ?charset ?code
       ?content_type ?headers content =
     match get_non_localized_get_parameters nl_template with
     | None ->
-        lwt () = Eliom_references.set request_template (Some Tmpl_param.name) in
+        lwt () = Eliom_reference.set request_template (Some Tmpl_param.name) in
         lwt content = Tmpl_param.make_page content in
         Result_types.cast_kind_lwt
           (Appl.send ~options ?charset ?code ?content_type ?headers content)
     | Some _ ->
-        Eliom_services.onload (Tmpl_param.update content);
+        Eliom_service.onload (Tmpl_param.update content);
         Result_types.cast_kind_lwt (Caml.send ?charset ?code ?content_type ?headers ())
 
 end
@@ -1767,7 +1767,7 @@ module String_redir_reg_base = struct
 
   let result_of_http_result = Result_types.cast_result
 
-  let send_appl_content = Eliom_services.XAlways
+  let send_appl_content = Eliom_service.XAlways
   (* actually, the service will decide itself *)
 
   let send ?(options = `Found) ?charset ?code
@@ -1832,10 +1832,10 @@ module String_redirection = Eliom_mkreg.MakeRegister(String_redir_reg_base)
 module Redir_reg_base = struct
 
   type ('a, 'b) page =
-      (unit, unit, Eliom_services.get_service_kind,
+      (unit, unit, Eliom_service.get_service_kind,
        [ `WithoutSuffix ],
-       unit, unit, Eliom_services.registrable, 'b)
-        Eliom_services.service
+       unit, unit, Eliom_service.registrable, 'b)
+        Eliom_service.service
 
   type options =  [ `MovedPermanently
                   | `Found
@@ -1850,7 +1850,7 @@ module Redir_reg_base = struct
 
   let result_of_http_result = Result_types.cast_result
 
-  let send_appl_content = Eliom_services.XAlways
+  let send_appl_content = Eliom_service.XAlways
   (* actually, the service will decide itself *)
 
   let send ?(options = `Found) ?charset ?code
@@ -1910,9 +1910,9 @@ module Redir_reg_base = struct
           anr
           headers
         in
-        match Eliom_services.get_send_appl_content service with
+        match Eliom_service.get_send_appl_content service with
           (* the appl name of the destination service *)
-            | Eliom_services.XSame_appl (an,_) when (an = anr) ->
+            | Eliom_service.XSame_appl (an,_) when (an = anr) ->
             (* Same appl, we do a full xhr redirection
                (not an http redirection, because we want to
                send back tab cookies) *)
@@ -1925,7 +1925,7 @@ module Redir_reg_base = struct
                       (Lazy.force uri) headers
                 }
 
-            | Eliom_services.XAlways ->
+            | Eliom_service.XAlways ->
             (* It is probably an action, or a void coservice. Full xhr again *)
               Lwt.return
                 {empty_result with

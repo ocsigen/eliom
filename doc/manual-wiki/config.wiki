@@ -144,10 +144,10 @@ When an exception is raised during the generation of a page, or when
 the page has not been found or has wrong parameters, an HTTP error 500
 or 404 is sent to the client. You may want to catch these exceptions
 to print your own error page.  Do this using
-<<a_api| val Eliom_services.set_exn_handler >>.
+<<a_api| val Eliom_service.set_exn_handler >>.
 Here is the handler used by the tutorial:
 
-<<code language="ocaml"|let _ = Eliom_services.set_exn_handler
+<<code language="ocaml"|let _ = Eliom_service.set_exn_handler
    (fun e -> match e with
     | Eliom_common.Eliom_404 ->
         Eliom_output.Xhtml.send ~code:404
@@ -186,7 +186,7 @@ But this is not straightforward.  For Eliom modules, service
 registration and options setting must be delayed until the
 configuration file is read. To create a statically linkable Eliom
 module, use the function
-<<a_api| val Eliom_services.register_eliom_module >>.
+<<a_api| val Eliom_service.register_eliom_module >>.
 It takes as parameters the name of the module and the initialization
 function, that will be called when the module is initialized in the
 configuration file. That function will register services (and possibly
@@ -222,7 +222,7 @@ initialisation phase of the server.
 If you want to use that kind of function before the initialisation
 phase, for example if your module is linked statically with the
 server, you must call these function using the function
-<<a_api| val Eliom_services.register_eliom_module >>.
+<<a_api| val Eliom_service.register_eliom_module >>.
 (One solution is to use a lazy value to delay the creation of the
 table, and force that value during the registration function).
 
@@ -232,7 +232,7 @@ table, and force that value during the registration function).
 If you want an Ocsigen extension with access to Eliom's data (for
 example if you want an extension that will register some services),
 you can use the function
-<<a_api| val Eliom_extensions.register_eliom_extension >>
+<<a_api| val Eliom_extension.register_eliom_extension >>
 to register the function that will generate the
 <<a_api project="ocsigenserver" | type Ocsigen_extensions.answer>>.
 

@@ -652,7 +652,7 @@ val get_persistent_data_state_timeout :
     {!Eliom_common.Eliom_site_information_not_available}.
     If you are using static linking, you must delay the call to this function
     until the configuration file is read, using
-    {!Eliom_services.register_eliom_module}. Otherwise you will also get
+    {!Eliom_service.register_eliom_module}. Otherwise you will also get
     this exception.}
  *)
 
@@ -841,7 +841,7 @@ type 'a state_data =
     {!Eliom_common.Eliom_site_information_not_available}.
     If you are using static linking, you must delay the call to this function
     until the configuration file is read, using
-    {!Eliom_services.register_eliom_module}. Otherwise you will also get
+    {!Eliom_service.register_eliom_module}. Otherwise you will also get
     this exception.}
  *)
 val create_volatile_table :

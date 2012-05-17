@@ -7,8 +7,8 @@ open Eliom_compatibility_2_1
 open Lwt
 open HTML5.M
 open Ocsigen_cookies
-open Eliom_services
-open Eliom_parameters
+open Eliom_service
+open Eliom_parameter
 open Eliom_state
 open Eliom_output.Html5
 
@@ -25,7 +25,7 @@ let coucou =
 let coucou1 =
   register_service
     ~path:["coucou1"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     (fun () () ->
       let module Html5 = Eliom_content.Html5.F in
       return
@@ -49,7 +49,7 @@ let coucou_xhtml =
 let coucou1_xthml =
   Eliom_output.Xhtml.register_service
     ~path:["coucou1_xhtml"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     (fun () () ->
       let module Xhtml = Eliom_content.Xhtml.F in
       return
@@ -62,7 +62,7 @@ let coucou1_xthml =
 let coucoutext =
   Eliom_output.HtmlText.register_service
     ~path:["coucoutext"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     (fun () () ->
       return
         ("<html>n'importe quoi "^
@@ -182,7 +182,7 @@ let isuffix =
 let constfix =
   register_service
     ~path:["constfix"]
-    ~get_params:(suffix (string "s1" ** (Eliom_parameters.suffix_const "toto" ** string "s2")))
+    ~get_params:(suffix (string "s1" ** (Eliom_parameter.suffix_const "toto" ** string "s2")))
     (fun (s1, ((), s2))  () ->
       return
         (html
@@ -207,7 +207,7 @@ let mytype =
   Eliom_output.Html5.register_service
     ~path:["mytype"]
     ~get_params:
-      (Eliom_parameters.user_type mysum_of_string string_of_mysum "valeur")
+      (Eliom_parameter.user_type mysum_of_string string_of_mysum "valeur")
     (fun x () ->
       let v = string_of_mysum x in
       return
@@ -221,7 +221,7 @@ let mytype =
 let raw_serv =
   register_service
     ~path:["any"]
-    ~get_params:Eliom_parameters.any
+    ~get_params:Eliom_parameter.any
   (fun l () ->
     let module Html5 = Eliom_content.Html5.F in
     let ll =
@@ -298,7 +298,7 @@ let links = register_service ["rep";"links"] unit
           
 
 *wiki*)
-let linkrec = Eliom_services.service ["linkrec"] unit ()
+let linkrec = Eliom_service.service ["linkrec"] unit ()
 
 let _ = Eliom_output.Html5.register linkrec
     (fun () () ->
@@ -529,21 +529,21 @@ let my_table = Eliom_state.create_volatile_table (*zap* *) ~scope:session (* *za
 (* Create services, but do not register them yet:           *)
 
 let session_data_example =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["sessdata"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 let session_data_example_with_post_params =
-  Eliom_services.post_service
+  Eliom_service.post_service
     ~fallback:session_data_example
-    ~post_params:(Eliom_parameters.string "login")
+    ~post_params:(Eliom_parameter.string "login")
     ()
 
 let session_data_example_close =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["close"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 
@@ -644,21 +644,21 @@ let session = `Session scope_name
 (* Create services, but do not register them yet:           *)
 
 let session_services_example =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["sessionservices"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 let session_services_example_with_post_params =
-  Eliom_services.post_service
+  Eliom_service.post_service
     ~fallback:session_services_example
-    ~post_params:(Eliom_parameters.string "login")
+    ~post_params:(Eliom_parameter.string "login")
     ()
 
 let session_services_example_close =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["close2"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 
@@ -790,21 +790,21 @@ let _ = register ~scope:`Session
 (* We create one main service and two coservices:           *)
 
 let coservices_example =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["coserv"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 let coservices_example_post =
-  Eliom_services.post_coservice
+  Eliom_service.post_coservice
     ~fallback:coservices_example
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     ()
 
 let coservices_example_get =
-  Eliom_services.coservice
+  Eliom_service.coservice
     ~fallback:coservices_example
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 
@@ -1005,22 +1005,22 @@ let my_table = Eliom_state.create_volatile_table (*zap* *) ~scope:session (* *za
 (* (for connection and disconnection)                       *)
 
 let connect_example3 =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["action"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 let connect_action =
-  Eliom_services.post_coservice'
+  Eliom_service.post_coservice'
     ~name:"connect3"
-    ~post_params:(Eliom_parameters.string "login")
+    ~post_params:(Eliom_parameter.string "login")
     ()
 
 (* As the handler is very simple, we register it now: *)
 let disconnect_action =
   Eliom_output.Action.register_post_coservice'
     ~name:"disconnect3"
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     (fun () () ->
       Eliom_state.discard (*zap* *) ~scope:session (* *zap*) ())
 
@@ -1096,7 +1096,7 @@ let divpage =
 *wiki*)
 let redir1 = Eliom_output.Redirection.register_service
     ~path:["redir"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
    (fun () () -> Lwt.return coucou)
 (*wiki*
           
@@ -1106,7 +1106,7 @@ let redir = Eliom_output.Redirection.register_service
     ~get_params:(int "o")
    (fun o () ->
       Lwt.return
-        (Eliom_services.preapply coucou_params (o,(22,"ee"))))
+        (Eliom_service.preapply coucou_params (o,(22,"ee"))))
 (*wiki*
 
           
@@ -1206,13 +1206,13 @@ let my_persistent_table =
 (* (for connection and disconnection)                       *)
 
 let persist_session_example =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["persist"]
     ~get_params:unit
     ()
 
 let persist_session_connect_action =
-  Eliom_services.post_coservice'
+  Eliom_service.post_coservice'
     ~name:"connect4"
     ~post_params:(string "login")
     ()
@@ -1230,7 +1230,7 @@ let persist_session_connect_action =
 let disconnect_action =
   Eliom_output.Action.register_post_coservice'
     ~name:"disconnect4"
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     (fun () () ->
       Eliom_state.discard ~scope:session ())
 
@@ -1325,13 +1325,13 @@ let session_group = `Session_group scope_name
 (* (for connection and disconnection)                       *)
 
 let connect_example6 =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["action2"]
     ~get_params:unit
     ()
 
 let connect_action =
-  Eliom_services.post_coservice'
+  Eliom_service.post_coservice'
     ~name:"connect6"
     ~post_params:(string "login")
     ()
@@ -1341,7 +1341,7 @@ let connect_action =
 let disconnect_action =
   Eliom_output.Action.register_post_coservice'
     ~name:"disconnect6"
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     (fun () () ->
       Eliom_state.discard (*zap* *) ~scope:session (* *zap*) ())
 
@@ -1534,18 +1534,18 @@ let _ = Eliom_output.set_exn_handler
 
   *wiki*)
 let my_nl_params = 
-  Eliom_parameters.make_non_localized_parameters
+  Eliom_parameter.make_non_localized_parameters
     ~prefix:"tutoeliom"
     ~name:"mynlparams"
-    (Eliom_parameters.int "a" ** Eliom_parameters.string "s")
+    (Eliom_parameter.int "a" ** Eliom_parameter.string "s")
 
 let nlparams = service ~path:["nlparams"] ~get_params:(int "i") ()
 
 let make_body () =
   [p [a ~service:nlparams [pcdata "without nl params"] 4];
    p [a ~service:nlparams 
-         ~nl_params:(Eliom_parameters.add_nl_parameter
-                       Eliom_parameters.empty_nl_params_set
+         ~nl_params:(Eliom_parameter.add_nl_parameter
+                       Eliom_parameter.empty_nl_params_set
                        my_nl_params
                        (22, "oh")
          )
@@ -1553,8 +1553,8 @@ let make_body () =
          5];
    get_form
      ~service:nlparams 
-     ~nl_params:(Eliom_parameters.add_nl_parameter
-                   Eliom_parameters.empty_nl_params_set
+     ~nl_params:(Eliom_parameter.add_nl_parameter
+                   Eliom_parameter.empty_nl_params_set
                    my_nl_params
                    (22, "oh")
      )
@@ -1568,7 +1568,7 @@ let make_body () =
      ~service:nlparams 
      (fun iname ->
        let (aname, sname) = 
-         Eliom_parameters.get_nl_params_names my_nl_params
+         Eliom_parameter.get_nl_params_names my_nl_params
        in
        [p [pcdata "form with nl params fiels";
            Eliom_output.Html5.int_input 
@@ -1589,7 +1589,7 @@ let _ = register
          (head (title (pcdata "")) [])
          (body ((p [pcdata "i = ";
                     strong [pcdata (string_of_int i)]])::
-                   (match Eliom_parameters.get_non_localized_get_parameters
+                   (match Eliom_parameter.get_non_localized_get_parameters
                        my_nl_params 
                     with
                       | None -> 
@@ -1620,7 +1620,7 @@ let tonlparams = register_service
       
   *wiki*)
 let nlparams_with_nlp =
-  Eliom_services.add_non_localized_get_parameters my_nl_params nlparams
+  Eliom_service.add_non_localized_get_parameters my_nl_params nlparams
   (*wiki*
     
   *wiki*)
@@ -1638,22 +1638,22 @@ let session_group = `Session_group scope_name
 (* (for connection and disconnection)                       *)
 
 let connect_example5 =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["groups"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 let connect_action =
-  Eliom_services.post_coservice'
+  Eliom_service.post_coservice'
     ~name:"connect5"
-    ~post_params:(Eliom_parameters.string "login")
+    ~post_params:(Eliom_parameter.string "login")
     ()
 
 (* As the handler is very simple, we register it now: *)
 let disconnect_action =
   Eliom_output.Action.register_post_coservice'
     ~name:"disconnect5"
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     (fun () () ->
       Eliom_state.discard (*zap* *) ~scope:session (* *zap*) ())
 
@@ -1730,28 +1730,28 @@ let my_table =
 (* (for connection and disconnection)                       *)
 
 let group_tables_example =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["grouptables"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 let connect_action =
-  Eliom_services.post_coservice'
+  Eliom_service.post_coservice'
     ~name:"connect7"
-    ~post_params:(Eliom_parameters.string "login")
+    ~post_params:(Eliom_parameter.string "login")
     ()
 
 let disconnect_action =
   Eliom_output.Action.register_post_coservice'
     ~name:"disconnectgt"
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     (fun () () ->
       Eliom_state.discard ~scope:session ())
 
 let disconnect_g_action =
   Eliom_output.Action.register_post_coservice'
     ~name:"disconnectgtg"
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     (fun () () ->
       Eliom_state.discard ~scope:session_group ())
 
@@ -1859,28 +1859,28 @@ let my_table =
 
 
 let pgroup_tables_example =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["pgrouptables"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 
 let connect_action =
-  Eliom_services.post_coservice'
+  Eliom_service.post_coservice'
     ~name:"connect8"
-    ~post_params:(Eliom_parameters.string "login")
+    ~post_params:(Eliom_parameter.string "login")
     ()
 
 let disconnect_action =
   Eliom_output.Action.register_post_coservice'
     ~name:"pdisconnectgt"
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     (fun () () -> Eliom_state.discard ~scope:session ())
 
 let disconnect_g_action =
   Eliom_output.Action.register_post_coservice'
     ~name:"pdisconnectgtg"
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     (fun () () ->
       Eliom_state.discard ~scope:session_group ())
 
@@ -1976,13 +1976,13 @@ let csrf_scope_name = Eliom_common.create_scope_name "csrf"
 let csrf_scope = `Session csrf_scope_name
 
 let csrfsafe_example =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["csrf"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 let csrfsafe_example_post =
-  Eliom_services.post_coservice
+  Eliom_service.post_coservice
     ~csrf_safe:true
     ~csrf_scope
     ~csrf_secure:true
@@ -1990,7 +1990,7 @@ let csrfsafe_example_post =
     ~max_use:1
     ~https:true
     ~fallback:csrfsafe_example
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     ()
 
 let _ =
@@ -2403,7 +2403,7 @@ let hier8 = service ~path:["hier8"] ~get_params:unit ()
 let hier9 = service ~path:["hier9"] ~get_params:unit ()
 let hier10 = service ~path:["hier10"] ~get_params:unit ()
 
-let mymenu : (_, Eliom_services.registrable, _) hierarchical_site =
+let mymenu : (_, Eliom_service.registrable, _) hierarchical_site =
   (
    (Main_page hier1),
 

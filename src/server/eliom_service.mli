@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module eliom_services.mli
+ * Module eliom_service.mli
  * Copyright (C) 2007 Vincent Balat
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,7 +31,7 @@ open Ocsigen_extensions
 
 open Eliom_lib
 open Eliom_content_core
-open Eliom_parameters
+open Eliom_parameter
 
 
 (** {2 Type definitions for services} *)
@@ -105,8 +105,8 @@ type internal_service_kind =
 (** {3 Kind of parameters} *)
 
 (** The kind of parameters for a service is [`WithSuffix] when it have
-    a suffix parameter, for examples {!Eliom_parameters.suffix} or
-    {!Eliom_parameters.suffix_prod}. Otherwise it is
+    a suffix parameter, for examples {!Eliom_parameter.suffix} or
+    {!Eliom_parameter.suffix_prod}. Otherwise it is
     [`WithoutSuffix]. *)
 type suff = [ `WithSuffix | `WithoutSuffix ]
 
@@ -126,9 +126,9 @@ type registrable = [ `Registrable | `Unregistrable ]
             parameters. It is a subtype of {!service_kind}.
     - [ 'd] is a phantom type, subtype of {!suff} stating the kind
             of parameters it uses: suffix or not.
-    - [ 'e] is the type of GET parameters names. See {!Eliom_parameters.param_name} and
+    - [ 'e] is the type of GET parameters names. See {!Eliom_parameter.param_name} and
             form generation functions (e. g. {!Eliom_output.Html5.get_form}).
-    - [ 'f] is the type of POST parameters names. See {!Eliom_parameters.param_name} and
+    - [ 'f] is the type of POST parameters names. See {!Eliom_parameter.param_name} and
             form generation functions (e. g. {!Eliom_output.Html5.post_form}).
     - [ 'g] is a phantom type,  subtype of {!registrable},
             telling if it is possible to register a handler
@@ -171,7 +171,7 @@ val register_eliom_module : string -> (unit -> unit) -> unit
     {!Eliom_common.Eliom_site_information_not_available}.  If you are
     using static linking, you must delay the call to this function
     until the configuration file is read, using
-    {!Eliom_services.register_eliom_module}. Otherwise you will also
+    {!Eliom_service.register_eliom_module}. Otherwise you will also
     get this exception.}
 *)
 
@@ -321,7 +321,7 @@ val post_service :
     respectively correspond to the [~scope] and [~secure] parameters
     that will be given to the associated [register]
     function. Otherwise the registration will fail with
-    {Eliom_services.Wrong_session_table_for_CSRF_safe_coservice}. See
+    {Eliom_service.Wrong_session_table_for_CSRF_safe_coservice}. See
     {!Eliom_output.Html5.register},
     {!Eliom_output.Eliom_appl.register} or any other
     {!Eliom_output}[.*.register] functions for a description of those
@@ -630,9 +630,9 @@ val get_pre_applied_parameters_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service 
   (string * string) list String.Table.t *
   (string * string) list
 val get_get_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
-  ('a, 'd, 'e) Eliom_parameters.params_type
+  ('a, 'd, 'e) Eliom_parameter.params_type
 val get_post_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
-  ('b, [ `WithoutSuffix ], 'f) Eliom_parameters.params_type
+  ('b, [ `WithoutSuffix ], 'f) Eliom_parameter.params_type
 val get_att_kind_ : ('a, 'b) a_s -> 'a
 val get_sub_path_ : ('a, 'b) a_s -> Url.path
 val get_full_path_ : ('a, 'b) a_s -> Url.path
@@ -693,7 +693,7 @@ type send_appl_content =
   | XAlways
   | XSame_appl of string * string option
 (** Whether the service is capable to send application content or not.
-    (application content has type Eliom_services.eliom_appl_answer:
+    (application content has type Eliom_service.eliom_appl_answer:
     content of the application container, or xhr redirection ...).
     A link towards a service with send_appl_content = XNever will
     always answer a regular http frame (this will stop the application if

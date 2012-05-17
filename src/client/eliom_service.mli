@@ -21,7 +21,7 @@
     client side declaration of void coservices. Void coservices are the only ones
     defined on client side. *)
 
-open Eliom_parameters
+open Eliom_parameter
 open Eliom_lib
 open Eliom_content_core
 
@@ -87,9 +87,9 @@ type appl_service (** return type for service that are entry points for an
             parameters. It is a subtype of {!service_kind}.
     - [ 'd] is a phantom type, subtype of {!suff} stating the kind
             of parameters it uses: suffix or not.
-    - [ 'e] is the type of GET parameters names. See {!Eliom_parameters.param_name} and
+    - [ 'e] is the type of GET parameters names. See {!Eliom_parameter.param_name} and
             form generation functions (e. g. {!Eliom_output.Html5.get_form}).
-    - [ 'f] is the type of POST parameters names. See {!Eliom_parameters.param_name} and
+    - [ 'f] is the type of POST parameters names. See {!Eliom_parameter.param_name} and
             form generation functions (e. g. {!Eliom_output.Html5.post_form}).
     - [ 'g] is a phantom type,  subtype of {!registrable},
             telling if it is possible to register a handler
@@ -223,9 +223,9 @@ val get_pre_applied_parameters_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service 
   (string * string) list String.Table.t *
   (string * string) list
 val get_get_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
-  ('a, 'd, 'e) Eliom_parameters.params_type
+  ('a, 'd, 'e) Eliom_parameter.params_type
 val get_post_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
-  ('b, [ `WithoutSuffix ], 'f) Eliom_parameters.params_type
+  ('b, [ `WithoutSuffix ], 'f) Eliom_parameter.params_type
 val get_att_kind_ : ('a, 'b) a_s -> 'a
 val get_sub_path_ : ('a, 'b) a_s -> Url.path
 val get_full_path_ : ('a, 'b) a_s -> Url.path
@@ -266,7 +266,7 @@ type send_appl_content =
   | XAlways
   | XSame_appl of string * string option
 (** Whether the service is capable to send application content or not.
-    (application content has type Eliom_services.eliom_appl_answer:
+    (application content has type Eliom_service.eliom_appl_answer:
     content of the application container, or xhr redirection ...).
     A link towards a service with send_appl_content = XNever will
     always answer a regular http frame (this will stop the application if

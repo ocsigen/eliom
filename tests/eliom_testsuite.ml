@@ -17,12 +17,12 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
           (title (pcdata "Examples from the manual"))
           [Eliom_output.Html5.css_link 
               (Eliom_output.Html5.make_uri
-                 ~service:(Eliom_services.static_dir ()) ["style.css"]) ()])
+                 ~service:(Eliom_service.static_dir ()) ["style.css"]) ()])
        (body
           [
             h1 [img ~alt:"Ocsigen"
                    ~src:(Eliom_output.Html5.make_uri
-                           ~service:(Eliom_services.static_dir ()) ["ocsigen5.png"]) ()];
+                           ~service:(Eliom_service.static_dir ()) ["ocsigen5.png"]) ()];
 
             h3 [pcdata "Eliom examples"];
             h4 [pcdata "Simple pages"];
@@ -350,7 +350,7 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
            (["l/l%l      &l=l+l)l@";"m\\m\"m";"n?èn~n"],
             [("po?po&po~po/po+po", "lo?\"l     o#lo'lo lo=lo&l      o/lo+lo");
             ("bo=mo@co:ro", "zo^zo%zo$zo:zo?aaa")]); br ();
-         a ~service:(Eliom_services.static_dir_with_params ~get_params:Eliom_parameters.any ())
+         a ~service:(Eliom_service.static_dir_with_params ~get_params:Eliom_parameter.any ())
            [pcdata "Static file with GET parameters"]
            (["ocsigen5.png"], [("aa", "lmk"); ("bb", "4")]); br ();
 

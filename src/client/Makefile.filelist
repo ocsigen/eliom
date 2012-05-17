@@ -1,8 +1,8 @@
 
 INTF := eliom_lazy.cmi              \
         eliom_lib.cmi               \
-        eliom_parameters.cmi        \
-        eliom_services.cmi          \
+        eliom_parameter.cmi        \
+        eliom_service.cmi          \
         eliom_uri.cmi               \
         eliom_mkforms.cmi           \
         eliom_output.cmi            \

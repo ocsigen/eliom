@@ -262,7 +262,7 @@ let create_request_
      and Eliom_uri.make_post_uri_components instead of Eliom_uri.make_string_uri_
      and Eliom_uri.make_post_uri_components__ *)
 
-  match Eliom_services.get_get_or_post service with
+  match Eliom_service.get_get_or_post service with
   | `Get ->
       let uri =
         Eliom_uri.make_string_uri_
@@ -673,10 +673,10 @@ let set_template_content ?uri ?fragment = function
 
 let change_page
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
-    ?keep_nl_params ?(nl_params = Eliom_parameters.empty_nl_params_set) ?keep_get_na_params
+    ?keep_nl_params ?(nl_params = Eliom_parameter.empty_nl_params_set) ?keep_get_na_params
     get_params post_params =
 
-  let xhr = Eliom_services.xhr_with_cookies service in
+  let xhr = Eliom_service.xhr_with_cookies service in
   if xhr = None
   || (https = Some true && not Eliom_request_info.ssl_)
   || (https = Some false && Eliom_request_info.ssl_)
@@ -690,7 +690,7 @@ let change_page
     match xhr with
       | Some (Some tmpl as t) when t = Eliom_request_info.get_request_template () ->
         let nl_params =
-          Eliom_parameters.add_nl_parameter nl_params Eliom_request.nl_template tmpl
+          Eliom_parameter.add_nl_parameter nl_params Eliom_request.nl_template tmpl
         in
         lwt uri, content =
           raw_call_service

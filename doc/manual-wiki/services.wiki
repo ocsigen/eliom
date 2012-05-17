@@ -21,7 +21,7 @@ A service is composed of:
 <<paragraph| Service creation >>
 
 Manipulation of Eliom services can be done throught the values of type
-<<a_api | type Eliom_services.service >>. The most common service
+<<a_api | type Eliom_service.service >>. The most common service
 creation function is <<a_api | val Eliom_output.HTML5.register_service
 >>. It allows to create a service attached to a given path that may
 expect some GET parameters and that return some HTML5 contents using
@@ -32,7 +32,7 @@ the TyXML library.
 The service creation could be split in two steps:
 
 * create a value of type service, e.g. using <<a_api | val
-  Eliom_services.service >>
+  Eliom_service.service >>
 * register a service handler, e.g. using <<a_api | val
   Eliom_output.HTML5.register >>
 
@@ -150,9 +150,9 @@ parameters.
 The parameters of services are specified using the {{{~get_params}}}
 and {{{~post_params}}} options of service creation functions. These
 options expect values of type <<a_api | type
-Eliom_parameters.params_type >> that represent the set of expected
+Eliom_parameter.params_type >> that represent the set of expected
 arguments with their types. They are build using combinator from the
-<<a_api | module Eliom_parameters >> module. See chapter <<a_manual
+<<a_api | module Eliom_parameter >> module. See chapter <<a_manual
 chapter="params"| Service parameters >> for a detailled description of
 this module.
 
@@ -242,7 +242,7 @@ kinds of services (POST, coservices) are using the URL of existing
 regular GET services.
 
 Regular services are created using the function <<a_api | val
-Eliom_services.service>>.
+Eliom_service.service>>.
 
 POST services must be accessible even when the request was done
 without the POST parameters (for instance, when typing the URL in the
@@ -250,7 +250,7 @@ browser, reloading, using bookmarks,~ ...). Hence every POST service
 has a //fallback// GET service.
 
 POST services are created using <<a_api | val
-Eliom_services.post_service>>.
+Eliom_service.post_service>>.
 
 <<concept
 
@@ -293,7 +293,7 @@ Eliom_services.post_service>>.
 ===@@id="attached_coservices"@@ Attached coservices ===
 
 GET attached coservices are created using function <<a_api| val
-Eliom_services.coservice>>.
+Eliom_service.coservice>>.
 
 Anonymous GET attached coservices are often created dynamically with
 respect to previous interaction with the user (e.g. filling forms in
@@ -307,7 +307,7 @@ Often, they should be used with a restricted scope (see the section
 services>>).
 
 POST attached coservices are created using <<a_api| val
-Eliom_services.post_coservice>>.
+Eliom_service.post_coservice>>.
 
 They can be used to customize the behaviour of an URL.  Some of their
 usages are:
@@ -338,8 +338,8 @@ not change.  The parameters of the non-attached coservice are sent as
 special parameters.
 
 To create a non-attached coservice, use <<a_api| val
- Eliom_services.coservice'>> or <<a_api| val
- Eliom_services.post_coservice'>> (note the "prime" at the end).
+ Eliom_service.coservice'>> or <<a_api| val
+ Eliom_service.post_coservice'>> (note the "prime" at the end).
 
 Use POST non-attached coservices for example if you want a link or
 form to be present on every page but you don't want the URL to change
@@ -357,7 +357,7 @@ action on a non-attached coservices like this:
 
 let remove_action =
   Eliom_output.Action.register_post_coservice'
-    ~post_params:(Eliom_parameters.int "id")
+    ~post_params:(Eliom_parameter.int "id")
     (fun () id -> remove id)
 
 >>
@@ -409,9 +409,9 @@ coservices. Example
 
 It is possible to define external services, that is, services that
 belong to an external Web site (on the same server of not).  To do
-that, use the functions <<a_api| val Eliom_services.external_service
+that, use the functions <<a_api| val Eliom_service.external_service
 >> (for using the GET method), or <<a_api| val
-Eliom_services.external_post_service>> (for using the POST method).
+Eliom_service.external_post_service>> (for using the POST method).
 
 For example, the follwing code defines a link to the OCaml Wikipedia
 page:
@@ -419,7 +419,7 @@ page:
 <<code language="ocaml"|
 
 Eliom_output.Html5.a
-  (Eliom_services.external_service
+  (Eliom_service.external_service
      ~prefix:"http://en.wikipedia.org"
      ~path:["wiki";""]
      ~get_params:(suffix (all_suffix "suff"))
@@ -434,7 +434,7 @@ Eliom_output.Html5.a
 <<a_manual project="ocsigenserver" chapter="staticmod" | Staticmod>>
 is an Ocsigen Server extension serving static (non-generated) files
 (for examples images and stylesheets). It can be used together with
-Eliom. The predefined service <<a_api| val Eliom_services.static_dir
+Eliom. The predefined service <<a_api| val Eliom_service.static_dir
 >> can be used to make links to static files. It takes as parameter
 the path of the file.
 
@@ -447,7 +447,7 @@ a (static_dir ()) [pcdata "download image"] ["ocsigen10.png"]
 >>
 
 It is also possible to send static files using Eliom, with <<a_api|
-module Eliom_output.Files>> (see <<a_manual chapter="outputs"
+module Eliom_output.File>> (see <<a_manual chapter="outputs"
 fragment="eliomfiles" |Sending files>>).
 
 
@@ -456,15 +456,15 @@ fragment="eliomfiles" |Sending files>>).
 
 It is possible to preapply the GET parameters of a service to obtain a
 service without parameters, or only the POST ones. It is done using
-<<a_api |val Eliom_services.preapply>>. Example:
+<<a_api |val Eliom_service.preapply>>. Example:
 
 <<code language="ocaml"|
 
 let some_service =
-  Eliom_services.service ~path:["serv"]
-    ~get_params:Eliom_parameters.int ()
+  Eliom_service.service ~path:["serv"]
+    ~get_params:Eliom_parameter.int ()
 
-let preappl = Eliom_services.preapply some_service 3
+let preappl = Eliom_service.preapply some_service 3
 
 >>
 
@@ -474,7 +474,7 @@ you can use them in links or as fallbacks for coservices.
 
 ===@@id="void"@@Void coservices
 
-<<a_api| val Eliom_services.void_coservice'>> is a special
+<<a_api| val Eliom_service.void_coservice'>> is a special
 non-attached action, with special behaviour: it has no parameter at
 all, even non-attached parameters.  Use it if you want to make a link
 to the current page without non-attached parameters.  It is almost
@@ -485,17 +485,17 @@ not only forms.  Example:
 
 <<code language="ocaml"|
 
-a Eliom_services.void_coservice' [pcdata "cancel"] ()
+a Eliom_service.void_coservice' [pcdata "cancel"] ()
 
 >>
 
-There is also <<a_api| val Eliom_services.https_void_coservice'>>
+There is also <<a_api| val Eliom_service.https_void_coservice'>>
 (same, but forces use of HTTPS), <<a_api| val
-Eliom_services.void_hidden_coservice'>>, and <<a_api| val
-Eliom_services.https_void_hidden_coservice'>>. "Hidden" means that
+Eliom_service.void_hidden_coservice'>>, and <<a_api| val
+Eliom_service.https_void_hidden_coservice'>>. "Hidden" means that
 they keep GET non attached parameters.
 
-Use <<a_api| val Eliom_services.void_hidden_coservice'>> for example
+Use <<a_api| val Eliom_service.void_hidden_coservice'>> for example
 after a POST request if you want to do a redirection towards the same
 page without POST parameters (and thus prevent from reposting data if
 the user reloads the page).

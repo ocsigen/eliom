@@ -103,9 +103,9 @@ let redirect_post_form_elt ?(post_args=[]) ?(form_arg=[]) url =
      @post_args)
 
 let nl_template =
-  Eliom_parameters.make_non_localized_parameters
+  Eliom_parameter.make_non_localized_parameters
     ~prefix:"eliom" ~name:"template"
-    (Eliom_parameters.string "name")
+    (Eliom_parameter.string "name")
 (* Warning: it must correspond to [nl_template]. *)
 let nl_template_string = "__nl_n_eliom-template.name"
 

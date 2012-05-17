@@ -1,6 +1,6 @@
 open Eliom_lib
-open Eliom_parameters
-open Eliom_services
+open Eliom_parameter
+open Eliom_service
 
 (** {2 Service registration } *)
 
@@ -52,7 +52,7 @@ val register :
   unit
 (* FIXME: secure_session is called "secure" in Eliom_state and Eliom_Service.unregister. *)
 
-(** Same as {!val:Eliom_services.service} followed by {!register}. *)
+(** Same as {!val:Eliom_service.service} followed by {!register}. *)
 val register_service :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
@@ -73,7 +73,7 @@ val register_service :
    'tipo, 'gn, unit,
    [> `Registrable ], return) service
 
-(** Same as {!Eliom_services.coservice} followed by {!register}. *)
+(** Same as {!Eliom_service.coservice} followed by {!register}. *)
 val register_coservice :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
@@ -106,7 +106,7 @@ val register_coservice :
     service
 
 
-(** Same as {!Eliom_services.coservice'} followed by {!register}. *)
+(** Same as {!Eliom_service.coservice'} followed by {!register}. *)
 val register_coservice' :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
@@ -132,7 +132,7 @@ val register_coservice' :
     service
 
 
-(** Same as {!Eliom_services.post_service} followed by {!register}. *)
+(** Same as {!Eliom_service.post_service} followed by {!register}. *)
 val register_post_service :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
@@ -158,7 +158,7 @@ val register_post_service :
    'tipo, 'gn, 'pn, [> `Registrable ], return)
     service
 
-(** Same as {!Eliom_services.post_coservice} followed by {!register}. *)
+(** Same as {!Eliom_service.post_coservice} followed by {!register}. *)
 val register_post_coservice :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
@@ -189,7 +189,7 @@ val register_post_coservice :
    'tipo, 'gn, 'pn, [> `Registrable ], return)
     service
 
-(** Same as {!Eliom_services.post_coservice'} followed by {!register}. *)
+(** Same as {!Eliom_service.post_coservice'} followed by {!register}. *)
 val register_post_coservice' :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->

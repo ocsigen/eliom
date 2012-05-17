@@ -21,8 +21,8 @@
 open Eliom_lib
 open Eliom_content_core
 
-open Eliom_services
-open Eliom_parameters
+open Eliom_service
+open Eliom_parameter
 
 type appl_service = [ `Appl ]
 type http_service = [ `Http ]
@@ -272,7 +272,7 @@ end = struct
                 ?port:int ->
                 ?fragment:string ->
                 ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                ?nl_params: Eliom_parameters.nl_params_set ->
+                ?nl_params: Eliom_parameter.nl_params_set ->
                 ?xhr:bool ->
                 'a elt list -> 'get ->
                 'a a elt :>
@@ -287,7 +287,7 @@ end = struct
                 ?port:int ->
                 ?fragment:string ->
                 ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                ?nl_params: Eliom_parameters.nl_params_set ->
+                ?nl_params: Eliom_parameter.nl_params_set ->
                 ?xhr:bool ->
                 'a elt list -> 'get ->
                 [> 'a a] elt)
@@ -315,7 +315,7 @@ end = struct
                        ?port:int ->
                        ?fragment:string ->
                        ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                       ?nl_params: Eliom_parameters.nl_params_set ->
+                       ?nl_params: Eliom_parameter.nl_params_set ->
                        'get -> uri)
 
       let get_form = (get_form :
@@ -330,7 +330,7 @@ end = struct
                        ?port:int ->
                        ?fragment:string ->
                        ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                       ?nl_params: Eliom_parameters.nl_params_set ->
+                       ?nl_params: Eliom_parameter.nl_params_set ->
                        ?xhr:bool ->
                        ('gn -> form_content elt list) -> form elt :>
                        ?absolute:bool ->
@@ -344,7 +344,7 @@ end = struct
                        ?port:int ->
                        ?fragment:string ->
                        ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                       ?nl_params: Eliom_parameters.nl_params_set ->
+                       ?nl_params: Eliom_parameter.nl_params_set ->
                        ?xhr:bool ->
                        ('gn -> form_content elt list) -> [> form ] elt)
 
@@ -361,7 +361,7 @@ end = struct
                            ?port:int ->
                            ?fragment:string ->
                            ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                           ?nl_params: Eliom_parameters.nl_params_set ->
+                           ?nl_params: Eliom_parameter.nl_params_set ->
                            ?xhr:bool ->
                            ('gn -> form_content elt list Lwt.t) -> form elt Lwt.t :>
                            ?absolute:bool ->
@@ -375,7 +375,7 @@ end = struct
                            ?port:int ->
                            ?fragment:string ->
                            ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                           ?nl_params: Eliom_parameters.nl_params_set ->
+                           ?nl_params: Eliom_parameter.nl_params_set ->
                            ?xhr:bool ->
                            ('gn -> form_content elt list Lwt.t) ->
                            [> form ] elt Lwt.t)
@@ -394,7 +394,7 @@ end = struct
                         ?fragment:string ->
                         ?keep_nl_params:[ `All | `Persistent | `None ] ->
                         ?keep_get_na_params:bool ->
-                        ?nl_params: Eliom_parameters.nl_params_set ->
+                        ?nl_params: Eliom_parameter.nl_params_set ->
                         ?xhr:bool ->
                         ('pn -> form_content elt list) -> 'get -> form elt :>
                         ?absolute:bool ->
@@ -409,7 +409,7 @@ end = struct
                         ?fragment:string ->
                         ?keep_nl_params:[ `All | `Persistent | `None ] ->
                         ?keep_get_na_params:bool ->
-                        ?nl_params: Eliom_parameters.nl_params_set ->
+                        ?nl_params: Eliom_parameter.nl_params_set ->
                         ?xhr:bool ->
                         ('pn -> form_content elt list) -> 'get -> [> form ] elt)
 
@@ -426,7 +426,7 @@ end = struct
                             ?fragment:string ->
                             ?keep_nl_params:[ `All | `Persistent | `None ] ->
                             ?keep_get_na_params:bool ->
-                            ?nl_params: Eliom_parameters.nl_params_set ->
+                            ?nl_params: Eliom_parameter.nl_params_set ->
                             ?xhr:bool ->
                             ('pn -> form_content elt list Lwt.t) ->
                             'get -> form elt Lwt.t :>
@@ -442,7 +442,7 @@ end = struct
                             ?fragment:string ->
                             ?keep_nl_params:[ `All | `Persistent | `None ] ->
                             ?keep_get_na_params:bool ->
-                            ?nl_params: Eliom_parameters.nl_params_set ->
+                            ?nl_params: Eliom_parameter.nl_params_set ->
                             ?xhr:bool ->
                             ('pn -> form_content elt list Lwt.t) -> 'get ->
                             [> form ] elt Lwt.t)
@@ -902,7 +902,7 @@ end = struct
     let make_info ~https kind service =
       Eliom_lazy.from_fun
         (fun () ->
-          match Eliom_services.xhr_with_cookies service with
+          match Eliom_service.xhr_with_cookies service with
           | None -> None
           | Some tmpl ->
               Some (kind, Eliom_uri.make_cookies_info (https, service), tmpl))

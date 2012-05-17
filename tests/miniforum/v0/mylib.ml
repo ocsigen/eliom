@@ -1,6 +1,6 @@
 open Eliom_predefmod.Xhtml
 open XHTML.M
-open Eliom_services
+open Eliom_service
 
 let create_page sp mytitle mycontent =
   Lwt.return

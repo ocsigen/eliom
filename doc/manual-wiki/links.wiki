@@ -27,7 +27,7 @@ as in these examples:
          Eliom_output.Html5.a raw_serv
            [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
          Eliom_output.Html5.a
-           (Eliom_services.external_service
+           (Eliom_service.external_service
               ~prefix:"http://fr.wikipedia.org"
               ~path:["wiki";""]
               ~get_params:(suffix (all_suffix "suff"))
@@ -81,12 +81,12 @@ the URL.\\
 
 
 If you want to create (mutually or not) recursive pages, create the
-service using <<a_api| val Eliom_services.service >> first, then
+service using <<a_api| val Eliom_service.service >> first, then
 register it in the table using (for example) <<a_api| val Eliom_output.Html5.register >>:
 
   
 
-<<code language="ocaml"|let linkrec = Eliom_services.service ["linkrec"] unit ()
+<<code language="ocaml"|let linkrec = Eliom_service.service ["linkrec"] unit ()
 
 let _ = Eliom_output.Html5.register linkrec
     (fun () () ->
@@ -131,7 +131,7 @@ let form = Eliom_output.Html5.register_service ["form"] unit
 If you want to use typed parameters,
 you cannot use functions like  <<a_api project="tyxml"| val HTML5.M.input >> to
 create your forms (but you can use it if you want to use parameters defined with
- <<a_api| val Eliom_parameters.any >>). Indeed, parameter names are typed to force them
+ <<a_api| val Eliom_parameter.any >>). Indeed, parameter names are typed to force them
 be used properly. In our example, <<span class="code"|number_name>> has type
 <<span class="code"|int param_name>> and must be used with
 <<span class="code"|int_input>> (or other widgets), whereas
@@ -308,7 +308,7 @@ corresponding forms.
 ===Parsing parameters using regular expressions
   
   
-Eliom_parameters.regexp allows to parse page parameters using (Perl-compatible)
+Eliom_parameter.regexp allows to parse page parameters using (Perl-compatible)
 regular expressions. We use the module <<span class="code"|Netstring_pcre>>,
 from //OCamlnet//. See the documentation about OCamlnet
 for more information.
@@ -394,17 +394,17 @@ they are tried in order of registration.
 The first matching service will answer.\\
 
 Other types similar to bool:
-* <<a_api| val Eliom_parameters.opt >> (page taking an optional parameter),
-* <<a_api| val Eliom_parameters.sum >> (either a parameter or another).
+* <<a_api| val Eliom_parameter.opt >> (page taking an optional parameter),
+* <<a_api| val Eliom_parameter.sum >> (either a parameter or another).
 
-See <<a_api | module Eliom_parameters>>.
+See <<a_api | module Eliom_parameter>>.
 
 ===Type <<span class="code"|set>>
 
 Page may take several parameters of the same name.
 It is useful when you want to create a form with a variable number
 of fields.
-To do that with Eliom, use the type  <<a_api| val Eliom_parameters.set >>.
+To do that with Eliom, use the type  <<a_api| val Eliom_parameter.set >>.
 For example <<span class="code"|set int "val">> means that the page will take
 zero, one or several parameters of name <<span class="code"|"val">>,
 all of type <<span class="code"|int>>.
@@ -518,7 +518,7 @@ let select_example = Eliom_output.Html5.register_service ["select"] unit
 To do "multiple" select boxes, use functions like
  <<a_api| val Eliom_output.Html5.string_multiple_select >>.
 As you can see in the type, the service must be declared with parameters
-of type  <<a_api| val Eliom_parameters.set >>.
+of type  <<a_api| val Eliom_parameter.set >>.
 
 ===Clickable images
   
@@ -603,8 +603,8 @@ let imageform2 = Eliom_output.Html5.register_service
 
 ===Type <<span class="code"|list>>
 
-Another way (than  <<a_api| val Eliom_parameters.set >>) to do variable length forms
-is to use indexed lists (using  <<a_api| val Eliom_parameters.list >>).
+Another way (than  <<a_api| val Eliom_parameter.set >>) to do variable length forms
+is to use indexed lists (using  <<a_api| val Eliom_parameter.list >>).
 The use of that feature is a bit more complex than <<span class="code"|set>>.
 Here is an example of service taking an indexed list as parameter:
 
@@ -710,7 +710,7 @@ let suffixform = Eliom_output.Html5.register_service ["suffixform"] unit
 
 ===Uploading files
 
-The  <<a_api| val Eliom_parameters.file >> parameter type allows to send files in your
+The  <<a_api| val Eliom_parameter.file >> parameter type allows to send files in your
 request. The service gets something of type
  <<a_api project="ocsigenserver"| type Ocsigen_extensions.file_info >>. You can extract information
 using this using these functions (from  <<a_api| module Eliom_request_info >>):
@@ -790,7 +790,7 @@ let uploadform = register upload
 
 ===Raw POST data (advanced use)
 
-By specifying {{{~~post_params:Eliom_parameters.raw_post_params}}},
+By specifying {{{~~post_params:Eliom_parameter.raw_post_params}}},
 it is possible to create a service that takes as parameter any POST
 data, as a stream. The only restriction is that it does not work if
 the content-type corresponds to URL encoded form data or multipart data

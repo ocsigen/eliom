@@ -1,6 +1,6 @@
 open XHTML.M
 open Eliom_predefmod.Xhtml
-open Eliom_services
+open Eliom_service
 
 
 (* Messages database *)

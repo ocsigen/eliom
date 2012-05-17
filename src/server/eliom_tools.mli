@@ -24,12 +24,12 @@
 
 open Eliom_lib
 open Eliom_content
-open Eliom_services
-open Eliom_parameters
+open Eliom_service
+open Eliom_parameter
 open Eliom_state
 open Eliom_tools_common
 
-(** Restriction of {!type:Eliom_services.service} to services without
+(** Restriction of {!type:Eliom_service.service} to services without
     parameters that do not returns a marshalled OCaml value. *)
 type ('a, 'b, 'c) one_page =
     (unit, unit,
@@ -39,12 +39,12 @@ type ('a, 'b, 'c) one_page =
      'b, 'c) service
 constraint 'c = [< Eliom_output.non_caml_service ]
 
-(** Restriction of {!type:Eliom_services.service} to registrable GET
+(** Restriction of {!type:Eliom_service.service} to registrable GET
     services without parameters that do not returns a marshalled OCaml
     value. *)
 type get_page =
-    (Eliom_services.get_service_kind,
-     Eliom_services.registrable,
+    (Eliom_service.get_service_kind,
+     Eliom_service.registrable,
      Eliom_output.non_caml_service) one_page
 
 (** Hierarchical sites description. This is is a pair [(main page,
@@ -53,7 +53,7 @@ type get_page =
 type ('a, 'b, 'c) hierarchical_site =
     (('a, 'b) main_page *
         ('c * ('a, 'b, 'c) hierarchical_site_item) list)
-constraint 'b = [< Eliom_services.registrable ]
+constraint 'b = [< Eliom_service.registrable ]
 
 (* Be kind with ocamldoc when source code is preprocessed with camlp4,
    do not remove this comment ! *)
@@ -72,7 +72,7 @@ and ('a, 'b) main_page =
   | Not_clickable
     (** When you do not want the menu entry to be a link
         but you want subpages. *)
-constraint 'b = [< Eliom_services.registrable ]
+constraint 'b = [< Eliom_service.registrable ]
 
 (* Be kind with ocamldoc when source code is preprocessed with camlp4:
    do not remove this comment ! *)
@@ -81,7 +81,7 @@ constraint 'b = [< Eliom_services.registrable ]
 and ('a, 'b, 'c) hierarchical_site_item =
   | Disabled (** The menu entry is disabled. *)
   | Site_tree of ('a, 'b, 'c) hierarchical_site (** The menu entry as a label and subsections. *)
-constraint 'b = [< Eliom_services.registrable ]
+constraint 'b = [< Eliom_service.registrable ]
 
 (* Be kind with ocamldoc when source code is preprocessed with camlp4:
    do not remove this comment ! *)
@@ -136,8 +136,8 @@ module Html5 : sig
     ?classe:Html5_types.nmtoken list ->
     ?id:string ->
     ?whole_tree:bool ->
-    ([< Eliom_services.get_service_kind ] as 'a,
-     [< Eliom_services.registrable ] as 'b,
+    ([< Eliom_service.get_service_kind ] as 'a,
+     [< Eliom_service.registrable ] as 'b,
      Html5_types.a_content Html5.elt list)
       hierarchical_site ->
     ?service:('a, 'b, 'c) one_page ->
@@ -162,8 +162,8 @@ module Html5 : sig
   val hierarchical_menu_breadth_first :
     ?classe:Html5_types.nmtoken list ->
     ?id:string ->
-    ([< Eliom_services.get_service_kind ] as 'a,
-     [< Eliom_services.registrable ] as 'b,
+    ([< Eliom_service.get_service_kind ] as 'a,
+     [< Eliom_service.registrable ] as 'b,
      Html5_types.a_content Html5.elt list)
       hierarchical_site ->
     ?service:('a, 'b, [< Eliom_output.non_caml_service]) one_page ->
@@ -178,8 +178,8 @@ module Html5 : sig
       url. The optional parameter [service] allow to override the
       current service. *)
   val structure_links :
-    ([< Eliom_services.get_service_kind ] as 'a,
-     [< Eliom_services.registrable ] as 'b,
+    ([< Eliom_service.get_service_kind ] as 'a,
+     [< Eliom_service.registrable ] as 'b,
      Html5_types.a_content Html5.elt list)
     hierarchical_site ->
     ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
@@ -252,8 +252,8 @@ module Xhtml : sig
     ?classe:Xhtml_types.nmtoken list ->
     ?id:string ->
     ?whole_tree:bool ->
-    ([< Eliom_services.get_service_kind ] as 'a,
-     [< Eliom_services.registrable ] as 'b,
+    ([< Eliom_service.get_service_kind ] as 'a,
+     [< Eliom_service.registrable ] as 'b,
      Xhtml_types.a_content Xhtml.F.elt list)
       hierarchical_site ->
     ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
@@ -278,8 +278,8 @@ module Xhtml : sig
   val hierarchical_menu_breadth_first :
     ?classe:Xhtml_types.nmtoken list ->
     ?id:string ->
-    ([< Eliom_services.get_service_kind ] as 'a,
-     [< Eliom_services.registrable ] as 'b,
+    ([< Eliom_service.get_service_kind ] as 'a,
+     [< Eliom_service.registrable ] as 'b,
      Xhtml_types.a_content Xhtml.F.elt list)
       hierarchical_site ->
     ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
@@ -294,8 +294,8 @@ module Xhtml : sig
       url. The optional parameter [service] allow to override the
       current service. *)
   val structure_links :
-    ([< Eliom_services.get_service_kind ] as 'a,
-     [< Eliom_services.registrable ] as 'b,
+    ([< Eliom_service.get_service_kind ] as 'a,
+     [< Eliom_service.registrable ] as 'b,
      Xhtml_types.a_content Xhtml.F.elt list)
     hierarchical_site ->
     ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->

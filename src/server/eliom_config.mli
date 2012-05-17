@@ -60,7 +60,7 @@ val get_default_links_xhr : unit -> bool
     {!Eliom_common.Eliom_site_information_not_available}.
     If you want to build a statically linkable module, you must call this
     function inside the initialisation function given to
-    {!Eliom_services.register_eliom_module}.}
+    {!Eliom_service.register_eliom_module}.}
 *)
 val get_config : unit -> Simplexmlparser.xml list
 

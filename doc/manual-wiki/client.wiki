@@ -347,7 +347,7 @@ included in the initial html document from event handlers, as the
 
 <<code language="ocaml"|
 let main_service =
-  My_appl.register_service ~path:[""] ~get_params:Eliom_parameters.unit
+  My_appl.register_service ~path:[""] ~get_params:Eliom_parameter.unit
     (fun () () ->
        let open HTML5.D in
        let input = input ~a:[a_input_type `Text] () in
@@ -440,8 +440,8 @@ let global_list = create_global_elt (ul [])
 let cpt = ref 0
 
 let main_service =
-  Eliom_services.service
-    ~path:[""] ~get_params:Eliom_parameters.unit
+  Eliom_service.service
+    ~path:[""] ~get_params:Eliom_parameter.unit
     ()
 
 let reload_link =
@@ -484,8 +484,8 @@ let simple_script =
      script (cdata_script "alert(\"non global script\")")
 
 let main_service =
-  Eliom_services.service
-     ~path:[] ~get_params:Eliom_parameters.unit ()
+  Eliom_service.service
+     ~path:[] ~get_params:Eliom_parameter.unit ()
 
 let reload_link =
   Eliom_output.Html5.a ~service:main_service [pcdata "reload page"] ()
@@ -511,7 +511,7 @@ Liens, formulaires, utilisation des services côté client
 Le module Eliom_client
 Modules Eliom disponibles des deux côtés (et différences)
 
-parler de Eliom_services.void_coservice ?
+parler de Eliom_service.void_coservice ?
 
 >>
 

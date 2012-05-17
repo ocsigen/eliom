@@ -29,8 +29,8 @@ module Eliom_output = struct
   end
   module Xhtml = Eliom_output.Xhtml
   module Redirection = Eliom_output.Redirection
-  module Blocks = Eliom_output.Blocks
-  module Blocks5 = Eliom_output.Blocks5
+  module Blocks = Eliom_output.Block
+  module Blocks5 = Eliom_output.Block5
   module Html_text = Eliom_output.Html_text
   module CssText = Eliom_output.CssText
   module Text = Eliom_output.Text
@@ -48,3 +48,4 @@ module Eliom_client = struct
 end
 
 module Eliom_dom = Eliom_content.Html5.Manip
+module Eliom_parameters = Eliom_parameter

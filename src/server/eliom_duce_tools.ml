@@ -18,7 +18,7 @@
 
 
 open Eliom_duce.Xhtml
-open Eliom_services
+open Eliom_service
 open Xhtml_types_duce
 open Eliom_tools_common
 
@@ -215,8 +215,8 @@ let hierarchical_menu_depth_first
 let hierarchical_menu_breadth_first
     ?(classe=[])
     ?id
-    (((page, pages): ([< Eliom_services.get_service_kind],
-                [< Eliom_services.registrable ],
+    (((page, pages): ([< Eliom_service.get_service_kind],
+                [< Eliom_service.registrable ],
                 'elts Eliom_duce_types.a_content_elt_list) hierarchical_site) as the_menu)
     ?service
     () =

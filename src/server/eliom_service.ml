@@ -21,14 +21,14 @@ open Eliom_lib
 open Eliom_content_core
 
 open Eliom_state
-open Eliom_parameters
+open Eliom_parameter
 
 open Lwt
 open Lazy
 
 (* Manipulation of services - this code can be use only on server side. *)
 
-include Eliom_services_base
+include Eliom_service_base
 
 exception Wrong_session_table_for_CSRF_safe_coservice
 
@@ -567,8 +567,8 @@ let onunload s =
 (*****************************************************************************)
 let pre_wrap s =
   {s with
-    get_params_type = Eliom_parameters.wrap_param_type s.get_params_type;
-    post_params_type = Eliom_parameters.wrap_param_type s.post_params_type;
+    get_params_type = Eliom_parameter.wrap_param_type s.get_params_type;
+    post_params_type = Eliom_parameter.wrap_param_type s.post_params_type;
   }
 
 (* let wrap s = Eliom_types.wrap_parameters (pre_wrap s) *)

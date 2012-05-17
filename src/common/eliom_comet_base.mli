@@ -50,8 +50,8 @@ deriving (Json)
 
 val comet_request_param :
   (comet_request, [ `WithoutSuffix ],
-   [ `One of comet_request Eliom_parameters.caml ] Eliom_parameters.param_name)
- Eliom_parameters.params_type
+   [ `One of comet_request Eliom_parameter.caml ] Eliom_parameter.param_name)
+ Eliom_parameter.params_type
 
 type 'a channel_data =
   | Data of 'a
@@ -69,21 +69,21 @@ deriving (Json)
 
 type comet_service =
     (unit, comet_request,
-     Eliom_services.service_kind,
+     Eliom_service.service_kind,
      [ `WithoutSuffix ], unit,
-     [ `One of comet_request Eliom_parameters.caml ] Eliom_parameters.param_name,
-     Eliom_services.registrable,
+     [ `One of comet_request Eliom_parameter.caml ] Eliom_parameter.param_name,
+     Eliom_service.registrable,
      Eliom_output.http_service )
-      Eliom_services.service
+      Eliom_service.service
 
 type internal_comet_service =
     (unit, comet_request,
-     Eliom_services.internal_service_kind,
+     Eliom_service.internal_service_kind,
      [ `WithoutSuffix ], unit,
-     [ `One of comet_request Eliom_parameters.caml ] Eliom_parameters.param_name,
+     [ `One of comet_request Eliom_parameter.caml ] Eliom_parameter.param_name,
      [ `Registrable ],
      Eliom_output.http_service )
-      Eliom_services.service
+      Eliom_service.service
 
 type stateless_kind =
   | After_kind of int
@@ -98,13 +98,13 @@ type 'a wrapped_channel =
 type 'a bus_send_service =
     (unit,
      'a list,
-     [ `Nonattached of [ `Post ] Eliom_services.na_s ],
+     [ `Nonattached of [ `Post ] Eliom_service.na_s ],
      [ `WithoutSuffix ],
      unit,
-            [ `One of 'a list Eliom_parameters.caml ] Eliom_parameters.param_name,
+            [ `One of 'a list Eliom_parameter.caml ] Eliom_parameter.param_name,
      [ `Registrable ],
      Eliom_output.http_service
-    ) Eliom_services.service
+    ) Eliom_service.service
 
 type 'a wrapped_bus =
     ( 'a wrapped_channel )

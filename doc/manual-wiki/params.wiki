@@ -16,15 +16,15 @@ The parameters labeled <<span class="code"|~get_params>> or <<span
 class="code"|~post_params>> of the services creation functions
 indicate the type of the parameters.  The specification of parameters
 types is done using combinators defined in module <<a_api| module
-Eliom_parameters >>. For example <<a_api| val Eliom_parameters.unit >>
+Eliom_parameter >>. For example <<a_api| val Eliom_parameter.unit >>
 means that the page does not take any parameter, and <<a_api| val
-Eliom_parameters.int >> means that the page takes a parameter called
+Eliom_parameter.int >> means that the page takes a parameter called
 {{{foo}}}, of type {{{int}}}.
 
 Here is an example of a service with GET parameters:
 
 <<code language="ocaml"|open HTML5.M
-open Eliom_parameters
+open Eliom_parameter
 
 let writeparams (i1, (i2, s1)) () =
   Lwt.return
@@ -69,7 +69,7 @@ and how to get server information:
     
 
 <<code language="ocaml"|open HTML5.M
-open Eliom_parameters
+open Eliom_parameter
 let uasuffix =
   Eliom_output.Html5.register_service
     ~path:["uasuffix"]
@@ -96,9 +96,9 @@ See [[site:tuto/uasuffix/2007/7|<<span class="code"|uasuffix>>]]
 Suffix parameters have names, because we can create forms towards
 these services. <<span class="code"|uasuffix/2000/11>> is equivalent to
 <<span class="code"|uasuffix/?year=2000&month=11>>.\\
-<<span class="code"|Eliom_parameters.suffix_prod>>
+<<span class="code"|Eliom_parameter.suffix_prod>>
 allows to take both a suffix and other parameters.\\
- <<span class="code"|Eliom_parameters.all_suffix>> allows to take
+ <<span class="code"|Eliom_parameter.all_suffix>> allows to take
 the end of the suffix as a <<span class="code"|string list>>.\\
 
 <<code language="ocaml"|
@@ -122,12 +122,12 @@ let isuffix =
 See [[site:tuto/isuffix/11/a/b/c?i=22|<<span class="code"|isuffix>>]].
 
 If you want parameters in the path but not always at the end,
-use the  <<a_api| val Eliom_parameters.const >>
+use the  <<a_api| val Eliom_parameter.const >>
 parameter specification.
 It will match for example URLs like {{{/param1/const/param2}}}.
 Example:
 <<code language="ocaml"|open HTML5.M
-open Eliom_parameters
+open Eliom_parameter
 
 let constfix =
   Eliom_output.Html5.register_service
@@ -161,7 +161,7 @@ let mytype =
   Eliom_output.Html5.register_service
     ~path:["mytype"]
     ~get_params:
-      (Eliom_parameters.user_type mysum_of_string string_of_mysum "valeur")
+      (Eliom_parameter.user_type mysum_of_string string_of_mysum "valeur")
     (fun x () ->
       let v = string_of_mysum x in
       Lwt.return
@@ -175,13 +175,13 @@ See [[site:tuto/mytype?valeur=A|<<span class="code"|mytype>>]].
 ===@@id="any"@@Untyped parameters
 
 If you want a service that answers to requests with any parameters,
-use the  <<a_api| val Eliom_parameters.any >> value. The service will get an
+use the  <<a_api| val Eliom_parameter.any >> value. The service will get an
 association list of strings. Example:
 
 <<code language="ocaml"|
 let raw_serv = Eliom_output.Html5.register_service
     ~path:["any"]
-    ~get_params:Eliom_parameters.any
+    ~get_params:Eliom_parameter.any
   (fun l () ->
     let ll =
       List.map
@@ -201,7 +201,7 @@ let raw_serv = Eliom_output.Html5.register_service
 
 Try [[site:tuto/any?sun=yellow&sea=blue|<<span class="code"|raw_serv>>]].
   
-It is possible to use {{{Eliom_parameters.any}}} with other parameters
+It is possible to use {{{Eliom_parameter.any}}} with other parameters
 combinators. But {{{any}}} must be the last one. For example:
 {{{(int "i" ** any)}}}.
 
@@ -216,10 +216,10 @@ Non localized parameters are GET or POST parameters that are not
         parameters, for all of your services.
 
 <<code language="ocaml"|let my_nl_params = 
-  Eliom_parameters.make_non_localized_parameters
+  Eliom_parameter.make_non_localized_parameters
     ~prefix:"tutoeliom"
     ~name:"mynlparams"
-    (Eliom_parameters.int "a" ** Eliom_parameters.string "s")
+    (Eliom_parameter.int "a" ** Eliom_parameter.string "s")
 
 let nlparams = Eliom_output.Html5.register_service
     ~path:["nlparams"]
@@ -230,7 +230,7 @@ let nlparams = Eliom_output.Html5.register_service
             (head (title (pcdata "")) [])
             (body [p [pcdata "i = ";
                       strong [pcdata (string_of_int i)]];
-                   (match Eliom_parameters.get_non_localized_get_parameters
+                   (match Eliom_parameter.get_non_localized_get_parameters
                       my_nl_params 
                     with
                       | None -> 
@@ -261,8 +261,8 @@ let nlparams = Eliom_output.Html5.register_service
             (body
                [p [a ~service:nlparams [pcdata "without nl params"] 4];
                 p [a ~service:nlparams 
-                     ~nl_params:(Eliom_parameters.add_nl_parameter
-                                   Eliom_parameters.empty_nl_params_set
+                     ~nl_params:(Eliom_parameter.add_nl_parameter
+                                   Eliom_parameter.empty_nl_params_set
                                    my_nl_params
                                    (22, "oh")
                                 )
@@ -270,8 +270,8 @@ let nlparams = Eliom_output.Html5.register_service
                      5];
                 get_form
                   ~service:nlparams 
-                  ~nl_params:(Eliom_parameters.add_nl_parameter
-                                Eliom_parameters.empty_nl_params_set
+                  ~nl_params:(Eliom_parameter.add_nl_parameter
+                                Eliom_parameter.empty_nl_params_set
                                 my_nl_params
                                 (22, "oh")
                              )
@@ -285,7 +285,7 @@ let nlparams = Eliom_output.Html5.register_service
                   ~service:nlparams 
                   (fun iname ->
                      let (aname, sname) = 
-                       Eliom_parameters.get_nl_params_names my_nl_params
+                       Eliom_parameter.get_nl_params_names my_nl_params
                      in
                      [p [pcdata "form with nl params fiels";
                          Eliom_output.Html5.int_input 
@@ -305,7 +305,7 @@ let nlparams = Eliom_output.Html5.register_service
         to an existing service:
       
 <<code language="ocaml"|let nlparams_with_nlp =
-  Eliom_services.add_non_localized_get_parameters my_nl_params nlparams
+  Eliom_service.add_non_localized_get_parameters my_nl_params nlparams
 >>
           
 Then create your link as usual, for example:

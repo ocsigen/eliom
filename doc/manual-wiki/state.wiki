@@ -161,7 +161,7 @@ let custom_session = `Session custom_session_name
 
 Then, the value {{{custom_session}}} could replace the usual <<a_api |
 val Eliom_common.session>> for the {{{~scope}}} parameter of functions
-<<a_api | val Eliom_references.eref>>, <<a_api| val
+<<a_api | val Eliom_reference.eref>>, <<a_api| val
 Eliom_output.Html5.register >>, <<a_api| val Eliom_state.discard >>,
 ...
 
@@ -256,7 +256,7 @@ client connecting with the http and https protocols. If you want to
 keep some state in a //secure session// that are visible only to
 client accessing with the https protocol, you may give the optionnal
 parameter {{{~secure:true}}} when calling functions like <<a_api | val
-Eliom_references.eref >>, <<a_api | val Eliom_output.Html5.register
+Eliom_reference.eref >>, <<a_api | val Eliom_output.Html5.register
 >>, etc.
 
 Secure sessions are using secure cookies (i.e. Ocsigen server will ask
@@ -354,24 +354,24 @@ Eliom references are used for example:
   request), for example to give information to the service taking in
   charge the request after an action,
 * to implement persistent references (scope: global)
-* for caching functions (<<a_api | val Eliom_references.eref_from_fun>>).
+* for caching functions (<<a_api | val Eliom_reference.eref_from_fun>>).
 
 Non persistent global Eliom references are equivalent to regular OCaml
 references.
 
 Eliom references are either created using the function <<a_api | val
-Eliom_references.eref >>, that works like the usual Ocaml {{{ref}}}
+Eliom_reference.eref >>, that works like the usual Ocaml {{{ref}}}
 function, but with at least one additional scope parameter.
 Or they may be created by the fucntion <<a_api | val
-Eliom_references.eref_from_fun>>: Its argument function is evaluated the first
-time the reference is accessed (through <<a_api | val Eliom_references.get>>),
+Eliom_reference.eref_from_fun>>: Its argument function is evaluated the first
+time the reference is accessed (through <<a_api | val Eliom_reference.get>>),
 within one scope or after the reference has been reset.
 
-The <<a_api | module Eliom_references >> module also defines functions to
-<<a_api text="get the value"| val Eliom_references.set >>, <<a_api
-text="set the value"| val Eliom_references.set>>, <<a_api text="modify the value"
-| val Eliom_references.modify>> (by applying a function to its content), and <<a_api
-text="turn back to the default value"| val Eliom_references.unset >>:
+The <<a_api | module Eliom_reference >> module also defines functions to
+<<a_api text="get the value"| val Eliom_reference.set >>, <<a_api
+text="set the value"| val Eliom_reference.set>>, <<a_api text="modify the value"
+| val Eliom_reference.modify>> (by applying a function to its content), and <<a_api
+text="turn back to the default value"| val Eliom_reference.unset >>:
 
 <<code language="ocaml"|
 
@@ -408,7 +408,7 @@ Ocsigenserver provides two implementations, one based on {{{SQLite}}},
 the other one based on {{{DBM}}}.
 
 Persistent references are created by adding the {{{~persistent}}}
-parameter to the <<a_api | val Eliom_references.eref >> function
+parameter to the <<a_api | val Eliom_reference.eref >> function
 call. The value of this parameter is the name of the reference in the
 database.
 
@@ -428,14 +428,14 @@ currently suffer some limitations:
 
 ==== Volatile references ====
 
-The module <<a_api | module Eliom_references.Volatile>> allows the creation of
+The module <<a_api | module Eliom_reference.Volatile>> allows the creation of
 non-persistent Eliom references, which can then be used through a non-Lwt
 interface.
 
-As <<a_api | type Eliom_references.Volatile.eref>> is a subtype of <<a_api |
-type Eliom_references.eref>>, a volatile reference ##eref## may be used
-as ##(eref : _ Eliom_references.eref)## with the Lwt-interface of <<a_api |
-module Eliom_references>> alike.
+As <<a_api | type Eliom_reference.Volatile.eref>> is a subtype of <<a_api |
+type Eliom_reference.eref>>, a volatile reference ##eref## may be used
+as ##(eref : _ Eliom_reference.eref)## with the Lwt-interface of <<a_api |
+module Eliom_reference>> alike.
 
 == Low-level cookies manipulation
 

@@ -6,18 +6,18 @@ open Eliom_compatibility_2_1
 let reference_scope_site =
   let action =
     Eliom_output.Action.register_post_coservice'
-      ~post_params:(Eliom_parameters.string "v")
+      ~post_params:(Eliom_parameter.string "v")
       (fun () v ->
-         lwt () = Eliom_references.set Eliom_testsuite_global.eref (Some v) in
-         Eliom_references.set Eliom_testsuite_global.eref' (Some v))
+         lwt () = Eliom_reference.set Eliom_testsuite_global.eref (Some v) in
+         Eliom_reference.set Eliom_testsuite_global.eref' (Some v))
   in
   Eliom_output.Html5.register_service
     ~path:["reference_scope_site"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     (fun () () ->
        let show = function None -> HTML5.DOM.entity "#x2012" | Some str -> HTML5.pcdata str in
-       lwt v = Lwt.map show (Eliom_references.get Eliom_testsuite_global.eref) in
-       lwt v' = Lwt.map show (Eliom_references.get Eliom_testsuite_global.eref') in
+       lwt v = Lwt.map show (Eliom_reference.get Eliom_testsuite_global.eref) in
+       lwt v' = Lwt.map show (Eliom_reference.get Eliom_testsuite_global.eref') in
        Lwt.return HTML5.(
          html
            (head (title (pcdata "")) [])

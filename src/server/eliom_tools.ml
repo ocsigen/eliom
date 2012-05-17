@@ -20,7 +20,7 @@
 
 open Eliom_lib
 open Eliom_content
-open Eliom_services
+open Eliom_service
 
 include Eliom_tools_common
 
@@ -314,10 +314,10 @@ module Xhtml = struct
 
   let head ~title:ttl ?(css=[]) ?(js=[]) () =
     let mk_css_link path =
-      let uri = make_uri (Eliom_services.static_dir ()) path in
+      let uri = make_uri (Eliom_service.static_dir ()) path in
       (* Xhtml.create_global_elt ( *)css_link ~uri ()(* ) *) in
     let mk_js_script path =
-      let uri = make_uri  (Eliom_services.static_dir ()) path in
+      let uri = make_uri  (Eliom_service.static_dir ()) path in
       (* Xhtml.create_global_elt ( *)js_script ~uri ()(* ) *) in
     head
       (title (pcdata ttl))
@@ -605,10 +605,10 @@ module Html5 = struct
 
   let head ~title:ttl ?(css=[]) ?(js=[]) () =
     let mk_css_link path =
-      let uri = make_uri (Eliom_services.static_dir ()) path in
+      let uri = make_uri (Eliom_service.static_dir ()) path in
       Html5.Id.create_global_elt (css_link ~uri ()) in
     let mk_js_script path =
-      let uri = make_uri  (Eliom_services.static_dir ()) path in
+      let uri = make_uri  (Eliom_service.static_dir ()) path in
       Html5.Id.create_global_elt (js_script ~uri ()) in
     head
       (title (pcdata ttl))

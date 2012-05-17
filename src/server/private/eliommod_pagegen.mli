@@ -30,7 +30,7 @@ val execute :
   Eliom_common.info ->
   Eliom_common.sitedata -> Ocsigen_http_frame.result Lwt.t
 val gen :
-  Eliom_extensions.eliom_extension_sig option ->
+  Eliom_extension.eliom_extension_sig option ->
   Eliom_common.sitedata ->
   Ocsigen_extensions.request_state -> Ocsigen_extensions.answer Lwt.t
 val update_cookie_table :

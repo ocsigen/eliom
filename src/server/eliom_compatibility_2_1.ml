@@ -57,8 +57,8 @@ module Eliom_output = struct
     include Xhtml_forms
   end
   module Redirection = Eliom_output.Redirection
-  module Blocks = Eliom_output.Blocks
-  module Blocks5 = Eliom_output.Blocks5
+  module Blocks = Eliom_output.Block
+  module Blocks5 = Eliom_output.Block5
   module HtmlText = struct
     include Eliom_output.Html_text
     include Eliom_content.Html_text
@@ -71,8 +71,12 @@ module Eliom_output = struct
   module Any = Eliom_output.Any
   module Streamlist = Eliom_output.Streamlist
   module Caml = Eliom_output.Caml
-  module Files = Eliom_output.Files
+  module Files = Eliom_output.File
   module Eliom_appl = Eliom_output.Eliom_appl
   module Eliom_tmpl = Eliom_output.Eliom_tmpl
 end
 
+module Eliom_extensions = Eliom_extension
+module Eliom_parameters = Eliom_parameter
+module Eliom_references = Eliom_reference
+module Eliom_services = Eliom_service

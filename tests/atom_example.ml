@@ -46,6 +46,6 @@ let f () = Lwt.return (
    )
    
 (*(* let's register the feed *)
-let s = Eliom_atom.Reg.register_new_service ~path:["test"] ~get_params:Eliom_parameters.unit f 
+let s = Eliom_atom.Reg.register_new_service ~path:["test"] ~get_params:Eliom_parameter.unit f 
 *)
 let s = Eliom_atom.register_feed ~path:["test"] ~hubs:["http://tyruiop.org:8888"; "http://pubsubhubbub.appspot.com"] "http://tyruiop.org:8080/test/test" f 

@@ -20,15 +20,15 @@ For instance:
 let pi_service =
   Eliom_output.Caml.register_service
     ~path:["pi"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     (fun () () -> Lwt.return 3.1415926535)
 
 let _ =
   My_appl.register_service
     ~path:["pi service"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     (fun () () ->
-      Eliom_services.onload
+      Eliom_service.onload
 	{{
           Lwt.ignore.result(
             lwt pi =
@@ -54,7 +54,7 @@ be sent are the same as for the {{{%variable}}} mechanism
 The client can send values to the server using the service mechanism,
 by defining the parameter types. To send arbitrary Ocaml values, there
 is a special type declaration:
-<<a_api project="eliom" | val Eliom_parameters.caml >>.
+<<a_api project="eliom" | val Eliom_parameter.caml >>.
 
 Since the server can't trust the client to send correcly formed data,
 those values can't be sent using the Ocaml marshall mechanism: the

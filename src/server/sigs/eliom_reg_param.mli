@@ -12,9 +12,9 @@ val send :
   page ->
   Ocsigen_http_frame.result Lwt.t
 
-val send_appl_content : Eliom_services.send_appl_content
+val send_appl_content : Eliom_service.send_appl_content
   (** Whether the service is capable to send application content when
-      required. This field is usually [Eliom_services.XNever]. This
+      required. This field is usually [Eliom_service.XNever]. This
       value is recorded inside each service just after
       registration.  *)
 

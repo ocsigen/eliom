@@ -102,13 +102,13 @@ struct
         service :
           (unit,
            'a,
-           [ `Nonattached of [ `Post ] Eliom_services.na_s ],
+           [ `Nonattached of [ `Post ] Eliom_service.na_s ],
            [ `WithoutSuffix ],
            unit,
-           [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name,
+           [ `One of 'a Eliom_parameter.caml ] Eliom_parameter.param_name,
            [ `Registrable ],
            Eliom_output.Action.return)
-            Eliom_services.service;
+            Eliom_service.service;
         wrapper : 'a t Eliom_common.wrapper }
 
   let to_react t = t.event
@@ -127,7 +127,7 @@ struct
       | None, _ -> `Site
       | _ -> (Eliom_common.comet_client_process :> Eliom_common.scope)
     in
-    let e_writer = Eliom_services.post_coservice' ?name ~post_params () in
+    let e_writer = Eliom_service.post_coservice' ?name ~post_params () in
     Eliom_output.Action.register
       ~scope
       ~options:`NoReload

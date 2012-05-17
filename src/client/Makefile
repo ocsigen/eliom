@@ -44,8 +44,8 @@ FILES := private/eliommod_jstable.ml \
 	 eliom_process.ml \
 	 eliom_config.ml \
 	 eliom_request_info.ml \
-	 eliom_parameters_base.ml eliom_parameters.ml \
-	 eliom_services_base.ml eliom_services.ml \
+	 eliom_parameter_base.ml eliom_parameter.ml \
+	 eliom_service_base.ml eliom_service.ml \
 	 eliom_uri.ml \
 	 eliom_request.ml \
          private/eliommod_dom.ml \

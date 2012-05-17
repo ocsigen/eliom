@@ -18,8 +18,8 @@
 
 open Eliom_compatibility_2_1
 
-open Eliom_services
-open Eliom_parameters
+open Eliom_service
+open Eliom_parameter
 open Eliom_state
 open Eliom_duce.Xhtml
 open Lwt

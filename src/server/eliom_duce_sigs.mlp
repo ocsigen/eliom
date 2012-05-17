@@ -74,7 +74,7 @@ module type BLOCKS_REGISTRATION = "sigs/eliom_reg.mli"
     (* include "sigs/eliom_reg.mli" *)
       (* subst type page := T.content *)
 	(* and type options := unit *)
-	(* and type returns := Eliom_services.http *)
+	(* and type returns := Eliom_service.http *)
 
     (* include XHTML_FORMS *)
 

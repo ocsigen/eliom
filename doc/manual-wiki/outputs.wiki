@@ -54,7 +54,7 @@ The main predefined output modules are:
 : Allows to register functions that generate html5 pages statically checked
 using polymorphic variant types. You may use constructor functions from <<a_api
 | module Eliom_lib.HTML5.M >> (resp <<a_api | module Eliom_lib.XHTML.M >>) or a syntax extension close to the standard html syntax.
-;<<a_api| module Eliom_output.Flow5 >> (and <<a_api| module Eliom_output.Blocks >>)
+;<<a_api| module Eliom_output.Flow5 >> (and <<a_api| module Eliom_output.Block >>)
 : Allows to register functions that generate a portion of page using <<a_api |
 module Eliom_lib.HTML5.M >> (resp <<a_api | module Eliom_lib.XHTML.M >>) or the syntax extension. (useful for <<span class="code"|XMLHttpRequest>> requests for example). Do not use with Eliom application: use <<a_api| module Eliom_output.Caml >> instead.
 ;<<a_api| module Eliom_duce.Xhtml >>
@@ -65,7 +65,7 @@ module Eliom_lib.HTML5.M >> (resp <<a_api | module Eliom_lib.XHTML.M >>) or the 
 : Allows to register functions that   generate CSS pages, without any typechecking of the content. The content type sent by the server is "{{{text/css}}}".
 ;<<a_api| module Eliom_output.String >>
 : Allows to register functions that   generate text pages, without any typechecking of the content. The services return a pair of strings. The first one is the content   of the page, the second one is the content type.
-;<<a_api| module Eliom_output.Files >>
+;<<a_api| module Eliom_output.File >>
 : Allows to register services that send files. See <<a_manual chapter="services" fragment="eliomfiles"|here>> for an example of use.
 ;<<a_api| module Eliom_output.Streamlist >>
 : Allows to register services that send "byte" contents. It is used when big contents (that does not fit in memory) is generated.
@@ -110,11 +110,11 @@ module Eliom_lib.HTML5.M >> (resp <<a_api | module Eliom_lib.XHTML.M >>) or the 
 ====@@id="eliomfiles"@@ Sending files ===
 
 You may want to register a service that will send files.  To do that,
-use the <<a_api| module Eliom_output.Files >> module. Example:
+use the <<a_api| module Eliom_output.File >> module. Example:
 
 <<code language="ocaml"|
 let sendfile =
-  Files.register_service
+  File.register_service
     ~path:["sendfile"]
     ~get_params:unit
     (fun () () -> return "filename")
@@ -123,7 +123,7 @@ let sendfile =
 Other example, with "suffix" services (see <<a_manual chapter="params" fragment="suffix"|here>>):
 <<code language="ocaml"|
 let sendfile2 =
-  Files.register_service
+  File.register_service
     ~path:["files"]
     ~get_params:(suffix (all_suffix "filename"))
     (fun s () ->
@@ -138,7 +138,7 @@ handle static files.
 ====Sending portions of pages
 
 
- The <<a_api| module Eliom_output.Flow5 >> and <<a_api| module Eliom_output.Blocks >> modules allow you to register services that send portions of pages, of any "block" type for HTML5.M (resp. XHTML.M).
+ The <<a_api| module Eliom_output.Flow5 >> and <<a_api| module Eliom_output.Block >> modules allow you to register services that send portions of pages, of any "block" type for HTML5.M (resp. XHTML.M).
  It is sometimes useful to create AJAX pages
  (i.e. pages using the <<span class="code"|XMLHttpRequest>> Javascript object).
  Note that the service returns a list of blocks. For sending HTML
@@ -147,7 +147,7 @@ handle static files.
 
 
 <<code language="ocaml"|let divpage =
-  Eliom_output.Blocks.register_service
+  Eliom_output.Block.register_service
     ~path:["div"]
     ~get_params:unit
     (fun () () ->
@@ -182,12 +182,12 @@ Example:
 let redir1 = Eliom_output.Redirection.register_service
     ~options:`Temporary
     ~path:["redir"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
    (fun () () -> Lwt.return coucou)
 >>
 
 If you want to give parameters to such services, use
-<<a_api | val Eliom_services.preapply>> (see also in
+<<a_api | val Eliom_service.preapply>> (see also in
 <<a_manual chapter="services" fragment="preapplied" | section about pre-applied services>>).
 Example:
 
@@ -198,7 +198,7 @@ let redir = Eliom_output.Redirection.register_service
    ~get_params:(int "o")
    (fun o () ->
       Lwt.return
-        (Eliom_services.preapply coucou_params (o,(22,"ee"))))
+        (Eliom_service.preapply coucou_params (o,(22,"ee"))))
 >>
 
 The <<span class="code"|options>> parameter may be either
@@ -212,7 +212,7 @@ one more response.
 The <<a_api| module Eliom_output.String_redirection>> allows you to
 register HTTP redirections to generated URLs. Usualy, prefer <<a_api|
 module Eliom_output.String_redirection>>, even for external
-redirections (using <<a_api | val Eliom_services.external_service>>).
+redirections (using <<a_api | val Eliom_service.external_service>>).
 Use <<a_api| module Eliom_output.String_redirection>> only when it is
 not possible to have a service corresponding to an URL.
 
@@ -359,9 +359,9 @@ let file_or_application =
     ~path:["file_or_application"]
     ~get_params:(string "filename")
    (fun filename () ->
-     if Eliom_output.Files.check_file filename
+     if Eliom_output.File.check_file filename
      then
-       Eliom_output.appl_self_redirect Eliom_output.Files.send filename
+       Eliom_output.appl_self_redirect Eliom_output.File.send filename
      else
        My_application.send ~code:404
          (html
@@ -438,7 +438,7 @@ module Int_reg_base = struct
 
   let result_of_http_result = Eliom_output.cast_http_result
 
-  let send_appl_content = Eliom_services.XNever
+  let send_appl_content = Eliom_service.XNever
 
   let send ?options ?charset ?code ?content_type ?headers content =
     let content = string_of_int content in
@@ -587,7 +587,7 @@ If something wrong happens during an action, it is possible to inform
 the service generating the page. For instance if you want to display a
 "wrong password" message after an aborted connection.  To transmit
 that kind of information, use eliom references (see module <<a_api |
-module Eliom_references>>) created using scope <<a_api |
+module Eliom_reference>>) created using scope <<a_api |
 val Eliom_common.request>>, the value will be available to the service
 generating the page.
 

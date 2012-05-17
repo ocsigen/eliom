@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module eliom_parameters.ml
+ * Module eliom_parameter.ml
  * Copyright (C) 2007 Vincent Balat
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,7 +20,7 @@
 
 open Eliom_lib
 
-include Eliom_parameters_base
+include Eliom_parameter_base
 
 type suff = [ `WithoutSuffix | `WithSuffix | `Endsuffix ]
 

@@ -1,6 +1,6 @@
 open XHTML.M
-open Eliom_services
-open Eliom_parameters
+open Eliom_service
+open Eliom_parameter
 open Eliom_predefmod
 open Eliom_predefmod.Xhtml
 

@@ -84,8 +84,8 @@ sig
        ?scope:Eliom_common.scope
     -> ?name:string
     -> ('a, [ `WithoutSuffix ],
-        [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name)
-         Eliom_parameters.params_type
+        [ `One of 'a Eliom_parameter.caml ] Eliom_parameter.param_name)
+         Eliom_parameter.params_type
     -> 'a t
 
 end

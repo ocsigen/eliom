@@ -40,9 +40,9 @@ open Eliom_lib
 open Eliom_openid
 let messages = Eliom_state.create_volatile_table ()
 (* The login form *)
-let login_form = Eliom_services.new_service
+let login_form = Eliom_service.new_service
   ~path:["login-form"]
-  ~get_params: Eliom_parameters.unit
+  ~get_params: Eliom_parameter.unit
   ()
 
 (* Initialize the library, and getting the authenticate function *)
@@ -54,7 +54,7 @@ let authenticate = Eliom_openid.init ~path:["__openid_return_service"]
    redirect the user to her provider *)
 let form_handler = Eliom_output.String_redirection.register_new_post_coservice
     ~fallback: login_form
-    ~post_params: (Eliom_parameters.string "url")
+    ~post_params: (Eliom_parameter.string "url")
     (fun _ url ->
        authenticate
     ~max_auth_age: 4 (* Requires that if the user logged in more that 4 seconds ago

@@ -690,7 +690,7 @@ let parse_config hostpattern conf_info site_dir =
           (Error_in_config_file ("Wrong attribute for <eliom>: "^s))
   in fun _ parse_site -> function
     | Element ("eliommodule", atts, content) ->
-      Eliom_extensions.register_eliom_extension 
+      Eliom_extension.register_eliom_extension 
         default_module_action;
       (match parse_module_attrs None atts with
         | Some file_or_name ->
@@ -698,11 +698,11 @@ let parse_config hostpattern conf_info site_dir =
           load_eliom_module sitedata file_or_name content;
           exception_during_eliommodule_loading := false
         | _ -> ());
-      if Eliom_extensions.get_eliom_extension ()
+      if Eliom_extension.get_eliom_extension ()
         != default_module_action
       then
         Eliommod_pagegen.gen
-          (Some (Eliom_extensions.get_eliom_extension ()))
+          (Some (Eliom_extension.get_eliom_extension ()))
           sitedata
       else gen_nothing ()
     | Element ("eliom", atts, content) ->

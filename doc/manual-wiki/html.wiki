@@ -161,7 +161,7 @@ containing your pages. Here is an example:
 <<code language="ocaml"|let coucoutext =
   Eliom_output.HtmlText.register_service
     ~path:["coucoutext"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     (fun () () ->
       Lwt.return
         ("<html>n'importe quoi "^

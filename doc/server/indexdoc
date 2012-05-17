@@ -18,10 +18,10 @@ Eliom_lib.XHTML
 {2 Services creation and service handler}
 
 {!modules:
-Eliom_services
-Eliom_parameters
+Eliom_service
+Eliom_parameter
 Eliom_output
-Eliom_references
+Eliom_reference
 Eliom_state
 }
 

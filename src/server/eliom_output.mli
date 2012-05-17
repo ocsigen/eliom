@@ -39,11 +39,11 @@ open Eliom_content_core
     content of the frame:
 
     - The second parameter is the same as the last type parameters of
-    the corresponding {!type:Eliom_services.service}. Currently, one of the
+    the corresponding {!type:Eliom_service.service}. Currently, one of the
     following types:
     {ul {- {!Eliom_output.appl_service}}
         {- {!Eliom_output.http_service}}
-        {- {!Eliom_parameters.caml}} }
+        {- {!Eliom_parameter.caml}} }
     - The first parameter is a refinement of the second
     parameter. Currently, one of the following types:
     {ul {- {!application_content}}
@@ -55,12 +55,12 @@ open Eliom_content_core
 *)
 type ('a, 'b) kind
 
-(** {3 Return types for {!type:Eliom_services.service} } *)
+(** {3 Return types for {!type:Eliom_service.service} } *)
 
 (** {4 Classical content} *)
 
 (** The type [http_service] is used as a phantom type parameters for
-    {!Eliom_services.service} and {!Eliom_output.kind}. It means the
+    {!Eliom_service.service} and {!Eliom_output.kind}. It means the
     returned content is classical HTTP content described by the
     content type header. See {!Eliom_output.kind} for a list of others
     return types. *)
@@ -71,14 +71,14 @@ type http_service = [ `Http ]
     means the returned content must be interpreted in the browser as
     stated by the content-type header. This is most common return type
     for an eliom service, see for example {!Html5},
-    {!Xhtml}, {!CssText}, {!Files},
+    {!Xhtml}, {!CssText}, {!File},
     {!Redirection}, ….*)
 type browser_content = [ `Browser ]
 
 (** The type [block_content] is a refinement of {!http_service} to be
     used as a phantom type parameters for {!Eliom_output.kind}. It
     means the returned content is a subtree of an XML value. See for
-    example {!Blocks5} or {!Make_typed_xml_registration}. *)
+    example {!Block5} or {!Make_typed_xml_registration}. *)
 type block_content
 
 (** The type [unknown_content] is a refinement of {!http_service} to
@@ -90,7 +90,7 @@ type unknown_content
 (** {4 Application content} *)
 
 (** The type [appl_service] is used as a phantom type parameters for
-    {!Eliom_services.service} and {!Eliom_output.kind}. It means the
+    {!Eliom_service.service} and {!Eliom_output.kind}. It means the
     service is part of an Eliom application. See {!Eliom_output.kind}
     for a list of others return types. *)
 type appl_service = [ `Appl ]
@@ -107,7 +107,7 @@ type 'a application_name
 
 (** {4 OCaml content} *)
 
-(** The type [caml_content] is an synomyn for {!Eliom_parameters.caml}
+(** The type [caml_content] is an synomyn for {!Eliom_parameter.caml}
     to be used as a phantom type parameters for {!Eliom_output.kind}. See
     {!Caml}. *)
 type 'a caml_content
@@ -121,7 +121,7 @@ type non_caml_service = [ appl_service | http_service ]
 (** {3 Module signature} *)
 
 (** Abstract signature for service registration functions. For
-    concrete instance see {!Html5}, {!Xhtml}, {!CssText}, {!Files},
+    concrete instance see {!Html5}, {!Xhtml}, {!CssText}, {!File},
     {!Redirection}, … *)
 module type Registration = sig
   type page
@@ -260,7 +260,7 @@ module Flow5 : "sigs/eliom_reg.mli"
   and type result  := (block_content, http_service) kind
 
 (** Deprecated alias for {!Flow5}. *)
-module Blocks5 : "sigs/eliom_reg.mli"
+module Block5 : "sigs/eliom_reg.mli"
   subst type page    := Html5_types.flow5 Eliom_content_core.Html5.elt list
   and type options := unit
   and type return  := http_service
@@ -269,7 +269,7 @@ module Blocks5 : "sigs/eliom_reg.mli"
 (** Eliom service registration and forms creation for fragment of
     XHTML page. This is an instance of the {!Registration} abstract
     signature. *)
-module Blocks : "sigs/eliom_reg.mli"
+module Block : "sigs/eliom_reg.mli"
   subst type page    := Xhtml_types.body_content Eliom_content_core.Xhtml.F.elt list
   and type options := unit
   and type return  := http_service
@@ -362,10 +362,10 @@ module Unit : "sigs/eliom_reg.mli"
 *)
 module Redirection : "sigs/eliom_reg_alpha_return.mli"
   subst type page :=
-      (unit, unit, Eliom_services.get_service_kind,
+      (unit, unit, Eliom_service.get_service_kind,
        [ `WithoutSuffix ],
-       unit, unit, Eliom_services.registrable, 'b)
-      Eliom_services.service
+       unit, unit, Eliom_service.registrable, 'b)
+      Eliom_service.service
   and type options := [ `MovedPermanently
 		      | `Found
 		      | `SeeOther
@@ -402,9 +402,9 @@ module String_redirection : "sigs/eliom_reg.mli"
     contents. The page is the name of the file to send. See the Eliom
     manual for more information on {% <<a_manual chapter="outputs"
     fragment="eliomfiles"|how to send files with Eliom>>%}. *)
-module Files : sig
+module File : sig
 
-  (** The function [check_file file] is true if [Files.send file]
+  (** The function [check_file file] is true if [File.send file]
       would effectively return the file (i.e. the file is present and
       readable.) The option is the optionnal "Cache-policy: max-age"
       header value to be sent.
@@ -427,8 +427,8 @@ end
 module Caml : "sigs/eliom_reg_simpl.mli"
   subst type page    := 'return
     and type options := unit
-    and type return  := 'return Eliom_parameters.caml
-    and type result  := ('return caml_content, 'return Eliom_parameters.caml) kind
+    and type return  := 'return Eliom_parameter.caml
+    and type result  := ('return caml_content, 'return Eliom_parameter.caml) kind
 
 (** Eliom service registration for services that choose dynamically
     what they want to send. The content is created using for example
@@ -445,7 +445,7 @@ module Any : "sigs/eliom_reg_alpha_return.mli"
 (** The function [appl_self_redirect send page] is an helper function
     required for defining {!Any} service usable inside an Eliom
     application ({!Eliom_appl}). It allows to cast an Eliom senders
-    that do not returns {!application_content} (like {!Files.send},
+    that do not returns {!application_content} (like {!File.send},
     {!String.send}, ...) into a senders returns
     {!application_content}.
 
@@ -530,7 +530,7 @@ module Customize :
     {!Eliom_common.Eliom_site_information_not_available}.  If you are
     using static linking, you must delay the call to this function
     until the configuration file is read, using
-    {!Eliom_services.register_eliom_module}. Otherwise you will also
+    {!Eliom_service.register_eliom_module}. Otherwise you will also
     get this exception.}
 *)
 val set_exn_handler : (exn -> (browser_content, http_service) kind Lwt.t) -> unit

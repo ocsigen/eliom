@@ -1,6 +1,4 @@
 
-(** {2 Creating links and forms with {!HTML5}} *)
-
 type appl_service = [ `Appl ]
 type http_service = [ `Http ]
 type non_caml_service = [ appl_service | http_service ]
@@ -14,8 +12,8 @@ end
 module Html5 : Base
 module Xhtml : Base
 module Redirection : Base
-module Blocks : Base
-module Blocks5 : Base
+module Block : Base
+module Block5 : Base
 
 module Html_text : Base
 module CssText : Base

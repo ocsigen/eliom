@@ -48,7 +48,7 @@ module Xhtml_forms : XHTML_FORMS
 (* end *)
 
 (** Register and create form for list of [blocks] (subtype of xhtml) *)
-module Blocks : sig
+module Block : sig
   include BLOCKS_REGISTRATION
   include XHTML_FORMS
 end

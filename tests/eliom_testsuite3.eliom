@@ -5,7 +5,7 @@
 }}
 
 (* Main page for the test suite *)
-let main = Eliom_services.service [] Eliom_parameters.unit ()
+let main = Eliom_service.service [] Eliom_parameter.unit ()
 
 (* *zap*)
 (*zap*
@@ -58,9 +58,9 @@ open HTML5.M
 
 (****** server only *******)
 {server{ (* note that {server{ ... }} is optionnal. *)
-open Eliom_parameters
+open Eliom_parameter
 open Eliom_output.Html5
-open Eliom_services
+open Eliom_service
 }}
 
 (* This is server only because there are no delimiters. *)
@@ -207,7 +207,7 @@ where and {{{id}}} an identifier for the value.
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick
                 ((fun.client
-                    (myblockservice : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) ->
+                    (myblockservice : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_service.http) Eliom_service.service) ->
                       let body = Dom_html.document##body in
                       (*Js_old.get_element_by_id "bodyid"*)
                       Eliom_client.call_service
@@ -350,7 +350,7 @@ where and {{{id}}} an identifier for the value.
 (*wiki*
 ====Using OCaml values as service parameters
 It is now possible to send OCaml values to services.
-To do that, use the {{{Eliom_parameters.caml}}} function:
+To do that, use the {{{Eliom_parameter.caml}}} function:
 *wiki*)
 {shared{
   type ec3 = (int * string * string list) deriving (Json)
@@ -427,7 +427,7 @@ let eliomclient4 =
 (* caml service set reference *)
 (******************************)
 
-let ref_caml_service = Eliom_references.eref ~scope:Eliom_common.client_process None
+let ref_caml_service = Eliom_reference.eref ~scope:Eliom_common.client_process None
 
 let caml_incr_service =
   Eliom_output.Caml.register_service
@@ -435,11 +435,11 @@ let caml_incr_service =
     ~get_params:unit
     (fun () () ->
       lwt i =
-        match_lwt Eliom_references.get ref_caml_service with
+        match_lwt Eliom_reference.get ref_caml_service with
           | None -> Lwt.return 0
           | Some i -> Lwt.return i
       in
-      lwt () = Eliom_references.set ref_caml_service (Some (succ i)) in
+      lwt () = Eliom_reference.set ref_caml_service (Some (succ i)) in
       Lwt.return i)
 
 let text_incr_service =
@@ -448,11 +448,11 @@ let text_incr_service =
     ~get_params:unit
     (fun () () ->
       lwt i =
-        match_lwt Eliom_references.get ref_caml_service with
+        match_lwt Eliom_reference.get ref_caml_service with
           | None -> Lwt.return 0
           | Some i -> Lwt.return i
       in
-      lwt () = Eliom_references.set ref_caml_service (Some (succ i)) in
+      lwt () = Eliom_reference.set ref_caml_service (Some (succ i)) in
       Lwt.return ((string_of_int i),"text/plain"))
 
 let caml_service_cookies =
@@ -508,11 +508,11 @@ let default_no_appl =
     fun () ->
       incr counter;
       pcdata (string_of_int !counter) in
-  let get_service = Eliom_services.service ~path:["no-xhr"] ~get_params:Eliom_parameters.unit () in
-  let post_service = Eliom_services.post_service ~fallback:get_service ~post_params:Eliom_parameters.unit () in
+  let get_service = Eliom_service.service ~path:["no-xhr"] ~get_params:Eliom_parameter.unit () in
+  let post_service = Eliom_service.post_service ~fallback:get_service ~post_params:Eliom_parameter.unit () in
   let toggle_default_no_appl =
     Eliom_output.Action.register_post_coservice'
-      ~post_params:Eliom_parameters.unit
+      ~post_params:Eliom_parameter.unit
       (fun () () ->
          Eliom_config.(set_default_links_xhr (not (get_default_links_xhr ())));
          Lwt.return ()) in
@@ -552,20 +552,20 @@ let default_no_appl =
         ])) in
   App.register ~service:get_service handler;
   App.register ~service:post_service handler;
-  Eliom_services.((get_service :  (_, _, get_service_kind, _, _, _, registrable, unit) service))
+  Eliom_service.((get_service :  (_, _, get_service_kind, _, _, _, registrable, unit) service))
 
 (*wiki*
 ====Other tests:
 *wiki*)
 let withoutclient =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["withoutclient"]
     ~get_params:unit
     ()
 
 
 let gotowithoutclient =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["gotowithoutclient"]
     ~get_params:unit
     ()
@@ -624,7 +624,7 @@ let uri_test =
           p [pcdata (Eliom_uri.make_string_uri ~service:eliomclient1 ())];
         ]
       in
-      Eliom_services.onload
+      Eliom_service.onload
         {{ Dom.appendChild (Eliom_client.Html5.of_div %div)
              (Eliom_client.Html5.of_p
                 (p [pcdata (Eliom_uri.make_string_uri ~service:%eliomclient1 ())]))
@@ -654,7 +654,7 @@ let wrapping_big_values = My_appl.register_service
                    size);
          br ()] in
     let list = Array.to_list (Array.init size (fun i -> i)) in
-    Eliom_services.onload
+    Eliom_service.onload
       {{
         put %div "list length: %i" (List.length %list);
       }};
@@ -682,7 +682,7 @@ let v1 =
 
 let rec rec_list = 1::2::3::rec_list
 
-let react_up = Eliom_react.Up.create (Eliom_parameters.caml "react param" Json.t<int>)
+let react_up = Eliom_react.Up.create (Eliom_parameter.caml "react param" Json.t<int>)
 let e = Eliom_react.Up.to_react react_up
 let e' = React.E.map (fun i -> Printf.printf "event: %i\n%!" i) e
 
@@ -692,7 +692,7 @@ let rec rec_list_react = (react_up,42)::rec_list_react
 let global_div = HTML5.create_global_elt (div [pcdata "global div"])
 let other_global_div = HTML5.create_global_elt (div [pcdata "other global div"])
 
-let wrapping1 = Eliom_services.service
+let wrapping1 = Eliom_service.service
     ~path:["wrapping1"]
     ~get_params:unit
     ()
@@ -700,7 +700,7 @@ let wrapping1 = Eliom_services.service
 let gc_service =
   Eliom_output.Redirection.register_service
     ~path:["gc_wrapping1"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     (fun () () -> Gc.full_major (); Lwt.return wrapping1)
 
 let () =
@@ -709,7 +709,7 @@ let () =
       let list = HTML5.DOM.ul [] in
 
       (* Simple unwrapping *)
-      Eliom_services.onload {{
+      Eliom_service.onload {{
         let v = %v1 in
         put_li %list "The following item must be: \"42=42 42.42=42.420000 fourty two=fourty two\"";
         put_li %list "42=%i 42.42=%f fourty two=%s"
@@ -808,7 +808,7 @@ let comet1 =
        let stream2 = Lwt_stream.from tick2 in
        let c2 = Eliom_comet.Channels.create stream2 in
 
-       Eliom_services.onload
+       Eliom_service.onload
          {{
            let _ = Lwt_stream.iter_s
            (fun i ->
@@ -839,7 +839,7 @@ let comet1 =
 
 let caml_wrapping_service =
   Eliom_output.Caml.register_post_coservice'
-    ~post_params:(Eliom_parameters.unit)
+    ~post_params:(Eliom_parameter.unit)
     (fun () () -> Lwt.return
       (Eliom_comet.Channels.create (Lwt_stream.clone stream1)))
 
@@ -850,7 +850,7 @@ let keep_ref v t =
 
 let global_channel_wrapping_service =
   Eliom_output.Caml.register_post_coservice'
-    ~post_params:(Eliom_parameters.unit)
+    ~post_params:(Eliom_parameter.unit)
     (fun () () ->
       let channel = Eliom_comet.Channels.create ~scope:`Site
         (Lwt_stream.clone stream1) in
@@ -877,7 +877,7 @@ let caml_service_wrapping =
     ~path:["caml_service_wrapping"]
     ~get_params:unit
     (fun () () ->
-      Eliom_services.onload {{
+      Eliom_service.onload {{
         let c = Eliom_comet.Configuration.new_configuration () in
         Eliom_comet.Configuration.set_always_active c true
       }};
@@ -926,7 +926,7 @@ let comet2 =
     (fun () () ->
       (* First create a server-readable client-writable event AKA up event AKA
          client-to-server asynchronous edge *)
-      let e_up = Eliom_react.Up.create (Eliom_parameters.caml "letter" Json.t<string>) in
+      let e_up = Eliom_react.Up.create (Eliom_parameter.caml "letter" Json.t<string>) in
       let e_up_react = Eliom_react.Up.to_react e_up in
       let e_down =
         Eliom_react.Down.of_react
@@ -936,7 +936,7 @@ let comet2 =
           )
       in
       let `R _ = React.E.retain e_up_react (fun () -> ignore e_down) in
-      Eliom_services.onload
+      Eliom_service.onload
         {{
           ignore (React.E.map
             (fun s -> Dom_html.window##alert (Js.string s))
@@ -966,7 +966,7 @@ let comet3 =
     (fun () () ->
        (* First create a server-readable client-writable event AKA up event AKA
           client-to-server asynchronous edge *)
-       let e_up = Eliom_react.Up.create (Eliom_parameters.caml "double" Json.t<string>) in
+       let e_up = Eliom_react.Up.create (Eliom_parameter.caml "double" Json.t<string>) in
        let e_up_react = Eliom_react.Up.to_react e_up in
        let e_down_1 =
          Eliom_react.Down.of_react
@@ -981,7 +981,7 @@ let comet3 =
        let `R _ = React.E.retain e_up_react
                     (fun () -> ignore e_down_1 ; ignore e_down_2)
        in
-       Eliom_services.onload
+       Eliom_service.onload
          {{
            ignore (React.E.map
            (fun s -> Dom_html.window##alert (Js.string s))
@@ -1024,7 +1024,7 @@ let comet_wrapping =
       let c_xml = Eliom_comet.Channels.create xml_stream in
       let div_link = HTML5.DOM.div [] in
 
-      Eliom_services.onload
+      Eliom_service.onload
         {{
           ignore (Lwt_stream.iter
           (fun service ->
@@ -1054,7 +1054,7 @@ let comet_signal_maker name time =
     ~get_params:unit
     (fun () () ->
       let time_div = HTML5.DOM.div [] in
-      Eliom_services.onload
+      Eliom_service.onload
         {{
           Lwt_react.S.keep
           (React.S.map (fun t -> (Eliom_client.Html5.of_div %time_div)##innerHTML <-
@@ -1064,7 +1064,7 @@ let comet_signal_maker name time =
          h2 [pcdata "Signal"] ;
          time_div;
          br ();
-         a ~service:Eliom_services.void_coservice' [pcdata "reload"] ();
+         a ~service:Eliom_service.void_coservice' [pcdata "reload"] ();
        ])
     )
 
@@ -1089,7 +1089,7 @@ let comet_message_board_maker name message_bus cb =
        Lwt.return (
          let container = HTML5.DOM.ul [li [em [pcdata "This is the message board"]]] in
          let field = input ~a:[a_id "msg"; a_name "message"] ~input_type:`Text () in
-         Eliom_services.onload
+         Eliom_service.onload
            {{
              let c = Eliom_comet.Configuration.new_configuration () in
              Eliom_comet.Configuration.set_timeout c 3.;
@@ -1196,15 +1196,15 @@ let bus_multiple_times =
                | e -> Lwt.fail e;
           in ()
         }} in
-      Eliom_services.onload (onload "statefull 1" multiple_bus);
-      Eliom_services.onload (onload "statefull 2" multiple_bus);
-      Eliom_services.onload (onload "statefull 3" multiple_bus);
-      Eliom_services.onload (onload "stateless 1" multiple_bus_stateless);
-      Eliom_services.onload (onload "stateless 2" multiple_bus_stateless);
-      Eliom_services.onload (onload "stateless 3" multiple_bus_stateless);
+      Eliom_service.onload (onload "statefull 1" multiple_bus);
+      Eliom_service.onload (onload "statefull 2" multiple_bus);
+      Eliom_service.onload (onload "statefull 3" multiple_bus);
+      Eliom_service.onload (onload "stateless 1" multiple_bus_stateless);
+      Eliom_service.onload (onload "stateless 2" multiple_bus_stateless);
+      Eliom_service.onload (onload "stateless 3" multiple_bus_stateless);
       Lwt.return (make_page [ h2 [pcdata "Multiple streams from one bus"];
                               br ();
-                              a ~service:Eliom_services.void_coservice' [pcdata "reload"] ();
+                              a ~service:Eliom_service.void_coservice' [pcdata "reload"] ();
                               br ();
                               pcdata (Printf.sprintf "original position: %i" !multiple_bus_position);
                               br ();
@@ -1236,7 +1236,7 @@ let comet_stateless =
     ~get_params:unit
     (fun () () ->
 
-       Eliom_services.onload
+       Eliom_service.onload
          {{
            let _ = Lwt_stream.iter_s
            (fun i ->
@@ -1261,7 +1261,7 @@ let comet_stateless_external =
     ~get_params:unit
     (fun () () ->
 
-       Eliom_services.onload
+       Eliom_service.onload
          {{
            let _ = Lwt_stream.iter_s
            (fun i ->
@@ -1303,17 +1303,17 @@ let comet_message_board_stateless = comet_message_board_maker "message_board_sta
  *wiki*)
 
 let service_style1 =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["css"; "style1"]
     ~get_params:unit
     ()
 let service_style2 =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["css"; "style2"]
     ~get_params:unit
     ()
 let service_no_style =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["css"; "no_style"]
     ~get_params:unit
     ()
@@ -1330,7 +1330,7 @@ let page_css_test () =
 let make_css_link file =
   Eliom_output.Html5.css_link
     (Eliom_output.Html5.make_uri
-       ~service:(Eliom_services.static_dir ()) [file]) ()
+       ~service:(Eliom_service.static_dir ()) [file]) ()
 
 let () =
   My_appl.register ~service:service_style1
@@ -1355,7 +1355,7 @@ open Event_arrows
 let event_service =
   My_appl.register_service
     ~path:["events"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     (fun () () ->
 
       let make_target s = HTML5.DOM.p [HTML5.M.a [pcdata s]] in
@@ -1377,7 +1377,7 @@ let event_service =
       let target16 = make_target "Mouse over change color" in
 
       let targetresult = HTML5.DOM.p [] in
-      Eliom_services.onload
+      Eliom_service.onload
         {{
           let targetresult = (Eliom_client.Html5.of_p %targetresult) in
 
@@ -1474,23 +1474,23 @@ let my_table = Eliom_state.create_volatile_table ~scope ()
 (* Create services, but do not register them yet:           *)
 
 let tsession_data_example =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["tsessdata"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 
 let tsession_data_example_with_post_params =
-  Eliom_services.post_service
+  Eliom_service.post_service
     ~fallback:tsession_data_example
-    ~post_params:(Eliom_parameters.string "login")
+    ~post_params:(Eliom_parameter.string "login")
     ()
 
 
 let tsession_data_example_close =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["tclose"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 
@@ -1583,23 +1583,23 @@ let scope = `Client_process scope_name
 (* Create services, but do not register them yet:           *)
 
 let tsession_services_example =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["tsessionservices"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 
 let tsession_services_example_with_post_params =
-  Eliom_services.post_service
+  Eliom_service.post_service
     ~fallback:tsession_services_example
-    ~post_params:(Eliom_parameters.string "login")
+    ~post_params:(Eliom_parameter.string "login")
     ()
 
 
 let tsession_services_example_close =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["tclose2"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 
@@ -1700,21 +1700,21 @@ let () =
 (* We create one main service and two coservices:           *)
 
 let tcoservices_example =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["tcoserv"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 let tcoservices_example_post =
-  Eliom_services.post_coservice
+  Eliom_service.post_coservice
     ~fallback:tcoservices_example
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     ()
 
 let tcoservices_example_get =
-  Eliom_services.coservice
+  Eliom_service.coservice
     ~fallback:tcoservices_example
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 (* -------------------------------------------------------- *)
@@ -1846,22 +1846,22 @@ let my_table = Eliom_state.create_volatile_table ~scope ()
 (* (for connection and disconnection)                       *)
 
 let tconnect_example3 =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["taction"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 let tconnect_action =
-  Eliom_services.post_coservice'
+  Eliom_service.post_coservice'
     ~name:"tconnect3"
-    ~post_params:(Eliom_parameters.string "login")
+    ~post_params:(Eliom_parameter.string "login")
     ()
 
 (* As the handler is very simple, we register it now: *)
 let tdisconnect_action =
   Eliom_output.Action.register_post_coservice'
     ~name:"tdisconnect3"
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     (fun () () ->
       Eliom_state.discard ~scope ())
 
@@ -1938,14 +1938,14 @@ let tmy_persistent_table =
 (* (for connection and disconnection)                       *)
 
 let tpersist_session_example =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["tpersist"]
     ~get_params:unit
     ()
 
 
 let tpersist_session_connect_action =
-  Eliom_services.post_coservice'
+  Eliom_service.post_coservice'
     ~name:"tconnect4"
     ~post_params:(string "login")
     ()
@@ -1964,7 +1964,7 @@ let tpersist_session_connect_action =
 let tdisconnect_action =
   Eliom_output.Action.register_post_coservice'
     ~name:"tdisconnect4"
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     (fun () () ->
       Eliom_state.discard ~scope  ())
 
@@ -2007,7 +2007,7 @@ let tlogin_box session_expired action =
 
 let tpersist_session_example_handler () () =
     let timeoutcoserv =
-      Eliom_services.coservice
+      Eliom_service.coservice
         ~fallback:tpersist_session_example ~get_params:unit ~timeout:5. ()
     in
     let _ =
@@ -2084,14 +2084,14 @@ let scope = `Client_process scope_name
 (* (for connection and disconnection)                       *)
 
 let tconnect_example6 =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["taction2"]
     ~get_params:unit
     ()
 
 
 let tconnect_action =
-  Eliom_services.post_coservice'
+  Eliom_service.post_coservice'
     ~name:"tconnect6"
     ~post_params:(string "login")
     ()
@@ -2102,7 +2102,7 @@ let tconnect_action =
 let tdisconnect_action =
   Eliom_output.Action.register_post_coservice'
     ~name:"tdisconnect6"
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     (fun () () ->
       Eliom_state.discard (*zap* *) ~state_name (* *zap*) ~scope  ())
 
@@ -2196,14 +2196,14 @@ let () =
 let csrf_scope = `Client_process Eliom_testsuite1.csrf_scope_name
 
 let tcsrfsafe_example =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["tcsrf"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 
 let tcsrfsafe_example_post =
-  Eliom_services.post_coservice
+  Eliom_service.post_coservice
     ~csrf_safe:true
     ~csrf_scope
     ~csrf_secure:true
@@ -2211,7 +2211,7 @@ let tcsrfsafe_example_post =
     ~max_use:1
     ~https:true
     ~fallback:tcsrfsafe_example
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     ()
 
 
@@ -2299,15 +2299,15 @@ let persref = service ["persref"] unit ()
 let _ = 
   let next =
     let pr =
-      Eliom_references.eref
+      Eliom_reference.eref
         ~scope:`Global ~persistent:"__eliom_example_persref" 0
     in
     let mutex = Lwt_mutex.create () in
     fun () ->
       Lwt_mutex.lock mutex >>= fun () ->
-      Eliom_references.get pr >>= fun v ->
+      Eliom_reference.get pr >>= fun v ->
       let v = v+1 in
-      Eliom_references.set pr v >>= fun () ->
+      Eliom_reference.set pr v >>= fun () ->
       Lwt_mutex.unlock mutex;
       Lwt.return v
   in
@@ -2333,7 +2333,7 @@ let ttimeout = service ["ttimeout"] unit ()
 let _ =
   let page () () =
     let timeoutcoserv =
-      Eliom_services.coservice
+      Eliom_service.coservice
         ~fallback:ttimeout ~get_params:unit ~timeout:5. ()
     in
     let _ =
@@ -2411,10 +2411,10 @@ let scope_name = Eliom_common.create_scope_name "session_appl"
 let session = `Session scope_name
 
 let connect_example789 =
-  Eliom_services.service ~path:["session_appl"] ~get_params:unit ()
+  Eliom_service.service ~path:["session_appl"] ~get_params:unit ()
 
 let connect_action789 =
-  Eliom_services.post_coservice'
+  Eliom_service.post_coservice'
     ~name:"connection789"
     ~post_params:(string "login")
     ()
@@ -2422,7 +2422,7 @@ let connect_action789 =
 let disconnect_action789 =
   Eliom_output.Action.register_post_coservice'
     ~name:"disconnection789"
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     (fun () () -> Eliom_state.discard ~scope:session ())
 
 let disconnect_box s =
@@ -2430,9 +2430,9 @@ let disconnect_box s =
     (fun _ -> [p [Eliom_output.Html5.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
-let bad_user = Eliom_references.eref ~scope:Eliom_common.request false
+let bad_user = Eliom_reference.eref ~scope:Eliom_common.request false
 
-let user = Eliom_references.eref ~scope:session None
+let user = Eliom_reference.eref ~scope:session None
 
 let login_box session_expired bad_u action =
   Eliom_output.Html5.post_form action
@@ -2452,8 +2452,8 @@ let login_box session_expired bad_u action =
 
 let connect_example_handler () () =
   let status = Eliom_state.volatile_data_state_status ~scope:session () in
-  lwt bad_u = Eliom_references.get bad_user in
-  lwt u = Eliom_references.get user in
+  lwt bad_u = Eliom_reference.get bad_user in
+  lwt u = Eliom_reference.get user in
   Lwt.return
     (make_page
        (match u, status with
@@ -2471,8 +2471,8 @@ let connect_example_handler () () =
 let connect_action_handler () login =
   lwt () = Eliom_state.discard ~scope:session () in
   if login = "toto"
-  then Eliom_references.set user (Some login)
-  else Eliom_references.set bad_user true
+  then Eliom_reference.set user (Some login)
+  else Eliom_reference.set bad_user true
 
 let () =
   My_appl.register ~service:connect_example789 connect_example_handler;
@@ -2512,13 +2512,13 @@ let create_suffixformc ((suff, endsuff),i) =
 let appl_redir1 =
   Eliom_output.Redirection.register_service
     ~path:["internalredir"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     (fun () () -> Lwt.return eliomclient2)
 
 let appl_redir2 =
   Eliom_output.Redirection.register_service
     ~path:["externalredir"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     (fun () () -> Lwt.return Eliom_testsuite1.coucou)
 
 let appl_redir =
@@ -2548,8 +2548,8 @@ let appl_redir =
 let applvoid_redir =
   Eliom_output.Redirection.register_post_coservice'
     ~name:"applvoidcoserv"
-    ~post_params:Eliom_parameters.unit
-    (fun () () -> Lwt.return Eliom_services.void_hidden_coservice')
+    ~post_params:Eliom_parameter.unit
+    (fun () () -> Lwt.return Eliom_service.void_hidden_coservice')
 
 
 (*****************************************************************************)
@@ -2557,7 +2557,7 @@ let applvoid_redir =
 let postformc =
   My_appl.register_post_service
     ~fallback:Eliom_testsuite1.coucou
-    ~post_params:(Eliom_parameters.string "zzz")
+    ~post_params:(Eliom_parameter.string "zzz")
     (fun () s -> Lwt.return (make_page [p [pcdata "Yo man. ";
                                            pcdata s]]))
 
@@ -2590,7 +2590,7 @@ let otherappl =
     ~get_params:unit
     (fun () () -> Lwt.return (make_page_bis [p [pcdata "I am another application"] ]))
 
-let long_page = Eliom_services.service ~path:["fragment";"main"] ~get_params:unit ()
+let long_page = Eliom_service.service ~path:["fragment";"main"] ~get_params:unit ()
 
 let _ =
   My_appl.register long_page
@@ -2620,9 +2620,9 @@ let _ =
   let () = debug "Application loading"
 }}
 
-let live1 = Eliom_services.service ["live";"one"] unit ()
-let live2 = Eliom_services.service ["live";"two"] unit ()
-let live3 = Eliom_services.service ["live";"three"] unit ()
+let live1 = Eliom_service.service ["live";"one"] unit ()
+let live2 = Eliom_service.service ["live";"two"] unit ()
+let live3 = Eliom_service.service ["live";"three"] unit ()
 
 let live_description =
   div [pcdata "This is an application with three pages. ";
@@ -2644,20 +2644,20 @@ let dead_links =
                    [pcdata "Link to another application."] ()];]]
 
 let () = My_appl.register ~service:live1 (fun () () ->
-    Eliom_services.onload {{ debug "Page 1 loading"; pinger := Some (loop 2. 0 loop_counter) }};
-    Eliom_services.onunload {{ debug "Page 1 unloading"; iter_option Lwt.cancel !pinger }};
+    Eliom_service.onload {{ debug "Page 1 loading"; pinger := Some (loop 2. 0 loop_counter) }};
+    Eliom_service.onunload {{ debug "Page 1 unloading"; iter_option Lwt.cancel !pinger }};
     Lwt.return
       (make_page [h1 [pcdata "Page one"]; live_description; live_links; dead_links]))
 
 let () = My_appl.register ~service:live2 (fun () () ->
-    Eliom_services.onload {{ debug "Page 2 loading" }};
-    Eliom_services.onunload {{ debug "Page 2 unloading" }};
+    Eliom_service.onload {{ debug "Page 2 loading" }};
+    Eliom_service.onunload {{ debug "Page 2 unloading" }};
     Lwt.return
       (make_page [h1 [pcdata "Page two"];live_description; live_links; dead_links]))
 
 let () = My_appl.register ~service:live3 (fun () () ->
-    Eliom_services.onload {{ debug "Page 3 loading" }};
-    Eliom_services.onunload {{ debug "Page 3 unloading" }};
+    Eliom_service.onload {{ debug "Page 3 loading" }};
+    Eliom_service.onunload {{ debug "Page 3 unloading" }};
     Lwt.return
       (make_page [h1 [pcdata "Page threee"]; live_description; live_links; dead_links]))
 
@@ -2665,7 +2665,7 @@ let () = My_appl.register ~service:live3 (fun () () ->
 let formc = My_appl.register_service ["formc"] unit
   (fun () () -> 
     let div = HTML5.DOM.div [h3 [pcdata "Forms and links created on client side:"]] in
-    Eliom_services.onload
+    Eliom_service.onload
       {{ 
 
         let l =
@@ -2825,15 +2825,15 @@ let formc = My_appl.register_service ["formc"] unit
 (* Any with Eliom applications: *)
 
 let any_service =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["appl_any"]
-    ~get_params:(Eliom_parameters.int "with_eliom_appl")
+    ~get_params:(Eliom_parameter.int "with_eliom_appl")
     ()
 
 let any_service_fallback =
   My_appl.register_service
     ~path:["appl_any_"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     (fun () () -> Lwt.return (make_page [p [pcdata "any_appl_ fallback"; br (); pcdata "it should never be called"]]))
 
 let () =
@@ -2890,7 +2890,7 @@ let () =
 let never_shown_service =
   My_appl.register_service
     ~path:["service_hidden_by_a_file.html"]
-    ~get_params:(Eliom_parameters.unit)
+    ~get_params:(Eliom_parameter.unit)
     (fun () () ->
       return
         (make_page
@@ -2912,7 +2912,7 @@ let gracefull_fail_with_file =
 let redirected_src_service =
   My_appl.register_service
     ~path:["redirect_src"]
-    ~get_params:(Eliom_parameters.unit)
+    ~get_params:(Eliom_parameter.unit)
     (fun () () ->
       return
         (make_page
@@ -2921,7 +2921,7 @@ let redirected_src_service =
 let redirected_dst_service =
   My_appl.register_service
     ~path:["redirect_dst"]
-    ~get_params:(Eliom_parameters.unit)
+    ~get_params:(Eliom_parameter.unit)
     (fun () () ->
       return
         (make_page
@@ -3076,22 +3076,22 @@ let simple_div =
        [pcdata "classical"]]
 
 let unique1 =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["appl";"unique1"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 let unique2 =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["appl";"unique2"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 let _ =
   My_appl.register
     unique1
     (fun () () ->
-      Eliom_services.onload {{ debug "Load page 1" }};
+      Eliom_service.onload {{ debug "Load page 1" }};
       return
         (make_page [h1 [pcdata "Page 1"];
                     p [pcdata "This page contains three div with attached onload event.";
@@ -3109,7 +3109,7 @@ let _ =
 let body_onload =
   My_appl.register_service
     ["body_onload"]
-    Eliom_parameters.unit
+    Eliom_parameter.unit
     (fun () () ->
       return
         (html
@@ -3124,7 +3124,7 @@ let _ =
   My_appl.register
     unique2
     (fun () () ->
-      Eliom_services.onload {{ debug "Load page 2" }};
+      Eliom_service.onload {{ debug "Load page 2" }};
       return
         (make_page [h1 [pcdata "Page 2"];
                     Eliom_output.Html5.a ~service:unique1 [pcdata "Get back to Page 1."] ();
@@ -3134,9 +3134,9 @@ let _ =
                    ]))
 
 let big_service =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["big_page"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 let rec big_page n =
@@ -3157,16 +3157,16 @@ let _ =
                    div [big_page 12]]))
 
 let relink_test =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["relink_test"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 let global_list = HTML5.create_global_elt (ul [li [pcdata "First element"]])
 let local_list = HTML5.DOM.ul [li [pcdata "First element"]]
 
 let relink_page () =
-  Eliom_services.onload {{
+  Eliom_service.onload {{
     debug "onload";
     put_li %global_list "Global.";
     put_li %local_list "Request.";
@@ -3232,9 +3232,9 @@ let _ =
 }}
 
 let react_example =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["react_example"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 let () =
@@ -3242,7 +3242,7 @@ let () =
     react_example
     (fun () () ->
       let click_div = HTML5.DOM.div ~a:[a_onclick {{ push (incr count; !count) }}] [] in
-      Eliom_services.onload {{
+      Eliom_service.onload {{
         react_node %click_div
           (React.S.map (fun i -> [pcdata (Printf.sprintf "value: %i" i)]) r)
       }};
@@ -3253,10 +3253,10 @@ let () =
 let caml_service_with_onload' =
   Eliom_output.Caml.register_service
     ~path:["caml_service_with_onload'"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     (fun () () ->
       let node = HTML5.DOM.div [pcdata "new div"] in
-      Eliom_services.onload {{
+      Eliom_service.onload {{
         let node = Eliom_client.Html5.of_div %node in
         ignore (Dom_html.addEventListener node Dom_html.Event.click
                   (Dom_html.handler (fun _ -> Dom_html.window##alert(Js.string "clicked!"); Js._true))
@@ -3267,7 +3267,7 @@ let caml_service_with_onload' =
 let caml_service_with_onload =
   My_appl.register_service
     ~path:["caml_service_with_onload"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     (fun () () ->
       let click_div = div
         ~a:[a_onclick {{ignore (
@@ -3301,12 +3301,12 @@ let rec div_tree v width height =
          (fun i -> HTML5.M.div (div_tree v width (height-1))))
 let div_tree w h = div_tree (ref 0) w h
 
-let domnodes_timings = Eliom_services.service
+let domnodes_timings = Eliom_service.service
   ~path:["domnodes_timings"]
   ~get_params:(int "widht" ** int "height")
   ()
 
-let nodes_timings = Eliom_services.service
+let nodes_timings = Eliom_service.service
   ~path:["nodes_timings"]
   ~get_params:(int "widht" ** int "height")
   ()
@@ -3413,28 +3413,28 @@ let shared_dom_nodes = My_appl.register_service
 
 (**** TEMPLATE ****)
 
-let tmpl1_page1 = Eliom_services.service
+let tmpl1_page1 = Eliom_service.service
   ~path:["tmpl1";"page1"]
   ~get_params:unit
   ()
 
-let tmpl1_page2 = Eliom_services.service
+let tmpl1_page2 = Eliom_service.service
   ~path:["tmpl1";"page2"]
   ~get_params:unit
   ()
 
-let tmpl1_page3 = Eliom_services.service
+let tmpl1_page3 = Eliom_service.service
   ~path:["tmpl1";"page3"]
   ~get_params:unit
   ()
 
 
-let tmpl2_page1 = Eliom_services.service
+let tmpl2_page1 = Eliom_service.service
   ~path:["tmpl2";"page1"]
   ~get_params:unit
   ()
 
-let tmpl2_page2 = Eliom_services.service
+let tmpl2_page2 = Eliom_service.service
   ~path:["tmpl2";"page2"]
   ~get_params:unit
   ()
@@ -3518,28 +3518,28 @@ let () = Tmpl_2.register ~service:tmpl2_page2
 
 (**** HISTORY ****)
 
-let hist_page1 = Eliom_services.service
+let hist_page1 = Eliom_service.service
   ~path:["hist";"page1"]
   ~get_params:unit
   ()
 
-let hist_page2 = Eliom_services.service
+let hist_page2 = Eliom_service.service
   ~path:["hist";"page2"]
   ~get_params:unit
   ()
 
-let hist_page3 = Eliom_services.service
+let hist_page3 = Eliom_service.service
   ~path:["hist";"page3"]
   ~get_params:unit
   ()
 
 
-let hist_page4 = Eliom_services.service
+let hist_page4 = Eliom_service.service
   ~path:["hist";"page4"]
   ~get_params:unit
   ()
 
-let hist_page5 = Eliom_services.service
+let hist_page5 = Eliom_service.service
   ~path:["hist";"page5"]
   ~get_params:unit
   ()
@@ -3576,10 +3576,10 @@ let () = My_appl.register ~service:hist_page5
 (**************************************************************)
 
 let nl_params =
-  Eliom_parameters.make_non_localized_parameters
+  Eliom_parameter.make_non_localized_parameters
     ~prefix:"tutoeliom"
     ~name:"mynlparams"
-    (Eliom_parameters.int "a" ** Eliom_parameters.string "s")
+    (Eliom_parameter.int "a" ** Eliom_parameter.string "s")
 
 let nl_serv = service ~path:["appl_nlparams"] ~get_params:(unit) ()
 
@@ -3589,15 +3589,15 @@ let _ = My_appl.register
     Lwt.return (
       make_page [
         p [a ~service:nl_serv
-              ~nl_params:(Eliom_parameters.add_nl_parameter
-                            Eliom_parameters.empty_nl_params_set
+              ~nl_params:(Eliom_parameter.add_nl_parameter
+                            Eliom_parameter.empty_nl_params_set
                             nl_params
                             (22, "oh")
               )
               [pcdata "with nl params"]
               ();
            br ();
-           a ~service:Eliom_services.void_hidden_coservice'
+           a ~service:Eliom_service.void_hidden_coservice'
              [pcdata "without nl params"]
              ();
            pcdata "there is a problem here: click many times on \"witout nl params\" and inspect it";
@@ -3607,20 +3607,20 @@ let _ = My_appl.register
 
 (***********)
 let nlpost_entry =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["appl_nlpost"]
-    ~get_params:(Eliom_parameters.unit)
+    ~get_params:(Eliom_parameter.unit)
     ()
 
 let nlpost =
-  Eliom_services.post_coservice
+  Eliom_service.post_coservice
     ~fallback:nlpost_entry
     ~name:"appl_nlpost"
-    ~post_params:(Eliom_parameters.unit)
+    ~post_params:(Eliom_parameter.unit)
     ()
 
 let nlpost_with_nlp =
-  Eliom_services.add_non_localized_get_parameters
+  Eliom_service.add_non_localized_get_parameters
     nl_params nlpost
 
 let create_form_nl s =
@@ -3629,7 +3629,7 @@ let create_form_nl s =
 let () = My_appl.register nlpost
   (fun () () ->
     let nlp =
-      match Eliom_parameters.get_non_localized_get_parameters nl_params with
+      match Eliom_parameter.get_non_localized_get_parameters nl_params with
         | None -> "no non localised parameter"
         | Some _ -> "some non localised parameter" in
      Lwt.return
@@ -3658,9 +3658,9 @@ let () = My_appl.register nlpost_entry
 (* test external xhr ( and see if cookies are sent ) *)
 
 let some_external_service =
-  Eliom_services.external_service ~prefix:"http://remysharp.com"
+  Eliom_service.external_service ~prefix:"http://remysharp.com"
     ~path:["demo";"cors.php"]
-    ~get_params:(Eliom_parameters.unit) ()
+    ~get_params:(Eliom_parameter.unit) ()
 
 let external_xhr = service ~path:["external_xhr"] ~get_params:(unit) ()
 
@@ -3745,7 +3745,7 @@ let () =
     HTML5.(
       img ~alt:"some static file"
         ~src:(Eliom_output.Html5.make_uri
-                ~service:(Eliom_services.static_dir ())
+                ~service:(Eliom_service.static_dir ())
                 ["some static file"])
         ()
     )

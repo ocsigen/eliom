@@ -21,8 +21,8 @@
 open Eliom_lib
 
 open Lwt
-open Eliom_parameters
-open Eliom_services
+open Eliom_parameter
+open Eliom_service
 open Eliom_uri
 
 module type FORMS_PARAM = "sigs/eliom_forms_param.mli"
@@ -70,7 +70,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
   let get_form_
         bind return
 	?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
-	?(nl_params = Eliom_parameters.empty_nl_params_set) ?keep_nl_params
+	?(nl_params = Eliom_parameter.empty_nl_params_set) ?keep_nl_params
 	f =
 
     let getparamstype = get_get_params_type_ service in
@@ -138,7 +138,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
   let post_form_
       bind return
       ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
-      ?(nl_params = Eliom_parameters.empty_nl_params_set)
+      ?(nl_params = Eliom_parameter.empty_nl_params_set)
       ?(keep_nl_params : [ `All | `Persistent | `None ] option)
       ?keep_get_na_params
       f getparams =
@@ -566,6 +566,6 @@ module MakeForms(Pages : FORMS_PARAM) = struct
     gen_select ?a ~multiple:true
       ~name:(string_of_param_name name) fl ol string_of
 
-  let a_for pname = Pages.make_for_attrib (Eliom_parameters.string_of_param_name pname)
+  let a_for pname = Pages.make_for_attrib (Eliom_parameter.string_of_param_name pname)
 
 end

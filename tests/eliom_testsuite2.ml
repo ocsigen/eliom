@@ -23,7 +23,7 @@
 
 open Eliom_compatibility_2_1
 open Lwt
-open Eliom_parameters
+open Eliom_parameter
 open Ocsigen_cookies
 open HTML5.M
 
@@ -86,13 +86,13 @@ let session = `Session scope_name
 (* (for connection and disconnection)                       *)
 
 let connect_example =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["connect_example"]
     ~get_params:unit
     ()
 
 let connect_action =
-  Eliom_services.post_coservice'
+  Eliom_service.post_coservice'
     ~name:"connection"
     ~post_params:(string "login")
     ()
@@ -102,7 +102,7 @@ let connect_action =
 let disconnect_action =
   Eliom_output.Action.register_post_coservice'
     ~name:"disconnection"
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     (fun () () ->
       Eliom_state.discard ~scope:session ())
 
@@ -112,10 +112,10 @@ let disconnect_box s =
                     ~input_type:`Submit ~value:s ()]]) ()
 
 (* The following eref is true if the connection has action failed: *)
-let bad_user = Eliom_references.eref ~scope:Eliom_common.request false
+let bad_user = Eliom_reference.eref ~scope:Eliom_common.request false
 
 (* The following eref is the name of the user, when connected *)
-let user = Eliom_references.eref ~scope:session None
+let user = Eliom_reference.eref ~scope:session None
 
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
@@ -143,8 +143,8 @@ let connect_example_handler () () =
   (* The following function tests whether the session has expired: *)
   let status = Eliom_state.volatile_data_state_status (*zap* *) ~scope:session (* *zap*) ()
   in
-  Eliom_references.get bad_user >>= fun bad_u ->
-  Eliom_references.get user >>= fun u ->
+  Eliom_reference.get bad_user >>= fun bad_u ->
+  Eliom_reference.get user >>= fun u ->
   Lwt.return
     (html
        (head (title (pcdata "")) [])
@@ -167,8 +167,8 @@ let connect_example_handler () () =
 let connect_action_handler () login =
   lwt () = Eliom_state.discard ~scope:session () in
   if login = "toto" (* Check user and password :-) *)
-  then Eliom_references.set user (Some login)
-  else Eliom_references.set bad_user true
+  then Eliom_reference.set user (Some login)
+  else Eliom_reference.set bad_user true
 
 
 (* -------------------------------------------------------- *)
@@ -193,13 +193,13 @@ let session = `Session scope_name
 (* (for connection and disconnection)                       *)
 
 let connect_example =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["sessgrp"]
     ~get_params:unit
     ()
 
 let connect_action =
-  Eliom_services.post_coservice'
+  Eliom_service.post_coservice'
     ~name:"connection2"
     ~post_params:(string "login")
     ()
@@ -209,7 +209,7 @@ let connect_action =
 let disconnect_action =
   Eliom_output.Action.register_post_coservice'
     ~name:"disconnection2"
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     (fun () () ->
       Eliom_state.discard ~scope:session ())
 
@@ -219,7 +219,7 @@ let disconnect_box s =
                     ~input_type:`Submit ~value:s ()]]) ()
 
 (* The following eref is true if the connection has action failed: *)
-let bad_user = Eliom_references.eref ~scope:Eliom_common.request false
+let bad_user = Eliom_reference.eref ~scope:Eliom_common.request false
 
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
@@ -252,7 +252,7 @@ let connect_example_handler () () =
   in
   let group_size =
     Eliom_state.get_volatile_data_session_group_size ~scope:session () in
-  Eliom_references.get bad_user >>= fun bad_u ->
+  Eliom_reference.get bad_user >>= fun bad_u ->
   Lwt.return
     (html
        (head (title (pcdata "")) [])
@@ -278,10 +278,10 @@ let connect_action_handler () login =
   if login = "toto" (* Check user and password :-) *)
   then begin
     Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~scope:session (* *zap*) login;
-    Eliom_output.Redirection.send Eliom_services.void_hidden_coservice'
+    Eliom_output.Redirection.send Eliom_service.void_hidden_coservice'
   end
   else  
-    Eliom_references.set bad_user true >>= fun () ->
+    Eliom_reference.set bad_user true >>= fun () ->
     Eliom_output.Action.send ()
 
 
@@ -296,16 +296,16 @@ let () =
 
 (*****************************************************************************)
 
-let myeref = Eliom_references.eref ~scope:`Global ~persistent:"perscount" 0
+let myeref = Eliom_reference.eref ~scope:`Global ~persistent:"perscount" 0
 
 let count3 =
   let next =
     let mutex = Lwt_mutex.create () in
     (fun () ->
       Lwt_mutex.lock mutex >>= fun () ->
-      Eliom_references.get myeref >>= fun oldc ->
+      Eliom_reference.get myeref >>= fun oldc ->
       let newc = oldc + 1 in
-      Eliom_references.set myeref newc >>= fun () ->
+      Eliom_reference.set myeref newc >>= fun () ->
       Lwt_mutex.unlock mutex;
       Lwt.return newc)
   in
@@ -335,22 +335,22 @@ let volatile_references =
     )
   in
   let eref =
-    Eliom_references.Volatile.eref
+    Eliom_reference.Volatile.eref
       ~scope:Eliom_common.session
       10
   in
   let service =
-    Eliom_services.service
+    Eliom_service.service
       ~path:["volatile_reference"]
-      ~get_params:Eliom_parameters.unit
+      ~get_params:Eliom_parameter.unit
       ()
   in
   let set_service =
     Eliom_output.Html5.register_post_coservice
       ~fallback:service
-      ~post_params:(Eliom_parameters.int "n")
+      ~post_params:(Eliom_parameter.int "n")
       (fun () n ->
-         lwt () = Eliom_references.set (eref :> _ Eliom_references.eref) n in
+         lwt () = Eliom_reference.set (eref :> _ Eliom_reference.eref) n in
          Lwt.return
            (page HTML5.([
              pcdata "Reference was set.";
@@ -360,9 +360,9 @@ let volatile_references =
   let unset_service =
     Eliom_output.Html5.register_post_coservice
       ~fallback:service
-      ~post_params:Eliom_parameters.unit
+      ~post_params:Eliom_parameter.unit
       (fun () () ->
-         let () = Eliom_references.Volatile.unset eref in
+         let () = Eliom_reference.Volatile.unset eref in
          Lwt.return
            (page HTML5.([
              pcdata "Reference was unset.";
@@ -372,7 +372,7 @@ let volatile_references =
   Eliom_output.Html5.register
     ~service
     (fun () () ->
-       let v = Eliom_references.Volatile.get eref in
+       let v = Eliom_reference.Volatile.get eref in
        Lwt.return
          (page HTML5.([
              h2 [pcdata "Volatile reference"];
@@ -409,24 +409,24 @@ let reference_from_fun =
     )
   in
   let eref =
-    Eliom_references.eref_from_fun
+    Eliom_reference.eref_from_fun
       ~scope:Eliom_common.session
       (fun () ->
          print_endline "Eliom references from fun: init value";
          Random.int 100)
   in
   let service =
-    Eliom_services.service
+    Eliom_service.service
       ~path:["reference_from_fun"]
-      ~get_params:Eliom_parameters.unit
+      ~get_params:Eliom_parameter.unit
       ()
   in
   let set_service =
     Eliom_output.Html5.register_post_coservice
       ~fallback:service
-      ~post_params:(Eliom_parameters.int "n")
+      ~post_params:(Eliom_parameter.int "n")
       (fun () n ->
-         lwt () = Eliom_references.set eref n in
+         lwt () = Eliom_reference.set eref n in
          Lwt.return
            (page HTML5.([
              pcdata "Reference was set.";
@@ -436,9 +436,9 @@ let reference_from_fun =
   let unset_service =
     Eliom_output.Html5.register_post_coservice
       ~fallback:service
-      ~post_params:Eliom_parameters.unit
+      ~post_params:Eliom_parameter.unit
       (fun () () ->
-         lwt () = Eliom_references.unset eref in
+         lwt () = Eliom_reference.unset eref in
          Lwt.return
            (page HTML5.([
              pcdata "Reference was unset.";
@@ -448,7 +448,7 @@ let reference_from_fun =
   Eliom_output.Html5.register
     ~service
     (fun () () ->
-       lwt v = Eliom_references.get eref in
+       lwt v = Eliom_reference.get eref in
        Lwt.return
          (page HTML5.([
              h2 [pcdata "Reference from fun"];
@@ -477,7 +477,7 @@ open Eliom_testsuite1
 open XHTML.M
 open Eliom_output.Xhtml
 open Eliom_output
-open Eliom_services
+open Eliom_service
 open Eliom_state
 
 (* Lists of lists *)
@@ -602,29 +602,29 @@ let () = register sumform2
 let unregister_example =
   Eliom_output.Xhtml.register_service
     ~path:["unregister"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     (fun () () ->
        let s1 = Eliom_output.Xhtml.register_service
          ~path:["unregister1"]
-         ~get_params:Eliom_parameters.unit
+         ~get_params:Eliom_parameter.unit
          (fun () () -> failwith "s1")
        in
        let s2 = Eliom_output.Xhtml.register_coservice
          ~fallback:s1
-         ~get_params:Eliom_parameters.unit
+         ~get_params:Eliom_parameter.unit
          (fun () () -> failwith "s2")
        in
        let s3 = Eliom_output.Xhtml.register_coservice'
-         ~get_params:Eliom_parameters.unit
+         ~get_params:Eliom_parameter.unit
          (fun () () -> failwith "s3")
        in
        Eliom_output.Xhtml.register ~scope:Eliom_common.session
          ~service:s1
          (fun () () -> failwith "s4");
-       Eliom_services.unregister s1;
-       Eliom_services.unregister s2;
-       Eliom_services.unregister s3;
-       Eliom_services.unregister ~scope:Eliom_common.session s1;
+       Eliom_service.unregister s1;
+       Eliom_service.unregister s2;
+       Eliom_service.unregister s3;
+       Eliom_service.unregister ~scope:Eliom_common.session s1;
        Lwt.return
          (html
             (head (title (pcdata "Unregistering services")) [])
@@ -645,17 +645,17 @@ let unregister_example =
 (* CSRF GET *)
 
 let csrfsafe_get_example =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["csrfget"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 let csrfsafe_example_get =
-  Eliom_services.coservice
+  Eliom_service.coservice
     ~csrf_safe:true
     ~timeout:10.
     ~fallback:csrfsafe_get_example
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 let _ =
@@ -683,17 +683,17 @@ let _ =
 (* CSRF POST on CSRF GET coservice *)
 
 let csrfsafe_postget_example =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["csrfpostget"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 let csrfsafe_example_post =
-  Eliom_services.post_coservice
+  Eliom_service.post_coservice
     ~csrf_safe:true
     ~timeout:10.
     ~fallback:csrfsafe_example_get (* !!! *)
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     ()
 
 let _ =
@@ -722,20 +722,20 @@ let _ =
 (* CSRF for_session *)
 
 let csrfsafe_session_example =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["csrfsession"]
-    ~get_params:Eliom_parameters.unit
+    ~get_params:Eliom_parameter.unit
     ()
 
 let myscope = (`Session (Eliom_common.create_scope_name "plop"))
 
 let csrfsafe_example_session =
-  Eliom_services.post_coservice'
+  Eliom_service.post_coservice'
     ~csrf_safe:true
     ~csrf_scope:myscope
     ~csrf_secure:true
     ~timeout:10.
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     ()
 
 let _ =
@@ -801,18 +801,18 @@ let optsuf2 =
 
 (*******)
 let my_nl_params =
-  Eliom_parameters.make_non_localized_parameters
+  Eliom_parameter.make_non_localized_parameters
     ~prefix:"tutoeliom"
     ~name:"mynlp"
-    (Eliom_parameters.int "a" ** Eliom_parameters.string "s")
+    (Eliom_parameter.int "a" ** Eliom_parameter.string "s")
 
 let void_with_nlp =
-  Eliom_services.add_non_localized_get_parameters
-    my_nl_params Eliom_services.void_coservice'
+  Eliom_service.add_non_localized_get_parameters
+    my_nl_params Eliom_service.void_coservice'
 
 let hidden_void_with_nlp =
-  Eliom_services.add_non_localized_get_parameters
-    my_nl_params Eliom_services.void_hidden_coservice'
+  Eliom_service.add_non_localized_get_parameters
+    my_nl_params Eliom_service.void_hidden_coservice'
 
 let nlparams2 = service
     ~path:["voidnl"]
@@ -820,7 +820,7 @@ let nlparams2 = service
     ()
 
 let nlparams2_with_nlp =
-  Eliom_services.add_non_localized_get_parameters
+  Eliom_service.add_non_localized_get_parameters
     my_nl_params nlparams2
 
 let () = register
@@ -842,7 +842,7 @@ let () = register
                     pcdata ("with values year = "^string_of_int aa^
                               " and month = "^string_of_int bb^
                               ". w = "^string_of_int w^".")];
-                 (match Eliom_parameters.get_non_localized_get_parameters
+                 (match Eliom_parameter.get_non_localized_get_parameters
                     my_nl_params
                   with
                     | None ->
@@ -857,20 +857,20 @@ let () = register
 
 (***********)
 let nlpost_entry =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["nlpost"]
-    ~get_params:(Eliom_parameters.unit)
+    ~get_params:(Eliom_parameter.unit)
     ()
 
 let nlpost =
-  Eliom_services.post_coservice
+  Eliom_service.post_coservice
     ~fallback:nlpost_entry
     ~name:"nlpost"
-    ~post_params:(Eliom_parameters.unit)
+    ~post_params:(Eliom_parameter.unit)
     ()
 
 let nlpost_with_nlp =
-  Eliom_services.add_non_localized_get_parameters
+  Eliom_service.add_non_localized_get_parameters
     my_nl_params nlpost
 
 let create_form_nl s =
@@ -879,7 +879,7 @@ let create_form_nl s =
 let () = Eliom_output.Html5.register nlpost
   (fun () () ->
     let nlp =
-      match Eliom_parameters.get_non_localized_get_parameters my_nl_params with
+      match Eliom_parameter.get_non_localized_get_parameters my_nl_params with
         | None -> "no non localised parameter"
         | Some _ -> "some non localised parameter" in
      Lwt.return
@@ -1065,8 +1065,8 @@ let suffixform_su2 = register_service ["suffixform_su2"] unit
 let optparam =
   register_service
     ~path:["opt"]
-    ~get_params:(Eliom_parameters.opt (Eliom_parameters.string "a" **
-                                         Eliom_parameters.string "b"))
+    ~get_params:(Eliom_parameter.opt (Eliom_parameter.string "a" **
+                                         Eliom_parameter.string "b"))
     (fun o () ->
       Lwt.return
         (html
@@ -1825,7 +1825,7 @@ let _ = register sufliopt2
 (* set in suffix *)
 let sufset = register_service
     ~path:["sufset"]
-    ~get_params:(suffix (Eliom_parameters.set string "s"))
+    ~get_params:(suffix (Eliom_parameter.set string "s"))
   (fun l () ->
   let module Xhtml = Eliom_content.Xhtml.F in
     let ll =
@@ -2118,13 +2118,13 @@ let group = `Session_group scope_name
 (* (for connection and disconnection)                       *)
 
 let connect_example_gd =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["sessgrpdata"]
     ~get_params:unit
     ()
 
 let connect_action =
-  Eliom_services.post_coservice'
+  Eliom_service.post_coservice'
     ~name:"connectiongd"
     ~post_params:(string "login")
     ()
@@ -2134,7 +2134,7 @@ let connect_action =
 let disconnect_action =
   Eliom_output.Action.register_post_coservice'
     ~name:"disconnectiongd"
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     (fun () () -> Eliom_state.discard ~scope:session ())
 
 let disconnect_box s =
@@ -2143,15 +2143,15 @@ let disconnect_box s =
                     ~input_type:`Submit ~value:s ()]]) ()
 
 (* The following eref is true if the connection has action failed: *)
-let bad_user = Eliom_references.eref ~scope:Eliom_common.request false
+let bad_user = Eliom_reference.eref ~scope:Eliom_common.request false
 
-let my_group_data = Eliom_references.eref ~scope:group None
+let my_group_data = Eliom_reference.eref ~scope:group None
 
 let change_gd =
   Eliom_output.Action.register_post_coservice'
     ~name:"changegd"
-    ~post_params:Eliom_parameters.unit
-    (fun () () -> Eliom_references.set my_group_data (Some (1000 + Random.int 1000)))
+    ~post_params:Eliom_parameter.unit
+    (fun () () -> Eliom_reference.set my_group_data (Some (1000 + Random.int 1000)))
 
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
@@ -2182,8 +2182,8 @@ let connect_example_handler () () =
   let group =
     Eliom_state.get_volatile_data_session_group (*zap* *) ~scope:session (* *zap*) ()
   in
-  Eliom_references.get bad_user >>= fun bad_u ->
-  Eliom_references.get my_group_data >>= fun my_group_data ->
+  Eliom_reference.get bad_user >>= fun bad_u ->
+  Eliom_reference.get my_group_data >>= fun my_group_data ->
   Lwt.return
     (html
        (head (title (pcdata "")) [])
@@ -2217,14 +2217,14 @@ let connect_action_handler () login =
   if login = "toto" (* Check user and password :-) *)
   then begin
     Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~scope:session (* *zap*) login;
-    Eliom_references.get my_group_data >>= fun mgd ->
+    Eliom_reference.get my_group_data >>= fun mgd ->
     (if mgd = None
-     then Eliom_references.set my_group_data (Some (Random.int 1000))
+     then Eliom_reference.set my_group_data (Some (Random.int 1000))
      else Lwt.return ()) >>= fun () ->
-    Eliom_output.Redirection.send Eliom_services.void_hidden_coservice'
+    Eliom_output.Redirection.send Eliom_service.void_hidden_coservice'
   end
   else  
-    Eliom_references.set bad_user true >>= fun () ->
+    Eliom_reference.set bad_user true >>= fun () ->
     Eliom_output.Action.send ()
 
 
@@ -2253,13 +2253,13 @@ let group = `Session_group scope_name
 (* (for connection and disconnection)                       *)
 
 let connect_example_pgd =
-  Eliom_services.service
+  Eliom_service.service
     ~path:["psessgrpdata"]
     ~get_params:unit
     ()
 
 let connect_action =
-  Eliom_services.post_coservice'
+  Eliom_service.post_coservice'
     ~name:"connectionpgd"
     ~post_params:(string "login")
     ()
@@ -2269,7 +2269,7 @@ let connect_action =
 let disconnect_action =
   Eliom_output.Action.register_post_coservice'
     ~name:"disconnectionpgd"
-    ~post_params:Eliom_parameters.unit
+    ~post_params:Eliom_parameter.unit
     (fun () () -> Eliom_state.discard ~scope:session ())
 
 let disconnect_box s =
@@ -2278,15 +2278,15 @@ let disconnect_box s =
                     ~input_type:`Submit ~value:s ()]]) ()
 
 (* The following eref is true if the connection has action failed: *)
-let bad_user = Eliom_references.eref ~scope:Eliom_common.request false
+let bad_user = Eliom_reference.eref ~scope:Eliom_common.request false
 
-let my_group_data = Eliom_references.eref ~persistent:"pgd" ~scope:group None
+let my_group_data = Eliom_reference.eref ~persistent:"pgd" ~scope:group None
 
 let change_gd =
   Eliom_output.Action.register_post_coservice'
     ~name:"changepgd"
-    ~post_params:Eliom_parameters.unit
-    (fun () () -> Eliom_references.set my_group_data (Some (1000 + Random.int 1000)))
+    ~post_params:Eliom_parameter.unit
+    (fun () () -> Eliom_reference.set my_group_data (Some (1000 + Random.int 1000)))
 
 
 (* -------------------------------------------------------- *)
@@ -2318,8 +2318,8 @@ let connect_example_handler () () =
   let group =
     Eliom_state.get_volatile_data_session_group (*zap* *) ~scope:session (* *zap*) ()
   in
-  Eliom_references.get bad_user >>= fun bad_u ->
-  Eliom_references.get my_group_data >>= fun my_group_data ->
+  Eliom_reference.get bad_user >>= fun bad_u ->
+  Eliom_reference.get my_group_data >>= fun my_group_data ->
   Lwt.return
     (html
        (head (title (pcdata "")) [])
@@ -2355,14 +2355,14 @@ let connect_action_handler () login =
   if login = "toto" (* Check user and password :-) *)
   then begin
     Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~scope:session (* *zap*) login;
-    Eliom_references.get my_group_data >>= fun mgd ->
+    Eliom_reference.get my_group_data >>= fun mgd ->
     (if mgd = None
-     then Eliom_references.set my_group_data (Some (Random.int 1000))
+     then Eliom_reference.set my_group_data (Some (Random.int 1000))
      else Lwt.return ()) >>= fun () ->
-    Eliom_output.Redirection.send Eliom_services.void_hidden_coservice'
+    Eliom_output.Redirection.send Eliom_service.void_hidden_coservice'
   end
   else  
-    Eliom_references.set bad_user true >>= fun () ->
+    Eliom_reference.set bad_user true >>= fun () ->
     Eliom_output.Action.send ()
 
 

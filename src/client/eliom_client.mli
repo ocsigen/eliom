@@ -31,15 +31,15 @@ val change_page :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
-           [< Eliom_services.service_kind ],
+           [< Eliom_service.service_kind ],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
-           [< Eliom_services.registrable ], Eliom_output.appl_service)
-          Eliom_services.service ->
+           [< Eliom_service.registrable ], Eliom_output.appl_service)
+          Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:Eliom_parameters.nl_params_set ->
+  ?nl_params:Eliom_parameter.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> unit Lwt.t
 
 (** Call a server side service that return an OCaml value. *)
@@ -48,15 +48,15 @@ val call_caml_service :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
-           [< Eliom_services.service_kind ],
+           [< Eliom_service.service_kind ],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
-           [< Eliom_services.registrable ], 'return Eliom_parameters.caml)
-          Eliom_services.service ->
+           [< Eliom_service.registrable ], 'return Eliom_parameter.caml)
+          Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:Eliom_parameters.nl_params_set ->
+  ?nl_params:Eliom_parameter.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> 'return Lwt.t
 
 
@@ -68,15 +68,15 @@ val exit_to :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
-           [< Eliom_services.service_kind ],
+           [< Eliom_service.service_kind ],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
-           [< Eliom_services.registrable ], [< Eliom_output.non_caml_service ])
-          Eliom_services.service ->
+           [< Eliom_service.registrable ], [< Eliom_output.non_caml_service ])
+          Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:Eliom_parameters.nl_params_set ->
+  ?nl_params:Eliom_parameter.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> unit
 
 (** Loads an Eliom service in a window (cf. Javascript's [window.open]). *)
@@ -87,15 +87,15 @@ val window_open :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, unit,
-           [< Eliom_services.get_service_kind ],
+           [< Eliom_service.get_service_kind ],
            [< `WithSuffix | `WithoutSuffix ], _, unit,
-           [< Eliom_services.registrable ], _)
-          Eliom_services.service ->
+           [< Eliom_service.registrable ], _)
+          Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:Eliom_parameters.nl_params_set ->
+  ?nl_params:Eliom_parameter.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> Dom_html.window Js.t
 
 (** (low level) Call a server side service and return the content
@@ -105,15 +105,15 @@ val call_service :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
-           [< Eliom_services.service_kind ],
+           [< Eliom_service.service_kind ],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
-           [< Eliom_services.registrable ], 'return)
-          Eliom_services.service ->
+           [< Eliom_service.registrable ], 'return)
+          Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:Eliom_parameters.nl_params_set ->
+  ?nl_params:Eliom_parameter.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> string Lwt.t
 
 (** wait for the loading phase to terminate *)

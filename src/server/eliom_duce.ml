@@ -90,7 +90,7 @@ module Xhtml_reg_base = struct
 
   let result_of_http_result x = x
 
-  let send_appl_content = Eliom_services.XNever
+  let send_appl_content = Eliom_service.XNever
 
   let send ?options ?charset ?code
       ?content_type ?headers content =
@@ -383,7 +383,7 @@ module Make_Registration
 
       let result_of_http_result x = x
 
-      let send_appl_content = Eliom_services.XNever
+      let send_appl_content = Eliom_service.XNever
 
       let send ?options ?charset ?code
           ?content_type ?headers content =
@@ -417,7 +417,7 @@ module Make_TypedXML_Registration(Typed_xml: Xml_sigs_duce.Typed_xml) =
 module Make_Partial_TypedXML_Registration(Typed_xml: Xml_sigs_duce.Typed_xml) =
   Make_Registration(TypedXML_partial_content(Typed_xml))
 
-module Blocks = struct
+module Block = struct
   include Make_Partial_TypedXML_Registration(Xhtml_duce.M)
   include Xhtml_forms
 end
