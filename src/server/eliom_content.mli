@@ -9,7 +9,7 @@ module type Forms = "sigs/eliom_forms.mli"
 
     XML tree manipulation within Eliom is based on the TyXML library
     but use a custom representation for XML values (see
-    {!Xml}). Then, [Eliom_lib] redefines the three high level
+    {!Xml}). Then, [Eliom_content] redefines the three high level
     interfaces ({!Svg}, {!Html5} and {!Xhtml}) that are provided by
     TyXML for valid XML tree creation and printing. *)
 
@@ -41,7 +41,7 @@ module Xml : sig
       information on {% <<a_manual chapter="client"
       fragment="syntax"|syntax extension>>%}). Such values are expected
       by functions like {!Eliom_services.on_load} or
-      {!Eliom_lib.Html5.a_onclick}. The type parameter is the
+      {!Eliom_content.Html5.a_onclick}. The type parameter is the
       type of the javascript event expected by the handler, for
       example {% <<a_api project="js_of_ocaml" | type
       Dom_html.mouseEvent>>%} or {% <<a_api project="js_of_ocaml" | type
@@ -97,40 +97,46 @@ module Svg : sig
       semantics>> %} for SVG tree manipulated by client/server
       application. *)
 
+  type +'a elt = 'a Eliom_content_core.Svg.elt
+  type 'a attrib = 'a Eliom_content_core.Svg.attrib
+  type uri = Eliom_content_core.Svg.uri
+
   (** {2 Functional semantics} *)
 
   (** Typed interface for building valid SVG tree (functional
       semantics). See {% <<a_api project="tyxml" | module type
       Svg_sigs.T >> %}. *)
-  module F : Svg_sigs.T with module Xml := Xml
-		        and type 'a elt = 'a Svg.elt
-		        and type 'a attrib = 'a Svg.attrib
-		        and type uri = Svg.uri
+  module F : Svg_sigs.T with type Xml.uri = Xml.uri
+                        and type Xml.event_handler = Xml.event_handler
+                        and type Xml.attrib = Xml.attrib
+                        and type Xml.elt = Xml.elt
+                        with type 'a elt = 'a elt
+		        and type 'a attrib = 'a attrib
+		        and type uri = uri
 
   (** {2 Dom semantics} *)
 
   (** Typed interface for building valid SVG tree (DOM semantics). See
       {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
-  module D : Svg_sigs.T with module Xml := Xml
-		        and type 'a elt = 'a F.elt
-		        and type 'a attrib = 'a F.attrib
-		        and type uri = F.uri
+  module D : Svg_sigs.T with type Xml.uri = Xml.uri
+                        and type Xml.event_handler = Xml.event_handler
+                        and type Xml.attrib = Xml.attrib
+                        and type Xml.elt = Xml.elt
+                        with type 'a elt = 'a elt
+		        and type 'a attrib = 'a attrib
+		        and type uri = uri
 
-
-  type +'a elt = 'a F.elt
-  type 'a attrib = 'a F.attrib
-  type uri = F.uri
 
   (** {2 Global node} *)
   module Id : sig
     (** The type of global SVG element identifier. *)
     type +'a id
 
-    (** See {!Eliom_lib.Html5.new_elt_id} *)
+    (** See {!Eliom_content.Html5.Id.new_elt_id} *)
     val new_elt_id: ?global:bool -> unit -> 'a id
-    (** See {!Eliom_lib.Html5.create_named_elt} *)
+    (** See {!Eliom_content.Html5.Id.create_named_elt} *)
     val create_named_elt: id:'a id -> 'a elt -> 'a elt
-    (** See {!Eliom_lib.Html5.create_global_elt} *)
+    (** See {!Eliom_content.Html5.Id.create_global_elt} *)
     val create_global_elt: 'a elt -> 'a elt
   end
 
@@ -151,6 +157,10 @@ module Html5 : sig
       semantics>> %} for HTML5 tree manipulated by client/server
       application. *)
 
+  type +'a elt = 'a Eliom_content_core.Html5.elt
+  type +'a attrib = 'a Eliom_content_core.Html5.attrib
+  type uri = Eliom_content_core.Html5.uri
+
   (** {2 Functional semantics} *)
 
   (** Typed interface for building valid HTML5 tree (functional
@@ -159,13 +169,18 @@ module Html5 : sig
   module F : sig
 
     (** See {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
-    include Html5_sigs.T with module Xml := Xml and module Svg := Svg.F
-		         and type 'a elt = 'a Html5.elt
-		         and type 'a attrib = 'a Html5.attrib
-		         and type uri = Html5.uri
-    (* TODO Hide untyped [a], [input]. *)
+    include Html5_sigs.T with type Xml.uri = Xml.uri
+                         and type Xml.event_handler = Xml.event_handler
+                         and type Xml.attrib = Xml.attrib
+                         and type Xml.elt = Xml.elt
+                         with type 'a elt = 'a elt
+		         and type 'a attrib = 'a attrib
+		         and type uri = uri
+                         with module Svg := Svg.F
+
     val raw_a : ([< Html5_types.a_attrib ], 'a, [> `A of 'a ]) star
     val raw_input : ([< Html5_types.input_attrib ], [> Html5_types.input ]) nullary
+    (*BB TODO Hide untyped [input]. *)
 
     (** {2 Event handlers} *)
 
@@ -194,13 +209,18 @@ module Html5 : sig
   module D : sig
 
     (** See {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
-    include Html5_sigs.T with module Xml := Xml and module Svg := Svg.D
-		         and type 'a elt = 'a F.elt
-		         and type 'a attrib = 'a F.attrib
-		         and type uri = F.uri
-    (* TODO Hide untyped [a], [input]. *)
+    include Html5_sigs.T with type Xml.uri = Xml.uri
+                         and type Xml.event_handler = Xml.event_handler
+                         and type Xml.attrib = Xml.attrib
+                         and type Xml.elt = Xml.elt
+                         with type 'a elt = 'a elt
+		         and type 'a attrib = 'a attrib
+		         and type uri = uri
+                         with module Svg := Svg.D
+
     val raw_a : ([< Html5_types.a_attrib ], 'a, [> `A of 'a ]) star
     val raw_input : ([< Html5_types.input_attrib ], [> Html5_types.input ]) nullary
+    (*BB TODO Hide untyped [input]. *)
 
     (** {2 Event handlers} *)
 
@@ -221,10 +241,6 @@ module Html5 : sig
     (**/**)
 
   end
-
-  type +'a elt = 'a F.elt
-  type +'a attrib = 'a F.attrib
-  type uri = F.uri
 
   (** {2 Global node} *)
   module Id : sig
@@ -266,14 +282,17 @@ module Xhtml : sig
   (** Typed interface for building valid XHTML (Strict) tree. *)
   module F : sig
 
-    include Xhtml_sigs.T with module Xml := Xml
-      with type +'a elt = 'a Xhtml.F.elt
-      and type 'a attrib = 'a Xhtml.F.attrib
-      and type uri = Xhtml.F.uri
+    include Xhtml_sigs.T with type Xml.uri = Xml.uri
+                         and type Xml.event_handler = Xml.event_handler
+                         and type Xml.attrib = Xml.attrib
+                         and type Xml.elt = Xml.elt
+                         with type +'a elt = 'a Xhtml.F.elt
+                         and type 'a attrib = 'a Xhtml.F.attrib
+                         and type uri = Xhtml.F.uri
 
-    (* TODO Hide untyped [a], [input]. *)
     val raw_a : ([< Xhtml_types.a_attrib ], [< Xhtml_types.a_content ], [> Xhtml_types.a ]) star
     val raw_input : ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ]) nullary
+    (*BB TODO Hide untyped [input]. *)
 
     include "sigs/eliom_xhtml_forms.mli"
 
@@ -297,14 +316,17 @@ module Xhtml : sig
  *)
 
     (** See {% <<a_api project="tyxml" | module type Xhtml_sigs.T >> %}. *)
-    include Xhtml_sigs.T with module Xml := Xml
-      with type +'a elt = 'a Xhtml.F_01_00.elt
-      and type 'a attrib = 'a Xhtml.F_01_00.attrib
-      and type uri = Xhtml.F_01_00.uri
+    include Xhtml_sigs.T with type Xml.uri = Xml.uri
+                         and type Xml.event_handler = Xml.event_handler
+                         and type Xml.attrib = Xml.attrib
+                         and type Xml.elt = Xml.elt
+                         with type +'a elt = 'a Xhtml.F_01_00.elt
+                         and type 'a attrib = 'a Xhtml.F_01_00.attrib
+                         and type uri = Xhtml.F_01_00.uri
 
-    (* TODO Hide untyped [a], [input]. *)
     val raw_a : ([< Xhtml_types.a_attrib ], [< Xhtml_types.a_content ], [> Xhtml_types.a ]) star
     val raw_input : ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ]) nullary
+    (*BB TODO Hide untyped [input]. *)
 
     include "sigs/eliom_xhtml_forms.mli"
 
@@ -323,14 +345,17 @@ module Xhtml : sig
   module F_01_01 : sig
 
     (** See {% <<a_api project="tyxml" | module type Xhtml_sigs.T >> %}. *)
-    include Xhtml_sigs.T with module Xml := Xml
-      with type +'a elt = 'a Xhtml.F_01_01.elt
-      and type 'a attrib = 'a Xhtml.F_01_01.attrib
-      and type uri = Xhtml.F_01_01.uri
+    include Xhtml_sigs.T with type Xml.uri = Xml.uri
+                         and type Xml.event_handler = Xml.event_handler
+                         and type Xml.attrib = Xml.attrib
+                         and type Xml.elt = Xml.elt
+                         with type +'a elt = 'a Xhtml.F_01_01.elt
+                         and type 'a attrib = 'a Xhtml.F_01_01.attrib
+                         and type uri = Xhtml.F_01_01.uri
 
-    (* TODO Hide untyped [a], [input]. *)
     val raw_a : ([< Xhtml_types.a_attrib ], [< Xhtml_types.a_content ], [> Xhtml_types.a ]) star
     val raw_input : ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ]) nullary
+    (*BB TODO Hide untyped [input]. *)
 
     include "sigs/eliom_xhtml_forms.mli"
 

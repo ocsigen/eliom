@@ -132,18 +132,24 @@ module Svg : sig
 
   (** Typed interface for building valid SVG tree (DOM semantics). See
       {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
-  module D: Svg_sigs.T with module Xml := Xml
-		         and type 'a elt = 'a elt
-		         and type 'a attrib = 'a attrib
-		         and type uri = uri
+  module D: Svg_sigs.T with type Xml.uri = Xml.uri
+                       and type Xml.event_handler = Xml.event_handler
+                       and type Xml.attrib = Xml.attrib
+                       and type Xml.elt = Xml.elt
+                       with type 'a elt = 'a elt
+		       and type 'a attrib = 'a attrib
+		       and type uri = uri
 
   (** {2 Functional semantics} *)
 
   (** Typed interface for building valid SVG tree (functional
       semantics). See {% <<a_api project="tyxml" | module type
       Svg_sigs.T >> %}. *)
-  module F : Svg_sigs.T with module Xml := Xml
-		        and type 'a elt = 'a elt
+  module F : Svg_sigs.T with type Xml.uri = Xml.uri
+                        and type Xml.event_handler = Xml.event_handler
+                        and type Xml.attrib = Xml.attrib
+                        and type Xml.elt = Xml.elt
+                        with type 'a elt = 'a elt
 		        and type 'a attrib = 'a attrib
 		        and type uri = uri
 
@@ -184,10 +190,14 @@ module Html5 : sig
   module F : sig
 
     (** See {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
-    include Html5_sigs.T with module Xml := Xml and module Svg := Svg.F
-		         and type 'a elt = 'a elt
+    include Html5_sigs.T with type Xml.uri = Xml.uri
+                         and type Xml.event_handler = Xml.event_handler
+                         and type Xml.attrib = Xml.attrib
+                         and type Xml.elt = Xml.elt
+                         with type 'a elt = 'a elt
 		         and type 'a attrib = 'a attrib
 		         and type uri = uri
+                         with module Svg := Svg.F
 
 
     (** {2 Event handlers} *)
@@ -216,7 +226,10 @@ module Html5 : sig
       {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
   module D: sig
 
-    include Html5_sigs.T with module Xml := Xml
+    include Html5_sigs.T with type Xml.uri = Xml.uri
+                         and type Xml.event_handler = Xml.event_handler
+                         and type Xml.attrib = Xml.attrib
+                         and type Xml.elt = Xml.elt
 		         and module Svg := Svg.D
 		         and type 'a elt = 'a elt
 		         and type 'a attrib = 'a attrib

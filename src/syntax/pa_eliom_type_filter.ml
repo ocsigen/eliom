@@ -80,7 +80,7 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let client_expr orig_expr gen_id gen_tid =
     let _loc = Ast.loc_of_expr orig_expr in
     add_typing_str orig_expr gen_tid;
-    <:expr< begin $flush_typing_expr ()$; let ev = Eliom_content.XML.event_handler_of_js 0L (Obj.magic ()) in $lid:gen_tid$ := Some ev; ev end >>
+    <:expr< begin $flush_typing_expr ()$; let ev = Eliom_content.Xml.event_handler_of_js 0L (Obj.magic ()) in $lid:gen_tid$ := Some ev; ev end >>
 
   let escaped orig_expr gen_id =
     add_typing_expr orig_expr gen_id;

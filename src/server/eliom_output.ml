@@ -1493,7 +1493,7 @@ module Eliom_appl_reg_make_param
     let eliom_data =
       Eliom_wrap.wrap
 	{ Eliom_types.
-	  ejs_event_handler_table = Xml.make_event_handler_table (Eliom_content.Html5.D.toelt page);
+	  ejs_event_handler_table = Eliom_content.Xml.make_event_handler_table (Eliom_content.Html5.D.toelt page);
 	  ejs_onload              = Eliom_services.get_onload sp;
 	  ejs_onunload            = Eliom_services.get_onunload sp;
 	  ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;
@@ -1524,10 +1524,10 @@ module Eliom_appl_reg_make_param
             * [ Html5_types.title ] Eliom_content.Html5.elt
             * Html5_types.head_content_fun Eliom_content.Html5.elt list)
         * Html5_types.body Eliom_content.Html5.elt ) =
-    match Xml.content page with
-      | Xml.Node (_, html_attribs, [head; body]) ->
-	begin match Xml.content head with
-	  | Xml.Node (_, head_attribs, head_elts) ->
+    match Eliom_content.Xml.content page with
+      | Eliom_content.Xml.Node (_, html_attribs, [head; body]) ->
+	begin match Eliom_content.Xml.content head with
+	  | Eliom_content.Xml.Node (_, head_attribs, head_elts) ->
 	    ( List.map Eliom_content.Html5.D.to_attrib html_attribs,
 	      ( List.map Eliom_content.Html5.D.to_attrib head_attribs,
 		Eliom_content.Html5.D.tot (List.hd head_elts),

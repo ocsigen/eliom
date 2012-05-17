@@ -1,7 +1,7 @@
 
 (*****************************************************************************)
 (** References of scope site *)
-open Eliom_compatibility
+open Eliom_compatibility_2_1
 
 let reference_scope_site =
   let action =

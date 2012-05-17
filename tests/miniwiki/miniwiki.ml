@@ -20,7 +20,7 @@
 
 (* open Eliom_pervasives *)
 
-open Eliom_compatibility
+open Eliom_compatibility_2_1
 open XHTML.M
 open Eliom_output.Xhtml
 open Eliom_services

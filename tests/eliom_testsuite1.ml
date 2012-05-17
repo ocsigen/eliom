@@ -27,8 +27,9 @@ let coucou1 =
     ~path:["coucou1"]
     ~get_params:Eliom_parameters.unit
     (fun () () ->
+      let module Html5 = Eliom_content.Html5.F in
       return
-        <:html5< <html>
+        << <html>
              <head><title></title></head>
              <body><h1>Coucou</h1></body>
            </html> >>)
@@ -44,18 +45,20 @@ let coucou_xhtml =
            (head (title (pcdata "")) [])
            (body [h1 [pcdata "Hallo!"]])))
 
+(*
 let coucou1_xthml =
-  let open XHTML in
   Eliom_output.Xhtml.register_service
     ~path:["coucou1_xhtml"]
     ~get_params:Eliom_parameters.unit
     (fun () () ->
+      let module Xhtml = Eliom_content.Xhtml.F in
       return
         <:xhtml< <html>
              <head><title></title></head>
              <body><h1>Coucou</h1></body>
            </html> >>)
 
+ *)
 let coucoutext =
   Eliom_output.HtmlText.register_service
     ~path:["coucoutext"]
@@ -220,6 +223,7 @@ let raw_serv =
     ~path:["any"]
     ~get_params:Eliom_parameters.any
   (fun l () ->
+    let module Html5 = Eliom_content.Html5.F in
     let ll =
       List.map
         (fun (a,s) -> <:html5< <strong>($str:a$, $str:s$)</strong> >>) l
@@ -427,6 +431,7 @@ let form2 = register_service ["form2"] unit
 
 let form3 = register_service ["form3"] unit
   (fun () () ->
+     let module Html5 = Eliom_content.Html5.F in
      let f  =
        (Eliom_output.Html5.post_form my_service_with_get_and_post
           (fun chaine ->
@@ -440,6 +445,7 @@ let form3 = register_service ["form3"] unit
 
 let form4 = register_service ["form4"] unit
   (fun () () ->
+      let module Html5 = Eliom_content.Html5.F in
      let f  =
        (Eliom_output.Html5.post_form
           (external_post_service
@@ -2049,6 +2055,7 @@ let bool_params = register_service
     ~path:["bool"]
     ~get_params:(bool "case")
   (fun case () ->
+    let module Html5 = Eliom_content.Html5.F in
     return
     <:html5< <html>
          <head><title></title></head>
@@ -2060,11 +2067,13 @@ let bool_params = register_service
        </html> >>)
 
 let create_form_bool casename =
+    let module Html5 = Eliom_content.Html5.F in
     <:html5list< <p>check? $bool_checkbox ~name:casename ()$ <br/>
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
 let form_bool = register_service ["formbool"] unit
   (fun () () ->
+    let module Html5 = Eliom_content.Html5.F in
      let f = get_form bool_params create_form_bool in
      return
      <:html5< <html>
@@ -2082,10 +2091,12 @@ let set = register_service
     ~path:["set"]
     ~get_params:(set string "s")
   (fun l () ->
+    let module Html5 = Eliom_content.Html5.F in
     let ll =
       List.map
         (fun s -> <:html5< <strong>$str:s$ </strong> >>) l
     in
+    let module Html5 = Eliom_content.Html5.F in
     return
     <:html5< <html>
          <head><title></title></head>
@@ -2171,6 +2182,7 @@ let coord = register_service
     ~path:["coord"]
     ~get_params:(coordinates "coord")
   (fun c () ->
+    let module Html5 = Eliom_content.Html5.F in
     return
   <:html5< <html>
        <head><title></title></head>
@@ -2206,6 +2218,7 @@ let coord2 = register_service
     ~path:["coord2"]
     ~get_params:(int_coordinates "coord")
   (fun (i, c) () ->
+    let module Html5 = Eliom_content.Html5.F in
     return
   <:html5< <html>
        <head><title></title></head>
@@ -2245,6 +2258,7 @@ let coucou_list = register_service
     ~path:["coucou"]
     ~get_params:(list "a" (string "str"))
   (fun l () ->
+    let module Html5 = Eliom_content.Html5.F in
     let ll =
       List.map (fun s -> <:html5< <strong>$str:s$</strong> >>) l in
       return
@@ -2276,6 +2290,7 @@ let create_listform f =
      The last parameter of f.it is the code that must be appended at the
      end of the list created
    *)
+  let module Html5 = Eliom_content.Html5.F in
   f.it (fun stringname v init ->
     <:html5list< <p>Write the value for $str:v$:
       $string_input ~input_type:`Text ~name:stringname ()$ </p> >>@init)
@@ -2284,6 +2299,7 @@ let create_listform f =
 
 let listform = register_service ["listform"] unit
   (fun () () ->
+     let module Html5 = Eliom_content.Html5.F in
      let f = get_form coucou_list create_listform in
      return
       <:html5< <html>
@@ -2297,18 +2313,25 @@ let listform = register_service ["listform"] unit
 *wiki*)
 (* Form for service with suffix: *)
 let create_suffixform ((suff, endsuff),i) =
-    <:html5list< <p>Write the suffix (integer):
-      $int_input ~input_type:`Text ~name:suff ()$ <br/>
-      Write a string: $user_type_input
-      (Url.string_of_url_path ~encode:false)
-         ~input_type:`Text ~name:endsuff ()
-         $ <br/>
-      Write an int: $int_input ~input_type:`Text ~name:i ()$ <br/>
-      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
+  let module Html5 = Eliom_content.Html5.F in
+  <:html5list<
+    <p>
+      Write the suffix (integer):
+      $int_input ~input_type:`Text ~name:suff ()$
+      <br/>
+      Write a string:
+      $user_type_input (Url.string_of_url_path ~encode:false) ~input_type:`Text ~name:endsuff ()$
+      <br/>
+      Write an int: $int_input ~input_type:`Text ~name:i ()$
+      <br/>
+      $string_input ~input_type:`Submit ~value:"Click" ()$
+    </p>
+  >>
 
 let suffixform = register_service ["suffixform"] unit
   (fun () () ->
      let f = get_form isuffix create_suffixform in
+     let module Html5 = Eliom_content.Html5.F in
      return
       <:html5< <html>
            <head><title></title></head>

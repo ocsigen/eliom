@@ -1,4 +1,4 @@
-open Eliom_compatibility
+open Eliom_compatibility_2_1
 let (>>=) = Lwt.(>>=)
 let (>|=) = Lwt.(>|=)
 

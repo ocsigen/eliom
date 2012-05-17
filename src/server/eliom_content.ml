@@ -109,7 +109,7 @@ module Xhtml = struct
 
       let buttonsubmit = `Submit
 
-      let uri_of_string = Xml.uri_of_fun
+      let uri_of_string = Eliom_content_core.Xml.uri_of_fun
 
       let map_option = List.map
       let map_optgroup f a l = ((f a), List.map f l)

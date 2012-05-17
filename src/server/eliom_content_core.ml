@@ -190,6 +190,8 @@ module Xml = struct
 
 end
 
+module X = Xml
+
 module Svg = struct
 
   module D = Svg_f.Make(struct
@@ -258,7 +260,7 @@ module Html5 = struct
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     let lazy_form ?(a = []) elt1 elts =
-      tot (Xml.lazy_node ~a:(to_xmlattribs a) "form"
+      tot (X.lazy_node ~a:(to_xmlattribs a) "form"
 	     (Eliom_lazy.from_fun
 		(fun () ->
 		  toelt (Eliom_lazy.force elt1)
@@ -334,93 +336,93 @@ module Html5 = struct
     let raw_a_onloadstart = a_onloadstart
     let raw_a_onmessage = a_onmessage
 
-    let a_onabort ev = raw_a_onabort (Xml.Caml ev)
-    let a_onafterprint ev = raw_a_onafterprint (Xml.Caml ev)
-    let a_onbeforeprint ev = raw_a_onbeforeprint (Xml.Caml ev)
-    let a_onbeforeunload ev = raw_a_onbeforeunload (Xml.Caml ev)
-    let a_onblur ev = raw_a_onblur (Xml.Caml ev)
-    let a_oncanplay ev = raw_a_oncanplay (Xml.Caml ev)
-    let a_oncanplaythrough ev = raw_a_oncanplaythrough (Xml.Caml ev)
-    let a_onchange ev = raw_a_onchange (Xml.Caml ev)
-    let a_onclick (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      raw_a_onclick (Xml.Caml (Obj.magic ev)) (* Typed by the syntax extension. *)
-    let a_oncontextmenu (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      raw_a_oncontextmenu (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondblclick (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      raw_a_ondblclick (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondrag (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      raw_a_ondrag (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragend (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      raw_a_ondragend (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragenter (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      raw_a_ondragenter (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragleave (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      raw_a_ondragleave (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragover (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      raw_a_ondragover (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragstart (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      raw_a_ondragstart (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondrop (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      raw_a_ondrop (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondurationchange ev = raw_a_ondurationchange (Xml.Caml ev)
-    let a_onemptied ev = raw_a_onemptied (Xml.Caml ev)
-    let a_onended ev = raw_a_onended (Xml.Caml ev)
-    let a_onerror ev = raw_a_onerror (Xml.Caml ev)
-    let a_onfocus ev = raw_a_onfocus (Xml.Caml ev)
-    let a_onformchange ev = raw_a_onformchange (Xml.Caml ev)
-    let a_onforminput ev = raw_a_onforminput (Xml.Caml ev)
-    let a_onhashchange ev = raw_a_onhashchange (Xml.Caml ev)
-    let a_oninput ev = raw_a_oninput (Xml.Caml ev)
-    let a_oninvalid ev = raw_a_oninvalid (Xml.Caml ev)
-    let a_onmousedown (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      raw_a_onmousedown (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onmouseup (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      raw_a_onmouseup (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onmouseover (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      raw_a_onmouseover (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onmousemove (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      raw_a_onmousemove (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onmouseout (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      raw_a_onmouseout (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onmousewheel ev = raw_a_onmousewheel (Xml.Caml ev)
-    let a_onoffline ev = raw_a_onoffline (Xml.Caml ev)
-    let a_ononline ev = raw_a_ononline (Xml.Caml ev)
-    let a_onpause ev = raw_a_onpause (Xml.Caml ev)
-    let a_onplay ev = raw_a_onplay (Xml.Caml ev)
-    let a_onplaying ev = raw_a_onplaying (Xml.Caml ev)
-    let a_onpagehide ev = raw_a_onpagehide (Xml.Caml ev)
-    let a_onpageshow ev = raw_a_onpageshow (Xml.Caml ev)
-    let a_onpopstate ev = raw_a_onpopstate (Xml.Caml ev)
-    let a_onprogress ev = raw_a_onprogress (Xml.Caml ev)
-    let a_onratechange ev = raw_a_onratechange (Xml.Caml ev)
-    let a_onreadystatechange ev = raw_a_onreadystatechange (Xml.Caml ev)
-    let a_onredo ev = raw_a_onredo (Xml.Caml ev)
-    let a_onresize ev = raw_a_onresize (Xml.Caml ev)
-    let a_onscroll ev = raw_a_onscroll (Xml.Caml ev)
-    let a_onseeked ev = raw_a_onseeked (Xml.Caml ev)
-    let a_onseeking ev = raw_a_onseeking (Xml.Caml ev)
-    let a_onselect ev = raw_a_onselect (Xml.Caml ev)
-    let a_onshow ev = raw_a_onshow (Xml.Caml ev)
-    let a_onstalled ev = raw_a_onstalled (Xml.Caml ev)
-    let a_onstorage ev = raw_a_onstorage (Xml.Caml ev)
-    let a_onsubmit ev = raw_a_onsubmit (Xml.Caml ev)
-    let a_onsuspend ev = raw_a_onsuspend (Xml.Caml ev)
-    let a_ontimeupdate ev = raw_a_ontimeupdate (Xml.Caml ev)
-    let a_onundo ev = raw_a_onundo (Xml.Caml ev)
-    let a_onunload ev = raw_a_onunload (Xml.Caml ev)
-    let a_onvolumechange ev = raw_a_onvolumechange (Xml.Caml ev)
-    let a_onwaiting ev = raw_a_onwaiting (Xml.Caml ev)
-    let a_onkeypress (ev : Dom_html.keyboardEvent Xml.caml_event_handler) =
-      raw_a_onkeypress (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onkeydown (ev : Dom_html.keyboardEvent Xml.caml_event_handler) =
-      raw_a_onkeydown (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onkeyup (ev : Dom_html.keyboardEvent Xml.caml_event_handler) =
-      raw_a_onkeyup (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onload ev = raw_a_onload (Xml.Caml ev)
-    let a_onloadeddata ev = raw_a_onloadeddata (Xml.Caml ev)
-    let a_onloadedmetadata ev = raw_a_onloadedmetadata (Xml.Caml ev)
-    let a_onloadstart ev = raw_a_onloadstart (Xml.Caml ev)
-    let a_onmessage ev = raw_a_onmessage (Xml.Caml ev)
+    let a_onabort ev = raw_a_onabort (X.Caml ev)
+    let a_onafterprint ev = raw_a_onafterprint (X.Caml ev)
+    let a_onbeforeprint ev = raw_a_onbeforeprint (X.Caml ev)
+    let a_onbeforeunload ev = raw_a_onbeforeunload (X.Caml ev)
+    let a_onblur ev = raw_a_onblur (X.Caml ev)
+    let a_oncanplay ev = raw_a_oncanplay (X.Caml ev)
+    let a_oncanplaythrough ev = raw_a_oncanplaythrough (X.Caml ev)
+    let a_onchange ev = raw_a_onchange (X.Caml ev)
+    let a_onclick (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      raw_a_onclick (X.Caml (Obj.magic ev)) (* Typed by the syntax extension. *)
+    let a_oncontextmenu (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      raw_a_oncontextmenu (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_ondblclick (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      raw_a_ondblclick (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_ondrag (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      raw_a_ondrag (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_ondragend (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      raw_a_ondragend (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_ondragenter (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      raw_a_ondragenter (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_ondragleave (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      raw_a_ondragleave (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_ondragover (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      raw_a_ondragover (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_ondragstart (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      raw_a_ondragstart (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_ondrop (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      raw_a_ondrop (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_ondurationchange ev = raw_a_ondurationchange (X.Caml ev)
+    let a_onemptied ev = raw_a_onemptied (X.Caml ev)
+    let a_onended ev = raw_a_onended (X.Caml ev)
+    let a_onerror ev = raw_a_onerror (X.Caml ev)
+    let a_onfocus ev = raw_a_onfocus (X.Caml ev)
+    let a_onformchange ev = raw_a_onformchange (X.Caml ev)
+    let a_onforminput ev = raw_a_onforminput (X.Caml ev)
+    let a_onhashchange ev = raw_a_onhashchange (X.Caml ev)
+    let a_oninput ev = raw_a_oninput (X.Caml ev)
+    let a_oninvalid ev = raw_a_oninvalid (X.Caml ev)
+    let a_onmousedown (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      raw_a_onmousedown (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_onmouseup (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      raw_a_onmouseup (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_onmouseover (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      raw_a_onmouseover (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_onmousemove (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      raw_a_onmousemove (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_onmouseout (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      raw_a_onmouseout (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_onmousewheel ev = raw_a_onmousewheel (X.Caml ev)
+    let a_onoffline ev = raw_a_onoffline (X.Caml ev)
+    let a_ononline ev = raw_a_ononline (X.Caml ev)
+    let a_onpause ev = raw_a_onpause (X.Caml ev)
+    let a_onplay ev = raw_a_onplay (X.Caml ev)
+    let a_onplaying ev = raw_a_onplaying (X.Caml ev)
+    let a_onpagehide ev = raw_a_onpagehide (X.Caml ev)
+    let a_onpageshow ev = raw_a_onpageshow (X.Caml ev)
+    let a_onpopstate ev = raw_a_onpopstate (X.Caml ev)
+    let a_onprogress ev = raw_a_onprogress (X.Caml ev)
+    let a_onratechange ev = raw_a_onratechange (X.Caml ev)
+    let a_onreadystatechange ev = raw_a_onreadystatechange (X.Caml ev)
+    let a_onredo ev = raw_a_onredo (X.Caml ev)
+    let a_onresize ev = raw_a_onresize (X.Caml ev)
+    let a_onscroll ev = raw_a_onscroll (X.Caml ev)
+    let a_onseeked ev = raw_a_onseeked (X.Caml ev)
+    let a_onseeking ev = raw_a_onseeking (X.Caml ev)
+    let a_onselect ev = raw_a_onselect (X.Caml ev)
+    let a_onshow ev = raw_a_onshow (X.Caml ev)
+    let a_onstalled ev = raw_a_onstalled (X.Caml ev)
+    let a_onstorage ev = raw_a_onstorage (X.Caml ev)
+    let a_onsubmit ev = raw_a_onsubmit (X.Caml ev)
+    let a_onsuspend ev = raw_a_onsuspend (X.Caml ev)
+    let a_ontimeupdate ev = raw_a_ontimeupdate (X.Caml ev)
+    let a_onundo ev = raw_a_onundo (X.Caml ev)
+    let a_onunload ev = raw_a_onunload (X.Caml ev)
+    let a_onvolumechange ev = raw_a_onvolumechange (X.Caml ev)
+    let a_onwaiting ev = raw_a_onwaiting (X.Caml ev)
+    let a_onkeypress (ev : Dom_html.keyboardEvent X.caml_event_handler) =
+      raw_a_onkeypress (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_onkeydown (ev : Dom_html.keyboardEvent X.caml_event_handler) =
+      raw_a_onkeydown (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_onkeyup (ev : Dom_html.keyboardEvent X.caml_event_handler) =
+      raw_a_onkeyup (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_onload ev = raw_a_onload (X.Caml ev)
+    let a_onloadeddata ev = raw_a_onloadeddata (X.Caml ev)
+    let a_onloadedmetadata ev = raw_a_onloadedmetadata (X.Caml ev)
+    let a_onloadstart ev = raw_a_onloadstart (X.Caml ev)
+    let a_onmessage ev = raw_a_onmessage (X.Caml ev)
 
   end
 
@@ -431,7 +433,7 @@ module Html5 = struct
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     let lazy_form ?(a = []) elt1 elts =
-      tot (Xml.lazy_node ~a:(to_xmlattribs a) "form"
+      tot (X.lazy_node ~a:(to_xmlattribs a) "form"
 	     (Eliom_lazy.from_fun
 		(fun () ->
 		  toelt (Eliom_lazy.force elt1)
@@ -507,93 +509,93 @@ module Html5 = struct
     let raw_a_onloadstart = a_onloadstart
     let raw_a_onmessage = a_onmessage
 
-    let a_onabort ev = a_onabort (Xml.Caml ev)
-    let a_onafterprint ev = a_onafterprint (Xml.Caml ev)
-    let a_onbeforeprint ev = a_onbeforeprint (Xml.Caml ev)
-    let a_onbeforeunload ev = a_onbeforeunload (Xml.Caml ev)
-    let a_onblur ev = a_onblur (Xml.Caml ev)
-    let a_oncanplay ev = a_oncanplay (Xml.Caml ev)
-    let a_oncanplaythrough ev = a_oncanplaythrough (Xml.Caml ev)
-    let a_onchange ev = a_onchange (Xml.Caml ev)
-    let a_onclick (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      a_onclick (Xml.Caml (Obj.magic ev)) (* Typed by the syntax extension. *)
-    let a_oncontextmenu (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      a_oncontextmenu (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondblclick (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      a_ondblclick (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondrag (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      a_ondrag (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragend (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      a_ondragend (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragenter (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      a_ondragenter (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragleave (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      a_ondragleave (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragover (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      a_ondragover (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragstart (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      a_ondragstart (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondrop (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      a_ondrop (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondurationchange ev = a_ondurationchange (Xml.Caml ev)
-    let a_onemptied ev = a_onemptied (Xml.Caml ev)
-    let a_onended ev = a_onended (Xml.Caml ev)
-    let a_onerror ev = a_onerror (Xml.Caml ev)
-    let a_onfocus ev = a_onfocus (Xml.Caml ev)
-    let a_onformchange ev = a_onformchange (Xml.Caml ev)
-    let a_onforminput ev = a_onforminput (Xml.Caml ev)
-    let a_onhashchange ev = a_onhashchange (Xml.Caml ev)
-    let a_oninput ev = a_oninput (Xml.Caml ev)
-    let a_oninvalid ev = a_oninvalid (Xml.Caml ev)
-    let a_onmousedown (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      a_onmousedown (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onmouseup (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      a_onmouseup (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onmouseover (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      a_onmouseover (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onmousemove (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      a_onmousemove (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onmouseout (ev : Dom_html.mouseEvent Xml.caml_event_handler) =
-      a_onmouseout (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onmousewheel ev = a_onmousewheel (Xml.Caml ev)
-    let a_onoffline ev = a_onoffline (Xml.Caml ev)
-    let a_ononline ev = a_ononline (Xml.Caml ev)
-    let a_onpause ev = a_onpause (Xml.Caml ev)
-    let a_onplay ev = a_onplay (Xml.Caml ev)
-    let a_onplaying ev = a_onplaying (Xml.Caml ev)
-    let a_onpagehide ev = a_onpagehide (Xml.Caml ev)
-    let a_onpageshow ev = a_onpageshow (Xml.Caml ev)
-    let a_onpopstate ev = a_onpopstate (Xml.Caml ev)
-    let a_onprogress ev = a_onprogress (Xml.Caml ev)
-    let a_onratechange ev = a_onratechange (Xml.Caml ev)
-    let a_onreadystatechange ev = a_onreadystatechange (Xml.Caml ev)
-    let a_onredo ev = a_onredo (Xml.Caml ev)
-    let a_onresize ev = a_onresize (Xml.Caml ev)
-    let a_onscroll ev = a_onscroll (Xml.Caml ev)
-    let a_onseeked ev = a_onseeked (Xml.Caml ev)
-    let a_onseeking ev = a_onseeking (Xml.Caml ev)
-    let a_onselect ev = a_onselect (Xml.Caml ev)
-    let a_onshow ev = a_onshow (Xml.Caml ev)
-    let a_onstalled ev = a_onstalled (Xml.Caml ev)
-    let a_onstorage ev = a_onstorage (Xml.Caml ev)
-    let a_onsubmit ev = a_onsubmit (Xml.Caml ev)
-    let a_onsuspend ev = a_onsuspend (Xml.Caml ev)
-    let a_ontimeupdate ev = a_ontimeupdate (Xml.Caml ev)
-    let a_onundo ev = a_onundo (Xml.Caml ev)
-    let a_onunload ev = a_onunload (Xml.Caml ev)
-    let a_onvolumechange ev = a_onvolumechange (Xml.Caml ev)
-    let a_onwaiting ev = a_onwaiting (Xml.Caml ev)
-    let a_onkeypress (ev : Dom_html.keyboardEvent Xml.caml_event_handler) =
-      a_onkeypress (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onkeydown (ev : Dom_html.keyboardEvent Xml.caml_event_handler) =
-      a_onkeydown (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onkeyup (ev : Dom_html.keyboardEvent Xml.caml_event_handler) =
-      a_onkeyup (Xml.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onload ev = a_onload (Xml.Caml ev)
-    let a_onloadeddata ev = a_onloadeddata (Xml.Caml ev)
-    let a_onloadedmetadata ev = a_onloadedmetadata (Xml.Caml ev)
-    let a_onloadstart ev = a_onloadstart (Xml.Caml ev)
-    let a_onmessage ev = a_onmessage (Xml.Caml ev)
+    let a_onabort ev = a_onabort (X.Caml ev)
+    let a_onafterprint ev = a_onafterprint (X.Caml ev)
+    let a_onbeforeprint ev = a_onbeforeprint (X.Caml ev)
+    let a_onbeforeunload ev = a_onbeforeunload (X.Caml ev)
+    let a_onblur ev = a_onblur (X.Caml ev)
+    let a_oncanplay ev = a_oncanplay (X.Caml ev)
+    let a_oncanplaythrough ev = a_oncanplaythrough (X.Caml ev)
+    let a_onchange ev = a_onchange (X.Caml ev)
+    let a_onclick (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      a_onclick (X.Caml (Obj.magic ev)) (* Typed by the syntax extension. *)
+    let a_oncontextmenu (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      a_oncontextmenu (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_ondblclick (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      a_ondblclick (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_ondrag (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      a_ondrag (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_ondragend (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      a_ondragend (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_ondragenter (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      a_ondragenter (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_ondragleave (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      a_ondragleave (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_ondragover (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      a_ondragover (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_ondragstart (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      a_ondragstart (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_ondrop (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      a_ondrop (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_ondurationchange ev = a_ondurationchange (X.Caml ev)
+    let a_onemptied ev = a_onemptied (X.Caml ev)
+    let a_onended ev = a_onended (X.Caml ev)
+    let a_onerror ev = a_onerror (X.Caml ev)
+    let a_onfocus ev = a_onfocus (X.Caml ev)
+    let a_onformchange ev = a_onformchange (X.Caml ev)
+    let a_onforminput ev = a_onforminput (X.Caml ev)
+    let a_onhashchange ev = a_onhashchange (X.Caml ev)
+    let a_oninput ev = a_oninput (X.Caml ev)
+    let a_oninvalid ev = a_oninvalid (X.Caml ev)
+    let a_onmousedown (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      a_onmousedown (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_onmouseup (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      a_onmouseup (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_onmouseover (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      a_onmouseover (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_onmousemove (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      a_onmousemove (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_onmouseout (ev : Dom_html.mouseEvent X.caml_event_handler) =
+      a_onmouseout (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_onmousewheel ev = a_onmousewheel (X.Caml ev)
+    let a_onoffline ev = a_onoffline (X.Caml ev)
+    let a_ononline ev = a_ononline (X.Caml ev)
+    let a_onpause ev = a_onpause (X.Caml ev)
+    let a_onplay ev = a_onplay (X.Caml ev)
+    let a_onplaying ev = a_onplaying (X.Caml ev)
+    let a_onpagehide ev = a_onpagehide (X.Caml ev)
+    let a_onpageshow ev = a_onpageshow (X.Caml ev)
+    let a_onpopstate ev = a_onpopstate (X.Caml ev)
+    let a_onprogress ev = a_onprogress (X.Caml ev)
+    let a_onratechange ev = a_onratechange (X.Caml ev)
+    let a_onreadystatechange ev = a_onreadystatechange (X.Caml ev)
+    let a_onredo ev = a_onredo (X.Caml ev)
+    let a_onresize ev = a_onresize (X.Caml ev)
+    let a_onscroll ev = a_onscroll (X.Caml ev)
+    let a_onseeked ev = a_onseeked (X.Caml ev)
+    let a_onseeking ev = a_onseeking (X.Caml ev)
+    let a_onselect ev = a_onselect (X.Caml ev)
+    let a_onshow ev = a_onshow (X.Caml ev)
+    let a_onstalled ev = a_onstalled (X.Caml ev)
+    let a_onstorage ev = a_onstorage (X.Caml ev)
+    let a_onsubmit ev = a_onsubmit (X.Caml ev)
+    let a_onsuspend ev = a_onsuspend (X.Caml ev)
+    let a_ontimeupdate ev = a_ontimeupdate (X.Caml ev)
+    let a_onundo ev = a_onundo (X.Caml ev)
+    let a_onunload ev = a_onunload (X.Caml ev)
+    let a_onvolumechange ev = a_onvolumechange (X.Caml ev)
+    let a_onwaiting ev = a_onwaiting (X.Caml ev)
+    let a_onkeypress (ev : Dom_html.keyboardEvent X.caml_event_handler) =
+      a_onkeypress (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_onkeydown (ev : Dom_html.keyboardEvent X.caml_event_handler) =
+      a_onkeydown (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_onkeyup (ev : Dom_html.keyboardEvent X.caml_event_handler) =
+      a_onkeyup (X.Caml (Obj.magic ev)) (* Typed with the syntax extension *)
+    let a_onload ev = a_onload (X.Caml ev)
+    let a_onloadeddata ev = a_onloadeddata (X.Caml ev)
+    let a_onloadedmetadata ev = a_onloadedmetadata (X.Caml ev)
+    let a_onloadstart ev = a_onloadstart (X.Caml ev)
+    let a_onmessage ev = a_onmessage (X.Caml ev)
 
   end
 
@@ -625,7 +627,7 @@ module Xhtml = struct
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     let lazy_form ~action ?(a = []) elt elts =
-      tot (Xml.lazy_node ~a:(Xml.uri_attrib "action" action :: to_xmlattribs a) "form"
+      tot (X.lazy_node ~a:(Xml.uri_attrib "action" action :: to_xmlattribs a) "form"
 	     (Eliom_lazy.from_fun
 		(fun () ->
 		  toelt (Eliom_lazy.force elt)
@@ -641,7 +643,7 @@ module Xhtml = struct
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     let lazy_form ~action ?(a = []) elt elts =
-      tot (Xml.lazy_node ~a:(Xml.uri_attrib "action" action :: to_xmlattribs a) "form"
+      tot (X.lazy_node ~a:(Xml.uri_attrib "action" action :: to_xmlattribs a) "form"
 	     (Eliom_lazy.from_fun
 		(fun () ->
 		  toelt (Eliom_lazy.force elt)
@@ -657,7 +659,7 @@ module Xhtml = struct
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     let lazy_form ~action ?(a = []) elt elts =
-      tot (Xml.lazy_node ~a:(Xml.uri_attrib "action" action :: to_xmlattribs a) "form"
+      tot (X.lazy_node ~a:(Xml.uri_attrib "action" action :: to_xmlattribs a) "form"
 	     (Eliom_lazy.from_fun
 		(fun () ->
 		  toelt (Eliom_lazy.force elt)

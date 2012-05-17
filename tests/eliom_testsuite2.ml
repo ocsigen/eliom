@@ -984,6 +984,7 @@ let headers =
 
 (* form towards a suffix service with constants *)
 let create_form (n1, (_, n2)) =
+  let module Xhtml = Eliom_content.Xhtml.F in
     <:xhtmllist< <p>
       $string_input ~input_type:`Text ~name:n1 ()$
       $string_input ~input_type:`Text ~name:n2 ()$
@@ -1046,6 +1047,7 @@ let su4 =
                  p [pcdata "I am a suffix service with a constant part, registered after the generic suffix service, but I have a priority, so that you can see me!"]])))
 
 let create_suffixform_su2 s =
+  let module Xhtml = Eliom_content.Xhtml.F in
     <:xhtmllist< <p>Write a string:
       $string_input ~input_type:`Text ~name:s ()$ <br/>
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
@@ -1146,6 +1148,7 @@ let preappliedsuffix =
 (* URL with ? or / in data or paths *)
 
 let url_encoding =
+  let module Xhtml = Eliom_content.Xhtml.F in
   register_service
     ~path:["urlencoding&à/=é?ablah"]
     ~get_params:(suffix_prod (all_suffix "s//\\à") any)
@@ -1173,6 +1176,7 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
 let preappl2 = preapply uasuffix (1999,01)
 
 let mymenu current =
+  let module Xhtml = Eliom_content.Xhtml.F in
   Eliom_tools.Xhtml.menu ~classe:["menuprincipal"]
     (coucou, <:xhtmllist< coucou >>)
     [
@@ -1467,6 +1471,7 @@ let suffix3 =
                                   a^", "^(string_of_int b))]]])))
 
 let create_suffixform2 (suf1, (ii, ee)) =
+  let module Xhtml = Eliom_content.Xhtml.F in
     <:xhtmllist< <p>Write a string:
       $string_input ~input_type:`Text ~name:suf1 ()$ <br/>
       Write an int: $int_input ~input_type:`Text ~name:ii ()$ <br/>
@@ -1485,6 +1490,7 @@ let suffixform2 = register_service ["suffixform2"] unit
                  f ])))
 
 let create_suffixform3 ((suf1, (ii, ee)), (a, b)) =
+  let module Xhtml = Eliom_content.Xhtml.F in
     <:xhtmllist< <p>Write a string:
       $string_input ~input_type:`Text ~name:suf1 ()$ <br/>
       Write an int: $int_input ~input_type:`Text ~name:ii ()$ <br/>
@@ -1567,6 +1573,7 @@ let sendfile2 =
 *)
 
 let create_suffixform4 n =
+  let module Xhtml = Eliom_content.Xhtml.F in
     <:xhtmllist< <p>Write the name of the file:
       $string_input ~input_type:`Text ~name:n ()$
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
@@ -1586,6 +1593,7 @@ let any2 = register_service
     ~path:["any2"]
     ~get_params:(int "i" ** any)
   (fun (i,l) () ->
+  let module Xhtml = Eliom_content.Xhtml.F in
     let ll =
       List.map
         (fun (a,s) -> <:xhtml< <strong>($str:a$, $str:s$)</strong> >>) l
@@ -1608,6 +1616,7 @@ let any3 = register_service
     ~path:["any3"]
     ~get_params:(int "i" ** any ** string "s")
   (fun (i,(l,s)) () ->
+  let module Xhtml = Eliom_content.Xhtml.F in
     let ll =
       List.map
         (fun (a,s) -> <:xhtml< <strong>($str:a$, $str:s$)</strong> >>) l
@@ -1633,6 +1642,7 @@ let any4 = register_service
     ~path:["any4"]
     ~get_params:(suffix any)
   (fun l () ->
+  let module Xhtml = Eliom_content.Xhtml.F in
     let ll =
       List.map
         (fun (a,s) -> <:xhtml< <strong>($str:a$, $str:s$)</strong> >>) l
@@ -1653,6 +1663,7 @@ let any5 = register_service
     ~path:["any5"]
     ~get_params:(suffix_prod (string "s") any)
   (fun (s, l) () ->
+  let module Xhtml = Eliom_content.Xhtml.F in
     let ll =
       List.map
         (fun (a,s) -> <:xhtml< <strong>($str:a$, $str:s$)</strong> >>) l
@@ -1676,6 +1687,7 @@ let sufli = service
 
 let _ = register sufli
   (fun l () ->
+  let module Xhtml = Eliom_content.Xhtml.F in
     let ll =
       List.map
         (fun (s, i) -> <:xhtml< <strong> $str:(s^string_of_int i)$ </strong> >>) l
@@ -1755,6 +1767,7 @@ let sufliopt = service
 
 let _ = register sufliopt
   (fun l () ->
+  let module Xhtml = Eliom_content.Xhtml.F in
     let ll =
       List.map
         (function None -> pcdata "<none>"
@@ -1785,6 +1798,7 @@ let sufliopt2 = service
 
 let _ = register sufliopt2
   (fun l () ->
+  let module Xhtml = Eliom_content.Xhtml.F in
     let ll =
       List.map
         (function None -> pcdata "<none>"
@@ -1813,6 +1827,7 @@ let sufset = register_service
     ~path:["sufset"]
     ~get_params:(suffix (Eliom_parameters.set string "s"))
   (fun l () ->
+  let module Xhtml = Eliom_content.Xhtml.F in
     let ll =
       List.map
         (fun s -> <:xhtml< <strong>$str:s$</strong> >>) l
@@ -1908,6 +1923,7 @@ let any = register_post_service
     ~fallback:coucoucou
     ~post_params:any
   (fun () l ->
+  let module Xhtml = Eliom_content.Xhtml.F in
     let ll =
       List.map
         (fun (a,s) -> <:xhtml< <strong>($str:a$, $str:s$)</strong> >>) l
