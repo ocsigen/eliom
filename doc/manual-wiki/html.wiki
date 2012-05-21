@@ -3,12 +3,13 @@
 Ocsigen provides several ways to generate and type xhtml pages.
 
 * The default technique to produce HTML5 pages using Eliom is the
-   <<a_api | module Eliom_lib.HTML5.M >>
+   <<a_api | module Eliom_content.Html5.F >> and
+   <<a_api | module Eliom_content.Html5.D >>
    module. It is the only one supported for client side Eliom programs.
    This module provides a typing based on OCaml's polymorphic variants,
    which ensures at compile time, that the pages you will generate will
    respect the recommendations of the W3C (or be very close).
-   There also exists another module, <<a_api | module Eliom_lib.XHTML.M >>
+   There also exists another module, <<a_api | module Eliom_content.Xhtml.F >>
    that implements XHTML 1.1.
 * It is also possible to use a syntax extension to write your pages with the
    usual XHTML syntax. This solution is also typed with polymorphic variants
@@ -17,34 +18,37 @@ Ocsigen provides several ways to generate and type xhtml pages.
   To take benefit of it, use OCamlDuce instead of OCaml.
 * You can also choose to generate untyped html as text.
 
-===HTML5.M and XHTML.M===
+===Html5 and Xhtml===
 
 The types in OCaml closest to XML types are //polymorphic variants//.
 Ocsigen uses them to provide a module with very good HTML5 typing.
 The full documentation is available <<a_api text="in
-the TyXML documentation" project="tyxml" | module HTML5.M >>.
+the TyXML documentation" project="tyxml" | module Html5.M >>.
 <<wip|put it here (?!)>>
 
 ===XHTML syntax extension===
 
 <<wip|Compatibility with HTML5?>>
 
-Ocsigen also has a syntax extension for OCaml that allows you to writes pages
+Ocsigen also has a syntax extension for OCaml that allows you to write pages
 using HTML syntax (but you are free not to use it).
 This is convenient for example if
 you want to include (parts of) HTML pages that have been
 created by third party.
-This syntax extension uses the same polymorphic variants as
-HTML5.M, thus this solution can be mixed with the previous one.
+To choose actual XML-implementation you have to provide a module named [Html5]
+(or [Xhtml] or [Svg] respectively):
 
 For example, the following code:
 {{{
+
+module Xhtml = Xhtml.F (* NB this is TyXML's Xhtml *)
+
 << <html>
      <head><title></title></head>
      <body><h1>plop</h1></body>
    </html> >>
 }}}
-is a caml value of type {{{Xhtmltypes5.xhtml HTML5.M.elt}}}.
+is a caml value of type {{{Xhtmltypes5.xhtml Xhtml.M.elt}}}.
 
 To compile a module containing this syntax, you need the camlp4 preprocessor:
 {{{
@@ -93,14 +97,15 @@ The syntax extension is not allowed in patterns for now.
  regarding HTML5 standard (because <<span class="code"|<head>>>
  must contain a title):
 
-<<code language="ocaml"|<< <html>
+<<code language="ocaml"|
+  << <html>
      <head></head>
      <body><h1>plop</h1></body>
    </html> ~>>
 >>
 
 We recommend you use the functions from <<a_api project="tyxml"
-| module HTML5.M>>, as you will (almost) always get valid HTML 5. Use
+| module Html5.F>>, as you will (almost) always get valid HTML5. Use
 the syntax extension for example to enclose already created pieces of
 HTML, and check your pages validity with the
 [[http://validator.w3.org/| W3C validator]].
@@ -129,7 +134,7 @@ and more flexibility (easier to use other XML types, to parse
 incoming XML data, etc.).
 
 However, Ocamlduce is not compatible with Camlp4 syntax extensions
-and client server Eliom applications support only HTML5.M (for now).
+and client server Eliom applications support only HTML5 (for now).
 
 
 To use it, make sure that you have Eliom compiled with OCamlDuce

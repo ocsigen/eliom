@@ -58,7 +58,7 @@ to designate a value of type {{{service}}}.
 
 Value of type {{{service}}} may be used to create links and forms
 towards a service, using for example the function <<a_api | val
-Eliom_output.Html5.a >>. See chapter <<a_manual
+Eliom_content.Html5.D.a >>. See chapter <<a_manual
 chapter="links"|Creating links and forms>> for more information.
 
 <<paragraph| Unegistrable service >>
@@ -369,9 +369,9 @@ Then wherever you want to add a button to do that action (on data
 
 Eliom_output.Html5.post_form remove_action
   (fun id_name ->
-     Eliom_output.Html5.int_input
+     Html5.D.int_input
        ~input_type:`Hidden ~name:id_name ~value:id ();
-     Eliom_output.Html5.string_input
+     Html5.D.string_input
        ~input_type:`Submit ~value:("remove "^string_of_int id) ())
 
 >>
@@ -418,7 +418,7 @@ page:
 
 <<code language="ocaml"|
 
-Eliom_output.Html5.a
+Eliom_content.Html5.D.a
   (Eliom_service.external_service
      ~prefix:"http://en.wikipedia.org"
      ~path:["wiki";""]

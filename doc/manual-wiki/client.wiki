@@ -57,7 +57,7 @@ does everything for you (separating client and server parts, calling
 
 Services belonging to the application are registered using the module
 {{{Eliom_output.Eliom_appl}}}. More precisely, this is a functor that
-needs to be applyed for each application you create.
+needs to be applied for each application you create.
 These services just return HTML5 pages as usual (using {{{Tyxml.Html5}}} --
 not possible with OcamlDuce or any other HTML module).
 The client side program (compiled in JS) is added automatically by Eliom,
@@ -115,12 +115,12 @@ p ~a:[a_onclick {{ Dom_html.window##alert(Js.string "clicked!") }}]
 
 Those client-side code block are classical OCaml values ; their type
 is <<a_api project="eliom" | type
-Eliom_lib.XML.caml_event_handler >>. Inside those code-block,
+Eliom_content.Xml.caml_event_handler >>. Inside those code-block,
 an implicit {{{_ev}}} variable represent the javascript <<a_api
 project="js_of_ocaml" text="event object" | type Dom_html.event >>.
 On client side, this specific syntax is not required: function like
 <<a_api subproject="client" text="a_onclick"|
-val Eliom_lib.HTML5.a_onclick >> expect a function of type
+val Eliom_content.Html5.a_onclick >> expect a function of type
 {{{#Dom_html.event -> unit}}} as parameter.
 
 ====@@id="syntax%"@@ Using server side values on client side
@@ -299,7 +299,7 @@ converted to the DOM representation using the module << a_api
 subproject="client" | module Eliom_client.Html5 >>:
 
 <<code language="ocaml"|
-open HTML5
+open Eliom_content.Html5.D
 let n = div ~a:[a_id "some div id"]
   [ pcdata "some text";
     br ();
@@ -335,11 +335,11 @@ value and by reference>>.
        Eliom. >>
 
 When defining a service that returns an HTML5 page with Eliom we
-usually use the module {{{HTML5.M}}}. When programming client/server
+usually use the module {{{Eliom_content.Html5.F}}}. When programming client/server
 application with Eliom, we usualy prefer to use the module
-{{{HTML5.D}}} or its shorter alias {{{HTML5}}}. This is because
-elements build with {{{HTML5.D}}} are sent to the client by
-reference while elements build with {{{HTML5.M}}} are sent by value.
+{{{Eliom_content.Html5.D}}}. This is because
+elements build with {{{Eliom_content.Html5.D}}} are sent to the client by
+reference while elements build with {{{Eliom_content.Html5.F}}} are sent by value.
 
 Sending elements by reference allows to easily manipulate elements
 included in the initial html document from event handlers, as the
@@ -349,7 +349,7 @@ included in the initial html document from event handlers, as the
 let main_service =
   My_appl.register_service ~path:[""] ~get_params:Eliom_parameter.unit
     (fun () () ->
-       let open HTML5.D in
+       let open Eliom_content.Html5.D in
        let input = input ~a:[a_input_type `Text] () in
        let onclick_handler =
 	 {{ let v =
@@ -393,15 +393,15 @@ addEventlistener, ...) directly on HTML5 elements that follow the DOM
 semantics.
 
 By default, a reference on an element is only valid in the current
-HTTP request: hence, sending an element build with {{{HTML5.D}}} in
+HTTP request: hence, sending an element build with {{{Eliom_content.Html5.D}}} in
 two different page will produce two distinct nodes. If you want to
 define a element reference that is preserved accross the different
 page of an application, you must explicitely name this element with
 the function <<a_api subproject="server" | val
-Eliom_lib.HTML5.create_named_elt >>, that take as parameters an
+Eliom_content.Html5.Id.create_named_elt >>, that take as parameters an
 element identifier and a non named element.  Element identifiers are
 created with the function <<a_api subproject="server" | val
-Eliom_lib.HTML5.new_elt_id >>. See also section <<a_manual
+Eliom_content.Html5.Id.new_elt_id >>. See also section <<a_manual
 chapter="client" fragment="global" |Global elements of an
 application>>.
 
@@ -421,8 +421,8 @@ elements are instantied only once for an application and that unique
 instance is used in every page that references the element.
 
 You could create a global element with the function <<a_api
-subproject="client" text="HTML5.create_global_elt"| val
-Eliom_lib.HTML5.create_global_elt >>.
+subproject="client" text="Eliom_content.Html5.Id.create_global_elt"| val
+Eliom_content.Html5.Id.create_global_elt >>.
 
 <<code language="ocaml"|
 val create_global_elt: 'a elt -> 'a elt
@@ -433,7 +433,7 @@ preserved when you click on the "reload page" link.
 
 <<code language="ocaml"|
 {shared{
-open HTML5
+open Eliom_content.Html5.D
 }}
 
 let global_list = create_global_elt (ul [])
@@ -475,7 +475,7 @@ is displayed only once, while the alert "non global script" is display
 every time you click on the "reload page" link.
 
 <<code language="ocaml"|
-open HTML5
+open Eliom_content.Html5.D
 
 let global_script =
   create_global_elt

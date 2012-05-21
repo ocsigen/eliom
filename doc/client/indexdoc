@@ -2,27 +2,21 @@
 
 {!modules:
 Eliom_lib
-}
-
-{2 HTML}
-
-{!modules:
-Eliom_lib.HTML5
-Eliom_output.Html5
-Eliom_dom
-}
-
-{2 Services creation and manipulation}
-
-{!modules:
-Eliom_service
 Eliom_client
-Eliom_client.Html5
+}
+
+{2 Content}
+
+{!modules:
+Eliom_content.Html5
+Eliom_content.Svg
+Eliom_content.Xml
 }
 
 {2 Client/server communication}
 
 {!modules:
+Eliom_service
 Eliom_bus
 Eliom_comet
 }

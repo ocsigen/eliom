@@ -15,6 +15,12 @@ They are registered using <<a_api project="eliom" | module Eliom_output.Caml >>
 and can be called using
 <<a_api project="eliom" subproject="client" | val Eliom_client.call_caml_service >>.
 
+
+First of all we give us easy construction of content (i.e. {{Html5.D}} here):
+<<code language="ocaml"|
+open Eliom_content
+>>
+
 For instance:
 <<code language="ocaml"|
 let pi_service =
@@ -39,9 +45,9 @@ let _ =
 				       ("pi = "^(string_of_float pi)))))
 	}};
       Lwt.return
-        (HTML5.html
-           (HTML5.head (HTML5.title (HTML5.pcdata "pi")) [])
-           (HTML5.body [])))
+        Html5.D.(html
+                  (head (title (pcdata "pi")) [])
+                  (body [])))
 >>
 
 Since client and server side value representation are not the same, it
@@ -74,6 +80,8 @@ type declarations.
 
 this type can now be used as a parameter for a service
 
+open Eliom_content
+
 <<code language="ocaml"|
 let s =
   My_appl.register_service
@@ -81,13 +89,13 @@ let s =
     ~get_params:(caml "param" Json.t<another_type>)
     (fun () v ->
       Lwt.return
-        (HTML5.html
-           (HTML5.head (HTML5.title (HTML5.pcdata "title")))
-           (HTML5.body [
-	     match v with
-	       | A _ -> pcdata "A"
-	       | B _ -> pcdata "B"
-	   ])))
+        Html5.D.(html
+                  (head (title (pcdata "title")))
+                  (body [
+                    match v with
+                      | A _ -> pcdata "A"
+                      | B _ -> pcdata "B"
+                  ])))
 
 let _ =
   My_appl.register_service
@@ -95,13 +103,13 @@ let _ =
     ~get_params:unit
     (fun () () ->
       Lwt.return
-        (HTML5.html
-           (HTML5.head (HTML5.title (HTML5.pcdata "title")))
-           (HTML5.body [
-	     [p ~a:[a_onclick
-               {{ ignore (Eliom_client.change_page ~service:%s (A (1,["s"])) ()) }}]
-               [pcdata "Click to send Ocaml data"]
-           ]])))
+        Html5.D.(html
+                  (head (title (pcdata "title")))
+                  (body [
+                    [p ~a:[a_onclick
+                      {{ ignore (Eliom_client.change_page ~service:%s (A (1,["s"])) ()) }}]
+                      [pcdata "Click to send Ocaml data"]
+                  ]])))
 >>
 
 For more information see deriving documentation.

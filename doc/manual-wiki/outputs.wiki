@@ -53,10 +53,10 @@ The main predefined output modules are:
 ;<<a_api| module Eliom_output.Html5 >> (and <<a_api| module Eliom_output.Xhtml >>)
 : Allows to register functions that generate html5 pages statically checked
 using polymorphic variant types. You may use constructor functions from <<a_api
-| module Eliom_lib.HTML5.M >> (resp <<a_api | module Eliom_lib.XHTML.M >>) or a syntax extension close to the standard html syntax.
+| module Eliom_content.Html5.D >> (resp <<a_api | module Eliom_content.Xhtml.D >>) or a syntax extension close to the standard html syntax.
 ;<<a_api| module Eliom_output.Flow5 >> (and <<a_api| module Eliom_output.Block >>)
 : Allows to register functions that generate a portion of page using <<a_api |
-module Eliom_lib.HTML5.M >> (resp <<a_api | module Eliom_lib.XHTML.M >>) or the syntax extension. (useful for <<span class="code"|XMLHttpRequest>> requests for example). Do not use with Eliom application: use <<a_api| module Eliom_output.Caml >> instead.
+module Eliom_content.Html5.F >> (resp <<a_api | module Eliom_content.Xhtml.F >>) or the syntax extension. (useful for <<span class="code"|XMLHttpRequest>> requests for example). Do not use with Eliom application: use <<a_api| module Eliom_output.Caml >> instead.
 ;<<a_api| module Eliom_duce.Xhtml >>
 : Allows to register functions that generate XHTML 1.1 pages   statically checked using <<span class="code"|OCamlduce>>. Typing is   stricter, and you need a modified version of the OCaml compiler   (OCamlduce).
 ;<<a_api| module Eliom_output.HtmlText >>
@@ -138,7 +138,7 @@ handle static files.
 ====Sending portions of pages
 
 
- The <<a_api| module Eliom_output.Flow5 >> and <<a_api| module Eliom_output.Block >> modules allow you to register services that send portions of pages, of any "block" type for HTML5.M (resp. XHTML.M).
+ The <<a_api| module Eliom_output.Flow5 >> and <<a_api| module Eliom_output.Block >> modules allow you to register services that send portions of pages, of any "block" type for Html5.F (resp. XHTML.F).
  It is sometimes useful to create AJAX pages
  (i.e. pages using the <<span class="code"|XMLHttpRequest>> Javascript object).
  Note that the service returns a list of blocks. For sending HTML
@@ -162,7 +162,7 @@ handle static files.
  other types.  For example, <<a_api| module Eliom_output.Flow5 >> is
  defined by:
 
-<<code language="ocaml"|module Flow5 = Make_TypedXML_Registration(XML)(HTML5.M)(struct
+<<code language="ocaml"|module Flow5 = Make_TypedXML_Registration(XML)(HTML5.F)(struct
   type content = HTML5_types.body_content
 end)
 >>
@@ -486,7 +486,7 @@ Below is an example of a page written in a non-cooperative way, that
 has the effect of stopping the entire server for 5 seconds. No one
 will be able to query the server during this period:
 
-<<code class="donotrun" language="ocaml" |open HTML5.M
+<<code class="donotrun" language="ocaml" |open Eliom_content
 let looong =
   Eliom_output.Html5.register_service
     ~path:["looong"]
@@ -494,16 +494,16 @@ let looong =
     (fun () () ->
        Unix.sleep 5;
        Lwt.return
-         (html
-           (head (title (pcdata "")) [])
-           (body [h1 [pcdata "Ok now, you can read the page."]])))
+         Html5.D.(html
+                    (head (title (pcdata "")) [])
+                    (body [h1 [pcdata "Ok now, you can read the page."]])))
 >>
 
 
 To solve this problem, use a cooperative version of {{{Unix.sleep}}}:
 <<a_api project="lwt" | val Lwt_unix.sleep>>:
 
-<<code language="ocaml"|open HTML5.M
+<<code language="ocaml"|open Eliom_content
 let looong =
   Eliom_output.Html5.register_service
     ~path:["looong"]
@@ -511,9 +511,9 @@ let looong =
     (fun () () ->
        Lwt_unix.sleep 5.0 ~>>= fun () ->
        Lwt.return
-         (html
-           (head (title (pcdata "")) [])
-           (body [h1 [pcdata "Ok now, you can read the page."]])))
+         Html5.D.(html
+                   (head (title (pcdata "")) [])
+                   (body [h1 [pcdata "Ok now, you can read the page."]])))
 >>
 
 If you want to use, say, a database library that is not written
