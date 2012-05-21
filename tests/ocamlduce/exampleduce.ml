@@ -112,7 +112,7 @@ let _ =
 
 
 let blocks =
-  Eliom_duce.Blocks.register_service
+  Eliom_duce.Block.register_service
     ~path:["blocks"]
     ~get_params:unit
     (fun () () ->

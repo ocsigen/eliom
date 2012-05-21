@@ -4,8 +4,14 @@ module Eliom_pervasives = struct
   module XML = Eliom_content_core.Xml
   module SVG = Eliom_content_core.Svg
   module HTML5 = struct
-    module M = Eliom_content_core.Html5.F
-    module DOM = Eliom_content_core.Html5.D
+    module M = struct
+      include Eliom_content.Html5.F
+      let a = Raw.a
+    end
+    module DOM = struct
+      include Eliom_content.Html5.D
+      let a = Raw.a
+    end
     include Eliom_content.Html5.Id
     include DOM
   end

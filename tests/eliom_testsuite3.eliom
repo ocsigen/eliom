@@ -1088,7 +1088,7 @@ let comet_message_board_maker name message_bus cb =
        cb ();
        Lwt.return (
          let container = HTML5.DOM.ul [li [em [pcdata "This is the message board"]]] in
-         let field = input ~a:[a_id "msg"; a_name "message"] ~input_type:`Text () in
+         let field = HTML5.DOM.raw_input ~a:[a_id "msg"; a_name "message"] ~input_type:`Text () in
          Eliom_service.onload
            {{
              let c = Eliom_comet.Configuration.new_configuration () in
@@ -3218,7 +3218,7 @@ let _ =
   let r,push = React.S.create 0
 
   let react_node node r =
-    let init = React.S.value r in
+    let _init = React.S.value r in
     let node_dom = Eliom_client.Html5.of_element node in
     let s = React.S.map (fun sons ->
       List.iter (fun n -> ignore (node_dom##removeChild((n:> Dom.node Js.t))))

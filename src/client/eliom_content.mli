@@ -173,7 +173,7 @@ end
 (** Building Html5 tree. *)
 module Html5 : sig
 
-  (** See the Eliom manual for more information on{% <<a_manual
+  (** See the Eliom manual for more information on {% <<a_manual
       chapter="client" fragment="unique"| dom semantics vs. functional
       semantics>> %} for SVG tree manipulated by client/server
       application. *)
@@ -189,26 +189,24 @@ module Html5 : sig
       Html5_sigs.T >> %}. *)
   module F : sig
 
-    (** See {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
-    include Html5_sigs.T with type Xml.uri = Xml.uri
-                         and type Xml.event_handler = Xml.event_handler
-                         and type Xml.attrib = Xml.attrib
-                         and type Xml.elt = Xml.elt
-                         with type 'a elt = 'a elt
-		         and type 'a attrib = 'a attrib
-		         and type uri = uri
-                         with module Svg := Svg.F
+    module Raw : Html5_sigs.T
+                   with type Xml.uri = Xml.uri
+                   and type Xml.event_handler = Xml.event_handler
+                   and type Xml.attrib = Xml.attrib
+                   and type Xml.elt = Xml.elt
+                   with type 'a elt = 'a elt
+		   and type 'a attrib = 'a attrib
+		   and type uri = uri
+                   with module Svg := Svg.F
 
+    (** See {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+    include module type of Raw (*BB TODO Hide untyped [input]. *)
 
     (** {2 Event handlers} *)
 
     (** Redefine event handler attributes to simplify their usage. *)
     include "sigs/eliom_html5_event_handler.mli"
     include "sigs/eliom_html5_forms.mli"
-
-    (**/**)
-    include "sigs/eliom_html5_event_handler_raw.mli"
-    (**/**)
 
     (**/**)
     type ('a, 'b, 'c) lazy_plus =
@@ -226,22 +224,20 @@ module Html5 : sig
       {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
   module D: sig
 
-    include Html5_sigs.T with type Xml.uri = Xml.uri
-                         and type Xml.event_handler = Xml.event_handler
-                         and type Xml.attrib = Xml.attrib
-                         and type Xml.elt = Xml.elt
-		         and module Svg := Svg.D
-		         and type 'a elt = 'a elt
-		         and type 'a attrib = 'a attrib
-		         and type uri = uri
+    module Raw : Html5_sigs.T
+                   with type Xml.uri = Xml.uri
+                   and type Xml.event_handler = Xml.event_handler
+                   and type Xml.attrib = Xml.attrib
+                   and type Xml.elt = Xml.elt
+		   and module Svg := Svg.D
+		   and type 'a elt = 'a elt
+		   and type 'a attrib = 'a attrib
+		   and type uri = uri
+    include module type of Raw (*BB TODO Hide untyped [input]. *)
 
     (** Redefine event handler attributes to simplify their usage. *)
     include "sigs/eliom_html5_event_handler.mli"
     include "sigs/eliom_html5_forms.mli"
-
-    (**/**)
-    include "sigs/eliom_html5_event_handler_raw.mli"
-    (**/**)
 
     (**/**)
     type ('a, 'b, 'c) lazy_plus =

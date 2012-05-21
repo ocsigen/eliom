@@ -919,7 +919,7 @@ end = struct
       let a =
         if xhr then
           let info = make_info ~https `A service in
-          Html5.D.raw_a_onclick (Xml.event_handler_of_service info) :: a
+          Html5.D.Raw.a_onclick (Xml.event_handler_of_service info) :: a
         else
           a
       in
@@ -935,7 +935,7 @@ end = struct
       let a =
         if get_xhr xhr then
           let info = make_info ~https `Form_get service in
-          Html5.D.raw_a_onsubmit (Xml.event_handler_of_service info) :: a
+          Html5.D.Raw.a_onsubmit (Xml.event_handler_of_service info) :: a
         else
           a
       in
@@ -950,7 +950,7 @@ end = struct
       let a =
         if get_xhr xhr then
           let info = make_info ~https `Form_get service in
-          Html5.D.raw_a_onsubmit (Xml.event_handler_of_service info) :: a
+          Html5.D.Raw.a_onsubmit (Xml.event_handler_of_service info) :: a
         else
           a
       in
@@ -966,7 +966,7 @@ end = struct
       let a =
         if get_xhr xhr then
           let info = make_info ~https `Form_post service in
-          Html5.D.raw_a_onsubmit (Xml.event_handler_of_service info) :: a
+          Html5.D.Raw.a_onsubmit (Xml.event_handler_of_service info) :: a
         else
           a
       in
@@ -982,7 +982,7 @@ end = struct
       let a =
         if get_xhr xhr then
           let info = make_info ~https `Form_post service in
-          Html5.D.raw_a_onsubmit (Xml.event_handler_of_service info) :: a
+          Html5.D.Raw.a_onsubmit (Xml.event_handler_of_service info) :: a
         else
           a
       in

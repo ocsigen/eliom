@@ -169,18 +169,16 @@ module Html5 : sig
   module F : sig
 
     (** See {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
-    include Html5_sigs.T with type Xml.uri = Xml.uri
-                         and type Xml.event_handler = Xml.event_handler
-                         and type Xml.attrib = Xml.attrib
-                         and type Xml.elt = Xml.elt
-                         with type 'a elt = 'a elt
-		         and type 'a attrib = 'a attrib
-		         and type uri = uri
-                         with module Svg := Svg.F
-
-    val raw_a : ([< Html5_types.a_attrib ], 'a, [> `A of 'a ]) star
-    val raw_input : ([< Html5_types.input_attrib ], [> Html5_types.input ]) nullary
-    (*BB TODO Hide untyped [input]. *)
+    module Raw : Html5_sigs.T
+                   with type Xml.uri = Xml.uri
+                   and type Xml.event_handler = Xml.event_handler
+                   and type Xml.attrib = Xml.attrib
+                   and type Xml.elt = Xml.elt
+                   with type 'a elt = 'a elt
+		   and type 'a attrib = 'a attrib
+		   and type uri = uri
+                   with module Svg := Svg.F
+    include module type of Raw (*BB TODO Hide untyped [input]. *)
 
     (** {2 Event handlers} *)
 
@@ -189,7 +187,7 @@ module Html5 : sig
     include "sigs/eliom_html5_forms.mli"
 
     (**/**)
-    include "sigs/eliom_html5_event_handler_raw.mli"
+(*     include "sigs/eliom_html5_event_handler_raw.mli" *)
     (**/**)
 
     (**/**)
@@ -209,18 +207,16 @@ module Html5 : sig
   module D : sig
 
     (** See {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
-    include Html5_sigs.T with type Xml.uri = Xml.uri
-                         and type Xml.event_handler = Xml.event_handler
-                         and type Xml.attrib = Xml.attrib
-                         and type Xml.elt = Xml.elt
-                         with type 'a elt = 'a elt
-		         and type 'a attrib = 'a attrib
-		         and type uri = uri
-                         with module Svg := Svg.D
-
-    val raw_a : ([< Html5_types.a_attrib ], 'a, [> `A of 'a ]) star
-    val raw_input : ([< Html5_types.input_attrib ], [> Html5_types.input ]) nullary
-    (*BB TODO Hide untyped [input]. *)
+    module Raw : Html5_sigs.T
+                   with type Xml.uri = Xml.uri
+                   and type Xml.event_handler = Xml.event_handler
+                   and type Xml.attrib = Xml.attrib
+                   and type Xml.elt = Xml.elt
+                   with type 'a elt = 'a elt
+		   and type 'a attrib = 'a attrib
+		   and type uri = uri
+                   with module Svg := Svg.D
+    include module type of Raw (*BB TODO Hide untyped [input]. *)
 
     (** {2 Event handlers} *)
 
@@ -229,7 +225,7 @@ module Html5 : sig
     include "sigs/eliom_html5_forms.mli"
 
     (**/**)
-    include "sigs/eliom_html5_event_handler_raw.mli"
+(*     include "sigs/eliom_html5_event_handler_raw.mli" *)
     (**/**)
 
     (**/**)
@@ -282,17 +278,15 @@ module Xhtml : sig
   (** Typed interface for building valid XHTML (Strict) tree. *)
   module F : sig
 
-    include Xhtml_sigs.T with type Xml.uri = Xml.uri
-                         and type Xml.event_handler = Xml.event_handler
-                         and type Xml.attrib = Xml.attrib
-                         and type Xml.elt = Xml.elt
-                         with type +'a elt = 'a Xhtml.F.elt
-                         and type 'a attrib = 'a Xhtml.F.attrib
-                         and type uri = Xhtml.F.uri
-
-    val raw_a : ([< Xhtml_types.a_attrib ], [< Xhtml_types.a_content ], [> Xhtml_types.a ]) star
-    val raw_input : ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ]) nullary
-    (*BB TODO Hide untyped [input]. *)
+    module Raw : Xhtml_sigs.T
+                   with type Xml.uri = Xml.uri
+                   and type Xml.event_handler = Xml.event_handler
+                   and type Xml.attrib = Xml.attrib
+                   and type Xml.elt = Xml.elt
+                   with type +'a elt = 'a Xhtml.F.elt
+                   and type 'a attrib = 'a Xhtml.F.attrib
+                   and type uri = Xhtml.F.uri
+    include module type of Raw (*BB TODO Hide untyped [input]. *)
 
     include "sigs/eliom_xhtml_forms.mli"
 
@@ -316,17 +310,15 @@ module Xhtml : sig
  *)
 
     (** See {% <<a_api project="tyxml" | module type Xhtml_sigs.T >> %}. *)
-    include Xhtml_sigs.T with type Xml.uri = Xml.uri
-                         and type Xml.event_handler = Xml.event_handler
-                         and type Xml.attrib = Xml.attrib
-                         and type Xml.elt = Xml.elt
-                         with type +'a elt = 'a Xhtml.F_01_00.elt
-                         and type 'a attrib = 'a Xhtml.F_01_00.attrib
-                         and type uri = Xhtml.F_01_00.uri
-
-    val raw_a : ([< Xhtml_types.a_attrib ], [< Xhtml_types.a_content ], [> Xhtml_types.a ]) star
-    val raw_input : ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ]) nullary
-    (*BB TODO Hide untyped [input]. *)
+    module Raw : Xhtml_sigs.T
+                   with type Xml.uri = Xml.uri
+                   and type Xml.event_handler = Xml.event_handler
+                   and type Xml.attrib = Xml.attrib
+                   and type Xml.elt = Xml.elt
+                   with type +'a elt = 'a Xhtml.F_01_00.elt
+                   and type 'a attrib = 'a Xhtml.F_01_00.attrib
+                   and type uri = Xhtml.F_01_00.uri
+    include module type of Raw (*BB TODO Hide untyped link functions. *)
 
     include "sigs/eliom_xhtml_forms.mli"
 
@@ -345,17 +337,15 @@ module Xhtml : sig
   module F_01_01 : sig
 
     (** See {% <<a_api project="tyxml" | module type Xhtml_sigs.T >> %}. *)
-    include Xhtml_sigs.T with type Xml.uri = Xml.uri
-                         and type Xml.event_handler = Xml.event_handler
-                         and type Xml.attrib = Xml.attrib
-                         and type Xml.elt = Xml.elt
-                         with type +'a elt = 'a Xhtml.F_01_01.elt
-                         and type 'a attrib = 'a Xhtml.F_01_01.attrib
-                         and type uri = Xhtml.F_01_01.uri
-
-    val raw_a : ([< Xhtml_types.a_attrib ], [< Xhtml_types.a_content ], [> Xhtml_types.a ]) star
-    val raw_input : ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ]) nullary
-    (*BB TODO Hide untyped [input]. *)
+    module Raw : Xhtml_sigs.T
+                   with type Xml.uri = Xml.uri
+                   and type Xml.event_handler = Xml.event_handler
+                   and type Xml.attrib = Xml.attrib
+                   and type Xml.elt = Xml.elt
+                   with type +'a elt = 'a Xhtml.F_01_01.elt
+                   and type 'a attrib = 'a Xhtml.F_01_01.attrib
+                   and type uri = Xhtml.F_01_01.uri
+    include module type of Raw  (*BB TODO Hide untyped link functions. *)
 
     include "sigs/eliom_xhtml_forms.mli"
 

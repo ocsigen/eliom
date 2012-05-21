@@ -8,13 +8,11 @@ module Eliom_pervasives = struct
   module HTML5 = struct
     module M = struct
       include Eliom_content.Html5.F
-      let a = raw_a
-      let input = raw_input
+      let a = Raw.a
     end
     module DOM = struct
       include Eliom_content.Html5.D
-      let a = raw_a
-      let input = raw_input
+      let a = Raw.a
     end
     include Eliom_content.Html5.Id
     include DOM

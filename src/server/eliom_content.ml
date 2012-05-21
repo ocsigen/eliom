@@ -25,15 +25,11 @@ module Html5 = struct
 
   module F = struct
     include Html5.F
-    let raw_a = a
-    let raw_input = input
     include Eliom_output_base.Html5_forms.F
   end
 
   module D = struct
     include Html5.D
-    let raw_a = a
-    let raw_input = input
     include Eliom_output_base.Html5_forms.D
   end
 
@@ -909,20 +905,14 @@ module Xhtml = struct
 
   module F = struct
     include Xhtml.F
-    let raw_a = a
-    let raw_input = input
     include Xhtml_forms.F
   end
   module F_01_00 = struct
     include Xhtml.F_01_00
-    let raw_a = a
-    let raw_input = input
     include Xhtml_forms.F
   end
   module F_01_01 = struct
     include Xhtml.F_01_01
-    let raw_a = a
-    let raw_input = input
     include Xhtml_forms.F
   end
   module Printer = Xhtml.Printer
