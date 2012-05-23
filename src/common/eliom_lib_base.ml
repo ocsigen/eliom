@@ -3,6 +3,13 @@ open Ocsigen_lib_base
 
 exception Eliom_Internal_Error of string
 
+module Lwt_ops = struct
+  let (>>=) = Lwt.(>>=)
+  let (=<<) = Lwt.(=<<)
+  let (>|=) = Lwt.(>|=)
+  let (=|<) = Lwt.(=|<)
+end
+
 (**/**)
 
 type 'a client_expr = int64 * poly
