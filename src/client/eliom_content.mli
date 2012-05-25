@@ -499,8 +499,8 @@ module Html5 : sig
     end
   end
 
-  (** Conversion functions from DOM nodes ({% <<a_api project="js_of_ocaml"| type Dom_html.element>>%} {%<<a_api
-      project="js_of_ocaml"| type Js.t>>%}) to Eliom nodes ({% <<a_api | type Eliom_content.Html5.elt>> %}). *)
+  (** Conversion functions from DOM nodes ({% <<a_api project="js_of_ocaml"| type Dom_html.element>> %} {% <<a_api
+      project="js_of_ocaml"| type Js.t>> %}) to Eliom nodes ({% <<a_api | type Eliom_content.Html5.elt>> %}). *)
   module Of_dom : module type of Eliom_content_core.Html5.Of_dom
 
 end

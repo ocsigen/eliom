@@ -18,8 +18,30 @@
  *)
 
 (** This module provides the creation of valid XML content, i.e. XML, XHTML, SVG,
-    and (X)HTML5. *)
+    and (X)HTML5.
 
+    Modules {Eliom_content.Html5}, {Eliom_content.Svg} contain two implementing
+    sub-modules: [D] and [F].
+
+    {5 Functional semantics}
+
+    The [F] modules provide functions to create elements with {e f}unctional
+    semantics: On the one hand side, those values do not have an identity,
+    which means utilizations of those values are independent of each other.
+    On the other hand side, they cannot be referred to, neither by client code
+    when created on the server, nor for usage in the functions of
+    {Eliom_content.Html5.To_dom} and {Eliom_content.Html5.Manip}.
+
+    {5 DOM semantics}
+
+    The [D] modules provide functions to create elements with {e D}OM semantics:
+    Firstly, they behave like DOM nodes, e.g. they can only be added once to the
+    DOM tree even when appended several times.
+    Secondly, those values have an identity, which means they can be referred to
+    on the client side (by [%variable]) or used with the functions
+    {Eliom_content.Html5.To_dom} and {Eliom_content.Html5.Manip}. On the other
+    hand side.
+  *)
 
 (** Abstract signature for links and forms creation functions. For
     concrete instance see {!Html5}, {!Xhtml} or {!Html_text}. *)
@@ -52,6 +74,7 @@ module Html5 : sig
   type +'a attrib = 'a Eliom_content_core.Html5.attrib
   type uri = Eliom_content_core.Html5.uri
 
+  (** Creation of {e f}unctional HTML5 content (copy-able but not referable). *)
   module F : sig
     (** {2 Content creation.} *)
     include module type of Eliom_content_core.Html5.F
@@ -65,6 +88,7 @@ module Html5 : sig
     include "sigs/eliom_html5_forms.mli"
   end
 
+  (** Creation of HTML5 content with {e D}OM semantics (referable) *)
   module D : sig
     (** {2 Content creation.} *)
     include module type of Eliom_content_core.Html5.D
@@ -86,6 +110,8 @@ end
 
 (** Building valid XHTML. *)
 module Xhtml : sig
+
+  (** Creation of {e f}unctional HTML5 content (copy-able but not referable). *)
   module F : sig
     (** {2 Content creation.} *)
     include module type of Eliom_content_core.Xhtml.F
