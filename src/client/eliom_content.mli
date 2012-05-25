@@ -20,20 +20,27 @@
 
 open Eliom_lib
 
+(** This module provides the creation of valid XML content, i.e. XML, XHTML, SVG,
+    and (X)HTML5. *)
+
+(* TODO more on difference between D/F *)
+
+(** Low-level XML manipulation. *)
 module Xml : module type of Eliom_content_core.Xml
     with type uri = Eliom_content_core.Xml.uri
     and type attrib = Eliom_content_core.Xml.attrib
     and type elt = Eliom_content_core.Xml.elt
 
+(** Building valid SVG . *)
 module Svg : module type of Eliom_content_core.Svg
     with type +'a elt = 'a Eliom_content_core.Svg.elt
     and type uri = Eliom_content_core.Svg.uri
     and type 'a attrib = 'a Eliom_content_core.Svg.attrib
 
-(** Building and printing valid (X)HTML5 tree. *)
+(** Building valid (X)HTML5. *)
 module Html5 : sig
 
-  (** See the Eliom manual for more information on{% <<a_manual
+  (** See the Eliom manual for more information on {% <<a_manual
       chapter="client" fragment="unique"| dom semantics vs. functional
       semantics>> %} for HTML5 tree manipulated by client/server
       application. *)
@@ -42,7 +49,9 @@ module Html5 : sig
   type +'a attrib = 'a Eliom_content_core.Html5.attrib
   type uri = Eliom_content_core.Html5.uri
 
+  (** Creation of {e f}unctional HTML5 content (copy-able but not referable). *)
   module F : sig
+    (** {2 Content creation.} *)
     include module type of Eliom_content_core.Html5.F
         with type Xml.uri = Xml.uri
         and type Xml.attrib = Xml.attrib
@@ -53,7 +62,9 @@ module Html5 : sig
     include "sigs/eliom_html5_forms.mli"
   end
 
+  (** Creation of HTML5 content with {e D}OM semantics (referable) *)
   module D : sig
+    (** {2 Content creation.} *)
     include module type of Eliom_content_core.Html5.D
         with type Xml.uri = Xml.uri
         and type Xml.attrib = Xml.attrib
@@ -64,9 +75,8 @@ module Html5 : sig
     include "sigs/eliom_html5_forms.mli"
   end
 
+  (** Global nodes *)
   module Id : module type of Eliom_content_core.Html5.Id
-
-  module Of_dom : module type of Eliom_content_core.Html5.Of_dom
 
   (** Conversion from HTML5 [elt]s to Javascript DOM elements ([<: Dom_html.element Js.t]).
       One conversion function per source type (stressed by the [of_] prefix). *)
@@ -488,6 +498,10 @@ module Html5 : sig
       val zIndex: 'a elt -> string -> unit
     end
   end
+
+  (** Conversion functions from DOM nodes ({% <<a_api project="js_of_ocaml"| type Dom_html.element>>%} {%<<a_api
+      project="js_of_ocaml"| type Js.t>>%}) to Eliom nodes ({% <<a_api | type Eliom_content.Html5.elt>> %}). *)
+  module Of_dom : module type of Eliom_content_core.Html5.Of_dom
 
 end
 

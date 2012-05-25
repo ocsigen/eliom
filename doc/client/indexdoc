@@ -5,7 +5,7 @@ Eliom_lib
 Eliom_client
 }
 
-{2 Content}
+{2 Content and form creation}
 
 {!modules:
 Eliom_content.Html5

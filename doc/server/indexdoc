@@ -9,7 +9,7 @@ Eliom_reference
 Eliom_state
 }
 
-{2 Content}
+{2 Content and form creation}
 
 {!modules:
 Eliom_content.Html5
@@ -18,7 +18,7 @@ Eliom_content.Svg
 Eliom_content.Xml
 }
 
-{2 Services creation and service handler}
+{2 Services creation}
 
 {!modules:
 Eliom_service

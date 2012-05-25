@@ -17,11 +17,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(** This module provides the creation of valid XML content, i.e. XML, XHTML, SVG,
+    and (X)HTML5. *)
+
 
 (** Abstract signature for links and forms creation functions. For
     concrete instance see {!Html5}, {!Xhtml} or {!Html_text}. *)
 module type Forms = "sigs/eliom_forms.mli"
 
+(** Low-level XML manipulation. *)
 module Xml : module type of Eliom_content_core.Xml
     with type uri = Eliom_content_core.Xml.uri
     and type attrib = Eliom_content_core.Xml.attrib
@@ -30,6 +34,7 @@ module Xml : module type of Eliom_content_core.Xml
     and type event_handler_table = Eliom_content_core.Xml.event_handler_table
     and type -'a caml_event_handler = 'a Eliom_content_core.Xml.caml_event_handler
 
+(** Building and pretty-printing valid SVG tree. *)
 module Svg : module type of Eliom_content_core.Svg
     with type uri = Eliom_content_core.Svg.uri
     and type 'a attrib = 'a Eliom_content_core.Svg.attrib
@@ -38,7 +43,7 @@ module Svg : module type of Eliom_content_core.Svg
 (** Building and printing valid (X)HTML5 tree. *)
 module Html5 : sig
 
-  (** See the Eliom manual for more information on{% <<a_manual
+  (** See the Eliom manual for more information on {% <<a_manual
       chapter="client" fragment="unique"| dom semantics vs. functional
       semantics>> %} for HTML5 tree manipulated by client/server
       application. *)
@@ -48,6 +53,7 @@ module Html5 : sig
   type uri = Eliom_content_core.Html5.uri
 
   module F : sig
+    (** {2 Content creation.} *)
     include module type of Eliom_content_core.Html5.F
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
@@ -60,6 +66,7 @@ module Html5 : sig
   end
 
   module D : sig
+    (** {2 Content creation.} *)
     include module type of Eliom_content_core.Html5.D
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
@@ -77,8 +84,10 @@ module Html5 : sig
 
 end
 
+(** Building valid XHTML. *)
 module Xhtml : sig
   module F : sig
+    (** {2 Content creation.} *)
     include module type of Eliom_content_core.Xhtml.F
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
@@ -90,6 +99,7 @@ module Xhtml : sig
     include "sigs/eliom_xhtml_forms.mli"
   end
   module F_01_00 : sig
+    (** {2 Content creation.} *)
     include module type of Eliom_content_core.Xhtml.F_01_00
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
@@ -101,6 +111,7 @@ module Xhtml : sig
     include "sigs/eliom_xhtml_forms.mli"
   end
   module F_01_01 : sig
+    (** {2 Content creation.} *)
     include module type of Eliom_content_core.Xhtml.F_01_01
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler

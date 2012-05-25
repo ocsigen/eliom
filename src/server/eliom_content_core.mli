@@ -32,13 +32,6 @@ module Xml : sig
   (** {2 Base functions } *)
 
   include Xml_sigs.Iterable
-(*
-    with type uri = Xml.uri
-    and type separator = Xml.separator
-    and type acontent = Xml.acontent
-    and type attrib = Xml.attrib
-    and type elt = Xml.elt
- *)
 
   (** {2 Unique nodes } *)
 
@@ -175,6 +168,7 @@ module Svg : sig
 
 end
 
+(** Building and printing valid (X)HTML5 tree. *)
 module Html5 : sig
 
   (** See the Eliom manual for more information on{% <<a_manual
@@ -242,10 +236,6 @@ module Html5 : sig
 
     (** Redefine event handler attributes to simplify their usage. *)
     include "sigs/eliom_html5_event_handler.mli"
-
-    (**/**)
-(*     include "sigs/eliom_html5_event_handler_raw.mli" *)
-    (**/**)
 
     (**/**)
     type ('a, 'b, 'c) lazy_plus =
