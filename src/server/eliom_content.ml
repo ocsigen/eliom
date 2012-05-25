@@ -6,6 +6,8 @@ module type Forms = "sigs/eliom_forms.mli"
 
 module Xml = Xml
 
+module Eliom_xml = Xml
+
 module Svg = struct
 
   module F = Svg.F
@@ -14,7 +16,7 @@ module Svg = struct
   module Id = Svg.Id
 
   type +'a elt = 'a F.elt
-  type +'a attrib = 'a F.attrib
+  type 'a attrib = 'a F.attrib
   type uri = F.uri
 
   module Printer = Svg.Printer
@@ -38,7 +40,7 @@ module Html5 = struct
   module Printer = Html5.Printer
 
   type +'a elt = 'a F.elt
-  type +'a attrib = 'a F.attrib
+  type 'a attrib = 'a F.attrib
   type uri = F.uri
 end
 

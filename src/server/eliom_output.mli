@@ -213,7 +213,7 @@ module type ELIOM_APPL = sig
   type appl
 
   include "sigs/eliom_reg.mli"
-    subst type page    := Html5_types.html Eliom_content_core.Html5.elt
+    subst type page    := Html5_types.html Eliom_content.Html5.elt
       and type options := appl_service_options
       and type return  := appl_service
       and type result  := (appl application_content, appl_service) kind

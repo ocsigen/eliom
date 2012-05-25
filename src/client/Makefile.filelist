@@ -1,11 +1,12 @@
 
 INTF := eliom_lazy.cmi              \
         eliom_lib.cmi               \
-        eliom_parameter.cmi        \
-        eliom_service.cmi          \
+        eliom_parameter.cmi         \
+        eliom_service.cmi           \
         eliom_uri.cmi               \
         eliom_mkforms.cmi           \
         eliom_output.cmi            \
+        eliom_content_core.cmi      \
         eliom_content.cmi           \
         eliom_comet.cmi             \
         eliom_react.cmi             \

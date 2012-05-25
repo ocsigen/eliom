@@ -136,8 +136,8 @@ end
 
 module Xhtml_make_reg_base
   (Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
-   with type t = Xhtml_types.xhtml Xhtml.F.elt
-   and type options = Http_headers.accept Lazy.t) = struct
+     with type t = Xhtml_types.xhtml Xhtml.F.elt
+     and type options = Http_headers.accept Lazy.t) = struct
 
   open Xhtml.F
   open Xhtml_types
@@ -176,7 +176,7 @@ module Xhtml_make_reg_base
 end
 
 module Xhtml_reg_base =
-  Xhtml_make_reg_base(Ocsigen_senders.Make_XML_Content(Xml)(Xhtml.F))
+  Xhtml_make_reg_base(Ocsigen_senders.Make_XML_Content(Eliom_content.Xml)(Eliom_content.Xhtml.F))
 
 module Xhtml_registration = Eliom_mkreg.MakeRegister(Xhtml_reg_base)
 
