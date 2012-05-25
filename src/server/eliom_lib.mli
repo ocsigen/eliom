@@ -38,4 +38,5 @@ type file_info = Ocsigen_extensions.file_info
 
 val to_json : ?typ:'a Deriving_Json.t -> 'a -> string
 val of_json : ?typ:'a Deriving_Json.t -> string -> 'a
+val debug: ('a, unit, string, unit) format4 -> 'a
 
