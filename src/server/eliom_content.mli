@@ -39,8 +39,8 @@
     DOM tree even when appended several times.
     Secondly, those values have an identity, which means they can be referred to
     on the client side (by [%variable]) or used with the functions
-    {Eliom_content.Html5.To_dom} and {Eliom_content.Html5.Manip}. On the other
-    hand side.
+    {Eliom_content.Html5.To_dom} and {Eliom_content.Html5.Manip}.
+
   *)
 
 (** Abstract signature for links and forms creation functions. For
@@ -74,9 +74,10 @@ module Html5 : sig
   type +'a attrib = 'a Eliom_content_core.Html5.attrib
   type uri = Eliom_content_core.Html5.uri
 
-  (** Creation of {e f}unctional HTML5 content (copy-able but not referable). *)
+  (** Creation of {e f}unctional HTML5 content (copy-able but not referable, cf.
+      {Eliom_content}). *)
   module F : sig
-    (** {2 Content creation.} *)
+    (** {2 Content creation} *)
     include module type of Eliom_content_core.Html5.F
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
@@ -88,9 +89,10 @@ module Html5 : sig
     include "sigs/eliom_html5_forms.mli"
   end
 
-  (** Creation of HTML5 content with {e D}OM semantics (referable) *)
+  (** Creation of HTML5 content with {e D}OM semantics (referable, cf.
+      {Eliom_content}). *)
   module D : sig
-    (** {2 Content creation.} *)
+    (** {2 Content creation} *)
     include module type of Eliom_content_core.Html5.D
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
@@ -113,7 +115,7 @@ module Xhtml : sig
 
   (** Creation of {e f}unctional HTML5 content (copy-able but not referable). *)
   module F : sig
-    (** {2 Content creation.} *)
+    (** {2 Content creation} *)
     include module type of Eliom_content_core.Xhtml.F
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
@@ -125,7 +127,7 @@ module Xhtml : sig
     include "sigs/eliom_xhtml_forms.mli"
   end
   module F_01_00 : sig
-    (** {2 Content creation.} *)
+    (** {2 Content creation} *)
     include module type of Eliom_content_core.Xhtml.F_01_00
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
@@ -137,7 +139,7 @@ module Xhtml : sig
     include "sigs/eliom_xhtml_forms.mli"
   end
   module F_01_01 : sig
-    (** {2 Content creation.} *)
+    (** {2 Content creation} *)
     include module type of Eliom_content_core.Xhtml.F_01_01
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler

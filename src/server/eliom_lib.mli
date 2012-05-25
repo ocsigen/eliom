@@ -19,6 +19,7 @@
 
 (** Pervasives module for Eliom-server: it extends the OCaml stdlib and should always be opened. *)
 
+(** See {% <<a_api project="ocsigenserver" | module Ocsigen_lib>> %} *)
 include module type of Ocsigen_lib
   with type poly = Ocsigen_lib.poly
   and type yesnomaybe = Ocsigen_lib.yesnomaybe

@@ -105,7 +105,6 @@ module Eliom_xml : module type of Xml
     and type attrib = Xml.attrib
     and type elt = Xml.elt
     and type -'a caml_event_handler = 'a Xml.caml_event_handler
-
 (**/**)
 
 (** Building and pretty-printing valid SVG tree. *)
@@ -151,11 +150,18 @@ module Svg : sig
     (** The type of global SVG element identifier. *)
     type +'a id
 
-    (** See {!Eliom_content.Html5.Id.new_elt_id} *)
+    (** The function [new_elt_id ()] creates a new HTML5 element
+        identifier. (see the Eliom manual for more information on {%
+        <<a_manual project="eliom" chapter="client"
+        fragment="global"|global element>>%}).*)
     val new_elt_id: ?global:bool -> unit -> 'a id
-    (** See {!Eliom_content.Html5.Id.create_named_elt} *)
+
+    (** The function [create_named_elt ~id elt] create a copy of the
+        element [elt] that will be accessible through the name [id]. *)
     val create_named_elt: id:'a id -> 'a elt -> 'a elt
-    (** See {!Eliom_content.Html5.Id.create_global_elt} *)
+
+    (** The function [create_named_elt elt] is equivalent to
+        [create_named_elt ~id:(new_elt_id ()) elt]. *)
     val create_global_elt: 'a elt -> 'a elt
   end
 
@@ -211,7 +217,6 @@ module Html5 : sig
 
     val lazy_form:
       ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_plus
-    (**/**)
   end
 
   (** {2 Dom semantics} *)
@@ -243,7 +248,6 @@ module Html5 : sig
 
     val lazy_form:
       ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_plus
-    (**/**)
 
   end
 
@@ -269,7 +273,6 @@ module Html5 : sig
 
     (**/**)
     val have_id: 'a id -> 'b elt -> bool
-    (**/**)
   end
 
   (** {2 Printer} *)
@@ -301,7 +304,6 @@ module Xhtml : sig
     val lazy_form:
       action:Xml.uri ->
       ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ], [> Xhtml_types.form ]) lazy_plus
-    (**/**)
 
   end
 
@@ -328,7 +330,6 @@ module Xhtml : sig
     val lazy_form:
       action:Xml.uri ->
       ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ], [> Xhtml_types.form ]) lazy_plus
-    (**/**)
 
   end
 
@@ -350,7 +351,6 @@ module Xhtml : sig
     val lazy_form:
       action:Xml.uri ->
       ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ], [> Xhtml_types.form ]) lazy_plus
-    (**/**)
 
   end
 

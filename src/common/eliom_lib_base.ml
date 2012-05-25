@@ -30,12 +30,6 @@ end
 
 (**/**)
 
-type 'a client_expr = int64 * poly
-
-(**/**)
-
-let tyxml_unwrap_id_int = 1
-
 module RawXML = struct
 
   type separator = Space | Comma
@@ -131,3 +125,9 @@ module RawXML = struct
   type event_handler_table = ((unit -> unit) client_expr) ClosureMap.t
 
 end
+
+type 'a client_expr = int64 * poly
+
+let tyxml_unwrap_id_int = 1
+
+(**/**)

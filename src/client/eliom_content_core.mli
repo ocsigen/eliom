@@ -176,11 +176,11 @@ module Svg : sig
     (** The type of global SVG element identifier. *)
     type +'a id
 
-    (** See {!Eliom_pervasives.HTML5.new_elt_id} *)
+    (** See {!Eliom_content.Html5.Id.new_elt_id} *)
     val new_elt_id: ?global:bool -> unit -> 'a id
-    (** See {!Eliom_pervasives.HTML5.create_named_elt} *)
+    (** See {!Eliom_content.Html5.Id.create_named_elt} *)
     val create_named_elt: id:'a id -> 'a elt -> 'a elt
-    (** See {!Eliom_pervasives.HTML5.create_global_elt} *)
+    (** See {!Eliom_content.Html5.Id.create_global_elt} *)
     val create_global_elt: 'a elt -> 'a elt
   end
 
@@ -229,7 +229,6 @@ module Html5 : sig
 
     val lazy_form:
       ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_plus
-    (**/**)
 
   end
 
@@ -259,7 +258,6 @@ module Html5 : sig
 
     val lazy_form:
       ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_plus
-    (**/**)
 
   end
 
