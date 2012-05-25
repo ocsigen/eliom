@@ -138,7 +138,7 @@ handle static files.
 ====Sending portions of pages
 
 
- The <<a_api| module Eliom_output.Flow5 >> and <<a_api| module Eliom_output.Block >> modules allow you to register services that send portions of pages, of any "block" type for Html5.F (resp. XHTML.F).
+ The <<a_api| module Eliom_output.Flow5 >> and <<a_api| module Eliom_output.Block >> modules allow you to register services that send portions of pages, of any "block" type for Html5.F (resp. Xhtml.F).
  It is sometimes useful to create AJAX pages
  (i.e. pages using the <<span class="code"|XMLHttpRequest>> Javascript object).
  Note that the service returns a list of blocks. For sending HTML
@@ -157,13 +157,13 @@ handle static files.
 >>
 
 
- The <<a_api| module Eliom_output.Make_TypedXML_Registration >> module
+ The <<a_api| module Eliom_output.Make_typed_xml_registration >> module
  allows to create other modules for registering portions of pages of
  other types.  For example, <<a_api| module Eliom_output.Flow5 >> is
  defined by:
 
-<<code language="ocaml"|module Flow5 = Make_TypedXML_Registration(XML)(HTML5.F)(struct
-  type content = HTML5_types.body_content
+<<code language="ocaml"|module Flow5 = Make_typed_xml_registration(Xml)(Html5.F)(struct
+  type content = Html5_types.body_content
 end)
 >>
 

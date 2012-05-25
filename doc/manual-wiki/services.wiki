@@ -367,12 +367,12 @@ Then wherever you want to add a button to do that action (on data
 
 <<code language="ocaml"|
 
-Eliom_output.Html5.post_form remove_action
-  (fun id_name ->
-     Html5.D.int_input
-       ~input_type:`Hidden ~name:id_name ~value:id ();
-     Html5.D.string_input
-       ~input_type:`Submit ~value:("remove "^string_of_int id) ())
+Html5.D.(post_form remove_action
+          (fun id_name ->
+             int_input
+               ~input_type:`Hidden ~name:id_name ~value:id ();
+             string_input
+               ~input_type:`Submit ~value:("remove "^string_of_int id) ())
 
 >>
 

@@ -47,7 +47,7 @@ as in these examples:
 See [[site:tuto/rep/links|<<span class="code"|links>>]].
   
 
- <<a_api| val Eliom_output.Html5.a >> takes as first parameter
+ <<a_api| val Eliom_content.Html5.D.a >> takes as first parameter
 the service you want to link to.
 The third parameter is the text of the link.
 The last parameter is for
@@ -119,7 +119,7 @@ let form = Eliom_output.Html5.register_service ["form"] unit
 [[site:tuto/form| See the function <<span class="code"|form>> in action]].\\
 
 If you want to use typed parameters,
-you cannot use functions like  <<a_api project="tyxml"| val HTML5.M.input >> to
+you cannot use functions like  <<a_api project="tyxml"| val Html5.M.input >> to
 create your forms (but you can use it if you want to use parameters defined with
  <<a_api| val Eliom_parameter.any >>). Indeed, parameter names are typed to force them
 be used properly. In our example, <<span class="code"|number_name>> has type
@@ -129,7 +129,7 @@ be used properly. In our example, <<span class="code"|number_name>> has type
 <<span class="code"|string param_name>> and must be used with
 <<span class="code"|string_input>> (or other widgets).
 All functions for creating form widgets are detailed
-in <<a_api | module Eliom_output.Html5 >>.
+in <<a_api | module Eliom_content.Html5.D >> (and <<a_api | module Eliom_content.Html5.D >>).
 
 For untyped forms, you may use functions from <<a_api project="tyxml"
 | module HTML5.M >> (or OCamlDuce's syntax, or whatever syntax you are
@@ -233,7 +233,7 @@ let my_service_with_get_and_post = register_post_service
    with an additional parameter
    for the GET parameters you want to put in the URL (if any).
    Here, <<span class="code"|form2>> is a page containing a form
-   to the service <<span class="code"|post>> (using HTML5.F's functions)
+   to the service <<span class="code"|post>> (using Html5.F's functions)
    and <<span class="code"|form3>> (defined using the syntax extension)
    contains a form to <<span class="code"|post2>>, with a GET parameter.
    <<span class="code"|form4>> is a form to an external page.
@@ -478,7 +478,7 @@ let create_select_form =
   (fun select_name ->
     Html5.D.(
       [p [pcdata "Select something: ";
-        Eliom_output.Html5.string_select ~name:select_name
+        string_select ~name:select_name
           (Option ([] (* attributes *),
                    "Bob" (* value *),
                    None (* Content, if different from value *),

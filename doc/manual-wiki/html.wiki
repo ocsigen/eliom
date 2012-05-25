@@ -41,7 +41,7 @@ To choose actual XML-implementation you have to provide a module named [Html5]
 For example, the following code:
 {{{
 
-module Xhtml = Xhtml.F (* NB this is TyXML's Xhtml *)
+module Xhtml = Xhtml.F (* NB this is TyXML's Xhtml; could also be Eliom_content.Xhtml.F *)
 
 << <html>
      <head><title></title></head>
@@ -56,7 +56,7 @@ ocamlc -I /path_to/ocsigen/
  -pp "camlp4o /path_to/ocsigen/xhtmlsyntax.cma -loc loc"
  -c your_module.ml
 }}}
-You can insert OCaml expressions of type {{{'a XHTML.M.elt}}} inside html using {{{$...$}}}, like this:
+You can insert OCaml expressions of type {{{'a Xhtml.M.elt}}} inside html using {{{$...$}}}, like this:
 {{{
 let oc = << <em>Ocsigen</em> >> in
 << <p>$oc$ will revolutionize web programming.</p> >>
@@ -128,7 +128,7 @@ Ocamlduce's full documentation is available from
 [[http://www.cduce.org/ocaml.html|here]].
 
 If OCamlDuce is installed on your system, it is now possible to use
-it instead of XHTML.M and Eliom_output.Xhtml
+it instead of Xhtml.M
 to typecheck your pages. You will get a stronger type checking
 and more flexibility (easier to use other XML types, to parse
 incoming XML data, etc.).

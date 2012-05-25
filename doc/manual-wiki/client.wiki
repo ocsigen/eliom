@@ -445,7 +445,7 @@ let main_service =
     ()
 
 let reload_link =
-  Eliom_output.Html5.a ~service:main_service [pcdata "reload page"] ()
+  a ~service:main_service [pcdata "reload page"] ()
 
 let _ =
   My_appl.register ~service:main_service
@@ -488,7 +488,7 @@ let main_service =
      ~path:[] ~get_params:Eliom_parameter.unit ()
 
 let reload_link =
-  Eliom_output.Html5.a ~service:main_service [pcdata "reload page"] ()
+  a ~service:main_service [pcdata "reload page"] ()
 
 let _ = My_appl.register ~service:main_service
   (fun () () ->
