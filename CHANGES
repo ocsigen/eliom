@@ -5,7 +5,6 @@
  * Dropped Eliom_pervasives, split into
  ** Eliom_lib (extension of stdlib)
  ** Eliom_content (content creation)
- ** Added Eliom_lib.Lwt_ops: open for using Lwt operators
 
  * Moved all Html5,Xhtml content function to Eliom_content.{Html5,Xhtml}
  ** {HTML5,SVG,XHTML}.M -> Eliom_content.{Html5,Svg,Xhtml}.F
@@ -16,6 +15,7 @@
  ** HTML5.of_element -> Eliom_content.Html5.Of_dom.of_element
 
  * Removed default implementations in Eliom_content.{Html5,Svg,Xhtml} (was inclusion of DOM)
+
  * Rename Eliom_output to Eliom_registration
  * Rename Eliom_registration.Eliom_appl to Eliom_registration.App
 

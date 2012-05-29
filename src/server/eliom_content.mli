@@ -83,7 +83,8 @@ module Html5 : sig
   (** Creation of {e f}unctional HTML5 content (copy-able but not referable, cf.
       {!Eliom_content}). *)
   module F : sig
-    (** {2 Content creation} *)
+    (** {2 Content creation}
+        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
     open Pervasives
     include module type of Eliom_content_core.Html5.F
                    with type Xml.uri = Xml.uri
@@ -99,7 +100,8 @@ module Html5 : sig
   (** Creation of HTML5 content with {e D}OM semantics (referable, cf.
       {!Eliom_content}). *)
   module D : sig
-    (** {2 Content creation} *)
+    (** {2 Content creation}
+        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
     open Pervasives
     include module type of Eliom_content_core.Html5.D
                    with type Xml.uri = Xml.uri
@@ -124,7 +126,8 @@ module Xhtml : sig
 
   (** Creation of {e f}unctional HTML5 content (copy-able but not referable). *)
   module F : sig
-    (** {2 Content creation} *)
+    (** {2 Content creation}
+        See {% <<a_api project="tyxml" | module Xhtml_sigs.T >> %} *)
     include module type of Eliom_content_core.Xhtml.F
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
@@ -136,7 +139,8 @@ module Xhtml : sig
     include "sigs/eliom_xhtml_forms.mli"
   end
   module F_01_00 : sig
-    (** {2 Content creation} *)
+    (** {2 Content creation}
+        See {% <<a_api project="tyxml" | module Xhtml_sigs.T >> %} *)
     include module type of Eliom_content_core.Xhtml.F_01_00
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
@@ -148,7 +152,8 @@ module Xhtml : sig
     include "sigs/eliom_xhtml_forms.mli"
   end
   module F_01_01 : sig
-    (** {2 Content creation} *)
+    (** {2 Content creation}
+        See {% <<a_api project="tyxml" | module Xhtml_sigs.T >> %} *)
     include module type of Eliom_content_core.Xhtml.F_01_01
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
