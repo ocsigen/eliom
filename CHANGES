@@ -1,3 +1,35 @@
+===== 2.2 (2012-06-01) =====
+
+ The great renaming: Make Eliom's API more coherent
+
+ * Dropped Eliom_pervasives, split into
+ ** Eliom_lib (extension of stdlib)
+ ** Eliom_content (content creation)
+ ** Added Eliom_lib.Lwt_ops: open for using Lwt operators
+
+ * Moved all Html5,Xhtml content function to Eliom_content.{Html5,Xhtml}
+ ** {HTML5,SVG,XHTML}.M -> Eliom_content.{Html5,Svg,Xhtml}.F
+ ** {HTML5,SVG,XHTML}.DOM -> Eliom_content.{Html5,Svg,Xhtml}.D
+ ** Eliom_output.{Html5,Xhtml}: form functions to Eliom_content.{Html5,Xhtml}
+ ** Eliom_client.Html5 -> Eliom_content.Html5.To_dom
+ ** Eliom_dom -> Eliom_content.Html5.Manip
+ ** HTML5.of_element -> Eliom_content.Html5.Of_dom.of_element
+
+ * Removed default implementations in Eliom_content.{Html5,Svg,Xhtml} (was inclusion of DOM)
+
+ * Conform naming conventions for modules (singular, lower-case)
+ ** XML -> Xml
+ ** SVG -> Svg
+ ** XML_types -> Xml_types
+ ** XHTML_types -> Xhtml_types
+ ** HTML5_types -> Html5_types
+ ** Eliom_services -> Eliom_service
+ ** Eliom_parameters -> Eliom_parameter
+ ** Eliom_references -> Eliom_parameter
+ ** Eliom_extensions -> Eliom_extension
+
+ * Approximating compatibility module for Eliom 2.1: Eliom_compatibility_2_1
+
 ===== 2.1.1 (2012-03-20) =====
 
  * Server: Add Eliom references of scope site
