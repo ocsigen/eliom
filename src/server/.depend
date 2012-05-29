@@ -19,7 +19,7 @@ eliom_comet.cmx: eliom_wrap.cmx eliom_types.cmx eliom_service.cmx \
     eliom_output.cmx eliom_lib.cmx eliom_common_base.cmx eliom_common.cmx \
     eliom_comet_base.cmx eliom_comet.cmi
 eliom_comet.cmi: eliom_common.cmi eliom_comet_base.cmi
-eliom_common_base.cmo: eliom_lib_base.cmo eliom_lib.cmi
+eliom_common_base.cmo: eliom_lib_base.cmi eliom_lib.cmi
 eliom_common_base.cmx: eliom_lib_base.cmx eliom_lib.cmx
 eliom_common.cmo: eliom_wrap.cmi eliom_lib.cmi eliom_common_base.cmo \
     eliom_common.cmi
@@ -82,11 +82,12 @@ eliom_extension_template.cmx: eliom_extension.cmx
 eliom_lazy.cmo: eliom_wrap.cmi eliom_lazy.cmi
 eliom_lazy.cmx: eliom_wrap.cmx eliom_lazy.cmi
 eliom_lazy.cmi:
-eliom_lib_base.cmo: eliom_lazy.cmi
-eliom_lib_base.cmx: eliom_lazy.cmx
-eliom_lib.cmo: eliom_lib_base.cmo eliom_lib.cmi
+eliom_lib_base.cmo: eliom_lazy.cmi eliom_lib_base.cmi
+eliom_lib_base.cmx: eliom_lazy.cmx eliom_lib_base.cmi
+eliom_lib_base.cmi: eliom_lazy.cmi
+eliom_lib.cmo: eliom_lib_base.cmi eliom_lib.cmi
 eliom_lib.cmx: eliom_lib_base.cmx eliom_lib.cmi
-eliom_lib.cmi: eliom_lib_base.cmo
+eliom_lib.cmi: eliom_lib_base.cmi
 eliom_mkforms.cmo: eliom_uri.cmi eliom_service.cmi eliom_parameter.cmi \
     eliom_lib.cmi eliom_lazy.cmi eliom_common.cmi eliom_mkforms.cmi
 eliom_mkforms.cmx: eliom_uri.cmx eliom_service.cmx eliom_parameter.cmx \

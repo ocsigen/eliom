@@ -9,6 +9,7 @@
 \.a$
 \.so$
 \.sw[po]$
+\.odoc$
 ^Makefile.config$
 ^baselib/ocsigen_config.ml$
 ^doc/client/api-html

@@ -46,6 +46,7 @@
     on the client side (by [%variable]) or used with the functions
     {!Eliom_content.Html5.To_dom} and {!Eliom_content.Html5.Manip}.
 
+    In case of doubt, use the modules with DOM-like semantics [D].
   *)
 
 (** Abstract signature for links and forms creation functions. For
