@@ -49,9 +49,9 @@ FILES := private/eliommod_jstable.ml \
 	 eliom_uri.ml \
 	 eliom_request.ml \
          private/eliommod_dom.ml \
-	 eliom_mkforms.ml eliom_output_base.ml \
+	 eliom_mkforms.ml eliom_registration_base.ml \
 	 eliom_client.ml eliom_content.ml \
-	 eliom_output.ml \
+	 eliom_registration.ml \
 	 eliom_comet_base.ml eliom_comet.ml \
 	 eliom_compatibility_2_1.ml \
 	 eliom_bus.ml \
@@ -117,7 +117,7 @@ distclean: clean
 
 ##  Manual dependencies for pa_include
 
-eliom_output.cmi eliom_output.cmo eliom_output.cmx eliom_output.odoc \
+eliom_registration.cmi eliom_registration.cmo eliom_registration.cmx eliom_registration.odoc \
 eliom_mkforms.cmi eliom_mkforms.odoc: ${COMMON_SFILES} $(wildcard sigs/*.mli)
 
 # Automatic dependencies

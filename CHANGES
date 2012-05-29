@@ -10,12 +10,14 @@
  * Moved all Html5,Xhtml content function to Eliom_content.{Html5,Xhtml}
  ** {HTML5,SVG,XHTML}.M -> Eliom_content.{Html5,Svg,Xhtml}.F
  ** {HTML5,SVG,XHTML}.DOM -> Eliom_content.{Html5,Svg,Xhtml}.D
- ** Eliom_output.{Html5,Xhtml}: form functions to Eliom_content.{Html5,Xhtml}
+ ** Eliom_registration.{Html5,Xhtml}: form functions to Eliom_content.{Html5,Xhtml}
  ** Eliom_client.Html5 -> Eliom_content.Html5.To_dom
  ** Eliom_dom -> Eliom_content.Html5.Manip
  ** HTML5.of_element -> Eliom_content.Html5.Of_dom.of_element
 
  * Removed default implementations in Eliom_content.{Html5,Svg,Xhtml} (was inclusion of DOM)
+ * Rename Eliom_output to Eliom_registration
+ * Rename Eliom_registration.Eliom_appl to Eliom_registration.App
 
  * Conform naming conventions for modules (singular, lower-case)
  ** XML -> Xml

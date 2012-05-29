@@ -31,7 +31,7 @@ let string_prefix s1 s2 =
 module Xhtml = struct
   open Xhtml_types
   open Xhtml.F
-  open Eliom_output.Xhtml
+  open Eliom_registration.Xhtml
 
   let a_ul classes id level =
     let classes = [a_class classes] in

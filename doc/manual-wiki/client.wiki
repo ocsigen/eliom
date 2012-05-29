@@ -56,7 +56,7 @@ does everything for you (separating client and server parts, calling
 {{{ocamlc}}}, {{{js_of_ocaml}}}, etc).
 
 Services belonging to the application are registered using the module
-{{{Eliom_output.Eliom_appl}}}. More precisely, this is a functor that
+{{{Eliom_registration.App}}}. More precisely, this is a functor that
 needs to be applied for each application you create.
 These services just return HTML5 pages as usual (using {{{Tyxml.Html5}}} --
 not possible with OcamlDuce or any other HTML module).
@@ -186,14 +186,14 @@ Note that for some reason, it is impossible to use the {{{ {...{ }} }}} and
 circumvent this limitation by declaring a function at toplevel with all the
 {{{%variable}}} as parameters.
 
-=== The Eliom_appl functor
+=== The App functor
 
 For each Eliom application, you must create a service registration module
-by applying the {{{Eliom_appl}}} functor:
+by applying the {{{App}}} functor:
 
 <<code language="ocaml"|
 module My_appl =
-  Eliom_output.Eliom_appl (
+  Eliom_registration.App (
     struct
       let application_name = "the name of your application"
     end)
@@ -219,7 +219,7 @@ program and all its data.
 == Application, life and death
 
 When an user enter the page of a service registered by an application
-module ( created with the {{{Eliom_appl}}} functor ), the application
+module ( created with the {{{App}}} functor ), the application
 is started. During the life of the application, a single ocaml program
 will run on the browser: Lwt thread will keep running, global
 variables will stay available, etc...  until the application is
@@ -240,7 +240,7 @@ at the service registration:
 <<code language="ocaml"|
 let no_launch_service =
   My_appl.register_service
-    ~option:{ Eliom_output.default_appl_service_options with
+    ~option:{ Eliom_registration.default_appl_service_options with
               do_not_launch = true }
     ~path:[""]
     ~get_params:unit

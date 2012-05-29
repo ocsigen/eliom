@@ -88,14 +88,14 @@ type appl_service (** return type for service that are entry points for an
     - [ 'd] is a phantom type, subtype of {!suff} stating the kind
             of parameters it uses: suffix or not.
     - [ 'e] is the type of GET parameters names. See {!Eliom_parameter.param_name} and
-            form generation functions (e. g. {!Eliom_output.Html5.get_form}).
+            form generation functions (e. g. {!Eliom_registration.Html5.get_form}).
     - [ 'f] is the type of POST parameters names. See {!Eliom_parameter.param_name} and
-            form generation functions (e. g. {!Eliom_output.Html5.post_form}).
+            form generation functions (e. g. {!Eliom_registration.Html5.post_form}).
     - [ 'g] is a phantom type,  subtype of {!registrable},
             telling if it is possible to register a handler
             on this service.
     - [ 'h] is an information on what the service returns.
-            See {!Eliom_output.kind}.
+            See {!Eliom_registration.kind}.
 *)
 type ('a,'b,+'c,+'d,+'e,+'f,+'g,+'h) service
 constraint 'd = [< suff ]

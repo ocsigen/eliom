@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module Eliom_output
+ * Module Eliom_registration
  * Copyright (C) 2007 Vincent Balat
  *
  * This program is free software; you can redistribute it and/or modify
@@ -41,8 +41,8 @@ open Eliom_content_core
     - The second parameter is the same as the last type parameters of
     the corresponding {!type:Eliom_service.service}. Currently, one of the
     following types:
-    {ul {- {!Eliom_output.appl_service}}
-        {- {!Eliom_output.http_service}}
+    {ul {- {!Eliom_registration.appl_service}}
+        {- {!Eliom_registration.http_service}}
         {- {!Eliom_parameter.caml}} }
     - The first parameter is a refinement of the second
     parameter. Currently, one of the following types:
@@ -60,14 +60,14 @@ type ('a, 'b) kind
 (** {4 Classical content} *)
 
 (** The type [http_service] is used as a phantom type parameters for
-    {!Eliom_service.service} and {!Eliom_output.kind}. It means the
+    {!Eliom_service.service} and {!Eliom_registration.kind}. It means the
     returned content is classical HTTP content described by the
-    content type header. See {!Eliom_output.kind} for a list of others
+    content type header. See {!Eliom_registration.kind} for a list of others
     return types. *)
 type http_service = [ `Http ]
 
 (** The type [browser_content] is a refinement of {!http_service} to
-    be used as a phantom type parameters for {!Eliom_output.kind}. It
+    be used as a phantom type parameters for {!Eliom_registration.kind}. It
     means the returned content must be interpreted in the browser as
     stated by the content-type header. This is most common return type
     for an eliom service, see for example {!Html5},
@@ -76,13 +76,13 @@ type http_service = [ `Http ]
 type browser_content = [ `Browser ]
 
 (** The type [block_content] is a refinement of {!http_service} to be
-    used as a phantom type parameters for {!Eliom_output.kind}. It
+    used as a phantom type parameters for {!Eliom_registration.kind}. It
     means the returned content is a subtree of an XML value. See for
     example {!Block5} or {!Make_typed_xml_registration}. *)
 type block_content
 
 (** The type [unknown_content] is a refinement of {!http_service} to
-    be used as a phantom type parameters for {!Eliom_output.kind} when
+    be used as a phantom type parameters for {!Eliom_registration.kind} when
     the content-type can't be determined staticaly. See {!Text} or
     {!Any}. *)
 type unknown_content
@@ -90,13 +90,13 @@ type unknown_content
 (** {4 Application content} *)
 
 (** The type [appl_service] is used as a phantom type parameters for
-    {!Eliom_service.service} and {!Eliom_output.kind}. It means the
-    service is part of an Eliom application. See {!Eliom_output.kind}
+    {!Eliom_service.service} and {!Eliom_registration.kind}. It means the
+    service is part of an Eliom application. See {!Eliom_registration.kind}
     for a list of others return types. *)
 type appl_service = [ `Appl ]
 
 (** The type [application_content] is a refinement of {!appl_service}
-    to be used as a phantom type parameters for {!Eliom_output.kind}. The
+    to be used as a phantom type parameters for {!Eliom_registration.kind}. The
     parameter ['a] is phantom type that is unique for a given
     application. *)
 type 'a application_content = [ `Appl of 'a ]
@@ -108,12 +108,12 @@ type 'a application_name
 (** {4 OCaml content} *)
 
 (** The type [caml_content] is an synomyn for {!Eliom_parameter.caml}
-    to be used as a phantom type parameters for {!Eliom_output.kind}. See
-    {!Caml}. *)
+    to be used as a phantom type parameters for {!Eliom_registration.kind}. See
+    {!Ocaml}. *)
 type 'a caml_content
 
 (** The type [non_caml_service] is used as phantom type parameters for
-    the {!Eliom_output.kind}. It used to type functions that operates
+    the {!Eliom_registration.kind}. It used to type functions that operates
     over service that do not returns OCaml values, like
     {!appl_self_redirect}. *)
 type non_caml_service = [ appl_service | http_service ]
@@ -225,7 +225,7 @@ end
 
 (** Functor for application creation. The resulting module is an
     instance of the {!modtype:Registration} abstract signature. *)
-module Eliom_appl (Appl_params : APPL_PARAMS) : ELIOM_APPL
+module App (Appl_params : APPL_PARAMS) : ELIOM_APPL
 
 module type TMPL_PARAMS = sig
   type t
@@ -250,7 +250,7 @@ end
     HTML5 page. This is an instance of the {!Registration} abstract
     signature.
 
-    For Eliom application, prefers {!Caml} services to send page
+    For Eliom application, prefers {!Ocaml} services to send page
     fragment.
 *)
 module Flow5 : "sigs/eliom_reg.mli"
@@ -424,7 +424,7 @@ end
 
     This an instance of the {!Registration} abstract signature.
 *)
-module Caml : "sigs/eliom_reg_simpl.mli"
+module Ocaml : "sigs/eliom_reg_simpl.mli"
   subst type page    := 'return
     and type options := unit
     and type return  := 'return Eliom_parameter.caml
@@ -444,7 +444,7 @@ module Any : "sigs/eliom_reg_alpha_return.mli"
 
 (** The function [appl_self_redirect send page] is an helper function
     required for defining {!Any} service usable inside an Eliom
-    application ({!Eliom_appl}). It allows to cast an Eliom senders
+    application ({!App}). It allows to cast an Eliom senders
     that do not returns {!application_content} (like {!File.send},
     {!String.send}, ...) into a senders returns
     {!application_content}.

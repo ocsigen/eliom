@@ -44,25 +44,25 @@ module type XHTML_FORMS = "sigs/eliom_forms.mli"
 module type XHTML_REGISTRATION = "sigs/eliom_reg.mli"
   subst type page := Eliom_duce_types.html
     and type options := unit
-    and type return := Eliom_output.http_service
+    and type return := Eliom_registration.http_service
     and type result := Ocsigen_http_frame.result
 
 module type XML_REGISTRATION = "sigs/eliom_reg.mli"
   subst type page := Eliom_duce_types.anyxml
     and type options := unit
-    and type return := Eliom_output.http_service
+    and type return := Eliom_registration.http_service
     and type result := Ocsigen_http_frame.result
 
 module type XML_LIST_REGISTRATION = "sigs/eliom_reg.mli"
   subst type page := Eliom_duce_types.anyxml list
     and type options := unit
-    and type return := Eliom_output.http_service
+    and type return := Eliom_registration.http_service
     and type result := Ocsigen_http_frame.result
 
 module type BLOCKS_REGISTRATION = "sigs/eliom_reg.mli"
   subst type page := Eliom_duce_types.blocks
     and type options := unit
-    and type return := Eliom_output.http_service
+    and type return := Eliom_registration.http_service
     and type result := Ocsigen_http_frame.result
 
 (* module type SUBXHTML = *)

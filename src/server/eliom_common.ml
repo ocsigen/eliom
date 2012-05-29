@@ -1351,7 +1351,7 @@ let bus_unwrap_id : unwrap_id = Eliom_wrap.id_of_int bus_unwrap_id_int
 
 
 (* HACK: Remove the 'nl_get_appl_parameter' used to avoid confusion
-   between XHR and classical request in Eliom_appl. *)
+   between XHR and classical request in App. *)
 let patch_request_info req =
   if List.mem_assoc nl_get_appl_parameter
     (Lazy.force req.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_get_params)

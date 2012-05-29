@@ -39,12 +39,12 @@ module Html5 = struct
 
   module F = struct
     include Html5.F
-    include Eliom_output_base.Html5_forms.F
+    include Eliom_registration_base.Html5_forms.F
   end
 
   module D = struct
     include Html5.D
-    include Eliom_output_base.Html5_forms.D
+    include Eliom_registration_base.Html5_forms.D
   end
 
   module Id = Html5.Id

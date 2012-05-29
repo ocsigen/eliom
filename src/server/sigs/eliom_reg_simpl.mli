@@ -218,7 +218,7 @@ val register_post_coservice' :
 
 (** The function [send page] build the HTTP frame corresponding to
     [page]. This may be used for example in an service handler
-    registered with {!Eliom_output.Any.register} or when building a
+    registered with {!Eliom_registration.Any.register} or when building a
     custom output module.
 *)
 val send :

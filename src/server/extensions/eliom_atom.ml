@@ -61,9 +61,9 @@ let result_of_content feed headers =
 module Reg_base = struct
    type page = Atom_feed.feed
    type options = unit
-   type return = Eliom_output.http_service
-   type result = (Eliom_output.browser_content, Eliom_output.http_service) Eliom_output.kind
-   let result_of_http_result = Eliom_output.cast_http_result
+   type return = Eliom_registration.http_service
+   type result = (Eliom_registration.browser_content, Eliom_registration.http_service) Eliom_registration.kind
+   let result_of_http_result = Eliom_registration.cast_http_result
    let send_appl_content = Eliom_service.XNever
    let pre_service ?options () = Lwt.return ()
    let send ?options ?charset ?code ?content_type ?headers

@@ -13,7 +13,7 @@ specific to a limited //scope// such as:
 
 * a session,
 * a group of sessions (for example all sessions of the same user),
-* a client-side process (when programming with {{{Eliom_appl}}}), or
+* a client-side process (when programming with {{{App}}}), or
 * the current request.
 
 For a given scope, server-side state regroups:
@@ -162,7 +162,7 @@ let custom_session = `Session custom_session_name
 Then, the value {{{custom_session}}} could replace the usual <<a_api |
 val Eliom_common.session>> for the {{{~scope}}} parameter of functions
 <<a_api | val Eliom_reference.eref>>, <<a_api| val
-Eliom_output.Html5.register >>, <<a_api| val Eliom_state.discard >>,
+Eliom_registration.Html5.register >>, <<a_api| val Eliom_state.discard >>,
 ...
 
 You can also create named client_process scope and session_group by
@@ -256,7 +256,7 @@ client connecting with the http and https protocols. If you want to
 keep some state in a //secure session// that are visible only to
 client accessing with the https protocol, you may give the optionnal
 parameter {{{~secure:true}}} when calling functions like <<a_api | val
-Eliom_reference.eref >>, <<a_api | val Eliom_output.Html5.register
+Eliom_reference.eref >>, <<a_api | val Eliom_registration.Html5.register
 >>, etc.
 
 Secure sessions are using secure cookies (i.e. Ocsigen server will ask

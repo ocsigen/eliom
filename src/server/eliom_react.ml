@@ -107,7 +107,7 @@ struct
            unit,
            [ `One of 'a Eliom_parameter.caml ] Eliom_parameter.param_name,
            [ `Registrable ],
-           Eliom_output.Action.return)
+           Eliom_registration.Action.return)
             Eliom_service.service;
         wrapper : 'a t Eliom_common.wrapper }
 
@@ -128,7 +128,7 @@ struct
       | _ -> (Eliom_common.comet_client_process :> Eliom_common.scope)
     in
     let e_writer = Eliom_service.post_coservice' ?name ~post_params () in
-    Eliom_output.Action.register
+    Eliom_registration.Action.register
       ~scope
       ~options:`NoReload
       ~service:e_writer

@@ -28,15 +28,15 @@
 
    The idea is to reuse the information parameters (Eliom_parameter.params_type)
    to check whether a form's value is "valid". 
-   
+
    So you should enforce verification on the parameters via the user_type parameter.
 *)
 (* XX: maybe some things should be factorized out of the example. *)
 (** Here is a small example : a login box
     {[
 open Eliom_validate_forms
-module Eliom_appl =
-  Eliom_predefmod.Eliom_appl (
+module App =
+  Eliom_predefmod.App (
     struct
       let application_name = "eliom_validate_forms_example"
       let params =
@@ -51,7 +51,7 @@ module Eliom_appl =
     end)
 ;;
 
-module Forms = ValidateForms (Eliom_appl)
+module Forms = ValidateForms (App)
 let login_form = new_service
   ~path:["test"]
   ~get_params: unit
@@ -61,7 +61,7 @@ let string_guard f = user_type ~to_string:(fun s -> s)
   ~of_string: (fun s -> if not (f s) then failwith "invalid"; s)
 
 let args = (string_guard ((=) "test") "nick" ** string_guard (fun s -> String.length s >= 8) "password")
-let validate = Eliom_appl.register_new_service
+let validate = App.register_new_service
   ~path:["validate"]
   ~get_params: args
   (fun sp _ number -> 
@@ -94,10 +94,10 @@ let entry gen_input ?value ?delay ?a ?server_listen ?server_check ~prompt ~sp ~i
      gen_input ?value ?delay ?a ~input_type ?server_listen ?server_check (fun x -> f x id) name;
      span ~a:[a_id id] []; br ()]
 
-let _ = Eliom_appl.register
+let _ = App.register
   ~service:login_form
   (fun sp () () ->
-    let form = Forms.gen_form (fun ~service ~sp f -> Eliom_appl.get_form ~service ~sp f) 
+    let form = Forms.gen_form (fun ~service ~sp f -> App.get_form ~service ~sp f) 
       (validate, (args, unit)) ~sp
       ~on_fail: (popup ~sp ["bad"] "Invalid form" "result")
       (fun gen_input (nick, password) ->
@@ -116,7 +116,7 @@ let _ = Eliom_appl.register
                  | `Success -> popup ~sp ["ok"] "valid"
                  | `Failure -> popup ~sp ["bad"] "Invalid password (must be >= 8 characters long)"
                  | `Loading -> popup ~sp [] "");
-            Eliom_appl.string_input ~input_type: `Submit ~value: "Submit" ()]])
+            App.string_input ~input_type: `Submit ~value: "Submit" ()]])
     in
     return [div [form]])
 ]}
@@ -248,7 +248,7 @@ module ValidateForms (Appl :  Eliom_predefmod.XHTMLFORMSSIG ) = struct
     (* We generate a service dedicated to checking that this parameter is valid.
        It may not be the better way to do this, but eh.
     *)
-      let service = Eliom_predefmod.Caml.register_new_post_coservice'
+      let service = Eliom_predefmod.Ocaml.register_new_post_coservice'
         ~post_params: (string "params")
         ~sp
         (fun sp _ arg -> check sp arg)

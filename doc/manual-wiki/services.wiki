@@ -22,7 +22,7 @@ A service is composed of:
 
 Manipulation of Eliom services can be done throught the values of type
 <<a_api | type Eliom_service.service >>. The most common service
-creation function is <<a_api | val Eliom_output.HTML5.register_service
+creation function is <<a_api | val Eliom_registration.HTML5.register_service
 >>. It allows to create a service attached to a given path that may
 expect some GET parameters and that return some HTML5 contents using
 the TyXML library.
@@ -34,7 +34,7 @@ The service creation could be split in two steps:
 * create a value of type service, e.g. using <<a_api | val
   Eliom_service.service >>
 * register a service handler, e.g. using <<a_api | val
-  Eliom_output.HTML5.register >>
+  Eliom_registration.HTML5.register >>
 
 
 This chapter focus on value of type {{{service}}}, see chapter
@@ -172,8 +172,8 @@ it available only to a session, a client side process, or a group of
 sessions.
 
 To limit the scope of a service, just add the argument {{{~scope}}} to
-the <<a_api | val Eliom_output.Html5.register>> function (or other
-{{{register}}} variants: <<a_api | val Eliom_output.Xhtml.register>>,
+the <<a_api | val Eliom_registration.Html5.register>> function (or other
+{{{register}}} variants: <<a_api | val Eliom_registration.Xhtml.register>>,
 ...). The default scope is <<a_api | val Eliom_common.site>>.
 
 The same service can be registered with several scopes.  This makes it
@@ -356,7 +356,7 @@ action on a non-attached coservices like this:
 <<code language="ocaml"|
 
 let remove_action =
-  Eliom_output.Action.register_post_coservice'
+  Eliom_registration.Action.register_post_coservice'
     ~post_params:(Eliom_parameter.int "id")
     (fun () id -> remove id)
 
@@ -447,7 +447,7 @@ a (static_dir ()) [pcdata "download image"] ["ocsigen10.png"]
 >>
 
 It is also possible to send static files using Eliom, with <<a_api|
-module Eliom_output.File>> (see <<a_manual chapter="outputs"
+module Eliom_registration.File>> (see <<a_manual chapter="outputs"
 fragment="eliomfiles" |Sending files>>).
 
 

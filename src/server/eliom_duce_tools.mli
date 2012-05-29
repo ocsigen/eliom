@@ -28,7 +28,7 @@ open Eliom_tools_common
 val menu :
   ?classe:string list ->
   ?id:string ->
-  (([< get_service_kind ] as 'a, [< registrable ] as 'b, [< Eliom_output.non_caml_service ] as 'c) one_page *
+  (([< get_service_kind ] as 'a, [< registrable ] as 'b, [< Eliom_registration.non_caml_service ] as 'c) one_page *
      'elts Eliom_duce_types.a_content_elt_list)
   ->
   (('a, 'b, 'c) one_page *
@@ -76,7 +76,7 @@ val hierarchical_menu_depth_first :
    [< Eliom_service.registrable ] as 'b,
    'elts Eliom_duce_types.a_content_elt_list)
       hierarchical_site ->
-  ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
+  ?service:('a, 'b, [< Eliom_registration.non_caml_service ]) one_page ->
   unit ->
     {{ [Xhtml_types_duce.ul*] }}
 
@@ -100,7 +100,7 @@ val hierarchical_menu_breadth_first :
    [< Eliom_service.registrable ] as 'b,
    'elts Eliom_duce_types.a_content_elt_list)
       hierarchical_site ->
-  ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
+  ?service:('a, 'b, [< Eliom_registration.non_caml_service ]) one_page ->
   unit ->
     {{ [Xhtml_types_duce.ul*] }}
 
@@ -113,7 +113,7 @@ val structure_links :
      [< Eliom_service.registrable ] as 'b,
      'elts Eliom_duce_types.a_content_elt_list)
     hierarchical_site ->
-  ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
+  ?service:('a, 'b, [< Eliom_registration.non_caml_service ]) one_page ->
   unit ->
   {{ [Xhtml_types_duce.link*] }}
 

@@ -39,8 +39,8 @@ open Eliom_service
 
     To define {e global} link (i.e. outside of a service handler) and
     recompute a relative URL at each request, use
-    {!Eliom_output.Html5.a} or other specialized functions from
-    {!Eliom_output.Html5} or {!Eliom_output.Xhtml}.
+    {!Eliom_registration.Html5.a} or other specialized functions from
+    {!Eliom_registration.Html5} or {!Eliom_registration.Xhtml}.
 
 *)
 
@@ -48,8 +48,8 @@ open Eliom_service
     string corresponding to the URL of the service [service] applied
     to the GET parameters [get_params].
 
-    See {!Eliom_output.Html5.make_string_uri} or any other
-    {!Eliom_output}[.*.make_string_uri] for a detailled description of
+    See {!Eliom_registration.Html5.make_string_uri} or any other
+    {!Eliom_registration}[.*.make_string_uri] for a detailled description of
     optional parameters.
 *)
 val make_string_uri :
@@ -70,8 +70,8 @@ val make_string_uri :
     of the URL of [service] applied to the GET parameters
     [get_params].
 
-    See {!Eliom_output.Html5.make_uri_components} or any other
-    {!Eliom_output}[.*.make_uri_components] for a detailled
+    See {!Eliom_registration.Html5.make_uri_components} or any other
+    {!Eliom_registration}[.*.make_uri_components] for a detailled
     description. *)
 val make_uri_components :
   ?absolute:bool ->

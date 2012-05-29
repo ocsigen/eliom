@@ -11,7 +11,7 @@ methods addapted.
 
 The client process can call special services to get some Ocaml
 values. Those services cannot be visited by the browser as web pages.
-They are registered using <<a_api project="eliom" | module Eliom_output.Caml >>
+They are registered using <<a_api project="eliom" | module Eliom_registration.Ocaml >>
 and can be called using
 <<a_api project="eliom" subproject="client" | val Eliom_client.call_caml_service >>.
 
@@ -24,7 +24,7 @@ open Eliom_content
 For instance:
 <<code language="ocaml"|
 let pi_service =
-  Eliom_output.Caml.register_service
+  Eliom_registration.Ocaml.register_service
     ~path:["pi"]
     ~get_params:Eliom_parameter.unit
     (fun () () -> Lwt.return 3.1415926535)

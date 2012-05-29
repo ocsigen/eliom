@@ -69,10 +69,10 @@ open Eliom_lib
     - [ 'c] is the type of the parameter name, usually an instance of
     {!Eliom_parameter.param_name}, as used by forms construction
     functions (e. g. the last parameter of
-    {!Eliom_output.Html5.get_form}), and specialized form widget (see
+    {!Eliom_registration.Html5.get_form}), and specialized form widget (see
     for example the section
-    {{!section:Eliom_output.Html5.form_widgets}Form widget} of
-    {!Eliom_output.HTML5}). )
+    {{!section:Eliom_registration.Html5.form_widgets}Form widget} of
+    {!Eliom_registration.HTML5}). )
 *)
 type ('a, +'b, +'c) params_type
 

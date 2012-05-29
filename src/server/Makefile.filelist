@@ -12,7 +12,7 @@ INTF := eliom_lib.cmi               \
         eliom_state.cmi             \
         eliom_uri.cmi               \
         eliom_mkforms.cmi           \
-        eliom_output.cmi            \
+        eliom_registration.cmi            \
         eliom_comet.cmi             \
         eliom_react.cmi             \
         eliom_bus.cmi               \

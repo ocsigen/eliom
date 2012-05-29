@@ -527,7 +527,7 @@ let unregister ?scope ?secure service =
 
 
 (*****************************************************************************)
-(** {2 on_load and on_unload for Eliom_appl services } *)
+(** {2 on_load and on_unload for App services } *)
 
 (* We keep them in rc because we want them to apply to the next page that
    will be displayed. That is, event after an action or a (stateful)

@@ -87,7 +87,7 @@ let check_before name service =
     | _ -> true
 
 (* This test check if there is a header set only by
-   Eliom_output.Eliom_appl. This test is sufficient, but it is better
+   Eliom_registration.App. This test is sufficient, but it is better
    to stop page generation as soon as we know that the content won't
    be needed: hence we test what we can before page generation. *)
 let check_after name result =

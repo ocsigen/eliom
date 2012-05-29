@@ -40,8 +40,8 @@ val get_default_sslport : unit -> int
 val get_config_default_charset : unit -> string
 
 (** The provided value serves as a default value for the optional parameter
-    [~xhr] in the functions [Eliom_output.*.{a, get_form, post_form,
-    lwt_get_form, lwt_post_form}] (cf. {!Eliom_output.Html5.a} et al.).
+    [~xhr] in the functions [Eliom_registration.*.{a, get_form, post_form,
+    lwt_get_form, lwt_post_form}] (cf. {!Eliom_registration.Html5.a} et al.).
     This value can also be set in the
     {{:http://ocsigen.org/eliom/dev/manual/config#h5o-25}config file}.  *)
 val set_default_links_xhr : ?override_configfile:bool -> bool -> unit

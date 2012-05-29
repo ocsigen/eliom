@@ -25,12 +25,12 @@ type ('a, 'b, 'c) one_page =
      [ `WithoutSuffix ],
      unit, unit,
      'b, 'c) service
-    constraint 'c = [< Eliom_output.non_caml_service ]
+    constraint 'c = [< Eliom_registration.non_caml_service ]
 
 type get_page =
     (Eliom_service.get_service_kind,
      Eliom_service.registrable,
-     Eliom_output.non_caml_service) one_page
+     Eliom_registration.non_caml_service) one_page
   (* constraint 'c = [  ] *)
 
 let menu_class = "eliomtools_menu"
@@ -46,8 +46,8 @@ type ('a, 'b, 'c) hierarchical_site_item =
   | Site_tree of ('a, 'b, 'c) hierarchical_site
 constraint 'b = [< Eliom_service.registrable ]
 and ('a, 'b) main_page =
-  | Main_page of ('a, 'b, Eliom_output.non_caml_service) one_page
-  | Default_page of ('a, 'b, Eliom_output.non_caml_service) one_page
+  | Main_page of ('a, 'b, Eliom_registration.non_caml_service) one_page
+  | Default_page of ('a, 'b, Eliom_registration.non_caml_service) one_page
   | Not_clickable
 constraint 'b = [< Eliom_service.registrable ]
 and ('a, 'b, 'c) hierarchical_site =

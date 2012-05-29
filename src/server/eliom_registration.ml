@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module Eliom_output
+ * Module Eliom_registration
  * Copyright (C) 2007 Vincent Balat
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,7 +27,7 @@ let code_of_code_option = function
   | None -> 200
   | Some c -> c
 
-include Eliom_output_base
+include Eliom_registration_base
 
 (******************************************************************************)
 (* Send return types                                                          *)
@@ -1140,7 +1140,7 @@ module Caml_reg_base = struct
 
 end
 
-module Caml = struct
+module Ocaml = struct
 
   module M = Eliom_mkreg.MakeRegister(Caml_reg_base)
 
@@ -1671,7 +1671,7 @@ module type ELIOM_APPL = sig
   val typed_name : appl application_name
 end
 
-module Eliom_appl (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
+module App (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
 
   module Eliom_appl_reg_param =
     Eliom_appl_reg_make_param
@@ -1734,7 +1734,7 @@ module Eliom_tmpl_reg_make_param
           (Appl.send ~options ?charset ?code ?content_type ?headers content)
     | Some _ ->
         Eliom_service.onload (Tmpl_param.update content);
-        Result_types.cast_kind_lwt (Caml.send ?charset ?code ?content_type ?headers ())
+        Result_types.cast_kind_lwt (Ocaml.send ?charset ?code ?content_type ?headers ())
 
 end
 

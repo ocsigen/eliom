@@ -22,7 +22,7 @@ open Eliom_lib
 
 (** This module defines the functor to use to creates modules
    generating form widgets for your own types of pages.
-   It is used for example in {!Eliom_output}.
+   It is used for example in {!Eliom_registration}.
  *)
 
 open Lwt

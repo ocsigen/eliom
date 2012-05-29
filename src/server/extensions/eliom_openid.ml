@@ -488,7 +488,7 @@ module type HiddenServiceInfo = sig
 (** The path of the hidden service *)
   val f :
     (string * string) list ->
-    unit -> (Eliom_output.browser_content, Eliom_output.http_service) Eliom_output.kind Lwt.t
+    unit -> (Eliom_registration.browser_content, Eliom_registration.http_service) Eliom_registration.kind Lwt.t
 (** The function called when an user connects to the hidden service
     (not that hidden) without being in an identification process.
     Typically you should redirect the user to the login page. *)
@@ -497,7 +497,7 @@ end
 module Make (S : HiddenServiceInfo) = struct
   let return_service = Eliom_service.service ~path:S.path ~get_params:any ()
 
-  let () = Eliom_output.Any.register ~service:return_service S.f
+  let () = Eliom_registration.Any.register ~service:return_service S.f
 
   let authenticate ~mode ~ext ~handler ~discovery =
     let local = match snd discovery with
@@ -510,7 +510,7 @@ module Make (S : HiddenServiceInfo) = struct
       Eliom_content.Xhtml.F.make_string_uri ~absolute: true 
       ~service:return_service []
     in
-    let _ = Eliom_output.Any.register
+    let _ = Eliom_registration.Any.register
       ~scope
       ~service:return_service
       (fun args _ -> 
@@ -560,7 +560,7 @@ type check_fun =
     ?optional:field list ->
     string ->
     (result authentication_result ->
-     (Eliom_output.browser_content, Eliom_output.http_service) Eliom_output.kind Lwt.t) ->
+     (Eliom_registration.browser_content, Eliom_registration.http_service) Eliom_registration.kind Lwt.t) ->
     Url.t Lwt.t
 
 let check check ?(immediate = true) ?policy_url ?max_auth_age ?auth_policies

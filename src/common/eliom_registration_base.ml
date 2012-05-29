@@ -57,7 +57,7 @@ type button_type =
 (*****************************************************************************)
 (*****************************************************************************)
 
-(*BB Has nothing to do with Eliom_output in fact, should live in something like Eliom_content_base. *)
+(*BB Has nothing to do with Eliom_registration in fact, should live in something like Eliom_content_base. *)
 module Html5_forms : sig
   module F : "sigs/eliom_html5_forms.mli"
   module D : "sigs/eliom_html5_forms.mli"

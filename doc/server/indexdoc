@@ -23,11 +23,11 @@ Eliom_content.Xml
 {!modules:
 Eliom_service
 Eliom_parameter
-Eliom_output
-Eliom_output.Html5
-Eliom_output.Action
-Eliom_output.Caml
-Eliom_output.Eliom_appl
+Eliom_registration
+Eliom_registration.Html5
+Eliom_registration.Action
+Eliom_registration.Ocaml
+Eliom_registration.App
 }
 
 {2 Client/server communication}

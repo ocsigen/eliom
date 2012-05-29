@@ -1,22 +1,23 @@
-eliom_bus.cmo: eliom_state.cmi eliom_service.cmi eliom_parameter.cmi \
-    eliom_output.cmi eliom_common.cmi eliom_comet_base.cmi eliom_comet.cmi \
+eliom_bus.cmo: eliom_state.cmi eliom_service.cmi eliom_registration.cmi \
+    eliom_parameter.cmi eliom_common.cmi eliom_comet_base.cmi eliom_comet.cmi \
     eliom_bus.cmi
-eliom_bus.cmx: eliom_state.cmx eliom_service.cmx eliom_parameter.cmx \
-    eliom_output.cmx eliom_common.cmx eliom_comet_base.cmx eliom_comet.cmx \
+eliom_bus.cmx: eliom_state.cmx eliom_service.cmx eliom_registration.cmx \
+    eliom_parameter.cmx eliom_common.cmx eliom_comet_base.cmx eliom_comet.cmx \
     eliom_bus.cmi
 eliom_bus.cmi: eliom_comet.cmi
-eliom_comet_base.cmo: eliom_service.cmi eliom_parameter.cmi eliom_output.cmi \
-    eliom_comet_base.cmi
-eliom_comet_base.cmx: eliom_service.cmx eliom_parameter.cmx eliom_output.cmx \
-    eliom_comet_base.cmi
-eliom_comet_base.cmi: eliom_service.cmi eliom_parameter.cmi eliom_output.cmi
+eliom_comet_base.cmo: eliom_service.cmi eliom_registration.cmi \
+    eliom_parameter.cmi eliom_comet_base.cmi
+eliom_comet_base.cmx: eliom_service.cmx eliom_registration.cmx \
+    eliom_parameter.cmx eliom_comet_base.cmi
+eliom_comet_base.cmi: eliom_service.cmi eliom_registration.cmi \
+    eliom_parameter.cmi
 eliom_comet.cmo: eliom_wrap.cmi eliom_types.cmi eliom_service.cmi \
-    eliom_request_info.cmi eliom_reference.cmi eliom_parameter.cmi \
-    eliom_output.cmi eliom_lib.cmi eliom_common_base.cmo eliom_common.cmi \
+    eliom_request_info.cmi eliom_registration.cmi eliom_reference.cmi \
+    eliom_parameter.cmi eliom_lib.cmi eliom_common_base.cmo eliom_common.cmi \
     eliom_comet_base.cmi eliom_comet.cmi
 eliom_comet.cmx: eliom_wrap.cmx eliom_types.cmx eliom_service.cmx \
-    eliom_request_info.cmx eliom_reference.cmx eliom_parameter.cmx \
-    eliom_output.cmx eliom_lib.cmx eliom_common_base.cmx eliom_common.cmx \
+    eliom_request_info.cmx eliom_registration.cmx eliom_reference.cmx \
+    eliom_parameter.cmx eliom_lib.cmx eliom_common_base.cmx eliom_common.cmx \
     eliom_comet_base.cmx eliom_comet.cmi
 eliom_comet.cmi: eliom_common.cmi eliom_comet_base.cmi
 eliom_common_base.cmo: eliom_lib_base.cmi eliom_lib.cmi
@@ -26,11 +27,11 @@ eliom_common.cmo: eliom_wrap.cmi eliom_lib.cmi eliom_common_base.cmo \
 eliom_common.cmx: eliom_wrap.cmx eliom_lib.cmx eliom_common_base.cmx \
     eliom_common.cmi
 eliom_common.cmi: eliom_wrap.cmi eliom_lib.cmi eliom_common_base.cmo
-eliom_compatibility_2_1.cmo: eliom_service.cmi eliom_reference.cmi \
-    eliom_parameter.cmi eliom_output.cmi eliom_lib.cmi eliom_extension.cmi \
+eliom_compatibility_2_1.cmo: eliom_service.cmi eliom_registration.cmi \
+    eliom_reference.cmi eliom_parameter.cmi eliom_lib.cmi eliom_extension.cmi \
     eliom_content_core.cmi eliom_content.cmi
-eliom_compatibility_2_1.cmx: eliom_service.cmx eliom_reference.cmx \
-    eliom_parameter.cmx eliom_output.cmx eliom_lib.cmx eliom_extension.cmx \
+eliom_compatibility_2_1.cmx: eliom_service.cmx eliom_registration.cmx \
+    eliom_reference.cmx eliom_parameter.cmx eliom_lib.cmx eliom_extension.cmx \
     eliom_content_core.cmx eliom_content.cmx
 eliom_config.cmo: private/eliommod.cmo eliom_request_info.cmi \
     eliom_common.cmi eliom_config.cmi
@@ -42,11 +43,11 @@ eliom_content_core.cmo: eliom_wrap.cmi eliom_lib.cmi eliom_lazy.cmi \
 eliom_content_core.cmx: eliom_wrap.cmx eliom_lib.cmx eliom_lazy.cmx \
     eliom_content_core.cmi
 eliom_content_core.cmi: eliom_lazy.cmi
-eliom_content.cmo: eliom_service.cmi eliom_parameter.cmi \
-    eliom_output_base.cmi eliom_mkforms.cmi eliom_lib.cmi eliom_lazy.cmi \
+eliom_content.cmo: eliom_service.cmi eliom_registration_base.cmi \
+    eliom_parameter.cmi eliom_mkforms.cmi eliom_lib.cmi eliom_lazy.cmi \
     eliom_content_core.cmi eliom_content.cmi
-eliom_content.cmx: eliom_service.cmx eliom_parameter.cmx \
-    eliom_output_base.cmx eliom_mkforms.cmx eliom_lib.cmx eliom_lazy.cmx \
+eliom_content.cmx: eliom_service.cmx eliom_registration_base.cmx \
+    eliom_parameter.cmx eliom_mkforms.cmx eliom_lib.cmx eliom_lazy.cmx \
     eliom_content_core.cmx eliom_content.cmi
 eliom_content.cmi: eliom_service.cmi eliom_parameter.cmi eliom_lib.cmi \
     eliom_content_core.cmi
@@ -55,13 +56,13 @@ eliom_cookies_base.cmx: eliom_lib.cmx
 eliom_cookies.cmo: eliom_lib.cmi eliom_cookies.cmi
 eliom_cookies.cmx: eliom_lib.cmx eliom_cookies.cmi
 eliom_cookies.cmi: eliom_lib.cmi
-eliom_duce.cmo: eliom_service.cmi eliom_output.cmi eliom_mkreg.cmi \
+eliom_duce.cmo: eliom_service.cmi eliom_registration.cmi eliom_mkreg.cmi \
     eliom_mkforms.cmi eliom_lazy.cmi eliom_duce_types.cmi eliom_duce.cmi
-eliom_duce.cmx: eliom_service.cmx eliom_output.cmx eliom_mkreg.cmx \
+eliom_duce.cmx: eliom_service.cmx eliom_registration.cmx eliom_mkreg.cmx \
     eliom_mkforms.cmx eliom_lazy.cmx eliom_duce_types.cmi eliom_duce.cmi
 eliom_duce.cmi: eliom_duce_sigs.cmi
-eliom_duce_sigs.cmi: eliom_service.cmi eliom_parameter.cmi eliom_output.cmi \
-    eliom_lib.cmi eliom_duce_types.cmi eliom_common.cmi
+eliom_duce_sigs.cmi: eliom_service.cmi eliom_registration.cmi \
+    eliom_parameter.cmi eliom_lib.cmi eliom_duce_types.cmi eliom_common.cmi
 eliom_duce_tools.cmo: eliom_tools_common.cmi eliom_service.cmi \
     eliom_request_info.cmi eliom_duce_types.cmi eliom_duce.cmi \
     eliom_duce_tools.cmi
@@ -69,7 +70,7 @@ eliom_duce_tools.cmx: eliom_tools_common.cmx eliom_service.cmx \
     eliom_request_info.cmx eliom_duce_types.cmi eliom_duce.cmx \
     eliom_duce_tools.cmi
 eliom_duce_tools.cmi: eliom_tools_common.cmi eliom_state.cmi \
-    eliom_service.cmi eliom_parameter.cmi eliom_output.cmi \
+    eliom_service.cmi eliom_registration.cmi eliom_parameter.cmi \
     eliom_duce_types.cmi
 eliom_duce_types.cmi:
 eliom_error_pages.cmo: eliom_lib.cmi eliom_content_core.cmi
@@ -106,28 +107,6 @@ eliom_mkreg.cmx: private/eliommod_services.cmx \
     eliom_mkreg.cmi
 eliom_mkreg.cmi: eliom_state.cmi eliom_service.cmi eliom_parameter.cmi \
     eliom_lib.cmi eliom_common.cmi
-eliom_output_base.cmo: eliom_uri.cmi eliom_service.cmi eliom_parameter.cmi \
-    eliom_mkforms.cmi eliom_lib.cmi eliom_lazy.cmi eliom_content_core.cmi \
-    eliom_config.cmi eliom_output_base.cmi
-eliom_output_base.cmx: eliom_uri.cmx eliom_service.cmx eliom_parameter.cmx \
-    eliom_mkforms.cmx eliom_lib.cmx eliom_lazy.cmx eliom_content_core.cmx \
-    eliom_config.cmx eliom_output_base.cmi
-eliom_output_base.cmi: eliom_service.cmi eliom_parameter.cmi eliom_lib.cmi \
-    eliom_content_core.cmi
-eliom_output.cmo: private/eliommod_pagegen.cmi private/eliommod_cookies.cmi \
-    private/eliommod_cli.cmi eliom_wrap.cmi eliom_types.cmi eliom_state.cmi \
-    eliom_service.cmi eliom_request_info.cmi eliom_reference.cmi \
-    eliom_parameter.cmi eliom_output_base.cmi eliom_mkreg.cmi eliom_lib.cmi \
-    eliom_content_core.cmi eliom_content.cmi eliom_config.cmi \
-    eliom_common_base.cmo eliom_common.cmi eliom_output.cmi
-eliom_output.cmx: private/eliommod_pagegen.cmx private/eliommod_cookies.cmx \
-    private/eliommod_cli.cmx eliom_wrap.cmx eliom_types.cmx eliom_state.cmx \
-    eliom_service.cmx eliom_request_info.cmx eliom_reference.cmx \
-    eliom_parameter.cmx eliom_output_base.cmx eliom_mkreg.cmx eliom_lib.cmx \
-    eliom_content_core.cmx eliom_content.cmx eliom_config.cmx \
-    eliom_common_base.cmx eliom_common.cmx eliom_output.cmi
-eliom_output.cmi: eliom_service.cmi eliom_parameter.cmi eliom_lib.cmi \
-    eliom_content_core.cmi eliom_content.cmi eliom_common.cmi
 eliom_parameter_base.cmo: eliom_lib.cmi eliom_common.cmi
 eliom_parameter_base.cmx: eliom_lib.cmx eliom_common.cmx
 eliom_parameter.cmo: eliom_request_info.cmi eliom_parameter_base.cmo \
@@ -137,9 +116,9 @@ eliom_parameter.cmx: eliom_request_info.cmx eliom_parameter_base.cmx \
 eliom_parameter.cmi: eliom_lib.cmi eliom_common.cmi
 eliom_process.cmo:
 eliom_process.cmx:
-eliom_react.cmo: eliom_service.cmi eliom_parameter.cmi eliom_output.cmi \
+eliom_react.cmo: eliom_service.cmi eliom_registration.cmi eliom_parameter.cmi \
     eliom_common.cmi eliom_comet.cmi eliom_react.cmi
-eliom_react.cmx: eliom_service.cmx eliom_parameter.cmx eliom_output.cmx \
+eliom_react.cmx: eliom_service.cmx eliom_registration.cmx eliom_parameter.cmx \
     eliom_common.cmx eliom_comet.cmx eliom_react.cmi
 eliom_react.cmi: eliom_parameter.cmi eliom_common.cmi eliom_comet.cmi
 eliom_reference.cmo: eliom_state.cmi eliom_request_info.cmi eliom_common.cmi \
@@ -147,6 +126,30 @@ eliom_reference.cmo: eliom_state.cmi eliom_request_info.cmi eliom_common.cmi \
 eliom_reference.cmx: eliom_state.cmx eliom_request_info.cmx eliom_common.cmx \
     eliom_reference.cmi
 eliom_reference.cmi: eliom_common.cmi
+eliom_registration_base.cmo: eliom_uri.cmi eliom_service.cmi \
+    eliom_parameter.cmi eliom_mkforms.cmi eliom_lib.cmi eliom_lazy.cmi \
+    eliom_content_core.cmi eliom_config.cmi eliom_registration_base.cmi
+eliom_registration_base.cmx: eliom_uri.cmx eliom_service.cmx \
+    eliom_parameter.cmx eliom_mkforms.cmx eliom_lib.cmx eliom_lazy.cmx \
+    eliom_content_core.cmx eliom_config.cmx eliom_registration_base.cmi
+eliom_registration_base.cmi: eliom_service.cmi eliom_parameter.cmi \
+    eliom_lib.cmi eliom_content_core.cmi
+eliom_registration.cmo: private/eliommod_pagegen.cmi \
+    private/eliommod_cookies.cmi private/eliommod_cli.cmi eliom_wrap.cmi \
+    eliom_types.cmi eliom_state.cmi eliom_service.cmi eliom_request_info.cmi \
+    eliom_registration_base.cmi eliom_reference.cmi eliom_parameter.cmi \
+    eliom_mkreg.cmi eliom_lib.cmi eliom_content_core.cmi eliom_content.cmi \
+    eliom_config.cmi eliom_common_base.cmo eliom_common.cmi \
+    eliom_registration.cmi
+eliom_registration.cmx: private/eliommod_pagegen.cmx \
+    private/eliommod_cookies.cmx private/eliommod_cli.cmx eliom_wrap.cmx \
+    eliom_types.cmx eliom_state.cmx eliom_service.cmx eliom_request_info.cmx \
+    eliom_registration_base.cmx eliom_reference.cmx eliom_parameter.cmx \
+    eliom_mkreg.cmx eliom_lib.cmx eliom_content_core.cmx eliom_content.cmx \
+    eliom_config.cmx eliom_common_base.cmx eliom_common.cmx \
+    eliom_registration.cmi
+eliom_registration.cmi: eliom_service.cmi eliom_parameter.cmi eliom_lib.cmi \
+    eliom_content_core.cmi eliom_content.cmi eliom_common.cmi
 eliom_request_info.cmo: eliom_lib.cmi eliom_common.cmi eliom_request_info.cmi
 eliom_request_info.cmx: eliom_lib.cmx eliom_common.cmx eliom_request_info.cmi
 eliom_request_info.cmi: eliom_lib.cmi eliom_common.cmi
@@ -179,20 +182,21 @@ eliom_state.cmx: private/eliommod_timeouts.cmx \
     eliom_request_info.cmx eliom_lib.cmx eliom_common_base.cmx \
     eliom_common.cmx eliom_state.cmi
 eliom_state.cmi: eliom_lib.cmi eliom_common.cmi
-eliom_tools_common.cmo: eliom_service.cmi eliom_output.cmi \
+eliom_tools_common.cmo: eliom_service.cmi eliom_registration.cmi \
     eliom_tools_common.cmi
-eliom_tools_common.cmx: eliom_service.cmx eliom_output.cmx \
+eliom_tools_common.cmx: eliom_service.cmx eliom_registration.cmx \
     eliom_tools_common.cmi
-eliom_tools_common.cmi: eliom_state.cmi eliom_service.cmi eliom_parameter.cmi \
-    eliom_output.cmi
+eliom_tools_common.cmi: eliom_state.cmi eliom_service.cmi \
+    eliom_registration.cmi eliom_parameter.cmi
 eliom_tools.cmo: eliom_tools_common.cmi eliom_service.cmi \
-    eliom_request_info.cmi eliom_output.cmi eliom_lib.cmi eliom_content.cmi \
-    eliom_tools.cmi
+    eliom_request_info.cmi eliom_registration.cmi eliom_lib.cmi \
+    eliom_content.cmi eliom_tools.cmi
 eliom_tools.cmx: eliom_tools_common.cmx eliom_service.cmx \
-    eliom_request_info.cmx eliom_output.cmx eliom_lib.cmx eliom_content.cmx \
-    eliom_tools.cmi
+    eliom_request_info.cmx eliom_registration.cmx eliom_lib.cmx \
+    eliom_content.cmx eliom_tools.cmi
 eliom_tools.cmi: eliom_tools_common.cmi eliom_state.cmi eliom_service.cmi \
-    eliom_parameter.cmi eliom_output.cmi eliom_lib.cmi eliom_content.cmi
+    eliom_registration.cmi eliom_parameter.cmi eliom_lib.cmi \
+    eliom_content.cmi
 eliom_types_base.cmo: eliom_wrap.cmi eliom_lib.cmi eliom_content_core.cmi \
     eliom_common.cmi eliom_types_base.cmi
 eliom_types_base.cmx: eliom_wrap.cmx eliom_lib.cmx eliom_content_core.cmx \
@@ -219,23 +223,24 @@ extensions/atom_feed.cmo: eliom_lib.cmi eliom_lazy.cmi eliom_content_core.cmi \
 extensions/atom_feed.cmx: eliom_lib.cmx eliom_lazy.cmx eliom_content_core.cmx \
     extensions/atom_feed.cmi
 extensions/atom_feed.cmi: eliom_lib.cmi eliom_content_core.cmi
-extensions/eliom_atom.cmo: eliom_service.cmi eliom_parameter.cmi \
-    eliom_output.cmi eliom_mkreg.cmi eliom_lib.cmi eliom_content_core.cmi \
+extensions/eliom_atom.cmo: eliom_service.cmi eliom_registration.cmi \
+    eliom_parameter.cmi eliom_mkreg.cmi eliom_lib.cmi eliom_content_core.cmi \
     extensions/atom_feed.cmi extensions/eliom_atom.cmi
-extensions/eliom_atom.cmx: eliom_service.cmx eliom_parameter.cmx \
-    eliom_output.cmx eliom_mkreg.cmx eliom_lib.cmx eliom_content_core.cmx \
+extensions/eliom_atom.cmx: eliom_service.cmx eliom_registration.cmx \
+    eliom_parameter.cmx eliom_mkreg.cmx eliom_lib.cmx eliom_content_core.cmx \
     extensions/atom_feed.cmx extensions/eliom_atom.cmi
-extensions/eliom_atom.cmi: eliom_service.cmi eliom_parameter.cmi \
-    eliom_output.cmi eliom_lib.cmi eliom_common.cmi extensions/atom_feed.cmi
+extensions/eliom_atom.cmi: eliom_service.cmi eliom_registration.cmi \
+    eliom_parameter.cmi eliom_lib.cmi eliom_common.cmi \
+    extensions/atom_feed.cmi
 extensions/eliom_openid.cmo: eliom_state.cmi eliom_service.cmi \
-    extensions/eliom_s2s.cmi eliom_request_info.cmi eliom_parameter.cmi \
-    eliom_output.cmi eliom_lib.cmi eliom_content.cmi eliom_common.cmi \
+    extensions/eliom_s2s.cmi eliom_request_info.cmi eliom_registration.cmi \
+    eliom_parameter.cmi eliom_lib.cmi eliom_content.cmi eliom_common.cmi \
     extensions/eliom_openid.cmi
 extensions/eliom_openid.cmx: eliom_state.cmx eliom_service.cmx \
-    extensions/eliom_s2s.cmx eliom_request_info.cmx eliom_parameter.cmx \
-    eliom_output.cmx eliom_lib.cmx eliom_content.cmx eliom_common.cmx \
+    extensions/eliom_s2s.cmx eliom_request_info.cmx eliom_registration.cmx \
+    eliom_parameter.cmx eliom_lib.cmx eliom_content.cmx eliom_common.cmx \
     extensions/eliom_openid.cmi
-extensions/eliom_openid.cmi: eliom_output.cmi eliom_lib.cmi
+extensions/eliom_openid.cmi: eliom_registration.cmi eliom_lib.cmi
 extensions/eliom_s2s.cmo: eliom_lib.cmi extensions/eliom_s2s.cmi
 extensions/eliom_s2s.cmx: eliom_lib.cmx extensions/eliom_s2s.cmi
 extensions/eliom_s2s.cmi:

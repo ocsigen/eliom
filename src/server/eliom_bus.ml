@@ -33,7 +33,7 @@ type 'a t = {
 }
 
 let register_sender scope service write =
-  Eliom_output.Action.register
+  Eliom_registration.Action.register
     ~scope
     ~options:`NoReload
     ~service

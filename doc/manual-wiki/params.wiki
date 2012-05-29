@@ -39,7 +39,7 @@ let writeparams (i1, (i2, s1)) () =
                         strong [pcdata s1]]]))
 >>
 
-<<code language="ocaml"|let coucou_params = Eliom_output.Html5.register_service
+<<code language="ocaml"|let coucou_params = Eliom_registration.Html5.register_service
     ~path:["coucou"]
     ~get_params:(int "i" ** (int "ii" ** string "s"))
     writeparams
@@ -72,7 +72,7 @@ and how to get server information:
 <<code language="ocaml"|
 open Eliom_parameter
 let uasuffix =
-  Eliom_output.Html5.register_service
+  Eliom_registration.Html5.register_service
     ~path:["uasuffix"]
     ~get_params:(suffix (int "year" ** int "month"))
     (fun (year, month) () ->
@@ -104,7 +104,7 @@ the end of the suffix as a <<span class="code"|string list>>.\\
 
 <<code language="ocaml"|
 let isuffix =
-  Eliom_output.Html5.register_service
+  Eliom_registration.Html5.register_service
     ~path:["isuffix"]
     ~get_params:(suffix_prod (int "suff" ** all_suffix "endsuff") (int "i"))
     (fun ((suff, endsuff), i) () ->
@@ -131,7 +131,7 @@ Example:
 open Eliom_parameter
 
 let constfix =
-  Eliom_output.Html5.register_service
+  Eliom_registration.Html5.register_service
     ~path:["constfix"]
     ~get_params:(suffix (string "s1" ** (suffix_const "toto" ** string "s2")))
     (fun (s1, ((), s2))  () ->
@@ -159,7 +159,7 @@ let string_of_mysum = function
   | B -> "B"
 
 let mytype =
-  Eliom_output.Html5.register_service
+  Eliom_registration.Html5.register_service
     ~path:["mytype"]
     ~get_params:
       (Eliom_parameter.user_type mysum_of_string string_of_mysum "valeur")
@@ -180,7 +180,7 @@ use the  <<a_api| val Eliom_parameter.any >> value. The service will get an
 association list of strings. Example:
 
 <<code language="ocaml"|
-let raw_serv = Eliom_output.Html5.register_service
+let raw_serv = Eliom_registration.Html5.register_service
     ~path:["any"]
     ~get_params:Eliom_parameter.any
   (fun l () ->
@@ -222,7 +222,7 @@ Non localized parameters are GET or POST parameters that are not
     ~name:"mynlparams"
     (Eliom_parameter.int "a" ** Eliom_parameter.string "s")
 
-let nlparams = Eliom_output.Html5.register_service
+let nlparams = Eliom_registration.Html5.register_service
     ~path:["nlparams"]
     ~get_params:(int "i")
     (fun i () ->
@@ -252,7 +252,7 @@ let nlparams = Eliom_output.Html5.register_service
      <<a_api| val Eliom_content.Html5.D.get_form >> or
      <<a_api| val Eliom_content.Html5.D.post_form >>. Example:
   
-<<code language="ocaml"|let tonlparams = Eliom_output.Html5.register_service
+<<code language="ocaml"|let tonlparams = Eliom_registration.Html5.register_service
     ~path:["nlparams"]
     ~get_params:unit
     (fun i () ->

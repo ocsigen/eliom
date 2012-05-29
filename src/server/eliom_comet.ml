@@ -56,7 +56,7 @@ struct
   let translate content = Lwt.return (content,json_content_type)
 end
 module Comet =
-  Eliom_output.Customize ( Eliom_output.String ) ( Comet_param )
+  Eliom_registration.Customize ( Eliom_registration.String ) ( Comet_param )
 
 let comet_path = ["__eliom_comet__"]
 let comet_global_path = ["__eliom_comet_global__"]

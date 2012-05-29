@@ -46,12 +46,12 @@ module Html5 = struct
 
   module F = struct
     include Html5.F
-    include Eliom_output_base.Html5_forms.F
+    include Eliom_registration_base.Html5_forms.F
   end
 
   module D = struct
     include Html5.D
-    include Eliom_output_base.Html5_forms.D
+    include Eliom_registration_base.Html5_forms.D
   end
 
   module Id = Html5.Id
@@ -111,7 +111,7 @@ module Xhtml = struct
 
       open Xhtml.F
       open Xhtml_types
-      open Eliom_output_base
+      open Eliom_registration_base
 
       type input_type_t = full_input_type
       type raw_input_type_t = full_input_type

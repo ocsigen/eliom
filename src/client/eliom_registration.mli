@@ -26,4 +26,4 @@ module String_redirection : Base
 module Any : Base
 module Streamlist : Base
 
-module Caml : Base
+module Ocaml : Base

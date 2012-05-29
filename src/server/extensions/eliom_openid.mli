@@ -47,12 +47,12 @@ let login_form = Eliom_service.new_service
 
 (* Initialize the library, and getting the authenticate function *)
 let authenticate = Eliom_openid.init ~path:["__openid_return_service"]
-    ~f: (fun _ _ -> Eliom_output.Redirection.send login_form)
+    ~f: (fun _ _ -> Eliom_registration.Redirection.send login_form)
 
 (* Create the handler for the form *)
-(* We have to use Eliom_output.String_redirection as we
+(* We have to use Eliom_registration.String_redirection as we
    redirect the user to her provider *)
-let form_handler = Eliom_output.String_redirection.register_new_post_coservice
+let form_handler = Eliom_registration.String_redirection.register_new_post_coservice
     ~fallback: login_form
     ~post_params: (Eliom_parameter.string "url")
     (fun _ url ->
@@ -70,10 +70,10 @@ let form_handler = Eliom_output.String_redirection.register_new_post_coservice
            try List.assoc Email result.fields with Not_found -> "No e-mail :("
      in
      Eliom_state.set_volatile_session_data ~table:messages string;
-     Eliom_output.Redirection.send login_form))
+     Eliom_registration.Redirection.send login_form))
 
 open XHTML
-let _ = Eliom_output.Xhtml.register
+let _ = Eliom_registration.Xhtml.register
     ~service: login_form
     (fun _ _ ->
     (match Eliom_state.get_volatile_session_data ~table: messages () with
@@ -82,11 +82,11 @@ let _ = Eliom_output.Xhtml.register
        Lwt.return [p [pcdata ("Authentication result: "^ s)]]
      | _ -> Lwt.return []) >>= fun message ->
     let form =
-    Eliom_output.Xhtml.post_form ~service:form_handler
+    Eliom_registration.Xhtml.post_form ~service:form_handler
       (fun url ->
         [p [pcdata "Your OpenID identifier: ";
-            Eliom_output.Xhtml.string_input ~input_type:`Text ~name:url ();
-            Eliom_output.Xhtml.string_input ~input_type:`Submit ~value:"Login" ();
+            Eliom_registration.Xhtml.string_input ~input_type:`Text ~name:url ();
+            Eliom_registration.Xhtml.string_input ~input_type:`Submit ~value:"Login" ();
            ]]) ()
     in
     Lwt.return
@@ -195,7 +195,7 @@ module type HiddenServiceInfo = sig
 (** The path of the hidden service *)
   val f :
     (string * string) list ->
-    unit -> (Eliom_output.browser_content, Eliom_output.http_service) Eliom_output.kind Lwt.t
+    unit -> (Eliom_registration.browser_content, Eliom_registration.http_service) Eliom_registration.kind Lwt.t
 (** The function called when an user connects to the hidden service
     (not that hidden) without being in an identication process.
     Typically you should redirect the user to the login page. *)
@@ -211,7 +211,7 @@ module Make :
         mode:string ->
         ext:'a extension ->
         handler:('a authentication_result ->
-                 (Eliom_output.browser_content, Eliom_output.http_service) Eliom_output.kind Lwt.t) ->
+                 (Eliom_registration.browser_content, Eliom_registration.http_service) Eliom_registration.kind Lwt.t) ->
         discovery:string * string option -> Url.t Lwt.t
         (** Authenticate an user.
             - mode: can be [checkid_setup] or [checkid_immediate]
@@ -257,7 +257,7 @@ type check_fun =
     ?optional:field list ->
     string ->
     (result authentication_result ->
-      (Eliom_output.browser_content, Eliom_output.http_service) Eliom_output.kind Lwt.t) ->
+      (Eliom_registration.browser_content, Eliom_registration.http_service) Eliom_registration.kind Lwt.t) ->
     Url.t Lwt.t
 
 (** Init the OpenID for your site.
@@ -265,5 +265,5 @@ type check_fun =
 val init :
   path:string list ->
   f:((string * string) list -> unit ->
-     (Eliom_output.browser_content, Eliom_output.http_service) Eliom_output.kind Lwt.t) ->
+     (Eliom_registration.browser_content, Eliom_registration.http_service) Eliom_registration.kind Lwt.t) ->
   check_fun

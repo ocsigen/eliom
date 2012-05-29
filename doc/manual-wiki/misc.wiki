@@ -12,7 +12,7 @@
 
           
 <<code language="ocaml"|img ~alt:"Ocsigen"
-    ~src:(Eliom_output.Xhtml.make_uri ~service:senddoc ["ocsigen1024.jpg"])
+    ~src:(Eliom_registration.Xhtml.make_uri ~service:senddoc ["ocsigen1024.jpg"])
     ()
 >>
 

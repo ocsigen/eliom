@@ -113,7 +113,7 @@ let _ = register
 let launch_session user =
   set_volatile_data my_table user
 
-let _ = Eliom_output.Action.register
+let _ = Eliom_registration.Action.register
   ~action:connect_action
     (fun h (login, password) ->
       launch_session (connect login password); return [])

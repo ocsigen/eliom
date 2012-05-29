@@ -376,7 +376,7 @@ let call_caml_service
 
    It uses the History API if present, otherwise we write the new URL
    in the fragment part of the URL (see 'redirection_script' in
-   'server/eliom_output.ml'). *)
+   'server/eliom_registration.ml'). *)
 
 let current_pseudo_fragment = ref ""
 let url_fragment_prefix = "!"
@@ -538,7 +538,7 @@ let load_eliom_data js_data page =
       page.
 
    See the corresponding function on the server side:
-   Eliom_output.Eliom_appl_reg_make_param.make_eliom_data_script.
+   Eliom_registration.Eliom_appl_reg_make_param.make_eliom_data_script.
 
 *)
 

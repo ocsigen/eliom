@@ -1,7 +1,7 @@
 
 open Eliom_lib
 
-include Eliom_output_base
+include Eliom_registration_base
 
 module type Base =
 sig
@@ -31,4 +31,4 @@ module String_redirection = Base
 module Any = Base
 module Streamlist = Base
 
-module Caml = Base
+module Ocaml = Base

@@ -141,7 +141,7 @@ To use it, make sure that you have Eliom compiled with OCamlDuce
 support. Then dynlink <<span class="code"|ocamlduce.cma>> and <<span
 class="code"|eliomduce.cma>> from the configuration file (after <<span
 class="code"|eliom.cma>>).  Then use <<a_api | module Eliom_duce.Xhtml >>
-instead of <<a_api | module Eliom_output.Xhtml>> to register your pages.
+instead of <<a_api | module Eliom_registration.Xhtml>> to register your pages.
 
 Here is an example:
 <<code language="ocaml"|
@@ -164,13 +164,13 @@ The last possibility is to use untyped xhtml. Just build strings
 containing your pages. Here is an example:
 
 <<code language="ocaml"|let coucoutext =
-  Eliom_output.HtmlText.register_service
+  Eliom_registration.HtmlText.register_service
     ~path:["coucoutext"]
     ~get_params:Eliom_parameter.unit
     (fun () () ->
       Lwt.return
         ("<html>n'importe quoi "^
-         (Eliom_output.HtmlText.a coucou "clic" ())^
+         (Eliom_registration.HtmlText.a coucou "clic" ())^
          "</html>"))
 >>
 

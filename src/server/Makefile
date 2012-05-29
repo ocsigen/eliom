@@ -72,10 +72,10 @@ FILES := eliom_wrap.ml eliom_lazy.ml \
          eliom_config.ml \
          eliom_uri.ml \
 	 eliom_mkforms.ml \
-	 eliom_output_base.ml \
+	 eliom_registration_base.ml \
 	 eliom_content.ml \
 	 eliom_mkreg.ml \
-	 eliom_output.ml \
+	 eliom_registration.ml \
 	 eliom_comet_base.ml eliom_comet.ml  \
          eliom_tools_common.ml \
 	 eliom_tools.ml \
@@ -188,8 +188,8 @@ distclean: clean
 	-rm -f .*.deps private/.*.deps extensions/.*.deps
 
 ## Manual dependencies for pa_include.
-eliom_output_base.cmi eliom_output_base.cmo eliom_output_base.cmx \
-eliom_output.cmi eliom_output.cmo eliom_output.cmx eliom_output.odoc \
+eliom_registration_base.cmi eliom_registration_base.cmo eliom_registration_base.cmx \
+eliom_registration.cmi eliom_registration.cmo eliom_registration.cmx eliom_registration.odoc \
 eliom_mkforms.cmi eliom_mkforms.cmo eliom_mkforms.cmx eliom_mkforms.odoc \
 eliom_mkreg.cmi eliom_mkreg.odoc \
 eliom_duce_sigs.cmi eliom_duce_sigs.odoc: ${COMMON_SFILES} $(wildcard sigs/*.mli)
