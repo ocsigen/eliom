@@ -18,7 +18,9 @@
  *)
 
 
-(** XML building and deconstructing. *)
+(** XML building and deconstructing. Cf. {% <<a_api subproject="server" |
+    module Eliom_content_core.Xml >> %}. *)
+
 module Xml : sig
 
   type uri = string
@@ -145,7 +147,7 @@ module Svg : sig
   type 'a attrib
   type uri = Xml.uri
 
-  (** {2 Dom semantics} *)
+  (** {2 Functional semantics} *)
 
   (** Typed interface for building valid SVG tree (functional
       semantics). See {% <<a_api project="tyxml" | module type
@@ -158,7 +160,7 @@ module Svg : sig
                         and type 'a attrib = 'a attrib
                         and type uri = uri
 
-  (** {2 Dom semantics} *)
+  (** {2 DOM semantics} *)
 
   (** Typed interface for building valid SVG tree (DOM semantics). See
       {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
@@ -198,8 +200,6 @@ module Html5 : sig
   type +'a attrib
   type uri = Xml.uri
 
-  (** {2 Functional semantics} *)
-
   (** Typed interface for building valid HTML5 tree (functional
       semantics). See {% <<a_api project="tyxml" | module type
       Html5_sigs.T >> %}. *)
@@ -232,8 +232,6 @@ module Html5 : sig
 
   end
 
-  (** {2 DOM semantics} *)
-
   (** Typed interface for building valid HTML5 tree (DOM semantics). See
       {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
   module D: sig
@@ -261,9 +259,9 @@ module Html5 : sig
 
   end
 
-  (** {2 Global node} *)
-
+  (** Node identifiers *)
   module Id : sig
+
     (** The type of global HTML5 element identifier. *)
     type +'a id
 

@@ -21,9 +21,10 @@
 open Eliom_lib
 
 (** This module provides the creation of valid XML content, i.e. XML, XHTML, SVG,
-    and (X)HTML5. *)
-
-(* TODO more on difference between D/F *)
+    and (X)HTML5.
+    See {% <<a_api subproject="server" | module Eliom_content >> %} for an explication
+    of the modules [F] and [D].
+  *)
 
 (** Low-level XML manipulation. *)
 module Xml : module type of Eliom_content_core.Xml
@@ -52,6 +53,7 @@ module Html5 : sig
   (** Creation of {e f}unctional HTML5 content (copy-able but not referable). *)
   module F : sig
     (** {2 Content creation} *)
+    open Pervasives
     include module type of Eliom_content_core.Html5.F
         with type Xml.uri = Xml.uri
         and type Xml.attrib = Xml.attrib
@@ -65,6 +67,7 @@ module Html5 : sig
   (** Creation of HTML5 content with {e D}OM semantics (referable) *)
   module D : sig
     (** {2 Content creation} *)
+    open Pervasives
     include module type of Eliom_content_core.Html5.D
         with type Xml.uri = Xml.uri
         and type Xml.attrib = Xml.attrib
@@ -75,10 +78,11 @@ module Html5 : sig
     include "sigs/eliom_html5_forms.mli"
   end
 
-  (** Global nodes *)
+  (** Node identifiers *)
   module Id : module type of Eliom_content_core.Html5.Id
 
-  (** Conversion from HTML5 [elt]s to Javascript DOM elements ([<: Dom_html.element Js.t]).
+  (** Conversion from HTML5 [elt]s to Javascript DOM elements ([<:] {% <<a_api
+      project="js_of_ocaml"| class Dom_html.element >> %}).
       One conversion function per source type (stressed by the [of_] prefix). *)
   module To_dom : sig
 

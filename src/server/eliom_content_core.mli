@@ -18,18 +18,13 @@
  *)
 
 
-(** {2 TyXML}
-
-    XML tree manipulation within Eliom is based on the TyXML library
-    but use a custom representation for XML values (see
-    {!Xml}). Then, [Eliom_content] redefines the three high level
-    interfaces ({!Svg}, {!Html5} and {!Xhtml}) that are provided by
-    TyXML for valid XML tree creation and printing. *)
+(** See {% <<a_api | module Eliom_content>> %} for complete module. *)
 
 (** Low-level XML manipulation. *)
 module Xml : sig
 
-  (** {2 Base functions } *)
+  (** {2 Base functions}
+      Cf. {% <<a_api project="tyxml" | module Xml_sigs.Iterable >> %}. *)
 
   include Xml_sigs.Iterable
 
@@ -119,8 +114,6 @@ module Svg : sig
   type 'a attrib
   type uri = Xml.uri
 
-  (** {2 Functional semantics} *)
-
   (** Typed interface for building valid SVG tree (functional
       semantics). See {% <<a_api project="tyxml" | module type
       Svg_sigs.T >> %}. *)
@@ -131,8 +124,6 @@ module Svg : sig
                         with type 'a elt = 'a elt
                         and type 'a attrib = 'a attrib
                         and type uri = uri
-
-  (** {2 Dom semantics} *)
 
   (** Typed interface for building valid SVG tree (DOM semantics). See
       {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
@@ -145,7 +136,7 @@ module Svg : sig
                         and type uri = uri
 
 
-  (** {2 Global node} *)
+  (** Node identifiers. *)
   module Id : sig
     (** The type of global SVG element identifier. *)
     type +'a id
@@ -165,8 +156,6 @@ module Svg : sig
     val create_global_elt: 'a elt -> 'a elt
   end
 
-  (** {2 Printer} *)
-
   (** SVG printer.
       See {% <<a_api project="tyxml" | module type Xml_sigs.Typed_simple_printer >> %}. *)
   module Printer : Xml_sigs.Typed_simple_printer with type 'a elt := 'a F.elt
@@ -177,7 +166,7 @@ end
 (** Building and printing valid (X)HTML5 tree. *)
 module Html5 : sig
 
-  (** See the Eliom manual for more information on{% <<a_manual
+  (** See the Eliom manual for more information on {% <<a_manual
       chapter="client" fragment="unique"| dom semantics vs. functional
       semantics>> %} for HTML5 tree manipulated by client/server
       application. *)
@@ -186,11 +175,8 @@ module Html5 : sig
   type +'a attrib
   type uri = Xml.uri
 
-  (** {2 Functional semantics} *)
-
   (** Typed interface for building valid HTML5 tree (functional
-      semantics). See {% <<a_api project="tyxml" | module type
-      Html5_sigs.T >> %}. *)
+      semantics). *)
   module F : sig
 
     (** Cf. {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
@@ -219,13 +205,10 @@ module Html5 : sig
       ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_plus
   end
 
-  (** {2 Dom semantics} *)
-
-  (** Typed interface for building valid HTML5 tree (DOM semantics). See
-      {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+  (** Typed interface for building valid HTML5 tree (DOM semantics). *)
   module D : sig
 
-    (** See {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+    (** Cf. {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
@@ -251,7 +234,7 @@ module Html5 : sig
 
   end
 
-  (** {2 Global node} *)
+  (** Node identifiers *)
   module Id : sig
     (** The type of global HTML5 element identifier. *)
     type +'a id
@@ -274,8 +257,6 @@ module Html5 : sig
     (**/**)
     val have_id: 'a id -> 'b elt -> bool
   end
-
-  (** {2 Printer} *)
 
   (** {{:http://dev.w3.org/html5/html-xhtml-author-guide/}"Polyglot"} HTML5 printer.
      See {% <<a_api project="tyxml" | module type Xml_sigs.Typed_simple_printer >> %}. *)

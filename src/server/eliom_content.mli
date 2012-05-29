@@ -19,9 +19,14 @@
 
 (** This module provides the creation of valid XML content, i.e. XML, XHTML, SVG,
     and (X)HTML5.
+    XML tree manipulation within Eliom is based on the TyXML library
+    but use a custom representation for XML values (see
+    {!Xml}). Then, [Eliom_content] redefines the three high level
+    interfaces ({!Svg}, {!Html5} and {!Xhtml}) that are provided by
+    TyXML for valid XML tree creation and printing.
 
-    Modules {Eliom_content.Html5}, {Eliom_content.Svg} contain two implementing
-    sub-modules: [D] and [F].
+    Modules {!Eliom_content.Html5}, {!Eliom_content.Svg} contain two implementing
+    sub-modules: [F] and [D].
 
     {5 Functional semantics}
 
@@ -30,7 +35,7 @@
     which means utilizations of those values are independent of each other.
     On the other hand side, they cannot be referred to, neither by client code
     when created on the server, nor for usage in the functions of
-    {Eliom_content.Html5.To_dom} and {Eliom_content.Html5.Manip}.
+    {!Eliom_content.Html5.To_dom} and {!Eliom_content.Html5.Manip}.
 
     {5 DOM semantics}
 
@@ -39,7 +44,7 @@
     DOM tree even when appended several times.
     Secondly, those values have an identity, which means they can be referred to
     on the client side (by [%variable]) or used with the functions
-    {Eliom_content.Html5.To_dom} and {Eliom_content.Html5.Manip}.
+    {!Eliom_content.Html5.To_dom} and {!Eliom_content.Html5.Manip}.
 
   *)
 
@@ -75,9 +80,10 @@ module Html5 : sig
   type uri = Eliom_content_core.Html5.uri
 
   (** Creation of {e f}unctional HTML5 content (copy-able but not referable, cf.
-      {Eliom_content}). *)
+      {!Eliom_content}). *)
   module F : sig
     (** {2 Content creation} *)
+    open Pervasives
     include module type of Eliom_content_core.Html5.F
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
@@ -90,9 +96,10 @@ module Html5 : sig
   end
 
   (** Creation of HTML5 content with {e D}OM semantics (referable, cf.
-      {Eliom_content}). *)
+      {!Eliom_content}). *)
   module D : sig
     (** {2 Content creation} *)
+    open Pervasives
     include module type of Eliom_content_core.Html5.D
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
@@ -104,6 +111,7 @@ module Html5 : sig
     include "sigs/eliom_html5_forms.mli"
   end
 
+  (** Node identifiers *)
   module Id : module type of Eliom_content_core.Html5.Id
 
   module Printer : module type of Eliom_content_core.Html5.Printer
