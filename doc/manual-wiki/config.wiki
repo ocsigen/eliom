@@ -34,6 +34,7 @@ add the following lines to Ocsigen's configuration file
 (<<span class="code"|/etc/ocsigen/ocsigen.conf>> most of the times):
 
 {{{
+<extension findlib-package="eliom.server"/>
 <host>
   <site path="examples">
     <eliom module="~///path_to///example.cmo" />

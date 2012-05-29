@@ -603,7 +603,7 @@ let get_sp_option () = Lwt.get sp_key
 let get_sp () =
   match Lwt.get sp_key with
     | Some sp -> sp
-    | None -> failwith "Server parameters not available here. See http://ocsigen.org/eliom/doc/dev/manual/sp for more information."
+    | None -> failwith "That function cannot be called here because it needs information about the request or the site."
 
 let sp_of_option sp = 
   match sp with
