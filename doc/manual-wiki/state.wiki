@@ -69,7 +69,7 @@ We hope to simplify this when OCaml's serialization mechanism evolves.
 In the meantime, be very careful where you store your data.
 To avoid shutting down the server, note that it is possible
 to ask the server to load dynamically new versions of your site
-(see [[config|command {{{reload}}}]]).
+(see [[wiki:config|command {{{reload}}}]]).
 
 
 

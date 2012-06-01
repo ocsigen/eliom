@@ -1,4 +1,6 @@
-= Eliom — Api reference
+= Eliom -- API reference
+
+{{site:downloads/files/cheatsheet.png}}
 
 <<a_api subproject="server" text="Server" | intro >>
 
