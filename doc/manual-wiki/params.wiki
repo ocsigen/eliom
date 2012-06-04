@@ -184,6 +184,7 @@ let raw_serv = Eliom_registration.Html5.register_service
     ~path:["any"]
     ~get_params:Eliom_parameter.any
   (fun l () ->
+    let module Html5 = Eliom_content.Html5.D in
     let ll =
       List.map
         (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> ~>>) l

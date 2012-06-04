@@ -254,6 +254,7 @@ let my_service_with_get_and_post = register_post_service
 
 let form3 = Eliom_registration.Html5.register_service ["form3"] unit
   (fun () () ->
+     let module Html5 = Html5.D in
      let f  =
        (Eliom_content.Html5.D.post_form my_service_with_get_and_post
           (fun chaine ->
@@ -267,6 +268,7 @@ let form3 = Eliom_registration.Html5.register_service ["form3"] unit
 
 let form4 = Eliom_registration.Html5.register_service ["form4"] unit
   (fun () () ->
+     let module Html5 = Eliom_content.Html5.D in
      let f  =
        (Eliom_content.Html5.D.post_form
           (external_post_service
@@ -347,15 +349,16 @@ let bool_params = Eliom_registration.Html5.register_service
     ~path:["bool"]
     ~get_params:(bool "case")
   (fun case () ->
+    let module Html5 = Html5.D in
     Lwt.return
-    << <html>
-         <head><title></title></head>
-         <body>
-         <p>
-           $pcdata (if case then "checked" else "not checked")$
-         </p>
-         </body>
-       </html> ~>>)
+      << <html>
+           <head><title></title></head>
+           <body>
+           <p>
+             $pcdata (if case then "checked" else "not checked")$
+           </p>
+           </body>
+         </html> ~>>)
 
 let create_form_bool casename =
     <:xmllist< <p>check? $bool_checkbox ~name:casename ()$ <br/>
@@ -363,12 +366,13 @@ let create_form_bool casename =
 
 let form_bool = Eliom_registration.Html5.register_service ["formbool"] unit
   (fun () () ->
+     let module Html5 = Html5.D in
      let f = get_form bool_params create_form_bool in
      Lwt.return
-     << <html>
-          <head><title></title></head>
-          <body> $f$ </body>
-        </html> ~>>)
+       << <html>
+            <head><title></title></head>
+            <body> $f$ </body>
+          </html> ~>>)
 
 
 >>
@@ -407,6 +411,7 @@ Example:
     ~path:["set"]
     ~get_params:(set string "s")
   (fun l () ->
+    let module Html5 = Html5.D in
     let ll =
       List.map
         (fun s -> << <strong>$str:s$ </strong> ~>>) l
@@ -525,16 +530,17 @@ Here is an example of clickable image.
     ~path:["coord"]
     ~get_params:(coordinates "coord")
   (fun c () ->
+    let module Html5 = Html5.D in
     Lwt.return
-  << <html>
-       <head><title></title></head>
-       <body>
-       <p>
-         You clicked on coordinates:
-         ($str:(string_of_int c.abscissa)$, $str:(string_of_int c.ordinate)$)
-       </p>
-       </body>
-     </html> ~>>)
+      << <html>
+           <head><title></title></head>
+           <body>
+           <p>
+             You clicked on coordinates:
+             ($str:(string_of_int c.abscissa)$, $str:(string_of_int c.ordinate)$)
+           </p>
+           </body>
+         </html> ~>>)
 
 (* form to image *)
 let imageform = Eliom_registration.Html5.register_service
@@ -562,16 +568,17 @@ You may also send a value with the coordinates:
     ~path:["coord2"]
     ~get_params:(int_coordinates "coord")
   (fun (i, c) () ->
+    let module Html5 = Html5.D in
     Lwt.return
-  << <html>
-       <head><title></title></head>
-       <body>
-       <p>
-         You clicked on coordinates:
-         ($str:(string_of_int c.abscissa)$, $str:(string_of_int c.ordinate)$)
-       </p>
-       </body>
-     </html> ~>>)
+      << <html>
+           <head><title></title></head>
+           <body>
+           <p>
+             You clicked on coordinates:
+             ($str:(string_of_int c.abscissa)$, $str:(string_of_int c.ordinate)$)
+           </p>
+           </body>
+         </html> ~>>)
 
 (* form to image *)
 let imageform2 = Eliom_registration.Html5.register_service
@@ -609,6 +616,7 @@ let coucou_list = Eliom_registration.Html5.register_service
     ~path:["coucou"]
     ~get_params:(list "a" (string "str"))
   (fun l () ->
+    let module Html5 = Html5.D in
     let ll =
       List.map (fun s -> << <strong>$str:s$</strong> ~>>) l in
       Lwt.return
@@ -657,10 +665,10 @@ let listform = Eliom_registration.Html5.register_service ["listform"] unit
      let f = get_form coucou_list create_listform in
      let module Html5 = Eliom_content.Html5.D in
      Lwt.return
-      << <html>
-           <head><title></title></head>
-           <body> $f$ </body>
-         </html> ~>>)
+       << <html>
+            <head><title></title></head>
+            <body> $f$ </body>
+          </html> ~>>)
 
 >>
   
@@ -694,6 +702,7 @@ let create_suffixform ((suff, endsuff),i) =
 let suffixform = Eliom_registration.Html5.register_service ["suffixform"] unit
   (fun () () ->
      let f = get_form isuffix create_suffixform in
+     let module Html5 = Eliom_content.Html5.D in
      Lwt.return
       << <html>
            <head><title></title></head>
