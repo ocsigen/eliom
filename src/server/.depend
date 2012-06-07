@@ -51,6 +51,8 @@ eliom_content.cmx: eliom_service.cmx eliom_registration_base.cmx \
     eliom_content_core.cmx eliom_content.cmi
 eliom_content.cmi: eliom_service.cmi eliom_parameter.cmi eliom_lib.cmi \
     eliom_content_core.cmi
+eliom_cookie_base.cmo: eliom_lib.cmi
+eliom_cookie_base.cmx: eliom_lib.cmx
 eliom_cookie.cmo: eliom_lib.cmi eliom_cookie.cmi
 eliom_cookie.cmx: eliom_lib.cmx eliom_cookie.cmi
 eliom_cookie.cmi: eliom_lib.cmi

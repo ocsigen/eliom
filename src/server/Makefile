@@ -43,7 +43,7 @@ eliom_duce_sigs.mli:: eliom_duce_sigs.mlp sigs/eliom_reg.mli sigs/eliom_reg_simp
 FILES := eliom_wrap.ml eliom_lazy.ml \
          eliom_lib_base.ml eliom_lib.ml \
 	 eliom_content_core.ml \
-	 eliom_cookie.ml \
+	 eliom_cookies_base.ml \
 	 eliom_common_base.ml eliom_common.ml \
 	 eliom_request_info.ml \
 	 private/eliommod_sessiongroups.ml \
