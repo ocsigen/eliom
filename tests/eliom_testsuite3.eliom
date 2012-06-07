@@ -797,7 +797,7 @@ let comet1 =
     ~path:["comet1"]
     ~get_params:unit
     (fun () () ->
-       let c1 = Eliom_comet.Channels.create (Lwt_stream.clone stream1) in
+       let c1 = Eliom_comet.Channel.create (Lwt_stream.clone stream1) in
 
        let tick2 =
          let i = ref 0 in
@@ -806,7 +806,7 @@ let comet1 =
            incr i; Lwt.return (Some !i)
        in
        let stream2 = Lwt_stream.from tick2 in
-       let c2 = Eliom_comet.Channels.create stream2 in
+       let c2 = Eliom_comet.Channel.create stream2 in
 
        Eliom_service.onload
          {{
@@ -841,7 +841,7 @@ let caml_wrapping_service =
   Eliom_output.Caml.register_post_coservice'
     ~post_params:(Eliom_parameter.unit)
     (fun () () -> Lwt.return
-      (Eliom_comet.Channels.create (Lwt_stream.clone stream1)))
+      (Eliom_comet.Channel.create (Lwt_stream.clone stream1)))
 
 let keep_ref v t =
   ignore (lwt () = Lwt_unix.sleep t in
@@ -852,7 +852,7 @@ let global_channel_wrapping_service =
   Eliom_output.Caml.register_post_coservice'
     ~post_params:(Eliom_parameter.unit)
     (fun () () ->
-      let channel = Eliom_comet.Channels.create ~scope:`Site
+      let channel = Eliom_comet.Channel.create ~scope:`Site
         (Lwt_stream.clone stream1) in
       keep_ref channel 3.;
       Lwt.return channel)
@@ -1010,7 +1010,7 @@ let comet_wrapping =
       let node = HTML5.DOM.div [pcdata "node created on server side"] in
       let service_stream,push_service = Lwt_stream.create () in
       push_service (Some Eliom_testsuite1.coucou);
-      let c_service = Eliom_comet.Channels.create service_stream in
+      let c_service = Eliom_comet.Channel.create service_stream in
       let xml_stream,push_xml = Lwt_stream.create () in
       push_xml (Some (div [pcdata "basic xml wrapping";node]));
       push_xml (Some
@@ -1021,7 +1021,7 @@ let comet_wrapping =
                            [pcdata "xml internal link wrapping"] ();
                         br ();
                         pcdata "this link must not stop the process! (same random number in the container)."]));
-      let c_xml = Eliom_comet.Channels.create xml_stream in
+      let c_xml = Eliom_comet.Channel.create xml_stream in
       let div_link = HTML5.DOM.div [] in
 
       Eliom_service.onload
@@ -1149,7 +1149,7 @@ let _ =
 let message_board_callback () =
   Eliom_bus.write message_bus "a user joined in";
   let _ =
-    lwt () = Eliom_comet.Channels.wait_timeout ~scope:Eliom_common.client_process 1. in
+    lwt () = Eliom_comet.Channel.wait_timeout ~scope:Eliom_common.client_process 1. in
     Eliom_bus.write message_bus "a user went away";
     Lwt.return ()
   in ()
@@ -1222,10 +1222,10 @@ let rand_tick =
     Lwt_unix.sleep (float_of_int (2 + (Random.int 2))) >>= fun () ->
     incr i; Lwt.return (Some !i)
 let stream_sl = Lwt_stream.from rand_tick
-let stateless_channel = Eliom_comet.Channels.create ~scope:`Site ~name:"stateless" stream_sl
-let _ = Eliom_comet.Channels.get_wrapped stateless_channel
-let external_stateless_channel : int Eliom_comet.Channels.t =
-  Eliom_comet.Channels.external_channel
+let stateless_channel = Eliom_comet.Channel.create ~scope:`Site ~name:"stateless" stream_sl
+let _ = Eliom_comet.Channel.get_wrapped stateless_channel
+let external_stateless_channel : int Eliom_comet.Channel.t =
+  Eliom_comet.Channel.external_channel
     ~prefix:"http://localhost:8080"
     ~name:"stateless"
     ()
