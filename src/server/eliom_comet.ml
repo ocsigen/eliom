@@ -280,7 +280,7 @@ struct
 end
 
 module Stateful :
-(** String channels on wich is build the module Channels *)
+(** String channels on wich is build the module Channel *)
 sig
 
   type t
@@ -629,7 +629,7 @@ end = struct
 end
 
 
-module Channels :
+module Channel :
 sig
 
   type 'a t

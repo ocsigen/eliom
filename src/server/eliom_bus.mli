@@ -35,9 +35,9 @@ type 'a t
     of channel on which the bus rely (See [Eliom_comet.create] for
     more information). The [?name] argument allow one to make bus's
     persistent over server restart. The [size] argument behaves like
-    the one on {!Eliom_comet.Channels.create} *)
+    the one on {!Eliom_comet.Channel.create} *)
 val create :
-  ?scope:[< Eliom_comet.Channels.comet_scope ] -> ?name:string -> ?size:int
+  ?scope:[< Eliom_comet.Channel.comet_scope ] -> ?name:string -> ?size:int
   -> 'a Deriving_Json.t
   -> 'a t
 

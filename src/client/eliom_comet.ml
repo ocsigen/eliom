@@ -670,7 +670,7 @@ let is_active () =
   ( Hashtbl.fold f stateless_handler_table true )
   && ( Hashtbl.fold f stateful_handler_table true )
 
-module Channels =
+module Channel =
 struct
   type 'a t = 'a Lwt_stream.t
 end

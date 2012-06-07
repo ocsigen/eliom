@@ -31,7 +31,7 @@ struct
        react: 'a E.t;
        name: string option;}
 
-  type 'a stateless = 'a Eliom_comet.Channels.t
+  type 'a stateless = 'a Eliom_comet.Channel.t
 
   type 'a t' =
     | Statefull of 'a statefull
@@ -52,7 +52,7 @@ struct
         | Some t -> E.limit (fun () -> Lwt_unix.sleep t) e)
     in
     let stream = E.to_stream ee in
-    let channel = Eliom_comet.Channels.create ?scope ?name stream in
+    let channel = Eliom_comet.Channel.create ?scope ?name stream in
     (channel,Eliom_common.make_unwrapper Eliom_common.react_down_unwrap_id)
 
   let wrap_stateless channel =
@@ -79,7 +79,7 @@ struct
     in
     let stream = E.to_stream ee in
     Stateless
-      (Eliom_comet.Channels.create ~scope:`Site ?name stream)
+      (Eliom_comet.Channel.create ~scope:`Site ?name stream)
 
   let of_react
       ?scope ?throttling ?name (e : 'a E.t) =
@@ -151,7 +151,7 @@ struct
          name: string option;}
 
     type 'a stateless =
-	{channel: 'a Eliom_comet.Channels.t;
+	{channel: 'a Eliom_comet.Channel.t;
 	 stream: 'a Lwt_stream.t; (* avoid garbage collection *)
 	 sl_signal: 'a S.t}
 
@@ -213,7 +213,7 @@ struct
       in
       let store = make_store s in
       let stream = Lwt_stream.from (read_store store) in
-      let channel = Eliom_comet.Channels.create_unlimited ?scope ?name stream in
+      let channel = Eliom_comet.Channel.create_unlimited ?scope ?name stream in
       let value : 'a = S.value s in
       (channel,value,Eliom_common.make_unwrapper Eliom_common.signal_down_unwrap_id)
 
@@ -228,7 +228,7 @@ struct
       in
       let store = make_store s in
       let stream = Lwt_stream.from (read_store store) in
-      let channel = Eliom_comet.Channels.create_unlimited ?name stream in
+      let channel = Eliom_comet.Channel.create_unlimited ?name stream in
       let value : 'a = S.value s in
       (channel,value,Eliom_common.make_unwrapper Eliom_common.signal_down_unwrap_id)
 
@@ -261,7 +261,7 @@ struct
       let e = S.changes s in
       let stream = E.to_stream e in
       Stateless
-	{channel = Eliom_comet.Channels.create_newest ?name stream;
+	{channel = Eliom_comet.Channel.create_newest ?name stream;
 	 stream;
 	 sl_signal = s}
 

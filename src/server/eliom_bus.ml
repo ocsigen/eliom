@@ -22,9 +22,9 @@ module Ecb = Eliom_comet_base
 
 type 'a t = {
   stream   : 'a Lwt_stream.t;
-  scope    : Eliom_comet.Channels.comet_scope;
+  scope    : Eliom_comet.Channel.comet_scope;
   name     : string option;
-  channel  : 'a Eliom_comet.Channels.t option;
+  channel  : 'a Eliom_comet.Channel.t option;
   write    : ('a -> unit);
   service  : 'a Ecb.bus_send_service;
   service_registered : bool Eliom_state.volatile_table option;
@@ -43,7 +43,7 @@ let internal_wrap (bus: 'a t) : 'a Ecb.wrapped_bus * Eliom_common.unwrapper =
   let channel =
     match bus.channel with
       | None ->
-	Eliom_comet.Channels.create ~scope:bus.scope ?name:bus.name ?size:bus.size
+	Eliom_comet.Channel.create ~scope:bus.scope ?name:bus.name ?size:bus.size
 	  (Lwt_stream.clone bus.stream)
       | Some c -> c
   in
@@ -61,7 +61,7 @@ let internal_wrap (bus: 'a t) : 'a Ecb.wrapped_bus * Eliom_common.unwrapper =
 	      bus.write;
 	    Eliom_state.set_volatile_data ~table true
   end;
-  ( ( Eliom_comet.Channels.get_wrapped channel,
+  ( ( Eliom_comet.Channel.get_wrapped channel,
       bus.service ),
     Eliom_common.make_unwrapper Eliom_common.bus_unwrap_id )
 
@@ -92,7 +92,7 @@ let create ?scope ?name ?size typ =
   let channel =
     match scope with
       | `Site ->
-	Some (Eliom_comet.Channels.create ~scope ?name ?size
+	Some (Eliom_comet.Channel.create ~scope ?name ?size
 		(Lwt_stream.clone stream))
       | `Client_process _ -> None
   in

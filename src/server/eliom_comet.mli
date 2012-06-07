@@ -23,7 +23,7 @@
 
 
 (** Basic primitives needed for server push. *)
-module Channels : sig
+module Channel : sig
 
   (** [v t] is the type of server-to-client communication channels
       transporting data of type [v] *)

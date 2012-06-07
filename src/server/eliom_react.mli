@@ -48,7 +48,7 @@ module Down : sig
       for the limit to event propagation rate, [name] for named edges. [scope]
       tell which kind of channel this rely on (See [Eliom_comet.create]). *)
   val of_react :
-    ?scope:[<Eliom_comet.Channels.comet_scope]
+    ?scope:[<Eliom_comet.Channel.comet_scope]
     -> ?throttling:float
     -> ?name:string
     -> 'a React.E.t
@@ -97,7 +97,7 @@ module S : sig
     type 'a t
 
     val of_react :
-      ?scope:[<Eliom_comet.Channels.comet_scope]
+      ?scope:[<Eliom_comet.Channel.comet_scope]
       -> ?throttling:float
       -> ?name:string
       -> 'a React.S.t

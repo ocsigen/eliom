@@ -100,7 +100,7 @@ sig
 
 end
 
-module Channels :
+module Channel :
 sig
   type 'a t = 'a Lwt_stream.t
 end

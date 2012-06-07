@@ -96,3 +96,4 @@ module Eliom_extensions = Eliom_extension
 module Eliom_parameters = Eliom_parameter
 module Eliom_references = Eliom_reference
 module Eliom_services = Eliom_service
+module Eliom_cookies = Eliom_cookie

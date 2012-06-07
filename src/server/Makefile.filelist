@@ -2,7 +2,7 @@
 INTF := eliom_lib.cmi               \
         eliom_content_core.cmi      \
         eliom_content.cmi           \
-        eliom_cookies.cmi           \
+        eliom_cookie.cmi             \
         eliom_common.cmi            \
         eliom_types.cmi             \
         eliom_parameter.cmi         \
