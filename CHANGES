@@ -1,3 +1,10 @@
+
+===== 2.2.1 (2012-06-07) =====
+
+Addendum to the great renaming
+ * Eliom_cookies -> Eliom_cookie
+ * Eliom_comet.Channels -> Eliom_comet.Channel
+
 ===== 2.2 (2012-06-02) =====
 
  The great renaming: Make Eliom's API more coherent
