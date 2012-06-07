@@ -1,6 +1,7 @@
 = Eliom -- API reference
 
-{{site:downloads/files/cheatsheet.png}}
+[[wiki:mindmap.pdf|A mindmap to get an overview on the most important modules of Eliom]]
+<<| in /var/www/data/site-ocsimore/eliom >>
 
 <<a_api subproject="server" text="Server" | intro >>
 
