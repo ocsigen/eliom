@@ -1,3 +1,6 @@
+===== 2.2.2 (2012-06-11) =====
+
+ * Fix (re-disable) generation of API doc for ocamlduce modules
 
 ===== 2.2.1 (2012-06-07) =====
 
