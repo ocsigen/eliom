@@ -184,22 +184,19 @@ Custom data may be created either from string-conversation functions by <<a_api 
 Eliom_content.Html5.Custom_data.create>>
 
 <<code language="ocaml"|
-    open Eliom_content
-    type my_int_data =
-      Html5.Custom_data.create ~name:"my_int" ~of_string:int_of_string ~to_string:string_of_int ()
+open Eliom_content
+type my_int_data =
+  Html5.Custom_data.create ~name:"my_int" ~of_string:int_of_string ~to_string:string_of_int ()
 >>
 
 or by a Json-deriving type <<a_api project="eliom" | val Eliom_content.Html5.Custom_data.create_json>>
 
 <<code language="ocaml"|
-  {shared{
-
-    type coord = { x : int; y : int; } deriving (Json)
-
-    let coord_data =
-      Html5.Custom_data.create_json ~name:"coord" Json.t<coord>
-  }}
->>
+{shared{
+  type coord = { x : int; y : int; } deriving (Json)
+  let coord_data =
+    Html5.Custom_data.create_json ~name:"coord" Json.t<coord>
+}} >>
 
 ==== Injecting ====
 Custom data can be injected into HTML5-trees of type <<a_api
@@ -228,23 +225,21 @@ The custom data of a DOM-element can be set with the function
 
 <<code language="ocaml"|
   {client{
-
     fun (div : Dom_html.element Js.t) ->
       let i = Html5.Custom_data.get_dom div coord_data in
       debug "{x=%d; y=%d}" i.x i.y;
       Html5.Custom_data.set_dom div coord_data { x = i.x + 1; y = i.y - 1 }
-
   }}
 >>
 
 ==== Default value ====
 If a custom data is created with the optional argument ##default##, calls to
-{% <<a_api project="eliom" subproject="client" | val
-Eliom_content.Html5.Custom_data.get_dom>> %} return that instead of throwing an
+<<a_api project="eliom" subproject="client" | val
+Eliom_content.Html5.Custom_data.get_dom>> return that instead of throwing an
 exception [Not_found].
 
 <<code language="ocaml"|
-    let coord_data' =
-      Html5.Custom_data.create_json ~name:"coord" default:{x=0;y=0;} Json.t<my_data>
+  let coord_data' =
+    Html5.Custom_data.create_json ~name:"coord" default:{x=0;y=0;} Json.t<my_data>
 >>
 

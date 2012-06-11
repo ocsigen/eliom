@@ -284,8 +284,8 @@ module Html5 : sig
     val string_of_id : 'a id -> string
   end
 
-  (** Type-safe custom data for HTML5. See the <<a_manual chapter="html"
-      fragment="custom_data" | examples in the manual>> *)
+  (** Type-safe custom data for HTML5. See the {% <<a_manual chapter="html"
+      fragment="custom_data"|examples in the manual>> %} *)
   module Custom_data : sig
 
     (** Custom data with values of type ['a]. *)
@@ -305,7 +305,8 @@ module Html5 : sig
         ({% <<a_api | type Eliom_content.Html5.elt >> %}). *)
     val attrib : 'a t -> 'a -> [> | `User_data ] attrib
 
-    (** [get_dom element custom_data] gets the [custom_data] from a JavaScript [element].
+    (** [get_dom element custom_data] gets the [custom_data] from a JavaScript [element]
+        ({% <<a_api project="js_of_ocaml"|class type Dom_html.element>> %}).
         @return The value encoded in the respective custom data attribute of [element], or the default value, if any.
         @raise Not_found if the element does not contain the respective custom
           data attribute and the [custom_data] was created without [default].
@@ -313,7 +314,9 @@ module Html5 : sig
     val get_dom : Dom_html.element Js.t -> 'a t -> 'a
 
     (** [set_dom element custom_data value] sets the custom data attribute for
-        [custom_data] of an JavaScript [element] to [value]. *)
+        [custom_data] of an JavaScript [element]
+        ({% <<a_api project="js_of_ocaml"|class type Dom_html.element>> %})
+        to [value]. *)
     val set_dom : Dom_html.element Js.t -> 'a t -> 'a -> unit
   end
 

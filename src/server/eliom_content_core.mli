@@ -258,8 +258,8 @@ module Html5 : sig
     val have_id: 'a id -> 'b elt -> bool
   end
 
-  (** Type-safe custom data for HTML5. See the <<a_manual chapter="html"
-      fragment="custom_data" | examples in the manual>> *)
+  (** Type-safe custom data for HTML5. See the {% <<a_manual chapter="html"
+      fragment="custom_data"|examples in the manual>> %} *)
   module Custom_data : sig
 
     (** Custom data with values of type ['a]. *)
