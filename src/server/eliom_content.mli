@@ -116,6 +116,10 @@ module Html5 : sig
 
   (** Node identifiers *)
   module Id : module type of Eliom_content_core.Html5.Id
+                               with type +'a id = 'a Eliom_content_core.Html5.Id.id
+
+  module Custom_data : module type of Eliom_content_core.Html5.Custom_data
+                                        with type 'a t = 'a Eliom_content_core.Html5.Custom_data.t
 
   module Printer : module type of Eliom_content_core.Html5.Printer
 

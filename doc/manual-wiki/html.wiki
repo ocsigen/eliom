@@ -174,3 +174,77 @@ containing your pages. Here is an example:
          "</html>"))
 >>
 
+===@@id="custom_data"@@Custom data for HTML5===
+
+Eliom provides a type-safe interface for using HTML5's custom data, <<a_api project="eliom" | module
+Eliom_content.Html5.Custom_data>>.
+
+==== Creation ====
+Custom data may be created either from string-conversation functions by <<a_api project="eliom" | val
+Eliom_content.Html5.Custom_data.create>>
+
+<<code language="ocaml"|
+    open Eliom_content
+    type my_int_data =
+      Html5.Custom_data.create ~name:"my_int" ~of_string:int_of_string ~to_string:string_of_int ()
+>>
+
+or by a Json-deriving type <<a_api project="eliom" | val Eliom_content.Html5.Custom_data.create_json>>
+
+<<code language="ocaml"|
+  {shared{
+
+    type coord = { x : int; y : int; } deriving (Json)
+
+    let coord_data =
+      Html5.Custom_data.create_json ~name:"coord" Json.t<coord>
+  }}
+>>
+
+==== Injecting ====
+Custom data can be injected into HTML5-trees of type <<a_api
+project="eliom"|type Eliom_content.Html5.elt>> by the function <<a_api
+project="eliom"|val Eliom_content.Html5.Custom_data.attrib>>:
+
+<<code language="ocaml"|
+  div ~a:[Html5.Custom_data.attrib coord_data {x = 100; y = 200}] []
+>>
+
+NB, HTML5 gives no restriction on the usage of custom data, any custom data can
+may be added to //any// HTML5 element.
+
+==== Reading/writing the DOM ====
+On the client side, custom data can be read from and written to JavaScript DOM
+elements of type <<a_api project="js_of_ocaml"|class type Dom_html.element>>.
+
+Custom data can be read from a DOM-element with the function
+<<a_api project="eliom" subproject="client"|val Eliom_content.Html5.Custom_data.get_dom>>.
+If no respective custom data attribute can be found in the element
+ * the ##default## value from creating the custom data is returned, if any, or
+ * an exception ##Not_found## is raised, otherwise.
+
+The custom data of a DOM-element can be set with the function
+<<a_api project="eliom" subproject="client"|val Eliom_content.Html5.Custom_data.set_dom>>.
+
+<<code language="ocaml"|
+  {client{
+
+    fun (div : Dom_html.element Js.t) ->
+      let i = Html5.Custom_data.get_dom div coord_data in
+      debug "{x=%d; y=%d}" i.x i.y;
+      Html5.Custom_data.set_dom div coord_data { x = i.x + 1; y = i.y - 1 }
+
+  }}
+>>
+
+==== Default value ====
+If a custom data is created with the optional argument ##default##, calls to
+{% <<a_api project="eliom" subproject="client" | val
+Eliom_content.Html5.Custom_data.get_dom>> %} return that instead of throwing an
+exception [Not_found].
+
+<<code language="ocaml"|
+    let coord_data' =
+      Html5.Custom_data.create_json ~name:"coord" default:{x=0;y=0;} Json.t<my_data>
+>>
+

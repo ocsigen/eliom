@@ -82,6 +82,10 @@ module Html5 : sig
 
   (** Node identifiers *)
   module Id : module type of Eliom_content_core.Html5.Id
+                               with type +'a id = 'a Eliom_content_core.Html5.Id.id
+
+  module Custom_data : module type of Eliom_content_core.Html5.Custom_data
+                                        with type 'a t = 'a Eliom_content_core.Html5.Custom_data.t
 
   (** Conversion from HTML5 [elt]s to Javascript DOM elements ([<:] {% <<a_api
       project="js_of_ocaml"| class Dom_html.element >> %}).
@@ -305,6 +309,11 @@ module Html5 : sig
     val childNodes: 'a elt -> Dom.node Js.t list
     val childElements: 'a elt -> Dom.element Js.t list
     (**/**)
+
+(*
+    val get_custom_data : _ elt -> 'a Custom_data.t -> 'a
+    val set_custom_data : _ elt -> 'a Custom_data.t -> 'a -> unit
+ *)
 
     (** Read the CSS properties of DOM elements. *)
     module Css : sig

@@ -53,6 +53,8 @@ module Html5 = struct
   type 'a attrib = 'a F.attrib
   type uri = F.uri
 
+  module Custom_data = Eliom_content_core.Html5.Custom_data
+
   module Of_dom = Eliom_content_core.Html5.Of_dom
 
   module To_dom = struct

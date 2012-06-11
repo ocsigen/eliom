@@ -258,6 +258,29 @@ module Html5 : sig
     val have_id: 'a id -> 'b elt -> bool
   end
 
+  (** Type-safe custom data for HTML5. See the <<a_manual chapter="html"
+      fragment="custom_data" | examples in the manual>> *)
+  module Custom_data : sig
+
+    (** Custom data with values of type ['a]. *)
+    type 'a t
+
+    (** Create a custom data field by providing string conversion functions.
+        If the [default] is provided, calls to {% <<a_api project="eliom" subproject="client" |
+        val Eliom_content.Html5.Custom_data.get_dom>> %} return that instead of throwing an
+        exception [Not_found].  *)
+    val create : name:string -> ?default:'a -> to_string:('a -> string) -> of_string:(string -> 'a) -> unit -> 'a t
+
+    (** Create a custom data from a Json-deriving type.  *)
+    val create_json : name:string -> ?default:'a -> 'a Deriving_Json.t -> 'a t
+
+    (** [attrib my_data value ] creates a HTML5 attribute for the custom-data
+        type [my_data] with value [value] for injecting it into an a HTML5 tree
+        ({% <<a_api | type Eliom_content.Html5.elt >> %}). *)
+    val attrib : 'a t -> 'a -> [> | `User_data ] attrib
+
+  end
+
   (** {{:http://dev.w3.org/html5/html-xhtml-author-guide/}"Polyglot"} HTML5 printer.
      See {% <<a_api project="tyxml" | module type Xml_sigs.Typed_simple_printer >> %}. *)
   module Printer : Xml_sigs.Typed_simple_printer with type 'a elt := 'a F.elt

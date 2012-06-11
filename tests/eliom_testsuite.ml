@@ -7,6 +7,7 @@ open Eliom_output.Html5
 open Eliom_testsuite1
 open Eliom_testsuite2
 open Eliom_testsuite3
+open Eliom_testsuite4
 
 (* Main page for the test suite *)
 let _ = Eliom_output.Html5.register Eliom_testsuite3.main
@@ -252,6 +253,9 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               br ();
 
               a Eliom_testsuite_site.reference_scope_site [pcdata "References of scope site"] ();
+              br ();
+
+              a custom_data [pcdata "Custom data"] ();
               br ();
             ];
 

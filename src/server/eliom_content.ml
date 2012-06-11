@@ -54,6 +54,8 @@ module Html5 = struct
     include Eliom_registration_base.Html5_forms.D
   end
 
+  module Custom_data = Eliom_content_core.Html5.Custom_data
+
   module Id = Html5.Id
 
   module Printer = Html5.Printer

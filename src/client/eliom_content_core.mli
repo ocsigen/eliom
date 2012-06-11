@@ -259,6 +259,7 @@ module Html5 : sig
 
   end
 
+
   (** Node identifiers *)
   module Id : sig
 
@@ -281,6 +282,39 @@ module Html5 : sig
 
     (**/**)
     val string_of_id : 'a id -> string
+  end
+
+  (** Type-safe custom data for HTML5. See the <<a_manual chapter="html"
+      fragment="custom_data" | examples in the manual>> *)
+  module Custom_data : sig
+
+    (** Custom data with values of type ['a]. *)
+    type 'a t
+
+    (** Create a custom data field by providing string conversion functions.
+        If the [default] is provided, calls to {% <<a_api project="eliom" subproject="client" |
+        val Eliom_content.Html5.Custom_data.get_dom>> %} return that instead of throwing an
+        exception [Not_found].  *)
+    val create : name:string -> ?default:'a -> to_string:('a -> string) -> of_string:(string -> 'a) -> unit -> 'a t
+
+    (** Create a custom data from a Json-deriving type.  *)
+    val create_json : name:string -> ?default:'a -> 'a Deriving_Json.t -> 'a t
+
+    (** [attrib my_data value ] creates a HTML5 attribute for the custom-data
+        type [my_data] with value [value] for injecting it into an a HTML5 tree
+        ({% <<a_api | type Eliom_content.Html5.elt >> %}). *)
+    val attrib : 'a t -> 'a -> [> | `User_data ] attrib
+
+    (** [get_dom element custom_data] gets the [custom_data] from a JavaScript [element].
+        @return The value encoded in the respective custom data attribute of [element], or the default value, if any.
+        @raise Not_found if the element does not contain the respective custom
+          data attribute and the [custom_data] was created without [default].
+      *)
+    val get_dom : Dom_html.element Js.t -> 'a t -> 'a
+
+    (** [set_dom element custom_data value] sets the custom data attribute for
+        [custom_data] of an JavaScript [element] to [value]. *)
+    val set_dom : Dom_html.element Js.t -> 'a t -> 'a -> unit
   end
 
   (** Conversion of Javascript DOM elements to HTML5 elts (with DOM semantics of course).

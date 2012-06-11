@@ -496,6 +496,27 @@ module Html5 = struct
     let have_id name elt = Xml.get_node_id (D.toelt elt) = Xml.ProcessId name
   end
 
+  module Custom_data = struct
+
+    type 'a t = {
+      name : string;
+      to_string : 'a -> string;
+      of_string : string -> 'a;
+      default : 'a option;
+    }
+
+    let create ~name ?default ~to_string ~of_string () =
+      { name ; of_string ; to_string; default }
+
+    let create_json ~name ?default typ =
+      { name ; of_string = of_json ~typ ; to_string = to_json ~typ; default }
+
+    let attrib custom_data value =
+      F.a_user_data
+        custom_data.name
+        (custom_data.to_string value)
+  end
+
   module Printer = Xml_print.Make_typed_simple(Xml)(F)
 
 end

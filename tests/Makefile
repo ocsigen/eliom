@@ -24,9 +24,11 @@ CLIENT_PACKAGE :=
 SERVER_FILES := eliom_testsuite1.ml    \
                 eliom_testsuite2.ml    \
 		eliom_testsuite3.eliom \
+		eliom_testsuite4.eliom \
 		eliom_testsuite.ml     \
 
 CLIENT_FILES := eliom_testsuite3.eliom \
+		eliom_testsuite4.eliom
 
 STATICDIR := ../local/var/www/tests
 
@@ -138,8 +140,8 @@ endif
 include .depend
 
 ## Dependencies towards *.eliom are not handled by eliomdep.
-eliom_testsuite.cmo: eliom_testsuite3.cmo
-eliom_testsuite.cmx: eliom_testsuite3.cmx
+eliom_testsuite.cmo: eliom_testsuite3.cmo eliom_testsuite4.cmo
+eliom_testsuite.cmx: eliom_testsuite3.cmx eliom_testsuite4.cmx
 
 ## TODO
 

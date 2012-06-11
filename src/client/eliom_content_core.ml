@@ -361,6 +361,44 @@ module Html5 = struct
     let string_of_id x = x
   end
 
+  module Custom_data = struct
+
+    type 'a t = {
+      name : string;
+      to_string : 'a -> string;
+      of_string : string -> 'a;
+      default : 'a option;
+    }
+
+    let create ~name ?default ~to_string ~of_string () =
+      { name ; of_string ; to_string; default }
+
+    let create_json ~name ?default typ =
+      { name ; of_string = of_json ~typ ; to_string = to_json ~typ; default }
+
+    let attrib custom_data value =
+      F.a_user_data
+        custom_data.name
+        (custom_data.to_string value)
+
+    let attribute_name name =
+      "data-"^name
+
+    let get_dom (element : Dom_html.element Js.t) custom_data =
+      Js.Opt.case
+        (element##getAttribute(Js.string (attribute_name custom_data.name)))
+        (fun () ->
+           match custom_data.default with
+             | Some value -> value
+             | None -> raise Not_found)
+        (fun str -> custom_data.of_string (Js.to_string str))
+
+    let set_dom element custom_data value =
+      element##setAttribute(Js.string (attribute_name custom_data.name),
+                            Js.string (custom_data.to_string value))
+
+  end
+
   module Of_dom = struct
     let rebuild_xml (node: 'a Js.t) : 'a F.elt =
       Obj.magic { Xml.elt = Xml.DomNode (node :> Dom.node Js.t); node_id = Xml.NoId }
