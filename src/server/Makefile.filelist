@@ -65,7 +65,7 @@ NOP4  := eliom_lib.mli \
          eliom_duce_tools.mli \
          eliom_duce_types.mli \
 
-DOC := ${subst .cmi,.mli, ${filter-out ${NO_MLI}, ${INTF}}} \
+DOC := ${subst .cmi,.mli, ${filter-out ${NO_MLI} ${DUCE_INTF}, ${INTF}}} \
        eliom_types_base.mli  \
        eliom_comet_base.mli  \
 
