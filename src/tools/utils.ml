@@ -146,17 +146,17 @@ let get_client_js () =
 
 (* Should be calld only with -dump... *)
 let get_pp_dump opt = match !pp with
-  | None -> (!camlp4, !ppopt @ get_common_syntax () @ opt)
+  | None -> (!camlp4, get_common_syntax () @ opt)
   | Some pp ->
       try
         ignore(String.index pp ' ');
         Printf.eprintf "Incompatible option: -pp and -dump\n%!";
         exit 1
-      with Not_found -> (pp, !ppopt @ get_common_syntax () @ opt)
+      with Not_found -> (pp, get_common_syntax () @ opt)
 
 let get_pp opt = match !pp with
-  | None -> String.concat " " (!camlp4 :: !ppopt @ get_common_syntax () @ opt)
-  | Some pp -> pp ^ " " ^ String.concat " " (!ppopt @ get_common_syntax () @ opt)
+  | None -> String.concat " " (!camlp4 :: get_common_syntax () @ opt)
+  | Some pp -> pp ^ " " ^ String.concat " " (get_common_syntax () @ opt)
 
 let get_thread_opt () = match !kind with
   | `Client -> []

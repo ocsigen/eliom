@@ -146,7 +146,7 @@ let compile_obj file =
 let compile_server_type_eliom file =
   if do_infer () then
     let obj = output_prefix ~ty:true file ^ type_file_suffix
-    and ppopt = ["pa_eliom_type_filter.cmo"; "-impl"] in
+    and ppopt = ["pa_eliom_type_filter.cmo"] @ !ppopt @ ["-impl"] in
     if !do_dump then begin
       let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopt @ [file]) in
       create_process camlp4 ppopt;
@@ -163,7 +163,7 @@ let compile_server_type_eliom file =
 let compile_server_eliom file =
   if do_compile () then
     let obj = output_prefix file ^ obj_ext ()
-    and ppopt = ["pa_eliom_client_server.cmo"; "-impl"] in
+    and ppopt = ["pa_eliom_client_server.cmo"] @ !ppopt @ ["-impl"] in
     if !do_dump then begin
       let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopt @ [file]) in
       create_process camlp4 ppopt;
@@ -178,8 +178,9 @@ let compile_server_eliom file =
 
 let compile_client_eliom file =
   let obj = output_prefix file ^ ".cmo" in
-  let ppopt = ["pa_eliom_client_client.cmo"; "-type" ;
-               get_type_file file; "-impl"] in
+  let ppopt =
+    ["pa_eliom_client_client.cmo"; "-type" ; get_type_file file]
+    @ !ppopt @ ["-impl"] in
   if !do_dump then begin
     let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopt @ [file]) in
     create_process camlp4 ppopt;

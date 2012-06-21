@@ -48,30 +48,30 @@ let execute ?(typ = false) name args = match !kind with
 
 let compile_intf file =
   create_filter
-    !compiler ( "-pp" :: get_pp [] :: !args
+    !compiler ( "-pp" :: get_pp !ppopt :: !args
 		@ ["-intf"; file] )
     filter_dir
 
 let compile_impl file =
   create_filter
-    !compiler ( "-pp" :: get_pp [] :: !args
+    !compiler ( "-pp" :: get_pp !ppopt :: !args
 		@ ["-impl"; file] )
     filter_dir
 
 let compile_server_eliom file =
-  let ppopt = ["pa_eliom_client_server.cmo"; "-impl"] in
+  let opt = ["pa_eliom_client_server.cmo"] @ !ppopt @ [ "-impl"] in
   create_filter
-    !compiler ( "-pp" :: get_pp ppopt :: !args
+    !compiler ( "-pp" :: get_pp opt :: !args
 		@ ["-impl"; file] )
     filter_dir;
-  let ppopt = ["pa_eliom_type_filter.cmo"; "-impl"] in
+  let opt = ["pa_eliom_type_filter.cmo"] @ !ppopt @ ["-impl"] in
   create_filter
-    !compiler ( "-pp" :: get_pp ppopt :: !args
+    !compiler ( "-pp" :: get_pp opt :: !args
 		@ ["-impl"; file] )
     filter_type
 
 let compile_client_eliom file =
-  let ppopt = ["pa_eliom_client_client.cmo"; "-notype"; "-impl"] in
+  let ppopt = ["pa_eliom_client_client.cmo"; "-notype"] @ !ppopt @ [ "-impl"] in
   create_filter !compiler ( "-pp" :: get_pp ppopt :: !args
 			     @ ["-impl"; file] ) filter_dir;
   let basename = chop_extension_if_any file in
