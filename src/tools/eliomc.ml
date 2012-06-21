@@ -36,7 +36,7 @@ let mode : [ `Link | `Compile | `InferOnly | `Library  | `Pack | `Obj | `Shared 
 
 let do_compile () = !mode <> `InferOnly
 let do_infer () = not !noinfer
-(* let do_dump = ref false *)
+let do_dump = ref false
 
 let create_process ?in_ ?out ?err name args =
   wait (create_process ?in_ ?out ?err name args)
@@ -123,7 +123,8 @@ let obj_ext () = if !kind = `ServerOpt then ".cmx" else ".cmo"
 let compile_intf file =
   if do_compile () then
     let obj = output_prefix file ^ ".cmi" in
-    create_process !compiler ( ["-c" ; "-o" ; obj ] @ get_pp [] @ !args
+    create_process !compiler ( ["-c" ; "-o" ; obj ; "-pp"; get_pp []]
+                               @ !args
 			       @ get_thread_opt ()
 			       @ get_common_include ()
 			       @ ["-intf"; file] )
@@ -131,7 +132,7 @@ let compile_intf file =
 let compile_impl file =
   if do_compile () then
     let obj = output_prefix file ^ obj_ext () in
-    create_process !compiler ( ["-c" ; "-o"  ; obj ] @ get_pp [] @ !args
+    create_process !compiler ( ["-c" ; "-o"  ; obj ; "-pp"; get_pp []] @ !args
 			       @ get_thread_opt ()
 			       @ get_common_include ()
 			       @ ["-impl"; file] );
@@ -144,11 +145,16 @@ let compile_obj file =
 
 let compile_server_type_eliom file =
   if do_infer () then
-    let obj = output_prefix ~ty:true file ^ type_file_suffix in
-    let ppopt = ["pa_eliom_type_filter.cmo"; "-impl"] in
-    let out = Unix.openfile obj [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC] 0o666 in
-    create_process ~out !compiler ( [ "-i" ; "-thread" ]
-				    @ get_pp ppopt
+    let obj = output_prefix ~ty:true file ^ type_file_suffix
+    and ppopt = ["pa_eliom_type_filter.cmo"; "-impl"] in
+    if !do_dump then begin
+      let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopt @ [file]) in
+      create_process camlp4 ppopt;
+      exit 0
+    end;
+    let out =
+      Unix.openfile obj [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC] 0o666 in
+    create_process ~out !compiler ( [ "-i" ; "-thread" ; "-pp"; get_pp ppopt]
 				    @ !args
 				    @ get_common_include ()
 				    @ ["-impl"; file] );
@@ -156,10 +162,15 @@ let compile_server_type_eliom file =
 
 let compile_server_eliom file =
   if do_compile () then
-    let obj = output_prefix file ^ obj_ext () in
-    let ppopt = ["pa_eliom_client_server.cmo"; "-impl"] in
-    create_process !compiler ( [ "-c" ; "-thread" ; "-o"  ; obj ]
-			       @ get_pp ppopt
+    let obj = output_prefix file ^ obj_ext ()
+    and ppopt = ["pa_eliom_client_server.cmo"; "-impl"] in
+    if !do_dump then begin
+      let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopt @ [file]) in
+      create_process camlp4 ppopt;
+      exit 0
+    end;
+    create_process !compiler ( [ "-c" ; "-thread" ; "-o"  ; obj ;
+                                 "-pp" ; get_pp ppopt ]
 			       @ !args
 			       @ get_common_include ()
 			       @ ["-impl"; file] );
@@ -167,12 +178,17 @@ let compile_server_eliom file =
 
 let compile_client_eliom file =
   let obj = output_prefix file ^ ".cmo" in
-  let ppopt = ["pa_eliom_client_client.cmo"; "-type" ; get_type_file file; "-impl"] in
-  create_process !compiler ( ["-c" ; "-o"  ; obj ]
-			     @ get_pp ppopt
+  let ppopt = ["pa_eliom_client_client.cmo"; "-type" ;
+               get_type_file file; "-impl"] in
+  if !do_dump then begin
+    let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopt @ [file]) in
+    create_process camlp4 ppopt;
+    exit 0
+  end;
+  create_process !compiler ( ["-c" ; "-o"  ; obj ; "-pp"; get_pp ppopt]
 			     @ !args
-			     @ get_common_include ()
-			     @ ["-impl"; file] );
+			       @ get_common_include ()
+			       @ ["-impl"; file] );
   args := !args @ [obj]
 
 let compile_eliom file = match !kind with
@@ -219,6 +235,9 @@ let rec process_option () =
       if !i+1 >= Array.length Sys.argv then usage ();
       output_name := Some Sys.argv.(!i+1);
       i := !i+2
+    | "-dump" ->
+      do_dump := not !do_dump;
+      i := !i+1
     | "-dir" ->
       if !i+1 >= Array.length Sys.argv then usage ();
       build_dir := Sys.argv.(!i+1);

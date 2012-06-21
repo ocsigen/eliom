@@ -72,6 +72,7 @@ let ocamldep = Findlib.command `ocamldep
 let js_of_ocaml = ref "js_of_ocaml"
 
 let compiler = ref ocamlc
+let camlp4 = ref "camlp4o"
 
 let ppopt : string list ref = ref []
 
@@ -143,9 +144,19 @@ let get_client_js () =
     Printf.eprintf "Unknown package: %s\n%!" name;
     exit 1
 
+(* Should be calld only with -dump... *)
+let get_pp_dump opt = match !pp with
+  | None -> (!camlp4, !ppopt @ get_common_syntax () @ opt)
+  | Some pp ->
+      try
+        ignore(String.index pp ' ');
+        Printf.eprintf "Incompatible option: -pp and -dump\n%!";
+        exit 1
+      with Not_found -> (pp, !ppopt @ get_common_syntax () @ opt)
+
 let get_pp opt = match !pp with
-  | None -> ["-pp"; String.concat " " ("camlp4" :: !ppopt @ get_common_syntax () @ opt)]
-  | Some pp -> ["-pp"; pp ^ " " ^ String.concat " " (!ppopt @ get_common_syntax () @ opt)]
+  | None -> String.concat " " (!camlp4 :: !ppopt @ get_common_syntax () @ opt)
+  | Some pp -> pp ^ " " ^ String.concat " " (!ppopt @ get_common_syntax () @ opt)
 
 let get_thread_opt () = match !kind with
   | `Client -> []
