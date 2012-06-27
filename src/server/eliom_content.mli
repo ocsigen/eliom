@@ -80,6 +80,13 @@ module Html5 : sig
   type +'a attrib = 'a Eliom_content_core.Html5.attrib
   type uri = Eliom_content_core.Html5.uri
 
+  (** ['a client_server_event_handler] is a synonym of the type of the arguments
+      for the constructors of event handler in {% <<a_api project="eliom" |
+      module Eliom_content_core.Html5.F >> %} {e on client- and on server-side}.
+      This is useful to annotate event handlers created through [{{ ... }}] inside
+      [{shared{ ... }}] section of an Eliom file. *)
+  type 'a client_server_event_handler = 'a Xml.caml_event_handler
+
   (** Creation of {e f}unctional HTML5 content (copy-able but not referable, cf.
       {!Eliom_content}). *)
   module F : sig

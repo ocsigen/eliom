@@ -72,20 +72,37 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let client_str_items items =
     let _loc = Loc.ghost in <:str_item< >>
 
-  let shared_str_items items =
+  let server_str_items items =
     Ast.stSem_of_list (flush_typing_strs () :: items)
 
-  let server_str_items = shared_str_items
+  let shared_str_items = server_str_items
 
-  let client_expr orig_expr gen_id gen_tid =
+  let client_expr context_level orig_expr gen_id gen_tid =
+    match context_level with
+      | Pa_eliom_seed.Server_item_context
+      | Pa_eliom_seed.Shared_item_context ->
+          let _loc = Ast.loc_of_expr orig_expr in
+          add_typing_str orig_expr gen_tid;
+          <:expr< begin
+            $flush_typing_expr ()$;
+            let ev = Eliom_content.Xml.event_handler_of_js 0L (Obj.magic ()) in
+            $lid:gen_tid$ := Some ev;
+            ev
+          end >>
+      | Pa_eliom_seed.Client_item_context ->
+          let _loc = Loc.ghost in
+          <:expr< >>
+
+  let escaped context_level orig_expr gen_id =
     let _loc = Ast.loc_of_expr orig_expr in
-    add_typing_str orig_expr gen_tid;
-    <:expr< begin $flush_typing_expr ()$; let ev = Eliom_content.Xml.event_handler_of_js 0L (Obj.magic ()) in $lid:gen_tid$ := Some ev; ev end >>
-
-  let escaped orig_expr gen_id =
-    add_typing_expr orig_expr gen_id;
-    add_typing_str orig_expr gen_id;
-    let _loc = Ast.loc_of_expr orig_expr in <:expr< () >>
+    match context_level with
+      | Pa_eliom_seed.Server_item_context
+      | Pa_eliom_seed.Shared_item_context ->
+          add_typing_expr orig_expr gen_id;
+          add_typing_str orig_expr gen_id;
+          <:expr< () >>
+      | Pa_eliom_seed.Client_item_context ->
+          <:expr< () >>
 
 end
 

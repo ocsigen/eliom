@@ -365,3 +365,12 @@ dl.blue {
   border: 2px solid #3860aa;
   padding: 0.5em;
 }
+
+.hidden_widget {
+  border: 1px solid #99ffaa;
+  margin: 1em;
+}
+
+.hidden_widget .overlay {
+  background-color: #aaa;
+}

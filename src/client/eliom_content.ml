@@ -50,6 +50,7 @@ module Html5 = struct
   type 'a elt = 'a F.elt
   type 'a attrib = 'a F.attrib
   type uri = F.uri
+  type 'a client_server_event_handler = 'a Js.t -> unit
 
   module Custom_data = Eliom_content_core.Html5.Custom_data
 

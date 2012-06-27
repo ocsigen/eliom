@@ -60,13 +60,24 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let client_str_items items = <:str_item< >>
 
-  let client_expr orig_expr gen_num _ =
-    let _loc =  Ast.loc_of_expr orig_expr in
-    closure_call _loc gen_num (flush_args _loc)
+  let client_expr context_level orig_expr gen_num _ =
+    match context_level with
+      | Pa_eliom_seed.Server_item_context
+      | Pa_eliom_seed.Shared_item_context ->
+          let _loc =  Ast.loc_of_expr orig_expr in
+          closure_call _loc gen_num (flush_args _loc)
+      | Pa_eliom_seed.Client_item_context ->
+          <:expr< >>
 
-  let escaped orig_expr gen_id =
-    push_arg orig_expr gen_id;
-    <:expr< >>
+  let escaped context_level orig_expr gen_id =
+    match context_level with
+      | Pa_eliom_seed.Server_item_context
+      | Pa_eliom_seed.Shared_item_context ->
+          push_arg orig_expr gen_id;
+          <:expr< >>
+      | Pa_eliom_seed.Client_item_context ->
+          <:expr< >>
+
 
 end
 

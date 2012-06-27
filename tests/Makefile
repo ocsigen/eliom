@@ -140,8 +140,10 @@ endif
 include .depend
 
 ## Dependencies towards *.eliom are not handled by eliomdep.
-eliom_testsuite.cmo: eliom_testsuite3.cmo eliom_testsuite4.cmo
-eliom_testsuite.cmx: eliom_testsuite3.cmx eliom_testsuite4.cmx
+_server/eliom_testsuite.cmo: _server/eliom_testsuite3.cmo _server/eliom_testsuite4.cmo
+_server/eliom_testsuite.cmx: _server/eliom_testsuite3.cmx _server/eliom_testsuite4.cmx
+_client/eliom_testsuite.cmo: _client/eliom_testsuite3.cmo _client/eliom_testsuite4.cmo
+_client/eliom_testsuite.cmx: _client/eliom_testsuite3.cmx _client/eliom_testsuite4.cmx
 
 ## TODO
 

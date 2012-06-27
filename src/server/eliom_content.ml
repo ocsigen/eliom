@@ -63,6 +63,7 @@ module Html5 = struct
   type +'a elt = 'a F.elt
   type 'a attrib = 'a F.attrib
   type uri = F.uri
+  type 'a client_server_event_handler = 'a Xml.caml_event_handler
 end
 
 module Xhtml = struct

@@ -431,6 +431,10 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               br ();
               a nlpost_entry [pcdata "Non localised parameters with forms in eliom appl"] ();
               br ();
+              a client_handler_syntax [pcdata "Event handler syntax inside shared- and client-section"] ();
+              br ();
+              a client_handler_syntax_2 [pcdata "An example for shared event handlers"] ();
+              br ();
             ];
             h4 [pcdata "Templates"];
             p [

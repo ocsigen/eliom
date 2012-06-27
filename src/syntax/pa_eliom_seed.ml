@@ -81,6 +81,11 @@ module type Helpers  = sig
 
 end
 
+type client_expr_context =
+  | Server_item_context
+  | Client_item_context
+  | Shared_item_context
+
 (** Signature of specific code of a preprocessor. *)
 
 module type Pass = functor (Helpers: Helpers) -> sig
@@ -97,10 +102,10 @@ module type Pass = functor (Helpers: Helpers) -> sig
   val client_str_items: Ast.str_item list -> Ast.str_item
 
   (** How to handle "{{ ... }}" expr. *)
-  val client_expr: Ast.expr -> Int64.t -> string -> Ast.expr
+  val client_expr: client_expr_context -> Ast.expr -> Int64.t -> string -> Ast.expr
 
   (** How to handle escaped "%ident" inside "{{ ... }}". *)
-  val escaped: Ast.expr -> string -> Ast.expr
+  val escaped: client_expr_context -> Ast.expr -> string -> Ast.expr
 
 end
 
@@ -279,8 +284,15 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       | Client_item
       | Shared_item
       | Module_expr
-      | Client_expr
+      | Client_expr of client_expr_context
       | Escaped_expr
+    (* [client_expr_context] captures where [client_expr]s are allowed. *)
+    let client_expr_context = function
+      | Server_item | Toplevel | Toplevel_module_expr -> Server_item_context
+      | Client_item -> Client_item_context
+      | Shared_item -> Shared_item_context
+      | Module_expr | Client_expr _ | Escaped_expr ->
+          failwith "client_expr_context"
     let current_level = ref Toplevel
 
     (* Identifiers for the closure representing "Client_expr". *)
@@ -354,26 +366,23 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 		    "The syntax {client{ ... }} is only allowed at toplevel"
 	 ]];
       dummy_set_level_client_expr:
-	[[ -> match !current_level with
-              | Server_item | Toplevel | Toplevel_module_expr ->
-		  reset_escaped_ident ();
-		  let old = !current_level in
-		  current_level := Client_expr;
-		  old
-              | _ ->
-		  Syntax_error.raise _loc
-		    "The syntax {{ ... }} is only allowed inside server specific code"
+	[[ -> reset_escaped_ident ();
+             let old = !current_level in
+             current_level := Client_expr (client_expr_context old);
+             old
 	 ]];
       dummy_check_level_escaped_ident:
 	[[ -> match !current_level with
-              | Client_expr -> ()
+              | Client_expr context -> context
               | _ ->
 		  Syntax_error.raise _loc
 		    "The syntax \"%ident\" is only allowed inside code expression {{ ... }}."
 	 ]];
       dummy_set_level_escaped_expr:
 	[[ -> match !current_level with
-              | Client_expr -> current_level := Escaped_expr
+              | Client_expr context ->
+                  current_level := Escaped_expr;
+                  context
               | _ ->
 		  Syntax_error.raise _loc
 		    "The syntax \"%ident\" is only allowed inside code expression {{ ... }}."
@@ -446,21 +455,20 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	[[ KEYWORD "{{" ; lvl = dummy_set_level_client_expr ;
            e = SELF ;
 	   KEYWORD "}}" ->
-
 	     current_level := lvl;
 	     let id = gen_closure_num _loc in
-	     Pass.client_expr e id (gen_closure_escaped_ident id)
+	     Pass.client_expr (client_expr_context lvl) e id (gen_closure_escaped_ident id)
 
-      | SYMBOL "%" ; id = ident ; dummy_check_level_escaped_ident ->
+      | SYMBOL "%" ; id = ident ; context = dummy_check_level_escaped_ident ->
 
-	  Pass.escaped <:expr< $id:id$ >> (gen_escaped_ident id)
+	  Pass.escaped context <:expr< $id:id$ >> (gen_escaped_ident id)
 
-      | SYMBOL "%" ; KEYWORD "(" ; dummy_set_level_escaped_expr ;
+      | SYMBOL "%" ; KEYWORD "(" ; context = dummy_set_level_escaped_expr ;
 	  e = SELF ;
 	  KEYWORD ")" ->
 
-	    current_level := Client_expr;
-	    Pass.escaped e (gen_escaped_expr_ident ())
+	    current_level := Client_expr context;
+	    Pass.escaped context e (gen_escaped_expr_ident ())
 
 	 ]];
 

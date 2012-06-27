@@ -47,21 +47,16 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 	   let _ev : $ty$ Js.t = Obj.magic _ev in ($orig_expr$ : unit)))
     >>
 
-  let arg_ids = ref []
-  let push_arg orig_expr gen_id =
+  let server_arg_ids = ref []
+  let push_server_arg orig_expr gen_id =
     let _loc = Ast.loc_of_expr orig_expr in
-    if not (List.mem gen_id !arg_ids) then
-      arg_ids := gen_id :: !arg_ids;
-    if !notyp then
-      <:expr< $lid:gen_id$ >>
-    else
-      let typ = Helpers.find_escaped_ident_type gen_id in
-      <:expr< ($lid:gen_id$ : $typ$) >>
+    if not (List.mem gen_id !server_arg_ids) then
+      server_arg_ids := gen_id :: !server_arg_ids
 
 
-  let flush_args _loc =
-    let res = !arg_ids in
-    arg_ids := [];
+  let flush_server_args _loc =
+    let res = !server_arg_ids in
+    server_arg_ids := [];
     match res with
     | [] -> <:patt< () >>
     | [id] -> <:patt< $lid:id$ >>
@@ -69,12 +64,27 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 	let res = List.rev_map (fun id -> <:patt< $lid:id$ >>) res in
 	<:patt< $tup:Ast.paCom_of_list res$ >>
 
+  let client_arg_ids = ref []
+
+  let push_client_arg _loc orig_expr gen_id =
+    client_arg_ids := (_loc, orig_expr, gen_id) :: !client_arg_ids
+
+  let flush_client_args expr =
+    let res = !client_arg_ids in
+    client_arg_ids := [];
+    List.fold_right
+      (fun (_loc, orig_expr, gen_id) sofar ->
+         let binding = <:binding< $lid:gen_id$ = $orig_expr$ >> in
+         <:expr< let $binding$ in $sofar$ >>)
+      res expr
+
+
   let clos_collection = ref []
 
   let push_closure_registration orig_expr gen_id =
     let _loc = Ast.loc_of_expr orig_expr in
     clos_collection :=
-      <:str_item< let _ = $ register_closure gen_id (flush_args _loc) orig_expr $ >>
+      <:str_item< let _ = $ register_closure gen_id (flush_server_args _loc) orig_expr $ >>
       :: !clos_collection
 
   let flush_closure_registrations () =
@@ -84,20 +94,48 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   (** Syntax extension *)
 
-  let _loc = Ast.Loc.ghost
-
   let shared_str_items items = Ast.stSem_of_list items
   let client_str_items items = Ast.stSem_of_list items
 
   let server_str_items items =
     Ast.stSem_of_list (flush_closure_registrations ())
 
-  let client_expr orig_expr gen_num gen_tid =
-    push_closure_registration orig_expr gen_num;
-    <:expr< "" >>
+  let client_expr context_level orig_expr gen_num gen_tid =
+    if context_level = Pa_eliom_seed.Server_item_context ||
+       context_level = Pa_eliom_seed.Shared_item_context
+    then
+      push_closure_registration orig_expr gen_num;
 
-  let escaped orig_expr gen_id =
-    push_arg orig_expr gen_id
+    let _loc = Ast.loc_of_expr orig_expr in
+    match context_level with
+      | Pa_eliom_seed.Server_item_context ->
+          <:expr< "" >>
+      | Pa_eliom_seed.Client_item_context
+      | Pa_eliom_seed.Shared_item_context ->
+          <:expr< fun _ev -> $flush_client_args orig_expr$ >>
+
+  let escaped context_level orig_expr gen_id =
+    if context_level = Pa_eliom_seed.Server_item_context ||
+       context_level = Pa_eliom_seed.Shared_item_context
+    then
+      push_server_arg orig_expr gen_id;
+    if context_level = Pa_eliom_seed.Client_item_context ||
+       context_level = Pa_eliom_seed.Shared_item_context
+    then
+      push_client_arg (Ast.loc_of_expr orig_expr) orig_expr gen_id;
+
+    let _loc = Ast.loc_of_expr orig_expr in
+    match context_level with
+       | Pa_eliom_seed.Server_item_context
+       | Pa_eliom_seed.Shared_item_context ->
+          if !notyp then
+            <:expr< $lid:gen_id$ >>
+          else
+            let typ = Helpers.find_escaped_ident_type gen_id in
+            <:expr< ($lid:gen_id$ : $typ$) >>
+      | Pa_eliom_seed.Client_item_context ->
+          <:expr< $lid:gen_id$ >>
+
 
 end
 
