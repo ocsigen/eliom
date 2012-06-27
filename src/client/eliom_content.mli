@@ -81,8 +81,14 @@ module Html5 : sig
   end
 
   (** Node identifiers *)
-  module Id : module type of Eliom_content_core.Html5.Id
-                               with type +'a id = 'a Eliom_content_core.Html5.Id.id
+  module Id : sig
+    include module type of Eliom_content_core.Html5.Id
+                             with type +'a id = 'a Eliom_content_core.Html5.Id.id
+
+    (** [get_element id] returns the HTML element in the DOM with the given [id].
+        @raises Not_found if the [id] was no such element. *)
+    val get_element : 'a id -> 'a elt
+  end
 
   module Custom_data : module type of Eliom_content_core.Html5.Custom_data
                                         with type 'a t = 'a Eliom_content_core.Html5.Custom_data.t

@@ -259,7 +259,7 @@ module Html5 : sig
   end
 
   (** Type-safe custom data for HTML5. See the {% <<a_manual chapter="html"
-      fragment="custom_data"|examples in the manual>> %} *)
+      fragment="custom_data"|examples in the manual>> %}. *)
   module Custom_data : sig
 
     (** Custom data with values of type ['a]. *)

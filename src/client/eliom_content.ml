@@ -47,8 +47,6 @@ module Html5 = struct
     include Eliom_registration_base.Html5_forms.D
   end
 
-  module Id = Html5.Id
-
   type 'a elt = 'a F.elt
   type 'a attrib = 'a F.attrib
   type uri = F.uri
@@ -188,6 +186,22 @@ module Html5 = struct
     let of_pcdata = rebuild_node
   end
 
+  module Id = struct
+
+    include Html5.Id
+
+    let get_element' id =
+      let id = string_of_id id in
+      let node = Eliom_client.getElementById id in
+      Js.Opt.case
+        (Dom_html.CoerceTo.element node)
+        (fun () -> failwith (Printf.sprintf "Non element node (%s)" id))
+        (fun x -> x)
+
+    let get_element id =
+      Of_dom.of_element (get_element' id)
+  end
+
   module Manip = struct
     let get_node elt = (To_dom.of_element elt :> Dom.node Js.t)
     let get_unique_node name (elt: 'a Html5.elt) : Dom.node Js.t =
@@ -287,40 +301,33 @@ module Html5 = struct
       raw_addEventListener ?capture node event handler
 
     module Named = struct
-      let get_element id =
-        let id = Html5.Id.string_of_id id in
-        let node = Eliom_client.getElementById id in
-        Js.Opt.case
-          (Dom_html.CoerceTo.element node)
-          (fun () -> failwith (Printf.sprintf "Non element node (%s)" id))
-          (fun x -> x)
 
       let appendChild ?before id1 elt2 =
-        let node = get_element id1 in
+        let node = Id.get_element' id1 in
         raw_appendChild ?before node elt2
 
       let appendChilds ?before id1 elts =
-        let node = get_element id1 in
+        let node = Id.get_element' id1 in
         raw_appendChilds ?before node elts
 
       let removeChild id1 elt2 =
-        let node1 = get_element id1 in
+        let node1 = Id.get_element' id1 in
         raw_removeChild node1 elt2
 
       let replaceChild id1 elt2 elt3 =
-        let node1 = get_element id1 in
+        let node1 = Id.get_element' id1 in
         raw_replaceChild node1 elt2 elt3
 
       let removeAllChild id =
-        let node = get_element id in
+        let node = Id.get_element' id in
         raw_removeAllChild node
 
       let replaceAllChild id elts =
-        let node = get_element id in
+        let node = Id.get_element' id in
         raw_replaceAllChild node elts
 
       let addEventListener ?capture id event handler =
-        let node = get_element id in
+        let node = Id.get_element' id in
         raw_addEventListener ?capture node event handler
 
     end
