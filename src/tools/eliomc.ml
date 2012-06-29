@@ -31,7 +31,7 @@ let jsopt : string list ref = ref []
 let output_name : string option ref = ref None
 let noinfer = ref false
 
-let mode : [ `Link | `Compile | `InferOnly | `Library  | `Pack | `Obj | `Shared ] ref =
+let mode : [ `Link | `Compile | `InferOnly | `Library  | `Pack | `Obj | `Shared | `Interface ] ref =
   ref `Link
 
 let do_compile () = !mode <> `InferOnly
@@ -128,6 +128,15 @@ let compile_intf file =
 			       @ get_common_include ()
 			       @ ["-intf"; file] )
 
+let compile_inter file =
+  if do_compile () then
+    let obj = output_prefix file ^ obj_ext () in
+    create_process !compiler ( ["-i"; "-pp"; get_pp []] @ !args
+                               @ get_thread_opt ()
+                               @ get_common_include ()
+                               @ [file] );
+    args := !args @ [obj]
+
 let compile_impl file =
   if do_compile () then
     let obj = output_prefix file ^ obj_ext () in
@@ -221,7 +230,7 @@ let rec process_option () =
   while !i < Array.length Sys.argv do
     match Sys.argv.(!i) with
     | "-help" | "--help" -> usage ()
-    | "-i" -> todo ()
+    | "-i" -> set_mode `Interface; incr i
     | "-c" -> set_mode `Compile; incr i
     | "-a" -> set_mode `Library; incr i
     | "-pack" -> set_mode `Pack; incr i
@@ -283,7 +292,10 @@ let rec process_option () =
     | arg when Filename.check_suffix arg ".mli" ->
       compile_intf arg; incr i
     | arg when Filename.check_suffix arg ".ml" ->
-      compile_impl arg; incr i
+      (match !mode with
+        | `Interface -> compile_inter arg
+        | _ -> compile_impl arg
+      ); incr i
     | arg when Filename.check_suffix arg ".eliom" ->
       compile_eliom ~mode:`Impl arg;
       incr i
@@ -301,7 +313,7 @@ let rec process_option () =
   | `Shared -> build_shared ()
   | `Link when !kind = `Client -> build_client ()
   | `Link (* Server and ServerOpt *) -> build_server ?name:(!output_name) ()
-  | `Compile | `InferOnly -> ()
+  | `Compile | `InferOnly | `Interface -> ()
 
 let main () =
   let k =
