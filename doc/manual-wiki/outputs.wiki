@@ -317,7 +317,7 @@ let change_option =
 
 In Eliom application, changing the current page does not do always the
 same thing. When going to a page inside the same application by
-clicking a link (or calling <<a_api project="eliom"
+clicking a link (or calling <<a_api
 subproject="client"| val Eliom_client.change_page>>) the client
 application perform a XmlHttpRequest and modify the displayed page
 according to the result. When going to content outside the

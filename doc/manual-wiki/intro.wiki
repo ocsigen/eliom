@@ -8,7 +8,7 @@ which is a good starting point for beginners.//
 
 In the past few years, the Web evolved from something quite static
 to a powerful platform, able to run very dynamic programs.
-Recent browsers make possible a very new kind of applications,
+Recent browsers make possible a very new kind of application,
 but most Web developers still use the same old Web frameworks
 that are not adapted to this evolution.
 
@@ -17,12 +17,17 @@ programming techniques.
 The goal of Eliom (and other projects of the Ocsigen framework)
 is to propose a new way to write
 traditional Web sites or sophisticated client/server Web applications.
-It simplifies the development of complex applications by:
+It simplifies the development of complex applications by :
 
-; providing high level expressive concepts
-: that fit very well the needs of Web developers. This allows to program complex behaviour in very few lines of code.
-; helping the programmer to write safe and bug free applications.
-: To improve security, it takes in charge itself many security issues. To reduce the number of bugs, it uses the very powerful typing system of the OCaml language to check many properties of the application at compile time: well formedness of HTML pages, types of page parameters, absence of broken links, etc.
+ * providing high level expressive concepts that fit very well the
+   needs of Web developers. This allows to program complex behaviour
+   in very few lines of code.
+ * helping the programmer to write safe and bug free applications.
+   To improve security, it takes in charge itself many security issues.
+   To reduce the number of bugs, it uses the very powerful typing system
+   of the OCaml language to check many properties of the application at
+   compile time: well formedness of HTML pages, types of page parameters,
+   absence of broken links, etc.
 
 Eliom does not restrict the possibilities offered by the technology.
 In particular, the programmer can choose exactly the URL and parameter
@@ -113,9 +118,9 @@ Client side code is compiled to Javascript, using the Js~_of~_ocaml
 compiler, to be executed by the browser.
 
 It is possible to use on client side values defined in server side code.
-Communication between the server and the client is taking in charge
+Communication between the server and the client is handled 
 by Eliom automatically. The use of the same language on both sides
-makes very easy to exchange data.
+makes it very easy to exchange data.
 
 It is possible to have a client side Eliom program and keep the traditional
 Web interaction (with URLs, links, forms, bookmarks, and back button).

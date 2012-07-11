@@ -22,7 +22,7 @@ A service is composed of:
 
 Manipulation of Eliom services can be done throught the values of type
 <<a_api | type Eliom_service.service >>. The most common service
-creation function is <<a_api | val Eliom_registration.HTML5.register_service
+creation function is <<a_api | val Eliom_registration.Html5.register_service
 >>. It allows to create a service attached to a given path that may
 expect some GET parameters and that return some HTML5 contents using
 the TyXML library.
@@ -37,7 +37,7 @@ The service creation could be split in two steps:
   Eliom_registration.HTML5.register >>
 
 
-This chapter focus on value of type {{{service}}}, see chapter
+This chapter focuses on value of type {{{service}}}, see chapter
 <<a_manual chapter="outputs"| Writing service handlers>> for more
 information on service registration.
 
@@ -48,7 +48,7 @@ request is done in a particular session or protocol (HTTP or HTTPS).
 <<div style="font-style: italic;"| Warning: in this manual, we use the
 term //service// both to denote a value of type {{{service}}} --that
 only contains some location information about a service--, or a fully
-//registred// service, that is also composed of a service handler. In
+//registered// service, that is also composed of a service handler. In
 case of ambiguities, we will use {{{service}}} --in green monotype--
 to designate a value of type {{{service}}}.
 
@@ -64,7 +64,7 @@ chapter="links"|Creating links and forms>> for more information.
 <<paragraph| Unegistrable service >>
 
 Some specific values of type {{{service}}} aren't associated to any
-service handlers. Such value are called //unregistrable services//,
+service handlers. Such value are called //unregistrable service//,
 and represents for example, links towards external site ot registrable
 service pre-applied to some parameters. This allows to use
 {{{service}}} consistently for creating links. See chapter <<a_manual
@@ -90,7 +90,7 @@ request-- with respect to many criteria:
 * the session the client belongs to (or client side process, or session group),
 * ...
 
-But the user does not usualy need to bother with this. Eliom abstract
+But the user does not usualy need to bother with this. Eliom abstracts
 this mechanism by its three main kind of services. They differ by the
 subset of these criteria used to identified them:
 
@@ -396,9 +396,7 @@ a coservice with timeout.
 It is possible to set a limit to the number of uses of (attached or
 non-attached) coservices. Just give the maximum number of uses with
 the optional {{{?max_use}}} parameter while creating your
-coservices. Example
-
-
+coservices.
 
 
 ==@@id="unregistrable_services"@@ Unregistrable services ==
@@ -408,19 +406,19 @@ coservices. Example
 ===External services===
 
 It is possible to define external services, that is, services that
-belong to an external Web site (on the same server of not).  To do
+belong to an external Web site (on the same server or not).  To do
 that, use the functions <<a_api| val Eliom_service.external_service
 >> (for using the GET method), or <<a_api| val
 Eliom_service.external_post_service>> (for using the POST method).
 
-For example, the follwing code defines a link to the OCaml Wikipedia
+For example, the following code defines a link to the OCaml Wikipedia
 page:
 
 <<code language="ocaml"|
 
 Eliom_content.Html5.D.a
   (Eliom_service.external_service
-     ~prefix:"http://en.wikipedia.org"
+     ~prefix:"http://en.wikipedia.org/wiki/OCaml"
      ~path:["wiki";""]
      ~get_params:(suffix (all_suffix "suff"))
      ())
@@ -438,7 +436,7 @@ Eliom. The predefined service <<a_api| val Eliom_service.static_dir
 >> can be used to make links to static files. It takes as parameter
 the path of the file.
 
-For example, the followin code will create this link: [[site:ocsigen10.png|download image]].
+For example, the following code will create this link: [[site:ocsigen10.png|download image]].
 
 <<code language="ocaml"|
 

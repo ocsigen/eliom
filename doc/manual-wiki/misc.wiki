@@ -6,7 +6,7 @@
 ===Images, CSS, Javascript
           
           
- To include an image, simply use the function  <<a_api project="eliom"| val Eliom_content.Html5.D.img >>:
+ To include an image, simply use the function  <<a_api| val Eliom_content.Html5.D.img >>:
       
           
 

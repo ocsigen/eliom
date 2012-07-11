@@ -11,9 +11,9 @@ methods addapted.
 
 The client process can call special services to get some Ocaml
 values. Those services cannot be visited by the browser as web pages.
-They are registered using <<a_api project="eliom" | module Eliom_registration.Ocaml >>
+They are registered using <<a_api | module Eliom_registration.Ocaml >>
 and can be called using
-<<a_api project="eliom" subproject="client" | val Eliom_client.call_caml_service >>.
+<<a_api subproject="client" | val Eliom_client.call_caml_service >>.
 
 
 First of all we give us easy construction of content (i.e. {{Html5.D}} here):
@@ -60,7 +60,7 @@ be sent are the same as for the {{{%variable}}} mechanism
 The client can send values to the server using the service mechanism,
 by defining the parameter types. To send arbitrary Ocaml values, there
 is a special type declaration:
-<<a_api project="eliom" | val Eliom_parameter.caml >>.
+<<a_api | val Eliom_parameter.caml >>.
 
 Since the server can't trust the client to send correcly formed data,
 those values can't be sent using the Ocaml marshall mechanism: the
@@ -124,7 +124,7 @@ client to explicitely request it. We call that mechanism comet, it
 also sometimes called HTTP push.
 
 The simple low level version on wich all other following mechanism is
-implemented is provided in the <<a_api project="eliom" | module Eliom_comet.Channels >>
+implemented is provided in the <<a_api | module Eliom_comet.Channels >>
 module.
 
 Comet defines channels which can convey data. A channel is created
@@ -143,13 +143,13 @@ With <<a_api project="lwt" | val Lwt_stream.from >> you can create a stream wher
 value is added each time a function returns. <<a_api project="lwt" | val Lwt_stream.create >>
 returns a stream and function to push new values to it.
 
-On client side the <<a_api project="eliom" subproject="client" | type Eliom_comet.Channels.t >>
+On client side the <<a_api subproject="client" | type Eliom_comet.Channels.t >>
 type is just an Lwt stream <<a_api project="lwt" | type Lwt_stream.t >>.
 
 There are 3 kind of channels depending on how you want to send data.
 
 * Channels created with
-  <<a_api project="eliom" | val Eliom_comet.Channels.create >>
+  <<a_api | val Eliom_comet.Channels.create >>
   have a buffer with a limited size. Message are read from the stream as
   soon as they are available, i.e. for stream created with
   <<a_api project="lwt" | val Lwt_stream.from >>, that means that the
@@ -157,16 +157,16 @@ There are 3 kind of channels depending on how you want to send data.
   For stream created with <<a_api project="lwt" | val Lwt_stream.create >>,
   this is as soon as they are pushed. If the client has missed too much
   messages ( more than the size of the buffer ) it will receive an exception
-  <<a_api project="eliom" subproject="client" | exception Eliom_comet.Channel_full >>
+  <<a_api subproject="client" | exception Eliom_comet.Channel_full >>
   when reading data from the stream.
 
 * Channels created with
-  <<a_api project="eliom" | val Eliom_comet.Channels.create_newest >> has no buffering
+  <<a_api | val Eliom_comet.Channels.create_newest >> has no buffering
   and can loose messages, but the client will always receive the last value: For instance if many
   messages are sent in a short time, this could send only the last one. Those channels never raise
-  <<a_api project="eliom" subproject="client" | exception Eliom_comet.Channel_full >>
+  <<a_api subproject="client" | exception Eliom_comet.Channel_full >>
 
-* Channels created with <<a_api project="eliom" | val Eliom_comet.Channels.create_unlimited >>
+* Channels created with <<a_api | val Eliom_comet.Channels.create_unlimited >>
   Which consume data on the stream only when their is a request from the client.
 
 Channels can be closed on client side by canceling a thread waiting for data on it.
@@ -175,7 +175,7 @@ Depending on the scope used to create a channel, the channel does not
 have the same constraints.
 
 * Channels created with scope <<a_api | val Eliom_common.site >> or
-using <<a_api project="eliom" | val Eliom_comet.Channels.create_newest
+using <<a_api | val Eliom_comet.Channels.create_newest
 >> are stateless channels: The memory consumption does not depend on
 the number of user requesting data on it. When the channels are not
 reachable from the server code, they are garbage collected and closed.
@@ -186,7 +186,7 @@ are assigned to a particular client process. Different channels
 created with the same stream does not share memory. They are closed
 when requested or when the client process is closed. It is possible
 to know when a client stop requesting data on those channels using
-<<a_api project="eliom" | val Eliom_comet.Channels.wait_timeout >>
+<<a_api | val Eliom_comet.Channels.wait_timeout >>
 
 === Comet configuration
 
@@ -195,7 +195,7 @@ HTTP connection waiting for answer. As of now, a comet request can
 only last at most 10 seconds. After that, the client can either do a
 new request or stale for some time: this is the activity
 behaviour. This can be configured on client side, using the functions from
-<<a_api project="eliom" subproject="client" | module Eliom_comet.Configuration >>
+<<a_api subproject="client" | module Eliom_comet.Configuration >>
 
 For instance for if you receive data that doesn't need frequent
 update, you could set the time between different request quite high
@@ -223,12 +223,12 @@ The original setting will be reset after the drop.
 
 A common usage of comet is for the server to update a value available on client side.
 To do this, there are functions available to share a React event or signal:
-<<a_api project="eliom" | val Eliom_react.Down.of_react >> and
-<<a_api project="eliom" | val Eliom_react.S.Down.of_react >>
+<<a_api | val Eliom_react.Down.of_react >> and
+<<a_api | val Eliom_react.S.Down.of_react >>
 
 On client side the value returned by those function is directly a React event or signal.
 
-The contrary is also available using <<a_api project="eliom" | val Eliom_react.Up.create >>.
+The contrary is also available using <<a_api | val Eliom_react.Up.create >>.
 
 Since this is implemented using comet, tunnig comet configuration will
 also affect the behaviour of shared react variables.
@@ -237,11 +237,11 @@ also affect the behaviour of shared react variables.
 
 Sometimes it is usefull to have a bidirectionnal channel shared between multiple clients.
 This is the intent of buses. Those are created using
-<<a_api project="eliom" | val Eliom_bus.create >>. Since the server will also receive data on
+<<a_api | val Eliom_bus.create >>. Since the server will also receive data on
 the bus, the description of the type ( using deriving ) is needed to create a bus.
 
 Like comet channels, the behaviour of buses can be tuned using the module
-<<a_api project="eliom" subproject="client" | module Eliom_comet.Configuration >>.
+<<a_api subproject="client" | module Eliom_comet.Configuration >>.
 There are additionnal configurations available on buses to tune the client side buffering.
 
 + events (à mettre dans js_of_ocaml)

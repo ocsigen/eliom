@@ -114,7 +114,7 @@ p ~a:[a_onclick {{ Dom_html.window##alert(Js.string "clicked!") }}]
 >>
 
 Those client-side code block are classical OCaml values ; their type
-is <<a_api project="eliom" | type
+is <<a_api | type
 Eliom_content.Xml.caml_event_handler >>. Inside those code-block,
 an implicit {{{_ev}}} variable represent the javascript <<a_api
 project="js_of_ocaml" text="event object" | type Dom_html.event >>.
@@ -172,7 +172,7 @@ let value = [] in
 let v = {{ (%value: _ list) }}
 >>
 
-As client an server code are compiled separately, this means that a code like
+As client and server code are compiled separately, this means that a code like
 the following would be incorrect but would typecheck.
 <<code language="ocaml"|
 type a = A of int
@@ -259,12 +259,12 @@ by creating the link with the {{{xhr}}} option set to false.
 
 Two function are available on client side to change the current page
 without interraction of the user. The function
-<<a_api project="eliom" | val Eliom_client.change_page >> goes to the service
+<<a_api | val Eliom_client.change_page >> goes to the service
 taken as parameter. If the service is in another application or not in
 an application it will stop the current one.
-The function <<a_api project="eliom" | val Eliom_client.window_open >> opens an
+The function <<a_api | val Eliom_client.window_open >> opens an
 Eliom service in a new browser window (cf. Javascript's ##window.open##).
-<<a_api project="eliom" | val Eliom_client.exit_to >> changes the current page
+<<a_api | val Eliom_client.exit_to >> changes the current page
 and always leave the application.
 
 == Generating HTML for Eliom applications
