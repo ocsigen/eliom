@@ -44,7 +44,7 @@ as in these examples:
          ]])))
 >>
 
-See [[site:tuto/rep/links|<<span class="code"|links>>]].
+<<| See [[site:tuto/rep/links|<<span class="code"|links>>]]. >>
   
 
  <<a_api| val Eliom_content.Html5.D.a >> takes as first parameter
@@ -82,7 +82,7 @@ let _ = Eliom_registration.Html5.register linkrec
         (head (title (pcdata "")) [])
         (body [p [a linkrec [pcdata "click"] ()]])))
 >>
-[[site:tuto/linkrec| See <<span class="code"|linkrec>>]].
+<<| [[site:tuto/linkrec| See <<span class="code"|linkrec>>]]. >>
 
 ==@@id="forms"@@Forms
 
@@ -116,7 +116,7 @@ let form = Eliom_registration.Html5.register_service ["form"] unit
 >>
 
   
-[[site:tuto/form| See the function <<span class="code"|form>> in action]].\\
+<<| [[site:tuto/form| See the function <<span class="code"|form>> in action]].\\ >>
 
 If you want to use typed parameters,
 you cannot use functions like  <<a_api project="tyxml"| val Html5.M.input >> to
@@ -159,7 +159,7 @@ let raw_form =
 >>
 
   
-Try this [[site:tuto/anyform| form]].
+<<| Try this [[site:tuto/anyform| form]]. >>
   
 
 ===POST parameters
@@ -286,12 +286,12 @@ let form4 = Eliom_registration.Html5.register_service ["form4"] unit
         (body [f])))
 >>
 
-See the urls:
+<<| See the urls:
 [[site:tuto/post|<<span class="code"|post>> without parameter]],
 [[site:tuto/post2?i=123|<<span class="code"|post2>> without POST parameter]],
 [[site:tuto/form2|<<span class="code"|form2>>]],
 [[site:tuto/form3|<<span class="code"|form3>>]],
-[[site:tuto/form4|<<span class="code"|form4>>]].
+[[site:tuto/form4|<<span class="code"|form4>>]]. >>
 
 
 ==@@id="advancedformsandparameters"@@Advanced forms and parameters
@@ -336,7 +336,7 @@ let regexpserv =
                   (head (title (pcdata "")) [])
                   (body [p [pcdata g]])))
 >>
-[[site:tuto/regexp?myparam=%5Btoto%5D| Try it]].
+<<| [[site:tuto/regexp?myparam=%5Btoto%5D| Try it]]. >>
 
 ===Boolean checkboxes
 
@@ -377,7 +377,7 @@ let form_bool = Eliom_registration.Html5.register_service ["formbool"] unit
 
 >>
           
-[[site:tuto/formbool| Try it]].\\
+<<| [[site:tuto/formbool| Try it]].\\ >>
 
 //Important warning://
 As you can see, browsers do not send any value
@@ -454,7 +454,7 @@ let setform = Eliom_registration.Html5.register_service
                 ])))
 >>
   
-[[site:tuto/setform| Try it]].\\
+<<| [[site:tuto/setform| Try it]].\\ >>
 
 Once again, note that there is no difference between an empty
 set or no parameter at all. If you register a service without parameters
@@ -513,7 +513,7 @@ let select_example = Eliom_registration.Html5.register_service ["select"] unit
          (body [f])))
 >>
   
-[[site:tuto/select| Try it]].\\
+<<| [[site:tuto/select| Try it]].\\ >>
 
 To do "multiple" select boxes, use functions like
  <<a_api| val Eliom_content.Html5.D.string_multiple_select >>.
@@ -560,7 +560,7 @@ let imageform = Eliom_registration.Html5.register_service
                 ])))
 >>
   
-[[site:tuto/imageform| Try it]].\\
+<<| [[site:tuto/imageform| Try it]].\\ >>
 
 You may also send a value with the coordinates:
   
@@ -600,7 +600,7 @@ let imageform2 = Eliom_registration.Html5.register_service
 
 >>
   
-[[site:tuto/imageform2| Try it]].
+<<| [[site:tuto/imageform2| Try it]]. >>
 
 
 ===Type <<span class="code"|list>>
@@ -631,8 +631,8 @@ let coucou_list = Eliom_registration.Html5.register_service
            </html> ~>>)
 >>
   
-Here is an example of link towards this service:
-[[site:tuto/coucou?a.str%5B1%5D=titi&a.str%5B0%5D=toto|coucou?a.str[0]=toto&a.str[1]=titi]].
+<<| Here is an example of link towards this service:
+[[site:tuto/coucou?a.str%5B1%5D=titi&a.str%5B0%5D=toto|coucou?a.str[0]=toto&a.str[1]=titi]]. >>
 
 //Warning://
 As for sets or bools,
@@ -672,7 +672,7 @@ let listform = Eliom_registration.Html5.register_service ["listform"] unit
 
 >>
   
-[[site:tuto/listform| Try it]].\\
+<<| [[site:tuto/listform| Try it]].\\ >>
 
 //Important warning://
 As we have seen in the section about boolean (or optional)
@@ -711,7 +711,7 @@ let suffixform = Eliom_registration.Html5.register_service ["suffixform"] unit
 
 >>
           
-[[site:tuto/suffixform| Try it]].
+<<| [[site:tuto/suffixform| Try it]]. >>
 
 ===Uploading files
 
@@ -789,7 +789,7 @@ let uploadform = register upload
 
 >>
           
-[[site:tuto/upload| Try it]]
+<<| [[site:tuto/upload| Try it]] >>
       (warning: uploading on ocsigen.org is forbidden).
 
 

@@ -210,7 +210,7 @@ one more response.
 ===== Redirections to generated urls
 
 The <<a_api| module Eliom_registration.String_redirection>> allows you to
-register HTTP redirections to generated URLs. Usualy, prefer <<a_api|
+register HTTP redirections to generated URLs. Usually, prefer <<a_api|
 module Eliom_registration.String_redirection>>, even for external
 redirections (using <<a_api | val Eliom_service.external_service>>).
 Use <<a_api| module Eliom_registration.String_redirection>> only when it is
@@ -296,7 +296,7 @@ let send_any =
 ===== Dynamicaly modifying register options using Any
 
 You may also use <<a_api| module Eliom_registration.Any >> to dynamicaly
-modify the parameters usualy set on the register function. You can set
+modify the parameters usually set on the register function. You can set
 the HTTP code, the charset, the content_type, the http headers and the
 specific option of the output module.
 

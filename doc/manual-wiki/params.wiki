@@ -92,7 +92,7 @@ let uasuffix =
 This service will answer to URLs like
 <<span class="code"|http://.../uasuffix/2000/11>>.
 
-See [[site:tuto/uasuffix/2007/7|<<span class="code"|uasuffix>>]]
+<<| See [[site:tuto/uasuffix/2007/7|<<span class="code"|uasuffix>>]] >>
 
 Suffix parameters have names, because we can create forms towards
 these services. <<span class="code"|uasuffix/2000/11>> is equivalent to
@@ -120,7 +120,7 @@ let isuffix =
                strong [pcdata (string_of_int i)]]])))
 >>
   
-See [[site:tuto/isuffix/11/a/b/c?i=22|<<span class="code"|isuffix>>]].
+<<| See [[site:tuto/isuffix/11/a/b/c?i=22|<<span class="code"|isuffix>>]]. >>
 
 If you want parameters in the path but not always at the end,
 use the  <<a_api| val Eliom_parameter.const >>
@@ -143,7 +143,7 @@ let constfix =
                      p [pcdata ("Parameters are "^s1^" and "^s2)]])))
 >>
 
-[[site:tuto/constfix/aa/toto/bb|Page with constants in suffix]].
+<<| [[site:tuto/constfix/aa/toto/bb|Page with constants in suffix]]. >>
 
 ===Custom parameter types
 
@@ -171,7 +171,7 @@ let mytype =
          (body [p [pcdata (v^" is valid. Now try with another value.")]])))
 >>
     
-See [[site:tuto/mytype?valeur=A|<<span class="code"|mytype>>]].
+<<| See [[site:tuto/mytype?valeur=A|<<span class="code"|mytype>>]]. >>
 
 ===@@id="any"@@Untyped parameters
 
@@ -201,7 +201,7 @@ let raw_serv = Eliom_registration.Html5.register_service
         </html> ~>>)
 >>
 
-Try [[site:tuto/any?sun=yellow&sea=blue|<<span class="code"|raw_serv>>]].
+<<| Try [[site:tuto/any?sun=yellow&sea=blue|<<span class="code"|raw_serv>>]]. >>
   
 It is possible to use {{{Eliom_parameter.any}}} with other parameters
 combinators. But {{{any}}} must be the last one. For example:
@@ -309,6 +309,6 @@ let nlparams = Eliom_registration.Html5.register_service
 Then create your link as usual, for example:
 <<span class="code"|a nlparams_with_nlp
 [pcdata "Try it"] (22, (11, "aa"))>>.
-[[site:tuto/nlparams?i=22&__nl_n_tutoeliom-mynlparams.s=aa&__nl_n_tutoeliom-mynlparams.a=11|Try it]].
+<<| [[site:tuto/nlparams?i=22&__nl_n_tutoeliom-mynlparams.s=aa&__nl_n_tutoeliom-mynlparams.a=11|Try it]]. >>
 
 
