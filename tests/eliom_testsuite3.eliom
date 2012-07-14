@@ -1366,7 +1366,7 @@ let event_service =
       let target5 = make_target "Annuler le précédent" in
       let target6 = make_target "Deux clics" in
       let target7 = make_target "Un clic sur deux" in
-      let target8 = make_target "Un clic, puis tous les suivants" in
+      let target8 = make_target "All clicks but the first" in
       let target9 = make_target "Un des deux, premier" in
       let target10 = make_target "Un des deux, deuxieme" in
       let target11 = make_target "Annuler les deux précédents" in
@@ -1440,6 +1440,138 @@ let event_service =
          (make_page [target1; target2; target3; target4; target5; target6;
                      target7; target8; target9; target10; target11;
                      target12; target13; target14; target15; target16;
+                     targetresult]) )
+
+
+
+
+(*wiki*
+===Events with lwt with cancellers
+
+ *wiki*)
+
+{client{
+open Lwt_js_events
+}}
+
+let event2_service =
+  My_appl.register_service
+    ~path:["events2"]
+    ~get_params:Eliom_parameter.unit
+    (fun () () ->
+
+      let make_target s = HTML5.DOM.p [HTML5.M.a [pcdata s]] in
+      let target1 = make_target "Un seul clic" in
+      let target2 = make_target "Annuler le précédent" in
+      let target3 = make_target "Drag vers la ligne au dessus une seule fois" in
+      let target4 = make_target "Plein de clics seq" in
+      let target5 = make_target "Annuler le précédent" in
+      let target6 = make_target "Deux clics" in
+      let target7 = make_target "Un clic sur deux" in
+      let target8 = make_target "All clicks but the first" in
+      let target9 = make_target "Un des deux, premier" in
+      let target10 = make_target "Un des deux, deuxieme" in
+      let target11 = make_target "Annuler les deux précédents" in
+      let target12 = make_target "Drag" in
+      let target13 = make_target "Annuler le précédent" in
+      let target14 = make_target "Drag with long handler" in
+      let target15 = make_target "Annuler le précédent" in
+      let target16 = make_target "Mouse over change color" in
+      let target17 = make_target "Mouse wheel (browser dependant - test in several browsers)" in
+      let target18 = HTML5.DOM.raw_textarea ~name:"a" () in
+      let target19 = make_target "If you click very quickly after having entered a letter below, my handler (short) will occure, and the long handler for the keypress will be cancelled (event if it already started)." in
+      let target20 = HTML5.DOM.raw_textarea ~name:"b" () in
+      let target21 = make_target "If you click very quickly after having entered a letter below, my handler will not occure because the long handler for the keypress below is detached." in
+
+      let targetresult = HTML5.DOM.p [] in
+      Eliom_service.onload
+        {{
+          let targetresult = (Eliom_client.Html5.of_p %targetresult) in
+
+          let handler ev =
+            ignore (targetresult##appendChild
+                      ((Eliom_client.Html5.of_element (HTML5.M.pcdata " plip") :> Dom.node Js.t)));
+            Lwt.return ()
+          in
+          let handler_long ev =
+            Lwt_js.sleep 0.7 >>= fun () ->
+            ignore (targetresult##appendChild
+                      ((Eliom_client.Html5.of_element (HTML5.M.pcdata " plop") :> Dom.node Js.t)));
+            Lwt.return ()
+          in
+          let c = click (Eliom_client.Html5.of_p %target1) >>= handler in
+          ignore (click (Eliom_client.Html5.of_p %target2) >|= fun _ ->
+                          Lwt.cancel c);
+          ignore
+            (mousedown (Eliom_client.Html5.of_p %target3) >>= fun ev ->
+             preventDefault ev;
+             mouseup (Eliom_client.Html5.of_p %target2) >>= handler);
+          let c = clicks (Eliom_client.Html5.of_p %target4) handler_long in
+          ignore
+            (click (Eliom_client.Html5.of_p %target5) >|= fun _ -> 
+             Lwt.cancel c);
+          ignore
+            (click (Eliom_client.Html5.of_p %target6) >>= handler >>= fun () ->
+             click (Eliom_client.Html5.of_p %target6) >>= handler);
+          ignore
+            (clicks (Eliom_client.Html5.of_p %target7)
+               (fun _ -> click (Eliom_client.Html5.of_p %target7) >>= handler));
+          ignore
+            (click (Eliom_client.Html5.of_p %target8) >>= fun _ ->
+             clicks (Eliom_client.Html5.of_p %target8) handler);
+          let c =
+            Lwt.pick [click (Eliom_client.Html5.of_p %target9) >>= handler;
+                      click (Eliom_client.Html5.of_p %target10) >>= handler]
+          in
+          ignore (click (Eliom_client.Html5.of_p %target11) >|= fun _ ->
+                  Lwt.cancel c);
+          let c = mousedowns (Eliom_client.Html5.of_p %target12)
+            (fun _ -> Lwt.pick [(mouseup Dom_html.document >|= fun _ -> ());
+                                mousemoves Dom_html.document handler])
+          in
+          ignore (click (Eliom_client.Html5.of_p %target13) >|= fun _ ->
+                  Lwt.cancel c);
+          let c = mousedowns (Eliom_client.Html5.of_p %target14)
+            (fun _ -> Lwt.pick [(mouseup Dom_html.document >|= fun _ -> ());
+                                mousemoves Dom_html.document handler_long])
+          in
+          ignore (click (Eliom_client.Html5.of_p %target15) >|= fun _ ->
+                  Lwt.cancel c);
+          let t16 = Eliom_client.Html5.of_p %target16 in
+          ignore (mouseovers t16
+                    (fun _ -> 
+                      t16##style##backgroundColor <- Js.string "red";
+                      Lwt.return ()));
+          ignore (mouseouts t16
+                    (fun _ ->
+                      t16##style##backgroundColor <- Js.string "";
+                      Lwt.return ()));
+          ignore (mousewheels (Eliom_client.Html5.of_p %target17)
+                    (fun (_, (dx, dy)) ->
+                      ignore (targetresult##appendChild
+                                ((Eliom_client.Html5.of_element
+                                    (HTML5.M.pcdata 
+                                    (Printf.sprintf "(%d, %d)" dx dy)) :> Dom.node Js.t)));
+                      Lwt.return ()));
+          ignore (Lwt.pick [(keypress (Eliom_client.Html5.of_textarea %target18) >>=
+                             handler_long);
+                             click (Eliom_client.Html5.of_p %target19) >>=
+                             handler
+                           ]);
+          ignore (Lwt.pick [(keypress (Eliom_client.Html5.of_textarea %target20) >>=
+                             fun _ -> ignore (handler_long ()); Lwt.return () );
+                             click (Eliom_client.Html5.of_p %target21) >>=
+                             handler
+                           ]);
+
+
+        }};
+
+       Lwt.return
+         (make_page [target1; target2; target3; target4; target5; target6;
+                     target7; target8; target9; target10; target11;
+                     target12; target13; target14; target15; target16;
+                     target17; target18; target19; target20; target21;
                      targetresult]) )
 
 

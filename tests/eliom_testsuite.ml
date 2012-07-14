@@ -293,7 +293,8 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
             h3 [pcdata "js_of_ocaml events"];
 
             p [
-              a event_service [code [pcdata "Test suite"]] ();
+              a event_service [code [pcdata "With arrows"]] (); br ();
+              a event2_service [code [pcdata "With Lwt"]] ();
               br ();
             ];
 
