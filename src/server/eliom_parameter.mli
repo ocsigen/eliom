@@ -298,6 +298,12 @@ val regexp :
       (string, [ `WithoutSuffix ],
        [` One of string ] param_name) params_type
 
+(** [guard construct name pred] returns the same parameter
+    as [construct name] but with ensuring that each value must satisfy [pred].
+    For instance: [int "age" ((>=) 0)] *)
+val guard : (string -> ('a, 'b, 'c) params_type) -> string
+  -> ('a -> bool) -> ('a, 'b, 'c) params_type
+
 (** Tells that the parameter of the service handler is
     the suffix of the URL of the current service.
     e.g. [suffix (int "i" ** string "s")] will match an URL ending by [380/yo].
@@ -385,12 +391,6 @@ val raw_post_data :
   (((string * string) * (string * string) list) option *
       string Ocsigen_stream.t option,
    [ `WithoutSuffix ], no_param_name) params_type
-
-(** [guard construct name pred] returns the same parameter
-    as [construct name] but with ensuring that each value must satisfy [pred].
-    For instance: [int "age" ((>=) 0)] *)
-val guard : (string -> ('a, 'b, [ `One of string] param_name) params_type) -> string
-  -> ('a -> bool) -> ('a, 'b, [ `One of string] param_name) params_type
 
 (** {2 Non localized parameters} *)
 

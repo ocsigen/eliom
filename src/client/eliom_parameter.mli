@@ -150,6 +150,9 @@ val list :
       ('a, [ `WithoutSuffix ], 'b) params_type ->
         ('a list, [ `WithoutSuffix ], 'b listnames) params_type
 
+val guard : (string -> ('a, 'b, 'c) params_type) -> string
+  -> ('a -> bool) -> ('a, 'b, 'c) params_type
+
 val suffix :
   ?redirect_if_not_suffix:bool ->
   ('s, [< `WithoutSuffix | `Endsuffix ], 'sn) params_type ->
@@ -188,9 +191,6 @@ val raw_post_data :
   (((string * string) * (string * string) list) option *
       string Ocsigen_stream.t option,
    [ `WithoutSuffix ], no_param_name) params_type
-
-val guard : (string -> ('a, 'b, [ `One of string] param_name) params_type) -> string
-  -> ('a -> bool) -> ('a, 'b, [ `One of string] param_name) params_type
 
 type ('a, +'tipo, +'names) non_localized_params
 
