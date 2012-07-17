@@ -47,6 +47,8 @@ module Xml = struct
     unwrapper_mark: Eliom_wrap.unwrapper;
   }
 
+  type -'a client_server_event_handler = 'a caml_event_handler
+
   let content e = match e.elt with
     | RE e -> e
     | RELazy e -> Eliom_lazy.force e

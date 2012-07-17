@@ -52,6 +52,13 @@ module Xml : sig
     | Leaf of ename * attrib list
     | Node of ename * attrib list * elt list
 
+  (** ['a client_server_event_handler] is a synonym of the type of the arguments
+      for the constructors of event handler in {% <<a_api project="eliom" |
+      module Eliom_content_core.Html5.F >> %} {e on client- and on server-side}.
+      This is useful to annotate event handlers created through [{{ ... }}] inside
+      [{shared{ ... }}] section of an Eliom file. *)
+  type -'a client_server_event_handler = 'a Js.t -> unit
+
   (**/**)
 
   val event_handler_of_service :

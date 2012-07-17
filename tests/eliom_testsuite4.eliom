@@ -88,7 +88,7 @@ let custom_data =
     Dom_html.window##alert(Js.string str)
   }}
 
-  let unused_handler : Dom_html.mouseEvent Html5.client_server_event_handler = {{
+  let unused_handler : Dom_html.mouseEvent Xml.client_server_event_handler = {{
     (assert false)
   }}
 
@@ -121,6 +121,10 @@ let custom_data =
         [pcdata "shared_onclick from client: %shared_onclick=\"shared_value\""]
     );
   ]
+
+  let unused_handler_client : Dom_html.mouseEvent Xml.client_server_event_handler = {{
+    (assert false)
+  }}
 }}
 
 {server{
@@ -153,6 +157,9 @@ let custom_data =
     );
   ]
 
+  let unused_handler_server : Dom_html.mouseEvent Xml.client_server_event_handler = {{
+    (assert false)
+  }}
 }}
 
 {shared{

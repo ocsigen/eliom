@@ -105,20 +105,27 @@ for client side code, and
 
 for some code that is common to client and server parts.
 
-Inside server-side code block, Eliom also provides a custom syntax
-{{{ {{ ... }} }}} for defining client-side event handler. For example:
+Eliom also provides a custom syntax {{{ {{ ... }} }}} for defining client-side
+event handler. For example:
 
 <<code language="ocaml"|
 p ~a:[a_onclick {{ Dom_html.window##alert(Js.string "clicked!") }}]
   [pcdata "I am a clickable paragraph"]
 >>
 
-Those client-side code block are classical OCaml values ; their type
-is <<a_api | type
-Eliom_content.Xml.caml_event_handler >>. Inside those code-block,
-an implicit {{{_ev}}} variable represent the javascript <<a_api
-project="js_of_ocaml" text="event object" | type Dom_html.event >>.
-On client side, this specific syntax is not required: function like
+Inside those code-block, an implicit {{{_ev}}} variable represent the
+javascript <<a_api project="js_of_ocaml" text="event object" | type Dom_html.event >>.
+
+Those client-side code block are classical OCaml values, but they are compiled on
+server and on client side differently:
+When compiled for the server side, they are a value of type <<a_api subproject="server"|type
+Eliom_content_core.Xml.caml_event_handler>>.
+compiled for the client side, they are a value of type ['a -> unit].
+Generally, they have type <<a_api subproject="server" | type
+Eliom_content_core.client_server_event_handler>> (<<a_api subproject="client" text="on client" |
+type Eliom_content_core.client_server_event_handler>>), which corresponds to the above types.
+
+On client side, this specific syntax is optional: function like
 <<a_api subproject="client" text="a_onclick"|
 val Eliom_content.Html5.a_onclick >> expect a function of type
 {{{#Dom_html.event -> unit}}} as parameter.
