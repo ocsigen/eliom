@@ -68,9 +68,12 @@ type 'a callable_bus_service =
 
 let create service channel waiter =
   let write x =
-    lwt _ = Eliom_client.call_service
-      ~service:(service:>'a callable_bus_service) () x in
-    Lwt.return ()
+    try_lwt
+      lwt _ = Eliom_client.call_service
+        ~service:(service:>'a callable_bus_service) () x in
+      Lwt.return ()
+    with
+      | Eliom_request.Failed_request 204 -> Lwt.return ()
   in
   let error_h =
     let t,u = Lwt.wait () in
