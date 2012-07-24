@@ -352,7 +352,7 @@ val coservice :
    [> `Registrable ], 'return2) service
 
 (** The function [post_coservice ~fallback ~get_params] creates an {%
-    <<a_manual chapter="service" fragment="coservices"|attached
+    <<a_manual chapter="services" fragment="attached_coservices"|attached
     coservice>>%} with the same path and GET parameters than the
     service [fallback] and taking [post_params] as POST
     parameters.

@@ -127,7 +127,7 @@ When compiled for the server side, they are a value of type <<a_api subproject="
 | type Eliom_content_core.Xml.caml_event_handler>>.
 compiled for the client side, they are a value of type ['a -> unit].
 
-The type [Eliom_content_core.Xml.client_server_event_handler] on
+The type ##Eliom_content_core.Xml.client_server_event_handler## on
 <<a_api subproject="server" text="server" |
   type Eliom_content_core.Xml.client_server_event_handler>> and on
 <<a_api subproject="client" text="client" |
