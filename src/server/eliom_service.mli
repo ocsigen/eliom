@@ -291,7 +291,7 @@ val post_service :
 (** {3 Attached coservices} *)
 
 (** The function [coservice ~fallback ~get_params] creates an {%
-    <<a_manual chapter="service" fragment="coservices"|attached
+    <<a_manual chapter="services" fragment="attached_coservices"|attached
     coservice>>%} at the same path than the service [fallback] and
     taking [get_params] as GET parameters.
 
