@@ -20,8 +20,7 @@
 
 (** Propagate events
     occurrences from the server to the client and the other way
-    around. It is to be noted that occurrence propagation is done
-    asynchronously.
+    around. Occurrence propagation is done asynchronously.
 
     The use of this module is pretty much useless without it's client counter
     part. *)
@@ -30,15 +29,18 @@
    with compatibility issues in mind. *)
 
 
-  (** A "Down event" (AKA down-going event) is an event which occurrences are
-      transmitted asynchronously to the client. While named events, it might be
-      better to consider them as asynchronous server-to-client edges in the
-      event dependency graph.
-
-      The return type of the [wrap]ing
-      function gives insight about how Down events are handled internally, it is
-      however taken care of automatically. *)
+(** Event from server to client. *)
 module Down : sig
+  (** A "Down event" (AKA down-going event) is an event which occurrences are
+      transmitted asynchronously to the client. Even if they are named "events",
+      it might be better to consider them as asynchronous server-to-client
+      edges in the react events dependency graph.
+
+      To use this, call function [of_react] on server side,
+      and just use the returned value as a react event on client side.
+      Example:
+      [let e = of_react ... in ... {{ ... React.E.map %e f; ... }}]
+ *)
 
   (** The abstract type of down events. *)
   type 'a t
@@ -56,13 +58,21 @@ module Down : sig
 
 end
 
+(** Event from client to server. *)
+module Up :
+sig
   (** Up events are quite different from Down events. Because of the
       asymmetrical nature of web programming and because of the reactive model
       used, an Up event must be created on the server and wrapped into a
       callback (or something the client can build a callback with).
+
+      Example of use:
+      [let e_up = Eliom_react.Up.create
+        (Eliom_parameter.caml "a" Json.t<string>) 
+      in
+      ... {{ ignore ( %e_up "A") }} ...
+      ]
     *)
-module Up :
-sig
 
   (** The type of events that, while being "on the server", are triggered by
       clients. On the server such an event is /primitive/ (hence the [create]
