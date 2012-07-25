@@ -39,7 +39,7 @@ module Down : sig
       To use this, call function [of_react] on server side,
       and just use the returned value as a react event on client side.
       Example:
-      [let e = of_react ... in ... {{ ... React.E.map %e f; ... }}]
+      [let e = of_react ... in ... {{ ... React.E.map f %e; ... }}]
  *)
 
   (** The abstract type of down events. *)
@@ -47,12 +47,14 @@ module Down : sig
 
   (** [of_react ?scope ?throttling ?name e] create an
       asynchronous edge originating from [e]. The parameters are: [throttling]
-      for the limit to event propagation rate, [name] for named edges. [scope]
+      for the limit to event propagation rate, [name] for named edges,
+      [size] for the size of the server side buffer. [scope]
       tell which kind of channel this rely on (See [Eliom_comet.create]). *)
   val of_react :
     ?scope:[<Eliom_comet.Channel.comet_scope]
     -> ?throttling:float
     -> ?name:string
+    -> ?size:int
     -> 'a React.E.t
     -> 'a t
 

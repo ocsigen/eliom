@@ -49,8 +49,9 @@ module Channel : sig
 
       With a scope of level {!Eliom_common.client_process_scope} the
       channel can only be accessed by the user who created it. It
-      can only be created when client application data is
-      available. The eliom service created to communicate with the
+      can only be created when client process data is
+      available (that is: during a request).
+      The eliom service created to communicate with the
       client is only available in the scope of the client process. To
       avoid memory leak when the client do not read sent data,
       the channel has a limited [size]. When a channel is full, no

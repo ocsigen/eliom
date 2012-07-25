@@ -25,72 +25,70 @@ open Lwt_react
 module Down =
 struct
 
-  type 'a statefull =
+  type 'a stateful =
       {throttling: float option;
        scope: Eliom_common.client_process_scope option;
        react: 'a E.t;
-       name: string option;}
+       name: string option;
+       size: int option;}
 
   type 'a stateless = 'a Eliom_comet.Channel.t
 
   type 'a t' =
-    | Statefull of 'a statefull
+    | Stateful of 'a stateful
     | Stateless of 'a stateless
 
   type 'a t =
       {t : 'a t';
        react_down_mark: 'a t Eliom_common.wrapper;}
 
-  let wrap_statefull
-    {throttling=t;
-     scope;
-     react=e;
-     name=name} =
+  let wrap_stateful
+    {throttling=t; scope; react=e; name; size} =
     let ee =
       (match t with
         | None -> e
         | Some t -> E.limit (fun () -> Lwt_unix.sleep t) e)
     in
     let stream = E.to_stream ee in
-    let channel = Eliom_comet.Channel.create ?scope ?name stream in
+    let channel = Eliom_comet.Channel.create ?scope ?name ?size stream in
     (channel,Eliom_common.make_unwrapper Eliom_common.react_down_unwrap_id)
 
   let wrap_stateless channel =
     (channel,Eliom_common.make_unwrapper Eliom_common.react_down_unwrap_id)
 
   let internal_wrap = function
-    | { t = Statefull v } -> wrap_statefull v
+    | { t = Stateful v } -> wrap_stateful v
     | { t = Stateless v } -> wrap_stateless v
 
   let react_down_mark () = Eliom_common.make_wrapper internal_wrap
 
-  let statefull ?scope ?throttling ?name (e : 'a E.t) =
-    Statefull
+  let stateful ?scope ?throttling ?name ?size (e : 'a E.t) =
+    Stateful
       {throttling=throttling;
        scope;
        react=e;
-       name=name;}
+       name=name;
+       size=size;
+      }
 
-  let stateless ?throttling ?name (e : 'a E.t) =
+  let stateless ?throttling ?name ?size (e : 'a E.t) =
     let ee =
       (match throttling with
         | None -> e
         | Some t -> E.limit (fun () -> Lwt_unix.sleep t) e)
     in
     let stream = E.to_stream ee in
-    Stateless
-      (Eliom_comet.Channel.create ~scope:`Site ?name stream)
+    Stateless (Eliom_comet.Channel.create ~scope:`Site ?name ?size stream)
 
-  let of_react
-      ?scope ?throttling ?name (e : 'a E.t) =
-      let t =
-	match scope with
-	  | Some `Site -> stateless ?throttling ?name e
-	  | None -> statefull ?throttling ?name e
-	  | Some ((`Client_process n) as scope) ->
-	    statefull ~scope ?throttling ?name e
-      in
-      { t; react_down_mark=react_down_mark () }
+  let of_react ?scope ?throttling ?name ?size (e : 'a E.t) =
+    let t =
+      match scope with
+	| Some `Site -> stateless ?throttling ?name ?size e
+	| None -> stateful ?throttling ?name ?size e
+	| Some ((`Client_process n) as scope) ->
+	  stateful ~scope ?throttling ?name ?size e
+    in
+    { t; react_down_mark=react_down_mark () }
 
 end
 
@@ -144,7 +142,7 @@ struct
   module Down =
   struct
 
-    type 'a statefull =
+    type 'a stateful =
         {throttling: float option;
 	 scope: Eliom_common.client_process_scope option;
          signal: 'a S.t;
@@ -156,7 +154,7 @@ struct
 	 sl_signal: 'a S.t}
 
     type 'a t' =
-      | Statefull of 'a statefull
+      | Stateful of 'a stateful
       | Stateless of 'a stateless
 
     type 'a t =
@@ -201,7 +199,7 @@ struct
       in
       aux
 
-    let wrap_statefull
+    let wrap_stateful
         {throttling=t;
 	 scope;
          signal=s;
@@ -217,7 +215,7 @@ struct
       let value : 'a = S.value s in
       (channel,value,Eliom_common.make_unwrapper Eliom_common.signal_down_unwrap_id)
 
-    let wrap_statefull
+    let wrap_stateful
         {throttling=t;
          signal=s;
          name=name} =
@@ -239,14 +237,14 @@ struct
       (channel,value,Eliom_common.make_unwrapper Eliom_common.signal_down_unwrap_id)
 
     let internal_wrap = function
-      | { t = Statefull v } -> wrap_statefull v
+      | { t = Stateful v } -> wrap_stateful v
       | { t = Stateless v } -> wrap_stateless v
 
     let signal_down_mark () = Eliom_common.make_wrapper internal_wrap
 
-    let statefull ?scope
+    let stateful ?scope
         ?throttling ?name (s : 'a S.t) =
-      Statefull
+      Stateful
 	{throttling=throttling;
 	 scope;
 	 signal=s;
@@ -271,9 +269,9 @@ struct
       let t =
 	match scope with
 	  | Some `Site -> stateless ?throttling ?name s
-	  | None -> statefull ?throttling ?name s
+	  | None -> stateful ?throttling ?name s
 	  | Some ((`Client_process n) as scope) ->
-	    statefull ~scope ?throttling ?name s
+	    stateful ~scope ?throttling ?name s
       in
       { t; signal_down_mark=signal_down_mark () }
   end
