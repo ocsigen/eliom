@@ -3,7 +3,7 @@
   open Eliom_compatibility_2_1
   open Ocsigen_cookies
 }}
-
+(*BB
 (* Main page for the test suite *)
 let main = Eliom_service.service [] Eliom_parameter.unit ()
 
@@ -3883,4 +3883,4 @@ let () =
     )
 }}
 
-
+  *)

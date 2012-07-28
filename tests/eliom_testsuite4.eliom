@@ -13,7 +13,7 @@ module My_appl =
 let main = Eliom_service.service [] Eliom_parameter.unit ()
 
 (******************************************************************************)
-(*                                Custom data                                 *
+(*                                Custom data                                 *)
 
 {shared{
 
@@ -70,7 +70,7 @@ let test_custom_data =
               ];
               change_button;
             ])))
-******************************************************************************)
+(******************************************************************************)
 
 (******************************************************************************)
 (*                          Client values: injection                          *)
@@ -267,7 +267,7 @@ let client_values_initialization =
 
 
 (******************************************************************************)
-(*                          Client value custom data                          
+(*                          Client value custom data                          *
 
 {shared{
   let my_unit_unit = Html5.Custom_data.create_client_value ~name:"my_unit_unit" ()
@@ -321,7 +321,7 @@ let client_values_initialization =
 
 }}
 
- ******************************************************************************)
+******************************************************************************)
 
 {shared{
 
@@ -515,7 +515,7 @@ let client_handler_syntax =
 (******************************************************************************)
 
 (******************************************************************************)
-(*                        Client event handler syntax 2                       *
+(*                        Client event handler syntax 2                       *)
 
 {shared{
 
@@ -550,21 +550,22 @@ let client_handler_syntax =
         (div ~a:[a_class ["container"]; a_style "display: none"] w.content)
     in
     let onclick_overlay = {{
-      Html5.(Manip.SetCss.display (Id.get_element %w.overlay_id) "none");
-      Html5.(Manip.SetCss.display (Id.get_element %w.container_id) "block");
-      Option.iter (fun f -> f ()) %w.show_callback;
-      Option.iter
-        (fun f ->
-           let waiter, wakener = Lwt.task () in
-           let t =
-             lwt () = waiter in
-             lwt content = f () in
-             Html5.Manip.Named.replaceAllChild %w.container_id content;
-             Lwt.return ()
-           in
-           Lwt.wakeup wakener ();
-           %w.set_content_thread <- Some t)
-        %w.content_getter;
+      fun _ ->
+        Html5.(Manip.SetCss.display (Id.get_element %w.overlay_id) "none");
+        Html5.(Manip.SetCss.display (Id.get_element %w.container_id) "block");
+        Option.iter (fun f -> f ()) %w.show_callback;
+        Option.iter
+          (fun f ->
+             let waiter, wakener = Lwt.task () in
+             let t =
+               lwt () = waiter in
+               lwt content = f () in
+               Html5.Manip.Named.replaceAllChild %w.container_id content;
+               Lwt.return ()
+             in
+             Lwt.wakeup wakener ();
+             %w.set_content_thread <- Some t)
+          %w.content_getter;
       ()
     }} in
     let overlay =
@@ -581,7 +582,7 @@ let client_handler_syntax =
 
 {client{
 
-  let hidden_widget_hide w =
+  let hidden_widget_hide w _ =
     Html5.Manip.Named.replaceAllChild w.container_id w.content;
     Html5.(Manip.SetCss.display (Id.get_element w.overlay_id) "block");
     Html5.(Manip.SetCss.display (Id.get_element w.container_id) "none");
@@ -622,9 +623,10 @@ let client_handler_syntax_2 =
        in
        let add_another_waiter_button =
          let onclick = {{
-           let w = hidden_widget [Html5.F.pcdata "Incredible content!"] in
-           ignore (Dom.appendChild (Dom_html.document##body)
-                     (Html5.To_dom.of_element (hidden_widget_html w)))
+           fun _ ->
+             let w = hidden_widget [Html5.F.pcdata "Incredible content!"] in
+             ignore (Dom.appendChild (Dom_html.document##body)
+                       (Html5.To_dom.of_element (hidden_widget_html w)))
          }} in
          Html5.D.(
            button ~a:[a_onclick onclick ] ~button_type:`Submit [
@@ -632,13 +634,16 @@ let client_handler_syntax_2 =
            ])
        in
        Eliom_service.onload {{
-         hidden_widget_set_show_callback %w
-           (fun () ->
-              ignore (Dom.insertBefore (Dom_html.document##body)
-                        (Html5.To_dom.of_element %hide_button)));
-         hidden_widget_set_content_getter %w
-           (fun () ->
-              Eliom_client.call_caml_service ~service: %get_slow_content () ())
+         fun _ ->
+           hidden_widget_set_show_callback %w
+             (fun () ->
+                ignore
+                  (Dom.insertBefore
+                     (Dom_html.document##body)
+                     (Html5.To_dom.of_element %hide_button)));
+           hidden_widget_set_content_getter %w
+             (fun () ->
+                Eliom_client.call_caml_service ~service: %get_slow_content () ())
        }};
        Lwt.return Html5.F.(
          html
@@ -651,7 +656,7 @@ let client_handler_syntax_2 =
              add_another_waiter_button;
            ])))
 
-******************************************************************************)
+(******************************************************************************)
 
 {shared{
   let shared_onclick source = {{
@@ -692,7 +697,7 @@ let client_values_shared =
 {shared{
   let shared_elt src =
     ignore {unit{
-      debug "init shared onload from %s" %src;
+      debug "init shared onload from ??"  (* %src *);
       Lwt.ignore_result
         (lwt () = Eliom_client.wait_load_end () in
          debug "shared onload from %s" %src;
@@ -762,6 +767,94 @@ let client_values_onload =
 (******************************************************************************)
 
 (******************************************************************************)
+(*                             Escaped in client                              *)
+
+let time () =
+  Int64.of_float (Unix.gettimeofday () *. 1000.0)
+
+let global_value =
+  time ()
+
+let client_process, request =
+  let client_process_counter = ref 0 in
+  let request_counter = ref 0 in
+  Eliom_reference.eref_from_fun ~scope:Eliom_common.client_process
+    (fun () ->
+       request_counter := 0;
+       incr client_process_counter;
+       !client_process_counter),
+  Eliom_reference.Volatile.eref_from_fun ~scope:Eliom_common.request
+    (fun () ->
+       incr request_counter;
+       !request_counter)
+
+let s = Eliom_registration.Action.register_coservice'
+          ~get_params:Eliom_parameter.unit
+          (fun () () ->
+             debug "escaped_in_client: the action";
+             Lwt.return ())
+
+{client{
+
+
+  let show_server_injections _ =
+    debug "global_value: %Ld\n\
+           client_process: %d\n\
+           request: %d\n\
+           time: %Ld"
+      %global_value
+      %client_process
+      %request
+      %(time ())
+
+  let () = debug "global_value: %Ld" %global_value
+
+  let link () =
+     Html5.F.(div [(*a ~service: %s [pcdata "Action! (on server)"] ()*)]) 
+
+}}
+
+let escaped_in_client =
+  let description = "Escaping server values on the client" in
+  let path = ["escape"; "on_client"] in
+  description,
+  My_appl.register_service
+    ~path ~get_params:Eliom_parameter.unit
+    (fun () () ->
+       lwt cp = Eliom_reference.get client_process in
+       debug "global_value: %Ld\n\
+              client_process: %d\n\
+              request: %d\n\
+              time: %Ld"
+         global_value
+         cp
+         (Eliom_reference.Volatile.get request)
+         (time ());
+       ignore {unit{
+         Lwt.ignore_result
+           (lwt () = Eliom_client.wait_load_end () in
+            show_server_injections ();
+            Dom.appendChild
+              (Dom_html.document##body)
+              (Html5.To_dom.of_element (link ()));
+            Lwt.return ())
+       }};
+       Lwt.return Html5.F.(
+         html
+           (Eliom_tools.Html5.head
+              ~title:(String.concat "/" path)
+              ~css:[["style.css"]]
+              ())
+           (body [
+             h2 [pcdata description];
+             div ~a:[a_class ["thebutton"]; a_onclick {{ show_server_injections }}]
+               [ pcdata "Click me" ];
+             div [ a ~service:Eliom_service.void_coservice' [pcdata "reload in app"] () ];
+           ])
+       ))
+(******************************************************************************)
+
+(******************************************************************************)
 
 let tests = [
 (*
@@ -778,5 +871,6 @@ let tests = [
    client_values_shared;
    client_handler_syntax;
    client_values_onload;
+   escaped_in_client;
   ];
 ]

@@ -1472,11 +1472,11 @@ module Eliom_appl_reg_make_param
 
     let script =
       Printf.sprintf
-        ("var eliom_appl_sitedata = \'%s\';\n"
-          ^^ "var eliom_appl_process_info = \'%s\'\n"
-         ^^ "var eliom_request_data;\n"
-         ^^ "var eliom_request_cookies;\n"
-         ^^ "var eliom_request_template;\n")
+        ("var eliom_appl_sitedata = \'%s\';\n" ^^
+         "var eliom_appl_process_info = \'%s\'\n" ^^
+         "var eliom_request_data;\n" ^^
+         "var eliom_request_cookies;\n" ^^
+         "var eliom_request_template;\n")
         (Eliom_types.jsmarshal (Eliommod_cli.client_sitedata sp))
         (Eliom_types.jsmarshal (sp.Eliom_common.sp_client_process_info))
     in
@@ -1487,7 +1487,7 @@ module Eliom_appl_reg_make_param
 
   let make_eliom_data_script ~sp page =
 
-    lwt ejs_injections = Eliom_service.get_injections () in
+    lwt ejs_request_injections = Eliom_service.get_request_injections () in
 
     (* wrapping of values could create eliom references that may
        create cookies that needs to be sent along the page. Hence,
@@ -1497,7 +1497,10 @@ module Eliom_appl_reg_make_param
 	{ Eliom_types.
 	  ejs_event_handler_table = Eliom_content.Xml.make_event_handler_table (Eliom_content.Html5.D.toelt page);
           ejs_initializations     = Eliom_service.get_initializations ();
-          ejs_injections;
+            (* TODO BB Distinguish global and request intializations and send globals only once per client process *)
+          ejs_global_injections   = Eliom_service.get_global_injections ();
+            (* TODO BB Send global injections only once per client process *)
+          ejs_request_injections;
 	  ejs_onload              = Eliom_service.get_onload ();
 	  ejs_onunload            = Eliom_service.get_onunload ();
 	  ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;
@@ -1513,9 +1516,9 @@ module Eliom_appl_reg_make_param
     lwt template = Eliom_reference.get request_template in
     let script =
       Printf.sprintf
-        ("eliom_request_data = \'%s\';\n"
-         ^^ "eliom_request_cookies = \'%s\';\n"
-         ^^ "eliom_request_template = \'%s\';\n")
+        ("eliom_request_data = \'%s\';\n" ^^
+         "eliom_request_cookies = \'%s\';\n" ^^
+         "eliom_request_template = \'%s\';\n")
         (Eliom_types.jsmarshal eliom_data)
         (Eliom_types.jsmarshal tab_cookies)
         (Eliom_types.jsmarshal (template: string option))

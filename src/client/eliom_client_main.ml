@@ -25,6 +25,12 @@ let _a = Eliom_react.force_link
 let _b = Eliom_comet.force_link
 let _c = Eliom_bus.force_link
 
+let () =
+  let eliom_data = Eliom_request_info.get_request_data () in
+  List.iter (fun (name, value) -> Eliom_client.Injection.set ~name ~value)
+    eliom_data.Eliom_types.ejs_global_injections;
+  debug "Injected %d global values" (List.length eliom_data.Eliom_types.ejs_global_injections)
+
 let onload ev =
   if !Eliom_config.debug_timings then
     Firebug.console##time(Js.string "onload");

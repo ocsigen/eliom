@@ -554,11 +554,9 @@ let initializations_global : (int64 * int * poly) list Eliom_reference.Volatile.
   Eliom_reference.Volatile.eref ~scope:Eliom_common.global []
 let initializations_request : (int64 * int * poly) list Eliom_reference.Volatile.eref =
   Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
-
 let get_initializations () =
   List.rev (Eliom_reference.Volatile.get initializations_global)
   @ List.rev (Eliom_reference.Volatile.get initializations_request)
-
 let initialization closure_id instance_id args =
   Eliom_reference.Volatile.modify 
     (if Eliom_common.get_sp_option () = None then
@@ -566,18 +564,21 @@ let initialization closure_id instance_id args =
      else initializations_request)
     (fun is -> (closure_id, instance_id, args) :: is)
 
+let global_injections = ref []
+let global_injection name value =
+  global_injections := (name, value) :: !global_injections
+let get_global_injections () =
+  List.rev !global_injections;
 
 module String_map = Map.Make (String)
 
-let injections = Eliom_reference.Volatile.eref ~scope:Eliom_common.global String_map.empty
-
-let injection name f =
-  Eliom_reference.Volatile.modify injections (String_map.add name f)
-
-let get_injections () =
+let request_injections = Eliom_reference.Volatile.eref ~scope:Eliom_common.global String_map.empty
+let request_injection name f =
+  Eliom_reference.Volatile.modify request_injections (String_map.add name f)
+let get_request_injections () =
   Lwt_list.map_s
     (fun (name, f) -> lwt value = f () in Lwt.return (name, value))
-    (String_map.bindings (Eliom_reference.Volatile.get injections))
+    (String_map.bindings (Eliom_reference.Volatile.get request_injections))
 
 (*****************************************************************************)
 let pre_wrap s =

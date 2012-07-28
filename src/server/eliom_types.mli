@@ -41,7 +41,8 @@ type eliom_js_page_data = {
   (* Event handlers *)
   ejs_event_handler_table: Xml.event_handler_table;
   ejs_initializations: (int64 * int * poly) list;
-  ejs_injections: (string * poly) list;
+  ejs_global_injections: (string * poly) list;
+  ejs_request_injections: (string * poly) list;
   ejs_onload: Dom_html.event Xml.caml_event_handler list;
   ejs_onunload: Dom_html.event Xml.caml_event_handler list;
   (* Session info *)

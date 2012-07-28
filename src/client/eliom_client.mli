@@ -142,6 +142,7 @@ module Client_value : sig
 end
 module Injection : sig
   val get : name:string -> _
+  val set : name:string -> value:poly -> unit
 end
 
 val getElementById : string -> Dom.node Js.t

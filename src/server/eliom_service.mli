@@ -713,13 +713,20 @@ val get_onunload : unit -> Dom_html.event Xml.caml_event_handler list
 val initialization : int64 -> int -> poly -> unit
 val get_initializations : unit -> (int64 * int * poly) list
 
-(* BB To inject (and unwrap) eliom references correctly, the argument for the
-   [injection] is
-     - a suspended expression [(unit -> _)] because it may depend on the request
-     - an Lwt value [(unit -> _ Lwt.t)] because the computation may invole Lwt
+(* BB Injections are server variables escaped in {client{ ... }}.
+   There are two kinds
+     - Request: injections of type [_ Eliom_references(.Volatile).eref]
+       which are unwrapped and sent on every request.
+       To inject (and unwrap) eliom references correctly, the argument for the
+       [injection] is
+         - a suspended expression [(unit -> _)] because it may depend on the request
+         - an Lwt value [(unit -> _ Lwt.t)] because the computation may invole Lwt
+     - Global: injections of any other type are sent as it.
  *)
-val injection : string -> (unit -> poly Lwt.t) -> unit
-val get_injections : unit -> (string * poly) list Lwt.t
+val global_injection : string -> poly -> unit
+val request_injection : string -> (unit -> poly Lwt.t) -> unit
+val get_global_injections : unit -> (string * poly) list
+val get_request_injections : unit -> (string * poly) list Lwt.t
 val pre_wrap :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service

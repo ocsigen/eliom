@@ -77,29 +77,24 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let client_str_items items =
     let aux (gen_id, orig_expr) =
-      let t =
-        match Helpers.find_escaped_ident_type gen_id with
-          | <:ctyp< ($_$ Eliom_reference.Volatile.eref) >> ->
-              Printf.eprintf "Server: Escaped %s is a volatile reference\n%!" gen_id;
-              <:expr<
-                fun () ->
-                  Lwt.return
-                    (Eliom_lib.to_poly (Eliom_reference.Volatile.get $orig_expr$))
-              >>
-          | <:ctyp< ($_$ Eliom_reference.eref) >> ->
-              Printf.eprintf "Server: Escaped %s is a reference\n%!" gen_id;
-              <:expr<
-                fun () ->
-                  Lwt.map Eliom_lib.to_poly (Eliom_reference.get $orig_expr$)
-              >>
-          | typ ->
-              Printf.eprintf "Server: Escaped %s is not a reference\n%!" gen_id;
-              <:expr<
-                fun () ->
-                  Lwt.return (Eliom_lib.to_poly $orig_expr$)
-              >>
-      in
-      <:str_item< let () = Eliom_service.injection $str:gen_id$ $t$ >>
+      match Helpers.find_escaped_ident_type gen_id with
+        | <:ctyp< ($_$ Eliom_reference.Volatile.eref) >>
+        | <:ctyp< ($_$ Eliom_reference.eref) >> ->
+            Printf.eprintf "Server: Escaped %s is a reference\n%!" gen_id;
+            <:str_item<
+              let () =
+                Eliom_service.request_injection $str:gen_id$
+                  (fun () ->
+                    Lwt.map Eliom_lib.to_poly
+                      (Eliom_reference.get ($orig_expr$ :> _ Eliom_reference.eref)))
+            >>
+        | typ ->
+            Printf.eprintf "Server: Escaped %s is not a reference\n%!" gen_id;
+            <:str_item<
+              let () =
+                Eliom_service.global_injection $str:gen_id$
+                  (Eliom_lib.to_poly $orig_expr$)
+            >>
     in
     Ast.stSem_of_list
       (List.map aux (flush_args ()))

@@ -566,17 +566,15 @@ let do_initialization (closure_id, instance_id, args) =
   Client_value.set ~closure_id ~instance_id
     (Client_closure.find ~closure_id args)
 
-let do_injection (name, value) =
-  Injection.set ~name ~value
-
 let load_eliom_data js_data page =
   debug "load_eliom_data";
   try
     if !Eliom_config.debug_timings then
       Firebug.console##time(Js.string "load_eliom_data");
     loading_phase := true;
+    List.iter (fun (name, value) -> Injection.set ~name ~value) js_data.Eliom_types.ejs_request_injections;
+    debug "Injected %d request values" (List.length js_data.Eliom_types.ejs_request_injections);
     List.iter do_initialization js_data.Eliom_types.ejs_initializations;
-    List.iter do_injection js_data.Eliom_types.ejs_injections;
     let nodes_on_load =
       relink_page page js_data.Eliom_types.ejs_event_handler_table
     in
