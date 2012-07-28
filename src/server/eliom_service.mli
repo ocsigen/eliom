@@ -712,6 +712,14 @@ val get_onload : unit -> Dom_html.event Xml.caml_event_handler list
 val get_onunload : unit -> Dom_html.event Xml.caml_event_handler list
 val initialization : int64 -> int -> poly -> unit
 val get_initializations : unit -> (int64 * int * poly) list
+
+(* BB To inject (and unwrap) eliom references correctly, the argument for the
+   [injection] is
+     - a suspended expression [(unit -> _)] because it may depend on the request
+     - an Lwt value [(unit -> _ Lwt.t)] because the computation may invole Lwt
+ *)
+val injection : string -> (unit -> poly Lwt.t) -> unit
+val get_injections : unit -> (string * poly) list Lwt.t
 val pre_wrap :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service

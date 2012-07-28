@@ -92,6 +92,10 @@ type hole_expr_context =
   | Client_item_context
   | Shared_item_context
 
+type escaped_context =
+  | Escaped_in_hole_in of hole_expr_context
+  | Escaped_in_client_item
+
 (** Signature of specific code of a preprocessor. *)
 
 module type Pass = functor (Helpers: Helpers) -> sig
@@ -111,7 +115,7 @@ module type Pass = functor (Helpers: Helpers) -> sig
   val hole_expr: Ast.ctyp option -> hole_expr_context -> Ast.expr -> Int64.t -> string -> Ast.expr
 
   (** How to handle escaped "%ident" inside "{{ ... }}". *)
-  val escaped: hole_expr_context -> Ast.expr -> string -> Ast.expr
+  val escaped: escaped_context -> Ast.expr -> string -> Ast.expr
 
 end
 
@@ -200,7 +204,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         | _ -> assert false
       let extract_client_value_type = function
           (* | <:sig_item< val $id$ : ($t$ option ref) >> -> *)
-        | Ast.SgVal (_loc, id, <:ctyp< ($t$ Eliom_server.Client_value.t option ref) >>) ->
+        | Ast.SgVal (_loc, id, <:ctyp< ($t$ Eliom_server.Client_value.t option ref) >>)
+        | Ast.SgVal (_loc, id, <:ctyp< ($t$ Eliom_lib.client_value option ref) >>) ->
             let len = String.length id - client_value_ident_prefix_len in
             Int64.of_string (String.sub id client_value_ident_prefix_len len),
             suppress_underscore t
@@ -245,7 +250,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           exit 1
 
       let is_client_value_type = function
-        | <:ctyp< $typ$ Eliom_server.Client_value.t >> -> Some typ
+        | <:ctyp< $typ$ Eliom_server.Client_value.t >>
+        | <:ctyp< $typ$ Eliom_lib.client_value >> -> Some typ
         | _ -> None
     end (* End of Helpers *)
 
@@ -388,19 +394,27 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
          ]];
       dummy_check_level_escaped_ident:
         [[ -> match !current_level with
-              | Hole_expr context -> context
+              | Hole_expr context ->
+                  Escaped_in_hole_in context
+              | Client_item ->
+                  Escaped_in_client_item
               | _ ->
                   Syntax_error.raise _loc
-                    "The syntax \"%ident\" is only allowed inside code expression {{ ... }}."
+                    "The syntax \"%ident\" is only allowed inside code \
+                     expression {{ ... }} and on {client{ ... }}."
          ]];
       dummy_set_level_escaped_expr:
         [[ -> match !current_level with
               | Hole_expr context ->
                   current_level := Escaped_expr;
-                  context
+                  Escaped_in_hole_in context
+              | Client_item ->
+                  current_level := Escaped_expr;
+                  Escaped_in_client_item
               | _ ->
                   Syntax_error.raise _loc
-                    "The syntax \"%ident\" is only allowed inside code expression {{ ... }}."
+                    "The syntax \"%ident\" is only allowed inside code \
+                     expression {{ ... }} and on {client{ ... }}."
          ]];
       dummy_set_level_module_expr:
         [[ -> match !current_level with
@@ -491,7 +505,10 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
               e = SELF ;
               KEYWORD ")" ->
 
-                current_level := Hole_expr context;
+                current_level :=
+                  (match context with
+                     | Escaped_in_hole_in context -> Hole_expr context
+                     | Escaped_in_client_item -> Client_item);
                 Pass.escaped context e (gen_escaped_expr_ident ())
 
          ]];

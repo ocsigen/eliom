@@ -140,6 +140,9 @@ end
 module Client_value : sig
   val get : closure_id:int64 -> instance_id:int -> _
 end
+module Injection : sig
+  val get : name:string -> _
+end
 
 val getElementById : string -> Dom.node Js.t
 val rebuild_node : 'a Eliom_content_core.Html5.elt -> < .. > Js.t

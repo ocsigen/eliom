@@ -48,7 +48,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     <:expr@loc<
         let __eliom_instance_id = Eliom_lib.fresh_ix () in
         Eliom_service.initialization $`int64:gen_num$ __eliom_instance_id
-          (Eliom_lib.to_poly $tuple_of_args args$);
+          (Eliom_lib.to_poly $tuple_of_args (List.map snd args)$);
         (Eliom_server.Client_value.create $`int64:gen_num$ __eliom_instance_id
            : $typ$ Eliom_server.Client_value.t)
     >>
@@ -59,11 +59,11 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     if not (List.mem gen_id !arg_ids) then begin
       let _loc = Ast.loc_of_expr orig_expr in
       let arg = <:expr< $orig_expr$ >> in
-      arg_collection := arg :: !arg_collection;
+      arg_collection := (gen_id, arg) :: !arg_collection;
       arg_ids := gen_id :: !arg_ids
     end
 
-  let flush_args _loc =
+  let flush_args () =
     let res = !arg_collection in
     arg_ids := [];
     arg_collection := [];
@@ -75,7 +75,34 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let shared_str_items items = Ast.stSem_of_list items
   let server_str_items items = Ast.stSem_of_list items
 
-  let client_str_items items = <:str_item< >>
+  let client_str_items items =
+    let aux (gen_id, orig_expr) =
+      let t =
+        match Helpers.find_escaped_ident_type gen_id with
+          | <:ctyp< ($_$ Eliom_reference.Volatile.eref) >> ->
+              Printf.eprintf "Server: Escaped %s is a volatile reference\n%!" gen_id;
+              <:expr<
+                fun () ->
+                  Lwt.return
+                    (Eliom_lib.to_poly (Eliom_reference.Volatile.get $orig_expr$))
+              >>
+          | <:ctyp< ($_$ Eliom_reference.eref) >> ->
+              Printf.eprintf "Server: Escaped %s is a reference\n%!" gen_id;
+              <:expr<
+                fun () ->
+                  Lwt.map Eliom_lib.to_poly (Eliom_reference.get $orig_expr$)
+              >>
+          | typ ->
+              Printf.eprintf "Server: Escaped %s is not a reference\n%!" gen_id;
+              <:expr<
+                fun () ->
+                  Lwt.return (Eliom_lib.to_poly $orig_expr$)
+              >>
+      in
+      <:str_item< let () = Eliom_service.injection $str:gen_id$ $t$ >>
+    in
+    Ast.stSem_of_list
+      (List.map aux (flush_args ()))
 
   let hole_expr typ context_level orig_expr gen_num _ =
     match context_level with
@@ -87,13 +114,16 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           <:expr< >>
 
   let escaped context_level orig_expr gen_id =
-    match context_level with
-      | Pa_eliom_seed.Server_item_context
-      | Pa_eliom_seed.Shared_item_context ->
-          push_arg orig_expr gen_id;
-          <:expr< >>
-      | Pa_eliom_seed.Client_item_context ->
-          <:expr< >>
+    let open Pa_eliom_seed in
+    (match context_level with
+       | Escaped_in_hole_in Server_item_context
+       | Escaped_in_hole_in Shared_item_context ->
+           push_arg orig_expr gen_id
+       | Escaped_in_client_item ->
+           push_arg orig_expr gen_id
+       | Escaped_in_hole_in Client_item_context -> ());
+    <:expr< >>
+
 
 
 end

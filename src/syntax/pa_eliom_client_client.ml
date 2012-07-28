@@ -87,7 +87,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let client_arg_ids = ref []
 
   let push_client_arg _loc orig_expr gen_id =
-    if not (List.exists (function (_, _, gen_id') -> gen_id = gen_id' | _ -> false) !client_arg_ids) then
+    if not (List.exists (fun (_, _, gen_id') -> gen_id = gen_id') !client_arg_ids) then
       client_arg_ids := (_loc, orig_expr, gen_id) :: !client_arg_ids
 
   let flush_client_args expr =
@@ -147,31 +147,50 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           >>
 
   let escaped context_level orig_expr gen_id =
-    if context_level = Pa_eliom_seed.Server_item_context ||
-       context_level = Pa_eliom_seed.Shared_item_context
+    let open Pa_eliom_seed in
+    if context_level = Escaped_in_hole_in Server_item_context ||
+       context_level = Escaped_in_hole_in Shared_item_context
     then
       push_server_arg gen_id;
-    if context_level = Pa_eliom_seed.Client_item_context ||
-       context_level = Pa_eliom_seed.Shared_item_context
+    if context_level = Escaped_in_hole_in Client_item_context ||
+       context_level = Escaped_in_hole_in Shared_item_context
     then
       push_client_arg (Ast.loc_of_expr orig_expr) orig_expr gen_id;
 
     let _loc = Ast.loc_of_expr orig_expr in
     match context_level with
-       | Pa_eliom_seed.Server_item_context
-       | Pa_eliom_seed.Shared_item_context ->
+       | Escaped_in_hole_in Server_item_context
+       | Escaped_in_hole_in Shared_item_context ->
           if !notyp then
             <:expr< $lid:gen_id$ >>
           else
             let typ =
               let typ = Helpers.find_escaped_ident_type gen_id in
-              match Helpers.is_client_value_type typ with 
-                | Some typ -> typ
+              match Helpers.(is_client_value_type typ) with 
+                | Some typ' -> typ'
                 | None -> typ
             in
             <:expr< ($lid:gen_id$ : $typ$) >>
-      | Pa_eliom_seed.Client_item_context ->
+       | Escaped_in_hole_in Client_item_context ->
           <:expr< $lid:gen_id$ >>
+       | Escaped_in_client_item ->
+           let typ =
+             let typ = Helpers.find_escaped_ident_type gen_id in
+             match Helpers.is_client_value_type typ with
+               | Some typ' ->
+                   typ'
+               | None ->
+                   match typ with
+                     | <:ctyp< ($typ'$ Eliom_reference.Volatile.eref) >>
+                     | <:ctyp< ($typ'$ Eliom_reference.eref) >> ->
+                         Printf.eprintf "Client: Escaped %s is a reference\n%!" gen_id;
+                         typ'
+                     | typ ->
+                         Printf.eprintf "Client: Escaped %s is not a reference\n%!" gen_id;
+                         typ
+           in
+           <:expr< (Eliom_client.Injection.get ~name: $str:gen_id$
+                      : $typ$) >>
 
 
 

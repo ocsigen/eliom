@@ -1487,6 +1487,8 @@ module Eliom_appl_reg_make_param
 
   let make_eliom_data_script ~sp page =
 
+    lwt ejs_injections = Eliom_service.get_injections () in
+
     (* wrapping of values could create eliom references that may
        create cookies that needs to be sent along the page. Hence,
        cookies should be calculated after wrapping. *)
@@ -1495,6 +1497,7 @@ module Eliom_appl_reg_make_param
 	{ Eliom_types.
 	  ejs_event_handler_table = Eliom_content.Xml.make_event_handler_table (Eliom_content.Html5.D.toelt page);
           ejs_initializations     = Eliom_service.get_initializations ();
+          ejs_injections;
 	  ejs_onload              = Eliom_service.get_onload ();
 	  ejs_onunload            = Eliom_service.get_onunload ();
 	  ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;

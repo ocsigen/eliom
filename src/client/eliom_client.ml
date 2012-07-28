@@ -62,6 +62,22 @@ end = struct
         (fun () -> raise Not_found))
 end
 
+module Injection : sig
+  exception Not_found
+  val set : name:string -> value:poly -> unit
+  val get : name:string -> _
+end = struct
+  exception Not_found
+  let injections = JsTable.create ()
+  let set ~name ~value =
+    JsTable.add injections (Js.string name) value
+  let get ~name =
+    from_poly
+      (Js.Optdef.get
+         (JsTable.find injections (Js.string name))
+         (fun () -> raise Not_found))
+end
+
 module Server_values : sig
 end = struct
   let server_values = JsTable.create ()
@@ -546,10 +562,12 @@ let relink_page (root:Dom_html.element Js.t) event_handlers =
     (fun node -> relink_closure_node root onload event_handlers node);
   List.rev !onload
 
-let reify_initialization (closure_id, instance_id, args) =
-  debug "reify_initialization %Ld %d" closure_id instance_id;
+let do_initialization (closure_id, instance_id, args) =
   Client_value.set ~closure_id ~instance_id
     (Client_closure.find ~closure_id args)
+
+let do_injection (name, value) =
+  Injection.set ~name ~value
 
 let load_eliom_data js_data page =
   debug "load_eliom_data";
@@ -557,8 +575,8 @@ let load_eliom_data js_data page =
     if !Eliom_config.debug_timings then
       Firebug.console##time(Js.string "load_eliom_data");
     loading_phase := true;
-    List.iter reify_initialization js_data.Eliom_types.ejs_initializations;
-    debug "reified %d initializations" (List.length js_data.Eliom_types.ejs_initializations);
+    List.iter do_initialization js_data.Eliom_types.ejs_initializations;
+    List.iter do_injection js_data.Eliom_types.ejs_injections;
     let nodes_on_load =
       relink_page page js_data.Eliom_types.ejs_event_handler_table
     in

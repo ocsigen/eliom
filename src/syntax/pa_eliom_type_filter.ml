@@ -70,7 +70,11 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   (** Syntax extension *)
 
   let client_str_items items =
-    let _loc = Loc.ghost in <:str_item< >>
+    Ast.stSem_of_list [
+      flush_typing_strs ();
+      (let _loc = Loc.ghost in
+       <:str_item< let () = begin $flush_typing_expr ()$ end >>);
+    ]
 
   let server_str_items items =
     Ast.stSem_of_list (flush_typing_strs () :: items)
@@ -99,14 +103,16 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           <:expr< >>
 
   let escaped context_level orig_expr gen_id =
+    let open Pa_eliom_seed in
     let _loc = Ast.loc_of_expr orig_expr in
     match context_level with
-      | Pa_eliom_seed.Server_item_context
-      | Pa_eliom_seed.Shared_item_context ->
-          add_typing_expr orig_expr gen_id;
+      | Escaped_in_client_item
+      | Escaped_in_hole_in Server_item_context
+      | Escaped_in_hole_in Shared_item_context ->
           add_typing_str orig_expr gen_id;
+          add_typing_expr orig_expr gen_id;
           <:expr< () >>
-      | Pa_eliom_seed.Client_item_context ->
+      | Escaped_in_hole_in Client_item_context ->
           <:expr< () >>
 
 end

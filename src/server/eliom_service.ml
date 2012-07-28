@@ -560,13 +560,24 @@ let get_initializations () =
   @ List.rev (Eliom_reference.Volatile.get initializations_request)
 
 let initialization closure_id instance_id args =
-  debug "Eliom_service.initialization %Ld %d" closure_id instance_id;
   Eliom_reference.Volatile.modify 
     (if Eliom_common.get_sp_option () = None then
        initializations_global
      else initializations_request)
     (fun is -> (closure_id, instance_id, args) :: is)
 
+
+module String_map = Map.Make (String)
+
+let injections = Eliom_reference.Volatile.eref ~scope:Eliom_common.global String_map.empty
+
+let injection name f =
+  Eliom_reference.Volatile.modify injections (String_map.add name f)
+
+let get_injections () =
+  Lwt_list.map_s
+    (fun (name, f) -> lwt value = f () in Lwt.return (name, value))
+    (String_map.bindings (Eliom_reference.Volatile.get injections))
 
 (*****************************************************************************)
 let pre_wrap s =
