@@ -25,9 +25,15 @@ include module type of Ocsigen_lib_base
   and type ('a, 'b) leftright = ('a, 'b) Ocsigen_lib_base.leftright
   and type 'a Clist.t = 'a Ocsigen_lib_base.Clist.t
   and type 'a Clist.node = 'a Ocsigen_lib_base.Clist.node
+  and type 'a Int64_map.t = 'a Ocsigen_lib_base.Int64_map.t
 
 include module type of Eliom_lib_base
-  with type 'a client_expr = 'a Eliom_lib_base.client_expr
+
+(** The type of holes [{{ ... }}].
+    An ['a] client value on the client is just an ['a].
+    See also {% <<a_api subproject="server" text="on the server" | Eliom_lib.Client_value.t >> %}.
+  *)
+type 'a client_value = 'a
 
 (** Pervasives module for Eliom extending stdlib, should always be opened. *)
 

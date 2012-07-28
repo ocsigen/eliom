@@ -125,7 +125,6 @@ val in_onload : unit -> bool
 (** register a function to be called on page change *)
 val on_unload : (unit -> unit) -> unit
 
-
 (**/**)
 
 val relink_request_nodes : Dom_html.htmlElement Js.t -> unit
@@ -135,7 +134,12 @@ val load_eliom_data :
   Eliom_types.eliom_js_page_data ->
   Dom_html.htmlElement Js.t -> (Dom_html.event Js.t -> bool) list
 
-val register_closure: int64 -> ('a -> Dom_html.event Js.t -> unit) -> unit
+module Client_closure : sig
+  val register : closure_id:int64 -> (_ -> _) -> unit
+end
+module Client_value : sig
+  val get : closure_id:int64 -> instance_id:int -> _
+end
 
 val getElementById : string -> Dom.node Js.t
 val rebuild_node : 'a Eliom_content_core.Html5.elt -> < .. > Js.t

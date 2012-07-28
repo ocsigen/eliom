@@ -28,17 +28,37 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   open Helpers.Syntax
 
-  (* Server side code emission *)
-  let closure_call _loc num args =
-    <:expr< Eliom_content.Xml.event_handler_of_js $`int64:num$ (Eliom_lib.to_poly $args$) >>
+  let tuple_of_args = function
+    | [] -> let _loc = Loc.ghost in <:expr< () >>
+    | [e] -> e
+    | args -> let _loc = Loc.ghost in <:expr< $tup:Ast.exCom_of_list args$ >>
+
+  let client_value gen_num args loc typ =
+    let typ =
+      match typ with
+        | Some typ -> typ
+        | None ->
+            match Helpers.find_client_value_type gen_num with
+              | Ast.TyQuo _ ->
+                  (* TODO BB lighten this - should only apply to holes used in other holes *)
+                  Helpers.raise_syntax_error loc
+                    "Holes must have closed types"
+              | typ -> typ
+    in
+    <:expr@loc<
+        let __eliom_instance_id = Eliom_lib.fresh_ix () in
+        Eliom_service.initialization $`int64:gen_num$ __eliom_instance_id
+          (Eliom_lib.to_poly $tuple_of_args args$);
+        (Eliom_server.Client_value.create $`int64:gen_num$ __eliom_instance_id
+           : $typ$ Eliom_server.Client_value.t)
+    >>
 
   let arg_ids = ref []
   let arg_collection = ref []
   let push_arg orig_expr gen_id =
     if not (List.mem gen_id !arg_ids) then begin
       let _loc = Ast.loc_of_expr orig_expr in
-      let arg =
-	<:expr< $orig_expr$ >> in
+      let arg = <:expr< $orig_expr$ >> in
       arg_collection := arg :: !arg_collection;
       arg_ids := gen_id :: !arg_ids
     end
@@ -47,10 +67,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     let res = !arg_collection in
     arg_ids := [];
     arg_collection := [];
-    match res with
-    | [] -> <:expr< () >>
-    | [e] -> e
-    | _ -> <:expr< $tup:Ast.exCom_of_list (List.rev res)$ >>
+    List.rev res
 
   (** Filters *)
 
@@ -60,12 +77,12 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let client_str_items items = <:str_item< >>
 
-  let client_expr context_level orig_expr gen_num _ =
+  let hole_expr typ context_level orig_expr gen_num _ =
     match context_level with
       | Pa_eliom_seed.Server_item_context
       | Pa_eliom_seed.Shared_item_context ->
           let _loc =  Ast.loc_of_expr orig_expr in
-          closure_call _loc gen_num (flush_args _loc)
+          client_value gen_num (flush_args ()) (Ast.loc_of_expr orig_expr) typ
       | Pa_eliom_seed.Client_item_context ->
           <:expr< >>
 

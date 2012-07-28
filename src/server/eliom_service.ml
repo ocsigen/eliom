@@ -534,35 +534,39 @@ let unregister ?scope ?secure service =
    redirection.
 *)
 
-let on_load_key : Dom_html.event Xml.caml_event_handler list Polytables.key = Polytables.make_key ()
+let onload_events = Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
 
-let get_onload sp =
-  let rc = Eliom_request_info.get_request_cache_sp sp in
-  try
-    List.rev (Polytables.get ~table:rc ~key:on_load_key)
-  with Not_found -> []
+let onload ev =
+  Eliom_reference.Volatile.modify onload_events (fun evs -> Xml.caml_event_handler ev :: evs)
 
-let on_unload_key : Dom_html.event Xml.caml_event_handler list Polytables.key = Polytables.make_key ()
+let get_onload () =
+  Eliom_reference.Volatile.get onload_events
 
-let get_onunload sp =
-  let rc = Eliom_request_info.get_request_cache_sp sp in
-  try
-    List.rev (Polytables.get ~table:rc ~key:on_unload_key)
-  with Not_found -> []
+let onunload_events = Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
 
-let onload s =
-  let rc = Eliom_request_info.get_request_cache () in
-  let s0 = try Polytables.get ~table:rc ~key:on_load_key
-    with Not_found -> []
-  in
-  Polytables.set ~table:rc ~key:on_load_key ~value:(s :: s0)
+let get_onunload () =
+  Eliom_reference.Volatile.get onunload_events
 
-let onunload s =
-  let rc = Eliom_request_info.get_request_cache () in
-  let s0 = try Polytables.get ~table:rc ~key:on_unload_key
-    with Not_found -> []
-  in
-  Polytables.set ~table:rc ~key:on_unload_key ~value:(s :: s0)
+let onunload ev =
+  Eliom_reference.Volatile.modify onunload_events (fun evs -> Xml.caml_event_handler ev :: evs)
+
+let initializations_global : (int64 * int * poly) list Eliom_reference.Volatile.eref =
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.global []
+let initializations_request : (int64 * int * poly) list Eliom_reference.Volatile.eref =
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
+
+let get_initializations () =
+  List.rev (Eliom_reference.Volatile.get initializations_global)
+  @ List.rev (Eliom_reference.Volatile.get initializations_request)
+
+let initialization closure_id instance_id args =
+  debug "Eliom_service.initialization %Ld %d" closure_id instance_id;
+  Eliom_reference.Volatile.modify 
+    (if Eliom_common.get_sp_option () = None then
+       initializations_global
+     else initializations_request)
+    (fun is -> (closure_id, instance_id, args) :: is)
+
 
 (*****************************************************************************)
 let pre_wrap s =

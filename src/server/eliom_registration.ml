@@ -1146,8 +1146,7 @@ module Ocaml = struct
   module M = Eliom_mkreg.MakeRegister(Caml_reg_base)
 
   let prepare_data data =
-    let sp = Eliom_common.get_sp () in
-    let r = { Eliom_types.ecs_onload = Eliom_service.get_onload sp;
+    let r = { Eliom_types.ecs_onload = Eliom_service.get_onload ();
               ecs_data = data } in
     Lwt.return (Eliom_types.encode_eliom_data r)
 
@@ -1495,8 +1494,9 @@ module Eliom_appl_reg_make_param
       Eliom_wrap.wrap
 	{ Eliom_types.
 	  ejs_event_handler_table = Eliom_content.Xml.make_event_handler_table (Eliom_content.Html5.D.toelt page);
-	  ejs_onload              = Eliom_service.get_onload sp;
-	  ejs_onunload            = Eliom_service.get_onunload sp;
+          ejs_initializations     = Eliom_service.get_initializations ();
+	  ejs_onload              = Eliom_service.get_onload ();
+	  ejs_onunload            = Eliom_service.get_onunload ();
 	  ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;
 	} in
 
@@ -1591,7 +1591,7 @@ module Eliom_appl_reg_make_param
 
     let sp = Eliom_common.get_sp () in
 
-    (* GRGR FIXME et si le nom de l'application diffère ?? Il faut
+    (* GRGR FIXME et si le nom de l'application diffï¿½re ?? Il faut
        renvoyer un full_redirect... TODO *)
     if sp.Eliom_common.sp_client_appl_name <> Some Appl_params.application_name then
 
@@ -1701,7 +1701,7 @@ module type TMPL_PARAMS = sig
   type t
   val name: string
   val make_page: t -> Html5_types.html Eliom_content.Html5.elt Lwt.t
-  val update: t -> Dom_html.event Xml.caml_event_handler
+  val update: t -> (Dom_html.event Js.t -> unit) client_value
 end
 
 module Eliom_tmpl_reg_make_param

@@ -4,13 +4,30 @@ let (>|=) = Lwt.(>|=)
 
 open HTML5.M
 open Eliom_output.Html5
+(*
 open Eliom_testsuite1
 open Eliom_testsuite2
 open Eliom_testsuite3
-open Eliom_testsuite4
+ *)
+
+
+let tests description services =
+  div [
+    h4 [pcdata description];
+    ul
+      (List.map
+         (fun (description, service) ->
+            li [a ~service [pcdata description] ()])
+         services);
+  ]
+
+let testsuite ~name li =
+  div
+    (h3 [pcdata name] ::
+     List.map (uncurry tests) li)
 
 (* Main page for the test suite *)
-let _ = Eliom_output.Html5.register Eliom_testsuite3.main
+let _ = Eliom_output.Html5.register Eliom_testsuite4.main
   (fun () () ->
     Lwt.return
      (html
@@ -25,6 +42,8 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
                    ~src:(Eliom_output.Html5.make_uri
                            ~service:(Eliom_service.static_dir ()) ["ocsigen5.png"]) ()];
 
+            testsuite ~name:"Test suite 4" Eliom_testsuite4.tests;
+(*
             h3 [pcdata "Eliom examples"];
             h4 [pcdata "Simple pages"];
             p [
@@ -553,6 +572,7 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
                 a actionoutside [ code [ pcdata "actionoutside" ] ] ();
                 br ();
               ]
+            *)
           ])))
 
 (* *zap*)

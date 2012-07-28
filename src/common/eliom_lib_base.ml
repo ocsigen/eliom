@@ -28,6 +28,13 @@ module Lwt_ops = struct
   let (=|<) = Lwt.(=|<)
 end
 
+let fresh_ix () =
+  Oo.id (object end)
+
+let get_option = function
+  | Some x -> x
+  | None -> failwith "get_option"
+
 (**/**)
 
 type 'a client_expr = int64 * poly
@@ -43,10 +50,10 @@ module RawXML = struct
   type cookie_info = (bool * string list) deriving (Json)
 
   type -'a caml_event_handler =
-    | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) client_expr
+    | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) Eliom_server.Client_value.t
     | CE_client_closure of ('a Js.t -> unit) (* Client side-only *)
     | CE_call_service of
-	([ `A | `Form_get | `Form_post] * (cookie_info option) * string option) option Eliom_lazy.request
+        ([ `A | `Form_get | `Form_post] * (cookie_info option) * string option) option Eliom_lazy.request
 
   type event_handler =
     | Raw of string
@@ -95,8 +102,8 @@ module RawXML = struct
   let aname (name, _) = name
   let acontent = function
     | _, RA a -> a
-    | _, RACamlEventHandler (CE_registered_closure (closure_id,_)) ->
-      AStr (closure_attr_prefix^closure_id)
+    | _, RACamlEventHandler (CE_registered_closure (crypto, _)) ->
+      AStr (closure_attr_prefix^crypto)
     | _, RACamlEventHandler _ -> AStr ("")
     | _, RALazyStr str -> AStr (Eliom_lazy.force str)
     | _, RALazyStrL (sep, str) -> AStrL (sep, List.map Eliom_lazy.force str)
@@ -124,7 +131,8 @@ module RawXML = struct
 
   module ClosureMap = Map.Make(struct type t = string let compare = compare end)
 
-  type event_handler_table = ((unit -> unit) client_expr) ClosureMap.t
+  type event_handler_table =
+    ((Dom_html.event Js.t -> unit) Eliom_server.Client_value.t) ClosureMap.t
 
 end
 

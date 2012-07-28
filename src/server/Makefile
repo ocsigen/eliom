@@ -41,6 +41,7 @@ eliom_duce_sigs.mli:: eliom_duce_sigs.mlp sigs/eliom_reg.mli sigs/eliom_reg_simp
 	touch -h -r $< $@
 
 FILES := eliom_wrap.ml eliom_lazy.ml \
+	 eliom_server.ml \
          eliom_lib_base.ml eliom_lib.ml \
 	 eliom_content_core.ml \
 	 eliom_cookies_base.ml \

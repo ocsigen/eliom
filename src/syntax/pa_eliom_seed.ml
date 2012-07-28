@@ -74,14 +74,20 @@ module type Helpers  = sig
   open Syntax
 
   (** find infered type for escaped expr *)
-  val find_event_handler_type: Int64.t -> Ast.ctyp
+  val find_client_value_type: Int64.t -> Ast.ctyp
 
   (** find infered type for escaped expr *)
   val find_escaped_ident_type: string -> Ast.ctyp
 
+  val is_client_value_type : Ast.ctyp -> Ast.ctyp option
+
+  val raise_syntax_error : Ast.Loc.t -> string -> _
+
 end
 
-type client_expr_context =
+type actor = Client | Server (* of string *)
+
+type hole_expr_context =
   | Server_item_context
   | Client_item_context
   | Shared_item_context
@@ -102,10 +108,10 @@ module type Pass = functor (Helpers: Helpers) -> sig
   val client_str_items: Ast.str_item list -> Ast.str_item
 
   (** How to handle "{{ ... }}" expr. *)
-  val client_expr: client_expr_context -> Ast.expr -> Int64.t -> string -> Ast.expr
+  val hole_expr: Ast.ctyp option -> hole_expr_context -> Ast.expr -> Int64.t -> string -> Ast.expr
 
   (** How to handle escaped "%ident" inside "{{ ... }}". *)
-  val escaped: client_expr_context -> Ast.expr -> string -> Ast.expr
+  val escaped: hole_expr_context -> Ast.expr -> string -> Ast.expr
 
 end
 
@@ -115,110 +121,132 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
     include Syntax
 
+    (* Syntax error exception *)
+    module Syntax_error = struct
+      type t = string
+      exception E of t
+      let print fmt msg =
+        Format.fprintf fmt "Syntax error: %s" msg
+      let to_string msg =
+        ignore(Format.flush_str_formatter ());
+        print Format.str_formatter msg;
+        Format.flush_str_formatter ()
+      let raise _loc msg =
+        Loc.raise _loc (E msg)
+    end
+
     module Helpers = struct
 
       module Syntax = Syntax
 
+      let raise_syntax_error _loc msg =
+        Syntax_error.raise _loc msg
+
       (** Pretty-print for error-message *)
 
       let printer =
-	let module Printer = Camlp4.Printers.OCaml.Make(Syntax) in
-	new Printer.printer ()
+        let module Printer = Camlp4.Printers.OCaml.Make(Syntax) in
+        new Printer.printer ()
 
       (** MLI READER ***)
 
       (* Here we define a set of functions for mli reading. This is used
-	 to peek at the type infered by the first pass.*)
+         to peek at the type infered by the first pass.*)
 
       let type_file = ref ""
       let _ =
-	Camlp4.Options.add "-type" (Arg.Set_string type_file) "type inference file"
+        Camlp4.Options.add "-type" (Arg.Set_string type_file) "type inference file"
 
       let get_type_file () = match !type_file with
-	| "" -> Filename.chop_extension !Camlp4_config.current_input_file
+        | "" -> Filename.chop_extension !Camlp4_config.current_input_file
                 ^ ".type_mli"
-	| f -> f
+        | f -> f
 
       let suppress_underscore =
-	let c = ref 0 in
-	let uid () = incr c ; !c in
-	fun ty ->
+        let c = ref 0 in
+        let uid () = incr c ; !c in
+        fun ty ->
           let pfix = Printf.sprintf "__eliom_inferred_type_%d" (uid ()) in
- 	  let map ty = match ty with
- 	    | Ast.TyApp (_, Ast.TyAny _, ty)
- 	    | Ast.TyApp (_, ty, Ast.TyAny _) -> ty
- 	    | Ast.TyQuo (x, var) when var.[0] = '_' ->
- 	      Ast.TyQuo (x, (String.sub var 1 (String.length var - 1)) ^ pfix)
- 	    | ty -> ty in
- 	  (Ast.map_ctyp map)#ctyp ty
+           let map ty = match ty with
+             | Ast.TyApp (_, Ast.TyAny _, ty)
+             | Ast.TyApp (_, ty, Ast.TyAny _) -> ty
+             | Ast.TyQuo (x, var) when var.[0] = '_' ->
+               Ast.TyQuo (x, (String.sub var 1 (String.length var - 1)) ^ pfix)
+             | ty -> ty in
+           (Ast.map_ctyp map)#ctyp ty
 
       let escaped_ident_prefix = "__eliom__escaped_ident__reserved_name__"
       let escaped_ident_prefix_len = String.length escaped_ident_prefix
       let is_escaped_ident = function
-	  (* | <:sig_item< val $id$ : $t$ >> -> *)
-	| Ast.SgVal (_loc, id, t) ->
-	    String.length id > escaped_ident_prefix_len &&
-	    String.sub id 0 escaped_ident_prefix_len = escaped_ident_prefix
-	| si -> false
-      let event_handler_ident_prefix = "__eliom__event_handler__reserved_name__"
-      let event_handler_ident_prefix_len = String.length event_handler_ident_prefix
-      let is_event_handler_ident = function
-	  (* | <:sig_item< val $id$ : $t$ >> -> *)
-	| Ast.SgVal (_loc, id, t) ->
-	    String.length id > event_handler_ident_prefix_len &&
-	    String.sub id 0 event_handler_ident_prefix_len = event_handler_ident_prefix
-	| si -> false
+          (* | <:sig_item< val $id$ : $t$ >> -> *)
+        | Ast.SgVal (_loc, id, t) ->
+            String.length id > escaped_ident_prefix_len &&
+            String.sub id 0 escaped_ident_prefix_len = escaped_ident_prefix
+        | si -> false
+      let client_value_ident_prefix = "__eliom__client_value__reserved_name__"
+      let client_value_ident_prefix_len = String.length client_value_ident_prefix
+      let is_client_value_ident = function
+          (* | <:sig_item< val $id$ : $t$ >> -> *)
+        | Ast.SgVal (_loc, id, t) ->
+            String.length id > client_value_ident_prefix_len &&
+            String.sub id 0 client_value_ident_prefix_len = client_value_ident_prefix
+        | si -> false
       let extract_type = function
-	  (* | <:sig_item< val $id$ : ($t$ option ref) >> -> *)
-	| Ast.SgVal (_loc, id, <:ctyp< ($t$ option ref) >>) ->
-	    let len = String.length id - escaped_ident_prefix_len in
-	    int_of_string (String.sub id escaped_ident_prefix_len len),
-	    suppress_underscore t
-	| _ -> assert false
-      let extract_event_handler_type = function
-	  (* | <:sig_item< val $id$ : ($t$ option ref) >> -> *)
-	| Ast.SgVal (_loc, id, <:ctyp< ($t$ Eliom_content.Xml.caml_event_handler option ref) >>)
-	| Ast.SgVal (_loc, id, <:ctyp< ($t$ Eliom_compatibility_2_1.XML.caml_event_handler option ref) >>) ->
-	    let len = String.length id - event_handler_ident_prefix_len in
-	    Int64.of_string (String.sub id event_handler_ident_prefix_len len),
-	    suppress_underscore t
-	| _ -> assert false
+          (* | <:sig_item< val $id$ : ($t$ option ref) >> -> *)
+        | Ast.SgVal (_loc, id, <:ctyp< ($t$ option ref) >>) ->
+            let len = String.length id - escaped_ident_prefix_len in
+            int_of_string (String.sub id escaped_ident_prefix_len len),
+            suppress_underscore t
+        | _ -> assert false
+      let extract_client_value_type = function
+          (* | <:sig_item< val $id$ : ($t$ option ref) >> -> *)
+        | Ast.SgVal (_loc, id, <:ctyp< ($t$ Eliom_server.Client_value.t option ref) >>) ->
+            let len = String.length id - client_value_ident_prefix_len in
+            Int64.of_string (String.sub id client_value_ident_prefix_len len),
+            suppress_underscore t
+        | _ -> assert false
 
       let load_file f =
-	try
-	  let ic = open_in f in
-	  let s = Stream.of_channel ic in
-	  let (items, stopped) = Gram.parse interf (Loc.mk f) s in
-	  assert (stopped = None); (* No directive inside the generated ".mli". *)
-	  close_in ic;
-	  List.map extract_type (List.filter is_escaped_ident items),
-	  List.map extract_event_handler_type (List.filter is_event_handler_ident items)
-	with
+        try
+          let ic = open_in f in
+          let s = Stream.of_channel ic in
+          let (items, stopped) = Gram.parse interf (Loc.mk f) s in
+          assert (stopped = None); (* No directive inside the generated ".mli". *)
+          close_in ic;
+          List.map extract_type (List.filter is_escaped_ident items),
+          List.map extract_client_value_type (List.filter is_client_value_ident items)
+        with
           | Sys_error _ ->
-	    Printf.eprintf "Error: File type not found (%s)\n" (get_type_file ());
-	    exit 1
+            Printf.eprintf "Error: File type not found (%s)\n" (get_type_file ());
+            exit 1
           | Loc.Exc_located(loc,exn) ->
             Printf.eprintf "%s:\n Exception (%s)\n"
               (Syntax.Loc.to_string loc) (Printexc.to_string exn);
-	    exit 1
+            exit 1
 
       let infered_sig = lazy (load_file (get_type_file ()))
 
       let find_escaped_ident_type id =
-	try
-	  let len = String.length id - escaped_ident_prefix_len in
-	  let id = int_of_string (String.sub id escaped_ident_prefix_len len) in
-	  List.assoc id (fst (Lazy.force infered_sig))
-	with Not_found ->
-	  Printf.eprintf "Error: Infered type not found (%s).\nYou need to regenerate %s.\n" id (get_type_file ());
-	  exit 1
+        try
+          let len = String.length id - escaped_ident_prefix_len in
+          let id = int_of_string (String.sub id escaped_ident_prefix_len len) in
+          List.assoc id (fst (Lazy.force infered_sig))
+        with Not_found ->
+          Printf.eprintf "Error: Infered type of escaped ident not found (%s).\nYou need to regenerate %s.\n"
+            id (get_type_file ());
+          exit 1
 
-      let find_event_handler_type id =
-	try
-	  List.assoc id (snd (Lazy.force infered_sig))
-	with Not_found ->
-	  Printf.eprintf "Error: Infered type not found (%s).\nYou need to regenerate %s.\n" (Int64.to_string id) (get_type_file ());
-	  exit 1
+      let find_client_value_type id =
+        try
+          List.assoc id (snd (Lazy.force infered_sig))
+        with Not_found ->
+          Printf.eprintf "Error: Infered type client value not found (%s).\nYou need to regenerate %s.\n"
+            (Int64.to_string id) (get_type_file ());
+          exit 1
+
+      let is_client_value_type = function
+        | <:ctyp< $typ$ Eliom_server.Client_value.t >> -> Some typ
+        | _ -> None
     end (* End of Helpers *)
 
 
@@ -233,42 +261,42 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
     let rec filter = parser
       | [< '(KEYWORD "{", loc0); next >] ->
-	  (match next with parser
-	  | [< '(KEYWORD "{", loc1); nnext >] -> (* {{ *)
-	      [< '(KEYWORD "{{", merge_locs [loc0] loc1); filter nnext >]
+          (match next with parser
+          | [< '(KEYWORD "{", loc1); nnext >] -> (* {{ *)
+              [< '(KEYWORD "{{", merge_locs [loc0] loc1); filter nnext >]
 
-	  | [< '(LIDENT ("client"|"server"|"shared" as s), loc1); nnnext >] ->
-	      (match nnnext with parser
+          | [< '(LIDENT ("client"|"server"|"shared" as s), loc1); nnnext >] ->
+              (match nnnext with parser
               | [< '(KEYWORD "{", loc2); nnnnext >] -> (* {smthg{ *)
-		  [< '(KEYWORD ("{"^s^"{"), merge_locs [loc0; loc1] loc2);
-		     filter nnnnext
-		       >]
+                  [< '(KEYWORD ("{"^s^"{"), merge_locs [loc0; loc1] loc2);
+                     filter nnnnext
+                       >]
 
               | [< 'other; nnnnext >] -> (* back *)
-		  [< '(KEYWORD "{", loc0); '(LIDENT s, loc1); 'other;
-		     filter nnnnext
-		       >]
-	      )
+                  [< '(KEYWORD "{", loc0); '(LIDENT s, loc1); 'other;
+                     filter nnnnext
+                       >]
+              )
 
-	  | [< 'other; nnext >] -> (* back *)
-	      [< '(KEYWORD "{", loc0); 'other; filter nnext >]
-	  )
+          | [< 'other; nnext >] -> (* back *)
+              [< '(KEYWORD "{", loc0); 'other; filter nnext >]
+          )
 
       | [< '(KEYWORD "}", loc0); next >] ->
-	  (match next with parser
-	  | [< '(KEYWORD "}", loc1); nnext >] ->
-	      [< '(KEYWORD "}}", merge_locs [loc0] loc1); filter nnext >]
+          (match next with parser
+          | [< '(KEYWORD "}", loc1); nnext >] ->
+              [< '(KEYWORD "}}", merge_locs [loc0] loc1); filter nnext >]
 
-	  | [< 'other; nnext >] -> (* back *)
-	      [< '(KEYWORD "}", loc0); 'other; filter nnext >]
-	  )
+          | [< 'other; nnext >] -> (* back *)
+              [< '(KEYWORD "}", loc0); 'other; filter nnext >]
+          )
 
       | [< 'other; next >] -> [< 'other; filter next >]
 
     let () =
       Token.Filter.define_filter
-	(Gram.get_filter ())
-	(fun old_filter stream -> old_filter (filter stream))
+        (Gram.get_filter ())
+        (fun old_filter stream -> old_filter (filter stream))
 
 
 
@@ -284,58 +312,45 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       | Client_item
       | Shared_item
       | Module_expr
-      | Client_expr of client_expr_context
+      | Hole_expr of hole_expr_context
       | Escaped_expr
-    (* [client_expr_context] captures where [client_expr]s are allowed. *)
-    let client_expr_context = function
+    (* [hole_expr_context] captures where [hole_expr]s are allowed. *)
+    let hole_expr_context = function
       | Server_item | Toplevel | Toplevel_module_expr -> Server_item_context
       | Client_item -> Client_item_context
       | Shared_item -> Shared_item_context
-      | Module_expr | Client_expr _ | Escaped_expr ->
-          failwith "client_expr_context"
+      | Module_expr | Hole_expr _ | Escaped_expr ->
+          failwith "hole_expr_context"
     let current_level = ref Toplevel
 
-    (* Identifiers for the closure representing "Client_expr". *)
+    (* Identifiers for the closure representing "Hole_expr". *)
     let gen_closure_num_base _loc = Int64.of_int (Hashtbl.hash (Loc.file_name _loc))
     let gen_closure_num_count = ref Int64.zero
     let gen_closure_num _loc =
       gen_closure_num_count := Int64.succ !gen_closure_num_count;
       Int64.add (gen_closure_num_base _loc) !gen_closure_num_count
     let gen_closure_escaped_ident id =
-      Helpers.event_handler_ident_prefix ^ Int64.to_string id
+      Helpers.client_value_ident_prefix ^ Int64.to_string id
 
     (* Globaly unique ident for escaped expression *)
     (* It's used for type inference and as argument name for the
-       closure representing the surrounding "Client_expr". *)
-    (* Inside a "Client_expr", same ident share the global ident. *)
+       closure representing the surrounding "Hole_expr". *)
+    (* Inside a "Hole_expr", same ident share the global ident. *)
     let escaped_idents = ref []
     let reset_escaped_ident () = escaped_idents := []
     let gen_escaped_expr_ident, gen_escaped_ident =
       let r = ref 0 in
       (fun () ->
-	incr r;
+        incr r;
         Helpers.escaped_ident_prefix ^ string_of_int !r),
       (fun id ->
-	let id = (Ast.map_loc (fun _ -> Loc.ghost))#ident id in
-	try List.assoc id !escaped_idents
-	with Not_found ->
-	  incr r; let gen_id = Helpers.escaped_ident_prefix ^ string_of_int !r in
-	  escaped_idents := (id, gen_id) :: !escaped_idents;
-	  gen_id)
+        let id = (Ast.map_loc (fun _ -> Loc.ghost))#ident id in
+        try List.assoc id !escaped_idents
+        with Not_found ->
+          incr r; let gen_id = Helpers.escaped_ident_prefix ^ string_of_int !r in
+          escaped_idents := (id, gen_id) :: !escaped_idents;
+          gen_id)
 
-    (* Syntax error exception *)
-    module Syntax_error = struct
-      type t = string
-      exception E of t
-      let print fmt msg =
-	Format.fprintf fmt "Syntax error: %s" msg
-      let to_string msg =
-	ignore(Format.flush_str_formatter ());
-	print Format.str_formatter msg;
-	Format.flush_str_formatter ()
-      let raise _loc msg =
-	Loc.raise _loc (E msg)
-    end
     module E2 = Camlp4.ErrorHandler.Register(Syntax_error)
 
     (* Extending syntax *)
@@ -344,63 +359,63 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
     (* Dummy rules: for level management and checking. *)
       dummy_set_level_shared:
-	[[ -> begin match !current_level with
+        [[ -> begin match !current_level with
               | Toplevel -> current_level := Shared_item
               | _ ->
-		  Syntax_error.raise _loc
-		    "The syntax {shared{ ... }} is only allowed at toplevel"
-	end
-	 ]];
+                  Syntax_error.raise _loc
+                    "The syntax {shared{ ... }} is only allowed at toplevel"
+        end
+         ]];
       dummy_set_level_server:
-	[[ ->  match !current_level with
+        [[ ->  match !current_level with
                | Toplevel -> current_level := Server_item
-	       | _ ->
-		   Syntax_error.raise _loc
-		     "The syntax {server{ ... }} is only allowed at toplevel"
-	 ]];
+               | _ ->
+                   Syntax_error.raise _loc
+                     "The syntax {server{ ... }} is only allowed at toplevel"
+         ]];
       dummy_set_level_client:
-	[[ -> match !current_level with
+        [[ -> match !current_level with
               | Toplevel -> current_level := Client_item
               | _ ->
-		  Syntax_error.raise _loc
-		    "The syntax {client{ ... }} is only allowed at toplevel"
-	 ]];
-      dummy_set_level_client_expr:
-	[[ -> reset_escaped_ident ();
+                  Syntax_error.raise _loc
+                    "The syntax {client{ ... }} is only allowed at toplevel"
+         ]];
+      dummy_set_level_hole_expr:
+        [[ -> reset_escaped_ident ();
              let old = !current_level in
-             current_level := Client_expr (client_expr_context old);
+             current_level := Hole_expr (hole_expr_context old);
              old
-	 ]];
+         ]];
       dummy_check_level_escaped_ident:
-	[[ -> match !current_level with
-              | Client_expr context -> context
+        [[ -> match !current_level with
+              | Hole_expr context -> context
               | _ ->
-		  Syntax_error.raise _loc
-		    "The syntax \"%ident\" is only allowed inside code expression {{ ... }}."
-	 ]];
+                  Syntax_error.raise _loc
+                    "The syntax \"%ident\" is only allowed inside code expression {{ ... }}."
+         ]];
       dummy_set_level_escaped_expr:
-	[[ -> match !current_level with
-              | Client_expr context ->
+        [[ -> match !current_level with
+              | Hole_expr context ->
                   current_level := Escaped_expr;
                   context
               | _ ->
-		  Syntax_error.raise _loc
-		    "The syntax \"%ident\" is only allowed inside code expression {{ ... }}."
-	 ]];
+                  Syntax_error.raise _loc
+                    "The syntax \"%ident\" is only allowed inside code expression {{ ... }}."
+         ]];
       dummy_set_level_module_expr:
-	[[ -> match !current_level with
+        [[ -> match !current_level with
               | Toplevel ->
                  current_level := Toplevel_module_expr;
                  Toplevel
               | lvl -> lvl ]];
 
       str_items: FIRST
-	[[ lvl = dummy_set_level_module_expr;
-	   me = SELF -> current_level := lvl; me ]];
+        [[ lvl = dummy_set_level_module_expr;
+           me = SELF -> current_level := lvl; me ]];
 
       (* Duplicated from camlp4/Camlp4Parsers/Camlp4OCamlRevisedParser.ml *)
       module_expr: BEFORE "top"
-	[[ "functor"; "("; i = a_UIDENT; ":"; t = module_type; ")"; "->";
+        [[ "functor"; "("; i = a_UIDENT; ":"; t = module_type; ")"; "->";
             lvl = dummy_set_level_module_expr;
             me = SELF ->
             current_level := lvl; <:module_expr< functor ( $i$ : $t$ ) -> $me$ >> ]];
@@ -416,61 +431,70 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       (* To str_item we add {client{ ... }}, {server{ ... }} and {shared{ ... }} *)
       str_item: BEFORE "top"
 
-	[ "eliom"
+        [ "eliom"
 
-	 [ KEYWORD "{shared{" ; dummy_set_level_shared ;
+         [ KEYWORD "{shared{" ; dummy_set_level_shared ;
            es = LIST0 str_item ;
-	   KEYWORD "}}" ->
+           KEYWORD "}}" ->
 
-	     current_level := Toplevel;
-	     Pass.shared_str_items es
+             current_level := Toplevel;
+             Pass.shared_str_items es
 
          | KEYWORD "{server{" ; dummy_set_level_server ;
              es = LIST0 str_item ;
-	   KEYWORD "}}" ->
+           KEYWORD "}}" ->
 
-	     current_level := Toplevel;
-	     Pass.server_str_items es
+             current_level := Toplevel;
+             Pass.server_str_items es
 
-	 | KEYWORD "{client{" ; dummy_set_level_client ;
+         | KEYWORD "{client{" ; dummy_set_level_client ;
              es = LIST0 str_item ;
-	   KEYWORD "}}" ->
+           KEYWORD "}}" ->
 
-	     current_level := Toplevel;
-	     Pass.client_str_items es
+             current_level := Toplevel;
+             Pass.client_str_items es
 
-	 | si = str_item LEVEL "top" ->
+         | si = str_item LEVEL "top" ->
 
-	     if !current_level = Toplevel then
-	       Pass.server_str_items [si]
-	     else
-	       si
+             if !current_level = Toplevel then
+               Pass.server_str_items [si]
+             else
+               si
 
-	 ]];
+         ]];
 
       (* To expr we add {{ ... }} and %IDENT *)
 
+(*
+      hole_actor:
+        [ [ "server"; ":" -> Some Server
+          | "client"; ":" -> Some Client
+          | -> None ]
+ *)
+
+      start_hole:
+        [ [ KEYWORD "{{" -> None
+          | KEYWORD "{"; typ = ctyp; KEYWORD "{" -> Some typ ] ];
+
       expr: BEFORE "simple"
 
-	[[ KEYWORD "{{" ; lvl = dummy_set_level_client_expr ;
-           e = SELF ;
-	   KEYWORD "}}" ->
-	     current_level := lvl;
-	     let id = gen_closure_num _loc in
-	     Pass.client_expr (client_expr_context lvl) e id (gen_closure_escaped_ident id)
+        [ [ typ = TRY start_hole; lvl = dummy_set_level_hole_expr ; e = SELF ; KEYWORD "}}" ->
+              current_level := lvl;
+              let id = gen_closure_num _loc in
+              Pass.hole_expr typ (hole_expr_context lvl) e id (gen_closure_escaped_ident id)
 
-      | SYMBOL "%" ; id = ident ; context = dummy_check_level_escaped_ident ->
+          | SYMBOL "%" ; id = ident ; context = dummy_check_level_escaped_ident ->
 
-	  Pass.escaped context <:expr< $id:id$ >> (gen_escaped_ident id)
+              Pass.escaped context <:expr< $id:id$ >> (gen_escaped_ident id)
 
-      | SYMBOL "%" ; KEYWORD "(" ; context = dummy_set_level_escaped_expr ;
-	  e = SELF ;
-	  KEYWORD ")" ->
+          | SYMBOL "%" ; KEYWORD "(" ; context = dummy_set_level_escaped_expr ;
+              e = SELF ;
+              KEYWORD ")" ->
 
-	    current_level := Client_expr context;
-	    Pass.escaped context e (gen_escaped_expr_ident ())
+                current_level := Hole_expr context;
+                Pass.escaped context e (gen_escaped_expr_ident ())
 
-	 ]];
+         ]];
 
       END
 

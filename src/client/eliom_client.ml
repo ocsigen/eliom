@@ -2,6 +2,7 @@
  * http://www.ocsigen.org
  * Copyright (C) 2010 Vincent Balat
  * Copyright (C) 2011 Jérôme Vouillon, Grégoire Henry, Pierre Chambart
+ * Copyright (C) 2012 Benedikt Becker
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,12 +26,46 @@ module JsTable = Eliommod_jstable
 
 (* == Closure *)
 
-let closure_table  : (poly -> Dom_html.event Js.t -> unit) JsTable.t = JsTable.create ()
-let register_closure (id:int64) (f : 'a -> Dom_html.event Js.t -> unit) =
-  JsTable.add closure_table ((Obj.magic id)##toString():Js.js_string Js.t)
-    (Obj.magic f : poly -> Dom_html.event Js.t -> unit)
-let find_closure (id:int64) : ( poly -> Dom_html.event Js.t -> unit ) Js.Optdef.t =
-  JsTable.find closure_table ((Obj.magic id)##toString():Js.js_string Js.t)
+module Client_closure : sig
+  exception Not_found
+  val register : closure_id:int64 -> (_ -> _) -> unit
+  val find : closure_id:int64 -> (poly -> poly)
+end = struct
+  exception Not_found
+  let key closure_id = Js.string (Int64.to_string closure_id)
+  let client_closures = JsTable.create ()
+  let register ~closure_id cl =
+    JsTable.add client_closures (key closure_id)
+      (fun args ->
+         to_poly (cl (from_poly args)))
+  let find ~closure_id =
+    Js.Optdef.get
+      (JsTable.find client_closures (key closure_id))
+      (fun () -> raise Not_found)
+end
+
+module Client_value : sig
+  exception Not_found
+  val set : closure_id:int64 -> instance_id:int -> poly -> unit
+  val get : closure_id:int64 -> instance_id:int -> _
+end = struct
+  exception Not_found
+  let key ~closure_id ~instance_id =
+    Js.string (Int64.to_string closure_id ^ string_of_int instance_id)
+  let client_values = JsTable.create ()
+  let set ~closure_id ~instance_id value =
+    JsTable.add client_values (key ~closure_id ~instance_id) value
+  let get ~closure_id ~instance_id =
+    from_poly
+      (Js.Optdef.get
+        (JsTable.find client_values (key ~closure_id ~instance_id))
+        (fun () -> raise Not_found))
+end
+
+module Server_values : sig
+end = struct
+  let server_values = JsTable.create ()
+end
 
 (* == Process nodes (a.k.a. nodes with a unique Dom instance on each client process) *)
 
@@ -148,10 +183,16 @@ let raw_form_handler form kind cookies_info tmpl ev =
   || (https = Some false && Eliom_request_info.ssl_)
   || (change_page_form ?cookies_info ?tmpl form action; false)
 
-let raw_event_handler function_id args =
-  Js.Optdef.case (find_closure function_id)
-    (fun () -> error "Closure not found (%Ld)" function_id)
-    (fun f -> (fun ev -> try f args ev; true with False -> false))
+let raw_event_handler cv =
+  let closure_id = Eliom_server.Client_value.closure_id cv in
+  let instance_id = Eliom_server.Client_value.instance_id cv in
+  try
+    let value = Client_value.get ~closure_id ~instance_id in
+    let handler = (Eliom_lib.from_poly value : #Dom_html.event Js.t -> unit) in
+    fun ev -> try handler ev; true with False -> false
+  with Client_value.Not_found ->
+    error "Client value not found (closure_id:%Ld instance_id:%d)"
+      closure_id instance_id
 
 let reify_caml_event node ce : #Dom_html.event Js.t -> bool = match ce with
   | Xml.CE_call_service None -> (fun _ -> true)
@@ -165,8 +206,8 @@ let reify_caml_event node ce : #Dom_html.event Js.t -> bool = match ce with
         raw_form_handler form kind cookies_info tmpl ev)
   | Xml.CE_client_closure f ->
       (fun ev -> try f ev; true with False -> false)
-  | Xml.CE_registered_closure (_, (function_id, args)) ->
-      raw_event_handler function_id args
+  | Xml.CE_registered_closure (_, cv) ->
+      raw_event_handler cv
 
 let reify_event node ev = match ev with
   | Xml.Raw ev -> Js.Unsafe.variable ev
@@ -481,8 +522,8 @@ let relink_closure_node root onload table (node:Dom_html.element Js.t) =
     then
       let cid = Js.to_bytestring (attr##value##substring_toEnd(
         Eliom_lib_base.RawXML.closure_attr_prefix_len)) in
-      let (id,args) = Xml.ClosureMap.find cid table in
-      let closure = raw_event_handler id args in
+      let cv = Xml.ClosureMap.find cid table in
+      let closure = raw_event_handler cv in
       if attr##name = Js.string "onload" then
         (if Eliommod_dom.ancessor root node
          (* if not inside a unique node replaced by an older one *)
@@ -505,11 +546,19 @@ let relink_page (root:Dom_html.element Js.t) event_handlers =
     (fun node -> relink_closure_node root onload event_handlers node);
   List.rev !onload
 
+let reify_initialization (closure_id, instance_id, args) =
+  debug "reify_initialization %Ld %d" closure_id instance_id;
+  Client_value.set ~closure_id ~instance_id
+    (Client_closure.find ~closure_id args)
+
 let load_eliom_data js_data page =
+  debug "load_eliom_data";
   try
     if !Eliom_config.debug_timings then
       Firebug.console##time(Js.string "load_eliom_data");
     loading_phase := true;
+    List.iter reify_initialization js_data.Eliom_types.ejs_initializations;
+    debug "reified %d initializations" (List.length js_data.Eliom_types.ejs_initializations);
     let nodes_on_load =
       relink_page page js_data.Eliom_types.ejs_event_handler_table
     in
@@ -535,8 +584,7 @@ let load_eliom_data js_data page =
     raise e
 
 (* == Extract the request data and the request tab-cookies from a
-      page.
-
+      page.  
    See the corresponding function on the server side:
    Eliom_registration.Eliom_appl_reg_make_param.make_eliom_data_script.
 

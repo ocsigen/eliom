@@ -8,7 +8,7 @@ export PATH := ${SRC}/src/tools:${PATH}
 ELIOMC   := eliomc -g
 ELIOMOPT := eliomopt
 ELIOMDEP := eliomdep
-JS_OF_ELIOM := js_of_eliom -g
+JS_OF_ELIOM := js_of_eliom
 
 ifeq "${NATDYNLINK}" "YES"
 all: byte opt
@@ -21,14 +21,10 @@ endif
 SERVER_PACKAGE :=
 CLIENT_PACKAGE :=
 
-SERVER_FILES := eliom_testsuite1.ml    \
-                eliom_testsuite2.ml    \
-		eliom_testsuite3.eliom \
-		eliom_testsuite4.eliom \
+SERVER_FILES := eliom_testsuite4.eliom \
 		eliom_testsuite.ml     \
 
-CLIENT_FILES := eliom_testsuite3.eliom \
-		eliom_testsuite4.eliom
+CLIENT_FILES := eliom_testsuite4.eliom
 
 STATICDIR := ../local/var/www/tests
 
@@ -55,8 +51,8 @@ _server/%.cmi: %.mli
 
 _server/%.cmo: %.ml
 	${ELIOMC} -c ${SERVER_INC} $<
-_server/%.cmo: %.eliom
-	${ELIOMC} -c -noinfer ${SERVER_INC} $<
+_server/%.cmo: %.eliom _server/%.type_mli
+	${ELIOMC} -c -noinfer -ppopt "-type _server/${shell basename $@ .cmo}.type_mli" ${SERVER_INC} $<
 
 _server/%.cmx: %.ml
 	${ELIOMOPT} -c ${SERVER_INC} $<
@@ -140,10 +136,10 @@ endif
 include .depend
 
 ## Dependencies towards *.eliom are not handled by eliomdep.
-_server/eliom_testsuite.cmo: _server/eliom_testsuite3.cmo _server/eliom_testsuite4.cmo
-_server/eliom_testsuite.cmx: _server/eliom_testsuite3.cmx _server/eliom_testsuite4.cmx
-_client/eliom_testsuite.cmo: _client/eliom_testsuite3.cmo _client/eliom_testsuite4.cmo
-_client/eliom_testsuite.cmx: _client/eliom_testsuite3.cmx _client/eliom_testsuite4.cmx
+_server/eliom_testsuite.cmo: _server/eliom_testsuite4.cmo
+_server/eliom_testsuite.cmx: _server/eliom_testsuite4.cmx
+_client/eliom_testsuite.cmo: _client/eliom_testsuite4.cmo
+_client/eliom_testsuite.cmx: _client/eliom_testsuite4.cmx
 
 ## TODO
 

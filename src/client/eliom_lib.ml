@@ -21,6 +21,8 @@ include Eliom_lib_base
 
 exception False
 
+type 'a client_value = 'a
+
 (*****************************************************************************)
 
 module Url = struct

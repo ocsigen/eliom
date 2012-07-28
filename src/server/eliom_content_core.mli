@@ -73,16 +73,17 @@ module Xml : sig
 
   val event_handler_of_string : string -> event_handler
   val string_of_event_handler : event_handler -> string
-  val event_handler_of_js : int64 -> Ocsigen_lib_base.poly -> #Dom_html.event caml_event_handler
   val event_handler_of_service :
     ( [ `A | `Form_get | `Form_post ]
       * (bool * string list) option
       * string option) option Eliom_lazy.request -> event_handler
 
+  val caml_event_handler : ((#Dom_html.event as 'a) Js.t -> unit) Eliom_server.Client_value.t -> 'a caml_event_handler
+  val event_handler : (Dom_html.event Js.t -> unit) Eliom_server.Client_value.t -> event_handler
+
   (* Deprecated alias. *)
   val event_of_string : string -> event_handler
   val string_of_handler : event_handler -> string
-  val event_of_js : int64 -> Ocsigen_lib_base.poly -> #Dom_html.event caml_event_handler
   val event_of_service :
     ( [ `A | `Form_get | `Form_post ]
       * (bool * string list) option

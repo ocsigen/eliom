@@ -32,7 +32,7 @@ module Xml : sig
   type attrib
 
   type -'a caml_event_handler =
-    | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) Eliom_lib.client_expr
+    | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) Eliom_server.Client_value.t
     | CE_client_closure of ('a Js.t -> unit)
     | CE_call_service of
         ([ `A | `Form_get | `Form_post] * (bool * string list) option * string option) option Eliom_lazy.request
@@ -66,13 +66,6 @@ module Xml : sig
       * (bool * string list) option
       * string option) option Eliom_lazy.request -> event_handler
   val event_handler_of_function : (#Dom_html.event Js.t -> unit) -> event_handler
-
-  (* Deprecated alias. *)
-  val event_of_service :
-    ( [ `A | `Form_get | `Form_post ]
-      * (bool * string list) option
-      * string option ) option Eliom_lazy.request -> event_handler
-  val event_of_function : ((#Dom_html.event Js.t as 'a) -> unit) -> ( 'a -> unit)
 
   type separator = Space | Comma
   type acontent = private
@@ -138,7 +131,8 @@ module Xml : sig
   val set_dom_node : elt -> Dom.node Js.t -> unit
 
   module ClosureMap : Map.S with type key = string
-  type event_handler_table = ((Eliom_lib.poly -> unit) Eliom_lib.client_expr) ClosureMap.t
+  type event_handler_table =
+    ((Dom_html.event Js.t -> unit) Eliom_server.Client_value.t) ClosureMap.t
 
 end
 

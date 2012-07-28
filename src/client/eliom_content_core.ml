@@ -73,10 +73,6 @@ module Xml = struct
   let event_handler_of_function (ev: #Dom_html.event Js.t -> unit) =
     Caml (CE_client_closure (Obj.magic ev))
 
-  (* Deprecated: Html5.F.a_on* functions are redefinied on the client
-     to call event_handler_of_function. *)
-  let event_of_function ev = ev
-
   let end_re = Regexp.regexp_string "]]>"
 
   let make_node_name =
