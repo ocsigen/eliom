@@ -416,7 +416,7 @@ Eliom_content.Html5.Id.new_elt_id >>. See also section <<a_manual
 chapter="client" fragment="global" |Global elements of an
 application>>.
 
-The module <<a_api subproject="client"| module Eliom_dom.Named >>
+The module <<a_api subproject="client"| module Eliom_content.Html5.Manip >>
 allows to use the classical DOM manipulation functions
 (e.g. appendChild, addEventlistener, ...) directly on the identifier
 of an HTML5 elements.
