@@ -25,13 +25,13 @@
     interfaces ({!Svg}, {!Html5} and {!Xhtml}) that are provided by
     TyXML for valid XML tree creation and printing.
 
-    Modules {!Eliom_content.Html5}, {!Eliom_content.Svg} contain two implementing
-    sub-modules: [F] and [D].
+    Modules {!Eliom_content.Html5}, {!Eliom_content.Svg} contain two
+    implementing sub-modules: [F] and [D].
 
     {5 Functional semantics}
 
     The [F] modules provide functions to create elements with {e f}unctional
-    semantics: On the one hand side, those values do not have an identity,
+    semantics: On the one hand side, those values do not have an identifier,
     which means utilizations of those values are independent of each other.
     On the other hand side, they cannot be referred to, neither by client code
     when created on the server, nor for usage in the functions of
@@ -42,7 +42,8 @@
     The [D] modules provide functions to create elements with {e D}OM semantics:
     Firstly, they behave like DOM nodes, e.g. they can only be added once to the
     DOM tree even when appended several times.
-    Secondly, those values have an identity, which means they can be referred to
+    Secondly, those values have an identifier,
+    which means they can be referred to
     on the client side (by [%variable]) or used with the functions
     {!Eliom_content.Html5.To_dom} and {!Eliom_content.Html5.Manip}.
 

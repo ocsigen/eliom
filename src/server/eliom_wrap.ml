@@ -145,7 +145,7 @@ let search_and_replace v =
 	      then
 		( if tag = Obj.lazy_tag then failwith "lazy values must be forced before wrapping";
 		  if tag = Obj.object_tag then failwith "cannot wrap object values";
-		  if tag = Obj.closure_tag then failwith "cannot wrap functionnal values";
+		  if tag = Obj.closure_tag then failwith "cannot wrap functional values";
 		  failwith "cannot wrap functional values: infix tag" )
 	      else
 		begin

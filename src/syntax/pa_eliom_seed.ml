@@ -50,7 +50,7 @@
      marshaling (on the server-side) and unmarshalling (on the
      client-side) of escaped values.
 
-   == Compilation of Eliom is implemented in three step:
+   == Compilation of Eliom is implemented in three steps:
 
      a) infers types of escaped values on the server-side code
      b) generate the source file for the server-side
