@@ -51,6 +51,7 @@ module MakeManip
     let get_unique_node context (elt: 'a Kind.elt) : Dom.node Js.t =
       match Xml.get_node (Kind.toelt elt) with
       | Xml.DomNode node -> node
+      | Xml.ReactNode s -> get_node elt
       | Xml.TyXMLNode desc ->
         let elt' = Kind.toelt elt in
           match Xml.get_node_id elt' with
@@ -329,6 +330,10 @@ module Html5 = struct
     let select = string_select ?required:None
   end
 
+  module R = struct
+    include Html5.R
+  end
+
   module D = struct
     include Html5.D
     include Eliom_registration_base.Html5_forms.D
@@ -497,7 +502,6 @@ module Html5 = struct
   end
 
   module Manip = struct
-
     include
       MakeManip(F)(Dom_html)(To_dom)(Of_dom)
         (struct

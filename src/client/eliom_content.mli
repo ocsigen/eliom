@@ -256,7 +256,9 @@ module Html5 : sig
         to avoid the untyped [Eliom_content_core.Html5.F.select]. *)
     val select : ?a:Html5_types.select_attrib attrib list -> name:[< `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt
   end
-
+  module R : sig
+    include module type of Eliom_content_core.Html5.R
+  end
   (** Creation of HTML5 content with {e D}OM semantics (referable) *)
   module D : sig
     (** {2 Content creation}

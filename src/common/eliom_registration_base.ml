@@ -72,6 +72,7 @@ end = struct
   module Html5_forms_base(Html5 : sig
     include Html5_sigs.T with module Xml := Xml and module Svg := Svg.D.Raw
                          and type 'a elt = 'a Html5.elt
+                         and type 'a wrap = 'a
                          and type 'a attrib = 'a Html5.attrib
                          and type uri = Html5.uri
     include "sigs/eliom_html5_event_handler.mli"
