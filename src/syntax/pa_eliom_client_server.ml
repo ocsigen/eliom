@@ -42,7 +42,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
               | Ast.TyQuo _ ->
                   (* TODO BB lighten this - should only apply to holes used in other holes *)
                   Helpers.raise_syntax_error loc
-                    "Holes must have closed types"
+                    "The type of client holes must be closed by their usage or a type annotation {type{ ... }}"
               | typ -> typ
     in
     <:expr@loc<
@@ -71,7 +71,6 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   (** Filters *)
 
-  let _loc = Ast.Loc.ghost
   let shared_str_items items = Ast.stSem_of_list items
   let server_str_items items = Ast.stSem_of_list items
 
@@ -81,6 +80,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
         | <:ctyp< ($_$ Eliom_reference.Volatile.eref) >>
         | <:ctyp< ($_$ Eliom_reference.eref) >> ->
             Printf.eprintf "Server: Escaped %s is a reference\n%!" gen_id;
+            let _loc = Loc.ghost in
             <:str_item<
               let () =
                 Eliom_service.request_injection $str:gen_id$
@@ -90,6 +90,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
             >>
         | typ ->
             Printf.eprintf "Server: Escaped %s is not a reference\n%!" gen_id;
+            let _loc = Loc.ghost in
             <:str_item<
               let () =
                 Eliom_service.global_injection $str:gen_id$
@@ -103,9 +104,9 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     match context_level with
       | Pa_eliom_seed.Server_item_context
       | Pa_eliom_seed.Shared_item_context ->
-          let _loc =  Ast.loc_of_expr orig_expr in
           client_value gen_num (flush_args ()) (Ast.loc_of_expr orig_expr) typ
       | Pa_eliom_seed.Client_item_context ->
+          let _loc = Loc.ghost in
           <:expr< >>
 
   let escaped context_level orig_expr gen_id =
@@ -117,6 +118,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
        | Escaped_in_client_item ->
            push_arg orig_expr gen_id
        | Escaped_in_hole_in Client_item_context -> ());
+    let _loc = Loc.ghost in
     <:expr< >>
 
 

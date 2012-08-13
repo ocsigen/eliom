@@ -25,13 +25,12 @@ include module type of Ocsigen_lib_base
   and type ('a, 'b) leftright = ('a, 'b) Ocsigen_lib_base.leftright
   and type 'a Clist.t = 'a Ocsigen_lib_base.Clist.t
   and type 'a Clist.node = 'a Ocsigen_lib_base.Clist.node
-(*   and type 'a Int64_map.t = 'a Ocsigen_lib_base.Int64_map.t *)
 
 include module type of Eliom_lib_base
 
-(** The type of holes [{{ ... }}].
-    An ['a] client value on the client is just an ['a].
-    See also {% <<a_api subproject="server" text="on the server" | Eliom_lib.Client_value.t >> %}.
+(** An ['a] client value on the client is just an ['a].
+    See also {% <<a_api subproject="server" text="on the server" |
+    Eliom_lib.client_value >> %}.
   *)
 type 'a client_value = 'a
 

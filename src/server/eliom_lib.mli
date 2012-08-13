@@ -27,14 +27,13 @@ include module type of Ocsigen_lib
   and type 'a Clist.t = 'a Ocsigen_lib.Clist.t
   and type 'a Clist.node = 'a Ocsigen_lib.Clist.node
   and type Ip_address.t = Ocsigen_lib.Ip_address.t
-(*   and type 'a Int64_map.t = 'a Ocsigen_lib.Int64_map.t *)
 
 include module type of Eliom_lib_base
 
-(** The type of holes [{{ ... }}].
-    A client value on the server is abstract, as defined in {% <<a_api subproject="server" | type
-    Eliom_server.Client_value.t >> %}. See also {% <<a_api subproject="client" text="on the client" |
-    Eliom_lib.Client_value.t >> %}.
+(** The type of a client hole [{{ ... }}] on the server side.
+    It is abstract, as defined in {% <<a_api subproject="server" | type
+    Eliom_server.Client_value.t >> %}. See also {% <<a_api subproject="client"
+    text="on the client" | Eliom_lib.client_value >> %}.
   *)
 type 'a client_value = 'a Eliom_server.Client_value.t
 

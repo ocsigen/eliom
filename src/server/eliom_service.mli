@@ -710,6 +710,7 @@ val xhr_with_cookies :
 
 val get_onload : unit -> Dom_html.event Xml.caml_event_handler list
 val get_onunload : unit -> Dom_html.event Xml.caml_event_handler list
+
 val initialization : int64 -> int -> poly -> unit
 val get_initializations : unit -> (int64 * int * poly) list
 
@@ -724,9 +725,11 @@ val get_initializations : unit -> (int64 * int * poly) list
      - Global: injections of any other type are sent as it.
  *)
 val global_injection : string -> poly -> unit
-val request_injection : string -> (unit -> poly Lwt.t) -> unit
 val get_global_injections : unit -> (string * poly) list
+
+val request_injection : string -> (unit -> poly Lwt.t) -> unit
 val get_request_injections : unit -> (string * poly) list Lwt.t
+
 val pre_wrap :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service

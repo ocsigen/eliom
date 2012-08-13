@@ -86,9 +86,9 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let client_arg_ids = ref []
 
-  let push_client_arg _loc orig_expr gen_id =
+  let push_client_arg loc orig_expr gen_id =
     if not (List.exists (fun (_, _, gen_id') -> gen_id = gen_id') !client_arg_ids) then
-      client_arg_ids := (_loc, orig_expr, gen_id) :: !client_arg_ids
+      client_arg_ids := (loc, orig_expr, gen_id) :: !client_arg_ids
 
   let flush_client_args expr =
     let res = !client_arg_ids in
@@ -177,17 +177,12 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
            let typ =
              let typ = Helpers.find_escaped_ident_type gen_id in
              match Helpers.is_client_value_type typ with
-               | Some typ' ->
-                   typ'
+               | Some typ' -> typ'
                | None ->
                    match typ with
                      | <:ctyp< ($typ'$ Eliom_reference.Volatile.eref) >>
-                     | <:ctyp< ($typ'$ Eliom_reference.eref) >> ->
-                         Printf.eprintf "Client: Escaped %s is a reference\n%!" gen_id;
-                         typ'
-                     | typ ->
-                         Printf.eprintf "Client: Escaped %s is not a reference\n%!" gen_id;
-                         typ
+                     | <:ctyp< ($typ'$ Eliom_reference.eref) >> -> typ'
+                     | typ -> typ
            in
            <:expr< (Eliom_client.Injection.get ~name: $str:gen_id$
                       : $typ$) >>
