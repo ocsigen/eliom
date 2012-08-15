@@ -81,17 +81,16 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let shared_str_items = server_str_items
 
-  let hole_expr typ context_level orig_expr gen_id gen_tid =
+  let hole_expr typ context_level orig_expr gen_id gen_tid loc =
     match context_level with
       | Pa_eliom_seed.Server_item_context
       | Pa_eliom_seed.Shared_item_context ->
-          let _loc = Ast.loc_of_expr orig_expr in
           add_typing_str orig_expr gen_tid;
           let typ = match typ with
             | Some typ -> typ
             | None -> let _loc = Loc.ghost in <:ctyp< _ >>
           in
-          <:expr< begin
+          <:expr@loc< begin
             $flush_typing_expr ()$;
             $lid:gen_tid$ :=
               Some (Eliom_lib.create_client_value

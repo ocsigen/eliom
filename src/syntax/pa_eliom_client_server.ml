@@ -40,9 +40,9 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
         | None ->
             match Helpers.find_client_value_type gen_num with
               | Ast.TyQuo _ ->
-                  (* TODO BB lighten this restriction - should only apply to holes used in other holes *)
                   Helpers.raise_syntax_error loc
-                    "The type of client holes must be closed by their usage or a type annotation {type{ ... }}"
+                    "The types of client values must be monomorphic from its usage\
+                     or from its type annotation"
               | typ -> typ
     in
     <:expr@loc<
@@ -77,37 +77,36 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let client_str_items items =
     let aux (gen_id, orig_expr) =
-      match Helpers.find_escaped_ident_type gen_id with
-        | <:ctyp< ($_$ Eliom_reference.Volatile.eref) >>
-        | <:ctyp< ($_$ Eliom_reference.eref) >> ->
-            Printf.eprintf "Server: Escaped %s is a reference\n%!" gen_id;
-            let _loc = Loc.ghost in
-            <:str_item<
-              let () =
-                Eliom_service.request_injection $str:gen_id$
-                  (fun () ->
-                    Lwt.map Eliom_lib.to_poly
-                      (Eliom_reference.get ($orig_expr$ :> _ Eliom_reference.eref)))
-            >>
-        | typ ->
-            Printf.eprintf "Server: Escaped %s is not a reference\n%!" gen_id;
-            let _loc = Loc.ghost in
-            <:str_item<
-              let () =
-                Eliom_service.global_injection $str:gen_id$
-                  (Eliom_lib.to_poly $orig_expr$)
-            >>
+      let injection_function, value =
+        match Helpers.find_escaped_ident_type gen_id with
+          | <:ctyp< ($_$ Eliom_reference.Volatile.eref) >>
+          | <:ctyp< ($_$ Eliom_reference.eref) >> ->
+              let _loc = Loc.ghost in
+              <:expr< Eliom_service.request_injection >>,
+              <:expr<
+                fun () ->
+                  Lwt.map Eliom_lib.to_poly
+                    (Eliom_reference.get ($orig_expr$ :> _ Eliom_reference.eref))
+              >>
+          | _ ->
+              let _loc = Loc.ghost in
+              <:expr< Eliom_service.global_injection >>,
+              <:expr< Eliom_lib.to_poly $orig_expr$ >>
+      in
+      let _loc = Loc.ghost in
+      <:str_item<
+        let () =
+          $injection_function$ $str:gen_id$ $value$
+      >>
     in
     Ast.stSem_of_list
       (List.map aux (flush_args ()))
 
-  let hole_expr typ context_level orig_expr gen_num _ =
+  let hole_expr typ context_level orig_expr gen_num _ loc =
     match context_level with
       | Pa_eliom_seed.Server_item_context
       | Pa_eliom_seed.Shared_item_context ->
-          client_value gen_num (flush_args ())
-            (Ast.loc_of_expr orig_expr (*FIXME BB location should include {{..}}*))
-            typ
+          client_value gen_num (flush_args ()) loc typ
       | Pa_eliom_seed.Client_item_context ->
           let _loc = Loc.ghost in
           <:expr< >>

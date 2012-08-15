@@ -99,7 +99,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let server_str_items items =
     Ast.stSem_of_list (flush_closure_registrations ())
 
-  let hole_expr typ context_level orig_expr gen_num gen_tid =
+  let hole_expr typ context_level orig_expr gen_num gen_tid loc =
     if context_level = Pa_eliom_seed.Server_item_context ||
        context_level = Pa_eliom_seed.Shared_item_context
     then
@@ -111,9 +111,9 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
         | None -> let _loc = Loc.ghost in <:ctyp< _ >>
     in
 
-    let _loc = Ast.loc_of_expr orig_expr in
     match context_level with
       | Pa_eliom_seed.Server_item_context ->
+          let _loc = Ast.Loc.ghost in
           <:expr< "" >>
       | Pa_eliom_seed.Client_item_context
       | Pa_eliom_seed.Shared_item_context ->
@@ -123,7 +123,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
                  <:patt< $lid:gen_id$ >>, orig_expr)
               (flush_client_args ())
           in
-          <:expr<
+          <:expr@loc<
             let $Ast.binding_of_pel bindings$ in
             ($orig_expr$ : $typ$)
           >>

@@ -112,7 +112,7 @@ module type Pass = functor (Helpers: Helpers) -> sig
   val client_str_items: Ast.str_item list -> Ast.str_item
 
   (** How to handle "{{ ... }}" expr. *)
-  val hole_expr: Ast.ctyp option -> hole_expr_context -> Ast.expr -> Int64.t -> string -> Ast.expr
+  val hole_expr: Ast.ctyp option -> hole_expr_context -> Ast.expr -> Int64.t -> string -> Ast.Loc.t -> Ast.expr
 
   (** How to handle escaped "%ident" inside "{{ ... }}". *)
   val escaped: escaped_context -> Ast.expr -> string -> Ast.expr
@@ -478,13 +478,6 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
       (* To expr we add {{ ... }} and %IDENT *)
 
-(*
-      hole_actor:
-        [ [ "server"; ":" -> Some Server
-          | "client"; ":" -> Some Client
-          | -> None ]
- *)
-
       start_hole:
         [ [ KEYWORD "{{" -> None
           | KEYWORD "{"; typ = ctyp; KEYWORD "{" -> Some typ ] ];
@@ -494,7 +487,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         [ [ typ = TRY start_hole; lvl = dummy_set_level_hole_expr ; e = SELF ; KEYWORD "}}" ->
               current_level := lvl;
               let id = gen_closure_num _loc in
-              Pass.hole_expr typ (hole_expr_context lvl) e id (gen_closure_escaped_ident id)
+              Pass.hole_expr typ (hole_expr_context lvl) e id (gen_closure_escaped_ident id) _loc
 
           | SYMBOL "%" ; id = ident ; context = dummy_check_level_escaped_ident ->
 
