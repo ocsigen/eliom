@@ -241,6 +241,7 @@ let react_up_unwrap_id_int = 3
 let react_down_unwrap_id_int = 4
 let signal_down_unwrap_id_int = 5
 let bus_unwrap_id_int = 6
+let client_value_unwrap_id_int = Eliom_lib_base.client_value_unwrap_id_int (* 7 *)
 
 type node_ref = string
 

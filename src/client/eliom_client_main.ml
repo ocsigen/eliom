@@ -20,32 +20,22 @@
 
 open Eliom_lib
 
-(* The following lines are for Eliom_bus, Eliom_comet and Eliom_react to be linked. *)
-let _a = Eliom_react.force_link
-let _b = Eliom_comet.force_link
-let _c = Eliom_bus.force_link
-
-let () =
-  let eliom_data = Eliom_request_info.get_request_data () in
-  List.iter (fun (name, value) -> Eliom_client.Injection.set ~name ~value)
-    eliom_data.Eliom_types.ejs_global_injections;
-  debug "Injected %d global values" (List.length eliom_data.Eliom_types.ejs_global_injections)
-
 let onload ev =
   if !Eliom_config.debug_timings then
     Firebug.console##time(Js.string "onload");
   Eliommod_cookies.update_cookie_table (Some Url.Current.host)
     (Eliom_request_info.get_request_cookies ());
   ignore (lwt () = Lwt_js.sleep 0.001 in
-	  Eliom_client.relink_request_nodes (Dom_html.document##documentElement);
-	  let on_load =
-	    Eliom_client.load_eliom_data
-	      (Eliom_request_info.get_request_data ())
-	      (Dom_html.document##documentElement) in
-	  (* The request node table must be empty when node received
-	     via call_caml_service are unwrapped. *)
-	  Eliom_client.reset_request_node ();
-	  Lwt.return (List.for_all (fun f -> f ev) on_load));
+          Eliom_client.relink_request_nodes (Dom_html.document##documentElement);
+          Eliom_client.do_client_value_initializations ();
+          let on_load =
+            Eliom_client.load_eliom_data
+              (Eliom_request_info.get_request_data ())
+              (Dom_html.document##documentElement) in
+          (* The request node table must be empty when node received
+             via call_caml_service are unwrapped. *)
+          Eliom_client.reset_request_node ();
+          Lwt.return (List.for_all (fun f -> f ev) on_load));
   if !Eliom_config.debug_timings then
     Firebug.console##timeEnd(Js.string "onload");
   Js._false
@@ -55,3 +45,8 @@ let load_ev = Dom.Event.make "load"
 let _ =
   Dom.addEventListener Dom_html.window load_ev
     (Dom.handler onload) Js._true
+
+(* The following lines are for Eliom_bus, Eliom_comet and Eliom_react to be linked. *)
+let _a = Eliom_react.force_link
+let _b = Eliom_comet.force_link
+let _c = Eliom_bus.force_link

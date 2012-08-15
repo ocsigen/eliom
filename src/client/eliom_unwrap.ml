@@ -80,8 +80,21 @@ external raw_unmarshal_and_unwrap
   : (unwrapper -> 'a -> 'b) -> string -> int -> 'c
   = "caml_unwrap_value_from_string"
 
-let unwrap s i = raw_unmarshal_and_unwrap apply_unwrapper s i
-let unwrap_js_var s =
+let unwrap s i =
   raw_unmarshal_and_unwrap
-    apply_unwrapper
-    (Js.to_bytestring (Js.Unsafe.variable s)) 0
+    apply_unwrapper s i
+
+let unwrap_js_var s =
+  unwrap (Js.to_bytestring (Js.Unsafe.variable s)) 0
+
+let unwrap_iter_array_js_var f varname =
+  let arr = Js.Unsafe.variable varname in
+  for i = 0 to pred arr##length do
+    let elt =
+      Js.Optdef.get
+        (Js.array_get arr i)
+        (fun () -> failwith "unwrap_array_js_var")
+    in
+    f (unwrap (Js.to_bytestring elt) 0)
+  done;
+

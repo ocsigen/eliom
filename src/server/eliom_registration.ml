@@ -1472,11 +1472,12 @@ module Eliom_appl_reg_make_param
 
     let script =
       Printf.sprintf
-        ("var eliom_appl_sitedata = \'%s\';\n\
-          var eliom_appl_process_info = \'%s\'\n\
-          var eliom_request_data;\n\
-          var eliom_request_cookies;\n\
-          var eliom_request_template;\n")
+        "var eliom_appl_sitedata = \'%s\';\n\
+         var eliom_appl_process_info = \'%s\'\n\
+         var eliom_client_value_initializations;\n\
+         var eliom_request_data;\n\
+         var eliom_request_cookies;\n\
+         var eliom_request_template;\n"
         (Eliom_types.jsmarshal (Eliommod_cli.client_sitedata sp))
         (Eliom_types.jsmarshal (sp.Eliom_common.sp_client_process_info))
     in
@@ -1513,15 +1514,26 @@ module Eliom_appl_reg_make_param
         sp.Eliom_common.sp_user_tab_cookies
     in
 
+    let client_value_initializations =
+      List.map
+        Eliom_wrap.wrap
+        (Eliom_service.get_client_value_initializations ())
+    in
+
     lwt template = Eliom_reference.get request_template in
     let script =
       Printf.sprintf
-        ("eliom_request_data = \'%s\';\n\
-          eliom_request_cookies = \'%s\';\n\
-          eliom_request_template = \'%s\';\n")
+        "eliom_request_data = \'%s\';\n\
+         eliom_request_cookies = \'%s\';\n\
+         eliom_request_template = \'%s\';\n\
+         eliom_client_value_initializations = [%s];"
         (Eliom_types.jsmarshal eliom_data)
         (Eliom_types.jsmarshal tab_cookies)
         (Eliom_types.jsmarshal (template: string option))
+        (String.concat ", "
+           (List.map (fun cv -> "\'" ^ Eliom_types.jsmarshal cv ^ "\'")
+              client_value_initializations))
+        (* TODO BB Distinguish global and request intializations and send globals only once per client process *)
     in
     Lwt.return (Eliom_content.Html5.F.script (cdata_script script))
 

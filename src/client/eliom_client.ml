@@ -35,6 +35,7 @@ end = struct
   let key closure_id = Js.string (Int64.to_string closure_id)
   let client_closures = JsTable.create ()
   let register ~closure_id cl =
+    debug "Client_closure.register %Ld" closure_id;
     JsTable.add client_closures (key closure_id)
       (fun args ->
          to_poly (cl (from_poly args)))
@@ -54,6 +55,7 @@ end = struct
     Js.string (Int64.to_string closure_id ^ string_of_int instance_id)
   let client_values = JsTable.create ()
   let set ~closure_id ~instance_id value =
+    debug "Client_value.set %Ld %d" closure_id instance_id;
     JsTable.add client_values (key ~closure_id ~instance_id) value
   let get ~closure_id ~instance_id =
     from_poly
@@ -70,6 +72,7 @@ end = struct
   exception Not_found
   let injections = JsTable.create ()
   let set ~name ~value =
+    debug "Injection.set %s" name;
     JsTable.add injections (Js.string name) value
   let get ~name =
     from_poly
@@ -77,6 +80,15 @@ end = struct
          (JsTable.find injections (Js.string name))
          (fun () -> raise Not_found))
 end
+
+let do_client_value_initializations () =
+  debug "do_client_value_initializations";
+  let f (closure_id, instance_id, args) =
+    Client_value.set ~closure_id ~instance_id
+      (Client_closure.find ~closure_id args)
+  in
+  let varname = "eliom_client_value_initializations" in
+  Eliom_unwrap.unwrap_iter_array_js_var f varname
 
 module Server_values : sig
 end = struct
@@ -562,19 +574,12 @@ let relink_page (root:Dom_html.element Js.t) event_handlers =
     (fun node -> relink_closure_node root onload event_handlers node);
   List.rev !onload
 
-let do_initialization (closure_id, instance_id, args) =
-  Client_value.set ~closure_id ~instance_id
-    (Client_closure.find ~closure_id args)
-
 let load_eliom_data js_data page =
   debug "load_eliom_data";
   try
     if !Eliom_config.debug_timings then
       Firebug.console##time(Js.string "load_eliom_data");
     loading_phase := true;
-    List.iter (fun (name, value) -> Injection.set ~name ~value) js_data.Eliom_types.ejs_request_injections;
-    debug "Injected %d request values" (List.length js_data.Eliom_types.ejs_request_injections);
-    List.iter do_initialization js_data.Eliom_types.ejs_initializations;
     let nodes_on_load =
       relink_page page js_data.Eliom_types.ejs_event_handler_table
     in
@@ -607,6 +612,7 @@ let load_eliom_data js_data page =
 *)
 
 let load_data_script page =
+  debug "load_data_script";
   let head = Eliommod_dom.get_head page in
   let data_script : Dom_html.scriptElement Js.t =
     match Dom.list_of_nodeList head##childNodes with
@@ -625,9 +631,7 @@ let load_data_script page =
     Firebug.console##time(Js.string "load_data_script");
   ignore (Js.Unsafe.eval_string (Js.to_string script));
   if !Eliom_config.debug_timings then
-    Firebug.console##timeEnd(Js.string "load_data_script");
-  ( Eliom_request_info.get_request_data (),
-    Eliom_request_info.get_request_cookies ())
+    Firebug.console##timeEnd(Js.string "load_data_script")
 
 (* == Scroll the current page such that the top of element with the id
    [fragment] is aligned with the window's top. If the optionnal
@@ -646,10 +650,12 @@ let scroll_to_fragment ?offset fragment =
           let elem = Dom_html.document##getElementById(Js.string fragment) in
           Js.Opt.iter elem scroll_to_element
 
-(* == Main (internal) function: change the content of hte page without leaving
+(* == Main (internal) function: change the content of the page without leaving
       the javascript application. *)
 
-let set_content ?uri ?offset ?fragment = function
+let set_content ?uri ?offset ?fragment content =
+  debug "set_content";
+  match content with
   | None -> Lwt.return ()
   | Some content ->
     if !Eliom_config.debug_timings then
@@ -675,8 +681,12 @@ let set_content ?uri ?offset ?fragment = function
        (* Unique nodes of scope request must be bound before the
           unmarshalling/unwrapping of page data. *)
        relink_request_nodes fake_page;
+       (* Put the loaded data script in action *)
+       load_data_script fake_page;
        (* Unmarshall page data. *)
-       let js_data, cookies = load_data_script fake_page in
+       do_client_value_initializations ();
+       let js_data = Eliom_request_info.get_request_data () in
+       let cookies = Eliom_request_info.get_request_cookies () in
        (* Update tab-cookies. *)
        let host =
          match uri with
@@ -739,7 +749,7 @@ let change_page
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
     ?keep_nl_params ?(nl_params = Eliom_parameter.empty_nl_params_set) ?keep_get_na_params
     get_params post_params =
-
+  debug "change_page";
   let xhr = Eliom_service.xhr_with_cookies service in
   if xhr = None
   || (https = Some true && not Eliom_request_info.ssl_)
@@ -785,6 +795,7 @@ let change_page
 (* Function used in "onclick" event handler of <a>.  *)
 
 let change_page_uri ?cookies_info ?tmpl ?(get_params = []) full_uri =
+  debug "change_page_uri";
   let uri, fragment = Url.split_fragment full_uri in
   if uri <> !current_uri || fragment = None then begin
     match tmpl with
@@ -809,6 +820,7 @@ let change_page_uri ?cookies_info ?tmpl ?(get_params = []) full_uri =
 (* Functions used in "onsubmit" event handler of <form>.  *)
 
 let change_page_get_form ?cookies_info ?tmpl form full_uri =
+  debug "change_page_get_form";
   let form = Js.Unsafe.coerce form in
   let uri, fragment = Url.split_fragment full_uri in
   match tmpl with
@@ -827,6 +839,7 @@ let change_page_get_form ?cookies_info ?tmpl form full_uri =
     set_content ~uri ?fragment content
 
 let change_page_post_form ?cookies_info ?tmpl form full_uri =
+  debug "change_page_post_form";
   let form = Js.Unsafe.coerce form in
       let uri, fragment = Url.split_fragment full_uri in
   match tmpl with
@@ -969,7 +982,19 @@ let _ =
           Js.Optdef.case (find_request_node (Js.bytestring request_id))
             (fun () -> Xml.make ~id elt)
             (fun elt -> Xml.make_dom ~id elt)
-      | Xml.NoId as id -> Xml.make ~id elt)
+      | Xml.NoId as id -> Xml.make ~id elt);
+  Eliom_unwrap.register_unwrapper
+    (Eliom_unwrap.id_of_int Eliom_lib_base.client_value_unwrap_id_int)
+    (fun (cv, _unwrapper_id) ->
+       let closure_id = Eliom_server.Client_value.closure_id cv in
+       let instance_id = Eliom_server.Client_value.instance_id cv in
+       debug "Unwrap %Ld/%d" closure_id instance_id;
+       try
+         Client_value.get ~closure_id ~instance_id
+       with Client_value.Not_found ->
+         error "Client value not found (closure_id:%Ld instance_id:%d)"
+           closure_id instance_id);
+  ()
 
 let rebuild_attrib node name a = match a with
   | Xml.AFloat f -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject f)

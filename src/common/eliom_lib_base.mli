@@ -125,6 +125,7 @@ module RawXML : sig
 end
 
 val tyxml_unwrap_id_int : int
+val client_value_unwrap_id_int : int
 
 (**/**)
 

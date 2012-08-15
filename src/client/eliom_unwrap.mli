@@ -33,5 +33,11 @@ val unwrap : string -> int -> 'a
     variable [v] *)
 val unwrap_js_var : string -> 'a
 
-
 val id_of_int : int -> unwrap_id
+
+(**/**)
+
+(** [unwrap_array_js_var ~f ~varname] executes [unwrap] and then [f] on the
+    elements of the array denoted by [varname] successivly, and returns the
+    list of elements. *)
+val unwrap_iter_array_js_var : ('a -> unit) -> string -> unit

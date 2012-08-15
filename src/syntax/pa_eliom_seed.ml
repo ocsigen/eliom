@@ -250,7 +250,6 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           exit 1
 
       let is_client_value_type = function
-        | <:ctyp< $typ$ Eliom_server.Client_value.t >>
         | <:ctyp< $typ$ Eliom_lib.client_value >> -> Some typ
         | _ -> None
     end (* End of Helpers *)

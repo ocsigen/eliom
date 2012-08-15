@@ -83,7 +83,7 @@ module Xml = struct
 
   let caml_event_handler cf =
     let crypto = make_cryptographic_safe_string () in
-    CE_registered_closure (crypto, cf)
+    CE_registered_closure (crypto, Eliom_lib.client_value_client_value cf)
 
   let event_handler cf =
     Caml (caml_event_handler cf)
@@ -298,25 +298,25 @@ module Html5 = struct
     let a_oncanplay ev = Raw.a_oncanplay (Eliom_xml.event_handler ev)
     let a_oncanplaythrough ev = Raw.a_oncanplaythrough (Eliom_xml.event_handler ev)
     let a_onchange ev = Raw.a_onchange (Eliom_xml.event_handler ev)
-    let a_onclick (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_onclick (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       Raw.a_onclick (Eliom_xml.event_handler (Obj.magic ev)) (* Typed by the syntax extension. *)
-    let a_oncontextmenu (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_oncontextmenu (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       Raw.a_oncontextmenu (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondblclick (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_ondblclick (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       Raw.a_ondblclick (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondrag (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_ondrag (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       Raw.a_ondrag (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragend (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_ondragend (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       Raw.a_ondragend (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragenter (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_ondragenter (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       Raw.a_ondragenter (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragleave (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_ondragleave (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       Raw.a_ondragleave (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragover (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_ondragover (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       Raw.a_ondragover (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragstart (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_ondragstart (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       Raw.a_ondragstart (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondrop (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_ondrop (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       Raw.a_ondrop (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
     let a_ondurationchange ev = Raw.a_ondurationchange (Eliom_xml.event_handler ev)
     let a_onemptied ev = Raw.a_onemptied (Eliom_xml.event_handler ev)
@@ -328,15 +328,15 @@ module Html5 = struct
     let a_onhashchange ev = Raw.a_onhashchange (Eliom_xml.event_handler ev)
     let a_oninput ev = Raw.a_oninput (Eliom_xml.event_handler ev)
     let a_oninvalid ev = Raw.a_oninvalid (Eliom_xml.event_handler ev)
-    let a_onmousedown (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_onmousedown (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       Raw.a_onmousedown (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onmouseup (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_onmouseup (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       Raw.a_onmouseup (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onmouseover (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_onmouseover (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       Raw.a_onmouseover (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onmousemove (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_onmousemove (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       Raw.a_onmousemove (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onmouseout (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_onmouseout (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       Raw.a_onmouseout (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
     let a_onmousewheel ev = Raw.a_onmousewheel (Eliom_xml.event_handler ev)
     let a_onoffline ev = Raw.a_onoffline (Eliom_xml.event_handler ev)
@@ -366,11 +366,11 @@ module Html5 = struct
     let a_onunload ev = Raw.a_onunload (Eliom_xml.event_handler ev)
     let a_onvolumechange ev = Raw.a_onvolumechange (Eliom_xml.event_handler ev)
     let a_onwaiting ev = Raw.a_onwaiting (Eliom_xml.event_handler ev)
-    let a_onkeypress (ev : (Dom_html.keyboardEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_onkeypress (ev : (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value) =
       Raw.a_onkeypress (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onkeydown (ev : (Dom_html.keyboardEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_onkeydown (ev : (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value) =
       Raw.a_onkeydown (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onkeyup (ev : (Dom_html.keyboardEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_onkeyup (ev : (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value) =
       Raw.a_onkeyup (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
     let a_onload ev = Raw.a_onload (Eliom_xml.event_handler ev)
     let a_onloadeddata ev = Raw.a_onloadeddata (Eliom_xml.event_handler ev)
@@ -403,25 +403,25 @@ module Html5 = struct
     let a_oncanplay ev = a_oncanplay (Eliom_xml.event_handler ev)
     let a_oncanplaythrough ev = a_oncanplaythrough (Eliom_xml.event_handler ev)
     let a_onchange ev = a_onchange (Eliom_xml.event_handler ev)
-    let a_onclick (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_onclick (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       a_onclick (Eliom_xml.event_handler (Obj.magic ev)) (* Typed by the syntax extension. *)
-    let a_oncontextmenu (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_oncontextmenu (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       a_oncontextmenu (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondblclick (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_ondblclick (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       a_ondblclick (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondrag (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_ondrag (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       a_ondrag (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragend (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_ondragend (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       a_ondragend (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragenter (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_ondragenter (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       a_ondragenter (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragleave (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_ondragleave (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       a_ondragleave (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragover (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_ondragover (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       a_ondragover (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondragstart (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_ondragstart (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       a_ondragstart (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_ondrop (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_ondrop (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       a_ondrop (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
     let a_ondurationchange ev = a_ondurationchange (Eliom_xml.event_handler ev)
     let a_onemptied ev = a_onemptied (Eliom_xml.event_handler ev)
@@ -433,15 +433,15 @@ module Html5 = struct
     let a_onhashchange ev = a_onhashchange (Eliom_xml.event_handler ev)
     let a_oninput ev = a_oninput (Eliom_xml.event_handler ev)
     let a_oninvalid ev = a_oninvalid (Eliom_xml.event_handler ev)
-    let a_onmousedown (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_onmousedown (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       a_onmousedown (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onmouseup (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_onmouseup (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       a_onmouseup (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onmouseover (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_onmouseover (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       a_onmouseover (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onmousemove (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_onmousemove (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       a_onmousemove (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onmouseout (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_onmouseout (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
       a_onmouseout (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
     let a_onmousewheel ev = a_onmousewheel (Eliom_xml.event_handler ev)
     let a_onoffline ev = a_onoffline (Eliom_xml.event_handler ev)
@@ -471,11 +471,11 @@ module Html5 = struct
     let a_onunload ev = a_onunload (Eliom_xml.event_handler ev)
     let a_onvolumechange ev = a_onvolumechange (Eliom_xml.event_handler ev)
     let a_onwaiting ev = a_onwaiting (Eliom_xml.event_handler ev)
-    let a_onkeypress (ev : (Dom_html.keyboardEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_onkeypress (ev : (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value) =
       a_onkeypress (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onkeydown (ev : (Dom_html.keyboardEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_onkeydown (ev : (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value) =
       a_onkeydown (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
-    let a_onkeyup (ev : (Dom_html.keyboardEvent Js.t -> unit) Eliom_server.Client_value.t) =
+    let a_onkeyup (ev : (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value) =
       a_onkeyup (Eliom_xml.event_handler (Obj.magic ev)) (* Typed with the syntax extension *)
     let a_onload ev = a_onload (Eliom_xml.event_handler ev)
     let a_onloadeddata ev = a_onloadeddata (Eliom_xml.event_handler ev)

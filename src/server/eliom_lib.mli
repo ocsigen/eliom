@@ -30,12 +30,17 @@ include module type of Ocsigen_lib
 
 include module type of Eliom_lib_base
 
-(** The type of a client hole [{{ ... }}] on the server side.
-    It is abstract, as defined in {% <<a_api subproject="server" | type
-    Eliom_server.Client_value.t >> %}. See also {% <<a_api subproject="client"
-    text="on the client" | Eliom_lib.client_value >> %}.
+(** Client values on the server are created by the syntax {{ ... }} in the
+    server section. Those values are abstract on the server and unwrapped
+    (cf. {% <<a_manual chapter="wrapping"|(Un-)wrapping>> %}) to the actual
+    value when used on the client side by [%var].
   *)
-type 'a client_value = 'a Eliom_server.Client_value.t
+type 'a client_value
+
+(**/**)
+val create_client_value : 'a Eliom_server.Client_value.t -> 'a client_value
+val client_value_client_value : 'a client_value -> 'a Eliom_server.Client_value.t
+(**/**)
 
 (** {2 Pervasives} *)
 

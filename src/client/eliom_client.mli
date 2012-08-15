@@ -140,6 +140,7 @@ end
 module Client_value : sig
   val get : closure_id:int64 -> instance_id:int -> _
 end
+val do_client_value_initializations : unit -> unit
 module Injection : sig
   val get : name:string -> _
   val set : name:string -> value:poly -> unit

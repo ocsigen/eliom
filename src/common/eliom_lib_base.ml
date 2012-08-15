@@ -37,8 +37,6 @@ let get_option = function
 
 (**/**)
 
-type 'a client_expr = int64 * poly
-
 module RawXML = struct
 
   type separator = Space | Comma
@@ -137,5 +135,6 @@ module RawXML = struct
 end
 
 let tyxml_unwrap_id_int = 1
+let client_value_unwrap_id_int = 7
 
 (**/**)

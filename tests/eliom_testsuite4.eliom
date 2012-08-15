@@ -640,7 +640,8 @@ let client_handler_syntax_2 =
                 ignore
                   (Dom.insertBefore
                      (Dom_html.document##body)
-                     (Html5.To_dom.of_element %hide_button)));
+                     (Html5.To_dom.of_element %hide_button)
+                     Js.null));
            hidden_widget_set_content_getter %w
              (fun () ->
                 Eliom_client.call_caml_service ~service: %get_slow_content () ())

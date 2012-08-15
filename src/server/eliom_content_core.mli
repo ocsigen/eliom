@@ -78,8 +78,8 @@ module Xml : sig
       * (bool * string list) option
       * string option) option Eliom_lazy.request -> event_handler
 
-  val caml_event_handler : ((#Dom_html.event as 'a) Js.t -> unit) Eliom_server.Client_value.t -> 'a caml_event_handler
-  val event_handler : (Dom_html.event Js.t -> unit) Eliom_server.Client_value.t -> event_handler
+  val caml_event_handler : ((#Dom_html.event as 'a) Js.t -> unit) Eliom_lib.client_value -> 'a caml_event_handler
+  val event_handler : (Dom_html.event Js.t -> unit) Eliom_lib.client_value -> event_handler
 
   (* Deprecated alias. *)
   val event_of_string : string -> event_handler

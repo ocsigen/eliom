@@ -45,31 +45,13 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     let _loc = Ast.loc_of_expr orig_expr in
     let typ =
       if !notyp then
-        <:ctyp< 'a >>
+        <:ctyp< _ >>
       else
-        Helpers.find_client_value_type gen_num in
-    let bindings =
-      Ast.binding_of_pel
-        (List.fold_right
-           (fun gen_id bindings ->
-              match Helpers.(is_client_value_type (find_escaped_ident_type gen_id)) with
-                | Some typ ->
-                    let binding =
-                      <:patt< $lid:gen_id$ >>,
-                      <:expr<
-                        (Eliom_client.Client_value.get
-                           ~closure_id:(Eliom_server.Client_value.closure_id $lid:gen_id$)
-                           ~instance_id:(Eliom_server.Client_value.instance_id $lid:gen_id$)
-                         : $typ$)
-                      >>
-                    in binding :: bindings
-                | None -> bindings)
-           args [])
+        Helpers.find_client_value_type gen_num
     in
     <:expr<
       Eliom_client.Client_closure.register $`int64:gen_num$
         (fun $tuple_of_args args$ ->
-           let $bindings$ in
            ($orig_expr$ : $typ$))
     >>
 

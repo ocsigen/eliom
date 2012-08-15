@@ -38,11 +38,11 @@ eliom_config.cmo: private/eliommod.cmo eliom_request_info.cmi \
 eliom_config.cmx: private/eliommod.cmx eliom_request_info.cmx \
     eliom_common.cmx eliom_config.cmi
 eliom_config.cmi: eliom_common.cmi
-eliom_content_core.cmo: eliom_wrap.cmi eliom_server.cmi eliom_lib.cmi \
-    eliom_lazy.cmi eliom_content_core.cmi
-eliom_content_core.cmx: eliom_wrap.cmx eliom_server.cmx eliom_lib.cmx \
-    eliom_lazy.cmx eliom_content_core.cmi
-eliom_content_core.cmi: eliom_server.cmi eliom_lib.cmi eliom_lazy.cmi
+eliom_content_core.cmo: eliom_wrap.cmi eliom_lib.cmi eliom_lazy.cmi \
+    eliom_content_core.cmi
+eliom_content_core.cmx: eliom_wrap.cmx eliom_lib.cmx eliom_lazy.cmx \
+    eliom_content_core.cmi
+eliom_content_core.cmi: eliom_lib.cmi eliom_lazy.cmi
 eliom_content.cmo: eliom_service.cmi eliom_registration_base.cmi \
     eliom_parameter.cmi eliom_mkforms.cmi eliom_lib.cmi eliom_lazy.cmi \
     eliom_content_core.cmi eliom_content.cmi
@@ -61,8 +61,6 @@ eliom_duce.cmo: eliom_service.cmi eliom_registration.cmi eliom_mkreg.cmi \
 eliom_duce.cmx: eliom_service.cmx eliom_registration.cmx eliom_mkreg.cmx \
     eliom_mkforms.cmx eliom_lazy.cmx eliom_duce_types.cmi eliom_duce.cmi
 eliom_duce.cmi: eliom_duce_sigs.cmi
-eliom_duce_sigs.cmi: eliom_service.cmi eliom_registration.cmi \
-    eliom_parameter.cmi eliom_lib.cmi eliom_duce_types.cmi eliom_common.cmi
 eliom_duce_tools.cmo: eliom_tools_common.cmi eliom_service.cmi \
     eliom_request_info.cmi eliom_duce_types.cmi eliom_duce.cmi \
     eliom_duce_tools.cmi
@@ -86,8 +84,10 @@ eliom_lazy.cmi:
 eliom_lib_base.cmo: eliom_server.cmi eliom_lazy.cmi eliom_lib_base.cmi
 eliom_lib_base.cmx: eliom_server.cmx eliom_lazy.cmx eliom_lib_base.cmi
 eliom_lib_base.cmi: eliom_server.cmi eliom_lazy.cmi
-eliom_lib.cmo: eliom_server.cmi eliom_lib_base.cmi eliom_lib.cmi
-eliom_lib.cmx: eliom_server.cmx eliom_lib_base.cmx eliom_lib.cmi
+eliom_lib.cmo: eliom_wrap.cmi eliom_server.cmi eliom_lib_base.cmi \
+    eliom_lib.cmi
+eliom_lib.cmx: eliom_wrap.cmx eliom_server.cmx eliom_lib_base.cmx \
+    eliom_lib.cmi
 eliom_lib.cmi: eliom_server.cmi eliom_lib_base.cmi
 eliom_mkforms.cmo: eliom_uri.cmi eliom_service.cmi eliom_parameter.cmi \
     eliom_lib.cmi eliom_lazy.cmi eliom_common.cmi eliom_mkforms.cmi
