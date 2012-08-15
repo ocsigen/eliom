@@ -1475,6 +1475,7 @@ module Eliom_appl_reg_make_param
         "var eliom_appl_sitedata = \'%s\';\n\
          var eliom_appl_process_info = \'%s\'\n\
          var eliom_client_value_initializations;\n\
+         var eliom_injections;\n\
          var eliom_request_data;\n\
          var eliom_request_cookies;\n\
          var eliom_request_template;\n"
@@ -1488,8 +1489,6 @@ module Eliom_appl_reg_make_param
 
   let make_eliom_data_script ~sp page =
 
-    lwt ejs_request_injections = Eliom_service.get_request_injections () in
-
     (* wrapping of values could create eliom references that may
        create cookies that needs to be sent along the page. Hence,
        cookies should be calculated after wrapping. *)
@@ -1497,11 +1496,6 @@ module Eliom_appl_reg_make_param
       Eliom_wrap.wrap
 	{ Eliom_types.
 	  ejs_event_handler_table = Eliom_content.Xml.make_event_handler_table (Eliom_content.Html5.D.toelt page);
-          ejs_initializations     = Eliom_service.get_initializations ();
-            (* TODO BB Distinguish global and request intializations and send globals only once per client process *)
-          ejs_global_injections   = Eliom_service.get_global_injections ();
-            (* TODO BB Send global injections only once per client process *)
-          ejs_request_injections;
 	  ejs_onload              = Eliom_service.get_onload ();
 	  ejs_onunload            = Eliom_service.get_onunload ();
 	  ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;
@@ -1514,25 +1508,39 @@ module Eliom_appl_reg_make_param
         sp.Eliom_common.sp_user_tab_cookies
     in
 
+    lwt template = Eliom_reference.get request_template in
+
     let client_value_initializations =
       List.map
         Eliom_wrap.wrap
         (Eliom_service.get_client_value_initializations ())
     in
 
-    lwt template = Eliom_reference.get request_template in
+    lwt request_injections = Eliom_service.get_request_injections () in
+    let injections =
+      List.map
+        Eliom_wrap.wrap
+        (request_injections @
+         if None = Eliom_request_info.get_sp_client_appl_name ()
+         then (debug "Sending global injections"; Eliom_service.get_global_injections ())
+         else (debug "Not sending global injections"; []))
+    in
     let script =
       Printf.sprintf
         "eliom_request_data = \'%s\';\n\
          eliom_request_cookies = \'%s\';\n\
          eliom_request_template = \'%s\';\n\
-         eliom_client_value_initializations = [%s];"
+         eliom_client_value_initializations = [%s];\n\
+         eliom_injections = [%s];"
         (Eliom_types.jsmarshal eliom_data)
         (Eliom_types.jsmarshal tab_cookies)
         (Eliom_types.jsmarshal (template: string option))
         (String.concat ", "
            (List.map (fun cv -> "\'" ^ Eliom_types.jsmarshal cv ^ "\'")
               client_value_initializations))
+        (String.concat ", "
+           (List.map (fun cv -> "\'" ^ Eliom_types.jsmarshal cv ^ "\'")
+              injections))
         (* TODO BB Distinguish global and request intializations and send globals only once per client process *)
     in
     Lwt.return (Eliom_content.Html5.F.script (cdata_script script))

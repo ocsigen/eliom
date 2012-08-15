@@ -854,6 +854,61 @@ let escaped_in_client =
            ])
        ))
 (******************************************************************************)
+  *)
+(******************************************************************************)
+(*                             Escaped in client                              *)
+
+let const = Random.int 100
+
+let changing =
+  Eliom_reference.Volatile.eref_from_fun ~scope:Eliom_common.request
+    (fun () -> Random.int 100)
+
+{client{
+
+  let f () =
+    debug "----> const: %d" %const;
+    debug "----> changing: %d" %changing
+
+  let () = f ()
+
+}}
+
+let deep_client_values =
+  let description = "Deep client values" in
+  let path = ["escape"; "deep_client_values"] in
+  let counter = ref 0 in
+  description,
+  My_appl.register_service
+    ~path ~get_params:Eliom_parameter.unit
+    (fun () () ->
+       debug "----> const: %d" const;
+       debug "----> changing: %d" (Eliom_reference.Volatile.get changing);
+       let cv = Some {string{ "client string" }} in
+       let ix = incr counter; Printf.sprintf "--%d--" !counter in
+       let onclick = {{
+         begin match %cv with
+           | Some cv ->
+               debug "client string: Some %s" cv
+           | None -> assert false
+         end;
+         fun _ -> f (); debug "counter: %s" %ix
+       }} in
+       Lwt.return Html5.F.(
+         html
+           (Eliom_tools.Html5.head
+              ~title:(String.concat "/" path)
+              ~css:[["style.css"]]
+              ())
+           (body [
+             h2 [pcdata description];
+             a ~service:Eliom_service.void_coservice' [pcdata "reload in app"] ();
+             button ~a:[a_onclick onclick ] ~button_type:`Submit [
+               pcdata "Click";
+             ]
+           ])
+       ))
+(******************************************************************************)
 
 (******************************************************************************)
 

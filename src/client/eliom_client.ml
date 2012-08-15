@@ -64,6 +64,15 @@ end = struct
         (fun () -> raise Not_found))
 end
 
+let do_client_value_initializations () =
+  debug "do_client_value_initializations";
+  let f (closure_id, instance_id, args) =
+    Client_value.set ~closure_id ~instance_id
+      (Client_closure.find ~closure_id args)
+  in
+  let varname = "eliom_client_value_initializations" in
+  Eliom_unwrap.unwrap_iter_array_js_var f varname
+
 module Injection : sig
   exception Not_found
   val set : name:string -> value:poly -> unit
@@ -81,13 +90,12 @@ end = struct
          (fun () -> raise Not_found))
 end
 
-let do_client_value_initializations () =
-  debug "do_client_value_initializations";
-  let f (closure_id, instance_id, args) =
-    Client_value.set ~closure_id ~instance_id
-      (Client_closure.find ~closure_id args)
+let do_injections () =
+  debug "do_injections";
+  let f (name, value) =
+    Injection.set ~name ~value
   in
-  let varname = "eliom_client_value_initializations" in
+  let varname = "eliom_injections" in
   Eliom_unwrap.unwrap_iter_array_js_var f varname
 
 module Server_values : sig
@@ -683,8 +691,10 @@ let set_content ?uri ?offset ?fragment content =
        relink_request_nodes fake_page;
        (* Put the loaded data script in action *)
        load_data_script fake_page;
-       (* Unmarshall page data. *)
+       (* Set values sent from the server (client values and injections) *)
+       do_injections ();
        do_client_value_initializations ();
+       (* Unmarshall page data. *)
        let js_data = Eliom_request_info.get_request_data () in
        let cookies = Eliom_request_info.get_request_cookies () in
        (* Update tab-cookies. *)

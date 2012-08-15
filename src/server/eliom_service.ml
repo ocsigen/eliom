@@ -534,21 +534,25 @@ let unregister ?scope ?secure service =
    redirection.
 *)
 
-let onload_events = Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
+let onload_events =
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
 
 let onload ev =
-  Eliom_reference.Volatile.modify onload_events (fun evs -> Xml.caml_event_handler ev :: evs)
+  Eliom_reference.Volatile.modify onload_events
+    (fun evs -> Xml.caml_event_handler ev :: evs)
 
 let get_onload () =
   Eliom_reference.Volatile.get onload_events
 
-let onunload_events = Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
+let onunload_events =
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
 
 let get_onunload () =
   Eliom_reference.Volatile.get onunload_events
 
 let onunload ev =
-  Eliom_reference.Volatile.modify onunload_events (fun evs -> Xml.caml_event_handler ev :: evs)
+  Eliom_reference.Volatile.modify onunload_events
+    (fun evs -> Xml.caml_event_handler ev :: evs)
 
 let global_client_values : (int64 * int * poly) list Eliom_reference.Volatile.eref =
   Eliom_reference.Volatile.eref ~scope:Eliom_common.global []
@@ -566,17 +570,21 @@ let client_value_initialization closure_id instance_id args =
      else request_client_values)
     (fun is -> (closure_id, instance_id, args) :: is)
 
-let global_injections = ref []
-let global_injection name value =
-  global_injections := (name, value) :: !global_injections
-let get_global_injections () =
-  List.rev !global_injections;
-
 module String_map = Map.Make (String)
 
-let request_injections = Eliom_reference.Volatile.eref ~scope:Eliom_common.global String_map.empty
+let global_injections =
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.global String_map.empty
+let global_injection name value =
+  Eliom_reference.Volatile.modify global_injections
+    (String_map.add name value)
+let get_global_injections () =
+  String_map.bindings (Eliom_reference.Volatile.get global_injections)
+
+let request_injections =
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.global String_map.empty
 let request_injection name f =
-  Eliom_reference.Volatile.modify request_injections (String_map.add name f)
+  Eliom_reference.Volatile.modify request_injections
+    (String_map.add name f)
 let get_request_injections () =
   Lwt_list.map_s
     (fun (name, f) -> lwt value = f () in Lwt.return (name, value))

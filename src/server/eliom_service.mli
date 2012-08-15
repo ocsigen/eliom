@@ -716,12 +716,12 @@ val get_client_value_initializations : unit -> (int64 * int * poly) list
 
 (* BB Injections are server variables escaped in {client{ ... }}.
    There are two kinds
-     - Request: injections of type [_ Eliom_references(.Volatile).eref]
+     - Request: injections of type [_ Eliom_references.eref]
        which are unwrapped and sent on every request.
        To inject (and unwrap) eliom references correctly, the argument for the
        [injection] is
          - a suspended expression [(unit -> _)] because it may depend on the request
-         - an Lwt value [(unit -> _ Lwt.t)] because the computation may invole Lwt
+         - an Lwt value [(unit -> _ Lwt.t)] because the computation may involve Lwt
      - Global: injections of any other type are sent as it.
  *)
 val global_injection : string -> poly -> unit

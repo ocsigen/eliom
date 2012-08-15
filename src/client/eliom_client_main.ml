@@ -43,6 +43,8 @@ let onload ev =
 let load_ev = Dom.Event.make "load"
 
 let _ =
+  Eliom_client.do_injections ();
+  debug "addEventListener onload";
   Dom.addEventListener Dom_html.window load_ev
     (Dom.handler onload) Js._true
 
