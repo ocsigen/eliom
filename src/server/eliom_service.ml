@@ -554,21 +554,31 @@ let onunload ev =
   Eliom_reference.Volatile.modify onunload_events
     (fun evs -> Xml.caml_event_handler ev :: evs)
 
+(******************************************************************************)
+(** {2 Client value initializations} *)
+
 let global_client_values : (int64 * int * poly) list Eliom_reference.Volatile.eref =
   Eliom_reference.Volatile.eref ~scope:Eliom_common.global []
 let request_client_values : (int64 * int * poly) list Eliom_reference.Volatile.eref =
   Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
-let get_client_value_initializations () =
-  List.rev
-    (Eliom_reference.Volatile.get request_client_values @
-     Eliom_reference.Volatile.get global_client_values)
+
 let client_value_initialization closure_id instance_id args =
-  debug "client_value_initialization %Ld %d" closure_id instance_id;
-  Eliom_reference.Volatile.modify
-    (if Eliom_common.get_sp_option () = None
-     then global_client_values
-     else request_client_values)
+  let reference, name =
+    if Eliom_common.get_sp_option () = None
+    then global_client_values, "global"
+    else request_client_values, "request"
+  in
+  debug "client_value_initialization %Ld %d to %s" closure_id instance_id name;
+  Eliom_reference.Volatile.modify reference
     (fun is -> (closure_id, instance_id, args) :: is)
+
+let get_global_client_value_initializations () =
+  List.rev (Eliom_reference.Volatile.get global_client_values)
+let get_request_client_value_initializations () =
+  List.rev (Eliom_reference.Volatile.get request_client_values)
+
+(******************************************************************************)
+(** {2 Injections} *)
 
 module String_map = Map.Make (String)
 

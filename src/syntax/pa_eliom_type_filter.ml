@@ -90,7 +90,8 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
             | Some typ -> typ
             | None -> let _loc = Loc.ghost in <:ctyp< _ >>
           in
-          <:expr@loc< begin
+          let _loc = loc in
+          <:expr< begin
             $flush_typing_expr ()$;
             $lid:gen_tid$ :=
               Some (Eliom_lib.create_client_value

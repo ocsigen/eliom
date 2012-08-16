@@ -1510,21 +1510,48 @@ module Eliom_appl_reg_make_param
 
     lwt template = Eliom_reference.get request_template in
 
-    let client_value_initializations =
-      List.map
-        Eliom_wrap.wrap
-        (Eliom_service.get_client_value_initializations ())
+    let include_global_client_values =
+      None = Eliom_request_info.get_sp_client_appl_name ()
+    in
+    let () =
+      if include_global_client_values
+      then debug "Sending global client value initializations and injections"
+      else debug "Not sending global client value initializations and injections"
     in
 
-    lwt request_injections = Eliom_service.get_request_injections () in
-    let injections =
-      List.map
-        Eliom_wrap.wrap
-        (request_injections @
-         if None = Eliom_request_info.get_sp_client_appl_name ()
-         then (debug "Sending global injections"; Eliom_service.get_global_injections ())
-         else (debug "Not sending global injections"; []))
+    let client_value_initializations =
+      let request_initializations =
+        Eliom_service.get_request_client_value_initializations ()
+      in
+      let global_initializations =
+        if include_global_client_values
+        then Eliom_service.get_global_client_value_initializations ()
+        else []
+      in
+      let initializations = global_initializations @ request_initializations in
+      debug "Client value initializations %s"
+        (String.concat ", "
+           (List.map
+              (fun (closure_id, instance_id, _) ->
+                 Printf.sprintf "%Ld/%d" closure_id instance_id)
+              initializations));
+      List.map Eliom_wrap.wrap initializations
     in
+
+    lwt injections =
+      lwt request_injections = Eliom_service.get_request_injections () in
+      let global_injections =
+         if include_global_client_values
+         then Eliom_service.get_global_injections ()
+         else []
+      in
+      let injections = request_injections @ global_injections in
+      debug "Sending injections %s"
+        (String.concat ", " (List.map fst injections));
+      Lwt.return
+        (List.map Eliom_wrap.wrap injections)
+    in
+
     let script =
       Printf.sprintf
         "eliom_request_data = \'%s\';\n\

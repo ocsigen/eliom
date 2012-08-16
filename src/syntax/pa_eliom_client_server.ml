@@ -41,7 +41,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
             match Helpers.find_client_value_type gen_num with
               | Ast.TyQuo _ ->
                   Helpers.raise_syntax_error loc
-                    "The types of client values must be monomorphic from its usage\
+                    "The types of client values must be monomorphic from its usage \
                      or from its type annotation"
               | typ -> typ
     in
@@ -59,6 +59,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let push_arg orig_expr gen_id =
     if not (List.mem gen_id !arg_ids) then begin
       let _loc = Ast.loc_of_expr orig_expr in
+      (* TODO BB Drop Eliom_reference.eref *)
       let arg = <:expr< $orig_expr$ >> in
       arg_collection := (gen_id, arg) :: !arg_collection;
       arg_ids := gen_id :: !arg_ids

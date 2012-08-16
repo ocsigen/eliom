@@ -27,7 +27,6 @@ let onload ev =
     (Eliom_request_info.get_request_cookies ());
   ignore (lwt () = Lwt_js.sleep 0.001 in
           Eliom_client.relink_request_nodes (Dom_html.document##documentElement);
-          Eliom_client.do_client_value_initializations ();
           let on_load =
             Eliom_client.load_eliom_data
               (Eliom_request_info.get_request_data ())
@@ -43,7 +42,6 @@ let onload ev =
 let load_ev = Dom.Event.make "load"
 
 let _ =
-  Eliom_client.do_injections ();
   debug "addEventListener onload";
   Dom.addEventListener Dom_html.window load_ev
     (Dom.handler onload) Js._true

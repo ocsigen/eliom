@@ -64,15 +64,6 @@ end = struct
         (fun () -> raise Not_found))
 end
 
-let do_client_value_initializations () =
-  debug "do_client_value_initializations";
-  let f (closure_id, instance_id, args) =
-    Client_value.set ~closure_id ~instance_id
-      (Client_closure.find ~closure_id args)
-  in
-  let varname = "eliom_client_value_initializations" in
-  Eliom_unwrap.unwrap_iter_array_js_var f varname
-
 module Injection : sig
   exception Not_found
   val set : name:string -> value:poly -> unit
@@ -90,18 +81,37 @@ end = struct
          (fun () -> raise Not_found))
 end
 
-let do_injections () =
-  debug "do_injections";
-  let f (name, value) =
-    Injection.set ~name ~value
+let do_client_value_initializations ?closure_id () =
+  debug "do_client_value_initializations%s"
+    (match closure_id with None -> "" | Some id -> Printf.sprintf " %Ld" id);
+  let varname = "eliom_client_value_initializations" in
+  let test (closure_id', _, _) =
+    match closure_id with
+      | None -> true
+      | Some closure_id ->
+          closure_id = closure_id'
   in
-  let varname = "eliom_injections" in
-  Eliom_unwrap.unwrap_iter_array_js_var f varname
+  let f (closure_id, instance_id, args) =
+    Client_value.set ~closure_id ~instance_id
+      (Client_closure.find ~closure_id args)
+  in
+  Eliom_unwrap.unwrap_iter_array_js_var ~test ~f ~varname
 
-module Server_values : sig
-end = struct
-  let server_values = JsTable.create ()
-end
+let do_injections =
+(*   let already_seen = ref [] in *)
+  fun ?names () ->
+    debug "do_injections%s"
+      (match names with None -> "" | Some li -> " "^String.concat " " li);
+    let varname = "eliom_injections" in
+    let test (name, _) =
+      match names with
+        | Some names -> List.mem name names
+        | None -> true
+    in
+    let f (name, value) =
+      Injection.set ~name ~value
+    in
+    Eliom_unwrap.unwrap_iter_array_js_var ~test ~f ~varname
 
 (* == Process nodes (a.k.a. nodes with a unique Dom instance on each client process) *)
 
@@ -542,6 +552,7 @@ let relink_request_node (node:Dom_html.element Js.t) =
         (fun parent -> Dom.replaceChild parent pnode node))
 
 let relink_request_nodes root =
+  debug "relink_request_nodes";
   if !Eliom_config.debug_timings then
     Firebug.console##time
       (Js.string "relink_request_nodes");
@@ -998,7 +1009,6 @@ let _ =
     (fun (cv, _unwrapper_id) ->
        let closure_id = Eliom_server.Client_value.closure_id cv in
        let instance_id = Eliom_server.Client_value.instance_id cv in
-       debug "Unwrap %Ld/%d" closure_id instance_id;
        try
          Client_value.get ~closure_id ~instance_id
        with Client_value.Not_found ->

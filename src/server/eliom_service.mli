@@ -711,8 +711,13 @@ val xhr_with_cookies :
 val get_onload : unit -> Dom_html.event Xml.caml_event_handler list
 val get_onunload : unit -> Dom_html.event Xml.caml_event_handler list
 
+(* BB It is decided dynamically whether a client value initialization is global or request:
+   If the server is currently processing a request, the client value is send to the client
+   with the next response. If the server is not processing a request, the client value is
+   send to every client process with the first response. *)
 val client_value_initialization : int64 -> int -> poly -> unit
-val get_client_value_initializations : unit -> (int64 * int * poly) list
+val get_global_client_value_initializations : unit -> (int64 * int * poly) list
+val get_request_client_value_initializations : unit -> (int64 * int * poly) list
 
 (* BB Injections are server variables escaped in {client{ ... }}.
    There are two kinds

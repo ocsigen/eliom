@@ -37,7 +37,10 @@ val id_of_int : int -> unwrap_id
 
 (**/**)
 
-(** [unwrap_array_js_var ~f ~varname] executes [unwrap] and then [f] on the
-    elements of the array denoted by [varname] successivly, and returns the
-    list of elements. *)
-val unwrap_iter_array_js_var : ('a -> unit) -> string -> unit
+(** [unwrap_array_js_var ?test ~f ~varname] reads an array from the variable [varname].
+    It then iterates that array by first testing the element by [test].
+    If it succeeds, the element is [unwrap]ped and [f] is applied to that result.
+
+    [iter (f ∘ unwrap) (filter test (array varname))]
+  *)
+val unwrap_iter_array_js_var : ?test:('a -> bool) -> f:('a -> unit) -> varname:string -> unit

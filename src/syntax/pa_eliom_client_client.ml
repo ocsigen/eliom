@@ -32,6 +32,13 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let _ =
     Camlp4.Options.add "-notype" (Arg.Set notyp) "(not documented)"
 
+  let drop_client_value_ctyp =
+    Ast.map_ctyp
+      (function
+         | <:ctyp< $typ'$ Eliom_lib.client_value >> ->
+             typ'
+         | typ -> typ)
+
   let tuple_of_args =
     let _loc = Loc.ghost in function
     | [] -> <:patt< () >>
@@ -55,49 +62,94 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
            ($orig_expr$ : $typ$))
     >>
 
-  let server_arg_ids = ref []
-  let push_server_arg gen_id =
-    if not (List.mem gen_id !server_arg_ids) then
-      server_arg_ids := gen_id :: !server_arg_ids
+  let push_server_arg, flush_server_args =
+    let server_arg_ids = ref [] in
+    let push gen_id =
+      if not (List.mem gen_id !server_arg_ids) then
+        server_arg_ids := gen_id :: !server_arg_ids
+    in
+    let flush _loc =
+      let res = List.rev !server_arg_ids in
+      server_arg_ids := [];
+      res
+    in
+    push, flush
 
 
-  let flush_server_args _loc =
-    let res = !server_arg_ids in
-    server_arg_ids := [];
-    List.rev res
-
-  let client_arg_ids = ref []
-
-  let push_client_arg loc orig_expr gen_id =
-    if not (List.exists (fun (_, _, gen_id') -> gen_id = gen_id') !client_arg_ids) then
-      client_arg_ids := (loc, orig_expr, gen_id) :: !client_arg_ids
-
-  let flush_client_args expr =
-    let res = !client_arg_ids in
-    client_arg_ids := [];
-    List.rev res
+  let push_client_arg, flush_client_args =
+    let client_arg_ids = ref [] in
+    let push loc orig_expr gen_id =
+      if not (List.exists (fun (_, _, gen_id') -> gen_id = gen_id') !client_arg_ids) then
+        client_arg_ids := (loc, orig_expr, gen_id) :: !client_arg_ids
+    in
+    let flush expr =
+      let res = List.rev !client_arg_ids in
+      client_arg_ids := [];
+      res
+    in
+    push, flush
 
 
-  let clos_collection = ref []
-
-  let push_closure_registration orig_expr gen_id =
-    let _loc = Ast.loc_of_expr orig_expr in
-    clos_collection :=
-      <:str_item< let _ = $register_closure gen_id (flush_server_args _loc) orig_expr$ >>
-      :: !clos_collection
-
-  let flush_closure_registrations () =
-      let res = !clos_collection in
+  let push_closure_registration, flush_closure_registrations =
+    let clos_collection = ref [] in
+    let push orig_expr gen_id =
+      let _loc = Ast.loc_of_expr orig_expr in
+      clos_collection :=
+        <:str_item<
+          let () =
+            $register_closure gen_id (flush_server_args _loc) orig_expr$;
+            Eliom_client.do_client_value_initializations ~closure_id: $`int64:gen_id$ ()
+        >>
+        :: !clos_collection
+    in
+    let flush () =
+      let res = List.rev !clos_collection in
       clos_collection := [];
-      List.rev res
+      res
+    in
+    push, flush
+
+  let push_injected_var, flush_injected_vars =
+    let escaped_vars = ref [] in
+    let push var =
+      escaped_vars := var :: !escaped_vars
+    in
+    let flush () =
+      let res = List.rev !escaped_vars in
+      escaped_vars := [];
+      let _loc = Loc.ghost in
+      List.map (fun str -> <:expr< $str:str$ >>) res
+    in
+    push, flush
 
   (** Syntax extension *)
 
-  let shared_str_items items = Ast.stSem_of_list items
-  let client_str_items items = Ast.stSem_of_list items
+  let client_str_items items =
+    let do_injections =
+      let _loc = Loc.ghost in
+      let injected_vars = flush_injected_vars () in
+      if injected_vars = [] then
+        <:str_item< >>
+      else
+        let names =
+          List.fold_right
+            (fun hd tl -> <:expr< $hd$ :: $tl$ >>)
+            injected_vars <:expr< []>>
+        in
+        <:str_item<
+          let () =
+            Eliom_client.do_injections
+              ~names: $names$ ()
+        >>
+    in
+    Ast.stSem_of_list (do_injections :: items)
+
+  let shared_str_items items =
+    client_str_items items
 
   let server_str_items items =
-    Ast.stSem_of_list (flush_closure_registrations ())
+    let closure_registrations = flush_closure_registrations () in
+    Ast.stSem_of_list closure_registrations
 
   let hole_expr typ context_level orig_expr gen_num gen_tid loc =
     if context_level = Pa_eliom_seed.Server_item_context ||
@@ -148,26 +200,26 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           else
             let typ =
               let typ = Helpers.find_escaped_ident_type gen_id in
-              match Helpers.(is_client_value_type typ) with 
-                | Some typ' -> typ'
-                | None -> typ
+              (* TODO BB Drop Eliom_reference.eref *)
+              drop_client_value_ctyp#ctyp typ
             in
             <:expr< ($lid:gen_id$ : $typ$) >>
        | Escaped_in_hole_in Client_item_context ->
           <:expr< $lid:gen_id$ >>
        | Escaped_in_client_item ->
-           let typ =
-             let typ = Helpers.find_escaped_ident_type gen_id in
-             match Helpers.is_client_value_type typ with
-               | Some typ' -> typ'
-               | None ->
-                   match typ with
-                     | <:ctyp< ($typ'$ Eliom_reference.Volatile.eref) >>
-                     | <:ctyp< ($typ'$ Eliom_reference.eref) >> -> typ'
-                     | typ -> typ
+           push_injected_var gen_id;
+           let typ = Helpers.find_escaped_ident_type gen_id in
+           let typ = (* Replace toplevel [t Eliom_reference.eref] to [t]. *)
+             match typ with
+               | <:ctyp< ($typ'$ Eliom_reference.Volatile.eref) >>
+               | <:ctyp< ($typ'$ Eliom_reference.eref) >> -> typ'
+               | typ -> typ
+           in
+           let typ = (* Replace all [t Eliom_lib.client_value] to [t]. *)
+             drop_client_value_ctyp#ctyp typ
            in
            <:expr< (Eliom_client.Injection.get ~name: $str:gen_id$
-                      : $typ$) >>
+                    : $typ$) >>
 
 
 
