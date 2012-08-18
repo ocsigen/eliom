@@ -1519,6 +1519,11 @@ module Eliom_appl_reg_make_param
       else debug "Not sending global client value initializations and injections"
     in
 
+    let wrap_and_marshall_poly : poly -> string =
+      fun poly ->
+        Eliom_types.string_escape (Marshal.to_string (Eliom_wrap.wrap poly) [])
+    in
+
     let client_value_initializations =
       let request_initializations =
         Eliom_service.get_request_client_value_initializations ()
@@ -1526,16 +1531,15 @@ module Eliom_appl_reg_make_param
       let global_initializations =
         if include_global_client_values
         then Eliom_service.get_global_client_value_initializations ()
-        else []
+        else Client_value_data.empty
       in
-      let initializations = global_initializations @ request_initializations in
-      debug "Client value initializations %s"
-        (String.concat ", "
-           (List.map
-              (fun (closure_id, instance_id, _) ->
-                 Printf.sprintf "%Ld/%d" closure_id instance_id)
-              initializations));
-      List.map Eliom_wrap.wrap initializations
+      let all_client_value_initializations =
+        Client_value_data.union
+          global_initializations request_initializations
+      in
+      Client_value_data.to_client
+        wrap_and_marshall_poly
+        all_client_value_initializations
     in
 
     lwt injections =
@@ -1543,32 +1547,40 @@ module Eliom_appl_reg_make_param
       let global_injections =
          if include_global_client_values
          then Eliom_service.get_global_injections ()
-         else []
+         else Injection_data.empty
       in
-      let injections = request_injections @ global_injections in
-      debug "Sending injections %s"
-        (String.concat ", " (List.map fst injections));
+      let all_injections =
+        Injection_data.union
+           request_injections global_injections
+      in
       Lwt.return
-        (List.map Eliom_wrap.wrap injections)
+        (Injection_data.to_client wrap_and_marshall_poly all_injections)
     in
+
+    Int64_map.iter
+      (fun closure_id ->
+         debug "Client_value_datas for closure_id %Ld" closure_id;
+         Int_map.iter
+           (fun instance_id str ->
+              debug "... instance_id:%d %S" instance_id str))
+      client_value_initializations;
+    String_map.iter
+      (fun name str ->
+         debug "Injection name:%s %S" name str)
+      injections;
 
     let script =
       Printf.sprintf
         "eliom_request_data = \'%s\';\n\
          eliom_request_cookies = \'%s\';\n\
          eliom_request_template = \'%s\';\n\
-         eliom_client_value_initializations = [%s];\n\
-         eliom_injections = [%s];"
+         eliom_client_value_initializations = \'%s\';\n\
+         eliom_injections = \'%s\';"
         (Eliom_types.jsmarshal eliom_data)
         (Eliom_types.jsmarshal tab_cookies)
         (Eliom_types.jsmarshal (template: string option))
-        (String.concat ", "
-           (List.map (fun cv -> "\'" ^ Eliom_types.jsmarshal cv ^ "\'")
-              client_value_initializations))
-        (String.concat ", "
-           (List.map (fun cv -> "\'" ^ Eliom_types.jsmarshal cv ^ "\'")
-              injections))
-        (* TODO BB Distinguish global and request intializations and send globals only once per client process *)
+        (Eliom_types.jsmarshal client_value_initializations)
+        (Eliom_types.jsmarshal injections)
     in
     Lwt.return (Eliom_content.Html5.F.script (cdata_script script))
 

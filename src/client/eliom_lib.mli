@@ -27,6 +27,9 @@ include module type of Ocsigen_lib_base
   and type 'a Clist.node = 'a Ocsigen_lib_base.Clist.node
 
 include module type of Eliom_lib_base
+  with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
+  with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
+  with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
 
 (** An ['a] client value on the client is just an ['a].
     See also {% <<a_api subproject="server" text="on the server" |
@@ -75,3 +78,17 @@ val unmarshal_js_var : string -> 'a
 
 val encode_header_value : 'a -> string
 
+val js_array_to_list : 'a Js.js_array Js.t -> 'a list
+
+module Client_value_data : sig
+  type t = string Int_map.t Int64_map.t
+  val closure_ids : t -> int64 list
+  val instance_ids : int64 -> t -> int list
+  val find : int64 -> int -> t -> poly
+end
+
+module Injection_data : sig
+  type t = string String_map.t
+  val names : t -> string list
+  val find : string -> t -> poly
+end

@@ -53,6 +53,18 @@ module String = struct
     Regexp.global_replace eol_re s ""
 end
 
+let js_array_to_list arr =
+  let li = ref [] in
+  for i = 0 to pred arr##length do
+    let x =
+      Js.Optdef.get
+        (Js.array_get arr i)
+        (fun () -> failwith "js_array_to_list")
+    in
+    li := x :: !li
+  done;
+  List.rev !li
+
 (*****************************************************************************)
 
 let debug_exn f e =
@@ -86,5 +98,46 @@ let encode_header_value x =
 let unmarshal_js_var s =
   Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
 
+let unwrap_bytestring_unescape str =
+  Eliom_unwrap.unwrap
+    (Js.to_bytestring
+       (Js.unescape
+          (Js.Unsafe.eval_string
+             ("\""^escape_quotes str^"\""))))
+    0
+
 (** Empty type (not used on client side, see eliom_parameter_base.ml) *)
 type file_info
+
+module Client_value_data = struct
+
+  type t = string Int_map.t Int64_map.t
+
+  let closure_ids table =
+    List.map fst
+      (Int64_map.bindings table)
+
+  let instance_ids closure_id table =
+    List.map fst
+      (Int_map.bindings
+         (Int64_map.find closure_id table))
+
+  let find closure_id instance_id table =
+    let instances = Int64_map.find closure_id table in
+    unwrap_bytestring_unescape
+      (Int_map.find instance_id instances)
+end
+
+module Injection_data = struct
+
+  type t = string String_map.t
+
+  let names table =
+    List.map fst (String_map.bindings table)
+
+  let find name table =
+    unwrap_bytestring_unescape
+      (String_map.find name table)
+end
+
+

@@ -31,14 +31,18 @@ module Client_closure : sig
   val register : closure_id:int64 -> (_ -> _) -> unit
   val find : closure_id:int64 -> (poly -> poly)
 end = struct
+
   exception Not_found
+
   let key closure_id = Js.string (Int64.to_string closure_id)
+
   let client_closures = JsTable.create ()
+
   let register ~closure_id cl =
-    debug "Client_closure.register %Ld" closure_id;
     JsTable.add client_closures (key closure_id)
       (fun args ->
          to_poly (cl (from_poly args)))
+
   let find ~closure_id =
     Js.Optdef.get
       (JsTable.find client_closures (key closure_id))
@@ -47,71 +51,140 @@ end
 
 module Client_value : sig
   exception Not_found
-  val set : closure_id:int64 -> instance_id:int -> poly -> unit
+  val set : closure_id:int64 -> instance_id:int -> value:poly -> unit
   val get : closure_id:int64 -> instance_id:int -> _
 end = struct
+
   exception Not_found
-  let key ~closure_id ~instance_id =
-    Js.string (Int64.to_string closure_id ^ string_of_int instance_id)
-  let client_values = JsTable.create ()
-  let set ~closure_id ~instance_id value =
-    debug "Client_value.set %Ld %d" closure_id instance_id;
-    JsTable.add client_values (key ~closure_id ~instance_id) value
+
+  let table = JsTable.create ()
+
+  let set ~closure_id ~instance_id ~value =
+    let instances =
+      let closure_key = Js.string (Int64.to_string closure_id) in
+      Js.Optdef.get
+        (JsTable.find table closure_key)
+        (fun () ->
+           let instances = JsTable.create () in
+           JsTable.add table closure_key instances;
+           instances)
+    in
+    JsTable.add instances (Js.string (string_of_int instance_id)) value
+
   let get ~closure_id ~instance_id =
-    from_poly
-      (Js.Optdef.get
-        (JsTable.find client_values (key ~closure_id ~instance_id))
-        (fun () -> raise Not_found))
+    let lazy_value =
+      let instances =
+        Js.Optdef.get
+          (JsTable.find
+             table
+             (Js.string (Int64.to_string closure_id)))
+          (fun () -> raise Not_found)
+      in
+      Js.Optdef.get
+        (JsTable.find
+           instances
+           (Js.string (string_of_int instance_id)))
+        (fun () -> raise Not_found)
+    in
+    from_poly lazy_value
+
 end
 
 module Injection : sig
   exception Not_found
-  val set : name:string -> value:poly -> unit
+  val set : name:string -> value:poly lazy_t -> unit
   val get : name:string -> _
+  val force_all : unit -> unit
 end = struct
+
   exception Not_found
-  let injections = JsTable.create ()
-  let set ~name ~value =
-    debug "Injection.set %s" name;
-    JsTable.add injections (Js.string name) value
+
+  let table = JsTable.create ()
+
+  let set ~name ~value:lazy_value =
+    debug "Set injection %s" name;
+    JsTable.add table (Js.string name) lazy_value
+
   let get ~name =
     from_poly
+      (Lazy.force
       (Js.Optdef.get
-         (JsTable.find injections (Js.string name))
-         (fun () -> raise Not_found))
+            (JsTable.find table (Js.string name))
+            (fun () -> raise Not_found)))
+
+  let force_all () =
+    debug "Force all injections %s"
+      (String.concat " "
+         (List.map Js.to_string (JsTable.keys table)));
+    List.iter
+      (fun name ->
+         debug "Force injection %s" (Js.to_string name);
+         let lazy_value =
+           Js.Optdef.get
+             (JsTable.find table name)
+             (fun () -> failwith "force_all")
+         in
+         ignore (Lazy.force lazy_value))
+      (JsTable.keys table)
 end
 
-let do_client_value_initializations ?closure_id () =
-  debug "do_client_value_initializations%s"
-    (match closure_id with None -> "" | Some id -> Printf.sprintf " %Ld" id);
-  let varname = "eliom_client_value_initializations" in
-  let test (closure_id', _, _) =
-    match closure_id with
-      | None -> true
-      | Some closure_id ->
-          closure_id = closure_id'
-  in
-  let f (closure_id, instance_id, args) =
-    Client_value.set ~closure_id ~instance_id
-      (Client_closure.find ~closure_id args)
-  in
-  Eliom_unwrap.unwrap_iter_array_js_var ~test ~f ~varname
+let do_client_value_initializations' ~cv_inits ~closure_id =
+  List.iter
+    (fun instance_id ->
+       debug "Do client value initialization %Ld/%d" closure_id instance_id;
+       let value =
+         let args =
+           Client_value_data.find
+             closure_id instance_id
+             cv_inits
+         in
+         Client_closure.find ~closure_id args
+       in
+       Client_value.set ~closure_id ~instance_id ~value)
+    (Client_value_data.instance_ids closure_id cv_inits)
 
-let do_injections =
-(*   let already_seen = ref [] in *)
-  fun ?names () ->
-    debug "do_injections%s"
-      (match names with None -> "" | Some li -> " "^String.concat " " li);
-    let varname = "eliom_injections" in
-    let test (name, _) =
-      match names with
-        | Some names -> List.mem name names
-        | None -> true
-    in
-    let f (name, value) =
-      Injection.set ~name ~value
-    in
-    Eliom_unwrap.unwrap_iter_array_js_var ~test ~f ~varname
+let do_all_client_value_initializations () =
+  let cv_inits = Eliom_request_info.get_client_value_initializations () in
+  List.iter
+    (fun closure_id ->
+       do_client_value_initializations' ~cv_inits ~closure_id;
+       List.iter
+         (fun instance_id ->
+            ignore (Client_value.get ~closure_id ~instance_id))
+         (Client_value_data.instance_ids closure_id cv_inits))
+    (Client_value_data.closure_ids cv_inits)
+
+
+let do_injections' ~injs ~names =
+  debug "Do injections %s" (String.concat " " names);
+  List.iter
+    (fun name ->
+       let value =
+         lazy
+           (debug "Evaluate injection %s" name;
+            Injection_data.find name injs) in
+       Injection.set ~name ~value)
+    names
+
+let do_all_injections () =
+  debug "do_all_injections";
+  let injs = Eliom_request_info.get_injections () in
+  do_injections' ~injs ~names:(Injection_data.names injs);
+  List.iter
+    (fun name ->
+       ignore (Injection.get ~name))
+    (Injection_data.names injs)
+
+
+(* Get rid of the optional parameter *)
+let do_client_value_initializations ~closure_id =
+  do_client_value_initializations'
+    ~cv_inits:(Eliom_request_info.get_client_value_initializations ())
+    ~closure_id
+let do_injections ~names =
+  do_injections'
+    ~injs:(Eliom_request_info.get_injections ())
+    ~names
 
 (* == Process nodes (a.k.a. nodes with a unique Dom instance on each client process) *)
 
@@ -703,8 +776,9 @@ let set_content ?uri ?offset ?fragment content =
        (* Put the loaded data script in action *)
        load_data_script fake_page;
        (* Set values sent from the server (client values and injections) *)
-       do_injections ();
-       do_client_value_initializations ();
+       do_all_injections ();
+       do_all_client_value_initializations ();
+       Injection.force_all ();
        (* Unmarshall page data. *)
        let js_data = Eliom_request_info.get_request_data () in
        let cookies = Eliom_request_info.get_request_cookies () in
@@ -987,6 +1061,7 @@ let _ =
   Eliom_unwrap.register_unwrapper
     (Eliom_unwrap.id_of_int Eliom_lib_base.tyxml_unwrap_id_int)
     (fun tmp_elt ->
+      debug "Unwrap tyxml";
       let elt = match tmp_elt.tmp_elt with
         | RELazy elt -> Eliom_lazy.force elt
         | RE elt -> elt

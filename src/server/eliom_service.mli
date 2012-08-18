@@ -716,10 +716,10 @@ val get_onunload : unit -> Dom_html.event Xml.caml_event_handler list
    with the next response. If the server is not processing a request, the client value is
    send to every client process with the first response. *)
 val client_value_initialization : int64 -> int -> poly -> unit
-val get_global_client_value_initializations : unit -> (int64 * int * poly) list
-val get_request_client_value_initializations : unit -> (int64 * int * poly) list
+val get_global_client_value_initializations : unit -> Client_value_data.t
+val get_request_client_value_initializations : unit -> Client_value_data.t
 
-(* BB Injections are server variables escaped in {client{ ... }}.
+(* BB Injection_data are server variables escaped in {client{ ... }}.
    There are two kinds
      - Request: injections of type [_ Eliom_references.eref]
        which are unwrapped and sent on every request.
@@ -730,10 +730,10 @@ val get_request_client_value_initializations : unit -> (int64 * int * poly) list
      - Global: injections of any other type are sent as it.
  *)
 val global_injection : string -> poly -> unit
-val get_global_injections : unit -> (string * poly) list
+val get_global_injections : unit -> poly Injection_data.t
 
 val request_injection : string -> (unit -> poly Lwt.t) -> unit
-val get_request_injections : unit -> (string * poly) list Lwt.t
+val get_request_injections : unit -> poly Injection_data.t Lwt.t
 
 val pre_wrap :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->

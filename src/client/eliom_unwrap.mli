@@ -36,11 +36,3 @@ val unwrap_js_var : string -> 'a
 val id_of_int : int -> unwrap_id
 
 (**/**)
-
-(** [unwrap_array_js_var ?test ~f ~varname] reads an array from the variable [varname].
-    It then iterates that array by first testing the element by [test].
-    If it succeeds, the element is [unwrap]ped and [f] is applied to that result.
-
-    [iter (f ∘ unwrap) (filter test (array varname))]
-  *)
-val unwrap_iter_array_js_var : ?test:('a -> bool) -> f:('a -> unit) -> varname:string -> unit

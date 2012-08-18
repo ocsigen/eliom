@@ -27,3 +27,59 @@ let of_json ?typ s =
 
 type file_info = Ocsigen_extensions.file_info
 
+let merge_aux err_msg =
+  curry
+    (function
+       | Some value, None
+       | None, Some value -> Some value
+       | None, None
+       | Some _, Some _ -> failwith err_msg)
+
+module Client_value_data = struct
+
+  type t = poly Int_map.t Int64_map.t
+
+  type client = string Int_map.t Int64_map.t
+
+  let empty =
+    Int64_map.empty
+
+  let map f table =
+    Int64_map.map (Int_map.map f) table
+
+  let add closure_id instance_id poly table =
+    let instances =
+      try Int64_map.find closure_id table
+      with Not_found -> Int_map.empty
+    in
+    let instances' = Int_map.add instance_id poly instances in
+    Int64_map.add closure_id instances' table
+
+  let union table_1 table_2 =
+    Int64_map.merge
+      (fun closure_id opt_instances_1 opt_instances_2 ->
+         let instances_1 = Option.get (fun () -> Int_map.empty) opt_instances_1 in
+         let instances_2 = Option.get (fun () -> Int_map.empty) opt_instances_2 in
+         Some (Int_map.merge (fun _ -> merge_aux "Client_value_data.union")
+                 instances_1 instances_2))
+      table_1 table_2
+
+  let to_client : (poly -> string) -> t -> client =
+    fun poly_to_string table ->
+      map poly_to_string table
+end
+
+module Injection_data = struct
+
+  type 'a t = 'a String_map.t
+  type client = string String_map.t
+
+  let empty = String_map.empty
+  let add = String_map.add
+  let union table_1 table_2 =
+    String_map.merge (fun _ -> merge_aux "Injection_data.union")
+      table_1 table_2
+
+  let to_client poly_to_string table =
+    String_map.map poly_to_string table
+end

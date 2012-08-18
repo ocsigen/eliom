@@ -29,6 +29,9 @@ include module type of Ocsigen_lib
   and type Ip_address.t = Ocsigen_lib.Ip_address.t
 
 include module type of Eliom_lib_base
+  with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
+  with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
+  with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
 
 (** Client values on the server are created by the syntax {{ ... }} in the
     server section. Those values are abstract on the server and unwrapped
@@ -52,3 +55,29 @@ val to_json : ?typ:'a Deriving_Json.t -> 'a -> string
 val of_json : ?typ:'a Deriving_Json.t -> string -> 'a
 val debug: ('a, unit, string, unit) format4 -> 'a
 
+module Client_value_data : sig
+
+  type t = poly Int_map.t Int64_map.t
+
+  type client = string Int_map.t Int64_map.t
+
+  val empty : t
+  val add : int64 -> int -> poly -> t -> t
+  val union : t -> t -> t
+
+  val to_client : (poly -> string) -> t -> client
+end
+
+module Injection_data : sig
+
+  type 'a t = 'a String_map.t
+    (* ['a] may be [poly] or [unit -> poly Lwt.t] in [Eliom_service] *)
+
+  type client = string String_map.t
+
+  val empty : _ t
+  val add : string -> 'a -> 'a t -> 'a t
+  val union : 'a t -> 'a t -> 'a t
+
+  val to_client : (poly -> string) -> poly t -> client
+end

@@ -35,6 +35,15 @@ let get_option = function
   | Some x -> x
   | None -> failwith "get_option"
 
+let escape_quotes s =
+  let b = Buffer.create (2 * String.length s) in
+  String.iter
+    (function
+       | '"' -> Buffer.add_string b "\\\""
+       | c -> Buffer.add_char b c)
+    s;
+  Buffer.contents b
+
 (**/**)
 
 module RawXML = struct
@@ -138,3 +147,14 @@ let tyxml_unwrap_id_int = 1
 let client_value_unwrap_id_int = 7
 
 (**/**)
+
+module Map_make (Ord : Map.OrderedType) = struct
+  include Map.Make (Ord)
+  let from_list li =
+    List.fold_right (uncurry add) li empty
+end
+
+module Int64_map = Map_make (Int64)
+module Int_map = Map_make (struct type t = int let compare = (-) end)
+module String_map = Map_make (String)
+

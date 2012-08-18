@@ -557,10 +557,10 @@ let onunload ev =
 (******************************************************************************)
 (** {2 Client value initializations} *)
 
-let global_client_values : (int64 * int * poly) list Eliom_reference.Volatile.eref =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.global []
-let request_client_values : (int64 * int * poly) list Eliom_reference.Volatile.eref =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
+let global_client_values : Client_value_data.t Eliom_reference.Volatile.eref =
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.global Client_value_data.empty
+let request_client_values : Client_value_data.t Eliom_reference.Volatile.eref =
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.request Client_value_data.empty
 
 let client_value_initialization closure_id instance_id args =
   let reference, name =
@@ -570,35 +570,39 @@ let client_value_initialization closure_id instance_id args =
   in
   debug "client_value_initialization %Ld %d to %s" closure_id instance_id name;
   Eliom_reference.Volatile.modify reference
-    (fun is -> (closure_id, instance_id, args) :: is)
+    (Client_value_data.add closure_id instance_id args)
 
 let get_global_client_value_initializations () =
-  List.rev (Eliom_reference.Volatile.get global_client_values)
+  Eliom_reference.Volatile.get global_client_values
 let get_request_client_value_initializations () =
-  List.rev (Eliom_reference.Volatile.get request_client_values)
+  Eliom_reference.Volatile.get request_client_values
 
 (******************************************************************************)
-(** {2 Injections} *)
+(** {2 Injection_data} *)
 
-module String_map = Map.Make (String)
-
-let global_injections =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.global String_map.empty
+let global_injections : poly Injection_data.t Eliom_reference.Volatile.eref =
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.global Injection_data.empty
 let global_injection name value =
   Eliom_reference.Volatile.modify global_injections
-    (String_map.add name value)
+    (Injection_data.add name value)
 let get_global_injections () =
-  String_map.bindings (Eliom_reference.Volatile.get global_injections)
+  Eliom_reference.Volatile.get global_injections
 
-let request_injections =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.global String_map.empty
+let request_injections : (unit -> poly Lwt.t) Injection_data.t Eliom_reference.Volatile.eref =
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.global Injection_data.empty
 let request_injection name f =
   Eliom_reference.Volatile.modify request_injections
-    (String_map.add name f)
-let get_request_injections () =
-  Lwt_list.map_s
-    (fun (name, f) -> lwt value = f () in Lwt.return (name, value))
-    (String_map.bindings (Eliom_reference.Volatile.get request_injections))
+    (Injection_data.add name f)
+let get_request_injections () : poly Injection_data.t Lwt.t =
+  let injections = Eliom_reference.Volatile.get request_injections in
+  lwt bindings =
+    Lwt_list.map_s
+      (fun (name, f) ->
+         lwt value = f () in
+         Lwt.return (name, value))
+      (String_map.bindings injections)
+  in
+  Lwt.return (String_map.from_list bindings)
 
 (*****************************************************************************)
 let pre_wrap s =

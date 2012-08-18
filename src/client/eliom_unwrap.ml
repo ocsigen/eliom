@@ -87,20 +87,3 @@ let unwrap s i =
 let unwrap_js_var s =
   unwrap (Js.to_bytestring (Js.Unsafe.variable s)) 0
 
-let unwrap_iter_array_js_var ?test ~f ~varname =
-  let arr = Js.Unsafe.variable varname in
-  for i = 0 to pred arr##length do
-    let elt =
-      Js.Optdef.get
-        (Js.array_get arr i)
-        (fun () -> failwith "unwrap_array_js_var")
-    in
-    let bs = Js.to_bytestring elt in
-    if
-      match test with
-        | None -> true
-        | Some test -> test (snd (Marshal.from_string bs 0))
-    then
-      f (unwrap (Js.to_bytestring elt) 0)
-  done;
-

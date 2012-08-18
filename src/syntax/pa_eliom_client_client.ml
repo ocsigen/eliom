@@ -98,7 +98,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
         <:str_item<
           let () =
             $register_closure gen_id (flush_server_args _loc) orig_expr$;
-            Eliom_client.do_client_value_initializations ~closure_id: $`int64:gen_id$ ()
+            Eliom_client.do_client_value_initializations ~closure_id: $`int64:gen_id$
         >>
         :: !clos_collection
     in
@@ -112,7 +112,8 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let push_injected_var, flush_injected_vars =
     let escaped_vars = ref [] in
     let push var =
-      escaped_vars := var :: !escaped_vars
+      if not (List.mem var !escaped_vars) then
+        escaped_vars := var :: !escaped_vars
     in
     let flush () =
       let res = List.rev !escaped_vars in
@@ -138,8 +139,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
         in
         <:str_item<
           let () =
-            Eliom_client.do_injections
-              ~names: $names$ ()
+            Eliom_client.do_injections ~names: $names$
         >>
     in
     Ast.stSem_of_list (do_injections :: items)

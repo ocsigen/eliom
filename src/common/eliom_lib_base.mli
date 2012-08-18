@@ -29,6 +29,8 @@ module Lwt_ops : sig
   val ( =|< ) : ('a -> 'b) -> 'a Lwt.t -> 'b Lwt.t
 end
 
+val escape_quotes : string -> string
+
 (**/**)
 
 val fresh_ix : unit -> int
@@ -126,6 +128,19 @@ end
 
 val tyxml_unwrap_id_int : int
 val client_value_unwrap_id_int : int
+
+module Int64_map : sig
+  include Map.S with type key = int64
+  val from_list : (key * 'a) list -> 'a t
+end
+module Int_map : sig
+  include Map.S with type key = int
+  val from_list : (key * 'a) list -> 'a t
+end
+module String_map : sig
+  include Map.S with type key = string
+  val from_list : (key * 'a) list -> 'a t
+end
 
 (**/**)
 

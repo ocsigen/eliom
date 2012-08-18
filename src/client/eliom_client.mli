@@ -142,12 +142,12 @@ module Client_value : sig
 end
 module Injection : sig
   val get : name:string -> _
+  val force_all : unit -> unit
 end
 
-(* Get the client value initializations from the data script *)
-val do_client_value_initializations : ?closure_id:int64 -> unit -> unit
-(* Get the injections from the data script *)
-val do_injections : ?names:string list -> unit -> unit
+val do_client_value_initializations : closure_id:int64 -> unit
+val do_injections : names:string list -> unit
+val do_all_injections : unit -> unit
 
 val getElementById : string -> Dom.node Js.t
 val rebuild_node : 'a Eliom_content_core.Html5.elt -> < .. > Js.t
