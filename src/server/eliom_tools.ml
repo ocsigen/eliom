@@ -604,12 +604,13 @@ module Html5 = struct
     with Not_found -> []
 
   let head ~title:ttl ?(css=[]) ?(js=[]) () =
+    let open Html5.F in
     let mk_css_link path =
       let uri = make_uri (Eliom_service.static_dir ()) path in
-      Html5.Id.create_global_elt (css_link ~uri ()) in
+      css_link ~uri () in
     let mk_js_script path =
       let uri = make_uri  (Eliom_service.static_dir ()) path in
-      Html5.Id.create_global_elt (js_script ~uri ()) in
+      js_script ~uri () in
     head
       (title (pcdata ttl))
       List.(map mk_css_link css @ map mk_js_script js)
