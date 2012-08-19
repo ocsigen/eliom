@@ -146,8 +146,8 @@ module Injection : sig
 end
 
 val do_client_value_initializations : closure_id:int64 -> unit
-val do_injections : names:string list -> unit
-val do_all_injections : unit -> unit
+val do_injection_initializations : names:string list -> unit
+val do_all_injection_initializations : unit -> unit
 
 val getElementById : string -> Dom.node Js.t
 val rebuild_node : 'a Eliom_content_core.Html5.elt -> < .. > Js.t

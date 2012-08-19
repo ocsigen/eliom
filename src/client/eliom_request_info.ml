@@ -137,8 +137,8 @@ let get_request_data () =
     Firebug.console##timeEnd(Js.string "get_request_data");
   data
 
-let get_client_value_initializations () : Client_value_data.t =
-  unmarshal_js_var "eliom_client_value_initializations"
+let get_client_value_data () : Client_value_data.t =
+  unmarshal_js_var "eliom_client_value_data"
 
 let get_injections () : Injection_data.t =
   unmarshal_js_var "eliom_injections"

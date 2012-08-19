@@ -126,7 +126,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   (** Syntax extension *)
 
   let client_str_items items =
-    let do_injections =
+    let do_injection_initializations =
       let _loc = Loc.ghost in
       let injected_vars = flush_injected_vars () in
       if injected_vars = [] then
@@ -139,10 +139,10 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
         in
         <:str_item<
           let () =
-            Eliom_client.do_injections ~names: $names$
+            Eliom_client.do_injection_initializations ~names: $names$
         >>
     in
-    Ast.stSem_of_list (do_injections :: items)
+    Ast.stSem_of_list (do_injection_initializations :: items)
 
   let shared_str_items items =
     client_str_items items

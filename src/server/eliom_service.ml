@@ -562,19 +562,19 @@ let global_client_values : Client_value_data.t Eliom_reference.Volatile.eref =
 let request_client_values : Client_value_data.t Eliom_reference.Volatile.eref =
   Eliom_reference.Volatile.eref ~scope:Eliom_common.request Client_value_data.empty
 
-let client_value_initialization closure_id instance_id args =
+let register_client_value_data closure_id instance_id args =
   let reference, name =
     if Eliom_common.get_sp_option () = None
     then global_client_values, "global"
     else request_client_values, "request"
   in
-  debug "client_value_initialization %Ld %d to %s" closure_id instance_id name;
+  debug "client_value_data %Ld %d to %s" closure_id instance_id name;
   Eliom_reference.Volatile.modify reference
     (Client_value_data.add closure_id instance_id args)
 
-let get_global_client_value_initializations () =
+let get_global_client_value_data () =
   Eliom_reference.Volatile.get global_client_values
-let get_request_client_value_initializations () =
+let get_request_client_value_data () =
   Eliom_reference.Volatile.get request_client_values
 
 (******************************************************************************)
@@ -582,7 +582,7 @@ let get_request_client_value_initializations () =
 
 let global_injections : poly Injection_data.t Eliom_reference.Volatile.eref =
   Eliom_reference.Volatile.eref ~scope:Eliom_common.global Injection_data.empty
-let global_injection name value =
+let register_global_injection name value =
   Eliom_reference.Volatile.modify global_injections
     (Injection_data.add name value)
 let get_global_injections () =
@@ -590,7 +590,7 @@ let get_global_injections () =
 
 let request_injections : (unit -> poly Lwt.t) Injection_data.t Eliom_reference.Volatile.eref =
   Eliom_reference.Volatile.eref ~scope:Eliom_common.global Injection_data.empty
-let request_injection name f =
+let register_request_injection name f =
   Eliom_reference.Volatile.modify request_injections
     (Injection_data.add name f)
 let get_request_injections () : poly Injection_data.t Lwt.t =

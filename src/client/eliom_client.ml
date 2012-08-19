@@ -128,7 +128,7 @@ end = struct
       (JsTable.keys table)
 end
 
-let do_client_value_initializations' ~cv_inits ~closure_id =
+let do_client_value_initializations' ~client_value_data ~closure_id =
   List.iter
     (fun instance_id ->
        debug "Do client value initialization %Ld/%d" closure_id instance_id;
@@ -136,26 +136,26 @@ let do_client_value_initializations' ~cv_inits ~closure_id =
          let args =
            Client_value_data.find
              closure_id instance_id
-             cv_inits
+             client_value_data
          in
          Client_closure.find ~closure_id args
        in
        Client_value.set ~closure_id ~instance_id ~value)
-    (Client_value_data.instance_ids closure_id cv_inits)
+    (Client_value_data.instance_ids closure_id client_value_data)
 
 let do_all_client_value_initializations () =
-  let cv_inits = Eliom_request_info.get_client_value_initializations () in
+  let client_value_data = Eliom_request_info.get_client_value_data () in
   List.iter
     (fun closure_id ->
-       do_client_value_initializations' ~cv_inits ~closure_id;
+       do_client_value_initializations' ~client_value_data ~closure_id;
        List.iter
          (fun instance_id ->
             ignore (Client_value.get ~closure_id ~instance_id))
-         (Client_value_data.instance_ids closure_id cv_inits))
-    (Client_value_data.closure_ids cv_inits)
+         (Client_value_data.instance_ids closure_id client_value_data))
+    (Client_value_data.closure_ids client_value_data)
 
 
-let do_injections' ~injs ~names =
+let do_injection_initializations' ~injs ~names =
   debug "Do injections %s" (String.concat " " names);
   List.iter
     (fun name ->
@@ -166,10 +166,10 @@ let do_injections' ~injs ~names =
        Injection.set ~name ~value)
     names
 
-let do_all_injections () =
-  debug "do_all_injections";
+let do_all_injection_initializations () =
+  debug "do_all_injection_initializations";
   let injs = Eliom_request_info.get_injections () in
-  do_injections' ~injs ~names:(Injection_data.names injs);
+  do_injection_initializations' ~injs ~names:(Injection_data.names injs);
   List.iter
     (fun name ->
        ignore (Injection.get ~name))
@@ -179,10 +179,10 @@ let do_all_injections () =
 (* Get rid of the optional parameter *)
 let do_client_value_initializations ~closure_id =
   do_client_value_initializations'
-    ~cv_inits:(Eliom_request_info.get_client_value_initializations ())
+    ~client_value_data:(Eliom_request_info.get_client_value_data ())
     ~closure_id
-let do_injections ~names =
-  do_injections'
+let do_injection_initializations ~names =
+  do_injection_initializations'
     ~injs:(Eliom_request_info.get_injections ())
     ~names
 
@@ -776,7 +776,7 @@ let set_content ?uri ?offset ?fragment content =
        (* Put the loaded data script in action *)
        load_data_script fake_page;
        (* Set values sent from the server (client values and injections) *)
-       do_all_injections ();
+       do_all_injection_initializations ();
        do_all_client_value_initializations ();
        Injection.force_all ();
        (* Unmarshall page data. *)

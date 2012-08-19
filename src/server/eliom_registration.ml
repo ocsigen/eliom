@@ -1474,7 +1474,7 @@ module Eliom_appl_reg_make_param
       Printf.sprintf
         "var eliom_appl_sitedata = \'%s\';\n\
          var eliom_appl_process_info = \'%s\'\n\
-         var eliom_client_value_initializations;\n\
+         var eliom_client_value_data;\n\
          var eliom_injections;\n\
          var eliom_request_data;\n\
          var eliom_request_cookies;\n\
@@ -1524,22 +1524,22 @@ module Eliom_appl_reg_make_param
         Eliom_types.string_escape (Marshal.to_string (Eliom_wrap.wrap poly) [])
     in
 
-    let client_value_initializations =
+    let client_value_data =
       let request_initializations =
-        Eliom_service.get_request_client_value_initializations ()
+        Eliom_service.get_request_client_value_data ()
       in
       let global_initializations =
         if include_global_client_values
-        then Eliom_service.get_global_client_value_initializations ()
+        then Eliom_service.get_global_client_value_data ()
         else Client_value_data.empty
       in
-      let all_client_value_initializations =
+      let all_client_value_data =
         Client_value_data.union
           global_initializations request_initializations
       in
       Client_value_data.to_client
         wrap_and_marshall_poly
-        all_client_value_initializations
+        all_client_value_data
     in
 
     lwt injections =
@@ -1563,7 +1563,7 @@ module Eliom_appl_reg_make_param
          Int_map.iter
            (fun instance_id str ->
               debug "... instance_id:%d %S" instance_id str))
-      client_value_initializations;
+      client_value_data;
     String_map.iter
       (fun name str ->
          debug "Injection name:%s %S" name str)
@@ -1574,12 +1574,12 @@ module Eliom_appl_reg_make_param
         "eliom_request_data = \'%s\';\n\
          eliom_request_cookies = \'%s\';\n\
          eliom_request_template = \'%s\';\n\
-         eliom_client_value_initializations = \'%s\';\n\
+         eliom_client_value_data = \'%s\';\n\
          eliom_injections = \'%s\';"
         (Eliom_types.jsmarshal eliom_data)
         (Eliom_types.jsmarshal tab_cookies)
         (Eliom_types.jsmarshal (template: string option))
-        (Eliom_types.jsmarshal client_value_initializations)
+        (Eliom_types.jsmarshal client_value_data)
         (Eliom_types.jsmarshal injections)
     in
     Lwt.return (Eliom_content.Html5.F.script (cdata_script script))

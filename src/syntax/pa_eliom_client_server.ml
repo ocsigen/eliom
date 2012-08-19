@@ -47,7 +47,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     in
     <:expr@loc<
         let __eliom_instance_id = Eliom_lib.fresh_ix () in
-        Eliom_service.client_value_initialization $`int64:gen_num$ __eliom_instance_id
+        Eliom_service.register_client_value_data $`int64:gen_num$ __eliom_instance_id
           (Eliom_lib.to_poly $tuple_of_args (List.map snd args)$);
         (Eliom_lib.create_client_value
            (Eliom_server.Client_value.create $`int64:gen_num$ __eliom_instance_id)
@@ -83,7 +83,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           | <:ctyp< ($_$ Eliom_reference.Volatile.eref) >>
           | <:ctyp< ($_$ Eliom_reference.eref) >> ->
               let _loc = Loc.ghost in
-              <:expr< Eliom_service.request_injection >>,
+              <:expr< Eliom_service.register_request_injection >>,
               <:expr<
                 fun () ->
                   Lwt.map Eliom_lib.to_poly
@@ -91,7 +91,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
               >>
           | _ ->
               let _loc = Loc.ghost in
-              <:expr< Eliom_service.global_injection >>,
+              <:expr< Eliom_service.register_global_injection >>,
               <:expr< Eliom_lib.to_poly $orig_expr$ >>
       in
       let _loc = Loc.ghost in
