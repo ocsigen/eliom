@@ -45,17 +45,15 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
                      or from its type annotation"
               | typ -> typ
     in
-    let unwrap_arg (_, arg) =
+    let escaped_value (_, arg) =
       let _loc = Loc.ghost in
       <:expr< Eliom_lib.escaped_value $arg$ >>
     in
     <:expr@loc<
-        let __eliom_instance_id = Eliom_lib.fresh_ix () in
-        Eliom_service.register_client_value_data $`int64:gen_num$ __eliom_instance_id
-          (Eliom_lib.to_poly $tuple_of_args (List.map unwrap_arg args)$);
-        (Eliom_lib.create_client_value
-           (Eliom_server.Client_value.create $`int64:gen_num$ __eliom_instance_id)
-         : $typ$ Eliom_lib.client_value)
+      (Eliom_service.Syntax_helpers.client_value
+         $`int64:gen_num$
+         $tuple_of_args (List.map escaped_value args)$
+       : $typ$ Eliom_lib.client_value)
     >>
 
   let arg_ids = ref []
@@ -82,26 +80,25 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let client_str_items items =
     let aux (gen_id, orig_expr) =
-      let injection_function, value =
+      let injection, value =
         match Helpers.find_escaped_ident_type gen_id with
           | <:ctyp< ($_$ Eliom_reference.Volatile.eref) >>
           | <:ctyp< ($_$ Eliom_reference.eref) >> ->
               let _loc = Loc.ghost in
-              <:expr< Eliom_service.register_request_injection >>,
+              <:expr< Eliom_service.Syntax_helpers.request_injection >>,
               <:expr<
                 fun () ->
-                  Lwt.map Eliom_lib.to_poly
-                    (Eliom_reference.get ($orig_expr$ :> _ Eliom_reference.eref))
+                  (Eliom_reference.get ($orig_expr$ :> _ Eliom_reference.eref))
               >>
           | _ ->
               let _loc = Loc.ghost in
-              <:expr< Eliom_service.register_global_injection >>,
-              <:expr< Eliom_lib.to_poly $orig_expr$ >>
+              <:expr< Eliom_service.Syntax_helpers.global_injection >>,
+              <:expr< $orig_expr$ >>
       in
       let _loc = Loc.ghost in
       <:str_item<
         let () =
-          $injection_function$ $str:gen_id$ $value$
+          $injection$ $str:gen_id$ $value$
       >>
     in
     Ast.stSem_of_list

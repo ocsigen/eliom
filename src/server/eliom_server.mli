@@ -30,3 +30,5 @@ module Client_value : sig
   val closure_id: _ t -> int64
   val instance_id: _ t -> int
 end
+
+type escaped_value = string

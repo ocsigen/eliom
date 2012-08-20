@@ -28,7 +28,7 @@ let onload ev =
     (Eliom_request_info.get_request_cookies ());
   ignore (lwt () = Lwt_js.sleep 0.001 in
           Eliom_client.relink_request_nodes (Dom_html.document##documentElement);
-          Eliom_client.Injection.force_all ();
+          Eliom_client.force_all_injections ();
           let on_load =
             Eliom_client.load_eliom_data
               (Eliom_request_info.get_request_data ())

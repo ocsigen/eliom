@@ -84,6 +84,8 @@ val js_array_to_list : 'a Js.js_array Js.t -> 'a list
 
 (**/**)
 
+type 'a escaped_value = 'a lazy_t
+
 (** This is the counter part of {% <<a_api subproject="server"|
     val Eliom_lib.wrap_and_marshall_poly >> %} *)
 val unescape_and_unwrap : string -> poly

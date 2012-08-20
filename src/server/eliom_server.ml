@@ -13,3 +13,5 @@ module Client_value = struct
   let closure_id { closure_id } = closure_id
   let instance_id { instance_id } = instance_id
 end
+
+type escaped_value = string

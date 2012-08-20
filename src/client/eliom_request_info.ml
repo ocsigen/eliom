@@ -140,6 +140,6 @@ let get_request_data () =
 let get_client_value_data () : Client_value_data.t =
   Eliom_unwrap.unwrap_js_var "eliom_client_value_data"
 
-let get_injections () : Injection_data.t =
+let get_injection_data () : Injection_data.t =
   unmarshal_js_var "eliom_injections"
 

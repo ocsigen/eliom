@@ -43,8 +43,7 @@ type 'a client_value
 (**/**)
 val create_client_value : 'a Eliom_server.Client_value.t -> 'a client_value
 val client_value_client_value : 'a client_value -> 'a Eliom_server.Client_value.t
-type escaped_value
-val escaped_value : 'a -> escaped_value
+val escaped_value : 'a -> Eliom_server.escaped_value * Eliom_wrap.unwrapper
 (**/**)
 
 (** {2 Pervasives} *)

@@ -70,9 +70,7 @@ let create_client_value cv =
 
 let client_value_client_value = fst
 
-type escaped_value = string * Eliom_wrap.unwrapper
-
-let escaped_value value : escaped_value =
+let escaped_value value : Eliom_server.escaped_value * Eliom_wrap.unwrapper =
   wrap_and_marshall_poly (to_poly value),
   Eliom_wrap.create_unwrapper
     (Eliom_wrap.id_of_int Eliom_lib_base.escaped_value_unwrap_id_int)

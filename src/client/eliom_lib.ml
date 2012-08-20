@@ -111,6 +111,8 @@ let encode_header_value x =
 let unmarshal_js_var s =
   Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
 
+type 'a escaped_value = 'a lazy_t
+
 let unescape_and_unwrap str =
   Eliom_unwrap.unwrap
     (Js.to_bytestring

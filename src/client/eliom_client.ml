@@ -28,7 +28,7 @@ module JsTable = Eliommod_jstable
 
 module Client_closure : sig
   exception Not_found
-  val register : closure_id:int64 -> (_ -> _) -> unit
+  val register : closure_id:int64 -> closure:(_ -> _) -> unit
   val find : closure_id:int64 -> (poly -> poly)
 end = struct
 
@@ -38,10 +38,10 @@ end = struct
 
   let client_closures = JsTable.create ()
 
-  let register ~closure_id cl =
+  let register ~closure_id ~closure =
     JsTable.add client_closures (key closure_id)
       (fun args ->
-         to_poly (cl (from_poly args)))
+         to_poly (closure (from_poly args)))
 
   let find ~closure_id =
     Js.Optdef.get
@@ -128,7 +128,9 @@ end = struct
       (JsTable.keys table)
 end
 
-let do_client_value_initializations' ~client_value_data ~closure_id =
+let force_all_injections = Injection.force_all
+
+let do_client_value_initializations ~client_value_data ~closure_id =
   List.iter
     (fun instance_id ->
        trace "Do client value initialization %Ld/%d" closure_id instance_id;
@@ -148,7 +150,7 @@ let do_all_client_value_initializations () =
   let client_value_data = Eliom_request_info.get_client_value_data () in
   List.iter
     (fun closure_id ->
-       do_client_value_initializations' ~client_value_data ~closure_id;
+       do_client_value_initializations ~client_value_data ~closure_id;
        List.iter
          (fun instance_id ->
             ignore (Client_value.get ~closure_id ~instance_id))
@@ -156,36 +158,26 @@ let do_all_client_value_initializations () =
     (Client_value_data.closure_ids client_value_data)
 
 
-let do_injection_initializations' ~injs ~names =
+let do_injection_initializations ~injection_data ~names =
   trace "Do injections %s" (String.concat " " names);
   List.iter
     (fun name ->
        let value =
          lazy
            (trace "Evaluate injection %s" name;
-            Injection_data.find name injs) in
+            Injection_data.find name injection_data) in
        Injection.set ~name ~value)
     names
 
 let do_all_injection_initializations () =
   trace "Do all injection initializations";
-  let injs = Eliom_request_info.get_injections () in
-  do_injection_initializations' ~injs ~names:(Injection_data.names injs);
+  let injection_data = Eliom_request_info.get_injection_data () in
+  do_injection_initializations ~injection_data ~names:(Injection_data.names injection_data);
   List.iter
     (fun name ->
        ignore (Injection.get ~name))
-    (Injection_data.names injs)
+    (Injection_data.names injection_data)
 
-
-(* Get rid of the optional parameter *)
-let do_client_value_initializations ~closure_id =
-  do_client_value_initializations'
-    ~client_value_data:(Eliom_request_info.get_client_value_data ())
-    ~closure_id
-let do_injection_initializations ~names =
-  do_injection_initializations'
-    ~injs:(Eliom_request_info.get_injections ())
-    ~names
 
 (* == Process nodes (a.k.a. nodes with a unique Dom instance on each client process) *)
 
@@ -1179,3 +1171,24 @@ let rebuild_node elt =
   on_load_scripts := [];
   node
 
+
+module Syntax_helpers = struct
+
+  let register_client_closure closure_id closure =
+    Client_closure.register ~closure_id ~closure;
+    let client_value_data = Eliom_request_info.get_client_value_data () in
+    do_client_value_initializations ~client_value_data ~closure_id
+
+  let get_escaped_value escaped_value =
+    Lazy.force escaped_value
+
+  let injection_initializations names =
+    let injection_data = Eliom_request_info.get_injection_data () in
+    do_injection_initializations
+      ~injection_data
+      ~names
+
+  let get_injection name =
+    Injection.get ~name
+
+end

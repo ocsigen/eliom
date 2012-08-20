@@ -604,6 +604,24 @@ let get_request_injections () : poly Injection_data.t Lwt.t =
   in
   Lwt.return (String_map.from_list bindings)
 
+module Syntax_helpers = struct
+
+  let client_value closure_id args =
+    let instance_id = Eliom_lib.fresh_ix () in
+    register_client_value_data closure_id instance_id (to_poly args);
+    create_client_value
+      (Eliom_server.Client_value.create closure_id instance_id)
+
+  let request_injection name f =
+    register_request_injection name
+      (fun () -> Lwt.map to_poly (f ()))
+
+  let global_injection name value =
+    register_global_injection name
+      (to_poly value)
+
+end
+
 (*****************************************************************************)
 let pre_wrap s =
   {s with

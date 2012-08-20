@@ -711,11 +711,17 @@ val xhr_with_cookies :
 val get_onload : unit -> Dom_html.event Xml.caml_event_handler list
 val get_onunload : unit -> Dom_html.event Xml.caml_event_handler list
 
+(* TODO BB Find a better place for this module *)
+module Syntax_helpers : sig
+  val client_value : int64 -> 'args -> 'a client_value
+  val request_injection : string -> (unit -> 'a Lwt.t) -> unit
+  val global_injection : string -> 'a -> unit
+end
+
 (* BB It is decided dynamically whether a client value initialization is global or request:
    If the server is currently processing a request, the client value is send to the client
    with the next response. If the server is not processing a request, the client value is
    send to every client process with the first response. *)
-val register_client_value_data : int64 -> int -> poly -> unit
 val get_global_client_value_data : unit -> Client_value_data.t
 val get_request_client_value_data : unit -> Client_value_data.t
 
@@ -729,10 +735,7 @@ val get_request_client_value_data : unit -> Client_value_data.t
          - an Lwt value [(unit -> _ Lwt.t)] because the computation may involve Lwt
      - Global: injections of any other type are sent as it.
  *)
-val register_global_injection : string -> poly -> unit
 val get_global_injections : unit -> poly Injection_data.t
-
-val register_request_injection : string -> (unit -> poly Lwt.t) -> unit
 val get_request_injections : unit -> poly Injection_data.t Lwt.t
 
 val pre_wrap :

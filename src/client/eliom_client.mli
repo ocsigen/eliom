@@ -134,20 +134,15 @@ val load_eliom_data :
   Eliom_types.eliom_js_page_data ->
   Dom_html.htmlElement Js.t -> (Dom_html.event Js.t -> bool) list
 
-module Client_closure : sig
-  val register : closure_id:int64 -> (_ -> _) -> unit
-end
-module Client_value : sig
-  val get : closure_id:int64 -> instance_id:int -> _
-end
-module Injection : sig
-  val get : name:string -> _
-  val force_all : unit -> unit
-end
-
-val do_client_value_initializations : closure_id:int64 -> unit
-val do_injection_initializations : names:string list -> unit
-val do_all_injection_initializations : unit -> unit
-
 val getElementById : string -> Dom.node Js.t
 val rebuild_node : 'a Eliom_content_core.Html5.elt -> < .. > Js.t
+
+module Syntax_helpers : sig
+  val register_client_closure : int64 -> (_ -> _) -> unit
+  val get_escaped_value : 'a escaped_value -> 'a
+  val injection_initializations : string list -> unit
+  val get_injection : string -> 'a
+end
+
+(* val do_injection_initializations : names:string list -> unit *)
+val force_all_injections : unit -> unit

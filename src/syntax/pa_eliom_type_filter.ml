@@ -94,8 +94,7 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           <:expr< begin
             $flush_typing_expr ()$;
             $lid:gen_tid$ :=
-              Some (Eliom_lib.create_client_value
-                      (Eliom_server.Client_value.create ~closure_id:0L ~instance_id:0)
+              Some (Eliom_service.Syntax_helpers.create_client_value ~closure_id:0L ~instance_id:0
                     : $typ$ Eliom_lib.client_value);
             Eliom_lib.get_option ! $lid:gen_tid$
           end >>

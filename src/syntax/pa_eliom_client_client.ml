@@ -57,9 +57,9 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
         Helpers.find_client_value_type gen_num
     in
     <:expr<
-      Eliom_client.Client_closure.register $`int64:gen_num$
-        (fun $tuple_of_args args$ ->
-           ($orig_expr$ : $typ$))
+      Eliom_client.Syntax_helpers.register_client_closure
+        $`int64:gen_num$
+        (fun $tuple_of_args args$ -> ($orig_expr$ : $typ$))
     >>
 
   let push_server_arg, flush_server_args =
@@ -97,8 +97,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
       clos_collection :=
         <:str_item<
           let () =
-            $register_closure gen_id (flush_server_args _loc) orig_expr$;
-            Eliom_client.do_client_value_initializations ~closure_id: $`int64:gen_id$
+            $register_closure gen_id (flush_server_args _loc) orig_expr$
         >>
         :: !clos_collection
     in
@@ -126,7 +125,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   (** Syntax extension *)
 
   let client_str_items items =
-    let do_injection_initializations =
+    let injection_initializations =
       let _loc = Loc.ghost in
       let injected_vars = flush_injected_vars () in
       if injected_vars = [] then
@@ -139,10 +138,10 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
         in
         <:str_item<
           let () =
-            Eliom_client.do_injection_initializations ~names: $names$
+            Eliom_client.Syntax_helpers.injection_initializations $names$
         >>
     in
-    Ast.stSem_of_list (do_injection_initializations :: items)
+    Ast.stSem_of_list (injection_initializations :: items)
 
   let shared_str_items items =
     client_str_items items
@@ -203,7 +202,10 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
               (* TODO BB Drop Eliom_reference.eref *)
               drop_client_value_ctyp#ctyp typ
             in
-            <:expr< (Lazy.force $lid:gen_id$ : $typ$) >>
+            <:expr<
+              (Eliom_client.Syntax_helpers.get_escaped_value $lid:gen_id$
+               : $typ$)
+            >>
        | Escaped_in_hole_in Client_item_context ->
           <:expr< $lid:gen_id$ >>
        | Escaped_in_client_item ->
@@ -218,9 +220,10 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
            let typ = (* Replace all [t Eliom_lib.client_value] to [t]. *)
              drop_client_value_ctyp#ctyp typ
            in
-           <:expr< (Eliom_client.Injection.get ~name: $str:gen_id$
-                    : $typ$) >>
-
+           <:expr<
+             (Eliom_client.Syntax_helpers.get_injection $str:gen_id$
+              : $typ$)
+           >>
 
 
 end
