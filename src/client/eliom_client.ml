@@ -133,12 +133,13 @@ let do_client_value_initializations' ~client_value_data ~closure_id =
     (fun instance_id ->
        trace "Do client value initialization %Ld/%d" closure_id instance_id;
        let value =
+         let closure = Client_closure.find ~closure_id in
          let args =
            Client_value_data.find
              closure_id instance_id
              client_value_data
          in
-         Client_closure.find ~closure_id args
+         closure args
        in
        Client_value.set ~closure_id ~instance_id ~value)
     (Client_value_data.instance_ids closure_id client_value_data)
@@ -789,10 +790,10 @@ let set_content ?uri ?offset ?fragment content =
        relink_request_nodes fake_page;
        (* Put the loaded data script in action *)
        load_data_script fake_page;
-       (* Set values sent from the server (client values and injections) *)
        do_all_injection_initializations ();
        do_all_client_value_initializations ();
        Injection.force_all ();
+       (* Set values sent from the server (client values and injections) *)
        (* Unmarshall page data. *)
        let js_data = Eliom_request_info.get_request_data () in
        let cookies = Eliom_request_info.get_request_cookies () in
@@ -1102,6 +1103,12 @@ let _ =
        with Client_value.Not_found ->
          error "Client value not found (closure_id:%Ld instance_id:%d)"
            closure_id instance_id);
+  Eliom_unwrap.register_unwrapper
+    (Eliom_unwrap.id_of_int Eliom_lib_base.escaped_value_unwrap_id_int)
+    (fun (escaped_value_str, _unwrapper_id) ->
+       trace "Unwrap escaped_value %S" (Js.to_string escaped_value_str);
+       lazy
+         (Eliom_lib.unescape_and_unwrap (Js.to_string escaped_value_str)));
   ()
 
 let rebuild_attrib node name a = match a with

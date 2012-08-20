@@ -82,6 +82,12 @@ val encode_header_value : 'a -> string
 
 val js_array_to_list : 'a Js.js_array Js.t -> 'a list
 
+(**/**)
+
+(** This is the counter part of {% <<a_api subproject="server"|
+    val Eliom_lib.wrap_and_marshall_poly >> %} *)
+val unescape_and_unwrap : string -> poly
+
 module Client_value_data : sig
   type t = string Int_map.t Int64_map.t
   val closure_ids : t -> int64 list

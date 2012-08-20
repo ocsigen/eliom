@@ -45,10 +45,14 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
                      or from its type annotation"
               | typ -> typ
     in
+    let unwrap_arg (_, arg) =
+      let _loc = Loc.ghost in
+      <:expr< Eliom_lib.escaped_value $arg$ >>
+    in
     <:expr@loc<
         let __eliom_instance_id = Eliom_lib.fresh_ix () in
         Eliom_service.register_client_value_data $`int64:gen_num$ __eliom_instance_id
-          (Eliom_lib.to_poly $tuple_of_args (List.map snd args)$);
+          (Eliom_lib.to_poly $tuple_of_args (List.map unwrap_arg args)$);
         (Eliom_lib.create_client_value
            (Eliom_server.Client_value.create $`int64:gen_num$ __eliom_instance_id)
          : $typ$ Eliom_lib.client_value)

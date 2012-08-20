@@ -1479,8 +1479,8 @@ module Eliom_appl_reg_make_param
          var eliom_request_data;\n\
          var eliom_request_cookies;\n\
          var eliom_request_template;\n"
-        (Eliom_types.jsmarshal (Eliommod_cli.client_sitedata sp))
-        (Eliom_types.jsmarshal (sp.Eliom_common.sp_client_process_info))
+        (Eliom_lib.jsmarshal (Eliommod_cli.client_sitedata sp))
+        (Eliom_lib.jsmarshal (sp.Eliom_common.sp_client_process_info))
     in
 
     Lwt.return
@@ -1493,13 +1493,12 @@ module Eliom_appl_reg_make_param
        create cookies that needs to be sent along the page. Hence,
        cookies should be calculated after wrapping. *)
     let eliom_data =
-      Eliom_wrap.wrap
-	{ Eliom_types.
-	  ejs_event_handler_table = Eliom_content.Xml.make_event_handler_table (Eliom_content.Html5.D.toelt page);
-	  ejs_onload              = Eliom_service.get_onload ();
-	  ejs_onunload            = Eliom_service.get_onunload ();
-	  ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;
-	} in
+      { Eliom_types.
+        ejs_event_handler_table = Eliom_content.Xml.make_event_handler_table (Eliom_content.Html5.D.toelt page);
+        ejs_onload              = Eliom_service.get_onload ();
+        ejs_onunload            = Eliom_service.get_onunload ();
+        ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;
+      } in
 
     lwt tab_cookies =
       Eliommod_cookies.compute_cookies_to_send
@@ -1519,11 +1518,6 @@ module Eliom_appl_reg_make_param
       else debug "Not sending global client value initializations and injections"
     in
 
-    let wrap_and_marshall_poly : poly -> string =
-      fun poly ->
-        Eliom_types.string_escape (Marshal.to_string (Eliom_wrap.wrap poly) [])
-    in
-
     let client_value_data =
       let request_initializations =
         Eliom_service.get_request_client_value_data ()
@@ -1538,7 +1532,6 @@ module Eliom_appl_reg_make_param
           global_initializations request_initializations
       in
       Client_value_data.to_client
-        wrap_and_marshall_poly
         all_client_value_data
     in
 
@@ -1554,7 +1547,7 @@ module Eliom_appl_reg_make_param
            request_injections global_injections
       in
       Lwt.return
-        (Injection_data.to_client wrap_and_marshall_poly all_injections)
+        (Injection_data.to_client all_injections)
     in
 
     Int64_map.iter
@@ -1576,11 +1569,11 @@ module Eliom_appl_reg_make_param
          eliom_request_template = \'%s\';\n\
          eliom_client_value_data = \'%s\';\n\
          eliom_injections = \'%s\';"
-        (Eliom_types.jsmarshal eliom_data)
-        (Eliom_types.jsmarshal tab_cookies)
-        (Eliom_types.jsmarshal (template: string option))
-        (Eliom_types.jsmarshal client_value_data)
-        (Eliom_types.jsmarshal injections)
+        (Eliom_lib.jsmarshal (Eliom_wrap.wrap eliom_data))
+        (Eliom_lib.jsmarshal tab_cookies)
+        (Eliom_lib.jsmarshal (template: string option))
+        (Eliom_lib.jsmarshal (Eliom_wrap.wrap client_value_data))
+        (Eliom_lib.jsmarshal injections)
     in
     Lwt.return (Eliom_content.Html5.F.script (cdata_script script))
 

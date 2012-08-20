@@ -2,15 +2,7 @@
 include Ocsigen_lib
 include Eliom_lib_base
 
-type 'a client_value =
-    'a Eliom_server.Client_value.t * Eliom_wrap.unwrapper
-
-let create_client_value cv =
-  cv, Eliom_wrap.create_unwrapper
-        (Eliom_wrap.id_of_int
-           Eliom_lib_base.client_value_unwrap_id_int)
-
-let client_value_client_value = fst
+let escaped_value_escaped_value = fst
 
 let debug f = Printf.ksprintf (fun s -> Printf.eprintf "%s\n%!" s) f
 
@@ -26,6 +18,64 @@ let of_json ?typ s =
 
 
 type file_info = Ocsigen_extensions.file_info
+
+let string_escape s =
+  let l = String.length s in
+  let b = Buffer.create (4 * l) in
+  let conv = "0123456789abcdef" in
+  for i = 0 to l - 1 do
+    let c = s.[i] in
+    match c with
+      '\000' when i = l - 1 || s.[i + 1] < '0' || s.[i + 1] > '9' ->
+        Buffer.add_string b "\\0"
+    | '\b' ->
+        Buffer.add_string b "\\b"
+    | '\t' ->
+        Buffer.add_string b "\\t"
+    | '\n' ->
+        Buffer.add_string b "\\n"
+    | '\011' ->
+        Buffer.add_string b "\\v"
+    | '\012' ->
+        Buffer.add_string b "\\f"
+    | '\r' ->
+        Buffer.add_string b "\\r"
+    | '\'' ->
+        Buffer.add_string b "\\'"
+    | '\\' ->
+        Buffer.add_string b "\\\\"
+    | '\000' .. '\031' | '\127' .. '\255' | '&' | '<' | '>' ->
+        let c = Char.code c in
+        Buffer.add_string b "\\x";
+        Buffer.add_char b conv.[c lsr 4];
+        Buffer.add_char b conv.[c land 0xf]
+    | _ ->
+        Buffer.add_char b c
+  done;
+  Buffer.contents b
+
+let jsmarshal v = string_escape (Marshal.to_string v [])
+
+let wrap_and_marshall_poly : poly -> string =
+  fun poly ->
+    string_escape (Marshal.to_string (Eliom_wrap.wrap poly) [])
+
+type 'a client_value =
+    'a Eliom_server.Client_value.t * Eliom_wrap.unwrapper
+
+let create_client_value cv =
+  cv, Eliom_wrap.create_unwrapper
+        (Eliom_wrap.id_of_int
+           Eliom_lib_base.client_value_unwrap_id_int)
+
+let client_value_client_value = fst
+
+type escaped_value = string * Eliom_wrap.unwrapper
+
+let escaped_value value : escaped_value =
+  wrap_and_marshall_poly (to_poly value),
+  Eliom_wrap.create_unwrapper
+    (Eliom_wrap.id_of_int Eliom_lib_base.escaped_value_unwrap_id_int)
 
 let merge_aux err_msg =
   curry
@@ -64,9 +114,9 @@ module Client_value_data = struct
                  instances_1 instances_2))
       table_1 table_2
 
-  let to_client : (poly -> string) -> t -> client =
-    fun poly_to_string table ->
-      map poly_to_string table
+  let to_client : t -> client =
+    fun table ->
+      map wrap_and_marshall_poly table
 end
 
 module Injection_data = struct
@@ -80,6 +130,7 @@ module Injection_data = struct
     String_map.merge (fun _ -> merge_aux "Injection_data.union")
       table_1 table_2
 
-  let to_client poly_to_string table =
-    String_map.map poly_to_string table
+  let to_client : poly t -> client =
+    fun table ->
+      String_map.map wrap_and_marshall_poly table
 end

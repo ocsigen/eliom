@@ -145,6 +145,7 @@ end
 
 let tyxml_unwrap_id_int = 1
 let client_value_unwrap_id_int = 7
+let escaped_value_unwrap_id_int = 8
 
 (**/**)
 

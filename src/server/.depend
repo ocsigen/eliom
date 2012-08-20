@@ -172,8 +172,6 @@ eliom_service.cmx: private/eliommod_services.cmx \
     eliom_state.cmx eliom_service_base.cmx eliom_request_info.cmx \
     eliom_reference.cmx eliom_parameter.cmx eliom_lib.cmx \
     eliom_content_core.cmx eliom_common.cmx eliom_service.cmi
-eliom_service.cmi: eliom_parameter.cmi eliom_lib.cmi eliom_content_core.cmi \
-    eliom_common.cmi
 eliom_state.cmo: private/eliommod_timeouts.cmi \
     private/eliommod_sessiongroups.cmi private/eliommod_sessexpl.cmi \
     private/eliommod_sessadmin.cmi private/eliommod_sersess.cmi \

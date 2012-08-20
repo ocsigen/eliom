@@ -31,10 +31,6 @@ type sitedata = {
 type server_params
 val sp : server_params
 
-(* Marshal an OCaml value into a string. All characters are escaped *)
-val jsmarshal : 'a -> string
-val string_escape : string -> string
-
 (**/**)
 
 type eliom_js_page_data = {
@@ -78,4 +74,3 @@ val add_tab_cookies_to_post_form_id_string : string
 
 val encode_eliom_data : 'a -> string
 
-val string_escape : string -> string

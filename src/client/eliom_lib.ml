@@ -111,7 +111,7 @@ let encode_header_value x =
 let unmarshal_js_var s =
   Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
 
-let unwrap_bytestring_unescape str =
+let unescape_and_unwrap str =
   Eliom_unwrap.unwrap
     (Js.to_bytestring
        (Js.unescape
@@ -137,7 +137,7 @@ module Client_value_data = struct
 
   let find closure_id instance_id table =
     let instances = Int64_map.find closure_id table in
-    unwrap_bytestring_unescape
+    unescape_and_unwrap
       (Int_map.find instance_id instances)
 end
 
@@ -149,7 +149,7 @@ module Injection_data = struct
     List.map fst (String_map.bindings table)
 
   let find name table =
-    unwrap_bytestring_unescape
+    unescape_and_unwrap
       (String_map.find name table)
 end
 

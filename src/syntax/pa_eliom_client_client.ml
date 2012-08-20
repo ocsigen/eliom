@@ -203,7 +203,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
               (* TODO BB Drop Eliom_reference.eref *)
               drop_client_value_ctyp#ctyp typ
             in
-            <:expr< ($lid:gen_id$ : $typ$) >>
+            <:expr< (Lazy.force $lid:gen_id$ : $typ$) >>
        | Escaped_in_hole_in Client_item_context ->
           <:expr< $lid:gen_id$ >>
        | Escaped_in_client_item ->
