@@ -102,7 +102,7 @@ end = struct
   let table = JsTable.create ()
 
   let set ~name ~value:lazy_value =
-    debug "Set injection %s" name;
+    trace "Set injection %s" name;
     JsTable.add table (Js.string name) lazy_value
 
   let get ~name =
@@ -113,12 +113,12 @@ end = struct
             (fun () -> raise Not_found)))
 
   let force_all () =
-    debug "Force all injections %s"
+    trace "Force all injections %s"
       (String.concat " "
          (List.map Js.to_string (JsTable.keys table)));
     List.iter
       (fun name ->
-         debug "Force injection %s" (Js.to_string name);
+         trace "Force injection %s" (Js.to_string name);
          let lazy_value =
            Js.Optdef.get
              (JsTable.find table name)
@@ -131,7 +131,7 @@ end
 let do_client_value_initializations' ~client_value_data ~closure_id =
   List.iter
     (fun instance_id ->
-       debug "Do client value initialization %Ld/%d" closure_id instance_id;
+       trace "Do client value initialization %Ld/%d" closure_id instance_id;
        let value =
          let args =
            Client_value_data.find
@@ -156,18 +156,18 @@ let do_all_client_value_initializations () =
 
 
 let do_injection_initializations' ~injs ~names =
-  debug "Do injections %s" (String.concat " " names);
+  trace "Do injections %s" (String.concat " " names);
   List.iter
     (fun name ->
        let value =
          lazy
-           (debug "Evaluate injection %s" name;
+           (trace "Evaluate injection %s" name;
             Injection_data.find name injs) in
        Injection.set ~name ~value)
     names
 
 let do_all_injection_initializations () =
-  debug "do_all_injection_initializations";
+  trace "Do all injection initializations";
   let injs = Eliom_request_info.get_injections () in
   do_injection_initializations' ~injs ~names:(Injection_data.names injs);
   List.iter
@@ -191,6 +191,7 @@ let do_injection_initializations ~names =
 let (register_process_node, find_process_node) =
   let process_nodes : Dom.node Js.t JsTable.t = JsTable.create () in
   let find id =
+    trace "Find process node %s" (Js.to_string id);
     Js.Optdef.bind
       (JsTable.find process_nodes id)
       (fun node ->
@@ -200,7 +201,9 @@ let (register_process_node, find_process_node) =
         else
           Js.def node)
   in
-  let register id node = JsTable.add process_nodes id node in
+  let register id node =
+    trace "Register process node %s" (Js.to_string id);
+    JsTable.add process_nodes id node in
   (register, find)
 let registered_process_node id = Js.Optdef.test (find_process_node id)
 let getElementById id =
@@ -213,8 +216,12 @@ let getElementById id =
 let (register_request_node, find_request_node, reset_request_node) =
   let request_nodes : Dom.node Js.t JsTable.t ref = ref (JsTable.create ()) in
   let find id = JsTable.find !request_nodes id in
-  let register id node = JsTable.add !request_nodes id node in
-  let reset () = request_nodes := JsTable.create () in
+  let register id node =
+    trace "Register request node %s" (Js.to_string id);
+    JsTable.add !request_nodes id node in
+  let reset () =
+    trace "Reset request nodes";
+    request_nodes := JsTable.create () in
   (register, find, reset)
 
 (* == Current uri.
@@ -603,8 +610,11 @@ let relink_process_node (node:Dom_html.element Js.t) =
     (node##getAttribute(Js.string Eliom_lib_base.RawXML.node_id_attrib))
     (fun () -> error "unique node without id attribute") in
   Js.Optdef.case (find_process_node id)
-    (fun () -> register_process_node id (node:>Dom.node Js.t))
+    (fun () ->
+       trace "Relink process node: did not find %s" (Js.to_string id);
+       register_process_node id (node:>Dom.node Js.t))
     (fun pnode ->
+       trace "Relink process node: found %s" (Js.to_string id);
       Js.Opt.iter (node##parentNode)
         (fun parent -> Dom.replaceChild parent pnode node);
       if String.sub (Js.to_bytestring id) 0 7 <> "global_" then begin
@@ -619,13 +629,16 @@ let relink_request_node (node:Dom_html.element Js.t) =
     (node##getAttribute(Js.string Eliom_lib_base.RawXML.node_id_attrib))
     (fun () -> error "unique node without id attribute") in
   Js.Optdef.case (find_request_node id)
-    (fun () -> register_request_node id (node:>Dom.node Js.t))
+    (fun () ->
+       trace "Relink request node: did not find %s" (Js.to_string id);
+       register_request_node id (node:>Dom.node Js.t))
     (fun pnode ->
-      Js.Opt.iter (node##parentNode)
-        (fun parent -> Dom.replaceChild parent pnode node))
+       trace "Relink request node: found %s" (Js.to_string id);
+       Js.Opt.iter (node##parentNode)
+         (fun parent -> Dom.replaceChild parent pnode node))
 
 let relink_request_nodes root =
-  debug "relink_request_nodes";
+  trace "Relink request nodes";
   if !Eliom_config.debug_timings then
     Firebug.console##time
       (Js.string "relink_request_nodes");
@@ -653,6 +666,7 @@ let relink_closure_node root onload table (node:Dom_html.element Js.t) =
   Eliommod_dom.iter_nodeList (node##attributes:>Dom.attr Dom.nodeList Js.t) aux
 
 let relink_page (root:Dom_html.element Js.t) event_handlers =
+  trace "Relink page";
   let (a_nodeList,form_nodeList,process_nodeList,closure_nodeList) =
     Eliommod_dom.select_nodes root in
   Eliommod_dom.iter_nodeList a_nodeList
@@ -667,7 +681,7 @@ let relink_page (root:Dom_html.element Js.t) event_handlers =
   List.rev !onload
 
 let load_eliom_data js_data page =
-  debug "load_eliom_data";
+  trace "Load eliom data";
   try
     if !Eliom_config.debug_timings then
       Firebug.console##time(Js.string "load_eliom_data");
@@ -704,7 +718,7 @@ let load_eliom_data js_data page =
 *)
 
 let load_data_script page =
-  debug "load_data_script";
+  trace "Load data script";
   let head = Eliommod_dom.get_head page in
   let data_script : Dom_html.scriptElement Js.t =
     match Dom.list_of_nodeList head##childNodes with
@@ -746,7 +760,7 @@ let scroll_to_fragment ?offset fragment =
       the javascript application. *)
 
 let set_content ?uri ?offset ?fragment content =
-  debug "set_content";
+  trace "Set content";
   match content with
   | None -> Lwt.return ()
   | Some content ->
@@ -844,7 +858,7 @@ let change_page
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
     ?keep_nl_params ?(nl_params = Eliom_parameter.empty_nl_params_set) ?keep_get_na_params
     get_params post_params =
-  debug "change_page";
+  trace "Change page";
   let xhr = Eliom_service.xhr_with_cookies service in
   if xhr = None
   || (https = Some true && not Eliom_request_info.ssl_)
@@ -890,7 +904,7 @@ let change_page
 (* Function used in "onclick" event handler of <a>.  *)
 
 let change_page_uri ?cookies_info ?tmpl ?(get_params = []) full_uri =
-  debug "change_page_uri";
+  trace "Change page uri";
   let uri, fragment = Url.split_fragment full_uri in
   if uri <> !current_uri || fragment = None then begin
     match tmpl with
@@ -915,7 +929,6 @@ let change_page_uri ?cookies_info ?tmpl ?(get_params = []) full_uri =
 (* Functions used in "onsubmit" event handler of <form>.  *)
 
 let change_page_get_form ?cookies_info ?tmpl form full_uri =
-  debug "change_page_get_form";
   let form = Js.Unsafe.coerce form in
   let uri, fragment = Url.split_fragment full_uri in
   match tmpl with
@@ -934,7 +947,6 @@ let change_page_get_form ?cookies_info ?tmpl form full_uri =
     set_content ~uri ?fragment content
 
 let change_page_post_form ?cookies_info ?tmpl form full_uri =
-  debug "change_page_post_form";
   let form = Js.Unsafe.coerce form in
       let uri, fragment = Url.split_fragment full_uri in
   match tmpl with
@@ -1061,11 +1073,11 @@ let _ =
   Eliom_unwrap.register_unwrapper
     (Eliom_unwrap.id_of_int Eliom_lib_base.tyxml_unwrap_id_int)
     (fun tmp_elt ->
-      debug "Unwrap tyxml";
       let elt = match tmp_elt.tmp_elt with
         | RELazy elt -> Eliom_lazy.force elt
         | RE elt -> elt
       in
+      trace "Unwrap tyxml" (* elt *);
       (* Do not rebuild dom node while unwrapping, otherwise we
          don't have control on when "onload" event handlers are
          triggered. *)
@@ -1084,6 +1096,7 @@ let _ =
     (fun (cv, _unwrapper_id) ->
        let closure_id = Eliom_server.Client_value.closure_id cv in
        let instance_id = Eliom_server.Client_value.instance_id cv in
+       trace "Unwrap client_value %Ld/%d" closure_id instance_id;
        try
          Client_value.get ~closure_id ~instance_id
        with Client_value.Not_found ->

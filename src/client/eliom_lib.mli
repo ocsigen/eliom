@@ -63,13 +63,15 @@ module String : sig
   val remove_eols : string -> string
 end
 
-val debug : ('a, unit, string, unit) format4 -> 'a
 val error : ('a, unit, string, 'b) format4 -> 'a
-val debug_exn : ('a, unit, string, unit) format4 -> exn -> 'a
-val jsdebug : 'a -> unit
 val alert : ('a, unit, string, unit) format4 -> 'a
 val jsalert : Js.js_string Js.t -> unit
+val debug : ('a, unit, string, unit) format4 -> 'a
 val debug_var : string -> 'a -> unit
+val debug_exn : ('a, unit, string, unit) format4 -> exn -> 'a
+val jsdebug : 'a -> unit
+val trace : ('a, unit, string, unit) format4 -> 'a
+val set_tracing : bool -> unit
 
 val lwt_ignore : ?message:string -> unit Lwt.t -> unit
 

@@ -21,6 +21,7 @@
 open Eliom_lib
 
 let onload ev =
+  trace "onload";
   if !Eliom_config.debug_timings then
     Firebug.console##time(Js.string "onload");
   Eliommod_cookies.update_cookie_table (Some Url.Current.host)
@@ -43,7 +44,6 @@ let onload ev =
 let load_ev = Dom.Event.make "load"
 
 let _ =
-  debug "addEventListener onload";
   Dom.addEventListener Dom_html.window load_ev
     (Dom.handler onload) Js._true
 

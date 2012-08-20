@@ -67,10 +67,23 @@ let js_array_to_list arr =
 
 (*****************************************************************************)
 
+let is_tracing =
+  ref false
+let set_tracing value = is_tracing := value
+(* let () =
+  (Js.Unsafe.coerce Dom_html.window)##set_tracing <-
+    Js.wrap_callback (fun v -> set_tracing (Js.to_bool v)) *)
+let get_tracing () : bool =
+  !is_tracing
+
 let debug_exn f e =
   Printf.ksprintf (fun s -> Firebug.console##log (Js.string (s^(Printexc.to_string e)))) f
 let debug f = Printf.ksprintf (fun s -> Firebug.console##log (Js.string s)) f
 let error f = Printf.ksprintf (fun s -> Firebug.console##error (Js.string s); failwith s) f
+let trace f =
+  if get_tracing ()
+  then debug f
+  else Printf.ksprintf ignore f
 let jsdebug a = Firebug.console##log (a)
 let alert f = Printf.ksprintf (fun s -> Dom_html.window##alert (Js.string s)) f
 let jsalert a = Dom_html.window##alert (a)
