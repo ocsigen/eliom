@@ -711,33 +711,6 @@ val xhr_with_cookies :
 val get_onload : unit -> Dom_html.event Xml.caml_event_handler list
 val get_onunload : unit -> Dom_html.event Xml.caml_event_handler list
 
-(* TODO BB Find a better place for this module *)
-module Syntax_helpers : sig
-  val client_value : int64 -> 'args -> 'a client_value
-  val request_injection : string -> (unit -> 'a Lwt.t) -> unit
-  val global_injection : string -> 'a -> unit
-end
-
-(* BB It is decided dynamically whether a client value initialization is global or request:
-   If the server is currently processing a request, the client value is send to the client
-   with the next response. If the server is not processing a request, the client value is
-   send to every client process with the first response. *)
-val get_global_client_value_data : unit -> Client_value_data.t
-val get_request_client_value_data : unit -> Client_value_data.t
-
-(* BB Injection_data are server variables escaped in {client{ ... }}.
-   There are two kinds
-     - Request: injections of type [_ Eliom_references.eref]
-       which are unwrapped and sent on every request.
-       To inject (and unwrap) eliom references correctly, the argument for the
-       [injection] is
-         - a suspended expression [(unit -> _)] because it may depend on the request
-         - an Lwt value [(unit -> _ Lwt.t)] because the computation may involve Lwt
-     - Global: injections of any other type are sent as it.
- *)
-val get_global_injections : unit -> poly Injection_data.t
-val get_request_injections : unit -> poly Injection_data.t Lwt.t
-
 val pre_wrap :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service
@@ -745,3 +718,23 @@ val pre_wrap :
 val eliom_appl_answer_content_type : string
 
 exception Wrong_session_table_for_CSRF_safe_coservice
+
+(* BB It is decided dynamically whether a client value initialization (cf. [Syntax_helpers.client_value])
+   is global or request:
+   If the server is currently processing a request, the client value is send to the client
+   with the next response. If the server is not processing a request, the client value is
+   send to every client process with the first response. *)
+val get_global_client_value_data : unit -> Client_value_data.t
+val get_request_client_value_data : unit -> Client_value_data.t
+
+(* BB Injection_data are server variables escaped in {client{ ... }}.
+   - They are sent only with the first request
+   - Eliom references are unwrapped (this is the reason for the lwt-return-value)
+ *)
+val get_injections : unit -> poly Injection_data.t Lwt.t
+
+(* TODO BB Find a better place for this module *)
+module Syntax_helpers : sig
+  val client_value : int64 -> 'args -> 'a client_value
+  val injection : string -> (unit -> 'a Lwt.t) -> unit
+end

@@ -19,6 +19,7 @@
  *)
 
 open Eliom_lib
+open Eliom_lib.Lwt_ops
 open Eliom_content
 open Eliom_service
 open Eliom_parameter
@@ -1536,18 +1537,8 @@ module Eliom_appl_reg_make_param
     in
 
     lwt injections =
-      lwt request_injections = Eliom_service.get_request_injections () in
-      let global_injections =
-         if include_global_client_values
-         then Eliom_service.get_global_injections ()
-         else Injection_data.empty
-      in
-      let all_injections =
-        Injection_data.union
-           request_injections global_injections
-      in
-      Lwt.return
-        (Injection_data.to_client all_injections)
+      Injection_data.to_client =|<
+        Eliom_service.get_injections ()
     in
 
     Int64_map.iter

@@ -554,6 +554,15 @@ let onunload ev =
   Eliom_reference.Volatile.modify onunload_events
     (fun evs -> Xml.caml_event_handler ev :: evs)
 
+(*****************************************************************************)
+let pre_wrap s =
+  {s with
+    get_params_type = Eliom_parameter.wrap_param_type s.get_params_type;
+    post_params_type = Eliom_parameter.wrap_param_type s.post_params_type;
+  }
+
+(* let wrap s = Eliom_types.wrap_parameters (pre_wrap s) *)
+
 (******************************************************************************)
 (** {2 Client value initializations} *)
 
@@ -580,20 +589,12 @@ let get_request_client_value_data () =
 (******************************************************************************)
 (** {2 Injection_data} *)
 
-let global_injections : poly Injection_data.t Eliom_reference.Volatile.eref =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.global Injection_data.empty
-let register_global_injection name value =
-  Eliom_reference.Volatile.modify global_injections
-    (Injection_data.add name value)
-let get_global_injections () =
-  Eliom_reference.Volatile.get global_injections
-
 let request_injections : (unit -> poly Lwt.t) Injection_data.t Eliom_reference.Volatile.eref =
   Eliom_reference.Volatile.eref ~scope:Eliom_common.global Injection_data.empty
-let register_request_injection name f =
+let register_injection name f =
   Eliom_reference.Volatile.modify request_injections
     (Injection_data.add name f)
-let get_request_injections () : poly Injection_data.t Lwt.t =
+let get_injections () : poly Injection_data.t Lwt.t =
   let injections = Eliom_reference.Volatile.get request_injections in
   lwt bindings =
     Lwt_list.map_s
@@ -612,21 +613,8 @@ module Syntax_helpers = struct
     create_client_value
       (Eliom_server.Client_value.create closure_id instance_id)
 
-  let request_injection name f =
-    register_request_injection name
+  let injection name f =
+    register_injection name
       (fun () -> Lwt.map to_poly (f ()))
 
-  let global_injection name value =
-    register_global_injection name
-      (to_poly value)
-
 end
-
-(*****************************************************************************)
-let pre_wrap s =
-  {s with
-    get_params_type = Eliom_parameter.wrap_param_type s.get_params_type;
-    post_params_type = Eliom_parameter.wrap_param_type s.post_params_type;
-  }
-
-(* let wrap s = Eliom_types.wrap_parameters (pre_wrap s) *)

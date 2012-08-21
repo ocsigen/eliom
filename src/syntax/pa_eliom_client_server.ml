@@ -80,25 +80,23 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let client_str_items items =
     let aux (gen_id, orig_expr) =
-      let injection, value =
+      let value =
         match Helpers.find_escaped_ident_type gen_id with
           | <:ctyp< ($_$ Eliom_reference.Volatile.eref) >>
           | <:ctyp< ($_$ Eliom_reference.eref) >> ->
               let _loc = Loc.ghost in
-              <:expr< Eliom_service.Syntax_helpers.request_injection >>,
               <:expr<
                 fun () ->
-                  (Eliom_reference.get ($orig_expr$ :> _ Eliom_reference.eref))
+                  Eliom_reference.get ($orig_expr$ :> _ Eliom_reference.eref)
               >>
           | _ ->
               let _loc = Loc.ghost in
-              <:expr< Eliom_service.Syntax_helpers.global_injection >>,
-              <:expr< $orig_expr$ >>
+              <:expr< fun () -> Lwt.return $orig_expr$ >>
       in
       let _loc = Loc.ghost in
       <:str_item<
         let () =
-          $injection$ $str:gen_id$ $value$
+          Eliom_service.Syntax_helpers.injection $str:gen_id$ $value$
       >>
     in
     Ast.stSem_of_list
