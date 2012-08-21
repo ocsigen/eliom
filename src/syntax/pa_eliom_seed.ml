@@ -79,7 +79,11 @@ module type Helpers  = sig
   (** find infered type for escaped expr *)
   val find_escaped_ident_type: string -> Ast.ctyp
 
+  (** find infered type for injected ident *)
+  val find_injected_ident_type: string -> Ast.ctyp
+
   val is_client_value_type : Ast.ctyp -> Ast.ctyp option
+  val is_eliom_reference_type : Ast.ctyp -> Ast.ctyp option
 
   val raise_syntax_error : Ast.Loc.t -> string -> _
 
@@ -118,6 +122,10 @@ module type Pass = functor (Helpers: Helpers) -> sig
   val escaped: escaped_context -> Ast.expr -> string -> Ast.expr
 
 end
+
+let fst_3 (x, _, _) = x
+let snd_3 (_, x, _) = x
+let trd_3 (_, _, x) = x
 
 module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
@@ -187,6 +195,16 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
             String.length id > escaped_ident_prefix_len &&
             String.sub id 0 escaped_ident_prefix_len = escaped_ident_prefix
         | si -> false
+
+      let injected_ident_prefix = "__eliom__injected_ident__reserved_name__"
+      let injected_ident_prefix_length = String.length injected_ident_prefix
+      let is_injected_ident = function
+          (* | <:sig_item< val $id$ : $t$ >> -> *)
+        | Ast.SgVal (_loc, id, t) ->
+            String.length id > injected_ident_prefix_length &&
+            String.sub id 0 injected_ident_prefix_length = injected_ident_prefix
+        | si -> false
+
       let client_value_ident_prefix = "__eliom__client_value__reserved_name__"
       let client_value_ident_prefix_len = String.length client_value_ident_prefix
       let is_client_value_ident = function
@@ -195,11 +213,19 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
             String.length id > client_value_ident_prefix_len &&
             String.sub id 0 client_value_ident_prefix_len = client_value_ident_prefix
         | si -> false
-      let extract_type = function
+
+      let extract_escaped_ident_type = function
           (* | <:sig_item< val $id$ : ($t$ option ref) >> -> *)
         | Ast.SgVal (_loc, id, <:ctyp< ($t$ option ref) >>) ->
             let len = String.length id - escaped_ident_prefix_len in
             int_of_string (String.sub id escaped_ident_prefix_len len),
+            suppress_underscore t
+        | _ -> assert false
+      let extract_injected_ident_type = function
+          (* | <:sig_item< val $id$ : ($t$ option ref) >> -> *)
+        | Ast.SgVal (_loc, id, <:ctyp< ($t$ option ref) >>) ->
+            let len = String.length id - injected_ident_prefix_length in
+            int_of_string (String.sub id injected_ident_prefix_length len),
             suppress_underscore t
         | _ -> assert false
       let extract_client_value_type = function
@@ -218,7 +244,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           let (items, stopped) = Gram.parse interf (Loc.mk f) s in
           assert (stopped = None); (* No directive inside the generated ".mli". *)
           close_in ic;
-          List.map extract_type (List.filter is_escaped_ident items),
+          List.map extract_escaped_ident_type (List.filter is_escaped_ident items),
+          List.map extract_injected_ident_type (List.filter is_injected_ident items),
           List.map extract_client_value_type (List.filter is_client_value_ident items)
         with
           | Sys_error _ ->
@@ -235,7 +262,17 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         try
           let len = String.length id - escaped_ident_prefix_len in
           let id = int_of_string (String.sub id escaped_ident_prefix_len len) in
-          List.assoc id (fst (Lazy.force infered_sig))
+          List.assoc id (fst_3 (Lazy.force infered_sig))
+        with Not_found ->
+          Printf.eprintf "Error: Infered type of escaped ident not found (%s).\nYou need to regenerate %s.\n"
+            id (get_type_file ());
+          exit 1
+
+      let find_injected_ident_type id =
+        try
+          let len = String.length id - injected_ident_prefix_length in
+          let id = int_of_string (String.sub id injected_ident_prefix_length len) in
+          List.assoc id (snd_3 (Lazy.force infered_sig))
         with Not_found ->
           Printf.eprintf "Error: Infered type of escaped ident not found (%s).\nYou need to regenerate %s.\n"
             id (get_type_file ());
@@ -243,7 +280,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
       let find_client_value_type id =
         try
-          List.assoc id (snd (Lazy.force infered_sig))
+          List.assoc id (trd_3 (Lazy.force infered_sig))
         with Not_found ->
           Printf.eprintf "Error: Infered type client value not found (%s).\nYou need to regenerate %s.\n"
             (Int64.to_string id) (get_type_file ());
@@ -251,6 +288,11 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
       let is_client_value_type = function
         | <:ctyp< $typ$ Eliom_lib.client_value >> -> Some typ
+        | _ -> None
+
+      let is_eliom_reference_type = function
+        | <:ctyp< ($typ$ Eliom_reference.Volatile.eref) >>
+        | <:ctyp< ($typ$ Eliom_reference.eref) >> -> Some typ
         | _ -> None
     end (* End of Helpers *)
 
@@ -355,6 +397,12 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           incr r; let gen_id = Helpers.escaped_ident_prefix ^ string_of_int !r in
           escaped_idents := (id, gen_id) :: !escaped_idents;
           gen_id)
+
+    let gen_injected_ident =
+      let r = ref 0 in
+      fun () ->
+        incr r;
+        Helpers.injected_ident_prefix ^ string_of_int !r
 
     module E2 = Camlp4.ErrorHandler.Register(Syntax_error)
 
@@ -490,18 +538,26 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
               Pass.hole_expr typ (hole_expr_context lvl) e id (gen_closure_escaped_ident id) _loc
 
           | SYMBOL "%" ; id = ident ; context = dummy_check_level_escaped_ident ->
-
-              Pass.escaped context <:expr< $id:id$ >> (gen_escaped_ident id)
+              let gen_id =
+                match context with
+                  | Escaped_in_hole_in _ -> gen_escaped_ident id
+                  | Escaped_in_client_item -> gen_injected_ident ()
+              in
+              Pass.escaped context <:expr< $id:id$ >> gen_id
 
           | SYMBOL "%" ; KEYWORD "(" ; context = dummy_set_level_escaped_expr ;
               e = SELF ;
               KEYWORD ")" ->
-
                 current_level :=
                   (match context with
                      | Escaped_in_hole_in context -> Hole_expr context
                      | Escaped_in_client_item -> Client_item);
-                Pass.escaped context e (gen_escaped_expr_ident ())
+                let gen_id =
+                  match context with
+                    | Escaped_in_hole_in _ -> gen_escaped_expr_ident ()
+                    | Escaped_in_client_item -> gen_injected_ident ()
+                in
+                Pass.escaped context e gen_id
 
          ]];
 

@@ -210,12 +210,11 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           <:expr< $lid:gen_id$ >>
        | Escaped_in_client_item ->
            push_injected_var gen_id;
-           let typ = Helpers.find_escaped_ident_type gen_id in
+           let typ = Helpers.find_injected_ident_type gen_id in
            let typ = (* Replace toplevel [t Eliom_reference.eref] to [t]. *)
-             match typ with
-               | <:ctyp< ($typ'$ Eliom_reference.Volatile.eref) >>
-               | <:ctyp< ($typ'$ Eliom_reference.eref) >> -> typ'
-               | typ -> typ
+             match Helpers.is_eliom_reference_type typ with
+               | Some typ -> typ
+               | None -> typ
            in
            let typ = (* Replace all [t Eliom_lib.client_value] to [t]. *)
              drop_client_value_ctyp#ctyp typ
