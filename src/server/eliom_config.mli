@@ -51,8 +51,8 @@ val get_default_links_xhr : unit -> bool
 (**/**)
 
 (** The function [get_config ()] returns the information of the
-    configuration file concerning that site (between [<site>] and
-    [</site>]).
+    configuration file concerning that site (between [<eliommod>] and
+    [</eliommod>]).
 
     {e Warning: You must call that function during the initialisation of
     your module (not during a Lwt thread or a service)
@@ -64,9 +64,9 @@ val get_default_links_xhr : unit -> bool
 *)
 val get_config : unit -> Simplexmlparser.xml list
 
-(** Process the configuration <<a_api module="Eliom_config" | val get_config>>
-    by a give specification (cf. <<a_api module="Ocsigen_extensions.Configuration" | type
-    element >>) *)
+(** Process the configuration {% <<a_api module="Eliom_config" | val get_config>> %}
+    by a give specification (cf. {% <<a_api module="Ocsigen_extensions.Configuration" | type
+    element >> %}) *)
 val parse_config : ?pcdata:(string -> unit) -> ?other_elements:(string -> (string * string) list -> Simplexmlparser.xml list -> unit) -> Ocsigen_extensions.Configuration.element list -> unit
 
 (** The function [get_config_info ()] returns the information
