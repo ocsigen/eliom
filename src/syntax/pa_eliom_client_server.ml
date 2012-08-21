@@ -61,7 +61,6 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let push_arg orig_expr gen_id =
     if not (List.mem gen_id !arg_ids) then begin
       let _loc = Ast.loc_of_expr orig_expr in
-      (* TODO BB Drop Eliom_reference.eref *)
       let arg = <:expr< $orig_expr$ >> in
       arg_collection := (gen_id, arg) :: !arg_collection;
       arg_ids := gen_id :: !arg_ids
@@ -80,22 +79,10 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let client_str_items items =
     let aux (gen_id, orig_expr) =
-      let value =
-        if None = Helpers.(is_eliom_reference_type (find_injected_ident_type gen_id))
-        then
-          let _loc = Loc.ghost in
-          <:expr< fun () -> Lwt.return $orig_expr$ >>
-        else
-          let _loc = Loc.ghost in
-          <:expr<
-            fun () ->
-              Eliom_reference.get ($orig_expr$ :> _ Eliom_reference.eref)
-          >>
-      in
       let _loc = Loc.ghost in
       <:str_item<
         let () =
-          Eliom_service.Syntax_helpers.injection $str:gen_id$ $value$
+          Eliom_service.Syntax_helpers.injection $str:gen_id$ $orig_expr$
       >>
     in
     Ast.stSem_of_list

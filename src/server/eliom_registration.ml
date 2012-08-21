@@ -1536,9 +1536,8 @@ module Eliom_appl_reg_make_param
         all_client_value_data
     in
 
-    lwt injections =
-      Injection_data.to_client =|<
-        Eliom_service.get_injections ()
+    let injections =
+      Injection_data.to_client (Eliom_service.get_injections ())
     in
 
     Int64_map.iter

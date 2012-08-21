@@ -199,7 +199,6 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           else
             let typ =
               let typ = Helpers.find_escaped_ident_type gen_id in
-              (* TODO BB Drop Eliom_reference.eref *)
               drop_client_value_ctyp#ctyp typ
             in
             <:expr<
@@ -211,14 +210,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
        | Escaped_in_client_item ->
            push_injected_var gen_id;
            let typ = Helpers.find_injected_ident_type gen_id in
-           let typ = (* Replace toplevel [t Eliom_reference.eref] to [t]. *)
-             match Helpers.is_eliom_reference_type typ with
-               | Some typ -> typ
-               | None -> typ
-           in
-           let typ = (* Replace all [t Eliom_lib.client_value] to [t]. *)
-             drop_client_value_ctyp#ctyp typ
-           in
+           let typ = drop_client_value_ctyp#ctyp typ in
            <:expr<
              (Eliom_client.Syntax_helpers.get_injection $str:gen_id$
               : $typ$)

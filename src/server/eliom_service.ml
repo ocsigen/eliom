@@ -589,21 +589,13 @@ let get_request_client_value_data () =
 (******************************************************************************)
 (** {2 Injection_data} *)
 
-let request_injections : (unit -> poly Lwt.t) Injection_data.t Eliom_reference.Volatile.eref =
+let request_injections : poly Injection_data.t Eliom_reference.Volatile.eref =
   Eliom_reference.Volatile.eref ~scope:Eliom_common.global Injection_data.empty
 let register_injection name f =
   Eliom_reference.Volatile.modify request_injections
     (Injection_data.add name f)
-let get_injections () : poly Injection_data.t Lwt.t =
-  let injections = Eliom_reference.Volatile.get request_injections in
-  lwt bindings =
-    Lwt_list.map_s
-      (fun (name, f) ->
-         lwt value = f () in
-         Lwt.return (name, value))
-      (String_map.bindings injections)
-  in
-  Lwt.return (String_map.from_list bindings)
+let get_injections () : poly Injection_data.t =
+  Eliom_reference.Volatile.get request_injections
 
 module Syntax_helpers = struct
 
@@ -613,8 +605,7 @@ module Syntax_helpers = struct
     create_client_value
       (Eliom_server.Client_value.create closure_id instance_id)
 
-  let injection name f =
-    register_injection name
-      (fun () -> Lwt.map to_poly (f ()))
+  let injection name value =
+    register_injection name (to_poly value)
 
 end

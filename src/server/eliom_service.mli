@@ -729,12 +729,11 @@ val get_request_client_value_data : unit -> Client_value_data.t
 
 (* BB Injection_data are server variables escaped in {client{ ... }}.
    - They are sent only with the first request
-   - Eliom references are unwrapped (this is the reason for the lwt-return-value)
  *)
-val get_injections : unit -> poly Injection_data.t Lwt.t
+val get_injections : unit -> poly Injection_data.t
 
 (* TODO BB Find a better place for this module *)
 module Syntax_helpers : sig
   val client_value : int64 -> 'args -> 'a client_value
-  val injection : string -> (unit -> 'a Lwt.t) -> unit
+  val injection : string -> 'a -> unit
 end

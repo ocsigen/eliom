@@ -83,7 +83,6 @@ module type Helpers  = sig
   val find_injected_ident_type: string -> Ast.ctyp
 
   val is_client_value_type : Ast.ctyp -> Ast.ctyp option
-  val is_eliom_reference_type : Ast.ctyp -> Ast.ctyp option
 
   val raise_syntax_error : Ast.Loc.t -> string -> _
 
@@ -288,11 +287,6 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
       let is_client_value_type = function
         | <:ctyp< $typ$ Eliom_lib.client_value >> -> Some typ
-        | _ -> None
-
-      let is_eliom_reference_type = function
-        | <:ctyp< ($typ$ Eliom_reference.Volatile.eref) >>
-        | <:ctyp< ($typ$ Eliom_reference.eref) >> -> Some typ
         | _ -> None
     end (* End of Helpers *)
 
