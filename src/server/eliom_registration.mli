@@ -251,7 +251,7 @@ end
     signature.
 
     For Eliom application, prefers {!Ocaml} services to send page
-    fragment.
+    fragments.
 *)
 module Flow5 : "sigs/eliom_reg.mli"
   subst type page    := Html5_types.flow5 Eliom_content_core.Html5.elt list

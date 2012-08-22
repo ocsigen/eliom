@@ -51,8 +51,8 @@ val get_default_links_xhr : unit -> bool
 (**/**)
 
 (** The function [get_config ()] returns the information of the
-    configuration file concerning that site (between [<eliommod>] and
-    [</eliommod>]).
+    configuration file concerning that site (between [<eliommodule>] and
+    [</eliommodule>] or [<eliom>] and [</eliom>]).
 
     {e Warning: You must call that function during the initialisation of
     your module (not during a Lwt thread or a service)

@@ -645,6 +645,7 @@ let parse_config hostpattern conf_info site_dir =
 (*--- (mutatis mutandis for the following line:) *)
   Eliom_common.absolute_change_sitedata sitedata;
   let firsteliomtag = ref true in
+  let eliommodulewarningdisplayed = ref false in
   let rec parse_default_links_xhr atts default_links_xhr = function
     | [] -> default_links_xhr, List.rev atts
     | ("xhr-links", str_value)::suite ->
@@ -698,12 +699,10 @@ let parse_config hostpattern conf_info site_dir =
           load_eliom_module sitedata file_or_name content;
           exception_during_eliommodule_loading := false
         | _ -> ());
-      if Eliom_extension.get_eliom_extension ()
-        != default_module_action
-      then
-        Eliommod_pagegen.gen
-          (Some (Eliom_extension.get_eliom_extension ()))
-          sitedata
+      if Eliom_extension.get_eliom_extension () != default_module_action
+      then Eliommod_pagegen.gen
+        (Some (Eliom_extension.get_eliom_extension ()))
+        sitedata
       else gen_nothing ()
     | Element ("eliom", atts, content) ->
 (*--- if we put the line "new_sitedata" here, then there is
@@ -793,12 +792,22 @@ let parse_config hostpattern conf_info site_dir =
            | Some default_links_xhr ->
              sitedata.Eliom_common.default_links_xhr#set ~override_tenable:true default_links_xhr
            | None -> ());
+        Eliom_extension.register_eliom_extension 
+          default_module_action;
         (match parse_module_attrs None atts with
           | Some file_or_name ->
             exception_during_eliommodule_loading := true;
             load_eliom_module sitedata file_or_name content;
             exception_during_eliommodule_loading := false
           | _ -> ());
+
+      (*VVV 2012/08
+        It is not possible to load an eliom extension using <eliom>. Why?
+        Is there a reason for this? For now I fail in that case. *)
+        if Eliom_extension.get_eliom_extension () != default_module_action
+        then raise
+          (Error_in_config_file ("Eliom extensions cannot be loaded using <eliom>. Use <eliommodule> instead."));
+
         (* We must generate the page only if it is the first <eliom> tag 
            for that site: *)
         if !firsteliomtag
@@ -806,8 +815,12 @@ let parse_config hostpattern conf_info site_dir =
           firsteliomtag := false;
           Eliommod_pagegen.gen None sitedata
         end
-        else
+        else begin
+          if not !eliommodulewarningdisplayed
+          then Ocsigen_messages.warning "Tag <eliom> used several times in the same site: will run Eliom only the first time. Prefer <eliommodule> to load a module, and <eliom/> without attibute only once at the position you want to generate your Eliom pages for this site.";
+          eliommodulewarningdisplayed := true;
           gen_nothing ()
+        end
     | Element (t, _, _) ->
         raise (Ocsigen_extensions.Bad_config_tag_for_extension t)
     | _ -> raise (Error_in_config_file "(Eliommod extension)")
