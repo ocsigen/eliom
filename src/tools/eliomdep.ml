@@ -59,7 +59,7 @@ let compile_impl file =
     filter_dir
 
 let compile_server_eliom file =
-  let opt = ["pa_eliom_client_server.cmo"] @ !ppopt @ [ "-impl"] in
+  let opt = ["pa_eliom_client_server.cmo"; "-notype"] @ !ppopt @ [ "-impl"] in
   create_filter
     !compiler ( "-pp" :: get_pp opt :: !args
 		@ ["-impl"; file] )
@@ -73,12 +73,12 @@ let compile_server_eliom file =
 let compile_client_eliom file =
   let ppopt = ["pa_eliom_client_client.cmo"; "-notype"] @ !ppopt @ [ "-impl"] in
   create_filter !compiler ( "-pp" :: get_pp ppopt :: !args
-			     @ ["-impl"; file] ) filter_dir;
-  let basename = chop_extension_if_any file in
-  Printf.printf "%s.cmo: %s\n" (add_build_dir basename) (get_type_file file);
-  Printf.printf "%s.cmx: %s\n" (add_build_dir basename) (get_type_file file)
+			     @ ["-impl"; file] ) filter_dir
 
 let compile_eliom file =
+  let basename = chop_extension_if_any file in
+  Printf.printf "%s.cmo: %s\n" (add_build_dir basename) (get_type_file file);
+  Printf.printf "%s.cmx: %s\n" (add_build_dir basename) (get_type_file file);
   match !kind with
   | `Server -> compile_server_eliom file
   | `Client -> compile_client_eliom file
