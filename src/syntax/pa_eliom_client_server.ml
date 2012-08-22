@@ -103,28 +103,14 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
         >>)
       injections
 
-  let client_str_items items =
-    let aux (gen_id, orig_expr) =
-      match Helpers.find_escaped_ident_type gen_id with
-        | <:ctyp< ($_$ Eliom_reference.Volatile.eref) >>
-        | <:ctyp< ($_$ Eliom_reference.eref) >> ->
-            Printf.eprintf "Server: Escaped %s is a reference\n%!" gen_id;
-            let _loc = Loc.ghost in
-            <:str_item<
-              let () =
-                Eliom_service.request_injection $str:gen_id$
-                  (fun () ->
-                    Lwt.map Eliom_lib.to_poly
-                      (Eliom_reference.get ($orig_expr$ :> _ Eliom_reference.eref)))
-            >>
-        | typ ->
-            Printf.eprintf "Server: Escaped %s is not a reference\n%!" gen_id;
-            let _loc = Loc.ghost in
-            <:str_item<
-              let () =
-                Eliom_service.global_injection $str:gen_id$
-                  (Eliom_lib.to_poly $orig_expr$)
-            >>
+  let bind_injected_idents injections =
+    let _loc = Loc.ghost in
+    let bindings =
+      List.map
+        (fun (gen_id, orig_expr) ->
+           <:patt< $lid:gen_id$ >>,
+           orig_expr)
+        injections
     in
     <:str_item< let $Ast.binding_of_pel bindings$ >>
 
