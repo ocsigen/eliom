@@ -28,6 +28,10 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   open Helpers.Syntax
 
+  let notyp = ref false
+  let _ =
+    Camlp4.Options.add "-notype" (Arg.Set notyp) "(not documented)"
+
   let tuple_of_args = function
     | [] -> let _loc = Loc.ghost in <:expr< () >>
     | [e] -> e
@@ -38,12 +42,16 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
       match typ with
         | Some typ -> typ
         | None ->
-            match Helpers.find_client_value_type gen_num with
-              | Ast.TyQuo _ ->
-                  Helpers.raise_syntax_error loc
-                    "The types of client values must be monomorphic from its usage \
-                     or from its type annotation"
-              | typ -> typ
+            if !notyp then
+              let _loc = Loc.ghost in
+              <:ctyp< _ >>
+            else
+              match Helpers.find_client_value_type gen_num with
+                | Ast.TyQuo _ ->
+                    Helpers.raise_syntax_error loc
+                      "The types of client values must be monomorphic from its usage \
+                       or from its type annotation"
+                | typ -> typ
     in
     let escaped_value (_, arg) =
       let _loc = Loc.ghost in
@@ -61,8 +69,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let push_arg orig_expr gen_id =
     if not (List.mem gen_id !arg_ids) then begin
       let _loc = Ast.loc_of_expr orig_expr in
-      let arg = <:expr< $orig_expr$ >> in
-      arg_collection := (gen_id, arg) :: !arg_collection;
+      arg_collection := (gen_id, orig_expr) :: !arg_collection;
       arg_ids := gen_id :: !arg_ids
     end
 
@@ -72,43 +79,69 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     arg_collection := [];
     List.rev res
 
-  (** Filters *)
-
-  let shared_str_items items = Ast.stSem_of_list items
-  let server_str_items items = Ast.stSem_of_list items
-
-  let client_str_items items =
-    let aux (gen_id, orig_expr) =
-      let _loc = Loc.ghost in
-      <:str_item<
-        let () =
-          Eliom_service.Syntax_helpers.injection $str:gen_id$ $orig_expr$
-      >>
+  let push_injected, flush_injected =
+    let buffer = ref [] in
+    let push orig_expr gen_id =
+      if not (List.mem gen_id (List.map fst !buffer)) then begin
+        buffer := (gen_id, orig_expr) :: !buffer;
+      end
     in
-    Ast.stSem_of_list
-      (List.map aux (flush_args ()))
+    let flush () =
+      let res = !buffer in
+      buffer := [];
+      List.rev res
+    in
+    push, flush
 
-  let hole_expr typ context_level orig_expr gen_num _ loc =
+  let register_injections injections =
+    List.map
+      (fun (gen_id, orig_expr) ->
+        let _loc = Loc.ghost in
+        <:str_item<
+          let () =
+            Eliom_service.Syntax_helpers.injection $str:gen_id$ $orig_expr$
+        >>)
+      injections
+
+  let bind_injected_idents injections =
+    let _loc = Loc.ghost in
+    let bindings =
+      List.map
+        (fun (gen_id, orig_expr) ->
+           <:patt< $lid:gen_id$ >>,
+           orig_expr)
+        injections
+    in
+    <:str_item< let $Ast.binding_of_pel bindings$ >>
+
+  (** Syntax extension *)
+
+  let server_str_items items =
+    Ast.stSem_of_list items
+
+  let client_str_items _ =
+    Ast.stSem_of_list
+      (register_injections (flush_injected ()))
+
+  let shared_str_items items =
+    Ast.stSem_of_list
+      (bind_injected_idents (flush_injected ()) ::
+       items)
+
+  let client_value_expr typ context_level orig_expr gen_num _ loc =
+    client_value gen_num (flush_args ()) loc typ
+
+  let escape_inject context_level orig_expr gen_id =
+    let open Pa_eliom_seed in
     match context_level with
-      | Pa_eliom_seed.Server_item_context
-      | Pa_eliom_seed.Shared_item_context ->
-          client_value gen_num (flush_args ()) loc typ
-      | Pa_eliom_seed.Client_item_context ->
+      | Escaped_in_client_value_in _ ->
+          push_arg orig_expr gen_id;
           let _loc = Loc.ghost in
           <:expr< >>
-
-  let escaped context_level orig_expr gen_id =
-    let open Pa_eliom_seed in
-    (match context_level with
-       | Escaped_in_hole_in Server_item_context
-       | Escaped_in_hole_in Shared_item_context ->
-           let _loc = Loc.ghost in
-           push_arg orig_expr gen_id
-       | Escaped_in_client_item ->
-           push_arg orig_expr gen_id
-       | Escaped_in_hole_in Client_item_context -> ());
-    let _loc = Loc.ghost in
-    <:expr< >>
+      | Injected_in _ ->
+          push_injected orig_expr gen_id;
+          let _loc = Loc.ghost in
+          <:expr< $lid:gen_id$ >>
 
 
 

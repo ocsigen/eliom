@@ -106,9 +106,10 @@ end = struct
     JsTable.add table (Js.string name) lazy_value
 
   let get ~name =
+    trace "Get injection %s" name;
     from_poly
       (Lazy.force
-      (Js.Optdef.get
+         (Js.Optdef.get
             (JsTable.find table (Js.string name))
             (fun () -> raise Not_found)))
 
@@ -1175,6 +1176,7 @@ let rebuild_node elt =
 module Syntax_helpers = struct
 
   let register_client_closure closure_id closure =
+    trace "Register client closure (PA) %Ld" closure_id;
     Client_closure.register ~closure_id ~closure;
     let client_value_data = Eliom_request_info.get_client_value_data () in
     do_client_value_initializations ~client_value_data ~closure_id

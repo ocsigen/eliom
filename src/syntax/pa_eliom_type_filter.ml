@@ -81,39 +81,34 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let shared_str_items = server_str_items
 
-  let hole_expr typ context_level orig_expr gen_id gen_tid loc =
-    match context_level with
-      | Pa_eliom_seed.Server_item_context
-      | Pa_eliom_seed.Shared_item_context ->
-          add_typing_str orig_expr gen_tid;
-          let typ = match typ with
-            | Some typ -> typ
-            | None -> let _loc = Loc.ghost in <:ctyp< _ >>
-          in
-          let _loc = loc in
-          <:expr< begin
-            $flush_typing_expr ()$;
-            $lid:gen_tid$ :=
-              Some (Eliom_service.Syntax_helpers.client_value 0L 0
-                    : $typ$ Eliom_lib.client_value);
-            Eliom_lib.get_option ! $lid:gen_tid$
-          end >>
-      | Pa_eliom_seed.Client_item_context ->
-          let _loc = Loc.ghost in
-          <:expr< >>
+  let client_value_expr typ context_level orig_expr gen_id gen_tid loc =
+    add_typing_str orig_expr gen_tid;
+    let typ = match typ with
+      | Some typ -> typ
+      | None -> let _loc = Loc.ghost in <:ctyp< _ >>
+    in
+    let _loc = loc in
+    <:expr< begin
+      $flush_typing_expr ()$;
+      $lid:gen_tid$ :=
+        Some (Eliom_service.Syntax_helpers.client_value 0L 0
+              : $typ$ Eliom_lib.client_value);
+      Eliom_lib.get_option ! $lid:gen_tid$
+    end >>
 
-  let escaped context_level orig_expr gen_id =
+  let escape_inject context_level orig_expr gen_id =
     let open Pa_eliom_seed in
-    let _loc = Ast.loc_of_expr orig_expr in
+    add_typing_str orig_expr gen_id;
+    add_typing_expr orig_expr gen_id;
     match context_level with
-      | Escaped_in_client_item
-      | Escaped_in_hole_in Server_item_context
-      | Escaped_in_hole_in Shared_item_context ->
-          add_typing_str orig_expr gen_id;
-          add_typing_expr orig_expr gen_id;
-          <:expr< () >>
-      | Escaped_in_hole_in Client_item_context ->
-          <:expr< () >>
+      | Escaped_in_client_value_in (`Shared | `Server) ->
+          let _loc = Ast.loc_of_expr orig_expr in
+          <:expr< >>
+      | Injected_in `Shared ->
+          orig_expr
+      | Injected_in `Client ->
+          let _loc = Ast.loc_of_expr orig_expr in
+          <:expr< >>
 
 end
 

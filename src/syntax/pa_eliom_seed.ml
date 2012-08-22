@@ -86,18 +86,16 @@ module type Helpers  = sig
 
   val raise_syntax_error : Ast.Loc.t -> string -> _
 
+  val is_escaped_indent_string: string -> bool
 end
 
-type actor = Client | Server (* of string *)
+type client_value_context = [ `Server | `Shared ]
 
-type hole_expr_context =
-  | Server_item_context
-  | Client_item_context
-  | Shared_item_context
+type injection_context = [ `Client | `Shared ]
 
-type escaped_context =
-  | Escaped_in_hole_in of hole_expr_context
-  | Escaped_in_client_item
+type escape_inject =
+  | Escaped_in_client_value_in of client_value_context
+  | Injected_in of injection_context
 
 (** Signature of specific code of a preprocessor. *)
 
@@ -115,10 +113,10 @@ module type Pass = functor (Helpers: Helpers) -> sig
   val client_str_items: Ast.str_item list -> Ast.str_item
 
   (** How to handle "{{ ... }}" expr. *)
-  val hole_expr: Ast.ctyp option -> hole_expr_context -> Ast.expr -> Int64.t -> string -> Ast.Loc.t -> Ast.expr
+  val client_value_expr: Ast.ctyp option -> client_value_context -> Ast.expr -> Int64.t -> string -> Ast.Loc.t -> Ast.expr
 
   (** How to handle escaped "%ident" inside "{{ ... }}". *)
-  val escaped: escaped_context -> Ast.expr -> string -> Ast.expr
+  val escape_inject: escape_inject -> Ast.expr -> string -> Ast.expr
 
 end
 
@@ -188,11 +186,13 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
       let escaped_ident_prefix = "__eliom__escaped_ident__reserved_name__"
       let escaped_ident_prefix_len = String.length escaped_ident_prefix
+      let is_escaped_indent_string id =
+        String.length id > escaped_ident_prefix_len &&
+        String.sub id 0 escaped_ident_prefix_len = escaped_ident_prefix
       let is_escaped_ident = function
           (* | <:sig_item< val $id$ : $t$ >> -> *)
         | Ast.SgVal (_loc, id, t) ->
-            String.length id > escaped_ident_prefix_len &&
-            String.sub id 0 escaped_ident_prefix_len = escaped_ident_prefix
+            is_escaped_indent_string id
         | si -> false
 
       let injected_ident_prefix = "__eliom__injected_ident__reserved_name__"
@@ -273,7 +273,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           let id = int_of_string (String.sub id injected_ident_prefix_length len) in
           List.assoc id (snd_3 (Lazy.force infered_sig))
         with Not_found ->
-          Printf.eprintf "Error: Infered type of escaped ident not found (%s).\nYou need to regenerate %s.\n"
+          Printf.eprintf "Error: Infered type of injected ident not found (%s).\nYou need to regenerate %s.\n"
             id (get_type_file ());
           exit 1
 
@@ -353,15 +353,15 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       | Client_item
       | Shared_item
       | Module_expr
-      | Hole_expr of hole_expr_context
-      | Escaped_expr
-    (* [hole_expr_context] captures where [hole_expr]s are allowed. *)
-    let hole_expr_context = function
-      | Server_item | Toplevel | Toplevel_module_expr -> Server_item_context
-      | Client_item -> Client_item_context
-      | Shared_item -> Shared_item_context
-      | Module_expr | Hole_expr _ | Escaped_expr ->
-          failwith "hole_expr_context"
+      | Hole_expr of client_value_context
+      | Escaped_expr of client_value_context
+      | Injected_expr of injection_context
+    (* [client_value_context] captures where [client_value_expr]s are allowed. *)
+    let client_value_context = function
+      | Server_item | Toplevel | Toplevel_module_expr -> `Server
+      | Shared_item -> `Shared
+      | Client_item | Module_expr | Hole_expr _ | Escaped_expr _ | Injected_expr _ ->
+          failwith "client_value_context"
     let current_level = ref Toplevel
 
     (* Identifiers for the closure representing "Hole_expr". *)
@@ -430,32 +430,35 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       dummy_set_level_hole_expr:
         [[ -> reset_escaped_ident ();
              let old = !current_level in
-             current_level := Hole_expr (hole_expr_context old);
+             current_level := Hole_expr (client_value_context old);
              old
          ]];
       dummy_check_level_escaped_ident:
         [[ -> match !current_level with
               | Hole_expr context ->
-                  Escaped_in_hole_in context
+                  Escaped_in_client_value_in context
               | Client_item ->
-                  Escaped_in_client_item
+                  Injected_in `Client
+              | Shared_item ->
+                  Injected_in `Shared
               | _ ->
                   Syntax_error.raise _loc
-                    "The syntax \"%ident\" is only allowed inside code \
-                     expression {{ ... }} and on {client{ ... }}."
+                    "The syntax \"%ident\" is not allowed here."
          ]];
       dummy_set_level_escaped_expr:
         [[ -> match !current_level with
               | Hole_expr context ->
-                  current_level := Escaped_expr;
-                  Escaped_in_hole_in context
+                  current_level := Escaped_expr context;
+                  Escaped_in_client_value_in context
               | Client_item ->
-                  current_level := Escaped_expr;
-                  Escaped_in_client_item
+                  current_level := Injected_expr `Client;
+                  Injected_in `Client
+              | Shared_item ->
+                  current_level := Injected_expr `Shared;
+                  Injected_in `Shared
               | _ ->
                   Syntax_error.raise _loc
-                    "The syntax \"%ident\" is only allowed inside code \
-                     expression {{ ... }} and on {client{ ... }}."
+                    "The syntax \"%ident\" is not allowed here."
          ]];
       dummy_set_level_module_expr:
         [[ -> match !current_level with
@@ -529,29 +532,33 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         [ [ typ = TRY start_hole; lvl = dummy_set_level_hole_expr ; e = SELF ; KEYWORD "}}" ->
               current_level := lvl;
               let id = gen_closure_num _loc in
-              Pass.hole_expr typ (hole_expr_context lvl) e id (gen_closure_escaped_ident id) _loc
+              Pass.client_value_expr typ (client_value_context lvl) e id (gen_closure_escaped_ident id) _loc
 
           | SYMBOL "%" ; id = ident ; context = dummy_check_level_escaped_ident ->
               let gen_id =
                 match context with
-                  | Escaped_in_hole_in _ -> gen_escaped_ident id
-                  | Escaped_in_client_item -> gen_injected_ident ()
+                  | Escaped_in_client_value_in _ ->
+                      gen_escaped_ident id
+                  | Injected_in _ ->
+                      gen_injected_ident ()
               in
-              Pass.escaped context <:expr< $id:id$ >> gen_id
+              Pass.escape_inject context <:expr< $id:id$ >> gen_id
 
           | SYMBOL "%" ; KEYWORD "(" ; context = dummy_set_level_escaped_expr ;
               e = SELF ;
               KEYWORD ")" ->
                 current_level :=
                   (match context with
-                     | Escaped_in_hole_in context -> Hole_expr context
-                     | Escaped_in_client_item -> Client_item);
+                     | Escaped_in_client_value_in context -> Hole_expr context
+                     | Injected_in context -> Injected_expr context);
                 let gen_id =
                   match context with
-                    | Escaped_in_hole_in _ -> gen_escaped_expr_ident ()
-                    | Escaped_in_client_item -> gen_injected_ident ()
+                    | Escaped_in_client_value_in _ ->
+                        gen_escaped_expr_ident ()
+                    | Injected_in _ ->
+                        gen_injected_ident ()
                 in
-                Pass.escaped context e gen_id
+                Pass.escape_inject context e gen_id
 
          ]];
 
@@ -571,6 +578,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 end
 
 
+(*
 module Make(Syntax : Camlp4.Sig.Camlp4Syntax) = struct
 
   include Syntax
@@ -598,4 +606,4 @@ module Id : Camlp4.Sig.Id = struct
 end
 
 module M = Camlp4.Register.OCamlSyntaxExtension(Id)(Make)
-
+ *)
