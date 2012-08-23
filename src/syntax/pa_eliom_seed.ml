@@ -90,8 +90,14 @@ module type Helpers  = sig
 end
 
 type client_value_context = [ `Server | `Shared ]
+let client_value_context_to_string = function
+  | `Server -> "server"
+  | `Shared -> "shared"
 
 type injection_context = [ `Client | `Shared ]
+let injection_context_to_string = function
+  | `Client -> "client"
+  | `Shared -> "shared"
 
 type escape_inject =
   | Escaped_in_client_value_in of client_value_context
@@ -352,17 +358,32 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       | Server_item
       | Client_item
       | Shared_item
-      | Module_expr
+      | Module_expr (* TODO What's this? *)
       | Hole_expr of client_value_context
       | Escaped_expr of client_value_context
       | Injected_expr of injection_context
+    let level_to_string = function
+      | Toplevel -> "toplevel"
+      | Toplevel_module_expr -> "toplevel module expr"
+      | Server_item -> "server section"
+      | Client_item -> "client section"
+      | Shared_item -> "shared section"
+      | Module_expr (* TODO What's this? *) -> "module expr"
+      | Hole_expr client_value_context ->
+          "client value expr in " ^ client_value_context_to_string client_value_context
+      | Escaped_expr client_value_context ->
+          "escaped expression in " ^ client_value_context_to_string client_value_context
+      | Injected_expr injection_context ->
+          "injected expression in " ^ injection_context_to_string injection_context
     (* [client_value_context] captures where [client_value_expr]s are allowed. *)
     let client_value_context = function
       | Server_item | Toplevel | Toplevel_module_expr -> `Server
       | Shared_item -> `Shared
-      | Client_item | Module_expr | Hole_expr _ | Escaped_expr _ | Injected_expr _ ->
-          failwith "client_value_context"
+      | Client_item | Hole_expr _ | Escaped_expr _ | Injected_expr _ | Module_expr as context ->
+          failwith ("client_value_context: " ^ level_to_string context)
     let current_level = ref Toplevel
+    let set_current_level level =
+      current_level := level
 
     (* Identifiers for the closure representing "Hole_expr". *)
     let gen_closure_num_base _loc = Int64.of_int (Hashtbl.hash (Loc.file_name _loc))
@@ -399,6 +420,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         Helpers.injected_ident_prefix ^ string_of_int !r
 
     module E2 = Camlp4.ErrorHandler.Register(Syntax_error)
+    DELETE_RULE Gram expr: "{"; TRY [label_expr_list; "}"] END;
+    DELETE_RULE Gram expr: "{"; TRY [expr LEVEL "."; "with"]; label_expr_list; "}" END;
 
     (* Extending syntax *)
     EXTEND Gram
@@ -407,7 +430,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
     (* Dummy rules: for level management and checking. *)
       dummy_set_level_shared:
         [[ -> begin match !current_level with
-              | Toplevel -> current_level := Shared_item
+              | Toplevel -> set_current_level Shared_item
               | _ ->
                   Syntax_error.raise _loc
                     "The syntax {shared{ ... }} is only allowed at toplevel"
@@ -415,23 +438,29 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
          ]];
       dummy_set_level_server:
         [[ ->  match !current_level with
-               | Toplevel -> current_level := Server_item
+               | Toplevel -> set_current_level Server_item
                | _ ->
                    Syntax_error.raise _loc
                      "The syntax {server{ ... }} is only allowed at toplevel"
          ]];
       dummy_set_level_client:
         [[ -> match !current_level with
-              | Toplevel -> current_level := Client_item
+              | Toplevel -> set_current_level Client_item
               | _ ->
                   Syntax_error.raise _loc
                     "The syntax {client{ ... }} is only allowed at toplevel"
          ]];
-      dummy_set_level_hole_expr:
+      dummy_set_level_client_value_expr:
         [[ -> reset_escaped_ident ();
-             let old = !current_level in
-             current_level := Hole_expr (client_value_context old);
-             old
+             match !current_level with
+               | Toplevel | Toplevel_module_expr | Server_item | Shared_item as old ->
+                   set_current_level (Hole_expr (client_value_context old));
+                   old
+               | Client_item | Hole_expr _ | Escaped_expr _ | Injected_expr _ | Module_expr as lvl ->
+                  Printf.ksprintf
+                    (Syntax_error.raise _loc)
+                    "The syntax {{ ... }} or {ctyp{ ... } is not allowed in %s."
+                    (level_to_string lvl)
          ]];
       dummy_check_level_escaped_ident:
         [[ -> match !current_level with
@@ -441,49 +470,53 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                   Injected_in `Client
               | Shared_item ->
                   Injected_in `Shared
-              | _ ->
-                  Syntax_error.raise _loc
-                    "The syntax \"%ident\" is not allowed here."
+              | lvl ->
+                  Printf.ksprintf
+                    (Syntax_error.raise _loc)
+                    "The syntax \"%%ident\" is not allowed in %s."
+                    (level_to_string lvl)
          ]];
       dummy_set_level_escaped_expr:
         [[ -> match !current_level with
               | Hole_expr context ->
-                  current_level := Escaped_expr context;
+                  set_current_level (Escaped_expr context);
                   Escaped_in_client_value_in context
               | Client_item ->
-                  current_level := Injected_expr `Client;
+                  set_current_level (Injected_expr `Client);
                   Injected_in `Client
               | Shared_item ->
-                  current_level := Injected_expr `Shared;
+                  set_current_level (Injected_expr `Shared);
                   Injected_in `Shared
-              | _ ->
-                  Syntax_error.raise _loc
-                    "The syntax \"%ident\" is not allowed here."
+              | lvl ->
+                  Printf.ksprintf
+                    (Syntax_error.raise _loc)
+                    "The syntax \"%%(...)\" is not allowed in %s."
+                    (level_to_string lvl)
          ]];
       dummy_set_level_module_expr:
         [[ -> match !current_level with
               | Toplevel ->
-                 current_level := Toplevel_module_expr;
+                 set_current_level Toplevel_module_expr;
                  Toplevel
               | lvl -> lvl ]];
 
       str_items: FIRST
         [[ lvl = dummy_set_level_module_expr;
-           me = SELF -> current_level := lvl; me ]];
+           me = SELF -> set_current_level lvl; me ]];
 
       (* Duplicated from camlp4/Camlp4Parsers/Camlp4OCamlRevisedParser.ml *)
       module_expr: BEFORE "top"
         [[ "functor"; "("; i = a_UIDENT; ":"; t = module_type; ")"; "->";
             lvl = dummy_set_level_module_expr;
             me = SELF ->
-            current_level := lvl; <:module_expr< functor ( $i$ : $t$ ) -> $me$ >> ]];
+            set_current_level lvl; <:module_expr< functor ( $i$ : $t$ ) -> $me$ >> ]];
 
       (* Duplicated from camlp4/Camlp4Parsers/Camlp4OCamlRevisedParser.ml *)
       module_binding0: FIRST
       [ RIGHTA
         [ "("; m = a_UIDENT; ":"; mt = module_type; ")";
           lvl = dummy_set_level_module_expr; mb = SELF ->
-            current_level := lvl; <:module_expr< functor ( $m$ : $mt$ ) -> $mb$ >> ]];
+            set_current_level lvl; <:module_expr< functor ( $m$ : $mt$ ) -> $mb$ >> ]];
 
 
       (* To str_item we add {client{ ... }}, {server{ ... }} and {shared{ ... }} *)
@@ -495,21 +528,21 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
            es = LIST0 str_item ;
            KEYWORD "}}" ->
 
-             current_level := Toplevel;
+             set_current_level Toplevel;
              Pass.shared_str_items es
 
          | KEYWORD "{server{" ; dummy_set_level_server ;
              es = LIST0 str_item ;
            KEYWORD "}}" ->
 
-             current_level := Toplevel;
+             set_current_level Toplevel;
              Pass.server_str_items es
 
          | KEYWORD "{client{" ; dummy_set_level_client ;
              es = LIST0 str_item ;
            KEYWORD "}}" ->
 
-             current_level := Toplevel;
+             set_current_level Toplevel;
              Pass.client_str_items es
 
          | si = str_item LEVEL "top" ->
@@ -523,18 +556,25 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
       (* To expr we add {{ ... }} and %IDENT *)
 
-      start_hole:
-        [ [ KEYWORD "{{" -> None
-          | KEYWORD "{"; typ = ctyp; KEYWORD "{" -> Some typ ] ];
+      expr: LEVEL "simple"
+
+        [ [ KEYWORD "{"; lel = TRY [lel = label_expr_list; "}" -> lel] ->
+              <:expr< { $lel$ } >>
+          | KEYWORD "{"; typ = TRY [ typ = OPT ctyp; KEYWORD "{" -> typ]; lvl = dummy_set_level_client_value_expr ; e = expr; KEYWORD "}}" ->
+              set_current_level lvl;
+              let id = gen_closure_num _loc in
+              Pass.client_value_expr typ (client_value_context lvl) e id (gen_closure_escaped_ident id) _loc
+          | KEYWORD "{"; e = TRY [e = expr LEVEL "."; "with" -> e]; lel = label_expr_list; "}" ->
+              <:expr< { ($e$) with $lel$ } >> 
+          | KEYWORD "{{"; lvl = dummy_set_level_client_value_expr ; e = expr; KEYWORD "}}" ->
+              set_current_level lvl;
+              let id = gen_closure_num _loc in
+              Pass.client_value_expr None (client_value_context lvl) e id (gen_closure_escaped_ident id) _loc
+           ] ];
 
       expr: BEFORE "simple"
 
-        [ [ typ = TRY start_hole; lvl = dummy_set_level_hole_expr ; e = SELF ; KEYWORD "}}" ->
-              current_level := lvl;
-              let id = gen_closure_num _loc in
-              Pass.client_value_expr typ (client_value_context lvl) e id (gen_closure_escaped_ident id) _loc
-
-          | SYMBOL "%" ; id = ident ; context = dummy_check_level_escaped_ident ->
+        [ [ SYMBOL "%" ; id = ident ; context = dummy_check_level_escaped_ident ->
               let gen_id =
                 match context with
                   | Escaped_in_client_value_in _ ->
@@ -547,7 +587,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           | SYMBOL "%" ; KEYWORD "(" ; context = dummy_set_level_escaped_expr ;
               e = SELF ;
               KEYWORD ")" ->
-                current_level :=
+                set_current_level
                   (match context with
                      | Escaped_in_client_value_in context -> Hole_expr context
                      | Injected_in context -> Injected_expr context);
