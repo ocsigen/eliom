@@ -374,3 +374,21 @@ dl.blue {
 .hidden_widget .overlay {
   background-color: #aaa;
 }
+
+.test_title {
+}
+.test_description {
+  font-size: small;
+}
+.test_logger {
+  font-family: monospace;
+  font-size: x-small;
+}
+.test_logger .logging_line {
+  display: block;
+}
+.thebutton {
+  background: gray;
+  border: 1px solid black;
+  padding: 1em;
+}

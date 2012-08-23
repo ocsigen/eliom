@@ -168,6 +168,110 @@ let test_client_value_on_caml_service =
        ]))
 
 (******************************************************************************)
+(*                          Binding of escaped nodes                          *)
+
+let free_global =
+  Html5.(Id.create_global_elt (D.div F.([b [pcdata "Persistent (free)"]])))
+let bound_global =
+  Html5.(Id.create_global_elt (D.div F.([b [pcdata "Persistent (bound)"]])))
+let free_request =
+  Html5.(D.div F.([b [pcdata "Reset each request (free)"]]))
+let bound_request =
+  Html5.(D.div F.([b [pcdata "Reset each request (bound)"]]))
+
+(*
+let other_service =
+  Eliom_registration.Ocaml.register_coservice'
+    ~get_params:Eliom_parameter.unit
+    (fun () () ->
+       ignore {unit{
+         debug "on other service";
+         Html5.Manip.appendChild
+           %free_request
+           Html5.F.(div [pcdata "onclick"]);
+         Html5.Manip.appendChild
+           %free_global
+           Html5.F.(div [pcdata "onclick"]);
+         Html5.Manip.appendChild
+           %bound_request
+           Html5.F.(div [pcdata "onclick"]);
+         Html5.Manip.appendChild
+           %bound_global
+           Html5.F.(div [pcdata "onclick"]);
+         ()
+       }};
+       Lwt.return ())
+ *)
+
+{client{
+  Eliom_client.onload
+    (fun () ->
+       Html5.Manip.appendChild
+         %free_request
+         Html5.F.(div [pcdata "from client"]);
+       Html5.Manip.appendChild
+         %free_global
+         Html5.F.(div [pcdata "from client"]);
+       Html5.Manip.appendChild
+         %bound_request
+         Html5.F.(div [pcdata "from client"]);
+       Html5.Manip.appendChild
+         %bound_global
+         Html5.F.(div [pcdata "from client"]);
+       ())
+}}
+
+let node_bindings =
+  Eliom_testsuite_base.test
+    ~title:"Binding of nodes"
+    ~path:["holes"; "node_binding"]
+    ~description:Html5.F.([
+      p [pcdata "Observe when HTML5 elements with DOM semantics are reused."];
+      p [pcdata "Bound nodes are sent in the page; free nodes are added by client value side effect after loading the page."];
+      ul [
+        li [pcdata "All four nodes should receive an \"onclick\" line when THE BUTTON is clicked."];
+        li [pcdata "The free ones should reset on each request"];
+      ];
+    ])
+    (fun () ->
+       ignore {unit{
+         debug "init free adder";
+         Eliom_client.onload
+           (fun () ->
+              debug "Adding free";
+              Html5.Manip.appendChild
+                (Html5.Of_dom.of_element Dom_html.document##body)
+                %free_request;
+              Html5.Manip.appendChild
+                (Html5.Of_dom.of_element Dom_html.document##body)
+                %free_global;
+           )
+       }};
+       let onclick = {{
+         fun _ ->
+           debug "onclick";
+           Html5.Manip.appendChild
+             %free_request
+             Html5.F.(div [pcdata "onclick"]);
+           Html5.Manip.appendChild
+             %free_global
+             Html5.F.(div [pcdata "onclick"]);
+           Html5.Manip.appendChild
+             %bound_request
+             Html5.F.(div [pcdata "onclick"]);
+           Html5.Manip.appendChild
+             %bound_global
+             Html5.F.(div [pcdata "onclick"]);
+           ()
+       }} in
+       Lwt.return Html5.F.( [
+         (* p [a ~service:other_service [pcdata "action other service"] ()]; *)
+         button ~a:[a_class ["thebutton"]; a_onclick onclick] ~button_type:`Submit
+           [ pcdata "THE BUTTON" ];
+         bound_request;
+         bound_global;
+       ]))
+(******************************************************************************)
 (*                                Custom data                                 *)
 
 {shared{
@@ -1109,6 +1213,7 @@ let tests = [
     test_escape_scoping;
     test_injection_scoping;
     test_client_value_on_caml_service;
+    node_bindings;
 (*
    test_simple;
    client_values_injection;

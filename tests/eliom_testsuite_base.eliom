@@ -60,8 +60,8 @@ let test ~path ~title:ttl ~description f =
                                p [a ~service:Eliom_service.void_coservice' [pcdata "Reload in running app"] ()] ::
                                h1 ~a:[a_class ["test_title"]] [pcdata ttl] ::
                                div ~a:[a_class ["test_description"]] description ::
-                               content @
-                               [test_logger]))))
+                               hr () ::
+                               content))))
 
 {client{
 
@@ -74,11 +74,9 @@ let test ~path ~title:ttl ~description f =
   let () =
     Lwt.ignore_result
       (lwt () = Eliom_client.wait_load_end () in
-(*
        Html5.Manip.appendChild
          (Html5.Of_dom.of_element Dom_html.document##body)
          %test_logger;
- *)
        List.iter append_log_message (List.rev !buffer);
        buffer := [];
        Lwt.return ())
