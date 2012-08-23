@@ -46,7 +46,9 @@ end = struct
   let find ~closure_id =
     Js.Optdef.get
       (JsTable.find client_closures (key closure_id))
-      (fun () -> raise Not_found)
+      (fun () ->
+         error "Did not find client closure %Ld" closure_id;
+         raise Not_found)
 end
 
 module Client_value : sig
@@ -59,34 +61,48 @@ end = struct
 
   let table = JsTable.create ()
 
+  let closure_key closure_id =
+    Js.string (Int64.to_string closure_id)
+
+  let instance_key instance_id =
+    Js.string (string_of_int instance_id)
+
   let set ~closure_id ~instance_id ~value =
+    trace "Set client value %Ld/%d" closure_id instance_id;
     let instances =
-      let closure_key = Js.string (Int64.to_string closure_id) in
       Js.Optdef.get
-        (JsTable.find table closure_key)
+        (JsTable.find table (closure_key closure_id))
         (fun () ->
            let instances = JsTable.create () in
-           JsTable.add table closure_key instances;
+           JsTable.add table (closure_key closure_id) instances;
            instances)
     in
-    JsTable.add instances (Js.string (string_of_int instance_id)) value
+    JsTable.add instances (instance_key instance_id) value
 
   let get ~closure_id ~instance_id =
-    let lazy_value =
+    trace "Get client value %Ld/%d" closure_id instance_id;
+    let value =
       let instances =
         Js.Optdef.get
           (JsTable.find
              table
-             (Js.string (Int64.to_string closure_id)))
-          (fun () -> raise Not_found)
+             (closure_key closure_id))
+          (fun () ->
+             error "Did not find client value instances of %Ld" closure_id;
+             raise Not_found)
       in
-      Js.Optdef.get
-        (JsTable.find
-           instances
-           (Js.string (string_of_int instance_id)))
-        (fun () -> raise Not_found)
+      let args =
+        JsTable.find
+          instances
+          (instance_key instance_id)
+      in
+      Js.Optdef.get args
+        (fun () ->
+           error "Did not find client value args for %Ld/%d"
+             closure_id instance_id;
+           raise Not_found)
     in
-    from_poly lazy_value
+    from_poly value
 
 end
 
@@ -111,7 +127,9 @@ end = struct
       (Lazy.force
          (Js.Optdef.get
             (JsTable.find table (Js.string name))
-            (fun () -> raise Not_found)))
+            (fun () ->
+               error "Did not find injection %S" name;
+               raise Not_found)))
 
   let force_all () =
     trace "Force all injections %s"
@@ -132,9 +150,10 @@ end
 let force_all_injections = Injection.force_all
 
 let do_client_value_initializations ~client_value_data ~closure_id =
+  trace "Do client value initialization %Ld" closure_id;
   List.iter
     (fun instance_id ->
-       trace "Do client value initialization %Ld/%d" closure_id instance_id;
+       trace "Set client value %Ld/%d" closure_id instance_id;
        let value =
          let closure = Client_closure.find ~closure_id in
          let args =
@@ -147,15 +166,11 @@ let do_client_value_initializations ~client_value_data ~closure_id =
        Client_value.set ~closure_id ~instance_id ~value)
     (Client_value_data.instance_ids closure_id client_value_data)
 
-let do_all_client_value_initializations () =
-  let client_value_data = Eliom_request_info.get_client_value_data () in
+let do_all_client_value_initializations client_value_data =
+  trace "Do all client value initialization";
   List.iter
     (fun closure_id ->
-       do_client_value_initializations ~client_value_data ~closure_id;
-       List.iter
-         (fun instance_id ->
-            ignore (Client_value.get ~closure_id ~instance_id))
-         (Client_value_data.instance_ids closure_id client_value_data))
+       do_client_value_initializations ~client_value_data ~closure_id)
     (Client_value_data.closure_ids client_value_data)
 
 
@@ -512,14 +527,14 @@ let window_open ~window_name ?window_features
 *)
 
 let unwrap_caml_content content =
-  let r : 'a Eliom_types.eliom_caml_service_data =
+  let r, client_value_data : ('a Eliom_types.eliom_caml_service_data * Eliom_lib.Client_value_data.t) =
     Eliom_unwrap.unwrap (Url.decode content) 0 in
   let on_load =
     List.map
       (reify_caml_event Dom_html.document##documentElement)
       r.Eliom_types.ecs_onload in
   run_load_events on_load;
-  Lwt.return r.Eliom_types.ecs_data
+  Lwt.return (r.Eliom_types.ecs_data, client_value_data)
 
 let call_caml_service
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -530,7 +545,8 @@ let call_caml_service
       ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
       ?keep_nl_params ?nl_params ?keep_get_na_params
       get_params post_params in
-  lwt content = unwrap_caml_content content in
+  lwt content, client_value_data = unwrap_caml_content content in
+  do_all_client_value_initializations client_value_data;
   Lwt.return content
 
 (* == The function [change_url_string] changes the URL, without doing a request.
@@ -784,7 +800,7 @@ let set_content ?uri ?offset ?fragment content =
        (* Put the loaded data script in action *)
        load_data_script fake_page;
        do_all_injection_initializations ();
-       do_all_client_value_initializations ();
+       do_all_client_value_initializations (Eliom_request_info.get_client_value_data ());
        Injection.force_all ();
        (* Set values sent from the server (client values and injections) *)
        (* Unmarshall page data. *)
@@ -840,7 +856,8 @@ let set_template_content ?uri ?fragment = function
         | Some uri, Some fragment ->
           change_url_string (uri ^ "#" ^ fragment)
         | _ -> ());
-      lwt () = unwrap_caml_content content in
+      lwt (), client_value_data = unwrap_caml_content content in
+      do_all_client_value_initializations client_value_data;
       Lwt.return ()
 
 (* == Main (exported) function: change the content of the page without

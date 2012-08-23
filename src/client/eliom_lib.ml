@@ -82,7 +82,7 @@ let debug f = Printf.ksprintf (fun s -> Firebug.console##log (Js.string s)) f
 let error f = Printf.ksprintf (fun s -> Firebug.console##error (Js.string s); failwith s) f
 let trace f =
   if get_tracing ()
-  then debug f
+  then debug (">> "^^f)
   else Printf.ksprintf ignore f
 let jsdebug a = Firebug.console##log (a)
 let alert f = Printf.ksprintf (fun s -> Dom_html.window##alert (Js.string s)) f

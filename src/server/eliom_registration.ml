@@ -30,6 +30,22 @@ let code_of_code_option = function
 
 include Eliom_registration_base
 
+let client_value_data include_global_client_values =
+  let request_initializations =
+    Eliom_service.get_request_client_value_data ()
+  in
+  let global_initializations =
+    if include_global_client_values
+    then Eliom_service.get_global_client_value_data ()
+    else Client_value_data.empty
+  in
+  let all_client_value_data =
+    Client_value_data.union
+      global_initializations request_initializations
+  in
+  Client_value_data.to_client
+    all_client_value_data
+
 (******************************************************************************)
 (* Send return types                                                          *)
 (******************************************************************************)
@@ -1149,7 +1165,7 @@ module Ocaml = struct
   let prepare_data data =
     let r = { Eliom_types.ecs_onload = Eliom_service.get_onload ();
               ecs_data = data } in
-    Lwt.return (Eliom_types.encode_eliom_data r)
+    Lwt.return (Eliom_types.encode_eliom_data (r, client_value_data false))
 
   let make_eh = function
     | None -> None
@@ -1513,33 +1529,16 @@ module Eliom_appl_reg_make_param
     let include_global_client_values =
       None = Eliom_request_info.get_sp_client_appl_name ()
     in
-    let () =
-      if include_global_client_values
-      then debug "Sending global client value initializations and injections"
-      else debug "Not sending global client value initializations and injections"
-    in
 
-    let client_value_data =
-      let request_initializations =
-        Eliom_service.get_request_client_value_data ()
-      in
-      let global_initializations =
-        if include_global_client_values
-        then Eliom_service.get_global_client_value_data ()
-        else Client_value_data.empty
-      in
-      let all_client_value_data =
-        Client_value_data.union
-          global_initializations request_initializations
-      in
-      Client_value_data.to_client
-        all_client_value_data
-    in
+    let client_value_data = client_value_data include_global_client_values in
 
     let injections =
       Injection_data.to_client (Eliom_service.get_injections ())
     in
 
+    (*if include_global_client_values
+    then debug "Sending global client value initializations and injections"
+    else debug "Not sending global client value initializations and injections";
     Int64_map.iter
       (fun closure_id ->
          debug "Client_value_datas for closure_id %Ld" closure_id;
@@ -1550,7 +1549,7 @@ module Eliom_appl_reg_make_param
     String_map.iter
       (fun name str ->
          debug "Injection name:%s %S" name str)
-      injections;
+      injections;*)
 
     let script =
       Printf.sprintf
