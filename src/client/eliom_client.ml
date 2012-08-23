@@ -27,12 +27,9 @@ module JsTable = Eliommod_jstable
 (* == Closure *)
 
 module Client_closure : sig
-  exception Not_found
   val register : closure_id:int64 -> closure:(_ -> _) -> unit
   val find : closure_id:int64 -> (poly -> poly)
 end = struct
-
-  exception Not_found
 
   let key closure_id = Js.string (Int64.to_string closure_id)
 
@@ -47,17 +44,13 @@ end = struct
     Js.Optdef.get
       (JsTable.find client_closures (key closure_id))
       (fun () ->
-         error "Did not find client closure %Ld" closure_id;
-         raise Not_found)
+         error "Did not find client closure %Ld" closure_id)
 end
 
 module Client_value : sig
-  exception Not_found
   val set : closure_id:int64 -> instance_id:int -> value:poly -> unit
   val get : closure_id:int64 -> instance_id:int -> _
 end = struct
-
-  exception Not_found
 
   let table = JsTable.create ()
 
@@ -88,8 +81,7 @@ end = struct
              table
              (closure_key closure_id))
           (fun () ->
-             error "Did not find client value instances of %Ld" closure_id;
-             raise Not_found)
+             error "Did not find client value instances of %Ld" closure_id)
       in
       let args =
         JsTable.find
@@ -99,21 +91,17 @@ end = struct
       Js.Optdef.get args
         (fun () ->
            error "Did not find client value args for %Ld/%d"
-             closure_id instance_id;
-           raise Not_found)
+             closure_id instance_id)
     in
     from_poly value
 
 end
 
 module Injection : sig
-  exception Not_found
   val set : name:string -> value:poly lazy_t -> unit
   val get : name:string -> _
   val force_all : unit -> unit
 end = struct
-
-  exception Not_found
 
   let table = JsTable.create ()
 
@@ -128,8 +116,7 @@ end = struct
          (Js.Optdef.get
             (JsTable.find table (Js.string name))
             (fun () ->
-               error "Did not find injection %S" name;
-               raise Not_found)))
+               error "Did not find injection %S" name)))
 
   let force_all () =
     trace "Force all injections %s"
@@ -321,13 +308,9 @@ let raw_form_handler form kind cookies_info tmpl ev =
 let raw_event_handler cv =
   let closure_id = Eliom_server.Client_value.closure_id cv in
   let instance_id = Eliom_server.Client_value.instance_id cv in
-  try
-    let value = Client_value.get ~closure_id ~instance_id in
-    let handler = (Eliom_lib.from_poly value : #Dom_html.event Js.t -> unit) in
-    fun ev -> try handler ev; true with False -> false
-  with Client_value.Not_found ->
-    error "Client value not found (closure_id:%Ld instance_id:%d)"
-      closure_id instance_id
+  let value = Client_value.get ~closure_id ~instance_id in
+  let handler = (Eliom_lib.from_poly value : #Dom_html.event Js.t -> unit) in
+  fun ev -> try handler ev; true with False -> false
 
 let reify_caml_event node ce : #Dom_html.event Js.t -> bool = match ce with
   | Xml.CE_call_service None -> (fun _ -> true)
@@ -1108,11 +1091,7 @@ let _ =
        let closure_id = Eliom_server.Client_value.closure_id cv in
        let instance_id = Eliom_server.Client_value.instance_id cv in
        trace "Unwrap client_value %Ld/%d" closure_id instance_id;
-       try
-         Client_value.get ~closure_id ~instance_id
-       with Client_value.Not_found ->
-         error "Client value not found (closure_id:%Ld instance_id:%d)"
-           closure_id instance_id);
+       Client_value.get ~closure_id ~instance_id);
   Eliom_unwrap.register_unwrapper
     (Eliom_unwrap.id_of_int Eliom_lib_base.escaped_value_unwrap_id_int)
     (fun (escaped_value_str, _unwrapper_id) ->
