@@ -759,7 +759,7 @@ module File_reg_base = struct
     let sp = Eliom_common.get_sp () in
     let request = Eliom_request_info.get_request_sp sp in
     let file =
-      try Ocsigen_local_files.resolve request filename
+      try Ocsigen_local_files.resolve request filename ()
       with
         | Ocsigen_local_files.Failed_403 (* XXXBY : maybe we should signal a true 403? *)
         | Ocsigen_local_files.Failed_404
@@ -800,7 +800,8 @@ struct
     let sp = Eliom_common.get_sp () in
     let request = Eliom_request_info.get_request_sp sp in
     try
-      ignore (Ocsigen_local_files.resolve request filename:Ocsigen_local_files.resolved);
+      ignore (Ocsigen_local_files.resolve request filename () 
+                : Ocsigen_local_files.resolved);
       true
     with
       | Ocsigen_local_files.Failed_403
