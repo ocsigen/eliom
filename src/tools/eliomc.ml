@@ -8,6 +8,8 @@ let usage () =
   Printf.eprintf "SPECIFIC OPTIONS:\n";
   Printf.eprintf "  -dir <dir>\t\tThe directory for generated files (default %S)\n"
     (if !kind = `Client then default_client_dir else default_server_dir);
+  Printf.eprintf "  -type-dir <dir>\t\tThe directory to read .type_mli files from (default %S)\n"
+     default_type_dir;
   if !kind =  `Server || !kind = `ServerOpt then begin
     Printf.eprintf "  -infer\t\tOnly infer the type of values sent by the server\n";
     Printf.eprintf "  -noinfer\t\tDo not infer the type of values sent by the server\n";
@@ -17,9 +19,7 @@ let usage () =
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
   Printf.eprintf "  -predicates <p>\tAdd predicate <p> when resolving package properties\n";
   Printf.eprintf "  -ppopt <p>\tAppend option <opt> to preprocessor invocation\n";
-  if !kind = `Client then begin
-    Printf.eprintf "  -type <file>\tInfered types for the values sent by the server.\n";
-  end;
+  Printf.eprintf "  -type <file>\tInfered types for the values sent by the server.\n";
   create_filter !compiler ["-help"] (help_filter 2 "STANDARD OPTIONS:");
   if !kind = `Client then
     create_filter !js_of_ocaml ["-help"] (help_filter 1 "JS_OF_OCAML OPTIONS:");
@@ -163,7 +163,7 @@ let compile_server_type_eliom file =
 let compile_server_eliom file =
   if do_compile () then
     let obj = output_prefix file ^ obj_ext ()
-    and ppopt = ["pa_eliom_client_server.cmo"] @ !ppopt @ ["-impl"] in
+    and ppopt = ["pa_eliom_client_server.cmo"; "-type"; get_type_file file] @ !ppopt @ ["-impl"] in
     if !do_dump then begin
       let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopt @ [file]) in
       create_process camlp4 ppopt;
@@ -269,7 +269,6 @@ let rec process_option () =
       ppopt := !ppopt @ [Sys.argv.(!i+1)];
       i := !i+2
     | "-type" ->
-      if !kind <> `Client then usage ();
       if !i+1 >= Array.length Sys.argv then usage ();
       type_file := Some Sys.argv.(!i+1);
       i := !i+2

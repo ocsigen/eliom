@@ -7,6 +7,8 @@ let usage () =
   Printf.eprintf "SPECIFIC OPTIONS:\n%!";
   Printf.eprintf "  -dir <dir>\t\tThe default directory for generated files (default %S or %S)\n"
      default_client_dir default_server_dir;
+  Printf.eprintf "  -type-dir <dir>\t\tThe directory for generated type_mli files (default %S)\n"
+     default_type_dir;
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
   Printf.eprintf "  -ppopt <p>\tAppend option <opt> to preprocessor invocation\n";
   Printf.eprintf "  -predicates <p>\tAdd predicate <p> when resolving package properties\n";
