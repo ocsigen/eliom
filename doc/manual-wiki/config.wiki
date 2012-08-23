@@ -110,7 +110,7 @@ it is also possible (and recommended!) to do:
 
 
 
-===Updating sites without shutting down the server
+===@@id="reload"@@Updating sites without shutting down the server
 
 Ocsigen server has a feature that allows to re-read the configuration
 without shutting down the server (see section * *).

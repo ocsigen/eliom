@@ -88,7 +88,7 @@ val eref_from_fun :
     handler when [eref] has been created with a scope different of
     {!Eliom_common.global}; it can neither be used outside of an
     Eliom module when [eref] has been created with scope
-    [!Eliom_common.site]}
+    {!Eliom_common.site}}
   *)
 val get : 'a eref -> 'a Lwt.t
 (* That function introduces a Lwt cooperation point only for persistent
@@ -101,7 +101,7 @@ val get : 'a eref -> 'a Lwt.t
     handler when [eref] has been created with a scope different of
     {!Eliom_common.global}; it can neither be used outside of an
     Eliom module when [eref] has been created with scope
-    [!Eliom_common.site]}
+    {!Eliom_common.site}}
   *)
 val set : 'a eref -> 'a -> unit Lwt.t
 (* That function introduces a Lwt cooperation point only for persistent
