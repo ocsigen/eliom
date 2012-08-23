@@ -116,6 +116,11 @@ val call_service :
   ?nl_params:Eliom_parameter.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> string Lwt.t
 
+(* Registers a function to call after loading the page, or the next time the
+   DOM content is changed (cf. {% <<a_api | val Eliom_client.change_page >> %}).
+ *)
+val onload : (unit -> unit) -> unit
+
 (** wait for the loading phase to terminate *)
 val wait_load_end : unit -> unit Lwt.t
 
@@ -146,3 +151,4 @@ end
 
 (* val do_injection_initializations : names:string list -> unit *)
 val force_all_injections : unit -> unit
+val force_all_client_value_args : unit -> unit

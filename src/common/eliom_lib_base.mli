@@ -124,6 +124,7 @@ module RawXML : sig
   type event_handler_table =
     ((Dom_html.event Js.t -> unit) Eliom_server.Client_value.t) ClosureMap.t
 
+  val filter_class_attribs : node_id -> (string * racontent) list -> (string * racontent) list
 end
 
 val tyxml_unwrap_id_int : int

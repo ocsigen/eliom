@@ -1540,11 +1540,12 @@ module Eliom_appl_reg_make_param
     then debug "Sending global client value initializations and injections"
     else debug "Not sending global client value initializations and injections";
     Int64_map.iter
-      (fun closure_id ->
-         debug "Client_value_datas for closure_id %Ld" closure_id;
-         Int_map.iter
-           (fun instance_id str ->
-              debug "... instance_id:%d %S" instance_id str))
+      (fun closure_id instances ->
+         debug "Client_value_datas for closure_id %Ld: %s" closure_id
+           (String.concat ", "
+             (List.map
+                (fun (instance_id, _) -> string_of_int instance_id)
+                (Int_map.bindings instances))))
       client_value_data;
     String_map.iter
       (fun name str ->

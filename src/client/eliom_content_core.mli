@@ -371,4 +371,8 @@ module Html5 : sig
     val of_iFrame : Dom_html.iFrameElement Js.t -> Html5_types.iframe elt
   end
 
+  (**/**)
+
+  val set_classes_of_elt : 'a elt -> 'a elt
+
 end

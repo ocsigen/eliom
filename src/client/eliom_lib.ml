@@ -144,6 +144,7 @@ module Client_value_data = struct
     let instances = Int64_map.find closure_id table in
     unescape_and_unwrap
       (Int_map.find instance_id instances)
+
 end
 
 module Injection_data = struct

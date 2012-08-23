@@ -141,6 +141,49 @@ module RawXML = struct
   type event_handler_table =
     ((Dom_html.event Js.t -> unit) Eliom_server.Client_value.t) ClosureMap.t
 
+  let filter_class (acc_class,acc_attr) = function
+    | "class", RA value ->
+      begin
+        match value with
+          | AStr v ->
+            (v::acc_class,acc_attr)
+          | AStrL (Space,v) ->
+            (v@acc_class,acc_attr)
+          | _ -> failwith "attribute class is not a string"
+      end
+    | _, RACamlEventHandler (CE_registered_closure _) as attr ->
+      (ce_registered_closure_class :: acc_class, attr :: acc_attr)
+    | _, RACamlEventHandler (CE_call_service link_info) ->
+      begin
+        match Eliom_lazy.force link_info with
+          | None -> acc_class, acc_attr
+          | Some (kind,cookie_info,tmpl) ->
+              ce_call_service_class::acc_class,
+              let acc_attr =
+                match cookie_info with
+                | None -> acc_attr
+                | Some v ->
+                    (ce_call_service_attrib, RA (AStr (Json.to_string<cookie_info> v)))
+                    :: acc_attr
+              in
+              match tmpl with
+              | None -> acc_attr
+              | Some tmpl -> (ce_template_attrib, RA (AStr tmpl)) :: acc_attr
+      end
+    | attr -> (acc_class,attr::acc_attr)
+
+  let filter_class_attribs node_id attribs =
+    let node_id = match node_id with
+      | NoId -> [],[]
+      | ProcessId i -> [process_node_class], [node_id_attrib,RA (AStr i)]
+      | RequestId i -> [request_node_class], [node_id_attrib,RA (AStr i)]
+    in
+    let (classes,attribs) =
+      List.fold_left filter_class (node_id) attribs in
+    match classes with
+      | [] -> attribs
+      | _ -> ("class",RA (AStrL(Space,classes)))::attribs
+
 end
 
 let tyxml_unwrap_id_int = 1

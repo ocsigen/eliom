@@ -28,11 +28,12 @@ let onload ev =
     (Eliom_request_info.get_request_cookies ());
   ignore (lwt () = Lwt_js.sleep 0.001 in
           Eliom_client.relink_request_nodes (Dom_html.document##documentElement);
-          Eliom_client.force_all_injections ();
           let on_load =
             Eliom_client.load_eliom_data
               (Eliom_request_info.get_request_data ())
               (Dom_html.document##documentElement) in
+          Eliom_client.force_all_injections ();
+          Eliom_client.force_all_client_value_args ();
           (* The request node table must be empty when node received
              via call_caml_service are unwrapped. *)
           Eliom_client.reset_request_node ();

@@ -577,7 +577,6 @@ let register_client_value_data closure_id instance_id args =
     then global_client_values, "global"
     else request_client_values, "request"
   in
-  debug "client_value_data %Ld %d to %s" closure_id instance_id name;
   Eliom_reference.Volatile.modify reference
     (Client_value_data.add closure_id instance_id args)
 

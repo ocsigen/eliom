@@ -104,6 +104,22 @@ module Xml = struct
       "\n/* <![CDATA[ */\n" ^ Regexp.global_replace end_re s "" ^ "\n/* ]]> */\n" in
     encodedpcdata s'
 
+  let set_classes node_id = function
+    | Empty
+    | Comment _
+    | EncodedPCDATA _
+    | PCDATA _
+    | Entity _ as e -> e
+    | Leaf (ename, attribs) ->
+      Leaf (ename, filter_class_attribs node_id attribs)
+    | Node (ename, attribs, sons) ->
+      Node (ename, filter_class_attribs node_id attribs, sons)
+
+  let set_classes_of_elt elt =
+     match elt.elt with
+      | DomNode _ -> failwith "Eliom_content_core.set_classes_of_elt"
+      | TyXMLNode econtent ->
+          { elt with elt = TyXMLNode (set_classes elt.node_id econtent) }
 
 end
 
@@ -446,6 +462,8 @@ module Html5 = struct
     let of_canvas : Dom_html.canvasElement Js.t -> 'a Html5_types.canvas elt = rebuild_xml
     let of_iFrame : Dom_html.iFrameElement Js.t -> Html5_types.iframe elt = rebuild_xml
   end
+
+  let set_classes_of_elt elt = F.tot (X.set_classes_of_elt (F.toelt elt))
 
 end
 
