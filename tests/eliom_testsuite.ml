@@ -4,30 +4,14 @@ let (>|=) = Lwt.(>|=)
 
 open HTML5.M
 open Eliom_output.Html5
-(*
+
 open Eliom_testsuite1
 open Eliom_testsuite2
 open Eliom_testsuite3
- *)
 
-
-let tests description services =
-  div [
-    h4 [pcdata description];
-    ul
-      (List.map
-         (fun (description, service) ->
-            li [a ~service [pcdata description] ()])
-         services);
-  ]
-
-let testsuite ~name li =
-  div
-    (h3 [pcdata name] ::
-     List.map (uncurry tests) li)
 
 (* Main page for the test suite *)
-let _ = Eliom_output.Html5.register Eliom_testsuite4.main
+let _ = Eliom_output.Html5.register Eliom_testsuite_base.main
   (fun () () ->
     Lwt.return
      (html
@@ -42,8 +26,7 @@ let _ = Eliom_output.Html5.register Eliom_testsuite4.main
                    ~src:(Eliom_output.Html5.make_uri
                            ~service:(Eliom_service.static_dir ()) ["ocsigen5.png"]) ()];
 
-            testsuite ~name:"Test suite 4" Eliom_testsuite4.tests;
-(*
+            Eliom_testsuite_base.testsuite ~name:"Test suite 4" Eliom_testsuite4.tests;
             h3 [pcdata "Eliom examples"];
             h4 [pcdata "Simple pages"];
             p [
@@ -106,7 +89,7 @@ let _ = Eliom_output.Html5.register Eliom_testsuite4.main
 
 
               pcdata "The ";
-              a main [pcdata "default page"] ();
+              a Eliom_testsuite_base.main [pcdata "default page"] ();
               pcdata "of this directory (myself)";
               br ();
 
@@ -274,8 +257,6 @@ let _ = Eliom_output.Html5.register Eliom_testsuite4.main
               a Eliom_testsuite_site.reference_scope_site [pcdata "References of scope site"] ();
               br ();
 
-              a custom_data [pcdata "Custom data"] ();
-              br ();
             ];
 
             h4 [pcdata "Advanced forms"];
@@ -451,10 +432,6 @@ let _ = Eliom_output.Html5.register Eliom_testsuite4.main
               br ();
               a nlpost_entry [pcdata "Non localised parameters with forms in eliom appl"] ();
               br ();
-              a client_handler_syntax [pcdata "Event handler syntax inside shared- and client-section"] ();
-              br ();
-              a client_handler_syntax_2 [pcdata "An example for shared event handlers"] ();
-              br ();
             ];
             h4 [pcdata "Templates"];
             p [
@@ -572,7 +549,6 @@ let _ = Eliom_output.Html5.register Eliom_testsuite4.main
                 a actionoutside [ code [ pcdata "actionoutside" ] ] ();
                 br ();
               ]
-            *)
           ])))
 
 (* *zap*)

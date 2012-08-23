@@ -4,13 +4,168 @@
   open Eliom_lib
 }}
 
-module My_appl =
-  Eliom_registration.App (
-    struct
-      let application_name = "eliom_testsuite"
-    end)
+{client{
+  let () =
+(*     Eliom_lib.set_tracing true; *)
+    ()
+}}
 
-let main = Eliom_service.service [] Eliom_parameter.unit ()
+{server{
+
+  let value = "server_value"
+
+  let server_client_value : string client_value =
+    let value = "local_value" in
+    {{
+      let value = "inner_local" in
+      Printf.sprintf "(server_client_value %s)" %value
+    }}
+
+}}
+
+{shared{
+
+  let value2 = "shared_value"
+
+  let shared_client_value : string client_value =
+    let value2 = "local_value" in
+    {{
+      let value2 = "inner_local" in
+      Printf.sprintf "(shared_client_value %s)" %value2
+    }}
+
+}}
+
+let test_escape_scoping =
+  Eliom_testsuite_base.test
+    ~title:"Scoping of escaped variables"
+    ~path:["holes"; "scoping"; "escaped"]
+    ~description:Html5.F.([
+      pcdata "Test the scoping of escaped variables in client values";
+      br ();
+      pcdata "Total of 5 tests";
+    ])
+    (fun () ->
+       Eliom_testsuite_base.assert_equal ~name:"value"
+         value "server_value";
+       Eliom_testsuite_base.assert_equal ~name:"value2"
+         value2 "shared_value";
+       ignore {unit{
+         Eliom_testsuite_base.log "Running tests";
+         Eliom_testsuite_base.assert_equal ~name:"%server_client_value"
+           %server_client_value "(server_client_value local_value)";
+         Eliom_testsuite_base.assert_equal ~name:"shared_client_value"
+           shared_client_value "(shared_client_value local_value)";
+         Eliom_testsuite_base.assert_equal ~name:"%shared_client_value"
+           %shared_client_value "(shared_client_value local_value)";
+         ()
+       }};
+       let ran_assertions = Eliom_testsuite_base.get_ran_assertions () in
+       let failed_assertions = Eliom_testsuite_base.get_failed_assertions () in
+       let aux msg li = List.map (fun str -> Html5.F.(li [pcdata (Printf.sprintf "Test %s %s" str msg)])) li in
+       Lwt.return Html5.F.([
+         h3 [pcdata "Tests run"];
+         ul (aux "ok" ran_assertions);
+       ] @
+         if failed_assertions <> []
+         then [
+           h3 [pcdata "Tests failed"];
+           ul (aux "failed" failed_assertions);
+         ] else []
+       ))
+
+{shared{
+  let value3 = "shared_value"
+}}
+
+{shared{
+  let value3 = "shared_value_2"
+  let shared_value3 = %value3
+}}
+
+{client{
+  let value3 = "client_value"
+  let client_value3 = %value3
+}}
+
+let test_injection_scoping =
+  Eliom_testsuite_base.test
+    ~title:"Scoping of injected variables"
+    ~path:["holes"; "scoping"; "injection"]
+    ~description:Html5.F.([
+      pcdata "Test the scoping injected variables in the client section";
+      br ();
+      pcdata "Total of 5 tests";
+    ])
+    (fun () ->
+       Eliom_testsuite_base.assert_equal ~name:"value3"
+         value3 "shared_value_2";
+       Eliom_testsuite_base.assert_equal ~name:"shared_value3"
+         shared_value3 "shared_value";
+       ignore {unit{
+         Eliom_testsuite_base.assert_equal ~name:"value3"
+           value3 "client_value";
+         Eliom_testsuite_base.assert_equal ~name:"shared_value3"
+           %shared_value3 "shared_value";
+         Eliom_testsuite_base.assert_equal ~name:"client_value3"
+           client_value3 "shared_value_2";
+       }};
+       let ran_assertions = Eliom_testsuite_base.get_ran_assertions () in
+       let failed_assertions = Eliom_testsuite_base.get_failed_assertions () in
+       let aux msg li = List.map (fun str -> Html5.F.(li [pcdata (Printf.sprintf "Test %s %s" str msg)])) li in
+       Lwt.return Html5.F.([
+         h3 [pcdata "Tests run"];
+         ul (aux "ok" ran_assertions);
+       ] @
+         if failed_assertions <> []
+         then [
+           h3 [pcdata "Tests failed"];
+           ul (aux "failed" failed_assertions);
+         ] else []
+       ))
+
+(******************************************************************************)
+
+let the_number = 100
+
+let ocaml_service =
+  Eliom_registration.Ocaml.register_coservice'
+    ~get_params:Eliom_parameter.unit
+    (fun () () ->
+       ignore {unit{
+         Eliom_testsuite_base.log "From ocaml service";
+       }};
+       Lwt.return the_number)
+ 
+let test_client_value_on_caml_service =
+  Eliom_testsuite_base.test
+    ~title:"Client values in Ocaml-services"
+    ~path:["holes"; "caml_service"]
+    ~description:Html5.F.([
+      pcdata "On loading: \"From main service\"";
+      br ();
+      pcdata "On click button";
+      ul [
+        li [pcdata "\"From ocaml service\""];
+        li [Printf.ksprintf pcdata "\"number: %d\"" the_number];
+      ]
+    ])
+    (fun () ->
+       ignore {unit{
+         Eliom_testsuite_base.log "From main service";
+       }};
+       let onclick = {{
+         fun _ ->
+           Lwt.ignore_result
+             (lwt number = Eliom_client.call_caml_service %ocaml_service () () in
+              Eliom_testsuite_base.log "number: %d" number;
+              Lwt.return ())
+       }} in
+       Lwt.return Html5.F.([
+         button ~a:[a_onclick onclick ] ~button_type:`Submit [
+           pcdata "Click to get ocaml service";
+         ]
+       ]))
 
 (******************************************************************************)
 (*                                Custom data                                 *)
@@ -42,7 +197,7 @@ let test_custom_data =
   let description = "Custom data: modification and defaults" in
   let path = ["custom_data"] in
   description,
-  My_appl.register_service
+  Eliom_testsuite_base.My_appl.register_service
     ~path
     ~get_params:Eliom_parameter.unit
     (fun () () ->
@@ -72,8 +227,9 @@ let test_custom_data =
             ])))
 (******************************************************************************)
 
+           (*
 (******************************************************************************)
-(*                          Client values: injection                          *)
+(*                          Client values: espaping                           *)
 let client_values_injection =
   let v_a = "a" in
   let v_b = {string{ "b" }} in
@@ -88,15 +244,15 @@ let client_values_injection =
   }} in
   let onclick str cstr = {{
     fun ev ->
-      debug "onclick\n  \
-               a:%s b:%s c:%s d:%s\n  \
-               str:%s cstr:%s farg:%s"
+      alert "onclick\n  \
+             a:%s b:%s c:%s d:%s\n  \
+             str:%s cstr:%s farg:%s"
         %v_a %v_b %v_c %v_d %str %cstr ( %v_f "arg")
   }} in
-  let description = "Nested injection of (client-) values into holes" in
+  let description = "Nested escaping of (client-) values into holes" in
   let path = ["client_values"; "injection"] in
   description,
-  My_appl.register_service
+  Eliom_testsuite_base.My_appl.register_service
     ~path
     ~get_params:Eliom_parameter.unit
     (fun () () ->
@@ -148,7 +304,7 @@ let client_values_mutability =
   let description = "Mutability of server values and injected holes" in
   let path = ["client_values"; "mutability"] in
   description,
-  My_appl.register_service
+  Eliom_testsuite_base.My_appl.register_service
     ~path
     ~get_params:Eliom_parameter.unit
     (fun () () ->
@@ -186,7 +342,7 @@ let client_values_changing_context =
   let path = ["client_values"; "changing_context"] in
   let ix = ref 0 in
   description,
-  My_appl.register_service
+  Eliom_testsuite_base.My_appl.register_service
     ~path ~get_params:Eliom_parameter.unit
     (fun () () ->
        incr ix;
@@ -243,7 +399,7 @@ let client_values_initialization =
   }} in
   let path = ["client_values"; "initialization"] in
   name,
-  My_appl.register_service
+  Eliom_testsuite_base.My_appl.register_service
     ~path ~get_params:Eliom_parameter.unit
     (let ix = ref 0 in
      fun () () ->
@@ -341,7 +497,7 @@ let test_simple =
   let v5 = {string{ Printf.sprintf "(v5 v4:%s)" %v4 }} in
   let v6 = {unit->string{ debug "init v6"; fun () -> Printf.sprintf "arg: %s %s %s %s %s" %v1 %v2 %v3 %v4 %v5 }} in
   description,
-  My_appl.register_service
+  Eliom_testsuite_base.My_appl.register_service
     ~path ~get_params:Eliom_parameter.unit
     (fun () () ->
        let () = Eliom_service.onload {{
@@ -481,7 +637,7 @@ let client_handler_syntax =
   let description = "Client event handler syntax" in
   let path = ["client_handler_syntax"] in
   description,
-  My_appl.register_service
+  Eliom_testsuite_base.My_appl.register_service
     ~path
     ~get_params:Eliom_parameter.unit
     (fun () () ->
@@ -610,7 +766,7 @@ let get_slow_content =
        ]))
 
 let client_handler_syntax_2 =
-  My_appl.register_service
+  Eliom_testsuite_base.My_appl.register_service
     ~path:["client_handler_syntax_2"]
     ~get_params:Eliom_parameter.unit
     (fun () () ->
@@ -675,7 +831,7 @@ let client_values_shared =
   let description = "shared client values" in
   let path = ["client_values"; "shared"] in
   description,
-  My_appl.register_service
+  Eliom_testsuite_base.My_appl.register_service
     ~path ~get_params:Eliom_parameter.unit
     (fun () () ->
        Lwt.return Html5.F.(
@@ -736,7 +892,7 @@ let client_values_onload =
   let description = "client values onload" in
   let path = ["client_values"; "onload"] in
   description,
-  My_appl.register_service
+  Eliom_testsuite_base.My_appl.register_service
     ~path ~get_params:Eliom_parameter.unit
     (fun () () ->
        ignore {unit{
@@ -819,7 +975,7 @@ let escaped_in_client =
   let description = "Escaping server values on the client" in
   let path = ["escape"; "on_client"] in
   description,
-  My_appl.register_service
+  Eliom_testsuite_base.My_appl.register_service
     ~path ~get_params:Eliom_parameter.unit
     (fun () () ->
        lwt cp = Eliom_reference.get client_process in
@@ -854,61 +1010,92 @@ let escaped_in_client =
            ])
        ))
 (******************************************************************************)
-  *)
+
 (******************************************************************************)
-(*                             Escaped in client                              *)
+(*                             Client value injection                         *)
 
-let const = Random.int 100
+{client{
+  let log = Eliom_testsuite_base.log
+}}
 
-let changing =
+let server_constant = Random.int 100
+
+let request_reference =
   Eliom_reference.Volatile.eref_from_fun ~scope:Eliom_common.request
     (fun () -> Random.int 100)
 
+let deep_client_value = Some {string{ "client value" }}
+
+let an_elt = Html5.D.div []
+
 {client{
 
+  let () =
+    Lwt.ignore_result
+      (lwt () = Eliom_client.wait_load_end () in
+       debug "---> !!! 2";
+       Html5.Manip.appendChild
+         %an_elt
+         Html5.F.(pcdata "!!! 2");
+       Lwt.return ());
+    log "client TOP"
+
   let f () =
-    debug "----> const: %d" %const;
-    debug "----> changing: %d" %changing
+    log "server_constant: %d" %server_constant;
+    log "request_reference: %d" %request_reference;
+    match %deep_client_value with
+      | Some s ->
+          log "deep client string: %s" s
+      | None -> ()
 
   let () = f ()
 
 }}
 
 let deep_client_values =
-  let description = "Deep client values" in
-  let path = ["escape"; "deep_client_values"] in
   let counter = ref 0 in
-  description,
-  My_appl.register_service
-    ~path ~get_params:Eliom_parameter.unit
-    (fun () () ->
-       debug "----> const: %d" const;
-       debug "----> changing: %d" (Eliom_reference.Volatile.get changing);
-       let cv = Some {string{ "client string" }} in
-       let ix = incr counter; Printf.sprintf "--%d--" !counter in
+  Eliom_testsuite_base.test
+    ~title:"Client value injections"
+    ~path:["client"; "injections"]
+    ~description:Html5.F.([
+      pcdata
+        ""
+    ])
+    (fun () ->
+       debug "server_constant: %d" server_constant;
+       debug "request_reference: %d" (Eliom_reference.Volatile.get request_reference);
+       let request_counter = incr counter; Printf.sprintf "--%d--" !counter in
        let onclick = {{
-         begin match %cv with
-           | Some cv ->
-               debug "client string: Some %s" cv
+         (* FIXME BB enable escaping of Eliom_references *)
+         (* debug "----> request_reference': %d" %request_reference; *)
+         begin match %deep_client_value with
+           | Some client_value ->
+               log "deep client string: %s" client_value
            | None -> assert false
          end;
-         fun _ -> f (); debug "counter: %s" %ix
+         f ();
+         fun _ -> 
+           log "request_counter: %s" %request_counter
        }} in
-       Lwt.return Html5.F.(
-         html
-           (Eliom_tools.Html5.head
-              ~title:(String.concat "/" path)
-              ~css:[["style.css"]]
-              ())
-           (body [
-             h2 [pcdata description];
-             a ~service:Eliom_service.void_coservice' [pcdata "reload in app"] ();
-             button ~a:[a_onclick onclick ] ~button_type:`Submit [
-               pcdata "Click";
-             ]
-           ])
-       ))
+       Eliom_service.onload {{
+         fun _ ->
+           debug "---> !!! 1";
+           Html5.Manip.appendChild
+             %an_elt
+             Html5.F.(pcdata "!!! 1")
+       }};
+       Lwt.return Html5.F.([
+         div [a ~service:Eliom_service.void_coservice' [pcdata "reload in app"] ()];
+         div [
+           button ~a:[a_onclick onclick ] ~button_type:`Submit [
+             pcdata "Click";
+           ]
+         ];
+         an_elt;
+       ]))
+
 (******************************************************************************)
+           *)
 
 (******************************************************************************)
 
@@ -919,6 +1106,10 @@ let tests = [
   ];
  *)
   "Holes", [
+    test_escape_scoping;
+    test_injection_scoping;
+    test_client_value_on_caml_service;
+(*
    test_simple;
    client_values_injection;
    client_values_mutability;
@@ -928,5 +1119,7 @@ let tests = [
    client_handler_syntax;
    client_values_onload;
    escaped_in_client;
+   deep_client_values;
+ *)
   ];
 ]

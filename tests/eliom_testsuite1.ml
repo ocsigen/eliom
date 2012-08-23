@@ -2,7 +2,7 @@
 (* TODO: extract the tests from the manual or vice versa.
    Take the code in the manual, not here! (and remove duplicates here) *)
 (* TODO: include some missing parts in the manual *)
-(*BB
+
 open Eliom_compatibility_2_1
 open Lwt
 open HTML5.M
@@ -2484,4 +2484,3 @@ let _ =
   register hier9 (f 9 hier9);
   register hier10 (f 10 hier10)
 
-  *)

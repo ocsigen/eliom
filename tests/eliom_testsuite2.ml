@@ -17,7 +17,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
-(*BB
 
 (* Other examples for Eliom, and various tests *)
 
@@ -2399,4 +2398,3 @@ let noreload =
                    pcdata "You should not see the result if you do not reload the page."
                   ]])))
 
-           *)
