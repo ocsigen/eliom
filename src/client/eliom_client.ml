@@ -1181,31 +1181,31 @@ let _ =
          triggered. *)
       match tmp_elt.tmp_node_id with
       | Xml.ProcessId process_id as id ->
-          Firebug.console##log_3(Js.string "Unwrap tyxml from ProcessId", process_id, tmp_elt.tmp_node_id);
+          trace "Unwrap tyxml from ProcessId %s" process_id;
           Js.Optdef.case (find_process_node (Js.bytestring process_id))
             (fun () ->
-               debug "not found";
+               trace "not found";
                let xml_elt : Xml.elt = Xml.make ~id elt in
                let html_elt = (Obj.magic xml_elt : _ Html5.elt) in
                let html_elt = Html5.set_classes_of_elt html_elt in
                register_process_node (Js.bytestring process_id) (rebuild_node html_elt);
                (Obj.magic html_elt : Xml.elt))
             (fun elt ->
-               debug "found";
+               trace "found";
                Xml.make_dom ~id elt)
       | Xml.RequestId request_id as id ->
-          Firebug.console##log_3(Js.string "Unwrap tyxml from RequestId", request_id, tmp_elt.tmp_node_id);
+          trace "Unwrap tyxml from RequestId %s" request_id;
           Js.Optdef.case (find_request_node (Js.bytestring request_id))
             (fun () ->
-               debug "not found";
+               trace "not found";
                let xml_elt : Xml.elt = Xml.make ~id elt in
                let html_elt = (Obj.magic xml_elt : _ Html5.elt) in
                let html_elt = Html5.set_classes_of_elt html_elt in
                register_request_node (Js.bytestring request_id) (rebuild_node html_elt);
                (Obj.magic html_elt : Xml.elt))
-            (fun elt -> debug "found"; Xml.make_dom ~id elt)
+            (fun elt -> trace "found"; Xml.make_dom ~id elt)
       | Xml.NoId as id ->
-          Firebug.console##log_2(Js.string "Unwrap tyxml from NoId", elt);
+          trace "Unwrap tyxml from NoId";
           Xml.make ~id elt);
   Eliom_unwrap.register_unwrapper
     (Eliom_unwrap.id_of_int Eliom_lib_base.client_value_unwrap_id_int)

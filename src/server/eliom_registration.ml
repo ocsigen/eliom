@@ -1536,9 +1536,6 @@ module Eliom_appl_reg_make_param
       Injection_data.to_client (Eliom_service.get_injections ())
     in
 
-    (*if include_global_client_values
-    then debug "Sending global client value initializations and injections"
-    else debug "Not sending global client value initializations and injections";
     Int64_map.iter
       (fun closure_id instances ->
          debug "Client_value_datas for closure_id %Ld: %s" closure_id
@@ -1547,10 +1544,9 @@ module Eliom_appl_reg_make_param
                 (fun (instance_id, _) -> string_of_int instance_id)
                 (Int_map.bindings instances))))
       client_value_data;
-    String_map.iter
-      (fun name str ->
-         debug "Injection name:%s %S" name str)
-      injections;*)
+    debug "Injections: %s"
+      (String.concat ","
+         (List.map fst (String_map.bindings injections)));
 
     let script =
       Printf.sprintf
