@@ -1,7 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module eliom_sessions.ml
- * Copyright (C) 2009 Vincent Balat
+ * Copyright (C) 2011 Benedikt Becker
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,20 +17,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-let get_default_hostname () = Url.Current.host
-let get_default_port () = 80 (*VVV take from server? !!!!!!!!! *) (*RRR ??? Url.default_http_port ???*)
-let get_default_sslport () = 443 (*VVV take from server? !!!!!!!!! *) (*RRR ??? replace by Url.default_https_port ???*)
-let get_default_links_xhr () = true (*BBB take from server? !!!!!!!!!! *)
+val get_default_hostname : unit -> string
+val get_default_port : unit -> int
+val get_default_sslport : unit -> int
+val get_default_links_xhr : unit -> bool
 
-let debug_timings = ref false
+val debug_timings : bool ref
 
-let is_tracing =
-  ref false
-let set_tracing value =
-  is_tracing := value
-let get_tracing () =
-  !is_tracing
-
-let () =
-  if Js.to_string Dom_html.window##location##hash = "#__trace" then
-    set_tracing true;
+(** Not tracing by default. Can be dynamically set by adding ["#__trace"] to
+    the URL. *)
+val set_tracing : bool -> unit
+val get_tracing : unit -> bool

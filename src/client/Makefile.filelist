@@ -1,6 +1,7 @@
 
 INTF := eliom_lazy.cmi              \
-	eliom_server.cmi            \
+        eliom_config.cmi            \
+        eliom_server.cmi            \
         eliom_lib.cmi               \
         eliom_parameter.cmi         \
         eliom_service.cmi           \
@@ -14,7 +15,7 @@ INTF := eliom_lazy.cmi              \
         eliom_bus.cmi               \
         eliom_unwrap.cmi            \
         eliom_compatibility_2_1.cmi \
-	\
+                                    \
         eliom_client.cmi            \
 
 NO_MLI := eliom_compatibility_2_1.cmi

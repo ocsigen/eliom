@@ -71,7 +71,6 @@ val debug_var : string -> 'a -> unit
 val debug_exn : ('a, unit, string, unit) format4 -> exn -> 'a
 val jsdebug : 'a -> unit
 val trace : ('a, unit, string, unit) format4 -> 'a
-val set_tracing : bool -> unit
 
 val lwt_ignore : ?message:string -> unit Lwt.t -> unit
 

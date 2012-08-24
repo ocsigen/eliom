@@ -34,6 +34,7 @@ ${COMMON_PFILES} ${COMMON_SFILES}: %: ../common/%
 ### Library ###
 
 FILES := private/eliommod_jstable.ml \
+	 eliom_config.ml \
 	 eliom_server.ml \
 	 eliom_unwrap.ml eliom_lazy.ml \
 	 eliom_lib_base.ml \
@@ -44,7 +45,6 @@ FILES := private/eliommod_jstable.ml \
          private/eliommod_cookies.ml \
 	 eliom_types_base.ml eliom_types.ml \
 	 eliom_process.ml \
-	 eliom_config.ml \
 	 eliom_request_info.ml \
 	 eliom_parameter_base.ml eliom_parameter.ml \
 	 eliom_service_base.ml eliom_service.ml \
