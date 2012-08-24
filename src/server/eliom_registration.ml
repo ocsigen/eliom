@@ -1489,13 +1489,13 @@ module Eliom_appl_reg_make_param
 
     let script =
       Printf.sprintf
-        "var eliom_appl_sitedata = \'%s\';\n\
-         var eliom_appl_process_info = \'%s\'\n\
-         var eliom_client_value_data;\n\
-         var eliom_injections;\n\
-         var eliom_request_data;\n\
-         var eliom_request_cookies;\n\
-         var eliom_request_template;\n"
+        "var __eliom_appl_sitedata = \'%s\';\n\
+         var __eliom_appl_process_info = \'%s\'\n\
+         var __eliom_client_value_data;\n\
+         var __eliom_injections;\n\
+         var __eliom_request_data;\n\
+         var __eliom_request_cookies;\n\
+         var __eliom_request_template;\n"
         (Eliom_lib.jsmarshal (Eliommod_cli.client_sitedata sp))
         (Eliom_lib.jsmarshal (sp.Eliom_common.sp_client_process_info))
     in
@@ -1550,11 +1550,11 @@ module Eliom_appl_reg_make_param
 
     let script =
       Printf.sprintf
-        "eliom_request_data = \'%s\';\n\
-         eliom_request_cookies = \'%s\';\n\
-         eliom_request_template = \'%s\';\n\
-         eliom_client_value_data = \'%s\';\n\
-         eliom_injections = \'%s\';"
+        "__eliom_request_data = \'%s\';\n\
+         __eliom_request_cookies = \'%s\';\n\
+         __eliom_request_template = \'%s\';\n\
+         __eliom_client_value_data = \'%s\';\n\
+         __eliom_injections = \'%s\';"
         (Eliom_lib.jsmarshal (Eliom_wrap.wrap eliom_data))
         (Eliom_lib.jsmarshal tab_cookies)
         (Eliom_lib.jsmarshal (template: string option))

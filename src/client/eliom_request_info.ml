@@ -127,19 +127,19 @@ let get_csp_original_full_path () =
 
 let get_csp_original_full_path_sp = get_csp_original_full_path
 
-let get_request_cookies () = unmarshal_js_var "eliom_request_cookies"
-let get_request_template () : string option = unmarshal_js_var "eliom_request_template"
+let get_request_cookies () = unmarshal_js_var "__eliom_request_cookies"
+let get_request_template () : string option = unmarshal_js_var "__eliom_request_template"
 let get_request_data () =
   if !Eliom_config.debug_timings then
     Firebug.console##time(Js.string "get_request_data");
-  let data = Eliom_unwrap.unwrap_js_var "eliom_request_data" in
+  let data = Eliom_unwrap.unwrap_js_var "__eliom_request_data" in
   if !Eliom_config.debug_timings then
     Firebug.console##timeEnd(Js.string "get_request_data");
   data
 
 let get_client_value_data () : Client_value_data.t =
-  Eliom_unwrap.unwrap_js_var "eliom_client_value_data"
+  Eliom_unwrap.unwrap_js_var "__eliom_client_value_data"
 
 let get_injection_data () : Injection_data.t =
-  unmarshal_js_var "eliom_injections"
+  unmarshal_js_var "__eliom_injections"
 

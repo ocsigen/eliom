@@ -572,10 +572,10 @@ let request_client_values : Client_value_data.t Eliom_reference.Volatile.eref =
   Eliom_reference.Volatile.eref ~scope:Eliom_common.request Client_value_data.empty
 
 let register_client_value_data closure_id instance_id args =
-  let reference, name =
+  let reference =
     if Eliom_common.get_sp_option () = None
-    then global_client_values, "global"
-    else request_client_values, "request"
+    then global_client_values
+    else request_client_values
   in
   Eliom_reference.Volatile.modify reference
     (Client_value_data.add closure_id instance_id args)

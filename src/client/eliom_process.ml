@@ -25,10 +25,10 @@ let history_api =
   && Js.Unsafe.variable "window.history.pushState" != Js.undefined
 
 let sitedata : Eliom_types.sitedata =
-  unmarshal_js_var "eliom_appl_sitedata"
+  unmarshal_js_var "__eliom_appl_sitedata"
 
 let info : Eliom_common.client_process_info =
-  unmarshal_js_var "eliom_appl_process_info"
+  unmarshal_js_var "__eliom_appl_process_info"
 
 let appl_name =
   lazy
