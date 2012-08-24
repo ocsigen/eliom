@@ -419,6 +419,16 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         incr r;
         Helpers.injected_ident_prefix ^ string_of_int !r
 
+    (* BBB Before the syntax error was thrown in the productions dummy_set_*. This
+       resulted in wrong error locations. The solution is to let the dummy productions
+       return an option and raise the syntax error in the enclosing production. *)
+    let from_some_or_raise loc opt f fmt =
+      match opt with
+        | Some x ->
+            Printf.ksprintf (fun _ -> f x) fmt
+        | None ->
+            Printf.ksprintf (Syntax_error.raise loc) fmt
+
     module E2 = Camlp4.ErrorHandler.Register(Syntax_error)
     DELETE_RULE Gram expr: "{"; TRY [label_expr_list; "}"] END;
     DELETE_RULE Gram expr: "{"; TRY [expr LEVEL "."; "with"]; label_expr_list; "}" END;
@@ -430,68 +440,51 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
     (* Dummy rules: for level management and checking. *)
       dummy_set_level_shared:
         [[ -> begin match !current_level with
-              | Toplevel -> set_current_level Shared_item
-              | _ ->
-                  Syntax_error.raise _loc
-                    "The syntax {shared{ ... }} is only allowed at toplevel"
+              | Toplevel -> set_current_level Shared_item; Some ()
+              | _ -> None
         end
          ]];
       dummy_set_level_server:
         [[ ->  match !current_level with
-               | Toplevel -> set_current_level Server_item
-               | _ ->
-                   Syntax_error.raise _loc
-                     "The syntax {server{ ... }} is only allowed at toplevel"
+               | Toplevel -> set_current_level Server_item; Some ()
+               | _ -> None
          ]];
       dummy_set_level_client:
         [[ -> match !current_level with
-              | Toplevel -> set_current_level Client_item
-              | _ ->
-                  Syntax_error.raise _loc
-                    "The syntax {client{ ... }} is only allowed at toplevel"
+              | Toplevel -> set_current_level Client_item; Some ()
+              | _ -> None
          ]];
       dummy_set_level_client_value_expr:
         [[ -> reset_escaped_ident ();
              match !current_level with
                | Toplevel | Toplevel_module_expr | Server_item | Shared_item as old ->
                    set_current_level (Hole_expr (client_value_context old));
-                   old
-               | Client_item | Hole_expr _ | Escaped_expr _ | Injected_expr _ | Module_expr as lvl ->
-                  Printf.ksprintf
-                    (Syntax_error.raise _loc)
-                    "The syntax {{ ... }} or {ctyp{ ... } is not allowed in %s."
-                    (level_to_string lvl)
+                   Some old
+               | Client_item | Hole_expr _ | Escaped_expr _ | Injected_expr _ | Module_expr ->
+                   None
          ]];
       dummy_check_level_escaped_ident:
         [[ -> match !current_level with
               | Hole_expr context ->
-                  Escaped_in_client_value_in context
+                  Some (Escaped_in_client_value_in context)
               | Client_item ->
-                  Injected_in `Client
+                  Some (Injected_in `Client)
               | Shared_item ->
-                  Injected_in `Shared
-              | lvl ->
-                  Printf.ksprintf
-                    (Syntax_error.raise _loc)
-                    "The syntax \"%%ident\" is not allowed in %s."
-                    (level_to_string lvl)
+                  Some (Injected_in `Shared)
+              | _ -> None
          ]];
       dummy_set_level_escaped_expr:
         [[ -> match !current_level with
               | Hole_expr context ->
                   set_current_level (Escaped_expr context);
-                  Escaped_in_client_value_in context
+                  Some (Escaped_in_client_value_in context)
               | Client_item ->
                   set_current_level (Injected_expr `Client);
-                  Injected_in `Client
+                  Some (Injected_in `Client)
               | Shared_item ->
                   set_current_level (Injected_expr `Shared);
-                  Injected_in `Shared
-              | lvl ->
-                  Printf.ksprintf
-                    (Syntax_error.raise _loc)
-                    "The syntax \"%%(...)\" is not allowed in %s."
-                    (level_to_string lvl)
+                  Some (Injected_in `Shared)
+              | _ -> None
          ]];
       dummy_set_level_module_expr:
         [[ -> match !current_level with
@@ -524,26 +517,26 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
         [ "eliom"
 
-         [ KEYWORD "{shared{" ; dummy_set_level_shared ;
-           es = LIST0 str_item ;
-           KEYWORD "}}" ->
+         [ KEYWORD "{shared{" ; opt = dummy_set_level_shared ; es = LIST0 str_item ; KEYWORD "}}" ->
+             from_some_or_raise _loc opt
+               (fun () ->
+                  set_current_level Toplevel;
+                  Pass.shared_str_items es)
+               "The syntax {shared{ ... }} is only allowed at toplevel"
 
-             set_current_level Toplevel;
-             Pass.shared_str_items es
+         | KEYWORD "{server{" ; opt = dummy_set_level_server ; es = LIST0 str_item ; KEYWORD "}}" ->
+             from_some_or_raise _loc opt
+               (fun () ->
+                  set_current_level Toplevel;
+                  Pass.server_str_items es)
+               "The syntax {server{ ... }} is only allowed at toplevel"
 
-         | KEYWORD "{server{" ; dummy_set_level_server ;
-             es = LIST0 str_item ;
-           KEYWORD "}}" ->
-
-             set_current_level Toplevel;
-             Pass.server_str_items es
-
-         | KEYWORD "{client{" ; dummy_set_level_client ;
-             es = LIST0 str_item ;
-           KEYWORD "}}" ->
-
-             set_current_level Toplevel;
-             Pass.client_str_items es
+         | KEYWORD "{client{" ; opt = dummy_set_level_client ; es = LIST0 str_item ; KEYWORD "}}" ->
+             from_some_or_raise _loc opt
+               (fun () ->
+                  set_current_level Toplevel;
+                  Pass.client_str_items es)
+               "The syntax {client{ ... }} is only allowed at toplevel"
 
          | si = str_item LEVEL "top" ->
 
@@ -560,46 +553,59 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
         [ [ KEYWORD "{"; lel = TRY [lel = label_expr_list; "}" -> lel] ->
               <:expr< { $lel$ } >>
-          | KEYWORD "{"; typ = TRY [ typ = OPT ctyp; KEYWORD "{" -> typ]; lvl = dummy_set_level_client_value_expr ; e = expr; KEYWORD "}}" ->
-              set_current_level lvl;
-              let id = gen_closure_num _loc in
-              Pass.client_value_expr typ (client_value_context lvl) e id (gen_closure_escaped_ident id) _loc
+          | KEYWORD "{"; typ = TRY [ typ = OPT ctyp; KEYWORD "{" -> typ]; opt_lvl = dummy_set_level_client_value_expr ; e = expr; KEYWORD "}}" ->
+              from_some_or_raise _loc opt_lvl
+                (fun lvl ->
+                   set_current_level lvl;
+                   let id = gen_closure_num _loc in
+                   Pass.client_value_expr typ (client_value_context lvl) e id (gen_closure_escaped_ident id) _loc)
+                "The syntax {type{ ... } is not allowed in %s."
+                (level_to_string !current_level)
           | KEYWORD "{"; e = TRY [e = expr LEVEL "."; "with" -> e]; lel = label_expr_list; "}" ->
               <:expr< { ($e$) with $lel$ } >> 
-          | KEYWORD "{{"; lvl = dummy_set_level_client_value_expr ; e = expr; KEYWORD "}}" ->
-              set_current_level lvl;
-              let id = gen_closure_num _loc in
-              Pass.client_value_expr None (client_value_context lvl) e id (gen_closure_escaped_ident id) _loc
+          | KEYWORD "{{"; opt_lvl = dummy_set_level_client_value_expr ; e = expr; KEYWORD "}}" ->
+              from_some_or_raise _loc opt_lvl
+                (fun lvl ->
+                   set_current_level lvl;
+                   let id = gen_closure_num _loc in
+                   Pass.client_value_expr None (client_value_context lvl) e id (gen_closure_escaped_ident id) _loc)
+                "The syntax {{ ... }} is not allowed in %s."
+                (level_to_string !current_level)
            ] ];
 
       expr: BEFORE "simple"
 
-        [ [ SYMBOL "%" ; id = ident ; context = dummy_check_level_escaped_ident ->
-              let gen_id =
-                match context with
-                  | Escaped_in_client_value_in _ ->
-                      gen_escaped_ident id
-                  | Injected_in _ ->
-                      gen_injected_ident ()
-              in
-              Pass.escape_inject context <:expr< $id:id$ >> gen_id
+        [ [ SYMBOL "%" ; id = ident ; opt_context = dummy_check_level_escaped_ident ->
+              from_some_or_raise _loc opt_context
+                (fun context ->
+                     let gen_id =
+                       match context with
+                         | Escaped_in_client_value_in _ ->
+                             gen_escaped_ident id
+                         | Injected_in _ ->
+                             gen_injected_ident ()
+                     in
+                     Pass.escape_inject context <:expr< $id:id$ >> gen_id)
+                "The syntax \"%%ident\" is not allowed in %s."
+                (level_to_string !current_level)
 
-          | SYMBOL "%" ; KEYWORD "(" ; context = dummy_set_level_escaped_expr ;
-              e = SELF ;
-              KEYWORD ")" ->
-                set_current_level
-                  (match context with
-                     | Escaped_in_client_value_in context -> Hole_expr context
-                     | Injected_in context -> Injected_expr context);
-                let gen_id =
-                  match context with
-                    | Escaped_in_client_value_in _ ->
-                        gen_escaped_expr_ident ()
-                    | Injected_in _ ->
-                        gen_injected_ident ()
-                in
-                Pass.escape_inject context e gen_id
-
+          | SYMBOL "%" ; KEYWORD "(" ; opt_context = dummy_set_level_escaped_expr ; e = SELF ; KEYWORD ")" ->
+              from_some_or_raise _loc opt_context
+                (fun context ->
+                   set_current_level
+                     (match context with
+                        | Escaped_in_client_value_in context -> Hole_expr context
+                        | Injected_in context -> Injected_expr context);
+                   let gen_id =
+                     match context with
+                       | Escaped_in_client_value_in _ ->
+                           gen_escaped_expr_ident ()
+                       | Injected_in _ ->
+                           gen_injected_ident ()
+                   in
+                   Pass.escape_inject context e gen_id)
+                "The syntax \"%%(...)\" is not allowed in %s."
+                (level_to_string !current_level)
          ]];
 
       END
