@@ -136,7 +136,7 @@ let ocaml_service =
          Eliom_testsuite_base.log "From ocaml service";
        }};
        Lwt.return the_number)
- 
+
 let test_client_value_on_caml_service =
   Eliom_testsuite_base.test
     ~title:"Client values in Ocaml-services"
@@ -179,7 +179,6 @@ let free_request =
 let bound_request =
   Html5.(D.div F.([b [pcdata "Reset each request (bound)"]]))
 
-(*
 let other_service =
   Eliom_registration.Ocaml.register_coservice'
     ~get_params:Eliom_parameter.unit
@@ -188,24 +187,25 @@ let other_service =
          debug "on other service";
          Html5.Manip.appendChild
            %free_request
-           Html5.F.(div [pcdata "onclick"]);
+           Html5.F.(div [pcdata "from ocaml service"]);
          Html5.Manip.appendChild
            %free_global
-           Html5.F.(div [pcdata "onclick"]);
+           Html5.F.(div [pcdata "from ocaml service"]);
          Html5.Manip.appendChild
            %bound_request
-           Html5.F.(div [pcdata "onclick"]);
+           Html5.F.(div [pcdata "from ocaml service"]);
          Html5.Manip.appendChild
            %bound_global
-           Html5.F.(div [pcdata "onclick"]);
+           Html5.F.(div [pcdata "from ocaml service"]);
          ()
        }};
        Lwt.return ())
- *)
 
 {client{
+  debug "toplevel";
   Eliom_client.onload
     (fun () ->
+       debug "onload";
        Html5.Manip.appendChild
          %free_request
          Html5.F.(div [pcdata "from client"]);
@@ -229,8 +229,9 @@ let node_bindings =
       p [pcdata "Observe when HTML5 elements with DOM semantics are reused."];
       p [pcdata "Bound nodes are sent in the page; free nodes are added by client value side effect after loading the page."];
       ul [
-        li [pcdata "All four nodes should receive an \"onclick\" line when THE BUTTON is clicked."];
+        li [pcdata "All four nodes should receive an \"onclick\" line when \"Add onclick lines\" is clicked."];
         li [pcdata "The free ones should reset on each request"];
+        li [pcdata "The free ones should receive a \"from ocaml service\" when \"Run Ocaml service\" is clicked"];
       ];
     ])
     (fun () ->
@@ -247,7 +248,7 @@ let node_bindings =
                 %free_global;
            )
        }};
-       let onclick = {{
+       let add_onclick = {{
          fun _ ->
            debug "onclick";
            Html5.Manip.appendChild
@@ -264,13 +265,50 @@ let node_bindings =
              Html5.F.(div [pcdata "onclick"]);
            ()
        }} in
-       Lwt.return Html5.F.( [
-         (* p [a ~service:other_service [pcdata "action other service"] ()]; *)
-         button ~a:[a_class ["thebutton"]; a_onclick onclick] ~button_type:`Submit
-           [ pcdata "THE BUTTON" ];
+       let run_ocaml_service = {{
+         fun _ ->
+           debug "run_ocaml_service";
+           Lwt.ignore_result
+             (Eliom_client.call_caml_service ~service: %other_service () ())
+       }} in
+       Lwt.return Html5.F.([
+         Eliom_testsuite_base.thebutton ~msg:"Add onclick lines" add_onclick;
+         Eliom_testsuite_base.thebutton ~msg:"Run ocaml service" run_ocaml_service;
          bound_request;
          bound_global;
        ]))
+(******************************************************************************)
+(*                                Data sharing                                *)
+
+let elt = Html5.D.(div [pcdata "WWWWWWWWWWW"])
+
+let data_sharing =
+  Eliom_testsuite_base.test
+    ~title:"Data sharing"
+    ~path:["holes"; "data_sharing"]
+    ~description:Html5.F.([
+      p [pcdata "Checks wheather data in the eliom request data is shared"];
+      p [pcdata "The string below is the encoded request data."];
+      p [pcdata "The string \"WWWWWWWWWWW\" should only occur once, although
+                 the corresponding element is used in 3 different client values."];
+    ])
+    (fun () ->
+       ignore {unit{ ignore %elt }};
+       ignore {unit{ ignore %elt }};
+       ignore {unit{ ignore %elt }};
+       ignore {unit{
+         Eliom_client.onload
+           (fun () ->
+              Html5.Manip.appendChild
+                (Html5.Of_dom.of_element Dom_html.document##body)
+                (Html5.F.pcdata (Js.to_string (Js.Unsafe.variable "__eliom_request_data"))))
+       }};
+       Lwt.return Html5.F.([]))
+
+{client{
+  let () = ignore %elt
+}}
+
 (******************************************************************************)
 (*                                Custom data                                 *)
 
@@ -1214,6 +1252,7 @@ let tests = [
     test_injection_scoping;
     test_client_value_on_caml_service;
     node_bindings;
+    data_sharing;
 (*
    test_simple;
    client_values_injection;

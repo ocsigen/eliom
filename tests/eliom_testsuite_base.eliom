@@ -61,7 +61,15 @@ let test ~path ~title:ttl ~description f =
                                h1 ~a:[a_class ["test_title"]] [pcdata ttl] ::
                                div ~a:[a_class ["test_description"]] description ::
                                hr () ::
-                               content))))
+                               content @
+                               [ test_logger ]))))
+
+let thebutton ?(msg="THE BUTTON") onclick : [> Html5_types.button ] Html5.elt =
+  Html5.F.(
+    button
+      ~a:[a_class ["thebutton"]; a_onclick onclick]
+      ~button_type:`Submit
+      [ pcdata msg ])
 
 {client{
 
@@ -74,9 +82,6 @@ let test ~path ~title:ttl ~description f =
   let () =
     Lwt.ignore_result
       (lwt () = Eliom_client.wait_load_end () in
-       Html5.Manip.appendChild
-         (Html5.Of_dom.of_element Dom_html.document##body)
-         %test_logger;
        List.iter append_log_message (List.rev !buffer);
        buffer := [];
        Lwt.return ())

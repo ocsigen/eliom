@@ -636,13 +636,13 @@ let uri_test =
           p [pcdata (Eliom_uri.make_string_uri ~service:eliomclient1 ())];
         ]
       in
-      Eliom_service.onload
-        {{
-          fun _->
-            Dom.appendChild (Eliom_client.Html5.of_div %div)
-              (Eliom_client.Html5.of_p
-                (p [pcdata (Eliom_uri.make_string_uri ~service:%eliomclient1 ())]))
-         }};
+      ignore {unit{
+        Eliom_client.onload
+          (fun _->
+             Dom.appendChild (Eliom_client.Html5.of_div %div)
+               (Eliom_client.Html5.of_p
+                 (p [pcdata (Eliom_uri.make_string_uri ~service:%eliomclient1 ())])))
+      }};
       Lwt.return (make_page [div])
     )
 
@@ -668,13 +668,13 @@ let wrapping_big_values = My_appl.register_service
                    size);
          br ()] in
     let list = Array.to_list (Array.init size (fun i -> i)) in
-    Eliom_service.onload
-      {{
-        fun _->
-          put %div "list length: %i" (List.length %list);
-      }};
-      Lwt.return
-        (make_page [div]))
+    ignore {unit{
+      Eliom_client.onload
+        (fun _->
+          put %div "list length: %i" (List.length %list);)
+    }};
+    Lwt.return
+      (make_page [div]))
 
 {shared{
 module Wrapping_test =
@@ -724,17 +724,18 @@ let () =
       let list = HTML5.DOM.ul [] in
 
       (* Simple unwrapping *)
-      Eliom_service.onload {{
-        fun _ ->
-          let v = %v1 in
-          put_li %list "The following item must be: \"42=42 42.42=42.420000 fourty two=fourty two\"";
-          put_li %list "42=%i 42.42=%f fourty two=%s"
-            v.Wrapping_test.v_int v.Wrapping_test.v_float v.Wrapping_test.v_string;
-          put_li %list "The following line must be: \"1::2::3::1::2::3::1::...\"";
-          ( match %rec_list with
-            | a::b::c::d::e::f::g::_ ->
-                put_li %list "%i::%i::%i::%i::%i::%i::%i::..." a b c d e f g;
-            | _ -> put_li %list "problem with recursive list"; )
+      ignore {unit{
+        Eliom_client.onload
+          (fun _ ->
+            let v = %v1 in
+            put_li %list "The following item must be: \"42=42 42.42=42.420000 fourty two=fourty two\"";
+            put_li %list "42=%i 42.42=%f fourty two=%s"
+              v.Wrapping_test.v_int v.Wrapping_test.v_float v.Wrapping_test.v_string;
+            put_li %list "The following line must be: \"1::2::3::1::2::3::1::...\"";
+            ( match %rec_list with
+              | a::b::c::d::e::f::g::_ ->
+                  put_li %list "%i::%i::%i::%i::%i::%i::%i::..." a b c d e f g;
+              | _ -> put_li %list "problem with recursive list"; ))
       }};
 
       (* Node unwrapping and Caml servive *)
@@ -826,9 +827,9 @@ let comet1 =
        let stream2 = Lwt_stream.from tick2 in
        let c2 = Eliom_comet.Channel.create stream2 in
 
-       Eliom_service.onload
-         {{
-           fun _ ->
+       ignore {unit{
+       Eliom_client.onload
+           (fun _ ->
              let _ = Lwt_stream.iter_s
              (fun i ->
                Dom.appendChild (Dom_html.document##body)
@@ -843,7 +844,7 @@ let comet1 =
                     (Js.string ("private: "^ string_of_int i ^"; "))) ;
                Lwt.return ()
              ) %c2 in
-             ()
+             ())
          }};
 
        Lwt.return
@@ -896,10 +897,11 @@ let caml_service_wrapping =
     ~path:["caml_service_wrapping"]
     ~get_params:unit
     (fun () () ->
-      Eliom_service.onload {{
-        fun _ ->
-          let c = Eliom_comet.Configuration.new_configuration () in
-          Eliom_comet.Configuration.set_always_active c true
+      ignore {unit{
+        Eliom_client.onload
+          (fun _ ->
+            let c = Eliom_comet.Configuration.new_configuration () in
+            Eliom_comet.Configuration.set_always_active c true)
       }};
       Lwt.return
         (make_page [
@@ -958,12 +960,12 @@ let comet2 =
           )
       in
       let `R _ = React.E.retain e_up_react (fun () -> ignore e_down) in
-      Eliom_service.onload
-        {{
-          fun _ ->
+      ignore {unit{
+        Eliom_client.onload
+          (fun _ ->
             ignore (React.E.map
               (fun s -> Dom_html.window##alert (Js.string s))
-              %e_down)
+              %e_down))
         }};
 
       (* We can send the page *)
@@ -1004,9 +1006,9 @@ let comet3 =
        let `R _ = React.E.retain e_up_react
                     (fun () -> ignore e_down_1 ; ignore e_down_2)
        in
-       Eliom_service.onload
-         {{
-           fun _ ->
+       ignore {unit{
+       Eliom_client.onload
+           (fun _ ->
              ignore (React.E.map
              (fun s -> Dom_html.window##alert (Js.string s))
              (React.E.merge
@@ -1014,7 +1016,7 @@ let comet3 =
                 [ React.E.map string_of_int %e_down_1 ;
                   %e_down_2 ;
                 ]
-             ))
+             )))
          }};
 
        (* We can send the page *)
@@ -1048,9 +1050,9 @@ let comet_wrapping =
       let c_xml = Eliom_comet.Channel.create xml_stream in
       let div_link = HTML5.DOM.div [] in
 
-      Eliom_service.onload
-        {{
-          fun _ ->
+      ignore {unit{
+        Eliom_client.onload
+         (fun _ ->
             ignore (Lwt_stream.iter
             (fun service ->
               Dom.appendChild (Eliom_client.Html5.of_element %div_link)
@@ -1062,7 +1064,7 @@ let comet_wrapping =
                       (fun xml ->
                         Dom.appendChild (Eliom_client.Html5.of_element %div_link)
                           (Eliom_client.Html5.of_element xml)
-                      ) %c_xml)
+                      ) %c_xml))
         }};
 
       Lwt.return
@@ -1079,12 +1081,12 @@ let comet_signal_maker name time =
     ~get_params:unit
     (fun () () ->
       let time_div = HTML5.DOM.div [] in
-      Eliom_service.onload
-        {{
-          fun _ ->
+      ignore {unit{
+      Eliom_client.onload
+          (fun _ ->
             Lwt_react.S.keep
             (React.S.map (fun t -> (Eliom_client.Html5.of_div %time_div)##innerHTML <-
-              Js.string (string_of_float t)) %time)
+              Js.string (string_of_float t)) %time))
         }};
        Lwt.return (make_page [
          h2 [pcdata "Signal"] ;
@@ -1115,9 +1117,9 @@ let comet_message_board_maker name message_bus cb =
        Lwt.return (
          let container = HTML5.DOM.ul [li [em [pcdata "This is the message board"]]] in
          let field = HTML5.DOM.raw_input ~a:[a_id "msg"; a_name "message"] ~input_type:`Text () in
-         Eliom_service.onload
-           {{
-             fun _ ->
+         ignore {unit{
+         Eliom_client.onload
+             (fun _ ->
                let c = Eliom_comet.Configuration.new_configuration () in
                Eliom_comet.Configuration.set_timeout c 3.;
                let _ =
@@ -1136,7 +1138,7 @@ let comet_message_board_maker name message_bus cb =
                      | e ->
                        debug_exn "comet exception: " e;
                        Lwt.fail e);
-               in ()
+               in ())
            }} ;
 
          let go =
@@ -1207,30 +1209,32 @@ let bus_multiple_times =
     ~get_params:unit
     (fun () () ->
       let container = HTML5.DOM.ul [li [em [pcdata "there will be lines"]]] in
-      let onload s message_bus = {{
-        fun _ ->
-          let _ =
-            try_lwt
-              Lwt_stream.iter_s
-                (fun msg ->
-                  Dom.appendChild (Eliom_client.Html5.of_element %container)
-                    (Eliom_client.Html5.of_li (li [pcdata (Printf.sprintf "stream %s: %i" %s msg)]));
-                  Lwt.return ())
-                (Eliom_bus.stream %message_bus)
-             with
-               | Eliom_comet.Channel_full ->
-                 Dom.appendChild (Eliom_client.Html5.of_element %container)
-                   (Eliom_client.Html5.of_li (li [pcdata "channel full, no more messages"]));
-                 Lwt.return ()
-               | e -> Lwt.fail e;
-          in ()
+      let onload s message_bus =
+        ignore {unit{
+          Eliom_client.onload
+            (fun _ ->
+              let _ =
+                try_lwt
+                  Lwt_stream.iter_s
+                    (fun msg ->
+                      Dom.appendChild (Eliom_client.Html5.of_element %container)
+                        (Eliom_client.Html5.of_li (li [pcdata (Printf.sprintf "stream %s: %i" %s msg)]));
+                      Lwt.return ())
+                    (Eliom_bus.stream %message_bus)
+                 with
+                   | Eliom_comet.Channel_full ->
+                     Dom.appendChild (Eliom_client.Html5.of_element %container)
+                       (Eliom_client.Html5.of_li (li [pcdata "channel full, no more messages"]));
+                     Lwt.return ()
+                   | e -> Lwt.fail e;
+              in ())
         }} in
-      Eliom_service.onload (onload "statefull 1" multiple_bus);
-      Eliom_service.onload (onload "statefull 2" multiple_bus);
-      Eliom_service.onload (onload "statefull 3" multiple_bus);
-      Eliom_service.onload (onload "stateless 1" multiple_bus_stateless);
-      Eliom_service.onload (onload "stateless 2" multiple_bus_stateless);
-      Eliom_service.onload (onload "stateless 3" multiple_bus_stateless);
+      onload "statefull 1" multiple_bus;
+      onload "statefull 2" multiple_bus;
+      onload "statefull 3" multiple_bus;
+      onload "stateless 1" multiple_bus_stateless;
+      onload "stateless 2" multiple_bus_stateless;
+      onload "stateless 3" multiple_bus_stateless;
       Lwt.return (make_page [ h2 [pcdata "Multiple streams from one bus"];
                               br ();
                               a ~service:Eliom_service.void_coservice' [pcdata "reload"] ();
@@ -1265,9 +1269,9 @@ let comet_stateless =
     ~get_params:unit
     (fun () () ->
 
-       Eliom_service.onload
-         {{
-           fun _->
+       ignore
+         {unit{
+           Eliom_client.onload (fun _->
              let _ = Lwt_stream.iter_s
              (fun i ->
                Dom.appendChild (Dom_html.document##body)
@@ -1275,7 +1279,7 @@ let comet_stateless =
                     (Js.string ("msg: "^ string_of_int i ^";  "))) ;
                Lwt.return ()
              ) %stateless_channel in
-             ()
+             ())
          }};
 
        Lwt.return
@@ -1291,9 +1295,9 @@ let comet_stateless_external =
     ~get_params:unit
     (fun () () ->
 
-       Eliom_service.onload
-         {{
-           fun _ ->
+       ignore
+         {unit{
+          Eliom_client.onload (fun _ ->
              let _ = Lwt_stream.iter_s
              (fun i ->
                Dom.appendChild (Dom_html.document##body)
@@ -1301,7 +1305,7 @@ let comet_stateless_external =
                     (Js.string ("msg: "^ string_of_int i ^";  "))) ;
                Lwt.return ()
              ) %external_stateless_channel in
-             ()
+             ())
          }};
 
        Lwt.return
@@ -1408,9 +1412,9 @@ let event_service =
       let target16 = make_target "Mouse over change color" in
 
       let targetresult = HTML5.DOM.p [] in
-      Eliom_service.onload
-        {{
-          fun _ ->
+      ignore {unit{
+      Eliom_client.onload
+          (fun _ ->
             let targetresult = (Eliom_client.Html5.of_p %targetresult) in
 
             let handler =
@@ -1464,7 +1468,7 @@ let event_service =
                         (arr (fun _ -> t16##style##backgroundColor <- Js.string ""))
             ) ()
             in
-            ()
+            ())
 
         }};
 
@@ -1516,9 +1520,9 @@ let event2_service =
       let target21 = make_target "If you click very quickly after having entered a letter below, my handler will not occure because the long handler for the keypress below is detached." in
 
       let targetresult = HTML5.DOM.p [] in
-      Eliom_service.onload
-        {{
-          fun _ ->
+      ignore {unit{
+        Eliom_client.onload
+          (fun _ ->
             let targetresult = (Eliom_client.Html5.of_p %targetresult) in
 
             let handler ev =
@@ -1595,7 +1599,7 @@ let event2_service =
                                fun _ -> ignore (handler_long ()); Lwt.return () );
                                click (Eliom_client.Html5.of_p %target21) >>=
                                handler
-                             ]);
+                             ]))
 
 
         }};
@@ -2811,20 +2815,24 @@ let dead_links =
                    [pcdata "Link to another application."] ()];]]
 
 let () = My_appl.register ~service:live1 (fun () () ->
-    Eliom_service.onload {{ fun _ -> debug "Page 1 loading"; pinger := Some (loop 2. 0 loop_counter) }};
-    Eliom_service.onunload {{ fun _ -> debug "Page 1 unloading"; iter_option Lwt.cancel !pinger }};
+    ignore {unit{ Eliom_client.onload (fun _ -> debug "Page 1 loading"; pinger := Some (loop 2. 0 loop_counter)) }};
+    ignore {unit{ Eliom_client.onunload (fun _ -> debug "Page 1 unloading"; iter_option Lwt.cancel !pinger) }};
     Lwt.return
       (make_page [h1 [pcdata "Page one"]; live_description; live_links; dead_links]))
 
 let () = My_appl.register ~service:live2 (fun () () ->
-    Eliom_service.onload {{ fun _ -> debug "Page 2 loading" }};
-    Eliom_service.onunload {{ fun _ -> debug "Page 2 unloading" }};
+    ignore {unit{
+      Eliom_client.onload (fun _ -> debug "Page 2 loading");
+      Eliom_client.onunload (fun _ -> debug "Page 2 unloading")
+    }};
     Lwt.return
       (make_page [h1 [pcdata "Page two"];live_description; live_links; dead_links]))
 
 let () = My_appl.register ~service:live3 (fun () () ->
-    Eliom_service.onload {{ fun _ -> debug "Page 3 loading" }};
-    Eliom_service.onunload {{ fun _ -> debug "Page 3 unloading" }};
+    ignore {unit{
+      Eliom_client.onload (fun _ -> debug "Page 3 loading");
+      Eliom_client.onunload (fun _ -> debug "Page 3 unloading")
+    }};
     Lwt.return
       (make_page [h1 [pcdata "Page threee"]; live_description; live_links; dead_links]))
 
@@ -2832,9 +2840,9 @@ let () = My_appl.register ~service:live3 (fun () () ->
 let formc = My_appl.register_service ["formc"] unit
   (fun () () -> 
     let div = HTML5.DOM.div [h3 [pcdata "Forms and links created on client side:"]] in
-    Eliom_service.onload
-      {{
-        fun _ ->
+    ignore {unit{
+      Eliom_client.onload
+        (fun _ ->
 
           let l =
             [
@@ -2910,7 +2918,7 @@ let formc = My_appl.register_service ["formc"] unit
           List.iter
             (fun e -> Dom.appendChild
               (Eliom_client.Html5.of_div %div)
-              (Eliom_client.Html5.of_element e)) l
+              (Eliom_client.Html5.of_element e)) l)
        }};
 
     Lwt.return
@@ -3260,7 +3268,7 @@ let _ =
   My_appl.register
     unique1
     (fun () () ->
-      Eliom_service.onload {{ fun _ -> debug "Load page 1" }};
+      ignore {unit{Eliom_client.onload (fun _ -> debug "Load page 1") }};
       return
         (make_page [h1 [pcdata "Page 1"];
                     p [pcdata "This page contains three div with attached onload event.";
@@ -3293,7 +3301,7 @@ let _ =
   My_appl.register
     unique2
     (fun () () ->
-      Eliom_service.onload {{ fun _ -> debug "Load page 2" }};
+      ignore {unit{Eliom_client.onload (fun _ -> debug "Load page 2") }};
       return
         (make_page [h1 [pcdata "Page 2"];
                     Eliom_output.Html5.a ~service:unique1 [pcdata "Get back to Page 1."] ();
@@ -3335,11 +3343,11 @@ let global_list = HTML5.create_global_elt (ul [li [pcdata "First element"]])
 let local_list = HTML5.DOM.ul [li [pcdata "First element"]]
 
 let relink_page () =
-  Eliom_service.onload {{
-    fun _ ->
+  ignore {unit{
+   Eliom_client.onload (fun _ ->
       debug "onload";
       put_li %global_list "Global.";
-      put_li %local_list "Request.";
+      put_li %local_list "Request.")
   }};
   [ div [pcdata "This div contains a global list sent by reference. While the application runs, there should be one new item in the list each time the page is loaded."; global_list];
     div [pcdata "This div contains a request list sent by reference. There should be only one item in the list."; local_list];
@@ -3412,10 +3420,11 @@ let () =
     react_example
     (fun () () ->
       let click_div = HTML5.DOM.div ~a:[a_onclick {{ fun _ -> push (incr count; !count) }}] [] in
-      Eliom_service.onload {{
-        fun _ ->
+      ignore {unit{
+        Eliom_client.onload
+        (fun _ ->
           react_node %click_div
-            (React.S.map (fun i -> [pcdata (Printf.sprintf "value: %i" i)]) r)
+            (React.S.map (fun i -> [pcdata (Printf.sprintf "value: %i" i)]) r))
       }};
       Lwt.return (make_page [click_div]))
 
@@ -3427,13 +3436,14 @@ let caml_service_with_onload' =
     ~get_params:Eliom_parameter.unit
     (fun () () ->
       let node = HTML5.DOM.div [pcdata "new div"] in
-      Eliom_service.onload {{
-        fun _ ->
-          let node = Eliom_client.Html5.of_div %node in
-          ignore (Dom_html.addEventListener node Dom_html.Event.click
-                    (Dom_html.handler (fun _ -> Dom_html.window##alert(Js.string "clicked!"); Js._true))
-                    Js._true);
-          ()
+      ignore {unit{
+        Eliom_client.onload
+          (fun _ ->
+             let node = Eliom_client.Html5.of_div %node in
+             ignore (Dom_html.addEventListener node Dom_html.Event.click
+                       (Dom_html.handler (fun _ -> Dom_html.window##alert(Js.string "clicked!"); Js._true))
+                       Js._true);
+             ())
       }};
       Lwt.return (node : Html5_types.div Eliom_pervasives.HTML5.M.elt))
 
@@ -3575,7 +3585,7 @@ let shared_dom_nodes = My_appl.register_service
                        li;
                        HTML5.M.li [pcdata "Non-shared item B"];
                        li;
-                       HTML5.M.li [pcdata "Non-shared item B"];];
+                       HTML5.M.li [pcdata "Non-shared item C"];];
           HTML5.M.p [pcdata "It is possible that for a very short period of time the first one appears. ";
                      pcdata "However, programmer probably do not want to use multiple occurences of a unique node ";
                      pcdata "and this \"blink\" will be a good reminder of unique node misuse..."];
@@ -3584,7 +3594,7 @@ let shared_dom_nodes = My_appl.register_service
                        li_appl;
                        HTML5.M.li [pcdata "Non-shared item B"];
                        li_appl;
-                       HTML5.M.li [pcdata "Non-shared item B"];];
+                       HTML5.M.li [pcdata "Non-shared item C"];];
          ]))
 
 
@@ -3617,9 +3627,10 @@ let tmpl2_page2 = Eliom_service.service
   ()
 
 let tmpl1_update id contents = {{
-  fun _ ->
-    debug "Update";
-    Eliom_dom.Named.replaceAllChild %id %contents
+  Eliom_client.onload
+    (fun () ->
+      debug "Update";
+      Eliom_dom.Named.replaceAllChild %id %contents)
 }}
 
 module Tmpl_1 = Eliom_output.Eliom_tmpl(My_appl)(struct
