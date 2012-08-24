@@ -31,4 +31,4 @@ module Client_value : sig
   val instance_id: _ t -> int
 end
 
-type escaped_value = string
+type escaped_value = Ocsigen_lib_base.poly

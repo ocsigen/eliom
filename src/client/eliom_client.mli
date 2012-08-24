@@ -116,10 +116,13 @@ val call_service :
   ?nl_params:Eliom_parameter.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> string Lwt.t
 
-(* Registers a function to call after loading the page, or the next time the
-   DOM content is changed (cf. {% <<a_api | val Eliom_client.change_page >> %}).
+(** Registers a function to call after loading the page, or the next time the
+    DOM content is changed (cf. {% <<a_api | val Eliom_client.change_page >> %}).
  *)
 val onload : (unit -> unit) -> unit
+
+(** register a function to be called on page change *)
+val onunload : (unit -> unit) -> unit
 
 (** wait for the loading phase to terminate *)
 val wait_load_end : unit -> unit Lwt.t
@@ -127,13 +130,12 @@ val wait_load_end : unit -> unit Lwt.t
 (** true if the function is executed inside the loading phase *)
 val in_onload : unit -> bool
 
-(** register a function to be called on page change *)
-val on_unload : (unit -> unit) -> unit
 
 (**/**)
 
 val relink_request_nodes : Dom_html.htmlElement Js.t -> unit
 val reset_request_node : unit -> unit
+val force_unwrapped_elts : unit -> unit
 
 val load_eliom_data :
   Eliom_types.eliom_js_page_data ->
@@ -144,11 +146,7 @@ val rebuild_node : 'a Eliom_content_core.Html5.elt -> < .. > Js.t
 
 module Syntax_helpers : sig
   val register_client_closure : int64 -> (_ -> _) -> unit
-  val get_escaped_value : 'a escaped_value -> 'a
+  val get_escaped_value : escaped_value -> 'a
   val injection_initializations : string list -> unit
   val get_injection : string -> 'a
 end
-
-(* val do_injection_initializations : names:string list -> unit *)
-val force_all_injections : unit -> unit
-val force_all_client_value_args : unit -> unit

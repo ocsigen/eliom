@@ -527,34 +527,6 @@ let unregister ?scope ?secure service =
 
 
 (*****************************************************************************)
-(** {2 on_load and on_unload for App services } *)
-
-(* We keep them in rc because we want them to apply to the next page that
-   will be displayed. That is, event after an action or a (stateful)
-   redirection.
-*)
-
-let onload_events =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
-
-let onload ev =
-  Eliom_reference.Volatile.modify onload_events
-    (fun evs -> Xml.caml_event_handler ev :: evs)
-
-let get_onload () =
-  Eliom_reference.Volatile.get onload_events
-
-let onunload_events =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
-
-let get_onunload () =
-  Eliom_reference.Volatile.get onunload_events
-
-let onunload ev =
-  Eliom_reference.Volatile.modify onunload_events
-    (fun evs -> Xml.caml_event_handler ev :: evs)
-
-(*****************************************************************************)
 let pre_wrap s =
   {s with
     get_params_type = Eliom_parameter.wrap_param_type s.get_params_type;
@@ -571,7 +543,7 @@ let global_client_values : Client_value_data.t Eliom_reference.Volatile.eref =
 let request_client_values : Client_value_data.t Eliom_reference.Volatile.eref =
   Eliom_reference.Volatile.eref ~scope:Eliom_common.request Client_value_data.empty
 
-let register_client_value_data closure_id instance_id args =
+let register_client_value_data ~closure_id ~instance_id args =
   let reference =
     if Eliom_common.get_sp_option () = None
     then global_client_values
@@ -588,19 +560,21 @@ let get_request_client_value_data () =
 (******************************************************************************)
 (** {2 Injection_data} *)
 
-let request_injections : poly Injection_data.t Eliom_reference.Volatile.eref =
+let request_injections : Injection_data.t Eliom_reference.Volatile.eref =
   Eliom_reference.Volatile.eref ~scope:Eliom_common.global Injection_data.empty
 let register_injection name f =
   Eliom_reference.Volatile.modify request_injections
     (Injection_data.add name f)
-let get_injections () : poly Injection_data.t =
+let get_injection_data () : Injection_data.t =
   Eliom_reference.Volatile.get request_injections
 
 module Syntax_helpers = struct
 
+  let escaped_value = Eliom_lib.escaped_value
+
   let client_value closure_id args =
     let instance_id = Eliom_lib.fresh_ix () in
-    register_client_value_data closure_id instance_id (to_poly args);
+    register_client_value_data ~closure_id ~instance_id (to_poly args);
     create_client_value
       (Eliom_server.Client_value.create closure_id instance_id)
 

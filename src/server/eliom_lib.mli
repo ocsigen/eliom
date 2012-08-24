@@ -43,7 +43,7 @@ type 'a client_value
 (**/**)
 val create_client_value : 'a Eliom_server.Client_value.t -> 'a client_value
 val client_value_client_value : 'a client_value -> 'a Eliom_server.Client_value.t
-val escaped_value : 'a -> Eliom_server.escaped_value * Eliom_wrap.unwrapper
+val escaped_value : 'a -> Eliom_server.escaped_value (* * Eliom_wrap.unwrapper *)
 (**/**)
 
 (** {2 Pervasives} *)
@@ -63,34 +63,22 @@ val jsmarshal : 'a -> string
 
 val string_escape : string -> string
 
-(** This is the counter part of {% <<a_api subproject="client"|
-    val Eliom_lib.unescape_and_unwrap >> %} *)
-val wrap_and_marshall_poly : poly -> string
-
-
 module Client_value_data : sig
 
-  type t = poly Int_map.t Int64_map.t
-
-  type client = string Int_map.t Int64_map.t
+  include module type of Client_value_data_base
 
   val empty : t
   val add : int64 -> int -> poly -> t -> t
   val union : t -> t -> t
 
-  val to_client : t -> client
 end
 
 module Injection_data : sig
 
-  type 'a t = 'a String_map.t
-    (* ['a] may be [poly] or [unit -> poly Lwt.t] in [Eliom_service] *)
+  include module type of Injection_data_base
 
-  type client = string String_map.t
+  val empty : t
+  val add : string -> poly -> t -> t
+  val union : t -> t -> t
 
-  val empty : _ t
-  val add : string -> 'a -> 'a t -> 'a t
-  val union : 'a t -> 'a t -> 'a t
-
-  val to_client : poly t -> client
 end

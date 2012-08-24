@@ -55,7 +55,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     in
     let escaped_value (_, arg) =
       let _loc = Loc.ghost in
-      <:expr< Eliom_lib.escaped_value $arg$ >>
+      <:expr< Eliom_service.Syntax_helpers.escaped_value $arg$ >>
     in
     <:expr@loc<
       (Eliom_service.Syntax_helpers.client_value

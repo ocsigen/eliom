@@ -188,7 +188,8 @@ end
 
 let tyxml_unwrap_id_int = 1
 let client_value_unwrap_id_int = 7
-let escaped_value_unwrap_id_int = 8
+
+type escaped_value = poly
 
 (**/**)
 
@@ -202,3 +203,11 @@ module Int64_map = Map_make (Int64)
 module Int_map = Map_make (struct type t = int let compare = (-) end)
 module String_map = Map_make (String)
 
+
+module Client_value_data_base = struct
+  type t = poly Int_map.t Int64_map.t
+end
+
+module Injection_data_base = struct
+  type t = poly String_map.t
+end

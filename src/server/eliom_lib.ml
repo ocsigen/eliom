@@ -70,10 +70,8 @@ let create_client_value cv =
 
 let client_value_client_value = fst
 
-let escaped_value value : Eliom_server.escaped_value * Eliom_wrap.unwrapper =
-  wrap_and_marshall_poly (to_poly value),
-  Eliom_wrap.create_unwrapper
-    (Eliom_wrap.id_of_int Eliom_lib_base.escaped_value_unwrap_id_int)
+let escaped_value value : Eliom_server.escaped_value (* * Eliom_wrap.unwrapper *) =
+  to_poly value
 
 let merge_aux err_msg =
   curry
@@ -85,9 +83,7 @@ let merge_aux err_msg =
 
 module Client_value_data = struct
 
-  type t = poly Int_map.t Int64_map.t
-
-  type client = string Int_map.t Int64_map.t
+  include Client_value_data_base
 
   let empty =
     Int64_map.empty
@@ -112,15 +108,11 @@ module Client_value_data = struct
                  instances_1 instances_2))
       table_1 table_2
 
-  let to_client : t -> client =
-    fun table ->
-      map wrap_and_marshall_poly table
 end
 
 module Injection_data = struct
 
-  type 'a t = 'a String_map.t
-  type client = string String_map.t
+  include Injection_data_base
 
   let empty = String_map.empty
   let add = String_map.add
@@ -128,7 +120,4 @@ module Injection_data = struct
     String_map.merge (fun _ -> merge_aux "Injection_data.union")
       table_1 table_2
 
-  let to_client : poly t -> client =
-    fun table ->
-      String_map.map wrap_and_marshall_poly table
 end

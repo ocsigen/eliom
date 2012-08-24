@@ -231,7 +231,7 @@ module type TMPL_PARAMS = sig
   type t
   val name: string
   val make_page: t -> Html5_types.html Eliom_content_core.Html5.elt Lwt.t
-  val update: t -> (Dom_html.event Js.t -> unit) client_value
+  val update: t -> unit client_value
 end
 
 module Eliom_tmpl (Appl : ELIOM_APPL) (Tmpl_param : TMPL_PARAMS): sig

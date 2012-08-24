@@ -32,8 +32,7 @@ let onload ev =
             Eliom_client.load_eliom_data
               (Eliom_request_info.get_request_data ())
               (Dom_html.document##documentElement) in
-          Eliom_client.force_all_injections ();
-          Eliom_client.force_all_client_value_args ();
+          Eliom_client.force_unwrapped_elts ();
           (* The request node table must be empty when node received
              via call_caml_service are unwrapped. *)
           Eliom_client.reset_request_node ();

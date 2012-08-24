@@ -129,7 +129,8 @@ end
 
 val tyxml_unwrap_id_int : int
 val client_value_unwrap_id_int : int
-val escaped_value_unwrap_id_int : int
+
+type escaped_value = poly
 
 module Int64_map : sig
   include Map.S with type key = int64
@@ -146,3 +147,10 @@ end
 
 (**/**)
 
+module Client_value_data_base : sig
+  type t = poly Int_map.t Int64_map.t
+end
+
+module Injection_data_base : sig
+  type t = poly String_map.t
+end

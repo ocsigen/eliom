@@ -106,22 +106,12 @@ let encode_header_value x =
 let unmarshal_js_var s =
   Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
 
-type 'a escaped_value = 'a lazy_t
-
-let unescape_and_unwrap str =
-  Eliom_unwrap.unwrap
-    (Js.to_bytestring
-       (Js.unescape
-          (Js.Unsafe.eval_string
-             ("\""^escape_quotes str^"\""))))
-    0
-
 (** Empty type (not used on client side, see eliom_parameter_base.ml) *)
 type file_info
 
 module Client_value_data = struct
 
-  type t = string Int_map.t Int64_map.t
+  include Client_value_data_base
 
   let closure_ids table =
     List.map fst
@@ -137,21 +127,19 @@ module Client_value_data = struct
   let find closure_id instance_id table =
     trace "Find client value data for %Ld" closure_id;
     let instances = Int64_map.find closure_id table in
-    unescape_and_unwrap
-      (Int_map.find instance_id instances)
+    Int_map.find instance_id instances
 
 end
 
 module Injection_data = struct
 
-  type t = string String_map.t
+  include Injection_data_base
 
   let names table =
     List.map fst (String_map.bindings table)
 
   let find name table =
-    unescape_and_unwrap
-      (String_map.find name table)
+    String_map.find name table
 end
 
 

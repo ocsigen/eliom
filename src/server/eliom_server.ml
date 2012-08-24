@@ -14,4 +14,4 @@ module Client_value = struct
   let instance_id { instance_id } = instance_id
 end
 
-type escaped_value = string
+type escaped_value = poly

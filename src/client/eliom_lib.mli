@@ -83,21 +83,15 @@ val js_array_to_list : 'a Js.js_array Js.t -> 'a list
 
 (**/**)
 
-type 'a escaped_value = 'a lazy_t
-
-(** This is the counter part of {% <<a_api subproject="server"|
-    val Eliom_lib.wrap_and_marshall_poly >> %} *)
-val unescape_and_unwrap : string -> poly
-
 module Client_value_data : sig
-  type t = string Int_map.t Int64_map.t
+  include module type of Client_value_data_base
   val closure_ids : t -> int64 list
   val instance_ids : int64 -> t -> int list
   val find : int64 -> int -> t -> poly
 end
 
 module Injection_data : sig
-  type t = string String_map.t
+  include module type of Injection_data_base
   val names : t -> string list
   val find : string -> t -> poly
 end

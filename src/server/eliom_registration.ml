@@ -30,7 +30,7 @@ let code_of_code_option = function
 
 include Eliom_registration_base
 
-let client_value_data include_global_client_values =
+let client_value_data ~include_global_client_values =
   let request_initializations =
     Eliom_service.get_request_client_value_data ()
   in
@@ -39,12 +39,8 @@ let client_value_data include_global_client_values =
     then Eliom_service.get_global_client_value_data ()
     else Client_value_data.empty
   in
-  let all_client_value_data =
-    Client_value_data.union
-      global_initializations request_initializations
-  in
-  Client_value_data.to_client
-    all_client_value_data
+  Client_value_data.union
+    global_initializations request_initializations
 
 (******************************************************************************)
 (* Send return types                                                          *)
@@ -1163,9 +1159,10 @@ module Ocaml = struct
   module M = Eliom_mkreg.MakeRegister(Caml_reg_base)
 
   let prepare_data data =
-    let r = { Eliom_types.ecs_onload = Eliom_service.get_onload ();
+    let r = { Eliom_types.
+              ecs_client_value_data = client_value_data ~include_global_client_values:false;
               ecs_data = data } in
-    Lwt.return (Eliom_types.encode_eliom_data (r, client_value_data false))
+    Lwt.return (Eliom_types.encode_eliom_data r)
 
   let make_eh = function
     | None -> None
@@ -1491,8 +1488,6 @@ module Eliom_appl_reg_make_param
       Printf.sprintf
         "var __eliom_appl_sitedata = \'%s\';\n\
          var __eliom_appl_process_info = \'%s\'\n\
-         var __eliom_client_value_data;\n\
-         var __eliom_injections;\n\
          var __eliom_request_data;\n\
          var __eliom_request_cookies;\n\
          var __eliom_request_template;\n"
@@ -1506,14 +1501,33 @@ module Eliom_appl_reg_make_param
 
   let make_eliom_data_script ~sp page =
 
+    let include_global_client_values =
+      None = Eliom_request_info.get_sp_client_appl_name ()
+    in
+
+    let client_value_data = client_value_data ~include_global_client_values in
+    let injection_data = Eliom_service.get_injection_data () in
+
+    Int64_map.iter
+      (fun closure_id instances ->
+         debug "Client_value_datas for closure_id %Ld: %s" closure_id
+           (String.concat ", "
+             (List.map
+                (fun (instance_id, _) -> string_of_int instance_id)
+                (Int_map.bindings instances))))
+      client_value_data;
+    debug "Injections: %s"
+      (String.concat ","
+         (List.map fst (String_map.bindings injection_data)));
+
     (* wrapping of values could create eliom references that may
        create cookies that needs to be sent along the page. Hence,
        cookies should be calculated after wrapping. *)
     let eliom_data =
       { Eliom_types.
         ejs_event_handler_table = Eliom_content.Xml.make_event_handler_table (Eliom_content.Html5.D.toelt page);
-        ejs_onload              = Eliom_service.get_onload ();
-        ejs_onunload            = Eliom_service.get_onunload ();
+        ejs_client_value_data   = client_value_data;
+        ejs_injection_data      = injection_data;
         ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;
       } in
 
@@ -1526,40 +1540,14 @@ module Eliom_appl_reg_make_param
 
     lwt template = Eliom_reference.get request_template in
 
-    let include_global_client_values =
-      None = Eliom_request_info.get_sp_client_appl_name ()
-    in
-
-    let client_value_data = client_value_data include_global_client_values in
-
-    let injections =
-      Injection_data.to_client (Eliom_service.get_injections ())
-    in
-
-    Int64_map.iter
-      (fun closure_id instances ->
-         debug "Client_value_datas for closure_id %Ld: %s" closure_id
-           (String.concat ", "
-             (List.map
-                (fun (instance_id, _) -> string_of_int instance_id)
-                (Int_map.bindings instances))))
-      client_value_data;
-    debug "Injections: %s"
-      (String.concat ","
-         (List.map fst (String_map.bindings injections)));
-
     let script =
       Printf.sprintf
         "__eliom_request_data = \'%s\';\n\
          __eliom_request_cookies = \'%s\';\n\
-         __eliom_request_template = \'%s\';\n\
-         __eliom_client_value_data = \'%s\';\n\
-         __eliom_injections = \'%s\';"
+         __eliom_request_template = \'%s\';"
         (Eliom_lib.jsmarshal (Eliom_wrap.wrap eliom_data))
         (Eliom_lib.jsmarshal tab_cookies)
         (Eliom_lib.jsmarshal (template: string option))
-        (Eliom_lib.jsmarshal (Eliom_wrap.wrap client_value_data))
-        (Eliom_lib.jsmarshal injections)
     in
     Lwt.return (Eliom_content.Html5.F.script (cdata_script script))
 
@@ -1745,7 +1733,7 @@ module type TMPL_PARAMS = sig
   type t
   val name: string
   val make_page: t -> Html5_types.html Eliom_content.Html5.elt Lwt.t
-  val update: t -> (Dom_html.event Js.t -> unit) client_value
+  val update: t -> unit client_value
 end
 
 module Eliom_tmpl_reg_make_param
@@ -1778,7 +1766,7 @@ module Eliom_tmpl_reg_make_param
         Result_types.cast_kind_lwt
           (Appl.send ~options ?charset ?code ?content_type ?headers content)
     | Some _ ->
-        Eliom_service.onload (Tmpl_param.update content);
+        ignore (Tmpl_param.update content);
         Result_types.cast_kind_lwt (Ocaml.send ?charset ?code ?content_type ?headers ())
 
 end

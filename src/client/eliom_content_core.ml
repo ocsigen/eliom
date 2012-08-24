@@ -42,22 +42,30 @@ module Xml = struct
   and elt = {
     (* See Eliom_content.Html5.To_dom for the 'unwrap' function that convert
        the server's tree representation into the client one. *)
-    mutable elt : node;
+    mutable elt : node lazy_t;
     node_id : node_id;
   }
 
   type -'a client_server_event_handler = 'a Js.t -> unit
 
   let content e =
-    match e.elt with
+    match Lazy.force e.elt with
     | DomNode _ -> assert false (* TODO *)
     | TyXMLNode elt -> elt
-  let get_node e = e.elt
-  let set_dom_node elt node = elt.elt <- DomNode node
+  let get_node e = Lazy.force e.elt
+  let set_dom_node elt node = elt.elt <- Lazy.lazy_from_val (DomNode node)
   let get_node_id elt = elt.node_id
 
-  let make ?(id = NoId) elt = { elt = TyXMLNode elt; node_id = id; }
-  let make_dom ?(id = NoId) node = { elt = DomNode node; node_id = id; }
+  let make ?(id = NoId) elt = { elt = Lazy.lazy_from_val (TyXMLNode elt); node_id = id; }
+  let make_dom ?(id = NoId) node = { elt = Lazy.lazy_from_val (DomNode node); node_id = id; }
+  let make_lazy ?(id = NoId) lazy_elt =
+    let f () =
+       let elt = Lazy.force lazy_elt in
+       assert (elt.node_id = id);
+       Lazy.force elt.elt
+    in
+    { node_id = id; elt = Lazy.lazy_from_fun f }
+  let force_lazy { elt } = ignore (Lazy.force elt)
 
   let empty () = make Empty
 
@@ -116,10 +124,10 @@ module Xml = struct
       Node (ename, filter_class_attribs node_id attribs, sons)
 
   let set_classes_of_elt elt =
-     match elt.elt with
+     match Lazy.force elt.elt with
       | DomNode _ -> failwith "Eliom_content_core.set_classes_of_elt"
       | TyXMLNode econtent ->
-          { elt with elt = TyXMLNode (set_classes elt.node_id econtent) }
+          { elt with elt = Lazy.lazy_from_val (TyXMLNode (set_classes elt.node_id econtent)) }
 
 end
 
@@ -415,7 +423,7 @@ module Html5 = struct
 
   module Of_dom = struct
     let rebuild_xml (node: 'a Js.t) : 'a F.elt =
-      Obj.magic { Xml.elt = Xml.DomNode (node :> Dom.node Js.t); node_id = Xml.NoId }
+      Obj.magic { Xml.elt = Lazy.lazy_from_val (Xml.DomNode (node :> Dom.node Js.t)); node_id = Xml.NoId }
     let of_element : Dom_html.element Js.t -> 'a elt = rebuild_xml
     let of_html : Dom_html.htmlElement Js.t -> Html5_types.html elt = rebuild_xml
     let of_head : Dom_html.headElement Js.t -> Html5_types.head elt = rebuild_xml
