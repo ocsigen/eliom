@@ -85,13 +85,11 @@ let close_persistent_session ~scope ~secure ?sp () =
               sp.Eliom_common.sp_sitedata
               !(c.Eliom_common.pc_session_group)
           | `Session _ ->
-            Eliommod_sessiongroups.Pers.remove_group
-              ~cookie_scope:(`Client_process !(c.Eliom_common.pc_session_group))
+            close_persistent_session2
+              ~cookie_scope:`Session
               sp.Eliom_common.sp_sitedata
-              (Eliommod_sessiongroups.make_persistent_full_group_name
-                 ~cookie_scope:`Client_process
-                 sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
-                 (Some c.Eliom_common.pc_value))
+              !(c.Eliom_common.pc_session_group)
+              c.Eliom_common.pc_value
           | `Client_process _ ->
             close_persistent_session2
               ~cookie_scope:`Client_process

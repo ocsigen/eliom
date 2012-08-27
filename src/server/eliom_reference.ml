@@ -45,15 +45,15 @@ module Volatile = struct
 
   type 'a eref = ('a, volatile) eref'
 
-  (* TODO With GADTs, drop the [assert false] statements below! *)
+  (* TODO With GADTs, drop the [assert false] and [failwith] statements below! *)
 
   let eref_from_fun ~scope ?secure f : 'a eref =
     f, match scope with
-         | `Request -> Req (Polytables.make_key ())
-         | `Global -> Ref (ref (Lazy.lazy_from_fun f))
-         | `Site -> Sit (Polytables.make_key ())
-         | (#Eliom_common.user_scope as scope) ->
-           Vol (lazy (create_volatile_table ~scope ?secure ()))
+      | `Request -> Req (Polytables.make_key ())
+      | `Global -> Ref (ref (Lazy.lazy_from_fun f))
+      | `Site -> Sit (Polytables.make_key ())
+      | (#Eliom_common.user_scope as scope) ->
+        Vol (lazy (create_volatile_table ~scope ?secure ()))
 
   let eref ~scope ?secure v =
     eref_from_fun ~scope ?secure (fun () -> v)
@@ -110,6 +110,30 @@ module Volatile = struct
       | Vol t -> remove_volatile_data ~table:(Lazy.force t) ();
       | Ref r -> r := Lazy.lazy_from_fun f
       | _ -> assert false
+
+
+  module Ext = struct
+
+    let get_group_ref group (f, table) =
+      match table with
+        | Vol t ->
+          (try External_states.Low_level.get_volatile_group_data
+              ~group ~table:(Lazy.force t) 
+           with Not_found ->
+             let value = f () in
+             External_states.Low_level.set_volatile_group_data
+               ~group ~table:(Lazy.force t) value;
+             value)
+        | _ -> failwith "non group eref"
+          
+    let set_group_ref group (_, table) value =
+      match table with
+        | Vol t ->
+          External_states.Low_level.set_volatile_group_data
+            ~group ~table:(Lazy.force t) value
+        | _ -> failwith "non group eref"
+
+  end
 
 end
 

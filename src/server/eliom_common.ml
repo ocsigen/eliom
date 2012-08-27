@@ -118,8 +118,7 @@ module SessionCookies =
 
 (* session groups *)
 type 'a sessgrp =
-    (string * cookie_scope
-     * (string, Ip_address.t) leftright)
+    (string * cookie_scope * (string, Ip_address.t) leftright)
     (* The full session group is the triple
        (site_dir_string, scope, session group name).
        The scope is the scope of group members (`Session by default).
@@ -496,10 +495,13 @@ and sitedata =
      ((fullsessionname * (float option * bool)) list);
 
    site_value_table : Polytables.t; (* table containing evaluated
-					    lazy site values *)
+				       lazy site values *)
 
    mutable registered_scope_names: String.Set.t;
 
+   (* All services, and state data are stored in these tables,
+      for scopes session and client process.
+      The scope is registered in the full session name. *)
    global_services: tables; (* global service table *)
    session_services: tables servicecookiestable;
    (* cookie table for services (tab and browser sessions) *)

@@ -909,7 +909,7 @@ let create_persistent_table
   (scope, secure, t)
 
 
-let get_table_key_
+let get_p_table_key_
     ~table:(scope, secure, table)
     (find_cookie : scope:Eliom_common.user_scope ->
      secure:bool option ->
@@ -931,7 +931,7 @@ let get_table_key_
 let get_persistent_data ~table () =
   catch
     (fun () ->
-      get_table_key_ ~table Eliommod_persess.find_persistent_cookie_only
+      get_p_table_key_ ~table Eliommod_persess.find_persistent_cookie_only
       >>= fun (table, key) ->
       Ocsipersist.find table key >>= fun (_, v) ->
       Lwt.return (Data v)
@@ -946,13 +946,13 @@ let set_persistent_data ~table value =
     Eliommod_persess.find_or_create_persistent_cookie
       ~scope ~secure ?sp ()
   in
-  get_table_key_ ~table f__ >>= fun (table, key) ->
+  get_p_table_key_ ~table f__ >>= fun (table, key) ->
   Ocsipersist.add table key (Int64.zero, value)
 
 let remove_persistent_data ~table () =
   try_lwt
     let (scope, secure, _) = table in
-    lwt (table, key) = get_table_key_ ~table Eliommod_persess.find_persistent_cookie_only in
+    lwt (table, key) = get_p_table_key_ ~table Eliommod_persess.find_persistent_cookie_only in
     lwt () = Ocsipersist.remove table key in
 
     close_persistent_state_if_empty ~scope ~secure ()
@@ -988,28 +988,28 @@ let create_volatile_table ~scope ?(secure = false) () =
       ~scope ~secure sitedata
 
 let get_table_key_ ~table:(scope, secure, table)
-    (find_cookie : scope:Eliom_common.user_scope ->
-     secure:bool option ->
-     ?sp:Eliom_common.server_params ->
-     unit -> Eliom_common.one_data_cookie_info) =
-  let key = match scope with
+    (find_cookie :
+       scope:Eliom_common.user_scope ->
+       secure:bool option ->
+       ?sp:Eliom_common.server_params ->
+       unit -> Eliom_common.one_data_cookie_info) =
+  (* The key in the table is the cookie for client processes and sessions,
+     and the group name for groups *)
+  (table, match scope with
     | `Session_group state_name ->
-      (match get_volatile_data_session_group ~scope:(`Session state_name) ~secure ()
+      (match get_volatile_data_session_group
+          ~scope:(`Session state_name) ~secure ()
        with Some a -> a
          | _ -> Eliom_common.default_group_name)
     | _ ->
-      let c =
-        find_cookie ~scope ~secure:(Some secure) () in
-      c.Eliom_common.dc_value
-  in
-  (table, key)
+      let c = find_cookie ~scope ~secure:(Some secure) () in
+      c.Eliom_common.dc_value)
 
 
 let get_volatile_data ~table () =
   try
-    let (table, key) =
-      get_table_key_ ~table Eliommod_datasess.find_data_cookie_only
-    in
+    let table, key =
+      get_table_key_ ~table Eliommod_datasess.find_data_cookie_only in
     Data (Eliom_common.SessionCookies.find table key)
   with
   | Not_found -> No_data
@@ -1021,18 +1021,14 @@ let set_volatile_data ~table value =
     Eliommod_datasess.find_or_create_data_cookie
       ~scope ~secure ?sp ()
   in
-  let (table, key) =
-    get_table_key_ ~table f__
-  in
+  let table, key = get_table_key_ ~table f__ in
   Eliom_common.SessionCookies.replace table key value
 
 
 let remove_volatile_data ~table () =
   try
     let (scope, secure, _) = table in
-    let (table, key) =
-      get_table_key_ ~table Eliommod_datasess.find_data_cookie_only
-    in
+    let table, key = get_table_key_ ~table Eliommod_datasess.find_data_cookie_only in
     Eliom_common.SessionCookies.remove table key;
 
     (* Now we want to close the session if it has not data inside
@@ -1162,7 +1158,261 @@ let discard_everything () =
 (*****************************************************************************)
 (* Administration *)
 
-module Session_admin = struct
+module External_states = struct
+
+  (** Type used to describe session timeouts *)
+
+  type timeout = Eliom_common.timeout =
+    | TGlobal (** see global setting *)
+    | TNone   (** explicitely set no timeout *)
+    | TSome of float (** timeout duration in seconds *)
+
+  type service_state =
+      string (* cookie value *)
+        *
+      (Eliom_common.fullsessionname (* fullsessname *) *
+       Eliom_common.tables     (* session table *) *
+       float option ref        (* expiration date by timeout
+                                  (server side) *) *
+       Eliom_common.timeout ref    (* user timeout *) *
+       Eliom_common.cookie_scope Eliom_common.sessgrp ref (* session group *) *
+       string Ocsigen_cache.Dlist.node) *
+       Eliom_common.sitedata
+
+  type data_state =
+      string (* cookie value *)
+        *
+      (Eliom_common.fullsessionname (* fullsessname *) *
+       float option ref        (* expiration date by timeout
+                                  (server side) *) *
+       Eliom_common.timeout ref   (* user timeout *) *
+       Eliom_common.cookie_scope Eliom_common.sessgrp ref (* session group *) *
+       string Ocsigen_cache.Dlist.node) *
+       Eliom_common.sitedata
+
+  type persistent_state =
+      string (* cookie value *)
+        *
+      (Eliom_common.fullsessionname (* fullsessname *) *
+       float option            (* expiration date by timeout
+                                  (server side) *) *
+       Eliom_common.timeout        (* user timeout *) *
+       Eliom_common.perssessgrp option           (* session group *)) *
+       Eliom_common.sitedata
+(*VVV Do we need sitedata here? *)
+
+  type state =
+    | Sess_or_process_serv of service_state
+    | Sess_group_serv of unit * unit Ocsigen_cache.Dlist.node
+    | Sess_or_process_vol_data of data_state
+    | Sess_group_vol_data of unit * unit Ocsigen_cache.Dlist.node
+    | Sess_or_process_pers_data of persistent_state
+    | Sess_group_pers_data of 
+        Eliom_common.perssessgrp option * Eliom_common.sitedata
+
+  let discard_state ~state =
+    match state with
+      | Sess_or_process_serv
+          (_cookie, (_, _, _, _, _sgr, sgrnode), _sitedata) ->
+        Eliommod_sessiongroups.Serv.remove sgrnode;
+        Lwt.return ()
+      | Sess_group_serv (_, node) -> Eliommod_sessiongroups.Serv.remove node;
+        Lwt.return ()
+      | Sess_or_process_vol_data
+          (_cookie, (_, _, _, _sgr, sgrnode), _sitedata) ->
+        Eliommod_sessiongroups.Data.remove sgrnode;
+        Lwt.return ()
+      | Sess_group_vol_data (_, node) ->
+        Eliommod_sessiongroups.Data.remove node;
+        Lwt.return ()
+      | Sess_or_process_pers_data 
+          (cookie, ((scope_level, _), _, _, sgr_o), sitedata) ->
+        Eliommod_sessiongroups.Pers.close_persistent_session2
+          ~cookie_scope:scope_level sitedata sgr_o cookie
+(*VVV!!! est-ce que sgr_o est fullsessgrp ? *)
+      | Sess_group_pers_data (sgr_o, sitedata) ->
+        Eliommod_sessiongroups.Pers.remove_group
+          ~cookie_scope:`Session sitedata sgr_o
+
+(*VVV Do we need this? + check
+
+  (* The following function returns the group to which belongs
+     a session or client process state: *)
+  let group_of ~state:(_cookie, (_, _, _, _, sgr, _sgrnode), _sitedata) =
+    match Eliommod_sessiongroups.Serv.find_node_in_group_of_groups !sgr with
+      | Some a -> a
+      | None -> (* the group of a tab session,
+                   that is, the browser session associated. *)
+        Eliommod_sessiongroups.make_full_named_group_name_
+          ~cookie_scope:`Client_process sitedata cookie
+        (*VVV à vérifier *)
+*)
+
+
+  module Low_level = struct
+
+  (*VVV Does not work with volatile group data *)
+    let get_volatile_data
+        ~state:(cookie, ((state_scope, _), _, _, _, _), _
+          : data_state)
+        ~table:(table_scope, secure, t : 'a volatile_table) =
+      Eliom_common.SessionCookies.find t cookie
+        
+    let get_persistent_data
+        ~state:(cookie, _, _ : persistent_state)
+        ~table:(_, _, t : 'a persistent_table) =
+      Ocsipersist.find t cookie >>= fun (_, a) -> Lwt.return a
+
+    let get_volatile_group_data ~group
+        ~table:(table_scope, secure, t : 'a volatile_table) =
+      Eliom_common.SessionCookies.find t group
+      
+    let set_volatile_data
+        ~state:(cookie, ((state_scope, _), _, _, _, _), _
+          : data_state)
+        ~table:(table_scope, secure, t : 'a volatile_table)
+        value =
+      Eliom_common.SessionCookies.replace t cookie value
+        
+    let set_persistent_data
+        ~state:(cookie, _, _ : persistent_state)
+        ~table:(_, _, t : 'a persistent_table)
+        value =
+      Ocsipersist.add t cookie (Int64.zero, value)
+
+    let set_volatile_group_data ~group
+        ~table:(_, _, t : 'a volatile_table) (value : 'a) =
+      Eliom_common.SessionCookies.replace t group value
+      
+    let remove_volatile_data
+        ~state:(cookie, _, _ : data_state)
+        ~table:(_, _, t : 'a volatile_table) =
+      Eliom_common.SessionCookies.remove t cookie
+        
+    let remove_persistent_data
+        ~state:(cookie, _, _ : persistent_state)
+        ~table:(_, _, t : 'a persistent_table) =
+      Ocsipersist.remove t cookie
+
+    let remove_volatile_group_data ~group 
+        ~table:(table_scope, secure, t : 'a volatile_table) =
+      Eliom_common.SessionCookies.remove t group
+
+  end
+
+  let split_name s =
+    try
+      let _,name = String.sep '|' s in
+      let p,q = String.sep '|' name in
+      match p with
+	| "ref" -> `Default_ref_name
+	| "comet" -> `Default_comet_name
+	| "" -> `String q
+	| _ -> raise Not_found
+    with
+      | Not_found -> failwith ("Eliom_state.split_name: malformed name: " ^ s)
+
+  let get_service_scope_name ~state:(_, ((_, s), _, _, _, _, _), _) =
+    split_name s
+
+  let get_volatile_data_scope_name ~state:(_, ((_, s), _, _, _, _), _) =
+    split_name s
+
+  let get_persistent_data_scope_name ~state:(_, ((_, s), _, _, _), _) =
+    split_name s
+
+  let get_service_state_cookie_scope ~state:(_, ((ct, _), _, _, _, _, _), _) =
+    ct
+
+  let get_volatile_data_state_cookie_scope ~state:(_, ((ct, _), _, _, _, _), _) =
+    ct
+
+  let get_persistent_data_state_cookie_scope ~state:(_, ((ct, _), _, _, _), _) =
+    ct
+
+  let set_service_state_timeout ~state:(_, (_, _, _, r, _, _), _) t =
+    match t with
+    | None -> r := TNone
+    | Some t -> r := TSome t
+
+  let set_volatile_data_state_timeout ~state:(_, (_, _, r, _, _), _) t =
+    match t with
+    | None -> r := TNone
+    | Some t -> r := TSome t
+
+  let set_persistent_data_state_timeout
+      ~state:(cookie, (fullsessname, exp, _, sessgrp), _) t =
+    let ti = match t with
+    | None -> TNone
+    | Some t -> TSome t
+    in
+    Ocsipersist.add
+      (Lazy.force Eliom_common.persistent_cookies_table)
+      cookie
+      (fullsessname, exp, ti, sessgrp)
+
+  let get_service_state_timeout ~state:(_, (_, _, _, r, _, _), _) =
+    !r
+
+  let get_volatile_data_state_timeout ~state:(_, (_, _, r, _, _), _) =
+    !r
+
+  let get_persistent_data_state_timeout ~state:(_, (_, _, r, _), _) =
+    r
+
+
+  let unset_service_state_timeout ~state:(_, (_, _, _, r, _, _), _) =
+    r := TGlobal
+
+  let unset_volatile_data_state_timeout ~state:(cookie, (_, _, r, _, _), _) =
+    r := TGlobal
+
+  let unset_persistent_data_state_timeout
+      ~state:(cookie, (fullsessname, exp, _, sessgrp), _) =
+    Ocsipersist.add
+      (Lazy.force Eliom_common.persistent_cookies_table)
+      cookie
+      (fullsessname, exp, TGlobal, sessgrp)
+
+  (** Iterator on service states *)
+  let iter_service_states f =
+    let sitedata =
+      Eliom_request_info.find_sitedata "External_states.iter_service_states"
+    in
+    Eliommod_sessexpl.iter_service_states sitedata f
+
+  (** Iterator on data states *)
+  let iter_volatile_data_states f =
+    let sitedata = Eliom_request_info.find_sitedata "External_states.iter_volatile_data_states" in
+    Eliommod_sessexpl.iter_data_states sitedata f
+
+  (** Iterator on persistent states *)
+  let iter_persistent_data_states f =
+    let sitedata = Eliom_request_info.find_sitedata "External_states.iter_persistent_data_states" in
+    Eliommod_sessexpl.iter_persistent_states sitedata f
+
+  (** Iterator on service states *)
+  let fold_service_states f beg =
+  let sitedata = Eliom_request_info.find_sitedata "External_states.fold_service_states" in
+  Eliommod_sessexpl.fold_service_states sitedata f beg
+
+  (** Iterator on data states *)
+  let fold_volatile_data_states f beg =
+    let sitedata =
+      Eliom_request_info.find_sitedata "External_states.fold_volatile_data_states"
+    in
+    Eliommod_sessexpl.fold_data_states sitedata f beg
+
+  (** Iterator on persistent states *)
+  let fold_persistent_data_states f beg =
+    let sitedata =
+      Eliom_request_info.find_sitedata "External_states.fold_persistent_data_states"
+    in
+    Eliommod_sessexpl.fold_persistent_states sitedata f beg
+
+end
+(* AEFF!!!!!!!!!!
+module REMOVEME Session_admin = struct
 
   (** Type used to describe session timeouts *)
 
@@ -1375,21 +1625,21 @@ module Session_admin = struct
 
 end
 
-
+*)
 
 (*****************************************************************************)
 (* Exploration *)
 
-let number_of_service_sessions = Eliommod_sessexpl.number_of_service_sessions
+let number_of_service_states = Eliommod_sessexpl.number_of_service_states
 
-let number_of_volatile_data_sessions = Eliommod_sessexpl.number_of_data_sessions
+let number_of_volatile_data_states = Eliommod_sessexpl.number_of_data_states
 
 let number_of_tables = Eliommod_sessexpl.number_of_tables
 
 let number_of_table_elements = Eliommod_sessexpl.number_of_table_elements
 
-let number_of_persistent_data_sessions =
-  Eliommod_sessexpl.number_of_persistent_sessions
+let number_of_persistent_data_states =
+  Eliommod_sessexpl.number_of_persistent_states
 
 let number_of_persistent_tables = Eliommod_persess.number_of_persistent_tables
   (* One table is the main table of sessions *)

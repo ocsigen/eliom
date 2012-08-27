@@ -171,7 +171,8 @@ struct
             | `Session (* We are closing a browser session *) ->
               (* First we close all tab sessions in the session (subgrp): *)
               let subgrp = 
-                make_full_named_group_name_ ~cookie_scope:`Client_process sitedata name 
+                make_full_named_group_name_
+                  ~cookie_scope:`Client_process sitedata name 
               in
               remove_group subgrp
             | `Client_process (* We are closing a tab session *) -> ());
@@ -495,7 +496,7 @@ module Pers = struct
            and we remove cookie info: *)
         (match cookie_scope with
           | `Client_process grp -> (* We are closing a browser session,
-                           belonging to the group grp *)
+                                      belonging to the group grp *)
             (* group_name is the cookie value *)
             remove sitedata group_name grp >>= fun () ->
             Ocsipersist.remove 
@@ -522,8 +523,7 @@ module Pers = struct
         match cookie_scope with
           | `Client_process -> begin
             (* We remove cookie info from the table *)
-            Ocsipersist.remove 
-              (!!Eliom_common.persistent_cookies_table) cookie
+            Ocsipersist.remove (!!Eliom_common.persistent_cookies_table) cookie
             >>= fun () ->
 
             (* We remove the session from its group: *)

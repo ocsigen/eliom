@@ -18,42 +18,44 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-val iter_service_sessions :
+val iter_service_states :
   Eliom_common.sitedata ->
   (Eliom_common.SessionCookies.key *
    Eliom_common.tables Eliom_common.servicecookiestablecontent *
    Eliom_common.sitedata -> unit Lwt.t) ->
   unit Lwt.t
-val iter_data_sessions :
+val iter_data_states :
   Eliom_common.sitedata ->
   (Eliom_common.SessionCookies.key * Eliom_common.datacookiestablecontent *
    Eliom_common.sitedata -> unit Lwt.t) ->
   unit Lwt.t
-val iter_persistent_sessions :
+val iter_persistent_states :
+  Eliom_common.sitedata ->
   (string *
    (Eliom_common.fullsessionname * float option * Eliom_common.timeout *
-    Eliom_common.perssessgrp option) ->
+    Eliom_common.perssessgrp option) * Eliom_common.sitedata ->
    unit Lwt.t) ->
   unit Lwt.t
-val fold_service_sessions :
+val fold_service_states :
   Eliom_common.sitedata ->
   (Eliom_common.SessionCookies.key *
    Eliom_common.tables Eliom_common.servicecookiestablecontent *
    Eliom_common.sitedata -> 'a -> 'a Lwt.t) ->
   'a -> 'a Lwt.t
-val fold_data_sessions :
+val fold_data_states :
   Eliom_common.sitedata ->
   (Eliom_common.SessionCookies.key * Eliom_common.datacookiestablecontent *
    Eliom_common.sitedata -> 'a -> 'a Lwt.t) ->
   'a -> 'a Lwt.t
-val fold_persistent_sessions :
+val fold_persistent_states :
+  Eliom_common.sitedata ->
   (string *
    (Eliom_common.fullsessionname * float option * Eliom_common.timeout *
-    Eliom_common.perssessgrp option) ->
+    Eliom_common.perssessgrp option) * Eliom_common.sitedata ->
    'a -> 'a Lwt.t) ->
   'a -> 'a Lwt.t
-val number_of_service_sessions : unit -> int
-val number_of_data_sessions : unit -> int
+val number_of_service_states : unit -> int
+val number_of_data_states : unit -> int
 val number_of_tables : unit -> int
 val number_of_table_elements : unit -> int list
-val number_of_persistent_sessions : unit -> int Lwt.t
+val number_of_persistent_states : unit -> int Lwt.t

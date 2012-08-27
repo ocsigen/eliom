@@ -20,7 +20,7 @@
 (*****************************************************************************)
 (*****************************************************************************)
 (** Internal functions used by Eliom:                                        *)
-(** Exploration of sessions                                                  *)
+(** Exploration of states                                                  *)
 (*****************************************************************************)
 (*****************************************************************************)
 
@@ -28,10 +28,10 @@
 open Lwt
 
 (*****************************************************************************)
-(* Iterators on sessions *)
+(* Iterators on states *)
 
-  (** Iterator on service sessions *)
-let iter_service_sessions sitedata f =
+  (** Iterator on service states *)
+let iter_service_states sitedata f =
   Eliom_common.SessionCookies.fold
     (fun k v thr ->
       thr >>= fun () ->
@@ -42,8 +42,8 @@ let iter_service_sessions sitedata f =
     (return ())
 
 
-    (** Iterator on data sessions *)
-let iter_data_sessions sitedata f =
+    (** Iterator on data states *)
+let iter_data_states sitedata f =
   Eliom_common.SessionCookies.fold
     (fun k v thr ->
       thr >>= fun () ->
@@ -53,18 +53,18 @@ let iter_data_sessions sitedata f =
     sitedata.Eliom_common.session_data
     (return ())
 
-    (** Iterator on persistent sessions *)
-let iter_persistent_sessions f =
+    (** Iterator on persistent states *)
+let iter_persistent_states sitedata f =
   Ocsipersist.iter_table
     (fun k v ->
-      f (k, v) >>=
+      f (k, v, sitedata) >>=
       Lwt_unix.yield
     )
     (Lazy.force Eliommod_persess.persistent_cookies_table)
 
 
-    (** Iterator on service sessions *)
-let fold_service_sessions sitedata f beg =
+    (** Iterator on service states *)
+let fold_service_states sitedata f beg =
   Eliom_common.SessionCookies.fold
     (fun k v thr ->
       thr >>= fun res1 ->
@@ -76,8 +76,8 @@ let fold_service_sessions sitedata f beg =
     (return beg)
 
 
-    (** Iterator on data sessions *)
-let fold_data_sessions sitedata f beg =
+    (** Iterator on data states *)
+let fold_data_states sitedata f beg =
   Eliom_common.SessionCookies.fold
     (fun k v thr ->
       thr >>= fun res1 ->
@@ -88,11 +88,11 @@ let fold_data_sessions sitedata f beg =
     sitedata.Eliom_common.session_data
     (return beg)
 
-    (** Iterator on persistent sessions *)
-let fold_persistent_sessions f beg =
+    (** Iterator on persistent states *)
+let fold_persistent_states sitedata f beg =
   Ocsipersist.fold_table
     (fun k v beg ->
-      f (k, v) beg >>= fun res ->
+      f (k, v, sitedata) beg >>= fun res ->
         Lwt_unix.yield () >>= fun () ->
           return res
     )
@@ -102,11 +102,11 @@ let fold_persistent_sessions f beg =
 (*****************************************************************************)
 (* Exploration *)
 
-let number_of_service_sessions () =
+let number_of_service_states () =
   Eliom_common.SessionCookies.length
     (Eliom_request_info.get_sitedata ()).Eliom_common.session_services
 
-let number_of_data_sessions () =
+let number_of_data_states () =
   Eliom_common.SessionCookies.length
     (Eliom_request_info.get_sitedata ()).Eliom_common.session_data
 
@@ -116,7 +116,7 @@ let number_of_tables () =
 let number_of_table_elements () =
   List.map (fun f -> f ()) !Eliommod_datasess.counttableelements
 
-let number_of_persistent_sessions () =
+let number_of_persistent_states () =
   Ocsipersist.length (Lazy.force Eliommod_persess.persistent_cookies_table)
 
 

@@ -696,7 +696,7 @@ val discard_all_services :
 (*VVV missing ~secure? *)
 
 
-module Session_admin : sig
+module External_states : sig
 
   (** Type used to describe session timeouts *)
   type timeout =
@@ -704,115 +704,136 @@ module Session_admin : sig
     | TNone   (** explicitly set no timeout *)
     | TSome of float (** timeout duration in seconds *)
 
-  type service_session
-  type data_session
-  type persistent_session
+  type service_state
+  type data_state
+  type persistent_state
 
-  val close_service_session :
-    ?close_group:bool ->
-    session:service_session ->
-    unit
+  type state
 
-  val close_volatile_data_session :
-    ?close_group:bool ->
-    session:data_session ->
-    unit
+  val discard_state : state:state -> unit Lwt.t
 
-  val close_persistent_data_session :
-    ?close_group:bool ->
-    session:persistent_session ->
-    unit Lwt.t
+  module Low_level : sig
+    (** Functions to access table data.
+        Prefer using Eliom references. *)
 
-  (** Raises [Not_found] if no data in the table for the session. *)
-  val get_volatile_session_data :
-    session:data_session ->
-    table:'a volatile_table ->
-    'a
+    (** Raises [Not_found] if no data in the table for the state. *)
+    val get_volatile_data :
+      state:data_state ->
+      table:'a volatile_table ->
+      'a
+        
+    (** Fails with lwt exception [Not_found]
+        if no data in the table for the state. *)
+    val get_persistent_data :
+      state:persistent_state ->
+      table:'a persistent_table ->
+      'a Lwt.t
+        
+    val get_volatile_group_data :
+      group:string ->
+      table:'a volatile_table ->
+      'a
 
-  (** Fails with lwt exception [Not_found]
-      if no data in the table for the session. *)
-  val get_persistent_session_data :
-    session:persistent_session ->
-    table:'a persistent_table ->
-    'a Lwt.t
+    val set_volatile_data :
+      state:data_state ->
+      table:'a volatile_table ->
+      'a -> unit
+        
+    (** Fails with lwt exception [Not_found]
+        if no data in the table for the state. *)
+    val set_persistent_data :
+      state:persistent_state ->
+      table:'a persistent_table ->
+      'a -> unit Lwt.t
+        
+    val set_volatile_group_data :
+      group:string ->
+      table:'a volatile_table ->
+      'a -> unit
 
-  val remove_volatile_session_data :
-      session:data_session -> table:'a volatile_table -> unit
-  val remove_persistent_session_data :
-      session:persistent_session -> table:'a persistent_table -> unit Lwt.t
+    val remove_volatile_data :
+      state:data_state -> table:'a volatile_table -> unit
+
+    val remove_persistent_data :
+      state:persistent_state -> table:'a persistent_table -> unit Lwt.t
+
+    val remove_volatile_group_data :
+      group:string -> table:'a volatile_table -> unit
+
+  end
 
   val get_service_scope_name :
-    session:service_session -> Eliom_common.scope_name
+    state:service_state -> Eliom_common.scope_name
 
-  val get_volatile_data_scope_name : session:data_session ->
+  val get_volatile_data_scope_name : state:data_state ->
     Eliom_common.scope_name
 
   val get_persistent_data_scope_name :
-      session:persistent_session -> Eliom_common.scope_name
+      state:persistent_state -> Eliom_common.scope_name
 
-  val get_service_session_cookie_scope :
-    session:service_session -> Eliom_common.cookie_scope
-  val get_volatile_data_session_cookie_scope : session:data_session ->
+  val get_service_state_cookie_scope :
+    state:service_state -> Eliom_common.cookie_scope
+  val get_volatile_data_state_cookie_scope : state:data_state ->
     Eliom_common.cookie_scope
-  val get_persistent_data_session_cookie_scope :
-    session:persistent_session -> Eliom_common.cookie_scope
+  val get_persistent_data_state_cookie_scope :
+    state:persistent_state -> Eliom_common.cookie_scope
 
-  val set_service_session_timeout :
-      session:service_session -> float option -> unit
-  val set_volatile_data_session_timeout :
-      session:data_session -> float option -> unit
-  val set_persistent_data_session_timeout :
-      session:persistent_session -> float option -> unit Lwt.t
+  val set_service_state_timeout :
+      state:service_state -> float option -> unit
+  val set_volatile_data_state_timeout :
+      state:data_state -> float option -> unit
+  val set_persistent_data_state_timeout :
+      state:persistent_state -> float option -> unit Lwt.t
 
-  val get_service_session_timeout :
-      session:service_session -> timeout
+  val get_service_state_timeout :
+      state:service_state -> timeout
 
-  val get_volatile_data_session_timeout :
-      session:data_session -> timeout
+  val get_volatile_data_state_timeout :
+      state:data_state -> timeout
 
-  val get_persistent_data_session_timeout :
-      session:persistent_session -> timeout
+  val get_persistent_data_state_timeout :
+      state:persistent_state -> timeout
 
-  val unset_service_session_timeout :
-      session:service_session -> unit
-  val unset_volatile_data_session_timeout :
-      session:data_session -> unit
-  val unset_persistent_data_session_timeout :
-      session:persistent_session -> unit Lwt.t
+  val unset_service_state_timeout :
+      state:service_state -> unit
+  val unset_volatile_data_state_timeout :
+      state:data_state -> unit
+  val unset_persistent_data_state_timeout :
+      state:persistent_state -> unit Lwt.t
 
-  (** Iterator on service sessions. [Lwt_unix.yield] is called automatically
+  (** Iterator on service states. [Lwt_unix.yield] is called automatically
      after each iteration.
    *)
-  val iter_service_sessions :
-    (service_session -> unit Lwt.t) -> unit Lwt.t
+  val iter_service_states :
+    (service_state -> unit Lwt.t) -> unit Lwt.t
 
-  (** Iterator on data sessions. [Lwt_unix.yield] is called automatically
+  (** Iterator on data states. [Lwt_unix.yield] is called automatically
       after each iteration.
    *)
-  val iter_volatile_data_sessions :
-    (data_session -> unit Lwt.t) -> unit Lwt.t
+  val iter_volatile_data_states :
+    (data_state -> unit Lwt.t) -> unit Lwt.t
 
-  (** Iterator on persistent sessions. [Lwt_unix.yield] is called automatically
+  (** Iterator on persistent states. [Lwt_unix.yield] is called automatically
       after each iteration. *)
-  val iter_persistent_data_sessions :
-    (persistent_session -> unit Lwt.t) -> unit Lwt.t
+  val iter_persistent_data_states :
+    (persistent_state -> unit Lwt.t) -> unit Lwt.t
 
-  (** Iterator on service sessions. [Lwt_unix.yield] is called automatically
+  (** Iterator on service states. [Lwt_unix.yield] is called automatically
       after each iteration.
   *)
-  val fold_service_sessions :
-    (service_session -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
+  val fold_service_states :
+    (service_state -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
 
-  (** Iterator on data sessions. [Lwt_unix.yield] is called automatically
+  (** Iterator on data states. [Lwt_unix.yield] is called automatically
      after each iteration.
    *)
-  val fold_volatile_data_sessions :
-    (data_session -> 'b -> 'b Lwt.t) -> 'b  -> 'b Lwt.t
+  val fold_volatile_data_states :
+    (data_state -> 'b -> 'b Lwt.t) -> 'b  -> 'b Lwt.t
 
-  (** Iterator on persistent sessions. [Lwt_unix.yield] is called automatically
+  (** Iterator on persistent states. [Lwt_unix.yield] is called automatically
      after each iteration. *)
-  val fold_persistent_data_sessions :
-    (persistent_session -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
+  val fold_persistent_data_states :
+    (persistent_state -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
 
 end
 
@@ -821,7 +842,7 @@ end
 (*****************************************************************************)
 (** {3 Session data (deprecated interface)} *)
 
-(** This interface is deprecated. Now use Eliom references. *)
+(** This is the low level interface (deprecated). Use now Eliom references. *)
 
 (** The type used for getting data from a state. *)
 type 'a state_data =
@@ -832,7 +853,7 @@ type 'a state_data =
 (** {4 In memory state data} *)
 
 (** creates a table in memory where you can store the session data for
-    all users. (deprecated)
+    all users. (low level)
 
     {e Warning: This functions must be called when the site
     information is available, that is, either
@@ -849,13 +870,13 @@ val create_volatile_table :
   ?secure:bool ->
   unit -> 'a volatile_table
 
-(** gets session data for the current session (if any).  (deprecated) *)
+(** gets session data for the current session (if any).  (low level) *)
 val get_volatile_data :
   table:'a volatile_table ->
   unit ->
   'a state_data
 
-(** sets session data for the current session.  (deprecated) *)
+(** sets session data for the current session.  (low level) *)
 val set_volatile_data :
   table:'a volatile_table ->
   'a ->
@@ -864,7 +885,7 @@ val set_volatile_data :
 (** removes session data for the current session
     (but does not close the session).
     If the session does not exist, does nothing.
-    (deprecated)
+    (low level)
  *)
 val remove_volatile_data :
   table:'a volatile_table ->
@@ -876,21 +897,21 @@ val remove_volatile_data :
 
 
 (** creates a table on hard disk where you can store the session data for
-    all users. It uses {!Ocsipersist}.  (deprecated) *)
+    all users. It uses {!Ocsipersist}.  (low level) *)
 val create_persistent_table :
   scope:Eliom_common.user_scope ->
   ?secure:bool ->
   string -> 'a persistent_table
 
 (** gets persistent session data for the current persistent session (if any).
-    (deprecated) *)
+    (low level) *)
 val get_persistent_data :
   table:'a persistent_table ->
   unit ->
   'a state_data Lwt.t
 
 (** sets persistent session data for the current persistent session.
-    (deprecated) *)
+    (low level) *)
 val set_persistent_data :
   table:'a persistent_table ->
   'a ->
@@ -899,7 +920,7 @@ val set_persistent_data :
 (** removes session data for the current persistent session
     (but does not close the session).
     If the session does not exist, does nothing.
-    (deprecated)
+    (low level)
  *)
 val remove_persistent_data :
   table:'a persistent_table ->
@@ -1015,15 +1036,15 @@ val get_volatile_data_cookie :
 
 (**/**)
 (*****************************************************************************)
-val number_of_service_sessions : unit -> int
+val number_of_service_states : unit -> int
 
-val number_of_volatile_data_sessions : unit -> int
+val number_of_volatile_data_states : unit -> int
 
 val number_of_tables : unit -> int
 
 val number_of_table_elements : unit -> int list
 
-val number_of_persistent_data_sessions : unit -> int Lwt.t
+val number_of_persistent_data_states : unit -> int Lwt.t
 
 val number_of_persistent_tables : unit -> int
 

@@ -57,7 +57,7 @@ module type MEMTAB =
     val remove_group : [< Eliom_common.cookie_scope ] Eliom_common.sessgrp ->
       unit
 
-    (** Groups of browser sessions belongs to a group of groups.
+    (** Groups of browser sessions belong to a group of groups.
         As these groups are not associated to a cookie,
         we put this information here. *)
     val find_node_in_group_of_groups : 
