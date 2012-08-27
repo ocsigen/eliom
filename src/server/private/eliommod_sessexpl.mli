@@ -19,39 +19,33 @@
  *)
 
 val iter_service_states :
-  Eliom_common.sitedata ->
   (Eliom_common.SessionCookies.key *
-   Eliom_common.tables Eliom_common.servicecookiestablecontent *
-   Eliom_common.sitedata -> unit Lwt.t) ->
+   Eliom_common.tables Eliom_common.servicecookiestablecontent ->
+   unit Lwt.t) ->
   unit Lwt.t
 val iter_data_states :
-  Eliom_common.sitedata ->
-  (Eliom_common.SessionCookies.key * Eliom_common.datacookiestablecontent *
-   Eliom_common.sitedata -> unit Lwt.t) ->
+  (Eliom_common.SessionCookies.key * Eliom_common.datacookiestablecontent ->
+   unit Lwt.t) ->
   unit Lwt.t
 val iter_persistent_states :
-  Eliom_common.sitedata ->
   (string *
    (Eliom_common.fullsessionname * float option * Eliom_common.timeout *
-    Eliom_common.perssessgrp option) * Eliom_common.sitedata ->
+    Eliom_common.perssessgrp option) ->
    unit Lwt.t) ->
   unit Lwt.t
 val fold_service_states :
-  Eliom_common.sitedata ->
   (Eliom_common.SessionCookies.key *
-   Eliom_common.tables Eliom_common.servicecookiestablecontent *
-   Eliom_common.sitedata -> 'a -> 'a Lwt.t) ->
+   Eliom_common.tables Eliom_common.servicecookiestablecontent -> 'a -> 
+   'a Lwt.t) ->
   'a -> 'a Lwt.t
 val fold_data_states :
-  Eliom_common.sitedata ->
-  (Eliom_common.SessionCookies.key * Eliom_common.datacookiestablecontent *
-   Eliom_common.sitedata -> 'a -> 'a Lwt.t) ->
+  (Eliom_common.SessionCookies.key * Eliom_common.datacookiestablecontent ->
+   'a -> 'a Lwt.t) ->
   'a -> 'a Lwt.t
 val fold_persistent_states :
-  Eliom_common.sitedata ->
   (string *
    (Eliom_common.fullsessionname * float option * Eliom_common.timeout *
-    Eliom_common.perssessgrp option) * Eliom_common.sitedata ->
+    Eliom_common.perssessgrp option) ->
    'a -> 'a Lwt.t) ->
   'a -> 'a Lwt.t
 val number_of_service_states : unit -> int

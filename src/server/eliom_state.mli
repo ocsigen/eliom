@@ -712,6 +712,18 @@ module External_states : sig
 
   val discard_state : state:state -> unit Lwt.t
 
+  val fold_all_volatile_data_sessions_from_group :
+    group:string -> ('a -> data_state -> 'a) -> 'a -> 'a
+
+  val iter_on_all_volatile_data_sessions_from_group :
+    group:string -> (data_state -> unit) -> unit
+
+  val fold_all_service_sessions_from_group :
+    group:string -> ('a -> service_state -> 'a) -> 'a -> 'a
+
+  val iter_on_all_service_sessions_from_group :
+    group:string -> (service_state -> unit) -> unit
+
   module Low_level : sig
     (** Functions to access table data.
         Prefer using Eliom references. *)

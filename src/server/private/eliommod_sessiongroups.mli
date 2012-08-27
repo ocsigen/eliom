@@ -57,6 +57,10 @@ module type MEMTAB =
     val remove_group : [< Eliom_common.cookie_scope ] Eliom_common.sessgrp ->
       unit
 
+    (** returns the dlist containing all session group elements *)
+    val find : [< Eliom_common.cookie_scope ] Eliom_common.sessgrp ->
+      string Ocsigen_cache.Dlist.t
+
     (** Groups of browser sessions belong to a group of groups.
         As these groups are not associated to a cookie,
         we put this information here. *)
