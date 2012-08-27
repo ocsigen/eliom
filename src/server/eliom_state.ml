@@ -1285,6 +1285,25 @@ module External_states = struct
   let iter_on_all_service_sessions_from_group ~group f =
     fold_all_service_sessions_from_group ~group (fun () -> f) ()
 
+  let fold_all_persistent_data_sessions_from_group ~group f e =
+    let sp = Eliom_common.get_sp () in
+    let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
+    Eliommod_sessiongroups.Pers.find
+      (Eliom_common.make_persistent_full_group_name
+         `Session sitedata.Eliom_common.site_dir_string (Some group))
+    >>= fun l ->
+    let f v cookie =
+      Ocsipersist.find
+        (Lazy.force Eliommod_persess.persistent_cookies_table) cookie
+      >>= fun a ->
+      f v (cookie, a)
+    in
+    Lwt_list.fold_left_s f e l
+    
+  let iter_on_all_persistent_data_sessions_from_group ~group f =
+    fold_all_persistent_data_sessions_from_group ~group (fun () -> f) ()
+
+
   module Low_level = struct
 
   (*VVV Does not work with volatile group data *)

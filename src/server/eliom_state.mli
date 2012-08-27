@@ -724,6 +724,12 @@ module External_states : sig
   val iter_on_all_service_sessions_from_group :
     group:string -> (service_state -> unit) -> unit
 
+  val fold_all_persistent_data_sessions_from_group :
+    group:string -> ('a -> persistent_state -> 'a Lwt.t) -> 'a -> 'a Lwt.t
+
+  val iter_on_all_persistent_data_sessions_from_group :
+    group:string -> (persistent_state -> unit Lwt.t) -> unit Lwt.t
+
   module Low_level : sig
     (** Functions to access table data.
         Prefer using Eliom references. *)
