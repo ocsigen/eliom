@@ -146,4 +146,12 @@ module Volatile : sig
   val set : 'a eref -> 'a -> unit
   val modify : 'a eref -> ('a -> 'a) -> unit
   val unset : 'a eref -> unit
+
+  module Ext : sig
+    val get_group_ref : string -> 'a eref -> 'a
+    val set_group_ref : string -> 'a eref -> 'a -> unit
+    val modify_group_ref : string -> 'a eref -> ('a -> 'a) -> unit
+    val unset_group_ref : string -> 'a eref -> unit
+  end
+
 end

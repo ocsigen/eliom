@@ -133,6 +133,15 @@ module Volatile = struct
             ~group ~table:(Lazy.force t) value
         | _ -> failwith "non group eref"
 
+  let modify_group_ref group eref f =
+    set_group_ref group eref (f (get_group_ref group eref))
+
+  let unset_group_ref group (f, table : _ eref) =
+    match table with
+      | Vol t -> External_states.Low_level.remove_volatile_group_data
+        ~group ~table:(Lazy.force t);
+      | _ -> failwith "non group eref"
+
   end
 
 end
