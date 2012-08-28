@@ -1247,7 +1247,7 @@ module External_states = struct
         (*VVV à vérifier *)
 *)
 
-  let fold_all_volatile_data_sessions_from_group ~group f e =
+  let fold_all_volatile_data_sessions_in_group ~group f e =
     let sp = Eliom_common.get_sp () in
     let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
     try
@@ -1263,10 +1263,10 @@ module External_states = struct
     with
       | Not_found -> e
     
-  let iter_on_all_volatile_data_sessions_from_group ~group f =
-    fold_all_volatile_data_sessions_from_group ~group (fun () -> f) ()
+  let iter_on_all_volatile_data_sessions_in_group ~group f =
+    fold_all_volatile_data_sessions_in_group ~group (fun () -> f) ()
 
-  let fold_all_service_sessions_from_group ~group f e =
+  let fold_all_service_sessions_in_group ~group f e =
     let sp = Eliom_common.get_sp () in
     let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
     try
@@ -1282,10 +1282,10 @@ module External_states = struct
     with
       | Not_found -> e
     
-  let iter_on_all_service_sessions_from_group ~group f =
-    fold_all_service_sessions_from_group ~group (fun () -> f) ()
+  let iter_on_all_service_sessions_in_group ~group f =
+    fold_all_service_sessions_in_group ~group (fun () -> f) ()
 
-  let fold_all_persistent_data_sessions_from_group ~group f e =
+  let fold_all_persistent_data_sessions_in_group ~group f e =
     let sp = Eliom_common.get_sp () in
     let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
     Eliommod_sessiongroups.Pers.find
@@ -1300,8 +1300,27 @@ module External_states = struct
     in
     Lwt_list.fold_left_s f e l
     
-  let iter_on_all_persistent_data_sessions_from_group ~group f =
-    fold_all_persistent_data_sessions_from_group ~group (fun () -> f) ()
+  let iter_on_all_persistent_data_sessions_in_group ~group f =
+    fold_all_persistent_data_sessions_in_group ~group (fun () -> f) ()
+
+
+  let fold_all_volatile_process_states_in_session ~state:(cookie, _) f e =
+    fold_all_volatile_data_sessions_in_group ~group:cookie f e
+    
+  let iter_on_all_process_states_in_session ~state:(cookie, _) f =
+    iter_on_all_volatile_data_sessions_in_group ~group:cookie f
+
+  let fold_all_service_states_in_session ~state:(cookie, _) f e =
+    fold_all_service_sessions_in_group ~group:cookie f e
+    
+  let iter_on_all_service_states_in_session ~state:(cookie, _) f =
+    iter_on_all_service_sessions_in_group ~group:cookie f
+
+  let fold_all_persistent_process_states_in_session ~state:(cookie, _) f e =
+    fold_all_persistent_data_sessions_in_group ~group:cookie f e
+    
+  let iter_on_all_persistent_process_states_in_session ~state:(cookie, _) f =
+    iter_on_all_persistent_data_sessions_in_group ~group:cookie f
 
 
   module Low_level = struct

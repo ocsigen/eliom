@@ -712,23 +712,43 @@ module External_states : sig
 
   val discard_state : state:state -> unit Lwt.t
 
-  val fold_all_volatile_data_sessions_from_group :
+  val fold_all_volatile_data_sessions_in_group :
     group:string -> ('a -> data_state -> 'a) -> 'a -> 'a
 
-  val iter_on_all_volatile_data_sessions_from_group :
+  val iter_on_all_volatile_data_sessions_in_group :
     group:string -> (data_state -> unit) -> unit
 
-  val fold_all_service_sessions_from_group :
+  val fold_all_service_sessions_in_group :
     group:string -> ('a -> service_state -> 'a) -> 'a -> 'a
 
-  val iter_on_all_service_sessions_from_group :
+  val iter_on_all_service_sessions_in_group :
     group:string -> (service_state -> unit) -> unit
 
-  val fold_all_persistent_data_sessions_from_group :
+  val fold_all_persistent_data_sessions_in_group :
     group:string -> ('a -> persistent_state -> 'a Lwt.t) -> 'a -> 'a Lwt.t
 
-  val iter_on_all_persistent_data_sessions_from_group :
+  val iter_on_all_persistent_data_sessions_in_group :
     group:string -> (persistent_state -> unit Lwt.t) -> unit Lwt.t
+
+
+  val fold_all_volatile_process_states_in_session :
+    state:data_state -> ('a -> data_state -> 'a) -> 'a -> 'a
+
+  val iter_on_all_process_states_in_session :
+    state:data_state -> (data_state -> unit) -> unit
+
+  val fold_all_service_states_in_session :
+    state:service_state -> ('a -> service_state -> 'a) -> 'a -> 'a
+
+  val iter_on_all_service_states_in_session :
+    state:service_state -> (service_state -> unit) -> unit
+
+  val fold_all_persistent_process_states_in_session :
+    state:persistent_state -> ('a -> persistent_state -> 'a Lwt.t) -> 'a
+    -> 'a Lwt.t
+
+  val iter_on_all_persistent_process_states_in_session : 
+    state:persistent_state -> (persistent_state -> unit Lwt.t) -> unit Lwt.t
 
   module Low_level : sig
     (** Functions to access table data.
