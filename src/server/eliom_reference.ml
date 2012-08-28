@@ -142,6 +142,32 @@ module Volatile = struct
         ~group ~table:(Lazy.force t);
       | _ -> failwith "non group eref"
 
+  let get state (f, table) =
+    match table with
+      | Vol t ->
+        (try External_states.Low_level.get_volatile_data
+               ~state ~table:(Lazy.force t)
+         with Not_found -> 
+           (* I don't want to run f in the wrong context -> I fail *)
+           raise Eref_not_intialized)
+      | _ -> failwith "wrong eref for this function"
+
+    let set state (_, table) value =
+      match table with
+        | Vol t ->
+          External_states.Low_level.set_volatile_data
+            ~state ~table:(Lazy.force t) value
+        | _ -> failwith "wrong eref for this function"
+
+  let modify state eref f =
+    set state eref (f (get state eref))
+
+  let unset state (f, table : _ eref) =
+    match table with
+      | Vol t -> External_states.Low_level.remove_volatile_data
+        ~state ~table:(Lazy.force t);
+      | _ -> failwith "wrong eref for this function"
+
   end
 
 end
@@ -258,6 +284,34 @@ module Ext = struct
       | Vol _ -> Lwt.return (Volatile.Ext.unset_group_ref group r)
       | Per t -> External_states.Low_level.remove_persistent_group_data
         ~group ~table:t;
-      | _ -> failwith "non group eref"
+      | _ -> failwith "wrong eref for this function"
+
+  let get_pers_eref state (_, table) =
+    match table with
+      | Per t ->
+        (Lwt.catch
+           (fun () -> External_states.Low_level.get_persistent_data
+             ~state ~table:t)
+           (function
+             | Not_found -> Lwt.fail Eref_not_intialized
+             | e -> Lwt.fail e))
+      | _ -> failwith "wrong eref for this function"
+          
+  let set_pers_eref state (_, table) value =
+    match table with
+      | Per t ->
+        External_states.Low_level.set_persistent_data
+          ~state ~table:t value
+      | _ -> Lwt.fail (Failure "wrong eref for this function")
+      
+  let modify_pers_eref state eref f =
+    get_pers_eref state eref >>= fun v ->
+    set_pers_eref state eref (f v)
+
+  let unset_pers_eref state (_, table) =
+    match table with
+      | Per t -> External_states.Low_level.remove_persistent_data
+        ~state ~table:t;
+      | _ -> failwith "wrong eref for this function"
 
 end

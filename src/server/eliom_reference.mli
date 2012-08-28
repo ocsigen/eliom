@@ -170,6 +170,13 @@ module Volatile : sig
     val modify_group_ref : string -> 'a eref -> ('a -> 'a) -> unit
 
     val unset_group_ref : string -> 'a eref -> unit
+
+    val get : Eliom_state.External_states.data_state -> 'a eref -> 'a
+    val set : Eliom_state.External_states.data_state -> 'a eref -> 'a -> unit
+    val modify : Eliom_state.External_states.data_state ->
+      'a eref -> ('a -> 'a) -> unit
+    val unset : Eliom_state.External_states.data_state -> 'a eref -> unit
+
   end
 
 end
@@ -179,4 +186,13 @@ module Ext : sig
   val set_group_ref : string -> 'a eref -> 'a -> unit Lwt.t
   val modify_group_ref : string -> 'a eref -> ('a -> 'a) -> unit Lwt.t
   val unset_group_ref : string -> 'a eref -> unit Lwt.t
+  val get_pers_eref :
+    Eliom_state.External_states.persistent_state -> 'a eref -> 'a Lwt.t
+  val set_pers_eref :
+    Eliom_state.External_states.persistent_state -> 'a eref -> 'a -> unit Lwt.t
+  val modify_pers_eref :
+    Eliom_state.External_states.persistent_state ->
+    'a eref -> ('a -> 'a) -> unit Lwt.t
+  val unset_pers_eref :
+    Eliom_state.External_states.persistent_state -> 'a eref -> unit Lwt.t
 end
