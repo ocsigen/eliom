@@ -28,6 +28,10 @@ type ('a, +'storage) eref'
 (** The type of Eliom references whose content is of type ['a].  *)
 type 'a eref = ('a, [ `Volatile | `Persistent ]) eref'
 
+(** Exception raised when trying to access an eref 
+    that has not been initaliazed, when we don't want to initalize it. *)
+exception Eref_not_intialized
+
 (** The function [eref ~scope value] creates an Eliom reference for
     the given [scope] and initialize it with [value]. See the Eliom
     manual for more information about {% <<a_manual
@@ -114,7 +118,7 @@ val set : 'a eref -> 'a -> unit Lwt.t
     handler when [eref] has been created with a scope different of
     {!Eliom_common.global}; it can neither be used outside of an
     Eliom module when [eref] has been created with scope
-    [!Eliom_common.site]}
+    {!Eliom_common.site}}
   *)
 val modify : 'a eref -> ('a -> 'a) -> unit Lwt.t
 (* That function introduces a Lwt cooperation point only for persistent
@@ -127,7 +131,7 @@ val modify : 'a eref -> ('a -> 'a) -> unit Lwt.t
     handler when [eref] has been created with a scope different of
     {!Eliom_common.global}; it can neither be used outside of an
     Eliom module when [eref] has been created with scope
-    [!Eliom_common.site]}
+    {!Eliom_common.site}}
   *)
 val unset : 'a eref -> unit Lwt.t
 (* That function introduces a Lwt cooperation point only for persistent
@@ -148,10 +152,31 @@ module Volatile : sig
   val unset : 'a eref -> unit
 
   module Ext : sig
+    (** This module allows to access volatile references for other groups,
+        sessions, or client processes.
+        Use it in conjunction with functions like
+        {!Eliom_state.External_states.iter_on_all_volatile_data_sessions_from_group}
+        to get the sessions from a group (or the processes from a session).
+    *)
+
+    (** get the value of a group reference from outside the group.
+        If the value has not been set yet, it will raise with exception
+        [Eref_not_intialized].
+    *)
     val get_group_ref : string -> 'a eref -> 'a
     val set_group_ref : string -> 'a eref -> 'a -> unit
+
+    (** Warning: the function will be executed with the current context *)
     val modify_group_ref : string -> 'a eref -> ('a -> 'a) -> unit
+
     val unset_group_ref : string -> 'a eref -> unit
   end
 
+end
+
+module Ext : sig
+  val get_group_ref : string -> 'a eref -> 'a Lwt.t
+  val set_group_ref : string -> 'a eref -> 'a -> unit Lwt.t
+  val modify_group_ref : string -> 'a eref -> ('a -> 'a) -> unit Lwt.t
+  val unset_group_ref : string -> 'a eref -> unit Lwt.t
 end

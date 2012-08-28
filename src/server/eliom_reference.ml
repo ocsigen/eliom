@@ -29,17 +29,19 @@ let pers_ref_store = Ocsipersist.open_store "eliom__persistent_refs"
 type 'a eref_kind =
   | Req of 'a Polytables.key
   | Sit of 'a Polytables.key
-  | Ref of 'a lazy_t ref
-  | Vol of 'a volatile_table Lazy.t
-  | Ocsiper of 'a option Ocsipersist.t Lwt.t
-  | Ocsiper_sit of 'a Ocsipersist.table
-  | Per of 'a persistent_table
+  | Ref of 'a lazy_t ref (* Ocaml reference *)
+  | Vol of 'a volatile_table Lazy.t (* Vol. table (group, session, process) *)
+  | Ocsiper of 'a option Ocsipersist.t Lwt.t (* Global persist. table *)
+  | Ocsiper_sit of 'a Ocsipersist.table (* Persist. table for site *)
+  | Per of 'a persistent_table (* Persist. table for group session or process *)
 
 type volatile = [ `Volatile ]
 type persistent = [ `Persistent ]
 
 type ('a, 'storage) eref' = (unit -> 'a) * 'a eref_kind
 type 'a eref = ('a, [ volatile | persistent ]) eref'
+
+exception Eref_not_intialized
 
 module Volatile = struct
 
@@ -119,11 +121,9 @@ module Volatile = struct
         | Vol t ->
           (try External_states.Low_level.get_volatile_group_data
               ~group ~table:(Lazy.force t) 
-           with Not_found ->
-             let value = f () in
-             External_states.Low_level.set_volatile_group_data
-               ~group ~table:(Lazy.force t) value;
-             value)
+           with Not_found -> 
+             (* I don't want to run f in the wrong context -> I fail *)
+             raise Eref_not_intialized)
         | _ -> failwith "non group eref"
           
     let set_group_ref group (_, table) value =
@@ -162,6 +162,7 @@ let eref_from_fun ~scope ?secure ?persistent f : 'a eref =
         match persistent with
           | None -> (Volatile.eref_from_fun ~scope ?secure f :> _ eref)
           | Some name ->
+(*VVV!!! ??? CHECK! *)
               (f, Ocsiper_sit (Ocsipersist.open_table name))
       end
     | (#Eliom_common.user_scope as scope) ->
@@ -222,3 +223,41 @@ let unset (f, table as eref) =
     | Ocsiper_sit t ->
       Ocsipersist.remove t (get_site_id ())
     | _ -> Lwt.return (Volatile.unset eref)
+
+
+
+
+module Ext = struct
+
+  let get_group_ref group ((_, table) as r) =
+    match table with
+      | Vol _ -> Lwt.return (Volatile.Ext.get_group_ref group r)
+      | Per t ->
+        (Lwt.catch
+           (fun () -> External_states.Low_level.get_persistent_group_data
+             ~group ~table:t)
+           (function
+             | Not_found -> Lwt.fail Eref_not_intialized
+             | e -> Lwt.fail e))
+      | _ -> failwith "non group eref"
+          
+  let set_group_ref group ((_, table) as r) value =
+    match table with
+      | Vol _ -> Lwt.return (Volatile.Ext.set_group_ref group r value)
+      | Per t ->
+        External_states.Low_level.set_persistent_group_data
+          ~group ~table:t value
+      | _ -> Lwt.fail (Failure "non group eref")
+      
+  let modify_group_ref group eref f =
+    get_group_ref group eref >>= fun v ->
+    set_group_ref group eref (f v)
+
+  let unset_group_ref group ((_, table) as r) =
+    match table with
+      | Vol _ -> Lwt.return (Volatile.Ext.unset_group_ref group r)
+      | Per t -> External_states.Low_level.remove_persistent_group_data
+        ~group ~table:t;
+      | _ -> failwith "non group eref"
+
+end

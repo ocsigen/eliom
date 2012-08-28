@@ -1306,50 +1306,100 @@ module External_states = struct
 
   module Low_level = struct
 
+
+    (* We have a dynamic scope checking here.
+       Would probably be possible to use phantom types again to check this
+       statically. I don't want to make the types more complex for now. 
+       -- Vincent
+    *)
+
+    let check_scopes table_scope state_scope =
+      if Eliom_common.cookie_scope_of_user_scope table_scope <> state_scope
+      then failwith "wrong scope"
+
+    let lwt_check_scopes a b =
+      try check_scopes a b; Lwt.return ()
+      with e -> Lwt.fail e
+
+    let check_group_scope s =
+      match s with
+        | `Session_group _ -> ()
+        | _ -> failwith "wrong scope"
+      
+    let lwt_check_group_scope a =
+      try check_group_scope a; Lwt.return ()
+      with e -> Lwt.fail e
+
+
   (*VVV Does not work with volatile group data *)
     let get_volatile_data
         ~state:(cookie, ((state_scope, _), _, _, _, _) : data_state)
         ~table:(table_scope, secure, t : 'a volatile_table) =
+      check_scopes table_scope state_scope;
       Eliom_common.SessionCookies.find t cookie
         
     let get_persistent_data
-        ~state:(cookie, _ : persistent_state)
-        ~table:(_, _, t : 'a persistent_table) =
+        ~state:(cookie, ((state_scope, _), _, _, _) : persistent_state)
+        ~table:(table_scope, _, t : 'a persistent_table) =
+      lwt_check_scopes table_scope state_scope >>= fun () ->
       Ocsipersist.find t cookie >>= fun (_, a) -> Lwt.return a
 
     let get_volatile_group_data ~group
         ~table:(table_scope, secure, t : 'a volatile_table) =
+      check_group_scope table_scope;
       Eliom_common.SessionCookies.find t group
+      
+    let get_persistent_group_data ~group
+        ~table:(table_scope, _, t : 'a persistent_table) =
+      lwt_check_group_scope table_scope >>= fun () ->
+      Ocsipersist.find t group >>= fun (_, a) -> Lwt.return a
       
     let set_volatile_data
         ~state:(cookie, ((state_scope, _), _, _, _, _) : data_state)
         ~table:(table_scope, secure, t : 'a volatile_table)
         value =
+      check_scopes table_scope state_scope;
       Eliom_common.SessionCookies.replace t cookie value
         
     let set_persistent_data
-        ~state:(cookie, _ : persistent_state)
-        ~table:(_, _, t : 'a persistent_table)
+        ~state:(cookie, ((state_scope, _), _, _, _) : persistent_state)
+        ~table:(table_scope, _, t : 'a persistent_table)
         value =
+      lwt_check_scopes table_scope state_scope >>= fun () ->
       Ocsipersist.add t cookie (Int64.zero, value)
 
     let set_volatile_group_data ~group
-        ~table:(_, _, t : 'a volatile_table) (value : 'a) =
+        ~table:(table_scope, _, t : 'a volatile_table) (value : 'a) =
+      check_group_scope table_scope;
       Eliom_common.SessionCookies.replace t group value
       
+    let set_persistent_group_data ~group
+        ~table:(table_scope, _, t : 'a persistent_table)
+        value =
+      lwt_check_group_scope table_scope >>= fun () ->
+      Ocsipersist.add t group (Int64.zero, value)
+
     let remove_volatile_data
-        ~state:(cookie, _ : data_state)
-        ~table:(_, _, t : 'a volatile_table) =
+        ~state:(cookie, ((state_scope, _), _, _, _, _) : data_state)
+        ~table:(table_scope, _, t : 'a volatile_table) =
+      check_scopes table_scope state_scope;
       Eliom_common.SessionCookies.remove t cookie
         
     let remove_persistent_data
-        ~state:(cookie, _ : persistent_state)
-        ~table:(_, _, t : 'a persistent_table) =
+        ~state:(cookie, ((state_scope, _), _, _, _) : persistent_state)
+        ~table:(table_scope, _, t : 'a persistent_table) =
+      lwt_check_scopes table_scope state_scope >>= fun () ->
       Ocsipersist.remove t cookie
 
     let remove_volatile_group_data ~group 
         ~table:(table_scope, secure, t : 'a volatile_table) =
+      check_group_scope table_scope;
       Eliom_common.SessionCookies.remove t group
+
+    let remove_persistent_group_data ~group
+        ~table:(table_scope, _, t : 'a persistent_table) =
+      lwt_check_group_scope table_scope >>= fun () ->
+      Ocsipersist.remove t group
 
   end
 

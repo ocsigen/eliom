@@ -752,6 +752,11 @@ module External_states : sig
       table:'a volatile_table ->
       'a
 
+    val get_persistent_group_data :
+      group:string ->
+      table:'a persistent_table ->
+      'a Lwt.t
+        
     val set_volatile_data :
       state:data_state ->
       table:'a volatile_table ->
@@ -769,6 +774,11 @@ module External_states : sig
       table:'a volatile_table ->
       'a -> unit
 
+    val set_persistent_group_data :
+      group:string ->
+      table:'a persistent_table ->
+      'a -> unit Lwt.t
+        
     val remove_volatile_data :
       state:data_state -> table:'a volatile_table -> unit
 
@@ -777,6 +787,9 @@ module External_states : sig
 
     val remove_volatile_group_data :
       group:string -> table:'a volatile_table -> unit
+
+    val remove_persistent_group_data :
+      group:string -> table:'a persistent_table -> unit Lwt.t
 
   end
 
