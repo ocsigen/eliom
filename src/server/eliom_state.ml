@@ -1496,6 +1496,18 @@ module External_states = struct
       cookie
       (fullsessname, exp, TGlobal, sessgrp)
 
+
+  let get_session_group_list () =
+    let sitedata = Eliom_request_info.find_sitedata "get_session_group_list" in
+    let dl = sitedata.Eliom_common.group_of_groups in
+    Ocsigen_cache.Dlist.fold
+      (fun l -> function
+        | (_, `Session, Left s) -> s::l
+        | _ -> l)
+      []
+      dl
+    
+
   (** Iterator on service states *)
   let iter_service_states = Eliommod_sessexpl.iter_service_states
 

@@ -852,6 +852,10 @@ module External_states : sig
   val unset_persistent_data_state_timeout :
       state:persistent_state -> unit Lwt.t
 
+  (** Returns a list containing the names of all session group
+      that are available for this site. *)
+  val get_session_group_list : unit -> string list
+
   (** Iterator on service states. [Lwt_unix.yield] is called automatically
      after each iteration.
    *)
