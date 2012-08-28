@@ -44,12 +44,12 @@ end = struct
     Js.Optdef.get
       (JsTable.find client_closures (key closure_id))
       (fun () ->
-         error "Did not find client closure %Ld" closure_id)
+         raise Not_found)
 end
 
 module Client_value : sig
   val set : closure_id:int64 -> instance_id:int -> value:poly -> unit
-  val get : closure_id:int64 -> instance_id:int -> _
+  val find : closure_id:int64 -> instance_id:int -> _
 end = struct
 
   let table = JsTable.create ()
@@ -72,7 +72,7 @@ end = struct
     in
     JsTable.add instances (instance_key instance_id) value
 
-  let get ~closure_id ~instance_id =
+  let find ~closure_id ~instance_id =
     trace "Get client value %Ld/%d" closure_id instance_id;
     let value =
       let instances =
@@ -81,17 +81,14 @@ end = struct
              table
              (closure_key closure_id))
           (fun () ->
-             error "Did not find client value instances of %Ld" closure_id)
+             raise Not_found)
       in
-      let value =
-        JsTable.find
-          instances
-          (instance_key instance_id)
-      in
-      Js.Optdef.get value
+      Js.Optdef.get
+        (JsTable.find
+           instances
+           (instance_key instance_id))
         (fun () ->
-           error "Did not find client value for %Ld/%d"
-             closure_id instance_id)
+           raise Not_found)
     in
     from_poly value
 
@@ -124,11 +121,19 @@ let do_client_value_initializations ~client_value_data ~closure_id =
     (fun instance_id ->
        trace "Set client value %Ld/%d" closure_id instance_id;
        let value =
-         let closure = Client_closure.find ~closure_id in
+         let closure =
+           try
+             Client_closure.find ~closure_id
+           with Not_found ->
+             error "Client closure %Ld not found" closure_id
+         in
          let args =
-           Client_value_data.find
-             closure_id instance_id
-             client_value_data
+           try
+             Client_value_data.find
+               closure_id instance_id
+               client_value_data
+           with Not_found ->
+             error "Client value data for %Ld/%d not found" closure_id instance_id
          in
          closure args
        in
@@ -147,8 +152,11 @@ let do_injection_initializations ~injection_data ~names =
   trace "Do injections %s" (String.concat " " names);
   List.iter
     (fun name ->
-       let value = Injection_data.find name injection_data in
-       Injection.set ~name ~value)
+       try
+         let value = Injection_data.find name injection_data in
+         Injection.set ~name ~value
+       with Not_found ->
+         error "Injection data for %S not found" name)
     names
 
 let do_all_injection_initializations injection_data =
@@ -294,9 +302,12 @@ let raw_form_handler form kind cookies_info tmpl ev =
 let raw_event_handler cv =
   let closure_id = Eliom_server.Client_value.closure_id cv in
   let instance_id = Eliom_server.Client_value.instance_id cv in
-  let value = Client_value.get ~closure_id ~instance_id in
-  let handler = (Eliom_lib.from_poly value : #Dom_html.event Js.t -> unit) in
-  fun ev -> try handler ev; true with False -> false
+  try
+    let value = Client_value.find ~closure_id ~instance_id in
+    let handler = (Eliom_lib.from_poly value : #Dom_html.event Js.t -> unit) in
+    fun ev -> try handler ev; true with False -> false
+  with Not_found ->
+    error "Client value %Ld/%d not found as event handler" closure_id instance_id
 
 let reify_caml_event node ce : #Dom_html.event Js.t -> bool = match ce with
   | Xml.CE_call_service None -> (fun _ -> true)
@@ -505,6 +516,7 @@ let call_caml_service
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
     ?keep_nl_params ?nl_params ?keep_get_na_params
     get_params post_params =
+  trace "Call caml service";
   lwt _, content =
     raw_call_service
       ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -633,13 +645,16 @@ let relink_closure_node root onload table (node:Dom_html.element Js.t) =
     then
       let cid = Js.to_bytestring (attr##value##substring_toEnd(
         Eliom_lib_base.RawXML.closure_attr_prefix_len)) in
-      let cv = Xml.ClosureMap.find cid table in
-      let closure = raw_event_handler cv in
-      if attr##name = Js.string "onload" then
-        (if Eliommod_dom.ancessor root node
-         (* if not inside a unique node replaced by an older one *)
-         then onload := closure :: !onload)
-      else Js.Unsafe.set node (attr##name) (Dom_html.handler (fun ev -> Js.bool (closure ev)))
+      try
+        let cv = Xml.ClosureMap.find cid table in
+        let closure = raw_event_handler cv in
+        if attr##name = Js.string "onload" then
+          (if Eliommod_dom.ancessor root node
+           (* if not inside a unique node replaced by an older one *)
+           then onload := closure :: !onload)
+        else Js.Unsafe.set node (attr##name) (Dom_html.handler (fun ev -> Js.bool (closure ev)))
+      with Not_found ->
+        error "relink_closure_node: client value %s not found" cid
   in
   Eliommod_dom.iter_nodeList (node##attributes:>Dom.attr Dom.nodeList Js.t) aux
 
@@ -658,13 +673,11 @@ let relink_page (root:Dom_html.element Js.t) event_handlers =
     (fun node -> relink_closure_node root onload event_handlers node);
   List.rev !onload
 
-let onload, flush_with_new_dom =
-  let fs = ref [] in
-  (fun f -> fs := (fun _ -> f (); true) :: !fs),
-  (fun () ->
-     let res = List.rev !fs in
-     fs := [];
-     res)
+let onload f =
+  Lwt.ignore_result
+    (lwt () = wait_load_end () in
+     f ();
+     Lwt.return ())
 
 let load_eliom_data js_data page =
   trace "Load eliom data";
@@ -676,13 +689,11 @@ let load_eliom_data js_data page =
       relink_page page js_data.Eliom_types.ejs_event_handler_table
     in
     Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
-    let run_with_new_dom = flush_with_new_dom () in
     if !Eliom_config.debug_timings then
       Firebug.console##timeEnd(Js.string "load_eliom_data");
     Eliommod_dom.add_formdata_hack_onclick_handler ::
     nodes_on_load @
-    [broadcast_load_end] @
-    run_with_new_dom
+    [broadcast_load_end]
   with e ->
     debug_exn "load_eliom_data failed: " e;
     raise e
@@ -1189,7 +1200,10 @@ let _ =
        let closure_id = Eliom_server.Client_value.closure_id cv in
        let instance_id = Eliom_server.Client_value.instance_id cv in
        trace "Unwrap client_value %Ld/%d" closure_id instance_id;
-       Client_value.get ~closure_id ~instance_id);
+       try
+         Client_value.find ~closure_id ~instance_id
+       with Not_found ->
+         error "Client value not found: %Ld/%d" closure_id instance_id);
   ()
 
 (******************************************************************************)
