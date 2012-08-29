@@ -659,7 +659,7 @@ let relink_closure_node root onload table (node:Dom_html.element Js.t) =
   in
   Eliommod_dom.iter_nodeList (node##attributes:>Dom.attr Dom.nodeList Js.t) aux
 
-let relink_page (root:Dom_html.element Js.t) event_handlers =
+let relink_page (root:Dom_html.element Js.t) =
   trace "Relink page";
   let (a_nodeList,form_nodeList,process_nodeList,closure_nodeList) =
     Eliommod_dom.select_nodes root in
@@ -669,6 +669,9 @@ let relink_page (root:Dom_html.element Js.t) event_handlers =
     (fun node -> node##onsubmit <- form_handler);
   Eliommod_dom.iter_nodeList process_nodeList
     relink_process_node;
+  closure_nodeList
+
+let relink_closure_nodes (root : Dom_html.element Js.t) event_handlers closure_nodeList =
   let onload = ref [] in
   Eliommod_dom.iter_nodeList closure_nodeList
     (fun node -> relink_closure_node root onload event_handlers node);
@@ -686,14 +689,12 @@ let load_eliom_data js_data page =
     if !Eliom_config.debug_timings then
       Firebug.console##time(Js.string "load_eliom_data");
     loading_phase := true;
-    let nodes_on_load =
-      relink_page page js_data.Eliom_types.ejs_event_handler_table
-    in
+    let closure_nodeList = relink_page page in
     Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
     if !Eliom_config.debug_timings then
       Firebug.console##timeEnd(Js.string "load_eliom_data");
-    Eliommod_dom.add_formdata_hack_onclick_handler ::
-    nodes_on_load @
+    closure_nodeList,
+    [Eliommod_dom.add_formdata_hack_onclick_handler],
     [broadcast_load_end]
   with e ->
     debug_exn "load_eliom_data failed: " e;
@@ -787,10 +788,6 @@ let set_content ?uri ?offset ?fragment content =
          (Eliom_request_info.get_request_data ())
            .Eliom_types.ejs_client_value_data
        in
-       let injection_data =
-         (Eliom_request_info.get_request_data ())
-           .Eliom_types.ejs_injection_data
-       in
        (* Update tab-cookies. *)
        let host =
          match uri with
@@ -806,7 +803,7 @@ let set_content ?uri ?offset ?fragment content =
        lwt () = preloaded_css in
        (* Bind unique node (named and global) and register event
           handler. *)
-       let on_load = load_eliom_data js_data fake_page in
+       let closure_nodeList, onload_first, onload_last = load_eliom_data js_data fake_page in
        Int64_map.iter
          (fun closure_id instances ->
             trace "Client_value_datas for closure_id %Ld: %s" closure_id
@@ -823,6 +820,11 @@ let set_content ?uri ?offset ?fragment content =
          fake_page
          Dom_html.document##documentElement;
        do_all_client_value_initializations client_value_data;
+       let onload_closure_nodes =
+         relink_closure_nodes
+           Dom_html.document##documentElement
+           js_data.Eliom_types.ejs_event_handler_table closure_nodeList
+       in
        (* Unwrapped elements must be forced before reseting the request node table. *)
        force_unwrapped_elts ();
        (* The request node table must be empty when node received
@@ -831,7 +833,7 @@ let set_content ?uri ?offset ?fragment content =
        if !Eliom_config.debug_timings then
          ( Firebug.console##timeEnd(Js.string "replace_child");
            Firebug.console##time(Js.string "set_content_end") );
-       run_load_events on_load;
+       run_load_events (onload_first @ onload_closure_nodes @ onload_last);
        scroll_to_fragment ?offset fragment;
        if !Eliom_config.debug_timings then
          ( Firebug.console##timeEnd(Js.string "set_content_end");

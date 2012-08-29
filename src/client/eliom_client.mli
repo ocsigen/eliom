@@ -136,10 +136,16 @@ val in_onload : unit -> bool
 val relink_request_nodes : Dom_html.htmlElement Js.t -> unit
 val reset_request_node : unit -> unit
 val force_unwrapped_elts : unit -> unit
-
+val relink_closure_nodes :
+  Dom_html.element Js.t ->
+  (Dom_html.event Js.t -> unit) Eliom_server.Client_value.t Eliom_content_core.Xml.ClosureMap.t ->
+  Dom_html.element Dom.nodeList Js.t ->
+  (Dom_html.event Js.t -> bool) list
 val load_eliom_data :
-  Eliom_types.eliom_js_page_data ->
-  Dom_html.htmlElement Js.t -> (Dom_html.event Js.t -> bool) list
+           Eliom_types.eliom_js_page_data ->
+           Dom_html.element Js.t ->
+           Dom_html.element Dom.nodeList Js.t *
+           (Dom_html.event Js.t -> bool) list * ('a -> bool) list
 
 val getElementById : string -> Dom.node Js.t
 val rebuild_node : 'a Eliom_content_core.Html5.elt -> < .. > Js.t

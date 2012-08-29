@@ -20,7 +20,7 @@
 
 open Eliom_lib
 
-let request_data =
+let js_data =
   Eliom_request_info.get_request_data ()
 
 let onload ev =
@@ -31,13 +31,17 @@ let onload ev =
     (Eliom_request_info.get_request_cookies ());
   ignore (lwt () = Lwt_js.sleep 0.001 in
           Eliom_client.relink_request_nodes (Dom_html.document##documentElement);
-          let on_load =
-            Eliom_client.load_eliom_data
-              request_data
-              (Dom_html.document##documentElement) in
+          let root = Dom_html.document##documentElement in
+          let closure_nodeList, onload_first, onload_last = Eliom_client.load_eliom_data js_data root in
+          let onload_closure_nodes =
+            Eliom_client.relink_closure_nodes
+              root
+              js_data.Eliom_types.ejs_event_handler_table
+              closure_nodeList
+          in
           Eliom_client.force_unwrapped_elts ();
           Eliom_client.reset_request_node ();
-          Lwt.return (List.for_all (fun f -> f ev) on_load));
+          Lwt.return (List.for_all (fun f -> f ev) (onload_first @ onload_closure_nodes @ onload_last)));
   if !Eliom_config.debug_timings then
     Firebug.console##timeEnd(Js.string "onload");
   Js._false
