@@ -1206,25 +1206,30 @@ module External_states = struct
         (*VVV à vérifier *)
 *)
 
-  let volatile_data_group_state ~scope group_name =
+  let volatile_data_group_state
+      ?(scope = Eliom_common.session_group) group_name =
     ((scope :> Eliom_common.user_scope), `Data, group_name)
 
-  let persistent_data_group_state ~scope group_name =
+  let persistent_data_group_state
+      ?(scope = Eliom_common.session_group) group_name =
     ((scope :> Eliom_common.user_scope), `Pers, group_name)
 
-  let service_group_state ~scope group_name =
+  let service_group_state ?(scope = Eliom_common.session_group) group_name =
     ((scope :> Eliom_common.user_scope), `Service, group_name)
 
-  let current_volatile_session_state ?secure ~scope () =
+  let current_volatile_session_state
+      ?secure ?(scope = Eliom_common.session) () =
     let cookie = Eliommod_datasess.find_data_cookie_only ~secure ~scope () in
     ((scope :> Eliom_common.user_scope), `Data, cookie.Eliom_common.dc_value)
 
-  let current_persistent_session_state ?secure ~scope () =
+  let current_persistent_session_state
+      ?secure ?(scope = Eliom_common.session) () =
     Eliommod_persess.find_persistent_cookie_only ~secure ~scope () >>= fun cookie ->
     Lwt.return ((scope :> Eliom_common.user_scope),
                 `Pers, cookie.Eliom_common.pc_value)
 
-  let current_service_session_state ?secure ~scope () =
+  let current_service_session_state
+      ?secure ?(scope = Eliom_common.session) () =
     let cookie = Eliommod_sersess.find_service_cookie_only ~secure ~scope () in
     ((scope :> Eliom_common.user_scope), `Service, cookie.Eliom_common.sc_value)
 

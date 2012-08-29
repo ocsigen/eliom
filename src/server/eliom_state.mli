@@ -719,38 +719,38 @@ module External_states : sig
   (** [volatile_data_group_state ~scope n] returns the state corresponding to
       the group named [n] in scope [scope]. *)
   val volatile_data_group_state :
-    scope:[< Eliom_common.session_group_scope ] -> string ->
+    ?scope:Eliom_common.session_group_scope -> string ->
     ([> `Session_group ], [> `Data ]) state
 
   (** Same for persistent data *)
   val persistent_data_group_state :
-    scope:[< Eliom_common.session_group_scope ] -> string ->
+    ?scope:Eliom_common.session_group_scope -> string ->
     ([> `Session_group ], [> `Pers ]) state
 
   (** Same for services *)
   val service_group_state :
-    scope:[< Eliom_common.session_group_scope ] -> string ->
+    ?scope:Eliom_common.session_group_scope -> string ->
     ([> `Session_group ], [> `Service ]) state
 
   (** [current_volatile_session_state ~scope] returns the state corresponding
       to current session in scope [scope]. *)
   val current_volatile_session_state :
     ?secure:bool ->
-    scope:[< Eliom_common.session_scope ] ->
+    ?scope:Eliom_common.session_scope ->
     unit ->
     ([< `Session ], [< `Data ]) state
 
   (** Same for persistent data *)
   val current_persistent_session_state :
     ?secure:bool ->
-    scope:[< Eliom_common.session_scope ] ->
+    ?scope:Eliom_common.session_scope ->
     unit ->
     ([< `Session ], [< `Pers ]) state Lwt.t
 
   (** Same for services *)
   val current_service_session_state : 
     ?secure:bool ->
-    scope:[< Eliom_common.session_scope ] ->
+    ?scope:Eliom_common.session_scope ->
     unit ->
     ([< `Session ], [< `Service ]) state
 
