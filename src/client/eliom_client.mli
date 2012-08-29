@@ -133,6 +133,7 @@ val in_onload : unit -> bool
 
 (**/**)
 
+val flush_onload : unit -> (Dom_html.event Js.t -> bool) list
 val relink_request_nodes : Dom_html.htmlElement Js.t -> unit
 val reset_request_node : unit -> unit
 val force_unwrapped_elts : unit -> unit

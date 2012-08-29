@@ -24,6 +24,18 @@ open Eliom_content_core
 
 module JsTable = Eliommod_jstable
 
+let buffer f =
+  let elts = ref [] in
+  let add x =
+    elts := f x :: !elts
+  in
+  let flush () =
+    let res = List.rev !elts in
+    elts := [];
+    res
+  in
+  add, flush
+
 (* == Closure *)
 
 module Client_closure : sig
@@ -176,6 +188,9 @@ let register_unwrapped_elt, force_unwrapped_elts =
      trace "Force unwrapped elements";
      List.iter Xml.force_lazy !suspended_nodes;
      suspended_nodes := [])
+
+let onload, flush_onload =
+  buffer (fun f -> fun _ -> f (); true)
 
 (* == Process nodes (a.k.a. nodes with a unique Dom instance on each client process) *)
 
@@ -525,6 +540,7 @@ let call_caml_service
       get_params post_params in
   lwt content, client_value_data = unwrap_caml_content content in
   do_all_client_value_initializations client_value_data;
+  run_load_events (flush_onload ());
   force_unwrapped_elts ();
   reset_request_node ();
   Lwt.return content
@@ -677,12 +693,6 @@ let relink_closure_nodes (root : Dom_html.element Js.t) event_handlers closure_n
     (fun node -> relink_closure_node root onload event_handlers node);
   List.rev !onload
 
-let onload f =
-  Lwt.ignore_result
-    (lwt () = wait_load_end () in
-     f ();
-     Lwt.return ())
-
 let load_eliom_data js_data page =
   trace "Load eliom data";
   try
@@ -820,6 +830,7 @@ let set_content ?uri ?offset ?fragment content =
          fake_page
          Dom_html.document##documentElement;
        do_all_client_value_initializations client_value_data;
+       let onload_events = flush_onload () in
        let onload_closure_nodes =
          relink_closure_nodes
            Dom_html.document##documentElement
@@ -833,7 +844,7 @@ let set_content ?uri ?offset ?fragment content =
        if !Eliom_config.debug_timings then
          ( Firebug.console##timeEnd(Js.string "replace_child");
            Firebug.console##time(Js.string "set_content_end") );
-       run_load_events (onload_first @ onload_closure_nodes @ onload_last);
+       run_load_events (onload_first @ onload_events @ onload_closure_nodes @ onload_last);
        scroll_to_fragment ?offset fragment;
        if !Eliom_config.debug_timings then
          ( Firebug.console##timeEnd(Js.string "set_content_end");
@@ -857,6 +868,7 @@ let set_template_content ?uri ?fragment = function
         | _ -> ());
       lwt (), client_value_data = unwrap_caml_content content in
       do_all_client_value_initializations client_value_data;
+      run_load_events (flush_onload ());
       force_unwrapped_elts ();
       reset_request_node ();
       Lwt.return ()
