@@ -205,9 +205,24 @@ module String_map = Map_make (String)
 
 
 module Client_value_data_base = struct
-  type t = poly Int_map.t Int64_map.t
+  type base = (int64 * int * poly) list
+  let unwrap_id_int = 8
 end
 
 module Injection_data_base = struct
-  type t = poly String_map.t
+  type base = (string * poly) list
+  let unwrap_id_int = 9
 end
+
+let debug_client_value_data f client_value_data =
+  Printf.ksprintf f "Client value data: %s"
+    (String.concat ", "
+       (List.map
+          (fun (closure_id, instance_id, _) ->
+             Printf.sprintf "%Ld/%d" closure_id instance_id)
+          client_value_data))
+
+let debug_injection_data f injection_data =
+  Printf.ksprintf f "Injection data: %s"
+    (String.concat ","
+       (List.map fst injection_data));

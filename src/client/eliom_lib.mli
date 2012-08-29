@@ -85,13 +85,10 @@ val js_array_to_list : 'a Js.js_array Js.t -> 'a list
 
 module Client_value_data : sig
   include module type of Client_value_data_base
-  val closure_ids : t -> int64 list
-  val instance_ids : int64 -> t -> int list
-  val find : int64 -> int -> t -> poly
+  type t = unit (* Only needed while unwrapping *)
 end
 
 module Injection_data : sig
   include module type of Injection_data_base
-  val names : t -> string list
-  val find : string -> t -> poly
+  type t = unit (* Only needed while unwrapping *)
 end

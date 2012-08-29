@@ -66,19 +66,15 @@ val string_escape : string -> string
 module Client_value_data : sig
 
   include module type of Client_value_data_base
-
-  val empty : t
-  val add : int64 -> int -> poly -> t -> t
-  val union : t -> t -> t
+  type t = ((int64 * int * poly) * Eliom_wrap.unwrapper) list
+  val with_unwrapper : base -> t
 
 end
 
 module Injection_data : sig
 
   include module type of Injection_data_base
-
-  val empty : t
-  val add : string -> poly -> t -> t
-  val union : t -> t -> t
+  type t = ((string * poly) * Eliom_wrap.unwrapper) list
+  val with_unwrapper : base -> t
 
 end

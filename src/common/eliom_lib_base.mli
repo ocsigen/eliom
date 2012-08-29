@@ -148,9 +148,14 @@ end
 (**/**)
 
 module Client_value_data_base : sig
-  type t = poly Int_map.t Int64_map.t
+  type base = (int64 * int * poly) list
+  val unwrap_id_int : int
 end
 
 module Injection_data_base : sig
-  type t = poly String_map.t
+  type base = (string * poly) list
+  val unwrap_id_int : int
 end
+
+val debug_injection_data : (string -> unit) -> Injection_data_base.base -> unit
+val debug_client_value_data : (string -> unit) -> Client_value_data_base.base -> unit

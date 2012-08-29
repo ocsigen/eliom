@@ -30,17 +30,22 @@ let code_of_code_option = function
 
 include Eliom_registration_base
 
-let client_value_data ~include_global_client_values =
+let client_value_data ~is_first_request =
   let request_initializations =
     Eliom_service.get_request_client_value_data ()
   in
   let global_initializations =
-    if include_global_client_values
+    if is_first_request
     then Eliom_service.get_global_client_value_data ()
-    else Client_value_data.empty
+    else []
   in
-  Client_value_data.union
-    global_initializations request_initializations
+  global_initializations @ request_initializations
+
+let injection_data ~is_first_request =
+  if is_first_request then
+    Eliom_service.get_injection_data ()
+  else
+    []
 
 (******************************************************************************)
 (* Send return types                                                          *)
@@ -1159,8 +1164,10 @@ module Ocaml = struct
   module M = Eliom_mkreg.MakeRegister(Caml_reg_base)
 
   let prepare_data data =
+    let client_value_data = client_value_data ~is_first_request:false in
+    debug_client_value_data (debug "%s") client_value_data;
     let r = { Eliom_types.
-              ecs_client_value_data = client_value_data ~include_global_client_values:false;
+              ecs_client_value_data = Client_value_data.with_unwrapper client_value_data;
               ecs_data = data } in
     Lwt.return (Eliom_types.encode_eliom_data r)
 
@@ -1501,33 +1508,24 @@ module Eliom_appl_reg_make_param
 
   let make_eliom_data_script ~sp page =
 
-    let include_global_client_values =
+    let is_first_request =
       None = Eliom_request_info.get_sp_client_appl_name ()
     in
 
-    let client_value_data = client_value_data ~include_global_client_values in
-    let injection_data = Eliom_service.get_injection_data () in
+    let client_value_data = client_value_data ~is_first_request in
+    let injection_data = injection_data ~is_first_request in
 
-    Int64_map.iter
-      (fun closure_id instances ->
-         debug "Client_value_datas for closure_id %Ld: %s" closure_id
-           (String.concat ", "
-             (List.map
-                (fun (instance_id, _) -> string_of_int instance_id)
-                (Int_map.bindings instances))))
-      client_value_data;
-    debug "Injections: %s"
-      (String.concat ","
-         (List.map fst (String_map.bindings injection_data)));
+    debug_client_value_data (debug "%s") client_value_data;
+    debug_injection_data (debug "%s") injection_data;
 
     (* wrapping of values could create eliom references that may
        create cookies that needs to be sent along the page. Hence,
        cookies should be calculated after wrapping. *)
     let eliom_data =
       Eliom_wrap.wrap { Eliom_types.
+        ejs_client_value_data   = Client_value_data.with_unwrapper client_value_data;
+        ejs_injection_data      = Injection_data.with_unwrapper injection_data;
         ejs_event_handler_table = Eliom_content.Xml.make_event_handler_table (Eliom_content.Html5.D.toelt page);
-        ejs_client_value_data   = client_value_data;
-        ejs_injection_data      = injection_data;
         ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;
       } in
 

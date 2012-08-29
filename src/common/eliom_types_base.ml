@@ -32,10 +32,10 @@ type sitedata = (* sent while starting the program *)
   }
 
 type eliom_js_page_data = {
-  (* Event handlers *)
-  ejs_event_handler_table: Xml.event_handler_table;
   ejs_client_value_data: Client_value_data.t;
   ejs_injection_data: Injection_data.t;
+  (* Event handlers *)
+  ejs_event_handler_table: Xml.event_handler_table;
   (* Session info *)
   ejs_sess_info: Eliom_common.sess_info;
 }

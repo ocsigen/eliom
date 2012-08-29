@@ -112,34 +112,14 @@ type file_info
 module Client_value_data = struct
 
   include Client_value_data_base
-
-  let closure_ids table =
-    List.map fst
-      (Int64_map.bindings table)
-
-  let instance_ids closure_id table =
-    trace "Instance ids for %Ld" closure_id;
-    List.map fst
-      (Int_map.bindings
-         (try Int64_map.find closure_id table
-          with Not_found -> Int_map.empty))
-
-  let find closure_id instance_id table =
-    trace "Find client value data for %Ld" closure_id;
-    let instances = Int64_map.find closure_id table in
-    Int_map.find instance_id instances
+  type t = unit
 
 end
 
 module Injection_data = struct
 
   include Injection_data_base
-
-  let names table =
-    List.map fst (String_map.bindings table)
-
-  let find name table =
-    String_map.find name table
+  type t = unit
 end
 
 

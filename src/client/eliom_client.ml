@@ -135,50 +135,6 @@ let really_unwrap_client_values value =
   trace "really_unwrap_client_values ok";
   res
 
-let do_client_value_initializations ~client_value_data ~closure_id =
-  trace "Do client value initialization %Ld" closure_id;
-  List.iter
-    (fun instance_id ->
-       trace "Set client value %Ld/%d" closure_id instance_id;
-       let value =
-         let closure =
-           try
-             Client_closure.find ~closure_id
-           with Not_found ->
-             error "Client closure %Ld not found" closure_id
-         in
-         let args =
-           try
-             really_unwrap_client_values
-               (Client_value_data.find
-                  closure_id instance_id
-                  client_value_data)
-           with Not_found ->
-             error "Client value data for %Ld/%d not found" closure_id instance_id
-         in
-         closure args
-       in
-       Client_value.set ~closure_id ~instance_id ~value)
-    (Client_value_data.instance_ids closure_id client_value_data)
-
-let do_all_client_value_initializations client_value_data =
-  trace "Do all client value initialization";
-  List.iter
-    (fun closure_id ->
-       do_client_value_initializations ~client_value_data ~closure_id)
-    (Client_value_data.closure_ids client_value_data)
-
-
-let do_injection_initializations ~injection_data ~names =
-  trace "Do injections %s" (String.concat " " names);
-  List.iter
-    (fun name ->
-       try
-         let value = Injection_data.find name injection_data in
-         Injection.set ~name ~value
-       with Not_found ->
-         error "Injection data for %S not found" name)
-    names
 
 let register_unwrapped_elt, force_unwrapped_elts =
   let suspended_nodes = ref [] in
@@ -191,6 +147,32 @@ let register_unwrapped_elt, force_unwrapped_elts =
 
 let onload, flush_onload =
   buffer (fun f -> fun _ -> f (); true)
+
+let (register_client_value_initialization, do_client_value_initializations, do_all_client_value_initializations),
+    (register_injection_initialization, do_injection_initializations, _) =
+  let aux key_pred msg tos key_to_string =
+    let buffer = ref [] in
+    let register key f =
+      trace "Register %s initialization %s" msg (key_to_string key);
+      buffer := (key, f) :: !buffer
+    in
+    let do_ pred_arg =
+      trace "Do %s initializations %s" msg (tos pred_arg);
+      let now, later =
+        List.partition (fun (key, _) -> key_pred key pred_arg) !buffer
+      in
+      List.iter (fun (_, f) -> f ()) (List.rev now);
+      buffer := later
+    in
+    let do_all () =
+      trace ("Do all %s initializations") msg;
+      List.iter (fun (_, f) -> f ()) (List.rev !buffer);
+      buffer := []
+    in
+    register, do_, do_all
+  in
+  aux (=) "client value" Int64.to_string Int64.to_string,
+  aux List.mem "injection" (String.concat ", ") (fun x -> x)
 
 (* == Process nodes (a.k.a. nodes with a unique Dom instance on each client process) *)
 
@@ -814,14 +796,6 @@ let set_content ?uri ?offset ?fragment content =
        (* Bind unique node (named and global) and register event
           handler. *)
        let closure_nodeList, onload_first, onload_last = load_eliom_data js_data fake_page in
-       Int64_map.iter
-         (fun closure_id instances ->
-            trace "Client_value_datas for closure_id %Ld: %s" closure_id
-              (String.concat ", "
-                (List.map
-                   (fun (instance_id, _) -> string_of_int instance_id)
-                   (Int_map.bindings instances))))
-         client_value_data;
        (* Really change page contents *)
        if !Eliom_config.debug_timings then
          Firebug.console##time(Js.string "replace_child");
@@ -1164,66 +1138,98 @@ let rebuild_node elt =
 (******************************************************************************)
 (*                            Register unwrappers                             *)
 
+let unwrap_tyxml =
+  fun tmp_elt ->
+    let elt = match tmp_elt.tmp_elt with
+      | RELazy elt -> Eliom_lazy.force elt
+      | RE elt -> elt
+    in
+    trace "Unwrap tyxml";
+    (* Do not rebuild dom node while unwrapping, otherwise we
+       don't have control on when "onload" event handlers are
+       triggered. *)
+    let elt =
+      Xml.make_lazy ~id:tmp_elt.tmp_node_id
+        (lazy
+           (match tmp_elt.tmp_node_id with
+              | Xml.ProcessId process_id as id ->
+                  trace "Unwrap tyxml from ProcessId %s" process_id;
+                  Js.Optdef.case (find_process_node (Js.bytestring process_id))
+                    (fun () ->
+                       trace "not found";
+                       let xml_elt : Xml.elt = Xml.make ~id elt in
+                       let html_elt = (Obj.magic xml_elt : _ Html5.elt) in
+                       let html_elt = Html5.set_classes_of_elt html_elt in
+                       register_process_node (Js.bytestring process_id) (rebuild_node html_elt);
+                       (Obj.magic html_elt : Xml.elt))
+                    (fun elt ->
+                       trace "found";
+                       Xml.make_dom ~id elt)
+              | Xml.RequestId request_id as id ->
+                  trace "Unwrap tyxml from RequestId %s" request_id;
+                  Js.Optdef.case (find_request_node (Js.bytestring request_id))
+                    (fun () ->
+                       trace "not found";
+                       let xml_elt : Xml.elt = Xml.make ~id elt in
+                       let html_elt = (Obj.magic xml_elt : _ Html5.elt) in
+                       let html_elt = Html5.set_classes_of_elt html_elt in
+                       register_request_node (Js.bytestring request_id) (rebuild_node html_elt);
+                       (Obj.magic html_elt : Xml.elt))
+                    (fun elt -> trace "found"; Xml.make_dom ~id elt)
+              | Xml.NoId as id ->
+                  trace "Unwrap tyxml from NoId";
+                  Xml.make ~id elt))
+    in
+    register_unwrapped_elt elt;
+    elt
+
+let unwrap_client_value =
+  fun (cv, _unwrapper_id as not_unwrapped) ->
+    let closure_id = Eliom_server.Client_value.closure_id cv in
+    let instance_id = Eliom_server.Client_value.instance_id cv in
+    if !is_really_unwrap_client_values then
+      (trace "Unwrap client_value %Ld/%d" closure_id instance_id;
+       try
+         Client_value.find ~closure_id ~instance_id
+       with Not_found ->
+         error "Client value not found: %Ld/%d" closure_id instance_id)
+    else
+      (trace "Unwrap client_value %Ld/%d later" closure_id instance_id;
+       not_unwrapped)
+
+let unwrap_injection_datum ((name, value), _) =
+  trace "Unwrap injection datum";
+  register_injection_initialization name
+    (fun () ->
+       trace "Unwrap injection datum %s" name;
+       let value = really_unwrap_client_values value in
+       Injection.set ~name ~value);
+  ()
+
+let unwrap_client_value_datum ((closure_id, instance_id, args), _) =
+  trace "Unwrap client value datum";
+  register_client_value_initialization closure_id
+    (fun () ->
+       trace "Unwrap client value datum %Ld/%d" closure_id instance_id;
+       let closure = Client_closure.find ~closure_id in
+       let args = really_unwrap_client_values args in
+       let value = closure args in
+       Client_value.set ~closure_id ~instance_id ~value);
+  ()
+
 let _ =
   Eliom_unwrap.register_unwrapper
     (Eliom_unwrap.id_of_int Eliom_lib_base.tyxml_unwrap_id_int)
-    (fun tmp_elt ->
-  let elt = match tmp_elt.tmp_elt with
-    | RELazy elt -> Eliom_lazy.force elt
-    | RE elt -> elt
-  in
-  trace "Unwrap tyxml";
-  (* Do not rebuild dom node while unwrapping, otherwise we
-     don't have control on when "onload" event handlers are
-     triggered. *)
-  let elt =
-    Xml.make_lazy ~id:tmp_elt.tmp_node_id
-      (lazy
-         (match tmp_elt.tmp_node_id with
-            | Xml.ProcessId process_id as id ->
-                trace "Unwrap tyxml from ProcessId %s" process_id;
-                Js.Optdef.case (find_process_node (Js.bytestring process_id))
-                  (fun () ->
-                     trace "not found";
-                     let xml_elt : Xml.elt = Xml.make ~id elt in
-                     let html_elt = (Obj.magic xml_elt : _ Html5.elt) in
-                     let html_elt = Html5.set_classes_of_elt html_elt in
-                     register_process_node (Js.bytestring process_id) (rebuild_node html_elt);
-                     (Obj.magic html_elt : Xml.elt))
-                  (fun elt ->
-                     trace "found";
-                     Xml.make_dom ~id elt)
-            | Xml.RequestId request_id as id ->
-                trace "Unwrap tyxml from RequestId %s" request_id;
-                Js.Optdef.case (find_request_node (Js.bytestring request_id))
-                  (fun () ->
-                     trace "not found";
-                     let xml_elt : Xml.elt = Xml.make ~id elt in
-                     let html_elt = (Obj.magic xml_elt : _ Html5.elt) in
-                     let html_elt = Html5.set_classes_of_elt html_elt in
-                     register_request_node (Js.bytestring request_id) (rebuild_node html_elt);
-                     (Obj.magic html_elt : Xml.elt))
-                  (fun elt -> trace "found"; Xml.make_dom ~id elt)
-            | Xml.NoId as id ->
-                trace "Unwrap tyxml from NoId";
-                Xml.make ~id elt))
-  in
-  register_unwrapped_elt elt;
-  elt);
+    unwrap_tyxml;
   Eliom_unwrap.register_unwrapper
     (Eliom_unwrap.id_of_int Eliom_lib_base.client_value_unwrap_id_int)
-    (fun (cv, _unwrapper_id as not_unwrapped) ->
-       let closure_id = Eliom_server.Client_value.closure_id cv in
-       let instance_id = Eliom_server.Client_value.instance_id cv in
-       if !is_really_unwrap_client_values then
-         (trace "Unwrap client_value %Ld/%d" closure_id instance_id;
-          try
-            Client_value.find ~closure_id ~instance_id
-          with Not_found ->
-            error "Client value not found: %Ld/%d" closure_id instance_id)
-       else
-         (trace "Unwrap client_value %Ld/%d later" closure_id instance_id;
-          not_unwrapped));
+    unwrap_client_value;
+  Eliom_unwrap.register_unwrapper
+    (Eliom_unwrap.id_of_int Eliom_lib_base.Client_value_data_base.unwrap_id_int)
+    unwrap_client_value_datum;
+  Eliom_unwrap.register_unwrapper
+    (Eliom_unwrap.id_of_int Eliom_lib_base.Injection_data_base.unwrap_id_int)
+    unwrap_injection_datum;
   ()
 
 (******************************************************************************)
@@ -1233,23 +1239,13 @@ module Syntax_helpers = struct
   let register_client_closure closure_id closure =
     trace "Register client closure %Ld" closure_id;
     Client_closure.register ~closure_id ~closure;
-    let client_value_data =
-      (Eliom_request_info.get_request_data ())
-        .Eliom_types.ejs_client_value_data
-    in
-    do_client_value_initializations ~client_value_data ~closure_id
+    do_client_value_initializations closure_id
 
   let get_escaped_value =
     from_poly
 
   let injection_initializations names =
-    let injection_data =
-      (Eliom_request_info.get_request_data ())
-        .Eliom_request_info.ejs_injection_data
-    in
-    do_injection_initializations
-      ~injection_data
-      ~names
+    do_injection_initializations names
 
   let get_injection name =
     Injection.get ~name

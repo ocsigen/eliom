@@ -90,7 +90,7 @@ eliom_lib.cmo: eliom_wrap.cmi eliom_server.cmi eliom_lib_base.cmi \
     eliom_lib.cmi
 eliom_lib.cmx: eliom_wrap.cmx eliom_server.cmx eliom_lib_base.cmx \
     eliom_lib.cmi
-eliom_lib.cmi: eliom_server.cmi eliom_lib_base.cmi
+eliom_lib.cmi: eliom_wrap.cmi eliom_server.cmi eliom_lib_base.cmi
 eliom_mkforms.cmo: eliom_uri.cmi eliom_service.cmi eliom_parameter.cmi \
     eliom_lib.cmi eliom_lazy.cmi eliom_common.cmi eliom_mkforms.cmi
 eliom_mkforms.cmx: eliom_uri.cmx eliom_service.cmx eliom_parameter.cmx \

@@ -538,10 +538,10 @@ let pre_wrap s =
 (******************************************************************************)
 (** {2 Client value initializations} *)
 
-let global_client_values : Client_value_data.t Eliom_reference.Volatile.eref =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.global Client_value_data.empty
-let request_client_values : Client_value_data.t Eliom_reference.Volatile.eref =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.request Client_value_data.empty
+let global_client_values : Client_value_data.base Eliom_reference.Volatile.eref =
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.global []
+let request_client_values : Client_value_data.base Eliom_reference.Volatile.eref =
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
 
 let register_client_value_data ~closure_id ~instance_id args =
   let reference =
@@ -550,23 +550,23 @@ let register_client_value_data ~closure_id ~instance_id args =
     else request_client_values
   in
   Eliom_reference.Volatile.modify reference
-    (Client_value_data.add closure_id instance_id args)
+    (fun sofar -> (closure_id, instance_id, args) :: sofar)
 
 let get_global_client_value_data () =
-  Eliom_reference.Volatile.get global_client_values
+  List.rev (Eliom_reference.Volatile.get global_client_values)
 let get_request_client_value_data () =
-  Eliom_reference.Volatile.get request_client_values
+  List.rev (Eliom_reference.Volatile.get request_client_values)
 
 (******************************************************************************)
 (** {2 Injection_data} *)
 
-let request_injections : Injection_data.t Eliom_reference.Volatile.eref =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.global Injection_data.empty
+let request_injections : Injection_data.base Eliom_reference.Volatile.eref =
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.global []
 let register_injection name f =
   Eliom_reference.Volatile.modify request_injections
-    (Injection_data.add name f)
-let get_injection_data () : Injection_data.t =
-  Eliom_reference.Volatile.get request_injections
+    (fun sofar -> (name, f) :: sofar)
+let get_injection_data () : Injection_data.base =
+  List.rev (Eliom_reference.Volatile.get request_injections)
 
 module Syntax_helpers = struct
 

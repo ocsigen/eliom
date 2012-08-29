@@ -696,10 +696,10 @@ exception Wrong_session_table_for_CSRF_safe_coservice
    with the next response. If the server is not processing a request, the client value is
    send to every client process with the first response. *)
 val register_client_value_data : closure_id:int64 -> instance_id:int -> poly -> unit
-val get_global_client_value_data : unit -> Client_value_data.t
-val get_request_client_value_data : unit -> Client_value_data.t
+val get_global_client_value_data : unit -> Client_value_data.base
+val get_request_client_value_data : unit -> Client_value_data.base
 
-val get_injection_data : unit -> Injection_data.t
+val get_injection_data : unit -> Injection_data.base
 
 (* TODO BB Find a better place for this module *)
 module Syntax_helpers : sig

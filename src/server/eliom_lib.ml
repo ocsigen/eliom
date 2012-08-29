@@ -84,40 +84,31 @@ let merge_aux err_msg =
 module Client_value_data = struct
 
   include Client_value_data_base
+  type t = ((int64 * int * poly) * Eliom_wrap.unwrapper) list
 
-  let empty =
-    Int64_map.empty
+  let unwrapper =
+    Eliom_wrap.create_unwrapper
+      (Eliom_wrap.id_of_int unwrap_id_int)
 
-  let map f table =
-    Int64_map.map (Int_map.map f) table
-
-  let add closure_id instance_id poly table =
-    let instances =
-      try Int64_map.find closure_id table
-      with Not_found -> Int_map.empty
-    in
-    let instances' = Int_map.add instance_id poly instances in
-    Int64_map.add closure_id instances' table
-
-  let union table_1 table_2 =
-    Int64_map.merge
-      (fun closure_id opt_instances_1 opt_instances_2 ->
-         let instances_1 = Option.get (fun () -> Int_map.empty) opt_instances_1 in
-         let instances_2 = Option.get (fun () -> Int_map.empty) opt_instances_2 in
-         Some (Int_map.merge (fun _ -> merge_aux "Client_value_data.union")
-                 instances_1 instances_2))
-      table_1 table_2
+  let with_unwrapper client_value_data =
+    List.map
+      (fun datum -> datum, unwrapper)
+      client_value_data
 
 end
 
 module Injection_data = struct
 
   include Injection_data_base
+  type t = ((string * poly) * Eliom_wrap.unwrapper) list
 
-  let empty = String_map.empty
-  let add = String_map.add
-  let union table_1 table_2 =
-    String_map.merge (fun _ -> merge_aux "Injection_data.union")
-      table_1 table_2
+  let unwrapper =
+    Eliom_wrap.create_unwrapper
+      (Eliom_wrap.id_of_int unwrap_id_int)
+
+  let with_unwrapper injection_data =
+    List.map
+      (fun datum -> datum, unwrapper)
+      injection_data
 
 end
