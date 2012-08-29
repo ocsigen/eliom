@@ -163,17 +163,22 @@ module Volatile : sig
         If the value has not been set yet, it will raise with exception
         [Eref_not_intialized].
     *)
-    val get : ([< Eliom_common.cookie_scope ], [ `Data ]) Eliom_state.External_states.state ->
+    val get : ([< `Session_group | `Session | `Client_process ],
+               [< `Data ]) Eliom_state.External_states.state ->
       'a eref -> 'a
-    val set : ([< Eliom_common.cookie_scope ], [ `Data ]) Eliom_state.External_states.state ->
+    val set : ([< `Session_group | `Session | `Client_process ],
+               [< `Data ]) Eliom_state.External_states.state ->
       'a eref -> 'a -> unit
 
     (** Warning: the function will be executed with the current context *)
     val modify :
-      ([< Eliom_common.cookie_scope ], [ `Data ]) Eliom_state.External_states.state ->
+      ([< `Session_group | `Session | `Client_process ],
+       [< `Data ]) Eliom_state.External_states.state ->
       'a eref -> ('a -> 'a) -> unit
 
-    val unset : ([< Eliom_common.cookie_scope ], [ `Data ]) Eliom_state.External_states.state ->
+    val unset :
+      ([< `Session_group | `Session | `Client_process ],
+       [< `Data ]) Eliom_state.External_states.state ->
       'a eref -> unit
 
   end
@@ -181,15 +186,19 @@ module Volatile : sig
 end
 
 module Ext : sig
-  val get : ([< Eliom_common.cookie_scope ], [< `Data | `Pers ]) Eliom_state.External_states.state ->
+  val get : ([< `Session_group | `Session | `Client_process ],
+             [< `Data | `Pers ]) Eliom_state.External_states.state ->
     'a eref -> 'a Lwt.t
   val set :
-    ([< Eliom_common.cookie_scope ], [< `Data | `Pers ]) Eliom_state.External_states.state ->
+    ([< `Session_group | `Session | `Client_process ],
+     [< `Data | `Pers ]) Eliom_state.External_states.state ->
     'a eref -> 'a -> unit Lwt.t
   val modify :
-    ([< Eliom_common.cookie_scope ], [< `Data | `Pers ]) Eliom_state.External_states.state ->
+    ([< `Session_group | `Session | `Client_process ],
+     [< `Data | `Pers ]) Eliom_state.External_states.state ->
     'a eref -> ('a -> 'a) -> unit Lwt.t
   val unset :
-    ([< Eliom_common.cookie_scope ], [< `Data | `Pers ]) Eliom_state.External_states.state ->
+    ([< `Session_group | `Session | `Client_process ],
+     [< `Data | `Pers ]) Eliom_state.External_states.state ->
     'a eref -> unit Lwt.t
 end

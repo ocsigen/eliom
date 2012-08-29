@@ -1329,8 +1329,13 @@ module External_states = struct
        -- Vincent
     *)
 
+    let ch_sc = function
+      | `Session_group _ -> `Session_group
+      | `Session _ -> `Session
+      | `Client_process _ -> `Client_process
+
     let check_scopes table_scope state_scope =
-      if Eliom_common.cookie_scope_of_user_scope table_scope <> state_scope
+      if ch_sc table_scope <> state_scope
       then failwith "wrong scope"
 
     let lwt_check_scopes a b =

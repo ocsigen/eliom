@@ -710,9 +710,9 @@ module External_states : sig
 
   type (+'a, +'b) state
 
-  val volatile_data_group_state : string -> ([> `Session_group ], [> `Data ]) state
-  val persistent_data_group_state : string -> ([> `Session_group ], [> `Pers ]) state
-  val service_group_state : string -> ([> `Session_group ], [> `Service ]) state
+  val volatile_data_group_state : string -> ([< `Session_group ], [< `Data ]) state
+  val persistent_data_group_state : string -> ([< `Session_group ], [< `Pers ]) state
+  val service_group_state : string -> ([< `Session_group ], [< `Service ]) state
 
   val discard_state : state : ('a, 'b) state -> unit Lwt.t
 
@@ -746,35 +746,41 @@ module External_states : sig
 
     (** Raises [Not_found] if no data in the table for the cookie. *)
     val get_volatile_data :
-      state:([< Eliom_common.cookie_scope ], [ `Data ]) state ->
+      state:([< `Session_group | `Session | `Client_process ],
+             [< `Data ]) state ->
       table:'a volatile_table ->
       'a
         
     (** Fails with lwt exception [Not_found]
         if no data in the table for the cookie. *)
     val get_persistent_data :
-      state:([< Eliom_common.cookie_scope ], [ `Pers ]) state ->
+      state:([< `Session_group | `Session | `Client_process ],
+             [< `Pers ]) state ->
       table:'a persistent_table ->
       'a Lwt.t
         
     val set_volatile_data :
-      state:([< Eliom_common.cookie_scope ], [ `Data ]) state ->
+      state:([< `Session_group | `Session | `Client_process ],
+             [< `Data ]) state ->
       table:'a volatile_table ->
       'a -> unit
         
     (** Fails with lwt exception [Not_found]
         if no data in the table for the cookie. *)
     val set_persistent_data :
-      state:([< Eliom_common.cookie_scope ], [ `Pers ]) state ->
+      state:([< `Session_group | `Session | `Client_process ],
+             [< `Pers ]) state ->
       table:'a persistent_table ->
       'a -> unit Lwt.t
         
     val remove_volatile_data :
-      state:([< Eliom_common.cookie_scope ], [ `Data ]) state ->
+      state:([< `Session_group | `Session | `Client_process ],
+             [< `Data ]) state ->
       table:'a volatile_table -> unit
 
     val remove_persistent_data :
-      state:([< Eliom_common.cookie_scope ], [ `Pers ]) state -> 
+      state:([< `Session_group | `Session | `Client_process ],
+             [< `Pers ]) state -> 
       table:'a persistent_table -> unit Lwt.t
 
   end
