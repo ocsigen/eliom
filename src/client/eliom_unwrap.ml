@@ -89,7 +89,10 @@ external raw_unwrap_value
   = "caml_unwrap_value"
 
 let unwrap_value value =
-  raw_unwrap_value apply_unwrapper value
+  if !Eliom_config.debug_timings then Firebug.console##time(Js.string "unwrap_value");
+  let res = raw_unwrap_value apply_unwrapper value in
+  if !Eliom_config.debug_timings then Firebug.console##timeEnd(Js.string "unwrap_value");
+  res
 
 let unwrap_js_var s =
   unwrap (Js.to_bytestring (Js.Unsafe.variable s)) 0

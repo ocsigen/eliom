@@ -127,6 +127,18 @@ end = struct
 
 end
 
+(* BBB To save oneself from traversing the [value] completely, and probably
+   several times (when used in different client values), this could be replaced
+   by the following idea:
+   - while [Eliom_unwrap.unwrap], pass also the parent JS array and the field
+     index of the wrapped value to the unwrapping function
+   - in unwrap_client_value, return the wrapped value, but record the JS array
+     and field index
+   - instead of traversing the hole structure in [really_unwrap_client_values]
+     (i.e. [Eliom_unwrap.unwrap_value]) just replace the recorded array fields
+     by the value of [Client_value.find p i].
+ *)
+
 let is_really_unwrap_client_values = ref false
 let really_unwrap_client_values value =
   is_really_unwrap_client_values := true;
@@ -148,16 +160,26 @@ let register_unwrapped_elt, force_unwrapped_elts =
 let onload, flush_onload =
   buffer (fun f -> fun _ -> f (); true)
 
+(* BBB KNOWN BUG
+   do_client_value_initializations:
+
+   {server{ let f x = ignore {unit{ debug "f: %S" %x }}@p1 }}
+   {client{ let s = "str" }}
+   {server{ let x = f {string{ s }}@p2 }}
+
+   => in the client code, *all* client values of closure p1 are initialized,
+      also [x] although [s] is not yet known.
+ *)
 let (register_client_value_initialization, do_client_value_initializations, do_all_client_value_initializations),
     (register_injection_initialization, do_injection_initializations, _) =
-  let aux key_pred msg tos key_to_string =
+  let aux ~key_pred ~msg ~pred_arg_to_string ~key_to_string =
     let buffer = ref [] in
     let register key f =
       trace "Register %s initialization %s" msg (key_to_string key);
       buffer := (key, f) :: !buffer
     in
-    let do_ pred_arg =
-      trace "Do %s initializations %s" msg (tos pred_arg);
+    let do_single pred_arg =
+      trace "Do %s initializations %s" msg (pred_arg_to_string pred_arg);
       let now, later =
         List.partition (fun (key, _) -> key_pred key pred_arg) !buffer
       in
@@ -165,14 +187,18 @@ let (register_client_value_initialization, do_client_value_initializations, do_a
       buffer := later
     in
     let do_all () =
-      trace ("Do all %s initializations") msg;
+      trace "Do all %s initializations" msg;
       List.iter (fun (_, f) -> f ()) (List.rev !buffer);
       buffer := []
     in
-    register, do_, do_all
+    register, do_single, do_all
   in
-  aux (=) "client value" Int64.to_string Int64.to_string,
-  aux List.mem "injection" (String.concat ", ") (fun x -> x)
+  aux ~key_pred:(=) ~msg:"client value"
+    ~pred_arg_to_string:Int64.to_string
+    ~key_to_string:Int64.to_string,
+  aux ~key_pred:List.mem ~msg:"injection"
+    ~pred_arg_to_string:(String.concat ", ")
+    ~key_to_string:(fun x -> x)
 
 (* == Process nodes (a.k.a. nodes with a unique Dom instance on each client process) *)
 
