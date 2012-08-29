@@ -116,32 +116,6 @@ module Volatile = struct
 
   module Ext = struct
 
-    let get_group_ref group (f, table) =
-      match table with
-        | Vol t ->
-          (try External_states.Low_level.get_volatile_group_data
-              ~group ~table:(Lazy.force t) 
-           with Not_found -> 
-             (* I don't want to run f in the wrong context -> I fail *)
-             raise Eref_not_intialized)
-        | _ -> failwith "non group eref"
-          
-    let set_group_ref group (_, table) value =
-      match table with
-        | Vol t ->
-          External_states.Low_level.set_volatile_group_data
-            ~group ~table:(Lazy.force t) value
-        | _ -> failwith "non group eref"
-
-  let modify_group_ref group eref f =
-    set_group_ref group eref (f (get_group_ref group eref))
-
-  let unset_group_ref group (f, table : _ eref) =
-    match table with
-      | Vol t -> External_states.Low_level.remove_volatile_group_data
-        ~group ~table:(Lazy.force t);
-      | _ -> failwith "non group eref"
-
   let get state (f, table) =
     match table with
       | Vol t ->
@@ -255,39 +229,10 @@ let unset (f, table as eref) =
 
 module Ext = struct
 
-  let get_group_ref group ((_, table) as r) =
+  let get state ((_, table) as r) =
+    let state = External_states.untype_state state in
     match table with
-      | Vol _ -> Lwt.return (Volatile.Ext.get_group_ref group r)
-      | Per t ->
-        (Lwt.catch
-           (fun () -> External_states.Low_level.get_persistent_group_data
-             ~group ~table:t)
-           (function
-             | Not_found -> Lwt.fail Eref_not_intialized
-             | e -> Lwt.fail e))
-      | _ -> failwith "non group eref"
-          
-  let set_group_ref group ((_, table) as r) value =
-    match table with
-      | Vol _ -> Lwt.return (Volatile.Ext.set_group_ref group r value)
-      | Per t ->
-        External_states.Low_level.set_persistent_group_data
-          ~group ~table:t value
-      | _ -> Lwt.fail (Failure "non group eref")
-      
-  let modify_group_ref group eref f =
-    get_group_ref group eref >>= fun v ->
-    set_group_ref group eref (f v)
-
-  let unset_group_ref group ((_, table) as r) =
-    match table with
-      | Vol _ -> Lwt.return (Volatile.Ext.unset_group_ref group r)
-      | Per t -> External_states.Low_level.remove_persistent_group_data
-        ~group ~table:t;
-      | _ -> failwith "wrong eref for this function"
-
-  let get_pers_eref state (_, table) =
-    match table with
+      | Vol _ -> Lwt.return (Volatile.Ext.get state r)
       | Per t ->
         (Lwt.catch
            (fun () -> External_states.Low_level.get_persistent_data
@@ -297,21 +242,25 @@ module Ext = struct
              | e -> Lwt.fail e))
       | _ -> failwith "wrong eref for this function"
           
-  let set_pers_eref state (_, table) value =
+  let set state ((_, table) as r) value =
+    let state = External_states.untype_state state in
     match table with
+      | Vol _ -> Lwt.return (Volatile.Ext.set state r value)
       | Per t ->
         External_states.Low_level.set_persistent_data
           ~state ~table:t value
       | _ -> Lwt.fail (Failure "wrong eref for this function")
       
-  let modify_pers_eref state eref f =
-    get_pers_eref state eref >>= fun v ->
-    set_pers_eref state eref (f v)
+  let modify state eref f =
+    get state eref >>= fun v ->
+    set state eref (f v)
 
-  let unset_pers_eref state (_, table) =
+  let unset state ((_, table) as r) =
+    let state = External_states.untype_state state in
     match table with
+      | Vol _ -> Lwt.return (Volatile.Ext.unset state r)
       | Per t -> External_states.Low_level.remove_persistent_data
-        ~state ~table:t;
+        ~state ~table:t
       | _ -> failwith "wrong eref for this function"
 
 end

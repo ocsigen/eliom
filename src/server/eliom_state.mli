@@ -704,191 +704,161 @@ module External_states : sig
     | TNone   (** explicitly set no timeout *)
     | TSome of float (** timeout duration in seconds *)
 
-  type service_state
-  type data_state
-  type persistent_state
+  type service_cookie_info
+  type data_cookie_info
+  type persistent_cookie_info
 
-  type state
+  type (+'a, +'b) state
 
-  val discard_state : state:state -> unit Lwt.t
+  val volatile_data_group_state : string -> ([> `Session_group ], [> `Data ]) state
+  val persistent_data_group_state : string -> ([> `Session_group ], [> `Pers ]) state
+  val service_group_state : string -> ([> `Session_group ], [> `Service ]) state
 
-  val fold_all_volatile_data_sessions_in_group :
-    group:string -> ('a -> data_state -> 'a) -> 'a -> 'a
+  val discard_state : state : ('a, 'b) state -> unit Lwt.t
 
-  val iter_on_all_volatile_data_sessions_in_group :
-    group:string -> (data_state -> unit) -> unit
-
-  val fold_all_service_sessions_in_group :
-    group:string -> ('a -> service_state -> 'a) -> 'a -> 'a
-
-  val iter_on_all_service_sessions_in_group :
-    group:string -> (service_state -> unit) -> unit
-
-  val fold_all_persistent_data_sessions_in_group :
-    group:string -> ('a -> persistent_state -> 'a Lwt.t) -> 'a -> 'a Lwt.t
-
-  val iter_on_all_persistent_data_sessions_in_group :
-    group:string -> (persistent_state -> unit Lwt.t) -> unit Lwt.t
+  val get_service_cookie_info :
+    ([< Eliom_common.cookie_scope ], [ `Service ]) state -> service_cookie_info
+    
+  val get_volatile_data_cookie_info :
+    ([< Eliom_common.cookie_scope ], [ `Data ]) state -> data_cookie_info
+    
+  val get_persistent_cookie_info :
+    ([< Eliom_common.cookie_scope ], [ `Pers ]) state ->
+    persistent_cookie_info Lwt.t
 
 
-  val fold_all_volatile_process_states_in_session :
-    state:data_state -> ('a -> data_state -> 'a) -> 'a -> 'a
+  (** Fold all sessions in a groups, or all client processes in a session. *)
+  val fold_sub_states :
+    state : ([< `Session_group | `Session ],
+             [< `Data | `Pers | `Service ] as 'k) state -> 
+    ('a -> ([< `Session | `Client_process ], 'k) state -> 'a Lwt.t) ->
+    'a -> 'a Lwt.t
 
-  val iter_on_all_process_states_in_session :
-    state:data_state -> (data_state -> unit) -> unit
-
-  val fold_all_service_states_in_session :
-    state:service_state -> ('a -> service_state -> 'a) -> 'a -> 'a
-
-  val iter_on_all_service_states_in_session :
-    state:service_state -> (service_state -> unit) -> unit
-
-  val fold_all_persistent_process_states_in_session :
-    state:persistent_state -> ('a -> persistent_state -> 'a Lwt.t) -> 'a
-    -> 'a Lwt.t
-
-  val iter_on_all_persistent_process_states_in_session : 
-    state:persistent_state -> (persistent_state -> unit Lwt.t) -> unit Lwt.t
+  (** Iter on all sessions in a groups, or all client processes in a session. *)
+  val iter_sub_states :
+    state: ([< `Session_group | `Session ], 'k) state -> 
+    (([< `Session | `Client_process ], 'k) state -> unit Lwt.t) ->
+    unit Lwt.t
 
   module Low_level : sig
     (** Functions to access table data.
         Prefer using Eliom references. *)
 
-    (** Raises [Not_found] if no data in the table for the state. *)
+    (** Raises [Not_found] if no data in the table for the cookie. *)
     val get_volatile_data :
-      state:data_state ->
+      state:([< Eliom_common.cookie_scope ], [ `Data ]) state ->
       table:'a volatile_table ->
       'a
         
     (** Fails with lwt exception [Not_found]
-        if no data in the table for the state. *)
+        if no data in the table for the cookie. *)
     val get_persistent_data :
-      state:persistent_state ->
-      table:'a persistent_table ->
-      'a Lwt.t
-        
-    val get_volatile_group_data :
-      group:string ->
-      table:'a volatile_table ->
-      'a
-
-    val get_persistent_group_data :
-      group:string ->
+      state:([< Eliom_common.cookie_scope ], [ `Pers ]) state ->
       table:'a persistent_table ->
       'a Lwt.t
         
     val set_volatile_data :
-      state:data_state ->
+      state:([< Eliom_common.cookie_scope ], [ `Data ]) state ->
       table:'a volatile_table ->
       'a -> unit
         
     (** Fails with lwt exception [Not_found]
-        if no data in the table for the state. *)
+        if no data in the table for the cookie. *)
     val set_persistent_data :
-      state:persistent_state ->
-      table:'a persistent_table ->
-      'a -> unit Lwt.t
-        
-    val set_volatile_group_data :
-      group:string ->
-      table:'a volatile_table ->
-      'a -> unit
-
-    val set_persistent_group_data :
-      group:string ->
+      state:([< Eliom_common.cookie_scope ], [ `Pers ]) state ->
       table:'a persistent_table ->
       'a -> unit Lwt.t
         
     val remove_volatile_data :
-      state:data_state -> table:'a volatile_table -> unit
+      state:([< Eliom_common.cookie_scope ], [ `Data ]) state ->
+      table:'a volatile_table -> unit
 
     val remove_persistent_data :
-      state:persistent_state -> table:'a persistent_table -> unit Lwt.t
-
-    val remove_volatile_group_data :
-      group:string -> table:'a volatile_table -> unit
-
-    val remove_persistent_group_data :
-      group:string -> table:'a persistent_table -> unit Lwt.t
+      state:([< Eliom_common.cookie_scope ], [ `Pers ]) state -> 
+      table:'a persistent_table -> unit Lwt.t
 
   end
 
   val get_service_scope_name :
-    state:service_state -> Eliom_common.scope_name
-
-  val get_volatile_data_scope_name : state:data_state ->
+    cookie:service_cookie_info -> Eliom_common.scope_name
+    
+  val get_volatile_data_scope_name : cookie:data_cookie_info ->
     Eliom_common.scope_name
-
+      
   val get_persistent_data_scope_name :
-      state:persistent_state -> Eliom_common.scope_name
-
-  val get_service_state_cookie_scope :
-    state:service_state -> Eliom_common.cookie_scope
-  val get_volatile_data_state_cookie_scope : state:data_state ->
+    cookie:persistent_cookie_info -> Eliom_common.scope_name
+    
+  val get_service_cookie_scope :
+    cookie:service_cookie_info -> Eliom_common.cookie_scope
+  val get_volatile_data_cookie_scope : cookie:data_cookie_info ->
     Eliom_common.cookie_scope
-  val get_persistent_data_state_cookie_scope :
-    state:persistent_state -> Eliom_common.cookie_scope
-
-  val set_service_state_timeout :
-      state:service_state -> float option -> unit
-  val set_volatile_data_state_timeout :
-      state:data_state -> float option -> unit
-  val set_persistent_data_state_timeout :
-      state:persistent_state -> float option -> unit Lwt.t
-
-  val get_service_state_timeout :
-      state:service_state -> timeout
-
-  val get_volatile_data_state_timeout :
-      state:data_state -> timeout
-
-  val get_persistent_data_state_timeout :
-      state:persistent_state -> timeout
-
-  val unset_service_state_timeout :
-      state:service_state -> unit
-  val unset_volatile_data_state_timeout :
-      state:data_state -> unit
-  val unset_persistent_data_state_timeout :
-      state:persistent_state -> unit Lwt.t
+  val get_persistent_data_cookie_scope :
+    cookie:persistent_cookie_info -> Eliom_common.cookie_scope
+    
+  val set_service_cookie_timeout :
+    cookie:service_cookie_info -> float option -> unit
+  val set_volatile_data_cookie_timeout :
+    cookie:data_cookie_info -> float option -> unit
+  val set_persistent_data_cookie_timeout :
+    cookie:persistent_cookie_info -> float option -> unit Lwt.t
+    
+  val get_service_cookie_timeout :
+    cookie:service_cookie_info -> timeout
+    
+  val get_volatile_data_cookie_timeout :
+    cookie:data_cookie_info -> timeout
+    
+  val get_persistent_data_cookie_timeout :
+    cookie:persistent_cookie_info -> timeout
+    
+  val unset_service_cookie_timeout :
+    cookie:service_cookie_info -> unit
+  val unset_volatile_data_cookie_timeout :
+    cookie:data_cookie_info -> unit
+  val unset_persistent_data_cookie_timeout :
+    cookie:persistent_cookie_info -> unit Lwt.t
 
   (** Returns a list containing the names of all session group
       that are available for this site. *)
   val get_session_group_list : unit -> string list
 
-  (** Iterator on service states. [Lwt_unix.yield] is called automatically
-     after each iteration.
+  (** Iterator on all active service cookies.
+      [Lwt_unix.yield] is called automatically after each iteration.
    *)
-  val iter_service_states :
-    (service_state -> unit Lwt.t) -> unit Lwt.t
+  val iter_service_cookies :
+    (service_cookie_info -> unit Lwt.t) -> unit Lwt.t
 
-  (** Iterator on data states. [Lwt_unix.yield] is called automatically
+  (** Iterator on data cookies. [Lwt_unix.yield] is called automatically
       after each iteration.
    *)
-  val iter_volatile_data_states :
-    (data_state -> unit Lwt.t) -> unit Lwt.t
+  val iter_volatile_data_cookies :
+    (data_cookie_info -> unit Lwt.t) -> unit Lwt.t
 
-  (** Iterator on persistent states. [Lwt_unix.yield] is called automatically
+  (** Iterator on persistent cookies. [Lwt_unix.yield] is called automatically
       after each iteration. *)
-  val iter_persistent_data_states :
-    (persistent_state -> unit Lwt.t) -> unit Lwt.t
+  val iter_persistent_data_cookies :
+    (persistent_cookie_info -> unit Lwt.t) -> unit Lwt.t
 
-  (** Iterator on service states. [Lwt_unix.yield] is called automatically
+  (** Iterator on service cookies. [Lwt_unix.yield] is called automatically
       after each iteration.
   *)
-  val fold_service_states :
-    (service_state -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
+  val fold_service_cookies :
+    (service_cookie_info -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
 
-  (** Iterator on data states. [Lwt_unix.yield] is called automatically
+  (** Iterator on data cookies. [Lwt_unix.yield] is called automatically
      after each iteration.
    *)
-  val fold_volatile_data_states :
-    (data_state -> 'b -> 'b Lwt.t) -> 'b  -> 'b Lwt.t
+  val fold_volatile_data_cookies :
+    (data_cookie_info -> 'b -> 'b Lwt.t) -> 'b  -> 'b Lwt.t
 
-  (** Iterator on persistent states. [Lwt_unix.yield] is called automatically
+  (** Iterator on persistent cookies. [Lwt_unix.yield] is called automatically
      after each iteration. *)
-  val fold_persistent_data_states :
-    (persistent_state -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
+  val fold_persistent_data_cookies :
+    (persistent_cookie_info -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
+
+(**/**)
+  val untype_state : ('a, 'b) state -> ('c, 'd) state
+(**/**)
 
 end
 
@@ -1091,15 +1061,15 @@ val get_volatile_data_cookie :
 
 (**/**)
 (*****************************************************************************)
-val number_of_service_states : unit -> int
+val number_of_service_cookies : unit -> int
 
-val number_of_volatile_data_states : unit -> int
+val number_of_volatile_data_cookies : unit -> int
 
 val number_of_tables : unit -> int
 
 val number_of_table_elements : unit -> int list
 
-val number_of_persistent_data_states : unit -> int Lwt.t
+val number_of_persistent_data_cookies : unit -> int Lwt.t
 
 val number_of_persistent_tables : unit -> int
 

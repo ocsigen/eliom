@@ -20,7 +20,7 @@
 (*****************************************************************************)
 (*****************************************************************************)
 (** Internal functions used by Eliom:                                        *)
-(** Exploration of states                                                  *)
+(** Exploration of cookies                                                  *)
 (*****************************************************************************)
 (*****************************************************************************)
 
@@ -28,11 +28,11 @@
 open Lwt
 
 (*****************************************************************************)
-(* Iterators on states *)
+(* Iterators on cookies *)
 
-  (** Iterator on service states *)
-let iter_service_states f =
-  let sitedata = Eliom_request_info.find_sitedata "Eliommod_sessexpl.iter_service_states" in
+  (** Iterator on service cookies *)
+let iter_service_cookies f =
+  let sitedata = Eliom_request_info.find_sitedata "Eliommod_sessexpl.iter_service_cookies" in
   Eliom_common.SessionCookies.fold
     (fun k v thr ->
       thr >>= fun () ->
@@ -43,9 +43,9 @@ let iter_service_states f =
     (return ())
 
 
-    (** Iterator on data states *)
-let iter_data_states f =
-  let sitedata = Eliom_request_info.find_sitedata "Eliommod_sessexpl.iter_data_states" in
+    (** Iterator on data cookies *)
+let iter_data_cookies f =
+  let sitedata = Eliom_request_info.find_sitedata "Eliommod_sessexpl.iter_data_cookies" in
   Eliom_common.SessionCookies.fold
     (fun k v thr ->
       thr >>= fun () ->
@@ -55,8 +55,8 @@ let iter_data_states f =
     sitedata.Eliom_common.session_data
     (return ())
 
-    (** Iterator on persistent states *)
-let iter_persistent_states f =
+    (** Iterator on persistent cookies *)
+let iter_persistent_cookies f =
   Ocsipersist.iter_table
     (fun k v ->
       f (k, v) >>=
@@ -65,9 +65,9 @@ let iter_persistent_states f =
     (Lazy.force Eliommod_persess.persistent_cookies_table)
 
 
-    (** Iterator on service states *)
-let fold_service_states f beg =
-  let sitedata = Eliom_request_info.find_sitedata "Eliommod_sessexpl.fold_service_states" in
+    (** Iterator on service cookies *)
+let fold_service_cookies f beg =
+  let sitedata = Eliom_request_info.find_sitedata "Eliommod_sessexpl.fold_service_cookies" in
   Eliom_common.SessionCookies.fold
     (fun k v thr ->
       thr >>= fun res1 ->
@@ -79,9 +79,9 @@ let fold_service_states f beg =
     (return beg)
 
 
-    (** Iterator on data states *)
-let fold_data_states f beg =
-  let sitedata = Eliom_request_info.find_sitedata "Eliommod_sessexpl.fold_data_states" in
+    (** Iterator on data cookies *)
+let fold_data_cookies f beg =
+  let sitedata = Eliom_request_info.find_sitedata "Eliommod_sessexpl.fold_data_cookies" in
   Eliom_common.SessionCookies.fold
     (fun k v thr ->
       thr >>= fun res1 ->
@@ -92,8 +92,8 @@ let fold_data_states f beg =
     sitedata.Eliom_common.session_data
     (return beg)
 
-    (** Iterator on persistent states *)
-let fold_persistent_states f beg =
+    (** Iterator on persistent cookies *)
+let fold_persistent_cookies f beg =
   Ocsipersist.fold_table
     (fun k v beg ->
       f (k, v) beg >>= fun res ->
@@ -106,11 +106,11 @@ let fold_persistent_states f beg =
 (*****************************************************************************)
 (* Exploration *)
 
-let number_of_service_states () =
+let number_of_service_cookies () =
   Eliom_common.SessionCookies.length
     (Eliom_request_info.get_sitedata ()).Eliom_common.session_services
 
-let number_of_data_states () =
+let number_of_data_cookies () =
   Eliom_common.SessionCookies.length
     (Eliom_request_info.get_sitedata ()).Eliom_common.session_data
 
@@ -120,7 +120,7 @@ let number_of_tables () =
 let number_of_table_elements () =
   List.map (fun f -> f ()) !Eliommod_datasess.counttableelements
 
-let number_of_persistent_states () =
+let number_of_persistent_cookies () =
   Ocsipersist.length (Lazy.force Eliommod_persess.persistent_cookies_table)
 
 

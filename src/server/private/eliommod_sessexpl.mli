@@ -18,38 +18,38 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-val iter_service_states :
+val iter_service_cookies :
   (Eliom_common.SessionCookies.key *
    Eliom_common.tables Eliom_common.servicecookiestablecontent ->
    unit Lwt.t) ->
   unit Lwt.t
-val iter_data_states :
+val iter_data_cookies :
   (Eliom_common.SessionCookies.key * Eliom_common.datacookiestablecontent ->
    unit Lwt.t) ->
   unit Lwt.t
-val iter_persistent_states :
+val iter_persistent_cookies :
   (string *
    (Eliom_common.fullsessionname * float option * Eliom_common.timeout *
     Eliom_common.perssessgrp option) ->
    unit Lwt.t) ->
   unit Lwt.t
-val fold_service_states :
+val fold_service_cookies :
   (Eliom_common.SessionCookies.key *
    Eliom_common.tables Eliom_common.servicecookiestablecontent -> 'a -> 
    'a Lwt.t) ->
   'a -> 'a Lwt.t
-val fold_data_states :
+val fold_data_cookies :
   (Eliom_common.SessionCookies.key * Eliom_common.datacookiestablecontent ->
    'a -> 'a Lwt.t) ->
   'a -> 'a Lwt.t
-val fold_persistent_states :
+val fold_persistent_cookies :
   (string *
    (Eliom_common.fullsessionname * float option * Eliom_common.timeout *
     Eliom_common.perssessgrp option) ->
    'a -> 'a Lwt.t) ->
   'a -> 'a Lwt.t
-val number_of_service_states : unit -> int
-val number_of_data_states : unit -> int
+val number_of_service_cookies : unit -> int
+val number_of_data_cookies : unit -> int
 val number_of_tables : unit -> int
 val number_of_table_elements : unit -> int list
-val number_of_persistent_states : unit -> int Lwt.t
+val number_of_persistent_cookies : unit -> int Lwt.t
