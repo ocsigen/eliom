@@ -23,12 +23,6 @@ val register_unwrapper : unwrap_id -> ('a -> 'b) -> unit
 (** [register_unwrapper id f] register an unwrapping function [f] to
     be called when a value is marked with the id [id] *)
 
-(** [unwrap s i] unmarshal [s] (starting at character [i]) and
-    transform the value [v] using registered wrappers. The marshalled
-    value must have been produced with [Marshal.to_string
-    (Eliom_wrap.wrap v)]. This function is for internal use only *)
-val unwrap : string -> int -> 'a
-
 (** [unwrap_js_var v] execute [unwrap] on the content of the javascript
     variable [v] *)
 val unwrap_js_var : string -> 'a
@@ -36,3 +30,12 @@ val unwrap_js_var : string -> 'a
 val id_of_int : int -> unwrap_id
 
 (**/**)
+
+(** [unwrap s i] unmarshal [s] (starting at character [i]) and
+    transform the value [v] using registered wrappers. The marshalled
+    value must have been produced with [Marshal.to_string
+    (Eliom_wrap.wrap v)]. This function is for internal use only *)
+val unwrap : string -> int -> 'a
+
+(** [unwrap_value v] unwraps all values which are still marked in [v]. *)
+val unwrap_value : _ -> _

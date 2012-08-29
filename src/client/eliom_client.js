@@ -282,3 +282,44 @@ var caml_unwrap_value_from_string = function (){
     return intern_obj_table[0][0][2];
   }
 }();
+
+
+//Provides: caml_unwrap_value
+var caml_unwrap_value = function (){
+  function is_marked(arr) {
+    if (arr instanceof Array &&
+        arr.length > 2) {
+      var unwrapper = arr[arr.length-1];
+      if (unwrapper instanceof Array &&
+          unwrapper.length > 2 &&
+          unwrapper[2].bytes === "unwrap_mark")
+        return unwrapper;
+    }
+    return null
+  }
+  return function(apply_unwrapper, arr){
+    function run(arr) {
+      if (arr instanceof Array) {
+        if (arr.unwrap_value_visited) {
+          return arr;
+        } else {
+          arr.unwrap_value_visited = true;
+          var ix;
+          for (ix=0; ix<arr.length; ix++) {
+            arr[ix] = run(arr[ix]);
+          }
+          var unwrapper = is_marked(arr);
+          if (unwrapper) {
+            return apply_unwrapper(unwrapper, arr);
+          } else {
+            return arr;
+          }
+        }
+      } else {
+        return arr;
+      }
+    }
+    return run(arr);
+  };
+}();
+

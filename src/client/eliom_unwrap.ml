@@ -84,6 +84,13 @@ let unwrap s i =
   raw_unmarshal_and_unwrap
     apply_unwrapper s i
 
+external raw_unwrap_value
+  : (unwrapper -> _ -> _) -> _ -> _
+  = "caml_unwrap_value"
+
+let unwrap_value value =
+  raw_unwrap_value apply_unwrapper value
+
 let unwrap_js_var s =
   unwrap (Js.to_bytestring (Js.Unsafe.variable s)) 0
 
