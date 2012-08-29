@@ -323,6 +323,8 @@ For those kind of usage, it is highly recommended to set a group for
 each of the three kinds of states you use (services, volatile data and
 persistent data).
 
+To close all sessions from a group, close the group.
+
 See section <<a_manual chapter="state" fragment="closing_sessions"
 |Closing sessions>> for more information.
 
@@ -438,6 +440,24 @@ As <<a_api | type Eliom_reference.Volatile.eref>> is a subtype of <<a_api |
 type Eliom_reference.eref>>, a volatile reference ##eref## may be used
 as ##(eref : _ Eliom_reference.eref)## with the Lwt-interface of <<a_api |
 module Eliom_reference>> alike.
+
+== Accessing other states
+
+Sometimes, it is useful to access other states.
+For example if you want to send a notification to another user,
+you may want to find the communication channel registered for this
+user. It can probably be found as an Eliom reference in the group
+corresponding to this user.
+
+Use module <<a_api | module Eliom_state.External_states>>
+to get the state corresponding to a group name. 
+Use <<a_api | val Eliom_state.External_states.iter_sub_states >>
+to iterate on all sessions in a group, or on all client processes
+in a session.
+
+Use <<a_api | module Eliom_reference.Ext >>
+to access Eliom references belonging to another state.
+
 
 == Low-level cookies manipulation
 
