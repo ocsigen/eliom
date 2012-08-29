@@ -704,28 +704,58 @@ module External_states : sig
     | TNone   (** explicitly set no timeout *)
     | TSome of float (** timeout duration in seconds *)
 
+  (** These types are used to get or set information about browser
+      or process cookies (like timeouts). *)
+
   type service_cookie_info
   type data_cookie_info
   type persistent_cookie_info
 
+  (** The type of states. The first parameter corresponds to the scope level
+      and the second one to the kind of state (volatile or persistent data,
+      or service state) *)
   type (+'a, +'b) state
 
-  val volatile_data_group_state : string -> ([< `Session_group ], [< `Data ]) state
-  val persistent_data_group_state : string -> ([< `Session_group ], [< `Pers ]) state
-  val service_group_state : string -> ([< `Session_group ], [< `Service ]) state
+  (** [volatile_data_group_state ~scope n] returns the state corresponding to
+      the group named [n] in scope [scope]. *)
+  val volatile_data_group_state :
+    scope:[< Eliom_common.session_group_scope ] -> string ->
+    ([> `Session_group ], [> `Data ]) state
 
+  (** Same for persistent data *)
+  val persistent_data_group_state :
+    scope:[< Eliom_common.session_group_scope ] -> string ->
+    ([> `Session_group ], [> `Pers ]) state
+
+  (** Same for services *)
+  val service_group_state :
+    scope:[< Eliom_common.session_group_scope ] -> string ->
+    ([> `Session_group ], [> `Service ]) state
+
+  (** [current_volatile_session_state ~scope] returns the state corresponding
+      to current session in scope [scope]. *)
+  val current_volatile_session_state :
+    ?secure:bool ->
+    scope:[< Eliom_common.session_scope ] ->
+    unit ->
+    ([< `Session ], [< `Data ]) state
+
+  (** Same for persistent data *)
+  val current_persistent_session_state :
+    ?secure:bool ->
+    scope:[< Eliom_common.session_scope ] ->
+    unit ->
+    ([< `Session ], [< `Pers ]) state Lwt.t
+
+  (** Same for services *)
+  val current_service_session_state : 
+    ?secure:bool ->
+    scope:[< Eliom_common.session_scope ] ->
+    unit ->
+    ([< `Session ], [< `Service ]) state
+
+  (** Discard external states *)
   val discard_state : state : ('a, 'b) state -> unit Lwt.t
-
-  val get_service_cookie_info :
-    ([< Eliom_common.cookie_scope ], [ `Service ]) state -> service_cookie_info
-    
-  val get_volatile_data_cookie_info :
-    ([< Eliom_common.cookie_scope ], [ `Data ]) state -> data_cookie_info
-    
-  val get_persistent_cookie_info :
-    ([< Eliom_common.cookie_scope ], [ `Pers ]) state ->
-    persistent_cookie_info Lwt.t
-
 
   (** Fold all sessions in a groups, or all client processes in a session. *)
   val fold_sub_states :
@@ -784,6 +814,17 @@ module External_states : sig
       table:'a persistent_table -> unit Lwt.t
 
   end
+
+  (** Get the infomration about cookies (timeouts, etc.) *)
+  val get_service_cookie_info :
+    ([< Eliom_common.cookie_scope ], [ `Service ]) state -> service_cookie_info
+    
+  val get_volatile_data_cookie_info :
+    ([< Eliom_common.cookie_scope ], [ `Data ]) state -> data_cookie_info
+    
+  val get_persistent_cookie_info :
+    ([< Eliom_common.cookie_scope ], [ `Pers ]) state ->
+    persistent_cookie_info Lwt.t
 
   val get_service_scope_name :
     cookie:service_cookie_info -> Eliom_common.scope_name
