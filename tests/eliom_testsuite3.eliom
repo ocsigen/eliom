@@ -3941,3 +3941,266 @@ let () =
     )
 }}
 
+
+(********************************************************)
+(* Extensive test of states *)
+
+let states_test =
+  Eliom_service.service
+    ~path:["states"; ""]
+    ~get_params:(Eliom_parameter.unit)
+    ()
+
+let states_test_bis =
+  Eliom_service.service
+    ~path:["states"]
+    ~get_params:(Eliom_parameter.suffix (string "group"))
+    ()
+
+let next =
+  let c = ref 0 in
+  (fun () -> c := !c + 1; !c)
+
+let nexti _ = next ()
+
+let () = My_appl.register states_test
+  (fun () () ->
+     Lwt.return
+       HTML5.M.(
+         html
+           (head (title (pcdata "States test")) [])
+           (body [
+             h1 [pcdata "Testing states for different scopes"];
+             p [
+               pcdata "This test is an extensive test of Eliom references of different scopes, accessed from inside or outside the state itself. To run this test, you need at least two different browsers, one with several tabs on ";
+               Eliom_output.Html5.a states_test_bis [pcdata "this page"] "A";
+               pcdata " and another with several tabs on ";
+               Eliom_output.Html5.a states_test_bis [pcdata "this other page"] "B";
+               pcdata ". All tabs of a same browser must be one the same page, because loading the page sets the session group. Read the instructions on these pages.";
+             ]])))
+
+let vgr =
+  Eliom_reference.Volatile.eref_from_fun
+    ~scope:Eliom_common.session_group
+    next
+
+let vsr =
+  Eliom_reference.Volatile.eref_from_fun
+    ~scope:Eliom_common.session
+    next
+
+let vpr =
+  Eliom_reference.Volatile.eref_from_fun
+    ~scope:Eliom_common.client_process
+    next
+
+let pgr =
+  Eliom_reference.eref_from_fun
+    ~scope:Eliom_common.session_group
+    ~persistent:"pgr"
+    next
+
+let psr =
+  Eliom_reference.eref_from_fun
+    ~scope:Eliom_common.session
+    ~persistent:"psr"
+    next
+
+let ppr =
+  Eliom_reference.eref_from_fun
+    ~scope:Eliom_common.client_process
+    ~persistent:"ppr"
+    next
+
+let change_gr =
+  Eliom_registration.Ocaml.register_post_coservice'
+    ~post_params:unit
+    (fun () () ->
+      let () = Eliom_reference.Volatile.modify vgr nexti in
+      Eliom_reference.modify pgr nexti)
+
+let change_sr =
+  Eliom_registration.Ocaml.register_post_coservice'
+    ~post_params:unit
+    (fun () () ->
+      let () = Eliom_reference.Volatile.modify vsr nexti in
+      Eliom_reference.modify psr nexti)
+
+let change_pr =
+  Eliom_registration.Ocaml.register_post_coservice'
+    ~post_params:unit
+    (fun () () ->
+      let () = Eliom_reference.Volatile.modify vpr nexti in
+      Eliom_reference.modify ppr nexti)
+
+let change_other_gr =
+  Eliom_registration.Ocaml.register_post_coservice'
+    ~post_params:(string "g")
+    (fun () g ->
+      let vstate = Eliom_state.External_states.volatile_data_group_state g in
+      let pstate = Eliom_state.External_states.persistent_data_group_state g in
+      Eliom_reference.Volatile.Ext.modify vstate vgr nexti;
+      Eliom_reference.Ext.modify pstate pgr nexti)
+
+let change_other_sr =
+  Eliom_registration.Ocaml.register_post_coservice'
+    ~post_params:(string "g")
+    (fun () g ->
+      let vstate = Eliom_state.External_states.volatile_data_group_state g in
+      lwt () = 
+        Eliom_state.External_states.iter_sub_states
+          vstate
+          (fun state -> Eliom_reference.Volatile.Ext.modify state vsr nexti;
+            Lwt.return ())
+      in
+      let pstate = Eliom_state.External_states.persistent_data_group_state g in
+      Eliom_state.External_states.iter_sub_states
+        pstate
+        (fun state -> Eliom_reference.Ext.modify state psr nexti))
+
+let change_other_pr =
+  Eliom_registration.Ocaml.register_post_coservice'
+    ~post_params:(string "g")
+    (fun () g ->
+      let vstate = Eliom_state.External_states.volatile_data_group_state g in
+      lwt () = 
+        Eliom_state.External_states.iter_sub_states
+          vstate
+          (fun state ->
+            Eliom_state.External_states.iter_sub_states
+              state
+              (fun state ->
+                Eliom_reference.Volatile.Ext.modify state vpr nexti;
+                Lwt.return ()))
+      in
+      let pstate = Eliom_state.External_states.persistent_data_group_state g in
+      Eliom_state.External_states.iter_sub_states
+        pstate
+        (fun state ->
+          Eliom_state.External_states.iter_sub_states
+            state
+            (fun state -> Eliom_reference.Ext.modify state ppr nexti)))
+    
+
+let () = My_appl.register states_test_bis
+  (fun group () ->
+    let other_group = if group = "A" then "B" else "A" in
+    Eliom_state.set_volatile_data_session_group ~set_max:4 group;
+    lwt () = Eliom_state.set_persistent_data_session_group ~set_max:(Some 4) group in
+    let vgr = Eliom_reference.Volatile.get vgr in
+    let vsr = Eliom_reference.Volatile.get vsr in
+    let vpr = Eliom_reference.Volatile.get vpr in
+    lwt pgr = Eliom_reference.get pgr in
+    lwt psr = Eliom_reference.get psr in
+    lwt ppr = Eliom_reference.get ppr in
+    Lwt.return
+      HTML5.M.(
+        html
+          (head (title (pcdata ("States test — group "^group))) [])
+          (body [
+            h1 [pcdata ("Testing states for different scopes — This browser session belongs to group "^group)];
+            p [ pcdata ("These (persistent and data) sessions belongs to a group called \""^group^"\".")];
+            p [
+              pcdata "Here are the values of differents Eliom references. To update the values after a test, ";
+              strong [Raw.a
+                         ~a:[a_class ["clickable"];
+                           a_onclick
+                             {{ fun _ ->
+                               ignore(Eliom_client.change_page
+                                        ~service:%Eliom_service.void_coservice'
+                                        () ())
+                              }}]
+                         [pcdata "click here"]];
+              pcdata " (change_page to myself)."
+            ];
+
+            p [pcdata "(volatile/persistent) group references: ";
+               strong [pcdata (string_of_int vgr)];
+               pcdata "/";
+               strong [pcdata (string_of_int pgr)];
+               em [pcdata " — check that they are the same on all tabs, all browsers in this group"];
+               br ();
+               strong [Raw.a
+                          ~a:[a_class ["clickable"];
+                              a_onclick
+                                {{ fun _ ->
+                                  ignore(Eliom_client.call_caml_service
+                                           ~service:%change_gr
+                                           () ())
+                                 }}]
+                          [pcdata "Click here to change the values on server side"]];
+               pcdata ", then update and check.";
+               br ();
+               strong [Raw.a
+                          ~a:[a_class ["clickable"];
+                              a_onclick
+                                {{ fun _ ->
+                                  ignore(Eliom_client.call_caml_service
+                                           ~service:%change_other_gr
+                                           () %other_group)
+                                 }}]
+                          [pcdata "Click here to change the values on server side for the other group"]];
+               pcdata ", then update and check group references on browsers belonging to the other group.";
+               
+              ];
+
+            p [pcdata "(volatile/persistent) session references: ";
+               strong [pcdata (string_of_int vsr)];
+               pcdata "/";
+               strong [pcdata (string_of_int psr)];
+               em [pcdata " — check that they are the same on all tabs of this browser, but not other browsers."];
+               br ();
+               strong [Raw.a
+                          ~a:[a_class ["clickable"];
+                              a_onclick
+                                {{ fun _ ->
+                                  ignore(Eliom_client.call_caml_service
+                                           ~service:%change_sr
+                                           () ())
+                                 }}]
+                          [pcdata "Click here to change the values on server side"]];
+               pcdata ", then update and check.";
+               br ();
+               strong [Raw.a
+                          ~a:[a_class ["clickable"];
+                              a_onclick
+                                {{ fun _ ->
+                                  ignore(Eliom_client.call_caml_service
+                                           ~service:%change_other_sr
+                                           () %other_group)
+                                 }}]
+                          [pcdata "Click here to change the values on server side for the other group"]];
+               pcdata ", then update and check session references on browsers belonging to the other group.";
+              ];
+
+            p [pcdata "(volatile/persistent) process references: ";
+               strong [pcdata (string_of_int vpr)];
+               pcdata "/";
+               strong [pcdata (string_of_int ppr)];
+               em [pcdata " — check that they are different on all tabs"];
+               br ();
+               strong [Raw.a
+                          ~a:[a_class ["clickable"];
+                              a_onclick
+                                {{ fun _ ->
+                                  ignore(Eliom_client.call_caml_service
+                                           ~service:%change_pr
+                                           () ())
+                                 }}]
+                          [pcdata "Click here to change the values on server side"]];
+               pcdata ", then update and check.";
+               br ();
+               strong [Raw.a
+                          ~a:[a_class ["clickable"];
+                              a_onclick
+                                {{ fun _ ->
+                                  ignore(Eliom_client.call_caml_service
+                                           ~service:%change_other_pr
+                                           () %other_group)
+                                 }}]
+                          [pcdata "Click here to change the values on server side for the other group"]];
+               pcdata ", then update and check on browsers belonging to the other group.";
+              ];
+            
+          ])))
+

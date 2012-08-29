@@ -489,6 +489,8 @@ let _ = Eliom_output.Html5.register Eliom_testsuite_base.main
 
             h4 [pcdata "Process states"];
             p [
+              a states_test [pcdata "Extensive test of Eliom references of different scopes, accessed from inside or outside the state itself"] ();
+              br ();
               pcdata "Coservices: ";
               a tcoservices_example [code [pcdata "tcoservice"]] ();
               br ();
