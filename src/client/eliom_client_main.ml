@@ -20,6 +20,9 @@
 
 open Eliom_lib
 
+let request_data =
+  Eliom_request_info.get_request_data ()
+
 let onload ev =
   trace "onload";
   if !Eliom_config.debug_timings then
@@ -30,11 +33,9 @@ let onload ev =
           Eliom_client.relink_request_nodes (Dom_html.document##documentElement);
           let on_load =
             Eliom_client.load_eliom_data
-              (Eliom_request_info.get_request_data ())
+              request_data
               (Dom_html.document##documentElement) in
           Eliom_client.force_unwrapped_elts ();
-          (* The request node table must be empty when node received
-             via call_caml_service are unwrapped. *)
           Eliom_client.reset_request_node ();
           Lwt.return (List.for_all (fun f -> f ev) on_load));
   if !Eliom_config.debug_timings then
