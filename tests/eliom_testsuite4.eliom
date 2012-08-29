@@ -246,7 +246,7 @@ let node_bindings =
               Html5.Manip.appendChild
                 (Html5.Of_dom.of_element Dom_html.document##body)
                 %free_global;
-           )
+              ())
        }};
        let add_onclick = {{
          fun _ ->

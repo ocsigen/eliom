@@ -33,18 +33,11 @@ let testsuite ~name testsuite_tests =
   )
 
 let test_logger =
-  Html5.D.(div ~a:[a_class ["test_logger"]] [h4 [pcdata "Client logger"]])
+  Html5.Id.create_global_elt
+    (Html5.D.(div ~a:[a_class ["test_logger"]]
+                [h4 [pcdata "Client logger"]]))
 
 let test ~path ~title:ttl ~description f =
-  ignore {unit{
-    Lwt.ignore_result
-      (lwt () = Eliom_client.wait_load_end () in
-       Dom.appendChild
-         (Html5.To_dom.of_div (Html5.F.(div [pcdata "test"])))
-         (Html5.To_dom.of_div %test_logger)
-         ;
-       Lwt.return ())
-  }};
   ttl, My_appl.register_service
            ~path
            ~get_params:Eliom_parameter.unit
