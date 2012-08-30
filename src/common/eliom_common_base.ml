@@ -47,9 +47,9 @@ type client_process_scope = [`Client_process of scope_hierarchy]
 type request_scope = [`Request]
 
 (******************************************************************)
-type cookie_scope = [ `Session | `Client_process ]
+type cookie_level = [ `Session | `Client_process ]
 
-let cookie_scope_of_user_scope : [< user_scope ] -> [> cookie_scope ] = function
+let cookie_level_of_user_scope : [< user_scope ] -> [> cookie_level ] = function
   | `Session n
   | `Session_group n -> `Session
   | `Client_process n -> `Client_process
@@ -59,7 +59,7 @@ let scope_hierarchy_of_scope : [< user_scope ] -> [> scope_hierarchy ] = functio
   | `Session_group n
   | `Client_process n -> n
 
-type fullsessionname = cookie_scope * string
+type fullsessionname = cookie_level * string (* the name of the cookie *)
 
 module Fullsessionname_Table = Map.Make(struct
   type t = fullsessionname

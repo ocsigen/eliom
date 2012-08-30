@@ -118,7 +118,7 @@ module SessionCookies =
 
 (* session groups *)
 type 'a sessgrp =
-    (string * cookie_scope * (string, Ip_address.t) leftright)
+    (string * cookie_level * (string, Ip_address.t) leftright)
     (* The full session group is the triple
        (site_dir_string, scope, session group name).
        The scope is the scope of group members (`Session by default).
@@ -126,11 +126,11 @@ type 'a sessgrp =
        we limit the number of sessions by IP address. *)
 type perssessgrp = string (* same triple, marshaled *)
 
-let make_persistent_full_group_name ~cookie_scope site_dir_string = function
+let make_persistent_full_group_name ~cookie_level site_dir_string = function
   | None -> None
   | Some g ->
     Some (Marshal.to_string
-            (site_dir_string, cookie_scope, Left g) [])
+            (site_dir_string, cookie_level, Left g) [])
 
 let getperssessgrp a = Marshal.from_string a 0
 
@@ -153,7 +153,7 @@ type 'a one_service_cookie_info =
                                     ref towards cookie table
                                   *);
      sc_cookie_exp:cookie_exp ref (* cookie expiration date to set *);
-     sc_session_group: cookie_scope sessgrp ref
+     sc_session_group: cookie_level sessgrp ref
        (* session group *);
      mutable sc_session_group_node:string Ocsigen_cache.Dlist.node;
    }
@@ -170,7 +170,7 @@ type one_data_cookie_info =
                                            ref towards cookie table
                                          *);
      dc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
-     dc_session_group: cookie_scope sessgrp ref (* session group *);
+     dc_session_group: cookie_level sessgrp ref (* session group *);
      mutable dc_session_group_node:string Ocsigen_cache.Dlist.node;
    }
 
@@ -251,7 +251,7 @@ type 'a servicecookiestablecontent =
      float option ref    (* expiration date by timeout
                             (server side) *) *
      timeout ref         (* user timeout *) *
-     cookie_scope sessgrp ref   (* session group *) *
+     cookie_level sessgrp ref   (* session group *) *
      string Ocsigen_cache.Dlist.node (* session group node *))
 
 type 'a servicecookiestable = 'a servicecookiestablecontent SessionCookies.t
@@ -270,7 +270,7 @@ type datacookiestablecontent =
      float option ref        (* expiration date by timeout
                                 (server side) *) *
      timeout ref             (* user timeout *) *
-     cookie_scope sessgrp ref   (* session group *) *
+     cookie_level sessgrp ref   (* session group *) *
      string Ocsigen_cache.Dlist.node (* session group node *))
 
 type datacookiestable = datacookiestablecontent SessionCookies.t
@@ -540,15 +540,15 @@ and dlist_ip_table = (page_table ref * page_table_key, na_key_serv)
 let make_full_cookie_name a b = a^b
 
 let make_fullsessname2 site_dir_string (scope:[< user_scope ]) : fullsessionname =
-  let cookie_scope = cookie_scope_of_user_scope scope in
+  let cookie_level = cookie_level_of_user_scope scope in
   let state_name = scope_hierarchy_of_scope scope in
   let name = match state_name with
     | `Default_ref_name -> "ref|"
     | `Default_comet_name -> "comet|"
     | `String s -> "|"^s
   in
-  ((cookie_scope :> cookie_scope), site_dir_string^name)
-(* Warning: do not change this without modifying Eliom_state.Ext *)
+  ((cookie_level :> cookie_level),
+   site_dir_string^name (* The name of the cookie *))
 
 let make_fullsessname ~sp (scope:[< user_scope ]) =
   make_fullsessname2 sp.sp_sitedata.site_dir_string scope
@@ -899,7 +899,7 @@ let split_nl_prefix_param =
     in
     aux [] String.Table.empty l
 
-let getcookies cookie_scope cookiename cookies =
+let getcookies cookie_level cookiename cookies =
   let length = String.length cookiename in
   let last = length - 1 in
   CookiesTable.fold
@@ -907,7 +907,8 @@ let getcookies cookie_scope cookiename cookies =
       if String.first_diff cookiename name 0 last = length
       then
         Fullsessionname_Table.add
-          (cookie_scope, (String.sub name length ((String.length name) - length)))
+          (cookie_level,
+           (String.sub name length ((String.length name) - length)))
           value
           beg
       else beg

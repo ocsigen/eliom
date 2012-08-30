@@ -136,14 +136,14 @@ val persistent_data_state_status :
 
 (** Ask the browser to record a cookie. *)
 val set_cookie :
-  ?cookie_scope:Eliom_common.cookie_scope ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?path:string list ->
   ?exp:float ->
   ?secure:bool -> name:string -> value:string -> unit -> unit
 
 (** Ask the browser to remove a cookie. *)
 val unset_cookie :
-  ?cookie_scope:Eliom_common.cookie_scope ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?path:string list ->
   name:string -> unit -> unit
 
@@ -430,7 +430,7 @@ val set_max_volatile_states_for_group_or_subnet :
     for an infinite time on browsers.
 
     By default, it will affect regular browser cookies (sessions).
-    But if you set [~cookie_scope:`Client_process],
+    But if you set [~cookie_level:`Client_process],
     it will only affect the client-side Eliom process (if there is one),
     which simulates some kind of "tab cookies".
 *)
@@ -507,7 +507,7 @@ val set_global_volatile_state_timeout :
   float option -> unit
 
 val set_default_global_service_state_timeout :
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
+  cookie_level:[< Eliom_common.cookie_level ] ->
   ?override_configfile:bool ->
   float option -> unit
 
@@ -520,7 +520,7 @@ val set_global_service_state_timeout :
   float option -> unit
 
 val set_default_global_service_state_timeout :
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
+  cookie_level:[< Eliom_common.cookie_level ] ->
   ?override_configfile:bool ->
   float option -> unit
 
@@ -533,7 +533,7 @@ val set_global_volatile_data_state_timeout :
   float option -> unit
 
 val set_default_global_volatile_data_state_timeout :
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
+  cookie_level:[< Eliom_common.cookie_level ] ->
   ?override_configfile:bool ->
   float option -> unit
 
@@ -546,7 +546,7 @@ val set_global_persistent_data_state_timeout :
   float option -> unit
 
 val set_default_global_persistent_data_state_timeout :
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
+  cookie_level:[< Eliom_common.cookie_level ] ->
   ?override_configfile:bool ->
   float option -> unit
 
@@ -818,13 +818,13 @@ module Ext : sig
 
   (** Get the infomration about cookies (timeouts, etc.) *)
   val get_service_cookie_info :
-    ([< Eliom_common.cookie_scope ], [ `Service ]) state -> service_cookie_info
+    ([< Eliom_common.cookie_level ], [ `Service ]) state -> service_cookie_info
     
   val get_volatile_data_cookie_info :
-    ([< Eliom_common.cookie_scope ], [ `Data ]) state -> data_cookie_info
+    ([< Eliom_common.cookie_level ], [ `Data ]) state -> data_cookie_info
     
   val get_persistent_cookie_info :
-    ([< Eliom_common.cookie_scope ], [ `Pers ]) state ->
+    ([< Eliom_common.cookie_level ], [ `Pers ]) state ->
     persistent_cookie_info Lwt.t
 
   val get_service_scope_hierarchy :
@@ -836,12 +836,12 @@ module Ext : sig
   val get_persistent_data_scope_hierarchy :
     cookie:persistent_cookie_info -> Eliom_common.scope_hierarchy
     
-  val get_service_cookie_scope :
-    cookie:service_cookie_info -> Eliom_common.cookie_scope
-  val get_volatile_data_cookie_scope : cookie:data_cookie_info ->
-    Eliom_common.cookie_scope
-  val get_persistent_data_cookie_scope :
-    cookie:persistent_cookie_info -> Eliom_common.cookie_scope
+  val get_service_cookie_level :
+    cookie:service_cookie_info -> Eliom_common.cookie_level
+  val get_volatile_data_cookie_level : cookie:data_cookie_info ->
+    Eliom_common.cookie_level
+  val get_persistent_data_cookie_level :
+    cookie:persistent_cookie_info -> Eliom_common.cookie_level
     
   val set_service_cookie_timeout :
     cookie:service_cookie_info -> float option -> unit

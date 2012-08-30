@@ -26,7 +26,7 @@ val persistent_cookies_table :
 val number_of_persistent_tables : unit -> int
 val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
 val close_persistent_session2 :
-  cookie_scope:Eliom_common.cookie_scope ->
+  cookie_level:Eliom_common.cookie_level ->
   Eliom_common.sitedata ->
   Eliom_common.perssessgrp option -> string -> unit Lwt.t
 val close_persistent_session :

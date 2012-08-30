@@ -86,9 +86,9 @@ val list_scope_hierarchies : unit -> scope_hierarchy list
     It is possible to define data tables or service table for one
     (browser) session, for one tab, or for one group of sessions.
 *)
-type cookie_scope = [ `Session | `Client_process ]
+type cookie_level = [ `Session | `Client_process ]
 
-val cookie_scope_of_user_scope : [< user_scope ] -> [> cookie_scope ]
+val cookie_level_of_user_scope : [< user_scope ] -> [> cookie_level ]
 
 (** {2 Exception and error handling} *)
 
@@ -115,7 +115,7 @@ exception Eliom_Typing_Error of (string * exn) list
 *)
 exception Eliom_site_information_not_available of string
 
-type fullsessionname = cookie_scope * string
+type fullsessionname = cookie_level * string
 module Fullsessionname_Table : Map.S with type key = fullsessionname
 
 (** If present and true in request data, it means that
@@ -294,7 +294,7 @@ module SessionCookies : Hashtbl.S with type key = string
 
 (* session groups *)
 type 'a sessgrp =
-    (string * cookie_scope
+    (string * cookie_level
      * (string, Ip_address.t) leftright)
     (* The full session group is the triple
        (site_dir_string, scope, session group name).
@@ -304,10 +304,10 @@ type 'a sessgrp =
 type perssessgrp (* the same triple, marshaled *)
 
 val make_persistent_full_group_name :
-  cookie_scope:cookie_scope -> string -> string option -> perssessgrp option
+  cookie_level:cookie_level -> string -> string option -> perssessgrp option
 
 val getperssessgrp : perssessgrp -> 
-  (string * cookie_scope * 
+  (string * cookie_level * 
      (string, Ip_address.t) leftright)
 
 val string_of_perssessgrp : perssessgrp -> string
@@ -327,7 +327,7 @@ type 'a one_service_cookie_info = {
   sc_timeout : timeout ref;
   sc_exp : float option ref;
   sc_cookie_exp : cookie_exp ref;
-  sc_session_group: cookie_scope sessgrp ref (* session group *);
+  sc_session_group: cookie_level sessgrp ref (* session group *);
   mutable sc_session_group_node:string Ocsigen_cache.Dlist.node;
 }
 type one_data_cookie_info = {
@@ -335,7 +335,7 @@ type one_data_cookie_info = {
   dc_timeout : timeout ref;
   dc_exp : float option ref;
   dc_cookie_exp : cookie_exp ref;
-  dc_session_group: cookie_scope sessgrp ref (* session group *);
+  dc_session_group: cookie_level sessgrp ref (* session group *);
   mutable dc_session_group_node:string Ocsigen_cache.Dlist.node;
 }
 type one_persistent_cookie_info = {
@@ -361,13 +361,13 @@ type 'a cookie_info =
 
 type 'a servicecookiestablecontent =
     fullsessionname * 'a * float option ref * timeout ref *
-      cookie_scope sessgrp ref *
+      cookie_level sessgrp ref *
       string Ocsigen_cache.Dlist.node
 type 'a servicecookiestable = 
     'a servicecookiestablecontent SessionCookies.t
 type datacookiestablecontent =
     fullsessionname * float option ref * timeout ref *
-      cookie_scope sessgrp ref *
+      cookie_level sessgrp ref *
       string Ocsigen_cache.Dlist.node
 type datacookiestable = 
     datacookiestablecontent SessionCookies.t
@@ -640,7 +640,7 @@ val find_dlist_ip_table :
   (page_table ref * page_table_key, na_key_serv)
     leftright Ocsigen_cache.Dlist.t
   
-val get_cookie_info : server_params -> [< cookie_scope ] -> tables cookie_info
+val get_cookie_info : server_params -> [< cookie_level ] -> tables cookie_info
 
 val tab_cookie_action_info_key : (tables cookie_info * 
                                     Ocsigen_cookies.cookieset *

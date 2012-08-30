@@ -181,9 +181,9 @@ let get_expired_service_sessions () =
       ~key:Eliom_common.eliom_service_session_expired
   with Not_found -> ([], [])
 
-let get_cookies ?(cookie_scope = `Session) () =
+let get_cookies ?(cookie_level = `Session) () =
   let sp = Eliom_common.get_sp () in
-  match cookie_scope with
+  match cookie_level with
     | `Session ->
       Lazy.force sp.Eliom_common.sp_request.request_info.ri_cookies
     | `Client_process ->

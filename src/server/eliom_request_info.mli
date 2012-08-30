@@ -99,7 +99,7 @@ val get_ssl : unit -> bool
 val get_suffix : unit -> Url.path option
 
 (** returns the cookies sent by the browser *)
-val get_cookies : ?cookie_scope:Eliom_common.cookie_scope ->
+val get_cookies : ?cookie_level:Eliom_common.cookie_level ->
   unit -> string CookiesTable.t
 
 (** returns an Unix timestamp associated to the request *)

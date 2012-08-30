@@ -713,7 +713,7 @@ let parse_config hostpattern conf_info site_dir =
   Thus we can have one site in several cmo (with one session).
  *)
         let set_timeout (f : ?fullsessname:Eliom_common.fullsessionname ->
-                         ?cookie_scope:[< Eliom_common.cookie_scope ] ->
+                         ?cookie_level:[< Eliom_common.cookie_level ] ->
                          recompute_expdates:bool ->
                          bool -> bool -> Eliom_common.sitedata ->
                          float option -> unit)
@@ -737,7 +737,7 @@ let parse_config hostpattern conf_info site_dir =
 	  in
           f
             ?fullsessname:(Option.map make_fullsessname state_name_oo)
-            ?cookie_scope:(Some cookie_type)
+            ?cookie_level:(Some cookie_type)
             ~recompute_expdates:false
             true
             true

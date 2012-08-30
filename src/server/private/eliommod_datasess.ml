@@ -42,12 +42,12 @@ let compute_cookie_info secure secure_ci cookie_info =
 let close_data_session ~scope ~secure ?sp () =
   let sp = Eliom_common.sp_of_option sp in
   try
-    let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
+    let cookie_level = Eliom_common.cookie_level_of_user_scope scope in
     let fullsessname =
       Eliom_common.make_fullsessname ~sp scope
     in
     let ((_, cookie_info, _), secure_ci) =
-      Eliom_common.get_cookie_info sp cookie_scope
+      Eliom_common.get_cookie_info sp cookie_level
     in
     let cookie_info = compute_cookie_info secure secure_ci cookie_info in
     let (_, ior) =
@@ -87,9 +87,9 @@ let close_data_session ~scope ~secure ?sp () =
   with Not_found -> ()
 
 
-let fullsessgrp ~cookie_scope ~sp set_session_group =
+let fullsessgrp ~cookie_level ~sp set_session_group =
   Eliommod_sessiongroups.make_full_group_name
-    ~cookie_scope
+    ~cookie_level
     sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
     sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
     (Eliom_common.get_mask4 sp.Eliom_common.sp_sitedata)
@@ -101,7 +101,7 @@ let rec find_or_create_data_cookie ?set_session_group
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
 
-  let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
+  let cookie_level = Eliom_common.cookie_level_of_user_scope scope in
 
   let sp = Eliom_common.sp_of_option sp in
 
@@ -126,7 +126,7 @@ let rec find_or_create_data_cookie ?set_session_group
 	  end
 	| #Eliom_common.user_scope -> set_session_group
     in
-    let fullsessgrp = fullsessgrp ~cookie_scope ~sp set_session_group in
+    let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
 
     let rec aux () =
       let c = Eliommod_cookies.make_new_session_id () in
@@ -165,7 +165,7 @@ let rec find_or_create_data_cookie ?set_session_group
   in
 
   let ((_, cookie_info, _), secure_ci) =
-    Eliom_common.get_cookie_info sp cookie_scope
+    Eliom_common.get_cookie_info sp cookie_level
   in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   try
@@ -191,7 +191,7 @@ let rec find_or_create_data_cookie ?set_session_group
           | None -> ()
           | Some session_group ->
             let sitedata = Eliom_request_info.get_sitedata_sp sp in
-            let fullsessgrp = fullsessgrp ~cookie_scope ~sp set_session_group in
+            let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
             let node = Eliommod_sessiongroups.Data.move
               sitedata
               c.Eliom_common.dc_session_group_node
@@ -233,12 +233,12 @@ let find_data_cookie_only ~scope ~secure ?sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
   let sp = Eliom_common.sp_of_option sp in
-  let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
+  let cookie_level = Eliom_common.cookie_level_of_user_scope scope in
   let fullsessname =
     Eliom_common.make_fullsessname ~sp scope
   in
   let ((_, cookie_info, _), secure_ci) =
-    Eliom_common.get_cookie_info sp cookie_scope
+    Eliom_common.get_cookie_info sp cookie_level
   in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   let (_, ior) =
