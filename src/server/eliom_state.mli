@@ -697,7 +697,7 @@ val discard_all_services :
 (*VVV missing ~secure? *)
 
 
-module External_states : sig
+module Ext : sig
 
   (** Type used to describe session timeouts *)
   type timeout =

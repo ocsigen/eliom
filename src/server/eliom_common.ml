@@ -548,7 +548,7 @@ let make_fullsessname2 site_dir_string (scope:[< user_scope ]) : fullsessionname
     | `String s -> "|"^s
   in
   ((cookie_scope :> cookie_scope), site_dir_string^name)
-(* Warning: do not change this without modifying Eliom_state.Admin *)
+(* Warning: do not change this without modifying Eliom_state.Ext *)
 
 let make_fullsessname ~sp (scope:[< user_scope ]) =
   make_fullsessname2 sp.sp_sitedata.site_dir_string scope

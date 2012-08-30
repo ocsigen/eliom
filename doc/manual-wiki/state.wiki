@@ -451,9 +451,9 @@ you may want to find the communication channel registered for this
 user. It can probably be found as an Eliom reference in the group
 corresponding to this user.
 
-Use module <<a_api | module Eliom_state.External_states>>
+Use module <<a_api | module Eliom_state.Ext>>
 to get the state corresponding to a group name. 
-Use <<a_api | val Eliom_state.External_states.iter_sub_states >>
+Use <<a_api | val Eliom_state.Ext.iter_sub_states >>
 to iterate on all sessions in a group, or on all client processes
 in a session.
 

@@ -1158,7 +1158,7 @@ let discard_everything () =
 (*****************************************************************************)
 (* Administration *)
 
-module External_states = struct
+module Ext = struct
 
   (** Type used to describe session timeouts *)
 

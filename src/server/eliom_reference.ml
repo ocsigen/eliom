@@ -119,7 +119,7 @@ module Volatile = struct
   let get state (f, table) =
     match table with
       | Vol t ->
-        (try External_states.Low_level.get_volatile_data
+        (try Eliom_state.Ext.Low_level.get_volatile_data
                ~state ~table:(Lazy.force t)
          with Not_found -> 
            (* I don't want to run f in the wrong context -> I fail *)
@@ -129,7 +129,7 @@ module Volatile = struct
     let set state (_, table) value =
       match table with
         | Vol t ->
-          External_states.Low_level.set_volatile_data
+          Eliom_state.Ext.Low_level.set_volatile_data
             ~state ~table:(Lazy.force t) value
         | _ -> failwith "wrong eref for this function"
 
@@ -138,7 +138,7 @@ module Volatile = struct
 
   let unset state (f, table : _ eref) =
     match table with
-      | Vol t -> External_states.Low_level.remove_volatile_data
+      | Vol t -> Eliom_state.Ext.Low_level.remove_volatile_data
         ~state ~table:(Lazy.force t);
       | _ -> failwith "wrong eref for this function"
 
@@ -230,12 +230,12 @@ let unset (f, table as eref) =
 module Ext = struct
 
   let get state ((_, table) as r) =
-    let state = External_states.untype_state state in
+    let state = Eliom_state.Ext.untype_state state in
     match table with
       | Vol _ -> Lwt.return (Volatile.Ext.get state r)
       | Per t ->
         (Lwt.catch
-           (fun () -> External_states.Low_level.get_persistent_data
+           (fun () -> Eliom_state.Ext.Low_level.get_persistent_data
              ~state ~table:t)
            (function
              | Not_found -> Lwt.fail Eref_not_intialized
@@ -243,11 +243,11 @@ module Ext = struct
       | _ -> failwith "wrong eref for this function"
           
   let set state ((_, table) as r) value =
-    let state = External_states.untype_state state in
+    let state = Eliom_state.Ext.untype_state state in
     match table with
       | Vol _ -> Lwt.return (Volatile.Ext.set state r value)
       | Per t ->
-        External_states.Low_level.set_persistent_data
+        Eliom_state.Ext.Low_level.set_persistent_data
           ~state ~table:t value
       | _ -> Lwt.fail (Failure "wrong eref for this function")
       
@@ -256,10 +256,10 @@ module Ext = struct
     set state eref (f v)
 
   let unset state ((_, table) as r) =
-    let state = External_states.untype_state state in
+    let state = Eliom_state.Ext.untype_state state in
     match table with
       | Vol _ -> Lwt.return (Volatile.Ext.unset state r)
-      | Per t -> External_states.Low_level.remove_persistent_data
+      | Per t -> Eliom_state.Ext.Low_level.remove_persistent_data
         ~state ~table:t
       | _ -> failwith "wrong eref for this function"
 
