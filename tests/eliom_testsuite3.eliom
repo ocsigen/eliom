@@ -1628,8 +1628,8 @@ open Lwt
 (************************************************************)
 
 (*zap* *)
-let scope_name = Eliom_common.create_scope_name "tsession_data"
-let scope = `Client_process scope_name
+let scope_hierarchy = Eliom_common.create_scope_hierarchy "tsession_data"
+let scope = `Client_process scope_hierarchy
 (* *zap*)
 
 (* "my_table" will be the structure used to store
@@ -1745,8 +1745,8 @@ let () =
 (************************************************************)
 
 (*zap* *)
-let scope_name = Eliom_common.create_scope_name "tsession_services"
-let scope = `Client_process scope_name
+let scope_hierarchy = Eliom_common.create_scope_hierarchy "tsession_services"
+let scope = `Client_process scope_hierarchy
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* Create services, but do not register them yet:           *)
@@ -1925,7 +1925,7 @@ let _ =
 (************************************************************)
 
 (*zap* *)
-let scope = `Client_process Eliom_testsuite1.calc_example_scope_name
+let scope = `Client_process Eliom_testsuite1.calc_example_scope_hierarchy
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create two main services on the same URL,             *)
@@ -2007,7 +2007,7 @@ let () =
 (************************************************************)
 
 (*zap* *)
-let scope = `Client_process Eliom_testsuite1.connect_example3_scope_name
+let scope = `Client_process Eliom_testsuite1.connect_example3_scope_hierarchy
 let my_table = Eliom_state.create_volatile_table ~scope ()
 (* *zap*)
 (* -------------------------------------------------------- *)
@@ -2096,7 +2096,7 @@ let () =
 (************************************************************)
 
 (*zap* *)
-let scope = `Client_process Eliom_testsuite1.persistent_sessions_scope_name
+let scope = `Client_process Eliom_testsuite1.persistent_sessions_scope_hierarchy
 (* *zap*)
 let tmy_persistent_table =
   Eliom_state.create_persistent_table ~scope "teliom_example_table"
@@ -2245,8 +2245,8 @@ let () =
 (************ Connection of users, version 6 ****************)
 (************************************************************)
 (*zap* *)
-let scope_name = Eliom_common.create_scope_name "connect_example6"
-let scope = `Client_process scope_name
+let scope_hierarchy = Eliom_common.create_scope_hierarchy "connect_example6"
+let scope = `Client_process scope_hierarchy
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -2362,7 +2362,7 @@ let () =
 
 
 
-let csrf_scope = `Client_process Eliom_testsuite1.csrf_scope_name
+let csrf_scope = `Client_process Eliom_testsuite1.csrf_scope_hierarchy
 
 let tcsrfsafe_example =
   Eliom_service.service
@@ -2578,8 +2578,8 @@ let _ =
 
 (*****************************************************************************)
 (* Session + My_appl *)
-let scope_name = Eliom_common.create_scope_name "session_appl"
-let session = `Session scope_name
+let scope_hierarchy = Eliom_common.create_scope_hierarchy "session_appl"
+let session = `Session scope_hierarchy
 
 let connect_example789 =
   Eliom_service.service ~path:["session_appl"] ~get_params:unit ()

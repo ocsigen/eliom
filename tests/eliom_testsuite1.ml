@@ -515,8 +515,8 @@ let looong2 =
 (************************************************************)
 
 (*zap* *)
-let scope_name = Eliom_common.create_scope_name "session_data"
-let session = `Session scope_name
+let scope_hierarchy = Eliom_common.create_scope_hierarchy "session_data"
+let session = `Session scope_hierarchy
 (* *zap*)
 
 (* "my_table" will be the structure used to store
@@ -637,8 +637,8 @@ let () = set_default_global_persistent_data_state_timeout ~cookie_scope:`Session
 (************************************************************)
 
 (*zap* *)
-let scope_name = Eliom_common.create_scope_name "session_services"
-let session = `Session scope_name
+let scope_hierarchy = Eliom_common.create_scope_hierarchy "session_services"
+let session = `Session scope_hierarchy
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* Create services, but do not register them yet:           *)
@@ -905,9 +905,9 @@ programming.
 (************************************************************)
 
 (*zap* *)
-let calc_example_scope_name = Eliom_common.create_scope_name "calc_example"
-let session = `Session calc_example_scope_name
-let session_group = `Session_group calc_example_scope_name
+let calc_example_scope_hierarchy = Eliom_common.create_scope_hierarchy "calc_example"
+let session = `Session calc_example_scope_hierarchy
+let session_group = `Session_group calc_example_scope_hierarchy
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create two main services on the same URL,             *)
@@ -995,9 +995,9 @@ let () =
 (************************************************************)
 
 (*zap* *)
-let connect_example3_scope_name = Eliom_common.create_scope_name "connect_example3"
-let session = `Session connect_example3_scope_name
-let session_group = `Session_group connect_example3_scope_name
+let connect_example3_scope_hierarchy = Eliom_common.create_scope_hierarchy "connect_example3"
+let session = `Session connect_example3_scope_hierarchy
+let session_group = `Session_group connect_example3_scope_hierarchy
 let my_table = Eliom_state.create_volatile_table (*zap* *) ~scope:session (* *zap*) ()
 (* *zap*)
 (* -------------------------------------------------------- *)
@@ -1193,9 +1193,9 @@ let count2 =
 (************************************************************)
 
 (*zap* *)
-let persistent_sessions_scope_name = Eliom_common.create_scope_name "persistent_sessions"
-let session = `Session persistent_sessions_scope_name
-let session_group = `Session_group persistent_sessions_scope_name
+let persistent_sessions_scope_hierarchy = Eliom_common.create_scope_hierarchy "persistent_sessions"
+let session = `Session persistent_sessions_scope_hierarchy
+let session_group = `Session_group persistent_sessions_scope_hierarchy
 let persistent_session_scope = session
 (* *zap*)
 let my_persistent_table =
@@ -1316,9 +1316,9 @@ let () =
 (************ Connection of users, version 6 ****************)
 (************************************************************)
 (*zap* *)
-let scope_name = Eliom_common.create_scope_name "connect_example6"
-let session = `Session scope_name
-let session_group = `Session_group scope_name
+let scope_hierarchy = Eliom_common.create_scope_hierarchy "connect_example6"
+let session = `Session scope_hierarchy
+let session_group = `Session_group scope_hierarchy
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -1629,9 +1629,9 @@ let nlparams_with_nlp =
 (************************************************************)
 
 (*zap* *)
-let scope_name = Eliom_common.create_scope_name "connect_example5"
-let session = `Session scope_name
-let session_group = `Session_group scope_name
+let scope_hierarchy = Eliom_common.create_scope_hierarchy "connect_example5"
+let session = `Session scope_hierarchy
+let session_group = `Session_group scope_hierarchy
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -1718,9 +1718,9 @@ let () =
 (************************************************************)
 
 (*zap* *)
-let scope_name = Eliom_common.create_scope_name "group_tables"
-let session = `Session scope_name
-let session_group = `Session_group scope_name
+let scope_hierarchy = Eliom_common.create_scope_hierarchy "group_tables"
+let session = `Session scope_hierarchy
+let session_group = `Session_group scope_hierarchy
 (* *zap*)
 let my_table =
   Eliom_state.create_volatile_table
@@ -1847,9 +1847,9 @@ let () =
 (**************** Persistent group tables *******************)
 (************************************************************)
 
-let scope_name = Eliom_common.create_scope_name "pgroup_tables"
-let session = `Session scope_name
-let session_group = `Session_group scope_name
+let scope_hierarchy = Eliom_common.create_scope_hierarchy "pgroup_tables"
+let session = `Session scope_hierarchy
+let session_group = `Session_group scope_hierarchy
 let my_table =
   Eliom_state.create_persistent_table
     ~scope:session_group "pgroup_table"
@@ -1972,8 +1972,8 @@ let () =
     
   *wiki*)
 
-let csrf_scope_name = Eliom_common.create_scope_name "csrf"
-let csrf_scope = `Session csrf_scope_name
+let csrf_scope_hierarchy = Eliom_common.create_scope_hierarchy "csrf"
+let csrf_scope = `Session csrf_scope_hierarchy
 
 let csrfsafe_example =
   Eliom_service.service

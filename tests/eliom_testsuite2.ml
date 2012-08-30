@@ -77,8 +77,8 @@ let raw_post_service =
 (****************** Connection of users *********************)
 (************************************************************)
 (*zap* *)
-let scope_name = Eliom_common.create_scope_name "connect_example_state"
-let session = `Session scope_name
+let scope_hierarchy = Eliom_common.create_scope_hierarchy "connect_example_state"
+let session = `Session scope_hierarchy
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -184,8 +184,8 @@ let () =
 (********* Connection of users with session groups **********)
 (************************************************************)
 (*zap* *)
-let scope_name = Eliom_common.create_scope_name "session_group_example_state"
-let session = `Session scope_name
+let scope_hierarchy = Eliom_common.create_scope_hierarchy "session_group_example_state"
+let session = `Session scope_hierarchy
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -726,7 +726,7 @@ let csrfsafe_session_example =
     ~get_params:Eliom_parameter.unit
     ()
 
-let myscope = (`Session (Eliom_common.create_scope_name "plop"))
+let myscope = (`Session (Eliom_common.create_scope_hierarchy "plop"))
 
 let csrfsafe_example_session =
   Eliom_service.post_coservice'
@@ -2016,7 +2016,7 @@ let exn_act_main =
 
 
 let action_example2_scope =
-  `Session (Eliom_common.create_scope_name "action_example2")
+  `Session (Eliom_common.create_scope_hierarchy "action_example2")
 
 (* close sessions from outside *)
 let close_from_outside =
@@ -2108,9 +2108,9 @@ open HTML5.M
 open Eliom_output.Html5
 
 (*zap* *)
-let scope_name = Eliom_common.create_scope_name "session_group_data_example_state"
-let session = `Session scope_name
-let group = `Session_group scope_name
+let scope_hierarchy = Eliom_common.create_scope_hierarchy "session_group_data_example_state"
+let session = `Session scope_hierarchy
+let group = `Session_group scope_hierarchy
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -2243,9 +2243,9 @@ let () =
 open HTML5.M
 
 (*zap* *)
-let scope_name = Eliom_common.create_scope_name "pers_session_group_data_example_state"
-let session = `Session scope_name
-let group = `Session_group scope_name
+let scope_hierarchy = Eliom_common.create_scope_hierarchy "pers_session_group_data_example_state"
+let session = `Session scope_hierarchy
+let group = `Session_group scope_hierarchy
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
