@@ -1447,7 +1447,8 @@ end
 
 let comet_service_key = Polytables.make_key ()
 
-let request_template = Eliom_reference.eref ~scope:Eliom_common.request None
+let request_template =
+  Eliom_reference.eref ~scope:Eliom_common.request_scope None
 
 module Eliom_appl_reg_make_param
   (Html5_content

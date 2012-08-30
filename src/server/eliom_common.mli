@@ -64,12 +64,12 @@ val level_of_user_scope : [< user_scope ] -> [> user_level ]
     
     If you want to restrict the visibility of an Eliom reference or
     a service:
-    * to a browser session, use [~scope:Eliom_common.session],
-    * to a group of sessions, use [~scope:Eliom_common.session_group],
-    * to a client process, use [~scope:Eliom_common.client_process].
+    * to a browser session, use [~scope:Eliom_common.default_session_scope],
+    * to a group of sessions, use [~scope:Eliom_common.default_group_scope],
+    * to a client process, use [~scope:Eliom_common.default_process_scope].
     If you have a client side Eliom program running, and you want to restrict
     the visibility of the service to this instance of the program,
-    use [~scope:Eliom_common.client_process].
+    use [~scope:Eliom_common.default_process_scope].
     
     You can create new scope
     hierachies with {!Eliom_common.create_scope_hierarchy}.
@@ -87,16 +87,16 @@ type session_scope = [`Session of scope_hierarchy]
 type client_process_scope = [`Client_process of scope_hierarchy]
 type request_scope = [`Request]
 
-val global : global_scope
-val site : site_scope
+val global_scope : global_scope
+val site_scope : site_scope
 val default_group_scope : session_group_scope
 val default_session_scope : session_scope
 val default_process_scope : client_process_scope
 val default_secure_group_scope : session_group_scope
 val default_secure_session_scope : session_scope
 val default_secure_process_scope : client_process_scope
-val comet_client_process : client_process_scope
-val request : request_scope
+val comet_client_process_scope : client_process_scope
+val request_scope : request_scope
 
 val create_scope_hierarchy : ?secure:bool -> string -> scope_hierarchy
 

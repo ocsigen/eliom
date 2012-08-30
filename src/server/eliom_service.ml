@@ -539,9 +539,9 @@ let pre_wrap s =
 (** {2 Client value initializations} *)
 
 let global_client_values : Client_value_data.base Eliom_reference.Volatile.eref =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.global []
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.global_scope []
 let request_client_values : Client_value_data.base Eliom_reference.Volatile.eref =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
 
 let register_client_value_data ~closure_id ~instance_id args =
   let reference =
@@ -561,7 +561,7 @@ let get_request_client_value_data () =
 (** {2 Injection_data} *)
 
 let request_injections : Injection_data.base Eliom_reference.Volatile.eref =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.global []
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.global_scope []
 let register_injection name f =
   Eliom_reference.Volatile.modify request_injections
     (fun sofar -> (name, f) :: sofar)

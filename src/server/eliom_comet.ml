@@ -581,7 +581,7 @@ end = struct
 	  handler
 	end
 
-  let wait_timeout ?(scope=Eliom_common.comet_client_process) t =
+  let wait_timeout ?(scope=Eliom_common.comet_client_process_scope) t =
     let hd = get_handler scope in
     wait_handler_timeout hd t
 
@@ -605,7 +605,8 @@ end = struct
     in
     Eliom_common.make_full_cookie_name pref name
 
-  let create ?(scope=Eliom_common.comet_client_process) ?(name=new_id ()) stream =
+  let create ?(scope=Eliom_common.comet_client_process_scope)
+      ?(name=new_id ()) stream =
     let name = (name_of_scope (scope:>Eliom_common.user_scope)) ^ name in
     let handler = get_handler scope in
     OMsg.debug2 (Printf.sprintf "eliom: comet: create channel %s" name);

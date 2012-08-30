@@ -619,8 +619,8 @@ let sp_of_option sp =
 (* Scope registration                                                        *)
 (*****************************************************************************)
 
-let global : global_scope = `Global
-let site : site_scope = `Site
+let global_scope : global_scope = `Global
+let site_scope : site_scope = `Site
 
 let default_group_scope : session_group_scope = `Session_group Default_ref_hier
 let default_session_scope : session_scope = `Session Default_ref_hier
@@ -630,8 +630,8 @@ let default_secure_group_scope : session_group_scope = `Session_group Default_se
 let default_secure_session_scope : session_scope = `Session Default_secure_ref_hier
 let default_secure_process_scope : client_process_scope = `Client_process Default_secure_ref_hier
 
-let comet_client_process : client_process_scope = `Client_process Default_comet_hier
-let request : request_scope = `Request
+let comet_client_process_scope : client_process_scope = `Client_process Default_comet_hier
+let request_scope : request_scope = `Request
 
 let registered_scope_hierarchies = ref Hier_set.empty
 
