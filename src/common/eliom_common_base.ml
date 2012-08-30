@@ -24,9 +24,11 @@ open Ocsigen_cookies
 (******************************************************************)
 
 type scope_hierarchy =
-  [ `String of string
-  | `Default_ref_name
-  | `Default_comet_name ]
+  | User_hier of (string * bool (* secure *))
+  | Default_ref_hier
+  | Default_comet_hier
+  | Default_secure_ref_hier
+  | Default_secure_comet_hier
 
 type user_scope = [ `Session_group of scope_hierarchy
 		  | `Session of scope_hierarchy
@@ -47,22 +49,43 @@ type client_process_scope = [`Client_process of scope_hierarchy]
 type request_scope = [`Request]
 
 (******************************************************************)
+type user_level = [ `Session_group | `Session | `Client_process ]
 type cookie_level = [ `Session | `Client_process ]
+type cookie_scope = [ `Session of scope_hierarchy
+                    | `Client_process of scope_hierarchy ]
+
+let level_of_user_scope : [< user_scope ] -> [> user_level ] = function
+  | `Session n -> `Session
+  | `Session_group n -> `Session_group
+  | `Client_process n -> `Client_process
 
 let cookie_level_of_user_scope : [< user_scope ] -> [> cookie_level ] = function
   | `Session n
   | `Session_group n -> `Session
   | `Client_process n -> `Client_process
 
-let scope_hierarchy_of_scope : [< user_scope ] -> [> scope_hierarchy ] = function
+let cookie_scope_of_user_scope : [< user_scope ] -> [> cookie_scope ] = function
   | `Session n
-  | `Session_group n
-  | `Client_process n -> n
+  | `Session_group n -> `Session n
+  | `Client_process n -> `Client_process n
 
-type fullsessionname = cookie_level * string (* the name of the cookie *)
+let scope_hierarchy_of_scope : [< user_scope ] -> scope_hierarchy =
+  function
+    | `Session n
+    | `Session_group n
+    | `Client_process n -> n
 
-module Fullsessionname_Table = Map.Make(struct
-  type t = fullsessionname
+type full_state_name = (* WAS: fullsessionname *)
+    (* The key in the table of states.
+       For cookies scopes, 
+       it is also the information in the cookie name,
+       without the kind of session,
+       and with the scope level (that is not in the cookie name).
+    *)
+    user_scope * string (* site_dir_string *)
+
+module Full_state_name_table = Map.Make(struct
+  type t = full_state_name
   let compare = compare
 end)
 
@@ -185,32 +208,32 @@ type sess_info =
      si_all_get_params: (string * string) list;
      si_all_post_params: (string * string) list option;
 
-     si_service_session_cookies: string Fullsessionname_Table.t;
+     si_service_session_cookies: string Full_state_name_table.t;
      (* the session service cookies sent by the request *)
      (* the key is the cookie name (or site dir) *)
 
-     si_data_session_cookies: string Fullsessionname_Table.t;
+     si_data_session_cookies: string Full_state_name_table.t;
      (* the session data cookies sent by the request *)
      (* the key is the cookie name (or site dir) *)
 
-     si_persistent_session_cookies: string Fullsessionname_Table.t;
+     si_persistent_session_cookies: string Full_state_name_table.t;
      (* the persistent session cookies sent by the request *)
      (* the key is the cookie name (or site dir) *)
 
      si_secure_cookie_info:
-       (string Fullsessionname_Table.t *
-          string Fullsessionname_Table.t *
-          string Fullsessionname_Table.t) option;
+       (string Full_state_name_table.t *
+          string Full_state_name_table.t *
+          string Full_state_name_table.t) option;
      (* the same, but for secure cookies, if https *)
 
      (* now for tab cookies: *)
-     si_service_session_cookies_tab: string Fullsessionname_Table.t;
-     si_data_session_cookies_tab: string Fullsessionname_Table.t;
-     si_persistent_session_cookies_tab: string Fullsessionname_Table.t;
+     si_service_session_cookies_tab: string Full_state_name_table.t;
+     si_data_session_cookies_tab: string Full_state_name_table.t;
+     si_persistent_session_cookies_tab: string Full_state_name_table.t;
      si_secure_cookie_info_tab:
-       (string Fullsessionname_Table.t *
-          string Fullsessionname_Table.t *
-          string Fullsessionname_Table.t) option;
+       (string Full_state_name_table.t *
+          string Full_state_name_table.t *
+          string Full_state_name_table.t) option;
 
      si_tab_cookies: string CookiesTable.t;
 

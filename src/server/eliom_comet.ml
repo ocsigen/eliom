@@ -597,11 +597,13 @@ end = struct
 
   let name_of_scope (scope:Eliom_common.user_scope) =
     let sp = Eliom_common.get_sp () in
-    let (_,name) = Eliom_common.make_fullsessname ~sp scope in
-    match scope with
-      | `Session_group _ -> "sessiongroup:" ^ name
-      | `Session _ -> "session:" ^ name
-      | `Client_process _ -> "clientprocess:" ^ name
+    let name = Eliom_common.make_full_state_name ~sp ~scope in
+    let pref = match scope with
+      | `Session_group _ -> "sessiongroup:"
+      | `Session _ -> "session:"
+      | `Client_process _ -> "clientprocess:"
+    in
+    Eliom_common.make_full_cookie_name pref name
 
   let create ?(scope=Eliom_common.comet_client_process) ?(name=new_id ()) stream =
     let name = (name_of_scope (scope:>Eliom_common.user_scope)) ^ name in

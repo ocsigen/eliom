@@ -139,7 +139,7 @@ let make_naservice
 
   let rec find_aux sci =
     match
-      Eliom_common.Fullsessionname_Table.fold
+      Eliom_common.Full_state_name_table.fold
         (fun fullsessname (_, r) beg ->
           match beg with
           | Eliom_common.Found _ -> beg

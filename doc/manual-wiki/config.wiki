@@ -247,7 +247,7 @@ Here are Eliom's options you can use in configuration files.
 
 <<wip|Revoir les timeouts pour client processes et groupes>>
 
-Timeouts for sessions (and other states) can be set either inside tag
+Timeouts for states (and other states) can be set either inside tag
 {{{<extension findlib-package="ocsigen.ext.eliom"/>}}} (default value
 for all sites), or inside a {{{<eliom/>}}} tag (default for one site).
 
@@ -261,35 +261,36 @@ timeout programmatically even if it has been modified in a
 configuration file, use the optional parameter
 {{{~override_configfile:true}}}.
 
-Timeouts can be set either for all session names, for one precise
-session name, or for the default session name.  To do that
-programmatically, use the optional parameter {{{~state_name}}}.  To do
+Timeouts can be set either for all scopes hierarchies, for one precise
+hierarchy, or for the default scope hierarchy.  To do that
+programmatically, use the optional parameter {{{~scope}}}.  To do
 that in configuration file, use the optional attribute
-{{{sessionname}}} (where an empty string value means default session
-name).  If this attribute is absent, the timeout will affect all
-sessions for which no other default has been set. The
-{{{sessionname}}} attribute exists only inside an {{{<eliom/>}}} tag
-(and not inside {{{<extension
-findlib-package="ocsigen.ext.eliom"/>}}}).
+{{{hierarchyname}}} (where an empty string value means default hierarchy).
+If this attribute is absent, the timeout will affect all
+states for which no other default has been set. The
+{{{hierarchyname}}} attribute exists only inside an {{{<eliom/>}}} tag
+(and not inside {{{<extension findlib-package="ocsigen.ext.eliom"/>}}}).
 
-* {{{<volatiletimeout value="30" [sessionname=""]/>}}}
+The level attribute can take values {{{session}}} or {{{tab}}}.
+
+* {{{<volatiletimeout value="30" [hierarchyname=""] [level="session"]/>}}}
   The default timeout for
-  volatile (in memory) sessions.
-  {{{value="infinity"}}} means that the session will
+  volatile (in memory) states.
+  {{{value="infinity"}}} means that the state will
   never finish.
   Note that each eliom module may set its own
   default, that will override this one.
 * {{{<persistenttimeout value="7200"/>}}}
-  Idem for persistent session data
-* {{{<datatimeout value="30"  [sessionname=""]/>}}}
+  Idem for persistent state data
+* {{{<datatimeout value="30"  [hierarchyname=""] [level="session"]/>}}}
      Like {{{<timeout>}}}, but for in memory data
-     sessions only
-     (not service sessions).
-* {{{<servicetimeout value="30" [sessionname=""]/>}}}
-  Like {{{<timeout>}}}, but for service sessions only
-     (not in memory data  sessions).
+     states only
+     (not service states).
+* {{{<servicetimeout value="30" [hierarchyname=""] [level="session"]/>}}}
+  Like {{{<timeout>}}}, but for service states only
+     (not in memory data states).
 
-===Garbage collector of sessions and services
+===Garbage collector of states and services
 
 These options can appear inside tag
 {{{<extension findlib-package="ocsigen.ext.eliom"/>}}}.

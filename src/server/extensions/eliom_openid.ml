@@ -516,14 +516,14 @@ module Make (S : HiddenServiceInfo) = struct
       (fun args _ -> 
         end_login_handler ext !uri (fst discovery) assoc handler args)
     in
-    let _ = Eliom_state.set_global_service_state_timeout
-      ~scope
-      (Some 60.)
-    in
     let _ = Eliom_state.set_service_session_group
       ~set_max: 1000
       ~scope
       group_name
+    in
+    let _ = Eliom_state.set_global_service_state_timeout
+      ~cookie_scope:scope
+      (Some 60.)
     in
     let params = 
       ["return_to", !uri;

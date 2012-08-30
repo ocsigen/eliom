@@ -1628,7 +1628,7 @@ module Eliom_appl_reg_make_param
     if sp.Eliom_common.sp_client_appl_name <> Some Appl_params.application_name then
 
       Eliom_state.set_cookie
-        ~cookie_scope:`Client_process
+        ~cookie_level:`Client_process
         ~name:Eliom_common.appl_name_cookie_name
         ~value:Appl_params.application_name ();
 

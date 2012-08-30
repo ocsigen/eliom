@@ -112,7 +112,7 @@ module Pers :
     val nb_of_groups : unit -> int Lwt.t
 
     val close_persistent_session2 :
-      cookie_level:[ `Session | `Client_process ] ->
+      cookie_level:Eliom_common.cookie_level ->
       Eliom_common.sitedata ->
       Eliom_common.perssessgrp option -> string -> unit Lwt.t
   end

@@ -48,7 +48,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
   let update_exp
       (service_cookies_info, data_cookies_info, pers_cookies_info) =
   (* Update service expiration date and value *)
-    Eliom_common.Fullsessionname_Table.iter
+    Eliom_common.Full_state_name_table.iter
 
       (fun name (oldvalue, newr) ->
       (* catch fun () -> *)
@@ -72,7 +72,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
       !service_cookies_info;
 
   (* Update "in memory data" expiration date and value *)
-    Eliom_common.Fullsessionname_Table.iter
+    Eliom_common.Full_state_name_table.iter
 
       (fun name v ->
         if Lazy.lazy_is_val v (* Only sessions that have been used *)
@@ -100,7 +100,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
 
   (* Update persistent expiration date, user timeout and value *)
   (* Lwt_util.iter *)
-    Eliom_common.Fullsessionname_Table.fold
+    Eliom_common.Full_state_name_table.fold
 
       (fun name v thr ->
         let thr2 =

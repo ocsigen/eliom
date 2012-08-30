@@ -17,18 +17,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-val close_service_session :
+val close_service_state :
   scope:[< Eliom_common.user_scope ] ->
   secure: bool option ->
   ?sp:Eliom_common.server_params -> unit -> unit
 val find_or_create_service_cookie :
   ?set_session_group:string ->
-  scope:[< Eliom_common.user_scope > `Session ] ->
+  cookie_scope:[< Eliom_common.cookie_scope > `Session ] ->
   secure: bool option ->
   ?sp:Eliom_common.server_params ->
   unit -> Eliom_common.tables Eliom_common.one_service_cookie_info
 val find_service_cookie_only :
-  scope:[<Eliom_common.user_scope] ->
+  cookie_scope:[<Eliom_common.cookie_scope] ->
   secure: bool option ->
   ?sp:Eliom_common.server_params ->
   unit -> Eliom_common.tables Eliom_common.one_service_cookie_info

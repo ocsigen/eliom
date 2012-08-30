@@ -49,10 +49,10 @@ let get_cookie_info
 
   (* get info about service session cookies: *)
   let f_serv service_cookies =
-    Eliom_common.Fullsessionname_Table.fold
+    Eliom_common.Full_state_name_table.fold
       (fun name value (oktable, failedlist) ->
         try
-          let fullsessname, ta, expref, timeout_ref, sessgrpref, sessgrpnode =
+          let full_state_name, ta, expref, timeout_ref, sessgrpref, sessgrpnode =
             Eliom_common.SessionCookies.find
               sitedata.Eliom_common.session_services value
           in
@@ -62,7 +62,7 @@ let get_cookie_info
               (* session expired by timeout *)
               Eliom_common.SessionCookies.remove
                 sitedata.Eliom_common.session_services value;
-              ((Eliom_common.Fullsessionname_Table.add
+              ((Eliom_common.Full_state_name_table.add
                   name
                   (Some value          (* value sent by the browser *),
                    ref Eliom_common.SCData_session_expired
@@ -70,7 +70,7 @@ let get_cookie_info
                                           to remove the cookie *))
                   oktable),
                name::failedlist)
-          | _ -> ((Eliom_common.Fullsessionname_Table.add
+          | _ -> ((Eliom_common.Full_state_name_table.add
                      name
                      (Some value        (* value sent by the browser *),
                       ref
@@ -89,7 +89,7 @@ let get_cookie_info
                      oktable),
                   failedlist)
         with Not_found ->
-          ((Eliom_common.Fullsessionname_Table.add
+          ((Eliom_common.Full_state_name_table.add
               name
               (Some value                 (* value sent by the browser *),
                ref Eliom_common.SCData_session_expired
@@ -99,16 +99,16 @@ let get_cookie_info
            name::failedlist)
       )
       service_cookies
-      (Eliom_common.Fullsessionname_Table.empty, [])
+      (Eliom_common.Full_state_name_table.empty, [])
   in
 
   (* get info about "in memory" data session cookies: *)
   let f_data data_cookies =
-    Eliom_common.Fullsessionname_Table.map
+    Eliom_common.Full_state_name_table.map
       (fun value ->
         lazy
           (try
-            let fullsessname, expref, timeout_ref, sessgrpref, sessgrpnode =
+            let full_state_name, expref, timeout_ref, sessgrpref, sessgrpnode =
               Eliom_common.SessionCookies.find
                 sitedata.Eliom_common.session_data value
             in
@@ -150,14 +150,14 @@ let get_cookie_info
 
   (* *** get info about persistent session cookies: *)
   let f_pers persistent_cookies =
-    Eliom_common.Fullsessionname_Table.map
+    Eliom_common.Full_state_name_table.map
       (fun value ->
         lazy
           (catch
              (fun () ->
                Ocsipersist.find
                  (Lazy.force Eliom_common.persistent_cookies_table) value >>=
-               fun (fullsessname, persexp, perstimeout, sessgrp) ->
+               fun (full_state_name, persexp, perstimeout, sessgrp) ->
 
                  Eliommod_sessiongroups.Pers.up value sessgrp >>= fun () ->
                  match persexp with
@@ -267,7 +267,7 @@ let compute_session_cookies_to_send
     ((service_cookie_info,
       data_cookie_info,
       pers_cookies_info), secure_ci) (endlist: Ocsigen_cookies.cookieset) =
-  let getservvexp (cookietype, name) (old, newi) =
+  let getservvexp (old, newi) =
     return
       (let newinfo =
         match !newi with
@@ -276,9 +276,9 @@ let compute_session_cookies_to_send
         | Eliom_common.SC c ->
             Some (c.Eliom_common.sc_value,
                   !(c.Eliom_common.sc_cookie_exp))
-      in (cookietype, name, old, newinfo))
+      in (old, newinfo))
   in
-  let getdatavexp (cookietype, name) v =
+  let getdatavexp v =
     if Lazy.lazy_is_val v
     then
       return
@@ -290,10 +290,10 @@ let compute_session_cookies_to_send
           | Eliom_common.SC c ->
               Some (c.Eliom_common.dc_value,
                     !(c.Eliom_common.dc_cookie_exp))
-        in (cookietype, name, old, newinfo))
+        in (old, newinfo))
     else fail Not_found
   in
-  let getpersvexp (cookietype, name) v =
+  let getpersvexp v =
     if Lazy.lazy_is_val v
     then
       Lazy.force v >>= fun (old, newi) ->
@@ -310,7 +310,7 @@ let compute_session_cookies_to_send
              | Eliom_common.SC c ->
                  Some (c.Eliom_common.pc_value,
                        !(c.Eliom_common.pc_cookie_exp))
-         in (cookietype, name, oldinfo, newinfo))
+         in (oldinfo, newinfo))
     else fail Not_found
   in
   let ch_exp = function
@@ -318,21 +318,21 @@ let compute_session_cookies_to_send
     | Eliom_common.CEBrowser -> None
     | Eliom_common.CESome a -> Some a
   in
-  let aux f cookiename secure tab2 cooktab =
+  let aux f cookiekind secure tab2 cooktab =
     cooktab >>= fun cooktab ->
-    Eliom_common.Fullsessionname_Table.fold
-      (fun name value beg ->
+    Eliom_common.Full_state_name_table.fold
+      (fun full_st_name value beg ->
         beg >>= fun beg ->
         catch
           (fun () ->
-            f name value >>= fun (cookietype, name, old, newc) ->
+            f value >>= fun (old, newc) ->
             return
               (match old, newc with
                 | None, None -> beg
                 | Some _, None ->
                   Ocsigen_cookies.add_cookie
                     sitedata.Eliom_common.site_dir
-                    (Eliom_common.make_full_cookie_name cookiename name)
+                    (Eliom_common.make_full_cookie_name cookiekind full_st_name)
                     Ocsigen_cookies.OUnset
                     beg
               (* the path is always site_dir because the cookie cannot
@@ -341,7 +341,7 @@ let compute_session_cookies_to_send
                 | None, Some (v, exp) ->
                   Ocsigen_cookies.add_cookie
                     sitedata.Eliom_common.site_dir
-                    (Eliom_common.make_full_cookie_name cookiename name)
+                    (Eliom_common.make_full_cookie_name cookiekind full_st_name)
                     (Ocsigen_cookies.OSet (ch_exp exp, v, secure))
                     beg
                 | Some oldv, Some (newv, exp) ->
@@ -350,7 +350,7 @@ let compute_session_cookies_to_send
                   else 
                     Ocsigen_cookies.add_cookie
                       sitedata.Eliom_common.site_dir
-                      (Eliom_common.make_full_cookie_name cookiename name)
+                      (Eliom_common.make_full_cookie_name cookiekind full_st_name)
                       (Ocsigen_cookies.OSet (ch_exp exp, newv, secure))
                       beg
               )
@@ -370,9 +370,9 @@ let compute_session_cookies_to_send
              | Some (service_cookie_info,
                      data_cookie_info,
                      pers_cookies_info) ->
-                 aux getpersvexp Eliom_common.spersistentcookiename true !pers_cookies_info
-                   (aux getdatavexp Eliom_common.sdatacookiename true !data_cookie_info
-                      (aux getservvexp Eliom_common.sservicecookiename true !service_cookie_info
+                 aux getpersvexp Eliom_common.persistentcookiename true !pers_cookies_info
+                   (aux getdatavexp Eliom_common.datacookiename true !data_cookie_info
+                      (aux getservvexp Eliom_common.servicecookiename true !service_cookie_info
                          (return endlist))))))
 
 
@@ -429,15 +429,17 @@ let compute_new_ri_cookies
     compute_new_ri_cookies' now ripath ricookies cookies_set_by_page
   in
   (* then session cookies: *)
-  let f (service_cookie_info, data_cookie_info, pers_cookie_info) ric 
-      (scn, dcn, pcn) =
+  let f secure (service_cookie_info, data_cookie_info, pers_cookie_info) ric =
     let ric =
-      Eliom_common.Fullsessionname_Table.fold
-        (fun (ct, n) (_, v) beg ->
+      Eliom_common.Full_state_name_table.fold
+        (fun full_st_name (_, v) beg ->
+          let ct =
+            Eliom_common.cookie_level_of_user_scope (fst full_st_name) in
           if ct = `Client_process
           then beg
           else
-            let n = Eliom_common.make_full_cookie_name scn n in
+            let n = Eliom_common.make_full_cookie_name
+              Eliom_common.servicecookiename full_st_name in
             match !v with
               | Eliom_common.SCData_session_expired
               | Eliom_common.SCNo_data -> 
@@ -450,12 +452,15 @@ let compute_new_ri_cookies
         ric
     in
     let ric =
-      Eliom_common.Fullsessionname_Table.fold
-        (fun (ct, n) v beg ->
+      Eliom_common.Full_state_name_table.fold
+        (fun full_st_name v beg ->
+          let ct =
+            Eliom_common.cookie_level_of_user_scope (fst full_st_name) in
           if ct = `Client_process
           then beg
           else
-            let n = Eliom_common.make_full_cookie_name dcn n in
+            let n = Eliom_common.make_full_cookie_name
+              Eliom_common.datacookiename full_st_name in
             if Lazy.lazy_is_val v
             then
               let (_, v) = Lazy.force v in
@@ -472,12 +477,15 @@ let compute_new_ri_cookies
         ric
     in
     let ric =
-      Eliom_common.Fullsessionname_Table.fold
-        (fun (ct, n) v beg ->
+      Eliom_common.Full_state_name_table.fold
+        (fun full_st_name v beg ->
+          let ct =
+            Eliom_common.cookie_level_of_user_scope (fst full_st_name) in
           if ct = `Client_process
           then beg
           else
-            let n = Eliom_common.make_full_cookie_name pcn n in
+            let n = Eliom_common.make_full_cookie_name
+              Eliom_common.persistentcookiename full_st_name in
             beg >>= fun beg ->
             if Lazy.lazy_is_val v
             then
@@ -496,17 +504,10 @@ let compute_new_ri_cookies
     in
     ric
   in
-  f ci ric 
-    (Eliom_common.servicecookiename, 
-     Eliom_common.datacookiename, 
-     Eliom_common.persistentcookiename) 
+  f false ci ric 
   >>= fun ric ->
   match secure_ci with
     | None -> Lwt.return ric
-    | Some ci -> 
-(*VVV We always keep secure cookies, event if the protocol is not secure,
+    | Some ci -> f true ci ric
+(*VVV We always keep secure cookies, even if the protocol is not secure,
   because this function is for actions only. Is that right? *)
-        f ci ric
-          (Eliom_common.sservicecookiename, 
-           Eliom_common.sdatacookiename, 
-           Eliom_common.spersistentcookiename) 

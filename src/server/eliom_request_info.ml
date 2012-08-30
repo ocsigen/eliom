@@ -156,7 +156,7 @@ let get_suffix () =
   get_suffix_sp sp
 let get_state_name () =
   let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_fullsessname
+  sp.Eliom_common.sp_full_state_name
 let get_request_cache_sp sp =
   sp.Eliom_common.sp_request.request_info.ri_request_cache
 let get_request_cache () =

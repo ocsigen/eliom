@@ -439,7 +439,7 @@ val set_max_volatile_states_for_group_or_subnet :
     (see above).
 *)
 val set_service_cookie_exp_date :
-  scope:Eliom_common.user_scope ->
+  cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   float option ->
   unit
@@ -448,7 +448,7 @@ val set_service_cookie_exp_date :
     above).
 *)
 val set_volatile_data_cookie_exp_date :
-  scope:Eliom_common.user_scope ->
+  cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   float option ->
   unit
@@ -457,7 +457,7 @@ val set_volatile_data_cookie_exp_date :
     above).
 *)
 val set_persistent_data_cookie_exp_date :
-  scope:Eliom_common.user_scope ->
+  cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   float option ->
   unit Lwt.t
@@ -501,7 +501,7 @@ val set_persistent_data_cookie_exp_date :
     service session and volatile data session).
 *)
 val set_global_volatile_state_timeout :
-  scope:[< Eliom_common.user_scope ] ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   ?recompute_expdates:bool ->
   ?override_configfile:bool ->
   float option -> unit
@@ -514,7 +514,7 @@ val set_default_global_service_state_timeout :
 (** Sets the (server side) timeout for service states.
 *)
 val set_global_service_state_timeout :
-  scope:[< Eliom_common.user_scope ] ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   ?recompute_expdates:bool ->
   ?override_configfile:bool ->
   float option -> unit
@@ -527,7 +527,7 @@ val set_default_global_service_state_timeout :
 (** Sets the (server side) timeout for volatile (= "in memory") data states.
 *)
 val set_global_volatile_data_state_timeout :
-  scope:[< Eliom_common.user_scope ] ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   ?recompute_expdates:bool ->
   ?override_configfile:bool ->
   float option -> unit
@@ -540,7 +540,7 @@ val set_default_global_volatile_data_state_timeout :
 (** Sets the (server side) timeout for persistent states.
 *)
 val set_global_persistent_data_state_timeout :
-  scope:[< Eliom_common.user_scope ] ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   ?recompute_expdates:bool ->
   ?override_configfile:bool ->
   float option -> unit
@@ -554,19 +554,19 @@ val set_default_global_persistent_data_state_timeout :
 (** Returns the (server side) timeout for service states.
 *)
 val get_global_service_state_timeout :
-  scope:[< Eliom_common.user_scope ] ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   unit -> float option
 
 (** Returns the (server side) timeout for "volatile data" states.
 *)
 val get_global_volatile_data_state_timeout :
-  scope:[< Eliom_common.user_scope ] ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   unit -> float option
 
 (** Returns the (server side) timeout for persistent states.
 *)
 val get_global_persistent_data_state_timeout :
-  scope:[< Eliom_common.user_scope ] ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   unit -> float option
 
 
@@ -576,14 +576,14 @@ val get_global_persistent_data_state_timeout :
 (** sets the timeout for service state (server side) for current user,
    in seconds. [None] = no timeout *)
 val set_service_state_timeout :
-  scope:Eliom_common.user_scope ->
+  cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   float option -> unit
 
 (** remove the service state timeout for current user
    (and turn back to the default). *)
 val unset_service_state_timeout :
-  scope:Eliom_common.user_scope ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   ?secure:bool ->
   unit -> unit
 
@@ -591,7 +591,7 @@ val unset_service_state_timeout :
     [None] = no timeout
  *)
 val get_service_state_timeout :
-  scope:Eliom_common.user_scope ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   ?secure:bool ->
   unit -> float option
 
@@ -599,14 +599,14 @@ val get_service_state_timeout :
 (** sets the (server side) timeout for volatile data state for current user,
    in seconds. [None] = no timeout *)
 val set_volatile_data_state_timeout :
-  scope:Eliom_common.user_scope ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   ?secure:bool ->
   float option -> unit
 
 (** remove the "volatile data" state timeout for current user
    (and turn back to the default). *)
 val unset_volatile_data_state_timeout :
-  scope:Eliom_common.user_scope ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   ?secure:bool ->
   unit -> unit
 
@@ -614,7 +614,7 @@ val unset_volatile_data_state_timeout :
     [None] = no timeout
  *)
 val get_volatile_data_state_timeout :
-  scope:Eliom_common.user_scope ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   ?secure:bool ->
   unit -> float option
 
@@ -623,21 +623,21 @@ val get_volatile_data_state_timeout :
 (** sets the (server side) timeout for persistent state for current user,
    in seconds. [None] = no timeout *)
 val set_persistent_data_state_timeout :
-  scope:Eliom_common.user_scope ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   ?secure:bool ->
   float option -> unit Lwt.t
 
 (** remove the persistent state timeout for current user
    (and turn back to the default). *)
 val unset_persistent_data_state_timeout :
-  scope:Eliom_common.user_scope ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   ?secure:bool ->
   unit -> unit Lwt.t
 
 (** returns the persistent state timeout for current user.
     [None] = no timeout *)
 val get_persistent_data_state_timeout :
-  scope:Eliom_common.user_scope ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   ?secure:bool ->
   unit -> float option Lwt.t
 
@@ -827,21 +827,12 @@ module Ext : sig
     ([< Eliom_common.cookie_level ], [ `Pers ]) state ->
     persistent_cookie_info Lwt.t
 
-  val get_service_scope_hierarchy :
-    cookie:service_cookie_info -> Eliom_common.scope_hierarchy
-    
-  val get_volatile_data_scope_hierarchy : cookie:data_cookie_info ->
-    Eliom_common.scope_hierarchy
-      
-  val get_persistent_data_scope_hierarchy :
-    cookie:persistent_cookie_info -> Eliom_common.scope_hierarchy
-    
-  val get_service_cookie_level :
-    cookie:service_cookie_info -> Eliom_common.cookie_level
-  val get_volatile_data_cookie_level : cookie:data_cookie_info ->
-    Eliom_common.cookie_level
-  val get_persistent_data_cookie_level :
-    cookie:persistent_cookie_info -> Eliom_common.cookie_level
+  val get_service_cookie_scope :
+    cookie:service_cookie_info -> Eliom_common.user_scope
+  val get_volatile_data_cookie_scope : cookie:data_cookie_info ->
+    Eliom_common.user_scope
+  val get_persistent_data_cookie_scope :
+    cookie:persistent_cookie_info -> Eliom_common.user_scope
     
   val set_service_cookie_timeout :
     cookie:service_cookie_info -> float option -> unit
@@ -1081,7 +1072,7 @@ val set_default_persistent_data_session_timeout : float option -> unit
     Returns [None] is no session is active.
  *)
 val get_persistent_data_cookie :
-  scope:Eliom_common.user_scope ->
+  cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   unit -> string option Lwt.t
 
@@ -1089,7 +1080,7 @@ val get_persistent_data_cookie :
     Returns [None] is no session is active.
  *)
 val get_service_cookie :
-  scope:Eliom_common.user_scope ->
+  cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   unit -> string option
 
@@ -1097,7 +1088,7 @@ val get_service_cookie :
     Returns [None] is no session is active.
  *)
 val get_volatile_data_cookie :
-  scope:Eliom_common.user_scope ->
+  cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   unit -> string option
 

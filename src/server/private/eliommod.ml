@@ -118,7 +118,7 @@ let new_sitedata =
               Eliom_common.empty_tables
                 !default_max_anonymous_services_per_subnet
                 false;
-	   registered_scope_hierarchies = String.Set.empty;
+	   registered_scope_hierarchies = Eliom_common.Hier_set.empty;
            session_services = Eliommod_cookies.new_service_cookie_table ();
            session_data = Eliommod_cookies.new_data_cookie_table ();
            group_of_groups = gog;
@@ -232,10 +232,10 @@ let parse_eliom_option
     let rec aux ((v, sn, ct) as res) = function
       | [] -> res
       | ("value", s)::l -> aux (Some s, sn, ct) l
-      | ("sessionname", sn)::l -> aux (v, Some sn, ct) l
-      | ("sessiontype", "browser")::l -> aux (v, sn, `Session) l
-      | ("sessiontype", "tab")::l -> aux (v, sn, `Client_process) l
-      | ("sessiontype", _)::l -> 
+      | ("hierarchyname", sn)::l -> aux (v, Some sn, ct) l
+      | ("level", "browser")::l -> aux (v, sn, `Session) l
+      | ("level", "tab")::l -> aux (v, sn, `Client_process) l
+      | ("level", _)::l -> 
           raise 
             (Error_in_config_file
                ("Eliom: Wrong attribute value for sessiontype in "^tn^" tag"))
@@ -712,31 +712,34 @@ let parse_config hostpattern conf_info site_dir =
   browsers manage cookies (one cookie for one site).
   Thus we can have one site in several cmo (with one session).
  *)
-        let set_timeout (f : ?fullsessname:Eliom_common.fullsessionname ->
+        let set_timeout (f : ?full_st_name:Eliom_common.full_state_name ->
                          ?cookie_level:[< Eliom_common.cookie_level ] ->
                          recompute_expdates:bool ->
                          bool -> bool -> Eliom_common.sitedata ->
                          float option -> unit)
-            cookie_type state_name_oo v =
-	  let make_fullsessname state_name =
-	    let state_name : Eliom_common.scope_hierarchy =
-	      match state_name with
-		| None -> `Default_ref_name
-		| Some s when String.lowercase s = "default" -> `Default_ref_name
-		| Some s when String.lowercase s = "comet" -> `Default_comet_name
-		| Some s -> `String s
+            cookie_type state_hier_oo v =
+	  let make_full_st_name state_hier =
+	    let state_hier : Eliom_common.scope_hierarchy =
+	      match state_hier with
+		| None -> Eliom_common_base.Default_ref_hier
+		| Some s when String.lowercase s = "default" ->
+                  Eliom_common_base.Default_ref_hier
+		| Some s when String.lowercase s = "comet" ->
+                  Eliom_common_base.Default_comet_hier
+		| Some s -> Eliom_common_base.User_hier (s, false)
+(*VVV and secure??? *)
 	    in
 	    let scope =
 	      match cookie_type with
-		| `Session -> `Session state_name
-		| `Client_process -> `Client_process state_name
+		| `Session -> `Session state_hier
+		| `Client_process -> `Client_process state_hier
 	    in
-	    Eliom_common.make_fullsessname2
+	    Eliom_common.make_full_state_name2
               sitedata.Eliom_common.site_dir_string
-              scope
+              ~scope
 	  in
           f
-            ?fullsessname:(Option.map make_fullsessname state_name_oo)
+            ?full_st_name:(Option.map make_full_st_name state_hier_oo)
             ?cookie_level:(Some cookie_type)
             ~recompute_expdates:false
             true

@@ -134,8 +134,8 @@ val get_link_too_old : unit -> bool
 (** returns the list of names of service sessions expired for the current 
     request, for browser sessions and tab sessions. *)
 val get_expired_service_sessions : 
-  unit -> (Eliom_common.fullsessionname list *
-                       Eliom_common.fullsessionname list)
+  unit -> (Eliom_common.full_state_name list *
+                       Eliom_common.full_state_name list)
 
 (** returns the HTTP error code sent by the Ocsigen extension
    that tried to answer to the request before Eliom.
@@ -243,18 +243,18 @@ val get_request : unit -> request
 (** returns the name of the sessions to which belongs the running service
     ([None] if it is not a session service)
  *)
-val get_state_name : unit -> Eliom_common.fullsessionname option
+val get_state_name : unit -> Eliom_common.full_state_name option
 
 
 (** returns the values of the Eliom's cookies for persistent sessions
    sent by the browser. *)
 val get_persistent_cookies :
-  unit -> string Eliom_common.Fullsessionname_Table.t
+  unit -> string Eliom_common.Full_state_name_table.t
 
 (** returns the values of Eliom's cookies for non persistent sessions
    sent by the browser. *)
 val get_data_cookies :
-  unit -> string Eliom_common.Fullsessionname_Table.t
+  unit -> string Eliom_common.Full_state_name_table.t
 
 
 (** Returns the http error code of the request before Eliom was called *)

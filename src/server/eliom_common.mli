@@ -31,9 +31,11 @@ open Eliom_lib
    create_..._scope functions *)
 type scope_hierarchy = Eliom_common_base.scope_hierarchy
 
-type user_scope = [ `Session_group of scope_hierarchy
-		  | `Session of scope_hierarchy
-		  | `Client_process of scope_hierarchy ]
+type cookie_scope = [ `Session of scope_hierarchy
+		    | `Client_process of scope_hierarchy ]
+
+type user_scope = [ `Session_group of scope_hierarchy 
+                  | cookie_scope ]
 
 type scope = [ `Site
 	     | user_scope ]
@@ -42,23 +44,40 @@ type all_scope = [ scope
                  | `Global
 		 | `Request ]
 
-(**  Using [`Global] scope means you want the data or service to 
-     be available to any client. [`Site] is limited to current sub-site
-     (if you have several sites on the same server).
-     
-     If you want to restrict the visibility of an Eliom reference or
-     a service:
-     * to a browser session, use [~scope:Eliom_common.session],
-     * to a group of sessions, use [~scope:Eliom_common.session_group],
-     * to a client process, use [~scope:Eliom_common.client_process].
-     If you have a client side Eliom program running, and you want to restrict
-     the visibility of the service to this instance of the program,
-     use [~scope:Eliom_common.client_process].
-     
-     You can create new scope
-     hierachies with {!Eliom_common.create_scope_hierarchy}.
-     Thus it is possible to have for example several sessions that can
-     be opened or closed independently. They use different cookies.
+type cookie_level = [ `Session | `Client_process ]
+
+type user_level = [ `Session_group | cookie_level ]
+
+val cookie_scope_of_user_scope : [< user_scope ] -> [> cookie_scope ]
+val cookie_level_of_user_scope : [< user_scope ] -> [> cookie_level ]
+val level_of_user_scope : [< user_scope ] -> [> user_level ]
+
+(** Eliom is using regular (browser) cookies but can also use its own
+    browser tab cookies (only if you are using a client side Eliom application).
+
+    It is possible to define Eliom references or services for one
+    (browser) session, for one tab, or for one group of sessions.
+
+    Using [`Global] scope means you want the data or service to 
+    be available to any client. [`Site] is limited to current sub-site
+    (if you have several sites on the same server).
+    
+    If you want to restrict the visibility of an Eliom reference or
+    a service:
+    * to a browser session, use [~scope:Eliom_common.session],
+    * to a group of sessions, use [~scope:Eliom_common.session_group],
+    * to a client process, use [~scope:Eliom_common.client_process].
+    If you have a client side Eliom program running, and you want to restrict
+    the visibility of the service to this instance of the program,
+    use [~scope:Eliom_common.client_process].
+    
+    You can create new scope
+    hierachies with {!Eliom_common.create_scope_hierarchy}.
+    Thus it is possible to have for example several sessions that can
+    be opened or closed independently. They use different cookies.
+    
+    Secure scopes are associated to secure cookies (that is, cookies sent
+    by browsers only if the protocol is https).
 *)
 
 type global_scope = [`Global]
@@ -70,25 +89,18 @@ type request_scope = [`Request]
 
 val global : global_scope
 val site : site_scope
-val session_group : session_group_scope
-val session : session_scope
-val client_process : client_process_scope
+val default_group_scope : session_group_scope
+val default_session_scope : session_scope
+val default_process_scope : client_process_scope
+val default_secure_group_scope : session_group_scope
+val default_secure_session_scope : session_scope
+val default_secure_process_scope : client_process_scope
 val comet_client_process : client_process_scope
 val request : request_scope
 
-val create_scope_hierarchy : string -> scope_hierarchy
+val create_scope_hierarchy : ?secure:bool -> string -> scope_hierarchy
 
 val list_scope_hierarchies : unit -> scope_hierarchy list
-
-(** Eliom is using regular (browser) cookies but can also use its own
-    browser tab cookies (only if you are using a client side Eliom application).
-
-    It is possible to define data tables or service table for one
-    (browser) session, for one tab, or for one group of sessions.
-*)
-type cookie_level = [ `Session | `Client_process ]
-
-val cookie_level_of_user_scope : [< user_scope ] -> [> cookie_level ]
 
 (** {2 Exception and error handling} *)
 
@@ -115,8 +127,8 @@ exception Eliom_Typing_Error of (string * exn) list
 *)
 exception Eliom_site_information_not_available of string
 
-type fullsessionname = cookie_level * string
-module Fullsessionname_Table : Map.S with type key = fullsessionname
+type full_state_name = user_scope * string (* site_dir_string *)
+module Full_state_name_table : Map.S with type key = full_state_name
 
 (** If present and true in request data, it means that
     the previous coservice does not exist any more *)
@@ -127,7 +139,7 @@ val eliom_link_too_old : bool Polytables.key
     The string lists are the list of names of expired sessions
 *)
 val eliom_service_session_expired :
-  (fullsessionname list * fullsessionname list) Polytables.key
+  (full_state_name list * full_state_name list) Polytables.key
 
 (**/**)
 
@@ -224,9 +236,6 @@ val internal_form_bool_name : string
 val datacookiename : string
 val servicecookiename : string
 val persistentcookiename : string
-val sdatacookiename : string
-val sservicecookiename : string
-val spersistentcookiename : string
 
 val persistent_cookie_table_version : string
 val eliom_persistent_cookie_table : string
@@ -254,21 +263,21 @@ type sess_info = {
   si_all_get_params : (string * string) list;
   si_all_post_params : (string * string) list option;
 
-  si_service_session_cookies : string Fullsessionname_Table.t;
-  si_data_session_cookies : string Fullsessionname_Table.t;
-  si_persistent_session_cookies : string Fullsessionname_Table.t;
+  si_service_session_cookies : string Full_state_name_table.t;
+  si_data_session_cookies : string Full_state_name_table.t;
+  si_persistent_session_cookies : string Full_state_name_table.t;
   si_secure_cookie_info:
-    (string Fullsessionname_Table.t *
-       string Fullsessionname_Table.t *
-       string Fullsessionname_Table.t) option;
+    (string Full_state_name_table.t *
+       string Full_state_name_table.t *
+       string Full_state_name_table.t) option;
 
-  si_service_session_cookies_tab: string Fullsessionname_Table.t;
-  si_data_session_cookies_tab: string Fullsessionname_Table.t;
-  si_persistent_session_cookies_tab: string Fullsessionname_Table.t;
+  si_service_session_cookies_tab: string Full_state_name_table.t;
+  si_data_session_cookies_tab: string Full_state_name_table.t;
+  si_persistent_session_cookies_tab: string Full_state_name_table.t;
   si_secure_cookie_info_tab:
-    (string Fullsessionname_Table.t *
-       string Fullsessionname_Table.t *
-       string Fullsessionname_Table.t) option;
+    (string Full_state_name_table.t *
+       string Full_state_name_table.t *
+       string Full_state_name_table.t) option;
 
   si_tab_cookies: string CookiesTable.t;
 
@@ -347,26 +356,26 @@ type one_persistent_cookie_info = {
 
 type 'a cookie_info1 =
     (string option * 'a one_service_cookie_info session_cookie ref)
-    Fullsessionname_Table.t ref *
+    Full_state_name_table.t ref *
     (string option * one_data_cookie_info session_cookie ref) Lazy.t
-    Fullsessionname_Table.t ref *
+    Full_state_name_table.t ref *
     ((string * timeout * float option *
       perssessgrp option)
      option * one_persistent_cookie_info session_cookie ref)
-    Lwt.t Lazy.t Fullsessionname_Table.t ref
+    Lwt.t Lazy.t Full_state_name_table.t ref
 
 type 'a cookie_info =
     'a cookie_info1 (* unsecure *) * 
       'a cookie_info1 option (* secure, if https *)
 
 type 'a servicecookiestablecontent =
-    fullsessionname * 'a * float option ref * timeout ref *
+    full_state_name * 'a * float option ref * timeout ref *
       cookie_level sessgrp ref *
       string Ocsigen_cache.Dlist.node
 type 'a servicecookiestable = 
     'a servicecookiestablecontent SessionCookies.t
 type datacookiestablecontent =
-    fullsessionname * float option ref * timeout ref *
+    full_state_name * float option ref * timeout ref *
       cookie_level sessgrp ref *
       string Ocsigen_cache.Dlist.node
 type datacookiestable = 
@@ -390,6 +399,8 @@ type node_info = {
   mutable ni_sent : bool;
 }
 
+module Hier_set : Set.S
+
 type server_params = {
   sp_request : Ocsigen_extensions.request;
   sp_si : sess_info;
@@ -402,7 +413,7 @@ type server_params = {
   mutable sp_client_appl_name: string option; (* The application name,
                                                  as sent by the browser *)
   sp_suffix : Url.path option;
-  sp_fullsessname : fullsessionname option;
+  sp_full_state_name : full_state_name option;
   sp_client_process_info: client_process_info;
   (* Contains the base URL information from which the client process
      has been launched (if any). All relative links and forms will be
@@ -496,26 +507,26 @@ and sitedata = {
    (* Timeouts:
        - default for site (browser sessions)
        - default for site (tab sessions)
-       - then default for each full session name
+       - then default for each full state name
       The booleans means "has been set from config file"
    *)
-   mutable servtimeout: 
+   mutable servtimeout:
      (float option * bool) option *
      (float option * bool) option *
-     ((fullsessionname * (float option * bool)) list);
-   mutable datatimeout: 
+     ((full_state_name * (float option * bool)) list);
+   mutable datatimeout:
      (float option * bool) option *
      (float option * bool) option *
-     ((fullsessionname * (float option * bool)) list);
-   mutable perstimeout: 
+     ((full_state_name * (float option * bool)) list);
+   mutable perstimeout:
      (float option * bool) option *
      (float option * bool) option *
-     ((fullsessionname * (float option * bool)) list);
+     ((full_state_name * (float option * bool)) list);
 
   site_value_table : Polytables.t; (* table containing evaluated
 					   lazy site values *)
 
-  mutable registered_scope_hierarchies: String.Set.t;
+  mutable registered_scope_hierarchies: Hier_set.t;
 
   global_services : tables;
   session_services : tables servicecookiestable;
@@ -561,7 +572,7 @@ val make_server_params :
   sitedata ->
   info ->
   Url.path option ->
-  fullsessionname option -> server_params
+  full_state_name option -> server_params
 val empty_page_table : unit -> page_table
 val empty_dircontent : unit -> dircontent
 val empty_naservice_table : unit -> naservice_table
@@ -576,11 +587,11 @@ val get_session_info :
             (tables cookie_info * Ocsigen_cookies.cookieset) option) Lwt.t
 type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
 
-val make_full_cookie_name : string -> string -> string
-val make_fullsessname :
-  sp:server_params -> [< user_scope ] -> fullsessionname
-val make_fullsessname2 :
-  string -> [< user_scope ] -> fullsessionname
+val make_full_cookie_name : string -> full_state_name -> string
+val make_full_state_name :
+  sp:server_params -> scope:[< user_scope ] -> full_state_name
+val make_full_state_name2 :
+  string -> scope:[< user_scope ] -> full_state_name
 
 
 
@@ -593,7 +604,7 @@ module Perstables :
 val perstables : string list ref
 val create_persistent_table : string -> 'a Ocsipersist.table
 val persistent_cookies_table :
-  (fullsessionname * float option * timeout * perssessgrp option)
+  (full_state_name * float option * timeout * perssessgrp option)
   Ocsipersist.table Lazy.t
 val remove_from_all_persistent_tables : string -> unit Lwt.t
 val absolute_change_sitedata : sitedata -> unit

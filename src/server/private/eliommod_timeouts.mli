@@ -26,55 +26,49 @@ val set_default_volatile_timeout :  [< Eliom_common.cookie_level ] -> float opti
 val add : 'a -> 'b -> ('a * 'b) list -> ('a * 'b) list
 
 val find_global_service_timeout :
-  Eliom_common.fullsessionname -> Eliom_common.sitedata -> float option
+  Eliom_common.full_state_name -> Eliom_common.sitedata -> float option
 val find_global_data_timeout :
-  Eliom_common.fullsessionname -> Eliom_common.sitedata -> float option
+  Eliom_common.full_state_name -> Eliom_common.sitedata -> float option
 val find_global_persistent_timeout :
-  Eliom_common.fullsessionname -> Eliom_common.sitedata -> float option
+  Eliom_common.full_state_name -> Eliom_common.sitedata -> float option
 
 val get_global_service_timeout :
-  scope_hierarchy:Eliom_common.scope_hierarchy ->
-  cookie_level:[< Eliom_common.cookie_level ] ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   Eliom_common.sitedata -> float option
 val get_global_data_timeout :
-  scope_hierarchy:Eliom_common.scope_hierarchy ->
-  cookie_level:[< Eliom_common.cookie_level ] ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   Eliom_common.sitedata -> float option
 val get_global_persistent_timeout :
-  scope_hierarchy:Eliom_common.scope_hierarchy ->
-  cookie_level:[< Eliom_common.cookie_level ] ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   Eliom_common.sitedata -> float option
 
 val set_global_service_timeout :
-  scope_hierarchy:Eliom_common.scope_hierarchy ->
-  cookie_level:[< Eliom_common.cookie_level ] ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   recompute_expdates:bool ->
   bool -> Eliom_common.sitedata -> float option -> unit
 val set_global_data_timeout :
-  scope_hierarchy:Eliom_common.scope_hierarchy ->
-  cookie_level:[< Eliom_common.cookie_level ] ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   recompute_expdates:bool ->
   bool -> Eliom_common.sitedata -> float option -> unit
 val set_global_persistent_timeout :
-  scope_hierarchy:Eliom_common.scope_hierarchy ->
-  cookie_level:[< Eliom_common.cookie_level ] ->
+  cookie_scope:[< Eliom_common.cookie_scope ] ->
   recompute_expdates:bool ->
   bool -> Eliom_common.sitedata -> float option -> unit
 
 val set_global_service_timeout_ :
-  ?fullsessname:Eliom_common.fullsessionname ->
+  ?full_st_name:Eliom_common.full_state_name ->
   ?cookie_level:[< Eliom_common.cookie_level ] ->
   recompute_expdates:bool ->
   bool ->
   bool -> Eliom_common.sitedata -> float option -> unit
 val set_global_data_timeout_ :
-  ?fullsessname:Eliom_common.fullsessionname ->
+  ?full_st_name:Eliom_common.full_state_name ->
   ?cookie_level:[< Eliom_common.cookie_level ] ->
   recompute_expdates:bool ->
   bool ->
   bool -> Eliom_common.sitedata -> float option -> unit
 val set_global_persistent_timeout_ :
-  ?fullsessname:Eliom_common.fullsessionname ->
+  ?full_st_name:Eliom_common.full_state_name ->
   ?cookie_level:[< Eliom_common.cookie_level ] ->
   recompute_expdates:bool ->
   bool ->

@@ -68,18 +68,13 @@ let servicecookiename = "eliomservicesession|"
 (* must not be a prefix of the following and vice versa (idem for data) *)
 let persistentcookiename = "eliompersistentsession|"
 
-(* the same, secure: *)
-let sdatacookiename = "Seliomdatasession|"
-let sservicecookiename = "Seliomservicesession|"
-let spersistentcookiename = "Seliompersistentsession|"
-
 (*****************************************************************************)
 
 let eliom_link_too_old : bool Polytables.key = Polytables.make_key ()
 (** The coservice does not exist any more *)
 
 let eliom_service_session_expired : 
-    (fullsessionname list * fullsessionname list) Polytables.key = 
+    (full_state_name list * full_state_name list) Polytables.key = 
   Polytables.make_key ()
 (** If present in request data,  means that
     the service session cookies does not exist any more.
@@ -198,7 +193,7 @@ type 'a cookie_info1 =
     )
       (* This one is not lazy because we must check all service sessions
          at each request to find the services *)
-      Fullsessionname_Table.t ref (* The key is the full session name *) *
+      Full_state_name_table.t ref (* The key is the full session name *) *
 
     (* in memory data sessions: *)
       (string option            (* value sent by the browser *)
@@ -215,7 +210,7 @@ type 'a cookie_info1 =
       (* Lazy because we do not want to ask the browser to unset the cookie
          if the cookie has not been used, otherwise it is impossible to
          write a message "Your session has expired" *)
-      Fullsessionname_Table.t ref (* The key is the full session name *) *
+      Full_state_name_table.t ref (* The key is the full session name *) *
 
       (* persistent sessions: *)
       ((string                  (* value sent by the browser *) *
@@ -235,7 +230,7 @@ type 'a cookie_info1 =
             For both of them, ask the browser to remove the cookie.
           *)
       ) Lwt.t Lazy.t
-      Fullsessionname_Table.t ref
+      Full_state_name_table.t ref
 
 
 type 'a cookie_info =
@@ -246,7 +241,7 @@ type 'a cookie_info =
 
 (* non persistent cookies for services *)
 type 'a servicecookiestablecontent =
-    (fullsessionname     (* fullsessname *) *
+    (full_state_name *
      'a                  (* session table *) *
      float option ref    (* expiration date by timeout
                             (server side) *) *
@@ -266,7 +261,7 @@ type 'a servicecookiestable = 'a servicecookiestablecontent SessionCookies.t
 
 (* non persistent cookies for in memory data *)
 type datacookiestablecontent =
-    (fullsessionname         (* fullsessname *) *
+    (full_state_name *
      float option ref        (* expiration date by timeout
                                 (server side) *) *
      timeout ref             (* user timeout *) *
@@ -366,6 +361,9 @@ type node_info = {
   mutable ni_sent : bool;
 }
 
+module Hier_set =
+  Set.Make(struct type t = string * bool let compare = compare end)
+
 type server_params =
     {sp_request: Ocsigen_extensions.request;
      sp_si: sess_info;
@@ -378,10 +376,10 @@ type server_params =
      mutable sp_client_appl_name: string option; (* The application name,
                                                     as sent by the browser *)
      sp_suffix: Url.path option (* suffix *);
-     sp_fullsessname: fullsessionname option (* the name of the session
-                                                to which belong the service
-                                                that answered
-                                                (if it is a session service) *);
+     sp_full_state_name: full_state_name option
+                             (* the name of the session
+                                to which belong the service that answered
+                                (if it is a session service) *);
      sp_client_process_info: client_process_info;
     }
 
@@ -484,20 +482,20 @@ and sitedata =
    mutable servtimeout: 
      (float option * bool) option * 
      (float option * bool) option * 
-     ((fullsessionname * (float option * bool)) list);
+     ((full_state_name * (float option * bool)) list);
    mutable datatimeout: 
      (float option * bool) option * 
      (float option * bool) option * 
-     ((fullsessionname * (float option * bool)) list);
+     ((full_state_name * (float option * bool)) list);
    mutable perstimeout: 
      (float option * bool) option *
      (float option * bool) option * 
-     ((fullsessionname * (float option * bool)) list);
+     ((full_state_name * (float option * bool)) list);
 
    site_value_table : Polytables.t; (* table containing evaluated
 				       lazy site values *)
 
-   mutable registered_scope_hierarchies: String.Set.t;
+   mutable registered_scope_hierarchies: Hier_set.t;
 
    (* All services, and state data are stored in these tables,
       for scopes session and client process.
@@ -537,21 +535,26 @@ and dlist_ip_table = (page_table ref * page_table_key, na_key_serv)
 
 (*****************************************************************************)
 
-let make_full_cookie_name a b = a^b
-
-let make_fullsessname2 site_dir_string (scope:[< user_scope ]) : fullsessionname =
-  let cookie_level = cookie_level_of_user_scope scope in
-  let state_name = scope_hierarchy_of_scope scope in
-  let name = match state_name with
-    | `Default_ref_name -> "ref|"
-    | `Default_comet_name -> "comet|"
-    | `String s -> "|"^s
+let make_full_cookie_name cookieprefix (cookie_scope, site_dir_string) =
+  let scope_hier = scope_hierarchy_of_scope cookie_scope in
+  let secure, hier1, hiername = match scope_hier with
+    | User_hier (hiername, false) -> "|", "|", hiername 
+    | User_hier (hiername, true) -> "S|", "|", hiername
+    | Default_ref_hier -> "|", "ref|", ""
+    | Default_secure_ref_hier -> "S|", "ref|", ""
+    | Default_comet_hier -> "|", "comet|", ""
+    | Default_secure_comet_hier -> "S|", "comet|", ""
   in
-  ((cookie_level :> cookie_level),
-   site_dir_string^name (* The name of the cookie *))
+  String.concat "" [cookieprefix; secure; site_dir_string; hier1; hiername]
 
-let make_fullsessname ~sp (scope:[< user_scope ]) =
-  make_fullsessname2 sp.sp_sitedata.site_dir_string scope
+let make_full_state_name2
+    site_dir_string ~(scope:[< user_scope ]) : full_state_name =
+  (* The information in the cookie name, without the kind of session *)
+  ((scope :> user_scope),
+   site_dir_string)
+
+let make_full_state_name ~sp ~(scope:[< user_scope ]) =
+  make_full_state_name2 sp.sp_sitedata.site_dir_string scope
 
 let get_cookie_info sp = function
   | `Session -> sp.sp_cookie_info
@@ -565,7 +568,7 @@ let make_server_params
     sitedata
     (ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
     suffix
-    fullsessname =
+    full_state_name =
   let appl_name =
     try
       Some
@@ -594,7 +597,7 @@ let make_server_params
     sp_user_tab_cookies = user_tab_cookies;
     sp_client_appl_name = appl_name;
     sp_suffix = suffix;
-    sp_fullsessname = fullsessname;
+    sp_full_state_name = full_state_name;
     sp_client_process_info = cpi;
   }
 
@@ -618,35 +621,47 @@ let sp_of_option sp =
 
 let global : global_scope = `Global
 let site : site_scope = `Site
-let session_group : session_group_scope = `Session_group `Default_ref_name
-let session : session_scope = `Session `Default_ref_name
-let client_process : client_process_scope = `Client_process `Default_ref_name
-let comet_client_process : client_process_scope = `Client_process `Default_comet_name
+
+let default_group_scope : session_group_scope = `Session_group Default_ref_hier
+let default_session_scope : session_scope = `Session Default_ref_hier
+let default_process_scope : client_process_scope = `Client_process Default_ref_hier
+
+let default_secure_group_scope : session_group_scope = `Session_group Default_secure_ref_hier
+let default_secure_session_scope : session_scope = `Session Default_secure_ref_hier
+let default_secure_process_scope : client_process_scope = `Client_process Default_secure_ref_hier
+
+let comet_client_process : client_process_scope = `Client_process Default_comet_hier
 let request : request_scope = `Request
 
-let registered_scope_hierarchies = ref String.Set.empty
+let registered_scope_hierarchies = ref Hier_set.empty
 
-let register_scope_hierarchy (name:string) =
+let register_scope_hierarchy secure (name:string) =
+  let v = (name, secure) in
   match get_sp_option () with
     | None ->
-      if String.Set.mem name !registered_scope_hierarchies
-      then failwith (Printf.sprintf "the scope %s have already been registered" name)
-      else registered_scope_hierarchies := String.Set.add name !registered_scope_hierarchies
+      if Hier_set.mem v !registered_scope_hierarchies
+      then failwith (Printf.sprintf "the %s secure scope hierachy %s has already been registered" (if secure then "" else "non") name)
+      else registered_scope_hierarchies :=
+        Hier_set.add v !registered_scope_hierarchies
     | Some sp ->
-      if String.Set.mem name !registered_scope_hierarchies ||
-	String.Set.mem name sp.sp_sitedata.registered_scope_hierarchies
-      then failwith (Printf.sprintf "the scope %s have already been registered" name)
-      else sp.sp_sitedata.registered_scope_hierarchies <- String.Set.add name sp.sp_sitedata.registered_scope_hierarchies
+      if Hier_set.mem v !registered_scope_hierarchies ||
+	Hier_set.mem v sp.sp_sitedata.registered_scope_hierarchies
+      then failwith (Printf.sprintf "the %s secure scope hierarchy %s has already been registered" (if secure then "" else "non") name)
+      else sp.sp_sitedata.registered_scope_hierarchies <-
+        Hier_set.add v sp.sp_sitedata.registered_scope_hierarchies
 
-let create_scope_hierarchy name : scope_hierarchy =
-  register_scope_hierarchy name;
-  `String name
+let create_scope_hierarchy ?(secure = false) name : scope_hierarchy =
+  register_scope_hierarchy secure name;
+  User_hier (name, secure)
 
 let list_scope_hierarchies () =
   let sp = get_sp () in
-  `Default_comet_name::`Default_ref_name::
-    ( List.map (fun s -> `String s) (String.Set.elements !registered_scope_hierarchies)
-      @ List.map (fun s -> `String s) (String.Set.elements sp.sp_sitedata.registered_scope_hierarchies) )
+  Default_comet_hier::Default_ref_hier::
+  Default_secure_comet_hier::Default_secure_ref_hier::
+    (List.map (fun s -> User_hier s)
+       (Hier_set.elements !registered_scope_hierarchies)
+     @ List.map (fun s -> User_hier s)
+       (Hier_set.elements sp.sp_sitedata.registered_scope_hierarchies) )
 
 (*****************************************************************************)
 (* The current registration directory *)
@@ -899,22 +914,46 @@ let split_nl_prefix_param =
     in
     aux [] String.Table.empty l
 
-let getcookies cookie_level cookiename cookies =
-  let length = String.length cookiename in
+(* The cookie name is 
+
+sessionkind|S?|sitedirstring|"ref" ou "comet" ou ""|hiername
+
+*)
+
+let full_state_name_of_cookie_name secure cookie_level cookiename =
+  let pref, cookiename = Ocsigen_lib.String.sep '|' cookiename in
+  let secure, cookiename = Ocsigen_lib.String.sep '|' cookiename in
+  let sitedirstring, cookiename = Ocsigen_lib.String.sep '|' cookiename in
+  let hier1, hiername = Ocsigen_lib.String.sep '|' cookiename in
+  let sc_hier = match hier1, secure with
+    | "", "" -> Eliom_common_base.User_hier (hiername, false)
+    | "", "S" -> Eliom_common_base.User_hier (hiername, true)
+    | "ref", "" -> Eliom_common_base.Default_ref_hier
+    | "comet", "" -> Eliom_common_base.Default_comet_hier
+    | "ref", "S" -> Eliom_common_base.Default_secure_ref_hier
+    | "comet", "S" -> Eliom_common_base.Default_secure_comet_hier
+    | _ -> raise Not_found
+  in
+  match cookie_level with
+    | `Session -> (`Session sc_hier, sitedirstring)
+    | `Client_process -> (`Client_process sc_hier, sitedirstring)
+
+let getcookies secure cookie_level cookienamepref cookies =
+  let length = String.length cookienamepref in
   let last = length - 1 in
   CookiesTable.fold
     (fun name value beg ->
-      if String.first_diff cookiename name 0 last = length
+      if String.first_diff cookienamepref name 0 last = length
       then
-        Fullsessionname_Table.add
-          (cookie_level,
-           (String.sub name length ((String.length name) - length)))
-          value
-          beg
+        try
+          let expcn =
+            full_state_name_of_cookie_name secure cookie_level name in
+          Full_state_name_table.add expcn value beg
+        with Not_found -> beg
       else beg
     )
     cookies
-    Fullsessionname_Table.empty
+    Full_state_name_table.empty
 
 (* Remove all parameters whose name starts with pref *)
 let remove_prefixed_param pref l =
@@ -1059,17 +1098,17 @@ let get_session_info req previous_extension_err =
 
   let browser_cookies = Lazy.force ri.Ocsigen_extensions.ri_cookies in
 
-  let data_cookies = getcookies `Session datacookiename browser_cookies in
-  let service_cookies = getcookies `Session servicecookiename browser_cookies in
-  let persistent_cookies = getcookies `Session persistentcookiename browser_cookies in
+  let data_cookies = getcookies false `Session datacookiename browser_cookies in
+  let service_cookies = getcookies false `Session servicecookiename browser_cookies in
+  let persistent_cookies = getcookies false `Session persistentcookiename browser_cookies in
   
   let secure_cookie_info =
     if ri.Ocsigen_extensions.ri_ssl
     then
-      let sdata_cookies = getcookies `Session sdatacookiename browser_cookies in
-      let sservice_cookies = getcookies `Session sservicecookiename browser_cookies in
+      let sdata_cookies = getcookies true `Session datacookiename browser_cookies in
+      let sservice_cookies = getcookies true `Session servicecookiename browser_cookies in
       let spersistent_cookies =
-        getcookies `Session spersistentcookiename browser_cookies
+        getcookies true `Session persistentcookiename browser_cookies
       in
       Some (sservice_cookies, sdata_cookies, spersistent_cookies)
     else None
@@ -1187,16 +1226,16 @@ let get_session_info req previous_extension_err =
          nl_get_params String.Table.empty)
   in
 
-  let data_cookies_tab = getcookies `Client_process datacookiename tab_cookies in
-  let service_cookies_tab = getcookies `Client_process servicecookiename tab_cookies in
-  let persistent_cookies_tab = getcookies `Client_process persistentcookiename tab_cookies in
+  let data_cookies_tab = getcookies false `Client_process datacookiename tab_cookies in
+  let service_cookies_tab = getcookies false `Client_process servicecookiename tab_cookies in
+  let persistent_cookies_tab = getcookies false `Client_process persistentcookiename tab_cookies in
 
   let secure_cookie_info_tab =
     if ri.Ocsigen_extensions.ri_ssl
     then
-      let sdata_cookies = getcookies `Client_process sdatacookiename tab_cookies in
-      let sservice_cookies = getcookies `Client_process sservicecookiename tab_cookies in
-      let spersistent_cookies = getcookies `Client_process spersistentcookiename tab_cookies in
+      let sdata_cookies = getcookies true `Client_process datacookiename tab_cookies in
+      let sservice_cookies = getcookies true `Client_process servicecookiename tab_cookies in
+      let spersistent_cookies = getcookies true `Client_process persistentcookiename tab_cookies in
       Some (sservice_cookies, sdata_cookies, spersistent_cookies)
     else None
   in
@@ -1310,7 +1349,7 @@ let create_persistent_table name =
   Ocsipersist.open_table name
 
 let persistent_cookies_table :
-    (fullsessionname * float option * timeout * perssessgrp option)
+    (full_state_name * float option * timeout * perssessgrp option)
     Ocsipersist.table Lazy.t =
   lazy (create_persistent_table eliom_persistent_cookie_table)
 (* Another tables, containing the session info for each cookie *)

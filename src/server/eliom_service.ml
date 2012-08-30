@@ -172,7 +172,7 @@ let default_csrf_scope = function
     (* We do not use the classical syntax for default
        value. Otherwise, the type for csrf_scope was:
        [< Eliom_common.user_scope > `Session] *)
-  | None -> `Session `Default_ref_name
+  | None -> `Session Eliom_common_base.Default_ref_hier
   | Some c -> (c :> [Eliom_common.user_scope])
 
 let coservice
