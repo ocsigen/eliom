@@ -90,9 +90,9 @@ let thebutton ?(msg="THE BUTTON") onclick : [> Html5_types.button ] Html5.elt =
 }}
 
 let failed_assertions : string list Eliom_reference.Volatile.eref =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
 let ran_assertions : string list Eliom_reference.Volatile.eref =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
 
 let get_failed_assertions () =
   Eliom_reference.Volatile.get failed_assertions

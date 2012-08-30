@@ -538,14 +538,16 @@ and dlist_ip_table = (page_table ref * page_table_key, na_key_serv)
 let make_full_cookie_name cookieprefix (cookie_scope, site_dir_string) =
   let scope_hier = scope_hierarchy_of_scope cookie_scope in
   let secure, hier1, hiername = match scope_hier with
-    | User_hier (hiername, false) -> "|", "|", hiername 
-    | User_hier (hiername, true) -> "S|", "|", hiername
-    | Default_ref_hier -> "|", "ref|", ""
-    | Default_secure_ref_hier -> "S|", "ref|", ""
-    | Default_comet_hier -> "|", "comet|", ""
-    | Default_secure_comet_hier -> "S|", "comet|", ""
+    | User_hier (hiername, false) -> "|", "||", hiername 
+    | User_hier (hiername, true) -> "S|", "||", hiername
+    | Default_ref_hier -> "|", "|ref|", ""
+    | Default_secure_ref_hier -> "S|", "|ref|", ""
+    | Default_comet_hier -> "|", "|comet|", ""
+    | Default_secure_comet_hier -> "S|", "|comet|", ""
   in
-  String.concat "" [cookieprefix; secure; site_dir_string; hier1; hiername]
+  let s = String.concat "" [cookieprefix; secure; site_dir_string; hier1; hiername]
+  in print_endline s;
+  s
 
 let make_full_state_name2
     site_dir_string ~(scope:[< user_scope ]) : full_state_name =

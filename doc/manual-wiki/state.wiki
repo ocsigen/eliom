@@ -84,11 +84,11 @@ convenient way to implement a mechanism of session for your website.
 There are two categories of scopes:
 
 * //Eliom scopes//, that consist in:
-** <<a_api| val Eliom_common.global >>: for data
+** <<a_api| val Eliom_common.global_scope >>: for data
    shared by all clients,
-** <<a_api| val Eliom_common.site >>: for data
+** <<a_api| val Eliom_common.site_scope >>: for data
    and services shared by all clients of one eliom site, and
-** <<a_api| val Eliom_common.request >>: for
+** <<a_api| val Eliom_common.request_scope >>: for
    data specific to the current request.
 * //User scopes//: used to restrict the accessibility of a data or a
   service to subset of the clients.
@@ -97,16 +97,16 @@ Within the users scopes, Eliom distinguishes three scopes that differ
 on how Eliom associates clients and data.
 
 *  Data and dynamic services created with scope
-   <<a_api| val Eliom_common.session >> are only
+   <<a_api| val Eliom_common.default_session_scope >> are only
   visible to the client belonging to a same session
   (all tabs of a single browser).
 * Data and dynamic services created with scope
-  <<a_api| val Eliom_common.session_group >> are
+  <<a_api| val Eliom_common.default_group_scope >> are
   only visible to client whose session belongs to the same session group.
   See section <<a_manual chapter="state"
   fragment="session_groups"|Session groups>> for more information.
 * Data and dynamic services created with scope
-  <<a_api| val Eliom_common.client_process>> are only visible to a specific
+  <<a_api| val Eliom_common.default_process_scope>> are only visible to a specific
   instance of the Eliom application (one tab, running the Eliom client process).
   See section <<a_manual
   chapter="client" fragment="session_groups"|Eliom applications>> for
@@ -136,7 +136,7 @@ fragment="new_scope" |Hierarchies of scopes>> for more information.
 
 Eliom automatically creates a session ---~ and sets the corresponding
 cookie on the client~ --- when you first modify an Eliom reference of
-scope <<a_api text="session" | val Eliom_common.session >>, when you
+scope <<a_api text="session" | val Eliom_common.default_session_scope >>, when you
 register a service with this scope or when you enter a session group.
 
 By default, Eliom is using three cookies for sessions (and session groups):
@@ -161,7 +161,7 @@ let custom_session = `Session custom_session_hierarchy
 >>
 
 Then, the value {{{custom_session}}} could replace the usual <<a_api |
-val Eliom_common.session>> for the {{{~scope}}} parameter of functions
+val Eliom_common.default_session_scope>> for the {{{~scope}}} parameter of functions
 <<a_api | val Eliom_reference.eref>>, <<a_api| val
 Eliom_registration.Html5.register >>, <<a_api| val Eliom_state.discard >>,~ ...
 
@@ -180,8 +180,8 @@ two scope hierarchies with the same name.
 To discard a state, use the <<a_api | val Eliom_states.discard >>
 function. It will remove all server-side services and data (persistent
 or not) for the given scope. Used with
-{{{~scope:Eliom_common.session}}}, this will close a session. Used
-with {{{~scope:Eliom_common.session_group}}}, this will close all
+{{{~scope:Eliom_common.default_session_scope}}}, this will close a session. Used
+with {{{~scope:Eliom_common.default_group_scope}}}, this will close all
 sessions in the group.
 
 It is also possible to discard selectively only services, persistent
@@ -274,7 +274,7 @@ user is using http.
 Session group is a kind of scope that allows to share data or services
 between a set of sessions, typically all sessions for given user. For
 example, using persistant Eliom references with scope <<a_api| val
-Eliom_common.session_group >> is a convenient way to store data about
+Eliom_common.default_group_scope >> is a convenient way to store data about
 a user without having to explicitly use an external database.
 (Persistent session group states are not discarded when all the sessions are
 closed).

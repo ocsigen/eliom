@@ -437,7 +437,8 @@ let eliomclient4 =
 (* caml service set reference *)
 (******************************)
 
-let ref_caml_service = Eliom_reference.eref ~scope:Eliom_common.client_process None
+let ref_caml_service =
+  Eliom_reference.eref ~scope:Eliom_common.default_process_scope None
 
 let caml_incr_service =
   Eliom_output.Caml.register_service
@@ -1172,14 +1173,17 @@ let comet_message_board_maker name message_bus cb =
          ]))
     )
 
-let message_bus = Eliom_bus.create ~scope:Eliom_common.client_process ~size:10 Json.t<string>
+let message_bus =
+  Eliom_bus.create ~scope:Eliom_common.default_process_scope
+    ~size:10 Json.t<string>
 let _ =
   Lwt_stream.iter (fun msg -> Printf.printf "msg: %s\n%!" msg)
     (Eliom_bus.stream message_bus)
 let message_board_callback () =
   Eliom_bus.write message_bus "a user joined in";
   let _ =
-    lwt () = Eliom_comet.Channel.wait_timeout ~scope:Eliom_common.client_process 1. in
+    lwt () = Eliom_comet.Channel.wait_timeout
+      ~scope:Eliom_common.default_process_scope 1. in
     Eliom_bus.write message_bus "a user went away";
     Lwt.return ()
   in ()
@@ -1188,7 +1192,7 @@ let comet_message_board = comet_message_board_maker "message_board" message_bus 
 
 (* bus stream received multiple times *)
 
-let multiple_bus = Eliom_bus.create ~scope:Eliom_common.client_process ~name:"multiple_bus" ~size:10 Json.t<int>
+let multiple_bus = Eliom_bus.create ~scope:Eliom_common.default_process_scope ~name:"multiple_bus" ~size:10 Json.t<int>
 let _ = Lwt_stream.iter (fun _ -> ()) (Eliom_bus.stream multiple_bus)
 let multiple_bus_stateless = Eliom_bus.create ~name:"multiple_bus_stateless" ~scope:`Site ~size:10 Json.t<int>
 
@@ -1980,7 +1984,7 @@ let tcalc_i_handler i () =
   let is = string_of_int i in
   let tcalc_result =
     My_appl.register_coservice
-      ~scope:Eliom_common.client_process
+      ~scope:Eliom_common.default_process_scope
       ~fallback:tcalc
       ~get_params:(int "j")
       (fun j () ->
@@ -2181,7 +2185,7 @@ let tpersist_session_example_handler () () =
     in
     let _ =
       Eliom_output.Html5.register ~service:timeoutcoserv
-        ~scope:Eliom_common.client_process
+        ~scope:Eliom_common.default_process_scope
         (fun _ _ ->
           return
              (html
@@ -2413,7 +2417,7 @@ let tcookies = service ["tcookies"] unit ()
 let _ = My_appl.register tcookies
   (fun () () ->
     Eliom_state.set_cookie
-      ~cookie_scope:`Client_process
+      ~cookie_level:`Client_process
       ~name:cookiename ~value:(string_of_int (Random.int 100)) ();
     Lwt.return
       (make_page [p [pcdata (try
@@ -2421,7 +2425,7 @@ let _ = My_appl.register tcookies
                       (CookiesTable.find
                          cookiename
                          (Eliom_request_info.get_cookies
-                            ~cookie_scope:`Client_process ()))
+                            ~cookie_level:`Client_process ()))
         with _ -> "<cookie not set>");
           br ();
           a tcookies [pcdata "send other cookie"] ()]]))
@@ -2507,7 +2511,7 @@ let _ =
     in
     let _ =
       My_appl.register ~service:timeoutcoserv
-        ~scope:Eliom_common.client_process
+        ~scope:Eliom_common.default_process_scope
         (fun _ _ ->
           Lwt.return
             (make_page [p [pcdata "I am a coservice with timeout."; br ();
@@ -2533,13 +2537,13 @@ let _ =
   let page () () =
     let serv =
       Eliom_output.Caml.register_post_coservice'
-        ~scope:Eliom_common.client_process
+        ~scope:Eliom_common.default_process_scope
         ~post_params:unit
         (fun () () -> Lwt.return [1; 2; 3])
     in
     let serv2 =
       Eliom_output.Html5.register_coservice'
-        ~scope:Eliom_common.client_process
+        ~scope:Eliom_common.default_process_scope
         ~get_params:unit
         (fun () () -> Lwt.return (html
                                     (head (title (pcdata "mmmh")) [])
@@ -2601,7 +2605,7 @@ let disconnect_box s =
     (fun _ -> [p [Eliom_output.Html5.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
-let bad_user = Eliom_reference.eref ~scope:Eliom_common.request false
+let bad_user = Eliom_reference.eref ~scope:Eliom_common.request_scope false
 
 let user = Eliom_reference.eref ~scope:session None
 
@@ -3981,34 +3985,34 @@ let () = My_appl.register states_test
 
 let vgr =
   Eliom_reference.Volatile.eref_from_fun
-    ~scope:Eliom_common.session_group
+    ~scope:Eliom_common.default_group_scope
     next
 
 let vsr =
   Eliom_reference.Volatile.eref_from_fun
-    ~scope:Eliom_common.session
+    ~scope:Eliom_common.default_session_scope
     next
 
 let vpr =
   Eliom_reference.Volatile.eref_from_fun
-    ~scope:Eliom_common.client_process
+    ~scope:Eliom_common.default_process_scope
     next
 
 let pgr =
   Eliom_reference.eref_from_fun
-    ~scope:Eliom_common.session_group
+    ~scope:Eliom_common.default_group_scope
     ~persistent:"pgr"
     next
 
 let psr =
   Eliom_reference.eref_from_fun
-    ~scope:Eliom_common.session
+    ~scope:Eliom_common.default_session_scope
     ~persistent:"psr"
     next
 
 let ppr =
   Eliom_reference.eref_from_fun
-    ~scope:Eliom_common.client_process
+    ~scope:Eliom_common.default_process_scope
     ~persistent:"ppr"
     next
 
@@ -4037,8 +4041,8 @@ let change_other_gr =
   Eliom_registration.Ocaml.register_post_coservice'
     ~post_params:(string "g")
     (fun () g ->
-      let vstate = Eliom_state.External_states.volatile_data_group_state g in
-      let pstate = Eliom_state.External_states.persistent_data_group_state g in
+      let vstate = Eliom_state.Ext.volatile_data_group_state g in
+      let pstate = Eliom_state.Ext.persistent_data_group_state g in
       Eliom_reference.Volatile.Ext.modify vstate vgr nexti;
       Eliom_reference.Ext.modify pstate pgr nexti)
 
@@ -4046,15 +4050,15 @@ let change_other_sr =
   Eliom_registration.Ocaml.register_post_coservice'
     ~post_params:(string "g")
     (fun () g ->
-      let vstate = Eliom_state.External_states.volatile_data_group_state g in
+      let vstate = Eliom_state.Ext.volatile_data_group_state g in
       lwt () = 
-        Eliom_state.External_states.iter_sub_states
+        Eliom_state.Ext.iter_sub_states
           vstate
           (fun state -> Eliom_reference.Volatile.Ext.modify state vsr nexti;
             Lwt.return ())
       in
-      let pstate = Eliom_state.External_states.persistent_data_group_state g in
-      Eliom_state.External_states.iter_sub_states
+      let pstate = Eliom_state.Ext.persistent_data_group_state g in
+      Eliom_state.Ext.iter_sub_states
         pstate
         (fun state -> Eliom_reference.Ext.modify state psr nexti))
 
@@ -4062,22 +4066,22 @@ let change_other_pr =
   Eliom_registration.Ocaml.register_post_coservice'
     ~post_params:(string "g")
     (fun () g ->
-      let vstate = Eliom_state.External_states.volatile_data_group_state g in
+      let vstate = Eliom_state.Ext.volatile_data_group_state g in
       lwt () = 
-        Eliom_state.External_states.iter_sub_states
+        Eliom_state.Ext.iter_sub_states
           vstate
           (fun state ->
-            Eliom_state.External_states.iter_sub_states
+            Eliom_state.Ext.iter_sub_states
               state
               (fun state ->
                 Eliom_reference.Volatile.Ext.modify state vpr nexti;
                 Lwt.return ()))
       in
-      let pstate = Eliom_state.External_states.persistent_data_group_state g in
-      Eliom_state.External_states.iter_sub_states
+      let pstate = Eliom_state.Ext.persistent_data_group_state g in
+      Eliom_state.Ext.iter_sub_states
         pstate
         (fun state ->
-          Eliom_state.External_states.iter_sub_states
+          Eliom_state.Ext.iter_sub_states
             state
             (fun state -> Eliom_reference.Ext.modify state ppr nexti)))
     

@@ -629,8 +629,10 @@ let () =
 
 
 (*zap* *)
-let () = set_default_global_service_state_timeout ~cookie_scope:`Session (Some 600.)
-let () = set_default_global_persistent_data_state_timeout ~cookie_scope:`Session (Some 3600.)
+let () = set_default_global_service_state_timeout
+  ~cookie_level:`Session (Some 600.)
+let () = set_default_global_persistent_data_state_timeout
+  ~cookie_level:`Session (Some 3600.)
 (* *zap*)
 (************************************************************)
 (************ Connection of users, version 2 ****************)
@@ -961,7 +963,7 @@ let calc_i_handler i () =
   in
   let is = string_of_int i in
   let calc_result =
-    register_coservice ~scope:Eliom_common.session
+    register_coservice ~scope:Eliom_common.default_session_scope
       ~fallback:calc
       ~get_params:(int "j")
       (fun j () ->
@@ -1434,7 +1436,7 @@ let _ = register disposable
       let disp_coservice =
         coservice ~max_use:2 ~fallback:disposable ~get_params:unit ()
       in
-      register ~scope:Eliom_common.session ~service:disp_coservice
+      register ~scope:Eliom_common.default_session_scope ~service:disp_coservice
         (fun () () ->
           return
             (html

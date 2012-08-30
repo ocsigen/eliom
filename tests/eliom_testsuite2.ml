@@ -111,7 +111,7 @@ let disconnect_box s =
                     ~input_type:`Submit ~value:s ()]]) ()
 
 (* The following eref is true if the connection has action failed: *)
-let bad_user = Eliom_reference.eref ~scope:Eliom_common.request false
+let bad_user = Eliom_reference.eref ~scope:Eliom_common.request_scope false
 
 (* The following eref is the name of the user, when connected *)
 let user = Eliom_reference.eref ~scope:session None
@@ -218,7 +218,7 @@ let disconnect_box s =
                     ~input_type:`Submit ~value:s ()]]) ()
 
 (* The following eref is true if the connection has action failed: *)
-let bad_user = Eliom_reference.eref ~scope:Eliom_common.request false
+let bad_user = Eliom_reference.eref ~scope:Eliom_common.request_scope false
 
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
@@ -335,7 +335,7 @@ let volatile_references =
   in
   let eref =
     Eliom_reference.Volatile.eref
-      ~scope:Eliom_common.session
+      ~scope:Eliom_common.default_session_scope
       10
   in
   let service =
@@ -409,7 +409,7 @@ let reference_from_fun =
   in
   let eref =
     Eliom_reference.eref_from_fun
-      ~scope:Eliom_common.session
+      ~scope:Eliom_common.default_session_scope
       (fun () ->
          print_endline "Eliom references from fun: init value";
          Random.int 100)
@@ -617,13 +617,13 @@ let unregister_example =
          ~get_params:Eliom_parameter.unit
          (fun () () -> failwith "s3")
        in
-       Eliom_output.Xhtml.register ~scope:Eliom_common.session
+       Eliom_output.Xhtml.register ~scope:Eliom_common.default_session_scope
          ~service:s1
          (fun () () -> failwith "s4");
        Eliom_service.unregister s1;
        Eliom_service.unregister s2;
        Eliom_service.unregister s3;
-       Eliom_service.unregister ~scope:Eliom_common.session s1;
+       Eliom_service.unregister ~scope:Eliom_common.default_session_scope s1;
        Lwt.return
          (html
             (head (title (pcdata "Unregistering services")) [])
@@ -2042,11 +2042,11 @@ register_service
     (fun (t, (recompute, override_configfile)) () ->
       set_global_persistent_data_state_timeout
         ~override_configfile
-        ~scope:persistent_session_scope
+        ~cookie_scope:persistent_session_scope
         ~recompute_expdates:recompute (Some (float_of_int t));
       set_global_volatile_state_timeout
         ~override_configfile
-        ~scope:action_example2_scope
+        ~cookie_scope:action_example2_scope
         ~recompute_expdates:recompute (Some (float_of_int t));
       return
         (html
@@ -2142,7 +2142,7 @@ let disconnect_box s =
                     ~input_type:`Submit ~value:s ()]]) ()
 
 (* The following eref is true if the connection has action failed: *)
-let bad_user = Eliom_reference.eref ~scope:Eliom_common.request false
+let bad_user = Eliom_reference.eref ~scope:Eliom_common.request_scope false
 
 let my_group_data = Eliom_reference.eref ~scope:group None
 
@@ -2277,7 +2277,7 @@ let disconnect_box s =
                     ~input_type:`Submit ~value:s ()]]) ()
 
 (* The following eref is true if the connection has action failed: *)
-let bad_user = Eliom_reference.eref ~scope:Eliom_common.request false
+let bad_user = Eliom_reference.eref ~scope:Eliom_common.request_scope false
 
 let my_group_data = Eliom_reference.eref ~persistent:"pgd" ~scope:group None
 
