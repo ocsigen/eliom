@@ -118,7 +118,7 @@ let new_sitedata =
               Eliom_common.empty_tables
                 !default_max_anonymous_services_per_subnet
                 false;
-	   registered_scope_names = String.Set.empty;
+	   registered_scope_hierarchies = String.Set.empty;
            session_services = Eliommod_cookies.new_service_cookie_table ();
            session_data = Eliommod_cookies.new_data_cookie_table ();
            group_of_groups = gog;
@@ -719,7 +719,7 @@ let parse_config hostpattern conf_info site_dir =
                          float option -> unit)
             cookie_type state_name_oo v =
 	  let make_fullsessname state_name =
-	    let state_name : Eliom_common.scope_name =
+	    let state_name : Eliom_common.scope_hierarchy =
 	      match state_name with
 		| None -> `Default_ref_name
 		| Some s when String.lowercase s = "default" -> `Default_ref_name

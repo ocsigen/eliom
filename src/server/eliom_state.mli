@@ -480,9 +480,10 @@ val set_persistent_data_cookie_exp_date :
     functions like
     {!Eliom_state.set_volatile_data_state_timeout} won't be affected.
 
-    If [~scope_name] is not present, it is the default for all scope names,
-    and in that case [recompute_expdates] is ignored. [~scope_name:None]
-    means the default scope name.
+    If [~scope_hierarchy] is not present,
+    it is the default for all scope hierarchies,
+    and in that case [recompute_expdates] is ignored. [~scope_hierarchy:None]
+    means the default scope hierarchy.
 
     If [~override_configfile] is [true] (default ([false]),
     then the function will set the timeout even if it has been
@@ -826,14 +827,14 @@ module External_states : sig
     ([< Eliom_common.cookie_scope ], [ `Pers ]) state ->
     persistent_cookie_info Lwt.t
 
-  val get_service_scope_name :
-    cookie:service_cookie_info -> Eliom_common.scope_name
+  val get_service_scope_hierarchy :
+    cookie:service_cookie_info -> Eliom_common.scope_hierarchy
     
-  val get_volatile_data_scope_name : cookie:data_cookie_info ->
-    Eliom_common.scope_name
+  val get_volatile_data_scope_hierarchy : cookie:data_cookie_info ->
+    Eliom_common.scope_hierarchy
       
-  val get_persistent_data_scope_name :
-    cookie:persistent_cookie_info -> Eliom_common.scope_name
+  val get_persistent_data_scope_hierarchy :
+    cookie:persistent_cookie_info -> Eliom_common.scope_hierarchy
     
   val get_service_cookie_scope :
     cookie:service_cookie_info -> Eliom_common.cookie_scope

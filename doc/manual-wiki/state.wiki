@@ -112,6 +112,9 @@ on how Eliom associates clients and data.
   chapter="client" fragment="session_groups"|Eliom applications>> for
   more information.
 
+User scopes are organised in //hierarchy//: client processes belong to a
+session, and sessions belong to a group of sessions.
+
 Data and dynamic services with a user scope can be discarded
 explicitely or by timeout. See sections <<a_manual chapter="state"
 fragment="closing_session"|Closing session>> and <<a_manual
@@ -122,7 +125,7 @@ If you want to handle multiple sessions for the same site
 ---~ e.g. several different data sessions that could be created and
 discarded independently~ --- you can create new users scope that will use
 different cookies, see section <<a_manual chapter="state"
-fragment="new_scope" |Named users scopes>> for more information.
+fragment="new_scope" |Hierarchies of scopes>> for more information.
 
 
 
@@ -145,29 +148,28 @@ By default, Eliom is using three cookies for sessions (and session groups):
 For client side processes, it uses the same three kinds of client side
 process cookies.
 
-====@@id="new_scope"@@ Named users scopes and multiple sessions (advanced use) ====
+====@@id="new_scope"@@ Hierarchies of scopes and multiple sessions (advanced use) ====
 
 If you want to handle multiple sessions for the same site that could
-be created and discarded independently, you can create new "named"
+be created and discarded independently, you can create a new hierarchy of
 users scope that will use different cookies, with the function <<a_api
-| val Eliom_common.create_scope_name >>.
+| val Eliom_common.create_scope_hierarchy >>.
 
 <<code language="ocaml"|
-let custom_session_name = Eliom_common.create_scope_name "custom"
-let custom_session = `Session custom_session_name
+let custom_session_hierarchy = Eliom_common.create_scope_hierarchy "custom"
+let custom_session = `Session custom_session_hierarchy
 >>
 
 Then, the value {{{custom_session}}} could replace the usual <<a_api |
 val Eliom_common.session>> for the {{{~scope}}} parameter of functions
 <<a_api | val Eliom_reference.eref>>, <<a_api| val
-Eliom_registration.Html5.register >>, <<a_api| val Eliom_state.discard >>,
-...
+Eliom_registration.Html5.register >>, <<a_api| val Eliom_state.discard >>,~ ...
 
-You can also create named client_process scope and session_group by
-replacing {{{`Session}}} by {{{`Client_process}}} or
-{{{`Session_group}}}. In all case, the <<a_api | val
-Eliom_common.create_scope_name >> function will prevent you to create
-two identical scope names.
+(Same for {{{`Client_process}}} or  {{{`Session_group}}} scope levels).
+
+The function <<a_api | val
+Eliom_common.create_scope_hierarchy >> will prevent you to create
+two scope hierarchies with the same name.
 
 
 
@@ -289,7 +291,7 @@ session group name as parameter:
 A session could be only attached to one group at a time, but it is
 possible to create multiple sessions for a same client attached to
 different groups, see section <<a_manual chapter="state"
-fragment="new_scope" |Named users scopes>> for more information.
+fragment="new_scope" |Hierarchies of scopes>> for more information.
 
 It's possible to fetch the current session group name of a session, if
 any, or to detach a session from a group. See the module <<a_api |

@@ -497,7 +497,7 @@ and sitedata =
    site_value_table : Polytables.t; (* table containing evaluated
 				       lazy site values *)
 
-   mutable registered_scope_names: String.Set.t;
+   mutable registered_scope_hierarchies: String.Set.t;
 
    (* All services, and state data are stored in these tables,
       for scopes session and client process.
@@ -541,7 +541,7 @@ let make_full_cookie_name a b = a^b
 
 let make_fullsessname2 site_dir_string (scope:[< user_scope ]) : fullsessionname =
   let cookie_scope = cookie_scope_of_user_scope scope in
-  let state_name = scope_name_of_scope scope in
+  let state_name = scope_hierarchy_of_scope scope in
   let name = match state_name with
     | `Default_ref_name -> "ref|"
     | `Default_comet_name -> "comet|"
@@ -624,29 +624,29 @@ let client_process : client_process_scope = `Client_process `Default_ref_name
 let comet_client_process : client_process_scope = `Client_process `Default_comet_name
 let request : request_scope = `Request
 
-let registered_scope_names = ref String.Set.empty
+let registered_scope_hierarchies = ref String.Set.empty
 
-let register_scope_name (name:string) =
+let register_scope_hierarchy (name:string) =
   match get_sp_option () with
     | None ->
-      if String.Set.mem name !registered_scope_names
+      if String.Set.mem name !registered_scope_hierarchies
       then failwith (Printf.sprintf "the scope %s have already been registered" name)
-      else registered_scope_names := String.Set.add name !registered_scope_names
+      else registered_scope_hierarchies := String.Set.add name !registered_scope_hierarchies
     | Some sp ->
-      if String.Set.mem name !registered_scope_names ||
-	String.Set.mem name sp.sp_sitedata.registered_scope_names
+      if String.Set.mem name !registered_scope_hierarchies ||
+	String.Set.mem name sp.sp_sitedata.registered_scope_hierarchies
       then failwith (Printf.sprintf "the scope %s have already been registered" name)
-      else sp.sp_sitedata.registered_scope_names <- String.Set.add name sp.sp_sitedata.registered_scope_names
+      else sp.sp_sitedata.registered_scope_hierarchies <- String.Set.add name sp.sp_sitedata.registered_scope_hierarchies
 
-let create_scope_name name : scope_name =
-  register_scope_name name;
+let create_scope_hierarchy name : scope_hierarchy =
+  register_scope_hierarchy name;
   `String name
 
-let list_scope_names () =
+let list_scope_hierarchies () =
   let sp = get_sp () in
   `Default_comet_name::`Default_ref_name::
-    ( List.map (fun s -> `String s) (String.Set.elements !registered_scope_names)
-      @ List.map (fun s -> `String s) (String.Set.elements sp.sp_sitedata.registered_scope_names) )
+    ( List.map (fun s -> `String s) (String.Set.elements !registered_scope_hierarchies)
+      @ List.map (fun s -> `String s) (String.Set.elements sp.sp_sitedata.registered_scope_hierarchies) )
 
 (*****************************************************************************)
 (* The current registration directory *)

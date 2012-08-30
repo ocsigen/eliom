@@ -25,6 +25,73 @@ open Ocsigen_cookies
 
 open Eliom_lib
 
+
+(** {2 Scopes} *)
+(* those types are not available to the user, a scope must be created using
+   create_..._scope functions *)
+type scope_hierarchy = Eliom_common_base.scope_hierarchy
+
+type user_scope = [ `Session_group of scope_hierarchy
+		  | `Session of scope_hierarchy
+		  | `Client_process of scope_hierarchy ]
+
+type scope = [ `Site
+	     | user_scope ]
+
+type all_scope = [ scope
+                 | `Global
+		 | `Request ]
+
+(**  Using [`Global] scope means you want the data or service to 
+     be available to any client. [`Site] is limited to current sub-site
+     (if you have several sites on the same server).
+     
+     If you want to restrict the visibility of an Eliom reference or
+     a service:
+     * to a browser session, use [~scope:Eliom_common.session],
+     * to a group of sessions, use [~scope:Eliom_common.session_group],
+     * to a client process, use [~scope:Eliom_common.client_process].
+     If you have a client side Eliom program running, and you want to restrict
+     the visibility of the service to this instance of the program,
+     use [~scope:Eliom_common.client_process].
+     
+     You can create new scope
+     hierachies with {!Eliom_common.create_scope_hierarchy}.
+     Thus it is possible to have for example several sessions that can
+     be opened or closed independently. They use different cookies.
+*)
+
+type global_scope = [`Global]
+type site_scope = [`Site]
+type session_group_scope = [`Session_group of scope_hierarchy]
+type session_scope = [`Session of scope_hierarchy]
+type client_process_scope = [`Client_process of scope_hierarchy]
+type request_scope = [`Request]
+
+val global : global_scope
+val site : site_scope
+val session_group : session_group_scope
+val session : session_scope
+val client_process : client_process_scope
+val comet_client_process : client_process_scope
+val request : request_scope
+
+val create_scope_hierarchy : string -> scope_hierarchy
+
+val list_scope_hierarchies : unit -> scope_hierarchy list
+
+(** Eliom is using regular (browser) cookies but can also use its own
+    browser tab cookies (only if you are using a client side Eliom application).
+
+    It is possible to define data tables or service table for one
+    (browser) session, for one tab, or for one group of sessions.
+*)
+type cookie_scope = [ `Session | `Client_process ]
+
+val cookie_scope_of_user_scope : [< user_scope ] -> [> cookie_scope ]
+
+(** {2 Exception and error handling} *)
+
 (** Page not found *)
 exception Eliom_404
 
@@ -48,73 +115,14 @@ exception Eliom_Typing_Error of (string * exn) list
 *)
 exception Eliom_site_information_not_available of string
 
-(* those types are not available to the user, a scope must be created using
-   create_..._scope functions *)
-type scope_name = Eliom_common_base.scope_name
-
-type user_scope = [ `Session_group of scope_name
-		  | `Session of scope_name
-		  | `Client_process of scope_name ]
-
-type scope = [ `Site
-	     | user_scope ]
-
-type all_scope = [ scope
-                 | `Global
-		 | `Request ]
-
-(*  `Global  which means that the service will be registered in the
-    global table and be available to any client.
-
-  If you want to restrict the visibility of the service to a browser session,
-    use [~scope:Eliom_common.session].
-    If you want to restrict the visibility of the service to a group of sessions,
-    use [~scope:Eliom_common.session_group].
-    If you have a client side Eliom program running, and you want to restrict
-    the visibility of the service to this instance of the program,
-    use [~scope:Eliom_common.client_process]. You can create new scopes with
-    [Eliom_common.create_session_group_scope], [Eliom_common.create_session_scope]
-    and [Eliom_common.create_client_process_scope] if you want several service
-    sessions on the same site. *)
-
-type global_scope = [`Global]
-type site_scope = [`Site]
-type session_group_scope = [`Session_group of scope_name]
-type session_scope = [`Session of scope_name]
-type client_process_scope = [`Client_process of scope_name]
-type request_scope = [`Request]
-
-val global : global_scope
-val site : site_scope
-val session_group : session_group_scope
-val session : session_scope
-val client_process : client_process_scope
-val comet_client_process : client_process_scope
-val request : request_scope
-
-val create_scope_name : string -> scope_name
-
-val list_scope_names : unit -> scope_name list
-
-(** Eliom is using regular (browser) cookies but can also use
-    browser tab cookies (only if you are using a client side program)
-
-    It is possible to define data tables or service table for one
-    (browser) session, for one tab, or for one group of sessions.
-*)
-type cookie_scope = [ `Session | `Client_process ]
-
-val cookie_scope_of_user_scope : [< user_scope ] -> [> cookie_scope ]
-
 type fullsessionname = cookie_scope * string
 module Fullsessionname_Table : Map.S with type key = fullsessionname
-
 
 (** If present and true in request data, it means that
     the previous coservice does not exist any more *)
 val eliom_link_too_old : bool Polytables.key
 
-(** If present in request data,  means that
+(** If present in request data, means that
     the service session cookies does not exist any more.
     The string lists are the list of names of expired sessions
 *)
@@ -122,6 +130,7 @@ val eliom_service_session_expired :
   (fullsessionname list * fullsessionname list) Polytables.key
 
 (**/**)
+
 
 (*VVV Warning: raising these exceptions will NOT send cookies!
   Do not use them inside services! *)
@@ -506,7 +515,7 @@ and sitedata = {
   site_value_table : Polytables.t; (* table containing evaluated
 					   lazy site values *)
 
-  mutable registered_scope_names: String.Set.t;
+  mutable registered_scope_hierarchies: String.Set.t;
 
   global_services : tables;
   session_services : tables servicecookiestable;

@@ -33,30 +33,30 @@ val find_global_persistent_timeout :
   Eliom_common.fullsessionname -> Eliom_common.sitedata -> float option
 
 val get_global_service_timeout :
-  scope_name:Eliom_common.scope_name ->
+  scope_hierarchy:Eliom_common.scope_hierarchy ->
   cookie_scope:[< Eliom_common.cookie_scope ] ->
   Eliom_common.sitedata -> float option
 val get_global_data_timeout :
-  scope_name:Eliom_common.scope_name ->
+  scope_hierarchy:Eliom_common.scope_hierarchy ->
   cookie_scope:[< Eliom_common.cookie_scope ] ->
   Eliom_common.sitedata -> float option
 val get_global_persistent_timeout :
-  scope_name:Eliom_common.scope_name ->
+  scope_hierarchy:Eliom_common.scope_hierarchy ->
   cookie_scope:[< Eliom_common.cookie_scope ] ->
   Eliom_common.sitedata -> float option
 
 val set_global_service_timeout :
-  scope_name:Eliom_common.scope_name ->
+  scope_hierarchy:Eliom_common.scope_hierarchy ->
   cookie_scope:[< Eliom_common.cookie_scope ] ->
   recompute_expdates:bool ->
   bool -> Eliom_common.sitedata -> float option -> unit
 val set_global_data_timeout :
-  scope_name:Eliom_common.scope_name ->
+  scope_hierarchy:Eliom_common.scope_hierarchy ->
   cookie_scope:[< Eliom_common.cookie_scope ] ->
   recompute_expdates:bool ->
   bool -> Eliom_common.sitedata -> float option -> unit
 val set_global_persistent_timeout :
-  scope_name:Eliom_common.scope_name ->
+  scope_hierarchy:Eliom_common.scope_hierarchy ->
   cookie_scope:[< Eliom_common.cookie_scope ] ->
   recompute_expdates:bool ->
   bool -> Eliom_common.sitedata -> float option -> unit

@@ -23,14 +23,14 @@ open Ocsigen_cookies
 
 (******************************************************************)
 
-type scope_name =
+type scope_hierarchy =
   [ `String of string
   | `Default_ref_name
   | `Default_comet_name ]
 
-type user_scope = [ `Session_group of scope_name
-		  | `Session of scope_name
-		  | `Client_process of scope_name ]
+type user_scope = [ `Session_group of scope_hierarchy
+		  | `Session of scope_hierarchy
+		  | `Client_process of scope_hierarchy ]
 
 type scope = [ `Site
 	     | user_scope ]
@@ -41,9 +41,9 @@ type all_scope = [ scope
 
 type global_scope = [`Global]
 type site_scope = [`Site]
-type session_group_scope = [`Session_group of scope_name]
-type session_scope = [`Session of scope_name]
-type client_process_scope = [`Client_process of scope_name]
+type session_group_scope = [`Session_group of scope_hierarchy]
+type session_scope = [`Session of scope_hierarchy]
+type client_process_scope = [`Client_process of scope_hierarchy]
 type request_scope = [`Request]
 
 (******************************************************************)
@@ -54,7 +54,7 @@ let cookie_scope_of_user_scope : [< user_scope ] -> [> cookie_scope ] = function
   | `Session_group n -> `Session
   | `Client_process n -> `Client_process
 
-let scope_name_of_scope : [< user_scope ] -> [> scope_name ] = function
+let scope_hierarchy_of_scope : [< user_scope ] -> [> scope_hierarchy ] = function
   | `Session n
   | `Session_group n
   | `Client_process n -> n

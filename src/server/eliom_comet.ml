@@ -520,8 +520,8 @@ end = struct
       is never cleaned, but it is supposed that this won't be a
       problem as scope should be used in limited number *)
 
-  (* as of now only `Client_process scope are handled: so we only stock scope_name *)
-  type handler_ref_table = (Eliom_common.scope_name,handler option Eliom_reference.eref) Hashtbl.t
+  (* as of now only `Client_process scope are handled: so we only stock scope_hierarchy *)
+  type handler_ref_table = (Eliom_common.scope_hierarchy,handler option Eliom_reference.eref) Hashtbl.t
   let handler_ref_table : handler_ref_table = Hashtbl.create 1
 
   (* this is a hack for the create function not to return 'a Lwt.t
@@ -540,13 +540,13 @@ end = struct
 	failwith "Eliom_comet: accessing channel references should not be blocking: this is an eliom bug"
 
   let get_handler_eref scope =
-    let scope_name = Eliom_common_base.scope_name_of_scope scope in
+    let scope_hierarchy = Eliom_common_base.scope_hierarchy_of_scope scope in
     try
-      Hashtbl.find handler_ref_table scope_name
+      Hashtbl.find handler_ref_table scope_hierarchy
     with
       | Not_found ->
-	let eref = Eliom_reference.eref ~scope:(`Client_process scope_name) None in
-	Hashtbl.add handler_ref_table scope_name eref;
+	let eref = Eliom_reference.eref ~scope:(`Client_process scope_hierarchy) None in
+	Hashtbl.add handler_ref_table scope_hierarchy eref;
 	eref
 
   let get_handler scope =

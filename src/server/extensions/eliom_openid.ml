@@ -335,7 +335,7 @@ let reassociate end_point =
 
 
 (* CHECK *)
-let scope = `Session (Eliom_common.create_scope_name "__eliom_openid")
+let scope = `Session (Eliom_common.create_scope_hierarchy "__eliom_openid")
 let group_name = "__eliom_openid_group"
 
 type field = 
