@@ -163,14 +163,15 @@ let s =
 The last possibility is to use untyped xhtml. Just build strings
 containing your pages. Here is an example:
 
-<<code language="ocaml"|let coucoutext =
-  Eliom_registration.HtmlText.register_service
+<<code language="ocaml"|
+let coucoutext =
+  Eliom_registration.Html_text.register_service
     ~path:["coucoutext"]
     ~get_params:Eliom_parameter.unit
     (fun () () ->
       Lwt.return
         ("<html>n'importe quoi "^
-         (Eliom_registration.HtmlText.a coucou "clic" ())^
+         (Eliom_content.Html_text.a coucou "clic" ())^
          "</html>"))
 >>
 
