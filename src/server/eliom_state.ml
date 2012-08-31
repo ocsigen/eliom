@@ -1294,9 +1294,9 @@ module Ext = struct
 (*VVV!!! est-ce que sgr_o est fullsessgrp ? *)
 
 
-  let fold_sub_states
+  let fold_sub_states_aux_aux
       ~state:((s, k, id) : ([< `Session_group | `Session ],
-                            [< `Data | `Pers | `Service ]) state) f e =
+                            [< `Pers | `Data | `Service ]) state) f =
     (* id is the session cookie value or the group name *)
     let sp = Eliom_common.get_sp () in
     let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
@@ -1313,29 +1313,51 @@ module Ext = struct
     let sub_states_level = reduce_level s in
     let sub_states_scope = reduce_scope s in
     let f a v = f a (sub_states_scope, k, v) in
-    match k with
-      | `Data ->
-        (try
-          let dl = Eliommod_sessiongroups.Data.find
-            (sitedata.Eliom_common.site_dir_string, sub_states_level, Left id)
-          in
-          Ocsigen_cache.Dlist.lwt_fold f e dl
-        with
-          | Not_found -> Lwt.return e)
-      | `Service ->
-        (try
-           let dl = Eliommod_sessiongroups.Serv.find
-             (sitedata.Eliom_common.site_dir_string, sub_states_level, Left id)
-           in
-           Ocsigen_cache.Dlist.lwt_fold f e dl
-         with
-           | Not_found -> Lwt.return e)
-      | `Pers ->
+    (sitedata, sub_states_level, id, f)
+
+  let fold_sub_states_aux
+      fold return (sitedata, sub_states_level, id, f) e = function
+    | (_, `Data, _) ->
+      (try
+         let dl = Eliommod_sessiongroups.Data.find
+           (sitedata.Eliom_common.site_dir_string, sub_states_level, Left id)
+         in
+         fold f e dl
+       with Not_found -> return e)
+    | (_, `Service, _) ->
+      (try
+         let dl = Eliommod_sessiongroups.Serv.find
+           (sitedata.Eliom_common.site_dir_string, sub_states_level, Left id)
+         in
+         fold f e dl
+       with Not_found -> return e)
+    | _ -> failwith "fold_sub_states_aux"
+
+  let fold_volatile_sub_states
+      ~(state : Eliom_common.user_scope * [> `Data | `Service ] * string)
+      f e =
+    let state' = (state :> ('aa, 'bb) state) in
+    let (sitedata, sub_states_level, id, f) as a =
+      fold_sub_states_aux_aux ~state:state' f
+    in
+    fold_sub_states_aux Ocsigen_cache.Dlist.fold Ocsigen_lib.id a e state
+    
+  let fold_sub_states ~state f e =
+    let (sitedata, sub_states_level, id, f) as a =
+      fold_sub_states_aux_aux ~state f
+    in
+    match state with
+      | (_, `Pers, _) ->
         (Eliommod_sessiongroups.Pers.find
            (Eliom_common.make_persistent_full_group_name
               sub_states_level sitedata.Eliom_common.site_dir_string (Some id))
          >>= fun l ->
          Lwt_list.fold_left_s f e l)
+      | _ ->
+        fold_sub_states_aux Ocsigen_cache.Dlist.lwt_fold Lwt.return a e state
+
+  let iter_volatile_sub_states ~state f =
+    fold_volatile_sub_states ~state (fun () -> f) ()
     
   let iter_sub_states ~state f =
     fold_sub_states ~state (fun () -> f) ()

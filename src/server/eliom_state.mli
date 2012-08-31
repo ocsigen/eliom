@@ -769,6 +769,20 @@ module Ext : sig
   val discard_state : state : ('a, 'b) state -> unit Lwt.t
 
   (** Fold all sessions in a groups, or all client processes in a session. *)
+  val fold_volatile_sub_states :
+    state : ([< `Session_group | `Session ],
+             [< `Data | `Service ] as 'k) state -> 
+    ('a -> ([< `Session | `Client_process ], 'k) state -> 'a) ->
+    'a -> 'a
+
+  (** Iter on all sessions in a groups, or all client processes in a session. *)
+  val iter_volatile_sub_states :
+    state: ([< `Session_group | `Session ],
+            [< `Data | `Service ] as 'k) state -> 
+    (([< `Session | `Client_process ], 'k) state -> unit) ->
+    unit
+
+  (** Fold all sessions in a groups, or all client processes in a session. *)
   val fold_sub_states :
     state : ([< `Session_group | `Session ],
              [< `Data | `Pers | `Service ] as 'k) state -> 
