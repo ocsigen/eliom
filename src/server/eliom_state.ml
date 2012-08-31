@@ -89,13 +89,14 @@ let set_default_global_service_state_timeout ~cookie_level
 
 let set_global_service_state_timeout
     ~cookie_scope
+    ?(secure = false)
     ?(recompute_expdates = false)
     ?(override_configfile = false) timeout =
   let sitedata =
     Eliom_request_info.find_sitedata "set_global_service_timeout"
   in
   Eliommod_timeouts.set_global_service_timeout
-    ~cookie_scope ~recompute_expdates
+    ~cookie_scope ~secure ~recompute_expdates
     override_configfile sitedata timeout
 
 let set_default_global_volatile_data_state_timeout ~cookie_level
@@ -106,11 +107,13 @@ let set_default_global_volatile_data_state_timeout ~cookie_level
 
 let set_global_volatile_data_state_timeout
     ~cookie_scope
+    ?(secure = false)
     ?(recompute_expdates = false)
     ?(override_configfile = false) timeout =
   let sitedata = Eliom_request_info.find_sitedata "set_global_data_timeout" in
   Eliommod_timeouts.set_global_data_timeout
-    ~cookie_scope ~recompute_expdates override_configfile sitedata timeout
+    ~cookie_scope ~secure ~recompute_expdates
+    override_configfile sitedata timeout
 
 let set_default_global_volatile_state_timeout ~cookie_level
     ?(override_configfile = false) timeout =
@@ -122,14 +125,15 @@ let set_default_global_volatile_state_timeout ~cookie_level
 
 let set_global_volatile_state_timeout
     ~cookie_scope
+    ?(secure = false)
     ?(recompute_expdates = false)
     ?(override_configfile = false) timeout =
   let sitedata = Eliom_request_info.find_sitedata "set_global_volatile_timeouts" in
   Eliommod_timeouts.set_global_service_timeout
-    ~cookie_scope ~recompute_expdates
+    ~cookie_scope ~secure ~recompute_expdates
     override_configfile sitedata timeout;
   Eliommod_timeouts.set_global_data_timeout
-    ~cookie_scope ~recompute_expdates
+    ~cookie_scope ~secure ~recompute_expdates
     override_configfile sitedata timeout
 
 let set_default_global_persistent_data_state_timeout ~cookie_level
@@ -140,26 +144,26 @@ let set_default_global_persistent_data_state_timeout ~cookie_level
 
 let set_global_persistent_data_state_timeout
     ~cookie_scope
+    ?(secure = false)
     ?(recompute_expdates = false)
     ?(override_configfile = false) timeout =
   let sitedata = Eliom_request_info.find_sitedata "set_global_persistent_timeout" in
   Eliommod_timeouts.set_global_persistent_timeout
-    ~cookie_scope ~recompute_expdates
+    ~cookie_scope ~secure ~recompute_expdates
     override_configfile sitedata timeout
 
 
-let get_global_service_state_timeout ~cookie_scope () =
+let get_global_service_state_timeout ?(secure = false) ~cookie_scope () =
   let sitedata = Eliom_request_info.find_sitedata "get_global_timeout" in
-  Eliommod_timeouts.get_global_service_timeout ~cookie_scope sitedata
+  Eliommod_timeouts.get_global_service_timeout ~cookie_scope ~secure sitedata
 
-let get_global_volatile_data_state_timeout ~cookie_scope () =
+let get_global_volatile_data_state_timeout ?(secure = false) ~cookie_scope () =
   let sitedata = Eliom_request_info.find_sitedata "get_global_timeout" in
-  Eliommod_timeouts.get_global_data_timeout
-    ~cookie_scope sitedata
+  Eliommod_timeouts.get_global_data_timeout ~cookie_scope ~secure sitedata
 
-let get_global_persistent_data_state_timeout ~cookie_scope () =
+let get_global_persistent_data_state_timeout ?(secure = false) ~cookie_scope () =
   let sitedata = Eliom_request_info.find_sitedata "get_global_persistent_timeout" in
-  Eliommod_timeouts.get_global_persistent_timeout ~cookie_scope sitedata
+  Eliommod_timeouts.get_global_persistent_timeout ~cookie_scope ~secure sitedata
 
 
 
@@ -202,37 +206,38 @@ let unset_volatile_data_state_timeout ~cookie_scope ?secure () =
   with Not_found | Eliom_common.Eliom_Session_expired -> ()
 
 
-let get_service_state_timeout ~cookie_scope ?secure () =
+let get_service_state_timeout ~cookie_scope ?(secure = false) () =
   let sp = Eliom_common.get_sp () in
   let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   try
     let c =
-      Eliommod_sersess.find_service_cookie_only ~cookie_scope ~secure ~sp ()
+      Eliommod_sersess.find_service_cookie_only ~cookie_scope ~secure:(Some secure) (* gni? *) ~sp ()
     in
     let tor = c.Eliom_common.sc_timeout in
     match !tor with
     | Eliom_common.TGlobal ->
-        Eliommod_timeouts.get_global_service_timeout ~cookie_scope sitedata
+        Eliommod_timeouts.get_global_service_timeout
+          ~cookie_scope ~secure sitedata
     | Eliom_common.TNone -> None
     | Eliom_common.TSome t -> Some t
   with Not_found | Eliom_common.Eliom_Session_expired ->
-    Eliommod_timeouts.get_global_service_timeout ~cookie_scope sitedata
+    Eliommod_timeouts.get_global_service_timeout ~cookie_scope ~secure sitedata
 
-let get_volatile_data_state_timeout ~cookie_scope ?secure () =
+let get_volatile_data_state_timeout ~cookie_scope ?(secure = false) () =
   let sp = Eliom_common.get_sp () in
   let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   try
     let c =
-      Eliommod_datasess.find_data_cookie_only ~cookie_scope ~secure ~sp ()
+      Eliommod_datasess.find_data_cookie_only ~cookie_scope ~secure:(Some secure) (* gni? *) ~sp ()
     in
     let tor = c.Eliom_common.dc_timeout in
     match !tor with
     | Eliom_common.TGlobal ->
-        Eliommod_timeouts.get_global_data_timeout ~cookie_scope sitedata
+        Eliommod_timeouts.get_global_data_timeout ~cookie_scope ~secure sitedata
     | Eliom_common.TNone -> None
     | Eliom_common.TSome t -> Some t
   with Not_found | Eliom_common.Eliom_Session_expired ->
-    Eliommod_timeouts.get_global_data_timeout ~cookie_scope sitedata
+    Eliommod_timeouts.get_global_data_timeout ~cookie_scope ~secure sitedata
 
 
 
@@ -260,24 +265,24 @@ let unset_persistent_data_state_timeout ~cookie_scope ?secure () =
     | Not_found
     | Eliom_common.Eliom_Session_expired -> return ()
 
-let get_persistent_data_state_timeout ~cookie_scope ?secure () =
+let get_persistent_data_state_timeout ~cookie_scope ?(secure = false) () =
   let sp = Eliom_common.get_sp () in
   let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   try_lwt
     lwt c = Eliommod_persess.find_persistent_cookie_only
-      ~cookie_scope ~secure ~sp () in
+      ~cookie_scope ~secure:(Some secure) (* gni? *) ~sp () in
     let tor = c.Eliom_common.pc_timeout in
     return
       (match !tor with
         | Eliom_common.TGlobal ->
-          Eliommod_timeouts.get_global_persistent_timeout ~cookie_scope sitedata
+          Eliommod_timeouts.get_global_persistent_timeout ~cookie_scope ~secure sitedata
         | Eliom_common.TNone -> None
         | Eliom_common.TSome t -> Some t)
   with
     | Not_found
     | Eliom_common.Eliom_Session_expired ->
       return
-        (Eliommod_timeouts.get_global_persistent_timeout ~cookie_scope sitedata)
+        (Eliommod_timeouts.get_global_persistent_timeout ~cookie_scope ~secure sitedata)
 
 
 (* Preventing memory leaks: we must close empty sessions *)
@@ -1089,7 +1094,7 @@ let discard ~scope ?secure () =
       discard_services ~scope:(scope:>[< Eliom_common.user_scope ]) ?secure ();
       discard_data ~scope:(scope:>[< Eliom_common.user_scope ]) ?secure ()
 
-let discard_all_scopes  ?secure() =
+let discard_all_scopes ?secure () =
   let discard_name scope_hierarchy =
     lwt () = discard ?secure ~scope:(`Session_group scope_hierarchy) () in
     lwt () = discard ?secure ~scope:(`Session scope_hierarchy) () in
@@ -1097,38 +1102,38 @@ let discard_all_scopes  ?secure() =
   in
   Lwt_list.iter_p discard_name (Eliom_common.list_scope_hierarchies ())
 
-let discard_all_volatile_data ~scope () =
+let discard_all_volatile_data ~scope ?(secure = false) () =
   let sitedata = Eliom_request_info.find_sitedata "discard_all_volatile_data" in
-  Eliommod_sessadmin.close_all_data_states ~scope sitedata
+  Eliommod_sessadmin.close_all_data_states ~scope ~secure sitedata
 (*VVV missing: scope group *)
 (*VVV missing ~secure? *)
 
-let discard_all_persistent_data ~scope () =
+let discard_all_persistent_data ~scope ?(secure = false) () =
   let sitedata = Eliom_request_info.find_sitedata "discard_all_persistent_data" in
-  Eliommod_sessadmin.close_all_persistent_states ~scope sitedata
+  Eliommod_sessadmin.close_all_persistent_states ~scope ~secure sitedata
 (*VVV missing: scope group *)
 (*VVV missing ~secure? *)
 
-let discard_all_data ?persistent ~scope () =
+let discard_all_data ?persistent ~scope ?secure () =
   lwt () = match persistent with
     | None | Some false ->
-      discard_all_volatile_data ~scope ()
+      discard_all_volatile_data ~scope ?secure ()
     | _ -> Lwt.return () in
   (match persistent with
     | None | Some true ->
-      discard_all_persistent_data ~scope ()
+      discard_all_persistent_data ~scope ?secure ()
     | _ -> Lwt.return ())
 (*VVV missing ~secure? *)
 
-let discard_all_services ~scope () =
+let discard_all_services ~scope ?(secure = false) () =
   let sitedata = Eliom_request_info.find_sitedata "close_all_service_sessions" in
-  Eliommod_sessadmin.close_all_service_states ~scope sitedata
+  Eliommod_sessadmin.close_all_service_states ~scope ~secure sitedata
 (*VVV missing: scope group *)
 (*VVV missing ~secure? *)
 
-let discard_all ~scope () =
-  lwt () = discard_all_services ~scope () in
-  discard_all_data ~scope ()
+let discard_all ~scope ?secure () =
+  lwt () = discard_all_services ~scope ?secure () in
+  discard_all_data ~scope ?secure ()
 (*VVV missing ~secure? *)
 
 let discard_everything () =
@@ -1281,7 +1286,7 @@ module Ext = struct
         Lwt.return ()
       | (_, `Pers, cookie) ->
         get_persistent_cookie_info state
-        >>= fun (cookie, ((scope, _), _, _, sgr_o)) ->
+        >>= fun (cookie, ((scope, _, _), _, _, sgr_o)) ->
         let sitedata = get_sitedata () in
         let cookie_level = Eliom_common.cookie_level_of_user_scope scope in
         Eliommod_sessiongroups.Pers.close_persistent_session2
@@ -1404,13 +1409,13 @@ module Ext = struct
   end
 
 
-  let get_service_cookie_scope ~cookie:(_, ((ct, _), _, _, _, _, _)) =
+  let get_service_cookie_scope ~cookie:(_, ((ct, _, _), _, _, _, _, _)) =
     ct
 
-  let get_volatile_data_cookie_scope ~cookie:(_, ((ct, _), _, _, _, _)) =
+  let get_volatile_data_cookie_scope ~cookie:(_, ((ct, _, _), _, _, _, _)) =
     ct
 
-  let get_persistent_data_cookie_scope ~cookie:(_, ((ct, _), _, _, _)) =
+  let get_persistent_data_cookie_scope ~cookie:(_, ((ct, _, _), _, _, _)) =
     ct
 
   let set_service_cookie_timeout ~cookie:(_, (_, _, _, r, _, _)) t =

@@ -502,6 +502,7 @@ val set_persistent_data_cookie_exp_date :
 *)
 val set_global_volatile_state_timeout :
   cookie_scope:[< Eliom_common.cookie_scope ] ->
+  ?secure: bool ->
   ?recompute_expdates:bool ->
   ?override_configfile:bool ->
   float option -> unit
@@ -515,6 +516,7 @@ val set_default_global_service_state_timeout :
 *)
 val set_global_service_state_timeout :
   cookie_scope:[< Eliom_common.cookie_scope ] ->
+  ?secure: bool ->
   ?recompute_expdates:bool ->
   ?override_configfile:bool ->
   float option -> unit
@@ -528,6 +530,7 @@ val set_default_global_service_state_timeout :
 *)
 val set_global_volatile_data_state_timeout :
   cookie_scope:[< Eliom_common.cookie_scope ] ->
+  ?secure: bool ->
   ?recompute_expdates:bool ->
   ?override_configfile:bool ->
   float option -> unit
@@ -541,6 +544,7 @@ val set_default_global_volatile_data_state_timeout :
 *)
 val set_global_persistent_data_state_timeout :
   cookie_scope:[< Eliom_common.cookie_scope ] ->
+  ?secure: bool ->
   ?recompute_expdates:bool ->
   ?override_configfile:bool ->
   float option -> unit
@@ -554,18 +558,21 @@ val set_default_global_persistent_data_state_timeout :
 (** Returns the (server side) timeout for service states.
 *)
 val get_global_service_state_timeout :
+  ?secure: bool ->
   cookie_scope:[< Eliom_common.cookie_scope ] ->
   unit -> float option
 
 (** Returns the (server side) timeout for "volatile data" states.
 *)
 val get_global_volatile_data_state_timeout :
+  ?secure: bool ->
   cookie_scope:[< Eliom_common.cookie_scope ] ->
   unit -> float option
 
 (** Returns the (server side) timeout for persistent states.
 *)
 val get_global_persistent_data_state_timeout :
+  ?secure: bool ->
   cookie_scope:[< Eliom_common.cookie_scope ] ->
   unit -> float option
 
@@ -669,6 +676,7 @@ val discard_everything : unit -> unit Lwt.t
 (** Discard all services and persistent and volatile data for one scope. *)
 val discard_all :
   scope:Eliom_common.user_scope ->
+  ?secure:bool ->
   unit ->
   unit Lwt.t
 (*VVV missing: scope group *)
@@ -682,6 +690,7 @@ val discard_all :
 val discard_all_data :
   ?persistent:bool ->
   scope:Eliom_common.user_scope ->
+  ?secure:bool ->
   unit ->
   unit Lwt.t
 (*VVV missing: scope group *)
@@ -691,6 +700,7 @@ val discard_all_data :
 (** Remove all services registered for clients for the given scope. *)
 val discard_all_services :
   scope:Eliom_common.user_scope ->
+  ?secure:bool ->
   unit ->
   unit Lwt.t
 (*VVV missing: scope group *)

@@ -597,7 +597,8 @@ end = struct
 
   let name_of_scope (scope:Eliom_common.user_scope) =
     let sp = Eliom_common.get_sp () in
-    let name = Eliom_common.make_full_state_name ~sp ~scope in
+    let name = Eliom_common.make_full_state_name
+      ~sp ~secure:false (*VVV secure? *) ~scope in
     let pref = match scope with
       | `Session_group _ -> "sessiongroup:"
       | `Session _ -> "session:"

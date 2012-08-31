@@ -726,8 +726,7 @@ let parse_config hostpattern conf_info site_dir =
                   Eliom_common_base.Default_ref_hier
 		| Some s when String.lowercase s = "comet" ->
                   Eliom_common_base.Default_comet_hier
-		| Some s -> Eliom_common_base.User_hier (s, false)
-(*VVV and secure??? *)
+		| Some s -> Eliom_common_base.User_hier s
 	    in
 	    let scope =
 	      match cookie_type with
@@ -736,6 +735,7 @@ let parse_config hostpattern conf_info site_dir =
 	    in
 	    Eliom_common.make_full_state_name2
               sitedata.Eliom_common.site_dir_string
+              false (*VVV and secure??? *)
               ~scope
 	  in
           f

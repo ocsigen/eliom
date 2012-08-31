@@ -293,7 +293,7 @@ let persistent_session_gc sitedata =
           let now = Unix.time () in
           Ocsigen_messages.debug2 "--Eliom: GC of persistent sessions";
           (Ocsipersist.iter_table
-             (fun k ((scope, _), exp, _, session_group) ->
+             (fun k ((scope, _, _), exp, _, session_group) ->
                (match exp with
                | Some exp when exp < now ->
 (*VVV ? *)

@@ -51,10 +51,10 @@ let close_all_service_states2 full_st_name sitedata =
     If the optional parameter [?state_name] (session name) is not present,
     only the state with default name is closed.
  *)
-let close_all_service_states ~scope sitedata =
+let close_all_service_states ~scope ~secure sitedata =
   let full_st_name =
     Eliom_common.make_full_state_name2
-      sitedata.Eliom_common.site_dir_string ~scope
+      sitedata.Eliom_common.site_dir_string secure ~scope
   in
   close_all_service_states2 full_st_name sitedata
 (*VVV Missing:
@@ -78,10 +78,10 @@ let close_all_data_states2 full_st_name sitedata =
     If the optional parameter [?state_name] (session name) is not present,
     only the session with default name is closed.
  *)
-let close_all_data_states ~scope sitedata =
+let close_all_data_states ~scope ~secure sitedata =
   let full_st_name =
     Eliom_common.make_full_state_name2
-      sitedata.Eliom_common.site_dir_string ~scope
+      sitedata.Eliom_common.site_dir_string secure ~scope
   in
   close_all_data_states2 full_st_name sitedata
 (*VVV Missing:
@@ -93,7 +93,7 @@ let close_all_data_states ~scope sitedata =
 
 let close_all_persistent_states2 full_st_name sitedata =
   Ocsipersist.iter_table
-    (fun k ((scope, _) as full_st_name2, old_exp, old_t, sessiongrp) ->
+    (fun k ((scope, _, _) as full_st_name2, old_exp, old_t, sessiongrp) ->
       if full_st_name = full_st_name2 && old_t = Eliom_common.TGlobal
       then Eliommod_persess.close_persistent_state2
         ~scope sitedata sessiongrp k >>=
@@ -107,10 +107,10 @@ let close_all_persistent_states2 full_st_name sitedata =
     only the session with default name is closed.
  *)
 let close_all_persistent_states
-    ~scope sitedata =
+    ~scope ~secure sitedata =
   let full_st_name =
     Eliom_common.make_full_state_name2
-      sitedata.Eliom_common.site_dir_string ~scope
+      sitedata.Eliom_common.site_dir_string secure ~scope
   in
   close_all_persistent_states2 full_st_name sitedata
 (*VVV Missing:
@@ -197,7 +197,7 @@ let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
   | _ ->
     let now = Unix.time () in
     Ocsipersist.iter_table
-      (fun k ((scope, _) as full_st_name2, old_exp, old_t, sessgrp) ->
+      (fun k ((scope, _, _) as full_st_name2, old_exp, old_t, sessgrp) ->
         if full_st_name = full_st_name2 && old_t =
           Eliom_common.TGlobal
         then

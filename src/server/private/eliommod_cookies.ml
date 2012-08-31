@@ -432,9 +432,8 @@ let compute_new_ri_cookies
   let f secure (service_cookie_info, data_cookie_info, pers_cookie_info) ric =
     let ric =
       Eliom_common.Full_state_name_table.fold
-        (fun full_st_name (_, v) beg ->
-          let ct =
-            Eliom_common.cookie_level_of_user_scope (fst full_st_name) in
+        (fun ((sc, _, _) as full_st_name) (_, v) beg ->
+          let ct = Eliom_common.cookie_level_of_user_scope sc in
           if ct = `Client_process
           then beg
           else
@@ -453,9 +452,8 @@ let compute_new_ri_cookies
     in
     let ric =
       Eliom_common.Full_state_name_table.fold
-        (fun full_st_name v beg ->
-          let ct =
-            Eliom_common.cookie_level_of_user_scope (fst full_st_name) in
+        (fun ((sc, _, _) as full_st_name) v beg ->
+          let ct = Eliom_common.cookie_level_of_user_scope sc in
           if ct = `Client_process
           then beg
           else
@@ -478,9 +476,8 @@ let compute_new_ri_cookies
     in
     let ric =
       Eliom_common.Full_state_name_table.fold
-        (fun full_st_name v beg ->
-          let ct =
-            Eliom_common.cookie_level_of_user_scope (fst full_st_name) in
+        (fun ((sc, _, _) as full_st_name) v beg ->
+          let ct = Eliom_common.cookie_level_of_user_scope sc in
           if ct = `Client_process
           then beg
           else

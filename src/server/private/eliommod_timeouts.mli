@@ -34,24 +34,30 @@ val find_global_persistent_timeout :
 
 val get_global_service_timeout :
   cookie_scope:[< Eliom_common.cookie_scope ] ->
+  secure:bool ->
   Eliom_common.sitedata -> float option
 val get_global_data_timeout :
   cookie_scope:[< Eliom_common.cookie_scope ] ->
+  secure:bool ->
   Eliom_common.sitedata -> float option
 val get_global_persistent_timeout :
   cookie_scope:[< Eliom_common.cookie_scope ] ->
+  secure:bool ->
   Eliom_common.sitedata -> float option
 
 val set_global_service_timeout :
   cookie_scope:[< Eliom_common.cookie_scope ] ->
+  secure:bool ->
   recompute_expdates:bool ->
   bool -> Eliom_common.sitedata -> float option -> unit
 val set_global_data_timeout :
   cookie_scope:[< Eliom_common.cookie_scope ] ->
+  secure:bool ->
   recompute_expdates:bool ->
   bool -> Eliom_common.sitedata -> float option -> unit
 val set_global_persistent_timeout :
   cookie_scope:[< Eliom_common.cookie_scope ] ->
+  secure:bool ->
   recompute_expdates:bool ->
   bool -> Eliom_common.sitedata -> float option -> unit
 

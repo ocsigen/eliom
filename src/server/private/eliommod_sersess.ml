@@ -31,9 +31,9 @@ let compute_cookie_info secure secure_ci cookie_info =
   in
   if secure_if_ssl
   then match secure_ci with
-    | None (* not ssl *) -> cookie_info
-    | Some (c, _, _) -> c
-  else cookie_info
+    | None (* not ssl *) -> cookie_info, false
+    | Some (c, _, _) -> c, true
+  else cookie_info, false
 
 
 
@@ -42,11 +42,12 @@ let close_service_state ~scope ~secure ?sp () =
   let sp = Eliom_common.sp_of_option sp in
   try
     let cookie_level = Eliom_common.cookie_level_of_user_scope scope in
-    let full_st_name = Eliom_common.make_full_state_name ~sp ~scope in
     let ((cookie_info, _, _), secure_ci) =
       Eliom_common.get_cookie_info sp cookie_level
     in
-    let cookie_info = compute_cookie_info secure secure_ci cookie_info in
+    let cookie_info, secure =
+      compute_cookie_info secure secure_ci cookie_info in
+    let full_st_name = Eliom_common.make_full_state_name ~sp ~secure ~scope in
     let (_, ior) =
       Eliom_common.Full_state_name_table.find full_st_name !cookie_info
     in
@@ -158,13 +159,13 @@ let rec find_or_create_service_cookie_ ?set_session_group
     in aux ()
   in
 
-  let full_st_name =
-    Eliom_common.make_full_state_name ~sp ~scope:cookie_scope in
-
   let ((cookie_info, _, _), secure_ci) =
     Eliom_common.get_cookie_info sp cookie_level
   in
-  let cookie_info = compute_cookie_info secure secure_ci cookie_info in
+  let cookie_info, secure = compute_cookie_info secure secure_ci cookie_info in
+  let full_st_name =
+    Eliom_common.make_full_state_name ~sp ~secure ~scope:cookie_scope in
+
   try
 
     let (old, ior) =
@@ -238,12 +239,12 @@ let find_service_cookie_only ~cookie_scope ~secure ?sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
   let sp = Eliom_common.sp_of_option sp in
-  let full_st_name =
-    Eliom_common.make_full_state_name ~sp ~scope:cookie_scope in
   let ((cookie_info, _, _), secure_ci) =
       Eliom_common.get_cookie_info sp (Eliom_common.cookie_level_of_user_scope cookie_scope)
     in
-  let cookie_info = compute_cookie_info secure secure_ci cookie_info in
+  let cookie_info, secure = compute_cookie_info secure secure_ci cookie_info in
+  let full_st_name =
+    Eliom_common.make_full_state_name ~sp ~secure ~scope:cookie_scope in
   let (_, ior) =
     Eliom_common.Full_state_name_table.find full_st_name !cookie_info
   in

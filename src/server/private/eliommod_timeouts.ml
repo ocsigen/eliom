@@ -27,6 +27,8 @@ open Eliom_lib
 
 open Lwt
 
+let fst3 (a,b,c) = a
+
 (*****************************************************************************)
 (* Table of timeouts for sessions *)
 
@@ -131,7 +133,7 @@ let set_timeout_ get set get_default update =
               let oldt = match oldtopt with
                 | Some o -> o
                 | None ->
-                    match def_bro, def_tab, (fst full_st_name) with
+                    match def_bro, def_tab, (fst3 full_st_name) with
                       | Some (t, _), _, `Session _ -> t
                       | _, Some (t, _), `Client_process _ -> t
                       | _, _, ct -> get_default 
@@ -156,7 +158,7 @@ let find_global_service_timeout full_st_name sitedata =
   try
     fst (List.assoc full_st_name tl)
   with Not_found -> 
-    match def_bro, def_tab, (fst full_st_name) with
+    match def_bro, def_tab, (fst3 full_st_name) with
       | Some (t, _), _, `Session _ -> t
       | _, Some (t, _), `Client_process _ -> t
       | _, _, ct -> get_default_service_timeout
@@ -167,7 +169,7 @@ let find_global_data_timeout full_st_name sitedata =
   try
     fst (List.assoc full_st_name tl)
   with Not_found ->
-    match def_bro, def_tab, (fst full_st_name) with
+    match def_bro, def_tab, (fst3 full_st_name) with
       | Some (t, _), _, `Session _ -> t
       | _, Some (t, _), `Client_process _ -> t
       | _, _, ct -> get_default_data_timeout
@@ -178,7 +180,7 @@ let find_global_persistent_timeout full_st_name sitedata =
   try
     fst (List.assoc full_st_name tl)
   with Not_found ->
-    match def_bro, def_tab, (fst full_st_name) with
+    match def_bro, def_tab, (fst3 full_st_name) with
       | Some (t, _), _, `Session _ -> t
       | _, Some (t, _), `Client_process _ -> t
       | _, _, ct -> get_default_persistent_timeout
@@ -212,50 +214,50 @@ let set_global_persistent_timeout_
     ?full_st_name ?cookie_level ~recompute_expdates a
 
 
-let get_global_service_timeout ~cookie_scope sitedata =
+let get_global_service_timeout ~cookie_scope ~secure sitedata =
   let full_st_name =
     Eliom_common.make_full_state_name2
-      sitedata.Eliom_common.site_dir_string ~scope:cookie_scope
+      sitedata.Eliom_common.site_dir_string secure ~scope:cookie_scope
   in
   find_global_service_timeout full_st_name sitedata
 
-let get_global_data_timeout ~cookie_scope sitedata =
+let get_global_data_timeout ~cookie_scope ~secure sitedata =
   let full_st_name =
     Eliom_common.make_full_state_name2
-      sitedata.Eliom_common.site_dir_string ~scope:cookie_scope
+      sitedata.Eliom_common.site_dir_string secure ~scope:cookie_scope
   in
   find_global_data_timeout full_st_name sitedata
 
-let get_global_persistent_timeout ~cookie_scope sitedata =
+let get_global_persistent_timeout ~cookie_scope ~secure sitedata =
   let full_st_name =
     Eliom_common.make_full_state_name2
-      sitedata.Eliom_common.site_dir_string ~scope:cookie_scope
+      sitedata.Eliom_common.site_dir_string secure ~scope:cookie_scope
   in
   find_global_persistent_timeout full_st_name sitedata
 
-let set_global_service_timeout ~cookie_scope ~recompute_expdates
+let set_global_service_timeout ~cookie_scope ~secure ~recompute_expdates
     override_configfile sitedata timeout =
   let full_st_name = Eliom_common.make_full_state_name2
-    sitedata.Eliom_common.site_dir_string ~scope:cookie_scope
+    sitedata.Eliom_common.site_dir_string secure ~scope:cookie_scope
   in
   set_global_service_timeout_ ~full_st_name ~recompute_expdates
     override_configfile false sitedata timeout
 
-let set_global_data_timeout ~cookie_scope ~recompute_expdates
+let set_global_data_timeout ~cookie_scope ~secure ~recompute_expdates
     override_configfile sitedata timeout =
   let full_st_name =
     Eliom_common.make_full_state_name2
-      sitedata.Eliom_common.site_dir_string ~scope:cookie_scope
+      sitedata.Eliom_common.site_dir_string secure ~scope:cookie_scope
   in
   set_global_data_timeout_ ~full_st_name ~recompute_expdates
     override_configfile false sitedata timeout
 
 let set_global_persistent_timeout
-    ~cookie_scope ~recompute_expdates
+    ~cookie_scope ~secure ~recompute_expdates
     override_configfile sitedata timeout =
   let full_st_name =
     Eliom_common.make_full_state_name2
-      sitedata.Eliom_common.site_dir_string ~scope:cookie_scope
+      sitedata.Eliom_common.site_dir_string secure ~scope:cookie_scope
   in
   set_global_persistent_timeout_
     ~full_st_name ~recompute_expdates

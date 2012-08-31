@@ -361,8 +361,7 @@ type node_info = {
   mutable ni_sent : bool;
 }
 
-module Hier_set =
-  Set.Make(struct type t = string * bool let compare = compare end)
+module Hier_set = String.Set
 
 type server_params =
     {sp_request: Ocsigen_extensions.request;
@@ -535,28 +534,28 @@ and dlist_ip_table = (page_table ref * page_table_key, na_key_serv)
 
 (*****************************************************************************)
 
-let make_full_cookie_name cookieprefix (cookie_scope, site_dir_string) =
+let make_full_cookie_name cookieprefix (cookie_scope, secure, site_dir_string) =
   let scope_hier = scope_hierarchy_of_scope cookie_scope in
-  let secure, hier1, hiername = match scope_hier with
-    | User_hier (hiername, false) -> "|", "||", hiername 
-    | User_hier (hiername, true) -> "S|", "||", hiername
-    | Default_ref_hier -> "|", "|ref|", ""
-    | Default_secure_ref_hier -> "S|", "|ref|", ""
-    | Default_comet_hier -> "|", "|comet|", ""
-    | Default_secure_comet_hier -> "S|", "|comet|", ""
+  let secure = if secure then "S|" else "|" in
+  let hier1, hiername = match scope_hier with
+    | User_hier hiername -> "||", hiername 
+    | Default_ref_hier -> "|ref|", ""
+    | Default_comet_hier -> "|comet|", ""
   in
-  let s = String.concat "" [cookieprefix; secure; site_dir_string; hier1; hiername]
-  in print_endline s;
+  let s = String.concat ""
+    [cookieprefix; secure; site_dir_string; hier1; hiername]
+  in
   s
 
 let make_full_state_name2
-    site_dir_string ~(scope:[< user_scope ]) : full_state_name =
+    site_dir_string secure ~(scope:[< user_scope ]) : full_state_name =
   (* The information in the cookie name, without the kind of session *)
   ((scope :> user_scope),
+   secure,
    site_dir_string)
 
-let make_full_state_name ~sp ~(scope:[< user_scope ]) =
-  make_full_state_name2 sp.sp_sitedata.site_dir_string scope
+let make_full_state_name ~sp ~secure ~(scope:[< user_scope ]) =
+  make_full_state_name2 sp.sp_sitedata.site_dir_string secure scope
 
 let get_cookie_info sp = function
   | `Session -> sp.sp_cookie_info
@@ -628,38 +627,32 @@ let default_group_scope : session_group_scope = `Session_group Default_ref_hier
 let default_session_scope : session_scope = `Session Default_ref_hier
 let default_process_scope : client_process_scope = `Client_process Default_ref_hier
 
-let default_secure_group_scope : session_group_scope = `Session_group Default_secure_ref_hier
-let default_secure_session_scope : session_scope = `Session Default_secure_ref_hier
-let default_secure_process_scope : client_process_scope = `Client_process Default_secure_ref_hier
-
 let comet_client_process_scope : client_process_scope = `Client_process Default_comet_hier
 let request_scope : request_scope = `Request
 
 let registered_scope_hierarchies = ref Hier_set.empty
 
-let register_scope_hierarchy secure (name:string) =
-  let v = (name, secure) in
+let register_scope_hierarchy (name:string) =
   match get_sp_option () with
     | None ->
-      if Hier_set.mem v !registered_scope_hierarchies
-      then failwith (Printf.sprintf "the %s secure scope hierachy %s has already been registered" (if secure then "" else "non") name)
+      if Hier_set.mem name !registered_scope_hierarchies
+      then failwith (Printf.sprintf "the scope hierachy %s has already been registered" name)
       else registered_scope_hierarchies :=
-        Hier_set.add v !registered_scope_hierarchies
+        Hier_set.add name !registered_scope_hierarchies
     | Some sp ->
-      if Hier_set.mem v !registered_scope_hierarchies ||
-	Hier_set.mem v sp.sp_sitedata.registered_scope_hierarchies
-      then failwith (Printf.sprintf "the %s secure scope hierarchy %s has already been registered" (if secure then "" else "non") name)
+      if Hier_set.mem name !registered_scope_hierarchies ||
+	Hier_set.mem name sp.sp_sitedata.registered_scope_hierarchies
+      then failwith (Printf.sprintf "the scope hierarchy %s has already been registered" name)
       else sp.sp_sitedata.registered_scope_hierarchies <-
-        Hier_set.add v sp.sp_sitedata.registered_scope_hierarchies
+        Hier_set.add name sp.sp_sitedata.registered_scope_hierarchies
 
-let create_scope_hierarchy ?(secure = false) name : scope_hierarchy =
-  register_scope_hierarchy secure name;
-  User_hier (name, secure)
+let create_scope_hierarchy name : scope_hierarchy =
+  register_scope_hierarchy name;
+  User_hier name
 
 let list_scope_hierarchies () =
   let sp = get_sp () in
   Default_comet_hier::Default_ref_hier::
-  Default_secure_comet_hier::Default_secure_ref_hier::
     (List.map (fun s -> User_hier s)
        (Hier_set.elements !registered_scope_hierarchies)
      @ List.map (fun s -> User_hier s)
@@ -922,23 +915,21 @@ sessionkind|S?|sitedirstring|"ref" ou "comet" ou ""|hiername
 
 *)
 
-let full_state_name_of_cookie_name secure cookie_level cookiename =
+let full_state_name_of_cookie_name cookie_level cookiename =
   let pref, cookiename = Ocsigen_lib.String.sep '|' cookiename in
   let secure, cookiename = Ocsigen_lib.String.sep '|' cookiename in
   let sitedirstring, cookiename = Ocsigen_lib.String.sep '|' cookiename in
   let hier1, hiername = Ocsigen_lib.String.sep '|' cookiename in
-  let sc_hier = match hier1, secure with
-    | "", "" -> Eliom_common_base.User_hier (hiername, false)
-    | "", "S" -> Eliom_common_base.User_hier (hiername, true)
-    | "ref", "" -> Eliom_common_base.Default_ref_hier
-    | "comet", "" -> Eliom_common_base.Default_comet_hier
-    | "ref", "S" -> Eliom_common_base.Default_secure_ref_hier
-    | "comet", "S" -> Eliom_common_base.Default_secure_comet_hier
+  let secure = secure = "S" in
+  let sc_hier = match hier1 with
+    | "" -> Eliom_common_base.User_hier hiername
+    | "ref" -> Eliom_common_base.Default_ref_hier
+    | "comet" -> Eliom_common_base.Default_comet_hier
     | _ -> raise Not_found
   in
   match cookie_level with
-    | `Session -> (`Session sc_hier, sitedirstring)
-    | `Client_process -> (`Client_process sc_hier, sitedirstring)
+    | `Session -> (`Session sc_hier, secure, sitedirstring)
+    | `Client_process -> (`Client_process sc_hier, secure, sitedirstring)
 
 let getcookies secure cookie_level cookienamepref cookies =
   let length = String.length cookienamepref in
@@ -948,9 +939,11 @@ let getcookies secure cookie_level cookienamepref cookies =
       if String.first_diff cookienamepref name 0 last = length
       then
         try
-          let expcn =
-            full_state_name_of_cookie_name secure cookie_level name in
-          Full_state_name_table.add expcn value beg
+          let (_, sec, _) as expcn =
+            full_state_name_of_cookie_name cookie_level name in
+          if sec = secure
+          then Full_state_name_table.add expcn value beg
+          else beg
         with Not_found -> beg
       else beg
     )

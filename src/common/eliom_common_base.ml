@@ -24,11 +24,9 @@ open Ocsigen_cookies
 (******************************************************************)
 
 type scope_hierarchy =
-  | User_hier of (string * bool (* secure *))
+  | User_hier of string
   | Default_ref_hier
   | Default_comet_hier
-  | Default_secure_ref_hier
-  | Default_secure_comet_hier
 
 type user_scope = [ `Session_group of scope_hierarchy
 		  | `Session of scope_hierarchy
@@ -82,7 +80,7 @@ type full_state_name = (* WAS: fullsessionname *)
        without the kind of session,
        and with the scope level (that is not in the cookie name).
     *)
-    user_scope * string (* site_dir_string *)
+    user_scope * bool (* secure*) * string (* site_dir_string *)
 
 module Full_state_name_table = Map.Make(struct
   type t = full_state_name

@@ -92,13 +92,10 @@ val site_scope : site_scope
 val default_group_scope : session_group_scope
 val default_session_scope : session_scope
 val default_process_scope : client_process_scope
-val default_secure_group_scope : session_group_scope
-val default_secure_session_scope : session_scope
-val default_secure_process_scope : client_process_scope
 val comet_client_process_scope : client_process_scope
 val request_scope : request_scope
 
-val create_scope_hierarchy : ?secure:bool -> string -> scope_hierarchy
+val create_scope_hierarchy : string -> scope_hierarchy
 
 val list_scope_hierarchies : unit -> scope_hierarchy list
 
@@ -127,7 +124,8 @@ exception Eliom_Typing_Error of (string * exn) list
 *)
 exception Eliom_site_information_not_available of string
 
-type full_state_name = user_scope * string (* site_dir_string *)
+type full_state_name =
+    user_scope * bool (* secure *) * string (* site_dir_string *)
 module Full_state_name_table : Map.S with type key = full_state_name
 
 (** If present and true in request data, it means that
@@ -589,9 +587,9 @@ type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
 
 val make_full_cookie_name : string -> full_state_name -> string
 val make_full_state_name :
-  sp:server_params -> scope:[< user_scope ] -> full_state_name
+  sp:server_params -> secure:bool -> scope:[< user_scope ] -> full_state_name
 val make_full_state_name2 :
-  string -> scope:[< user_scope ] -> full_state_name
+  string -> bool -> scope:[< user_scope ] -> full_state_name
 
 
 
