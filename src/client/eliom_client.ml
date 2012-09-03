@@ -160,6 +160,23 @@ let register_unwrapped_elt, force_unwrapped_elts =
 let onload, flush_onload =
   buffer (fun f -> fun _ -> f (); true)
 
+let withdom, set_withdom_buffered_mode, flush_buffered_withdom =
+  let direct = ref false in
+  let buffer = ref [] in
+  (fun f ->
+     if !direct then
+       f ()
+     else
+       buffer := (fun _ -> f (); true) :: !buffer),
+  (fun () ->
+     direct := false),
+  (fun () ->
+     let res = List.rev !buffer in
+     buffer := [];
+     direct := true;
+     res)
+
+
 (* BBB KNOWN BUG
    do_client_value_initializations:
 
@@ -779,6 +796,7 @@ let set_content ?uri ?offset ?fragment content =
       if !Eliom_config.debug_timings then
         Firebug.console##time(Js.string "set_content_beginning");
        run_unload_events ();
+       set_withdom_buffered_mode ();
        (match uri, fragment with
         | Some uri, None -> change_url_string uri
         | Some uri, Some fragment ->
@@ -831,6 +849,7 @@ let set_content ?uri ?offset ?fragment content =
          Dom_html.document##documentElement;
        do_all_client_value_initializations client_value_data;
        let onload_events = flush_onload () in
+       let withdom_events = flush_buffered_withdom () in
        let onload_closure_nodes =
          relink_closure_nodes
            Dom_html.document##documentElement
@@ -844,7 +863,7 @@ let set_content ?uri ?offset ?fragment content =
        if !Eliom_config.debug_timings then
          ( Firebug.console##timeEnd(Js.string "replace_child");
            Firebug.console##time(Js.string "set_content_end") );
-       run_load_events (onload_first @ onload_events @ onload_closure_nodes @ onload_last);
+       run_load_events (onload_first @ onload_events @ withdom_events @ onload_closure_nodes @ onload_last);
        scroll_to_fragment ?offset fragment;
        if !Eliom_config.debug_timings then
          ( Firebug.console##timeEnd(Js.string "set_content_end");

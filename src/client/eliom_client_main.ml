@@ -34,6 +34,8 @@ let onload ev =
           let root = Dom_html.document##documentElement in
           let closure_nodeList, onload_first, onload_last = Eliom_client.load_eliom_data js_data root in
           let onload_events = Eliom_client.flush_onload () in
+          let withdom_events = Eliom_client.flush_buffered_withdom () in
+          debug "Onload events: %d" (List.length onload_events);
           let onload_closure_nodes =
             Eliom_client.relink_closure_nodes
               root
@@ -44,7 +46,7 @@ let onload ev =
           Eliom_client.reset_request_node ();
           Lwt.return
             (List.for_all (fun f -> f ev)
-               (onload_first @ onload_events @ onload_closure_nodes @ onload_last)));
+               (onload_first @ onload_events @ withdom_events @ onload_closure_nodes @ onload_last)));
   if !Eliom_config.debug_timings then
     Firebug.console##timeEnd(Js.string "onload");
   Js._false

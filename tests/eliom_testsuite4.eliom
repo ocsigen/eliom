@@ -1239,14 +1239,82 @@ let deep_client_values =
 (******************************************************************************)
            *)
 
+{client{
+
+  let client_withdom str =
+    Eliom_client.withdom
+      (fun () ->
+         Eliom_testsuite_base.log "withdom: client from %s" str)
+}}
+
+{server{
+  let server_withdom str =
+    ignore {unit{
+      Eliom_client.withdom
+        (fun () ->
+           Eliom_testsuite_base.log "withdom: server from %s" %str)
+    }}
+}}
+
+{shared{
+  let shared_withdom str =
+    ignore {unit{
+      Eliom_client.withdom
+        (fun () ->
+           Eliom_testsuite_base.log "withdom: shared from %s" %str)
+    }}
+}}
+
+{client{
+  let () =
+    client_withdom "client toplevel"
+}}
+
+let () =
+  server_withdom "server toplevel"
+let () =
+  shared_withdom "server toplevel"
+let () =
+  ignore {unit{ client_withdom "server toplevel" }}
+let () =
+  ignore {unit{ shared_withdom "server toplevel" }}
+
+let test_withdom =
+  Eliom_testsuite_base.test
+    ~title:"Eliom_client.withdom"
+    ~path:["mixed"; "withdom"]
+    ~description:Html5.F.([
+      pcdata "Test the functionality of Eliom_client.withdom";
+      br ();
+      pcdata "Nine different lines in the log, thebutton adds another two";
+    ])
+    (fun () ->
+       server_withdom "request";
+       shared_withdom "request";
+       ignore {unit{
+         Eliom_client.withdom
+           (fun () ->
+              client_withdom "request";
+              shared_withdom "request")
+       }};
+       let onclick = {{
+         fun _ ->
+           Eliom_client.withdom
+             (fun _ ->
+                client_withdom "click";
+                shared_withdom "click")
+       }} in
+       Lwt.return Html5.F.([
+         Eliom_testsuite_base.thebutton ~msg:"with dom" onclick;
+       ]))
+
 (******************************************************************************)
 
 let tests = [
-(*
   "Mixed", [
     test_custom_data;
+    test_withdom;
   ];
- *)
   "Holes", [
     test_escape_scoping;
     test_injection_scoping;
