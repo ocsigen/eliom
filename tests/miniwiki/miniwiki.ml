@@ -21,8 +21,8 @@
 (* open Eliom_pervasives *)
 
 open Eliom_compatibility_2_1
-open XHTML.M
-open Eliom_output.Xhtml
+open HTML5.M
+open Eliom_output.Html5
 open Eliom_service
 open Eliom_parameter
 open Eliom_state
@@ -147,7 +147,7 @@ let wikilinkanum_no_text_re =
 let translate_list items =
 
   let add_ul t lst =
-    t @ [ul (List.hd lst) (List.tl lst)] in
+    t @ [ul lst] in
 
   let rec loop = function
       ((nesting1,text1)::(nesting2,text2)::xs) as lst ->
@@ -163,7 +163,7 @@ let translate_list items =
         [(li text)]
     | [] -> [] in
   let list_items = loop items in
-  ul (List.hd list_items) (List.tl list_items)
+  ul list_items
 
 let parse_lines lines =
   let wikilink scheme page text =
@@ -177,7 +177,8 @@ let parse_lines lines =
     else (* External link *)
       let url = scheme^":"^page in
       let t = if text = "" then url else text in
-      XHTML.M.a ~a:[a_href (XHTML.M.uri_of_string url)] [pcdata t]
+      HTML5.M.Raw.a ~a:[a_href (HTML5.M.uri_of_string (fun () -> url))]
+        [pcdata t]
   in
 
   let rec pcre_first_match str pos =

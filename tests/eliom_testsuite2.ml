@@ -473,8 +473,7 @@ let reference_from_fun =
 (*****************************************************************************)
 
 open Eliom_testsuite1
-open XHTML.M
-open Eliom_output.Xhtml
+open Eliom_output.Html5
 open Eliom_output
 open Eliom_service
 open Eliom_state
@@ -489,12 +488,11 @@ let lilists2 = service
 let create_form f =
   let l =
     f.it (fun (sn, l2) v init ->
-            (tr (td [pcdata ("Write a string: ")])
-               ((td [string_input ~input_type:`Text ~name:sn ()])::
-                   (td [pcdata ("Write integers: ")])::
-
-                   (l2.it (fun iname v init ->
-                     (td [int_input ~input_type:`Text ~name:iname ()])::init)
+            (tr ((td [pcdata ("Write a string: ")])
+                 ::(td [string_input ~input_type:`Text ~name:sn ()])
+                 ::(td [pcdata ("Write integers: ")])
+                 ::(l2.it (fun iname v init ->
+                   (td [int_input ~input_type:`Text ~name:iname ()])::init)
                       ["A"; "B"]
                       []))
 
@@ -507,7 +505,7 @@ let create_form f =
 
 let () = register lilists
   (fun () () ->
-     let f = Eliom_output.Xhtml.get_form lilists2 create_form in
+     let f = Eliom_output.Html5.get_form lilists2 create_form in
      return
        (html
          (head (title (pcdata "")) [])
@@ -554,17 +552,17 @@ let sumserv = register_service
 let create_form =
   (fun (name1, (name2, name3)) ->
     [p [
-       Eliom_output.Xhtml.int_input
+       Eliom_output.Html5.int_input
          ~name:name1 ~input_type:`Submit ~value:48 ();
-       Eliom_output.Xhtml.int_input
+       Eliom_output.Html5.int_input
          ~name:name2 ~input_type:`Submit ~value:55 ();
-       Eliom_output.Xhtml.string_input
+       Eliom_output.Html5.string_input
          ~name:name3 ~input_type:`Submit ~value:"plop" ();
      ]])
 
 let sumform = register_service ["sumform"] unit
   (fun () () ->
-     let f = Eliom_output.Xhtml.get_form sumserv create_form in
+     let f = Eliom_output.Html5.get_form sumserv create_form in
      return
        (html
          (head (title (pcdata "")) [])
@@ -589,7 +587,7 @@ let sumserv = register_post_service
 
 let () = register sumform2
   (fun () () ->
-     let f = Eliom_output.Xhtml.post_form sumserv create_form () in
+     let f = Eliom_output.Html5.post_form sumserv create_form () in
      return
        (html
          (head (title (pcdata "")) [])
@@ -599,25 +597,25 @@ let () = register sumform2
 (******)
 (* unregistering services *)
 let unregister_example =
-  Eliom_output.Xhtml.register_service
+  Eliom_output.Html5.register_service
     ~path:["unregister"]
     ~get_params:Eliom_parameter.unit
     (fun () () ->
-       let s1 = Eliom_output.Xhtml.register_service
+       let s1 = Eliom_output.Html5.register_service
          ~path:["unregister1"]
          ~get_params:Eliom_parameter.unit
          (fun () () -> failwith "s1")
        in
-       let s2 = Eliom_output.Xhtml.register_coservice
+       let s2 = Eliom_output.Html5.register_coservice
          ~fallback:s1
          ~get_params:Eliom_parameter.unit
          (fun () () -> failwith "s2")
        in
-       let s3 = Eliom_output.Xhtml.register_coservice'
+       let s3 = Eliom_output.Html5.register_coservice'
          ~get_params:Eliom_parameter.unit
          (fun () () -> failwith "s3")
        in
-       Eliom_output.Xhtml.register ~scope:Eliom_common.default_session_scope
+       Eliom_output.Html5.register ~scope:Eliom_common.default_session_scope
          ~service:s1
          (fun () () -> failwith "s4");
        Eliom_service.unregister s1;
@@ -659,8 +657,8 @@ let csrfsafe_example_get =
 
 let _ =
   let page () () =
-    let l3 = Eliom_output.Xhtml.get_form csrfsafe_example_get
-        (fun _ -> [p [Eliom_output.Xhtml.string_input
+    let l3 = Eliom_output.Html5.get_form csrfsafe_example_get
+        (fun _ -> [p [Eliom_output.Html5.string_input
                         ~input_type:`Submit
                         ~value:"Click" ()]])
     in
@@ -670,8 +668,8 @@ let _ =
        (body [p [pcdata "A new coservice will be created each time this form is displayed"];
               l3]))
   in
-  Eliom_output.Xhtml.register csrfsafe_get_example page;
-  Eliom_output.Xhtml.register csrfsafe_example_get
+  Eliom_output.Html5.register csrfsafe_get_example page;
+  Eliom_output.Html5.register csrfsafe_example_get
     (fun () () ->
        Lwt.return
          (html
@@ -697,8 +695,8 @@ let csrfsafe_example_post =
 
 let _ =
   let page () () =
-    let l3 = Eliom_output.Xhtml.post_form csrfsafe_example_post
-        (fun _ -> [p [Eliom_output.Xhtml.string_input
+    let l3 = Eliom_output.Html5.post_form csrfsafe_example_post
+        (fun _ -> [p [Eliom_output.Html5.string_input
                         ~input_type:`Submit
                         ~value:"Click" ()]]) ()
     in
@@ -708,8 +706,8 @@ let _ =
        (body [p [pcdata "A new coservice will be created each time this form is displayed"];
               l3]))
   in
-  Eliom_output.Xhtml.register csrfsafe_postget_example page;
-  Eliom_output.Xhtml.register csrfsafe_example_post
+  Eliom_output.Html5.register csrfsafe_postget_example page;
+  Eliom_output.Html5.register csrfsafe_example_post
     (fun () () ->
        Lwt.return
          (html
@@ -739,7 +737,7 @@ let csrfsafe_example_session =
 
 let _ =
   let page () () =
-    Eliom_output.Xhtml.register ~scope:myscope
+    Eliom_output.Html5.register ~scope:myscope
       ~secure_session:true
       ~service:csrfsafe_example_session
       (fun () () ->
@@ -747,8 +745,8 @@ let _ =
            (html
               (head (title (pcdata "CSRF safe service")) [])
               (body [p [pcdata "This is a POST CSRF safe service"]])));
-    let l3 = Eliom_output.Xhtml.post_form csrfsafe_example_session
-        (fun _ -> [p [Eliom_output.Xhtml.string_input
+    let l3 = Eliom_output.Html5.post_form csrfsafe_example_session
+        (fun _ -> [p [Eliom_output.Html5.string_input
                         ~input_type:`Submit
                         ~value:"Click" ()]])
         ()
@@ -759,7 +757,7 @@ let _ =
        (body [p [pcdata "A new coservice will be created each time this form is displayed"];
               l3]))
   in
-  Eliom_output.Xhtml.register csrfsafe_session_example page
+  Eliom_output.Html5.register csrfsafe_session_example page
 
 
 
@@ -983,8 +981,8 @@ let headers =
 
 (* form towards a suffix service with constants *)
 let create_form (n1, (_, n2)) =
-  let module Xhtml = Eliom_content.Xhtml.F in
-    <:xhtmllist< <p>
+  let module Html5 = Eliom_content.Html5.F in
+    <:html5list< <p>
       $string_input ~input_type:`Text ~name:n1 ()$
       $string_input ~input_type:`Text ~name:n2 ()$
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
@@ -1046,8 +1044,8 @@ let su4 =
                  p [pcdata "I am a suffix service with a constant part, registered after the generic suffix service, but I have a priority, so that you can see me!"]])))
 
 let create_suffixform_su2 s =
-  let module Xhtml = Eliom_content.Xhtml.F in
-    <:xhtmllist< <p>Write a string:
+  let module Html5 = Eliom_content.Html5.F in
+    <:html5list< <p>Write a string:
       $string_input ~input_type:`Text ~name:s ()$ <br/>
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
@@ -1086,20 +1084,17 @@ let optform =
     ~get_params:unit
     (fun () () ->
 (* testing lwt_get_form *)
-       Eliom_output.Xhtml.lwt_get_form
+       Eliom_output.Html5.lwt_get_form
          ~service:optparam
          (fun (an, bn) ->
             Lwt.return
               [p [
                  string_input ~input_type:`Text ~name:an ();
                  string_input ~input_type:`Text ~name:bn ();
-                 Eliom_output.Xhtml.string_input
+                 Eliom_output.Html5.string_input
                    ~input_type:`Submit
                    ~value:"Click" ()]])
       >>= fun form ->
-      let form =
-        (form : Xhtml_types.form XHTML.M.elt :> [> Xhtml_types.form ] XHTML.M.elt)
-      in
       return
         (html
            (head (title (pcdata "")) [])
@@ -1147,18 +1142,18 @@ let preappliedsuffix =
 (* URL with ? or / in data or paths *)
 
 let url_encoding =
-  let module Xhtml = Eliom_content.Xhtml.F in
+  let module Html5 = Eliom_content.Html5.F in
   register_service
     ~path:["urlencoding&à/=é?ablah"]
     ~get_params:(suffix_prod (all_suffix "s//\\à") any)
     (fun (suf, l) () ->
       let ll =
         List.map
-          (fun (a,s) -> <:xhtml< <strong>($str:a$, $str:s$) </strong> >>) l
+          (fun (a,s) -> <:html5< <strong>($str:a$, $str:s$) </strong> >>) l
       in
       let sl =
         List.map
-          (fun s -> <:xhtml< <strong>$str:s$ </strong> >>) suf
+          (fun s -> <:html5< <strong>$str:s$ </strong> >>) suf
       in
       return
         (html
@@ -1175,13 +1170,12 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
 let preappl2 = preapply uasuffix (1999,01)
 
 let mymenu current =
-  let module Xhtml = Eliom_content.Xhtml.F in
-  Eliom_tools.Xhtml.menu ~classe:["menuprincipal"]
-    (coucou, <:xhtmllist< coucou >>)
-    [
-     (preappl, <:xhtmllist< params >>);
-     (preappl2, <:xhtmllist< params and suffix >>);
-   ] ~service:current ()
+  let module Html5 = Eliom_content.Html5.F in
+  Eliom_tools.Html5.menu ~classe:["menuprincipal"]
+    [(coucou, <:html5list< coucou >>);
+     (preappl, <:html5list< params >>);
+     (preappl2, <:html5list< params and suffix >>);
+    ] ~service:current ()
 
 let preappmenu =
   register_service
@@ -1348,7 +1342,7 @@ let cookiename = "c"
 
 let cookies2 = service ["c";""] (suffix (all_suffix_string "s")) ()
 
-let _ = Eliom_output.Xhtml.register cookies2
+let _ = Eliom_output.Html5.register cookies2
     (fun s () ->
       let now = Unix.time () in
       Eliom_state.set_cookie
@@ -1470,8 +1464,8 @@ let suffix3 =
                                   a^", "^(string_of_int b))]]])))
 
 let create_suffixform2 (suf1, (ii, ee)) =
-  let module Xhtml = Eliom_content.Xhtml.F in
-    <:xhtmllist< <p>Write a string:
+  let module Html5 = Eliom_content.Html5.F in
+    <:html5list< <p>Write a string:
       $string_input ~input_type:`Text ~name:suf1 ()$ <br/>
       Write an int: $int_input ~input_type:`Text ~name:ii ()$ <br/>
       Write a string: $user_type_input
@@ -1489,8 +1483,8 @@ let suffixform2 = register_service ["suffixform2"] unit
                  f ])))
 
 let create_suffixform3 ((suf1, (ii, ee)), (a, b)) =
-  let module Xhtml = Eliom_content.Xhtml.F in
-    <:xhtmllist< <p>Write a string:
+  let module Html5 = Eliom_content.Html5.F in
+    <:html5list< <p>Write a string:
       $string_input ~input_type:`Text ~name:suf1 ()$ <br/>
       Write an int: $int_input ~input_type:`Text ~name:ii ()$ <br/>
       Write an int: $int_input ~input_type:`Text ~name:ee ()$ <br/>
@@ -1572,8 +1566,8 @@ let sendfile2 =
 *)
 
 let create_suffixform4 n =
-  let module Xhtml = Eliom_content.Xhtml.F in
-    <:xhtmllist< <p>Write the name of the file:
+  let module Html5 = Eliom_content.Html5.F in
+    <:html5list< <p>Write the name of the file:
       $string_input ~input_type:`Text ~name:n ()$
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
@@ -1592,13 +1586,13 @@ let any2 = register_service
     ~path:["any2"]
     ~get_params:(int "i" ** any)
   (fun (i,l) () ->
-  let module Xhtml = Eliom_content.Xhtml.F in
+  let module Html5 = Eliom_content.Html5.F in
     let ll =
       List.map
-        (fun (a,s) -> <:xhtml< <strong>($str:a$, $str:s$)</strong> >>) l
+        (fun (a,s) -> <:html5< <strong>($str:a$, $str:s$)</strong> >>) l
     in
     return
-  <:xhtml< <html>
+  <:html5< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1615,13 +1609,13 @@ let any3 = register_service
     ~path:["any3"]
     ~get_params:(int "i" ** any ** string "s")
   (fun (i,(l,s)) () ->
-  let module Xhtml = Eliom_content.Xhtml.F in
+  let module Html5 = Eliom_content.Html5.F in
     let ll =
       List.map
-        (fun (a,s) -> <:xhtml< <strong>($str:a$, $str:s$)</strong> >>) l
+        (fun (a,s) -> <:html5< <strong>($str:a$, $str:s$)</strong> >>) l
     in
     return
-  <:xhtml< <html>
+  <:html5< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1641,13 +1635,13 @@ let any4 = register_service
     ~path:["any4"]
     ~get_params:(suffix any)
   (fun l () ->
-  let module Xhtml = Eliom_content.Xhtml.F in
+  let module Html5 = Eliom_content.Html5.F in
     let ll =
       List.map
-        (fun (a,s) -> <:xhtml< <strong>($str:a$, $str:s$)</strong> >>) l
+        (fun (a,s) -> <:html5< <strong>($str:a$, $str:s$)</strong> >>) l
     in
     return
-  <:xhtml< <html>
+  <:html5< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1662,13 +1656,13 @@ let any5 = register_service
     ~path:["any5"]
     ~get_params:(suffix_prod (string "s") any)
   (fun (s, l) () ->
-  let module Xhtml = Eliom_content.Xhtml.F in
+  let module Html5 = Eliom_content.Html5.F in
     let ll =
       List.map
-        (fun (a,s) -> <:xhtml< <strong>($str:a$, $str:s$)</strong> >>) l
+        (fun (a,s) -> <:html5< <strong>($str:a$, $str:s$)</strong> >>) l
     in
     return
-  <:xhtml< <html>
+  <:html5< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1686,13 +1680,13 @@ let sufli = service
 
 let _ = register sufli
   (fun l () ->
-  let module Xhtml = Eliom_content.Xhtml.F in
+  let module Html5 = Eliom_content.Html5.F in
     let ll =
       List.map
-        (fun (s, i) -> <:xhtml< <strong> $str:(s^string_of_int i)$ </strong> >>) l
+        (fun (s, i) -> <:html5< <strong> $str:(s^string_of_int i)$ </strong> >>) l
     in
     return
-  <:xhtml< <html>
+  <:html5< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1709,11 +1703,11 @@ let _ = register sufli
 let create_sufliform f =
   let l =
     f.it (fun (sn, iname) v init ->
-            (tr (td [pcdata ("Write a string: ")])
-               [td [string_input ~input_type:`Text ~name:sn ()];
-                td [pcdata ("Write an integer: ")];
-                td [int_input ~input_type:`Text ~name:iname ()];
-               ])::init)
+      (tr [td [pcdata ("Write a string: ")];
+           td [string_input ~input_type:`Text ~name:sn ()];
+           td [pcdata ("Write an integer: ")];
+           td [int_input ~input_type:`Text ~name:iname ()];
+          ])::init)
       ["one";"two";"three"]
       []
   in
@@ -1739,10 +1733,10 @@ let sufli2 = service
 let _ = register sufli2
   (fun (l, j) () ->
     let ll =
-      List.map (fun i -> <:xhtml< <strong> $str:(string_of_int i)$ </strong> >>) l
+      List.map (fun i -> <:html5< <strong> $str:(string_of_int i)$ </strong> >>) l
     in
     return
-  <:xhtml< <html>
+  <:html5< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1766,14 +1760,14 @@ let sufliopt = service
 
 let _ = register sufliopt
   (fun l () ->
-  let module Xhtml = Eliom_content.Xhtml.F in
+  let module Html5 = Eliom_content.Html5.F in
     let ll =
       List.map
         (function None -> pcdata "<none>"
-           | Some s -> <:xhtml< <strong> $str:s$ </strong> >>) l
+           | Some s -> <:html5< <strong> $str:s$ </strong> >>) l
     in
     return
-  <:xhtml< <html>
+  <:html5< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1797,14 +1791,14 @@ let sufliopt2 = service
 
 let _ = register sufliopt2
   (fun l () ->
-  let module Xhtml = Eliom_content.Xhtml.F in
+  let module Html5 = Eliom_content.Html5.F in
     let ll =
       List.map
         (function None -> pcdata "<none>"
-           | Some (s, ss) -> <:xhtml< <strong> ($str:s$, $str:ss$) </strong> >>) l
+           | Some (s, ss) -> <:html5< <strong> ($str:s$, $str:ss$) </strong> >>) l
     in
     return
-  <:xhtml< <html>
+  <:html5< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1826,13 +1820,13 @@ let sufset = register_service
     ~path:["sufset"]
     ~get_params:(suffix (Eliom_parameter.set string "s"))
   (fun l () ->
-  let module Xhtml = Eliom_content.Xhtml.F in
+  let module Html5 = Eliom_content.Html5.F in
     let ll =
       List.map
-        (fun s -> <:xhtml< <strong>$str:s$</strong> >>) l
+        (fun s -> <:html5< <strong>$str:s$</strong> >>) l
     in
     return
-  <:xhtml< <html>
+  <:html5< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1889,8 +1883,8 @@ let create_listform f =
    *)
   let l =
     f.it (fun boolname v init ->
-            (tr (td [pcdata ("Write the value for "^v^": ")])
-               [td [bool_checkbox ~name:boolname ()]])::init)
+            (tr[td [pcdata ("Write the value for "^v^": ")];
+                td [bool_checkbox ~name:boolname ()]])::init)
       ["one";"two";"three"]
       []
   in
@@ -1922,13 +1916,13 @@ let any = register_post_service
     ~fallback:coucoucou
     ~post_params:any
   (fun () l ->
-  let module Xhtml = Eliom_content.Xhtml.F in
+  let module Html5 = Eliom_content.Html5.F in
     let ll =
       List.map
-        (fun (a,s) -> <:xhtml< <strong>($str:a$, $str:s$)</strong> >>) l
+        (fun (a,s) -> <:html5< <strong>($str:a$, $str:s$)</strong> >>) l
     in
     return
-  <:xhtml< <html>
+  <:html5< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1983,8 +1977,8 @@ let get_param_service =
 let uploadgetform = register_service ["uploadget"] unit
   (fun () () ->
     let f =
-(* ARG        (post_form ~a:[(XHTML.M.a_enctype "multipart/form-data")] fichier2 *)
-     (get_form ~a:[(XHTML.M.a_enctype "multipart/form-data")] ~service:get_param_service
+(* ARG        (post_form ~a:[(HTML5.M.a_enctype "multipart/form-data")] fichier2 *)
+     (get_form ~a:[(HTML5.M.a_enctype "multipart/form-data")] ~service:get_param_service
      (*post_form my_service_with_post_params        *)
         (fun (str, file) ->
           [p [pcdata "Write a string: ";
@@ -2062,21 +2056,21 @@ register_service
 let create_form =
   (fun (number_name, (bool1name, bool2name)) ->
     [p [pcdata "New timeout: ";
-        Eliom_output.Xhtml.int_input ~input_type:`Text ~name:number_name ();
+        Eliom_output.Html5.int_input ~input_type:`Text ~name:number_name ();
         br ();
         pcdata "Check the box if you want to recompute all timeouts: ";
-        Eliom_output.Xhtml.bool_checkbox ~name:bool1name ();
+        Eliom_output.Html5.bool_checkbox ~name:bool1name ();
         br ();
         pcdata "Check the box if you want to override configuration file: ";
-        Eliom_output.Xhtml.bool_checkbox ~name:bool2name ();
-        Eliom_output.Xhtml.string_input ~input_type:`Submit ~value:"Submit" ()]])
+        Eliom_output.Html5.bool_checkbox ~name:bool2name ();
+        Eliom_output.Html5.string_input ~input_type:`Submit ~value:"Submit" ()]])
 
 let set_timeout_form =
   register_service
     ["set_timeout"]
     unit
     (fun () () ->
-      let f = Eliom_output.Xhtml.get_form set_timeout create_form in
+      let f = Eliom_output.Html5.get_form set_timeout create_form in
       return
         (html
            (head (title (pcdata "")) [])

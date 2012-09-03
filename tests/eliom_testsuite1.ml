@@ -34,6 +34,7 @@ let coucou1 =
              <body><h1>Coucou</h1></body>
            </html> >>)
 
+(*
 let coucou_xhtml =
   let open XHTML.M in
   Eliom_output.Xhtml.register_service
@@ -44,14 +45,15 @@ let coucou_xhtml =
         (html
            (head (title (pcdata "")) [])
            (body [h1 [pcdata "Hallo!"]])))
+*)
 
 (*
 let coucou1_xthml =
-  Eliom_output.Xhtml.register_service
+  Eliom_output.Html5.register_service
     ~path:["coucou1_xhtml"]
     ~get_params:Eliom_parameter.unit
     (fun () () ->
-      let module Xhtml = Eliom_content.Xhtml.F in
+      let module Html5 = Eliom_content.Html5.F in
       return
         <:xhtml< <html>
              <head><title></title></head>
