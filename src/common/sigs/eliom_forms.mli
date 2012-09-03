@@ -44,7 +44,6 @@ type optgroup_attrib_t
 type option_attrib_t
 
 type input_type_t
-type raw_input_type_t
 type button_type_t
 
 type for_attrib
@@ -460,7 +459,7 @@ val user_type_input : ('a -> string) ->
 (** Creates an untyped [<input>] tag. You may use the name you want
     (for example to use with {!Eliom_parameter.any}). *)
 val raw_input :
-  ?a:input_attrib_t -> input_type:raw_input_type_t ->
+  ?a:input_attrib_t -> input_type:input_type_t ->
   ?name:string -> ?value:string -> unit -> input_elt
 
 (** Creates an [<input>] tag for sending a file *)

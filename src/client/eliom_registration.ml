@@ -14,9 +14,7 @@ struct
 end
 
 module Html5 = Base
-module Xhtml = Base
 module Redirection = Base
-module Block = Base
 module Block5 = Base
 
 

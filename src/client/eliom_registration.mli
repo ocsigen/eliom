@@ -10,9 +10,7 @@ module type Base = sig
 end
 
 module Html5 : Base
-module Xhtml : Base
 module Redirection : Base
-module Block : Base
 module Block5 : Base
 
 module Html_text : Base

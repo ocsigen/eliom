@@ -157,7 +157,6 @@ module Xhtml_forms_base = struct
   type option_attrib_t = Eliom_duce_types.option_attrib_t
 
   type input_type_t = Eliom_duce_types.input_type_t
-  type raw_input_type_t = Eliom_duce_types.raw_input_type_t
   type button_type_t = Eliom_duce_types.button_type_t
 
   let hidden = {{ "hidden" }}

@@ -24,7 +24,7 @@ open Simplexmlparser
 open Ocsigen_http_frame
 open Cryptokit
 open Eliom_parameter
-open Eliom_content.Xhtml
+open Eliom_content.Html5
 open Ocsigen_headers
 module Base64 = Netencoding.Base64
 
@@ -507,7 +507,7 @@ module Make (S : HiddenServiceInfo) = struct
     get_assoc (fst discovery) >>= fun assoc ->
     let uri = ref "" in
     let () = uri := 
-      Eliom_content.Xhtml.F.make_string_uri ~absolute: true 
+      Eliom_content.Html5.F.make_string_uri ~absolute: true 
       ~service:return_service []
     in
     let _ = Eliom_registration.Any.register

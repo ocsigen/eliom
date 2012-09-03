@@ -38,30 +38,30 @@ include "eliom_forms.mli"
     and type option_attrib_t := Html5_types.option_attrib Html5.attrib list
 
     and type input_type_t :=
-      [ `Button
-      | `Checkbox
-      | `File
-      | `Hidden
-      | `Image
-      | `Password
-      | `Radio
-      | `Reset
-      | `Submit
-      | `Text
-      ]
-
-    and type raw_input_type_t :=
-      [ `Button
-      | `Checkbox
-      | `File
-      | `Hidden
-      | `Image
-      | `Password
-      | `Radio
-      | `Reset
-      | `Submit
-      | `Text
-      ]
+        [
+        | `Url
+        | `Tel
+        | `Text
+        | `Time
+        | `Search
+        | `Password
+        | `Checkbox
+        | `Range
+        | `Radio
+        | `Submit
+        | `Reset
+        | `Number
+        | `Hidden
+        | `Month
+        | `Week
+        | `File
+        | `Email
+        | `Image
+        | `Datetime_local
+        | `Datetime
+        | `Date
+        | `Color
+        | `Button]
 
     and type button_type_t :=
       [ `Button

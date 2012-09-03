@@ -28,25 +28,31 @@ type appl_service = [ `Appl ]
 type http_service = [ `Http ]
 type non_caml_service = [ appl_service | http_service ]
 
-type basic_input_type =
-    [ `Hidden
-    | `Password
-    | `Submit
-    | `Text
-    ]
-
-type full_input_type =
-    [ `Button
-    | `Checkbox
-    | `File
-    | `Hidden
-    | `Image
-    | `Password
-    | `Radio
-    | `Reset
-    | `Submit
-    | `Text
-    ]
+type input_type = 
+  [
+  | `Url
+  | `Tel
+  | `Text
+  | `Time
+  | `Search
+  | `Password
+  | `Checkbox
+  | `Range
+  | `Radio
+  | `Submit
+  | `Reset
+  | `Number
+  | `Hidden
+  | `Month
+  | `Week
+  | `File
+  | `Email
+  | `Image
+  | `Datetime_local
+  | `Datetime
+  | `Date
+  | `Color
+  | `Button]
 
 type button_type =
     [ `Button
@@ -116,8 +122,7 @@ end = struct
     type optgroup_attrib_t = [ Html5_types.common | `Disabled ] Html5.attrib list
     type option_attrib_t = Html5_types.option_attrib Html5.attrib list
 
-    type input_type_t = full_input_type
-    type raw_input_type_t = full_input_type
+    type input_type_t = input_type
     type button_type_t = button_type
 
     open Html5_types
@@ -448,48 +453,48 @@ end = struct
                             [> form ] elt Lwt.t)
 
       let int_input = (int_input :
-                         ?a:input_attrib attrib list -> input_type:full_input_type ->
+                         ?a:input_attrib attrib list -> input_type:input_type ->
                         ?name:'a -> ?value:int -> unit -> input elt :>
-                        ?a:input_attrib attrib list -> input_type:[< full_input_type] ->
+                        ?a:input_attrib attrib list -> input_type:[< input_type] ->
                         ?name:'a -> ?value:int -> unit -> [> input ] elt)
 
       let int32_input = (int32_input :
-                           ?a:input_attrib attrib list -> input_type:full_input_type ->
+                           ?a:input_attrib attrib list -> input_type:input_type ->
                           ?name:'a -> ?value:int32 -> unit -> input elt :>
-                          ?a:input_attrib attrib list -> input_type:[< full_input_type] ->
+                          ?a:input_attrib attrib list -> input_type:[< input_type] ->
                           ?name:'a -> ?value:int32 -> unit -> [> input ] elt)
 
       let int64_input = (int64_input :
-                           ?a:input_attrib attrib list -> input_type:full_input_type ->
+                           ?a:input_attrib attrib list -> input_type:input_type ->
                           ?name:'a -> ?value:int64 -> unit -> input elt :>
-                          ?a:input_attrib attrib list -> input_type:[< full_input_type] ->
+                          ?a:input_attrib attrib list -> input_type:[< input_type] ->
                           ?name:'a -> ?value:int64 -> unit -> [> input ] elt)
 
       let float_input = (float_input :
-                           ?a:input_attrib attrib list -> input_type:full_input_type ->
+                           ?a:input_attrib attrib list -> input_type:input_type ->
                           ?name:'a -> ?value:float -> unit -> input elt :>
-                          ?a:input_attrib attrib list -> input_type:[< full_input_type] ->
+                          ?a:input_attrib attrib list -> input_type:[< input_type] ->
                           ?name:'a -> ?value:float -> unit -> [> input ] elt)
 
       let string_input = (string_input :
-                            ?a:input_attrib attrib list -> input_type:full_input_type ->
+                            ?a:input_attrib attrib list -> input_type:input_type ->
                            ?name:'a -> ?value:string -> unit -> input elt :>
-                           ?a:input_attrib attrib list -> input_type:[< full_input_type] ->
+                           ?a:input_attrib attrib list -> input_type:[< input_type] ->
                            ?name:'a -> ?value:string -> unit -> [> input ] elt)
 
       let user_type_input = (user_type_input :
                                ('a -> string) ->
-                              ?a:input_attrib attrib list -> input_type:full_input_type ->
+                              ?a:input_attrib attrib list -> input_type:input_type ->
                               ?name:'b -> ?value:'a -> unit -> input elt :>
                               ('a -> string) ->
-                              ?a:input_attrib attrib list -> input_type:[< full_input_type] ->
+                              ?a:input_attrib attrib list -> input_type:[< input_type] ->
                               ?name:'b -> ?value:'a -> unit -> [> input ] elt)
 
       let raw_input = (raw_input :
-                         ?a:input_attrib attrib list -> input_type:full_input_type ->
+                         ?a:input_attrib attrib list -> input_type:input_type ->
                         ?name:string -> ?value:string -> unit -> input elt :>
                         ?a:input_attrib attrib list ->
-                        input_type:[< full_input_type ] ->
+                        input_type:[< input_type ] ->
                         ?name:string -> ?value:string -> unit -> [> input ] elt)
 
       let file_input = (file_input :

@@ -41,7 +41,6 @@ type optgroup_attrib_t
 type option_attrib_t
 
 type input_type_t
-type raw_input_type_t
 type button_type_t
 
 type for_attrib

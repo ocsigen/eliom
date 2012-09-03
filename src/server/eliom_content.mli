@@ -133,53 +133,6 @@ module Html5 : sig
 
 end
 
-(** Building valid XHTML. *)
-module Xhtml : sig
-
-  (** Creation of {e f}unctional HTML5 content (copy-able but not referable). *)
-  module F : sig
-    (** {2 Content creation}
-        See {% <<a_api project="tyxml" | module Xhtml_sigs.T >> %} *)
-    include module type of Eliom_content_core.Xhtml.F
-                   with type Xml.uri = Xml.uri
-                   and type Xml.event_handler = Xml.event_handler
-                   and type Xml.attrib = Xml.attrib
-                   and type Xml.elt = Xml.elt
-                   with type +'a elt = 'a Eliom_content_core.Xhtml.F.elt
-                   and type 'a attrib = 'a Eliom_content_core.Xhtml.F.attrib
-                   and type uri = Eliom_content_core.Xhtml.F.uri
-    include "sigs/eliom_xhtml_forms.mli"
-  end
-  module F_01_00 : sig
-    (** {2 Content creation}
-        See {% <<a_api project="tyxml" | module Xhtml_sigs.T >> %} *)
-    include module type of Eliom_content_core.Xhtml.F_01_00
-                   with type Xml.uri = Xml.uri
-                   and type Xml.event_handler = Xml.event_handler
-                   and type Xml.attrib = Xml.attrib
-                   and type Xml.elt = Xml.elt
-                   with type +'a elt = 'a Eliom_content_core.Xhtml.F_01_00.elt
-                   and type 'a attrib = 'a Eliom_content_core.Xhtml.F_01_00.attrib
-                   and type uri = Eliom_content_core.Xhtml.F_01_00.uri
-    include "sigs/eliom_xhtml_forms.mli"
-  end
-  module F_01_01 : sig
-    (** {2 Content creation}
-        See {% <<a_api project="tyxml" | module Xhtml_sigs.T >> %} *)
-    include module type of Eliom_content_core.Xhtml.F_01_01
-                   with type Xml.uri = Xml.uri
-                   and type Xml.event_handler = Xml.event_handler
-                   and type Xml.attrib = Xml.attrib
-                   and type Xml.elt = Xml.elt
-                   with type +'a elt = 'a Eliom_content_core.Xhtml.F_01_01.elt
-                   and type 'a attrib = 'a Eliom_content_core.Xhtml.F_01_01.attrib
-                   and type uri = Eliom_content_core.Xhtml.F_01_01.uri
-    include "sigs/eliom_xhtml_forms.mli"
-  end
-  module Printer : module type of Eliom_content_core.Xhtml.Printer
-  module Printer_01_00 : module type of Eliom_content_core.Xhtml.Printer_01_00
-  module Printer_01_01 : module type of Eliom_content_core.Xhtml.Printer_01_01
-end
 
 module Html_text : sig
   include "sigs/eliom_forms.mli"
@@ -220,7 +173,6 @@ module Html_text : sig
     and type option_attrib_t := string
 
     and type input_type_t := string
-    and type raw_input_type_t := string
     and type button_type_t := string
     and type for_attrib := string
 end

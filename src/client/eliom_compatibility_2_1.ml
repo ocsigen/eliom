@@ -52,9 +52,7 @@ module Eliom_output = struct
     include Eliom_registration.Html5
     include Html5_forms
   end
-  module Xhtml = Eliom_registration.Xhtml
   module Redirection = Eliom_registration.Redirection
-  module Blocks = Eliom_registration.Block
   module Blocks5 = Eliom_registration.Block5
   module Html_text = Eliom_registration.Html_text
   module CssText = Eliom_registration.CssText

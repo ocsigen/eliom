@@ -19,7 +19,7 @@
  *)
 
 (** Eliom services registration for various kinds of
-    page content: Eliom application, valid {!Html5} or {!Xhtml},
+    page content: Eliom application, valid {!Html5},
     actions, redirections, static files, … *)
 
 (** See the Eliom manual for
@@ -71,8 +71,7 @@ type http_service = [ `Http ]
     means the returned content must be interpreted in the browser as
     stated by the content-type header. This is most common return type
     for an eliom service, see for example {!Html5},
-    {!Xhtml}, {!CssText}, {!File},
-    {!Redirection}, ….*)
+    {!CssText}, {!File}, {!Redirection}, ….*)
 type browser_content = [ `Browser ]
 
 (** The type [block_content] is a refinement of {!http_service} to be
@@ -121,7 +120,7 @@ type non_caml_service = [ appl_service | http_service ]
 (** {3 Module signature} *)
 
 (** Abstract signature for service registration functions. For
-    concrete instance see {!Html5}, {!Xhtml}, {!CssText}, {!File},
+    concrete instance see {!Html5}, {!CssText}, {!File},
     {!Redirection}, … *)
 module type Registration = sig
   type page
@@ -144,19 +143,6 @@ module Html5_registration : "sigs/eliom_html5_reg.mli"
 module Html5 : sig
   include "sigs/eliom_html5_reg.mli"
 end
-
-(** {2 Using XHTML with services } *)
-
-(** Eliom service registration for XHTML page. This
-    an instance the {!Registration} abstract signatures. *)
-module Xhtml : sig
-  include "sigs/eliom_xhtml_reg.mli"
-end
-
-(** Eliom service registration for services that returns XHTML
-    page. This is a subset of the {!Xhtml} module and an instance of
-    the {!Registration} abstract signature. *)
-module Xhtml_registration : "sigs/eliom_xhtml_reg.mli"
 
 (** {2 Eliom client/server applications} *)
 
@@ -262,15 +248,6 @@ module Flow5 : "sigs/eliom_reg.mli"
 (** Deprecated alias for {!Flow5}. *)
 module Block5 : "sigs/eliom_reg.mli"
   subst type page    := Html5_types.flow5 Eliom_content_core.Html5.elt list
-  and type options := unit
-  and type return  := http_service
-  and type result  := (block_content, http_service) kind
-
-(** Eliom service registration and forms creation for fragment of
-    XHTML page. This is an instance of the {!Registration} abstract
-    signature. *)
-module Block : "sigs/eliom_reg.mli"
-  subst type page    := Xhtml_types.body_content Eliom_content_core.Xhtml.F.elt list
   and type options := unit
   and type return  := http_service
   and type result  := (block_content, http_service) kind

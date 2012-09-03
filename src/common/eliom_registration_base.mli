@@ -22,25 +22,31 @@ type appl_service = [ `Appl ]
 type http_service = [ `Http ]
 type non_caml_service = [ appl_service | http_service ]
 
-type basic_input_type =
-    [ `Hidden
-    | `Password
-    | `Submit
-    | `Text
-    ]
-
-type full_input_type =
-    [ `Button
-    | `Checkbox
-    | `File
-    | `Hidden
-    | `Image
-    | `Password
-    | `Radio
-    | `Reset
-    | `Submit
-    | `Text
-    ]
+type input_type =
+  [
+  | `Url
+  | `Tel
+  | `Text
+  | `Time
+  | `Search
+  | `Password
+  | `Checkbox
+  | `Range
+  | `Radio
+  | `Submit
+  | `Reset
+  | `Number
+  | `Hidden
+  | `Month
+  | `Week
+  | `File
+  | `Email
+  | `Image
+  | `Datetime_local
+  | `Datetime
+  | `Date
+  | `Color
+  | `Button]
 
 type button_type =
     [ `Button

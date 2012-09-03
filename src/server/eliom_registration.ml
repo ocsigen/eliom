@@ -149,59 +149,6 @@ end
 (******************************************************************************)
 (******************************************************************************)
 
-(*****************************************************************************)
-(*****************************************************************************)
-
-module Xhtml_make_reg_base
-  (Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
-     with type t = Xhtml_types.xhtml Xhtml.F.elt
-     and type options = Http_headers.accept Lazy.t) = struct
-
-  open Xhtml.F
-  open Xhtml_types
-
-  type page = xhtml elt
-  type return = http_service
-  type result = (browser_content, http_service) kind
-  type options = unit
-
-  let result_of_http_result = Result_types.cast_result
-
-  let send_appl_content = Eliom_service.XNever
-
-  let send ?options ?charset ?code ?content_type ?headers content =
-    let accept =
-      (Eliom_request_info.get_ri ()).Ocsigen_extensions.ri_accept in
-    lwt r = Xhtml_content.result_of_content ~options:accept content in
-    Lwt.return
-      {r with
-         Ocsigen_http_frame.
-         res_code    = code_of_code_option code;
-         res_charset = (match charset with
-           | None -> Some (Eliom_config.get_config_default_charset ())
-           | _ -> charset);
-         res_content_type = (match content_type with
-           | None -> r.Ocsigen_http_frame.res_content_type
-           | _ -> content_type
-        );
-         res_headers = (match headers with
-           | None -> r.Ocsigen_http_frame.res_headers
-           | Some headers ->
-             Http_headers.with_defaults headers r.Ocsigen_http_frame.res_headers
-         );
-      }
-
-end
-
-module Xhtml_reg_base =
-  Xhtml_make_reg_base(Ocsigen_senders.Make_XML_Content(Eliom_content.Xml)(Eliom_content.Xhtml.F))
-
-module Xhtml_registration = Eliom_mkreg.MakeRegister(Xhtml_reg_base)
-
-module Xhtml = struct
-  include Xhtml_registration
-end
-
 
 (****************************************************************************)
 (****************************************************************************)
@@ -278,10 +225,6 @@ module Make_typed_xml_registration
     include Eliom_mkreg.MakeRegister(Cont_reg_base)
 
   end
-
-module Block = Make_typed_xml_registration(Xml)(Eliom_content.Xhtml.F)(struct
-  type content = Xhtml_types.body_content
-end)
 
 module Flow5 = Make_typed_xml_registration(Xml)(Eliom_content.Html5.D)(struct
   type content = Html5_types.flow5
@@ -1889,7 +1832,8 @@ module Redir_reg_base = struct
 
   let send ?(options = `Found) ?charset ?code
       ?content_type ?headers service =
-    let uri = lazy (Eliom_content.Xhtml.F.make_string_uri ~absolute:true ~service ()) in
+    let uri = lazy (Eliom_content.Html5.F.make_string_uri
+                      ~absolute:true ~service ()) in
     let empty_result = Ocsigen_http_frame.empty_result () in
     let content_type = match content_type with
       | None -> empty_result.Ocsigen_http_frame.res_content_type

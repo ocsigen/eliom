@@ -51,7 +51,6 @@ type optgroup_attrib_t = {{ attrs ++ { disabled=?"disabled" } }}
 type option_attrib_t = option_attrs
 
 type input_type_t = input_type_values
-type raw_input_type_t = input_type_values
 type button_type_t = button_type_values
 
 type for_attrib = {{ { for=String } }}
