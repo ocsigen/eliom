@@ -319,7 +319,9 @@ var caml_unwrap_value = function (){
         return arr;
       }
     }
-    return run(arr);
+    var res = run(arr);
+    delete arr.unwrap_value_visited; // If unwrapped again later
+    return res;
   };
 }();
 
