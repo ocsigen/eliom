@@ -193,15 +193,19 @@ type escaped_value = poly
 
 (**/**)
 
-module Map_make (Ord : Map.OrderedType) = struct
+module Map_make (Ord : sig include Map.OrderedType val to_string : t -> string end) = struct
   include Map.Make (Ord)
   let from_list li =
     List.fold_right (uncurry add) li empty
+  let to_string value_to_string map =
+    String.concat ", "
+      (List.map (fun (key, value) -> Ord.to_string key ^ ":" ^ value_to_string value)
+         (bindings map))
 end
 
 module Int64_map = Map_make (Int64)
-module Int_map = Map_make (struct type t = int let compare = (-) end)
-module String_map = Map_make (String)
+module Int_map = Map_make (struct type t = int let compare = (-) let to_string = string_of_int end)
+module String_map = Map_make (struct include String let to_string x = x end)
 
 
 module Client_value_data_base = struct

@@ -135,14 +135,17 @@ type escaped_value = poly
 module Int64_map : sig
   include Map.S with type key = int64
   val from_list : (key * 'a) list -> 'a t
+  val to_string : ('a -> string) -> 'a t -> string
 end
 module Int_map : sig
   include Map.S with type key = int
   val from_list : (key * 'a) list -> 'a t
+  val to_string : ('a -> string) -> 'a t -> string
 end
 module String_map : sig
   include Map.S with type key = string
   val from_list : (key * 'a) list -> 'a t
+  val to_string : ('a -> string) -> 'a t -> string
 end
 
 (**/**)
