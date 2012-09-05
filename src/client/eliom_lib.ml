@@ -72,7 +72,7 @@ let js_array_to_list arr =
     Js.wrap_callback (fun v -> set_tracing (Js.to_bool v)) *)
 
 let debug_exn f e =
-  Printf.ksprintf (fun s -> Firebug.console##log (Js.string (s^(Printexc.to_string e)))) f
+  Printf.ksprintf (fun s -> Firebug.console##log (Js.string (s^" "^(Printexc.to_string e)))) f
 let debug f = Printf.ksprintf (fun s -> Firebug.console##log (Js.string s)) f
 let error f = Printf.ksprintf (fun s -> Firebug.console##error (Js.string s); failwith s) f
 let trace f =
