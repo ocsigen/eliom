@@ -1165,7 +1165,7 @@ module Ocaml = struct
 
   let prepare_data data =
     let client_value_data = client_value_data ~is_first_request:false in
-    debug_client_value_data (debug "%s") client_value_data;
+(*     debug_client_value_data (debug "%s") client_value_data; *)
     let r = { Eliom_types.
               ecs_client_value_data = Client_value_data.with_unwrapper client_value_data;
               ecs_data = data } in
@@ -1515,8 +1515,10 @@ module Eliom_appl_reg_make_param
     let client_value_data = client_value_data ~is_first_request in
     let injection_data = injection_data ~is_first_request in
 
+(*
     debug_client_value_data (debug "%s") client_value_data;
     debug_injection_data (debug "%s") injection_data;
+ *)
 
     (* wrapping of values could create eliom references that may
        create cookies that needs to be sent along the page. Hence,
