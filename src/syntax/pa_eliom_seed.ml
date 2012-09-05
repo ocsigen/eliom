@@ -624,7 +624,6 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 end
 
 
-(*
 module Make(Syntax : Camlp4.Sig.Camlp4Syntax) = struct
 
   include Syntax
@@ -635,12 +634,12 @@ module Make(Syntax : Camlp4.Sig.Camlp4Syntax) = struct
 
   implem: FIRST
     [[ (sil, stopped) = implem LEVEL "top" ->
-      ( <:str_item< open Eliom_lib >>:: sil , stopped) ]
+      ( <:str_item< open Eliom_pervasives >>:: sil , stopped) ]
   | "top" [] ];
 
   interf: FIRST
     [[ (sil, stopped) = interf LEVEL "top" ->
-      ( <:sig_item< open Eliom_lib >> :: sil , stopped) ]
+      ( <:sig_item< open Eliom_pervasives >> :: sil , stopped) ]
   | "top" [] ];
 
   END
@@ -652,4 +651,3 @@ module Id : Camlp4.Sig.Id = struct
 end
 
 module M = Camlp4.Register.OCamlSyntaxExtension(Id)(Make)
- *)
