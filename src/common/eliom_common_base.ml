@@ -235,13 +235,20 @@ type sess_info =
 
 (************ unwrapping identifiers *********************)
 
-let tyxml_unwrap_id_int = Eliom_lib_base.tyxml_unwrap_id_int (* 1 *)
+let tyxml_unwrap_id_int = Eliom_lib_base.tyxml_unwrap_id_int
+let () = assert (tyxml_unwrap_id_int = 1)
 let comet_channel_unwrap_id_int = 2
 let react_up_unwrap_id_int = 3
 let react_down_unwrap_id_int = 4
 let signal_down_unwrap_id_int = 5
 let bus_unwrap_id_int = 6
-let client_value_unwrap_id_int = Eliom_lib_base.client_value_unwrap_id_int (* 7 *)
+let client_value_unwrap_id_int = Eliom_lib_base.client_value_unwrap_id_int
+let () = assert (client_value_unwrap_id_int = 7)
+let client_value_data_unwrap_id_int = Eliom_lib_base.Client_value_data_base.unwrap_id_int
+let () = assert (client_value_data_unwrap_id_int = 8)
+let injection_data_unwrap_id_int = Eliom_lib_base.Injection_data_base.unwrap_id_int
+let () = assert (injection_data_unwrap_id_int = 9)
+let server_function_unwrap_id_int = 10
 
 type node_ref = string
 
