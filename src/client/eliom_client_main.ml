@@ -58,6 +58,8 @@ let _ =
     (Dom.handler onload) Js._true
 
 (* The following lines are for Eliom_bus, Eliom_comet and Eliom_react to be linked. *)
-let _a = Eliom_react.force_link
-let _b = Eliom_comet.force_link
-let _c = Eliom_bus.force_link
+let _force_link =
+  Eliom_react.force_link,
+  Eliom_comet.force_link,
+  Eliom_bus.force_link,
+  Eliom_pervasives._force_link

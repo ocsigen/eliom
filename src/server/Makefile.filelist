@@ -1,6 +1,6 @@
 
 INTF := eliom_lib.cmi               \
-	eliom_server.cmi            \
+        eliom_server.cmi            \
         eliom_content_core.cmi      \
         eliom_content.cmi           \
         eliom_cookie.cmi             \
@@ -18,14 +18,15 @@ INTF := eliom_lib.cmi               \
         eliom_react.cmi             \
         eliom_bus.cmi               \
         eliom_wrap.cmi              \
-	\
+        \
         eliom_tools_common.cmi      \
         eliom_tools.cmi             \
         eliom_mkreg.cmi             \
         eliom_reference.cmi         \
         eliom_extension.cmi         \
+        eliom_pervasives.cmi        \
         \
-	extensions/eliom_s2s.cmi    \
+        extensions/eliom_s2s.cmi    \
         extensions/eliom_openid.cmi \
         extensions/atom_feed.cmi    \
         extensions/eliom_atom.cmi   \
@@ -35,7 +36,7 @@ NO_MLI := eliom_compatibility_2_1.cmi
 DUCE_INTF = eliom_duce.cmi       \
             eliom_duce_sigs.cmi  \
             eliom_duce_types.cmi \
-	    eliom_duce_tools.cmi \
+            eliom_duce_tools.cmi \
 
 ifeq "$(OCAMLDUCE)" "YES"
 

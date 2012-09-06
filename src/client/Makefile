@@ -58,6 +58,8 @@ FILES := private/eliommod_jstable.ml \
 	 eliom_compatibility_2_1.ml \
 	 eliom_bus.ml \
 	 eliom_react.ml \
+	 eliom_pervasives_base.ml \
+	 eliom_pervasives.ml \
 
 INTF_NOP4 :=
 
