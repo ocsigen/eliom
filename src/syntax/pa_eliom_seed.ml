@@ -201,13 +201,15 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
             is_escaped_indent_string id
         | si -> false
 
-      let injected_ident_prefix = "__eliom__injected_ident__reserved_name__"
-      let injected_ident_prefix_length = String.length injected_ident_prefix
+      let injected_ident_fmt () =
+        format_of_string "__eliom__injected_ident__reserved_name__%019d__%d"
       let is_injected_ident = function
           (* | <:sig_item< val $id$ : $t$ >> -> *)
         | Ast.SgVal (_loc, id, t) ->
-            String.length id > injected_ident_prefix_length &&
-            String.sub id 0 injected_ident_prefix_length = injected_ident_prefix
+            (try
+               Scanf.sscanf id (injected_ident_fmt ()) (fun _ _ -> true)
+             with Scanf.Scan_failure _ ->
+               false)
         | si -> false
 
       let client_value_ident_prefix = "__eliom__client_value__reserved_name__"
@@ -229,8 +231,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       let extract_injected_ident_type = function
           (* | <:sig_item< val $id$ : ($t$ option ref) >> -> *)
         | Ast.SgVal (_loc, id, <:ctyp< ($t$ option ref) >>) ->
-            let len = String.length id - injected_ident_prefix_length in
-            int_of_string (String.sub id injected_ident_prefix_length len),
+            Scanf.sscanf id (injected_ident_fmt ()) (fun _filehash n -> n),
             suppress_underscore t
         | _ -> assert false
       let extract_client_value_type = function
@@ -275,8 +276,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
       let find_injected_ident_type id =
         try
-          let len = String.length id - injected_ident_prefix_length in
-          let id = int_of_string (String.sub id injected_ident_prefix_length len) in
+          let id = Scanf.sscanf id (injected_ident_fmt ()) (fun _filehash n -> n) in
           List.assoc id (snd_3 (Lazy.force infered_sig))
         with Not_found ->
           Printf.eprintf "Error: Infered type of injected ident not found (%s).\nYou need to regenerate %s.\n"
@@ -415,9 +415,10 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
     let gen_injected_ident =
       let r = ref 0 in
-      fun () ->
+      fun filename ->
+        let hash = Hashtbl.hash filename in
         incr r;
-        Helpers.injected_ident_prefix ^ string_of_int !r
+        Printf.sprintf (Helpers.injected_ident_fmt ()) hash !r
 
     (* BBB Before the syntax error was thrown in the productions dummy_set_*. This
        resulted in wrong error locations. The solution is to let the dummy productions
@@ -583,7 +584,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                          | Escaped_in_client_value_in _ ->
                              gen_escaped_ident id
                          | Injected_in _ ->
-                             gen_injected_ident ()
+                             gen_injected_ident (Loc.file_name _loc)
                      in
                      Pass.escape_inject context <:expr< $id:id$ >> gen_id)
                 "The syntax \"%%ident\" is not allowed in %s."
@@ -601,7 +602,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                        | Escaped_in_client_value_in _ ->
                            gen_escaped_expr_ident ()
                        | Injected_in _ ->
-                           gen_injected_ident ()
+                           gen_injected_ident (Loc.file_name _loc)
                    in
                    Pass.escape_inject context e gen_id)
                 "The syntax \"%%(...)\" is not allowed in %s."
