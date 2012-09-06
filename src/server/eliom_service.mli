@@ -704,6 +704,6 @@ val get_injection_data : unit -> Injection_data.base
 (* TODO BB Find a better place for this module *)
 module Syntax_helpers : sig
   val client_value : int64 -> 'args -> 'a client_value
-  val injection : string -> 'a -> unit
+  val injection : string -> (unit -> 'a) -> unit
   val escaped_value : 'a -> escaped_value
 end

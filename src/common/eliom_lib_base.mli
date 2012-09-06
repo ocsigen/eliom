@@ -156,7 +156,7 @@ module Client_value_data_base : sig
 end
 
 module Injection_data_base : sig
-  type base = (string * poly) list
+  type base = (string * (unit -> poly)) list
   val unwrap_id_int : int
 end
 

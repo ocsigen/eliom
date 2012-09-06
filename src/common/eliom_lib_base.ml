@@ -214,7 +214,7 @@ module Client_value_data_base = struct
 end
 
 module Injection_data_base = struct
-  type base = (string * poly) list
+  type base = (string * (unit -> poly)) list
   let unwrap_id_int = 9
 end
 
@@ -229,4 +229,5 @@ let debug_client_value_data f client_value_data =
 let debug_injection_data f injection_data =
   Printf.ksprintf f "Injection data: %s"
     (String.concat ","
-       (List.map fst injection_data));
+       (List.map fst injection_data))
+

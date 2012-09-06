@@ -108,7 +108,7 @@ module Injection_data = struct
 
   let with_unwrapper injection_data =
     List.map
-      (fun datum -> datum, unwrapper)
+      (fun (str, f) -> (str, f ()), unwrapper)
       injection_data
 
 end

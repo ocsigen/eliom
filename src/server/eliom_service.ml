@@ -578,7 +578,7 @@ module Syntax_helpers = struct
     create_client_value
       (Eliom_server.Client_value.create closure_id instance_id)
 
-  let injection name value =
-    register_injection name (to_poly value)
+  let injection name f =
+    register_injection name (fun () -> to_poly (f ()))
 
 end

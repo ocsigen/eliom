@@ -99,7 +99,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
         let _loc = Loc.ghost in
         <:str_item<
           let () =
-            Eliom_service.Syntax_helpers.injection $str:gen_id$ $orig_expr$
+            Eliom_service.Syntax_helpers.injection $str:gen_id$ (fun () -> $orig_expr$)
         >>)
       injections
 
