@@ -33,7 +33,7 @@ include module type of Eliom_lib_base
   with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
   with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
 
-(** Client values on the server are created by the syntax {{ ... }} in the
+(** Client values on the server are created by the syntax [{{ ... }}] in the
     server section. Those values are abstract on the server and unwrapped
     (cf. {% <<a_manual chapter="wrapping"|(Un-)wrapping>> %}) to the actual
     value when used on the client side by [%var].
