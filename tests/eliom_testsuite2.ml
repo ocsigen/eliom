@@ -1171,7 +1171,7 @@ let preappl2 = preapply uasuffix (1999,01)
 
 let mymenu current =
   let module Html5 = Eliom_content.Html5.F in
-  Eliom_tools.Html5.menu ~classe:["menuprincipal"]
+  Eliom_tools.Menu.F.menu ~classe:["menuprincipal"]
     [(coucou, <:html5list< coucou >>);
      (preappl, <:html5list< params >>);
      (preappl2, <:html5list< params and suffix >>);

@@ -28,10 +28,120 @@ let string_prefix s1 s2 =
   String.length s1 <= String.length s2 &&
     s1 = String.sub s2 0 (String.length s1)
 
+(** Menu and hierarchical site for HTML5 *)
+module type MENU = sig
 
-module Html5 = struct
+(** {2 Simple menu } *)
+
+  (** The function [menu elts ()], where [elts] is a list of pair
+      [(service, content)], creates a list of link towards the
+      [service]s. See the Eliom manual for an {% <<a_manual
+      chapter="misc" fragment="basic_menu"|example of menu>>%}.
+
+      The optional parameter [service] is used to find which item(s)
+      to highlight (by adding the class [eliomtools_current] to the
+      corresponding [<li>] node). The default is to highlight the item
+      corresponding to the current url.
+
+      The optional parameters [id] and [classe] allow to specify the
+      corresponding attributes in the generated [<ul>] node. The
+      default class for the [<ul>] node is [eliomtools_menu]. *)
+  val menu :
+    ?classe:Html5_types.nmtoken list ->
+    ?id:string ->
+    (([< get_service_kind ] as 'a,
+      [< registrable ] as 'b,
+      [< Eliom_registration.non_caml_service ] as 'c) one_page *
+        Html5_types.flow5_without_interactive Html5.elt list)
+      list ->
+    ?service:('a, 'b, 'c) one_page ->
+    unit ->
+    [> `Ul ] Html5.elt
+
+(** {2 Hierchical sites } *)
+
+  (** The function [hierarchical_menu_depth_first site ()] constructs
+      a hierarchical menu by exploring the hierarchical [site]
+      description using a depth-first algorithm: the first menu item
+      will be displayed, followed by the whole sub-menu for this item,
+      then the second menu item with its sub-menu, and so on.
+
+      By default, only the sub-menus for to the url corresponding to
+      the optional argument [service] are displayed, others sub-menu
+      are collapsed. If you want all the sub-menus to be displayed,
+      specify [~whole_tree:true]. If the optional parameter [service]
+      is not given, the current page is used.
+
+      See {!menu} for a description of the optional parameters [id]
+      and [classe]. *)
+  val hierarchical_menu_depth_first :
+    ?classe:Html5_types.nmtoken list ->
+    ?id:string ->
+    ?whole_tree:bool ->
+    ([< Eliom_service.get_service_kind ] as 'a,
+     [< Eliom_service.registrable ] as 'b,
+     Html5_types.a_content Html5.elt list)
+      hierarchical_site ->
+    ?service:('a, 'b, 'c) one_page ->
+    unit ->
+    [> `Ul ] Html5.elt list
+
+
+
+  (** The function [hierarchical_menu_breadth_first site ()]
+      constructs a hierarchical menu by exploring the hierarchical
+      [site] description using a breadth_first algorithm: the whole
+      menu for one level will be displayed, followed by the sub-menu
+      leading to the current service, and so one.
+
+      By default the current service correspond to the current
+      url. The optional parameter [service] allow to override the
+      current service.
+
+      See {!menu} for a description of the optional parameters [id]
+      and [classe].
+  *)
+  val hierarchical_menu_breadth_first :
+    ?classe:Html5_types.nmtoken list ->
+    ?id:string ->
+    ([< Eliom_service.get_service_kind ] as 'a,
+     [< Eliom_service.registrable ] as 'b,
+     Html5_types.a_content Html5.elt list)
+      hierarchical_site ->
+    ?service:('a, 'b, [< Eliom_registration.non_caml_service]) one_page ->
+    unit ->
+    [> `Ul ] Html5.elt list
+
+  (** The function [structure_links site ()] returns the tags [<link
+      rel="subsection" ...>] and [<link rev="subsection" ...>] for the
+      given hierarchical [site].
+
+      By default the current service correspond to the current
+      url. The optional parameter [service] allow to override the
+      current service. *)
+  val structure_links :
+    ([< Eliom_service.get_service_kind ] as 'a,
+     [< Eliom_service.registrable ] as 'b,
+     Html5_types.a_content Html5.elt list)
+    hierarchical_site ->
+    ?service:('a, 'b, [< Eliom_registration.non_caml_service ]) one_page ->
+    unit ->
+    [> `Link ] Html5.elt list
+
+  (** An auxiliary function for creating an HTML head elements. Resources (JS,
+      CSS) are taken from the static directory. *)
+  val head :
+    title:string ->
+    ?css:string list list ->
+    ?js:string list list ->
+    unit ->
+    Html5_types.head Html5.elt
+end
+
+
+module Make(DorF : module type of Eliom_content.Html5.F) : MENU = struct
   open Html5_types
-  open Html5.D
+  open Html5.F
 
   let a_ul classes id level =
     let classes = [a_class classes] in
@@ -67,15 +177,15 @@ module Html5 = struct
          then  (li ~a:[a_class [current_class]] text)
          else (li [a url text ()]))::(aux l)
     in match l with
-      | [] ->  ul ~a:(a_ul (menu_class::classe) id 0) []
+      | [] ->  DorF.ul ~a:(a_ul (menu_class::classe) id 0) []
       | [(url, text)] ->
-        ul ~a:(a_ul (menu_class::classe) id 0)
+        DorF.ul ~a:(a_ul (menu_class::classe) id 0)
           [let liclasse = [first_class; last_class] in
            if same_service_opt url current
            then (li ~a:[a_class (current_class::liclasse)] text)
            else (li ~a:[a_class liclasse] [a url text ()])]
       | (url, text)::l ->
-        ul ~a:(a_ul (menu_class::classe) id 0)
+        DorF.ul ~a:(a_ul (menu_class::classe) id 0)
           (let liclasse = [first_class] in
            (if same_service_opt url current
            then (li ~a:[a_class (current_class::liclasse)] text)
@@ -190,6 +300,7 @@ module Html5 = struct
         | a::l -> (one_item first false i a)::(one_menu false (i+1) l)
       in
       let classe = (level_class^string_of_int level)::classe in
+      let ul = if level = 0 then DorF.ul else ul in
       [ul ~a:(a_ul (menu_class::classe) id level) (one_menu true 0 pages)]
     in
 
@@ -255,6 +366,7 @@ module Html5 = struct
           | [] -> []
           | a::l -> submenu a l pages
       in
+      let ul = if level = 0 then DorF.ul else ul in
       ul ~a:(a_ul (menu_class::classe) id level) (one_menu true 0 pages)::l
 
     in
@@ -315,10 +427,15 @@ module Html5 = struct
     let mk_js_script path =
       let uri = make_uri  (Eliom_service.static_dir ()) path in
       js_script ~uri () in
-    head
+    DorF.head
       (title (pcdata ttl))
       List.(map mk_css_link css @ map mk_js_script js)
 
 end
 
+
+module Menu = struct
+  module F = Make(Html5.F)
+  module D = Make(Html5.D)
+end
 

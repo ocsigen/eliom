@@ -45,7 +45,7 @@ let test ~path ~title:ttl ~description f =
               lwt content = f () in
               Lwt.return
                 Html5.F.(html
-                           (Eliom_tools.Html5.head
+                           (Eliom_tools.Menu.F.head
                               ~title:(String.concat "/" path)
                               ~css:[["style.css"]] ())
                            (body

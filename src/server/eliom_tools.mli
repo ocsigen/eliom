@@ -87,7 +87,7 @@ constraint 'b = [< Eliom_service.registrable ]
    do not remove this comment ! *)
 
 (** Menu and hierarchical site for HTML5 *)
-module Html5 : sig
+module type MENU = sig
 
 (** {2 Simple menu } *)
 
@@ -196,3 +196,10 @@ module Html5 : sig
     Html5_types.head Html5.elt
 end
 
+module Menu : sig
+  (** Menus with functional node semantics *)
+  module F : MENU
+    
+  (** Menus with DOM semantics *)
+  module D : MENU
+end
