@@ -54,7 +54,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
                 | typ -> typ
     in
     let escaped_value (_, arg) =
-      let _loc = Loc.ghost in
+      let _loc = Ast.loc_of_expr arg in
       <:expr< Eliom_service.Syntax_helpers.escaped_value $arg$ >>
     in
     <:expr@loc<
@@ -140,7 +140,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           <:expr< >>
       | Injected_in _ ->
           push_injected orig_expr gen_id;
-          let _loc = Loc.ghost in
+          let _loc = Ast.loc_of_expr orig_expr in
           <:expr< $lid:gen_id$ >>
 
 

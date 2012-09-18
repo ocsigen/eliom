@@ -48,8 +48,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     let mapper =
       Ast.map_expr
         (function
-           | <:expr< $lid:str$ >> when Helpers.is_escaped_indent_string str ->
-               let _loc = Loc.ghost in
+           | <:expr@_loc< $lid:str$ >> when Helpers.is_escaped_indent_string str ->
                <:expr< Eliom_client.Syntax_helpers.get_escaped_value $lid:str$ >>
            | expr -> expr)
     in
@@ -216,7 +215,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
        | Escaped_in_client_value_in `Server ->
            push_escaped_arg gen_id;
            let expr =
-             let _loc = Loc.ghost in
+             let _loc = Ast.loc_of_expr orig_expr in
              <:expr< $lid:gen_id$ >>
            in
            if !notyp then
@@ -235,11 +234,11 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
        | Escaped_in_client_value_in `Shared ->
            push_escaped_arg gen_id;
            push_client_arg (Ast.loc_of_expr orig_expr) orig_expr gen_id;
-           let _loc = Loc.ghost in
+           let _loc = Ast.loc_of_expr orig_expr in
            <:expr< $lid:gen_id$ >>
        | Injected_in `Shared ->
            push_injected_var gen_id orig_expr;
-           let _loc = Loc.ghost in
+           let _loc = Ast.loc_of_expr orig_expr in
            <:expr< $lid:gen_id$ >>
        | Injected_in `Client ->
            push_injected_var gen_id orig_expr;
