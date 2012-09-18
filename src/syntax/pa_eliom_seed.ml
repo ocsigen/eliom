@@ -338,7 +338,20 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
               [< '(KEYWORD "}", loc0); 'other; filter nnext >]
           )
 
-      | [< 'other; next >] -> [< 'other; filter next >]
+      | [< 'other; next >] ->
+          let is_left_delimitor str = List.mem str.[0] ['('; '['; '{'] in
+          let ends_with_percent_sign str = str.[String.length str-1] = '%' in
+          match other with
+            | (* Allow %-sign to for injection directly after left delimitors *)
+              SYMBOL str, loc0
+              when String.length str > 0 &&
+                   is_left_delimitor str &&
+                   ends_with_percent_sign str ->
+                let left = String.sub str 0 (String.length str - 1) in
+                let loc_left = Loc.move `stop (-1) loc0 in
+                let loc_right = Loc.move `start (String.length str - 1) loc0 in
+                [< '(KEYWORD left, loc_left); '(SYMBOL "%", loc_right); filter next >]
+            | _ -> [< 'other; filter next >]
 
     let () =
       Token.Filter.define_filter
