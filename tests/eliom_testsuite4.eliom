@@ -1310,10 +1310,47 @@ let test_withdom =
 
 (******************************************************************************)
 
+let test_server_function =
+  let f str =
+    let strstr = str ^ str in
+    debug "test_server_function: received %S sending %S" str strstr;
+    Lwt.return (str ^ str) in
+  let rpc_f = server_function Json.t<string> f in
+  Eliom_testsuite_base.test
+    ~title:"RPC / server functions"
+    ~path:["mixed"; "server_function"]
+    ~description:Html5.F.([
+      pcdata
+        "Server functions make functions from the server available on the client.";
+      br ();
+      pcdata
+        "Click the button to send the content of the field to the server, where it \
+         logged to the console, and sent back doubled";
+    ])
+    (fun () ->
+       let field = Html5.D.input () in
+       let onclick = {{
+         fun _ ->
+           let field_dom = Html5.To_dom.of_input %field in
+           let str = Js.to_string field_dom##value in
+           field_dom##value <- Js.string "";
+           Lwt.async
+             (fun () ->
+                lwt strstr = %rpc_f str in
+                alert "Sent %S received %S" str strstr;
+                Lwt.return ())
+       }} in
+       Lwt.return Html5.F.([
+         Eliom_testsuite_base.thebutton ~msg:"send" onclick;
+         br ();
+         field; 
+       ]))
+
 let tests = [
   "Mixed", [
     test_custom_data;
     test_withdom;
+    test_server_function;
   ];
   "Holes", [
     test_escape_scoping;

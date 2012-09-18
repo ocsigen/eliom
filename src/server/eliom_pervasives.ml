@@ -4,15 +4,13 @@ open Eliom_pervasives_base
 
 type ('a, 'b) server_function = ('a, 'b) server_function_service * Eliom_wrap.unwrapper
 
-(* BB FIXME [argument] must not be sent marshalled, this may segfault the server.
-   Better send the argument jsonified. *)
-let server_function f : (_, _) server_function =
+let server_function argument_type f : (_, _) server_function =
   Eliom_registration.Ocaml.register_post_coservice'
-    ~post_params:Eliom_parameter.(string "marshalled_argument")
-    (fun () marshalled_argument ->
+    ~post_params:Eliom_parameter.(string "jsonified_argument")
+    (fun () jsonified_argument ->
        let argument =
-         Marshal.from_string
-           (Url.decode marshalled_argument) 0
+         Deriving_Json.from_string argument_type
+           (Url.decode jsonified_argument)
        in
        lwt res =
          try_lwt
