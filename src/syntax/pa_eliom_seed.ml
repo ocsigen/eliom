@@ -436,7 +436,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
     (* BBB Before the syntax error was thrown in the productions dummy_set_*. This
        resulted in wrong error locations. The solution is to let the dummy productions
        return an option and raise the syntax error in the enclosing production. *)
-    let from_some_or_raise loc opt f fmt =
+    let from_some_or_raise opt loc f fmt =
       match opt with
         | Some x ->
             Printf.ksprintf (fun _ -> f x) fmt
@@ -534,21 +534,21 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         [ "eliom"
 
          [ KEYWORD "{shared{" ; opt = dummy_set_level_shared ; es = LIST0 str_item ; KEYWORD "}}" ->
-             from_some_or_raise _loc opt
+             from_some_or_raise opt _loc
                (fun () ->
                   set_current_level Toplevel;
                   Pass.shared_str_items es)
                "The syntax {shared{ ... }} is only allowed at toplevel"
 
          | KEYWORD "{server{" ; opt = dummy_set_level_server ; es = LIST0 str_item ; KEYWORD "}}" ->
-             from_some_or_raise _loc opt
+             from_some_or_raise opt _loc
                (fun () ->
                   set_current_level Toplevel;
                   Pass.server_str_items es)
                "The syntax {server{ ... }} is only allowed at toplevel"
 
          | KEYWORD "{client{" ; opt = dummy_set_level_client ; es = LIST0 str_item ; KEYWORD "}}" ->
-             from_some_or_raise _loc opt
+             from_some_or_raise opt _loc
                (fun () ->
                   set_current_level Toplevel;
                   Pass.client_str_items es)
@@ -570,7 +570,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         [ [ KEYWORD "{"; lel = TRY [lel = label_expr_list; "}" -> lel] ->
               <:expr< { $lel$ } >>
           | KEYWORD "{"; typ = TRY [ typ = OPT ctyp; KEYWORD "{" -> typ]; opt_lvl = dummy_set_level_client_value_expr ; e = expr; KEYWORD "}}" ->
-              from_some_or_raise _loc opt_lvl
+              from_some_or_raise opt_lvl _loc
                 (fun lvl ->
                    set_current_level lvl;
                    let id = gen_closure_num _loc in
@@ -580,7 +580,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           | KEYWORD "{"; e = TRY [e = expr LEVEL "."; "with" -> e]; lel = label_expr_list; "}" ->
               <:expr< { ($e$) with $lel$ } >> 
           | KEYWORD "{{"; opt_lvl = dummy_set_level_client_value_expr ; e = expr; KEYWORD "}}" ->
-              from_some_or_raise _loc opt_lvl
+              from_some_or_raise opt_lvl _loc
                 (fun lvl ->
                    set_current_level lvl;
                    let id = gen_closure_num _loc in
@@ -592,7 +592,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       expr: BEFORE "simple"
 
         [ [ SYMBOL "%" ; id = ident ; opt_context = dummy_check_level_escaped_ident ->
-              from_some_or_raise _loc opt_context
+              from_some_or_raise opt_context _loc
                 (fun context ->
                      let gen_id =
                        match context with
@@ -606,7 +606,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                 (level_to_string !current_level)
 
           | SYMBOL "%" ; KEYWORD "(" ; opt_context = dummy_set_level_escaped_expr ; e = SELF ; KEYWORD ")" ->
-              from_some_or_raise _loc opt_context
+              from_some_or_raise opt_context _loc
                 (fun context ->
                    set_current_level
                      (match context with
