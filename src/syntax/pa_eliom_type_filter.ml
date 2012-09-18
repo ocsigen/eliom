@@ -44,40 +44,46 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   open Helpers.Syntax
 
   (* accumulator, push and flush for typing expression. *)
-  let typing_expr = ref []
-
-  let add_typing_expr orig_expr gen_id =
-    let _loc = Ast.loc_of_expr orig_expr in
-    typing_expr := <:expr< $lid:gen_id$ := Some $orig_expr$ >> :: !typing_expr
-
-  let flush_typing_expr () =
-    let res = !typing_expr in
-    typing_expr := [];
-    Ast.exSem_of_list (List.rev res)
+  let add_typing_expr, flush_typing_expr =
+    let typing_expr = ref [] in
+    let add orig_expr gen_id =
+      let _loc = Ast.loc_of_expr orig_expr in
+      if List.for_all (function gen_id', _ -> gen_id <> gen_id') !typing_expr then
+        typing_expr := (gen_id, <:expr< $lid:gen_id$ := Some $orig_expr$ >>) :: !typing_expr
+    in
+    let flush () =
+      let res = List.rev (List.map snd !typing_expr) in
+      typing_expr := [];
+      Ast.exSem_of_list res
+    in
+    add, flush
 
   (* accumulator, push and flush for typing str_items *)
-  let typing_strs = ref []
-
-  let add_typing_str orig_expr gen_id =
-    let _loc = Ast.loc_of_expr orig_expr in
-    typing_strs := <:str_item< let $lid:gen_id$ = ref None >> :: !typing_strs
-
-  let flush_typing_strs () =
-    let res = !typing_strs in
-    typing_strs := [];
-    Ast.stSem_of_list res
+  let add_typing_str, flush_typing_str =
+    let typing_strs = ref [] in
+    let add orig_expr gen_id =
+      let _loc = Ast.loc_of_expr orig_expr in
+      if List.for_all (function gen_id', _ -> gen_id' <> gen_id) !typing_strs then
+        typing_strs := (gen_id, <:str_item< let $lid:gen_id$ = ref None >>) :: !typing_strs
+    in
+    let flush () =
+      let res = List.map snd !typing_strs in
+      typing_strs := [];
+      Ast.stSem_of_list res
+    in
+    add, flush
 
   (** Syntax extension *)
 
   let client_str_items items =
     Ast.stSem_of_list [
-      flush_typing_strs ();
+      flush_typing_str ();
       (let _loc = Loc.ghost in
        <:str_item< let () = begin $flush_typing_expr ()$ end >>);
     ]
 
   let server_str_items items =
-    Ast.stSem_of_list (flush_typing_strs () :: items)
+    Ast.stSem_of_list (flush_typing_str () :: items)
 
   let shared_str_items = server_str_items
 

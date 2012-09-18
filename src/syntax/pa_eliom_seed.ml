@@ -413,12 +413,25 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           escaped_idents := (id, gen_id) :: !escaped_idents;
           gen_id)
 
-    let gen_injected_ident =
+    let injected_idents = ref []
+    let reset_injected_idents () = injected_idents := []
+    let gen_injected_expr_ident, gen_injected_ident =
       let r = ref 0 in
-      fun filename ->
+      let gen_ident filename =
         let hash = Hashtbl.hash filename in
         incr r;
         Printf.sprintf (Helpers.injected_ident_fmt ()) hash !r
+      in
+      let gen_injected_ident filename id =
+        let id = (Ast.map_loc (fun _ -> Loc.ghost))#ident id in
+        try List.assoc id !injected_idents
+        with Not_found ->
+          let gen_id = gen_ident filename in
+          injected_idents := (id, gen_id) :: !injected_idents;
+          gen_id
+      in
+      gen_ident, gen_injected_ident
+
 
     (* BBB Before the syntax error was thrown in the productions dummy_set_*. This
        resulted in wrong error locations. The solution is to let the dummy productions
@@ -440,7 +453,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
     (* Dummy rules: for level management and checking. *)
       dummy_set_level_shared:
-        [[ -> begin match !current_level with
+        [[ -> reset_injected_idents ();
+             begin match !current_level with
               | Toplevel -> set_current_level Shared_item; Some ()
               | _ -> None
         end
@@ -451,7 +465,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                | _ -> None
          ]];
       dummy_set_level_client:
-        [[ -> match !current_level with
+        [[ -> reset_injected_idents ();
+             match !current_level with
               | Toplevel -> set_current_level Client_item; Some ()
               | _ -> None
          ]];
@@ -584,7 +599,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                          | Escaped_in_client_value_in _ ->
                              gen_escaped_ident id
                          | Injected_in _ ->
-                             gen_injected_ident (Loc.file_name _loc)
+                             gen_injected_ident (Loc.file_name _loc) id
                      in
                      Pass.escape_inject context <:expr< $id:id$ >> gen_id)
                 "The syntax \"%%ident\" is not allowed in %s."
@@ -602,7 +617,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                        | Escaped_in_client_value_in _ ->
                            gen_escaped_expr_ident ()
                        | Injected_in _ ->
-                           gen_injected_ident (Loc.file_name _loc)
+                           gen_injected_expr_ident (Loc.file_name _loc)
                    in
                    Pass.escape_inject context e gen_id)
                 "The syntax \"%%(...)\" is not allowed in %s."
