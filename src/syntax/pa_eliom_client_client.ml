@@ -211,50 +211,37 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let escape_inject context_level orig_expr gen_id =
     let open Pa_eliom_seed in
+    let get_type f x =
+      if !notyp then
+        let _loc = Loc.ghost in
+        <:ctyp< _ >>
+      else
+        drop_client_value_ctyp (f x)
+    in
     match context_level with
-       | Escaped_in_client_value_in `Server ->
-           push_escaped_arg gen_id;
-           let expr =
-             let _loc = Ast.loc_of_expr orig_expr in
-             <:expr< $lid:gen_id$ >>
-           in
-           if !notyp then
-             expr
-           else
-             let typ =
-               if !notyp then
-                 let _loc = Loc.ghost in
-                 <:ctyp< _ >>
-               else
-                 drop_client_value_ctyp
-                   (Helpers.find_escaped_ident_type gen_id)
-             in
-             let _loc = Ast.loc_of_expr orig_expr in
-             <:expr< ($expr$ : $typ$) >>
-       | Escaped_in_client_value_in `Shared ->
-           push_escaped_arg gen_id;
-           push_client_arg (Ast.loc_of_expr orig_expr) orig_expr gen_id;
-           let _loc = Ast.loc_of_expr orig_expr in
-           <:expr< $lid:gen_id$ >>
-       | Injected_in `Shared ->
-           push_injected_var gen_id orig_expr;
-           let _loc = Ast.loc_of_expr orig_expr in
-           <:expr< $lid:gen_id$ >>
-       | Injected_in `Client ->
-           push_injected_var gen_id orig_expr;
-           let typ =
-             if !notyp then
-               let _loc = Loc.ghost in
-               <:ctyp< _ >>
-             else
-               drop_client_value_ctyp
-                 (Helpers.find_injected_ident_type gen_id)
-           in
-           let _loc = Ast.loc_of_expr orig_expr in
-           <:expr<
-             (Eliom_client.Syntax_helpers.get_injection $str:gen_id$
-              : $typ$)
-           >>
+      | Escaped_in_client_value_in `Server ->
+          push_escaped_arg gen_id;
+          let typ = get_type Helpers.find_escaped_ident_type gen_id in
+          let _loc = Ast.loc_of_expr orig_expr in
+          <:expr< ($lid:gen_id$ : $typ$) >>
+      | Escaped_in_client_value_in `Shared ->
+          push_escaped_arg gen_id;
+          push_client_arg (Ast.loc_of_expr orig_expr) orig_expr gen_id;
+          let typ = get_type Helpers.find_escaped_ident_type gen_id in
+          let _loc = Ast.loc_of_expr orig_expr in
+          <:expr< ($lid:gen_id$ : $typ$) >>
+      | Injected_in `Shared ->
+          push_injected_var gen_id orig_expr;
+          let typ = get_type Helpers.find_injected_ident_type gen_id in
+          let _loc = Ast.loc_of_expr orig_expr in
+          <:expr< ($lid:gen_id$ : $typ$) >>
+      | Injected_in `Client ->
+          push_injected_var gen_id orig_expr;
+          let typ = get_type Helpers.find_injected_ident_type gen_id in
+          let _loc = Ast.loc_of_expr orig_expr in
+          <:expr<
+            (Eliom_client.Syntax_helpers.get_injection $str:gen_id$ : $typ$)
+          >>
 
 
 end
