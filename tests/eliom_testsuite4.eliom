@@ -1127,14 +1127,14 @@ let deep_client_values =
 
 {client{
 
-  let client_withdom str =
+  let withdom_client_withdom str =
     Eliom_client.withdom
       (fun () ->
          Eliom_testsuite_base.log "withdom: client from %s" str)
 }}
 
 {server{
-  let server_withdom str =
+  let withdom_server_withdom str =
     ignore {unit{
       Eliom_client.withdom
         (fun () ->
@@ -1143,7 +1143,7 @@ let deep_client_values =
 }}
 
 {shared{
-  let shared_withdom str =
+  let withdom_shared_withdom str =
     ignore {unit{
       Eliom_client.withdom
         (fun () ->
@@ -1152,18 +1152,17 @@ let deep_client_values =
 }}
 
 {client{
-  let () =
-    client_withdom "client toplevel"
+  let withdom_client () =
+    withdom_client_withdom "client toplevel"
 }}
 
-let () =
-  server_withdom "server toplevel"
-let () =
-  shared_withdom "server toplevel"
-let () =
-  ignore {unit{ client_withdom "server toplevel" }}
-let () =
-  ignore {unit{ shared_withdom "server toplevel" }}
+{server{
+  let withdom_server () =
+    withdom_server_withdom "server toplevel";
+    withdom_shared_withdom "server toplevel";
+    ignore {unit{ withdom_client_withdom "server toplevel" }};
+    ignore {unit{ withdom_shared_withdom "server toplevel" }}
+}}
 
 let test_withdom =
   Eliom_testsuite_base.test
@@ -1175,20 +1174,22 @@ let test_withdom =
       pcdata "Nine different lines in the log, thebutton adds another two";
     ])
     (fun () ->
-       server_withdom "request";
-       shared_withdom "request";
+       withdom_server ();
+       ignore {unit{ withdom_client () }};
+       withdom_server_withdom "request";
+       withdom_shared_withdom "request";
        ignore {unit{
          Eliom_client.withdom
            (fun () ->
-              client_withdom "request";
-              shared_withdom "request")
+              withdom_client_withdom "request";
+              withdom_shared_withdom "request")
        }};
        let onclick = {{
          fun _ ->
            Eliom_client.withdom
              (fun _ ->
-                client_withdom "click";
-                shared_withdom "click")
+                withdom_client_withdom "click";
+                withdom_shared_withdom "click")
        }} in
        Lwt.return Html5.F.([
          Eliom_testsuite_base.thebutton ~msg:"with dom" onclick;
