@@ -1202,11 +1202,9 @@ let test_withdom =
 
 {server{
   let injection_scoping_shared_v1 = "server1"
-  let injection_scoping_shared_v2 = "server2"
 }}
 {shared{
   let injection_scoping_shared_v1 = "shared1"
-  let injection_scoping_shared_v2 = "shared2"
   let injection_scoping_shared () =
     Eliom_testsuite_base.assert_equal
       ~name:"injection_scoping_v1"
@@ -1214,35 +1212,21 @@ let test_withdom =
     Eliom_testsuite_base.assert_equal
       ~name:"%injection_scoping_v1"
       %injection_scoping_shared_v1 "server1";
-    Eliom_testsuite_base.assert_equal
-      ~name:"injection_scoping_v2"
-      injection_scoping_shared_v2 "shared2";
-    Eliom_testsuite_base.assert_equal
-      ~name:"%injection_scoping_v2"
-      %injection_scoping_shared_v2 "server2";
     ()
 }}
 
 {server{
   let injection_scoping_client_v1 = "server1"
-  let injection_scoping_client_v2 = "server2"
 }}
 {client{
-  let injection_scoping_client_v1 = "shared1"
-  let injection_scoping_client_v2 = "shared2"
+  let injection_scoping_client_v1 = "client1"
   let injection_scoping_client () =
     Eliom_testsuite_base.assert_equal
       ~name:"injection_scoping_v1"
-      injection_scoping_client_v1 "shared1";
+      injection_scoping_client_v1 "client1";
     Eliom_testsuite_base.assert_equal
       ~name:"%injection_scoping_v1"
       %injection_scoping_client_v1 "server1";
-    Eliom_testsuite_base.assert_equal
-      ~name:"injection_scoping_v2"
-      injection_scoping_client_v2 "shared2";
-    Eliom_testsuite_base.assert_equal
-      ~name:"%injection_scoping_v2"
-      %injection_scoping_client_v2 "server2";
     ()
 }}
 
@@ -1265,7 +1249,8 @@ let test_injection_scoping =
   let v = ...\n
   let _ = v, %v (* <-- here *)
 }}"];
-      p [pcdata "There must be 8 tests mentioned in the client logger, and 4 in the server output."];
+      p [pcdata "There must be 4 tests mentioned in the client logger (two each \
+                 from testing shared and client), and 2 in the server output."];
     ])
     (fun () ->
        injection_scoping_shared ();
@@ -1285,11 +1270,9 @@ let test_injection_scoping =
 
 {client{
   let escaping_scoping_server_v1 = "client1"
-  let escaping_scoping_server_v2 = "client2"
 }}
 {server{
   let escaping_scoping_server_v1 = "server1"
-  let escaping_scoping_server_v2 = "server2"
   let escaping_scoping_server () = ignore {unit{
     Eliom_testsuite_base.assert_equal
       ~name:"escaping_scoping_server_v1"
@@ -1297,24 +1280,22 @@ let test_injection_scoping =
     Eliom_testsuite_base.assert_equal
       ~name:"%escaping_scoping_server_v1"
       %escaping_scoping_server_v1 "server1";
-    let escaping_scoping_server_v2 = "inner2" in
+    let escaping_scoping_server_v1 = "inner1" in
     Eliom_testsuite_base.assert_equal
-      ~name:"escaping_scoping_server_v2"
-      escaping_scoping_server_v2 "inner2";
+      ~name:"escaping_scoping_server_v1 (with inner)"
+      escaping_scoping_server_v1 "inner1";
     Eliom_testsuite_base.assert_equal
-      ~name:"%escaping_scoping_server_v2"
-      %escaping_scoping_server_v2 "server2";
+      ~name:"%escaping_scoping_server_v1 (with inner)"
+      %escaping_scoping_server_v1 "server1";
     ()
   }}
 }}
 
 {client{
   let escaping_scoping_shared_v1 = "client1"
-  let escaping_scoping_shared_v2 = "client2"
 }}
 {shared{
   let escaping_scoping_shared_v1 = "shared1"
-  let escaping_scoping_shared_v2 = "shared2"
   let escaping_scoping_shared () = ignore {unit{
     Eliom_testsuite_base.assert_equal
       ~name:"escaping_scoping_shared_v1"
@@ -1322,13 +1303,13 @@ let test_injection_scoping =
     Eliom_testsuite_base.assert_equal
       ~name:"%escaping_scoping_shared_v1"
       %escaping_scoping_shared_v1 "shared1";
-    let escaping_scoping_shared_v2 = "inner2" in
+    let escaping_scoping_shared_v1 = "inner1" in
     Eliom_testsuite_base.assert_equal
-      ~name:"escaping_scoping_shared_v2"
-      escaping_scoping_shared_v2 "inner2";
+      ~name:"escaping_scoping_shared_v1 (with inner)"
+      escaping_scoping_shared_v1 "inner1";
     Eliom_testsuite_base.assert_equal
-      ~name:"%escaping_scoping_shared_v2"
-      %escaping_scoping_shared_v2 "shared2";
+      ~name:"%escaping_scoping_shared_v1 (with inner)"
+      %escaping_scoping_shared_v1 "shared1";
     ()
   }}
 }}

@@ -97,15 +97,15 @@ let monospace fmt =
 
 {shared{
   let report_flush_assertions' name output ~ran ~failed =
-    Printf.ksprintf output
-      "Eliom_testsuite %S: Ran %d assertions (%s)" name
+    Printf.ksprintf output "Eliom_testsuite %S:" name;
+    Printf.ksprintf output " * Ran %d assertions (%s)"
       (List.length ran) (String.concat ", " ran);
     if failed = [] then
       Printf.ksprintf output
-        "Eliom_testsuite %S: All tests succeeded" name
+        " * All tests succeeded"
     else
       Printf.ksprintf output
-        "Eliom_testsuite %S: %d tests failed: %s" name
+        " * %d tests failed: %s"
         (List.length failed) (String.concat ", " failed);
 }}
 
