@@ -95,21 +95,25 @@ let monospace fmt =
 
 }}
 
-let failed_assertions : string list Eliom_reference.Volatile.eref =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
-let ran_assertions : string list Eliom_reference.Volatile.eref =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
-
-let get_failed_assertions () =
-  Eliom_reference.Volatile.get failed_assertions
-let get_ran_assertions () =
-  Eliom_reference.Volatile.get ran_assertions
+{shared{
+  let report_flush_assertions' name output ~ran ~failed =
+    Printf.ksprintf output
+      "Eliom_testsuite %S: Ran %d assertions (%s)" name
+      (List.length ran) (String.concat ", " ran);
+    if failed = [] then
+      Printf.ksprintf output
+        "Eliom_testsuite %S: All tests succeeded" name
+    else
+      Printf.ksprintf output
+        "Eliom_testsuite %S: %d tests failed: %s" name
+        (List.length failed) (String.concat ", " failed);
+}}
 
 {server{
   let failed_assertions : string list Eliom_reference.Volatile.eref =
-    Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
+    Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
   let ran_assertions : string list Eliom_reference.Volatile.eref =
-    Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
+    Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
   let report_flush_assertions name =
     report_flush_assertions' name (debug "%s")
       ~ran:(Eliom_reference.Volatile.get ran_assertions)
