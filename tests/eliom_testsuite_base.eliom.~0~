@@ -64,12 +64,6 @@ let thebutton ?(msg="THE BUTTON") onclick : [> Html5_types.button ] Html5.elt =
       ~button_type:`Submit
       [ pcdata msg ])
 
-let monospace fmt =
-  Printf.ksprintf
-    (fun str ->
-       Html5.F.(span ~a:[a_class ["monospace"]] [pcdata str]))
-    fmt
-
 {client{
 
   let buffer = ref []
@@ -96,46 +90,28 @@ let monospace fmt =
 }}
 
 let failed_assertions : string list Eliom_reference.Volatile.eref =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
 let ran_assertions : string list Eliom_reference.Volatile.eref =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
 
 let get_failed_assertions () =
   Eliom_reference.Volatile.get failed_assertions
 let get_ran_assertions () =
   Eliom_reference.Volatile.get ran_assertions
 
-{server{
-  let failed_assertions : string list Eliom_reference.Volatile.eref =
-    Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
-  let ran_assertions : string list Eliom_reference.Volatile.eref =
-    Eliom_reference.Volatile.eref ~scope:Eliom_common.request []
-  let report_flush_assertions name =
-    report_flush_assertions' name (debug "%s")
-      ~ran:(Eliom_reference.Volatile.get ran_assertions)
-      ~failed:(Eliom_reference.Volatile.get failed_assertions);
-    Eliom_reference.Volatile.set ran_assertions [];
-    Eliom_reference.Volatile.set failed_assertions []
-  let assert_equal ?(eq=(=)) ~name value should_be =
-    Eliom_reference.Volatile.modify ran_assertions
-      (fun names -> name :: names);
-    if not (eq value should_be) then
-      Eliom_reference.Volatile.modify failed_assertions
-        (fun names -> name :: names)
-}}
+let assert_equal ?(eq=(=)) ~name value should_be =
+  Eliom_reference.Volatile.modify ran_assertions
+    (fun names -> name :: names);
+  if not (eq value should_be) then
+    Eliom_reference.Volatile.modify failed_assertions
+      (fun names -> name :: names)
+  else
+    debug "Test %s ok" name
 
 {client{
-  let ran_assertions = ref []
-  let failed_assertions = ref []
-  let report_flush_assertions name =
-    report_flush_assertions' name (log "%s")
-      ~ran:!ran_assertions
-      ~failed:!failed_assertions;
-    ran_assertions := [];
-    failed_assertions := []
   let assert_equal ?(eq=(=)) ~name value should_be =
-    ran_assertions := name :: !ran_assertions;
     if not (eq value should_be) then
-      failed_assertions := name :: !failed_assertions
+      log "ASSERT EQUAL FAIL: %s" name
+    else
+      log "Test %s ok" name
 }}
-

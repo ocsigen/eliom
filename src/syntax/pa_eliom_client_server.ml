@@ -32,54 +32,29 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let _ =
     Camlp4.Options.add "-notype" (Arg.Set notyp) "(not documented)"
 
-  let tuple_of_args = function
-    | [] -> let _loc = Loc.ghost in <:expr< () >>
-    | [e] -> e
-    | args -> let _loc = Loc.ghost in <:expr< $tup:Ast.exCom_of_list args$ >>
-
-  let client_value gen_num args loc typ =
-    let typ =
-      match typ with
-        | Some typ -> typ
-        | None ->
-            if !notyp then
-              let _loc = Loc.ghost in
-              <:ctyp< _ >>
-            else
-              match Helpers.find_client_value_type gen_num with
-                | Ast.TyQuo _ ->
-                    Helpers.raise_syntax_error loc
-                      "The types of client values must be monomorphic from its usage \
-                       or from its type annotation"
-                | typ -> typ
+  let push_escaped_binding, flush_escaped_bindings =
+    let arg_ids = ref [] in
+    let arg_collection = ref [] in
+    let push orig_expr gen_id =
+      if not (List.mem gen_id !arg_ids) then begin
+        let _loc = Ast.loc_of_expr orig_expr in
+        arg_collection := (gen_id, orig_expr) :: !arg_collection;
+        arg_ids := gen_id :: !arg_ids
+      end
     in
-    let escaped_value (_, arg) =
-      let _loc = Ast.loc_of_expr arg in
-      <:expr< Eliom_service.Syntax_helpers.escaped_value $arg$ >>
+    let flush () =
+      let res = List.rev !arg_collection in
+      arg_ids := [];
+      arg_collection := [];
+      let aux (_, arg) =
+        let _loc = Ast.loc_of_expr arg in
+        <:expr< Eliom_service.Syntax_helpers.escaped_value $arg$ >>
+      in
+      List.map aux res
     in
-    <:expr@loc<
-      (Eliom_service.Syntax_helpers.client_value
-         $`int64:gen_num$
-         $tuple_of_args (List.map escaped_value args)$
-       : $typ$ Eliom_lib.client_value)
-    >>
+    push, flush
 
-  let arg_ids = ref []
-  let arg_collection = ref []
-  let push_arg orig_expr gen_id =
-    if not (List.mem gen_id !arg_ids) then begin
-      let _loc = Ast.loc_of_expr orig_expr in
-      arg_collection := (gen_id, orig_expr) :: !arg_collection;
-      arg_ids := gen_id :: !arg_ids
-    end
-
-  let flush_args () =
-    let res = !arg_collection in
-    arg_ids := [];
-    arg_collection := [];
-    List.rev res
-
-  let push_injected, flush_injected =
+  let push_injection, flush_injections =
     let buffer = ref [] in
     let push orig_expr gen_id =
       if not (List.mem gen_id (List.map fst !buffer)) then begin
@@ -93,6 +68,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     in
     push, flush
 
+  (* Register every injection of $orig_expr$ as $gen_id$ *)
   let register_injections injections =
     List.map
       (fun (gen_id, orig_expr) ->
@@ -103,6 +79,8 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
         >>)
       injections
 
+  (* For every injection of $orig_expr$ as $gen_id$:
+     <str_item:< let $gen_id$ = $orig_expr$ and ... >> *)
   let bind_injected_idents injections =
     let _loc = Loc.ghost in
     let bindings =
@@ -121,30 +99,47 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let client_str_items _ =
     Ast.stSem_of_list
-      (register_injections (flush_injected ()))
+      (register_injections (flush_injections ()))
 
   let shared_str_items items =
+    let injections = flush_injections () in
     Ast.stSem_of_list
-      (bind_injected_idents (flush_injected ()) ::
+      (register_injections injections @
+       [ bind_injected_idents injections ] @
        items)
 
   let client_value_expr typ context_level orig_expr gen_num _ loc =
-    client_value gen_num (flush_args ()) loc typ
+    let typ =
+      match typ with
+        | Some typ -> typ
+        | None ->
+            if !notyp then
+              let _loc = Loc.ghost in <:ctyp< _ >>
+            else
+              match Helpers.find_client_value_type gen_num with
+                | Ast.TyQuo _ ->
+                    Helpers.raise_syntax_error loc
+                      "The types of client values must be monomorphic from its usage \
+                       or from its type annotation"
+                | typ -> typ
+    in
+    <:expr@loc<
+      (Eliom_service.Syntax_helpers.client_value $`int64:gen_num$
+         $Helpers.expr_tuple (flush_escaped_bindings ())$
+       : $typ$ Eliom_lib.client_value)
+    >>
 
   let escape_inject context_level orig_expr gen_id =
     let open Pa_eliom_seed in
     match context_level with
       | Escaped_in_client_value_in _ ->
-          push_arg orig_expr gen_id;
+          push_escaped_binding orig_expr gen_id;
           let _loc = Loc.ghost in
           <:expr< >>
       | Injected_in _ ->
-          push_injected orig_expr gen_id;
+          push_injection orig_expr gen_id;
           let _loc = Ast.loc_of_expr orig_expr in
           <:expr< $lid:gen_id$ >>
-
-
-
 end
 
 module M = Pa_eliom_seed.Register(Id)(Server_pass)

@@ -20,6 +20,15 @@
 
 (* This prepocessor generates the code to be executed by the navigator. *)
 
+(* BB {2 map_get_escaped_values / escape_inject generates only $lid:gen_id$}
+   The expression $expr$ inside a client_value will be used for for registering
+   the client closure (cf. [Client_pass.register_client_closures]), as well as
+   for creating a client-only function (cf. [Client_pass.define_client_functions]).
+   Only for the former it is necessary to call [Eliom_client.Syntax_helpers.get_escaped_value]
+   on the escaped identifier.
+   This is done post-hoc by [map_get_escaped_values] in [register_client_closures].
+ *)
+
 module Id = struct
   let name = "client part"
 end
@@ -31,6 +40,8 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let notyp = ref false
   let _ =
     Camlp4.Options.add "-notype" (Arg.Set notyp) "(not documented)"
+
+  (* {2 Auxiliaries} *)
 
   (* Replace every type [t Eliom_lib.client_value] by [t]. *)
   let drop_client_value_ctyp =
@@ -55,36 +66,16 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     fun expr ->
       mapper#expr expr
 
-  (* Convert a list of expressions to a tuple, one expression, or (). *)
-  let tuple_of_args =
-    let _loc = Loc.ghost in function
-    | [] -> <:patt< () >>
-    | [id] -> <:patt< $lid:id$ >>
-    | res ->
-        let res = List.map (fun id -> <:patt< $lid:id$ >>) res in
-        <:patt< $tup:Ast.paCom_of_list res$ >>
-
-  (* Client side code emission. *)
-  let register_closure gen_num args orig_expr =
-    let _loc = Ast.loc_of_expr orig_expr in
-    let typ =
-      if !notyp then
-        <:ctyp< _ >>
-      else
-        Helpers.find_client_value_type gen_num
-    in
-    <:expr<
-      Eliom_client.Syntax_helpers.register_client_closure
-        $`int64:gen_num$
-        (fun $tuple_of_args args$ ->
-           ($orig_expr$ : $typ$))
-    >>
-
-  let push_escaped_arg, flush_escaped_args =
+  let push_escaped_binding, flush_escaped_bindings =
     let server_arg_ids = ref [] in
-    let push gen_id =
-      if not (List.mem gen_id !server_arg_ids) then
-        server_arg_ids := gen_id :: !server_arg_ids
+    let is_unknown gen_id =
+      List.for_all
+        (fun (gen_id', _) -> gen_id <> gen_id')
+        !server_arg_ids
+    in
+    let push gen_id expr =
+      if is_unknown gen_id then
+        server_arg_ids := (gen_id, expr) :: !server_arg_ids
     in
     let flush () =
       let res = List.rev !server_arg_ids in
@@ -93,40 +84,67 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     in
     push, flush
 
-
-  let push_client_arg, flush_client_args =
-    let client_arg_ids = ref [] in
-    let push loc orig_expr gen_id =
-      if not (List.exists (fun (_, _, gen_id') -> gen_id = gen_id') !client_arg_ids) then
-        client_arg_ids := (loc, orig_expr, gen_id) :: !client_arg_ids
-    in
-    let flush expr =
-      let res = List.rev !client_arg_ids in
-      client_arg_ids := [];
-      res
-    in
-    push, flush
-
-
-  let push_closure_registration, flush_closure_registrations =
-    let clos_collection = ref [] in
-    let push orig_expr gen_id escaped_vars =
-      let _loc = Ast.loc_of_expr orig_expr in
-      clos_collection :=
-        <:str_item<
-          let () =
-            $register_closure gen_id escaped_vars orig_expr$
-        >>
-        :: !clos_collection
+  let push_client_value_data, flush_client_value_datas =
+    let client_value_datas = ref [] in
+    let push gen_num gen_id expr args =
+      client_value_datas :=
+        (gen_num, gen_id, expr, args) :: !client_value_datas
     in
     let flush () =
-      let res = List.rev !clos_collection in
-      clos_collection := [];
+      let res = List.rev !client_value_datas in
+      client_value_datas := [];
       res
     in
     push, flush
 
-  let push_injected_var, flush_injected_vars =
+  let get_type f x =
+    if !notyp then
+      let _loc = Loc.ghost in
+      <:ctyp< _ >>
+    else f x
+
+  let register_client_closures client_value_datas =
+    let registrations =
+      List.map
+        (fun (gen_num, _, expr, args) ->
+           let typ = get_type Helpers.find_client_value_type gen_num in
+           let _loc = Ast.loc_of_expr expr in
+           <:expr<
+             Eliom_client.Syntax_helpers.register_client_closure
+               $`int64:gen_num$
+               (fun $Helpers.patt_tuple args$ ->
+                  ($map_get_escaped_values expr$ : $typ$))
+           >>)
+        client_value_datas
+    in
+    let _loc = Loc.ghost in
+    <:str_item< let () = $Ast.exSem_of_list registrations$; () >>
+
+  let define_client_functions client_value_datas =
+    let bindings =
+      List.map
+        (fun (gen_num, gen_id, expr, args) ->
+           let patt =
+             let _loc = Loc.ghost in
+             <:patt< $lid:gen_id$ >>
+           in
+           let typ = get_type Helpers.find_client_value_type gen_num in
+           let expr =
+             let _loc = Loc.ghost in
+             <:expr<
+               fun $Helpers.patt_tuple args$ ->
+                 ($expr$ : $typ$)
+             >>
+           in
+           patt, expr)
+        client_value_datas
+    in
+    let _loc = Loc.ghost in
+    <:str_item< let $Ast.binding_of_pel bindings$ >>
+
+  (* For injections *)
+
+  let push_injection, flush_injections =
     let escaped_vars = ref [] in
     let push gen_id orig_expr =
       if not (List.mem gen_id (List.map fst !escaped_vars)) then
@@ -155,90 +173,75 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           Eliom_client.Syntax_helpers.injection_initializations $names$
       >>
 
-
-  let injection_bindings injected_vars =
-    let _loc = Loc.ghost in
-    if injected_vars = [] then
-      <:str_item< >>
-    else 
-      let bindings =
-        List.map
-          (fun (gen_id, orig_expr) ->
-             <:patt< $lid:gen_id$ >>, orig_expr)
-          injected_vars
-      in
-      <:str_item< let $Ast.binding_of_pel bindings$ >>
-
   (** Syntax extension *)
 
   let client_str_items items =
     Ast.stSem_of_list
-      (injection_initializations (flush_injected_vars ()) ::
+      (injection_initializations (flush_injections ()) ::
        items)
 
   let server_str_items _ =
-    Ast.stSem_of_list
-      (flush_closure_registrations ())
+    register_client_closures
+      (flush_client_value_datas ())
 
   let shared_str_items items =
+    let client_expr_data = flush_client_value_datas () in
     Ast.stSem_of_list
-      (injection_bindings (flush_injected_vars ()) ::
-       flush_closure_registrations () @
+      (injection_initializations (flush_injections ()) ::
+       [ register_client_closures client_expr_data;
+         define_client_functions client_expr_data ] @
        items)
 
-  let client_value_expr typ context_level orig_expr gen_num gen_tid loc =
-    push_closure_registration (map_get_escaped_values orig_expr) gen_num (flush_escaped_args ());
-    let typ =
-      match typ with
-        | Some typ -> typ
-        | None -> let _loc = Loc.ghost in <:ctyp< _ >>
-    in
+  let client_value_expr typ context_level orig_expr gen_num gen_id loc =
+
+    let escaped_bindings = flush_escaped_bindings () in
+
+    push_client_value_data gen_num gen_id orig_expr
+      (List.map fst escaped_bindings);
+
     match context_level with
       | `Server ->
-          let _loc = Ast.Loc.ghost in
-          <:expr< >>
+          <:expr@loc< >>
       | `Shared ->
           let bindings =
             List.map
-              (fun (_loc, orig_expr, gen_id) ->
-                 <:patt< $lid:gen_id$ >>, orig_expr)
-              (flush_client_args ())
+              (fun (gen_id, expr) ->
+                 let _loc = Loc.ghost in
+                 <:patt< $lid:gen_id$ >>, expr)
+              escaped_bindings
+          in
+          let args =
+            let _loc = Loc.ghost in
+            Helpers.expr_tuple
+              (List.map
+                 (fun (gen_id, _) ->
+                    <:expr< $lid:gen_id$ >>)
+                 escaped_bindings)
           in
           <:expr@loc<
             let $Ast.binding_of_pel bindings$ in
-            ($orig_expr$ : $typ$)
+            $lid:gen_id$ $args$
           >>
 
   let escape_inject context_level orig_expr gen_id =
     let open Pa_eliom_seed in
-    let get_type f x =
-      if !notyp then
-        let _loc = Loc.ghost in
-        <:ctyp< _ >>
-      else
-        drop_client_value_ctyp (f x)
-    in
+    let _loc = Ast.loc_of_expr orig_expr in
     match context_level with
-      | Escaped_in_client_value_in `Server ->
-          push_escaped_arg gen_id;
-          let typ = get_type Helpers.find_escaped_ident_type gen_id in
-          let _loc = Ast.loc_of_expr orig_expr in
+      | Escaped_in_client_value_in section ->
+          (* {section{ ... {{ ... %x ... }} ... }} *)
+          let typ =
+            drop_client_value_ctyp
+              (get_type Helpers.find_escaped_ident_type gen_id)
+          in
+          push_escaped_binding gen_id orig_expr;
           <:expr< ($lid:gen_id$ : $typ$) >>
-      | Escaped_in_client_value_in `Shared ->
-          push_escaped_arg gen_id;
-          push_client_arg (Ast.loc_of_expr orig_expr) orig_expr gen_id;
-          let typ = get_type Helpers.find_escaped_ident_type gen_id in
-          let _loc = Ast.loc_of_expr orig_expr in
-          <:expr< ($lid:gen_id$ : $typ$) >>
-      | Injected_in `Shared ->
-          push_injected_var gen_id orig_expr;
-          let typ = get_type Helpers.find_injected_ident_type gen_id in
-          let _loc = Ast.loc_of_expr orig_expr in
-          <:expr< ($lid:gen_id$ : $typ$) >>
-      | Injected_in `Client ->
-          push_injected_var gen_id orig_expr;
-          let typ = get_type Helpers.find_injected_ident_type gen_id in
-          let _loc = Ast.loc_of_expr orig_expr in
+      | Injected_in _section ->
+          (* {_section{ ... %x ... }} *)
+          let typ =
+            drop_client_value_ctyp
+              (get_type Helpers.find_injected_ident_type gen_id)
+          in
+          push_injection gen_id orig_expr;
           <:expr<
             (Eliom_client.Syntax_helpers.get_injection $str:gen_id$ : $typ$)
           >>

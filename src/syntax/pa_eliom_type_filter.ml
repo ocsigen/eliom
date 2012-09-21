@@ -43,8 +43,9 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   open Helpers.Syntax
 
-  (* accumulator, push and flush for typing expression. *)
-  let add_typing_expr, flush_typing_expr =
+  (* accumulator, push and flush for typing expression
+     <:expr< $gen_id$ := Some $orig_expr$ >> *)
+  let push_typing_expr, flush_typing_expr =
     let typing_expr = ref [] in
     let add orig_expr gen_id =
       let _loc = Ast.loc_of_expr orig_expr in
@@ -58,8 +59,9 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     in
     add, flush
 
-  (* accumulator, push and flush for typing str_items *)
-  let add_typing_str, flush_typing_str =
+  (* accumulator, push and flush for typing str_items
+     <:str_item< let $gen_id$ = ref None >> *)
+  let push_typing_str_item, flush_typing_str_item =
     let typing_strs = ref [] in
     let add orig_expr gen_id =
       let _loc = Ast.loc_of_expr orig_expr in
@@ -77,18 +79,18 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let client_str_items items =
     Ast.stSem_of_list [
-      flush_typing_str ();
+      flush_typing_str_item ();
       (let _loc = Loc.ghost in
        <:str_item< let () = begin $flush_typing_expr ()$ end >>);
     ]
 
   let server_str_items items =
-    Ast.stSem_of_list (flush_typing_str () :: items)
+    Ast.stSem_of_list (flush_typing_str_item () :: items)
 
   let shared_str_items = server_str_items
 
   let client_value_expr typ context_level orig_expr gen_id gen_tid loc =
-    add_typing_str orig_expr gen_tid;
+    push_typing_str_item orig_expr gen_tid;
     let typ = match typ with
       | Some typ -> typ
       | None -> let _loc = Loc.ghost in <:ctyp< _ >>
@@ -104,10 +106,10 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let escape_inject context_level orig_expr gen_id =
     let open Pa_eliom_seed in
-    add_typing_str orig_expr gen_id;
-    add_typing_expr orig_expr gen_id;
+    push_typing_str_item orig_expr gen_id;
+    push_typing_expr orig_expr gen_id;
     match context_level with
-      | Escaped_in_client_value_in (`Shared | `Server) ->
+      | Escaped_in_client_value_in _ ->
           let _loc = Ast.loc_of_expr orig_expr in
           <:expr< >>
       | Injected_in `Shared ->

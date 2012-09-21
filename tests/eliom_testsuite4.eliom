@@ -10,120 +10,6 @@
     ()
 }}
 
-{server{
-
-  let value = "server_value"
-
-  let server_client_value : string client_value =
-    let value = "local_value" in
-    {{
-      let value = "inner_local" in
-      Printf.sprintf "(server_client_value %s)" %value
-    }}
-
-}}
-
-{shared{
-
-  let value2 = "shared_value"
-
-  let shared_client_value : string client_value =
-    let value2 = "local_value" in
-    {{
-      let value2 = "inner_local" in
-      Printf.sprintf "(shared_client_value %s)" %value2
-    }}
-
-}}
-
-let test_escape_scoping =
-  Eliom_testsuite_base.test
-    ~title:"Scoping of escaped variables"
-    ~path:["holes"; "scoping"; "escaped"]
-    ~description:Html5.F.([
-      pcdata "Test the scoping of escaped variables in client values";
-      br ();
-      pcdata "Total of 5 tests";
-    ])
-    (fun () ->
-       Eliom_testsuite_base.assert_equal ~name:"value"
-         value "server_value";
-       Eliom_testsuite_base.assert_equal ~name:"value2"
-         value2 "shared_value";
-       ignore {unit{
-         Eliom_testsuite_base.log "Running tests";
-         Eliom_testsuite_base.assert_equal ~name:"%server_client_value"
-           %server_client_value "(server_client_value local_value)";
-         Eliom_testsuite_base.assert_equal ~name:"shared_client_value"
-           shared_client_value "(shared_client_value local_value)";
-         Eliom_testsuite_base.assert_equal ~name:"%shared_client_value"
-           %shared_client_value "(shared_client_value local_value)";
-         ()
-       }};
-       let ran_assertions = Eliom_testsuite_base.get_ran_assertions () in
-       let failed_assertions = Eliom_testsuite_base.get_failed_assertions () in
-       let aux msg li = List.map (fun str -> Html5.F.(li [pcdata (Printf.sprintf "Test %s %s" str msg)])) li in
-       Lwt.return Html5.F.([
-         h3 [pcdata "Tests run"];
-         ul (aux "ok" ran_assertions);
-       ] @
-         if failed_assertions <> []
-         then [
-           h3 [pcdata "Tests failed"];
-           ul (aux "failed" failed_assertions);
-         ] else []
-       ))
-
-{shared{
-  let value3 = "shared_value"
-}}
-
-{shared{
-  let value3 = "shared_value_2"
-  let shared_value3 = %value3
-}}
-
-{client{
-  let value3 = "client_value"
-  let client_value3 = %value3
-}}
-
-let test_injection_scoping =
-  Eliom_testsuite_base.test
-    ~title:"Scoping of injected variables"
-    ~path:["holes"; "scoping"; "injection"]
-    ~description:Html5.F.([
-      pcdata "Test the scoping injected variables in the client section";
-      br ();
-      pcdata "Total of 5 tests";
-    ])
-    (fun () ->
-       Eliom_testsuite_base.assert_equal ~name:"value3"
-         value3 "shared_value_2";
-       Eliom_testsuite_base.assert_equal ~name:"shared_value3"
-         shared_value3 "shared_value";
-       ignore {unit{
-         Eliom_testsuite_base.assert_equal ~name:"value3"
-           value3 "client_value";
-         Eliom_testsuite_base.assert_equal ~name:"shared_value3"
-           %shared_value3 "shared_value";
-         Eliom_testsuite_base.assert_equal ~name:"client_value3"
-           client_value3 "shared_value_2";
-       }};
-       let ran_assertions = Eliom_testsuite_base.get_ran_assertions () in
-       let failed_assertions = Eliom_testsuite_base.get_failed_assertions () in
-       let aux msg li = List.map (fun str -> Html5.F.(li [pcdata (Printf.sprintf "Test %s %s" str msg)])) li in
-       Lwt.return Html5.F.([
-         h3 [pcdata "Tests run"];
-         ul (aux "ok" ran_assertions);
-       ] @
-         if failed_assertions <> []
-         then [
-           h3 [pcdata "Tests failed"];
-           ul (aux "failed" failed_assertions);
-         ] else []
-       ))
-
 (******************************************************************************)
 
 let the_number = 100
@@ -1310,6 +1196,178 @@ let test_withdom =
 
 (******************************************************************************)
 
+(* XXX Two times the same code, once in shared (with variable names postix
+   _shared and once in client (with variable names postfix _client). *)
+
+{server{
+  let injection_scoping_shared_v1 = "server1"
+  let injection_scoping_shared_v2 = "server2"
+}}
+{shared{
+  let injection_scoping_shared_v1 = "shared1"
+  let injection_scoping_shared_v2 = "shared2"
+  let injection_scoping_shared () =
+    Eliom_testsuite_base.assert_equal
+      ~name:"injection_scoping_v1"
+      injection_scoping_shared_v1 "shared1";
+    Eliom_testsuite_base.assert_equal
+      ~name:"%injection_scoping_v1"
+      %injection_scoping_shared_v1 "server1";
+    Eliom_testsuite_base.assert_equal
+      ~name:"injection_scoping_v2"
+      injection_scoping_shared_v2 "shared2";
+    Eliom_testsuite_base.assert_equal
+      ~name:"%injection_scoping_v2"
+      %injection_scoping_shared_v2 "server2";
+    ()
+}}
+
+{server{
+  let injection_scoping_client_v1 = "server1"
+  let injection_scoping_client_v2 = "server2"
+}}
+{client{
+  let injection_scoping_client_v1 = "shared1"
+  let injection_scoping_client_v2 = "shared2"
+  let injection_scoping_client () =
+    Eliom_testsuite_base.assert_equal
+      ~name:"injection_scoping_v1"
+      injection_scoping_client_v1 "shared1";
+    Eliom_testsuite_base.assert_equal
+      ~name:"%injection_scoping_v1"
+      %injection_scoping_client_v1 "server1";
+    Eliom_testsuite_base.assert_equal
+      ~name:"injection_scoping_v2"
+      injection_scoping_client_v2 "shared2";
+    Eliom_testsuite_base.assert_equal
+      ~name:"%injection_scoping_v2"
+      %injection_scoping_client_v2 "server2";
+    ()
+}}
+
+let test_injection_scoping =
+  let title = "Scoping of injections in client/shared-section" in
+  Eliom_testsuite_base.test
+    ~title
+    ~path:["holes"; "injection_scoping"]
+    ~description:Html5.F.([
+      p [pcdata "Test, which value is referenced by ";
+         Eliom_testsuite_base.monospace "v";
+         pcdata " and an injection ";
+         Eliom_testsuite_base.monospace "%%v";
+         pcdata " in cases like:"];
+      pre [pcdata "\
+{server{\n
+  let v = ...\n
+}}\n
+{client/shared{\n
+  let v = ...\n
+  let _ = v, %v (* <-- here *)
+}}"];
+      p [pcdata "There must be 8 tests mentioned in the client logger, and 4 in the server output."];
+    ])
+    (fun () ->
+       injection_scoping_shared ();
+       Eliom_testsuite_base.report_flush_assertions title;
+       ignore {unit{
+         injection_scoping_shared ();
+         injection_scoping_client ();
+         Eliom_testsuite_base.report_flush_assertions %title;
+       }};
+       Lwt.return Html5.F.([]))
+
+(******************************************************************************)
+
+(* XXX Two times the same code, once in shared (with variable names postix
+   _shared and once in server (with variable names prefixed by
+   escaping_scoping_server_). *)
+
+{client{
+  let escaping_scoping_server_v1 = "client1"
+  let escaping_scoping_server_v2 = "client2"
+}}
+{server{
+  let escaping_scoping_server_v1 = "server1"
+  let escaping_scoping_server_v2 = "server2"
+  let escaping_scoping_server () = ignore {unit{
+    Eliom_testsuite_base.assert_equal
+      ~name:"escaping_scoping_server_v1"
+      escaping_scoping_server_v1 "client1";
+    Eliom_testsuite_base.assert_equal
+      ~name:"%escaping_scoping_server_v1"
+      %escaping_scoping_server_v1 "server1";
+    let escaping_scoping_server_v2 = "inner2" in
+    Eliom_testsuite_base.assert_equal
+      ~name:"escaping_scoping_server_v2"
+      escaping_scoping_server_v2 "inner2";
+    Eliom_testsuite_base.assert_equal
+      ~name:"%escaping_scoping_server_v2"
+      %escaping_scoping_server_v2 "server2";
+    ()
+  }}
+}}
+
+{client{
+  let escaping_scoping_shared_v1 = "client1"
+  let escaping_scoping_shared_v2 = "client2"
+}}
+{shared{
+  let escaping_scoping_shared_v1 = "shared1"
+  let escaping_scoping_shared_v2 = "shared2"
+  let escaping_scoping_shared () = ignore {unit{
+    Eliom_testsuite_base.assert_equal
+      ~name:"escaping_scoping_shared_v1"
+      escaping_scoping_shared_v1 "client1";
+    Eliom_testsuite_base.assert_equal
+      ~name:"%escaping_scoping_shared_v1"
+      %escaping_scoping_shared_v1 "shared1";
+    let escaping_scoping_shared_v2 = "inner2" in
+    Eliom_testsuite_base.assert_equal
+      ~name:"escaping_scoping_shared_v2"
+      escaping_scoping_shared_v2 "inner2";
+    Eliom_testsuite_base.assert_equal
+      ~name:"%escaping_scoping_shared_v2"
+      %escaping_scoping_shared_v2 "shared2";
+    ()
+  }}
+}}
+
+let test_escaping_scoping =
+  let title = "Scoping of escaped variables in server/shared-section" in
+  Eliom_testsuite_base.test ~title
+    ~path:["holes"; "escaping_scoping"]
+    ~description:Html5.F.([
+      p [pcdata "Test, which value is referenced by ";
+         Eliom_testsuite_base.monospace "v";
+         pcdata " and an escaped variable ";
+         Eliom_testsuite_base.monospace "%%v";
+         pcdata " in cases like:"];
+      pre [pcdata "\
+{client{\n
+  let v = ...\n
+}}\n
+{server/shared{\n
+  let v = ...\n
+  let _ = {{
+    v, %v (* <-- here *)
+  }}
+}}"];
+      p [pcdata "There must be 12 tests mentioned in the client logger (4 from \
+                 testing the server-section, and each 4 from testing the shared-section \
+                 in client and server), and 0 in the server output."];
+    ])
+    (fun () ->
+       escaping_scoping_shared ();
+       escaping_scoping_server ();
+       Eliom_testsuite_base.report_flush_assertions title;
+       ignore {unit{
+         escaping_scoping_shared ();
+         Eliom_testsuite_base.report_flush_assertions %title;
+       }};
+       Lwt.return Html5.F.([]))
+
+(******************************************************************************)
+
 let test_server_function =
   let f str =
     let strstr = str ^ str in
@@ -1353,8 +1411,8 @@ let tests = [
     test_server_function;
   ];
   "Holes", [
-    test_escape_scoping;
     test_injection_scoping;
+    test_escaping_scoping;
     test_client_value_on_caml_service;
     node_bindings;
     data_sharing;

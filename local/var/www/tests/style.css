@@ -380,6 +380,9 @@ dl.blue {
 .test_description {
   font-size: small;
 }
+.monospace {
+  font-family: monospace;
+}
 .test_logger {
   font-family: monospace;
   font-size: x-small;

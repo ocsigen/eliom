@@ -87,6 +87,9 @@ module type Helpers  = sig
   val raise_syntax_error : Ast.Loc.t -> string -> _
 
   val is_escaped_indent_string: string -> bool
+
+  val patt_tuple : string list -> Ast.patt
+  val expr_tuple : Ast.expr list -> Ast.expr
 end
 
 type client_value_context = [ `Server | `Shared ]
@@ -294,6 +297,24 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       let is_client_value_type = function
         | <:ctyp< $typ$ Eliom_lib.client_value >> -> Some typ
         | _ -> None
+
+      (* Convert a list of patterns to a tuple of pattern, one single pattern, or (). *)
+      let patt_tuple =
+        let _loc = Loc.ghost in
+        let patt_of_id id =
+          <:patt< $lid:id$ >>
+        in function
+        | [] -> <:patt< () >>
+        | [id] -> patt_of_id id
+        | ps -> <:patt< $tup:Ast.paCom_of_list (List.map patt_of_id ps)$ >>
+
+      (* Convert a list of expressions to a tuple, one expression, or (). *)
+      let expr_tuple =
+        let _loc = Loc.ghost in function
+        | [] -> <:expr< () >>
+        | [e] -> e
+        | es -> <:expr< $tup:Ast.exCom_of_list es$ >>
+
     end (* End of Helpers *)
 
 
@@ -587,7 +608,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                 (fun lvl ->
                    set_current_level lvl;
                    let id = gen_closure_num _loc in
-                   Pass.client_value_expr typ (client_value_context lvl) e id (gen_closure_escaped_ident id) _loc)
+                   Pass.client_value_expr typ (client_value_context lvl) e
+                     id (gen_closure_escaped_ident id) _loc)
                 "The syntax {type{ ... } is not allowed in %s."
                 (level_to_string !current_level)
           | KEYWORD "{"; e = TRY [e = expr LEVEL "."; "with" -> e]; lel = label_expr_list; "}" ->
@@ -597,7 +619,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                 (fun lvl ->
                    set_current_level lvl;
                    let id = gen_closure_num _loc in
-                   Pass.client_value_expr None (client_value_context lvl) e id (gen_closure_escaped_ident id) _loc)
+                   Pass.client_value_expr None (client_value_context lvl) e
+                     id (gen_closure_escaped_ident id) _loc)
                 "The syntax {{ ... }} is not allowed in %s."
                 (level_to_string !current_level)
            ] ];
