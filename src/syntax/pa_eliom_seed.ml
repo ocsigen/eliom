@@ -447,9 +447,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           escaped_idents := (id, gen_id) :: !escaped_idents;
           gen_id)
 
-    let injected_idents = ref []
-    let reset_injected_idents () = injected_idents := []
     let gen_injected_expr_ident, gen_injected_ident =
+      let injected_idents = ref [] in
       let r = ref 0 in
       let gen_ident filename =
         let hash = Hashtbl.hash filename in
@@ -487,7 +486,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
     (* Dummy rules: for level management and checking. *)
       dummy_set_level_shared:
-        [[ -> reset_injected_idents ();
+        [[ ->
              begin match !current_level with
               | Toplevel -> set_current_level Shared_item; Some ()
               | _ -> None
@@ -499,7 +498,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                | _ -> None
          ]];
       dummy_set_level_client:
-        [[ -> reset_injected_idents ();
+        [[ ->
              match !current_level with
               | Toplevel -> set_current_level Client_item; Some ()
               | _ -> None
