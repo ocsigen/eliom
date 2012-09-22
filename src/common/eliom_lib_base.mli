@@ -150,15 +150,37 @@ end
 
 (**/**)
 
-module Client_value_data_base : sig
-  type base = (int64 * int * poly) list
+(* BB (?) Merge client_value_data and injection_data into
+   type global_data = {
+     client_value : elt list;
+     injection : (string * poly) list;
+   }
+   type global = {
+     compilation_unit_id : string;
+     data : data list;
+   }
+   And send [global option * request] in Eliom_registration.
+ *)
+
+module Client_value_data : sig
+  type elt = {
+    closure_id : int64;
+    instance_id : int;
+    args : poly;
+  }
+  type global = (string * elt list list) list
+  type request = elt list
+  type base = {
+    global : global option;
+    request : request;
+  }
   val unwrap_id_int : int
+  val describe : base -> string
 end
 
-module Injection_data_base : sig
+module Injection_data : sig
   type base = (string * (unit -> poly)) list
   val unwrap_id_int : int
+  val describe : base -> string
 end
 
-val debug_injection_data : (string -> unit) -> Injection_data_base.base -> unit
-val debug_client_value_data : (string -> unit) -> Client_value_data_base.base -> unit

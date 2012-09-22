@@ -208,26 +208,47 @@ module Int_map = Map_make (struct type t = int let compare = (-) let to_string =
 module String_map = Map_make (struct include String let to_string x = x end)
 
 
-module Client_value_data_base = struct
-  type base = (int64 * int * poly) list
+module Client_value_data = struct
+  type elt = {
+    closure_id : int64;
+    instance_id : int;
+    args : poly;
+  }
+  type request = elt list
+  type global = (string * elt list list) list
+  type base = {
+    global : global option;
+    request : request;
+  }
   let unwrap_id_int = 8
+
+  let describe cv_data =
+    let string_of_cv_data cv_data =
+      "["^String.concat " "
+        (List.map
+           (fun {closure_id; instance_id; _} ->
+              Printf.sprintf "%Ld/%d" closure_id instance_id)
+           cv_data)^"]"
+    in
+    Printf.sprintf "%s + [%s]"
+      (match cv_data.global with
+         | Some global ->
+             String.concat " "
+               (List.map
+                  (function compilation_unit_id, cv_data_li ->
+                     Printf.sprintf "%S: %s" compilation_unit_id
+                       (String.concat " " (List.map string_of_cv_data cv_data_li)))
+                  global)
+         | None -> "no global")
+      (string_of_cv_data cv_data.request)
+
 end
 
-module Injection_data_base = struct
+module Injection_data = struct
   type base = (string * (unit -> poly)) list
   let unwrap_id_int = 9
+  let describe injection_data =
+    String.concat ","
+      (List.map fst injection_data)
 end
-
-let debug_client_value_data f client_value_data =
-  Printf.ksprintf f "Client value data: %s"
-    (String.concat ", "
-       (List.map
-          (fun (closure_id, instance_id, _) ->
-             Printf.sprintf "%Ld/%d" closure_id instance_id)
-          client_value_data))
-
-let debug_injection_data f injection_data =
-  Printf.ksprintf f "Injection data: %s"
-    (String.concat ","
-       (List.map fst injection_data))
 

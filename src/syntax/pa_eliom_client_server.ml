@@ -70,17 +70,17 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   (* Register every injection of $orig_expr$ as $gen_id$ *)
   let register_injections injections =
-    List.map
-      (fun (gen_id, orig_expr) ->
-        let _loc = Loc.ghost in
-        <:str_item<
-          let () =
-            Eliom_service.Syntax_helpers.injection $str:gen_id$ (fun () -> $orig_expr$)
-        >>)
-      injections
+    let _loc = Loc.ghost in
+    let exprs =
+      List.map
+        (fun (gen_id, orig_expr) ->
+           <:expr< Eliom_service.Syntax_helpers.injection $str:gen_id$ (fun () -> $orig_expr$) >>)
+        injections
+    in
+    <:str_item< let () = $Ast.exSem_of_list exprs$; () >>
 
   (* For every injection of $orig_expr$ as $gen_id$:
-     <str_item:< let $gen_id$ = $orig_expr$ and ... >> *)
+     let $gen_id$ = $orig_expr$ and ... *)
   let bind_injected_idents injections =
     let _loc = Loc.ghost in
     let bindings =
@@ -92,21 +92,32 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     in
     <:str_item< let $Ast.binding_of_pel bindings$ >>
 
+  let close_client_value_data_list loc =
+    let _loc = Loc.ghost in
+    <:str_item<
+        let () =
+          Eliom_service.Syntax_helpers.close_client_value_data_list
+            $str:Loc.file_name loc$ (* BB XXX replace by some ID *)
+    >>
+
+
   (** Syntax extension *)
 
-  let server_str_items items =
-    Ast.stSem_of_list items
+  let client_str_items loc _ =
+    register_injections (flush_injections ())
 
-  let client_str_items _ =
+  let server_str_items loc items =
     Ast.stSem_of_list
-      (register_injections (flush_injections ()))
+      (items @
+       [ close_client_value_data_list loc ])
 
-  let shared_str_items items =
+  let shared_str_items loc items =
     let injections = flush_injections () in
     Ast.stSem_of_list
-      (register_injections injections @
+      (register_injections injections ::
        [ bind_injected_idents injections ] @
-       items)
+       items @
+       [ close_client_value_data_list loc ])
 
   let client_value_expr typ context_level orig_expr gen_num _ loc =
     let typ =

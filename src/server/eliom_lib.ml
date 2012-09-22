@@ -1,6 +1,11 @@
 
 include Ocsigen_lib
-include Eliom_lib_base
+include (Eliom_lib_base : module type of Eliom_lib_base
+                          with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
+                          with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
+                          with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
+                          with module Client_value_data := Eliom_lib_base.Client_value_data
+                          with module Injection_data := Eliom_lib_base.Injection_data)
 
 let escaped_value_escaped_value = fst
 
@@ -83,23 +88,21 @@ let merge_aux err_msg =
 
 module Client_value_data = struct
 
-  include Client_value_data_base
-  type t = ((int64 * int * poly) * Eliom_wrap.unwrapper) list
+  include Eliom_lib_base.Client_value_data
+
+  type t = base * Eliom_wrap.unwrapper
 
   let unwrapper =
     Eliom_wrap.create_unwrapper
       (Eliom_wrap.id_of_int unwrap_id_int)
 
-  let with_unwrapper client_value_data =
-    List.map
-      (fun datum -> datum, unwrapper)
-      client_value_data
+  let with_unwrapper cv_data = cv_data, unwrapper
 
 end
 
 module Injection_data = struct
 
-  include Injection_data_base
+  include Eliom_lib_base.Injection_data
   type t = ((string * poly) * Eliom_wrap.unwrapper) list
 
   let unwrapper =

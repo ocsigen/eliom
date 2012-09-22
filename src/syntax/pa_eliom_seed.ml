@@ -113,13 +113,13 @@ module type Pass = functor (Helpers: Helpers) -> sig
   open Helpers.Syntax
 
   (** How to handle "{shared{ ... }}" str_item. *)
-  val shared_str_items: Ast.str_item list -> Ast.str_item
+  val shared_str_items: Ast.Loc.t -> Ast.str_item list -> Ast.str_item
 
   (** How to handle "{server{ ... }}" str_item and toplevel str_item. *)
-  val server_str_items: Ast.str_item list -> Ast.str_item
+  val server_str_items: Ast.Loc.t -> Ast.str_item list -> Ast.str_item
 
   (** How to handle "{client{ ... }}" str_item. *)
-  val client_str_items: Ast.str_item list -> Ast.str_item
+  val client_str_items: Ast.Loc.t -> Ast.str_item list -> Ast.str_item
 
   (** How to handle "{{ ... }}" expr. *)
   val client_value_expr: Ast.ctyp option -> client_value_context -> Ast.expr -> Int64.t -> string -> Ast.Loc.t -> Ast.expr
@@ -450,16 +450,16 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
     let gen_injected_expr_ident, gen_injected_ident =
       let injected_idents = ref [] in
       let r = ref 0 in
-      let gen_ident filename =
-        let hash = Hashtbl.hash filename in
+      let gen_ident loc =
+        let hash = Hashtbl.hash (Loc.file_name loc) in
         incr r;
         Printf.sprintf (Helpers.injected_ident_fmt ()) hash !r
       in
-      let gen_injected_ident filename id =
+      let gen_injected_ident loc id =
         let id = (Ast.map_loc (fun _ -> Loc.ghost))#ident id in
         try List.assoc id !injected_idents
         with Not_found ->
-          let gen_id = gen_ident filename in
+          let gen_id = gen_ident loc in
           injected_idents := (id, gen_id) :: !injected_idents;
           gen_id
       in
@@ -570,27 +570,27 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
              from_some_or_raise opt _loc
                (fun () ->
                   set_current_level Toplevel;
-                  Pass.shared_str_items es)
+                  Pass.shared_str_items _loc es)
                "The syntax {shared{ ... }} is only allowed at toplevel"
 
          | KEYWORD "{server{" ; opt = dummy_set_level_server ; es = LIST0 str_item ; KEYWORD "}}" ->
              from_some_or_raise opt _loc
                (fun () ->
                   set_current_level Toplevel;
-                  Pass.server_str_items es)
+                  Pass.server_str_items _loc es)
                "The syntax {server{ ... }} is only allowed at toplevel"
 
          | KEYWORD "{client{" ; opt = dummy_set_level_client ; es = LIST0 str_item ; KEYWORD "}}" ->
              from_some_or_raise opt _loc
                (fun () ->
                   set_current_level Toplevel;
-                  Pass.client_str_items es)
+                  Pass.client_str_items _loc es)
                "The syntax {client{ ... }} is only allowed at toplevel"
 
          | si = str_item LEVEL "top" ->
 
              if !current_level = Toplevel then
-               Pass.server_str_items [si]
+               Pass.server_str_items _loc [si]
              else
                si
 
@@ -634,7 +634,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                          | Escaped_in_client_value_in _ ->
                              gen_escaped_ident id
                          | Injected_in _ ->
-                             gen_injected_ident (Loc.file_name _loc) id
+                             gen_injected_ident _loc id
                      in
                      Pass.escape_inject context <:expr< $id:id$ >> gen_id)
                 "The syntax \"%%ident\" is not allowed in %s."
@@ -652,7 +652,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                        | Escaped_in_client_value_in _ ->
                            gen_escaped_expr_ident ()
                        | Injected_in _ ->
-                           gen_injected_expr_ident (Loc.file_name _loc)
+                           gen_injected_expr_ident _loc
                    in
                    Pass.escape_inject context e gen_id)
                 "The syntax \"%%(...)\" is not allowed in %s."

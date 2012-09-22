@@ -77,14 +77,14 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   (** Syntax extension *)
 
-  let client_str_items items =
+  let client_str_items _loc items =
     Ast.stSem_of_list [
       flush_typing_str_item ();
       (let _loc = Loc.ghost in
        <:str_item< let () = begin $flush_typing_expr ()$ end >>);
     ]
 
-  let server_str_items items =
+  let server_str_items _loc items =
     Ast.stSem_of_list (flush_typing_str_item () :: items)
 
   let shared_str_items = server_str_items

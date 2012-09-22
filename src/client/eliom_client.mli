@@ -164,6 +164,7 @@ val rebuild_node : 'a Eliom_content_core.Html5.elt -> < .. > Js.t
 module Syntax_helpers : sig
   val register_client_closure : int64 -> (_ -> _) -> unit
   val get_escaped_value : escaped_value -> 'a
+  val next_client_value_initializations : string -> unit
   val injection_initializations : string list -> unit
   val get_injection : string -> 'a
 end

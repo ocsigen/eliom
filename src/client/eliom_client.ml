@@ -48,6 +48,7 @@ end = struct
   let client_closures = JsTable.create ()
 
   let register ~closure_id ~closure =
+    trace "Register client closure %Ld" closure_id;
     JsTable.add client_closures (key closure_id)
       (fun args ->
          to_poly (closure (from_poly args)))
@@ -176,46 +177,53 @@ let withdom, set_withdom_buffered_mode, flush_buffered_withdom =
      direct := true;
      res)
 
-
-(* BBB KNOWN BUG
-   do_client_value_initializations:
-
-   {server{ let f x = ignore {unit{ debug "f: %S" %x }}@p1 }}
-   {client{ let s = "str" }}
-   {server{ let x = f {string{ s }}@p2 }}
-
-   => in the client code, *all* client values of closure p1 are initialized,
-      also [x] although [s] is not yet known.
- *)
-let (register_client_value_initialization, do_client_value_initializations, do_all_client_value_initializations),
-    (register_injection_initialization, do_injection_initializations, _) =
-  let aux ~key_pred ~msg ~pred_arg_to_string ~key_to_string =
-    let buffer = ref [] in
-    let register key f =
-      trace "Register %s initialization %s" msg (key_to_string key);
-      buffer := (key, f) :: !buffer
-    in
-    let do_single pred_arg =
-      trace "Do %s initializations %s" msg (pred_arg_to_string pred_arg);
-      let now, later =
-        List.partition (fun (key, _) -> key_pred key pred_arg) !buffer
-      in
-      List.iter (fun (_, f) -> f ()) (List.rev now);
-      buffer := later
-    in
-    let do_all () =
-      trace "Do all %s initializations" msg;
-      List.iter (fun (_, f) -> f ()) (List.rev !buffer);
-      buffer := []
-    in
-    register, do_single, do_all
+let register_injection_initialization, do_injection_initializations =
+  let buffer = ref [] in
+  let register name f =
+    trace "Register injection initialization %s" name;
+    buffer := (name, f) :: !buffer
   in
-  aux ~key_pred:(=) ~msg:"client value"
-    ~pred_arg_to_string:Int64.to_string
-    ~key_to_string:Int64.to_string,
-  aux ~key_pred:List.mem ~msg:"injection"
-    ~pred_arg_to_string:(String.concat ", ")
-    ~key_to_string:(fun x -> x)
+  let initialization names =
+    trace "Do injection initializations %s" (String.concat ", " names);
+    let now, later =
+      List.partition (fun (name, _) -> List.mem name names) !buffer
+    in
+    List.iter (fun (_, f) -> f ()) (List.rev now);
+    buffer := later
+  in
+  register, initialization
+
+let register_global_client_value_data,
+    do_next_client_value_data_initialization_list,
+    do_request_client_value_initializations =
+  let initialize {Client_value_data.closure_id; instance_id; args} =
+    let closure = Client_closure.find ~closure_id in
+    let args = really_unwrap_client_values args in
+    let value = closure args in
+    Client_value.set ~closure_id ~instance_id ~value
+  in
+  let global_table = Hashtbl.create 7 in
+  let register_global : compilation_unit_id:string -> Eliom_lib.Client_value_data.elt list list -> unit =
+    fun ~compilation_unit_id cv_data_li ->
+      Hashtbl.add global_table compilation_unit_id (ref cv_data_li)
+  in
+  let do_next_list ~compilation_unit_id =
+    trace "do_next_client_value_initializations %S" compilation_unit_id;
+    let cv_data_ref = Hashtbl.find global_table compilation_unit_id in
+    match !cv_data_ref with
+      | cv_data :: rest ->
+          List.iter initialize cv_data;
+          if rest = [] then
+            Hashtbl.remove global_table compilation_unit_id
+          else
+            cv_data_ref := rest
+      | [] -> failwith "do_next_client_value_data_initialization_list"
+  in
+  let do_request cv_data =
+    assert (Hashtbl.length global_table = 0);
+    List.iter initialize cv_data
+  in
+  register_global, do_next_list, do_request
 
 (* == Process nodes (a.k.a. nodes with a unique Dom instance on each client process) *)
 
@@ -563,8 +571,8 @@ let call_caml_service
       ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
       ?keep_nl_params ?nl_params ?keep_get_na_params
       get_params post_params in
-  lwt content, client_value_data = unwrap_caml_content content in
-  do_all_client_value_initializations client_value_data;
+  lwt content, request_client_value_data = unwrap_caml_content content in
+  do_request_client_value_initializations request_client_value_data;
   run_load_events (flush_onload ());
   force_unwrapped_elts ();
   reset_request_node ();
@@ -820,7 +828,7 @@ let set_content ?uri ?offset ?fragment content =
        (* Unmarshall page data. *)
        let cookies = Eliom_request_info.get_request_cookies () in
        let js_data = Eliom_request_info.get_request_data () in
-       let client_value_data = 
+       let request_client_value_data =
          (Eliom_request_info.get_request_data ())
            .Eliom_types.ejs_client_value_data
        in
@@ -847,7 +855,7 @@ let set_content ?uri ?offset ?fragment content =
        Dom.replaceChild Dom_html.document
          fake_page
          Dom_html.document##documentElement;
-       do_all_client_value_initializations client_value_data;
+       do_request_client_value_initializations request_client_value_data;
        let onload_events = flush_onload () in
        let withdom_events = flush_buffered_withdom () in
        let onload_closure_nodes =
@@ -885,8 +893,8 @@ let set_template_content ?uri ?fragment = function
         | Some uri, Some fragment ->
           change_url_string (uri ^ "#" ^ fragment)
         | _ -> ());
-      lwt (), client_value_data = unwrap_caml_content content in
-      do_all_client_value_initializations client_value_data;
+      lwt (), request_client_value_data = unwrap_caml_content content in
+      do_request_client_value_initializations request_client_value_data;
       run_load_events (flush_onload ());
       force_unwrapped_elts ();
       reset_request_node ();
@@ -1233,34 +1241,35 @@ let unwrap_client_value =
     let closure_id = Eliom_server.Client_value.closure_id cv in
     let instance_id = Eliom_server.Client_value.instance_id cv in
     if !is_really_unwrap_client_values then
-      (trace "Unwrap client_value %Ld/%d" closure_id instance_id;
+      (trace "Unwrap client value %Ld/%d" closure_id instance_id;
        try
          Client_value.find ~closure_id ~instance_id
        with Not_found ->
          error "Client value not found: %Ld/%d" closure_id instance_id)
     else
-      (trace "Unwrap client_value %Ld/%d later" closure_id instance_id;
+      (trace "Unwrap client value %Ld/%d later" closure_id instance_id;
        not_unwrapped)
 
-let unwrap_injection_datum ((name, value), _) =
-  trace "Unwrap injection datum";
-  register_injection_initialization name
-    (fun () ->
-       trace "Unwrap injection datum %s" name;
-       let value = really_unwrap_client_values value in
-       Injection.set ~name ~value);
-  ()
+let unwrap_injection_datum =
+  fun ((name, value), _) ->
+    trace "Unwrap injection datum";
+    register_injection_initialization name
+      (fun () ->
+         trace "Unwrap injection datum %s" name;
+         let value = really_unwrap_client_values value in
+         Injection.set ~name ~value);
+    ()
 
-let unwrap_client_value_datum ((closure_id, instance_id, args), _) =
-  trace "Unwrap client value datum";
-  register_client_value_initialization closure_id
-    (fun () ->
-       trace "Unwrap client value datum %Ld/%d" closure_id instance_id;
-       let closure = Client_closure.find ~closure_id in
-       let args = really_unwrap_client_values args in
-       let value = closure args in
-       Client_value.set ~closure_id ~instance_id ~value);
-  ()
+let unwrap_client_value_data =
+  fun ({Client_value_data.global; request}, _) ->
+    trace "Unwrap client value datum";
+    let for_global : Eliom_lib.Client_value_data.global -> unit =
+      List.iter
+        (function compilation_unit_id, cv_data_li ->
+           register_global_client_value_data ~compilation_unit_id cv_data_li)
+    in
+    Option.iter for_global global;
+    request
 
 let _ =
   Eliom_unwrap.register_unwrapper
@@ -1270,10 +1279,10 @@ let _ =
     (Eliom_unwrap.id_of_int Eliom_lib_base.client_value_unwrap_id_int)
     unwrap_client_value;
   Eliom_unwrap.register_unwrapper
-    (Eliom_unwrap.id_of_int Eliom_lib_base.Client_value_data_base.unwrap_id_int)
-    unwrap_client_value_datum;
+    (Eliom_unwrap.id_of_int Eliom_lib_base.Client_value_data.unwrap_id_int)
+    unwrap_client_value_data;
   Eliom_unwrap.register_unwrapper
-    (Eliom_unwrap.id_of_int Eliom_lib_base.Injection_data_base.unwrap_id_int)
+    (Eliom_unwrap.id_of_int Eliom_lib_base.Injection_data.unwrap_id_int)
     unwrap_injection_datum;
   ()
 
@@ -1282,9 +1291,10 @@ let _ =
 module Syntax_helpers = struct
 
   let register_client_closure closure_id closure =
-    trace "Register client closure %Ld" closure_id;
-    Client_closure.register ~closure_id ~closure;
-    do_client_value_initializations closure_id
+    Client_closure.register ~closure_id ~closure
+
+  let next_client_value_initializations compilation_unit_id =
+    do_next_client_value_data_initialization_list compilation_unit_id
 
   let get_escaped_value =
     from_poly

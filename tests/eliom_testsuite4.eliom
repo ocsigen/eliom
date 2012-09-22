@@ -1386,6 +1386,39 @@ let test_server_function =
          field; 
        ]))
 
+(******************************************************************************)
+{server{
+  let () = ignore {unit{ Eliom_testsuite_base.log "STEP 0" }}
+}}
+{client{
+  let client_value_initialization_x1 = 2
+}}
+{server{
+  let () = ignore {unit{ Eliom_testsuite_base.log "STEP 1" }}
+  let client_value_initialization_f (x : int client_value) : unit client_value =
+    {{ Eliom_testsuite_base.log "STEP %d" %x }}
+  let client_value_initialization_y1 =
+    client_value_initialization_f {{ client_value_initialization_x1 }}
+}}
+{client{
+  let client_value_initialization_x2 = 3
+}}
+{server{
+  let client_value_initialization_y2 =
+    client_value_initialization_f
+      {{ client_value_initialization_x2 }}
+  let () = ignore {unit{ Eliom_testsuite_base.log "STEP 4" }}
+}}
+let client_value_initialization =
+  Eliom_testsuite_base.test
+    ~title:"Order of initializations of client values"
+    ~path:["holes"; "client_value_initialization"]
+    ~description:Html5.F.([
+      pcdata "The client logger should show the STEPs 0-4"
+    ])
+    (fun () ->
+       Lwt.return [])
+
 let tests = [
   "Mixed", [
     test_custom_data;
@@ -1398,6 +1431,7 @@ let tests = [
     test_client_value_on_caml_service;
     node_bindings;
     data_sharing;
+    client_value_initialization;
 (*
    test_simple;
    client_values_injection;

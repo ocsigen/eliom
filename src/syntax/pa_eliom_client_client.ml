@@ -173,24 +173,35 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           Eliom_client.Syntax_helpers.injection_initializations $names$
       >>
 
+  let next_client_value_initializations loc =
+    let _loc = Loc.ghost in
+    <:str_item<
+        let () =
+          Eliom_client.Syntax_helpers.next_client_value_initializations
+            $str:Loc.file_name loc$ (* BB XXX replace by some ID *)
+    >>
+
   (** Syntax extension *)
 
-  let client_str_items items =
+  let client_str_items _ items =
     Ast.stSem_of_list
       (injection_initializations (flush_injections ()) ::
        items)
 
-  let server_str_items _ =
-    register_client_closures
-      (flush_client_value_datas ())
+  let server_str_items loc _ =
+    Ast.stSem_of_list [
+      register_client_closures (flush_client_value_datas ());
+      next_client_value_initializations loc;
+    ]
 
-  let shared_str_items items =
+  let shared_str_items loc items =
     let client_expr_data = flush_client_value_datas () in
     Ast.stSem_of_list
       (injection_initializations (flush_injections ()) ::
-       [ register_client_closures client_expr_data;
-         define_client_functions client_expr_data ] @
-       items)
+       register_client_closures client_expr_data ::
+       define_client_functions client_expr_data ::
+       items @
+       [ next_client_value_initializations loc ])
 
   let client_value_expr typ context_level orig_expr gen_num gen_id loc =
 

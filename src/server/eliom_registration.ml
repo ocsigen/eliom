@@ -31,15 +31,13 @@ let code_of_code_option = function
 include Eliom_registration_base
 
 let client_value_data ~is_first_request =
-  let request_initializations =
-    Eliom_service.get_request_client_value_data ()
-  in
-  let global_initializations =
+  let request = Eliom_service.get_request_client_value_data () in
+  let global =
     if is_first_request
-    then Eliom_service.get_global_client_value_data ()
-    else []
+    then Some (Eliom_service.get_global_client_value_data ())
+    else None
   in
-  global_initializations @ request_initializations
+  { Client_value_data.global; request }
 
 let injection_data ~is_first_request =
   if is_first_request then
@@ -1459,8 +1457,8 @@ module Eliom_appl_reg_make_param
     let client_value_data = client_value_data ~is_first_request in
     let injection_data = injection_data ~is_first_request in
 
+    debug "Client value data: %s" (Client_value_data.describe client_value_data);
 (*
-    debug_client_value_data (debug "%s") client_value_data;
     debug_injection_data (debug "%s") injection_data;
  *)
 

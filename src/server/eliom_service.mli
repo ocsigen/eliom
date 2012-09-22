@@ -690,20 +690,16 @@ val eliom_appl_answer_content_type : string
 
 exception Wrong_session_table_for_CSRF_safe_coservice
 
-(* BB It is decided dynamically whether a client value initialization (cf. [Syntax_helpers.client_value])
-   is global or request:
-   If the server is currently processing a request, the client value is send to the client
-   with the next response. If the server is not processing a request, the client value is
-   send to every client process with the first response. *)
-val register_client_value_data : closure_id:int64 -> instance_id:int -> poly -> unit
-val get_global_client_value_data : unit -> Client_value_data.base
-val get_request_client_value_data : unit -> Client_value_data.base
+val register_client_value_data : closure_id:int64 -> instance_id:int -> args:poly -> unit
+val get_global_client_value_data : unit -> Client_value_data.global
+val get_request_client_value_data : unit -> Client_value_data.request
 
 val get_injection_data : unit -> Injection_data.base
 
 (* TODO BB Find a better place for this module *)
 module Syntax_helpers : sig
   val client_value : int64 -> 'args -> 'a client_value
+  val close_client_value_data_list : string -> unit
   val injection : string -> (unit -> 'a) -> unit
   val escaped_value : 'a -> escaped_value
 end

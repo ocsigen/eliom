@@ -17,7 +17,12 @@
  *)
 
 include Ocsigen_lib_base
-include Eliom_lib_base
+include (Eliom_lib_base : module type of Eliom_lib_base
+                          with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
+                          with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
+                          with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
+                          with module Client_value_data := Eliom_lib_base.Client_value_data
+                          with module Injection_data := Eliom_lib_base.Injection_data)
 
 exception False
 
@@ -111,14 +116,14 @@ type file_info
 
 module Client_value_data = struct
 
-  include Client_value_data_base
-  type t = unit
+  include Eliom_lib_base.Client_value_data
+  type t = request
 
 end
 
 module Injection_data = struct
 
-  include Injection_data_base
+  include Eliom_lib_base.Injection_data
   type t = unit
 end
 
