@@ -667,7 +667,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
   module Id : Camlp4.Sig.Id = struct
     let name = "Eliom source file syntax ("^ Id.name ^")"
-    let version = "alpha"
+    let version = "3.0+alpha"
   end
 
   module M = Camlp4.Register.OCamlSyntaxExtension(Id)(Make)
@@ -698,7 +698,7 @@ end
 
 module Id : Camlp4.Sig.Id = struct
   let name = "Eliom source file syntax (common)"
-  let version = "alpha"
+  let version = "3.0+alpha"
 end
 
 module M = Camlp4.Register.OCamlSyntaxExtension(Id)(Make)
