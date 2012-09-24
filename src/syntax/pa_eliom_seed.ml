@@ -415,6 +415,9 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       | Shared_item -> `Shared
       | Client_item | Hole_expr _ | Escaped_expr _ | Injected_expr _ | Module_expr as context ->
           failwith ("client_value_context: " ^ level_to_string context)
+    let injection_context_to_parsing_level : injection_context -> parsing_level = function
+      | `Client -> Client_item
+      | `Shared -> Shared_item
     let current_level = ref Toplevel
     let set_current_level level =
       current_level := level
@@ -646,7 +649,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                    set_current_level
                      (match context with
                         | Escaped_in_client_value_in context -> Hole_expr context
-                        | Injected_in context -> Injected_expr context);
+                        | Injected_in context -> injection_context_to_parsing_level context);
                    let gen_id =
                      match context with
                        | Escaped_in_client_value_in _ ->
