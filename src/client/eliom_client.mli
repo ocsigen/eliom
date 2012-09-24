@@ -162,9 +162,9 @@ val getElementById : string -> Dom.node Js.t
 val rebuild_node : 'a Eliom_content_core.Html5.elt -> < .. > Js.t
 
 module Syntax_helpers : sig
-  val register_client_closure : int64 -> (_ -> _) -> unit
   val get_escaped_value : escaped_value -> 'a
-  val next_client_value_initializations : string -> unit
-  val injection_initializations : string list -> unit
   val get_injection : string -> 'a
+  val register_client_closure : int64 -> (_ -> _) -> unit
+  val close_server_section : string -> unit
+  val open_client_section : string -> unit
 end

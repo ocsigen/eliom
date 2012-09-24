@@ -32,8 +32,11 @@ include module type of Eliom_lib_base
   with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
   with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
   with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
-  with module Client_value_data := Eliom_lib_base.Client_value_data
-  with module Injection_data := Eliom_lib_base.Injection_data
+  with type client_value_datum = Eliom_lib_base.client_value_datum
+  with type 'a injection_datum = 'a Eliom_lib_base.injection_datum
+  with type 'a compilation_unit_global_data = 'a Eliom_lib_base.compilation_unit_global_data
+  with type 'a global_data := 'a Eliom_lib_base.global_data
+  with type request_data = Eliom_lib_base.request_data
 
 (** Client values on the server are created by the syntax [{{ ... }}] in the
     server section. Those values are abstract on the server and unwrapped
@@ -65,24 +68,8 @@ val jsmarshal : 'a -> string
 
 val string_escape : string -> string
 
-module Client_value_data : sig
+type global_data = poly Eliom_lib_base.global_data * Eliom_wrap.unwrapper
 
-  include module type of Eliom_lib_base.Client_value_data
-    with type elt = Eliom_lib_base.Client_value_data.elt
-    with type global = Eliom_lib_base.Client_value_data.global
-    with type request = Eliom_lib_base.Client_value_data.request
-    with type base = Eliom_lib_base.Client_value_data.base
-  type t = base * Eliom_wrap.unwrapper
-  val with_unwrapper : base -> t
-
-end
-
-module Injection_data : sig
-
-  include module type of Eliom_lib_base.Injection_data
-  type t = ((string * poly) * Eliom_wrap.unwrapper) list
-  val with_unwrapper : base -> t
-
-end
+val global_data_unwrapper : Eliom_wrap.unwrapper
 
 (**/**)

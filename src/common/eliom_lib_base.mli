@@ -132,55 +132,45 @@ val client_value_unwrap_id_int : int
 
 type escaped_value = poly
 
-module Int64_map : sig
-  include Map.S with type key = int64
+module type Map_S = sig
+  include Map.S
   val from_list : (key * 'a) list -> 'a t
-  val to_string : ('a -> string) -> 'a t -> string
+  val to_string : ?sep:string -> ('a -> string) -> 'a t -> string
 end
-module Int_map : sig
-  include Map.S with type key = int
-  val from_list : (key * 'a) list -> 'a t
-  val to_string : ('a -> string) -> 'a t -> string
-end
-module String_map : sig
-  include Map.S with type key = string
-  val from_list : (key * 'a) list -> 'a t
-  val to_string : ('a -> string) -> 'a t -> string
-end
+
+module Int64_map : Map_S with type key = int64
+module Int_map : Map_S with type key = int
+module String_map : Map_S with type key = string
 
 (**/**)
 
-(* BB (?) Merge client_value_data and injection_data into
-   type global_data = {
-     client_value : elt list;
-     injection : (string * poly) list;
-   }
-   type global = {
-     compilation_unit_id : string;
-     data : data list;
-   }
-   And send [global option * request] in Eliom_registration.
- *)
+(** Data for initializing one client value *)
+type client_value_datum = {
+  closure_id : int64;
+  instance_id : int;
+  args : poly;
+}
 
-module Client_value_data : sig
-  type elt = {
-    closure_id : int64;
-    instance_id : int;
-    args : poly;
-  }
-  type global = (string * elt list list) list
-  type request = elt list
-  type base = {
-    global : global option;
-    request : request;
-  }
-  val unwrap_id_int : int
-  val describe : base -> string
-end
+(** Data for initializing one injection *)
+type 'injection_value injection_datum = {
+  injection_id : string;
+  injection_value : 'injection_value;
+}
 
-module Injection_data : sig
-  type base = (string * (unit -> poly)) list
-  val unwrap_id_int : int
-  val describe : base -> string
-end
+(** Data for initializing client values and injections of one compilation unit *)
+type 'injection_value compilation_unit_global_data = {
+  mutable server_sections_data : (client_value_datum list) Queue.t;
+  mutable client_sections_data : ('injection_value injection_datum list) Queue.t;
+}
 
+(** Data for initializing client values and injection of the client program *)
+type 'injection_value global_data =
+    'injection_value compilation_unit_global_data String_map.t
+
+(** Data for initializing client values sent with a request *)
+type request_data = client_value_datum list
+
+val global_data_unwrap_id_int : int
+
+val global_data_to_string : _ global_data -> string
+val request_data_to_string : request_data -> string

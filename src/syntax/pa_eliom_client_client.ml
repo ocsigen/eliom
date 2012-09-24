@@ -26,8 +26,7 @@
    for creating a client-only function (cf. [Client_pass.define_client_functions]).
    Only for the former it is necessary to call [Eliom_client.Syntax_helpers.get_escaped_value]
    on the escaped identifier.
-   This is done post-hoc by [map_get_escaped_values] in [register_client_closures].
- *)
+   This is done post-hoc by [map_get_escaped_values] in [register_client_closures]. *)
 
 module Id = struct
   let name = "client part"
@@ -144,64 +143,42 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   (* For injections *)
 
-  let push_injection, flush_injections =
-    let escaped_vars = ref [] in
-    let push gen_id orig_expr =
-      if not (List.mem gen_id (List.map fst !escaped_vars)) then
-        escaped_vars := (gen_id, orig_expr) :: !escaped_vars
-    in
-    let flush () =
-      let res = List.rev !escaped_vars in
-      escaped_vars := [];
-      res
-    in
-    push, flush
-
-  let injection_initializations injected_vars =
-    let _loc = Loc.ghost in
-    if injected_vars = [] then
-      <:str_item< >>
-    else
-      let names =
-        List.fold_right
-          (fun (hd, _) tl ->
-             <:expr< $str:hd$ :: $tl$ >>)
-          injected_vars <:expr< []>>
-      in
-      <:str_item<
-        let () =
-          Eliom_client.Syntax_helpers.injection_initializations $names$
-      >>
-
-  let next_client_value_initializations loc =
+  let close_server_section loc =
     let _loc = Loc.ghost in
     <:str_item<
         let () =
-          Eliom_client.Syntax_helpers.next_client_value_initializations
-            $str:Loc.file_name loc$ (* BB XXX replace by some ID *)
+          Eliom_client.Syntax_helpers.close_server_section
+            $str:Pa_eliom_seed.id_of_string (Loc.file_name loc)$
+    >>
+
+  let open_client_section loc =
+    let _loc = Loc.ghost in
+    <:str_item<
+        let () =
+          Eliom_client.Syntax_helpers.open_client_section
+            $str:Pa_eliom_seed.id_of_string (Loc.file_name loc)$
     >>
 
   (** Syntax extension *)
 
-  let client_str_items _ items =
+  let client_str_items loc items =
     Ast.stSem_of_list
-      (injection_initializations (flush_injections ()) ::
+      (open_client_section loc ::
        items)
 
   let server_str_items loc _ =
-    Ast.stSem_of_list [
-      register_client_closures (flush_client_value_datas ());
-      next_client_value_initializations loc;
-    ]
+    Ast.stSem_of_list
+      [ register_client_closures (flush_client_value_datas ());
+        close_server_section loc; ]
 
   let shared_str_items loc items =
     let client_expr_data = flush_client_value_datas () in
     Ast.stSem_of_list
-      (injection_initializations (flush_injections ()) ::
+      (open_client_section loc ::
        register_client_closures client_expr_data ::
        define_client_functions client_expr_data ::
        items @
-       [ next_client_value_initializations loc ])
+       [ close_server_section loc ])
 
   let client_value_expr typ context_level orig_expr gen_num gen_id loc =
 
@@ -252,11 +229,11 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
             drop_client_value_ctyp
               (get_type Helpers.find_injected_ident_type gen_id)
           in
-          push_injection gen_id orig_expr;
           <:expr<
             (Eliom_client.Syntax_helpers.get_injection $str:gen_id$ : $typ$)
           >>
 
+  let implem sil = sil
 
 end
 

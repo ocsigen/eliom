@@ -176,12 +176,12 @@ let data_sharing =
       p [pcdata "Checks wheather data in the eliom request data is shared"];
       p [pcdata "The string below is the encoded request data."];
       p [pcdata "The string \"WWWWWWWWWWW\" should only occur once, although
-                 the corresponding element is used in 3 different client values."];
+                 the corresponding element is used in 3 times in two different
+                 client values and injected 3 times in two client sections."];
     ])
     (fun () ->
        ignore {unit{ ignore %elt }};
-       ignore {unit{ ignore %elt }};
-       ignore {unit{ ignore %elt }};
+       ignore {unit{ ignore (%elt, %elt) }};
        ignore {unit{
          Eliom_client.onload
            (fun () ->
@@ -193,6 +193,10 @@ let data_sharing =
 
 {client{
   let () = ignore %elt
+}}
+
+{client{
+  let () = ignore (%elt, %elt)
 }}
 
 (******************************************************************************)
@@ -1207,10 +1211,11 @@ let test_withdom =
   let injection_scoping_shared_v1 = "shared1"
   let injection_scoping_shared () =
     Eliom_testsuite_base.assert_equal
-      ~name:"injection_scoping_v1"
+      ~name:"injection_scoping_shared_v1"
       injection_scoping_shared_v1 "shared1";
+    debug "%%injection_scoping_shared_v1=%s (server1)" %injection_scoping_shared_v1;
     Eliom_testsuite_base.assert_equal
-      ~name:"%injection_scoping_v1"
+      ~name:"%injection_scoping_shared_v1"
       %injection_scoping_shared_v1 "server1";
     ()
 }}
@@ -1222,10 +1227,10 @@ let test_withdom =
   let injection_scoping_client_v1 = "client1"
   let injection_scoping_client () =
     Eliom_testsuite_base.assert_equal
-      ~name:"injection_scoping_v1"
+      ~name:"injection_scoping_client_v1"
       injection_scoping_client_v1 "client1";
     Eliom_testsuite_base.assert_equal
-      ~name:"%injection_scoping_v1"
+      ~name:"%injection_scoping_client_v1"
       %injection_scoping_client_v1 "server1";
     ()
 }}
@@ -1389,34 +1394,46 @@ let test_server_function =
 (******************************************************************************)
 {server{
   let () = ignore {unit{ Eliom_testsuite_base.log "STEP 0" }}
+  let client_value_initialization_a = "1"
+  let client_value_initialization_b = "2"
 }}
 {client{
   let client_value_initialization_x1 = 2
+  let () = Eliom_testsuite_base.log "STEP %s" %client_value_initialization_a
+  let () = Eliom_testsuite_base.log "STEP %s" %client_value_initialization_b
 }}
 {server{
-  let () = ignore {unit{ Eliom_testsuite_base.log "STEP 1" }}
+  let () = ignore {unit{ Eliom_testsuite_base.log "STEP 3" }}
   let client_value_initialization_f (x : int client_value) : unit client_value =
     {{ Eliom_testsuite_base.log "STEP %d" %x }}
   let client_value_initialization_y1 =
     client_value_initialization_f {{ client_value_initialization_x1 }}
 }}
 {client{
-  let client_value_initialization_x2 = 3
+  let client_value_initialization_x2 = 5
+  let client_value_initialization_f2 () =
+    let () = ignore %client_value_initialization_a in
+    let () = ignore %client_value_initialization_a in
+    let () = ignore %(debug "STEP 0") in
+    let () = ignore %(debug "STEP 1") in
+    ()
 }}
 {server{
   let client_value_initialization_y2 =
     client_value_initialization_f
       {{ client_value_initialization_x2 }}
-  let () = ignore {unit{ Eliom_testsuite_base.log "STEP 4" }}
+  let () = ignore {unit{ Eliom_testsuite_base.log "STEP 6" }}
 }}
 let client_value_initialization =
   Eliom_testsuite_base.test
     ~title:"Order of initializations of client values"
     ~path:["holes"; "client_value_initialization"]
     ~description:Html5.F.([
-      pcdata "The client logger should show the STEPs 0-4"
+      p [pcdata "The client logger should show the STEPs 0-6"];
+      p [pcdata "The server output should show STEPs 0-1"];
     ])
     (fun () ->
+       ignore {unit{ client_value_initialization_f2 () }};
        Lwt.return [])
 
 let tests = [

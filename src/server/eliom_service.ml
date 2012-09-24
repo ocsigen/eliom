@@ -536,53 +536,82 @@ let pre_wrap s =
 (* let wrap s = Eliom_types.wrap_parameters (pre_wrap s) *)
 
 (******************************************************************************)
-(** {2 Client value initializations} *)
 
-module Vol_eref = Eliom_reference.Volatile
+(* Global data *)
 
-let current_client_value_data : Client_value_data.elt list ref = ref []
-let flush_current_client_value_data () =
-  let res = List.rev !current_client_value_data in
-  current_client_value_data := [];
-  res
+let global_data = ref String_map.empty
+let current_server_section_data = ref []
+
+let get_compilation_unit_global_data compilation_unit_id =
+  try
+    String_map.find compilation_unit_id !global_data
+  with Not_found ->
+    let data = { server_sections_data = Queue.create (); client_sections_data = Queue.create () } in
+    global_data := String_map.add compilation_unit_id data !global_data;
+    data
+
+let close_server_section ~compilation_unit_id =
+  let { server_sections_data } =
+    get_compilation_unit_global_data compilation_unit_id
+  in
+  Queue.push (List.rev !current_server_section_data)
+    server_sections_data;
+  current_server_section_data := []
+
+let close_client_section ~compilation_unit_id injection_data =
+  let { client_sections_data } =
+    get_compilation_unit_global_data compilation_unit_id
+  in
+  let injection_datum (injection_id, injection_value) =
+    { injection_id; injection_value }
+  in
+  Queue.push (List.map injection_datum injection_data)
+    client_sections_data
+
+let get_global_data () =
+  let on_injection_datum injection_datum =
+    let injection_value = injection_datum.injection_value () in
+    { injection_datum with injection_value  }
+  in
+  String_map.map
+    (fun compilation_unit_global_data ->
+       let client_sections_data = Queue.create () in
+       Queue.iter
+         (fun injection_data ->
+            Queue.push (List.map on_injection_datum injection_data)
+              client_sections_data)
+         compilation_unit_global_data.client_sections_data;
+       { compilation_unit_global_data with client_sections_data })
+    !global_data
+
+(* Request data *)
+
+let request_data : request_data Eliom_reference.Volatile.eref =
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
+
+let get_request_data () =
+  List.rev (Eliom_reference.Volatile.get request_data)
+
+(* Register data *)
+
+let is_global = ref false
 
 let register_client_value_data ~closure_id ~instance_id ~args =
-  current_client_value_data :=
-    { Client_value_data.
-      closure_id; instance_id; args }
-    :: !current_client_value_data
+  let client_value_datum = { closure_id; instance_id; args } in
+  if !is_global then
+    if Eliom_common.get_sp_option () = None then
+      current_server_section_data :=
+        client_value_datum :: !current_server_section_data
+    else
+      Ocsigen_messages.warning
+        (Printf.sprintf "Losing client value data %Ld/%d"
+           closure_id instance_id)
+  else
+    ignore
+      (Eliom_reference.Volatile.modify request_data
+         (fun sofar -> client_value_datum :: sofar))
 
-let global_client_value_data : Client_value_data.global Vol_eref.eref =
-  Vol_eref.eref ~scope:Eliom_common.global_scope []
-
-let close_client_value_data_list ~compilation_unit_id =
-  let current = flush_current_client_value_data () in
-  ignore
-    (Vol_eref.modify global_client_value_data
-      (fun global ->
-         let sofar, global =
-           try List.assoc_remove compilation_unit_id global
-           with Not_found -> [], global
-         in
-         (compilation_unit_id, sofar @ [current]) :: global))
-
-let get_global_client_value_data () =
-  List.rev (Vol_eref.get global_client_value_data)
-
-let get_request_client_value_data =
-  flush_current_client_value_data
-
-(******************************************************************************)
-(** {2 Injection_data} *)
-
-let request_injections : Injection_data.base Eliom_reference.Volatile.eref =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.global_scope []
-let register_injection ~name ~f =
-  ignore
-    (Eliom_reference.Volatile.modify request_injections
-       (fun sofar -> (name, f) :: sofar))
-let get_injection_data () : Injection_data.base =
-  List.rev (Eliom_reference.Volatile.get request_injections)
+(* Syntax helpers *)
 
 module Syntax_helpers = struct
 
@@ -594,10 +623,12 @@ module Syntax_helpers = struct
     create_client_value
       (Eliom_server.Client_value.create closure_id instance_id)
 
-  let close_client_value_data_list compilation_unit_id =
-    close_client_value_data_list ~compilation_unit_id
+  let close_server_section compilation_unit_id =
+    close_server_section ~compilation_unit_id
 
-  let injection name f =
-    register_injection ~name ~f:(fun () -> to_poly (f ()))
+  let close_client_section compilation_unit_id =
+    close_client_section ~compilation_unit_id
+
+  let set_global b = is_global := b
 
 end

@@ -34,8 +34,8 @@ val sp : server_params
 (**/**)
 
 type eliom_js_page_data = {
-  ejs_client_value_data: Client_value_data.t;
-  ejs_injection_data: Injection_data.t;
+  ejs_global_data: global_data option;
+  ejs_request_data: request_data;
   (* Event handlers *)
   ejs_event_handler_table: Xml.event_handler_table;
   (* Session info *)
@@ -43,7 +43,7 @@ type eliom_js_page_data = {
 }
 
 type 'a eliom_caml_service_data = {
-  ecs_client_value_data: Client_value_data.t;
+  ecs_request_data: request_data;
   ecs_data: 'a;
 }
 

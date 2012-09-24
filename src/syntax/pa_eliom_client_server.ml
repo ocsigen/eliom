@@ -55,32 +55,40 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     push, flush
 
   let push_injection, flush_injections =
+    let module String_set = Set.Make (String) in
     let buffer = ref [] in
-    let push orig_expr gen_id =
-      if not (List.mem gen_id (List.map fst !buffer)) then begin
-        buffer := (gen_id, orig_expr) :: !buffer;
-      end
+    let gen_ids = ref String_set.empty in
+    let push gen_id orig_expr =
+      if not (String_set.mem gen_id !gen_ids) then
+        (gen_ids := String_set.add gen_id !gen_ids;
+         buffer := (gen_id, orig_expr) :: !buffer)
     in
-    let flush () =
-      let res = !buffer in
+    let flush_all () =
+      let res = List.rev !buffer in
+      gen_ids := String_set.empty;
       buffer := [];
-      List.rev res
+      res
+    in
+    let global_known = ref String_set.empty in
+    let flush () =
+      let all = flush_all () in
+      let novel =
+        let is_fresh (gen_id, _) =
+          not (String_set.mem gen_id !global_known)
+        in
+        List.filter is_fresh all
+      in
+      List.iter
+        (function gen_id, _ ->
+           global_known := String_set.add gen_id !global_known)
+        novel;
+      all, novel
     in
     push, flush
 
-  (* Register every injection of $orig_expr$ as $gen_id$ *)
-  let register_injections injections =
-    let _loc = Loc.ghost in
-    let exprs =
-      List.map
-        (fun (gen_id, orig_expr) ->
-           <:expr< Eliom_service.Syntax_helpers.injection $str:gen_id$ (fun () -> $orig_expr$) >>)
-        injections
-    in
-    <:str_item< let () = $Ast.exSem_of_list exprs$; () >>
-
   (* For every injection of $orig_expr$ as $gen_id$:
-     let $gen_id$ = $orig_expr$ and ... *)
+     let $gen_id$ = $orig_expr$ and ...
+     (Necessary for injections in shared section) *)
   let bind_injected_idents injections =
     let _loc = Loc.ghost in
     let bindings =
@@ -92,32 +100,50 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     in
     <:str_item< let $Ast.binding_of_pel bindings$ >>
 
-  let close_client_value_data_list loc =
+  let close_server_section loc =
     let _loc = Loc.ghost in
     <:str_item<
         let () =
-          Eliom_service.Syntax_helpers.close_client_value_data_list
-            $str:Loc.file_name loc$ (* BB XXX replace by some ID *)
+          Eliom_service.Syntax_helpers.close_server_section
+            $str:Pa_eliom_seed.id_of_string (Loc.file_name loc)$
+    >>
+
+  let close_client_section loc injections =
+    let _loc = Loc.ghost in
+    let injection_list =
+      List.fold_right
+        (fun (gen_id, expr) sofar ->
+           <:expr< ($str:gen_id$, (fun () -> Eliom_lib.to_poly $lid:gen_id$)) :: $sofar$ >>)
+        injections <:expr< [] >>
+    in
+    <:str_item<
+        let () =
+          Eliom_service.Syntax_helpers.close_client_section
+            $str:Pa_eliom_seed.id_of_string (Loc.file_name loc)$
+            $injection_list$
     >>
 
 
   (** Syntax extension *)
 
   let client_str_items loc _ =
-    register_injections (flush_injections ())
+    let _, novel_injections = flush_injections () in
+    Ast.stSem_of_list
+      [bind_injected_idents novel_injections;
+       close_client_section loc novel_injections]
 
   let server_str_items loc items =
     Ast.stSem_of_list
       (items @
-       [ close_client_value_data_list loc ])
+       [ close_server_section loc ])
 
   let shared_str_items loc items =
-    let injections = flush_injections () in
+    let all_injections, novel_injections = flush_injections () in
     Ast.stSem_of_list
-      (register_injections injections ::
-       [ bind_injected_idents injections ] @
+      (bind_injected_idents all_injections ::
        items @
-       [ close_client_value_data_list loc ])
+       [ close_server_section loc;
+         close_client_section loc novel_injections ])
 
   let client_value_expr typ context_level orig_expr gen_num _ loc =
     let typ =
@@ -148,9 +174,17 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           let _loc = Loc.ghost in
           <:expr< >>
       | Injected_in _ ->
-          push_injection orig_expr gen_id;
+          push_injection gen_id orig_expr;
           let _loc = Ast.loc_of_expr orig_expr in
           <:expr< $lid:gen_id$ >>
+
+  let implem sil =
+    let _loc = Loc.ghost in
+    let set_global b =
+      <:str_item< let () = Eliom_service.Syntax_helpers.set_global $`bool:b$ >>
+    in
+    set_global true :: sil @ [ set_global false ]
+
 end
 
 module M = Pa_eliom_seed.Register(Id)(Server_pass)

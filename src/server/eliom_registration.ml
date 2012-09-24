@@ -30,21 +30,6 @@ let code_of_code_option = function
 
 include Eliom_registration_base
 
-let client_value_data ~is_first_request =
-  let request = Eliom_service.get_request_client_value_data () in
-  let global =
-    if is_first_request
-    then Some (Eliom_service.get_global_client_value_data ())
-    else None
-  in
-  { Client_value_data.global; request }
-
-let injection_data ~is_first_request =
-  if is_first_request then
-    Eliom_service.get_injection_data ()
-  else
-    []
-
 (******************************************************************************)
 (* Send return types                                                          *)
 (******************************************************************************)
@@ -1105,10 +1090,10 @@ module Ocaml = struct
   module M = Eliom_mkreg.MakeRegister(Caml_reg_base)
 
   let prepare_data data =
-    let client_value_data = client_value_data ~is_first_request:false in
+    let ecs_request_data = Eliom_service.get_request_data () in
 (*     debug_client_value_data (debug "%s") client_value_data; *)
     let r = { Eliom_types.
-              ecs_client_value_data = Client_value_data.with_unwrapper client_value_data;
+              ecs_request_data;
               ecs_data = data } in
     Lwt.return (Eliom_types.encode_eliom_data r)
 
@@ -1450,16 +1435,21 @@ module Eliom_appl_reg_make_param
 
   let make_eliom_data_script ~sp page =
 
-    let is_first_request =
-      None = Eliom_request_info.get_sp_client_appl_name ()
+    let ejs_global_data =
+      if None = Eliom_request_info.get_sp_client_appl_name ()
+      then (* is_first_request *)
+        Some (Eliom_service.get_global_data (), global_data_unwrapper)
+      else None
     in
+    let ejs_request_data = Eliom_service.get_request_data () in
 
-    let client_value_data = client_value_data ~is_first_request in
-    let injection_data = injection_data ~is_first_request in
-
-    debug "Client value data: %s" (Client_value_data.describe client_value_data);
 (*
-    debug_injection_data (debug "%s") injection_data;
+    debug "Global data %s"
+      (match ejs_global_data with
+         | Some (global_data, _) -> global_data_to_string global_data
+         | None -> "-/-");
+    debug "Request data %s"
+      (request_data_to_string ejs_request_data);
  *)
 
     (* wrapping of values could create eliom references that may
@@ -1467,8 +1457,8 @@ module Eliom_appl_reg_make_param
        cookies should be calculated after wrapping. *)
     let eliom_data =
       Eliom_wrap.wrap { Eliom_types.
-        ejs_client_value_data   = Client_value_data.with_unwrapper client_value_data;
-        ejs_injection_data      = Injection_data.with_unwrapper injection_data;
+        ejs_global_data;
+        ejs_request_data;
         ejs_event_handler_table = Eliom_content.Xml.make_event_handler_table (Eliom_content.Html5.D.toelt page);
         ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;
       } in

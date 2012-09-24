@@ -265,11 +265,9 @@ let signal_down_unwrap_id_int = 5
 let bus_unwrap_id_int = 6
 let client_value_unwrap_id_int = Eliom_lib_base.client_value_unwrap_id_int
 let () = assert (client_value_unwrap_id_int = 7)
-let client_value_data_unwrap_id_int = Eliom_lib_base.Client_value_data.unwrap_id_int
-let () = assert (client_value_data_unwrap_id_int = 8)
-let injection_data_unwrap_id_int = Eliom_lib_base.Injection_data.unwrap_id_int
-let () = assert (injection_data_unwrap_id_int = 9)
-let server_function_unwrap_id_int = 10
+let global_data_unwrap_id_int = Eliom_lib_base.global_data_unwrap_id_int
+let () = assert (global_data_unwrap_id_int = 8)
+let server_function_unwrap_id_int = 9
 
 type node_ref = string
 

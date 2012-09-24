@@ -106,6 +106,9 @@ type escape_inject =
   | Escaped_in_client_value_in of client_value_context
   | Injected_in of injection_context
 
+let id_of_string str =
+  Printf.sprintf "%019d" (Hashtbl.hash str)
+
 (** Signature of specific code of a preprocessor. *)
 
 module type Pass = functor (Helpers: Helpers) -> sig
@@ -126,6 +129,8 @@ module type Pass = functor (Helpers: Helpers) -> sig
 
   (** How to handle escaped "%ident" inside "{{ ... }}". *)
   val escape_inject: escape_inject -> Ast.expr -> string -> Ast.expr
+
+  val implem : Ast.str_item list -> Ast.str_item list
 
 end
 
@@ -485,7 +490,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
     (* Extending syntax *)
     EXTEND Gram
-    GLOBAL: str_item expr module_expr module_binding0 str_items;
+    GLOBAL: str_item expr module_expr module_binding0 str_items implem;
 
     (* Dummy rules: for level management and checking. *)
       dummy_set_level_shared:
@@ -661,6 +666,17 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                 "The syntax \"%%(...)\" is not allowed in %s."
                 (level_to_string !current_level)
          ]];
+
+      (* Cf. Camlp4OCamlRevisedParser *)
+      implem:
+        [[ si = str_item; semi; (sil, stopped) = SELF ->
+             let open_pervasives =
+               let _loc = Loc.ghost in
+               <:str_item< open Eliom_pervasives >>
+             in
+             (open_pervasives :: Pass.implem (si :: sil), stopped)
+         | `EOI -> ([], None)
+        ]];
 
       END
 

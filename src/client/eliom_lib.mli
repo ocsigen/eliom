@@ -30,8 +30,11 @@ include module type of Eliom_lib_base
   with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
   with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
   with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
-  with module Client_value_data := Eliom_lib_base.Client_value_data
-  with module Injection_data := Eliom_lib_base.Injection_data
+  with type client_value_datum = Eliom_lib_base.client_value_datum
+  with type 'a injection_datum := 'a Eliom_lib_base.injection_datum
+  with type 'a compilation_unit_global_data = 'a Eliom_lib_base.compilation_unit_global_data
+  with type 'a global_data := 'a Eliom_lib_base.global_data
+  with type request_data = Eliom_lib_base.request_data
 
 (** An ['a] client value on the client is just an ['a].
     See also {% <<a_api subproject="server" text="on the server" |
@@ -85,17 +88,5 @@ val js_array_to_list : 'a Js.js_array Js.t -> 'a list
 
 (**/**)
 
-module Client_value_data : sig
-  include module type of Eliom_lib_base.Client_value_data
-    with type elt = Eliom_lib_base.Client_value_data.elt
-    with type global = Eliom_lib_base.Client_value_data.global
-    with type request = Eliom_lib_base.Client_value_data.request
-    with type base = Eliom_lib_base.Client_value_data.base
-  type t = request
-  (* Global client value data only needed while unwrapping *)
-end
-
-module Injection_data : sig
-  include module type of Eliom_lib_base.Injection_data
-  type t = unit (* Only needed while unwrapping *)
-end
+type injection_datum = poly Eliom_lib_base.injection_datum
+type global_data = unit (* Global data only needed while unwrapping *)

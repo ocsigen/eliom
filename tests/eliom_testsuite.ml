@@ -9,7 +9,6 @@ open Eliom_testsuite1
 open Eliom_testsuite2
 open Eliom_testsuite3
 
-
 (* Main page for the test suite *)
 let _ = Eliom_output.Html5.register Eliom_testsuite_base.main
   (fun () () ->

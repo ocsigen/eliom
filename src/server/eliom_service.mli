@@ -690,16 +690,14 @@ val eliom_appl_answer_content_type : string
 
 exception Wrong_session_table_for_CSRF_safe_coservice
 
-val register_client_value_data : closure_id:int64 -> instance_id:int -> args:poly -> unit
-val get_global_client_value_data : unit -> Client_value_data.global
-val get_request_client_value_data : unit -> Client_value_data.request
-
-val get_injection_data : unit -> Injection_data.base
+val get_global_data : unit -> poly Eliom_lib_base.global_data
+val get_request_data : unit -> request_data
 
 (* TODO BB Find a better place for this module *)
 module Syntax_helpers : sig
   val client_value : int64 -> 'args -> 'a client_value
-  val close_client_value_data_list : string -> unit
-  val injection : string -> (unit -> 'a) -> unit
+  val close_server_section : string -> unit
+  val close_client_section : string -> (string * (unit -> poly)) list -> unit
   val escaped_value : 'a -> escaped_value
+  val set_global : bool -> unit
 end

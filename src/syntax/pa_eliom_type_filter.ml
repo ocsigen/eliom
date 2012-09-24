@@ -118,6 +118,8 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           let _loc = Ast.loc_of_expr orig_expr in
           <:expr< >>
 
+  let implem sil = sil
+
 end
 
 module M = Pa_eliom_seed.Register(Id)(Type_pass)

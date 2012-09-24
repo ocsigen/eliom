@@ -9,8 +9,6 @@ eliom_comet_base.cmo: eliom_service.cmi eliom_registration.cmi \
     eliom_parameter.cmi eliom_comet_base.cmi
 eliom_comet_base.cmx: eliom_service.cmx eliom_registration.cmx \
     eliom_parameter.cmx eliom_comet_base.cmi
-eliom_comet_base.cmi: eliom_service.cmi eliom_registration.cmi \
-    eliom_parameter.cmi
 eliom_comet.cmo: eliom_wrap.cmi eliom_types.cmi eliom_service.cmi \
     eliom_request_info.cmi eliom_registration.cmi eliom_reference.cmi \
     eliom_parameter.cmi eliom_lib.cmi eliom_common_base.cmo eliom_common.cmi \
@@ -127,6 +125,7 @@ eliom_pervasives.cmo: eliom_wrap.cmi eliom_registration.cmi \
 eliom_pervasives.cmx: eliom_wrap.cmx eliom_registration.cmx \
     eliom_pervasives_base.cmx eliom_parameter.cmx eliom_lib.cmx \
     eliom_common_base.cmx eliom_pervasives.cmi
+eliom_pervasives.cmi: eliom_pervasives_base.cmi
 eliom_process.cmo:
 eliom_process.cmx:
 eliom_react.cmo: eliom_service.cmi eliom_registration.cmi eliom_parameter.cmi \
@@ -185,8 +184,8 @@ eliom_service.cmx: private/eliommod_services.cmx \
     eliom_request_info.cmx eliom_reference.cmx eliom_parameter.cmx \
     eliom_lib.cmx eliom_content_core.cmx eliom_common_base.cmx \
     eliom_common.cmx eliom_service.cmi
-eliom_service.cmi: eliom_parameter.cmi eliom_lib.cmi eliom_content_core.cmi \
-    eliom_common.cmi
+eliom_service.cmi: eliom_parameter.cmi eliom_lib_base.cmi eliom_lib.cmi \
+    eliom_content_core.cmi eliom_common.cmi
 eliom_state.cmo: private/eliommod_timeouts.cmi \
     private/eliommod_sessiongroups.cmi private/eliommod_sessexpl.cmi \
     private/eliommod_sessadmin.cmi private/eliommod_sersess.cmi \
