@@ -121,15 +121,6 @@ val call_service :
  *)
 val onload : (unit -> unit) -> unit
 
-(** When [withdom f] occurs during the initialization of a client process, or
-    during a changepage, [f] is not executed until the (fresh) DOM is in place.
-    Otherwise [f] is called directly.
-
-    NB this is a reasonable replacement of {% <<a_api | val Eliom_client.onload >> %}
-    in the shared-section of an Eliom file.
-  *)
-val withdom : (unit -> unit) -> unit
-
 (** register a function to be called on page change *)
 val onunload : (unit -> unit) -> unit
 
@@ -143,10 +134,11 @@ val in_onload : unit -> bool
 (**/**)
 
 val flush_onload : unit -> (Dom_html.event Js.t -> bool) list
-val flush_buffered_withdom : unit -> (Dom_html.event Js.t -> bool) list
 val relink_request_nodes : Dom_html.htmlElement Js.t -> unit
 val reset_request_node : unit -> unit
 val force_unwrapped_elts : unit -> unit
+val do_request_data : request_data -> unit
+
 val relink_closure_nodes :
   Dom_html.element Js.t ->
   (Dom_html.event Js.t -> unit) Eliom_server.Client_value.t Eliom_content_core.Xml.ClosureMap.t ->

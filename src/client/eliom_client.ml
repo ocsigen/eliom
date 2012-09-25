@@ -165,22 +165,6 @@ let register_unwrapped_elt, force_unwrapped_elts =
 let onload, flush_onload =
   buffer (fun f -> fun _ -> f (); true)
 
-let withdom, set_withdom_buffered_mode, flush_buffered_withdom =
-  let direct = ref false in
-  let buffer = ref [] in
-  (fun f ->
-     if !direct then
-       f ()
-     else
-       buffer := (fun _ -> f (); true) :: !buffer),
-  (fun () ->
-     direct := false),
-  (fun () ->
-     let res = List.rev !buffer in
-     buffer := [];
-     direct := true;
-     res)
-
 let global_data = ref String_map.empty
 
 let do_next_server_section_data ~compilation_unit_id =
@@ -719,7 +703,6 @@ let relink_closure_nodes (root : Dom_html.element Js.t) event_handlers closure_n
 let load_eliom_data js_data page =
   trace "Load eliom data";
   try
-    do_request_data js_data.Eliom_types.ejs_request_data;
     if !Eliom_config.debug_timings then
       Firebug.console##time(Js.string "load_eliom_data");
     loading_phase := true;
@@ -795,7 +778,6 @@ let set_content ?uri ?offset ?fragment content =
       if !Eliom_config.debug_timings then
         Firebug.console##time(Js.string "set_content_beginning");
        run_unload_events ();
-       set_withdom_buffered_mode ();
        (match uri, fragment with
         | Some uri, None -> change_url_string uri
         | Some uri, Some fragment ->
@@ -843,7 +825,9 @@ let set_content ?uri ?offset ?fragment content =
          fake_page
          Dom_html.document##documentElement;
        let onload_events = flush_onload () in
-       let withdom_events = flush_buffered_withdom () in
+       (* Initialize and provide client values *)
+       do_request_data js_data.Eliom_types.ejs_request_data;
+       (* Replace closure ids in document with event handlers (from client values) *)
        let onload_closure_nodes =
          relink_closure_nodes
            Dom_html.document##documentElement
@@ -857,7 +841,7 @@ let set_content ?uri ?offset ?fragment content =
        if !Eliom_config.debug_timings then
          ( Firebug.console##timeEnd(Js.string "replace_child");
            Firebug.console##time(Js.string "set_content_end") );
-       run_load_events (onload_first @ onload_events @ withdom_events @ onload_closure_nodes @ onload_last);
+       run_load_events (onload_first @ onload_events @ onload_closure_nodes @ onload_last);
        scroll_to_fragment ?offset fragment;
        if !Eliom_config.debug_timings then
          ( Firebug.console##timeEnd(Js.string "set_content_end");
