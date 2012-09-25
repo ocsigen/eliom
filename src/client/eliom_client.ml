@@ -211,7 +211,8 @@ let do_request_data request_data =
        Queue.iter (fun data -> assert (data = []))
          server_sections_data;
        Queue.iter (fun data -> assert (data = []))
-         client_sections_data);
+         client_sections_data)
+    !global_data;
   List.iter Client_value.initialize request_data
 
 (* == Process nodes (a.k.a. nodes with a unique Dom instance on each client process) *)
