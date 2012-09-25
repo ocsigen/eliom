@@ -607,9 +607,8 @@ let register_client_value_data ~closure_id ~instance_id ~args =
         (Printf.sprintf "Losing client value data %Ld/%d"
            closure_id instance_id)
   else
-    ignore
-      (Eliom_reference.Volatile.modify request_data
-         (fun sofar -> client_value_datum :: sofar))
+    Eliom_reference.Volatile.modify request_data
+      (fun sofar -> client_value_datum :: sofar)
 
 (* Syntax helpers *)
 
