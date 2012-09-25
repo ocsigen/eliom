@@ -1129,78 +1129,6 @@ let deep_client_values =
 (******************************************************************************)
            *)
 
-{client{
-
-  let withdom_client_withdom str =
-    Eliom_client.withdom
-      (fun () ->
-         Eliom_testsuite_base.log "withdom: client from %s" str)
-}}
-
-{server{
-  let withdom_server_withdom str =
-    ignore {unit{
-      Eliom_client.withdom
-        (fun () ->
-           Eliom_testsuite_base.log "withdom: server from %s" %str)
-    }}
-}}
-
-{shared{
-  let withdom_shared_withdom str =
-    ignore {unit{
-      Eliom_client.withdom
-        (fun () ->
-           Eliom_testsuite_base.log "withdom: shared from %s" %str)
-    }}
-}}
-
-{client{
-  let withdom_client () =
-    withdom_client_withdom "client toplevel"
-}}
-
-{server{
-  let withdom_server () =
-    withdom_server_withdom "server toplevel";
-    withdom_shared_withdom "server toplevel";
-    ignore {unit{ withdom_client_withdom "server toplevel" }};
-    ignore {unit{ withdom_shared_withdom "server toplevel" }}
-}}
-
-let test_withdom =
-  Eliom_testsuite_base.test
-    ~title:"Eliom_client.withdom"
-    ~path:["mixed"; "withdom"]
-    ~description:Html5.F.([
-      pcdata "Test the functionality of Eliom_client.withdom";
-      br ();
-      pcdata "Nine different lines in the log, thebutton adds another two";
-    ])
-    (fun () ->
-       withdom_server ();
-       ignore {unit{ withdom_client () }};
-       withdom_server_withdom "request";
-       withdom_shared_withdom "request";
-       ignore {unit{
-         Eliom_client.withdom
-           (fun () ->
-              withdom_client_withdom "request";
-              withdom_shared_withdom "request")
-       }};
-       let onclick = {{
-         fun _ ->
-           Eliom_client.withdom
-             (fun _ ->
-                withdom_client_withdom "click";
-                withdom_shared_withdom "click")
-       }} in
-       Lwt.return Html5.F.([
-         Eliom_testsuite_base.thebutton ~msg:"with dom" onclick;
-       ]))
-
-(******************************************************************************)
-
 (* XXX Two times the same code, once in shared (with variable names postix
    _shared and once in client (with variable names postfix _client). *)
 
@@ -1439,7 +1367,6 @@ let client_value_initialization =
 let tests = [
   "Mixed", [
     test_custom_data;
-    test_withdom;
     test_server_function;
   ];
   "Holes", [
