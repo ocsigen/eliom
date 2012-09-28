@@ -30,8 +30,8 @@ let onload ev =
   Eliommod_cookies.update_cookie_table (Some Url.Current.host)
     (Eliom_request_info.get_request_cookies ());
   ignore (lwt () = Lwt_js.sleep 0.001 in
-          Eliom_client.do_request_data js_data.Eliom_types.ejs_request_data;
           Eliom_client.relink_request_nodes (Dom_html.document##documentElement);
+          Eliom_client.do_request_data js_data.Eliom_types.ejs_request_data;
           let root = Dom_html.document##documentElement in
           let closure_nodeList, onload_first, onload_last =
             Eliom_client.load_eliom_data js_data root in
