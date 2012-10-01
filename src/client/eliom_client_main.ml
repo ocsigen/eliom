@@ -19,43 +19,50 @@
  *)
 
 open Eliom_lib
+open Eliom_client
 
 let js_data =
   Eliom_request_info.get_request_data ()
 
 let onload ev =
-  trace "onload";
-  if !Eliom_config.debug_timings then
-    Firebug.console##time(Js.string "onload");
-  Eliommod_cookies.update_cookie_table (Some Url.Current.host)
-    (Eliom_request_info.get_request_cookies ());
-  ignore (lwt () = Lwt_js.sleep 0.001 in
-          Eliom_client.relink_request_nodes (Dom_html.document##documentElement);
-          Eliom_client.do_request_data js_data.Eliom_types.ejs_request_data;
-          let root = Dom_html.document##documentElement in
-          let closure_nodeList, onload_first, onload_last =
-            Eliom_client.load_eliom_data js_data root in
-          let onload_events = Eliom_client.flush_onload () in
-          let onload_closure_nodes =
-            Eliom_client.relink_closure_nodes
-              root
-              js_data.Eliom_types.ejs_event_handler_table
-              closure_nodeList
-          in
-          Eliom_client.force_unwrapped_elts ();
-          Eliom_client.reset_request_node ();
-          Lwt.return
-            (List.for_all (fun f -> f ev)
-               (onload_first @ onload_events @ onload_closure_nodes @ onload_last)));
-  if !Eliom_config.debug_timings then
-    Firebug.console##timeEnd(Js.string "onload");
+  trace "onload (client main)";
+  Lwt.async
+    (fun () ->
+      if !Eliom_config.debug_timings then
+        Firebug.console##time(Js.string "onload");
+      Eliommod_cookies.update_cookie_table (Some Url.Current.host)
+        (Eliom_request_info.get_request_cookies ());
+      lwt () = Lwt_js.sleep 0.001 in (* WHY? chambart: Eliom_client: display page before executing onload   *)
+      relink_request_nodes (Dom_html.document##documentElement);
+      do_request_data js_data.Eliom_types.ejs_request_data;
+      let root = Dom_html.document##documentElement in
+      let closure_nodeList = relink_page root in
+      Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
+      let onload_closure_nodes =
+        relink_closure_nodes root js_data.Eliom_types.ejs_event_handler_table
+          closure_nodeList
+      in
+      force_unwrapped_elts ();
+      reset_request_node ();
+      run_handlers
+        (Eliommod_dom.add_formdata_hack_onclick_handler ::
+           flush_onload () @ onload_closure_nodes @
+           [ broadcast_load_end ])
+        (event "load");
+        (Eliommod_dom.createEvent (Js.string "load"));
+      if !Eliom_config.debug_timings then
+        Firebug.console##timeEnd(Js.string "onload");
+      Lwt.return ());
   Js._false
 
-let load_ev = Dom.Event.make "load"
-
-let _ =
-  Dom.addEventListener Dom_html.window load_ev
-    (Dom.handler onload) Js._true
+let () =
+  ignore
+    (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
+       (Dom.handler onload) Js._true);
+  ignore
+    (Dom.addEventListener Dom_html.window (Dom.Event.make "unload")
+       (Dom_html.handler (fun _ -> leave_page (); Js._false))
+       Js._false)
 
 (* The following lines are for Eliom_bus, Eliom_comet and Eliom_react to be linked. *)
 let _force_link =

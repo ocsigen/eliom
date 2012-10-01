@@ -24,7 +24,9 @@ open Eliom_content_core
 
 module JsTable = Eliommod_jstable
 
-let buffer f =
+(* == Auxiliaries *)
+
+let create_buffer f =
   let elts = ref [] in
   let add x =
     elts := f x :: !elts
@@ -35,6 +37,26 @@ let buffer f =
     res
   in
   add, flush
+
+let run_handlers handlers arg =
+  ignore
+    (List.for_all (fun f -> f arg) handlers)
+
+let event str =
+  Eliommod_dom.createEvent (Js.string str)
+
+(* == Onload and Onunload buffers *)
+
+let to_handler f =
+  fun _ ->
+    try f (); true
+    with False -> false
+
+let onload, flush_onload =
+  create_buffer to_handler
+
+let onunload, flush_onunload =
+  create_buffer to_handler
 
 (* BBB To save oneself from traversing the [value] completely, and probably
    several times (when used in different client values), this could be replaced
@@ -152,18 +174,7 @@ end = struct
 
 end
 
-
-let register_unwrapped_elt, force_unwrapped_elts =
-  let suspended_nodes = ref [] in
-  (fun elt ->
-     suspended_nodes := elt :: !suspended_nodes),
-  (fun () ->
-     trace "Force unwrapped elements";
-     List.iter Xml.force_lazy !suspended_nodes;
-     suspended_nodes := [])
-
-let onload, flush_onload =
-  buffer (fun f -> fun _ -> f (); true)
+(* == Populating client values and injections by global/request data *)
 
 let global_data = ref String_map.empty
 
@@ -199,6 +210,19 @@ let do_request_data request_data =
     !global_data;
   List.iter Client_value.initialize request_data
 
+(*******************************************************************************)
+
+(* == BB XXX *)
+
+let register_unwrapped_elt, force_unwrapped_elts =
+  let suspended_nodes = ref [] in
+  (fun elt ->
+     suspended_nodes := elt :: !suspended_nodes),
+  (fun () ->
+     trace "Force unwrapped elements";
+     List.iter Xml.force_lazy !suspended_nodes;
+     suspended_nodes := [])
+
 (* == Process nodes (a.k.a. nodes with a unique Dom instance on each client process) *)
 
 let (register_process_node, find_process_node) =
@@ -218,7 +242,9 @@ let (register_process_node, find_process_node) =
     trace "Register process node %s" (Js.to_string id);
     JsTable.add process_nodes id node in
   (register, find)
+
 let registered_process_node id = Js.Optdef.test (find_process_node id)
+
 let getElementById id =
   Js.Optdef.case (find_process_node (Js.string id))
     (fun () -> debug "getElementById %s: Not_found" id; raise Not_found)
@@ -252,35 +278,20 @@ let current_uri =
 (* == Postpone events until the page is fully loaded. e.g. after the
       end of the page's onload event handlers. *)
 
-let loading_phase = ref true
-let load_end = Lwt_condition.create ()
-
-let in_onload () = !loading_phase
-let broadcast_load_end _ =
-  loading_phase := false;
-  Lwt_condition.broadcast load_end ();
-  true
-let wait_load_end () =
-  if !loading_phase
-  then Lwt_condition.wait load_end
-  else Lwt.return ()
-
-(* == List of event handlers to execute after loading a page. *)
-
-let run_load_events on_load =
-  let load_evt = Eliommod_dom.createEvent (Js.string "load") in
-  ignore (List.for_all (fun f -> f load_evt) on_load)
-
-(* == List of event handlers to execute before to leave a page. *)
-
-let on_unload_scripts = ref []
-let onunload f =
-  on_unload_scripts :=
-    (fun () -> try f(); true with False -> false) :: !on_unload_scripts
-
-let run_unload_events () =
-  ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
-  on_unload_scripts := []
+let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
+  let loading_phase = ref true in
+  let load_end = Lwt_condition.create () in
+  let set () = loading_phase := true in
+  let in_onload () = !loading_phase in
+  let broadcast_load_end _ =
+    loading_phase := false;
+    Lwt_condition.broadcast load_end ();
+    true in
+  let wait_load_end () =
+    if !loading_phase
+    then Lwt_condition.wait load_end
+    else Lwt.return () in
+  in_onload, broadcast_load_end, wait_load_end, set
 
 (* == Helper's functions for Eliom's event handler.
 
@@ -351,14 +362,16 @@ let reify_event node ev = match ev with
   | Xml.Raw ev -> Js.Unsafe.variable ev
   | Xml.Caml ce -> reify_caml_event node ce
 
-let on_load_scripts = ref []
-let register_event_handler node (name, ev) =
-  let f = reify_caml_event node ev in
-  if name = "onload" then
-    on_load_scripts := f :: !on_load_scripts
-  else
-    Js.Unsafe.set node (Js.bytestring name)
-        (Dom_html.handler (fun ev -> Js.bool (f ev)))
+let register_event_handler, flush_load_scripts =
+  let add, flush = create_buffer (fun f -> f) in
+  let register node (name, ev) =
+    let f = reify_caml_event node ev in
+    if name = "onload" then
+      add f
+    else
+      Js.Unsafe.set node (Js.bytestring name)
+        (Dom_html.handler (fun ev -> Js.bool (f ev))) in
+  register, flush
 
 (* == Associate data to state of the History API.
 
@@ -410,14 +423,7 @@ let update_state () =
 
 let leave_page () =
   update_state ();
-  run_unload_events ()
-
-let () =
-  ignore
-    (Dom.addEventListener Dom_html.window
-       (Dom.Event.make "unload")
-       (Dom_html.handler (fun _ -> leave_page (); Js._false))
-       Js._false)
+  run_handlers (flush_onunload ()) (event "unload")
 
 (* TODO: Registering a global "onunload" event handler breaks the
    'bfcache' mechanism of Firefox and Safari. We may try to use
@@ -525,8 +531,8 @@ let window_open ~window_name ?window_features
 
 (* == Call caml service.
 
-      Unwrap the data and execute the associated onload event handlers.
-
+   Unwrap the data and execute the associated onload event
+   handlers.
 *)
 
 let unwrap_caml_content content =
@@ -547,7 +553,7 @@ let call_caml_service
       get_params post_params in
   lwt content, request_data = unwrap_caml_content content in
   do_request_data request_data;
-  run_load_events (flush_onload ());
+  run_handlers (flush_onload ()) (event "load");
   force_unwrapped_elts ();
   reset_request_node ();
   Lwt.return content
@@ -583,7 +589,6 @@ let change_url_string uri =
    Traverse the Dom representation of the page in order to register
    "unique" nodes (or substitute previously known global nodes) and to
    bind Eliom's event handlers.
-
 *)
 
 let register_event_handlers node attribs =
@@ -700,23 +705,6 @@ let relink_closure_nodes (root : Dom_html.element Js.t) event_handlers closure_n
     (fun node -> relink_closure_node root onload event_handlers node);
   List.rev !onload
 
-let load_eliom_data js_data page =
-  trace "Load eliom data";
-  try
-    if !Eliom_config.debug_timings then
-      Firebug.console##time(Js.string "load_eliom_data");
-    loading_phase := true;
-    let closure_nodeList = relink_page page in
-    Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
-    if !Eliom_config.debug_timings then
-      Firebug.console##timeEnd(Js.string "load_eliom_data");
-    closure_nodeList,
-    [Eliommod_dom.add_formdata_hack_onclick_handler],
-    [broadcast_load_end]
-  with e ->
-    debug_exn "load_eliom_data failed: " e;
-    raise e
-
 (* == Extract the request data and the request tab-cookies from a
       page.  
    See the corresponding function on the server side:
@@ -772,12 +760,10 @@ let set_content ?uri ?offset ?fragment content =
   match content with
   | None -> Lwt.return ()
   | Some content ->
-    if !Eliom_config.debug_timings then
-      Firebug.console##time(Js.string "set_content");
     try_lwt
-      if !Eliom_config.debug_timings then
-        Firebug.console##time(Js.string "set_content_beginning");
-       run_unload_events ();
+       if !Eliom_config.debug_timings then
+         Firebug.console##time(Js.string "set_content");
+       run_handlers (flush_onunload ()) (event "unload");
        (match uri, fragment with
         | Some uri, None -> change_url_string uri
         | Some uri, Some fragment ->
@@ -786,8 +772,7 @@ let set_content ?uri ?offset ?fragment content =
        (* Convert the DOM nodes from XML elements to HTML elements. *)
        let fake_page = Eliommod_dom.html_document content registered_process_node in
        if !Eliom_config.debug_timings then
-         ( Firebug.console##timeEnd(Js.string "set_content_beginning");
-           Firebug.console##debug(Js.string ("loading: " ^ Js.to_string Dom_html.window##location##href)) );
+         Firebug.console##debug(Js.string ("loading: " ^ Js.to_string Dom_html.window##location##href));
        (* Inline CSS in the header to avoid the "flashing effect".
           Otherwise, the browser start to display the page before
           loading the CSS. *)
@@ -816,7 +801,9 @@ let set_content ?uri ?offset ?fragment content =
        lwt () = preloaded_css in
        (* Bind unique node (named and global) and register event
           handler. *)
-       let closure_nodeList, onload_first, onload_last = load_eliom_data js_data fake_page in
+       set_loading_phase ();
+       let closure_nodeList = relink_page fake_page in
+       Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
        (* Really change page contents *)
        if !Eliom_config.debug_timings then
          Firebug.console##time(Js.string "replace_child");
@@ -824,6 +811,8 @@ let set_content ?uri ?offset ?fragment content =
        Dom.replaceChild Dom_html.document
          fake_page
          Dom_html.document##documentElement;
+       if !Eliom_config.debug_timings then
+         Firebug.console##timeEnd(Js.string "replace_child");
        let onload_events = flush_onload () in
        (* Initialize and provide client values *)
        do_request_data js_data.Eliom_types.ejs_request_data;
@@ -838,14 +827,14 @@ let set_content ?uri ?offset ?fragment content =
        (* The request node table must be empty when node received
           via call_caml_service are unwrapped. *)
        reset_request_node ();
-       if !Eliom_config.debug_timings then
-         ( Firebug.console##timeEnd(Js.string "replace_child");
-           Firebug.console##time(Js.string "set_content_end") );
-       run_load_events (onload_first @ onload_events @ onload_closure_nodes @ onload_last);
+       run_handlers
+         (Eliommod_dom.add_formdata_hack_onclick_handler ::
+            onload_events @ onload_closure_nodes @
+            [broadcast_load_end])
+         (event "load");
        scroll_to_fragment ?offset fragment;
        if !Eliom_config.debug_timings then
-         ( Firebug.console##timeEnd(Js.string "set_content_end");
-           Firebug.console##timeEnd(Js.string "set_content") );
+         Firebug.console##timeEnd(Js.string "set_content");
        Lwt.return ()
     with e ->
       debug_exn "set_content: exception raised: " e;
@@ -857,7 +846,7 @@ let set_template_content ?uri ?fragment = function
   | None -> Lwt.return ()
   | Some content ->
       (* Side-effect in the 'onload' event handler. *)
-      run_unload_events ();
+      run_handlers (flush_onunload ()) (event "unload");
       (match uri, fragment with
         | Some uri, None -> change_url_string uri
         | Some uri, Some fragment ->
@@ -865,7 +854,7 @@ let set_template_content ?uri ?fragment = function
         | _ -> ());
       lwt (), request_data = unwrap_caml_content content in
       do_request_data request_data;
-      run_load_events (flush_onload ());
+      run_handlers (flush_onload ()) (event "load");
       force_unwrapped_elts ();
       reset_request_node ();
       Lwt.return ()
@@ -1154,8 +1143,7 @@ and raw_rebuild_node = function
 
 let rebuild_node elt =
   let node = Js.Unsafe.coerce (rebuild_node (Html5.F.toelt elt)) in
-  run_load_events (List.rev !on_load_scripts);
-  on_load_scripts := [];
+  run_handlers (flush_load_scripts ()) (event "load");
   node
 
 (******************************************************************************)
