@@ -212,8 +212,6 @@ let do_request_data request_data =
 
 (*******************************************************************************)
 
-(* == BB XXX *)
-
 let register_unwrapped_elt, force_unwrapped_elts =
   let suspended_nodes = ref [] in
   (fun elt ->
@@ -252,7 +250,7 @@ let getElementById id =
 
 (* == Request nodes (a.k.a. nodes with a unique Dom instance in the current request) *)
 
-let (register_request_node, find_request_node, reset_request_node) =
+let register_request_node, find_request_node, reset_request_nodes =
   let request_nodes : Dom.node Js.t JsTable.t ref = ref (JsTable.create ()) in
   let find id = JsTable.find !request_nodes id in
   let register id node =
@@ -260,6 +258,8 @@ let (register_request_node, find_request_node, reset_request_node) =
     JsTable.add !request_nodes id node in
   let reset () =
     trace "Reset request nodes";
+    (* Unwrapped elements must be forced before reseting the request node table. *)
+    force_unwrapped_elts ();
     request_nodes := JsTable.create () in
   (register, find, reset)
 
@@ -554,8 +554,7 @@ let call_caml_service
   lwt content, request_data = unwrap_caml_content content in
   do_request_data request_data;
   run_handlers (flush_onload ()) (event "load");
-  force_unwrapped_elts ();
-  reset_request_node ();
+  reset_request_nodes ();
   Lwt.return content
 
 (* == The function [change_url_string] changes the URL, without doing a request.
@@ -687,7 +686,7 @@ let relink_closure_node root onload table (node:Dom_html.element Js.t) =
   in
   Eliommod_dom.iter_nodeList (node##attributes:>Dom.attr Dom.nodeList Js.t) aux
 
-let relink_page (root:Dom_html.element Js.t) =
+let relink_page_but_closure_nodes (root:Dom_html.element Js.t) =
   trace "Relink page";
   let (a_nodeList,form_nodeList,process_nodeList,closure_nodeList) =
     Eliommod_dom.select_nodes root in
@@ -761,6 +760,7 @@ let set_content ?uri ?offset ?fragment content =
   | None -> Lwt.return ()
   | Some content ->
     try_lwt
+       set_loading_phase ();
        if !Eliom_config.debug_timings then
          Firebug.console##time(Js.string "set_content");
        run_handlers (flush_onunload ()) (event "unload");
@@ -771,8 +771,6 @@ let set_content ?uri ?offset ?fragment content =
         | _ -> ());
        (* Convert the DOM nodes from XML elements to HTML elements. *)
        let fake_page = Eliommod_dom.html_document content registered_process_node in
-       if !Eliom_config.debug_timings then
-         Firebug.console##debug(Js.string ("loading: " ^ Js.to_string Dom_html.window##location##href));
        (* Inline CSS in the header to avoid the "flashing effect".
           Otherwise, the browser start to display the page before
           loading the CSS. *)
@@ -782,7 +780,6 @@ let set_content ?uri ?offset ?fragment content =
        relink_request_nodes fake_page;
        (* Put the loaded data script in action *)
        load_data_script fake_page;
-       (* Set values sent from the server (client values and injections) *)
        (* Unmarshall page data. *)
        let cookies = Eliom_request_info.get_request_cookies () in
        let js_data = Eliom_request_info.get_request_data () in
@@ -796,25 +793,24 @@ let set_content ?uri ?offset ?fragment content =
              | Some (Url.Https url) -> Some url.Url.hu_host
              | _ -> None in
        Eliommod_cookies.update_cookie_table host cookies;
-       (* Wait for CSS to be inlined before to substitute global
-          nodes. *)
+       (* Wait for CSS to be inlined before to substitute global nodes. *)
        lwt () = preloaded_css in
-       (* Bind unique node (named and global) and register event
-          handler. *)
-       set_loading_phase ();
-       let closure_nodeList = relink_page fake_page in
+       (* Bind unique node (request and global) and register event
+          handler.  Relinking closure nodes must take place after
+          initializing the client values *)
+       let closure_nodeList = relink_page_but_closure_nodes fake_page in
        Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
        (* Really change page contents *)
        if !Eliom_config.debug_timings then
-         Firebug.console##time(Js.string "replace_child");
+         Firebug.console##time(Js.string "replace_page");
        trace "Replace page";
        Dom.replaceChild Dom_html.document
          fake_page
          Dom_html.document##documentElement;
        if !Eliom_config.debug_timings then
-         Firebug.console##timeEnd(Js.string "replace_child");
-       let onload_events = flush_onload () in
-       (* Initialize and provide client values *)
+         Firebug.console##timeEnd(Js.string "replace_page");
+       (* Initialize and provide client values. May need to access to
+          new DOM. Necessary for relinking closure nodes *)
        do_request_data js_data.Eliom_types.ejs_request_data;
        (* Replace closure ids in document with event handlers (from client values) *)
        let onload_closure_nodes =
@@ -822,14 +818,12 @@ let set_content ?uri ?offset ?fragment content =
            Dom_html.document##documentElement
            js_data.Eliom_types.ejs_event_handler_table closure_nodeList
        in
-       (* Unwrapped elements must be forced before reseting the request node table. *)
-       force_unwrapped_elts ();
-       (* The request node table must be empty when node received
-          via call_caml_service are unwrapped. *)
-       reset_request_node ();
+       (* The request node table must be empty when nodes received via
+          call_caml_service are unwrapped. *)
+       reset_request_nodes ();
        run_handlers
          (Eliommod_dom.add_formdata_hack_onclick_handler ::
-            onload_events @ onload_closure_nodes @
+            flush_onload () @ onload_closure_nodes @
             [broadcast_load_end])
          (event "load");
        scroll_to_fragment ?offset fragment;
@@ -855,7 +849,6 @@ let set_template_content ?uri ?fragment = function
       lwt (), request_data = unwrap_caml_content content in
       do_request_data request_data;
       run_handlers (flush_onload ()) (event "load");
-      force_unwrapped_elts ();
       reset_request_node ();
       Lwt.return ()
 
@@ -1148,6 +1141,16 @@ let rebuild_node elt =
 
 (******************************************************************************)
 (*                            Register unwrappers                             *)
+
+(* == Html5 elements
+   
+   Html5 elements are unwrapped lazily (cf. use of Xml.make_lazy in
+   unwrap_tyxml), because the unwrapping of process and request
+   elements needs access to the DOM.
+
+   All recently unwrapped elements are forced when resetting the
+   request nodes ([reset_request_nodes]).
+*)
 
 let unwrap_tyxml =
   fun tmp_elt ->

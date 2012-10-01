@@ -32,18 +32,19 @@ let onload ev =
         Firebug.console##time(Js.string "onload");
       Eliommod_cookies.update_cookie_table (Some Url.Current.host)
         (Eliom_request_info.get_request_cookies ());
-      lwt () = Lwt_js.sleep 0.001 in (* WHY? chambart: Eliom_client: display page before executing onload   *)
+      Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
+      (* WHY sleep? chambart: Eliom_client: display page before executing onload *)
+      lwt () = Lwt_js.sleep 0.001 in
+      (* Ordering matters. See [Eliom_client.set_content] for explanations *)
       relink_request_nodes (Dom_html.document##documentElement);
       do_request_data js_data.Eliom_types.ejs_request_data;
       let root = Dom_html.document##documentElement in
-      let closure_nodeList = relink_page root in
-      Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
+      let closure_nodeList = relink_page_but_closure_nodes root in
       let onload_closure_nodes =
         relink_closure_nodes root js_data.Eliom_types.ejs_event_handler_table
           closure_nodeList
       in
-      force_unwrapped_elts ();
-      reset_request_node ();
+      reset_request_nodes ();
       run_handlers
         (Eliommod_dom.add_formdata_hack_onclick_handler ::
            flush_onload () @ onload_closure_nodes @

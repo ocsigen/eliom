@@ -139,7 +139,7 @@ val relink_request_nodes : Dom_html.htmlElement Js.t -> unit
 val reset_request_node : unit -> unit
 val force_unwrapped_elts : unit -> unit
 val do_request_data : request_data -> unit
-val relink_page : Dom_html.element Js.t -> Dom_html.element Dom.nodeList Js.t
+val relink_page_but_closure_nodes : Dom_html.element Js.t -> Dom_html.element Dom.nodeList Js.t
 val leave_page : unit -> unit
 val event : string -> Dom_html.event Js.t
 
