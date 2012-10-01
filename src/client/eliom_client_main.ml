@@ -45,12 +45,10 @@ let onload ev =
           closure_nodeList
       in
       reset_request_nodes ();
-      run_handlers
+      run_callbacks
         (Eliommod_dom.add_formdata_hack_onclick_handler ::
-           flush_onload () @ onload_closure_nodes @
-           [ broadcast_load_end ])
-        (event "load");
-        (Eliommod_dom.createEvent (Js.string "load"));
+           flush_onload () @ 
+           [ onload_closure_nodes; broadcast_load_end ]);
       if !Eliom_config.debug_timings then
         Firebug.console##timeEnd(Js.string "onload");
       Lwt.return ());

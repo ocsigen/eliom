@@ -662,11 +662,10 @@ let onclick_on_body_handler event =
         (Js.Unsafe.variable "window")##eliomLastButton <- None);
   Js._true
 
-let add_formdata_hack_onclick_handler _ =
+let add_formdata_hack_onclick_handler () =
   ignore (Dom_html.addEventListener ( Dom_html.window##document##body )
             Dom_html.Event.click ( Dom_html.handler onclick_on_body_handler )
-            Js._true : Dom_html.event_listener_id);
-  true
+            Js._true : Dom_html.event_listener_id)
 
 (* END FORMDATA HACK *)
 

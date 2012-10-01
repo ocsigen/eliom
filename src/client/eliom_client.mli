@@ -116,38 +116,37 @@ val call_service :
   ?nl_params:Eliom_parameter.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> string Lwt.t
 
-(** Registers a function to call after loading the page, or the next time the
-    DOM content is changed (cf. {% <<a_api | val Eliom_client.change_page >> %}).
- *)
+(** Registers a function to call after loading the page, or after
+    changing the page the next time. *)
 val onload : (unit -> unit) -> unit
 
-(** register a function to be called on page change *)
+(** Register a function to be called before changing the page the next
+    time. *)
 val onunload : (unit -> unit) -> unit
 
-(** wait for the loading phase to terminate *)
+(** Wait for the initialization phase to terminate *)
 val wait_load_end : unit -> unit Lwt.t
 
+(**/**)
 (** true if the function is executed inside the loading phase *)
 val in_onload : unit -> bool
 
+val run_callbacks : (unit -> unit) list -> unit
 
-(**/**)
-val broadcast_load_end : Dom_html.event Js.t -> bool
-val run_handlers : ('a -> bool) list -> 'a -> unit
-val flush_onload : unit -> (Dom_html.event Js.t -> bool) list
+val broadcast_load_end : unit -> unit
+val flush_onload : unit -> (unit -> unit) list
 val relink_request_nodes : Dom_html.htmlElement Js.t -> unit
-val reset_request_node : unit -> unit
+val reset_request_nodes : unit -> unit
 val force_unwrapped_elts : unit -> unit
 val do_request_data : request_data -> unit
 val relink_page_but_closure_nodes : Dom_html.element Js.t -> Dom_html.element Dom.nodeList Js.t
 val leave_page : unit -> unit
-val event : string -> Dom_html.event Js.t
 
 val relink_closure_nodes :
   Dom_html.element Js.t ->
   (Dom_html.event Js.t -> unit) Eliom_server.Client_value.t Eliom_content_core.Xml.ClosureMap.t ->
   Dom_html.element Dom.nodeList Js.t ->
-  (Dom_html.event Js.t -> bool) list
+  (unit -> unit)
 
 val getElementById : string -> Dom.node Js.t
 val rebuild_node : 'a Eliom_content_core.Html5.elt -> < .. > Js.t

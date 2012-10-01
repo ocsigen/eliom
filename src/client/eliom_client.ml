@@ -26,10 +26,10 @@ module JsTable = Eliommod_jstable
 
 (* == Auxiliaries *)
 
-let create_buffer f =
+let create_buffer () =
   let elts = ref [] in
   let add x =
-    elts := f x :: !elts
+    elts := x :: !elts
   in
   let flush () =
     let res = List.rev !elts in
@@ -38,25 +38,14 @@ let create_buffer f =
   in
   add, flush
 
-let run_handlers handlers arg =
-  ignore
-    (List.for_all (fun f -> f arg) handlers)
+(* == Callbacks for onload and onunload *)
 
-let event str =
-  Eliommod_dom.createEvent (Js.string str)
+let run_callbacks handlers =
+  List.iter (fun f -> f ()) handlers
 
-(* == Onload and Onunload buffers *)
+let onload, flush_onload = create_buffer ()
 
-let to_handler f =
-  fun _ ->
-    try f (); true
-    with False -> false
-
-let onload, flush_onload =
-  create_buffer to_handler
-
-let onunload, flush_onunload =
-  create_buffer to_handler
+let onunload, flush_onunload = create_buffer ()
 
 (* BBB To save oneself from traversing the [value] completely, and probably
    several times (when used in different client values), this could be replaced
@@ -174,8 +163,7 @@ end = struct
 
 end
 
-(* == Populating client values and injections by global/request data *)
-
+(* == Populating client values and injections by global data *)
 let global_data = ref String_map.empty
 
 let do_next_server_section_data ~compilation_unit_id =
@@ -195,6 +183,8 @@ let do_next_client_section_data ~compilation_unit_id =
       (Queue.take data.client_sections_data)
   with Not_found -> (* Client-only compilation unit *)
     ()
+
+(* == Initialize the client values sent with a request *)
 
 let do_request_data request_data =
   trace "Do request data (%d)" (List.length request_data);
@@ -283,10 +273,9 @@ let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
   let load_end = Lwt_condition.create () in
   let set () = loading_phase := true in
   let in_onload () = !loading_phase in
-  let broadcast_load_end _ =
+  let broadcast_load_end () =
     loading_phase := false;
-    Lwt_condition.broadcast load_end ();
-    true in
+    Lwt_condition.broadcast load_end () in
   let wait_load_end () =
     if !loading_phase
     then Lwt_condition.wait load_end
@@ -362,8 +351,8 @@ let reify_event node ev = match ev with
   | Xml.Raw ev -> Js.Unsafe.variable ev
   | Xml.Caml ce -> reify_caml_event node ce
 
-let register_event_handler, flush_load_scripts =
-  let add, flush = create_buffer (fun f -> f) in
+let register_event_handler, flush_load_script =
+  let add, flush = create_buffer () in
   let register node (name, ev) =
     let f = reify_caml_event node ev in
     if name = "onload" then
@@ -371,6 +360,11 @@ let register_event_handler, flush_load_scripts =
     else
       Js.Unsafe.set node (Js.bytestring name)
         (Dom_html.handler (fun ev -> Js.bool (f ev))) in
+  let flush () =
+    let fs = flush () in
+    let ev = Eliommod_dom.createEvent (Js.string "load") in
+    ignore (List.for_all (fun f -> f ev) fs)
+  in
   register, flush
 
 (* == Associate data to state of the History API.
@@ -423,7 +417,7 @@ let update_state () =
 
 let leave_page () =
   update_state ();
-  run_handlers (flush_onunload ()) (event "unload")
+  run_callbacks (flush_onunload ())
 
 (* TODO: Registering a global "onunload" event handler breaks the
    'bfcache' mechanism of Firefox and Safari. We may try to use
@@ -553,7 +547,7 @@ let call_caml_service
       get_params post_params in
   lwt content, request_data = unwrap_caml_content content in
   do_request_data request_data;
-  run_handlers (flush_onload ()) (event "load");
+  run_callbacks (flush_onload ());
   reset_request_nodes ();
   Lwt.return content
 
@@ -665,6 +659,33 @@ let relink_request_nodes root =
   if !Eliom_config.debug_timings then
     Firebug.console##timeEnd(Js.string "relink_request_nodes")
 
+(* Relinks a-elements, form-elements, and process nodes. The list of
+   closure nodes is returned for application on [relink_closure_node]
+   after the client values are initialized.
+*)
+let relink_page_but_closure_nodes (root:Dom_html.element Js.t) =
+  trace "Relink page";
+  let (a_nodeList,form_nodeList,process_nodeList,closure_nodeList) =
+    Eliommod_dom.select_nodes root in
+  Eliommod_dom.iter_nodeList a_nodeList
+    (fun node -> node##onclick <- a_handler);
+  Eliommod_dom.iter_nodeList form_nodeList
+    (fun node -> node##onsubmit <- form_handler);
+  Eliommod_dom.iter_nodeList process_nodeList
+    relink_process_node;
+  closure_nodeList
+
+(* == Rebuild event handlers
+
+   Event handlers inside the DOM tree are rebuilt from the closure map
+   sent with the request. The actual functions will be taken from the
+   client values.
+
+   It returns a single handler ([unit -> unit]) which captures all
+   onload event handlers found in the tree, and cancels the execution
+   when on raises [False] (cf. [raw_event_handler]).
+*)
+
 let relink_closure_node root onload table (node:Dom_html.element Js.t) =
   trace "Relink closure node";
   let aux attr =
@@ -686,29 +707,19 @@ let relink_closure_node root onload table (node:Dom_html.element Js.t) =
   in
   Eliommod_dom.iter_nodeList (node##attributes:>Dom.attr Dom.nodeList Js.t) aux
 
-let relink_page_but_closure_nodes (root:Dom_html.element Js.t) =
-  trace "Relink page";
-  let (a_nodeList,form_nodeList,process_nodeList,closure_nodeList) =
-    Eliommod_dom.select_nodes root in
-  Eliommod_dom.iter_nodeList a_nodeList
-    (fun node -> node##onclick <- a_handler);
-  Eliommod_dom.iter_nodeList form_nodeList
-    (fun node -> node##onsubmit <- form_handler);
-  Eliommod_dom.iter_nodeList process_nodeList
-    relink_process_node;
-  closure_nodeList
-
 let relink_closure_nodes (root : Dom_html.element Js.t) event_handlers closure_nodeList =
   let onload = ref [] in
   Eliommod_dom.iter_nodeList closure_nodeList
     (fun node -> relink_closure_node root onload event_handlers node);
-  List.rev !onload
+  fun () ->
+    let ev = Eliommod_dom.createEvent (Js.string "load") in
+    ignore
+      (List.for_all (fun f -> f ev) (List.rev !onload))
 
-(* == Extract the request data and the request tab-cookies from a
-      page.  
+(* == Extract the request data and the request tab-cookies from a page
+
    See the corresponding function on the server side:
    Eliom_registration.Eliom_appl_reg_make_param.make_eliom_data_script.
-
 *)
 
 let load_data_script page =
@@ -763,7 +774,7 @@ let set_content ?uri ?offset ?fragment content =
        set_loading_phase ();
        if !Eliom_config.debug_timings then
          Firebug.console##time(Js.string "set_content");
-       run_handlers (flush_onunload ()) (event "unload");
+       run_callbacks (flush_onunload ());
        (match uri, fragment with
         | Some uri, None -> change_url_string uri
         | Some uri, Some fragment ->
@@ -821,11 +832,10 @@ let set_content ?uri ?offset ?fragment content =
        (* The request node table must be empty when nodes received via
           call_caml_service are unwrapped. *)
        reset_request_nodes ();
-       run_handlers
+       run_callbacks
          (Eliommod_dom.add_formdata_hack_onclick_handler ::
-            flush_onload () @ onload_closure_nodes @
-            [broadcast_load_end])
-         (event "load");
+            flush_onload () @
+            [onload_closure_nodes; broadcast_load_end]);
        scroll_to_fragment ?offset fragment;
        if !Eliom_config.debug_timings then
          Firebug.console##timeEnd(Js.string "set_content");
@@ -840,7 +850,7 @@ let set_template_content ?uri ?fragment = function
   | None -> Lwt.return ()
   | Some content ->
       (* Side-effect in the 'onload' event handler. *)
-      run_handlers (flush_onunload ()) (event "unload");
+      run_callbacks (flush_onunload ());
       (match uri, fragment with
         | Some uri, None -> change_url_string uri
         | Some uri, Some fragment ->
@@ -848,8 +858,8 @@ let set_template_content ?uri ?fragment = function
         | _ -> ());
       lwt (), request_data = unwrap_caml_content content in
       do_request_data request_data;
-      run_handlers (flush_onload ()) (event "load");
-      reset_request_node ();
+      run_callbacks (flush_onload ());
+      reset_request_nodes ();
       Lwt.return ()
 
 (* == Main (exported) function: change the content of the page without
@@ -1136,7 +1146,7 @@ and raw_rebuild_node = function
 
 let rebuild_node elt =
   let node = Js.Unsafe.coerce (rebuild_node (Html5.F.toelt elt)) in
-  run_handlers (flush_load_scripts ()) (event "load");
+  flush_load_script ();
   node
 
 (******************************************************************************)
