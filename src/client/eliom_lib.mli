@@ -51,6 +51,9 @@ type file_info
 val to_json : ?typ:'a -> 'b -> string
 val of_json : ?typ:'a -> string -> 'b
 
+(** Event handlers like {% <<a_api | Eliom_content.Html5.F.a_onclick
+    >> %} may raise [False] to cancel the event (as if the JavaScript
+    function returned [false]). *)
 exception False
 
 module Url : sig
