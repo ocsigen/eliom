@@ -122,17 +122,14 @@ let node_bindings =
     ])
     (fun () ->
        ignore {unit{
-         debug "init free adder";
-         Eliom_client.onload
-           (fun () ->
-              debug "Adding free";
-              Html5.Manip.appendChild
-                (Html5.Of_dom.of_element Dom_html.document##body)
-                %free_request;
-              Html5.Manip.appendChild
-                (Html5.Of_dom.of_element Dom_html.document##body)
-                %free_global;
-              ())
+         debug "Adding free";
+         Html5.Manip.appendChild
+           (Html5.Of_dom.of_element Dom_html.document##body)
+           %free_request;
+         Html5.Manip.appendChild
+           (Html5.Of_dom.of_element Dom_html.document##body)
+           %free_global;
+         ()
        }};
        let add_onclick = {{
          fun _ ->
