@@ -297,12 +297,14 @@ var caml_unwrap_value = function (){
     }
     return null
   }
+  var visited = [];
   return function(apply_unwrapper, arr){
     function run(arr) {
       if (arr instanceof Array) {
         if (arr.unwrap_value_visited) {
           return arr;
         } else {
+          visited.push(arr);
           arr.unwrap_value_visited = true;
           var ix;
           for (ix=0; ix<arr.length; ix++) {
@@ -320,7 +322,10 @@ var caml_unwrap_value = function (){
       }
     }
     var res = run(arr);
-    delete arr.unwrap_value_visited; // If unwrapped again later
+    var ix;
+    // In case they occur in values other than arr
+    for (ix=0; ix<visited.length; ix++)
+      delete visited[ix].unwrap_value_visited;
     return res;
   };
 }();
