@@ -9,11 +9,9 @@ Ocsigen provides several ways to generate and type xhtml pages.
    This module provides a typing based on OCaml's polymorphic variants,
    which ensures at compile time, that the pages you will generate will
    respect the recommendations of the W3C (or be very close).
-   There also exists another module, <<a_api | module Eliom_content.Xhtml.F >>
-   that implements XHTML 1.1.
 * It is also possible to use a syntax extension to write your pages with the
-   usual XHTML syntax. This solution is also typed with polymorphic variants
-   and is compatible with the previous one.
+  usual HTML syntax. This solution is also typed with polymorphic variants
+  and is compatible with the previous one.
 * The most powerful typing of pages is done with OcamlDuce.
   To take benefit of it, use OCamlDuce instead of OCaml.
 * You can also choose to generate untyped html as text.
@@ -22,9 +20,8 @@ Ocsigen provides several ways to generate and type xhtml pages.
 
 The types in OCaml closest to XML types are //polymorphic variants//.
 Ocsigen uses them to provide a module with very good HTML5 typing.
-The full documentation is available <<a_api text="in
-the TyXML documentation" project="tyxml" | module Html5.M >>.
-<<wip|put it here (?!)>>
+The full documentation is available
+<<a_api text="in the TyXML documentation" project="tyxml" | module Html5.M >>.
 
 ===XHTML syntax extension===
 

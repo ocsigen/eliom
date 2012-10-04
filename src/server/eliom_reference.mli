@@ -160,8 +160,8 @@ module Volatile : sig
     *)
 
     (** get the value of a reference from outside the state.
-        If the value has not been set yet, it will raise with exception
-        [Eref_not_intialized].
+        If the value has not been set yet for this state,
+        it will raise exception [Eref_not_intialized].
     *)
     val get : ([< `Session_group | `Session | `Client_process ],
                [< `Data ]) Eliom_state.Ext.state ->

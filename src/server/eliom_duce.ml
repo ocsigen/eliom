@@ -216,7 +216,7 @@ module Xhtml_forms_base = struct
     let classe = (List.fold_left (fun a b -> a^" "^b) "" classe) in
     {{ <div class=(str classe)> [ c ] }}
 
-  let make_empty_form_content () = {{ <p> [] }} (**** à revoir !!!!! *)
+  let make_empty_form_content () = {{ <fieldset> [] }}
 
   let make_input ?(a={{ {} }}) ?(checked=false) ~typ ?name ?src ?value () =
     let a2 = match value with

@@ -152,7 +152,7 @@ end = struct
       in
       Html5.a ~a l
 
-    let make_empty_form_content () = p [pcdata ""] (**** à revoir !!!!! *)
+    let make_empty_form_content () = fieldset []
     let remove_first = function
       | a::l -> a,l
       | [] -> (make_empty_form_content ()), []
