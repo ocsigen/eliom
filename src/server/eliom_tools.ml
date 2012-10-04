@@ -28,8 +28,7 @@ let string_prefix s1 s2 =
   String.length s1 <= String.length s2 &&
     s1 = String.sub s2 0 (String.length s1)
 
-(** Menu and hierarchical site for HTML5 *)
-module type MENU = sig
+module type TOOLS = sig
 
 (** {2 Simple menu } *)
 
@@ -139,7 +138,7 @@ module type MENU = sig
 end
 
 
-module Make(DorF : module type of Eliom_content.Html5.F) : MENU = struct
+module Make(DorF : module type of Eliom_content.Html5.F) : TOOLS = struct
   open Html5_types
   open Html5.F
 
@@ -434,8 +433,6 @@ module Make(DorF : module type of Eliom_content.Html5.F) : MENU = struct
 end
 
 
-module Menu = struct
-  module F = Make(Html5.F)
-  module D = Make(Html5.D)
-end
+module F = Make(Html5.F)
+module D = Make(Html5.D)
 

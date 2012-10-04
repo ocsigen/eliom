@@ -288,7 +288,7 @@ let client_values_injection =
        let cstr = {string{ "cstr" }} in
        Lwt.return Html5.F.(
          html
-           (Eliom_tools.Html5.head
+           (Eliom_tools.F.head
               ~title:(String.concat "/" path)
               ~css:[["style.css"]]
               ())
@@ -339,7 +339,7 @@ let client_values_mutability =
     (fun () () ->
        Lwt.return Html5.F.(
          html
-           (Eliom_tools.Html5.head
+           (Eliom_tools.F.head
               ~title:(String.concat "/" path)
               ~css:[["style.css"]]
               ())
@@ -378,7 +378,7 @@ let client_values_changing_context =
        debug "ix: %d" !ix;
        Lwt.return Html5.F.(
          html
-           (Eliom_tools.Html5.head
+           (Eliom_tools.F.head
               ~title:(String.concat "/" path)
               ~css:[["style.css"]]
               ())
@@ -435,7 +435,7 @@ let client_values_initialization =
        incr ix;
        Lwt.return Html5.F.(
          html
-           (Eliom_tools.Html5.head
+           (Eliom_tools.F.head
               ~title:(String.concat "/" path)
               ~css:[["style.css"]]
               ())
@@ -497,7 +497,7 @@ let client_values_initialization =
          Eliom_service.onload' {{ fun () -> debug "hic %s" ( %b "x") }};
          Lwt.return Html5.F.(
            html
-             (Eliom_tools.Html5.head
+             (Eliom_tools.F.head
                 ~title:"client_values"
                 ())
              (body [
@@ -537,7 +537,7 @@ let test_simple =
        }} in
        Lwt.return Html5.F.(
          html
-           (Eliom_tools.Html5.head
+           (Eliom_tools.F.head
               ~title:(String.concat "/" path)
               ~css:[["style.css"]]
               ())
@@ -685,7 +685,7 @@ let client_handler_syntax =
        }};
        Lwt.return
          (html
-           (Eliom_tools.Html5.head ~title:(String.concat "/" path) ())
+           (Eliom_tools.F.head ~title:(String.concat "/" path) ())
            (body [
              h1 [pcdata description];
              Html5.Id.create_named_elt ~id:tests_id
@@ -833,7 +833,7 @@ let client_handler_syntax_2 =
        }};
        Lwt.return Html5.F.(
          html
-           (Eliom_tools.Html5.head
+           (Eliom_tools.F.head
               ~title:"client_handler_syntax_2"
               ~css:[["style.css"]] ())
            (body [
@@ -865,7 +865,7 @@ let client_values_shared =
     (fun () () ->
        Lwt.return Html5.F.(
          html
-           (Eliom_tools.Html5.head
+           (Eliom_tools.F.head
               ~title:(String.concat "/" path)
               ~css:[["style.css"]]
               ())
@@ -937,7 +937,7 @@ let client_values_onload =
        }};
        Lwt.return Html5.F.(
          html
-           (Eliom_tools.Html5.head
+           (Eliom_tools.F.head
               ~title:(String.concat "/" path)
               ~css:[["style.css"]]
               ())
@@ -1027,7 +1027,7 @@ let escaped_in_client =
        }};
        Lwt.return Html5.F.(
          html
-           (Eliom_tools.Html5.head
+           (Eliom_tools.F.head
               ~title:(String.concat "/" path)
               ~css:[["style.css"]]
               ())

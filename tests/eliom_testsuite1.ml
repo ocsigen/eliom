@@ -2393,7 +2393,6 @@ let uploadform = register upload
           
 *wiki*)
 (* Hierarchical menu *)
-open Eliom_tools_common
 open Eliom_tools
 
 let hier1 = service ~path:["hier1"] ~get_params:unit ()
@@ -2461,18 +2460,18 @@ let f i s () () =
     border-right: solid 1px black;}\n
   .breadthmenu li.eliomtools_last {border: none;}\n
                 "])::
-                Menu.F.structure_links mymenu ~service:s ())
+                Eliom_tools.F.structure_links mymenu ~service:s ())
              )
        (body [h1 [pcdata ("Page "^string_of_int i)];
               h2 [pcdata "Depth first, whole tree:"];
               div
-                (Menu.F.hierarchical_menu_depth_first
+                (Eliom_tools.F.hierarchical_menu_depth_first
                    ~whole_tree:true mymenu ~service:s ());
               h2 [pcdata "Depth first, only current submenu:"];
-              div (Menu.F.hierarchical_menu_depth_first mymenu ~service:s ());
+              div (Eliom_tools.F.hierarchical_menu_depth_first mymenu ~service:s ());
               h2 [pcdata "Breadth first:"];
               div
-                (Menu.F.hierarchical_menu_breadth_first
+                (Eliom_tools.F.hierarchical_menu_breadth_first
                    ~classe:["breadthmenu"] mymenu ~service:s ())]))
 
 

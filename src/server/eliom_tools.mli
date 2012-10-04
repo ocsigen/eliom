@@ -86,8 +86,7 @@ constraint 'b = [< Eliom_service.registrable ]
 (* Be kind with ocamldoc when source code is preprocessed with camlp4:
    do not remove this comment ! *)
 
-(** Menu and hierarchical site for HTML5 *)
-module type MENU = sig
+module type TOOLS = sig
 
 (** {2 Simple menu } *)
 
@@ -196,10 +195,8 @@ module type MENU = sig
     Html5_types.head Html5.elt
 end
 
-module Menu : sig
-  (** Menus with functional node semantics *)
-  module F : MENU
+(** Menus with functional node semantics *)
+module F : TOOLS
     
-  (** Menus with DOM semantics *)
-  module D : MENU
-end
+(** Menus with DOM semantics *)
+module D : TOOLS
