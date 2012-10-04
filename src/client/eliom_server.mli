@@ -20,6 +20,10 @@
 
 (**/**)
 
+(** Server representation of client values.
+    Developer-visible functions should always operate on the synonym
+    {% <<a_api subproject="client" | type Eliom_lib.client_value >> %}.
+  *)
 module Client_value : sig
 
   type +'a t
