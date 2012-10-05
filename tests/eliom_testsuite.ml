@@ -304,6 +304,7 @@ let _ = Eliom_output.Html5.register Eliom_testsuite_base.main
          a sumform [pcdata "alternative parameters"] (); br ();
          a sumform2 [pcdata "alternative parameters with POST"] (); br ();
          a optform [pcdata "Optional parameters"] (); br ();
+         a main_neopt_service [pcdata "Non-empty optional parameters"] (); br ();
          a sfail [pcdata "Service raising an exception"] (); br ();
          a sraise [pcdata "Wrong use of exceptions during service"] (); br ();
          a getcoex [pcdata "GET coservice with preapplied fallback, etc"] (); br ();

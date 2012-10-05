@@ -2392,3 +2392,88 @@ let noreload =
                    pcdata "You should not see the result if you do not reload the page."
                   ]])))
 
+
+
+
+(*****************************************************************************)
+(* neopt, by Dario Teixeira *)
+let neopt_handler ((a, b), (c, d)) () =
+  Lwt.return
+    (html
+    (head (title (pcdata "Coucou")) [])
+    (body  [
+      p [pcdata "Coucou:"];
+      p [pcdata (Printf.sprintf "a: %s" a)];
+      p [pcdata (Printf.sprintf "b: %s" (match b with Some b -> string_of_int b | None -> "(none)"))];
+      p [pcdata (Printf.sprintf "c: %s" (match c with Some c -> string_of_float c | None -> "(none)"))];
+      p [pcdata (Printf.sprintf "d: %s" (match d with Some d -> d | None -> "(none)"))];
+      ]))
+
+
+let neopt_service =
+  Eliom_output.Html5.register_service
+    ~path: ["neopt"]
+    ~get_params: (suffix_prod
+      (Eliom_parameters.string "a" ** neopt (Eliom_parameters.int "b"))
+      (neopt (Eliom_parameters.float "c") ** neopt (Eliom_parameters.string "d")))
+    neopt_handler
+
+
+let neopt_form ((e_a, e_b), (e_c, e_d)) =
+  [
+  fieldset
+    [
+    label ~a:[a_for e_a] [pcdata "Enter string 'a':"];
+    Eliom_output.Html5.string_input ~a:[a_id "e_a"] ~input_type:`Text ~name:e_a ();
+    br ();
+
+    label ~a:[a_for e_b] [pcdata "Enter int 'b' (neopt):"];
+    Eliom_output.Html5.int_input ~a:[a_id "e_b"] ~input_type:`Text ~name:e_b ();
+    br ();
+
+    label ~a:[a_for e_c] [pcdata "Enter float 'c' (neopt):"];
+    Eliom_output.Html5.float_input ~a:[a_id "e_c"] ~input_type:`Text ~name:e_c ();
+    br ();
+
+    label ~a:[a_for e_d] [pcdata "Enter string 'd' (neopt):"];
+    Eliom_output.Html5.string_input ~a:[a_id "e_d"] ~input_type:`Text ~name:e_d ();
+    br ();
+
+    Eliom_output.Html5.button ~button_type:`Submit [pcdata "Apply"];
+    ]
+  ]
+
+
+let main_neopt_handler () () =
+  Lwt.return
+    (html
+      (head (title (pcdata "Main")) [])
+      (body  [
+        p  [
+          pcdata "Here's a ";
+          Eliom_output.Html5.a neopt_service [pcdata "link"] (("foo", None), (None, None));
+          pcdata " to the neopt service"
+          ];
+        p  [
+          pcdata "Here's another ";
+          Eliom_output.Html5.a neopt_service [pcdata "link"] (("foo", Some 1), (None, None));
+          pcdata " to the neopt service"
+          ];
+        p  [
+          pcdata "Here's yet another ";
+          Eliom_output.Html5.a neopt_service [pcdata "link"] (("foo", None), (Some 2.0, Some "Olá!"));
+          pcdata " to the neopt service"
+          ];
+        p  [
+          pcdata "Here's the final ";
+          Eliom_output.Html5.a neopt_service [pcdata "link"] (("foo", Some 1), (Some 2.0, Some "Olá!"));
+          pcdata " to the neopt service"
+          ];
+        Eliom_output.Html5.get_form neopt_service neopt_form;
+        ]))
+
+let main_neopt_service =
+  Eliom_output.Html5.register_service
+    ~path: ["neopt0"]
+    ~get_params: Eliom_parameters.unit
+    main_neopt_handler
