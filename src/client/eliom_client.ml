@@ -47,26 +47,6 @@ let onload, flush_onload = create_buffer ()
 
 let onunload, flush_onunload = create_buffer ()
 
-(* BBB To save oneself from traversing the [value] completely, and probably
-   several times (when used in different client values), this could be replaced
-   by the following idea:
-   - while [Eliom_unwrap.unwrap], pass also the parent JS array and the field
-     index of the wrapped value to the unwrapping function
-   - in unwrap_client_value, return the wrapped value, but record the JS array
-     and field index
-   - instead of traversing the hole structure in [really_unwrap_client_values]
-     (i.e. [Eliom_unwrap.unwrap_value]) just replace the recorded array fields
-     by the value of [Client_value.find p i].
- *)
-
-let is_really_unwrap_client_values = ref false
-let really_unwrap_client_values value =
-  is_really_unwrap_client_values := true;
-  let res = Eliom_unwrap.unwrap_value value in
-  is_really_unwrap_client_values := false;
-  trace "really_unwrap_client_values ok";
-  res
-
 (* == Closure *)
 
 module Client_closure : sig
@@ -127,8 +107,13 @@ end = struct
   let initialize {closure_id; instance_id; args} =
     trace "Initialize client value %Ld/%d" closure_id instance_id;
     let closure = Client_closure.find ~closure_id in
-    let args = really_unwrap_client_values args in
     let value = closure args in
+    Eliom_unwrap.late_unwrap_value
+      (Eliom_unwrap.id_of_int Eliom_lib_base.client_value_unwrap_id_int)
+      (fun (cv, _) ->
+         Eliom_server.Client_value.closure_id cv = closure_id &&
+            Eliom_server.Client_value.instance_id cv = instance_id)
+      value;
     let instances =
       Js.Optdef.get
         (JsTable.find table (closure_key closure_id))
@@ -158,16 +143,17 @@ end = struct
 
   let initialize { Eliom_lib_base.injection_id; injection_value } =
     trace "Initialize injection %s" injection_id;
-    let value = really_unwrap_client_values injection_value in
-    JsTable.add table (Js.string injection_id) value
+    (* BBB One should assert that injection_value doesn't contain any
+       value marked for late unwrapping. How to do this efficiently? *)
+    JsTable.add table (Js.string injection_id) injection_value
 
 end
 
 (* == Populating client values and injections by global data *)
+
 let global_data = ref String_map.empty
 
 let do_next_server_section_data ~compilation_unit_id =
-  trace "Do next server section data %s" compilation_unit_id;
   try
     let data = String_map.find compilation_unit_id !global_data in
     List.iter Client_value.initialize
@@ -176,7 +162,6 @@ let do_next_server_section_data ~compilation_unit_id =
     ()
 
 let do_next_client_section_data ~compilation_unit_id =
-  trace "Do next client section data %s" compilation_unit_id;
   try
     let data = String_map.find compilation_unit_id !global_data in
     List.iter Injection.initialize
@@ -1207,31 +1192,17 @@ let unwrap_tyxml =
     register_unwrapped_elt elt;
     elt
 
-let unwrap_client_value =
-  fun (cv, _unwrapper_id as not_unwrapped) ->
-    let closure_id = Eliom_server.Client_value.closure_id cv in
-    let instance_id = Eliom_server.Client_value.instance_id cv in
-    if !is_really_unwrap_client_values then
-      (trace "Unwrap client value %Ld/%d" closure_id instance_id;
-       try
-         Client_value.find ~closure_id ~instance_id
-       with Not_found ->
-         error "Client value not found: %Ld/%d" closure_id instance_id)
-    else
-      (trace "Unwrap client value %Ld/%d later" closure_id instance_id;
-       not_unwrapped)
-
 let unwrap_global_data =
   fun (global_data', _) ->
     global_data := global_data'
 
 let _ =
+  (* BBB No unwrapper for Client_value.t! They are explicitly late
+     unwrapped by Eliom_unwrap.late_unwrap_value in
+     [Client_value.initialize]. *)
   Eliom_unwrap.register_unwrapper
     (Eliom_unwrap.id_of_int Eliom_lib_base.tyxml_unwrap_id_int)
     unwrap_tyxml;
-  Eliom_unwrap.register_unwrapper
-    (Eliom_unwrap.id_of_int Eliom_lib_base.client_value_unwrap_id_int)
-    unwrap_client_value;
   Eliom_unwrap.register_unwrapper
     (Eliom_unwrap.id_of_int Eliom_lib_base.global_data_unwrap_id_int)
     unwrap_global_data;

@@ -9,6 +9,8 @@ eliom_comet_base.cmo: eliom_service.cmi eliom_registration.cmi \
     eliom_parameter.cmi eliom_comet_base.cmi
 eliom_comet_base.cmx: eliom_service.cmx eliom_registration.cmx \
     eliom_parameter.cmx eliom_comet_base.cmi
+eliom_comet_base.cmi: eliom_service.cmi eliom_registration.cmi \
+    eliom_parameter.cmi
 eliom_comet.cmo: eliom_wrap.cmi eliom_types.cmi eliom_service.cmi \
     eliom_request_info.cmi eliom_registration.cmi eliom_reference.cmi \
     eliom_parameter.cmi eliom_lib.cmi eliom_common_base.cmo eliom_common.cmi \

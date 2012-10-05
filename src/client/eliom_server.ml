@@ -7,7 +7,6 @@ module Client_value = struct
     closure_id: int64;
     instance_id: int;
   }
-
   let closure_id { closure_id } = closure_id
   let instance_id { instance_id } = instance_id
 end

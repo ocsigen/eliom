@@ -1361,6 +1361,64 @@ let client_value_initialization =
        ignore {unit{ client_value_initialization_f2 () }};
        Lwt.return [])
 
+let late_unwrap_unwrap_id = 1001
+{server{
+       type 'a late_unwrap_marked_for_unwrap = 'a * Eliom_wrap.unwrapper
+}}
+{client{
+       type 'a late_unwrap_marked_for_unwrap = 'a
+}}
+{shared{
+       type late_unwrap_base = string
+       type late_unwrap_t = late_unwrap_base late_unwrap_marked_for_unwrap
+}}
+let late_unwrap_unwrapper = Eliom_wrap.create_unwrapper (Eliom_wrap.id_of_int late_unwrap_unwrap_id)
+let late_unwrap_value : late_unwrap_t = "one", late_unwrap_unwrapper
+let late_unwrap_values : late_unwrap_t list = [late_unwrap_value; late_unwrap_value]
+let late_unwrap_other_value : late_unwrap_t = "other", late_unwrap_unwrapper
+{client{
+  let () =
+    Eliom_unwrap.register_unwrapper (Eliom_unwrap.id_of_int %late_unwrap_unwrap_id)
+      (fun (v, _) ->
+        Eliom_testsuite_base.log "Called late unwrapper for %S" v;
+        "!" ^ v ^ "!")
+}}
+{client{
+  let () =
+    Eliom_testsuite_base.log "Value %s" %late_unwrap_value
+}}
+{client{
+  let () =
+    Eliom_testsuite_base.log "Value %s" %late_unwrap_value;
+    Eliom_testsuite_base.log "Values %s"
+      (String.concat ", " (List.map String.escaped %late_unwrap_values));
+    Eliom_testsuite_base.log "Other value %s" %late_unwrap_other_value
+}}
+
+let late_unwrap =
+  Eliom_testsuite_base.test
+    ~title:"Late unwrapping"
+    ~path:["holes"; "late_unwrap"]
+    ~description:Html5.F.([
+      p [pcdata "On the server, two values, \"one\" and \"other\" are created
+                 and furnished with an unwrapper. The former is also shared in
+                 a list."];
+      p [pcdata "Values with the respective unwrapper are unwrapped on the client
+                 side by adding an exclamation mark at the start and end of the
+                 string"];
+      p [pcdata "The following result should be observed (in logging output)"];
+      ol [
+        li [pcdata "Called late unwrapper for \"other\""];
+        li [pcdata "Called late unwrapper for \"one\""];
+        li [pcdata "Value \"!one!\""];
+        li [pcdata "Value \"!one!\""];
+        li [pcdata "Values \"!one\", \"!one!\""];
+        li [pcdata "Other value \"!other!\""];
+      ]
+    ])
+    (fun () ->
+      Lwt.return [])
+
 let tests = [
   "Mixed", [
     test_custom_data;
@@ -1373,6 +1431,7 @@ let tests = [
     node_bindings;
     data_sharing;
     client_value_initialization;
+    late_unwrap;
 (*
    test_simple;
    client_values_injection;

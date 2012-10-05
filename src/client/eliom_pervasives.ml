@@ -25,7 +25,6 @@ let call_server_function : ('a, 'b) server_function_service -> 'a -> 'b Lwt.t =
       | `Exception exc -> Lwt.fail exc
 
 let () =
-  trace "Register server function unwrapper";
   Eliom_unwrap.register_unwrapper
     (Eliom_unwrap.id_of_int Eliom_common_base.server_function_unwrap_id_int)
     (fun (sf, _) -> (fun x -> call_server_function sf x))

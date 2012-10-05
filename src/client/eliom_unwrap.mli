@@ -37,5 +37,39 @@ val id_of_int : int -> unwrap_id
     (Eliom_wrap.wrap v)]. This function is for internal use only *)
 val unwrap : string -> int -> 'a
 
-(** [unwrap_value v] unwraps all values which are still marked in [v]. *)
-val unwrap_value : _ -> _
+(* == BBB Apropos late unwrapping
+
+   When no unwrapper is registered for a value with a certain
+   unwrapping marker, that marker is replaced by a late unwrapping
+   marker in the JavaScript function caml_unwrap_value_from_string.
+
+   All occurrences of such values inside other values (sharing) are
+   recorded during unwrapping.
+
+   There are two way for the replacing values marked for late
+   unwrapping:
+   
+   Register an unwrapping [register_unwrapper]. All values which are
+   marked for late unwrapping with the respective unwrap_id are
+   applied to the unwrapping function, and all occurrences are
+   replaced.
+
+   Set a specific set of values marked for late unwrapping explicitly
+   by [late_unwrap_value]. All values marked for late unwrapping with
+   the given unwrap_id to which the predicade applies are replaced
+   with the given value.
+
+   Note, that when starting the actual client program, i.e. after
+   running all top level declarations, no values marked for late
+   unwrapping may remain (cf. [has_values_for_late_unwrapping]).
+*)
+
+(** [late_unwrap_value id predicate new_value] replaces each occurrence
+    of every value which is marked for late unwrapping and on which
+    applies [predicate], with [new_value].
+*)
+val late_unwrap_value : unwrap_id -> (_ -> bool) -> _ -> unit
+
+(** The list of unwrap_id for which values marked for late unwrapping
+    remain. *)
+val remaining_values_for_late_unwrapping : unit -> int list

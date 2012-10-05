@@ -102,7 +102,9 @@ var caml_unwrap_value_from_string = function (){
   function caml_float_of_bytes (a) {
     return caml_int64_float_of_bits (caml_int64_of_bytes (a));
   }
-  return function (apply_unwrapper, s, ofs) {
+  var late_unwrap_mark = "late_unwrap_mark";
+  var late_counter = 0;
+  return function (apply_unwrapper, register_late_occurrence, s, ofs) {
     var reader = s.array?new ArrayReader (s.array, ofs):
                          new StringReader (s.getFullBytes(), ofs);
     var magic = reader.read32u ();
@@ -263,70 +265,39 @@ var caml_unwrap_value_from_string = function (){
       var v = intern_obj_table[ofs];
       var d = v.length;
       if (size + 1 == d) {
-	// See Eliom_wrap.ml.
-        if (v[0] === 0 && size >= 2 &&
-	    v[size][2] === intern_obj_table[2]) {
-	    var ancestor = intern_obj_table[stack[stack.length-2]];
-	    var v = apply_unwrapper(v[size],v);
-	    intern_obj_table[ofs] = v;
-	    ancestor[ancestor.length-1] = v;
+        var ancestor = intern_obj_table[stack[stack.length-2]];
+        // See Eliom_wrap.ml.
+        if (v[0] === 0 && size >= 2 && v[size][2] === intern_obj_table[2]) {
+          var unwrapped_v = apply_unwrapper(v[size], v);
+          if (unwrapped_v === 0) {
+            // No unwrapper is registered, so replace the unwrap
+            // marker v[size] by a late_unwrap marker
+            //   (unwrapper_id, "late_unwrap_mark", instance_id)
+            // where instance_id identifies the value when shared
+            v[size] = [0, v[size][1], late_unwrap_mark, late_counter++];
+            // And register an occurrence in ancestor
+            register_late_occurrence(ancestor, ancestor.length-1, v, v[size][1], v[size][3]);
+          } else {
+            v = unwrapped_v[1];
+          }
+          intern_obj_table[ofs] = v;
+	  ancestor[ancestor.length-1] = v;
         }
-	continue;
+        continue;
       }
       stack.push(ofs, size);
       v[d] = intern_rec ();
+      // If the value v[d] is marked for late unwrapping, register an
+      // occurrence of it in v.
+      if (v[d][0] === 0 && v[d].length >= 2 && v[d][v[d].length-1][2] == late_unwrap_mark) {
+        var w = v[d][v[d].length-1];
+        register_late_occurrence(v, d, v[d], w[1], w[3]);
+      }
     }
     s.offset = reader.i;
     if(intern_obj_table[0][0].length != 3)
       caml_failwith ("unwrap_value: incorrect value");
     return intern_obj_table[0][0][2];
   }
-}();
-
-
-//Provides: caml_unwrap_value
-var caml_unwrap_value = function (){
-  function is_marked(arr) {
-    if (arr instanceof Array &&
-        arr.length > 2) {
-      var unwrapper = arr[arr.length-1];
-      if (unwrapper instanceof Array &&
-          unwrapper.length > 2 &&
-          unwrapper[2].bytes === "unwrap_mark")
-        return unwrapper;
-    }
-    return null
-  }
-  var visited = [];
-  return function(apply_unwrapper, arr){
-    function run(arr) {
-      if (arr instanceof Array) {
-        if (arr.unwrap_value_visited) {
-          return arr;
-        } else {
-          visited.push(arr);
-          arr.unwrap_value_visited = true;
-          var ix;
-          for (ix=0; ix<arr.length; ix++) {
-            arr[ix] = run(arr[ix]);
-          }
-          var unwrapper = is_marked(arr);
-          if (unwrapper) {
-            return apply_unwrapper(unwrapper, arr);
-          } else {
-            return arr;
-          }
-        }
-      } else {
-        return arr;
-      }
-    }
-    var res = run(arr);
-    var ix;
-    // In case they occur in values other than arr
-    for (ix=0; ix<visited.length; ix++)
-      delete visited[ix].unwrap_value_visited;
-    return res;
-  };
 }();
 
