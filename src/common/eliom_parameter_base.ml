@@ -45,6 +45,7 @@ type 'a setone = [ `Set of 'a | `One of 'a ]
 type ('a, 'tipo, +'names) params_type =
     TProd of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = 'a1 * 'a2 ; 'names = 'names1 * 'names2 *)
   | TOption of (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 option *)
+  | TNEOption of (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 option *)
   | TList of string * (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 list *)
   | TSet of ('a,'tipo,'names) params_type (* 'a = 'a1 list *)
   | TSum of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = ('a1, 'a2) binsum *)
@@ -108,6 +109,7 @@ let file (n : string)
 
 let unit : (unit, [`WithoutSuffix], unit) params_type = TUnit
 
+
 let user_type
     ~(of_string : string -> 'a) ~(to_string : 'a -> string) (n : string)
     : ('a,[`WithoutSuffix], [ `One of 'a ] param_name) params_type =
@@ -169,6 +171,10 @@ let user_type_coordinates
 let opt (t : ('a, [`WithoutSuffix], 'an) params_type)
     : ('a option,[`WithoutSuffix], 'an) params_type =
   Obj.magic (TOption t)
+
+let neopt (t : ('a, [`WithoutSuffix], 'an) params_type)
+    : ('a option,[`WithoutSuffix], 'an) params_type =
+  Obj.magic (TNEOption t)
 
 let radio (t : string -> 
             ('a, [`WithoutSuffix], [ `One of 'an ] param_name) params_type)
@@ -259,6 +265,9 @@ let construct_params_list_raw
     | TOption t -> (match Obj.magic params with
                       | None -> [""]
                       | Some v -> make_suffix t v)
+    | TNEOption t -> (match Obj.magic params with
+                      | None -> [""]
+                      | Some v -> make_suffix t v)
     | TList (_, t) | TSet t -> 
         (match params with
           | [] -> [""]
@@ -296,6 +305,10 @@ let construct_params_list_raw
         in
         aux t2 psuff nlp (snd (Obj.magic params)) pref suff l1
     | TOption t ->
+        (match ((Obj.magic params) : 'zozo option) with
+        | None -> psuff, nlp, l
+        | Some v -> aux t psuff nlp v pref suff l)
+    | TNEOption t ->
         (match ((Obj.magic params) : 'zozo option) with
         | None -> psuff, nlp, l
         | Some v -> aux t psuff nlp v pref suff l)
@@ -380,6 +393,13 @@ let rec get_to_and_from x = match x with
        (function
          | Some alpha -> from alpha
          | None -> ""))
+  | TNEOption o ->
+    let (_to, from) = get_to_and_from o in
+    Obj.magic
+      ((fun s -> try Some (_to s) with _ -> None),
+       (function
+         | Some alpha -> from alpha
+         | None -> ""))
   | TUserType (_, _to, from) -> Obj.magic (_to, from)
   | TESuffixu (_, f, g) -> Obj.magic (f, g)
   | TInt32 _ ->
@@ -427,7 +447,7 @@ let rec walk_parameter_tree name x = match x with
   | TAny -> None
   | TNLParams _ -> None
   | TUnit -> None
-  | (TOption o | TSet o | TList (_, o)) -> 
+  | (TOption o | TNEOption o | TSet o | TList (_, o)) -> 
     Obj.magic (walk_parameter_tree name o)
   | (TProd (a, b) | TSum (a, b)) -> 
     (match walk_parameter_tree name a with
@@ -486,6 +506,7 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : bool * 'n =
     | TESuffixu (n, _, _) -> issuffix, Obj.magic n
     | TSuffix (_, t) -> Obj.magic (aux true prefix suffix t)
     | TOption t -> Obj.magic (aux issuffix prefix suffix t)
+    | TNEOption t -> Obj.magic (aux issuffix prefix suffix t)
     | TSum (t1, t2) -> 
         let _, a = aux issuffix prefix suffix t1 in
         let _, b = aux issuffix prefix suffix t2 in 
@@ -520,6 +541,7 @@ let rec add_pref_params pref = function
   | TProd (t1, t2) -> TProd ((add_pref_params pref t1),
                              (add_pref_params pref t2))
   | TOption t -> TOption (add_pref_params pref t)
+  | TNEOption t -> TNEOption (add_pref_params pref t)
   | TBool name -> TBool (pref^name)
   | TList (list_name, t) -> TList (pref^list_name, t)
   | TSet t -> TSet (add_pref_params pref t)
@@ -621,6 +643,7 @@ let rec wrap_param_type = function
   | TProd (t1, t2) -> TProd ((wrap_param_type t1),
                              (wrap_param_type t2))
   | TOption t -> TOption (wrap_param_type t)
+  | TNEOption t -> TNEOption (wrap_param_type t)
   | TList (list_name, t) -> TList (list_name, t)
   | TSet t -> TSet (wrap_param_type t)
   | TSum (t1, t2) -> TSum ((wrap_param_type t1),

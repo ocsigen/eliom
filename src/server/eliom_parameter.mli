@@ -244,6 +244,11 @@ val opt :
   ('a, [ `WithoutSuffix ], 'b) params_type ->
   ('a option, [ `WithoutSuffix ], 'b) params_type
 
+(** The combinator [neopt p] allow to define an optional parameter assumed to be None if empty. *)
+val neopt :
+  ('a, [ `WithoutSuffix ], 'b) params_type ->
+  ('a option, [ `WithoutSuffix ], 'b) params_type
+
 (** The function [radio f s] tells that the service takes an optional
     argument labeled [s] and of type [f s].  Use [radio] instead of
     {!opt} if you want to use this parameter with a radio button.
