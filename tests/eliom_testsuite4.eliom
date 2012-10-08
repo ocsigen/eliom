@@ -163,7 +163,10 @@ let node_bindings =
 (******************************************************************************)
 (*                                Data sharing                                *)
 
-let elt = Html5.D.(div [pcdata "WWWWWWWWWWW"])
+let data_sharing_elt1 = Html5.D.(div ~a:[a_class ["monospace"]] [pcdata "VVVVVVVVVVV"])
+let data_sharing_elt2 = Html5.D.(div ~a:[a_class ["monospace"]] [pcdata "WWWWWWWWWWW"])
+let data_sharing_elt3 = Html5.D.(div ~a:[a_class ["monospace"]] [pcdata "XXXXXXXXXXX"])
+let data_sharing_addenda = Html5.D.div []
 
 let data_sharing =
   Eliom_testsuite_base.test
@@ -171,29 +174,41 @@ let data_sharing =
     ~path:["holes"; "data_sharing"]
     ~description:Html5.F.([
       p [pcdata "Checks wheather data in the eliom request data is shared"];
-      p [pcdata "The string below is the encoded request data."];
-      p [pcdata "The string \"WWWWWWWWWWW\" should only occur once, although
-                 the corresponding element is used in 3 times in two different
-                 client values and injected 3 times in two client sections."];
+      p [pcdata "The string of request data is given below."];
+      p [pcdata "There are three elements on the server, which contain the strings
+                 \"VVVVVVVVVVV\", \"WWWWWWWWWWW\", and \"XXXXXXXXXXX\" respectively.
+                 All three elements are added to the DOM under \"Added from client\"."];
+      p [pcdata "The string \"VVVVVVVVVVV\" should not appear in the request data,
+                 because the corresponding element is sent as part of the DOM.
+                 The string \"WWWWWWWWWWW\" and \"XXXXXXXXXXX\" should appear in the request data
+                 exactly once."]
     ])
     (fun () ->
-       ignore {unit{ ignore %elt }};
-       ignore {unit{ ignore (%elt, %elt) }};
+       let data_sharing_data = Html5.D.div [] in
        ignore {unit{
-         Eliom_client.onload
-           (fun () ->
-              Html5.Manip.appendChild
-                (Html5.Of_dom.of_element Dom_html.document##body)
-                (Html5.F.pcdata (Js.to_string (Js.Unsafe.variable "__eliom_request_data"))))
+         Html5.Manip.appendChild %data_sharing_addenda
+           %data_sharing_elt1;
+         Html5.Manip.appendChild %data_sharing_addenda
+           %data_sharing_elt2;
        }};
-       Lwt.return Html5.F.([]))
+       ignore {unit{
+         Html5.Manip.appendChild %data_sharing_data
+           (Html5.F.pcdata
+              (Js.to_string (Js.Unsafe.variable "__eliom_request_data")))
+       }};
+       Lwt.return Html5.F.([
+         data_sharing_elt1;
+         section [ h4 [ pcdata "Added from client" ]; data_sharing_addenda ];
+         section [ h4 [ pcdata "Request data" ]; data_sharing_data ];
+       ]))
 
 {client{
-  let () = ignore %elt
-}}
-
-{client{
-  let () = ignore (%elt, %elt)
+  let () =
+    ignore (%data_sharing_elt1, %data_sharing_elt2);
+    Eliom_client.onload
+      (fun () ->
+        Html5.Manip.appendChild %data_sharing_addenda
+          %data_sharing_elt3)
 }}
 
 (******************************************************************************)
