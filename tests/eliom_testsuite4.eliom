@@ -121,14 +121,11 @@ let node_bindings =
       ];
     ])
     (fun () ->
+       let addenda = Html5.D.div [] in
        ignore {unit{
          debug "Adding free";
-         Html5.Manip.appendChild
-           (Html5.Of_dom.of_element Dom_html.document##body)
-           %free_request;
-         Html5.Manip.appendChild
-           (Html5.Of_dom.of_element Dom_html.document##body)
-           %free_global;
+         Html5.Manip.appendChild %addenda %free_request;
+         Html5.Manip.appendChild %addenda %free_global;
          ()
        }};
        let add_onclick = {{
@@ -159,6 +156,7 @@ let node_bindings =
          Eliom_testsuite_base.thebutton ~msg:"Run ocaml service" run_ocaml_service;
          bound_request;
          bound_global;
+         addenda;
        ]))
 (******************************************************************************)
 (*                                Data sharing                                *)
