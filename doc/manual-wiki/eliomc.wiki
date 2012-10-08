@@ -7,7 +7,7 @@ independently in each browser tab that visits the web site.  The
 latter is started with the initial request in a browser tab and keeps
 running while navigating within the web site, across the usage of
 links, forms, history, and <<a_api subproject="client"
-text="programmed changes of the page" | val Eliom_client.change_page>>.
+text="page changes" | val Eliom_client.change_page>>.
 
 Eliom provides three language extensions to OCaml to provide an
 integrated development of client/server-programs, and to deal with the
@@ -61,7 +61,7 @@ and run in the server program, in the client program, or in both.
 A common OCaml module is comprised of a sequence of //structure
 items//, i.e. top level declarations of variables, types, modules etc.
 An Eliom module consists of a sequence of such structure items and
-client-, server, and shared-//sections//.  The section declarations in
+client, server, and shared //sections//.  The section declarations in
 turn may contain any number and kind of structure items.  Code outside
 of those sections is compiled for the server side only.
 
@@ -129,7 +129,7 @@ manipulation or access HTML-elements with <<a_api text="DOM semantics"
 Eliom permits the direct usage of top-level server-side variables, and
 also of arbitrary expressions, in the client sections. Such a usage is
 called //injection//. It is also supported inside a
-[[#sharedinjection|shared section]].
+[[href:#sharedinjection|shared section]].
 
 Assuming you have a top-level variable ##v## defined on the server,
 its injection in the client section is introduced by prefixing it with
