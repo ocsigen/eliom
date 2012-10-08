@@ -98,6 +98,15 @@ module Xml : sig
 
   val lazy_node : ?a:(attrib list) -> ename -> elt list Eliom_lazy.request -> elt
 
+  (**/**)
+  (** [Eliom_content.Xml.wrap page v] is like [Eliom_wrap.wrap v] but
+      it makes sure that all [elt]s in [v] which are included in
+      [page] are sent with empty content. This is safe because such 
+      elements will be taken from the DOM on the client either
+      ways. *)
+  val wrap : elt -> 'a -> 'a Eliom_wrap.wrapped_value
+  (**/**)
+
 end
 
 (**/**)

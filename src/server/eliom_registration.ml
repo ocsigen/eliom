@@ -1456,7 +1456,7 @@ module Eliom_appl_reg_make_param
        create cookies that needs to be sent along the page. Hence,
        cookies should be calculated after wrapping. *)
     let eliom_data =
-      Eliom_wrap.wrap { Eliom_types.
+      Eliom_content.Xml.wrap (Eliom_content.Html5.D.toelt page) { Eliom_types.
         ejs_global_data;
         ejs_request_data;
         ejs_event_handler_table = Eliom_content.Xml.make_event_handler_table (Eliom_content.Html5.D.toelt page);

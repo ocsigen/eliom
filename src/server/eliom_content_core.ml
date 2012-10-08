@@ -41,33 +41,66 @@ module Xml = struct
   and recontent =
     | RELazy of econtent Eliom_lazy.request
     | RE of econtent
-  and elt = {
-    elt : recontent;
+  and elt' = {
+    recontent : recontent;
     node_id : node_id;
     unwrapper_mark: Eliom_wrap.unwrapper;
+  }
+  (** Values of type [elt] are wrapped values of type [elt']. *)
+  and elt = {
+    elt : elt';
+    wrapper_mark : elt Eliom_wrap.wrapper
   }
 
   type -'a client_server_event_handler = 'a caml_event_handler
 
-  let content e = match e.elt with
+  let content { elt } = match elt.recontent with
     | RE e -> e
     | RELazy e -> Eliom_lazy.force e
 
-  let rcontent e = e.elt
+  module Node_id_set = Set.Make (struct type t = node_id let compare : t -> t -> int = compare end)
+  let node_ids_in_content = ref Node_id_set.empty
+  let wrapper_mark =
+    Eliom_wrap.create_wrapper
+      (fun { elt } ->
+        if Node_id_set.mem elt.node_id !node_ids_in_content then
+          { elt with recontent = RE Empty }
+        else elt)
+  let wrap page value = 
+    let node_ids = ref [] in
+    let rec collect_node_ids ({ elt = { node_id }} as elt) =
+      if node_id <> NoId then
+        node_ids := node_id :: !node_ids;
+      match content elt with
+        | Empty | Comment _ | EncodedPCDATA _
+        | PCDATA _ | Entity _ | Leaf _ -> ()
+        | Node (_, _, children) -> List.iter collect_node_ids children
+    in
+    collect_node_ids page;
+    node_ids_in_content := List.fold_right Node_id_set.add !node_ids Node_id_set.empty;
+    let res = Eliom_wrap.wrap value in
+    node_ids_in_content := Node_id_set.empty;
+    res
 
-  let get_node_id elt = elt.node_id
+  let rcontent { elt } = elt.recontent
+
+  let get_node_id { elt } = elt.node_id
 
   let tyxml_unwrap_id = Eliom_wrap.id_of_int tyxml_unwrap_id_int
 
   let make elt =
-    { elt = RE elt;
-      node_id = NoId;
-      unwrapper_mark = Eliom_wrap.create_unwrapper tyxml_unwrap_id; }
+    { elt =
+        { recontent = RE elt;
+          node_id = NoId;
+          unwrapper_mark = Eliom_wrap.create_unwrapper tyxml_unwrap_id };
+      wrapper_mark }
 
   let make_lazy elt =
-    { elt = RELazy elt;
-      node_id = NoId;
-      unwrapper_mark = Eliom_wrap.create_unwrapper tyxml_unwrap_id; }
+    { elt = 
+        { recontent = RELazy elt;
+          node_id = NoId;
+          unwrapper_mark = Eliom_wrap.create_unwrapper tyxml_unwrap_id };
+      wrapper_mark }
 
   let empty () = make Empty
 
@@ -122,12 +155,11 @@ module Xml = struct
     (if global then "global_" else "")
     ^ "server_" ^ make_cryptographic_safe_string ()
 
-  let make_process_node ?(id = make_node_name ~global:true ()) elt =
-    { elt with node_id = ProcessId id }
+  let make_process_node ?(id = make_node_name ~global:true ()) elt' =
+    { elt' with elt = { elt'.elt with node_id = ProcessId id } }
 
-  let make_request_node elt =
-    { elt with
-      node_id = RequestId (make_node_name ()) }
+  let make_request_node elt' =
+    { elt' with elt = { elt'.elt with node_id = RequestId (make_node_name ()) } }
 
   (** Ref tree *)
 
@@ -137,7 +169,7 @@ module Xml = struct
     | _ -> acc
 
   let make_event_handler_table elt =
-    let rec aux closure_acc elt  =
+    let rec aux closure_acc elt =
       let make attribs =
         List.fold_right cons_attrib attribs closure_acc
       in
@@ -161,12 +193,12 @@ module Xml = struct
     | Node (ename, attribs, sons) ->
       Node (ename, filter_class_attribs node_id attribs, sons)
 
-  let content e =
-    let c = match e.elt with
+  let content { elt } =
+    let c = match elt.recontent with
       | RE e -> e
       | RELazy e -> Eliom_lazy.force e
     in
-    set_classes e.node_id c
+    set_classes elt.node_id c
 
 end
 
