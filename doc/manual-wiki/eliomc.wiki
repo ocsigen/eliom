@@ -1,55 +1,56 @@
 = Eliom -- the language extensions
 
-An Eliom program defines the functionality of the server and the
-client program at in a single source file.  The server program is
-constantly running on the web server.  The client program is running
-independently in each browser tab visiting the web site.  The latter
-is started with the initial request of a browser tab and keeps running
-during navigation within the web site across the usage of links,
-forms, history, and <<a_api subproject="client" text="programmed
-changes of the page" | val Eliom_client.change_page >>.
+In Eliom it possible to define the functionality of the server and the
+client program at in a single source file.  The server program will
+constantly run on the web server.  The client program will run
+independently in each browser tab that visits the web site.  The
+latter is started with the initial request in a browser tab and keeps
+running while navigating within the web site, across the usage of
+links, forms, history, and <<a_api subproject="client"
+text="programmed changes of the page" | val Eliom_client.change_page>>.
 
-Eliom provides three orthogonal language extensions to provide an
+Eliom provides three language extensions to OCaml to provide an
 integrated development of client/server-programs, and to deal with the
-mentioned asymetricity between the client- and server-program:
-Partitioning of the program into client-, and server-sections,
-injecting server toplevel values into client sections, and the
-declaration of client values in the server-section.
+mentioned asymetricity between the client- and server-program: The
+partitioning of the program into client-, and server-sections, the
+direct usage of server-side toplevel values in client sections, and
+the declaration and handling of client values within the code for the
+server.
 
 <<outline depth="1">>
 
 ==@@id="compilation"@@ Compilation overview
 
-However, here is first of all a small overview on the compilation
+However, here is first of all a small overview of the compilation
 process of a (single file) Eliom program. The source code of an Eliom
 application is stored in a file with the extension ##.eliom##. In this
-manner, it is detected by the Eliom compilers. The compilation of an
-eliom program is carried out in three steps:
+manner, it is detected by the Eliom compilers, ##eliomc## and ##js_of_eliom##.
+The compilation of an eliom program is carried out in three steps.
 
-{{compilation.png|The compilation process}}
-
-Firstly, necessary type information of the server program is extracted
-from the source code by the program ##eliomc -infer##. This
-information is necessary for the actual compilation of the client and
-server program. It is typically stored in a file ##_server/program.type_mli##
+First, necessary type information of the server program is extracted
+from the source code by ##eliomc -infer##. This information is
+necessary for the actual compilation of the client and server
+program. It is typically stored in a file ##_server/program.type_mli##
 for an Eliom module in a file ##program.eliom##.
 
 Secondly, the server program (or rather, the library to be dynamically
-loaden into the Ocsigen server) is compiled by the program ##eliomc
--c##.  It filters the Eliom module for the parts relevant to the
-server and compiles it against the Eliom's libraries //for the
-server//. The resulting bytecode object file is typically stored in
-##_server/program.eliom##.
+loaden into the Ocsigen server) is compiled by the program ##eliomc -c##.
+It filters the source code for the parts relevant to the server
+and compiles it against the libraries available server. The resulting
+bytecode object file is stored in ##_server/program.type_mli## by default.
 
-Thirdly, the client program is compiled. It filters the Eliom module
-for the parts relevant for the client program and compiles it against
-the Eliom's libraries //available for client//.  The program ##js_of_eliom
--c## creates a bytecode object file (typically stored in
-##_client/program.cmo##) and ##js_of_eliom -o program.js## is used to
-actually compile and link the JavaScript program to run on the client.
+Thirdly, the client program is compiled by ##js_of_eliom##. It filters
+the source code for the parts relevant for the client program and
+compiles it against the libraries available for client.  The
+program ##js_of_eliom -c## creates a bytecode object file (stored
+in ##_client/program.cmo## by default) and ##js_of_eliom -o program.js##
+is used to actually compile and link the //JavaScript// program to run on
+the client.
 
-So much for the compilation process, here comes what you gain from the
-integrated development of client/server applications in Eliom.
+{{site:eliom/compilation.png|The Compilation process}}
+
+So much for the compilation process, here comes what you gain from
+Eliom for the integrated development of client/server applications.
 
 ==@@id="sections"@@ Sections (partitioning into client- and server-side)
 
@@ -59,14 +60,15 @@ and run in the server program, in the client program, or in both.
 
 A common OCaml module is comprised of a sequence of //structure
 items//, i.e. top level declarations of variables, types, modules etc.
-An Eliom module consists of a sequence of structure items with //section
-declarations// in juxtaposition.  The sections declarations in turn may
-contain any number and kind of structure items.
-Code outside of those sections is compiled for the server side only.
+An Eliom module consists of a sequence of such structure items and
+client-, server, and shared-//sections//.  The section declarations in
+turn may contain any number and kind of structure items.  Code outside
+of those sections is compiled for the server side only.
 
-The client-, server-, or shared-sections (the latter contain code to
-be compiled and run on both sides) are introduced by the following
-syntax:
+The sections (the latter contain code to be compiled and run on both
+sides) are introduced by the following syntax and may occur in any
+number or ordering:
+
 <<code language="ocaml"|
 {client{
   (* client only structure items *)
@@ -83,8 +85,8 @@ syntax:
 ...
 >>
 
-Declarations in the shared section are compiled separately for the
-client //and// for the server program.  They may refer only to
+Declarations in the shared section are compiled separately for both
+the client //and// for the server program.  They may refer only to
 declarations which are available on the client-side //and// on the
 server side.
 
@@ -113,50 +115,50 @@ client program (or bytecode object files) by ##js_of_eliom##.
 
 All top-level expressions are evaluated //early// while launching the
 program. In the server program they are thus evaluated while launching
-the server. //No request information is available at that time//. This
-means you cannot access site information nor Eliom references of
-scopes process, session, session_group.
+the server. //No request information is available at that time//.
 
 In the client program, top-level expressions are evaluated early in
 the initialization phase of the client process, particulary //before
-the DOM is in place//. This means, that you do any DOM manipulation or
-access HTML-elements with <<a_api text="DOM semantics" | module
-Eliom_content.Html5.D>>. However, you can postpone the evaluation of
-an expression by <<a_api subproject="client" | val
-Eliom_client.onload>>.
+the DOM is in place//. This means, that you cannot do any DOM
+manipulation or access HTML-elements with <<a_api text="DOM semantics"
+| module Eliom_content.Html5.D>>. However, you can postpone that by
+<<a_api subproject="client" | val Eliom_client.onload>>.
 
 ==@@id="injections"@@ Injections (in the client-section)
 
-Injections permit the usage of server-side top-level variables, or
-expressions, //within a client-section// and are also supported
-inside [[#sharedinjection|shared sections]].
+Eliom permits the direct usage of top-level server-side variables, and
+also of arbitrary expressions, in the client sections. Such a usage is
+called //injection//. It is also supported inside a
+[[#sharedinjection|shared section]].
 
-An injection of a server-side variable ##v## on the client-side is
-introduced by prefixing the variable with a percent-sign ##%v##. It
-then holds the value of the variable ##v## on the server //at the time
-of the initial request of the client process//.
+Assuming you have a top-level variable ##v## defined on the server,
+its injection in the client section is introduced by prefixing it with
+a percent-sign ##%v##. It then holds the value of the server-side
+variable ##v## //at the time of the initial request of the client
+process//.
 
 <<code language="ocaml"|
 {server{
-  let service = ... (* Server-side declaration of a service *)
+  let service = ... (* Server-side declaration of a service. *)
 }}
 {client{
   let f () = Eliom_client.change_page ~service:%service ()
-  (* Reference to the server-side variable     ^^^^^^^^ within the client
-     section! *)
+  (* Refer to the server-side variable within the client section! *)
 }}
 >>
 
-An injection of an server-side expression ##exp## on the client-side
-is introduced by a percent-sign and parentheses ##%(exp)##. Whenever
-an initial request of a client process is handled from the server, the
+It is also possible to inject an arbitrary server-side
+expression ##exp## in a client section. The injection is introduced by prefixing
+it with a percent-sign and parentheses, ##%(exp)##. Whenever an
+initial request of a client process is handled from the server, the
 expression ##exp## is evaluated. The injection then holds the
 resulting value in that specific client process.
 
 <<code language="ocaml"|
 {client{
-  let () = Eliom_lib.alert "Server time of the first request: %d"
-             %(Unix.gettimeofday ())
+  let () =
+    Eliom_lib.alert "Time of the first request on the server: %d"
+      %(Unix.gettimeofday ())
 }}
 >>
 
@@ -169,13 +171,15 @@ side values which updates alongside with a server correspondent.
 ===@@id="sharedinjection"@@ In a shared section
 
 Injections are also supported in the shared sections of an Eliom
-program. The semantics is as described when compiling the shared
-section to the client program. However, when compiling an injection of
-a variable to the server program, it becomes just a new name of that
+source file. When compiling the shared section to the client, the
+semantics is as described. However, when compiling an injection of a
+variable to the server program, it becomes just a new name of that
+variable. I.e. it will actually reflect changes made to the original
 variable.
 
-Note well that the same scoping rules hold for injections into the
-client- and shared-sections.
+However, the same scoping rules hold for injections into the client-
+and shared-sections.
+
 <<code language="ocaml"|
 {server{
   let v = "server" (*1*)
@@ -184,7 +188,8 @@ client- and shared-sections.
   let v = "shared" (*2*)
   let () = assert (%v = "server")
   (* %v refers to (*1*), also when compiling to the server,
-     i.e. when (*2*) is in scope as v *)
+     i.e. when (*2*) is in scope as v here *)
+}}
 >>
 
 ==@@id="clientvalues"@@ Client values (in the server-section)
@@ -194,17 +199,17 @@ with client values within the server-section (and is also supported in
 the [[wiki(15):doc#sharedclientvalues|shared section]]).
 
 A client-value may be declared in the server section as
+
 <<code language="ocaml"|
-{server{
   ... {typ{ exp }} ...
-}}
 >>
+
 where ##exp## is an expression on the client side, which means it is
 compiled only for the client program, and may make use of any
-libraries available on the client, and where ##exp## has type ##typ##.
+libraries available on the client, and where ##exp## has type ##typ##
+on the client side.
 
-The expression including the braces then has type ##typ
-Eliom_lib.client_value##.
+The hole client value then has type ##typ Eliom_lib.client_value##.
 
 A value of type ##typ Eliom_lib.client_value## is //abstract on the
 server// (cf. <<a_api subproject="server" | type
@@ -215,17 +220,21 @@ Eliom_lib.client_value>> (client)).
 
 A client value expression is an arbitrary OCaml expression, but may
 additionaly contain //injections of server variables//,
-(cf. [[#injections|Injections into the client section]]). A variable
-##v## in the current server-side scope can be injected by prefixing
-with a percent sign, ##%v##. An server-side expression ##exp## can be
-injected by ##%(exp)##.
+(cf. [[href:#injections|Injections into the client section]]). A
+variable ##v## in the scope of a client-value expression can be
+injected by prefixing it with a percent sign, ##%v##. A server-side
+expression ##exp## can be injected by ##%(exp)##.
 
 Note well, that the injection of a server side client-value ##v## of
-type ##typ Eliom_lib.client_value## results in a value ##%v## of type
-##typ##, this means the value of the client value becomes concrete.
+type ##typ Eliom_lib.client_value## results in a value ##%v## of
+type ##typ##. Thus, the value of the client value becomes concrete.
 
-For the convenience, the indication of the type of a client value may
-be ommitted it is derivible from its //usage// in the server code:
+The other way to make a client value concrete is to send it to the
+client, e.g. by using it in the HTML tree sent from the server in an
+Eliom application-service, or by sending it as-it in an Ocaml-service.
+
+For convenience, the indication of the type of a client value may be
+ommitted if it is derivible from its //usage// in the server code:
 
 <<code language="ocaml"|
 {server{
@@ -237,17 +246,17 @@ be ommitted it is derivible from its //usage// in the server code:
 
 Here, the function ##a_onclick## has type ##(#Dom_html.mouseEvent Js.t
 -> unit) -> [> `OnClick ] Eliom_content_core.Html5.attrib##; this
-determines the type of the client value ##onclick## accordingly.
+determines the type of the client value ##onclick## sufficiently.
 
 ===@@id="clientvaluesemantic"@@ Semantics
 
-The point in time of the evaluation (which also includes the
-occurrence of its side effects) of the expression of a client value
-depends on the context of the creation of the client value on the
-server. In Eliom, global client values are distinguished from request
-client values.
+The point in time of the evaluation of the expression of a client
+value (which also includes the occurrence of its side effects) depends
+on the context of the creation of the client value on the server. In
+Eliom, global client values are distinguished from request client
+values.
 
-Client values which are created while launching the server, i.e. while
+Client values created while launching the server, i.e. while
 evaluating the top-level declarations of the server program, are
 termed //global client values//. The expressions of global client
 values are evaluated early in the initialization phase of the client
@@ -274,18 +283,22 @@ order of evaluation of global client values; it will print the numbers
 Client values which are evaluated during the processing of a request
 are termed //request client values//. The expressions of request
 client values are evaluated after receiving the corresponding request
-on the client (in the order of their occurrence on the server). In
-requests which change the content of the page (those originating of
-the use of links or forms within an Eliom application, or by the usage
-of ##Eliom_client.change_page##), the expressions are
-evaluated even //after the content has changed//, i.e. they may refer to
-the new DOM.
+on the client in the order of their occurrence on the server. In
+requests which change the content of the page withing the application
+(originating from a service of the <<a_api subproject="server"|module
+Eliom_registration.App>>), the expressions are evaluated //after the
+content has changed//. That way they may refer to the new DOM.
+
+Client values which are neither global nor request, i.e. those which
+neither created during the server's initialization, nor during the
+processing of a request, will not be evaluated on the client side.
 
 ===@@id="sharedclientvalues"@@ In a shared section
 
 Client values are also supported in the shared-section of an Eliom
 program. They are then just directly compiled into the surrounding
-code. However, also here the same scoping rules apply to them:
+code. However, the same scoping rules apply to them:
+
 <<code language="ocaml"|
 {server{
   let v = "server" (*1*)
@@ -293,6 +306,7 @@ code. However, also here the same scoping rules apply to them:
 {shared{
   let v = "shared" (*2*)
   let () = {unit{ assert (%v = "server")
+  (* Although v refers to (*2*) here *)
 }}
 >>
 
