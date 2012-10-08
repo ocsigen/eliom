@@ -289,9 +289,10 @@ requests which change the content of the page withing the application
 Eliom_registration.App>>), the expressions are evaluated //after the
 content has changed//. That way they may refer to the new DOM.
 
-Client values which are neither global nor request, i.e. those which
-neither created during the server's initialization, nor during the
-processing of a request, will not be evaluated on the client side.
+If a client value is created outside of the initialization of the
+server program and also outside of the processing of a request, the
+exception {% <<a_api subproject="server"|exception
+Eliom_lib.client_value_creation_invalid_context>> %} is raised.
 
 ===@@id="sharedclientvalues"@@ In a shared section
 

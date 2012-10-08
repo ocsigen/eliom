@@ -45,6 +45,15 @@ include module type of Eliom_lib_base
   *)
 type 'a client_value
 
+
+(** Raised if a client value of the given closure ID is created at a
+    point in time where it is neither global (i.e. during the
+    initialization of the server program), nor request (i.e. during
+    the processing of a request).
+*)
+exception Client_value_creation_invalid_context of int64
+
+
 (**/**)
 val create_client_value : 'a Eliom_server.Client_value.t -> 'a client_value
 val client_value_client_value : 'a client_value -> 'a Eliom_server.Client_value.t

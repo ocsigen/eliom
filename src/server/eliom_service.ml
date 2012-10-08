@@ -603,9 +603,7 @@ let register_client_value_data ~closure_id ~instance_id ~args =
       current_server_section_data :=
         client_value_datum :: !current_server_section_data
     else
-      Ocsigen_messages.warning
-        (Printf.sprintf "Losing client value data %Ld/%d"
-           closure_id instance_id)
+      raise (Client_value_creation_invalid_context closure_id)
   else
     Eliom_reference.Volatile.modify request_data
       (fun sofar -> client_value_datum :: sofar)

@@ -78,6 +78,8 @@ let create_client_value cv =
 
 let client_value_client_value = fst
 
+exception Client_value_creation_invalid_context of int64
+
 let escaped_value value : Eliom_server.escaped_value (* * Eliom_wrap.unwrapper *) =
   to_poly value
 
