@@ -130,6 +130,8 @@ end
 val tyxml_unwrap_id_int : int
 val client_value_unwrap_id_int : int
 
+(** The representation of escaped values (values injected into client
+    values) is opaque. *)
 type escaped_value = poly
 
 module type Map_S = sig
@@ -163,11 +165,14 @@ type 'injection_value compilation_unit_global_data = {
   mutable client_sections_data : ('injection_value injection_datum list) Queue.t;
 }
 
-(** Data for initializing client values and injection of the client program *)
+(** Data for initializing client values and injection of the client
+    program. Sent with the response to the initial request of a client
+    process. *)
 type 'injection_value global_data =
     'injection_value compilation_unit_global_data String_map.t
 
-(** Data for initializing client values sent with a request *)
+(** Data for initializing client values sent with a request. Sent with
+    the response to any follow-up request of a client process. *)
 type request_data = client_value_datum list
 
 val global_data_unwrap_id_int : int

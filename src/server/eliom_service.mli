@@ -693,11 +693,45 @@ exception Wrong_session_table_for_CSRF_safe_coservice
 val get_global_data : unit -> poly Eliom_lib_base.global_data
 val get_request_data : unit -> request_data
 
-(* TODO BB Find a better place for this module *)
 module Syntax_helpers : sig
+
+  (** Registers a client value datum for the next server section when
+      executed in a global_data
+      (cf. {!Eliom_service.Syntax_helpers.set_global}) or in the
+      request_data when executed in a request. *)
   val client_value : int64 -> 'args -> 'a client_value
-  val close_server_section : string -> unit
-  val close_client_section : string -> (string * (unit -> poly)) list -> unit
-  val escaped_value : 'a -> escaped_value
+
+  (** All client values created between [set_global true] and
+      [set_global false] are considered global client values
+      (cf. <<a_manual chapter="eliomc" chapter="clientvalues"|the
+      manual>>).  *)
   val set_global : bool -> unit
+
+  (** Called at the end of each server or shared section. The argument
+      identifies the compilation unit.
+
+      Adds the list of recently registered
+      {!Eliom_lib_base.client_value_datum}s into the queue of server
+      section data of the compilation unit
+      ({!Eliom_lib_base.compilation_unit_global_data}).
+      
+      Called in parallel with <<a_api
+      subproject="client"|Eliom_client.Syntax_helpers.close_server_section>>.  *)
+  val close_server_section : string -> unit
+
+  (** Called at the end of every client or shared section. The first
+      argument identifies the compilation unit. The second is the list
+      of novel injections in that section.
+
+      Adds a list of {!Eliom_lib_base.injection_datum}s into the queue
+      of client section data of the compilation unit
+      ({!Eliom_lib_base.compilation_unit_global_data}).
+
+      Called in parallel with <<a_api
+      subproject="client"|Eliom_client.Syntax_helpers.open_client_section>>.  *)
+  val close_client_section : string -> (string * (unit -> poly)) list -> unit
+
+  (** Convert any value to a {! Eliom_lib.escaped_value} for usage in
+      the [args] argument to {! Eliom_service.Syntax_helpers.client_value}. *)
+  val escaped_value : 'a -> escaped_value
 end

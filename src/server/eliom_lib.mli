@@ -38,11 +38,12 @@ include module type of Eliom_lib_base
   with type 'a global_data := 'a Eliom_lib_base.global_data
   with type request_data = Eliom_lib_base.request_data
 
-(** Client values on the server are created by the syntax [{{ ... }}] in the
-    server section. Those values are abstract on the server and unwrapped
-    (cf. {% <<a_manual chapter="wrapping"|(Un-)wrapping>> %}) to the actual
-    value when used on the client side by [%var].
-  *)
+(** Client values on the server are created by the syntax [{typ{ expr }}]
+    in the server section (cf. {% <<a_manual chapter="eliomc"
+    fragment="clientvalues"|the manual>> %}). Those values are
+    abstract on the server and unwrapped (cf. {% <<a_manual
+    chapter="wrapping"|(Un-)wrapping>> %}) to the actual value when
+    used on the client side by [%var].  *)
 type 'a client_value
 
 
