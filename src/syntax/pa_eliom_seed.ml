@@ -242,13 +242,13 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
             let len = String.length id - escaped_ident_prefix_len in
             int_of_string (String.sub id escaped_ident_prefix_len len),
             suppress_underscore t
-        | _ -> assert false
+        | _ -> failwith "extract_escaped_ident_type"
       let extract_injected_ident_type = function
           (* | <:sig_item< val $id$ : ($t$ option ref) >> -> *)
         | Ast.SgVal (_loc, id, <:ctyp< ($t$ option ref) >>) ->
             Scanf.sscanf id (injected_ident_fmt ()) (fun _filehash n -> n),
             suppress_underscore t
-        | _ -> assert false
+        | _ -> failwith "extract_injected_ident_type"
       let extract_client_value_type = function
           (* | <:sig_item< val $id$ : ($t$ option ref) >> -> *)
         | Ast.SgVal (_, id, <:ctyp< $typ$ option ref>>) ->
@@ -257,8 +257,10 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                 let len = String.length id - client_value_ident_prefix_len in
                 Int64.of_string (String.sub id client_value_ident_prefix_len len),
                 suppress_underscore t
-              | None -> assert false)
-        | _ -> assert false
+              | None ->
+                  Printf.ksprintf failwith
+                    "extract_client_value_type: Not a client value %S" id)
+        | _ -> failwith "extract_client_value_type"
 
       let load_file f =
         try
@@ -287,7 +289,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           let id = int_of_string (String.sub id escaped_ident_prefix_len len) in
           List.assoc id (fst_3 (Lazy.force infered_sig))
         with Not_found ->
-          Printf.eprintf "Error: Infered type of escaped ident not found (%s).\nYou need to regenerate %s.\n"
+          Printf.eprintf "Error: Infered type of escaped ident not found (%s). \
+                          You need to regenerate %s.\n"
             id (get_type_file ());
           exit 1
 
@@ -296,7 +299,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           let id = Scanf.sscanf id (injected_ident_fmt ()) (fun _filehash n -> n) in
           List.assoc id (snd_3 (Lazy.force infered_sig))
         with Not_found ->
-          Printf.eprintf "Error: Infered type of injected ident not found (%s).\nYou need to regenerate %s.\n"
+          Printf.eprintf "Error: Infered type of injected ident not found (%s). \
+                          You need to regenerate %s.\n"
             id (get_type_file ());
           exit 1
 
@@ -304,7 +308,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         try
           List.assoc id (trd_3 (Lazy.force infered_sig))
         with Not_found ->
-          Printf.eprintf "Error: Infered type client value not found (%s).\nYou need to regenerate %s.\n"
+          Printf.eprintf "Error: Infered type client value not found (%s). \
+                          You need to regenerate %s.\n"
             (Int64.to_string id) (get_type_file ());
           exit 1
 
