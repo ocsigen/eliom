@@ -33,7 +33,7 @@ let onload ev =
       Eliommod_cookies.update_cookie_table (Some Url.Current.host)
         (Eliom_request_info.get_request_cookies ());
       Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
-      (* WHY sleep? chambart: Eliom_client: display page before executing onload *)
+      (* Give the browser the chance to actually display the page NOW *)
       lwt () = Lwt_js.sleep 0.001 in
       (* Ordering matters. See [Eliom_client.set_content] for explanations *)
       relink_request_nodes (Dom_html.document##documentElement);
