@@ -1,16 +1,22 @@
 
 open Eliom_pervasives_base
 
+(** This module is automatically open by {v eliomc v} and {v js_of_eliom v}. *)
+
+(** {2 Client values}
+
+    See the {% <<a_manual chapter="eliomc"|manual>> %}. *)
+
 (** Client values on the server are created by the syntax [{typ{ expr }}]
     in the server section (cf. {% <<a_manual chapter="eliomc"
-    fragment="clientvalues"|the manual>> %}). Those values are
-    abstract on the server and unwrapped (cf. {% <<a_manual
-    chapter="wrapping"|(Un-)wrapping>> %}) to the actual value when
-    used on the client side by [%var].  *)
+    fragment="clientvalues"|the manual>> %}).  They are abstract, but
+    become concrete once sent to the client (cf. {% <<a_api
+    subproject="client"|type Eliom_pervasives.client_value>> %} *)
 type 'a client_value = 'a Eliom_lib.client_value
 
 (** {2 RPC / Server functions}
-    Cf. the {% <<a_manual chapter="client-communication" fragment="rpc"|manual>> %}.*)
+
+    See the {% <<a_manual chapter="client-communication" fragment="rpc"|manual>> %}.*)
 
 (** A value of type [('a, 'b) server_function] is created on the server from a
     function ['a -> 'b Lwt.t] and provides a given function on the client side.
