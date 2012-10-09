@@ -1,6 +1,14 @@
 
 open Eliom_pervasives_base
 
+(** Client values on the server are created by the syntax [{typ{ expr }}]
+    in the server section (cf. {% <<a_manual chapter="eliomc"
+    fragment="clientvalues"|the manual>> %}). Those values are
+    abstract on the server and unwrapped (cf. {% <<a_manual
+    chapter="wrapping"|(Un-)wrapping>> %}) to the actual value when
+    used on the client side by [%var].  *)
+type 'a client_value = 'a Eliom_lib.client_value
+
 (** {2 RPC / Server functions}
     Cf. the {% <<a_manual chapter="client-communication" fragment="rpc"|manual>> %}.*)
 

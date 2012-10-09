@@ -163,7 +163,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     <:expr@loc<
       (Eliom_service.Syntax_helpers.client_value $`int64:gen_num$
          $Helpers.expr_tuple (flush_escaped_bindings ())$
-       : $typ$ Eliom_lib.client_value)
+       : $typ$ Eliom_pervasives.client_value)
     >>
 
   let escape_inject context_level orig_expr gen_id =

@@ -17,8 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** Pervasives module for Eliom-server: it extends the OCaml stdlib and should always be opened. *)
-
 (** See {% <<a_api project="ocsigenserver" | module Ocsigen_lib>> %} *)
 include module type of Ocsigen_lib
   with type poly = Ocsigen_lib.poly
@@ -38,12 +36,7 @@ include module type of Eliom_lib_base
   with type 'a global_data := 'a Eliom_lib_base.global_data
   with type request_data = Eliom_lib_base.request_data
 
-(** Client values on the server are created by the syntax [{typ{ expr }}]
-    in the server section (cf. {% <<a_manual chapter="eliomc"
-    fragment="clientvalues"|the manual>> %}). Those values are
-    abstract on the server and unwrapped (cf. {% <<a_manual
-    chapter="wrapping"|(Un-)wrapping>> %}) to the actual value when
-    used on the client side by [%var].  *)
+(** See {% <<a_api subproject="server"|type Eliom_lib.client_value>> %}. *)
 type 'a client_value
 
 

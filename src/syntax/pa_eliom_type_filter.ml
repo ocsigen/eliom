@@ -100,7 +100,7 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
       $flush_typing_expr ()$;
       $lid:gen_tid$ :=
         Some (Eliom_service.Syntax_helpers.client_value 0L 0
-              : $typ$ Eliom_lib.client_value);
+              : $typ$ Eliom_pervasives.client_value);
       Eliom_lib.get_option ! $lid:gen_tid$
     end >>
 

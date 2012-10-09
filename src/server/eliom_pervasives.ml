@@ -2,6 +2,8 @@
 open Eliom_lib
 open Eliom_pervasives_base
 
+type 'a client_value = 'a Eliom_lib.client_value
+
 type ('a, 'b) server_function = ('a, 'b) server_function_service * Eliom_wrap.unwrapper
 
 let server_function argument_type f : (_, _) server_function =

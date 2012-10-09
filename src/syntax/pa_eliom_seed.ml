@@ -229,6 +229,13 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
             String.sub id 0 client_value_ident_prefix_len = client_value_ident_prefix
         | si -> false
 
+      let is_client_value_type = function
+        | <:ctyp< $typ$ Eliom_lib.client_value >>
+        | <:ctyp< $typ$ Eliom_pervasives.client_value >>
+        | <:ctyp< $typ$ Eliom_compatibility_2_1.Eliom_pervasives.client_value >> ->
+            Some typ
+        | _ -> None
+
       let extract_escaped_ident_type = function
           (* | <:sig_item< val $id$ : ($t$ option ref) >> -> *)
         | Ast.SgVal (_loc, id, <:ctyp< ($t$ option ref) >>) ->
@@ -244,11 +251,13 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         | _ -> assert false
       let extract_client_value_type = function
           (* | <:sig_item< val $id$ : ($t$ option ref) >> -> *)
-        | Ast.SgVal (_loc, id, <:ctyp< ($t$ Eliom_server.Client_value.t option ref) >>)
-        | Ast.SgVal (_loc, id, <:ctyp< ($t$ Eliom_lib.client_value option ref) >>) ->
-            let len = String.length id - client_value_ident_prefix_len in
-            Int64.of_string (String.sub id client_value_ident_prefix_len len),
-            suppress_underscore t
+        | Ast.SgVal (_, id, <:ctyp< $typ$ option ref>>) ->
+            (match is_client_value_type typ with
+              | Some t ->
+                let len = String.length id - client_value_ident_prefix_len in
+                Int64.of_string (String.sub id client_value_ident_prefix_len len),
+                suppress_underscore t
+              | None -> assert false)
         | _ -> assert false
 
       let load_file f =
@@ -298,10 +307,6 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           Printf.eprintf "Error: Infered type client value not found (%s).\nYou need to regenerate %s.\n"
             (Int64.to_string id) (get_type_file ());
           exit 1
-
-      let is_client_value_type = function
-        | <:ctyp< $typ$ Eliom_lib.client_value >> -> Some typ
-        | _ -> None
 
       (* Convert a list of patterns to a tuple of pattern, one single pattern, or (). *)
       let patt_tuple =

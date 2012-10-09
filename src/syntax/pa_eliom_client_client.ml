@@ -42,14 +42,14 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   (* {2 Auxiliaries} *)
 
-  (* Replace every type [t Eliom_lib.client_value] by [t]. *)
+  (* Replace every type [t client_value] by [t]. *)
   let drop_client_value_ctyp =
     let ast_mapper =
       Ast.map_ctyp
-        (function
-           | <:ctyp< $typ'$ Eliom_lib.client_value >> ->
-               typ'
-           | typ -> typ)
+        (fun typ ->
+          match Helpers.is_client_value_type typ with
+            | Some typ' -> typ'
+            | None -> typ)
     in
     fun typ -> ast_mapper#ctyp typ
 

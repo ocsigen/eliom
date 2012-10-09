@@ -17,8 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** Pervasives module for Eliom-client: it extends the OCaml stdlib and should always be opened. *)
-
 include module type of Ocsigen_lib_base
   with type poly = Ocsigen_lib.poly
   and type yesnomaybe = Ocsigen_lib_base.yesnomaybe
@@ -36,10 +34,8 @@ include module type of Eliom_lib_base
   with type 'a global_data := 'a Eliom_lib_base.global_data
   with type request_data = Eliom_lib_base.request_data
 
-(** An ['a] client value on the client is just an ['a].
-    See also {% <<a_api subproject="server" text="on the server" |
-    Eliom_lib.client_value >> %}.
-  *)
+(** See {% <<a_api subproject="client"|type
+    Eliom_pervasives.client_value>> %}. *)
 type 'a client_value = 'a
 
 (** Pervasives module for Eliom extending stdlib, should always be opened. *)
@@ -53,7 +49,14 @@ val of_json : ?typ:'a -> string -> 'b
 
 (** Event handlers like {% <<a_api | Eliom_content.Html5.F.a_onclick
     >> %} may raise [False] to cancel the event (as if the JavaScript
-    function returned [false]). *)
+    function returned [false]).
+
+    Identical to {% <<a_api subproject="client"|exception
+    Eliom_lib.False>> %}.
+*)
+(* Cannot re-export exception Eliom_lib.False,
+   cf. http://caml.inria.fr/mantis/view.php?id=5778 *)
+(* (\** See {% <<a_api subproject="client"|exception Eliom_lib.False>> %}. *\) *)
 exception False
 
 module Url : sig
