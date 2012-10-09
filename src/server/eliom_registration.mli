@@ -334,7 +334,7 @@ module Unit : "sigs/eliom_reg.mli"
     - [`SeeOther] to return [303 See Other].
     - [`NotNodifed] to return [304 Not Modified].
     - [`UseProxy] to return [305 Use Proxy].
-    - [`TemporaryRedirect] to return [301 Temporary Redirect].
+    - [`TemporaryRedirect] to return [307 Temporary Redirect].
 
 *)
 module Redirection : "sigs/eliom_reg_alpha_return.mli"
