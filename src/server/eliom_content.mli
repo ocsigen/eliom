@@ -26,7 +26,7 @@
     TyXML for valid XML tree creation and printing.
 
     Modules {!Eliom_content.Html5}, {!Eliom_content.Svg} contain two
-    implementing sub-modules: [F] and [D].
+    implementing sub-modules: {!Eliom_content.Html5.F} and {!Eliom_content.Html5.D}.
 
     {5 Functional semantics}
 
@@ -35,7 +35,8 @@
     which means utilizations of those values are independent of each other.
     On the other hand side, they cannot be referred to, neither by client code
     when created on the server, nor for usage in the functions of
-    {!Eliom_content.Html5.To_dom} and {!Eliom_content.Html5.Manip}.
+    {% <<a_api subproject="client"|module Eliom_content.Html5.To_dom>> %} and
+    {% <<a_api subproject="client"|module Eliom_content.Html5.Manip>> %}.
 
     {5 DOM semantics}
 
@@ -44,10 +45,11 @@
     DOM tree even when appended several times.
     Secondly, those values have an identifier,
     which means they can be referred to
-    on the client side (by [%variable]) or used with the functions
-    {!Eliom_content.Html5.To_dom} and {!Eliom_content.Html5.Manip}.
+    on the client side (by [%variable]) or used with the functions in
+    {% <<a_api subproject="client"|module Eliom_content.Html5.To_dom>> %} and
+    {% <<a_api subproject="client"|module Eliom_content.Html5.Manip>> %}.
 
-    In case of doubt, use the modules with DOM-like semantics [D].
+    In case of doubt, use the modules with DOM-like semantics {!Eliom_content.Html5.D}.
   *)
 
 (** Abstract signature for links and forms creation functions. For
@@ -89,7 +91,7 @@ module Html5 : sig
   type 'a client_server_event_handler = 'a Xml.caml_event_handler
 
   (** Creation of {e f}unctional HTML5 content (copy-able but not referable, cf.
-      {!Eliom_content}). *)
+      {% <<a_api subproject="server"|module Eliom_content>> %}). *)
   module F : sig
     (** {2 Content creation}
         See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
@@ -106,7 +108,7 @@ module Html5 : sig
   end
 
   (** Creation of HTML5 content with {e D}OM semantics (referable, cf.
-      {!Eliom_content}). *)
+      {% <<a_api subproject="server"|module Eliom_content>> %}). *)
   module D : sig
     (** {2 Content creation}
         See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)

@@ -48,9 +48,6 @@ val of_json : ?typ:'a -> string -> 'b
 (** Event handlers like {% <<a_api | Eliom_content.Html5.F.a_onclick
     >> %} may raise [False] to cancel the event (as if the JavaScript
     function returned [false]).
-
-    Identical to {% <<a_api subproject="client"|exception
-    Eliom_lib.False>> %}.
 *)
 (* Cannot re-export exception Eliom_lib.False,
    cf. http://caml.inria.fr/mantis/view.php?id=5778 *)
