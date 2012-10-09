@@ -116,7 +116,7 @@ module Xml = struct
 
   let caml_event_handler cf =
     let crypto = make_cryptographic_safe_string () in
-    CE_registered_closure (crypto, Eliom_lib.client_value_client_value cf)
+    CE_registered_closure (crypto, Eliom_lib.client_value_server_repr cf)
 
   let event_handler cf =
     Caml (caml_event_handler cf)

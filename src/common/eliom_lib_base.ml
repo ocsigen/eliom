@@ -46,6 +46,21 @@ let escape_quotes s =
 
 (**/**)
 
+module Client_value_server_repr = struct
+
+  type +'a t = {
+    closure_id: int64;
+    instance_id: int;
+  }
+
+  let create ~closure_id ~instance_id =
+    { closure_id; instance_id }
+  let closure_id { closure_id } = closure_id
+  let instance_id { instance_id } = instance_id
+end
+
+type escaped_value = poly
+
 module RawXML = struct
 
   type separator = Space | Comma
@@ -57,7 +72,7 @@ module RawXML = struct
   type cookie_info = (bool * string list) deriving (Json)
 
   type -'a caml_event_handler =
-    | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) Eliom_server.Client_value.t
+    | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) Client_value_server_repr.t
     | CE_client_closure of ('a Js.t -> unit) (* Client side-only *)
     | CE_call_service of
         ([ `A | `Form_get | `Form_post] * (cookie_info option) * string option) option Eliom_lazy.request
@@ -139,7 +154,7 @@ module RawXML = struct
   module ClosureMap = Map.Make(struct type t = string let compare = compare end)
 
   type event_handler_table =
-    ((Dom_html.event Js.t -> unit) Eliom_server.Client_value.t) ClosureMap.t
+    ((Dom_html.event Js.t -> unit) Client_value_server_repr.t) ClosureMap.t
 
   let filter_class (acc_class,acc_attr) = function
     | "class", RA value ->
@@ -188,8 +203,6 @@ end
 
 let tyxml_unwrap_id_int = 1
 let client_value_unwrap_id_int = 7
-
-type escaped_value = poly
 
 (**/**)
 

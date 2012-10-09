@@ -144,7 +144,7 @@ val leave_page : unit -> unit
 
 val relink_closure_nodes :
   Dom_html.element Js.t ->
-  (Dom_html.event Js.t -> unit) Eliom_server.Client_value.t Eliom_content_core.Xml.ClosureMap.t ->
+  (Dom_html.event Js.t -> unit) Client_value_server_repr.t Eliom_content_core.Xml.ClosureMap.t ->
   Dom_html.element Dom.nodeList Js.t ->
   (unit -> unit)
 

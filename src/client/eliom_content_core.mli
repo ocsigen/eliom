@@ -17,7 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-
 (** XML building and deconstructing. Cf. {% <<a_api subproject="server" |
     module Eliom_content_core.Xml >> %}. *)
 
@@ -32,7 +31,7 @@ module Xml : sig
   type attrib
 
   type -'a caml_event_handler =
-    | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) Eliom_server.Client_value.t
+    | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) Eliom_lib.Client_value_server_repr.t
     | CE_client_closure of ('a Js.t -> unit)
     | CE_call_service of
         ([ `A | `Form_get | `Form_post] * (bool * string list) option * string option) option Eliom_lazy.request
@@ -134,7 +133,7 @@ module Xml : sig
 
   module ClosureMap : Map.S with type key = string
   type event_handler_table =
-    ((Dom_html.event Js.t -> unit) Eliom_server.Client_value.t) ClosureMap.t
+    ((Dom_html.event Js.t -> unit) Eliom_lib.Client_value_server_repr.t) ClosureMap.t
 
 end
 

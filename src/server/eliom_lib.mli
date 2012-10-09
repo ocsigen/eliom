@@ -30,6 +30,8 @@ include module type of Eliom_lib_base
   with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
   with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
   with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
+  with type escaped_value = Eliom_lib_base.escaped_value
+  with type +'a Client_value_server_repr.t = 'a Eliom_lib_base.Client_value_server_repr.t
   with type client_value_datum = Eliom_lib_base.client_value_datum
   with type 'a injection_datum = 'a Eliom_lib_base.injection_datum
   with type 'a compilation_unit_global_data = 'a Eliom_lib_base.compilation_unit_global_data
@@ -39,22 +41,12 @@ include module type of Eliom_lib_base
 (** See {% <<a_api subproject="server"|type Eliom_lib.client_value>> %}. *)
 type 'a client_value
 
-
 (** Raised if a client value of the given closure ID is created at a
     point in time where it is neither global (i.e. during the
     initialization of the server program), nor request (i.e. during
     the processing of a request).
 *)
 exception Client_value_creation_invalid_context of int64
-
-
-(**/**)
-val create_client_value : 'a Eliom_server.Client_value.t -> 'a client_value
-val client_value_client_value : 'a client_value -> 'a Eliom_server.Client_value.t
-val escaped_value : 'a -> Eliom_server.escaped_value (* * Eliom_wrap.unwrapper *)
-(**/**)
-
-(** {2 Pervasives} *)
 
 exception Eliom_Internal_Error of string
 
@@ -68,6 +60,10 @@ val debug: ('a, unit, string, unit) format4 -> 'a
 val jsmarshal : 'a -> string
 
 (**/**)
+
+val create_client_value : 'a Client_value_server_repr.t -> 'a client_value
+val client_value_server_repr : 'a client_value -> 'a Client_value_server_repr.t
+val escaped_value : 'a -> escaped_value (* * Eliom_wrap.unwrapper *)
 
 val string_escape : string -> string
 

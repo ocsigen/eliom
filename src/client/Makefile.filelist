@@ -1,7 +1,6 @@
 
 INTF := eliom_lazy.cmi              \
         eliom_config.cmi            \
-        eliom_server.cmi            \
         eliom_lib.cmi               \
         eliom_parameter.cmi         \
         eliom_service.cmi           \

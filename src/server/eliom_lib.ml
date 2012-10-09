@@ -4,6 +4,8 @@ include (Eliom_lib_base : module type of Eliom_lib_base
                           with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
                           with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
                           with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
+                          with type escaped_value = Eliom_lib_base.escaped_value
+                          with type +'a Client_value_server_repr.t = 'a Eliom_lib_base.Client_value_server_repr.t
                           with type client_value_datum = Eliom_lib_base.client_value_datum
                           with type 'a injection_datum = 'a Eliom_lib_base.injection_datum
                           with type 'a compilation_unit_global_data = 'a Eliom_lib_base.compilation_unit_global_data
@@ -69,27 +71,19 @@ let wrap_and_marshall_poly : poly -> string =
     string_escape (Marshal.to_string (Eliom_wrap.wrap poly) [])
 
 type 'a client_value =
-    'a Eliom_server.Client_value.t * Eliom_wrap.unwrapper
+    'a Client_value_server_repr.t * Eliom_wrap.unwrapper
 
 let create_client_value cv =
   cv, Eliom_wrap.create_unwrapper
         (Eliom_wrap.id_of_int
            Eliom_lib_base.client_value_unwrap_id_int)
 
-let client_value_client_value = fst
+let client_value_server_repr = fst
 
 exception Client_value_creation_invalid_context of int64
 
-let escaped_value value : Eliom_server.escaped_value (* * Eliom_wrap.unwrapper *) =
+let escaped_value value : escaped_value (* * Eliom_wrap.unwrapper *) =
   to_poly value
-
-let merge_aux err_msg =
-  curry
-    (function
-       | Some value, None
-       | None, Some value -> Some value
-       | None, None
-       | Some _, Some _ -> failwith err_msg)
 
 type global_data = poly Eliom_lib_base.global_data * Eliom_wrap.unwrapper
 

@@ -31,7 +31,33 @@ end
 
 val escape_quotes : string -> string
 
+module type Map_S = sig
+  include Map.S
+  val from_list : (key * 'a) list -> 'a t
+  val to_string : ?sep:string -> ('a -> string) -> 'a t -> string
+end
+
+module Int64_map : Map_S with type key = int64
+module Int_map : Map_S with type key = int
+module String_map : Map_S with type key = string
+
 (**/**)
+
+(** Server representation of client values.
+    Developer-visible functions should always operate on
+    {% <<a_api subproject="server" | type Eliom_pervasives.client_value >> %} or
+    {% <<a_api subproject="server" | type Eliom_lib.client_value >> %}.
+  *)
+module Client_value_server_repr : sig
+  type +'a t
+  val create: closure_id:int64 -> instance_id:int -> _ t
+  val closure_id: _ t -> int64
+  val instance_id: _ t -> int
+end
+
+(** The representation of escaped values (values injected into client
+    values) is opaque. *)
+type escaped_value = poly
 
 val fresh_ix : unit -> int
 val get_option : 'a option -> 'a
@@ -45,7 +71,7 @@ module RawXML : sig
   type cookie_info = (bool * string list) deriving (Json)
 
   type -'a caml_event_handler =
-    | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) Eliom_server.Client_value.t
+    | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) Client_value_server_repr.t
     | CE_client_closure of ('a Js.t -> unit) (* Client side-only *)
     | CE_call_service of
         ([ `A | `Form_get | `Form_post] * (cookie_info option) * string option) option Eliom_lazy.request
@@ -122,29 +148,13 @@ module RawXML : sig
   module ClosureMap : Map.S with type key = string (* crypto *)
 
   type event_handler_table =
-    ((Dom_html.event Js.t -> unit) Eliom_server.Client_value.t) ClosureMap.t
+    ((Dom_html.event Js.t -> unit) Client_value_server_repr.t) ClosureMap.t
 
   val filter_class_attribs : node_id -> (string * racontent) list -> (string * racontent) list
 end
 
 val tyxml_unwrap_id_int : int
 val client_value_unwrap_id_int : int
-
-(** The representation of escaped values (values injected into client
-    values) is opaque. *)
-type escaped_value = poly
-
-module type Map_S = sig
-  include Map.S
-  val from_list : (key * 'a) list -> 'a t
-  val to_string : ?sep:string -> ('a -> string) -> 'a t -> string
-end
-
-module Int64_map : Map_S with type key = int64
-module Int_map : Map_S with type key = int
-module String_map : Map_S with type key = string
-
-(**/**)
 
 (** Data for initializing one client value *)
 type client_value_datum = {

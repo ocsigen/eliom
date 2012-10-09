@@ -38,8 +38,6 @@ include module type of Eliom_lib_base
     Eliom_pervasives.client_value>> %}. *)
 type 'a client_value = 'a
 
-(** Pervasives module for Eliom extending stdlib, should always be opened. *)
-
 exception Eliom_Internal_Error of string
 
 type file_info

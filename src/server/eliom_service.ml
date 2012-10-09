@@ -618,7 +618,7 @@ module Syntax_helpers = struct
     let instance_id = Eliom_lib.fresh_ix () in
     register_client_value_data ~closure_id ~instance_id ~args:(to_poly args);
     create_client_value
-      (Eliom_server.Client_value.create closure_id instance_id)
+      (Client_value_server_repr.create closure_id instance_id)
 
   let close_server_section compilation_unit_id =
     close_server_section ~compilation_unit_id

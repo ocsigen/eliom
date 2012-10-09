@@ -111,8 +111,8 @@ end = struct
     Eliom_unwrap.late_unwrap_value
       (Eliom_unwrap.id_of_int Eliom_lib_base.client_value_unwrap_id_int)
       (fun (cv, _) ->
-         Eliom_server.Client_value.closure_id cv = closure_id &&
-            Eliom_server.Client_value.instance_id cv = instance_id)
+         Client_value_server_repr.closure_id cv = closure_id &&
+            Client_value_server_repr.instance_id cv = instance_id)
       value;
     let instances =
       Js.Optdef.get
@@ -308,8 +308,8 @@ let raw_form_handler form kind cookies_info tmpl ev =
   || (change_page_form ?cookies_info ?tmpl form action; false)
 
 let raw_event_handler cv =
-  let closure_id = Eliom_server.Client_value.closure_id cv in
-  let instance_id = Eliom_server.Client_value.instance_id cv in
+  let closure_id = Client_value_server_repr.closure_id cv in
+  let instance_id = Client_value_server_repr.instance_id cv in
   try
     let value = Client_value.find ~closure_id ~instance_id in
     let handler = (Eliom_lib.from_poly value : #Dom_html.event Js.t -> unit) in

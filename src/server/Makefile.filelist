@@ -1,6 +1,5 @@
 
 INTF := eliom_lib.cmi               \
-        eliom_server.cmi            \
         eliom_content_core.cmi      \
         eliom_content.cmi           \
         eliom_cookie.cmi             \
