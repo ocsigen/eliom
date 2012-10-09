@@ -90,8 +90,7 @@ module Html5 : sig
       [{shared{ ... }}] section of an Eliom file. *)
   type 'a client_server_event_handler = 'a Xml.caml_event_handler
 
-  (** Creation of {e f}unctional HTML5 content (copy-able but not referable, cf.
-      {% <<a_api subproject="server"|module Eliom_content>> %}). *)
+  (** Creation of {b F}unctional HTML5 content (copy-able but not referable, cf. {% <<a_api subproject="server"|module Eliom_content>> %}). *)
   module F : sig
     (** {2 Content creation}
         See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
@@ -107,8 +106,7 @@ module Html5 : sig
     include "sigs/eliom_html5_forms.mli"
   end
 
-  (** Creation of HTML5 content with {e D}OM semantics (referable, cf.
-      {% <<a_api subproject="server"|module Eliom_content>> %}). *)
+  (** Creation of HTML5 content with {b D}OM semantics (referable, cf. {% <<a_api subproject="server"|module Eliom_content>> %}). *)
   module D : sig
     (** {2 Content creation}
         See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)

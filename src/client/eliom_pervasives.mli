@@ -8,8 +8,8 @@ open Eliom_pervasives_base
     See the {% <<a_manual chapter="eliomc"|manual>> %}. *)
 
 (** An ['a] client value on the client is just an ['a].
-    See also {% <<a_api subproject="server" text="on the server" |
-    Eliom_pervasives.client_value >> %}. *)
+    See also {% <<a_api subproject="server" text="the abstract representation on the server" |
+    type Eliom_pervasives.client_value >> %}. *)
 type 'a client_value = 'a Eliom_lib.client_value
 
 (* Re-export Eliom_lib.False here, when
@@ -22,9 +22,9 @@ type 'a client_value = 'a Eliom_lib.client_value
 
 (** A [('a, 'b) server_function] provides transparently access to a
     server side function which has been created by {% <<a_api
-    subproject="server"|Eliom_pervasives.server_function>> %}.  Cf. {%
-    <<a_api subproject="server" text="the opaque server side
-    representation"| type Eliom_pervasives.server_function>> %} *)
+    subproject="server"|Eliom_pervasives.server_function>> %}.  See also {%
+    <<a_api subproject="server" text="the opaque server side representation"|
+    type Eliom_pervasives.server_function>> %}. *)
 type ('a, 'b) server_function = 'a -> 'b Lwt.t
 
 (**/**)
