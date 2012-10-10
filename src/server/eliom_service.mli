@@ -703,7 +703,7 @@ module Syntax_helpers : sig
 
   (** All client values created between [set_global true] and
       [set_global false] are considered global client values
-      (cf. <<a_manual chapter="eliomc" chapter="clientvalues"|the
+      (cf. <<a_manual chapter="eliom-language" chapter="clientvalues"|the
       manual>>).  *)
   val set_global : bool -> unit
 

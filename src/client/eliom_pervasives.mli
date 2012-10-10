@@ -5,7 +5,7 @@ open Eliom_pervasives_base
 
 (** {2 Client values}
 
-    See the {% <<a_manual chapter="eliomc"|manual>> %}. *)
+    See the {% <<a_manual chapter="eliom-language"|manual>> %}. *)
 
 (** An ['a] client value on the client is just an ['a].
     See also {% <<a_api subproject="server" text="the abstract representation on the server" |

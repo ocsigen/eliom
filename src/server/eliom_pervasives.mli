@@ -5,10 +5,10 @@ open Eliom_pervasives_base
 
 (** {2 Client values}
 
-    See the {% <<a_manual chapter="eliomc"|manual>> %}. *)
+    See the {% <<a_manual chapter="eliom-language"|manual>> %}. *)
 
 (** Client values on the server are created by the syntax [{typ{ expr }}]
-    in the server section (cf. {% <<a_manual chapter="eliomc"
+    in the server section (cf. {% <<a_manual chapter="eliom-language"
     fragment="clientvalues"|the manual>> %}).  They are abstract, but
     become concrete once sent to the client. See also {% <<a_api
     subproject="client" text="the concrete representation on the
