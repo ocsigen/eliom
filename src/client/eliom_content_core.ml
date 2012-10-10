@@ -46,8 +46,6 @@ module Xml = struct
     node_id : node_id;
   }
 
-  type -'a client_server_event_handler = 'a Js.t -> unit
-
   let content e =
     match Lazy.force e.elt with
     | DomNode _ -> assert false (* TODO *)

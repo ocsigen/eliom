@@ -51,13 +51,6 @@ module Xml : sig
       Dom_html.keyboardEvent >>%}. *)
   type -'a caml_event_handler constraint 'a = #Dom_html.event
 
-  (** ['a client_server_event_handler] is the type of the values created by the
-      event handler syntax [{{ ... }}] on the server-side. It is thereby the type
-      of the argument of event handler in {e on client- and on server-side}.
-      It may be useful to annotate event handlers created through [{{ ... }}] inside
-      [{shared{ ... }}] section of an Eliom file. *)
-  type -'a client_server_event_handler = 'a caml_event_handler
-
   (**/**)
 
   val make_process_node : ?id:string -> elt -> elt

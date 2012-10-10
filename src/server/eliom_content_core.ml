@@ -52,8 +52,6 @@ module Xml = struct
     wrapper_mark : elt Eliom_wrap.wrapper
   }
 
-  type -'a client_server_event_handler = 'a caml_event_handler
-
   let content { elt } = match elt.recontent with
     | RE e -> e
     | RELazy e -> Eliom_lazy.force e

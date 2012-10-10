@@ -51,13 +51,6 @@ module Xml : sig
     | Leaf of ename * attrib list
     | Node of ename * attrib list * elt list
 
-  (** ['a client_server_event_handler] is the type of the values created by the
-      event handler syntax [{{ ... }}] on the client-side. It is thereby the type
-      of the argument of event handler in {e on client- and on server-side}.
-      It may be useful to annotate event handlers created through [{{ ... }}] inside
-      [{shared{ ... }}] section of an Eliom file. *)
-  type -'a client_server_event_handler = 'a Js.t -> unit
-
   (**/**)
 
   val event_handler_of_service :
