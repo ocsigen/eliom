@@ -60,21 +60,23 @@ let compile_impl file =
 		@ ["-impl"; file] )
     filter_dir
 
+let eliom_synonym = [ "-ml-synonym"; ".eliom" ]
+
 let compile_server_eliom file =
   let opt = ["pa_eliom_client_server.cmo"; "-notype"] @ !ppopt @ [ "-impl"] in
   create_filter
-    !compiler ( "-pp" :: get_pp opt :: !args
+    !compiler ( "-pp" :: get_pp opt :: eliom_synonym @ !args
 		@ ["-impl"; file] )
     filter_dir;
   let opt = ["pa_eliom_type_filter.cmo"] @ !ppopt @ ["-impl"] in
   create_filter
-    !compiler ( "-pp" :: get_pp opt :: !args
+    !compiler ( "-pp" :: get_pp opt :: eliom_synonym @ !args
 		@ ["-impl"; file] )
     filter_type
 
 let compile_client_eliom file =
   let ppopt = ["pa_eliom_client_client.cmo"; "-notype"] @ !ppopt @ [ "-impl"] in
-  create_filter !compiler ( "-pp" :: get_pp ppopt :: !args
+  create_filter !compiler ( "-pp" :: get_pp ppopt :: eliom_synonym @ !args
 			     @ ["-impl"; file] ) filter_dir
 
 let compile_eliom file =
