@@ -20,7 +20,7 @@
 
 open Eliom_lib
 
-(** This module provides the creation of valid XML content, i.e. XML, XHTML, SVG,
+(** This module provides the creation of valid XML content, i.e. XML, SVG,
     and (X)HTML5.
     See {% <<a_api subproject="server" | module Eliom_content >> %} for an explication
     of the modules [F] and [D].

@@ -40,7 +40,7 @@ open Eliom_service
     To define {e global} link (i.e. outside of a service handler) and
     recompute a relative URL at each request, use
     {!Eliom_registration.Html5.a} or other specialized functions from
-    {!Eliom_registration.Html5} or {!Eliom_registration.Xhtml}.
+    {!Eliom_registration.Html5}.
 
 *)
 

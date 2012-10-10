@@ -13,7 +13,6 @@ Eliom_state
 
 {!modules:
 Eliom_content.Html5
-Eliom_content.Xhtml
 Eliom_content.Svg
 Eliom_content.Xml
 }

@@ -1,6 +1,6 @@
 =@@id="server_generating_html"@@Generating HTML pages=
 
-Ocsigen provides several ways to generate and type xhtml pages.
+Ocsigen provides several ways to generate and type HTML5 pages.
 
 * The default technique to produce HTML5 pages using Eliom is the
    <<a_api | module Eliom_content.Html5.F >> and
@@ -16,36 +16,32 @@ Ocsigen provides several ways to generate and type xhtml pages.
   To take benefit of it, use OCamlDuce instead of OCaml.
 * You can also choose to generate untyped html as text.
 
-===Html5 and Xhtml===
+=== Html5 ===
 
 The types in OCaml closest to XML types are //polymorphic variants//.
 Ocsigen uses them to provide a module with very good HTML5 typing.
 The full documentation is available
 <<a_api text="in the TyXML documentation" project="tyxml" | module Html5.M >>.
 
-===XHTML syntax extension===
+=== HTML syntax extension===
 
-<<wip|Compatibility with HTML5?>>
-
-Ocsigen also has a syntax extension for OCaml that allows you to write pages
-using HTML syntax (but you are free not to use it).
-This is convenient for example if
-you want to include (parts of) HTML pages that have been
-created by third party.
-To choose actual XML-implementation you have to provide a module named [Html5]
-(or [Xhtml] or [Svg] respectively):
+Ocsigen also has a syntax extension for OCaml that allows you to write
+pages using HTML syntax (but you are free not to use it).  This is
+convenient for example if you want to include (parts of) HTML pages
+that have been created by third party.  To choose actual
+XML-implementation you have to provide a module named ##Html5## (or
+##Xhtml##, or ##Svg## respectively):
 
 For example, the following code:
-{{{
-
-module Xhtml = Xhtml.F (* NB this is TyXML's Xhtml; could also be Eliom_content.Xhtml.F *)
+<<code language="ocaml"|
+module Html5 = Html5.M (* NB this is TyXML's Html5; could also be Eliom_content.Html5.F *)
 
 << <html>
      <head><title></title></head>
      <body><h1>plop</h1></body>
    </html> >>
-}}}
-is a caml value of type {{{Xhtmltypes5.xhtml Xhtml.M.elt}}}.
+>>
+is a caml value of type {{{Html5_types.html Html5.M.elt}}}.
 
 To compile a module containing this syntax, you need the camlp4 preprocessor:
 {{{
@@ -53,46 +49,55 @@ ocamlc -I /path_to/ocsigen/
  -pp "camlp4o /path_to/ocsigen/xhtmlsyntax.cma -loc loc"
  -c your_module.ml
 }}}
-You can insert OCaml expressions of type {{{'a Xhtml.M.elt}}} inside html using {{{$...$}}}, like this:
-{{{
+
+You can insert OCaml expressions of type {{{'a Html5.M.elt}}} inside
+html using {{{$...$}}}, like this:
+
+<<code language="ocaml"|
 let oc = << <em>Ocsigen</em> >> in
 << <p>$oc$ will revolutionize web programming.</p> >>
-}}}
+>>
+
 <<wip| remove \ before $, _ in code, everywhere in pdf version!!!!!!!!!! >>
 
-You can insert OCaml expressions of type string inside html using
-{{{$str:... $}}}, like this:
-{{{
+You can insert OCaml expressions of type string inside html
+using ##$str:... $##, like this:
+
+<<code language="ocaml"|
 let i = 4 in
 << <p>i is equal to $str:string_of_int i$</p> >>
-}}}
+>>
+
 If you want to use a dollar in your page, just write it twice.
 
-You can write a list of xhtml expressions using the syntax {{{<:xmllist<...>>}}}, for example:
-{{{
-<:xmllist< <p>hello</p> <div></div> >>
-}}}
+You can write a list of HTML5 expressions using the syntax {{{<:xmllist<...>>}}}, for example:
+<<code language="ocaml"|
+<:html5list< <p>hello</p> <div></div> >>
+>>
 Here are some other examples showing what you can do:
-{{{
+<<code language="ocaml"|
 << <ul class=$ulclass$ $list:other_attrs$>
      $first_il$
      $list:items$
    </ul> >>
-}}}
-Warning: lists antiquotations are allowed only at the end (before a closing tag). For example, the following is not valid:
-{{{
+>>
+
+Warning: lists antiquotations are allowed only at the end (before a
+closing tag). For example, the following is not valid:
+
+<<code language="ocaml"|
 << <ul $list:other_attrs$ class=$ulclass$>
      $list:items$
      $last_il$
    </ul> >>
-}}}
+>>
+
 The syntax extension is not allowed in patterns for now.
 
-//Warning:// The two syntaxes are not equivalent for typing.
- Using the syntax extension will do less checking.
- For example the following code is accepted but not valid
- regarding HTML5 standard (because <<span class="code"|<head>>>
- must contain a title):
+//Warning:// The two syntaxes are not equivalent for typing.  Using
+the syntax extension will do less checking.  For example the following
+code is accepted but not valid regarding HTML5 standard (because
+<<span class="code"|<head>>> must contain a title):
 
 <<code language="ocaml"|
   << <html>
@@ -101,14 +106,11 @@ The syntax extension is not allowed in patterns for now.
    </html> ~>>
 >>
 
-We recommend you use the functions from <<a_api project="tyxml"
-| module Html5.F>>, as you will (almost) always get valid HTML5. Use
-the syntax extension for example to enclose already created pieces of
-HTML, and check your pages validity with the
+We recommend you use the functions from <<a_api project="tyxml" |
+module Eliom_content.Html5.D>>, as you will (almost) always get valid
+HTML5. Use the syntax extension for example to enclose already created
+pieces of HTML, and check your pages validity with the
 [[http://validator.w3.org/| W3C validator]].
-
-
-
 
 ===OCamlduce===
 
@@ -125,14 +127,13 @@ Ocamlduce's full documentation is available from
 [[http://www.cduce.org/ocaml.html|here]].
 
 If OCamlDuce is installed on your system, it is now possible to use
-it instead of Xhtml.M
+it instead of Html5.F.
 to typecheck your pages. You will get a stronger type checking
 and more flexibility (easier to use other XML types, to parse
 incoming XML data, etc.).
 
 However, Ocamlduce is not compatible with Camlp4 syntax extensions
 and client server Eliom applications support only HTML5 (for now).
-
 
 To use it, make sure that you have Eliom compiled with OCamlDuce
 support. Then dynlink <<span class="code"|ocamlduce.cma>> and <<span
@@ -155,9 +156,9 @@ let s =
 
 
 
-===Text XHTML===
+===Text HTML===
 
-The last possibility is to use untyped xhtml. Just build strings
+The last possibility is to use untyped HTML. Just build strings
 containing your pages. Here is an example:
 
 <<code language="ocaml"|
@@ -197,6 +198,7 @@ or by a Json-deriving type <<a_api | val Eliom_content.Html5.Custom_data.create_
 }} >>
 
 ==== Injecting ====
+
 Custom data can be injected into HTML5-trees of type <<a_api
 project="eliom"|type Eliom_content.Html5.elt>> by the function <<a_api
 project="eliom"|val Eliom_content.Html5.Custom_data.attrib>>:
@@ -209,6 +211,7 @@ NB, HTML5 gives no restriction on the usage of custom data, any custom data can
 may be added to //any// HTML5 element.
 
 ==== Reading/writing the DOM ====
+
 On the client side, custom data can be read from and written to JavaScript DOM
 elements of type <<a_api project="js_of_ocaml"|class type Dom_html.element>>.
 

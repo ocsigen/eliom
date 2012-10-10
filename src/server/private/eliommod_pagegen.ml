@@ -24,7 +24,7 @@ open Eliom_lib
 open Eliom_content_core
 open Lwt
 
-module Xhtml_content = Ocsigen_senders.Make_XML_Content(Xml)(Xhtml.F)
+module Html5_content = Ocsigen_senders.Make_XML_Content(Xml)(Html5.F)
 
 (*****************************************************************************)
 (* Exception handler for the site                                            *)
@@ -315,7 +315,7 @@ let gen is_eliom_extension sitedata = function
             )
             (function
                | Eliom_common.Eliom_Typing_Error l ->
-                   Xhtml_content.result_of_content
+                   Html5_content.result_of_content
                      (Eliom_error_pages.page_error_param_type l)
                    >>= fun r ->
                    Lwt.return
@@ -331,7 +331,7 @@ let gen is_eliom_extension sitedata = function
                    | Some f -> f ri.request_config
                  in
                  ripp >>= fun ripp ->
-                Xhtml_content.result_of_content
+                Html5_content.result_of_content
                    (Eliom_error_pages.page_bad_param 
                       (try 
                          ignore (Polytables.get

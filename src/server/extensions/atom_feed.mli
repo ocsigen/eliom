@@ -21,7 +21,6 @@
 (** Everything we need to make an atom feed. *)
 
 open Eliom_lib
-open Eliom_content_core
 
 (*
  * types {{{
@@ -143,7 +142,7 @@ val inlineC : ?meta:[> metaAttr ] list
 
 (** An xhtml content, embedded in a div *)
 val xhtmlC : ?meta:[> metaAttr ] list
-   -> ([ `PCDATA | Xhtml_types.flow ] Xhtml.F.elt list)
+   -> ([ `PCDATA | Xhtml_types.flow ] Xhtml.M.elt list)
    -> [> `Content of content ]
 
 (** Inline content from another kind *)
@@ -164,7 +163,7 @@ val plain : ?meta:[> metaAttr ] list
 
 (** XHTML text construct *)
 val xhtml : ?meta:[> metaAttr ] list
-   -> [ `PCDATA | Xhtml_types.flow ] Xhtml.F.elt list
+   -> [ `PCDATA | Xhtml_types.flow ] Xhtml.M.elt list
    -> textConstruct
 
 (** Rights tag *)

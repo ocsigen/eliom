@@ -29,7 +29,7 @@ This typically happens if authentication is badly implemented, or altogether mis
 === [[http://en.wikipedia.org/wiki/Code_injection|Code injection]]
   * Eliom modules are written in OCaml, which is a compiled language. This prevents all code injection possible with script languages.
   * No sql injection is possible if you use Macaque or PGOCaml, which use PostgreSQL prepared statements.
-  * No Html injection is possible, as unsafe XHTML characters are always escaped before being written.
+  * No Html injection is possible, as unsafe HTML characters are always escaped before being written.
   * Moreover, you can also receive X(HT)ML from the user in a fully safe way, using Ocamlduce types to check that the XML fragment is correct.
 
 

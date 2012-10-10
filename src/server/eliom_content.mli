@@ -17,12 +17,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** This module provides the creation of valid XML content, i.e. XML, XHTML, SVG,
+(** This module provides the creation of valid XML content, i.e. XML, SVG,
     and (X)HTML5.
     XML tree manipulation within Eliom is based on the TyXML library
     but use a custom representation for XML values (see
     {!Xml}). Then, [Eliom_content] redefines the three high level
-    interfaces ({!Svg}, {!Html5} and {!Xhtml}) that are provided by
+    interfaces ({!Svg}, {!Html5}) that are provided by
     TyXML for valid XML tree creation and printing.
 
     Modules {!Eliom_content.Html5}, {!Eliom_content.Svg} contain two
@@ -53,7 +53,7 @@
   *)
 
 (** Abstract signature for links and forms creation functions. For
-    concrete instance see {!Html5}, {!Xhtml} or {!Html_text}. *)
+    concrete instance see {!Html5}, or {!Html_text}. *)
 module type Forms = "sigs/eliom_forms.mli"
 
 (** Low-level XML manipulation. *)
@@ -169,3 +169,4 @@ module Html_text : sig
     and type button_type_t := string
     and type for_attrib := string
 end
+

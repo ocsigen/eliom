@@ -12,7 +12,7 @@
 
           
 <<code language="ocaml"|img ~alt:"Ocsigen"
-    ~src:(Eliom_registration.Xhtml.make_uri ~service:senddoc ["ocsigen1024.jpg"])
+    ~src:(Eliom_registration.Html5.make_uri ~service:senddoc ["ocsigen1024.jpg"])
     ()
 >>
 
@@ -103,7 +103,6 @@ Personalise it in your CSS style-sheet.
           
 <<code language="ocaml"|(* Hierarchical menu *)
 open Eliom_tools_common
-open Eliom_tools
 
 let hier1 = service ~path:["hier1"] ~get_params:unit ()
 let hier2 = service ~path:["hier2"] ~get_params:unit ()
@@ -170,18 +169,18 @@ let f i s () () =
     border-right: solid 1px black;}\n
   .breadthmenu li.eliomtools_last {border: none;}\n
                 "])::
-                Xhtml.structure_links mymenu ~service:s ())
+                Html5_tools.F.structure_links mymenu ~service:s ())
              )
        (body [h1 [pcdata ("Page "^string_of_int i)];
               h2 [pcdata "Depth first, whole tree:"];
               div
-                (Xhtml.hierarchical_menu_depth_first
+                (Html5_tools.F.hierarchical_menu_depth_first
                    ~whole_tree:true mymenu ~service:s ());
               h2 [pcdata "Depth first, only current submenu:"];
-              div (Xhtml.hierarchical_menu_depth_first mymenu ~service:s ());
+              div (Html5_tools.F.hierarchical_menu_depth_first mymenu ~service:s ());
               h2 [pcdata "Breadth first:"];
               div
-                (Xhtml.hierarchical_menu_breadth_first
+                (Html5_tools.F.hierarchical_menu_breadth_first
                    ~classe:["breadthmenu"] mymenu ~service:s ())]))
 
 

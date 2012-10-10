@@ -19,7 +19,6 @@
  *)
 
 open Eliom_lib
-open Eliom_content_core
 
 module F = Ocsigen_http_frame
 module H = Ocsigen_http_frame.Http_header
