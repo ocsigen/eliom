@@ -111,15 +111,15 @@ let _ =
                   ]])))
 >>
 
-It works for the data types you define, and the data types from 
-OCaml's standard library. For types defined in third third party libraries,
-have a look at deriving's documentation.
-<<wip| Add a link to deriving's doc>>
+It works for the data types you define, and the data types from
+OCaml's standard library. For types defined in third third party
+libraries, have a look at deriving's
+[[href:http://code.google.com/p/deriving/wiki/Introduction|documentation]]
+and Js_of_ocaml's <<a_api project="js_of_ocaml"|module Deriving_Json>>.
 
 <<wip| We are currently working with the OCaml team to make possible to
 do that whithout deriving. We hope to have a good solution included in OCaml
 as soon as possible.>>
-
 
 == Server sending data
 
