@@ -83,7 +83,7 @@ module Html5 : sig
   type +'a attrib = 'a Eliom_content_core.Html5.attrib
   type uri = Eliom_content_core.Html5.uri
 
-  (** Creation of {b F}unctional HTML5 content (copy-able but not referable, cf. {% <<a_api subproject="server"|module Eliom_content>> %}). *)
+  (** Creation of {b F}unctional HTML5 content (copy-able but not referable, see also {!module Eliom_content}). *)
   module F : sig
     (** {2 Content creation}
         See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
@@ -99,7 +99,7 @@ module Html5 : sig
     include "sigs/eliom_html5_forms.mli"
   end
 
-  (** Creation of HTML5 content with {b D}OM semantics (referable, cf. {% <<a_api subproject="server"|module Eliom_content>> %}). *)
+  (** Creation of HTML5 content with {b D}OM semantics (referable, see also {!module Eliom_content}). *)
   module D : sig
     (** {2 Content creation}
         See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
