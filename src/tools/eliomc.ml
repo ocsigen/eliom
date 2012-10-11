@@ -123,8 +123,7 @@ let obj_ext () = if !kind = `ServerOpt then ".cmx" else ".cmo"
 let compile_intf file =
   if do_compile () then
     let obj = output_prefix file ^ ".cmi" in
-    create_process !compiler ( ["-c" ; "-o" ; obj ; "-pp"; get_pp []]
-                               @ !args
+    create_process !compiler ( ["-c" ; "-o" ; obj ; "-pp"; get_pp []] @ !args
 			       @ get_thread_opt ()
 			       @ get_common_include ()
 			       @ ["-intf"; file] )
@@ -160,44 +159,45 @@ let compile_server_type_eliom file =
 				    @ ["-impl"; file] );
     Unix.close out
 
-let compile_server_eliom file =
+let compile_server_eliom ~mode file =
   if do_compile () then
     let obj = output_prefix file ^ obj_ext ()
-    and ppopt = ["pa_eliom_client_server.cmo"; "-type"; get_type_file file] @ !ppopt @ ["-impl"] in
+    and ppopt = "pa_eliom_client_server.cmo" :: type_opt file mode @ !ppopt @ [impl_intf_opt mode] in
     if !do_dump then begin
       let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopt @ [file]) in
       create_process camlp4 ppopt;
       exit 0
     end;
     create_process !compiler ( [ "-c" ; "-thread" ; "-o"  ; obj ;
-                                 "-pp" ; get_pp ppopt ]
+                                 "-pp" ; get_pp ppopt; "-intf-suffix"; ".eliomi" ]
 			       @ !args
 			       @ get_common_include ()
-			       @ ["-impl"; file] );
+			       @ [impl_intf_opt mode; file] );
     args := !args @ [obj]
 
-let compile_client_eliom file =
+let compile_client_eliom ~mode file =
   let obj = output_prefix file ^ ".cmo" in
   let ppopt =
-    ["pa_eliom_client_client.cmo"; "-type" ; get_type_file file]
-    @ !ppopt @ ["-impl"] in
+    "pa_eliom_client_client.cmo" :: type_opt file mode @ !ppopt @ [impl_intf_opt mode] in
   if !do_dump then begin
     let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopt @ [file]) in
     create_process camlp4 ppopt;
     exit 0
   end;
-  create_process !compiler ( ["-c" ; "-o"  ; obj ; "-pp"; get_pp ppopt]
+  create_process !compiler ( ["-c" ; "-o"  ; obj ;
+                              "-pp"; get_pp ppopt; "-intf-suffix"; ".eliomi"]
 			     @ !args
-			       @ get_common_include ()
-			       @ ["-impl"; file] );
+			     @ get_common_include ()
+			     @ [impl_intf_opt mode; file] );
   args := !args @ [obj]
 
-let compile_eliom file = match !kind with
+let compile_eliom ~mode file = match !kind with
   | `Client ->
-    compile_client_eliom file
+    compile_client_eliom ~mode file
   | `Server | `ServerOpt ->
-    compile_server_eliom file;
-    compile_server_type_eliom file
+    compile_server_eliom ~mode file;
+    if mode = `Impl then
+      compile_server_type_eliom file
 
 let build_server ?(name = "a.out") () = ()
     (* TODO ? Build a staticaly linked ocsigenserver. *)
@@ -285,7 +285,10 @@ let rec process_option () =
     | arg when Filename.check_suffix arg ".ml" ->
       compile_impl arg; incr i
     | arg when Filename.check_suffix arg ".eliom" ->
-      compile_eliom arg;
+      compile_eliom ~mode:`Impl arg;
+      incr i
+    | arg when Filename.check_suffix arg ".eliomi" ->
+      compile_eliom ~mode:`Intf arg;
       incr i
     | arg when Filename.check_suffix arg ".c" ->
       compile_obj arg; incr i

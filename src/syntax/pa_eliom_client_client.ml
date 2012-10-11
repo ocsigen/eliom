@@ -235,6 +235,10 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let implem sil = sil
 
+  let shared_sig_items _ items = Ast.sgSem_of_list items
+  let server_sig_items _ items = Ast.sgSem_of_list []
+  let client_sig_items _ items = Ast.sgSem_of_list items
+
 end
 
 module M = Pa_eliom_seed.Register(Id)(Client_pass)

@@ -185,6 +185,10 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     in
     set_global true :: sil @ [ set_global false ]
 
+  let shared_sig_items _ items = Ast.sgSem_of_list items
+  let server_sig_items _ items = Ast.sgSem_of_list items
+  let client_sig_items _ items = Ast.sgSem_of_list []
+
 end
 
 module M = Pa_eliom_seed.Register(Id)(Server_pass)

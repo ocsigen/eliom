@@ -120,6 +120,10 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let implem sil = sil
 
+  let shared_sig_items _ _ = failwith "Pa_eliom_type_filter.shared_sig_items"
+  let server_sig_items _ _ = failwith "Pa_eliom_type_filter.server_sig_items"
+  let client_sig_items _ _ = failwith "Pa_eliom_type_filter.client_sig_items"
+
 end
 
 module M = Pa_eliom_seed.Register(Id)(Type_pass)

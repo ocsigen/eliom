@@ -124,6 +124,10 @@ module type Pass = functor (Helpers: Helpers) -> sig
   (** How to handle "{client{ ... }}" str_item. *)
   val client_str_items: Ast.Loc.t -> Ast.str_item list -> Ast.str_item
 
+  val shared_sig_items: Ast.Loc.t -> Ast.sig_item list -> Ast.sig_item
+  val client_sig_items: Ast.Loc.t -> Ast.sig_item list -> Ast.sig_item
+  val server_sig_items: Ast.Loc.t -> Ast.sig_item list -> Ast.sig_item
+
   (** How to handle "{{ ... }}" expr. *)
   val client_value_expr: Ast.ctyp option -> client_value_context -> Ast.expr -> Int64.t -> string -> Ast.Loc.t -> Ast.expr
 
@@ -500,7 +504,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
     (* Extending syntax *)
     EXTEND Gram
-    GLOBAL: str_item expr module_expr module_binding0 str_items implem;
+    GLOBAL: str_item sig_item expr module_expr module_binding0 str_items sig_items implem interf;
 
     (* Dummy rules: for level management and checking. *)
       dummy_set_level_shared:
@@ -564,6 +568,10 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         [[ lvl = dummy_set_level_module_expr;
            me = SELF -> set_current_level lvl; me ]];
 
+      sig_items: FIRST
+        [[ lvl = dummy_set_level_module_expr; me = SELF ->
+           set_current_level lvl; me ]];
+
       (* Duplicated from camlp4/Camlp4Parsers/Camlp4OCamlRevisedParser.ml *)
       module_expr: BEFORE "top"
         [[ "functor"; "("; i = a_UIDENT; ":"; t = module_type; ")"; "->";
@@ -577,6 +585,33 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         [ "("; m = a_UIDENT; ":"; mt = module_type; ")";
           lvl = dummy_set_level_module_expr; mb = SELF ->
             set_current_level lvl; <:module_expr< functor ( $m$ : $mt$ ) -> $mb$ >> ]];
+
+      sig_item: BEFORE "top"
+        [ "eliom"
+         [ KEYWORD "{shared{" ; opt = dummy_set_level_shared ; es = LIST0 sig_item ; KEYWORD "}}" ->
+           from_some_or_raise opt _loc
+             (fun () ->
+               set_current_level Toplevel;
+               Pass.shared_sig_items _loc es)
+             "The syntax {shared{ ... }} is only allowed at toplevel"
+         | KEYWORD "{server{" ; opt = dummy_set_level_server ; es = LIST0 sig_item ; KEYWORD "}}" ->
+             from_some_or_raise opt _loc
+               (fun () ->
+                  set_current_level Toplevel;
+                  Pass.server_sig_items _loc es)
+               "The syntax {server{ ... }} is only allowed at toplevel"
+         | KEYWORD "{client{" ; opt = dummy_set_level_client ; es = LIST0 sig_item ; KEYWORD "}}" ->
+             from_some_or_raise opt _loc
+               (fun () ->
+                  set_current_level Toplevel;
+                  Pass.client_sig_items _loc es)
+               "The syntax {client{ ... }} is only allowed at toplevel"
+         | si = sig_item LEVEL "top" ->
+             if !current_level = Toplevel then
+               Pass.server_sig_items _loc [si]
+             else
+               si
+         ]];
 
 
       (* To str_item we add {client{ ... }}, {server{ ... }} and {shared{ ... }} *)
@@ -687,6 +722,16 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
              (open_pervasives :: Pass.implem (si :: sil), stopped)
          | `EOI -> ([], None)
         ]];
+
+      interf:
+        [[ si = sig_item; semi; (sil, stopped) = SELF ->
+           let open_pervasives =
+             let _loc = Loc.ghost in
+             <:sig_item< open Eliom_pervasives >>
+           in
+           (open_pervasives :: si :: sil, stopped)
+         | `EOI -> ([], None) ]];
+
 
       END
 

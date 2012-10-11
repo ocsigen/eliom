@@ -18,6 +18,8 @@ let usage () =
 
 (** Context *)
 
+let do_dump = ref false
+
 let add_build_dir s =
   match !build_dir with
   | "" -> s
@@ -60,32 +62,44 @@ let compile_impl file =
 		@ ["-impl"; file] )
     filter_dir
 
-let eliom_synonym = [ "-ml-synonym"; ".eliom" ]
+let eliom_synonyms = [ "-ml-synonym"; ".eliom"; "-mli-synonym"; ".eliomi" ]
 
-let compile_server_eliom file =
-  let opt = ["pa_eliom_client_server.cmo"; "-notype"] @ !ppopt @ [ "-impl"] in
+let compile_server_eliom ~mode file =
+  let opt = ["pa_eliom_client_server.cmo"; "-notype"] @ !ppopt @ [impl_intf_opt mode] in
+  if !do_dump then begin
+    let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: opt @ [file]) in
+    create_process camlp4 ppopt;
+    exit 0
+  end;
   create_filter
-    !compiler ( "-pp" :: get_pp opt :: eliom_synonym @ !args
-		@ ["-impl"; file] )
+    !compiler ( "-pp" :: get_pp opt :: eliom_synonyms @ !args
+		@ [impl_intf_opt mode; file] )
     filter_dir;
-  let opt = ["pa_eliom_type_filter.cmo"] @ !ppopt @ ["-impl"] in
-  create_filter
-    !compiler ( "-pp" :: get_pp opt :: eliom_synonym @ !args
-		@ ["-impl"; file] )
-    filter_type
+  if mode = `Impl then
+    let opt = ["pa_eliom_type_filter.cmo"] @ !ppopt @ [impl_intf_opt mode] in
+    create_filter
+      !compiler ( "-pp" :: get_pp opt :: eliom_synonyms @ !args
+		  @ ["-impl"; file] )
+      filter_type
 
-let compile_client_eliom file =
-  let ppopt = ["pa_eliom_client_client.cmo"; "-notype"] @ !ppopt @ [ "-impl"] in
-  create_filter !compiler ( "-pp" :: get_pp ppopt :: eliom_synonym @ !args
-			     @ ["-impl"; file] ) filter_dir
+let compile_client_eliom ~mode file =
+  let ppopt = ["pa_eliom_client_client.cmo"; "-notype"] @ !ppopt @ [impl_intf_opt mode] in
+  if !do_dump then begin
+    let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopt @ [file]) in
+    create_process camlp4 ppopt;
+    exit 0
+  end;
+  create_filter !compiler ( "-pp" :: get_pp ppopt :: eliom_synonyms @ !args
+			     @ [impl_intf_opt mode; file] ) filter_dir
 
-let compile_eliom file =
+let compile_eliom ~mode file =
   let basename = chop_extension_if_any file in
-  Printf.printf "%s.cmo: %s\n" (add_build_dir basename) (get_type_file file);
-  Printf.printf "%s.cmx: %s\n" (add_build_dir basename) (get_type_file file);
+  if mode = `Impl then
+    (Printf.printf "%s.cmo: %s\n" (add_build_dir basename) (get_type_file file);
+     Printf.printf "%s.cmx: %s\n" (add_build_dir basename) (get_type_file file));
   match !kind with
-  | `Server -> compile_server_eliom file
-  | `Client -> compile_client_eliom file
+  | `Server -> compile_server_eliom ~mode file
+  | `Client -> compile_client_eliom ~mode file
   | _ -> assert false
 
 let rec process_option () =
@@ -113,6 +127,9 @@ let rec process_option () =
       if !i+1 >= Array.length Sys.argv then usage ();
       type_dir := Sys.argv.(!i+1);
       i := !i+2
+    | "-dump" ->
+      do_dump := not !do_dump;
+      i := !i+1
     | "-intf" ->
       if !i+1 >= Array.length Sys.argv then usage ();
       compile_intf Sys.argv.(!i+1);
@@ -126,7 +143,10 @@ let rec process_option () =
     | arg when Filename.check_suffix arg ".ml" ->
       compile_impl arg; incr i
     | arg when Filename.check_suffix arg ".eliom" ->
-      compile_eliom arg;
+      compile_eliom ~mode:`Impl arg;
+      incr i
+    | arg when Filename.check_suffix arg ".eliomi" ->
+      compile_eliom ~mode:`Intf arg;
       incr i
     | arg -> args := !args @ [arg]; incr i
   done

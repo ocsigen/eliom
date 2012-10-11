@@ -175,6 +175,14 @@ let get_type_file file =
   | None ->
       prefix_type_dir (chop_extension_if_any file ^ type_file_suffix)
 
+let impl_intf_opt = function
+  | `Impl -> "-impl"
+  | `Intf -> "-intf"
+
+let type_opt file = function
+  | `Impl -> ["-type"; get_type_file file]
+  | `Intf -> ["-notype"]
+
 (** Process *)
 
 let rec wait pid =
