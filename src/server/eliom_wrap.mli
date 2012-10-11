@@ -27,7 +27,14 @@ type +'a wrapper
     value [v] will be replaced by [f v] before marshaling. *)
 val create_wrapper : ( 'a -> 'b ) -> 'a wrapper
 
-(** marshal a value, taking into account the tags *)
+(** marshal a value, taking into account the tags. *)
+
+(* == Internals
+
+   [wrap v] traverses the OCaml structure of the value [v], replacing
+   all included values [w] whose last object field (cf. [Obj.field])
+   is a wrapper created by [create_wrapper f] by [f w].
+*)
 val wrap : 'a -> 'a wrapped_value
 
 (** a wrapper that do not change the value *)

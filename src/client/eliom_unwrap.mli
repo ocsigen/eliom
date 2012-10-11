@@ -17,17 +17,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(** Values of type [unwrap_id] are used to identify a specific unwrapper. *)
 type unwrap_id
 
-val register_unwrapper : unwrap_id -> ('a -> 'b) -> unit
+val id_of_int : int -> unwrap_id
+
 (** [register_unwrapper id f] register an unwrapping function [f] to
     be called when a value is marked with the id [id] *)
+val register_unwrapper : unwrap_id -> ('a -> 'b) -> unit
 
 (** [unwrap_js_var v] execute [unwrap] on the content of the javascript
     variable [v] *)
 val unwrap_js_var : string -> 'a
-
-val id_of_int : int -> unwrap_id
 
 (**/**)
 
@@ -37,31 +38,58 @@ val id_of_int : int -> unwrap_id
     (Eliom_wrap.wrap v)]. This function is for internal use only *)
 val unwrap : string -> int -> 'a
 
-(* == BBB Apropos late unwrapping
+(* == Internals
 
-   When no unwrapper is registered for a value with a certain
-   unwrapping marker, that marker is replaced by a late unwrapping
-   marker in the JavaScript function caml_unwrap_value_from_string.
+   [Eliom_unwrap.unwrap] implements basically the unmarshalling of a
+   string to the JavaScript-representation an OCaml value, i.e.
+   JavaScript Arrays in lieu of [Obj.t].
 
-   All occurrences of such values inside other values (sharing) are
-   recorded during unwrapping.
+   It is implemented in the JavaScript function
+   [caml_unwrap_value_from_string] in [eliom_client.js].
 
-   There are two way for the replacing values marked for late
-   unwrapping:
+   However, the unmarshalling for [unwrap] is provided with the
+   detection of unwrapping markers and application of the respective
+   unwrapping functions:
+
+   Consider [s] to be a string with the marshalled representation of a
+   value [v]. Then [unwrap s 0] produces value similar to [v] but with
+   all values [w] in [v] whose JavaScript representation is
+
+     [0, ..., [0, id, "unwrap_mark"]]
+
+   replaced by [f w] if [f] was registered as [register_unwrapper
+   (id_of_int id) f]. Note, that the JavaScript's
    
-   Register an unwrapping [register_unwrapper]. All values which are
-   marked for late unwrapping with the respective unwrap_id are
-   applied to the unwrapping function, and all occurrences are
-   replaced.
+     [0, id, "unwrap_mark"]
 
-   Set a specific set of values marked for late unwrapping explicitly
-   by [late_unwrap_value]. All values marked for late unwrapping with
-   the given unwrap_id to which the predicade applies are replaced
-   with the given value.
+   corresponds to OCaml's
+
+     (id, "unwrap_mark").
+
+   == Apropos late unwrapping
+
+   When no unwrapper is registered for a value with an unwrapping
+   marker with unwrap ID [id], that marker is replaced by a late
+   unwrapping marker
+
+     (id, "late_unwrap_mark").
+
+   Every occurrence of such a value in a field of another value
+   (i.e. sharing) is recorded during unwrapping.  There are two way
+   for replacing values marked for late unwrapping:
+
+   Either, register an unwrapping function [f] for unwrap_id [id] {e
+   late}. For every value [v] with late unwrapping marker with unwrap
+   ID [id], [f v] is computed and every occurrence of [v] in the
+   originally unwrapped value is replaced by the result.
+
+   Or, replace a set of values marked for late unwrapping, defined by
+   a predicate, explicitly by a new value. This is used for the
+   consecutive unwrapping of client values.
 
    Note, that when starting the actual client program, i.e. after
    running all top level declarations, no values marked for late
-   unwrapping may remain (cf. [has_values_for_late_unwrapping]).
+   unwrapping should remain (cf. [has_values_for_late_unwrapping]).
 *)
 
 (** [late_unwrap_value id predicate new_value] replaces each occurrence
