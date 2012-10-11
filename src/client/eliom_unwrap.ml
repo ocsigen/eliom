@@ -71,7 +71,6 @@ type occurrence = {
   field : int
 }
 type occurrences = {
-  instance_id : int;
   value : Obj.t;
   mutable occurrences : occurrence list
 }
@@ -118,11 +117,11 @@ let apply_unwrapper unwrapper v =
 (* Register the occurrence of a [value] inside another value [parent]
    at position [field].
 *)
-let register_late_occurrence parent field value unwrap_id instance_id =
+let register_late_occurrence parent field value unwrap_id =
   if Eliom_config.get_tracing () then
     Firebug.console##log_3
-      (Printf.ksprintf Js.string ">> register_late_occurrence unwrapper:%d instance:%d at"
-         unwrap_id instance_id, parent, Printf.ksprintf Js.string "[%d]" field);
+      (Printf.ksprintf Js.string ">> register_late_occurrence unwrapper:%d at"
+         unwrap_id, parent, Printf.ksprintf Js.string "[%d]" field);
   let parent = Obj.repr parent in
   let value = Obj.repr value in
   let all_occurrences =
@@ -131,15 +130,16 @@ let register_late_occurrence parent field value unwrap_id instance_id =
       (fun () -> [])
   in
   let all_occurrences' =
+    let occurrence = { parent; field } in
     try
       let occurrences =
-        List.find (fun occurrences -> occurrences.instance_id = instance_id)
+        List.find (fun occurrences -> occurrences.value == value)
           all_occurrences
       in
-      occurrences.occurrences <- { parent; field } :: occurrences.occurrences;
+      occurrences.occurrences <- occurrence :: occurrences.occurrences;
       all_occurrences
     with Not_found ->
-      { instance_id; value; occurrences = [ {parent; field} ] } :: all_occurrences
+      { value; occurrences = [ occurrence ] } :: all_occurrences
   in
   Js.array_set occurrences_table unwrap_id all_occurrences'
     
@@ -170,8 +170,8 @@ let late_unwrap_value unwrap_id predicate new_value =
 
 external raw_unmarshal_and_unwrap
   : (unwrapper -> _ -> _ option) ->
-    (_ -> int -> _ -> int -> int -> unit) ->
-      string -> int -> _
+    (_ -> int -> _ -> int -> unit) ->
+    string -> int -> _
         = "caml_unwrap_value_from_string"
 
 let unwrap s i =

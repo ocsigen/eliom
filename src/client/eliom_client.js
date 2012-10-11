@@ -103,7 +103,6 @@ var caml_unwrap_value_from_string = function (){
     return caml_int64_float_of_bits (caml_int64_of_bytes (a));
   }
   var late_unwrap_mark = "late_unwrap_mark";
-  var late_counter = 0;
   return function (apply_unwrapper, register_late_occurrence, s, ofs) {
     var reader = s.array?new ArrayReader (s.array, ofs):
                          new StringReader (s.getFullBytes(), ofs);
@@ -272,11 +271,10 @@ var caml_unwrap_value_from_string = function (){
           if (unwrapped_v === 0) {
             // No unwrapper is registered, so replace the unwrap
             // marker v[size] by a late_unwrap marker
-            //   (unwrapper_id, "late_unwrap_mark", instance_id)
-            // where instance_id identifies the value when shared
-            v[size] = [0, v[size][1], late_unwrap_mark, late_counter++];
+            //   (unwrapper_id, "late_unwrap_mark")
+            v[size] = [0, v[size][1], late_unwrap_mark];
             // And register an occurrence in ancestor
-            register_late_occurrence(ancestor, ancestor.length-1, v, v[size][1], v[size][3]);
+            register_late_occurrence(ancestor, ancestor.length-1, v, v[size][1]);
           } else {
             v = unwrapped_v[1];
           }
@@ -290,8 +288,7 @@ var caml_unwrap_value_from_string = function (){
       // If the value v[d] is marked for late unwrapping, register an
       // occurrence of it in v.
       if (v[d][0] === 0 && v[d].length >= 2 && v[d][v[d].length-1][2] == late_unwrap_mark) {
-        var w = v[d][v[d].length-1];
-        register_late_occurrence(v, d, v[d], w[1], w[3]);
+        register_late_occurrence(v, d, v[d],   v[d][v[d].length-1][1]);
       }
     }
     s.offset = reader.i;
