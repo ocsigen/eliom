@@ -1,8 +1,8 @@
 
 type ('a, 'b) server_function_service =
-  (unit, string,
+  (unit, 'a,
    [ `Nonattached of [ `Post] Eliom_service.na_s ], [ `WithoutSuffix ],
-   unit, [ `One of string ] Eliom_parameter.param_name,
-   [ `Registrable ], string Eliom_parameter.caml)
+   unit, [ `One of 'a Eliom_parameter.caml ] Eliom_parameter.param_name,
+   [ `Registrable ],
+   [ `Exception of exn | `Success of 'b ] Eliom_parameter.caml)
   Eliom_service.service
-
