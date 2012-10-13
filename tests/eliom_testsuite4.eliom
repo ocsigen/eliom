@@ -57,9 +57,9 @@ let test_client_value_on_caml_service =
 (*                          Binding of escaped nodes                          *)
 
 let free_global =
-  Html5.(Id.create_global_elt (D.div F.([b [pcdata "Persistent (free)"]])))
+  Html5.(Id.create_global_elt (D.div F.([b [pcdata "Global (free)"]])))
 let bound_global =
-  Html5.(Id.create_global_elt (D.div F.([b [pcdata "Persistent (bound)"]])))
+  Html5.(Id.create_global_elt (D.div F.([b [pcdata "Global (bound)"]])))
 let free_request =
   Html5.(D.div F.([b [pcdata "Reset each request (free)"]]))
 let bound_request =

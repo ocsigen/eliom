@@ -149,7 +149,7 @@ module Xml = struct
       ^"\n/* ]]> */\n" in
     encodedpcdata s'
 
-  let make_node_name ?(global = true) () =
+  let make_node_name ~global () =
     (if global then "global_" else "")
     ^ "server_" ^ make_cryptographic_safe_string ()
 
@@ -157,7 +157,7 @@ module Xml = struct
     { elt' with elt = { elt'.elt with node_id = ProcessId id } }
 
   let make_request_node elt' =
-    { elt' with elt = { elt'.elt with node_id = RequestId (make_node_name ()) } }
+    { elt' with elt = { elt'.elt with node_id = RequestId (make_node_name ~global:false ()) } }
 
   (** Ref tree *)
 
@@ -232,7 +232,8 @@ module Svg = struct
 
   module Id = struct
     type 'a id = string (* FIXME invariant type parameter ? *)
-    let new_elt_id: ?global:bool -> unit -> 'a id = Xml.make_node_name
+    let new_elt_id: ?global:bool -> unit -> 'a id =
+      fun ?(global=true) () -> Xml.make_node_name ~global ()
     let create_named_elt ~(id : 'a id) elt =
       D.tot (Xml.make_process_node ~id (D.toelt elt))
     let create_global_elt elt =
@@ -478,7 +479,8 @@ module Html5 = struct
 
   module Id = struct
     type 'a id = string (* FIXME invariant type parameter ? *)
-    let new_elt_id: ?global:bool -> unit -> 'a id = Xml.make_node_name
+    let new_elt_id: ?global:bool -> unit -> 'a id =
+      fun ?(global=true) () -> Xml.make_node_name ~global ()
     let create_named_elt ~(id : 'a id) elt =
       D.tot (Xml.make_process_node ~id (D.toelt elt))
     let create_global_elt elt =
