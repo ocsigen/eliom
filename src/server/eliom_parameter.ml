@@ -42,7 +42,7 @@ let regexp reg dest ~to_string n =
       | Some _ ->
           begin
             try
-              Ocsigen_extensions.replace_user_dir reg 
+              Ocsigen_extensions.replace_user_dir reg
                 (Ocsigen_extensions.parse_user_dir dest) s
             with Ocsigen_extensions.NoSuchUser ->
               raise (Failure "User does not exist")
@@ -59,7 +59,7 @@ let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string) :
       | Some _ ->
           begin
             try
-              Ocsigen_extensions.replace_user_dir reg 
+              Ocsigen_extensions.replace_user_dir reg
                 (Ocsigen_extensions.parse_user_dir dest) s
             with Ocsigen_extensions.NoSuchUser ->
               raise (Failure "User does not exist")
@@ -98,16 +98,16 @@ let reconstruct_params_
           (try
              (*VVV encode=false? *)
              Obj.magic (of_string (Url.string_of_url_path ~encode:false l)), []
-           with e -> 
+           with e ->
              raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
       | TOption t, [] -> Obj.magic None, []
       | TOption t, ""::l -> Obj.magic None, l
-      | TOption t, l -> 
+      | TOption t, l ->
           let r, ll = parse_suffix t l in
           Obj.magic (Some r), ll
       | TNEOption t, [] -> Obj.magic None, []
       | TNEOption t, ""::l -> Obj.magic None, l
-      | TNEOption t, l -> 
+      | TNEOption t, l ->
           let r, ll = parse_suffix t l in
           Obj.magic (Some r), ll
       | TList _, [] | TSet _, [] -> Obj.magic [], []
@@ -116,7 +116,7 @@ let reconstruct_params_
           (match l with
              | [] -> raise Eliom_common.Eliom_Wrong_parameter
              | [""] -> Obj.magic [b], []
-             | _ -> 
+             | _ ->
                  let c, l = Obj.magic (parse_suffix typ l) in
                  Obj.magic (b::c), l)
       | TProd (TList _, _), _
@@ -125,37 +125,42 @@ let reconstruct_params_
       | TProd (t1, t2), l ->
           (match parse_suffix t1 l with
              | _, [] -> raise Eliom_common.Eliom_Wrong_parameter
-             | r, l -> 
-                 let rr, ll = parse_suffix t2 l in 
+             | r, l ->
+                 let rr, ll = parse_suffix t2 l in
                  Obj.magic (r, rr), ll)
       | TString _, v::l -> Obj.magic v, l
       | TInt name, v::l ->
           (try Obj.magic (int_of_string v), l
-           with e -> 
+           with e ->
              raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
       | TInt32 name, v::l ->
           (try Obj.magic (Int32.of_string v), l
-           with e -> 
+           with e ->
              raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
       | TInt64 name, v::l ->
           (try Obj.magic (Int64.of_string v), l
-           with e -> 
+           with e ->
              raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
       | TFloat name, v::l ->
           (try Obj.magic (float_of_string v), l
-           with e -> 
+           with e ->
              raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
       | TUnit, v::l ->
           (if v="" then Obj.magic (), l
            else raise Eliom_common.Eliom_Wrong_parameter)
       | TBool name, v::l ->
           (try Obj.magic (bool_of_string v), l
-           with e -> 
+           with e ->
              raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
       | TUserType (name, of_string, string_of), v::l ->
           (try Obj.magic (of_string v), l
-           with e -> 
+           with e ->
              raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
+      | TTypeFilter (t, None), _ -> failwith "Type filter without filter"
+      | TTypeFilter (t, Some check), l ->
+        let (v, _) as a = parse_suffix t l in
+        check v;
+        a
       | TConst value, v::l ->
           if v = value
           then Obj.magic (), l
@@ -166,21 +171,21 @@ let reconstruct_params_
       | TCoord _, l ->
           (match Obj.magic (parse_suffix (TInt "") l) with
              | _, [] -> raise Eliom_common.Eliom_Wrong_parameter
-             | r, l -> 
-                 let rr, ll = Obj.magic (parse_suffix (TInt "") l) in 
+             | r, l ->
+                 let rr, ll = Obj.magic (parse_suffix (TInt "") l) in
                  Obj.magic {abscissa = r; ordinate=rr}, ll)
       | TCoordv (t, _), l ->
           let a, l = parse_suffix t l in
           (match Obj.magic (parse_suffix (TInt "") l) with
              | _, [] -> raise Eliom_common.Eliom_Wrong_parameter
-             | r, l -> 
-                 let rr, ll = Obj.magic (parse_suffix (TInt "") l) in 
+             | r, l ->
+                 let rr, ll = Obj.magic (parse_suffix (TInt "") l) in
                  Obj.magic (a, {abscissa = r; ordinate=rr}), ll)
-      | TNLParams _, _ -> 
+      | TNLParams _, _ ->
           failwith "It is not possible to have non localized parameters in suffix"
       | TJson (_, Some typ), v::l -> Deriving_Json.from_string typ v, l
       | TJson (_, None), v::l -> assert false (* client side only *)
-      | TAny _, _ -> 
+      | TAny _, _ ->
           failwith "It is not possible to use any in suffix. May be try with all_suffix ?"
       | _ -> raise Eliom_common.Eliom_Wrong_parameter
   in
@@ -313,6 +318,12 @@ let reconstruct_params_
             let v,l = (List.assoc_remove (pref^name^suff) params) in
             (try (Res_ ((Obj.magic (of_string v)),l,files))
              with e -> Errors_ ([(pref^name^suff),v,e], l, files))
+        | TTypeFilter (t, None) -> failwith "Type filter without filter"
+        | TTypeFilter (t, Some check) ->
+          (match aux t params files pref suff with
+            | Res_ (v, l, files) as a -> (try check v; a
+              with e -> Errors_ (["<type_check>","<>",e], l, files))
+            | a -> a)
         | TUnit -> Res_ ((Obj.magic ()), params, files)
         | TAny -> Res_ ((Obj.magic params), [], files)
         | TConst _ ->
@@ -338,7 +349,7 @@ let reconstruct_params_
                    then aux s params files pref suff
                    else raise Eliom_common.Eliom_Wrong_parameter
                | Some urlsuffix ->
-                   (match parse_suffix s urlsuffix with
+                 (match parse_suffix s urlsuffix with
                       | p, [] -> Res_ (p, params, files)
                       | _ -> raise Eliom_common.Eliom_Wrong_parameter))
         | TJson (name, Some typ) ->
@@ -374,7 +385,7 @@ let reconstruct_params ~sp typ params files nosuffixversion urlsuffix =
       (try
          Lwt.return
            (reconstruct_params_
-              sp.Eliom_common.sp_request 
+              sp.Eliom_common.sp_request
               typ [] [] nosuffixversion urlsuffix)
        with e -> Lwt.fail e)
     | _, Some params, Some files ->
@@ -383,7 +394,7 @@ let reconstruct_params ~sp typ params files nosuffixversion urlsuffix =
       (try
          Lwt.return
            (reconstruct_params_
-              sp.Eliom_common.sp_request 
+              sp.Eliom_common.sp_request
               typ params files nosuffixversion urlsuffix)
        with e -> Lwt.fail e)
     | _ -> Lwt.fail Eliom_common.Eliom_Wrong_parameter
@@ -394,25 +405,25 @@ let reconstruct_params ~sp typ params files nosuffixversion urlsuffix =
 
 let get_non_localized_parameters params getorpost ~sp
     (name, _, keys, paramtype) =
-  (* non localized parameters are parsed only once, 
+  (* non localized parameters are parsed only once,
      and cached in request_cache *)
   let key = getorpost keys in
-  (try 
+  (try
      (* first, look in cache: *)
-     Polytables.get 
+     Polytables.get
        ~table:sp.Eliom_common.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
        ~key
    with Not_found ->
      let p =
        try
-         Some 
+         Some
            (let params = String.Table.find name params in
             reconstruct_params_
               sp.Eliom_common.sp_request paramtype params [] false None)
        with Eliom_common.Eliom_Wrong_parameter | Not_found -> None
      in
      (* add in cache: *)
-     Polytables.set 
+     Polytables.set
        ~table:sp.Eliom_common.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
        ~key
        ~value:p;
@@ -420,11 +431,10 @@ let get_non_localized_parameters params getorpost ~sp
 
 let get_non_localized_get_parameters p =
   let sp = Eliom_common.get_sp () in
-  get_non_localized_parameters 
+  get_non_localized_parameters
     sp.Eliom_common.sp_si.Eliom_common.si_nl_get_params fst ~sp p
 
 let get_non_localized_post_parameters p =
   let sp = Eliom_common.get_sp () in
   get_non_localized_parameters
     sp.Eliom_common.sp_si.Eliom_common.si_nl_post_params snd ~sp p
-

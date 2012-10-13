@@ -57,6 +57,13 @@ type ('a, 'tipo, +'names) params_type =
   | TBool of string (* 'a = bool *)
   | TFile of string (* 'a = file_info *)
   | TUserType of string * (string -> 'a) * ('a -> string) (* 'a = 'a *)
+  | TTypeFilter of ('a, 'tipo, 'names) params_type * ('a -> unit) option
+      (* The filter does not change the values.
+         It only checks they are ok.
+         Would be better to do a filter that also translates the types.
+         But we want something that can be sent to the client:
+         difficult to send a function ...
+      *)
   | TCoord of string (* 'a = 'a1 *)
   | TCoordv of ('a,'tipo,'names) params_type * string
   | TESuffix of string (* 'a = string list *)
@@ -64,7 +71,7 @@ type ('a, 'tipo, +'names) params_type =
   | TESuffixu of (string * (string -> 'a) * ('a -> string)) (* 'a = 'a *)
   | TSuffix of (bool * ('a,'tipo, 'names) params_type) (* 'a = 'a1 *)
       (* bool = redirect the version without suffix to the suffix version *)
-  | TUnit (* 'a = unit *) 
+  | TUnit (* 'a = unit *)
   | TAny (* 'a = (string * string) list *)
   | TConst of string (* 'a = unit; 'names = unit *)
   | TNLParams of ('a, 'tipo, 'names) non_localized_params
@@ -73,7 +80,7 @@ type ('a, 'tipo, +'names) params_type =
    and always None client side.*)
   | TRaw_post_data
 
-and ('a, 'tipo, +'names) non_localized_params = 
+and ('a, 'tipo, +'names) non_localized_params =
     string *
       bool (* persistent *) *
       ('a option Polytables.key * 'a option Polytables.key) *
@@ -109,6 +116,12 @@ let file (n : string)
 
 let unit : (unit, [`WithoutSuffix], unit) params_type = TUnit
 
+
+let type_checker
+    check
+    (t : ('a, 's, 'an) params_type)
+    : ('a, 's, 'an) params_type =
+  Obj.magic (TTypeFilter (t, Some check))
 
 let user_type
     ~(of_string : string -> 'a) ~(to_string : 'a -> string) (n : string)
@@ -176,7 +189,7 @@ let neopt (t : ('a, [`WithoutSuffix], 'an) params_type)
     : ('a option,[`WithoutSuffix], 'an) params_type =
   Obj.magic (TNEOption t)
 
-let radio (t : string -> 
+let radio (t : string ->
             ('a, [`WithoutSuffix], [ `One of 'an ] param_name) params_type)
     (n : string)
     : ('a option, [`WithoutSuffix], [ `Radio of 'an ] param_name) params_type =
@@ -222,7 +235,7 @@ let suffix_prod ?(redirect_if_not_suffix = true)
     (s : ('s, [<`WithoutSuffix|`Endsuffix], 'sn) params_type)
     (t : ('a, [`WithoutSuffix], 'an) params_type) :
     (('s * 'a), [`WithSuffix], 'sn * 'an) params_type =
-  (Obj.magic (TProd (Obj.magic (TSuffix (redirect_if_not_suffix, s)), 
+  (Obj.magic (TProd (Obj.magic (TSuffix (redirect_if_not_suffix, s)),
                                 Obj.magic t)))
 
 
@@ -268,20 +281,21 @@ let construct_params_list_raw
     | TNEOption t -> (match Obj.magic params with
                       | None -> [""]
                       | Some v -> make_suffix t v)
-    | TList (_, t) | TSet t -> 
+    | TList (_, t) | TSet t ->
         (match params with
           | [] -> [""]
           | a::l ->
               (make_suffix t (Obj.magic a))@
                 (make_suffix typ (Obj.magic l)))
     | TUserType (_, of_string, string_of) -> [string_of (Obj.magic params)]
+    | TTypeFilter (t, check) -> (make_suffix t (Obj.magic params))
     | TSum (t1, t2) ->
         (match Obj.magic params with
            | Inj1 p -> make_suffix t1 p
            | Inj2 p -> make_suffix t2 p)
     | TCoord _ ->
         (make_suffix (TInt "") (Obj.magic (Obj.magic params).abscissa))@
-        (make_suffix (TInt "") (Obj.magic (Obj.magic params).ordinate))       
+        (make_suffix (TInt "") (Obj.magic (Obj.magic params).ordinate))
     | TCoordv (t, _) ->
         (make_suffix t (fst (Obj.magic params)))@
         ((make_suffix (TInt "") (Obj.magic (snd (Obj.magic params)).abscissa))@
@@ -296,12 +310,12 @@ let construct_params_list_raw
   in
   let rec aux typ psuff nlp params pref suff l =
     match typ with
-    | TNLParams (name, _, _, t) -> 
+    | TNLParams (name, _, _, t) ->
         let psuff, nlp, nl = aux t psuff nlp params pref suff [] in
         (psuff, String.Table.add name nl nlp, l)
     | TProd (t1, t2) ->
-        let psuff, nlp, l1 = 
-          aux t1 psuff nlp (fst (Obj.magic params)) pref suff l 
+        let psuff, nlp, l1 =
+          aux t1 psuff nlp (fst (Obj.magic params)) pref suff l
         in
         aux t2 psuff nlp (snd (Obj.magic params)) pref suff l1
     | TOption t ->
@@ -332,14 +346,14 @@ let construct_params_list_raw
       | Inj1 v -> aux t1 psuff nlp v pref suff l
       | Inj2 v -> aux t2 psuff nlp v pref suff l)
     | TString name -> psuff, nlp, ((pref^name^suff), (Obj.magic params))::l
-    | TInt name -> 
-        psuff, nlp, 
+    | TInt name ->
+        psuff, nlp,
         ((pref^name^suff), (string_of_int (Obj.magic params)))::l
-    | TInt32 name -> 
+    | TInt32 name ->
         psuff, nlp,
         ((pref^name^suff), (Int32.to_string (Obj.magic params)))::l
-    | TInt64 name -> 
-        psuff, nlp, 
+    | TInt64 name ->
+        psuff, nlp,
         ((pref^name^suff), (Int64.to_string (Obj.magic params)))::l
     | TFloat name ->
         psuff, nlp,
@@ -349,6 +363,7 @@ let construct_params_list_raw
     | TUserType (name, of_string, string_of) ->
         psuff, nlp,
         ((pref^name^suff), (string_of (Obj.magic params)))::l
+    | TTypeFilter (t, check) -> aux t psuff nlp params pref suff l
     | TCoord name ->
         psuff, nlp,
         let coord = Obj.magic params in
@@ -386,7 +401,7 @@ let construct_params_list_raw
     - bool
  *)
 let rec get_to_and_from x = match x with
-  | TOption o -> 
+  | TOption o ->
     let (_to, from) = get_to_and_from o in
     Obj.magic
       ((fun s -> try Some (_to s) with _ -> None),
@@ -411,7 +426,7 @@ let rec get_to_and_from x = match x with
   | TInt _ ->
     Obj.magic (int_of_string, string_of_int)
   | TBool name -> (* XXX: is that it ? *)
-    Obj.magic ((fun s -> if s = "on" || s = "true" then true else false))
+    Obj.magic ((fun s -> print_endline "pop" ; if s = "on" || s = "true" then true else false))
   | TJson (_, typ) -> (* server or client side *)
     Obj.magic ((fun s -> of_json ?typ s),
                (fun d -> to_json ?typ d))
@@ -420,21 +435,21 @@ let rec get_to_and_from x = match x with
   | TString _ ->
     Obj.magic ((fun s -> s), (fun s -> s))
   | TNLParams _ | TSuffix _ | TProd (_, _)
-  | TList (_, _) | TSet _ | TSum (_, _) 
-  | TAny | TESuffix _ | TESuffixs _ | TFile _ 
-  | TCoord _ | TCoordv _ | TConst _
+  | TList (_, _) | TSet _ | TSum (_, _)
+  | TAny | TESuffix _ | TESuffixs _ | TFile _
+  | TCoord _ | TCoordv _ | TConst _ | TTypeFilter _
   | TRaw_post_data ->
     failwith "get_to_and_from: not implemented"
 
 
-let guard construct name guard = 
+let guard construct name guard =
   let (from, _to) = get_to_and_from (construct name) in
   TUserType (name, (fun s -> let alpha = from s in assert (guard alpha); alpha),
              _to)
 
 (** Walk the parameter tree to search for a parameter, given its name *)
 let rec walk_parameter_tree name x = match x with
-  | TUserType (name', _, _) | TInt name' | TInt32 name' | TInt64 name' | TFile name' 
+  | TUserType (name', _, _) | TInt name' | TInt32 name' | TInt64 name' | TFile name'
   | TFloat name' | TString name' | TBool name' | TCoord name'
   | TConst name' | TCoordv (_, name') | TESuffix name' | TESuffixs name'
   | TJson (name', _)
@@ -443,13 +458,14 @@ let rec walk_parameter_tree name x = match x with
       Some (get_to_and_from x)
     else
       None
+  | TTypeFilter (t, _) -> walk_parameter_tree name t
   | TSuffix ( _, o) -> walk_parameter_tree name o
   | TAny -> None
   | TNLParams _ -> None
   | TUnit -> None
-  | (TOption o | TNEOption o | TSet o | TList (_, o)) -> 
+  | (TOption o | TNEOption o | TSet o | TList (_, o)) ->
     Obj.magic (walk_parameter_tree name o)
-  | (TProd (a, b) | TSum (a, b)) -> 
+  | (TProd (a, b) | TSum (a, b)) ->
     (match walk_parameter_tree name a with
       | Some a -> Some a
       | None -> walk_parameter_tree name b)
@@ -480,9 +496,9 @@ let construct_params nonlocparams typ p =
 let make_params_names (params : ('t,'tipo,'n) params_type) : bool * 'n =
   let rec aux issuffix prefix suffix = function
     | TNLParams (_, _, _, t) -> aux issuffix prefix suffix t
-    | TProd (t1, t2) -> 
+    | TProd (t1, t2) ->
         let issuffix, a = aux issuffix prefix suffix t1 in
-        let issuffix, b = aux issuffix prefix suffix t2 in 
+        let issuffix, b = aux issuffix prefix suffix t2 in
         issuffix, Obj.magic (a, b)
     | TInt name
     | TInt32 name
@@ -498,7 +514,7 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : bool * 'n =
       -> issuffix, Obj.magic (prefix^name^suffix)
     | TUnit
     | TAny
-    | TConst _ 
+    | TConst _
       -> issuffix, Obj.magic ()
     | TSet t -> Obj.magic (aux issuffix prefix suffix t)
     | TESuffix n
@@ -507,12 +523,12 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : bool * 'n =
     | TSuffix (_, t) -> Obj.magic (aux true prefix suffix t)
     | TOption t -> Obj.magic (aux issuffix prefix suffix t)
     | TNEOption t -> Obj.magic (aux issuffix prefix suffix t)
-    | TSum (t1, t2) -> 
+    | TSum (t1, t2) ->
         let _, a = aux issuffix prefix suffix t1 in
-        let _, b = aux issuffix prefix suffix t2 in 
+        let _, b = aux issuffix prefix suffix t2 in
         issuffix, Obj.magic (a, b)
         (* TSuffix cannot be inside TSum *)
-    | TList (name, t1) -> 
+    | TList (name, t1) ->
         (issuffix,
          Obj.magic
            {it =
@@ -522,12 +538,13 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : bool * 'n =
                     (List.fold_right
                        (fun el (i, l2) ->
                           let i'= i-1 in
-                          (i', (f (snd (aux issuffix (prefix^name^suffix^".") 
+                          (i', (f (snd (aux issuffix (prefix^name^suffix^".")
                                           (make_list_suffix i') t1)) el
                                   l2)))
                        l
                        (length, init)))})
           (* TSuffix cannot be inside TList *)
+    | TTypeFilter (t, _) -> aux issuffix prefix suffix t
     | TRaw_post_data -> failwith "Not possible with raw post data"
   in aux false "" "" params
 
@@ -565,14 +582,15 @@ let rec add_pref_params pref = function
   | TESuffixu a -> TESuffixu a
   | TSuffix s -> TSuffix s
   | TJson (name, typ) -> TJson (pref^name, typ)
+  | (TTypeFilter _) as a -> a
   | TRaw_post_data -> failwith "Not possible with raw post data"
 
 
 (*****************************************************************************)
 (* Non localized parameters *)
 
-let nl_prod 
-    (t : ('a, 'su, 'an) params_type) 
+let nl_prod
+    (t : ('a, 'su, 'an) params_type)
     (s : ('s, [ `WithoutSuffix ], 'sn) non_localized_params) :
     (('a * 's), 'su, 'an * 'sn) params_type =
   (Obj.magic (TProd (Obj.magic t, Obj.magic (TNLParams s))))
@@ -582,7 +600,7 @@ let nl_prod
    specification *)
 let rec remove_from_nlp nlp = function
     | TNLParams (n, _, _, _) -> String.Table.remove n nlp
-    | TProd (t1, t2) -> 
+    | TProd (t1, t2) ->
         let nlp = remove_from_nlp nlp t1 in
         remove_from_nlp nlp t2
     | _ -> nlp
@@ -591,7 +609,7 @@ type nl_params_set = (string * string) list String.Table.t
 
 let empty_nl_params_set = String.Table.empty
 
-let add_nl_parameter s t v = 
+let add_nl_parameter s t v =
   (fun (_, a, _) -> a) (construct_params_list_raw s (TNLParams t) v)
 
 let table_of_nl_params_set = id
@@ -611,7 +629,7 @@ let make_non_localized_parameters
     ~prefix
     ~name
     ?(persistent = false)
-    (p : ('a, [ `WithoutSuffix ], 'b) params_type) 
+    (p : ('a, [ `WithoutSuffix ], 'b) params_type)
     : ('a, [ `WithoutSuffix ], 'b) non_localized_params =
   let name = make_nlp_name persistent prefix name in
   if String.contains name '.'
@@ -619,7 +637,7 @@ let make_non_localized_parameters
   else
     (name,
      persistent,
-     (Polytables.make_key () (* GET *), 
+     (Polytables.make_key () (* GET *),
       Polytables.make_key () (* POST *)),
      add_pref_params (Eliom_common.nl_param_prefix^name^".") p)
 
@@ -628,7 +646,7 @@ let make_non_localized_parameters
 
 (*****************************************************************************)
 let rec contains_suffix = function
-  | TProd (a, b) -> 
+  | TProd (a, b) ->
       (match contains_suffix a with
          | None -> contains_suffix b
          | c -> c)
@@ -655,4 +673,6 @@ let rec wrap_param_type = function
 (* We remove the type information here: not possible to send a closure.
    marshaling is just basic json marshaling on client side. *)
   | TJson (name, _) -> TJson (name, None)
+  (* the filter is only on server side (at least for now) *)
+  | TTypeFilter (t, _) -> TTypeFilter (t, None)
   | t -> t

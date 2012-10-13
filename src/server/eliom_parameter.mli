@@ -115,42 +115,42 @@ type 'an listnames =
 
 (** {2 Basic types of pages parameters} *)
 
-(** The function [int s] tells that the service takes an integer as parameter, labeled [s]. *)
+(** Specifying parameter as [int s] tells that the service takes an integer as parameter, labeled [s]. *)
 val int : string ->
   (int, [ `WithoutSuffix ], [ `One of int ] param_name) params_type
 
-(** The function [int32 s] tells that the service takes a 32 bits integer as parameter, labeled [s]. *)
+(** Specifying parameter as [int32 s] tells that the service takes a 32 bits integer as parameter, labeled [s]. *)
 val int32 : string ->
   (int32, [ `WithoutSuffix ], [ `One of int32 ] param_name) params_type
 
-(** The function [int64 s] tells that the service takes a 64 bits integer as parameter, labeled [s]. *)
+(** Specifying parameter as [int64 s] tells that the service takes a 64 bits integer as parameter, labeled [s]. *)
 val int64 : string ->
   (int64, [ `WithoutSuffix ], [ `One of int64 ] param_name) params_type
 
-(** The function [float s] tells that the service takes a floating point number as parameter, labeled [s]. *)
+(** Specifying parameter as [float s] tells that the service takes a floating point number as parameter, labeled [s]. *)
 val float : string ->
   (float, [ `WithoutSuffix ], [ `One of float ] param_name) params_type
 
-(** The function [string s] tells that the service takes a string as parameter, labeled [s]. *)
+(** Specifying parameter as [string s] tells that the service takes a string as parameter, labeled [s]. *)
 val string :
     string ->
       (string, [ `WithoutSuffix ], [ `One of string ] param_name) params_type
 
-(** The function [bool s] tells that the service takes a boolean as parameter, labeled [s].
+(** Specifying parameter as [bool s] tells that the service takes a boolean as parameter, labeled [s].
    (to use for example with boolean checkboxes) *)
 val bool :
     string ->
       (bool, [ `WithoutSuffix ], [ `One of bool ] param_name) params_type
 
-(** The function [file s] tells that the service takes a file as parameter, labeled [s]. *)
+(** Specifying parameter as [file s] tells that the service takes a file as parameter, labeled [s]. *)
 val file :
     string -> (file_info, [ `WithoutSuffix ],
                [ `One of file_info ] param_name) params_type
 
-(** The function [unit] is used for services that don't have any parameters *)
+(** Specifying parameter as [unit] is used for services that don't have any parameters *)
 val unit : (unit, [ `WithoutSuffix ], unit) params_type
 
-(** The function [user_type ~of_string ~to_string s] tells that the
+(** Specifying parameter as [user_type ~of_string ~to_string s] tells that the
     service take a parameter, labeled [s], and that the server will
     have to use [of_string] and [to_string] to make the conversion
     between the OCaml representation of the parameter and it's
@@ -162,13 +162,25 @@ val user_type :
   string ->
   ('a, [ `WithoutSuffix ], [ `One of 'a ] param_name) params_type
 
+(** Specifying parameter as [type_checker check t]
+    is equivalent as [t] but the check function is called after decoding the
+    parameters, allowing you to make more checks on the parameters before
+    the service handler is called. Raise an exception if the parameter
+    is not correct, and the error handler will be called instead of the
+    service handler.
+*)
+val type_checker :
+  ('a -> unit) ->
+  ('a, 'b, 'c) params_type ->
+  ('a, 'b, 'c) params_type
+
 (** The type [coordinates] represent the data sent by an [<input
     type="image" ...>]. *)
 type coordinates =
     {abscissa: int;
      ordinate: int}
 
-(** The function [coordinates s] tells that the service takes as
+(** Specifying parameter as [coordinates s] tells that the service takes as
     parameters the coordinates of a point in an [<input type="image"
     ...>]. *)
 val coordinates :
@@ -176,7 +188,7 @@ val coordinates :
   (coordinates, [ `WithoutSuffix ],
    [ `One of coordinates ] param_name) params_type
 
-(** The function [string_coordinates s] tells that the service takes
+(** Specifying parameter as [string_coordinates s] tells that the service takes
     as parameters the coordinates of a point and the associated
     [string] value in an [<input type="image" value="..." ...>]. *)
 val string_coordinates :
@@ -249,7 +261,7 @@ val neopt :
   ('a, [ `WithoutSuffix ], 'b) params_type ->
   ('a option, [ `WithoutSuffix ], 'b) params_type
 
-(** The function [radio f s] tells that the service takes an optional
+(** Specifying parameter as [radio f s] tells that the service takes an optional
     argument labeled [s] and of type [f s].  Use [radio] instead of
     {!opt} if you want to use this parameter with a radio button.
 *)
