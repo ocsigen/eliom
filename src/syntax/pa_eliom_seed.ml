@@ -164,16 +164,22 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
     module Helpers = struct
 
-      module Syntax = Syntax
+      (* Anything easier than Camlp4? Create a parser for OCaml which
+         shares the Token, AST, etc with those of the [Syntax]
+         argument in the above functor [Make], but with an independent
+         Grammar, because we want the to parse the .type_mli without
+         the grammar modifications in made for the .eliomi files. *)
+      module Syntax =
+        Camlp4OCamlParser.Make
+          (Camlp4OCamlRevisedParser.Make
+             (Camlp4.OCamlInitSyntax.Make
+                (Syntax.Ast)
+                (Camlp4.Struct.Grammar.Static.Make
+                   (Camlp4.Struct.Lexer.Make (Syntax.Token)))
+                (Syntax.Quotation)))
 
       let raise_syntax_error _loc msg =
         Syntax_error.raise _loc msg
-
-      (** Pretty-print for error-message *)
-
-      let printer =
-        let module Printer = Camlp4.Printers.OCaml.Make(Syntax) in
-        new Printer.printer ()
 
       (** MLI READER ***)
 
@@ -270,8 +276,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         try
           let ic = open_in f in
           let s = Stream.of_channel ic in
-          let (items, stopped) = Gram.parse interf (Loc.mk f) s in
-          assert (stopped = None); (* No directive inside the generated ".mli". *)
+          let item = Syntax.parse_interf (Loc.mk f) s in
+          let items = Ast.list_of_sig_item item [] in
           close_in ic;
           List.map extract_escaped_ident_type (List.filter is_escaped_ident items),
           List.map extract_injected_ident_type (List.filter is_injected_ident items),
@@ -282,7 +288,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
             exit 1
           | Loc.Exc_located(loc,exn) ->
             Printf.eprintf "%s:\n Exception (%s)\n"
-              (Syntax.Loc.to_string loc) (Printexc.to_string exn);
+              (Loc.to_string loc) (Printexc.to_string exn);
             exit 1
 
       let infered_sig = lazy (load_file (get_type_file ()))

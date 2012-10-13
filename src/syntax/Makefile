@@ -4,7 +4,7 @@ PACKAGE  := camlp4.quotations.o,camlp4.extend
 LIBS := ${addprefix -package ,${PACKAGE}}
 
 OCAMLDEP := $(OCAMLFIND) ocamldep -syntax camlp4o
-OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG} -syntax camlp4o
+OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG} -syntax camlp4o -I +camlp4/Camlp4Parsers
 
 FILES:= pa_eliom_seed.ml          \
 	pa_eliom_type_filter.ml   \
