@@ -25,8 +25,33 @@ type 'a client_value = 'a Eliom_lib.client_value
               type Eliom_pervasives.server_function>> %}. *)
 type ('a, 'b) server_function
 
-(** [server_function argument_type f] creates a value of type {% <<a_api | type
-    Eliom_pervasives.server_function>> %}. This allows to call [f] from the
-    client. The first argument [argument_type] is an instance of [Deriving_Json]
-    for the type of the argument, to make sending values to the server safe. *)
-val server_function : 'a Deriving_Json.t -> ('a -> 'b Lwt.t) -> ('a, 'b) server_function
+(** [server_function argument_type f] creates a value of type {%
+    <<a_api | type Eliom_pervasives.server_function>> %}. This allows
+    to call [f] from the client. The first argument [argument_type] is
+    an instance of [Deriving_Json] for the type of the argument. It is
+    used to safely encode and decode the argument sent to the server.
+
+    The optional parameters directly correspond to the parameters of
+    {% <<a_api|val Eliom_registration.Ocaml.register_coservice'>>
+    %}.
+    
+    See also th {% <<a_manual chapter="client-communication"
+    fragment="rpc"|manual>> %}.
+*)
+val server_function :
+  ?scope:[< Eliom_common.scope ] ->
+  ?options:unit ->
+  ?charset:string ->
+  ?code:int ->
+  ?content_type:string ->
+  ?headers:Http_headers.t ->
+  ?secure_session:bool ->
+  ?name:string ->
+  ?csrf_safe:bool ->
+  ?csrf_scope:[< Eliom_common.user_scope ] ->
+  ?csrf_secure:bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  ?error_handler:((string * exn) list -> 'b Lwt.t) ->
+  'a Deriving_Json.t -> ('a -> 'b Lwt.t) -> ('a, 'b) server_function
