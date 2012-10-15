@@ -61,9 +61,9 @@ let free_global =
 let bound_global =
   Html5.(Id.create_global_elt (D.div F.([b [pcdata "Global (bound)"]])))
 let free_request =
-  Html5.(D.div F.([b [pcdata "Reset each request (free)"]]))
+  Html5.(D.div F.([b [pcdata "Request (free)"]]))
 let bound_request =
-  Html5.(D.div F.([b [pcdata "Reset each request (bound)"]]))
+  Html5.(D.div F.([b [pcdata "Request (bound)"]]))
 
 let other_service =
   Eliom_registration.Ocaml.register_coservice'
@@ -94,18 +94,23 @@ let other_service =
        debug "onload";
        Html5.Manip.appendChild
          %free_request
-         Html5.F.(div [pcdata "from client"]);
+         Html5.F.(div [pcdata "from client init"]);
        Html5.Manip.appendChild
          %free_global
-         Html5.F.(div [pcdata "from client"]);
+         Html5.F.(div [pcdata "from client init"]);
        Html5.Manip.appendChild
          %bound_request
-         Html5.F.(div [pcdata "from client"]);
+         Html5.F.(div [pcdata "from client init"]);
        Html5.Manip.appendChild
          %bound_global
-         Html5.F.(div [pcdata "from client"]);
+         Html5.F.(div [pcdata "from client init"]);
        ())
 }}
+
+let addenda = Html5.D.div []
+
+let node_bindings_local_global_id = Html5.Id.new_elt_id ~global:true ()
+let node_bindings_local_request_id = Html5.Id.new_elt_id ~global:false ()
 
 let node_bindings =
   Eliom_testsuite_base.test
@@ -115,35 +120,39 @@ let node_bindings =
       p [pcdata "Observe when HTML5 elements with DOM semantics are reused."];
       p [pcdata "Bound nodes are sent in the page; free nodes are added by client value side effect after loading the page."];
       ul [
+        li [pcdata "Initially, every node receives an \"from client\""];
         li [pcdata "All four nodes should receive an \"onclick\" line when \"Add onclick lines\" is clicked."];
-        li [pcdata "The free ones should reset on each request"];
-        li [pcdata "The free ones should receive a \"from ocaml service\" when \"Run Ocaml service\" is clicked"];
+        li [pcdata "The free ones should reset if you visit the empty service and go back in history"];
+        li [pcdata "The global ones should receive a \"from ocaml service\" when \"Run Ocaml service\" is clicked"];
       ];
     ])
     (fun () ->
-       let addenda = Html5.D.div [] in
+      let local_bound_global =
+        Html5.Id.create_named_elt ~id:node_bindings_local_global_id
+          Html5.(D.div [F.(b [pcdata "Global (bound, local)"])])
+      in
+      let local_bound_request =
+        Html5.Id.create_named_elt ~id:node_bindings_local_request_id
+          Html5.(D.div [F.(b [pcdata "Request (bound, local)"])])
+      in
        ignore {unit{
          debug "Adding free";
          Html5.Manip.appendChild %addenda %free_request;
          Html5.Manip.appendChild %addenda %free_global;
+         ignore %bound_global;
+         ignore %bound_request;
+         ignore %local_bound_global;
+         ignore %local_bound_request;
          ()
        }};
        let add_onclick = {{
          fun _ ->
            debug "onclick";
-           Html5.Manip.appendChild
-             %free_request
-             Html5.F.(div [pcdata "onclick"]);
-           Html5.Manip.appendChild
-             %free_global
-             Html5.F.(div [pcdata "onclick"]);
-           Html5.Manip.appendChild
-             %bound_request
-             Html5.F.(div [pcdata "onclick"]);
-           Html5.Manip.appendChild
-             %bound_global
-             Html5.F.(div [pcdata "onclick"]);
-           ()
+           List.iter
+             (fun node ->
+               Html5.Manip.appendChild node
+                 Html5.F.(div [pcdata "onclick"]))
+             [%free_request; %free_global; %bound_request; %bound_global; %local_bound_global; %local_bound_request];
        }} in
        let run_ocaml_service = {{
          fun _ ->
@@ -154,10 +163,13 @@ let node_bindings =
        Lwt.return Html5.F.([
          Eliom_testsuite_base.thebutton ~msg:"Add onclick lines" add_onclick;
          Eliom_testsuite_base.thebutton ~msg:"Run ocaml service" run_ocaml_service;
+         local_bound_global;
+         local_bound_request;
          bound_request;
          bound_global;
          addenda;
        ]))
+
 (******************************************************************************)
 (*                                Data sharing                                *)
 
