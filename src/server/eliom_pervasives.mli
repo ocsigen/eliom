@@ -34,6 +34,9 @@ type ('a, 'b) server_function
     The optional parameters directly correspond to the parameters of
     {% <<a_api|val Eliom_registration.Ocaml.register_coservice'>>
     %}.
+
+    NB exceptions are not handled remotly (i.e. propagated from the
+    server to the client).
     
     See also th {% <<a_manual chapter="client-communication"
     fragment="rpc"|manual>> %}.
