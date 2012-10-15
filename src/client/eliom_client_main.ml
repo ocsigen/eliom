@@ -37,6 +37,8 @@ let onload ev =
       lwt () = Lwt_js.sleep 0.001 in
       (* Ordering matters. See [Eliom_client.set_content] for explanations *)
       relink_request_nodes (Dom_html.document##documentElement);
+      let root = Dom_html.document##documentElement in
+      let closure_nodeList = relink_page_but_closure_nodes root in
       do_request_data js_data.Eliom_types.ejs_request_data;
       ((* A similar check is necessary in Injection.initialize *)
        match Eliom_unwrap.remaining_values_for_late_unwrapping () with
@@ -44,8 +46,6 @@ let onload ev =
          | unwrap_ids ->
            alert "Values marked for unwrapping remain (for unwrapping id %s)."
              (String.concat ", " (List.map string_of_int unwrap_ids)));
-      let root = Dom_html.document##documentElement in
-      let closure_nodeList = relink_page_but_closure_nodes root in
       let onload_closure_nodes =
         relink_closure_nodes root js_data.Eliom_types.ejs_event_handler_table
           closure_nodeList
