@@ -149,17 +149,12 @@ module Make(DorF : module type of Eliom_content.Html5.F) : TOOLS = struct
       | _ -> classes
 
   let same_service_opt s sopt =
-    let same_url url = make_string_uri ~absolute_path:true ~service:s () = url in
+    let same_url url =
+      make_string_uri ~absolute_path:true ~service:s () = url in
     match sopt with
-      | None -> same_url (Eliom_request_info.get_current_sub_path_string ())
-           (* MAYBE : use this or get_original_full_path_string *)
+      | None ->
+        same_url ("/"^(Eliom_request_info.get_current_sub_path_string ()))
       | Some s' -> same_url (make_string_uri ~absolute_path:true ~service:s' ())
-  let same_service_opt s sopt =
-    let same_url url = make_string_uri ~service:s () = url in
-    match sopt with
-      | None -> same_url (Eliom_request_info.get_current_sub_path_string ())
-      | Some s' -> same_url (make_string_uri ~service:s' ())
-
 
 
   let menu ?(classe=[]) ?id l ?service:current () =
@@ -241,8 +236,8 @@ module Make(DorF : module type of Eliom_content.Html5.F) : TOOLS = struct
       ((page, pages) as the_menu)
       ?service
       () =
-    
-    let rec depth_first_fun pages level pos = 
+
+    let rec depth_first_fun pages level pos =
       let rec one_item first last i s =
         let (classe, pos2, deplier) =
           match pos with
@@ -435,4 +430,3 @@ end
 
 module F = Make(Html5.F)
 module D = Make(Html5.D)
-
