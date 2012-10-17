@@ -274,11 +274,11 @@ let rec process_option () =
       i := !i+2
     | "-intf" ->
       if !i+1 >= Array.length Sys.argv then usage ();
-      compile_intf Sys.argv.(!i+1);
+      compile_eliom ~mode:`Intf Sys.argv.(!i+1);
       i := !i+2
     | "-impl" ->
       if !i+1 >= Array.length Sys.argv then usage ();
-      compile_eliom Sys.argv.(!i+1);
+      compile_eliom ~mode:`Impl Sys.argv.(!i+1);
       i := !i+2
     | arg when Filename.check_suffix arg ".mli" ->
       compile_intf arg; incr i
