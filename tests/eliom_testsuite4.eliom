@@ -1307,9 +1307,13 @@ let test_escaping_scoping =
 
 let test_server_function =
   let f str =
-    let strstr = str ^ str in
-    debug "test_server_function: received %S sending %S" str strstr;
-    Lwt.return (str ^ str) in
+    if str = "" then
+      Lwt.fail (Failure "Empty string")
+    else
+      let strstr = str ^ str in
+      debug "test_server_function: received %S sending %S" str strstr;
+      Lwt.return (str ^ str)
+  in
   let rpc_f = server_function Json.t<string> f in
   Eliom_testsuite_base.test
     ~title:"RPC / server functions"
@@ -1320,7 +1324,9 @@ let test_server_function =
       br ();
       pcdata
         "Click the button to send the content of the field to the server, where it \
-         logged to the console, and sent back doubled";
+         logged to the console, and sent back doubled (in the client logger)";
+      pcdata
+        "If you send the empty string, however, an exception is raised on the server.";
     ])
     (fun () ->
        let field = Html5.D.input () in
@@ -1331,9 +1337,13 @@ let test_server_function =
            field_dom##value <- Js.string "";
            Lwt.async
              (fun () ->
-                lwt strstr = %rpc_f str in
-                alert "Sent %S received %S" str strstr;
-                Lwt.return ())
+               try_lwt
+                 lwt strstr = %rpc_f str in
+                 Eliom_testsuite_base.log "Sent %S received %S" str strstr;
+                 Lwt.return ()
+               with Exception_on_server str ->
+                 Eliom_testsuite_base.log "Exception on server: %s" str;
+                 Lwt.return ())
        }} in
        Lwt.return Html5.F.([
          Eliom_testsuite_base.thebutton ~msg:"send" onclick;

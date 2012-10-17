@@ -29,6 +29,8 @@ include (Eliom_lib_base : module type of Eliom_lib_base
 
 exception False
 
+exception Exception_on_server of string
+
 type 'a client_value = 'a
 
 (*****************************************************************************)

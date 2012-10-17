@@ -318,7 +318,13 @@ Example:
 }}
 >>
 
-Note that exceptions are not handled remotly, because you it is not possible to
-marshal them.
+Exceptions raised in the server-side function cannot be handled
+directly on the client (because it's impossible to marshal them in
+OCaml to send it to the client).  Instead, if an exception is raised
+(in Lwt) in the server function, the function application fails (in
+Lwt) on the client with the exception <<a_api
+subproject=client|exception Eliom_lib.Exception_on_server>> whose
+argument describes the original exception (according to
+{{{Printexc.to_string}}}).
 
 

@@ -10,9 +10,13 @@ type ('a, 'b) server_function = 'a -> 'b Lwt.t
 
 let call_server_function : ('a, 'b) server_function_service -> 'a -> 'b Lwt.t =
   fun sfs argument ->
-    Eliom_client.call_caml_service
-      ~service:(sfs :> (_, _, Eliom_service.service_kind, _, _, _, _, _) Eliom_service.service)
-      () argument
+    match_lwt
+      Eliom_client.call_caml_service
+        ~service:(sfs :> (_, _, Eliom_service.service_kind, _, _, _, _, _) Eliom_service.service)
+        () argument
+    with
+      | `Success res -> Lwt.return res
+      | `Failure str -> Lwt.fail (Exception_on_server str)
 
 let () =
   Eliom_unwrap.register_unwrapper

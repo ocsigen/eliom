@@ -40,6 +40,16 @@ type 'a client_value = 'a
 
 exception Eliom_Internal_Error of string
 
+(** This exception is raised (in Lwt) on the client if a call to a
+    server function {% <<a_api subproject="server"|val
+    Eliom_pervasives.server_function>> %} fails (in Lwt) on the server
+    side.
+
+    The argument describes the original exception by
+    {{{Printexc.to_string}}}.
+*)
+exception Exception_on_server of string
+
 type file_info
 
 val to_json : ?typ:'a -> 'b -> string

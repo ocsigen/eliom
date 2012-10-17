@@ -41,6 +41,7 @@ type ('a, 'b) server_function
     See also th {% <<a_manual chapter="client-communication"
     fragment="rpc"|manual>> %}.
 *)
+(* BBB This is not in Eliom_service because it depends on Eliom_registration *)
 val server_function :
   ?scope:[< Eliom_common.scope ] ->
   ?options:unit ->
