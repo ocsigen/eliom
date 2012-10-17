@@ -68,7 +68,7 @@ let compile_server_eliom ~mode file =
   let opt = ["pa_eliom_client_server.cmo"; "-notype"] @ !ppopt @ [impl_intf_opt mode] in
   if !do_dump then begin
     let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: opt @ [file]) in
-    create_process camlp4 ppopt;
+    ignore (create_process camlp4 ppopt);
     exit 0
   end;
   create_filter
@@ -86,7 +86,7 @@ let compile_client_eliom ~mode file =
   let ppopt = ["pa_eliom_client_client.cmo"; "-notype"] @ !ppopt @ [impl_intf_opt mode] in
   if !do_dump then begin
     let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopt @ [file]) in
-    create_process camlp4 ppopt;
+    ignore (create_process camlp4 ppopt);
     exit 0
   end;
   create_filter !compiler ( "-pp" :: get_pp ppopt :: eliom_synonyms @ !args
@@ -132,11 +132,11 @@ let rec process_option () =
       i := !i+1
     | "-intf" ->
       if !i+1 >= Array.length Sys.argv then usage ();
-      compile_intf Sys.argv.(!i+1);
+      compile_eliom ~mode:`Intf Sys.argv.(!i+1);
       i := !i+2
     | "-impl" ->
       if !i+1 >= Array.length Sys.argv then usage ();
-      compile_eliom Sys.argv.(!i+1);
+      compile_eliom ~mode:`Impl Sys.argv.(!i+1);
       i := !i+2
     | arg when Filename.check_suffix arg ".mli" ->
       compile_intf arg; incr i
