@@ -34,7 +34,8 @@ open Ocsigen_extensions
 
 (** {3 Closing sessions, removing state data and services} *)
 
-(** Delete server-side state data and services for a session,
+(** Delete server-side (vatile and persistent) state data and services
+    for a session,
     a group of sessions, a client process or a request.
 
     Use that function to close a session (using scope [Eliom_common.session]).
@@ -53,6 +54,8 @@ val discard :
   unit ->
   unit Lwt.t
 
+(* Discard services and (volatile and persistent) data
+   for all user and request scopes *)
 val discard_all_scopes :
   ?secure:bool ->
   unit ->
@@ -183,7 +186,8 @@ val set_service_session_group :
   string ->
   unit
 
-(** Remove the session from its group *)
+(** Remove the session from its group.
+    Will not close the session if it contains data. *)
 val unset_service_session_group :
   ?set_max: int ->
   ?scope:Eliom_common.session_scope ->
@@ -223,7 +227,8 @@ val set_volatile_data_session_group :
   string ->
   unit
 
-(** Remove the session from its group *)
+(** Remove the session from its group.
+    Will not close the session if it contains data. *)
 val unset_volatile_data_session_group :
   ?set_max: int ->
   ?scope:Eliom_common.session_scope ->
@@ -264,7 +269,8 @@ val set_persistent_data_session_group :
   string ->
   unit Lwt.t
 
-(** Remove the session from its group. *)
+(** Remove the session from its group.
+    Will not close the session if it contains data. *)
 val unset_persistent_data_session_group :
   ?scope:Eliom_common.session_scope ->
   ?secure:bool ->
@@ -759,7 +765,7 @@ module Ext : sig
     ([< `Session ], [< `Pers ]) state Lwt.t
 
   (** Same for services *)
-  val current_service_session_state : 
+  val current_service_session_state :
     ?secure:bool ->
     ?scope:Eliom_common.session_scope ->
     unit ->
@@ -771,27 +777,27 @@ module Ext : sig
   (** Fold all sessions in a groups, or all client processes in a session. *)
   val fold_volatile_sub_states :
     state : ([< `Session_group | `Session ],
-             [< `Data | `Service ] as 'k) state -> 
+             [< `Data | `Service ] as 'k) state ->
     ('a -> ([< `Session | `Client_process ], 'k) state -> 'a) ->
     'a -> 'a
 
   (** Iter on all sessions in a groups, or all client processes in a session. *)
   val iter_volatile_sub_states :
     state: ([< `Session_group | `Session ],
-            [< `Data | `Service ] as 'k) state -> 
+            [< `Data | `Service ] as 'k) state ->
     (([< `Session | `Client_process ], 'k) state -> unit) ->
     unit
 
   (** Fold all sessions in a groups, or all client processes in a session. *)
   val fold_sub_states :
     state : ([< `Session_group | `Session ],
-             [< `Data | `Pers | `Service ] as 'k) state -> 
+             [< `Data | `Pers | `Service ] as 'k) state ->
     ('a -> ([< `Session | `Client_process ], 'k) state -> 'a Lwt.t) ->
     'a -> 'a Lwt.t
 
   (** Iter on all sessions in a groups, or all client processes in a session. *)
   val iter_sub_states :
-    state: ([< `Session_group | `Session ], 'k) state -> 
+    state: ([< `Session_group | `Session ], 'k) state ->
     (([< `Session | `Client_process ], 'k) state -> unit Lwt.t) ->
     unit Lwt.t
 
@@ -805,7 +811,7 @@ module Ext : sig
              [< `Data ]) state ->
       table:'a volatile_table ->
       'a
-        
+
     (** Fails with lwt exception [Not_found]
         if no data in the table for the cookie. *)
     val get_persistent_data :
@@ -813,13 +819,13 @@ module Ext : sig
              [< `Pers ]) state ->
       table:'a persistent_table ->
       'a Lwt.t
-        
+
     val set_volatile_data :
       state:([< `Session_group | `Session | `Client_process ],
              [< `Data ]) state ->
       table:'a volatile_table ->
       'a -> unit
-        
+
     (** Fails with lwt exception [Not_found]
         if no data in the table for the cookie. *)
     val set_persistent_data :
@@ -827,7 +833,7 @@ module Ext : sig
              [< `Pers ]) state ->
       table:'a persistent_table ->
       'a -> unit Lwt.t
-        
+
     val remove_volatile_data :
       state:([< `Session_group | `Session | `Client_process ],
              [< `Data ]) state ->
@@ -835,7 +841,7 @@ module Ext : sig
 
     val remove_persistent_data :
       state:([< `Session_group | `Session | `Client_process ],
-             [< `Pers ]) state -> 
+             [< `Pers ]) state ->
       table:'a persistent_table -> unit Lwt.t
 
   end
@@ -843,10 +849,10 @@ module Ext : sig
   (** Get the infomration about cookies (timeouts, etc.) *)
   val get_service_cookie_info :
     ([< Eliom_common.cookie_level ], [ `Service ]) state -> service_cookie_info
-    
+
   val get_volatile_data_cookie_info :
     ([< Eliom_common.cookie_level ], [ `Data ]) state -> data_cookie_info
-    
+
   val get_persistent_cookie_info :
     ([< Eliom_common.cookie_level ], [ `Pers ]) state ->
     persistent_cookie_info Lwt.t
@@ -857,23 +863,23 @@ module Ext : sig
     Eliom_common.user_scope
   val get_persistent_data_cookie_scope :
     cookie:persistent_cookie_info -> Eliom_common.user_scope
-    
+
   val set_service_cookie_timeout :
     cookie:service_cookie_info -> float option -> unit
   val set_volatile_data_cookie_timeout :
     cookie:data_cookie_info -> float option -> unit
   val set_persistent_data_cookie_timeout :
     cookie:persistent_cookie_info -> float option -> unit Lwt.t
-    
+
   val get_service_cookie_timeout :
     cookie:service_cookie_info -> timeout
-    
+
   val get_volatile_data_cookie_timeout :
     cookie:data_cookie_info -> timeout
-    
+
   val get_persistent_data_cookie_timeout :
     cookie:persistent_cookie_info -> timeout
-    
+
   val unset_service_cookie_timeout :
     cookie:service_cookie_info -> unit
   val unset_volatile_data_cookie_timeout :
@@ -1162,4 +1168,3 @@ val create_volatile_table_during_session_ :
   secure:bool ->
   Eliom_common.sitedata ->
   'a volatile_table
-

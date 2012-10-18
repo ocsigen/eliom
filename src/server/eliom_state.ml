@@ -1093,6 +1093,7 @@ let discard ~scope ?secure () =
     | #Eliom_common.user_scope as scope ->
       discard_services ~scope:(scope:>[< Eliom_common.user_scope ]) ?secure ();
       discard_data ~scope:(scope:>[< Eliom_common.user_scope ]) ?secure ()
+(* will close volatile and persistent sessions for one scope *)
 
 let discard_all_scopes ?secure () =
   let discard_name scope_hierarchy =
@@ -1100,6 +1101,7 @@ let discard_all_scopes ?secure () =
     lwt () = discard ?secure ~scope:(`Session scope_hierarchy) () in
     discard ?secure ~scope:(`Client_process scope_hierarchy) ()
   in
+  discard_request_data ();
   Lwt_list.iter_p discard_name (Eliom_common.list_scope_hierarchies ())
 
 let discard_all_volatile_data ~scope ?(secure = false) () =
@@ -1142,6 +1144,7 @@ let discard_everything () =
     lwt () = discard_all ~scope:(`Session scope_hierarchy) () in
     discard_all ~scope:(`Client_process scope_hierarchy) ()
   in
+  discard_request_data ();
   Lwt_list.iter_p discard_name (Eliom_common.list_scope_hierarchies ())
 
 
@@ -1203,11 +1206,11 @@ module Ext = struct
   let persistent_data_group_state
       ?(scope = Eliom_common.default_group_scope) group_name =
     ((scope :> Eliom_common.user_scope), `Pers, group_name)
-      
+
   let service_group_state
       ?(scope = Eliom_common.default_group_scope) group_name =
     ((scope :> Eliom_common.user_scope), `Service, group_name)
-      
+
   let current_volatile_session_state
       ?secure ?(scope = Eliom_common.default_session_scope) () =
     let cookie = Eliommod_datasess.find_data_cookie_only
@@ -1280,7 +1283,7 @@ module Ext = struct
         Eliommod_sessiongroups.Serv.remove sgrnode;
         Lwt.return ()
       | (_, `Data, cookie) ->
-        let (_, (_, _, _, _sgr, sgrnode)) = 
+        let (_, (_, _, _, _sgr, sgrnode)) =
           get_volatile_data_cookie_info state in
         Eliommod_sessiongroups.Data.remove sgrnode;
         Lwt.return ()
@@ -1341,7 +1344,7 @@ module Ext = struct
       fold_sub_states_aux_aux ~state:state' f
     in
     fold_sub_states_aux Ocsigen_cache.Dlist.fold Ocsigen_lib.id a e state
-    
+
   let fold_sub_states ~state f e =
     let (sitedata, sub_states_level, id, f) as a =
       fold_sub_states_aux_aux ~state f
@@ -1358,16 +1361,16 @@ module Ext = struct
 
   let iter_volatile_sub_states ~state f =
     fold_volatile_sub_states ~state (fun () -> f) ()
-    
+
   let iter_sub_states ~state f =
     fold_sub_states ~state (fun () -> f) ()
-    
+
 
   module Low_level = struct
 
     (* We have a dynamic scope checking here.
        Would probably be possible to use phantom types again to check this
-       statically. I don't want to make the types more complex for now. 
+       statically. I don't want to make the types more complex for now.
        -- Vincent
     *)
 
@@ -1383,7 +1386,7 @@ module Ext = struct
       match s with
         | `Session_group _ -> ()
         | _ -> failwith "wrong scope"
-      
+
     let lwt_check_group_scope a =
       try check_group_scope a; Lwt.return ()
       with e -> Lwt.fail e
@@ -1395,7 +1398,7 @@ module Ext = struct
         ~table:(table_scope, secure, t : 'a volatile_table) =
       check_scopes table_scope state_scope;
       Eliom_common.SessionCookies.find t cookie
-        
+
     let get_persistent_data
         ~state:((state_scope, _, cookie) : ('s, [ `Pers ]) state)
         ~table:(table_scope, _, t : 'a persistent_table) =
@@ -1408,7 +1411,7 @@ module Ext = struct
         value =
       check_scopes table_scope state_scope;
       Eliom_common.SessionCookies.replace t cookie value
-        
+
     let set_persistent_data
         ~state:((state_scope, _, cookie) : ('s, [ `Pers ]) state)
         ~table:(table_scope, _, t : 'a persistent_table)
@@ -1421,7 +1424,7 @@ module Ext = struct
         ~table:(table_scope, _, t : 'a volatile_table) =
       check_scopes table_scope state_scope;
       Eliom_common.SessionCookies.remove t cookie
-        
+
     let remove_persistent_data
         ~state:((state_scope, _, cookie) : ('s, [ `Pers ]) state)
         ~table:(table_scope, _, t : 'a persistent_table) =
@@ -1494,7 +1497,7 @@ module Ext = struct
         | _ -> l)
       []
       dl
-    
+
 
   (** Iterator on service cookies *)
   let iter_service_cookies = Eliommod_sessexpl.iter_service_cookies
