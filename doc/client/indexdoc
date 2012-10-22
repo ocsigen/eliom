@@ -1,6 +1,7 @@
 {1 Eliom client API}
 
 {!modules:
+Eliom_pervasives
 Eliom_lib
 Eliom_client
 }
@@ -19,6 +20,7 @@ Eliom_content.Xml
 Eliom_service
 Eliom_bus
 Eliom_comet
+Eliom_react
 }
 
 {2 Index}

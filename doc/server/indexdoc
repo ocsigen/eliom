@@ -1,6 +1,7 @@
 {1 Server API}
 
 {!modules:
+Eliom_pervasives
 Eliom_lib
 Eliom_common
 Eliom_config
@@ -12,9 +13,11 @@ Eliom_state
 {2 Content and form creation}
 
 {!modules:
+Eliom_content
 Eliom_content.Html5
 Eliom_content.Svg
 Eliom_content.Xml
+Eliom_tools
 }
 
 {2 Services creation}
@@ -27,6 +30,9 @@ Eliom_registration.Html5
 Eliom_registration.Action
 Eliom_registration.Ocaml
 Eliom_registration.App
+Eliom_registration.File
+Eliom_registration.Any
+Eliom_registration.Redirection
 }
 
 {2 Client/server communication}
