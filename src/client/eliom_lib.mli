@@ -46,7 +46,7 @@ exception Eliom_Internal_Error of string
     side.
 
     The argument describes the original exception by
-    {{{Printexc.to_string}}}.
+    {!Printexc.to_string}.
 *)
 exception Exception_on_server of string
 
