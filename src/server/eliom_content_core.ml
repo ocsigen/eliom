@@ -247,8 +247,9 @@ module Html5 = struct
 
   module D = struct
 
-    module Raw = Html5_f.Make(struct
-      include Xml
+    (* This is [Eliom_content.Xml] adapted such that request nodes are produced *)
+    module Xml' = struct
+      include Eliom_xml
 
       let make elt = make_request_node (make elt)
       let make_lazy elt = make_request_node (make_lazy elt)
@@ -265,7 +266,9 @@ module Html5 = struct
       let lazy_node ?(a = []) name children =
         make_lazy (Eliom_lazy.from_fun (fun () -> (Node (name, a, Eliom_lazy.force children))))
 
-    end)(Svg.D)
+    end
+
+    module Raw = Html5_f.Make(Xml')(Svg.D)
 
     include Raw
 
@@ -273,7 +276,7 @@ module Html5 = struct
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     let lazy_form ?(a = []) elt1 elts =
-      tot (Eliom_xml.lazy_node ~a:(to_xmlattribs a) "form"
+      tot (Xml'.lazy_node ~a:(to_xmlattribs a) "form"
              (Eliom_lazy.from_fun
                 (fun () ->
                   toelt (Eliom_lazy.force elt1)
