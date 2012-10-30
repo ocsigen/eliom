@@ -1098,6 +1098,10 @@ let rebuild_rattrib node ra = match Xml.racontent ra with
       node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat "," l))
 
 let rec rebuild_node elt =
+  trace "Rebuild node %s" (Eliom_content_core.Xml.string_of_node_id (Xml.get_node_id elt));
+  if is_before_initial_load () then
+    Eliom_lib.error "Cannot rebuild node (%s) before the document is initially loaded"
+      (Eliom_content_core.Xml.string_of_node_id (Xml.get_node_id elt));
   match Xml.get_node elt with
   | Xml.DomNode node ->
       (* assert (Xml.get_node_id node <> NoId); *)
