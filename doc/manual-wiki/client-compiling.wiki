@@ -108,8 +108,8 @@ chapter="eliomc"|language extensions in Eliom>>.  To investigate this
 in more detail, it is advisable to dump the source code for the server
 or client program with with ##eliomc -c -infer## or ##js_of_eliom -c
 -infer## respectively, and to refer to the API of the generated
-functions in ##Eliom_service.Syntax_helpers## on the server and
-##Eliom_client.Syntax_helpers## on the client.
+functions in ##Eliom_service.Syntax_helpers## on the server
+and ##Eliom_client.Syntax_helpers## on the client.
 
 === Client values
 
@@ -117,7 +117,7 @@ For each occurrence of a client value ##{typ{ exp }}## with injected
 variables ##v_1##, ..., ##v_n## in the source code, i.e. static
 occurrence, at a location ##p##, the syntax extension registers
 with ##p## as the closure ID a function
-    
+
 <<code language="ocaml"|
        fun (v'_1, ..., v'_n) -> exp'
 >>
@@ -145,7 +145,7 @@ value by looking it up in the client value table mentioned before.
 
 
 === Injection
-    
+
 The usage of an injection registers the value under a specific
 identifier on the server side. All injections are sent to the client
 with the initial request as a table mapping those identifiers to
@@ -159,4 +159,3 @@ unwrapped late.
 The syntax extensions then generates for an injection just a lookup in
 that global table for its identifer. Type constraints are generated
 from the syntax extension.
-
