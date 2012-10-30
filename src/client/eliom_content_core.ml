@@ -127,6 +127,11 @@ module Xml = struct
       | TyXMLNode econtent ->
           { elt with elt = Lazy.lazy_from_val (TyXMLNode (set_classes elt.node_id econtent)) }
 
+  let string_of_node_id = function
+    | NoId -> "NoId"
+    | ProcessId s -> "ProcessId "^s
+    | RequestId s -> "RequestId "^s
+
 end
 
 module X = Xml

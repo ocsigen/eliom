@@ -109,6 +109,7 @@ module Xml : sig
     | NoId
     | ProcessId of string
     | RequestId of string
+  val string_of_node_id : node_id -> string
   val make : ?id:node_id -> econtent -> elt
   val make_dom : ?id:node_id -> Dom.node Js.t -> elt
   val make_lazy : ?id:node_id -> elt lazy_t -> elt
