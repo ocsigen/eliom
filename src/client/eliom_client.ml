@@ -106,7 +106,13 @@ end = struct
 
   let initialize {closure_id; instance_id; args} =
     trace "Initialize client value %Ld/%d" closure_id instance_id;
-    let closure = Client_closure.find ~closure_id in
+    let closure =
+      try
+        Client_closure.find ~closure_id
+      with Not_found ->
+        Eliom_lib.error "Client closure %Ld not found (is the module linked on the client?)"
+          closure_id
+    in
     let value = closure args in
     Eliom_unwrap.late_unwrap_value
       (Eliom_unwrap.id_of_int Eliom_lib_base.client_value_unwrap_id_int)
