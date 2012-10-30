@@ -66,7 +66,7 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     let add orig_expr gen_id =
       let _loc = Ast.loc_of_expr orig_expr in
       if List.for_all (function gen_id', _ -> gen_id' <> gen_id) !typing_strs then
-        typing_strs := (gen_id, <:str_item< let $lid:gen_id$ = ref None >>) :: !typing_strs
+        typing_strs := (gen_id, <:str_item< let $lid:gen_id$ = Pervasives.ref None >>) :: !typing_strs
     in
     let flush () =
       let res = List.map snd !typing_strs in
