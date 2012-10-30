@@ -250,8 +250,18 @@ let register_request_node, find_request_node, reset_request_nodes =
 let current_uri =
   ref (fst (Url.split_fragment (Js.to_string Dom_html.window##location##href)))
 
-(* == Postpone events until the page is fully loaded. e.g. after the
-      end of the page's onload event handlers. *)
+(* [is_before_initial_load] tests whether it is executed before the
+   loading of the initial document, e.g. during the initialization of the
+   (OCaml) module, i.e. before [Eliom_client_main.onload]. *)
+let is_before_initial_load, set_initial_load =
+  let before_load = ref true in
+  (fun () -> !before_load),
+  (fun () -> before_load := false)
+
+(* == Organize the phase of loading or change_page
+
+   In the following functions, onload referers the initial loading phase
+   *and* to the phange_page phase. *)
 
 let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
   let loading_phase = ref true in

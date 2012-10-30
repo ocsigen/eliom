@@ -26,6 +26,7 @@ let js_data =
 
 let onload ev =
   trace "onload (client main)";
+  Eliom_client.set_initial_load ();
   Lwt.async
     (fun () ->
       if !Eliom_config.debug_timings then

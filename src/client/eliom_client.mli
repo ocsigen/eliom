@@ -128,11 +128,9 @@ val onunload : (unit -> unit) -> unit
 val wait_load_end : unit -> unit Lwt.t
 
 (**/**)
-(** true if the function is executed inside the loading phase *)
+(* Documentation rather in eliom_client.ml *)
 val in_onload : unit -> bool
-
 val run_callbacks : (unit -> unit) list -> unit
-
 val broadcast_load_end : unit -> unit
 val flush_onload : unit -> (unit -> unit) list
 val relink_request_nodes : Dom_html.htmlElement Js.t -> unit
@@ -141,6 +139,7 @@ val force_unwrapped_elts : unit -> unit
 val do_request_data : request_data -> unit
 val relink_page_but_closure_nodes : Dom_html.element Js.t -> Dom_html.element Dom.nodeList Js.t
 val leave_page : unit -> unit
+val set_initial_load : unit -> unit
 
 val relink_closure_nodes :
   Dom_html.element Js.t ->
