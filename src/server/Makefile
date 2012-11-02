@@ -81,7 +81,6 @@ FILES := eliom_wrap.ml eliom_lazy.ml \
 	 eliom_tools.ml \
 	 eliom_react.ml \
 	 eliom_bus.ml \
-	 eliom_compatibility_2_1.ml \
 	 extensions/eliom_s2s.ml extensions/eliom_openid.ml \
 	 extensions/atom_feed.ml extensions/eliom_atom.ml \
 	 eliom_pervasives_base.ml \

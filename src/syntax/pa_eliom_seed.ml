@@ -241,8 +241,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
       let is_client_value_type = function
         | <:ctyp< $typ$ Eliom_lib.client_value >>
-        | <:ctyp< $typ$ Eliom_pervasives.client_value >>
-        | <:ctyp< $typ$ Eliom_compatibility_2_1.Eliom_pervasives.client_value >> ->
+        | <:ctyp< $typ$ Eliom_pervasives.client_value >> ->
             Some typ
         | _ -> None
 

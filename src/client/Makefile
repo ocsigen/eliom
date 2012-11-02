@@ -54,7 +54,6 @@ FILES := private/eliommod_jstable.ml \
 	 eliom_client.ml eliom_content.ml \
 	 eliom_registration.ml \
 	 eliom_comet_base.ml eliom_comet.ml \
-	 eliom_compatibility_2_1.ml \
 	 eliom_bus.ml \
 	 eliom_react.ml \
 	 eliom_pervasives_base.ml \

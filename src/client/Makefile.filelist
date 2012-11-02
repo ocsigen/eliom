@@ -13,12 +13,11 @@ INTF := eliom_lazy.cmi              \
         eliom_react.cmi             \
         eliom_bus.cmi               \
         eliom_unwrap.cmi            \
-        eliom_compatibility_2_1.cmi \
                                     \
         eliom_client.cmi            \
         eliom_pervasives.cmi        \
 
-NO_MLI := eliom_compatibility_2_1.cmi eliom_pervasives_base.cmi
+NO_MLI := eliom_pervasives_base.cmi
 
 IMPL := ${PROJECTNAME}_client.cma      \
         ${PROJECTNAME}_client_main.cmo \
