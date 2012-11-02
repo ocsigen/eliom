@@ -1,28 +1,29 @@
-open Eliom_compatibility_2_1
+
 let (>>=) = Lwt.(>>=)
 let (>|=) = Lwt.(>|=)
 
-open HTML5.M
-open Eliom_output.Html5
+open Eliom_lib
+open Eliom_content
+open Html5.F
 
 open Eliom_testsuite1
 open Eliom_testsuite2
 open Eliom_testsuite3
 
 (* Main page for the test suite *)
-let _ = Eliom_output.Html5.register Eliom_testsuite_base.main
+let _ = Eliom_registration.Html5.register Eliom_testsuite_base.main
   (fun () () ->
     Lwt.return
      (html
        (head
           (title (pcdata "Examples from the manual"))
-          [Eliom_output.Html5.css_link 
-              (Eliom_output.Html5.make_uri
+          [Html5.F.css_link
+              (Html5.F.make_uri
                  ~service:(Eliom_service.static_dir ()) ["style.css"]) ()])
        (body
           [
             h1 [img ~alt:"Ocsigen"
-                   ~src:(Eliom_output.Html5.make_uri
+                   ~src:(Html5.F.make_uri
                            ~service:(Eliom_service.static_dir ()) ["ocsigen5.png"]) ()];
 
             Eliom_testsuite_base.testsuite ~name:"Test suite 4" Eliom_testsuite4.tests;
@@ -554,4 +555,3 @@ let _ = Eliom_output.Html5.register Eliom_testsuite_base.main
           ])))
 
 (* *zap*)
-

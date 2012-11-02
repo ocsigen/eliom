@@ -1,24 +1,26 @@
 
 (*****************************************************************************)
 (** References of scope site *)
-open Eliom_compatibility_2_1
+
+open Eliom_content
+open Eliom_lib
 
 let reference_scope_site =
   let action =
-    Eliom_output.Action.register_post_coservice'
+    Eliom_registration.Action.register_post_coservice'
       ~post_params:(Eliom_parameter.string "v")
       (fun () v ->
          lwt () = Eliom_reference.set Eliom_testsuite_global.eref (Some v) in
          Eliom_reference.set Eliom_testsuite_global.eref' (Some v))
   in
-  Eliom_output.Html5.register_service
+  Eliom_registration.Html5.register_service
     ~path:["reference_scope_site"]
     ~get_params:Eliom_parameter.unit
     (fun () () ->
-       let show = function None -> HTML5.DOM.entity "#x2012" | Some str -> HTML5.pcdata str in
+       let show = function None -> Html5.D.entity "#x2012" | Some str -> Html5.D.pcdata str in
        lwt v = Lwt.map show (Eliom_reference.get Eliom_testsuite_global.eref) in
        lwt v' = Lwt.map show (Eliom_reference.get Eliom_testsuite_global.eref') in
-       Lwt.return HTML5.(
+       Lwt.return Html5.D.(
          html
            (head (title (pcdata "")) [])
            (body [
@@ -32,12 +34,10 @@ let reference_scope_site =
                pcdata ", persistent "; i [v'];
              ];
              pcdata "Enter a new string for both references";
-             Eliom_output.Html5.post_form
+             Html5.D.post_form
                ~service:action
                (fun name ->
-                  [Eliom_output.Html5.string_input ~input_type:`Text ~name ()])
+                  [Html5.D.string_input ~input_type:`Text ~name ()])
                ()
            ])
        ))
-
-

@@ -16,8 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_compatibility_2_1
 
+open Eliom_lib
+open Eliom_content
 open Eliom_service
 open Eliom_parameter
 open Eliom_state
@@ -118,5 +119,3 @@ let blocks =
     (fun () () ->
       return
         ({: [ <h1> "This page has been type checked by OcamlDuce"] :} ))
-
-

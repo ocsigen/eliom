@@ -3,14 +3,15 @@
    Take the code in the manual, not here! (and remove duplicates here) *)
 (* TODO: include some missing parts in the manual *)
 
-open Eliom_compatibility_2_1
+open Eliom_lib
+open Eliom_content
 open Lwt
-open HTML5.M
+open Html5.F
 open Ocsigen_cookies
 open Eliom_service
 open Eliom_parameter
 open Eliom_state
-open Eliom_output.Html5
+open Eliom_registration.Html5
 
 let coucou =
   register_service
@@ -62,19 +63,19 @@ let coucou1_xthml =
 
  *)
 let coucoutext =
-  Eliom_output.HtmlText.register_service
+  Eliom_registration.Html_text.register_service
     ~path:["coucoutext"]
     ~get_params:Eliom_parameter.unit
     (fun () () ->
       return
         ("<html>n'importe quoi "^
-         (Eliom_output.HtmlText.a coucou "clic" ())^
+         (Eliom_content.Html_text.a coucou "clic" ())^
          "</html>"))
 (*wiki*
-          
+
         Page generation may have side-effects:
-      
-          
+
+
 
 *wiki*)
 let count =
@@ -109,7 +110,7 @@ let hello =
 The following example shows how to define the default page for
 a directory. (Note that %<span class="code"|["rep";""]>% means
 the default page of the directory %<span class="code"|rep/>%)
-          
+
 *wiki*)
 let default = register_service ["rep";""] unit
   (fun () () ->
@@ -140,7 +141,7 @@ let coucou_params = register_service
  *zap*)
 (*wiki*
 
-          
+
 
 *wiki*)
 let uasuffix =
@@ -178,7 +179,7 @@ let isuffix =
                pcdata " and i is equal to ";
                strong [pcdata (string_of_int i)]]])))
 (*wiki*
-          
+
 
   *wiki*)
 let constfix =
@@ -194,7 +195,7 @@ let constfix =
                  p [pcdata ("Parameters are "^s1^" and "^s2)]])))
 (*wiki*
 
-          
+
 *wiki*)
 type mysum = A | B
 let mysum_of_string = function
@@ -206,7 +207,7 @@ let string_of_mysum = function
   | B -> "B"
 
 let mytype =
-  Eliom_output.Html5.register_service
+  Eliom_registration.Html5.register_service
     ~path:["mytype"]
     ~get_params:
       (Eliom_parameter.user_type mysum_of_string string_of_mysum "valeur")
@@ -218,7 +219,7 @@ let mytype =
          (body [p [pcdata (v^" is valid. Now try with another value.")]])))
 (*wiki*
 
-          
+
 *wiki*)
 let raw_serv =
   register_service
@@ -260,7 +261,7 @@ let catch = register_service
            (body [p [pcdata ("i is an integer: "^v)]])))
 (*wiki*
 
-          
+
 *wiki*)
 let links = register_service ["rep";"links"] unit
  (fun () () ->
@@ -269,17 +270,17 @@ let links = register_service ["rep";"links"] unit
      (head (title (pcdata "Links")) [])
      (body
        [p
-        [Eliom_output.Html5.a coucou [pcdata "coucou"] (); br ();
-         Eliom_output.Html5.a hello [pcdata "hello"] (); br ();
-         Eliom_output.Html5.a default
+        [Html5.D.a coucou [pcdata "coucou"] (); br ();
+         Html5.D.a hello [pcdata "hello"] (); br ();
+         Html5.D.a default
            [pcdata "default page of the dir"] (); br ();
-         Eliom_output.Html5.a uasuffix
+         Html5.D.a uasuffix
            [pcdata "uasuffix"] (2007,06); br ();
-         Eliom_output.Html5.a coucou_params
+         Html5.D.a coucou_params
            [pcdata "coucou_params"] (42,(22,"ciao")); br ();
-         Eliom_output.Html5.a raw_serv
+         Html5.D.a raw_serv
            [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
-         Eliom_output.Html5.a
+         Html5.D.a
            (external_service
               ~prefix:"http://fr.wikipedia.org"
               ~path:["wiki";""]
@@ -287,8 +288,8 @@ let links = register_service ["rep";"links"] unit
               ())
            [pcdata "OCaml on wikipedia"]
            ["OCaml"]; br ();
-         HTML5.M.a
-           ~a:[a_href (XML.uri_of_string "http://en.wikipedia.org/wiki/OCaml")]
+         Html5.F.Raw.a
+           ~a:[a_href (Xml.uri_of_string "http://en.wikipedia.org/wiki/OCaml")]
            [pcdata "OCaml on wikipedia"]
        ]])))
 (*zap*
@@ -297,12 +298,12 @@ let links = register_service ["rep";"links"] unit
 *zap*)
 (*wiki*
 
-          
+
 
 *wiki*)
 let linkrec = Eliom_service.service ["linkrec"] unit ()
 
-let _ = Eliom_output.Html5.register linkrec
+let _ = Eliom_registration.Html5.register linkrec
     (fun () () ->
       return
        (html
@@ -318,22 +319,22 @@ let essai =
 *zap*)
 (*zap* pour les reload : le serveur ne s'éteint pas mais ajoute un message sur les services non enregistrés dans son log *zap*)
 (*wiki*
-      
-          
+
+
 *wiki*)
 let create_form =
   (fun (number_name, (number2_name, string_name)) ->
     [p [pcdata "Write an int: ";
-        Eliom_output.Html5.int_input ~input_type:`Text ~name:number_name ();
+        Html5.D.int_input ~input_type:`Text ~name:number_name ();
         pcdata "Write another int: ";
-        Eliom_output.Html5.int_input ~input_type:`Text ~name:number2_name ();
+        Html5.D.int_input ~input_type:`Text ~name:number2_name ();
         pcdata "Write a string: ";
-        Eliom_output.Html5.string_input ~input_type:`Text ~name:string_name ();
-        Eliom_output.Html5.string_input ~input_type:`Submit ~value:"Click" ()]])
+        Html5.D.string_input ~input_type:`Text ~name:string_name ();
+        Html5.D.string_input ~input_type:`Submit ~value:"Click" ()]])
 
 let form = register_service ["form"] unit
   (fun () () ->
-     let f = Eliom_output.Html5.get_form coucou_params create_form in
+     let f = Html5.D.get_form coucou_params create_form in
      return
        (html
          (head (title (pcdata "")) [])
@@ -350,18 +351,18 @@ let raw_form = register_service
            (head (title (pcdata "")) [])
            (body
               [h1 [pcdata "Any Form"];
-               Eliom_output.Html5.get_form raw_serv
+               Html5.D.get_form raw_serv
                  (fun () ->
                    [p [pcdata "Form to raw_serv: ";
-                       Eliom_output.Html5.raw_input ~input_type:`Text ~name:"plop" ();
-                       Eliom_output.Html5.raw_input ~input_type:`Text ~name:"plip" ();
-                       Eliom_output.Html5.raw_input ~input_type:`Text ~name:"plap" ();
-                       Eliom_output.Html5.string_input ~input_type:`Submit ~value:"Click" ()]])
+                       Html5.D.raw_input ~input_type:`Text ~name:"plop" ();
+                       Html5.D.raw_input ~input_type:`Text ~name:"plip" ();
+                       Html5.D.raw_input ~input_type:`Text ~name:"plap" ();
+                       Html5.D.string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
 (*wiki*
 
-          
-          
+
+
 *wiki*)
 let no_post_param_service =
   register_service
@@ -387,9 +388,9 @@ let my_service_with_post_params =
 
 
 
-          
+
 Services may take both GET and POST parameters:
-          
+
 
 *wiki*)
 let get_no_post_param_service =
@@ -422,7 +423,7 @@ POST forms
 let form2 = register_service ["form2"] unit
   (fun () () ->
      let f =
-       (Eliom_output.Html5.post_form my_service_with_post_params
+       (Html5.D.post_form my_service_with_post_params
           (fun chaine ->
             [p [pcdata "Write a string: ";
                 string_input ~input_type:`Text ~name:chaine ()]]) ()) in
@@ -435,7 +436,7 @@ let form3 = register_service ["form3"] unit
   (fun () () ->
      let module Html5 = Eliom_content.Html5.F in
      let f  =
-       (Eliom_output.Html5.post_form my_service_with_get_and_post
+       (Eliom_content.Html5.D.post_form my_service_with_get_and_post
           (fun chaine ->
             <:html5list< <p> Write a string:
                     $string_input ~input_type:`Text ~name:chaine ()$ </p> >>)
@@ -449,7 +450,7 @@ let form4 = register_service ["form4"] unit
   (fun () () ->
       let module Html5 = Eliom_content.Html5.F in
      let f  =
-       (Eliom_output.Html5.post_form
+       (Eliom_content.Html5.D.post_form
           (external_post_service
              ~prefix:"http://www.petizomverts.com"
              ~path:["zebulon"]
@@ -464,10 +465,10 @@ let form4 = register_service ["form4"] unit
         (head (title (pcdata "form")) [])
         (body [f])))
 (*wiki*
-          
+
 Lwt
-          
-          
+
+
 %<code language="ocaml"|let looong =
   register_service
     ~path:["looong"]
@@ -480,8 +481,8 @@ Lwt
           (body [h1 [pcdata "Ok now, you can read the page."]])))
 >%
 
-          
-          
+
+
 *wiki*)
 let looong =
   register_service
@@ -509,8 +510,8 @@ let looong2 =
           (body [h1 [pcdata
                    "Ok now, you can read the page."]])))
 (*wiki*
-          
-          
+
+
 *wiki*)
 (************************************************************)
 (************ Connection of users, version 1 ****************)
@@ -564,16 +565,16 @@ let session_data_example_handler _ _  =
            | Eliom_state.Data name ->
                p [pcdata ("Hello "^name);
                   br ();
-                  Eliom_output.Html5.a
+                  Html5.D.a
                     session_data_example_close
                     [pcdata "close session"] ()]
            | Eliom_state.Data_session_expired
            | Eliom_state.No_data ->
-               Eliom_output.Html5.post_form
+               Html5.D.post_form
                  session_data_example_with_post_params
                  (fun login ->
                    [p [pcdata "login: ";
-                       Eliom_output.Html5.string_input
+                       Html5.D.string_input
                          ~input_type:`Text ~name:login ()]]) ()
          ]))
 
@@ -590,7 +591,7 @@ let session_data_example_with_post_params_handler _ login =
        (body
           [p [pcdata ("Welcome " ^ login ^ ". You are now connected.");
               br ();
-              Eliom_output.Html5.a session_data_example
+              Html5.D.a session_data_example
                 [pcdata "Try again"] ()
             ]]))
 
@@ -610,18 +611,18 @@ let session_data_example_close_handler () () =
         | Eliom_state.Data_session_expired -> p [pcdata "Your session has expired."]
         | Eliom_state.No_data -> p [pcdata "You were not connected."]
         | Eliom_state.Data _ -> p [pcdata "You have been disconnected."]);
-        p [Eliom_output.Html5.a session_data_example [pcdata "Retry"] () ]]))
+        p [Html5.D.a session_data_example [pcdata "Retry"] () ]]))
 
 
 (* -------------------------------------------------------- *)
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_output.Html5.register
+  Eliom_registration.Html5.register
     session_data_example_close session_data_example_close_handler;
-  Eliom_output.Html5.register
+  Eliom_registration.Html5.register
     session_data_example session_data_example_handler;
-  Eliom_output.Html5.register
+  Eliom_registration.Html5.register
     session_data_example_with_post_params
     session_data_example_with_post_params_handler
 
@@ -672,7 +673,7 @@ let session_services_example_close =
 
 let session_services_example_handler () () =
   let f =
-    Eliom_output.Html5.post_form
+    Html5.D.post_form
       session_services_example_with_post_params
       (fun login ->
         [p [pcdata "login: ";
@@ -699,12 +700,12 @@ let session_services_example_close_handler () () =
 
 (*wiki*
 
-          
+
 When the page is called with login parameters,
        it runs the function %<span class="code"|launch_session>%
        that replaces some services already defined by new ones:
-    
-          
+
+
 
 *wiki*)
 (* ------------------------------------------------------------- *)
@@ -733,13 +734,13 @@ let launch_session () login =
 
   (* Now we register new versions of main services in the
      session service table: *)
-  Eliom_output.Html5.register ~scope:session
+  Eliom_registration.Html5.register ~scope:session
     ~service:session_services_example
     (* service is any public service already registered,
        here the main page of our site *)
     new_main_page;
 
-  Eliom_output.Html5.register ~scope:session
+  Eliom_registration.Html5.register ~scope:session
     ~service:coucou
     (fun () () ->
       return
@@ -749,7 +750,7 @@ let launch_session () login =
                    pcdata login;
                    pcdata "!"]])));
 
-  Eliom_output.Html5.register ~scope:session
+  Eliom_registration.Html5.register ~scope:session
     ~service:hello
     (fun () () ->
       return
@@ -765,13 +766,13 @@ let launch_session () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_output.Html5.register
+  Eliom_registration.Html5.register
     ~service:session_services_example
     session_services_example_handler;
-  Eliom_output.Html5.register
+  Eliom_registration.Html5.register
     ~service:session_services_example_close
     session_services_example_close_handler;
-  Eliom_output.Html5.register
+  Eliom_registration.Html5.register
     ~service:session_services_example_with_post_params
     launch_session
 (*zap* Registering for session during initialisation is forbidden:
@@ -784,7 +785,7 @@ let _ = register ~scope:`Session
 *zap*)
 (*wiki*
 
-          
+
 *wiki*)
 (************************************************************)
 (************** Coservices. Basic examples ******************)
@@ -819,13 +820,13 @@ let coservices_example_get =
 let _ =
   let c = ref 0 in
   let page () () =
-    let l3 = Eliom_output.Html5.post_form coservices_example_post
-        (fun _ -> [p [Eliom_output.Html5.string_input
+    let l3 = Html5.D.post_form coservices_example_post
+        (fun _ -> [p [Html5.D.string_input
                         ~input_type:`Submit
                         ~value:"incr i (post)" ()]]) ()
     in
-    let l4 = Eliom_output.Html5.get_form coservices_example_get
-        (fun _ -> [p [Eliom_output.Html5.string_input
+    let l4 = Html5.D.get_form coservices_example_get
+        (fun _ -> [p [Html5.D.string_input
                         ~input_type:`Submit
                         ~value:"incr i (get)" ()]])
     in
@@ -839,18 +840,18 @@ let _ =
               l3;
               l4]))
   in
-  Eliom_output.Html5.register coservices_example page;
+  Eliom_registration.Html5.register coservices_example page;
   let f () () = c := !c + 1; page () () in
-  Eliom_output.Html5.register coservices_example_post f;
-  Eliom_output.Html5.register coservices_example_get f
+  Eliom_registration.Html5.register coservices_example_post f;
+  Eliom_registration.Html5.register coservices_example_get f
 (*wiki*
 
-          
+
 
           %<div class="encadre"|
             ====URLs
-            
-            
+
+
 While designing a Web site, think carefully about the URLs you
           want to use. URLs are the entry points of your site. Think that
           they may be bookmarked. If you create a link, you want to go to
@@ -862,14 +863,14 @@ While designing a Web site, think carefully about the URLs you
           Sometimes, you want that clicking
           a link or submitting a form does something without changing the URL.
           You can do this using //non-attached coservices// (see below).
-          
-            
-      
+
+
+
           >%
           %<div class="encadre"|
             ====Continuations
-            
-            
+
+
 Eliom is using the concept of //continuation//.
         A continuation represents the future of a program (what to do after).
         When a user clicks on a link or a form, he chooses the future of the
@@ -879,29 +880,29 @@ Eliom is using the concept of //continuation//.
         [[http://www-spi.lip6.fr/%7Equeinnec/PDF/www.pdf| Christian Queinnec]],
         and are a big step in
         the understanding of Web interaction.
-            
 
-            
+
+
         Some programming languages (Scheme...) allow to manipulate
         continuations using //control operators// (like
         %<span class="code"|call/cc>%). The style of programming used by Eliom
         is closer to //Continuation Passing Style// (CPS), and has the
         advantage that it does not need control operators, and fits
         very well Web programming.
-        
-            
 
-            
+
+
+
 Coservices allow to create dynamically
 new continuations that depend on previous interactions with users
 ([[manual/dev/2#p2calc|See the %<span class="code"|calc>% example below]]).
 Such a behaviour is difficult to simulate with traditional Web
 programming.
-            
 
-      
+
+
           >%
-          
+
 *wiki*)
 (*zap* Queinnec example: *zap*)
 (************************************************************)
@@ -937,11 +938,11 @@ let calc_i =
 let calc_handler () () =
   let create_form intname =
     [p [pcdata "Write a number: ";
-        Eliom_output.Html5.int_input ~input_type:`Text ~name:intname ();
+        Html5.D.int_input ~input_type:`Text ~name:intname ();
         br ();
-        Eliom_output.Html5.string_input ~input_type:`Submit ~value:"Send" ()]]
+        Html5.D.string_input ~input_type:`Submit ~value:"Send" ()]]
   in
-  let f = Eliom_output.Html5.get_form calc_i create_form in
+  let f = Html5.D.get_form calc_i create_form in
   return
     (html
        (head (title (pcdata "")) [])
@@ -988,11 +989,11 @@ let calc_i_handler i () =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_output.Html5.register calc   calc_handler;
-  Eliom_output.Html5.register calc_i calc_i_handler
+  Eliom_registration.Html5.register calc   calc_handler;
+  Eliom_registration.Html5.register calc_i calc_i_handler
 (*wiki*
 
-          
+
 *wiki*)
 (************************************************************)
 (************ Connection of users, version 3 ****************)
@@ -1022,7 +1023,7 @@ let connect_action =
 
 (* As the handler is very simple, we register it now: *)
 let disconnect_action =
-  Eliom_output.Action.register_post_coservice'
+  Eliom_registration.Action.register_post_coservice'
     ~name:"disconnect3"
     ~post_params:Eliom_parameter.unit
     (fun () () ->
@@ -1033,16 +1034,16 @@ let disconnect_action =
 (* login ang logout boxes:                                  *)
 
 let disconnect_box s =
-  Eliom_output.Html5.post_form disconnect_action
-    (fun _ -> [p [Eliom_output.Html5.string_input
+  Html5.D.post_form disconnect_action
+    (fun _ -> [p [Html5.D.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 let login_box () =
-  Eliom_output.Html5.post_form connect_action
+  Html5.D.post_form connect_action
     (fun loginname ->
       [p
          (let l = [pcdata "login: ";
-                   Eliom_output.Html5.string_input
+                   Html5.D.string_input
                      ~input_type:`Text ~name:loginname ()]
          in l)
      ])
@@ -1080,14 +1081,14 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_output.Html5.register ~service:connect_example3 connect_example3_handler;
-  Eliom_output.Action.register ~service:connect_action connect_action_handler
+  Eliom_registration.Html5.register ~service:connect_example3 connect_example3_handler;
+  Eliom_registration.Action.register ~service:connect_action connect_action_handler
 (*wiki*
-          
+
 
 *wiki*)
 let divpage =
-  Eliom_output.Blocks5.register_service
+  Eliom_registration.Flow5.register_service
     ~path:["div"]
     ~get_params:unit
     (fun () () ->
@@ -1096,16 +1097,16 @@ let divpage =
               p [pcdata "Blablablabla"] ]])
 (*wiki*
 
-          
+
 *wiki*)
-let redir1 = Eliom_output.Redirection.register_service
+let redir1 = Eliom_registration.Redirection.register_service
     ~path:["redir"]
     ~get_params:Eliom_parameter.unit
    (fun () () -> Lwt.return coucou)
 (*wiki*
-          
+
  *wiki*)
-let redir = Eliom_output.Redirection.register_service
+let redir = Eliom_registration.Redirection.register_service
     ~path:["redir"]
     ~get_params:(int "o")
    (fun o () ->
@@ -1113,35 +1114,35 @@ let redir = Eliom_output.Redirection.register_service
         (Eliom_service.preapply coucou_params (o,(22,"ee"))))
 (*wiki*
 
-          
+
 *wiki*)
 let send_any =
-  Eliom_output.Any.register_service
+  Eliom_registration.Any.register_service
     ~path:["sendany"]
     ~get_params:(string "type")
    (fun s () ->
      if s = "valid"
      then
-       Eliom_output.Html5.send
+       Eliom_registration.Html5.send
          (html
             (head (title (pcdata "")) [])
             (body [p [pcdata
                         "This page has been statically typechecked.
                          If you change the parameter in the URL you will get an unchecked text page"]]))
      else
-       Eliom_output.HtmlText.send
+       Eliom_registration.Html_text.send
          "<html><body><p>It is not a valid page. Put type=\"valid\" in the URL to get a typechecked page.</p></body></html>"
    )
 (*wiki*
 
 Cookies
-     
+
 *wiki*)
 let cookiename = "mycookie"
 
 let cookies = service ["cookies"] unit ()
 
-let _ = Eliom_output.Html5.register cookies
+let _ = Eliom_registration.Html5.register cookies
   (fun () () ->
     Eliom_state.set_cookie
       ~name:cookiename ~value:(string_of_int (Random.int 100)) ();
@@ -1157,8 +1158,8 @@ let _ = Eliom_output.Html5.register cookies
                    a cookies [pcdata "send other cookie"] ()]])))
 (*wiki*
 
-          
-          
+
+
 
 *wiki*)
 let mystore = Ocsipersist.open_store "eliomexamplestore2"
@@ -1232,26 +1233,26 @@ let persist_session_connect_action =
 (* new disconnect action and box:                           *)
 
 let disconnect_action =
-  Eliom_output.Action.register_post_coservice'
+  Eliom_registration.Action.register_post_coservice'
     ~name:"disconnect4"
     ~post_params:Eliom_parameter.unit
     (fun () () ->
       Eliom_state.discard ~scope:session ())
 
 let disconnect_box s =
-  Eliom_output.Html5.post_form disconnect_action
-    (fun _ -> [p [Eliom_output.Html5.string_input
+  Html5.D.post_form disconnect_action
+    (fun _ -> [p [Html5.D.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 let bad_user_key = Polytables.make_key ()
-let get_bad_user table = 
+let get_bad_user table =
   try Polytables.get ~table ~key:bad_user_key with Not_found -> false
 
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
 
 let login_box session_expired action =
-  Eliom_output.Html5.post_form action
+  Html5.D.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
@@ -1306,15 +1307,15 @@ let persist_session_connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_output.Html5.register
+  Eliom_registration.Html5.register
     ~service:persist_session_example
     persist_session_example_handler;
-  Eliom_output.Action.register
+  Eliom_registration.Action.register
     ~service:persist_session_connect_action
     persist_session_connect_action_handler
 (*wiki*
 
-    
+
 *wiki*)
 (************************************************************)
 (************ Connection of users, version 6 ****************)
@@ -1343,27 +1344,27 @@ let connect_action =
 (* new disconnect action and box:                           *)
 
 let disconnect_action =
-  Eliom_output.Action.register_post_coservice'
+  Eliom_registration.Action.register_post_coservice'
     ~name:"disconnect6"
     ~post_params:Eliom_parameter.unit
     (fun () () ->
       Eliom_state.discard (*zap* *) ~scope:session (* *zap*) ())
 
 let disconnect_box s =
-  Eliom_output.Html5.post_form disconnect_action
-    (fun _ -> [p [Eliom_output.Html5.string_input
+  Html5.D.post_form disconnect_action
+    (fun _ -> [p [Html5.D.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 
 let bad_user_key = Polytables.make_key ()
-let get_bad_user table = 
+let get_bad_user table =
   try Polytables.get ~table ~key:bad_user_key with Not_found -> false
 
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
 
 let login_box session_expired action =
-  Eliom_output.Html5.post_form action
+  Html5.D.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
@@ -1424,12 +1425,12 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_output.Html5.register ~service:connect_example6 connect_example6_handler;
-  Eliom_output.Action.register ~service:connect_action connect_action_handler
+  Eliom_registration.Html5.register ~service:connect_example6 connect_example6_handler;
+  Eliom_registration.Action.register ~service:connect_action connect_action_handler
 
 (*wiki*
-          
-          
+
+
 *wiki*)
 let disposable = service ["disposable"] unit ()
 
@@ -1457,8 +1458,8 @@ let _ = register disposable
                     br ();
                     a disp_coservice [pcdata "Try it!"] ()]])))
 (*wiki*
-     
-          
+
+
 *wiki*)
 let timeout = service ["timeout"] unit ()
 
@@ -1487,8 +1488,8 @@ let _ =
   in
   register timeout page
 (*wiki*
-          
-     
+
+
 *wiki*)
 let publiccoduringsess = service ["publiccoduringsess"] unit ()
 
@@ -1516,19 +1517,19 @@ let _ =
   in
   register publiccoduringsess page
 (*wiki*
-          
-          
+
+
 *wiki*)
-let _ = Eliom_output.set_exn_handler
+let _ = Eliom_registration.set_exn_handler
    (fun e -> match e with
     | Eliom_common.Eliom_404 ->
-        Eliom_output.Html5.send ~code:404
+        Eliom_registration.Html5.send ~code:404
           (html
              (head (title (pcdata "")) [])
              (body [h1 [pcdata "Eliom tutorial"];
                     p [pcdata "Page not found"]]))
 (*    | Eliom_common.Eliom_Wrong_parameter ->
-        Eliom_output.Html5.send
+        Eliom_registration.Html5.send
           (html
              (head (title (pcdata "")) [])
              (body [h1 [pcdata "Eliom tutorial"];
@@ -1537,7 +1538,7 @@ let _ = Eliom_output.set_exn_handler
 (*wiki*
 
   *wiki*)
-let my_nl_params = 
+let my_nl_params =
   Eliom_parameter.make_non_localized_parameters
     ~prefix:"tutoeliom"
     ~name:"mynlparams"
@@ -1547,16 +1548,16 @@ let nlparams = service ~path:["nlparams"] ~get_params:(int "i") ()
 
 let make_body () =
   [p [a ~service:nlparams [pcdata "without nl params"] 4];
-   p [a ~service:nlparams 
+   p [a ~service:nlparams
          ~nl_params:(Eliom_parameter.add_nl_parameter
                        Eliom_parameter.empty_nl_params_set
                        my_nl_params
                        (22, "oh")
          )
-         [pcdata "with nl params"] 
+         [pcdata "with nl params"]
          5];
    get_form
-     ~service:nlparams 
+     ~service:nlparams
      ~nl_params:(Eliom_parameter.add_nl_parameter
                    Eliom_parameter.empty_nl_params_set
                    my_nl_params
@@ -1564,24 +1565,24 @@ let make_body () =
      )
      (fun iname ->
        [p [pcdata "form with hidden nl params";
-           Eliom_output.Html5.int_input 
+           Html5.D.int_input
              ~input_type:`Text ~name:iname ();
-           Eliom_output.Html5.string_input
+           Html5.D.string_input
              ~input_type:`Submit ~value:"Send" ()]]);
    get_form
-     ~service:nlparams 
+     ~service:nlparams
      (fun iname ->
-       let (aname, sname) = 
+       let (aname, sname) =
          Eliom_parameter.get_nl_params_names my_nl_params
        in
        [p [pcdata "form with nl params fiels";
-           Eliom_output.Html5.int_input 
+           Html5.D.int_input
              ~input_type:`Text ~name:iname ();
-           Eliom_output.Html5.int_input 
+           Html5.D.int_input
              ~input_type:`Text ~name:aname ();
-           Eliom_output.Html5.string_input 
+           Html5.D.string_input
              ~input_type:`Text ~name:sname ();
-           Eliom_output.Html5.string_input
+           Html5.D.string_input
              ~input_type:`Submit ~value:"Send" ()]]);
   ]
 
@@ -1594,11 +1595,11 @@ let _ = register
          (body ((p [pcdata "i = ";
                     strong [pcdata (string_of_int i)]])::
                    (match Eliom_parameter.get_non_localized_get_parameters
-                       my_nl_params 
+                       my_nl_params
                     with
-                      | None -> 
+                      | None ->
                         p [pcdata "I do not have my non localized parameters"]
-                      | Some (a, s) -> 
+                      | Some (a, s) ->
                         p [pcdata "I have my non localized parameters, ";
                            pcdata ("with values a = "^string_of_int a^
                                       " and s = "^s^".")]
@@ -1607,7 +1608,7 @@ let _ = register
   )
   (*wiki*
 
-    
+
     *wiki*)
 let tonlparams = register_service
     ~path:["nlparams"]
@@ -1617,16 +1618,16 @@ let tonlparams = register_service
          (html
             (head (title (pcdata "")) [])
             (body (make_body ()))))
-    
+
 
   (*wiki*
 
-      
+
   *wiki*)
 let nlparams_with_nlp =
   Eliom_service.add_non_localized_get_parameters my_nl_params nlparams
   (*wiki*
-    
+
   *wiki*)
 (************************************************************)
 (************ Connection of users, version 5 ****************)
@@ -1655,7 +1656,7 @@ let connect_action =
 
 (* As the handler is very simple, we register it now: *)
 let disconnect_action =
-  Eliom_output.Action.register_post_coservice'
+  Eliom_registration.Action.register_post_coservice'
     ~name:"disconnect5"
     ~post_params:Eliom_parameter.unit
     (fun () () ->
@@ -1666,16 +1667,16 @@ let disconnect_action =
 (* login ang logout boxes:                                  *)
 
 let disconnect_box s =
-  Eliom_output.Html5.post_form disconnect_action
-    (fun _ -> [p [Eliom_output.Html5.string_input
+  Html5.D.post_form disconnect_action
+    (fun _ -> [p [Html5.D.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 let login_box () =
-  Eliom_output.Html5.post_form connect_action
+  Html5.D.post_form connect_action
     (fun loginname ->
       [p
          (let l = [pcdata "login: ";
-                   Eliom_output.Html5.string_input
+                   Html5.D.string_input
                      ~input_type:`Text ~name:loginname ()]
          in l)
      ])
@@ -1712,8 +1713,8 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_output.Html5.register ~service:connect_example5 connect_example5_handler;
-  Eliom_output.Action.register ~service:connect_action connect_action_handler
+  Eliom_registration.Html5.register ~service:connect_example5 connect_example5_handler;
+  Eliom_registration.Action.register ~service:connect_action connect_action_handler
 (*wiki*
 
   *wiki*)
@@ -1746,14 +1747,14 @@ let connect_action =
     ()
 
 let disconnect_action =
-  Eliom_output.Action.register_post_coservice'
+  Eliom_registration.Action.register_post_coservice'
     ~name:"disconnectgt"
     ~post_params:Eliom_parameter.unit
     (fun () () ->
       Eliom_state.discard ~scope:session ())
 
 let disconnect_g_action =
-  Eliom_output.Action.register_post_coservice'
+  Eliom_registration.Action.register_post_coservice'
     ~name:"disconnectgtg"
     ~post_params:Eliom_parameter.unit
     (fun () () ->
@@ -1765,20 +1766,20 @@ let disconnect_g_action =
 
 let disconnect_box () =
   div [
-    Eliom_output.Html5.post_form disconnect_action
-      (fun _ -> [p [Eliom_output.Html5.string_input
+    Html5.D.post_form disconnect_action
+      (fun _ -> [p [Html5.D.string_input
                        ~input_type:`Submit ~value:"Close session" ()]]) ();
-    Eliom_output.Html5.post_form disconnect_g_action
-      (fun _ -> [p [Eliom_output.Html5.string_input
+    Html5.D.post_form disconnect_g_action
+      (fun _ -> [p [Html5.D.string_input
                        ~input_type:`Submit ~value:"Close group" ()]]) ()
   ]
 
 let login_box () =
-  Eliom_output.Html5.post_form connect_action
+  Html5.D.post_form connect_action
     (fun loginname ->
       [p
          (let l = [pcdata "login: ";
-                   Eliom_output.Html5.string_input
+                   Html5.D.string_input
                      ~input_type:`Text ~name:loginname ()]
          in l)
      ])
@@ -1837,8 +1838,8 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_output.Html5.register ~service:group_tables_example group_tables_example_handler;
-  Eliom_output.Action.register ~service:connect_action connect_action_handler
+  Eliom_registration.Html5.register ~service:group_tables_example group_tables_example_handler;
+  Eliom_registration.Action.register ~service:connect_action connect_action_handler
 
 
 
@@ -1876,13 +1877,13 @@ let connect_action =
     ()
 
 let disconnect_action =
-  Eliom_output.Action.register_post_coservice'
+  Eliom_registration.Action.register_post_coservice'
     ~name:"pdisconnectgt"
     ~post_params:Eliom_parameter.unit
     (fun () () -> Eliom_state.discard ~scope:session ())
 
 let disconnect_g_action =
-  Eliom_output.Action.register_post_coservice'
+  Eliom_registration.Action.register_post_coservice'
     ~name:"pdisconnectgtg"
     ~post_params:Eliom_parameter.unit
     (fun () () ->
@@ -1895,20 +1896,20 @@ let disconnect_g_action =
 
 let disconnect_box () =
   div [
-    Eliom_output.Html5.post_form disconnect_action
-      (fun _ -> [p [Eliom_output.Html5.string_input
+    Html5.D.post_form disconnect_action
+      (fun _ -> [p [Html5.D.string_input
                        ~input_type:`Submit ~value:"Close session" ()]]) ();
-    Eliom_output.Html5.post_form disconnect_g_action
-      (fun _ -> [p [Eliom_output.Html5.string_input
+    Html5.D.post_form disconnect_g_action
+      (fun _ -> [p [Html5.D.string_input
                        ~input_type:`Submit ~value:"Close group" ()]]) ()
   ]
 
 let login_box () =
-  Eliom_output.Html5.post_form connect_action
+  Html5.D.post_form connect_action
     (fun loginname ->
       [p
          (let l = [pcdata "login: ";
-                   Eliom_output.Html5.string_input
+                   Html5.D.string_input
                      ~input_type:`Text ~name:loginname ()]
          in l)
      ])
@@ -1935,7 +1936,7 @@ let group_tables_example_handler () () =
   (match sessdat with
     | Some name ->
       (group_info name >>= fun d ->
-       Lwt.return 
+       Lwt.return
          [p [pcdata ("Hello "^name); br ()];
           (p [pcdata "Your persistent group data is: ";
               pcdata d;
@@ -1968,12 +1969,12 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_output.Html5.register ~service:pgroup_tables_example group_tables_example_handler;
-  Eliom_output.Action.register ~service:connect_action connect_action_handler
+  Eliom_registration.Html5.register ~service:pgroup_tables_example group_tables_example_handler;
+  Eliom_registration.Action.register ~service:connect_action connect_action_handler
 
 (* *zap*)
 (*wiki*
-    
+
   *wiki*)
 
 let csrf_scope_hierarchy = Eliom_common.create_scope_hierarchy "csrf"
@@ -1999,8 +2000,8 @@ let csrfsafe_example_post =
 
 let _ =
   let page () () =
-    let l3 = Eliom_output.Html5.post_form csrfsafe_example_post
-        (fun _ -> [p [Eliom_output.Html5.string_input
+    let l3 = Html5.D.post_form csrfsafe_example_post
+        (fun _ -> [p [Html5.D.string_input
                         ~input_type:`Submit
                         ~value:"Click" ()]]) ()
     in
@@ -2010,8 +2011,8 @@ let _ =
        (body [p [pcdata "A new coservice will be created each time this form is displayed"];
               l3]))
   in
-  Eliom_output.Html5.register csrfsafe_example page;
-  Eliom_output.Html5.register csrfsafe_example_post
+  Eliom_registration.Html5.register csrfsafe_example page;
+  Eliom_registration.Html5.register csrfsafe_example_post
     (fun () () ->
        Lwt.return
          (html
@@ -2021,12 +2022,12 @@ let _ =
 (*wiki*
 
 
-          
+
 %<code language="ocaml"|
 let r = Netstring_pcre.regexp "\\\\[(.*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@)\\\\]"
 
 let regexp =
-  Eliom_output.Html5.register_service
+  Eliom_registration.Html5.register_service
     ~path:["regexp"]
     ~get_params:(regexp r "$1" "myparam")
     (fun g () ->
@@ -2042,7 +2043,7 @@ let regexp =
 let myregexp = Netstring_pcre.regexp "\\[(.*)\\]"
 
 let regexpserv =
-  Eliom_output.Html5.register_service
+  Eliom_registration.Html5.register_service
     ~path:["regexp"]
     ~get_params:(regexp myregexp "\\1" (fun s -> s) "myparam")
     (fun g () ->
@@ -2052,7 +2053,7 @@ let regexpserv =
            (body [p [pcdata g]])))
 (* *zap*)
 (*wiki*
-      
+
 *wiki*)
 (* Form with bool checkbox: *)
 let bool_params = register_service
@@ -2087,8 +2088,8 @@ let form_bool = register_service ["formbool"] unit
 
 
 (*wiki*
-          
-      
+
+
 *wiki*)
 
 let set = register_service
@@ -2112,8 +2113,8 @@ let set = register_service
          </body>
        </html> >>)
 (*wiki*
-          
-   
+
+
 *wiki*)
 
 (* form to set *)
@@ -2136,8 +2137,8 @@ let setform = register_service
                           string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
 (*wiki*
-          
-          
+
+
 *wiki*)
 let select_example_result = register_service
     ~path:["select"]
@@ -2152,13 +2153,13 @@ let select_example_result = register_service
 let create_select_form =
   (fun select_name ->
     [p [pcdata "Select something: ";
-        Eliom_output.Html5.string_select ~name:select_name
-          (Eliom_output.Html5.Option ([] (* attributes *),
+        Html5.D.string_select ~name:select_name
+          (Html5.D.Option ([] (* attributes *),
                                         "Bob" (* value *),
                                         None (* Content, if different from value *),
                                         false (* not selected *))) (* first line *)
-          [Eliom_output.Html5.Option ([], "Marc", None, false);
-          (Eliom_output.Html5.Optgroup
+          [Html5.D.Option ([], "Marc", None, false);
+          (Html5.D.Optgroup
           ([],
            "Girls",
            ([], "Karin", None, false),
@@ -2166,12 +2167,12 @@ let create_select_form =
             ([], "Alice", None, true);
             ([], "Germaine", Some (pcdata "Bob's mother"), false)]))]
           ;
-        Eliom_output.Html5.string_input ~input_type:`Submit ~value:"Send" ()]])
+        Html5.D.string_input ~input_type:`Submit ~value:"Send" ()]])
 
 let select_example = register_service ["select"] unit
   (fun () () ->
      let f =
-       Eliom_output.Html5.get_form
+       Html5.D.get_form
          select_example_result create_select_form
      in
      return
@@ -2179,8 +2180,8 @@ let select_example = register_service ["select"] unit
          (head (title (pcdata "")) [])
          (body [f])))
 (*wiki*
-          
-      
+
+
 *wiki*)
 let coord = register_service
     ~path:["coord"]
@@ -2215,8 +2216,8 @@ let imageform = register_service
                             ()]])
                 ])))
 (*wiki*
-          
-          
+
+
 *wiki*)
 let coord2 = register_service
     ~path:["coord2"]
@@ -2253,8 +2254,8 @@ let imageform2 = register_service
                 ])))
 
 (*wiki*
-          
-        
+
+
 *wiki*)
 
 (* lists *)
@@ -2276,8 +2277,8 @@ let coucou_list = register_service
              </body>
            </html> >>)
 (*wiki*
-          
-   
+
+
 *wiki*)
 (*zap* Note:
    Actually almost all services will be overwritten by new versions,
@@ -2312,8 +2313,8 @@ let listform = register_service ["listform"] unit
          </html> >>)
 
 (*wiki*
-          
-      
+
+
 *wiki*)
 (* Form for service with suffix: *)
 let create_suffixform ((suff, endsuff),i) =
@@ -2343,8 +2344,8 @@ let suffixform = register_service ["suffixform"] unit
          </html> >>)
 
 (*wiki*
-          
-          
+
+
 *wiki*)
 let upload = service
     ~path:["upload"]
@@ -2389,8 +2390,8 @@ let uploadform = register upload
 
 
 (*wiki*
-          
-          
+
+
 *wiki*)
 (* Hierarchical menu *)
 open Eliom_tools
@@ -2486,4 +2487,3 @@ let _ =
   register hier8 (f 8 hier8);
   register hier9 (f 9 hier9);
   register hier10 (f 10 hier10)
-

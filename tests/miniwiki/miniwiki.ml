@@ -20,9 +20,9 @@
 
 (* open Eliom_pervasives *)
 
-open Eliom_compatibility_2_1
-open HTML5.M
-open Eliom_output.Html5
+open Eliom_lib
+open Eliom_content
+open Eliom_content.Html5.F
 open Eliom_service
 open Eliom_parameter
 open Eliom_state
@@ -37,7 +37,7 @@ let (>>) f g = g f
 
 let wiki_view_page = service [] (suffix (string "p")) ()
 let wiki_edit_page = service ["edit"] (string "p") ()
-let wiki_start = Eliom_output.Redirection.register_service [] unit
+let wiki_start = Eliom_registration.Redirection.register_service [] unit
     (fun _ _ ->
        Lwt.return (Eliom_service.preapply wiki_view_page "WikiStart"))
 
@@ -177,7 +177,7 @@ let parse_lines lines =
     else (* External link *)
       let url = scheme^":"^page in
       let t = if text = "" then url else text in
-      HTML5.M.Raw.a ~a:[a_href (HTML5.M.uri_of_string (fun () -> url))]
+      Html5.F.Raw.a ~a:[a_href (Html5.F.uri_of_string (fun () -> url))]
         [pcdata t]
   in
 
@@ -330,7 +330,7 @@ let view_page page =
 
 (* Save page as a result of /edit?p=Page *)
 let service_save_page_post =
-  register_post_service
+  Eliom_registration.Html5.register_post_service
     ~fallback:wiki_view_page
     ~post_params:(string "value")
     (fun page value ->
@@ -340,7 +340,7 @@ let service_save_page_post =
 
 (* /edit?p=Page *)
 let _ =
-  register wiki_edit_page
+  Eliom_registration.Html5.register wiki_edit_page
     (fun page () ->
       (if wiki_page_exists page then
         load_wiki_page page >>= fun s -> return (String.concat "\n" s)
@@ -359,7 +359,7 @@ let _ =
 
 (* /view?p=Page *)
 let _ =
-  register wiki_view_page
+  Eliom_registration.Html5.register wiki_view_page
     (fun page () ->
        if not (wiki_page_exists page) then
          let f =
