@@ -327,7 +327,7 @@ let count3 =
 
 let volatile_references =
   let page elts =
-    Html5.F.(
+    Html5.D.(
       html
         (head
            (title (pcdata "Volatile reference"))
@@ -353,7 +353,7 @@ let volatile_references =
       (fun () n ->
          lwt () = Eliom_reference.set (eref :> _ Eliom_reference.eref) n in
          Lwt.return
-           (page Html5.F.([
+           (page Html5.D.([
              pcdata "Reference was set.";
              Html5.D.a ~service [pcdata "back"] ();
            ])))
@@ -375,7 +375,7 @@ let volatile_references =
     (fun () () ->
        let v = Eliom_reference.Volatile.get eref in
        Lwt.return
-         (page Html5.F.([
+         (page Html5.D.([
              h2 [pcdata "Volatile reference"];
              p [pcdata "Value is "; pcdata (string_of_int v)];
              Html5.D.(
@@ -401,7 +401,7 @@ let volatile_references =
 
 let reference_from_fun =
   let page elts =
-    Html5.F.(
+    Html5.D.(
       html
         (head
            (title (pcdata "Reference from fun"))
@@ -429,7 +429,7 @@ let reference_from_fun =
       (fun () n ->
          lwt () = Eliom_reference.set eref n in
          Lwt.return
-           (page Html5.F.([
+           (page Html5.D.([
              pcdata "Reference was set.";
              Html5.D.a ~service [pcdata "back"] ();
            ])))
@@ -441,7 +441,7 @@ let reference_from_fun =
       (fun () () ->
          lwt () = Eliom_reference.unset eref in
          Lwt.return
-           (page Html5.F.([
+           (page Html5.D.([
              pcdata "Reference was unset.";
              Html5.D.a ~service [pcdata "back"] ();
            ])))
@@ -451,7 +451,7 @@ let reference_from_fun =
     (fun () () ->
        lwt v = Eliom_reference.get eref in
        Lwt.return
-         (page Html5.F.([
+         (page Html5.D.([
              h2 [pcdata "Reference from fun"];
              p [pcdata "Value is "; pcdata (string_of_int v)];
              Html5.D.(

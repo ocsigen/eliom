@@ -123,7 +123,7 @@ let node_bindings =
         li [pcdata "Initially, every node receives an \"from client\""];
         li [pcdata "All four nodes should receive an \"onclick\" line when \"Add onclick lines\" is clicked."];
         li [pcdata "The free ones should reset if you visit the empty service and go back in history"];
-        li [pcdata "The global ones should receive a \"from ocaml service\" when \"Run Ocaml service\" is clicked"];
+        li [pcdata "The bound and free global nodes should receive a \"from ocaml service\" when \"Run Ocaml service\" is clicked"];
       ];
     ])
     (fun () ->
@@ -610,7 +610,7 @@ let test_simple =
   let client_tests = [
     ( let client_onclick = {{
         debug "init client_onclick";
-        fun _ -> 
+        fun _ ->
           let client_value = "client_inner_value" in
           ignore client_value;
           let str =
@@ -1021,7 +1021,7 @@ let s = Eliom_registration.Action.register_coservice'
   let () = debug "global_value: %Ld" %global_value
 
   let link () =
-     Html5.F.(div [(*a ~service: %s [pcdata "Action! (on server)"] ()*)]) 
+     Html5.F.(div [(*a ~service: %s [pcdata "Action! (on server)"] ()*)])
 
 }}
 
@@ -1128,7 +1128,7 @@ let deep_client_values =
            | None -> assert false
          end;
          f ();
-         fun _ -> 
+         fun _ ->
            log "request_counter: %s" %request_counter
        }} in
        Eliom_service.onload {{
@@ -1348,7 +1348,7 @@ let test_server_function =
        Lwt.return Html5.F.([
          Eliom_testsuite_base.thebutton ~msg:"send" onclick;
          br ();
-         field; 
+         field;
        ]))
 
 (******************************************************************************)

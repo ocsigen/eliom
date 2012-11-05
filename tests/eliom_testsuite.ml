@@ -4,7 +4,7 @@ let (>|=) = Lwt.(>|=)
 
 open Eliom_lib
 open Eliom_content
-open Html5.F
+open Html5.D
 
 open Eliom_testsuite1
 open Eliom_testsuite2
@@ -17,13 +17,13 @@ let _ = Eliom_registration.Html5.register Eliom_testsuite_base.main
      (html
        (head
           (title (pcdata "Examples from the manual"))
-          [Html5.F.css_link
-              (Html5.F.make_uri
+          [Html5.D.css_link
+              (Html5.D.make_uri
                  ~service:(Eliom_service.static_dir ()) ["style.css"]) ()])
        (body
           [
             h1 [img ~alt:"Ocsigen"
-                   ~src:(Html5.F.make_uri
+                   ~src:(Html5.D.make_uri
                            ~service:(Eliom_service.static_dir ()) ["ocsigen5.png"]) ()];
 
             Eliom_testsuite_base.testsuite ~name:"Test suite 4" Eliom_testsuite4.tests;
