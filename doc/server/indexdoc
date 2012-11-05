@@ -47,7 +47,9 @@ Eliom_react
 
 {!modules:
 Eliom_atom
+Atom_feed
 Eliom_openid
+Eliom_s2s
 }
 
 {2 Index}
