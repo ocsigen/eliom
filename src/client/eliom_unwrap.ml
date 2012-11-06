@@ -175,9 +175,18 @@ external raw_unmarshal_and_unwrap
         = "caml_unwrap_value_from_string"
 
 let unwrap s i =
-  raw_unmarshal_and_unwrap
-    apply_unwrapper register_late_occurrence s i
+  if !Eliom_config.debug_timings then
+    Firebug.console##time
+      (Js.string "unwrap");
+  let res =
+    raw_unmarshal_and_unwrap
+      apply_unwrapper register_late_occurrence s i
+  in
+  if !Eliom_config.debug_timings then
+    Firebug.console##timeEnd
+      (Js.string "unwrap");
+  res
+
 
 let unwrap_js_var s =
   unwrap (Js.to_bytestring (Js.Unsafe.variable s)) 0
-
