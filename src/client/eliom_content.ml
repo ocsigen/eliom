@@ -59,131 +59,131 @@ module Html5 = struct
 
     open Eliom_client
 
-    let of_element = rebuild_node
-    let of_heading = rebuild_node
+    let of_element elt = rebuild_node "of_element" elt
+    let of_heading elt = rebuild_node "of_heading" elt
 
-    let of_a = rebuild_node
-    let of_abbr = rebuild_node
-    let of_acronym = rebuild_node
-    let of_address = rebuild_node
-    let of_applet = rebuild_node
-    let of_area = rebuild_node
-    let of_article = rebuild_node
-    let of_aside = rebuild_node
-    let of_audio = rebuild_node
-    let of_b = rebuild_node
-    let of_base = rebuild_node
-    let of_basefont = rebuild_node
-    let of_bdi = rebuild_node
-    let of_bdo = rebuild_node
-    let of_big = rebuild_node
-    let of_blockquote = rebuild_node
-    let of_body = rebuild_node
-    let of_br = rebuild_node
-    let of_button = rebuild_node
-    let of_canvas = rebuild_node
-    let of_caption = rebuild_node
-    let of_center = rebuild_node
-    let of_cite = rebuild_node
-    let of_code = rebuild_node
-    let of_col = rebuild_node
-    let of_colgroup = rebuild_node
-    let of_command = rebuild_node
-    let of_datalist = rebuild_node
-    let of_dd = rebuild_node
-    let of_del = rebuild_node
-    let of_details = rebuild_node
-    let of_dfn = rebuild_node
-    let of_dir = rebuild_node
-    let of_div = rebuild_node
-    let of_dl = rebuild_node
-    let of_dt = rebuild_node
-    let of_em = rebuild_node
-    let of_embed = rebuild_node
-    let of_fieldset = rebuild_node
-    let of_figcaption = rebuild_node
-    let of_figure = rebuild_node
-    let of_font = rebuild_node
-    let of_footer = rebuild_node
-    let of_form = rebuild_node
-    let of_frame = rebuild_node
-    let of_frameset = rebuild_node
-    let of_h1 = rebuild_node
-    let of_h2 = rebuild_node
-    let of_h3 = rebuild_node
-    let of_h4 = rebuild_node
-    let of_h5 = rebuild_node
-    let of_h6 = rebuild_node
-    let of_head = rebuild_node
-    let of_header = rebuild_node
-    let of_hgroup = rebuild_node
-    let of_hr = rebuild_node
-    let of_html = rebuild_node
-    let of_i = rebuild_node
-    let of_iframe = rebuild_node
-    let of_img = rebuild_node
-    let of_input = rebuild_node
-    let of_ins = rebuild_node
-    let of_keygen = rebuild_node
-    let of_kbd = rebuild_node
-    let of_label = rebuild_node
-    let of_legend = rebuild_node
-    let of_li = rebuild_node
-    let of_link = rebuild_node
-    let of_map = rebuild_node
-    let of_mark = rebuild_node
-    let of_menu = rebuild_node
-    let of_meta = rebuild_node
-    let of_meter = rebuild_node
-    let of_nav = rebuild_node
-    let of_noframes = rebuild_node
-    let of_noscript = rebuild_node
-    let of_object = rebuild_node
-    let of_ol = rebuild_node
-    let of_optgroup = rebuild_node
-    let of_option = rebuild_node
-    let of_output = rebuild_node
-    let of_p = rebuild_node
-    let of_param = rebuild_node
-    let of_pre = rebuild_node
-    let of_progress = rebuild_node
-    let of_q = rebuild_node
-    let of_rp = rebuild_node
-    let of_rt = rebuild_node
-    let of_ruby = rebuild_node
-    let of_s = rebuild_node
-    let of_samp = rebuild_node
-    let of_script = rebuild_node
-    let of_section = rebuild_node
-    let of_select = rebuild_node
-    let of_small = rebuild_node
-    let of_source = rebuild_node
-    let of_span = rebuild_node
-    let of_strike = rebuild_node
-    let of_strong = rebuild_node
-    let of_style = rebuild_node
-    let of_sub = rebuild_node
-    let of_summary = rebuild_node
-    let of_sup = rebuild_node
-    let of_table = rebuild_node
-    let of_tbody = rebuild_node
-    let of_td = rebuild_node
-    let of_textarea = rebuild_node
-    let of_tfoot = rebuild_node
-    let of_th = rebuild_node
-    let of_thead = rebuild_node
-    let of_time = rebuild_node
-    let of_title = rebuild_node
-    let of_tr = rebuild_node
-    let of_track = rebuild_node
-    let of_tt = rebuild_node
-    let of_u = rebuild_node
-    let of_ul = rebuild_node
-    let of_var = rebuild_node
-    let of_video = rebuild_node
-    let of_wbr = rebuild_node
+    let of_a elt = rebuild_node "of_a" elt
+    let of_abbr elt = rebuild_node "of_abbr" elt
+    let of_acronym elt = rebuild_node "of_acronym" elt
+    let of_address elt = rebuild_node "of_address" elt
+    let of_applet elt = rebuild_node "of_applet" elt
+    let of_area elt = rebuild_node "of_area" elt
+    let of_article elt = rebuild_node "of_article" elt
+    let of_aside elt = rebuild_node "of_aside" elt
+    let of_audio elt = rebuild_node "of_audio" elt
+    let of_b elt = rebuild_node "of_b" elt
+    let of_base elt = rebuild_node "of_base" elt
+    let of_basefont elt = rebuild_node "of_basefont" elt
+    let of_bdi elt = rebuild_node "of_bdi" elt
+    let of_bdo elt = rebuild_node "of_bdo" elt
+    let of_big elt = rebuild_node "of_big" elt
+    let of_blockquote elt = rebuild_node "of_blockquote" elt
+    let of_body elt = rebuild_node "of_body" elt
+    let of_br elt = rebuild_node "of_br" elt
+    let of_button elt = rebuild_node "of_button" elt
+    let of_canvas elt = rebuild_node "of_canvas" elt
+    let of_caption elt = rebuild_node "of_caption" elt
+    let of_center elt = rebuild_node "of_center" elt
+    let of_cite elt = rebuild_node "of_cite" elt
+    let of_code elt = rebuild_node "of_code" elt
+    let of_col elt = rebuild_node "of_col" elt
+    let of_colgroup elt = rebuild_node "of_colgroup" elt
+    let of_command elt = rebuild_node "of_command" elt
+    let of_datalist elt = rebuild_node "of_datalist" elt
+    let of_dd elt = rebuild_node "of_dd" elt
+    let of_del elt = rebuild_node "of_del" elt
+    let of_details elt = rebuild_node "of_details" elt
+    let of_dfn elt = rebuild_node "of_dfn" elt
+    let of_dir elt = rebuild_node "of_dir" elt
+    let of_div elt = rebuild_node "of_div" elt
+    let of_dl elt = rebuild_node "of_dl" elt
+    let of_dt elt = rebuild_node "of_dt" elt
+    let of_em elt = rebuild_node "of_em" elt
+    let of_embed elt = rebuild_node "of_embed" elt
+    let of_fieldset elt = rebuild_node "of_fieldset" elt
+    let of_figcaption elt = rebuild_node "of_figcaption" elt
+    let of_figure elt = rebuild_node "of_figure" elt
+    let of_font elt = rebuild_node "of_font" elt
+    let of_footer elt = rebuild_node "of_footer" elt
+    let of_form elt = rebuild_node "of_form" elt
+    let of_frame elt = rebuild_node "of_frame" elt
+    let of_frameset elt = rebuild_node "of_frameset" elt
+    let of_h1 elt = rebuild_node "of_h1" elt
+    let of_h2 elt = rebuild_node "of_h2" elt
+    let of_h3 elt = rebuild_node "of_h3" elt
+    let of_h4 elt = rebuild_node "of_h4" elt
+    let of_h5 elt = rebuild_node "of_h5" elt
+    let of_h6 elt = rebuild_node "of_h6" elt
+    let of_head elt = rebuild_node "of_head" elt
+    let of_header elt = rebuild_node "of_header" elt
+    let of_hgroup elt = rebuild_node "of_hgroup" elt
+    let of_hr elt = rebuild_node "of_hr" elt
+    let of_html elt = rebuild_node "of_html" elt
+    let of_i elt = rebuild_node "of_i" elt
+    let of_iframe elt = rebuild_node "of_iframe" elt
+    let of_img elt = rebuild_node "of_img" elt
+    let of_input elt = rebuild_node "of_input" elt
+    let of_ins elt = rebuild_node "of_ins" elt
+    let of_keygen elt = rebuild_node "of_keygen" elt
+    let of_kbd elt = rebuild_node "of_kbd" elt
+    let of_label elt = rebuild_node "of_label" elt
+    let of_legend elt = rebuild_node "of_legend" elt
+    let of_li elt = rebuild_node "of_li" elt
+    let of_link elt = rebuild_node "of_link" elt
+    let of_map elt = rebuild_node "of_map" elt
+    let of_mark elt = rebuild_node "of_mark" elt
+    let of_menu elt = rebuild_node "of_menu" elt
+    let of_meta elt = rebuild_node "of_meta" elt
+    let of_meter elt = rebuild_node "of_meter" elt
+    let of_nav elt = rebuild_node "of_nav" elt
+    let of_noframes elt = rebuild_node "of_noframes" elt
+    let of_noscript elt = rebuild_node "of_noscript" elt
+    let of_object elt = rebuild_node "of_object" elt
+    let of_ol elt = rebuild_node "of_ol" elt
+    let of_optgroup elt = rebuild_node "of_optgroup" elt
+    let of_option elt = rebuild_node "of_option" elt
+    let of_output elt = rebuild_node "of_output" elt
+    let of_p elt = rebuild_node "of_p" elt
+    let of_param elt = rebuild_node "of_param" elt
+    let of_pre elt = rebuild_node "of_pre" elt
+    let of_progress elt = rebuild_node "of_progress" elt
+    let of_q elt = rebuild_node "of_q" elt
+    let of_rp elt = rebuild_node "of_rp" elt
+    let of_rt elt = rebuild_node "of_rt" elt
+    let of_ruby elt = rebuild_node "of_ruby" elt
+    let of_s elt = rebuild_node "of_s" elt
+    let of_samp elt = rebuild_node "of_samp" elt
+    let of_script elt = rebuild_node "of_script" elt
+    let of_section elt = rebuild_node "of_section" elt
+    let of_select elt = rebuild_node "of_select" elt
+    let of_small elt = rebuild_node "of_small" elt
+    let of_source elt = rebuild_node "of_source" elt
+    let of_span elt = rebuild_node "of_span" elt
+    let of_strike elt = rebuild_node "of_strike" elt
+    let of_strong elt = rebuild_node "of_strong" elt
+    let of_style elt = rebuild_node "of_style" elt
+    let of_sub elt = rebuild_node "of_sub" elt
+    let of_summary elt = rebuild_node "of_summary" elt
+    let of_sup elt = rebuild_node "of_sup" elt
+    let of_table elt = rebuild_node "of_table" elt
+    let of_tbody elt = rebuild_node "of_tbody" elt
+    let of_td elt = rebuild_node "of_td" elt
+    let of_textarea elt = rebuild_node "of_textarea" elt
+    let of_tfoot elt = rebuild_node "of_tfoot" elt
+    let of_th elt = rebuild_node "of_th" elt
+    let of_thead elt = rebuild_node "of_thead" elt
+    let of_time elt = rebuild_node "of_time" elt
+    let of_title elt = rebuild_node "of_title" elt
+    let of_tr elt = rebuild_node "of_tr" elt
+    let of_track elt = rebuild_node "of_track" elt
+    let of_tt elt = rebuild_node "of_tt" elt
+    let of_u elt = rebuild_node "of_u" elt
+    let of_ul elt = rebuild_node "of_ul" elt
+    let of_var elt = rebuild_node "of_var" elt
+    let of_video elt = rebuild_node "of_video" elt
+    let of_wbr elt = rebuild_node "of_wbr" elt
 
-    let of_pcdata = rebuild_node
+    let of_pcdata elt = rebuild_node "of_pcdata" elt
   end
 
   module Id = struct
@@ -204,18 +204,25 @@ module Html5 = struct
 
   module Manip = struct
     let get_node elt = (To_dom.of_element elt :> Dom.node Js.t)
-    let get_unique_node name (elt: 'a Html5.elt) : Dom.node Js.t =
+    let get_unique_node context (elt: 'a Html5.elt) : Dom.node Js.t =
       match Xml.get_node (Html5.D.toelt elt) with
       | Xml.DomNode node -> node
       | Xml.TyXMLNode desc ->
-          match Xml.get_node_id (Html5.D.toelt elt) with
-          | Xml.NoId -> failwith (Printf.sprintf "Non unique node (%s)" name)
+        let elt' = Html5.D.toelt elt in
+          match Xml.get_node_id elt' with
+          | Xml.NoId ->
+            Eliom_lib.error_any (Eliom_client.rebuild_node' elt')
+              "Cannot call %s on an element with functional semantics"
+              context
           | _ -> get_node elt
 
     let get_unique_elt name elt : Dom_html.element Js.t =
       Js.Opt.case
         (Dom_html.CoerceTo.element (get_unique_node name elt))
-        (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
+        (fun () ->
+          Eliom_lib.error_any (Eliom_client.rebuild_node' (Html5.F.toelt elt))
+            "Cannot call %s on a node which is not an element"
+            name)
         id
 
     let raw_appendChild ?before node elt2 =

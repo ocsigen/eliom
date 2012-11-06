@@ -1103,11 +1103,7 @@ let rebuild_rattrib node ra = match Xml.racontent ra with
   | Xml.RALazyStrL (Xml.Comma, l) ->
       node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat "," l))
 
-let rec rebuild_node elt =
-  trace "Rebuild node %s" (Eliom_content_core.Xml.string_of_node_id (Xml.get_node_id elt));
-  if is_before_initial_load () then
-    Eliom_lib.error "Cannot rebuild node (%s) before the document is initially loaded"
-      (Eliom_content_core.Xml.string_of_node_id (Xml.get_node_id elt));
+let rec rebuild_node' elt =
   match Xml.get_node elt with
   | Xml.DomNode node ->
       (* assert (Xml.get_node_id node <> NoId); *)
@@ -1146,11 +1142,25 @@ and raw_rebuild_node = function
   | Xml.Node (name,attribs,childrens) ->
     let node = Dom_html.document##createElement (Js.string name) in
     List.iter (rebuild_rattrib node) attribs;
-    List.iter (fun c -> Dom.appendChild node (rebuild_node c)) childrens;
+    List.iter (fun c -> Dom.appendChild node (rebuild_node' c)) childrens;
     (node :> Dom.node Js.t)
 
-let rebuild_node elt =
-  let node = Js.Unsafe.coerce (rebuild_node (Html5.F.toelt elt)) in
+(** The first argument describes the calling function (if any) in case
+    of an error. *)
+let rebuild_node context elt =
+  let elt' = Html5.F.toelt elt in
+  trace "Rebuild node %s (%s)"
+    (Eliom_content_core.Xml.string_of_node_id (Xml.get_node_id elt'))
+    context;
+  if is_before_initial_load () then
+    error_any (rebuild_node' (Html5.F.toelt elt))
+      "Cannot call %s%s before the document is initially loaded"
+      context
+      Xml.(match get_node_id elt' with
+           | NoId -> ""
+           | RequestId id -> "on request node "^id
+           | ProcessId id -> "on global node "^id);
+  let node = Js.Unsafe.coerce (rebuild_node' elt') in
   flush_load_script ();
   node
 
@@ -1158,7 +1168,7 @@ let rebuild_node elt =
 (*                            Register unwrappers                             *)
 
 (* == Html5 elements
-   
+
    Html5 elements are unwrapped lazily (cf. use of Xml.make_lazy in
    unwrap_tyxml), because the unwrapping of process and request
    elements needs access to the DOM.
@@ -1178,6 +1188,7 @@ let unwrap_tyxml =
        don't have control on when "onload" event handlers are
        triggered. *)
     let elt =
+      let context = "unwrapping (you should NOT see this error, please report to dev@ocsigen.org)" in
       Xml.make_lazy ~id:tmp_elt.tmp_node_id
         (lazy
            (match tmp_elt.tmp_node_id with
@@ -1189,7 +1200,8 @@ let unwrap_tyxml =
                        let xml_elt : Xml.elt = Xml.make ~id elt in
                        let html_elt = (Obj.magic xml_elt : _ Html5.elt) in
                        let html_elt = Html5.set_classes_of_elt html_elt in
-                       register_process_node (Js.bytestring process_id) (rebuild_node html_elt);
+                       register_process_node (Js.bytestring process_id)
+                         (rebuild_node context html_elt);
                        (Obj.magic html_elt : Xml.elt))
                     (fun elt ->
                        trace "found";
@@ -1202,7 +1214,8 @@ let unwrap_tyxml =
                        let xml_elt : Xml.elt = Xml.make ~id elt in
                        let html_elt = (Obj.magic xml_elt : _ Html5.elt) in
                        let html_elt = Html5.set_classes_of_elt html_elt in
-                       register_request_node (Js.bytestring request_id) (rebuild_node html_elt);
+                       register_request_node (Js.bytestring request_id)
+                         (rebuild_node context html_elt);
                        (Obj.magic html_elt : Xml.elt))
                     (fun elt -> trace "found"; Xml.make_dom ~id elt)
               | Xml.NoId as id ->

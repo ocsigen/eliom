@@ -148,7 +148,8 @@ val relink_closure_nodes :
   (unit -> unit)
 
 val getElementById : string -> Dom.node Js.t
-val rebuild_node : 'a Eliom_content_core.Html5.elt -> < .. > Js.t
+val rebuild_node' : Eliom_content_core.Xml.elt -> Dom.node Js.t
+val rebuild_node : string -> 'a Eliom_content_core.Html5.elt -> < .. > Js.t
 
 module Syntax_helpers : sig
 
@@ -166,7 +167,7 @@ module Syntax_helpers : sig
       (cf. {!Eliom_lib_base.compilation_unit_global_data}). It
       initializes and registers the global client values created in
       that section.
-      
+
       Called in parallel with <<a_api subproject="server"|val
       Eliom_service.Syntax_helpers.close_server_section>>. *)
   val close_server_section : string -> unit
@@ -177,7 +178,7 @@ module Syntax_helpers : sig
       (cf. {!Eliom_lib_base.compilation_unit_global_data}). It
       registers those injections for subsequent usage of
       {!Eliom_client.Syntax_helpers.get_injection}.
-      
+
       Called in parallel with <<a_api subproject="server"|val
       Eliom_service.Syntax_helpers.close_client_section>>. *)
   val open_client_section : string -> unit

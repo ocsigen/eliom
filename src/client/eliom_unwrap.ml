@@ -142,7 +142,7 @@ let register_late_occurrence parent field value unwrap_id =
       { value; occurrences = [ occurrence ] } :: all_occurrences
   in
   Js.array_set occurrences_table unwrap_id all_occurrences'
-    
+
 let late_unwrap_value unwrap_id predicate new_value =
   let all_occurrences =
     Js.Optdef.get
