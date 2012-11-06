@@ -80,6 +80,7 @@ module String : sig
 end
 
 val error : ('a, unit, string, 'b) format4 -> 'a
+val error_any : _ -> ('a, unit, string, 'b) format4 -> 'a
 val alert : ('a, unit, string, unit) format4 -> 'a
 val jsalert : Js.js_string Js.t -> unit
 val debug : ('a, unit, string, unit) format4 -> 'a

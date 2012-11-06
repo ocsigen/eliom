@@ -85,6 +85,8 @@ let debug_exn f e =
   Printf.ksprintf (fun s -> Firebug.console##log (Js.string (s^" "^(Printexc.to_string e)))) f
 let debug f = Printf.ksprintf (fun s -> Firebug.console##log (Js.string s)) f
 let error f = Printf.ksprintf (fun s -> Firebug.console##error (Js.string s); failwith s) f
+let error_any any f =
+  Printf.ksprintf (fun s -> Firebug.console##error_2 (Js.string s, any); failwith s) f
 let trace f =
   if Eliom_config.get_tracing ()
   then debug (">> "^^f)
