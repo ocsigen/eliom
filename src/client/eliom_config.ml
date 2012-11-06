@@ -32,6 +32,9 @@ let set_tracing value =
 let get_tracing () =
   !is_tracing
 
+(* BB TODO Drop this from the release Eliom 3 *)
 let () =
   if Js.to_string Dom_html.window##location##hash = "#__trace" then
     set_tracing true;
+  if Js.to_string Dom_html.window##location##hash = "#__timings" then
+    debug_timings := true
