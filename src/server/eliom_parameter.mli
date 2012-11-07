@@ -76,7 +76,9 @@ open Eliom_lib
 *)
 type ('a, +'b, +'c) params_type
 
-(** TODO *)
+(** This type is used as a phantom type in {!params_type} to describe
+    whether a parameter is encoded in the path of the URI as a suffix
+    parameter. *)
 type suff = [ `WithoutSuffix | `WithSuffix | `Endsuffix ]
 
 (** {2 Typed parameter's name} *)
