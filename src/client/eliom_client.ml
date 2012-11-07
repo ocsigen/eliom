@@ -763,6 +763,18 @@ let scroll_to_fragment ?offset fragment =
           let elem = Dom_html.document##getElementById(Js.string fragment) in
           Js.Opt.iter elem scroll_to_element
 
+let with_progress_cursor : 'a Lwt.t -> 'a Lwt.t =
+  fun t ->
+    try_lwt
+      Dom_html.document##body##style##cursor <- Js.string "progress";
+      lwt res = t in
+      Dom_html.document##body##style##cursor <- Js.string "auto";
+      Lwt.return res
+    with exn ->
+      Dom_html.document##body##style##cursor <- Js.string "auto";
+      Lwt.fail exn
+
+
 (* == Main (internal) function: change the content of the page without leaving
       the javascript application. *)
 
@@ -884,99 +896,103 @@ let change_page
          ?keep_nl_params ~nl_params ?keep_get_na_params
          get_params post_params)
   else
-    match xhr with
-      | Some (Some tmpl as t) when t = Eliom_request_info.get_request_template () ->
-        let nl_params =
-          Eliom_parameter.add_nl_parameter nl_params Eliom_request.nl_template tmpl
-        in
-        lwt uri, content =
-          raw_call_service
-            ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
-            ?keep_nl_params ~nl_params ?keep_get_na_params
-            get_params post_params in
-        set_template_content ~uri ?fragment (Some content)
-      | _ ->
-        let cookies_info = Eliom_uri.make_cookies_info (https, service) in
-        lwt (uri, content) = match
-            create_request_
+    with_progress_cursor
+      ( match xhr with
+        | Some (Some tmpl as t) when t = Eliom_request_info.get_request_template () ->
+          let nl_params =
+            Eliom_parameter.add_nl_parameter nl_params Eliom_request.nl_template tmpl
+          in
+          lwt uri, content =
+            raw_call_service
               ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
               ?keep_nl_params ~nl_params ?keep_get_na_params
-              get_params post_params
-          with
-            | `Get uri ->
-              Eliom_request.http_get
-                ~expecting_process_page:true ?cookies_info uri []
-                Eliom_request.xml_result
-            | `Post (uri, p) ->
-              Eliom_request.http_post
-                ~expecting_process_page:true ?cookies_info uri p
-                Eliom_request.xml_result
-        in
-        let uri, fragment = Url.split_fragment uri in
-        set_content ~uri ?fragment content
+              get_params post_params in
+          set_template_content ~uri ?fragment (Some content)
+        | _ ->
+          let cookies_info = Eliom_uri.make_cookies_info (https, service) in
+          lwt (uri, content) = match
+              create_request_
+                ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+                ?keep_nl_params ~nl_params ?keep_get_na_params
+                get_params post_params
+            with
+              | `Get uri ->
+                Eliom_request.http_get
+                  ~expecting_process_page:true ?cookies_info uri []
+                  Eliom_request.xml_result
+              | `Post (uri, p) ->
+                Eliom_request.http_post
+                  ~expecting_process_page:true ?cookies_info uri p
+                  Eliom_request.xml_result
+          in
+          let uri, fragment = Url.split_fragment uri in
+          set_content ~uri ?fragment content )
 
 (* Function used in "onclick" event handler of <a>.  *)
 
 let change_page_uri ?cookies_info ?tmpl ?(get_params = []) full_uri =
   trace "Change page uri";
-  let uri, fragment = Url.split_fragment full_uri in
-  if uri <> !current_uri || fragment = None then begin
-    match tmpl with
-    | Some t when tmpl = Eliom_request_info.get_request_template () ->
-        lwt (uri, content) = Eliom_request.http_get
-          ?cookies_info uri
-          ((Eliom_request.nl_template_string, t) :: get_params)
-          Eliom_request.string_result
-        in
-        set_template_content ~uri ?fragment content
-    | _ ->
-        lwt (uri, content) = Eliom_request.http_get
-          ~expecting_process_page:true ?cookies_info uri get_params
-          Eliom_request.xml_result
-        in
-        set_content ~uri ?fragment content
-  end else
-    ( change_url_string full_uri;
-      scroll_to_fragment fragment;
-      Lwt.return () )
+  with_progress_cursor
+    ( let uri, fragment = Url.split_fragment full_uri in
+      if uri <> !current_uri || fragment = None then begin
+        match tmpl with
+          | Some t when tmpl = Eliom_request_info.get_request_template () ->
+            lwt (uri, content) = Eliom_request.http_get
+              ?cookies_info uri
+              ((Eliom_request.nl_template_string, t) :: get_params)
+              Eliom_request.string_result
+            in
+            set_template_content ~uri ?fragment content
+          | _ ->
+            lwt (uri, content) = Eliom_request.http_get
+              ~expecting_process_page:true ?cookies_info uri get_params
+              Eliom_request.xml_result
+            in
+            set_content ~uri ?fragment content
+      end else
+        ( change_url_string full_uri;
+          scroll_to_fragment fragment;
+          Lwt.return () ) )
 
 (* Functions used in "onsubmit" event handler of <form>.  *)
 
 let change_page_get_form ?cookies_info ?tmpl form full_uri =
-  let form = Js.Unsafe.coerce form in
-  let uri, fragment = Url.split_fragment full_uri in
-  match tmpl with
-  | Some t when tmpl = Eliom_request_info.get_request_template () ->
-      lwt uri, content = Eliom_request.send_get_form
-        ~get_args:[Eliom_request.nl_template_string, t]
-        ?cookies_info form uri
-        Eliom_request.string_result
-      in
-      set_template_content ~uri ?fragment content
-  | _ ->
-    lwt uri, content = Eliom_request.send_get_form
-      ~expecting_process_page:true ?cookies_info form uri
-      Eliom_request.xml_result
-    in
-    set_content ~uri ?fragment content
+  with_progress_cursor
+    ( let form = Js.Unsafe.coerce form in
+      let uri, fragment = Url.split_fragment full_uri in
+      match tmpl with
+        | Some t when tmpl = Eliom_request_info.get_request_template () ->
+          lwt uri, content = Eliom_request.send_get_form
+            ~get_args:[Eliom_request.nl_template_string, t]
+            ?cookies_info form uri
+            Eliom_request.string_result
+          in
+          set_template_content ~uri ?fragment content
+        | _ ->
+          lwt uri, content = Eliom_request.send_get_form
+            ~expecting_process_page:true ?cookies_info form uri
+            Eliom_request.xml_result
+          in
+          set_content ~uri ?fragment content )
 
 let change_page_post_form ?cookies_info ?tmpl form full_uri =
-  let form = Js.Unsafe.coerce form in
+  with_progress_cursor
+    ( let form = Js.Unsafe.coerce form in
       let uri, fragment = Url.split_fragment full_uri in
-  match tmpl with
-  | Some t when tmpl = Eliom_request_info.get_request_template () ->
-      lwt uri, content = Eliom_request.send_post_form
-        ~get_args:[Eliom_request.nl_template_string, t]
-        ?cookies_info form uri
-        Eliom_request.string_result
-      in
-      set_template_content ~uri ?fragment content
-  | _ ->
-      lwt uri, content = Eliom_request.send_post_form
-        ~expecting_process_page:true ?cookies_info form uri
-        Eliom_request.xml_result
-      in
-      set_content ~uri ?fragment content
+      match tmpl with
+        | Some t when tmpl = Eliom_request_info.get_request_template () ->
+          lwt uri, content = Eliom_request.send_post_form
+            ~get_args:[Eliom_request.nl_template_string, t]
+            ?cookies_info form uri
+            Eliom_request.string_result
+          in
+          set_template_content ~uri ?fragment content
+        | _ ->
+          lwt uri, content = Eliom_request.send_post_form
+            ~expecting_process_page:true ?cookies_info form uri
+            Eliom_request.xml_result
+          in
+          set_content ~uri ?fragment content )
 
 let _ =
   change_page_uri_ :=
@@ -1001,26 +1017,27 @@ let () =
       let state = get_state state_id in
       let tmpl = (if state.template = Js.string "" then None else Some (Js.to_string state.template))in
       lwt_ignore
-        (let uri, fragment = Url.split_fragment full_uri in
-         if uri <> !current_uri then begin
-           current_uri := uri;
-           match tmpl with
-           | Some t when tmpl = Eliom_request_info.get_request_template () ->
-               lwt (uri, content) = Eliom_request.http_get
-                 uri [(Eliom_request.nl_template_string, t)]
-                 Eliom_request.string_result
-               in
-               set_template_content content >>
-                 ( scroll_to_fragment ~offset:state.position fragment;
-                   Lwt.return ())
-           | _ ->
-               lwt uri, content =
-                 Eliom_request.http_get ~expecting_process_page:true uri []
-                   Eliom_request.xml_result in
-               set_content ~offset:state.position ?fragment content
-         end else
-           ( scroll_to_fragment ~offset:state.position fragment;
-             Lwt.return () ))
+        ( with_progress_cursor
+            ( let uri, fragment = Url.split_fragment full_uri in
+              if uri <> !current_uri then begin
+                current_uri := uri;
+                match tmpl with
+                  | Some t when tmpl = Eliom_request_info.get_request_template () ->
+                    lwt (uri, content) = Eliom_request.http_get
+                      uri [(Eliom_request.nl_template_string, t)]
+                      Eliom_request.string_result
+                    in
+                    set_template_content content >>
+                      ( scroll_to_fragment ~offset:state.position fragment;
+                        Lwt.return ())
+                  | _ ->
+                    lwt uri, content =
+                      Eliom_request.http_get ~expecting_process_page:true uri []
+                        Eliom_request.xml_result in
+                    set_content ~offset:state.position ?fragment content
+              end else
+                ( scroll_to_fragment ~offset:state.position fragment;
+                  Lwt.return () ) ) )
     in
 
     lwt_ignore
