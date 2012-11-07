@@ -416,7 +416,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       | Server_item
       | Client_item
       | Shared_item
-      | Module_expr (* TODO What's this? *)
+      | Module_expr
       | Hole_expr of client_value_context
       | Escaped_expr of client_value_context
       | Injected_expr of injection_context
@@ -426,7 +426,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       | Server_item -> "server section"
       | Client_item -> "client section"
       | Shared_item -> "shared section"
-      | Module_expr (* TODO What's this? *) -> "module expr"
+      | Module_expr -> "module expr"
       | Hole_expr client_value_context ->
           "client value expr in " ^ client_value_context_to_string client_value_context
       | Escaped_expr client_value_context ->
@@ -670,7 +670,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                 "The syntax {type{ ... } is not allowed in %s."
                 (level_to_string !current_level)
           | KEYWORD "{"; e = TRY [e = expr LEVEL "."; "with" -> e]; lel = label_expr_list; "}" ->
-              <:expr< { ($e$) with $lel$ } >> 
+              <:expr< { ($e$) with $lel$ } >>
           | KEYWORD "{{"; opt_lvl = dummy_set_level_client_value_expr ; e = expr; KEYWORD "}}" ->
               from_some_or_raise opt_lvl _loc
                 (fun lvl ->
