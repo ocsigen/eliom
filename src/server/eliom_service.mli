@@ -124,16 +124,15 @@ type registrable = [ `Registrable | `Unregistrable ]
     - [ 'c] describes the services's kind: attached or non-attached,
             internal or external, GET only or with POST
             parameters. It is a subtype of {!service_kind}.
-    - [ 'd] is a phantom type, subtype of {!suff} stating the kind
-            of parameters it uses: suffix or not.
-    - [ 'e] is the type of GET parameters names. See {!Eliom_parameter.param_name} and
+    - the type paremeter of subtype {!suff} states the kind
+      of parameters it uses: suffix or not.
+    - [ 'd] is the type of GET parameters names. See {!Eliom_parameter.param_name} and
             form generation functions (e. g. {!Eliom_registration.Html5.get_form}).
-    - [ 'f] is the type of POST parameters names. See {!Eliom_parameter.param_name} and
+    - [ 'e] is the type of POST parameters names. See {!Eliom_parameter.param_name} and
             form generation functions (e. g. {!Eliom_registration.Html5.post_form}).
-    - [ 'g] is a phantom type,  subtype of {!registrable},
-            telling if it is possible to register a handler
-            on this service.
-    - [ 'h] is an information on what the service returns.
+    - the type parameter of subtype {!registrable} tells if it is possible to
+      register a handler on this service.
+    - [ 'f] is an information on what the service returns.
             See {!Eliom_registration.kind}.
 *)
 type ('a,'b,+'c,+'d,+'e,+'f,+'g,+'h) service
@@ -714,7 +713,7 @@ module Syntax_helpers : sig
       {!Eliom_lib_base.client_value_datum}s into the queue of server
       section data of the compilation unit
       ({!Eliom_lib_base.compilation_unit_global_data}).
-      
+
       Called in parallel with <<a_api
       subproject="client"|Eliom_client.Syntax_helpers.close_server_section>>.  *)
   val close_server_section : string -> unit
