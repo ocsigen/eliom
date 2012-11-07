@@ -192,6 +192,9 @@ module type ELIOM_APPL = sig
       client.}  *)
   val application_name : string
 
+  (** Checks during a request whether it is the initial request of the
+      client process in this Eliom application. *)
+  val is_initial_request : unit -> bool
 
   (** The type [appl] is an abstract type for identifying an
       application. It usually used a phantom parameter for

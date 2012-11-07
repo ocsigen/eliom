@@ -27,12 +27,6 @@ eliom_common.cmo: eliom_wrap.cmi eliom_lib.cmi eliom_common_base.cmo \
 eliom_common.cmx: eliom_wrap.cmx eliom_lib.cmx eliom_common_base.cmx \
     eliom_common.cmi
 eliom_common.cmi: eliom_wrap.cmi eliom_lib.cmi eliom_common_base.cmo
-eliom_compatibility_2_1.cmo: eliom_service.cmi eliom_registration.cmi \
-    eliom_reference.cmi eliom_parameter.cmi eliom_lib.cmi eliom_extension.cmi \
-    eliom_cookie.cmi eliom_content_core.cmi eliom_content.cmi
-eliom_compatibility_2_1.cmx: eliom_service.cmx eliom_registration.cmx \
-    eliom_reference.cmx eliom_parameter.cmx eliom_lib.cmx eliom_extension.cmx \
-    eliom_cookie.cmx eliom_content_core.cmx eliom_content.cmx
 eliom_config.cmo: private/eliommod.cmo eliom_request_info.cmi \
     eliom_common.cmi eliom_config.cmi
 eliom_config.cmx: private/eliommod.cmx eliom_request_info.cmx \

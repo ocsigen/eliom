@@ -67,7 +67,7 @@ let cast_unknown_content_kind (x:(unknown_content, http_service) kind) : ('a, 'b
 let cast_http_result = Result_types.cast_result
 
 (******************************************************************************)
- 
+
 (******************************************************************************)
 
 module Html5_make_reg_base
@@ -744,7 +744,7 @@ struct
     let sp = Eliom_common.get_sp () in
     let request = Eliom_request_info.get_request_sp sp in
     try
-      ignore (Ocsigen_local_files.resolve request filename () 
+      ignore (Ocsigen_local_files.resolve request filename ()
                 : Ocsigen_local_files.resolved);
       true
     with
@@ -1395,6 +1395,10 @@ module Eliom_appl_reg_make_param
 
   let result_of_http_result = Result_types.cast_result
 
+  let is_initial_request () =
+    let sp = Eliom_common.get_sp () in
+    sp.Eliom_common.sp_client_appl_name <> Some Appl_params.application_name
+
   let eliom_appl_script_id : [ `Script ] Eliom_content.Html5.Id.id =
     Eliom_content.Html5.Id.new_elt_id ~global:true ()
   let application_script ?(async = false) () =
@@ -1436,8 +1440,7 @@ module Eliom_appl_reg_make_param
   let make_eliom_data_script ~sp page =
 
     let ejs_global_data =
-      if None = Eliom_request_info.get_sp_client_appl_name ()
-      then (* is_first_request *)
+      if is_initial_request () then
         Some (Eliom_service.get_global_data (), global_data_unwrapper)
       else None
     in
@@ -1627,6 +1630,7 @@ module Eliom_appl_reg_make_param
 module type ELIOM_APPL = sig
   val application_script : ?async:bool -> unit -> [> `Script ] Eliom_content.Html5.elt
   val application_name : string
+  val is_initial_request : unit -> bool
   type appl
   include "sigs/eliom_reg.mli"
     subst type page    := Html5_types.html Eliom_content.Html5.elt
@@ -1656,6 +1660,7 @@ module App (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
   *)
   let application_name = Appl_params.application_name
   let typed_name = Appl_params.application_name
+  let is_initial_request = Eliom_appl_reg_param.is_initial_request
 
   let application_script = Eliom_appl_reg_param.application_script
 
