@@ -28,7 +28,7 @@ type 'a client_value = 'a Eliom_lib.client_value
     side representation"| type Eliom_pervasives.server_function>> %}.
 
     The handling of exception on the server corresponds to that of
-    <<a_api subproject="client|val Eliom_client.call_caml_service>>.
+    <<a_api subproject="client"|val Eliom_client.call_caml_service>>.
 *)
 type ('a, 'b) server_function = 'a -> 'b Lwt.t
 
