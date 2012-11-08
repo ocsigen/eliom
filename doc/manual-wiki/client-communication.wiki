@@ -284,17 +284,18 @@ Eliom provides you an easy way to call server functions from the client:
 <<a_api subproject="server" | type Eliom_pervasives.server_function>>
 (and on <<a_api subproject="client" text="client" | type Eliom_pervasives.server_function>>).
 
-A function ##('a -> 'b Lwt.t)## can me wrapped on the server side by
+A function ##'a -> 'b Lwt.t## can me wrapped on the server side by
 <<a_api subproject="server" | val Eliom_pervasives.server_function>>.
 When the result is sent to the client, it appears as a plain
 function ##'a -> 'b Lwt##.
 
-It is necessary to provide an instance of <<a_manual
+It is necessary to provide an instance of <<a_api
 project="js_of_ocaml"|module Deriving_Json>> for the argument type, to
 safely send the argument from the client to the server.
 
 Every call to ##server_function## creates a new non-attached POST
-coservice. It is thus advisable to apply it only once and bind it to an identifier, if it is to be used several times.
+coservice. It is thus advisable to apply it only once and bind it to
+an identifier, if it is to be used several times.
 
 Example:
 <<code language="ocaml"|
