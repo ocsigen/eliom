@@ -55,8 +55,7 @@ eliom_duce.cmo: eliom_service.cmi eliom_registration.cmi eliom_mkreg.cmi \
 eliom_duce.cmx: eliom_service.cmx eliom_registration.cmx eliom_mkreg.cmx \
     eliom_mkforms.cmx eliom_lazy.cmx eliom_duce_types.cmi eliom_duce.cmi
 eliom_duce.cmi: eliom_duce_sigs.cmi
-eliom_duce_sigs.cmi: eliom_service.cmi eliom_registration.cmi \
-    eliom_parameter.cmi eliom_lib.cmi eliom_duce_types.cmi eliom_common.cmi
+eliom_duce_sigs.cmi:
 eliom_duce_tools.cmo: eliom_tools_common.cmi eliom_service.cmi \
     eliom_request_info.cmi eliom_duce_types.cmi eliom_duce.cmi \
     eliom_duce_tools.cmi

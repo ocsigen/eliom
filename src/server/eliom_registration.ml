@@ -1104,7 +1104,14 @@ module Ocaml = struct
 
   let make_service_handler f =
     fun g p ->
-      f g p >>= prepare_data
+      lwt data =
+        try_lwt
+          lwt res = f g p in
+          Lwt.return (`Success res)
+        with exc ->
+          Lwt.return (`Failure (Printexc.to_string exc))
+      in
+      prepare_data data
 
   let send ?options ?charset ?code ?content_type ?headers content =
     lwt content = prepare_data content in

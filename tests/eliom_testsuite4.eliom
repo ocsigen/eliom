@@ -17,11 +17,19 @@ let the_number = 100
 let ocaml_service =
   Eliom_registration.Ocaml.register_coservice'
     ~get_params:Eliom_parameter.unit
-    (fun () () ->
+    (let rec counter = ref 0 in
+     fun () () ->
        ignore {unit{
-         Eliom_testsuite_base.log "From ocaml service";
+         Eliom_testsuite_base.log "From ocaml service 1";
        }};
-       Lwt.return the_number)
+       incr counter;
+       if !counter mod 3 = 0 then
+         Lwt.fail (Failure "Fails each 3rd time")
+       else
+         (ignore {unit{
+            Eliom_testsuite_base.log "From ocaml service 2";
+          }};
+          Lwt.return the_number))
 
 let test_client_value_on_caml_service =
   Eliom_testsuite_base.test
@@ -30,10 +38,16 @@ let test_client_value_on_caml_service =
     ~description:Html5.F.([
       pcdata "On loading: \"From main service\"";
       br ();
-      pcdata "On click button";
+      pcdata "On clicking button";
       ul [
-        li [pcdata "\"From ocaml service\""];
+        li [pcdata "\"From ocaml service 1\""];
+        li [pcdata "\"From ocaml service 2\""];
         li [Printf.ksprintf pcdata "\"number: %d\"" the_number];
+      ];
+      pcdata "Each time clicking the button";
+      ul [
+        li [pcdata "\"From ocaml service 1\""];
+        li [pcdata "Exception on server: Failure(\"Fails each 3rd time\")"];
       ]
     ])
     (fun () ->
@@ -43,9 +57,13 @@ let test_client_value_on_caml_service =
        let onclick = {{
          fun _ ->
            Lwt.ignore_result
-             (lwt number = Eliom_client.call_caml_service %ocaml_service () () in
-              Eliom_testsuite_base.log "number: %d" number;
-              Lwt.return ())
+             (try_lwt
+                lwt number = Eliom_client.call_caml_service %ocaml_service () () in
+                Eliom_testsuite_base.log "number: %d" number;
+                Lwt.return ()
+              with Exception_on_server msg ->
+                Eliom_testsuite_base.log "Exception on server: %s" msg;
+                Lwt.return ())
        }} in
        Lwt.return Html5.F.([
          button ~a:[a_onclick onclick ] ~button_type:`Submit [

@@ -4,5 +4,5 @@ type ('a, 'b) server_function_service =
    [ `Nonattached of [ `Post] Eliom_service.na_s ], [ `WithoutSuffix ],
    unit, [ `One of 'a Eliom_parameter.caml ] Eliom_parameter.param_name,
    [ `Registrable ],
-   [`Success of 'b | `Failure of string] Eliom_parameter.caml)
+   'b Eliom_parameter.caml)
   Eliom_service.service

@@ -31,14 +31,10 @@ type ('a, 'b) server_function
     an instance of [Deriving_Json] for the type of the argument. It is
     used to safely encode and decode the argument sent to the server.
 
-    The optional parameters directly correspond to the parameters of
-    {% <<a_api|val Eliom_registration.Ocaml.register_coservice'>>
-    %}.
+    The optional parameters correspond directly to the optional
+    parameters of {% <<a_api|val Eliom_registration.Ocaml.register_coservice'>> %}.
 
-    NB exceptions are not handled remotly (i.e. propagated from the
-    server to the client).
-    
-    See also th {% <<a_manual chapter="client-communication"
+    See also the {% <<a_manual chapter="client-communication"
     fragment="rpc"|manual>> %}.
 *)
 (* BBB This is not in Eliom_service because it depends on Eliom_registration *)

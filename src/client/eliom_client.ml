@@ -550,7 +550,11 @@ let call_caml_service
   do_request_data request_data;
   run_callbacks (flush_onload ());
   reset_request_nodes ();
-  Lwt.return content
+  match content with
+    | `Success result ->
+      Lwt.return result
+    | `Failure msg ->
+      Lwt.fail (Exception_on_server msg)
 
 (* == The function [change_url_string] changes the URL, without doing a request.
 

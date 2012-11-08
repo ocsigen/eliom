@@ -42,7 +42,15 @@ val change_page :
   ?nl_params:Eliom_parameter.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> unit Lwt.t
 
-(** Call a server side service that return an OCaml value. *)
+(** Call a server side service that return an OCaml value.
+
+    If the service raises an exception, the call to the
+    [call_caml_service] raises an exception {% <<a_api|exception
+    Exception_on_server>> %} whose argument describes the server-side
+    exception.
+    (NB that we cannot send the original exception as-it, because
+    OCaml permits the marshalling of exceptions ...)
+*)
 val call_caml_service :
   ?absolute:bool ->
   ?absolute_path:bool ->
@@ -51,7 +59,7 @@ val call_caml_service :
            [< Eliom_service.service_kind ],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
            [< Eliom_service.registrable ], 'return Eliom_parameter.caml)
-          Eliom_service.service ->
+    Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->

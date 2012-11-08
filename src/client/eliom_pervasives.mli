@@ -24,12 +24,11 @@ type 'a client_value = 'a Eliom_lib.client_value
     server side function which has been created by {% <<a_api
     subproject="server"|Eliom_pervasives.server_function>> %}.
 
-    If the function on the server raises an exception in Lwt, the call
-    to the [server_function] raises an exception {% <<a_api|exception
-    Exception_on_server>> %}.
-
     See also {% <<a_api subproject="server" text="the opaque server
     side representation"| type Eliom_pervasives.server_function>> %}.
+
+    The handling of exception on the server corresponds to that of
+    <<a_api subproject="client|val Eliom_client.call_caml_service>>.
 *)
 type ('a, 'b) server_function = 'a -> 'b Lwt.t
 
