@@ -12,10 +12,10 @@ let usage () =
      default_type_dir;
   if !kind =  `Server || !kind = `ServerOpt then begin
     Printf.eprintf "  -infer\t\tOnly infer the type of values sent by the server\n";
-    Printf.eprintf "  -noinfer\t\tDo not infer the type of values sent by the server\n";
   end else begin
     Printf.eprintf "  -jsopt <opt>\t\tAppend option <opt> to js_of_ocaml invocation\n";
   end;
+  Printf.eprintf "  -noinfer\t\tDo not infer the type of values sent by the server\n";
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
   Printf.eprintf "  -predicates <p>\tAdd predicate <p> when resolving package properties\n";
   Printf.eprintf "  -ppopt <p>\tAppend option <opt> to preprocessor invocation\n";
@@ -31,11 +31,13 @@ let jsopt : string list ref = ref []
 let output_name : string option ref = ref None
 let noinfer = ref false
 
-let mode : [ `Link | `Compile | `InferOnly | `Library  | `Pack | `Obj | `Shared | `Interface ] ref =
-  ref `Link
+type mode = [ `Link | `Compile | `InferOnly | `Library  | `Pack | `Obj | `Shared | `Interface ]
+
+let mode : mode ref = ref `Link
 
 let do_compile () = !mode <> `InferOnly
 let do_infer () = not !noinfer
+let do_interface () = !mode = `Interface
 let do_dump = ref false
 
 let create_process ?in_ ?out ?err name args =
@@ -70,20 +72,26 @@ let output_prefix ?(ty = false) name =
   chop_extension_if_any name
 
 let set_mode m =
- if !mode =  `Link then begin
-   if m = `Shared && !kind <> `ServerOpt then usage ();
-   if m = `InferOnly && (!kind <> `Server && !kind <> `ServerOpt) then usage ();
-   mode := m
- end else
-    match !kind with
-      | `ServerOpt ->
-	  Printf.eprintf
-	    "Please specify at most one of -pack, -a, -shared, -c, -infer, -output-obj\n%!";
-	exit 1
-      | `Client | `Server ->
-	  Printf.eprintf
-	    "Please specify at most one of -pack, -a, -c, -infer, -output-obj\n%!";
-	exit 1
+ if !mode = `Link then
+   ( if
+       (m = `Shared && !kind <> `ServerOpt) ||
+       (m = `InferOnly && !kind = `Client) ||
+       (m = `Interface && !kind = `Client)
+     then
+       usage ()
+     else
+       mode := m )
+ else
+   let args =
+     let basic_args = ["-pack"; "-a"; "-c"; "output-obj"] in
+     let infer_args = if !kind <> `Client then ["-i"; "-infer"] else [] in
+     let shared_args = if !kind <> `ServerOpt then ["-shared"] else [] in
+     basic_args @ infer_args @ shared_args
+   in
+   Printf.eprintf
+     "Please specify at most one of %s\n%!"
+     (String.concat ", " args);
+  exit 1
 
 let get_product_name () = match !output_name with
   | None ->
@@ -120,96 +128,125 @@ let get_thread_opt () = match !kind with
 
 let obj_ext () = if !kind = `ServerOpt then ".cmx" else ".cmo"
 
-let compile_intf file =
-  if do_compile () then
-    let obj = output_prefix file ^ ".cmi" in
-    create_process !compiler ( ["-c" ; "-o" ; obj ; "-pp"; get_pp []] @ !args
-			       @ get_thread_opt ()
-			       @ get_common_include ()
-			       @ ["-intf"; file] )
+(* Process ml and mli files *)
 
-let compile_inter file =
-  if do_compile () then
-    let obj = output_prefix file ^ obj_ext () in
+let compile_ocaml ~impl_intf file =
+  let obj =
+    let ext = match impl_intf with
+      | `Impl -> obj_ext ()
+      | `Intf -> ".cmi"
+    in
+    output_prefix file ^ ext in
+  create_process !compiler ( ["-c" ;
+                              "-o" ; obj ;
+                              "-pp"; get_pp []]
+                             @ !args
+			     @ get_thread_opt ()
+			     @ get_common_include ()
+			     @ [impl_intf_opt impl_intf; file] )
+
+let output_ocaml_interface file =
     create_process !compiler ( ["-i"; "-pp"; get_pp []] @ !args
-                               @ get_thread_opt ()
                                @ get_common_include ()
-                               @ [file] );
-    args := !args @ [obj]
+                               @ [file] )
 
-let compile_impl file =
+let process_ocaml ~impl_intf file =
   if do_compile () then
-    let obj = output_prefix file ^ obj_ext () in
-    create_process !compiler ( ["-c" ; "-o"  ; obj ; "-pp"; get_pp []] @ !args
-			       @ get_thread_opt ()
-			       @ get_common_include ()
-			       @ ["-impl"; file] );
-    args := !args @ [obj]
+    compile_ocaml ~impl_intf file;
+  if do_interface () then
+    output_ocaml_interface file
 
 let compile_obj file =
   if do_compile () then
     ( create_process !compiler (!args @ [file]);
       args := !args @ [output_prefix file ^ ext_obj] )
 
+(* Process eliom and eliomi files *)
+
+let get_ppopts ~impl_intf file =
+  let pa_cmo =
+    match !kind with
+      | `Client -> "pa_eliom_client_client.cmo"
+      | `Server | `ServerOpt -> "pa_eliom_client_server.cmo"
+  in
+  pa_cmo :: type_opt impl_intf file @ !ppopt @ [impl_intf_opt impl_intf]
+
 let compile_server_type_eliom file =
-  if do_infer () then
-    let obj = output_prefix ~ty:true file ^ type_file_suffix
-    and ppopt = ["pa_eliom_type_filter.cmo"] @ !ppopt @ ["-impl"] in
-    if !do_dump then begin
-      let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopt @ [file]) in
-      create_process camlp4 ppopt;
-      exit 0
-    end;
-    let out =
-      Unix.openfile obj [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC] 0o666 in
-    create_process ~out !compiler ( [ "-i" ; "-thread" ; "-pp"; get_pp ppopt]
-				    @ !args
-				    @ get_common_include ()
-				    @ ["-impl"; file] );
-    Unix.close out
-
-let compile_server_eliom ~mode file =
-  if do_compile () then
-    let obj = output_prefix file ^ obj_ext ()
-    and ppopt = "pa_eliom_client_server.cmo" :: type_opt file mode @ !ppopt @ [impl_intf_opt mode] in
-    if !do_dump then begin
-      let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopt @ [file]) in
-      create_process camlp4 ppopt;
-      exit 0
-    end;
-    create_process !compiler ( [ "-c" ; "-thread" ; "-o"  ; obj ;
-                                 "-pp" ; get_pp ppopt; "-intf-suffix"; ".eliomi" ]
-			       @ !args
-			       @ get_common_include ()
-			       @ [impl_intf_opt mode; file] );
-    args := !args @ [obj]
-
-let compile_client_eliom ~mode file =
-  let obj = output_prefix file ^ ".cmo" in
-  let ppopt =
-    "pa_eliom_client_client.cmo" :: type_opt file mode @ !ppopt @ [impl_intf_opt mode] in
+  let obj = output_prefix ~ty:true file ^ type_file_suffix
+  and ppopts = ["pa_eliom_type_filter.cmo"] @ !ppopt @ ["-impl"] in
   if !do_dump then begin
-    let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopt @ [file]) in
+    let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopts @ [file]) in
     create_process camlp4 ppopt;
     exit 0
   end;
-  create_process !compiler ( ["-c" ; "-o"  ; obj ;
-                              "-pp"; get_pp ppopt; "-intf-suffix"; ".eliomi"]
+  let out = Unix.openfile obj [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC] 0o666 in
+  create_process ~out !compiler ( [ "-i" ; "-pp"; get_pp ppopts]
+				  @ !args
+				  @ get_common_include ~kind:`Server ()
+				  @ ["-impl"; file] );
+  Unix.close out
+
+let output_eliom_interface ~impl_intf file =
+  let ppopts = get_ppopts ~impl_intf file in
+  let indent ch =
+    try
+      while true do
+        let line = input_line ch in
+        Printf.printf "  %s\n" line
+      done
+    with End_of_file -> ()
+  in
+  Printf.printf "(* WARNING `eliomc -i' generated this pretty ad-hoc - use with care! *)\n";
+  Printf.printf "{server{\n";
+    create_filter !compiler ( [ "-i" ; "-pp" ; get_pp ppopts; "-intf-suffix"; ".eliomi" ]
+			         @ !args
+			         @ get_common_include ~kind:`Server ()
+			         @ [impl_intf_opt impl_intf; file] )
+      indent;
+  Printf.printf "}}\n";
+  Printf.printf "{client{\n";
+    create_filter !compiler ( [ "-i" ; "-pp" ; get_pp ppopts; "-intf-suffix"; ".eliomi" ]
+			         @ !args
+			         @ get_common_include ~kind:`Server ()
+			         @ [impl_intf_opt impl_intf; file] )
+      indent;
+  Printf.printf "}}\n"
+
+let compile_eliom ~impl_intf file =
+  let obj =
+    let ext = match !kind with
+      | `Client -> ".cmo"
+      | `Server | `ServerOpt -> obj_ext ()
+    in
+    output_prefix file ^ ext
+  in
+  let ppopts = get_ppopts ~impl_intf file in
+  if !do_dump then begin
+    let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopts @ [file]) in
+    create_process camlp4 ppopt;
+    exit 0
+  end;
+  create_process !compiler ( [ "-c" ;
+                               "-o"  ; obj ;
+                               "-pp" ; get_pp ppopts;
+                               "-intf-suffix"; ".eliomi" ]
+                             @ get_thread_opt ()
 			     @ !args
 			     @ get_common_include ()
-			     @ [impl_intf_opt mode; file] );
+			     @ [impl_intf_opt impl_intf; file] );
   args := !args @ [obj]
 
-let compile_eliom ~mode file = match !kind with
-  | `Client ->
-    compile_client_eliom ~mode file
-  | `Server | `ServerOpt ->
-    compile_server_eliom ~mode file;
-    if mode = `Impl then
-      compile_server_type_eliom file
+let process_eliom ~impl_intf file =
+  if impl_intf = `Impl && do_infer () then
+    compile_server_type_eliom file;
+  if do_compile () then
+    compile_eliom ~impl_intf file;
+  if do_interface () then
+    output_eliom_interface ~impl_intf file
 
-let build_server ?(name = "a.out") () = ()
-    (* TODO ? Build a staticaly linked ocsigenserver. *)
+let build_server ?(name = "a.out") () =
+  fail "Linking eliom server is not yet supported"
+  (* TODO ? Build a staticaly linked ocsigenserver. *)
 
 let build_client () =
   let name = chop_extension_if_any (get_product_name ()) in
@@ -238,7 +275,7 @@ let rec process_option () =
     | "-shared" -> set_mode `Shared; incr i
     | "-infer" -> set_mode `InferOnly; incr i
     | "-verbose" -> verbose := true; args := !args @ ["-verbose"] ;incr i
-    | "-noinfer" when !kind = `Server || !kind = `ServerOpt ->
+    | "-noinfer"  ->
 	noinfer := true; incr i
     | "-vmthread" -> Printf.eprintf "The -vmthread option isn't supported yet."; exit 1
     | "-o" ->
@@ -283,24 +320,23 @@ let rec process_option () =
       i := !i+2
     | "-intf" ->
       if !i+1 >= Array.length Sys.argv then usage ();
-      compile_eliom ~mode:`Intf Sys.argv.(!i+1);
+      process_eliom ~impl_intf:`Intf Sys.argv.(!i+1);
       i := !i+2
     | "-impl" ->
       if !i+1 >= Array.length Sys.argv then usage ();
-      compile_eliom ~mode:`Impl Sys.argv.(!i+1);
+      process_eliom ~impl_intf:`Impl Sys.argv.(!i+1);
       i := !i+2
     | arg when Filename.check_suffix arg ".mli" ->
-      compile_intf arg; incr i
+      process_ocaml ~impl_intf:`Intf arg;
+      incr i
     | arg when Filename.check_suffix arg ".ml" ->
-      (match !mode with
-        | `Interface -> compile_inter arg
-        | _ -> compile_impl arg
-      ); incr i
+      process_ocaml ~impl_intf:`Impl arg;
+      incr i
     | arg when Filename.check_suffix arg ".eliom" ->
-      compile_eliom ~mode:`Impl arg;
+      process_eliom ~impl_intf:`Impl arg;
       incr i
     | arg when Filename.check_suffix arg ".eliomi" ->
-      compile_eliom ~mode:`Intf arg;
+      process_eliom ~impl_intf:`Intf arg;
       incr i
     | arg when Filename.check_suffix arg ".c" ->
       compile_obj arg; incr i

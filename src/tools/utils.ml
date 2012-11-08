@@ -59,6 +59,11 @@ let default_type_dir =
 let build_dir : string ref = ref ""
 let type_dir : string ref = ref default_type_dir
 
+let get_kind ~k =
+  match k with
+    | Some k -> k
+    | None -> !kind
+
 (** Findlib *)
 
 let _ = Findlib.init ()
@@ -76,22 +81,22 @@ let camlp4 = ref "camlp4o"
 
 let ppopt : string list ref = ref []
 
-let get_predicates () = match !kind with
+let get_predicates ?kind:k () = match get_kind k with
   | `Server -> ["mt"; "byte"] @ !predicates
   | `Client -> ["byte"] @ !predicates
   | `ServerOpt -> ["native"] @ !predicates
 
 let syntax_predicates = ["preprocessor";"syntax";"camlp4o"] @ !predicates
 
-let get_server_package () =
+let get_server_package ?kind:k () =
   try
-    Findlib.package_deep_ancestors (get_predicates ()) ("eliom.server" :: !package)
+    Findlib.package_deep_ancestors (get_predicates ?kind:k ()) ("eliom.server" :: !package)
   with Findlib.No_such_package (name, _) ->
     Printf.eprintf "Unknown package: %s\n%!" name;
     exit 1
-let get_client_package () =
+let get_client_package ?kind:k () =
   try
-    Findlib.package_deep_ancestors (get_predicates ()) ("eliom.client" :: !package)
+    Findlib.package_deep_ancestors (get_predicates ?kind:k ()) ("eliom.client" :: !package)
   with Findlib.No_such_package (name, _) ->
     Printf.eprintf "Unknown package: %s\n%!" name;
     exit 1
@@ -106,12 +111,12 @@ let rec map_include xs = match xs with
   | [] -> []
   | x::xs -> "-I" :: x :: map_include xs
 
-let get_common_include () =
-  (match !kind with
+let get_common_include ?kind:k () =
+  (match get_kind ~k with
   | `Server | `ServerOpt ->
-      map_include (List.map Findlib.package_directory (get_server_package ()))
+      map_include (List.map Findlib.package_directory (get_server_package ?kind:k ()))
   | `Client ->
-      map_include (List.map Findlib.package_directory (get_client_package ())))
+      map_include (List.map Findlib.package_directory (get_client_package ?kind:k ())))
   @ match !build_dir with
     | "" | "." -> []
     | d -> ["-I"; d]
@@ -128,14 +133,14 @@ let get_common_syntax () =
 	 with Not_found -> [])
        (get_syntax_package ()))
 
-let get_client_lib () =
+let get_client_lib ?kind:k () =
   List.concat
     (List.map
        (fun p ->
 	 try
-	   split ' ' (Findlib.package_property (get_predicates ()) p "archive")
+	   split ' ' (Findlib.package_property (get_predicates ?kind:k ()) p "archive")
 	 with Not_found -> [])
-       (get_client_package ()))
+       (get_client_package ?kind:k ()))
 
 let get_client_js () =
   try
@@ -179,7 +184,8 @@ let impl_intf_opt = function
   | `Impl -> "-impl"
   | `Intf -> "-intf"
 
-let type_opt file = function
+let type_opt impl_intf file =
+  match impl_intf with
   | `Impl -> ["-type"; get_type_file file]
   | `Intf -> ["-notype"]
 
@@ -217,6 +223,13 @@ let help_filter skip msg ch =
   for i = 1 to skip do ignore (input_line ch) done;
   prerr_endline msg;
   while true do prerr_endline (input_line ch) done
+
+let fail fmt =
+  Printf.ksprintf
+    (fun msg ->
+      prerr_endline msg;
+      exit 1)
+    fmt
 
 (** *)
 
