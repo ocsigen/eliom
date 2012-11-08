@@ -111,13 +111,14 @@ let rec map_include xs = match xs with
   | [] -> []
   | x::xs -> "-I" :: x :: map_include xs
 
-let get_common_include ?kind:k () =
+let get_common_include ?kind:k ?build_dir:dir () =
+  let dir = match dir with Some d -> d | None -> !build_dir in
   (match get_kind ~k with
   | `Server | `ServerOpt ->
       map_include (List.map Findlib.package_directory (get_server_package ?kind:k ()))
   | `Client ->
       map_include (List.map Findlib.package_directory (get_client_package ?kind:k ())))
-  @ match !build_dir with
+  @ match dir with
     | "" | "." -> []
     | d -> ["-I"; d]
 
