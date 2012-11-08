@@ -84,7 +84,7 @@ _client/%.cmi: %.mli
 	${JS_OF_ELIOM} -c ${CLIENT_INC} $<
 
 _client/%.cmo: %.eliom
-	${JS_OF_ELIOM} -c ${addprefix -type-dir ,${TYPE_DIR}} ${CLIENT_INC} $<
+	${JS_OF_ELIOM} -c -noinfer ${addprefix -type-dir ,${TYPE_DIR}} ${CLIENT_INC} $<
 _client/%.cmo: %.ml
 	${JS_OF_ELIOM} -c ${CLIENT_INC} $<
 
@@ -154,4 +154,3 @@ _client/eliom_testsuite.cmx: _client/eliom_testsuite3.cmx _client/eliom_testsuit
 
 # %.wiki: %.ml
 # cat $< | sed '1,/(\*wiki\*/d' | sed '/%<||2>%/,$$ d' | /bin/sh ./tutomake.sh > $@
-
