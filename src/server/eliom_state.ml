@@ -1101,7 +1101,7 @@ let discard_all_scopes ?secure () =
     lwt () = discard ?secure ~scope:(`Session scope_hierarchy) () in
     discard ?secure ~scope:(`Client_process scope_hierarchy) ()
   in
-  discard_request_data ();
+  lwt () = discard_request_data () in
   Lwt_list.iter_p discard_name (Eliom_common.list_scope_hierarchies ())
 
 let discard_all_volatile_data ~scope ?(secure = false) () =
@@ -1144,7 +1144,7 @@ let discard_everything () =
     lwt () = discard_all ~scope:(`Session scope_hierarchy) () in
     discard_all ~scope:(`Client_process scope_hierarchy) ()
   in
-  discard_request_data ();
+  lwt () = discard_request_data () in
   Lwt_list.iter_p discard_name (Eliom_common.list_scope_hierarchies ())
 
 
