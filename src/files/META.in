@@ -9,14 +9,6 @@ package "server" (
   requires(syntax) += "%%SDEPS%%"
   archive(byte) = "%%NAME%%.cma"
   archive(native) = "%%NAME%%.cmxa"
-  package "duce" (
-    description = "Eliom: OCamlDuce support for server-side"
-    version = "[distributed with Eliom]"
-    requires = "%%NAME%%.server,ocamlduce"
-    archive(byte) = "%%NAME%%_duce.cma"
-    archive(native) = "%%NAME%%_duce.cmxa"
-    exists_if = "%%NAME%%_duce.cma,%%NAME%%_duce.cmxa"
-  )
 )
 
 package "client" (

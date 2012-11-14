@@ -32,41 +32,16 @@ INTF := eliom_lib.cmi               \
 
 NO_MLI := eliom_pervasives_base.cmi
 
-DUCE_INTF = eliom_duce.cmi       \
-            eliom_duce_sigs.cmi  \
-            eliom_duce_types.cmi \
-            eliom_duce_tools.cmi \
-
-ifeq "$(OCAMLDUCE)" "YES"
-
-INTF += ${DUCE_INTF}
-
-endif
-
 IMPL := eliom.cma             \
 
-ifeq "$(OCAMLDUCE)" "YES"
-IMPL += eliom_duce.cma
-endif
-
 NATIMPL := eliom.cmxa eliom.a
-ifeq "$(OCAMLDUCE)" "YES"
-NATIMPL += eliom_duce.cmxa eliom_duce.a
-endif
 
 ifeq "$(NATDYNLINK)" "YES"
 NATIMPL += eliom.cmxs
-ifeq "$(OCAMLDUCE)" "YES"
-NATIMPL += eliom_duce.cmxs
-endif
 endif
 
-NOP4  := eliom_lib.mli \
-         eliom_duce.mli       \
-         eliom_duce_tools.mli \
-         eliom_duce_types.mli \
+NOP4  := eliom_lib.mli
 
-DOC := ${subst .cmi,.mli, ${filter-out ${NO_MLI} ${DUCE_INTF}, ${INTF}}} \
+DOC := ${subst .cmi,.mli, ${filter-out ${NO_MLI}, ${INTF}}} \
        eliom_types_base.mli  \
        eliom_comet_base.mli  \
-

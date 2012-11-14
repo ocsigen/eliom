@@ -30,7 +30,6 @@ This typically happens if authentication is badly implemented, or altogether mis
   * Eliom modules are written in OCaml, which is a compiled language. This prevents all code injection possible with script languages.
   * No sql injection is possible if you use Macaque or PGOCaml, which use PostgreSQL prepared statements.
   * No Html injection is possible, as unsafe HTML characters are always escaped before being written.
-  * Moreover, you can also receive X(HT)ML from the user in a fully safe way, using Ocamlduce types to check that the XML fragment is correct.
 
 
 === [[http://en.wikipedia.org/wiki/Directory_traversal|Path traversal]]
@@ -72,11 +71,6 @@ This typically happens if authentication is badly implemented, or altogether mis
   * In general, do not let the user write text inside HTTP headers
   * Likewise, do not let the user write its own value in a Cookie, as it gives access to this header
   * To protect against badly written applications, Ocsigen sanitizes HTTP headers when it prints them: a space is inserted before any CR or LF occurring in the content of a header
-
-<<| FAUX!
-=== [[http://en.wikipedia.org/wiki/Frame_injection|Frame injection]]
-  XHTML.M and Eliom_duce are using XHTML 1.1 by default, which disallows frames.
->>
 
 
 === On-site request forgery

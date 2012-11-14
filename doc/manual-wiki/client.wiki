@@ -58,8 +58,7 @@ does everything for you (separating client and server parts, calling
 Services belonging to the application are registered using the module
 {{{Eliom_registration.App}}}. More precisely, this is a functor that
 needs to be applied for each application you create.
-These services just return HTML5 pages as usual (using {{{Tyxml.Html5}}} --
-not possible with OcamlDuce or any other HTML module).
+These services just return HTML5 pages as usual (using {{{Tyxml.Html5}}})
 The client side program (compiled in JS) is added automatically by Eliom,
 with all its data, and run automatically when the page is loaded.
 

@@ -39,10 +39,6 @@ SERVER_SYNTAX := js_of_ocaml.deriving.syntax \
 	      	 lwt.syntax		     \
 		 tyxml.syntax                \
 
-ifeq "${OCAMLDUCE}" "YES"
-SERVER_PACKAGE += tyxml.duce
-endif
-
 CLIENT_PACKAGE := ocsigenserver.cookies       \
 		  ocsigenserver.polytables    \
 		  ocsigenserver.baselib.base  \

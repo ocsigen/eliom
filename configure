@@ -79,7 +79,6 @@ set_defaults () {
     enable_debug=0
     enable_annot=0
     with_preempt=1
-    with_ocamlduce=1
     root=""
     temproot=""
     prefix="/usr/local"
@@ -101,11 +100,10 @@ full_pwd=$(pwd)
 ehelp_debug="Enable/disable debug output"
 ehelp_annot="Enable/disable .annot files"
 ehelp_natdynlink="Enable/disable nativecode dynamic linking"
-whelp_ocamlduce="Compile Ocamlduce support for typing pages"
 
 ## Which options exist? eoptions for enable/disable, woptions for with/without:
 eoptions="debug annot natdynlink"
-woptions="ocamlduce preempt"
+woptions="preempt"
 
 print_options () {
 	for opt in $eoptions; do
@@ -168,7 +166,7 @@ usage: ./configure [ options ]
   --enable-natdynlink,	--disable-natdynlink	Enable/disable nativecode dynamic linking
 
   --with-preempt,	--without-preempt	compile with preemptive threads support.
-  --with-ocamlduce,	--without-ocamlduce	Compile ocamlduce based libraries.
+
 
   --name=NAME		The name of the library and ocamlfind package.
 
@@ -358,21 +356,6 @@ check_library lwt.react "Missing support for 'react' in lwt."
 check_library calendar "See: http://calendar.forge.ocamlcore.org/"
 check_library cryptokit "See: http://pauillac.inria.fr/~xleroy/software.html#cryptokit"
 
-# Check ocamlduce
-if [ "$with_ocamlduce" -gt 0 ]; then
-    if test_binary ocamlduce; then
-	echo -n
-    elif [ "$with_ocamlduce" -gt 1 ]; then
-	fail_binary ocamlduce "http://ocamlduce.forge.ocamlcore.org/"
-    else
-        with_ocamlduce=0
-    fi
-fi
-
-if [ "$with_ocamlduce" -gt 0 ]; then
-    check_library tyxml.duce "Missing support for 'ocamlduce' in tyxml."
-fi
-
 ######################################################################
 # Summary
 
@@ -397,11 +380,6 @@ if [ $enable_natdynlink -gt 0 ] ; then
 else
 	enable_natdynlink="NO"
 fi
-if [ $with_ocamlduce -gt 0 ] ; then
-	with_ocamlduce="YES"
-else
-	with_ocamlduce="NO"
-fi
 if [ $with_preempt -gt 0 ] ; then
 	with_preempt="YES"
 else
@@ -425,16 +403,10 @@ JS_OF_OCAML := js_of_ocaml
 CC          := gcc
 INSTALL     := install
 
-# optionnal
-OCAMLDUCEFIND := ocamlducefind
 
 
 
 ### Options ###
-
-# Do you want the ocamlduce extension? YES/NO
-# (You need ocamlduce to be installed)
-OCAMLDUCE:=$with_ocamlduce
 
 # Do you want preemptive threads ? YES/NO
 PREEMPTIVE:=$with_preempt
@@ -499,4 +471,3 @@ echo
 echo "   make install"
 echo "   make install.doc"
 echo
-

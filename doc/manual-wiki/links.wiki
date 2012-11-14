@@ -45,7 +45,7 @@ as in these examples:
 >>
 
 <<| See [[site:tuto/rep/links|<<span class="code"|links~>>]]. >>
-  
+
 
 <<a_api| val Eliom_content.Html5.D.a >> takes as first parameter
 the service you want to link to.
@@ -55,7 +55,7 @@ GET parameters you want to put in the link.
 The type of this parameter and the name of GET parameters depend
 on the service you link to.
 
-  
+
 The links to Wikipedia shows how to define an external service (here it
 uses a suffix URL).
 For an external service without parameters, you can use the low level
@@ -71,7 +71,7 @@ If you want to create (mutually or not) recursive pages, create the
 service using <<a_api| val Eliom_service.service >> first, then
 register it in the table using (for example) <<a_api| val Eliom_registration.Html5.register >>:
 
-  
+
 
 <<code language="ocaml"|let linkrec = Eliom_service.service ["linkrec"] unit ()
 
@@ -92,7 +92,7 @@ The function  <<a_api|  val Eliom_content.Html5.D.get_form >> allows to create a
 that uses the GET method (parameters in the URL).
 It works like  <<a_api| val Eliom_content.Html5.D.a >> but takes a //function// that creates the form from the parameters names as parameter.
 
-  
+
 <<code language="ocaml"|
 let create_form =
   (fun (number_name, (number2_name, string_name)) ->
@@ -115,7 +115,7 @@ let form = Eliom_registration.Html5.register_service ["form"] unit
          (body [f])))
 >>
 
-  
+
 <<| [[site:tuto/form| See the function <<span class="code"|form~>> in action]].\\ >>
 
 If you want to use typed parameters,
@@ -132,8 +132,7 @@ All functions for creating form widgets are detailed
 in <<a_api | module Eliom_content.Html5.D >> (and <<a_api | module Eliom_content.Html5.D >>).
 
 For untyped forms, you may use functions from <<a_api project="tyxml"
-| module HTML5.M >> (or OCamlDuce's syntax, or whatever syntax you are
-using) or functions which name is prefixed by "<<span
+| module HTML5.M >> or functions which name is prefixed by "<<span
 class="code"|raw_>>".  Here is a form linking to our (untyped) service
 <<span class="code"|raw_serv>>.
 
@@ -158,13 +157,13 @@ let raw_form =
                         ])))
 >>
 
-  
+
 <<| Try this [[site:tuto/anyform| form]]. >>
-  
+
 
 ===POST parameters
-  
-  
+
+
 By default Web page parameters are transferred in the URL (GET parameters).
 A web page may also expect POST parameters
 (that is, parameters that are not in the URL but in the body of the HTTP
@@ -196,9 +195,9 @@ let my_service_with_post_params =
 
 
 
-  
+
 Services may take both GET and POST parameters:
-  
+
 
 <<code language="ocaml"|let get_no_post_param_service =
   Eliom_registration.Html5.register_service
@@ -225,8 +224,8 @@ let my_service_with_get_and_post = register_post_service
 >>
 
 ===@@id="postforms"@@POST forms
-  
-  
+
+
  To create a POST form, use the
     <<a_api| val Eliom_content.Html5.D.post_form >> function.
    It is similar to  <<a_api| val Eliom_content.Html5.D.get_form >>
@@ -237,8 +236,8 @@ let my_service_with_get_and_post = register_post_service
    and <<span class="code"|form3>> (defined using the syntax extension)
    contains a form to <<span class="code"|post2>>, with a GET parameter.
    <<span class="code"|form4>> is a form to an external page.
-       
-  
+
+
 
 <<code language="ocaml"|let form2 = Eliom_registration.Html5.register_service ["form2"] unit
   (fun () () ->
@@ -300,8 +299,8 @@ This section shows more advanced use of page parameters and
 corresponding forms.
 
 ===Parsing parameters using regular expressions
-  
-  
+
+
 Eliom_parameter.regexp allows to parse page parameters using (Perl-compatible)
 regular expressions. We use the module <<span class="code"|Netstring_pcre>>,
 from //OCamlnet//. See the documentation about OCamlnet
@@ -343,7 +342,7 @@ let regexpserv =
 Page may take parameter of type <<span class="code"|bool>>.
 A possible use of this type is in a form
 with //boolean checkboxes//, as in the example below:
-      
+
 <<code language="ocaml"|(* Form with bool checkbox: *)
 let bool_params = Eliom_registration.Html5.register_service
     ~path:["bool"]
@@ -376,7 +375,7 @@ let form_bool = Eliom_registration.Html5.register_service ["formbool"] unit
 
 
 >>
-          
+
 <<| [[site:tuto/formbool| Try it]].\\ >>
 
 //Important warning://
@@ -427,11 +426,11 @@ Example:
          </body>
        </html> ~>>)
 >>
-  
+
 These parameters may come from several kinds of widgets in forms.
    Here is an example of a form with several checkboxes, all sharing the same
    name, but with different values:
-   
+
 <<code language="ocaml"|
 (* form to set *)
 let setform = Eliom_registration.Html5.register_service
@@ -453,7 +452,7 @@ let setform = Eliom_registration.Html5.register_service
                           string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
 >>
-  
+
 <<| [[site:tuto/setform| Try it]].\\ >>
 
 Once again, note that there is no difference between an empty
@@ -461,14 +460,14 @@ set or no parameter at all. If you register a service without parameters
 and a service with a set of parameters on the same URL, the service with
 higher priority, or the firstly registered service that matches,
 will answer.
-      
-  
+
+
 
 ===Select
-  
-  
+
+
 Here is an example of a select box.
-  
+
 <<code language="ocaml"|let select_example_result = Eliom_registration.Html5.register_service
     ~path:["select"]
     ~get_params:(string "s")
@@ -512,7 +511,7 @@ let select_example = Eliom_registration.Html5.register_service ["select"] unit
          (head (title (pcdata "")) [])
          (body [f])))
 >>
-  
+
 <<| [[site:tuto/select| Try it]].\\ >>
 
 To do "multiple" select boxes, use functions like
@@ -521,11 +520,11 @@ As you can see in the type, the service must be declared with parameters
 of type  <<a_api| val Eliom_parameter.set >>.
 
 ===Clickable images
-  
-  
+
+
 Here is an example of clickable image.
       You receive the coordinates the user clicked on.
-      
+
 <<code language="ocaml"|let coord = Eliom_registration.Html5.register_service
     ~path:["coord"]
     ~get_params:(coordinates "coord")
@@ -559,11 +558,11 @@ let imageform = Eliom_registration.Html5.register_service
                             ()]])
                 ])))
 >>
-  
+
 <<| [[site:tuto/imageform| Try it]].\\ >>
 
 You may also send a value with the coordinates:
-  
+
 <<code language="ocaml"|let coord2 = Eliom_registration.Html5.register_service
     ~path:["coord2"]
     ~get_params:(int_coordinates "coord")
@@ -599,7 +598,7 @@ let imageform2 = Eliom_registration.Html5.register_service
                 ])))
 
 >>
-  
+
 <<| [[site:tuto/imageform2| Try it]]. >>
 
 
@@ -630,7 +629,7 @@ let coucou_list = Eliom_registration.Html5.register_service
              </body>
            </html> ~>>)
 >>
-  
+
 <<| Here is an example of link towards this service:
 [[site:tuto/coucou?a.str%5B1%5D=titi&a.str%5B0%5D=toto|coucou?a.str[0]=toto&a.str[1]=titi]]. >>
 
@@ -671,7 +670,7 @@ let listform = Eliom_registration.Html5.register_service ["listform"] unit
           </html> ~>>)
 
 >>
-  
+
 <<| [[site:tuto/listform| Try it]].\\ >>
 
 //Important warning://
@@ -710,7 +709,7 @@ let suffixform = Eliom_registration.Html5.register_service ["suffixform"] unit
          </html> ~>>)
 
 >>
-          
+
 <<| [[site:tuto/suffixform| Try it]]. >>
 
 ===Uploading files
@@ -726,7 +725,7 @@ val get_original_filename : Ocsigen_extensions.file_info -> string
 
 >>
 
-          
+
  <<a_api| val Eliom_request_info.get_tmp_filename >> allows to know the actual name
 of the uploaded file on the hard drive.
  <<a_api| val Eliom_request_info.get_original_filename >> gives the original filename.
@@ -743,8 +742,8 @@ Thus your services must copy them
 somewhere else themselves if they want to keep them.
 In the following example, we create a new hard link to the file
 to keep it (the destination must be on the same partition of the disk).
-      
-   
+
+
 <<code language="ocaml"|let upload = service
     ~path:["upload"]
     ~get_params:unit
@@ -788,7 +787,7 @@ let uploadform = register upload
 
 
 >>
-          
+
 <<| [[site:tuto/upload| Try it]] >>
       (warning: uploading on ocsigen.org is forbidden).
 
@@ -803,4 +802,3 @@ the content-type corresponds to URL encoded form data or multipart data
 to find the service).
 
 See the API reference for more information.
-

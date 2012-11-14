@@ -6,10 +6,6 @@ OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG} ${THREAD}
 OCAMLOPT := $(OCAMLFIND) ocamlopt ${OPTDBG}  ${THREAD}
 OCAMLDEP := $(OCAMLFIND) ocamldep
 
-OCAMLDUCEC   := ${OCAMLDUCEFIND} ocamlc${BYTEDBG}  ${THREAD}
-OCAMLDUCEOPT := ${OCAMLDUCEFIND} ocamlopt ${OPTDBG}  ${THREAD}
-OCAMLDUCEDEP := ${OCAMLDUCEFIND} ocamldep
-
 OCAMLDOC := ${OCAMLFIND} ocamldoc ${THREAD} -ppopt o -ppopt -printer
 ## WTF -ppopt options must be given in reverse order...
 
@@ -25,7 +21,7 @@ COMMON_SFILES := $(addprefix sigs/, \
 		     $(notdir $(wildcard ../common/sigs/*.mli) \
 	                      $(wildcard ../common/sigs/*.ml)))
 
-PREDEP := ${COMMON_FILES} ${COMMON_PFILES} ${COMMON_SFILES} eliom_duce_sigs.mli
+PREDEP := ${COMMON_FILES} ${COMMON_PFILES} ${COMMON_SFILES}
 
 .SECONDARY: ${PREDEP}
 ${COMMON_FILES}: %: ../common/%
@@ -34,11 +30,6 @@ ${COMMON_FILES}: %: ../common/%
 ${COMMON_PFILES} ${COMMON_SFILES}: %: ../common/%
 	-@mkdir -p $(dir $@)
 	ln -sf ../$< $@
-eliom_duce_sigs.mli:: eliom_duce_sigs.mlp sigs/eliom_reg.mli sigs/eliom_reg_simpl.mli
-	camlp4o ../syntax/pa_include.cmo -printer o -intf $< > $@
-	# Ugly hack: copy time stamp to avoid dependencies re-computation
-	# after a distclean
-	touch -h -r $< $@
 
 FILES := eliom_wrap.ml eliom_lazy.ml \
          eliom_lib_base.ml eliom_lib.ml \
@@ -101,29 +92,6 @@ eliom.cma: ${FILES:.ml=.cmo}
 eliom.cmxa: ${FILES:.ml=.cmx}
 	${OCAMLOPT} -a -o $@ $^
 
-### OCamlduce ###
-
-DUCE_FILES := eliom_duce.ml       \
-	      eliom_duce_tools.ml \
-
-DUCE_MLIS := eliom_duce_types.mli \
-	     eliom_duce_sigs.mli  \
-	     eliom_duce.mli       \
-	     eliom_duce_tools.mli \
-
-ifeq "${OCAMLDUCE}" "YES"
-byte:: eliom_duce.cma
-opt:: eliom_duce.cmxa
-ifeq "${NATDYNLINK}" "YES"
-opt:: eliom_duce.cmxs
-endif
-endif
-
-eliom_duce.cma: ${DUCE_FILES:.ml=.cmo}
-	${OCAMLC} -a -o $@ $^
-eliom_duce.cmxa: ${DUCE_FILES:.ml=.cmx}
-	${OCAMLOPT} -a -o $@ $^
-
 ##########
 
 %.cmo: %.ml
@@ -145,15 +113,6 @@ ${INTF_NOP4:.mli=.odoc}: \
 
 %.cmxs: %.cmxa
 	$(OCAMLOPT) -shared -linkall -o $@ $<
-
-${DUCE_FILES:.ml=.cmo}: %.cmo: %.ml
-	$(OCAMLDUCEC) ${LIBS} -c $<
-${DUCE_FILES:.ml=.cmx}: %.cmx: %.ml
-	$(OCAMLDUCEOPT) ${LIBS} -c $<
-${DUCE_MLIS:.mli=.cmi}: %.cmi: %.mli
-	$(OCAMLDUCEC) ${LIBS} -c $<
-${DUCE_MLIS:.mli=.odoc}: %.odoc: %.mli
-	${OCAMLDOC} ${LIBS} -dump $@ $<
 
 ## INSTALL ##
 
@@ -192,8 +151,7 @@ distclean: clean
 eliom_registration_base.cmi eliom_registration_base.cmo eliom_registration_base.cmx \
 eliom_registration.cmi eliom_registration.cmo eliom_registration.cmx eliom_registration.odoc \
 eliom_mkforms.cmi eliom_mkforms.cmo eliom_mkforms.cmx eliom_mkforms.odoc \
-eliom_mkreg.cmi eliom_mkreg.odoc \
-eliom_duce_sigs.cmi eliom_duce_sigs.odoc: ${COMMON_SFILES} $(wildcard sigs/*.mli)
+eliom_mkreg.cmi eliom_mkreg.odoc: ${COMMON_SFILES} $(wildcard sigs/*.mli)
 
 # Automatic dependencies
 
@@ -204,7 +162,6 @@ dummy_var := $(shell $(MAKE) DEPEND=no ${PREDEP} >/tmp/log 2>&1)
 
 DEPS := $(patsubst %,.%.deps,${COMMON_FILES}) \
 	$(patsubst %,.%.deps,${COMMON_PFILES}) \
-	.eliom_duce_sigs.mli.deps \
 	$(patsubst %,.%.deps,$(wildcard *.mli *.ml)) \
 	$(patsubst private/%,private/.%.deps,$(wildcard private/*.mli private/*.ml)) \
 	$(patsubst extensions/%,extensions/.%.deps, \
@@ -231,20 +188,6 @@ extensions/.%.mli.deps: extensions/%.mli
 
 $(patsubst %.mli,.%.mli.deps,${INTF_NOP4}): .%.mli.deps: %.mli
 	 ${OCAMLDEP} ${LIBS} $< > $@
-
-$(patsubst %.ml,.%.ml.deps,${DUCE_FILES}): .%.ml.deps: %.ml
-ifeq "${OCAMLDUCE}" "YES"
-	 ${OCAMLDUCEDEP} ${LIBS} $< > $@
-else
-	echo > $@
-endif
-
-$(patsubst %.mli,.%.mli.deps,${DUCE_MLIS}): .%.mli.deps: %.mli
-ifeq "${OCAMLDUCE}" "YES"
-	 ${OCAMLDUCEDEP} ${LIBS} $< > $@
-else
-	echo > $@
-endif
 
 include .depend
 

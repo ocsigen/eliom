@@ -88,19 +88,6 @@ _client/%.cmo: %.eliom
 _client/%.cmo: %.ml
 	${JS_OF_ELIOM} -c ${CLIENT_INC} $<
 
-####### Aux site: Ocamlduce #######
-
-ifeq "${OCAMLDUCE}" "YES"
-byte:: ocamlduce.byte
-opt:: ocamlduce.opt
-endif
-
-ocamlduce.byte: _server/eliom_testsuite1.cmo
-	$(MAKE) -C ocamlduce byte
-
-ocamlduce.opt: _server/eliom_testsuite1.cmx
-	$(MAKE) -C ocamlduce opt
-
 ####### Aux site: miniwiki #######
 
 byte:: miniwiki.byte
@@ -117,7 +104,7 @@ miniwiki.opt:
 ## Clean up
 
 clean: clean.local
-	${MAKE} -C ocamlduce clean
+	${MAKE} -C clean
 	${MAKE} -C miniwiki clean
 clean.local:
 	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot
@@ -127,15 +114,12 @@ clean.local:
 
 distclean: clean.local
 	-rm -f *~ \#* .\#*
-	${MAKE} -C ocamlduce distclean
+	${MAKE} -C distclean
 	${MAKE} -C miniwiki distclean
 
 ## Dependencies
 
 depend:
-ifeq "${OCAMLDUCE}" "YES"
-	${MAKE} -C ocamlduce depend
-endif
 	${MAKE} -C miniwiki depend
 	$(ELIOMDEP) -server ${SERVER_INC} ${addprefix -type-dir ,${TYPE_DIR}} ${SERVER_FILES} > .depend
 	$(ELIOMDEP) -client ${CLIENT_INC} ${addprefix -type-dir ,${TYPE_DIR}} ${CLIENT_FILES} >> .depend

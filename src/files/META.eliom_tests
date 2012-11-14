@@ -43,13 +43,3 @@ package "testsuite_site" (
   archive(plugin,byte) = "eliom_testsuite_site.cmo"
   archive(plugin,native) = "eliom_testsuite_site.o"
 )
-
-package "duce" (
-  directory = "ocamlduce"
-  exists_if = "exampleduce.cma exampleduce.cmxs"
-  requires = "eliom.server.duce"
-  version = "[distributed with Eliom]"
-  description = "Example with OCamlDuce"
-  archive(plugin,byte) = "exampleduce.cma"
-  archive(plugin,native) = "exampleduce.cmxs"
-)

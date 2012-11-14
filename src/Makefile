@@ -133,10 +133,5 @@ CONF_SED += -e s%_CONFIGDIR_%$(SRC)/local/etc%g
 CONF_SED += -e s%_STATICPAGESDIR_%$(SRC)/local/var/www%g
 CONF_SED += -e s%store\ dir=\"$(SRC)/var/lib\"%store\ dir=\"$(SRC)/local/var/lib/ocsipersist\"%g
 
-ifeq "${OCAMLDUCE}" "YES"
-CONF_SED += -e s%\<\!--\ DUCE%%
-CONF_SED += -e s%DUCE\ --\>%%
-endif
-
 ../local/etc/$(PROJECTNAME).conf: files/${PROJECTNAME}.conf.in ../Makefile.config Makefile
 	cat $< | sed ${CONF_SED}  > $@

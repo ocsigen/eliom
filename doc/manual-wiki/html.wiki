@@ -12,8 +12,6 @@ Ocsigen provides several ways to generate and type HTML5 pages.
 * It is also possible to use a syntax extension to write your pages with the
   usual HTML syntax. This solution is also typed with polymorphic variants
   and is compatible with the previous one.
-* The most powerful typing of pages is done with OcamlDuce.
-  To take benefit of it, use OCamlDuce instead of OCaml.
 * You can also choose to generate untyped html as text.
 
 === Html5 ===
@@ -29,8 +27,8 @@ Ocsigen also has a syntax extension for OCaml that allows you to write
 pages using HTML syntax (but you are free not to use it).  This is
 convenient for example if you want to include (parts of) HTML pages
 that have been created by third party.  To choose actual
-XML-implementation you have to provide a module named ##Html5## (or
-##Xhtml##, or ##Svg## respectively):
+XML-implementation you have to provide a module named ##Html5##
+(or ##Svg## respectively):
 
 For example, the following code:
 <<code language="ocaml"|
@@ -111,49 +109,6 @@ module Eliom_content.Html5.D>>, as you will (almost) always get valid
 HTML5. Use the syntax extension for example to enclose already created
 pieces of HTML, and check your pages validity with the
 [[http://validator.w3.org/| W3C validator]].
-
-===OCamlduce===
-
-OCaml's type system is not powerful enough to type XML. The OCamlduce
-manual says: //"The goal of the OCamlDuce project is to extend the
-OCaml language with features to make it easier to write safe and
-efficient complex applications that need to deal with XML documents.
-In particular, it relies on a notion of types and patterns to
-guarantee statically that all the possible input documents are
-correctly processed, and that only valid output documents are
-produced."//
-
-Ocamlduce's full documentation is available from
-[[http://www.cduce.org/ocaml.html|here]].
-
-If OCamlDuce is installed on your system, it is now possible to use
-it instead of Html5.F.
-to typecheck your pages. You will get a stronger type checking
-and more flexibility (easier to use other XML types, to parse
-incoming XML data, etc.).
-
-However, Ocamlduce is not compatible with Camlp4 syntax extensions
-and client server Eliom applications support only HTML5 (for now).
-
-To use it, make sure that you have Eliom compiled with OCamlDuce
-support. Then dynlink <<span class="code"|ocamlduce.cma>> and <<span
-class="code"|eliomduce.cma>> from the configuration file (after <<span
-class="code"|eliom.cma>>).  Then use <<a_api | module Eliom_duce.Xhtml >>
-instead of <<a_api | module Eliom_registration.Xhtml>> to register your pages.
-
-Here is an example:
-<<code language="ocaml"|
-let s =
-  Eliom_duce.Xhtml.register_service
-    ~path:[""]
-    ~get_params:unit
-    (fun () () ->
-      Lwt.return
-        {{ <html>
-             [<head> [<title> ""]
-              <body> [<h1> "Page type checked by OCamlDuce"]] }})
->>
-
 
 
 ===Text HTML===
@@ -243,4 +198,3 @@ exception [Not_found].
   let coord_data' =
     Html5.Custom_data.create_json ~name:"coord" default:{x=0;y=0;} Json.t<my_data>
 >>
-

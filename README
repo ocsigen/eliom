@@ -10,7 +10,6 @@ Compilers:
  * ocaml and camlp4  (need version >= 3.12.1)
  * js_of_ocaml	     (need version >= 1.1.1, with deriving-ocsigen support)
  * a C compiler      (tested with gcc-4.4.5)
- * ocamlduce         [optionnal]
 
 Libraries:
 
@@ -23,8 +22,6 @@ Libraries:
  * ocamlssl          (tested with 0.4.4)
  * calendar	     (tested with 2.01.1)
 
- [optionnal]
- * tyxml.duce        (when building with ocamlduce support)
 
 If OCaml 3.12 and the needed libraries (findlib/react/lwt...) are not
 installed on your computer and not available on your favorite linux

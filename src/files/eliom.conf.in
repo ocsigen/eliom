@@ -83,13 +83,6 @@
         </eliom>
       </site>
 
-
-      <!-- DUCE
-      <!--site path="ocamlduce" charset="utf-8">
-        <eliom findlib-package="eliom_tests.duce" />
-      </site-->
-      DUCE -->
-
     </host>
 
   </server>
