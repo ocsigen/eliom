@@ -132,8 +132,7 @@ All functions for creating form widgets are detailed
 in <<a_api | module Eliom_content.Html5.D >> (and <<a_api | module Eliom_content.Html5.D >>).
 
 For untyped forms, you may use functions from <<a_api project="tyxml"
-| module HTML5.M >> or functions which name is prefixed by "<<span
-class="code"|raw_>>".  Here is a form linking to our (untyped) service
+| module Html5.M >> or functions from the module <<a_api project="eliom" subproject="server"|module Eliom_content.Html5.D.Raw>>.  Here is a form linking to our (untyped) service
 <<span class="code"|raw_serv>>.
 
 <<code language="ocaml"|

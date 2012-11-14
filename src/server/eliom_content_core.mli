@@ -90,7 +90,6 @@ module Xml : sig
       elements will be taken from the DOM on the client either
       ways. *)
   val wrap : elt -> 'a -> 'a Eliom_wrap.wrapped_value
-  (**/**)
 
 end
 

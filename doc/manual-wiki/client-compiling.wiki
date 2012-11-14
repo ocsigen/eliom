@@ -87,13 +87,8 @@ make depend
 make
 }}}
 
-The sample Makefile use an experimental wrapper around {{{ocamldep}}}
-to generate the dependencies, called {{{eliomdep}}}. Please note that
-{{{eliomdep}}} is still incomplete: it does not handle dependency
-towards {{{.eliom}}} file. It generate however correct dependy toward
-{{{.ml}}} files from an {{{.eliom}}} file.
-
-<<|==Using {{{ocamlbuild}}}
+<<|
+==Using {{{ocamlbuild}}}
 
 We do not support ocamlbuild sofar
 
@@ -127,10 +122,11 @@ by ##v'_i## where all ##v'_i## are free in ##exp##.
 
 When a client value is then created dynamically, a <<a_api|type
 Eliom_lib_base.client_value_datum>> is registered to be sent to the
-client with the {!Eliom_lib_base.global_data} or
-{!Eliom_lib_base.request_data} respectively. It contains the closure
-ID, an instance ID (unique per client value), and the tuple of
-injected values (sometimes known as ##args##).
+client with the <<a_api project="eliom" subproject="server"|val
+Eliom_lib_base.global_data>> or <<a_api project="eliom"
+subproject="server"|val Eliom_lib_base.request_data>> respectively. It
+contains the closure ID, an instance ID (unique per client value), and
+the tuple of injected values (sometimes known as ##args##).
 
 On the client side, that client value datum will be used to register
 an actual client value: A client closure is obtained by the specific
