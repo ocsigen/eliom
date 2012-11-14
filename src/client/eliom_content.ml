@@ -40,11 +40,19 @@ module Html5 = struct
   module F = struct
     include Html5.F
     include Eliom_registration_base.Html5_forms.F
+    let form = get_form
+    let input = string_input
+    let select = string_select
+    let button = string_button
   end
 
   module D = struct
     include Html5.D
     include Eliom_registration_base.Html5_forms.D
+    let form = get_form
+    let input = string_input
+    let select = string_select
+    let button = string_button
   end
 
   type 'a elt = 'a F.elt

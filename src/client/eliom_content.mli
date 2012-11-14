@@ -63,6 +63,25 @@ module Html5 : sig
         and type 'a attrib = 'a attrib
         and type uri = uri
     include "sigs/eliom_html5_forms.mli"
+
+    (** This is an alias to <<a_api|val Eliom_content.Html5.F.get_form>> to avoid the untyped [Eliom_content_core.Html5.F.form]. *)
+    val form : ?absolute:bool -> ?absolute_path:bool -> ?https:bool -> ?a:Html5_types.form_attrib attrib list ->
+      service:('get, unit, [< get_service_kind ], [<suff ], 'gn, 'pn, [< registrable ], 'return) service ->
+      ?hostname:string -> ?port:int -> ?fragment:string -> ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameter.nl_params_set -> ?xhr:bool ->
+      ('gn -> Html5_types.form_content elt list) -> [> Html5_types.form ] elt
+
+    (** This is an alias to <<a_api|val Eliom_content.Html5.F.string_input>> to avoid the untyped [Eliom_content_core.Html5.F.input]. *)
+    val input : ?a:Html5_types.input_attrib attrib list -> input_type:[<
+	| `Url | `Tel | `Text | `Time | `Search | `Password | `Checkbox | `Range | `Radio | `Submit | `Reset | `Number | `Hidden
+	| `Month | `Week | `File | `Email | `Image | `Datetime_local | `Datetime | `Date | `Color | `Button]
+      -> ?name:[< string setoneradio ] param_name -> ?value:string -> unit -> [> Html5_types.input ] elt
+
+    (** This is an alias to <<a_api|val Eliom_content.Html5.F.string_button>> to avoid the untyped [Eliom_content_core.Html5.F.button]. *)
+    val button : ?a:Html5_types.button_attrib attrib list -> name:[< string setone ] param_name -> value:string -> Html5_types.button_content elt list -> [> Html5_types.button ] elt
+
+    (** This is an alias to <<a_api|val Eliom_content.Html5.F.string_select>> to avoid the untyped [Eliom_content_core.Html5.F.select]. *)
+    val select : ?a:Html5_types.select_attrib attrib list -> name:[< `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt
   end
 
   (** Creation of HTML5 content with {e D}OM semantics (referable) *)
@@ -78,6 +97,25 @@ module Html5 : sig
         and type 'a attrib = 'a attrib
         and type uri = uri
     include "sigs/eliom_html5_forms.mli"
+
+    (** This is an alias to <<a_api|val Eliom_content.Html5.D.get_form>> to avoid the untyped [Eliom_content_core.Html5.D.form]. *)
+    val form : ?absolute:bool -> ?absolute_path:bool -> ?https:bool -> ?a:Html5_types.form_attrib attrib list ->
+      service:('get, unit, [< get_service_kind ], [<suff ], 'gn, 'pn, [< registrable ], 'return) service ->
+      ?hostname:string -> ?port:int -> ?fragment:string -> ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameter.nl_params_set -> ?xhr:bool ->
+      ('gn -> Html5_types.form_content elt list) -> [> Html5_types.form ] elt
+
+    (** This is an alias to <<a_api|val Eliom_content.Html5.D.string_input>> to avoid the untyped [Eliom_content_core.Html5.D.input]. *)
+    val input : ?a:Html5_types.input_attrib attrib list -> input_type:[<
+	| `Url | `Tel | `Text | `Time | `Search | `Password | `Checkbox | `Range | `Radio | `Submit | `Reset | `Number | `Hidden
+	| `Month | `Week | `File | `Email | `Image | `Datetime_local | `Datetime | `Date | `Color | `Button]
+      -> ?name:[< string setoneradio ] param_name -> ?value:string -> unit -> [> Html5_types.input ] elt
+
+    (** This is an alias to <<a_api|val Eliom_content.Html5.D.string_button>> to avoid the untyped [Eliom_content_core.Html5.D.button]. *)
+    val button : ?a:Html5_types.button_attrib attrib list -> name:[< string setone ] param_name -> value:string -> Html5_types.button_content elt list -> [> Html5_types.button ] elt
+
+    (** This is an alias to <<a_api|val Eliom_content.Html5.D.string_select>> to avoid the untyped [Eliom_content_core.Html5.D.select]. *)
+    val select : ?a:Html5_types.select_attrib attrib list -> name:[< `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt
   end
 
   (** Node identifiers *)
@@ -525,4 +563,3 @@ module Html5 : sig
   module Of_dom : module type of Eliom_content_core.Html5.Of_dom
 
 end
-
