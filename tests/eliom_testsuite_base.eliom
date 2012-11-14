@@ -59,9 +59,8 @@ let test ~path ~title:ttl ~description f =
 
 let thebutton ?(msg="THE BUTTON") onclick : [> Html5_types.button ] Html5.elt =
   Html5.F.(
-    button
+    button ~button_type:`Submit
       ~a:[a_class ["thebutton"]; a_onclick onclick]
-      ~button_type:`Submit
       [ pcdata msg ])
 
 let monospace fmt =
@@ -142,4 +141,3 @@ let monospace fmt =
     if not (eq value should_be) then
       failed_assertions := name :: !failed_assertions
 }}
-

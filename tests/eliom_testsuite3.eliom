@@ -454,7 +454,7 @@ let caml_incr_service =
       Lwt.return i)
 
 let text_incr_service =
-  Eliom_registration.Text.register_service
+  Eliom_registration.String.register_service
     ~path:["text_service_cookies_request"]
     ~get_params:unit
     (fun () () ->
@@ -1167,7 +1167,7 @@ let comet_message_board_maker name message_bus cb =
          in
 
          (make_page [ h2 [pcdata "Message board"];
-           form ~a:[a_action (Xml.uri_of_string "")] (div [field; go]) [];
+           raw_form ~a:[a_action (Xml.uri_of_string "")] (div [field; go]) [];
            container; br ();
            Html5.D.a ~service:Eliom_testsuite_base.main [pcdata "go outside of application"] ();
          ]))

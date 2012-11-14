@@ -1347,7 +1347,7 @@ let test_server_function =
         "If you send the empty string, however, an exception is raised on the server.";
     ])
     (fun () ->
-       let field = Html5.D.input () in
+       let field = Html5.D.raw_input ~input_type:`Text () in
        let onclick = {{
          fun _ ->
            let field_dom = Html5.To_dom.of_input %field in
