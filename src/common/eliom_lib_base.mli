@@ -91,14 +91,6 @@ module RawXML : sig
     ([ `A | `Form_get | `Form_post] * (cookie_info option) * string option) option Eliom_lazy.request ->
       event_handler
 
-  (* Deprecated alias. *)
-  val event_of_service :
-           ([ `A | `Form_get | `Form_post ] * cookie_info option *
-            string option)
-           option Eliom_lazy.request -> event_handler
-  val event_of_string : string -> event_handler
-  val string_of_handler : event_handler -> string
-
   val ce_registered_closure_class : string
   val ce_call_service_class : string
   val process_node_class : string
@@ -135,9 +127,6 @@ module RawXML : sig
   val event_handler_attrib : aname -> event_handler -> attrib
   val uri_attrib : aname -> string Eliom_lazy.request -> attrib
   val uris_attrib : aname -> string Eliom_lazy.request list -> attrib
-
-  (* Deprecated alias. *)
-  val event_attrib : aname -> event_handler -> attrib
 
   type ename = string
   type node_id =

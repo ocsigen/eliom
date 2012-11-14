@@ -85,9 +85,6 @@ module Xml : sig
   val uri_attrib : aname -> uri -> attrib
   val uris_attrib : aname -> uri list -> attrib
 
-  (* Deprecated alias. *)
-  val event_attrib : aname -> event_handler -> attrib
-
   val content : elt -> econtent
 
   val pcdata : string -> elt

@@ -92,11 +92,6 @@ module RawXML = struct
     | Caml _ -> "/* Invalid Caml value */"
   let event_handler_of_service info = Caml (CE_call_service info)
 
-  (* Deprecated alias. *)
-  let event_of_service = event_handler_of_service
-  let event_of_string = event_handler_of_string
-  let string_of_handler = string_of_event_handler
-
   let ce_registered_closure_class = "caml_closure"
   let ce_call_service_class = "caml_link"
   let process_node_class = "caml_process_node"
@@ -141,9 +136,6 @@ module RawXML = struct
     | Caml v -> name, RACamlEventHandler v
   let uri_attrib name value = name, RALazyStr value
   let uris_attrib name value = name, RALazyStrL (Space, value)
-
-  (* Deprecated alias. *)
-  let event_attrib = event_handler_attrib
 
   type ename = string
   type node_id =

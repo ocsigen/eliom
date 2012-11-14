@@ -74,14 +74,6 @@ module Xml : sig
   val caml_event_handler : ((#Dom_html.event as 'a) Js.t -> unit) Eliom_lib.client_value -> 'a caml_event_handler
   val event_handler : (Dom_html.event Js.t -> unit) Eliom_lib.client_value -> event_handler
 
-  (* Deprecated alias. *)
-  val event_of_string : string -> event_handler
-  val string_of_handler : event_handler -> string
-  val event_of_service :
-    ( [ `A | `Form_get | `Form_post ]
-      * (bool * string list) option
-      * string option ) option Eliom_lazy.request -> event_handler
-
   type racontent =
     | RA of acontent
     | RACamlEventHandler of Dom_html.event caml_event_handler
@@ -94,7 +86,7 @@ module Xml : sig
   (**/**)
   (** [Eliom_content.Xml.wrap page v] is like [Eliom_wrap.wrap v] but
       it makes sure that all [elt]s in [v] which are included in
-      [page] are sent with empty content. This is safe because such 
+      [page] are sent with empty content. This is safe because such
       elements will be taken from the DOM on the client either
       ways. *)
   val wrap : elt -> 'a -> 'a Eliom_wrap.wrapped_value
@@ -297,4 +289,3 @@ module Html5 : sig
                                           and type doc := F.doc
 
 end
-

@@ -212,7 +212,6 @@ module Make_typed_xml_registration
 module Flow5 = Make_typed_xml_registration(Xml)(Eliom_content.Html5.D)(struct
   type content = Html5_types.flow5
 end)
-module Block5 = Flow5
 
 
 (****************************************************************************)

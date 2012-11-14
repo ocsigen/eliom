@@ -927,13 +927,12 @@ module Ext : sig
 
 (**/**)
   val untype_state : ('a, 'b) state -> ('c, 'd) state
-(**/**)
 
 end
 
 
-
 (*****************************************************************************)
+(**/**)
 (** {3 Session data (deprecated interface)} *)
 
 (** This is the low level interface (deprecated). Use now Eliom references. *)
@@ -985,11 +984,11 @@ val remove_volatile_data :
   table:'a volatile_table ->
   unit ->
   unit
+(**/**)
 
 
+(**/**)
 (** {4 Persistent state data} *)
-
-
 (** creates a table on hard disk where you can store the session data for
     all users. It uses {!Ocsipersist}.  (low level) *)
 val create_persistent_table :
@@ -1020,14 +1019,9 @@ val remove_persistent_data :
   table:'a persistent_table ->
   unit ->
   unit Lwt.t
-
-
-
-
-
-
-
 (**/**)
+
+
 (*
 (** {3 Default timeouts} *)
 
@@ -1089,14 +1083,13 @@ val set_default_volatile_data_session_timeout : float option -> unit
     *)
 val set_default_persistent_data_session_timeout : float option -> unit
 *)
-(**/**)
 
 
 (*****************************************************************************)
-(** {3 Other low level functions} *)
 
-(** You probably don't need these functions. *)
-
+(**/**)
+(** {3 Other low level functions}
+    You probably don't need these functions. *)
 
 (** returns the value of the Eliom's cookies for one persistent session.
     Returns [None] is no session is active.
@@ -1121,6 +1114,7 @@ val get_volatile_data_cookie :
   cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   unit -> string option
+(**/**)
 
 
 

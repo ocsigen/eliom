@@ -248,13 +248,6 @@ module Flow5 : "sigs/eliom_reg.mli"
   and type return  := http_service
   and type result  := (block_content, http_service) kind
 
-(** Deprecated alias for {!Flow5}. *)
-module Block5 : "sigs/eliom_reg.mli"
-  subst type page    := Html5_types.flow5 Eliom_content_core.Html5.elt list
-  and type options := unit
-  and type return  := http_service
-  and type result  := (block_content, http_service) kind
-
 (** Eliom service registration for services that returns fragment of
     TyXML's tree. The returned module is an instance of the
     {!Registration} abstract signature. *)
@@ -449,13 +442,6 @@ val appl_self_redirect :
     This an instance of the {!Registration} abstract signature.
 *)
 module String : "sigs/eliom_reg.mli"
-  subst type page  := string * string
-  and type options := int
-  and type return  := http_service
-  and type result  := (unknown_content, http_service) kind
-
-(** Deprecated alias for {!String}. *)
-module Text : "sigs/eliom_reg.mli"
   subst type page  := string * string
   and type options := int
   and type return  := http_service
