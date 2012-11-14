@@ -88,9 +88,14 @@ let get_predicates ?kind:k () = match get_kind k with
 
 let syntax_predicates = ["preprocessor";"syntax";"camlp4o"] @ !predicates
 
-let get_server_package ?kind:k () =
+let get_server_package ?kind:k ?package:p () =
+  let package =
+    match p with
+      | Some p -> p
+      | None -> !package
+  in
   try
-    Findlib.package_deep_ancestors (get_predicates ?kind:k ()) ("eliom.server" :: !package)
+    Findlib.package_deep_ancestors (get_predicates ?kind:k ()) ("eliom.server" :: package)
   with Findlib.No_such_package (name, _) ->
     Printf.eprintf "Unknown package: %s\n%!" name;
     exit 1
@@ -111,11 +116,11 @@ let rec map_include xs = match xs with
   | [] -> []
   | x::xs -> "-I" :: x :: map_include xs
 
-let get_common_include ?kind:k ?build_dir:dir () =
+let get_common_include ?kind:k ?build_dir:dir ?package:p () =
   let dir = match dir with Some d -> d | None -> !build_dir in
   (match get_kind ~k with
   | `Server | `ServerOpt ->
-      map_include (List.map Findlib.package_directory (get_server_package ?kind:k ()))
+      map_include (List.map Findlib.package_directory (get_server_package ?kind:k ?package:p ()))
   | `Client ->
       map_include (List.map Findlib.package_directory (get_client_package ?kind:k ())))
   @ match dir with
