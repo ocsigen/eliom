@@ -124,8 +124,34 @@ val call_service :
   ?nl_params:Eliom_parameter.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> string Lwt.t
 
-(** Registers a function to call after loading the page, or after
-    changing the page the next time. *)
+(** Registers some code to be executed after loading the client
+    application, or after changing the page the next time.
+
+    {!Eliom_client.onload} as a toplevel expression in the client
+    module complements with the side effect from client values while
+    creating the response of a service: While the latter are executed
+    each time the service has been called; the former is executed only
+    once; but each at a time where the document is in place:
+
+    {[
+    {shared{ open Eliom_lib }}
+    {client{
+      let () = alert "Once only during initialization of the client, i.e. before the document is available"
+      let () =
+        Eliom_client.onload
+          (fun () -> alert "Once only when the document is put in place")
+    }}
+    {server{
+      let _ = My_app.register_service ~path ~get_params
+        (fun () () ->
+           ignore {unit{
+             alert "Each time this service is called and the sent document is put in place"
+           }};
+           Lwt.return html
+    }}
+    ]}
+
+*)
 val onload : (unit -> unit) -> unit
 
 (** Register a function to be called before changing the page the next
