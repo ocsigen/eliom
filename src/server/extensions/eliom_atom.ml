@@ -79,17 +79,17 @@ let retry_after = Http_headers.name "Retry-After"
 
 open CalendarLib
 
-let log_error e = Ocsigen_messages.warning 
+let log_error e = Ocsigen_messages.warning
       ("Eliom_atom: error while contacting hub: " ^ Printexc.to_string e)
 
 let parse_503 header = let r_int = Str.regexp "^[0-9]+$" in
-      let r_date = Str.regexp 
+      let r_date = Str.regexp
             "[a-zA-Z]+,.[0-9]+ [a-zA-Z]+ [0-9]+ [0-9]+:[0-9]+:[0-9]+ GMT" in
-   if Str.string_match r_int header 0 then Lwt_unix.sleep 
+   if Str.string_match r_int header 0 then Lwt_unix.sleep
             (float_of_string header)
-   else if Str.string_match r_date header 0 then let d = Time_Zone.on 
-            CalendarLib.Calendar.to_unixfloat Time_Zone.UTC 
-            (CalendarLib.Printer.Calendar.from_fstring 
+   else if Str.string_match r_date header 0 then let d = Time_Zone.on
+            CalendarLib.Calendar.to_unixfloat Time_Zone.UTC
+            (CalendarLib.Printer.Calendar.from_fstring
              "%a, %d %b %Y %H:%M:%S GMT" header) in
       let d2 = Unix.gettimeofday () in
       let d3 = d -. d2 in
@@ -101,26 +101,26 @@ let parse_503 header = let r_int = Str.regexp "^[0-9]+$" in
 let rec ping_hub u address t =
    Lwt.try_bind
      (fun () -> let path = Neturl.join_path (Neturl.url_path u) in
-      Ocsigen_http_client.post_urlencoded ~port:(try Neturl.url_port u with 
-         Not_found -> 80) ~host:(Neturl.url_host u) 
+      Ocsigen_http_client.post_urlencoded ~port:(try Neturl.url_port u with
+         Not_found -> 80) ~host:(Neturl.url_host u)
                   ~uri:(if path = "" then "/" else path)
                   ~content:[("hub.mode","publish"); ("hub.url",address)] ())
      (fun frame -> match frame.F.frame_header.H.mode with
       | H.Answer 204    -> Lwt.return ()
-      | H.Answer 503    -> Lwt.try_bind (fun () -> parse_503 (Http_headers.find 
-         retry_after frame.F.frame_header.H.headers)) (fun () -> 
+      | H.Answer 503    -> Lwt.try_bind (fun () -> parse_503 (Http_headers.find
+         retry_after frame.F.frame_header.H.headers)) (fun () ->
          ping_hub u address 1.) (fun e -> log_error e ; retry_ping u address t)
       | _               -> retry_ping u address t)
      (fun e -> log_error e ; retry_ping u address t)
-   and retry_ping u address t = Lwt_unix.sleep (Random.float t) >>= 
+   and retry_ping u address t = Lwt_unix.sleep (Random.float t) >>=
          (fun () -> ping_hub u address (t*.2.))
 
 let rec nfu_s hubs address = match hubs with
    | []     -> ()
-   | s :: r -> let u = Neturl.parse_url (Xml.string_of_uri s) in ignore (ping_hub u address 1.) ; 
+   | s :: r -> let u = Neturl.parse_url (Xml.string_of_uri s) in ignore (ping_hub u address 1.) ;
       nfu_s r address
 
-let notify_feed_updates address hubs s = 
+let notify_feed_updates address hubs s =
    nfu_s hubs address; ()
 
 let register_feed ~path ~hubs address f =
@@ -130,4 +130,3 @@ let register_feed ~path ~hubs address f =
        (Atom_feed.insert_hub_links hubs feed));
    notify_feed_updates address hubs s;
    {notify_updates = fun () -> notify_feed_updates address hubs s}
-

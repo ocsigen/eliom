@@ -106,9 +106,9 @@ let service_aux
       (match Eliom_common.global_register_allowed () with
       | Some get_current_sitedata ->
           let sitedata = get_current_sitedata () in
-          let path = 
+          let path =
             Url.remove_internal_slash
-              (Url.change_empty_list 
+              (Url.change_empty_list
                  (Url.remove_slash_at_beginning path))
           in
           let u = service_aux_aux
@@ -131,9 +131,9 @@ let service_aux
           raise (Eliom_common.Eliom_site_information_not_available
                    "service"))
   | Some sp ->
-      let path = 
+      let path =
         Url.remove_internal_slash
-          (Url.change_empty_list 
+          (Url.change_empty_list
              (Url.remove_slash_at_beginning path))
       in
       service_aux_aux
@@ -211,7 +211,7 @@ let coservice
         get_or_post = `Get;
      };
    https = https || fallback.https;
-   keep_nl_params = match keep_nl_params with 
+   keep_nl_params = match keep_nl_params with
      | None -> fallback.keep_nl_params | Some k -> k;
  }
 (* Warning: here no GET parameters for the fallback.
@@ -243,7 +243,7 @@ let coservice'
           max_use= max_use;
           timeout= timeout;
           pre_applied_parameters = String.Table.empty, [];
-          get_params_type = 
+          get_params_type =
             add_pref_params Eliom_common.na_co_param_prefix get_params;
           post_params_type = unit;
           kind = `Nonattached
@@ -267,7 +267,7 @@ let coservice'
 
 (****************************************************************************)
 (* Create a service with post parameters in the server *)
-let post_service_aux ~https ~fallback 
+let post_service_aux ~https ~fallback
     ?(keep_nl_params = `None) ?(priority = default_priority) ~post_params =
 (* Create a main service (not a coservice) internal, post only *)
 (* ici faire une vérification "duplicate parameter" ? *)
@@ -348,7 +348,7 @@ let post_coservice
      {k1 with
         att_kind = `Internal `Coservice;
         get_or_post = `Post;
-        post_name = 
+        post_name =
          (if csrf_safe
           then Eliom_common.SAtt_csrf_safe (uniqueid (),
                                             (csrf_scope:>Eliom_common.user_scope),
@@ -359,7 +359,7 @@ let post_coservice
                | Some name -> Eliom_common.SAtt_named name));
      };
    https = https;
-   keep_nl_params = match keep_nl_params with 
+   keep_nl_params = match keep_nl_params with
      | None -> fallback.keep_nl_params | Some k -> k;
  }
 (* It is not possible to make a post_coservice function
@@ -391,7 +391,7 @@ let post_coservice'
     get_params_type = unit;
     post_params_type = post_params;
     kind = `Nonattached
-      {na_name = 
+      {na_name =
           (if csrf_safe
            then Eliom_common.SNa_post_csrf_safe (uniqueid (),
                                                  (csrf_scope:>Eliom_common.user_scope),
@@ -482,7 +482,7 @@ let remove_service table service =
         let attserpost = get_post_name_ attser in
         let sgpt = get_get_params_type_ service in
         let sppt = get_post_params_type_ service in
-        Eliommod_services.remove_service table 
+        Eliommod_services.remove_service table
           (get_sub_path_ attser)
           {Eliom_common.key_state = (attserget, attserpost);
            Eliom_common.key_kind = key_kind}

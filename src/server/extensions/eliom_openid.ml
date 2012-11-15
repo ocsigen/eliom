@@ -28,7 +28,7 @@ open Eliom_content.Html5
 open Ocsigen_headers
 module Base64 = Netencoding.Base64
 
-type openid_error = 
+type openid_error =
   | Invalid_XRDS_File of string * string
   | Discovery_Error of string * string
   | Missing_parameter of string
@@ -67,15 +67,15 @@ let ( &&& ) g1 g2 = g1 >>= (fun () -> g2)
 
 let guard b e = if b then Lwt.return () else lwt_fail e
 
-let get args name = 
+let get args name =
   try
     List.assoc name args
   with Not_found -> failwith (Missing_parameter name)
-let check_arg args arg value = 
+let check_arg args arg value =
   let v = get args arg in
   if v = value then Lwt.return ()
   else lwt_fail (Invalid_argument (arg, v, value))
-  
+
 let ( ^? ) a b = match a with
   | Some x -> x :: b
   | None -> b
@@ -83,20 +83,20 @@ let ( ^? ) a b = match a with
 let ( ^^? ) (b, x) l = if b then x :: l else l
 let ( % ) a b = (a,  b)
 let openid_url = "http://specs.openid.net/auth/2.0"
-let direct_request ~mode ~params ~endpoint = 
+let direct_request ~mode ~params ~endpoint =
   let params = push_ns ~namespace_param:("ns", openid_url) "openid" (("mode", mode) :: params) in
   direct_request params endpoint
 
 (* DISCOVERY *)
 (* This part is dedicated to discover the OpenID service attached
    to a given endpoint. To do so, we do a GET request towards a remote file
-   that may be in two forms :  
+   that may be in two forms :
    - An XRDS file describing a list of service. For now we take the one with the
    higher priority.
    - An html file in which we have to seek for two <link /> tags.
 *)
 (* XRDS parsing *)
-let parse_xrds url xml = 
+let parse_xrds url xml =
   let parse_item (endpoint, local) = function
     | Element ("URI", _, [PCData uri]) ->
       (uri, local)
@@ -106,7 +106,7 @@ let parse_xrds url xml =
   in
   let parse_service = function
     | Element ("Service", attrs, children) ->
-	let priority = 
+	let priority =
 	  try
 	    snd (List.find (function ("priority", _) -> true | _ -> false) attrs)
 	  with Not_found -> failwith (Invalid_XRDS_File (url, "Priority expected"))
@@ -140,22 +140,22 @@ let parse_html url stream =
   let rec loop acc st = Ocsigen_stream.next st >>=
     (function
       | Ocsigen_stream.Finished (Some st) -> loop acc st
-      | Ocsigen_stream.Finished None -> 
+      | Ocsigen_stream.Finished None ->
         if !server = "" then
           lwt_fail (Invalid_html_doc url)
         else
           Lwt.return (!server, !delegate)
-      | Ocsigen_stream.Cont (suite, st) -> 
+      | Ocsigen_stream.Cont (suite, st) ->
         compute_match (acc ^ suite) st)
-  and compute_match acc st = 
+  and compute_match acc st =
     let regexp = Netstring_pcre.regexp "< *link[^>]*>" in
     let next acc = loop acc st in
     try
       let (k, r) = Netstring_pcre.search_forward regexp acc 0 in
       let m = Netstring_pcre.matched_string r acc in
-      (try 
+      (try
          match Simplexmlparser.xmlparser_string m with
-           | Element ("link", attrs, _) :: _ -> 
+           | Element ("link", attrs, _) :: _ ->
              if List.mem ("rel", "openid.server") attrs then
                server := List.assoc "href" attrs
              else if List.mem ("rel", "openid.delegate") attrs then
@@ -165,7 +165,7 @@ let parse_html url stream =
       let s' = String.sub acc (k + String.length m) (String.length acc - String.length m - k) in
       compute_match s' st
     with Not_found ->
-      let k = String.rindex acc '<' in          
+      let k = String.rindex acc '<' in
       next (String.sub acc k (String.length acc - k))
 
   in
@@ -174,14 +174,14 @@ let parse_html url stream =
 (* Request end-point *)
 (* DO NOT HANDLE XRIs *)
 let normalize url =
-  let starts_with s = 
-    String.length url > String.length s 
+  let starts_with s =
+    String.length url > String.length s
     && String.sub url 0 (String.length s) = s in
   if not (starts_with "http://") && not (starts_with "https://") then
     "http://" ^ url
   else
     url
-let perform_discovery url = 
+let perform_discovery url =
   let url = normalize url in
   do_get_request url >>= (fun frame ->
     match frame.frame_content with
@@ -204,7 +204,7 @@ let modulus = "\xDC\xF9\x3A\x0B\x88\x39\x72\xEC\x0E\x19\x98\x9A\xC5\xA2\xCE\x31\
 let g = "\x02"
 let openid_param = { DH.p = modulus; DH.g = g; DH.privlen = 160 }
 
-let unpad s = 
+let unpad s =
   let rec loop acc k =
     if k = String.length s - 1 then acc
     else if s.[k] = '\000' && (s.[k+1] = '\000' || int_of_char s.[k+1] land 128 = 0) then
@@ -215,37 +215,37 @@ let unpad s =
   let off = loop 0 0 in
   String.sub s off (String.length s - off)
 let encode_number message =
-  unpad (if int_of_char message.[0] land 128 <> 0 then 
-    "\x00" ^ message 
+  unpad (if int_of_char message.[0] land 128 <> 0 then
+    "\x00" ^ message
   else message)
 
-let output_secret s = 
+let output_secret s =
   let message = DH.message openid_param s in
   Base64.encode (encode_number message)
 
-let gen_new_secret () = 
+let gen_new_secret () =
   DH.private_secret openid_param
 
-let gen_signature ~key ~args = 
+let gen_signature ~key ~args =
   let kw = String.concat ""
     (List.map (fun a -> Printf.sprintf "%s:%s\n" a (get args a))
        (Netstring_pcre.split (Netstring_pcre.regexp ",") (get args "signed")))
   in
   hash_string (MAC.hmac_sha1 key) kw
 
-let check_signature ~key ~args = 
-  let sig1 = Base64.encode (gen_signature ~key ~args) 
+let check_signature ~key ~args =
+  let sig1 = Base64.encode (gen_signature ~key ~args)
   and sig2 = get args "sig"
   in
   if sig1 <> sig2 then lwt_fail (Invalid_signature (sig1, sig2))
   else Lwt.return ()
 
-let decode_number s = 
+let decode_number s =
   if '\x00' = s.[0] then
     String.sub s 1 (String.length s - 1)
   else s
 
-let decrypt ~encrypted_mac ~secret ~pub_server = 
+let decrypt ~encrypted_mac ~secret ~pub_server =
   let pub_server = decode_number pub_server in
   let shared_secret = DH.shared_secret openid_param secret pub_server in
   let shared_secret = unpad shared_secret in
@@ -258,8 +258,8 @@ let decrypt ~encrypted_mac ~secret ~pub_server =
 
 
 (* ASSOCIATION *)
-(* This library only implements the stateful mode : 
-   we first associate to the remote endpoint and store 
+(* This library only implements the stateful mode :
+   we first associate to the remote endpoint and store
    the cryptographic data to be able to check the future signature ourselves *)
 type assoctmp = {
   t_mac : string;
@@ -280,7 +280,7 @@ let associations = ref M.empty
 
 let associate endpoint =
   let secret = gen_new_secret () in
-  let parse args = 
+  let parse args =
     let rec aux v (name, value) =
       match name with
         | "expires_in" -> { v with t_delay = float_of_string value +. Unix.time () }
@@ -289,29 +289,29 @@ let associate endpoint =
         | "dh_server_public" -> { v with t_server_public = Base64.decode value }
         | "assoc_handle" -> { v with t_assoc_handle = value }
         | _ -> v
-    in 
-    let assoc = List.fold_left aux { t_mac = ""; t_mac_crypted = ""; 
-                                     t_assoc_handle = ""; t_delay = 0.; 
+    in
+    let assoc = List.fold_left aux { t_mac = ""; t_mac_crypted = "";
+                                     t_assoc_handle = ""; t_delay = 0.;
                                      t_secret = secret;
                                      t_server_public = ""; } args in
-    if assoc.t_mac = "" && 
-       (assoc.t_mac_crypted = "" || assoc.t_server_public = "") then 
+    if assoc.t_mac = "" &&
+       (assoc.t_mac_crypted = "" || assoc.t_server_public = "") then
       lwt_fail (Invalid_association endpoint)
     else begin
       let assoc = {
         delay = assoc.t_delay;
-        mac = 
+        mac =
           (if assoc.t_mac <> "" then assoc.t_mac
-           else decrypt ~encrypted_mac:assoc.t_mac_crypted ~secret 
+           else decrypt ~encrypted_mac:assoc.t_mac_crypted ~secret
               ~pub_server: assoc.t_server_public);
         assoc_handle = assoc.t_assoc_handle
       }
       in
-      Ocsigen_messages.warning (Printf.sprintf "--OpenID: Associated to `%s' (%s)" 
+      Ocsigen_messages.warning (Printf.sprintf "--OpenID: Associated to `%s' (%s)"
                                   endpoint (Base64.encode assoc.mac));
       Lwt.return assoc
     end
-  in 
+  in
   direct_request
     ~mode:"associate"
     ~params: ["assoc_type", "HMAC-SHA1";
@@ -328,7 +328,7 @@ let get_assoc end_point =
     return v)
 
 
-let reassociate end_point = 
+let reassociate end_point =
   Ocsigen_messages.warning ("OpenID: reassociating to " ^ end_point);
   associations := M.remove end_point !associations;
   get_assoc end_point
@@ -338,7 +338,7 @@ let reassociate end_point =
 let scope = `Session (Eliom_common.create_scope_hierarchy "__eliom_openid")
 let group_name = "__eliom_openid_group"
 
-type field = 
+type field =
   | Email
   | Fullname
   | DateOfBirth
@@ -376,13 +376,13 @@ let format_demands ~required ~required_name ~optional ~optional_name =
   ((required <> []) % (required_name, fmt required)) ^^?
     ((optional <> []) % (optional_name, fmt optional)) ^^? []
 
-let sreg ?policy_url ~required ~optional () = 
+let sreg ?policy_url ~required ~optional () =
   let li = format_demands ~required ~optional
     ~required_name: "required" ~optional_name: "optional"
     @ (Option.map (fun x -> "policy_url", x) policy_url ^? [])
   in
   let sreg_url = "http://openid.net/extensions/sreg/1.1" in
-  { 
+  {
     headers = ("ns.sreg", sreg_url) :: push_ns "sreg" li;
     parse = (fun args ->
       let args = find_in_ns ~default_namespace: "sreg"  sreg_url args in
@@ -391,7 +391,7 @@ let sreg ?policy_url ~required ~optional () =
   }
 
 (* ax extension *)
-let urls = 
+let urls =
   [     "type.email","http://axschema.org/contact/email";
         "type.nickname", "http://axschema.org/namePerson/friendly";
         "type.fullname", "http://axschema.org/namePerson";
@@ -401,15 +401,15 @@ let urls =
         "type.country", "http://axschema.org/contact/country/home";
         "type.language", "http://axschema.org/pref/language";
         "type.timezone","http://axschema.org/pref/timezone" ]
-  
 
-let ax ~required ~optional () = 
+
+let ax ~required ~optional () =
   let url = "http://openid.net/srv/ax/1.0" in
-  let li = 
+  let li =
     let fields = required @ optional in
-    List.map (fun info -> 
+    List.map (fun info ->
       let name = "type."^List.assoc info field_names in
-      (name, List.assoc name urls)) fields 
+      (name, List.assoc name urls)) fields
     @
       format_demands ~required ~required_name:"required"
       ~optional ~optional_name: "if_available"
@@ -424,17 +424,17 @@ let ax ~required ~optional () =
 
 (* PAPE *)
 type pape = { auth_time : string option; policies : string list option; nist_level : int option }
-let build_opt_list list = 
+let build_opt_list list =
   List.fold_left (fun li -> function
     | a, Some x -> (a, x) :: li
     | _, None -> li) [] list
 
 let assoc_opt a l = try Some (List.assoc a l) with Not_found -> None
-let pape ?max_auth_age ?auth_policies () = 
+let pape ?max_auth_age ?auth_policies () =
   let url = "http://specs.openid.net/extensions/pape/1.0" in
-  { 
-    headers = 
-      (build_opt_list 
+  {
+    headers =
+      (build_opt_list
         ["ns.pape", Some url;
          "pape.max_auth_age", Option.map string_of_int max_auth_age;
          "pape.preferred_auth_policies", Option.map (String.concat ",") auth_policies]);
@@ -447,18 +447,18 @@ let pape ?max_auth_age ?auth_policies () =
         { auth_time = auth_time; policies = policies;
           nist_level = nist_level })
   }
-        
+
 let ( *** ) e1 e2 = {
   headers = e1.headers @ e2.headers;
   parse = (fun l -> e1.parse l >>= (fun a -> e2.parse l >>= (fun b -> return (a, b))))
 }
 
 (* CHECKING *)
-let check_authentication ret_to endpoint assoc args = 
+let check_authentication ret_to endpoint assoc args =
   check_arg args "return_to" ret_to
   &&& check_signature assoc.mac args
 
-type 'a authentication_result = 
+type 'a authentication_result =
   | Canceled
   | Setup_needed
   | Result of 'a
@@ -471,8 +471,8 @@ let end_login_handler ext ret_to endpoint assoc f args =
     (if List.mem_assoc "invalidate_handle" args then
         reassociate endpoint
      else
-        Lwt.return assoc) >>= 
-      (fun assoc -> check_authentication ret_to endpoint assoc args) >>= 
+        Lwt.return assoc) >>=
+      (fun assoc -> check_authentication ret_to endpoint assoc args) >>=
       (fun () -> ext.parse args) >>= (fun k -> f (Result k))
   else if mode = "cancel" then
     f Canceled
@@ -506,14 +506,14 @@ module Make (S : HiddenServiceInfo) = struct
     in
     get_assoc (fst discovery) >>= fun assoc ->
     let uri = ref "" in
-    let () = uri := 
-      Eliom_content.Html5.F.make_string_uri ~absolute: true 
+    let () = uri :=
+      Eliom_content.Html5.F.make_string_uri ~absolute: true
       ~service:return_service []
     in
     let _ = Eliom_registration.Any.register
       ~scope
       ~service:return_service
-      (fun args _ -> 
+      (fun args _ ->
         end_login_handler ext !uri (fst discovery) assoc handler args)
     in
     let _ = Eliom_state.set_service_session_group
@@ -525,7 +525,7 @@ module Make (S : HiddenServiceInfo) = struct
       ~cookie_scope:scope
       (Some 60.)
     in
-    let params = 
+    let params =
       ["return_to", !uri;
        "claimed_id", local;
        "identity", local;
@@ -564,20 +564,20 @@ type check_fun =
     Url.t Lwt.t
 
 let check check ?(immediate = true) ?policy_url ?max_auth_age ?auth_policies
-    ?(required = []) ?(optional = []) user_url handler = 
-  let mode = 
-    if immediate then "checkid_immediate" 
+    ?(required = []) ?(optional = []) user_url handler =
+  let mode =
+    if immediate then "checkid_immediate"
     else "checkid_setup"
   in
   perform_discovery user_url >>= (fun discovery ->
     check
       ~mode
-      ~ext: (ax ~required ~optional () *** 
+      ~ext: (ax ~required ~optional () ***
              sreg ?policy_url ~required ~optional () ***
              pape ?max_auth_age ?auth_policies ())
       ~handler: (dispatch handler)
       ~discovery)
 
-let init ~path ~f = 
+let init ~path ~f =
   let module K = Make (struct let path = path let f = f end) in
   check K.authenticate

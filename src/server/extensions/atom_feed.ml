@@ -20,6 +20,7 @@
 
 open Eliom_lib
 
+
 (*
  * types {{{
  *)
@@ -55,7 +56,7 @@ type entry = Xml.elt
 type feed = Xml.elt
 type content = Xml.elt
 type textConstruct = Xml.attrib list * Xml.elt list
-type linkOAttr = [ metaAttr 
+type linkOAttr = [ metaAttr
    | `Type of string
    | `Rel of rel
    | `Medtype of mediaType
@@ -79,7 +80,7 @@ type entryOAttr = [ metaAttr
    | `Contribs of contributor list
    | `Links of link list
    | `Pub of published
-   | `Rights of textConstruct 
+   | `Rights of textConstruct
    | `Source of source
    | `Sum of textConstruct ]
 type feedOAttr = [ metaAttr
@@ -89,12 +90,12 @@ type feedOAttr = [ metaAttr
    | `Gen of generator
    | `Icon of icon
    | `Links of link list
-   | `Logo of logo 
+   | `Logo of logo
    | `Rights of textConstruct
-   | `Sub of textConstruct ] 
+   | `Sub of textConstruct ]
 (*
  * }}}
- *) 
+ *)
 
 (*
  * Constructors {{{
@@ -149,70 +150,70 @@ let outOfLineC ?(meta = []) (a,b) = `Content (Xml.node ~a:(a_medtype a ::
 
 (*
  * Extraction functions {{{
- *) 
-let rec personConstruct_extract l = match l with 
-   | []              -> [] 
-   |`Email a :: r   -> Xml.node ~a:[] "email" [(Xml.pcdata a)] :: 
-      personConstruct_extract r 
-   | `Uri a :: r     -> Xml.node ~a:[] "uri" [(Xml.pcdata (Xml.string_of_uri a))] :: 
-      personConstruct_extract r 
+ *)
+let rec personConstruct_extract l = match l with
+   | []              -> []
+   |`Email a :: r   -> Xml.node ~a:[] "email" [(Xml.pcdata a)] ::
+      personConstruct_extract r
+   | `Uri a :: r     -> Xml.node ~a:[] "uri" [(Xml.pcdata (Xml.string_of_uri a))] ::
+      personConstruct_extract r
    | _ :: r          -> personConstruct_extract r
 
-let rec linkOAttr_extract l = match l with 
-   | []              -> [] 
-   | `Type a :: r    -> Xml.string_attrib "type" a :: linkOAttr_extract r 
-   | `Rel a :: r     -> a_rel a :: linkOAttr_extract r 
-   | `Medtype a :: r -> a_medtype a :: linkOAttr_extract r 
-   | `Hrefl a :: r   -> a_hreflang a :: linkOAttr_extract r 
-   | `Title a :: r   -> a_title a :: linkOAttr_extract r 
-   | `Length a :: r  -> a_length a :: linkOAttr_extract r 
-   | _ :: r          -> linkOAttr_extract r 
+let rec linkOAttr_extract l = match l with
+   | []              -> []
+   | `Type a :: r    -> Xml.string_attrib "type" a :: linkOAttr_extract r
+   | `Rel a :: r     -> a_rel a :: linkOAttr_extract r
+   | `Medtype a :: r -> a_medtype a :: linkOAttr_extract r
+   | `Hrefl a :: r   -> a_hreflang a :: linkOAttr_extract r
+   | `Title a :: r   -> a_title a :: linkOAttr_extract r
+   | `Length a :: r  -> a_length a :: linkOAttr_extract r
+   | _ :: r          -> linkOAttr_extract r
 
-let rec sourceOAttr_extract l = match l with 
-   | []                 -> [] 
-   | `Authors a :: r 
-   | `Cats a :: r 
-   | `Contribs a :: r 
-   | `Links a :: r      -> a @ sourceOAttr_extract r 
-   | `Gen a :: r 
-   | `Icon a :: r 
-   | `Logo a :: r       -> a :: sourceOAttr_extract r 
-   | `Rights (a,b) :: r -> Xml.node ~a "rights" b :: sourceOAttr_extract r 
-   | `Sub (a,b) :: r    -> Xml.node ~a "subtitle" b :: sourceOAttr_extract r 
+let rec sourceOAttr_extract l = match l with
+   | []                 -> []
+   | `Authors a :: r
+   | `Cats a :: r
+   | `Contribs a :: r
+   | `Links a :: r      -> a @ sourceOAttr_extract r
+   | `Gen a :: r
+   | `Icon a :: r
+   | `Logo a :: r       -> a :: sourceOAttr_extract r
+   | `Rights (a,b) :: r -> Xml.node ~a "rights" b :: sourceOAttr_extract r
+   | `Sub (a,b) :: r    -> Xml.node ~a "subtitle" b :: sourceOAttr_extract r
    | _ :: r             -> sourceOAttr_extract r
 
-let rec entryOAttr_extract l = match l with 
-   | []                 -> [] 
-   | `Authors a :: r 
-   | `Cats a :: r 
-   | `Contribs a :: r 
-   | `Links a :: r      -> a @ entryOAttr_extract r 
-   | `Content a :: r 
-   | `Pub a :: r 
-   | `Source a :: r     -> a :: entryOAttr_extract r 
-   | `Rights (a,b) :: r -> Xml.node ~a "rights" b :: entryOAttr_extract r 
-   | `Sum (a,b) :: r    -> Xml.node ~a "summary" b :: entryOAttr_extract r 
+let rec entryOAttr_extract l = match l with
+   | []                 -> []
+   | `Authors a :: r
+   | `Cats a :: r
+   | `Contribs a :: r
+   | `Links a :: r      -> a @ entryOAttr_extract r
+   | `Content a :: r
+   | `Pub a :: r
+   | `Source a :: r     -> a :: entryOAttr_extract r
+   | `Rights (a,b) :: r -> Xml.node ~a "rights" b :: entryOAttr_extract r
+   | `Sum (a,b) :: r    -> Xml.node ~a "summary" b :: entryOAttr_extract r
    | _ :: r             -> entryOAttr_extract r
 
-let rec feedOAttr_extract l = match l with 
-   | []                 -> [] 
-   | `Authors a :: r 
-   | `Cats a :: r 
-   | `Contribs a :: r 
-   | `Links a :: r      -> a @ feedOAttr_extract r 
-   | `Gen a :: r 
-   | `Icon a :: r 
-   | `Logo a :: r       -> a :: feedOAttr_extract r 
-   | `Rights (a,b) :: r -> Xml.node ~a "rights" b :: feedOAttr_extract r 
-   | `Sub (a,b) :: r    -> Xml.node ~a "subtitle" b :: feedOAttr_extract r 
-   | _ :: r          -> feedOAttr_extract r 
+let rec feedOAttr_extract l = match l with
+   | []                 -> []
+   | `Authors a :: r
+   | `Cats a :: r
+   | `Contribs a :: r
+   | `Links a :: r      -> a @ feedOAttr_extract r
+   | `Gen a :: r
+   | `Icon a :: r
+   | `Logo a :: r       -> a :: feedOAttr_extract r
+   | `Rights (a,b) :: r -> Xml.node ~a "rights" b :: feedOAttr_extract r
+   | `Sub (a,b) :: r    -> Xml.node ~a "subtitle" b :: feedOAttr_extract r
+   | _ :: r          -> feedOAttr_extract r
  (*
  * }}}
  *)
 
 (*
  * Textconstructs [Rights, Subtitle, Summary, Title] {{{
- *) 
+ *)
 let plain ?(meta = []) ?(html = false) content = (Xml.string_attrib "type"
     (if html then "html" else "text"):: metaAttr_extract meta, [Xml.pcdata
     content])
@@ -224,31 +225,31 @@ let rights t = `Rights t
 
 let subtitle t = `Sub t
 
-let summary t = `Sum t 
+let summary t = `Sum t
  (*
  * }}}
  *)
 
-let feed ~updated ~id ~title:(a,b) ?(fields = []) entries = 
-   Xml.node ~a:(Xml.string_attrib "xmlns" "http://www.w3.org/2005/Atom" :: 
-         metaAttr_extract fields) 
-         "feed" 
+let feed ~updated ~id ~title:(a,b) ?(fields = []) entries =
+   Xml.node ~a:(Xml.string_attrib "xmlns" "http://www.w3.org/2005/Atom" ::
+         metaAttr_extract fields)
+         "feed"
          (Xml.node ~a:[] "updated" [ Xml.pcdata (date updated) ] ::
             Xml.node ~a:[] "id" [ Xml.pcdata (Xml.string_of_uri id) ] :: Xml.node ~a "title" b ::
             feedOAttr_extract fields @ entries)
 
-let entry ~updated ~id ~title:(a,b) elt = 
+let entry ~updated ~id ~title:(a,b) elt =
    Xml.node ~a:(metaAttr_extract elt)
-         "entry"  
-         (Xml.node ~a:[] "updated" [ Xml.pcdata (date updated) ] :: 
+         "entry"
+         (Xml.node ~a:[] "updated" [ Xml.pcdata (date updated) ] ::
             Xml.node ~a:[] "id" [ Xml.pcdata (Xml.string_of_uri id) ] ::
             Xml.node ~a "title" b ::
             entryOAttr_extract elt)
 
 let source ~updated ~id ~title:(a,b) elt = `Source (
-   Xml.node ~a:(metaAttr_extract elt) 
-         "source" 
-         (Xml.node ~a:[] "updated" [ Xml.pcdata (date updated) ] :: 
+   Xml.node ~a:(metaAttr_extract elt)
+         "source"
+         (Xml.node ~a:[] "updated" [ Xml.pcdata (date updated) ] ::
             Xml.node ~a:[] "id" [ Xml.pcdata (Xml.string_of_uri id) ] ::
 	       Xml.node ~a "title" b :: sourceOAttr_extract elt)
 	 )
@@ -276,10 +277,10 @@ let icon address = `Icon (Xml.node ~a:[] "icon" [ Xml.pcdata (Xml.string_of_uri 
 
 let logo address = `Logo (Xml.node ~a:[] "icon" [ Xml.pcdata (Xml.string_of_uri address) ])
 
-let category ?(meta = []) ?(scheme = "") ?(label = "") term content = 
-   Xml.node ~a:(a_scheme scheme :: a_label label :: 
+let category ?(meta = []) ?(scheme = "") ?(label = "") term content =
+   Xml.node ~a:(a_scheme scheme :: a_label label ::
                a_term term :: metaAttr_extract meta)
-         "category" 
+         "category"
          content
 
 let categories l = `Cats l
@@ -290,6 +291,6 @@ let published d = `Pub (Xml.node ~a:[] "published" [ Xml.pcdata (date d) ])
  * }}}
  *)
 
-let insert_hub_links hubs feed = match Xml.content feed with 
-   | Xml.Node (b, a, c)  -> Xml.node ~a b (List.map 
+let insert_hub_links hubs feed = match Xml.content feed with
+   | Xml.Node (b, a, c)  -> Xml.node ~a b (List.map
          (fun uri -> link ~elt:[`Rel ("hub")] uri) hubs @ c) | _ -> assert false

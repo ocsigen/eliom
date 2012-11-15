@@ -115,7 +115,7 @@ type send_appl_content =
 type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) service =
 (* 'return is the value returned by the service *)
     {
-     pre_applied_parameters: 
+     pre_applied_parameters:
        (string * string) list String.Table.t
        (* non localized parameters *) *
        (string * string) list (* regular parameters *);
@@ -174,7 +174,7 @@ let default_priority = 0
 
 let get_get_or_post s =
   match get_kind_ (s : ('a, 'b, [< `Attached of (attached_service_kind, [< getpost]) a_s
-                        | `Nonattached of [< getpost ] na_s ], 'd, 'e, 'f, 'g, 'h) service :> ('a, 'b, service_kind, 'd, 'e, 'f, 'g, 'h) service) 
+                        | `Nonattached of [< getpost ] na_s ], 'd, 'e, 'f, 'g, 'h) service :> ('a, 'b, service_kind, 'd, 'e, 'f, 'g, 'h) service)
   with
     | `Attached attser -> attser.get_or_post
     | `Nonattached { na_kind = `Post keep_get_na_param } -> `Post
@@ -190,7 +190,7 @@ let change_get_num service attser n =
 let static_dir_ ?(https = false) () =
   {
     pre_applied_parameters = String.Table.empty, [];
-    get_params_type = Eliom_parameter.suffix 
+    get_params_type = Eliom_parameter.suffix
       (Eliom_parameter.all_suffix Eliom_common.eliom_suffix_name);
     post_params_type = Eliom_parameter.unit;
     max_use= None;
@@ -198,7 +198,7 @@ let static_dir_ ?(https = false) () =
     kind = `Attached
       {prefix = "";
        subpath = [""];
-       fullpath = (Eliom_request_info.get_site_dir ()) @ 
+       fullpath = (Eliom_request_info.get_site_dir ()) @
           [Eliom_common.eliom_suffix_internal_name];
        get_name = Eliom_common.SAtt_no;
        post_name = Eliom_common.SAtt_no;
@@ -221,8 +221,8 @@ let get_static_dir_ ?(https = false)
     ?(keep_nl_params = `None) ~get_params () =
     {
      pre_applied_parameters = String.Table.empty, [];
-     get_params_type = 
-        Eliom_parameter.suffix_prod 
+     get_params_type =
+        Eliom_parameter.suffix_prod
           (Eliom_parameter.all_suffix Eliom_common.eliom_suffix_name)
           get_params;
      post_params_type = Eliom_parameter.unit;
@@ -231,7 +231,7 @@ let get_static_dir_ ?(https = false)
      kind = `Attached
        {prefix = "";
         subpath = [""];
-        fullpath = (Eliom_request_info.get_site_dir ()) @ 
+        fullpath = (Eliom_request_info.get_site_dir ()) @
            [Eliom_common.eliom_suffix_internal_name];
         get_name = Eliom_common.SAtt_no;
         post_name = Eliom_common.SAtt_no;
@@ -246,10 +246,10 @@ let get_static_dir_ ?(https = false)
      send_appl_content = XNever;
    }
 
-let static_dir_with_params ?keep_nl_params ~get_params () = 
+let static_dir_with_params ?keep_nl_params ~get_params () =
   get_static_dir_ ?keep_nl_params ~get_params ()
 
-let https_static_dir_with_params ?keep_nl_params ~get_params () = 
+let https_static_dir_with_params ?keep_nl_params ~get_params () =
   get_static_dir_ ~https:true ?keep_nl_params ~get_params ()
 
 
@@ -269,7 +269,7 @@ let preapply ~service getparams =
   let nlp, preapp = service.pre_applied_parameters in
   let suff, nlp, params =
     Eliom_parameter.construct_params_list_raw
-      nlp service.get_params_type getparams 
+      nlp service.get_params_type getparams
   in
   {service with
    pre_applied_parameters = nlp, params@preapp;
@@ -322,14 +322,14 @@ let https_void_coservice' =
     send_appl_content = XAlways;
   }
 
-let void_hidden_coservice' = {void_coservice' with 
+let void_hidden_coservice' = {void_coservice' with
                                 kind = `Nonattached
     {na_name = Eliom_common.SNa_void_keep;
      na_kind = `Get;
     };
                              }
 
-let https_void_hidden_coservice' = {void_coservice' with 
+let https_void_hidden_coservice' = {void_coservice' with
                                       kind = `Nonattached
     {na_name = Eliom_common.SNa_void_keep;
      na_kind = `Get;
@@ -338,13 +338,13 @@ let https_void_hidden_coservice' = {void_coservice' with
 
 let add_non_localized_get_parameters ~params ~service =
   {service with
-     get_params_type = 
+     get_params_type =
       Eliom_parameter.nl_prod service.get_params_type params
   }
 
 let add_non_localized_post_parameters ~params ~service =
   {service with
-     post_params_type = 
+     post_params_type =
       Eliom_parameter.nl_prod service.post_params_type params
   }
 

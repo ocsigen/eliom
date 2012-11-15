@@ -291,7 +291,7 @@ let register_aux pages
 			      in
                               let redir_uri =
                                 if String.length redir_uri > 0
-                                then String.sub redir_uri 1 
+                                then String.sub redir_uri 1
                                   (String.length redir_uri - 1)
                                 else redir_uri
                               in

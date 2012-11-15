@@ -22,6 +22,7 @@
 
 open Eliom_lib
 
+
 (*
  * types {{{
  *)
@@ -51,7 +52,7 @@ type author
 type contributor
 type generator
 type id
-type icon 
+type icon
 type category
 type link
 type logo
@@ -109,7 +110,7 @@ type feedOAttr = [ metaAttr
     | `Sub of textConstruct ]
 (*
  * }}}
- *) 
+ *)
 
 (*
  * Constructors {{{
@@ -151,7 +152,7 @@ val inlineOtherC : ?meta:[> metaAttr ] list
    -> [> `Content of content ]
 
 (** Every other content *)
-val outOfLineC : ?meta:[> metaAttr ] list 
+val outOfLineC : ?meta:[> metaAttr ] list
    -> string * uri
    -> [> `Content of content ]
 
@@ -180,9 +181,9 @@ val summary : textConstruct
 
 (** Feed tag *)
 val feed : updated:CalendarLib.Calendar.t
-   -> id:uri 
-   -> title:textConstruct 
-   -> ?fields:[> feedOAttr ] list 
+   -> id:uri
+   -> title:textConstruct
+   -> ?fields:[> feedOAttr ] list
    -> entry list
    -> feed
 
@@ -206,10 +207,10 @@ val link :
   href -> link
 
 
-(** We need a list of links, this is only a converter from link list to `Links 
+(** We need a list of links, this is only a converter from link list to `Links
  *)
 val links : link list -> [> `Links of link list ]
- 
+
 (** email tag *)
 val email : string -> [> `Email of string ]
 
@@ -220,7 +221,7 @@ val uri : uri -> [> `Uri of uri ]
 val author :
   ?elt:[> personConstruct ] list -> string -> author
 
-(** We need a list of authors, this is only a converter from author list to 
+(** We need a list of authors, this is only a converter from author list to
  `Authors *)
 val authors : author list -> [> `Authors of author list ]
 
@@ -241,7 +242,7 @@ val logo : uri -> [> `Logo of logo ]
 (** category tag *)
 val category :
   ?meta:[> metaAttr ] list ->
-  ?scheme:scheme -> ?label:label -> 
+  ?scheme:scheme -> ?label:label ->
   term -> Xml.elt list -> category
 
 (** We need a list of categories, this is only a converter from category list
@@ -255,6 +256,6 @@ val published : CalendarLib.Calendar.t -> [> `Pub of published ]
  * }}}
  *)
 
-(** Technically not used elsewhere than in eliom_feed.ml, since the links tags 
+(** Technically not used elsewhere than in eliom_feed.ml, since the links tags
  related to each hub are added when registering the feed. *)
 val insert_hub_links : uri list -> feed -> feed
