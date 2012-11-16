@@ -87,7 +87,7 @@ type for_attrib
     {- the [Host] http header of the current request if available;}
     {- the attribute [defaulthostname] of [<host>] tag in
     configuration file or the machine hostname in any other case.}}
-7    - [port] is:
+    - [port] is:
     {ul {- the optional parameter [~port] if given;}
     {- the attribute [defaulthttpsport] (resp. [defaulthttpport]) of [<host>] tag
     in configuration file or [443] (resp. 80) if [protocol] is [https] (resp. [http]) and
