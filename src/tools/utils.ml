@@ -56,6 +56,10 @@ let default_type_dir =
   try Sys.getenv "ELIOM_TYPE_DIR"
   with Not_found -> default_server_dir
 
+let default_server_types_ext =
+  try Sys.getenv "ELIOM_SERVER_TYPES_EXT"
+  with Not_found -> ".type_mli"
+
 let build_dir : string ref = ref ""
 let type_dir : string ref = ref default_type_dir
 
@@ -173,7 +177,7 @@ let get_thread_opt () = match !kind with
   | `Client -> []
   | `Server | `ServerOpt -> ["-thread"]
 
-let type_file_suffix = ".type_mli"
+let server_types_file_ext = ref default_server_types_ext
 
 let prefix_type_dir name =
   match !type_dir with
@@ -184,7 +188,7 @@ let get_type_file file =
   match !type_file with
   | Some f -> f
   | None ->
-      prefix_type_dir (chop_extension_if_any file ^ type_file_suffix)
+      prefix_type_dir (chop_extension_if_any file ^ !server_types_file_ext)
 
 let impl_intf_opt = function
   | `Impl -> "-impl"

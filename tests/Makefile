@@ -5,7 +5,7 @@ include ../Makefile.config
 export OCAMLPATH := ${SRC}/src/files:${OCAMLPATH}
 export PATH := ${SRC}/src/tools:${PATH}
 
-ELIOMC   := eliomc -g
+ELIOMC   := eliomc
 ELIOMOPT := eliomopt
 ELIOMDEP := eliomdep
 JS_OF_ELIOM := js_of_eliom
@@ -59,12 +59,12 @@ _server/%.cmi: %.mli
 _server/%.cmo: %.ml
 	${ELIOMC} -c ${SERVER_INC} $<
 _server/%.cmo: %.eliom
-	${ELIOMC} -c -noinfer ${addprefix -type-dir ,${TYPE_DIR}} ${SERVER_INC} $<
+	${ELIOMC} -c ${addprefix -type-dir ,${TYPE_DIR}} ${SERVER_INC} $<
 
 _server/%.cmx: %.ml
 	${ELIOMOPT} -c ${SERVER_INC} $<
 _server/%.cmx: %.eliom
-	${ELIOMOPT} -c -noinfer ${addprefix -type-dir ,${TYPE_DIR}} ${SERVER_INC} $<
+	${ELIOMOPT} -c ${addprefix -type-dir ,${TYPE_DIR}} ${SERVER_INC} $<
 
 %.cmxs: %.cmxa
 	$(ELIOMOPT) -shared -linkall -o $@ $<
@@ -84,7 +84,7 @@ _client/%.cmi: %.mli
 	${JS_OF_ELIOM} -c ${CLIENT_INC} $<
 
 _client/%.cmo: %.eliom
-	${JS_OF_ELIOM} -c -noinfer ${addprefix -type-dir ,${TYPE_DIR}} ${CLIENT_INC} $<
+	${JS_OF_ELIOM} -c ${addprefix -type-dir ,${TYPE_DIR}} ${CLIENT_INC} $<
 _client/%.cmo: %.ml
 	${JS_OF_ELIOM} -c ${CLIENT_INC} $<
 

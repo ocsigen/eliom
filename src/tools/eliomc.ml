@@ -1,29 +1,22 @@
 
-(** TOOO dump intermediate file *)
-
 open Utils
 
 let usage () =
   Printf.eprintf "Usage: %s <options> <files>\n" (Filename.basename Sys.argv.(0));
   Printf.eprintf "SPECIFIC OPTIONS:\n";
+  Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
+  if !kind <> `Client then
+    Printf.eprintf "  -infer\t\tOnly infer the type of values sent by the server\n";
   Printf.eprintf "  -dir <dir>\t\tThe directory for generated files (default %S)\n"
     (if !kind = `Client then default_client_dir else default_server_dir);
-  Printf.eprintf "  -type-dir <dir>\t\tThe directory to read .type_mli files from (default %S)\n"
+  Printf.eprintf "  -type-dir <dir>\tThe directory to read server type files from (default %S)\n"
      default_type_dir;
-  if !kind =  `Server || !kind = `ServerOpt then begin
-    Printf.eprintf "  -infer\t\tOnly infer the type of values sent by the server\n";
-  end else begin
+  Printf.eprintf "  -server-types-ext <ext> The extension for server type files (default %S)\n"
+    default_server_types_ext;
+  if !kind = `Client then
     Printf.eprintf "  -jsopt <opt>\t\tAppend option <opt> to js_of_ocaml invocation\n";
-    Printf.eprintf "  -server-opt <opt> <value>\tUse the option <opt> with parameter \
-       <value> during infering the types of the server (only necessary if js_of_eliom \
-       is called without -infer). Options may be -dir if eliomc was used with a special \
-       values for that as well, or -package)";
-  end;
-  Printf.eprintf "  -noinfer\t\tDo not infer the type of values sent by the server\n";
-  Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
+  Printf.eprintf "  -ppopt <p>\t\tAppend option <opt> to preprocessor invocation\n";
   Printf.eprintf "  -predicates <p>\tAdd predicate <p> when resolving package properties\n";
-  Printf.eprintf "  -ppopt <p>\tAppend option <opt> to preprocessor invocation\n";
-  Printf.eprintf "  -type <file>\tInfered types for the values sent by the server.\n";
   create_filter !compiler ["-help"] (help_filter 2 "STANDARD OPTIONS:");
   if !kind = `Client then
     create_filter !js_of_ocaml ["-help"] (help_filter 1 "JS_OF_OCAML OPTIONS:");
@@ -33,19 +26,14 @@ let usage () =
 
 let jsopt : string list ref = ref []
 let output_name : string option ref = ref None
-let noinfer = ref false
 
-type mode = [ `Link | `Compile | `InferOnly | `Library  | `Pack | `Obj | `Shared | `Interface ]
+type mode = [ `Link | `Compile | `Infer | `Library  | `Pack | `Obj | `Shared | `Interface ]
 
 let mode : mode ref = ref `Link
 
-let do_compile () = !mode <> `InferOnly
-let do_infer () = not !noinfer
+let do_compile () = !mode <> `Infer
 let do_interface () = !mode = `Interface
 let do_dump = ref false
-
-let server_dir = ref None
-let server_package = ref []
 
 let create_process ?in_ ?out ?err name args =
   wait (create_process ?in_ ?out ?err name args)
@@ -68,11 +56,11 @@ let output_prefix ?(ty = false) name =
   let name =
     match !output_name with
     | None ->
-	if !mode = `InferOnly || ty
+	if !mode = `Infer || ty
 	then prefix_type_dir name
 	else prefix_output_dir name
     | Some n ->
-	if !mode = `Compile || !mode = `InferOnly
+	if !mode = `Compile || !mode = `Infer
 	then (output_name := None; n)
 	else prefix_output_dir name in
   check_or_create_dir (Filename.dirname name);
@@ -82,7 +70,7 @@ let set_mode m =
  if !mode = `Link then
    ( if
        (m = `Shared && !kind <> `ServerOpt) ||
-       (m = `InferOnly && !kind = `Client) ||
+       (m = `Infer && !kind = `Client) ||
        (m = `Interface && !kind = `Client)
      then
        usage ()
@@ -160,7 +148,7 @@ let output_ocaml_interface file =
 let process_ocaml ~impl_intf file =
   if do_compile () then
     compile_ocaml ~impl_intf file;
-  if do_interface () then
+  if !mode = `Interface then
     output_ocaml_interface file
 
 let compile_obj file =
@@ -179,7 +167,7 @@ let get_ppopts ~impl_intf file =
   pa_cmo :: type_opt impl_intf file @ !ppopt @ [impl_intf_opt impl_intf]
 
 let compile_server_type_eliom file =
-  let obj = output_prefix ~ty:true file ^ type_file_suffix
+  let obj = output_prefix ~ty:true file ^ !server_types_file_ext
   and ppopts = ["pa_eliom_type_filter.cmo"] @ !ppopt @ ["-impl"] in
   if !do_dump then begin
     let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopts @ [file]) in
@@ -187,22 +175,9 @@ let compile_server_type_eliom file =
     exit 0
   end;
   let out = Unix.openfile obj [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC] 0o666 in
-  (* We have to override kind, build_dir, package if js_of_eliom is
-     called without -infer. *)
-  let kind, build_dir, package =
-    if !kind = `Client then
-      (Some `Server,
-       Some
-         (match !server_dir with
-           | Some dir -> dir
-           | None -> default_server_dir),
-       Some !server_package)
-    else
-      None, None, None
-  in
   create_process ~out !compiler ( [ "-i" ; "-pp"; get_pp ppopts]
 				  @ !args
-    				  @ get_common_include ?kind ?build_dir ?package ()
+    				  @ get_common_include ()
 				  @ ["-impl"; file] );
   Unix.close out
 
@@ -257,12 +232,13 @@ let compile_eliom ~impl_intf file =
   args := !args @ [obj]
 
 let process_eliom ~impl_intf file =
-  if impl_intf = `Impl && do_infer () then
-    compile_server_type_eliom file;
-  if do_compile () then
-    compile_eliom ~impl_intf file;
-  if do_interface () then
-    output_eliom_interface ~impl_intf file
+  match !mode with
+    | `Infer when impl_intf = `Impl ->
+      compile_server_type_eliom file
+    | `Interface ->
+      output_eliom_interface ~impl_intf file
+    | _ ->
+      compile_eliom ~impl_intf file
 
 let build_server ?(name = "a.out") () =
   fail "Linking eliom server is not yet supported"
@@ -293,10 +269,8 @@ let rec process_option () =
     | "-pack" -> set_mode `Pack; incr i
     | "-output-obj" -> set_mode `Obj; incr i
     | "-shared" -> set_mode `Shared; incr i
-    | "-infer" -> set_mode `InferOnly; incr i
+    | "-infer" -> set_mode `Infer; incr i
     | "-verbose" -> verbose := true; args := !args @ ["-verbose"] ;incr i
-    | "-noinfer"  ->
-	noinfer := true; incr i
     | "-vmthread" -> Printf.eprintf "The -vmthread option isn't supported yet."; exit 1
     | "-o" ->
       if !i+1 >= Array.length Sys.argv then usage ();
@@ -313,16 +287,10 @@ let rec process_option () =
       if !i+1 >= Array.length Sys.argv then usage ();
       type_dir := Sys.argv.(!i+1);
       i := !i+2
-    | "-server-opt" ->
-      if !kind <> `Client || !i+2 >= Array.length Sys.argv then usage ();
-      (match Sys.argv.(!i+1) with
-        | "-dir" ->
-          server_dir := Some Sys.argv.(!i+2)
-        | "-package" ->
-          server_package := !server_package @ split ',' Sys.argv.(!i+2)
-        | value ->
-          usage ());
-      i := !i+3;
+    | "-server-types-ext" ->
+      if !i+1 >= Array.length Sys.argv then usage ();
+      server_types_file_ext := Sys.argv.(!i+1);
+      i := !i+2
     | "-package" ->
       if !i+1 >= Array.length Sys.argv then usage ();
       package := !package @ split ',' Sys.argv.(!i+1);
@@ -343,10 +311,6 @@ let rec process_option () =
     | "-ppopt" ->
       if !i+1 >= Array.length Sys.argv then usage ();
       ppopt := !ppopt @ [Sys.argv.(!i+1)];
-      i := !i+2
-    | "-type" ->
-      if !i+1 >= Array.length Sys.argv then usage ();
-      type_file := Some Sys.argv.(!i+1);
       i := !i+2
     | "-intf" ->
       if !i+1 >= Array.length Sys.argv then usage ();
@@ -379,7 +343,7 @@ let rec process_option () =
   | `Shared -> build_shared ()
   | `Link when !kind = `Client -> build_client ()
   | `Link (* Server and ServerOpt *) -> build_server ?name:(!output_name) ()
-  | `Compile | `InferOnly | `Interface -> ()
+  | `Compile | `Infer | `Interface -> ()
 
 let main () =
   let k =
