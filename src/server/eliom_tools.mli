@@ -83,10 +83,12 @@ and ('a, 'b, 'c) hierarchical_site_item =
   | Site_tree of ('a, 'b, 'c) hierarchical_site (** The menu entry as a label and subsections. *)
 constraint 'b = [< Eliom_service.registrable ]
 
+(** {2 Tools for generating certain HTML elements} *)
+
 (* Be kind with ocamldoc when source code is preprocessed with camlp4:
    do not remove this comment ! *)
 
-module type TOOLS = sig
+module type HTML5_TOOLS = sig
 
 (** {2 Simple menu } *)
 
@@ -196,7 +198,7 @@ module type TOOLS = sig
 end
 
 (** Menus with functional node semantics *)
-module F : TOOLS
-    
+module F : HTML5_TOOLS
+
 (** Menus with DOM semantics *)
-module D : TOOLS
+module D : HTML5_TOOLS

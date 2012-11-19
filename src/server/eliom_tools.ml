@@ -26,7 +26,7 @@ let string_prefix s1 s2 =
   String.length s1 <= String.length s2 &&
     s1 = String.sub s2 0 (String.length s1)
 
-module type TOOLS = sig
+module type HTML5_TOOLS = sig
 
 (** {2 Simple menu } *)
 
@@ -136,7 +136,7 @@ module type TOOLS = sig
 end
 
 
-module Make(DorF : module type of Eliom_content.Html5.F) : TOOLS = struct
+module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
   open Html5_types
   open Html5.F
 
