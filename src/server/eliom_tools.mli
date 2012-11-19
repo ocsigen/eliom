@@ -215,7 +215,7 @@ module D : HTML5_TOOLS
     argument is called with that information if available and the
     parameters.
 
-    {% <<code languge="ocaml"|
+    {% <<code language="ocaml"|
     let user_eref = Eliom_reference.eref ~scope None
     let anonymous_handler _ _ =
       Lwt.return (html (head (title "not allowed")) (body []))
