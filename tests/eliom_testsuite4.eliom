@@ -1472,10 +1472,58 @@ let late_unwrap =
     (fun () ->
       Lwt.return [])
 
+(******************************************************************************)
+
+let wrap_handler =
+  let state = Eliom_reference.eref ~scope:Eliom_common.default_session_scope None in
+  let service =
+    Eliom_testsuite_base.My_appl.register_coservice'
+      ~get_params:Eliom_parameter.unit
+      (Eliom_tools.wrap_handler
+         (fun () -> Eliom_reference.get state)
+         (fun () () -> Lwt.return
+           Html5.F.(html (head (title (pcdata "not set")) [])
+                      (body [pcdata "not set"])))
+         (fun value () () -> Lwt.return
+           Html5.F.(html (head (title (pcdata "set")) [])
+                      (body [Printf.ksprintf pcdata "set to %d." value]))))
+  in
+  let set_state =
+    let counter = ref 0 in
+    Eliom_registration.Unit.register_coservice'
+      ~get_params:Eliom_parameter.unit
+      (fun () () ->
+        lwt () = Eliom_reference.set state (incr counter; Some !counter) in
+        Lwt.return ())
+  in
+  let unset_state =
+    Eliom_registration.Unit.register_coservice'
+      ~get_params:Eliom_parameter.unit
+      (fun () () ->
+        lwt () = Eliom_reference.set state None in
+        Lwt.return ())
+  in
+  Eliom_testsuite_base.test
+    ~title:"Wrap handler"
+    ~path:["mixed"; "wrap_handler"]
+    ~description:Html5.F.([
+      pcdata "The links 'set state' and 'unset state' allow to modify a state.";
+      pcdata "The link 'test state' show whether the state is set or not.";
+    ])
+    (fun () -> Lwt.return Html5.F.([
+      ul [
+        li [a ~service [pcdata "test state"] ()];
+        li [a ~service:set_state [pcdata "set state"] ()];
+        li [a ~service:unset_state [pcdata "unset state"] ()];
+      ]]))
+
+(******************************************************************************)
+
 let tests = [
   "Mixed", [
     test_custom_data;
     test_server_function;
+    wrap_handler;
   ];
   "Holes", [
     test_injection_scoping;

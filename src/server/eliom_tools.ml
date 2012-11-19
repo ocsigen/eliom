@@ -428,3 +428,9 @@ end
 
 module F = Make(Html5.F)
 module D = Make(Html5.D)
+
+let wrap_handler information none some =
+  fun get post ->
+    match_lwt information () with
+      | None -> none get post
+      | Some value -> some value get post

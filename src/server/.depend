@@ -175,13 +175,13 @@ eliom_tools_common.cmx: eliom_service.cmx eliom_registration.cmx \
     eliom_tools_common.cmi
 eliom_tools_common.cmi: eliom_state.cmi eliom_service.cmi \
     eliom_registration.cmi eliom_parameter.cmi
-eliom_tools.cmo: eliom_tools_common.cmi eliom_service.cmi \
+eliom_tools.cmo : eliom_tools_common.cmi eliom_service.cmi \
     eliom_request_info.cmi eliom_registration.cmi eliom_lib.cmi \
     eliom_content.cmi eliom_tools.cmi
-eliom_tools.cmx: eliom_tools_common.cmx eliom_service.cmx \
+eliom_tools.cmx : eliom_tools_common.cmx eliom_service.cmx \
     eliom_request_info.cmx eliom_registration.cmx eliom_lib.cmx \
     eliom_content.cmx eliom_tools.cmi
-eliom_tools.cmi: eliom_tools_common.cmi eliom_state.cmi eliom_service.cmi \
+eliom_tools.cmi : eliom_tools_common.cmi eliom_state.cmi eliom_service.cmi \
     eliom_registration.cmi eliom_parameter.cmi eliom_lib.cmi \
     eliom_content.cmi
 eliom_types_base.cmo: eliom_wrap.cmi eliom_lib.cmi eliom_content_core.cmi \

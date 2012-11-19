@@ -202,3 +202,36 @@ module F : HTML5_TOOLS
 
 (** Menus with DOM semantics *)
 module D : HTML5_TOOLS
+
+(** {2 Other tools} *)
+
+(** This function allows to wrap a service handler easily depending
+    on whether certain information is available or not.
+
+    The first arguments provides that information ([Some value]) of
+    not ([None]), the second argument is called just with two
+    arguments when the information is not available (the two arguments
+    are suggesting GET and POST parameters of a request). The third
+    argument is called with that information if available and the
+    parameters.
+
+    {% <<code languge="ocaml"|
+    let user_eref = Eliom_reference.eref ~scope None
+    let anonymous_handler _ _ =
+      Lwt.return (html (head (title "not allowed")) (body []))
+    let authenticated_handler f =
+      Eliom_tools.wrap_handler
+        (fun () -> Eliom_reference.get user_eref)
+        anonymous_handler f
+    let guarded_service =
+      My_app.register_service ~path ~get_param
+        (authenticated_handler
+           (fun user get () ->
+              Lwt.return (html (head (title ("hello "^user))) (body []))))
+    >> %}
+  *)
+val wrap_handler :
+  (unit -> 'a option Lwt.t) ->
+  ('get -> 'post -> 'res Lwt.t) ->
+  ('a -> 'get -> 'post -> 'res Lwt.t) ->
+  ('get -> 'post -> 'res Lwt.t)
