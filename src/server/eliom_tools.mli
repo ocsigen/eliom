@@ -193,8 +193,19 @@ module type HTML5_TOOLS = sig
     title:string ->
     ?css:string list list ->
     ?js:string list list ->
+    ?other:Html5_types.head_content_fun Html5.elt list ->
     unit ->
     Html5_types.head Html5.elt
+
+  val html :
+    title:string ->
+    ?a:Html5_types.html_attrib Html5.attrib list ->
+    ?css:string list list ->
+    ?js:string list list ->
+    ?other_head:Html5_types.head_content_fun Html5.elt list ->
+    Html5_types.body Html5.elt ->
+    Html5_types.html Html5.elt
+
 end
 
 (** Menus with functional node semantics *)
@@ -202,6 +213,12 @@ module F : HTML5_TOOLS
 
 (** Menus with DOM semantics *)
 module D : HTML5_TOOLS
+
+(** Record an (external) JavaScript file to be included in {!Eliom_tools.F.html}. *)
+val with_js_file : string list -> unit
+
+(** Record an CSS file to be included in {!Eliom_tools.F.html}. *)
+val with_css_file : string list -> unit
 
 (** {2 Other tools} *)
 

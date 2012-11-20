@@ -131,9 +131,27 @@ module type HTML5_TOOLS = sig
     title:string ->
     ?css:string list list ->
     ?js:string list list ->
+    ?other:Html5_types.head_content_fun Html5.elt list ->
     unit ->
     Html5_types.head Html5.elt
+
+  val html :
+    title:string ->
+    ?a:Html5_types.html_attrib Html5.attrib list ->
+    ?css:string list list ->
+    ?js:string list list ->
+    ?other_head:Html5_types.head_content_fun Html5.elt list ->
+    Html5_types.body Html5.elt ->
+    Html5_types.html Html5.elt
 end
+
+
+let css_files = Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
+let js_files = Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
+let with_css_file file =
+  Eliom_reference.Volatile.modify css_files (fun files -> file :: files)
+let with_js_file file =
+  Eliom_reference.Volatile.modify js_files (fun files -> file :: files)
 
 
 module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
@@ -411,8 +429,8 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
           create_rev None pages
     with Not_found -> []
 
-  let head ~title:ttl ?(css=[]) ?(js=[]) () =
-    let open Html5.F in
+  let head ~title:ttl ?(css=[]) ?(js=[]) ?(other=[]) () =
+    let open DorF in
     let mk_css_link path =
       let uri = make_uri (Eliom_service.static_dir ()) path in
       css_link ~uri () in
@@ -421,8 +439,18 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
       js_script ~uri () in
     DorF.head
       (title (pcdata ttl))
-      List.(map mk_css_link css @ map mk_js_script js)
+      List.(map mk_css_link css @ map mk_js_script js @ other)
 
+  let html ~title ?a ?(css=[]) ?(js=[]) ?other_head body =
+    let css =
+      List.rev (Eliom_reference.Volatile.get css_files) @ css
+    in
+    let js =
+      List.rev (Eliom_reference.Volatile.get js_files) @ js
+    in
+    DorF.html ?a
+      (head ~title ~css ~js ?other:other_head ())
+      body
 end
 
 
