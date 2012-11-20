@@ -149,6 +149,8 @@ module Html5 : sig
   module To_dom : sig
 
     val of_element : 'a elt -> Dom_html.element Js.t
+    val of_node : 'a elt -> Dom.node Js.t
+
     val of_heading : Html5_types.heading elt -> Dom_html.headingElement Js.t
 
     val of_pcdata : [> `Pcdata] elt -> Dom.text Js.t

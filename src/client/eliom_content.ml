@@ -68,6 +68,8 @@ module Html5 = struct
     open Eliom_client
 
     let of_element elt = rebuild_node "of_element" elt
+    let of_node elt = rebuild_node "of_node" elt
+
     let of_heading elt = rebuild_node "of_heading" elt
 
     let of_a elt = rebuild_node "of_a" elt
