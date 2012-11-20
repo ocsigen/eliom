@@ -16,6 +16,8 @@ INTF := eliom_lazy.cmi              \
                                     \
         eliom_client.cmi            \
         eliom_pervasives.cmi        \
+        eliom_tools.cmi             \
+
 
 NO_MLI := eliom_pervasives_base.cmi
 
@@ -31,4 +33,3 @@ NOP4 := eliom_lib.mli
 DOC := ${subst .cmi,.mli, ${filter-out ${NO_MLI}, ${INTF}}} \
        eliom_types_base.mli \
        eliom_comet_base.mli \
-
