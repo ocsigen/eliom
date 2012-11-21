@@ -7,8 +7,8 @@
 
 <<outline depth="2" >>
 
-Services are entry points to your Web site. In general, services are
-attached to an URL and generate a Web page ; but there is also, for
+Services are entry points to your web site. In general, services are
+attached to an URL and generate a web page ; but there is also, for
 example, services identified by specific GET or POST parameters or
 services representing redirections.
 
@@ -90,7 +90,7 @@ request-- with respect to many criteria:
 * the session the client belongs to (or client side process, or session group),
 * ...
 
-But the user does not usualy need to bother with this. Eliom abstracts
+But the user does not usually need to bother with this. Eliom abstracts
 this mechanism by its three main kind of services. They differ by the
 subset of these criteria used to identified them:
 
@@ -159,8 +159,9 @@ this module.
 The type informations associated to each argument allows Eliom to
 automatically convert the actual parameters into the corresponding
 OCaml types. If the parameter can't be converted, the exception
-<<a_api | exception Eliom_common.Eliom_Typing_Error >> is raised.
-<<wip-inline| See ... on how to handle this exception. >>
+<<a_api | exception Eliom_common.Eliom_Typing_Error >> is raised.  The
+handling of those error may be customized by providing the argument
+{{{~error_handler}} when registering the service.
 
 
 
@@ -254,9 +255,9 @@ Eliom_service.post_service>>.
 
 <<concept
 
-  title="URLs and ergonomics of your Web site"|
+  title="URLs and ergonomics of your web site"|
 
-  While designing a Web site, one of the first things to think about
+  While designing a web site, one of the first things to think about
   are the URLs you want to use.  URLs are the entry points for your
   site. Assume that they will be bookmarked.
 
@@ -268,7 +269,7 @@ Eliom_service.post_service>>.
   careful about the HTTP method you are using.  Use clearly readable
   URLs.
 
-  And be very attentive to the ergonomics of your Web site!  The
+  And be very attentive to the ergonomics of your web site!  The
   different kinds of services offered by Eliom make possible all the
   precise behaviours you need!
 
@@ -368,11 +369,12 @@ Then wherever you want to add a button to do that action (on data
 <<code language="ocaml"|
 
 Html5.D.(post_form remove_action
-          (fun id_name ->
+          (fun id_name -> [
              int_input
                ~input_type:`Hidden ~name:id_name ~value:id ();
              string_input
-               ~input_type:`Submit ~value:("remove "^string_of_int id) ())
+               ~input_type:`Submit ~value:("remove "^string_of_int id) ();
+           ]))
 
 >>
 
@@ -406,7 +408,7 @@ coservices.
 ===External services===
 
 It is possible to define external services, that is, services that
-belong to an external Web site (on the same server or not).  To do
+belong to an external web site (on the same server or not).  To do
 that, use the functions <<a_api| val Eliom_service.external_service
 >> (for using the GET method), or <<a_api| val
 Eliom_service.external_post_service>> (for using the POST method).
@@ -420,7 +422,7 @@ Eliom_content.Html5.D.a
   (Eliom_service.external_service
      ~prefix:"http://en.wikipedia.org/wiki/OCaml"
      ~path:["wiki";""]
-     ~get_params:(suffix (all_suffix "suff"))
+     ~get_params:Eliom_parameter.(suffix (all_suffix "suff"))
      ())
   [pcdata "OCaml on wikipedia"]
   ["OCaml"]
@@ -439,9 +441,8 @@ the path of the file.
 For example, the following code will create this link: [[site:ocsigen10.png|download image]].
 
 <<code language="ocaml"|
-
+let open Eliom_content.Html5.F in
 a (static_dir ()) [pcdata "download image"] ["ocsigen10.png"]
-
 >>
 
 It is also possible to send static files using Eliom, with <<a_api|

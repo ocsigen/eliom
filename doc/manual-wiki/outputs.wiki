@@ -112,20 +112,20 @@ use the <<a_api| module Eliom_registration.File >> module. Example:
 
 <<code language="ocaml"|
 let sendfile =
-  File.register_service
+  Eliom_registration.File.register_service
     ~path:["sendfile"]
-    ~get_params:unit
+    ~get_params:Eliom_parameter.unit
     (fun () () -> return "filename")
 >>
 
 Other example, with "suffix" services (see <<a_manual chapter="params" fragment="suffix"|here>>):
 <<code language="ocaml"|
 let sendfile2 =
-  File.register_service
+  Eliom_registration.File.register_service
     ~path:["files"]
-    ~get_params:(suffix (all_suffix "filename"))
+    ~get_params:Eliom_parameter.(suffix (all_suffix "filename"))
     (fun s () ->
-      return ("//path//"^(Ocsigen_lib.string_of_url_path ~encode:false s)))
+      return ("//path//"^(Ocsigen_lib.Url.string_of_url_path ~encode:false s)))
 >>
 
 The extension <<a_manual chapter="services" fragment="staticparts"|Staticmod>> is another way to
@@ -136,7 +136,7 @@ handle static files.
 ====Sending portions of pages
 
 
- The <<a_api| module Eliom_registration.Flow5 >> and <<a_api| module Eliom_registration.Block >> modules allow you to register services that send portions of pages, of any "block" type for ##Html5.F##.
+ The <<a_api| module Eliom_registration.Flow5 >> modules allow you to register services that send portions of pages, of any "block" type for ##Html5.F##.
  It is sometimes useful to create AJAX pages
  (i.e. pages using the <<span class="code"|XMLHttpRequest>> Javascript object).
  Note that the service returns a list of blocks. For sending HTML
@@ -145,9 +145,9 @@ handle static files.
 
 
 <<code language="ocaml"|let divpage =
-  Eliom_registration.Block.register_service
+  Eliom_registration.Flow5.register_service
     ~path:["div"]
-    ~get_params:unit
+    ~get_params:Eliom_parameter.unit
     (fun () () ->
       Lwt.return
         [div [h2 [pcdata "Hallo"];
@@ -178,7 +178,7 @@ Such services return a GET service without parameter at all.
 Example:
 <<code language="ocaml"|
 let redir1 = Eliom_registration.Redirection.register_service
-    ~options:`Temporary
+    ~options:`TemporaryRedirect
     ~path:["redir"]
     ~get_params:Eliom_parameter.unit
    (fun () () -> Lwt.return coucou)
@@ -191,9 +191,9 @@ Example:
 
 <<code language="ocaml"|
 let redir = Eliom_registration.Redirection.register_service
-   ~options:`Temporary
+   ~options:`TemporaryRedirect
    ~path:["redir"]
-   ~get_params:(int "o")
+   ~get_params:Eliom_parameter.(int "o")
    (fun o () ->
       Lwt.return
         (Eliom_service.preapply coucou_params (o,(22,"ee"))))
@@ -226,27 +226,6 @@ executed.
 Eliom references of scope <<a_api | val Eliom_common.request>> set in
 an action handler are still available in the service handler of the fallback.
 
-<<wip|for Vincent>>
-
-services that do not generate any page.
-Use them to perform an effect on the server (connection/disconnection
-of a user, adding something in a shopping basket, deleting a message in
-a forum, etc.).
-
- By default, the page you link to is displayed after the action.  For
-example, when you have the same form (or link) on several pages (e.g.
-a connection form), instead of making a version with post params of
-all these pages, you can use a single action, registered on a
-<<a_manual chapter="services"|non-attached coservice>>.
-
-See more details and an example in the section about non-attached coservices
-below, or in section * * connection-of-user.
-
-The return type of action handlers is
-<<span class="code"|unit Lwt.t>>.
-We will see <<a_manual chapter="services" fragment="infofallbacks" |later>> how to transmit information
-to the service that will take charge of the generation of the page.\\
-
 A common use of actions and non-attached coservices working together
 is the implementation of login/logout forms.
 An example is given in the chapter about the server-side state
@@ -273,7 +252,7 @@ you want to use. Example:
 let send_any =
   Eliom_registration.Any.register_service
     ~path:["sendany"]
-    ~get_params:(string "type")
+    ~get_params:Eliom_parameter.(string "type")
    (fun s () ->
      if s = "valid"
      then
@@ -285,7 +264,7 @@ let send_any =
                          If you change the parameter in the URL you will
                          get an unchecked text page"]]))
      else
-       Eliom_registration.HtmlText.send
+       Eliom_registration.Html_text.send
          "<html><body><p>It is not a valid page. Put type=\"valid\" in the
           URL to get a typechecked page.</p></body></html>"
    )
@@ -302,7 +281,7 @@ specific option of the output module.
 let change_option =
   Eliom_registration.Any.register_service
     ~path:["change_option"]
-    ~get_params:(unit)
+    ~get_params:Eliom_parameter.(unit)
    (fun () () ->
      Eliom_registration.Html5.send
        ~code:403
@@ -355,7 +334,7 @@ something like that.
 let file_or_application =
   Eliom_registration.Any.register_service
     ~path:["file_or_application"]
-    ~get_params:(string "filename")
+    ~get_params:Eliom_parameter.(string "filename")
    (fun filename () ->
      if Eliom_registration.File.check_file filename
      then
@@ -484,11 +463,11 @@ Below is an example of a page written in a non-cooperative way, that
 has the effect of stopping the entire server for 5 seconds. No one
 will be able to query the server during this period:
 
-<<code class="donotrun" language="ocaml" |open Eliom_content
+<<code class="donotrun" language="ocaml" |open Eliom_content.Html5.D
 let looong =
   Eliom_registration.Html5.register_service
     ~path:["looong"]
-    ~get_params:unit
+    ~get_params:Eliom_parameter.unit
     (fun () () ->
        Unix.sleep 5;
        Lwt.return
@@ -501,13 +480,13 @@ let looong =
 To solve this problem, use a cooperative version of {{{Unix.sleep}}}:
 <<a_api project="lwt" | val Lwt_unix.sleep>>:
 
-<<code language="ocaml"|open Eliom_content
+<<code language="ocaml"|open Eliom_content.Html5.D
 let looong =
   Eliom_registration.Html5.register_service
     ~path:["looong"]
-    ~get_params:unit
+    ~get_params:Eliom_parameter.unit
     (fun () () ->
-       Lwt_unix.sleep 5.0 ~>>= fun () ->
+       lwt () = Lwt_unix.sleep 5.0 in
        Lwt.return
          Html5.D.(html
                    (head (title (pcdata "")) [])
@@ -525,7 +504,7 @@ If you want to use, say, a database library that is not written
     ~path:["looong2"]
     ~get_params:unit
     (fun () () ->
-       Lwt_preemptive.detach Unix.sleep 5 ~>>= fun () ->
+       lwt () = Lwt_preemptive.detach Unix.sleep 5 in
        Lwt.return
          (html
            (head (title (pcdata "")) [])
