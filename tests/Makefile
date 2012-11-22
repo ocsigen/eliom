@@ -5,10 +5,16 @@ include ../Makefile.config
 export OCAMLPATH := ${SRC}/src/files:${OCAMLPATH}
 export PATH := ${SRC}/src/tools:${PATH}
 
-ELIOMC   := eliomc
-ELIOMOPT := eliomopt
+ifeq "${DEBUG}" "YES"
+  DEBUG_OPTION := -g
+else
+  DEBUG_OPTION :=
+endif
+
+ELIOMC   := eliomc ${DEBUG_OPTION}
+ELIOMOPT := eliomopt ${DEBUG_OPTION}
 ELIOMDEP := eliomdep
-JS_OF_ELIOM := js_of_eliom
+JS_OF_ELIOM := js_of_eliom ${DEBUG_OPTION}
 
 ifeq "${NATDYNLINK}" "YES"
 all: byte opt
