@@ -1,32 +1,32 @@
 _server/eliom_testsuite_base.cmo: _server/eliom_testsuite_base.type_mli
 _server/eliom_testsuite_base.cmx: _server/eliom_testsuite_base.type_mli
-_server/eliom_testsuite_base.cmo:
-_server/eliom_testsuite_base.cmx:
-_server/eliom_testsuite1.cmo:
-_server/eliom_testsuite1.cmx:
-_server/eliom_testsuite2.cmo: _server/eliom_testsuite1.cmo
-_server/eliom_testsuite2.cmx: _server/eliom_testsuite1.cmx
+_server/eliom_testsuite_base.cmo _server/:
+_server/eliom_testsuite_base.cmx _server/:
+_server/eliom_testsuite1.cmo _server/:
+_server/eliom_testsuite1.cmx _server/:
+_server/eliom_testsuite2.cmo _server/: _server/eliom_testsuite1.cmo
+_server/eliom_testsuite2.cmx _server/: _server/eliom_testsuite1.cmx
 _server/eliom_testsuite3.cmo: _server/eliom_testsuite3.type_mli
 _server/eliom_testsuite3.cmx: _server/eliom_testsuite3.type_mli
-_server/eliom_testsuite3.cmo: _server/eliom_testsuite_base.cmo _server/eliom_testsuite1.cmo
-_server/eliom_testsuite3.cmx: _server/eliom_testsuite_base.cmx _server/eliom_testsuite1.cmx
+_server/eliom_testsuite3.cmo _server/: _server/eliom_testsuite_base.cmo _server/eliom_testsuite1.cmo
+_server/eliom_testsuite3.cmx _server/: _server/eliom_testsuite_base.cmx _server/eliom_testsuite1.cmx
 _server/eliom_testsuite3.type_mli: _server/eliom_testsuite_base.cmo _server/eliom_testsuite1.cmo
 _server/eliom_testsuite4.cmo: _server/eliom_testsuite4.type_mli
 _server/eliom_testsuite4.cmx: _server/eliom_testsuite4.type_mli
-_server/eliom_testsuite4.cmo: _server/eliom_testsuite_base.cmo
-_server/eliom_testsuite4.cmx: _server/eliom_testsuite_base.cmx
+_server/eliom_testsuite4.cmo _server/: _server/eliom_testsuite_base.cmo
+_server/eliom_testsuite4.cmx _server/: _server/eliom_testsuite_base.cmx
 _server/eliom_testsuite4.type_mli: _server/eliom_testsuite_base.cmo
-_server/eliom_testsuite.cmo: _server/eliom_testsuite2.cmo _server/eliom_testsuite1.cmo
-_server/eliom_testsuite.cmx: _server/eliom_testsuite2.cmx _server/eliom_testsuite1.cmx
+_server/eliom_testsuite.cmo _server/: _server/eliom_testsuite2.cmo _server/eliom_testsuite1.cmo
+_server/eliom_testsuite.cmx _server/: _server/eliom_testsuite2.cmx _server/eliom_testsuite1.cmx
 _client/eliom_testsuite_base.cmo: _server/eliom_testsuite_base.type_mli
 _client/eliom_testsuite_base.cmx: _server/eliom_testsuite_base.type_mli
-_client/eliom_testsuite_base.cmo:
-_client/eliom_testsuite_base.cmx:
+_client/eliom_testsuite_base.cmo _client/:
+_client/eliom_testsuite_base.cmx _client/:
 _client/eliom_testsuite3.cmo: _server/eliom_testsuite3.type_mli
 _client/eliom_testsuite3.cmx: _server/eliom_testsuite3.type_mli
-_client/eliom_testsuite3.cmo:
-_client/eliom_testsuite3.cmx:
+_client/eliom_testsuite3.cmo _client/:
+_client/eliom_testsuite3.cmx _client/:
 _client/eliom_testsuite4.cmo: _server/eliom_testsuite4.type_mli
 _client/eliom_testsuite4.cmx: _server/eliom_testsuite4.type_mli
-_client/eliom_testsuite4.cmo: _client/eliom_testsuite_base.cmo
-_client/eliom_testsuite4.cmx: _client/eliom_testsuite_base.cmx
+_client/eliom_testsuite4.cmo _client/: _client/eliom_testsuite_base.cmo
+_client/eliom_testsuite4.cmx _client/: _client/eliom_testsuite_base.cmx

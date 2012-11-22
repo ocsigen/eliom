@@ -5,6 +5,14 @@
   open Eliom_lib
 }}
 
+{client{
+  let () =
+    if Js.to_string Dom_html.window##location##hash = "#__trace" then
+      Eliom_config.set_tracing true;
+    if Js.to_string Dom_html.window##location##hash = "#__timings" then
+      Eliom_config.debug_timings := true
+}}
+
 module My_appl =
   Eliom_registration.App (
     struct
@@ -43,14 +51,28 @@ let test ~path ~title:ttl ~description f =
            ~get_params:Eliom_parameter.unit
            (fun () () ->
               lwt content = f () in
+              let toggle_tracing = {{
+                fun _ ->
+                  Eliom_config.set_tracing (not (Eliom_config.get_tracing ()));
+                  alert "%s tracing"
+                    (if Eliom_config.get_tracing ()
+                     then "Enabled" else "Disabled")
+              }}
+              in
               Lwt.return
                 Html5.F.(html
                            (Eliom_tools.F.head
                               ~title:(String.concat "/" path)
                               ~css:[["style.css"]] ())
                            (body
-                              (p [a ~xhr:false ~service:main [pcdata "Home and break app"] ()] ::
-                               p [a ~service:Eliom_service.void_coservice' [pcdata "Reload in running app"] ()] ::
+                              (div [
+                                a ~xhr:false ~service:main [pcdata "Home and break app"] () ;
+                                pcdata " - " ;
+                                a ~service:Eliom_service.void_coservice' [pcdata "Reload in running app"] () ;
+                                pcdata " - " ;
+                                Raw.a ~a:[a_onclick toggle_tracing]
+                                  [pcdata "Toggle tracing (or append #__trace to the URL)"] ;
+                               ] ::
                                h1 ~a:[a_class ["test_title"]] [pcdata ttl] ::
                                div ~a:[a_class ["test_description"]] description ::
                                hr () ::
