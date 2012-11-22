@@ -1,6 +1,8 @@
-eliomc.cmo: utils.cmo
-eliomc.cmx: utils.cmx
-eliomdep.cmo: utils.cmo
-eliomdep.cmx: utils.cmx
-utils.cmo:
-utils.cmx:
+eliom.cmo :
+eliom.cmx :
+eliomc.cmo : utils.cmo
+eliomc.cmx : utils.cmx
+eliomdep.cmo : utils.cmo
+eliomdep.cmx : utils.cmx
+utils.cmo :
+utils.cmx :

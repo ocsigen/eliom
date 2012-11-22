@@ -21,6 +21,7 @@ let usage () =
 let do_dump = ref false
 
 let add_build_dir s =
+  if s = ":" then s else
   match !build_dir with
   | "" -> s
   | d -> d ^ "/" ^ s
@@ -35,7 +36,7 @@ let rec filter_dir ch =
 let rec filter_type ch =
   match split ':' (input_line ch) with
   | [ file; deps ] ->
-      Printf.printf "%s: %s\n" (get_type_file file) (add_build_dirs deps);
+      Printf.printf "%s : %s\n" (get_type_file file) (add_build_dirs deps);
       filter_type_bis ch
   | _ -> ()
 and filter_type_bis ch =
@@ -95,8 +96,8 @@ let compile_client_eliom ~mode file =
 let compile_eliom ~mode file =
   let basename = chop_extension_if_any file in
   if mode = `Impl then
-    (Printf.printf "%s.cmo: %s\n" (add_build_dir basename) (get_type_file file);
-     Printf.printf "%s.cmx: %s\n" (add_build_dir basename) (get_type_file file));
+    (Printf.printf "%s.cmo : %s\n" (add_build_dir basename) (get_type_file file);
+     Printf.printf "%s.cmx : %s\n" (add_build_dir basename) (get_type_file file));
   match !kind with
   | `Server -> compile_server_eliom ~mode file
   | `Client -> compile_client_eliom ~mode file
