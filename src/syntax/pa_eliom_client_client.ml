@@ -233,7 +233,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
             (Eliom_client.Syntax_helpers.get_injection $str:gen_id$ : $typ$)
           >>
 
-  let implem sil = sil
+  let implem _ sil = sil
 
   let shared_sig_items _ items = Ast.sgSem_of_list items
   let server_sig_items _ items = Ast.sgSem_of_list []

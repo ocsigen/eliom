@@ -134,7 +134,7 @@ module type Pass = functor (Helpers: Helpers) -> sig
   (** How to handle escaped "%ident" inside "{{ ... }}". *)
   val escape_inject: escape_inject -> Ast.expr -> string -> Ast.expr
 
-  val implem : Ast.str_item list -> Ast.str_item list
+  val implem : Ast.Loc.t -> Ast.str_item list -> Ast.str_item list
 
 end
 
@@ -724,7 +724,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                let _loc = Loc.ghost in
                <:str_item< open Eliom_pervasives >>
              in
-             (open_pervasives :: Pass.implem (si :: sil), stopped)
+             (open_pervasives :: Pass.implem _loc (si :: sil), stopped)
          | `EOI -> ([], None)
         ]];
 

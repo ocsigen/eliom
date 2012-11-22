@@ -118,7 +118,7 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           let _loc = Ast.loc_of_expr orig_expr in
           <:expr< >>
 
-  let implem sil = sil
+  let implem _ sil = sil
 
   let shared_sig_items _ _ = failwith "Pa_eliom_type_filter.shared_sig_items"
   let server_sig_items _ _ = failwith "Pa_eliom_type_filter.server_sig_items"
