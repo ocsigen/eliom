@@ -184,9 +184,25 @@ let do_request_data request_data =
      only eliom files. *)
   String_map.iter
     (fun _ { server_sections_data; client_sections_data } ->
-       Queue.iter (fun data -> assert (data = []))
+       Queue.iter
+         (function
+           | [] -> ()
+           | data ->
+             Printf.ksprintf (fun s -> Firebug.console##error(Js.string s))
+               "Code generating the following client values is not linked on the client: %s"
+               (String.concat ","
+                  (List.map
+                     (fun d -> Printf.sprintf "%Ld/%d" d.closure_id d.instance_id)
+                     data)))
          server_sections_data;
-       Queue.iter (fun data -> assert (data = []))
+       Queue.iter
+         (function
+           | [] -> ()
+           | data ->
+             Printf.ksprintf (fun s -> Firebug.console##error(Js.string s))
+               "Code containing the following injections is not linked on the client: %s"
+               (String.concat ","
+                  (List.map (fun d -> d.Eliom_lib_base.injection_id) data)))
          client_sections_data)
     !global_data;
   List.iter Client_value.initialize request_data
