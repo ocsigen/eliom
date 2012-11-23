@@ -135,12 +135,108 @@ r
 let xhtmlDiv b = Xml.node ~a:[(Xml.string_attrib "xmlns"
       "http://www.w3.org/1999/xhtml")] "div" (Xhtml.M.toeltl b)
 
+let html5Div content =
+  let content = Eliom_content.Html5.F.toeltl content in
+  let module Eliom_xml = Xml_iter.Make(Eliom_content_core.Xml) in
+  let content =
+    let f ename attibs =
+      let map_attibs f =
+        List.map
+          (fun x ->
+            let aname = Eliom_content_core.Xml.aname x in
+            let acontent = Eliom_content_core.Xml.acontent x in
+            f aname acontent
+          )
+          attibs
+      in
+      let reconstruct_attibs aname = function
+        | Eliom_content_core.Xml.AFloat x -> Xml.float_attrib aname x
+        | Eliom_content_core.Xml.AInt x -> Xml.int_attrib aname x
+        | Eliom_content_core.Xml.AStr x -> Xml.string_attrib aname x
+        | Eliom_content_core.Xml.AStrL (sep, x) -> match sep with
+            | Eliom_content_core.Xml.Space -> Xml.space_sep_attrib aname x
+            | Eliom_content_core.Xml.Comma -> Xml.comma_sep_attrib aname x
+      in
+      let reconstruct_url aname = function
+        | Eliom_content_core.Xml.AStr url ->
+            let url =
+              try
+                let neturl =
+                  let base_syntax =
+                    {Neturl.ip_url_syntax
+                     with Neturl.url_enable_relative = true;
+                    }
+                  in
+                  Neturl.parse_url ~base_syntax url
+                in
+                let base =
+                  let base =
+                    Eliom_request_info.get_original_full_path_string
+                      ()
+                  in
+                  let base =
+                    Eliom_lib.Url.remove_end_slash base
+                  in
+                  Neturl.parse_url (base ^ "/")
+                in
+                Neturl.string_of_url
+                  (Neturl.ensure_absolute_url ~base neturl)
+              with Neturl.Malformed_URL -> url
+            in
+            Xml.string_attrib aname url
+        | acontent -> reconstruct_attibs aname acontent
+      in
+      match ename with
+        | "a" ->
+            map_attibs
+              (fun aname acontent -> match aname with
+                | "href" -> reconstruct_url aname acontent
+                | _ -> reconstruct_attibs aname acontent
+              )
+        | "img" ->
+            map_attibs
+              (fun aname acontent -> match aname with
+                | "src" -> reconstruct_url aname acontent
+                | _ -> reconstruct_attibs aname acontent
+              )
+        | _ -> map_attibs reconstruct_attibs
+    in
+    let leaf ename attibs =
+      let attibs = f ename attibs in
+      Xml.leaf ~a:attibs ename
+    in
+    let node ename attibs elts =
+      let attibs = f ename attibs in
+      Xml.node ~a:attibs ename elts
+    in
+    List.map
+      (Eliom_xml.fold
+         Xml.empty
+         Xml.comment
+         Xml.encodedpcdata
+         Xml.pcdata
+         Xml.entity
+         leaf
+         node
+      )
+      content
+  in
+  Xml.node "div" content
+
 let inlineC ?(meta = []) ?(html = false) c = `Content (Xml.node ~a:(a_type (if
             html then "html" else "text") :: metaAttr_extract meta) "content"
       (c_pcdata c))
 
 let xhtmlC ?(meta = []) c = `Content (Xml.node ~a:(a_type "xhtml" ::
          metaAttr_extract meta) "content" [xhtmlDiv c])
+
+let html5C ?(meta = []) c =
+  `Content
+    (Xml.node
+       ~a:(a_type "html" :: metaAttr_extract meta)
+       "content"
+       [html5Div c]
+    )
 
 let inlineOtherC ?(meta = []) (a,b) = `Content (Xml.node ~a:(a_medtype a ::
          metaAttr_extract meta) "content" b)
@@ -220,6 +316,11 @@ let plain ?(meta = []) ?(html = false) content = (Xml.string_attrib "type"
 
 let xhtml ?(meta = []) content = (Xml.string_attrib "type" "xhtml" ::
       metaAttr_extract meta, [xhtmlDiv content])
+
+let html5 ?(meta = []) content =
+  (Xml.string_attrib "type" "html" :: metaAttr_extract meta,
+   [html5Div content]
+  )
 
 let rights t = `Rights t
 

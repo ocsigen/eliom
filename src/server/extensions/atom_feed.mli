@@ -146,6 +146,11 @@ val xhtmlC : ?meta:[> metaAttr ] list
    -> ([ `PCDATA | Xhtml_types.flow ] Xhtml.M.elt list)
    -> [> `Content of content ]
 
+(** An html5 content, embedded in a div *)
+val html5C : ?meta:[> metaAttr ] list
+   -> ([ Html5_types.flow5 ] Eliom_content.Html5.elt list)
+   -> [> `Content of content ]
+
 (** Inline content from another kind *)
 val inlineOtherC : ?meta:[> metaAttr ] list
    -> string * Xml.elt list
@@ -165,6 +170,11 @@ val plain : ?meta:[> metaAttr ] list
 (** XHTML text construct *)
 val xhtml : ?meta:[> metaAttr ] list
    -> [ `PCDATA | Xhtml_types.flow ] Xhtml.M.elt list
+   -> textConstruct
+
+(** HTML5 text construct *)
+val html5 : ?meta:[> metaAttr ] list
+   -> [ Html5_types.flow5 ] Eliom_content.Html5.elt list
    -> textConstruct
 
 (** Rights tag *)
