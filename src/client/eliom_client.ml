@@ -729,6 +729,7 @@ let relink_closure_node root onload table (node:Dom_html.element Js.t) =
   Eliommod_dom.iter_nodeList (node##attributes:>Dom.attr Dom.nodeList Js.t) aux
 
 let relink_closure_nodes (root : Dom_html.element Js.t) event_handlers closure_nodeList =
+  trace "Relink %i closure nodes" (closure_nodeList##length);
   let onload = ref [] in
   Eliommod_dom.iter_nodeList closure_nodeList
     (fun node -> relink_closure_node root onload event_handlers node);

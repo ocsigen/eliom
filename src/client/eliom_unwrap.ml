@@ -154,7 +154,7 @@ let late_unwrap_value unwrap_id predicate new_value =
   in
   if Eliom_config.get_tracing () then
     Firebug.console##log
-      (Printf.ksprintf Js.string ">> set_late_unwrap unwrapper:%d for %d cases"
+      (Printf.ksprintf Js.string ">> late_unwrap_value unwrapper:%d for %d cases"
          unwrap_id (List.length current_occurrences));
   List.iter
     (fun { occurrences } ->
