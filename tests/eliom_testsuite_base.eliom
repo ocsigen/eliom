@@ -70,7 +70,7 @@ let test ~path ~title:ttl ~description f =
                                 pcdata " - " ;
                                 a ~service:Eliom_service.void_coservice' [pcdata "Reload in running app"] () ;
                                 pcdata " - " ;
-                                Raw.a ~a:[a_onclick toggle_tracing]
+                                Raw.a ~a:[a_id "toggle"; a_onclick toggle_tracing]
                                   [pcdata "Toggle tracing (or append #__trace to the URL)"] ;
                                ] ::
                                h1 ~a:[a_class ["test_title"]] [pcdata ttl] ::
