@@ -103,7 +103,18 @@ let fast_select_nodes root =
   a_nodeList, form_nodeList, process_node_nodeList, closure_nodeList
 
 let slow_has_classes (node:Dom_html.element Js.t) =
-  let classes = Js.str_array (node##className##split(Js.string " ")) in
+  let classes =
+    (* IE<9: className is not set after change_page; getAttribute("class")
+       does not work for the initial document *)
+    let str =
+      if node##className = Js.string "" then
+        Js.Opt.get (node##getAttribute(Js.string "class"))
+          (fun () -> Js.string "")
+      else
+        node##className
+    in
+    Js.str_array str##split(Js.string " ")
+  in
   let found_call_service = ref false in
   let found_process_node = ref false in
   let found_closure = ref false in
@@ -298,6 +309,9 @@ let copy_element (e:Dom.element Js.t)
     (registered_process_node:(Js.js_string Js.t -> bool)): Dom_html.element Js.t =
   let rec aux (e:Dom.element Js.t) =
     let copy = Dom_html.document##createElement(e##tagName) in
+    (* IE<9: Copy className seperatly, it's not updated when displayed *)
+    Js.Opt.iter (Dom_html.CoerceTo.element e)
+      (fun e -> copy##className <- e##className);
     let node_id = Js.Opt.to_option
       (e##getAttribute(Js.string Eliom_lib_base.RawXML.node_id_attrib)) in
     match node_id with
@@ -423,7 +437,7 @@ exception Incorrect_url
 let parse_absolute ~prefix href =
   match Regexp.search absolute_re href 0 with
   | Some (i, _) when i=0 -> (* absolute URL -> do not rewrite *) href
-  | _ -> 
+  | _ ->
     match Regexp.search absolute_re2 href 0 with
       | Some (i, res) when i = 0 ->
         (match Regexp.matched_group res 1 with
