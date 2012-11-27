@@ -559,26 +559,33 @@ let max_preload_depth = ref 4
 
 let build_style (e, css) =
   lwt css = rewrite_css ~max:!max_preload_depth css in
-  lwt css =
+  (* lwt css = *)
     Lwt_list.map_p
       (fun (media, css) ->
-         let style = Dom_html.createStyle Dom_html.document in
-         style##_type <- Js.string "text/css";
-         style##media <- media;
-         style##innerHTML <- Js.string css;
-         Lwt.return (style :> Dom.node Js.t))
-      css in
-  (* Noscript is used to group style. It's ignored by the parser when
-     scripting is enabled, but does not seems to be ignore when
-     inserted as a DOM element. *)
-  let node = Dom_html.createNoscript Dom_html.document in
-  List.iter (Dom.appendChild node) css;
-  Lwt.return (e, node)
+        let style = Dom_html.createStyle Dom_html.document in
+        style##_type <- Js.string "text/css";
+        style##media <- media;
+        (* IE8: Assigning to style##innerHTML results in "Unknown runtime error" *)
+        let styleSheet = Js.Unsafe.(get style (Js.string "styleSheet")) in
+        if styleSheet != Js.undefined then
+          Js.Unsafe.(set styleSheet (Js.string "cssText") (Js.string css))
+        else
+          style##innerHTML <- Js.string css;
+        Lwt.return (e, (style :> Dom.node Js.t)))
+      css
+  (* IE8 doesn't allow appendChild on noscript-elements *)
+  (* (\* Noscript is used to group style. It's ignored by the parser when *)
+  (*    scripting is enabled, but does not seems to be ignore when *)
+  (*    inserted as a DOM element. *\) *)
+  (* let node = Dom_html.createNoscript Dom_html.document in *)
+  (* List.iteri (fun i x -> debug "HOC 3.%i" i; Dom.appendChild node x) css; *)
+  (* Lwt.return (e, node )*)
 
 let preload_css (doc : Dom_html.element Js.t) =
   if !Eliom_config.debug_timings then
     Firebug.console##time(Js.string "preload_css (fetch+rewrite)");
   lwt css = Lwt_list.map_p build_style (fetch_linked_css (get_head doc)) in
+  let css = List.concat css in
   List.iter (fun (e, css) ->
                try Dom.replaceChild (get_head doc) css e
                with _ ->
