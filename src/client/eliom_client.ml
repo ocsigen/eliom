@@ -720,21 +720,23 @@ let relink_page_but_closure_nodes (root:Dom_html.element Js.t) =
 let relink_closure_node root onload table (node:Dom_html.element Js.t) =
   trace "Relink closure node";
   let aux attr =
-    if attr##value##substring(0,Eliom_lib_base.RawXML.closure_attr_prefix_len) =
-      Js.string Eliom_lib_base.RawXML.closure_attr_prefix
-    then
-      let cid = Js.to_bytestring (attr##value##substring_toEnd(
-        Eliom_lib_base.RawXML.closure_attr_prefix_len)) in
-      try
-        let cv = Xml.ClosureMap.find cid table in
-        let closure = raw_event_handler cv in
-        if attr##name = Js.string "onload" then
-          (if Eliommod_dom.ancessor root node
-           (* if not inside a unique node replaced by an older one *)
-           then onload := closure :: !onload)
-        else Js.Unsafe.set node (attr##name) (Dom_html.handler (fun ev -> Js.bool (closure ev)))
-      with Not_found ->
-        error "relink_closure_node: client value %s not found" cid
+    (* IE8 provides [null] in node##attributes; check this first of all *)
+    if Obj.magic attr then
+      ( if attr##value##substring(0,Eliom_lib_base.RawXML.closure_attr_prefix_len) =
+          Js.string Eliom_lib_base.RawXML.closure_attr_prefix
+        then
+          let cid = Js.to_bytestring (attr##value##substring_toEnd(
+            Eliom_lib_base.RawXML.closure_attr_prefix_len)) in
+          try
+            let cv = Xml.ClosureMap.find cid table in
+            let closure = raw_event_handler cv in
+            if attr##name = Js.string "onload" then
+              (if Eliommod_dom.ancessor root node
+               (* if not inside a unique node replaced by an older one *)
+               then onload := closure :: !onload)
+            else Js.Unsafe.set node (attr##name) (Dom_html.handler (fun ev -> Js.bool (closure ev)))
+          with Not_found ->
+            error "relink_closure_node: client value %s not found" cid )
   in
   Eliommod_dom.iter_nodeList (node##attributes:>Dom.attr Dom.nodeList Js.t) aux
 
