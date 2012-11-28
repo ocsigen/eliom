@@ -41,8 +41,21 @@ CLIENT_FILES := eliom_testsuite_base.eliom \
 STATICDIR := ../local/var/www/tests
 TYPE_DIR =
 
-byte:: _server/eliom_testsuite_global.cmo _server/eliom_testsuite_site.cmo eliom_testsuite.cma ${STATICDIR}/eliom_testsuite.js
-opt:: _server/eliom_testsuite_global.cmx _server/eliom_testsuite_site.cmx eliom_testsuite.cmxs ${STATICDIR}/eliom_testsuite.js
+DESTILLERY_FILES := $(addprefix $(STATICDIR)/destillery/basic/,test.cma test.cmxa test.js)
+
+byte:: _server/eliom_testsuite_global.cmo _server/eliom_testsuite_site.cmo eliom_testsuite.cma ${STATICDIR}/eliom_testsuite.js $(STATICDIR)/destillery/basic/
+opt:: _server/eliom_testsuite_global.cmx _server/eliom_testsuite_site.cmx eliom_testsuite.cmxs ${STATICDIR}/eliom_testsuite.js $(STATICDIR)/destillery/basic/
+
+#### Destillery ####
+
+$(STATICDIR)/destillery/basic/: destillery/basic
+	make -C destillery/basic all
+	mkdir -p $@
+	cp destillery/basic/test.js destillery/basic/test.cma destillery/basic/test.cmxs $@
+
+destillery/basic:
+	mkdir -p $@
+	eliom-destillery -name test -destination $@
 
 #### Server side #######
 
@@ -110,13 +123,13 @@ miniwiki.opt:
 ## Clean up
 
 clean: clean.local
-	${MAKE} -C clean
 	${MAKE} -C miniwiki clean
 clean.local:
 	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot
 	-rm -f ${or ${TYPE_DIR},_server}/*.type_mli
 	-rm -f ${STATICDIR}/eliom_testsuite.js
 	-rm -rf _client/* _server/*
+	-rm -rf destillery
 
 distclean: clean.local
 	-rm -f *~ \#* .\#*

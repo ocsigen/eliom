@@ -69,9 +69,15 @@
       <!-- Eliom Tutorial -->
       <static dir="_STATICPAGESDIR_/tests" />
 
+      <site path="destillery/basic">
+        <static dir="_STATICPAGESDIR_/tests/destillery/basic" />
+        <eliommodule findlib-package="eliom_tests.destillery.basic" />
+        <eliom />
+      </site>
+
       <site path="">
-        <eliom findlib-package="eliom_tests.testsuite_site" />
-        <eliom findlib-package="eliom_tests.testsuite">
+        <eliommodule findlib-package="eliom_tests.testsuite_site" />
+        <eliommodule findlib-package="eliom_tests.testsuite">
           <optional-elt obligatory-attr="a">
             <inner-obligatory-elt>
               guga
@@ -80,7 +86,8 @@
           <obligatory-elt obligatory-attr="xyz" optional-attr="zzz" other-attribute="other">
             <other-element/>
           </obligatory-elt>
-        </eliom>
+        </eliommodule>
+        <eliom/>
       </site>
 
     </host>
