@@ -11,6 +11,7 @@ The server-side state of an application refers to data stored on
 server side that could be shared by all clients, or that could be
 specific to a limited //scope// such as:
 
+* the site
 * a session,
 * a group of sessions (for example all sessions of the same user),
 * a client-side process (when programming an Eliom app), or
@@ -117,7 +118,7 @@ session, and sessions belong to a group of sessions.
 
 Data and dynamic services with a user scope can be discarded
 explicitely or by timeout. See sections <<a_manual chapter="state"
-fragment="closing_session"|Closing session>> and <<a_manual
+fragment="closing_sessions"|Closing session>> and <<a_manual
 chapter="state" fragment="timeouts"|Timeouts and session duration>>
 for more information.
 
@@ -177,7 +178,7 @@ two scope hierarchies with the same name.
 
 ===@@id="closing_sessions"@@ Closing sessions (and other states) ===
 
-To discard a state, use the <<a_api | val Eliom_states.discard >>
+To discard a state, use the <<a_api | val Eliom_state.discard >>
 function. It will remove all server-side services and data (persistent
 or not) for the given scope. Used with
 {{{~scope:Eliom_common.default_session_scope}}}, this will close a session. Used
@@ -191,7 +192,7 @@ as you are desynchronizing the three kinds of sessions.
 
 <<wip|
 
-  The behaviour of <<a_api | val Eliom_states.discard >> on a session
+  The behaviour of <<a_api | val Eliom_state.discard >> on a session
   group is subject to discussion and may evolve in future version.
 
 >>
@@ -224,9 +225,9 @@ There is also a possibility to change the default value for Eliom in
 the configuration file like this:
 
 <<code language="ocaml"|
-    <extension findlib-package="ocsigenserver.ext.eliom">
-      <volatiletimeout value="7200"/>
-    </extension>
+<extension findlib-package="ocsigenserver.ext.eliom">
+  <volatiletimeout value="7200"/>
+</extension>
 >>
 
 In the configuration files the value {{{"infinity"}}} means no
@@ -235,11 +236,10 @@ timeout.
 <<div style="font-style: italic"|
 
   That default may be overriden by each site using <<a_api| val
-  Eliom_state.set_global_volatile_timeout >> or <<a_api| val
-  Eliom_state.set_default_volatile_timeout >>.  If you want your user
+  Eliom_state.set_global_volatile_state_timeout >> or <<a_api| val
+  Eliom_state.set_default_volatile_state_timeout >>.  If you want your user
   to be able to set the default in the configuration file for your
-  site (between <<span class="code"|<site>>> and <<span
-  class="code"|</site>>>), you must parse the configuration (using
+  site (between {{{<site>}}} and {{{</site>}}}), you must parse the configuration (using
   <<a_api| val Eliom_config.get_config >> function).  You can also
   change the timeout for a specific user only with the following
   functions: <<a_api | val Eliom_state.set_volatile_data_state_timeout
@@ -339,13 +339,13 @@ See section <<a_manual chapter="state" fragment="closing_sessions"
 
 
 
-== Eliom references ==
+==@@id="eref"@@ Eliom references ==
 
 === Principles ===
 
 //Eliom references// (//erefs//) are some kind of references with
 a (possibly) limited <<a_manual chapter="state"
-fragment="scope"|scope>>. You declare a reference with an initial
+fragment="scopes"|scope>>. You declare a reference with an initial
 value and a scope. Then, when you change the associated value, it
 actually changes only for the scope you specified.
 
@@ -374,36 +374,10 @@ time the reference is accessed (through <<a_api | val Eliom_reference.get>>),
 within one scope or after the reference has been reset.
 
 The <<a_api | module Eliom_reference >> module also defines functions to
-<<a_api text="get the value"| val Eliom_reference.set >>, <<a_api
-text="set the value"| val Eliom_reference.set>>, <<a_api text="modify the value"
-| val Eliom_reference.modify>> (by applying a function to its content), and <<a_api
-text="turn back to the default value"| val Eliom_reference.unset >>:
-
-<<code language="ocaml"|
-
-type 'a eref
-
-val eref :
-  scope:[< Eliom_common.all_scope ] ->
-  ?secure:bool ->
-  ?persistent:string ->
-  'a -> 'a eref
-
-val eref_from_fun :
-  scope:[< Eliom_common.all_scope ] ->
-  ?secure:bool ->
-  ?persistent:string ->
-  (unit -> 'a) -> 'a eref
-
-val get : 'a eref -> 'a Lwt.t
-
-val set : 'a eref -> 'a -> unit Lwt.t
-
-val modify : 'a eref -> ('a -> 'a) -> unit Lwt.t
-
-val unset : 'a eref -> unit Lwt.t
-
->>
+<<a_api text="get"| val Eliom_reference.get >> the value, <<a_api
+text="set"| val Eliom_reference.set>>, <<a_api text="modify"
+| val Eliom_reference.modify>> it (by applying a function to its content), and <<a_api
+text="unset"| val Eliom_reference.unset >> it, this is reset to the initial value.
 
 ===@@id="persistent_eref"@@ Persistent references ===
 
@@ -469,6 +443,6 @@ piece of data and send it back to the server with each request.
 
 This is implemented using the usual browser cookies for sessions ---~ and
 a simulation of browser cookies by Eliom client side processes~ --- with
-the functions <<a_api | val Eliom_State.set_cookie >> and <<a_api |
-val Eliom_State.get_cookie >>.
+the functions <<a_api | val Eliom_state.set_cookie >> and <<a_api |
+val Eliom_state.get_cookie >>.
 

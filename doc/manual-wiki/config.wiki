@@ -8,9 +8,21 @@ options in the configuration file, and how to define options for your
 Eliom modules. See the Ocsigen server documentation for more information about the
 <<a_manual project="ocsigenserver" chapter="config" |server's configuration>>.
 
-==@@id="misc"@@Using Eliom modules with Ocsigen server==
+==@@id="destillery"@@Eliom's destillery==
 
-===Basics: compiling and running server side applications
+Actually, the easiest way to create, compile, and run a simple project
+in Ocsigen/Eliom is to use Eliom's [[/destillery|destillery]]. The
+step are then just
+
+{{{
+$ make all       # compile
+$ make run.local # test without installing
+$ make install   # install
+$ make run       # run the installed project
+$ make depend    # necessary after changing the project's files
+}}}
+
+==@@id="misc"@@Using Eliom modules with Ocsigen server==
 
 ====Compiling Eliom modules
 

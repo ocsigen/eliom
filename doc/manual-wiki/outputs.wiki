@@ -223,7 +223,7 @@ fallback of a service. When an action is called, the service handler is
 executed, then the service handler of the fallback service is
 executed.
 
-Eliom references of scope <<a_api | val Eliom_common.request>> set in
+Eliom references of scope <<a_api | val Eliom_common.request_scope>> set in
 an action handler are still available in the service handler of the fallback.
 
 A common use of actions and non-attached coservices working together
@@ -379,7 +379,7 @@ struct
   type page = user_informations -> Eliom_registration.Html5.page Lwt.t
   let translate page =
     match Eliom_state.get_volatile_data_session_group
-      ~scope:Eliom_common.session () with
+      ~scope:Eliom_common.default_session_scope () with
 	| None -> login_page ()
 	| Some group_name ->
 	  lwt user_info = get_user_info group_name in
@@ -565,7 +565,7 @@ the service generating the page. For instance if you want to display a
 "wrong password" message after an aborted connection.  To transmit
 that kind of information, use eliom references (see module <<a_api |
 module Eliom_reference>>) created using scope <<a_api |
-val Eliom_common.request>>, the value will be available to the service
+val Eliom_common.request_scope>>, the value will be available to the service
 generating the page.
 
 Other examples: if you create user accounts using actions. if the

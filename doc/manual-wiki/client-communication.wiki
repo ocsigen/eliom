@@ -182,7 +182,7 @@ for data on it.
 Like services, channels have a scope (only site or client process).
 The constraints vary with respect to the scope you choose:
 
-* Channels created with scope <<a_api | val Eliom_common.site >> or
+* Channels created with scope <<a_api | val Eliom_common.site_scope >> or
 using <<a_api | val Eliom_comet.Channels.create_newest >>
 are stateless channels: the memory consumption does not depend on
 the number of users requesting data on it. When the channels are not
@@ -190,7 +190,7 @@ reachable from the server code, they are garbage collected and closed.
 Named stateless channels can be accessed from
 <<a_manual chapter="client" fragment="cors_channels"|other servers>>.
 
-* Channels created with scope <<a_api | val Eliom_common.client_process >>
+* Channels created with scope <<a_api | val Eliom_common.default_process_scope >>
 must be created inside a service handler. They
 are assigned to a particular client process. Different channels
 created with the same stream do not share memory. They are closed

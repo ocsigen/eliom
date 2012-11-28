@@ -175,7 +175,7 @@ sessions.
 To limit the scope of a service, just add the argument {{{~scope}}} to
 the <<a_api | val Eliom_registration.Html5.register>> function (or other
 {{{register}}} variants: <<a_api | val Eliom_registration.Xhtml.register>>,
-...). The default scope is <<a_api | val Eliom_common.site>>.
+...). The default scope is <<a_api | val Eliom_common.site_scope>>.
 
 The same service can be registered with several scopes.  This makes it
 possible, for example, to generate custom services for a specific

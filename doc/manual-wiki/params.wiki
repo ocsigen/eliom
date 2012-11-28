@@ -141,7 +141,7 @@ let constfix =
                      p [pcdata ("Parameters are "^s1^" and "^s2)]])))
 >>
 
-See [[http://tests.ocsigen.org/constfix/aa/toto/bb]]. >>
+See [[http://tests.ocsigen.org/constfix/aa/toto/bb]].
 
 ===Custom parameter types
 
