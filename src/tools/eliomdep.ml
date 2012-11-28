@@ -20,6 +20,12 @@ let usage () =
 
 let do_dump = ref false
 
+let mode : [`Normal | `Sort] ref = ref `Normal
+let sort_files = ref []
+
+let do_sort () =
+  !mode = `Sort
+
 let add_build_dir s =
   if s = ":" then s else
   match !build_dir with
@@ -39,6 +45,7 @@ let rec filter_type ch =
       Printf.printf "%s : %s\n" (get_type_file file) (add_build_dirs deps);
       filter_type_bis ch
   | _ -> ()
+
 and filter_type_bis ch =
   let line = input_line ch in
   try ignore (String.index line ':')
@@ -65,49 +72,59 @@ let compile_impl file =
 
 let eliom_synonyms = [ "-ml-synonym"; ".eliom"; "-mli-synonym"; ".eliomi" ]
 
-let compile_server_eliom ~mode file =
-  let opt = ["pa_eliom_client_server.cmo"; "-notype"] @ !ppopt @ [impl_intf_opt mode] in
+let server_pp_opt impl_intf =
+  ["pa_eliom_client_server.cmo"; "-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
+let client_pp_opt impl_intf =
+  ["pa_eliom_client_client.cmo"; "-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
+
+let compile_server_eliom ~impl_intf file =
   if !do_dump then begin
-    let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: opt @ [file]) in
+    let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: server_pp_opt impl_intf @ [file]) in
     ignore (create_process camlp4 ppopt);
     exit 0
   end;
-  create_filter
-    !compiler ( "-pp" :: get_pp opt :: eliom_synonyms @ !args
-		@ [impl_intf_opt mode; file] )
-    filter_dir;
-  if mode = `Impl then
-    let opt = ["pa_eliom_type_filter.cmo"] @ !ppopt @ [impl_intf_opt mode] in
-    create_filter
-      !compiler ( "-pp" :: get_pp opt :: eliom_synonyms @ !args
-		  @ ["-impl"; file] )
-      filter_type
+  create_filter !compiler
+    ( "-pp" :: get_pp (server_pp_opt impl_intf) :: eliom_synonyms @ !args
+      @ [impl_intf_opt impl_intf; file] )
+    filter_dir
 
-let compile_client_eliom ~mode file =
-  let ppopt = ["pa_eliom_client_client.cmo"; "-notype"] @ !ppopt @ [impl_intf_opt mode] in
+let compile_client_eliom ~impl_intf file =
   if !do_dump then begin
-    let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopt @ [file]) in
+    let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: client_pp_opt impl_intf @ [file]) in
     ignore (create_process camlp4 ppopt);
     exit 0
   end;
-  create_filter !compiler ( "-pp" :: get_pp ppopt :: eliom_synonyms @ !args
-			     @ [impl_intf_opt mode; file] ) filter_dir
+  create_filter !compiler
+    ( "-pp" :: get_pp (client_pp_opt impl_intf) :: eliom_synonyms @ !args
+      @ [impl_intf_opt impl_intf; file] )
+    filter_dir
 
-let compile_eliom ~mode file =
+let compile_eliom ~impl_intf file =
   let basename = chop_extension_if_any file in
-  if mode = `Impl then
+  if impl_intf = `Impl then
     (Printf.printf "%s.cmo : %s\n" (add_build_dir basename) (get_type_file file);
      Printf.printf "%s.cmx : %s\n" (add_build_dir basename) (get_type_file file));
   match !kind with
-  | `Server -> compile_server_eliom ~mode file
-  | `Client -> compile_client_eliom ~mode file
-  | _ -> assert false
+    | `Server -> compile_server_eliom ~impl_intf file
+    | `Client -> compile_client_eliom ~impl_intf file
+    | _ -> assert false
+
+let sort () =
+  let ppopt =
+    match !kind with
+      | `Server | `ServerOpt -> server_pp_opt `Impl
+      | `Client -> client_pp_opt `Impl
+  in
+  create_process !compiler
+    ( "-sort" :: "-pp" :: get_pp ppopt :: eliom_synonyms @
+        List.(concat (map (fun file -> ["-impl"; file]) !sort_files)) )
 
 let rec process_option () =
   let i = ref 2 in
   while !i < Array.length Sys.argv do
     match Sys.argv.(!i) with
     | "-verbose" -> verbose := true; incr i
+    | "-sort" -> mode := `Sort; incr i
     | "-package" ->
       if !i+1 >= Array.length Sys.argv then usage ();
       package := !package @ split ',' Sys.argv.(!i+1);
@@ -133,24 +150,42 @@ let rec process_option () =
       i := !i+1
     | "-intf" ->
       if !i+1 >= Array.length Sys.argv then usage ();
-      compile_eliom ~mode:`Intf Sys.argv.(!i+1);
+      let arg = Sys.argv.(!i+1) in
+      if not (do_sort ()) then
+        compile_eliom ~impl_intf:`Intf arg;
       i := !i+2
     | "-impl" ->
       if !i+1 >= Array.length Sys.argv then usage ();
-      compile_eliom ~mode:`Impl Sys.argv.(!i+1);
+      let arg = Sys.argv.(!i+1) in
+      if do_sort () then
+        sort_files := arg :: !sort_files
+      else
+        compile_eliom ~impl_intf:`Impl arg;
       i := !i+2
     | arg when Filename.check_suffix arg ".mli" ->
-      compile_intf arg; incr i
+      if not (do_sort ()) then
+        compile_intf arg;
+      incr i
     | arg when Filename.check_suffix arg ".ml" ->
-      compile_impl arg; incr i
+      if do_sort () then
+        sort_files := arg :: !sort_files
+      else
+        compile_impl arg;
+      incr i
     | arg when Filename.check_suffix arg ".eliom" ->
-      compile_eliom ~mode:`Impl arg;
+      if do_sort () then
+        sort_files := arg :: !sort_files
+      else
+        compile_eliom ~impl_intf:`Impl arg;
       incr i
     | arg when Filename.check_suffix arg ".eliomi" ->
-      compile_eliom ~mode:`Intf arg;
+      if not (do_sort ()) then
+        compile_eliom ~impl_intf:`Intf arg;
       incr i
     | arg -> args := !args @ [arg]; incr i
-  done
+  done;
+  if do_sort () then
+    exit (sort ())
 
 let process_kind () =
   if Array.length Sys.argv < 2 then usage ();
