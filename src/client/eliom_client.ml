@@ -160,20 +160,30 @@ end
 let global_data = ref String_map.empty
 
 let do_next_server_section_data ~compilation_unit_id =
+  trace "Do next client value data section in compilation unit %s" compilation_unit_id;
   try
     let data = String_map.find compilation_unit_id !global_data in
     List.iter Client_value.initialize
       (Queue.take data.server_sections_data)
-  with Not_found -> (* Client-only compilation unit *)
-    ()
+  with
+    | Not_found -> () (* Client-only compilation unit *)
+    | Queue.Empty ->
+      error "Queue of client value data for compilation unit %s is empty \
+             (is it linked on the server?)"
+        compilation_unit_id
 
 let do_next_client_section_data ~compilation_unit_id =
+  trace "Do next injection data section in compilation unit %s" compilation_unit_id;
   try
     let data = String_map.find compilation_unit_id !global_data in
     List.iter Injection.initialize
       (Queue.take data.client_sections_data)
-  with Not_found -> (* Client-only compilation unit *)
-    ()
+  with
+    | Not_found -> () (* Client-only compilation unit *)
+    | Queue.Empty ->
+      error "Queue of injection data for compilation unit %s is empty \
+             (is it linked on the server?)"
+        compilation_unit_id
 
 (* == Initialize the client values sent with a request *)
 
