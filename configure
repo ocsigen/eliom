@@ -86,6 +86,7 @@ set_defaults () {
     mandir=""
     libdir=""
     docdir=""
+    datadir=""
 }
 
 set_defaults
@@ -146,6 +147,11 @@ print_options () {
             *) docdir2=$docdir;;
         esac
 
+        case "$datadir" in
+            "") datadir2="<prefix>/share/\$(PROJECTNAME)";;
+            *) datadir2=$datadir;;
+        esac
+
 	echo "    --name $name"
 	echo "    --root $root"
 	echo "    --temproot $temproot"
@@ -154,6 +160,7 @@ print_options () {
 	echo "    --mandir $mandir2"
 	echo "    --libdir $libdir2"
 	echo "    --docdir $docdir2"
+	echo "    --datadir $datadir2"
 }
 
 usage () {
@@ -178,6 +185,7 @@ usage: ./configure [ options ]
   --mandir=DIR		Install manpages into this directory
   --libdir=DIR		Common directory for Ocsigen server's libraries
   --docdir=DIR		Install documentation in this directory
+  --datadir=DIR		Install additional data files in this directory
 
 Defaults are:
 
@@ -277,6 +285,11 @@ while [ "$#" -gt 0 ]; do
 			shift
 			shift
 			;;
+                --datadir)
+                        datadir="$2"
+                        shift
+                        shift
+                        ;;
 		*)
                         echo "Unknown option: $1" >&2
 			usage
@@ -298,6 +311,10 @@ esac
 
 case "$docdir" in
   "") docdir="$prefix/share/doc/\$(PROJECTNAME)";;
+esac
+
+case "$datadir" in
+  "") datadir="$prefix/share/\$(PROJECTNAME)";;
 esac
 
 
@@ -441,6 +458,9 @@ LIBDIR := $libdir
 
 # Where to put Eliom documentation:
 DOCDIR := $root$docdir
+
+# Where to install additional data:
+DATADIR := $datadir
 
 # The source directory (needed for local testing)
 SRC := $full_pwd

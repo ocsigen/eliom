@@ -70,7 +70,7 @@
       <static dir="_STATICPAGESDIR_/tests" />
 
       <site path="destillery/basic">
-        <static dir="_STATICPAGESDIR_/tests/destillery/basic" />
+        <static dir="_STATICPAGESDIR_/tests/destillery/basic/static" />
         <eliommodule findlib-package="eliom_tests.destillery.basic" />
         <eliom />
       </site>

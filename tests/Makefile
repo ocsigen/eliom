@@ -53,7 +53,8 @@ opt:: _server/eliom_testsuite_global.cmx _server/eliom_testsuite_site.cmx eliom_
 $(STATICDIR)/destillery/basic/: destillery/basic
 	make -C destillery/basic all
 	mkdir -p $@
-	cp destillery/basic/test.js destillery/basic/test.cma destillery/basic/test.cmxs $@
+	cp $</test.js $</test.cma $</test.cmxs $@
+	cp -r $</static $@
 
 destillery/basic:
 	mkdir -p $@
