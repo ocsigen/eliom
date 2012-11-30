@@ -4,6 +4,7 @@ include ../Makefile.config
 ## (tests do not require global installation of Eliom)
 export OCAMLPATH := ${SRC}/src/files:${OCAMLPATH}
 export PATH := ${SRC}/src/tools:${PATH}
+export ELIOM_DATA_DIR := ${SRC}/src/files
 
 ifeq "${DEBUG}" "YES"
   DEBUG_OPTION := -g
