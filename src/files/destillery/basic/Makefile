@@ -28,9 +28,11 @@ CLIENT_PACKAGES =
 ## Generate debugging information (-g)
 GENERATE_DEBUG := no
 
-## Local folder for make run.local
-LOCAL_PREFIX := local
-## Root of installation
+## Local folder for make run.local (ends with /)
+LOCAL_PREFIX := local/
+## Root of installation (ends with /)
 INSTALL_PREFIX := /
+## User to run server
+WWWUSER := www-data
 
 include Makefile.common

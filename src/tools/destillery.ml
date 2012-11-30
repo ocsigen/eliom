@@ -6,7 +6,7 @@ let usage_msg =
    \n\
    This program generates a very simple Eliom application which\n\
    may serve as a starting point for your project. (Later versions\n\
-   of it may generate much more scaffolding!)\n\
+   may generate much more scaffolding!)\n\
    \n\
    It accepts the following options, the mandatory ones are\n\
    marked with (*):"

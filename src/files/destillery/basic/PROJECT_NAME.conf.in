@@ -1,6 +1,6 @@
-%%% This is the template for your configuration file. The %%VALUES%% below are
-%%% taken from the Makefile to generate the actual configuration files.
-%%% This comment will disappear there.
+%% This is the template for your configuration file. The %%VALUES%% below are
+%% taken from the Makefile to generate the actual configuration files.
+%% This comment will disappear.
 <!-- %%WARNING%% -->
 <ocsigen>
   <server>
@@ -8,16 +8,16 @@
     <charset>utf-8</charset>
     <logdir>%%LOGDIR%%</logdir>
     <datadir>%%LOGDIR%%</datadir>
-    <debugmode/>
+    <debugmode />
     <commandpipe>%%CMDPIPE%%</commandpipe>
     <extension findlib-package="ocsigenserver.ext.staticmod"/>
     <extension findlib-package="ocsigenserver.ext.ocsipersist-sqlite"/>
     <extension findlib-package="eliom.server"/>
-%%% This will include the packages defined as SERVER_PACKAGES in your Makefile
+    %% This will include the packages defined as SERVER_PACKAGES in your Makefile:
     %%PACKAGES%%
     <host hostfilter="*">
       <static dir="%%STATICDIR%%" />
-      <eliommodule module="%%LIBDIR%%/%%PROJECT_NAME%%.cma" />
+      <eliommodule module="%%LIBDIR%%%%PROJECT_NAME%%.cma" />
       <eliom/>
     </host>
   </server>
