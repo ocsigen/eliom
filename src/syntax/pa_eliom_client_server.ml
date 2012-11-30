@@ -180,15 +180,10 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let implem loc sil =
     let _loc = Loc.ghost in
-    let debug_compilation_unit_name =
-      let filename = Loc.file_name loc in
-      let filename_hash = Hashtbl.hash filename in
-      <:str_item< let () = Eliom_lib.debug "Current compilation unit %S/%d" $str:filename$ $`int:filename_hash$ >>
-    in
     let set_global b =
       <:str_item< let () = Eliom_service.Syntax_helpers.set_global $`bool:b$ >>
     in
-    debug_compilation_unit_name :: set_global true :: sil @ [ set_global false ]
+    set_global true :: sil @ [ set_global false ]
 
   let shared_sig_items _ items = Ast.sgSem_of_list items
   let server_sig_items _ items = Ast.sgSem_of_list items

@@ -118,7 +118,14 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           let _loc = Ast.loc_of_expr orig_expr in
           <:expr< >>
 
-  let implem _ sil = sil
+  let implem loc sil =
+    let _loc = Loc.ghost in
+    let debug_compilation_unit_name =
+      let name = Printf.sprintf "__eliom__compilation_unit_id__%d"
+        (Hashtbl.hash (Loc.file_name loc)) in
+      <:str_item< let $lid:name$ = () >>
+    in
+    debug_compilation_unit_name :: sil
 
   let shared_sig_items _ _ = failwith "Pa_eliom_type_filter.shared_sig_items"
   let server_sig_items _ _ = failwith "Pa_eliom_type_filter.server_sig_items"
