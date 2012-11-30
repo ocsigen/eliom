@@ -156,11 +156,15 @@ let preds () = [
     "OCAML3"
 ]
 
+let get_datadir () =
+  try Sys.getenv "ELIOM_DATA_DIR"
+  with Not_found -> Config.datadir
+
 (* Configuration of the basic destillery project *)
 let basic_project name =
   env name,
   preds (),
-  Filename.concat Config.datadir Config.destillery_basic
+  Filename.concat (get_datadir ()) Config.destillery_basic
 
 let main () =
   let typ, name, destination_dir =
