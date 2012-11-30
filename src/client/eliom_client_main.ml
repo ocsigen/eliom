@@ -62,13 +62,22 @@ let onload ev =
   Js._false
 
 let () =
-  ignore
-    (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
-       (Dom.handler onload) Js._true);
-  ignore
-    (Dom.addEventListener Dom_html.window (Dom.Event.make "unload")
-       (Dom_html.handler (fun _ -> leave_page (); Js._false))
-       Js._false)
+  trace "Set load/onload events";
+  let onunload _ = leave_page (); Js._true in
+  (* IE<9: Script438: Object doesn't support property or method
+     addEventListener.
+     Other browsers: Ask whether you really want to navigate away if
+     onbeforeunload is assigned *)
+  if Js.Unsafe.get Dom_html.window (Js.string "addEventListener") == Js.undefined then
+    ( Dom_html.window##onload <- Dom_html.handler onload;
+      Dom_html.window##onbeforeunload <- Dom_html.handler onunload )
+  else
+    ( ignore
+        (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
+           (Dom.handler onload) Js._true);
+      ignore
+        (Dom.addEventListener Dom_html.window (Dom.Event.make "unload")
+           (Dom_html.handler onunload) Js._false) )
 
 (* The following lines are for Eliom_bus, Eliom_comet and Eliom_react to be linked. *)
 let _force_link =
