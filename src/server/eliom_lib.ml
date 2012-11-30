@@ -44,8 +44,8 @@ let string_escape s =
         Buffer.add_string b "\\t"
     | '\n' ->
         Buffer.add_string b "\\n"
-    | '\011' ->
-        Buffer.add_string b "\\v"
+    (*| '\011' -> (* IE<9 doesn't like vertical tab \v *)
+        Buffer.add_string b "\\v"*)
     | '\012' ->
         Buffer.add_string b "\\f"
     | '\r' ->
