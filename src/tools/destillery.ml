@@ -13,11 +13,10 @@ let usage_msg =
 
 let rec yes_no : default:bool -> string -> bool =
   fun ~default msg ->
-  printf "%s (%s/%s) "
-    msg
+  printf "%s (%s/%s) " msg
     (if default then "YES" else "yes")
     (if default then "no" else "NO");
-  match String.(trim (lowercase (read_line ()))) with
+  match String.(lowercase (read_line ())) with
     | "yes" | "y" -> true
     | "no" | "n" -> false
     | "" -> default
