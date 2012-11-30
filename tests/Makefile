@@ -38,6 +38,8 @@ CLIENT_FILES := eliom_testsuite_base.eliom \
                 eliom_testsuite3.eliom \
                 eliom_testsuite4.eliom
 
+OTHER_FILES := eliom_testsuite_global.eliom eliom_testsuite_site.eliom
+
 STATICDIR := ../local/var/www/tests
 TYPE_DIR =
 
@@ -140,8 +142,8 @@ distclean: clean.local
 
 depend:
 	${MAKE} -C miniwiki depend
-	$(ELIOMDEP) -server ${SERVER_INC} ${addprefix -type-dir ,${TYPE_DIR}} ${SERVER_FILES} > .depend
-	$(ELIOMDEP) -client ${CLIENT_INC} ${addprefix -type-dir ,${TYPE_DIR}} ${CLIENT_FILES} >> .depend
+	$(ELIOMDEP) -server ${SERVER_INC} ${addprefix -type-dir ,${TYPE_DIR}} ${SERVER_FILES} ${OTHER_FILES} > .depend
+	$(ELIOMDEP) -client ${CLIENT_INC} ${addprefix -type-dir ,${TYPE_DIR}} ${CLIENT_FILES} $(OTHER_FILES) >> .depend
 
 include .depend
 
