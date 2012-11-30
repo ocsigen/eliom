@@ -218,8 +218,8 @@ let coservice
    Preapply services if you want fallbacks with GET parameters *)
 
 
-let coservice' 
-    ?name 
+let coservice'
+    ?name
     ?(csrf_safe = false)
     ?csrf_scope
     ?csrf_secure
@@ -296,7 +296,7 @@ let post_service_aux ~https ~fallback
    service_mark = service_mark ();
  }
 
-let post_service ?(https = false) ~fallback 
+let post_service ?(https = false) ~fallback
     ?keep_nl_params ?priority ~post_params () =
   (* POST service without POST parameters means
      that the service will answer to a POST request only.
@@ -539,16 +539,49 @@ let pre_wrap s =
 
 (* Global data *)
 
-let global_data = ref String_map.empty
+let get_global_data, modify_global_data =
+  (* We have to classify global data from ocsigen extensions (no site
+     available) and eliommodules (site data available).
+     Furthermore, the Eliom services must only send global data from
+     ocsigen extensions and their own site.  *)
+  let global_data = ref String_map.empty in
+  let site_data = Eliom_reference.Volatile.eref ~scope:Eliom_common.site_scope String_map.empty in
+  let is_site_available () =
+    (* Matches valid states for Eliom_common.get_site_data *)
+    Eliom_common.(get_sp_option () <> None || during_eliom_module_loading ())
+  in
+  let get () =
+    if is_site_available () then
+      String_map.merge
+        (fun compilation_unit_id global site ->
+          match global, site with
+            | None, None -> assert false
+            | Some data, None | None, Some data -> Some data
+            | Some _, Some site_data ->
+              Printf.ksprintf Ocsigen_messages.errlog
+                "Compilation unit %s linked globally AND as Eliom module"
+                compilation_unit_id;
+              Some site_data)
+        !global_data
+        (Eliom_reference.Volatile.get site_data)
+    else
+      !global_data
+  in
+  let modify f =
+    if is_site_available () then
+      Eliom_reference.Volatile.modify site_data f
+    else
+      global_data := f !global_data
+  in
+  get, modify
+
 let current_server_section_data = ref []
 
 let get_compilation_unit_global_data compilation_unit_id =
-  try
-    String_map.find compilation_unit_id !global_data
-  with Not_found ->
-    let data = { server_sections_data = Queue.create (); client_sections_data = Queue.create () } in
-    global_data := String_map.add compilation_unit_id data !global_data;
-    data
+  if not (String_map.mem compilation_unit_id (get_global_data ())) then
+    ( let data = { server_sections_data = Queue.create (); client_sections_data = Queue.create () } in
+      ignore (modify_global_data (String_map.add compilation_unit_id data)) );
+  String_map.find compilation_unit_id (get_global_data ())
 
 let close_server_section ~compilation_unit_id =
   let { server_sections_data } =
@@ -582,7 +615,7 @@ let get_global_data () =
               client_sections_data)
          compilation_unit_global_data.client_sections_data;
        { compilation_unit_global_data with client_sections_data })
-    !global_data
+    (get_global_data ())
 
 (* Request data *)
 
