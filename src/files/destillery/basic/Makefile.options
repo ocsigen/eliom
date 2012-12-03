@@ -1,0 +1,66 @@
+
+##----------------------------------------------------------------------
+##           SETTINGS FOR THE ELIOM PROJECT %%%PROJECT_NAME%%%
+##----------------------------------------------------------------------
+
+PROJECT_NAME := %%%PROJECT_NAME%%%
+
+## Do not forget `make depend' after adding a file!
+%%%ifdef OCAML4%%%
+## Source files for the server
+SERVER_FILES := $(wildcard *.eliomi *.eliom)
+## Source files for the client
+CLIENT_FILES := $(wildcard *.eliomi *.eliom)
+%%%endif%%%
+%%%ifdef OCAML3%%%
+## In OCaml<4 you must be sure those files are given in the correct linking order :(
+## Source files for the server
+SERVER_FILES := %%%PROJECT_NAME%%%.eliom
+## Source files for the client
+CLIENT_FILES := %%%PROJECT_NAME%%%.eliom
+%%%endif%%%
+
+## OCamlfind packages for the server
+SERVER_PACKAGES :=
+## OCamlfind packages for the client
+CLIENT_PACKAGES :=
+
+## Directory with files to be statically served
+LOCAL_STATIC = static
+
+## Debug application (yes/no): Debugging info in compilation,
+## JavaScript, ocsigenserver
+DEBUG := no
+
+## User to run server with (make run.*)
+WWWUSER := www-data
+WWWGROUP := www-data
+
+## Port for running the server (make run.*)
+PORT := 80
+
+## Port for testing (make test.*)
+TEST_PORT := 8080
+
+## Root of installation (must end with /)
+PREFIX := /
+
+## Local folder for make test.* (must end with /)
+TEST_PREFIX := local/
+
+## The installation tree (relative to $(PREFIX) when installing/runnin
+## or $(TEST_PREFIX) when testing).
+# Configuration file $(PROJECT_NAME).conf
+ETCDIR := etc/${PROJECT_NAME}
+# Project's library $(PROJECT_NAME).cma (cmxs)
+LIBDIR := var/lib/${PROJECT_NAME}
+# Command pipe, eg. $ echo restart > $(INSTALL_PREFIX)$(CMDPIPE)
+CMDPIPE := var/run/${PROJECT_NAME}-cmd
+# Ocsigenserver's logging files
+LOGDIR := var/log/${PROJECT_NAME}
+# Ocsigenserver's persistent data files
+DATADIR := var/data/${PROJECT_NAME}
+# Copy of $(LOCAL_STATIC)
+STATICDIR := var/www/${PROJECT_NAME}/static
+# Project's JavaScript file
+ELIOMSTATICDIR := var/www/${PROJECT_NAME}/eliom

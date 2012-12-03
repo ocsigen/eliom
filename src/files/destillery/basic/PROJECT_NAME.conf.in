@@ -1,23 +1,27 @@
-%% This is the template for your configuration file. The %%VALUES%% below are
-%% taken from the Makefile to generate the actual configuration files.
-%% This comment will disappear.
+%%% This is the template for your configuration file. The %%VALUES%% below are
+%%% taken from the Makefile to generate the actual configuration files.
+%%% This comment will disappear.
 <!-- %%WARNING%% -->
 <ocsigen>
   <server>
-    <port>8080</port>
-    <charset>utf-8</charset>
+    <port>%%PORT%%</port>
+    %%% Only set for running, not for testing
+    %%USERGROUP%%
     <logdir>%%LOGDIR%%</logdir>
-    <datadir>%%LOGDIR%%</datadir>
-    <debugmode />
+    <datadir>%%DATADIR%%</datadir>
+    <charset>utf-8</charset>
+    %%% Only set when debugging
+    %%DEBUGMODE%%
     <commandpipe>%%CMDPIPE%%</commandpipe>
     <extension findlib-package="ocsigenserver.ext.staticmod"/>
     <extension findlib-package="ocsigenserver.ext.ocsipersist-sqlite"/>
     <extension findlib-package="eliom.server"/>
-    %% This will include the packages defined as SERVER_PACKAGES in your Makefile:
+    %%% This will include the packages defined as SERVER_PACKAGES in your Makefile:
     %%PACKAGES%%
     <host hostfilter="*">
       <static dir="%%STATICDIR%%" />
-      <eliommodule module="%%LIBDIR%%%%PROJECT_NAME%%.cma" />
+      <static dir="%%ELIOMSTATICDIR%%" />
+      <eliommodule module="%%LIBDIR%%/%%PROJECT_NAME%%.cma" />
       <eliom/>
     </host>
   </server>
