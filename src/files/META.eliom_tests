@@ -43,12 +43,3 @@ package "testsuite_site" (
   archive(plugin,byte) = "eliom_testsuite_site.cmo"
   archive(plugin,native) = "eliom_testsuite_site.o"
 )
-
-package "destillery" (
-  directory = "destillery"
-  package "basic" (
-    directory = "basic"
-    archive(plugin,byte) = "test.cma"
-    archive(plugin,native) = "test.cmxs"
-  )
-)

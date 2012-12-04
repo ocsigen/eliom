@@ -131,6 +131,7 @@ CONF_SED += -e s%_OCSEXTDIR_%$(shell ${OCAMLFIND} query ocsigenserver.ext)%g
 CONF_SED += -e s%_PROJECTNAME_%$(PROJECTNAME)%g
 CONF_SED += -e s%_CONFIGDIR_%$(SRC)/local/etc%g
 CONF_SED += -e s%_STATICPAGESDIR_%$(SRC)/local/var/www%g
+CONF_SED += -e s%_LOCALDIR_%$(SRC)/local%g
 CONF_SED += -e s%store\ dir=\"$(SRC)/var/lib\"%store\ dir=\"$(SRC)/local/var/lib/ocsipersist\"%g
 
 ../local/etc/$(PROJECTNAME).conf: files/${PROJECTNAME}.conf.in ../Makefile.config Makefile

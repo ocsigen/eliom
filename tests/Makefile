@@ -46,20 +46,21 @@ TYPE_DIR =
 
 DESTILLERY_FILES := $(addprefix $(STATICDIR)/destillery/basic/,test.cma test.cmxa test.js)
 
-byte:: _server/eliom_testsuite_global.cmo _server/eliom_testsuite_site.cmo eliom_testsuite.cma ${STATICDIR}/eliom_testsuite.js $(STATICDIR)/destillery/basic/
-opt:: _server/eliom_testsuite_global.cmx _server/eliom_testsuite_site.cmx eliom_testsuite.cmxs ${STATICDIR}/eliom_testsuite.js $(STATICDIR)/destillery/basic/
+byte:: _server/eliom_testsuite_global.cmo _server/eliom_testsuite_site.cmo eliom_testsuite.cma ${STATICDIR}/eliom_testsuite.js destillery/basic
+opt:: _server/eliom_testsuite_global.cmx _server/eliom_testsuite_site.cmx eliom_testsuite.cmxs ${STATICDIR}/eliom_testsuite.js destillery/basic
 
 #### Destillery ####
 
-$(STATICDIR)/destillery/basic/: destillery/basic
-	make -C destillery/basic all
-	mkdir -p $@
-	cp $</test.js $</test.cma $</test.cmxs $@
-	cp -r $</static $@
-
 destillery/basic:
 	mkdir -p $@
-	eliom-destillery -name test -destination $@
+	eliom-destillery -name destillery_basic -destination $@
+	echo 'PREFIX=$(CURDIR)/../local/' >> $@/Makefile.options
+	echo 'STATICDIR=var/www/destillery-basic/static' >> $@/Makefile.options
+	echo 'ELIOMSTATICDIR=var/www/destillery-basic/eliomstatic' >> $@/Makefile.options
+	echo 'LIBDIR=var/www/destillery-basic/lib' >> $@/Makefile.options
+	echo 'WWWUSER=' >> $@/Makefile.options
+	echo 'WWWGROUP=' >> $@/Makefile.options
+	make -C $@ byte install.lib.byte install.static
 
 #### Server side #######
 
@@ -148,14 +149,6 @@ depend:
 	$(ELIOMDEP) -client ${CLIENT_INC} ${addprefix -type-dir ,${TYPE_DIR}} ${CLIENT_FILES} $(OTHER_FILES) >> .depend
 
 include .depend
-
-## Dependencies towards *.eliom are not handled by eliomdep.
-_server/eliom_testsuite4.cmo: _server/eliom_testsuite_base.cmo
-_server/eliom_testsuite4.cmx: _server/eliom_testsuite_base.cmx
-_server/eliom_testsuite.cmo: _server/eliom_testsuite3.cmo _server/eliom_testsuite4.cmo
-_server/eliom_testsuite.cmx: _server/eliom_testsuite3.cmx _server/eliom_testsuite4.cmx
-_client/eliom_testsuite.cmo: _client/eliom_testsuite3.cmx _client/eliom_testsuite4.cmo
-_client/eliom_testsuite.cmx: _client/eliom_testsuite3.cmx _client/eliom_testsuite4.cmx
 
 ## TODO
 

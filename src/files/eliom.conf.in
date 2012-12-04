@@ -66,14 +66,15 @@
         </eliom>
       </site>
 
-      <!-- Eliom Tutorial -->
-      <static dir="_STATICPAGESDIR_/tests" />
-
       <site path="destillery/basic">
-        <static dir="_STATICPAGESDIR_/tests/destillery/basic/static" />
-        <eliommodule findlib-package="eliom_tests.destillery.basic" />
+        <static dir="_LOCALDIR_/var/www/destillery-basic/static" />
+        <static dir="_LOCALDIR_/var/www/destillery-basic/eliomstatic" />
+        <eliommodule module="_LOCALDIR_/var/www/destillery-basic/lib/destillery_basic.cma" />
         <eliom />
       </site>
+
+      <!-- Eliom Tutorial -->
+      <static dir="_STATICPAGESDIR_/tests" />
 
       <site path="">
         <eliommodule findlib-package="eliom_tests.testsuite_site" />
