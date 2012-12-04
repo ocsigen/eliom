@@ -14,7 +14,7 @@
 ==Client-server programming
 ===[[clientserver-applications|The Eliom application]]
 ===[[clientserver-language|Language extensions]]
-===[[clientserver-html|Handling HTML5]]
+===[[clientserver-html|Working with HTML5]]
 ===[[clientserver-communication|Communication]]
 ===[[clientserver-wrapping|Custom wrapping]]
 

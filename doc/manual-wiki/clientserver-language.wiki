@@ -1,4 +1,4 @@
-== Eliom's language extensions
+= Eliom's language extensions
 
 The implementation of an Eliom applications is written in files with
 the extension {{{.eliom}}}. The code for corresponding interface goes
@@ -127,7 +127,7 @@ the client, accessing its concrete value.
 Firstly, the most basic one is by just injecting it to another client value,
 relying on the evaluation of the side effects:
 
-<<code languge="ocaml"|
+<<code language="ocaml"|
 {server{
   let _ = My_app.register_service ~path ~get_params
     (fun _ _ ->
@@ -139,19 +139,18 @@ relying on the evaluation of the side effects:
 >>
 
 In the above example, first a client value {{{v}}} (with the abstract
-type {{{int client_value}}} is declared. Then a second client of type
-{{{unit}}} value is created. Injecting {{{v}}} into it provides its
-concrete value {{{42}}}.
+type {{{int client_value}}}) is declared. Then a second client of type
+{{{unit}}} value is created. The Injecton {{{%v}}} has the concrete
+value {{{42}}}.
 
 In this case, the second client value is ignored; however, it will be
 evaluated on the client side, executing the side effect. A very neat
 way to do client side programming inside the service handler!
 
-Secondly, client values of type {{{(Dom_html.event Js.t -> unit)
-client_value}}} can be used as event handler in the construction of
+Secondly, client values of type {{{(Dom_html.event Js.t -> unit) client_value}}} can be used as event handler in the construction of
 Eliom Html5 elements:
 
-<<code languge="ocaml"|
+<<code language="ocaml"|
 {server{
   let service_handler get post =
     let onclick = {{ fun ev -> Eliom_lib.alert "Thanks." }} in
@@ -212,13 +211,15 @@ circumvent this limitation by declaring a function at toplevel with all the
 
 ==@@id="implementation"@@ Technical Documentation: Implementation of the language extensions
 
-Don't read this section if you don't want to feel the urgency to dive
-deeply into the implementation details of Eliom!
+//Don't read this section if you don't want to feel the urgency to
+dive deeply into the implementation details of Eliom, or if you have a
+weak stomach!//
 
 However, here is some details on the implementation of the <<a_manual
 chapter="eliomc"|language extensions in Eliom>>.  To investigate this
 in more detail, it is advisable to dump the source code for the server
-or client program with with ##eliomc -c -infer## or ##js_of_eliom -c -infer## respectively, and to refer to the API of the generated
+or client program with with ##eliomc -c -infer## or ##js_of_eliom -c -infer##
+respectively, and to refer to the API of the generated
 functions in ##Eliom_service.Syntax_helpers## on the server
 and ##Eliom_client.Syntax_helpers## on the client.
 
