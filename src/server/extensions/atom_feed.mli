@@ -22,6 +22,13 @@
 
 open Eliom_lib
 
+module Make : functor (Xml : Xml_sigs.Iterable) -> sig
+
+module Xhtml : Xhtml_sigs.T
+  with type Xml.uri = Xml.uri
+  and type Xml.event_handler = Xml.event_handler
+  and type Xml.attrib = Xml.attrib
+  and type Xml.elt = Xml.elt
 
 (*
  * types {{{
@@ -143,12 +150,7 @@ val inlineC : ?meta:[> metaAttr ] list
 
 (** An xhtml content, embedded in a div *)
 val xhtmlC : ?meta:[> metaAttr ] list
-   -> ([ `PCDATA | Xhtml_types.flow ] Xhtml.M.elt list)
-   -> [> `Content of content ]
-
-(** An html5 content, embedded in a div *)
-val html5C : ?meta:[> metaAttr ] list
-   -> ([ Html5_types.flow5 ] Eliom_content.Html5.elt list)
+   -> ([ `PCDATA | Xhtml_types.flow ] Xhtml.elt list)
    -> [> `Content of content ]
 
 (** Inline content from another kind *)
@@ -169,12 +171,7 @@ val plain : ?meta:[> metaAttr ] list
 
 (** XHTML text construct *)
 val xhtml : ?meta:[> metaAttr ] list
-   -> [ `PCDATA | Xhtml_types.flow ] Xhtml.M.elt list
-   -> textConstruct
-
-(** HTML5 text construct *)
-val html5 : ?meta:[> metaAttr ] list
-   -> [ Html5_types.flow5 ] Eliom_content.Html5.elt list
+   -> [ `PCDATA | Xhtml_types.flow ] Xhtml.elt list
    -> textConstruct
 
 (** Rights tag *)
@@ -269,3 +266,7 @@ val published : CalendarLib.Calendar.t -> [> `Pub of published ]
 (** Technically not used elsewhere than in eliom_feed.ml, since the links tags
  related to each hub are added when registering the feed. *)
 val insert_hub_links : uri list -> feed -> feed
+
+end
+
+include module type of Make(Xml)

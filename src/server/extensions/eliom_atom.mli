@@ -18,6 +18,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+module Make : functor (Xml : Xml_sigs.Iterable) -> sig
+
+module Atom_feed : module type of Atom_feed.Make(Xml)
+
 (** Register an atom feed *)
 module Reg : "../sigs/eliom_reg.mli"
   subst type page      := Atom_feed.feed
@@ -33,3 +37,7 @@ type feed = { notify_updates : unit -> unit }
 val register_feed :
   path:string list -> hubs:Atom_feed.uri list -> string ->
   (unit -> Atom_feed.feed Lwt.t) -> feed
+
+end
+
+include module type of Make(Xml)
