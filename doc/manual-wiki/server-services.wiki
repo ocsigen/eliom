@@ -38,7 +38,7 @@ The service creation could be split in two steps:
 
 
 This chapter focuses on value of type {{{service}}}, see chapter
-<<a_manual chapter="outputs"| Writing service handlers>> for more
+<<a_manual chapter="server-outputs"| Writing service handlers>> for more
 information on service registration.
 
 Some services can be registered multiple times with different options.
@@ -59,7 +59,7 @@ to designate a value of type {{{service}}}.
 Value of type {{{service}}} may be used to create links and forms
 towards a service, using for example the function <<a_api | val
 Eliom_content.Html5.D.a >>. See chapter <<a_manual
-chapter="links"|Creating links and forms>> for more information.
+chapter="server-links"|Creating links and forms>> for more information.
 
 <<paragraph| Unegistrable service >>
 
@@ -68,7 +68,7 @@ service handlers. Such value are called //unregistrable service//,
 and represents for example, links towards external site ot registrable
 service pre-applied to some parameters. This allows to use
 {{{service}}} consistently for creating links. See chapter <<a_manual
-chapter="services" fragment="unregistrable_services"| Unregistrable
+chapter="server-services" fragment="unregistrable_services"| Unregistrable
 services >>.
 
 
@@ -94,18 +94,18 @@ But the user does not usually need to bother with this. Eliom abstracts
 this mechanism by its three main kind of services. They differ by the
 subset of these criteria used to identified them:
 
-* <<a_manual chapter="services" fragment="regular_services" | Regular services>>
+* <<a_manual chapter="server-services" fragment="regular_services" | Regular services>>
   are the main entry points of sites.
   They are identified by the path of the URL and by (GET or POST) parameters.
   They correspond to classical URLs, and will last forever once registered.
-* <<a_manual chapter="services" fragment="attached_coservices" | Attached coservices>>
+* <<a_manual chapter="server-services" fragment="attached_coservices" | Attached coservices>>
   are services that share their
   location (URL) with a regular service (called //fallback//).
   They are identified by the path of the URL and a special parameter
   (added automatically by Eliom). They can be created dynamically. When
   an attached coservice is not available anymore (timeout, session closed,~ ...)
   it fallbacks to the corresponding regular service.
-* <<a_manual chapter="services" fragment="non-attached_coservices" | Non-attached coservices>>
+* <<a_manual chapter="server-services" fragment="non-attached_coservices" | Non-attached coservices>>
   are coservices only identified by a special parameter
   whatever be the path and other parameters in the URL.
   They are used to implement some behaviour that should not be attached to
@@ -114,7 +114,7 @@ subset of these criteria used to identified them:
   It is useful when you want the same link or form on
   several pages (for example a connection box) but you don't want to
   go to another URL. Non-attached coservices are often used with
-  <<a_manual chapter="outputs" fragment="actions" |actions>>.
+  <<a_manual chapter="server-outputs" fragment="actions" |actions>>.
 
 
 ==== Path ====
@@ -153,7 +153,7 @@ options expect values of type <<a_api | type
 Eliom_parameter.params_type >> that represent the set of expected
 arguments with their types. They are build using combinator from the
 <<a_api | module Eliom_parameter >> module. See chapter <<a_manual
-chapter="params"| Service parameters >> for a detailled description of
+chapter="server-params"| Service parameters >> for a detailled description of
 this module.
 
 The type informations associated to each argument allows Eliom to
@@ -284,7 +284,7 @@ Eliom_service.post_service>>.
   default priority is 0. Services with higher priority will be tried
   by Eliom before the ones with lower priority.  Use this when several
   services are configured to respond to the same request.  This can
-  happen for instance when using <<a_manual chapter="params"
+  happen for instance when using <<a_manual chapter="server-params"
   fragment="suffix" | suffix parameters>>.
 
 >>
@@ -304,7 +304,7 @@ time you want to record a precise point in the interaction with a
 user, to be able to come back there later.
 
 Often, they should be used with a restricted scope (see the section
-<<a_manual chapter="services" fragment="service_scope"| scope of
+<<a_manual chapter="server-services" fragment="service_scope"| scope of
 services>>).
 
 POST attached coservices are created using <<a_api| val
@@ -325,7 +325,7 @@ or the session to which it belongs was closed ... ), the fallback is
 called.
 
 The fallback of a GET coservice cannot take parameters. But
-it is possible to use a <<a_manual chapter="services"
+it is possible to use a <<a_manual chapter="server-services"
 fragment="preapplied" | pre-applied>> service as fallback.
 
 
@@ -345,8 +345,8 @@ To create a non-attached coservice, use <<a_api| val
 Use POST non-attached coservices for example if you want a link or
 form to be present on every page but you don't want the URL to change
 when the link is followed. Typically, non-attached POST coservices are
-used with <<a_manual chapter="outputs" fragment="actions"|actions>> or
-<<a_manual chapter="outputs" fragment="redirections"|redirections>>.
+used with <<a_manual chapter="server-outputs" fragment="actions"|actions>> or
+<<a_manual chapter="server-outputs" fragment="redirections"|redirections>>.
 
 Here is one simple example. Suppose you wrote a function <<code-inline
 language="ocaml"|remove>> to remove one piece of data from a database
@@ -446,7 +446,7 @@ a (static_dir ()) [pcdata "download image"] ["ocsigen10.png"]
 >>
 
 It is also possible to send static files using Eliom, with <<a_api|
-module Eliom_registration.File>> (see <<a_manual chapter="outputs"
+module Eliom_registration.File>> (see <<a_manual chapter="server-outputs"
 fragment="eliomfiles" |Sending files>>).
 
 
@@ -514,7 +514,7 @@ the user reloads the page).
   phase (while reading the site configuration) or while processing a
   request, because Eliom must know the information about the site. Be
   very careful about this if you want to use static linking (see the
-  section on <<a_manual chapter="config"
+  section on <<a_manual chapter="clientserver-configuration"
   fragment="static_linking"|static linking>> in the chapter about
   Compiling and configuring Eliom modules).
 * All main services (but not coservices) must be created in a module
@@ -536,7 +536,7 @@ the user reloads the page).
   warning in the logs).
 * GET coservices (without POST parameters) can be registered only with
   a main service without GET/POST parameters as fallback.  But it may
-  be <<a_manual chapter="services" fragment="preapplied"
+  be <<a_manual chapter="server-services" fragment="preapplied"
   |//preapplied//>>.
 * Services with POST parameters (main service or coservice) can be
   registered with a (main or co-) service without POST parameters as

@@ -3,28 +3,15 @@
 
 <<outline depth="2"| <<header| =Table of contents= >> >>
 
-This chapter explains how to compile Eliom module, how to set Eliom's
+This chapter explains how to set Eliom's
 options in the configuration file, and how to define options for your
 Eliom modules. See the Ocsigen server documentation for more information about the
 <<a_manual project="ocsigenserver" chapter="clientserver-configuration" |server's configuration>>.
 
+Note, however, that <<a_manual chapter="workflow-destillery"|Eliom's
+destillery>> provides you a way to just get productive with Eliom!
 
 ==@@id="misc"@@Using Eliom modules with Ocsigen server==
-
-====Compiling Eliom modules
-
-If your application is server-side only, it is easy to compile an
-Eliom module (here {{{example.ml}}}) with the following command:
-
-{{{
-ocamlfind ocamlc -thread -package eliom.server -c example.ml
-}}}
-
-or, in a shortest way:
-
-{{{
-eliomc -c example.ml
-}}}
 
 ====Configuration file
 
@@ -41,7 +28,7 @@ add the following lines to Ocsigen's configuration file
 </host>
 }}}
 
-The bloc surrounded by the {{{<site>}}} tag creates a sub-site on your
+The block surrounded by the {{{<site>}}} tag creates a sub-site on your
 host, in directory {{{examples}}}. The {{{<site>}}} tag is optional if
 you want to register your services at the root of the server path tree.
 

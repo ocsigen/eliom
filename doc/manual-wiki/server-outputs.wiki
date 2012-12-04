@@ -6,7 +6,7 @@
 
 <<paragraph|Many kind of outputs modules>>
 
-Once the <<a_manual chapter="services" fragment="classification" |
+Once the <<a_manual chapter="server-services" fragment="classification" |
 service identification mechanism>> identified the service responsible
 for a given URL it executes its service handler. The service handler
 is a function taking the GET and POST parameters as argument and
@@ -14,7 +14,7 @@ returning the content to be sent to the client. The return type of the
 service handler depends on the function used to register it. On the
 most common case its HTML5 contents build with the TyXML library, but
 Eliom provides a lot of outputs modules to ease the implementation of
-common web interaction. See section <<a_manual chapter="outputs"
+common web interaction. See section <<a_manual chapter="server-outputs"
 fragment="predefined_outputs" | Predefined output modules >> for a
 comprehensive list.
 
@@ -22,12 +22,12 @@ comprehensive list.
 
 As Ocsigenserver, Eliom is based on cooperative threading library and
 service handler must written your in a cooperative way. See section
-<<a_manual chapter="outputs" fragment="lwt" | Writing cooperative
+<<a_manual chapter="server-outputs" fragment="lwt" | Writing cooperative
 service handlers with Lwt >> for some examples.
 
 <<paragraph|Error handling >>
 
-See section <<a_manual chapter="outputs" fragment="error_handling" |
+See section <<a_manual chapter="server-outputs" fragment="error_handling" |
 Error handling>>.
 
 
@@ -39,7 +39,7 @@ Error handling>>.
 <<wip|Add types and options for each module?>>
 
 Services can send several types of data, using a variety of predefined modules.
-It is also possible to <<a_manual chapter="outputs" fragment="creating"|create your own output modules>>.
+It is also possible to <<a_manual chapter="server-outputs" fragment="creating"|create your own output modules>>.
 The main predefined output modules are:
 
 <<| |@@class="empty"@@|=@@class="col2 c"@@Services|=@@colspan="2" class="col2 c"@@Coservices|
@@ -64,19 +64,19 @@ module Eliom_content.Html5.F >> or the syntax extension. (useful for <<span clas
 ;<<a_api| module Eliom_registration.String >>
 : Allows to register functions that   generate text pages, without any typechecking of the content. The services return a pair of strings. The first one is the content   of the page, the second one is the content type.
 ;<<a_api| module Eliom_registration.File >>
-: Allows to register services that send files. See <<a_manual chapter="services" fragment="eliomfiles"|here>> for an example of use.
+: Allows to register services that send files. See <<a_manual chapter="server-services" fragment="eliomfiles"|here>> for an example of use.
 ;<<a_api| module Eliom_registration.Streamlist >>
 : Allows to register services that send "byte" contents. It is used when big contents (that does not fit in memory) is generated.
 
 <<paragraph| Generating content for client-server applications >>
 
 ;<<a_api| module Eliom_registration.App >>
-: is a functor that generates a module allowing to create services belonging to a client-server Eliom application (see <<a_manual chapter="client"|chapter client-server applications>>)
+: is a functor that generates a module allowing to create services belonging to a client-server Eliom application (see <<a_manual chapter="clientserver-applications"|chapter client-server applications>>)
 
 <<paragraph| Special browser interraction >>
 
 ;<<a_api| module Eliom_registration.Action >>
-: Allows to register actions (functions that do not generate any page, see <<a_manual chapter="services" fragment="actions"|Action>>). The page corresponding to the URL (without the coservice parameter that triggered the action) is reloaded after the action by default if possible.
+: Allows to register actions (functions that do not generate any page, see <<a_manual chapter="server-services" fragment="actions"|Action>>). The page corresponding to the URL (without the coservice parameter that triggered the action) is reloaded after the action by default if possible.
 ;<<a_api| module Eliom_registration.Unit >>
 : is like <<a_api| module Eliom_registration.Action >> but the URL is not reloaded after the action. (Same as {{{Eliom_registration.Action}}} with {{{[`NoReload]}}} option).
 ;<<a_api| module Eliom_registration.Redirection >>
@@ -94,12 +94,12 @@ module Eliom_content.Html5.F >> or the syntax extension. (useful for <<span clas
 
 ;<<a_api| module Eliom_registration.Ocaml >>
 : allows to register services sending marshalled OCaml values. See the section on
-<<a_manual chapter="client" fragment="communication" |communications in the chapter about client-server applications>>
+<<a_manual chapter="clientserver-applications" fragment="communication" |communications in the chapter about client-server applications>>
 
 <<paragraph| Runtime choice of content >>
 
 ;<<a_api| module Eliom_registration.Any >>
-: Allows to register services that can choose what they send, for example an HTML page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See <<a_manual chapter="services" fragment="any"|here>> for an example of use.
+: Allows to register services that can choose what they send, for example an HTML page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See <<a_manual chapter="server-services" fragment="any"|here>> for an example of use.
 
 === Specific output modules
 
@@ -118,7 +118,7 @@ let sendfile =
     (fun () () -> return "filename")
 >>
 
-Other example, with "suffix" services (see <<a_manual chapter="params" fragment="suffix"|here>>):
+Other example, with "suffix" services (see <<a_manual chapter="server-params" fragment="suffix"|here>>):
 <<code language="ocaml"|
 let sendfile2 =
   Eliom_registration.File.register_service
@@ -128,7 +128,7 @@ let sendfile2 =
       return ("//path//"^(Ocsigen_lib.Url.string_of_url_path ~encode:false s)))
 >>
 
-The extension <<a_manual chapter="services" fragment="staticparts"|Staticmod>> is another way to
+The extension <<a_manual chapter="server-services" fragment="staticparts"|Staticmod>> is another way to
 handle static files.
 
 
@@ -186,7 +186,7 @@ let redir1 = Eliom_registration.Redirection.register_service
 
 If you want to give parameters to such services, use
 <<a_api | val Eliom_service.preapply>> (see also in
-<<a_manual chapter="services" fragment="preapplied" | section about pre-applied services>>).
+<<a_manual chapter="server-services" fragment="preapplied" | section about pre-applied services>>).
 Example:
 
 <<code language="ocaml"|

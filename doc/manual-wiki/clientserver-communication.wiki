@@ -51,7 +51,7 @@ let _ =
 Since client and server side value representation are not the same, it
 is not possible to send any Ocaml value, the restriction on what can
 be sent are the same as for the {{{%variable}}} mechanism
-(see the <<a_manual chapter="wrapping"| chapter Wrapping>>).
+(see the <<a_manual chapter="clientserver-wrapping"| chapter Wrapping>>).
 
 == Client sending data
 
@@ -188,7 +188,7 @@ are stateless channels: the memory consumption does not depend on
 the number of users requesting data on it. When the channels are not
 reachable from the server code, they are garbage collected and closed.
 Named stateless channels can be accessed from
-<<a_manual chapter="client" fragment="cors_channels"|other servers>>.
+<<a_manual chapter="clientserver-applications" fragment="cors_channels"|other servers>>.
 
 * Channels created with scope <<a_api | val Eliom_common.default_process_scope >>
 must be created inside a service handler. They

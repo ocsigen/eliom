@@ -18,11 +18,11 @@ the declaration and handling of client values within the code for the
 server.
 
 It is advisable to read the section about <<a_manual
-chapter="client-compiling" fragment="compilation"|compiling eliom
+chapter="workflow-compilation" fragment="compilation"|compiling eliom
 applications>> first.
 
 For an outline of the implementation of those features, please refer
-to the chapter on <<a_manual chapter="client-compiling"
+to the chapter on <<a_manual chapter="workflow-compilation"
 fragment="implementation"|compiling eliom applications>>.
 
 <<outline depth="1">>

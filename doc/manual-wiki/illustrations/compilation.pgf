@@ -13,7 +13,9 @@
           }}}}};        
   \end{scope}n
   \begin{scope}[every path/.style={->}]
-    \draw (source) to [bend right=20] node[command,auto,swap] {eliomc -c} (serverobj);
+    \draw (source) to [bend right=20] node[command,auto,swap] (eliomc) {eliomc -c} (serverobj);
     \draw (source) to [bend left=20] node[command,auto] {js\_of\_eliom -c} (clientobj);
+    \draw (source) to node[command,auto,swap] (inferpos) {} (typemli);
   \end{scope}
+  \draw (inferpos |- eliomc) +(0.5em,0) node [command,anchor=east] {eliomc -infer};
 \end{tikzpicture}

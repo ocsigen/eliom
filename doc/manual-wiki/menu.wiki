@@ -1,19 +1,27 @@
-=Eliom's Reference manual
-==[[intro|Introduction]]
-==Server side concepts
-===Services
-====[[services|The different types of services]]
-====[[params|Typing service parameters]]
-====[[outputs|Writing service handlers]]
-====[[links|Creating links and forms]]
-===[[state|Sessions and server side state]]
-===[[config|Configuring and running Eliom]]
-==Client-server application
-===[[client|Applications]]
-===[[client-communication|Client/server communication]]
-===[[client-compiling|Compilation process]]
-==Miscellaneous
-===[[html|Writing HTML]]
-===[[security|Security considerations]]
-===[[wrapping|Custom wrapping]]
-===[[examples|Examples]]
+= Eliom's Reference manual
+
+== [[intro|Introduction]]
+
+== Server side programming
+=== Services
+==== [[server-services|The different types of services]]
+==== [[server-params|Typing service parameters]]
+==== [[server-outputs|Writing service handlers]]
+==== [[server-links|Creating links and forms]]
+=== [[server-state|Sessions and server side state]]
+=== [[server-security|Security]]
+
+== Client-server programming
+=== [[clientserver-applications|The Eliom application]]
+=== [[clientserver-language|Language extensions]]
+=== [[clientserver-html|Handling HTML5]]
+=== [[clientserver-communication|Communication]]
+=== [[clientserver-wrapping|Custom wrapping]]
+
+== Workflows
+=== [[workflow-destillery|Destillery]]
+=== [[workflow-compilation|Compilation]]
+=== [[workflow-configuration|Configuration & running]]
+
+
+== [[examples|Examples]]

@@ -67,7 +67,7 @@ We hope to simplify this when OCaml's serialization mechanism evolves.
 In the meantime, be very careful where you store your data.
 To avoid shutting down the server, note that it is possible
 to ask the server to load dynamically new versions of your site
-(see <<a_manual chapter="config" fragment="reload"|command {{{reload}}} >>).
+(see <<a_manual chapter="clientserver-configuration" fragment="reload"|command {{{reload}}} >>).
 
 
 
@@ -79,7 +79,7 @@ to ask the server to load dynamically new versions of your site
 
 Eliom uses a notion of //scopes// to restrict the visibility of
 server-side data to some clients. Together with <<a_manual
-chapter="state" fragment="eref"|Eliom references>>, this is a very
+chapter="server-state" fragment="eref"|Eliom references>>, this is a very
 convenient way to implement a mechanism of session for your website.
 
 There are two categories of scopes:
@@ -104,28 +104,28 @@ on how Eliom associates clients and data.
 * Data and dynamic services created with scope
   <<a_api| val Eliom_common.default_group_scope >> are
   only visible to client whose session belongs to the same session group.
-  See section <<a_manual chapter="state"
+  See section <<a_manual chapter="server-state"
   fragment="session_groups"|Session groups>> for more information.
 * Data and dynamic services created with scope
   <<a_api| val Eliom_common.default_process_scope>> are only visible to a specific
   instance of the Eliom application (one tab, running the Eliom client process).
   See section <<a_manual
-  chapter="client" fragment="session_groups"|Eliom applications>> for
+  chapter="clientserver-applications" fragment="session_groups"|Eliom applications>> for
   more information.
 
 User scopes are organised in //hierarchy//: client processes belong to a
 session, and sessions belong to a group of sessions.
 
 Data and dynamic services with a user scope can be discarded
-explicitely or by timeout. See sections <<a_manual chapter="state"
+explicitely or by timeout. See sections <<a_manual chapter="server-state"
 fragment="closing_sessions"|Closing session>> and <<a_manual
-chapter="state" fragment="timeouts"|Timeouts and session duration>>
+chapter="server-state" fragment="timeouts"|Timeouts and session duration>>
 for more information.
 
 If you want to handle multiple sessions for the same site
 ---~ e.g. several different data sessions that could be created and
 discarded independently~ --- you can create new users scope that will use
-different cookies, see section <<a_manual chapter="state"
+different cookies, see section <<a_manual chapter="server-state"
 fragment="new_scope" |Hierarchies of scopes>> for more information.
 
 
@@ -290,7 +290,7 @@ session group name as parameter:
 
 A session could be only attached to one group at a time, but it is
 possible to create multiple sessions for a same client attached to
-different groups, see section <<a_manual chapter="state"
+different groups, see section <<a_manual chapter="server-state"
 fragment="new_scope" |Hierarchies of scopes>> for more information.
 
 It's possible to fetch the current session group name of a session, if
@@ -327,7 +327,7 @@ persistent data).
 
 To close all sessions from a group, close the group.
 
-See section <<a_manual chapter="state" fragment="closing_sessions"
+See section <<a_manual chapter="server-state" fragment="closing_sessions"
 |Closing sessions>> for more information.
 
 
@@ -344,7 +344,7 @@ See section <<a_manual chapter="state" fragment="closing_sessions"
 === Principles ===
 
 //Eliom references// (//erefs//) are some kind of references with
-a (possibly) limited <<a_manual chapter="state"
+a (possibly) limited <<a_manual chapter="server-state"
 fragment="scopes"|scope>>. You declare a reference with an initial
 value and a scope. Then, when you change the associated value, it
 actually changes only for the scope you specified.
