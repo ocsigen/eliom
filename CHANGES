@@ -1,3 +1,27 @@
+
+===== 3.0.0 =====
+
+ * Language
+ ** Generalized client values in server code
+ ** Injections into client sections
+ ** server_function
+
+ * Tools
+ ** Added eliom-destillery for generating project scaffolds
+ ** Support Eliom interface files (.eliomi) in eliomc, eliomdep
+ ** Eliomdep: Generate dependencies between eliom-modules
+ ** eliomc -i
+
+ * API
+ ** Module to access external states (Eliom_state.Ext)
+ ** Adding Eliom_parameter.type_checker
+ ** Adding Eliom_parameter.neopt
+ ** Add functions to insert html5 in atom feeds
+
+ * Dropped support
+ ** Remove support for OCamlDuce, Xhtml
+ ** Remove Eliom_compatibility_2_1
+
 ===== 2.2.2 (2012-06-11) =====
 
  * Fix (re-disable) generation of API doc for ocamlduce modules
