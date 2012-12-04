@@ -1,15 +1,17 @@
 
 open Printf
 
-let usage_msg =
+let usage_msg = Printf.sprintf
   "Welcome to the Eliom destillery!\n\
    \n\
-   This program generates a very simple Eliom application which\n\
-   may serve as a starting point for your project. (Later versions\n\
-   may generate much more scaffolding!)\n\
+   This program generates the scaffold for your Eliom application\n\
+   from a template. Currently, it only supports a very simple\n\
+   template named \"basic\", but later versions will include more\n\
+   comprehensive templates!\n\
    \n\
-   It accepts the following options, the mandatory ones are\n\
-   marked with (*):"
+   Call it like this\n  $ %s -name <name> [-template basic] [-destination <dest>]\n\
+   where"
+  (Filename.basename Sys.argv.(0))
 
 let rec yes_no : default:bool -> string -> bool =
   fun ~default msg ->
@@ -167,23 +169,30 @@ let basic_project name =
   Filename.concat (get_datadir ()) Config.destillery_basic
 
 let main () =
-  let typ, name, destination_dir =
-    let typ = ref `Basic in
+  let template, name, destination_dir =
+    let bad fmt = Printf.ksprintf (fun s -> raise (Arg.Bad s)) fmt in
     let name = ref None in
+    let template = ref (Some `Basic) in
+    let select_template = function
+      | "basic" -> template := Some `Basic
+      | str -> bad "Not a known template name: %S" str
+    in
     let destination_dir = ref "." in
     let spec = Arg.([
       "-name", String (fun s -> name := Some s),
-      "Name of the project, a valid compilation unit name (*)";
+      "<name>\t\tName of the project, a valid compilation unit name";
+      "-template", String select_template,
+      "basic\tThe template for the project";
       "-destination", String (fun s -> destination_dir := s),
-      "Destination directory";
+      "<dest>\tDestination directory";
     ]) in
-    Arg.parse spec (fun _ -> Arg.usage spec usage_msg) usage_msg;
-    match !name with
-      | Some name -> !typ, name, !destination_dir
-      | None -> Arg.usage spec usage_msg; exit 1
+    Arg.(parse spec (bad "Don't know what to do with %S") usage_msg);
+    match !template, !name with
+      | Some template, Some name -> template, name, !destination_dir
+      | _ -> Arg.usage spec usage_msg; exit 1
   in
   let env, preds, source_dir =
-    match typ with
+    match template with
       | `Basic -> basic_project name
   in
   create_project ~name ~env ~preds ~source_dir ~destination_dir:destination_dir
