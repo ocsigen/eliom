@@ -1521,8 +1521,8 @@ module Eliom_appl_reg_make_param
       ~https:(Eliom_request_info.get_csp_ssl ())
       ~host:(Eliom_request_info.get_csp_hostname ())
       ~port:(Eliom_request_info.get_csp_server_port ())
-      (Neturl.join_path
-         (encode_slashs (Eliom_request_info.get_csp_original_full_path ()))
+      (String.concat "/"
+         (""::encode_slashs (Eliom_request_info.get_csp_original_full_path ()))
       )
     in
 
