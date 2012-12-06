@@ -75,6 +75,7 @@ braces:
 <<code language="ocaml"|
 {server{
   ... {typ{ expr }} ...
+}}
 >>
 
 If {{{expr}}} has type {{{typ}}} on the client, the resulting client
@@ -92,9 +93,6 @@ i.e. they are created during the processing of a request:
        Lwt.return html
 >>
 
-Those client values are evaluated on the client after setting up the
-{{{html}}} as the current DOM.
-
 Or they occur either in a //global position//, i.e. they are created
 while launching the server:
 
@@ -104,8 +102,19 @@ while launching the server:
 }}
 >>
 
-Global client values are evaluated on the client side just after
-receiving the first request.
+==== Evaluation
+
+Client values are generally evaluated on the client after setting up
+the received HTML as the current DOM, if any (cf. <<a_api
+subproject="client"|Eliom_client.onload>>).
+
+The first time when a page of an Eliom application is requested in
+a browser tab (i.e. client process), all global client values are sent
+and evaluated thereafter.
+Request client values are just sent only once with the currently
+processed request.
+
+==== Injections
 
 Again, variables from the context of the client value may be injected
 to it by prefixing them by a %-sign. This is for example reasonable to
@@ -121,6 +130,8 @@ inject a parameter into a request client value:
        Lwt.return html)
 }}
 >>
+
+==== Sending client values
 
 There are several way on how a server side client value can be sent to
 the client, accessing its concrete value.
@@ -170,7 +181,7 @@ expressions which are also evaluated after the first request. However,
 the evaluation of an expression can be delayed by <<a_api
 subproject="client"|val Eliom_client.onload>>.
 
-=== Restrictions to injections into the client values/sections
+== Restrictions to injections into the client values/sections
 
 Notice that not all values are possible to send that way: since client
 and server side representation are not the same, it is impossible to
