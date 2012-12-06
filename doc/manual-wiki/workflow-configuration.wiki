@@ -22,9 +22,10 @@ add the following lines to Ocsigen's configuration file
 {{{
 <extension findlib-package="eliom.server"/>
 <host>
-  <site path="examples">
-    <eliom module="~///path_to///example.cmo" />
-  </site>
+  <site path="examples">
+    <eliommodule module="~///path_to///example.cmo" />
+    <eliom />
+  </site>
 </host>
 }}}
 
@@ -69,17 +70,11 @@ wrong!>>
 ===Several Eliom modules for one site===
 
 If your site consists of several modules, you can load them
-consecutively from the configuration file using
-<<span class="code"|<eliommodule>>> (same syntax as
-<<span class="code"|<eliom>>>, the difference being that
-<<span class="code"|<eliommodule>>> does not generate any page).
-In that case, only the position of the
-<<span class="code"|<eliom>>>
-tag will be taken into account for generating the page using
-Eliom.
+consecutively from the configuration file using several
+{{{eliommodule}}}-tags.
 Note that there can be only one <<span class="code"|<eliom>>>
 tag for each <<span class="code"|<site>>>
-(or <<span class="code"|<host>>>).
+(or <<span class="code"|<host>>>), however.
 
 ===Using findlib with Eliom modules===
 
@@ -88,9 +83,10 @@ it is also possible (and recommended!) to do:
 
 {{{
 <host>
-  <site path="examples">
-    <eliom findlib-package="//package-name//" />
-  </site>
+  <site path="examples">
+    <eliommodule findlib-package="//package-name//" />
+    <eliom />
+  </site>
 </host>
 }}}
 
@@ -151,9 +147,9 @@ You can add your own options in the configuration file for your Web
 site. For example:
 
 <<code language="ocaml"|
-    <eliom module="//path_to///yourmodule.cmo">
+    <eliommodule module="//path_to///yourmodule.cmo">
       <youroptions> ...
-    </eliom>
+    </eliommodule>
 >>
 
 Use <<a_api| val Eliom_state.get_config >> during the initialization
@@ -188,14 +184,14 @@ To initialize the module from the configuration file, use the syntax:
 <eliommodule name="//name//"> ... </eliommodule>
 }}}
 
-(or <<span class="code"|<eliom name="//name//"> ... </eliom> >>)
+(or <<span class="code"|<eliommodule name="//name//"> ... </eliom> >>)
 which is equivalent to:
 
 {{{
 <eliommodule module="//name.cmxs//"> ... </eliommodule>
 }}}
 
-(or <<span class="code"|<eliom module="//name.cmxs//"> ... </eliom> >>)
+(or <<span class="code"|<eliommodules module="//name.cmxs//"> ... </eliom> >>)
 
 with the exception that it does not load the module using <<span
 class="code"|Dynlink>>, but calls the initialization function.\\
@@ -234,7 +230,7 @@ Here are Eliom's options you can use in configuration files.
 <<wip|Revoir les timeouts pour client processes et groupes>>
 
 Timeouts for states (and other states) can be set either inside tag
-{{{<extension findlib-package="ocsigen.ext.eliom"/>}}} (default value
+{{{<extension findlib-package="eliom.server"/>}}} (default value
 for all sites), or inside a {{{<eliom/>}}} tag (default for one site).
 
 Timeouts can also be modified programmatically using functions like
@@ -255,7 +251,7 @@ that in configuration file, use the optional attribute
 If this attribute is absent, the timeout will affect all
 states for which no other default has been set. The
 {{{hierarchyname}}} attribute exists only inside an {{{<eliom/>}}} tag
-(and not inside {{{<extension findlib-package="ocsigen.ext.eliom"/>}}}).
+(and not inside {{{<extension findlib-package="eliom.server"/>}}}).
 
 The level attribute can take values {{{session}}} or {{{tab}}}.
 
@@ -279,7 +275,7 @@ The level attribute can take values {{{session}}} or {{{tab}}}.
 ===Garbage collector of states and services
 
 These options can appear inside tag
-{{{<extension findlib-package="ocsigen.ext.eliom"/>}}}.
+{{{<extension findlib-package="eliom.server"/>}}}.
 For now, it cannot be set for each site independently
 (tell us if you need that).
 
@@ -370,7 +366,7 @@ Thus, a website can set its own defaults and the user can still
 override them from the configuration file.
 
 The configuration file options can be set either inside the tag
-{{{<extension findlib-package="ocsigen.ext.eliom"/>}}}
+{{{<extension findlib-package="eliom.server"/>}}}
 (global configuration), or inside the {{{<eliom/>}}} tag
 (configuration for each site). But the limits always are for one
 site (that is: a global limit value of 10 means 10 for each Eliom site).
@@ -399,7 +395,7 @@ with ##~xhr:false##).
 In contrast, you may add the attribute ##xhr-links## into the content of the
 configuration of a Eliom module:
 {{{
-  <eliom ... xhr-links="no"> ...  </eliom>
+  <eliom ... xhr-links="no" />
 }}}
 Then, all links that are not explicitely specfied as ##~xhr:true## are
 realized by their default HTTP behaviour.
