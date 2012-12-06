@@ -666,7 +666,7 @@ let _ =
     return
       (html
        (head (title (pcdata "CSRF safe service example")) [])
-       (body [p [pcdata "A new coservice will be created each time this form is displayed"];
+       (body [p [pcdata "A new coservice will be created each time this form is displayed. Your server must be running with HTTPS enabled."];
               l3]))
   in
   Eliom_registration.Html5.register csrfsafe_get_example page;
@@ -2006,7 +2006,8 @@ let exn_act_main =
         (html
            (head (title (pcdata "exnact")) [])
            (body [h1 [pcdata "Hello"];
-                  p [a exn_act [pcdata "Do the action"] ()
+                  p [a exn_act [pcdata "Do the action"] ();
+                     pcdata "It will raise an exception, and you will receive an error 500."
                    ]])))
 
 

@@ -2069,6 +2069,7 @@ let tconnect_example3_handler () () =
     (make_page (match sessdat with
       | Eliom_state.Data name ->
         [p [pcdata ("Hello "^name); br ()];
+         Html5.D.a ~service:tconnect_example3 [pcdata "Try again to check whether you are still connected"] ();
          tdisconnect_box "Close session"]
       | Eliom_state.Data_session_expired
       | Eliom_state.No_data -> [tlogin_box ()]
@@ -2399,7 +2400,7 @@ let _ =
     in
     Lwt.return
       (make_page
-         [p [pcdata "A new coservice will be created each time this form is displayed"];
+         [p [pcdata "A new coservice will be created each time this form is displayed. Your server must be running with HTTPS enabled. Clicking on the button should go to a new page (but this is probably broken for client process scope)."];
           l3])
   in
   My_appl.register tcsrfsafe_example page;
@@ -2422,7 +2423,8 @@ let _ = My_appl.register tcookies
       ~cookie_level:`Client_process
       ~name:cookiename ~value:(string_of_int (Random.int 100)) ();
     Lwt.return
-      (make_page [p [pcdata (try
+      (make_page [p [pcdata "A new tab cookie is sent each time you load this page. If you reload, the cookie will be sent by the browser and you can observe the value changing."];
+                  p [pcdata (try
                     "cookie value: "^
                       (CookiesTable.find
                          cookiename
