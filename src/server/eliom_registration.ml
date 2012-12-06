@@ -1515,11 +1515,15 @@ module Eliom_appl_reg_make_param
 
     lwt appl_data_script = make_eliom_appl_data_script ~sp in
 
+    let encode_slashs = List.map (Url.encode ~plus:false) in
+
     let base_url = Url.make_absolute_url
       ~https:(Eliom_request_info.get_csp_ssl ())
       ~host:(Eliom_request_info.get_csp_hostname ())
       ~port:(Eliom_request_info.get_csp_server_port ())
-      (String.concat "/" (""::Eliom_request_info.get_csp_original_full_path ()))
+      (Neturl.join_path
+         (encode_slashs (Eliom_request_info.get_csp_original_full_path ()))
+      )
     in
 
     (* First we build a fake page to build the ref_tree... *)
