@@ -2790,6 +2790,16 @@ let _ =
     Lwt.return
       (make_page [Html5.F.ul (list 1 100)]))
 
+let service_with_get_params =
+  Eliom_service.service ~path:["intgp"]
+    ~get_params:(suffix_prod (string "s") (string "t")) ()
+
+let _ =
+  My_appl.register service_with_get_params
+    (fun (s, t) () -> Lwt.return
+      (make_page [p [pcdata "Check that spaces and accents in parameters are ok"];
+                  p [pcdata s]; p [pcdata t]]))
+
 {client{
   let pinger : unit Lwt.t option ref = ref None
   let rec loop t i r =
@@ -2859,6 +2869,9 @@ let formc = My_appl.register_service ["formc"] unit
               p [Html5.D.a ~service:%Eliom_testsuite1.coucou
                    [pcdata "Link to a service outside the application."]
                    ()];
+              p [Html5.D.a ~service:%Eliom_testsuite1.coucou_params
+                   [pcdata "Link to a service outside the application, with params (unicode)"]
+                   (1, (2, "tutu cccéccc+ccc"))];
 
              Html5.D.get_form ~service:%Eliom_testsuite1.coucou
                (fun () ->
@@ -2898,6 +2911,16 @@ let formc = My_appl.register_service ["formc"] unit
              p [Html5.D.a ~https:true ~service:%long_page
                    [pcdata "Link to a service inside the application (force https)."]
                    ()];
+             p [Html5.D.a ~service:%service_with_get_params
+                   [pcdata "Link to a service inside the application (GET parameters, with spaces and Unicode)."]
+                   ("toto aaaéaaa+aaa", "tata oooéooo+ooo")];
+             p
+               ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+                 a_onclick
+                   ( fun _ -> ignore(Eliom_client.change_page
+                                        ~service:%service_with_get_params
+                                        ("toto aaaéaaa+aaa", "tata oooéooo+ooo") ()) ) ]
+               [pcdata "Change page to a service inside the application (GET parameters, with spaces and Unicode)."];
 
              Html5.D.get_form ~service:%eliomclient1
                (fun () ->
@@ -2939,6 +2962,9 @@ let formc = My_appl.register_service ["formc"] unit
         p [Html5.D.a ~service:Eliom_testsuite1.coucou
               [pcdata "Link to a service outside the application."]
               ()];
+        p [Html5.D.a ~service:Eliom_testsuite1.coucou_params
+              [pcdata "Link to a service outside the application, with params (unicode)"]
+              (1, (2, "tutu cccéccc+ccc"))];
 
         Html5.D.get_form ~service:Eliom_testsuite1.coucou
           (fun () ->
@@ -2978,6 +3004,9 @@ let formc = My_appl.register_service ["formc"] unit
         p [Html5.D.a ~https:true ~service:long_page
               [pcdata "Link to a service inside the application (force https)."]
               ()];
+        p [Html5.D.a ~service:service_with_get_params
+              [pcdata "Link to a service inside the application (GET parameters, with spaces and Unicode)."]
+              ("toto aaaéaaa+aaa", "tata oooéooo+ooo")];
 
         Html5.D.get_form ~service:eliomclient1
           (fun () ->
