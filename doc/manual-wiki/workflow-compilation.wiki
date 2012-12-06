@@ -39,7 +39,7 @@ in ##_client/program.cmo## by default) and ##js_of_eliom -o program.js##
 is used to actually compile and link the //JavaScript// program to run on
 the client.
 
-{{site:eliom/compilation.png|The Compilation process}}
+{{@@style="width:100%;"@@site:eliom/compilation.png|The Compilation process}}
 
 So much for the compilation process, here comes what you gain from
 Eliom for the integrated development of client/server applications.
