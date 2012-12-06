@@ -47,7 +47,7 @@ let mkdir_p path_str =
             ( if not (Sys.is_directory dir) then
                 raise
                   (File_error
-                     (sprintf "Cannot create directory %s, it's a file" dir)) )
+                     (sprintf "Cannot create directory %S, it's a file" dir)) )
           else
             Unix.mkdir dir 0o775 );
       aux sofar' rest
@@ -83,7 +83,7 @@ let copy_file ?(env=[]) ?(preds=[]) src_name dst_name =
                 false
               | [] ->
                 raise (Preprocessing_error
-                         (Printf.sprintf "Cannot match %%%%endif%%%% in line %i in file %s"
+                         (Printf.sprintf "Cannot match %%%%endif%%%% in line %i in file %S"
                             !line_counter src_name))
           else
             List.for_all (fun x -> x) !ifdef_stack
@@ -102,7 +102,7 @@ let copy_file ?(env=[]) ?(preds=[]) src_name dst_name =
     mkdir_p (Filename.dirname dst_name);
     if not (Sys.file_exists dst_name) ||
        ksprintf (yes_no ~default:false)
-         "File %s already exists! Overwrite?" dst_name
+         "File %S already exists! Overwrite?" dst_name
     then
       let src = open_in src_name in
       let dst = open_out dst_name in
@@ -128,12 +128,12 @@ let copy_file ?(env=[]) ?(preds=[]) src_name dst_name =
 
 let create_project ~name ~env ~preds ~source_dir ~destination_dir =
   if not (Sys.file_exists destination_dir) then
-    ( if ksprintf (yes_no ~default:true) "Destination directory %s doesn't exists. Create it?" destination_dir then
+    ( if ksprintf (yes_no ~default:true) "Destination directory %S doesn't exists. Create it?" destination_dir then
         mkdir_p destination_dir
       else
         exit 1 );
   if not (Sys.is_directory destination_dir) then
-    ( eprintf "Destination directory %s is a file!" destination_dir;
+    ( eprintf "Destination directory %S is a file!" destination_dir;
       exit 1 );
   Array.iter
     (fun src_file ->
