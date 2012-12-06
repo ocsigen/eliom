@@ -1540,14 +1540,16 @@ let event2_service =
                         ((Html5.To_dom.of_element (Html5.F.pcdata " plop") :> Dom.node Js.t)));
               Lwt.return ()
             in
+            let handler1 ev _ = handler ev in
+            let handler_long1 ev _ = handler_long ev in
             let c = click (Html5.To_dom.of_p %target1) >>= handler in
             ignore (click (Html5.To_dom.of_p %target2) >|= fun _ ->
-                            Lwt.cancel c);
+                           Lwt.cancel c);
             ignore
               (mousedown (Html5.To_dom.of_p %target3) >>= fun ev ->
                preventDefault ev;
                mouseup (Html5.To_dom.of_p %target2) >>= handler);
-            let c = clicks (Html5.To_dom.of_p %target4) handler_long in
+            let c = clicks (Html5.To_dom.of_p %target4) handler_long1 in
             ignore
               (click (Html5.To_dom.of_p %target5) >|= fun _ ->
                Lwt.cancel c);
@@ -1556,10 +1558,10 @@ let event2_service =
                click (Html5.To_dom.of_p %target6) >>= handler);
             ignore
               (clicks (Html5.To_dom.of_p %target7)
-                 (fun _ -> click (Html5.To_dom.of_p %target7) >>= handler));
+                 (fun _ _ -> click (Html5.To_dom.of_p %target7) >>= handler));
             ignore
               (click (Html5.To_dom.of_p %target8) >>= fun _ ->
-               clicks (Html5.To_dom.of_p %target8) handler);
+               clicks (Html5.To_dom.of_p %target8) handler1);
             let c =
               Lwt.pick [click (Html5.To_dom.of_p %target9) >>= handler;
                         click (Html5.To_dom.of_p %target10) >>= handler]
@@ -1567,28 +1569,28 @@ let event2_service =
             ignore (click (Html5.To_dom.of_p %target11) >|= fun _ ->
                     Lwt.cancel c);
             let c = mousedowns (Html5.To_dom.of_p %target12)
-              (fun _ -> Lwt.pick [(mouseup Dom_html.document >|= fun _ -> ());
-                                  mousemoves Dom_html.document handler])
+              (fun _ _ -> Lwt.pick [(mouseup Dom_html.document >|= fun _ -> ());
+                                     mousemoves Dom_html.document handler1])
             in
             ignore (click (Html5.To_dom.of_p %target13) >|= fun _ ->
                     Lwt.cancel c);
             let c = mousedowns (Html5.To_dom.of_p %target14)
-              (fun _ -> Lwt.pick [(mouseup Dom_html.document >|= fun _ -> ());
-                                  mousemoves Dom_html.document handler_long])
+              (fun _ _ -> Lwt.pick [(mouseup Dom_html.document >|= fun _ -> ());
+                                     mousemoves Dom_html.document handler_long1])
             in
             ignore (click (Html5.To_dom.of_p %target15) >|= fun _ ->
                     Lwt.cancel c);
             let t16 = Html5.To_dom.of_p %target16 in
             ignore (mouseovers t16
-                      (fun _ ->
+                      (fun _ _ ->
                         t16##style##backgroundColor <- Js.string "red";
                         Lwt.return ()));
             ignore (mouseouts t16
-                      (fun _ ->
+                      (fun _ _ ->
                         t16##style##backgroundColor <- Js.string "";
                         Lwt.return ()));
             ignore (mousewheels (Html5.To_dom.of_p %target17)
-                      (fun (_, (dx, dy)) ->
+                      (fun (_, (dx, dy)) _ ->
                         ignore (targetresult##appendChild
                                   ((Html5.To_dom.of_element
                                       (Html5.F.pcdata

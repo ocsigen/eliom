@@ -1145,7 +1145,7 @@ let preappliedsuffix =
 let url_encoding =
   let module Html5 = Eliom_content.Html5.F in
   register_service
-    ~path:["urlencoding&à/=é?ablah"]
+    ~path:["urlencoding&à/=é?abl<ah"]
     ~get_params:(suffix_prod (all_suffix "s//\\à") any)
     (fun (suf, l) () ->
       let ll =
@@ -1159,7 +1159,7 @@ let url_encoding =
       return
         (html
            (head (title (pcdata "")) [])
-           (body [h1 [pcdata "Hallo"];
+           (body [p [pcdata "All characters must be displayed correctly, including ampersand or unicode"];
                   p sl;
                   p ll
                 ])))
