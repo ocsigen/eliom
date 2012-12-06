@@ -28,6 +28,9 @@ CLIENT_PACKAGES :=
 ## Directory with files to be statically served
 LOCAL_STATIC = static
 
+## The backend for persistent data. Can be dbm or sqlite.
+PERSISTENT_DATA_BACKEND = dbm
+
 ## Debug application (yes/no): Debugging info in compilation,
 ## JavaScript, ocsigenserver
 DEBUG := no
