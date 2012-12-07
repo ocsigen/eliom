@@ -55,7 +55,13 @@ compilation unit.
 
 === Compilation & Running: Read the README
 
-Among other files, the {{{eliom-destillery}}} creates a {{{Makefile}}}
-with targets to compile, test, and run your program.
+Generally, you can just run
 
-Please refer to your project's {{{README}}} on how to accomblish this.
+<<code language="shell"|
+$ make test.byte (or test.opt)
+>>
+
+to compile your project and run ocsigenserver on it.
+
+However, please refer to the generated README file for further hints
+on how to work with your project!
