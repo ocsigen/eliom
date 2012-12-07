@@ -55,11 +55,12 @@ end
 (*****************************************************************************)
 (*VVV Do not forget to change the version number
   when the internal format change!!! *)
-let persistent_cookie_table_version = "_v4" 
+let persistent_cookie_table_version = "_v5"
 (* v2 introduces session groups *)
 (* v3 introduces tab sessions *)
 (* v4 introduces group tables *)
-  
+(* v5 removes secure scopes *)
+
 let eliom_persistent_cookie_table =
   "eliom_persist_cookies"^persistent_cookie_table_version
 
