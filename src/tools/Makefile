@@ -56,11 +56,11 @@ uninstall:
 ## Clean up
 
 clean:
-	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot
+	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot config.ml
 	-rm -f ${COMPILER}
 	-rm -f ${PREDEP}
 distclean: clean
-	-rm -f *~ \#* .\#* config.ml
+	-rm -f *~ \#* .\#*
 
 ## Dependencies
 
