@@ -18,21 +18,13 @@ package "monitoring" (
   archive(plugin,native) = "monitoring.cmxs"
 )
 
-package "testsuite" (
-  exists_if = "eliom_testsuite.cma, eliom_testsuite.cmxs"
-  version = "[distributed with Eliom]"
-  description = "Eliom test suite"
-  archive(plugin,byte) = "eliom_testsuite.cma"
-  archive(plugin,native) = "eliom_testsuite.cmxs"
-)
-
 package "testsuite_global" (
   directory = "_server"
-  exists_if = "eliom_testsuite_global.cmo, eliom_testsuite_global.cmx"
+  exists_if = "eliom_testsuite_global.cmo,eliom_testsuite_global.cmx"
   version = "[distributed with Eliom]"
   description = "Eliom test suite (global data)"
   archive(plugin,byte) = "eliom_testsuite_global.cmo"
-  archive(plugin,native) = "eliom_testsuite_global.o"
+  archive(plugin,native) = "eliom_testsuite_global.cmxs"
 )
 
 package "testsuite_site" (
@@ -41,5 +33,14 @@ package "testsuite_site" (
   version = "[distributed with Eliom]"
   description = "Eliom test suite (global data)"
   archive(plugin,byte) = "eliom_testsuite_site.cmo"
-  archive(plugin,native) = "eliom_testsuite_site.o"
+  archive(plugin,native) = "eliom_testsuite_site.cmxs"
+)
+
+
+package "testsuite" (
+  exists_if = "eliom_testsuite.cma, eliom_testsuite.cmxs"
+  version = "[distributed with Eliom]"
+  description = "Eliom test suite"
+  archive(plugin,byte) = "eliom_testsuite.cma"
+  archive(plugin,native) = "eliom_testsuite.cmxs"
 )

@@ -46,10 +46,12 @@ TYPE_DIR =
 
 DESTILLERY_FILES := $(addprefix $(STATICDIR)/destillery/basic/,test.cma test.cmxa test.js)
 
-byte:: _server/eliom_testsuite_global.cmo _server/eliom_testsuite_site.cmo eliom_testsuite.cma ${STATICDIR}/eliom_testsuite.js destillery/basic
-opt:: _server/eliom_testsuite_global.cmx _server/eliom_testsuite_site.cmx eliom_testsuite.cmxs ${STATICDIR}/eliom_testsuite.js destillery/basic
+byte:: _server/eliom_testsuite_global.cmo _server/eliom_testsuite_site.cmo eliom_testsuite.cma ${STATICDIR}/eliom_testsuite.js destillery-basic-byte
+opt:: _server/eliom_testsuite_global.cmxs _server/eliom_testsuite_site.cmxs eliom_testsuite.cmxs ${STATICDIR}/eliom_testsuite.js destillery-basic-opt
 
 #### Destillery ####
+
+.PHONY: destillery-basic-byte destillery-basic-opt
 
 destillery/basic:
 	mkdir -p $@
@@ -60,7 +62,11 @@ destillery/basic:
 	echo 'LIBDIR=var/www/destillery-basic/lib' >> $@/Makefile.options
 	echo 'WWWUSER=' >> $@/Makefile.options
 	echo 'WWWGROUP=' >> $@/Makefile.options
-	make -C $@ byte install.lib.byte install.static
+	make -C $@ byte install.static
+destillery-basic-byte: | destillery/basic
+	make -C destillery/basic byte install.lib.byte
+destillery-basic-opt: | destillery/basic
+	make -C destillery/basic opt install.lib.opt
 
 #### Server side #######
 
@@ -91,6 +97,9 @@ _server/%.cmx: %.eliom
 	${ELIOMOPT} -c ${addprefix -type-dir ,${TYPE_DIR}} ${SERVER_INC} $<
 
 %.cmxs: %.cmxa
+	$(ELIOMOPT) -shared -linkall -o $@ $<
+
+%.cmxs: %.cmx
 	$(ELIOMOPT) -shared -linkall -o $@ $<
 
 ##### Client side ####
