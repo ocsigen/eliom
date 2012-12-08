@@ -83,6 +83,25 @@ value has the type {{{typ client_value}}} which is //abstract on the
 server//. But once it is sent to the client, it evaluates to the value
 of {{{expr}}} having type {{{typ}}}!
 
+==== Injections
+
+Again, variables from the context of the client value may be injected
+to it by prefixing them by a %-sign. This is for example reasonable to
+inject a parameter into a request client value:
+
+<<code language="ocaml"|
+{server{
+  let () = My_app.register_service ~path ~get_params:Eliom_parameter.(string "name")
+    (fun name () ->
+       ignore {unit{
+         Eliom_lib.alert "Hello %s!" %name
+       }};
+       Lwt.return html)
+}}
+>>
+
+====@@id="evaluation"@@ Evaluation
+
 Server side client values may occur in a //request// position,
 i.e. they are created during the processing of a request:
 
@@ -102,41 +121,23 @@ while launching the server:
 }}
 >>
 
-==== Evaluation
+All global client values are sent with the initial request of a client
+process.  They are evaluated during the initialization of the client
+program, i.e. //before// setting up the document. This is necessary
+in order to safely inject them into the next client-section.
 
-Client values are generally evaluated on the client after setting up
-the received HTML as the current DOM, if any (cf. <<a_api
-subproject="client"|Eliom_client.onload>>).
+Thus, if you want to refer the DOM in global client values (e.g. by
+injecting variabels holding Html5-elements) you must be sure to delay
+this by using <<a_api subproject="client"|Eliom_client.onload>>.
 
-The first time when a page of an Eliom application is requested in
-a browser tab (i.e. client process), all global client values are sent
-and evaluated thereafter.
-Request client values are just sent only once with the currently
-processed request.
-
-==== Injections
-
-Again, variables from the context of the client value may be injected
-to it by prefixing them by a %-sign. This is for example reasonable to
-inject a parameter into a request client value:
-
-<<code language="ocaml"|
-{server{
-  let () = My_app.register_service ~path ~get_params:Eliom_parameter.(string "name")
-    (fun name () ->
-       ignore {unit{
-         Eliom_lib.alert "Hello %s!" %name
-       }};
-       Lwt.return html)
-}}
->>
+Request client values, however, are sent with the next response to the
+client and evaluated //after// setting up the (possibly) sent document.
 
 ==== Sending client values
 
-There are several way on how a server side client value can be sent to
-the client, accessing its concrete value.
-Firstly, the most basic one is by just injecting it to another client value,
-relying on the evaluation of the side effects:
+There are several ways on how a server side client value can be sent
+to the client, accessing its concrete value.  Firstly, the most basic
+one is by just injecting it to another client value:
 
 <<code language="ocaml"|
 {server{
@@ -151,15 +152,17 @@ relying on the evaluation of the side effects:
 
 In the above example, first a client value {{{v}}} (with the abstract
 type {{{int client_value}}}) is declared. Then a second client of type
-{{{unit}}} value is created. The Injecton {{{%v}}} has the concrete
+{{{unit}}} value is created. The injection {{{%v}}} has then the concrete
 value {{{42}}}.
 
-In this case, the second client value is ignored; however, it will be
-evaluated on the client side, executing the side effect. A very neat
-way to do client side programming inside the service handler!
+Here, the second client value is ignored; however, it will be
+evaluated on the client side, executing the side effect, just because
+it has been created. A very neat way to do client side programming
+inside the service handler!
 
-Secondly, client values of type {{{(Dom_html.event Js.t -> unit) client_value}}} can be used as event handler in the construction of
-Eliom Html5 elements:
+Secondly, client values of type {{{(Dom_html.event Js.t -> unit) client_value}}}
+can be used as event handler in the construction of Eliom Html5
+elements:
 
 <<code language="ocaml"|
 {server{
@@ -170,16 +173,12 @@ Eliom Html5 elements:
 }}
 >>
 
-Note here, that the type annotation of a client value can be omitted
-if the type of the client value is inferable from its usage in the
-server code (as the argument to {{{on_click}}} in the example).
+Note here, how the type annotation of a client value can be omitted if
+the type of the client value is inferable from //its usage in the server code//
+(as the argument to {{{on_click}}} in the example).
 
-Thirdly, global client values can of course be injected into the
-client section. Note, that -- as global client values aren't evaluated
-before finishing the first request -- they may only occur in
-expressions which are also evaluated after the first request. However,
-the evaluation of an expression can be delayed by <<a_api
-subproject="client"|val Eliom_client.onload>>.
+Thirdly, global client values can also be injected into the client
+section.
 
 == Restrictions to injections into the client values/sections
 
