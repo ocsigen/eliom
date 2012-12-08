@@ -254,7 +254,7 @@ timeout.
 By default, data and services saved in a session are available to requests
 using both http or https protocols. If you want to
 keep some state in a //secure session// that are visible only to
-client accessing with the https protocol, you may give the optionnal
+client accessing with the https protocol, you may give the optional
 parameter {{{~secure:true}}} when calling functions like <<a_api | val
 Eliom_reference.eref >>, <<a_api | val Eliom_registration.Html5.register
 >>, etc.

@@ -29,7 +29,7 @@ type ('a, +'storage) eref'
 type 'a eref = ('a, [ `Volatile | `Persistent ]) eref'
 
 (** Exception raised when trying to access an eref 
-    that has not been initaliazed, when we don't want to initalize it. *)
+    that has not been initaliazed, when we don't want to initialize it. *)
 exception Eref_not_intialized
 
 (** The function [eref ~scope value] creates an Eliom reference for

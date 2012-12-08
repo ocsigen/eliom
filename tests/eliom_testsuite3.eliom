@@ -55,7 +55,7 @@ open Html5.F
 }}
 
 (****** server only *******)
-{server{ (* note that {server{ ... }} is optionnal. *)
+{server{ (* note that {server{ ... }} is optional. *)
 open Eliom_parameter
 open Eliom_service
 }}
@@ -95,7 +95,7 @@ let make_page ?(css = []) content =
   module My_appl = Eliom_registration.Html5
 }}
 
-{server{ (* note that {server{ ... }} is optionnal. *)
+{server{ (* note that {server{ ... }} is optional. *)
 open My_appl
 }}
 

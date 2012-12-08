@@ -637,7 +637,7 @@ let register_scope_hierarchy (name:string) =
   match get_sp_option () with
     | None ->
       if Hier_set.mem name !registered_scope_hierarchies
-      then failwith (Printf.sprintf "the scope hierachy %s has already been registered" name)
+      then failwith (Printf.sprintf "the scope hierarchy %s has already been registered" name)
       else registered_scope_hierarchies :=
         Hier_set.add name !registered_scope_hierarchies
     | Some sp ->

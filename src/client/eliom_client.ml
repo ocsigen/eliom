@@ -780,7 +780,7 @@ let load_data_script page =
     Firebug.console##timeEnd(Js.string "load_data_script")
 
 (* == Scroll the current page such that the top of element with the id
-   [fragment] is aligned with the window's top. If the optionnal
+   [fragment] is aligned with the window's top. If the optional
    argument [?offset] is given, ignore the fragment and scroll to the
    given offset. *)
 
