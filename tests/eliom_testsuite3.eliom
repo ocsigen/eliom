@@ -29,7 +29,7 @@ Turn back in a few days for a more complete manual!//
 
 This part of the manuel describes how to use Eliom for mixing client side
 and server side programming.
-Eliom allows to write the client and server parts of a Web application
+Eliom allows one to write the client and server parts of a Web application
 fully in Objectice Caml.
 Running OCaml in the client's browser is acheived by compiling OCaml bytecode
 into Javascript. Check the [[wiki(30):/|js_of_ocaml]] project for news and

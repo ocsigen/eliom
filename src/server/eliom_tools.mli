@@ -222,7 +222,7 @@ val with_css_file : string list -> unit
 
 (** {2 Other tools} *)
 
-(** This function allows to wrap a service handler easily depending
+(** This function allows one to wrap a service handler easily depending
     on whether certain information is available or not.
 
     The first arguments provides that information ([Some value]) of

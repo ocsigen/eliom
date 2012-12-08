@@ -23,7 +23,7 @@ A service is composed of:
 Manipulation of Eliom services can be done throught the values of type
 <<a_api | type Eliom_service.service >>. The most common service
 creation function is <<a_api | val Eliom_registration.Html5.register_service
->>. It allows to create a service attached to a given path that may
+>>. It allows creation of services attached to a given path that may
 expect some GET parameters and that return some HTML5 contents using
 the TyXML library.
 
@@ -42,7 +42,7 @@ This chapter focuses on value of type {{{service}}}, see chapter
 information on service registration.
 
 Some services can be registered multiple times with different options.
-This allows for example to choose between different handlers when the
+This allows for example choice between different handlers when the
 request is done in a particular session or protocol (HTTP or HTTPS).
 
 <<div style="font-style: italic;"| Warning: in this manual, we use the
@@ -66,7 +66,7 @@ chapter="server-links"|Creating links and forms>> for more information.
 Some specific values of type {{{service}}} aren't associated to any
 service handlers. Such value are called //unregistrable service//,
 and represents for example, links towards external site ot registrable
-service pre-applied to some parameters. This allows to use
+service pre-applied to some parameters. This allows use of
 {{{service}}} consistently for creating links. See chapter <<a_manual
 chapter="server-services" fragment="unregistrable_services"| Unregistrable
 services >>.

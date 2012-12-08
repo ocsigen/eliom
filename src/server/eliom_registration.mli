@@ -417,7 +417,7 @@ module Any : "sigs/eliom_reg_alpha_return.mli"
 
 (** The function [appl_self_redirect send page] is an helper function
     required for defining {!Any} service usable inside an Eliom
-    application ({!App}). It allows to cast an Eliom senders
+    application ({!App}). It allows casting an Eliom senders
     that do not returns {!application_content} (like {!File.send},
     {!String.send}, ...) into a senders returns
     {!application_content}.
@@ -467,7 +467,7 @@ module Streamlist : "sigs/eliom_reg.mli"
 
 (** {2 Customizing registration} *)
 
-(** The [Customize] functor allows to specialize service registration
+(** The [Customize] functor allows specialization of service registration
     functions by customizing the page type. See the {% <<a_manual
     project="tutorial" chapter="interaction"| Eliom tutorial>>%} for
     example. *)
@@ -481,7 +481,7 @@ module Customize :
 
 (** {2 Using your own error pages} *)
 
-(** The [set_exn_handler handler] allows to redefines error pages:
+(** The [set_exn_handler handler] allows redefinition of error pages:
     [404] or any exception during page generation.
 
     Note that you should not catch every exception here since some Eliom

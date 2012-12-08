@@ -134,7 +134,7 @@ Addendum to the great renaming
     session in a session group
  ** Parameters of type any can't be suffixes (semantic problem)
  ** Add Eliom_comet.wait_timeout to notify when a client isn't active
- ** allow to setup "Cache-policy: max-age" with Text, CssText and
+ ** Allow services to setup "Cache-policy: max-age" with Text, CssText and
     Files modules.
  ** Eliom_state.discard and discard_data now accept scope request.
 
@@ -147,7 +147,7 @@ Addendum to the great renaming
  ** Eliom_comet: configuration option for time until timeout after the focus is lost
  ** Handling wrapping of int32 type.
  ** Onload event handlers on HTML elements are executed when they are converted to
-    DOM (using Eliom_client.of_ functions). This allows to add them to nodes not
+    DOM (using Eliom_client.of_ functions). This allows them to be added to nodes not
     sent in the page.
  ** Calls to {{{Eliom_services.onload}}} are taken into account for services sending
     caml values. The handlers are executed when the call to
@@ -156,8 +156,8 @@ Addendum to the great renaming
  * Eliom syntax:
  ** Event handlers can now access the current event using the _ev variable
     inside {{ ... }} typed according to the attribute.
- ** Allow to use module inside client expr {{ ... }} and to use
-    client_expr {{ ... }} inside module
+ ** Allow modules to be used inside client expr {{ ... }} and client_expr
+    {{ ... }} to be used inside modules
  ** Add -ppopt option to eliomc
 
  * And a lot of bugfixes.
@@ -169,7 +169,7 @@ Addendum to the great renaming
  ** Eliom_output.Redirection: use 302 as default and introduce
     abstract nome for all the 30x HTTP code
  ** Eliom_output.Customize: remove unrequired Functor parameters.
- * Delayed URl computation: this allow to create relative link
+ * Delayed URl computation: this allows relative links to be created
    outside of service handler.
  * Client: do not ignore "onload" events attached on Dom elements
    other than window.
@@ -253,7 +253,7 @@ Addendum to the great renaming
     handled "by reference"
   * Fix ocamldoc generation with Eliom_output
   * Eliom_appl are now stateless if no data is stored in session
-  * Allow dynamic wrapping with values sent to client with
+  * Allow dynamic wrapping with values to be sent to client with
     caml services and comet channel
   * Add Eliom_react.S: server to client React signals
   * Add lazy site values: lazy evaluated one time per site
@@ -310,7 +310,7 @@ Addendum to the great renaming
   * Eliom client: syntax extension and wrapping/unwrapping mechanism to
     access server side values in client side code.
   * Eliom client: Relinking the DOM on client side after loading a (portion of)
-    page. This allows to use directly nodes created on server side in client
+    page. This allows nodes created on server side to be directly used in client
     side code.
   * Eliom client: XHR redirections for Eliom applications.
   * Eliom: safe unmarshaling of caml values sent by client side programs
@@ -568,8 +568,8 @@ Addendum to the great renaming
     ** Ocsigen server: Internal changes in server (removing "send"
        functions, debug messages lazier)
     ** Lwt: Adding a few functions in {{{Lwt_chan}}} interface
-    ** Staticmod: Allowing to personalize default error pages for HTTP
-       errors
+    ** Staticmod: Allowing default error pages for HTTP errors to be
+       customized
     ** Ocsipersist (dbm and sqlite): better handling of database
        errors
     ** XHTML: New pretty printer for xhtml using streams (up to 15%
@@ -635,9 +635,8 @@ Addendum to the great renaming
     instead of DBM. (You can still use the old one).
   * Cgimod: EXPERIMENTAL - New extension for using CGI scripts with
     Ocsigen (including PHP through CGI).
-  * Staticmod: Allowing to have several static directories for one
-    site.
-  * Staticmod: Allowing to list the content of directories.
+  * Staticmod: Allow several static directories for one site.
+  * Staticmod: Allow listing the content of directories.
   * Ocsigen: HTTP Header "Transfer-Encoding: chunked" implemented for
     sending or receiving data without knowing the Content-Length
   * Ocsigen: Bugfix in preemptive.ml when lots of simultaneous

@@ -51,36 +51,36 @@ The main predefined output modules are:
 <<paragraph| Generating content for the browser >>
 
 ;<<a_api| module Eliom_registration.Html5 >>
-: Allows to register functions that generate html5 pages statically checked
+: Registration of functions that generate html5 pages statically checked
 using polymorphic variant types. You may use constructor functions from <<a_api
 | module Eliom_content.Html5.D >> or a syntax extension close to the standard html syntax.
 ;<<a_api| module Eliom_registration.Flow5 >>
-: Allows to register functions that generate a portion of page using <<a_api |
+: Registration of functions that generate a portion of page using <<a_api |
 module Eliom_content.Html5.F >> or the syntax extension. (useful for <<span class="code"|XMLHttpRequest>> requests for example). Do not use with Eliom application: use <<a_api| module Eliom_registration.Ocaml >> instead.
 ;<<a_api| module Eliom_registration.HtmlText >>
-: Allows to register functions that   generate text html pages, without any typechecking of the content. The content type sent by the server is "text/html".
+: Registration of functions that generate text html pages, without any typechecking of the content. The content type sent by the server is "text/html".
 ;<<a_api| module Eliom_registration.CssText >>
-: Allows to register functions that   generate CSS pages, without any typechecking of the content. The content type sent by the server is "{{{text/css}}}".
+: Registration of functions that   generate CSS pages, without any typechecking of the content. The content type sent by the server is "{{{text/css}}}".
 ;<<a_api| module Eliom_registration.String >>
-: Allows to register functions that   generate text pages, without any typechecking of the content. The services return a pair of strings. The first one is the content   of the page, the second one is the content type.
+: Registration of functions that   generate text pages, without any typechecking of the content. The services return a pair of strings. The first one is the content   of the page, the second one is the content type.
 ;<<a_api| module Eliom_registration.File >>
-: Allows to register services that send files. See <<a_manual chapter="server-services" fragment="eliomfiles"|here>> for an example of use.
+: Registration of services that send files. See <<a_manual chapter="server-services" fragment="eliomfiles"|here>> for an example of use.
 ;<<a_api| module Eliom_registration.Streamlist >>
-: Allows to register services that send "byte" contents. It is used when big contents (that does not fit in memory) is generated.
+: Registration of services that send "byte" contents. It is used when big contents (that does not fit in memory) is generated.
 
 <<paragraph| Generating content for client-server applications >>
 
 ;<<a_api| module Eliom_registration.App >>
-: is a functor that generates a module allowing to create services belonging to a client-server Eliom application (see <<a_manual chapter="clientserver-applications"|chapter client-server applications>>)
+: is a functor that generates a module that allows creation of services belonging to a client-server Eliom application (see <<a_manual chapter="clientserver-applications"|chapter client-server applications>>)
 
 <<paragraph| Special browser interraction >>
 
 ;<<a_api| module Eliom_registration.Action >>
-: Allows to register actions (functions that do not generate any page, see <<a_manual chapter="server-services" fragment="actions"|Action>>). The page corresponding to the URL (without the coservice parameter that triggered the action) is reloaded after the action by default if possible.
+: Registration of actions (functions that do not generate any page, see <<a_manual chapter="server-services" fragment="actions"|Action>>). The page corresponding to the URL (without the coservice parameter that triggered the action) is reloaded after the action by default if possible.
 ;<<a_api| module Eliom_registration.Unit >>
 : is like <<a_api| module Eliom_registration.Action >> but the URL is not reloaded after the action. (Same as {{{Eliom_registration.Action}}} with {{{[`NoReload]}}} option).
 ;<<a_api| module Eliom_registration.Redirection >>
-: Allows to register HTTP redirections. The handler returns the service (without parameter) of the page you want to redirect to. The browser will get a 301 or 307 code in answer and redo the request to the new URL. To specify whether you want temporary (307) or permanent (301) redirections, use the <<span class="code"|?options>> parameter of registration functions. For example: <<span class="code"|register ~options:`Permanent ...>> or <<span class="code"|register ~options:`Temporary ...>>.
+: Registration of HTTP redirections. The handler returns the service (without parameter) of the page you want to redirect to. The browser will get a 301 or 307 code in answer and redo the request to the new URL. To specify whether you want temporary (307) or permanent (301) redirections, use the <<span class="code"|?options>> parameter of registration functions. For example: <<span class="code"|register ~options:`Permanent ...>> or <<span class="code"|register ~options:`Temporary ...>>.
 ;<<a_api| module Eliom_registration.String_redirection >>
 : Same but the ouput type is a string. Use with care! Warning: According to the RFC of the HTTP protocol, the URL must be absolute!
 
@@ -88,18 +88,18 @@ module Eliom_content.Html5.F >> or the syntax extension. (useful for <<span clas
 
 
 ;<<a_api| module Eliom_registration.Customize >>
-: Allows to specialize service registration functions by customizing the page type.
+: Specialization of service registration functions by customizing the page type.
 
 <<paragraph| Sending caml values to client side code >>
 
 ;<<a_api| module Eliom_registration.Ocaml >>
-: allows to register services sending marshalled OCaml values. See the section on
+: registration of services sending marshalled OCaml values. See the section on
 <<a_manual chapter="clientserver-applications" fragment="communication" |communications in the chapter about client-server applications>>
 
 <<paragraph| Runtime choice of content >>
 
 ;<<a_api| module Eliom_registration.Any >>
-: Allows to register services that can choose what they send, for example an HTML page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See <<a_manual chapter="server-services" fragment="any"|here>> for an example of use.
+: Registration of services that can choose what they send, for example an HTML page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See <<a_manual chapter="server-services" fragment="any"|here>> for an example of use.
 
 === Specific output modules
 
@@ -156,7 +156,7 @@ handle static files.
 
 
  The <<a_api| module Eliom_registration.Make_typed_xml_registration >> module
- allows to create other modules for registering portions of pages of
+ allows the creation of new modules for registering portions of pages of
  other types.  For example, <<a_api| module Eliom_registration.Flow5 >> is
  defined by:
 
@@ -319,7 +319,7 @@ of content are:
 
 Yet sometimes you can want to mix the kinds of contents a service can
 return. The function <<a_api| val Eliom_registration.appl_self_redirect>>
-allows to cast browser content to application content. When an
+allows you to cast browser content to application content. When an
 application request some content casted througt that function the
 server send some informations telling the client to exit to that
 address instead. You should not use that on POST services: Leaving the

@@ -124,7 +124,7 @@ val unit : (unit, [ `WithoutSuffix ], unit param_name) params_type
 val user_type :
     (string -> 'a) ->
       ('a -> string) -> string -> ('a, [ `WithoutSuffix ], 'a param_name) params_type
-(** Allows to use whatever type you want for a parameter of the page.
+(** Allows you to use whatever type you want for a parameter of the page.
    [user_type s_to_t t_to_s s] tells that the page take a parameter, labeled [s], and that the server will have to use [s_to_t] and [t_to_s] to make the conversion from and to string.
  *)
 
@@ -246,7 +246,7 @@ val new_external_service :
 val new_auxiliary_service :
     fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'd) service ->
       ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd) service
-(** Creates another version of an already existing service, where you can register another treatment. The two versions are automatically distinguished thanks to an extra parameter. It allows to have several links towards the same page, that will behave differently. See the tutorial for more informations.*)
+(** Creates another version of an already existing service, where you can register another treatment. The two versions are automatically distinguished thanks to an extra parameter. It allows several links towards the same page, that will behave differently. See the tutorial for more informations.*)
 
 val new_post_service :
     fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c,
@@ -287,7 +287,7 @@ module Xhtml : sig
    [register_service service t f] will associate the service [service] to the function [f].
    [f] is the function that creates a page.
    It takes three parameters. The first one has type [server_params]
-   and allows to have acces to informations about the request.
+   and allows access to informations about the request.
    The second and third ones are respectively GET and POST parameters.
    For example if [t] is (int "s"), then ['a] is int.
  *)

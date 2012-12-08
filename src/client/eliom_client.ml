@@ -311,8 +311,8 @@ let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
 
 (* == Helper's functions for Eliom's event handler.
 
-   Allow to convert Xml.event_handler to javascript closure and to
-   register them in Dom node.
+   Allow conversion of Xml.event_handler to javascript closure and
+   their registration in Dom node.
 
 *)
 
@@ -397,7 +397,7 @@ let register_event_handler, flush_load_script =
 (* == Associate data to state of the History API.
 
    We store an 'id' in the state, and store data in an association
-   table in the session storage. This allows to avoid "replaceState"
+   table in the session storage. This allows avoiding "replaceState"
    that has not a coherent behaviour between Chromium and Firefox
    (2012/03).
 

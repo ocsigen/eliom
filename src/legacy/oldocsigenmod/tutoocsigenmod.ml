@@ -470,7 +470,7 @@ let essai =
         and are a big step in
         the understanding of Web interaction.</p>
         <p>
-        Some programming languages (Scheme...) allow to manipulate
+        Some programming languages (Scheme...) allow manipulating
         continuations using <em>control operators</em> (like
         <code>call/cc</code>). The style of programming used by Ocsigen
         is called <em>Continuation Passing Style</em> (CPS), and has the
@@ -484,8 +484,8 @@ let essai =
     </div>
     <h2>Forms</h2>
     <div class="twocol1">
-      <p>The function <code>Ocsigen.get_form</code> allows to create a form
-      that uses the GET method (parameters in the URL).
+      <p>The function <code>Ocsigen.get_form</code> allows creation of forms
+      that use the GET method (parameters in the URL).
       It works like <code>Ocsigen.Xhtml.a</code> but takes as parameter
       a <em>function</em> that creates the form from parameters names.
       </p>
@@ -723,7 +723,7 @@ let _ =
     <h2>Sessions</h2>
     <div class="twocol1">
       <p>
-      Ocsigen allows to replace a public service by a service valid only for
+      Ocsigen allows replacing a public service with a service valid only for
       one user.
       To create a "session service", register the service in
       a "session table" (valid only for one client)

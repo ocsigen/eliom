@@ -20,7 +20,7 @@ traditional web sites or sophisticated client/server web applications.
 It simplifies the development of complex applications by :
 
  * providing high level expressive concepts that fit very well the
-   needs of web developers. This allows to program complex behaviour
+   needs of web developers. This allows programming complex behaviour
    in very few lines of code.
  * helping the programmer to write safe and bug free applications.
    To improve security, it takes in charge itself many security issues.
@@ -82,7 +82,7 @@ to implement several step forms very easily (like booking a plane ticket).
 
 Eliom also have a very sophisticated session mechanism.
 Sessions are a common pattern in web programming allowing
-to store some data (a state) on server side for each browser.
+some data (a state) to be stored on server side for each browser.
 This is used for example to recognize connected users,
 or to store a shopping basket. This
 is usually implemented by recording a session identifier in a browser cookie.
@@ -96,7 +96,7 @@ But you can choose other //scope// than "session" for Eliom references:
 (if you are using client side features). For example if you are implementing
 a game, you can have several instances of the game in several tabs. The score
 is stored on server side in an Eliom references with scope "client process".
-* Eliom also provide a scope //"session group"//. This allows to group
+* Eliom also provide a scope //"session group"//. This allows grouping
 together for example all sessions belonging to the same user.
 Use this for example if you want to share the shopping basket
 between several devices (like my laptop and my smartphone...).

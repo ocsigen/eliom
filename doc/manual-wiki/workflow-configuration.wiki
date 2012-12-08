@@ -94,7 +94,7 @@ it is also possible (and recommended!) to do:
 
 ===@@id="reload"@@Updating sites without shutting down the server
 
-Ocsigen server has a feature that allows to re-read the configuration
+Ocsigen server has a feature that allows the configuration to be reloaded
 without shutting down the server (see section * *).
 This can be used to reload Eliom modules without closing volatile sessions.
 To do that use <<span class="code"|/etc/init.d/ocsigen reload>>

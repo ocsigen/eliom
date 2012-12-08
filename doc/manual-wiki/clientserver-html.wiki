@@ -89,7 +89,7 @@ application with Eliom, we usualy prefer to use the module
 elements build with {{{Eliom_content.Html5.D}}} are sent to the client by
 reference while elements build with {{{Eliom_content.Html5.F}}} are sent by value.
 
-Sending elements by reference allows to easily manipulate elements
+Sending elements by reference allows easy manipulation of elements
 included in the initial html document from event handlers, as the
 {{{input}}} element in the following example.
 
@@ -135,8 +135,8 @@ required:
 In every case, it is possible to mix elements sent by references and
 elements sent by value in the same document.
 
-The module <<a_api subproject="client"| module Eliom_dom >> allows to
-use the classical DOM manipulation functions (e.g. appendChild,
+The module <<a_api subproject="client"| module Eliom_dom >> allows
+using the classical DOM manipulation functions (e.g. appendChild,
 addEventlistener, ...) directly on HTML5 elements that follow the DOM
 semantics.
 
@@ -154,7 +154,7 @@ chapter="clientserver-applications" fragment="global" |Global elements of an
 application>>.
 
 The module <<a_api subproject="client"| module Eliom_content.Html5.Manip >>
-allows to use the classical DOM manipulation functions
+allows using the classical DOM manipulation functions
 (e.g. appendChild, addEventlistener, ...) directly on the identifier
 of an HTML5 elements.
 

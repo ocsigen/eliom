@@ -89,8 +89,8 @@ See[[http://tests.ocsigen.org./linkrec]].
 
 ===Forms towards GET services
 
-The function  <<a_api|  val Eliom_content.Html5.D.get_form >> allows to create a form
-that uses the GET method (parameters in the URL).
+The function  <<a_api|  val Eliom_content.Html5.D.get_form >> allows creation of forms
+that use the GET method (parameters in the URL).
 It works like  <<a_api| val Eliom_content.Html5.D.a >> but takes a //function// that creates the form from the parameters names as parameter.
 
 
@@ -298,7 +298,7 @@ corresponding forms.
 ===Parsing parameters using regular expressions
 
 
-Eliom_parameter.regexp allows to parse page parameters using (Perl-compatible)
+Eliom_parameter.regexp allows parsing page parameters using (Perl-compatible)
 regular expressions. We use the module <<span class="code"|Netstring_pcre>>,
 from //OCamlnet//. See the documentation about OCamlnet
 for more information.
@@ -683,7 +683,7 @@ In that case, Eliom always takes the shortest possible list.
 ===Forms and suffixes
 
 Service with "suffix" URLs have an equivalent version with
-usual parameters, allowing to create forms towards such services.
+usual parameters, allowing creation of forms towards such services.
 Example:
 
 <<code language="ocaml"|(* Form for service with suffix: *)
@@ -714,7 +714,7 @@ let suffixform = Eliom_registration.Html5.register_service ["suffixform"] Eliom_
 
 ===Uploading files
 
-The  <<a_api| val Eliom_parameter.file >> parameter type allows to send files in your
+The  <<a_api| val Eliom_parameter.file >> parameter type allows files to be sent in your
 request. The service gets something of type
  <<a_api project="ocsigenserver"| type Ocsigen_extensions.file_info >>. You can extract information
 using this using these functions (from  <<a_api| module Eliom_request_info >>):
@@ -726,7 +726,7 @@ val get_original_filename : Ocsigen_extensions.file_info -> string
 >>
 
 
- <<a_api| val Eliom_request_info.get_tmp_filename >> allows to know the actual name
+ <<a_api| val Eliom_request_info.get_tmp_filename >> returns the actual name
 of the uploaded file on the hard drive.
  <<a_api| val Eliom_request_info.get_original_filename >> gives the original filename.
 
