@@ -188,7 +188,7 @@ let do_next_client_section_data ~compilation_unit_id =
 (* == Initialize the client values sent with a request *)
 
 let do_request_data request_data =
-  trace "Do request data (%d)" (List.length request_data);
+  trace "Do request data (%a)" (fun () l -> string_of_int (List.length l)) request_data;
   (* On a request, i.e. after running the toplevel definitions, global_data
      must contain at most empty sections_data lists, which stem from server-
      only eliom files. *)
@@ -233,7 +233,7 @@ let register_unwrapped_elt, force_unwrapped_elts =
 let (register_process_node, find_process_node) =
   let process_nodes : Dom.node Js.t JsTable.t = JsTable.create () in
   let find id =
-    trace "Find process node %s" (Js.to_string id);
+    trace "Find process node %a" (fun () -> Js.to_string) id;
     Js.Optdef.bind
       (JsTable.find process_nodes id)
       (fun node ->
@@ -261,7 +261,7 @@ let register_request_node, find_request_node, reset_request_nodes =
   let request_nodes : Dom.node Js.t JsTable.t ref = ref (JsTable.create ()) in
   let find id = JsTable.find !request_nodes id in
   let register id node =
-    trace "Register request node %s" (Js.to_string id);
+    trace "Register request node %a" (fun () -> Js.to_string) id;
     JsTable.add !request_nodes id node in
   let reset () =
     trace "Reset request nodes";
@@ -653,10 +653,10 @@ let relink_process_node (node:Dom_html.element Js.t) =
     (fun () -> error "unique node without id attribute") in
   Js.Optdef.case (find_process_node id)
     (fun () ->
-       trace "Relink process node: did not find %s" (Js.to_string id);
+       trace "Relink process node: did not find %a" (fun () -> Js.to_string) id;
        register_process_node id (node:>Dom.node Js.t))
     (fun pnode ->
-       trace "Relink process node: found %s" (Js.to_string id);
+       trace "Relink process node: found %a" (fun () -> Js.to_string) id;
       Js.Opt.iter (node##parentNode)
         (fun parent -> Dom.replaceChild parent pnode node);
       if String.sub (Js.to_bytestring id) 0 7 <> "global_" then begin
@@ -672,10 +672,10 @@ let relink_request_node (node:Dom_html.element Js.t) =
     (fun () -> error "unique node without id attribute") in
   Js.Optdef.case (find_request_node id)
     (fun () ->
-       trace "Relink request node: did not find %s" (Js.to_string id);
+       trace "Relink request node: did not find %a" (fun () -> Js.to_string) id;
        register_request_node id (node:>Dom.node Js.t))
     (fun pnode ->
-       trace "Relink request node: found %s" (Js.to_string id);
+       trace "Relink request node: found %a" (fun () -> Js.to_string) id;
        Js.Opt.iter (node##parentNode)
          (fun parent -> Dom.replaceChild parent pnode node))
 
@@ -1199,9 +1199,9 @@ and raw_rebuild_node = function
     of an error. *)
 let rebuild_node context elt =
   let elt' = Html5.F.toelt elt in
-  trace "Rebuild node %s (%s)"
-    (Eliom_content_core.Xml.string_of_node_id (Xml.get_node_id elt'))
-    context;
+  trace "Rebuild node %a (%s)"
+    (fun () e -> Eliom_content_core.Xml.string_of_node_id (Xml.get_node_id e))
+    elt' context;
   if is_before_initial_load () then
     error_any (rebuild_node' (Html5.F.toelt elt))
       "Cannot call %s%s before the document is initially loaded"
