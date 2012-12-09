@@ -1204,12 +1204,12 @@ let rebuild_node context elt =
     elt' context;
   if is_before_initial_load () then
     error_any (rebuild_node' (Html5.F.toelt elt))
-      "Cannot call %s%s before the document is initially loaded"
+      "Cannot apply %s%s before the document is initially loaded"
       context
       Xml.(match get_node_id elt' with
-           | NoId -> ""
-           | RequestId id -> "on request node "^id
-           | ProcessId id -> "on global node "^id);
+           | NoId -> " "
+           | RequestId id -> " on request node "^id
+           | ProcessId id -> " on global node "^id);
   let node = Js.Unsafe.coerce (rebuild_node' elt') in
   flush_load_script ();
   node
@@ -1238,7 +1238,7 @@ let unwrap_tyxml =
        don't have control on when "onload" event handlers are
        triggered. *)
     let elt =
-      let context = "unwrapping (you should NOT see this error, please report to dev@ocsigen.org)" in
+      let context = "unwrapping (i.e. utilize it in whatsoever form)" in
       Xml.make_lazy ~id:tmp_elt.tmp_node_id
         (lazy
            (match tmp_elt.tmp_node_id with
