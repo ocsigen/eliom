@@ -1275,14 +1275,23 @@ let unwrap_tyxml =
     register_unwrapped_elt elt;
     elt
 
+let unwrap_client_value ({closure_id; instance_id},_) =
+  try
+    Some (Client_value.find ~closure_id ~instance_id)
+  with Not_found ->
+    (* BB By returning [None] this value will be registered for late
+       unwrapping, and late unwrapped in Client_value.initialize as
+       soon as it is available. *)
+    None
+
 let unwrap_global_data =
   fun (global_data', _) ->
     global_data := global_data'
 
 let _ =
-  (* BBB No unwrapper for Client_value.t! They are explicitly late
-     unwrapped by Eliom_unwrap.late_unwrap_value in
-     [Client_value.initialize]. *)
+  Eliom_unwrap.register_unwrapper'
+    (Eliom_unwrap.id_of_int Eliom_lib_base.client_value_unwrap_id_int)
+    unwrap_client_value;
   Eliom_unwrap.register_unwrapper
     (Eliom_unwrap.id_of_int Eliom_lib_base.tyxml_unwrap_id_int)
     unwrap_tyxml;

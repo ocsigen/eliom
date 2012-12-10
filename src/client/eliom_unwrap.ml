@@ -63,7 +63,7 @@ type unwrapper =
     { id : unwrap_id;
       mutable umark : Mark.t; }
 
-let unwrap_table : (Obj.t -> Obj.t) Js.js_array Js.t = jsnew Js.array_empty ()
+let unwrap_table : (Obj.t -> Obj.t option) Js.js_array Js.t = jsnew Js.array_empty ()
 (* table containing all the unwrapping functions referenced by their id *)
 
 type occurrence = {
@@ -87,10 +87,10 @@ let remaining_values_for_late_unwrapping () =
       else aux sofar (succ n)
   in aux [] 0
 
-let register_unwrapper id f =
+let register_unwrapper' id f =
   if Js.Optdef.test (Js.array_get unwrap_table id) then
     failwith (Printf.sprintf ">> the unwrapper id %i is already registered" id);
-  let f x = Obj.repr (f (Obj.obj x)) in
+  let f x = Ocsigen_lib_base.Option.map Obj.repr (f (Obj.obj x)) in
   (* Store unwrapper *)
   Js.array_set unwrap_table id f;
   (* Do late unwrapping *)
@@ -101,18 +101,25 @@ let register_unwrapper id f =
                                id (List.length all_occurrences));
       List.iter
         (fun { value; occurrences } ->
-          let value' = f value in
-          List.iter
-            (fun { parent; field } ->
-              Js.Unsafe.set parent field value')
-            occurrences)
+          match f value with
+            | Some value' ->
+              List.iter
+                (fun { parent; field } ->
+                  Js.Unsafe.set parent field value')
+                occurrences
+            | None ->
+              Printf.ksprintf (fun s -> Firebug.console##error_2(Js.string s, value); failwith s)
+                "User defined unwrapping function must yield some value, not None")
         all_occurrences;
       Js.Unsafe.delete occurrences_table id)
+
+let register_unwrapper id f =
+  register_unwrapper' id (fun x -> Some (f x))
 
 let apply_unwrapper unwrapper v =
   Js.Optdef.case (Js.array_get unwrap_table unwrapper.id)
     (fun () -> None) (* Use late unwrapping! *)
-    (fun f -> Some (f v))
+    (fun f -> f v)
 
 (* Register the occurrence of a [value] inside another value [parent]
    at position [field].

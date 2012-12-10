@@ -59,7 +59,7 @@ val unwrap : string -> int -> 'a
 
    replaced by [f w] if [f] was registered as [register_unwrapper
    (id_of_int id) f]. Note, that the JavaScript's
-   
+
      [0, id, "unwrap_mark"]
 
    corresponds to OCaml's
@@ -91,6 +91,8 @@ val unwrap : string -> int -> 'a
    running all top level declarations, no values marked for late
    unwrapping should remain (cf. [has_values_for_late_unwrapping]).
 *)
+
+val register_unwrapper' : unwrap_id -> ('a -> 'b option) -> unit
 
 (** [late_unwrap_value id predicate new_value] replaces each occurrence
     of every value which is marked for late unwrapping and on which
