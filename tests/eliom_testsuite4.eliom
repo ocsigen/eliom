@@ -1433,7 +1433,7 @@ let late_unwrap_other_value : late_unwrap_t = "other", late_unwrap_unwrapper
   let () =
     Eliom_unwrap.register_unwrapper (Eliom_unwrap.id_of_int %late_unwrap_unwrap_id)
       (fun (v, _) ->
-        Eliom_testsuite_base.log "Called late unwrapper for %S" v;
+        Eliom_testsuite_base.log "Called unwrapper for %S" v;
         "!" ^ v ^ "!")
 }}
 {client{
@@ -1461,15 +1461,19 @@ let late_unwrap =
                  string"];
       p [pcdata "The following result should be observed (in logging output)"];
       ol [
-        li [pcdata "Called late unwrapper for \"other\""];
-        li [pcdata "Called late unwrapper for \"one\""];
+        li [pcdata "Called unwrapper for \"fresh\""];
+        li [pcdata "Called unwrapper for \"other\""];
+        li [pcdata "Called unwrapper for \"one\""];
         li [pcdata "Value \"!one!\""];
         li [pcdata "Value \"!one!\""];
         li [pcdata "Values \"!one\", \"!one!\""];
         li [pcdata "Other value \"!other!\""];
-      ]
+      ];
+      p [pcdata "And 'Fresh \"!fresh!\"' for every request"];
     ])
     (fun () ->
+      let fresh : late_unwrap_t = "fresh", late_unwrap_unwrapper in
+      ignore {unit{ Eliom_testsuite_base.log "Fresh %s" %fresh }};
       Lwt.return [])
 
 (******************************************************************************)
