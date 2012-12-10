@@ -95,16 +95,21 @@ let monospace fmt =
 
   let buffer = ref []
   let append_log_message msg =
-    trace "append_log_message %s" msg;
     Html5.Manip.appendChild
       %test_logger
       Html5.D.(div ~a:[a_class ["logging_line"]] [pcdata msg])
+
   let () =
-    Lwt.ignore_result
-      (lwt () = Eliom_client.wait_load_end () in
-       List.iter append_log_message (List.rev !buffer);
-       buffer := [];
-       Lwt.return ())
+    let rec flush () =
+      Eliom_client.onload
+        (fun () ->
+          List.iter append_log_message (List.rev !buffer);
+          buffer := [];
+          Lwt.ignore_result
+            (lwt () = Lwt_js.sleep 0.01 in
+             Lwt.return (flush ())))
+    in flush ()
+
   let log : 'a . ('a, unit, string, unit) format4 -> 'a =
     fun fmt ->
       Printf.ksprintf
