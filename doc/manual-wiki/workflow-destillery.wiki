@@ -14,7 +14,7 @@ The {{{eliom-destillery}}} creates projects from templates. Currently,
 only a very simplistic project name "basic" is supported. To create it, just call
 
 <<code language="shell"|
-$ eliom-destillery --name <name> --template basic [--destination <dest>]
+$ eliom-destillery -name <name> -template basic [-destination <dest>]
 >>
 
 This creates a project named {{{<name>}}} from the {{{"basic"}}}
