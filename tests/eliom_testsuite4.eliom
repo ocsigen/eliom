@@ -1522,6 +1522,28 @@ let wrap_handler =
       ]]))
 
 (******************************************************************************)
+{client{ Eliom_config.set_tracing true }}
+let cross_change_page_client_values =
+  let global_client_ref = {string ref{ ref "initial" }} in
+  Eliom_testsuite_base.test
+    ~title:"Cross change page client values"
+    ~path:["holes";"cross_change_page"]
+    ~description:Html5.F.([
+      ul [
+        li [pcdata "The server keeps a global client value with a client reference. \
+                    It is logged on each change_page (reload within application). \
+                    The server adds an prime to that string on each reload"]
+      ]
+    ])
+    (fun () ->
+      ignore {unit{
+        Eliom_testsuite_base.log "Global client reference is %S" ! %global_client_ref;
+        %global_client_ref := ! %global_client_ref ^ "'"
+      }};
+      Lwt.return Html5.F.([
+      ]))
+
+(******************************************************************************)
 
 let tests = [
   "Mixed", [
@@ -1537,6 +1559,7 @@ let tests = [
     data_sharing;
     client_value_initialization;
     late_unwrap;
+    cross_change_page_client_values;
 (*
    test_simple;
    client_values_injection;
