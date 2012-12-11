@@ -43,11 +43,22 @@ let server_type_file_dependencies line =
       else (* Generate only byte-code dependencies *)
         ""
     | _ ->
-      (* ocamldep has been run with option -one-line *)
       failwith "add_deps_of_type_mli"
 
 let rec on_each_line f ch =
-  let line = f (input_line ch) in
+  (* BB Add option -one-line to the calls to ocamldep when we don't
+     support OCaml<4 any more. *)
+  let rec aux lines =
+    (* May fail only when lines=[], it is then handled by create_filter *)
+    let line = input_line ch in
+    let max_ix = String.length line - 1 in
+    if String.length line > 0 && line.[max_ix] = '\\' then
+      let line' = String.sub line 0 (max_ix) in
+      aux (line' :: lines)
+    else
+      String.concat " " (List.rev (line :: lines))
+  in
+  let line = f (aux []) in
   if line <> "" then
     ( print_string line;
       print_newline () );
@@ -57,13 +68,13 @@ let eliom_synonyms = [ "-ml-synonym"; ".eliom"; "-mli-synonym"; ".eliomi" ]
 
 let compile_intf file =
   create_filter
-    !compiler ( "-one-line" :: "-pp" :: get_pp !ppopt :: eliom_synonyms @ !args
+    !compiler ( "-pp" :: get_pp !ppopt :: eliom_synonyms @ !args
 		@ ["-intf"; file] )
     (on_each_line add_build_dirs)
 
 let compile_impl file =
   create_filter
-    !compiler ( "-one-line" :: "-pp" :: get_pp !ppopt :: eliom_synonyms @ !args
+    !compiler ( "-pp" :: get_pp !ppopt :: eliom_synonyms @ !args
 		@ ["-impl"; file] )
     (on_each_line add_build_dirs)
 
@@ -93,7 +104,7 @@ let compile_type_eliom ~impl_intf file =
     exit 0
   end;
   create_filter !compiler
-    ( "-one-line" :: "-pp" :: get_pp (type_pp_opt impl_intf) :: eliom_synonyms @ !args
+    ( "-pp" :: get_pp (type_pp_opt impl_intf) :: eliom_synonyms @ !args
       @ [impl_intf_opt impl_intf; file] )
     (on_each_line server_type_file_dependencies)
 
@@ -104,7 +115,7 @@ let compile_client_eliom ~impl_intf file =
     exit 0
   end;
   create_filter !compiler
-    ( "-one-line" :: "-pp" :: get_pp (client_pp_opt impl_intf) :: eliom_synonyms @ !args
+    ( "-pp" :: get_pp (client_pp_opt impl_intf) :: eliom_synonyms @ !args
       @ [impl_intf_opt impl_intf; file] )
     (on_each_line add_build_dirs)
 
