@@ -13,8 +13,8 @@ else
 endif
 
 ELIOMC   := eliomc -I ${SRC}/src/server/extensions ${DEBUG_OPTION}
-ELIOMOPT := eliomopt ${DEBUG_OPTION}
-ELIOMDEP := eliomdep
+ELIOMOPT := eliomopt -I ${SRC}/src/server/extensions ${DEBUG_OPTION}
+ELIOMDEP := eliomdep -I ${SRC}/src/server/extensions
 JS_OF_ELIOM := js_of_eliom ${DEBUG_OPTION}
 
 ifeq "${NATDYNLINK}" "YES"
