@@ -35,40 +35,35 @@ let add_build_dir s =
 let add_build_dirs line =
   String.concat " " (List.map add_build_dir (split ' ' line ))
 
-let rec filter_dir ch =
-  Printf.printf "%s\n" (add_build_dirs (input_line ch));
-  filter_dir ch
+let server_type_file_dependencies line =
+  match split ':' line with
+    | [ file; deps ] ->
+      if Filename.check_suffix file ".cmo" then
+        Printf.sprintf "%s : %s" (get_type_file file) (add_build_dirs deps)
+      else (* Generate only byte-code dependencies *)
+        ""
+    | _ ->
+      (* ocamldep has been run with option -one-line *)
+      failwith "add_deps_of_type_mli"
 
-let rec filter_type ch =
-  match split ':' (input_line ch) with
-  | [ file; deps ] ->
-      Printf.printf "%s : %s\n" (get_type_file file) (add_build_dirs deps);
-      filter_type_bis ch
-  | _ -> ()
-
-and filter_type_bis ch =
-  let line = input_line ch in
-  try ignore (String.index line ':')
-  with Not_found ->
-    Printf.printf "%s\n" (add_build_dirs line);
-    filter_type_bis ch
-
-let execute ?(typ = false) name args = match !kind with
-  | `Server -> wait (create_process name args)
-  | `Client -> create_filter name args filter_dir
-  | _ -> assert false
+let rec on_each_line f ch =
+  let line = f (input_line ch) in
+  if line <> "" then
+    ( print_string line;
+      print_newline () );
+  on_each_line f ch
 
 let compile_intf file =
   create_filter
-    !compiler ( "-pp" :: get_pp !ppopt :: !args
+    !compiler ( "-one-line" :: "-pp" :: get_pp !ppopt :: !args
 		@ ["-intf"; file] )
-    filter_dir
+    (on_each_line add_build_dirs)
 
 let compile_impl file =
   create_filter
-    !compiler ( "-pp" :: get_pp !ppopt :: !args
+    !compiler ( "-one-line" :: "-pp" :: get_pp !ppopt :: !args
 		@ ["-impl"; file] )
-    filter_dir
+    (on_each_line add_build_dirs)
 
 let eliom_synonyms = [ "-ml-synonym"; ".eliom"; "-mli-synonym"; ".eliomi" ]
 
@@ -76,6 +71,8 @@ let server_pp_opt impl_intf =
   ["pa_eliom_client_server.cmo"; "-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
 let client_pp_opt impl_intf =
   ["pa_eliom_client_client.cmo"; "-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
+let type_pp_opt impl_intf =
+  ["pa_eliom_type_filter.cmo"] @ !ppopt @ [impl_intf_opt impl_intf]
 
 let compile_server_eliom ~impl_intf file =
   if !do_dump then begin
@@ -84,9 +81,21 @@ let compile_server_eliom ~impl_intf file =
     exit 0
   end;
   create_filter !compiler
-    ( "-pp" :: get_pp (server_pp_opt impl_intf) :: eliom_synonyms @ !args
+    ( "-one-line" :: "-pp" :: get_pp (server_pp_opt impl_intf) :: eliom_synonyms @ !args
       @ [impl_intf_opt impl_intf; file] )
-    filter_dir
+    (on_each_line add_build_dirs)
+
+let compile_type_eliom ~impl_intf file =
+  if !do_dump then begin
+    (* Won't run because [compile_server_eliom] is first and exits ... *)
+    let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: type_pp_opt impl_intf @ [file]) in
+    ignore (create_process camlp4 ppopt);
+    exit 0
+  end;
+  create_filter !compiler
+    ( "-one-line" :: "-pp" :: get_pp (type_pp_opt impl_intf) :: eliom_synonyms @ !args
+      @ [impl_intf_opt impl_intf; file] )
+    (on_each_line server_type_file_dependencies)
 
 let compile_client_eliom ~impl_intf file =
   if !do_dump then begin
@@ -95,19 +104,22 @@ let compile_client_eliom ~impl_intf file =
     exit 0
   end;
   create_filter !compiler
-    ( "-pp" :: get_pp (client_pp_opt impl_intf) :: eliom_synonyms @ !args
+    ( "-one-line" :: "-pp" :: get_pp (client_pp_opt impl_intf) :: eliom_synonyms @ !args
       @ [impl_intf_opt impl_intf; file] )
-    filter_dir
+    (on_each_line add_build_dirs)
 
 let compile_eliom ~impl_intf file =
   let basename = chop_extension_if_any file in
+  (match !kind with
+    | `Server ->
+      compile_server_eliom ~impl_intf file;
+      compile_type_eliom ~impl_intf file
+    | `Client ->
+      compile_client_eliom ~impl_intf file
+    | _ -> assert false);
   if impl_intf = `Impl then
-    (Printf.printf "%s.cmo : %s\n" (add_build_dir basename) (get_type_file file);
-     Printf.printf "%s.cmx : %s\n" (add_build_dir basename) (get_type_file file));
-  match !kind with
-    | `Server -> compile_server_eliom ~impl_intf file
-    | `Client -> compile_client_eliom ~impl_intf file
-    | _ -> assert false
+    ( Printf.printf "%s.cmo : %s\n" (add_build_dir basename) (get_type_file file);
+      Printf.printf "%s.cmx : %s\n" (add_build_dir basename) (get_type_file file) )
 
 let sort () =
   let ppopt =
