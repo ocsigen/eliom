@@ -7,10 +7,10 @@ let usage () =
   Printf.eprintf "SPECIFIC OPTIONS:\n%!";
   Printf.eprintf "  -dir <dir>\t\tThe default directory for generated files (default %S or %S)\n"
      default_client_dir default_server_dir;
-  Printf.eprintf "  -type-dir <dir>\t\tThe directory for generated type_mli files (default %S)\n"
+  Printf.eprintf "  -type-dir <dir>\tThe directory for generated type_mli files (default %S)\n"
      default_type_dir;
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
-  Printf.eprintf "  -ppopt <p>\tAppend option <opt> to preprocessor invocation\n";
+  Printf.eprintf "  -ppopt <p>\t\tAppend option <opt> to preprocessor invocation\n";
   Printf.eprintf "  -predicates <p>\tAdd predicate <p> when resolving package properties\n";
   Printf.eprintf "  -verbose\t\tPrint calls to external commands\n";
   create_filter !compiler ["-help"] (help_filter 2 "STANDARD OPTIONS:");
@@ -53,19 +53,19 @@ let rec on_each_line f ch =
       print_newline () );
   on_each_line f ch
 
+let eliom_synonyms = [ "-ml-synonym"; ".eliom"; "-mli-synonym"; ".eliomi" ]
+
 let compile_intf file =
   create_filter
-    !compiler ( "-one-line" :: "-pp" :: get_pp !ppopt :: !args
+    !compiler ( "-one-line" :: "-pp" :: get_pp !ppopt :: eliom_synonyms @ !args
 		@ ["-intf"; file] )
     (on_each_line add_build_dirs)
 
 let compile_impl file =
   create_filter
-    !compiler ( "-one-line" :: "-pp" :: get_pp !ppopt :: !args
+    !compiler ( "-one-line" :: "-pp" :: get_pp !ppopt :: eliom_synonyms @ !args
 		@ ["-impl"; file] )
     (on_each_line add_build_dirs)
-
-let eliom_synonyms = [ "-ml-synonym"; ".eliom"; "-mli-synonym"; ".eliomi" ]
 
 let server_pp_opt impl_intf =
   ["pa_eliom_client_server.cmo"; "-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
