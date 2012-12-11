@@ -92,7 +92,7 @@ let compile_server_eliom ~impl_intf file =
     exit 0
   end;
   create_filter !compiler
-    ( "-one-line" :: "-pp" :: get_pp (server_pp_opt impl_intf) :: eliom_synonyms @ !args
+    ( "-pp" :: get_pp (server_pp_opt impl_intf) :: eliom_synonyms @ !args
       @ [impl_intf_opt impl_intf; file] )
     (on_each_line add_build_dirs)
 
