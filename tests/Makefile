@@ -12,7 +12,7 @@ else
   DEBUG_OPTION :=
 endif
 
-ELIOMC   := eliomc ${DEBUG_OPTION}
+ELIOMC   := eliomc -I ${SRC}/src/server/extensions ${DEBUG_OPTION}
 ELIOMOPT := eliomopt ${DEBUG_OPTION}
 ELIOMDEP := eliomdep
 JS_OF_ELIOM := js_of_eliom ${DEBUG_OPTION}
@@ -34,6 +34,7 @@ SERVER_FILES := eliom_testsuite_base.eliom \
                 eliom_testsuite3.eliom \
                 eliom_testsuite4.eliom \
 		eliom_testsuite.ml     \
+                atom_example.ml \
 
 CLIENT_FILES := eliom_testsuite_base.eliom \
                 eliom_testsuite3.eliom \
