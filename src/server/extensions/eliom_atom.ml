@@ -20,10 +20,6 @@
 
 open Eliom_lib
 
-module Make (Xml : Xml_sigs.Iterable) = struct
-
-module Atom_feed = Atom_feed.Make(Xml)
-
 module F = Ocsigen_http_frame
 module H = Ocsigen_http_frame.Http_header
 
@@ -134,7 +130,3 @@ let register_feed ~path ~hubs address f =
        (Atom_feed.insert_hub_links hubs feed));
    notify_feed_updates address hubs s;
    {notify_updates = fun () -> notify_feed_updates address hubs s}
-
-end
-
-include Make(Xml)

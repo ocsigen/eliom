@@ -207,9 +207,11 @@ eliom_uri.cmi : eliom_service.cmi eliom_parameter.cmi eliom_lib.cmi \
 eliom_wrap.cmo : eliom_wrap.cmi
 eliom_wrap.cmx : eliom_wrap.cmi
 eliom_wrap.cmi :
-extensions/atom_feed.cmo : eliom_lib.cmi extensions/atom_feed.cmi
-extensions/atom_feed.cmx : eliom_lib.cmx extensions/atom_feed.cmi
-extensions/atom_feed.cmi : eliom_lib.cmi
+extensions/atom_feed.cmo : eliom_lib.cmi eliom_content.cmi \
+    extensions/atom_feed.cmi
+extensions/atom_feed.cmx : eliom_lib.cmx eliom_content.cmx \
+    extensions/atom_feed.cmi
+extensions/atom_feed.cmi : eliom_lib.cmi eliom_content.cmi
 extensions/eliom_atom.cmo : eliom_service.cmi eliom_registration.cmi \
     eliom_parameter.cmi eliom_mkreg.cmi eliom_lib.cmi \
     extensions/atom_feed.cmi extensions/eliom_atom.cmi

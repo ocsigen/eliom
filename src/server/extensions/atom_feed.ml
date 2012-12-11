@@ -20,14 +20,10 @@
 
 open Eliom_lib
 
-module Make (Xml : Xml_sigs.Iterable) = struct
-
-module Xhtml = Xhtml_f.Make(Xml)
-
 (*
  * types {{{
  *)
-type uri = Xhtml.uri
+type uri = Xml.uri
 type lang = string
 type base = uri
 type ncname = string
@@ -35,7 +31,7 @@ type dateConstruct = string
 type emailAddress = string
 type mediaType = string
 type length = int
-type href = Xhtml.uri
+type href = Xml.uri
 type hrefLang = string
 type rel = string
 type ltitle = string
@@ -136,7 +132,13 @@ let rec c_pcdata l = match l with | [] -> [] | a::r -> Xml.pcdata a :: c_pcdata
 r
 
 let xhtmlDiv b = Xml.node ~a:[(Xml.string_attrib "xmlns"
-      "http://www.w3.org/1999/xhtml")] "div" (Xhtml.toeltl b)
+      "http://www.w3.org/1999/xhtml")] "div" (Xhtml.M.toeltl b)
+
+let print_html5 l =
+  let buffer = Buffer.create 500 in
+  let output = Buffer.add_string buffer in
+  Eliom_content.Html5.Printer.print_list ~output l;
+  Buffer.contents buffer
 
 let inlineC ?(meta = []) ?(html = false) c = `Content (Xml.node ~a:(a_type (if
             html then "html" else "text") :: metaAttr_extract meta) "content"
@@ -144,6 +146,9 @@ let inlineC ?(meta = []) ?(html = false) c = `Content (Xml.node ~a:(a_type (if
 
 let xhtmlC ?(meta = []) c = `Content (Xml.node ~a:(a_type "xhtml" ::
          metaAttr_extract meta) "content" [xhtmlDiv c])
+
+let html5C ?meta c =
+  inlineC ?meta ~html:true [print_html5 [Eliom_content.Html5.F.div c]]
 
 let inlineOtherC ?(meta = []) (a,b) = `Content (Xml.node ~a:(a_medtype a ::
          metaAttr_extract meta) "content" b)
@@ -224,6 +229,9 @@ let plain ?(meta = []) ?(html = false) content = (Xml.string_attrib "type"
 let xhtml ?(meta = []) content = (Xml.string_attrib "type" "xhtml" ::
       metaAttr_extract meta, [xhtmlDiv content])
 
+let html5 ?meta content =
+  plain ?meta ~html:true (print_html5 content)
+
 let rights t = `Rights t
 
 let subtitle t = `Sub t
@@ -297,7 +305,3 @@ let published d = `Pub (Xml.node ~a:[] "published" [ Xml.pcdata (date d) ])
 let insert_hub_links hubs feed = match Xml.content feed with
    | Xml.Node (b, a, c)  -> Xml.node ~a b (List.map
          (fun uri -> link ~elt:[`Rel ("hub")] uri) hubs @ c) | _ -> assert false
-
-end
-
-include Make(Xml)
