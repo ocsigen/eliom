@@ -75,7 +75,7 @@ module Svg : module type of Eliom_content_core.Svg
 module Html5 : sig
 
   (** See the Eliom manual for more information on {% <<a_manual
-      chapter="client" fragment="unique"| dom semantics vs. functional
+      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
       semantics>> %} for HTML5 tree manipulated by client/server
       application. *)
 

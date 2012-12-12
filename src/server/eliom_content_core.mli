@@ -33,7 +33,7 @@ module Xml : sig
   (** Unique nodes are XML nodes that are manipulated 'by reference'
       when sent to the client part of an Eliom-application: the
       created element is allocated only one time in each instance of
-      an application. See {% <<a_manual chapter="client"
+      an application. See {% <<a_manual chapter="clientserver-html"
       fragment="unique" |the eliom manual>>%} for more
       details. *)
 
@@ -41,7 +41,7 @@ module Xml : sig
 
   (** Values of type ['a caml_event_handler] represents event handler
       build with the [{{ ... }}] syntax (see the Eliom manual for more
-      information on {% <<a_manual chapter="client"
+      information on {% <<a_manual chapter="clientserver-html"
       fragment="syntax"|syntax extension>>%}). Such values are expected
       by functions like {!Eliom_service.on_load} or
       {!Eliom_content.Html5.a_onclick}. The type parameter is the
@@ -107,7 +107,7 @@ module Eliom_xml : module type of Xml
 module Svg : sig
 
   (** See the Eliom manual for more information on{% <<a_manual
-      chapter="client" fragment="unique"| dom semantics vs. functional
+      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
       semantics>> %} for SVG tree manipulated by client/server
       application. *)
 
@@ -144,7 +144,7 @@ module Svg : sig
 
     (** The function [new_elt_id ()] creates a new HTML5 element
         identifier. (see the Eliom manual for more information on {%
-        <<a_manual project="eliom" chapter="client"
+        <<a_manual project="eliom" chapter="clientserver-html"
         fragment="global"|global element>>%}).*)
     val new_elt_id: ?global:bool -> unit -> 'a id
 
@@ -168,7 +168,7 @@ end
 module Html5 : sig
 
   (** See the Eliom manual for more information on {% <<a_manual
-      chapter="client" fragment="unique"| dom semantics vs. functional
+      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
       semantics>> %} for HTML5 tree manipulated by client/server
       application. *)
 
@@ -242,7 +242,7 @@ module Html5 : sig
 
     (** The function [new_elt_id ()] creates a new global HTML5 element
         identifier (see the Eliom manual for more information on {%
-        <<a_manual project="eliom" chapter="client"
+        <<a_manual project="eliom" chapter="clientserver-html"
         fragment="global"|global element>>%}).*)
     val new_elt_id: ?global:bool -> unit -> 'a id
 
@@ -259,7 +259,7 @@ module Html5 : sig
     val have_id: 'a id -> 'b elt -> bool
   end
 
-  (** Type-safe custom data for HTML5. See the {% <<a_manual chapter="html"
+  (** Type-safe custom data for HTML5. See the {% <<a_manual chapter="clientserver-html"
       fragment="custom_data"|examples in the manual>> %}. *)
   module Custom_data : sig
 

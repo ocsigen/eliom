@@ -22,7 +22,7 @@
 (** Creation and manipulation of Eliom services.
 
     See the Eliom manual for a detailed introduction to the concept of
-    {% <<a_manual chapter="services"|Eliom services>>%}.
+    {% <<a_manual chapter="server-services"|Eliom services>>%}.
 
     {% <<outline>> %}
  *)
@@ -194,7 +194,7 @@ val register_eliom_module : string -> (unit -> unit) -> unit
     service will keep persistent (resp. all) non localized GET
     parameters of the current service. The default is [`None]. See the
     eliom manual for more information about {% <<a_manual
-    chapter="params" fragment="nonlocalizedparameters"|non localized
+    chapter="server-params" fragment="nonlocalizedparameters"|non localized
     parameters>>%}.
 *)
 val service :
@@ -290,7 +290,7 @@ val post_service :
 (** {3 Attached coservices} *)
 
 (** The function [coservice ~fallback ~get_params] creates an {%
-    <<a_manual chapter="services" fragment="attached_coservices"|attached
+    <<a_manual chapter="server-services" fragment="attached_coservices"|attached
     coservice>>%} at the same path than the service [fallback] and
     taking [get_params] as GET parameters.
 
@@ -312,7 +312,7 @@ val post_service :
     number of times. The default is "no limitation".
 
     If the optional [~csrf_safe] parameter is [true], it will create a
-    {% <<a_manual chapter="security" fragment="csrf"|"CSRF-safe"
+    {% <<a_manual chapter="server-security" fragment="csrf"|"CSRF-safe"
     service>>%}. In that case the [~name] parameter is ignored. The
     default is [false].
 
@@ -351,7 +351,7 @@ val coservice :
    [> `Registrable ], 'return2) service
 
 (** The function [post_coservice ~fallback ~get_params] creates an {%
-    <<a_manual chapter="services" fragment="attached_coservices"|attached
+    <<a_manual chapter="server-services" fragment="attached_coservices"|attached
     coservice>>%} with the same path and GET parameters than the
     service [fallback] and taking [post_params] as POST
     parameters.
@@ -387,7 +387,7 @@ val post_coservice :
 (** {3 Non attached coservices} *)
 
 (** The function [coservice' ~get_param] creates a {% <<a_manual
-    chapter="services" fragment="non-attached_coservices"|non-attached
+    chapter="server-services" fragment="non-attached_coservices"|non-attached
     coservice>>%} taking [get_params] as extra GET parameters.
 
     GET parameters of [coservice'] couldn't contain a suffix
@@ -414,7 +414,7 @@ val coservice' :
 
 
 (** The function [post_coservice' ~get_param] creates a {% <<a_manual
-    chapter="services" fragment="non-attached_coservices"|non-attached
+    chapter="server-services" fragment="non-attached_coservices"|non-attached
     coservice>>%} taking [post_params] as POST parameters.
 
     POST parameters couldn't contain a suffix parameter.
@@ -555,7 +555,7 @@ val preapply :
 (** The function [add_non_localized_get_parameters ~params ~service]
     Adds non localized GET parameters [params] to [service]. See the
     Eliom manual for more information about {% <<a_manual
-    chapter="params" fragment="nonlocalizedparameters"|non localized
+    chapter="server-params" fragment="nonlocalizedparameters"|non localized
     parameters>>%}. *)
 val add_non_localized_get_parameters :
   params:('p, [ `WithoutSuffix ], 'pn) non_localized_params ->
@@ -702,7 +702,7 @@ module Syntax_helpers : sig
 
   (** All client values created between [set_global true] and
       [set_global false] are considered global client values
-      (cf. <<a_manual chapter="eliom-language" chapter="clientvalues"|the
+      (cf. <<a_manual chapter="clientserver-language" chapter="clientvalues"|the
       manual>>).  *)
   val set_global : bool -> unit
 

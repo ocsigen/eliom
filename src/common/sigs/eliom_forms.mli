@@ -110,7 +110,7 @@ type for_attrib
 
     The optional parameter [nl_params] allows one to add non localized
     GET parameter to the URL.  See the eliom manual for more
-    information about {% <<a_manual chapter="params"
+    information about {% <<a_manual chapter="server-params"
     fragment="nonlocalizedparameters"|non localized parameters>>%}.
 *)
 val make_uri :

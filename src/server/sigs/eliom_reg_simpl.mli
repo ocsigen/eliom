@@ -11,7 +11,7 @@ open Eliom_service
 
     The optional parameter [~scope] is {!Eliom_common.global} by
     default, see the Eliom manual for detailled description {%
-    <<a_manual chapter="services" fragment="scope"|of different
+    <<a_manual chapter="server-services" fragment="scope"|of different
     scope>>%}.
 
     The optional parameter [~options] is specific to each output
@@ -29,7 +29,7 @@ open Eliom_service
     secure session if the protocol is [https]. If set to [false]
     (resp. [true]) the [handler] will be stored in the unsecure
     (resp. secure) session. See the Eliom manual for an introduction
-    to {% <<a_manual chapter="state"|secure state>>%}.
+    to {% <<a_manual chapter="server-state"|secure state>>%}.
 
     The optional parameter [~error_handler] is used to specialize the
     error page when actual parameters aren't compatible with the

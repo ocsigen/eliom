@@ -23,8 +23,8 @@
     actions, redirections, static files, … *)
 
 (** See the Eliom manual for
-    more information on {% <<a_manual chapter="services" | services
-    >>%} and {% <<a_manual chapter="outputs" | predefined outputs
+    more information on {% <<a_manual chapter="server-services" | services
+    >>%} and {% <<a_manual chapter="server-outputs" | predefined outputs
     >>%}. *)
 
 (** {% <<outline>> %}*)
@@ -295,7 +295,7 @@ module CssText : "sigs/eliom_reg.mli"
 
 (** Eliom service registration for services that only execute
     actions. See the Eliom manual for more information about {%
-    <<a_manual chapter="outputs" fragment="actions"|Actions
+    <<a_manual chapter="server-outputs" fragment="actions"|Actions
     outputs>>%}.
 
     If you give the optional parameter [~options:`NoReload] to the
@@ -319,7 +319,7 @@ module Unit : "sigs/eliom_reg.mli"
 
 (** Eliom service registration for services that returns a redirections
     towards another service. See the Eliom manual for more
-    information about {% <<a_manual chapter="outputs"
+    information about {% <<a_manual chapter="server-outputs"
     fragment="redirections"|Redirections outputs>>%}.
 
     The default returned HTTP code is [302 Found]. You could use the
@@ -350,7 +350,7 @@ module Redirection : "sigs/eliom_reg_alpha_return.mli"
 
 (** Eliom service registration for services that returns a redirections
     towards a string-URL. See the Eliom manual for more information
-    about {% <<a_manual chapter="outputs"
+    about {% <<a_manual chapter="server-outputs"
     fragment="redirections"|Redirections outputs>>%}. The URL given
     must be an absolute URI.
 
@@ -373,7 +373,7 @@ module String_redirection : "sigs/eliom_reg.mli"
 
 (** Eliom service registration for services that returns file
     contents. The page is the name of the file to send. See the Eliom
-    manual for more information on {% <<a_manual chapter="outputs"
+    manual for more information on {% <<a_manual chapter="server-outputs"
     fragment="eliomfiles"|how to send files with Eliom>>%}. *)
 module File : sig
 
@@ -406,7 +406,7 @@ module Ocaml : "sigs/eliom_reg_simpl.mli"
 (** Eliom service registration for services that choose dynamically
     what they want to send. The content is created using for example
     {!Html5.send} or {!String.send} functions. See the Eliom manual
-    for more information about {% <<a_manual chapter="outputs"
+    for more information about {% <<a_manual chapter="server-outputs"
     fragment="any"|services that choose dynamically what they want to
     send>>%} *)
 module Any : "sigs/eliom_reg_alpha_return.mli"

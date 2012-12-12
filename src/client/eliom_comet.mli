@@ -22,7 +22,7 @@
 (** Handle unsolicited server to client communications.
 
     See the Eliom manual for a detailed introduction to the concept of
-    {% <<a_manual chapter="client-communication"|client server communication>>%}. *)
+    {% <<a_manual chapter="clientserver-communication"|client server communication>>%}. *)
 
 (** When the page is not active the client stops making comet requests
     to the server, implying that the client can't be notified by the

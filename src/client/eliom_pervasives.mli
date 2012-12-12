@@ -5,7 +5,7 @@ open Eliom_pervasives_base
 
 (** {2 Client values}
 
-    See the {% <<a_manual chapter="eliom-language"|manual>> %}. *)
+    See the {% <<a_manual chapter="clientserver-language"|manual>> %}. *)
 
 (** An ['a] client value on the client is just an ['a].
     See also {% <<a_api subproject="server" text="the abstract representation on the server" |
@@ -18,7 +18,7 @@ type 'a client_value = 'a Eliom_lib.client_value
 
 (** {2 RPC / Server functions}
 
-    See the {% <<a_manual chapter="client-communication" fragment="rpc"|manual>> %}.*)
+    See the {% <<a_manual chapter="clientserver-communication" fragment="rpc"|manual>> %}.*)
 
 (** A [('a, 'b) server_function] provides transparently access to a
     server side function which has been created by {% <<a_api

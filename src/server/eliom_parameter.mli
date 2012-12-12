@@ -21,7 +21,7 @@
 (** Ad-hoc runtime type representation for service parameters.
 
     See the Eliom manual for more information about {% <<a_manual
-    chapter="params"|service parameters>>%}.
+    chapter="server-params"|service parameters>>%}.
 
     {% <<outline>>%}
 *)

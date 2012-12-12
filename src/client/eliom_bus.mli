@@ -21,7 +21,7 @@
 (** Broadcasting facilities between clients and server.
 
     See the Eliom manual for a detailed introduction to the concept of
-    {% <<a_manual chapter="client-communication"|client server communication>>%}. *)
+    {% <<a_manual chapter="clientserver-communication"|client server communication>>%}. *)
 
 type 'a t
 

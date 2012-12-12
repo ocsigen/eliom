@@ -132,7 +132,7 @@ end
 module Svg : sig
 
   (** See the Eliom manual for more information on{% <<a_manual
-      chapter="client" fragment="unique"| dom semantics vs. functional
+      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
       semantics>> %} for SVG tree manipulated by client/server
       application. *)
 
@@ -185,7 +185,7 @@ end
 module Html5 : sig
 
   (** See the Eliom manual for more information on {% <<a_manual
-      chapter="client" fragment="unique"| dom semantics vs. functional
+      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
       semantics>> %} for SVG tree manipulated by client/server
       application. *)
 
@@ -261,7 +261,7 @@ module Html5 : sig
 
     (** The function [new_elt_id ()] creates a new HTML5 element
         identifier. (see the Eliom manual for more information on {%
-        <<a_manual project="eliom" chapter="client"
+        <<a_manual project="eliom" chapter="clientserver-html"
         fragment="global"|global element>>%}).*)
     val new_elt_id: ?global:bool -> unit -> 'a id
 
@@ -277,7 +277,7 @@ module Html5 : sig
     val string_of_id : 'a id -> string
   end
 
-  (** Type-safe custom data for HTML5. See the {% <<a_manual chapter="html"
+  (** Type-safe custom data for HTML5. See the {% <<a_manual chapter="clientserver-html"
       fragment="custom_data"|examples in the manual>> %}. *)
   module Custom_data : sig
 

@@ -42,7 +42,7 @@ module Svg : module type of Eliom_content_core.Svg
 module Html5 : sig
 
   (** See the Eliom manual for more information on {% <<a_manual
-      chapter="client" fragment="unique"| dom semantics vs. functional
+      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
       semantics>> %} for HTML5 tree manipulated by client/server
       application. *)
 
@@ -282,7 +282,7 @@ module Html5 : sig
   (** DOM-like manipulation functions.
 
       In this module, all the functions apply only to HTML5 element with
-      {% <<a_manual chapter="client" fragment="unique"|Dom semantics>>
+      {% <<a_manual chapter="clientserver-html" fragment="unique"|Dom semantics>>
       %}.
   *)
   module Manip : sig
