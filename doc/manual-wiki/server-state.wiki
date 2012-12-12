@@ -273,7 +273,7 @@ user is using http.
 
 Session group is a kind of scope that allows sharing data or services
 between a set of sessions, typically all sessions for given user. For
-example, using persistant Eliom references with scope <<a_api| val
+example, using persistent Eliom references with scope <<a_api| val
 Eliom_common.default_group_scope >> is a convenient way to store data about
 a user without having to explicitly use an external database.
 (Persistent session group states are not discarded when all the sessions are
@@ -286,7 +286,7 @@ session group name as parameter:
 
 * <<a_api | val Eliom_state.set_service_session_group >>
 * <<a_api | val Eliom_state.set_volatile_data_session_group >>
-* <<a_api | val Eliom_state.set_persistant_data_session_group >>
+* <<a_api | val Eliom_state.set_persistent_data_session_group >>
 
 A session could be only attached to one group at a time, but it is
 possible to create multiple sessions for a same client attached to

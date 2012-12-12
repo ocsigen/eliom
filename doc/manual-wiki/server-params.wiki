@@ -95,9 +95,9 @@ This service will answer to URLs like {{{http://.../uasuffix/2000/11}}}, see
 Suffix parameters have names, because we can create forms towards
 these services. {{{uasuffix/2000/11}}} is equivalent to
 {{{uasuffix/?year=2000&month=11}}}.\\
-<a_api project="eliom" subproject="server"|val Eliom_parameter.suffix_prod>>
+<a_api |val Eliom_parameter.suffix_prod>>
 allows both a suffix and other parameters.\\
-<a_api project="eliom" subproject="server"|val Eliom_parameter.all_suffix>>
+<a_api |val Eliom_parameter.all_suffix>>
 allows the end of the suffix to be taken as a {{{string list}}}.\\
 
 <<code language="ocaml"|

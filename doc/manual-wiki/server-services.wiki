@@ -61,11 +61,11 @@ towards a service, using for example the function <<a_api | val
 Eliom_content.Html5.D.a >>. See chapter <<a_manual
 chapter="server-links"|Creating links and forms>> for more information.
 
-<<paragraph| Unegistrable service >>
+<<paragraph| Unregistrable services >>
 
 Some specific values of type {{{service}}} aren't associated to any
-service handlers. Such value are called //unregistrable service//,
-and represents for example, links towards external site ot registrable
+service handlers. Such values are called //unregistrable services//,
+and represent, for example, links towards external sites or registrable
 service pre-applied to some parameters. This allows use of
 {{{service}}} consistently for creating links. See chapter <<a_manual
 chapter="server-services" fragment="unregistrable_services"| Unregistrable
@@ -104,7 +104,7 @@ subset of these criteria used to identified them:
   They are identified by the path of the URL and a special parameter
   (added automatically by Eliom). They can be created dynamically. When
   an attached coservice is not available anymore (timeout, session closed,~ ...)
-  it fallbacks to the corresponding regular service.
+  it falls back to the corresponding regular service.
 * <<a_manual chapter="server-services" fragment="non-attached_coservices" | Non-attached coservices>>
   are coservices only identified by a special parameter
   whatever be the path and other parameters in the URL.
@@ -112,7 +112,7 @@ subset of these criteria used to identified them:
   a particular URL. A link to a non-attached coservice will go to the current
   URL with just an additional special parameter.
   It is useful when you want the same link or form on
-  several pages (for example a connection box) but you don't want to
+  several pages (for example, a login box) but you don't want to
   go to another URL. Non-attached coservices are often used with
   <<a_manual chapter="server-outputs" fragment="actions" |actions>>.
 
@@ -151,17 +151,17 @@ The parameters of services are specified using the {{{~get_params}}}
 and {{{~post_params}}} options of service creation functions. These
 options expect values of type <<a_api | type
 Eliom_parameter.params_type >> that represent the set of expected
-arguments with their types. They are build using combinator from the
+arguments with their types. They are built using combinators from the
 <<a_api | module Eliom_parameter >> module. See chapter <<a_manual
 chapter="server-params"| Service parameters >> for a detailled description of
 this module.
 
-The type informations associated to each argument allows Eliom to
+Type informations associated to each argument allow Eliom to
 automatically convert the actual parameters into the corresponding
 OCaml types. If the parameter can't be converted, the exception
 <<a_api | exception Eliom_common.Eliom_Typing_Error >> is raised.  The
 handling of those error may be customized by providing the argument
-{{{~error_handler}} when registering the service.
+{{{~error_handler}}} when registering the service.
 
 
 

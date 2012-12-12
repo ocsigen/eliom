@@ -86,7 +86,7 @@ This typically happens if authentication is badly implemented, or altogether mis
 
 === Denial of service
 
-  * Use session groups to prevent a user from creating an unlimited number of sessions or dynamic services. (And do not attribute tokens to anonymous users). Even if you do not use session groups, Eliom limits the number of in memory sessions by sub network. //Warning: no limitation of the number of persistant sessions//. See the <<a_manual chapter="more_services" fragment="config" |Services and page generation>> chapter for more information about these limits.
+  * Use session groups to prevent a user from creating an unlimited number of sessions or dynamic services. (And do not attribute tokens to anonymous users). Even if you do not use session groups, Eliom limits the number of in memory sessions by sub network. //Warning: no limitation of the number of persistent sessions//. See the <<a_manual chapter="more_services" fragment="config" |Services and page generation>> chapter for more information about these limits.
 
 <<|
 - XXX : remove dot dot et desencodage des urls automatiques >>

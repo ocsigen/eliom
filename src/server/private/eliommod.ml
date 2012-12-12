@@ -21,7 +21,7 @@
 (*****************************************************************************)
 (** Internal functions used by Eliom:                                        *)
 (** Tables of services (global and session tables,                           *)
-(** persistant and volatile data tables)                                     *)
+(** persistent and volatile data tables)                                     *)
 (** Store and load services                                                  *)
 (*****************************************************************************)
 (*****************************************************************************)

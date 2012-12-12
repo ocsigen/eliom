@@ -21,7 +21,7 @@ comprehensive list.
 <<paragraph|Cooperative service handler>>
 
 As Ocsigenserver, Eliom is based on cooperative threading library and
-service handler must written your in a cooperative way. See section
+service handler must be written in a cooperative way. See section
 <<a_manual chapter="server-outputs" fragment="lwt" | Writing cooperative
 service handlers with Lwt >> for some examples.
 
@@ -56,7 +56,7 @@ using polymorphic variant types. You may use constructor functions from <<a_api
 | module Eliom_content.Html5.D >> or a syntax extension close to the standard html syntax.
 ;<<a_api| module Eliom_registration.Flow5 >>
 : Registration of functions that generate a portion of page using <<a_api |
-module Eliom_content.Html5.F >> or the syntax extension. (useful for <<span class="code"|XMLHttpRequest>> requests for example). Do not use with Eliom application: use <<a_api| module Eliom_registration.Ocaml >> instead.
+module Eliom_content.Html5.F >> or the syntax extension (useful for <<span class="code"|XMLHttpRequest>> requests for example). Do not use with Eliom applications: use <<a_api| module Eliom_registration.Ocaml >> instead.
 ;<<a_api| module Eliom_registration.HtmlText >>
 : Registration of functions that generate text html pages, without any typechecking of the content. The content type sent by the server is "text/html".
 ;<<a_api| module Eliom_registration.CssText >>
@@ -71,14 +71,14 @@ module Eliom_content.Html5.F >> or the syntax extension. (useful for <<span clas
 <<paragraph| Generating content for client-server applications >>
 
 ;<<a_api| module Eliom_registration.App >>
-: is a functor that generates a module that allows creation of services belonging to a client-server Eliom application (see <<a_manual chapter="clientserver-applications"|chapter client-server applications>>)
+: Functor that generates a module that allows creation of services belonging to a client-server Eliom application (see <<a_manual chapter="clientserver-applications"|chapter client-server applications>>).
 
 <<paragraph| Special browser interraction >>
 
 ;<<a_api| module Eliom_registration.Action >>
 : Registration of actions (functions that do not generate any page, see <<a_manual chapter="server-services" fragment="actions"|Action>>). The page corresponding to the URL (without the coservice parameter that triggered the action) is reloaded after the action by default if possible.
 ;<<a_api| module Eliom_registration.Unit >>
-: is like <<a_api| module Eliom_registration.Action >> but the URL is not reloaded after the action. (Same as {{{Eliom_registration.Action}}} with {{{[`NoReload]}}} option).
+: Like <<a_api| module Eliom_registration.Action >>, but the URL is not reloaded after the action. (Same as {{{Eliom_registration.Action}}} with {{{[`NoReload]}}} option).
 ;<<a_api| module Eliom_registration.Redirection >>
 : Registration of HTTP redirections. The handler returns the service (without parameter) of the page you want to redirect to. The browser will get a 301 or 307 code in answer and redo the request to the new URL. To specify whether you want temporary (307) or permanent (301) redirections, use the <<span class="code"|?options>> parameter of registration functions. For example: <<span class="code"|register ~options:`Permanent ...>> or <<span class="code"|register ~options:`Temporary ...>>.
 ;<<a_api| module Eliom_registration.String_redirection >>
@@ -93,8 +93,8 @@ module Eliom_content.Html5.F >> or the syntax extension. (useful for <<span clas
 <<paragraph| Sending caml values to client side code >>
 
 ;<<a_api| module Eliom_registration.Ocaml >>
-: registration of services sending marshalled OCaml values. See the section on
-<<a_manual chapter="clientserver-applications" fragment="communication" |communications in the chapter about client-server applications>>
+: Registration of services sending marshalled OCaml values. See the section on
+<<a_manual chapter="clientserver-applications" fragment="communication" |communications in the chapter about client-server applications>>.
 
 <<paragraph| Runtime choice of content >>
 
@@ -107,7 +107,7 @@ module Eliom_content.Html5.F >> or the syntax extension. (useful for <<span clas
 
 ====@@id="eliomfiles"@@ Sending files ===
 
-You may want to register a service that will send files.  To do that,
+You may want to register a service that sends files.  To do so,
 use the <<a_api| module Eliom_registration.File >> module. Example:
 
 <<code language="ocaml"|
@@ -140,7 +140,7 @@ handle static files.
  It is sometimes useful to create AJAX pages
  (i.e. pages using the <<span class="code"|XMLHttpRequest>> Javascript object).
  Note that the service returns a list of blocks. For sending HTML
- to client side eliom application, <<a_api| module Eliom_registration.Ocaml >> is better
+ to client side Eliom application, <<a_api| module Eliom_registration.Ocaml >> is better
  suited.
 
 
@@ -168,7 +168,7 @@ end)
 
 ====@@id="redirections"@@Redirections
 
-===== Redirections to eliom services
+===== Redirections to Eliom services
 
 The <<a_api| module Eliom_registration.Redirection >> module allows you to register HTTP redirections.\\
 If a request is made for such a service, the server asks the browser
@@ -218,7 +218,7 @@ Notice that the supplied URL must be absolute.
 
 ====@@id="actions"@@Actions
 
-Actions are used to perform sides effects before generating the
+Actions are used to perform side effects before generating the
 fallback of a service. When an action is called, the service handler is
 executed, then the service handler of the fallback service is
 executed.
@@ -270,11 +270,11 @@ let send_any =
    )
 >>
 
-===== Dynamicaly modifying register options using Any
+===== Dynamically modifying register options using Any
 
-You may also use <<a_api| module Eliom_registration.Any >> to dynamicaly
+You may also use <<a_api| module Eliom_registration.Any >> to dynamically
 modify the parameters usually set on the register function. You can set
-the HTTP code, the charset, the content_type, the http headers and the
+the HTTP code, the charset, the content_type, the HTTP headers and the
 specific option of the output module.
 
 <<code language="ocaml"|
@@ -290,9 +290,9 @@ let change_option =
           (body [p [pcdata "forbidden"]])))
 >>
 
-===== About Kind type and how to serve application and other content with the same service
+===== About kind type and how to serve application and other content with the same service
 
-In Eliom application, changing the current page does not do always the
+In Eliom applications, changing the current page does not do always the
 same thing. When going to a page inside the same application by
 clicking a link (or calling <<a_api
 subproject="client"| val Eliom_client.change_page>>) the client
@@ -317,12 +317,12 @@ of content are:
 * Ocaml content: marshalled OCaml values.
 * Unknown content: content generated as text.
 
-Yet sometimes you can want to mix the kinds of contents a service can
+Yet sometimes you may want to mix the kinds of contents a service can
 return. The function <<a_api| val Eliom_registration.appl_self_redirect>>
 allows you to cast browser content to application content. When an
-application request some content casted througt that function the
-server send some informations telling the client to exit to that
-address instead. You should not use that on POST services: Leaving the
+application request some content cast through that function the
+server send some information telling the client to exit to that
+address instead. You should not use that on POST services: leaving the
 application sending POST parameters is not always possible and the
 request will be performed 2 times.
 
@@ -347,7 +347,7 @@ let file_or_application =
 	     [pcdata "the file does not exist"]])))
 >>
 
-Unknown content can be casted to browser content using <<a_api| val
+Unknown content can be cast to browser content using <<a_api| val
 Eliom_registration.cast_unknown_content_kind >>.
 
 
@@ -558,16 +558,16 @@ registered with a restricted scope, you can check which state was
 closed using <<a_api| val
 Eliom_request_info.get_expired_service_sessions >>
 
-=== Error in services handlers of actions
+=== Error in service handlers of actions
 
 If something wrong happens during an action, it is possible to inform
-the service generating the page. For instance if you want to display a
+the service generating the page. For instance, if you want to display a
 "wrong password" message after an aborted connection.  To transmit
-that kind of information, use eliom references (see module <<a_api |
+that kind of information, use Eliom references (see module <<a_api |
 module Eliom_reference>>) created using scope <<a_api |
 val Eliom_common.request_scope>>, the value will be available to the service
 generating the page.
 
-Other examples: if you create user accounts using actions. if the
+Other examples: creating user accounts using actions. If the
 creation fails you may want to display some message to the user, like
 "password too weak" or "name already used".

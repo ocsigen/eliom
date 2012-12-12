@@ -35,7 +35,7 @@ exception Eref_not_intialized
 (** The function [eref ~scope value] creates an Eliom reference for
     the given [scope] and initialize it with [value]. See the Eliom
     manual for more information about {% <<a_manual
-    chapter="state"|scopes>>%}.
+    chapter="server-state"|scopes>>%}.
 
     Use the optional parameter [?persistent] if you want the data to
     survive after relaunching the server. You must give an unique name
