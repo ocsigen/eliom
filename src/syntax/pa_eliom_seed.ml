@@ -777,7 +777,7 @@ end
 
 module Id : Camlp4.Sig.Id = struct
   let name = "Eliom source file syntax (common)"
-  let version = "3.0+alpha"
+  let version = "3.0"
 end
 
 module M = Camlp4.Register.OCamlSyntaxExtension(Id)(Make)
