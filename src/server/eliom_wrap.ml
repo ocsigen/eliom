@@ -25,8 +25,10 @@ struct
   let hash v =
     let v = Obj.repr v in
     if Obj.is_block v
-    then (Obj.obj v:int)
-    else failwith ("not a block "^(string_of_int (Obj.obj v))) 
+    (* The returned hash must contain the 'int' bit. The division
+       enforces that without loosing too much information. *)
+    then (Obj.obj v / 2)
+    else failwith ("not a block "^(string_of_int (Obj.obj v)))
   let equal = (==)
 end
 
