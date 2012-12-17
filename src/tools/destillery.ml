@@ -190,8 +190,8 @@ let main () =
       "<name> Name of the project (a valid compilation unit name)";
       "-template", String select_template,
       "basic The template for the project";
-      "-destination", String (fun s -> destination_dir := Some s),
-      "<dest> Destination directory (the project's name by default)";
+      "-target-directory", String (fun s -> destination_dir := Some s),
+      "<dir> Generate the project in directory <dir> (the project's name by default)";
     ]) in
     Arg.(parse spec (bad "Don't know what to do with %S") usage_msg);
     match !template, !name with

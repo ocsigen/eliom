@@ -14,12 +14,12 @@ The {{{eliom-destillery}}} creates projects from templates. Currently,
 only a very simplistic project name "basic" is supported. To create it, just call
 
 <<code language="shell"|
-$ eliom-destillery -name <name> -template basic [-destination <dest>]
+$ eliom-destillery -name <name> -template basic [-target-directory <dir>]
 >>
 
 This creates a project named {{{<name>}}} from the {{{"basic"}}}
-template in the current directory or in {{{<dest>}}}, if it is
-specified. It contains the following files
+template in the directory {{{<dir>}}} or {{{<name>}}} by default. It
+contains the following files
 
  * {{{<name>.eliom}}} \\
    This is your initial source file.
@@ -55,13 +55,13 @@ compilation unit.
 
 === Compilation & Running: Read the README
 
-Generally, you can just run
+Generally, just run
 
 <<code language="shell"|
 $ make test.byte (or test.opt)
 >>
 
-to compile your project and run ocsigenserver on it.
+to compile your project and run ocsigenserver with it.
 
 However, please refer to the generated README file for further hints
 on how to work with your project!

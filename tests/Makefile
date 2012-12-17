@@ -56,7 +56,7 @@ opt:: _server/eliom_testsuite_global.cmxs _server/eliom_testsuite_site.cmxs elio
 
 destillery/basic:
 	mkdir -p $@
-	eliom-destillery -name destillery_basic -destination $@
+	eliom-destillery -name destillery_basic -target-directory $@
 	echo 'PREFIX=$(CURDIR)/../local/' >> $@/Makefile.options
 	echo 'STATICDIR=var/www/destillery-basic/static' >> $@/Makefile.options
 	echo 'ELIOMSTATICDIR=var/www/destillery-basic/eliomstatic' >> $@/Makefile.options
