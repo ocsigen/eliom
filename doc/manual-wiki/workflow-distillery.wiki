@@ -1,20 +1,20 @@
 
-= Eliom's Destillery==
+= Eliom's Distillery==
 
 Actually, the easiest way to initialize, compile, and run a project in
-Ocsigen/Eliom is to use the Eliom destillery {{{eliom-destillery}}}.
+Ocsigen/Eliom is to use the Eliom distillery {{{eliom-distillery}}}.
 
-It should be self-documenting (refer to {{{eliom-destillery -help}}} and the
+It should be self-documenting (refer to {{{eliom-distillery -help}}} and the
 generated {{{README}}}), but here is a bit information on how to work
 with it.
 
 === Project Initialization
 
-The {{{eliom-destillery}}} creates projects from templates. Currently,
+The {{{eliom-distillery}}} creates projects from templates. Currently,
 only a very simplistic project name "basic" is supported. To create it, just call
 
 <<code language="shell"|
-$ eliom-destillery -name <name> -template basic [-target-directory <dir>]
+$ eliom-distillery -name <name> -template basic [-target-directory <dir>]
 >>
 
 This creates a project named {{{<name>}}} from the {{{"basic"}}}

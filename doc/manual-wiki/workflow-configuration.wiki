@@ -8,8 +8,8 @@ options in the configuration file, and how to define options for your
 Eliom modules. See the Ocsigen server documentation for more information about the
 <<a_manual project="ocsigenserver" chapter="clientserver-configuration" |server's configuration>>.
 
-Note, however, that <<a_manual chapter="workflow-destillery"|Eliom's
-destillery>> provides you a way to just get productive with Eliom!
+Note, however, that <<a_manual chapter="workflow-distillery"|Eliom's
+distillery>> provides you a way to just get productive with Eliom!
 
 ==@@id="misc"@@Using Eliom modules with Ocsigen server==
 

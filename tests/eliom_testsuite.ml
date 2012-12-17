@@ -48,9 +48,9 @@ let _ = Eliom_registration.Html5.register Eliom_testsuite_base.main
               a default [code [pcdata "rep/"]] ()
             ];
 
-            h4 [pcdata "Destillery"];
+            h4 [pcdata "Distillery"];
             p [
-              Raw.a ~a:[a_href (Raw.uri_of_string "destillery/basic")] [pcdata "Basic destillery"];
+              Raw.a ~a:[a_href (Raw.uri_of_string "distillery/basic")] [pcdata "Basic distillery"];
             ];
 
             h4 [pcdata "Parameters"];

@@ -19,7 +19,7 @@
 ===[[clientserver-wrapping|Custom wrapping]]
 
 ==Workflows
-===[[workflow-destillery|Destillery]]
+===[[workflow-distillery|Distillery]]
 ===[[workflow-compilation|Compilation]]
 ===[[workflow-configuration|Configuration & running]]
 

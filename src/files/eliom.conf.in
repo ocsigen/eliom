@@ -66,10 +66,10 @@
         </eliom>
       </site>
 
-      <site path="destillery/basic">
-        <static dir="_LOCALDIR_/var/www/destillery-basic/static" />
-        <static dir="_LOCALDIR_/var/www/destillery-basic/eliomstatic" />
-        <eliommodule module="_LOCALDIR_/var/www/destillery-basic/lib/destillery_basic.cma" />
+      <site path="distillery/basic">
+        <static dir="_LOCALDIR_/var/www/distillery-basic/static" />
+        <static dir="_LOCALDIR_/var/www/distillery-basic/eliomstatic" />
+        <eliommodule module="_LOCALDIR_/var/www/distillery-basic/lib/distillery_basic.cma" />
         <eliom />
       </site>
 

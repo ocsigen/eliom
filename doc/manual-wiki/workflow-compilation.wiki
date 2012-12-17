@@ -3,7 +3,7 @@
 The build process for client-server Eliom applications is rather
 tricky. To ease development of such application, we recommend you to
 create your project with <<a_manual
-chapter="workflow-destillery"|Eliom's destillery>>: It contains a
+chapter="workflow-distillery"|Eliom's distillery>>: It contains a
 Makefile with rules for compiling, testing, installing, and running.
 
 This chapter, however, gives a bit more overview on the compilation

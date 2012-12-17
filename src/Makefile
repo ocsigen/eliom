@@ -62,7 +62,7 @@ install: install.META install.man
 install.man: install.META
 	$(INSTALL) -m 755 -d $(TEMPROOT)$(MANDIR)/man1
 	$(INSTALL) -m 755 files/eliomc.1 $(TEMPROOT)$(MANDIR)/man1
-	$(INSTALL) -m 755 files/eliom-destillery.1 $(TEMPROOT)$(MANDIR)/man1
+	$(INSTALL) -m 755 files/eliom-distillery.1 $(TEMPROOT)$(MANDIR)/man1
 	ln -sf eliomc.1 $(TEMPROOT)$(MANDIR)/man1/js_of_eliom.1
 	ln -sf eliomc.1 $(TEMPROOT)$(MANDIR)/man1/eliomopt.1
 	ln -sf eliomc.1 $(TEMPROOT)$(MANDIR)/man1/eliomcp.1
@@ -98,7 +98,7 @@ uninstall:
 	rm -f $(TEMPROOT)$(MANDIR)/man1/eliomopt.1
 	rm -f $(TEMPROOT)$(MANDIR)/man1/eliomcp.1
 	rm -f $(TEMPROOT)$(MANDIR)/man1/eliomdep.1
-	rm -f $(TEMPROOT)$(MANDIR)/man1/eliom-destillery.1
+	rm -f $(TEMPROOT)$(MANDIR)/man1/eliom-distillery.1
 
 reinstall: uninstall install
 reinstall.byte: uninstall install.byte

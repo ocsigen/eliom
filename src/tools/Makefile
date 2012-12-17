@@ -10,18 +10,18 @@ all: byte
 ### Common files ###
 
 COMPILER := eliomc eliomcp eliomopt js_of_eliom eliomdep
-DESTILLERY := eliom-destillery
+DISTILLERY := eliom-distillery
 
 FILES := ../../src/files
-DESTILLERY_BASIC :=destillery/basic
+DISTILLERY_BASIC :=distillery/basic
 
-byte: ${COMPILER} $(DESTILLERY)
+byte: ${COMPILER} $(DISTILLERY)
 
 config.ml:
 	echo "let datadir = \"$(DATADIR)\"" > $@
-	echo "let destillery_basic = \"$(DESTILLERY_BASIC)\"" >> $@
+	echo "let distillery_basic = \"$(DISTILLERY_BASIC)\"" >> $@
 
-$(DESTILLERY): utils.cmo config.cmo destillery.cmo
+$(DISTILLERY): utils.cmo config.cmo distillery.cmo
 	$(OCAMLC) -o $@ -linkpkg $(LIBS) $^
 
 eliomc: utils.cmo eliomc.cmo
@@ -46,18 +46,18 @@ eliomdep: utils.cmo eliomdep.cmo
 
 install:
 	$(INSTALL) -m 755 -d $(TEMPROOT)$(BINDIR)
-	${INSTALL} -m 755 ${COMPILER} $(DESTILLERY) $(TEMPROOT)${BINDIR}
-	$(INSTALL) -m 755 -d $(TEMPROOT)$(DATADIR)/$(DESTILLERY_BASIC)
-	$(INSTALL) -m 644 $(FILES)/$(DESTILLERY_BASIC)/* $(TEMPROOT)$(DATADIR)/$(DESTILLERY_BASIC)
+	${INSTALL} -m 755 ${COMPILER} $(DISTILLERY) $(TEMPROOT)${BINDIR}
+	$(INSTALL) -m 755 -d $(TEMPROOT)$(DATADIR)/$(DISTILLERY_BASIC)
+	$(INSTALL) -m 644 $(FILES)/$(DISTILLERY_BASIC)/* $(TEMPROOT)$(DATADIR)/$(DISTILLERY_BASIC)
 uninstall:
-	rm -f $(addprefix ${BINDIR}/,${COMPILER} ${DESTILLERY})
+	rm -f $(addprefix ${BINDIR}/,${COMPILER} ${DISTILLERY})
 	rm -rf $(DATADIR)
 
 ## Clean up
 
 clean:
 	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot config.ml
-	-rm -f ${COMPILER} ${DESTILLERY}
+	-rm -f ${COMPILER} ${DISTILLERY}
 	-rm -f ${PREDEP}
 distclean: clean
 	-rm -f *~ \#* .\#*

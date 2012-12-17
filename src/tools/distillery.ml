@@ -2,7 +2,7 @@
 open Printf
 
 let usage_msg = Printf.sprintf
-  "Welcome to the Eliom destillery!\n\
+  "Welcome to the Eliom distillery!\n\
    \n\
    This program generates the scaffold for your Eliom application\n\
    from a template. Currently, it only supports a very simple\n\
@@ -162,11 +162,11 @@ let get_datadir () =
   try Sys.getenv "ELIOM_DATA_DIR"
   with Not_found -> Config.datadir
 
-(* Configuration of the basic destillery project *)
+(* Configuration of the basic distillery project *)
 let basic_project name =
   env name,
   preds (),
-  Filename.concat (get_datadir ()) Config.destillery_basic
+  Filename.concat (get_datadir ()) Config.distillery_basic
 
 let compilation_unit_name_regexp =
   Str.regexp "^[A-Za-z][a-zA-Z0-9_']*$"

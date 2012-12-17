@@ -45,29 +45,29 @@ OTHER_FILES := eliom_testsuite_global.eliom eliom_testsuite_site.eliom
 STATICDIR := ../local/var/www/tests
 TYPE_DIR =
 
-DESTILLERY_FILES := $(addprefix $(STATICDIR)/destillery/basic/,test.cma test.cmxa test.js)
+DISTILLERY_FILES := $(addprefix $(STATICDIR)/distillery/basic/,test.cma test.cmxa test.js)
 
-byte:: _server/eliom_testsuite_global.cmo _server/eliom_testsuite_site.cmo eliom_testsuite.cma ${STATICDIR}/eliom_testsuite.js destillery-basic-byte
-opt:: _server/eliom_testsuite_global.cmxs _server/eliom_testsuite_site.cmxs eliom_testsuite.cmxs ${STATICDIR}/eliom_testsuite.js destillery-basic-opt
+byte:: _server/eliom_testsuite_global.cmo _server/eliom_testsuite_site.cmo eliom_testsuite.cma ${STATICDIR}/eliom_testsuite.js distillery-basic-byte
+opt:: _server/eliom_testsuite_global.cmxs _server/eliom_testsuite_site.cmxs eliom_testsuite.cmxs ${STATICDIR}/eliom_testsuite.js distillery-basic-opt
 
-#### Destillery ####
+#### Distillery ####
 
-.PHONY: destillery-basic-byte destillery-basic-opt
+.PHONY: distillery-basic-byte distillery-basic-opt
 
-destillery/basic:
+distillery/basic:
 	mkdir -p $@
-	eliom-destillery -name destillery_basic -target-directory $@
+	eliom-distillery -name distillery_basic -target-directory $@
 	echo 'PREFIX=$(CURDIR)/../local/' >> $@/Makefile.options
-	echo 'STATICDIR=var/www/destillery-basic/static' >> $@/Makefile.options
-	echo 'ELIOMSTATICDIR=var/www/destillery-basic/eliomstatic' >> $@/Makefile.options
-	echo 'LIBDIR=var/www/destillery-basic/lib' >> $@/Makefile.options
+	echo 'STATICDIR=var/www/distillery-basic/static' >> $@/Makefile.options
+	echo 'ELIOMSTATICDIR=var/www/distillery-basic/eliomstatic' >> $@/Makefile.options
+	echo 'LIBDIR=var/www/distillery-basic/lib' >> $@/Makefile.options
 	echo 'WWWUSER=' >> $@/Makefile.options
 	echo 'WWWGROUP=' >> $@/Makefile.options
 	make -C $@ byte install.static
-destillery-basic-byte: | destillery/basic
-	make -C destillery/basic byte install.lib.byte
-destillery-basic-opt: | destillery/basic
-	make -C destillery/basic opt install.lib.opt
+distillery-basic-byte: | distillery/basic
+	make -C distillery/basic byte install.lib.byte
+distillery-basic-opt: | distillery/basic
+	make -C distillery/basic opt install.lib.opt
 
 #### Server side #######
 
@@ -144,7 +144,7 @@ clean.local:
 	-rm -f ${or ${TYPE_DIR},_server}/*.type_mli
 	-rm -f ${STATICDIR}/eliom_testsuite.js
 	-rm -rf _client/* _server/*
-	-rm -rf destillery
+	-rm -rf distillery
 
 distclean: clean.local
 	-rm -f *~ \#* .\#*
