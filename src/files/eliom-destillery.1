@@ -1,6 +1,6 @@
-.TH eliom-destillery 1 2012-12-06
+.TH eliom-destillery 1 2012-12-17
 .SH NAME
-eliom-destillery \- Scaffoldings for your Eliom-project.
+eliom-destillery \- Scaffolding for your Eliom-projects.
 .SH SYNOPSIS
 .B eliom-destillery
 .BI \-name \ name
@@ -24,7 +24,7 @@ http://ocsigen.org/eliom/manual/workflow-destillery.
 .TP 5
 .BI \-name \ name
 The name of project to be generated. Note well, that this must be a
-valid name for a compilation unit in OCaml.
+valid name for a compilation unit.
 .TP
 .BI \-template \ template
 The template for the project. Currently,
@@ -33,13 +33,13 @@ is the only available template.
 .TP
 .BI \-destination \ destination
 The directory where the project should be generated.
+.I name
+is used by default.
 .B eliom-destillery
-will ask to create this directory if it doesn't already exist.
+will create this directory if it doesn't already exist.
 .SH SEE ALSO
 .BR eliomc (1).
 .SH AUTHOR
 .B eliom-destillery
 is part of the Ocsigen-project, and written by
 Benedikt Becker.
-
-

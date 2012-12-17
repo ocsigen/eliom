@@ -180,7 +180,7 @@ let main () =
       | "basic" -> template := Some `Basic
       | str -> bad "Not a known template name: %S" str
     in
-    let destination_dir = ref "." in
+    let destination_dir = ref None in
     let check_name name =
       if not (Str.string_match compilation_unit_name_regexp name 0) then
         bad "Not a valid compilation unit name: %s" name
@@ -190,12 +190,14 @@ let main () =
       "<name> Name of the project (a valid compilation unit name)";
       "-template", String select_template,
       "basic The template for the project";
-      "-destination", String (fun s -> destination_dir := s),
-      "<dest> Destination directory";
+      "-destination", String (fun s -> destination_dir := Some s),
+      "<dest> Destination directory (the project's name by default)";
     ]) in
     Arg.(parse spec (bad "Don't know what to do with %S") usage_msg);
     match !template, !name with
-      | Some template, Some name -> template, name, !destination_dir
+      | Some template, Some name ->
+        let dir = match !destination_dir with Some dir -> dir | None -> name in
+        template, name, dir
       | _ -> Arg.usage spec usage_msg; exit 1
   in
   let env, preds, source_dir =
