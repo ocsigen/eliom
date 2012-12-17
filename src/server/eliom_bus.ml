@@ -129,7 +129,7 @@ let create ?scope ?name ?size typ =
 
 let stream bus =
   match bus.scope with
-    | `Site -> Lwt_stream.clone bus.stream
+    | `Site -> bus.stream
     | `Client_process _ -> bus.stream
 
 let write bus x = bus.write x
