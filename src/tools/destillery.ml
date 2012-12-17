@@ -168,6 +168,9 @@ let basic_project name =
   preds (),
   Filename.concat (get_datadir ()) Config.destillery_basic
 
+let compilation_unit_name_regexp =
+  Str.regexp "^[A-Za-z][a-zA-Z0-9_']*$"
+
 let main () =
   let template, name, destination_dir =
     let bad fmt = Printf.ksprintf (fun s -> raise (Arg.Bad s)) fmt in
@@ -178,13 +181,17 @@ let main () =
       | str -> bad "Not a known template name: %S" str
     in
     let destination_dir = ref "." in
-    let spec = Arg.([
-      "-name", String (fun s -> name := Some s),
-      "<name>\t\tName of the project, a valid compilation unit name";
+    let check_name name =
+      if not (Str.string_match compilation_unit_name_regexp name 0) then
+        bad "Not a valid compilation unit name: %s" name
+    in
+    let spec = Arg.(align [
+      "-name", String (fun s -> check_name s; name := Some s),
+      "<name> Name of the project (a valid compilation unit name)";
       "-template", String select_template,
-      "basic\tThe template for the project";
+      "basic The template for the project";
       "-destination", String (fun s -> destination_dir := s),
-      "<dest>\tDestination directory";
+      "<dest> Destination directory";
     ]) in
     Arg.(parse spec (bad "Don't know what to do with %S") usage_msg);
     match !template, !name with
