@@ -57,7 +57,7 @@ uninstall:
 
 clean:
 	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot config.ml
-	-rm -f ${COMPILER}
+	-rm -f ${COMPILER} ${DESTILLERY}
 	-rm -f ${PREDEP}
 distclean: clean
 	-rm -f *~ \#* .\#*
