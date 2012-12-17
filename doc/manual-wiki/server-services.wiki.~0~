@@ -61,7 +61,7 @@ towards a service, using for example the function <<a_api | val
 Eliom_content.Html5.D.a >>. See chapter <<a_manual
 chapter="server-links"|Creating links and forms>> for more information.
 
-<<paragraph| Unegistrable service >>
+<<paragraph| Unregistrable services >>
 
 Some specific values of type {{{service}}} aren't associated to any
 service handlers. Such values are called //unregistrable services//,

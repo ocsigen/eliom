@@ -34,7 +34,7 @@ open Ocsigen_extensions
 
 (** {3 Closing sessions, removing state data and services} *)
 
-(** Delete server-side (vatile and persistent) state data and services
+(** Delete server-side (volatile and persistent) state data and services
     for a session,
     a group of sessions, a client process or a request.
 
