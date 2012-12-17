@@ -201,15 +201,18 @@ let type_opt impl_intf file =
 
 (** Process *)
 
-let rec wait pid =
-  match snd (Unix.waitpid [] pid) with
+let rec wait ?(on_error=fun _ -> ()) pid =
+  let e = snd (Unix.waitpid [] pid) in
+  match e with
   | Unix.WEXITED 0 -> ()
-  | Unix.WEXITED i -> exit i
+  | Unix.WEXITED i -> on_error e; exit i
   | Unix.WSIGNALED i ->
       Printf.eprintf "Child killed with signal: %d" i;
+      on_error e;
       exit 255
   | Unix.WSTOPPED i ->
       Printf.eprintf "Child stoped with signal: %d" i;
+      on_error e;
       wait pid
 
 let create_process

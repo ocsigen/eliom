@@ -35,8 +35,8 @@ let do_compile () = !mode <> `Infer
 let do_interface () = !mode = `Interface
 let do_dump = ref false
 
-let create_process ?in_ ?out ?err name args =
-  wait (create_process ?in_ ?out ?err name args)
+let create_process ?in_ ?out ?err ?on_error name args =
+  wait ?on_error (create_process ?in_ ?out ?err name args)
 
 let rec check_or_create_dir name =
   if name <> "/" then
@@ -175,10 +175,15 @@ let compile_server_type_eliom file =
     exit 0
   end;
   let out = Unix.openfile obj [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC] 0o666 in
-  create_process ~out !compiler ( [ "-i" ; "-pp"; get_pp ppopts]
-				  @ !args
-    				  @ get_common_include ()
-				  @ ["-impl"; file] );
+  let on_error _ =
+    Unix.close out;
+    Sys.remove obj
+  in
+  create_process ~out ~on_error
+    !compiler ( [ "-i" ; "-pp"; get_pp ppopts]
+		@ !args
+    		@ get_common_include ()
+		@ ["-impl"; file] );
   Unix.close out
 
 let output_eliom_interface ~impl_intf file =
