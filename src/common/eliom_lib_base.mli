@@ -50,16 +50,16 @@ module String_map : Map_S with type key = string
   *)
 module Client_value_server_repr : sig
   type +'a t
-  val create: closure_id:int64 -> instance_id:int -> _ t
+  val create: closure_id:int64 -> instance_id:int64 -> _ t
   val closure_id: _ t -> int64
-  val instance_id: _ t -> int
+  val instance_id: _ t -> int64
 end
 
 (** The representation of escaped values (values injected into client
     values) is opaque. *)
 type escaped_value = poly
 
-val fresh_ix : unit -> int
+val fresh_ix : unit -> int64
 val get_option : 'a option -> 'a
 
 module RawXML : sig
@@ -148,7 +148,7 @@ val client_value_unwrap_id_int : int
 (** Data for initializing one client value *)
 type client_value_datum = {
   closure_id : int64;
-  instance_id : int;
+  instance_id : int64;
   args : poly;
 }
 

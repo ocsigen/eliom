@@ -72,7 +72,7 @@ end = struct
 end
 
 module Client_value : sig
-  val find : closure_id:int64 -> instance_id:int -> _
+  val find : closure_id:int64 -> instance_id:int64 -> _
   val initialize : client_value_datum -> unit
 end = struct
 
@@ -82,10 +82,10 @@ end = struct
     Js.string (Int64.to_string closure_id)
 
   let instance_key instance_id =
-    Js.string (string_of_int instance_id)
+    Js.string (Int64.to_string instance_id)
 
   let find ~closure_id ~instance_id =
-    trace "Get client value %Ld/%d" closure_id instance_id;
+    trace "Get client value %Ld/%Ld" closure_id instance_id;
     let value =
       let instances =
         Js.Optdef.get
@@ -105,7 +105,7 @@ end = struct
     from_poly value
 
   let initialize {closure_id; instance_id; args} =
-    trace "Initialize client value %Ld/%d" closure_id instance_id;
+    trace "Initialize client value %Ld/%Ld" closure_id instance_id;
     let closure =
       try
         Client_closure.find ~closure_id
@@ -202,7 +202,7 @@ let do_request_data request_data =
                "Code generating the following client values is not linked on the client: %s"
                (String.concat ","
                   (List.map
-                     (fun d -> Printf.sprintf "%Ld/%d" d.closure_id d.instance_id)
+                     (fun d -> Printf.sprintf "%Ld/%Ld" d.closure_id d.instance_id)
                      data)))
          server_sections_data;
        Queue.iter
@@ -357,7 +357,7 @@ let raw_event_handler cv =
     let handler = (Eliom_lib.from_poly value : #Dom_html.event Js.t -> unit) in
     fun ev -> try handler ev; true with False -> false
   with Not_found ->
-    error "Client value %Ld/%d not found as event handler" closure_id instance_id
+    error "Client value %Ld/%Ld not found as event handler" closure_id instance_id
 
 let reify_caml_event node ce : #Dom_html.event Js.t -> bool = match ce with
   | Xml.CE_call_service None -> (fun _ -> true)

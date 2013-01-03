@@ -29,7 +29,7 @@ module Lwt_ops = struct
 end
 
 let fresh_ix () =
-  Oo.id (object end)
+  Int64.of_int (Oo.id (object end))
 
 let get_option = function
   | Some x -> x
@@ -50,7 +50,7 @@ module Client_value_server_repr = struct
 
   type +'a t = {
     closure_id: int64;
-    instance_id: int;
+    instance_id: int64;
   }
 
   let create ~closure_id ~instance_id =
@@ -220,7 +220,7 @@ module String_map = Map_make (struct include String let to_string x = x end)
 
 type client_value_datum = {
   closure_id : int64;
-  instance_id : int;
+  instance_id : int64;
   args : poly;
 }
 
@@ -247,7 +247,7 @@ let queue_to_list q =
   List.rev !res
 
 let client_value_datum_to_string cv =
-  Printf.sprintf "%Ld/%d" cv.closure_id cv.instance_id
+  Printf.sprintf "%Ld/%Ld" cv.closure_id cv.instance_id
 
 let list_to_string to_string li =
   "["^String.concat " " (List.map to_string li)^"]"
