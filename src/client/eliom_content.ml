@@ -241,6 +241,12 @@ module Html5 = struct
         (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
         id
 
+    let get_unique_elt_select name elt : Dom_html.selectElement Js.t =
+      Js.Opt.case
+        (Js.Opt.bind (Dom_html.CoerceTo.element (get_unique_node name elt)) Dom_html.CoerceTo.select)
+        (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
+        id
+
     let get_unique_elt_textarea name elt : Dom_html.textAreaElement Js.t =
       Js.Opt.case
         (Js.Opt.bind (Dom_html.CoerceTo.element (get_unique_node name elt)) Dom_html.CoerceTo.textarea)
@@ -523,6 +529,9 @@ module Html5 = struct
       let onchange elt f =
 	let elt = get_unique_elt_input "Ev.onchange" elt in
 	elt##onchange <- (bool_cb f)
+      let onchange_select elt f =
+        let elt = get_unique_elt_select "Ev.onchange_select" elt in
+        elt##onchange <- (bool_cb f)
     end
 
     module Attr = struct

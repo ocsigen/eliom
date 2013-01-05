@@ -423,6 +423,7 @@ module Html5 : sig
       val onscroll : ('a,Dom_html.event) ev
       val onreturn : ('a,Dom_html.keyboardEvent) ev_unit
       val onchange : ('a,Dom_html.event) ev
+      val onchange_select : ('a,Dom_html.event) ev
     end
 
     module Attr : sig
