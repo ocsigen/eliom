@@ -357,6 +357,59 @@ module Html5 = struct
       let elt = get_unique_elt "Css.background" elt in
       elt##scrollIntoView(Js.bool (not bottom))
 
+  module Class = struct
+
+    let contain elt class_name =
+      let elt = get_unique_elt "Class.contain" elt in
+      let class_name = Js.string class_name in
+      let class_list = elt##classList in
+      Js.to_bool (class_list##contains (class_name))
+
+    let add_raw elt class_name =
+      let class_name = Js.string class_name in
+      let class_list = elt##classList in
+      if Js.to_bool (class_list##contains (class_name))
+      then ()
+      else class_list##add (class_name)
+
+    let add elt class_name =
+      let elt = get_unique_elt "Class.add" elt in
+      add_raw elt class_name
+
+    let adds elt class_list =
+      let elt = get_unique_elt "Class.adds" elt in
+      List.iter (fun class_name -> add_raw elt class_name) class_list
+
+    let remove_raw elt class_name =
+      let class_name = Js.string class_name in
+      let class_list = elt##classList in
+      if Js.to_bool (class_list##contains (class_name))
+      then class_list##remove (class_name)
+      else ()
+
+    let remove elt class_name =
+      let elt = get_unique_elt "Class.remove" elt in
+      remove_raw elt class_name
+
+    let removes elt class_list =
+      let elt = get_unique_elt "Class.removes" elt in
+      List.iter (fun class_name -> remove_raw elt class_name) class_list
+
+    let replace elt class_name_1 class_name_2 =
+      let elt = get_unique_elt "Class.replace" elt in
+      remove_raw elt class_name_1;
+      add_raw elt class_name_2
+
+    let clear elt =
+      let elt = get_unique_elt "Class.clear" elt in
+      let class_list = elt##classList in
+      let l = class_list##length in
+      for i = (l - 1) downto 0 do (* /!\ use downto because the list is re-ordered after each add/remove *)
+        Js.Optdef.iter (class_list##item (i))
+          (fun cl -> class_list##remove (cl))
+      done
+  end
+
     module Css = struct
       let background elt =
         let elt = get_unique_elt "Css.background" elt in

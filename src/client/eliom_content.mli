@@ -376,6 +376,16 @@ module Html5 : sig
     val set_custom_data : _ elt -> 'a Custom_data.t -> 'a -> unit
  *)
 
+    module Class : sig
+      val contain : 'a elt -> string -> bool
+      val remove : 'a elt -> string -> unit
+      val removes :'a elt -> string list -> unit
+      val add :'a elt -> string -> unit
+      val adds :'a elt -> string list -> unit
+      val replace :  'a elt ->  string -> string -> unit
+      val clear : 'a elt -> unit
+    end
+
     (** Read the CSS properties of DOM elements. *)
     module Css : sig
       val background: 'a elt -> string
