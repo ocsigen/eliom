@@ -418,7 +418,7 @@ module Html5 : sig
       val onload : ('a,Dom_html.event) ev
       val onfocus : ('a,Dom_html.event) ev
       val onblur : ('a,Dom_html.event) ev
-      val onscroll : ('a,Dom_html.mouseEvent) ev
+      val onscroll : ('a,Dom_html.event) ev
       val onreturn : ('a,Dom_html.keyboardEvent) ev_unit
       val onchange : ('a,Dom_html.event) ev
     end
