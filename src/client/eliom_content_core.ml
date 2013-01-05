@@ -76,7 +76,7 @@ module Xml = struct
   let node ?(a = []) name children = make (Node (name, a, children))
   let lazy_node ?a name children = node ?a name (Eliom_lazy.force children)
 
-  let event_handler_of_function (ev: #Dom_html.event Js.t -> unit) =
+  let event_handler_of_function (ev: #Dom_html.event Js.t -> bool) =
     Caml (CE_client_closure (Obj.magic ev))
 
   let end_re = Regexp.regexp_string "]]>"
@@ -477,7 +477,3 @@ module Html5 = struct
   let set_classes_of_elt elt = F.tot (X.set_classes_of_elt (F.toelt elt))
 
 end
-
-
-
-
