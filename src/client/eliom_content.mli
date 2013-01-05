@@ -292,6 +292,9 @@ module Html5 : sig
         in the list of [e1] children. *)
     val appendChild: ?before:'a elt -> 'b elt ->  'c elt -> unit
 
+    (** Append to the body of the document. *)
+    val appendToBody: ?before:'a elt -> 'c elt -> unit
+
     (** The function [appendChilds e1 elts] inserts [elts] as last children
         of [e1]. If the optional parameter [~before:e3] is present and if
         [e3] is a child of [e1], then [elts] are inserted before [e3] in

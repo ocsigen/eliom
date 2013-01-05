@@ -275,6 +275,10 @@ module Html5 = struct
       let node = get_unique_node "appendChilds" elt1 in
       raw_appendChilds ?before node elts
 
+    let appendToBody ?before elt2 =
+      let body = (Of_dom.of_body Dom_html.window##document##body) in
+      appendChild ?before body elt2
+
     let removeChild elt1 elt2 =
       let node1 = get_unique_node "removeChild" elt1 in
       raw_removeChild node1 elt2
