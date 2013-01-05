@@ -84,7 +84,7 @@ val get_header_hostname : unit -> string option
  *)
 val get_hostname : unit -> string
 
-(** returns the port of the server. 
+(** returns the port of the server.
     It is either the default port in the configuration file
     (if [<usedefaulthostname/>] is present is the configuration file),
     or the port in the Host header of the request (if present),
@@ -94,6 +94,10 @@ val get_server_port : unit -> int
 
 (** returns true if https is used, false if http. *)
 val get_ssl : unit -> bool
+
+(** returns the (string * float option) list corresponding
+    to accept_language HTTP header of the request. *)
+val get_accept_language : unit -> (string * float option) list
 
 (** returns the suffix of the current URL *)
 val get_suffix : unit -> Url.path option
@@ -131,9 +135,9 @@ val clean_request_cache : unit -> unit
 *)
 val get_link_too_old : unit -> bool
 
-(** returns the list of names of service sessions expired for the current 
+(** returns the list of names of service sessions expired for the current
     request, for browser sessions and tab sessions. *)
-val get_expired_service_sessions : 
+val get_expired_service_sessions :
   unit -> (Eliom_common.full_state_name list *
                        Eliom_common.full_state_name list)
 
@@ -205,15 +209,15 @@ val get_initial_get_params : unit -> (string * string) list
 val get_other_get_params : unit -> (string * string) list
 
 (** returns non localized parameters in the URL. *)
-val get_nl_get_params : 
+val get_nl_get_params :
   unit -> (string * string) list String.Table.t
 
 (** returns persistent non localized parameters in the URL. *)
-val get_persistent_nl_get_params : 
+val get_persistent_nl_get_params :
   unit -> (string * string) list String.Table.t
 
 (** returns non localized POST parameters. *)
-val get_nl_post_params : 
+val get_nl_post_params :
   unit -> (string * string) list String.Table.t
 
 (** returns the parameters in the body of the HTTP request (POST parameters)
@@ -352,11 +356,11 @@ val get_hostname_sp : Eliom_common.server_params -> string
 val get_full_url_sp : Eliom_common.server_params -> string
 
 val get_other_get_params_sp : Eliom_common.server_params -> (string * string) list
-val get_nl_get_params_sp : 
+val get_nl_get_params_sp :
   Eliom_common.server_params -> (string * string) list String.Table.t
-val get_persistent_nl_get_params_sp : 
+val get_persistent_nl_get_params_sp :
   Eliom_common.server_params -> (string * string) list String.Table.t
-val get_nl_post_params_sp : 
+val get_nl_post_params_sp :
   Eliom_common.server_params -> (string * string) list String.Table.t
 
 val get_original_full_path_sp : Eliom_common.server_params -> Url.path
@@ -369,4 +373,3 @@ val get_files_sp : Eliom_common.server_params -> (string * file_info) list Lwt.t
 val get_suffix_sp : Eliom_common.server_params -> Url.path option
 val get_request_cache_sp : Eliom_common.server_params -> Polytables.t
 val get_request_id_sp : Eliom_common.server_params -> int64
-

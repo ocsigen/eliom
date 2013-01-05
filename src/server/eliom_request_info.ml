@@ -127,6 +127,10 @@ let get_ssl () =
   let sp = Eliom_common.get_sp () in
   get_ssl_sp sp
 
+let get_accept_language () =
+  let sp = Eliom_common.get_sp () in
+  Lazy.force (sp.Eliom_common.sp_request.request_info.ri_accept_language)
+
 let get_other_get_params () =
   let sp = Eliom_common.get_sp () in
   sp.Eliom_common.sp_si.Eliom_common.si_other_get_params
@@ -164,7 +168,7 @@ let get_request_cache () =
   get_request_cache_sp sp
 let clean_request_cache () =
   let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_request.request_info.ri_request_cache <- 
+  sp.Eliom_common.sp_request.request_info.ri_request_cache <-
     Polytables.create ()
 let get_link_too_old () =
   let sp = Eliom_common.get_sp () in
@@ -199,7 +203,7 @@ let get_previous_extension_error_code () =
   let sp = Eliom_common.get_sp () in
   sp.Eliom_common.sp_si.Eliom_common.si_previous_extension_error
 let get_si sp = sp.Eliom_common.sp_si
-  
+
 
 let get_user_cookies () =
   let sp = Eliom_common.get_sp () in
@@ -275,7 +279,7 @@ let get_tmp_filename fi = fi.tmp_filename
 let get_filesize fi = fi.filesize
 let get_original_filename fi = fi.original_basename
 
-let get_sitedata () = 
+let get_sitedata () =
   let sp = Eliom_common.get_sp () in
   sp.Eliom_common.sp_sitedata
 
