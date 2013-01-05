@@ -42,7 +42,9 @@ let rec check_or_create_dir name =
   if name <> "/" then
     try ignore(Unix.stat name) with Unix.Unix_error _ ->
       check_or_create_dir (Filename.dirname name);
-      Unix.mkdir name 0o777
+      try Unix.mkdir name 0o777 with
+        (* this append sometime with // compilation *)
+        | Unix.Unix_error (Unix.EEXIST,_,_) -> ()
 
 let prefix_output_dir name =
   match !build_dir with
