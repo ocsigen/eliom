@@ -45,6 +45,8 @@ let rec check_or_create_dir name =
       try Unix.mkdir name 0o777 with
         (* this append sometime with // compilation *)
         | Unix.Unix_error (Unix.EEXIST,_,_) -> ()
+        | Unix.Unix_error (_,_,_) ->
+          Printf.eprintf "Unexpected error while creating directory %S" name
 
 let prefix_output_dir name =
   match !build_dir with
