@@ -241,6 +241,12 @@ module Html5 = struct
         (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
         id
 
+    let get_unique_elt_textarea name elt : Dom_html.textAreaElement Js.t =
+      Js.Opt.case
+        (Js.Opt.bind (Dom_html.CoerceTo.element (get_unique_node name elt)) Dom_html.CoerceTo.textarea)
+        (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
+        id
+
     let get_unique_elt_img name elt : Dom_html.imageElement Js.t =
       Js.Opt.case
         (Js.Opt.bind (Dom_html.CoerceTo.element (get_unique_node name elt)) Dom_html.CoerceTo.img)
@@ -499,6 +505,12 @@ module Html5 = struct
       let onblur elt f =
 	let elt = get_unique_elt_input "Ev.onblur" elt in
 	elt##onblur <- (bool_cb f)
+      let onfocus_textarea elt f =
+        let elt = get_unique_elt_textarea "Ev.onfocus" elt in
+        elt##onfocus <- (bool_cb f)
+      let onblur_textarea elt f =
+        let elt = get_unique_elt_textarea "Ev.onblur" elt in
+        elt##onblur <- (bool_cb f)
       let onscroll elt f =
 	let elt = get_unique_elt "Ev.onscroll" elt in
 	elt##onscroll <- (bool_cb f)
