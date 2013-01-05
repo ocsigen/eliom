@@ -470,6 +470,9 @@ module Html5 = struct
       let borderBottomWidth elt =
         let elt = get_unique_elt "Css.borderBottomWidth" elt in
         Js.to_bytestring (elt##style##borderBottomWidth)
+      let borderBottomWidthPx elt =
+	let elt = get_unique_elt "Css.borderBottomWidthPx" elt in
+	Js.parseInt (elt##style##borderBottomWidth)
       let borderCollapse elt =
         let elt = get_unique_elt "Css.borderCollapse" elt in
         Js.to_bytestring (elt##style##borderCollapse)
@@ -488,6 +491,9 @@ module Html5 = struct
       let borderLeftWidth elt =
         let elt = get_unique_elt "Css.borderLeftWidth" elt in
         Js.to_bytestring (elt##style##borderLeftWidth)
+      let borderLeftWidthPx elt =
+	let elt = get_unique_elt "Css.borderLeftWidthPx" elt in
+	Js.parseInt (elt##style##borderLeftWidth)
       let borderRight elt =
         let elt = get_unique_elt "Css.borderRight" elt in
         Js.to_bytestring (elt##style##borderRight)
@@ -500,6 +506,9 @@ module Html5 = struct
       let borderRightWidth elt =
         let elt = get_unique_elt "Css.borderRightWidth" elt in
         Js.to_bytestring (elt##style##borderRightWidth)
+      let borderRightWidthPx elt =
+	let elt = get_unique_elt "Css.borderRightWidthPx" elt in
+	Js.parseInt (elt##style##borderRightWidth)
       let borderSpacing elt =
         let elt = get_unique_elt "Css.borderSpacing" elt in
         Js.to_bytestring (elt##style##borderSpacing)
@@ -518,9 +527,15 @@ module Html5 = struct
       let borderTopWidth elt =
         let elt = get_unique_elt "Css.borderTopWidth" elt in
         Js.to_bytestring (elt##style##borderTopWidth)
+      let borderTopWidthPx elt =
+	let elt = get_unique_elt "Css.borderTopWidthPx" elt in
+	Js.parseInt (elt##style##borderTopWidth)
       let borderWidth elt =
         let elt = get_unique_elt "Css.borderWidth" elt in
         Js.to_bytestring (elt##style##borderWidth)
+      let borderWidthPx elt =
+	let elt = get_unique_elt "Css.borderWidthPx" elt in
+	Js.parseInt (elt##style##borderWidth)
       let bottom elt =
         let elt = get_unique_elt "Css.bottom" elt in
         Js.to_bytestring (elt##style##bottom)
@@ -584,9 +599,15 @@ module Html5 = struct
       let height elt =
         let elt = get_unique_elt "Css.height" elt in
         Js.to_bytestring (elt##style##height)
+      let heightPx elt =
+	let elt = get_unique_elt "Css.heightPx" elt in
+	Js.parseInt (elt##style##height)
       let left elt =
         let elt = get_unique_elt "Css.left" elt in
         Js.to_bytestring (elt##style##left)
+      let leftPx elt =
+	let elt = get_unique_elt "Css.leftPx" elt in
+	Js.parseInt (elt##style##left)
       let letterSpacing elt =
         let elt = get_unique_elt "Css.letterSpacing" elt in
         Js.to_bytestring (elt##style##letterSpacing)
@@ -611,27 +632,51 @@ module Html5 = struct
       let marginBottom elt =
         let elt = get_unique_elt "Css.marginBottom" elt in
         Js.to_bytestring (elt##style##marginBottom)
+      let marginBottomPx elt =
+	let elt = get_unique_elt "Css.marginBottomPx" elt in
+	Js.parseInt (elt##style##marginBottom)
       let marginLeft elt =
         let elt = get_unique_elt "Css.marginLeft" elt in
         Js.to_bytestring (elt##style##marginLeft)
+      let marginLeftPx elt =
+	let elt = get_unique_elt "Css.marginLeftPx" elt in
+	Js.parseInt (elt##style##marginLeft)
       let marginRight elt =
         let elt = get_unique_elt "Css.marginRight" elt in
         Js.to_bytestring (elt##style##marginRight)
+      let marginRightPx elt =
+	let elt = get_unique_elt "Css.marginRightPx" elt in
+	Js.parseInt (elt##style##marginRight)
       let marginTop elt =
         let elt = get_unique_elt "Css.marginTop" elt in
         Js.to_bytestring (elt##style##marginTop)
+      let marginTopPx elt =
+	let elt = get_unique_elt "Css.marginTopPx" elt in
+	Js.parseInt (elt##style##marginTop)
       let maxHeight elt =
         let elt = get_unique_elt "Css.maxHeight" elt in
         Js.to_bytestring (elt##style##maxHeight)
+      let maxHeightPx elt =
+	let elt = get_unique_elt "Css.maxHeightPx" elt in
+	Js.parseInt (elt##style##maxHeight)
       let maxWidth elt =
         let elt = get_unique_elt "Css.maxWidth" elt in
         Js.to_bytestring (elt##style##maxWidth)
+      let maxWidthPx elt =
+	let elt = get_unique_elt "Css.maxWidthPx" elt in
+	Js.parseInt (elt##style##maxWidth)
       let minHeight elt =
         let elt = get_unique_elt "Css.minHeight" elt in
         Js.to_bytestring (elt##style##minHeight)
+      let minHeightPx elt =
+	let elt = get_unique_elt "Css.minHeightPx" elt in
+	Js.parseInt (elt##style##minHeight)
       let minWidth elt =
         let elt = get_unique_elt "Css.minWidth" elt in
         Js.to_bytestring (elt##style##minWidth)
+      let minWidthPx elt =
+	let elt = get_unique_elt "Css.minWidthPx" elt in
+	Js.parseInt (elt##style##minWidth)
       let opacity elt =
         let elt = get_unique_elt "Css.opacity" elt in
         Option.map Js.to_bytestring (Js.Optdef.to_option (elt##style##opacity))
@@ -665,15 +710,27 @@ module Html5 = struct
       let paddingBottom elt =
         let elt = get_unique_elt "Css.paddingBottom" elt in
         Js.to_bytestring (elt##style##paddingBottom)
+      let paddingBottomPx elt =
+	let elt = get_unique_elt "Css.paddingBottomPx" elt in
+	Js.parseInt (elt##style##paddingBottom)
       let paddingLeft elt =
         let elt = get_unique_elt "Css.paddingLeft" elt in
         Js.to_bytestring (elt##style##paddingLeft)
+      let paddingLeftPx elt =
+	let elt = get_unique_elt "Css.paddingLeftPx" elt in
+	Js.parseInt (elt##style##paddingLeft)
       let paddingRight elt =
         let elt = get_unique_elt "Css.paddingRight" elt in
         Js.to_bytestring (elt##style##paddingRight)
+      let paddingRightPx elt =
+	let elt = get_unique_elt "Css.paddingRightPx" elt in
+	Js.parseInt (elt##style##paddingRight)
       let paddingTop elt =
         let elt = get_unique_elt "Css.paddingTop" elt in
         Js.to_bytestring (elt##style##paddingTop)
+      let paddingTopPx elt =
+	let elt = get_unique_elt "Css.paddingTopPx" elt in
+	Js.parseInt (elt##style##paddingTop)
       let pageBreakAfter elt =
         let elt = get_unique_elt "Css.pageBreakAfter" elt in
         Js.to_bytestring (elt##style##pageBreakAfter)
@@ -686,6 +743,9 @@ module Html5 = struct
       let right elt =
         let elt = get_unique_elt "Css.right" elt in
         Js.to_bytestring (elt##style##right)
+      let rightPx elt =
+	let elt = get_unique_elt "Css.rightPx" elt in
+	Js.parseInt (elt##style##right)
       let tableLayout elt =
         let elt = get_unique_elt "Css.tableLayout" elt in
         Js.to_bytestring (elt##style##tableLayout)
@@ -704,6 +764,9 @@ module Html5 = struct
       let top elt =
         let elt = get_unique_elt "Css.top" elt in
         Js.to_bytestring (elt##style##top)
+      let topPx elt =
+	let elt = get_unique_elt "Css.topPx" elt in
+	Js.parseInt (elt##style##top)
       let verticalAlign elt =
         let elt = get_unique_elt "Css.verticalAlign" elt in
         Js.to_bytestring (elt##style##verticalAlign)
@@ -716,6 +779,9 @@ module Html5 = struct
       let width elt =
         let elt = get_unique_elt "Css.width" elt in
         Js.to_bytestring (elt##style##width)
+      let widthPx elt =
+	let elt = get_unique_elt "Css.widthPx" elt in
+	Js.parseInt (elt##style##width)
       let wordSpacing elt =
         let elt = get_unique_elt "Css.wordSpacing" elt in
         Js.to_bytestring (elt##style##wordSpacing)

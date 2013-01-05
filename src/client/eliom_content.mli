@@ -411,22 +411,26 @@ module Html5 : sig
       val borderBottomColor: 'a elt -> string
       val borderBottomStyle: 'a elt -> string
       val borderBottomWidth: 'a elt -> string
+      val borderBottomWidthPx : 'a elt -> int
       val borderCollapse: 'a elt -> string
       val borderColor: 'a elt -> string
       val borderLeft: 'a elt -> string
       val borderLeftColor: 'a elt -> string
       val borderLeftStyle: 'a elt -> string
       val borderLeftWidth: 'a elt -> string
+      val borderLeftWidthPx : 'a elt -> int
       val borderRight: 'a elt -> string
       val borderRightColor: 'a elt -> string
       val borderRightStyle: 'a elt -> string
       val borderRightWidth: 'a elt -> string
+      val borderRightWidthPx : 'a elt -> int
       val borderSpacing: 'a elt -> string
       val borderStyle: 'a elt -> string
       val borderTop: 'a elt -> string
       val borderTopColor: 'a elt -> string
       val borderTopStyle: 'a elt -> string
       val borderTopWidth: 'a elt -> string
+      val borderTopWidthPx : 'a elt -> int
       val borderWidth: 'a elt -> string
       val bottom: 'a elt -> string
       val captionSide: 'a elt -> string
@@ -449,7 +453,9 @@ module Html5 : sig
       val fontVariant: 'a elt -> string
       val fontWeight: 'a elt -> string
       val height: 'a elt -> string
+      val heightPx : 'a elt -> int
       val left: 'a elt -> string
+      val leftPx : 'a elt -> int
       val letterSpacing: 'a elt -> string
       val lineHeight: 'a elt -> string
       val listStyle: 'a elt -> string
@@ -458,13 +464,21 @@ module Html5 : sig
       val listStyleType: 'a elt -> string
       val margin: 'a elt -> string
       val marginBottom: 'a elt -> string
+      val marginBottomPx : 'a elt -> int
       val marginLeft: 'a elt -> string
+      val marginLeftPx : 'a elt -> int
       val marginRight: 'a elt -> string
+      val marginRightPx : 'a elt -> int
       val marginTop: 'a elt -> string
+      val marginTopPx : 'a elt -> int
       val maxHeight: 'a elt -> string
+      val maxHeightPx : 'a elt -> int
       val maxWidth: 'a elt -> string
+      val maxWidthPx : 'a elt -> int
       val minHeight: 'a elt -> string
+      val minHeightPx : 'a elt -> int
       val minWidth: 'a elt -> string
+      val minWidthPx : 'a elt -> int
       val opacity: 'a elt -> string option
       val outline: 'a elt -> string
       val outlineColor: 'a elt -> string
@@ -476,23 +490,30 @@ module Html5 : sig
       val overflowY: 'a elt -> string
       val padding: 'a elt -> string
       val paddingBottom: 'a elt -> string
+      val paddingBottomPx : 'a elt -> int
       val paddingLeft: 'a elt -> string
+      val paddingLeftPx : 'a elt -> int
       val paddingRight: 'a elt -> string
+      val paddingRightPx : 'a elt -> int
       val paddingTop: 'a elt -> string
+      val paddingTopPx : 'a elt -> int
       val pageBreakAfter: 'a elt -> string
       val pageBreakBefore: 'a elt -> string
       val position: 'a elt -> string
       val right: 'a elt -> string
+      val rightPx : 'a elt -> int
       val tableLayout: 'a elt -> string
       val textAlign: 'a elt -> string
       val textDecoration: 'a elt -> string
       val textIndent: 'a elt -> string
       val textTransform: 'a elt -> string
       val top: 'a elt -> string
+      val topPx : 'a elt -> int
       val verticalAlign: 'a elt -> string
       val visibility: 'a elt -> string
       val whiteSpace: 'a elt -> string
       val width: 'a elt -> string
+      val widthPx : 'a elt -> int
       val wordSpacing: 'a elt -> string
       val zIndex: 'a elt -> string
     end
