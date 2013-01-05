@@ -267,6 +267,19 @@ module Html5 = struct
       raw_removeAllChild node;
       List.iter (fun elt -> ignore(node##appendChild(get_node elt))) elts
 
+    let nth elt n =
+      let node = get_unique_node "nth" elt in
+      let res = Js.Opt.bind (node##childNodes##item (n)) (fun node ->
+        Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
+          Of_dom.of_element (Dom_html.element node)
+        )
+      ) in
+      Js.Opt.to_option res
+
+    let childLength elt =
+      let node = get_unique_node "childLength" elt in
+      node##childNodes##length
+
     let appendChild ?before elt1 elt2 =
       let node = get_unique_node "appendChild" elt1 in
       raw_appendChild ?before node elt2
@@ -282,6 +295,19 @@ module Html5 = struct
     let removeChild elt1 elt2 =
       let node1 = get_unique_node "removeChild" elt1 in
       raw_removeChild node1 elt2
+
+    let removeSelf elt =
+      let node = get_unique_node "removeSelf" elt in
+      let res = Js.Opt.bind (node##parentNode) (fun node ->
+        Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
+          Of_dom.of_element (Dom_html.element node)
+        )
+      ) in
+      Js.Opt.iter res (fun p -> removeChild p  elt)
+
+    let appendChildFirst p c =
+      let before = nth p 0 in
+      appendChild ?before p c
 
     let replaceChild elt1 elt2 elt3 =
       let node1 = get_unique_node "replaceChild" elt1 in

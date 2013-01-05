@@ -301,6 +301,15 @@ module Html5 : sig
         the list of [e1] children. *)
     val appendChilds: ?before:'a elt -> 'b elt ->  'c elt list -> unit
 
+    (** [appendChildFirst p c] appends [c] as first child of [p] *)
+    val appendChildFirst: 'b elt ->  'c elt -> unit
+
+    (** [nth e n] returns the nth child of [e] (first is 0) *)
+    val nth : 'a elt -> int -> 'b elt option
+
+    (** [childLength e] returns the number of chilren of [e] *)
+    val childLength : 'a elt -> int
+
     (** The function [removeChild e1 e2] removes for [e2] from the list of
         [e1] children. *)
     val removeChild: 'a elt -> 'b elt -> unit
@@ -311,6 +320,9 @@ module Html5 : sig
 
     (** The function [removeAllChild e1] removes [e1] children. *)
     val removeAllChild: 'a elt -> unit
+
+    (** [removeSelf e] removes element e from the DOM. *)
+    val removeSelf: 'a elt -> unit
 
     (** The function [replaceAllChild e1 elts] replaces all the children of
         [e1] by [elt]. *)
