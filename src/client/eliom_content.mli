@@ -396,6 +396,40 @@ module Html5 : sig
       val adds :'a elt -> string list -> unit
       val replace :  'a elt ->  string -> string -> unit
       val clear : 'a elt -> unit
+      val toggle : 'a elt -> string -> unit
+      val toggle2 : 'a elt -> string -> string -> unit
+    end
+
+    module Elt : sig
+      val body : [`Body] elt
+    end
+
+    module Ev : sig
+      type ('a,'b) ev = 'a elt -> ('b Js.t -> bool) -> unit
+      type ('a,'b) ev_unit = 'a elt -> ('b Js.t -> unit) -> unit
+      val onkeyup : ('a,Dom_html.keyboardEvent) ev
+      val onkeydown : ('a,Dom_html.keyboardEvent) ev
+      val onmouseup : ('a,Dom_html.mouseEvent) ev
+      val onmousedown : ('a,Dom_html.mouseEvent) ev
+      val onmouseout : ('a,Dom_html.mouseEvent) ev
+      val onmouseover : ('a,Dom_html.mouseEvent) ev
+      val onclick : ('a,Dom_html.mouseEvent) ev
+      val ondblclick : ('a,Dom_html.mouseEvent) ev
+      val onload : ('a,Dom_html.event) ev
+      val onfocus : ('a,Dom_html.event) ev
+      val onblur : ('a,Dom_html.event) ev
+      val onscroll : ('a,Dom_html.mouseEvent) ev
+      val onreturn : ('a,Dom_html.keyboardEvent) ev_unit
+      val onchange : ('a,Dom_html.event) ev
+    end
+
+    module Attr : sig
+      val clientWidth : 'a elt -> int
+      val clientHeight : 'a elt -> int
+      val offsetWidth : 'a elt -> int
+      val offsetHeight : 'a elt -> int
+      val clientLeft : 'a elt -> int
+      val clientTop : 'a elt -> int
     end
 
     (** Read the CSS properties of DOM elements. *)

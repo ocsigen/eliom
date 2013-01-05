@@ -235,6 +235,18 @@ module Html5 = struct
             name)
         id
 
+    let get_unique_elt_input name elt : Dom_html.inputElement Js.t =
+      Js.Opt.case
+        (Js.Opt.bind (Dom_html.CoerceTo.element (get_unique_node name elt)) Dom_html.CoerceTo.input)
+        (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
+        id
+
+    let get_unique_elt_img name elt : Dom_html.imageElement Js.t =
+      Js.Opt.case
+        (Js.Opt.bind (Dom_html.CoerceTo.element (get_unique_node name elt)) Dom_html.CoerceTo.img)
+        (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
+        id
+
     let raw_appendChild ?before node elt2 =
       match before with
       | None -> ignore(node##appendChild(get_node elt2))
@@ -434,7 +446,93 @@ module Html5 = struct
         Js.Optdef.iter (class_list##item (i))
           (fun cl -> class_list##remove (cl))
       done
-  end
+
+      let toggle elt cl1 =
+	if contain elt cl1
+	then remove elt cl1
+	else add elt cl1
+      let toggle2 elt cl1 cl2 =
+	  if contain elt cl1
+	  then replace elt cl1 cl2
+	  else replace elt cl2 cl1
+
+    end
+
+    module Elt = struct
+      let body = Of_dom.of_body (Dom_html.window##document##body)
+    end
+
+    module Ev = struct
+      type ('a,'b) ev = 'a elt -> ('b Js.t -> bool) -> unit
+      type ('a,'b) ev_unit = 'a elt -> ('b Js.t -> unit) -> unit
+      let bool_cb f = Dom_html.handler (fun e -> Js.bool (f e))
+      let onkeyup elt f =
+	let elt = get_unique_elt "Ev.onkeyup" elt in
+	elt##onkeyup <- (bool_cb f)
+      let onkeydown elt f =
+	let elt = get_unique_elt "Ev.onkeydown" elt in
+	elt##onkeydown <- (bool_cb f)
+      let onmouseup elt f =
+	let elt = get_unique_elt "Ev.onmouseup" elt in
+	elt##onmouseup <- (bool_cb f)
+      let onmousedown elt f =
+	let elt = get_unique_elt "Ev.onmousedown" elt in
+	elt##onmousedown <- (bool_cb f)
+      let onmouseout elt f =
+	let elt = get_unique_elt "Ev.onmouseout" elt in
+	elt##onmouseout <- (bool_cb f)
+      let onmouseover elt f =
+	let elt = get_unique_elt "Ev.onmouseover" elt in
+	elt##onmouseover <- (bool_cb f)
+      let onclick elt f =
+	let elt = get_unique_elt "Ev.onclick" elt in
+	elt##onclick <- (bool_cb f)
+      let ondblclick elt f =
+	let elt = get_unique_elt "Ev.ondblclick" elt in
+	elt##ondblclick <- (bool_cb f)
+      let onload elt f =
+	let elt = get_unique_elt_img "Ev.onload" elt in
+	elt##onload <- (bool_cb f)
+      let onfocus elt f =
+	let elt = get_unique_elt_input "Ev.onfocus" elt in
+	elt##onfocus <- (bool_cb f)
+      let onblur elt f =
+	let elt = get_unique_elt_input "Ev.onblur" elt in
+	elt##onblur <- (bool_cb f)
+      let onscroll elt f =
+	let elt = get_unique_elt "Ev.onscroll" elt in
+	elt##onscroll <- (bool_cb f)
+      let onreturn elt f =
+	let f ev =
+	  let key = ev##keyCode in
+	  if key = Keycode.return then f ev;
+	  true in
+	onkeydown elt f
+      let onchange elt f =
+	let elt = get_unique_elt_input "Ev.onchange" elt in
+	elt##onchange <- (bool_cb f)
+    end
+
+    module Attr = struct
+      let clientWidth elt =
+	let elt = get_unique_elt "Attr.clientWidth" elt in
+	elt##clientWidth
+      let clientHeight elt =
+	let elt = get_unique_elt "Attr.clientHeight" elt in
+	elt##clientHeight
+      let offsetWidth elt =
+	let elt = get_unique_elt "Attr.offsetWidth" elt in
+	elt##offsetWidth
+      let offsetHeight elt =
+	let elt = get_unique_elt "Attr.offsetHeight" elt in
+	elt##offsetHeight
+      let clientLeft elt =
+	let elt = get_unique_elt "Attr.clientLeft" elt in
+	elt##clientLeft
+      let clientTop elt =
+	let elt = get_unique_elt "Attr.clientTop" elt in
+	elt##clientTop
+    end
 
     module Css = struct
       let background elt =
