@@ -20,9 +20,7 @@
 open Eliom_lib
 open Ocsigen_cookies
 
-let history_api =
-  Js.def Dom_html.window##history != Js.undefined
-  && Js.Unsafe.variable "window.history.pushState" != Js.undefined
+let history_api = Dom_html.hasPushState ()
 
 let get_set_js_serverside_value r name =
   (fun s -> r := Some s),
