@@ -55,12 +55,12 @@ let (set_default_data_timeout,
      get_default_data_timeout,
      get_default_persistent_timeout) =
 
-  ((fun cookie_level timeout -> 
+  ((fun cookie_level timeout ->
      match cookie_level with
        | `Session -> data_t := timeout
        | `Client_process -> tab_data_t := timeout
    ),
-   (fun cookie_level timeout -> 
+   (fun cookie_level timeout ->
      match cookie_level with
        | `Session -> persistent_t := timeout
        | `Client_process -> tab_persistent_t := timeout
@@ -87,7 +87,7 @@ let set_default_volatile_timeout ct t =
 let add k v l = (k, v)::List.remove_assoc k l
 
 let set_timeout_ get set get_default update =
-  fun ?full_st_name ?cookie_level ~recompute_expdates 
+  fun ?full_st_name ?cookie_level ~recompute_expdates
     override_configfile fromconfigfile sitedata t ->
       (* cookie_level is useful and mandatory
          only if full_st_name is not present *)
@@ -97,11 +97,11 @@ let set_timeout_ get set get_default update =
           (match def_bro, def_tab, cookie_level with
             | Some (_, true), _, Some `Session
               when not override_configfile -> ()
-               (* if it has been set by config file 
+               (* if it has been set by config file
                   and we do not ask to override, we do nothing *)
             | _, Some (_, true), Some `Client_process
               when not override_configfile -> ()
-               (* if it has been set by config file 
+               (* if it has been set by config file
                   and we do not ask to override, we do nothing *)
             | _, _, Some `Session ->
               set sitedata (Some (t, fromconfigfile), def_tab, tl)
@@ -122,7 +122,7 @@ let set_timeout_ get set get_default update =
                     sitedata
                     (def_bro, def_tab, (full_st_name, (t, fromconfigfile))::newtl);
                 Some oldt
-              with Not_found -> 
+              with Not_found ->
                 set
                   sitedata
                   (def_bro, def_tab, (full_st_name, (t, fromconfigfile))::tl);
@@ -136,10 +136,10 @@ let set_timeout_ get set get_default update =
                     match def_bro, def_tab, (fst3 full_st_name) with
                       | Some (t, _), _, `Session _ -> t
                       | _, Some (t, _), `Client_process _ -> t
-                      | _, _, ct -> get_default 
+                      | _, _, ct -> get_default
                         (Eliom_common.cookie_level_of_user_scope ct)
               in
-              ignore 
+              ignore
                 (catch
                    (fun () -> update full_st_name sitedata oldt t)
                    (function e ->
@@ -157,7 +157,7 @@ let find_global_service_timeout full_st_name sitedata =
   let def_bro, def_tab, tl = sitedata.Eliom_common.servtimeout in
   try
     fst (List.assoc full_st_name tl)
-  with Not_found -> 
+  with Not_found ->
     match def_bro, def_tab, (fst3 full_st_name) with
       | Some (t, _), _, `Session _ -> t
       | _, Some (t, _), `Client_process _ -> t
@@ -194,7 +194,7 @@ let set_global_service_timeout_
     get_default_service_timeout
     Eliommod_sessadmin.update_serv_exp
     ?full_st_name ?cookie_level ~recompute_expdates a
-   
+
 let set_global_data_timeout_
     ?full_st_name ?cookie_level ~recompute_expdates a =
   set_timeout_
@@ -203,7 +203,7 @@ let set_global_data_timeout_
     get_default_data_timeout
     Eliommod_sessadmin.update_data_exp
     ?full_st_name ?cookie_level ~recompute_expdates a
-   
+
 let set_global_persistent_timeout_
     ?full_st_name ?cookie_level ~recompute_expdates a =
   set_timeout_
@@ -278,5 +278,3 @@ let set_default_global_persistent_timeout cookie_level
     override_configfile fromconfigfile sitedata timeout =
   set_global_persistent_timeout_ ~cookie_level ~recompute_expdates:false
     override_configfile fromconfigfile sitedata timeout
-
-

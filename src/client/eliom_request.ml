@@ -82,11 +82,16 @@ let redirect_post url params =
   f##_method <- Js.string "post";
   List.iter
     (fun (n, v) ->
-       let i =
-         Dom_html.createTextarea
-           ~_type:(Js.string "text") ~name:(Js.string n) Dom_html.document in
-       i##value <- Js.string v;
-       Dom.appendChild f i)
+      match v with
+        | `String v ->
+          let i =
+            Dom_html.createTextarea
+              ~_type:(Js.string "text") ~name:(Js.string n) Dom_html.document in
+          i##value <- v;
+          Dom.appendChild f i
+        | `File i ->
+          Firebug.console##error(Js.string "can't do POST redirection with file parameters");
+          failwith "redirect_post not implemented for files")
     params;
   f##style##display <- (Js.string "none");
   Dom.appendChild (Dom_html.document##body) f;
@@ -94,13 +99,7 @@ let redirect_post url params =
   f##submit ()
 
 let redirect_post_form_elt ?(post_args=[]) ?(form_arg=[]) url =
-  redirect_post url
-    ((List.map (function
-      | (name,`String s) -> (name,Js.to_string s)
-      | (name,`File f) ->
-	Firebug.console##error(Js.string "can't do POST redirection with file parameters");
-	failwith "can't do POST redirection with file parameters") form_arg)
-     @post_args)
+  redirect_post url (form_arg@post_args)
 
 let nl_template =
   Eliom_parameter.make_non_localized_parameters
@@ -143,23 +142,23 @@ let rec send ?(expecting_process_page = false) ?cookies_info
       match host with
         | Some host when host = Url.Current.host ->
           ( Eliom_common.tab_cpi_header_name,
-	    encode_header_value Eliom_process.info ) :: headers
+            encode_header_value Eliom_process.info ) :: headers
         | _ -> headers in
     let headers = if expecting_process_page
       then
-	let content_type =
-	  if Dom_html.onIE &&
-	    not (Js.Optdef.test ((Js.Unsafe.coerce Dom_html.document)##adoptNode))
-	  then
-	    (* ie < 9 does not know xhtml+xml content type, but ie 9
-	       can use it and need it to use adoptNode *)
-	    "application/xml"
-	  else "application/xhtml+xml"
-	in
-	("Accept",content_type)::
-	  (Eliom_common.expecting_process_page_name,
+        let content_type =
+          if Dom_html.onIE &&
+            not (Js.Optdef.test ((Js.Unsafe.coerce Dom_html.document)##adoptNode))
+          then
+            (* ie < 9 does not know xhtml+xml content type, but ie 9
+               can use it and need it to use adoptNode *)
+            "application/xml"
+          else "application/xhtml+xml"
+        in
+        ("Accept",content_type)::
+          (Eliom_common.expecting_process_page_name,
            encode_header_value true)::
-	  headers
+          headers
       else headers
     in
     let get_args =
@@ -169,83 +168,84 @@ let rec send ?(expecting_process_page = false) ?cookies_info
          browser won't cache the content of the page ( for instance
          when clicking the back button ). That way we are sure that an
          xhr answer won't be used in place of a normal answer. *)
-      then (Eliom_common.nl_get_appl_parameter,"true")::get_args
+      then (Eliom_common.nl_get_appl_parameter, "true")::get_args
       else get_args
     in
     let form_contents =
       match form_arg with
-	| None -> None
-	| Some form_arg ->
-	  let contents = Form.empty_form_contents () in
-	  List.iter (Form.append contents) form_arg;
-	  Some contents
+        | None -> None
+        | Some form_arg ->
+          let contents = Form.empty_form_contents () in
+          List.iter (Form.append contents) form_arg;
+          Some contents
     in
     let check_headers code headers =
       if expecting_process_page
       then
-	if code = 204
-	then true
-	else
-	  headers Eliom_common.appl_name_header_name
-	  = Eliom_process.get_application_name ()
+        if code = 204
+        then true
+        else
+          headers Eliom_common.appl_name_header_name
+          = Eliom_process.get_application_name ()
       else true
     in
     try_lwt
-  lwt r = XmlHttpRequest.perform_raw_url ?headers:(Some headers) ?content_type:None
+  lwt r = XmlHttpRequest.perform_raw_url
+    ?headers:(Some headers) ?content_type:None
     ?post_args ~get_args ?form_arg:form_contents ~check_headers url in
   ( match r.XmlHttpRequest.headers Eliom_common.set_tab_cookies_header_name with
     | None | Some "" -> () (* Empty tab_cookies for IE compat *)
-	| Some tab_cookies ->
-	  let tab_cookies = Eliommod_cookies.cookieset_of_json tab_cookies in
-	  Eliommod_cookies.update_cookie_table host tab_cookies; );
+        | Some tab_cookies ->
+          let tab_cookies = Eliommod_cookies.cookieset_of_json tab_cookies in
+          Eliommod_cookies.update_cookie_table host tab_cookies; );
       if r.XmlHttpRequest.code = 204
       then
-	match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with
+        match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with
           | None | Some "" ->
             (match r.XmlHttpRequest.headers Eliom_common.half_xhr_redir_header with
               | None | Some "" -> Lwt.return (r.XmlHttpRequest.url, None)
               | Some uri ->
-		(match post_args,form_arg with
-		  | None,None -> redirect_get uri
-		  | _,_ -> redirect_post_form_elt ?post_args ?form_arg url);
-		Lwt.fail Program_terminated)
+                (match post_args, form_arg with
+                  | None, None -> redirect_get uri
+                  | _, _ -> redirect_post_form_elt ?post_args ?form_arg url);
+                Lwt.fail Program_terminated)
           | Some uri ->
             if i < max_redirection_level
             then aux (i+1) uri
             else Lwt.fail Looping_redirection
       else
-	if expecting_process_page
-	then
-	  match r.XmlHttpRequest.headers Eliom_common.response_url_header with
-	    | None | Some "" -> error "Eliom_request: no location header"
-	    | Some url -> Lwt.return (url, Some (result r))
-	else
-	  if r.XmlHttpRequest.code = 200
-	  then Lwt.return (r.XmlHttpRequest.url, Some (result r))
-	  else Lwt.fail (Failed_request r.XmlHttpRequest.code)
+        if expecting_process_page
+        then
+          match r.XmlHttpRequest.headers Eliom_common.response_url_header with
+            | None | Some "" -> error "Eliom_request: no location header"
+            | Some url -> Lwt.return (url, Some (result r))
+        else
+          if r.XmlHttpRequest.code = 200
+          then Lwt.return (r.XmlHttpRequest.url, Some (result r))
+          else Lwt.fail (Failed_request r.XmlHttpRequest.code)
     with
       | XmlHttpRequest.Wrong_headers (code, headers) ->
-	(* We are requesting application content and the headers tels
-	   us that the answer is not application content *)
-	match headers Eliom_common.appl_name_header_name with
-	  | None | Some "" -> (* Empty appl_name for IE compat. *)
-	    (match post_args,form_arg with
-	      | None,None -> redirect_get url
-	      | _,_ -> error "Eliom_request: can't silently redirect a Post request to non application content");
-	    Lwt.fail Program_terminated
-	  | Some appl_name ->
-	    match Eliom_process.get_application_name () with
-	      | None ->
-		debug "Eliom_request: no application name? please report this bug";
-		assert false
-	      | Some current_appl_name ->
-		if appl_name = current_appl_name
-		then assert false (* we can't go here:
-				     this case is already handled before *)
-		else
-		  (debug "Eliom_request: received content for application %S when running application %s"
-		     appl_name current_appl_name;
-		   Lwt.fail (Failed_request code))
+        (* We are requesting application content and the headers tels
+           us that the answer is not application content *)
+        match headers Eliom_common.appl_name_header_name with
+          | None | Some "" -> (* Empty appl_name for IE compat. *)
+            (match post_args, form_arg with
+              | None, None -> redirect_get url
+              | _, _ -> error "Eliom_request: can't silently redirect a Post request to non application content");
+            Lwt.fail Program_terminated
+          | Some appl_name ->
+            match Eliom_process.get_application_name () with
+              | None ->
+                debug "Eliom_request: no application name? please report this bug";
+                assert false
+              | Some current_appl_name ->
+                if appl_name = current_appl_name
+                then assert false (* we can't go here:
+                                     this case is already handled before *)
+                else
+                  (debug "Eliom_request: received content for application %S when running application %s"
+                     appl_name current_appl_name;
+                   Lwt.fail (Failed_request code))
   in
   lwt (url, content) = aux 0 ?cookies_info ?get_args ?post_args ?form_arg url in
   let filter_url url =
@@ -273,26 +273,25 @@ let rec send ?(expecting_process_page = false) ?cookies_info
 *)
 
 (* BEGIN FORMDATA HACK *)
-let add_button_arg args form =
+let add_button_arg inj args form =
   let button = (Js.Unsafe.variable "window")##eliomLastButton in
   (Js.Unsafe.variable "window")##eliomLastButton <- None;
   match button with
     | None -> args
     | Some b ->
-	let name,value,b_form =
+        let name, value, b_form =
           match Dom_html.tagged b with
-            | Dom_html.Button b -> b##name,b##value,b##form
-            | Dom_html.Input b -> b##name,b##value,b##form
+            | Dom_html.Button b -> b##name, b##value, b##form
+            | Dom_html.Input b -> b##name, b##value, b##form
             | _ -> assert false
-	in
-	let name = Js.to_string name in
-	let value = Js.to_string value in
-	if name <> "" && b_form = Js.some form
-	then
-	  match args with
-	    | None -> Some [name,value]
-	    | Some l -> Some ((name,value)::l)
-	else args
+        in
+        let name = Js.to_string name in
+        if name <> "" && b_form = Js.some form
+        then
+          match args with
+            | None -> Some [name, inj value]
+            | Some l -> Some ((name, inj value)::l)
+        else args
 (* END FORMDATA HACK *)
 
 
@@ -305,7 +304,7 @@ let send_get_form
     ?expecting_process_page ?cookies_info ?(get_args=[]) ?post_args form url =
   let get_args = get_args@(Form.get_form_contents form) in
   (* BEGIN FORMDATA HACK *)
-  let get_args = add_button_arg (Some get_args) form in
+  let get_args = add_button_arg Js.to_string (Some get_args) form in
   (* END FORMDATA HACK *)
   send ?expecting_process_page ?cookies_info ?get_args ?post_args url
 
@@ -313,7 +312,7 @@ let send_get_form
 let send_post_form
     ?expecting_process_page ?cookies_info ?get_args ?post_args form url =
   (* BEGIN FORMDATA HACK *)
-  let post_args = add_button_arg post_args form in
+  let post_args = add_button_arg (fun x -> `String x) post_args form in
   (* END FORMDATA HACK *)
   send ?expecting_process_page ?cookies_info ?get_args ?post_args
     ~form_arg:(Form.form_elements form) url

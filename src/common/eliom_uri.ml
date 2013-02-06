@@ -33,7 +33,7 @@ let rec string_of_url_path' = function
   | [] -> ""
   | [a] when a = Eliom_common.eliom_suffix_internal_name -> ""
   | [a] -> Url.encode ~plus:false a
-  | a::b::l when b = Eliom_common.eliom_suffix_internal_name -> 
+  | a::b::l when b = Eliom_common.eliom_suffix_internal_name ->
       string_of_url_path' (a::l)
   | a::l when a = Eliom_common.eliom_suffix_internal_name ->
       string_of_url_path' l
@@ -41,7 +41,7 @@ let rec string_of_url_path' = function
 
 let rec string_of_url_path_suff u = function
   | None -> string_of_url_path' u
-  | Some suff -> 
+  | Some suff ->
       let pref = string_of_url_path' u in
       let suf = string_of_url_path' suff in
       if String.length pref = 0
@@ -62,14 +62,14 @@ let reconstruct_relative_url_path current_url u =
 (*    | [a] -> "" *)
     | _::l -> ".."::(makedotdot l)
   in
-  let aremonter, aaller = drop current_url u in 
+  let aremonter, aaller = drop current_url u in
   (makedotdot aremonter)@aaller
 
 let reconstruct_relative_url_path_string current_url u suff =
   let relurl = reconstruct_relative_url_path current_url u in
   let s = string_of_url_path_suff relurl suff in
   if String.length s = 0
-  then Eliom_common.defaultpagename 
+  then Eliom_common.defaultpagename
   else if s.[0] = '/'
   then (* possible with optional parameters *) "./"^s
   else s
@@ -140,20 +140,20 @@ let make_uri_components_ (* does not take into account getparams *)
       | Some sp -> Eliom_request_info.get_csp_ssl_sp sp
       | None -> false
   in
-  
-  let https = 
-    (https = Some true) || 
+
+  let https =
+    (https = Some true) ||
       (Eliom_service.get_https service) ||
       (https = None && ssl)
   in
-  let absolute = 
-    if absolute || https <> ssl 
+  let absolute =
+    if absolute || https <> ssl
     then Some (make_proto_prefix ?hostname ?port https)
     else if absolute_path
     then Some "/"
-    else None 
+    else None
   in
-(*VVV We trust current protocol? *) 
+(*VVV We trust current protocol? *)
 
 
 
@@ -174,13 +174,15 @@ let make_uri_components_ (* does not take into account getparams *)
             String.Table.fold
               (fun key v b -> String.Table.add key v b)
               preappnlp
-              (Eliom_request_info.get_nl_get_params_sp sp)
+              (Eliommod_parameters.inject_param_table
+                 (Eliom_request_info.get_nl_get_params_sp sp))
 	| `Persistent ->
             (* We replace current nl params by preapplied ones *)
             String.Table.fold
               (fun key v b -> String.Table.add key v b)
               preappnlp
-              (Eliom_request_info.get_persistent_nl_get_params_sp sp)
+              (Eliommod_parameters.inject_param_table
+                 (Eliom_request_info.get_persistent_nl_get_params_sp sp))
 	| `None -> preappnlp
   in
   let nlp =
@@ -194,7 +196,7 @@ let make_uri_components_ (* does not take into account getparams *)
   (* remove in nlp the one present in the service parameters *)
   let getparamstype = get_get_params_type_ service in
   let nlp = Eliom_parameter.remove_from_nlp nlp getparamstype in
-  let hiddenparams = 
+  let hiddenparams =
     String.Table.fold
       (fun _ l beg -> l@beg)
       nlp preapplied_params
@@ -229,11 +231,13 @@ let make_uri_components_ (* does not take into account getparams *)
                 (uri, hiddenparams, fragment)
             | Eliom_common.SAtt_anon s ->
                 (uri,
-                 ((Eliom_common.get_numstate_param_name, s)::hiddenparams),
+                 ((Eliom_common.get_numstate_param_name,
+                   Eliommod_parameters.insert_string s)::hiddenparams),
                  fragment)
             | Eliom_common.SAtt_named s ->
                 (uri,
-                 ((Eliom_common.get_state_param_name, s)::hiddenparams),
+                 ((Eliom_common.get_state_param_name,
+                   Eliommod_parameters.insert_string s)::hiddenparams),
                  fragment)
             | Eliom_common.SAtt_csrf_safe csrf_info ->
 		let sp = Eliom_common.get_sp () in
@@ -241,8 +245,9 @@ let make_uri_components_ (* does not take into account getparams *)
                   Eliom_service.register_delayed_get_or_na_coservice
                     ~sp csrf_info
                 in
-                (uri, 
-                 ((Eliom_common.get_numstate_param_name, s)::hiddenparams),
+                (uri,
+                 ((Eliom_common.get_numstate_param_name,
+                   Eliommod_parameters.insert_string s)::hiddenparams),
                  fragment)
 
         end
@@ -273,7 +278,8 @@ let make_uri_components_ (* does not take into account getparams *)
                  (Eliom_common.naservice_num, n)::current_get_params
              | _ -> assert false)
         in
-        let params = params'@hiddenparams in
+        let params = Eliommod_parameters.inject_param_list params'
+          @hiddenparams in
         let beg =
           match absolute with
             | None ->
@@ -315,7 +321,7 @@ let make_uri_components
   let suff, params =
     construct_params_list
       String.Table.empty
-      (get_get_params_type_ service) getparams 
+      (get_get_params_type_ service) getparams
       (* if nl params were already present, they will be replaced
          by new values *)
   in
@@ -378,10 +384,10 @@ let make_post_uri_components_ (* do not take into account postparams *)
     ?port
     ?fragment
     ?keep_nl_params
-    ?(nl_params = Eliom_parameter.empty_nl_params_set) 
+    ?(nl_params = Eliom_parameter.empty_nl_params_set)
     ?(keep_nl_params : [ `All | `Persistent | `None ] option)
     ?keep_get_na_params
-    getparams 
+    getparams
     () =
   match get_kind_ service with
     | `Attached attser ->
@@ -440,8 +446,9 @@ let make_post_uri_components_ (* do not take into account postparams *)
               in
               [(Eliom_common.post_numstate_param_name, s)]
       in
-      (uri, getparams, fragment, postparams)
-        
+      (uri, getparams, fragment,
+       Eliommod_parameters.inject_param_list postparams)
+
 
     | `Nonattached naser ->
 
@@ -459,13 +466,15 @@ let make_post_uri_components_ (* do not take into account postparams *)
                     String.Table.fold
                       (fun key v b -> String.Table.add key v b)
                       preappnlp
-                      (Eliom_request_info.get_nl_get_params ())
+                      (Eliommod_parameters.inject_param_table
+                         (Eliom_request_info.get_nl_get_params ()))
                 | `Persistent ->
                     (* We replace current nl params by preapplied ones *)
                     String.Table.fold
                       (fun key v b -> String.Table.add key v b)
                       preappnlp
-                      (Eliom_request_info.get_persistent_nl_get_params_sp sp)
+                      (Eliommod_parameters.inject_param_table
+                         (Eliom_request_info.get_persistent_nl_get_params_sp sp))
                 | `None -> preappnlp
             in
             let nlp =
@@ -480,10 +489,10 @@ let make_post_uri_components_ (* do not take into account postparams *)
             (* for getparams and non localized params: *)
             let suff, params =
               construct_params_list
-                nlp (get_get_params_type_ service) getparams 
+                nlp (get_get_params_type_ service) getparams
                 (* if nl params were already present, they will be replaced
                    by new values *)
-                (* getparams can be something else than [] 
+                (* getparams can be something else than []
                    if we have added nl params to the service (?) *)
             in
             let params = params @ preapp in
@@ -498,23 +507,24 @@ let make_post_uri_components_ (* do not take into account postparams *)
             in
             let params =
               params @
-              (if keep_get_na_params
-               then
-                 (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_nl
-               else
-                 (Lazy.force
-                   (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_na_nl))
+                Eliommod_parameters.inject_param_list
+                (if keep_get_na_params
+                 then
+                    (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_nl
+                 else
+                    (Lazy.force
+                       (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_na_nl))
             in
 
 
             let ssl = Eliom_request_info.get_csp_ssl_sp sp in
-            let https = 
-              (https = Some true) || 
+            let https =
+              (https = Some true) ||
                 (Eliom_service.get_https service) ||
                 (https = None && ssl)
             in
-            let absolute = 
-              if absolute || https <> ssl 
+            let absolute =
+              if absolute || https <> ssl
               then Some (make_proto_prefix ?hostname ?port https)
               else if absolute_path
               then Some "/"
@@ -551,7 +561,8 @@ let make_post_uri_components_ (* do not take into account postparams *)
             let fragment = None (* fragment is not sent to the server *) in
 
             let postparams = [naservice_line] in
-            (uri, params, fragment, postparams)
+            (uri, params, fragment,
+             Eliommod_parameters.inject_param_list postparams)
 
 
 
@@ -566,7 +577,7 @@ let make_post_uri_components
     ?keep_nl_params
     ?nl_params
     ?keep_get_na_params
-    getparams 
+    getparams
     postparams =
 
   let (uri, getparams, fragment, prepostparams) =
@@ -581,13 +592,13 @@ let make_post_uri_components
       ?keep_nl_params
       ?nl_params
       ?keep_get_na_params
-      getparams 
+      getparams
       ()
   in
   let _, postparams =
     construct_params_list
       String.Table.empty
-      (get_post_params_type_ service) 
+      (get_post_params_type_ service)
       postparams
   in
   (uri, getparams, fragment, postparams@prepostparams)
@@ -601,14 +612,14 @@ let make_post_uri_components__ = make_post_uri_components
 
 (*VVV
 
-  WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING 
+  WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
   We do not take into account the suffix for computing process cookies
   of GET forms (beacause the suffix is taken from the form).
   This corresponds to what the browser is doing with session cookies.
   For links and POST forms, the url already contains the suffix.
   It is taken into account for computing process cookies.
   Again, it is what the browser is doing for session cookies.
-  
+
   This is not completely satisfactory,
   but should always do what we want,
   but for very non-standard uses of cookies ...
@@ -626,15 +637,15 @@ let make_cookies_info (https, service) =
         if (Eliom_service.get_att_kind_ attser) = `External
         then None
         else Some (Eliom_service.get_full_path_ attser)
-      | `Nonattached naser -> 
+      | `Nonattached naser ->
         Some (Eliom_request_info.get_csp_original_full_path ())
   in
   match get_path_ ~service with
     | None -> None
     | Some path ->
       let ssl = Eliom_request_info.get_csp_ssl () in
-      let https = 
-        (https = Some true) || 
+      let https =
+        (https = Some true) ||
           (Eliom_service.get_https service) ||
           (https = None && ssl)
       in

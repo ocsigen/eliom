@@ -109,10 +109,10 @@ module MakeForms(Pages : FORMS_PARAM) = struct
 	      let (uri, hiddenparams, fragment) = Eliom_lazy.force components in
 	      Pages.cons_hidden_fieldset
 		(List.map
-		   (fun (n,v) ->
-		     (Pages.make_input
-			~typ:Pages.hidden
-			~name:n ~value:v ()))
+		   (fun (n, v) ->
+		     Pages.make_input
+		       ~typ:Pages.hidden
+		       ~name:n ~value:(Eliommod_parameters.to_string v) ())
 		   hiddenparams)
 		inside)
 	in
@@ -168,7 +168,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
 		   (fun (n,v) ->
 		     (Pages.make_input
 			~typ:Pages.hidden
-			~name:n ~value:v ()))
+			~name:n ~value:(Eliommod_parameters.to_string v) ()))
 		   hiddenparams)
 	      inside) in
          let uri =

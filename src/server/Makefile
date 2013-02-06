@@ -47,6 +47,7 @@ FILES := eliom_wrap.ml eliom_lazy.ml \
 	 private/eliommod_sessexpl.ml \
 	 private/eliommod_sessadmin.ml \
 	 private/eliommod_timeouts.ml \
+	 private/eliommod_parameters.ml \
 	 eliom_state.ml \
 	 eliom_reference.ml \
 	 eliom_extension.ml \

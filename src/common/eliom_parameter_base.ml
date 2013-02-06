@@ -309,6 +309,7 @@ let construct_params_list_raw
                     "Bad parameter type in suffix")
   in
   let rec aux typ psuff nlp params pref suff l =
+    let open Eliommod_parameters in
     match typ with
     | TNLParams (name, _, _, t) ->
         let psuff, nlp, nl = aux t psuff nlp params pref suff [] in
@@ -328,7 +329,7 @@ let construct_params_list_raw
         | Some v -> aux t psuff nlp v pref suff l)
     | TBool name ->
         (if ((Obj.magic params) : bool)
-         then psuff, nlp, ((pref^name^suff), "on")::l
+         then psuff, nlp, ((pref^name^suff), insert_string "on")::l
          else psuff, nlp, l)
     | TList (list_name, t) ->
         let pref2 = pref^list_name^suff^"." in
@@ -345,30 +346,36 @@ let construct_params_list_raw
     | TSum (t1, t2) -> (match Obj.magic params with
       | Inj1 v -> aux t1 psuff nlp v pref suff l
       | Inj2 v -> aux t2 psuff nlp v pref suff l)
-    | TString name -> psuff, nlp, ((pref^name^suff), (Obj.magic params))::l
+    | TString name -> psuff, nlp, ((pref^name^suff),
+                                   insert_string (Obj.magic params))::l
     | TInt name ->
         psuff, nlp,
-        ((pref^name^suff), (string_of_int (Obj.magic params)))::l
+        ((pref^name^suff),
+         insert_string (string_of_int (Obj.magic params)))::l
     | TInt32 name ->
         psuff, nlp,
-        ((pref^name^suff), (Int32.to_string (Obj.magic params)))::l
+        ((pref^name^suff),
+         insert_string (Int32.to_string (Obj.magic params)))::l
     | TInt64 name ->
         psuff, nlp,
-        ((pref^name^suff), (Int64.to_string (Obj.magic params)))::l
+        ((pref^name^suff),
+         insert_string (Int64.to_string (Obj.magic params)))::l
     | TFloat name ->
         psuff, nlp,
-        ((pref^name^suff), (string_of_float (Obj.magic params)))::l
-    | TFile name ->
-        failwith "Constructing an URL with file parameters not possible"
+        ((pref^name^suff),
+         insert_string (string_of_float (Obj.magic params)))::l
+    | TFile name -> psuff, nlp, ((pref^name^suff),
+                                 insert_file (Obj.magic params))::l
     | TUserType (name, of_string, string_of) ->
         psuff, nlp,
-        ((pref^name^suff), (string_of (Obj.magic params)))::l
+        ((pref^name^suff),
+         insert_string (string_of (Obj.magic params)))::l
     | TTypeFilter (t, check) -> aux t psuff nlp params pref suff l
     | TCoord name ->
         psuff, nlp,
         let coord = Obj.magic params in
-        ((pref^name^suff^".x"), string_of_int coord.abscissa)::
-        ((pref^name^suff^".y"), string_of_int coord.ordinate)::l
+        ((pref^name^suff^".x"), insert_string (string_of_int coord.abscissa))::
+        ((pref^name^suff^".y"), insert_string (string_of_int coord.ordinate))::l
     | TCoordv (t, name) ->
         aux (TProd (t, TCoord name)) psuff nlp params pref suff l
     | TUnit -> psuff, nlp, l
@@ -376,12 +383,11 @@ let construct_params_list_raw
     | TConst _ -> psuff, nlp, l
     | TESuffix _
     | TESuffixs _
-    | TESuffixu _ -> raise (Eliom_Internal_Error
-                              "Bad use of suffix")
+    | TESuffixu _ -> raise (Eliom_Internal_Error "Bad use of suffix")
     | TSuffix (_, s) -> Some (make_suffix s (Obj.magic params)), nlp, l
     | TJson (name, typ) -> (* server or client side *)
       psuff, nlp, ((pref^name^suff),
-                   to_json ?typ (Obj.magic params))::l
+                   insert_string (to_json ?typ (Obj.magic params)))::l
     | TRaw_post_data ->
       failwith "Constructing an URL with raw POST data not possible"
   in
@@ -477,7 +483,8 @@ let rec walk_parameter_tree name x = match x with
 
 
 (* contruct the string of parameters (& separated) for GET and POST *)
-let construct_params_string = Url.make_encoded_parameters
+let construct_params_string l =
+  Url.make_encoded_parameters (Eliommod_parameters.get_param_list l)
 
 let construct_params_list nonlocparams typ p =
   let (suff, nonlocparams, pl) = construct_params_list_raw nonlocparams typ p in
@@ -605,11 +612,11 @@ let rec remove_from_nlp nlp = function
         remove_from_nlp nlp t2
     | _ -> nlp
 
-type nl_params_set = (string * string) list String.Table.t
+type nl_params_set = (string * Eliommod_parameters.param) list String.Table.t
 
 let empty_nl_params_set = String.Table.empty
 
-let add_nl_parameter s t v =
+let add_nl_parameter (s : nl_params_set) t v =
   (fun (_, a, _) -> a) (construct_params_list_raw s (TNLParams t) v)
 
 let table_of_nl_params_set = id
@@ -617,7 +624,8 @@ let table_of_nl_params_set = id
 let list_of_nl_params_set nlp = snd (construct_params_list nlp unit ())
 
 let string_of_nl_params_set nlp =
-  Url.make_encoded_parameters (list_of_nl_params_set nlp)
+  Url.make_encoded_parameters
+    (Eliommod_parameters.get_param_list (list_of_nl_params_set nlp))
 
 let get_nl_params_names t = snd (make_params_names (TNLParams t))
 

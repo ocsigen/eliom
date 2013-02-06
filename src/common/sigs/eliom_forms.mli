@@ -198,7 +198,7 @@ val make_uri_components :
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   ?nl_params: Eliom_parameter.nl_params_set ->
   'get ->
-  string * (string * string) list * string option
+  string * (string * Eliommod_parameters.param) list * string option
 
 (** Same a {!make_uri_components}, but also returns a list of post
     parameters. *)
@@ -217,7 +217,8 @@ val make_post_uri_components :
   ?keep_get_na_params:bool ->
   'get ->
   'post ->
-  string * (string * string) list * string option * (string * string) list
+  string * (string * Eliommod_parameters.param) list * string option *
+    (string * Eliommod_parameters.param) list
 
 (**/**)
 (** Creates the string corresponding to the beginning of the URL,

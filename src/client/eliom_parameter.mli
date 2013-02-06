@@ -225,24 +225,25 @@ val add_pref_params :
         ('a, 'b, 'c) params_type
 
 val construct_params :
-  (string * string) list String.Table.t ->
+  (string * Eliommod_parameters.param) list String.Table.t ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
   'a -> string list option * string
 
-val construct_params_string : (string * string) list -> string
+val construct_params_string :
+  (string * Eliommod_parameters.param) list -> string
 
 val construct_params_list_raw :
-  (string * string) list String.Table.t ->
+  (string * Eliommod_parameters.param) list String.Table.t ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
   'a -> string list option *
-  (string * string) list String.Table.t *
-     (string * string) list
+  (string * Eliommod_parameters.param) list String.Table.t *
+     (string * Eliommod_parameters.param) list
 
 val construct_params_list :
-  (string * string) list String.Table.t ->
+  (string * Eliommod_parameters.param) list String.Table.t ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
   'a ->
-  string list option * (string * string) list
+  string list option * (string * Eliommod_parameters.param) list
 
 val make_params_names :
     ('a, 'b, 'c) params_type -> bool * 'c
@@ -255,14 +256,15 @@ val nl_prod :
   ('a * 's, 'su, 'an * 'sn) params_type
 
 val remove_from_nlp :
-  (string * string) list String.Table.t ->
+  (string * 'c) list String.Table.t ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
-  (string * string) list String.Table.t
+  (string * 'c) list String.Table.t
 
 val table_of_nl_params_set : nl_params_set ->
-  (string * string) list String.Table.t
+  (string * Eliommod_parameters.param) list String.Table.t
 
-val list_of_nl_params_set : nl_params_set -> (string * string) list
+val list_of_nl_params_set :
+  nl_params_set -> (string * Eliommod_parameters.param) list
 
 val string_of_nl_params_set : nl_params_set -> string
 

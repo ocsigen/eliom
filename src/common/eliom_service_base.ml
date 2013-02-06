@@ -116,9 +116,9 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) servic
 (* 'return is the value returned by the service *)
     {
      pre_applied_parameters:
-       (string * string) list String.Table.t
+       (string * Eliommod_parameters.param) list String.Table.t
        (* non localized parameters *) *
-       (string * string) list (* regular parameters *);
+       (string * Eliommod_parameters.param) list (* regular parameters *);
      get_params_type: ('get, 'tipo, 'getnames) Eliom_parameter.params_type;
      post_params_type: ('post, [`WithoutSuffix], 'postnames) Eliom_parameter.params_type;
      max_use: int option; (* Max number of use of this service *)

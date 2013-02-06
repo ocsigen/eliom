@@ -50,7 +50,7 @@ exception Eliom_Internal_Error of string
 *)
 exception Exception_on_server of string
 
-type file_info
+type file_info = File.file Js.t
 
 val to_json : ?typ:'a -> 'b -> string
 val of_json : ?typ:'a -> string -> 'b

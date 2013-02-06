@@ -85,7 +85,7 @@ val make_uri_components :
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:nl_params_set ->
-  'get -> string * (string * string) list * string option
+  'get -> string * (string * Eliommod_parameters.param) list * string option
 
 
 (** Same a {!make_uri_components}, but also returns a table of post
@@ -105,8 +105,8 @@ val make_post_uri_components :
   ?keep_get_na_params:bool ->
   'get ->
   'post ->
-  string * (string * string) list * string option *
-    (string * string) list
+  string * (string * Eliommod_parameters.param) list * string option *
+    (string * Eliommod_parameters.param) list
 
 (** The function [make_string_uri_from_components path get_params
     fragment] build the corresponding string URL. The [path] should
@@ -116,7 +116,7 @@ val make_post_uri_components :
     {!make_uri_components} and [make_string_uri_from_components].
 *)
 val make_string_uri_from_components :
-  string * (string * string) list * string option -> string
+  string * (string * Eliommod_parameters.param) list * string option -> string
 
 (** {2 Relative paths} *)
 
@@ -172,8 +172,8 @@ val make_post_uri_components__ :
   ?keep_get_na_params:bool ->
   'a ->
   'b ->
-  string * (string * string) list * string option *
-    (string * string) list
+  string * (string * Eliommod_parameters.param) list * string option *
+    (string * Eliommod_parameters.param) list
 
 
 val make_uri_components_ :
@@ -190,7 +190,7 @@ val make_uri_components_ :
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:nl_params_set ->
-  unit -> string * (string * string) list * string option
+  unit -> string * (string * Eliommod_parameters.param) list * string option
 
 val make_post_uri_components_ :
   ?absolute:bool ->
@@ -210,8 +210,8 @@ val make_post_uri_components_ :
   ?keep_get_na_params:bool ->
   'a ->
   unit ->
-  string * (string * string) list * string option *
-    (string * string) list
+  string * (string * Eliommod_parameters.param) list * string option *
+    (string * Eliommod_parameters.param) list
 
 
 
@@ -225,10 +225,9 @@ val make_proto_prefix :
 val make_cookies_info :
   bool option *
   ('a, 'b,
-   [< `Attached of ([> `External ], 'c) Eliom_service.a_s
+   [< `Attached of ([< `Internal of 'i
+                    | `External > `External], 'c) Eliom_service.a_s
    | `Nonattached of 'd ],
    [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h)
            Eliom_service.service ->
   (bool * Url.path) option
-
-

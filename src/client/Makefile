@@ -38,6 +38,7 @@ FILES := private/eliommod_jstable.ml \
 	 eliom_unwrap.ml eliom_lazy.ml \
 	 eliom_lib_base.ml \
 	 eliom_lib.ml \
+	 private/eliommod_parameters.ml \
 	 eliom_content_core.ml \
 	 eliom_common_base.ml eliom_common.ml \
 	 eliom_cookies_base.ml \

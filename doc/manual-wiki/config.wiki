@@ -274,7 +274,7 @@ The level attribute can take values {{{session}}} or {{{tab}}}.
 
 * {{{<volatiletimeout value="30" [hierarchyname=""] [level="session"]/>}}}
   The default timeout for
-  volatile (in memory) states.
+  volatile (in memory) states (value in seconds).
   {{{value="infinity"}}} means that the state will
   never finish.
   Note that each eliom module may set its own

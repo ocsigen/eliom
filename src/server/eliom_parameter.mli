@@ -473,7 +473,8 @@ val get_to_and_from : ('a, 'b, 'c) params_type -> (string -> 'a) * ('a -> string
 
 (**/**)
 
-val walk_parameter_tree : [ `One of string ] param_name -> ('a, 'b, 'c) params_type
+val walk_parameter_tree :
+  [ `One of string ] param_name -> ('a, 'b, 'c) params_type
   -> ((string -> 'd) * ('d -> string)) option
 val contains_suffix : ('a, 'b, 'c) params_type -> bool option
   (* None = no suffix. The bool means : redirect_if_not_suffix *)
@@ -526,9 +527,9 @@ val nl_prod :
   ('a * 's, 'su, 'an * 'sn) params_type
 
 val remove_from_nlp :
-  (string * string) list String.Table.t ->
+  (string * 'c) list String.Table.t ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
-  (string * string) list String.Table.t
+  (string * 'c) list String.Table.t
 
 val table_of_nl_params_set : nl_params_set ->
   (string * string) list String.Table.t

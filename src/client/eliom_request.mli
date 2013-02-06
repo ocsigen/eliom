@@ -23,7 +23,7 @@ exception Program_terminated
 exception Non_xml_content
 
 val redirect_get : string -> unit
-val redirect_post : string -> (string * string) list -> unit
+val redirect_post : string -> (string * Eliommod_parameters.param) list -> unit
 
 type 'a result
 
@@ -34,7 +34,7 @@ val send :
   ?expecting_process_page:bool ->
   ?cookies_info:bool * string list ->
   ?get_args:(string * string) list ->
-  ?post_args:(string * string) list ->
+  ?post_args:(string * Eliommod_parameters.param) list ->
   ?form_arg:((string * Form.form_elt) list) -> string ->
   'a result ->
   (string * 'a option) Lwt.t
@@ -43,7 +43,7 @@ val send_get_form :
   ?expecting_process_page:bool ->
   ?cookies_info:bool * string list ->
   ?get_args:(string * string) list ->
-  ?post_args:(string * string) list ->
+  ?post_args:(string * Eliommod_parameters.param) list ->
   Dom_html.formElement Js.t ->
   string ->
   'a result ->
@@ -53,7 +53,7 @@ val send_post_form :
   ?expecting_process_page:bool ->
   ?cookies_info:bool * string list ->
   ?get_args:(string * string) list ->
-  ?post_args:(string * string) list ->
+  ?post_args:(string * Eliommod_parameters.param) list ->
   Dom_html.formElement Js.t ->
   string ->
   'a result ->
@@ -71,7 +71,7 @@ val http_post :
   ?expecting_process_page:bool ->
   ?cookies_info:bool * string list ->
   string ->
-  (string * string) list ->
+  (string * Eliommod_parameters.param) list ->
   'a result ->
   (string * 'a option) Lwt.t
 

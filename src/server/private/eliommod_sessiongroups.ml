@@ -492,8 +492,7 @@ module Pers = struct
                 | _ -> Eliom_common.default_group_name)
             | None -> Eliom_common.default_group_name
         in
-        Eliom_common.remove_from_all_persistent_tables group_name
-        >>= fun () ->
+        Eliom_common.remove_from_all_persistent_tables group_name >>= fun () ->
         
         (* If it is associated to a session,
            we remove the session from its group,
@@ -503,7 +502,7 @@ module Pers = struct
                                       belonging to the group grp *)
             (* group_name is the cookie value *)
             remove sitedata group_name grp >>= fun () ->
-            Ocsipersist.remove 
+            Ocsipersist.remove
               (!!Eliom_common.persistent_cookies_table) group_name
           | _ -> Lwt.return ())
         >>= fun () ->

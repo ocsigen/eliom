@@ -118,8 +118,7 @@ let encode_header_value x =
 let unmarshal_js_var s =
   Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
 
-(** Empty type (not used on client side, see eliom_parameter_base.ml) *)
-type file_info
+type file_info = File.file Js.t
 
 type injection_datum = poly Eliom_lib_base.injection_datum
 

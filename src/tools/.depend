@@ -1,12 +1,10 @@
-config.cmo :
-config.cmx :
-destillery.cmo : config.cmo
-destillery.cmx : config.cmx
-eliom.cmo :
-eliom.cmx :
-eliomc.cmo : utils.cmo
-eliomc.cmx : utils.cmx
-eliomdep.cmo : utils.cmo
-eliomdep.cmx : utils.cmx
-utils.cmo :
-utils.cmx :
+config.cmo:
+config.cmx:
+destillery.cmo: config.cmo
+destillery.cmx: config.cmx
+eliomc.cmo: utils.cmo
+eliomc.cmx: utils.cmx
+eliomdep.cmo: utils.cmo
+eliomdep.cmx: utils.cmx
+utils.cmo:
+utils.cmx:

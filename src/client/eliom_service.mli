@@ -220,8 +220,8 @@ val get_get_or_post :
 
 val get_kind_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> 'c
 val get_pre_applied_parameters_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
-  (string * string) list String.Table.t *
-  (string * string) list
+  (string * Eliommod_parameters.param) list String.Table.t *
+  (string * Eliommod_parameters.param) list
 val get_get_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
   ('a, 'd, 'e) Eliom_parameter.params_type
 val get_post_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
