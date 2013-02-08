@@ -55,7 +55,7 @@ TEST_PREFIX := local/
 # Configuration file $(PROJECT_NAME).conf
 ETCDIR := etc/${PROJECT_NAME}
 # Project's library $(PROJECT_NAME).cma (cmxs)
-LIBDIR := var/lib/${PROJECT_NAME}
+LIBDIR := lib/${PROJECT_NAME}
 # Command pipe, eg. $ echo restart > $(INSTALL_PREFIX)$(CMDPIPE)
 CMDPIPE := var/run/${PROJECT_NAME}-cmd
 # Ocsigenserver's logging files
