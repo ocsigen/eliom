@@ -46,9 +46,13 @@ module Down : sig
   type 'a t
 
   (** [of_react ?scope ?throttling ?name e] create an
-      asynchronous edge originating from [e]. The parameters are: [throttling]
-      for the limit to event propagation rate, [name] for named edges,
-      [size] for the size of the server side buffer. [scope]
+      asynchronous edge originating from [e]. The parameters are:
+      - [throttling]
+      for the limit to event propagation rate (minimum time, in second,
+      between two consecutive events - other events are lost),
+      - [name] for named edges,
+      - [size] for the size of the server side buffer.
+      - [scope]
       tell which kind of channel this rely on (See [Eliom_comet.create]). *)
   val of_react :
     ?scope:[<Eliom_comet.Channel.comet_scope]
@@ -70,7 +74,7 @@ sig
 
       Example of use:
       [let e_up = Eliom_react.Up.create
-        (Eliom_parameter.caml "a" Json.t<string>) 
+        (Eliom_parameter.caml "a" Json.t<string>)
       in
       ... {{ ignore ( %e_up "A") }} ...
       ]

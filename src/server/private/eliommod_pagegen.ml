@@ -175,7 +175,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
   (match sci with
     | Some info -> update_exp info
     | None -> Lwt.return ())
-    
+
 
 (*****************************************************************************)
 (* Generation of the page or naservice
@@ -186,9 +186,9 @@ let execute
     generate_page
     ((ri,
       si,
-      ((service_cookies_info, data_cookies_info, pers_cookies_info), 
+      ((service_cookies_info, data_cookies_info, pers_cookies_info),
        secure_ci),
-      ((service_tab_cookies_info, data_tab_cookies_info, pers_tab_cookies_info), 
+      ((service_tab_cookies_info, data_tab_cookies_info, pers_tab_cookies_info),
        secure_ci_tab),
       user_tab_cookies) as info)
     sitedata =
@@ -197,9 +197,13 @@ let execute
     (fun () -> generate_page now info sitedata)
     (fun e -> handle_site_exn e info sitedata)
   >>= fun result ->
-  
+
   update_cookie_table ~now sitedata
     ((service_cookies_info, data_cookies_info, pers_cookies_info), secure_ci)
+  >>= fun () ->
+
+  update_cookie_table ~now sitedata
+    ((service_tab_cookies_info, data_tab_cookies_info, pers_tab_cookies_info), secure_ci_tab)
   >>= fun () ->
 
   Lwt.return result
@@ -226,7 +230,7 @@ let handled_method = function
   | _ -> false
 
 let gen is_eliom_extension sitedata = function
-| Ocsigen_extensions.Req_found _ -> 
+| Ocsigen_extensions.Req_found _ ->
     Lwt.return Ocsigen_extensions.Ext_do_nothing
 | Ocsigen_extensions.Req_not_found (404 as previous_extension_err, req)
   when handled_method req.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_method ->
@@ -260,12 +264,12 @@ let gen is_eliom_extension sitedata = function
         )
   in
   set_expired_sessions ri (closedsessions, closedsessions_tab);
-  let rec gen_aux ((ri, si, 
+  let rec gen_aux ((ri, si,
                     all_cookie_info,
                     all_tab_cookie_info,
                     user_tab_cookies) as info) =
     match is_eliom_extension with
-      | Some ext -> 
+      | Some ext ->
           Eliom_extension.run_eliom_extension ext now info sitedata
       | None ->
           let genfun =
@@ -332,12 +336,12 @@ let gen is_eliom_extension sitedata = function
                  in
                  ripp >>= fun ripp ->
                 Html5_content.result_of_content
-                   (Eliom_error_pages.page_bad_param 
-                      (try 
+                   (Eliom_error_pages.page_bad_param
+                      (try
                          ignore (Polytables.get
                                    ~table:ri.request_info.Ocsigen_extensions.ri_request_cache
                                    ~key:Eliom_common.eliom_params_after_action);
-                         true 
+                         true
                        with Not_found -> false)
                       (Lazy.force ri.request_info.ri_get_params)
                       (List.map fst ripp))
@@ -355,7 +359,7 @@ let gen is_eliom_extension sitedata = function
                | Eliom_common.Eliom_retry_with a -> gen_aux a
                | Eliom_common.Eliom_do_redirection uri ->
                  let e = Ocsigen_http_frame.empty_result () in
-                 Lwt.return 
+                 Lwt.return
                    (Ocsigen_extensions.Ext_found
                       (fun () ->
                         Lwt.return
@@ -363,15 +367,15 @@ let gen is_eliom_extension sitedata = function
                             Ocsigen_http_frame.res_code= 307;
                             Ocsigen_http_frame.res_location = Some uri}))
                | Eliom_common.Eliom_do_half_xhr_redirection uri ->
-                 Lwt.return 
+                 Lwt.return
                    (Ocsigen_extensions.Ext_found
                       (fun () ->
                         let empty_result = Ocsigen_http_frame.empty_result () in
                         Lwt.return
                           {empty_result with
-                            Ocsigen_http_frame.res_headers= 
+                            Ocsigen_http_frame.res_headers=
                               Http_headers.add
-                                (Http_headers.name 
+                                (Http_headers.name
                                    Eliom_common.half_xhr_redir_header)
                                 uri empty_result.Ocsigen_http_frame.res_headers
                           }))

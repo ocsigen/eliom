@@ -470,12 +470,13 @@ end = struct
 	OMsg.debug2 (Printf.sprintf "eliom: comet: received request %i" number);
 	(* if a new connection occurs for a service, we reply
 	   immediately to the previous with no data. *)
+
 	new_connection handler;
 	if snd handler.hd_last = number
 	then Lwt.return (fst handler.hd_last)
 	else
 	  Lwt.catch
-	    ( fun () -> Lwt_unix.with_timeout timeout
+	    (fun () -> Lwt_unix.with_timeout timeout
 	      (fun () ->
                 lwt () = Lwt.choose
                   [ wait_closed_connection ();
@@ -485,10 +486,10 @@ end = struct
 		handler.hd_last <- (message,number);
 		set_inactive handler;
 		Lwt.return message ) )
-	    ( function
+	    (function
 	      | New_connection -> Lwt.return (encode_downgoing [])
-		      (* happens if an other connection has been opened on that service *)
-		      (* CCC in this case, it would be beter to return code 204: no content *)
+	      (* happens if an other connection has been opened on that service *)
+	      (* CCC in this case, it would be beter to return code 204: no content *)
 	      | Lwt_unix.Timeout ->
 		set_inactive handler;
 		Lwt.return timeout_msg
@@ -802,4 +803,3 @@ end = struct
   let wait_timeout = Stateful.wait_timeout
 
 end
-

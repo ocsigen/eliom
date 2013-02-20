@@ -185,8 +185,8 @@ let reconstruct_params_
           failwith "It is not possible to have non localized parameters in suffix"
       | TJson (_, Some typ), v::l -> Deriving_Json.from_string typ v, l
       | TJson (_, None), v::l -> assert false (* client side only *)
-      | TAny _, _ ->
-          failwith "It is not possible to use any in suffix. May be try with all_suffix ?"
+      | TAny, _ ->
+        failwith "It is not possible to use any in suffix. May be try with all_suffix ?"
       | _ -> raise Eliom_common.Eliom_Wrong_parameter
   in
   let aux2 typ params =

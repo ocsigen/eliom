@@ -237,7 +237,7 @@ let get_cookie_info
           let (servoktable, servfailedlist) = f_serv sc in
           let dataoktable = f_data dc in
           let persoktable = f_pers pc in
-          (Some (ref servoktable, ref dataoktable, ref persoktable), 
+          (Some (ref servoktable, ref dataoktable, ref persoktable),
            servfailedlist)
   in
 
@@ -347,7 +347,7 @@ let compute_session_cookies_to_send
                 | Some oldv, Some (newv, exp) ->
                   if exp = Eliom_common.CENothing && oldv = newv
                   then beg
-                  else 
+                  else
                     Ocsigen_cookies.add_cookie
                       sitedata.Eliom_common.site_dir
                       (Eliom_common.make_full_cookie_name cookiekind full_st_name)
@@ -362,6 +362,7 @@ let compute_session_cookies_to_send
       tab2
       (return cooktab)
   in
+
   aux getpersvexp Eliom_common.persistentcookiename false !pers_cookies_info
     (aux getdatavexp Eliom_common.datacookiename false !data_cookie_info
        (aux getservvexp Eliom_common.servicecookiename false !service_cookie_info
@@ -441,7 +442,7 @@ let compute_new_ri_cookies
               Eliom_common.servicecookiename full_st_name in
             match !v with
               | Eliom_common.SCData_session_expired
-              | Eliom_common.SCNo_data -> 
+              | Eliom_common.SCNo_data ->
                 CookiesTable.remove n beg
               | Eliom_common.SC c ->
                 CookiesTable.add
@@ -464,7 +465,7 @@ let compute_new_ri_cookies
               let (_, v) = Lazy.force v in
               match !v with
                 | Eliom_common.SCData_session_expired
-                | Eliom_common.SCNo_data -> 
+                | Eliom_common.SCNo_data ->
                   CookiesTable.remove n beg
                 | Eliom_common.SC c ->
                   CookiesTable.add
@@ -492,7 +493,7 @@ let compute_new_ri_cookies
                  | Eliom_common.SCNo_data ->
                    Lwt.return (CookiesTable.remove n beg)
                  | Eliom_common.SC c ->
-                   Lwt.return (CookiesTable.add 
+                   Lwt.return (CookiesTable.add
                                  n c.Eliom_common.pc_value beg))
             else return beg
         )
@@ -501,7 +502,7 @@ let compute_new_ri_cookies
     in
     ric
   in
-  f false ci ric 
+  f false ci ric
   >>= fun ric ->
   match secure_ci with
     | None -> Lwt.return ric
