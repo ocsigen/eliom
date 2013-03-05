@@ -28,13 +28,15 @@ module Configuration =
 struct
   type configuration_data =
       { active_until_timeout : bool;
-	always_active : bool;
+	time_between_request_unfocused : float option; (* 0 means always active
+                                                          None means: no request
+                                                       *)
 	time_after_unfocus : float;
 	time_between_request : float; }
 
   let default_configuration =
     { active_until_timeout = false;
-      always_active = false;
+      time_between_request_unfocused = None;
       time_after_unfocus = 20.;
       time_between_request = 0.; }
 
@@ -48,7 +50,13 @@ struct
 
   let config_min c1 c2 =
     { active_until_timeout = c1.active_until_timeout || c2.active_until_timeout;
-      always_active = c1.always_active || c2.always_active;
+      time_between_request_unfocused =
+        (match
+            c1.time_between_request_unfocused, c2.time_between_request_unfocused
+         with
+           | Some v1, Some v2 -> Some (min v1 v2)
+           | Some v, None | None, Some v -> Some v
+           | None, None -> None);
       time_after_unfocus = max c1.time_after_unfocus c2.time_after_unfocus;
       time_between_request = min c1.time_between_request c2.time_between_request }
 
@@ -100,7 +108,8 @@ struct
       | Not_found -> ()
 
   let set_always_active conf v =
-    set_fun conf (fun c -> { c with always_active = v })
+    set_fun conf (fun c -> { c with time_between_request_unfocused =
+        if v then Some 0. else None })
 
   let set_timeout conf v =
     set_fun conf (fun c -> { c with time_after_unfocus = v })
@@ -108,22 +117,34 @@ struct
   let set_active_until_timeout conf v =
     set_fun conf (fun c -> { c with active_until_timeout = v })
 
-  let set_time_between_request conf v =
+  let set_time_between_requests conf v =
     set_fun conf (fun c -> { c with time_between_request = v })
 
-  let sleep_before_next_request () =
+  let set_time_between_requests_when_idle conf v =
+    set_fun conf (fun c -> { c with time_between_request_unfocused = Some v })
+
+  let sleep_before_next_request is_idle restart_waiter =
     let time = Sys.time () in
+    let sleep_duration () = if is_idle ()
+      then (match (get ()).time_between_request_unfocused with
+        | Some t -> t
+        | None -> 0. (* Configuration changed.
+                        We do not sleep and we'll see later. (?) *))
+      else (get ()).time_between_request
+    in
     let rec aux t =
       lwt () = Lwt.pick [Lwt_js.sleep t;
-			 !update_configuration_waiter;] in
-      let remaining_time = ( Sys.time () ) -. ( (get ()).time_between_request +. time ) in
+			 !update_configuration_waiter;
+                         restart_waiter] in
+      let remaining_time = (Sys.time ()) -. (sleep_duration () +. time) in
       if remaining_time >= 0.
       then Lwt.return ()
       else aux remaining_time
     in
-    if (get ()).time_between_request <= 0.
+    let sleep_duration = sleep_duration () in
+    if sleep_duration <= 0.
     then Lwt.return ()
-    else aux ((get ()).time_between_request)
+    else aux sleep_duration
 
 end
 
@@ -156,11 +177,11 @@ module Service_handler : sig
   (** Returns the messages received in the last request. If the
       channel is stateless, it also returns the message number in the [int option] *)
 
-  val set_activity : 'a t -> bool -> unit
+  val set_activity : 'a t -> [ `Active | `Inactive | `Idle ] -> unit
 
   val activate : 'a t -> unit
 
-  val is_active : 'a t -> bool
+  val is_active : 'a t -> [ `Active | `Inactive | `Idle ]
 
   val restart : 'a t -> unit
 
@@ -175,9 +196,11 @@ end =
 struct
   type activity =
       {
-	mutable active : bool;
+	mutable active : [ `Inactive | `Active | `Idle ];
 	(** [!hd.active] is true when the [hd] channel handler is
-	    receiving data *)
+	    receiving data.
+            Idle means that the window is not active but we want to
+            keep updated from time to time. *)
 	mutable focused : float option;
 	(** [focused] is None when the page is focused and Some [t]
 	    when the page lost focus at time [t] *)
@@ -234,18 +257,17 @@ struct
 
   let set_activity hd v =
     if String.Set.is_empty hd.hd_activity.active_channels
-    then hd.hd_activity.active <- false
+    then hd.hd_activity.active <- `Inactive
     else
       match v with
-	| true ->
-	  hd.hd_activity.active <- true;
+	| `Inactive -> hd.hd_activity.active <- `Inactive
+	| v ->
+	  hd.hd_activity.active <- v;
 	  let t,u = Lwt.wait () in
 	  hd.hd_activity.active_waiter <- t;
 	  let wakener = hd.hd_activity.active_wakener in
 	  hd.hd_activity.active_wakener <- u;
 	  Lwt.wakeup wakener ()
-	| false ->
-	  hd.hd_activity.active <- false
 
   let is_active hd = hd.hd_activity.active
 
@@ -255,7 +277,7 @@ struct
   let handle_focus handler =
     let focus_callback () =
       handler.hd_activity.focused <- None;
-      set_activity handler true
+      set_activity handler `Active
     in
     let blur_callback () =
       handler.hd_activity.focused <- Some ( Js.to_float (jsnew Js.date_now ())##getTime() )
@@ -264,7 +286,7 @@ struct
     add_blur_listener blur_callback
 
   let activate hd =
-    set_activity hd true
+    set_activity hd `Active
 
   let restart hd =
     let act = hd.hd_activity in
@@ -291,7 +313,7 @@ struct
   let stop_waiting hd chan_id =
     hd.hd_activity.active_channels <- String.Set.remove chan_id hd.hd_activity.active_channels;
     if String.Set.is_empty hd.hd_activity.active_channels
-    then set_activity hd false
+    then set_activity hd `Inactive
 
   let update_stateful_state hd message =
     match hd.hd_state with
@@ -346,7 +368,9 @@ struct
 	raise (Comet_error ("update_stateless_state on stateful one"))
 
   let call_service hd =
-    lwt () = Configuration.sleep_before_next_request () in
+    lwt () = Configuration.sleep_before_next_request
+      (fun () -> hd.hd_activity.active = `Idle) hd.hd_activity.active_waiter
+    in
     let request = make_request hd in
     lwt s = call_service_after_load_end hd.hd_service ()
 	request in
@@ -372,19 +396,23 @@ struct
     match hd.hd_activity.focused with
       | None -> ()
       | Some t ->
-	if not (Configuration.get ()).Configuration.always_active
-	then
+        let tbru =
+          (Configuration.get ()).Configuration.time_between_request_unfocused
+        in
+	if not (tbru = Some 0.) (* if not always active *)
+	then begin
 	  let now = Js.to_float (jsnew Js.date_now ())##getTime() in
 	  if now -. t >
 	    (Configuration.get ()).Configuration.time_after_unfocus *. 1000.
 	  then
 	    if timeout
 	      || not (Configuration.get ()).Configuration.active_until_timeout
-	    then set_activity hd false
+	    then set_activity hd (if tbru = None then `Inactive else `Idle)
+        end
 
   let wait_data hd : (string * int option * string Ecb.channel_data) list Lwt.t =
     let rec aux retries =
-      if not hd.hd_activity.active
+      if hd.hd_activity.active = `Inactive
       then
 	lwt () = hd.hd_activity.active_waiter in
 	aux 0
@@ -413,7 +441,7 @@ struct
 	      if retries > max_retries
 	      then
 		(debug "Eliom_comet: connection failure";
-		 set_activity hd false;
+		 set_activity hd `Inactive;
 		 aux 0)
 	      else
 		(Lwt_js.sleep 0.05 >>= (fun () -> aux (retries + 1)))
@@ -492,13 +520,13 @@ struct
   let stop_waiting hd chan_id =
     hd.hd_activity.active_channels <- String.Set.remove chan_id hd.hd_activity.active_channels;
     if String.Set.is_empty hd.hd_activity.active_channels
-    then set_activity hd false
+    then set_activity hd `Inactive
 
   let init_activity () =
     let active_waiter,active_wakener = Lwt.wait () in
     let restart_waiter, restart_wakener = Lwt.wait () in
     {
-      active = false;
+      active = `Inactive;
       focused = None;
       active_waiter; active_wakener;
       restart_waiter; restart_wakener;
@@ -556,7 +584,7 @@ let get_stateless_hd (service:Ecb.comet_service) : Service_handler.stateless han
     | Not_found -> init service Service_handler.stateless stateless_handler_table
 
 let activate () =
-  let f _ { hd_service_handler } = Service_handler.set_activity hd_service_handler true in
+  let f _ { hd_service_handler } = Service_handler.set_activity hd_service_handler `Active in
   Hashtbl.iter f stateless_handler_table;
   Hashtbl.iter f stateful_handler_table
 
@@ -666,9 +694,18 @@ let internal_unwrap ( wrapped_chan, unwrapper ) = register wrapped_chan
 let () = Eliom_unwrap.register_unwrapper Eliom_common.comet_channel_unwrap_id internal_unwrap
 
 let is_active () =
-  let f _ hd active = active && Service_handler.is_active hd.hd_service_handler in
-  ( Hashtbl.fold f stateless_handler_table true )
-  && ( Hashtbl.fold f stateful_handler_table true )
+(*VVV Check. Isn't it the contrary? (fold from `Inactive?) *)
+  let max a b = match a with
+    | `Inactive -> `Inactive
+    | `Idle -> let b = b () in
+               if b = `Active then `Idle else b
+    | `Active -> b ()
+  in
+  let f _ hd active =
+    max active (fun () -> Service_handler.is_active hd.hd_service_handler)
+  in
+  max (Hashtbl.fold f stateless_handler_table `Active)
+    (fun () -> Hashtbl.fold f stateful_handler_table `Active)
 
 module Channel =
 struct

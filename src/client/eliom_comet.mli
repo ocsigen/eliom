@@ -50,7 +50,7 @@ exception Process_closed
 exception Channel_closed
 
 (** [is_active ()] returns the current activity state *)
-val is_active : unit -> bool
+val is_active : unit -> [ `Active | `Idle | `Inactive ]
 
 (** if the client is inactive [activate ()] launch a new xhr
     connection to start receiving server messages *)
@@ -92,11 +92,18 @@ sig
       Default value is false. *)
   val set_active_until_timeout : t -> bool -> unit
 
-  (** after [set_time_between_request t v], the main loop will wait for
+  (** after [set_time_between_requests t v], the main loop will wait for
       [v] seconds between two requests. It is taken into account
       immediately.
       Default value is 0.*)
-  val set_time_between_request : t -> float -> unit
+  val set_time_between_requests : t -> float -> unit
+
+  (** [set_time_between_requests_when_idle c t] sets the time
+      between two requests when the the windows does not have the focus,
+      after the timeout. By default, there is no request at all
+      ([set_always_active false]). Setting this to 0. is equivalent
+      to [set_always_active true]. *)
+  val set_time_between_requests_when_idle : t -> float -> unit
 
 end
 
@@ -113,9 +120,9 @@ val register : ?wake:bool -> 'a Eliom_comet_base.wrapped_channel ->
   'a Lwt_stream.t
 
 (** [restart ()] Restarts the loop waiting for server messages. It is
-    only usefull after that a formulary is sent. Indeed browsers stops
+    only useful after that a formulary is sent. Indeed browsers stops
     all xhr requests in that case. It is normaly not needed, but some
-    brosers (based on webkit) also destroy the xhr object in that
+    browsers (based on webkit) also destroy the xhr object in that
     case, preventing client code from receiving the failure
     notification. This shouldn't be used by average user. *)
 val restart : unit -> unit
