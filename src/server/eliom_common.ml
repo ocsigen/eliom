@@ -96,6 +96,15 @@ type cookie_exp =
   | CEBrowser   (** expires at browser close *)
   | CESome of float (** expiration date *)
 
+(* 2013-03-01 From now on, cookie expire 10 years after opening the session.
+   Before, it was when the browser was closed but we think it has no sense,
+   and many people do not understand why their session is closed, even if
+   the session duration on server side is long.
+   If you want this, you now have to set this manually.
+ *)
+let default_client_cookie_exp () =
+  CESome (Unix.time () +. 315532800.)
+
 type timeout =
   | TGlobal (** see global setting *)
   | TNone   (** explicitely set no timeout *)

@@ -128,8 +128,8 @@ let rec find_or_create_service_cookie_ ?set_session_group
       let c = Eliommod_cookies.make_new_session_id () in
       try
         ignore (Eliom_common.SessionCookies.find table c);
-      (* Actually not needed
-         for the cookies we use *)
+        (* Just to be sure it is not already used.
+           Actually not needed for the cookies we use *)
         aux ()
       with Not_found ->
         let str = ref (Eliom_common.new_service_session_tables sitedata) in
@@ -151,8 +151,8 @@ let rec find_or_create_service_cookie_ ?set_session_group
          Eliom_common.sc_table= str;
          Eliom_common.sc_timeout= usertimeout;
          Eliom_common.sc_exp= serverexp;
-         Eliom_common.sc_cookie_exp= ref Eliom_common.CENothing
-       (* exp on client - nothing to set *);
+         Eliom_common.sc_cookie_exp=
+            ref (Eliom_common.default_client_cookie_exp ());
          Eliom_common.sc_session_group= fullsessgrpref;
          Eliom_common.sc_session_group_node= node;
         }
@@ -253,6 +253,3 @@ let find_service_cookie_only ~cookie_scope ~secure ?sp () =
   | Eliom_common.SCData_session_expired ->
       raise Eliom_common.Eliom_Session_expired
   | Eliom_common.SC v -> v
-
-
-

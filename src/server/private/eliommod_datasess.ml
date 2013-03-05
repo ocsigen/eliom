@@ -130,7 +130,8 @@ let rec find_or_create_data_cookie ?set_session_group
       let c = Eliommod_cookies.make_new_session_id () in
       try
         ignore (Eliom_common.SessionCookies.find table c);
-      (* Actually not needed for the cookies we use *)
+        (* Just to be sure it is not already used.
+           Actually not needed for the cookies we use *)
         aux ()
       with Not_found ->
         let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
@@ -150,7 +151,7 @@ let rec find_or_create_data_cookie ?set_session_group
          Eliom_common.dc_timeout= usertimeout;
          Eliom_common.dc_exp= serverexp;
          Eliom_common.dc_cookie_exp=
-            ref Eliom_common.CENothing (* exp on client - nothing to set *);
+            ref (Eliom_common.default_client_cookie_exp ());
          Eliom_common.dc_session_group= fullsessgrpref;
          Eliom_common.dc_session_group_node= node;
         }
@@ -284,5 +285,3 @@ let create_volatile_table, create_volatile_table_during_session =
     aux ~scope ~secure sitedata),
    (fun ~scope ~secure sitedata ->
      aux ~scope ~secure sitedata))
-
-

@@ -34,7 +34,7 @@ type scope_hierarchy = Eliom_common_base.scope_hierarchy
 type cookie_scope = [ `Session of scope_hierarchy
 		    | `Client_process of scope_hierarchy ]
 
-type user_scope = [ `Session_group of scope_hierarchy 
+type user_scope = [ `Session_group of scope_hierarchy
                   | cookie_scope ]
 
 type scope = [ `Site
@@ -58,10 +58,10 @@ val level_of_user_scope : [< user_scope ] -> [> user_level ]
     It is possible to define Eliom references or services for one
     (browser) session, for one tab, or for one group of sessions.
 
-    Using [`Global] scope means you want the data or service to 
+    Using [`Global] scope means you want the data or service to
     be available to any client. [`Site] is limited to current sub-site
     (if you have several sites on the same server).
-    
+
     If you want to restrict the visibility of an Eliom reference or
     a service:
     * to a browser session, use [~scope:Eliom_common.default_session_scope],
@@ -70,12 +70,12 @@ val level_of_user_scope : [< user_scope ] -> [> user_level ]
     If you have a client side Eliom program running, and you want to restrict
     the visibility of the service to this instance of the program,
     use [~scope:Eliom_common.default_process_scope].
-    
+
     You can create new scope
     hierachies with {!Eliom_common.create_scope_hierarchy}.
     Thus it is possible to have for example several sessions that can
     be opened or closed independently. They use different cookies.
-    
+
     Secure scopes are associated to secure cookies (that is, cookies sent
     by browsers only if the protocol is https).
 *)
@@ -306,15 +306,15 @@ type 'a sessgrp =
     (* The full session group is the triple
        (site_dir_string, scope, session group name).
        The scope is the scope of group members (`Session by default).
-       If there is no session group, 
+       If there is no session group,
        we limit the number of sessions by IP address. *)
 type perssessgrp (* the same triple, marshaled *)
 
 val make_persistent_full_group_name :
   cookie_level:cookie_level -> string -> string option -> perssessgrp option
 
-val getperssessgrp : perssessgrp -> 
-  (string * cookie_level * 
+val getperssessgrp : perssessgrp ->
+  (string * cookie_level *
      (string, Ip_address.t) leftright)
 
 val string_of_perssessgrp : perssessgrp -> string
@@ -322,10 +322,12 @@ val string_of_perssessgrp : perssessgrp -> string
 
 type 'a session_cookie = SCNo_data | SCData_session_expired | SC of 'a
 
-type cookie_exp = 
+type cookie_exp =
   | CENothing (* keep current browser value *)
   | CEBrowser (* ask to remove the cookie when the browser is closed *)
   | CESome of float (* date (not duration!) *)
+
+val default_client_cookie_exp : unit -> cookie_exp
 
 type timeout = TGlobal | TNone | TSome of float
 type 'a one_service_cookie_info = {
@@ -363,20 +365,20 @@ type 'a cookie_info1 =
     Lwt.t Lazy.t Full_state_name_table.t ref
 
 type 'a cookie_info =
-    'a cookie_info1 (* unsecure *) * 
+    'a cookie_info1 (* unsecure *) *
       'a cookie_info1 option (* secure, if https *)
 
 type 'a servicecookiestablecontent =
     full_state_name * 'a * float option ref * timeout ref *
       cookie_level sessgrp ref *
       string Ocsigen_cache.Dlist.node
-type 'a servicecookiestable = 
+type 'a servicecookiestable =
     'a servicecookiestablecontent SessionCookies.t
 type datacookiestablecontent =
     full_state_name * float option ref * timeout ref *
       cookie_level sessgrp ref *
       string Ocsigen_cache.Dlist.node
-type datacookiestable = 
+type datacookiestable =
     datacookiestablecontent SessionCookies.t
 type page_table_key = {
   key_state : att_key_serv * att_key_serv;
@@ -428,7 +430,7 @@ and page_table_content =
       (page_table ref * page_table_key, na_key_serv) leftright
         Ocsigen_cache.Dlist.node option
         (* for limitation of number of dynamic anonymous coservices *) *
-        
+
         ((anon_params_type * anon_params_type)
            (* unique_id, computed from parameters type.
               must be the same even if the actual service reference
@@ -459,8 +461,8 @@ and naservice_table =
 and dircontent = Vide | Table of direlt ref String.Table.t
 and direlt = Dir of dircontent ref | File of page_table ref
 and tables =
-    {mutable table_services : (int (* generation *) * 
-                         int (* priority *) * 
+    {mutable table_services : (int (* generation *) *
+                         int (* priority *) *
                          dircontent ref) list;
      table_naservices : naservice_table ref;
     (* Information for the GC: *)
@@ -475,19 +477,19 @@ and tables =
       (* These two table are used for CSRF safe services:
          We associate to each service unique id the function that will
          register a new anonymous coservice each time we create a link or form.
-         Attached POST coservices may have both a GET and POST 
+         Attached POST coservices may have both a GET and POST
          registration function. That's why there are two tables.
          The functions associated to each service may be different for
          each session. That's why we use these table, and not a field in
          the service record.
       *)
      service_dlist_add :
-       ?sp:server_params -> 
+       ?sp:server_params ->
        (page_table ref * page_table_key, na_key_serv) leftright ->
        (page_table ref * page_table_key, na_key_serv) leftright
          Ocsigen_cache.Dlist.node
        (* Add in a dlist
-          for limiting the number of dynamic anonymous coservices in each table 
+          for limiting the number of dynamic anonymous coservices in each table
           (and avoid DoS).
           There is one dlist for each session, and one for each IP
           in global tables.
@@ -495,7 +497,7 @@ and tables =
           for attached coservices,
           and the coservice number for non-attached ones.
        *)
-    } 
+    }
 and sitedata = {
   site_dir : Url.path;
   site_dir_string : string;
@@ -529,7 +531,7 @@ and sitedata = {
   global_services : tables;
   session_services : tables servicecookiestable;
   session_data : datacookiestable;
-  group_of_groups: [ `Session_group ] sessgrp Ocsigen_cache.Dlist.t; 
+  group_of_groups: [ `Session_group ] sessgrp Ocsigen_cache.Dlist.t;
   (* Limitation of the number of groups per site *)
   mutable remove_session_data : string -> unit;
   mutable not_bound_in_data_tables : string -> bool;
@@ -561,7 +563,7 @@ val lazy_site_value_from_fun : ( unit -> 'a ) -> 'a lazy_site_value
 
 
 type info =
-    (Ocsigen_extensions.request * sess_info * 
+    (Ocsigen_extensions.request * sess_info *
        tables cookie_info * tables cookie_info * Ocsigen_cookies.cookieset)
 
 exception Eliom_retry_with of info
@@ -581,7 +583,7 @@ val split_prefix_param :
   string -> (string * 'a) list -> (string * 'a) list * (string * 'a) list
 val get_session_info :
   Ocsigen_extensions.request ->
-  int -> (Ocsigen_extensions.request * sess_info * 
+  int -> (Ocsigen_extensions.request * sess_info *
             (tables cookie_info * Ocsigen_cookies.cookieset) option) Lwt.t
 type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
 
@@ -623,17 +625,17 @@ val global_register_allowed : unit -> (unit -> sitedata) option
 val get_site_data : unit -> sitedata
 
 
-val eliom_params_after_action : 
+val eliom_params_after_action :
   ((string * string) list * (string * string) list option *
      (string * string) list String.Table.t *
      (string * string) list String.Table.t *
      (string * string) list (*204FORMS* * bool *))
   Polytables.key
- 
+
 val att_key_serv_of_req : att_key_req -> att_key_serv
 val na_key_serv_of_req : na_key_req -> na_key_serv
 
-val remove_naservice_table : 
+val remove_naservice_table :
   naservice_table -> NAserv_Table.key -> naservice_table
 
 val get_mask4 : sitedata -> int32
@@ -648,10 +650,10 @@ val find_dlist_ip_table :
   dlist_ip_table -> Ip_address.t ->
   (page_table ref * page_table_key, na_key_serv)
     leftright Ocsigen_cache.Dlist.t
-  
+
 val get_cookie_info : server_params -> [< cookie_level ] -> tables cookie_info
 
-val tab_cookie_action_info_key : (tables cookie_info * 
+val tab_cookie_action_info_key : (tables cookie_info *
                                     Ocsigen_cookies.cookieset *
                                     string CookiesTable.t) Polytables.key
 
@@ -668,12 +670,12 @@ val found_stop_key : unit Polytables.key
 
 type 'a wrapper = 'a Eliom_wrap.wrapper
 
-val make_wrapper : ('a -> 'b) -> 'a wrapper 
+val make_wrapper : ('a -> 'b) -> 'a wrapper
 val empty_wrapper : unit -> 'a wrapper
 
 type unwrapper = Eliom_wrap.unwrapper
 type unwrap_id = Eliom_wrap.unwrap_id
-val make_unwrapper : unwrap_id -> unwrapper 
+val make_unwrapper : unwrap_id -> unwrapper
 val empty_unwrapper : unwrapper
 
 val react_up_unwrap_id : unwrap_id

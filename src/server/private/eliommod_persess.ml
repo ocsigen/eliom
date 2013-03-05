@@ -160,7 +160,7 @@ let rec find_or_create_persistent_cookie_
       { Eliom_common.pc_value= c;
         Eliom_common.pc_timeout= usertimeout;
         Eliom_common.pc_cookie_exp =
-          ref Eliom_common.CENothing (* exp on client *);
+          ref (Eliom_common.default_client_cookie_exp ()) (* exp on client *);
         Eliom_common.pc_session_group= ref fullsessgrp
       }
   in
@@ -240,9 +240,3 @@ let find_persistent_cookie_only ~cookie_scope ~secure ?sp () =
   | Eliom_common.SCData_session_expired ->
       raise Eliom_common.Eliom_Session_expired
   | Eliom_common.SC v -> return v
-
-
-
-
-
-

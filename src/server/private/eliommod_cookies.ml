@@ -82,7 +82,8 @@ let get_cookie_info
                             Eliom_common.sc_cookie_exp=
                             ref Eliom_common.CENothing
                               (* cookie expiration date to send
-                                 to the browser *);
+                                 to the browser.
+                                 We don't change it *);
                             Eliom_common.sc_session_group= sessgrpref;
                             Eliom_common.sc_session_group_node= sessgrpnode;
                            }))
@@ -135,7 +136,8 @@ let get_cookie_info
                          Eliom_common.dc_cookie_exp=
                             ref Eliom_common.CENothing
                               (* cookie expiration date to send
-                                 to the browser *);
+                                 to the browser.
+                                 We don't change it *);
                          Eliom_common.dc_session_group= sessgrpref;
                          Eliom_common.dc_session_group_node= sessgrpnode}
                      )
@@ -198,8 +200,8 @@ let get_cookie_info
                                Eliom_common.pc_cookie_exp=
                                ref Eliom_common.CENothing
                                  (* persistent cookie expiration
-                                    date ref to send to the
-                                    browser *);
+                                    date ref to send to the browser:
+                                    We don't change it *);
                                Eliom_common.pc_session_group= ref sessgrp
                              })))
              )
