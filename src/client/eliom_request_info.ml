@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* TODO: add missing functions to get 
+(* TODO: add missing functions to get
    (almost) the same interface as server side *)
 
 (* - Part of sp is reconstructed client side
@@ -144,5 +144,3 @@ let get_request_data, reset_request_data =
     eliom_data := None
   in
   get, reset
-
-

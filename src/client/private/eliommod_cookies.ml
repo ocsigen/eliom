@@ -40,7 +40,7 @@ let set_table host t =
 
 let now () =
   let date = jsnew Js.date_now () in
-  Js.to_float (date##getTime ())
+  Js.to_float (date##getTime ()) /. 1000.
 
 let update_cookie_table host cookieset =
   let now = now () in

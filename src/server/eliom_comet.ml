@@ -76,7 +76,8 @@ let fallback_global_service =
 let new_id = make_cryptographic_safe_string
 
 (* ocsigenserver needs to be modified for this to be configurable:
-   the connection is closed after a fixed time if the server does not send anything.
+   the connection is closed after a fixed amount of time
+   if the server does not send anything.
    By default it is 30 seconds *)
 let timeout = 20.
 
@@ -195,7 +196,7 @@ struct
       | Finished l -> l
 
   let get_available_data = function
-    | Right ch_id -> [ch_id,Ecb.Closed]
+    | Right ch_id -> [ch_id, Ecb.Closed]
     | Left (channel,position) ->
       match position with
 	(* the first request of the client should be with i = 1 *)
@@ -223,7 +224,7 @@ struct
 
   let has_data = function
     | Right _ -> true (* a channel was closed: need to tell it to the client *)
-    | Left (channel,position) ->
+    | Left (channel, position) ->
       match position with
 	| Ecb.Newest i when i > channel.ch_index -> false
 	| Ecb.Newest i -> true
