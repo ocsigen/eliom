@@ -40,8 +40,8 @@ struct
 
   let default_configuration =
     { active_until_timeout = false;
-      time_between_request_unfocused = None;
-      time_after_unfocus = 20.;
+      time_between_request_unfocused = (Some [(0.0078125, 0.)]);
+      time_after_unfocus = 180.;
       time_between_request = 0.; }
 
   type t = int

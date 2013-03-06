@@ -81,7 +81,7 @@ sig
 
   (** [set_timeout c t] tells the client to stay active at least [t]
       seconds when the application lose the focus.
-      Default value is 20. *)
+      Default value is 180. *)
   val set_timeout : t -> float -> unit
 
   (** [set_active_until_timeout c v] sets the activity changing
@@ -104,9 +104,11 @@ sig
       This amount of time is computed using an affine function
       (a * t + b), where t is the amount of time elapsed since the begining
       of the idle phase.
-      By default, there is no request at all
-      ([set_always_active false]). Setting this to [(0., 0.)] is equivalent
-      to [set_always_active true]. *)
+      If you want no request at all, do [set_always_active false].
+      Setting this to [(0., 0.)] is equivalent
+      to [set_always_active true].
+      Default value is [(0.0078125, 0.)].
+  *)
   val set_time_between_requests_when_idle : t -> float * float -> unit
 
 end
