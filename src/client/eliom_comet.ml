@@ -131,9 +131,12 @@ struct
     let time = Sys.time () in
     let sleep_duration () = if is_idle ()
       then (match (get ()).time_between_request_unfocused, focused () with
-        | Some ((a, b)::l), Some t ->
+        | Some ((a, b)::l), Some start ->
+	  let now = Js.to_float (jsnew Js.date_now ())##getTime() in
+          let t = (now -. start) *. 0.001 in (* time from idle start *)
           let v = a *. t +. b in
-          List.fold_left (fun v (a, b) -> min v (a *. t +. b)) v l
+          let v = List.fold_left (fun v (a, b) -> min v (a *. t +. b)) v l in
+          v
         | _ -> 0. (* Configuration changed.
                      We do not sleep and we'll see later. (?) *))
       else (get ()).time_between_request
@@ -209,7 +212,7 @@ struct
             keep updated from time to time. *)
 	mutable focused : float option;
 	(** [focused] is None when the page is focused and Some [t]
-	    when the page lost focus at time [t] *)
+	    when the page lost focus at time [t] (in ms) *)
 	mutable active_waiter : unit Lwt.t;
 	(** [active_waiter] terminates when the page become
 	    focused *)
@@ -286,7 +289,8 @@ struct
       set_activity handler `Active
     in
     let blur_callback () =
-      handler.hd_activity.focused <- Some ( Js.to_float (jsnew Js.date_now ())##getTime() )
+      handler.hd_activity.focused <-
+        Some (Js.to_float (jsnew Js.date_now ())##getTime())
     in
     add_focus_listener focus_callback;
     add_blur_listener blur_callback
