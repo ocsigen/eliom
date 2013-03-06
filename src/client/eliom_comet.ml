@@ -135,7 +135,7 @@ struct
     let rec aux t =
       lwt () = Lwt.pick [Lwt_js.sleep t;
 			 !update_configuration_waiter;
-                         restart_waiter] in
+                         (restart_waiter ())] in
       let remaining_time = (Sys.time ()) -. (sleep_duration () +. time) in
       if remaining_time >= 0.
       then Lwt.return ()
@@ -369,7 +369,8 @@ struct
 
   let call_service hd =
     lwt () = Configuration.sleep_before_next_request
-      (fun () -> hd.hd_activity.active = `Idle) hd.hd_activity.active_waiter
+      (fun () -> hd.hd_activity.active = `Idle)
+      (fun () -> hd.hd_activity.active_waiter)
     in
     let request = make_request hd in
     lwt s = call_service_after_load_end hd.hd_service ()
