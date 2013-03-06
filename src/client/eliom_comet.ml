@@ -127,7 +127,7 @@ struct
   let set_time_between_requests_when_idle conf v =
     set_fun conf (fun c -> { c with time_between_request_unfocused = Some [v] })
 
-  let sleep_before_next_request focused is_idle restart_waiter =
+  let sleep_before_next_request focused is_idle active_waiter =
     let time = Sys.time () in
     let sleep_duration () = if is_idle ()
       then (match (get ()).time_between_request_unfocused, focused () with
@@ -136,6 +136,7 @@ struct
           let t = (now -. start) *. 0.001 in (* time from idle start *)
           let v = a *. t +. b in
           let v = List.fold_left (fun v (a, b) -> min v (a *. t +. b)) v l in
+Dom.appendChild (Dom_html.document##body) (Eliom_content.Html5.(To_dom.of_p (F.p [F.pcdata (Printf.sprintf "%f" v)])));
           v
         | _ -> 0. (* Configuration changed.
                      We do not sleep and we'll see later. (?) *))
@@ -144,11 +145,11 @@ struct
     let rec aux t =
       lwt () = Lwt.pick [Lwt_js.sleep t;
 			 !update_configuration_waiter;
-                         (restart_waiter ())] in
-      let remaining_time = (Sys.time ()) -. (sleep_duration () +. time) in
-      if remaining_time >= 0.
-      then Lwt.return ()
-      else aux remaining_time
+                         (active_waiter ())] in
+      let remaining_time = sleep_duration () -. (Sys.time () -. time) in
+      if remaining_time > 0.
+      then aux remaining_time
+      else Lwt.return ()
     in
     let sleep_duration = sleep_duration () in
     if sleep_duration <= 0.
@@ -214,8 +215,7 @@ struct
 	(** [focused] is None when the page is focused and Some [t]
 	    when the page lost focus at time [t] (in ms) *)
 	mutable active_waiter : unit Lwt.t;
-	(** [active_waiter] terminates when the page become
-	    focused *)
+	(** [active_waiter] terminates when the page get focused *)
 	mutable active_wakener : unit Lwt.u;
 	mutable restart_waiter : unit list Lwt.t;
 	mutable restart_wakener : unit list Lwt.u;
@@ -270,7 +270,7 @@ struct
     else
       match v with
 	| `Inactive -> hd.hd_activity.active <- `Inactive
-	| v ->
+	| _ ->
 	  hd.hd_activity.active <- v;
 	  let t,u = Lwt.wait () in
 	  hd.hd_activity.active_waiter <- t;
