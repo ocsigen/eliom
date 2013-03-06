@@ -136,7 +136,6 @@ struct
           let t = (now -. start) *. 0.001 in (* time from idle start *)
           let v = a *. t +. b in
           let v = List.fold_left (fun v (a, b) -> min v (a *. t +. b)) v l in
-Dom.appendChild (Dom_html.document##body) (Eliom_content.Html5.(To_dom.of_p (F.p [F.pcdata (Printf.sprintf "%f" v)])));
           v
         | _ -> 0. (* Configuration changed.
                      We do not sleep and we'll see later. (?) *))
