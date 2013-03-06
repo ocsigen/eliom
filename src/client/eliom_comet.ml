@@ -28,9 +28,13 @@ module Configuration =
 struct
   type configuration_data =
       { active_until_timeout : bool;
-	time_between_request_unfocused : float option; (* 0 means always active
-                                                          None means: no request
-                                                       *)
+	time_between_request_unfocused : (float * float) list option;
+        (* (a, b) for a * t + b
+           (0, 0) means always active
+           None means: no request
+           The list is here if there are several configurations
+           (we take the min of all values, for a given t)
+        *)
 	time_after_unfocus : float;
 	time_between_request : float; }
 
@@ -54,7 +58,7 @@ struct
         (match
             c1.time_between_request_unfocused, c2.time_between_request_unfocused
          with
-           | Some v1, Some v2 -> Some (min v1 v2)
+           | Some l1, Some l2 -> Some (l1@l2)
            | Some v, None | None, Some v -> Some v
            | None, None -> None);
       time_after_unfocus = max c1.time_after_unfocus c2.time_after_unfocus;
@@ -74,7 +78,7 @@ struct
     then default_configuration
     else Hashtbl.fold (fun _ -> config_min) configuration_table (first_conf configuration_table)
 
-  let update_configuration_waiter,update_configuration_waker =
+  let update_configuration_waiter, update_configuration_waker =
     let t,u = Lwt.wait () in
     ref t, ref u
 
@@ -109,7 +113,7 @@ struct
 
   let set_always_active conf v =
     set_fun conf (fun c -> { c with time_between_request_unfocused =
-        if v then Some 0. else None })
+        if v then Some [0., 0.] else None })
 
   let set_timeout conf v =
     set_fun conf (fun c -> { c with time_after_unfocus = v })
@@ -121,15 +125,17 @@ struct
     set_fun conf (fun c -> { c with time_between_request = v })
 
   let set_time_between_requests_when_idle conf v =
-    set_fun conf (fun c -> { c with time_between_request_unfocused = Some v })
+    set_fun conf (fun c -> { c with time_between_request_unfocused = Some [v] })
 
-  let sleep_before_next_request is_idle restart_waiter =
+  let sleep_before_next_request focused is_idle restart_waiter =
     let time = Sys.time () in
     let sleep_duration () = if is_idle ()
-      then (match (get ()).time_between_request_unfocused with
-        | Some t -> t
-        | None -> 0. (* Configuration changed.
-                        We do not sleep and we'll see later. (?) *))
+      then (match (get ()).time_between_request_unfocused, focused () with
+        | Some ((a, b)::l), Some t ->
+          let v = a *. t +. b in
+          List.fold_left (fun v (a, b) -> min v (a *. t +. b)) v l
+        | _ -> 0. (* Configuration changed.
+                     We do not sleep and we'll see later. (?) *))
       else (get ()).time_between_request
     in
     let rec aux t =
@@ -369,6 +375,7 @@ struct
 
   let call_service hd =
     lwt () = Configuration.sleep_before_next_request
+      (fun () -> hd.hd_activity.focused)
       (fun () -> hd.hd_activity.active = `Idle)
       (fun () -> hd.hd_activity.active_waiter)
     in
@@ -400,7 +407,7 @@ struct
         let tbru =
           (Configuration.get ()).Configuration.time_between_request_unfocused
         in
-	if not (tbru = Some 0.) (* if not always active *)
+	if not (tbru = Some [0., 0.]) (* if not always active *)
 	then begin
 	  let now = Js.to_float (jsnew Js.date_now ())##getTime() in
 	  if now -. t >
@@ -422,7 +429,7 @@ struct
 	  try_lwt
 	    lwt s = Lwt.pick [call_service hd;
 			      hd.hd_activity.restart_waiter
-			      >>= (fun _ -> error "Eliom_comet: should not append")] in
+			      >>= (fun _ -> error "Eliom_comet: should not happen")] in
 	    match s with
 	      | Ecb.Timeout ->
 		update_activity ~timeout:true hd;
