@@ -774,29 +774,48 @@ module Ext : sig
   (** Discard external states *)
   val discard_state : state : ('a, 'b) state -> unit Lwt.t
 
-  (** Fold all sessions in a groups, or all client processes in a session. *)
+  (** Fold all sessions in a groups, or all client processes in a session.
+      If you do not call the function during
+      a request or during the initialisation phase of the Eliom module,
+      you must provide the extra parameter [?sitedata],
+      that you can get by calling {!Eliom_request_info.get_sitedata}
+      during the initialisation phase of the Eliom module.
+  *)
   val fold_volatile_sub_states :
+    ?sitedata : Eliom_common.sitedata ->
     state : ([< `Session_group | `Session ],
              [< `Data | `Service ] as 'k) state ->
     ('a -> ([< `Session | `Client_process ], 'k) state -> 'a) ->
     'a -> 'a
 
-  (** Iter on all sessions in a groups, or all client processes in a session. *)
+  (** Iter on all sessions in a groups, or all client processes in a session.
+      See {!fold_volatile_sub_states} for explanation about the [?sitedata]
+      parameter.
+  *)
   val iter_volatile_sub_states :
+    ?sitedata : Eliom_common.sitedata ->
     state: ([< `Session_group | `Session ],
             [< `Data | `Service ] as 'k) state ->
     (([< `Session | `Client_process ], 'k) state -> unit) ->
     unit
 
-  (** Fold all sessions in a groups, or all client processes in a session. *)
+  (** Fold all sessions in a groups, or all client processes in a session.
+      See {!fold_volatile_sub_states} for explanation about the [?sitedata]
+      parameter.
+  *)
   val fold_sub_states :
+    ?sitedata : Eliom_common.sitedata ->
     state : ([< `Session_group | `Session ],
              [< `Data | `Pers | `Service ] as 'k) state ->
     ('a -> ([< `Session | `Client_process ], 'k) state -> 'a Lwt.t) ->
     'a -> 'a Lwt.t
 
-  (** Iter on all sessions in a groups, or all client processes in a session. *)
+  (** Iter on all sessions in a groups, or all client processes in a session.
+      See {!fold_volatile_sub_states} for explanation about the [?sitedata]
+      parameter.
+  *)
   val iter_sub_states :
+    ?sitedata : Eliom_common.sitedata ->
     state: ([< `Session_group | `Session ], 'k) state ->
     (([< `Session | `Client_process ], 'k) state -> unit Lwt.t) ->
     unit Lwt.t

@@ -306,6 +306,9 @@ val get_csp_server_port : unit -> int
 *)
 val get_csp_ssl : unit -> bool
 
+(* Getting site configuration data *)
+val get_sitedata : unit -> Eliom_common.sitedata
+
 (**/**)
 
 val get_csp_original_full_path_sp : Eliom_common.server_params -> Url.path
@@ -316,7 +319,6 @@ val get_csp_ssl_sp : Eliom_common.server_params -> bool
 (*****************************************************************************)
 
 val get_sitedata_sp : sp:Eliom_common.server_params -> Eliom_common.sitedata
-val get_sitedata : unit -> Eliom_common.sitedata
 
 (*
 (** returns the cookie expiration date for the session,

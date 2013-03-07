@@ -280,8 +280,7 @@ let get_filesize fi = fi.filesize
 let get_original_filename fi = fi.original_basename
 
 let get_sitedata () =
-  let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_sitedata
+  find_sitedata "get_sitedata"
 
 let get_sitedata_sp ~sp = sp.Eliom_common.sp_sitedata
 

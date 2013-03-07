@@ -1298,25 +1298,25 @@ module Ext = struct
 
 
   let fold_sub_states_aux_aux
+      ?(sitedata =
+          Eliom_request_info.find_sitedata "Eliom_state (state iterator)")
       ~state:((s, k, id) : ([< `Session_group | `Session ],
                             [< `Pers | `Data | `Service ]) state) f =
-    (* id is the session cookie value or the group name *)
-    let sp = Eliom_common.get_sp () in
-    let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
-    let reduce_scope = function
-      | `Session_group n -> `Session n
-      | `Session n -> `Client_process n
-      | `Client_process _ -> failwith "fold_sub_states"
-    in
-    let reduce_level = function
-      | `Session_group n -> `Session
-      | `Session n -> `Client_process
-      | `Client_process _ -> failwith "fold_sub_states"
-    in
-    let sub_states_level = reduce_level s in
-    let sub_states_scope = reduce_scope s in
-    let f a v = f a (sub_states_scope, k, v) in
-    (sitedata, sub_states_level, id, f)
+      (* id is the session cookie value or the group name *)
+      let reduce_scope = function
+        | `Session_group n -> `Session n
+        | `Session n -> `Client_process n
+        | `Client_process _ -> failwith "fold_sub_states"
+      in
+      let reduce_level = function
+        | `Session_group n -> `Session
+        | `Session n -> `Client_process
+        | `Client_process _ -> failwith "fold_sub_states"
+      in
+      let sub_states_level = reduce_level s in
+      let sub_states_scope = reduce_scope s in
+      let f a v = f a (sub_states_scope, k, v) in
+      (sitedata, sub_states_level, id, f)
 
   let fold_sub_states_aux
       fold return (sitedata, sub_states_level, id, f) e = function
@@ -1336,19 +1336,18 @@ module Ext = struct
        with Not_found -> return e)
     | _ -> failwith "fold_sub_states_aux"
 
-  let fold_volatile_sub_states
+  let fold_volatile_sub_states ?sitedata
       ~(state : Eliom_common.user_scope * [> `Data | `Service ] * string)
       f e =
     let state' = (state :> ('aa, 'bb) state) in
-    let (sitedata, sub_states_level, id, f) as a =
-      fold_sub_states_aux_aux ~state:state' f
+    let (sitedata, sub_states_level, id, f) as a = 
+      fold_sub_states_aux_aux ?sitedata ~state:state' f
     in
     fold_sub_states_aux Ocsigen_cache.Dlist.fold Ocsigen_lib.id a e state
-
-  let fold_sub_states ~state f e =
+          
+  let fold_sub_states ?sitedata ~state f e =
     let (sitedata, sub_states_level, id, f) as a =
-      fold_sub_states_aux_aux ~state f
-    in
+      fold_sub_states_aux_aux ?sitedata ~state f in
     match state with
       | (_, `Pers, _) ->
         (Eliommod_sessiongroups.Pers.find
@@ -1359,11 +1358,11 @@ module Ext = struct
       | _ ->
         fold_sub_states_aux Ocsigen_cache.Dlist.lwt_fold Lwt.return a e state
 
-  let iter_volatile_sub_states ~state f =
-    fold_volatile_sub_states ~state (fun () -> f) ()
+  let iter_volatile_sub_states ?sitedata ~state f =
+    fold_volatile_sub_states ?sitedata ~state (fun () -> f) ()
 
-  let iter_sub_states ~state f =
-    fold_sub_states ~state (fun () -> f) ()
+  let iter_sub_states ?sitedata ~state f =
+    fold_sub_states ?sitedata ~state (fun () -> f) ()
 
 
   module Low_level = struct
