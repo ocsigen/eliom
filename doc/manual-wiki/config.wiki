@@ -270,7 +270,8 @@ states for which no other default has been set. The
 {{{hierarchyname}}} attribute exists only inside an {{{<eliom/>}}} tag
 (and not inside {{{<extension findlib-package="ocsigen.ext.eliom"/>}}}).
 
-The level attribute can take values {{{session}}} or {{{tab}}}.
+The level attribute can take values {{{session}}} (browser)
+or {{{clientprocess}}} (tab).
 
 * {{{<volatiletimeout value="30" [hierarchyname=""] [level="session"]/>}}}
   The default timeout for

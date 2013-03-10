@@ -41,14 +41,14 @@ let rec gc_timeouted_services now tables =
   let rec aux t filename direltr thr =
     thr >>= fun () -> (* we wait for the previous one to be completed *)
     match !direltr with
-      | Eliom_common.Dir r -> 
-          (empty_one r >>= fun () -> 
+      | Eliom_common.Dir r ->
+          (empty_one r >>= fun () ->
            (match !r with
               | Eliom_common.Vide ->
                   (match !t with
                      | Eliom_common.Vide -> ()
                      | Eliom_common.Table tr ->
-                         let newr = 
+                         let newr =
                            String.Table.remove filename tr
                          in
                          if String.Table.is_empty newr
@@ -74,10 +74,10 @@ let rec gc_timeouted_services now tables =
                   | _ ->
                       (* We find the data associated to ptk once again,
                          because it may have changed, then we update it
-                         (without cooperation) 
+                         (without cooperation)
                          (it's ok because the list is probably not large) *)
                       try
-                        let (Eliom_common.Ptc (nodeopt, l)), ll = 
+                        let (Eliom_common.Ptc (nodeopt, l)), ll =
                           (Eliom_common.Serv_Table.find ptk !ptr,
                            Eliom_common.Serv_Table.remove ptk !ptr)
                         in
@@ -95,7 +95,7 @@ let rec gc_timeouted_services now tables =
                           with
                             | [] -> ptr := ll
                             | newl ->
-                                ptr := 
+                                ptr :=
                                   Eliom_common.Serv_Table.add
                                     ptk
                                     (Eliom_common.Ptc (nodeopt, newl))
@@ -105,11 +105,11 @@ let rec gc_timeouted_services now tables =
             !ptr
             (return ()) >>= fun () ->
           if Eliom_common.Serv_Table.is_empty !ptr
-          then 
+          then
             (match !t with
                | Eliom_common.Vide -> ()
                | Eliom_common.Table tr ->
-                   let newr = 
+                   let newr =
                      String.Table.remove filename tr
                    in
                    if String.Table.is_empty newr
@@ -130,13 +130,13 @@ let rec gc_timeouted_services now tables =
             | Eliom_common.Table r ->
               if String.Table.is_empty r
               then t := Eliom_common.Vide;
-              Lwt.return () 
+              Lwt.return ()
         end
   in
-  Lwt_util.iter_serial 
+  Lwt_util.iter_serial
     (fun (_gen, _prio, t) -> empty_one t) tables.Eliom_common.table_services
   >>= fun () ->
-  tables.Eliom_common.table_services <- 
+  tables.Eliom_common.table_services <-
     List.filter
     (fun r -> !(Tuple3.thd r) <> Eliom_common.Vide)
     tables.Eliom_common.table_services;
@@ -149,7 +149,7 @@ let gc_timeouted_naservices now tr =
     | Eliom_common.ATable t ->
         if Eliom_common.NAserv_Table.is_empty t
         then begin tr := Eliom_common.AVide; Lwt.return () end
-        else 
+        else
           Eliom_common.NAserv_Table.fold
             (fun k (_, _, expdate, _, nodeopt) thr ->
                thr >>= fun () ->
@@ -185,7 +185,7 @@ let service_session_gc sitedata =
         (* public continuation tables: *)
         (if tables.Eliom_common.table_contains_services_with_timeout
          then gc_timeouted_services now tables
-         else return ()) >>= fun () -> 
+         else return ()) >>= fun () ->
         (if tables.Eliom_common.table_contains_naservices_with_timeout
          then gc_timeouted_naservices now tables.Eliom_common.table_naservices
          else return ()) >>= fun () ->
@@ -198,25 +198,40 @@ let service_session_gc sitedata =
                   _,
                   session_group_ref,
                   session_group_node) thr ->
-             thr >>= fun () ->
-             (match !exp with
-                | Some exp when exp < now ->
-                    Eliommod_sessiongroups.Serv.remove session_group_node;
-                    Lwt.return ()
-                | _ ->
-                    (if tables.Eliom_common.table_contains_services_with_timeout
-                     then gc_timeouted_services now tables
-                     else return ()) >>= fun () -> 
-                    (if tables.Eliom_common.table_contains_naservices_with_timeout
-                     then gc_timeouted_naservices now
-                       tables.Eliom_common.table_naservices
-                     else return ()) >>= fun () ->
-                    (if Eliom_common.service_tables_are_empty tables
-                     then
-                       Eliommod_sessiongroups.Serv.remove session_group_node;
-                     return ()
-                    )
-             ) >>= Lwt_unix.yield
+            thr >>= fun () ->
+            (match !exp with
+            | Some exp when exp < now ->
+              Eliommod_sessiongroups.Serv.remove session_group_node;
+              Lwt.return ()
+            | _ ->
+              (if tables.Eliom_common.table_contains_services_with_timeout
+               then gc_timeouted_services now tables
+               else return ()) >>= fun () ->
+              (if tables.Eliom_common.table_contains_naservices_with_timeout
+               then gc_timeouted_naservices now
+                  tables.Eliom_common.table_naservices
+               else return ()) >>= fun () ->
+              (match !session_group_ref with
+              | (_, scope, Right _) (* no group *)
+(*VVV check this *)
+                  when
+                    (Eliommod_sessiongroups.Serv.group_size
+                       (sitedata.Eliom_common.site_dir_string,
+                        `Client_process,
+                        Left k)
+                     = 0) (* no tab sessions *)
+                    && Eliom_common.service_tables_are_empty tables ->
+                (* The session is not used in any table
+                   and is not in a group
+                   (scope must be `Session,
+                   as all tab sessions are in a group),
+                   and is not associated to any tab session.
+                   We can remove it. *)
+                Eliommod_sessiongroups.Serv.remove session_group_node
+              | _ -> () (*VVV enough? *));
+              return ()
+            )
+            >>= Lwt_unix.yield
           )
           service_cookie_table
           (return ())
@@ -237,9 +252,9 @@ let data_session_gc sitedata =
         Ocsigen_messages.debug2 "--Eliom: GC of session data";
         (* private continuation tables: *)
         Eliom_common.SessionCookies.fold
-          (fun k (sessname, 
-                  exp, _, 
-                  session_group_ref, 
+          (fun k (sessname,
+                  exp, _,
+                  session_group_ref,
                   session_group_node) thr ->
             thr >>= fun () ->
             (match !exp with
@@ -308,4 +323,3 @@ let persistent_session_gc sitedata =
           >>=
         f
       in ignore (f ())
-

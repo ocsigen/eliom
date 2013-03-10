@@ -250,7 +250,7 @@ let set_persistent_data_state_timeout ~cookie_scope ?secure t =
     ~cookie_scope ~secure () in
   let tor = c.Eliom_common.pc_timeout in
   return
-      (match t with
+    (match t with
       | None -> tor := Eliom_common.TNone
       | Some t -> tor := Eliom_common.TSome t)
 
@@ -1340,11 +1340,11 @@ module Ext = struct
       ~(state : Eliom_common.user_scope * [> `Data | `Service ] * string)
       f e =
     let state' = (state :> ('aa, 'bb) state) in
-    let (sitedata, sub_states_level, id, f) as a = 
+    let (sitedata, sub_states_level, id, f) as a =
       fold_sub_states_aux_aux ?sitedata ~state:state' f
     in
     fold_sub_states_aux Ocsigen_cache.Dlist.fold Ocsigen_lib.id a e state
-          
+
   let fold_sub_states ?sitedata ~state f e =
     let (sitedata, sub_states_level, id, f) as a =
       fold_sub_states_aux_aux ?sitedata ~state f in

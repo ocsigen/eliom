@@ -264,6 +264,7 @@ struct
   let global_service =
     Eliom_common.lazy_site_value_from_fun
       (fun () -> Comet.register_post_service
+(*VVV Why isn't this a POST non-attached coservice? --Vincent *)
 	~fallback:(Eliom_common.force_lazy_site_value fallback_global_service)
 	~post_params:Ecb.comet_request_param
 	handle_request)
@@ -560,6 +561,7 @@ end = struct
 	  let hd_service =
 	    (* CCC ajouter possibilité d'https *)
 	    Eliom_service.post_coservice
+(*VVV Why is it attached? --Vincent *)
 	      ~fallback:(Eliom_common.force_lazy_site_value fallback_service)
 	      (*~name:"comet" (* CCC faut il mettre un nom ? *)*)
 	      ~post_params:Ecb.comet_request_param
@@ -630,7 +632,7 @@ end = struct
     ch_id
 
   let get_service chan =
-    (chan.ch_handler.hd_service:>comet_service)
+    (chan.ch_handler.hd_service :> comet_service)
 
 end
 
