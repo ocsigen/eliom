@@ -90,7 +90,7 @@ let get_predicates ?kind:k () = match get_kind k with
   | `Client -> ["byte"] @ !predicates
   | `ServerOpt -> ["native"] @ !predicates
 
-let syntax_predicates = ["preprocessor";"syntax";"camlp4o"] @ !predicates
+let syntax_predicates = [ "preprocessor"; "syntax"; "camlp4o" ] @ !predicates
 
 let get_server_package ?kind:k ?package:p () =
   let package =
@@ -103,15 +103,26 @@ let get_server_package ?kind:k ?package:p () =
   with Findlib.No_such_package (name, _) ->
     Printf.eprintf "Unknown package: %s\n%!" name;
     exit 1
+
 let get_client_package ?kind:k () =
   try
     Findlib.package_deep_ancestors (get_predicates ?kind:k ()) ("eliom.client" :: !package)
   with Findlib.No_such_package (name, _) ->
     Printf.eprintf "Unknown package: %s\n%!" name;
     exit 1
+
 let get_syntax_package () =
   try
-    Findlib.package_deep_ancestors syntax_predicates ("eliom.syntax" :: !package)
+    Findlib.package_deep_ancestors syntax_predicates
+      ("eliom.syntax"
+       :: (List.filter
+             (fun p ->
+               try
+	         let objs =
+	           Findlib.package_property syntax_predicates p "archive" in
+	         List.concat (List.map (split ',') (split ' ' objs)) <> []
+	       with Not_found -> false)
+             !package))
   with Findlib.No_such_package (name, _) ->
     Printf.eprintf "Unknown package: %s\n%!" name;
     exit 1
@@ -138,7 +149,7 @@ let get_common_syntax () =
        (fun p ->
 	 try
 	   let objs =
-	     Findlib.package_property syntax_predicates p "archive" in
+	     Findlib.package_property ("byte"::syntax_predicates) p "archive" in
 	   List.concat (List.map (split ',') (split ' ' objs))
 	 with Not_found -> [])
        (get_syntax_package ()))
