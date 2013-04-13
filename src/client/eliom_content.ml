@@ -505,6 +505,12 @@ module Html5 = struct
       let onload elt f =
 	let elt = get_unique_elt_img "Ev.onload" elt in
 	elt##onload <- (bool_cb f)
+      let onerror elt f =
+	let elt = get_unique_elt_img "Ev.onerror" elt in
+	elt##onerror <- (bool_cb f)
+      let onabort elt f =
+	let elt = get_unique_elt_img "Ev.onabort" elt in
+	elt##onabort <- (bool_cb f)
       let onfocus elt f =
 	let elt = get_unique_elt_input "Ev.onfocus" elt in
 	elt##onfocus <- (bool_cb f)

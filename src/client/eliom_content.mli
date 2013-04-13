@@ -416,6 +416,8 @@ module Html5 : sig
       val onclick : ('a,Dom_html.mouseEvent) ev
       val ondblclick : ('a,Dom_html.mouseEvent) ev
       val onload : ('a,Dom_html.event) ev
+      val onerror : ('a,Dom_html.event) ev
+      val onabort : ('a,Dom_html.event) ev
       val onfocus : ('a,Dom_html.event) ev
       val onblur : ('a,Dom_html.event) ev
       val onfocus_textarea : ('a,Dom_html.event) ev
