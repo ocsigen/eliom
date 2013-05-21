@@ -161,7 +161,7 @@ module Html5 : sig
     val of_applet : [> `Applet] elt -> Dom_html.element Js.t
     val of_article : [> `Article] elt -> Dom_html.element Js.t
     val of_aside : [> `Aside] elt -> Dom_html.element Js.t
-    val of_audio : [> `Audio] elt -> Dom_html.element Js.t
+    val of_audio : [> `Audio of 'a ] elt -> Dom_html.element Js.t
     val of_b : [> `B] elt -> Dom_html.element Js.t
     val of_basefont : [> `basefont] elt -> Dom_html.element Js.t
     val of_bdi : [> `Bdi] elt -> Dom_html.element Js.t
