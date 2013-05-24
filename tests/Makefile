@@ -14,7 +14,8 @@ endif
 
 ELIOMC   := eliomc -I ${SRC}/src/server/extensions ${DEBUG_OPTION}
 ELIOMOPT := eliomopt -I ${SRC}/src/server/extensions ${DEBUG_OPTION}
-ELIOMDEP := eliomdep -I ${SRC}/src/server/extensions
+ELIOMDEPS := eliomdep -server -I ${SRC}/src/server/extensions
+ELIOMDEPC := eliomdep -client -I ${SRC}/src/server/extensions
 JS_OF_ELIOM := js_of_eliom ${DEBUG_OPTION}
 
 ifeq "${NATDYNLINK}" "YES"
@@ -155,8 +156,8 @@ distclean: clean.local
 
 depend:
 	${MAKE} -C miniwiki depend
-	$(ELIOMDEP) -server ${SERVER_INC} ${addprefix -type-dir ,${TYPE_DIR}} ${SERVER_FILES} ${OTHER_FILES} > .depend
-	$(ELIOMDEP) -client ${CLIENT_INC} ${addprefix -type-dir ,${TYPE_DIR}} ${CLIENT_FILES} $(OTHER_FILES) >> .depend
+	$(ELIOMDEPS) ${SERVER_INC} ${addprefix -type-dir ,${TYPE_DIR}} ${SERVER_FILES} ${OTHER_FILES} | sed s%_server//%/% > .depend
+	$(ELIOMDEPC) ${CLIENT_INC} ${addprefix -type-dir ,${TYPE_DIR}} ${CLIENT_FILES} $(OTHER_FILES) >> .depend
 
 include .depend
 
