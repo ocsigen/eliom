@@ -75,7 +75,7 @@ let scope_hierarchy_of_scope : [< user_scope ] -> scope_hierarchy =
 
 type full_state_name = (* WAS: fullsessionname *)
     (* The key in the table of states.
-       For cookies scopes, 
+       For cookies scopes,
        it is also the information in the cookie name,
        without the kind of session,
        and with the scope level (that is not in the cookie name).

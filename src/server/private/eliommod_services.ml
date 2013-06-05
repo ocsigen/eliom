@@ -62,7 +62,7 @@ let find_page_table
         | Some (_, e) when !e < now ->
               (* Service expired. Removing it. *)
           Ocsigen_messages.debug2 "--Eliom: Service expired. I'm removing it";
-          aux toremove l >>= fun (r, toremove) -> 
+          aux toremove l >>= fun (r, toremove) ->
           Lwt.return (r, a::toremove)
             | _ ->
               catch
@@ -73,7 +73,7 @@ let find_page_table
                          if funct register something on the same URL!! *)
                   Ocsigen_messages.debug2
                     "--Eliom: Page found and generated successfully";
-                  
+
                       (* If this is an anonymous coservice,
                          we place it at the top of the dlist
                          (limitation of number of coservices) *)
@@ -115,22 +115,22 @@ let find_page_table
       Ocsigen_cache.Dlist.remove node;
     | None, _ -> (* removing manually *)
       try
-        let (Eliom_common.Ptc (_, list)), newptr = 
+        let (Eliom_common.Ptc (_, list)), newptr =
           (Eliom_common.Serv_Table.find k !pagetableref,
            Eliom_common.Serv_Table.remove k !pagetableref)
         in
             (* We do find once again because it may have changed! *)
-        
+
         let newlist =
           List.fold_left
-            (fun l a -> List.remove_first_if_any_q a l) 
+            (fun l a -> List.remove_first_if_any_q a l)
                 (* physical equality! *)
             list
             toremove
         in
         (if newlist = []
          then pagetableref := newptr
-         else pagetableref := 
+         else pagetableref :=
             Eliom_common.Serv_Table.add
             k
             (Eliom_common.Ptc (None, newlist))
@@ -162,14 +162,14 @@ let add_page_table tables url_act tref
            - only one for each key
            - we add a node in the dlist to limit their number *)
         (try
-           let (Eliom_common.Ptc (nodeopt, l)), newt = 
+           let (Eliom_common.Ptc (nodeopt, l)), newt =
              (Eliom_common.Serv_Table.find key !tref,
               Eliom_common.Serv_Table.remove key !tref)
            in
            (match nodeopt with
               | None -> () (* should not occure *)
               | Some node -> Ocsigen_cache.Dlist.up node);
-           tref := 
+           tref :=
              Eliom_common.Serv_Table.add
                key (Eliom_common.Ptc (nodeopt, [v])) newt
          with Not_found ->
@@ -184,7 +184,7 @@ let add_page_table tables url_act tref
     | {Eliom_common.key_state = (Eliom_common.SAtt_no, Eliom_common.SAtt_no) ;
        Eliom_common.key_kind = _ } ->
         (try
-           let (Eliom_common.Ptc (nodeopt, l)), newt = 
+           let (Eliom_common.Ptc (nodeopt, l)), newt =
              (Eliom_common.Serv_Table.find key !tref,
               Eliom_common.Serv_Table.remove key !tref)
            in
@@ -199,42 +199,42 @@ let add_page_table tables url_act tref
                   (if during intialisation) *)
                raise (Eliom_common.Eliom_duplicate_registration
                         (Url.string_of_url_path ~encode:false url_act))
-             else 
-               tref := 
+             else
+               tref :=
                  Eliom_common.Serv_Table.add
-                   key 
+                   key
                    (Eliom_common.Ptc (None,
-                                      (* We insert as last element 
+                                      (* We insert as last element
                                          so that services are tried in
                                          registration order*)
                                       (oldl@[v])))
                    newt
            with Not_found ->
-             tref := 
+             tref :=
                Eliom_common.Serv_Table.add
                  key
                  (Eliom_common.Ptc (None, (l@[v])))
                  newt
-         with Not_found -> 
-           tref := 
+         with Not_found ->
+           tref :=
              Eliom_common.Serv_Table.add
                key (Eliom_common.Ptc (None, [v]))
                !tref)
-    | _ -> 
+    | _ ->
         try
-          let (Eliom_common.Ptc (nodeopt, l)), newt = 
+          let (Eliom_common.Ptc (nodeopt, l)), newt =
              (Eliom_common.Serv_Table.find key !tref,
               Eliom_common.Serv_Table.remove key !tref)
           in
           let oldl = List.remove_assoc id l in
           (* if there was an old version with the same id, we remove it *)
-          tref := 
+          tref :=
             Eliom_common.Serv_Table.add
-              key 
+              key
               (Eliom_common.Ptc (None, (oldl@[v])))
               newt
-        with Not_found -> 
-          tref := 
+        with Not_found ->
+          tref :=
             Eliom_common.Serv_Table.add
               key (Eliom_common.Ptc (None, [v]))
               !tref
@@ -248,7 +248,7 @@ let remove_page_table _ _ tref key id =
     let Eliom_common.Ptc (nodeopt, l) = Eliom_common.Serv_Table.find key !tref
     in
     match nodeopt with
-      | Some node -> 
+      | Some node ->
           (* In that case, l has size 1, and the id is correct,
              because it is an anonymous coservice *)
           (*VVV the key is searched twice *)
@@ -259,8 +259,8 @@ let remove_page_table _ _ tref key id =
             | [] -> tref := newt
                 (* In that case, we must remove it, otherwise we get
                    "Wrong parameters" instead of "404 Not found" *)
-            | newl -> 
-                tref := 
+            | newl ->
+                tref :=
                   Eliom_common.Serv_Table.add
                     key
                     (Eliom_common.Ptc (None, newl))
@@ -338,7 +338,7 @@ let add_or_remove_service
   in
 
   let page_table_ref =
-    search_page_table_ref table url_act 
+    search_page_table_ref table url_act
   in
   f tables url_act page_table_ref page_table_key va
 
@@ -356,7 +356,7 @@ let add_service priority tables url_act page_table_key va =
       t, a::ll
     | _ -> assert false
   in
-  let table, new_table_services = 
+  let table, new_table_services =
     find_table tables.Eliom_common.table_services in
   tables.Eliom_common.table_services <- new_table_services;
   add_or_remove_service add_page_table tables table url_act page_table_key va
@@ -395,10 +395,10 @@ let find_service
         sitedata
         info
         suffix
-        {Eliom_common.key_state = 
+        {Eliom_common.key_state =
             (Eliom_common.att_key_serv_of_req
                (fst si.Eliom_common.si_state_info),
-             Eliom_common.att_key_serv_of_req 
+             Eliom_common.att_key_serv_of_req
                (snd si.Eliom_common.si_state_info));
          Eliom_common.key_kind = ri.request_info.ri_method}
     in
@@ -416,7 +416,7 @@ let find_service
            (match dc with
               | Eliom_common.Dir dircontentref2 ->
                   search_page_table !dircontentref2 l
-              | Eliom_common.File page_table_ref -> 
+              | Eliom_common.File page_table_ref ->
                   (match l with
                      | [] -> find false page_table_ref None
                      | l -> (* We have a file with suffix *)
@@ -432,12 +432,12 @@ let find_service
                   with
                     | Eliom_common.Dir _ -> Lwt.fail Exn1
                     | Eliom_common.File page_table_ref ->
-                        find false page_table_ref 
+                        find false page_table_ref
                           (if a = None then Some [] else Some (aa::l))
                 with e -> Lwt.fail e)
            | e -> Lwt.fail e)
     in function
-      | [] -> 
+      | [] ->
           (* It is a directory, without / at the end. We do a redirection. *)
           Lwt.fail (Ocsigen_extensions.Ocsigen_Is_a_directory ri)
       | [""] -> aux None []
@@ -453,9 +453,9 @@ let find_service
                | Eliom_common.File page_table_ref ->
                  find true page_table_ref None
            with e -> Lwt.fail e)
-          
+
 (*      | ""::l -> search_page_table dircontent l *)
-          (* We do not remove "//" any more 
+          (* We do not remove "//" any more
              because of optional suffixes *)
       | a::l -> aux (Some a) l
   in
@@ -476,7 +476,7 @@ let find_service
       tables
   in
   Lwt.catch
-    (fun () -> 
+    (fun () ->
       search_by_priority_generation
         tables.Eliom_common.table_services
         (Url.change_empty_list ri.request_info.ri_sub_path))
@@ -522,23 +522,23 @@ let get_page
 
   let tables = [] in
   let tables = (!service_cookies_info, "session table")::tables in
-  let tables = 
+  let tables =
     match secure_ci with
-      | Some (service_cookies_info, _, _) -> 
+      | Some (service_cookies_info, _, _) ->
         (!service_cookies_info, "secure session table")::tables
       | _ -> tables
   in
   let tables = (!service_cookies_info_tab, "tab session table")::tables in
-  let tables = 
+  let tables =
     match secure_ci_tab with
-      | Some (service_cookies_info, _, _) -> 
+      | Some (service_cookies_info, _, _) ->
         (!service_cookies_info, "secure tab session table")::tables
       | _ -> tables
   in
   (catch
      (fun () ->
        List.fold_left
-         (fun beg (table, table_name) -> 
+         (fun beg (table, table_name) ->
            catch
              (fun () -> beg)
              (function
@@ -579,8 +579,8 @@ let get_page
                            We remove it, and remove POST parameters.
                         *)
                    Ocsigen_messages.debug2
-                     "--Eliom: Link to old. I will try without POST parameters:";
-                   Polytables.set 
+                     "--Eliom: Link too old. I will try without POST parameters:";
+                   Polytables.set
                      ri.request_info.ri_request_cache
                      Eliom_common.eliom_link_too_old
                      true;
@@ -601,7 +601,7 @@ let get_page
                             {si with
                               Eliom_common.si_nonatt_info=
                                 Eliom_common.RNa_no;
-                              Eliom_common.si_state_info= 
+                              Eliom_common.si_state_info=
                                 (g, Eliom_common.RAtt_no);
                             },
                             all_cookie_info,
@@ -616,7 +616,7 @@ let get_page
                         *)
                    Ocsigen_messages.debug2
                      "--Eliom: Link to old. I will try without GET state parameters and POST parameters:";
-                   Polytables.set 
+                   Polytables.set
                      ri.request_info.ri_request_cache
                      Eliom_common.eliom_link_too_old
                      true;
@@ -641,7 +641,7 @@ let get_page
                               Eliom_common.si_nonatt_info=
                                 Eliom_common.RNa_no;
                               Eliom_common.si_state_info=
-                                (Eliom_common.RAtt_no, 
+                                (Eliom_common.RAtt_no,
                                  Eliom_common.RAtt_no);
                               Eliom_common.si_other_get_params=[];
                             },

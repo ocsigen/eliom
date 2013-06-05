@@ -34,7 +34,7 @@ let add_naservice_table at (key, elt) =
              key elt Eliom_common.NAserv_Table.empty)
     | Eliom_common.ATable t ->
         Eliom_common.ATable (Eliom_common.NAserv_Table.add key elt t)
-          
+
 let find_naservice_table at k =
   match at with
     | Eliom_common.AVide -> raise Not_found
@@ -49,8 +49,8 @@ let add_naservice
   (if (sp = None) (* not duringsession *)
   then
     try
-      let (g, _, _, _, _) = 
-        find_naservice_table !(tables.Eliom_common.table_naservices) name 
+      let (g, _, _, _, _) =
+        find_naservice_table !(tables.Eliom_common.table_naservices) name
       in
       if g = generation then
         match name with
@@ -81,7 +81,7 @@ let add_naservice
 
   let node = match name with
     | Eliom_common.SNa_get' _ | Eliom_common.SNa_post' _ ->
-        Some 
+        Some
           (tables.Eliom_common.service_dlist_add ?sp (Right name))
     | _ -> None
   in
@@ -100,7 +100,7 @@ let remove_naservice_ tables name nodeopt =
         Ocsigen_cache.Dlist.remove node
 
 let find_naservice now tables name =
-  let ((_, _, expdate, _, nodeopt) as p) = 
+  let ((_, _, expdate, _, nodeopt) as p) =
     find_naservice_table !(tables.Eliom_common.table_naservices) name
   in
   match expdate with
@@ -110,14 +110,14 @@ let find_naservice now tables name =
           "--Eliom: Non attached service expired. I'm removing it";
         remove_naservice_ tables name nodeopt;
         raise Not_found
-    | _ -> 
+    | _ ->
         (match nodeopt with
            | Some node -> Ocsigen_cache.Dlist.up node
            | None -> ());
         p
 
 let remove_naservice tables name =
-  let (_, _, _, _, nodeopt) = 
+  let (_, _, _, _, nodeopt) =
     find_naservice_table !(tables.Eliom_common.table_naservices) name
   in
   remove_naservice_ tables name nodeopt
@@ -152,7 +152,7 @@ let make_naservice
                     Eliom_common.Found
                       ((find_naservice
                           now !(c.Eliom_common.sc_table)
-                          (Eliom_common.na_key_serv_of_req 
+                          (Eliom_common.na_key_serv_of_req
                              si.Eliom_common.si_nonatt_info)),
                        !(c.Eliom_common.sc_table),
                         Some fullsessname)
@@ -168,16 +168,16 @@ let make_naservice
 
   let tables = [] in
   let tables = (!service_cookies_info, "session table")::tables in
-  let tables = 
+  let tables =
     match secure_ci with
-      | Some (service_cookies_info, _, _) -> 
+      | Some (service_cookies_info, _, _) ->
         (!service_cookies_info, "secure session table")::tables
       | _ -> tables
   in
   let tables = (!service_tab_cookies_info, "tab session table")::tables in
-  let tables = 
+  let tables =
     match secure_ci_tab with
-      | Some (service_cookies_info, _, _) -> 
+      | Some (service_cookies_info, _, _) ->
         (!service_cookies_info, "secure tab session table")::tables
       | _ -> tables
   in
@@ -189,7 +189,7 @@ let make_naservice
          | (table, table_name)::l ->
            Ocsigen_messages.debug
              (fun () -> String.concat ""
-               ["--Eliom: I'm looking a non attached service in the "; 
+               ["--Eliom: I'm looking for a non attached service in the ";
                 table_name; ":"]);
            try return (find_aux table)
            with Not_found -> f l
@@ -211,7 +211,7 @@ let make_naservice
          (*VVV (Some, Some) or (_, Some)? *)
          Ocsigen_messages.debug2
            "--Eliom: Link too old to a non-attached POST coservice. I will try without POST parameters:";
-         Polytables.set 
+         Polytables.set
            ri.request_info.ri_request_cache
            Eliom_common.eliom_link_too_old
            true;
@@ -232,17 +232,17 @@ let make_naservice
                }}
            si.Eliom_common.si_previous_extension_error
          >>= fun (ri', si', previous_tab_cookies_info) ->
-         Lwt.fail (Eliom_common.Eliom_retry_with (ri', 
+         Lwt.fail (Eliom_common.Eliom_retry_with (ri',
                                                   si',
                                                   all_cookie_info,
                                                   all_tab_cookie_info,
                                                   user_tab_cookies))
-    
+
        | Eliom_common.RNa_get_ _
        | Eliom_common.RNa_get' _ ->
          Ocsigen_messages.debug2
            "--Eliom: Link too old. I will try without non-attached parameters:";
-         Polytables.set 
+         Polytables.set
            ri.request_info.ri_request_cache
            Eliom_common.eliom_link_too_old
            true;
@@ -269,7 +269,7 @@ let make_naservice
                                                   all_tab_cookie_info,
                                                   user_tab_cookies)))
 
-  >>= fun ((_, max_use, expdate, naservice, node), 
+  >>= fun ((_, max_use, expdate, naservice, node),
            tablewhereithasbeenfound,
            fullsessname) ->
   let sp =
@@ -284,12 +284,10 @@ let make_naservice
     | None -> ()
     | Some r ->
       if !r = 1
-      then 
+      then
         remove_naservice_
-          tablewhereithasbeenfound 
+          tablewhereithasbeenfound
           (Eliom_common.na_key_serv_of_req si.Eliom_common.si_nonatt_info)
           node
       else r := !r - 1);
   return r
-
-
