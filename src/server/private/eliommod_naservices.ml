@@ -195,11 +195,15 @@ let make_naservice
            with Not_found -> f l
        in f tables
      with Not_found ->
-       return
-         (find_naservice now sitedata.Eliom_common.global_services
-            (Eliom_common.na_key_serv_of_req si.Eliom_common.si_nonatt_info),
-          sitedata.Eliom_common.global_services,
-          None)
+       begin
+         Ocsigen_messages.debug2
+           "--Eliom: Looking for a non attached service in the global table";
+         return
+           (find_naservice now sitedata.Eliom_common.global_services
+              (Eliom_common.na_key_serv_of_req si.Eliom_common.si_nonatt_info),
+            sitedata.Eliom_common.global_services,
+            None)
+       end
    with Not_found ->
     (* The non-attached service has not been found.
        We call the same URL without non-attached parameters.

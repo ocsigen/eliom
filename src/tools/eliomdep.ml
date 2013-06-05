@@ -143,7 +143,7 @@ let sort () =
     ( "-sort" :: "-pp" :: get_pp ppopt :: eliom_synonyms @
         List.(concat (map (fun file -> ["-impl"; file]) !sort_files)) )
 
-let rec process_option () =
+let process_option () =
   let i = ref 2 in
   while !i < Array.length Sys.argv do
     match Sys.argv.(!i) with

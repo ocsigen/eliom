@@ -190,25 +190,27 @@ let rec send ?(expecting_process_page = false) ?cookies_info
       else true
     in
     try_lwt
-  lwt r = XmlHttpRequest.perform_raw_url
-    ?headers:(Some headers) ?content_type:None
-    ?post_args ~get_args ?form_arg:form_contents ~check_headers url in
-  ( match r.XmlHttpRequest.headers Eliom_common.set_tab_cookies_header_name with
-    | None | Some "" -> () (* Empty tab_cookies for IE compat *)
-        | Some tab_cookies ->
-          let tab_cookies = Eliommod_cookies.cookieset_of_json tab_cookies in
-          Eliommod_cookies.update_cookie_table host tab_cookies; );
+      lwt r = XmlHttpRequest.perform_raw_url
+        ?headers:(Some headers) ?content_type:None
+        ?post_args ~get_args ?form_arg:form_contents ~check_headers url in
+      (match r.XmlHttpRequest.headers Eliom_common.set_tab_cookies_header_name
+       with
+         | None | Some "" -> () (* Empty tab_cookies for IE compat *)
+         | Some tab_cookies ->
+           let tab_cookies = Eliommod_cookies.cookieset_of_json tab_cookies in
+           Eliommod_cookies.update_cookie_table host tab_cookies; );
       if r.XmlHttpRequest.code = 204
       then
         match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with
           | None | Some "" ->
-            (match r.XmlHttpRequest.headers Eliom_common.half_xhr_redir_header with
-              | None | Some "" -> Lwt.return (r.XmlHttpRequest.url, None)
-              | Some uri ->
-                (match post_args, form_arg with
-                  | None, None -> redirect_get uri
-                  | _, _ -> redirect_post_form_elt ?post_args ?form_arg url);
-                Lwt.fail Program_terminated)
+            (match r.XmlHttpRequest.headers Eliom_common.half_xhr_redir_header
+             with
+               | None | Some "" -> Lwt.return (r.XmlHttpRequest.url, None)
+               | Some uri ->
+                 (match post_args, form_arg with
+                   | None, None -> redirect_get uri
+                   | _, _ -> redirect_post_form_elt ?post_args ?form_arg url);
+                 Lwt.fail Program_terminated)
           | Some uri ->
             if i < max_redirection_level
             then aux (i+1) uri
