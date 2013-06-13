@@ -209,6 +209,12 @@ val make_post_uri_components :
   service:('get, 'post, [< post_service_kind ],
            [< suff ], 'gn, 'pn,
            [< registrable ], 'return) service ->
+(*  service:('get, 'post,
+           [< `Attached of ([> `External ], 'c) Eliom_service.a_s
+           | `Nonattached of [< `Post ] Eliom_service.na_s ],
+           [< Eliom_service.suff ], 'gn, 'pn,
+           [< Eliom_service.registrable ], 'return)
+    Eliom_service.service -> *)
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->

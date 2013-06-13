@@ -256,7 +256,7 @@ let coservice'
                    match name with
                      | None -> Eliom_common.SNa_get' (new_state ())
                      | Some name -> Eliom_common.SNa_get_ name);
-             na_kind = `Get;
+             na_kind = `Get, true;
             };
           https = https;
           keep_nl_params = keep_nl_params;
@@ -264,6 +264,49 @@ let coservice'
 	  service_mark = service_mark ();
         }
 
+
+let attach_coservice' ~fallback ~service =
+  let `Nonattached {na_name; na_kind} = service.kind in
+  let `Attached fallbackkind = fallback.kind in
+  let open Eliom_common in
+  {
+    pre_applied_parameters = service.pre_applied_parameters;
+    get_params_type = service.get_params_type;
+    post_params_type = service.post_params_type;
+    https = service.https;
+    keep_nl_params = service.keep_nl_params;
+    service_mark = service.service_mark;
+    send_appl_content = service.send_appl_content;
+    max_use = service.max_use;
+    timeout = service.timeout;
+    kind = `Attached
+      {prefix = fallbackkind.prefix;
+       subpath = fallbackkind.subpath;
+       fullpath = fallbackkind.fullpath;
+       priority = fallbackkind.priority;
+       redirect_suffix = fallbackkind.redirect_suffix;
+       att_kind = `Internal `Coservice;
+       get_or_post = fst na_kind;
+       get_name = (match na_name with
+       | SNa_get_ s -> SAtt_na_named s
+       | SNa_get' s -> SAtt_na_anon s
+       | SNa_get_csrf_safe a -> SAtt_na_csrf_safe a
+       | SNa_post_ s -> fallbackkind.get_name (*VVV check *)
+       | SNa_post' s -> fallbackkind.get_name (*VVV check *)
+       | SNa_post_csrf_safe a -> fallbackkind.get_name (*VVV check *)
+       | _ -> failwith "attach_coservice' non implemented for this kind of non-attached coservice. Please send us an email if you need this.");
+(*VVV Do we want to make possible to attach POST na coservices
+  on GET attached coservices? *)
+       post_name = (match na_name with
+       | SNa_get_ s -> SAtt_no
+       | SNa_get' s -> SAtt_no
+       | SNa_get_csrf_safe a -> SAtt_no
+       | SNa_post_ s -> SAtt_na_named s
+       | SNa_post' s -> SAtt_na_anon s
+       | SNa_post_csrf_safe a -> SAtt_na_csrf_safe a
+       | _ -> failwith "attach_coservice' non implemented for this kind of non-attached coservice. Please send us an email if you need this.");
+     };
+ }
 
 (****************************************************************************)
 (* Create a service with post parameters in the server *)
@@ -401,7 +444,7 @@ let post_coservice'
                 | None ->
                     Eliom_common.SNa_post' (new_state ())
                 | Some name -> Eliom_common.SNa_post_ name));
-       na_kind = `Post keep_get_na_params;
+       na_kind = `Post, keep_get_na_params;
       };
     https = https;
     keep_nl_params = keep_nl_params;

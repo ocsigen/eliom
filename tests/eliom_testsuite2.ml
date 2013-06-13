@@ -1337,6 +1337,59 @@ let _ =
 
 
 
+(* Attached links non-attached coservice *)
+
+let get_coserv' =
+  register_coservice'
+    ~get_params:(Eliom_parameter.string "s")
+    (fun s () ->
+      Lwt.return
+        (html
+           (head (title (pcdata "")) [])
+           (body [p [pcdata "I'm a GET non-attached coservice with parameter ";
+                     pcdata s;
+                    ]])))
+
+let post_coserv' =
+  register_post_coservice'
+    ~post_params:(Eliom_parameter.string "s")
+    (fun () s ->
+      Lwt.return
+        (html
+           (head (title (pcdata "")) [])
+           (body [p [pcdata "I'm a POST non-attached coservice with parameter ";
+                     pcdata s;
+                    ]])))
+
+let attnonatt_service =
+  register_service
+    ~path: ["attnonatt"]
+    ~get_params:unit
+    (fun () () ->
+      let service = Eliom_service.attach_coservice'
+        ~fallback:Eliom_testsuite1.coucou
+        ~service:get_coserv'
+      in
+      let service2 = Eliom_service.attach_coservice'
+        ~fallback:Eliom_testsuite1.coucou
+        ~service:post_coserv'
+      in
+      Lwt.return
+        (html
+           (head (title (pcdata "")) [])
+           (body [p [pcdata "This is an example of link to a GET non-attached coservice, with URL change (attach_coserv'): ";
+                     a ~service [pcdata "click"] "LO"];
+                  p [pcdata "And a form to a POST non-attached coservice:"];
+                  post_form ~service:service2
+                    (fun n ->
+                      [string_input ~input_type:`Hidden ~name:n ~value:"toto" ();
+                       string_input ~input_type:`Submit ~value:"send" ()]) ()
+                 ])))
+
+
+
+
+
 
 (* Many cookies *)
 let cookiename = "c"

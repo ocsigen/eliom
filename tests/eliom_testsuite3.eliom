@@ -1547,7 +1547,7 @@ let event2_service =
                            Lwt.cancel c);
             ignore
               (mousedown (Html5.To_dom.of_p %target3) >>= fun ev ->
-               preventDefault ev;
+               Dom.preventDefault ev;
                mouseup (Html5.To_dom.of_p %target2) >>= handler);
             let c = clicks (Html5.To_dom.of_p %target4) handler_long1 in
             ignore

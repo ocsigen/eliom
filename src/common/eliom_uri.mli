@@ -161,13 +161,13 @@ val make_post_uri_components__ :
   ?https:bool ->
   service:('a, 'b,
            [< `Attached of ([> `External ], 'c) Eliom_service.a_s
-           | `Nonattached of 'd Eliom_service.na_s ],
+           | `Nonattached of [< getpost ] Eliom_service.na_s ],
            [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h)
     Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
-  ?keep_nl_params:'i ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:nl_params_set ->
   ?keep_get_na_params:bool ->
   'a ->
@@ -198,15 +198,14 @@ val make_post_uri_components_ :
   ?https:bool ->
   service:('a, 'b,
            [< `Attached of ([> `External ], 'd) a_s
-           | `Nonattached of 'f na_s ],
+           | `Nonattached of [< getpost ] na_s ],
            [< `WithSuffix | `WithoutSuffix ], 'g, 'h, 'i, 'j)
     service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
-  ?keep_nl_params:'k ->
-  ?nl_params:nl_params_set ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:nl_params_set ->
   ?keep_get_na_params:bool ->
   'a ->
   unit ->

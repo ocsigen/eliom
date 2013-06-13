@@ -101,6 +101,11 @@ type att_key_serv =
          (if the service is registered in the global table),
          the bool option is the ?secure parameter for delayed registration
          (if the service is registered in the global table) *)
+  (* The following three are for non-attached coservices
+     that have been attached on a service afterwards *)
+  | SAtt_na_named of string
+  | SAtt_na_anon of string
+  | SAtt_na_csrf_safe of (int * user_scope * bool option)
 
 type na_key_serv =
   | SNa_no (* no na information *)

@@ -510,28 +510,28 @@ val https_static_dir_with_params :
     it with <a> links, not only forms.  It does not keep non attached
     GET parameters.  *)
 val void_coservice' :
-  (unit, unit, [> `Nonattached of 'a na_s ],
+  (unit, unit, [> `Nonattached of [> `Get ] na_s ],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ], 'return)
   service
 
 (** Same as {!void_coservice'} but forcing https. *)
 val https_void_coservice' :
-  (unit, unit, [> `Nonattached of 'a na_s ],
+  (unit, unit, [> `Nonattached of [> `Get ] na_s ],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ], 'return)
   service
 
 (** Same as {!void_coservice'} but keeps non attached GET parameters. *)
 val void_hidden_coservice' :
-  (unit, unit, [> `Nonattached of 'a na_s ],
+  (unit, unit, [> `Nonattached of [> `Get ] na_s ],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ], 'return)
   service
 
 (** Same as {!void_hidden_coservice'} but forcing https. *)
 val https_void_hidden_coservice' :
-  (unit, unit, [> `Nonattached of 'a na_s ],
+  (unit, unit, [> `Nonattached of [> `Get ] na_s ],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ], 'return)
   service
@@ -551,6 +551,21 @@ val preapply :
   'a ->
   (unit, 'b, 'c,
    [ `WithoutSuffix ], unit, 'f, [> `Unregistrable ], 'return) service
+
+(** [attach_coservice' ~fallback ~service] attaches the non-attached
+    coservice [service] on the URL of [fallback]. This allows to
+    create a link to a non-attached coservice but with another URL
+    than the current one. It is not possible to register something
+    on the service returned by this function. *)
+val attach_coservice' :
+  fallback:(unit, unit, [< `Attached of ([< `Internal of 'sc1 ],
+                                         [< `Get ]) a_s ],
+	   [< suff ], unit, unit, 'rg1, 'return1) service ->
+  service: ('get, 'post, [< `Nonattached of 'gp na_s ],
+            [< `WithoutSuffix] as 'sf, 'gn, 'pn, 'rg2, 'return) service ->
+  ('get, 'post, [> `Attached of ([> `Internal of [> `Coservice ] ],
+                                 'gp) a_s ],
+   'sf, 'gn, 'pn, [< registrable > `Unregistrable ], 'return) service
 
 (** The function [add_non_localized_get_parameters ~params ~service]
     Adds non localized GET parameters [params] to [service]. See the
@@ -608,7 +623,7 @@ val get_get_name_ : ('a, 'b) a_s -> Eliom_common.att_key_serv
 val get_post_name_ : ('a, 'b) a_s -> Eliom_common.att_key_serv
 val get_redirect_suffix_ : ('a, 'b) a_s -> bool
 val get_na_name_ : 'a na_s -> Eliom_common.na_key_serv
-val get_na_kind_ : 'a na_s -> [ `Get | `Post of bool ]
+val get_na_kind_ : [< getpost ] na_s -> [ `Get | `Post of bool ]
 val get_max_use_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> int option
 val get_timeout_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> float option
 val get_https : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> bool

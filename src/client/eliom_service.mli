@@ -105,7 +105,7 @@ constraint 'g = [< registrable ]
 (** {3 Void non-attached coservices} *)
 
 val void_coservice' :
-  (unit, unit, [> `Nonattached of 'a na_s ],
+  (unit, unit, [> `Nonattached of [> `Get ] na_s ],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ], 'return)
   service
@@ -120,14 +120,14 @@ val void_coservice' :
  *)
 
 val https_void_coservice' :
-  (unit, unit, [> `Nonattached of 'a na_s ],
+  (unit, unit, [> `Nonattached of [> `Get ] na_s ],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ], 'return)
   service
 (** The same, but forcing https. *)
 
 val void_hidden_coservice' :
-  (unit, unit, [> `Nonattached of 'a na_s ],
+  (unit, unit, [> `Nonattached of [> `Get ] na_s ],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ], 'return)
   service
@@ -135,7 +135,7 @@ val void_hidden_coservice' :
  *)
 
 val https_void_hidden_coservice' :
-  (unit, unit, [> `Nonattached of 'a na_s ],
+  (unit, unit, [> `Nonattached of [> `Get ] na_s ],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ], 'return)
   service
@@ -234,7 +234,7 @@ val get_get_name_ : ('a, 'b) a_s -> Eliom_common.att_key_serv
 val get_post_name_ : ('a, 'b) a_s -> Eliom_common.att_key_serv
 val get_redirect_suffix_ : ('a, 'b) a_s -> bool
 val get_na_name_ : 'a na_s -> Eliom_common.na_key_serv
-val get_na_kind_ : 'a na_s -> [ `Get | `Post of bool ]
+val get_na_kind_ : [< getpost ] na_s -> [ `Get | `Post of bool ]
 val get_max_use_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> int option
 val get_timeout_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> float option
 val get_https : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> bool

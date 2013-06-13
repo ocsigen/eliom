@@ -378,7 +378,30 @@ Html5.D.(post_form remove_action
 
 >>
 
+====Changing URL when calling a non-attached coservice====
 
+By default, the URL of links or forms to non-attached coservices
+is the current page.
+If you want to combine the call to a non-attached coservice
+with an URL change, it is possible to attach a non-attached service
+to another service using function
+<<a_api| val Eliom_service.attach_coservice'>>.
+
+Example:
+
+<<code language="ocaml"|
+
+      let service = Eliom_service.attach_coservice'
+        ~fallback:myfirstservice
+        ~service:myget_coserv'
+      in
+      a ~service [pcdata "click"] ()
+
+>>
+
+It works with GET or POST coservices.
+The fallback must be a GET service without parameter
+(but you can preapply it).
 
 === Common options for coservices ===
 

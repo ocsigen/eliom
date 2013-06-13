@@ -48,18 +48,18 @@ type (+'a, +'b) a_s =
      subpath: Url.path; (* name of the service without parameters *)
      fullpath: Url.path; (* full path of the service = site_dir@subpath *)
      att_kind: 'a; (* < attached_service_kind *)
-     get_or_post: 'b; (* < getpost *)
+     get_or_post: getpost; (* = 'b *)
      get_name: Eliom_common.att_key_serv;
      post_name: Eliom_common.att_key_serv;
      redirect_suffix: bool;
      priority: int;
    }
 
-type +'a na_s =
+type +'getpost na_s =
     {na_name: Eliom_common.na_key_serv;
-     na_kind: [ `Get | `Post of bool ]
+     na_kind: getpost * bool
        (*
-          where bool is "keep_get_na_params":
+          where bool is used only for `Post and means "keep_get_na_params":
           do we keep GET non-attached parameters in links (if any)
           (31/12/2007 - experimental -
           WAS: 'a, but may be removed (was not used))
@@ -158,7 +158,7 @@ let get_full_path_ s = s.fullpath
 let get_get_name_ s = s.get_name
 let get_post_name_ s = s.post_name
 let get_na_name_ s = s.na_name
-let get_na_kind_ s = s.na_kind
+let get_na_kind_ s = match s.na_kind with `Get, _ -> `Get | `Post, b -> `Post b
 let get_max_use_ s = s.max_use
 let get_timeout_ s = s.timeout
 let get_https s = s.https
@@ -177,7 +177,7 @@ let get_get_or_post s =
                         | `Nonattached of [< getpost ] na_s ], 'd, 'e, 'f, 'g, 'h) service :> ('a, 'b, service_kind, 'd, 'e, 'f, 'g, 'h) service)
   with
     | `Attached attser -> attser.get_or_post
-    | `Nonattached { na_kind = `Post keep_get_na_param } -> `Post
+    | `Nonattached { na_kind = `Post, keep_get_na_param } -> `Post
     | _ -> `Get
 
 let change_get_num service attser n =
@@ -297,7 +297,7 @@ let void_coservice' =
     post_params_type = Eliom_parameter.unit;
     kind = `Nonattached
       {na_name = Eliom_common.SNa_void_dontkeep;
-       na_kind = `Get;
+       na_kind = `Get, true;
       };
     https = false;
     keep_nl_params = `All;
@@ -314,7 +314,7 @@ let https_void_coservice' =
     post_params_type = Eliom_parameter.unit;
     kind = `Nonattached
       {na_name = Eliom_common.SNa_void_dontkeep;
-       na_kind = `Get;
+       na_kind = `Get, true;
       };
     https = true;
     keep_nl_params = `All;
@@ -325,14 +325,14 @@ let https_void_coservice' =
 let void_hidden_coservice' = {void_coservice' with
                                 kind = `Nonattached
     {na_name = Eliom_common.SNa_void_keep;
-     na_kind = `Get;
+     na_kind = `Get, true;
     };
                              }
 
 let https_void_hidden_coservice' = {void_coservice' with
                                       kind = `Nonattached
     {na_name = Eliom_common.SNa_void_keep;
-     na_kind = `Get;
+     na_kind = `Get, true;
     };
                                    }
 

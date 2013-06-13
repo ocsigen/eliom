@@ -203,95 +203,115 @@ let make_uri_components_ (* does not take into account getparams *)
   in
 
   match get_kind_ service with
-    | `Attached attser ->
-        begin
+  | `Attached attser ->
+    begin
 
-          let uri =
-            let suff= None in
-            if (get_att_kind_ attser) = `External
-            then
-              (get_prefix_ attser)^
-                "/"^  (* we add the "/" even if there is no prefix,
-                         because we should do absolute links in that case *)
-                (reconstruct_absolute_url_path (get_full_path_ attser) suff)
-            else
-              match absolute with
-                | Some proto_prefix ->
-                    proto_prefix^
-                      reconstruct_absolute_url_path
-                      (get_full_path_ attser) suff
-                | None ->
-		    let sp = Eliom_common.get_sp () in
-                    reconstruct_relative_url_path_string
-                      (Eliom_request_info.get_csp_original_full_path_sp sp)
-                      (get_full_path_ attser) suff
-          in
-          match get_get_name_ attser with
-            | Eliom_common.SAtt_no ->
-                (uri, hiddenparams, fragment)
-            | Eliom_common.SAtt_anon s ->
-                (uri,
-                 ((Eliom_common.get_numstate_param_name,
-                   Eliommod_parameters.insert_string s)::hiddenparams),
-                 fragment)
-            | Eliom_common.SAtt_named s ->
-                (uri,
-                 ((Eliom_common.get_state_param_name,
-                   Eliommod_parameters.insert_string s)::hiddenparams),
-                 fragment)
-            | Eliom_common.SAtt_csrf_safe csrf_info ->
-		let sp = Eliom_common.get_sp () in
-                let s =
-                  Eliom_service.register_delayed_get_or_na_coservice
-                    ~sp csrf_info
-                in
-                (uri,
-                 ((Eliom_common.get_numstate_param_name,
-                   Eliommod_parameters.insert_string s)::hiddenparams),
-                 fragment)
-
-        end
-    | `Nonattached naser ->
-
-	let sp = Eliom_common.get_sp () in
-        let na_name = get_na_name_ naser in
-        let params' =
-          let current_get_params =
-            if na_name = Eliom_common.SNa_void_keep
-            then (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_nl
-            else Lazy.force
-              (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_na_nl
-          in
-          (match na_name with
-             | Eliom_common.SNa_void_keep
-             | Eliom_common.SNa_void_dontkeep -> current_get_params
-             | Eliom_common.SNa_get' n ->
-                 (Eliom_common.naservice_num, n)::current_get_params
-             | Eliom_common.SNa_get_ n ->
-                 (Eliom_common.naservice_name, n)::current_get_params
-             | Eliom_common.SNa_get_csrf_safe csrf_info ->
-		 let sp = Eliom_common.get_sp () in
-                 let n =
-                   Eliom_service.register_delayed_get_or_na_coservice ~sp
-                     csrf_info
-                 in
-                 (Eliom_common.naservice_num, n)::current_get_params
-             | _ -> assert false)
-        in
-        let params = Eliommod_parameters.inject_param_list params'
-          @hiddenparams in
-        let beg =
+      let uri =
+        let suff= None in
+        if (get_att_kind_ attser) = `External
+        then
+          (get_prefix_ attser)^
+            "/"^  (* we add the "/" even if there is no prefix,
+                     because we should do absolute links in that case *)
+            (reconstruct_absolute_url_path (get_full_path_ attser) suff)
+        else
           match absolute with
-            | None ->
-                reconstruct_relative_url_path_string
-                  (Eliom_request_info.get_csp_original_full_path_sp sp)
-                  (Eliom_request_info.get_original_full_path_sp sp)
-		  None
-            | Some proto_prefix ->
-		proto_prefix ^
-		  Eliom_request_info.get_original_full_path_string_sp sp
+          | Some proto_prefix ->
+            proto_prefix^
+              reconstruct_absolute_url_path
+              (get_full_path_ attser) suff
+          | None ->
+	    let sp = Eliom_common.get_sp () in
+            reconstruct_relative_url_path_string
+              (Eliom_request_info.get_csp_original_full_path_sp sp)
+              (get_full_path_ attser) suff
+      in
+      match get_get_name_ attser with
+      | Eliom_common.SAtt_no ->
+        (uri, hiddenparams, fragment)
+      | Eliom_common.SAtt_anon s ->
+        (uri,
+         ((Eliom_common.get_numstate_param_name,
+           Eliommod_parameters.insert_string s)::hiddenparams),
+         fragment)
+      | Eliom_common.SAtt_named s ->
+        (uri,
+         ((Eliom_common.get_state_param_name,
+           Eliommod_parameters.insert_string s)::hiddenparams),
+         fragment)
+      | Eliom_common.SAtt_csrf_safe csrf_info ->
+	let sp = Eliom_common.get_sp () in
+        let s =
+          Eliom_service.register_delayed_get_or_na_coservice
+            ~sp csrf_info
         in
-        (beg, params, fragment)
+        (uri,
+         ((Eliom_common.get_numstate_param_name,
+           Eliommod_parameters.insert_string s)::hiddenparams),
+         fragment)
+      | Eliom_common.SAtt_na_anon s ->
+        (uri,
+         ((Eliom_common.naservice_num,
+           Eliommod_parameters.insert_string s)::hiddenparams),
+         fragment)
+      | Eliom_common.SAtt_na_named s ->
+        (uri,
+         ((Eliom_common.naservice_name,
+           Eliommod_parameters.insert_string s)::hiddenparams),
+         fragment)
+      | Eliom_common.SAtt_na_csrf_safe csrf_info ->
+	let sp = Eliom_common.get_sp () in
+        let s =
+          Eliom_service.register_delayed_get_or_na_coservice
+            ~sp csrf_info
+        in
+        (uri,
+         ((Eliom_common.naservice_num,
+           Eliommod_parameters.insert_string s)::hiddenparams),
+         fragment)
+
+    end
+  | `Nonattached naser ->
+
+    let sp = Eliom_common.get_sp () in
+    let na_name = get_na_name_ naser in
+    let params' =
+      let current_get_params =
+        if na_name = Eliom_common.SNa_void_keep
+        then (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_nl
+        else Lazy.force
+          (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_na_nl
+      in
+      (match na_name with
+      | Eliom_common.SNa_void_keep
+      | Eliom_common.SNa_void_dontkeep -> current_get_params
+      | Eliom_common.SNa_get' n ->
+        (Eliom_common.naservice_num, n)::current_get_params
+      | Eliom_common.SNa_get_ n ->
+        (Eliom_common.naservice_name, n)::current_get_params
+      | Eliom_common.SNa_get_csrf_safe csrf_info ->
+	let sp = Eliom_common.get_sp () in
+        let n =
+          Eliom_service.register_delayed_get_or_na_coservice ~sp
+            csrf_info
+        in
+        (Eliom_common.naservice_num, n)::current_get_params
+      | _ -> assert false)
+    in
+    let params = Eliommod_parameters.inject_param_list params'
+      @hiddenparams in
+    let beg =
+      match absolute with
+      | None ->
+        reconstruct_relative_url_path_string
+          (Eliom_request_info.get_csp_original_full_path_sp sp)
+          (Eliom_request_info.get_original_full_path_sp sp)
+	  None
+      | Some proto_prefix ->
+	proto_prefix ^
+	  Eliom_request_info.get_original_full_path_string_sp sp
+    in
+    (beg, params, fragment)
 
 let make_uri_components
     ?absolute
@@ -383,186 +403,194 @@ let make_post_uri_components_ (* do not take into account postparams *)
     ?hostname
     ?port
     ?fragment
-    ?keep_nl_params
-    ?(nl_params = Eliom_parameter.empty_nl_params_set)
     ?(keep_nl_params : [ `All | `Persistent | `None ] option)
+    ?(nl_params = Eliom_parameter.empty_nl_params_set)
     ?keep_get_na_params
     getparams
     () =
   match get_kind_ service with
-    | `Attached attser ->
-
-      let (uri, getparams, fragment), getname =
-        let getname = get_get_name_ attser in
-        match getname with
-          | Eliom_common.SAtt_csrf_safe csrf_info ->
-              (* special case for post-coservices on get csrf safe services:
-                 we must register the get service first *)
-	      let sp = Eliom_common.get_sp () in
-              let s =
-		Eliom_common.SAtt_anon
-                  (Eliom_service.register_delayed_get_or_na_coservice
-                     ~sp csrf_info)
-            in
-            (make_uri_components
-               ~absolute
-               ~absolute_path
-               ?https
-               ~service:(Eliom_service.change_get_num service attser s)
-               ?hostname
-               ?port
-               ?fragment
-               ?keep_nl_params
-               ~nl_params
-               getparams,
-             s)
-          | _ -> (make_uri_components
-                    ~absolute
-                    ~absolute_path
-                    ?https
-                    ~service
-                    ?hostname
-                    ?port
-                    ?fragment
-                    ?keep_nl_params
-                    ~nl_params
-                    getparams,
-                  getname)
-      in
-
-
-      let postparams =
-        match get_post_name_ attser with
-          | Eliom_common.SAtt_no -> []
-          | Eliom_common.SAtt_anon s ->
-            [(Eliom_common.post_numstate_param_name, s)]
-          | Eliom_common.SAtt_named s ->
-            [(Eliom_common.post_state_param_name, s)]
-          | Eliom_common.SAtt_csrf_safe csrf_info ->
-	      let sp = Eliom_common.get_sp () in
-              let s =
-		Eliom_service.register_delayed_post_coservice
-                  ~sp csrf_info getname
-              in
-              [(Eliom_common.post_numstate_param_name, s)]
-      in
-      (uri, getparams, fragment,
-       Eliommod_parameters.inject_param_list postparams)
-
-
-    | `Nonattached naser ->
-
+  | `Attached attser ->
+    let (uri, getparams, fragment), getname =
+      let getname = get_get_name_ attser in
+      match getname with
+      | Eliom_common.SAtt_csrf_safe csrf_info ->
+        (* special case for post-coservices on get csrf safe services:
+           we must register the get service first *)
 	let sp = Eliom_common.get_sp () in
-            let nl_params = Eliom_parameter.table_of_nl_params_set nl_params in
-            let keep_nl_params = match keep_nl_params with
-              | None -> Eliom_service.keep_nl_params service
-              | Some b -> b
-            in
-            let preappnlp, preapp = get_pre_applied_parameters_ service in
-            let nlp =
-              match keep_nl_params with
-                | `All ->
-                    (* We replace current nl params by preapplied ones *)
-                    String.Table.fold
-                      (fun key v b -> String.Table.add key v b)
-                      preappnlp
-                      (Eliommod_parameters.inject_param_table
-                         (Eliom_request_info.get_nl_get_params ()))
-                | `Persistent ->
-                    (* We replace current nl params by preapplied ones *)
-                    String.Table.fold
-                      (fun key v b -> String.Table.add key v b)
-                      preappnlp
-                      (Eliommod_parameters.inject_param_table
-                         (Eliom_request_info.get_persistent_nl_get_params_sp sp))
-                | `None -> preappnlp
-            in
-            let nlp =
-              (* We replace current nl params by nl_params *)
-              String.Table.fold
-                (fun key v b -> String.Table.add key v b)
-                nl_params
-                nlp
-            in
+        let s =
+	  Eliom_common.SAtt_anon
+            (Eliom_service.register_delayed_get_or_na_coservice
+               ~sp csrf_info)
+        in
+        (make_uri_components
+           ~absolute
+           ~absolute_path
+           ?https
+           ~service:(Eliom_service.change_get_num service attser s)
+           ?hostname
+           ?port
+           ?fragment
+           ?keep_nl_params
+           ~nl_params
+           getparams,
+         s)
+      | _ -> (make_uri_components
+                ~absolute
+                ~absolute_path
+                ?https
+                ~service
+                ?hostname
+                ?port
+                ?fragment
+                ?keep_nl_params
+                ~nl_params
+                getparams,
+              getname)
+    in
+
+    let postparams =
+      match get_post_name_ attser with
+      | Eliom_common.SAtt_no -> []
+      | Eliom_common.SAtt_anon s ->
+        [(Eliom_common.post_numstate_param_name, s)]
+      | Eliom_common.SAtt_named s ->
+        [(Eliom_common.post_state_param_name, s)]
+      | Eliom_common.SAtt_csrf_safe csrf_info ->
+	let sp = Eliom_common.get_sp () in
+        let s =
+	  Eliom_service.register_delayed_post_coservice
+            ~sp csrf_info getname
+        in
+        [(Eliom_common.post_numstate_param_name, s)]
+      | Eliom_common.SAtt_na_anon s ->
+        [(Eliom_common.naservice_num, s)]
+      | Eliom_common.SAtt_na_named s ->
+        [(Eliom_common.naservice_name, s)]
+      | Eliom_common.SAtt_na_csrf_safe csrf_info ->
+	let sp = Eliom_common.get_sp () in
+        let s =
+	  Eliom_service.register_delayed_post_coservice
+            ~sp csrf_info getname
+        in
+        [(Eliom_common.naservice_num, s)]
+    in
+    (uri, getparams, fragment,
+     Eliommod_parameters.inject_param_list postparams)
 
 
-            (* for getparams and non localized params: *)
-            let suff, params =
-              construct_params_list
-                nlp (get_get_params_type_ service) getparams
-                (* if nl params were already present, they will be replaced
-                   by new values *)
-                (* getparams can be something else than []
-                   if we have added nl params to the service (?) *)
-            in
-            let params = params @ preapp in
+  | `Nonattached naser ->
 
-            let keep_get_na_params =
-              match keep_get_na_params with
-                | Some b -> b
-                | None ->
-                    match get_na_kind_ naser with
-                      | `Post b -> b
-                      | _ -> assert false
-            in
-            let params =
-              params @
-                Eliommod_parameters.inject_param_list
-                (if keep_get_na_params
-                 then
-                    (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_nl
-                 else
-                    (Lazy.force
-                       (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_na_nl))
-            in
-
-
-            let ssl = Eliom_request_info.get_csp_ssl_sp sp in
-            let https =
-              (https = Some true) ||
-                (Eliom_service.get_https service) ||
-                (https = None && ssl)
-            in
-            let absolute =
-              if absolute || https <> ssl
-              then Some (make_proto_prefix ?hostname ?port https)
-              else if absolute_path
-              then Some "/"
-              else None
-            in
+    let sp = Eliom_common.get_sp () in
+    let nl_params = Eliom_parameter.table_of_nl_params_set nl_params in
+    let keep_nl_params = match keep_nl_params with
+      | None -> Eliom_service.keep_nl_params service
+      | Some b -> b
+    in
+    let preappnlp, preapp = get_pre_applied_parameters_ service in
+    let nlp =
+      match keep_nl_params with
+      | `All ->
+        (* We replace current nl params by preapplied ones *)
+        String.Table.fold
+          (fun key v b -> String.Table.add key v b)
+          preappnlp
+          (Eliommod_parameters.inject_param_table
+             (Eliom_request_info.get_nl_get_params ()))
+      | `Persistent ->
+        (* We replace current nl params by preapplied ones *)
+        String.Table.fold
+          (fun key v b -> String.Table.add key v b)
+          preappnlp
+          (Eliommod_parameters.inject_param_table
+             (Eliom_request_info.get_persistent_nl_get_params_sp sp))
+      | `None -> preappnlp
+    in
+    let nlp =
+          (* We replace current nl params by nl_params *)
+      String.Table.fold
+        (fun key v b -> String.Table.add key v b)
+        nl_params
+        nlp
+    in
 
 
-            (* absolute URL does not work behind a reverse proxy! *)
-            let uri =
-              match absolute with
-                | Some proto_prefix ->
-                    proto_prefix^Eliom_request_info.get_original_full_path_string_sp sp
-                | None ->
-                    reconstruct_relative_url_path_string
-                      (Eliom_request_info.get_csp_original_full_path_sp sp)
-                      (Eliom_request_info.get_original_full_path_sp sp)
-		      None
-            in
+    (* for getparams and non localized params: *)
+    let suff, params =
+      construct_params_list
+        nlp (get_get_params_type_ service) getparams
+    (* if nl params were already present, they will be replaced
+       by new values *)
+    (* getparams can be something else than []
+       if we have added nl params to the service (?) *)
+    in
+    let params = params @ preapp in
 
-            let naservice_line =
-              match get_na_name_ naser with
-               | Eliom_common.SNa_post' n -> (Eliom_common.naservice_num, n)
-               | Eliom_common.SNa_post_ n -> (Eliom_common.naservice_name, n)
-               | Eliom_common.SNa_post_csrf_safe csrf_info ->
-                 let n =
-                   Eliom_service.register_delayed_get_or_na_coservice
-                     ~sp csrf_info
-                 in
-                 (Eliom_common.naservice_num, n)
-               | _ -> assert false
-            in
+    let keep_get_na_params =
+      match keep_get_na_params with
+      | Some b -> b
+      | None ->
+        match get_na_kind_ naser with
+        | `Post b -> b
+        | _ -> assert false
+    in
+    let params =
+      params @
+        Eliommod_parameters.inject_param_list
+        (if keep_get_na_params
+         then
+            (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_nl
+         else
+            (Lazy.force
+               (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_na_nl))
+    in
 
 
-            let fragment = None (* fragment is not sent to the server *) in
+    let ssl = Eliom_request_info.get_csp_ssl_sp sp in
+    let https =
+      (https = Some true) ||
+        (Eliom_service.get_https service) ||
+        (https = None && ssl)
+    in
+    let absolute =
+      if absolute || https <> ssl
+      then Some (make_proto_prefix ?hostname ?port https)
+      else if absolute_path
+      then Some "/"
+      else None
+    in
 
-            let postparams = [naservice_line] in
-            (uri, params, fragment,
-             Eliommod_parameters.inject_param_list postparams)
+
+    (* absolute URL does not work behind a reverse proxy! *)
+    let uri =
+      match absolute with
+      | Some proto_prefix ->
+        proto_prefix^Eliom_request_info.get_original_full_path_string_sp sp
+      | None ->
+        reconstruct_relative_url_path_string
+          (Eliom_request_info.get_csp_original_full_path_sp sp)
+          (Eliom_request_info.get_original_full_path_sp sp)
+	  None
+    in
+
+    let naservice_line =
+      match get_na_name_ naser with
+      | Eliom_common.SNa_post' n -> (Eliom_common.naservice_num, n)
+      | Eliom_common.SNa_post_ n -> (Eliom_common.naservice_name, n)
+      | Eliom_common.SNa_post_csrf_safe csrf_info ->
+        let n =
+          Eliom_service.register_delayed_get_or_na_coservice
+            ~sp csrf_info
+        in
+        (Eliom_common.naservice_num, n)
+      | _ -> assert false
+    in
+
+
+    let fragment = None (* fragment is not sent to the server *) in
+
+    let postparams = [naservice_line] in
+    (uri, params, fragment,
+     Eliommod_parameters.inject_param_list postparams)
 
 
 
@@ -579,7 +607,6 @@ let make_post_uri_components
     ?keep_get_na_params
     getparams
     postparams =
-
   let (uri, getparams, fragment, prepostparams) =
     make_post_uri_components_
       ?absolute
@@ -604,7 +631,6 @@ let make_post_uri_components
   (uri, getparams, fragment, postparams@prepostparams)
 
 let make_post_uri_components__ = make_post_uri_components
-
 
 
 

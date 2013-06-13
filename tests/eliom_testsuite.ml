@@ -319,6 +319,7 @@ let _ = Eliom_registration.Html5.register Eliom_testsuite_base.main
          a suffixform_su2 [pcdata "Suffix and other service at same URL: a form towards the suffix service"] (); br ();
          a su4 [pcdata "Suffix service with constant part and priority"] ("aa", ((), "bb")); br ();
          a preappliedsuffix [pcdata "Preapplied suffix"] (); br ();
+         a attnonatt_service [pcdata "Attachment of non-attached coservice"] (); br ();
          a constform [pcdata "Form towards suffix service with constants"] (); br ();
          a getact [pcdata "action on GET attached coservice, etc"] 127; br ();
          a noreload [pcdata "action with `NoReload option"] (); br ();
