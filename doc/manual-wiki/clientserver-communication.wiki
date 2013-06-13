@@ -127,7 +127,7 @@ send data to a client. We call that mechanism //Comet//, it is
 also sometimes called //HTTP push//.
 
 The simple low level version above which all other following mechanisms are
-implemented is provided in the <<a_api | module Eliom_comet.Channels >>
+implemented is provided in the <<a_api | module Eliom_comet.Channel >>
 module.
 
 Comet defines channels which can convey data. A channel is created
@@ -149,13 +149,13 @@ Function <<a_api project="lwt" | val Lwt_stream.create >>
 returns a stream and a function to push new values to the stream.
 
 On client side the type
-<<a_api subproject="client" | type Eliom_comet.Channels.t >>
+<<a_api subproject="client" | type Eliom_comet.Channel.t >>
 is just a Lwt stream <<a_api project="lwt" | type Lwt_stream.t >>.
 
 There are 3 kind of channels depending on how you want to send data.
 
 * Channels created with
-  <<a_api | val Eliom_comet.Channels.create >>
+  <<a_api | val Eliom_comet.Channel.create >>
   have a buffer with a limited size. Message are read from the stream as
   soon as they are available, i.e. for stream created with
   <<a_api project="lwt" | val Lwt_stream.from >>, that means that the
@@ -167,13 +167,13 @@ There are 3 kind of channels depending on how you want to send data.
   when reading data from the stream.
 
 * Channels created with
-  <<a_api | val Eliom_comet.Channels.create_newest >> have no buffering
+  <<a_api | val Eliom_comet.Channel.create_newest >> have no buffering
   and can loose messages, but the client will always receive the last value:
   For instance if many messages are sent in a short time,
   the client may receive only the last one. Those channels never raise
   <<a_api subproject="client" | exception Eliom_comet.Channel_full >>.
 
-* Channels created with <<a_api | val Eliom_comet.Channels.create_unlimited >>
+* Channels created with <<a_api | val Eliom_comet.Channel.create_unlimited >>
   consume data on the stream only when their is a request from the client.
 
 Channels can be closed on client side by cancelling a thread waiting
@@ -183,7 +183,7 @@ Like services, channels have a scope (only site or client process).
 The constraints vary with respect to the scope you choose:
 
 * Channels created with scope <<a_api | val Eliom_common.site_scope >> or
-using <<a_api | val Eliom_comet.Channels.create_newest >>
+using <<a_api | val Eliom_comet.Channel.create_newest >>
 are stateless channels: the memory consumption does not depend on
 the number of users requesting data on it. When the channels are not
 reachable from the server code, they are garbage collected and closed.
@@ -196,7 +196,7 @@ are assigned to a particular client process. Different channels
 created with the same stream do not share memory. They are closed
 when requested or when the client process is closed. It is possible
 to know when a client stop requesting data on those channels using
-<<a_api | val Eliom_comet.Channels.wait_timeout >>.
+<<a_api | val Eliom_comet.Channel.wait_timeout >>.
 
 //Warning:// Be careful about memory consumption when using
 client process channels.
@@ -268,7 +268,7 @@ side buffering.
 
 It is possible to access a named stateless channel created on another
 server. It has to be declared using <<a_api | val
-Eliom_comet.Channels.external_channel>>. The declaration of the
+Eliom_comet.Channel.external_channel>>. The declaration of the
 channel must match exactly the creation. The server generating the
 page and the server that created the channel must run exactly the same
 version of Eliom. By default a browser can't do requests to a
