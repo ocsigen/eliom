@@ -29,13 +29,11 @@
     participants. *)
 type 'a t
 
-(** [create ?scope ?name ?size] makes a fresh bus. The [name] optional
-    parameter can be used to make persistent (as in server restart
-    persistent) bus's. The [scope] parameter is used to chose the kind
-    of channel on which the bus rely (See [Eliom_comet.create] for
-    more information). The [?name] argument allow one to make bus's
-    persistent over server restart. The [size] argument behaves like
-    the one on {!Eliom_comet.Channel.create} *)
+(** [create ?scope ?name ?size] makes a fresh bus. The [scope] parameter
+    is used to chose the kind of channel on which the bus rely
+    (See [Eliom_comet.create] for more information). The [?name] argument
+    allow one to make bus's persistent over server restart. The [size]
+    argument behaves like the one on {!Eliom_comet.Channel.create} *)
 val create :
   ?scope:[< Eliom_comet.Channel.comet_scope ] -> ?name:string -> ?size:int
   -> 'a Deriving_Json.t
