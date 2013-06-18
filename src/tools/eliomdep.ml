@@ -27,10 +27,11 @@ let do_sort () =
   !mode = `Sort
 
 let add_build_dir s =
-  if s = ":" then s else
-  match !build_dir with
-  | "" -> s
-  | d -> d ^ "/" ^ s
+  if s = ":" || String.contains s '/'
+  then s else
+    match !build_dir with
+    | "" -> s
+    | d -> d ^ "/" ^ s
 
 let add_build_dirs line =
   String.concat " " (List.map add_build_dir (split ' ' line ))
