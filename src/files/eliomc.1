@@ -54,8 +54,13 @@ is a wrapper around
 that handles dependencies of an .eliom source files. It accepts the
 same set of options plus the specific ones described in the
 .I OPTIONS
-section. Warnings: this tools is still limited and do not handle
-dependencies towards an .eliom files.
+section. It makes the assumption that server-side compiled modules
+of OCaml files located in this directory subtree are in directory
+.I _server
+(with same subdirectories structure) (resp. in directory
+.I _client
+for client-side compiled modules).
+
 
 .SH COMPILING ELIOM SOURCE FILES
 
