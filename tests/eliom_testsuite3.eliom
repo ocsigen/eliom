@@ -3030,6 +3030,17 @@ let formc = My_appl.register_service ["formc"] unit
           )
           ();
 
+        h4 [pcdata "Changing the URL without doing a request."];
+
+        p [Html5.D.Raw.a
+              ~a:[a_onclick {{fun _ ->
+                Eliom_client.change_url ~service:%long_page
+                  ~fragment:"id40"
+                  ()
+                             }}]
+              [pcdata "Change the URL."]
+          ];
+
         div;
 
       ]))

@@ -106,6 +106,22 @@ val window_open :
   ?nl_params:Eliom_parameter.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> Dom_html.window Js.t
 
+(** Changes the URL, without doing a request.
+    It takes a GET (co-)service as parameter and its parameters.
+ *)
+val change_url :
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:('get, unit, [< Eliom_service.get_service_kind ],
+           [< Eliom_service.suff ], 'gn, unit,
+           [< Eliom_service.registrable ], 'return) Eliom_service.service ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:Eliom_parameter.nl_params_set -> 'get -> unit
+
 (** (low level) Call a server side service and return the content
     of the resulting HTTP frame as a string. *)
 val call_service :
@@ -123,6 +139,8 @@ val call_service :
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:Eliom_parameter.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> string Lwt.t
+
+
 
 (** Registers some code to be executed after loading the client
     application, or after changing the page the next time.

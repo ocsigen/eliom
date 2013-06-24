@@ -582,7 +582,7 @@ let call_caml_service
     | `Failure msg ->
       Lwt.fail (Exception_on_server msg)
 
-(* == The function [change_url_string] changes the URL, without doing a request.
+(* == Function [change_url_string] changes the URL, without doing a request.
 
    It uses the History API if present, otherwise we write the new URL
    in the fragment part of the URL (see 'redirection_script' in
@@ -607,6 +607,34 @@ let change_url_string uri =
     if uri <> fst (Url.split_fragment Url.Current.as_string)
     then Dom_html.window##location##hash <- Js.string (url_fragment_prefix^uri)
   end
+
+
+
+(* == Function [change_url] changes the URL, without doing a request.
+   It takes a GET (co-)service as parameter and its parameters.
+ *)
+
+let change_url
+    ?absolute
+    ?absolute_path
+    ?https
+    ~service
+    ?hostname
+    ?port
+    ?fragment
+    ?keep_nl_params
+    ?nl_params params =
+  change_url_string
+    (Eliom_uri.make_string_uri
+       ?absolute
+       ?absolute_path
+       ?https
+       ~service
+       ?hostname
+       ?port
+       ?fragment
+       ?keep_nl_params
+       ?nl_params params)
 
 (* == Relink
 
