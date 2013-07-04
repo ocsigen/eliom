@@ -210,15 +210,15 @@ struct
             receiving data.
             Idle means that the window is not active but we want to
             keep updated from time to time. *)
-	mutable focused : float option;
-	(** [focused] is None when the page is focused and Some [t]
-	    when the page lost focus at time [t] (in ms) *)
-	mutable active_waiter : unit Lwt.t;
-	(** [active_waiter] terminates when the page get focused *)
-	mutable active_wakener : unit Lwt.u;
-	mutable restart_waiter : unit list Lwt.t;
-	mutable restart_wakener : unit list Lwt.u;
-	mutable active_channels : String.Set.t;
+        mutable focused : float option;
+        (** [focused] is None when the page is focused and Some [t]
+            when the page lost focus at time [t] (in ms) *)
+        mutable active_waiter : unit Lwt.t;
+        (** [active_waiter] terminates when the page get focused *)
+        mutable active_wakener : unit Lwt.u;
+        mutable restart_waiter : unit list Lwt.t;
+        mutable restart_wakener : unit list Lwt.u;
+        mutable active_channels : String.Set.t;
       }
 
   type stateful_state = int ref (* id of the next request *)

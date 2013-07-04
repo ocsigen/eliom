@@ -65,7 +65,7 @@ val get_default_links_xhr : unit -> bool
 val get_config : unit -> Simplexmlparser.xml list
 
 (** Process the configuration {% <<a_api module="Eliom_config" | val get_config>> %}
-    by a give specification (cf. {% <<a_api project="ocsigenserver" module="Ocsigen_extensions.Configuration" | type element >> %}) *)
+    by a give specification (cf. {% <<a_api project="ocsigenserver" | type Ocsigen_extensions.Configuration.element >> %}) *)
 val parse_config : ?pcdata:(string -> unit) -> ?other_elements:(string -> (string * string) list -> Simplexmlparser.xml list -> unit) -> Ocsigen_extensions.Configuration.element list -> unit
 
 (** The function [get_config_info ()] returns the information
