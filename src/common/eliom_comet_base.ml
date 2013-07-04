@@ -58,8 +58,8 @@ type 'a channel_data =
 deriving (Json)
 
 type answer =
-  | Stateless_messages of ( string * (string * int) channel_data ) array
-  | Stateful_messages of ( string * string channel_data ) array
+  | Stateless_messages of (string * (string * int) channel_data) array
+  | Stateful_messages of (string * string channel_data) array
   | Timeout
   | Process_closed
   | Comet_error of string
