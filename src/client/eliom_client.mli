@@ -205,6 +205,12 @@ val getElementById : string -> Dom.node Js.t
 val rebuild_node' : Eliom_content_core.Xml.elt -> Dom.node Js.t
 val rebuild_node : string -> 'a Eliom_content_core.Html5.elt -> < .. > Js.t
 
+(** Javascript expect some attributes to have capital letters.
+    Eliom does the translation for some of them.
+    If some are missing, use this function to add them.
+    It takes the attribute name with capital letters as parameter. *)
+val fix_attrib : string -> unit
+
 module Syntax_helpers : sig
 
   (** Look-up of the value of an injection in the global injection table. *)
