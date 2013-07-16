@@ -41,7 +41,7 @@ type persistent = [ `Persistent ]
 type ('a, 'storage) eref' = (unit -> 'a) * 'a eref_kind
 type 'a eref = ('a, [ volatile | persistent ]) eref'
 
-exception Eref_not_intialized
+exception Eref_not_initialized
 
 module Volatile = struct
 
@@ -121,9 +121,9 @@ module Volatile = struct
       | Vol t ->
         (try Eliom_state.Ext.Low_level.get_volatile_data
                ~state ~table:(Lazy.force t)
-         with Not_found -> 
+         with Not_found ->
            (* I don't want to run f in the wrong context -> I fail *)
-           raise Eref_not_intialized)
+           raise Eref_not_initialized)
       | _ -> failwith "wrong eref for this function"
 
     let set state (_, table) value =
@@ -238,10 +238,10 @@ module Ext = struct
            (fun () -> Eliom_state.Ext.Low_level.get_persistent_data
              ~state ~table:t)
            (function
-             | Not_found -> Lwt.fail Eref_not_intialized
+             | Not_found -> Lwt.fail Eref_not_initialized
              | e -> Lwt.fail e))
       | _ -> failwith "wrong eref for this function"
-          
+
   let set state ((_, table) as r) value =
     let state = Eliom_state.Ext.untype_state state in
     match table with
@@ -250,7 +250,7 @@ module Ext = struct
         Eliom_state.Ext.Low_level.set_persistent_data
           ~state ~table:t value
       | _ -> Lwt.fail (Failure "wrong eref for this function")
-      
+
   let modify state eref f =
     get state eref >>= fun v ->
     set state eref (f v)
