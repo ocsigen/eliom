@@ -28,9 +28,9 @@ type ('a, +'storage) eref'
 (** The type of Eliom references whose content is of type ['a].  *)
 type 'a eref = ('a, [ `Volatile | `Persistent ]) eref'
 
-(** Exception raised when trying to access an eref 
+(** Exception raised when trying to access an eref
     that has not been initaliazed, when we don't want to initialize it. *)
-exception Eref_not_intialized
+exception Eref_not_initialized
 
 (** The function [eref ~scope value] creates an Eliom reference for
     the given [scope] and initialize it with [value]. See the Eliom
@@ -161,7 +161,7 @@ module Volatile : sig
 
     (** get the value of a reference from outside the state.
         If the value has not been set yet for this state,
-        it will raise exception [Eref_not_intialized].
+        it will raise exception [Eref_not_initialized].
     *)
     val get : ([< `Session_group | `Session | `Client_process ],
                [< `Data ]) Eliom_state.Ext.state ->
