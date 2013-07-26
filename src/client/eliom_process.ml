@@ -24,11 +24,35 @@ let history_api =
   Js.def Dom_html.window##history != Js.undefined
   && Js.Unsafe.variable "window.history.pushState" != Js.undefined
 
-let sitedata : Eliom_types.sitedata =
-  unmarshal_js_var "__eliom_appl_sitedata"
+let get_set_js_serverside_value name =
+  let r = ref None in
+  (fun s -> r := Some s),
+  (fun () -> match !r with
+    | Some s -> s
+    | None ->
+      (* if variable toto does not exist,
+         Js.Unsafe.variable "toto" fails, but
+         Js.Unsafe.variable "this.toto" returns undefined *)
+      Js.Optdef.case (Js.def (Js.Unsafe.variable ("this."^name)))
+        (fun () -> failwith (name^" not defined. A client Eliom application must either be sent by an Eliom server application of you must call Eliom_process.init_client_app."))
+        (fun _ ->
+          let s = unmarshal_js_var name in
+          r := Some s;
+          s))
 
-let info : Eliom_common.client_process_info =
-  unmarshal_js_var "__eliom_appl_process_info"
+let set_sitedata, (get_sitedata : unit -> Eliom_types.sitedata) =
+  get_set_js_serverside_value "__eliom_appl_sitedata"
+
+let set_info, (get_info : unit -> Eliom_common.client_process_info) =
+  get_set_js_serverside_value "__eliom_appl_process_info"
+
+let set_request_cookies,
+  (get_request_cookies : unit -> Eliommod_cookies.cookie
+   Ocsigen_cookies.CookiesTable.t Ocsigen_cookies.Cookies.t) =
+  get_set_js_serverside_value "__eliom_request_cookies"
+
+let set_request_template, (get_request_template : unit -> string option) =
+  get_set_js_serverside_value "__eliom_request_template"
 
 let appl_name =
   lazy
@@ -36,7 +60,7 @@ let appl_name =
        (CookiesTable.find
           Eliom_common.appl_name_cookie_name
           (Cookies.find
-             sitedata.Eliom_types.site_dir
+             (get_sitedata ()).Eliom_types.site_dir
              (Eliommod_cookies.get_table (Some Url.Current.host))))
      in v)
 

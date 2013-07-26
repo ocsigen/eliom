@@ -142,7 +142,7 @@ let rec send ?(expecting_process_page = false) ?cookies_info
       match host with
         | Some host when host = Url.Current.host ->
           ( Eliom_common.tab_cpi_header_name,
-            encode_header_value Eliom_process.info ) :: headers
+            encode_header_value (Eliom_process.get_info ())) :: headers
         | _ -> headers in
     let headers = if expecting_process_page
       then

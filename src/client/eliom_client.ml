@@ -24,6 +24,16 @@ open Eliom_content_core
 
 module JsTable = Eliommod_jstable
 
+let init_client_app ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
+  Eliom_process.set_sitedata {Eliom_types.site_dir = full_path;
+                              site_dir_string = String.concat "/" full_path};
+  Eliom_process.set_info {Eliom_common.cpi_ssl = ssl ;
+                          cpi_hostname = hostname;
+                          cpi_server_port = port;
+                          cpi_original_full_path = full_path
+                         };
+  Eliom_process.set_request_cookies Ocsigen_cookies.Cookies.empty
+
 (* == Auxiliaries *)
 
 let create_buffer () =

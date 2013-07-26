@@ -22,6 +22,18 @@
 
 open Eliom_lib
 
+(** Call this function if you want to be able to run your client side app
+    before doing the first request, that is, when the client side app
+    is not sent by the server. This may be the case for example if you are
+    developing a mobile app. The parameters correspond to the base URL of the
+    server side of your application.
+*)
+val init_client_app :
+  ?ssl:bool ->
+  hostname:string ->
+  ?port:int ->
+  full_path:Eliom_lib.Url.path -> unit -> unit
+
 (** Call a server side service and change the current page.
     If the service belongs to the same application,
     the client side program is not stopped, and only

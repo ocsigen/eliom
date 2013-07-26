@@ -33,14 +33,14 @@ module Channel : sig
     [ Eliom_common.site_scope
     | Eliom_common.client_process_scope ]
 
-  (** [create s] returns a channel sending values from [s].
+  (** [create s] returns a channel sending the values returned by stream [s].
 
-      There are two kind of channels created depending on the given
+      There are two kinds of channels created depending on the given
       scope (defaults to [Eliom_common.comet_client_process]).
 
       With scope {!Eliom_common.site} all users knowing the name of
       the channel can access it. Only one message queue is created: it
-      is what we call a stateless channel in the sense that the memory
+      is what we call a //stateless// channel in the sense that the memory
       used by the channel does not depend on the number of users.  The
       channel can be reclaimed by the GC when there is no more reference to it.
       The buffer channel has a limited buffer of size [size] (default:
@@ -109,4 +109,3 @@ module Channel : sig
   val get_wrapped : 'a t -> 'a Eliom_comet_base.wrapped_channel
 
 end
-

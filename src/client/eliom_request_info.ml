@@ -94,9 +94,9 @@ let get_nl_post_params () =
 
 let get_si () = !get_sess_info ()
 
-let get_site_dir () = Eliom_process.sitedata.site_dir
+let get_site_dir () = (Eliom_process.get_sitedata ()).site_dir
 let get_site_dir_string () =
-  Eliom_process.sitedata.site_dir_string
+  (Eliom_process.get_sitedata ()).site_dir_string
 
 let get_sp_appl_name = Eliom_process.get_application_name
 
@@ -121,26 +121,77 @@ let get_csp_server_port_sp = get_csp_server_port
 
 let get_csp_original_full_path () =
   if Eliom_process.history_api then
-    Eliom_process.info.Eliom_common.cpi_original_full_path
+    (Eliom_process.get_info ()).Eliom_common.cpi_original_full_path
   else
     remove_first_slash Url.Current.path
 
 let get_csp_original_full_path_sp = get_csp_original_full_path
 
-let get_request_cookies () = unmarshal_js_var "__eliom_request_cookies"
-let get_request_template () : string option = unmarshal_js_var "__eliom_request_template"
+let get_request_cookies = Eliom_process.get_request_cookies
+let get_request_template = Eliom_process.get_request_template
 
-let get_request_data, reset_request_data =
+(* The request data used when it is not sent by server
+   (i.e. when the client side process is initiated by client (mobile app...)) *)
+let default_request_data =
+  {Eliom_types_base.ejs_global_data = None;
+   ejs_request_data = [];
+   ejs_event_handler_table = Eliom_content_core.Xml.ClosureMap.empty;
+   ejs_sess_info =
+      {Eliom_common.si_other_get_params = [];
+       si_all_get_params = [];
+       si_all_post_params = None;
+
+       si_service_session_cookies = Eliom_common.Full_state_name_table.empty;
+       si_data_session_cookies = Eliom_common.Full_state_name_table.empty;
+       si_persistent_session_cookies = Eliom_common.Full_state_name_table.empty;
+
+       si_secure_cookie_info = None;
+
+       si_service_session_cookies_tab = Eliom_common.Full_state_name_table.empty;
+       si_data_session_cookies_tab = Eliom_common.Full_state_name_table.empty;
+       si_persistent_session_cookies_tab = Eliom_common.Full_state_name_table.empty;
+       si_secure_cookie_info_tab = None;
+
+       si_tab_cookies = Ocsigen_cookies.CookiesTable.empty;
+
+       si_nonatt_info = Eliom_common.RNa_no;
+       si_state_info = (Eliom_common.RAtt_no,
+                        Eliom_common.RAtt_no);
+       si_previous_extension_error = 404;
+
+       si_na_get_params = lazy [];
+       si_nl_get_params = Eliom_lib.String.Table.empty;
+       si_nl_post_params = Eliom_lib.String.Table.empty;
+       si_persistent_nl_get_params = lazy String.Table.empty;
+
+       si_all_get_but_na_nl = lazy [];
+       si_all_get_but_nl = [];
+
+       si_client_process_info = None;
+       si_expect_process_data = lazy false;
+      }
+
+  }
+
+let get_request_data, set_request_data, reset_request_data =
   let eliom_data = ref None in
   let get () =
     match !eliom_data with
       | Some data -> data
       | None ->
-          let data = Eliom_unwrap.unwrap_js_var "__eliom_request_data" in
-          eliom_data := Some data;
-          data
+        let name = "__eliom_request_data" in
+        Js.Optdef.case (Js.def (Js.Unsafe.variable ("this."^name)))
+          (fun () -> eliom_data := Some default_request_data;
+            default_request_data)
+          (fun _ ->
+            let data = Eliom_unwrap.unwrap_js_var name in
+            eliom_data := Some data;
+            data)
   in
   let reset () =
     eliom_data := None
   in
-  get, reset
+  let set (v : Eliom_types.eliom_js_page_data) =
+    eliom_data := Some v
+  in
+  get, set, reset
