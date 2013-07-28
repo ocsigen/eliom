@@ -33,15 +33,6 @@ val sp : server_params
 
 (**/**)
 
-type eliom_js_page_data = {
-  ejs_global_data: global_data option;
-  ejs_request_data: request_data;
-  (* Event handlers *)
-  ejs_event_handler_table: Xml.event_handler_table;
-  (* Session info *)
-  ejs_sess_info: Eliom_common.sess_info;
-}
-
 type 'a eliom_caml_service_data = {
   ecs_request_data: request_data;
   ecs_data: 'a;
@@ -73,4 +64,3 @@ val add_tab_cookies_to_post_form_id_string : string
 
 
 val encode_eliom_data : 'a -> string
-

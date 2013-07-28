@@ -95,6 +95,7 @@ let get_nl_post_params () =
 let get_si () = !get_sess_info ()
 
 let get_site_dir () = (Eliom_process.get_sitedata ()).site_dir
+let get_site_dir_sp () = (Eliom_process.get_sitedata ()).site_dir
 let get_site_dir_string () =
   (Eliom_process.get_sitedata ()).site_dir_string
 
@@ -133,7 +134,7 @@ let get_request_template = Eliom_process.get_request_template
 (* The request data used when it is not sent by server
    (i.e. when the client side process is initiated by client (mobile app...)) *)
 let default_request_data =
-  {Eliom_types_base.ejs_global_data = None;
+  {Eliom_common.ejs_global_data = None;
    ejs_request_data = [];
    ejs_event_handler_table = Eliom_content_core.Xml.ClosureMap.empty;
    ejs_sess_info =
@@ -191,7 +192,7 @@ let get_request_data, set_request_data, reset_request_data =
   let reset () =
     eliom_data := None
   in
-  let set (v : Eliom_types.eliom_js_page_data) =
+  let set (v : Eliom_common.eliom_js_page_data) =
     eliom_data := Some v
   in
   get, set, reset

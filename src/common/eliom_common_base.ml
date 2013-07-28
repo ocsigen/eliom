@@ -21,6 +21,8 @@ open Eliom_lib
 
 open Ocsigen_cookies
 
+exception Eliom_site_information_not_available of string
+
 (******************************************************************)
 
 type scope_hierarchy =
@@ -258,6 +260,15 @@ type sess_info =
 
 (*204FORMS*     si_internal_form: bool; *)
    }
+
+type eliom_js_page_data = {
+  ejs_global_data: global_data option;
+  ejs_request_data: request_data;
+  (* Event handlers *)
+  ejs_event_handler_table: Eliom_content_core.Xml.event_handler_table;
+  (* Session info *)
+  ejs_sess_info: sess_info;
+}
 
 (************ unwrapping identifiers *********************)
 

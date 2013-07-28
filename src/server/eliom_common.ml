@@ -30,7 +30,6 @@ exception Eliom_Typing_Error of (string * exn) list
 exception Eliom_duplicate_registration of string
 exception Eliom_there_are_unregistered_services of
   (string list * string list list * na_key_serv list)
-exception Eliom_site_information_not_available of string
 exception Eliom_page_erasing of string
 exception Eliom_error_while_loading_site of string
 
@@ -1419,3 +1418,7 @@ let patch_request_info req =
         } }
   else
     req
+
+
+let get_site_dir sitedata = sitedata.site_dir
+let get_site_dir_string sitedata = sitedata.site_dir_string

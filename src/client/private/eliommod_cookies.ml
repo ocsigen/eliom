@@ -86,3 +86,7 @@ let get_cookies_to_send host https path =
     )
     (get_table host)
     []
+
+
+let make_new_session_id () =
+  failwith "Cannot define anonymous coservices on client side. Ask their values to the server."

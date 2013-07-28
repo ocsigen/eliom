@@ -692,3 +692,15 @@ val bus_unwrap_id : unwrap_id
 
 val nl_get_appl_parameter: string
 val patch_request_info: Ocsigen_extensions.request -> Ocsigen_extensions.request
+
+type eliom_js_page_data = {
+  ejs_global_data: global_data option;
+  ejs_request_data: request_data;
+  (* Event handlers *)
+  ejs_event_handler_table: Eliom_content_core.Xml.event_handler_table;
+  (* Session info *)
+  ejs_sess_info: sess_info;
+}
+
+val get_site_dir : sitedata -> Url.path
+val get_site_dir_string : sitedata -> string

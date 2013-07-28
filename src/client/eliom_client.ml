@@ -894,7 +894,7 @@ let set_content ?uri ?offset ?fragment content =
           handler.  Relinking closure nodes must take place after
           initializing the client values *)
        let closure_nodeList = relink_page_but_closure_nodes fake_page in
-       Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
+       Eliom_request_info.set_session_info js_data.Eliom_common.ejs_sess_info;
        (* Really change page contents *)
        if !Eliom_config.debug_timings then
          Firebug.console##time(Js.string "replace_page");
@@ -906,12 +906,12 @@ let set_content ?uri ?offset ?fragment content =
          Firebug.console##timeEnd(Js.string "replace_page");
        (* Initialize and provide client values. May need to access to
           new DOM. Necessary for relinking closure nodes *)
-       do_request_data js_data.Eliom_types.ejs_request_data;
+       do_request_data js_data.Eliom_common.ejs_request_data;
        (* Replace closure ids in document with event handlers (from client values) *)
        let onload_closure_nodes =
          relink_closure_nodes
            Dom_html.document##documentElement
-           js_data.Eliom_types.ejs_event_handler_table closure_nodeList
+           js_data.Eliom_common.ejs_event_handler_table closure_nodeList
        in
        (* The request node table must be empty when nodes received via
           call_caml_service are unwrapped. *)

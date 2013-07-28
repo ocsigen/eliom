@@ -35,3 +35,17 @@ let react_down_unwrap_id : unwrap_id = Eliom_unwrap.id_of_int react_down_unwrap_
 let signal_down_unwrap_id : unwrap_id = Eliom_unwrap.id_of_int signal_down_unwrap_id_int
 let comet_channel_unwrap_id : unwrap_id = Eliom_unwrap.id_of_int comet_channel_unwrap_id_int
 let bus_unwrap_id : unwrap_id = Eliom_unwrap.id_of_int bus_unwrap_id_int
+
+
+(* On client side, we have sitedata.
+   Thus, we can define new services.
+   That's why this function returns Some sitedata. *)
+let sitedata : Eliom_types.sitedata option ref = ref None
+let global_register_allowed () = match !sitedata with
+  | None -> None
+  | Some s -> Some (fun () -> s)
+
+let get_site_dir sitedata = sitedata.Eliom_types.site_dir
+let get_site_dir_string sitedata = sitedata.Eliom_types.site_dir_string
+
+let add_unregistered _ _ = ()
