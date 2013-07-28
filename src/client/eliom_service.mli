@@ -102,6 +102,342 @@ constraint 'd = [< suff ]
 constraint 'g = [< registrable ]
 
 
+(** {2 Definitions of services}
+
+    {e Warning: These functions must be called when the site
+    information is available, that is, either during a request or
+    during the initialisation phase of the site.  Otherwise, it will
+    raise the exception
+    {!Eliom_common.Eliom_site_information_not_available}.  If you are
+    using static linking, you must delay the call to this function
+    until the configuration file is read, using
+    {!Eliom_service.register_eliom_module}. Otherwise you will also
+    get this exception.}
+*)
+
+(** {3 Main services} *)
+
+(** The function [service ~path ~get_params ()] creates a {!service}
+    associated to the path [path] and taking [get_params] as GET
+    parameters.
+
+    If the optional parameter [~https:true] is given, all links
+    towards that service will use https. By default, links will keep
+    the current protocol.
+
+    The optional parameter [~priority] allows one to change the priority
+    order between service that shares the same path. The default
+    priority is 0 ; if you want the service to be tried before
+    (resp. after) other services, put a higher (resp. lower) priority.
+
+    If the optional parameter [~keep_nl_params:`Persistent]
+    (resp. [~keep_nl_params:`All]) is given, all links towards that
+    service will keep persistent (resp. all) non localized GET
+    parameters of the current service. The default is [`None]. See the
+    eliom manual for more information about {% <<a_manual
+    chapter="server-params" fragment="nonlocalizedparameters"|non localized
+    parameters>>%}.
+*)
+val service :
+  ?https:bool ->
+  path:Url.path ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  ?priority:int ->
+  get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
+  unit ->
+  ('get,unit,
+   [> `Attached of
+       ([> `Internal of [> `Service ] ], [> `Get ]) a_s ],
+   'tipo,'gn,
+   unit, [> `Registrable ], 'return) service
+
+
+
+(** The function [external_service ~prefix ~path ~get_params ()]
+    creates a service for an external web site, that will use GET
+    method and requires [get_params] as parameters. This allows one to
+    creates links or forms towards other Web sites using Eliom's
+    syntax.
+
+    The parameter labelled [~path] is the URL path. Each element of
+    the list will be URL-encoded.
+
+    The parameter labelled [~prefix] contains all what you want to put
+    before the path. It usually starts with "http://" plus the name of
+    the server. The prefix is not URL encoded.
+
+    The whole URL is constructed from the prefix, the path and GET
+    parameters. Hence, an empty prefix can be used to make a link to
+    another site of the same server.
+
+    See {!val:service} for a description of the optional
+    [~keep_nl_params] parameter.
+*)
+val external_service :
+  prefix: string ->
+  path:Url.path ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
+  unit ->
+  ('get, unit, [> `Attached of ([> `External ], [> `Get ]) a_s ], 'tipo,
+   'gn, unit, [> `Unregistrable ], 'return) service
+
+
+(** Same as {!external_service} but with POST method. *)
+val external_post_service :
+  prefix: string ->
+  path:Url.path ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
+  post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+  unit ->
+  ('get, 'post, [> `Attached of ([> `External ], [> `Post ]) a_s ], 'tipo,
+   'gn, 'pn, [> `Unregistrable ], 'return) service
+
+
+(** The function [post_service ~fallback ~post_params ()] creates a
+    service that takes [post_params] as POST parameters and share the
+    same path and GET parameters than the service [fallback].
+
+    POST parameters couldn't contain a suffix parameter.
+
+    The service [fallback] should be an (internal) attached service
+    without POST parameters ; it couldn't be a preapplied service.
+    This argument enforces the creation of an equivalent service (
+    i.e. a service with the same path and GET parameters ) to be
+    served when POST parameters are missing. Thus, the user cannot put
+    a bookmark on a page that does not exist.
+
+    See {!service} for a description of optional [~https],
+    [~keep_nl_params] and [~priority] parameters .
+*)
+val post_service :
+  ?https:bool ->
+  fallback: ('get, unit,
+             [`Attached of
+                 ([`Internal of
+                     ([ `Service | `Coservice ] as 'kind) ], [`Get]) a_s ],
+             [< suff] as 'tipo, 'gn, unit,
+             [< `Registrable ], 'return1) service ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  ?priority:int ->
+  post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
+  unit ->
+  ('get, 'post, [> `Attached of
+      ([> `Internal of 'kind ], [> `Post]) a_s ],
+   'tipo, 'gn, 'pn, [> `Registrable ], 'return2) service
+
+
+(** {3 Attached coservices} *)
+
+(** The function [coservice ~fallback ~get_params] creates an {%
+    <<a_manual chapter="server-services" fragment="attached_coservices"|attached
+    coservice>>%} at the same path than the service [fallback] and
+    taking [get_params] as GET parameters.
+
+    GET parameters of [coservice] couldn't contain a suffix
+    parameter.
+
+    The service [fallback] should be an (internal) attached service
+    without any GET or POST parameters ; it could be a preapplied
+    service.
+
+    The optional [~name] parameter Coservices can be named if the [?name] optional parameter is present
+    or anonymous (in that case, a coservice number will be generated).
+
+    The optional [~timeout] parameter specifies a timeout (in
+    seconds) after which the coservice will disappear. This amount of
+    time is computed from the creation or from the last call to the
+    service. The default is "no timeout". The optional [~max_use]
+    parameter specifies that the service can be used only a fixed
+    number of times. The default is "no limitation".
+
+    If the optional [~csrf_safe] parameter is [true], it will create a
+    {% <<a_manual chapter="server-security" fragment="csrf"|"CSRF-safe"
+    service>>%}. In that case the [~name] parameter is ignored. The
+    default is [false].
+
+    The [~csrf_scope] and [~csrf_secure], if present, should
+    respectively correspond to the [~scope] and [~secure] parameters
+    that will be given to the associated [register]
+    function. Otherwise the registration will fail with
+    {Eliom_service.Wrong_session_table_for_CSRF_safe_coservice}. See
+    {!Eliom_registration.Html5.register},
+    {!Eliom_registration.App.register} or any other
+    {!Eliom_registration}[.*.register] functions for a description of those
+    parameters.
+
+    See {!service} for a description of the optional [~https] and
+    [~keep_nl_params] parameters .
+*)
+val coservice :
+  ?name: string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  fallback:
+    (unit, unit, [ `Attached of ([ `Internal of [ `Service ] ], [`Get]) a_s ],
+     [ `WithoutSuffix ] as 'tipo,
+     unit, unit, [< registrable ], 'return1) service ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:
+    ('get,[`WithoutSuffix],'gn) params_type ->
+  unit ->
+  ('get,unit,[> `Attached of
+      ([> `Internal of [> `Coservice] ], [> `Get]) a_s ],
+   'tipo, 'gn, unit,
+   [> `Registrable ], 'return2) service
+
+(** The function [post_coservice ~fallback ~get_params] creates an {%
+    <<a_manual chapter="server-services" fragment="attached_coservices"|attached
+    coservice>>%} with the same path and GET parameters than the
+    service [fallback] and taking [post_params] as POST
+    parameters.
+
+    POST parameters couldn't contain a suffix parameter.
+
+    The service [fallback] should be an (internal) attached service or
+    coservice without any POST parameters ; it could be a preapplied
+    service.
+
+    See {!coservice} for a description of optional parameters. *)
+val post_coservice :
+  ?name: string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  fallback: ('get, unit, [ `Attached of
+                             ([`Internal of [<`Service | `Coservice] ],
+                              [`Get]) a_s ],
+             [< suff ] as 'tipo,
+             'gn, unit, [< `Registrable ], 'return1) service ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
+  unit ->
+  ('get, 'post,
+   [> `Attached of
+      ([> `Internal of [> `Coservice] ], [> `Post]) a_s ],
+   'tipo, 'gn, 'pn, [> `Registrable ], 'return2) service
+
+(** {3 Non attached coservices} *)
+
+(** The function [coservice' ~get_param] creates a {% <<a_manual
+    chapter="server-services" fragment="non-attached_coservices"|non-attached
+    coservice>>%} taking [get_params] as extra GET parameters.
+
+    GET parameters of [coservice'] couldn't contain a suffix
+    parameter.
+
+    See {!service} for a description of the optional [~https] and
+    [~keep_nl_params] parameters ; see {!coservice} for others
+    optional parameters.
+*)
+val coservice' :
+  ?name:string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:
+    ('get, [`WithoutSuffix], 'gn) params_type ->
+  unit ->
+  ('get, unit, [> `Nonattached of [> `Get] na_s ],
+   [`WithoutSuffix], 'gn, unit, [> `Registrable ], 'return) service
+
+
+(** The function [post_coservice' ~get_param] creates a {% <<a_manual
+    chapter="server-services" fragment="non-attached_coservices"|non-attached
+    coservice>>%} taking [post_params] as POST parameters.
+
+    POST parameters couldn't contain a suffix parameter.
+
+    If the optional parameter [~keep_get_na_params] is [false], GET
+    non-attached parameters of the current page won't be kept in the
+    URL (if any) when you create a POST form to this coservice. The
+    default is true.
+
+    See {!service} for a description of the optional [~https] and
+    [~keep_nl_params] parameters ; see {!coservice} for others
+    optional parameters.
+*)
+val post_coservice' :
+  ?name:string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  ?keep_get_na_params:bool ->
+  post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
+  unit ->
+  (unit, 'post,
+   [> `Nonattached of [> `Post ] na_s ],
+   [ `WithoutSuffix ], unit, 'pn, [> `Registrable ], 'return) service
+
+
+
+(** {2 Predefined services} *)
+
+(** {3 Static files} *)
+
+(** The predefined service [static_dir] allows one to create links to
+    static files. This service takes the name of a static file as a
+    parameter (a string list, slash separated). The actual directory
+    in filesystem where static pages will be found must be set up in
+    the configuration file with the staticmod extension. *)
+val static_dir :
+  unit ->
+  (string list, unit, [> `Attached of
+      ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
+   [ `WithSuffix ],
+   [ `One of string list ] param_name, unit, [> `Unregistrable ], 'return)
+    service
+
+(** Same as {!static_dir} but forcing https link. *)
+val https_static_dir :
+  unit ->
+  (string list, unit, [> `Attached of
+      ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
+   [ `WithSuffix ],
+   [ `One of string list ] param_name, unit, [> `Unregistrable ], 'return)
+    service
+
+(** Like [static_dir], but allows one to put GET parameters *)
+val static_dir_with_params :
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:('a, [`WithoutSuffix], 'an) params_type ->
+  unit ->
+  ((string list * 'a), unit,
+   [> `Attached of
+      ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
+   [ `WithSuffix ],
+   [ `One of string list ] param_name *'an, unit, [> `Unregistrable ], 'return)
+    service
+
+(** Same as {!static_dir_with_params} but forcing https link. *)
+val https_static_dir_with_params :
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:('a, [`WithoutSuffix], 'an) params_type ->
+  unit ->
+  ((string list * 'a), unit,
+   [> `Attached of
+      ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
+   [ `WithSuffix ],
+   [ `One of string list ] param_name *'an, unit, [> `Unregistrable ], 'return)
+    service
+
+
 (** {3 Void non-attached coservices} *)
 
 val void_coservice' :
@@ -143,6 +479,35 @@ val https_void_hidden_coservice' :
 
 
 (** {2 Miscellaneous} *)
+
+(** The function [preapply ~service paramaters] creates a new service
+    by preapplying [service] to the GET [parameters]. It is not
+    possible to register a handler on an preapplied service ;
+    preapplied services may be used in links or as fallbacks for
+    coservices *)
+val preapply :
+  service:('a, 'b, [> `Attached of ('d, 'dd) a_s ] as 'c,
+	   [< suff ], 'e, 'f, 'g, 'return)
+  service ->
+  'a ->
+  (unit, 'b, 'c,
+   [ `WithoutSuffix ], unit, 'f, [> `Unregistrable ], 'return) service
+
+(** [attach_coservice' ~fallback ~service] attaches the non-attached
+    coservice [service] on the URL of [fallback]. This allows to
+    create a link to a non-attached coservice but with another URL
+    than the current one. It is not possible to register something
+    on the service returned by this function. *)
+val attach_coservice' :
+  fallback:(unit, unit, [< `Attached of ([< `Internal of 'sc1 ],
+                                         [< `Get ]) a_s ],
+	   [< suff ], unit, unit, 'rg1, 'return1) service ->
+  service: ('get, 'post, [< `Nonattached of 'gp na_s ],
+            [< `WithoutSuffix] as 'sf, 'gn, 'pn, 'rg2, 'return) service ->
+  ('get, 'post, [> `Attached of ([> `Internal of [> `Coservice ] ],
+                                 'gp) a_s ],
+   'sf, 'gn, 'pn, [< registrable > `Unregistrable ], 'return) service
+
 
 (** {3 Localized parameters} *)
 
