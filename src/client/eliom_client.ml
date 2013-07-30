@@ -1174,11 +1174,58 @@ type tmp_elt = {
   tmp_node_id : Xml.node_id;
 }
 
-let rebuild_attrib node name a =
-  let name = Js.string name in
+let check_placeholder = lazy(
+  let i = Dom_html.createInput Dom_html.document in
+  Js.Optdef.test ((Js.Unsafe.coerce i)##placeholder)
+)
+
+let empty_string = Js.string ""
+let placeholder_class_hack = Js.string "placeholder_ie_hack"
+let setup_placeholder s node =
+  let s = Js.string s in
+  (* set onblur *)
+  ignore (Dom_events.listen node Dom_events.Typ.blur (fun node _ ->
+      if node##value = empty_string
+      then
+        begin
+          node##value <- s;
+          node##classList##add (placeholder_class_hack)
+        end;
+      true));
+  (* set onfocus *)
+  let did_focus = ref false in
+  ignore (Dom_events.listen node Dom_events.Typ.focus (fun node _ ->
+      did_focus := true;
+      if s = node##value
+      then
+        begin
+          node##value <- empty_string;
+          node##classList##remove (placeholder_class_hack)
+        end;
+      true));
+  Lwt.async( fun () ->
+    if not !did_focus && node##value = empty_string
+    then
+      begin
+        node##value <- s;
+        node##classList##add (placeholder_class_hack)
+      end;
+    Lwt.return_unit)
+
+let rebuild_attrib node name' a =
+  let name = Js.string name' in
   match a with
   | Xml.AFloat f -> node##setAttribute (name, Obj.magic f)
   | Xml.AInt i -> node##setAttribute (name, Obj.magic i)
+  | Xml.AStr s when String.compare name' "placeholder" = 0 && not (Lazy.force check_placeholder) ->
+    let inputopt = Dom_html.CoerceTo.input node in
+    if Js.Opt.test inputopt
+    then Js.Opt.iter inputopt (setup_placeholder s)
+    else
+      let textareaopt = Dom_html.CoerceTo.textarea node in
+      if Js.Opt.test textareaopt
+      then Js.Opt.iter textareaopt (setup_placeholder s)
+      else ()
   | Xml.AStr s -> node##setAttribute(name, Js.string s)
   | Xml.AStrL (Xml.Space, sl) ->
     node##setAttribute(name, Js.string (String.concat " " sl))
