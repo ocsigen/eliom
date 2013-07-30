@@ -137,5 +137,5 @@ CONF_SED += -e s%_LOCALDIR_%$(SRC)/local%g
 CONF_SED += -e s%store\ dir=\"$(SRC)/var/lib\"%store\ dir=\"$(SRC)/local/var/lib/ocsipersist\"%g
 
 ../local/etc/$(PROJECTNAME).conf: files/${PROJECTNAME}.conf.in ../Makefile.config Makefile
-	mkdir ../local/etc
+	mkdir -p ../local/etc
 	cat $< | sed ${CONF_SED}  > $@
