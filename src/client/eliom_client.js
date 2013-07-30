@@ -31,6 +31,14 @@ function caml_weak_blit(s, i, d, j, l) {
   return 0;
 }
 
+//Provides: lookup_real_attrib_name
+function lookup_real_attrib_name(o,s) {
+   for(var attr in o) {
+     if(attr.toLowerCase() == s) return attr;
+   }
+   return null;
+}
+
 // Unmarshall and unwrapping.
 
 //Provides: caml_unwrap_value_from_string mutable

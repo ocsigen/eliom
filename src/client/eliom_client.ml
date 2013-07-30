@@ -1171,40 +1171,43 @@ type tmp_elt = {
   tmp_node_id : Xml.node_id;
 }
 
-let js_name, fix_attrib =
-  let overwrite =
-    [|
-      "tabIndex";
-      "maxLength";
-      "colSpan";
-    |] in
-  let tbl = Hashtbl.create (Array.length overwrite) in
-  let add name = Hashtbl.add tbl (String.lowercase name) name in
-  let find name =
-    let name = try Hashtbl.find tbl name with Not_found -> name in
-    Js.string name in
-  Array.iter add overwrite;
-  find, add
+external lookup_real_attrib_name : #Dom_html.element Js.t -> Js.js_string Js.t -> Js.js_string Js.t Js.opt = "lookup_real_attrib_name"
+
+let js_name,fix_attrib =
+  let tbl = Hashtbl.create 17 in
+  let add_js name v = Hashtbl.add tbl name v in
+  let add name = add_js (String.lowercase name) (Js.string name) in
+  let find node name =
+    try Hashtbl.find tbl name with
+      | Not_found ->
+        let js_name = Js.string name in
+        let v =
+          Js.Opt.get
+            (lookup_real_attrib_name node js_name)
+            (fun () -> js_name) in
+        add_js name v;
+        v in
+  find,add
 
 let rebuild_attrib node name a = match a with
-  | Xml.AFloat f -> Js.Unsafe.set node (js_name name) (Js.Unsafe.inject f)
-  | Xml.AInt i -> Js.Unsafe.set node (js_name name) (Js.Unsafe.inject i)
+  | Xml.AFloat f -> Js.Unsafe.set node (js_name node name) (Js.Unsafe.inject f)
+  | Xml.AInt i -> Js.Unsafe.set node (js_name node name) (Js.Unsafe.inject i)
   | Xml.AStr s ->
-    node##setAttribute(js_name name, Js.string s)
+    node##setAttribute(js_name node name, Js.string s)
   | Xml.AStrL (Xml.Space, sl) ->
-    node##setAttribute(js_name name, Js.string (String.concat " " sl))
+    node##setAttribute(js_name node name, Js.string (String.concat " " sl))
   | Xml.AStrL (Xml.Comma, sl) ->
-    node##setAttribute(js_name name, Js.string (String.concat "," sl))
+    node##setAttribute(js_name node name, Js.string (String.concat "," sl))
 
 let rebuild_rattrib node ra = match Xml.racontent ra with
   | Xml.RA a -> rebuild_attrib node (Xml.aname ra) a
   | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
   | Xml.RALazyStr s ->
-      node##setAttribute(js_name (Xml.aname ra), Js.string s)
+      node##setAttribute(js_name node (Xml.aname ra), Js.string s)
   | Xml.RALazyStrL (Xml.Space, l) ->
-      node##setAttribute(js_name (Xml.aname ra), Js.string (String.concat " " l))
+      node##setAttribute(js_name node (Xml.aname ra), Js.string (String.concat " " l))
   | Xml.RALazyStrL (Xml.Comma, l) ->
-      node##setAttribute(js_name (Xml.aname ra), Js.string (String.concat "," l))
+      node##setAttribute(js_name node (Xml.aname ra), Js.string (String.concat "," l))
 
 
 let rec rebuild_node' elt =
