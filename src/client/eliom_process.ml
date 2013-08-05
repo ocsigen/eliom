@@ -26,6 +26,7 @@ let history_api =
 
 let get_set_js_serverside_value r name =
   (fun s -> r := Some s),
+  (fun () -> not (!r = None)),
   (fun () -> match !r with
     | Some s -> s
     | None ->
@@ -39,18 +40,21 @@ let get_set_js_serverside_value r name =
           r := Some s;
           s))
 
-let set_sitedata, (get_sitedata : unit -> Eliom_types.sitedata) =
+let set_sitedata, is_set_sitedata,
+  (get_sitedata : unit -> Eliom_types.sitedata) =
   get_set_js_serverside_value Eliom_common.sitedata "__eliom_appl_sitedata"
 
-let set_info, (get_info : unit -> Eliom_common.client_process_info) =
+let set_info, is_set_info,
+  (get_info : unit -> Eliom_common.client_process_info) =
   get_set_js_serverside_value (ref None) "__eliom_appl_process_info"
 
-let set_request_cookies,
+let set_request_cookies, is_set_request_cookies,
   (get_request_cookies : unit -> Eliommod_cookies.cookie
    Ocsigen_cookies.CookiesTable.t Ocsigen_cookies.Cookies.t) =
   get_set_js_serverside_value (ref None) "__eliom_request_cookies"
 
-let set_request_template, (get_request_template : unit -> string option) =
+let set_request_template, is_set_request_template,
+  (get_request_template : unit -> string option) =
   get_set_js_serverside_value (ref None) "__eliom_request_template"
 
 let appl_name =
