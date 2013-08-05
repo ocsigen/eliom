@@ -77,14 +77,14 @@ time, potentially leading to an infinite loop.
 For instance
 
 <<code language="ocaml"|type v = Fun of unit -> int | Value of int
-type wrapped_type = ( v * wrapped_type)
+type wrapped_type = ( v * wrapped_type Eliom_wrap.wrapper)
 let wrapper = Eliom_wrap.create_wrapper (function
      | Value i,wrapper -> Value i, Eliom_wrap.empty_wrapper
      | Fun f,wrapper -> Value (f ()), Eliom_wrap.empty_wrapper)
 let v = ( Fun (fun () -> 1), wrapper )
-let _,(v', empty_wrapper) = Eliom_wrap.wrap v>>
+let (v', empty_wrapper) = Eliom_wrap.wrap v>>
 
-At that time {{{v"}}} will be {{{Value 1}}}. Notice that
+At that time {{{v'}}} will be {{{Value 1}}}. Notice that
 <<a_api | val Eliom_wrap.create_wrapper>> does not enforce the output
 type of the wrapping function to be the same as the input type:
 Eliom_wrap is to be use with much caution! Do not use it if you don't
