@@ -488,14 +488,14 @@ module type HiddenServiceInfo = sig
 (** The path of the hidden service *)
   val f :
     (string * string) list ->
-    unit -> (Eliom_registration.browser_content, Eliom_registration.http_service) Eliom_registration.kind Lwt.t
+    unit -> Eliom_registration.browser_content Eliom_registration.kind Lwt.t
 (** The function called when an user connects to the hidden service
     (not that hidden) without being in an identification process.
     Typically you should redirect the user to the login page. *)
 end
 
 module Make (S : HiddenServiceInfo) = struct
-  let return_service = Eliom_service.service ~path:S.path ~get_params:any ()
+  let return_service = Eliom_service.Unsafe.service ~path:S.path ~get_params:any ()
 
   let () = Eliom_registration.Any.register ~service:return_service S.f
 
@@ -560,7 +560,7 @@ type check_fun =
     ?optional:field list ->
     string ->
     (result authentication_result ->
-     (Eliom_registration.browser_content, Eliom_registration.http_service) Eliom_registration.kind Lwt.t) ->
+     Eliom_registration.browser_content Eliom_registration.kind Lwt.t) ->
     Url.t Lwt.t
 
 let check check ?(immediate = true) ?policy_url ?max_auth_age ?auth_policies

@@ -36,17 +36,17 @@ include Eliom_registration_base
 
 module Result_types :
 sig
-  type ('a, 'b) kind
-  val cast_result : Ocsigen_http_frame.result -> ('a, 'b) kind
-  val cast_kind : ('a, 'b) kind -> Ocsigen_http_frame.result
-  val cast_kind_lwt : ('a, 'b) kind Lwt.t -> Ocsigen_http_frame.result Lwt.t
-  val cast_result_lwt : Ocsigen_http_frame.result Lwt.t -> ('a, 'b) kind Lwt.t
-  val cast_function_kind : ('c -> ('a, 'b) kind Lwt.t) -> ('c -> ('d, 'e) kind Lwt.t)
-  val cast_function_http : ('c -> ('a, 'b) kind Lwt.t) -> ('c -> Ocsigen_http_frame.result Lwt.t)
+  type 'a kind
+  val cast_result : Ocsigen_http_frame.result -> 'a kind
+  val cast_kind : 'a kind -> Ocsigen_http_frame.result
+  val cast_kind_lwt : 'a kind Lwt.t -> Ocsigen_http_frame.result Lwt.t
+  val cast_result_lwt : Ocsigen_http_frame.result Lwt.t -> 'a kind Lwt.t
+  val cast_function_kind : ('c -> 'a kind Lwt.t) -> ('c -> 'd kind Lwt.t)
+  val cast_function_http : ('c -> 'a kind Lwt.t) -> ('c -> Ocsigen_http_frame.result Lwt.t)
 end
 =
 struct
-  type ('a, 'b) kind = Ocsigen_http_frame.result
+  type 'a kind = Ocsigen_http_frame.result
   let cast_result x = x
   let cast_kind x = x
   let cast_kind_lwt x = x
@@ -55,14 +55,14 @@ struct
   let cast_function_http x = x
 end
 
-type ('a, 'b) kind = ('a, 'b) Result_types.kind
+type 'a kind = 'a Result_types.kind
 type 'a application_content = [`Appl of 'a]
 type block_content
 type browser_content = [`Browser]
 type 'a caml_content
 type unknown_content
 
-let cast_unknown_content_kind (x:(unknown_content, http_service) kind) : ('a, 'b) kind =
+let cast_unknown_content_kind (x:unknown_content kind) : 'a kind =
   Result_types.cast_result (Result_types.cast_kind x)
 let cast_http_result = Result_types.cast_result
 
@@ -85,7 +85,7 @@ module Html5_make_reg_base
 
   type return = http_service
 
-  type result = (browser_content, http_service) kind
+  type result = browser_content kind
 
   let result_of_http_result = Result_types.cast_result
 
@@ -176,7 +176,7 @@ module Make_typed_xml_registration
 
       type return = http_service
 
-      type result = (block_content, http_service) kind
+      type result = block_content kind
 
       let result_of_http_result = Result_types.cast_result
 
@@ -240,7 +240,7 @@ module Text_reg_base = struct
 
   type return = http_service
 
-  type result = (unknown_content, http_service) kind
+  type result = unknown_content kind
 
   let result_of_http_result = Result_types.cast_result
 
@@ -282,7 +282,7 @@ module CssText_reg_base = struct
 
   type return = http_service
 
-  type result = (browser_content, http_service) kind
+  type result = browser_content kind
 
   let result_of_http_result = Result_types.cast_result
 
@@ -325,7 +325,7 @@ module HtmlText_reg_base = struct
 
   type return = http_service
 
-  type result = (browser_content, http_service) kind
+  type result = browser_content kind
 
   let result_of_http_result = Result_types.cast_result
 
@@ -376,7 +376,7 @@ module Action_reg_base = struct
 
   type return = http_service
 
-  type result = (browser_content, http_service) kind
+  type result = browser_content kind
 
   let result_of_http_result = Result_types.cast_result
 
@@ -590,7 +590,7 @@ module Unit_reg_base = struct
   type page = unit
   type options = unit
   type return = http_service
-  type result = (browser_content, http_service) kind
+  type result = browser_content kind
 
   let result_of_http_result = Result_types.cast_result
 
@@ -627,10 +627,10 @@ module Unit = Eliom_mkreg.MakeRegister(Unit_reg_base)
  *)
 module Any_reg_base = struct
 
-  type ('a, 'b) page = ('a, 'b) kind
+  type ('a, 'b) page = 'a kind
   type options = unit
   type 'a return = 'a
-  type ('a, 'b) result = ('a, 'b) kind
+  type 'a result = 'a kind
 
   let result_of_http_result = Result_types.cast_result
 
@@ -638,7 +638,7 @@ module Any_reg_base = struct
   let send_appl_content = Eliom_service.XAlways
 
   let send ?options ?charset ?code
-      ?content_type ?headers (res:('a, 'b) kind) =
+      ?content_type ?headers (res:'a kind) =
     let res = Result_types.cast_kind res in
     let open Ocsigen_http_frame in
     Lwt.return
@@ -691,7 +691,7 @@ module File_reg_base = struct
   type page = string
   type options = int
   type return = http_service
-  type result = (browser_content, http_service) kind
+  type result = browser_content kind
 
   let result_of_http_result = Result_types.cast_result
 
@@ -761,7 +761,7 @@ module Streamlist_reg_base = struct
   type page = (((unit -> (string Ocsigen_stream.t) Lwt.t) list) * string)
   type options = unit
   type return = http_service
-  type result = (unknown_content, http_service) kind
+  type result = unknown_content kind
 
   let result_of_http_result = Result_types.cast_result
 
@@ -802,6 +802,8 @@ module type Registration = sig
   type return
   type result
   include "sigs/eliom_reg_simpl.mli"
+  subst type returnB := return
+  and type returnT := return
 end
 
 module Customize
@@ -1129,7 +1131,7 @@ module Ocaml = struct
       ~(service : ('get, 'post,
                    [< internal_service_kind ],
                    [< suff ], 'gn, 'pn, [ `Registrable ],
-                   'return Eliom_parameter.caml) service)
+                   'return Eliom_service.caml_service) service)
       ?(error_handler : ((string * exn) list -> 'return Lwt.t) option)
       (f : ('get -> 'post -> 'return Lwt.t)) =
     M.register
@@ -1397,7 +1399,7 @@ module Eliom_appl_reg_make_param
   type page = html elt
   type options = appl_service_options
   type return = appl_service
-  type result = (appl application_content, appl_service) kind
+  type result = appl application_content kind
 
   let result_of_http_result = Result_types.cast_result
 
@@ -1646,7 +1648,9 @@ module type ELIOM_APPL = sig
     subst type page    := Html5_types.html Eliom_content.Html5.elt
       and type options := appl_service_options
       and type return  := appl_service
-      and type result  := (appl application_content, appl_service) kind
+      and type returnB := [> appl_service ]
+      and type returnT := [< appl_service ]
+      and type result  := appl application_content kind
   val typed_name : appl application_name
 end
 
@@ -1693,7 +1697,7 @@ module Eliom_tmpl_reg_make_param
   type page = Tmpl_param.t
   type options = appl_service_options
   type return = appl_service
-  type result = (Appl.appl application_content, appl_service) kind
+  type result = Appl.appl application_content kind
 
   let result_of_http_result = Result_types.cast_result
 
@@ -1743,7 +1747,7 @@ module String_redir_reg_base = struct
                  | `UseProxy
                  | `TemporaryRedirect ]
   type return = http_service
-  type result = (browser_content, http_service) kind
+  type result = browser_content kind
 
   let result_of_http_result = Result_types.cast_result
 
@@ -1826,7 +1830,7 @@ module Redir_reg_base = struct
 
   type 'a return = 'a
 
-  type ('a, 'b) result = ('a, 'b) kind
+  type 'a result = 'a kind
 
   let result_of_http_result = Result_types.cast_result
 

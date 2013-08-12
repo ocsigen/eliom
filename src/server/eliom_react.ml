@@ -125,7 +125,7 @@ struct
       | None, _ -> `Site
       | _ -> (Eliom_common.comet_client_process_scope :> Eliom_common.scope)
     in
-    let e_writer = Eliom_service.post_coservice' ?name ~post_params () in
+    let e_writer = Eliom_service.Http.post_coservice' ?name ~post_params () in
     Eliom_registration.Action.register
       ~scope
       ~options:`NoReload

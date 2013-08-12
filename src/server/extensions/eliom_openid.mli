@@ -195,7 +195,7 @@ module type HiddenServiceInfo = sig
 (** The path of the hidden service *)
   val f :
     (string * string) list ->
-    unit -> (Eliom_registration.browser_content, Eliom_registration.http_service) Eliom_registration.kind Lwt.t
+    unit -> Eliom_registration.browser_content Eliom_registration.kind Lwt.t
 (** The function called when an user connects to the hidden service
     (not that hidden) without being in an identication process.
     Typically you should redirect the user to the login page. *)
@@ -211,7 +211,7 @@ module Make :
         mode:string ->
         ext:'a extension ->
         handler:('a authentication_result ->
-                 (Eliom_registration.browser_content, Eliom_registration.http_service) Eliom_registration.kind Lwt.t) ->
+                 Eliom_registration.browser_content Eliom_registration.kind Lwt.t) ->
         discovery:string * string option -> Url.t Lwt.t
         (** Authenticate an user.
             - mode: can be [checkid_setup] or [checkid_immediate]
@@ -257,7 +257,7 @@ type check_fun =
     ?optional:field list ->
     string ->
     (result authentication_result ->
-      (Eliom_registration.browser_content, Eliom_registration.http_service) Eliom_registration.kind Lwt.t) ->
+      Eliom_registration.browser_content Eliom_registration.kind Lwt.t) ->
     Url.t Lwt.t
 
 (** Init the OpenID for your site.
@@ -265,5 +265,5 @@ type check_fun =
 val init :
   path:string list ->
   f:((string * string) list -> unit ->
-     (Eliom_registration.browser_content, Eliom_registration.http_service) Eliom_registration.kind Lwt.t) ->
+     Eliom_registration.browser_content Eliom_registration.kind Lwt.t) ->
   check_fun
