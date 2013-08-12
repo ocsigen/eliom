@@ -31,8 +31,11 @@ the TyXML library.
 
 The service creation could be split in two steps:
 
-* create a value of type service, e.g. using <<a_api | val
-  Eliom_service.service >>
+* create a value of type service, e.g. using
+  <<a_api | val Eliom_service.Http.service >>,
+  <<a_api | val Eliom_service.Appl.service >> or
+  <<a_api | val Eliom_service.Caml.service >>
+  (depending on the type of service you want to create)
 * register a service handler, e.g. using <<a_api | val
   Eliom_registration.HTML5.register >>
 
@@ -242,16 +245,16 @@ sites. They correspond to actual URLs and may be bookmarked. The other
 kinds of services (POST, coservices) are using the URL of existing
 regular GET services.
 
-Regular services are created using the function <<a_api | val
-Eliom_service.service>>.
+Regular services are created using the function
+<<a_api | val Eliom_service.Appl.service>> or <<a_api | val Eliom_service.Http.service>>.
 
 POST services must be accessible even when the request was done
 without the POST parameters (for instance, when typing the URL in the
 browser, reloading, using bookmarks,~ ...). Hence every POST service
 has a //fallback// GET service.
 
-POST services are created using <<a_api | val
-Eliom_service.post_service>>.
+POST services are created using
+<<a_api | val Eliom_service.Appl.post_service>> or <<a_api | val Eliom_service.Http.post_service>>.
 
 <<concept
 
@@ -293,8 +296,8 @@ Eliom_service.post_service>>.
 
 ===@@id="attached_coservices"@@ Attached coservices ===
 
-GET attached coservices are created using function <<a_api| val
-Eliom_service.coservice>>.
+GET attached coservices are created using function
+<<a_api| val Eliom_service.Appl.coservice>> or <<a_api| val Eliom_service.Http.coservice>>.
 
 Anonymous GET attached coservices are often created dynamically with
 respect to previous interaction with the user (e.g. filling forms in
@@ -307,8 +310,8 @@ Often, they should be used with a restricted scope (see the section
 <<a_manual chapter="server-services" fragment="service_scope"| scope of
 services>>).
 
-POST attached coservices are created using <<a_api| val
-Eliom_service.post_coservice>>.
+POST attached coservices are created using
+<<a_api| val Eliom_service.Appl.post_coservice>> or <<a_api| val Eliom_service.Http.post_coservice>>.
 
 They can be used to customize the behaviour of an URL.  Some of their
 usages are:
@@ -339,8 +342,9 @@ not change.  The parameters of the non-attached coservice are sent as
 special parameters.
 
 To create a non-attached coservice, use <<a_api| val
- Eliom_service.coservice'>> or <<a_api| val
- Eliom_service.post_coservice'>> (note the "prime" at the end).
+ Eliom_service.Appl.coservice'>> or <<a_api| val
+ Eliom_service.Appl.post_coservice'>> (note the "prime" at the end)
+ or the same functions in <<a_api| module Eliom_service.Http >>.
 
 Use POST non-attached coservices for example if you want a link or
 form to be present on every page but you don't want the URL to change
@@ -483,7 +487,7 @@ service without parameters, or only the POST ones. It is done using
 <<code language="ocaml"|
 
 let some_service =
-  Eliom_service.service ~path:["serv"]
+  Eliom_service.Http.service ~path:["serv"]
     ~get_params:Eliom_parameter.int ()
 
 let preappl = Eliom_service.preapply some_service 3

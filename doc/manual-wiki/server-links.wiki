@@ -31,7 +31,7 @@ as in these examples:
            a raw_serv
              [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
            a
-             (Eliom_service.external_service
+             (nliom_service.external_service
                 ~prefix:"http://fr.wikipedia.org"
                 ~path:["wiki";""]
                 ~get_params:(suffix (all_suffix "suff"))
@@ -68,10 +68,10 @@ the URL.\\
 
 
 If you want to create (mutually or not) recursive pages, create the
-service using <<a_api| val Eliom_service.service >> first, then
+service using <<a_api| val Eliom_service.Appl.service >> or  <<a_api| val Eliom_service.Http.service >> first, then
 register it in the table using (for example) <<a_api| val Eliom_registration.Html5.register >>:
 
-<<code language="ocaml"|let linkrec = Eliom_service.service ["linkrec"] Eliom_parameter.unit ()
+<<code language="ocaml"|let linkrec = Eliom_service.Http.service ["linkrec"] Eliom_parameter.unit ()
 
 let _ = Eliom_registration.Html5.register linkrec
     (fun () () ->
@@ -744,7 +744,7 @@ In the following example, we create a new hard link to the file
 to keep it (the destination must be on the same partition of the disk).
 
 
-<<code language="ocaml"|let upload = Eliom_service.service
+<<code language="ocaml"|let upload = Eliom_service.Http.service
     ~path:["upload"]
     ~get_params:unit
     ()
