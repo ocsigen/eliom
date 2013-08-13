@@ -24,6 +24,8 @@
 
 open Eliom_lib
 
+type content_ns = [ `HTML5 | `SVG ]
+
 module Xml = struct
 
   include RawXML
