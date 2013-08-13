@@ -265,23 +265,56 @@ module Svg = struct
 
   module F = Svg.F
   module D = Svg.D
-  module Id = Svg.Id
 
   type 'a elt = 'a F.elt
   type 'a attrib = 'a F.attrib
   type uri = F.uri
 
-  
-  (* module To_dom = struct *)
+  module Of_dom = Eliom_content_core.Svg.Of_dom
 
-    (* open Eliom_client *)
+  module To_dom = struct
 
-    (* let of_element elt = rebuild_node_svg "of_element" elt *)
-    (* let of_node elt = rebuild_node_svg "of_node" elt *)
+    open Eliom_client
 
-    (* let of_pcdata elt = rebuild_node_svg "of_pcdata" elt *)
+    let of_element elt = rebuild_node_svg "of_element" elt
+    let of_node elt = rebuild_node_svg "of_node" elt
 
-  (* end *)
+    let of_pcdata elt = rebuild_node_svg "of_pcdata" elt
+
+  end
+
+  module Id = struct
+
+    include Svg.Id
+
+    let get_element' id =
+      let id = string_of_id id in
+      let node = Eliom_client.getElementById id in
+      Js.Opt.case
+        (Dom_html.CoerceTo.element node)
+        (fun () -> failwith (Printf.sprintf "Non element node (%s)" id))
+        (fun x -> x)
+
+    let get_element id =
+      Of_dom.of_element (get_element' id)
+
+  end
+
+  module Manip = struct
+
+    include
+      MakeManip(F)(Dom_html)(To_dom)(Of_dom)
+        (struct
+          type 'a id = 'a Id.id
+          let get_element' id = (Id.get_element' id :> Dom.node Js.t)
+        end)
+        (struct
+          let content_ns = `SVG
+        end)
+
+    module Named = RawNamed
+
+  end
 
 end
 

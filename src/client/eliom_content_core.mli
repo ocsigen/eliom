@@ -139,7 +139,7 @@ module Svg : sig
       application. *)
 
   type +'a elt
-  type 'a attrib
+  type +'a attrib
   type uri = Xml.uri
 
   (** {2 Functional semantics} *)
@@ -202,6 +202,13 @@ module Svg : sig
     val create_named_elt: id:'a id -> 'a elt -> 'a elt
     (** See {!Eliom_content.Html5.Id.create_global_elt} *)
     val create_global_elt: 'a elt -> 'a elt
+
+    (**/**)
+    val string_of_id : 'a id -> string
+  end
+
+  module Of_dom : sig
+    val of_element: Dom_html.element Js.t -> 'a elt
   end
 
 end

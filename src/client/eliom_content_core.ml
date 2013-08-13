@@ -207,7 +207,16 @@ module Svg = struct
       D.tot (Xml.make_process_node ~id (D.toelt elt))
     let create_global_elt elt =
       D.tot (Xml.make_process_node (D.toelt elt))
+    let string_of_id x = x
   end
+
+
+  module Of_dom = struct
+    let rebuild_xml (node: 'a Js.t) : 'a F.elt =
+      Obj.magic { Xml.elt = Lazy.lazy_from_val (Xml.DomNode (node :> Dom.node Js.t)); node_id = Xml.NoId }
+    let of_element : Dom_html.element Js.t -> 'a elt = rebuild_xml
+  end
+
 
 end
 
