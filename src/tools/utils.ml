@@ -164,11 +164,8 @@ let get_client_lib ?kind:k () =
        (get_client_package ?kind:k ()))
 
 let get_client_js () =
-  try
-    [ Findlib.package_directory "eliom.client" ^ "/eliom_client.js" ]
-  with Findlib.No_such_package (name, _) ->
-    Printf.eprintf "Unknown package: %s\n%!" name;
-    exit 1
+  [ "+eliom.client/eliom_client.js" ;
+    "+js_of_ocaml/weak.js" ]
 
 (* Should be calld only with -dump... *)
 let get_pp_dump opt = match !pp with
