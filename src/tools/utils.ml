@@ -127,6 +127,11 @@ let get_syntax_package () =
     Printf.eprintf "Unknown package: %s\n%!" name;
     exit 1
 
+let has_package name =
+  try
+    ignore(Findlib.package_directory name);true
+  with Findlib.No_such_package (_, _) -> false
+
 let rec map_include xs = match xs with
   | [] -> []
   | x::xs -> "-I" :: x :: map_include xs

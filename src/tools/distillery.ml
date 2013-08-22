@@ -146,10 +146,18 @@ let create_project ~name ~env ~preds ~source_dir ~destination_dir =
       copy_file ~env ~preds src_path dst_path)
     (Sys.readdir source_dir)
 
-let env name = [
-  "PROJECT_NAME", name;
-  "MODULE_NAME", String.capitalize name;
-]
+let env name =
+  let db =
+    if Utils.has_package "ocsigenserver.ext.ocsipersist-dbm"
+    then "dbm"
+    else if Utils.has_package "ocsigenserver.ext.ocsipersist-sqlite"
+    then "sqlite"
+    else "dbm" in 
+  [
+    "PROJECT_NAME", name;
+    "MODULE_NAME", String.capitalize name;
+    "PROJECT_DB", db 
+  ]
 
 let preds () = [
   if Sys.ocaml_version >= "4" then
