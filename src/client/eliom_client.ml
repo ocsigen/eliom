@@ -1209,32 +1209,31 @@ let rebuild_rattrib node ra = match Xml.racontent ra with
   | Xml.RALazyStrL (Xml.Comma, l) ->
       node##setAttribute(js_name (Xml.aname ra), Js.string (String.concat "," l))
 
-
-let rec rebuild_node' elt =
+let rec rebuild_node' ns elt =
   match Xml.get_node elt with
   | Xml.DomNode node ->
       (* assert (Xml.get_node_id node <> NoId); *)
       node
   | Xml.TyXMLNode raw_elt ->
       match Xml.get_node_id elt with
-      | Xml.NoId -> raw_rebuild_node raw_elt
+      | Xml.NoId -> raw_rebuild_node ns raw_elt
       | Xml.RequestId _ ->
           (* Do not look in request_nodes hashtbl: such elements have
              been bind while unwrapping nodes. *)
-          let node = raw_rebuild_node raw_elt in
+          let node = raw_rebuild_node ns raw_elt in
           Xml.set_dom_node elt node;
           node
       | Xml.ProcessId id ->
         let id = (Js.string id) in
         Js.Optdef.case (find_process_node id)
           (fun () ->
-            let node = raw_rebuild_node (Xml.content elt) in
+            let node = raw_rebuild_node ns (Xml.content elt) in
             register_process_node id node;
             node)
           (fun n -> (n:> Dom.node Js.t))
 
 
-and raw_rebuild_node = function
+and raw_rebuild_node ns = function
   | Xml.Empty
   | Xml.Comment _ ->
       (* FIXME *)
@@ -1247,29 +1246,44 @@ and raw_rebuild_node = function
     List.iter (rebuild_rattrib node) attribs;
     (node :> Dom.node Js.t)
   | Xml.Node (name,attribs,childrens) ->
-    let node = Dom_html.document##createElement (Js.string name) in
+    let ns = if name = "svg" then `SVG else ns in
+    let node =
+      match ns with
+      | `HTML5 -> Dom_html.document##createElement (Js.string name)
+      | `SVG ->
+	let svg_ns = "http://www.w3.org/2000/svg" in
+	Dom_html.document##createElementNS (Js.string svg_ns, Js.string name)
+    in
     List.iter (rebuild_rattrib node) attribs;
-    List.iter (fun c -> Dom.appendChild node (rebuild_node' c)) childrens;
+    List.iter (fun c -> Dom.appendChild node (rebuild_node' ns c)) childrens;
     (node :> Dom.node Js.t)
 
-(** The first argument describes the calling function (if any) in case
-    of an error. *)
-let rebuild_node context elt =
-  let elt' = Html5.F.toelt elt in
+let rebuild_node_ns ns context elt' =
   trace "Rebuild node %a (%s)"
     (fun () e -> Eliom_content_core.Xml.string_of_node_id (Xml.get_node_id e))
     elt' context;
   if is_before_initial_load () then
-    error_any (rebuild_node' (Html5.F.toelt elt))
+    error_any (rebuild_node' ns elt')
       "Cannot apply %s%s before the document is initially loaded"
       context
       Xml.(match get_node_id elt' with
            | NoId -> " "
            | RequestId id -> " on request node "^id
            | ProcessId id -> " on global node "^id);
-  let node = Js.Unsafe.coerce (rebuild_node' elt') in
+  let node = Js.Unsafe.coerce (rebuild_node' ns elt') in
   flush_load_script ();
   node
+
+let rebuild_node_svg context elt =
+  let elt' = Svg.F.toelt elt in
+  rebuild_node_ns `SVG context elt'
+
+
+(** The first argument describes the calling function (if any) in case
+    of an error. *)
+let rebuild_node context elt =
+  let elt' = Html5.F.toelt elt in
+  rebuild_node_ns `HTML5 context elt'
 
 (******************************************************************************)
 (*                            Register unwrappers                             *)

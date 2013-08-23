@@ -33,10 +33,176 @@ module Xml : module type of Eliom_content_core.Xml
     and type elt = Eliom_content_core.Xml.elt
 
 (** Building valid SVG . *)
-module Svg : module type of Eliom_content_core.Svg
-    with type +'a elt = 'a Eliom_content_core.Svg.elt
-    and type uri = Eliom_content_core.Svg.uri
-    and type 'a attrib = 'a Eliom_content_core.Svg.attrib
+module Svg : sig
+
+  (** See the Eliom manual for more information on {% <<a_manual
+      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
+      semantics>> %} for HTML5 tree manipulated by client/server
+      application. *)
+
+  type +'a elt = 'a Eliom_content_core.Svg.elt
+  type +'a attrib = 'a Eliom_content_core.Svg.attrib
+  type uri = Eliom_content_core.Svg.uri
+
+  (** Creation of {e f}unctional HTML5 content (copy-able but not referable).
+
+       See {% <<a_api project="tyxml" | module Svg_sigs.T >> *)
+  module F : module type of Eliom_content_core.Svg.F
+        with type Xml.uri = Xml.uri
+        and type Xml.attrib = Xml.attrib
+        and type Xml.elt = Xml.elt
+        with type +'a elt = 'a elt
+        and type 'a attrib = 'a attrib
+        and type uri = uri
+
+
+  (** Creation of HTML5 content with {e D}OM semantics (referable
+
+       See {% <<a_api project="tyxml" | module Svg_sigs.T >> *)
+  module D : module type of Eliom_content_core.Svg.F
+        with type Xml.uri = Xml.uri
+        and type Xml.attrib = Xml.attrib
+        and type Xml.elt = Xml.elt
+        with type +'a elt = 'a elt
+        and type 'a attrib = 'a attrib
+        and type uri = uri
+
+  (** Node identifiers *)
+  module Id : sig
+    include module type of Eliom_content_core.Svg.Id
+                             with type +'a id = 'a Eliom_content_core.Svg.Id.id
+
+    (** [get_element id] returns the HTML element in the DOM with the given [id].
+        @raises Not_found if the [id] was no such element. *)
+    val get_element : 'a id -> 'a elt
+  end
+
+  (** DOM-like manipulation functions.
+
+      In this module, all the functions apply only to SVG element with
+      {% <<a_manual chapter="clientserver-html" fragment="unique"|Dom semantics>>
+      %}.
+  *)
+  module Manip : sig
+
+    (** The function [appendChild e1 e2] inserts the element [e2] as last
+        child of [e1]. If the optional parameter [~before:e3] is present
+        and if [e3] is a child of [e1], then [e2] is inserted before [e3]
+        in the list of [e1] children. *)
+    val appendChild: ?before:'a elt -> 'b elt ->  'c elt -> unit
+
+    (** The function [appendChilds e1 elts] inserts [elts] as last children
+        of [e1]. If the optional parameter [~before:e3] is present and if
+        [e3] is a child of [e1], then [elts] are inserted before [e3] in
+        the list of [e1] children. *)
+    val appendChilds: ?before:'a elt -> 'b elt ->  'c elt list -> unit
+
+    (** [appendChildFirst p c] appends [c] as first child of [p] *)
+    val appendChildFirst: 'b elt ->  'c elt -> unit
+
+    (** [nth e n] returns the nth child of [e] (first is 0) *)
+    val nth : 'a elt -> int -> 'b elt option
+
+    (** [childLength e] returns the number of chilren of [e] *)
+    val childLength : 'a elt -> int
+
+    (** The function [removeChild e1 e2] removes for [e2] from the list of
+        [e1] children. *)
+    val removeChild: 'a elt -> 'b elt -> unit
+
+    (** The function [replace e1 e2 e3] replaces for [e2] by [e3] in the
+        list of [e1] children. *)
+    val replaceChild: 'a elt -> 'b elt -> 'c elt -> unit
+
+    (** The function [removeAllChild e1] removes [e1] children. *)
+    val removeAllChild: 'a elt -> unit
+
+    (** [removeSelf e] removes element e from the DOM. *)
+    val removeSelf: 'a elt -> unit
+
+    (** The function [replaceAllChild e1 elts] replaces all the children of
+        [e1] by [elt]. *)
+    val replaceAllChild: 'a elt -> 'b elt list -> unit
+
+    (* (\** The function [addEventListener elt evt handler] attach the *)
+        (* [handler] for the event [evt] on the element [elt]. See the *)
+        (* Js_of_ocaml manual, for a list of {% <<a_api project="js_of_ocaml" *)
+        (* text="available events"| module Dom_html.Event >>%}. *\) *)
+    (* val addEventListener: *)
+      (* ?capture:bool -> *)
+      (* 'a elt -> *)
+      (* (#Dom_html.event as 'b) Js.t Dom_html.Event.typ -> *)
+      (* ('a elt -> 'b Js.t -> bool) -> *)
+      (* Dom_html.event_listener_id *)
+
+    (** Dom manipulation by element identifier. *)
+    module Named: sig
+
+      (** The module [Named] defines the same functions as
+          [Eliom_dom]. They take as parameter an element identifier
+          instead of an element with Dom semantics. Those functions only
+          works if the element is available in the application (sent in
+          the page or along the page). If the element is not available,
+          those functions raise with [Not_found]. *)
+
+      (** see [appendChild] *)
+      val appendChild: ?before:'a elt -> 'b Id.id -> 'c elt -> unit
+      (** see [appendChilds] *)
+      val appendChilds: ?before:'a elt -> 'b Id.id ->  'c elt list -> unit
+      (** see [removeChild] *)
+      val removeChild: 'a Id.id -> 'b elt -> unit
+      (** see [replaceChild] *)
+      val replaceChild: 'a Id.id -> 'b elt -> 'c elt -> unit
+      (** see [removeAllChild] *)
+      val removeAllChild: 'a Id.id -> unit
+      (** see [replaceAllChild] *)
+      val replaceAllChild: 'a Id.id -> 'b elt list -> unit
+
+      (* (\** see [addEventListener] *\) *)
+      (* val addEventListener: *)
+        (* ?capture:bool -> *)
+        (* 'a Id.id -> *)
+        (* (#Dom_html.event as 'b) Js.t Dom_html.Event.typ -> *)
+        (* ('a elt -> 'b Js.t -> bool) -> *)
+        (* Dom_html.event_listener_id *)
+
+    end
+
+    (**/**)
+    val childNodes: 'a elt -> Dom.node Js.t list
+    val childElements: 'a elt -> Dom.element Js.t list
+    (**/**)
+
+    module Class : sig
+      val contain : 'a elt -> string -> bool
+      val remove : 'a elt -> string -> unit
+      val removes :'a elt -> string list -> unit
+      val add :'a elt -> string -> unit
+      val adds :'a elt -> string list -> unit
+      val replace :  'a elt ->  string -> string -> unit
+      val clear : 'a elt -> unit
+      val toggle : 'a elt -> string -> unit
+      val toggle2 : 'a elt -> string -> string -> unit
+    end
+  end
+
+  (** Conversion from Svg [elt]s to Javascript DOM elements ([<:] {% <<a_api
+      project="js_of_ocaml"| class Dom_html.element >> %}).
+      One conversion function per source type (stressed by the [of_] prefix). *)
+  module To_dom : sig
+
+    val of_element : 'a elt -> Dom_html.element Js.t
+    val of_node : 'a elt -> Dom.node Js.t
+
+    val of_pcdata : [> `Pcdata] elt -> Dom.text Js.t
+
+  end
+
+  (** Conversion functions from DOM nodes ({% <<a_api project="js_of_ocaml"| type Dom_html.element>> %} {% <<a_api
+      project="js_of_ocaml"| type Js.t>> %}) to Eliom nodes ({% <<a_api | type Eliom_content.Html5.elt>> %}). *)
+  module Of_dom : module type of Eliom_content_core.Svg.Of_dom
+
+end
 
 (** Building valid (X)HTML5. *)
 module Html5 : sig
@@ -62,6 +228,7 @@ module Html5 : sig
         with type +'a elt = 'a elt
         and type 'a attrib = 'a attrib
         and type uri = uri
+
     include "sigs/eliom_html5_forms.mli"
 
     (** Creates an untyped form. *)
@@ -286,6 +453,7 @@ module Html5 : sig
       %}.
   *)
   module Manip : sig
+
     (** The function [appendChild e1 e2] inserts the element [e2] as last
         child of [e1]. If the optional parameter [~before:e3] is present
         and if [e3] is a child of [e1], then [e2] is inserted before [e3]
