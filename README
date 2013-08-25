@@ -18,7 +18,7 @@ Libraries:
  * tyxml	     (need version >= 2.2)
  * react             (tested with 0.9.3)
  * deriving-ocsigen  (need version >= 0.3-ocsigen)
-                       See: https://github.com/hnrgrgr/deriving
+                       See: https://github.com/ocsigen/deriving
  * ocamlssl          (tested with 0.4.6)
  * calendar	     (tested with 2.03.1)
 
