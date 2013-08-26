@@ -460,7 +460,7 @@ LIBDIR := $libdir
 DOCDIR := $root$docdir
 
 # Where to install additional data:
-DATADIR := $datadir
+DATADIR := $root$datadir
 
 # The source directory (needed for local testing)
 SRC := $full_pwd
