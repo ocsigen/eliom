@@ -24,6 +24,8 @@
 
 open Eliom_lib
 
+type content_ns = [ `HTML5 | `SVG ]
+
 module Xml = struct
 
   include RawXML
@@ -138,27 +140,61 @@ module X = Xml
 
 module Svg = struct
 
-  module D = Svg_f.Make(struct
-    include Xml
+  module D = struct
 
-    let make elt = make_request_node (make elt)
-    let make_lazy elt = make_request_node (make (Lazy.force elt))
+    module Raw = Svg_f.Make(struct
+        include Xml
 
-    let empty () = make Empty
+        let make elt = make_request_node (make elt)
+        let make_lazy elt = make_request_node (make (Lazy.force elt))
 
-    let comment c = make (Comment c)
-    let pcdata d = make (PCDATA d)
-    let encodedpcdata d = make (EncodedPCDATA d)
-    let entity e = make (Entity e)
+        let empty () = make Empty
 
-    let leaf ?(a = []) name =  make (Leaf (name, a))
-    let node ?(a = []) name children = make (Node (name, a, children))
-    let lazy_node ?(a = []) name children =
-      make (Node (name, a, Eliom_lazy.force children))
+        let comment c = make (Comment c)
+        let pcdata d = make (PCDATA d)
+        let encodedpcdata d = make (EncodedPCDATA d)
+        let entity e = make (Entity e)
 
-  end)
+        let leaf ?(a = []) name =  make (Leaf (name, a))
+        let node ?(a = []) name children = make (Node (name, a, children))
+        let lazy_node ?(a = []) name children =
+          make (Node (name, a, Eliom_lazy.force children))
 
-  module F = Svg_f.Make(Xml)
+      end)
+
+    include Raw
+
+    let a_onabort ev = a_onabort (X.event_handler_of_function ev)
+    let a_onclick ev = a_onclick (X.event_handler_of_function ev)
+    let a_onmousedown ev = a_onmousedown (X.event_handler_of_function ev)
+    let a_onmouseup ev = a_onmouseup (X.event_handler_of_function ev)
+    let a_onmouseover ev = a_onmouseover (X.event_handler_of_function ev)
+    let a_onmousemove ev = a_onmousemove (X.event_handler_of_function ev)
+    let a_onmouseout ev = a_onmouseout (X.event_handler_of_function ev)
+    let a_onscroll ev = a_onscroll (X.event_handler_of_function ev)
+    let a_onload ev = a_onload (X.event_handler_of_function ev)
+    let a_onresize ev = a_onresize (X.event_handler_of_function ev)
+
+  end
+
+  module F = struct
+
+    module Raw = Svg_f.Make(Xml)
+
+    include Raw
+
+    let a_onabort ev = a_onabort (X.event_handler_of_function ev)
+    let a_onclick ev = a_onclick (X.event_handler_of_function ev)
+    let a_onmousedown ev = a_onmousedown (X.event_handler_of_function ev)
+    let a_onmouseup ev = a_onmouseup (X.event_handler_of_function ev)
+    let a_onmouseover ev = a_onmouseover (X.event_handler_of_function ev)
+    let a_onmousemove ev = a_onmousemove (X.event_handler_of_function ev)
+    let a_onmouseout ev = a_onmouseout (X.event_handler_of_function ev)
+    let a_onresize ev = a_onresize (X.event_handler_of_function ev)
+    let a_onscroll ev = a_onscroll (X.event_handler_of_function ev)
+    let a_onload ev = a_onload (X.event_handler_of_function ev)
+
+  end
 
   type 'a elt = 'a F.elt
   type 'a attrib = 'a F.attrib
@@ -171,7 +207,16 @@ module Svg = struct
       D.tot (Xml.make_process_node ~id (D.toelt elt))
     let create_global_elt elt =
       D.tot (Xml.make_process_node (D.toelt elt))
+    let string_of_id x = x
   end
+
+
+  module Of_dom = struct
+    let rebuild_xml (node: 'a Js.t) : 'a F.elt =
+      Obj.magic { Xml.elt = Lazy.lazy_from_val (Xml.DomNode (node :> Dom.node Js.t)); node_id = Xml.NoId }
+    let of_element : Dom_html.element Js.t -> 'a elt = rebuild_xml
+  end
+
 
 end
 
@@ -197,7 +242,7 @@ module Html5 = struct
       let lazy_node ?(a = []) name children =
         make (Node (name, a, Eliom_lazy.force children))
 
-    end)(Svg.D)
+    end)(Svg.D.Raw)
 
     include Raw
 
@@ -285,7 +330,7 @@ module Html5 = struct
 
   module F = struct
 
-    module Raw = Html5_f.Make(Xml)(Svg.F)
+    module Raw = Html5_f.Make(Xml)(Svg.F.Raw)
     include Raw
 
     let a_onabort ev = a_onabort (X.event_handler_of_function ev)

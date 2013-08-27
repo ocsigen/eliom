@@ -204,27 +204,103 @@ module Eliom_xml = Xml
 
 module Svg = struct
 
-  module D = Svg_f.Make(struct
-    include Xml
+  module D = struct
 
-    let make elt = make_request_node (make elt)
-    let make_lazy elt = make_request_node (make_lazy elt)
+    module Raw = Svg_f.Make(struct
 
-    let empty () = make Empty
+        include Xml
 
-    let comment c = make (Comment c)
-    let pcdata d = make (PCDATA d)
-    let encodedpcdata d = make (EncodedPCDATA d)
-    let entity e = make (Entity e)
+        let make elt = make_request_node (make elt)
+        let make_lazy elt = make_request_node (make_lazy elt)
 
-    let leaf ?(a = []) name =  make (Leaf (name, a))
-    let node ?(a = []) name children = make (Node (name, a, children))
-    let lazy_node ?(a = []) name children =
-      make_lazy (Eliom_lazy.from_fun (fun () -> (Node (name, a, Eliom_lazy.force children))))
+        let empty () = make Empty
 
-  end)
+        let comment c = make (Comment c)
+        let pcdata d = make (PCDATA d)
+        let encodedpcdata d = make (EncodedPCDATA d)
+        let entity e = make (Entity e)
 
-  module F = Svg_f.Make(Xml)
+        let leaf ?(a = []) name =  make (Leaf (name, a))
+        let node ?(a = []) name children = make (Node (name, a, children))
+        let lazy_node ?(a = []) name children =
+          make_lazy (Eliom_lazy.from_fun (fun () -> (Node (name, a, Eliom_lazy.force children))))
+
+      end)
+
+    include Raw
+
+    let a_onabort ev = Raw.a_onabort (Eliom_xml.event_handler ev)
+    let a_onclick
+        (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
+      (* Typed by the syntax extension. *)
+      Raw.a_onclick (Eliom_xml.event_handler (Obj.magic ev))
+    let a_onmousedown
+        (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
+      (* Typed by the syntax extension. *)
+      Raw.a_onmousedown (Eliom_xml.event_handler (Obj.magic ev))
+    let a_onmouseup
+        (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
+      (* Typed by the syntax extension. *)
+      Raw.a_onmouseup (Eliom_xml.event_handler (Obj.magic ev))
+    let a_onmouseover
+        (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
+      (* Typed by the syntax extension. *)
+      Raw.a_onmouseover (Eliom_xml.event_handler (Obj.magic ev))
+    let a_onmousemove
+        (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
+      (* Typed by the syntax extension. *)
+      Raw.a_onmousemove (Eliom_xml.event_handler (Obj.magic ev))
+
+    let a_onmouseout
+        (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
+      (* Typed by the syntax extension. *)
+      Raw.a_onmouseout (Eliom_xml.event_handler (Obj.magic ev))
+
+    let a_onscroll ev = a_onscroll (Eliom_xml.event_handler ev)
+    let a_onload ev = a_onload (Eliom_xml.event_handler ev)
+    let a_onresize ev = a_onresize (Eliom_xml.event_handler ev)
+
+   end
+
+  module F = struct
+
+    module Raw = Svg_f.Make(Xml)
+
+      include Raw
+
+
+      let a_onabort ev = Raw.a_onabort (Eliom_xml.event_handler ev)
+      let a_onclick
+          (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
+        (* Typed by the syntax extension. *)
+	Raw.a_onclick (Eliom_xml.event_handler (Obj.magic ev))
+      let a_onmousedown
+          (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
+        (* Typed by the syntax extension. *)
+	Raw.a_onmousedown (Eliom_xml.event_handler (Obj.magic ev))
+      let a_onmouseup
+          (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
+        (* Typed by the syntax extension. *)
+	Raw.a_onmouseup (Eliom_xml.event_handler (Obj.magic ev))
+      let a_onmouseover
+          (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
+        (* Typed by the syntax extension. *)
+	Raw.a_onmouseover (Eliom_xml.event_handler (Obj.magic ev))
+      let a_onmousemove
+          (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
+        (* Typed by the syntax extension. *)
+	Raw.a_onmousemove (Eliom_xml.event_handler (Obj.magic ev))
+
+      let a_onmouseout
+          (ev : (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value) =
+        (* Typed by the syntax extension. *)
+	Raw.a_onmouseout (Eliom_xml.event_handler (Obj.magic ev))
+
+      let a_onscroll ev = a_onscroll (Eliom_xml.event_handler ev)
+      let a_onload ev = a_onload (Eliom_xml.event_handler ev)
+      let a_onresize ev = a_onresize (Eliom_xml.event_handler ev)
+
+    end
 
   type +'a elt = 'a F.elt
   type +'a attrib = 'a F.attrib
@@ -241,6 +317,7 @@ module Svg = struct
   end
 
   module Printer = Xml_print.Make_typed_simple(Xml)(F)
+
 end
 
 module Html5 = struct
@@ -268,7 +345,7 @@ module Html5 = struct
 
     end
 
-    module Raw = Html5_f.Make(Xml')(Svg.D)
+    module Raw = Html5_f.Make(Xml')(Svg.D.Raw)
 
     include Raw
 
@@ -373,7 +450,7 @@ module Html5 = struct
 
   module F = struct
 
-    module Raw = Html5_f.Make(Xml)(Svg.F)
+    module Raw = Html5_f.Make(Xml)(Svg.F.Raw)
     include Raw
 
     type ('a, 'b, 'c) lazy_plus =

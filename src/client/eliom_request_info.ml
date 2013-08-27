@@ -32,6 +32,8 @@ let (>>>) x f = f x
 
 include Eliom_types
 
+let client_app_initialised = ref false
+
 let get_sess_info = ref (fun () ->
   failwith "Eliom_request_info.get_sess_info called before initialization")
 
@@ -45,7 +47,7 @@ let remove_first_slash path =
 let path_re =
   jsnew Js.regExp (Js.bytestring "^/?([^\\?]*)(\\?.*)?$")
 
-let current_path = ref (remove_first_slash Url.Current.path)
+let current_path_ = ref (remove_first_slash Url.Current.path)
 let set_current_path path =
   let path =
     Js.Opt.case (path_re##exec (Js.string path))
@@ -60,25 +62,49 @@ let set_current_path path =
 	in
 	Url.split_path path)
   in
-  current_path := path
+  current_path_ := path
+
 
 let get_original_full_path_string () =
-  if Eliom_process.history_api then
-    match Url.Current.get () with
-    | Some (Url.Http url) | Some (Url.Https url) ->
-      String.concat "/" url.Url.hu_path
-    | _ -> assert false
+  (* returns current path, not the one when application started *)
+  if !client_app_initialised
+  then
+    (* in that case it is a mobile app.
+       It probably does not have multiple URLs.
+       I return the path that has been set manually
+       by Eliom_client.init_client_app.
+       If we want to make possible to have several URL,
+       we must replace the prefix of the URL (file:///.../)
+       by the prefix set in init_client_app.
+
+       (same everywhere below)
+    *)
+    String.concat "/"
+      (Eliom_process.get_info ()).Eliom_common.cpi_original_full_path
   else
-    String.concat "/" !current_path
+    if Eliom_process.history_api
+    then String.concat "/" (match Url.Current.get () with
+    | Some (Url.Http url) | Some (Url.Https url) -> url.Url.hu_path
+    | Some (Url.File url) -> (match url.Url.fu_path with
+      | ""::l -> l
+      | l -> l)
+    | _ -> assert false)
+    else String.concat "/" !current_path_
+
 let get_original_full_path_string_sp = get_original_full_path_string
 
 let get_original_full_path_sp sp =
-  if Eliom_process.history_api then
-    match Url.Current.get () with
-    | Some (Url.Http url) | Some (Url.Https url) -> url.Url.hu_path
-    | _ -> assert false
+  if !client_app_initialised
+  then (Eliom_process.get_info ()).Eliom_common.cpi_original_full_path
   else
-    !current_path
+    if Eliom_process.history_api
+    then match Url.Current.get () with
+    | Some (Url.Http url) | Some (Url.Https url) -> url.Url.hu_path
+    | Some (Url.File url) -> (match url.Url.fu_path with
+      | ""::l -> l
+      | l -> l)
+    | None -> assert false
+    else !current_path_
 
 let get_other_get_params () =
   (!get_sess_info ()).Eliom_common.si_other_get_params
@@ -105,26 +131,34 @@ let ssl_ = match Url.Current.get () with
   | Some (Url.Https _) -> true
   | Some (Url.Http _) | Some (Url.File _) | None -> false
 
-let get_csp_ssl () = ssl_
+let get_csp_ssl () =
+  if !client_app_initialised
+  then (Eliom_process.get_info ()).Eliom_common.cpi_ssl
+  else ssl_
 let get_csp_ssl_sp = get_csp_ssl
 
 let host_ = Url.Current.host
 
-let get_csp_hostname () = host_
+let get_csp_hostname () =
+  if !client_app_initialised
+  then (Eliom_process.get_info ()).Eliom_common.cpi_hostname
+  else host_
 let get_csp_hostname_sp = get_csp_hostname
 
 let port_ = match Url.Current.port with
   | Some p -> p
   | None -> if ssl_ then 443 else 80
 
-let get_csp_server_port () = port_
+let get_csp_server_port () =
+  if !client_app_initialised
+  then (Eliom_process.get_info ()).Eliom_common.cpi_server_port
+  else port_
 let get_csp_server_port_sp = get_csp_server_port
 
 let get_csp_original_full_path () =
-  if Eliom_process.history_api then
-    (Eliom_process.get_info ()).Eliom_common.cpi_original_full_path
-  else
-    remove_first_slash Url.Current.path
+  if !client_app_initialised || Eliom_process.history_api
+  then (Eliom_process.get_info ()).Eliom_common.cpi_original_full_path
+  else remove_first_slash Url.Current.path
 
 let get_csp_original_full_path_sp = get_csp_original_full_path
 

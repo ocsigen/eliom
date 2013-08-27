@@ -13,12 +13,14 @@ COMPILER := eliomc eliomcp eliomopt js_of_eliom eliomdep
 DISTILLERY := eliom-distillery
 
 FILES := ../../src/files
-DISTILLERY_BASIC :=distillery/basic
+DISTILLERY_TEMPLATES :=distillery
+DISTILLERY_BASIC :=basic
 
 byte: ${COMPILER} $(DISTILLERY)
 
-config.ml:
+config.ml: ../../Makefile.config
 	echo "let datadir = \"$(DATADIR)\"" > $@
+	echo "let templatedir = \"$(DISTILLERY_TEMPLATES)\"" >> $@
 	echo "let distillery_basic = \"$(DISTILLERY_BASIC)\"" >> $@
 
 $(DISTILLERY): utils.cmo config.cmo distillery.cmo
@@ -47,8 +49,8 @@ eliomdep: utils.cmo eliomdep.cmo
 install:
 	$(INSTALL) -m 755 -d $(TEMPROOT)$(BINDIR)
 	${INSTALL} -m 755 ${COMPILER} $(DISTILLERY) $(TEMPROOT)${BINDIR}
-	$(INSTALL) -m 755 -d $(TEMPROOT)$(DATADIR)/$(DISTILLERY_BASIC)
-	$(INSTALL) -m 644 $(FILES)/$(DISTILLERY_BASIC)/* $(TEMPROOT)$(DATADIR)/$(DISTILLERY_BASIC)
+	$(INSTALL) -m 755 -d $(TEMPROOT)$(DATADIR)/$(DISTILLERY_TEMPLATES)/$(DISTILLERY_BASIC)
+	$(INSTALL) -m 644 $(FILES)/$(DISTILLERY_TEMPLATES)/$(DISTILLERY_BASIC)/* $(TEMPROOT)$(DATADIR)/$(DISTILLERY_TEMPLATES)/$(DISTILLERY_BASIC)
 uninstall:
 	rm -f $(addprefix ${BINDIR}/,${COMPILER} ${DISTILLERY})
 	rm -rf $(DATADIR)

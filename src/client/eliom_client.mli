@@ -34,6 +34,7 @@ val init_client_app :
   ?port:int ->
   full_path:Eliom_lib.Url.path -> unit -> unit
 
+
 (** Call a server side service and change the current page.
     If the service belongs to the same application,
     the client side program is not stopped, and only
@@ -214,8 +215,9 @@ val relink_closure_nodes :
   (unit -> unit)
 
 val getElementById : string -> Dom.node Js.t
-val rebuild_node' : Eliom_content_core.Xml.elt -> Dom.node Js.t
+val rebuild_node' : Eliom_content_core.content_ns -> Eliom_content_core.Xml.elt -> Dom.node Js.t
 val rebuild_node : string -> 'a Eliom_content_core.Html5.elt -> < .. > Js.t
+val rebuild_node_svg : string -> 'a Eliom_content_core.Svg.elt -> < .. > Js.t
 
 (** Javascript expect some attributes to have capital letters.
     Eliom does the translation for some of them.

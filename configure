@@ -359,7 +359,7 @@ check_binary ocamlfind "See: http://projects.camlcity.org/projects/findlib.html"
 check_library ocsigenserver "See: http://ocsigen.org/ocsigenserver/"
 check_ocsigenserverversion
 
-check_library deriving-ocsigen "See: https://github.com/hnrgrgr/deriving"
+check_library deriving-ocsigen "See: https://github.com/ocsigen/deriving"
 
 check_binary js_of_ocaml "See: http://ocsigen.org/js_of_ocaml"
 check_library js_of_ocaml.deriving "Missing support for deriving-ocsigen in js_of_ocaml"
@@ -460,7 +460,7 @@ LIBDIR := $libdir
 DOCDIR := $root$docdir
 
 # Where to install additional data:
-DATADIR := $datadir
+DATADIR := $root$datadir
 
 # The source directory (needed for local testing)
 SRC := $full_pwd

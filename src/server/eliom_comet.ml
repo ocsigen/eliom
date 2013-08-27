@@ -71,7 +71,7 @@ let fallback_global_service =
   Eliom_common.lazy_site_value_from_fun
     (fun () -> Comet.register_service ~path:comet_global_path
       ~get_params:Eliom_parameter.unit
-      (fun () () -> Lwt.return (error_msg "request with no post parameters or there isn't any registered site comet channel")))
+      (fun () () -> Lwt.return (error_msg "request with no post parameters, or there isn't any registered site comet channel")))
 
 let new_id = make_cryptographic_safe_string
 

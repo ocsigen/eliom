@@ -20,6 +20,8 @@
 (** XML building and deconstructing. Cf. {% <<a_api subproject="server" |
     module Eliom_content_core.Xml >> %}. *)
 
+type content_ns = [ `HTML5 | `SVG ]
+
 module Xml : sig
 
   type uri = string
@@ -137,7 +139,7 @@ module Svg : sig
       application. *)
 
   type +'a elt
-  type 'a attrib
+  type +'a attrib
   type uri = Xml.uri
 
   (** {2 Functional semantics} *)
@@ -145,25 +147,48 @@ module Svg : sig
   (** Typed interface for building valid SVG tree (functional
       semantics). See {% <<a_api project="tyxml" | module type
       Svg_sigs.T >> %}. *)
-  module F : Svg_sigs.T with type Xml.uri = Xml.uri
-                        and type Xml.event_handler = Xml.event_handler
-                        and type Xml.attrib = Xml.attrib
-                        and type Xml.elt = Xml.elt
-                        with type 'a elt = 'a elt
-                        and type 'a attrib = 'a attrib
-                        and type uri = uri
+  module F : sig
+    module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
+                            and type Xml.event_handler = Xml.event_handler
+                            and type Xml.attrib = Xml.attrib
+                            and type Xml.elt = Xml.elt
+                              with type 'a elt = 'a elt
+                              and type 'a attrib = 'a attrib
+                              and type uri = uri
+
+    (** See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
+    include module type of Raw
+
+    (** {2 Event handlers} *)
+
+    (** Redefine event handler attributes to simplify their usage. *)
+    include "sigs/eliom_svg_event_handler.mli"
+
+  end
 
   (** {2 DOM semantics} *)
 
   (** Typed interface for building valid SVG tree (DOM semantics). See
       {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
-  module D : Svg_sigs.T with type Xml.uri = Xml.uri
-                        and type Xml.event_handler = Xml.event_handler
-                        and type Xml.attrib = Xml.attrib
-                        and type Xml.elt = Xml.elt
-                        with type 'a elt = 'a elt
-                        and type 'a attrib = 'a attrib
-                        and type uri = uri
+  module D : sig
+
+    module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
+                            and type Xml.event_handler = Xml.event_handler
+                            and type Xml.attrib = Xml.attrib
+                            and type Xml.elt = Xml.elt
+                              with type 'a elt = 'a elt
+                              and type 'a attrib = 'a attrib
+                              and type uri = uri
+
+    (** See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
+    include module type of Raw
+
+    (** {2 Event handlers} *)
+
+    (** Redefine event handler attributes to simplify their usage. *)
+    include "sigs/eliom_svg_event_handler.mli"
+
+  end
 
   (** {2 Global node} *)
 
@@ -177,6 +202,13 @@ module Svg : sig
     val create_named_elt: id:'a id -> 'a elt -> 'a elt
     (** See {!Eliom_content.Html5.Id.create_global_elt} *)
     val create_global_elt: 'a elt -> 'a elt
+
+    (**/**)
+    val string_of_id : 'a id -> string
+  end
+
+  module Of_dom : sig
+    val of_element: Dom_html.element Js.t -> 'a elt
   end
 
 end
@@ -203,7 +235,7 @@ module Html5 : sig
                    and type Xml.event_handler = Xml.event_handler
                    and type Xml.attrib = Xml.attrib
                    and type Xml.elt = Xml.elt
-                   with module Svg := Svg.F
+                   with module Svg := Svg.F.Raw
                    with type 'a elt = 'a elt
                    and type 'a attrib = 'a attrib
                    and type uri = uri
@@ -234,7 +266,7 @@ module Html5 : sig
                    and type Xml.event_handler = Xml.event_handler
                    and type Xml.attrib = Xml.attrib
                    and type Xml.elt = Xml.elt
-                   and module Svg := Svg.D
+                   and module Svg := Svg.D.Raw
                    and type 'a elt = 'a elt
                    and type 'a attrib = 'a attrib
                    and type uri = uri
