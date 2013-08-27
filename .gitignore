@@ -25,6 +25,7 @@ src/tools/eliomc
 src/tools/eliomcp
 src/tools/eliomdep
 src/tools/eliomopt
+src/tools/eliom-distillery
 src/tools/js_of_eliom
 src/tools/config.ml
 *.type_mli
