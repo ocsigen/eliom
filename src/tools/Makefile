@@ -13,13 +13,14 @@ COMPILER := eliomc eliomcp eliomopt js_of_eliom eliomdep
 DISTILLERY := eliom-distillery
 
 FILES := ../../src/files
-DISTILLERY_BASIC :=distillery/basic
+DISTILLERY_TEMPLATES :=distillery
+DISTILLERY_BASIC :=basic
 
 byte: ${COMPILER} $(DISTILLERY)
 
 config.ml: ../../Makefile.config
 	echo "let datadir = \"$(DATADIR)\"" > $@
-	echo "let templatedir = \"distillery\"" >> $@
+	echo "let templatedir = \"$(DISTILLERY_TEMPLATES)\"" >> $@
 	echo "let distillery_basic = \"$(DISTILLERY_BASIC)\"" >> $@
 
 $(DISTILLERY): utils.cmo config.cmo distillery.cmo
