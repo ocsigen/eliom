@@ -46,7 +46,7 @@ module Svg : sig
 
   (** Creation of {e f}unctional HTML5 content (copy-able but not referable).
 
-       See {% <<a_api project="tyxml" | module Svg_sigs.T >> *)
+       See {% <<a_api project="tyxml" | module Svg_sigs.T >> %} *)
   module F : module type of Eliom_content_core.Svg.F
         with type Xml.uri = Xml.uri
         and type Xml.attrib = Xml.attrib
@@ -58,7 +58,7 @@ module Svg : sig
 
   (** Creation of HTML5 content with {e D}OM semantics (referable
 
-       See {% <<a_api project="tyxml" | module Svg_sigs.T >> *)
+       See {% <<a_api project="tyxml" | module Svg_sigs.T >> %} *)
   module D : module type of Eliom_content_core.Svg.F
         with type Xml.uri = Xml.uri
         and type Xml.attrib = Xml.attrib
