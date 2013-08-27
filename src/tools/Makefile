@@ -19,6 +19,7 @@ byte: ${COMPILER} $(DISTILLERY)
 
 config.ml:
 	echo "let datadir = \"$(DATADIR)\"" > $@
+	echo "let templatedir = \"templates\"" > $@
 	echo "let distillery_basic = \"$(DISTILLERY_BASIC)\"" >> $@
 
 $(DISTILLERY): utils.cmo config.cmo distillery.cmo
