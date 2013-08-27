@@ -162,11 +162,25 @@ let get_datadir () =
   try Sys.getenv "ELIOM_DATA_DIR"
   with Not_found -> Config.datadir
 
-(* Configuration of the basic distillery project *)
-let basic_project name =
+let get_templatedir () =
+  Filename.concat (get_datadir ()) Config.templatedir
+
+let get_templates () =
+  let dir = Unix.opendir (get_templatedir ()) in
+  let rec aux rl =
+    try
+      let f = Unix.readdir dir in
+      if f = ".." || f = "."
+      then aux rl
+      else aux (f::rl)
+    with
+      | End_of_file -> Unix.closedir dir; rl
+  in aux []
+
+let init_project template name =
   env name,
   preds (),
-  Filename.concat (get_datadir ()) Config.distillery_basic
+  Filename.concat (get_templatedir ()) template
 
 let compilation_unit_name_regexp =
   Str.regexp "^[A-Za-z][a-zA-Z0-9_']*$"
@@ -175,10 +189,11 @@ let main () =
   let template, name, destination_dir =
     let bad fmt = Printf.ksprintf (fun s -> raise (Arg.Bad s)) fmt in
     let name = ref None in
-    let template = ref (Some `Basic) in
-    let select_template = function
-      | "basic" -> template := Some `Basic
-      | str -> bad "Not a known template name: %S" str
+    let template = ref Config.distillery_basic in
+    let templates = get_templates () in
+    let select_template s =
+      try template := (List.find ((=) s) templates)
+      with Not_found -> bad "Not a known template name: %S" s
     in
     let destination_dir = ref None in
     let check_name name =
@@ -195,15 +210,12 @@ let main () =
     ]) in
     Arg.(parse spec (bad "Don't know what to do with %S") usage_msg);
     match !template, !name with
-      | Some template, Some name ->
+      | template, Some name ->
         let dir = match !destination_dir with Some dir -> dir | None -> name in
         template, name, dir
       | _ -> Arg.usage spec usage_msg; exit 1
   in
-  let env, preds, source_dir =
-    match template with
-      | `Basic -> basic_project name
-  in
+  let env, preds, source_dir = init_project template name in
   create_project ~name ~env ~preds ~source_dir ~destination_dir:destination_dir
 
 let () = main ()
