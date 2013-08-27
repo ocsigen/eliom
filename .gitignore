@@ -26,6 +26,7 @@ src/tools/eliomcp
 src/tools/eliomdep
 src/tools/eliomopt
 src/tools/js_of_eliom
+src/tools/config.ml
 *.type_mli
 *.deps
 tests/_client/
