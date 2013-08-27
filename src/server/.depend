@@ -68,6 +68,7 @@ eliom_lib.cmx : eliom_wrap.cmx eliom_lib_base.cmx eliom_lib.cmi
 eliom_lib.cmi : eliom_wrap.cmi eliom_lib_base.cmi
 eliom_lib_base.cmo : eliom_lazy.cmi eliom_lib_base.cmi
 eliom_lib_base.cmx : eliom_lazy.cmx eliom_lib_base.cmi
+eliom_lib_base.cmi : eliom_lazy.cmi
 eliom_mkforms.cmo : private/eliommod_parameters.cmo eliom_uri.cmi \
     eliom_service.cmi eliom_parameter.cmi eliom_lib.cmi eliom_lazy.cmi \
     eliom_common.cmi eliom_mkforms.cmi
