@@ -17,9 +17,9 @@ DISTILLERY_BASIC :=distillery/basic
 
 byte: ${COMPILER} $(DISTILLERY)
 
-config.ml:
+config.ml: ../../Makefile.config
 	echo "let datadir = \"$(DATADIR)\"" > $@
-	echo "let templatedir = \"templates\"" > $@
+	echo "let templatedir = \"distillery\"" >> $@
 	echo "let distillery_basic = \"$(DISTILLERY_BASIC)\"" >> $@
 
 $(DISTILLERY): utils.cmo config.cmo distillery.cmo
