@@ -9,6 +9,7 @@ let usage () =
      default_client_dir default_server_dir;
   Printf.eprintf "  -type-dir <dir>\tThe directory for generated type_mli files (default %S)\n"
      default_type_dir;
+  Printf.eprintf "  -eliom-inc <dir>\tAdd <dir> to the list of eliom include directories (prepend eliom build directories)\n";
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
   Printf.eprintf "  -ppopt <p>\t\tAppend option <opt> to preprocessor invocation\n";
   Printf.eprintf "  -predicates <p>\tAdd predicate <p> when resolving package properties\n";
@@ -16,18 +17,30 @@ let usage () =
   create_filter !compiler ["-help"] (help_filter 2 "STANDARD OPTIONS:");
   exit 1
 
+(* We use inode for eliom include directories, it's the easier way to
+ * detect if two directories are the same *)
+let inode_of_dir d =
+  (Unix.stat d).Unix.st_ino
+
 (** Context *)
 
 let do_dump = ref false
 
 let mode : [`Normal | `Sort] ref = ref `Normal
 let sort_files = ref []
+let eliom_inc_dirs = ref ["."]
+let eliom_inc_inodes = ref [inode_of_dir "."]
 
 let do_sort () =
   !mode = `Sort
 
+let in_an_eliom_inc_dir s =
+  List.exists
+    (fun d_inode -> inode_of_dir (Filename.dirname s) = d_inode)
+    (!eliom_inc_inodes)
+
 let add_build_dir s =
-  if s = ":" || String.contains s '/'
+  if s = ":" || not (in_an_eliom_inc_dir s)
   then s else
     match !build_dir with
     | "" -> s
@@ -70,12 +83,14 @@ let eliom_synonyms = [ "-ml-synonym"; ".eliom"; "-mli-synonym"; ".eliomi" ]
 let compile_intf file =
   create_filter
     !compiler ( "-pp" :: get_pp !ppopt :: eliom_synonyms @ !args
+        @ (map_include !eliom_inc_dirs)
 		@ ["-intf"; file] )
     (on_each_line add_build_dirs)
 
 let compile_impl file =
   create_filter
     !compiler ( "-pp" :: get_pp !ppopt :: eliom_synonyms @ !args
+        @ (map_include !eliom_inc_dirs)
 		@ ["-impl"; file] )
     (on_each_line add_build_dirs)
 
@@ -94,6 +109,7 @@ let compile_server_eliom ~impl_intf file =
   end;
   create_filter !compiler
     ( "-pp" :: get_pp (server_pp_opt impl_intf) :: eliom_synonyms @ !args
+      @ (map_include !eliom_inc_dirs)
       @ [impl_intf_opt impl_intf; file] )
     (on_each_line add_build_dirs)
 
@@ -106,6 +122,7 @@ let compile_type_eliom ~impl_intf file =
   end;
   create_filter !compiler
     ( "-pp" :: get_pp (type_pp_opt impl_intf) :: eliom_synonyms @ !args
+      @ (map_include !eliom_inc_dirs)
       @ [impl_intf_opt impl_intf; file] )
     (on_each_line server_type_file_dependencies)
 
@@ -117,6 +134,7 @@ let compile_client_eliom ~impl_intf file =
   end;
   create_filter !compiler
     ( "-pp" :: get_pp (client_pp_opt impl_intf) :: eliom_synonyms @ !args
+      @ (map_include !eliom_inc_dirs)
       @ [impl_intf_opt impl_intf; file] )
     (on_each_line add_build_dirs)
 
@@ -150,6 +168,12 @@ let process_option () =
     match Sys.argv.(!i) with
     | "-verbose" -> verbose := true; incr i
     | "-sort" -> mode := `Sort; incr i
+    | "-eliom-inc" ->
+      if !i+1 >= Array.length Sys.argv then usage ();
+      let dir = Sys.argv.(!i+1) in
+      eliom_inc_inodes := (inode_of_dir dir) :: !eliom_inc_inodes;
+      eliom_inc_dirs := dir :: !eliom_inc_dirs;
+      i := !i+2
     | "-package" ->
       if !i+1 >= Array.length Sys.argv then usage ();
       package := !package @ split ',' Sys.argv.(!i+1);
