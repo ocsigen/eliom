@@ -359,10 +359,10 @@ check_binary ocamlfind "See: http://projects.camlcity.org/projects/findlib.html"
 check_library ocsigenserver "See: http://ocsigen.org/ocsigenserver/"
 check_ocsigenserverversion
 
-check_library deriving-ocsigen "See: https://github.com/ocsigen/deriving"
+check_library deriving "See: https://github.com/ocsigen/deriving"
 
 check_binary js_of_ocaml "See: http://ocsigen.org/js_of_ocaml"
-check_library js_of_ocaml.deriving "Missing support for deriving-ocsigen in js_of_ocaml"
+check_library js_of_ocaml.deriving "Missing support for deriving in js_of_ocaml"
 
 check_library react "See: http://erratique.ch/software/react"
 
