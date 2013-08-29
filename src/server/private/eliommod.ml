@@ -601,6 +601,12 @@ let handle_init_exn = function
 
 (*****************************************************************************)
 (** Module loading *)
+
+let site_init_ref = ref []
+
+(** Register function for evaluation at site initialisation *)
+let register_site_init e = site_init_ref := e:: !site_init_ref
+
 let config = ref []
 
 type module_to_load = Files of string list | Name of string
@@ -608,7 +614,8 @@ type module_to_load = Files of string list | Name of string
 let load_eliom_module sitedata cmo_or_name content =
   let preload () =
     config := content;
-    Eliom_common.begin_load_eliom_module ()
+    Eliom_common.begin_load_eliom_module ();
+    List.iter (fun f -> f ()) !site_init_ref
   in
   let postload () =
     Eliom_common.end_load_eliom_module ();
