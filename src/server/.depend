@@ -11,14 +11,16 @@ eliom_comet_base.cmx : eliom_service.cmx eliom_registration.cmx \
     eliom_parameter.cmx eliom_comet_base.cmi
 eliom_comet_base.cmi : eliom_service.cmi eliom_registration.cmi \
     eliom_parameter.cmi
-eliom_comet.cmo : eliom_wrap.cmi eliom_types.cmi eliom_service.cmi \
-    eliom_request_info.cmi eliom_registration.cmi eliom_reference.cmi \
-    eliom_parameter.cmi eliom_lib.cmi eliom_common_base.cmo eliom_common.cmi \
-    eliom_comet_base.cmi eliom_comet.cmi
-eliom_comet.cmx : eliom_wrap.cmx eliom_types.cmx eliom_service.cmx \
-    eliom_request_info.cmx eliom_registration.cmx eliom_reference.cmx \
-    eliom_parameter.cmx eliom_lib.cmx eliom_common_base.cmx eliom_common.cmx \
-    eliom_comet_base.cmx eliom_comet.cmi
+eliom_comet.cmo : private/eliommod.cmo eliom_wrap.cmi eliom_types.cmi \
+    eliom_service.cmi eliom_request_info.cmi eliom_registration.cmi \
+    eliom_reference.cmi eliom_parameter.cmi eliom_lib.cmi \
+    eliom_common_base.cmo eliom_common.cmi eliom_comet_base.cmi \
+    eliom_comet.cmi
+eliom_comet.cmx : private/eliommod.cmx eliom_wrap.cmx eliom_types.cmx \
+    eliom_service.cmx eliom_request_info.cmx eliom_registration.cmx \
+    eliom_reference.cmx eliom_parameter.cmx eliom_lib.cmx \
+    eliom_common_base.cmx eliom_common.cmx eliom_comet_base.cmx \
+    eliom_comet.cmi
 eliom_comet.cmi : eliom_common.cmi eliom_comet_base.cmi
 eliom_common_base.cmo : eliom_lib_base.cmi eliom_lib.cmi \
     eliom_content_core.cmi

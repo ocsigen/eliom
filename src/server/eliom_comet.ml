@@ -281,6 +281,12 @@ struct
 
 end
 
+(** Register services at site initialization *)
+let () = Eliommod.register_site_init (fun () ->
+  ignore (Eliom_common.force_lazy_site_value fallback_global_service);
+  ignore (Eliom_common.force_lazy_site_value fallback_service);
+  ignore (Stateless.get_service ()))
+
 module Stateful :
 (** String channels on wich is build the module Channel *)
 sig
