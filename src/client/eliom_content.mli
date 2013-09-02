@@ -584,6 +584,8 @@ module Html5 : sig
       val onclick : ('a,Dom_html.mouseEvent) ev
       val ondblclick : ('a,Dom_html.mouseEvent) ev
       val onload : ('a,Dom_html.event) ev
+      val onerror : ('a,Dom_html.event) ev
+      val onabort : ('a,Dom_html.event) ev
       val onfocus : ('a,Dom_html.event) ev
       val onblur : ('a,Dom_html.event) ev
       val onfocus_textarea : ('a,Dom_html.event) ev
@@ -736,24 +738,29 @@ module Html5 : sig
       val borderBottomColor: 'a elt -> string -> unit
       val borderBottomStyle: 'a elt -> string -> unit
       val borderBottomWidth: 'a elt -> string -> unit
+      val borderBottomWidthPx : 'a elt -> int -> unit
       val borderCollapse: 'a elt -> string -> unit
       val borderColor: 'a elt -> string -> unit
       val borderLeft: 'a elt -> string -> unit
       val borderLeftColor: 'a elt -> string -> unit
       val borderLeftStyle: 'a elt -> string -> unit
       val borderLeftWidth: 'a elt -> string -> unit
+      val borderLeftWidthPx : 'a elt -> int -> unit
       val borderRight: 'a elt -> string -> unit
       val borderRightColor: 'a elt -> string -> unit
       val borderRightStyle: 'a elt -> string -> unit
       val borderRightWidth: 'a elt -> string -> unit
+      val borderRightWidthPx : 'a elt -> int -> unit
       val borderSpacing: 'a elt -> string -> unit
       val borderStyle: 'a elt -> string -> unit
       val borderTop: 'a elt -> string -> unit
       val borderTopColor: 'a elt -> string -> unit
       val borderTopStyle: 'a elt -> string -> unit
       val borderTopWidth: 'a elt -> string -> unit
+      val borderTopWidthPx : 'a elt -> int -> unit
       val borderWidth: 'a elt -> string -> unit
       val bottom: 'a elt -> string -> unit
+      val bottomPx : 'a elt -> int -> unit
       val captionSide: 'a elt -> string -> unit
       val clear: 'a elt -> string -> unit
       val clip: 'a elt -> string -> unit
@@ -774,7 +781,9 @@ module Html5 : sig
       val fontVariant: 'a elt -> string -> unit
       val fontWeight: 'a elt -> string -> unit
       val height: 'a elt -> string -> unit
+      val heightPx : 'a elt -> int -> unit
       val left: 'a elt -> string -> unit
+      val leftPx : 'a elt -> int -> unit
       val letterSpacing: 'a elt -> string -> unit
       val lineHeight: 'a elt -> string -> unit
       val listStyle: 'a elt -> string -> unit
@@ -783,13 +792,21 @@ module Html5 : sig
       val listStyleType: 'a elt -> string -> unit
       val margin: 'a elt -> string -> unit
       val marginBottom: 'a elt -> string -> unit
+      val marginBottomPx : 'a elt -> int -> unit
       val marginLeft: 'a elt -> string -> unit
+      val marginLeftPx : 'a elt -> int -> unit
       val marginRight: 'a elt -> string -> unit
+      val marginRightPx : 'a elt -> int -> unit
       val marginTop: 'a elt -> string -> unit
+      val marginTopPx : 'a elt -> int -> unit
       val maxHeight: 'a elt -> string -> unit
+      val maxHeightPx : 'a elt -> int -> unit
       val maxWidth: 'a elt -> string -> unit
+      val maxWidthPx : 'a elt -> int -> unit
       val minHeight: 'a elt -> string -> unit
+      val minHeightPx : 'a elt -> int -> unit
       val minWidth: 'a elt -> string -> unit
+      val minWidthPx : 'a elt -> int -> unit
       val opacity: 'a elt -> string option -> unit
       val outline: 'a elt -> string -> unit
       val outlineColor: 'a elt -> string -> unit
@@ -801,23 +818,30 @@ module Html5 : sig
       val overflowY: 'a elt -> string -> unit
       val padding: 'a elt -> string -> unit
       val paddingBottom: 'a elt -> string -> unit
+      val paddingBottomPx : 'a elt -> int -> unit
       val paddingLeft: 'a elt -> string -> unit
+      val paddingLeftPx : 'a elt -> int -> unit
       val paddingRight: 'a elt -> string -> unit
+      val paddingRightPx : 'a elt -> int -> unit
       val paddingTop: 'a elt -> string -> unit
+      val paddingTopPx : 'a elt -> int -> unit
       val pageBreakAfter: 'a elt -> string -> unit
       val pageBreakBefore: 'a elt -> string -> unit
       val position: 'a elt -> string -> unit
       val right: 'a elt -> string -> unit
+      val rightPx : 'a elt -> int -> unit
       val tableLayout: 'a elt -> string -> unit
       val textAlign: 'a elt -> string -> unit
       val textDecoration: 'a elt -> string -> unit
       val textIndent: 'a elt -> string -> unit
       val textTransform: 'a elt -> string -> unit
       val top: 'a elt -> string -> unit
+      val topPx : 'a elt -> int -> unit
       val verticalAlign: 'a elt -> string -> unit
       val visibility: 'a elt -> string -> unit
       val whiteSpace: 'a elt -> string -> unit
       val width: 'a elt -> string -> unit
+      val widthPx : 'a elt -> int -> unit
       val wordSpacing: 'a elt -> string -> unit
       val zIndex: 'a elt -> string -> unit
     end

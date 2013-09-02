@@ -28,7 +28,7 @@ CLIENT_PACKAGES :=
 LOCAL_STATIC = static
 
 # The backend for persistent data. Can be dbm or sqlite.
-PERSISTENT_DATA_BACKEND = dbm
+PERSISTENT_DATA_BACKEND = %%%PROJECT_DB%%%
 
 # Debug application (yes/no): Debugging info in compilation,
 # JavaScript, ocsigenserver

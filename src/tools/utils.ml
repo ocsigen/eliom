@@ -127,6 +127,11 @@ let get_syntax_package () =
     Printf.eprintf "Unknown package: %s\n%!" name;
     exit 1
 
+let has_package name =
+  try
+    ignore(Findlib.package_directory name);true
+  with Findlib.No_such_package (_, _) -> false
+
 let rec map_include xs = match xs with
   | [] -> []
   | x::xs -> "-I" :: x :: map_include xs
@@ -164,11 +169,8 @@ let get_client_lib ?kind:k () =
        (get_client_package ?kind:k ()))
 
 let get_client_js () =
-  try
-    [ Findlib.package_directory "eliom.client" ^ "/eliom_client.js" ]
-  with Findlib.No_such_package (name, _) ->
-    Printf.eprintf "Unknown package: %s\n%!" name;
-    exit 1
+  [ "+eliom.client/eliom_client.js" ;
+    "+js_of_ocaml/weak.js" ]
 
 (* Should be calld only with -dump... *)
 let get_pp_dump opt = match !pp with

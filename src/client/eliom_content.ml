@@ -592,6 +592,12 @@ module Html5 = struct
       let onload elt f =
 	let elt = get_unique_elt_img "Ev.onload" elt in
 	elt##onload <- (bool_cb f)
+      let onerror elt f =
+	let elt = get_unique_elt_img "Ev.onerror" elt in
+	elt##onerror <- (bool_cb f)
+      let onabort elt f =
+	let elt = get_unique_elt_img "Ev.onabort" elt in
+	elt##onabort <- (bool_cb f)
       let onfocus elt f =
 	let elt = get_unique_elt_input "Ev.onfocus" elt in
 	elt##onfocus <- (bool_cb f)
@@ -1030,6 +1036,7 @@ module Html5 = struct
       let borderBottomWidth elt v =
         let elt = get_unique_elt "SetCss.borderBottomWidth" elt in
         elt##style##borderBottomWidth <- Js.bytestring v
+      let borderBottomWidthPx elt v = borderBottomWidth elt (Printf.sprintf "%dpx" v)
       let borderCollapse elt v =
         let elt = get_unique_elt "SetCss.borderCollapse" elt in
         elt##style##borderCollapse <- Js.bytestring v
@@ -1048,6 +1055,7 @@ module Html5 = struct
       let borderLeftWidth elt v =
         let elt = get_unique_elt "SetCss.borderLeftWidth" elt in
         elt##style##borderLeftWidth <- Js.bytestring v
+      let borderLeftWidthPx elt v = borderLeftWidth elt (Printf.sprintf "%dpx" v)
       let borderRight elt v =
         let elt = get_unique_elt "SetCss.borderRight" elt in
         elt##style##borderRight <- Js.bytestring v
@@ -1060,6 +1068,7 @@ module Html5 = struct
       let borderRightWidth elt v =
         let elt = get_unique_elt "SetCss.borderRightWidth" elt in
         elt##style##borderRightWidth <- Js.bytestring v
+      let borderRightWidthPx elt v = borderRightWidth elt (Printf.sprintf "%dpx" v)
       let borderSpacing elt v =
         let elt = get_unique_elt "SetCss.borderSpacing" elt in
         elt##style##borderSpacing <- Js.bytestring v
@@ -1078,12 +1087,14 @@ module Html5 = struct
       let borderTopWidth elt v =
         let elt = get_unique_elt "SetCss.borderTopWidth" elt in
         elt##style##borderTopWidth <- Js.bytestring v
+      let borderTopWidthPx elt v = borderTopWidth elt (Printf.sprintf "%dpx" v)
       let borderWidth elt v =
         let elt = get_unique_elt "SetCss.borderWidth" elt in
         elt##style##borderWidth <- Js.bytestring v
       let bottom elt v =
         let elt = get_unique_elt "SetCss.bottom" elt in
         elt##style##bottom <- Js.bytestring v
+      let bottomPx elt v = bottom elt (Printf.sprintf "%dpx" v)
       let captionSide elt v =
         let elt = get_unique_elt "SetCss.captionSide" elt in
         elt##style##captionSide <- Js.bytestring v
@@ -1144,9 +1155,11 @@ module Html5 = struct
       let height elt v =
         let elt = get_unique_elt "SetCss.height" elt in
         elt##style##height <- Js.bytestring v
+      let heightPx elt v = height elt (Printf.sprintf "%dpx" v)
       let left elt v =
         let elt = get_unique_elt "SetCss.left" elt in
         elt##style##left <- Js.bytestring v
+      let leftPx elt v = left elt (Printf.sprintf "%dpx" v)
       let letterSpacing elt v =
         let elt = get_unique_elt "SetCss.letterSpacing" elt in
         elt##style##letterSpacing <- Js.bytestring v
@@ -1171,27 +1184,35 @@ module Html5 = struct
       let marginBottom elt v =
         let elt = get_unique_elt "SetCss.marginBottom" elt in
         elt##style##marginBottom <- Js.bytestring v
+      let marginBottomPx elt v = marginBottom elt (Printf.sprintf "%dpx" v)
       let marginLeft elt v =
         let elt = get_unique_elt "SetCss.marginLeft" elt in
         elt##style##marginLeft <- Js.bytestring v
+      let marginLeftPx elt v = marginLeft elt (Printf.sprintf "%dpx" v)
       let marginRight elt v =
         let elt = get_unique_elt "SetCss.marginRight" elt in
         elt##style##marginRight <- Js.bytestring v
+      let marginRightPx elt v = marginRight elt (Printf.sprintf "%dpx" v)
       let marginTop elt v =
         let elt = get_unique_elt "SetCss.marginTop" elt in
         elt##style##marginTop <- Js.bytestring v
+      let marginTopPx elt v = marginTop elt (Printf.sprintf "%dpx" v)
       let maxHeight elt v =
         let elt = get_unique_elt "SetCss.maxHeight" elt in
         elt##style##maxHeight <- Js.bytestring v
+      let maxHeightPx elt v = maxHeight elt (Printf.sprintf "%dpx" v)
       let maxWidth elt v =
         let elt = get_unique_elt "SetCss.maxWidth" elt in
         elt##style##maxWidth <- Js.bytestring v
+      let maxWidthPx elt v = maxWidth elt (Printf.sprintf "%dpx" v)
       let minHeight elt v =
         let elt = get_unique_elt "SetCss.minHeight" elt in
         elt##style##minHeight <- Js.bytestring v
+      let minHeightPx elt v = minHeight elt (Printf.sprintf "%dpx" v)
       let minWidth elt v =
         let elt = get_unique_elt "SetCss.minWidth" elt in
         elt##style##minWidth <- Js.bytestring v
+      let minWidthPx elt v = minWidth elt (Printf.sprintf "%dpx" v)
       let opacity elt v =
         let elt = get_unique_elt "SetCss.opacity" elt in
         elt##style##opacity <- match v with None -> Js.undefined | Some v -> Js.def (Js.bytestring v)
@@ -1225,15 +1246,19 @@ module Html5 = struct
       let paddingBottom elt v =
         let elt = get_unique_elt "SetCss.paddingBottom" elt in
         elt##style##paddingBottom <- Js.bytestring v
+      let paddingBottomPx elt v = paddingBottom elt (Printf.sprintf "%dpx" v)
       let paddingLeft elt v =
         let elt = get_unique_elt "SetCss.paddingLeft" elt in
         elt##style##paddingLeft <- Js.bytestring v
+      let paddingLeftPx elt v = paddingLeft elt (Printf.sprintf "%dpx" v)
       let paddingRight elt v =
         let elt = get_unique_elt "SetCss.paddingRight" elt in
         elt##style##paddingRight <- Js.bytestring v
+      let paddingRightPx elt v = paddingRight elt (Printf.sprintf "%dpx" v)
       let paddingTop elt v =
         let elt = get_unique_elt "SetCss.paddingTop" elt in
         elt##style##paddingTop <- Js.bytestring v
+      let paddingTopPx elt v = paddingTop elt (Printf.sprintf "%dpx" v)
       let pageBreakAfter elt v =
         let elt = get_unique_elt "SetCss.pageBreakAfter" elt in
         elt##style##pageBreakAfter <- Js.bytestring v
@@ -1246,6 +1271,7 @@ module Html5 = struct
       let right elt v =
         let elt = get_unique_elt "SetCss.right" elt in
         elt##style##right <- Js.bytestring v
+      let rightPx elt v = right elt (Printf.sprintf "%dpx" v)
       let tableLayout elt v =
         let elt = get_unique_elt "SetCss.tableLayout" elt in
         elt##style##tableLayout <- Js.bytestring v
@@ -1264,6 +1290,7 @@ module Html5 = struct
       let top elt v =
         let elt = get_unique_elt "SetCss.top" elt in
         elt##style##top <- Js.bytestring v
+      let topPx elt v = top elt (Printf.sprintf "%dpx" v)
       let verticalAlign elt v =
         let elt = get_unique_elt "SetCss.verticalAlign" elt in
         elt##style##verticalAlign <- Js.bytestring v
@@ -1276,6 +1303,7 @@ module Html5 = struct
       let width elt v =
         let elt = get_unique_elt "SetCss.width" elt in
         elt##style##width <- Js.bytestring v
+      let widthPx elt v = width elt (Printf.sprintf "%dpx" v)
       let wordSpacing elt v =
         let elt = get_unique_elt "SetCss.wordSpacing" elt in
         elt##style##wordSpacing <- Js.bytestring v

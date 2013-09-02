@@ -1,4 +1,4 @@
-(*ocamlmklib -I ../ ../eliom_client_stubs.o ../eliom_client_unwrap.ml -o lib; ocamlfind ocamlc -linkpkg -package js_of_ocaml -syntax camlp4o -package js_of_ocaml.syntax lib.cma -I ../ unwrap.ml -o test; js_of_ocaml -pretty -noinline ../eliom_client.js test *)
+(*ocamlmklib -I ../ ../eliom_client_stubs.o ../eliom_client_unwrap.ml -o lib; ocamlfind ocamlc -linkpkg -package js_of_ocaml -syntax camlp4o -package js_of_ocaml.syntax lib.cma -I ../ unwrap.ml -o test; js_of_ocaml -pretty -noinline +weak.js ../eliom_client.js test *)
 
 open Eliom_unwrap
 

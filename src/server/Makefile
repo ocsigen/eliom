@@ -159,7 +159,7 @@ eliom_mkreg.cmi eliom_mkreg.odoc: ${COMMON_SFILES} $(wildcard sigs/*.mli)
 ifneq (${DEPEND},no)
 
 ## Ugly side effect to force ${PREDEP} creation before dependencies calculation
-dummy_var := $(shell $(MAKE) DEPEND=no ${PREDEP} >/tmp/log 2>&1)
+dummy_var := $(shell $(MAKE) DEPEND=no ${PREDEP} >/dev/null 2>&1)
 
 DEPS := $(patsubst %,.%.deps,${COMMON_FILES}) \
 	$(patsubst %,.%.deps,${COMMON_PFILES}) \
