@@ -104,7 +104,7 @@ let create ?scope ?name ?size typ =
     (Eliom_parameter.caml "bus_write" typ_list
        : ('a, 'aa, 'aaa) Eliom_parameter.params_type)
   in
-  let distant_write = Eliom_service.post_coservice' ?name ~post_params () in
+  let distant_write = Eliom_service.Http.post_coservice' ?name ~post_params () in
   let service_registered =
     match scope with
       | `Site ->

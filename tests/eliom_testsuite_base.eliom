@@ -19,7 +19,7 @@ module My_appl =
       let application_name = "eliom_testsuite"
     end)
 
-let main = Eliom_service.service [] Eliom_parameter.unit ()
+let main = Eliom_service.Http.service [] Eliom_parameter.unit ()
 
 let tests description services =
   Html5.F.(
@@ -70,7 +70,7 @@ let test ~path ~title:ttl ~description f =
                                 pcdata " - " ;
                                 a ~service:Eliom_service.void_coservice' [pcdata "Reload in running app"] () ;
                                 pcdata " - " ;
-                                Raw.a ~a:[a_id "toggle"; a_onclick toggle_tracing]
+                                Raw.a ~a:[a_onclick toggle_tracing]
                                   [pcdata "Toggle tracing (or append #__trace to the URL)"] ;
                                ] ::
                                h1 ~a:[a_class ["test_title"]] [pcdata ttl] ::

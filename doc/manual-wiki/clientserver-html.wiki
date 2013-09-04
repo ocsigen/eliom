@@ -188,7 +188,7 @@ let global_list = create_global_elt (ul [])
 let cpt = ref 0
 
 let main_service =
-  Eliom_service.service
+  Eliom_service.Appl.service
     ~path:[""] ~get_params:Eliom_parameter.unit
     ()
 
@@ -232,7 +232,7 @@ let simple_script =
      script (cdata_script "alert(\"non global script\")")
 
 let main_service =
-  Eliom_service.service
+  Eliom_service.Appl.service
      ~path:[] ~get_params:Eliom_parameter.unit ()
 
 let reload_link =

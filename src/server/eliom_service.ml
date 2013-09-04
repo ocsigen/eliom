@@ -190,7 +190,36 @@ let unregister ?scope ?secure service =
           remove_service table service
 
 
+type http_service = [ `Http ]
+type appl_service = [ `Appl ]
+type 'a caml_service = [ `Caml of 'a ]
 
+type non_caml_service = [ appl_service | http_service ]
+
+type 'rt rt = unit
+let rt = ()
+
+module MakeBase = struct
+  let service = service
+  let post_service = post_service
+  let coservice = coservice
+  let post_coservice = post_coservice
+  let coservice' = coservice'
+  let post_coservice' = post_coservice'
+end
+
+module Unsafe = struct
+  include MakeBase
+end
+module Appl = struct
+  include MakeBase
+end
+module Caml = struct
+  include MakeBase
+end
+module Http = struct
+  include MakeBase
+end
 
 (*****************************************************************************)
 let pre_wrap s =

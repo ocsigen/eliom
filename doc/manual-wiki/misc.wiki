@@ -2,52 +2,52 @@
 
 
 ==@@id="predefinedconstructs"@@HTML widgets
-        
-===Images, CSS, Javascript
-          
-          
- To include an image, simply use the function  <<a_api| val Eliom_content.Html5.D.img >>:
-      
-          
 
-          
+===Images, CSS, Javascript
+
+
+ To include an image, simply use the function  <<a_api| val Eliom_content.Html5.D.img >>:
+
+
+
+
 <<code language="ocaml"|img ~alt:"Ocsigen"
     ~src:(Eliom_registration.Html5.make_uri ~service:senddoc ["ocsigen1024.jpg"])
     ()
 >>
 
-          
+
 The function <<a_api | value Eliom_content.Html5.D.make_uri>>
         creates the relative URL string from current URL
         (see above) to the URL of the image in the static directory
         configured in the configuration file.
-      
-          
 
-          
+
+
+
 To simplify the creation of <<span class="code"|<link>>> tags
       for CSS or <<span class="code"|<script>>> tags for Javascript,
         use the following functions:
-          
 
-          
+
+
 <<code language="ocaml"|css_link ~uri:(make_uri ~service:(static_dir ()) ["style.css"]) ()
 >>
 
-          
+
 <<code language="ocaml"|js_script ~uri:(make_uri ~service:(static_dir ()) ["funs.js"]) ()
 >>
 
 ===@@id="basic_menu"@@Basic menus
-          
-          
+
+
       To make a menu on your web page, you can use the function
           <<a_api| val Eliom_tools.menu >>.
       First, define your menu like this:
-      
-          
 
-          
+
+
+
 <<code language="ocaml"|let mymenu current =
   Eliom_tools.menu ~classe:["menuprincipal"]
     (home, %:xmllist< Home ~>>)
@@ -57,19 +57,19 @@ To simplify the creation of <<span class="code"|<link>>> tags
    ] current
 >>
 
-          
+
 Here, <<span class="code"|home>>,  <<span class="code"|infos>>,
         and <<span class="code"|tutorial>> are your three pages (generated for example
-        by  <<a_api| val Eliom_service.service >>).
-          
+        by  <<a_api| val Eliom_service.Appl.service >>).
 
 
 
 
-          
+
+
 Then <<span class="code"|mymenu ~service:home>> will generate the following
         code:
-          
+
 
           <<div class="pre"|<ul class="menu menuprincipal">
   <li class="current first">Home
@@ -80,27 +80,27 @@ Then <<span class="code"|mymenu ~service:home>> will generate the following
   </li>
 </ul>
 >>
-          
-Personalise it in your CSS style-sheet.
-          
 
-          
+Personalise it in your CSS style-sheet.
+
+
+
  <<a_api| val Eliom_tools.menu >> takes a list of services without
     GET parameters.
     If you want one of the link to contains GET parameters, pre-apply
     the service.
-          
+
 
           <<concept title="How to make a menu entry with GET parameters?"
-            
-            
+
+
           Preapply your service.
-          
-            
-      
+
+
+
           >>
 ===@@id="hier_menu"@@Hierarchical menus
-          
+
 <<code language="ocaml"|(* Hierarchical menu *)
 open Eliom_tools_common
 

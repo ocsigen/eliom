@@ -46,7 +46,7 @@ val register :
   ?secure_session:bool ->
   service:('get, 'post,
            [< internal_service_kind ],
-           [< suff ], 'gn, 'pn, [ `Registrable ], return) service ->
+           [< suff ], 'gn, 'pn, [ `Registrable ], returnT) service ->
   ?error_handler:((string * exn) list -> page Lwt.t) ->
   ('get -> 'post -> page Lwt.t) ->
   unit
@@ -71,7 +71,7 @@ val register_service :
    [> `Attached of
        ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
    'tipo, 'gn, unit,
-   [> `Registrable ], return) service
+   [> `Registrable ], returnB) service
 
 (** Same as {!Eliom_service.coservice} followed by {!register}. *)
 val register_coservice :
@@ -92,7 +92,7 @@ val register_coservice :
   fallback:(unit, unit,
             [ `Attached of ([ `Internal of [ `Service ] ], [`Get]) a_s ],
             [ `WithoutSuffix ] as 'tipo,
-            unit, unit, [< registrable ], return)
+            unit, unit, [< registrable ], returnT)
     service ->
   get_params:
     ('get, [`WithoutSuffix], 'gn) params_type ->
@@ -102,7 +102,7 @@ val register_coservice :
    [> `Attached of
        ([> `Internal of [> `Coservice ] ], [> `Get]) a_s ],
    'tipo, 'gn, unit,
-   [> `Registrable ], return)
+   [> `Registrable ], returnB)
     service
 
 
@@ -128,7 +128,7 @@ val register_coservice' :
   ('get -> unit -> page Lwt.t) ->
   ('get, unit,
    [> `Nonattached of [> `Get] na_s ],
-   'tipo, 'gn, unit, [> `Registrable ], return)
+   'tipo, 'gn, unit, [> `Registrable ], returnB)
     service
 
 
@@ -148,14 +148,14 @@ val register_post_service :
                 ([ `Internal of
                     ([ `Service | `Coservice ] as 'kind) ], [`Get]) a_s ],
             [< suff ] as 'tipo, 'gn,
-            unit, [< `Registrable ], 'return2) (* 'return2 <> return *)
+            unit, [< `Registrable ], returnT)
     service ->
   post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
   ?error_handler:((string * exn) list -> page Lwt.t) ->
   ('get -> 'post -> page Lwt.t) ->
   ('get, 'post, [> `Attached of
       ([> `Internal of 'kind ], [> `Post]) a_s ],
-   'tipo, 'gn, 'pn, [> `Registrable ], return)
+   'tipo, 'gn, 'pn, [> `Registrable ], returnB)
     service
 
 (** Same as {!Eliom_service.post_coservice} followed by {!register}. *)
@@ -178,7 +178,7 @@ val register_post_coservice :
             [ `Attached of
                 ([ `Internal of [< `Service | `Coservice ] ], [`Get]) a_s ],
             [< suff ] as 'tipo,
-            'gn, unit, [< `Registrable ], return)
+            'gn, unit, [< `Registrable ], returnT)
     service ->
   post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
   ?error_handler:((string * exn) list -> page Lwt.t) ->
@@ -186,7 +186,7 @@ val register_post_coservice :
   ('get, 'post,
    [> `Attached of
        ([> `Internal of [> `Coservice ] ], [> `Post]) a_s ],
-   'tipo, 'gn, 'pn, [> `Registrable ], return)
+   'tipo, 'gn, 'pn, [> `Registrable ], returnB)
     service
 
 (** Same as {!Eliom_service.post_coservice'} followed by {!register}. *)
@@ -211,7 +211,7 @@ val register_post_coservice' :
   (unit -> 'post -> page Lwt.t) ->
   (unit, 'post, [> `Nonattached of [> `Post] na_s ],
    [ `WithoutSuffix ], unit, 'pn,
-   [> `Registrable ], return)
+   [> `Registrable ], returnB)
     service
 
 (** {2 Low-level function } *)
@@ -229,4 +229,3 @@ val send :
   ?headers: Http_headers.t ->
   page ->
   result Lwt.t
-
