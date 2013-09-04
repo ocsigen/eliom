@@ -19,6 +19,37 @@
 
 include Eliom_service_base
 
+type http_service = [ `Http ]
+type appl_service = [ `Appl ]
+type 'a caml_service = [ `Caml of 'a ]
+
+type non_caml_service = [ appl_service | http_service ]
+
+type 'rt rt = unit
+let rt = ()
+
+module MakeBase = struct
+  let service = service
+  let post_service = post_service
+  let coservice = coservice
+  let post_coservice = post_coservice
+  let coservice' = coservice'
+  let post_coservice' = post_coservice'
+end
+
+module Unsafe = struct
+  include MakeBase
+end
+module Appl = struct
+  include MakeBase
+end
+module Caml = struct
+  include MakeBase
+end
+module Http = struct
+  include MakeBase
+end
+
 let xhr_with_cookies s =
   if is_external s then
     None
@@ -28,4 +59,3 @@ let xhr_with_cookies s =
     | XNever -> None
     | XSame_appl (appl, _) when Some appl <> Eliom_process.get_application_name () -> None
     | XSame_appl (_, tmpl) -> Some tmpl
-

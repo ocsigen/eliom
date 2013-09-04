@@ -615,7 +615,7 @@ let register_service pages
     ~get_params
     ?error_handler
     page =
-  let u = service ?https ?priority ~path ~get_params () in
+  let u = Unsafe.service ?https ?priority ~path ~get_params () in
   register pages
     ?scope
     ?options
@@ -647,7 +647,7 @@ let register_coservice pages
     ?error_handler
     page =
   let u =
-    coservice ?name
+    Unsafe.coservice ?name
       ?csrf_safe
       ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
       ?csrf_secure
@@ -684,7 +684,7 @@ let register_coservice' pages
     ?error_handler
     page =
   let u =
-    coservice'
+    Unsafe.coservice'
       ?name
       ?csrf_safe
       ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
@@ -716,8 +716,9 @@ let register_post_service pages
     ~post_params
     ?error_handler
     page_gen =
-  let u = post_service ?https ?priority
-    ~fallback:fallback ~post_params:post_params () in
+  let u = Unsafe.post_service ?https ?priority
+    ~fallback:fallback ~post_params:post_params ()
+  in
   register pages
     ?scope
     ?options
@@ -749,7 +750,7 @@ let register_post_coservice pages
     ?error_handler
     page_gen =
   let u =
-    post_coservice ?name
+    Unsafe.post_coservice ?name
       ?csrf_safe
       ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
       ?csrf_secure
@@ -786,7 +787,7 @@ let register_post_coservice' pages
     ?error_handler
     page_gen =
   let u =
-    post_coservice'
+    Unsafe.post_coservice'
       ?name
       ?csrf_safe
       ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
@@ -837,11 +838,11 @@ module type REG_PARAM_ALPHA_RETURN =
 sig
   type ('a, 'b) page
   type 'a return
-  type ('a, 'b) result
+  type 'a result
   include "sigs/eliom_reg_param.mli"
     subst type page := ('a, 'b) page
       and type return := 'b return
-      and type result := ('a, 'b) result
+      and type result := 'a result
 end
 
 module MakeRegister_AlphaReturn(Pages : REG_PARAM_ALPHA_RETURN) = struct
@@ -849,7 +850,7 @@ module MakeRegister_AlphaReturn(Pages : REG_PARAM_ALPHA_RETURN) = struct
   type ('a, 'b) page = ('a, 'b) Pages.page
   type options = Pages.options
   type 'b return = 'b Pages.return
-  type ('a, 'b) result = ('a, 'b) Pages.result
+  type 'a result = 'a Pages.result
 
   let pages =
     { send = Pages.send;

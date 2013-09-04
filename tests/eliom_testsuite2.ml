@@ -87,13 +87,13 @@ let session = `Session scope_hierarchy
 (* (for connection and disconnection)                       *)
 
 let connect_example =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["connect_example"]
     ~get_params:unit
     ()
 
 let connect_action =
-  Eliom_service.post_coservice'
+  Eliom_service.Http.post_coservice'
     ~name:"connection"
     ~post_params:(string "login")
     ()
@@ -194,13 +194,13 @@ let session = `Session scope_hierarchy
 (* (for connection and disconnection)                       *)
 
 let connect_example =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["sessgrp"]
     ~get_params:unit
     ()
 
 let connect_action =
-  Eliom_service.post_coservice'
+  Eliom_service.Http.post_coservice'
     ~name:"connection2"
     ~post_params:(string "login")
     ()
@@ -341,7 +341,7 @@ let volatile_references =
       10
   in
   let service =
-    Eliom_service.service
+    Eliom_service.Http.service
       ~path:["volatile_reference"]
       ~get_params:Eliom_parameter.unit
       ()
@@ -417,7 +417,7 @@ let reference_from_fun =
          Random.int 100)
   in
   let service =
-    Eliom_service.service
+    Eliom_service.Http.service
       ~path:["reference_from_fun"]
       ~get_params:Eliom_parameter.unit
       ()
@@ -481,9 +481,9 @@ open Eliom_state
 
 (* Lists of lists *)
 
-let lilists = service [ "lilists" ] unit ()
+let lilists = Http.service [ "lilists" ] unit ()
 
-let lilists2 = service
+let lilists2 = Http.service
   ["lilists2"] (list "l" (string "title" ** (list "il" (int "i")))) ()
 
 let create_form f =
@@ -524,7 +524,7 @@ let () = register lilists2
 (* other example of list of list (mail W. Le Ferrant 2011/11/24) *)
 
 let wlf_lists =
-  service [ "wlflists" ] (list "items" (list "followers" (int "follower"))) ()
+  Http.service [ "wlflists" ] (list "items" (list "followers" (int "follower"))) ()
 
 let handler elements _ =
   Ocsigen_messages.debug (fun () -> "> nb of elements: "^
@@ -570,7 +570,7 @@ let sumform = register_service ["sumform"] unit
          (body [f])))
 
 
-let sumform2 = service ~path:["sumform2"] ~get_params:unit ()
+let sumform2 = Http.service ~path:["sumform2"] ~get_params:unit ()
 
 let sumserv = register_post_service
     ~fallback:sumform2
@@ -643,13 +643,13 @@ let unregister_example =
 (* CSRF GET *)
 
 let csrfsafe_get_example =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["csrfget"]
     ~get_params:Eliom_parameter.unit
     ()
 
 let csrfsafe_example_get =
-  Eliom_service.coservice
+  Eliom_service.Http.coservice
     ~csrf_safe:true
     ~timeout:10.
     ~fallback:csrfsafe_get_example
@@ -681,13 +681,13 @@ let _ =
 (* CSRF POST on CSRF GET coservice *)
 
 let csrfsafe_postget_example =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["csrfpostget"]
     ~get_params:Eliom_parameter.unit
     ()
 
 let csrfsafe_example_post =
-  Eliom_service.post_coservice
+  Eliom_service.Http.post_coservice
     ~csrf_safe:true
     ~timeout:10.
     ~fallback:csrfsafe_example_get (* !!! *)
@@ -720,7 +720,7 @@ let _ =
 (* CSRF for_session *)
 
 let csrfsafe_session_example =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["csrfsession"]
     ~get_params:Eliom_parameter.unit
     ()
@@ -728,7 +728,7 @@ let csrfsafe_session_example =
 let myscope = (`Session (Eliom_common.create_scope_hierarchy "plop"))
 
 let csrfsafe_example_session =
-  Eliom_service.post_coservice'
+  Eliom_service.Http.post_coservice'
     ~csrf_safe:true
     ~csrf_scope:myscope
     ~csrf_secure:true
@@ -812,7 +812,7 @@ let hidden_void_with_nlp =
   Eliom_service.add_non_localized_get_parameters
     my_nl_params Eliom_service.void_hidden_coservice'
 
-let nlparams2 = service
+let nlparams2 = Http.service
     ~path:["voidnl"]
     ~get_params:(suffix_prod (int "year" ** int "month") (int "w" ))
     ()
@@ -855,13 +855,13 @@ let () = register
 
 (***********)
 let nlpost_entry =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["nlpost"]
     ~get_params:(Eliom_parameter.unit)
     ()
 
 let nlpost =
-  Eliom_service.post_coservice
+  Eliom_service.Http.post_coservice
     ~fallback:nlpost_entry
     ~name:"nlpost"
     ~post_params:(Eliom_parameter.unit)
@@ -1193,7 +1193,7 @@ let preappmenu =
 
 
 (* GET Non-attached coservice *)
-let nonatt = coservice' ~get_params:(string "e") ()
+let nonatt = Http.coservice' ~get_params:(string "e") ()
 
 (* GET coservice with preapplied fallback *)
 (* + Non-attached coservice on a pre-applied coservice *)
@@ -1293,7 +1293,7 @@ let postcoex = register_service ["postco"] unit
 let v = ref 0
 
 let getact =
-  service
+  Http.service
     ~path:["getact"]
     ~get_params:(int "p")
     ()
@@ -1394,7 +1394,7 @@ let attnonatt_service =
 (* Many cookies *)
 let cookiename = "c"
 
-let cookies2 = service ["c";""] (suffix (all_suffix_string "s")) ()
+let cookies2 = Http.service ["c";""] (suffix (all_suffix_string "s")) ()
 
 let _ = Eliom_registration.Html5.register cookies2
     (fun s () ->
@@ -1483,7 +1483,7 @@ let sendfileexception =
 
 (* Complex suffixes *)
 let suffix2 =
-  service
+  Http.service
     ~path:["suffix2";""]
     ~get_params:(suffix (string "suff1" ** int "ii" ** all_suffix "ee"))
     ()
@@ -1727,7 +1727,7 @@ let any5 = register_service
      </html> >>)
 
 (* list in suffix *)
-let sufli = service
+let sufli = Http.service
     ~path:["sufli"]
     ~get_params:(suffix (list "l" (string "s" ** int "i")))
     ()
@@ -1807,7 +1807,7 @@ let _ = register sufli2
      </html> >>)
 *)
 
-let sufliopt = service
+let sufliopt = Http.service
     ~path:["sufliopt"]
     ~get_params:(suffix (list "l" (opt (string "s"))))
     ()
@@ -1838,7 +1838,7 @@ let _ = register sufliopt
      </html> >>)
 
 
-let sufliopt2 = service
+let sufliopt2 = Http.service
     ~path:["sufliopt2"]
     ~get_params:(suffix (list "l" (opt (string "s" ** string "ss"))))
     ()
@@ -2165,13 +2165,13 @@ let group = `Session_group scope_hierarchy
 (* (for connection and disconnection)                       *)
 
 let connect_example_gd =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["sessgrpdata"]
     ~get_params:unit
     ()
 
 let connect_action =
-  Eliom_service.post_coservice'
+  Eliom_service.Http.post_coservice'
     ~name:"connectiongd"
     ~post_params:(string "login")
     ()
@@ -2300,13 +2300,13 @@ let group = `Session_group scope_hierarchy
 (* (for connection and disconnection)                       *)
 
 let connect_example_pgd =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["psessgrpdata"]
     ~get_params:unit
     ()
 
 let connect_action =
-  Eliom_service.post_coservice'
+  Eliom_service.Http.post_coservice'
     ~name:"connectionpgd"
     ~post_params:(string "login")
     ()

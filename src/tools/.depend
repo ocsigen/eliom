@@ -1,7 +1,7 @@
 config.cmo :
 config.cmx :
-distillery.cmo : config.cmo
-distillery.cmx : config.cmx
+distillery.cmo : utils.cmo config.cmo
+distillery.cmx : utils.cmx config.cmx
 eliomc.cmo : utils.cmo
 eliomc.cmx : utils.cmx
 eliomdep.cmo : utils.cmo

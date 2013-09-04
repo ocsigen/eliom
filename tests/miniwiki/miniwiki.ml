@@ -35,8 +35,8 @@ module P = Printf
 
 let (>>) f g = g f
 
-let wiki_view_page = service [] (suffix (string "p")) ()
-let wiki_edit_page = service ["edit"] (string "p") ()
+let wiki_view_page = Http.service [] (suffix (string "p")) ()
+let wiki_edit_page = Http.service ["edit"] (string "p") ()
 let wiki_start = Eliom_registration.Redirection.register_service [] unit
     (fun _ _ ->
        Lwt.return (Eliom_service.preapply wiki_view_page "WikiStart"))
