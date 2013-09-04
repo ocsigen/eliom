@@ -566,7 +566,7 @@ end = struct
 	begin
 	  let hd_service =
 	    (* CCC ajouter possibilité d'https *)
-	    Eliom_service.post_coservice
+	    Eliom_service.Http.post_coservice
 (*VVV Why is it attached? --Vincent *)
 	      ~fallback:(Eliom_common.force_lazy_site_value fallback_service)
 	      (*~name:"comet" (* CCC faut il mettre un nom ? *)*)

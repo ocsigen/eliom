@@ -18,9 +18,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-type appl_service = [ `Appl ]
-type http_service = [ `Http ]
-type non_caml_service = [ appl_service | http_service ]
+type appl_service = Eliom_service.appl_service
+type http_service = Eliom_service.http_service
+type non_caml_service = Eliom_service.non_caml_service
 
 type input_type =
   [

@@ -89,11 +89,6 @@ type attached =
 type nonattached =
     [ `Nonattached of getpost na_s ]
 
-type http (** default return type for services *)
-
-type appl_service (** return type for service that are entry points for an
-                      application *)
-
 type send_appl_content =
   | XNever
   | XAlways
@@ -552,6 +547,7 @@ let service_aux
         ()
 
 let service
+    ?rt
     ?(https = false)
     ~path
     ?keep_nl_params
@@ -577,6 +573,7 @@ let default_csrf_scope = function
   | Some c -> (c :> [Eliom_common.user_scope])
 
 let coservice
+    ?rt
     ?name
     ?(csrf_safe = false)
     ?csrf_scope
@@ -620,6 +617,7 @@ let coservice
 
 
 let coservice'
+    ?rt
     ?name
     ?(csrf_safe = false)
     ?csrf_scope
@@ -742,7 +740,7 @@ let post_service_aux ~https ~fallback
    service_mark = service_mark ();
  }
 
-let post_service ?(https = false) ~fallback
+let post_service ?rt ?(https = false) ~fallback
     ?keep_nl_params ?priority ~post_params () =
   (* POST service without POST parameters means
      that the service will answer to a POST request only.
@@ -770,6 +768,7 @@ let post_service ?(https = false) ~fallback
 
 
 let post_coservice
+    ?rt
     ?name
     ?(csrf_safe = false)
     ?csrf_scope
@@ -816,6 +815,7 @@ let post_coservice
 
 
 let post_coservice'
+    ?rt
     ?name
     ?(csrf_safe = false)
     ?csrf_scope

@@ -266,7 +266,7 @@ val a :
   ?a:a_attrib_t ->
   service:('get, unit, [< get_service_kind ],
            [< suff ], 'd, unit,
-           [< registrable ], 'f)
+           [< registrable ], [< non_caml_service])
     service ->
   ?hostname:string ->
   ?port:int ->
@@ -337,7 +337,7 @@ val get_form :
   ?a:form_attrib_t ->
   service:('get, unit, [< get_service_kind ],
            [<suff ], 'gn, 'pn,
-           [< registrable ], 'return) service ->
+           [< registrable ], [< non_caml_service]) service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -356,7 +356,7 @@ val lwt_get_form :
   ?a:form_attrib_t ->
   service:('get, unit, [< get_service_kind ],
            [<suff ], 'gn, 'pn,
-           [< registrable ], 'return) service ->
+           [< registrable ], [< non_caml_service]) service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -388,7 +388,7 @@ val post_form :
   ?a:form_attrib_t ->
   service:('get, 'post, [< post_service_kind ],
            [< suff ], 'gn, 'pn,
-           [< registrable ], 'return) service ->
+           [< registrable ], [< non_caml_service]) service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -409,7 +409,7 @@ val lwt_post_form :
   ?a:form_attrib_t ->
   service:('get, 'post, [< post_service_kind ],
            [< suff ], 'gn, 'pn,
-           [< registrable ], 'return) service ->
+           [< registrable ], [< non_caml_service]) service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->

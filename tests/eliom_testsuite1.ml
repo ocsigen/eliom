@@ -301,7 +301,7 @@ let links = register_service ["rep";"links"] unit
 
 
 *wiki*)
-let linkrec = Eliom_service.service ["linkrec"] unit ()
+let linkrec = Eliom_service.Http.service ["linkrec"] unit ()
 
 let _ = Eliom_registration.Html5.register linkrec
     (fun () () ->
@@ -532,19 +532,19 @@ let my_table = Eliom_state.create_volatile_table (*zap* *) ~scope:session (* *za
 (* Create services, but do not register them yet:           *)
 
 let session_data_example =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["sessdata"]
     ~get_params:Eliom_parameter.unit
     ()
 
 let session_data_example_with_post_params =
-  Eliom_service.post_service
+  Eliom_service.Http.post_service
     ~fallback:session_data_example
     ~post_params:(Eliom_parameter.string "login")
     ()
 
 let session_data_example_close =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["close"]
     ~get_params:Eliom_parameter.unit
     ()
@@ -649,19 +649,19 @@ let session = `Session scope_hierarchy
 (* Create services, but do not register them yet:           *)
 
 let session_services_example =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["sessionservices"]
     ~get_params:Eliom_parameter.unit
     ()
 
 let session_services_example_with_post_params =
-  Eliom_service.post_service
+  Eliom_service.Http.post_service
     ~fallback:session_services_example
     ~post_params:(Eliom_parameter.string "login")
     ()
 
 let session_services_example_close =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["close2"]
     ~get_params:Eliom_parameter.unit
     ()
@@ -795,19 +795,19 @@ let _ = register ~scope:`Session
 (* We create one main service and two coservices:           *)
 
 let coservices_example =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["coserv"]
     ~get_params:Eliom_parameter.unit
     ()
 
 let coservices_example_post =
-  Eliom_service.post_coservice
+  Eliom_service.Http.post_coservice
     ~fallback:coservices_example
     ~post_params:Eliom_parameter.unit
     ()
 
 let coservices_example_get =
-  Eliom_service.coservice
+  Eliom_service.Http.coservice
     ~fallback:coservices_example
     ~get_params:Eliom_parameter.unit
     ()
@@ -919,13 +919,13 @@ let session_group = `Session_group calc_example_scope_hierarchy
 (* one with a GET integer parameter:                        *)
 
 let calc =
-  service
+  Http.service
     ~path:["calc"]
     ~get_params:unit
     ()
 
 let calc_i =
-  service
+  Http.service
     ~path:["calc"]
     ~get_params:(int "i")
     ()
@@ -1010,13 +1010,13 @@ let my_table = Eliom_state.create_volatile_table (*zap* *) ~scope:session (* *za
 (* (for connection and disconnection)                       *)
 
 let connect_example3 =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["action"]
     ~get_params:Eliom_parameter.unit
     ()
 
 let connect_action =
-  Eliom_service.post_coservice'
+  Eliom_service.Http.post_coservice'
     ~name:"connect3"
     ~post_params:(Eliom_parameter.string "login")
     ()
@@ -1140,7 +1140,7 @@ Cookies
 *wiki*)
 let cookiename = "mycookie"
 
-let cookies = service ["cookies"] unit ()
+let cookies = Http.service ["cookies"] unit ()
 
 let _ = Eliom_registration.Html5.register cookies
   (fun () () ->
@@ -1211,13 +1211,13 @@ let my_persistent_table =
 (* (for connection and disconnection)                       *)
 
 let persist_session_example =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["persist"]
     ~get_params:unit
     ()
 
 let persist_session_connect_action =
-  Eliom_service.post_coservice'
+  Eliom_service.Http.post_coservice'
     ~name:"connect4"
     ~post_params:(string "login")
     ()
@@ -1330,13 +1330,13 @@ let session_group = `Session_group scope_hierarchy
 (* (for connection and disconnection)                       *)
 
 let connect_example6 =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["action2"]
     ~get_params:unit
     ()
 
 let connect_action =
-  Eliom_service.post_coservice'
+  Eliom_service.Http.post_coservice'
     ~name:"connect6"
     ~post_params:(string "login")
     ()
@@ -1432,12 +1432,12 @@ let () =
 
 
 *wiki*)
-let disposable = service ["disposable"] unit ()
+let disposable = Http.service ["disposable"] unit ()
 
 let _ = register disposable
     (fun () () ->
       let disp_coservice =
-        coservice ~max_use:2 ~fallback:disposable ~get_params:unit ()
+        Http.coservice ~max_use:2 ~fallback:disposable ~get_params:unit ()
       in
       register ~scope:Eliom_common.default_session_scope ~service:disp_coservice
         (fun () () ->
@@ -1461,7 +1461,7 @@ let _ = register disposable
 
 
 *wiki*)
-let timeout = service ["timeout"] unit ()
+let timeout = Http.service ["timeout"] unit ()
 
 let _ =
   let page () () =
@@ -1491,7 +1491,7 @@ let _ =
 
 
 *wiki*)
-let publiccoduringsess = service ["publiccoduringsess"] unit ()
+let publiccoduringsess = Http.service ["publiccoduringsess"] unit ()
 
 let _ =
   let page () () =
@@ -1544,7 +1544,7 @@ let my_nl_params =
     ~name:"mynlparams"
     (Eliom_parameter.int "a" ** Eliom_parameter.string "s")
 
-let nlparams = service ~path:["nlparams"] ~get_params:(int "i") ()
+let nlparams = Http.service ~path:["nlparams"] ~get_params:(int "i") ()
 
 let make_body () =
   [p [a ~service:nlparams [pcdata "without nl params"] 4];
@@ -1643,13 +1643,13 @@ let session_group = `Session_group scope_hierarchy
 (* (for connection and disconnection)                       *)
 
 let connect_example5 =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["groups"]
     ~get_params:Eliom_parameter.unit
     ()
 
 let connect_action =
-  Eliom_service.post_coservice'
+  Eliom_service.Http.post_coservice'
     ~name:"connect5"
     ~post_params:(Eliom_parameter.string "login")
     ()
@@ -1735,13 +1735,13 @@ let my_table =
 (* (for connection and disconnection)                       *)
 
 let group_tables_example =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["grouptables"]
     ~get_params:Eliom_parameter.unit
     ()
 
 let connect_action =
-  Eliom_service.post_coservice'
+  Eliom_service.Http.post_coservice'
     ~name:"connect7"
     ~post_params:(Eliom_parameter.string "login")
     ()
@@ -1864,14 +1864,14 @@ let my_table =
 
 
 let pgroup_tables_example =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["pgrouptables"]
     ~get_params:Eliom_parameter.unit
     ()
 
 
 let connect_action =
-  Eliom_service.post_coservice'
+  Eliom_service.Http.post_coservice'
     ~name:"connect8"
     ~post_params:(Eliom_parameter.string "login")
     ()
@@ -1981,13 +1981,13 @@ let csrf_scope_hierarchy = Eliom_common.create_scope_hierarchy "csrf"
 let csrf_scope = `Session csrf_scope_hierarchy
 
 let csrfsafe_example =
-  Eliom_service.service
+  Eliom_service.Http.service
     ~path:["csrf"]
     ~get_params:Eliom_parameter.unit
     ()
 
 let csrfsafe_example_post =
-  Eliom_service.post_coservice
+  Eliom_service.Http.post_coservice
     ~csrf_safe:true
     ~csrf_scope
     ~csrf_secure:true
@@ -2347,7 +2347,7 @@ let suffixform = register_service ["suffixform"] unit
 
 
 *wiki*)
-let upload = service
+let upload = Http.service
     ~path:["upload"]
     ~get_params:unit
     ()
@@ -2396,16 +2396,16 @@ let uploadform = register upload
 (* Hierarchical menu *)
 open Eliom_tools
 
-let hier1 = service ~path:["hier1"] ~get_params:unit ()
-let hier2 = service ~path:["hier2"] ~get_params:unit ()
-let hier3 = service ~path:["hier3"] ~get_params:unit ()
-let hier4 = service ~path:["hier4"] ~get_params:unit ()
-let hier5 = service ~path:["hier5"] ~get_params:unit ()
-let hier6 = service ~path:["hier6"] ~get_params:unit ()
-let hier7 = service ~path:["hier7"] ~get_params:unit ()
-let hier8 = service ~path:["hier8"] ~get_params:unit ()
-let hier9 = service ~path:["hier9"] ~get_params:unit ()
-let hier10 = service ~path:["hier10"] ~get_params:unit ()
+let hier1 = Http.service ~path:["hier1"] ~get_params:unit ()
+let hier2 = Http.service ~path:["hier2"] ~get_params:unit ()
+let hier3 = Http.service ~path:["hier3"] ~get_params:unit ()
+let hier4 = Http.service ~path:["hier4"] ~get_params:unit ()
+let hier5 = Http.service ~path:["hier5"] ~get_params:unit ()
+let hier6 = Http.service ~path:["hier6"] ~get_params:unit ()
+let hier7 = Http.service ~path:["hier7"] ~get_params:unit ()
+let hier8 = Http.service ~path:["hier8"] ~get_params:unit ()
+let hier9 = Http.service ~path:["hier9"] ~get_params:unit ()
+let hier10 = Http.service ~path:["hier10"] ~get_params:unit ()
 
 let mymenu : (_, Eliom_service.registrable, _) hierarchical_site =
   (
