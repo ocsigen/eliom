@@ -169,8 +169,11 @@ let get_client_lib ?kind:k () =
        (get_client_package ?kind:k ()))
 
 let get_client_js () =
-  [ "+eliom.client/eliom_client.js" ;
-    "+js_of_ocaml/weak.js" ]
+  [
+    "+eliom.client/eliom_client.js" ;
+    "+js_of_ocaml/weak.js";
+    "+js_of_ocaml/classlist.js" (* ie9 support *)
+  ]
 
 (* Should be calld only with -dump... *)
 let get_pp_dump opt = match !pp with
