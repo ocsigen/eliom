@@ -21,6 +21,7 @@
 let get_default_hostname () = Url.Current.host
 let get_default_port () = 80 (*VVV take from server? !!!!!!!!! *) (*RRR ??? Url.default_http_port ???*)
 let get_default_sslport () = 443 (*VVV take from server? !!!!!!!!! *) (*RRR ??? replace by Url.default_https_port ???*)
+let default_protocol_is_https () = Url.Current.protocol = "https" (*VVV take from server? !!!!!!!!! *) (*RRR ??? replace by Url.default_https_port ???*)
 let get_default_links_xhr () = true (*BBB take from server? !!!!!!!!!! *)
 
 let debug_timings = ref false

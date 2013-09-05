@@ -20,6 +20,7 @@
 val get_default_hostname : unit -> string
 val get_default_port : unit -> int
 val get_default_sslport : unit -> int
+val default_protocol_is_https : unit -> bool
 val get_default_links_xhr : unit -> bool
 
 val debug_timings : bool ref
