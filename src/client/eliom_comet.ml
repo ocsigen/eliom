@@ -383,8 +383,7 @@ struct
       (fun () -> hd.hd_activity.active_waiter)
     in
     let request = make_request hd in
-    lwt s = call_service_after_load_end hd.hd_service ()
-	request in
+    lwt s = call_service_after_load_end hd.hd_service () request in
     Lwt.return (Ecb.Json_answer.from_string s)
 
   let drop_message_index =

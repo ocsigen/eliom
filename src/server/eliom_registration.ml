@@ -1519,12 +1519,13 @@ module Eliom_appl_reg_make_param
 
     let encode_slashs = List.map (Url.encode ~plus:false) in
 
-    let base_url = Url.make_absolute_url
-      ~https:(Eliom_request_info.get_csp_ssl ())
-      ~host:(Eliom_request_info.get_csp_hostname ())
-      ~port:(Eliom_request_info.get_csp_server_port ())
+    let base_url =
+      Eliom_uri.make_proto_prefix
+        (Eliom_config.default_protocol_is_https () ||
+           Eliom_request_info.get_csp_ssl_sp sp)
+      ^
       (String.concat "/"
-         (""::encode_slashs (Eliom_request_info.get_csp_original_full_path ()))
+         (encode_slashs (Eliom_request_info.get_csp_original_full_path ()))
       )
     in
 

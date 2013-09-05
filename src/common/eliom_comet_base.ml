@@ -1,4 +1,4 @@
-7(* Ocsigen
+(* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010-2011
  * Raphaël Proust
