@@ -521,8 +521,8 @@ let default_no_appl =
     fun () ->
       incr counter;
       pcdata (string_of_int !counter) in
-  let get_service = Eliom_service.Appl.service ~path:["no-xhr"] ~get_params:Eliom_parameter.unit () in
-  let post_service = Eliom_service.Appl.post_service ~fallback:get_service ~post_params:Eliom_parameter.unit () in
+  let get_service = Eliom_service.App.service ~path:["no-xhr"] ~get_params:Eliom_parameter.unit () in
+  let post_service = Eliom_service.App.post_service ~fallback:get_service ~post_params:Eliom_parameter.unit () in
   let toggle_default_no_appl =
     Eliom_registration.Action.register_post_coservice'
       ~post_params:Eliom_parameter.unit
@@ -571,14 +571,14 @@ let default_no_appl =
 ====Other tests:
 *wiki*)
 let withoutclient =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["withoutclient"]
     ~get_params:unit
     ()
 
 
 let gotowithoutclient =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["gotowithoutclient"]
     ~get_params:unit
     ()
@@ -708,7 +708,7 @@ let rec rec_list_react = (react_up,42)::rec_list_react
 let global_div = Html5.Id.create_global_elt (div [pcdata "global div"])
 let other_global_div = Html5.Id.create_global_elt (div [pcdata "other global div"])
 
-let wrapping1 = Eliom_service.Appl.service
+let wrapping1 = Eliom_service.App.service
     ~path:["wrapping1"]
     ~get_params:unit
     ()
@@ -1342,17 +1342,17 @@ let comet_message_board_stateless = comet_message_board_maker "message_board_sta
  *wiki*)
 
 let service_style1 =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["css"; "style1"]
     ~get_params:unit
     ()
 let service_style2 =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["css"; "style2"]
     ~get_params:unit
     ()
 let service_no_style =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["css"; "no_style"]
     ~get_params:unit
     ()
@@ -1649,21 +1649,21 @@ let my_table = Eliom_state.create_volatile_table ~scope ()
 (* Create services, but do not register them yet:           *)
 
 let tsession_data_example =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["tsessdata"]
     ~get_params:Eliom_parameter.unit
     ()
 
 
 let tsession_data_example_with_post_params =
-  Eliom_service.Appl.post_service
+  Eliom_service.App.post_service
     ~fallback:tsession_data_example
     ~post_params:(Eliom_parameter.string "login")
     ()
 
 
 let tsession_data_example_close =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["tclose"]
     ~get_params:Eliom_parameter.unit
     ()
@@ -1758,21 +1758,21 @@ let scope = `Client_process scope_hierarchy
 (* Create services, but do not register them yet:           *)
 
 let tsession_services_example =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["tsessionservices"]
     ~get_params:Eliom_parameter.unit
     ()
 
 
 let tsession_services_example_with_post_params =
-  Eliom_service.Appl.post_service
+  Eliom_service.App.post_service
     ~fallback:tsession_services_example
     ~post_params:(Eliom_parameter.string "login")
     ()
 
 
 let tsession_services_example_close =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["tclose2"]
     ~get_params:Eliom_parameter.unit
     ()
@@ -1875,19 +1875,19 @@ let () =
 (* We create one main service and two coservices:           *)
 
 let tcoservices_example =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["tcoserv"]
     ~get_params:Eliom_parameter.unit
     ()
 
 let tcoservices_example_post =
-  Eliom_service.Appl.post_coservice
+  Eliom_service.App.post_coservice
     ~fallback:tcoservices_example
     ~post_params:Eliom_parameter.unit
     ()
 
 let tcoservices_example_get =
-  Eliom_service.Appl.coservice
+  Eliom_service.App.coservice
     ~fallback:tcoservices_example
     ~get_params:Eliom_parameter.unit
     ()
@@ -1938,14 +1938,14 @@ let scope = `Client_process Eliom_testsuite1.calc_example_scope_hierarchy
 (* one with a GET integer parameter:                        *)
 
 let tcalc =
-  Appl.service
+  App.service
     ~path:["tcalc"]
     ~get_params:unit
     ()
 
 
 let tcalc_i =
-  Appl.service
+  App.service
     ~path:["tcalc"]
     ~get_params:(int "i")
     ()
@@ -2021,7 +2021,7 @@ let my_table = Eliom_state.create_volatile_table ~scope ()
 (* (for connection and disconnection)                       *)
 
 let tconnect_example3 =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["taction"]
     ~get_params:Eliom_parameter.unit
     ()
@@ -2114,7 +2114,7 @@ let tmy_persistent_table =
 (* (for connection and disconnection)                       *)
 
 let tpersist_session_example =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["tpersist"]
     ~get_params:unit
     ()
@@ -2260,14 +2260,14 @@ let scope = `Client_process scope_hierarchy
 (* (for connection and disconnection)                       *)
 
 let tconnect_example6 =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["taction2"]
     ~get_params:unit
     ()
 
 
 let tconnect_action =
-  Eliom_service.Appl.post_coservice'
+  Eliom_service.App.post_coservice'
     ~name:"tconnect6"
     ~post_params:(string "login")
     ()
@@ -2372,14 +2372,14 @@ let () =
 let csrf_scope = `Client_process Eliom_testsuite1.csrf_scope_hierarchy
 
 let tcsrfsafe_example =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["tcsrf"]
     ~get_params:Eliom_parameter.unit
     ()
 
 
 let tcsrfsafe_example_post =
-  Eliom_service.Appl.post_coservice
+  Eliom_service.App.post_coservice
     ~csrf_safe:true
     ~csrf_scope
     ~csrf_secure:true
@@ -2414,7 +2414,7 @@ let _ =
 let cookiename = "mycookie"
 
 
-let tcookies = Appl.service ["tcookies"] unit ()
+let tcookies = App.service ["tcookies"] unit ()
 
 
 let _ = My_appl.register tcookies
@@ -2505,12 +2505,12 @@ let _ =
 
 
 (*********)
-let ttimeout = Appl.service ["ttimeout"] unit ()
+let ttimeout = App.service ["ttimeout"] unit ()
 
 let _ =
   let page () () =
     let timeoutcoserv =
-      Eliom_service.Appl.coservice
+      Eliom_service.App.coservice
         ~fallback:ttimeout ~get_params:unit ~timeout:5. ()
     in
     let _ =
@@ -2535,7 +2535,7 @@ let _ =
 
 
 (*****************************************************************************)
-let nonapplprocessservice = Appl.service ["nonapplprocessservice"] unit ()
+let nonapplprocessservice = App.service ["nonapplprocessservice"] unit ()
 
 let _ =
   let page () () =
@@ -2590,7 +2590,7 @@ let scope_hierarchy = Eliom_common.create_scope_hierarchy "session_appl"
 let session = `Session scope_hierarchy
 
 let connect_example789 =
-  Eliom_service.Appl.service ~path:["session_appl"] ~get_params:unit ()
+  Eliom_service.App.service ~path:["session_appl"] ~get_params:unit ()
 
 let connect_action789 =
   Eliom_service.Http.post_coservice'
@@ -2769,7 +2769,7 @@ let otherappl =
     ~get_params:unit
     (fun () () -> Lwt.return (make_page_bis [p [pcdata "I am another application"] ]))
 
-let long_page = Eliom_service.Appl.service ~path:["fragment";"main"] ~get_params:unit ()
+let long_page = Eliom_service.App.service ~path:["fragment";"main"] ~get_params:unit ()
 
 let _ =
   My_appl.register long_page
@@ -2791,7 +2791,7 @@ let _ =
       (make_page [Html5.F.ul (list 1 100)]))
 
 let service_with_get_params =
-  Eliom_service.Appl.service ~path:["intgp"]
+  Eliom_service.App.service ~path:["intgp"]
     ~get_params:(suffix_prod (string "s") (string "t")) ()
 
 let _ =
@@ -2809,9 +2809,9 @@ let _ =
   let () = debug "Application loading"
 }}
 
-let live1 = Eliom_service.Appl.service ["live";"one"] unit ()
-let live2 = Eliom_service.Appl.service ["live";"two"] unit ()
-let live3 = Eliom_service.Appl.service ["live";"three"] unit ()
+let live1 = Eliom_service.App.service ["live";"one"] unit ()
+let live2 = Eliom_service.App.service ["live";"two"] unit ()
+let live3 = Eliom_service.App.service ["live";"three"] unit ()
 
 let live_description =
   div [pcdata "This is an application with three pages. ";
@@ -3049,7 +3049,7 @@ let formc = My_appl.register_service ["formc"] unit
 (* Any with Eliom applications: *)
 
 let any_service =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["appl_any"]
     ~get_params:(Eliom_parameter.int "with_eliom_appl")
     ()
@@ -3301,13 +3301,13 @@ let simple_div =
        [pcdata "classical"]]
 
 let unique1 =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["appl";"unique1"]
     ~get_params:Eliom_parameter.unit
     ()
 
 let unique2 =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["appl";"unique2"]
     ~get_params:Eliom_parameter.unit
     ()
@@ -3359,7 +3359,7 @@ let _ =
                    ]))
 
 let big_service =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["big_page"]
     ~get_params:Eliom_parameter.unit
     ()
@@ -3382,7 +3382,7 @@ let _ =
                    div [big_page 12]]))
 
 let relink_test =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["relink_test"]
     ~get_params:Eliom_parameter.unit
     ()
@@ -3458,7 +3458,7 @@ let _ =
 }}
 
 let react_example =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["react_example"]
     ~get_params:Eliom_parameter.unit
     ()
@@ -3535,12 +3535,12 @@ let rec div_tree v width height =
          (fun i -> Html5.F.div (div_tree v width (height-1))))
 let div_tree w h = div_tree (ref 0) w h
 
-let domnodes_timings = Eliom_service.Appl.service
+let domnodes_timings = Eliom_service.App.service
   ~path:["domnodes_timings"]
   ~get_params:(int "widht" ** int "height")
   ()
 
-let nodes_timings = Eliom_service.Appl.service
+let nodes_timings = Eliom_service.App.service
   ~path:["nodes_timings"]
   ~get_params:(int "widht" ** int "height")
   ()
@@ -3647,28 +3647,28 @@ let shared_dom_nodes = My_appl.register_service
 
 (**** TEMPLATE ****)
 
-let tmpl1_page1 = Eliom_service.Appl.service
+let tmpl1_page1 = Eliom_service.App.service
   ~path:["tmpl1";"page1"]
   ~get_params:unit
   ()
 
-let tmpl1_page2 = Eliom_service.Appl.service
+let tmpl1_page2 = Eliom_service.App.service
   ~path:["tmpl1";"page2"]
   ~get_params:unit
   ()
 
-let tmpl1_page3 = Eliom_service.Appl.service
+let tmpl1_page3 = Eliom_service.App.service
   ~path:["tmpl1";"page3"]
   ~get_params:unit
   ()
 
 
-let tmpl2_page1 = Eliom_service.Appl.service
+let tmpl2_page1 = Eliom_service.App.service
   ~path:["tmpl2";"page1"]
   ~get_params:unit
   ()
 
-let tmpl2_page2 = Eliom_service.Appl.service
+let tmpl2_page2 = Eliom_service.App.service
   ~path:["tmpl2";"page2"]
   ~get_params:unit
   ()
@@ -3754,28 +3754,28 @@ let () = Tmpl_2.register ~service:tmpl2_page2
 
 (**** HISTORY ****)
 
-let hist_page1 = Eliom_service.Appl.service
+let hist_page1 = Eliom_service.App.service
   ~path:["hist";"page1"]
   ~get_params:unit
   ()
 
-let hist_page2 = Eliom_service.Appl.service
+let hist_page2 = Eliom_service.App.service
   ~path:["hist";"page2"]
   ~get_params:unit
   ()
 
-let hist_page3 = Eliom_service.Appl.service
+let hist_page3 = Eliom_service.App.service
   ~path:["hist";"page3"]
   ~get_params:unit
   ()
 
 
-let hist_page4 = Eliom_service.Appl.service
+let hist_page4 = Eliom_service.App.service
   ~path:["hist";"page4"]
   ~get_params:unit
   ()
 
-let hist_page5 = Eliom_service.Appl.service
+let hist_page5 = Eliom_service.App.service
   ~path:["hist";"page5"]
   ~get_params:unit
   ()
@@ -3817,7 +3817,7 @@ let nl_params =
     ~name:"mynlparams"
     (Eliom_parameter.int "a" ** Eliom_parameter.string "s")
 
-let nl_serv = Appl.service ~path:["appl_nlparams"] ~get_params:(unit) ()
+let nl_serv = App.service ~path:["appl_nlparams"] ~get_params:(unit) ()
 
 let _ = My_appl.register
   ~service:nl_serv
@@ -3843,13 +3843,13 @@ let _ = My_appl.register
 
 (***********)
 let nlpost_entry =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["appl_nlpost"]
     ~get_params:(Eliom_parameter.unit)
     ()
 
 let nlpost =
-  Eliom_service.Appl.post_coservice
+  Eliom_service.App.post_coservice
     ~fallback:nlpost_entry
     ~name:"appl_nlpost"
     ~post_params:(Eliom_parameter.unit)
@@ -3898,7 +3898,7 @@ let some_external_service =
     ~path:["demo";"cors.php"]
     ~get_params:(Eliom_parameter.unit) ()
 
-let external_xhr = Appl.service ~path:["external_xhr"] ~get_params:(unit) ()
+let external_xhr = App.service ~path:["external_xhr"] ~get_params:(unit) ()
 
 let _ = My_appl.register
   ~service:external_xhr
@@ -3993,13 +3993,13 @@ let () =
 (* Extensive test of states *)
 
 let states_test =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["states"; ""]
     ~get_params:(Eliom_parameter.unit)
     ()
 
 let states_test_bis =
-  Eliom_service.Appl.service
+  Eliom_service.App.service
     ~path:["states"]
     ~get_params:(Eliom_parameter.suffix (string "group"))
     ()
