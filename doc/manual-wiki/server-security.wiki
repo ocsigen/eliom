@@ -3,6 +3,17 @@
 Eliom and Ocsigen server are taking in charge a lot of security issues automatically. This unburdens the programmer from having to think about most of security problems. This page details various possible designs flaws of web applications, how Eliom and Ocsigen server (possibly) protects you against a possible exploitation of these flaws, and where you should be careful. //Please help us maintaining this page, by sending us any comments.// <<|For more details on the various flaws, see e.g. [[http://www.amazon.fr/Web-Application-Hackers-Handbook-Discovering/dp/0470170778/|this book]].>>
 
 
+=== HTTPS
+
+If your Web site is using HTTP, all requests and responses mauy be intercepted.
+If you want your Web site to be secure, never send private data through http:
+
+* Pages containing personal data must be sent only through HTTPS
+* Passwords must be sent to the server only through HTTPS
+* Use secure Eliom references to record user name or user id once the
+  user is connected, otherwise the session ID may be send through HTTP.
+
+
 === The application only does client-side verification
 This is probably the biggest (and most dangerous) possible mistake. As the user has an entire control over the data sent to the server, **never** assume that the data sent by the client has been verified (even if there some checking function in Javascript or O'Browser).
 Instead, reimplement all verifications server side.
@@ -12,8 +23,11 @@ Instead, reimplement all verifications server side.
    ** when creating a form, check if the user has the required permission (if not, you will usually display a message //insufficient permissions// instead of the form)
    ** in the service that answers to the form, perform the exact same check
 
-However, note that incorrect data will never crash the server.
+However, as we are using sage unmarshaling,
+incorrect data will never crash the server.
 
+Example: Never trust the (current) user id sent by the client process.
+Always take the userid from the session, through cookies.
 
 
 === Incorrect access controls
