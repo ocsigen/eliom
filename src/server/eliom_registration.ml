@@ -1649,7 +1649,7 @@ module type ELIOM_APPL = sig
       and type options := appl_service_options
       and type return  := appl_service
       and type returnB := [> appl_service ]
-      and type returnT := [< appl_service ]
+      and type returnT := [< non_caml_service ]
       and type result  := appl application_content kind
   val typed_name : appl application_name
 end

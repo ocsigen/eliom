@@ -128,7 +128,7 @@ the same application!//
 For now, the syntax extension has not been implemented, thus the syntax
 is somewhat more complicated. Here are some examples of what you can do:
 *wiki*)
-let eliomclient2 = Unsafe.service ~path:["plip"; "eliomclient2"] ~get_params:unit ()
+let eliomclient2 = App.service ~path:["plip"; "eliomclient2"] ~get_params:unit ()
 
 let myblockservice =
   Eliom_registration.Flow5.register_post_coservice
@@ -2183,7 +2183,7 @@ let tlogin_box session_expired action =
 
 let tpersist_session_example_handler () () =
     let timeoutcoserv =
-      Eliom_service.Unsafe.coservice
+      Eliom_service.Http.coservice
         ~fallback:tpersist_session_example ~get_params:unit ~timeout:5. ()
     in
     let _ =
