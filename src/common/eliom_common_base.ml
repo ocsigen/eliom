@@ -176,7 +176,7 @@ let appl_name_cookie_name = "__eliom_appl_name"
 let appl_name_header_name = "X-Eliom-Application"
 let full_xhr_redir_header = "X-Eliom-Location-Full"
 let half_xhr_redir_header = "X-Eliom-Location-Half"
-let response_url_header = "X-Eliom-Location"
+let response_url_header = "X-Eliom-Url"
 
 let default_group_name = "__eliom$%@default_group"
 (*204FORMS* old implementation of forms with 204 and change_page_event

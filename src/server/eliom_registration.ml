@@ -1604,20 +1604,19 @@ module Eliom_appl_reg_make_param
     let rc = Eliom_request_info.get_request_cache () in
     let headers = Http_headers.replace
       (Http_headers.name Eliom_common_base.response_url_header)
-      (Url.make_absolute_url
-         ~https:(Eliom_request_info.get_ssl ())
-         ~host:(Eliom_request_info.get_hostname ())
-         ~port:(Eliom_request_info.get_server_port ())
-         ("/"
-          ^ try Polytables.get ~table:rc ~key:Eliom_mkreg.suffix_redir_uri_key
-             (* If it is a suffix service with redirection, the uri has already been
-                computed in rc *)
-          with Not_found ->
+      (Eliom_uri.make_proto_prefix
+         (Eliom_config.default_protocol_is_https () ||
+            Eliom_request_info.get_csp_ssl_sp sp)
+       ^
+         try Polytables.get ~table:rc ~key:Eliom_mkreg.suffix_redir_uri_key
+          (* If it is a suffix service with redirection,
+             the uri has already been computed in rc *)
+         with Not_found ->
             let get_params =
               match ri.Ocsigen_extensions.ri_get_params_string with
               | None -> ""
               | Some p -> "?" ^ p in
-            ri.Ocsigen_extensions.ri_original_full_path_string ^ get_params))
+            ri.Ocsigen_extensions.ri_original_full_path_string ^ get_params)
       headers
     in
 
