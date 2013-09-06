@@ -68,7 +68,7 @@ the URL.\\
 
 
 If you want to create (mutually or not) recursive pages, create the
-service using <<a_api| val Eliom_service.Appl.service >> or  <<a_api| val Eliom_service.Http.service >> first, then
+service using <<a_api| val Eliom_service.App.service >> or  <<a_api| val Eliom_service.Http.service >> first, then
 register it in the table using (for example) <<a_api| val Eliom_registration.Html5.register >>:
 
 <<code language="ocaml"|let linkrec = Eliom_service.Http.service ["linkrec"] Eliom_parameter.unit ()

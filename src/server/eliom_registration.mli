@@ -227,7 +227,7 @@ module type TMPL_PARAMS = sig
   val update: t -> unit client_value
 end
 
-module Eliom_tmpl (App : ELIOM_APPL) (Tmpl_param : TMPL_PARAMS): sig
+module Eliom_tmpl (Appl : ELIOM_APPL) (Tmpl_param : TMPL_PARAMS): sig
 
   include "sigs/eliom_reg.mli"
   subst type page    := Tmpl_param.t
@@ -235,7 +235,7 @@ module Eliom_tmpl (App : ELIOM_APPL) (Tmpl_param : TMPL_PARAMS): sig
     and type return  := appl_service
     and type returnB := [> appl_service ]
     and type returnT := [< appl_service ]
-    and type result  := App.appl application_content kind
+    and type result  := Appl.appl application_content kind
 
 end
 
