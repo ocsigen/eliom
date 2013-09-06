@@ -175,9 +175,8 @@ val unset_cookie :
     configuration for the group or default configuration if the group
     does not exist.
 
-    If [~secure] is false when the protocol is https, it will affect
-    the unsecure session. Otherwise, il will affect the secure session in
-    https, the unsecure one in http.
+    If [~secure] is true, it will affect the secure session (secure cookies),
+    otherwise (default), the unsecure one (behavior change in Eliom 4).
 *)
 val set_service_session_group :
   ?set_max: int ->
