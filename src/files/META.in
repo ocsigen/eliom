@@ -18,6 +18,7 @@ package "client" (
   requires = "%%CDEPS%%"
   requires(syntax) += "%%CSDEPS%%"
   archive(byte) = "%%NAME%%_client.cma eliom_client_main.cmo"
+  linkopts(javascript) = "eliom_client.js"
 )
 
 package "syntax" (
