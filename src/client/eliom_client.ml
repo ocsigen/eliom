@@ -383,7 +383,7 @@ let reify_caml_event node ce : #Dom_html.event Js.t -> bool = match ce with
         let form = Js.Opt.get (Dom_html.CoerceTo.form node) (fun () -> error "not a form element") in
         raw_form_handler form kind cookies_info tmpl ev)
   | Xml.CE_client_closure f ->
-      (fun ev -> f ev)
+      (fun ev -> try f ev; true with False -> false)
   | Xml.CE_registered_closure (_, cv) ->
       raw_event_handler cv
 
