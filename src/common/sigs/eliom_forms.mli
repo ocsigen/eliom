@@ -730,6 +730,7 @@ type 'a select_opt =
 (** Creates a [<select>] tag for int values. *)
 val int_select :
   ?a:select_attrib_t ->
+  ?required:pcdata_elt ->
   name:[< `One of int ] param_name ->
   int select_opt ->
   int select_opt list ->
@@ -739,6 +740,7 @@ val int_select :
 (** Creates a [<select>] tag for int32 values. *)
 val int32_select :
   ?a:select_attrib_t ->
+  ?required:pcdata_elt ->
   name:[< `One of int32 ] param_name ->
   int32 select_opt ->
   int32 select_opt list ->
@@ -748,6 +750,7 @@ val int32_select :
 (** Creates a [<select>] tag for int64 values. *)
 val int64_select :
   ?a:select_attrib_t ->
+  ?required:pcdata_elt ->
   name:[< `One of int64 ] param_name ->
   int64 select_opt ->
   int64 select_opt list ->
@@ -757,6 +760,7 @@ val int64_select :
 (** Creates a [<select>] tag for float values. *)
 val float_select :
   ?a:select_attrib_t ->
+  ?required:pcdata_elt ->
   name:[< `One of float ] param_name ->
   float select_opt ->
   float select_opt list ->
@@ -766,6 +770,7 @@ val float_select :
 (** Creates a [<select>] tag for string values. *)
 val string_select :
   ?a:select_attrib_t ->
+  ?required:pcdata_elt ->
   name:[< `One of string ] param_name ->
   string select_opt ->
   string select_opt list ->
@@ -775,6 +780,7 @@ val string_select :
 (** Creates a [<select>] tag for user type values. *)
 val user_type_select : ('a -> string) ->
   ?a:select_attrib_t ->
+  ?required:pcdata_elt ->
   name:[< `One of 'a ] param_name ->
   'a select_opt ->
   'a select_opt list ->
@@ -784,6 +790,7 @@ val user_type_select : ('a -> string) ->
 (** Creates a [<select>] tag for any (untyped) value. *)
 val raw_select :
   ?a:select_attrib_t ->
+  ?required:pcdata_elt ->
   name:string ->
   string select_opt ->
   string select_opt list ->
@@ -793,6 +800,7 @@ val raw_select :
 (** Creates a [<select>] tag for int values. *)
 val int_multiple_select :
   ?a:select_attrib_t ->
+  ?required:pcdata_elt ->
   name:[< `Set of int ] param_name ->
   int select_opt ->
   int select_opt list ->
@@ -802,6 +810,7 @@ val int_multiple_select :
 (** Creates a [<select>] tag for int32 values. *)
 val int32_multiple_select :
   ?a:select_attrib_t ->
+  ?required:pcdata_elt ->
   name:[< `Set of int32 ] param_name ->
   int32 select_opt ->
   int32 select_opt list ->
@@ -811,6 +820,7 @@ val int32_multiple_select :
 (** Creates a [<select>] tag for int64 values. *)
 val int64_multiple_select :
   ?a:select_attrib_t ->
+  ?required:pcdata_elt ->
   name:[< `Set of int64 ] param_name ->
   int64 select_opt ->
   int64 select_opt list ->
@@ -820,6 +830,7 @@ val int64_multiple_select :
 (** Creates a [<select>] tag for float values. *)
 val float_multiple_select :
   ?a:select_attrib_t ->
+  ?required:pcdata_elt ->
   name:[< `Set of float ] param_name ->
   float select_opt ->
   float select_opt list ->
@@ -829,6 +840,7 @@ val float_multiple_select :
 (** Creates a [<select>] tag for string values. *)
 val string_multiple_select :
   ?a:select_attrib_t ->
+  ?required:pcdata_elt ->
   name:[< `Set of string ] param_name ->
   string select_opt ->
   string select_opt list ->
@@ -839,6 +851,7 @@ val string_multiple_select :
 val user_type_multiple_select :
   ('a -> string) ->
   ?a:select_attrib_t ->
+  ?required:pcdata_elt ->
   name:[< `Set of 'a ] param_name ->
   'a select_opt ->
   'a select_opt list ->
@@ -848,6 +861,7 @@ val user_type_multiple_select :
 (** Creates a [<select>] tag for any (untyped) value. *)
 val raw_multiple_select :
   ?a:select_attrib_t ->
+  ?required:pcdata_elt ->
   name:string ->
   string select_opt ->
   string select_opt list ->
