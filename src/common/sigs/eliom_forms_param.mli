@@ -24,13 +24,16 @@ type textarea_attrib_t
 
 type input_elt
 type input_attrib_t
+val a_input_required : [`Required] -> input_attrib_t
+val input_attrib_append : input_attrib_t -> input_attrib_t -> input_attrib_t
+
 
 type select_elt
 type select_content_elt
 type select_content_elt_list
 val select_content_cons : select_content_elt -> select_content_elt_list -> select_content_elt_list
 type select_attrib_t
-val a_required : [`Required] -> select_attrib_t
+val a_select_required : [`Required] -> select_attrib_t
 val select_attrib_append : select_attrib_t -> select_attrib_t -> select_attrib_t
 
 type button_elt

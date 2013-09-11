@@ -101,13 +101,15 @@ module Html_text = struct
 
     type input_elt = string
     type input_attrib_t = string
+    let a_input_required `Required = "required"
+    let input_attrib_append = (^)
 
     type select_elt = string
     type select_content_elt = string
     type select_content_elt_list = string
     type select_attrib_t = string
     let select_content_cons = (^)
-    let a_required `Required = "required"
+    let a_select_required `Required = "required"
     let select_attrib_append = (^)
 
     type button_elt = string

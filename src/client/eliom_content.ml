@@ -326,7 +326,7 @@ module Html5 = struct
     let raw_form = form
     let form = get_form
     let input = string_input
-    let select = string_select
+    let select = string_select ?required:None
   end
 
   module D = struct
@@ -335,7 +335,7 @@ module Html5 = struct
     let raw_form = form
     let form = get_form
     let input = string_input
-    let select = string_select
+    let select = string_select ?required:None
   end
 
   type 'a elt = 'a F.elt

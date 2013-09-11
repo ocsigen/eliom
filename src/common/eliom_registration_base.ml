@@ -28,7 +28,7 @@ type appl_service = [ `Appl ]
 type http_service = [ `Http ]
 type non_caml_service = [ appl_service | http_service ]
 
-type input_type = 
+type input_type =
   [
   | `Url
   | `Tel
@@ -106,13 +106,15 @@ end = struct
 
     type input_elt = Html5_types.input Html5.elt
     type input_attrib_t = Html5_types.input_attrib Html5.attrib list
+    let a_input_required required = [Html5.a_required required]
+    let input_attrib_append = List.append
 
     type select_elt = Html5_types.select Html5.elt
     type select_content_elt = Html5_types.select_content Html5.elt
     type select_content_elt_list = Html5_types.select_content Html5.elt list
     type select_attrib_t = Html5_types.select_attrib Html5.attrib list
     let select_content_cons hd tl = hd :: tl
-    let a_required required = [Html5.a_required required]
+    let a_select_required required = [Html5.a_required required]
     let select_attrib_append = List.append
 
     type button_elt = Html5_types.button Html5.elt
@@ -620,6 +622,12 @@ end = struct
 
 
       let string_radio = (string_radio :
+                            ?a:(input_attrib attrib list ) -> ?checked:bool ->
+                           name:'a -> value:string -> unit -> input elt :>
+                           ?a:(input_attrib attrib list ) -> ?checked:bool ->
+                           name:'a -> value:string -> unit -> [> input ] elt)
+
+      let string_radio_required = (string_radio_required :
                             ?a:(input_attrib attrib list ) -> ?checked:bool ->
                            name:'a -> value:string -> unit -> input elt :>
                            ?a:(input_attrib attrib list ) -> ?checked:bool ->

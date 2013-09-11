@@ -601,6 +601,11 @@ val string_radio :
   name:[ `Radio of string ] param_name ->
   value:string -> unit -> input_elt
 
+val string_radio_required :
+  ?a:input_attrib_t -> ?checked:bool ->
+  name:[ `One of string ] param_name ->
+  value:string -> unit -> input_elt
+
 (** Creates a radio [<input>] tag with int content *)
 val int_radio :
   ?a:input_attrib_t -> ?checked:bool ->

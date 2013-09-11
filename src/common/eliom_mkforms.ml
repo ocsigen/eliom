@@ -341,6 +341,17 @@ module MakeForms(Pages : FORMS_PARAM) = struct
       ?a ?checked ~typ:Pages.radio
       ~name:(string_of_param_name name) ~value ()
 
+  let string_radio_required ?a ?checked ~name ~value () =
+    let a =
+      let required = Pages.a_input_required `Required in
+      match a with
+        | None -> required
+        | Some a -> Pages.input_attrib_append required a
+    in
+    Pages.make_input
+      ~a ?checked ~typ:Pages.radio
+      ~name:(string_of_param_name name) ~value ()
+
   let int_radio ?a ?checked ~name ~value () =
     Pages.make_input
       ?a ?checked ~typ:Pages.radio
@@ -430,7 +441,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
     let a = match required with
       | None -> a
       | Some _ ->
-        let required = Pages.a_required `Required in
+        let required = Pages.a_select_required `Required in
         match a with
         | Some a -> Some (Pages.select_attrib_append required a)
         | None -> Some required
@@ -476,17 +487,23 @@ module MakeForms(Pages : FORMS_PARAM) = struct
       in
       let (newl, trouve) = aux false l in
       if trouve
-      then ((List.hd newl), (List.tl newl))
+      then ((List.hd newl), (List.tl newl), true)
       else
         let first = List.hd newl in
         (* We select the first one by default *)
-        ((select_first first), (List.tl newl))
+        let first =
+          if required = None then
+            select_first first
+          else
+            first
+        in
+        (first, (List.tl newl), false)
     in
 
 
-    let (fl, ol) =
+    let (fl, ol, has_selected) =
       if multiple
-      then (fl, ol)
+      then (fl, ol, let _, _, hs = normalize_selected (fl :: ol) in hs)
       else normalize_selected (fl::ol)
     in
     let make_opt (a, cv, co, sel) =
@@ -502,15 +519,13 @@ module MakeForms(Pages : FORMS_PARAM) = struct
           Pages.make_optgroup
             ~a ~label (make_opt og1) (Pages.map_option make_opt ogl)
     in
-    ignore (fl : _ select_opt);
-    ignore (ol : _ select_opt list);
     let fl2, ol2 = Pages.map_optgroup make_optg fl ol in
     let fl3, ol3 =
       match required with
       | None -> fl2, ol2
       | Some label ->
         let placeholder =
-          Pages.make_option ~selected:false ~value:"" label
+          Pages.make_option ~selected:(not has_selected) ~value:"" label
         in
         Pages.select_content_of_option placeholder,
         Pages.select_content_cons fl2 ol2
