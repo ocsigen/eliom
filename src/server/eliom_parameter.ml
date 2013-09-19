@@ -291,8 +291,11 @@ let reconstruct_params_
             (try (Res_ ((Obj.magic (float_of_string v)),l,files))
              with e -> Errors_ ([(pref^name^suff),v,e], l, files))
         | TFile name ->
-            let v,f = List.assoc_remove (pref^name^suff) files in
-            Res_ ((Obj.magic v), params, f)
+            (try
+               let v,f = List.assoc_remove (pref^name^suff) files in
+               Res_ ((Obj.magic v), params, f)
+             with e ->
+               Errors_ ([pref^name^suff,"",e], [], files))
         | TCoord name ->
             let r1 =
               let v, l = (List.assoc_remove (pref^name^suff^".x") params) in
