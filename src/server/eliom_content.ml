@@ -50,7 +50,7 @@ module Html5 = struct
     let raw_form = form
     let form = get_form
     let input = string_input
-    let select = string_select
+    let select = string_select ?required:None
   end
 
   module D = struct
@@ -59,7 +59,7 @@ module Html5 = struct
     let raw_form = form
     let form = get_form
     let input = string_input
-    let select = string_select
+    let select = string_select ?required:None
   end
 
   module Custom_data = Eliom_content_core.Html5.Custom_data
@@ -101,11 +101,16 @@ module Html_text = struct
 
     type input_elt = string
     type input_attrib_t = string
+    let a_input_required `Required = "required"
+    let input_attrib_append = (^)
 
     type select_elt = string
     type select_content_elt = string
     type select_content_elt_list = string
     type select_attrib_t = string
+    let select_content_cons = (^)
+    let a_select_required `Required = "required"
+    let select_attrib_append = (^)
 
     type button_elt = string
     type button_content_elt = string

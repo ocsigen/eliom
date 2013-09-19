@@ -64,7 +64,7 @@ module Xml = struct
         if Node_id_set.mem elt.node_id !node_ids_in_content then
           { elt with recontent = RE Empty }
         else elt)
-  let wrap page value = 
+  let wrap page value =
     let node_ids = ref [] in
     let rec collect_node_ids ({ elt = { node_id }} as elt) =
       if node_id <> NoId then
@@ -94,7 +94,7 @@ module Xml = struct
       wrapper_mark }
 
   let make_lazy elt =
-    { elt = 
+    { elt =
         { recontent = RELazy elt;
           node_id = NoId;
           unwrapper_mark = Eliom_wrap.create_unwrapper tyxml_unwrap_id };

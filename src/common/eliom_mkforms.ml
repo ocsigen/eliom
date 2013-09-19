@@ -341,6 +341,17 @@ module MakeForms(Pages : FORMS_PARAM) = struct
       ?a ?checked ~typ:Pages.radio
       ~name:(string_of_param_name name) ~value ()
 
+  let string_radio_required ?a ?checked ~name ~value () =
+    let a =
+      let required = Pages.a_input_required `Required in
+      match a with
+        | None -> required
+        | Some a -> Pages.input_attrib_append required a
+    in
+    Pages.make_input
+      ~a ?checked ~typ:Pages.radio
+      ~name:(string_of_param_name name) ~value ()
+
   let int_radio ?a ?checked ~name ~value () =
     Pages.make_input
       ?a ?checked ~typ:Pages.radio
@@ -424,9 +435,17 @@ module MakeForms(Pages : FORMS_PARAM) = struct
         * 'a soption list
     | Option of 'a soption
 
-  let gen_select ?a ?(multiple=false) ~name
+  let gen_select ?a ?(multiple=false) ?required ~name
       (fl : 'a select_opt) (ol : 'a select_opt list) string_of =
 
+    let a = match required with
+      | None -> a
+      | Some _ ->
+        let required = Pages.a_select_required `Required in
+        match a with
+        | Some a -> Some (Pages.select_attrib_append required a)
+        | None -> Some required
+    in
 
     let normalize_selected l =
       (* We change the list of option to have exactly one selected item.
@@ -468,17 +487,23 @@ module MakeForms(Pages : FORMS_PARAM) = struct
       in
       let (newl, trouve) = aux false l in
       if trouve
-      then ((List.hd newl), (List.tl newl))
+      then ((List.hd newl), (List.tl newl), true)
       else
         let first = List.hd newl in
         (* We select the first one by default *)
-        ((select_first first), (List.tl newl))
+        let first =
+          if required = None then
+            select_first first
+          else
+            first
+        in
+        (first, (List.tl newl), false)
     in
 
 
-    let (fl, ol) =
+    let (fl, ol, has_selected) =
       if multiple
-      then (fl, ol)
+      then (fl, ol, let _, _, hs = normalize_selected (fl :: ol) in hs)
       else normalize_selected (fl::ol)
     in
     let make_opt (a, cv, co, sel) =
@@ -494,76 +519,86 @@ module MakeForms(Pages : FORMS_PARAM) = struct
           Pages.make_optgroup
             ~a ~label (make_opt og1) (Pages.map_option make_opt ogl)
     in
-    let fl2,ol2 = Pages.map_optgroup make_optg fl ol in
-    Pages.make_select ?a ~multiple ~name fl2 ol2
+    let fl2, ol2 = Pages.map_optgroup make_optg fl ol in
+    let fl3, ol3 =
+      match required with
+      | None -> fl2, ol2
+      | Some label ->
+        let placeholder =
+          Pages.make_option ~selected:(not has_selected) ~value:"" label
+        in
+        Pages.select_content_of_option placeholder,
+        Pages.select_content_cons fl2 ol2
+    in
+    Pages.make_select ?a ~multiple ~name fl3 ol3
 
-  let raw_select ?a ~(name : string)
+  let raw_select ?a ?required ~(name : string)
       (fl : string select_opt) (ol : string select_opt list) =
-    gen_select ?a ~multiple:false ~name fl ol id
+    gen_select ?a ?required ~multiple:false ~name fl ol id
 
-  let int_select ?a ~name
+  let int_select ?a ?required ~name
       (fl : int select_opt) (ol : int select_opt list) =
-    gen_select ?a ~multiple:false
+    gen_select ?a ?required ~multiple:false
       ~name:(string_of_param_name name) fl ol string_of_int
 
-  let int32_select ?a ~name
+  let int32_select ?a ?required ~name
       (fl : int32 select_opt) (ol : int32 select_opt list) =
-    gen_select ?a ~multiple:false
+    gen_select ?a ?required ~multiple:false
       ~name:(string_of_param_name name) fl ol Int32.to_string
 
-  let int64_select ?a ~name
+  let int64_select ?a ?required ~name
       (fl : int64 select_opt) (ol : int64 select_opt list) =
-    gen_select ?a ~multiple:false
+    gen_select ?a ?required ~multiple:false
       ~name:(string_of_param_name name) fl ol Int64.to_string
 
-  let float_select ?a ~name
+  let float_select ?a ?required ~name
       (fl : float select_opt) (ol : float select_opt list) =
     gen_select ?a ~multiple:false
       ~name:(string_of_param_name name) fl ol string_of_float
 
-  let string_select ?a ~name
+  let string_select ?a ?required ~name
       (fl : string select_opt) (ol : string select_opt list) =
-    gen_select ?a ~multiple:false
+    gen_select ?a ?required ~multiple:false
       ~name:(string_of_param_name name) fl ol id
 
-  let user_type_select string_of ?a ~name (fl : 'a select_opt)
+  let user_type_select string_of ?a ?required ~name (fl : 'a select_opt)
       (ol : 'a select_opt list) =
-    gen_select ?a ~multiple:false
+    gen_select ?a ?required ~multiple:false
       ~name:(string_of_param_name name) fl ol string_of
 
-  let raw_multiple_select ?a ~(name : string)
+  let raw_multiple_select ?a ?required ~(name : string)
       (fl : string select_opt) (ol : string select_opt list) =
-    gen_select ?a ~multiple:true ~name fl ol id
+    gen_select ?a ?required ~multiple:true ~name fl ol id
 
-  let int_multiple_select ?a ~name
+  let int_multiple_select ?a ?required ~name
       (fl : int select_opt) (ol : int select_opt list) =
-    gen_select ?a ~multiple:true
+    gen_select ?a ?required ~multiple:true
       ~name:(string_of_param_name name) fl ol string_of_int
 
-  let int32_multiple_select ?a ~name
+  let int32_multiple_select ?a ?required ~name
       (fl : int32 select_opt) (ol : int32 select_opt list) =
-    gen_select ?a ~multiple:true
+    gen_select ?a ?required ~multiple:true
       ~name:(string_of_param_name name) fl ol Int32.to_string
 
-  let int64_multiple_select ?a ~name
+  let int64_multiple_select ?a ?required ~name
       (fl : int64 select_opt) (ol : int64 select_opt list) =
-    gen_select ?a ~multiple:true
+    gen_select ?a ?required ~multiple:true
       ~name:(string_of_param_name name) fl ol Int64.to_string
 
-  let float_multiple_select ?a ~name
+  let float_multiple_select ?a ?required ~name
       (fl : float select_opt) (ol : float select_opt list) =
-    gen_select ?a ~multiple:true
+    gen_select ?a ?required ~multiple:true
       ~name:(string_of_param_name name) fl ol string_of_float
 
-  let string_multiple_select ?a ~name
+  let string_multiple_select ?a ?required ~name
       (fl : string select_opt) (ol : string select_opt list) =
-    gen_select ?a ~multiple:true
+    gen_select ?a ?required ~multiple:true
       ~name:(string_of_param_name name) fl ol id
 
-  let user_type_multiple_select string_of ?a
+  let user_type_multiple_select string_of ?a ?required
       ~name (fl : 'a select_opt)
       (ol : 'a select_opt list) =
-    gen_select ?a ~multiple:true
+    gen_select ?a ?required ~multiple:true
       ~name:(string_of_param_name name) fl ol string_of
 
   let a_for pname = Pages.make_for_attrib (Eliom_parameter.string_of_param_name pname)

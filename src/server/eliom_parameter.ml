@@ -228,6 +228,7 @@ let reconstruct_params_
             (try
                (match aux t params files pref suff with
                   | Res_ (v, l, f) -> Res_ ((Obj.magic (Some v)), l, f)
+                  | Errors_ (errs, ll, ff) when List.for_all (fun (_,s,_) -> s="") errs -> Res_ ((Obj.magic None), ll, ff)
                   | err -> err)
              with Not_found -> Res_ ((Obj.magic None), params, files))
         | TNEOption t ->
@@ -237,7 +238,7 @@ let reconstruct_params_
                     if (Obj.tag (Obj.repr v) = Obj.string_tag) && (String.length (Obj.magic v : string) = 0)  (* Is the value an empty string? *)
                     then Res_ ((Obj.magic None), l, f)
                     else Res_ ((Obj.magic (Some v)), l, f)
-                  | Errors_ ([(_,"",_)], ll, ff) -> Res_ ((Obj.magic None), ll, ff)
+                  | Errors_ (errs, ll, ff) when List.for_all (fun (_,s,_) -> s="") errs -> Res_ ((Obj.magic None), ll, ff)
                   | err -> err)
              with Not_found -> Res_ ((Obj.magic None), params, files))
         | TBool name ->
