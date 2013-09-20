@@ -48,6 +48,8 @@ end) = struct
            [ "package(eliom.server)"; "package(eliom.syntax.server)"; "thread";
              "syntax(camlp4o)";
            ];
+         (* Workaround. See: http://caml.inria.fr/mantis/view.php?id=6186 *)
+         Pack.Param_tags.init ();
          flag_infer file type_inferred;
          Pathname.define_context dir [path];
          Pathname.define_context path [dir];
@@ -66,6 +68,8 @@ end) = struct
            [ "package(eliom.client)"; "package(eliom.syntax.client)"; "thread";
              "syntax(camlp4o)";
            ];
+         (* Workaround. See: http://caml.inria.fr/mantis/view.php?id=6186 *)
+         Pack.Param_tags.init ();
          flag_infer file type_inferred;
          Pathname.define_context dir [path];
       )
@@ -80,6 +84,8 @@ end) = struct
            ( "package(eliom.syntax.type)" :: "thread" :: "syntax(camlp4o)"
              :: Tags.elements (tags_of_pathname server_file)
            );
+         (* Workaround. See: http://caml.inria.fr/mantis/view.php?id=6186 *)
+         Pack.Param_tags.init ();
          Pathname.define_context dir [path; server_dir];
       )
 
