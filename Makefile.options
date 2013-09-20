@@ -25,6 +25,7 @@ endif
 SERVERDIR := ${TEMPROOT}${LIBDIR}/${PROJECTNAME}/server
 CLIENTDIR := ${TEMPROOT}${LIBDIR}/${PROJECTNAME}/client
 SYNTAXDIR := ${TEMPROOT}${LIBDIR}/${PROJECTNAME}/syntax
+OCAMLBUILDDIR := ${TEMPROOT}${LIBDIR}/${PROJECTNAME}/ocamlbuild
 
 SERVER_PACKAGE := ocsigenserver               \
 		  ocsigenserver.ext           \

@@ -48,3 +48,14 @@ package "syntax" (
     archive(syntax,preprocessor) = "pa_eliom_client_client.cmo"
   )
 )
+
+package "ocamlbuild" (
+  description = "Eliom ocamlbuild plugin"
+  version = "[distributed with Eliom]"
+  directory = "ocamlbuild"
+  requires = "ocamlbuild"
+  archive(byte) = "ocamlbuild_eliom.cma"
+  archive(byte, plugin) = "ocamlbuild_eliom.cma"
+  archive(native) = "ocamlbuild_eliom.cmxa"
+  archive(native, plugin) = "ocamlbuild_eliom.cmxs"
+)
