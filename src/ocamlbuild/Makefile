@@ -1,15 +1,6 @@
-include ../../Makefile.config
+include Makefile.filelist
 
 OCAMLBUILD := ocamlbuild -use-ocamlfind
-
-NAME := ocamlbuild_eliom
-
-BYTE_TARGETS := $(NAME)_core.cma $(NAME).cma
-OPT_TARGETS := $(NAME)_core.cmxa $(NAME)_core.a $(NAME).cmxa $(NAME).a
-
-ifeq "${NATDYNLINK}" "YES"
-    OPT_TARGETS += $(NAME)_core.cmxs $(NAME).cmxs
-endif
 
 all: byte opt
 
@@ -24,9 +15,12 @@ clean:
 
 distclean: clean
 
+odoc:
+	$(OCAMLBUILD) $(DOC)
+
 install_dir:
 	$(INSTALL) -m 755 -d $(OCAMLBUILDDIR)
-	$(INSTALL) -m 644 _build/$(NAME)_core.cmi _build/$(NAME).cmi $(OCAMLBUILDDIR)
+	$(INSTALL) -m 644 $(addprefix _build/,$(INTF)) $(OCAMLBUILDDIR)
 
 install.opt: install_dir
 	$(INSTALL) -m 644 $(addprefix _build/,$(OPT_TARGETS)) $(OCAMLBUILDDIR)
