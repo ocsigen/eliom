@@ -30,6 +30,10 @@ let get_default_sslport () =
   let sitedata = Eliom_request_info.find_sitedata "get_default_sslport" in
   sitedata.Eliom_common.config_info.Ocsigen_extensions.default_httpsport
 
+let default_protocol_is_https () =
+  let sitedata = Eliom_request_info.find_sitedata "default_protocol_is_https" in
+  sitedata.Eliom_common.config_info.Ocsigen_extensions.default_protocol_is_https
+
 let get_default_links_xhr () =
   let sitedata = Eliom_request_info.find_sitedata "get_default_links_xhr" in
   sitedata.Eliom_common.default_links_xhr#get
@@ -55,11 +59,10 @@ let get_config_info () =
 let get_config () =
   match Eliom_common.global_register_allowed () with
   | Some _ -> !Eliommod.config
-  | None -> 
+  | None ->
     raise (Eliom_common.Eliom_site_information_not_available
              "Eliom_config.get_config")
 
 let parse_config ?pcdata ?other_elements elements =
   Ocsigen_extensions.Configuration.process_elements
     ~in_tag:"eliom" ?pcdata ?other_elements ~elements (get_config ())
-

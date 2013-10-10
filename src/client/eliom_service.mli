@@ -101,6 +101,12 @@ type http_service = [ `Http ]
 type appl_service = [ `Appl ]
 type 'a caml_service
 
+(** The type [non_caml_service] is used as phantom type parameters for
+    the {!Eliom_registration.kind}. It used to type functions that operates
+    over service that do not returns OCaml values, like
+    {!appl_self_redirect}. *)
+type non_caml_service = [ appl_service | http_service ]
+
 (** Helper for typing caml services *)
 type 'rt rt
 val rt : 'rt rt
@@ -121,7 +127,7 @@ module Unsafe : "../server/sigs/eliom_service.mli"
 (** Module for creating services that are applications *)
 module Appl : "../server/sigs/eliom_service.mli"
   subst type returnB := [> appl_service ]
-  and type returnT := [< appl_service ]
+  and type returnT := [< non_caml_service ]
 (** Module for creating services that returns caml values *)
 module Caml : "../server/sigs/eliom_service.mli"
   subst type returnB := 'rt caml_service
@@ -129,13 +135,7 @@ module Caml : "../server/sigs/eliom_service.mli"
 (** Default module for creating services *)
 module Http : "../server/sigs/eliom_service.mli"
   subst type returnB := [> http_service ]
-  and type returnT := [< http_service ]
-
-(** The type [non_caml_service] is used as phantom type parameters for
-    the {!Eliom_registration.kind}. It used to type functions that operates
-    over service that do not returns OCaml values, like
-    {!appl_self_redirect}. *)
-type non_caml_service = [ appl_service | http_service ]
+  and type returnT := [< non_caml_service ]
 
 (** {2 Definitions of services}
 

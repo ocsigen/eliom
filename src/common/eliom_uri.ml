@@ -121,6 +121,12 @@ let make_proto_prefix
   in
   Url.make_absolute_url https host port "/"
 
+let is_https https ssl service =
+  (https = Some true) ||
+    ((https = None) && Eliom_config.default_protocol_is_https ()) ||
+    (Eliom_service.get_https service) ||
+    (https = None && ssl)
+
 
 
 let make_uri_components_ (* does not take into account getparams *)
@@ -141,11 +147,7 @@ let make_uri_components_ (* does not take into account getparams *)
       | None -> false
   in
 
-  let https =
-    (https = Some true) ||
-      (Eliom_service.get_https service) ||
-      (https = None && ssl)
-  in
+  let https = is_https https ssl service in
   let absolute =
     if absolute || https <> ssl
     then Some (make_proto_prefix ?hostname ?port https)
@@ -546,11 +548,7 @@ let make_post_uri_components_ (* do not take into account postparams *)
 
 
     let ssl = Eliom_request_info.get_csp_ssl_sp sp in
-    let https =
-      (https = Some true) ||
-        (Eliom_service.get_https service) ||
-        (https = None && ssl)
-    in
+    let https = is_https https ssl service in
     let absolute =
       if absolute || https <> ssl
       then Some (make_proto_prefix ?hostname ?port https)

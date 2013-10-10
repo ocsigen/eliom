@@ -169,17 +169,17 @@ module Unsafe : "sigs/eliom_service.mli"
   subst type returnB := 'returnB
   and type returnT := 'returnT
 (** Module for creating services that are applications *)
-module Appl : "sigs/eliom_service.mli"
+module App : "sigs/eliom_service.mli"
   subst type returnB := [> appl_service ]
-  and type returnT := [< appl_service ]
+  and type returnT := [< non_caml_service ]
 (** Module for creating services that returns caml values *)
-module Caml : "sigs/eliom_service.mli"
+module OCaml : "sigs/eliom_service.mli"
   subst type returnB := 'rt caml_service
   and type returnT := 'rt caml_service
 (** Default module for creating services *)
 module Http : "sigs/eliom_service.mli"
   subst type returnB := [> http_service ]
-  and type returnT := [< http_service ]
+  and type returnT := [< non_caml_service ]
 
 (** The function [register_eliom_module mod f] is used to register the
     initialization function [f] to be executed when then module [mod]

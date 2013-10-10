@@ -20,7 +20,8 @@
 
 (** The function [get_default_hostname ()]returns the hostname
     declared in the config file ([<host defaulthostname="...">]) or
-    the default machine hostname.  *)
+    the default machine hostname.
+    In that case, absolute URL will use that hostname. *)
 val get_default_hostname : unit -> string
 
 (** The function [get_default_port ()] returns the port number
@@ -34,6 +35,14 @@ val get_default_port : unit -> int
     defaulthttpsport="...">]) or 443 if undeclared.
 *)
 val get_default_sslport : unit -> int
+
+(** The function [default_protocol_is_https ()] returns [true]
+    if there is option ([<host
+    defaultprotocol="https">])or false otherwise.
+    In that case, absolute links will use https protocol even if
+    the current request is http.
+*)
+val default_protocol_is_https : unit -> bool
 
 (** The function [get_config_default_charset ()] returns the default
     charset for this site. *)

@@ -10,7 +10,7 @@ module %%%MODULE_NAME%%%_app =
     end)
 
 let main_service =
-  Eliom_service.service ~path:[] ~get_params:Eliom_parameter.unit ()
+  Eliom_service.App.service ~path:[] ~get_params:Eliom_parameter.unit ()
 
 let () =
   %%%MODULE_NAME%%%_app.register

@@ -134,15 +134,15 @@ eliom_registration_base.cmi : private/eliommod_parameters.cmo \
     eliom_service.cmi eliom_parameter.cmi eliom_lib.cmi \
     eliom_content_core.cmi
 eliom_registration.cmo : private/eliommod_pagegen.cmi \
-    private/eliommod_cookies.cmi private/eliommod_cli.cmi eliom_types.cmi \
-    eliom_state.cmi eliom_service.cmi eliom_request_info.cmi \
+    private/eliommod_cookies.cmi private/eliommod_cli.cmi eliom_uri.cmi \
+    eliom_types.cmi eliom_state.cmi eliom_service.cmi eliom_request_info.cmi \
     eliom_registration_base.cmi eliom_reference.cmi eliom_parameter.cmi \
     eliom_mkreg.cmi eliom_lib.cmi eliom_content_core.cmi eliom_content.cmi \
     eliom_config.cmi eliom_common_base.cmo eliom_common.cmi \
     eliom_registration.cmi
 eliom_registration.cmx : private/eliommod_pagegen.cmx \
-    private/eliommod_cookies.cmx private/eliommod_cli.cmx eliom_types.cmx \
-    eliom_state.cmx eliom_service.cmx eliom_request_info.cmx \
+    private/eliommod_cookies.cmx private/eliommod_cli.cmx eliom_uri.cmx \
+    eliom_types.cmx eliom_state.cmx eliom_service.cmx eliom_request_info.cmx \
     eliom_registration_base.cmx eliom_reference.cmx eliom_parameter.cmx \
     eliom_mkreg.cmx eliom_lib.cmx eliom_content_core.cmx eliom_content.cmx \
     eliom_config.cmx eliom_common_base.cmx eliom_common.cmx \
