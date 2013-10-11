@@ -172,8 +172,15 @@ The function <<a_api | val
 Eliom_common.create_scope_hierarchy >> will prevent you to create
 two scope hierarchies with the same name.
 
+=====Example of use:
 
-
+A typical use of hierarchies is to have one hierarchy for connected users
+(the default hierarchy),
+and one independent from connection. Use the first one to save user
+related content. It will be discarded when the user logs out.
+Use the second one to save data corresponding to one tab or browser, (the user
+being connected or not), for example because this data must be available
+before the user logs in.
 
 
 ===@@id="closing_sessions"@@ Closing sessions (and other states) ===
@@ -426,7 +433,7 @@ user. It can probably be found as an Eliom reference in the group
 corresponding to this user.
 
 Use module <<a_api | module Eliom_state.Ext>>
-to get the state corresponding to a group name. 
+to get the state corresponding to a group name.
 Use <<a_api | val Eliom_state.Ext.iter_sub_states >>
 to iterate on all sessions in a group, or on all client processes
 in a session.
@@ -445,4 +452,3 @@ This is implemented using the usual browser cookies for sessions ---~ and
 a simulation of browser cookies by Eliom client side processes~ --- with
 the functions <<a_api | val Eliom_state.set_cookie >> and <<a_api |
 val Eliom_state.get_cookie >>.
-
