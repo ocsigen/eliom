@@ -714,6 +714,10 @@ val discard_all_services :
 
 module Ext : sig
 
+  (** Exception raised when you try to access a reference
+      belonging to a scope different to the state's scope *)
+  exception Wrong_scope
+
   (** Type used to describe session timeouts *)
   type timeout =
     | TGlobal (** see global setting *)

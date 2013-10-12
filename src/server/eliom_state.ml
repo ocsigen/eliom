@@ -1371,6 +1371,8 @@ module Ext = struct
     fold_sub_states ?sitedata ~state (fun () -> f) ()
 
 
+  exception Wrong_scope
+
   module Low_level = struct
 
     (* We have a dynamic scope checking here.
@@ -1381,7 +1383,7 @@ module Ext = struct
 
     let check_scopes table_scope state_scope =
       if table_scope <> state_scope
-      then failwith "wrong scope"
+      then raise Wrong_scope
 
     let lwt_check_scopes a b =
       try check_scopes a b; Lwt.return ()
@@ -1390,7 +1392,7 @@ module Ext = struct
     let check_group_scope s =
       match s with
         | `Session_group _ -> ()
-        | _ -> failwith "wrong scope"
+        | _ -> raise Wrong_scope
 
     let lwt_check_group_scope a =
       try check_group_scope a; Lwt.return ()
