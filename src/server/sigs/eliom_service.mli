@@ -146,7 +146,7 @@ val coservice :
    'tipo, 'gn, unit,
    [> `Registrable ], returnB) service
 
-(** The function [post_coservice ~fallback ~get_params] creates an {%
+(** The function [post_coservice ~fallback ~post_params] creates an {%
     <<a_manual chapter="services" fragment="attached_coservices"|attached
     coservice>>%} with the same path and GET parameters than the
     service [fallback] and taking [post_params] as POST
@@ -211,7 +211,7 @@ val coservice' :
    [`WithoutSuffix], 'gn, unit, [> `Registrable ], returnB) service
 
 
-(** The function [post_coservice' ~get_param] creates a {% <<a_manual
+(** The function [post_coservice' ~post_params] creates a {% <<a_manual
     chapter="services" fragment="non-attached_coservices"|non-attached
     coservice>>%} taking [post_params] as POST parameters.
 
