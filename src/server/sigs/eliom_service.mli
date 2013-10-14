@@ -211,7 +211,7 @@ val coservice' :
    [`WithoutSuffix], 'gn, unit, [> `Registrable ], returnB) service
 
 
-(** The function [post_coservice' ~get_param] creates a {% <<a_manual
+(** The function [post_coservice' ~post_params] creates a {% <<a_manual
     chapter="services" fragment="non-attached_coservices"|non-attached
     coservice>>%} taking [post_params] as POST parameters.
 
