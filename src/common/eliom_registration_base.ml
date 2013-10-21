@@ -28,7 +28,7 @@ type appl_service = Eliom_service.appl_service
 type http_service = Eliom_service.http_service
 type non_caml_service = Eliom_service.non_caml_service
 
-type input_type = 
+type input_type =
   [
   | `Url
   | `Tel
@@ -106,11 +106,16 @@ end = struct
 
     type input_elt = Html5_types.input Html5.elt
     type input_attrib_t = Html5_types.input_attrib Html5.attrib list
+    let a_input_required required = [Html5.a_required required]
+    let input_attrib_append = List.append
 
     type select_elt = Html5_types.select Html5.elt
     type select_content_elt = Html5_types.select_content Html5.elt
     type select_content_elt_list = Html5_types.select_content Html5.elt list
     type select_attrib_t = Html5_types.select_attrib Html5.attrib list
+    let select_content_cons hd tl = hd :: tl
+    let a_select_required required = [Html5.a_required required]
+    let select_attrib_append = List.append
 
     type button_elt = Html5_types.button Html5.elt
     type button_content_elt = Html5_types.button_content Html5.elt
@@ -622,6 +627,12 @@ end = struct
                            ?a:(input_attrib attrib list ) -> ?checked:bool ->
                            name:'a -> value:string -> unit -> [> input ] elt)
 
+      let string_radio_required = (string_radio_required :
+                            ?a:(input_attrib attrib list ) -> ?checked:bool ->
+                           name:'a -> value:string -> unit -> input elt :>
+                           ?a:(input_attrib attrib list ) -> ?checked:bool ->
+                           name:'a -> value:string -> unit -> [> input ] elt)
+
       let int_radio = (int_radio :
                          ?a:(input_attrib attrib list ) -> ?checked:bool ->
                         name:'a -> value:int -> unit -> input elt :>
@@ -679,60 +690,72 @@ end = struct
 
       let raw_select = (raw_select :
                           ?a:select_attrib attrib list ->
+                         ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                          name:string ->
                          string select_opt ->
                          string select_opt list -> select elt :>
                          ?a:select_attrib attrib list ->
+                         ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                          name:string ->
                          string select_opt ->
                          string select_opt list -> [> select ] elt)
 
       let int_select = (int_select :
                           ?a:select_attrib attrib list ->
+                         ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                          name:'a ->
                          int select_opt ->
                          int select_opt list -> select elt :>
                          ?a:select_attrib attrib list ->
+                         ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                          name:'a ->
                          int select_opt ->
                          int select_opt list -> [> select ] elt)
 
       let int32_select = (int32_select :
                             ?a:select_attrib attrib list ->
+                           ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                            name:'a ->
                            int32 select_opt ->
                            int32 select_opt list -> select elt :>
                            ?a:select_attrib attrib list ->
+                          ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                            name:'a ->
                            int32 select_opt ->
                            int32 select_opt list -> [> select ] elt)
 
       let int64_select = (int64_select :
                             ?a:select_attrib attrib list ->
+                           ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                            name:'a ->
                            int64 select_opt ->
                            int64 select_opt list -> select elt :>
                            ?a:select_attrib attrib list ->
+                           ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                            name:'a ->
                            int64 select_opt ->
                            int64 select_opt list -> [> select ] elt)
 
       let float_select = (float_select :
                             ?a:select_attrib attrib list ->
+                           ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                            name:'a ->
                            float select_opt ->
                            float select_opt list -> select elt :>
                            ?a:select_attrib attrib list ->
+                           ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                            name:'a ->
                            float select_opt ->
                            float select_opt list -> [> select ] elt)
 
       let string_select = (string_select :
                              ?a:select_attrib attrib list ->
+                            ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                             name:'a ->
                             string select_opt ->
                             string select_opt list -> select elt :>
                             ?a:select_attrib attrib list ->
+                            ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                             name:'a ->
                             string select_opt ->
                             string select_opt list -> [> select ] elt)
@@ -740,11 +763,13 @@ end = struct
       let user_type_select = (user_type_select :
                                 ('a -> string) ->
                                ?a:select_attrib attrib list ->
+                               ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                                name:'b ->
                                'a select_opt ->
                                'a select_opt list -> select elt :>
                                ('a -> string) ->
                                ?a:select_attrib attrib list ->
+                               ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                                name:'b ->
                                'a select_opt ->
                                'a select_opt list -> [> select ] elt)
@@ -752,60 +777,72 @@ end = struct
 
       let raw_multiple_select = (raw_multiple_select :
                                    ?a:select_attrib attrib list ->
+                                  ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                                   name:string ->
                                   string select_opt ->
                                   string select_opt list -> select elt :>
                                   ?a:select_attrib attrib list ->
+                                  ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                                   name:string ->
                                   string select_opt ->
                                   string select_opt list -> [> select ] elt)
 
       let int_multiple_select = (int_multiple_select :
                                    ?a:select_attrib attrib list ->
+                                  ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                                   name:'a ->
                                   int select_opt ->
                                   int select_opt list -> select elt :>
                                   ?a:select_attrib attrib list ->
+                                  ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                                   name:'a ->
                                   int select_opt ->
                                   int select_opt list -> [> select ] elt)
 
       let int32_multiple_select = (int32_multiple_select :
                                      ?a:select_attrib attrib list ->
+                                    ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                                     name:'a ->
                                     int32 select_opt ->
                                     int32 select_opt list -> select elt :>
                                     ?a:select_attrib attrib list ->
+                                    ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                                     name:'a ->
                                     int32 select_opt ->
                                     int32 select_opt list -> [> select ] elt)
 
       let int64_multiple_select = (int64_multiple_select :
                                      ?a:select_attrib attrib list ->
+                                    ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                                     name:'a ->
                                     int64 select_opt ->
                                     int64 select_opt list -> select elt :>
                                     ?a:select_attrib attrib list ->
+                                    ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                                     name:'a ->
                                     int64 select_opt ->
                                     int64 select_opt list -> [> select ] elt)
 
       let float_multiple_select = (float_multiple_select :
                                      ?a:select_attrib attrib list ->
+                                    ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                                     name:'a ->
                                     float select_opt ->
                                     float select_opt list -> select elt :>
                                     ?a:select_attrib attrib list ->
+                                    ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                                     name:'a ->
                                     float select_opt ->
                                     float select_opt list -> [> select ] elt)
 
       let string_multiple_select = (string_multiple_select :
                                       ?a:select_attrib attrib list ->
+                                     ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                                      name:'a ->
                                      string select_opt ->
                                      string select_opt list -> select elt :>
                                      ?a:select_attrib attrib list ->
+                                     ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                                      name:'a ->
                                      string select_opt ->
                                      string select_opt list -> [> select ] elt)
@@ -813,11 +850,13 @@ end = struct
       let user_type_multiple_select = (user_type_multiple_select :
                                          ('a -> string) ->
                                         ?a:select_attrib attrib list ->
+                                        ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                                         name:'b ->
                                         'a select_opt ->
                                         'a select_opt list -> select elt :>
                                         ('a -> string) ->
                                         ?a:select_attrib attrib list ->
+                                        ?required:Html5_types.pcdata Eliom_content_core.Html5.elt ->
                                         name:'b ->
                                         'a select_opt ->
                                         'a select_opt list -> [> select ] elt)

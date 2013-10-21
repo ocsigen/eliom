@@ -138,14 +138,14 @@ let compile_ocaml ~impl_intf file =
     output_prefix file ^ ext in
   create_process !compiler ( ["-c" ;
                               "-o" ; obj ;
-                              "-pp"; get_pp []]
+                              "-pp"; get_pp !ppopt]
                              @ !args
 			     @ get_thread_opt ()
 			     @ get_common_include ()
 			     @ [impl_intf_opt impl_intf; file] )
 
 let output_ocaml_interface file =
-    create_process !compiler ( ["-i"; "-pp"; get_pp []] @ !args
+    create_process !compiler ( ["-i"; "-pp"; get_pp !ppopt] @ !args
                                @ get_common_include ()
                                @ [file] )
 

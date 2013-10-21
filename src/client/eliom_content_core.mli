@@ -59,7 +59,7 @@ module Xml : sig
     ( [ `A | `Form_get | `Form_post ]
       * (bool * string list) option
       * string option) option Eliom_lazy.request -> event_handler
-  val event_handler_of_function : (#Dom_html.event Js.t -> bool) -> event_handler
+  val event_handler_of_function : (Dom_html.event Js.t -> unit) -> event_handler
 
   type separator = Space | Comma
   type acontent = private
