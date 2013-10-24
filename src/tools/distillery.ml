@@ -9,7 +9,7 @@ let usage_msg = Printf.sprintf
    template named \"basic\", but later versions will include more\n\
    comprehensive templates!\n\
    \n\
-   Call it like this\n  $ %s -name <name> [-template basic] [-destination <dest>]\n\
+   Call it like this\n  $ %s -name <name> [-template basic] [-target-directory <dest>]\n\
    where"
   (Filename.basename Sys.argv.(0))
 
@@ -152,11 +152,11 @@ let env name =
     then "dbm"
     else if Utils.has_package "ocsigenserver.ext.ocsipersist-sqlite"
     then "sqlite"
-    else "dbm" in 
+    else "dbm" in
   [
     "PROJECT_NAME", name;
     "MODULE_NAME", String.capitalize name;
-    "PROJECT_DB", db 
+    "PROJECT_DB", db
   ]
 
 let preds () = [
