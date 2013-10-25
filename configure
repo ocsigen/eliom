@@ -50,7 +50,8 @@ test_library () {
 fail_library () {
   echo
   echo "Required library $1 not found!"
-  [ -z "$2" ] || echo "===> $2"
+  [ -z "$2" ] || echo "===> Opam package(s): $2"
+  [ -z "$3" ] || echo "===> $3"
   exit 1
 }
 
@@ -60,7 +61,7 @@ check_library () {
   if test_library "$1"; then
       return
   else
-      fail_library "$1" "$2"
+      fail_library "$1" "$2" "$3"
   fi
 }
 
@@ -356,22 +357,22 @@ check_ocamlversion
 
 check_binary ocamlfind "See: http://projects.camlcity.org/projects/findlib.html"
 
-check_library ocsigenserver "See: http://ocsigen.org/ocsigenserver/"
+check_library ocsigenserver ocsigenserver "See also: http://ocsigen.org/ocsigenserver/"
 check_ocsigenserverversion
 
-check_library deriving "See: https://github.com/ocsigen/deriving"
+check_library deriving deriving "See also: https://github.com/ocsigen/deriving"
 
-check_binary js_of_ocaml "See: http://ocsigen.org/js_of_ocaml"
-check_library js_of_ocaml.deriving "Missing support for deriving in js_of_ocaml"
+check_binary js_of_ocaml js_of_ocaml "See also: http://ocsigen.org/js_of_ocaml"
+check_library js_of_ocaml.deriving "deriving js_of_ocaml" "Missing support for deriving in js_of_ocaml"
 
-check_library react "See: http://erratique.ch/software/react"
+check_library react react "See also: http://erratique.ch/software/react"
 
-check_library lwt "See: http://ocsigen.org/lwt"
-check_library lwt.unix  "Missing support for 'unix' in lwt."
-check_library lwt.react "Missing support for 'react' in lwt."
+check_library lwt lwt "See also: http://ocsigen.org/lwt"
+check_library lwt.unix  lwt "Missing support for 'unix' in lwt."
+check_library lwt.react "react lwt" "Missing support for 'react' in lwt."
 
-check_library calendar "See: http://calendar.forge.ocamlcore.org/"
-check_library cryptokit "See: http://pauillac.inria.fr/~xleroy/software.html#cryptokit"
+check_library calendar calendar "See also: http://calendar.forge.ocamlcore.org/"
+check_library cryptokit cryptokit "See also: http://pauillac.inria.fr/~xleroy/software.html#cryptokit"
 
 ######################################################################
 # Summary
