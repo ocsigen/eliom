@@ -42,9 +42,14 @@ distclean:
 	${MAKE} -C ocamlbuild $@
 	-rm -f *~ \#* .\#*
 
-depend: syntax.depend server.depend client.depend tools.depend
+depend:
+	${MAKE} syntax.depend
+	${MAKE} tools.depend
+	${MAKE} server.depend client.depend
 syntax.depend:
-	${MAKE} -C syntax depend pa_include.cmo
+	find syntax -name .\*.deps -delete
+	${MAKE} -C syntax depend
+	${MAKE} -C syntax pa_include.cmo
 server.depend: syntax.depend
 	find server -name .\*.deps -delete
 	rm -f server/.depend
@@ -54,6 +59,7 @@ client.depend: syntax.depend
 	rm -f client/.depend
 	${MAKE} -C client .depend
 tools.depend: syntax.depend
+	find tools -name .\*.deps -delete
 	${MAKE} -C tools depend
 
 VERSION := $(shell head -n 1 ../VERSION)
