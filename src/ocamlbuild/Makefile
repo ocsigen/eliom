@@ -7,7 +7,7 @@ all: byte opt
 byte:
 	$(OCAMLBUILD) $(BYTE_TARGETS)
 
-opt:
+opt: byte
 	$(OCAMLBUILD) $(OPT_TARGETS)
 
 clean:
