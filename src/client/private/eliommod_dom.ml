@@ -676,11 +676,11 @@ let touch_base () =
 let onclick_on_body_handler event =
   (match Dom_html.tagged (Dom_html.eventTarget event) with
     | Dom_html.Button button ->
-        (Js.Unsafe.variable "window")##eliomLastButton <- Some button;
+        Js.Unsafe.global##eliomLastButton <- Some button;
     | Dom_html.Input input when input##_type = Js.string "submit" ->
-        (Js.Unsafe.variable "window")##eliomLastButton <- Some input;
+        Js.Unsafe.global##eliomLastButton <- Some input;
     | _ ->
-        (Js.Unsafe.variable "window")##eliomLastButton <- None);
+        Js.Unsafe.global##eliomLastButton <- None);
   Js._true
 
 let add_formdata_hack_onclick_handler () =
