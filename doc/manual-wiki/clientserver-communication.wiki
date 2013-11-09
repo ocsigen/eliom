@@ -84,7 +84,7 @@ let _ =
     ~get_params:Eliom_parameter.unit
     (fun () () ->
       ignore {unit{
-        Lwt.ignore.result(
+        Lwt.ignore_result(
           lwt pi =
             Eliom_client.call_caml_service ~service:%pi_service () ()
           in
