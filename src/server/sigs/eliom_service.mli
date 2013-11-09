@@ -33,6 +33,10 @@
     eliom manual for more information about {% <<a_manual
     chapter="params" fragment="nonlocalizedparameters"|non localized
     parameters>>%}.
+
+    The optional paramater [?rt] is used to constrain the type parameter ['rt]
+    of the returned service if is ['rt Eliom_service.caml_service].
+    It should be used as: [service ~rt:(Eliom_service.rt : yourtype)].
 *)
 val service :
   ?rt:'rt rt ->
@@ -62,7 +66,7 @@ val service :
     a bookmark on a page that does not exist.
 
     See {!service} for a description of optional [~https],
-    [~keep_nl_params] and [~priority] parameters .
+    [~keep_nl_params], [~priority] and [~rt] parameters .
 *)
 val post_service :
   ?rt:'rt rt ->
@@ -121,7 +125,7 @@ val post_service :
     {!Eliom_registration}[.*.register] functions for a description of those
     parameters.
 
-    See {!service} for a description of the optional [~https] and
+    See {!service} for a description of the optional [~https], [~rt] and
     [~keep_nl_params] parameters .
 *)
 val coservice :
@@ -190,7 +194,7 @@ val post_coservice :
     GET parameters of [coservice'] couldn't contain a suffix
     parameter.
 
-    See {!service} for a description of the optional [~https] and
+    See {!service} for a description of the optional [~https], [~rt] and
     [~keep_nl_params] parameters ; see {!coservice} for others
     optional parameters.
 *)
@@ -222,7 +226,7 @@ val coservice' :
     URL (if any) when you create a POST form to this coservice. The
     default is true.
 
-    See {!service} for a description of the optional [~https] and
+    See {!service} for a description of the optional [~https], [~rt] and
     [~keep_nl_params] parameters ; see {!coservice} for others
     optional parameters.
 *)
