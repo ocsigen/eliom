@@ -278,6 +278,7 @@ let get_ri () =
 let get_tmp_filename fi = fi.tmp_filename
 let get_filesize fi = fi.filesize
 let get_original_filename fi = fi.original_basename
+let get_file_content_type fi = fi.file_content_type
 
 let get_sitedata () =
   find_sitedata "get_sitedata"
