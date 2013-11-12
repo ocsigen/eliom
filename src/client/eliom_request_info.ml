@@ -214,12 +214,12 @@ let get_request_data, set_request_data, reset_request_data =
     match !eliom_data with
       | Some data -> data
       | None ->
-        let name = "__eliom_request_data" in
-        Js.Optdef.case (Js.def (Js.Unsafe.variable ("this."^name)))
+        let eliom_request_data = Js.Unsafe.get Js.Unsafe.global (Js.string "__eliom_request_data") in
+        Js.Optdef.case (Js.def eliom_request_data)
           (fun () -> eliom_data := Some default_request_data;
             default_request_data)
-          (fun _ ->
-            let data = Eliom_unwrap.unwrap_js_var name in
+          (fun var ->
+             let data = Eliom_unwrap.unwrap_js var in
             eliom_data := Some data;
             data)
   in

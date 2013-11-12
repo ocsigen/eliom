@@ -222,7 +222,7 @@ let data_sharing =
        ignore {unit{
          Html5.Manip.appendChild %data_sharing_data
            (Html5.F.pcdata
-              (Js.to_string (Js.Unsafe.variable "__eliom_request_data")))
+              (Js.to_string (Js.Unsafe.get Js.Unsafe.global (Js.string "__eliom_request_data"))))
        }};
        Lwt.return Html5.F.([
          data_sharing_elt1;

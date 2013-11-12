@@ -276,8 +276,8 @@ let rec send ?(expecting_process_page = false) ?cookies_info
 
 (* BEGIN FORMDATA HACK *)
 let add_button_arg inj args form =
-  let button = (Js.Unsafe.variable "window")##eliomLastButton in
-  (Js.Unsafe.variable "window")##eliomLastButton <- None;
+  let button = Js.Unsafe.global##eliomLastButton in
+  Js.Unsafe.global##eliomLastButton <- None;
   match button with
     | None -> args
     | Some b ->

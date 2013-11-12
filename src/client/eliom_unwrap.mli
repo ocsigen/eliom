@@ -28,7 +28,7 @@ val register_unwrapper : unwrap_id -> ('a -> 'b) -> unit
 
 (** [unwrap_js_var v] execute [unwrap] on the content of the javascript
     variable [v] *)
-val unwrap_js_var : string -> 'a
+val unwrap_js : Js.js_string Js.t -> 'a
 
 (**/**)
 

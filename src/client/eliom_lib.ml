@@ -115,8 +115,8 @@ let encode_header_value x =
   (* We remove end of lines *)
   String.remove_eols (to_json x)
 
-let unmarshal_js_var s =
-  Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
+let unmarshal_js var =
+  Marshal.from_string (Js.to_bytestring var) 0
 
 type file_info = File.file Js.t
 
