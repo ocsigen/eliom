@@ -46,6 +46,10 @@ ACCESS_URL := \
 # The platforms to call for build, mobile-install, run and remove rules
 PLATFORMS :=
 
+# Use phonegap build (yes/no):
+# Phonegap build allow to compile / install and run online.
+USE_PHONEGAP_BUILD := no
+
 # Directory with files to be statically served
 LOCAL_STATIC = static
 

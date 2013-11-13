@@ -155,6 +155,15 @@ $(TEST_PREFIX)${ETCDIR}/${PROJECT_NAME}-test.conf: ${PROJECT_NAME}.conf.in Makef
 MOBILEDIR = mobile
 PHONEGAPDIR = phonegap
 
+ifeq (, $(filter ${USE_PHONEGAP_BUILD},yes no))
+        $(error USE_PHONEGAP_BUILD could only be yes or no)
+endif
+
+PHONEGAP_SYS = local
+ifeq (${USE_PHONEGAP_BUILD}, yes)
+        PHONEGAP_SYS = remote
+endif
+
 $(MOBILEDIR)/$(PHONEGAPDIR):
 	mkdir $@
 	phonegap create ${MOBILEDIR}/${PHONEGAPDIR}/${PROJECT_NAME} -n ${PROJECT_NAME}
@@ -183,8 +192,9 @@ INDEX_SYMLINK_PARAM = ../${LOCAL_STATIC}/index.html ${MOBILEDIR}/index.html
 
 cmd_phonegap = ln -sf ${INDEX_SYMLINK_PARAM} &&\
                cd ${MOBILEDIR}/${PHONEGAPDIR}/${PROJECT_NAME} &&\
-               phonegap $(1) $(2) &&\
-               ln -f platforms/$(2)/bin/${PROJECT_NAME}-debug$(3) ../../${PROJECT_NAME}-debug$(3)
+               phonegap $(PHONEGAP_SYS) $(1) $(2) &&\
+               if [ "${USE_PHONEGAP_BUILD}" =  "no" ]; then \
+               ln -f platforms/$(2)/bin/${PROJECT_NAME}-debug$(3) ../../${PROJECT_NAME}-debug$(3); fi
 
 cmd_remove = rm -rf ${MOBILEDIR}/${PHONEGAPDIR}/${PROJECT_NAME}/plateforms/$(1)
 
