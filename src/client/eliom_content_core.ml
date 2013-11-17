@@ -388,8 +388,8 @@ module Html5 = struct
       let cdata_style = Xml.cdata_style
     end
 
-    module Svg_w = Svg_f.MakeWraped(Xml_w)(Xml_wed)
-    module Raw = Html5_f.MakeWraped(Xml_w)(Xml_wed)(Svg_w)
+    module Svg_w = Svg_f.MakeWrapped(Xml_w)(Xml_wed)
+    module Raw = Html5_f.MakeWrapped(Xml_w)(Xml_wed)(Svg_w)
     include Raw
   end
 
