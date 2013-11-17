@@ -795,6 +795,30 @@ let () =
 
 
 (*wiki*
+====Entity in client code
+This check that entity are correctly rendered in client and server code.
+ *wiki*)
+
+let entity =
+  My_appl.register_service
+    ~path:["entity"]
+    ~get_params:unit
+    (fun () () ->
+       let d = Eliom_content.Html5.D.div [] in
+       ignore {unit{
+           Eliom_content.Html5.Manip.appendChild %d (Eliom_content.Html5.F.entity "#947")
+         }} ;
+       Lwt.return
+         (Eliom_tools.F.html
+            ~title:"bug_entity"
+            ~css:[["css";"bug_entity.css"]]
+            Html5.F.(body [
+                h2 [pcdata "Welcome from Eliom's destillery!"];
+                entity "#946" ;
+                d
+              ])))
+
+(*wiki*
 ====Comet programming
 The first example demonstrate server-to-client channel communication. Channels
 are wrapped and sent to the client. A second example uses channels to transmit
