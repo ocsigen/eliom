@@ -10,7 +10,7 @@ all: byte
 
 ### Common files ###
 
-COMPILER := eliomc eliomcp eliomopt js_of_eliom eliomdep eliompp
+COMPILER := eliomc eliomcp eliomopt js_of_eliom eliomdep eliomdoc eliompp
 DISTILLERY := eliom-distillery
 
 FILES := ../../src/files
@@ -35,6 +35,9 @@ eliomcp eliomopt js_of_eliom: eliomc
 
 eliomdep: utils.cmo eliomdep.cmo
 	${OCAMLC} -o $@ -linkpkg ${LIBS} $^
+
+eliomdoc: eliompp utils.cmo eliomdoc.cmo
+	${OCAMLC} -o $@ -linkpkg ${LIBS} utils.cmo eliomdoc.cmo
 
 eliompp: eliompp_lexer.cmo eliompp.cmo
 	${OCAMLC} -o $@ -linkpkg ${LIBS} $^
