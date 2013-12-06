@@ -165,3 +165,35 @@ Note that the {{{match hook with}}} part can be removed if you don't need a java
 (like for a library that contains .eliom files).
 
 Be careful to always add those parts after the OASIS END block.
+
+==[EXPERIMENTAL] Using {{{eliomdoc}}} and {{{eliompp}}}
+You can use {{{eliomdoc}}} to generate the documentation of your project.
+{{{eliompp}}} is a preprocessor which deletes specific sections ({{{{shared{}}},
+{{{{client{}}} and {{{{server{}}}), depending on the first parameter
+({{{-client}}} or {{{-server}}}).
+
+We use a hand made preprocessor
+because **camlp4** doesn't handle commentaries during preprocessing,
+so it was not possible to extract commentaries of a specific section.
+
+{{{eliomdoc}}} handle the same options as {{{ocamldoc}}}.
+It is only a wrapper around it (as {{{eliomc}}} for {{{ocamlc}}}).
+
+{{{eliompp}}} prints on the standard output the preprocessed file.
+So if you use it with {{{-client}}}, it will prints {{{{shared{}}} and {{{{client{}}} sections.
+
+You can use them like this:
+{{{
+eliompp -client foobar.eliom ...
+eliompp -server foobar.eliom ...
+
+eliomdoc -client -d doc/client -html foobar.eliom ...
+eliomdoc -server -d doc/server -html foobar.eliom ...
+}}}
+
+Here are some known bugs with {{{eliomdoc}}}:
+* Your files should always **begin with a value** and **not with a comment**. Otherwise,
+camlp4 won't output the commentaries.
+* Sometimes, comment node **are not attached as expected**. That's because
+camlp4 (sometimes) remove extra new line between value elements.
+
