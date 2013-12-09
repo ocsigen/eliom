@@ -36,8 +36,8 @@ eliomcp eliomopt js_of_eliom: eliomc
 eliomdep: utils.cmo eliomdep.cmo
 	${OCAMLC} -o $@ -linkpkg ${LIBS} $^
 
-eliomdoc: eliompp utils.cmo eliomdoc.cmo
-	${OCAMLC} -o $@ -linkpkg ${LIBS} utils.cmo eliomdoc.cmo
+eliomdoc: utils.cmo eliomdoc.cmo
+	${OCAMLC} -o $@ -linkpkg ${LIBS} $^
 
 eliompp: eliompp_lexer.cmo eliompp.cmo
 	${OCAMLC} -o $@ -linkpkg ${LIBS} $^
