@@ -9,8 +9,11 @@ let usage_msg = Printf.sprintf
    template named \"basic\", but later versions will include more\n\
    comprehensive templates!\n\
    \n\
-   Call it like this\n  $ %s -name <name> [-template basic] [-target-directory <dest>]\n\
+   Call it like this\
+   \n\  $ %s -name <name> [-template basic] [-target-directory <dest>]\
+   \n\  $ %s -dir \n\
    where"
+  (Filename.basename Sys.argv.(0))
   (Filename.basename Sys.argv.(0))
 
 let rec yes_no : default:bool -> string -> bool =
@@ -194,36 +197,42 @@ let compilation_unit_name_regexp =
   Str.regexp "^[A-Za-z][a-zA-Z0-9_']*$"
 
 let main () =
-  let template, name, destination_dir =
-    let bad fmt = Printf.ksprintf (fun s -> raise (Arg.Bad s)) fmt in
-    let name = ref None in
-    let template = ref Config.distillery_basic in
-    let templates = get_templates () in
-    let select_template s =
-      try template := (List.find ((=) s) templates)
-      with Not_found -> bad "Not a known template name: %S" s
-    in
-    let destination_dir = ref None in
-    let check_name name =
-      if not (Str.string_match compilation_unit_name_regexp name 0) then
-        bad "Not a valid compilation unit name: %s" name
-    in
-    let spec = Arg.(align [
+  let dir = ref false in
+  let bad fmt = Printf.ksprintf (fun s -> raise (Arg.Bad s)) fmt in
+  let name = ref None in
+  let template = ref Config.distillery_basic in
+  let templates = get_templates () in
+  let select_template s =
+    try template := (List.find ((=) s) templates)
+    with Not_found -> bad "Not a known template name: %S" s
+  in
+  let destination_dir = ref None in
+  let check_name name =
+    if not (Str.string_match compilation_unit_name_regexp name 0) then
+      bad "Not a valid compilation unit name: %s" name
+  in
+  let spec = Arg.(align [
+      "-dir", Set dir,
+      " Display the template directory";
       "-name", String (fun s -> check_name s; name := Some s),
       "<name> Name of the project (a valid compilation unit name)";
       "-template", String select_template,
       "basic The template for the project";
       "-target-directory", String (fun s -> destination_dir := Some s),
       "<dir> Generate the project in directory <dir> (the project's name by default)";
-    ]) in
-    Arg.(parse spec (bad "Don't know what to do with %S") usage_msg);
-    match !template, !name with
+  ]) in
+  Arg.(parse spec (bad "Don't know what to do with %S") usage_msg);
+  if !dir then printf "%s\n" (get_templatedir ())
+  else begin
+    let template, name, destination_dir =
+      match !template, !name with
       | template, Some name ->
-        let dir = match !destination_dir with Some dir -> dir | None -> name in
-        template, name, dir
+          let dir = match !destination_dir with Some dir -> dir | None -> name in
+          template, name, dir
       | _ -> Arg.usage spec usage_msg; exit 1
-  in
-  let env, preds, source_dir = init_project template name in
-  create_project ~name ~env ~preds ~source_dir ~destination_dir:destination_dir
+    in
+    let env, preds, source_dir = init_project template name in
+    create_project ~name ~env ~preds ~source_dir ~destination_dir:destination_dir
+  end
 
 let () = main ()
