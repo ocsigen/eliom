@@ -19,6 +19,14 @@ eliomc, eliomcp, eliomopt, js_of_eliom, eliomdep \- the eliom build tools
 .RI [ options ]
 .RI files
 
+.B eliomdoc
+.RI [ options ]
+.RI files
+
+.B eliompp
+.RI [ -client | -server ]
+.RI files
+
 .B js_of_eliom
 .RI [ options ]
 .RI files
@@ -61,6 +69,37 @@ of OCaml files located in this directory subtree are in directory
 .I _client
 for client-side compiled modules).
 
+.B eliompp (EXPERIMENTAL)
+is a preprocessor which remove specific sections, depending on the given option.
+The option
+.BR -client
+will remove all the top-level parts and server sections
+and the option
+.BR -server
+will remove only the client sections.
+
+.B eliomdoc (EXPERIMENTAL)
+is a wrapper around the OCaml documentation generator
+.B ocamldoc.
+It allows you to generate documentation from
+.B client
+or 
+.B server
+side. It accepts the same set of option than
+.BR ocamldoc (1).
+It automatically extracts the commentaries from the desired sections.
+.B eliomdoc
+is currently experimental, and you could find some undefined behaviours.
+(see http://ocsigen.org/eliom/manual/workflow-compilation). Some well
+known bugs are:
+.br
+.IP \[bu]
+your files should always begin with a value and not with a comment. Otherwise,
+camlp4 won't output the commentaries.
+.br
+.IP \[bu]
+sometimes, comment node are not attached as expected. That's because
+camlp4 (sometimes) remove extra new line between value elements.
 
 .SH COMPILING ELIOM SOURCE FILES
 
@@ -158,5 +197,8 @@ To avoid recompiling the whole project each times, this could be split in multip
 .SH AUTHOR
 eliomc, js_of_eliom, eliomdep and eliomopt were written by
 Gregoire Henry <gregoire.henry@pps.jussieu.fr>.
+
+eliomdoc was written by
+Charly Chevalier <charly.n.chevalier@gmail.com>.
 .PP
 This manual page was written by Pierre Chambart <chambart@crans.org>.
