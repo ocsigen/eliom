@@ -554,7 +554,7 @@ let _ = Eliom_registration.Html5.register Eliom_testsuite_base.main
                 a tcookies
                   [ code [ pcdata "tcookies" ] ] ();
                 br ();
-                pcdata "A link inside the application that ascks for an action outside the application. Eliom will ask the client side program to so a redirection: ";
+                pcdata "A link inside the application that ask for an action outside the application. Eliom will ask the client side program to do a redirection: ";
                 a actionoutside [ code [ pcdata "actionoutside" ] ] ();
                 br ();
               ]
