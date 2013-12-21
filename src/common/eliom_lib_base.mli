@@ -109,8 +109,10 @@ module RawXML : sig
     | AInt of int
     | AStr of string
     | AStrL of separator * string list
+
   type racontent =
     | RA of acontent
+    | RAReact of acontent option React.signal
     | RACamlEventHandler of Dom_html.event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
@@ -119,6 +121,12 @@ module RawXML : sig
   val acontent : attrib -> acontent
   val racontent : attrib -> racontent
 
+  val react_float_attrib : aname -> float React.signal-> attrib
+  val react_int_attrib : aname -> int React.signal -> attrib
+  val react_string_attrib : aname -> string React.signal-> attrib
+  val react_space_sep_attrib : aname -> string list React.signal-> attrib
+  val react_comma_sep_attrib : aname -> string list React.signal-> attrib
+  val react_poly_attrib : aname -> string -> bool React.signal -> attrib
   val float_attrib : aname -> float -> attrib
   val int_attrib : aname -> int -> attrib
   val string_attrib : aname -> string -> attrib
