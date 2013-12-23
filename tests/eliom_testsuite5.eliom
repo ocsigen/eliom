@@ -23,6 +23,7 @@ let simple_dom_react = Eliom_testsuite_base.test
          let r_int s = Html5.R.pcdata (React.S.map string_of_int s) in
          let style = React.S.map (fun x -> if x then "color:green;" else "color:red;") valid in
          let dom = Html5.(F.div ~a:[R.a_style style] [
+             F.div [ F.pcdata "textarea : " ; R.textarea ~a:[F.a_maxlength 10; F.a_readonly `ReadOnly ; F.a_style "vertical-align: top"] (React.S.map F.pcdata s)];
              F.div [ F.pcdata "original : "; r_int i];
              F.div [ F.pcdata "succ : "; r_int v_succ];
              F.div [ F.pcdata "double : "; r_int v_double];
