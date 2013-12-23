@@ -1,11 +1,3 @@
-//Provides: lookup_real_attrib_name
-function lookup_real_attrib_name(o,s) {
-  for(var attr in o) {
-    if(attr.toLowerCase() == s) return attr;
-  }
-  return null;
-}
-
 // Unmarshall and unwrapping.
 
 //Provides: caml_unwrap_value_from_string mutable
@@ -272,4 +264,3 @@ var caml_unwrap_value_from_string = function (){
     return intern_obj_table[0][0][2];
   }
 }();
-
