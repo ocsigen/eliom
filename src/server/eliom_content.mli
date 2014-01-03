@@ -56,7 +56,7 @@
     concrete instance see {!Html5}, or {!Html_text}. *)
 module type Forms = "sigs/eliom_forms.mli"
 
-(** Low-level XML manipulation. *)
+(** Low-level XML manipulation. See {!Eliom_content_core.Xml} *)
 module Xml : module type of Eliom_content_core.Xml
     with type uri = Eliom_content_core.Xml.uri
     and type attrib = Eliom_content_core.Xml.attrib
@@ -65,13 +65,14 @@ module Xml : module type of Eliom_content_core.Xml
     and type event_handler_table = Eliom_content_core.Xml.event_handler_table
     and type -'a caml_event_handler = 'a Eliom_content_core.Xml.caml_event_handler
 
-(** Building and pretty-printing valid SVG tree. *)
+(** Building and pretty-printing valid SVG tree. See {!Eliom_content_core.Svg}.
+Information about Svg api can be found at {% <<a_api project="tyxml" | module Svg_sigs.T >> %}*)
 module Svg : module type of Eliom_content_core.Svg
     with type uri = Eliom_content_core.Svg.uri
     and type 'a attrib = 'a Eliom_content_core.Svg.attrib
     and type +'a elt = 'a Eliom_content_core.Svg.elt
 
-(** Building and printing valid (X)HTML5 tree. *)
+(** Building and printing valid (X)HTML5 tree. Information about Html5 api can be found at {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
 module Html5 : sig
 
   (** See the Eliom manual for more information on {% <<a_manual
@@ -163,7 +164,7 @@ module Html5 : sig
     val select : ?a:Html5_types.select_attrib attrib list -> name:[< `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt
   end
 
-  (** Node identifiers *)
+  (** Node identifiers. See {!Eliom_content_core.Html5.Id} *)
   module Id : module type of Eliom_content_core.Html5.Id
                                with type +'a id = 'a Eliom_content_core.Html5.Id.id
 
@@ -174,9 +175,12 @@ module Html5 : sig
 
 end
 
-
+(** Generate untyped html as text.*)
 module Html_text : sig
   include "sigs/eliom_forms.mli"
+    (** You can  for more information on {% <<a_manual
+      chapter="clientserver-html" | Client and Server side HTML>> %} for HTML tree manipulated by client/server
+      application. *)
     subst type uri := string
     and type pcdata_elt := string
 

@@ -103,7 +103,8 @@ module Eliom_xml : module type of Xml
     and type -'a caml_event_handler = 'a Xml.caml_event_handler
 (**/**)
 
-(** Building and pretty-printing valid SVG tree. *)
+(** Building and pretty-printing valid SVG tree.
+Information about Svg api can be found at {% <<a_api project="tyxml" | module Svg_sigs.T >> %}*)
 module Svg : sig
 
   (** See the Eliom manual for more information on{% <<a_manual
