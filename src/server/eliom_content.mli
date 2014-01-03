@@ -50,6 +50,10 @@
     {% <<a_api subproject="client"|module Eliom_content.Html5.Manip>> %}.
 
     In case of doubt, use the modules with DOM-like semantics {!Eliom_content.Html5.D}.
+
+    So if you want to Generate typed HTML, you have to got to {!Eliom_content.Html5},
+    if you want to handly write untyped html, got to {!Eliom.content.Html_text} and
+    if you want to generate svg, go to {!Eliom_content_core.Svg}.
   *)
 
 (** Abstract signature for links and forms creation functions, for
@@ -72,7 +76,7 @@ module Svg : module type of Eliom_content_core.Svg
     and type 'a attrib = 'a Eliom_content_core.Svg.attrib
     and type +'a elt = 'a Eliom_content_core.Svg.elt
 
-(** Building and printing valid (X)HTML5 tree, Information about Html5 api can be found at {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
+(** Building and printing valid (X)HTML5 tree, Information about Html5 api can be found at {% <<a_api project="tyxml" | module Html5_sigs.T >> %} .*)
 module Html5 : sig
 
   (** See the Eliom manual for more information on {% <<a_manual
