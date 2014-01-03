@@ -87,7 +87,9 @@ module Html5 : sig
   (** Creation of {b F}unctional HTML5 content (copy-able but not referable, see also {% <<a_api|module Eliom_content>> %}). *)
   module F : sig
     (** {2 Content creation}
-        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
+        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}
+        If you want to create an untyped form, you will have to use {% <<a_api|module Eliom_content_core.Html5.F.Raw>> %}
+        otherwise, use the form module. For more information, see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
     open Pervasives
     include module type of Eliom_content_core.Html5.F
                    with type Xml.uri = Xml.uri
@@ -127,7 +129,9 @@ module Html5 : sig
   (** Creation of HTML5 content with {b D}OM semantics (referable, see also {% <<a_api|module Eliom_content>> %}). *)
   module D : sig
     (** {2 Content creation}
-        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
+        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}
+        If you want to create an untyped form, you will have to use {% <<a_api|module Eliom_content_core.Html5.D.Raw>> %}
+        otherwise, use the form module. For more information, see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
     open Pervasives
     include module type of Eliom_content_core.Html5.D
                    with type Xml.uri = Xml.uri
