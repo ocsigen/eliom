@@ -168,9 +168,13 @@ module Html5 : sig
   module Id : module type of Eliom_content_core.Html5.Id
                                with type +'a id = 'a Eliom_content_core.Html5.Id.id
 
+ (** Type-safe custom data for HTML5. See the {% <<a_manual chapter="clientserver-html"
+      fragment="custom_data"|examples in the manual>> %}. *)
   module Custom_data : module type of Eliom_content_core.Html5.Custom_data
-                                        with type 'a t = 'a Eliom_content_core.Html5.Custom_data.t
+    with type 'a t = 'a Eliom_content_core.Html5.Custom_data.t
 
+ (** {{:http://dev.w3.org/html5/html-xhtml-author-guide/}"Polyglot"} HTML5 printer.
+     See {% <<a_api project="tyxml" | module type Xml_sigs.Typed_simple_printer >> %}. *)
   module Printer : module type of Eliom_content_core.Html5.Printer
 
 end
