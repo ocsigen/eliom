@@ -51,7 +51,7 @@
 
     In case of doubt, use the modules with DOM-like semantics {!Eliom_content.Html5.D}.
 
-    So if you want to Generate typed HTML, you have to got to {!Eliom_content.Html5},
+    So if you want to generate typed HTML, you have to got to {!Eliom_content.Html5},
     if you want to handly write untyped html, got to {!Eliom.content.Html_text} and
     if you want to generate svg, go to {!Eliom_content_core.Svg}.
   *)
