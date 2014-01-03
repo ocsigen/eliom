@@ -183,7 +183,7 @@ end
 module Html_text : sig
   include "sigs/eliom_forms.mli"
     (** You can  for more information on {% <<a_manual
-      chapter="clientserver-html" | Client and Server side HTML>> %} for HTML tree manipulated by client/server
+      chapter="clientserver-html" fragment="text_html" | Client and Server side HTML>> %} for HTML tree manipulated by client/server
       application. *)
     subst type uri := string
     and type pcdata_elt := string
