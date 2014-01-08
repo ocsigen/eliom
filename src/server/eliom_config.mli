@@ -17,6 +17,21 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(** This module makes also possible get information from the configuration
+file.
+
+    It make also possible to add configuration options
+    in configuration file for your Eliom modules.
+    Use {!Eliom_config.parse_config} for that.
+
+    Example:
+    {v <eliommodule ...>
+        <myoption myattr="...">myvalue</myoption>
+     </eliommodule>  v}
+
+
+*)
+
 
 (** The function [get_default_hostname ()]returns the hostname
     declared in the config file ([<host defaulthostname="...">]) or
