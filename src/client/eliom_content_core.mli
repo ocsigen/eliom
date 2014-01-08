@@ -271,24 +271,6 @@ module Html5 : sig
 
   end
 
-  module R: sig
-
-    val node : 'a elt React.signal -> 'a elt
-    (* val attrib : 'a attrib React.signal -> 'a attrib *) (* Need to change attrib type for this *)
-    module Raw : Html5_sigs.T
-                   with type Xml.uri = Xml.uri
-                   and type Xml.event_handler = Xml.event_handler
-                   and type Xml.attrib = Xml.attrib
-                   and type Xml.elt = Xml.elt
-                   and module Svg := Svg.D.Raw
-                   and type 'a elt = 'a elt
-                   and type 'a Xml.wrap = 'a React.signal
-                   and type 'a wrap = 'a React.signal
-                   and type 'a attrib = 'a attrib
-                   and type uri = uri
-    include module type of Raw
-  end
-
 
   (** Typed interface for building valid HTML5 tree (DOM semantics). See
       {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
@@ -317,6 +299,33 @@ module Html5 : sig
     val lazy_form:
       ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_plus
 
+  end
+
+  (** Typed interface for building valid HTML5 tree from
+      {{: http://erratique.ch/software/react} React } signals.
+      HTML5's trees are automatically updated whenever
+      corresponding signals change.
+
+      {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+
+  module R: sig
+
+    (** the function [node s] create an HTML5 [elt] from a signal [s].
+    The resulting HTML5 [elt] can then be used like anyother HTML5 [elt] *)
+    val node : 'a elt React.signal -> 'a elt
+
+    module Raw : Html5_sigs.T
+                   with type Xml.uri = Xml.uri
+                   and type Xml.event_handler = Xml.event_handler
+                   and type Xml.attrib = Xml.attrib
+                   and type Xml.elt = Xml.elt
+                   and module Svg := Svg.D.Raw
+                   and type 'a elt = 'a elt
+                   and type 'a Xml.wrap = 'a React.signal
+                   and type 'a wrap = 'a React.signal
+                   and type 'a attrib = 'a attrib
+                   and type uri = uri
+    include module type of Raw
   end
 
 
