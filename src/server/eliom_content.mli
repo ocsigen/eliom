@@ -52,7 +52,7 @@
     In case of doubt, use the modules with DOM-like semantics {!Eliom_content.Html5.D}.
 
     So if you want to generate typed HTML, you have to got to {!Eliom_content.Html5},
-    if you want to handly write untyped html, got to {!Eliom.content.Html_text} and
+    if you want to handly write untyped html, got to {!Eliom_content.Html_text} and
     if you want to generate svg, go to {!Eliom_content_core.Svg}.
   *)
 
@@ -190,7 +190,7 @@ end
 (** Generate untyped html as text.*)
 module Html_text : sig
   include "sigs/eliom_forms.mli"
-    (** You can  for more information on {% <<a_manual
+    (** Have a look on  {% <<a_manual
       chapter="clientserver-html" fragment="text_html" | Client and Server side HTML>> %} for HTML tree manipulated by client/server
       application. *)
     subst type uri := string
