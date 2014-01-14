@@ -18,10 +18,11 @@
  *)
 
 type param = Form.form_elt
+type field = [`String of Js.js_string Js.t | `File of File.file Js.t ]
 
-let insert_string s = `String (Js.string s)
-let insert_file s = `File s
-let to_string = function
+let insert_string s : field = `String (Js.string s)
+let insert_file s : field = `File s
+let to_string : field -> string = function
   | `File _ -> failwith "Cannot put a file in URL"
   | `String s -> Js.to_string s
 

@@ -35,6 +35,12 @@ type 'a oneradio = [ `One of 'a | `Radio of 'a ]
 
 type 'a setone = [ `Set of 'a | `One of 'a ]
 
+type 'a to_and_from = {
+  of_string : string -> 'a;
+  to_string : 'a -> string
+}
+
+
 type ('a, 'b) binsum = Inj1 of 'a | Inj2 of 'b
 
 type 'an listnames =
@@ -81,35 +87,35 @@ val coordinates :
   (coordinates, [ `WithoutSuffix ],
    [ `One of coordinates ] param_name) params_type
 
-val string_coordinates :
-  string ->
-  (string * coordinates, [ `WithoutSuffix ],
-   [ `One of (string * coordinates) ] param_name) params_type
+(* val string_coordinates : *)
+(*   string -> *)
+(*   (string * coordinates, [ `WithoutSuffix ], *)
+(*    [ `One of (string * coordinates) ] param_name) params_type *)
 
-val int_coordinates :
-    string ->
-      (int * coordinates, [`WithoutSuffix],
-       [ `One of (int * coordinates) ] param_name) params_type
+(* val int_coordinates : *)
+(*     string -> *)
+(*       (int * coordinates, [`WithoutSuffix], *)
+(*        [ `One of (int * coordinates) ] param_name) params_type *)
 
-val int32_coordinates :
-    string ->
-      (int32 * coordinates, [`WithoutSuffix],
-       [ `One of (int32 * coordinates) ] param_name) params_type
+(* val int32_coordinates : *)
+(*     string -> *)
+(*       (int32 * coordinates, [`WithoutSuffix], *)
+(*        [ `One of (int32 * coordinates) ] param_name) params_type *)
 
-val int64_coordinates :
-    string ->
-      (int64 * coordinates, [`WithoutSuffix],
-       [ `One of (int64 * coordinates) ] param_name) params_type
+(* val int64_coordinates : *)
+(*     string -> *)
+(*       (int64 * coordinates, [`WithoutSuffix], *)
+(*        [ `One of (int64 * coordinates) ] param_name) params_type *)
 
-val float_coordinates :
-    string ->
-      (float * coordinates, [`WithoutSuffix],
-       [ `One of (float * coordinates) ] param_name) params_type
+(* val float_coordinates : *)
+(*     string -> *)
+(*       (float * coordinates, [`WithoutSuffix], *)
+(*        [ `One of (float * coordinates) ] param_name) params_type *)
 
-val user_type_coordinates :
-  of_string:(string -> 'a) -> to_string:('a -> string) -> string ->
-  ('a * coordinates, [`WithoutSuffix],
-   [ `One of ('a * coordinates) ] param_name) params_type
+(* val user_type_coordinates : *)
+(*   of_string:(string -> 'a) -> to_string:('a -> string) -> string -> *)
+(*   ('a * coordinates, [`WithoutSuffix], *)
+(*    [ `One of ('a * coordinates) ] param_name) params_type *)
 
 val ( ** ) :
   ('a, [ `WithoutSuffix ], 'b) params_type ->
@@ -151,7 +157,7 @@ val list :
         ('a list, [ `WithoutSuffix ], 'b listnames) params_type
 
 val guard : (string -> ('a, 'b, 'c) params_type) -> string
-  -> ('a -> bool) -> ('a, 'b, 'c) params_type
+  -> ('a -> bool) -> ('a, 'b, [ `One of 'a ] param_name) params_type
 
 val suffix :
   ?redirect_if_not_suffix:bool ->
@@ -195,7 +201,7 @@ val raw_post_data :
   (raw_post_data,
    [ `WithoutSuffix ], no_param_name) params_type
 
-type ('a, +'tipo, +'names) non_localized_params
+type ('a, +'tipo, 'names) non_localized_params
 
 val make_non_localized_parameters :
   prefix : string ->
@@ -216,10 +222,9 @@ val add_nl_parameter :
 val get_nl_params_names :
   (_, [< `WithSuffix | `WithoutSuffix ], 'a) non_localized_params -> 'a
 
-val get_to_and_from : ('a, 'b, 'c) params_type -> (string -> 'a) * ('a -> string)
+val get_to_and_from : ('a, 'b, 'c) params_type -> 'a to_and_from
 
-val walk_parameter_tree : [ `One of string ] param_name -> ('a, 'b, 'c) params_type
-  -> ((string -> 'd) * ('d -> string)) option
+val walk_parameter_tree : string -> ('a, 'b, 'c) params_type -> 'a to_and_from option
 val contains_suffix : ('a, 'b, 'c) params_type -> bool option
 
 val add_pref_params :

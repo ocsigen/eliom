@@ -472,56 +472,56 @@ val raw_input :
 (** Creates an [<input>] tag for sending a file *)
 val file_input :
   ?a:input_attrib_t ->
-  name:[< file_info setoneradio ] param_name ->
+  name:[file_info setoneradio ] param_name ->
   unit -> input_elt
 
 (** Creates an [<input type="image" name="...">] tag that sends the coordinates
     the user clicked on *)
 val image_input :
   ?a:input_attrib_t ->
-  name:[< coordinates oneradio ] param_name ->
+  name:[coordinates oneradio ] param_name ->
   ?src:uri -> unit -> input_elt
 
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
     the coordinates the user clicked on and a value of type int *)
 val int_image_input :
   ?a:input_attrib_t ->
-  name:[< (int * coordinates) oneradio ] param_name -> value:int ->
+  name:[(int * coordinates) oneradio ] param_name -> value:int ->
   ?src:uri -> unit -> input_elt
 
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
     the coordinates the user clicked on and a value of type int32 *)
 val int32_image_input :
   ?a:input_attrib_t ->
-  name:[< (int32 * coordinates) oneradio ] param_name -> value:int32 ->
+  name:[ (int32 * coordinates) oneradio ] param_name -> value:int32 ->
   ?src:uri -> unit -> input_elt
 
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
     the coordinates the user clicked on and a value of type int64 *)
 val int64_image_input :
   ?a:input_attrib_t ->
-  name:[< (int64 * coordinates) oneradio ] param_name -> value:int64 ->
+  name:[(int64 * coordinates) oneradio ] param_name -> value:int64 ->
   ?src:uri -> unit -> input_elt
 
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
     the coordinates the user clicked on and a value of type float *)
 val float_image_input :
   ?a:input_attrib_t ->
-  name:[< (float * coordinates) oneradio ] param_name -> value:float ->
+  name:[(float * coordinates) oneradio ] param_name -> value:float ->
   ?src:uri -> unit -> input_elt
 
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
     the coordinates the user clicked on and a value of type string *)
 val string_image_input :
   ?a:input_attrib_t ->
-  name:[< (string * coordinates) oneradio ] param_name -> value:string ->
+  name:[(string * coordinates) oneradio ] param_name -> value:string ->
   ?src:uri -> unit -> input_elt
 
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
     the coordinates the user clicked on and a value of user defined type *)
 val user_type_image_input : ('a -> string) ->
   ?a:input_attrib_t ->
-  name:[< ('a * coordinates) oneradio ] param_name -> value:'a ->
+  name:[('a * coordinates) oneradio ] param_name -> value:'a ->
   ?src:uri -> unit -> input_elt
 
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
