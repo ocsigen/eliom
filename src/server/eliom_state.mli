@@ -388,11 +388,11 @@ val set_default_max_volatile_tab_sessions_per_group :
 
 (** Sets the mask for subnet (IPV4). *)
 val set_ipv4_subnet_mask :
-  ?override_configfile:bool -> int32 -> unit
+  ?override_configfile:bool -> int -> unit
 
 (** Sets the mask for subnet (IPV6). *)
 val set_ipv6_subnet_mask :
-  ?override_configfile:bool -> int64 * int64 -> unit
+  ?override_configfile:bool -> int -> unit
 
 
 

@@ -29,7 +29,7 @@ let make_full_group_name ~cookie_level ri site_dir_string ipv4mask ipv6mask =
   | None -> (site_dir_string,
              cookie_level,
              Right 
-               (Ip_address.network_of_ip
+               (Eliom_common.network_of_ip
                   (!!(ri.Ocsigen_extensions.ri_remote_ip_parsed))
                   ipv4mask
                   ipv6mask
