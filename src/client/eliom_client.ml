@@ -1187,6 +1187,9 @@ let rebuild_attrib node name a =
 
 let rebuild_rattrib node ra = match Xml.racontent ra with
   | Xml.RA a -> rebuild_attrib node (Xml.aname ra) a
+  | Xml.RAReact s -> let _ = React.S.map (function
+      | None -> node##removeAttribute (js_name node (Xml.aname ra))
+      | Some v -> rebuild_attrib node (Xml.aname ra) v) s in ()
   | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
   | Xml.RALazyStr s ->
       node##setAttribute(Js.string (Xml.aname ra), Js.string s)
@@ -1195,11 +1198,121 @@ let rebuild_rattrib node ra = match Xml.racontent ra with
   | Xml.RALazyStrL (Xml.Comma, l) ->
       node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat "," l))
 
-let rec rebuild_node' ns elt =
+
+let delay f = Lwt.ignore_result ( Lwt.pause () >>= (fun () -> f (); Lwt.return_unit))
+
+module ReactState : sig
+  type t
+  val get_node : t -> Dom.node Js.t
+  val change_dom : t -> Dom.node Js.t -> bool
+  val init_or_update : ?state:t -> Eliom_content_core.Xml.elt -> t
+end = struct
+
+  (*
+     ISSUE
+     =====
+     There is a confict when many dom react are inside each other.
+
+     let s_lvl1 = S.map (function
+     | case1 -> ..
+     | case2 -> let s_lvl2 = ... in R.node s_lvl2) ...
+     in R.node s_lvl1
+
+     both dom react will update the same dom element (call it `dom_elt`) and
+     we have to prevent an (outdated) s_lvl2 signal
+     to replace `dom_elt` (updated last by a s_lvl1 signal)
+
+     SOLUTION
+     ========
+     - an array to track versions of updates - a dom react store its version at a specify position (computed from the depth).
+     - a child can only update `dom_elt` if versions of its parents haven't changed.
+     - every time a dom react update `dom_elt`, it increment its version.
+  *)
+
+  type t = {
+    elt : Eliom_content_core.Xml.elt;  (* top element that will store the dom *)
+    global_version : int Js.js_array Js.t; (* global versions array *)
+    version_copy : int Js.js_array Js.t; (* versions when the signal started *)
+    pos : int; (* equal the depth *)
+  }
+
+  let get_node t = match Xml.get_node t.elt with
+    | Xml.DomNode d -> d
+    | _ -> assert false
+
+  let change_dom state dom =
+    let pos = state.pos in
+    let outdated = ref false in
+    for i = 0 to pos - 1 do
+      if Js.array_get state.version_copy i != Js.array_get state.global_version i (* a parent changed *)
+      then outdated := true
+    done;
+    if not !outdated
+    then
+      begin
+        if dom != get_node state
+        then
+          begin
+            (* new version *)
+            let nv = Js.Optdef.get (Js.array_get state.global_version pos) (fun _ -> 0) + 1 in
+            Js.array_set state.global_version pos nv;
+            (* Js.array_set state.version_copy pos nv; *)
+
+            Js.Opt.case ((get_node state)##parentNode)
+              (fun () -> (* no parent -> no replace needed *) ())
+              (fun parent ->
+                 Js.Opt.iter (Dom.CoerceTo.element parent) (fun parent ->
+                     (* really update the dom *)
+                     ignore ((Dom_html.element parent)##replaceChild(dom, get_node state))));
+            Xml.set_dom_node state.elt dom;
+          end;
+        false
+      end
+    else
+      begin
+        (* a parent signal changed, this dom react is outdated, do not update the dom *)
+        true
+      end
+
+  let clone_array a = a##slice_end(0)
+
+  let init_or_update ?state elt = match state with
+    | None -> (* top dom react, create a state *)
+      let global_version = jsnew Js.array_empty () in
+      let pos = 0 in
+      ignore(Js.array_set global_version pos 0);
+      let node = (Dom_html.document##createElement (Js.string "span")  :> Dom.node Js.t) in
+      Xml.set_dom_node elt node;
+      {pos;global_version;version_copy = clone_array global_version; elt}
+    | Some p -> (* child dom react, compute a state from the previous one *)
+      let pos = p.pos + 1 in
+      ignore(Js.array_set p.global_version pos 0);
+      {p with pos;version_copy = clone_array p.global_version}
+
+end
+
+let rec rebuild_node_with_state ns ?state elt =
   match Xml.get_node elt with
   | Xml.DomNode node ->
       (* assert (Xml.get_node_id node <> NoId); *)
       node
+  | Xml.ReactNode signal ->
+      let state = ReactState.init_or_update ?state elt in
+      let clear = ref None in
+      let update_signal = React.S.map (fun elt' ->
+        let dom = rebuild_node_with_state ns ~state elt' in
+        let need_cleaning = ReactState.change_dom state dom in
+        if need_cleaning then
+          match !clear with
+            | None -> ()
+            | Some s ->
+              begin
+                delay (fun () -> React.S.stop s (* clear/stop the signal we created *));
+                clear := None
+              end
+      ) signal in
+      clear := Some update_signal;
+      ReactState.get_node state
   | Xml.TyXMLNode raw_elt ->
       match Xml.get_node_id elt with
       | Xml.NoId -> raw_rebuild_node ns raw_elt
@@ -1218,6 +1331,7 @@ let rec rebuild_node' ns elt =
             node)
           (fun n -> (n:> Dom.node Js.t))
 
+and rebuild_node' ns e = rebuild_node_with_state ns e
 
 and raw_rebuild_node ns = function
   | Xml.Empty

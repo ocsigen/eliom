@@ -110,14 +110,17 @@ module RawXML = struct
     | AInt of int
     | AStr of string
     | AStrL of separator * string list
+
   type racontent =
     | RA of acontent
+    | RAReact of acontent option React.signal
     | RACamlEventHandler of Dom_html.event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
   type attrib = aname * racontent
   let aname (name, _) = name
   let acontent = function
+    | _ ,RAReact s -> (match React.S.value s with None -> AStr "" | Some x -> x)
     | _, RA a -> a
     | _, RACamlEventHandler (CE_registered_closure (crypto, _)) ->
       AStr (closure_attr_prefix^crypto)
@@ -125,6 +128,14 @@ module RawXML = struct
     | _, RALazyStr str -> AStr (Eliom_lazy.force str)
     | _, RALazyStrL (sep, str) -> AStrL (sep, List.map Eliom_lazy.force str)
   let racontent (_, a) = a
+
+  let react_float_attrib name s = name, RAReact (React.S.map (fun f -> Some (AFloat f)) s)
+  let react_int_attrib name s = name, RAReact (React.S.map (fun f -> Some (AInt f)) s)
+  let react_string_attrib name s = name, RAReact (React.S.map (fun f -> Some (AStr f)) s)
+  let react_space_sep_attrib name s = name, RAReact (React.S.map (fun f -> Some(AStrL (Space,f))) s)
+  let react_comma_sep_attrib name s = name, RAReact (React.S.map (fun f -> Some (AStrL (Comma,f))) s)
+
+  let react_poly_attrib name v s = name, RAReact (React.S.map (function false -> None | true -> Some (AStr v)) s)
 
   let float_attrib name value = name, RA (AFloat value)
   let int_attrib name value = name, RA (AInt value)

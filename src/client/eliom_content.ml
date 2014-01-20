@@ -51,6 +51,7 @@ module MakeManip
     let get_unique_node context (elt: 'a Kind.elt) : Dom.node Js.t =
       match Xml.get_node (Kind.toelt elt) with
       | Xml.DomNode node -> node
+      | Xml.ReactNode s -> get_node elt
       | Xml.TyXMLNode desc ->
         let elt' = Kind.toelt elt in
           match Xml.get_node_id elt' with
@@ -327,6 +328,10 @@ module Html5 = struct
     let form = get_form
     let input = string_input
     let select = string_select ?required:None
+  end
+
+  module R = struct
+    include Html5.R
   end
 
   module D = struct

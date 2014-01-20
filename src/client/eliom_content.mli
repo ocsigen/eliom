@@ -297,6 +297,20 @@ module Html5 : sig
     val select : ?a:Html5_types.select_attrib attrib list -> name:[< `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt
   end
 
+
+  (** Creation of HTML5 content from {{: http://erratique.ch/software/react} React } signals.
+      HTML5's trees are automatically updated whenever
+      corresponding signals change.  *)
+  module R : sig
+    (** {2 Content creation} *)
+
+    (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} and
+        the Eliom manual for more detail on
+        {% <<a_manual chapter="reactive-dom"| Reactive HTML5 content >>%}. *)
+    include module type of Eliom_content_core.Html5.R
+  end
+
+
   (** Node identifiers *)
   module Id : sig
     include module type of Eliom_content_core.Html5.Id
