@@ -52,13 +52,13 @@ let content : Html5_types.div_content_fun elt React.signal = React.S.map ( fun t
   )
 ) title
 
-let make_color lem =
-  let d = max len 255 in
-  Printf.sprintf "rgb(%d,%d,%d)" d d d
+let make_color len =
+  let d = (len * 10) mod 255 in
+  Printf.sprintf "color: rgb(%d,%d,%d)" d d d
 
 let body = D.div [
   (Lazy.force input :> Html5_types.div_content_fun elt);
-  D.p ~a:[ R.a_style (React.S.map make_color len)] [R.pcdata title];
+  D.p ~a:[ R.a_style (React.S.map make_color title_len)] [R.pcdata title];
   R.node content
 ]
 
