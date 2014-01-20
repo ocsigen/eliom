@@ -78,3 +78,122 @@ the following specific options:
 
 If you want to use the native version of ocsigen server, you may
 replace {{{eliomc}}} by {{{eliomopt}}}.
+
+
+==Using {{{ocamlbuild}}} (ocaml >= 4.01 and eliom >= 4 only)
+
+{{{ocamlbuild}}} is a standard tool for building ocaml programs and libraries.
+It contains a powerful plugin system which has been improved in ocaml 4.01 by
+the {{{-plugin-tags}}} option. This option allows you to give tags to the plugin
+itself and to (for example) use some libraries. In fact, the best usage is to
+import libraries that are ocamlbuild plugins.
+
+eliom has now an ocamlbuild plugin contained in the package {{{eliom.ocamlbuild}}}.
+This plugin allows to compile .eliom files and to create javascript executables.
+
+To compile an eliom project or library with ocamlbuild, you need to add this
+to your {{{myocamlbuild.ml}}} (at the root of your project):
+
+<<code language="ocaml"|
+module M = Ocamlbuild_eliom.Make(struct
+  let client_dir = "client"
+  let server_dir = "server"
+  let type_dir = "type"
+end)
+
+let () =
+  dispatch
+    (fun hook ->
+       M.dispatcher hook;
+    )
+>>
+
+The {{{client_dir}}} {{{server_dir}}} and {{{type_dir}}} values are the
+directories that are used for client server and type parts.
+The plugin will dispatch the .eliom in three .ml files in server, client and type
+dir. Those three dir will be concatenated to the current directory.
+For example, if you have {{{test.eliom}}} in src, it will be dispatched in
+src/server/test.ml, src/client/test.ml and src/type/test.ml
+(same for .eliomi files).
+Don't forget to mention the good one in your .mllib file
+(for a server lib, it will be {{{src/server/Test}}}).
+
+Then in a file named {{{_tags}}} (at the root of your project), add:
+
+{{{
+true: thread, syntax(camlp4o)
+}}}
+
+You can replace true by certain specific files, if you know what you are doing.
+Dependencies are added with {{{package(yourdep)}}} in the same line.
+
+For libraries, don't forget to add the corresponding .mllib file.
+Then, you can compile your project with:
+
+{{{
+ocamlbuild -use-ocamlfind -plugin-tags "package(eliom.ocamlbuild)" yourlib.cma yourlib.cmxa yourlib.cmxs yourexecutable.js
+}}}
+
+
+==Using {{{ocamlbuild and OASIS}}} (ocaml >= 4.01 and eliom >= 4 only)
+
+After having created the _oasis with the corresponding Library and Executable
+sections, please read the above selection on ocamlbuild.
+You don't need to create the .mllib since it's auto-generated.
+Dependencies are also handled by OASIS.
+
+If you want to use OASIS, the dispatch call should looks like this:
+
+<<code language="ocaml"|
+let () =
+  dispatch
+    (fun hook ->
+       dispatch_default hook;
+       M.dispatcher hook;
+       match hook with
+         | After_options ->
+             let f = function
+               | "src/theprogram.byte" -> "src/theprogram.js"
+               | x -> x
+             in
+             Options.targets := List.map f !Options.targets
+         | _ -> ()
+    )
+>>
+
+Note that the {{{match hook with}}} part can be removed if you don't need a javascript executable
+(like for a library that contains .eliom files).
+
+Be careful to always add those parts after the OASIS END block.
+
+==[EXPERIMENTAL] Using {{{eliomdoc}}} and {{{eliompp}}}
+You can use {{{eliomdoc}}} to generate the documentation of your project.
+{{{eliompp}}} is a preprocessor which deletes specific sections ({{{{shared{}}},
+{{{{client{}}} and {{{{server{}}}), depending on the first parameter
+({{{-client}}} or {{{-server}}}).
+
+We use a hand made preprocessor
+because **camlp4** doesn't handle commentaries during preprocessing,
+so it was not possible to extract commentaries of a specific section.
+
+{{{eliomdoc}}} handle the same options as {{{ocamldoc}}}.
+It is only a wrapper around it (as {{{eliomc}}} for {{{ocamlc}}}).
+
+{{{eliompp}}} prints on the standard output the preprocessed file.
+So if you use it with {{{-client}}}, it will prints {{{{shared{}}} and {{{{client{}}} sections.
+
+You can use them like this:
+{{{
+eliompp -client foobar.eliom ...
+eliompp -server foobar.eliom ...
+
+eliomdoc -client -d doc/client -html foobar.eliom ...
+eliomdoc -server -d doc/server -html foobar.eliom ...
+}}}
+
+Here are some known bugs with {{{eliomdoc}}}:
+* Your files should always **begin with a value** and **not with a comment**. Otherwise,
+camlp4 won't output the commentaries.
+* Sometimes, comment node **are not attached as expected**. That's because
+camlp4 (sometimes) remove extra new line between value elements.
+

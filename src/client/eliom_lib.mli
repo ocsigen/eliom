@@ -92,7 +92,7 @@ val trace : ('a, unit, string, unit) format4 -> 'a
 val lwt_ignore : ?message:string -> unit Lwt.t -> unit
 
 val encode_form_value : 'a -> string
-val unmarshal_js_var : string -> 'a
+val unmarshal_js : Js.js_string Js.t -> 'a
 
 val encode_header_value : 'a -> string
 

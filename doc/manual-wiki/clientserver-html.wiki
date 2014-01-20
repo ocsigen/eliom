@@ -368,7 +368,7 @@ Eliom_content.Html5.Custom_data.create>>
 
 <<code language="ocaml"|
 open Eliom_content
-type my_int_data =
+let my_int_data =
   Html5.Custom_data.create ~name:"my_int" ~of_string:int_of_string ~to_string:string_of_int ()
 >>
 

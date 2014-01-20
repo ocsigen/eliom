@@ -339,7 +339,7 @@ where and {{{id}}} an identifier for the value.
                             pcdata " and ";
                             span
                               ~a:[a_class ["clickable"];
-                                  a_onclick (fun _ -> Dom_html.window##alert(Js.string "clicked!"); true)]
+                                  a_onclick (fun _ -> Dom_html.window##alert(Js.string "clicked!"))]
                               [pcdata "Here a client-side span with onclick"]
                            ]
                         ))
@@ -793,6 +793,30 @@ let () =
 %<||2>%
 *wiki*)
 
+
+(*wiki*
+====Entity in client code
+This check that entity are correctly rendered in client and server code.
+ *wiki*)
+
+let entity =
+  My_appl.register_service
+    ~path:["entity"]
+    ~get_params:unit
+    (fun () () ->
+       let d = Eliom_content.Html5.D.div [] in
+       ignore {unit{
+           Eliom_content.Html5.Manip.appendChild %d (Eliom_content.Html5.F.entity "#947")
+         }} ;
+       Lwt.return
+         (Eliom_tools.F.html
+            ~title:"bug_entity"
+            ~css:[["css";"bug_entity.css"]]
+            Html5.F.(body [
+                h2 [pcdata "Welcome from Eliom's destillery!"];
+                entity "#946" ;
+                d
+              ])))
 
 (*wiki*
 ====Comet programming
@@ -2919,7 +2943,7 @@ let formc = My_appl.register_service ["formc"] unit
                  a_onclick
                    ( fun _ -> ignore(Eliom_client.change_page
                                         ~service:%service_with_get_params
-                                        ("toto aaaéaaa+aaa", "tata oooéooo+ooo") ()); true) ]
+                                        ("toto aaaéaaa+aaa", "tata oooéooo+ooo") ())) ]
                [pcdata "Change page to a service inside the application (GET parameters, with spaces and Unicode)."];
 
              Html5.D.get_form ~service:%eliomclient1

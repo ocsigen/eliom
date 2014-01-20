@@ -78,6 +78,7 @@ let ocamlc = Findlib.command `ocamlc
 let ocamlcp = Findlib.command `ocamlcp
 let ocamlopt = Findlib.command `ocamlopt
 let ocamldep = Findlib.command `ocamldep
+let ocamldoc = Findlib.command `ocamldoc
 let js_of_ocaml = ref "js_of_ocaml"
 
 let compiler = ref ocamlc

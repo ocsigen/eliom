@@ -26,7 +26,7 @@ class type ['a,'b] weakMap = object
   method has : 'a -> bool Js.t Js.meth
 end
 
-let weakMap : ('a,'b) weakMap Js.t Js.constr = Js.Unsafe.variable "window.WeakMap"
+let weakMap : ('a,'b) weakMap Js.t Js.constr = Js.Unsafe.global##_WeakMap
 
 let map : (Obj.t,Obj.t) weakMap Js.t = jsnew weakMap ()
 
@@ -195,5 +195,5 @@ let unwrap s i =
   res
 
 
-let unwrap_js_var s =
-  unwrap (Js.to_bytestring (Js.Unsafe.variable s)) 0
+let unwrap_js s =
+  unwrap (Js.to_bytestring s) 0

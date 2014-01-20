@@ -186,6 +186,10 @@ let process_option () =
       if !i+1 >= Array.length Sys.argv then usage ();
       pp := Some Sys.argv.(!i+1);
       i := !i+2
+    | "-ppopt" ->
+      if !i+1 >= Array.length Sys.argv then usage ();
+      ppopt := !ppopt @ [Sys.argv.(!i+1)];
+      i := !i+2
     | "-dir" ->
       if !i+1 >= Array.length Sys.argv then usage ();
       build_dir := Sys.argv.(!i+1);

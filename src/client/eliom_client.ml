@@ -383,7 +383,7 @@ let reify_caml_event node ce : #Dom_html.event Js.t -> bool = match ce with
         let form = Js.Opt.get (Dom_html.CoerceTo.form node) (fun () -> error "not a form element") in
         raw_form_handler form kind cookies_info tmpl ev)
   | Xml.CE_client_closure f ->
-      (fun ev -> f ev)
+      (fun ev -> try f ev; true with False -> false)
   | Xml.CE_registered_closure (_, cv) ->
       raw_event_handler cv
 
@@ -1243,7 +1243,9 @@ and raw_rebuild_node ns = function
       (Dom_html.document##createTextNode (Js.string "") :> Dom.node Js.t)
   | Xml.EncodedPCDATA s
   | Xml.PCDATA s -> (Dom_html.document##createTextNode (Js.string s) :> Dom.node Js.t)
-  | Xml.Entity s -> assert false (* FIXME *)
+  | Xml.Entity s ->
+      let entity = Dom_html.decode_html_entities (Js.string ("&" ^ s ^ ";")) in
+      (Dom_html.document##createTextNode(entity) :> Dom.node Js.t)
   | Xml.Leaf (name,attribs) ->
     let node = Dom_html.document##createElement (Js.string name) in
     List.iter (rebuild_rattrib node) attribs;

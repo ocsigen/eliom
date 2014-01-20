@@ -82,7 +82,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
         (function gen_id, _ ->
            global_known := String_set.add gen_id !global_known)
         novel;
-      all, novel
+      all
     in
     push, flush
 
@@ -127,10 +127,10 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   (** Syntax extension *)
 
   let client_str_items loc _ =
-    let _, novel_injections = flush_injections () in
+    let all_injections = flush_injections () in
     Ast.stSem_of_list
-      [bind_injected_idents novel_injections;
-       close_client_section loc novel_injections]
+      [bind_injected_idents all_injections;
+       close_client_section loc all_injections]
 
   let server_str_items loc items =
     Ast.stSem_of_list
@@ -138,12 +138,12 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
        [ close_server_section loc ])
 
   let shared_str_items loc items =
-    let all_injections, novel_injections = flush_injections () in
+    let all_injections = flush_injections () in
     Ast.stSem_of_list
       (bind_injected_idents all_injections ::
        items @
        [ close_server_section loc;
-         close_client_section loc novel_injections ])
+         close_client_section loc all_injections ])
 
   let client_value_expr typ context_level orig_expr gen_num _ loc =
     let typ =

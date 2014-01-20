@@ -5,18 +5,21 @@ all: metas conf
 	${MAKE} -C server all
 	${MAKE} -C client all
 	${MAKE} -C tools all
+	${MAKE} -C ocamlbuild $@
 
 byte: metas conf
 	${MAKE} -C syntax all
 	${MAKE} -C server byte
 	${MAKE} -C client all
 	${MAKE} -C tools all
+	${MAKE} -C ocamlbuild $@
 
 opt: metas conf
 	${MAKE} -C syntax all
 	${MAKE} -C server opt
 	${MAKE} -C client all
 	${MAKE} -C tools all
+	${MAKE} -C ocamlbuild $@
 
 odoc:
 	${MAKE} -C server odoc DEPEND=no
@@ -27,6 +30,7 @@ clean:
 	${MAKE} -C client clean DEPEND=no
 	${MAKE} -C tools clean
 	${MAKE} -C syntax clean
+	${MAKE} -C ocamlbuild $@
 	-rm -f files/META  files/META.${PROJECTNAME}
 	-rm -f ../local/etc/$(PROJECTNAME).conf
 
@@ -35,11 +39,17 @@ distclean:
 	${MAKE} -C client distclean DEPEND=no
 	${MAKE} -C tools distclean
 	${MAKE} -C syntax distclean
+	${MAKE} -C ocamlbuild $@
 	-rm -f *~ \#* .\#*
 
-depend: syntax.depend server.depend client.depend tools.depend
+depend:
+	${MAKE} syntax.depend
+	${MAKE} tools.depend
+	${MAKE} server.depend client.depend
 syntax.depend:
-	${MAKE} -C syntax depend pa_include.cmo
+	find syntax -name .\*.deps -delete
+	${MAKE} -C syntax depend
+	${MAKE} -C syntax pa_include.cmo
 server.depend: syntax.depend
 	find server -name .\*.deps -delete
 	rm -f server/.depend
@@ -49,6 +59,7 @@ client.depend: syntax.depend
 	rm -f client/.depend
 	${MAKE} -C client .depend
 tools.depend: syntax.depend
+	find tools -name .\*.deps -delete
 	${MAKE} -C tools depend
 
 VERSION := $(shell head -n 1 ../VERSION)
@@ -58,6 +69,7 @@ install: install.META install.man
 	${MAKE} -C client install
 	${MAKE} -C syntax install
 	${MAKE} -C tools install
+	${MAKE} -C ocamlbuild $@
 
 install.man: install.META
 	$(INSTALL) -m 755 -d $(TEMPROOT)$(MANDIR)/man1
@@ -79,18 +91,21 @@ install.byte: install.META install.man
 	${MAKE} -C client install
 	${MAKE} -C syntax install
 	${MAKE} -C tools install
+	${MAKE} -C ocamlbuild $@
 
 install.opt: install.META install.man
 	${MAKE} -C server install.opt
 	${MAKE} -C client install
 	${MAKE} -C syntax install
 	${MAKE} -C tools install
+	${MAKE} -C ocamlbuild $@
 
 uninstall:
 	${MAKE} -C server uninstall
 	${MAKE} -C client uninstall
 	${MAKE} -C syntax uninstall
 	${MAKE} -C tools uninstall
+	${MAKE} -C ocamlbuild $@
 	${OCAMLFIND} remove ${PROJECTNAME} \
 	   -destdir $(TEMPROOT)${LIBDIR}
 	rm -f $(TEMPROOT)$(MANDIR)/man1/eliomc.1

@@ -6,5 +6,11 @@ eliomc.cmo : utils.cmo
 eliomc.cmx : utils.cmx
 eliomdep.cmo : utils.cmo
 eliomdep.cmx : utils.cmx
+eliomdoc.cmo : utils.cmo
+eliomdoc.cmx : utils.cmx
+eliompp.cmo : eliompp_lexer.cmo
+eliompp.cmx : eliompp_lexer.cmx
+eliompp_lexer.cmo :
+eliompp_lexer.cmx :
 utils.cmo :
 utils.cmx :

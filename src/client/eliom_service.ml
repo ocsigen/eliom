@@ -40,10 +40,10 @@ end
 module Unsafe = struct
   include MakeBase
 end
-module Appl = struct
+module App = struct
   include MakeBase
 end
-module Caml = struct
+module OCaml = struct
   include MakeBase
 end
 module Http = struct

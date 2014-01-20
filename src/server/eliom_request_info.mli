@@ -171,6 +171,10 @@ val get_filesize : file_info -> int64
 (** returns the name the file had on the client when it has been sent. *)
 val get_original_filename : file_info -> string
 
+(** returns the content type sent by the browser with the file
+    (if any). *)
+val get_file_content_type : file_info -> (string * string option) option
+
 (** returns the root of the site. *)
 val get_site_dir : unit -> Url.path
 

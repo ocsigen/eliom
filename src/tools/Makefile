@@ -4,12 +4,13 @@ LIBS     := -package str,unix,findlib
 OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG}
 OCAMLOPT := $(OCAMLFIND) ocamlopt ${OPTDBG}
 OCAMLDEP := $(OCAMLFIND) ocamldep
+OCAMLLEX := ocamllex
 
 all: byte
 
 ### Common files ###
 
-COMPILER := eliomc eliomcp eliomopt js_of_eliom eliomdep
+COMPILER := eliomc eliomcp eliomopt js_of_eliom eliomdep eliomdoc eliompp
 DISTILLERY := eliom-distillery
 
 FILES := ../../src/files
@@ -35,8 +36,16 @@ eliomcp eliomopt js_of_eliom: eliomc
 eliomdep: utils.cmo eliomdep.cmo
 	${OCAMLC} -o $@ -linkpkg ${LIBS} $^
 
+eliomdoc: utils.cmo eliomdoc.cmo
+	${OCAMLC} -o $@ -linkpkg ${LIBS} $^
+
+eliompp: eliompp_lexer.cmo eliompp.cmo
+	${OCAMLC} -o $@ -linkpkg ${LIBS} $^
+
 ##########
 
+%.ml: %.mll
+	$(OCAMLLEX) $<
 %.cmi: %.mli
 	$(OCAMLC) ${LIBS} -c $<
 %.cmo: %.ml
@@ -58,7 +67,7 @@ uninstall:
 ## Clean up
 
 clean:
-	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot config.ml
+	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot config.ml eliompp_lexer.ml
 	-rm -f ${COMPILER} ${DISTILLERY}
 	-rm -f ${PREDEP}
 distclean: clean

@@ -19,7 +19,9 @@ ifeq "${NATDYNLINK}" "YES"
 FILES_OPT:= $(FILES:.ml=.cmx) $(FILES:.ml=.cmxs)
 endif
 
-all: $(FILES:.ml=.cmo) $(FILES_OPT)
+all:
+	${MAKE} $(FILES:.ml=.cmo)
+	${MAKE} $(FILES_OPT)
 
 install:
 	${INSTALL} -m 755 -d ${SYNTAXDIR}

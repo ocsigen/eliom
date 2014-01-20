@@ -225,6 +225,10 @@ val rebuild_node_svg : string -> 'a Eliom_content_core.Svg.elt -> < .. > Js.t
     It takes the attribute name with capital letters as parameter. *)
 val fix_attrib : string -> unit
 
+(* This is necessary when generating/hacking eliom forms, e.g. when
+   deriving forms from a runtime type represantation. *)
+val form_handler : (Dom_html.element Js.t, Dom_html.event Js.t) Dom_html.event_listener
+
 module Syntax_helpers : sig
 
   (** Look-up of the value of an injection in the global injection table. *)
