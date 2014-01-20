@@ -219,12 +219,6 @@ val rebuild_node' : Eliom_content_core.content_ns -> Eliom_content_core.Xml.elt 
 val rebuild_node : string -> 'a Eliom_content_core.Html5.elt -> < .. > Js.t
 val rebuild_node_svg : string -> 'a Eliom_content_core.Svg.elt -> < .. > Js.t
 
-(** Javascript expect some attributes to have capital letters.
-    Eliom does the translation for some of them.
-    If some are missing, use this function to add them.
-    It takes the attribute name with capital letters as parameter. *)
-val fix_attrib : string -> unit
-
 (* This is necessary when generating/hacking eliom forms, e.g. when
    deriving forms from a runtime type represantation. *)
 val form_handler : (Dom_html.element Js.t, Dom_html.event Js.t) Dom_html.event_listener
