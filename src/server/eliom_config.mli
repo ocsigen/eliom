@@ -17,6 +17,21 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(** This module makes also possible get information from the configuration
+file.
+
+    It make also possible to add configuration options
+    in configuration file for your Eliom modules.
+    Use {!Eliom_config.parse_config} for that.
+
+    Example:
+    {v <eliommodule ...>
+        <myoption myattr="...">myvalue</myoption>
+     </eliommodule>  v}
+
+
+*)
+
 
 (** The function [get_default_hostname ()]returns the hostname
     declared in the config file ([<host defaulthostname="...">]) or
@@ -73,12 +88,18 @@ val get_default_links_xhr : unit -> bool
 *)
 val get_config : unit -> Simplexmlparser.xml list
 
-(** Process the configuration {% <<a_api module="Eliom_config" | val get_config>> %}
-    by a give specification (cf. {% <<a_api project="ocsigenserver" | type Ocsigen_extensions.Configuration.element >> %}) *)
+(** Process the configuration
+    (same as the one returned by
+    {% <<a_api module="Eliom_config" | val get_config>> %})
+    by a given specification (cf. {% <<a_api project="ocsigenserver" | type Ocsigen_extensions.Configuration.element >> %}) *)
 val parse_config : ?pcdata:(string -> unit) -> ?other_elements:(string -> (string * string) list -> Simplexmlparser.xml list -> unit) -> Ocsigen_extensions.Configuration.element list -> unit
 
 (** The function [get_config_info ()] returns the information
-    concerning the request from the configuration files. *)
+    concerning the current request from the configuration files
+    (must be called during a request).
+    The configuration may have been modified by previous Ocsigen server
+    extensions.
+*)
 val get_config_info : unit -> Ocsigen_extensions.config_info
 
 (**/**)
