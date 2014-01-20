@@ -22,6 +22,7 @@ Libraries:
  * ocamlssl          (tested with 0.4.6)
  * calendar	     (tested with 2.03.1)
  * optcomp
+ * ipaddr
 
 
 If OCaml 3.12 and the needed libraries (findlib/react/lwt...) are not
