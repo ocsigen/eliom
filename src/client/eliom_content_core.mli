@@ -44,6 +44,7 @@ module Xml : sig
 
   type ename = string
   type elt
+  type 'a wrap = 'a
   type econtent = private
     | Empty
     | Comment of string
@@ -67,10 +68,12 @@ module Xml : sig
     | AInt of int
     | AStr of string
     | AStrL of separator * string list
+
   val acontent : attrib -> acontent
 
   type racontent =
     | RA of acontent
+    | RAReact of acontent option React.signal
     | RACamlEventHandler of Dom_html.event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
@@ -113,6 +116,7 @@ module Xml : sig
   val make_dom : ?id:node_id -> Dom.node Js.t -> elt
   val make_lazy : ?id:node_id -> elt lazy_t -> elt
   val force_lazy : elt -> unit
+  val make_react : ?id:node_id -> elt React.signal -> elt
 
   val make_process_node : ?id:string -> elt -> elt
   val make_request_node : elt -> elt
@@ -121,6 +125,8 @@ module Xml : sig
   type node =
     | DomNode of Dom.node Js.t
     | TyXMLNode of econtent
+    | ReactNode of elt React.signal
+
   val get_node : elt -> node
   val set_dom_node : elt -> Dom.node Js.t -> unit
 
@@ -139,6 +145,7 @@ module Svg : sig
       application. *)
 
   type +'a elt
+  type 'a wrap = 'a
   type +'a attrib
   type uri = Xml.uri
 
@@ -153,6 +160,8 @@ module Svg : sig
                             and type Xml.attrib = Xml.attrib
                             and type Xml.elt = Xml.elt
                               with type 'a elt = 'a elt
+                             and type 'a Xml.wrap = 'a
+                             and type 'a wrap = 'a
                               and type 'a attrib = 'a attrib
                               and type uri = uri
 
@@ -177,6 +186,8 @@ module Svg : sig
                             and type Xml.attrib = Xml.attrib
                             and type Xml.elt = Xml.elt
                               with type 'a elt = 'a elt
+                             and type 'a Xml.wrap = 'a
+                             and type 'a wrap = 'a
                               and type 'a attrib = 'a attrib
                               and type uri = uri
 
@@ -222,6 +233,7 @@ module Html5 : sig
       application. *)
 
   type +'a elt
+  type 'a wrap = 'a
   type +'a attrib
   type uri = Xml.uri
 
@@ -237,6 +249,8 @@ module Html5 : sig
                    and type Xml.elt = Xml.elt
                    with module Svg := Svg.F.Raw
                    with type 'a elt = 'a elt
+                    and type 'a Xml.wrap = 'a
+                    and type 'a wrap = 'a
                    and type 'a attrib = 'a attrib
                    and type uri = uri
 
@@ -257,6 +271,25 @@ module Html5 : sig
 
   end
 
+  module R: sig
+
+    val node : 'a elt React.signal -> 'a elt
+    (* val attrib : 'a attrib React.signal -> 'a attrib *) (* Need to change attrib type for this *)
+    module Raw : Html5_sigs.T
+                   with type Xml.uri = Xml.uri
+                   and type Xml.event_handler = Xml.event_handler
+                   and type Xml.attrib = Xml.attrib
+                   and type Xml.elt = Xml.elt
+                   and module Svg := Svg.D.Raw
+                   and type 'a elt = 'a elt
+                   and type 'a Xml.wrap = 'a React.signal
+                   and type 'a wrap = 'a React.signal
+                   and type 'a attrib = 'a attrib
+                   and type uri = uri
+    include module type of Raw
+  end
+
+
   (** Typed interface for building valid HTML5 tree (DOM semantics). See
       {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
   module D: sig
@@ -268,6 +301,8 @@ module Html5 : sig
                    and type Xml.elt = Xml.elt
                    and module Svg := Svg.D.Raw
                    and type 'a elt = 'a elt
+                   and type 'a Xml.wrap = 'a
+                   and type 'a wrap = 'a
                    and type 'a attrib = 'a attrib
                    and type uri = uri
     include module type of Raw (*BB TODO Hide untyped [input]. *)

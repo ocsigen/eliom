@@ -1187,6 +1187,9 @@ let rebuild_attrib node name a =
 
 let rebuild_rattrib node ra = match Xml.racontent ra with
   | Xml.RA a -> rebuild_attrib node (Xml.aname ra) a
+  | Xml.RAReact s -> let _ = React.S.map (function
+      | None -> node##removeAttribute (js_name node (Xml.aname ra))
+      | Some v -> rebuild_attrib node (Xml.aname ra) v) s in ()
   | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
   | Xml.RALazyStr s ->
       node##setAttribute(Js.string (Xml.aname ra), Js.string s)
@@ -1195,35 +1198,62 @@ let rebuild_rattrib node ra = match Xml.racontent ra with
   | Xml.RALazyStrL (Xml.Comma, l) ->
       node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat "," l))
 
+let rec has_react = function
+  | [] -> false
+  | x::xs -> match Xml.get_node x with
+      | Xml.ReactNode _ -> true
+      | _ -> has_react xs
+
 let rec rebuild_node' ns elt =
   match Xml.get_node elt with
-  | Xml.DomNode node ->
+    | Xml.DomNode node ->
       (* assert (Xml.get_node_id node <> NoId); *)
       node
-  | Xml.TyXMLNode raw_elt ->
+    | Xml.ReactNode s ->
+      let o = (Dom_html.document##createElement (Js.string "span")  :> Dom.node Js.t)in
+      let node_signal = React.S.map ~eq:(fun _ _ -> false) (rebuild_node' ns) s in
+      let update n =
+        let o = match Xml.get_node elt with
+	        | Xml.DomNode o -> o
+	        | _ -> o in
+        Js.Opt.iter (o##parentNode) (fun parent ->
+	        Js.Opt.iter (Dom.CoerceTo.element parent) (fun parent ->
+	          ignore ((Dom_html.element parent)##replaceChild(n, o))
+	        )
+        );
+        Xml.set_dom_node elt n in
+      let _ = React.S.map ~eq:(fun _ _ -> false) update node_signal in
+      Lwt.async (fun () ->
+        Lwt_js.sleep 0.01 >>= fun () ->
+        update (React.S.value node_signal);
+        Lwt.return ()
+      );
+      Xml.set_dom_node elt o;
+      o
+    | Xml.TyXMLNode raw_elt ->
       match Xml.get_node_id elt with
-      | Xml.NoId -> raw_rebuild_node ns raw_elt
-      | Xml.RequestId _ ->
+        | Xml.NoId -> raw_rebuild_node ns raw_elt
+        | Xml.RequestId _ ->
           (* Do not look in request_nodes hashtbl: such elements have
              been bind while unwrapping nodes. *)
           let node = raw_rebuild_node ns raw_elt in
           Xml.set_dom_node elt node;
           node
-      | Xml.ProcessId id ->
-        let id = (Js.string id) in
-        Js.Optdef.case (find_process_node id)
-          (fun () ->
-            let node = raw_rebuild_node ns (Xml.content elt) in
-            register_process_node id node;
-            node)
-          (fun n -> (n:> Dom.node Js.t))
+        | Xml.ProcessId id ->
+          let id = (Js.string id) in
+          Js.Optdef.case (find_process_node id)
+            (fun () ->
+              let node = raw_rebuild_node ns (Xml.content elt) in
+              register_process_node id node;
+              node)
+            (fun n -> (n:> Dom.node Js.t))
 
 
 and raw_rebuild_node ns = function
   | Xml.Empty
   | Xml.Comment _ ->
-      (* FIXME *)
-      (Dom_html.document##createTextNode (Js.string "") :> Dom.node Js.t)
+    (* FIXME *)
+    (Dom_html.document##createTextNode (Js.string "") :> Dom.node Js.t)
   | Xml.EncodedPCDATA s
   | Xml.PCDATA s -> (Dom_html.document##createTextNode (Js.string s) :> Dom.node Js.t)
   | Xml.Entity s ->
@@ -1237,13 +1267,30 @@ and raw_rebuild_node ns = function
     let ns = if name = "svg" then `SVG else ns in
     let node =
       match ns with
-      | `HTML5 -> Dom_html.document##createElement (Js.string name)
-      | `SVG ->
-	let svg_ns = "http://www.w3.org/2000/svg" in
-	Dom_html.document##createElementNS (Js.string svg_ns, Js.string name)
+        | `HTML5 -> Dom_html.document##createElement (Js.string name)
+        | `SVG ->
+          let svg_ns = "http://www.w3.org/2000/svg" in
+          Dom_html.document##createElementNS (Js.string svg_ns, Js.string name)
     in
     List.iter (rebuild_rattrib node) attribs;
-    List.iter (fun c -> Dom.appendChild node (rebuild_node' ns c)) childrens;
+    if has_react childrens
+    then
+      let all = List.rev_map (fun x -> match Xml.get_node x with
+        | Xml.ReactNode s -> s
+        | s -> React.S.const x) childrens in
+      let all = React.S.merge (fun acc s -> s :: acc) [] all in
+      let _ = React.S.map (fun l ->
+        let rec loop = function
+          | [],[] -> ()
+          | o::ox,n::nx ->
+            let n = rebuild_node' ns n in
+            ignore(node##replaceChild(n,o));
+            loop (ox,nx)
+          | [],nx -> List.iter (fun n -> let n = rebuild_node' ns n in ignore(node##appendChild(n))) nx
+          | ox,[] -> List.iter (fun o -> ignore(node##removeChild(o))) ox
+        in loop (Dom.list_of_nodeList (node##childNodes), l)) all in
+      ()
+    else List.iter (fun c -> Dom.appendChild node (rebuild_node' ns c)) childrens;
     (node :> Dom.node Js.t)
 
 let rebuild_node_ns ns context elt' =
@@ -1255,9 +1302,9 @@ let rebuild_node_ns ns context elt' =
       "Cannot apply %s%s before the document is initially loaded"
       context
       Xml.(match get_node_id elt' with
-           | NoId -> " "
-           | RequestId id -> " on request node "^id
-           | ProcessId id -> " on global node "^id);
+        | NoId -> " "
+        | RequestId id -> " on request node "^id
+        | ProcessId id -> " on global node "^id);
   let node = Js.Unsafe.coerce (rebuild_node' ns elt') in
   flush_load_script ();
   node
