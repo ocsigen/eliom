@@ -63,6 +63,13 @@ let client_pp_opt impl_intf =
   ["-printer"; "o"; "pa_eliom_client_client.cmo"; "-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
 
 let generate_temp_file file =
+  let tmp_dir =
+#if ocaml_version < (4, 00)
+    Filename.temp_dir_name
+#else
+    (Filename.get_temp_dir_name ())
+#endif
+  in
   let temp_file =
     (Filename.get_temp_dir_name ())
     ^ (Filename.dir_sep)

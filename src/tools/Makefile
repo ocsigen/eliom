@@ -17,6 +17,8 @@ FILES := ../../src/files
 DISTILLERY_TEMPLATES :=distillery
 DISTILLERY_BASIC :=basic
 
+IOPTCOMP := $(shell ocamlfind query optcomp)
+
 byte: ${COMPILER} $(DISTILLERY)
 
 config.ml: ../../Makefile.config
@@ -52,6 +54,9 @@ eliompp: eliompp_lexer.cmo eliompp.cmo
 	$(OCAMLC) ${LIBS} -c $<
 %.cmx: %.ml
 	$(OCAMLOPT) ${LIBS} -c $<
+
+eliomdoc.cmo: eliomdoc.ml
+	$(OCAMLC) -pp "camlp4o $(IOPTCOMP)/optcomp.cma" ${LIBS} -c $<
 
 ## INSTALL ##
 
