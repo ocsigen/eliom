@@ -1,21 +1,26 @@
 
 = Reactive Dom
 
-{{{Html5.R}}} allow one to insert time varying values into the dom tree.
-It rely on React's signal {{{'a React.signal}}}. More information about react
+{{{Html5.R}}} allows one to insert time varying values into the DOM tree.
+It relies on React's signal {{{'a React.signal}}}. More information about react
 can be found on the [[http://erratique.ch/software/react| homepage]].
 
-When dealing with dynamic content, one usally end up with a lot
-of imperative dom manipulations : replacing, appending, removing dom
-elements, updating attributes, etc.. [Html5.R] hide most
-of those imperative dom operation. Every time a signal
-change, the corresponding dom tree update itself.
+When dealing with dynamic content, one usally ends up with a lot
+of imperative DOM manipulations: replacing, appending, removing DOM
+elements, updating attributes, etc. {{{Html5.R}}} hides most
+of those imperative DOM operations. Every time a signal
+changes, the corresponding DOM tree updates itself.
 
-== Example
+== Usage on client side
+
+To insert reactive DOM elements, just use module {{{Html5.R}}} instead of
+{{{Html5.D}}} or {{{Html5.F}}} for these elements.
+{{{Html5.R}}} makes also possible to define reactive attributes.
+
+=== Example
 
 <<code language="ocaml"|
 open Eliom_content.Html5
-
 
 let split s =
     let len = String.length s in
