@@ -71,7 +71,7 @@ let generate_temp_file file =
 #endif
   in
   let temp_file =
-    (Filename.get_temp_dir_name ())
+    tmp_dir
     ^ (Filename.dir_sep)
     ^ (Filename.basename file)
   in
