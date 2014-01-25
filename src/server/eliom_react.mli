@@ -74,7 +74,7 @@ sig
 
       Example of use:
       [let e_up = Eliom_react.Up.create
-        (Eliom_parameter.caml "a" Json.t<string>)
+        (Eliom_parameter.ocaml "a" Json.t<string>)
       in
       ... {{ ignore ( %e_up "A") }} ...
       ]
@@ -100,7 +100,7 @@ sig
        ?scope:Eliom_common.scope
     -> ?name:string
     -> ('a, [ `WithoutSuffix ],
-        [ `One of 'a Eliom_parameter.caml ] Eliom_parameter.param_name)
+        [ `One of 'a Eliom_parameter.ocaml ] Eliom_parameter.param_name)
          Eliom_parameter.params_type
     -> 'a t
 

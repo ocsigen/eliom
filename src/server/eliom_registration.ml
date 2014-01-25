@@ -59,7 +59,7 @@ type 'a kind = 'a Result_types.kind
 type 'a application_content = [`Appl of 'a]
 type block_content
 type browser_content = [`Browser]
-type 'a caml_content
+type 'a ocaml_content
 type unknown_content
 
 let cast_unknown_content_kind (x:unknown_content kind) : 'a kind =
@@ -1132,7 +1132,7 @@ end
 (****************************************************************************)
 (****************************************************************************)
 
-module Caml_reg_base = struct
+module Ocaml_reg_base = struct
 
   type page = string
   type options = unit
@@ -1155,7 +1155,7 @@ end
 
 module Ocaml = struct
 
-  module M = Eliom_mkreg.MakeRegister(Caml_reg_base)
+  module M = Eliom_mkreg.MakeRegister(Ocaml_reg_base)
 
   let prepare_data data =
     let ecs_request_data = Eliom_service.get_request_data () in
@@ -1198,7 +1198,7 @@ module Ocaml = struct
       ~(service : ('get, 'post,
                    [< internal_service_kind ],
                    [< suff ], 'gn, 'pn, [ `Registrable ],
-                   'return Eliom_service.caml_service) service)
+                   'return Eliom_service.ocaml_service) service)
       ?(error_handler : ((string * exn) list -> 'return Lwt.t) option)
       (f : ('get -> 'post -> 'return Lwt.t)) =
     M.register
@@ -1716,7 +1716,7 @@ module type ELIOM_APPL = sig
       and type options := appl_service_options
       and type return  := appl_service
       and type returnB := [> appl_service ]
-      and type returnT := [< non_caml_service ]
+      and type returnT := [< non_ocaml_service ]
       and type result  := appl application_content kind
   val typed_name : appl application_name
 end

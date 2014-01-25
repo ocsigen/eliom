@@ -49,7 +49,7 @@ type comet_request =
 deriving (Json)
 
 let comet_request_param =
-  Eliom_parameter.caml "comet_request" Json.t<comet_request>
+  Eliom_parameter.ocaml "comet_request" Json.t<comet_request>
 
 type 'a channel_data =
   | Data of 'a
@@ -69,7 +69,7 @@ type comet_service =
     (unit, comet_request,
      Eliom_service.service_kind,
      [ `WithoutSuffix ], unit,
-     [ `One of comet_request Eliom_parameter.caml ] Eliom_parameter.param_name,
+     [ `One of comet_request Eliom_parameter.ocaml ] Eliom_parameter.param_name,
      Eliom_service.registrable,
      Eliom_registration.http_service )
       Eliom_service.service
@@ -78,7 +78,7 @@ type internal_comet_service =
     (unit, comet_request,
      Eliom_service.internal_service_kind,
      [ `WithoutSuffix ], unit,
-     [ `One of comet_request Eliom_parameter.caml ] Eliom_parameter.param_name,
+     [ `One of comet_request Eliom_parameter.ocaml ] Eliom_parameter.param_name,
      [ `Registrable ],
      Eliom_registration.http_service )
       Eliom_service.service
@@ -99,7 +99,7 @@ type 'a bus_send_service =
      [ `Nonattached of [ `Post ] Eliom_service.na_s ],
      [ `WithoutSuffix ],
      unit,
-            [ `One of 'a list Eliom_parameter.caml ] Eliom_parameter.param_name,
+            [ `One of 'a list Eliom_parameter.ocaml ] Eliom_parameter.param_name,
      [ `Registrable ],
      Eliom_registration.http_service
     ) Eliom_service.service

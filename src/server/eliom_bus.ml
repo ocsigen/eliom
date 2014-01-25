@@ -101,7 +101,7 @@ let create ?scope ?name ?size typ =
 
   (*The service*)
   let post_params =
-    (Eliom_parameter.caml "bus_write" typ_list
+    (Eliom_parameter.ocaml "bus_write" typ_list
        : ('a, 'aa, 'aaa) Eliom_parameter.params_type)
   in
   let distant_write = Eliom_service.Http.post_coservice' ?name ~post_params () in

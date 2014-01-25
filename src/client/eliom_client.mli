@@ -46,7 +46,7 @@ val change_page :
   service:('a, 'b,
            [< Eliom_service.service_kind ],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
-           [< Eliom_service.registrable ], [< Eliom_registration.non_caml_service ])
+           [< Eliom_service.registrable ], [< Eliom_registration.non_ocaml_service ])
           Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
@@ -58,20 +58,20 @@ val change_page :
 (** Call a server side service that return an OCaml value.
 
     If the service raises an exception, the call to the
-    [call_caml_service] raises an exception {% <<a_api|exception
+    [call_ocaml_service] raises an exception {% <<a_api|exception
     Exception_on_server>> %} whose argument describes the server-side
     exception.
     (NB that we cannot send the original exception as-it, because
     OCaml permits the marshalling of exceptions ...)
 *)
-val call_caml_service :
+val call_ocaml_service :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
            [< Eliom_service.service_kind ],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
-           [< Eliom_service.registrable ], 'return Eliom_service.caml_service)
+           [< Eliom_service.registrable ], 'return Eliom_service.ocaml_service)
     Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
@@ -91,7 +91,7 @@ val exit_to :
   service:('a, 'b,
            [< Eliom_service.service_kind ],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
-           [< Eliom_service.registrable ], [< Eliom_registration.non_caml_service ])
+           [< Eliom_service.registrable ], [< Eliom_registration.non_ocaml_service ])
           Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->

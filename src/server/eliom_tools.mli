@@ -37,7 +37,7 @@ type ('a, 'b, 'c) one_page =
      [ `WithoutSuffix ],
      unit, unit,
      'b, 'c) service
-constraint 'c = [< Eliom_registration.non_caml_service ]
+constraint 'c = [< Eliom_registration.non_ocaml_service ]
 
 (** Restriction of {!type:Eliom_service.service} to registrable GET
     services without parameters that do not returns a marshalled OCaml
@@ -45,7 +45,7 @@ constraint 'c = [< Eliom_registration.non_caml_service ]
 type get_page =
     (Eliom_service.get_service_kind,
      Eliom_service.registrable,
-     Eliom_registration.non_caml_service) one_page
+     Eliom_registration.non_ocaml_service) one_page
 
 (** Hierarchical sites description. This is is a pair [(main page,
     subpages list)]. Each subpage is defined by the text to be
@@ -60,10 +60,10 @@ constraint 'b = [< Eliom_service.registrable ]
 
 (** Main page description for a section of a hierarchical site. *)
 and ('a, 'b) main_page =
-  | Main_page of ('a, 'b, Eliom_registration.non_caml_service) one_page
+  | Main_page of ('a, 'b, Eliom_registration.non_ocaml_service) one_page
     (** Main page for your subsite: all the subpages are subsections
 	of that page. *)
-  | Default_page of ('a, 'b, Eliom_registration.non_caml_service) one_page
+  | Default_page of ('a, 'b, Eliom_registration.non_ocaml_service) one_page
     (** Like [Main_page] but is not taken into account for computing
 	which is the current page in the menu. Use it for example when
 	there is no main page, but you want one of the subpages to be
@@ -110,7 +110,7 @@ module type HTML5_TOOLS = sig
     ?id:string ->
     (([< get_service_kind ] as 'a,
       [< registrable ] as 'b,
-      [< Eliom_registration.non_caml_service ] as 'c) one_page *
+      [< Eliom_registration.non_ocaml_service ] as 'c) one_page *
         Html5_types.flow5_without_interactive Html5.elt list)
       list ->
     ?service:('a, 'b, 'c) one_page ->
@@ -167,7 +167,7 @@ module type HTML5_TOOLS = sig
      [< Eliom_service.registrable ] as 'b,
      Html5_types.a_content Html5.elt list)
       hierarchical_site ->
-    ?service:('a, 'b, [< Eliom_registration.non_caml_service]) one_page ->
+    ?service:('a, 'b, [< Eliom_registration.non_ocaml_service]) one_page ->
     unit ->
     [> `Ul ] Html5.elt list
 
@@ -183,7 +183,7 @@ module type HTML5_TOOLS = sig
      [< Eliom_service.registrable ] as 'b,
      Html5_types.a_content Html5.elt list)
     hierarchical_site ->
-    ?service:('a, 'b, [< Eliom_registration.non_caml_service ]) one_page ->
+    ?service:('a, 'b, [< Eliom_registration.non_ocaml_service ]) one_page ->
     unit ->
     [> `Link ] Html5.elt list
 

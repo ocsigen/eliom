@@ -61,7 +61,7 @@ let clone_exn (t,u) s =
 type 'a callable_bus_service =
     (unit, 'a list, Eliom_service.service_kind,
      [ `WithoutSuffix ], unit,
-     [ `One of 'a list Eliom_parameter.caml ]
+     [ `One of 'a list Eliom_parameter.ocaml ]
        Eliom_parameter.param_name, [ `Registrable ],
      Eliom_registration.Action.return)
       Eliom_service.service

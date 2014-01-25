@@ -575,11 +575,11 @@ let unwrap_caml_content content =
   in
   Lwt.return (r.Eliom_types.ecs_data, r.Eliom_types.ecs_request_data)
 
-let call_caml_service
+let call_ocaml_service
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
     ?keep_nl_params ?nl_params ?keep_get_na_params
     get_params post_params =
-  trace "Call caml service";
+  trace "Call OCaml service";
   lwt _, content =
     raw_call_service
       ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -917,7 +917,7 @@ let set_content ?uri ?offset ?fragment content =
            js_data.Eliom_common.ejs_event_handler_table closure_nodeList
        in
        (* The request node table must be empty when nodes received via
-          call_caml_service are unwrapped. *)
+          call_ocaml_service are unwrapped. *)
        reset_request_nodes ();
        run_callbacks
          (Eliommod_dom.add_formdata_hack_onclick_handler ::
