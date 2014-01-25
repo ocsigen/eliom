@@ -17,6 +17,9 @@ To insert reactive DOM elements, just use module {{{Html5.R}}} instead of
 {{{Html5.D}}} or {{{Html5.F}}} for these elements.
 {{{Html5.R}}} makes also possible to define reactive attributes.
 
+Use function {{{Html5.R.node : 'a elt React.signal -> 'a elt}}}
+to insert a reactive node in a page.
+
 === Example
 
 <<code language="ocaml"|
@@ -36,9 +39,9 @@ let title_len = React.S.map String.length title
 (* title_len : int React.signal *)
 
 let rec input = lazy
-  (D.input
-     ~input_type:`Text
-     ~a:[D.a_onkeyup (fun _ ->
+  (D.Raw.input
+     ~a:[a_type `Text;
+         D.a_onkeyup (fun _ ->
          let s = Js.to_string ((To_dom.of_input (Lazy.force input))##value) in
          set_title s )]
      ())
