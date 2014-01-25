@@ -265,7 +265,7 @@ where and {{{id}}} an identifier for the value.
               a_onclick {{
                 fun _ ->
                   ignore (try_lwt
-                            Eliom_client.call_caml_service ~service:%eliom_caml_tree
+                            Eliom_client.call_ocaml_service ~service:%eliom_caml_tree
                             () () >|= fun blocks ->
                               List.iter
                                 (Dom.appendChild Dom_html.document##body)
@@ -356,7 +356,7 @@ where and {{{id}}} an identifier for the value.
 (*wiki*
 ====Using OCaml values as service parameters
 It is now possible to send OCaml values to services.
-To do that, use the {{{Eliom_parameter.caml}}} function:
+To do that, use the {{{Eliom_parameter.ocaml}}} function:
 *wiki*)
 {shared{
   type ec3 = (int * string * string list) deriving (Json)
@@ -366,7 +366,7 @@ let caml_value : ec3 = (299, "oo", ["a";"b";"c"])
 
 let eliomclient3' =
   My_appl.register_post_coservice'
-    ~post_params:(caml "isb" Json.t<ec3>)
+    ~post_params:(ocaml "isb" Json.t<ec3>)
     (fun () (i, s, l as v) ->
        Lwt.return
          (make_page
@@ -419,7 +419,7 @@ let eliomclient4 =
                   lwt_ignore
                    (let body = Dom_html.document##body in
                     lwt l =
-                      Eliom_client.call_caml_service
+                      Eliom_client.call_ocaml_service
                         ~service:%eliomclient4'
                         () () in
                     List.iter
@@ -479,7 +479,7 @@ let caml_service_cookies =
                 lwt i =
                   try_lwt
                     debug "caml_call_service";
-                    Eliom_client.call_caml_service ~service:%caml_incr_service () ()
+                    Eliom_client.call_ocaml_service ~service:%caml_incr_service () ()
                   with
                     | e -> debug_exn "caml_call_service exception: " e; Lwt.fail e
                 in
@@ -698,7 +698,7 @@ let v1 =
 
 let rec rec_list = 1::2::3::rec_list
 
-let react_up = Eliom_react.Up.create (Eliom_parameter.caml "react param" Json.t<int>)
+let react_up = Eliom_react.Up.create (Eliom_parameter.ocaml "react param" Json.t<int>)
 let e = Eliom_react.Up.to_react react_up
 let e' = React.E.map (fun i -> Printf.printf "event: %i\n%!" i) e
 
@@ -747,7 +747,7 @@ let () =
                      let v = %v1 in
                      lwt_ignore
                        (lwt blocks =
-                          Eliom_client.call_caml_service
+                          Eliom_client.call_ocaml_service
                             ~service:v.Wrapping_test.v_service
                             () ()
                         in
@@ -934,7 +934,7 @@ let caml_service_wrapping =
                   a_onclick {{
                     fun _ ->
                       ignore (
-                        lwt c = Eliom_client.call_caml_service ~service:%caml_wrapping_service () () in
+                        lwt c = Eliom_client.call_ocaml_service ~service:%caml_wrapping_service () () in
                         try_lwt
                           iter_stream_append (Printf.sprintf "message: %i;  ") c
               with
@@ -946,7 +946,7 @@ let caml_service_wrapping =
                   a_onclick {{
                     fun _ ->
                       ignore (
-                        lwt c = Eliom_client.call_caml_service ~service:%global_channel_wrapping_service () () in
+                        lwt c = Eliom_client.call_ocaml_service ~service:%global_channel_wrapping_service () () in
                         try_lwt
                           iter_stream_append (Printf.sprintf "site message: %i;  ") c
               with
@@ -975,7 +975,7 @@ let comet2 =
     (fun () () ->
       (* First create a server-readable client-writable event AKA up event AKA
          client-to-server asynchronous edge *)
-      let e_up = Eliom_react.Up.create (Eliom_parameter.caml "letter" Json.t<string>) in
+      let e_up = Eliom_react.Up.create (Eliom_parameter.ocaml "letter" Json.t<string>) in
       let e_up_react = Eliom_react.Up.to_react e_up in
       let e_down =
         Eliom_react.Down.of_react
@@ -1016,7 +1016,7 @@ let comet3 =
     (fun () () ->
        (* First create a server-readable client-writable event AKA up event AKA
           client-to-server asynchronous edge *)
-       let e_up = Eliom_react.Up.create (Eliom_parameter.caml "double" Json.t<string>) in
+       let e_up = Eliom_react.Up.create (Eliom_parameter.ocaml "double" Json.t<string>) in
        let e_up_react = Eliom_react.Up.to_react e_up in
        let e_down_1 =
          Eliom_react.Down.of_react
@@ -2586,7 +2586,7 @@ let _ =
                      {{
                        fun _ ->
                          let body = Dom_html.document##body in
-                         ignore (Eliom_client.call_caml_service ~service:%serv () () >|=
+                         ignore (Eliom_client.call_ocaml_service ~service:%serv () () >|=
                          List.iter
                            (fun i -> Dom.appendChild body
                              (Dom_html.document##createTextNode
@@ -2595,7 +2595,7 @@ let _ =
                   ]
             [pcdata "Click to call it and receive Ocaml data (service registered with Eliom_registration.Ocaml)."];
           br ();
-          pcdata "It works, because we send tab cookies with Eliom_client.call_service or Eliom_client.call_caml_service.";
+          pcdata "It works, because we send tab cookies with Eliom_client.call_service or Eliom_client.call_ocaml_service.";
           br ();
           Html5.D.a ~service:serv2 [pcdata "Here a link to an client process service outside the application."] ();
           pcdata " For now it does not work, because we do not send tab cookies for non My_appl services ... How to solve this?";
@@ -3220,7 +3220,7 @@ let noreload_appl =
 (* XHR form with files: *)
 
 (* TODO: to be fixed in 2.1:
-   need a new parameter for caml_call_service to send files or formulary.
+   need a new parameter for ocaml_call_service to send files or formulary.
    Now it uses Eliom_request.send_post_form which is low level and should not be exported
 
 let page_content () ((((((case,radio),select),multi),text),pass),file) =
@@ -3528,7 +3528,7 @@ let caml_service_with_onload =
         ~a:[a_onclick {{
           fun _ ->
             ignore (
-              lwt node = Eliom_client.call_caml_service ~service:( %caml_service_with_onload' ) () () in
+              lwt node = Eliom_client.call_ocaml_service ~service:( %caml_service_with_onload' ) () () in
               let node = Html5.To_dom.of_div node in
               ignore (Dom_html.document##body##appendChild( (node:> Dom.node Js.t) ));
               Lwt.return ()
@@ -4195,7 +4195,7 @@ let () = My_appl.register states_test_bis
                           ~a:[a_class ["clickable"];
                               a_onclick
                                 {{ fun _ ->
-                                  ignore(Eliom_client.call_caml_service
+                                  ignore(Eliom_client.call_ocaml_service
                                            ~service:%change_gr
                                            () ())
                                  }}]
@@ -4206,7 +4206,7 @@ let () = My_appl.register states_test_bis
                           ~a:[a_class ["clickable"];
                               a_onclick
                                 {{ fun _ ->
-                                  ignore(Eliom_client.call_caml_service
+                                  ignore(Eliom_client.call_ocaml_service
                                            ~service:%change_other_gr
                                            () %other_group)
                                  }}]
@@ -4225,7 +4225,7 @@ let () = My_appl.register states_test_bis
                           ~a:[a_class ["clickable"];
                               a_onclick
                                 {{ fun _ ->
-                                  ignore(Eliom_client.call_caml_service
+                                  ignore(Eliom_client.call_ocaml_service
                                            ~service:%change_sr
                                            () ())
                                  }}]
@@ -4236,7 +4236,7 @@ let () = My_appl.register states_test_bis
                           ~a:[a_class ["clickable"];
                               a_onclick
                                 {{ fun _ ->
-                                  ignore(Eliom_client.call_caml_service
+                                  ignore(Eliom_client.call_ocaml_service
                                            ~service:%change_other_sr
                                            () %other_group)
                                  }}]
@@ -4254,7 +4254,7 @@ let () = My_appl.register states_test_bis
                           ~a:[a_class ["clickable"];
                               a_onclick
                                 {{ fun _ ->
-                                  ignore(Eliom_client.call_caml_service
+                                  ignore(Eliom_client.call_ocaml_service
                                            ~service:%change_pr
                                            () ())
                                  }}]
@@ -4265,7 +4265,7 @@ let () = My_appl.register states_test_bis
                           ~a:[a_class ["clickable"];
                               a_onclick
                                 {{ fun _ ->
-                                  ignore(Eliom_client.call_caml_service
+                                  ignore(Eliom_client.call_ocaml_service
                                            ~service:%change_other_pr
                                            () %other_group)
                                  }}]

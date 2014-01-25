@@ -58,7 +58,7 @@ let test_client_value_on_caml_service =
          fun _ ->
            Lwt.ignore_result
              (try_lwt
-                lwt number = Eliom_client.call_caml_service %ocaml_service () () in
+                lwt number = Eliom_client.call_ocaml_service %ocaml_service () () in
                 Eliom_testsuite_base.log "number: %d" number;
                 Lwt.return ()
               with Exception_on_server msg ->
@@ -176,7 +176,7 @@ let node_bindings =
          fun _ ->
            debug "run_ocaml_service";
            Lwt.ignore_result
-             (Eliom_client.call_caml_service ~service: %other_service () ())
+             (Eliom_client.call_ocaml_service ~service: %other_service () ())
        }} in
        Lwt.return Html5.F.([
          Eliom_testsuite_base.thebutton ~msg:"Add onclick lines" add_onclick;
