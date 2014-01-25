@@ -27,6 +27,7 @@ let _ = Eliom_registration.Html5.register Eliom_testsuite_base.main
                            ~service:(Eliom_service.static_dir ()) ["ocsigen5.png"]) ()];
 
             Eliom_testsuite_base.testsuite ~name:"Test suite 4" Eliom_testsuite4.tests;
+            Eliom_testsuite_base.testsuite ~name:"Test suite 5" Eliom_testsuite5.tests;
             h3 [pcdata "Eliom examples"];
             h4 [pcdata "Simple pages"];
             p [

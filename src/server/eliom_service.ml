@@ -192,9 +192,9 @@ let unregister ?scope ?secure service =
 
 type http_service = [ `Http ]
 type appl_service = [ `Appl ]
-type 'a caml_service = [ `Caml of 'a ]
+type 'a ocaml_service = [ `Ocaml of 'a ]
 
-type non_caml_service = [ appl_service | http_service ]
+type non_ocaml_service = [ appl_service | http_service ]
 
 type 'rt rt = unit
 let rt = ()
@@ -214,7 +214,7 @@ end
 module App = struct
   include MakeBase
 end
-module OCaml = struct
+module Ocaml = struct
   include MakeBase
 end
 module Http = struct

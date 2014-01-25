@@ -180,12 +180,12 @@ val suffix_const :
     string ->
       (unit, [ `WithoutSuffix ], [ `One of unit ] param_name) params_type
 
-type 'a caml
+type 'a ocaml
 
-val caml :
+val ocaml :
   string ->
   'a Deriving_Json.t ->
-  ('a, [ `WithoutSuffix ], [ `One of 'a caml ] param_name) params_type
+  ('a, [ `WithoutSuffix ], [ `One of 'a ocaml ] param_name) params_type
 
 val raw_post_data :
   (((string * string) * (string * string) list) option *

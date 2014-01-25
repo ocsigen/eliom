@@ -26,7 +26,7 @@ open Eliom_lib
 
 type content_ns = [ `HTML5 | `SVG ]
 
-module Xml = struct
+module XmlNoWrap = struct
 
   include RawXML
 
@@ -41,6 +41,7 @@ module Xml = struct
   and node =
     | DomNode of Dom.node Js.t
     | TyXMLNode of econtent
+    | ReactNode of elt React.signal
   and elt = {
     (* See Eliom_content.Html5.To_dom for the 'unwrap' function that convert
        the server's tree representation into the client one. *)
@@ -50,6 +51,7 @@ module Xml = struct
 
   let content e =
     match Lazy.force e.elt with
+    | ReactNode _
     | DomNode _ -> assert false (* TODO *)
     | TyXMLNode elt -> elt
   let get_node e = Lazy.force e.elt
@@ -66,6 +68,8 @@ module Xml = struct
     in
     { node_id = id; elt = Lazy.lazy_from_fun f }
   let force_lazy { elt } = ignore (Lazy.force elt)
+
+  let make_react ?(id = NoId) signal = {elt = Lazy.lazy_from_val (ReactNode signal); node_id = id; }
 
   let empty () = make Empty
 
@@ -126,6 +130,7 @@ module Xml = struct
   let set_classes_of_elt elt =
      match Lazy.force elt.elt with
       | DomNode _ -> failwith "Eliom_content_core.set_classes_of_elt"
+      | ReactNode _ -> failwith "Eliom_content_core.set_classes_of_elt"
       | TyXMLNode econtent ->
           { elt with elt = Lazy.lazy_from_val (TyXMLNode (set_classes elt.node_id econtent)) }
 
@@ -134,6 +139,11 @@ module Xml = struct
     | ProcessId s -> "ProcessId "^s
     | RequestId s -> "RequestId "^s
 
+end
+
+module Xml = struct
+  include XmlNoWrap
+  type 'a wrap = 'a
 end
 
 module X = Xml
@@ -197,6 +207,7 @@ module Svg = struct
   end
 
   type 'a elt = 'a F.elt
+  type 'a wrap = 'a F.wrap
   type 'a attrib = 'a F.attrib
   type uri = F.uri
 
@@ -328,6 +339,61 @@ module Html5 = struct
 
   end
 
+
+
+  module R = struct
+
+    let node s = Xml.make_react s
+
+    module Xml_w = struct
+      type 'a t = 'a React.signal
+      let return x = Lwt_react.S.return x
+      let bind x = Lwt_react.S.bind x
+      let fmap x = React.S.map x
+      let fmap2 x = React.S.l2 x
+      let fmap3 x = React.S.l3 x
+      let fmap4 x = React.S.l4 x
+      let fmap5 x = React.S.l5 x
+    end
+    module Xml_wed =
+    struct
+      type 'a wrap = 'a Xml_w.t
+      type uri = Xml.uri
+      let string_of_uri = Xml.string_of_uri
+      let uri_of_string = Xml.uri_of_string
+      type aname = Xml.aname
+      type event_handler = Xml.event_handler
+      type attrib = Xml.attrib
+
+      let float_attrib name s : attrib = name, Xml.RAReact (Xml_w.fmap (fun f -> Some (Xml.AFloat f)) s)
+      let int_attrib name s = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AInt f)) s)
+      let string_attrib name s = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStr f)) s)
+      let space_sep_attrib name s = name, Xml.RAReact (React.S.map (fun f -> Some(Xml.AStrL (Xml.Space,f))) s)
+      let comma_sep_attrib name s = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStrL (Xml.Comma,f))) s)
+      let event_handler_attrib = Xml.event_handler_attrib
+      let uri_attrib name value = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStr (Eliom_lazy.force f))) value)
+      let uris_attrib name value = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStrL (Xml.Space,Eliom_lazy.force f))) value)
+
+      type elt = Xml.elt
+      type ename = Xml.ename
+
+      let empty = Xml.empty
+      let comment = Xml.comment
+      let pcdata s = Xml.make_react (React.S.map Xml.pcdata s)
+      let encodedpcdata s = Xml.make_react (React.S.map Xml.encodedpcdata s)
+      let entity = Xml.entity
+      let leaf = Xml.leaf
+      let node ?a name l = Xml.make_react (React.S.map (fun l -> Xml.node ?a name l) l)
+      let cdata = Xml.cdata
+      let cdata_script = Xml.cdata_script
+      let cdata_style = Xml.cdata_style
+    end
+
+    module Svg_w = Svg_f.MakeWrapped(Xml_w)(Xml_wed)
+    module Raw = Html5_f.MakeWrapped(Xml_w)(Xml_wed)(Svg_w)
+    include Raw
+  end
+
   module F = struct
 
     module Raw = Html5_f.Make(Xml)(Svg.F.Raw)
@@ -416,6 +482,7 @@ module Html5 = struct
   end
 
   type +'a elt = 'a F.elt
+  type 'a wrap = 'a F.wrap
   type +'a attrib = 'a F.attrib
   type uri = F.uri
 

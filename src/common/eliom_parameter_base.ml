@@ -75,7 +75,7 @@ type ('a, 'tipo, +'names) params_type =
   | TAny (* 'a = (string * string) list *)
   | TConst of string (* 'a = unit; 'names = unit *)
   | TNLParams of ('a, 'tipo, 'names) non_localized_params
-  | TJson of string * 'a Deriving_Json.t option (* 'a = '_b caml *)
+  | TJson of string * 'a Deriving_Json.t option (* 'a = '_b ocaml *)
 (* It is an option but always Some ... server side,
    and always None client side.*)
   | TRaw_post_data
@@ -239,10 +239,10 @@ let suffix_prod ?(redirect_if_not_suffix = true)
                                 Obj.magic t)))
 
 
-type 'a caml = string (* marshaled values of type 'a *)
+type 'a ocaml = string (* marshaled values of type 'a *)
 
-let caml (n : string) typ
-    : ('a, [`WithoutSuffix], [ `One of 'a caml ] param_name) params_type =
+let ocaml (n : string) typ
+    : ('a, [`WithoutSuffix], [ `One of 'a ocaml ] param_name) params_type =
   TJson (n, Some typ)
 
 let raw_post_data = TRaw_post_data

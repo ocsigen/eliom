@@ -1,6 +1,6 @@
 type appl_service = Eliom_service.appl_service
 type http_service = Eliom_service.http_service
-type non_caml_service = Eliom_service.non_caml_service
+type non_ocaml_service = Eliom_service.non_ocaml_service
 
 (**/**)
 

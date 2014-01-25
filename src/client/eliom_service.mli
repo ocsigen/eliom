@@ -99,15 +99,15 @@ constraint 'g = [< registrable ]
 (** Types of groups of services. *)
 type http_service = [ `Http ]
 type appl_service = [ `Appl ]
-type 'a caml_service
+type 'a ocaml_service
 
-(** The type [non_caml_service] is used as phantom type parameters for
+(** The type [non_ocaml_service] is used as phantom type parameters for
     the {!Eliom_registration.kind}. It used to type functions that operates
     over service that do not returns OCaml values, like
     {!appl_self_redirect}. *)
-type non_caml_service = [ appl_service | http_service ]
+type non_ocaml_service = [ appl_service | http_service ]
 
-(** Helper for typing caml services *)
+(** Helper for typing OCaml services *)
 type 'rt rt
 val rt : 'rt rt
 
@@ -127,15 +127,15 @@ module Unsafe : "../server/sigs/eliom_service.mli"
 (** Module for creating services that are applications *)
 module App : "../server/sigs/eliom_service.mli"
   subst type returnB := [> appl_service ]
-  and type returnT := [< non_caml_service ]
-(** Module for creating services that returns caml values *)
-module OCaml : "../server/sigs/eliom_service.mli"
-  subst type returnB := 'rt caml_service
-  and type returnT := 'rt caml_service
+  and type returnT := [< non_ocaml_service ]
+(** Module for creating services that returns OCaml values *)
+module Ocaml : "../server/sigs/eliom_service.mli"
+  subst type returnB := 'rt ocaml_service
+  and type returnT := 'rt ocaml_service
 (** Default module for creating services *)
 module Http : "../server/sigs/eliom_service.mli"
   subst type returnB := [> http_service ]
-  and type returnT := [< non_caml_service ]
+  and type returnT := [< non_ocaml_service ]
 
 (** {2 Definitions of services}
 
@@ -249,7 +249,7 @@ val https_static_dir_with_params :
 val void_coservice' :
   (unit, unit, [> `Nonattached of [> `Get ] na_s ],
    [ `WithoutSuffix ],
-   unit, unit, [> `Unregistrable ], [> non_caml_service ])
+   unit, unit, [> `Unregistrable ], [> non_ocaml_service ])
   service
 (** A predefined non-attached action with special behaviour:
     it has no parameter at all, even non-attached parameters.
@@ -264,14 +264,14 @@ val void_coservice' :
 val https_void_coservice' :
   (unit, unit, [> `Nonattached of [> `Get ] na_s ],
    [ `WithoutSuffix ],
-   unit, unit, [> `Unregistrable ], [> non_caml_service ])
+   unit, unit, [> `Unregistrable ], [> non_ocaml_service ])
   service
 (** The same, but forcing https. *)
 
 val void_hidden_coservice' :
   (unit, unit, [> `Nonattached of [> `Get ] na_s ],
    [ `WithoutSuffix ],
-   unit, unit, [> `Unregistrable ], [> non_caml_service ])
+   unit, unit, [> `Unregistrable ], [> non_ocaml_service ])
   service
 (** Same as [void_coservice'] but keeps non attached GET parameters.
  *)

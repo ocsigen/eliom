@@ -16,6 +16,6 @@ let () =
          it does not work with mobile apps.
          Is it a problem?
          -- Vincent *)
-      Eliom_client.call_caml_service ~absolute:true ~service ())
+      Eliom_client.call_ocaml_service ~absolute:true ~service ())
 
 let _force_link = ()

@@ -34,12 +34,14 @@ SERVER_FILES := eliom_testsuite_base.eliom \
                 eliom_testsuite2.ml \
                 eliom_testsuite3.eliom \
                 eliom_testsuite4.eliom \
+                eliom_testsuite5.eliom \
 		eliom_testsuite.ml     \
                 atom_example.ml \
 
 CLIENT_FILES := eliom_testsuite_base.eliom \
                 eliom_testsuite3.eliom \
-                eliom_testsuite4.eliom
+                eliom_testsuite4.eliom \
+                eliom_testsuite5.eliom
 
 OTHER_FILES := eliom_testsuite_global.eliom eliom_testsuite_site.eliom
 

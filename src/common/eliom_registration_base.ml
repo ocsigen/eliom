@@ -26,7 +26,7 @@ open Eliom_parameter
 
 type appl_service = Eliom_service.appl_service
 type http_service = Eliom_service.http_service
-type non_caml_service = Eliom_service.non_caml_service
+type non_ocaml_service = Eliom_service.non_ocaml_service
 
 type input_type =
   [
@@ -72,6 +72,7 @@ end = struct
   module Html5_forms_base(Html5 : sig
     include Html5_sigs.T with module Xml := Xml and module Svg := Svg.D.Raw
                          and type 'a elt = 'a Html5.elt
+                         and type 'a wrap = 'a
                          and type 'a attrib = 'a Html5.attrib
                          and type uri = Html5.uri
     include "sigs/eliom_html5_event_handler.mli"
@@ -277,7 +278,7 @@ end = struct
                 ?a:a_attrib attrib list ->
                 service:('get, unit, [< get_service_kind ],
                          [< suff ], 'gn, 'pn,
-                         [< registrable ], [< non_caml_service ]) service ->
+                         [< registrable ], [< non_ocaml_service ]) service ->
                 ?hostname:string ->
                 ?port:int ->
                 ?fragment:string ->
@@ -292,7 +293,7 @@ end = struct
                 ?a:a_attrib attrib list ->
                 service:('get, unit, [< get_service_kind ],
                          [< suff ], 'gn, 'pn,
-                         [< registrable ], [< non_caml_service ]) service ->
+                         [< registrable ], [< non_ocaml_service ]) service ->
                 ?hostname:string ->
                 ?port:int ->
                 ?fragment:string ->
@@ -335,7 +336,7 @@ end = struct
                        ?a:form_attrib attrib list ->
                        service:('get, unit, [< get_service_kind ],
                                 [<suff ], 'gn, 'pn,
-                                [< registrable ], [< non_caml_service ]) service ->
+                                [< registrable ], [< non_ocaml_service ]) service ->
                        ?hostname:string ->
                        ?port:int ->
                        ?fragment:string ->
@@ -349,7 +350,7 @@ end = struct
                        ?a:form_attrib attrib list ->
                        service:('get, unit, [< get_service_kind ],
                                 [<suff ], 'gn, 'pn,
-                                [< registrable ], [< non_caml_service ]) service ->
+                                [< registrable ], [< non_ocaml_service ]) service ->
                        ?hostname:string ->
                        ?port:int ->
                        ?fragment:string ->
@@ -366,7 +367,7 @@ end = struct
                            ?a:form_attrib attrib list ->
                            service:('get, unit, [< get_service_kind ],
                                     [<suff ], 'gn, 'pn,
-                                    [< registrable ], [< non_caml_service ]) service ->
+                                    [< registrable ], [< non_ocaml_service ]) service ->
                            ?hostname:string ->
                            ?port:int ->
                            ?fragment:string ->
@@ -380,7 +381,7 @@ end = struct
                            ?a:form_attrib attrib list ->
                            service:('get, unit, [< get_service_kind ],
                                     [<suff ], 'gn, 'pn,
-                                    [< registrable ], [< non_caml_service ]) service ->
+                                    [< registrable ], [< non_ocaml_service ]) service ->
                            ?hostname:string ->
                            ?port:int ->
                            ?fragment:string ->
@@ -398,7 +399,7 @@ end = struct
                         ?a:form_attrib attrib list ->
                         service:('get, 'post, [< post_service_kind ],
                                  [< suff ], 'gn, 'pn,
-                                 [< registrable ], [< non_caml_service ]) service ->
+                                 [< registrable ], [< non_ocaml_service ]) service ->
                         ?hostname:string ->
                         ?port:int ->
                         ?fragment:string ->
@@ -413,7 +414,7 @@ end = struct
                         ?a:form_attrib attrib list ->
                         service:('get, 'post, [< post_service_kind ],
                                  [< suff ], 'gn, 'pn,
-                                 [< registrable ], [< non_caml_service ]) service ->
+                                 [< registrable ], [< non_ocaml_service ]) service ->
                         ?hostname:string ->
                         ?port:int ->
                         ?fragment:string ->
@@ -430,7 +431,7 @@ end = struct
                             ?a:form_attrib attrib list ->
                             service:('get, 'post, [< post_service_kind ],
                                      [< suff ], 'gn, 'pn,
-                                     [< registrable ], [< non_caml_service ]) service ->
+                                     [< registrable ], [< non_ocaml_service ]) service ->
                             ?hostname:string ->
                             ?port:int ->
                             ?fragment:string ->
@@ -446,7 +447,7 @@ end = struct
                             ?a:form_attrib attrib list ->
                             service:('get, 'post, [< post_service_kind ],
                                      [< suff ], 'gn, 'pn,
-                                     [< registrable ], [< non_caml_service ]) service ->
+                                     [< registrable ], [< non_ocaml_service ]) service ->
                             ?hostname:string ->
                             ?port:int ->
                             ?fragment:string ->

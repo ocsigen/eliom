@@ -238,7 +238,7 @@ module Html5 : sig
         {% <<a_api|val Eliom_content.Html5.F.get_form>> %}
         to avoid the untyped [Eliom_content_core.Html5.F.form]. *)
     val form : ?absolute:bool -> ?absolute_path:bool -> ?https:bool -> ?a:Html5_types.form_attrib attrib list ->
-      service:('get, unit, [< get_service_kind ], [<suff ], 'gn, 'pn, [< registrable ], [< non_caml_service ]) service ->
+      service:('get, unit, [< get_service_kind ], [<suff ], 'gn, 'pn, [< registrable ], [< non_ocaml_service ]) service ->
       ?hostname:string -> ?port:int -> ?fragment:string -> ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameter.nl_params_set -> ?xhr:bool ->
       ('gn -> Html5_types.form_content elt list) -> [> Html5_types.form ] elt
@@ -278,7 +278,7 @@ module Html5 : sig
         {% <<a_api|val Eliom_content.Html5.D.get_form>> %}
         to avoid the untyped [Eliom_content_core.Html5.D.form]. *)
     val form : ?absolute:bool -> ?absolute_path:bool -> ?https:bool -> ?a:Html5_types.form_attrib attrib list ->
-      service:('get, unit, [< get_service_kind ], [<suff ], 'gn, 'pn, [< registrable ], [< non_caml_service ]) service ->
+      service:('get, unit, [< get_service_kind ], [<suff ], 'gn, 'pn, [< registrable ], [< non_ocaml_service ]) service ->
       ?hostname:string -> ?port:int -> ?fragment:string -> ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameter.nl_params_set -> ?xhr:bool ->
       ('gn -> Html5_types.form_content elt list) -> [> Html5_types.form ] elt
@@ -296,6 +296,20 @@ module Html5 : sig
         to avoid the untyped [Eliom_content_core.Html5.D.select]. *)
     val select : ?a:Html5_types.select_attrib attrib list -> name:[< `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt
   end
+
+
+  (** Creation of HTML5 content from {{: http://erratique.ch/software/react} React } signals.
+      HTML5's trees are automatically updated whenever
+      corresponding signals change.  *)
+  module R : sig
+    (** {2 Content creation} *)
+
+    (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} and
+        the Eliom manual for more detail on
+        {% <<a_manual chapter="reactive-dom"| Reactive HTML5 content >>%}. *)
+    include module type of Eliom_content_core.Html5.R
+  end
+
 
   (** Node identifiers *)
   module Id : sig

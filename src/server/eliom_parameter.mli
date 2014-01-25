@@ -389,15 +389,15 @@ val suffix_const :
       (unit, [ `WithoutSuffix ], [ `One of unit ] param_name) params_type
 
 (** marshaled OCaml values of type 'a *)
-type 'a caml
+type 'a ocaml
 
-(** [caml s] tells that the service is expecting some caml (client side)
+(** [ocaml s] tells that the service is expecting some caml (client side)
     program to send some value of type 'a, marshaled.
     As usual [s] is the name of the parameter. *)
-val caml :
+val ocaml :
   string ->
   'a Deriving_Json.t ->
-  ('a, [ `WithoutSuffix ], [ `One of 'a caml ] param_name) params_type
+  ('a, [ `WithoutSuffix ], [ `One of 'a ocaml ] param_name) params_type
 
 (** When the content type is neither URLencoded form data or multipart data,
     it is possible to get it as a stream of strings.

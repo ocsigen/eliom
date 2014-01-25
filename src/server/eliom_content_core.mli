@@ -26,7 +26,7 @@ module Xml : sig
   (** {2 Base functions}
       Cf. {% <<a_api project="tyxml" | module Xml_sigs.Iterable >> %}. *)
 
-  include Xml_sigs.Iterable
+  include Xml_sigs.Iterable with type 'a wrap = 'a
 
   (** {2 Unique nodes } *)
 
@@ -76,6 +76,7 @@ module Xml : sig
 
   type racontent =
     | RA of acontent
+    | RAReact of acontent option React.signal
     | RACamlEventHandler of Dom_html.event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
@@ -100,6 +101,7 @@ module Eliom_xml : module type of Xml
     and type acontent = Xml.acontent
     and type attrib = Xml.attrib
     and type elt = Xml.elt
+    and type 'a wrap = 'a
     and type -'a caml_event_handler = 'a Xml.caml_event_handler
 (**/**)
 
@@ -112,6 +114,7 @@ module Svg : sig
       application. *)
 
   type +'a elt
+  type 'a wrap = 'a
   type 'a attrib
   type uri = Xml.uri
 
@@ -126,6 +129,8 @@ module Svg : sig
                              and type Xml.attrib = Xml.attrib
                              and type Xml.elt = Xml.elt
 			     and type 'a elt = 'a elt
+                             and type 'a Xml.wrap = 'a
+                             and type 'a wrap = 'a
                              and type 'a attrib = 'a attrib
 		             and type uri = uri
 
@@ -148,6 +153,8 @@ module Svg : sig
                              and type Xml.attrib = Xml.attrib
                              and type Xml.elt = Xml.elt
 			     and type 'a elt = 'a elt
+                             and type 'a Xml.wrap = 'a
+                             and type 'a wrap = 'a
                              and type 'a attrib = 'a attrib
 		             and type uri = uri
 
@@ -196,6 +203,7 @@ module Html5 : sig
       application. *)
 
   type +'a elt
+  type 'a wrap = 'a
   type +'a attrib
   type uri = Xml.uri
 
@@ -209,8 +217,10 @@ module Html5 : sig
                    and type Xml.event_handler = Xml.event_handler
                    and type Xml.attrib = Xml.attrib
                    and type Xml.elt = Xml.elt
+                   and type 'a Xml.wrap = 'a
                    with module Svg := Svg.F.Raw
                    with type +'a elt = 'a elt
+                   and type 'a wrap = 'a
                    and type 'a attrib = 'a attrib
                    and type uri = uri
 
@@ -238,8 +248,10 @@ module Html5 : sig
                    and type Xml.event_handler = Xml.event_handler
                    and type Xml.attrib = Xml.attrib
                    and type Xml.elt = Xml.elt
+                   and type 'a Xml.wrap = 'a
                    with module Svg := Svg.D.Raw
                    with type +'a elt = 'a elt
+                   and type 'a wrap = 'a
                    and type 'a attrib = 'a attrib
                    and type uri = uri
     include module type of Raw (*BB TODO Hide untyped [input]. *)

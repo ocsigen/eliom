@@ -103,7 +103,7 @@ struct
            [ `Nonattached of [ `Post ] Eliom_service.na_s ],
            [ `WithoutSuffix ],
            unit,
-           [ `One of 'a Eliom_parameter.caml ] Eliom_parameter.param_name,
+           [ `One of 'a Eliom_parameter.ocaml ] Eliom_parameter.param_name,
            [ `Registrable ],
            Eliom_registration.Action.return)
             Eliom_service.service;
