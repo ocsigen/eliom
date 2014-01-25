@@ -394,21 +394,46 @@ module String_redirection : "sigs/eliom_reg.mli"
   and type result  := browser_content kind
 
 (** Eliom service registration for services that returns file
-    contents. The page is the name of the file to send. See the Eliom
+    contents. The value returned by service handlers is the name of the file
+    to send. See the Eliom
     manual for more information on {% <<a_manual chapter="server-outputs"
-    fragment="eliomfiles"|how to send files with Eliom>>%}. *)
+    fragment="eliomfiles"|how to send files with Eliom>>%}.
+    The option is the optional "Cache-policy: max-age"
+    header value to be sent.
+
+*)
 module File : sig
 
   (** The function [check_file file] is true if [File.send file]
       would effectively return the file (i.e. the file is present and
-      readable.) The option is the optional "Cache-policy: max-age"
-      header value to be sent.
+      readable.)
+  *)
+  val check_file : string -> bool
+
+  include "sigs/eliom_reg.mli"
+    subst type page    := string
+      and type options := int
+      and type return  := http_service
+      and type returnB := [> http_service ]
+      and type returnT := [< non_caml_service ]
+      and type result  := browser_content kind
+
+end
+
+(** Same as file but makes possible to specify the content type
+    for each file. The value returned by service handlers is a pair
+    [(file_name, content_type)] *)
+module File_ct : sig
+
+  (** The function [check_file file] is true if [File.send file]
+      would effectively return the file (i.e. the file is present and
+      readable.)
   *)
 
   val check_file : string -> bool
 
   include "sigs/eliom_reg.mli"
-    subst type page    := string
+    subst type page    := string * string
       and type options := int
       and type return  := http_service
       and type returnB := [> http_service ]
@@ -462,7 +487,7 @@ val appl_self_redirect :
 
 
 (** Eliom service registration for services that returns "byte"-string
-    contents. The page content is a couple [(raw_content,
+    contents. The page content is a pair [(raw_content,
     content_type)]. See also {!Streamlist} for another kind of service
     that returns "byte" contents. The option is the optional
     "Cache-policy: max-age" header value to be sent.
@@ -479,7 +504,7 @@ module String : "sigs/eliom_reg.mli"
 
 (** Eliom service registration for services that returns "byte"
     contents with {% <<a_api project="ocsigenserver" text="Ocsigen's
-    streams"| module Ocsigen_stream>>%}. The page content is a couple
+    streams"| module Ocsigen_stream>>%}. The page content is a pair
     [(stream_creator_list, content_type)]. See also {!String} for
     another kind of service that returns "byte" contents.
 

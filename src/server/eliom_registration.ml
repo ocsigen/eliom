@@ -753,6 +753,73 @@ struct
         false
 end
 
+module File_ct_reg_base = struct
+
+  type page = string * string
+  type options = int
+  type return = http_service
+  type result = browser_content kind
+
+  let result_of_http_result = Result_types.cast_result
+
+  let send_appl_content = Eliom_service.XNever
+
+  let send ?options ?charset ?code
+      ?content_type ?headers (filename, ct) =
+    let sp = Eliom_common.get_sp () in
+    let request = Eliom_request_info.get_request_sp sp in
+    let file =
+      try Ocsigen_local_files.resolve request filename ()
+      with
+        | Ocsigen_local_files.Failed_403 (* XXXBY : maybe we should signal a true 403? *)
+        | Ocsigen_local_files.Failed_404
+        | Ocsigen_local_files.NotReadableDirectory ->
+            raise Eliom_common.Eliom_404
+    in
+    lwt r = Ocsigen_local_files.content ~request ~file in
+    let open Ocsigen_http_frame in
+    let open Ocsigen_extensions in
+    let res_headers = match headers with
+      | None -> r.res_headers
+      | Some headers -> Http_headers.with_defaults headers r.res_headers
+    in
+    let res_headers = add_cache_header options res_headers in
+    Lwt.return
+      { r with
+          res_code = code_of_code_option code;
+          res_charset = (match charset with
+                           | None ->
+                               Some (Ocsigen_charset_mime.find_charset
+                                       filename
+                                       (Eliom_config.get_config_info_sp sp).charset_assoc)
+                           | _ -> charset);
+          res_content_type = (match content_type with
+              | None -> Some ct
+              | _ -> content_type
+            );
+          res_headers;
+
+      }
+
+end
+
+module File_ct =
+struct
+  include Eliom_mkreg.MakeRegister(File_ct_reg_base)
+  let check_file filename =
+    let sp = Eliom_common.get_sp () in
+    let request = Eliom_request_info.get_request_sp sp in
+    try
+      ignore (Ocsigen_local_files.resolve request filename ()
+                : Ocsigen_local_files.resolved);
+      true
+    with
+      | Ocsigen_local_files.Failed_403
+      | Ocsigen_local_files.Failed_404
+      | Ocsigen_local_files.NotReadableDirectory ->
+        false
+end
+
 (****************************************************************************)
 (****************************************************************************)
 
