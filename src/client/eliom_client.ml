@@ -1188,7 +1188,7 @@ let rebuild_attrib node name a =
 let rebuild_rattrib node ra = match Xml.racontent ra with
   | Xml.RA a -> rebuild_attrib node (Xml.aname ra) a
   | Xml.RAReact s -> let _ = React.S.map (function
-      | None -> node##removeAttribute (js_name node (Xml.aname ra))
+      | None -> node##removeAttribute (Js.string (Xml.aname ra))
       | Some v -> rebuild_attrib node (Xml.aname ra) v) s in ()
   | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
   | Xml.RALazyStr s ->
