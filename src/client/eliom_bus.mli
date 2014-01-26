@@ -25,14 +25,14 @@
 
 type 'a t
 
-(** [stream b] returns the stream of datas sent to bus [b]. A new
+(** [stream b] returns the stream of data sent to bus [b]. A new
     stream is created each time this function is called. Some messages
     from the bus can be lost if they were sent before the call to
     [stream]. If you need to receive every message, use original stream
     instead. *)
 val stream : 'a t -> 'a Lwt_stream.t
 
-(** [stream b] returns the stream of datas sent to bus [b]. A new
+(** [stream b] returns the stream of data sent to bus [b]. A new
     stream is created each time this function is called. Every
     messages sent to the bus after the generation of the page are
     received. This function can be called only in the onload event

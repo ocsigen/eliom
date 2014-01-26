@@ -30,7 +30,7 @@
     focused or unfocused.
 
     To stop receiving inputs from a channel, use Lwt.cancel on a
-    thread waiting for datas. For instance, if you iterate with
+    thread waiting for data. For instance, if you iterate with
     [ let t = Lwt_stream.iter f %channel ] calling [Lwt.cancel t]
     will close the channel. *)
 
@@ -87,7 +87,7 @@ sig
   (** [set_active_until_timeout c v] sets the activity changing
       behaviour. if [v] is [true] the page is kept active even if not
       focused until the client receive a timeout message from the
-      server. It implies that if the server keeps sending datas to the
+      server. It implies that if the server keeps sending data to the
       client, the comet connection will never be closed.
       Default value is false. *)
   val set_active_until_timeout : t -> bool -> unit
