@@ -9,7 +9,7 @@ open Eliom_service
     two parameters, the GET and POST parameters of the current HTTP
     request, and should returns the corresponding page.
 
-    The optional parameter [~scope] is {!Eliom_common.global} by
+    The optional parameter [~scope] is {!Eliom_common.global_scope} by
     default, see the Eliom manual for detailled description {%
     <<a_manual chapter="server-services" fragment="scope"|of different
     scope>>%}.
@@ -22,7 +22,7 @@ open Eliom_service
     Eliom. Use this with care.
 
     The optional parameter [~secure_session] has no effect for scope
-    {!Eliom_common.global}. With other scopes, the parameter is used
+    {!Eliom_common.global_scope}. With other scopes, the parameter is used
     to force the session service table in which the [handler] will be
     registered. By default, the service is registred in the unsecure
     session if the current request's protocol is [http], or in the

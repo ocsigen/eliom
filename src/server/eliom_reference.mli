@@ -43,15 +43,16 @@ exception Eref_not_initialized
     Ocsipersist).  Be very careful to use unique names, and to change
     the name if you change the type of the data, otherwise the server
     may crash (unsafe unmarshaling). This parameter has no effect for
-    scope {!Eliom_common.request}.
+    scope {!Eliom_common.request_scope}.
 
     Use the optional parameter [~secure:true] if you want the data to
     be available only using HTTPS. This parameter has no effect for
-    scopes {!Eliom_common.global}, {!Eliom_common.site}, and
-    {!Eliom_common.request}.
+    scopes {!Eliom_common.global_scope}, {!Eliom_common.site_scope}, and
+    {!Eliom_common.request_scope}.
 
-    {e Warning: Eliom references of scope {!Eliom_common.global}, {!Eliom_common.site} or
-    {!Eliom_common.request} may be created at any time ; but for other
+    {e Warning: Eliom references of scope {!Eliom_common.global_scope},
+    {!Eliom_common.site_scope} or
+    {!Eliom_common.request_scope} may be created at any time ; but for other
     scopes, they must be created when the site information is
     available to Eliom, that is, either during the initialization
     phase of the server (while reading the configuration file) or
@@ -90,9 +91,9 @@ val eref_from_fun :
 
     {e Warning: this function cannot be used outside of a service
     handler when [eref] has been created with a scope different of
-    {!Eliom_common.global}; it can neither be used outside of an
+    {!Eliom_common.global_scope}; it can neither be used outside of an
     Eliom module when [eref] has been created with scope
-    {!Eliom_common.site}}
+    {!Eliom_common.site_scope}}
   *)
 val get : 'a eref -> 'a Lwt.t
 (* That function introduces a Lwt cooperation point only for persistent
@@ -103,9 +104,9 @@ val get : 'a eref -> 'a Lwt.t
 
     {e Warning: this function could not be used outside af a service
     handler when [eref] has been created with a scope different of
-    {!Eliom_common.global}; it can neither be used outside of an
+    {!Eliom_common.global_scope}; it can neither be used outside of an
     Eliom module when [eref] has been created with scope
-    {!Eliom_common.site}}
+    {!Eliom_common.site_scope}}
   *)
 val set : 'a eref -> 'a -> unit Lwt.t
 (* That function introduces a Lwt cooperation point only for persistent
@@ -116,9 +117,9 @@ val set : 'a eref -> 'a -> unit Lwt.t
 
     {e Warning: this function could not be used outside af a service
     handler when [eref] has been created with a scope different of
-    {!Eliom_common.global}; it can neither be used outside of an
+    {!Eliom_common.global_scope}; it can neither be used outside of an
     Eliom module when [eref] has been created with scope
-    {!Eliom_common.site}}
+    {!Eliom_common.site_scope}}
   *)
 val modify : 'a eref -> ('a -> 'a) -> unit Lwt.t
 (* That function introduces a Lwt cooperation point only for persistent
@@ -129,9 +130,9 @@ val modify : 'a eref -> ('a -> 'a) -> unit Lwt.t
 
     {e Warning: this function could not be used outside af a service
     handler when [eref] has been created with a scope different of
-    {!Eliom_common.global}; it can neither be used outside of an
+    {!Eliom_common.global_scope}; it can neither be used outside of an
     Eliom module when [eref] has been created with scope
-    {!Eliom_common.site}}
+    {!Eliom_common.site_scope}}
   *)
 val unset : 'a eref -> unit Lwt.t
 (* That function introduces a Lwt cooperation point only for persistent
