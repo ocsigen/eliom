@@ -101,11 +101,9 @@ type 'a bus_send_service =
      [ `Nonattached of [ `Post ] Eliom_service.na_s ],
      [ `WithoutSuffix ],
      unit,
-            [ `One of 'a list Eliom_parameter.ocaml ] Eliom_parameter.param_name,
+     [ `One of 'a list Eliom_parameter.ocaml ] Eliom_parameter.param_name,
      [ `Registrable ],
      Eliom_registration.http_service
     ) Eliom_service.service
 
-type 'a wrapped_bus =
-    ( 'a wrapped_channel )
-    * ( 'a bus_send_service )
+type ('a, 'b) wrapped_bus = 'b wrapped_channel * 'a bus_send_service

@@ -20,16 +20,16 @@
 
 module Ecb = Eliom_comet_base
 
-type 'a t = {
-  stream   : 'a Lwt_stream.t;
+type ('a, 'b) t = {
+  stream   : 'b Lwt_stream.t;
   scope    : Eliom_comet.Channel.comet_scope;
   name     : string option;
-  channel  : 'a Eliom_comet.Channel.t option;
+  channel  : 'b Eliom_comet.Channel.t option;
   write    : ('a -> unit);
   service  : 'a Ecb.bus_send_service;
   service_registered : bool Eliom_state.volatile_table option;
   size     : int option;
-  bus_mark : 'a t Eliom_common.wrapper; (* must be the last field ! *)
+  bus_mark : ('a, 'b) t Eliom_common.wrapper; (* must be the last field ! *)
 }
 
 let register_sender scope service write =
@@ -39,11 +39,13 @@ let register_sender scope service write =
     ~service
     (fun () x -> List.iter write x ; Lwt.return ())
 
-let internal_wrap (bus: 'a t) : 'a Ecb.wrapped_bus * Eliom_common.unwrapper =
+let internal_wrap (bus: ('a, 'b) t)
+  : ('a, 'b) Ecb.wrapped_bus * Eliom_common.unwrapper =
   let channel =
     match bus.channel with
       | None ->
-	Eliom_comet.Channel.create ~scope:bus.scope ?name:bus.name ?size:bus.size
+	Eliom_comet.Channel.create
+          ~scope:bus.scope ?name:bus.name ?size:bus.size
 	  (Lwt_stream.clone bus.stream)
       | Some c -> c
   in
@@ -77,10 +79,10 @@ let deriving_to_list : 'a Deriving_Json.t -> 'a list Deriving_Json.t = fun (type
   in
   typ_list
 
-let create ?scope ?name ?size typ =
+let create_filtered ?scope ?name ?size ~filter typ =
   (*The stream*)
   let (stream, push) = Lwt_stream.create () in
-  let push x = push (Some x) in
+  let push x = push (Some (filter x)) in
 
   let scope =
     match scope with
@@ -104,7 +106,8 @@ let create ?scope ?name ?size typ =
     (Eliom_parameter.ocaml "bus_write" typ_list
        : ('a, 'aa, 'aaa) Eliom_parameter.params_type)
   in
-  let distant_write = Eliom_service.Http.post_coservice' ?name ~post_params () in
+  let distant_write =
+    Eliom_service.Http.post_coservice' ?name ~post_params () in
   let service_registered =
     match scope with
       | `Site ->
@@ -122,10 +125,13 @@ let create ?scope ?name ?size typ =
       service = distant_write;
       service_registered;
       bus_mark = bus_mark ();
-      size = size }
+      size = size}
   in
 
   bus
+
+let create ?scope ?name ?size typ =
+  create_filtered ~filter:Ocsigen_lib.id ?scope ?name ?size typ
 
 let stream bus =
   match bus.scope with

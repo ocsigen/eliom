@@ -23,17 +23,17 @@ open Eliom_lib
 
 module Ecb = Eliom_comet_base
 
-type 'a t =
+type ('a, 'b) t =
     {
-      channel : 'a Ecb.wrapped_channel;
-      stream : 'a Lwt_stream.t Lazy.t;
+      channel : 'b Ecb.wrapped_channel;
+      stream : 'b Lwt_stream.t Lazy.t;
       queue : 'a Queue.t;
       mutable max_size : int;
       write : 'a list -> unit Lwt.t;
       mutable waiter : unit -> unit Lwt.t;
       mutable last_wait : unit Lwt.t;
       mutable original_stream_available : bool;
-      error_h : 'a option Lwt.t * exn Lwt.u;
+      error_h : 'b option Lwt.t * exn Lwt.u;
     }
 
 (* clone streams such that each clone of the original stream raise the same exceptions *)
@@ -104,15 +104,14 @@ let create service channel waiter =
   in
   t
 
-let internal_unwrap ((wrapped_bus:'a Ecb.wrapped_bus),unwrapper) =
+let internal_unwrap ((wrapped_bus:('a, 'b) Ecb.wrapped_bus),unwrapper) =
   let waiter () = Lwt_js.sleep 0.05 in
   let (channel,service) = wrapped_bus in
   create service channel waiter
 
 let () = Eliom_unwrap.register_unwrapper Eliom_common.bus_unwrap_id internal_unwrap
 
-let stream t =
-  clone_exn t.error_h (Lazy.force t.stream)
+let stream t = clone_exn t.error_h (Lazy.force t.stream)
 
 let original_stream t =
   if Eliom_client.in_onload () && t.original_stream_available

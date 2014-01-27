@@ -27,24 +27,39 @@
     received by each of the participants as a stream. Note that no
     effort is put to order message receptions on the different
     participants. *)
-type 'a t
+type ('a, 'b) t
 
-(** [create ?scope ?name ?size] makes a fresh bus. The [scope] parameter
+(** [create ?scope ?name ?size ?filter t] creates a fresh bus.
+    The [scope] parameter
     is used to chose the kind of channel on which the bus rely
     (See [Eliom_comet.create] for more information). The [?name] argument
     allow one to make bus's persistent over server restart. The [size]
-    argument behaves like the one on {!Eliom_comet.Channel.create} *)
+    argument behaves like the one on {!Eliom_comet.Channel.create}.
+    If [?filter] argument is present, data is filtered through this function
+    before entering the bus. Use this for example if you want to add
+    some information, like IP address, or user id.
+*)
 val create :
   ?scope:[< Eliom_comet.Channel.comet_scope ] -> ?name:string -> ?size:int
   -> 'a Deriving_Json.t
-  -> 'a t
+  -> ('a, 'a) t
+
+(** Same as [create], but data is filtered through [filter] function
+    before entering the bus. Use this for example if you want to add
+    some information, like IP address, or user id.
+*)
+val create_filtered :
+  ?scope:[< Eliom_comet.Channel.comet_scope ] -> ?name:string -> ?size:int
+  -> filter:('a -> 'b)
+  -> 'a Deriving_Json.t
+  -> ('a, 'b) t
 
 (** [stream b] returns the stream of data sent to bus [b]. Notice you
     sould not use that function multiple times on the same bus, it will
     return the same stream. If you want to receive multiple times the
     same data, you sould copy the stream with [Lwt_stream.clone] *)
-val stream : 'a t -> 'a Lwt_stream.t
+val stream : ('a, 'b) t -> 'b Lwt_stream.t
 
 (** [write b x] sends the value [x] on the bus [b]. Every participant,
     including the server, will receive [x]. *)
-val write : 'a t -> 'a -> unit
+val write : ('a, 'b) t -> 'a -> unit
