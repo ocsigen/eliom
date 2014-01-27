@@ -50,7 +50,7 @@ val create :
 *)
 val create_filtered :
   ?scope:[< Eliom_comet.Channel.comet_scope ] -> ?name:string -> ?size:int
-  -> filter:('a -> 'b)
+  -> filter:('a -> 'b Lwt.t)
   -> 'a Deriving_Json.t
   -> ('a, 'b) t
 
@@ -62,4 +62,4 @@ val stream : ('a, 'b) t -> 'b Lwt_stream.t
 
 (** [write b x] sends the value [x] on the bus [b]. Every participant,
     including the server, will receive [x]. *)
-val write : ('a, 'b) t -> 'a -> unit
+val write : ('a, 'b) t -> 'a -> unit Lwt.t

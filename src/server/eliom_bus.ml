@@ -25,7 +25,7 @@ type ('a, 'b) t = {
   scope    : Eliom_comet.Channel.comet_scope;
   name     : string option;
   channel  : 'b Eliom_comet.Channel.t option;
-  write    : ('a -> unit);
+  write    : ('a -> unit Lwt.t);
   service  : 'a Ecb.bus_send_service;
   service_registered : bool Eliom_state.volatile_table option;
   size     : int option;
@@ -37,7 +37,7 @@ let register_sender scope service write =
     ~scope
     ~options:`NoReload
     ~service
-    (fun () x -> List.iter write x ; Lwt.return ())
+    (fun () x -> Lwt_list.iter_s write x)
 
 let internal_wrap (bus: ('a, 'b) t)
   : ('a, 'b) Ecb.wrapped_bus * Eliom_common.unwrapper =
@@ -82,7 +82,7 @@ let deriving_to_list : 'a Deriving_Json.t -> 'a list Deriving_Json.t = fun (type
 let create_filtered ?scope ?name ?size ~filter typ =
   (*The stream*)
   let (stream, push) = Lwt_stream.create () in
-  let push x = push (Some (filter x)) in
+  let push x = lwt y = filter x in push (Some y); Lwt.return () in
 
   let scope =
     match scope with
@@ -131,7 +131,7 @@ let create_filtered ?scope ?name ?size ~filter typ =
   bus
 
 let create ?scope ?name ?size typ =
-  create_filtered ~filter:Ocsigen_lib.id ?scope ?name ?size typ
+  create_filtered ~filter:Lwt.return ?scope ?name ?size typ
 
 let stream bus =
   match bus.scope with

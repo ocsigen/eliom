@@ -1204,12 +1204,11 @@ let _ =
   Lwt_stream.iter (fun msg -> Printf.printf "msg: %s\n%!" msg)
     (Eliom_bus.stream message_bus)
 let message_board_callback () =
-  Eliom_bus.write message_bus "a user joined in";
   let _ =
+    lwt () = Eliom_bus.write message_bus "a user joined in" in
     lwt () = Eliom_comet.Channel.wait_timeout
       ~scope:Eliom_common.default_process_scope 1. in
-    Eliom_bus.write message_bus "a user went away";
-    Lwt.return ()
+    Eliom_bus.write message_bus "a user went away"
   in ()
 
 let comet_message_board = comet_message_board_maker "message_board" message_bus message_board_callback
@@ -1225,8 +1224,8 @@ let multiple_bus_position = ref 0
 let _ =
   let rec tick () =
     lwt () = Lwt_unix.sleep 1. in
-    Eliom_bus.write multiple_bus !multiple_bus_position;
-    Eliom_bus.write multiple_bus_stateless !multiple_bus_position;
+    lwt () = Eliom_bus.write multiple_bus !multiple_bus_position in
+    lwt () = Eliom_bus.write multiple_bus_stateless !multiple_bus_position in
     incr multiple_bus_position;
     tick ()
   in tick ()
