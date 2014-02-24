@@ -2,7 +2,7 @@
 
 //Provides: caml_unwrap_value_from_string mutable
 //Requires: caml_failwith, MlStringFromArray, caml_marshal_constants
-//Requires: caml_int64_float_of_bits, caml_int64_of_bytes
+//Requires: caml_int64_float_of_bits, caml_int64_of_bytes, MlString
 var caml_unwrap_value_from_string = function (){
   function ArrayReader (a, i) { this.a = a; this.i = i; }
   ArrayReader.prototype = {
