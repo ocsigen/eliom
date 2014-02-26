@@ -340,7 +340,7 @@ pieces of HTML, and check your pages validity with the
 [[http://validator.w3.org/| W3C validator]].
 
 
-===Text HTML===
+===@@id="text_html"@@Text HTML===
 
 The last possibility is to use untyped HTML. Just build strings
 containing your pages. Here is an example:

@@ -23,7 +23,12 @@ module Make (Eliom : ELIOM) = struct
          copy_with_header src prod
       )
 
-  let flag_infer file type_inferred =
+  let flag_infer ~file ~name ~path =
+    let type_inferred =
+      Pathname.concat
+        (Pathname.concat path Eliom.type_dir)
+        (Pathname.update_extension "inferred.mli" name)
+    in
     let file_tag = "file:" ^ file in
     let tags =
       [["ocaml"; "ocamldep"; file_tag];
@@ -41,18 +46,13 @@ module Make (Eliom : ELIOM) = struct
     copy_rule_with_header
       (fun env dir name file ->
          let path = env "%(path)" in
-         let type_inferred =
-           Pathname.concat
-             (Pathname.concat path Eliom.type_dir)
-             (Pathname.update_extension "inferred.mli" name)
-         in
          tag_file file
            [ "package(eliom.server)"; "package(eliom.syntax.server)"; "thread";
              "syntax(camlp4o)";
            ];
          (* Workaround. See: http://caml.inria.fr/mantis/view.php?id=6186 *)
          Pack.Param_tags.init ();
-         flag_infer file type_inferred;
+         flag_infer ~file ~name ~path;
          Pathname.define_context dir [path];
          Pathname.define_context path [dir];
       )
@@ -61,18 +61,13 @@ module Make (Eliom : ELIOM) = struct
     copy_rule_with_header
       (fun env dir name file ->
          let path = env "%(path)" in
-         let type_inferred =
-           Pathname.concat
-             (Pathname.concat path Eliom.type_dir)
-             (Pathname.update_extension "inferred.mli" name)
-         in
          tag_file file
            [ "package(eliom.client)"; "package(eliom.syntax.client)"; "thread";
              "syntax(camlp4o)";
            ];
          (* Workaround. See: http://caml.inria.fr/mantis/view.php?id=6186 *)
          Pack.Param_tags.init ();
-         flag_infer file type_inferred;
+         flag_infer ~file ~name ~path;
          Pathname.define_context dir [path];
       )
 
@@ -103,9 +98,6 @@ module Make (Eliom : ELIOM) = struct
         copy_rule_type "*.eliom -> **/_type/*.ml"
           "%(path)/%(file).eliom"
           ("%(path)/" ^ Eliom.type_dir ^ "/%(file:<*>).ml");
-        copy_rule_type "*.eliomi -> **/_type/*.mli"
-          "%(path)/%(file).eliomi"
-          ("%(path)/" ^ Eliom.type_dir ^ "/%(file:<*>).mli");
         copy_rule_client "*.eliom -> **/_client/*.ml"
           ~deps:["%(path)/" ^ Eliom.type_dir ^ "/%(file).inferred.mli"]
           "%(path)/%(file).eliom"
@@ -121,8 +113,6 @@ module Make (Eliom : ELIOM) = struct
           "%(file).eliomi" (Eliom.server_dir ^ "/%(file:<*>).mli");
         copy_rule_type "*.eliom -> _type/*.ml"
           "%(file).eliom" (Eliom.type_dir ^ "/%(file:<*>).ml");
-        copy_rule_type "*.eliomi -> _type/*.mli"
-          "%(file).eliomi" (Eliom.type_dir ^ "/%(file:<*>).mli");
         copy_rule_client "*.eliom -> _client/*.ml"
           ~deps:[Eliom.type_dir ^ "/%(file).inferred.mli"]
           "%(file).eliom" (Eliom.client_dir ^ "/%(file:<*>).ml");

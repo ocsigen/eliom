@@ -43,7 +43,7 @@ module Xml : sig
       build with the [{{ ... }}] syntax (see the Eliom manual for more
       information on {% <<a_manual chapter="clientserver-html"
       fragment="syntax"|syntax extension>>%}). Such values are expected
-      by functions like {!Eliom_service.on_load} or
+      by functions like {!Eliom_service.onload} or
       {!Eliom_content.Html5.a_onclick}. The type parameter is the
       type of the javascript event expected by the handler, for
       example {% <<a_api project="js_of_ocaml" | type
@@ -105,7 +105,8 @@ module Eliom_xml : module type of Xml
     and type -'a caml_event_handler = 'a Xml.caml_event_handler
 (**/**)
 
-(** Building and pretty-printing valid SVG tree. *)
+(** Building and pretty-printing valid SVG tree.
+Information about Svg api can be found at {% <<a_api project="tyxml" | module Svg_sigs.T >> %}*)
 module Svg : sig
 
   (** See the Eliom manual for more information on{% <<a_manual

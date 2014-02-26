@@ -50,13 +50,17 @@
     {% <<a_api subproject="client"|module Eliom_content.Html5.Manip>> %}.
 
     In case of doubt, use the modules with DOM-like semantics {!Eliom_content.Html5.D}.
+
+    So if you want to generate typed HTML, you have to got to {!Eliom_content.Html5},
+    if you want to handly write untyped html, got to {!Eliom_content.Html_text} and
+    if you want to generate svg, go to {!Eliom_content_core.Svg}.
   *)
 
-(** Abstract signature for links and forms creation functions. For
+(** Abstract signature for links and forms creation functions, for
     concrete instance see {!Html5}, or {!Html_text}. *)
 module type Forms = "sigs/eliom_forms.mli"
 
-(** Low-level XML manipulation. *)
+(** Low-level XML manipulation, see {!Eliom_content_core.Xml} *)
 module Xml : module type of Eliom_content_core.Xml
     with type uri = Eliom_content_core.Xml.uri
     and type attrib = Eliom_content_core.Xml.attrib
@@ -65,13 +69,14 @@ module Xml : module type of Eliom_content_core.Xml
     and type event_handler_table = Eliom_content_core.Xml.event_handler_table
     and type -'a caml_event_handler = 'a Eliom_content_core.Xml.caml_event_handler
 
-(** Building and pretty-printing valid SVG tree. *)
+(** Building and pretty-printing valid SVG tree, see {!Eliom_content_core.Svg},
+Information about Svg api can be found at {% <<a_api project="tyxml" | module Svg_sigs.T >> %}*)
 module Svg : module type of Eliom_content_core.Svg
     with type uri = Eliom_content_core.Svg.uri
     and type 'a attrib = 'a Eliom_content_core.Svg.attrib
     and type +'a elt = 'a Eliom_content_core.Svg.elt
 
-(** Building and printing valid (X)HTML5 tree. *)
+(** Building and printing valid (X)HTML5 tree, Information about Html5 api can be found at {% <<a_api project="tyxml" | module Html5_sigs.T >> %} .*)
 module Html5 : sig
 
   (** See the Eliom manual for more information on {% <<a_manual
@@ -86,7 +91,9 @@ module Html5 : sig
   (** Creation of {b F}unctional HTML5 content (copy-able but not referable, see also {% <<a_api|module Eliom_content>> %}). *)
   module F : sig
     (** {2 Content creation}
-        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
+        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %},
+        If you want to create an untyped form, you will have to use {% <<a_api|module Eliom_content_core.Html5.F.Raw>> %}
+        otherwise, use the form module. For more information, see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
     open Pervasives
     include module type of Eliom_content_core.Html5.F
                    with type Xml.uri = Xml.uri
@@ -126,7 +133,9 @@ module Html5 : sig
   (** Creation of HTML5 content with {b D}OM semantics (referable, see also {% <<a_api|module Eliom_content>> %}). *)
   module D : sig
     (** {2 Content creation}
-        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
+        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %},
+        If you want to create an untyped form, you will have to use {% <<a_api|module Eliom_content_core.Html5.D.Raw>> %}
+        otherwise, use the form module. For more information, see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
     open Pervasives
     include module type of Eliom_content_core.Html5.D
                    with type Xml.uri = Xml.uri
@@ -163,20 +172,27 @@ module Html5 : sig
     val select : ?a:Html5_types.select_attrib attrib list -> name:[< `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt
   end
 
-  (** Node identifiers *)
+  (** Node identifiers, see {!Eliom_content_core.Html5.Id} *)
   module Id : module type of Eliom_content_core.Html5.Id
                                with type +'a id = 'a Eliom_content_core.Html5.Id.id
 
+ (** Type-safe custom data for HTML5, see the {% <<a_manual chapter="clientserver-html"
+      fragment="custom_data"|examples in the manual>> %}. *)
   module Custom_data : module type of Eliom_content_core.Html5.Custom_data
-                                        with type 'a t = 'a Eliom_content_core.Html5.Custom_data.t
+    with type 'a t = 'a Eliom_content_core.Html5.Custom_data.t
 
+ (** {{:http://dev.w3.org/html5/html-xhtml-author-guide/}"Polyglot"} HTML5 printer,
+     see {% <<a_api project="tyxml" | module type Xml_sigs.Typed_simple_printer >> %}. *)
   module Printer : module type of Eliom_content_core.Html5.Printer
 
 end
 
-
+(** Generate untyped html as text.*)
 module Html_text : sig
   include "sigs/eliom_forms.mli"
+    (** Have a look on  {% <<a_manual
+      chapter="clientserver-html" fragment="text_html" | Client and Server side HTML>> %} for HTML tree manipulated by client/server
+      application. *)
     subst type uri := string
     and type pcdata_elt := string
 
