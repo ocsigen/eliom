@@ -32,7 +32,7 @@ let get_set_js_serverside_value r name =
          Js.Unsafe.variable "toto" fails, but
          Js.Unsafe.get Js.Unsafe.global (Js.string "toto") returns undefined *)
       Js.Optdef.case (Js.def (Js.Unsafe.get Js.Unsafe.global (Js.string name)))
-        (fun () -> failwith (name^" not defined. A client Eliom application must either be sent by an Eliom server application of you must call Eliom_process.init_client_app."))
+        (fun () -> failwith (name^" not defined. A client Eliom application must either be sent by an Eliom server application or you must call Eliom_client.init_client_app."))
         (fun var ->
           let s = unmarshal_js var in
           r := Some s;

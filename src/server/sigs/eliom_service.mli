@@ -36,7 +36,8 @@
 
     The optional paramater [?rt] is used to constrain the type parameter ['rt]
     of the returned service if is ['rt Eliom_service.caml_service].
-    It should be used as: [service ~rt:(Eliom_service.rt : yourtype)].
+    Example:
+    [service ~rt:(Eliom_service.rt : your_return_type Eliom_service.rt)].
 *)
 val service :
   ?rt:'rt rt ->

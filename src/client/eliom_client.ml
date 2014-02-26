@@ -34,6 +34,7 @@ let init_client_app ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
                           cpi_server_port = port;
                           cpi_original_full_path = full_path
                          };
+  Eliom_process.set_request_template None;
   Eliom_process.set_request_cookies Ocsigen_cookies.Cookies.empty
 
 
