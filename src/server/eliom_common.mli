@@ -307,7 +307,7 @@ module SessionCookies : Hashtbl.S with type key = string
 (* session groups *)
 type 'a sessgrp =
     (string * cookie_level
-     * (string, Ip_address.t) leftright)
+     * (string, Ipaddr.t) leftright)
     (* The full session group is the triple
        (site_dir_string, scope, session group name).
        The scope is the scope of group members (`Session by default).
@@ -320,7 +320,7 @@ val make_persistent_full_group_name :
 
 val getperssessgrp : perssessgrp ->
   (string * cookie_level *
-     (string, Ip_address.t) leftright)
+     (string, Ipaddr.t) leftright)
 
 val string_of_perssessgrp : perssessgrp -> string
 
@@ -554,8 +554,8 @@ and sitedata = {
   mutable max_anonymous_services_per_session : int * bool;
   mutable max_anonymous_services_per_subnet : int * bool;
   dlist_ip_table : dlist_ip_table;
-  mutable ipv4mask : int32 option * bool;
-  mutable ipv6mask : (int64 * int64) option * bool;
+  mutable ipv4mask : int option * bool;
+  mutable ipv6mask : int option * bool;
 }
 
 type 'a lazy_site_value (** lazy site values, are lazy values with
@@ -643,16 +643,17 @@ val na_key_serv_of_req : na_key_req -> na_key_serv
 val remove_naservice_table :
   naservice_table -> NAserv_Table.key -> naservice_table
 
-val get_mask4 : sitedata -> int32
-val get_mask6 : sitedata -> (int64 * int64)
-val ipv4mask : int32 ref
-val ipv6mask : (int64 * int64) ref
+val get_mask4 : sitedata -> int
+val get_mask6 : sitedata -> int
+val network_of_ip : Ipaddr.t -> int -> int -> Ipaddr.t
+val ipv4mask : int ref
+val ipv6mask : int ref
 
 val create_dlist_ip_table : int -> dlist_ip_table
 val find_dlist_ip_table :
-  int32 option * 'a ->
-  (int64 * int64) option * 'a ->
-  dlist_ip_table -> Ip_address.t ->
+  int option * 'a ->
+  int option * 'a ->
+  dlist_ip_table -> Ipaddr.t ->
   (page_table ref * page_table_key, na_key_serv)
     leftright Ocsigen_cache.Dlist.t
 

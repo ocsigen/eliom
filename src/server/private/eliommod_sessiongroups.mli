@@ -28,7 +28,7 @@ val make_full_named_group_name_ :
 val make_full_group_name : 
   cookie_level:Eliom_common.cookie_level ->
   Ocsigen_extensions.request_info -> string -> 
-  int32 -> int64 * int64 ->
+  int -> int ->
   string option -> Eliom_common.scope Eliom_common.sessgrp
 
 val make_persistent_full_group_name :
@@ -39,11 +39,11 @@ val make_persistent_full_group_name :
 val getsessgrp : 
   Eliom_common.scope Eliom_common.sessgrp -> 
   string * Eliom_common.cookie_level *
-    (string, Ip_address.t) leftright
+    (string, Ipaddr.t) leftright
 
 val getperssessgrp : Eliom_common.perssessgrp ->
   (string * Eliom_common.cookie_level * 
-     (string, Ip_address.t) leftright)
+     (string, Ipaddr.t) leftright)
 
 module type MEMTAB =
   sig
@@ -116,4 +116,3 @@ module Pers :
       Eliom_common.sitedata ->
       Eliom_common.perssessgrp option -> string -> unit Lwt.t
   end
-

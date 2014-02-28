@@ -24,7 +24,6 @@ include module type of Ocsigen_lib
   and type ('a, 'b) leftright = ('a, 'b) Ocsigen_lib.leftright
   and type 'a Clist.t = 'a Ocsigen_lib.Clist.t
   and type 'a Clist.node = 'a Ocsigen_lib.Clist.node
-  and type Ip_address.t = Ocsigen_lib.Ip_address.t
 
 include module type of Eliom_lib_base
   with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t

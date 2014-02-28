@@ -395,20 +395,16 @@ let parse_eliom_option
 
   | (Element ("ipv4subnetmask", [("value", v)], [])) ->
       (try
-         (match Ip_address.parse v with
-            | Ip_address.IPv4 a, None -> set_ipv4mask a
-            | _ -> failwith "ipv6"
-         )
-       with Failure _ ->
+         let mask = int_of_string v in
+         set_ipv4mask mask
+       with _ ->
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for ipv4subnetmask tag")))
   | (Element ("ipv6subnetmask", [("value", v)], [])) ->
       (try
-         (match Ip_address.parse v with
-            | Ip_address.IPv6 (a, b), None -> set_ipv6mask (a, b)
-            | _ -> failwith "ipv6"
-         )
-          with Failure _ ->
+         let mask = int_of_string v in
+         set_ipv6mask mask
+       with _ ->
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for ipv6subnetmask tag")))
 
@@ -788,7 +784,7 @@ let parse_config hostpattern conf_info site_dir =
                     sitedata.Eliom_common.ipv4mask (* unused *)
                     oldipv6mask
                     sitedata.Eliom_common.dlist_ip_table
-                    Ip_address.inet6_addr_loopback
+                    Ipaddr.(V6 V6.localhost)
                   in
                   ignore (Ocsigen_cache.Dlist.set_maxsize dlist v)
                 with Not_found -> () (* should not occure *)

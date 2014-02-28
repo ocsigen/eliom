@@ -122,7 +122,7 @@ module SessionCookies =
 
 (* session groups *)
 type 'a sessgrp =
-    (string * cookie_level * (string, Ip_address.t) leftright)
+    (string * cookie_level * (string, Ipaddr.t) leftright)
     (* The full session group is the triple
        (site_dir_string, scope, session group name).
        The scope is the scope of group members (`Session by default).
@@ -283,8 +283,8 @@ type datacookiestable = datacookiestablecontent SessionCookies.t
 
 
 (*****************************************************************************)
-let ipv4mask = ref 0b11111111111111110000000000000000l    (* /16 *)
-let ipv6mask = ref (0b1111111111111111111111111111111111111111111111111111111100000000L, 0L) (* /56 (???) *)
+let ipv4mask = ref 16
+let ipv6mask = ref 56
 
 let get_mask4 m =
   match fst m with
@@ -296,58 +296,57 @@ let get_mask6 m =
     | Some m -> m
     | None -> !ipv6mask
 
+let network_of_ip k mask4 mask6 = match k with
+  | Ipaddr.V4 ip -> Ipaddr.(V4 (V4.Prefix.(network (make mask4 ip))))
+  | Ipaddr.V6 ip -> Ipaddr.(V6 (V6.Prefix.(network (make mask6 ip))))
+
 module Net_addr_Hashtbl =
   (* keys are IP address modulo "network equivalence" *)
   (struct
      include Hashtbl.Make(struct
-                            type t = Ip_address.t
-                            let equal = (=)
+        type t = Ipaddr.t
+        let equal a b = Ipaddr.compare a b = 0
                             let hash = Hashtbl.hash
                           end)
 
+     type m = int option * bool
+
      let add m4 m6 t k v =
-       add t (Ip_address.network_of_ip k (get_mask4 m4) (get_mask6 m6)) v
+       add t (network_of_ip k (get_mask4 m4) (get_mask6 m6)) v
 
      let remove m4 m6 t k =
-       remove t (Ip_address.network_of_ip k (get_mask4 m4) (get_mask6 m6))
+       remove t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
 
      let find m4 m6 t k =
-       find t (Ip_address.network_of_ip k (get_mask4 m4) (get_mask6 m6))
+       find t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
 
      let find_all m4 m6 t k =
-       find_all t (Ip_address.network_of_ip k (get_mask4 m4) (get_mask6 m6))
+       find_all t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
 
      let replace m4 m6 t k v =
-       replace t (Ip_address.network_of_ip k (get_mask4 m4) (get_mask6 m6)) v
+       replace t (network_of_ip k (get_mask4 m4) (get_mask6 m6)) v
 
      let mem m4 m6 t k =
-       mem t (Ip_address.network_of_ip k (get_mask4 m4) (get_mask6 m6))
+       mem t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
 
    end : sig
 
-     type key = Ip_address.t
+     type key = Ipaddr.t
      type 'a t
      val create : int -> 'a t
      val clear : 'a t -> unit
      val copy : 'a t -> 'a t
-     val add :
-       int32 option * 'bb -> (int64 * int64) option * 'bb -> 'a t -> key -> 'a -> unit
-     val remove : int32 option * 'bb -> (int64 * int64) option * 'bb -> 'a t -> key -> unit
-     val find : int32 option * 'bb -> (int64 * int64) option * 'bb -> 'a t -> key -> 'a
-     val find_all :
-       int32 option * 'bb -> (int64 * int64) option * 'bb -> 'a t -> key -> 'a list
-     val replace :
-       int32 option * 'bb -> (int64 * int64) option * 'bb -> 'a t -> key -> 'a -> unit
-     val mem : int32 option * 'bb -> (int64 * int64) option * 'bb -> 'a t -> key -> bool
+     val add      : int option * 'bb -> int option * 'bb -> 'a t -> key -> 'a -> unit
+     val remove   : int option * 'bb -> int option * 'bb -> 'a t -> key -> unit
+     val find     : int option * 'bb -> int option * 'bb -> 'a t -> key -> 'a
+     val find_all : int option * 'bb -> int option * 'bb -> 'a t -> key -> 'a list
+     val replace  : int option * 'bb -> int option * 'bb -> 'a t -> key -> 'a -> unit
+     val mem      : int option * 'bb -> int option * 'bb -> 'a t -> key -> bool
      val iter : (key -> 'a -> unit) -> 'a t -> unit
      val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
      val length : 'a t -> int
 
    end)
-
-let create_dlist_ip_table = Net_addr_Hashtbl.create
-let find_dlist_ip_table = Net_addr_Hashtbl.find
-(*****************************************************************************)
 
 type page_table_key =
     {key_state : att_key_serv * att_key_serv;
@@ -534,12 +533,23 @@ and sitedata =
    mutable max_anonymous_services_per_session : int * bool;
    mutable max_anonymous_services_per_subnet : int * bool;
    dlist_ip_table : dlist_ip_table;
-   mutable ipv4mask : int32 option * bool;
-   mutable ipv6mask : (int64 * int64) option * bool;
+   mutable ipv4mask : int option * bool;
+   mutable ipv6mask : int option * bool;
  }
 
 and dlist_ip_table = (page_table ref * page_table_key, na_key_serv)
     leftright Ocsigen_cache.Dlist.t Net_addr_Hashtbl.t
+
+
+let create_dlist_ip_table = Net_addr_Hashtbl.create
+let find_dlist_ip_table :
+  int option * 'b ->
+  int option * 'b ->
+  dlist_ip_table -> Ipaddr.t ->
+  (page_table ref * page_table_key, na_key_serv)
+    leftright Ocsigen_cache.Dlist.t  = Net_addr_Hashtbl.find
+(*****************************************************************************)
+
 
 (*****************************************************************************)
 
@@ -842,7 +852,7 @@ let empty_tables max forsession =
           let ip, max, sitedata =
             match sp with
               | None ->
-                  Ip_address.inet6_addr_loopback, max,
+                  Ipaddr.(V6 V6.localhost), max,
                   (match global_register_allowed () with
                      | None ->
                          failwith "global tables created outside initialisation"
