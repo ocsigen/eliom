@@ -64,7 +64,6 @@ depend:
 syntax.depend:
 	find syntax -name .\*.deps -delete
 	${MAKE} -C syntax depend
-	${MAKE} -C syntax pa_include.cmo
 server.depend: syntax.depend
 	find server -name .\*.deps -delete
 	rm -f server/.depend

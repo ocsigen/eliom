@@ -12,8 +12,7 @@ NATDYNLINK := $(shell if [ -f `ocamlc -where`/dynlink.cmxa ]; then echo YES; els
 FILES:= pa_eliom_seed.ml    \
 	pa_eliom_type_filter.ml   \
 	pa_eliom_client_client.ml \
-	pa_eliom_client_server.ml \
-	pa_include.ml
+	pa_eliom_client_server.ml
 
 ifeq "${NATDYNLINK}" "YES"
 FILES_OPT:= $(FILES:.ml=.cmx) $(FILES:.ml=.cmxs)
