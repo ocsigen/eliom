@@ -6,8 +6,8 @@ build: [
    "--mandir" "%{man}%"
    "--docdir" "%{lib}%/eliom/doc"
    "--datadir" "%{lib}%/eliom/share"]
-  ["%{make}%"]
-  ["%{make}%" "install"]
+  [make]
+  [make "install"]
 ]
 remove: [
   ["rm" "-rf" "%{lib}%/eliom"
@@ -20,6 +20,6 @@ depends: [
   "deriving"
   "js_of_ocaml" {>= "9999"}
   "calendar"
-  "ocsigenserver" {>= "9999"}
+  "ocsigenserver" {>= "2.4"}
   "ipaddr" {>= "2.1"}
 ]

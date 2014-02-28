@@ -14,8 +14,8 @@ Compilers:
 Libraries:
 
  * findlib
- * ocsigenserver     (need version >= 2.2)
- * tyxml             (need version >= 2.2)
+ * ocsigenserver     (need version >= 2.4)
+ * tyxml             (need version >= 3)
  * react             (tested with 0.9.3)
  * deriving          (need version >= 0.5)
                      See: https://github.com/ocsigen/deriving
