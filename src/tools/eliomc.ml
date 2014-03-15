@@ -191,6 +191,10 @@ let compile_server_type_eliom file =
   Unix.close out
 
 let output_eliom_interface ~impl_intf file =
+  if !do_dump then begin
+    Printf.eprintf "Dump (-dump) not supported for interface inference (-i).";
+    exit 1
+  end;
   let indent ch =
     try
       while true do
