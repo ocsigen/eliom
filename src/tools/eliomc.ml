@@ -162,9 +162,9 @@ let compile_obj file =
 
 (* Process eliom and eliomi files *)
 
-let get_ppopts ~impl_intf file =
+let get_ppopts ?kind ~impl_intf file =
   let pa_cmo =
-    match !kind with
+    match get_kind kind with
       | `Client -> "pa_eliom_client_client.cmo"
       | `Server | `ServerOpt -> "pa_eliom_client_server.cmo"
   in
@@ -191,7 +191,6 @@ let compile_server_type_eliom file =
   Unix.close out
 
 let output_eliom_interface ~impl_intf file =
-  let ppopts = get_ppopts ~impl_intf file in
   let indent ch =
     try
       while true do
@@ -200,20 +199,19 @@ let output_eliom_interface ~impl_intf file =
       done
     with End_of_file -> ()
   in
+  let args kind =
+    let pp = get_pp (get_ppopts ~kind ~impl_intf file) in
+    [ "-i" ; "-pp" ; pp; "-intf-suffix"; ".eliomi" ]
+    @ !args
+    @ get_common_include ~kind ()
+    @ [ impl_intf_opt impl_intf; file ]
+  in
   Printf.printf "(* WARNING `eliomc -i' generated this pretty ad-hoc - use with care! *)\n";
   Printf.printf "{server{\n";
-    create_filter !compiler ( [ "-i" ; "-pp" ; get_pp ppopts; "-intf-suffix"; ".eliomi" ]
-			         @ !args
-			         @ get_common_include ~kind:`Server ()
-			         @ [impl_intf_opt impl_intf; file] )
-      indent;
+  create_filter !compiler (args `Server) indent;
   Printf.printf "}}\n";
   Printf.printf "{client{\n";
-    create_filter !compiler ( [ "-i" ; "-pp" ; get_pp ppopts; "-intf-suffix"; ".eliomi" ]
-			         @ !args
-			         @ get_common_include ~kind:`Server ()
-			         @ [impl_intf_opt impl_intf; file] )
-      indent;
+  create_filter !compiler (args `Client) indent;
   Printf.printf "}}\n"
 
 let compile_eliom ~impl_intf file =
