@@ -214,10 +214,11 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let escape_inject context_level orig_expr gen_id =
     let open Pa_eliom_seed in
     let _loc = Ast.loc_of_expr orig_expr in
-    let assert_no_variables msg typ =
+    let assert_no_variables typ =
       let f = function
         | Ast.TyQuo _ ->
-            Helpers.raise_syntax_error _loc msg
+            Helpers.raise_syntax_error _loc
+              "The type of an injected value must not contain any type variable."
         | typ -> typ
       in
       ignore ((Ast.map_ctyp f)#ctyp typ)
@@ -229,7 +230,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
             drop_client_value_ctyp
               (get_type Helpers.find_escaped_ident_type gen_id)
           in
-          assert_no_variables "The type of an escaped value must not contain variables" typ;
+          assert_no_variables typ;
           push_escaped_binding gen_id orig_expr;
           <:expr< ($lid:gen_id$ : $typ$) >>
       | Injected_in _section ->
@@ -238,7 +239,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
             drop_client_value_ctyp
               (get_type Helpers.find_injected_ident_type gen_id)
           in
-          assert_no_variables "The type of an injected value must not contain variables" typ;
+          assert_no_variables typ;
           <:expr<
             (Eliom_client.Syntax_helpers.get_injection $str:gen_id$ : $typ$)
           >>
