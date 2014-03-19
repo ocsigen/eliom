@@ -46,15 +46,12 @@ module Make (Eliom : ELIOM) = struct
     copy_rule_with_header
       (fun env dir name file ->
          let path = env "%(path)" in
-         let param_tags =
-           [ "package(eliom.server)"
-           ; "package(eliom.syntax.server)"
-           ; "syntax(camlp4o)"
-           ]
-         in
-         tag_file file ("thread" :: param_tags);
+         tag_file file
+           [ "package(eliom.server)"; "package(eliom.syntax.server)"; "thread";
+             "syntax(camlp4o)";
+           ];
          (* Workaround. See: http://caml.inria.fr/mantis/view.php?id=6186 *)
-         Pack.Param_tags.partial_init (Tags.of_list param_tags);
+         Pack.Param_tags.init ();
          flag_infer ~file ~name ~path;
          Pathname.define_context dir [path];
          Pathname.define_context path [dir];
@@ -64,15 +61,12 @@ module Make (Eliom : ELIOM) = struct
     copy_rule_with_header
       (fun env dir name file ->
          let path = env "%(path)" in
-         let param_tags =
-           [ "package(eliom.client)"
-           ; "package(eliom.syntax.client)"
-           ; "syntax(camlp4o)"
-           ]
-         in
-         tag_file file ("thread" :: param_tags);
+         tag_file file
+           [ "package(eliom.client)"; "package(eliom.syntax.client)"; "thread";
+             "syntax(camlp4o)";
+           ];
          (* Workaround. See: http://caml.inria.fr/mantis/view.php?id=6186 *)
-         Pack.Param_tags.partial_init (Tags.of_list param_tags);
+         Pack.Param_tags.init ();
          flag_infer ~file ~name ~path;
          Pathname.define_context dir [path];
       )
@@ -83,13 +77,12 @@ module Make (Eliom : ELIOM) = struct
          let path = env "%(path)" in
          let server_dir = Pathname.concat path Eliom.server_dir in
          let server_file = Pathname.concat server_dir name in
-         let param_tags = ["package(eliom.syntax.type)"; "syntax(camlp4o)"] in
          tag_file file
-           ( "thread" ::
-             param_tags @ Tags.elements (tags_of_pathname server_file)
+           ( "package(eliom.syntax.type)" :: "thread" :: "syntax(camlp4o)"
+             :: Tags.elements (tags_of_pathname server_file)
            );
          (* Workaround. See: http://caml.inria.fr/mantis/view.php?id=6186 *)
-         Pack.Param_tags.partial_init (Tags.of_list param_tags);
+         Pack.Param_tags.init ();
          Pathname.define_context dir [path; server_dir];
       )
 
