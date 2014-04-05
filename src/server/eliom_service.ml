@@ -206,6 +206,8 @@ module MakeBase = struct
   let post_coservice = post_coservice
   let coservice' = coservice'
   let post_coservice' = post_coservice'
+  let external_service = external_service
+  let external_post_service = external_post_service
 end
 
 module Unsafe = struct

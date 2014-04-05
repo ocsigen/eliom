@@ -3916,14 +3916,8 @@ let () = My_appl.register nlpost_entry
 (********************************************************)
 (* test external xhr ( and see if cookies are sent ) *)
 
-let (some_external_service :
-       (unit, unit,
-        [> `Attached of ([> `External ], [> `Get ]) Eliom_service.a_s ],
-        [ `WithoutSuffix ], unit, unit,
-        [< Eliom_service.registrable > `Unregistrable ],
-        [Eliom_service.http_service])
-         Eliom_service.service) =
-  Eliom_service.external_service ~prefix:"http://remysharp.com"
+let some_external_service =
+  Eliom_service.Http.external_service ~prefix:"http://remysharp.com"
     ~path:["demo";"cors.php"]
     ~get_params:(Eliom_parameter.unit) ()
 

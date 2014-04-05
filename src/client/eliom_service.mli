@@ -137,60 +137,6 @@ module Http : "../server/sigs/eliom_service.mli"
   subst type returnB := [> http_service ]
   and type returnT := [< non_ocaml_service ]
 
-(** {2 Definitions of services}
-
-    {e Warning: These functions must be called when the site
-    information is available, that is, either during a request or
-    during the initialisation phase of the site.  Otherwise, it will
-    raise the exception
-    {!Eliom_common.Eliom_site_information_not_available}.  If you are
-    using static linking, you must delay the call to this function
-    until the configuration file is read, using
-    {!Eliom_service.register_eliom_module}. Otherwise you will also
-    get this exception.}
-*)
-
-(** The function [external_service ~prefix ~path ~get_params ()]
-    creates a service for an external web site, that will use GET
-    method and requires [get_params] as parameters. This allows one to
-    creates links or forms towards other Web sites using Eliom's
-    syntax.
-
-    The parameter labelled [~path] is the URL path. Each element of
-    the list will be URL-encoded.
-
-    The parameter labelled [~prefix] contains all what you want to put
-    before the path. It usually starts with "http://" plus the name of
-    the server. The prefix is not URL encoded.
-
-    The whole URL is constructed from the prefix, the path and GET
-    parameters. Hence, an empty prefix can be used to make a link to
-    another site of the same server.
-
-    See {!val:service} for a description of the optional
-    [~keep_nl_params] parameter.
-*)
-val external_service :
-  prefix: string ->
-  path:Url.path ->
-  ?keep_nl_params:[ `All | `Persistent | `None ] ->
-  get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
-  unit ->
-  ('get, unit, [> `Attached of ([> `External ], [> `Get ]) a_s ], 'tipo,
-   'gn, unit, [> `Unregistrable ], 'return) service
-
-
-(** Same as {!external_service} but with POST method. *)
-val external_post_service :
-  prefix: string ->
-  path:Url.path ->
-  ?keep_nl_params:[ `All | `Persistent | `None ] ->
-  get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
-  post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-  unit ->
-  ('get, 'post, [> `Attached of ([> `External ], [> `Post ]) a_s ], 'tipo,
-   'gn, 'pn, [> `Unregistrable ], 'return) service
-
 
 
 (** {2 Predefined services} *)
