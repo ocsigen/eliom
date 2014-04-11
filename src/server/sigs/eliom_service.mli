@@ -86,6 +86,48 @@ val post_service :
       ([> `Internal of 'kind ], [> `Post]) a_s ],
    'tipo, 'gn, 'pn, [> `Registrable ], returnB) service
 
+(** The function [put_service ~fallback ~post_params ()] creates a
+    service similar to the [post_service] function, but for the
+    PUT http method.
+*)
+val put_service :
+  ?rt:'rt rt ->
+  ?https:bool ->
+  fallback: ('get, unit,
+             [`Attached of
+                 ([`Internal of
+                     ([ `Service | `Coservice ] as 'kind) ], [`Get]) a_s ],
+             [< suff] as 'tipo, 'gn, unit,
+             [< `Registrable ], returnT) service ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  ?priority:int ->
+  post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
+  unit ->
+  ('get, 'post, [> `Attached of
+      ([> `Internal of 'kind ], [> `Put]) a_s ],
+   'tipo, 'gn, 'pn, [> `Registrable ], returnB) service
+
+(** The function [delete_service ~fallback ~post_params ()] creates a
+    service similar to the [post_service] function, but for the
+    DELETE http method.
+*)
+val delete_service :
+  ?rt:'rt rt ->
+  ?https:bool ->
+  fallback: ('get, unit,
+             [`Attached of
+                 ([`Internal of
+                     ([ `Service | `Coservice ] as 'kind) ], [`Get]) a_s ],
+             [< suff] as 'tipo, 'gn, unit,
+             [< `Registrable ], returnT) service ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  ?priority:int ->
+  post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
+  unit ->
+  ('get, 'post, [> `Attached of
+      ([> `Internal of 'kind ], [> `Delete]) a_s ],
+   'tipo, 'gn, 'pn, [> `Registrable ], returnB) service
+
 
 (** {3 Attached coservices} *)
 

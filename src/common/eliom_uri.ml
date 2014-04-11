@@ -533,6 +533,8 @@ let make_post_uri_components_ (* do not take into account postparams *)
       | None ->
         match get_na_kind_ naser with
         | `Post b -> b
+        | `Put b -> b
+        | `Delete b -> b
         | _ -> assert false
     in
     let params =

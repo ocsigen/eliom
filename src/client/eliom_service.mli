@@ -31,7 +31,7 @@ type suff = [ `WithSuffix | `WithoutSuffix ]
 
 type servcoserv = [ `Service | `Coservice ]
 
-type getpost = [ `Get | `Post ]
+type getpost = [ `Get | `Post | `Put | `Delete ]
       (* `Post means that there is at least one post param
          (possibly only the state post param).
          `Get is for all the other cases.
@@ -67,6 +67,14 @@ type get_service_kind =
 type post_service_kind =
     [ `Attached of (attached_service_kind, [ `Post ]) a_s
     | `Nonattached of [ `Post ] na_s ]
+
+type put_service_kind =
+    [ `Attached of (attached_service_kind, [ `Put ]) a_s
+    | `Nonattached of [ `Put ] na_s ]
+
+type delete_service_kind =
+    [ `Attached of (attached_service_kind, [ `Delete ]) a_s
+    | `Nonattached of [ `Delete ] na_s ]
 
 type attached =
     [ `Attached of (attached_service_kind, getpost) a_s ]
@@ -355,7 +363,7 @@ val get_get_name_ : ('a, 'b) a_s -> Eliom_common.att_key_serv
 val get_post_name_ : ('a, 'b) a_s -> Eliom_common.att_key_serv
 val get_redirect_suffix_ : ('a, 'b) a_s -> bool
 val get_na_name_ : 'a na_s -> Eliom_common.na_key_serv
-val get_na_kind_ : [< getpost ] na_s -> [ `Get | `Post of bool ]
+val get_na_kind_ : [< getpost ] na_s -> [ `Get | `Post of bool | `Put of bool | `Delete of bool ]
 val get_max_use_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> int option
 val get_timeout_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> float option
 val get_https : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> bool

@@ -52,7 +52,7 @@ type attached_service_kind =
 
 (** The kind of a service is [`Post] when there is at least one POST
     parameters. It is [`Get] otherwise. *)
-type getpost = [ `Get | `Post ]
+type getpost = [ `Get | `Post | `Put | `Delete ]
 
 (** {4 Attached or Non-attached} *)
 
@@ -86,6 +86,16 @@ type get_service_kind =
 type post_service_kind =
     [ `Attached of (attached_service_kind, [ `Post ]) a_s
     | `Nonattached of [ `Post ] na_s ]
+
+(** Restriction of [service_kind] to services with at least one POST parameters. *)
+type put_service_kind =
+    [ `Attached of (attached_service_kind, [ `Put ]) a_s
+    | `Nonattached of [ `Put ] na_s ]
+
+(** Restriction of [service_kind] to services with at least one POST parameters. *)
+type delete_service_kind =
+    [ `Attached of (attached_service_kind, [ `Delete ]) a_s
+    | `Nonattached of [ `Delete ] na_s ]
 
 (** Restriction of [service_kind] to attached services. *)
 type attached =
@@ -343,7 +353,7 @@ val add_non_localized_post_parameters :
 val unregister :
   ?scope:[< Eliom_common.scope ] ->
   ?secure:bool ->
-  ('a, 'b, [< `Attached of ([> `Internal of 'c ], [< `Get | `Post ]) a_s
+  ('a, 'b, [< `Attached of ([> `Internal of 'c ], [< `Get | `Post | `Put | `Delete ]) a_s
 	   | `Nonattached of 'd na_s ], 'e, 'f, 'g, 'h, 'return) service ->
   unit
 
@@ -355,7 +365,7 @@ val get_get_or_post :
    | `Nonattached of [< getpost ] na_s ], 'd, 'e, 'f, 'g, 'h) service ->
   getpost
 val get_kind_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> 'c
-val get_or_post_ : ('a, [< `Get | `Post ]) a_s ->
+val get_or_post_ : ('a, [< `Get | `Post | `Put | `Delete ]) a_s ->
   Ocsigen_http_frame.Http_header.http_method
 val get_pre_applied_parameters_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
   (string * string) list String.Table.t *
@@ -372,7 +382,7 @@ val get_get_name_ : ('a, 'b) a_s -> Eliom_common.att_key_serv
 val get_post_name_ : ('a, 'b) a_s -> Eliom_common.att_key_serv
 val get_redirect_suffix_ : ('a, 'b) a_s -> bool
 val get_na_name_ : 'a na_s -> Eliom_common.na_key_serv
-val get_na_kind_ : [< getpost ] na_s -> [ `Get | `Post of bool ]
+val get_na_kind_ : [< getpost ] na_s -> [ `Get | `Post of bool | `Put of bool | `Delete of bool ]
 val get_max_use_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> int option
 val get_timeout_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> float option
 val get_https : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> bool

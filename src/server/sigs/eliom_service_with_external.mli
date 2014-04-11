@@ -42,3 +42,27 @@ val external_post_service :
   unit ->
   ('get, 'post, [> `Attached of ([> `External ], [> `Post ]) a_s ], 'tipo,
    'gn, 'pn, [> `Unregistrable ], returnB) service
+
+(** Same as {!external_service} but with PUT method. *)
+val external_put_service :
+  prefix: string ->
+  path:Url.path ->
+  ?rt:'rt rt ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
+  post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+  unit ->
+  ('get, 'post, [> `Attached of ([> `External ], [> `Put ]) a_s ], 'tipo,
+   'gn, 'pn, [> `Unregistrable ], returnB) service
+
+(** Same as {!external_service} but with DELETE method. *)
+val external_delete_service :
+  prefix: string ->
+  path:Url.path ->
+  ?rt:'rt rt ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
+  post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+  unit ->
+  ('get, 'post, [> `Attached of ([> `External ], [> `Delete ]) a_s ], 'tipo,
+   'gn, 'pn, [> `Unregistrable ], returnB) service

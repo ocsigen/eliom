@@ -214,6 +214,58 @@ val register_post_coservice' :
    [> `Registrable ], returnB)
     service
 
+(** Same as {!Eliom_service.put_service} followed by {!register}. *)
+val register_put_service :
+  ?scope:[<Eliom_common.scope] ->
+  ?options:options ->
+  ?charset:string ->
+  ?code: int ->
+  ?content_type:string ->
+  ?headers: Http_headers.t ->
+  ?secure_session:bool ->
+  ?https:bool ->
+  ?priority:int ->
+  fallback:('get, unit,
+            [ `Attached of
+                ([ `Internal of
+                    ([ `Service | `Coservice ] as 'kind) ], [`Get]) a_s ],
+            [< suff ] as 'tipo, 'gn,
+            unit, [< `Registrable ], returnT)
+    service ->
+  post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+  ?error_handler:((string * exn) list -> page Lwt.t) ->
+  ('get -> 'post -> page Lwt.t) ->
+  ('get, 'post, [> `Attached of
+      ([> `Internal of 'kind ], [> `Put]) a_s ],
+   'tipo, 'gn, 'pn, [> `Registrable ], returnB)
+    service
+
+(** Same as {!Eliom_service.delete_service} followed by {!register}. *)
+val register_delete_service :
+  ?scope:[<Eliom_common.scope] ->
+  ?options:options ->
+  ?charset:string ->
+  ?code: int ->
+  ?content_type:string ->
+  ?headers: Http_headers.t ->
+  ?secure_session:bool ->
+  ?https:bool ->
+  ?priority:int ->
+  fallback:('get, unit,
+            [ `Attached of
+                ([ `Internal of
+                    ([ `Service | `Coservice ] as 'kind) ], [`Get]) a_s ],
+            [< suff ] as 'tipo, 'gn,
+            unit, [< `Registrable ], returnT)
+    service ->
+  post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+  ?error_handler:((string * exn) list -> page Lwt.t) ->
+  ('get -> 'post -> page Lwt.t) ->
+  ('get, 'post, [> `Attached of
+      ([> `Internal of 'kind ], [> `Delete]) a_s ],
+   'tipo, 'gn, 'pn, [> `Registrable ], returnB)
+    service
+
 (** {2 Low-level function } *)
 
 (** The function [send page] build the HTTP frame corresponding to

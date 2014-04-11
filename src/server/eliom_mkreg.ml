@@ -318,6 +318,10 @@ let register_aux pages
           in
           (match (key_kind, attserget, attserpost) with
             | (Ocsigen_http_frame.Http_header.POST, _,
+               Eliom_common.SAtt_csrf_safe (id, scope, secure_session))
+            | (Ocsigen_http_frame.Http_header.PUT, _,
+               Eliom_common.SAtt_csrf_safe (id, scope, secure_session))
+            | (Ocsigen_http_frame.Http_header.DELETE, _,
                Eliom_common.SAtt_csrf_safe (id, scope, secure_session)) ->
               let tablereg, forsession =
                 match table with
@@ -809,6 +813,62 @@ let register_post_coservice' pages
     ~service:u ?error_handler page_gen;
   u
 
+let register_put_service pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ?https
+    ?priority
+    ~fallback
+    ~post_params
+    ?error_handler
+    page_gen =
+  let u = Unsafe.put_service ?https ?priority
+    ~fallback:fallback ~post_params:post_params ()
+  in
+  register pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ~service:u ?error_handler page_gen;
+  u
+
+let register_delete_service pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ?https
+    ?priority
+    ~fallback
+    ~post_params
+    ?error_handler
+    page_gen =
+  let u = Unsafe.delete_service ?https ?priority
+    ~fallback:fallback ~post_params:post_params ()
+  in
+  register pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ~service:u ?error_handler page_gen;
+  u
+
 module type REG_PARAM = "sigs/eliom_reg_param.mli"
 
 module MakeRegister(Pages : REG_PARAM) = struct
@@ -831,6 +891,8 @@ module MakeRegister(Pages : REG_PARAM) = struct
   let register_post_service ?scope = register_post_service pages ?scope
   let register_post_coservice ?scope = register_post_coservice pages ?scope
   let register_post_coservice' ?scope = register_post_coservice' pages ?scope
+  let register_put_service ?scope = register_put_service pages ?scope
+  let register_delete_service ?scope = register_delete_service pages ?scope
 
 end
 
@@ -865,5 +927,7 @@ module MakeRegister_AlphaReturn(Pages : REG_PARAM_ALPHA_RETURN) = struct
   let register_post_service ?scope = register_post_service pages ?scope
   let register_post_coservice ?scope = register_post_coservice pages ?scope
   let register_post_coservice' ?scope = register_post_coservice' pages ?scope
+  let register_put_service ?scope = register_put_service pages ?scope
+  let register_delete_service ?scope = register_delete_service pages ?scope
 
 end

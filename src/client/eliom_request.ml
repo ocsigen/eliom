@@ -98,6 +98,14 @@ let redirect_post url params =
   (* firefox accepts submit only on forms in the document *)
   f##submit ()
 
+let redirect_put _url _params =
+  Firebug.console##error(Js.string "can't do PUT redirection");
+  failwith "redirect_put not implemented"
+
+let redirect_delete _url _params =
+  Firebug.console##error(Js.string "can't do DELETE redirection");
+  failwith "redirect_delete not implemented"
+
 let redirect_post_form_elt ?(post_args=[]) ?(form_arg=[]) url =
   redirect_post url (form_arg@post_args)
 
@@ -323,4 +331,10 @@ let http_get ?expecting_process_page ?cookies_info url get_args =
   send ?expecting_process_page ?cookies_info ~get_args url
 
 let http_post ?expecting_process_page ?cookies_info url post_args =
+  send ?expecting_process_page ?cookies_info ~post_args url
+
+let http_put ?expecting_process_page ?cookies_info url post_args =
+  send ?expecting_process_page ?cookies_info ~post_args url
+
+let http_delete ?expecting_process_page ?cookies_info url post_args =
   send ?expecting_process_page ?cookies_info ~post_args url

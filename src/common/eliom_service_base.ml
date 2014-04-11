@@ -29,11 +29,12 @@ open Lazy
 type suff = [ `WithSuffix | `WithoutSuffix ]
 
 type servcoserv = [ `Service | `Coservice ]
-type getpost = [ `Get | `Post ]
+type getpost = [ `Get | `Post | `Put | `Delete ]
       (* `Post means that there is at least one post param
          (possibly only the state post param).
          `Get is for all the other cases.
        *)
+
 type attached_service_kind =
     [ `Internal of servcoserv
     | `External ]
@@ -82,6 +83,14 @@ type get_service_kind =
 type post_service_kind =
     [ `Attached of (attached_service_kind, [ `Post ]) a_s
     | `Nonattached of [ `Post ] na_s ]
+
+type put_service_kind =
+    [ `Attached of (attached_service_kind, [ `Put ]) a_s
+    | `Nonattached of [ `Put ] na_s ]
+
+type delete_service_kind =
+    [ `Attached of (attached_service_kind, [ `Delete ]) a_s
+    | `Nonattached of [ `Delete ] na_s ]
 
 type attached =
     [ `Attached of (attached_service_kind, getpost) a_s ]
@@ -154,7 +163,11 @@ let get_full_path_ s = s.fullpath
 let get_get_name_ s = s.get_name
 let get_post_name_ s = s.post_name
 let get_na_name_ s = s.na_name
-let get_na_kind_ s = match s.na_kind with `Get, _ -> `Get | `Post, b -> `Post b
+let get_na_kind_ s = match s.na_kind with
+  | `Get, _ -> `Get
+  | `Post, b -> `Post b
+  | `Put, b -> `Put b
+  | `Delete, b -> `Delete b
 let get_max_use_ s = s.max_use
 let get_timeout_ s = s.timeout
 let get_https s = s.https
@@ -435,6 +448,38 @@ let external_post_service
     ~path
     ?keep_nl_params
     ~getorpost:`Post
+    ~get_params
+    ~post_params
+    ()
+
+let external_put_service
+    ~prefix
+    ~path
+    ?keep_nl_params
+    ~get_params
+    ~post_params
+    () =
+  external_service_
+    ~prefix
+    ~path
+    ?keep_nl_params
+    ~getorpost:`Put
+    ~get_params
+    ~post_params
+    ()
+
+let external_delete_service
+    ~prefix
+    ~path
+    ?keep_nl_params
+    ~get_params
+    ~post_params
+    () =
+  external_service_
+    ~prefix
+    ~path
+    ?keep_nl_params
+    ~getorpost:`Delete
     ~get_params
     ~post_params
     ()
@@ -856,3 +901,123 @@ let post_coservice'
     send_appl_content = XNever;
     service_mark = service_mark ();
   }
+
+(****************************************************************************)
+(* Create a PUT service with post parameters in the server *)
+
+
+let put_service_aux ~https ~fallback
+    ?(keep_nl_params = `None) ?(priority = default_priority) ~post_params =
+(* Create a main service (not a coservice) internal, post only *)
+(* ici faire une vérification "duplicate parameter" ? *)
+  let `Attached k1 = fallback.kind in
+  let `Internal k = k1.att_kind in
+  {
+   pre_applied_parameters = fallback.pre_applied_parameters;
+   get_params_type = fallback.get_params_type;
+   post_params_type = post_params;
+   max_use= None;
+   timeout= None;
+   kind = `Attached
+     {prefix = k1.prefix;
+      subpath = k1.subpath;
+      fullpath = k1.fullpath;
+      att_kind = `Internal k;
+      get_or_post = `Put;
+      get_name = k1.get_name;
+      post_name = Eliom_common.SAtt_no;
+      redirect_suffix = false;
+      priority;
+    };
+   https = https;
+   keep_nl_params = keep_nl_params;
+   send_appl_content = XNever;
+   service_mark = service_mark ();
+ }
+
+let put_service ?rt ?(https = false) ~fallback
+    ?keep_nl_params ?priority ~post_params () =
+  (* PUT service without POST parameters means
+     that the service will answer to a PUT request only.
+    *)
+  let `Attached k1 = fallback.kind in
+  let `Internal kind = k1.att_kind in
+  let path = k1.subpath in
+  let sp = Eliom_common.get_sp_option () in
+  let u = put_service_aux
+    ~https ~fallback ?keep_nl_params ?priority ~post_params in
+  match sp with
+  | None ->
+      (match Eliom_common.global_register_allowed () with
+      | Some get_current_sitedata ->
+          Eliom_common.add_unregistered (get_current_sitedata ()) path;
+          u
+      | None ->
+          if kind = `Service
+          then
+            raise (Eliom_common.Eliom_site_information_not_available
+                     "put_service")
+          else u)
+  | _ -> u
+(* if the fallback is a coservice, do we get a coservice or a service? *)
+
+
+(****************************************************************************)
+(* Create a DELETE service with post parameters in the server *)
+
+
+let delete_service_aux ~https ~fallback
+    ?(keep_nl_params = `None) ?(priority = default_priority) ~post_params =
+(* Create a main service (not a coservice) internal, post only *)
+(* ici faire une vérification "duplicate parameter" ? *)
+  let `Attached k1 = fallback.kind in
+  let `Internal k = k1.att_kind in
+  {
+   pre_applied_parameters = fallback.pre_applied_parameters;
+   get_params_type = fallback.get_params_type;
+   post_params_type = post_params;
+   max_use= None;
+   timeout= None;
+   kind = `Attached
+     {prefix = k1.prefix;
+      subpath = k1.subpath;
+      fullpath = k1.fullpath;
+      att_kind = `Internal k;
+      get_or_post = `Delete;
+      get_name = k1.get_name;
+      post_name = Eliom_common.SAtt_no;
+      redirect_suffix = false;
+      priority;
+    };
+   https = https;
+   keep_nl_params = keep_nl_params;
+   send_appl_content = XNever;
+   service_mark = service_mark ();
+ }
+
+let delete_service ?rt ?(https = false) ~fallback
+    ?keep_nl_params ?priority ~post_params () =
+  (* DELETE service without POST parameters means
+     that the service will answer to a DELETE request only.
+    *)
+  let `Attached k1 = fallback.kind in
+  let `Internal kind = k1.att_kind in
+  let path = k1.subpath in
+  let sp = Eliom_common.get_sp_option () in
+  let u = delete_service_aux
+    ~https ~fallback ?keep_nl_params ?priority ~post_params in
+  match sp with
+  | None ->
+      (match Eliom_common.global_register_allowed () with
+      | Some get_current_sitedata ->
+          Eliom_common.add_unregistered (get_current_sitedata ()) path;
+          u
+      | None ->
+          if kind = `Service
+          then
+            raise (Eliom_common.Eliom_site_information_not_available
+                     "delete_service")
+          else u)
+  | _ -> u
+(* if the fallback is a coservice, do we get a coservice or a service? *)
+

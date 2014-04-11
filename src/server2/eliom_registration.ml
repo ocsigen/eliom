@@ -1127,6 +1127,64 @@ module Customize
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
+  let register_put_service
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?priority
+      ~fallback
+      ~post_params
+      ?error_handler
+      f =
+    R.register_put_service
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?priority
+      ~fallback:(Eliom_service.untype_service_ fallback)
+      ~post_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let register_delete_service
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?priority
+      ~fallback
+      ~post_params
+      ?error_handler
+      f =
+    R.register_delete_service
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?priority
+      ~fallback:(Eliom_service.untype_service_ fallback)
+      ~post_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
 end
 
 (****************************************************************************)
@@ -1426,6 +1484,65 @@ module Ocaml = struct
                                       ~post_params
                                       ?error_handler:(make_eh error_handler)
                                       (make_service_handler f))
+
+  let register_put_service
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?priority
+      ~fallback
+      ~post_params
+      ?error_handler
+      f =
+    Eliom_service.untype_service_ (M.register_put_service
+                                      ?scope
+                                      ?options
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?secure_session
+                                      ?https
+                                      ?priority
+                                      ~fallback:(Eliom_service.untype_service_ fallback)
+                                      ~post_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_delete_service
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?priority
+      ~fallback
+      ~post_params
+      ?error_handler
+      f =
+    Eliom_service.untype_service_ (M.register_delete_service
+                                      ?scope
+                                      ?options
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?secure_session
+                                      ?https
+                                      ?priority
+                                      ~fallback:(Eliom_service.untype_service_ fallback)
+                                      ~post_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
 
 
 end
