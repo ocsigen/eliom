@@ -446,7 +446,7 @@ page:
 <<code language="ocaml"|
 
 Eliom_content.Html5.D.a
-  (Eliom_service.external_service
+  (Eliom_service.Http.external_service
      ~prefix:"http://en.wikipedia.org/wiki/OCaml"
      ~path:["wiki";""]
      ~get_params:Eliom_parameter.(suffix (all_suffix "suff"))
