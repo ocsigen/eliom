@@ -165,7 +165,7 @@ val rt : 'rt rt
 
 *)
 
-module Unsafe : "sigs/eliom_service.mli"
+module Unsafe : "sigs/eliom_service_with_external.mli"
   subst type returnB := 'returnB
   and type returnT := 'returnT
 (** Module for creating services that are applications *)
@@ -173,11 +173,11 @@ module App : "sigs/eliom_service.mli"
   subst type returnB := [> appl_service ]
   and type returnT := [< non_ocaml_service ]
 (** Module for creating services that returns ocaml values *)
-module Ocaml : "sigs/eliom_service.mli"
+module Ocaml : "sigs/eliom_service_with_external.mli"
   subst type returnB := 'rt ocaml_service
   and type returnT := 'rt ocaml_service
 (** Default module for creating services *)
-module Http : "sigs/eliom_service.mli"
+module Http : "sigs/eliom_service_with_external.mli"
   subst type returnB := [> http_service ]
   and type returnT := [< non_ocaml_service ]
 
