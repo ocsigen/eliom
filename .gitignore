@@ -15,6 +15,9 @@ Makefile.config
 baselib/ocsigen_config.ml
 doc/client/api-html
 doc/server/api-html
+doc/ocamlbuild/api-html
+doc/client/api-man
+doc/server/api-man
 local/etc/eliom.conf
 local/var/lib/miniwiki/*
 local/var/lib/ocsidb
@@ -26,6 +29,8 @@ src/tools/eliomc
 src/tools/eliomcp
 src/tools/eliomdep
 src/tools/eliomopt
+src/tools/eliomdoc
+src/tools/eliompp
 src/tools/eliom-distillery
 src/tools/js_of_eliom
 src/tools/config.ml
