@@ -210,7 +210,7 @@ one more response.
 The <<a_api| module Eliom_registration.String_redirection>> allows you to
 register HTTP redirections to generated URLs. Usually, prefer <<a_api|
 module Eliom_registration.String_redirection>>, even for external
-redirections (using <<a_api | val Eliom_service.external_service>>).
+redirections (using <<a_api | val Eliom_service.Http.external_service>>).
 Use <<a_api| module Eliom_registration.String_redirection>> only when it is
 not possible to have a service corresponding to an URL.
 
