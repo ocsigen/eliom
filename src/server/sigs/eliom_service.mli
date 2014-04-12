@@ -266,11 +266,12 @@ val post_coservice' :
     another site of the same server.
 
     See {!val:service} for a description of the optional
-    [~keep_nl_params] parameter.
+    [~keep_nl_params] and [~rt] parameters.
 *)
 val external_service :
   prefix: string ->
   path:Url.path ->
+  ?rt:'rt rt ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
   unit ->
@@ -282,6 +283,7 @@ val external_service :
 val external_post_service :
   prefix: string ->
   path:Url.path ->
+  ?rt:'rt rt ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
   post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
