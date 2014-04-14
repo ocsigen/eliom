@@ -795,7 +795,7 @@ end = struct
       | Some `Site -> create_stateless ?name ~size stream
 
   let external_channel ?(history=1) ?(newest=false) ~prefix ~name () =
-    let service = Eliom_service.external_post_service
+    let service = Eliom_service.Http.external_post_service
       ~prefix
       ~path:comet_global_path
       ~get_params:Eliom_parameter.unit

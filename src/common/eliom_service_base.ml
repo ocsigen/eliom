@@ -425,6 +425,7 @@ let external_service_
 let external_post_service
     ~prefix
     ~path
+    ?rt
     ?keep_nl_params
     ~get_params
     ~post_params
@@ -441,6 +442,7 @@ let external_post_service
 let external_service
     ~prefix
     ~path
+    ?rt
     ?keep_nl_params
     ~get_params
     () =

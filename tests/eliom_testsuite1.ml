@@ -281,7 +281,7 @@ let links = register_service ["rep";"links"] unit
          Html5.D.a raw_serv
            [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
          Html5.D.a
-           (external_service
+           (Http.external_service
               ~prefix:"http://fr.wikipedia.org"
               ~path:["wiki";""]
               ~get_params:(suffix (all_suffix "suff"))
@@ -451,7 +451,7 @@ let form4 = register_service ["form4"] unit
       let module Html5 = Eliom_content.Html5.F in
      let f  =
        (Eliom_content.Html5.D.post_form
-          (external_post_service
+          (Http.external_post_service
              ~prefix:"http://www.petizomverts.com"
              ~path:["zebulon"]
              ~get_params:(int "i")

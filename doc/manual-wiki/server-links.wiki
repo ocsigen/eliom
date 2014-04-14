@@ -31,7 +31,7 @@ as in these examples:
            a raw_serv
              [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
            a
-             (nliom_service.external_service
+             (Eliom_service.Http.external_service
                 ~prefix:"http://fr.wikipedia.org"
                 ~path:["wiki";""]
                 ~get_params:(suffix (all_suffix "suff"))
