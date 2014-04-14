@@ -961,6 +961,94 @@ let put_service ?rt ?(https = false) ~fallback
   | _ -> u
 (* if the fallback is a coservice, do we get a coservice or a service? *)
 
+let put_coservice
+    ?rt
+    ?name
+    ?(csrf_safe = false)
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ?(https = false)
+    ~fallback
+    ?keep_nl_params
+    ~post_params
+    () =
+  let csrf_scope = default_csrf_scope csrf_scope in
+  let `Attached k1 = fallback.kind in
+  (* (match Eliom_common.global_register_allowed () with
+  | Some _ -> Eliom_common.add_unregistered k1.path;
+  | _ -> ()); *)
+  {fallback with
+   post_params_type = post_params;
+   max_use= max_use;
+   timeout= timeout;
+   kind = `Attached
+     {k1 with
+        att_kind = `Internal `Coservice;
+        get_or_post = `Put;
+        post_name =
+         (if csrf_safe
+          then Eliom_common.SAtt_csrf_safe (uniqueid (),
+                                            (csrf_scope:>Eliom_common.user_scope),
+                                            csrf_secure)
+          else
+            (match name with
+               | None -> Eliom_common.SAtt_anon (new_state ())
+               | Some name -> Eliom_common.SAtt_named name));
+     };
+   https = https;
+   keep_nl_params = match keep_nl_params with
+     | None -> fallback.keep_nl_params | Some k -> k;
+ }
+(* It is not possible to make a post_coservice function
+   with an optional ?fallback parameter
+   because the type 'get of the result depends on the 'get of the
+   fallback. Or we must impose 'get = unit ...
+ *)
+
+
+let put_coservice'
+    ?rt
+    ?name
+    ?(csrf_safe = false)
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use ?timeout
+    ?(https = false)
+    ?(keep_nl_params = `All)
+    ?(keep_get_na_params = true)
+    ~post_params () =
+  let csrf_scope = default_csrf_scope csrf_scope in
+  (* match Eliom_common.global_register_allowed () with
+  | Some _ -> Eliom_common.add_unregistered None
+  | _ -> () *)
+  {
+(*VVV allow timeout and max_use for named coservices? *)
+    max_use= max_use;
+    timeout= timeout;
+    pre_applied_parameters = String.Table.empty, [];
+    get_params_type = unit;
+    post_params_type = post_params;
+    kind = `Nonattached
+      {na_name =
+          (if csrf_safe
+           then Eliom_common.SNa_post_csrf_safe (uniqueid (),
+                                                 (csrf_scope:>Eliom_common.user_scope),
+                                                 csrf_secure)
+           else
+             (match name with
+                | None ->
+                    Eliom_common.SNa_post' (new_state ())
+                | Some name -> Eliom_common.SNa_post_ name));
+       na_kind = `Put, keep_get_na_params;
+      };
+    https = https;
+    keep_nl_params = keep_nl_params;
+    send_appl_content = XNever;
+    service_mark = service_mark ();
+  }
+
 
 (****************************************************************************)
 (* Create a DELETE service with post parameters in the server *)
@@ -1020,4 +1108,92 @@ let delete_service ?rt ?(https = false) ~fallback
           else u)
   | _ -> u
 (* if the fallback is a coservice, do we get a coservice or a service? *)
+
+let delete_coservice
+    ?rt
+    ?name
+    ?(csrf_safe = false)
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ?(https = false)
+    ~fallback
+    ?keep_nl_params
+    ~post_params
+    () =
+  let csrf_scope = default_csrf_scope csrf_scope in
+  let `Attached k1 = fallback.kind in
+  (* (match Eliom_common.global_register_allowed () with
+  | Some _ -> Eliom_common.add_unregistered k1.path;
+  | _ -> ()); *)
+  {fallback with
+   post_params_type = post_params;
+   max_use= max_use;
+   timeout= timeout;
+   kind = `Attached
+     {k1 with
+        att_kind = `Internal `Coservice;
+        get_or_post = `Delete;
+        post_name =
+         (if csrf_safe
+          then Eliom_common.SAtt_csrf_safe (uniqueid (),
+                                            (csrf_scope:>Eliom_common.user_scope),
+                                            csrf_secure)
+          else
+            (match name with
+               | None -> Eliom_common.SAtt_anon (new_state ())
+               | Some name -> Eliom_common.SAtt_named name));
+     };
+   https = https;
+   keep_nl_params = match keep_nl_params with
+     | None -> fallback.keep_nl_params | Some k -> k;
+ }
+(* It is not possible to make a post_coservice function
+   with an optional ?fallback parameter
+   because the type 'get of the result depends on the 'get of the
+   fallback. Or we must impose 'get = unit ...
+ *)
+
+
+let delete_coservice'
+    ?rt
+    ?name
+    ?(csrf_safe = false)
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use ?timeout
+    ?(https = false)
+    ?(keep_nl_params = `All)
+    ?(keep_get_na_params = true)
+    ~post_params () =
+  let csrf_scope = default_csrf_scope csrf_scope in
+  (* match Eliom_common.global_register_allowed () with
+  | Some _ -> Eliom_common.add_unregistered None
+  | _ -> () *)
+  {
+(*VVV allow timeout and max_use for named coservices? *)
+    max_use= max_use;
+    timeout= timeout;
+    pre_applied_parameters = String.Table.empty, [];
+    get_params_type = unit;
+    post_params_type = post_params;
+    kind = `Nonattached
+      {na_name =
+          (if csrf_safe
+           then Eliom_common.SNa_post_csrf_safe (uniqueid (),
+                                                 (csrf_scope:>Eliom_common.user_scope),
+                                                 csrf_secure)
+           else
+             (match name with
+                | None ->
+                    Eliom_common.SNa_post' (new_state ())
+                | Some name -> Eliom_common.SNa_post_ name));
+       na_kind = `Delete, keep_get_na_params;
+      };
+    https = https;
+    keep_nl_params = keep_nl_params;
+    send_appl_content = XNever;
+    service_mark = service_mark ();
+  }
 

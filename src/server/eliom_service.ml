@@ -207,10 +207,16 @@ module MakeBase = struct
   let delete_service = delete_service
   let coservice = coservice
   let post_coservice = post_coservice
+  let put_coservice = put_coservice
+  let delete_coservice = delete_coservice
   let coservice' = coservice'
   let post_coservice' = post_coservice'
+  let put_coservice' = put_coservice'
+  let delete_coservice' = delete_coservice'
   let external_service = external_service
   let external_post_service = external_post_service
+  let external_put_service = external_put_service
+  let external_delete_service = external_delete_service
 end
 
 module Unsafe = struct

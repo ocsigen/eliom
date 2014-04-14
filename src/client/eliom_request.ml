@@ -98,16 +98,18 @@ let redirect_post url params =
   (* firefox accepts submit only on forms in the document *)
   f##submit ()
 
+let redirect_post_form_elt ?(post_args=[]) ?(form_arg=[]) url =
+  redirect_post url (form_arg@post_args)
+
+(* Forms cannot use PUT http method: do not redirect *)
 let redirect_put _url _params =
   Firebug.console##error(Js.string "can't do PUT redirection");
   failwith "redirect_put not implemented"
 
+(* Forms cannot use DELETE http method: do not redirect *)
 let redirect_delete _url _params =
   Firebug.console##error(Js.string "can't do DELETE redirection");
   failwith "redirect_delete not implemented"
-
-let redirect_post_form_elt ?(post_args=[]) ?(form_arg=[]) url =
-  redirect_post url (form_arg@post_args)
 
 let nl_template =
   Eliom_parameter.make_non_localized_parameters

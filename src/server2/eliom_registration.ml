@@ -1156,6 +1156,84 @@ module Customize
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
+  let register_put_coservice
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback
+      ~post_params
+      ?error_handler
+      f =
+    R.register_put_coservice
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback:(Eliom_service.untype_service_ fallback)
+      ~post_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let register_put_coservice'
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?keep_get_na_params
+      ?https
+      ~post_params
+      ?error_handler
+      f =
+    R.register_put_coservice'
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?keep_get_na_params
+      ?https
+      ~post_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
   let register_delete_service
       ?scope
       ?options
@@ -1181,6 +1259,84 @@ module Customize
       ?https
       ?priority
       ~fallback:(Eliom_service.untype_service_ fallback)
+      ~post_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let register_delete_coservice
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback
+      ~post_params
+      ?error_handler
+      f =
+    R.register_delete_coservice
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback:(Eliom_service.untype_service_ fallback)
+      ~post_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let register_delete_coservice'
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?keep_get_na_params
+      ?https
+      ~post_params
+      ?error_handler
+      f =
+    R.register_delete_coservice'
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?keep_get_na_params
+      ?https
       ~post_params
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
@@ -1514,6 +1670,84 @@ module Ocaml = struct
                                       ?error_handler:(make_eh error_handler)
                                       (make_service_handler f))
 
+  let register_put_coservice
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback
+      ~post_params
+      ?error_handler
+      f =
+    Eliom_service.untype_service_ (M.register_put_coservice
+                                      ?scope
+                                      ?options
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?secure_session
+                                      ?name
+                                      ?csrf_safe
+                                      ?csrf_scope
+                                      ?csrf_secure
+                                      ?max_use
+                                      ?timeout
+                                      ?https
+                                      ~fallback:(Eliom_service.untype_service_ fallback)
+                                      ~post_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_put_coservice'
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?keep_get_na_params
+      ?https
+      ~post_params
+      ?error_handler
+      f =
+    Eliom_service.untype_service_ (M.register_put_coservice'
+                                      ?scope
+                                      ?options
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?secure_session
+                                      ?name
+                                      ?csrf_safe
+                                      ?csrf_scope
+                                      ?csrf_secure
+                                      ?max_use
+                                      ?timeout
+                                      ?keep_get_na_params
+                                      ?https
+                                      ~post_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
   let register_delete_service
       ?scope
       ?options
@@ -1539,6 +1773,84 @@ module Ocaml = struct
                                       ?https
                                       ?priority
                                       ~fallback:(Eliom_service.untype_service_ fallback)
+                                      ~post_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_delete_coservice
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback
+      ~post_params
+      ?error_handler
+      f =
+    Eliom_service.untype_service_ (M.register_delete_coservice
+                                      ?scope
+                                      ?options
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?secure_session
+                                      ?name
+                                      ?csrf_safe
+                                      ?csrf_scope
+                                      ?csrf_secure
+                                      ?max_use
+                                      ?timeout
+                                      ?https
+                                      ~fallback:(Eliom_service.untype_service_ fallback)
+                                      ~post_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_delete_coservice'
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?keep_get_na_params
+      ?https
+      ~post_params
+      ?error_handler
+      f =
+    Eliom_service.untype_service_ (M.register_delete_coservice'
+                                      ?scope
+                                      ?options
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?secure_session
+                                      ?name
+                                      ?csrf_safe
+                                      ?csrf_scope
+                                      ?csrf_secure
+                                      ?max_use
+                                      ?timeout
+                                      ?keep_get_na_params
+                                      ?https
                                       ~post_params
                                       ?error_handler:(make_eh error_handler)
                                       (make_service_handler f))
