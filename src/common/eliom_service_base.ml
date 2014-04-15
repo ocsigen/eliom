@@ -455,6 +455,7 @@ let external_post_service
 let external_put_service
     ~prefix
     ~path
+    ?rt
     ?keep_nl_params
     ~get_params
     ~post_params
@@ -471,6 +472,7 @@ let external_put_service
 let external_delete_service
     ~prefix
     ~path
+    ?rt
     ?keep_nl_params
     ~get_params
     ~post_params
