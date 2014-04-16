@@ -214,7 +214,7 @@ val register_post_coservice' :
    [> `Registrable ], returnB)
     service
 
-(** Same as {!Eliom_service.put_service} followed by {!register}. *)
+(** Same as {!Eliom_service.Http.put_service} followed by {!register}. *)
 val register_put_service :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
@@ -240,7 +240,7 @@ val register_put_service :
    'tipo, 'gn, 'pn, [> `Registrable ], returnB)
     service
 
-(** Same as {!Eliom_service.put_coservice} followed by {!register}. *)
+(** Same as {!Eliom_service.Http.put_coservice} followed by {!register}. *)
 val register_put_coservice :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
@@ -271,7 +271,7 @@ val register_put_coservice :
    'tipo, 'gn, 'pn, [> `Registrable ], returnB)
     service
 
-(** Same as {!Eliom_service.put_coservice'} followed by {!register}. *)
+(** Same as {!Eliom_service.Http.put_coservice'} followed by {!register}. *)
 val register_put_coservice' :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
@@ -296,7 +296,7 @@ val register_put_coservice' :
    [> `Registrable ], returnB)
     service
 
-(** Same as {!Eliom_service.delete_service} followed by {!register}. *)
+(** Same as {!Eliom_service.Http.delete_service} followed by {!register}. *)
 val register_delete_service :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
@@ -322,7 +322,7 @@ val register_delete_service :
    'tipo, 'gn, 'pn, [> `Registrable ], returnB)
     service
 
-(** Same as {!Eliom_service.delete_coservice} followed by {!register}. *)
+(** Same as {!Eliom_service.Http.delete_coservice} followed by {!register}. *)
 val register_delete_coservice :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
@@ -353,7 +353,7 @@ val register_delete_coservice :
    'tipo, 'gn, 'pn, [> `Registrable ], returnB)
     service
 
-(** Same as {!Eliom_service.delete_coservice'} followed by {!register}. *)
+(** Same as {!Eliom_service.Http.delete_coservice'} followed by {!register}. *)
 val register_delete_coservice' :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
