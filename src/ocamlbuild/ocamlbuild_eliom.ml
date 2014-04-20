@@ -86,7 +86,7 @@ module Make (Eliom : ELIOM) = struct
          Pathname.define_context dir [path; server_dir];
       )
 
-  let dispatcher_without_js_of_ocaml_support = function
+  let init = function
     | After_rules ->
         copy_rule_server "*.eliom -> **/_server/*.ml"
           ~deps:["%(path)/" ^ Eliom.type_dir ^ "/%(file).inferred.mli"]
@@ -122,7 +122,7 @@ module Make (Eliom : ELIOM) = struct
 
   let dispatcher hook =
     Ocamlbuild_js_of_ocaml.dispatcher hook;
-    dispatcher_without_js_of_ocaml_support hook
+    init hook
 
   let dispatcher_with_oasis_support ~executables hook =
     Ocamlbuild_js_of_ocaml.dispatcher_with_oasis_support

@@ -6,18 +6,16 @@ module type ELIOM = sig
 end
 
 module Make (Eliom : ELIOM) : sig
-  (** The dispatcher should be used with {!Ocamlbuild_plugin.dispatch} as:
+  (** The main dispatcher
+
+      It calls {!Ocamlbuild_js_of_ocaml.dispatcher} first and then initialize
+      the plugin for eliom.
+
+      The dispatcher should be used with {!Ocamlbuild_plugin.dispatch} as:
       [Ocamlbuild_plugin.dispatch Ocamlbuild_eliom.dispatcher_without_js_of_ocaml_support]
 
       Side note: {!Ocamlbuild_plugin.dispatch} should be used only once as
       it record only one function for an ocamlbuild module.
-  *)
-  val dispatcher_without_js_of_ocaml_support : Ocamlbuild_plugin.hook -> unit
-
-  (** The main dispatcher
-
-      Same as {!Ocamlbuild_js_of_ocaml.dispatcher} followed by
-      {!dispatcher_without_js_of_ocaml_support}.
   *)
   val dispatcher : Ocamlbuild_plugin.hook -> unit
 
