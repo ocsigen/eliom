@@ -2,54 +2,182 @@ description = "Eliom: module for generating pages"
 version = "dev"
 
 package "server" (
+
   description = "Eliom: server-side"
   version = "[distributed with Eliom]"
-  directory = "server"
-  requires = "%%DEPS%%"
-  requires(syntax) += "%%SDEPS%%"
-  archive(byte) = "%%NAME%%.cma"
-  archive(native) = "%%NAME%%.cmxa"
+
+  requires = "%%NAME%%.server.base,%%NAME%%.server.syntaxes"
+  requires(syntax, preprocessor) = "%%NAME%%.server.syntaxes"
+  archive(syntax, preprocessor) = "-ignore dummy"
+
+  error(pkg_type_conv) = "Could not be loaded together with 'type_conv'. Please use %%NAME%%.server_tc instead."
+
+  package "base" (
+
+    description = "Eliom: server-side (without external syntax extension)"
+    version = "[distributed with Eliom]"
+    directory = "server"
+
+    requires = "%%DEPS%%"
+    archive(byte) = "%%NAME%%.cma"
+    archive(native) = "%%NAME%%.cmxa"
+
+  )
+
+  package "syntaxes" (
+
+    error(pkg_type_conv,-pkg_%%NAME%%.server) = "Could not be loaded together with 'type_conv'. Please use %%NAME%%.server.syntaxes_tc instead."
+
+    description = "Eliom: server-side (external syntax extension)"
+    version = "[distributed with Eliom]"
+    requires(syntax, preprocessor) = "%%SDEPS%%,deriving.syntax"
+    requires(syntax, toploop) = "%%SDEPS%%,deriving.syntax"
+    archive(syntax, preprocessor) = "-ignore dummy"
+
+  )
+
+  package "syntaxes_tc" (
+
+    description = "Eliom: server-side (external syntax extension + type_conv)"
+    version = "[distributed with Eliom]"
+    requires(syntax, preprocessor) = "%%SDEPS%%,deriving.syntax_tc"
+    requires(syntax, toploop) = "%%SDEPS%%,deriving.syntax_tc"
+    archive(syntax, preprocessor) = "-ignore dummy"
+
+  )
+
+)
+
+package "server_tc" (
+
+  description = "Eliom: server-side (+ type_conv)"
+  version = "[distributed with Eliom]"
+
+  requires = "%%NAME%%.server.base,%%NAME%%.server.syntaxes_tc"
+  requires(syntax, preprocessor) = "%%NAME%%.server.syntaxes_tc"
+  archive(syntax, preprocessor) = "-ignore dummy"
+
 )
 
 package "client" (
-  description = "Eliom client-side"
+
+  description = "Eliom: client-side"
   version = "[distributed with Eliom]"
-  directory = "client"
-  requires = "%%CDEPS%%"
-  requires(syntax) += "%%CSDEPS%%"
-  archive(byte) = "%%NAME%%_client.cma eliom_client_main.cmo"
-  linkopts(javascript) = "+eliom.client/eliom_client.js"
-  linkopts(javascript) += "+js_of_ocaml/weak.js"
-  linkopts(javascript) += "+js_of_ocaml/classlist.js"
+
+  requires = "%%NAME%%.client.base,%%NAME%%.client.syntaxes"
+  requires(syntax, preprocessor) = "%%NAME%%.client.syntaxes"
+  archive(syntax, preprocessor) = "-ignore dummy"
+
+  error(pkg_type_conv) = "Could not be loaded together with 'type_conv'. Please use %%NAME%%.client_tc instead."
+
+  package "base" (
+
+    description = "Eliom: client-side (without external syntax extension)"
+    version = "[distributed with Eliom]"
+    directory = "client"
+
+    archive(byte) = "%%NAME%%_client.cma eliom_client_main.cmo"
+
+    requires = "%%CDEPS%%"
+    archive(syntax,preprocessor) = "-ignore dummy"
+
+    linkopts(javascript) = "+eliom.client/eliom_client.js"
+    linkopts(javascript) += "+js_of_ocaml/weak.js"
+    linkopts(javascript) += "+js_of_ocaml/classlist.js"
+
+  )
+
+  package "syntaxes" (
+
+    error(pkg_type_conv,-pkg_%%NAME%%.client) = "Could not be loaded together with 'type_conv'. Please use %%NAME%%.client.syntaxes_tc instead."
+
+    description = "Eliom: client-side (external syntax extension)"
+    version = "[distributed with Eliom]"
+    requires(syntax, preprocessor) = "%%CSDEPS%%,deriving.syntax"
+    requires(syntax, toploop) = "%%CSDEPS%%,deriving.syntax"
+    archive(syntax, preprocessor) = "-ignore dummy"
+
+  )
+
+  package "syntaxes_tc" (
+
+    description = "Eliom: client-side (external syntax extension + type_conv)"
+    version = "[distributed with Eliom]"
+    requires(syntax, preprocessor) = "%%CSDEPS%%,deriving.syntax_tc"
+    requires(syntax, toploop) = "%%CSDEPS%%,deriving.syntax_tc"
+    archive(syntax, preprocessor) = "-ignore dummy"
+
+  )
+
+)
+
+package "client_tc" (
+
+  description = "Eliom: client-side (+ type_conv)"
+  version = "[distributed with Eliom]"
+
+  requires = "%%NAME%%.client.base,%%NAME%%.client.syntaxes_tc"
+  requires(syntax, preprocessor) = "%%NAME%%.client.syntaxes_tc"
+  archive(syntax, preprocessor) = "-ignore dummy"
+
 )
 
 package "syntax" (
-  description = "Syntax extension: spliting client and server code (base)"
+
+  description = "Syntax extension: spliting client and server code"
   version = "[distributed with Eliom]"
-  requires = "%%SDEPS%%,%%CSDEPS%%"
-  archive(syntax,preprocessor) = "pa_eliom_seed.cmo"
   directory = "syntax"
+
+  error(pkg_type_conv) = "Could not be loaded together with 'type_conv'. Please use %%NAME%%.syntax_tc instead."
+
+  requires(syntax, preprocessor) = "%%NAME%%.server.syntaxes,%%NAME%%.client.syntaxes"
+  requires(syntax, toploop) = "%%NAME%%.server.syntaxes,%%NAME%%.client.syntaxes"
+  archive(syntax, preprocessor) = "-ignore dummy"
+
+  package "common" (
+    description = "Syntax extension: spliting client and server code (base)"
+    version = "[distributed with Eliom]"
+    requires = "camlp4"
+    archive(syntax, preprocessor) = "pa_eliom_seed.cmo"
+  )
+
   package "type" (
     description = "Syntax extension: spliting client and server code (type inference)"
     version = "[distributed with Eliom]"
-    requires = "%%NAME%%.syntax"
-    archive(syntax,preprocessor) = "pa_eliom_type_filter.cmo"
+    requires(syntax, preprocessor) = "%%NAME%%.syntax.common"
+    archive(syntax, preprocessor) = "pa_eliom_type_filter.cmo"
   )
+
   package "server" (
     description = "Syntax extension: spliting client and server code (server side)"
     version = "[distributed with Eliom]"
-    requires = "%%NAME%%.syntax"
-    archive(syntax,preprocessor) = "pa_eliom_client_server.cmo"
+    requires(syntax, preprocessor) = "%%NAME%%.syntax.common"
+    archive(syntax, preprocessor) = "pa_eliom_client_server.cmo"
   )
+
   package "client" (
     description = "Syntax extension: spliting client and server code (client side)"
     version = "[distributed with Eliom]"
-    requires = "%%NAME%%.syntax"
-    archive(syntax,preprocessor) = "pa_eliom_client_client.cmo"
+    requires(syntax, preprocessor) = "%%NAME%%.syntax.common"
+    archive(syntax, preprocessor) = "pa_eliom_client_client.cmo"
   )
+
+)
+
+package "syntax_tc" (
+
+  description = "Syntax extension: spliting client and server code ((+ external syntaxes + type_conv)"
+  version = "[distributed with Eliom]"
+  directory = "syntax"
+
+  requires(syntax, preprocessor) = "%%NAME%%.server.syntaxes_tc,%%NAME%%.client.syntaxes_tc"
+  requires(syntax, toploop) = "%%NAME%%.server.syntaxes_tc,%%NAME%%.client.syntaxes_tc"
+  archive(syntax, preprocessor) = "-ignore dummy"
+
 )
 
 package "ocamlbuild" (
+
   description = "Eliom ocamlbuild plugin (js_of_ocaml part included)"
   version = "[distributed with Eliom]"
   directory = "ocamlbuild"
