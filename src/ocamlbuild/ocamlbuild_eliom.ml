@@ -128,5 +128,5 @@ module Make (Eliom : ELIOM) = struct
     Ocamlbuild_js_of_ocaml.dispatcher_with_oasis_support
       ~executables
       hook;
-    dispatcher hook
+    init hook
 end

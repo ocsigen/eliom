@@ -20,7 +20,7 @@ module Make (Eliom : ELIOM) : sig
   val dispatcher : Ocamlbuild_plugin.hook -> unit
 
   (** Same as {!Ocamlbuild_js_of_ocaml.dispatcher_with_oasis_support}
-      followed by {!dispatcher}
+      followed by the initialization of the plugin for eliom.
   *)
   val dispatcher_with_oasis_support :
     executables:string list ->
