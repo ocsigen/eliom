@@ -2,9 +2,9 @@ open Ocamlbuild_plugin
 module Pack = Ocamlbuild_pack
 
 module type ELIOM = sig
-  val server_dir : string
-  val type_dir : string
-  val client_dir : string
+  val server_dir : Ocamlbuild_plugin.Pathname.t
+  val type_dir : Ocamlbuild_plugin.Pathname.t
+  val client_dir : Ocamlbuild_plugin.Pathname.t
 end
 
 module Make (Eliom : ELIOM) = struct
