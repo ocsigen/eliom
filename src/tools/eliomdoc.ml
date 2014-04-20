@@ -42,7 +42,7 @@ let in_an_eliom_inc_dir s =
 let compile_intf file =
   wait (
   create_process
-    !compiler ( "-pp" :: get_pp !ppopt :: !args @
+    !compiler ( "-pp" :: get_pp [] !ppopt :: !args @
           (get_default_args ())
         @ (get_common_include ())
         @ (map_include !eliom_inc_dirs)
@@ -51,16 +51,16 @@ let compile_intf file =
 let compile_impl file =
   wait (
   create_process
-    !compiler ( "-pp" :: get_pp !ppopt :: !args @
+    !compiler ( "-pp" :: get_pp [] !ppopt :: !args @
           (get_default_args ())
         @ (get_common_include ())
         @ (map_include !eliom_inc_dirs)
 		@ ["-impl"; file] ))
 
 let server_pp_opt impl_intf =
-  ["-printer"; "o"; "pa_eliom_client_server.cmo"; "-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
+  ["-printer"; "o"; "-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
 let client_pp_opt impl_intf =
-  ["-printer"; "o"; "pa_eliom_client_client.cmo"; "-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
+  ["-printer"; "o"; "-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
 
 let generate_temp_file file =
   let tmp_dir =
@@ -82,7 +82,7 @@ let compile_server_eliom ~impl_intf file =
   wait (create_process ~out "eliompp" ["-server"; file]);
   wait (
   create_process !compiler
-    ( "-pp" :: get_pp (server_pp_opt impl_intf) :: !args @
+    ( "-pp" :: get_pp ["eliom.syntax.server"] (server_pp_opt impl_intf) :: !args @
         (get_default_args ())
       @ (get_common_include ())
       @ (map_include !eliom_inc_dirs)
@@ -93,7 +93,7 @@ let compile_client_eliom ~impl_intf file =
   wait (create_process ~out "eliompp" ["-client"; file]);
   wait (
   create_process !compiler
-    ( "-pp" :: get_pp (client_pp_opt impl_intf) :: !args @
+    ( "-pp" :: get_pp ["eliom.syntax.client"] (client_pp_opt impl_intf) :: !args @
         (get_default_args ())
       @ (get_common_include ())
       @ (map_include !eliom_inc_dirs)

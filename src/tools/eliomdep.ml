@@ -82,33 +82,39 @@ let eliom_synonyms = [ "-ml-synonym"; ".eliom"; "-mli-synonym"; ".eliomi" ]
 
 let compile_intf file =
   create_filter
-    !compiler ( "-pp" :: get_pp !ppopt :: eliom_synonyms @ !args
+    !compiler ( "-pp" :: get_pp [] !ppopt :: eliom_synonyms @ !args
         @ (map_include !eliom_inc_dirs)
 		@ ["-intf"; file] )
     (on_each_line add_build_dirs)
 
 let compile_impl file =
   create_filter
-    !compiler ( "-pp" :: get_pp !ppopt :: eliom_synonyms @ !args
+    !compiler ( "-pp" :: get_pp [] !ppopt :: eliom_synonyms @ !args
         @ (map_include !eliom_inc_dirs)
 		@ ["-impl"; file] )
     (on_each_line add_build_dirs)
 
 let server_pp_opt impl_intf =
-  ["pa_eliom_client_server.cmo"; "-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
+  ["-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
 let client_pp_opt impl_intf =
-  ["pa_eliom_client_client.cmo"; "-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
+  ["-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
 let type_pp_opt impl_intf =
-  ["pa_eliom_type_filter.cmo"] @ !ppopt @ [impl_intf_opt impl_intf]
+  !ppopt @ [impl_intf_opt impl_intf]
 
 let compile_server_eliom ~impl_intf file =
   if !do_dump then begin
-    let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: server_pp_opt impl_intf @ [file]) in
+    let camlp4, ppopt =
+      get_pp_dump
+        ["eliom.syntax.server"]
+        ("-printer" :: "o" :: server_pp_opt impl_intf @ [file]) in
     ignore (create_process camlp4 ppopt);
     exit 0
   end;
   create_filter !compiler
-    ( "-pp" :: get_pp (server_pp_opt impl_intf) :: eliom_synonyms @ !args
+    ( "-pp" ::
+      get_pp
+        ["eliom.syntax.server"]
+        (server_pp_opt impl_intf) :: eliom_synonyms @ !args
       @ (map_include !eliom_inc_dirs)
       @ [impl_intf_opt impl_intf; file] )
     (on_each_line add_build_dirs)
@@ -116,24 +122,36 @@ let compile_server_eliom ~impl_intf file =
 let compile_type_eliom ~impl_intf file =
   if !do_dump then begin
     (* Won't run because [compile_server_eliom] is first and exits ... *)
-    let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: type_pp_opt impl_intf @ [file]) in
+    let camlp4, ppopt =
+      get_pp_dump
+        ["eliom.syntax.type"]
+        ("-printer" :: "o" :: type_pp_opt impl_intf @ [file]) in
     ignore (create_process camlp4 ppopt);
     exit 0
   end;
   create_filter !compiler
-    ( "-pp" :: get_pp (type_pp_opt impl_intf) :: eliom_synonyms @ !args
+    ( "-pp" ::
+      get_pp
+        ["eliom.syntax.type"]
+        (type_pp_opt impl_intf) :: eliom_synonyms @ !args
       @ (map_include !eliom_inc_dirs)
       @ [impl_intf_opt impl_intf; file] )
     (on_each_line server_type_file_dependencies)
 
 let compile_client_eliom ~impl_intf file =
   if !do_dump then begin
-    let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: client_pp_opt impl_intf @ [file]) in
+    let camlp4, ppopt =
+      get_pp_dump
+        ["eliom.syntax.client"]
+        ("-printer" :: "o" :: client_pp_opt impl_intf @ [file]) in
     ignore (create_process camlp4 ppopt);
     exit 0
   end;
   create_filter !compiler
-    ( "-pp" :: get_pp (client_pp_opt impl_intf) :: eliom_synonyms @ !args
+    ( "-pp" ::
+      get_pp
+        ["eliom.syntax.client"]
+        (client_pp_opt impl_intf) :: eliom_synonyms @ !args
       @ (map_include !eliom_inc_dirs)
       @ [impl_intf_opt impl_intf; file] )
     (on_each_line add_build_dirs)
@@ -153,13 +171,14 @@ let compile_eliom ~impl_intf file =
       Printf.printf "%s.cmx : %s\n" (add_build_dir basename) (get_type_file file) )
 
 let sort () =
-  let ppopt =
+  let pkg, ppopt =
     match !kind with
-      | `Server | `ServerOpt -> server_pp_opt `Impl
-      | `Client -> client_pp_opt `Impl
+      | `Server | `ServerOpt ->
+          ["eliom.syntax.server"], server_pp_opt `Impl
+      | `Client -> ["eliom.syntax.client"], client_pp_opt `Impl
   in
   create_process !compiler
-    ( "-sort" :: "-pp" :: get_pp ppopt :: eliom_synonyms @
+    ( "-sort" :: "-pp" :: get_pp pkg ppopt :: eliom_synonyms @
         List.(concat (map (fun file -> ["-impl"; file]) !sort_files)) )
 
 let process_option () =
