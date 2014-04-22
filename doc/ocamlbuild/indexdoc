@@ -1,7 +1,6 @@
 {1 The ocamlbuild plugin API}
 
 {!modules:
-Ocamlbuild_eliom_core
 Ocamlbuild_eliom
 }
 
