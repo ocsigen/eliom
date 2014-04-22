@@ -101,12 +101,9 @@ module M = Ocamlbuild_eliom.Make(struct
   let type_dir = "type"
 end)
 
-let () =
-  dispatch
-    (fun hook ->
-       M.dispatcher hook;
-    )
+let () = Ocamlbuild_plugin.dispatch M.dispatcher
 >>
+(if you are using OASIS, see also the next section)
 
 The {{{client_dir}}} {{{server_dir}}} and {{{type_dir}}} values are the
 directories that are used for client server and type parts.
@@ -146,23 +143,17 @@ If you want to use OASIS, the dispatch call should looks like this:
 
 <<code language="ocaml"|
 let () =
-  dispatch
+  Ocamlbuild_plugin.dispatch
     (fun hook ->
        dispatch_default hook;
-       M.dispatcher hook;
-       match hook with
-         | After_options ->
-             let f = function
-               | "src/theprogram.byte" -> "src/theprogram.js"
-               | x -> x
-             in
-             Options.targets := List.map f !Options.targets
-         | _ -> ()
+       M.dispatcher
+         ~oasis_executables:["src/theprogram.byte"]
+         hook;
     )
 >>
 
-Note that the {{{match hook with}}} part can be removed if you don't need a javascript executable
-(like for a library that contains .eliom files).
+If you don't need a javascript executable, you can remove the line with {{{~oasis_executables}}}
+(like for a library that contains .eliom files for example).
 
 Be careful to always add those parts after the OASIS END block.
 
