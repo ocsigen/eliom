@@ -120,13 +120,7 @@ module Make (Eliom : ELIOM) = struct
           "%(file).eliomi" (Eliom.client_dir ^ "/%(file:<*>).mli");
     | _ -> ()
 
-  let dispatcher hook =
-    Ocamlbuild_js_of_ocaml.dispatcher hook;
-    init hook
-
-  let dispatcher_with_oasis_support ~executables hook =
-    Ocamlbuild_js_of_ocaml.dispatcher_with_oasis_support
-      ~executables
-      hook;
+  let dispatcher ?oasis_executables hook =
+    Ocamlbuild_js_of_ocaml.dispatcher ?oasis_executables hook;
     init hook
 end
