@@ -139,6 +139,40 @@ sections, please read the above selection on ocamlbuild.
 You don't need to create the .mllib since it's auto-generated.
 Dependencies are also handled by OASIS.
 
+Your {{{_oasis}}} file should look like this:
+{{{
+OASISFormat: 0.4
+Name: your-application
+Version: 1.0
+Synopsis: a description
+Authors: You
+License: MIT
+AlphaFeatures: ocamlbuild_more_args, compiled_setup_ml
+Plugins: DevFiles (0.3), META (0.3)
+BuildTools: ocamlbuild
+XOCamlbuildPluginTags: package(eliom.ocamlbuild)
+OCamlVersion: >= 4.01
+
+Library "yourapp"
+  Path: src
+  Modules:
+    server/AnEliomFile, # the .eliom files are in fact located in src but specifying server/ is nececary for knowing that it is the server part we include here
+    Amodule # .ml modules are refered normally as simple modules
+  BuildDepends:
+    eliom.server,
+    andotherdep
+  DataFiles:
+    ../_build/src/client/yourprogram.js # If you want to install the .js
+
+Executable "yourprogram"
+  Install: false # We usally don't want to install the .byte
+  Path: src/client
+  MainIs: yourprogram.ml # the main file. It should refere to every modules you use for this program (.eliom included)
+  BuildDepends:
+    eliom.client
+  CompiledObject: byte # because a js executable only needs the bytecode
+}}}
+
 If you want to use OASIS, the dispatch call should looks like this:
 
 <<code language="ocaml"|
@@ -147,7 +181,7 @@ let () =
     (fun hook ->
        dispatch_default hook;
        M.dispatcher
-         ~oasis_executables:["src/theprogram.byte"]
+         ~oasis_executables:["src/client/theprogram.byte"]
          hook;
     )
 >>
