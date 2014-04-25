@@ -30,7 +30,7 @@
 (** {% <<outline>> %}*)
 
 open Eliom_lib
-open Eliom_content_core
+open Eliom_content
 
 (** {2 Type definitions} *)
 
@@ -184,7 +184,7 @@ module type ELIOM_APPL = sig
       that represents the javascript part of the application. If you
       do not include this script in the [<head>] node of your page, it
       will be automatically added at the end of the [<head>] node. *)
-  val application_script : ?async:bool -> unit -> [> `Script ] Eliom_content_core.Html5.elt
+  val application_script : ?async:bool -> unit -> [> `Script ] Eliom_content.Html5.elt
 
   (** Unique identifier for this application. Currently, it is just
       the application name as defined by {!Appl_params.application_name}.
@@ -223,7 +223,7 @@ module App (Appl_params : APPL_PARAMS) : ELIOM_APPL
 module type TMPL_PARAMS = sig
   type t
   val name: string
-  val make_page: t -> Html5_types.html Eliom_content_core.Html5.elt Lwt.t
+  val make_page: t -> Html5_types.html Eliom_content.Html5.elt Lwt.t
   val update: t -> unit client_value
 end
 
@@ -249,7 +249,7 @@ end
     fragments.
 *)
 module Flow5 : "sigs/eliom_reg.mli"
-  subst type page    := Html5_types.flow5 Eliom_content_core.Html5.elt list
+  subst type page    := Html5_types.flow5 Eliom_content.Html5.elt list
   and type options := unit
   and type return  := http_service
   and type returnB := [> http_service ]

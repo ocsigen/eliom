@@ -1,7 +1,9 @@
 include ../../Makefile.config
-include Makefile.filelist
+include ../client/Makefile.filelist
 
-LIBS     := -I private ${addprefix -package ,${CLIENT_PACKAGE} ${CLIENT_SYNTAX}} \
+LIBS     := -I ../client -I ../client/private -I ../common -I ../common2 \
+            -I ../clientserver/_client \
+            ${addprefix -package ,${CLIENT_PACKAGE} ${CLIENT_SYNTAX}} \
 	    -ppopt ../syntax/pa_include.cmo
 
 OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG}
@@ -10,38 +12,42 @@ OCAMLDOC := $(OCAMLFIND) ocamldoc
 OCAMLDEP := $(OCAMLFIND) ocamldep
 OCAMLDOC := ${OCAMLFIND} ocamldoc -ppopt o -ppopt -printer
 
+all: eliom_client.cma eliom_client_main.cmo eliom_client_stubs.o
+
 ### Common files ###
 
-COMMON_FILES  := $(notdir $(wildcard ../common/*.mli) $(wildcard ../common/*.ml))
+COMMON_FILES  := $(notdir $(wildcard ../common2/*.mli) $(wildcard ../common2/*.ml))
 COMMON_PFILES := $(addprefix private/, \
-		     $(notdir $(wildcard ../common/private/*.mli) \
-	                      $(wildcard ../common/private/*.ml)))
+		     $(notdir $(wildcard ../common2/private/*.mli) \
+	                      $(wildcard ../common2/private/*.ml)))
 COMMON_SFILES := $(addprefix sigs/, \
-		     $(notdir $(wildcard ../common/sigs/*.mli) \
-	                      $(wildcard ../common/sigs/*.ml)))
+		     $(notdir $(wildcard ../common2/sigs/*.mli) \
+	                      $(wildcard ../common2/sigs/*.ml)))
 
 PREDEP := ${COMMON_FILES} ${COMMON_PFILES} ${COMMON_SFILES}
 
+.SECONDARY: ${PREDEP}
+${COMMON_FILES}: %: ../common2/%
+	-@mkdir -p $(dir $@)
+	ln -s $< $@
+${COMMON_PFILES} ${COMMON_SFILES}: %: ../common2/%
+	-@mkdir -p $(dir $@)
+	ln -s ../$< $@
 
 ### Library ###
 
-FILES := ${CFILES}
+CCFILES := $(addprefix ../client/, $(CFILES))
+
+FILES := eliom_tools.ml \
+	 eliom_comet_base.ml \
+         eliom_comet.ml \
+	 eliom_bus.ml \
+	 eliom_react.ml
 
 INTF_NOP4 :=
 
-
-##########
-
-all: ${FILES:.ml=.cmo}
-
-
-.SECONDARY: ${PREDEP}
-${COMMON_FILES}: %: ../common/%
-	-@mkdir -p $(dir $@)
-	ln -s $< $@
-${COMMON_PFILES} ${COMMON_SFILES}: %: ../common/%
-	-@mkdir -p $(dir $@)
-	ln -s ../$< $@
+eliom_client.cma: eliom_client_stubs.o ${CCFILES:.ml=.cmo} $(wildcard ../clientserver/_client/*.cmo) ${FILES:.ml=.cmo}
+	${OCAMLMKLIB} -o ${@:.cma=} $^
 
 ##########
 

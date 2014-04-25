@@ -201,6 +201,31 @@ module Svg : sig
 
   end
 
+  (** {2 Reactive DOM} *)
+
+  (** Typed interface for building valid reactive SVG tree. *)
+  module R : sig
+
+    module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
+                            and type Xml.event_handler = Xml.event_handler
+                            and type Xml.attrib = Xml.attrib
+                            and type Xml.elt = Xml.elt
+                              with type 'a elt = 'a elt
+                              and type 'a Xml.wrap = 'a React.signal
+                              and type 'a wrap = 'a React.signal
+                              and type 'a attrib = 'a attrib
+                              and type uri = uri
+
+    (** See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
+    include module type of Raw
+
+    (** {2 Event handlers} *)
+
+    (** Redefine event handler attributes to simplify their usage. *)
+    include "sigs/eliom_svg_event_handler.mli"
+
+  end
+
   (** {2 Global node} *)
 
   module Id : sig

@@ -148,6 +148,53 @@ end
 
 module X = Xml
 
+
+module Xml_w = struct
+  type 'a t = 'a React.signal
+  let return x = Lwt_react.S.return x
+  let bind x = Lwt_react.S.bind x
+  let fmap x = React.S.map x
+  let fmap2 x = React.S.l2 x
+  let fmap3 x = React.S.l3 x
+  let fmap4 x = React.S.l4 x
+  let fmap5 x = React.S.l5 x
+end
+module Xml_wed =
+struct
+  type 'a wrap = 'a Xml_w.t
+  type uri = Xml.uri
+  let string_of_uri = Xml.string_of_uri
+  let uri_of_string = Xml.uri_of_string
+  type aname = Xml.aname
+  type event_handler = Xml.event_handler
+  type attrib = Xml.attrib
+
+  let float_attrib name s : attrib = name, Xml.RAReact (Xml_w.fmap (fun f -> Some (Xml.AFloat f)) s)
+  let int_attrib name s = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AInt f)) s)
+  let string_attrib name s = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStr f)) s)
+  let space_sep_attrib name s = name, Xml.RAReact (React.S.map (fun f -> Some(Xml.AStrL (Xml.Space,f))) s)
+  let comma_sep_attrib name s = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStrL (Xml.Comma,f))) s)
+  let event_handler_attrib = Xml.event_handler_attrib
+  let uri_attrib name value = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStr (Eliom_lazy.force f))) value)
+  let uris_attrib name value = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStrL (Xml.Space,Eliom_lazy.force f))) value)
+
+  type elt = Xml.elt
+  type ename = Xml.ename
+
+  let empty = Xml.empty
+  let comment = Xml.comment
+  let pcdata s = Xml.make_react (React.S.map Xml.pcdata s)
+  let encodedpcdata s = Xml.make_react (React.S.map Xml.encodedpcdata s)
+  let entity = Xml.entity
+  let leaf = Xml.leaf
+  let node ?a name l = Xml.make_react (React.S.map (fun l -> Xml.node ?a name l) l)
+  let cdata = Xml.cdata
+  let cdata_script = Xml.cdata_script
+  let cdata_style = Xml.cdata_style
+end
+
+
+
 module Svg = struct
 
   module D = struct
@@ -191,6 +238,23 @@ module Svg = struct
 
     module Raw = Svg_f.Make(Xml)
 
+    include Raw
+
+    let a_onabort ev = a_onabort (X.event_handler_of_function ev)
+    let a_onclick ev = a_onclick (X.event_handler_of_function ev)
+    let a_onmousedown ev = a_onmousedown (X.event_handler_of_function ev)
+    let a_onmouseup ev = a_onmouseup (X.event_handler_of_function ev)
+    let a_onmouseover ev = a_onmouseover (X.event_handler_of_function ev)
+    let a_onmousemove ev = a_onmousemove (X.event_handler_of_function ev)
+    let a_onmouseout ev = a_onmouseout (X.event_handler_of_function ev)
+    let a_onresize ev = a_onresize (X.event_handler_of_function ev)
+    let a_onscroll ev = a_onscroll (X.event_handler_of_function ev)
+    let a_onload ev = a_onload (X.event_handler_of_function ev)
+
+  end
+
+  module R = struct
+    module Raw = Svg_f.MakeWrapped(Xml_w)(Xml_wed)
     include Raw
 
     let a_onabort ev = a_onabort (X.event_handler_of_function ev)
@@ -345,52 +409,7 @@ module Html5 = struct
 
     let node s = Xml.make_react s
 
-    module Xml_w = struct
-      type 'a t = 'a React.signal
-      let return x = Lwt_react.S.return x
-      let bind x = Lwt_react.S.bind x
-      let fmap x = React.S.map x
-      let fmap2 x = React.S.l2 x
-      let fmap3 x = React.S.l3 x
-      let fmap4 x = React.S.l4 x
-      let fmap5 x = React.S.l5 x
-    end
-    module Xml_wed =
-    struct
-      type 'a wrap = 'a Xml_w.t
-      type uri = Xml.uri
-      let string_of_uri = Xml.string_of_uri
-      let uri_of_string = Xml.uri_of_string
-      type aname = Xml.aname
-      type event_handler = Xml.event_handler
-      type attrib = Xml.attrib
-
-      let float_attrib name s : attrib = name, Xml.RAReact (Xml_w.fmap (fun f -> Some (Xml.AFloat f)) s)
-      let int_attrib name s = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AInt f)) s)
-      let string_attrib name s = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStr f)) s)
-      let space_sep_attrib name s = name, Xml.RAReact (React.S.map (fun f -> Some(Xml.AStrL (Xml.Space,f))) s)
-      let comma_sep_attrib name s = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStrL (Xml.Comma,f))) s)
-      let event_handler_attrib = Xml.event_handler_attrib
-      let uri_attrib name value = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStr (Eliom_lazy.force f))) value)
-      let uris_attrib name value = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStrL (Xml.Space,Eliom_lazy.force f))) value)
-
-      type elt = Xml.elt
-      type ename = Xml.ename
-
-      let empty = Xml.empty
-      let comment = Xml.comment
-      let pcdata s = Xml.make_react (React.S.map Xml.pcdata s)
-      let encodedpcdata s = Xml.make_react (React.S.map Xml.encodedpcdata s)
-      let entity = Xml.entity
-      let leaf = Xml.leaf
-      let node ?a name l = Xml.make_react (React.S.map (fun l -> Xml.node ?a name l) l)
-      let cdata = Xml.cdata
-      let cdata_script = Xml.cdata_script
-      let cdata_style = Xml.cdata_style
-    end
-
-    module Svg_w = Svg_f.MakeWrapped(Xml_w)(Xml_wed)
-    module Raw = Html5_f.MakeWrapped(Xml_w)(Xml_wed)(Svg_w)
+    module Raw = Html5_f.MakeWrapped(Xml_w)(Xml_wed)(Svg.R)
     include Raw
   end
 

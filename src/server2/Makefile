@@ -1,7 +1,9 @@
 include ../../Makefile.config
-include Makefile.filelist
+include ../server/Makefile.filelist
 
-LIBS     := -I private ${addprefix -package ,${SERVER_PACKAGE} ${SERVER_SYNTAX}} \
+LIBS     := -I ../server -I ../server/private -I ../common -I extensions \
+            -I ../clientserver/_server \
+            ${addprefix -package ,${SERVER_PACKAGE} ${SERVER_SYNTAX}} \
 	    -ppopt ../syntax/pa_include.cmo
 OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG} ${THREAD}
 OCAMLOPT := $(OCAMLFIND) ocamlopt ${OPTDBG}  ${THREAD}
@@ -14,31 +16,49 @@ all: byte opt
 
 ### Common files ###
 
-COMMON_FILES  := $(notdir $(wildcard ../common/*.mli) $(wildcard ../common/*.ml))
+COMMON_FILES  := $(notdir $(wildcard ../common2/*.mli) $(wildcard ../common2/*.ml))
 COMMON_PFILES := $(addprefix private/, \
-		     $(notdir $(wildcard ../common/private/*.mli) \
-	                      $(wildcard ../common/private/*.ml)))
+		     $(notdir $(wildcard ../common2/private/*.mli) \
+	                      $(wildcard ../common2/private/*.ml)))
 COMMON_SFILES := $(addprefix sigs/, \
-		     $(notdir $(wildcard ../common/sigs/*.mli) \
-	                      $(wildcard ../common/sigs/*.ml)))
+		     $(notdir $(wildcard ../common2/sigs/*.mli) \
+	                      $(wildcard ../common2/sigs/*.ml)))
 
 PREDEP := ${COMMON_FILES} ${COMMON_PFILES} ${COMMON_SFILES}
 
 .SECONDARY: ${PREDEP}
-${COMMON_FILES}: %: ../common/%
+${COMMON_FILES}: %: ../common2/%
 	-@mkdir -p $(dir $@)
 	ln -sf $< $@
-${COMMON_PFILES} ${COMMON_SFILES}: %: ../common/%
+${COMMON_PFILES} ${COMMON_SFILES}: %: ../common2/%
 	-@mkdir -p $(dir $@)
 	ln -sf ../$< $@
 
-FILES := ${SFILES}
+FILES := eliom_registration.ml \
+	 eliom_comet_base.ml eliom_comet.ml  \
+	 eliom_tools_common.ml \
+	 eliom_tools.ml \
+	 eliom_react.ml \
+	 eliom_bus.ml \
+	 extensions/eliom_s2s.ml extensions/eliom_openid.ml \
+	 extensions/atom_feed.ml extensions/eliom_atom.ml
+
+	 # eliom_extension_template.ml \
 
 INTF_NOP4 :=
 
-byte:: ${FILES:.ml=.cmo}
-opt:: ${FILES:.ml=.cmx}
+SSFILES := $(addprefix ../server/, $(SFILES))
 
+byte:: eliom.cma
+opt:: eliom.cmxa
+ifeq "${NATDYNLINK}" "YES"
+opt:: eliom.cmxs
+endif
+
+eliom.cma: ${SSFILES:.ml=.cmo} $(wildcard ../clientserver/_server/*.cmo) ${FILES:.ml=.cmo}
+	${OCAMLC} -a -o $@ $^
+eliom.cmxa: ${FILES:.ml=.cmx}
+	${OCAMLOPT} -a -o $@ $^
 
 ##########
 
@@ -88,11 +108,11 @@ uninstall:
 
 clean:
 	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.odoc
-	-cd private && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.odoc
+	-cd extensions && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.odoc
 distclean: clean
 	-rm -f *~ \#* .\#*
 	-rm -f ${PREDEP}
-	-rm -f .*.deps private/.*.deps
+	-rm -f .*.deps private/.*.deps extensions/.*.deps
 
 ## Manual dependencies for pa_include.
 eliom_registration_base.cmi eliom_registration_base.cmo eliom_registration_base.cmx \
@@ -111,10 +131,12 @@ DEPS := $(patsubst %,.%.deps,${COMMON_FILES}) \
 	$(patsubst %,.%.deps,${COMMON_PFILES}) \
 	$(patsubst %,.%.deps,$(wildcard *.mli *.ml)) \
 	$(patsubst private/%,private/.%.deps,$(wildcard private/*.mli private/*.ml)) \
+	$(patsubst extensions/%,extensions/.%.deps, \
+	     $(wildcard extensions/*.mli extensions/*.ml))
 
 .SECONDARY: ${DEPS}
 .depend: ${DEPS}
-	cat $(shell ls .*.deps private/.*.deps) > .depend
+	cat $(shell ls .*.deps private/.*.deps extensions/.*.deps) > .depend
 
 .%.ml.deps: %.ml
 	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
@@ -124,6 +146,11 @@ DEPS := $(patsubst %,.%.deps,${COMMON_FILES}) \
 private/.%.ml.deps: private/%.ml
 	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
 private/.%.mli.deps: private/%.mli
+	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
+
+extensions/.%.ml.deps: extensions/%.ml
+	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
+extensions/.%.mli.deps: extensions/%.mli
 	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
 
 $(patsubst %.mli,.%.mli.deps,${INTF_NOP4}): .%.mli.deps: %.mli

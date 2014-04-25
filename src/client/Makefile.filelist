@@ -1,3 +1,27 @@
+CFILES := private/eliommod_jstable.ml \
+	 eliom_config.ml \
+	 eliom_unwrap.ml eliom_lazy.ml \
+	 eliom_lib_base.ml \
+	 eliom_lib.ml \
+	 private/eliommod_parameters.ml \
+	 eliom_content_core.ml \
+	 eliom_common_base.ml eliom_common.ml \
+	 eliom_cookies_base.ml \
+         private/eliommod_cookies.ml \
+	 eliom_types_base.ml eliom_types.ml \
+	 eliom_process.ml \
+	 eliom_request_info.ml \
+	 eliom_parameter_base.ml eliom_parameter.ml \
+	 eliom_service_base.ml eliom_service.ml \
+	 eliom_uri.ml \
+	 eliom_request.ml \
+         private/eliommod_dom.ml \
+	 eliom_mkforms.ml eliom_registration_base.ml \
+	 eliom_client.ml \
+	 eliom_content_.ml \
+	 eliom_registration.ml \
+	 eliom_pervasives_base.ml \
+	 eliom_pervasives.ml
 
 INTF := eliom_lazy.cmi              \
         eliom_config.cmi            \
@@ -6,30 +30,20 @@ INTF := eliom_lazy.cmi              \
         eliom_service.cmi           \
         eliom_uri.cmi               \
         eliom_mkforms.cmi           \
-        eliom_registration.cmi      \
-        eliom_content_core.cmi      \
-        eliom_content.cmi           \
-        eliom_comet.cmi             \
-        eliom_react.cmi             \
-        eliom_bus.cmi               \
         eliom_unwrap.cmi            \
-                                    \
         eliom_client.cmi            \
-        eliom_pervasives.cmi        \
-        eliom_tools.cmi             \
+        eliom_content_core.cmi      \
+        eliom_registration.cmi      \
+        eliom_pervasives.cmi
 
 
 NO_MLI := eliom_pervasives_base.cmi
 
-IMPL := ${PROJECTNAME}_client.cma      \
-        ${PROJECTNAME}_client_main.cmo \
+# IMPL :=
 
-STUBS := dlleliom_client.so \
-	 libeliom_client.a  \
-	 eliom_client.js    \
+# STUBS :=
 
 NOP4 := eliom_lib.mli
 
 DOC := ${subst .cmi,.mli, ${filter-out ${NO_MLI}, ${INTF}}} \
-       eliom_types_base.mli \
-       eliom_comet_base.mli \
+       eliom_types_base.mli

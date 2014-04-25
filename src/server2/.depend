@@ -1,0 +1,108 @@
+eliom_bus.cmo : ../server/eliom_state.cmi ../server/eliom_service.cmi \
+    eliom_registration.cmi ../server/eliom_parameter.cmi \
+    ../server/eliom_common.cmi eliom_comet_base.cmi eliom_comet.cmi \
+    eliom_bus.cmi
+eliom_bus.cmx : ../server/eliom_state.cmx ../server/eliom_service.cmx \
+    eliom_registration.cmx ../server/eliom_parameter.cmx \
+    ../server/eliom_common.cmx eliom_comet_base.cmx eliom_comet.cmx \
+    eliom_bus.cmi
+eliom_bus.cmi : eliom_comet.cmi
+eliom_comet_base.cmo : ../server/eliom_service.cmi eliom_registration.cmi \
+    ../server/eliom_parameter.cmi eliom_comet_base.cmi
+eliom_comet_base.cmx : ../server/eliom_service.cmx eliom_registration.cmx \
+    ../server/eliom_parameter.cmx eliom_comet_base.cmi
+eliom_comet_base.cmi : ../server/eliom_service.cmi eliom_registration.cmi \
+    ../server/eliom_parameter.cmi
+eliom_comet.cmo : ../server/private/eliommod.cmo ../server/eliom_wrap.cmi \
+    ../server/eliom_types.cmi ../server/eliom_service.cmi \
+    ../server/eliom_request_info.cmi eliom_registration.cmi \
+    ../server/eliom_reference.cmi ../server/eliom_parameter.cmi \
+    ../server/eliom_lib.cmi ../server/eliom_common_base.cmo \
+    ../server/eliom_common.cmi eliom_comet_base.cmi eliom_comet.cmi
+eliom_comet.cmx : ../server/private/eliommod.cmx ../server/eliom_wrap.cmx \
+    ../server/eliom_types.cmx ../server/eliom_service.cmx \
+    ../server/eliom_request_info.cmx eliom_registration.cmx \
+    ../server/eliom_reference.cmx ../server/eliom_parameter.cmx \
+    ../server/eliom_lib.cmx ../server/eliom_common_base.cmx \
+    ../server/eliom_common.cmx eliom_comet_base.cmx eliom_comet.cmi
+eliom_comet.cmi : ../server/eliom_common.cmi eliom_comet_base.cmi
+eliom_react.cmo : ../server/eliom_service.cmi eliom_registration.cmi \
+    ../server/eliom_parameter.cmi ../server/eliom_common.cmi eliom_comet.cmi \
+    eliom_react.cmi
+eliom_react.cmx : ../server/eliom_service.cmx eliom_registration.cmx \
+    ../server/eliom_parameter.cmx ../server/eliom_common.cmx eliom_comet.cmx \
+    eliom_react.cmi
+eliom_react.cmi : ../server/eliom_parameter.cmi ../server/eliom_common.cmi \
+    eliom_comet.cmi
+eliom_registration.cmo : ../server/private/eliommod_pagegen.cmi \
+    ../server/private/eliommod_cookies.cmi ../server/private/eliommod_cli.cmi \
+    ../server/eliom_wrap.cmi ../server/eliom_uri.cmi \
+    ../server/eliom_types.cmi ../server/eliom_state.cmi \
+    ../server/eliom_service.cmi ../server/eliom_request_info.cmi \
+    ../server/eliom_registration_base.cmi ../server/eliom_reference.cmi \
+    ../server/eliom_pervasives.cmi ../server/eliom_parameter.cmi \
+    ../server/eliom_mkreg.cmi ../server/eliom_lib.cmi \
+    ../server/eliom_content_core.cmi ../server/eliom_config.cmi \
+    ../server/eliom_common_base.cmo ../server/eliom_common.cmi \
+    eliom_registration.cmi
+eliom_registration.cmx : ../server/private/eliommod_pagegen.cmx \
+    ../server/private/eliommod_cookies.cmx ../server/private/eliommod_cli.cmx \
+    ../server/eliom_wrap.cmx ../server/eliom_uri.cmx \
+    ../server/eliom_types.cmx ../server/eliom_state.cmx \
+    ../server/eliom_service.cmx ../server/eliom_request_info.cmx \
+    ../server/eliom_registration_base.cmx ../server/eliom_reference.cmx \
+    ../server/eliom_pervasives.cmx ../server/eliom_parameter.cmx \
+    ../server/eliom_mkreg.cmx ../server/eliom_lib.cmx \
+    ../server/eliom_content_core.cmx ../server/eliom_config.cmx \
+    ../server/eliom_common_base.cmx ../server/eliom_common.cmx \
+    eliom_registration.cmi
+eliom_registration.cmi : ../server/eliom_service.cmi \
+    ../server/eliom_parameter.cmi ../server/eliom_lib.cmi \
+    ../server/eliom_content_core.cmi ../server/eliom_common.cmi
+eliom_tools_common.cmo : ../server/eliom_service.cmi eliom_registration.cmi \
+    eliom_tools_common.cmi
+eliom_tools_common.cmx : ../server/eliom_service.cmx eliom_registration.cmx \
+    eliom_tools_common.cmi
+eliom_tools_common.cmi : ../server/eliom_state.cmi \
+    ../server/eliom_service.cmi eliom_registration.cmi \
+    ../server/eliom_parameter.cmi
+eliom_tools.cmo : eliom_tools_common.cmi ../server/eliom_service.cmi \
+    ../server/eliom_request_info.cmi eliom_registration.cmi \
+    ../server/eliom_reference.cmi ../server/eliom_lib.cmi \
+    ../server/eliom_common.cmi eliom_tools.cmi
+eliom_tools.cmx : eliom_tools_common.cmx ../server/eliom_service.cmx \
+    ../server/eliom_request_info.cmx eliom_registration.cmx \
+    ../server/eliom_reference.cmx ../server/eliom_lib.cmx \
+    ../server/eliom_common.cmx eliom_tools.cmi
+eliom_tools.cmi : eliom_tools_common.cmi ../server/eliom_state.cmi \
+    ../server/eliom_service.cmi eliom_registration.cmi \
+    ../server/eliom_parameter.cmi ../server/eliom_lib.cmi
+extensions/atom_feed.cmo : ../server/eliom_lib.cmi extensions/atom_feed.cmi
+extensions/atom_feed.cmx : ../server/eliom_lib.cmx extensions/atom_feed.cmi
+extensions/atom_feed.cmi : ../server/eliom_lib.cmi
+extensions/eliom_atom.cmo : ../server/eliom_service.cmi \
+    eliom_registration.cmi ../server/eliom_parameter.cmi \
+    ../server/eliom_mkreg.cmi ../server/eliom_lib.cmi \
+    extensions/atom_feed.cmi extensions/eliom_atom.cmi
+extensions/eliom_atom.cmx : ../server/eliom_service.cmx \
+    eliom_registration.cmx ../server/eliom_parameter.cmx \
+    ../server/eliom_mkreg.cmx ../server/eliom_lib.cmx \
+    extensions/atom_feed.cmx extensions/eliom_atom.cmi
+extensions/eliom_atom.cmi : ../server/eliom_service.cmi \
+    eliom_registration.cmi ../server/eliom_parameter.cmi \
+    ../server/eliom_lib.cmi ../server/eliom_common.cmi \
+    extensions/atom_feed.cmi
+extensions/eliom_openid.cmo : ../server/eliom_state.cmi \
+    ../server/eliom_service.cmi extensions/eliom_s2s.cmi \
+    ../server/eliom_request_info.cmi eliom_registration.cmi \
+    ../server/eliom_parameter.cmi ../server/eliom_lib.cmi \
+    ../server/eliom_common.cmi extensions/eliom_openid.cmi
+extensions/eliom_openid.cmx : ../server/eliom_state.cmx \
+    ../server/eliom_service.cmx extensions/eliom_s2s.cmx \
+    ../server/eliom_request_info.cmx eliom_registration.cmx \
+    ../server/eliom_parameter.cmx ../server/eliom_lib.cmx \
+    ../server/eliom_common.cmx extensions/eliom_openid.cmi
+extensions/eliom_openid.cmi : eliom_registration.cmi ../server/eliom_lib.cmi
+extensions/eliom_s2s.cmo : ../server/eliom_lib.cmi extensions/eliom_s2s.cmi
+extensions/eliom_s2s.cmx : ../server/eliom_lib.cmx extensions/eliom_s2s.cmi
+extensions/eliom_s2s.cmi :

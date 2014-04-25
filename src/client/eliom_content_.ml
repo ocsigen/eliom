@@ -266,6 +266,7 @@ module Svg = struct
 
   module F = Svg.F
   module D = Svg.D
+  module R = Svg.R
 
   type 'a elt = 'a F.elt
   type 'a attrib = 'a F.attrib

@@ -5,6 +5,9 @@ all: metas conf
 	${MAKE} -C server all
 	${MAKE} -C client all
 	${MAKE} -C tools all
+	${MAKE} -C clientserver all
+	${MAKE} -C server2 all
+	${MAKE} -C client2 all
 	${MAKE} -C ocamlbuild $@
 
 byte: metas conf
@@ -12,6 +15,9 @@ byte: metas conf
 	${MAKE} -C server byte
 	${MAKE} -C client all
 	${MAKE} -C tools all
+	${MAKE} -C clientserver all
+	${MAKE} -C server2 byte
+	${MAKE} -C client2 all
 	${MAKE} -C ocamlbuild $@
 
 opt: metas conf
@@ -19,15 +25,24 @@ opt: metas conf
 	${MAKE} -C server opt
 	${MAKE} -C client all
 	${MAKE} -C tools all
+	${MAKE} -C clientserver all
+	${MAKE} -C server2 opt
+	${MAKE} -C client2 all
 	${MAKE} -C ocamlbuild $@
 
 odoc:
 	${MAKE} -C server odoc DEPEND=no
 	${MAKE} -C client odoc DEPEND=no
+	${MAKE} -C clientserver odoc DEPEND=no
+	${MAKE} -C server2 odoc DEPEND=no
+	${MAKE} -C client2 odoc DEPEND=no
 
 clean:
 	${MAKE} -C server clean DEPEND=no
 	${MAKE} -C client clean DEPEND=no
+	${MAKE} -C clientserver clean DEPEND=no
+	${MAKE} -C server2 clean DEPEND=no
+	${MAKE} -C client2 clean DEPEND=no
 	${MAKE} -C tools clean
 	${MAKE} -C syntax clean
 	${MAKE} -C ocamlbuild $@
@@ -37,6 +52,9 @@ clean:
 distclean:
 	${MAKE} -C server distclean DEPEND=no
 	${MAKE} -C client distclean DEPEND=no
+	${MAKE} -C clientserver distclean DEPEND=no
+	${MAKE} -C server2 distclean DEPEND=no
+	${MAKE} -C client2 distclean DEPEND=no
 	${MAKE} -C tools distclean
 	${MAKE} -C syntax distclean
 	${MAKE} -C ocamlbuild $@
@@ -53,11 +71,20 @@ syntax.depend:
 server.depend: syntax.depend
 	find server -name .\*.deps -delete
 	rm -f server/.depend
+	find clientserver -name .\*.deps -delete
+	rm -f clientserver/.depend
+	find server2 -name .\*.deps -delete
+	rm -f server2/.depend
 	 ${MAKE} -C server .depend
+	 ${MAKE} -C clientserver .depend
+	 ${MAKE} -C server2 .depend
 client.depend: syntax.depend
 	find client -name .\*.deps -delete
 	rm -f client/.depend
+	find client2 -name .\*.deps -delete
+	rm -f client2/.depend
 	${MAKE} -C client .depend
+	${MAKE} -C client2 .depend
 tools.depend: syntax.depend
 	find tools -name .\*.deps -delete
 	${MAKE} -C tools depend
@@ -65,8 +92,11 @@ tools.depend: syntax.depend
 VERSION := $(shell head -n 1 ../VERSION)
 
 install: install.META install.man
+	${MAKE} -C clientserver install
 	${MAKE} -C server install
 	${MAKE} -C client install
+	${MAKE} -C server2 install
+	${MAKE} -C client2 install
 	${MAKE} -C syntax install
 	${MAKE} -C tools install
 	${MAKE} -C ocamlbuild $@
@@ -87,22 +117,31 @@ install.META:
 	   files/META
 
 install.byte: install.META install.man
+	${MAKE} -C clientserver install.byte
 	${MAKE} -C server install.byte
+	${MAKE} -C client2 install
+	${MAKE} -C server2 install.byte
 	${MAKE} -C client install
 	${MAKE} -C syntax install
 	${MAKE} -C tools install
 	${MAKE} -C ocamlbuild $@
 
 install.opt: install.META install.man
+	${MAKE} -C clientserver install
 	${MAKE} -C server install.opt
 	${MAKE} -C client install
+	${MAKE} -C server2 install.opt
+	${MAKE} -C client2 install
 	${MAKE} -C syntax install
 	${MAKE} -C tools install
 	${MAKE} -C ocamlbuild $@
 
 uninstall:
+	${MAKE} -C clientserver uninstall
 	${MAKE} -C server uninstall
 	${MAKE} -C client uninstall
+	${MAKE} -C server2 uninstall
+	${MAKE} -C client2 uninstall
 	${MAKE} -C syntax uninstall
 	${MAKE} -C tools uninstall
 	${MAKE} -C ocamlbuild $@

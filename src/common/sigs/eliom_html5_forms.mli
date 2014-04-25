@@ -68,4 +68,3 @@ include "eliom_forms.mli"
       ]
 
     and type for_attrib := [> `For ] Eliom_content_core.Html5.attrib
-

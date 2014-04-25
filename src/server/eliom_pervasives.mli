@@ -55,3 +55,30 @@ val server_function :
   ?https:bool ->
   ?error_handler:((string * exn) list -> 'b Lwt.t) ->
   'a Deriving_Json.t -> ('a -> 'b Lwt.t) -> ('a, 'b) server_function
+
+
+(**/**)
+type hook =
+  {mutable a : 'a 'b 'c 'd.
+     ?scope:([< Eliom_common.scope ] as 'd) ->
+     ?options:unit ->
+     ?charset:string ->
+     ?code:int ->
+     ?content_type:string ->
+     ?headers:Http_headers.t ->
+     ?secure_session:bool ->
+     ?name:string ->
+     ?csrf_safe:bool ->
+     ?csrf_scope:([< Eliom_common.user_scope ] as 'c) ->
+     ?csrf_secure:bool ->
+     ?max_use:int ->
+     ?timeout:float ->
+     ?https:bool ->
+     ?error_handler:((string * exn) list -> 'b Lwt.t) ->
+     'a Deriving_Json.t -> ('a -> 'b Lwt.t) -> ('a, 'b) server_function}
+
+val server_function_hook : hook
+
+val mk_serv_fun :
+  ('a, 'b) server_function_service -> Eliom_wrap.unwrapper ->
+  ('a, 'b) server_function
