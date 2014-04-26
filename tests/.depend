@@ -23,8 +23,8 @@ _server/eliom_testsuite5.cmo : _server/eliom_testsuite5.type_mli
 _server/eliom_testsuite5.cmx : _server/eliom_testsuite5.type_mli
 _server/eliom_testsuite.cmo : _server/eliom_testsuite_site.cmo _server/eliom_testsuite_base.cmo _server/eliom_testsuite5.cmo _server/eliom_testsuite4.cmo _server/eliom_testsuite3.cmo _server/eliom_testsuite2.cmo _server/eliom_testsuite1.cmo
 _server/eliom_testsuite.cmx : _server/eliom_testsuite_site.cmx _server/eliom_testsuite_base.cmx _server/eliom_testsuite5.cmx _server/eliom_testsuite4.cmx _server/eliom_testsuite3.cmx _server/eliom_testsuite2.cmx _server/eliom_testsuite1.cmx
-_server/atom_example.cmo : _server/eliom_testsuite_base.cmo ../src/server/extensions/eliom_atom.cmi ../src/server/extensions/atom_feed.cmi
-_server/atom_example.cmx : _server/eliom_testsuite_base.cmx ../src/server/extensions/eliom_atom.cmx ../src/server/extensions/atom_feed.cmx
+_server/atom_example.cmo : _server/eliom_testsuite_base.cmo
+_server/atom_example.cmx : _server/eliom_testsuite_base.cmx
 _server/eliom_testsuite_global.cmo :
 _server/eliom_testsuite_global.cmx :
 _server/eliom_testsuite_global.cmo : _server/eliom_testsuite_global.type_mli

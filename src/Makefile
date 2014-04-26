@@ -170,7 +170,7 @@ files/META: files/META.in ../Makefile.config  ../Makefile.options Makefile
 	sed ${SED_META} $< > $@
 
 files/META.${PROJECTNAME}: files/META.in ../Makefile.config  ../Makefile.options Makefile
-	echo "directory = \"..\"" > $@
+	echo "directory = \"../../local/lib\"" > $@
 	sed ${SED_META} $< >> $@
 
 conf: ../local/etc/$(PROJECTNAME).conf
