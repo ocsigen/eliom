@@ -38,24 +38,25 @@ tests.opt: links opt
 links:
 	-mkdir -p local/var/run
 	-mkdir -p local/var/log
-	-mkdir -p local/var/lib/server
-	-mkdir -p local/var/lib/client
-	cd local/var/lib ; \
-        ln -s ../../../src/syntax .  ; \
+	-mkdir -p local/lib/server
+	-mkdir -p local/lib/client
+	cd local/lib ; \
+        ln -sf ../../src/syntax .  ; \
 	cd server ; \
-	ln -s ../../../src/server/*cmi . ; \
-	ln -s ../../../src/clientserver/_server/*cmi . ; \
-	ln -s ../../../src/server2/*cmi . ; \
-	ln -s ../../../src/server2/eliom.cm* . ; \
+	ln -sf ../../../src/server/*cmi . ; \
+	ln -sf ../../../src/clientserver/_server/*cmi . ; \
+	ln -sf ../../../src/server2/*cmi . ; \
+	ln -sf ../../../src/server2/extensions/*cmi . ; \
+	ln -sf ../../../src/server2/eliom.cm* . ; \
 	cd ../client ; \
-	ln -s ../../../src/client/*cmi . ; \
-	ln -s ../../../src/clientserver/_client/*cmi . ; \
-	ln -s ../../../src/client2/*cmi . ; \
-	ln -s ../../../src/client2/eliom_client.cma . ; \
-	ln -s ../../../src/client2/eliom_client_main.cma .  ; \
-	ln -s ../../../src/client2/eliom_client.js .  ; \
-	ln -s ../../../src/client2/dlleliom_client.so .  ; \
-	ln -s ../../../src/client2/libeliom_client.a .  ; \
+	ln -sf ../../../src/client/*cmi . ; \
+	ln -sf ../../../src/clientserver/_client/*cmi . ; \
+	ln -sf ../../../src/client2/*cmi . ; \
+	ln -sf ../../../src/client2/eliom_client.cma . ; \
+	ln -sf ../../../src/client2/eliom_client_main.cmo .  ; \
+	ln -sf ../../../src/client2/eliom_client.js .  ; \
+	ln -sf ../../../src/client2/dlleliom_client.so .  ; \
+	ln -sf ../../../src/client2/libeliom_client.a .  ; \
 	cd ../../..
 
 fifo:
