@@ -26,7 +26,7 @@ doc:
 run.local: tests.byte fifo
 	ocsigenserver -c local/etc/${PROJECTNAME}.conf
 
-tests.byte: links byte links
+tests.byte: byte links
 	${MAKE} -C tests byte
 
 run.opt.local: tests.opt fifo

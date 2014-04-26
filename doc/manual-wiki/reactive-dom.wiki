@@ -23,6 +23,8 @@ to insert a reactive node in a page.
 === Example
 
 <<code language="ocaml"|
+{client{
+
 open Eliom_content.Html5
 
 let split s =
@@ -32,37 +34,70 @@ let split s =
       | n -> aux (s.[n - 1] :: acc) (pred n)
     in aux [] len
 
-let title,set_title = React.S.create "initial"
-(* title : string React.signal *)
+let value_signal, set_value = React.S.create "initial"
+(* value_signal : string React.signal *)
 
-let title_len = React.S.map String.length title
-(* title_len : int React.signal *)
+let value_len = React.S.map String.length value_signal
+(* value_len : int React.signal *)
 
-let rec input = lazy
-  (D.Raw.input
-     ~a:[a_type `Text;
-         D.a_onkeyup (fun _ ->
-         let s = Js.to_string ((To_dom.of_input (Lazy.force input))##value) in
-         set_title s )]
-     ())
+let content_signal : Html5_types.div_content_fun elt React.signal =
+  React.S.map (fun value ->  let l = split value in
+                F.div (
+                  List.map (fun c ->
+                      F.p [F.pcdata (Printf.sprintf "%c" c) ]
+                    ) l
+                )
+              ) value_signal
 
-let content : Html5_types.div_content_fun elt React.signal = React.S.map ( fun title ->
-  let l = split title in
-  F.div (
-    List.map (fun c ->
-      F.p [F.pcdata (Printf.sprintf "%c" c) ]
-    ) l
-  )
-) title
+let html_value_signal : [ `PCDATA ] R.elt list React.signal
+  = React.S.map (fun s -> [pcdata s]) value_signal
 
 let make_color len =
   let d = (len * 10) mod 255 in
   Printf.sprintf "color: rgb(%d,%d,%d)" d d d
 
-let body = D.div [
-  (Lazy.force input :> Html5_types.div_content_fun elt);
-  D.p ~a:[ R.a_style (React.S.map make_color title_len)] [R.pcdata title];
-  R.node content
-]
+let make_client_nodes () =
+  [
+    R.p html_value_signal;
+    D.p ~a:[ R.a_style (React.S.map make_color value_len)]
+      [R.pcdata value_signal];
+    R.node content_signal
+  ]
+
+
+ }}
+
+
+let make_input () =
+  let inp = D.Raw.input ~a:[a_input_type `Text] () in
+  let _ = {unit{ Lwt_js_events.(async (fun () ->
+      let inp = To_dom.of_input %inp in
+      keyups inp (fun _ _ ->
+          let s = Js.to_string (inp##value) in
+          set_value s;
+          Lwt.return ()))) }}
+  in
+  inp
+
+let main_service =
+  Eliom_service.App.service ~path:[] ~get_params:Eliom_parameter.unit ()
+
+let () =
+  Testnodes_app.register
+    ~service:main_service
+    (fun () () ->
+       let inp = make_input () in
+       let cldiv = D.div [] in
+       ignore {unit{ Manip.appendChilds %cldiv (make_client_nodes ()) }};
+       Lwt.return
+         (Eliom_tools.F.html
+            ~title:"testnodes"
+            ~css:[["css"; "testnodes.css"]]
+            (body [F.h1 [pcdata "Reactive DOM"];
+                   inp;
+                   F.h2 [pcdata "Client side reactive nodes:"];
+                   cldiv;
+                   ])
+         ))
 
 >>
