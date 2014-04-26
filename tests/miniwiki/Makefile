@@ -47,7 +47,7 @@ clean:
 	-rm -f _server/*
 
 distclean: clean
-	-rm -f *~ \#* .\#*
+	-rm -f *~ \#* .\#* .depend
 
 ## Dependencies
 

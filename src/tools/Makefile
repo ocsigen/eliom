@@ -76,7 +76,7 @@ clean:
 	-rm -f ${COMPILER} ${DISTILLERY}
 	-rm -f ${PREDEP}
 distclean: clean
-	-rm -f *~ \#* .\#*
+	-rm -f *~ \#* .\#* .depend
 
 ## Dependencies
 

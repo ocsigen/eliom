@@ -10,6 +10,7 @@
 *.so
 *.sw[po]
 *.odoc
+.depend
 src/ocamlbuild/_build
 Makefile.config
 baselib/ocsigen_config.ml

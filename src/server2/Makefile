@@ -110,7 +110,7 @@ clean:
 	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.odoc
 	-cd extensions && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.odoc
 distclean: clean
-	-rm -f *~ \#* .\#*
+	-rm -f *~ \#* .\#* .depend
 	-rm -f ${PREDEP}
 	-rm -f .*.deps private/.*.deps extensions/.*.deps
 

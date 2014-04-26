@@ -43,7 +43,7 @@ clean:
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot
 
 distclean: clean
-	-rm -f *~ \#* .\#*
+	-rm -f *~ \#* .\#* .depend
 
 depend:
 	$(OCAMLDEP) ${LIBS} $(FILES) > .depend

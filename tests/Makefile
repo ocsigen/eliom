@@ -150,8 +150,7 @@ clean.local:
 	-rm -rf distillery
 
 distclean: clean.local
-	-rm -f *~ \#* .\#*
-	${MAKE} -C distclean
+	-rm -f *~ \#* .\#* .depend
 	${MAKE} -C miniwiki distclean
 
 ## Dependencies

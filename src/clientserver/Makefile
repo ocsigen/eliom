@@ -66,7 +66,8 @@ depsort=$(call objs,$(1),$(2),$(call eliomdep,$(3),$(4),$(5)))
 ## General
 
 .PHONY: all byte opt
-all: $(call objs,$(ELIOM_SERVER_DIR),cmi,$(SERVER_FILES)) \
+all: $(SERVER_FILES:.eliom=.eliomi) \
+     $(call objs,$(ELIOM_SERVER_DIR),cmi,$(SERVER_FILES)) \
      $(call objs,$(ELIOM_CLIENT_DIR),cmi,$(CLIENT_FILES)) \
      $(call objs,$(ELIOM_SERVER_DIR),cmo,$(SERVER_FILES)) \
      $(call objs,$(ELIOM_CLIENT_DIR),cmo,$(CLIENT_FILES))
@@ -90,7 +91,7 @@ ${ELIOM_SERVER_DIR}/%.cmi: %.eliomi
 
 ${ELIOM_SERVER_DIR}/%.cmo: %.ml
 	${ELIOMC} -c ${SERVER_INC} $(GENERATE_DEBUG) $<
-${ELIOM_SERVER_DIR}/%.cmo: %.eliom %.eliomi ${ELIOM_SERVER_DIR}/%.cmi
+${ELIOM_SERVER_DIR}/%.cmo: %.eliom
 	${ELIOMC} -c ${SERVER_INC} $(GENERATE_DEBUG) $<
 
 ${ELIOM_SERVER_DIR}/%.cmx: %.ml
