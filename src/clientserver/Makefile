@@ -88,7 +88,7 @@ ${ELIOM_SERVER_DIR}/%.cmi: %.eliomi
 
 ${ELIOM_SERVER_DIR}/%.cmo: %.ml
 	${ELIOMC} -c ${SERVER_INC} $(GENERATE_DEBUG) $<
-${ELIOM_SERVER_DIR}/%.cmo: %.eliom %.eliomi
+${ELIOM_SERVER_DIR}/%.cmo: %.eliom %.eliomi ${ELIOM_SERVER_DIR}/%.cmi
 	${ELIOMC} -c ${SERVER_INC} $(GENERATE_DEBUG) $<
 
 ${ELIOM_SERVER_DIR}/%.cmx: %.ml
@@ -117,7 +117,7 @@ CLIENT_INC  := -I ../client/ -I ../client/private \
 ${ELIOM_CLIENT_DIR}/%.cmi: %.mli
 	${JS_OF_ELIOM} -c ${CLIENT_INC} $(GENERATE_DEBUG) $<
 
-${ELIOM_CLIENT_DIR}/%.cmo: %.eliom
+${ELIOM_CLIENT_DIR}/%.cmo: %.eliom %.eliomi ${ELIOM_CLIENT_DIR}/%.cmi
 	${JS_OF_ELIOM} -c ${CLIENT_INC} $(GENERATE_DEBUG) $<
 ${ELIOM_CLIENT_DIR}/%.cmo: %.ml
 	${JS_OF_ELIOM} -c ${CLIENT_INC} $(GENERATE_DEBUG) $<
@@ -180,6 +180,7 @@ $(DEPSDIR):
 clean:
 	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot
 	-rm -f *.type_mli
+	-rm -f *.eliomi
 	-rm -f ${PROJECT_NAME}.js
 	-rm -rf ${ELIOM_CLIENT_DIR} ${ELIOM_SERVER_DIR}
 
