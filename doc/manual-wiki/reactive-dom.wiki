@@ -23,6 +23,19 @@ to insert a reactive node in a page.
 === Example
 
 <<code language="ocaml"|
+{shared{
+  open Eliom_lib
+  open Eliom_content
+  open Html5
+  open F
+}}
+
+module Testnodes_app =
+  Eliom_registration.App (
+    struct
+      let application_name = "testnodes"
+    end)
+
 {client{
 
 open Eliom_content.Html5

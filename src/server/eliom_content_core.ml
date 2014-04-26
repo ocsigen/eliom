@@ -600,3 +600,7 @@ module Html5 = struct
 
 end
 
+
+(* internal modules used by reactive nodes
+   (here to escape from the interface) *)
+module Xmld = Html5.D.Xml'

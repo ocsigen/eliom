@@ -204,29 +204,29 @@ module Svg : sig
   end
 
 
-  (* (\** Typed interface for building valid SVG tree (reactive DOM). See *)
-  (*     {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *\) *)
-  (* module R : sig *)
+  (** Typed interface for building valid SVG tree (reactive DOM). See
+      {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
+  module R : sig
 
-  (*   module Raw : Svg_sigs.T *)
-  (*     with type Xml.uri = Xml.uri *)
-  (*      and type Xml.event_handler = Xml.event_handler *)
-  (*      and type Xml.attrib = Xml.attrib *)
-  (*      and type Xml.elt = Xml.elt *)
-  (*      and type 'a elt = 'a elt *)
-  (*      and type 'a Xml.wrap = 'a React.signal Eliom_pervasives.client_value *)
-  (*      and type 'a wrap = 'a React.signal Eliom_pervasives.client_value *)
-  (*      and type 'a attrib = 'a attrib *)
-  (*      and type uri = uri *)
+    module Raw : Svg_sigs.T
+      with type Xml.uri = Xml.uri
+       and type Xml.event_handler = Xml.event_handler
+       and type Xml.attrib = Xml.attrib
+       and type Xml.elt = Xml.elt
+       and type 'a elt = 'a elt
+       and type 'a Xml.wrap = 'a React.signal Eliom_pervasives.client_value
+       and type 'a wrap = 'a React.signal Eliom_pervasives.client_value
+       and type 'a attrib = 'a attrib
+       and type uri = uri
 
-  (*   include module type of Raw *)
+    include module type of Raw
 
-  (*   (\** {2 Event handlers} *\) *)
+    (** {2 Event handlers} *)
 
-  (*   (\** Redefine event handler attributes to simplify their usage. *\) *)
-  (*   include "sigs/eliom_svg_event_handler.mli" *)
+    (** Redefine event handler attributes to simplify their usage. *)
+    include "sigs/eliom_svg_event_handler.mli"
 
-  (* end *)
+  end
 
   (** Node identifiers. *)
   module Id : sig
@@ -407,77 +407,77 @@ module Html5 : sig
     val select : ?a:Html5_types.select_attrib attrib list -> name:[< `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt
   end
 
-  (* (\** Creation of reactive HTML5 content. *)
-  (*     This nodes will react to client-side react signals *\) *)
-  (* module R : sig *)
-  (*   (\** {2 Content creation} *)
-  (*       See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}, *)
-  (*       If you want to create an untyped form, *)
-  (*       you will have to use {% <<a_api|module Eliom_content.Html5.D.Raw>> %} *)
-  (*       otherwise, use the form module. *)
-  (*       For more information, *)
-  (*       see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *\) *)
-  (*   open Pervasives *)
+  (** Creation of reactive HTML5 content.
+      This nodes will react to client-side react signals *)
+  module R : sig
+    (** {2 Content creation}
+        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %},
+        If you want to create an untyped form,
+        you will have to use {% <<a_api|module Eliom_content.Html5.D.Raw>> %}
+        otherwise, use the form module.
+        For more information,
+        see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
+    open Pervasives
 
-  (*   (\** the function [node s] create an HTML5 [elt] from a signal [s]. *)
-  (*   The resulting HTML5 [elt] can then be used like anyother HTML5 [elt] *\) *)
-  (*   val node : 'a elt React.signal Eliom_pervasives.client_value -> 'a elt *)
+    (** the function [node s] create an HTML5 [elt] from a signal [s].
+    The resulting HTML5 [elt] can then be used like anyother HTML5 [elt] *)
+    val node : 'a elt React.signal Eliom_pervasives.client_value -> 'a elt
 
-  (*   (\** Cf. {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *\) *)
-  (*   module Raw : Html5_sigs.T *)
-  (*                  with type Xml.uri = Xml.uri *)
-  (*                   and type Xml.event_handler = Xml.event_handler *)
-  (*                   and type Xml.attrib = Xml.attrib *)
-  (*                   and type Xml.elt = Xml.elt *)
-  (*                   and type 'a Xml.wrap = 'a React.signal Eliom_pervasives.client_value *)
-  (*                  with module Svg := Svg.D.Raw *)
-  (*                  with type +'a elt = 'a elt *)
-  (*                   and type 'a wrap = 'a React.signal Eliom_pervasives.client_value *)
-  (*                   and type 'a attrib = 'a attrib *)
-  (*                   and type uri = uri *)
-  (*   include module type of Raw (\*BB TODO Hide untyped [input]. *\) *)
+    (** Cf. {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+    module Raw : Html5_sigs.T
+                   with type Xml.uri = Xml.uri
+                    and type Xml.event_handler = Xml.event_handler
+                    and type Xml.attrib = Xml.attrib
+                    and type Xml.elt = Xml.elt
+                    and type 'a Xml.wrap = 'a React.signal Eliom_pervasives.client_value
+                   with module Svg := Svg.D.Raw
+                   with type +'a elt = 'a elt
+                    and type 'a wrap = 'a React.signal Eliom_pervasives.client_value
+                    and type 'a attrib = 'a attrib
+                    and type uri = uri
+    include module type of Raw (*BB TODO Hide untyped [input]. *)
 
-  (*   (\** {2 Event handlers} *\) *)
+    (** {2 Event handlers} *)
 
-  (*   (\** Redefine event handler attributes to simplify their usage. *\) *)
-  (*   include "sigs/eliom_html5_event_handler.mli" *)
+    (** Redefine event handler attributes to simplify their usage. *)
+    include "sigs/eliom_html5_event_handler.mli"
 
-  (*   (\**/**\) *)
-  (*   type ('a, 'b, 'c) lazy_plus = *)
-  (*     ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt *)
+    (**/**)
+    type ('a, 'b, 'c) lazy_plus =
+      ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
-  (*   val lazy_form: *)
-  (*     ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_plus *)
-  (*   (\**/**\) *)
+    val lazy_form:
+      ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_plus
+    (**/**)
 
 
-  (*   (\** {2 Forms} *\) *)
-  (*   include "sigs/eliom_html5_forms.mli" *)
+    (* (\** {2 Forms} *\) *)
+    (* include "sigs/eliom_html5_forms.mli" *)
 
-  (*   (\** Creates an untyped form. *\) *)
-  (*   val raw_form : ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) plus *)
+    (* (\** Creates an untyped form. *\) *)
+    (* val raw_form : ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) plus *)
 
-  (*   (\** This is an alias to {% <<a_api|val Eliom_content.Html5.D.get_form>> %} *)
-  (*       to avoid the untyped [Eliom_content.Html5.D.form]. *\) *)
-  (*   val form : ?absolute:bool -> ?absolute_path:bool -> ?https:bool -> ?a:Html5_types.form_attrib attrib list -> *)
-  (*     service:('get, unit, [< get_service_kind ], [<suff ], 'gn, 'pn, [< registrable ], [< non_ocaml_service ]) service -> *)
-  (*     ?hostname:string -> ?port:int -> ?fragment:string -> ?keep_nl_params:[ `All | `Persistent | `None ] -> *)
-  (*     ?nl_params: Eliom_parameter.nl_params_set -> ?xhr:bool -> *)
-  (*     ('gn -> Html5_types.form_content elt list) -> [> Html5_types.form ] elt *)
+    (* (\** This is an alias to {% <<a_api|val Eliom_content.Html5.D.get_form>> %} *)
+    (*     to avoid the untyped [Eliom_content.Html5.D.form]. *\) *)
+    (* val form : ?absolute:bool -> ?absolute_path:bool -> ?https:bool -> ?a:Html5_types.form_attrib attrib list -> *)
+    (*   service:('get, unit, [< get_service_kind ], [<suff ], 'gn, 'pn, [< registrable ], [< non_ocaml_service ]) service -> *)
+    (*   ?hostname:string -> ?port:int -> ?fragment:string -> ?keep_nl_params:[ `All | `Persistent | `None ] -> *)
+    (*   ?nl_params: Eliom_parameter.nl_params_set -> ?xhr:bool -> *)
+    (*   ('gn -> Html5_types.form_content elt list) -> [> Html5_types.form ] elt *)
 
-  (*   (\** This is an alias to *)
-  (*       {% <<a_api|val Eliom_content.Html5.D.string_input>> %} *)
-  (*       to avoid the untyped [Eliom_content.Html5.D.input]. *\) *)
-  (*   val input : ?a:Html5_types.input_attrib attrib list -> input_type:[< *)
-  (*       | `Url | `Tel | `Text | `Time | `Search | `Password | `Checkbox | `Range | `Radio | `Submit | `Reset | `Number | `Hidden *)
-  (*       | `Month | `Week | `File | `Email | `Image | `Datetime_local | `Datetime | `Date | `Color | `Button] *)
-  (*     -> ?name:[< string setoneradio ] param_name -> ?value:string -> unit -> [> Html5_types.input ] elt *)
+    (* (\** This is an alias to *)
+    (*     {% <<a_api|val Eliom_content.Html5.D.string_input>> %} *)
+    (*     to avoid the untyped [Eliom_content.Html5.D.input]. *\) *)
+    (* val input : ?a:Html5_types.input_attrib attrib list -> input_type:[< *)
+    (*     | `Url | `Tel | `Text | `Time | `Search | `Password | `Checkbox | `Range | `Radio | `Submit | `Reset | `Number | `Hidden *)
+    (*     | `Month | `Week | `File | `Email | `Image | `Datetime_local | `Datetime | `Date | `Color | `Button] *)
+    (*   -> ?name:[< string setoneradio ] param_name -> ?value:string -> unit -> [> Html5_types.input ] elt *)
 
-  (*   (\** This is an alias to *)
-  (*       {% <<a_api|val Eliom_content.Html5.D.string_select>> %} *)
-  (*       to avoid the untyped [Eliom_content.Html5.D.select]. *\) *)
-  (*   val select : ?a:Html5_types.select_attrib attrib list -> name:[< `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt *)
-  (* end *)
+    (* (\** This is an alias to *)
+    (*     {% <<a_api|val Eliom_content.Html5.D.string_select>> %} *)
+    (*     to avoid the untyped [Eliom_content.Html5.D.select]. *\) *)
+    (* val select : ?a:Html5_types.select_attrib attrib list -> name:[< `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt *)
+  end
 
 
   (** Node identifiers *)

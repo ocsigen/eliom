@@ -64,10 +64,10 @@ type button_type =
 (*****************************************************************************)
 
 (*BB Has nothing to do with Eliom_registration in fact, should live in something like Eliom_content_base. *)
-module Html5_forms : sig
-  module F : "sigs/eliom_html5_forms.mli"
-  module D : "sigs/eliom_html5_forms.mli"
-end = struct
+module Html5_forms(*  : sig *)
+(*   module F : "sigs/eliom_html5_forms.mli" *)
+(*   module D : "sigs/eliom_html5_forms.mli" *)
+(* end *) = struct
 
   module Html5_forms_base(Html5 : sig
     include Html5_sigs.T with module Xml := Xml and module Svg := Svg.D.Raw

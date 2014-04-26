@@ -114,9 +114,9 @@ module Svg : sig
       semantics>> %} for SVG tree manipulated by client/server
       application. *)
 
-  type +'a elt
+  type +'a elt = Xml.elt (** will be abstracted later! O.o We do not install eliom_content_core.cmi **)
   type 'a wrap = 'a
-  type 'a attrib
+  type 'a attrib = Xml.attrib (** will be abstracted later! O.o We do not install eliom_content_core.cmi **)
   type uri = Xml.uri
 
   (** Typed interface for building valid SVG tree (functional
@@ -203,9 +203,9 @@ module Html5 : sig
       semantics>> %} for HTML5 tree manipulated by client/server
       application. *)
 
-  type +'a elt
+  type +'a elt = Xml.elt (** will be abstracted later! O.o We do not install eliom_content_core.cmi **)
   type 'a wrap = 'a
-  type +'a attrib
+  type 'a attrib = Xml.attrib (** will be abstracted later! O.o We do not install eliom_content_core.cmi **)
   type uri = Xml.uri
 
   (** Typed interface for building valid HTML5 tree (functional
@@ -323,4 +323,20 @@ module Html5 : sig
   module Printer : Xml_sigs.Typed_simple_printer with type 'a elt := 'a F.elt
                                           and type doc := F.doc
 
+end
+
+
+module Xmld : sig
+  include module type of Xml
+  with type uri = Xml.uri
+   and type separator = Xml.separator
+   and type acontent = Xml.acontent
+   and type attrib = Xml.attrib
+   and type elt = Xml.elt
+   and type 'a wrap = 'a
+   and type -'a caml_event_handler = 'a Xml.caml_event_handler
+   and type event_handler = Xml.event_handler
+  val make_request_node : elt -> elt
+  val make : econtent -> elt
+  val make_lazy : econtent Eliom_lazy.request -> elt
 end
