@@ -1,9 +1,12 @@
 include ../../Makefile.config
 include ../../src/server/Makefile.filelist
+include ../../src/server2/Makefile.filelist
 
 OCAMLDOC := ${OCAMLFIND} ocamldoc
 
-ODOC := $(addprefix ../../src/server/,$(DOC:.mli=.odoc))
+ODOC := $(addprefix ../../src/server/,$(SDOC:.mli=.odoc)) \
+        $(addprefix ../../src/clientserver/,$(SSDOC:.mli=.odoc)) \
+        $(addprefix ../../src/server2/,$(SSSDOC:.mli=.odoc))
 
 doc: odoc api-html/index.html api-man/Eliom_lib.server.3o
 wikidoc: odoc api-wiki/index.wiki

@@ -9,9 +9,9 @@ export ELIOM_DATA_DIR := ${SRC}/src/files
 ##
 
 # Source files for the server
-SERVER_FILES := $(wildcard *.eliomi *.eliom)
+SERVER_FILES := $(wildcard *.eliom)
 # Source files for the client
-CLIENT_FILES := $(wildcard *.eliomi *.eliom)
+CLIENT_FILES := $(wildcard *.eliom)
 
 # OCamlfind packages for the server
 SERVER_PACKAGES :=
@@ -88,7 +88,7 @@ ${ELIOM_SERVER_DIR}/%.cmi: %.eliomi
 
 ${ELIOM_SERVER_DIR}/%.cmo: %.ml
 	${ELIOMC} -c ${SERVER_INC} $(GENERATE_DEBUG) $<
-${ELIOM_SERVER_DIR}/%.cmo: %.eliom
+${ELIOM_SERVER_DIR}/%.cmo: %.eliom %.eliomi
 	${ELIOMC} -c ${SERVER_INC} $(GENERATE_DEBUG) $<
 
 ${ELIOM_SERVER_DIR}/%.cmx: %.ml
@@ -98,6 +98,14 @@ ${ELIOM_SERVER_DIR}/%.cmx: %.eliom
 
 %.cmxs: %.cmxa
 	$(OCAMLOPT) -shared -linkall -o $@ $<
+
+%.eliomi: %.server.mli %.client.mli
+	echo "{client{" > $@
+	cat $(@:.eliomi=.client.mli) >> $@
+	echo "}}" >> $@
+	echo "{server{" >> $@
+	cat $(@:.eliomi=.server.mli) >> $@
+	echo "}}" >> $@
 
 ##----------------------------------------------------------------------
 ## Client side compilation
@@ -117,6 +125,18 @@ ${ELIOM_CLIENT_DIR}/%.cmo: %.ml
 ${ELIOM_CLIENT_DIR}/%.cmi: %.eliomi
 	${JS_OF_ELIOM} -c ${CLIENT_INC} $(GENERATE_DEBUG) $<
 
+
+
+##----------------------------------------------------------------------
+## Doc
+
+odoc: _server/eliom_content.odoc _client/eliom_content.odoc
+
+_server/%.odoc: %.server.mli
+	${OCAMLDOC} -syntax camlp4o ${LIBS} -dump ${ODOC_DIR}$@ $<
+
+_client/%.odoc: %.client.mli
+	${OCAMLDOC} -syntax camlp4o ${LIBS} -dump ${ODOC_DIR}$@ $<
 
 
 ##----------------------------------------------------------------------

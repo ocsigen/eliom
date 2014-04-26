@@ -66,7 +66,7 @@ ${INTF_NOP4:.mli=.odoc}: \
 
 include Makefile.filelist
 
-odoc: ${DOC:.mli=.odoc}
+odoc: ${SDOC:.mli=.odoc}
 
 install: INSTALL_IMPL:=${IMPL} ${NATIMPL}
 install: raw_install
