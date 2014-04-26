@@ -23,21 +23,22 @@ doc:
 
 .PHONY: run.local run.opt.local top links
 
-run.local: links tests.byte fifo
+run.local: tests.byte fifo
 	ocsigenserver -c local/etc/${PROJECTNAME}.conf
 
-tests.byte: links byte
+tests.byte: links byte links
 	${MAKE} -C tests byte
 
-run.opt.local: links tests.opt fifo
+run.opt.local: tests.opt fifo
 	ocsigenserver.opt -c local/etc/${PROJECTNAME}.conf
 
-tests.opt: links opt
+tests.opt: opt links
 	${MAKE} -C tests opt
 
 links:
 	-mkdir -p local/var/run
 	-mkdir -p local/var/log
+	-mkdir -p local/var/lib
 	-mkdir -p local/lib/server
 	-mkdir -p local/lib/client
 	cd local/lib ; \
