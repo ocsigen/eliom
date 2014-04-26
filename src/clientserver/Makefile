@@ -66,7 +66,9 @@ depsort=$(call objs,$(1),$(2),$(call eliomdep,$(3),$(4),$(5)))
 ## General
 
 .PHONY: all byte opt
-all: $(call objs,$(ELIOM_SERVER_DIR),cmo,$(SERVER_FILES)) \
+all: $(call objs,$(ELIOM_SERVER_DIR),cmi,$(SERVER_FILES)) \
+     $(call objs,$(ELIOM_CLIENT_DIR),cmi,$(CLIENT_FILES)) \
+     $(call objs,$(ELIOM_SERVER_DIR),cmo,$(SERVER_FILES)) \
      $(call objs,$(ELIOM_CLIENT_DIR),cmo,$(CLIENT_FILES))
 
 
