@@ -102,11 +102,11 @@ module Svg : sig
         in the list of [e1] children. *)
     val appendChild: ?before:'a elt -> 'b elt ->  'c elt -> unit
 
-    (** The function [appendChilds e1 elts] inserts [elts] as last children
+    (** The function [appendChildren e1 elts] inserts [elts] as last children
         of [e1]. If the optional parameter [~before:e3] is present and if
         [e3] is a child of [e1], then [elts] are inserted before [e3] in
         the list of [e1] children. *)
-    val appendChilds: ?before:'a elt -> 'b elt ->  'c elt list -> unit
+    val appendChildren: ?before:'a elt -> 'b elt ->  'c elt list -> unit
 
     (** [appendChildFirst p c] appends [c] as first child of [p] *)
     val appendChildFirst: 'b elt ->  'c elt -> unit
@@ -125,15 +125,15 @@ module Svg : sig
         list of [e1] children. *)
     val replaceChild: 'a elt -> 'b elt -> 'c elt -> unit
 
-    (** The function [removeAllChild e1] removes [e1] children. *)
-    val removeAllChild: 'a elt -> unit
+    (** The function [removeAllChildren e1] removes [e1] children. *)
+    val removeAllChildren: 'a elt -> unit
 
     (** [removeSelf e] removes element e from the DOM. *)
     val removeSelf: 'a elt -> unit
 
-    (** The function [replaceAllChild e1 elts] replaces all the children of
+    (** The function [replaceAllChildren e1 elts] replaces all the children of
         [e1] by [elt]. *)
-    val replaceAllChild: 'a elt -> 'b elt list -> unit
+    val replaceAllChildren: 'a elt -> 'b elt list -> unit
 
     (* (\** The function [addEventListener elt evt handler] attach the *)
         (* [handler] for the event [evt] on the element [elt]. See the *)
@@ -158,16 +158,16 @@ module Svg : sig
 
       (** see [appendChild] *)
       val appendChild: ?before:'a elt -> 'b Id.id -> 'c elt -> unit
-      (** see [appendChilds] *)
-      val appendChilds: ?before:'a elt -> 'b Id.id ->  'c elt list -> unit
+      (** see [appendChildren] *)
+      val appendChildren: ?before:'a elt -> 'b Id.id ->  'c elt list -> unit
       (** see [removeChild] *)
       val removeChild: 'a Id.id -> 'b elt -> unit
       (** see [replaceChild] *)
       val replaceChild: 'a Id.id -> 'b elt -> 'c elt -> unit
-      (** see [removeAllChild] *)
-      val removeAllChild: 'a Id.id -> unit
-      (** see [replaceAllChild] *)
-      val replaceAllChild: 'a Id.id -> 'b elt list -> unit
+      (** see [removeAllChildren] *)
+      val removeAllChildren: 'a Id.id -> unit
+      (** see [replaceAllChildren] *)
+      val replaceAllChildren: 'a Id.id -> 'b elt list -> unit
 
       (* (\** see [addEventListener] *\) *)
       (* val addEventListener: *)
@@ -488,11 +488,11 @@ module Html5 : sig
     (** Append to the body of the document. *)
     val appendToBody: ?before:'a elt -> 'c elt -> unit
 
-    (** The function [appendChilds e1 elts] inserts [elts] as last children
+    (** The function [appendChildren e1 elts] inserts [elts] as last children
         of [e1]. If the optional parameter [~before:e3] is present and if
         [e3] is a child of [e1], then [elts] are inserted before [e3] in
         the list of [e1] children. *)
-    val appendChilds: ?before:'a elt -> 'b elt ->  'c elt list -> unit
+    val appendChildren: ?before:'a elt -> 'b elt ->  'c elt list -> unit
 
     (** [appendChildFirst p c] appends [c] as first child of [p] *)
     val appendChildFirst: 'b elt ->  'c elt -> unit
@@ -511,15 +511,15 @@ module Html5 : sig
         list of [e1] children. *)
     val replaceChild: 'a elt -> 'b elt -> 'c elt -> unit
 
-    (** The function [removeAllChild e1] removes [e1] children. *)
-    val removeAllChild: 'a elt -> unit
+    (** The function [removeAllChildren e1] removes [e1] children. *)
+    val removeAllChildren: 'a elt -> unit
 
     (** [removeSelf e] removes element e from the DOM. *)
     val removeSelf: 'a elt -> unit
 
-    (** The function [replaceAllChild e1 elts] replaces all the children of
+    (** The function [replaceAllChildren e1 elts] replaces all the children of
         [e1] by [elt]. *)
-    val replaceAllChild: 'a elt -> 'b elt list -> unit
+    val replaceAllChildren: 'a elt -> 'b elt list -> unit
 
     (** The function [addEventListener elt evt handler] attach the
         [handler] for the event [evt] on the element [elt]. See the
@@ -544,16 +544,16 @@ module Html5 : sig
 
       (** see [appendChild] *)
       val appendChild: ?before:'a elt -> 'b Id.id -> 'c elt -> unit
-      (** see [appendChilds] *)
-      val appendChilds: ?before:'a elt -> 'b Id.id ->  'c elt list -> unit
+      (** see [appendChildren] *)
+      val appendChildren: ?before:'a elt -> 'b Id.id ->  'c elt list -> unit
       (** see [removeChild] *)
       val removeChild: 'a Id.id -> 'b elt -> unit
       (** see [replaceChild] *)
       val replaceChild: 'a Id.id -> 'b elt -> 'c elt -> unit
-      (** see [removeAllChild] *)
-      val removeAllChild: 'a Id.id -> unit
-      (** see [replaceAllChild] *)
-      val replaceAllChild: 'a Id.id -> 'b elt list -> unit
+      (** see [removeAllChildren] *)
+      val removeAllChildren: 'a Id.id -> unit
+      (** see [replaceAllChildren] *)
+      val replaceAllChildren: 'a Id.id -> 'b elt list -> unit
 
       (** see [addEventListener] *)
       val addEventListener:
