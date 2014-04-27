@@ -127,9 +127,9 @@ type registrable = [ `Registrable | `Unregistrable ]
     - the type paremeter of subtype {!suff} states the kind
       of parameters it uses: suffix or not.
     - [ 'd] is the type of GET parameters names. See {!Eliom_parameter.param_name} and
-            form generation functions (e. g. {!Eliom_registration.Html5.get_form}).
+            form generation functions (e. g. {!Eliom_content.Html5.D.get_form}).
     - [ 'e] is the type of POST parameters names. See {!Eliom_parameter.param_name} and
-            form generation functions (e. g. {!Eliom_registration.Html5.post_form}).
+            form generation functions (e. g. {!Eliom_content.Html5.D.post_form}).
     - the type parameter of subtype {!registrable} tells if it is possible to
       register a handler on this service.
     - [ 'f] is an information on what the service returns.

@@ -60,7 +60,7 @@ open Ocsigen_extensions
 open Eliom_lib
 
 (** Abstract type for service parameters. See for example the
-    parameter [~get_param] of {!val:Eliom_service.service}.
+    parameter [~get_param] of {!val:Eliom_service.Http.service}.
 
     - [ 'a] is the type for the OCaml type of the
     parameter as expected by the service handler.
@@ -69,10 +69,10 @@ open Eliom_lib
     - [ 'c] is the type of the parameter name, usually an instance of
     {!Eliom_parameter.param_name}, as used by forms construction
     functions (e. g. the last parameter of
-    {!Eliom_registration.Html5.get_form}), and specialized form widget (see
+    {!Eliom_content.Html5.D.get_form}), and specialized form widget (see
     for example the section
-    {{!section:Eliom_registration.Html5.form_widgets}Form widget} of
-    {!Eliom_registration.HTML5}). )
+    {{!section:Eliom_content.Html5.D.form_widgets}Form widget} of
+    {!Eliom_content.HTML5.D}). )
 *)
 type ('a, +'b, +'c) params_type
 
