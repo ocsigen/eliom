@@ -3410,8 +3410,10 @@ let relink_test =
     ~get_params:Eliom_parameter.unit
     ()
 
-let global_list = Html5.Id.create_global_elt (ul [li [pcdata "First element"]])
-let local_list = Html5.D.ul [li [pcdata "First element"]]
+let global_list : [`Ul] Eliom_content.Html5.elt
+  = Html5.Id.create_global_elt (ul [li [pcdata "First element"]])
+let local_list : [`Ul] Eliom_content.Html5.elt
+  = Html5.D.ul [li [pcdata "First element"]]
 
 let relink_page () =
   ignore {unit{

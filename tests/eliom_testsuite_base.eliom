@@ -40,7 +40,7 @@ let testsuite ~name testsuite_tests =
        List.map (uncurry tests) testsuite_tests)
   )
 
-let test_logger =
+let test_logger : [`Div] Eliom_content.Html5.elt =
   Html5.Id.create_global_elt
     (Html5.D.(div ~a:[a_class ["test_logger"]]
                 [h4 [pcdata "Client logger"]]))

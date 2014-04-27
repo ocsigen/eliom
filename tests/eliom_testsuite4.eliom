@@ -74,13 +74,13 @@ let test_client_value_on_caml_service =
 (******************************************************************************)
 (*                          Binding of escaped nodes                          *)
 
-let free_global =
+let free_global : [`Div] Eliom_content.Html5.elt =
   Html5.(Id.create_global_elt (D.div F.([b [pcdata "Global (free)"]])))
-let bound_global =
+let bound_global : [`Div] Eliom_content.Html5.elt =
   Html5.(Id.create_global_elt (D.div F.([b [pcdata "Global (bound)"]])))
-let free_request =
+let free_request : [`Div] Eliom_content.Html5.elt =
   Html5.(D.div F.([b [pcdata "Request (free)"]]))
-let bound_request =
+let bound_request : [`Div] Eliom_content.Html5.elt =
   Html5.(D.div F.([b [pcdata "Request (bound)"]]))
 
 let other_service =
@@ -145,15 +145,15 @@ let node_bindings =
       ];
     ])
     (fun () ->
-      let local_bound_global =
+      let local_bound_global : [`Div] Eliom_content.Html5.elt =
         Html5.Id.create_named_elt ~id:node_bindings_local_global_id
           Html5.(D.div [F.(b [pcdata "Global (bound, local)"])])
       in
-      let local_bound_request =
+      let local_bound_request : [`Div] Eliom_content.Html5.elt =
         Html5.Id.create_named_elt ~id:node_bindings_local_request_id
           Html5.(D.div [F.(b [pcdata "Request (bound, local)"])])
       in
-       ignore {unit{
+      ignore {unit{
          debug "Adding free";
          Html5.Manip.appendChild %addenda %free_request;
          Html5.Manip.appendChild %addenda %free_global;
