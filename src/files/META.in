@@ -5,6 +5,7 @@ package "server" (
 
   description = "Eliom: server-side"
   version = "[distributed with Eliom]"
+  directory = "server"
 
   requires = "%%NAME%%.server.base,%%NAME%%.server.syntaxes"
   requires(syntax, preprocessor) = "%%NAME%%.server.syntaxes"
@@ -16,7 +17,6 @@ package "server" (
 
     description = "Eliom: server-side (without external syntax extension)"
     version = "[distributed with Eliom]"
-    directory = "server"
 
     requires = "%%DEPS%%"
     archive(byte) = "%%NAME%%.cma"
@@ -67,6 +67,7 @@ package "client" (
   requires = "%%NAME%%.client.base,%%NAME%%.client.syntaxes"
   requires(syntax, preprocessor) = "%%NAME%%.client.syntaxes"
   archive(syntax, preprocessor) = "-ignore dummy"
+  directory = "client"
 
   error(pkg_type_conv) = "Could not be loaded together with 'type_conv'. Please use %%NAME%%.client_tc instead."
 
@@ -74,14 +75,13 @@ package "client" (
 
     description = "Eliom: client-side (without external syntax extension)"
     version = "[distributed with Eliom]"
-    directory = "client"
 
     archive(byte) = "%%NAME%%_client.cma eliom_client_main.cmo"
 
     requires = "%%CDEPS%%"
     archive(syntax,preprocessor) = "-ignore dummy"
 
-    linkopts(javascript) = "+eliom.client/eliom_client.js"
+    linkopts(javascript) = "+%%NAME%%.client/eliom_client.js"
     linkopts(javascript) += "+js_of_ocaml/weak.js"
     linkopts(javascript) += "+js_of_ocaml/classlist.js"
 
