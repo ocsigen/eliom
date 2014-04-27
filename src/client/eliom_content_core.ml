@@ -58,8 +58,10 @@ module XmlNoWrap = struct
   let set_dom_node elt node = elt.elt <- Lazy.lazy_from_val (DomNode node)
   let get_node_id elt = elt.node_id
 
-  let make ?(id = NoId) elt = { elt = Lazy.lazy_from_val (TyXMLNode elt); node_id = id; }
-  let make_dom ?(id = NoId) node = { elt = Lazy.lazy_from_val (DomNode node); node_id = id; }
+  let make ?(id = NoId) elt =
+    { elt = Lazy.lazy_from_val (TyXMLNode elt); node_id = id; }
+  let make_dom ?(id = NoId) node =
+    { elt = Lazy.lazy_from_val (DomNode node); node_id = id; }
   let make_lazy ?(id = NoId) lazy_elt =
     let f () =
        let elt = Lazy.force lazy_elt in
@@ -69,7 +71,8 @@ module XmlNoWrap = struct
     { node_id = id; elt = Lazy.lazy_from_fun f }
   let force_lazy { elt } = ignore (Lazy.force elt)
 
-  let make_react ?(id = NoId) signal = {elt = Lazy.lazy_from_val (ReactNode signal); node_id = id; }
+  let make_react ?(id = NoId) signal =
+    {elt = Lazy.lazy_from_val (ReactNode signal); node_id = id; }
 
   let empty () = make Empty
 
@@ -169,14 +172,25 @@ struct
   type event_handler = Xml.event_handler
   type attrib = Xml.attrib
 
-  let float_attrib name s : attrib = name, Xml.RAReact (Xml_w.fmap (fun f -> Some (Xml.AFloat f)) s)
-  let int_attrib name s = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AInt f)) s)
-  let string_attrib name s = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStr f)) s)
-  let space_sep_attrib name s = name, Xml.RAReact (React.S.map (fun f -> Some(Xml.AStrL (Xml.Space,f))) s)
-  let comma_sep_attrib name s = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStrL (Xml.Comma,f))) s)
+  let float_attrib name s : attrib =
+    name, Xml.RAReact (Xml_w.fmap (fun f -> Some (Xml.AFloat f)) s)
+  let int_attrib name s =
+    name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AInt f)) s)
+  let string_attrib name s =
+    name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStr f)) s)
+  let space_sep_attrib name s =
+    name, Xml.RAReact (React.S.map (fun f -> Some(Xml.AStrL (Xml.Space,f))) s)
+  let comma_sep_attrib name s =
+    name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStrL (Xml.Comma,f))) s)
   let event_handler_attrib = Xml.event_handler_attrib
-  let uri_attrib name value = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStr (Eliom_lazy.force f))) value)
-  let uris_attrib name value = name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStrL (Xml.Space,Eliom_lazy.force f))) value)
+  let uri_attrib name value =
+    name, Xml.RAReact (React.S.map
+                         (fun f -> Some (Xml.AStr (Eliom_lazy.force f))) value)
+  let uris_attrib name value =
+    name,
+    Xml.RAReact (React.S.map
+                   (fun f -> Some (Xml.AStrL (Xml.Space,Eliom_lazy.force f)))
+                   value)
 
   type elt = Xml.elt
   type ename = Xml.ename

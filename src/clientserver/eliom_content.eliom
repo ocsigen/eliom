@@ -19,7 +19,11 @@
 
 
 {client{
+
   include Eliom_content_
+
+  open Html5
+  open Html5.F
 
   let force_link = ()
 
@@ -49,8 +53,6 @@ module Xml_react = struct
 
   let empty = Xmld.empty
   let comment = Xmld.comment
-  let pcdata v = Xmld.pcdata ""
-  let encodedpcdata v = Xmld.encodedpcdata ""
   let entity = Xmld.entity
   let leaf = Xmld.leaf
 
@@ -82,6 +84,27 @@ module Xml_react = struct
       }}
     in
     n
+
+  let pcdata signal_client_value =
+    let n = Xmld.node "span" [] in
+    let _ = {unit{
+        let n = To_dom.of_element (Html5.F.tot %((n : elt))) in
+        let current = ref n in
+        ignore (React.S.map
+                  (fun s ->
+                     let n3 = To_dom.of_element (pcdata s) in
+                     Js.Opt.iter
+                       ((!current)##parentNode)
+                       (fun parent -> parent##replaceChild(n3, !current) );
+                     current := n3
+                  )
+                  %((signal_client_value : string React.signal client_value)))
+      }}
+    in
+    n
+
+  let encodedpcdata = pcdata
+
 
   let cdata_style = Xmld.cdata_style
   let cdata_script = Xmld.cdata_script
