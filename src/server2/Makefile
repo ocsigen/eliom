@@ -86,7 +86,9 @@ ${INTF_NOP4:.mli=.odoc}: \
 
 include Makefile.filelist
 
-odoc: ${SSSDOC:.mli=.odoc}
+odoc: $(addprefix ../server/,${SDOC:.mli=.odoc}) \
+      $(addprefix ../clientserver/,${SSDOC:.mli=.odoc}) \
+      ${SSSDOC:.mli=.odoc}
 
 install: INSTALL_IMPL:=${IMPL} ${NATIMPL}
 install: raw_install

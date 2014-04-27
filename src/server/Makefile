@@ -10,6 +10,8 @@ OCAMLDEP := $(OCAMLFIND) ocamldep
 OCAMLDOC := ${OCAMLFIND} ocamldoc ${THREAD} -ppopt o -ppopt -printer
 ## WTF -ppopt options must be given in reverse order...
 
+INCLUDEDOC := -I ../server2 -I ../clientserver -I ../common -I ../common2
+
 all: byte opt
 
 ### Common files ###
@@ -54,7 +56,8 @@ ${INTF_NOP4:.mli=.cmi}: \
 	$(OCAMLC) ${LIBS} -c $<
 
 %.odoc: %.mli
-	${OCAMLDOC} -syntax camlp4o ${LIBS} -dump ${ODOC_DIR}$@ $<
+	${OCAMLDOC} -syntax camlp4o ${LIBS} ${INCLUDEDOC} -dump ${ODOC_DIR}$@ $<
+
 ${INTF_NOP4:.mli=.odoc}: \
 %.odoc: %.mli
 	${OCAMLDOC} ${LIBS} -dump ${ODOC_DIR}$@ $<
