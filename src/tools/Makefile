@@ -85,6 +85,6 @@ distclean: clean
 depend: .depend
 
 .depend: ${PREDEP}
-	$(OCAMLDEP) ${LIBS} *.ml *.mli > .depend
+	$(OCAMLDEP) -pp "camlp4o $(IOPTCOMP)/optcomp.cma" ${LIBS} *.ml *.mli > .depend
 
 include .depend
