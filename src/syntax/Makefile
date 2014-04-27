@@ -45,7 +45,9 @@ clean:
 distclean: clean
 	-rm -f *~ \#* .\#* .depend
 
-depend:
+depend: .depend
+
+.depend:
 	$(OCAMLDEP) ${LIBS} $(FILES) > .depend
 
--include .depend
+include .depend

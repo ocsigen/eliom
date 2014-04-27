@@ -177,6 +177,9 @@ $(DEPSDIR)/%.client: % | $(DEPSDIR)
 $(DEPSDIR):
 	mkdir $@
 
+_server/eliom_content.cmo: _server/eliom_content.cmi
+_client/eliom_content.cmo: _client/eliom_content.cmi
+
 ##----------------------------------------------------------------------
 ## Clean up
 
