@@ -53,19 +53,9 @@ package "ocamlbuild" (
   description = "Eliom ocamlbuild plugin (js_of_ocaml part included)"
   version = "[distributed with Eliom]"
   directory = "ocamlbuild"
-  requires = "%%NAME%%.ocamlbuild.core js_of_ocaml.ocamlbuild"
+  requires = "js_of_ocaml.ocamlbuild"
   archive(byte) = "ocamlbuild_eliom.cma"
   archive(byte, plugin) = "ocamlbuild_eliom.cma"
   archive(native) = "ocamlbuild_eliom.cmxa"
   archive(native, plugin) = "ocamlbuild_eliom.cmxs"
-
-  package "core" (
-    description = "Eliom ocamlbuild plugin (base)"
-    version = "[distributed with Eliom]"
-    requires = "ocamlbuild"
-    archive(byte) = "ocamlbuild_eliom_core.cma"
-    archive(byte, plugin) = "ocamlbuild_eliom_core.cma"
-    archive(native) = "ocamlbuild_eliom_core.cmxa"
-    archive(native, plugin) = "ocamlbuild_eliom_core.cmxs"
-  )
 )

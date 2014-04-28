@@ -2,13 +2,13 @@ include ../../Makefile.config
 
 NAME := ocamlbuild_eliom
 
-BYTE_TARGETS := $(NAME)_core.cma $(NAME).cma
-OPT_TARGETS := $(NAME)_core.cmxa $(NAME)_core.a $(NAME).cmxa $(NAME).a
+BYTE_TARGETS := $(NAME).cma
+OPT_TARGETS := $(NAME).cmxa $(NAME).a
 
-INTF := $(NAME)_core.cmi $(NAME).cmi
+INTF := $(NAME).cmi
 
 ifeq "${NATDYNLINK}" "YES"
-    OPT_TARGETS += $(NAME)_core.cmxs $(NAME).cmxs
+    OPT_TARGETS += $(NAME).cmxs
 endif
 
 DOC := ${INTF:.cmi=.odoc}
