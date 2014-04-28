@@ -62,7 +62,7 @@ module Xml_react = struct
     let n = Xmld.node ?a name [] in
     let _ = {unit{
         ignore (React.S.map
-                  (fun l -> Html5.Manip.replaceAllChildren
+                  (fun l -> Html5.Manip.replaceChildren
                       (Html5.F.tot %((n : elt)))
                       (Html5.F.totl l))
                 %((children_signal_client_value : elt list React.signal client_value)))
@@ -77,7 +77,7 @@ module Xml_react = struct
     let _ = {unit{
         ignore (React.S.map
                   (fun l ->
-                     Html5.Manip.replaceAllChildren
+                     Html5.Manip.replaceChildren
                        (Html5.F.tot %((n : elt)))
                        (Html5.F.totl l))
                 %((children_signal_client_value : elt list React.signal client_value)))

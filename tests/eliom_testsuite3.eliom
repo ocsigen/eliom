@@ -3702,7 +3702,7 @@ let tmpl1_update (id : Html5_types.flow5 Html5.Id.id) (contents : Html5_types.fl
   Eliom_client.onload
     (fun () ->
       debug "Update";
-      Html5.Manip.Named.replaceAllChildren %id %contents)
+      Html5.Manip.Named.replaceChildren %id %contents)
 }}
 
 module Tmpl_1 = Eliom_registration.Eliom_tmpl(My_appl)(struct

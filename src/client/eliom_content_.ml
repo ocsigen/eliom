@@ -94,12 +94,12 @@ module MakeManip
       let node2 = get_unique_node "replaceChild" elt2 in
       ignore(node1##replaceChild(node2, get_node elt3))
 
-    let raw_removeAllChildren node =
+    let raw_removeChildren node =
       let childrens = Dom.list_of_nodeList (node##childNodes) in
       List.iter (fun c -> ignore(node##removeChild(c))) childrens
 
-    let raw_replaceAllChildren node elts =
-      raw_removeAllChildren node;
+    let raw_replaceChildren node elts =
+      raw_removeChildren node;
       List.iter (fun elt -> ignore(node##appendChild(get_node elt))) elts
 
     let nth elt n =
@@ -144,13 +144,13 @@ module MakeManip
       let node1 = get_unique_node "replaceChild" elt1 in
       raw_replaceChild node1 elt2 elt3
 
-    let removeAllChildren elt =
-      let node = get_unique_node "removeAllChildren" elt in
-      raw_removeAllChildren node
+    let removeChildren elt =
+      let node = get_unique_node "removeChildren" elt in
+      raw_removeChildren node
 
-    let replaceAllChildren elt elts =
-      let node = get_unique_node "replaceAllChildren" elt in
-      raw_replaceAllChildren node elts
+    let replaceChildren elt elts =
+      let node = get_unique_node "replaceChildren" elt in
+      raw_replaceChildren node elts
 
     let childNodes elt =
       let node = get_unique_node "childNodes" elt in
@@ -187,13 +187,13 @@ module MakeManip
         let node1 = Id.get_element' id1 in
         raw_replaceChild node1 elt2 elt3
 
-      let removeAllChildren id =
+      let removeChildren id =
         let node = Id.get_element' id in
-        raw_removeAllChildren node
+        raw_removeChildren node
 
-      let replaceAllChildren id elts =
+      let replaceChildren id elts =
         let node = Id.get_element' id in
-        raw_replaceAllChildren node elts
+        raw_replaceChildren node elts
 
     end
 
