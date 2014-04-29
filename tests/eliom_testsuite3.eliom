@@ -813,7 +813,7 @@ let entity =
             ~title:"bug_entity"
             ~css:[["css";"bug_entity.css"]]
             Html5.F.(body [
-                h2 [pcdata "Welcome from Eliom's destillery!"];
+                h2 [pcdata "Welcome from Eliom's distillery!"];
                 entity "#946" ;
                 d
               ])))
