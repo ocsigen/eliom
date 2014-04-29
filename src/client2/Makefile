@@ -12,7 +12,7 @@ OCAMLDOC := $(OCAMLFIND) ocamldoc
 OCAMLDEP := $(OCAMLFIND) ocamldep
 OCAMLDOC := ${OCAMLFIND} ocamldoc -ppopt o -ppopt -printer
 
-all: eliom_client.cma eliom_client_main.cmo eliom_client_stubs.o
+all: eliom_client.cma eliom_client_main.cmo
 
 ### Common files ###
 
@@ -46,7 +46,7 @@ FILES := eliom_tools.ml \
 
 INTF_NOP4 :=
 
-eliom_client.cma: eliom_client_stubs.o ${CCFILES:.ml=.cmo} $(wildcard ../clientserver/_client/*.cmo) ${FILES:.ml=.cmo}
+eliom_client.cma: ${CCFILES:.ml=.cmo} $(wildcard ../clientserver/_client/*.cmo) ${FILES:.ml=.cmo}
 	${OCAMLMKLIB} -o ${@:.cma=} $^
 
 ##########

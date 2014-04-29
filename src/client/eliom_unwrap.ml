@@ -175,11 +175,11 @@ let late_unwrap_value unwrap_id predicate new_value =
   else
     Js.array_set occurrences_table unwrap_id all_occurrences'
 
-external raw_unmarshal_and_unwrap
+let raw_unmarshal_and_unwrap
   : (unwrapper -> _ -> _ option) ->
     (_ -> int -> _ -> int -> unit) ->
     string -> int -> _
-        = "caml_unwrap_value_from_string"
+        = Js.Unsafe.variable "caml_unwrap_value_from_string"
 
 let unwrap s i =
   if !Eliom_config.debug_timings then
