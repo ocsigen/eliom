@@ -47,7 +47,7 @@ FILES := eliom_tools.ml \
 INTF_NOP4 :=
 
 eliom_client.cma: ${CCFILES:.ml=.cmo} $(wildcard ../clientserver/_client/*.cmo) ${FILES:.ml=.cmo}
-	${OCAMLMKLIB} -o ${@:.cma=} $^
+	${OCAMLC} -a -o $@ $^
 
 ##########
 
