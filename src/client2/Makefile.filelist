@@ -10,9 +10,7 @@ NO_MLI := eliom_pervasives_base.cmi
 IMPL := ${PROJECTNAME}_client.cma      \
         ${PROJECTNAME}_client_main.cmo \
 
-STUBS := dlleliom_client.so \
-	 libeliom_client.a  \
-	 eliom_client.js    \
+STUBS := eliom_client.js
 
 NOP4 := eliom_lib.mli
 
