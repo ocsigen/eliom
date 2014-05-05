@@ -1137,8 +1137,8 @@ module Customize
       ?secure_session
       ?https
       ?priority
-      ~fallback
-      ~post_params
+      ~path
+      ~get_params
       ?error_handler
       f =
     R.register_put_service
@@ -1151,8 +1151,8 @@ module Customize
       ?secure_session
       ?https
       ?priority
-      ~fallback:(Eliom_service.untype_service_ fallback)
-      ~post_params
+      ~path
+      ~get_params
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
@@ -1172,7 +1172,7 @@ module Customize
       ?timeout
       ?https
       ~fallback
-      ~post_params
+      ~get_params
       ?error_handler
       f =
     R.register_put_coservice
@@ -1191,7 +1191,7 @@ module Customize
       ?timeout
       ?https
       ~fallback:(Eliom_service.untype_service_ fallback)
-      ~post_params
+      ~get_params
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
@@ -1211,7 +1211,7 @@ module Customize
       ?timeout
       ?keep_get_na_params
       ?https
-      ~post_params
+      ~get_params
       ?error_handler
       f =
     R.register_put_coservice'
@@ -1230,7 +1230,7 @@ module Customize
       ?timeout
       ?keep_get_na_params
       ?https
-      ~post_params
+      ~get_params
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
@@ -1244,8 +1244,8 @@ module Customize
       ?secure_session
       ?https
       ?priority
-      ~fallback
-      ~post_params
+      ~path
+      ~get_params
       ?error_handler
       f =
     R.register_delete_service
@@ -1258,8 +1258,8 @@ module Customize
       ?secure_session
       ?https
       ?priority
-      ~fallback:(Eliom_service.untype_service_ fallback)
-      ~post_params
+      ~path
+      ~get_params
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
@@ -1279,7 +1279,7 @@ module Customize
       ?timeout
       ?https
       ~fallback
-      ~post_params
+      ~get_params
       ?error_handler
       f =
     R.register_delete_coservice
@@ -1298,7 +1298,7 @@ module Customize
       ?timeout
       ?https
       ~fallback:(Eliom_service.untype_service_ fallback)
-      ~post_params
+      ~get_params
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
@@ -1318,7 +1318,7 @@ module Customize
       ?timeout
       ?keep_get_na_params
       ?https
-      ~post_params
+      ~get_params
       ?error_handler
       f =
     R.register_delete_coservice'
@@ -1337,7 +1337,7 @@ module Customize
       ?timeout
       ?keep_get_na_params
       ?https
-      ~post_params
+      ~get_params
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
@@ -1651,8 +1651,8 @@ module Ocaml = struct
       ?secure_session
       ?https
       ?priority
-      ~fallback
-      ~post_params
+      ~path
+      ~get_params
       ?error_handler
       f =
     Eliom_service.untype_service_ (M.register_put_service
@@ -1665,8 +1665,8 @@ module Ocaml = struct
                                       ?secure_session
                                       ?https
                                       ?priority
-                                      ~fallback:(Eliom_service.untype_service_ fallback)
-                                      ~post_params
+                                      ~path
+                                      ~get_params
                                       ?error_handler:(make_eh error_handler)
                                       (make_service_handler f))
 
@@ -1686,7 +1686,7 @@ module Ocaml = struct
       ?timeout
       ?https
       ~fallback
-      ~post_params
+      ~get_params
       ?error_handler
       f =
     Eliom_service.untype_service_ (M.register_put_coservice
@@ -1705,7 +1705,7 @@ module Ocaml = struct
                                       ?timeout
                                       ?https
                                       ~fallback:(Eliom_service.untype_service_ fallback)
-                                      ~post_params
+                                      ~get_params
                                       ?error_handler:(make_eh error_handler)
                                       (make_service_handler f))
 
@@ -1725,7 +1725,7 @@ module Ocaml = struct
       ?timeout
       ?keep_get_na_params
       ?https
-      ~post_params
+      ~get_params
       ?error_handler
       f =
     Eliom_service.untype_service_ (M.register_put_coservice'
@@ -1744,7 +1744,7 @@ module Ocaml = struct
                                       ?timeout
                                       ?keep_get_na_params
                                       ?https
-                                      ~post_params
+                                      ~get_params
                                       ?error_handler:(make_eh error_handler)
                                       (make_service_handler f))
 
@@ -1758,8 +1758,8 @@ module Ocaml = struct
       ?secure_session
       ?https
       ?priority
-      ~fallback
-      ~post_params
+      ~path
+      ~get_params
       ?error_handler
       f =
     Eliom_service.untype_service_ (M.register_delete_service
@@ -1772,8 +1772,8 @@ module Ocaml = struct
                                       ?secure_session
                                       ?https
                                       ?priority
-                                      ~fallback:(Eliom_service.untype_service_ fallback)
-                                      ~post_params
+                                      ~path
+                                      ~get_params
                                       ?error_handler:(make_eh error_handler)
                                       (make_service_handler f))
 
@@ -1793,7 +1793,7 @@ module Ocaml = struct
       ?timeout
       ?https
       ~fallback
-      ~post_params
+      ~get_params
       ?error_handler
       f =
     Eliom_service.untype_service_ (M.register_delete_coservice
@@ -1812,7 +1812,7 @@ module Ocaml = struct
                                       ?timeout
                                       ?https
                                       ~fallback:(Eliom_service.untype_service_ fallback)
-                                      ~post_params
+                                      ~get_params
                                       ?error_handler:(make_eh error_handler)
                                       (make_service_handler f))
 
@@ -1832,7 +1832,7 @@ module Ocaml = struct
       ?timeout
       ?keep_get_na_params
       ?https
-      ~post_params
+      ~get_params
       ?error_handler
       f =
     Eliom_service.untype_service_ (M.register_delete_coservice'
@@ -1851,7 +1851,7 @@ module Ocaml = struct
                                       ?timeout
                                       ?keep_get_na_params
                                       ?https
-                                      ~post_params
+                                      ~get_params
                                       ?error_handler:(make_eh error_handler)
                                       (make_service_handler f))
 

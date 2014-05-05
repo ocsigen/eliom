@@ -235,9 +235,11 @@ val register_put_service :
   post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
   ?error_handler:((string * exn) list -> page Lwt.t) ->
   ('get -> 'post -> page Lwt.t) ->
-  ('get, 'post, [> `Attached of
+  ('get, ((string * string) * (string * string) list) option *
+      string Ocsigen_stream.t option,
+    [> `Attached of
       ([> `Internal of 'kind ], [> `Put]) a_s ],
-   'tipo, 'gn, 'pn, [> `Registrable ], returnB)
+   'tipo, 'gn, no_param_name, [> `Registrable ], returnB)
     service
 
 (** Same as {!Eliom_service.Http.put_coservice} followed by {!register}. *)

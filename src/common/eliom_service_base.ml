@@ -458,7 +458,6 @@ let external_put_service
     ?rt
     ?keep_nl_params
     ~get_params
-    ~post_params
     () =
   external_service_
     ~prefix
@@ -466,7 +465,7 @@ let external_put_service
     ?keep_nl_params
     ~getorpost:`Put
     ~get_params
-    ~post_params
+    ~post_params:Eliom_parameter.raw_post_data
     ()
 
 let external_delete_service
@@ -475,7 +474,6 @@ let external_delete_service
     ?rt
     ?keep_nl_params
     ~get_params
-    ~post_params
     () =
   external_service_
     ~prefix
@@ -483,7 +481,7 @@ let external_delete_service
     ?keep_nl_params
     ~getorpost:`Delete
     ~get_params
-    ~post_params
+    ~post_params:Eliom_parameter.raw_post_data
     ()
 
 let external_service

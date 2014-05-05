@@ -823,13 +823,11 @@ let register_put_service pages
     ?secure_session
     ?https
     ?priority
-    ~fallback
-    ~post_params
+    ~path
+    ~get_params
     ?error_handler
     page_gen =
-  let u = Unsafe.put_service ?https ?priority
-    ~fallback:fallback ~post_params:post_params ()
-  in
+  let u = Unsafe.put_service ?https ?priority ~path ~get_params () in
   register pages
     ?scope
     ?options
@@ -857,7 +855,7 @@ let register_put_coservice pages
     ?timeout
     ?https
     ~fallback
-    ~post_params
+    ~get_params
     ?error_handler
     page_gen =
   let u =
@@ -866,7 +864,8 @@ let register_put_coservice pages
       ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
       ?csrf_secure
       ?max_use ?timeout ?https
-      ~fallback ~post_params () in
+      ~fallback ~get_params ()
+  in
   register pages
     ?scope
     ?options
@@ -894,7 +893,7 @@ let register_put_coservice' pages
     ?timeout
     ?keep_get_na_params
     ?https
-    ~post_params
+    ~get_params
     ?error_handler
     page_gen =
   let u =
@@ -907,7 +906,7 @@ let register_put_coservice' pages
       ?max_use
       ?timeout
       ?https
-      ~post_params ()
+      ~get_params ()
   in
   register pages
     ?scope
@@ -930,13 +929,11 @@ let register_delete_service pages
     ?secure_session
     ?https
     ?priority
-    ~fallback
-    ~post_params
+    ~path
+    ~get_params
     ?error_handler
     page_gen =
-  let u = Unsafe.delete_service ?https ?priority
-    ~fallback:fallback ~post_params:post_params ()
-  in
+  let u = Unsafe.delete_service ?https ?priority ~path ~get_params () in
   register pages
     ?scope
     ?options
@@ -964,7 +961,7 @@ let register_delete_coservice pages
     ?timeout
     ?https
     ~fallback
-    ~post_params
+    ~get_params
     ?error_handler
     page_gen =
   let u =
@@ -973,7 +970,7 @@ let register_delete_coservice pages
       ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
       ?csrf_secure
       ?max_use ?timeout ?https
-      ~fallback ~post_params () in
+      ~fallback ~get_params () in
   register pages
     ?scope
     ?options
@@ -1001,7 +998,7 @@ let register_delete_coservice' pages
     ?timeout
     ?keep_get_na_params
     ?https
-    ~post_params
+    ~get_params
     ?error_handler
     page_gen =
   let u =
@@ -1014,7 +1011,7 @@ let register_delete_coservice' pages
       ?max_use
       ?timeout
       ?https
-      ~post_params ()
+      ~get_params ()
   in
   register pages
     ?scope

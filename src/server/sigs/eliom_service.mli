@@ -93,19 +93,16 @@ val post_service :
 val put_service :
   ?rt:'rt rt ->
   ?https:bool ->
-  fallback: ('get, unit,
-             [`Attached of
-                 ([`Internal of
-                     ([ `Service | `Coservice ] as 'kind) ], [`Get]) a_s ],
-             [< suff] as 'tipo, 'gn, unit,
-             [< `Registrable ], returnT) service ->
+  path:Url.path ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   ?priority:int ->
-  post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
+  get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
   unit ->
-  ('get, 'post, [> `Attached of
+  ('get, ((string * string) * (string * string) list) option *
+      string Ocsigen_stream.t option,
+    [> `Attached of
       ([> `Internal of 'kind ], [> `Put]) a_s ],
-   'tipo, 'gn, 'pn, [> `Registrable ], returnB) service
+   'tipo, 'gn, no_param_name, [> `Registrable ], returnB) service
 
 (** The function [delete_service ~fallback ~post_params ()] creates a
     service similar to the [post_service] function, but for the
@@ -114,19 +111,16 @@ val put_service :
 val delete_service :
   ?rt:'rt rt ->
   ?https:bool ->
-  fallback: ('get, unit,
-             [`Attached of
-                 ([`Internal of
-                     ([ `Service | `Coservice ] as 'kind) ], [`Get]) a_s ],
-             [< suff] as 'tipo, 'gn, unit,
-             [< `Registrable ], returnT) service ->
+  path:Url.path ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   ?priority:int ->
-  post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
+  get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
   unit ->
-  ('get, 'post, [> `Attached of
+  ('get, ((string * string) * (string * string) list) option *
+      string Ocsigen_stream.t option,
+    [> `Attached of
       ([> `Internal of 'kind ], [> `Delete]) a_s ],
-   'tipo, 'gn, 'pn, [> `Registrable ], returnB) service
+   'tipo, 'gn, no_param_name, [> `Registrable ], returnB) service
 
 
 (** {3 Attached coservices} *)
@@ -240,18 +234,21 @@ val put_coservice :
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
-  fallback: ('get, unit, [ `Attached of
-                             ([`Internal of [<`Service | `Coservice] ],
-                              [`Get]) a_s ],
-             [< suff ] as 'tipo,
-             'gn, unit, [< `Registrable ], returnT) service ->
+  fallback:
+    (unit, ((string * string) * (string * string) list) option *
+        string Ocsigen_stream.t option,
+      [ `Attached of ([ `Internal of [ `Service ] ], [`Put]) a_s ],
+      [ `WithoutSuffix ] as 'tipo,
+      unit, no_param_name, [< registrable ], returnT) service ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
-  post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
+  get_params:
+    ('get,[`WithoutSuffix],'gn) params_type ->
   unit ->
-  ('get, 'post,
+  ('get, ((string * string) * (string * string) list) option *
+      string Ocsigen_stream.t option,
    [> `Attached of
       ([> `Internal of [> `Coservice] ], [> `Put]) a_s ],
-   'tipo, 'gn, 'pn, [> `Registrable ], returnB) service
+   'tipo, 'gn, no_param_name, [> `Registrable ], returnB) service
 
 (** [delete_coservice ~post_params] creates a service similar to
     [post_coservice], but handling the DELETE http method
@@ -265,18 +262,19 @@ val delete_coservice :
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
-  fallback: ('get, unit, [ `Attached of
-                             ([`Internal of [<`Service | `Coservice] ],
-                              [`Get]) a_s ],
-             [< suff ] as 'tipo,
-             'gn, unit, [< `Registrable ], returnT) service ->
+  fallback:
+    (unit, ((string * string) * (string * string) list) option *
+        string Ocsigen_stream.t option,
+      [ `Attached of ([ `Internal of [ `Service ] ], [`Delete]) a_s ],
+      [ `WithoutSuffix ] as 'tipo,
+      unit, no_param_name, [< registrable ], returnT) service ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
-  post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
   unit ->
-  ('get, 'post,
+  ('get, ((string * string) * (string * string) list) option *
+      string Ocsigen_stream.t option,
    [> `Attached of
       ([> `Internal of [> `Coservice] ], [> `Delete]) a_s ],
-   'tipo, 'gn, 'pn, [> `Registrable ], returnB) service
+   'tipo, 'gn, no_param_name, [> `Registrable ], returnB) service
 
 (** {3 Non attached coservices} *)
 
@@ -353,12 +351,13 @@ val put_coservice' :
   ?timeout:float ->
   ?https:bool ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
-  ?keep_get_na_params:bool ->
-  post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
+  get_params:
+    ('get, [`WithoutSuffix], 'gn) params_type ->
   unit ->
-  (unit, 'post,
-   [> `Nonattached of [> `Put ] na_s ],
-   [ `WithoutSuffix ], unit, 'pn, [> `Registrable ], returnB) service
+  ('get, ((string * string) * (string * string) list) option *
+          string Ocsigen_stream.t option,
+   [> `Nonattached of [> `Put] na_s ],
+   [`WithoutSuffix], 'gn, no_param_name, [> `Registrable ], returnB) service
 
 (** [delete_coservice' ~post_params] creates a service similar to
     [post_coservice'], but handling the DELETE http method
@@ -373,9 +372,10 @@ val delete_coservice' :
   ?timeout:float ->
   ?https:bool ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
-  ?keep_get_na_params:bool ->
-  post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
+  get_params:
+    ('get, [`WithoutSuffix], 'gn) params_type ->
   unit ->
-  (unit, 'post,
-   [> `Nonattached of [> `Delete ] na_s ],
-   [ `WithoutSuffix ], unit, 'pn, [> `Registrable ], returnB) service
+  ('get, ((string * string) * (string * string) list) option *
+          string Ocsigen_stream.t option,
+   [> `Nonattached of [> `Delete] na_s ],
+   [`WithoutSuffix], 'gn, no_param_name, [> `Registrable ], returnB) service
