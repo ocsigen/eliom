@@ -284,9 +284,9 @@ module Svg = struct
 
   end
 
-  type 'a elt = 'a F.elt
+  type +'a elt = 'a F.elt
   type 'a wrap = 'a F.wrap
-  type 'a attrib = 'a F.attrib
+  type +'a attrib = 'a F.attrib
   type uri = F.uri
 
   module Id = struct

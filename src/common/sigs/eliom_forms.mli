@@ -15,9 +15,9 @@ type form_content_elt
 type form_content_elt_list
 type form_attrib_t
 
-type 'a a_elt
-type 'a a_content_elt
-type 'a a_content_elt_list
+type +'a a_elt
+type +'a a_content_elt
+type +'a a_content_elt_list
 type a_attrib_t
 
 type link_elt

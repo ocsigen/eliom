@@ -1,0 +1,5 @@
+
+SSDOC := _server/eliom_content.mli
+
+
+CCDOC := _client/eliom_content.mli

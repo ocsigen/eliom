@@ -71,9 +71,9 @@ module Html5_forms(*  : sig *)
 
   module Html5_forms_base(Html5 : sig
     include Html5_sigs.T with module Xml := Xml and module Svg := Svg.D.Raw
-                         and type 'a elt = 'a Html5.elt
+                         and type +'a elt = 'a Html5.elt
                          and type 'a wrap = 'a
-                         and type 'a attrib = 'a Html5.attrib
+                         and type +'a attrib = 'a Html5.attrib
                          and type uri = Html5.uri
     include "sigs/eliom_html5_event_handler.mli"
     type ('a, 'b, 'c) lazy_plus =
@@ -90,10 +90,10 @@ module Html5_forms(*  : sig *)
     type form_content_elt_list = Html5_types.form_content Html5.elt list
     type form_attrib_t = Html5_types.form_attrib Html5.attrib list
 
-    type 'a a_elt = 'a Html5_types.a Html5.elt
-    type 'a a_elt_list = 'a Html5_types.a Html5.elt list
-    type 'a a_content_elt = 'a Html5.elt
-    type 'a a_content_elt_list = 'a Html5.elt list
+    type +'a a_elt = 'a Html5_types.a Html5.elt
+    type +'a a_elt_list = 'a Html5_types.a Html5.elt list
+    type +'a a_content_elt = 'a Html5.elt
+    type +'a a_content_elt_list = 'a Html5.elt list
     type a_attrib_t = Html5_types.a_attrib Html5.attrib list
 
     type link_elt = Html5_types.link Html5.elt

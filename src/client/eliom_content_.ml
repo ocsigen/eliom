@@ -25,7 +25,7 @@ module Xml = Xml
 
 module MakeManip
     (Kind : sig
-       type 'a elt
+       type +'a elt
        val tot: Xml.elt -> 'a elt
        val toelt: 'a elt -> Xml.elt
      end)
@@ -268,8 +268,8 @@ module Svg = struct
   module D = Svg.D
   module R = Svg.R
 
-  type 'a elt = 'a F.elt
-  type 'a attrib = 'a F.attrib
+  type +'a elt = 'a F.elt
+  type +'a attrib = 'a F.attrib
   type uri = F.uri
 
   module Of_dom = Eliom_content_core.Svg.Of_dom
@@ -344,8 +344,8 @@ module Html5 = struct
     let select = string_select ?required:None
   end
 
-  type 'a elt = 'a F.elt
-  type 'a attrib = 'a F.attrib
+  type +'a elt = 'a F.elt
+  type +'a attrib = 'a F.attrib
   type uri = F.uri
 
   module Custom_data = Eliom_content_core.Html5.Custom_data

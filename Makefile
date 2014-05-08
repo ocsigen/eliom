@@ -76,9 +76,9 @@ clean.local:
 	-rm -f $(PROJECTNAME)-*.tar.gz
 
 distclean: clean.local
-	${MAKE} -C src distclean
 	${MAKE} -C tests distclean
 	-${MAKE} -C doc clean
+	${MAKE} -C src distclean
 	-rm Makefile.config
 	-rm -f *~ \#* .\#*
 

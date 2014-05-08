@@ -1,9 +1,14 @@
 include ../../Makefile.config
 include ../../src/client/Makefile.filelist
+include ../../src/clientserver/Makefile.filelist
+include ../../src/client2/Makefile.filelist
 
 OCAMLDOC := ${OCAMLFIND} ocamldoc
 
-ODOC := $(addprefix ../../src/client/,$(DOC:.mli=.odoc))
+ODOC := $(addprefix ../../src/client/,$(DOC:.mli=.odoc)) \
+        $(addprefix ../../src/clientserver/,$(CCDOC:.mli=.odoc)) \
+        $(addprefix ../../src/client2/,$(CCCDOC:.mli=.odoc))
+
 
 doc: odoc api-html/index.html api-man/Eliom_lib.client.3o
 wikidoc: odoc api-wiki/index.wiki
@@ -33,6 +38,7 @@ install:
 	$(INSTALL) -m 755 api-man/* $(TEMPROOT)$(MANDIR)/man3
 
 clean:
+	-rm -f ${ODOC}
 	-rm -f api-html/*
 	-rm -f api-man/*
 	-rm -f api-wiki/*

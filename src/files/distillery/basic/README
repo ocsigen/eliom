@@ -46,6 +46,11 @@ eliom-distillery:
    Eliom application. You better don't touch it ;) See below for the
    relevant targets.
 
+ - local/
+   This directory is the target of the temporary installation of
+   your application, to test locally before doing a system-wide
+   installation in /. Do not put anything manually here.
+
  - README
    Not completely describable here.
 

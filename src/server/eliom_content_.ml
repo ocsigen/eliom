@@ -86,10 +86,10 @@ module Html_text = struct
     type form_content_elt_list = string
     type form_attrib_t = string
 
-    type 'a a_elt = string
-    type 'a a_elt_list = string
-    type 'a a_content_elt = string
-    type 'a a_content_elt_list = string
+    type +'a a_elt = string
+    type +'a a_elt_list = string
+    type +'a a_content_elt = string
+    type +'a a_content_elt_list = string
     type a_attrib_t = string
 
     type link_elt = string

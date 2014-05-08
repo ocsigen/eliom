@@ -48,6 +48,8 @@ TEST_PORT := 8080
 PREFIX := /usr/local/
 
 # Local folder for make test.* (must end with /)
+# Do not add files manually in this directory.
+# It is just here to test your installation before installing in /
 TEST_PREFIX := local/
 
 # The installation tree (relative to $(PREFIX) when

@@ -1,5 +1,6 @@
 include ../../Makefile.config
 include ../../src/server/Makefile.filelist
+include ../../src/clientserver/Makefile.filelist
 include ../../src/server2/Makefile.filelist
 
 OCAMLDOC := ${OCAMLFIND} ocamldoc
@@ -7,6 +8,10 @@ OCAMLDOC := ${OCAMLFIND} ocamldoc
 ODOC := $(addprefix ../../src/server/,$(SDOC:.mli=.odoc)) \
         $(addprefix ../../src/clientserver/,$(SSDOC:.mli=.odoc)) \
         $(addprefix ../../src/server2/,$(SSSDOC:.mli=.odoc))
+
+INCLUDEDOC := -I ../../src/server/ \
+              -I ../../src/clientserver/_server \
+              -I ../../src/server2/
 
 doc: odoc api-html/index.html api-man/Eliom_lib.server.3o
 wikidoc: odoc api-wiki/index.wiki
@@ -16,7 +21,7 @@ odoc:
 
 api-html/index.html: indexdoc ${ODOC}
 	mkdir -p api-html
-	$(OCAMLDOC) ${LIBS} -d api-html -intro indexdoc $(addprefix -load ,${ODOC}) -html
+	$(OCAMLDOC) ${LIBS} ${INCLUDEDOC} -d api-html -intro indexdoc $(addprefix -load ,${ODOC}) -html
 
 api-man/Eliom_lib.server.3o: ${ODOC}
 	mkdir -p api-man
@@ -36,6 +41,7 @@ install:
 	$(INSTALL) -m 755 api-man/* $(TEMPROOT)$(MANDIR)/man3
 
 clean:
+	-rm -f ${ODOC}
 	-rm -f api-html/*
 	-rm -f api-man/*
 	-rm -f api-wiki/*

@@ -45,7 +45,7 @@ let page_bad_param after_action gl pl =
            then
              [h2 [pcdata "Debugging information:"];
               (if after_action
-               then 
+               then
                  (p [pcdata "An action occurred successfully. But Eliom was unable to find the service for displaying the page."])
                else
                  (p [pcdata "Eliom was unable to find a service matching these parameters."]));
@@ -56,7 +56,7 @@ let page_bad_param after_action gl pl =
                           [em
                              ((pcdata n)::(pcdata "=")::(pcdata a)::
                                 (List.fold_right
-                                   (fun (n, a) b -> 
+                                   (fun (n, a) b ->
                                       (pcdata "&")::
                                         (pcdata n)::(pcdata "=")::(pcdata a)::b)
                                    l [pcdata "."]))]));
@@ -79,4 +79,3 @@ let page_session_expired  =
     (body
        [h1 [pcdata s]]
     )
-

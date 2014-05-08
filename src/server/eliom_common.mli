@@ -698,7 +698,7 @@ type eliom_js_page_data = {
   ejs_global_data: global_data option;
   ejs_request_data: request_data;
   (* Event handlers *)
-  ejs_event_handler_table: Eliom_content_core.Xml.event_handler_table;
+  ejs_event_handler_table: Eliom_lib.RawXML.event_handler_table;
   (* Session info *)
   ejs_sess_info: sess_info;
 }

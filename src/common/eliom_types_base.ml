@@ -18,7 +18,6 @@
  *)
 
 open Eliom_lib
-open Eliom_content_core
 
 (* Some types are different on client side: *)
 

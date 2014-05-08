@@ -18,7 +18,6 @@
  *)
 
 open Eliom_lib
-open Eliom_content_core
 
 type sitedata = {
     site_dir: Url.path;

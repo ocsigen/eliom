@@ -59,7 +59,8 @@ module Xml : sig
   val uri_of_fun: (unit -> string) -> uri
 
   (* Building ref tree. *)
-  type event_handler_table (* Concrete on client-side only. *)
+  type event_handler_table =
+      Eliom_lib.RawXML.event_handler_table (* Concrete on client-side only. *)
   type node_id
   val get_node_id : elt -> node_id
   val make_event_handler_table : elt -> event_handler_table
@@ -129,10 +130,10 @@ module Svg : sig
                              and type Xml.event_handler = Xml.event_handler
                              and type Xml.attrib = Xml.attrib
                              and type Xml.elt = Xml.elt
-			     and type 'a elt = 'a elt
+			     and type +'a elt = 'a elt
                              and type 'a Xml.wrap = 'a
                              and type 'a wrap = 'a
-                             and type 'a attrib = 'a attrib
+                             and type +'a attrib = 'a attrib
 		             and type uri = uri
 
     include module type of Raw
@@ -153,10 +154,10 @@ module Svg : sig
                              and type Xml.event_handler = Xml.event_handler
                              and type Xml.attrib = Xml.attrib
                              and type Xml.elt = Xml.elt
-			     and type 'a elt = 'a elt
+			     and type +'a elt = 'a elt
                              and type 'a Xml.wrap = 'a
                              and type 'a wrap = 'a
-                             and type 'a attrib = 'a attrib
+                             and type +'a attrib = 'a attrib
 		             and type uri = uri
 
     include module type of Raw
@@ -190,7 +191,7 @@ module Svg : sig
 
   (** SVG printer.
       See {% <<a_api project="tyxml" | module type Xml_sigs.Typed_simple_printer >> %}. *)
-  module Printer : Xml_sigs.Typed_simple_printer with type 'a elt := 'a F.elt
+  module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a F.elt
                                           and type doc := F.doc
 
 end
@@ -222,7 +223,7 @@ module Html5 : sig
                    with module Svg := Svg.F.Raw
                    with type +'a elt = 'a elt
                    and type 'a wrap = 'a
-                   and type 'a attrib = 'a attrib
+                   and type +'a attrib = 'a attrib
                    and type uri = uri
 
     include module type of Raw (*BB TODO Hide untyped [input]. *)
@@ -253,7 +254,7 @@ module Html5 : sig
                    with module Svg := Svg.D.Raw
                    with type +'a elt = 'a elt
                    and type 'a wrap = 'a
-                   and type 'a attrib = 'a attrib
+                   and type +'a attrib = 'a attrib
                    and type uri = uri
     include module type of Raw (*BB TODO Hide untyped [input]. *)
 
@@ -320,7 +321,7 @@ module Html5 : sig
 
   (** {{:http://dev.w3.org/html5/html-xhtml-author-guide/}"Polyglot"} HTML5 printer.
      See {% <<a_api project="tyxml" | module type Xml_sigs.Typed_simple_printer >> %}. *)
-  module Printer : Xml_sigs.Typed_simple_printer with type 'a elt := 'a F.elt
+  module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a F.elt
                                           and type doc := F.doc
 
 end

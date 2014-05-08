@@ -39,8 +39,8 @@ SFILES := eliom_wrap.ml eliom_lazy.ml \
 
 	 # eliom_extension_template.ml \
 
-INTF := eliom_lib.cmi               \
-        eliom_cookie.cmi             \
+SINTF := eliom_lib.cmi              \
+        eliom_cookie.cmi            \
         eliom_common.cmi            \
         eliom_types.cmi             \
         eliom_parameter.cmi         \
@@ -51,20 +51,20 @@ INTF := eliom_lib.cmi               \
         eliom_uri.cmi               \
         eliom_mkforms.cmi           \
         eliom_wrap.cmi              \
+        eliom_content_core.cmi      \
         \
         eliom_mkreg.cmi             \
         eliom_reference.cmi         \
         eliom_extension.cmi         \
         eliom_pervasives.cmi        \
 
-NO_MLI := eliom_pervasives_base.cmi
+SNO_MLI := eliom_pervasives_base.cmi
 
 # IMPL :
 
 # NATIMPL :=
 
+SNOP4  := eliom_lib.mli
 
-NOP4  := eliom_lib.mli
-
-SDOC := ${subst .cmi,.mli, ${filter-out ${NO_MLI}, ${INTF}}} \
+SDOC := ${subst .cmi,.mli, ${filter-out ${SNO_MLI}, ${SINTF}}} \
         eliom_types_base.mli

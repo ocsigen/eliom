@@ -23,7 +23,7 @@ CFILES := private/eliommod_jstable.ml \
 	 eliom_pervasives_base.ml \
 	 eliom_pervasives.ml
 
-INTF := eliom_lazy.cmi              \
+CINTF := eliom_lazy.cmi              \
         eliom_config.cmi            \
         eliom_lib.cmi               \
         eliom_parameter.cmi         \
@@ -37,13 +37,13 @@ INTF := eliom_lazy.cmi              \
         eliom_pervasives.cmi
 
 
-NO_MLI := eliom_pervasives_base.cmi
+CNO_MLI := eliom_pervasives_base.cmi
 
 # IMPL :=
 
 # STUBS :=
 
-NOP4 := eliom_lib.mli
+CNOP4 := eliom_lib.mli
 
-DOC := ${subst .cmi,.mli, ${filter-out ${NO_MLI}, ${INTF}}} \
-       eliom_types_base.mli
+CDOC := ${subst .cmi,.mli, ${filter-out ${CNO_MLI}, ${CINTF}}} \
+        eliom_types_base.mli

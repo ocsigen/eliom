@@ -92,16 +92,36 @@ module Xml_react = struct
         let current = ref n in
         ignore (React.S.map
                   (fun s ->
-                     let n3 = To_dom.of_element (pcdata s) in
+                     let n2 = To_dom.of_element (pcdata s) in
                      Js.Opt.iter
                        ((!current)##parentNode)
-                       (fun parent -> parent##replaceChild(n3, !current) );
-                     current := n3
+                       (fun parent -> parent##replaceChild(n2, !current) );
+                     current := n2
                   )
                   %((signal_client_value : string React.signal client_value)))
       }}
     in
     n
+
+(*
+  let reactive_node signal_client_value =
+    let n = Xmld.node "span" [] in
+    let _ = {unit{
+        let n = To_dom.of_element (Html5.F.tot %((n : elt))) in
+        let current = ref n in
+        ignore (React.S.map
+                  (fun e ->
+                     let n2 = To_dom.of_element e in
+                     Js.Opt.iter
+                       ((!current)##parentNode)
+                       (fun parent -> parent##replaceChild(n2, !current) );
+                     current := n2
+                  )
+                  %((signal_client_value : _ React.signal client_value)))
+      }}
+    in
+    n
+*)
 
   let encodedpcdata = pcdata
 

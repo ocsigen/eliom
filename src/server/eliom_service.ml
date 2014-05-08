@@ -18,7 +18,6 @@
  *)
 
 open Eliom_lib
-open Eliom_content_core
 
 open Eliom_state
 open Eliom_parameter

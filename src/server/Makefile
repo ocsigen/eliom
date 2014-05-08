@@ -1,5 +1,7 @@
 include ../../Makefile.config
 include Makefile.filelist
+include ../clientserver/Makefile.filelist
+include ../server2/Makefile.filelist
 
 LIBS     := -I private ${addprefix -package ,${SERVER_PACKAGE} ${SERVER_SYNTAX}} \
 	    -ppopt ../syntax/pa_include.cmo
@@ -10,7 +12,7 @@ OCAMLDEP := $(OCAMLFIND) ocamldep
 OCAMLDOC := ${OCAMLFIND} ocamldoc ${THREAD} -ppopt o -ppopt -printer
 ## WTF -ppopt options must be given in reverse order...
 
-INCLUDEDOC := -I ../server2 -I ../clientserver -I ../common -I ../common2
+INCLUDEDOC := -I ../server2 -I ../server2/extensions -I ../clientserver/_server -I .
 
 all: byte opt
 
@@ -36,7 +38,7 @@ ${COMMON_PFILES} ${COMMON_SFILES}: %: ../common/%
 
 FILES := ${SFILES}
 
-INTF_NOP4 :=
+SINTF_NOP4 :=
 
 byte:: ${FILES:.ml=.cmo}
 opt:: ${FILES:.ml=.cmx}
@@ -51,14 +53,20 @@ opt:: ${FILES:.ml=.cmx}
 
 %.cmi: %.mli
 	$(OCAMLC) -syntax camlp4o ${LIBS} -c $<
-${INTF_NOP4:.mli=.cmi}: \
+${SINTF_NOP4:.mli=.cmi}: \
 %.cmi: %.mli
 	$(OCAMLC) ${LIBS} -c $<
 
 %.odoc: %.mli
 	${OCAMLDOC} -syntax camlp4o ${LIBS} ${INCLUDEDOC} -dump ${ODOC_DIR}$@ $<
 
-${INTF_NOP4:.mli=.odoc}: \
+../clientserver/_server/%.odoc: ../clientserver/%.server.mli
+	-cp -f $< ${@:.odoc=.mli}
+	-ln -s ../sigs ../clientserver/_server
+	${OCAMLDOC} -syntax camlp4o ${LIBS} ${INCLUDEDOC} -dump ${ODOC_DIR}$@ ${@:.odoc=.mli}
+	-rm -f $< ${@:.odoc=.mli}
+
+${SINTF_NOP4:.mli=.odoc}: \
 %.odoc: %.mli
 	${OCAMLDOC} ${LIBS} -dump ${ODOC_DIR}$@ $<
 
@@ -67,9 +75,9 @@ ${INTF_NOP4:.mli=.odoc}: \
 
 ## INSTALL ##
 
-include Makefile.filelist
-
-odoc: ${SDOC:.mli=.odoc}
+odoc: ${SDOC:.mli=.odoc} \
+      $(addprefix ../clientserver/,${SSDOC:.mli=.odoc}) \
+      $(addprefix ../server2/,${SSSDOC:.mli=.odoc})
 
 install: INSTALL_IMPL:=${IMPL} ${NATIMPL}
 install: raw_install
@@ -82,7 +90,7 @@ install.opt: raw_install
 
 raw_install: ${PREDEP}
 	${INSTALL} -m 755 -d ${SERVERDIR}
-	${INSTALL} -m 644 ${INTF} ${INSTALL_IMPL} ${INTF:.cmi=.mli} ${SERVERDIR}
+	${INSTALL} -m 644 ${SINTF} ${INSTALL_IMPL} ${SINTF:.cmi=.mli} ${SERVERDIR}
 
 uninstall:
 	-rm -fr ${SERVERDIR}
@@ -129,7 +137,7 @@ private/.%.ml.deps: private/%.ml
 private/.%.mli.deps: private/%.mli
 	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
 
-$(patsubst %.mli,.%.mli.deps,${INTF_NOP4}): .%.mli.deps: %.mli
+$(patsubst %.mli,.%.mli.deps,${SINTF_NOP4}): .%.mli.deps: %.mli
 	 ${OCAMLDEP} ${LIBS} $< > $@
 
 include .depend

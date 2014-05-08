@@ -49,34 +49,46 @@ module Svg : sig
   (** Creation of {e f}unctional content (copy-able but not referable).
 
        See {% <<a_api project="tyxml" | module Svg_sigs.T >> %} *)
-  module F : module type of Eliom_content_core.Svg.F
+  module F : sig
+    type +'a elt = 'a Eliom_content_core.Svg.elt
+    type +'a attrib = 'a Eliom_content_core.Svg.attrib
+    include module type of Eliom_content_core.Svg.F
         with type Xml.uri = Xml.uri
         and type Xml.attrib = Xml.attrib
         and type Xml.elt = Xml.elt
-        with type +'a elt = 'a elt
-        and type 'a attrib = 'a attrib
+        with type +'a elt := 'a elt
+        and type +'a attrib := 'a attrib
         and type uri = uri
+  end
 
 
   (** Creation of content with {e D}OM semantics (referable
 
        See {% <<a_api project="tyxml" | module Svg_sigs.T >> %} *)
-  module D : module type of Eliom_content_core.Svg.D
+  module D : sig
+    type +'a elt = 'a Eliom_content_core.Svg.elt
+    type +'a attrib = 'a Eliom_content_core.Svg.attrib
+    include module type of Eliom_content_core.Svg.D
         with type Xml.uri = Xml.uri
         and type Xml.attrib = Xml.attrib
         and type Xml.elt = Xml.elt
-        with type +'a elt = 'a elt
-        and type 'a attrib = 'a attrib
+        with type +'a elt := 'a elt
+        and type +'a attrib := 'a attrib
         and type uri = uri
+  end
 
   (** Creation of reactive content *)
-  module R : module type of Eliom_content_core.Svg.R
+  module R : sig
+    type +'a elt = 'a Eliom_content_core.Svg.elt
+    type +'a attrib = 'a Eliom_content_core.Svg.attrib
+    include module type of Eliom_content_core.Svg.R
         with type Xml.uri = Xml.uri
         and type Xml.attrib = Xml.attrib
         and type Xml.elt = Xml.elt
-        with type +'a elt = 'a elt
-        and type 'a attrib = 'a attrib
+        with type +'a elt := 'a elt
+        and type +'a attrib := 'a attrib
         and type uri = uri
+  end
 
   (** Node identifiers *)
   module Id : sig
@@ -232,12 +244,14 @@ module Html5 : sig
     (** {2 Content creation}
         See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
     open Pervasives
+    type +'a elt = 'a Eliom_content_core.Html5.elt
+    type +'a attrib = 'a Eliom_content_core.Html5.attrib
     include module type of Eliom_content_core.Html5.F
         with type Xml.uri = Xml.uri
         and type Xml.attrib = Xml.attrib
         and type Xml.elt = Xml.elt
-        with type +'a elt = 'a elt
-        and type 'a attrib = 'a attrib
+        with type +'a elt := 'a elt
+        and type +'a attrib := 'a attrib
         and type uri = uri
 
     include "sigs/eliom_html5_forms.mli"
@@ -273,12 +287,14 @@ module Html5 : sig
     (** {2 Content creation}
         See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
     open Pervasives
+    type +'a elt = 'a Eliom_content_core.Html5.elt
+    type +'a attrib = 'a Eliom_content_core.Html5.attrib
     include module type of Eliom_content_core.Html5.D
         with type Xml.uri = Xml.uri
         and type Xml.attrib = Xml.attrib
         and type Xml.elt = Xml.elt
-        with type +'a elt = 'a elt
-        and type 'a attrib = 'a attrib
+        with type +'a elt := 'a elt
+        and type +'a attrib := 'a attrib
         and type uri = uri
     include "sigs/eliom_html5_forms.mli"
 
@@ -315,10 +331,14 @@ module Html5 : sig
   module R : sig
     (** {2 Content creation} *)
 
+    type +'a elt = 'a Eliom_content_core.Html5.elt
+    type +'a attrib = 'a Eliom_content_core.Html5.attrib
     (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} and
         the Eliom manual for more detail on
         {% <<a_manual chapter="reactive-dom"| Reactive HTML5 content >>%}. *)
     include module type of Eliom_content_core.Html5.R
+    with type +'a elt := 'a elt
+     and type +'a attrib := 'a attrib
   end
 
 

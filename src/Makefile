@@ -31,8 +31,8 @@ opt: metas conf
 	${MAKE} -C ocamlbuild $@
 
 odoc:
-	${MAKE} -C server2 odoc DEPEND=no
-	${MAKE} -C client2 odoc DEPEND=no
+	${MAKE} -C server odoc DEPEND=no
+	${MAKE} -C client odoc DEPEND=no
 
 clean:
 	${MAKE} -C server clean DEPEND=no

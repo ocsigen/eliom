@@ -1,5 +1,7 @@
 include ../../Makefile.config
 include Makefile.filelist
+include ../clientserver/Makefile.filelist
+include ../client2/Makefile.filelist
 
 LIBS     := -I private ${addprefix -package ,${CLIENT_PACKAGE} ${CLIENT_SYNTAX}} \
 	    -ppopt ../syntax/pa_include.cmo
@@ -9,6 +11,8 @@ OCAMLOPT := $(OCAMLFIND) ocamlopt ${OPTDBG}
 OCAMLDOC := $(OCAMLFIND) ocamldoc
 OCAMLDEP := $(OCAMLFIND) ocamldep
 OCAMLDOC := ${OCAMLFIND} ocamldoc -ppopt o -ppopt -printer
+
+INCLUDEDOC := -I ../client2 -I ../clientserver/_client -I .
 
 ### Common files ###
 
@@ -27,7 +31,7 @@ PREDEP := ${COMMON_FILES} ${COMMON_PFILES} ${COMMON_SFILES}
 
 FILES := ${CFILES}
 
-INTF_NOP4 :=
+CINTF_NOP4 :=
 
 
 ##########
@@ -52,13 +56,20 @@ ${COMMON_PFILES} ${COMMON_SFILES}: %: ../common/%
 
 %.cmi: %.mli
 	$(OCAMLC) -syntax camlp4o ${LIBS} -c $<
-${INTF_NOP4:.mli=.cmi}: \
+${CINTF_NOP4:.mli=.cmi}: \
 %.cmi: %.mli
 	$(OCAMLC) ${LIBS} -c $<
 
 %.odoc: %.mli
-	${OCAMLDOC} -syntax camlp4o ${LIBS} -dump ${ODOC_DIR}$@ $<
-${INTF_NOP4:.mli=.odoc}: \
+	${OCAMLDOC} -syntax camlp4o ${LIBS} ${INCLUDEDOC} -dump ${ODOC_DIR}$@ ${@:.odoc=.mli}
+
+../clientserver/_client/%.odoc: ../clientserver/%.client.mli
+	-cp -f $< ${@:.odoc=.mli}
+	-ln -s ../sigs ../clientserver/_client
+	${OCAMLDOC} -syntax camlp4o ${LIBS} ${INCLUDEDOC} -dump ${ODOC_DIR}$@ $<
+	-rm -f ${@:.odoc=.mli}
+
+${CINTF_NOP4:.mli=.odoc}: \
 %.odoc: %.mli
 	${OCAMLDOC} ${LIBS} -dump ${ODOC_DIR}$@ $<
 
@@ -72,13 +83,14 @@ ${INTF_NOP4:.mli=.odoc}: \
 
 ## INSTALL ##
 
-include Makefile.filelist
 
-odoc: ${DOC:.mli=.odoc}
+odoc: ${CDOC:.mli=.odoc} \
+      $(addprefix ../clientserver/,${CCDOC:.mli=.odoc}) \
+      $(addprefix ../client2/,${CCCDOC:.mli=.odoc})
 
 install: ${PREDEP}
 	${INSTALL} -m 755 -d ${CLIENTDIR}
-	${INSTALL} -m 644 ${INTF} ${IMPL} ${STUBS} ${DOC} ${CLIENTDIR}
+	${INSTALL} -m 644 ${CINTF} ${IMPL} ${STUBS} ${CDOC} ${CLIENTDIR}
 
 uninstall:
 	-rm -fr ${CLIENTDIR}
@@ -127,7 +139,7 @@ private/.%.ml.deps: private/%.ml
 private/.%.mli.deps: private/%.mli
 	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
 
-$(patsubst %.mli,.%.mli.deps,${INTF_NOP4}): .%.mli.deps: %.mli
+$(patsubst %.mli,.%.mli.deps,${CINTF_NOP4}): .%.mli.deps: %.mli
 	 ${OCAMLDEP} ${LIBS} $< > $@
 
 include .depend

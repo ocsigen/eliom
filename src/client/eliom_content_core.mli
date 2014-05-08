@@ -159,10 +159,10 @@ module Svg : sig
                             and type Xml.event_handler = Xml.event_handler
                             and type Xml.attrib = Xml.attrib
                             and type Xml.elt = Xml.elt
-                              with type 'a elt = 'a elt
+                              with type +'a elt = 'a elt
                               and type 'a Xml.wrap = 'a
                               and type 'a wrap = 'a
-                              and type 'a attrib = 'a attrib
+                              and type +'a attrib = 'a attrib
                               and type uri = uri
 
     (** See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
@@ -185,10 +185,10 @@ module Svg : sig
                             and type Xml.event_handler = Xml.event_handler
                             and type Xml.attrib = Xml.attrib
                             and type Xml.elt = Xml.elt
-                              with type 'a elt = 'a elt
+                              with type +'a elt = 'a elt
                               and type 'a Xml.wrap = 'a
                               and type 'a wrap = 'a
-                              and type 'a attrib = 'a attrib
+                              and type +'a attrib = 'a attrib
                               and type uri = uri
 
     (** See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
@@ -210,10 +210,10 @@ module Svg : sig
                             and type Xml.event_handler = Xml.event_handler
                             and type Xml.attrib = Xml.attrib
                             and type Xml.elt = Xml.elt
-                              with type 'a elt = 'a elt
+                              with type +'a elt = 'a elt
                               and type 'a Xml.wrap = 'a React.signal
                               and type 'a wrap = 'a React.signal
-                              and type 'a attrib = 'a attrib
+                              and type +'a attrib = 'a attrib
                               and type uri = uri
 
     (** See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
@@ -273,10 +273,10 @@ module Html5 : sig
                    and type Xml.attrib = Xml.attrib
                    and type Xml.elt = Xml.elt
                    with module Svg := Svg.F.Raw
-                   with type 'a elt = 'a elt
+                   with type +'a elt = 'a elt
                    and type 'a Xml.wrap = 'a
                    and type 'a wrap = 'a
-                   and type 'a attrib = 'a attrib
+                   and type +'a attrib = 'a attrib
                    and type uri = uri
 
     (** See {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
@@ -307,10 +307,10 @@ module Html5 : sig
                    and type Xml.attrib = Xml.attrib
                    and type Xml.elt = Xml.elt
                    and module Svg := Svg.D.Raw
-                   and type 'a elt = 'a elt
+                   and type +'a elt = 'a elt
                    and type 'a Xml.wrap = 'a
                    and type 'a wrap = 'a
-                   and type 'a attrib = 'a attrib
+                   and type +'a attrib = 'a attrib
                    and type uri = uri
     include module type of Raw (*BB TODO Hide untyped [input]. *)
 
@@ -345,10 +345,10 @@ module Html5 : sig
                    and type Xml.attrib = Xml.attrib
                    and type Xml.elt = Xml.elt
                    and module Svg := Svg.D.Raw
-                   and type 'a elt = 'a elt
+                   and type +'a elt = 'a elt
                    and type 'a Xml.wrap = 'a React.signal
                    and type 'a wrap = 'a React.signal
-                   and type 'a attrib = 'a attrib
+                   and type +'a attrib = 'a attrib
                    and type uri = uri
     include module type of Raw
   end

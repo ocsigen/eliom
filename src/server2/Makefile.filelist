@@ -1,5 +1,5 @@
 
-INTF := eliom_registration.cmi            \
+INTF := eliom_registration.cmi      \
         eliom_comet.cmi             \
         eliom_react.cmi             \
         eliom_bus.cmi               \
@@ -24,5 +24,4 @@ endif
 NOP4  := eliom_lib.mli
 
 SSSDOC := ${subst .cmi,.mli, ${filter-out ${NO_MLI}, ${INTF}}} \
-          ../common/eliom_types_base.mli  \
           eliom_comet_base.mli  \
