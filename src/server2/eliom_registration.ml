@@ -1209,7 +1209,6 @@ module Customize
       ?csrf_secure
       ?max_use
       ?timeout
-      ?keep_get_na_params
       ?https
       ~get_params
       ?error_handler
@@ -1228,7 +1227,6 @@ module Customize
       ?csrf_secure
       ?max_use
       ?timeout
-      ?keep_get_na_params
       ?https
       ~get_params
       ?error_handler:(make_eh error_handler)
@@ -1316,7 +1314,6 @@ module Customize
       ?csrf_secure
       ?max_use
       ?timeout
-      ?keep_get_na_params
       ?https
       ~get_params
       ?error_handler
@@ -1335,7 +1332,6 @@ module Customize
       ?csrf_secure
       ?max_use
       ?timeout
-      ?keep_get_na_params
       ?https
       ~get_params
       ?error_handler:(make_eh error_handler)
@@ -1723,7 +1719,6 @@ module Ocaml = struct
       ?csrf_secure
       ?max_use
       ?timeout
-      ?keep_get_na_params
       ?https
       ~get_params
       ?error_handler
@@ -1742,7 +1737,6 @@ module Ocaml = struct
                                       ?csrf_secure
                                       ?max_use
                                       ?timeout
-                                      ?keep_get_na_params
                                       ?https
                                       ~get_params
                                       ?error_handler:(make_eh error_handler)
@@ -1830,7 +1824,6 @@ module Ocaml = struct
       ?csrf_secure
       ?max_use
       ?timeout
-      ?keep_get_na_params
       ?https
       ~get_params
       ?error_handler
@@ -1849,7 +1842,6 @@ module Ocaml = struct
                                       ?csrf_secure
                                       ?max_use
                                       ?timeout
-                                      ?keep_get_na_params
                                       ?https
                                       ~get_params
                                       ?error_handler:(make_eh error_handler)

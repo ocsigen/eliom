@@ -225,22 +225,15 @@ val register_put_service :
   ?secure_session:bool ->
   ?https:bool ->
   ?priority:int ->
-  fallback:('get, unit,
-            [ `Attached of
-                ([ `Internal of
-                    ([ `Service | `Coservice ] as 'kind) ], [`Get]) a_s ],
-            [< suff ] as 'tipo, 'gn,
-            unit, [< `Registrable ], returnT)
-    service ->
-  post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+  path:Url.path ->
+  get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
   ?error_handler:((string * exn) list -> page Lwt.t) ->
-  ('get -> 'post -> page Lwt.t) ->
-  ('get, ((string * string) * (string * string) list) option *
-      string Ocsigen_stream.t option,
-    [> `Attached of
-      ([> `Internal of 'kind ], [> `Put]) a_s ],
-   'tipo, 'gn, no_param_name, [> `Registrable ], returnB)
-    service
+  ('get -> raw_post_data -> page Lwt.t) ->
+  ('get, raw_post_data,
+   [> `Attached of
+       ([> `Internal of [> `Service ] ], [> `Put]) a_s ],
+   'tipo, 'gn, no_param_name,
+   [> `Registrable ], returnB) service
 
 (** Same as {!Eliom_service.Http.put_coservice} followed by {!register}. *)
 val register_put_coservice :
@@ -258,19 +251,20 @@ val register_put_coservice :
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
-  fallback:('get, unit ,
-            [ `Attached of
-                ([ `Internal of [< `Service | `Coservice ] ], [`Get]) a_s ],
-            [< suff ] as 'tipo,
-            'gn, unit, [< `Registrable ], returnT)
+  fallback:(unit, raw_post_data,
+            [ `Attached of ([ `Internal of [ `Service ] ], [`Put]) a_s ],
+            [ `WithoutSuffix ] as 'tipo,
+            unit, no_param_name, [< registrable ], returnT)
     service ->
-  post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+  get_params:
+    ('get, [`WithoutSuffix], 'gn) params_type ->
   ?error_handler:((string * exn) list -> page Lwt.t) ->
-  ('get -> 'post -> page Lwt.t) ->
-  ('get, 'post,
+  ('get -> raw_post_data -> page Lwt.t) ->
+  ('get, raw_post_data,
    [> `Attached of
        ([> `Internal of [> `Coservice ] ], [> `Put]) a_s ],
-   'tipo, 'gn, 'pn, [> `Registrable ], returnB)
+   'tipo, 'gn, no_param_name,
+   [> `Registrable ], returnB)
     service
 
 (** Same as {!Eliom_service.Http.put_coservice'} followed by {!register}. *)
@@ -288,14 +282,14 @@ val register_put_coservice' :
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
-  ?keep_get_na_params:bool ->
   ?https:bool ->
-  post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+  get_params:
+    ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
   ?error_handler:((string * exn) list -> page Lwt.t) ->
-  (unit -> 'post -> page Lwt.t) ->
-  (unit, 'post, [> `Nonattached of [> `Put] na_s ],
-   [ `WithoutSuffix ], unit, 'pn,
-   [> `Registrable ], returnB)
+  ('get -> raw_post_data -> page Lwt.t) ->
+  ('get, raw_post_data,
+   [> `Nonattached of [> `Put] na_s ],
+   'tipo, 'gn, no_param_name, [> `Registrable ], returnB)
     service
 
 (** Same as {!Eliom_service.Http.delete_service} followed by {!register}. *)
@@ -309,20 +303,15 @@ val register_delete_service :
   ?secure_session:bool ->
   ?https:bool ->
   ?priority:int ->
-  fallback:('get, unit,
-            [ `Attached of
-                ([ `Internal of
-                    ([ `Service | `Coservice ] as 'kind) ], [`Get]) a_s ],
-            [< suff ] as 'tipo, 'gn,
-            unit, [< `Registrable ], returnT)
-    service ->
-  post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+  path:Url.path ->
+  get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
   ?error_handler:((string * exn) list -> page Lwt.t) ->
-  ('get -> 'post -> page Lwt.t) ->
-  ('get, 'post, [> `Attached of
-      ([> `Internal of 'kind ], [> `Delete]) a_s ],
-   'tipo, 'gn, 'pn, [> `Registrable ], returnB)
-    service
+  ('get -> raw_post_data -> page Lwt.t) ->
+  ('get, raw_post_data,
+   [> `Attached of
+       ([> `Internal of [> `Service ] ], [> `Delete]) a_s ],
+   'tipo, 'gn, no_param_name,
+   [> `Registrable ], returnB) service
 
 (** Same as {!Eliom_service.Http.delete_coservice} followed by {!register}. *)
 val register_delete_coservice :
@@ -340,19 +329,20 @@ val register_delete_coservice :
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
-  fallback:('get, unit ,
-            [ `Attached of
-                ([ `Internal of [< `Service | `Coservice ] ], [`Get]) a_s ],
-            [< suff ] as 'tipo,
-            'gn, unit, [< `Registrable ], returnT)
+  fallback:(unit, raw_post_data,
+            [ `Attached of ([ `Internal of [ `Service ] ], [`Delete]) a_s ],
+            [ `WithoutSuffix ] as 'tipo,
+            unit, no_param_name, [< registrable ], returnT)
     service ->
-  post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+  get_params:
+    ('get, [`WithoutSuffix], 'gn) params_type ->
   ?error_handler:((string * exn) list -> page Lwt.t) ->
-  ('get -> 'post -> page Lwt.t) ->
-  ('get, 'post,
+  ('get -> raw_post_data -> page Lwt.t) ->
+  ('get, raw_post_data,
    [> `Attached of
        ([> `Internal of [> `Coservice ] ], [> `Delete]) a_s ],
-   'tipo, 'gn, 'pn, [> `Registrable ], returnB)
+   'tipo, 'gn, no_param_name,
+   [> `Registrable ], returnB)
     service
 
 (** Same as {!Eliom_service.Http.delete_coservice'} followed by {!register}. *)
@@ -370,14 +360,14 @@ val register_delete_coservice' :
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
-  ?keep_get_na_params:bool ->
   ?https:bool ->
-  post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+  get_params:
+    ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
   ?error_handler:((string * exn) list -> page Lwt.t) ->
-  (unit -> 'post -> page Lwt.t) ->
-  (unit, 'post, [> `Nonattached of [> `Delete] na_s ],
-   [ `WithoutSuffix ], unit, 'pn,
-   [> `Registrable ], returnB)
+  ('get -> raw_post_data -> page Lwt.t) ->
+  ('get, raw_post_data,
+   [> `Nonattached of [> `Delete] na_s ],
+   'tipo, 'gn, no_param_name, [> `Registrable ], returnB)
     service
 
 (** {2 Low-level function } *)

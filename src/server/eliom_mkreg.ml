@@ -891,7 +891,6 @@ let register_put_coservice' pages
     ?csrf_secure
     ?max_use
     ?timeout
-    ?keep_get_na_params
     ?https
     ~get_params
     ?error_handler
@@ -902,7 +901,6 @@ let register_put_coservice' pages
       ?csrf_safe
       ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
       ?csrf_secure
-      ?keep_get_na_params
       ?max_use
       ?timeout
       ?https
@@ -996,7 +994,6 @@ let register_delete_coservice' pages
     ?csrf_secure
     ?max_use
     ?timeout
-    ?keep_get_na_params
     ?https
     ~get_params
     ?error_handler
@@ -1007,7 +1004,6 @@ let register_delete_coservice' pages
       ?csrf_safe
       ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
       ?csrf_secure
-      ?keep_get_na_params
       ?max_use
       ?timeout
       ?https

@@ -906,60 +906,81 @@ let post_coservice'
 (* Create a PUT service with post parameters in the server *)
 
 
-let put_service_aux ~https ~fallback
-    ?(keep_nl_params = `None) ?(priority = default_priority) ~post_params =
-(* Create a main service (not a coservice) internal, post only *)
-(* ici faire une vérification "duplicate parameter" ? *)
-  let `Attached k1 = fallback.kind in
-  let `Internal k = k1.att_kind in
-  {
-   pre_applied_parameters = fallback.pre_applied_parameters;
-   get_params_type = fallback.get_params_type;
-   post_params_type = post_params;
-   max_use= None;
-   timeout= None;
-   kind = `Attached
-     {prefix = k1.prefix;
-      subpath = k1.subpath;
-      fullpath = k1.fullpath;
-      att_kind = `Internal k;
-      get_or_post = `Put;
-      get_name = k1.get_name;
-      post_name = Eliom_common.SAtt_no;
-      redirect_suffix = false;
-      priority;
-    };
-   https = https;
-   keep_nl_params = keep_nl_params;
-   send_appl_content = XNever;
-   service_mark = service_mark ();
- }
-
-let put_service ?rt ?(https = false) ~fallback
-    ?keep_nl_params ?priority ~post_params () =
-  (* PUT service without POST parameters means
-     that the service will answer to a PUT request only.
-    *)
-  let `Attached k1 = fallback.kind in
-  let `Internal kind = k1.att_kind in
-  let path = k1.subpath in
+let raw_post_data_service_aux ~getorpost
+    ~https
+    ~path
+    ?redirect_suffix
+    ?keep_nl_params
+    ?priority
+    ~get_params =
   let sp = Eliom_common.get_sp_option () in
-  let u = put_service_aux
-    ~https ~fallback ?keep_nl_params ?priority ~post_params in
   match sp with
   | None ->
       (match Eliom_common.global_register_allowed () with
       | Some get_current_sitedata ->
-          Eliom_common.add_unregistered (get_current_sitedata ()) path;
+          let sitedata = get_current_sitedata () in
+          let path =
+            Url.remove_internal_slash
+              (Url.change_empty_list
+                 (Url.remove_slash_at_beginning path))
+          in
+          let u = service_aux_aux
+            ~https
+            ~prefix:""
+            ~path
+            ~site_dir: (Eliom_common.get_site_dir sitedata)
+            ~kind:(`Internal `Service)
+            ~getorpost
+            ?redirect_suffix
+            ?keep_nl_params
+            ?priority
+            ~get_params
+            ~post_params:Eliom_parameter.raw_post_data
+            ()
+          in
+          Eliom_common.add_unregistered sitedata path;
           u
       | None ->
-          if kind = `Service
-          then
-            raise (Eliom_common.Eliom_site_information_not_available
-                     "put_service")
-          else u)
-  | _ -> u
-(* if the fallback is a coservice, do we get a coservice or a service? *)
+          raise (Eliom_common.Eliom_site_information_not_available
+                   "service"))
+  | Some sp ->
+      let path =
+        Url.remove_internal_slash
+          (Url.change_empty_list
+             (Url.remove_slash_at_beginning path))
+      in
+      service_aux_aux
+        ~https
+        ~prefix:""
+        ~path
+        ~site_dir:(Eliom_request_info.get_site_dir_sp sp)
+        ~kind:(`Internal `Service)
+        ~getorpost
+        ?redirect_suffix
+        ?keep_nl_params
+        ?priority
+        ~get_params
+        ~post_params:Eliom_parameter.raw_post_data
+        ()
+
+let put_service
+    ?rt
+    ?(https = false)
+    ~path
+    ?keep_nl_params
+    ?priority
+    ~get_params
+    () =
+  let suffix = contains_suffix get_params in
+  raw_post_data_service_aux ~getorpost:`Put
+    ~https
+    ~path:(match suffix with
+             | None -> path
+             | _ -> path@[Eliom_common.eliom_suffix_internal_name])
+    ?keep_nl_params
+    ?redirect_suffix:suffix
+    ?priority
+    ~get_params
 
 let put_coservice
     ?rt
@@ -972,22 +993,20 @@ let put_coservice
     ?(https = false)
     ~fallback
     ?keep_nl_params
-    ~post_params
+    ~get_params
     () =
   let csrf_scope = default_csrf_scope csrf_scope in
-  let `Attached k1 = fallback.kind in
+  let `Attached k = fallback.kind in
   (* (match Eliom_common.global_register_allowed () with
-  | Some _ -> Eliom_common.add_unregistered k1.path;
-  | _ -> ()); *)
+     | Some _ -> Eliom_common.add_unregistered k.path;
+     | _ -> ()); *)
   {fallback with
-   post_params_type = post_params;
    max_use= max_use;
    timeout= timeout;
+   get_params_type = add_pref_params Eliom_common.co_param_prefix get_params;
    kind = `Attached
-     {k1 with
-        att_kind = `Internal `Coservice;
-        get_or_post = `Put;
-        post_name =
+     {k with
+      get_name =
          (if csrf_safe
           then Eliom_common.SAtt_csrf_safe (uniqueid (),
                                             (csrf_scope:>Eliom_common.user_scope),
@@ -996,17 +1015,15 @@ let put_coservice
             (match name with
                | None -> Eliom_common.SAtt_anon (new_state ())
                | Some name -> Eliom_common.SAtt_named name));
+        att_kind = `Internal `Coservice;
+        get_or_post = `Put;
      };
-   https = https;
+   https = https || fallback.https;
    keep_nl_params = match keep_nl_params with
      | None -> fallback.keep_nl_params | Some k -> k;
  }
-(* It is not possible to make a post_coservice function
-   with an optional ?fallback parameter
-   because the type 'get of the result depends on the 'get of the
-   fallback. Or we must impose 'get = unit ...
- *)
-
+(* Warning: here no GET parameters for the fallback.
+   Preapply services if you want fallbacks with GET parameters *)
 
 let put_coservice'
     ?rt
@@ -1014,100 +1031,70 @@ let put_coservice'
     ?(csrf_safe = false)
     ?csrf_scope
     ?csrf_secure
-    ?max_use ?timeout
+    ?max_use
+    ?timeout
     ?(https = false)
-    ?(keep_nl_params = `All)
-    ?(keep_get_na_params = true)
-    ~post_params () =
+    ?(keep_nl_params = `Persistent)
+    ~get_params
+    () =
   let csrf_scope = default_csrf_scope csrf_scope in
-  (* match Eliom_common.global_register_allowed () with
-  | Some _ -> Eliom_common.add_unregistered None
-  | _ -> () *)
-  {
+  (* (match Eliom_common.global_register_allowed () with
+  | Some _ -> Eliom_common.add_unregistered_na n;
+  | _ -> () (* Do we accept unregistered non-attached coservices? *)); *)
+  (* (* Do we accept unregistered non-attached named coservices? *)
+     match sp with
+     | None ->
+     ...
+  *)
+        {
 (*VVV allow timeout and max_use for named coservices? *)
-    max_use= max_use;
-    timeout= timeout;
-    pre_applied_parameters = String.Table.empty, [];
-    get_params_type = unit;
-    post_params_type = post_params;
-    kind = `Nonattached
-      {na_name =
-          (if csrf_safe
-           then Eliom_common.SNa_post_csrf_safe (uniqueid (),
-                                                 (csrf_scope:>Eliom_common.user_scope),
-                                                 csrf_secure)
-           else
-             (match name with
-                | None ->
-                    Eliom_common.SNa_post' (new_state ())
-                | Some name -> Eliom_common.SNa_post_ name));
-       na_kind = `Put, keep_get_na_params;
-      };
-    https = https;
-    keep_nl_params = keep_nl_params;
-    send_appl_content = XNever;
-    service_mark = service_mark ();
-  }
+          max_use= max_use;
+          timeout= timeout;
+          pre_applied_parameters = String.Table.empty, [];
+          get_params_type =
+            add_pref_params Eliom_common.na_co_param_prefix get_params;
+          post_params_type = Eliom_parameter.raw_post_data;
+          kind = `Nonattached
+            {na_name =
+                (if csrf_safe
+                 then Eliom_common.SNa_get_csrf_safe (uniqueid (),
+                                                      (csrf_scope:>Eliom_common.user_scope),
+                                                      csrf_secure)
+                 else
+                   match name with
+                     | None -> Eliom_common.SNa_get' (new_state ())
+                     | Some name -> Eliom_common.SNa_get_ name);
+             na_kind = `Put, true;
+            };
+          https = https;
+          keep_nl_params = keep_nl_params;
+          send_appl_content = XNever;
+	  service_mark = service_mark ();
+        }
+
 
 
 (****************************************************************************)
 (* Create a DELETE service with post parameters in the server *)
 
-
-let delete_service_aux ~https ~fallback
-    ?(keep_nl_params = `None) ?(priority = default_priority) ~post_params =
-(* Create a main service (not a coservice) internal, post only *)
-(* ici faire une vérification "duplicate parameter" ? *)
-  let `Attached k1 = fallback.kind in
-  let `Internal k = k1.att_kind in
-  {
-   pre_applied_parameters = fallback.pre_applied_parameters;
-   get_params_type = fallback.get_params_type;
-   post_params_type = post_params;
-   max_use= None;
-   timeout= None;
-   kind = `Attached
-     {prefix = k1.prefix;
-      subpath = k1.subpath;
-      fullpath = k1.fullpath;
-      att_kind = `Internal k;
-      get_or_post = `Delete;
-      get_name = k1.get_name;
-      post_name = Eliom_common.SAtt_no;
-      redirect_suffix = false;
-      priority;
-    };
-   https = https;
-   keep_nl_params = keep_nl_params;
-   send_appl_content = XNever;
-   service_mark = service_mark ();
- }
-
-let delete_service ?rt ?(https = false) ~fallback
-    ?keep_nl_params ?priority ~post_params () =
-  (* DELETE service without POST parameters means
-     that the service will answer to a DELETE request only.
-    *)
-  let `Attached k1 = fallback.kind in
-  let `Internal kind = k1.att_kind in
-  let path = k1.subpath in
-  let sp = Eliom_common.get_sp_option () in
-  let u = delete_service_aux
-    ~https ~fallback ?keep_nl_params ?priority ~post_params in
-  match sp with
-  | None ->
-      (match Eliom_common.global_register_allowed () with
-      | Some get_current_sitedata ->
-          Eliom_common.add_unregistered (get_current_sitedata ()) path;
-          u
-      | None ->
-          if kind = `Service
-          then
-            raise (Eliom_common.Eliom_site_information_not_available
-                     "delete_service")
-          else u)
-  | _ -> u
-(* if the fallback is a coservice, do we get a coservice or a service? *)
+let delete_service
+    ?rt
+    ?(https = false)
+    ~path
+    ?keep_nl_params
+    ?priority
+    ~get_params
+    () =
+  let suffix = contains_suffix get_params in
+  raw_post_data_service_aux ~getorpost:`Delete
+    ~https
+    ~path:(match suffix with
+             | None -> path
+             | _ -> path@[Eliom_common.eliom_suffix_internal_name])
+    ?keep_nl_params
+    ?redirect_suffix:suffix
+    ?priority
+    ~get_params
 
 let delete_coservice
     ?rt
@@ -1120,22 +1107,20 @@ let delete_coservice
     ?(https = false)
     ~fallback
     ?keep_nl_params
-    ~post_params
+    ~get_params
     () =
   let csrf_scope = default_csrf_scope csrf_scope in
-  let `Attached k1 = fallback.kind in
+  let `Attached k = fallback.kind in
   (* (match Eliom_common.global_register_allowed () with
-  | Some _ -> Eliom_common.add_unregistered k1.path;
-  | _ -> ()); *)
+     | Some _ -> Eliom_common.add_unregistered k.path;
+     | _ -> ()); *)
   {fallback with
-   post_params_type = post_params;
    max_use= max_use;
    timeout= timeout;
+   get_params_type = add_pref_params Eliom_common.co_param_prefix get_params;
    kind = `Attached
-     {k1 with
-        att_kind = `Internal `Coservice;
-        get_or_post = `Delete;
-        post_name =
+     {k with
+      get_name =
          (if csrf_safe
           then Eliom_common.SAtt_csrf_safe (uniqueid (),
                                             (csrf_scope:>Eliom_common.user_scope),
@@ -1144,17 +1129,15 @@ let delete_coservice
             (match name with
                | None -> Eliom_common.SAtt_anon (new_state ())
                | Some name -> Eliom_common.SAtt_named name));
+        att_kind = `Internal `Coservice;
+        get_or_post = `Delete;
      };
-   https = https;
+   https = https || fallback.https;
    keep_nl_params = match keep_nl_params with
      | None -> fallback.keep_nl_params | Some k -> k;
  }
-(* It is not possible to make a post_coservice function
-   with an optional ?fallback parameter
-   because the type 'get of the result depends on the 'get of the
-   fallback. Or we must impose 'get = unit ...
- *)
-
+(* Warning: here no GET parameters for the fallback.
+   Preapply services if you want fallbacks with GET parameters *)
 
 let delete_coservice'
     ?rt
@@ -1162,38 +1145,43 @@ let delete_coservice'
     ?(csrf_safe = false)
     ?csrf_scope
     ?csrf_secure
-    ?max_use ?timeout
+    ?max_use
+    ?timeout
     ?(https = false)
-    ?(keep_nl_params = `All)
-    ?(keep_get_na_params = true)
-    ~post_params () =
+    ?(keep_nl_params = `Persistent)
+    ~get_params
+    () =
   let csrf_scope = default_csrf_scope csrf_scope in
-  (* match Eliom_common.global_register_allowed () with
-  | Some _ -> Eliom_common.add_unregistered None
-  | _ -> () *)
-  {
+  (* (match Eliom_common.global_register_allowed () with
+  | Some _ -> Eliom_common.add_unregistered_na n;
+  | _ -> () (* Do we accept unregistered non-attached coservices? *)); *)
+  (* (* Do we accept unregistered non-attached named coservices? *)
+     match sp with
+     | None ->
+     ...
+  *)
+        {
 (*VVV allow timeout and max_use for named coservices? *)
-    max_use= max_use;
-    timeout= timeout;
-    pre_applied_parameters = String.Table.empty, [];
-    get_params_type = unit;
-    post_params_type = post_params;
-    kind = `Nonattached
-      {na_name =
-          (if csrf_safe
-           then Eliom_common.SNa_post_csrf_safe (uniqueid (),
-                                                 (csrf_scope:>Eliom_common.user_scope),
-                                                 csrf_secure)
-           else
-             (match name with
-                | None ->
-                    Eliom_common.SNa_post' (new_state ())
-                | Some name -> Eliom_common.SNa_post_ name));
-       na_kind = `Delete, keep_get_na_params;
-      };
-    https = https;
-    keep_nl_params = keep_nl_params;
-    send_appl_content = XNever;
-    service_mark = service_mark ();
-  }
-
+          max_use= max_use;
+          timeout= timeout;
+          pre_applied_parameters = String.Table.empty, [];
+          get_params_type =
+            add_pref_params Eliom_common.na_co_param_prefix get_params;
+          post_params_type = Eliom_parameter.raw_post_data;
+          kind = `Nonattached
+            {na_name =
+                (if csrf_safe
+                 then Eliom_common.SNa_get_csrf_safe (uniqueid (),
+                                                      (csrf_scope:>Eliom_common.user_scope),
+                                                      csrf_secure)
+                 else
+                   match name with
+                     | None -> Eliom_common.SNa_get' (new_state ())
+                     | Some name -> Eliom_common.SNa_get_ name);
+             na_kind = `Delete, true;
+            };
+          https = https;
+          keep_nl_params = keep_nl_params;
+          send_appl_content = XNever;
+	  service_mark = service_mark ();
+        }

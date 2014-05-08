@@ -51,8 +51,7 @@ val external_put_service :
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
   unit ->
-  ('get, ((string * string) * (string * string) list) option *
-      string Ocsigen_stream.t option,
+  ('get, Eliom_parameter.raw_post_data,
     [> `Attached of ([> `External ], [> `Put ]) a_s ], 'tipo,
    'gn, no_param_name, [> `Unregistrable ], returnB) service
 
@@ -64,7 +63,6 @@ val external_delete_service :
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
   unit ->
-  ('get, ((string * string) * (string * string) list) option *
-      string Ocsigen_stream.t option,
+  ('get, Eliom_parameter.raw_post_data,
     [> `Attached of ([> `External ], [> `Delete ]) a_s ], 'tipo,
    'gn, no_param_name, [> `Unregistrable ], returnB) service

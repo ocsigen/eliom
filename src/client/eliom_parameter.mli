@@ -187,9 +187,12 @@ val ocaml :
   'a Deriving_Json.t ->
   ('a, [ `WithoutSuffix ], [ `One of 'a ocaml ] param_name) params_type
 
+type raw_post_data =
+  ((string * string) * (string * string) list) option *
+    string Ocsigen_stream.t option
+
 val raw_post_data :
-  (((string * string) * (string * string) list) option *
-      string Ocsigen_stream.t option,
+  (raw_post_data,
    [ `WithoutSuffix ], no_param_name) params_type
 
 type ('a, +'tipo, +'names) non_localized_params

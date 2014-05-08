@@ -98,11 +98,11 @@ val put_service :
   ?priority:int ->
   get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
   unit ->
-  ('get, ((string * string) * (string * string) list) option *
-      string Ocsigen_stream.t option,
+  ('get, Eliom_parameter.raw_post_data,
     [> `Attached of
-      ([> `Internal of 'kind ], [> `Put]) a_s ],
-   'tipo, 'gn, no_param_name, [> `Registrable ], returnB) service
+        ([> `Internal of [> `Service ] ], [> `Put]) a_s ],
+   'tipo, 'gn,
+   no_param_name, [> `Registrable ], returnB) service
 
 (** The function [delete_service ~fallback ~post_params ()] creates a
     service similar to the [post_service] function, but for the
@@ -116,11 +116,11 @@ val delete_service :
   ?priority:int ->
   get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
   unit ->
-  ('get, ((string * string) * (string * string) list) option *
-      string Ocsigen_stream.t option,
+  ('get, Eliom_parameter.raw_post_data,
     [> `Attached of
-      ([> `Internal of 'kind ], [> `Delete]) a_s ],
-   'tipo, 'gn, no_param_name, [> `Registrable ], returnB) service
+        ([> `Internal of [> `Service ] ], [> `Delete]) a_s ],
+   'tipo, 'gn,
+   no_param_name, [> `Registrable ], returnB) service
 
 
 (** {3 Attached coservices} *)
@@ -235,8 +235,7 @@ val put_coservice :
   ?timeout:float ->
   ?https:bool ->
   fallback:
-    (unit, ((string * string) * (string * string) list) option *
-        string Ocsigen_stream.t option,
+    (unit, Eliom_parameter.raw_post_data,
       [ `Attached of ([ `Internal of [ `Service ] ], [`Put]) a_s ],
       [ `WithoutSuffix ] as 'tipo,
       unit, no_param_name, [< registrable ], returnT) service ->
@@ -244,11 +243,11 @@ val put_coservice :
   get_params:
     ('get,[`WithoutSuffix],'gn) params_type ->
   unit ->
-  ('get, ((string * string) * (string * string) list) option *
-      string Ocsigen_stream.t option,
+  ('get, Eliom_parameter.raw_post_data,
    [> `Attached of
       ([> `Internal of [> `Coservice] ], [> `Put]) a_s ],
-   'tipo, 'gn, no_param_name, [> `Registrable ], returnB) service
+   'tipo, 'gn, no_param_name,
+   [> `Registrable ], returnB) service
 
 (** [delete_coservice ~post_params] creates a service similar to
     [post_coservice], but handling the DELETE http method
@@ -263,18 +262,19 @@ val delete_coservice :
   ?timeout:float ->
   ?https:bool ->
   fallback:
-    (unit, ((string * string) * (string * string) list) option *
-        string Ocsigen_stream.t option,
+    (unit, Eliom_parameter.raw_post_data,
       [ `Attached of ([ `Internal of [ `Service ] ], [`Delete]) a_s ],
       [ `WithoutSuffix ] as 'tipo,
       unit, no_param_name, [< registrable ], returnT) service ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:
+    ('get,[`WithoutSuffix],'gn) params_type ->
   unit ->
-  ('get, ((string * string) * (string * string) list) option *
-      string Ocsigen_stream.t option,
+  ('get, Eliom_parameter.raw_post_data,
    [> `Attached of
       ([> `Internal of [> `Coservice] ], [> `Delete]) a_s ],
-   'tipo, 'gn, no_param_name, [> `Registrable ], returnB) service
+   'tipo, 'gn, no_param_name,
+   [> `Registrable ], returnB) service
 
 (** {3 Non attached coservices} *)
 
@@ -354,10 +354,10 @@ val put_coservice' :
   get_params:
     ('get, [`WithoutSuffix], 'gn) params_type ->
   unit ->
-  ('get, ((string * string) * (string * string) list) option *
-          string Ocsigen_stream.t option,
+  ('get, Eliom_parameter.raw_post_data,
    [> `Nonattached of [> `Put] na_s ],
-   [`WithoutSuffix], 'gn, no_param_name, [> `Registrable ], returnB) service
+   [`WithoutSuffix], 'gn,
+   no_param_name, [> `Registrable ], returnB) service
 
 (** [delete_coservice' ~post_params] creates a service similar to
     [post_coservice'], but handling the DELETE http method
@@ -375,7 +375,7 @@ val delete_coservice' :
   get_params:
     ('get, [`WithoutSuffix], 'gn) params_type ->
   unit ->
-  ('get, ((string * string) * (string * string) list) option *
-          string Ocsigen_stream.t option,
+  ('get, Eliom_parameter.raw_post_data,
    [> `Nonattached of [> `Delete] na_s ],
-   [`WithoutSuffix], 'gn, no_param_name, [> `Registrable ], returnB) service
+   [`WithoutSuffix], 'gn,
+   no_param_name, [> `Registrable ], returnB) service
