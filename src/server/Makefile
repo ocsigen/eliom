@@ -79,13 +79,10 @@ odoc: ${SDOC:.mli=.odoc} \
       $(addprefix ../clientserver/,${SSDOC:.mli=.odoc}) \
       $(addprefix ../server2/,${SSSDOC:.mli=.odoc})
 
-install: INSTALL_IMPL:=${IMPL} ${NATIMPL}
 install: raw_install
 
-install.byte: INSTALL_IMPL:=${IMPL}
 install.byte: raw_install
 
-install.opt: INSTALL_IMPL:=${NATIMPL}
 install.opt: raw_install
 
 raw_install: ${PREDEP}

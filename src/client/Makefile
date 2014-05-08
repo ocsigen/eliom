@@ -90,7 +90,7 @@ odoc: ${CDOC:.mli=.odoc} \
 
 install: ${PREDEP}
 	${INSTALL} -m 755 -d ${CLIENTDIR}
-	${INSTALL} -m 644 ${CINTF} ${IMPL} ${STUBS} ${CDOC} ${CLIENTDIR}
+	${INSTALL} -m 644 ${CINTF} ${CDOC} ${CLIENTDIR}
 
 uninstall:
 	-rm -fr ${CLIENTDIR}
