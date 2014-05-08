@@ -56,8 +56,6 @@ links:
 	ln -sf ../../../src/client2/eliom_client.cma . ; \
 	ln -sf ../../../src/client2/eliom_client_main.cmo .  ; \
 	ln -sf ../../../src/client2/eliom_client.js .  ; \
-	ln -sf ../../../src/client2/dlleliom_client.so .  ; \
-	ln -sf ../../../src/client2/libeliom_client.a .  ; \
 	cd ../../..
 
 fifo:

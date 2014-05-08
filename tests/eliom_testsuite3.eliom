@@ -813,7 +813,7 @@ let entity =
             ~title:"bug_entity"
             ~css:[["css";"bug_entity.css"]]
             Html5.F.(body [
-                h2 [pcdata "Welcome from Eliom's destillery!"];
+                h2 [pcdata "Welcome from Eliom's distillery!"];
                 entity "#946" ;
                 d
               ])))
@@ -3702,7 +3702,7 @@ let tmpl1_update (id : Html5_types.flow5 Html5.Id.id) (contents : Html5_types.fl
   Eliom_client.onload
     (fun () ->
       debug "Update";
-      Html5.Manip.Named.replaceAllChildren %id %contents)
+      Html5.Manip.Named.replaceChildren %id %contents)
 }}
 
 module Tmpl_1 = Eliom_registration.Eliom_tmpl(My_appl)(struct
