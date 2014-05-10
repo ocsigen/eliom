@@ -58,7 +58,7 @@ SINTF := eliom_lib.cmi              \
         eliom_extension.cmi         \
         eliom_pervasives.cmi        \
 
-SNO_MLI := eliom_pervasives_base.cmi
+SNO_MLI := eliom_pervasives_base.cmi eliom_content_core.cmi
 
 # IMPL :
 

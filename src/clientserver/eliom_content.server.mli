@@ -20,26 +20,40 @@
 open Eliom_service
 open Eliom_parameter
 
-(** This module provides the creation of valid XML content, i.e. XML, SVG,
+(** This module allows creating valid XML content, i.e. XML, SVG,
     and (X)HTML5.
     XML tree manipulation within Eliom is based on the TyXML library
-    but use a custom representation for XML values (see
+    but Eliom is using a custom representation for XML values (see
     {!Xml}). Then, [Eliom_content] redefines the three high level
     interfaces ({!Svg}, {!Html5}) that are provided by
     TyXML for valid XML tree creation and printing.
 
-    Modules {!Eliom_content.Html5}, {!Eliom_content.Svg} contain two
-    implementing sub-modules: {!Eliom_content.Html5.F} and {!Eliom_content.Html5.D}.
+    - If you want to generate typed HTML, use {!Eliom_content.Html5},
+    - If you want to write untyped html, use {!Eliom_content.Html_text},
+    - If you want to generate typed svg, use {!Eliom_content.Svg}.
+
+    Modules {!Eliom_content.Html5}, {!Eliom_content.Svg} contain three
+    sub-modules: {!Eliom_content.Html5.F}, {!Eliom_content.Html5.D}
+    and {!Eliom_content.Html5.R} corresponding to three different semantics.
 
     {5 Functional semantics}
 
-    The [F] modules provide functions to create elements with {e f}unctional
-    semantics: On the one hand side, those values do not have an identifier,
-    which means utilizations of those values are independent of each other.
-    On the other hand side, they cannot be referred to, neither by client code
-    when created on the server, nor for usage in the functions of
-    {% <<a_api subproject="client"|module Eliom_content.Html5.To_dom>> %} and
-    {% <<a_api subproject="client"|module Eliom_content.Html5.Manip>> %}.
+    The [F] modules provides functions to create elements with {e f}unctional
+    semantics: they are standard OCaml values.
+
+    Use this module:
+    - if your application does not have a client-side part
+    (server-side generated Web site)
+    - or if the client-side is not written with Eliom,
+    - or if you do not need to use this node from the client-side program
+    (no injection [%n] on this node)
+    and want to avoid the extra attributes added by module [D].
+
+    If you use a [F]-node [n] in an injection ([%n]),
+    it is considered as any OCaml value, NOT precisely the copy you (possibly)
+    inserted in the page. For example, [To_dom.of_element %n] will not refer
+    to the element in the page, but create a new DOM node.
+
 
     {5 DOM semantics}
 
@@ -48,19 +62,28 @@ open Eliom_parameter
     DOM tree even when appended several times.
     Secondly, those values have an identifier,
     which means they can be referred to
-    on the client side (by [%variable]) or used with the functions in
+    on client side (by [%variable]) or used with the functions in
     {% <<a_api subproject="client"|module Eliom_content.Html5.To_dom>> %} and
     {% <<a_api subproject="client"|module Eliom_content.Html5.Manip>> %}.
 
-    In case of doubt, use the modules with DOM-like semantics {!Eliom_content.Html5.D}.
+    In case of doubt, always use [D]-nodes when you are writing a
+    client-server Eliom app. You can also mix F-nodes and D-nodes.
 
-    So if you want to generate typed HTML, you have to got to {!Eliom_content.Html5},
-    if you want to handly write untyped html, got to {!Eliom_content.Html_text} and
-    if you want to generate svg, go to {!Eliom_content.Svg}.
+
+    {5 Reactive DOM}
+
+    The [R] modules provide functions to create reactive DOM elements
+    for the {{: http://erratique.ch/logiciel/react } react} library.
+    These nodes will change automatically according to (client-side)
+    react signals.
+
+    {b More information on XML generation in
+    {% <<a_manual chapter="clientserver-html"|Eliom's manual>>%}.}
+
   *)
 
 (** Abstract signature for links and forms creation functions, for
-    concrete instance see {!Html5}, or {!Html_text}. *)
+    concrete instances see {!Html5}, or {!Html_text}. *)
 module type Forms = "sigs/eliom_forms.mli"
 
 (** Low-level XML manipulation. *)
@@ -245,6 +268,7 @@ module Svg : sig
 
   (** Node identifiers. *)
   module Id : sig
+
     (** The type of global SVG element identifier. *)
     type +'a id
 
@@ -266,7 +290,7 @@ module Svg : sig
   (** SVG printer.
       See {% <<a_api project="tyxml" | module type Xml_sigs.Typed_simple_printer >> %}. *)
   module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a elt
-                                          and type doc := F.doc
+                                                  and type doc := F.doc
 
 end
 
@@ -275,13 +299,15 @@ end
 
 
 (** Building and printing valid HTML5 tree.
-    Information about Html5 api can be found at {% <<a_api project="tyxml" | module Html5_sigs.T >> %} .*)
+    Information about Html5 api can be found at
+    {% <<a_api project="tyxml" | module Html5_sigs.T >> %} .*)
 module Html5 : sig
 
-  (** See the Eliom manual for more information on {% <<a_manual
-      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
-      semantics>> %} for HTML5 tree manipulated by client/server
-      application. *)
+  (** See {% <<a_manual
+      chapter="clientserver-html" fragment="unique"|
+      more information on dom semantics vs. functional
+      semantics>> %} in Eliom's manual
+      for HTML5 tree manipulated by client/server application. *)
 
   type +'a elt = 'a Eliom_content_core.Html5.elt
   type +'a attrib = 'a Eliom_content_core.Html5.attrib
@@ -289,11 +315,12 @@ module Html5 : sig
 
   (** Creation of {b F}unctional HTML5 content (copy-able but not referable, see also {% <<a_api|module Eliom_content>> %}). *)
   module F : sig
+
     (** {2 Content creation}
-        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %},
+        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}.
         If you want to create an untyped form,
         you will have to use {% <<a_api|module Eliom_content.Html5.F.Raw>> %}
-        otherwise, use the form module.
+        otherwise, use Eliom form widgets.
         For more information,
         see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
     open Pervasives
@@ -321,6 +348,7 @@ module Html5 : sig
     (** {2 Event handlers} *)
 
     (** Redefine event handler attributes to simplify their usage. *)
+
     include "sigs/eliom_html5_event_handler.mli"
 
     (**/**)
@@ -333,6 +361,7 @@ module Html5 : sig
     (**/**)
 
     (** {2 Forms} *)
+
     include "sigs/eliom_html5_forms.mli"
 
     (** Creates an untyped form. *)
@@ -357,11 +386,13 @@ module Html5 : sig
         {% <<a_api|val Eliom_content.Html5.F.string_select>> %}
         to avoid the untyped [Eliom_content.Html5.F.select]. *)
     val select : ?a:Html5_types.select_attrib attrib list -> name:[< `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt
+
   end
 
-  (** Creation of HTML5 content with {b D}OM semantics
-      (referable, see also {% <<a_api|module Eliom_content>> %}). *)
+
+  (** Creation of HTML5 content with {b D}OM semantics (referable, see also {% <<a_api|module Eliom_content>> %}). *)
   module D : sig
+
     (** {2 Content creation}
         See {% <<a_api project="tyxml" | module Html5_sigs.T >> %},
         If you want to create an untyped form,
@@ -430,18 +461,20 @@ module Html5 : sig
         {% <<a_api|val Eliom_content.Html5.D.string_select>> %}
         to avoid the untyped [Eliom_content.Html5.D.select]. *)
     val select : ?a:Html5_types.select_attrib attrib list -> name:[< `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt
+
   end
 
-  (** Creation of reactive HTML5 content.
-      This nodes will react to client-side react signals *)
+  (** Creation of reactive HTML5 content. *)
   module R : sig
-    (** {2 Content creation}
-        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %},
-        If you want to create an untyped form,
-        you will have to use {% <<a_api|module Eliom_content.Html5.D.Raw>> %}
-        otherwise, use the form module.
-        For more information,
-        see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
+
+    (**
+      This nodes will react to client-side
+      {{: http://erratique.ch/software/react} React } signals.
+      Use {i client-values} to refer client-side signal from server side,
+      if you want to generate reactive node from server side. *)
+
+
+    (** {2 Content creation} *)
     open Pervasives
 
     (** the function [node s] create an HTML5 [elt] from a signal [s].
@@ -512,6 +545,7 @@ module Html5 : sig
 
   (** Node identifiers *)
   module Id : sig
+
     (** The type of global HTML5 element identifier. *)
     type +'a id
 
@@ -532,6 +566,7 @@ module Html5 : sig
 
     (**/**)
     val have_id: 'a id -> 'b elt -> bool
+    (**/**)
   end
 
 
@@ -563,13 +598,14 @@ module Html5 : sig
   (** {{:http://dev.w3.org/html5/html-xhtml-author-guide/}"Polyglot"} HTML5 printer.
      See {% <<a_api project="tyxml" | module type Xml_sigs.Typed_simple_printer >> %}. *)
   module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a elt
-                                          and type doc := F.doc
+                                                  and type doc := F.doc
 
 
 end
 
 (** Generate untyped html as text.*)
 module Html_text : sig
+
   include "sigs/eliom_forms.mli"
     (** Have a look on  {% <<a_manual
       chapter="clientserver-html" fragment="text_html" | Client and Server side HTML>> %} for HTML tree manipulated by client/server
