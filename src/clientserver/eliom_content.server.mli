@@ -57,7 +57,7 @@ open Eliom_parameter
 
     {5 DOM semantics}
 
-    The [D] modules provide functions to create elements with {e D}OM semantics:
+    The [D] module provides functions to create elements with {e D}OM semantics:
     Firstly, they behave like DOM nodes, e.g. they can only be added once to the
     DOM tree even when appended several times.
     Secondly, those values have an identifier,
@@ -77,7 +77,7 @@ open Eliom_parameter
     These nodes will change automatically according to (client-side)
     react signals.
 
-    {b More information on XML generation in
+    {b More information on HTML generation in
     {% <<a_manual chapter="clientserver-html"|Eliom's manual>>%}.}
 
   *)

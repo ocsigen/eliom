@@ -5,7 +5,7 @@ Eliom and Ocsigen server are taking in charge a lot of security issues automatic
 
 === HTTPS
 
-If your Web site is using HTTP, all requests and responses mauy be intercepted.
+If your Web site is using HTTP, all requests and responses may be intercepted.
 If you want your Web site to be secure, never send private data through http:
 
 * Pages containing personal data must be sent only through HTTPS

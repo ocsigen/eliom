@@ -25,9 +25,12 @@ file.
     Use {!Eliom_config.parse_config} for that.
 
     Example:
-    {v <eliommodule ...>
+
+    {v
+     <eliommodule ...>
         <myoption myattr="...">myvalue</myoption>
-     </eliommodule>  v}
+     </eliommodule>
+     v}
 
 
 *)
