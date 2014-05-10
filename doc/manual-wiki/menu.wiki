@@ -18,9 +18,6 @@
 ===[[clientserver-communication|Communication]]
 ===[[clientserver-wrapping|Custom wrapping]]
 
-== Experimental
-===[[reactive-dom|Reactive Dom]]
-
 ==Workflows
 ===[[workflow-distillery|Distillery]]
 ===[[workflow-compilation|Compilation]]
