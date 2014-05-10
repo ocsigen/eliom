@@ -12,9 +12,9 @@
 ===[[server-security|Security]]
 
 ==Client-server programming
-===[[clientserver-applications|The Eliom application]]
-===[[clientserver-language|Language extensions]]
-===[[clientserver-html|Working with HTML5]]
+===[[clientserver-applications|Eliom applications]]
+===[[clientserver-language|CLient-server syntax]]
+===[[clientserver-html|Generating HTML5]]
 ===[[clientserver-communication|Communication]]
 ===[[clientserver-wrapping|Custom wrapping]]
 

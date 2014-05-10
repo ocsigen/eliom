@@ -95,7 +95,8 @@ elements built with {{{Eliom_content.Html5.D}}} are sent to the client by
 reference. Eliom adds an identifier as attribute of {{{D}}} elements
 to make it possible to find them back in the page from client side.
 
-Advices:
+<<concept title="In short: D or F?" |
+
 * If your program is server-side only (Web site) or client-side only,
   use module {{{F}}}.
 * If you are writing a client-server Eliom program,
@@ -105,6 +106,8 @@ Advices:
 * If you want to avoid these identifiers when not needed,
   use module {{{D}}} only when the node is used in an injection ({{{%n}}}),
   and module {{{F}}} otherwise.
+
+>>
 
 Sending elements by reference allows easy manipulation of elements
 included in the initial html document from event handlers, as the
