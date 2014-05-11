@@ -211,6 +211,9 @@ In HTML, it is not possible to mix GET and POST parameters in forms,
 but it is possible to use a POST form with (fixed) GET parameters in
 the URL.
 
+Eliom also allows to other methods: PUT and DELETE.
+They are often used to write RESTful applications (see below).
+
 <<concept
 
   title="POST or GET?" |
@@ -529,6 +532,121 @@ the user reloads the page).
 <<wip|Example: link to fragment of the current page>>
 
 
+
+== RESTful apps: PUT and DELETE services
+
+This is an example showing how to define RESTful services with Eliom.
+The purpose of this sample application is to provide a HTTP REST API to a
+very simple key / value store. Supported operations are:
+* {{{GET http://<URL>/}}} List all available keys.
+* {{{GET http://<URL>/<KEY>}}} Retrieve the value associated to KEY.
+* {{{POST http://<URL>/<KEY>}}} (with {{{<VALUE>}}} in content)
+   Set a new pair {{{KEY / VALUE}}}, or replace it if the {{{KEY}}} exists.
+* {{{PUT http://<URL>/<KEY>}}} (with {{{<VALUE>}}} in content)
+  Update the {{{VALUE}}} associated to {{{KEY}}}.
+  Fail if {{{KEY}}} doesn't exist.
+* {{{DELETE http://<URL>/<KEY>}}} (content is ignored)
+  Delete the pair {{{KEY / VALUE}}}.
+
+
+{{{
+open Lwt
+open Eliom_parameter
+
+(* Initialize the key / value store (a simple Hashtbl) *)
+let store = Hashtbl.create 100
+
+(* Our API path is root, since the only purpose of our application is to
+ * provide a sample API. *)
+let path = []
+
+let () =
+
+  (* GET service: retrieve resources *)
+  let retrieve_service =
+    Eliom_registration.Any.register_service
+      ~path
+      ~get_params:(suffix (neopt (string "key")))
+      (fun key_opt () ->
+        match key_opt with
+        | None ->
+          (* List all keys *)
+          let keys = Hashtbl.fold (fun k _ acc -> k :: acc) store [] in
+          let content = String.concat "\n" keys in
+          Eliom_registration.String.send ~code:200 (content, "text/plain")
+        | Some key ->
+          (* Retrieve the value associated to [key] *)
+          try
+            let value = Hashtbl.find store key in
+            Eliom_registration.String.send ~code:200 (value, "text/plain")
+          with
+          | Not_found ->
+            Eliom_registration.String.send ~code:404
+              ("Error: Not found", "text/plain"))
+  in
+
+  (* POST service: create or update resources *)
+  let _create_service =
+    Eliom_registration.Any.register_post_service
+      ~fallback:retrieve_service
+      ~post_params:raw_post_data
+      (fun key_opt (_content_type, raw_content_opt) ->
+        match key_opt, raw_content_opt with
+        | None, _ ->
+          (* Get parameter key is missing *)
+          Eliom_registration.String.send ~code:400
+            ("Error: No key provided", "plain/text")
+        | _, None ->
+          (* Request content is missing *)
+          Eliom_registration.String.send ~code:400
+            ("Error: No content provided", "plain/text")
+        | Some key, Some raw_content ->
+          let content_stream = Ocsigen_stream.get raw_content in
+          Ocsigen_stream.string_of_stream 1024 content_stream >>= fun value ->
+          Hashtbl.replace store key value;
+          Eliom_registration.String.send ~code:200 ("", "plain/text"))
+  in
+
+  (* PUT service: update a resource *)
+  let _put_service =
+    Eliom_registration.Any.register_put_service
+      ~path
+      ~get_params:(suffix (string "key"))
+      (fun key (_content_type, raw_content_opt) ->
+        let key_exists = Hashtbl.mem store key in
+        match key_exists, raw_content_opt with
+        | false, _ ->
+          (* Provided key doesn't exist *)
+          Eliom_registration.String.send ~code:404
+            ("Error: Not found", "plain/text")
+        | true, None ->
+          (* Request content is missing *)
+          Eliom_registration.String.send ~code:400
+            ("Error: No content provided", "plain/text")
+        | true, Some raw_content ->
+          let content_stream = Ocsigen_stream.get raw_content in
+          Ocsigen_stream.string_of_stream 1024 content_stream >>= fun value ->
+          Hashtbl.replace store key value;
+          Eliom_registration.String.send ~code:200 ("", "plain/text"))
+  in
+
+  (* DELETE service: delete a resource *)
+  let _delete_service =
+    Eliom_registration.Any.register_delete_service
+      ~path
+      ~get_params:(suffix (string "key"))
+      (fun key (_content_type, _raw_content_opt) ->
+        if Hashtbl.mem store key then (
+          Hashtbl.remove store key;
+          Eliom_registration.String.send ~code:200 ("", "plain/text"))
+        else
+          (* Provided key doesn't exist *)
+          Eliom_registration.String.send ~code:404
+            ("Error: Not found", "plain/text"))
+  in
+
+  ()
+}}}
 
 
 == Tips and advices

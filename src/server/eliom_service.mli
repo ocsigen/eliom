@@ -77,22 +77,22 @@ type service_kind =
 
 (** {4 Common subtypes of [service_kind] } *)
 
-(** Restriction of [service_kind] to services without POST parameters. *)
+(** Restriction of [service_kind] to GET services. *)
 type get_service_kind =
     [ `Attached of (attached_service_kind, [ `Get ]) a_s
     | `Nonattached of [ `Get ] na_s ]
 
-(** Restriction of [service_kind] to services with at least one POST parameters. *)
+(** Restriction of [service_kind] to POST services. *)
 type post_service_kind =
     [ `Attached of (attached_service_kind, [ `Post ]) a_s
     | `Nonattached of [ `Post ] na_s ]
 
-(** Restriction of [service_kind] to services with at least one POST parameters. *)
+(** Restriction of [service_kind] to PUT services. *)
 type put_service_kind =
     [ `Attached of (attached_service_kind, [ `Put ]) a_s
     | `Nonattached of [ `Put ] na_s ]
 
-(** Restriction of [service_kind] to services with at least one POST parameters. *)
+(** Restriction of [service_kind] to DELETE services. *)
 type delete_service_kind =
     [ `Attached of (attached_service_kind, [ `Delete ]) a_s
     | `Nonattached of [ `Delete ] na_s ]
