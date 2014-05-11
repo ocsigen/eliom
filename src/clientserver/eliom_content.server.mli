@@ -366,7 +366,7 @@ module Html5 : sig
 
     (** {2 Forms} *)
 
-    include "sigs/eliom_html5_forms.mli"
+    include "sigs/eliom_html5_forms2.mli"
 
     (** Creates an untyped form. *)
     val raw_form : ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) plus
@@ -440,7 +440,7 @@ module Html5 : sig
 
 
     (** {2 Forms} *)
-    include "sigs/eliom_html5_forms.mli"
+    include "sigs/eliom_html5_forms2.mli"
 
     (** Creates an untyped form. *)
     val raw_form : ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) plus
@@ -519,7 +519,7 @@ module Html5 : sig
 
 
     (* (\** {2 Forms} *\) *)
-    (* include "sigs/eliom_html5_forms.mli" *)
+    (* include "sigs/eliom_html5_forms2.mli" *)
 
     (* (\** Creates an untyped form. *\) *)
     (* val raw_form : ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) plus *)

@@ -940,7 +940,7 @@ module Html5_forms(*  : sig *)
 
   end)
 
-  module MakeApplForms(Forms: "sigs/eliom_html5_forms.mli") = struct
+  module MakeApplForms(Forms: "sigs/eliom_html5_forms_.mli") = struct
 
     include Forms
 

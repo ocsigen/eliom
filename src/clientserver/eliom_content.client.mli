@@ -260,7 +260,7 @@ module Html5 : sig
         and type +'a attrib := 'a attrib
         and type uri = uri
 
-    include "sigs/eliom_html5_forms.mli"
+    include "sigs/eliom_html5_forms2.mli"
 
     (** Creates an untyped form. *)
     val raw_form : ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) plus
@@ -302,7 +302,7 @@ module Html5 : sig
         with type +'a elt := 'a elt
         and type +'a attrib := 'a attrib
         and type uri = uri
-    include "sigs/eliom_html5_forms.mli"
+    include "sigs/eliom_html5_forms2.mli"
 
     (** Creates an untyped form. *)
     val raw_form : ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) plus
