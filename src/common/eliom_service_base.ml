@@ -902,8 +902,10 @@ let post_coservice'
     service_mark = service_mark ();
   }
 
+
 (****************************************************************************)
-(* Create a PUT service with post parameters in the server *)
+(* Aux function to create services with [raw_post_data] as [post_params] *)
+(* Used to create PUT and DELETE services. *)
 
 
 let raw_post_data_service_aux ~getorpost
@@ -962,6 +964,9 @@ let raw_post_data_service_aux ~getorpost
         ~get_params
         ~post_params:Eliom_parameter.raw_post_data
         ()
+
+(****************************************************************************)
+(* Create a PUT service with [raw_post_data] as content, in the server *)
 
 let put_service
     ?rt
@@ -1075,7 +1080,7 @@ let put_coservice'
 
 
 (****************************************************************************)
-(* Create a DELETE service with post parameters in the server *)
+(* Create a DELETE service with [raw_post_data] as content, in the server *)
 
 let delete_service
     ?rt

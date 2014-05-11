@@ -34,7 +34,10 @@ type servcoserv = [ `Service | `Coservice ]
 type getpost = [ `Get | `Post | `Put | `Delete ]
       (* `Post means that there is at least one post param
          (possibly only the state post param).
-         `Get is for all the other cases.
+         `Get doesn't have any body content.
+         `Put means the HTTP PUT method has been used.
+         `Delete means the HTTP DELETE method has been used.
+         `Put and `Delete have [raw_post_data] as body content.
        *)
 
 type attached_service_kind =

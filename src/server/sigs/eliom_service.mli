@@ -86,9 +86,14 @@ val post_service :
       ([> `Internal of 'kind ], [> `Post]) a_s ],
    'tipo, 'gn, 'pn, [> `Registrable ], returnB) service
 
-(** The function [put_service ~fallback ~post_params ()] creates a
-    service similar to the [post_service] function, but for the
-    PUT http method.
+(** The function [put_service ~path ~get_params ()] creates a service
+    that answers the HTTP PUT method, and only takes
+    {!Eliom_parameter.raw_post_data} as POST parameter.
+
+    [path] and [get_params], however, can be set at will.
+
+    See {!service} for a description of optional [~https],
+    [~keep_nl_params], [~priority] and [~rt] parameters .
 *)
 val put_service :
   ?rt:'rt rt ->
@@ -104,9 +109,14 @@ val put_service :
    'tipo, 'gn,
    no_param_name, [> `Registrable ], returnB) service
 
-(** The function [delete_service ~fallback ~post_params ()] creates a
-    service similar to the [post_service] function, but for the
-    DELETE http method.
+(** The function [delete_service ~path ~get_params ()] creates a
+    service that answers the HTTP DELETE method, and only takes
+    {!Eliom_parameter.raw_post_data} as POST parameter.
+
+    [path] and [get_params], however, can be set at will.
+
+    See {!service} for a description of optional [~https],
+    [~keep_nl_params], [~priority] and [~rt] parameters .
 *)
 val delete_service :
   ?rt:'rt rt ->
@@ -222,9 +232,17 @@ val post_coservice :
       ([> `Internal of [> `Coservice] ], [> `Post]) a_s ],
    'tipo, 'gn, 'pn, [> `Registrable ], returnB) service
 
-(** [put_coservice ~post_params] creates a service similar to
-    [post_coservice], but handling the PUT http method
-*)
+(** The function [put_coservice ~fallback ~get_params] creates an {%
+    <<a_manual chapter="services" fragment="attached_coservices"|attached
+    coservice>>%} with the same path and GET parameters than the
+    service [fallback] and taking a single POST parameter of type
+    {!Eliom_parameter.raw_post_data}.
+
+    The service [fallback] should be an (internal) attached PUT
+    service or coservice without any GET parameters ; it could be a
+    preapplied service.
+
+    See {!coservice} for a description of optional parameters. *)
 val put_coservice :
   ?rt:'rt rt ->
   ?name: string ->
@@ -249,9 +267,17 @@ val put_coservice :
    'tipo, 'gn, no_param_name,
    [> `Registrable ], returnB) service
 
-(** [delete_coservice ~post_params] creates a service similar to
-    [post_coservice], but handling the DELETE http method
-*)
+(** The function [delete_coservice ~fallback ~get_params] creates an {%
+    <<a_manual chapter="services" fragment="attached_coservices"|attached
+    coservice>>%} with the same path and GET parameters than the
+    service [fallback] and taking a single POST parameter of type
+    {!Eliom_parameter.raw_post_data}.
+
+    The service [fallback] should be an (internal) attached DELETE
+    service or coservice without any GET parameters ; it could be a
+    preapplied service.
+
+    See {!coservice} for a description of optional parameters. *)
 val delete_coservice :
   ?rt:'rt rt ->
   ?name: string ->
@@ -338,8 +364,14 @@ val post_coservice' :
    [> `Nonattached of [> `Post ] na_s ],
    [ `WithoutSuffix ], unit, 'pn, [> `Registrable ], returnB) service
 
-(** [put_coservice' ~post_params] creates a service similar to
-    [post_coservice'], but handling the PUT http method
+(** The function [put_coservice' ~get_params] creates a {% <<a_manual
+    chapter="services" fragment="non-attached_coservices"|non-attached
+    coservice>>%} taking a single POST parameter of type
+    {!Eliom_parameter.raw_post_data}.
+
+    See {!service} for a description of the optional [~https], [~rt] and
+    [~keep_nl_params] parameters ; see {!coservice} for others
+    optional parameters.
 *)
 val put_coservice' :
   ?rt:'rt rt ->
@@ -359,8 +391,14 @@ val put_coservice' :
    [`WithoutSuffix], 'gn,
    no_param_name, [> `Registrable ], returnB) service
 
-(** [delete_coservice' ~post_params] creates a service similar to
-    [post_coservice'], but handling the DELETE http method
+(** The function [delete_coservice' ~get_params] creates a {% <<a_manual
+    chapter="services" fragment="non-attached_coservices"|non-attached
+    coservice>>%} taking a single POST parameter of type
+    {!Eliom_parameter.raw_post_data}.
+
+    See {!service} for a description of the optional [~https], [~rt] and
+    [~keep_nl_params] parameters ; see {!coservice} for others
+    optional parameters.
 *)
 val delete_coservice' :
   ?rt:'rt rt ->
