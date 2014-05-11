@@ -1,8 +1,5 @@
 =@@id="examples"@@Demos=
 
-* [[wiki(72):graffiti/|A collaborative drawing application]]
-  (see <<a_manual project="tutorial" chapter="application"| its description>>)
-* [[wiki(72):chat/|A simple chat]]
-  (see <<a_manual project="tutorial" chapter="chat"| its description>>)
-
-
+Go to the
+<<a_manual project="tuto" chapter="intro"| tutorial>>
+for several examples of code.

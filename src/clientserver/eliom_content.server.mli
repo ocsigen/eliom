@@ -17,11 +17,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_service
-open Eliom_parameter
+(** This module allows creating valid HTML content, or other XML formats. *)
 
-(** This module allows creating valid XML content, i.e. XML, SVG,
-    and (X)HTML5.
+
+(**
     XML tree manipulation within Eliom is based on the TyXML library
     but Eliom is using a custom representation for XML values (see
     {!Xml}). Then, [Eliom_content] redefines the three high level
@@ -82,10 +81,10 @@ open Eliom_parameter
     to learn how to generate HTML. }
 
 
-    {% <<outline| <<header| =Table of contents= >> >> %}
-
-
   *)
+
+open Eliom_service
+open Eliom_parameter
 
 (** Abstract signature for links and forms creation functions, for
     concrete instances see {!Html5}, or {!Html_text}. *)

@@ -25,7 +25,8 @@
     {% <<a_manual chapter="server-services"|Eliom services>>%}.
     }
 
-    {% <<outline>> %}
+  {% <<outline| <<header| =Table of contents= >> >>%}
+
  *)
 
 open Ocsigen_extensions

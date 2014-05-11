@@ -6,7 +6,7 @@ Besides values passed by the mean of the {{{%variable}}}
 syntax, there are multiple ways for the client and server to exchange
 values.
 
-==@@id="rpc"@@ Remote Procedure Call
+==@@id="rpc"@@ Remote Procedure Calls
 
 Eliom provides you an easy way to call server functions from the client:
 <<a_api subproject="server" | type Eliom_pervasives.server_function>>
@@ -28,10 +28,9 @@ an identifier, if it is to be used several times.
 Example:
 <<code language="ocaml"|
 {server{
-  let log str =
-    Lwt_io.write_line Lwt_io.stdout str
-  let rpc_log =
-    server_function Json.t<string> log
+  let log str = Lwt_io.write_line Lwt_io.stdout str
+
+  let rpc_log = server_function Json.t<string> log
 }}
 
 {client{
