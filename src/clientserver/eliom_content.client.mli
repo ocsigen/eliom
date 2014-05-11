@@ -24,8 +24,14 @@ open Eliom_lib
 
 (** This module provides the creation of valid XML content, i.e. XML, SVG,
     and (X)HTML5.
-    See {% <<a_api subproject="server" | module Eliom_content >> %} for an explication
-    of the modules [F] and [D].
+
+    {b Please read
+    {% <<a_manual chapter="clientserver-html"|Eliom's manual>>%}
+    for more information on HTML generation. }
+    You can also have a look at the server API of
+    {% <<a_api subproject="server" | module Eliom_content >> %}
+    for an explication of the modules [F] and [D].
+
   *)
 
 (** Low-level XML manipulation. *)

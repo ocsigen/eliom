@@ -22,12 +22,13 @@
     page content: Eliom application, valid {!Html5},
     actions, redirections, static files, … *)
 
-(** See the Eliom manual for
-    more information on {% <<a_manual chapter="server-services" | services
+(** {b Please read the Eliom manual before this page to learn how to use
+    {% <<a_manual chapter="server-services" | services
     >>%} and {% <<a_manual chapter="server-outputs" | predefined outputs
-    >>%}. *)
+    >>%}. }
+ *)
 
-(** {% <<outline>> %}*)
+(** {% <<outline| <<header| =Table of contents= >> >> %}*)
 
 open Eliom_lib
 open Eliom_content

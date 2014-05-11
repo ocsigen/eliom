@@ -77,8 +77,13 @@ open Eliom_parameter
     These nodes will change automatically according to (client-side)
     react signals.
 
-    {b More information on HTML generation in
-    {% <<a_manual chapter="clientserver-html"|Eliom's manual>>%}.}
+    {b Please read
+    {% <<a_manual chapter="clientserver-html"|Eliom's manual>>%}
+    to learn how to generate HTML. }
+
+
+    {% <<outline| <<header| =Table of contents= >> >> %}
+
 
   *)
 

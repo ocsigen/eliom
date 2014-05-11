@@ -17,11 +17,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(**
+(** Storing server-side values for your applications or sessions. *)
 
-Manage server-side state.
+(** {b Please read the
+    {% <<a_manual chapter="server-state" | Eliom manual >>%}
+    before this page to learn how server side state works. }
 
-{% <<outline>>%}
+{% <<outline| <<header| =Table of contents= >> >>%}
 
 *)
 

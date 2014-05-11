@@ -20,10 +20,11 @@
 
 (** Ad-hoc runtime type representation for service parameters.
 
-    See the Eliom manual for more information about {% <<a_manual
-    chapter="server-params"|service parameters>>%}.
+    {b Please read Eliom's manual before this page
+    to learn how to use
+    {% <<a_manual chapter="server-params"|service parameters>>%}. }
 
-    {% <<outline>>%}
+    {% <<outline| <<header| =Table of contents= >> >>%}
 *)
 
 (* This comments should be in manual/params.wiki.

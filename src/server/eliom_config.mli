@@ -26,11 +26,11 @@ file.
 
     Example:
 
-    {v
+{v
      <eliommodule ...>
         <myoption myattr="...">myvalue</myoption>
      </eliommodule>
-     v}
+v}
 
 
 *)

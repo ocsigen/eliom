@@ -17,7 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** See {% <<a_api project="ocsigenserver" | module Ocsigen_lib>> %} *)
+(** A few common functions used by Eliom.
+    See also {% <<a_api project="ocsigenserver" | module Ocsigen_lib>> %} *)
+
 include module type of Ocsigen_lib
   with type poly = Ocsigen_lib.poly
   and type yesnomaybe = Ocsigen_lib.yesnomaybe

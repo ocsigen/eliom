@@ -20,6 +20,10 @@ Ocsigen uses them to provide a module with very good HTML5 typing.
 The full documentation is available
 <<a_api text="in the TyXML documentation" project="tyxml" | module Html5.M >>.
 
+<<outline depth="2"| <<header| =Table of contents= >> >>
+
+
+
 == Generating HTML for Eliom applications
 
 === The TyXML library vs. the DOM API

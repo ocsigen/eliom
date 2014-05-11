@@ -9,7 +9,7 @@ Makefile with rules for compiling, testing, installing, and running.
 This chapter, however, gives a bit more overview on the compilation
 process.
 
-<<outline depth="2">>
+<<outline depth="2"| <<header| =Table of contents= >> >>
 
 ==@@id="compilation"@@ Compilation overview
 
@@ -221,4 +221,3 @@ Here are some known bugs with {{{eliomdoc}}}:
 camlp4 won't output the commentaries.
 * Sometimes, comment node **are not attached as expected**. That's because
 camlp4 (sometimes) remove extra new line between value elements.
-

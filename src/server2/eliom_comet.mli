@@ -21,6 +21,12 @@
 
 (** Primitives to push data to the client, without explicit request. *)
 
+(** {b Please read the
+    {% <<a_manual chapter="clientserver-communication" | chapter on
+    communication >>%} of Eliom's manual
+    before this page to learn how client and server parts communicate. }
+ *)
+
 
 (** Basic primitives needed for server push. *)
 module Channel : sig

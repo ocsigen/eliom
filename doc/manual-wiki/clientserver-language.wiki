@@ -1,6 +1,6 @@
 = Eliom's language extensions
 
-Use extenion {{{.eliom}}} for the files belonging to a client-server
+Use extension {{{.eliom}}} for the files belonging to a client-server
 Eliom application. Use extension {{{.eliomi}}} for the corresponding interface.
 By using this naming conventions,
 the programs {{{eliomc}}} and {{{js_of_eliom}}} will be using
@@ -8,6 +8,9 @@ Eliom's syntax extension automatically.
 
 These syntax extensions make much easier to write client-server applications
 in a very concise style. They are described in this chapter.
+
+<<outline depth="2"| <<header| =Table of contents= >> >>
+
 
 == Server, client, and shared-sections
 

@@ -21,9 +21,16 @@
 (** Propagate events
     occurrences from the server to the client and the other way
     around. Occurrence propagation is done asynchronously.
+*)
+
+(** {b Please read the
+    {% <<a_manual chapter="clientserver-communication" | chapter on
+    communication >>%} of Eliom's manual
+    before this page to learn how client and server parts communicate. }
 
     The use of this module is pretty much useless without it's client counter
-    part. *)
+    part.
+*)
 
 (* These two dual files are to be modified together
    with compatibility issues in mind. *)

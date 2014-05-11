@@ -21,8 +21,9 @@
 
 (** Creation and manipulation of Eliom services.
 
-    See the Eliom manual for a detailed introduction to the concept of
+    {b See the Eliom manual for a detailed introduction to the concept of
     {% <<a_manual chapter="server-services"|Eliom services>>%}.
+    }
 
     {% <<outline>> %}
  *)

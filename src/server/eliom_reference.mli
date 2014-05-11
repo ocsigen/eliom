@@ -19,6 +19,15 @@
 
 (** {2 Server side state data, a.k.a Eliom references} *)
 
+(** {b Please read the
+    {% <<a_manual chapter="server-state" | Eliom manual >>%}
+    before this page to learn how server side state works. }
+
+    {% <<outline| <<header| =Table of contents= >> >>%}
+
+*)
+
+
 (** Eliom references come in two flavors: they may be stored persistently or
     the may be volatile.  The module [Volatile] allows creation of
     references which can be, get, set, modify, and unset volatile references

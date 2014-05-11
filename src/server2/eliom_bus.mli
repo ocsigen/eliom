@@ -21,6 +21,12 @@
 
 (** Broadcasting facilities between clients and server *)
 
+(** {b Please read the
+    {% <<a_manual chapter="clientserver-communication" | chapter on
+    communication >>%} of Eliom's manual
+    before this page to learn how client and server parts communicate. }
+ *)
+
 (** The type of bus's carrying values of type ['a]. Bus's are values
     that can be easily shared among clients. Each of these clients
     along with the server can send a value on the bus. Values can be
