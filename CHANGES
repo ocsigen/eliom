@@ -1,4 +1,37 @@
 
+===== 4.0 (2014-05) =====
+
+ * Main new features:
+ ** Reactive DOM elements (thanks to a contribution by besport.com)
+ ** EXPERIMENTAL: Mobile apps with Eliom. By making possible to start
+ the application from client-side.
+ ** PUT and DELETE services for RESTful Eliom Applications
+ (Contribution by Domoco)
+
+ * Improvements:
+ ** Improvements in typing of services (Contribution by Jacques-Pascal Deplaix)
+ ** Filtering data from Eliom buses
+ ** "caml" in value or type names now replaced by "OCaml" everywhere
+ ** New module {{{Eliom_registration.File_ct}}} to make easier to send files with
+ their content type
+ ** Now possible to define services in shared sections
+ ** Adding function {{{Eliom_client.change_url}}} to change the URL without doing a request
+ ** Adding function {{{Eliom_service.attach_coservice'}}} to attach a non-attached coservice to an URL
+ ** Improving comet configurations: now possible to stay idle instead of being completely inactive
+ ** Now using defaultprotocol option (from ocsigenserver) to compute URLs
+ ** The default expiration date for cookies on client side is now 10 years
+ ** Now possible to send files in {{{Eliom_client.call_caml_service}}}
+ ** Various additions and bugfixes in {{{Manip}}}, {{{Eliom_request_info}}},
+ {{{Eliom_content.html5}}} (events) (contributions by besport.com)
+ ** eliom-destillery renamed into eliom-distillery
+ ** Templates for eliom-distillery
+ ** New programs: eliomdoc and eliompp
+ ** Ocamlbuild package
+ ** Various bugfixes
+ ** Documentation improvements
+
+And many other things (see git commits)
+
 ===== 3.0.0 (2012-12-10) =====
 
  * Language
