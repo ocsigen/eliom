@@ -245,6 +245,10 @@ let ocaml (n : string) typ
     : ('a, [`WithoutSuffix], [ `One of 'a ocaml ] param_name) params_type =
   TJson (n, Some typ)
 
+type raw_post_data =
+  ((string * string) * (string * string) list) option *
+      string Ocsigen_stream.t option
+
 let raw_post_data = TRaw_post_data
 
 (******************************************************************)

@@ -24,6 +24,8 @@ exception Non_xml_content
 
 val redirect_get : string -> unit
 val redirect_post : string -> (string * Eliommod_parameters.param) list -> unit
+val redirect_put : string -> (string * Eliommod_parameters.param) list -> unit
+val redirect_delete : string -> (string * Eliommod_parameters.param) list -> unit
 
 type 'a result
 
@@ -68,6 +70,22 @@ val http_get :
   (string * 'a option) Lwt.t
 
 val http_post :
+  ?expecting_process_page:bool ->
+  ?cookies_info:bool * string list ->
+  string ->
+  (string * Eliommod_parameters.param) list ->
+  'a result ->
+  (string * 'a option) Lwt.t
+
+val http_put :
+  ?expecting_process_page:bool ->
+  ?cookies_info:bool * string list ->
+  string ->
+  (string * Eliommod_parameters.param) list ->
+  'a result ->
+  (string * 'a option) Lwt.t
+
+val http_delete :
   ?expecting_process_page:bool ->
   ?cookies_info:bool * string list ->
   string ->

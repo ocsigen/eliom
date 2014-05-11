@@ -491,7 +491,7 @@ let create_request_
           ?hostname ?port ?fragment ?keep_nl_params ?nl_params get_params
       in
       `Get uri
-  | `Post ->
+  | `Post | `Put | `Delete as http_method ->
       let path, get_params, fragment, post_params =
         Eliom_uri.make_post_uri_components__
           ?absolute ?absolute_path ?https
@@ -502,7 +502,10 @@ let create_request_
       let uri =
         Eliom_uri.make_string_uri_from_components (path, get_params, fragment)
       in
-      `Post (uri, post_params)
+      (match http_method with
+      | `Post -> `Post (uri, post_params)
+      | `Put -> `Put (uri, post_params)
+      | `Delete -> `Delete (uri, post_params))
 
 let raw_call_service
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -520,6 +523,14 @@ let raw_call_service
           Eliom_request.string_result
       | `Post (uri, post_params) ->
         Eliom_request.http_post
+          ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
+          uri post_params Eliom_request.string_result
+      | `Put (uri, post_params) ->
+        Eliom_request.http_put
+          ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
+          uri post_params Eliom_request.string_result
+      | `Delete (uri, post_params) ->
+        Eliom_request.http_delete
           ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
           uri post_params Eliom_request.string_result in
   match content with
@@ -549,7 +560,9 @@ let exit_to
      get_params post_params
    with
      | `Get uri -> Eliom_request.redirect_get uri
-     | `Post (uri, post_params) -> Eliom_request.redirect_post uri post_params)
+     | `Post (uri, post_params) -> Eliom_request.redirect_post uri post_params
+     | `Put (uri, post_params) -> Eliom_request.redirect_put uri post_params
+     | `Delete (uri, post_params) -> Eliom_request.redirect_delete uri post_params)
 
 let window_open ~window_name ?window_features
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -563,6 +576,8 @@ let window_open ~window_name ?window_features
     | `Get uri ->
         Dom_html.window##open_(Js.string uri, window_name, Js.Opt.option window_features)
     | `Post (uri, post_params) -> assert false
+    | `Put (uri, post_params) -> assert false
+    | `Delete (uri, post_params) -> assert false
 
 (* == Call caml service.
 
@@ -997,6 +1012,14 @@ let change_page
                   Eliom_request.xml_result
               | `Post (uri, p) ->
                 Eliom_request.http_post
+                  ~expecting_process_page:true ?cookies_info uri p
+                  Eliom_request.xml_result
+              | `Put (uri, p) ->
+                Eliom_request.http_put
+                  ~expecting_process_page:true ?cookies_info uri p
+                  Eliom_request.xml_result
+              | `Delete (uri, p) ->
+                Eliom_request.http_delete
                   ~expecting_process_page:true ?cookies_info uri p
                   Eliom_request.xml_result
           in

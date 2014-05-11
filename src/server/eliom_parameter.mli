@@ -406,9 +406,12 @@ val ocaml :
     and it is not possible to create a form towards a service taking
     this kind of parameter.
 *)
+type raw_post_data =
+  ((string * string) * (string * string) list) option *
+    string Ocsigen_stream.t option
+
 val raw_post_data :
-  (((string * string) * (string * string) list) option *
-      string Ocsigen_stream.t option,
+  (raw_post_data,
    [ `WithoutSuffix ], no_param_name) params_type
 
 (** {2 Non localized parameters} *)

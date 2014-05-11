@@ -54,6 +54,8 @@ let xhr_with_cookies s =
 let get_or_post_ s = match s.get_or_post with
   | `Get -> Ocsigen_http_frame.Http_header.GET
   | `Post -> Ocsigen_http_frame.Http_header.POST
+  | `Put -> Ocsigen_http_frame.Http_header.PUT
+  | `Delete -> Ocsigen_http_frame.Http_header.DELETE
 
 
 (*****************************************************************************)
@@ -201,12 +203,20 @@ let rt = ()
 module MakeBase = struct
   let service = service
   let post_service = post_service
+  let put_service = put_service
+  let delete_service = delete_service
   let coservice = coservice
   let post_coservice = post_coservice
+  let put_coservice = put_coservice
+  let delete_coservice = delete_coservice
   let coservice' = coservice'
   let post_coservice' = post_coservice'
+  let put_coservice' = put_coservice'
+  let delete_coservice' = delete_coservice'
   let external_service = external_service
   let external_post_service = external_post_service
+  let external_put_service = external_put_service
+  let external_delete_service = external_delete_service
 end
 
 module Unsafe = struct

@@ -86,6 +86,42 @@ val post_service :
       ([> `Internal of 'kind ], [> `Post]) a_s ],
    'tipo, 'gn, 'pn, [> `Registrable ], returnB) service
 
+(** The function [put_service ~fallback ~post_params ()] creates a
+    service similar to the [post_service] function, but for the
+    PUT http method.
+*)
+val put_service :
+  ?rt:'rt rt ->
+  ?https:bool ->
+  path:Url.path ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  ?priority:int ->
+  get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
+  unit ->
+  ('get, Eliom_parameter.raw_post_data,
+    [> `Attached of
+        ([> `Internal of [> `Service ] ], [> `Put]) a_s ],
+   'tipo, 'gn,
+   no_param_name, [> `Registrable ], returnB) service
+
+(** The function [delete_service ~fallback ~post_params ()] creates a
+    service similar to the [post_service] function, but for the
+    DELETE http method.
+*)
+val delete_service :
+  ?rt:'rt rt ->
+  ?https:bool ->
+  path:Url.path ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  ?priority:int ->
+  get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
+  unit ->
+  ('get, Eliom_parameter.raw_post_data,
+    [> `Attached of
+        ([> `Internal of [> `Service ] ], [> `Delete]) a_s ],
+   'tipo, 'gn,
+   no_param_name, [> `Registrable ], returnB) service
+
 
 (** {3 Attached coservices} *)
 
@@ -186,6 +222,60 @@ val post_coservice :
       ([> `Internal of [> `Coservice] ], [> `Post]) a_s ],
    'tipo, 'gn, 'pn, [> `Registrable ], returnB) service
 
+(** [put_coservice ~post_params] creates a service similar to
+    [post_coservice], but handling the PUT http method
+*)
+val put_coservice :
+  ?rt:'rt rt ->
+  ?name: string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  fallback:
+    (unit, Eliom_parameter.raw_post_data,
+      [ `Attached of ([ `Internal of [ `Service ] ], [`Put]) a_s ],
+      [ `WithoutSuffix ] as 'tipo,
+      unit, no_param_name, [< registrable ], returnT) service ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:
+    ('get,[`WithoutSuffix],'gn) params_type ->
+  unit ->
+  ('get, Eliom_parameter.raw_post_data,
+   [> `Attached of
+      ([> `Internal of [> `Coservice] ], [> `Put]) a_s ],
+   'tipo, 'gn, no_param_name,
+   [> `Registrable ], returnB) service
+
+(** [delete_coservice ~post_params] creates a service similar to
+    [post_coservice], but handling the DELETE http method
+*)
+val delete_coservice :
+  ?rt:'rt rt ->
+  ?name: string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  fallback:
+    (unit, Eliom_parameter.raw_post_data,
+      [ `Attached of ([ `Internal of [ `Service ] ], [`Delete]) a_s ],
+      [ `WithoutSuffix ] as 'tipo,
+      unit, no_param_name, [< registrable ], returnT) service ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:
+    ('get,[`WithoutSuffix],'gn) params_type ->
+  unit ->
+  ('get, Eliom_parameter.raw_post_data,
+   [> `Attached of
+      ([> `Internal of [> `Coservice] ], [> `Delete]) a_s ],
+   'tipo, 'gn, no_param_name,
+   [> `Registrable ], returnB) service
+
 (** {3 Non attached coservices} *)
 
 (** The function [coservice' ~get_param] creates a {% <<a_manual
@@ -247,3 +337,45 @@ val post_coservice' :
   (unit, 'post,
    [> `Nonattached of [> `Post ] na_s ],
    [ `WithoutSuffix ], unit, 'pn, [> `Registrable ], returnB) service
+
+(** [put_coservice' ~post_params] creates a service similar to
+    [post_coservice'], but handling the PUT http method
+*)
+val put_coservice' :
+  ?rt:'rt rt ->
+  ?name:string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:
+    ('get, [`WithoutSuffix], 'gn) params_type ->
+  unit ->
+  ('get, Eliom_parameter.raw_post_data,
+   [> `Nonattached of [> `Put] na_s ],
+   [`WithoutSuffix], 'gn,
+   no_param_name, [> `Registrable ], returnB) service
+
+(** [delete_coservice' ~post_params] creates a service similar to
+    [post_coservice'], but handling the DELETE http method
+*)
+val delete_coservice' :
+  ?rt:'rt rt ->
+  ?name:string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:
+    ('get, [`WithoutSuffix], 'gn) params_type ->
+  unit ->
+  ('get, Eliom_parameter.raw_post_data,
+   [> `Nonattached of [> `Delete] na_s ],
+   [`WithoutSuffix], 'gn,
+   no_param_name, [> `Registrable ], returnB) service
