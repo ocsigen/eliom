@@ -332,7 +332,7 @@ module Html5 : sig
     type +'a elt = 'a Eliom_content_core.Html5.elt
     type +'a attrib = 'a Eliom_content_core.Html5.attrib
 
-    (** Cf. {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
@@ -409,7 +409,7 @@ module Html5 : sig
     type +'a elt = 'a Eliom_content_core.Html5.elt
     type +'a attrib = 'a Eliom_content_core.Html5.attrib
 
-    (** Cf. {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
@@ -488,7 +488,7 @@ module Html5 : sig
     type +'a elt = 'a Eliom_content_core.Html5.elt
     type +'a attrib = 'a Eliom_content_core.Html5.attrib
 
-    (** Cf. {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                     and type Xml.event_handler = Xml.event_handler
@@ -600,7 +600,7 @@ module Html5 : sig
   end
 
   (** {{:http://dev.w3.org/html5/html-xhtml-author-guide/}"Polyglot"} HTML5 printer.
-     See {% <<a_api project="tyxml" | module type Xml_sigs.Typed_simple_printer >> %}. *)
+     See {% <<a_api project="tyxml" | module Xml_sigs.Typed_simple_printer >> %}. *)
   module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a elt
                                                   and type doc := F.doc
 
