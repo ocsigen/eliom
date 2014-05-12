@@ -33,7 +33,7 @@
 
     Modules {!Eliom_content.Html5}, {!Eliom_content.Svg} contain three
     sub-modules: {!Eliom_content.Html5.F}, {!Eliom_content.Html5.D}
-    and {!Eliom_content.Html5.R} corresponding to three different semantics.
+    and {!Eliom_content.Html5.C} corresponding to three different semantics.
 
     {5 Functional semantics}
 
@@ -67,18 +67,6 @@
 
     In case of doubt, always use [D]-nodes when you are writing a
     client-server Eliom app. You can also mix F-nodes and D-nodes.
-
-
-    {5 Reactive DOM}
-
-    The [R] modules provide functions to create reactive DOM elements
-    for the {{: http://erratique.ch/logiciel/react } react} library.
-    These nodes will change automatically according to (client-side)
-    react signals.
-
-    {b Please read
-    {% <<a_manual chapter="clientserver-html"|Eliom's manual>>%}
-    to learn how to generate HTML. }
 
 
   *)
@@ -217,31 +205,6 @@ module Svg : sig
                              and type 'a wrap = 'a
                              and type +'a attrib = 'a attrib
 		             and type uri = uri
-
-    include module type of Raw
-
-    (** {2 Event handlers} *)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_svg_event_handler.mli"
-
-  end
-
-
-  (** Typed interface for building valid SVG tree (reactive DOM). See
-      {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
-  module R : sig
-
-    module Raw : Svg_sigs.T
-      with type Xml.uri = Xml.uri
-       and type Xml.event_handler = Xml.event_handler
-       and type Xml.attrib = Xml.attrib
-       and type Xml.elt = Xml.elt
-       and type +'a elt = 'a elt
-       and type 'a Xml.wrap = 'a React.signal Eliom_pervasives.client_value
-       and type 'a wrap = 'a React.signal Eliom_pervasives.client_value
-       and type +'a attrib = 'a attrib
-       and type uri = uri
 
     include module type of Raw
 
@@ -439,81 +402,6 @@ module Html5 : sig
     val select : ?a:Html5_types.select_attrib attrib list -> name:[< `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt
 
   end
-
-  (** Creation of reactive HTML5 content. *)
-  module R : sig
-
-    (**
-      This nodes will react to client-side
-      {{: http://erratique.ch/software/react} React } signals.
-      Use {i client-values} to refer client-side signal from server side,
-      if you want to generate reactive node from server side. *)
-
-
-    (** {2 Content creation} *)
-    open Pervasives
-
-    (** the function [node s] create an HTML5 [elt] from a signal [s].
-    The resulting HTML5 [elt] can then be used like anyother HTML5 [elt] *)
-    val node : 'a elt React.signal Eliom_pervasives.client_value -> 'a elt
-
-    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
-    module Raw : Html5_sigs.T
-                   with type Xml.uri = Xml.uri
-                    and type Xml.event_handler = Xml.event_handler
-                    and type Xml.attrib = Xml.attrib
-                    and type Xml.elt = Xml.elt
-                    and type +'a elt = 'a elt
-                    and type 'a Xml.wrap = 'a React.signal Eliom_pervasives.client_value
-                    and type +'a attrib = 'a attrib
-                   with module Svg := Svg.D.Raw
-                   with type 'a wrap = 'a React.signal Eliom_pervasives.client_value
-                    and type +'a attrib = 'a attrib
-                    and type uri = uri
-    include module type of Raw (*BB TODO Hide untyped [input]. *)
-
-    (** {2 Event handlers} *)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_html5_event_handler.mli"
-
-    (**/**)
-    type ('a, 'b, 'c) lazy_plus =
-      ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
-
-    val lazy_form:
-      ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_plus
-    (**/**)
-
-
-    (* (\** {2 Forms} *\) *)
-    (* include "sigs/eliom_html5_forms2.mli" *)
-
-    (* (\** Creates an untyped form. *\) *)
-    (* val raw_form : ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) plus *)
-
-    (* (\** This is an alias to {% <<a_api|val Eliom_content.Html5.D.get_form>> %} *)
-    (*     to avoid the untyped [Eliom_content.Html5.D.form]. *\) *)
-    (* val form : ?absolute:bool -> ?absolute_path:bool -> ?https:bool -> ?a:Html5_types.form_attrib attrib list -> *)
-    (*   service:('get, unit, [< get_service_kind ], [<suff ], 'gn, 'pn, [< registrable ], [< non_ocaml_service ]) service -> *)
-    (*   ?hostname:string -> ?port:int -> ?fragment:string -> ?keep_nl_params:[ `All | `Persistent | `None ] -> *)
-    (*   ?nl_params: Eliom_parameter.nl_params_set -> ?xhr:bool -> *)
-    (*   ('gn -> Html5_types.form_content elt list) -> [> Html5_types.form ] elt *)
-
-    (* (\** This is an alias to *)
-    (*     {% <<a_api|val Eliom_content.Html5.D.string_input>> %} *)
-    (*     to avoid the untyped [Eliom_content.Html5.D.input]. *\) *)
-    (* val input : ?a:Html5_types.input_attrib attrib list -> input_type:[< *)
-    (*     | `Url | `Tel | `Text | `Time | `Search | `Password | `Checkbox | `Range | `Radio | `Submit | `Reset | `Number | `Hidden *)
-    (*     | `Month | `Week | `File | `Email | `Image | `Datetime_local | `Datetime | `Date | `Color | `Button] *)
-    (*   -> ?name:[< string setoneradio ] param_name -> ?value:string -> unit -> [> Html5_types.input ] elt *)
-
-    (* (\** This is an alias to *)
-    (*     {% <<a_api|val Eliom_content.Html5.D.string_select>> %} *)
-    (*     to avoid the untyped [Eliom_content.Html5.D.select]. *\) *)
-    (* val select : ?a:Html5_types.select_attrib attrib list -> name:[< `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt *)
-  end
-
 
   (** Node identifiers *)
   module Id : sig
