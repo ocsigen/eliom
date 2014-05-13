@@ -442,6 +442,10 @@ module Html5 : sig
     include module type of Raw (*BB TODO Hide untyped [input]. *)
   end
 
+  module C : sig
+    val node : ?init:'a D.elt -> 'a elt client_value -> 'a D.elt
+    val attr : 'a attrib client_value -> 'a attrib
+  end
 
   (** Node identifiers *)
   module Id : sig

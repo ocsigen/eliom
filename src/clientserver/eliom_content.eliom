@@ -18,6 +18,12 @@
  *)
 
 
+{shared{
+type boxed
+let boxed   : 'a -> boxed = Obj.magic
+let unboxed : boxed -> 'a = Obj.magic
+  }}
+
 {client{
 
   include Eliom_content_
@@ -44,8 +50,24 @@ module Html5 = struct
   include Eliom_content_.Html5
 
   (** On server side, module R generates client side reactive nodes,
-     that is, nodes that react to client side reactive signals. *)
+      that is, nodes that react to client side reactive signals. *)
 
+  module C = struct
+    let node ?(init=D.span []) x =
+      let dummy_elt = D.toelt init in
+      let client_boxed = boxed x in
+      let _ = {unit{
+          let dummy_dom = Html5.To_dom.of_element (Html5.D.tot %((dummy_elt : Xml.elt))) in
+          let client_boxed = %client_boxed in
+          let real = Html5.To_dom.of_element (unboxed client_boxed) in
+          Js.Opt.iter
+            (dummy_dom##parentNode)
+            (fun parent -> parent##replaceChild(real, dummy_dom));
+        }} in
+      init
+
+    let attr x = failwith "not implemented yet"
+  end
 
 end
 

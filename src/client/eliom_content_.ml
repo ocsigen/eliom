@@ -344,6 +344,11 @@ module Html5 = struct
     let select = string_select ?required:None
   end
 
+  module C = struct
+    let node ?init x = x
+    let attr x = x
+  end
+
   type +'a elt = 'a F.elt
   type +'a attrib = 'a F.attrib
   type uri = F.uri
