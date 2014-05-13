@@ -1198,22 +1198,61 @@ type tmp_elt = {
   tmp_node_id : Xml.node_id;
 }
 
-let rebuild_attrib node name a =
-  let name = Js.string name in
-  match a with
-  | Xml.AFloat f -> node##setAttribute (name, Obj.magic f)
-  | Xml.AInt i -> node##setAttribute (name, Obj.magic i)
-  | Xml.AStr s -> node##setAttribute(name, Js.string s)
-  | Xml.AStrL (Xml.Space, sl) ->
-    node##setAttribute(name, Js.string (String.concat " " sl))
-  | Xml.AStrL (Xml.Comma, sl) ->
-    node##setAttribute(name, Js.string (String.concat "," sl))
+let rebuild_attrib_val = function
+  | Xml.AFloat f -> Obj.magic f
+  | Xml.AInt i ->   Obj.magic i
+  | Xml.AStr s ->   Js.string s
+  | Xml.AStrL (Xml.Space, sl) -> Js.string (String.concat " " sl)
+  | Xml.AStrL (Xml.Comma, sl) -> Js.string (String.concat "," sl)
+
+
+(* html attributes and dom properties use differant names
+   **exemple**: maxlength vs maxLenght (case sensitive).
+   - Before dom react, it was enought to set html attributes only as
+   there were no update after creation.
+   - Dom React may update attributes later.
+   Html attrib changes are not taken into account if the corresponding
+   Dom property is defined.
+   **exemple**: udpating html attribute `value` has no effect if the dom property
+   `value` has be set by the user.
+
+   =WE NEED TO SET DOM PROPERTIES=
+   -Tyxml only gives us html attribute names and we can set them safely.
+   -The name for dom properties is maybe differant.
+    We set it only if we find out that the property match_the_attribute_name / is_alerady_defined (get_prop).
+*)
+
+(* TODO: fix get_prop
+   it only work when html attribute and dom property names correspond.
+   find a way to get dom property name corresponding to html attribute
+*)
+
+let get_prop node name =
+  if Js.Optdef.test (Js.Unsafe.get node name)
+  then Some name
+  else None
+
+let iter_prop node name f =
+  match get_prop node name with
+  | Some n -> f n
+  | None -> ()
 
 let rebuild_rattrib node ra = match Xml.racontent ra with
-  | Xml.RA a -> rebuild_attrib node (Xml.aname ra) a
-  | Xml.RAReact s -> let _ = React.S.map (function
-      | None -> node##removeAttribute (Js.string (Xml.aname ra))
-      | Some v -> rebuild_attrib node (Xml.aname ra) v) s in ()
+  | Xml.RA a ->
+    let name = Xml.aname ra in
+    let v = rebuild_attrib_val a in
+    node##setAttribute (name,v);
+  | Xml.RAReact s ->
+    let name = Js.string (Xml.aname ra) in
+    let _ = React.S.map (function
+        | None ->
+          node##removeAttribute (name);
+          iter_prop node name (Js.Unsafe.delete node);
+        | Some v ->
+          let v = rebuild_attrib_val v in
+          node##setAttribute (name,v);
+          iter_prop node name (fun name -> Js.Unsafe.set node name v);
+      ) s in ()
   | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
   | Xml.RALazyStr s ->
       node##setAttribute(Js.string (Xml.aname ra), Js.string s)
