@@ -3581,7 +3581,7 @@ let rec power n m =
       else
         "Activate timings"
     in
-    Js.Optdef.case (ev##target)
+    Js.Opt.case (ev##target)
       (fun () -> assert false)
       (fun elt -> Js.Opt.case (Dom_html.CoerceTo.input (elt))
         (fun () -> assert false)

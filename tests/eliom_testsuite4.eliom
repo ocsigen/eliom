@@ -254,7 +254,7 @@ let data_sharing =
 {client{
 
   let show_my_data (ev : Dom_html.mouseEvent Js.t) =
-    let elt = Js.Optdef.get (ev##target) (fun () -> failwith "show_my_data") in
+    let elt = Js.Opt.get (ev##target) (fun () -> failwith "show_my_data") in
     let i = Html5.Custom_data.get_dom elt my_data in
     alert "custom_data : {x=%d;y=%d}" i.x i.y
 
