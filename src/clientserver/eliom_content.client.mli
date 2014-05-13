@@ -380,7 +380,6 @@ module Html5 : sig
     val of_applet : [> `Applet] elt -> Dom_html.element Js.t
     val of_article : [> `Article] elt -> Dom_html.element Js.t
     val of_aside : [> `Aside] elt -> Dom_html.element Js.t
-    val of_audio : [> `Audio of 'a ] elt -> Dom_html.element Js.t
     val of_b : [> `B] elt -> Dom_html.element Js.t
     val of_basefont : [> `basefont] elt -> Dom_html.element Js.t
     val of_bdi : [> `Bdi] elt -> Dom_html.element Js.t
@@ -447,7 +446,6 @@ module Html5 : sig
     val of_tt : [> `Tt] elt -> Dom_html.element Js.t
     val of_u : [> `U] elt -> Dom_html.element Js.t
     val of_var : [> `Var] elt -> Dom_html.element Js.t
-    val of_video : [> `Video] elt -> Dom_html.element Js.t
     val of_wbr : [> `Wbr] elt -> Dom_html.element Js.t
 
     val of_html : Html5_types.html elt -> Dom_html.htmlElement Js.t
@@ -495,6 +493,9 @@ module Html5 : sig
     val of_table : Html5_types.table elt -> Dom_html.tableElement Js.t
     val of_canvas : 'a Html5_types.canvas elt -> Dom_html.canvasElement Js.t
     val of_iframe : Html5_types.iframe elt -> Dom_html.iFrameElement Js.t
+
+    val of_audio : [> `Audio of 'a ] elt -> Dom_html.audioElement Js.t
+    val of_video : [> `Video] elt -> Dom_html.videoElement Js.t
 
   end
 
