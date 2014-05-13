@@ -774,24 +774,38 @@ let relink_page_but_closure_nodes (root:Dom_html.element Js.t) =
    when on raises [False] (cf. [raw_event_handler]).
 *)
 
+let is_closure_attrib,get_closure_name,get_closure_id =
+  let v_prefix = Eliom_lib_base.RawXML.closure_attr_prefix in
+  let v_len = String.length v_prefix in
+  let v_prefix_js = Js.string v_prefix in
+
+  let n_prefix = Eliom_lib_base.RawXML.closure_name_prefix in
+  let n_len = String.length n_prefix in
+  let n_prefix_js = Js.string n_prefix in
+
+  (fun attr ->
+    attr##value##substring(0,v_len) = v_prefix_js &&
+    attr##name##substring(0,n_len) = n_prefix_js),
+  (fun attr -> attr##name##substring_toEnd(n_len)),
+  (fun attr -> attr##value##substring_toEnd(v_len))
+
 let relink_closure_node root onload table (node:Dom_html.element Js.t) =
   trace "Relink closure node";
   let aux attr =
     (* IE8 provides [null] in node##attributes; check this first of all *)
     if Obj.magic attr then
-      ( if attr##value##substring(0,Eliom_lib_base.RawXML.closure_attr_prefix_len) =
-          Js.string Eliom_lib_base.RawXML.closure_attr_prefix
+      ( if is_closure_attrib attr
         then
-          let cid = Js.to_bytestring (attr##value##substring_toEnd(
-            Eliom_lib_base.RawXML.closure_attr_prefix_len)) in
+          let cid = Js.to_bytestring (get_closure_id attr) in
+          let name = get_closure_name attr in
           try
             let cv = Eliom_lib.RawXML.ClosureMap.find cid table in
             let closure = raw_event_handler cv in
-            if attr##name = Js.string "onload" then
+            if name = Js.string "onload" then
               (if Eliommod_dom.ancessor root node
                (* if not inside a unique node replaced by an older one *)
                then onload := closure :: !onload)
-            else Js.Unsafe.set node (attr##name) (Dom_html.handler (fun ev -> Js.bool (closure ev)))
+            else Js.Unsafe.set node name (Dom_html.handler (fun ev -> Js.bool (closure ev)))
           with Not_found ->
             error "relink_closure_node: client value %s not found" cid )
   in

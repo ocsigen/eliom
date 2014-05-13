@@ -102,7 +102,7 @@ module RawXML = struct
   let node_id_attrib = "data-eliom-node-id"
 
   let closure_attr_prefix = "caml_closure_id"
-  let closure_attr_prefix_len = String.length closure_attr_prefix
+  let closure_name_prefix = "eliom-"
 
   type aname = string
   type acontent =
@@ -117,8 +117,12 @@ module RawXML = struct
     | RACamlEventHandler of Dom_html.event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
+
   type attrib = aname * racontent
-  let aname (name, _) = name
+  let aname = function
+    | name, RACamlEventHandler (CE_registered_closure (crypto, _)) ->
+      "eliom-"^name
+    | name, _ -> name
   let acontent = function
     | _ ,RAReact s -> (match React.S.value s with None -> AStr "" | Some x -> x)
     | _, RA a -> a

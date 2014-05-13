@@ -101,7 +101,7 @@ module RawXML : sig
   val node_id_attrib : string
 
   val closure_attr_prefix : string
-  val closure_attr_prefix_len : int
+  val closure_name_prefix : string
 
   type aname = string
   type acontent =
