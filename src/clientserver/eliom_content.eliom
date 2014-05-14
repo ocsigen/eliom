@@ -41,8 +41,29 @@ module type Forms = "sigs/eliom_forms.mli"
 
 module Xml = Eliom_content_.Xml
 
-module Svg = Eliom_content_.Svg
+module Svg = struct
+  include Eliom_content_.Svg
 
+  module C = struct
+    let node ?(init=D.Unsafe.node "g" []) x =
+      let dummy_elt = D.toelt init in
+      (* We need to box / unbox the client_value to convince eliom it's not polymorphic *)
+      let client_boxed = boxed x in
+      let _ = {unit{
+          let dummy_dom = Svg.To_dom.of_element (Svg.D.tot %((dummy_elt : Xml.elt))) in
+          let client_boxed = %client_boxed in
+          let real = Svg.To_dom.of_element (unboxed client_boxed) in
+          Js.Opt.iter
+            (dummy_dom##parentNode)
+            (fun parent -> parent##replaceChild(real, dummy_dom));
+        }} in
+      init
+
+    let attr ?init x : 'a attrib = D.client_attrib ?init x
+  end
+
+
+end
 module Html_text = Eliom_content_.Html_text
 
 module Html5 = struct

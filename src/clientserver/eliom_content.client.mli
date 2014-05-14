@@ -117,6 +117,13 @@ module Svg : sig
     include "../client/sigs/eliom_svg_event_handler.mli"
   end
 
+  (** Creation of content from client values. It is the identity on the client side. *)
+  module C : sig
+    val node : ?init:'a D.elt -> 'a elt client_value -> 'a D.elt
+    val attr : ?init:'a attrib -> 'a attrib client_value -> 'a attrib
+  end
+
+
   (** Node identifiers *)
   module Id : sig
     (** The type of global SVG element identifier. *)

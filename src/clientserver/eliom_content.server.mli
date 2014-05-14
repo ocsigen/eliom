@@ -243,6 +243,11 @@ module Svg : sig
   module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a elt
                                                   and type doc := F.doc
 
+  module C : sig
+    val node : ?init:'a elt -> 'a elt client_value -> 'a elt
+    val attr : ?init:'a attrib -> 'a attrib client_value -> 'a attrib
+  end
+
 end
 
 

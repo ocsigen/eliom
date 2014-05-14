@@ -115,6 +115,8 @@ module Svg : sig
 
     include module type of Raw
 
+    val client_attrib : ?init:'a attrib -> 'a attrib Eliom_lib.client_value -> 'a attrib
+
     include "sigs/eliom_svg_event_handler.mli"
 
   end

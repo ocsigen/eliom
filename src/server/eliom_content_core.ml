@@ -220,29 +220,35 @@ module Eliom_xml = Xml
 module Svg = struct
 
   module D = struct
+    module Xml' = struct
 
-    module Raw = Svg_f.Make(struct
+      include Xml
 
-        include Xml
+      let make elt = make_request_node (make elt)
+      let make_lazy elt = make_request_node (make_lazy elt)
 
-        let make elt = make_request_node (make elt)
-        let make_lazy elt = make_request_node (make_lazy elt)
+      let empty () = make Empty
 
-        let empty () = make Empty
+      let comment c = make (Comment c)
+      let pcdata d = make (PCDATA d)
+      let encodedpcdata d = make (EncodedPCDATA d)
+      let entity e = make (Entity e)
 
-        let comment c = make (Comment c)
-        let pcdata d = make (PCDATA d)
-        let encodedpcdata d = make (EncodedPCDATA d)
-        let entity e = make (Entity e)
+      let leaf ?(a = []) name =  make (Leaf (name, a))
+      let node ?(a = []) name children = make (Node (name, a, children))
+      let lazy_node ?(a = []) name children =
+        make_lazy (Eliom_lazy.from_fun (fun () -> (Node (name, a, Eliom_lazy.force children))))
 
-        let leaf ?(a = []) name =  make (Leaf (name, a))
-        let node ?(a = []) name children = make (Node (name, a, children))
-        let lazy_node ?(a = []) name children =
-          make_lazy (Eliom_lazy.from_fun (fun () -> (Node (name, a, Eliom_lazy.force children))))
+    end
+    module Raw = Svg_f.Make(Xml')
 
-      end)
+    let client_attrib ?init (x : 'a Raw.attrib Eliom_lib.client_value) =
+      let crypto = make_cryptographic_safe_string () in
+      let empty_name = "" in
+      empty_name,Xml.RAClient (crypto,init,Obj.magic (Eliom_lib.client_value_server_repr x))
 
     include Raw
+
 
     let a_onabort ev = Raw.a_onabort (Eliom_xml.event_handler ev)
     let a_onclick
