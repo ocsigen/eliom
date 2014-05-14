@@ -346,7 +346,7 @@ module Html5 = struct
 
   module C = struct
     let node ?init x = x
-    let attr x = x
+    let attr ?init x = x
   end
 
   type +'a elt = 'a F.elt

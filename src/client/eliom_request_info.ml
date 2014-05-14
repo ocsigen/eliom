@@ -171,6 +171,8 @@ let default_request_data =
   {Eliom_common.ejs_global_data = None;
    ejs_request_data = [];
    ejs_event_handler_table = Eliom_lib.RawXML.ClosureMap.empty;
+   ejs_client_attrib_table = Eliom_lib.RawXML.ClosureMap.empty;
+
    ejs_sess_info =
       {Eliom_common.si_other_get_params = [];
        si_all_get_params = [];

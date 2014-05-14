@@ -49,12 +49,13 @@ module Html5 = struct
 
   include Eliom_content_.Html5
 
-  (** On server side, module R generates client side reactive nodes,
+  (** On server side, module C generates client side reactive nodes,
       that is, nodes that react to client side reactive signals. *)
 
   module C = struct
     let node ?(init=D.span []) x =
       let dummy_elt = D.toelt init in
+      (* We need to box / unbox the client_value to convince eliom it's not polymorphic *)
       let client_boxed = boxed x in
       let _ = {unit{
           let dummy_dom = Html5.To_dom.of_element (Html5.D.tot %((dummy_elt : Xml.elt))) in
@@ -66,7 +67,7 @@ module Html5 = struct
         }} in
       init
 
-    let attr x = failwith "not implemented yet"
+    let attr ?init x : 'a attrib = D.client_attrib ?init x
   end
 
 end

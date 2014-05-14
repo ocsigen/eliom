@@ -93,6 +93,7 @@ module RawXML = struct
   let event_handler_of_service info = Caml (CE_call_service info)
 
   let ce_registered_closure_class = "caml_closure"
+  let ce_registered_attr_class = "caml_attr"
   let ce_call_service_class = "caml_link"
   let process_node_class = "caml_process_node"
   let request_node_class = "caml_request_node"
@@ -104,6 +105,8 @@ module RawXML = struct
   let closure_attr_prefix = "caml_closure_id"
   let closure_name_prefix = "eliom-"
 
+  let client_attr_prefix = "eliom_attrib"
+  let client_name_prefix = "eliom-"
   type aname = string
   type acontent =
     | AFloat of float
@@ -117,11 +120,14 @@ module RawXML = struct
     | RACamlEventHandler of Dom_html.event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
+    | RAClient of string * attrib option * attrib Client_value_server_repr.t
+  and attrib = aname * racontent
 
-  type attrib = aname * racontent
   let aname = function
     | name, RACamlEventHandler (CE_registered_closure (crypto, _)) ->
-      "eliom-"^name
+      closure_name_prefix^name
+    | _, RAClient (s, Some (name,_), c)
+    | name, RAClient (s, None, c) -> client_name_prefix^name
     | name, _ -> name
   let acontent = function
     | _ ,RAReact s -> (match React.S.value s with None -> AStr "" | Some x -> x)
@@ -131,6 +137,7 @@ module RawXML = struct
     | _, RACamlEventHandler _ -> AStr ("")
     | _, RALazyStr str -> AStr (Eliom_lazy.force str)
     | _, RALazyStrL (sep, str) -> AStrL (sep, List.map Eliom_lazy.force str)
+    | _, RAClient (crypto,_,_) -> AStr (client_attr_prefix^crypto)
   let racontent (_, a) = a
 
   let react_float_attrib name s = name, RAReact (React.S.map (fun f -> Some (AFloat f)) s)
@@ -163,45 +170,59 @@ module RawXML = struct
   type event_handler_table =
     ((Dom_html.event Js.t -> unit) Client_value_server_repr.t) ClosureMap.t
 
-  let filter_class (acc_class,acc_attr) = function
+  type client_attrib_table = attrib Client_value_server_repr.t ClosureMap.t
+
+  let filter_class (freepos,acc_class,acc_attr) = function
     | "class", RA value ->
       begin
         match value with
           | AStr v ->
-            (v::acc_class,acc_attr)
+            (freepos,v::acc_class,acc_attr)
           | AStrL (Space,v) ->
-            (v@acc_class,acc_attr)
+            (freepos,v@acc_class,acc_attr)
           | _ -> failwith "attribute class is not a string"
       end
     | _, RACamlEventHandler (CE_registered_closure _) as attr ->
-      (ce_registered_closure_class :: acc_class, attr :: acc_attr)
+      (freepos,ce_registered_closure_class :: acc_class, attr :: acc_attr)
     | _, RACamlEventHandler (CE_call_service link_info) ->
       begin
         match Eliom_lazy.force link_info with
-          | None -> acc_class, acc_attr
+          | None -> freepos, acc_class, acc_attr
           | Some (kind,cookie_info,tmpl) ->
-              ce_call_service_class::acc_class,
-              let acc_attr =
-                match cookie_info with
-                | None -> acc_attr
-                | Some v ->
-                    (ce_call_service_attrib, RA (AStr (Json.to_string<cookie_info> v)))
-                    :: acc_attr
-              in
+            let acc_class = ce_call_service_class::acc_class in
+            let acc_attr =
+              match cookie_info with
+              | None -> acc_attr
+              | Some v ->
+                (ce_call_service_attrib, RA (AStr (Json.to_string<cookie_info> v)))
+                :: acc_attr
+            in
+            let acc_attr =
               match tmpl with
               | None -> acc_attr
               | Some tmpl -> (ce_template_attrib, RA (AStr tmpl)) :: acc_attr
+            in
+            freepos, acc_class, acc_attr
       end
-    | attr -> (acc_class,attr::acc_attr)
+    | "" , RAClient (crypt,init,cv)->
+      let freepos,acc_attr = match init with
+        | Some ((an,_) as a) -> freepos, (an,RAClient(crypt,None,cv))::a::acc_attr
+        | None ->
+          let name = (Printf.sprintf "anonym%d" freepos) in
+          let freepos = succ freepos in
+          freepos, (name, RAClient(crypt,None,cv)) :: acc_attr in
+      (freepos, ce_registered_attr_class :: acc_class, acc_attr)
+    | _ , RAClient _ -> assert false
+    | attr -> (freepos, acc_class,attr::acc_attr)
 
   let filter_class_attribs node_id attribs =
-    let node_id = match node_id with
+    let nid_classes,nid_attribs = match node_id with
       | NoId -> [],[]
       | ProcessId i -> [process_node_class], [node_id_attrib,RA (AStr i)]
       | RequestId i -> [request_node_class], [node_id_attrib,RA (AStr i)]
     in
-    let (classes,attribs) =
-      List.fold_left filter_class (node_id) attribs in
+    let (_,classes,attribs) =
+      List.fold_left filter_class (0,nid_classes,nid_attribs) attribs in
     match classes with
       | [] -> attribs
       | _ -> ("class",RA (AStrL(Space,classes)))::attribs

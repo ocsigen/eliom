@@ -98,9 +98,11 @@ let fast_select_nodes root =
   let process_node_nodeList = root##querySelectorAll(Js.string ("."^Eliom_lib_base.RawXML.process_node_class)) in
   let closure_nodeList =
     root##querySelectorAll(Js.string ("."^Eliom_lib_base.RawXML.ce_registered_closure_class)) in
+  let attrib_nodeList =
+    root##querySelectorAll(Js.string ("."^Eliom_lib_base.RawXML.ce_registered_attr_class)) in
   if !Eliom_config.debug_timings then
     Firebug.console##timeEnd(Js.string "fast_select_nodes");
-  a_nodeList, form_nodeList, process_node_nodeList, closure_nodeList
+  a_nodeList, form_nodeList, process_node_nodeList, closure_nodeList, attrib_nodeList
 
 let slow_has_classes (node:Dom_html.element Js.t) =
   let classes =
@@ -118,6 +120,7 @@ let slow_has_classes (node:Dom_html.element Js.t) =
   let found_call_service = ref false in
   let found_process_node = ref false in
   let found_closure = ref false in
+  let found_attrib = ref false in
   for i = 0 to (classes##length) - 1 do
     found_call_service := (Js.array_get classes i == Js.def (Js.string Eliom_lib_base.RawXML.ce_call_service_class))
     || !found_call_service;
@@ -125,8 +128,10 @@ let slow_has_classes (node:Dom_html.element Js.t) =
     || !found_process_node;
     found_closure := (Js.array_get classes i == Js.def (Js.string Eliom_lib_base.RawXML.ce_registered_closure_class))
     || !found_closure;
+    found_attrib := (Js.array_get classes i == Js.def (Js.string Eliom_lib_base.RawXML.ce_registered_attr_class))
+    || !found_attrib;
   done;
-  !found_call_service,!found_process_node,!found_closure
+  !found_call_service,!found_process_node,!found_closure,!found_attrib
 
 let slow_has_request_class (node:Dom_html.element Js.t) =
   let classes = Js.str_array (node##className##split(Js.string " ")) in
@@ -140,12 +145,13 @@ let slow_has_request_class (node:Dom_html.element Js.t) =
 let fast_has_classes (node:Dom_html.element Js.t) =
   Js.to_bool (node##classList##contains((Js.string Eliom_lib_base.RawXML.ce_call_service_class))),
   Js.to_bool (node##classList##contains((Js.string Eliom_lib_base.RawXML.process_node_class))),
-  Js.to_bool (node##classList##contains((Js.string Eliom_lib_base.RawXML.ce_registered_closure_class)))
+  Js.to_bool (node##classList##contains((Js.string Eliom_lib_base.RawXML.ce_registered_closure_class))),
+  Js.to_bool (node##classList##contains((Js.string Eliom_lib_base.RawXML.ce_registered_attr_class)))
 
 let fast_has_request_class (node:Dom_html.element Js.t) =
   Js.to_bool (node##classList##contains((Js.string Eliom_lib_base.RawXML.request_node_class)))
 
-let has_classes : Dom_html.element Js.t -> (bool*bool*bool) =
+let has_classes : Dom_html.element Js.t -> (bool*bool*bool*bool) =
   if test_classList ()
   then fast_has_classes
   else slow_has_classes
@@ -174,11 +180,12 @@ let slow_select_nodes (root:Dom_html.element Js.t) =
   let form_array = jsnew Js.array_empty () in
   let node_array = jsnew Js.array_empty () in
   let closure_array = jsnew Js.array_empty () in
+  let attrib_array =  jsnew Js.array_empty () in
   let rec traverse (node:Dom.node Js.t) =
     match node##nodeType with
       | Dom.ELEMENT ->
         let node = (Js.Unsafe.coerce node:Dom_html.element Js.t) in
-        let call_service,process_node,closure = has_classes node in
+        let call_service,process_node,closure,attrib = has_classes node in
         begin
           if call_service
           then
@@ -191,6 +198,8 @@ let slow_select_nodes (root:Dom_html.element Js.t) =
         then ignore (node_array##push(node));
         if closure
         then ignore (closure_array##push(node));
+        if attrib
+        then ignore (attrib_array##push(node));
         iter_nodeList node##childNodes traverse
       | _ -> ()
   in
@@ -198,7 +207,8 @@ let slow_select_nodes (root:Dom_html.element Js.t) =
   (Js.Unsafe.coerce a_array:Dom_html.anchorElement Dom.nodeList Js.t),
   (Js.Unsafe.coerce form_array:Dom_html.formElement Dom.nodeList Js.t),
   (Js.Unsafe.coerce node_array:Dom_html.element Dom.nodeList Js.t),
-  (Js.Unsafe.coerce closure_array:Dom_html.element Dom.nodeList Js.t)
+  (Js.Unsafe.coerce closure_array:Dom_html.element Dom.nodeList Js.t),
+  (Js.Unsafe.coerce attrib_array:Dom_html.element Dom.nodeList Js.t)
 
 let select_nodes =
   if test_querySelectorAll ()

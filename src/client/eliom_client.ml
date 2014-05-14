@@ -751,9 +751,9 @@ let relink_request_nodes root =
    closure nodes is returned for application on [relink_closure_node]
    after the client values are initialized.
 *)
-let relink_page_but_closure_nodes (root:Dom_html.element Js.t) =
+let relink_page_but_client_values (root:Dom_html.element Js.t) =
   trace "Relink page";
-  let (a_nodeList,form_nodeList,process_nodeList,closure_nodeList) =
+  let (a_nodeList,form_nodeList,process_nodeList,closure_nodeList,attrib_nodeList) =
     Eliommod_dom.select_nodes root in
   Eliommod_dom.iter_nodeList a_nodeList
     (fun node -> node##onclick <- a_handler);
@@ -761,7 +761,7 @@ let relink_page_but_closure_nodes (root:Dom_html.element Js.t) =
     (fun node -> node##onsubmit <- form_handler);
   Eliommod_dom.iter_nodeList process_nodeList
     relink_process_node;
-  closure_nodeList
+  closure_nodeList,attrib_nodeList
 
 (* == Rebuild event handlers
 
@@ -820,6 +820,53 @@ let relink_closure_nodes (root : Dom_html.element Js.t) event_handlers closure_n
     let ev = Eliommod_dom.createEvent (Js.string "load") in
     ignore
       (List.for_all (fun f -> f ev) (List.rev !onload))
+
+let is_attrib_attrib,get_attrib_id =
+  let v_prefix = Eliom_lib_base.RawXML.client_attr_prefix in
+  let v_len = String.length v_prefix in
+  let v_prefix_js = Js.string v_prefix in
+
+  let n_prefix = Eliom_lib_base.RawXML.client_name_prefix in
+  let n_len = String.length n_prefix in
+  let n_prefix_js = Js.string n_prefix in
+
+  (fun attr ->
+    attr##value##substring(0,v_len) = v_prefix_js &&
+    attr##name##substring(0,n_len) = n_prefix_js),
+  (fun attr -> attr##value##substring_toEnd(v_len))
+
+let rebuild_rattrib2 = ref (fun _ _ -> ())
+
+let relink_attrib root table (node:Dom_html.element Js.t) =
+  trace "Relink attribute";
+  let aux attr =
+    (* IE8 provides [null] in node##attributes; check this first of all *)
+    if Obj.magic attr then
+      ( if is_attrib_attrib attr
+        then
+          let cid = Js.to_bytestring (get_attrib_id attr) in
+          try
+            let cv = Xml.ClosureMap.find cid table in
+            let closure_id = Client_value_server_repr.closure_id cv in
+            let instance_id = Client_value_server_repr.instance_id cv in
+            begin
+              try
+                let value = Client_value.find ~closure_id ~instance_id in
+                let rattrib = (Eliom_lib.from_poly value : Eliom_content_core.Xml.attrib) in
+                !rebuild_rattrib2 node rattrib
+              with Not_found ->
+                error "Client value %Ld/%Ld not found as event handler" closure_id instance_id
+            end
+          with Not_found ->
+            error "relink_attrib: client value %s not found" cid)
+  in
+  Eliommod_dom.iter_nodeList (node##attributes:>Dom.attr Dom.nodeList Js.t) aux
+
+
+let relink_attribs (root : Dom_html.element Js.t) attribs attrib_nodeList =
+  trace "Relink %i attributes" (attrib_nodeList##length);
+  Eliommod_dom.iter_nodeList attrib_nodeList
+    (fun node -> relink_attrib root attribs node)
 
 (* == Extract the request data and the request tab-cookies from a page
 
@@ -926,7 +973,7 @@ let set_content ?uri ?offset ?fragment content =
        (* Bind unique node (request and global) and register event
           handler.  Relinking closure nodes must take place after
           initializing the client values *)
-       let closure_nodeList = relink_page_but_closure_nodes fake_page in
+       let closure_nodeList,attrib_nodeList = relink_page_but_client_values fake_page in
        Eliom_request_info.set_session_info js_data.Eliom_common.ejs_sess_info;
        (* Really change page contents *)
        if !Eliom_config.debug_timings then
@@ -941,6 +988,9 @@ let set_content ?uri ?offset ?fragment content =
           new DOM. Necessary for relinking closure nodes *)
        do_request_data js_data.Eliom_common.ejs_request_data;
        (* Replace closure ids in document with event handlers (from client values) *)
+       let () = relink_attribs
+           Dom_html.document##documentElement
+           js_data.Eliom_common.ejs_client_attrib_table attrib_nodeList in
        let onload_closure_nodes =
          relink_closure_nodes
            Dom_html.document##documentElement
@@ -1273,8 +1323,10 @@ let rebuild_rattrib node ra = match Xml.racontent ra with
   | Xml.RALazyStrL (Xml.Space, l) ->
       node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat " " l))
   | Xml.RALazyStrL (Xml.Comma, l) ->
-      node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat "," l))
+    node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat "," l))
+  | Xml.RAClient _ -> assert false
 
+let () = rebuild_rattrib2 := rebuild_rattrib
 
 let delay f = Lwt.ignore_result ( Lwt.pause () >>= (fun () -> f (); Lwt.return_unit))
 

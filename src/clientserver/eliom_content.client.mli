@@ -444,7 +444,7 @@ module Html5 : sig
 
   module C : sig
     val node : ?init:'a D.elt -> 'a elt client_value -> 'a D.elt
-    val attr : 'a attrib client_value -> 'a attrib
+    val attr : ?init:'a attrib -> 'a attrib client_value -> 'a attrib
   end
 
   (** Node identifiers *)

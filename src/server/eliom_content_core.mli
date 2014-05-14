@@ -36,6 +36,7 @@ module Xml : sig
   type node_id
   val get_node_id : elt -> node_id
   val make_event_handler_table : elt -> Eliom_lib.RawXML.event_handler_table
+  val make_client_attrib_table : elt -> Eliom_lib.RawXML.client_attrib_table
 
   val event_handler_of_string : string -> event_handler
   val string_of_event_handler : event_handler -> string
@@ -53,6 +54,8 @@ module Xml : sig
     | RACamlEventHandler of Dom_html.event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
+    | RAClient of string * attrib option * attrib Eliom_lib.Client_value_server_repr.t
+
   val racontent : attrib -> racontent
 
   val lazy_node : ?a:(attrib list) -> ename -> elt list Eliom_lazy.request -> elt
@@ -184,6 +187,8 @@ module Html5 : sig
                    and type +'a attrib = 'a attrib
                    and type uri = uri
     include module type of Raw (*BB TODO Hide untyped [input]. *)
+
+    val client_attrib : ?init:'a attrib -> 'a attrib Eliom_lib.client_value -> 'a attrib
 
     include "sigs/eliom_html5_event_handler.mli"
 
