@@ -23,7 +23,7 @@
 (**
     XML tree manipulation within Eliom is based on the TyXML library
     but Eliom is using a custom representation for XML values (see
-    {!Xml}). Then, [Eliom_content] redefines the three high level
+    {!Xml}). Then, [Eliom_content] redefines the two high level
     interfaces ({!Svg}, {!Html5}) that are provided by
     TyXML for valid XML tree creation and printing.
 
@@ -31,9 +31,11 @@
     - If you want to write untyped html, use {!Eliom_content.Html_text},
     - If you want to generate typed svg, use {!Eliom_content.Svg}.
 
-    Modules {!Eliom_content.Html5}, {!Eliom_content.Svg} contain three
+    Modules {!Eliom_content.Html5}, {!Eliom_content.Svg} contain two
     sub-modules: {!Eliom_content.Html5.F}, {!Eliom_content.Html5.D}
-    and {!Eliom_content.Html5.C} corresponding to three different semantics.
+    corresponding to tow different semantics.
+    They also contain a module {!Eliom_content.Html5.C} that allows to
+    inject client-side content into server-side content.
 
     {5 Functional semantics}
 
@@ -68,6 +70,14 @@
     In case of doubt, always use [D]-nodes when you are writing a
     client-server Eliom app. You can also mix F-nodes and D-nodes.
 
+   {5 Client-side value injection}
+
+   The [C] modules provides functions to inject client-side elements and attributes
+   into server-side content.
+
+   {b Please read
+   {% <<a_manual chapter="clientserver-html"|Eliom's manual>>%}
+   to learn how to generate HTML. }
 
   *)
 
@@ -243,6 +253,7 @@ module Svg : sig
   module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a elt
                                                   and type doc := F.doc
 
+  (** Creation of content from client-side values. *)
   module C : sig
     val node : ?init:'a elt -> 'a elt client_value -> 'a elt
     val attr : ?init:'a attrib -> 'a attrib client_value -> 'a attrib
@@ -467,7 +478,12 @@ module Html5 : sig
   module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a elt
                                                   and type doc := F.doc
 
+  (** Creation of HTML5 content from client-side values. *)
   module C : sig
+    (** {2 Content injection} *)
+
+    (** See Eliom manual for more detail on
+        {% <<a_manual chapter="clientserver-html" fragment="inject" | Dom & Client-values >>%}. *)
     val node : ?init:'a elt -> 'a elt client_value -> 'a elt
     val attr : ?init:'a attrib -> 'a attrib client_value -> 'a attrib
   end

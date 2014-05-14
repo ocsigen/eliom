@@ -70,9 +70,6 @@ module Html5 = struct
 
   include Eliom_content_.Html5
 
-  (** On server side, module C generates client side reactive nodes,
-      that is, nodes that react to client side reactive signals. *)
-
   module C = struct
     let node ?(init=D.span []) x =
       let dummy_elt = D.toelt init in
