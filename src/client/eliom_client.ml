@@ -408,6 +408,72 @@ let register_event_handler, flush_load_script =
   in
   register, flush
 
+
+let rebuild_attrib_val = function
+  | Xml.AFloat f -> Obj.magic f
+  | Xml.AInt i ->   Obj.magic i
+  | Xml.AStr s ->   Js.string s
+  | Xml.AStrL (Xml.Space, sl) -> Js.string (String.concat " " sl)
+  | Xml.AStrL (Xml.Comma, sl) -> Js.string (String.concat "," sl)
+
+
+(* html attributes and dom properties use differant names
+   **exemple**: maxlength vs maxLenght (case sensitive).
+   - Before dom react, it was enought to set html attributes only as
+   there were no update after creation.
+   - Dom React may update attributes later.
+   Html attrib changes are not taken into account if the corresponding
+   Dom property is defined.
+   **exemple**: udpating html attribute `value` has no effect if the dom property
+   `value` has be set by the user.
+
+   =WE NEED TO SET DOM PROPERTIES=
+   -Tyxml only gives us html attribute names and we can set them safely.
+   -The name for dom properties is maybe differant.
+    We set it only if we find out that the property match_the_attribute_name / is_alerady_defined (get_prop).
+*)
+
+(* TODO: fix get_prop
+   it only work when html attribute and dom property names correspond.
+   find a way to get dom property name corresponding to html attribute
+*)
+
+let get_prop node name =
+  if Js.Optdef.test (Js.Unsafe.get node name)
+  then Some name
+  else None
+
+let iter_prop node name f =
+  match get_prop node name with
+  | Some n -> f n
+  | None -> ()
+
+let rebuild_rattrib node ra = match Xml.racontent ra with
+  | Xml.RA a ->
+    let name = Xml.aname ra in
+    let v = rebuild_attrib_val a in
+    node##setAttribute (name,v);
+  | Xml.RAReact s ->
+    let name = Js.string (Xml.aname ra) in
+    let _ = React.S.map (function
+        | None ->
+          node##removeAttribute (name);
+          iter_prop node name (Js.Unsafe.delete node);
+        | Some v ->
+          let v = rebuild_attrib_val v in
+          node##setAttribute (name,v);
+          iter_prop node name (fun name -> Js.Unsafe.set node name v);
+      ) s in ()
+  | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
+  | Xml.RALazyStr s ->
+      node##setAttribute(Js.string (Xml.aname ra), Js.string s)
+  | Xml.RALazyStrL (Xml.Space, l) ->
+      node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat " " l))
+  | Xml.RALazyStrL (Xml.Comma, l) ->
+    node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat "," l))
+  | Xml.RAClient _ -> assert false
+
+
 (* == Associate data to state of the History API.
 
    We store an 'id' in the state, and store data in an association
@@ -835,8 +901,6 @@ let is_attrib_attrib,get_attrib_id =
     attr##name##substring(0,n_len) = n_prefix_js),
   (fun attr -> attr##value##substring_toEnd(v_len))
 
-let rebuild_rattrib2 = ref (fun _ _ -> ())
-
 let relink_attrib root table (node:Dom_html.element Js.t) =
   trace "Relink attribute";
   let aux attr =
@@ -853,7 +917,7 @@ let relink_attrib root table (node:Dom_html.element Js.t) =
               try
                 let value = Client_value.find ~closure_id ~instance_id in
                 let rattrib = (Eliom_lib.from_poly value : Eliom_content_core.Xml.attrib) in
-                !rebuild_rattrib2 node rattrib
+                rebuild_rattrib node rattrib
               with Not_found ->
                 error "Client value %Ld/%Ld not found as event handler" closure_id instance_id
             end
@@ -1261,72 +1325,6 @@ type tmp_elt = {
   tmp_elt : tmp_recontent;
   tmp_node_id : Xml.node_id;
 }
-
-let rebuild_attrib_val = function
-  | Xml.AFloat f -> Obj.magic f
-  | Xml.AInt i ->   Obj.magic i
-  | Xml.AStr s ->   Js.string s
-  | Xml.AStrL (Xml.Space, sl) -> Js.string (String.concat " " sl)
-  | Xml.AStrL (Xml.Comma, sl) -> Js.string (String.concat "," sl)
-
-
-(* html attributes and dom properties use differant names
-   **exemple**: maxlength vs maxLenght (case sensitive).
-   - Before dom react, it was enought to set html attributes only as
-   there were no update after creation.
-   - Dom React may update attributes later.
-   Html attrib changes are not taken into account if the corresponding
-   Dom property is defined.
-   **exemple**: udpating html attribute `value` has no effect if the dom property
-   `value` has be set by the user.
-
-   =WE NEED TO SET DOM PROPERTIES=
-   -Tyxml only gives us html attribute names and we can set them safely.
-   -The name for dom properties is maybe differant.
-    We set it only if we find out that the property match_the_attribute_name / is_alerady_defined (get_prop).
-*)
-
-(* TODO: fix get_prop
-   it only work when html attribute and dom property names correspond.
-   find a way to get dom property name corresponding to html attribute
-*)
-
-let get_prop node name =
-  if Js.Optdef.test (Js.Unsafe.get node name)
-  then Some name
-  else None
-
-let iter_prop node name f =
-  match get_prop node name with
-  | Some n -> f n
-  | None -> ()
-
-let rebuild_rattrib node ra = match Xml.racontent ra with
-  | Xml.RA a ->
-    let name = Xml.aname ra in
-    let v = rebuild_attrib_val a in
-    node##setAttribute (name,v);
-  | Xml.RAReact s ->
-    let name = Js.string (Xml.aname ra) in
-    let _ = React.S.map (function
-        | None ->
-          node##removeAttribute (name);
-          iter_prop node name (Js.Unsafe.delete node);
-        | Some v ->
-          let v = rebuild_attrib_val v in
-          node##setAttribute (name,v);
-          iter_prop node name (fun name -> Js.Unsafe.set node name v);
-      ) s in ()
-  | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
-  | Xml.RALazyStr s ->
-      node##setAttribute(Js.string (Xml.aname ra), Js.string s)
-  | Xml.RALazyStrL (Xml.Space, l) ->
-      node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat " " l))
-  | Xml.RALazyStrL (Xml.Comma, l) ->
-    node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat "," l))
-  | Xml.RAClient _ -> assert false
-
-let () = rebuild_rattrib2 := rebuild_rattrib
 
 let delay f = Lwt.ignore_result ( Lwt.pause () >>= (fun () -> f (); Lwt.return_unit))
 
