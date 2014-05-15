@@ -136,6 +136,11 @@ end
 
 module Html5 : sig
 
+  (** See the Eliom manual for more information on {% <<a_manual
+      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
+      semantics>> %} for HTML5 tree manipulated by client/server
+      application. *)
+
   type +'a elt = Xml.elt (* ***!!! will be abstracted later! O.o DO NOT INSTALL eliom_content_core.cmi **)
   type 'a wrap = 'a
   type 'a attrib = Xml.attrib (* ***!!! will be abstracted later! O.o DO NOT INSTALL eliom_content_core.cmi **)

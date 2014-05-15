@@ -28,7 +28,9 @@ let code_of_code_option = function
   | None -> 200
   | Some c -> c
 
-include Eliom_registration_base
+type non_ocaml_service = Eliom_service.non_ocaml_service
+type appl_service = Eliom_service.appl_service
+type http_service = Eliom_service.http_service
 
 (******************************************************************************)
 (* Send return types                                                          *)
@@ -2022,7 +2024,7 @@ module Eliom_appl_reg_make_param
       split_page (Eliom_content.Html5.D.toelt page) in
     let head_elts =
          appl_data_script
-      :: Eliom_content.Html5.F.base ~a:[a_id Eliom_common_base.base_elt_id; Eliom_content.Html5.D.a_href (Eliom_content_core.Html5.D.uri_of_string base_url)] ()
+      :: Eliom_content.Html5.F.base ~a:[a_id Eliom_common_base.base_elt_id; Eliom_content.Html5.D.a_href (Eliom_content.Xml.uri_of_string base_url)] ()
       :: ( if List.exists is_eliom_appl_script head_elts
            then head_elts
 	   else ( head_elts

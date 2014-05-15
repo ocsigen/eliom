@@ -1,7 +1,9 @@
 
 open Eliom_lib
 
-include Eliom_registration_base
+type non_ocaml_service = Eliom_service.non_ocaml_service
+type appl_service = Eliom_service.appl_service
+type http_service = Eliom_service.http_service
 
 module type Base =
 sig

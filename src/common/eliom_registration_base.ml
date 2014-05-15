@@ -24,8 +24,6 @@ open Eliom_content_core
 open Eliom_service
 open Eliom_parameter
 
-type appl_service = Eliom_service.appl_service
-type http_service = Eliom_service.http_service
 type non_ocaml_service = Eliom_service.non_ocaml_service
 
 type input_type =
