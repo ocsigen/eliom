@@ -128,12 +128,10 @@ module Xml : sig
 
   val uri_of_fun: (unit -> string) -> uri
 
-  (* Building ref tree. *)
-  type event_handler_table = Eliom_lib.RawXML.event_handler_table
   (* Concrete on client-side only. *)
   type node_id
   val get_node_id : elt -> node_id
-  val make_event_handler_table : elt -> event_handler_table
+  val make_event_handler_table : elt -> Eliom_lib.RawXML.event_handler_table
 
   val event_handler_of_string : string -> event_handler
   val string_of_event_handler : event_handler -> string

@@ -785,7 +785,7 @@ let relink_closure_node root onload table (node:Dom_html.element Js.t) =
           let cid = Js.to_bytestring (attr##value##substring_toEnd(
             Eliom_lib_base.RawXML.closure_attr_prefix_len)) in
           try
-            let cv = Xml.ClosureMap.find cid table in
+            let cv = Eliom_lib.RawXML.ClosureMap.find cid table in
             let closure = raw_event_handler cv in
             if attr##name = Js.string "onload" then
               (if Eliommod_dom.ancessor root node

@@ -129,11 +129,6 @@ module Xml : sig
 
   val get_node : elt -> node
   val set_dom_node : elt -> Dom.node Js.t -> unit
-
-  module ClosureMap : Map.S with type key = string
-  type event_handler_table =
-    ((Dom_html.event Js.t -> unit) Eliom_lib.Client_value_server_repr.t) ClosureMap.t
-
 end
 
 (** Building SVG tree. *)
