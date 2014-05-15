@@ -442,8 +442,8 @@ module Html5 : sig
                     and type Xml.elt = Xml.elt
                     and type 'a Xml.wrap = 'a React.signal Eliom_pervasives.client_value
                    with module Svg := Svg.D.Raw
-                   with (* type +'a elt = 'a elt
-                    and *)type 'a wrap = 'a React.signal Eliom_pervasives.client_value
+                   with type +'a elt = 'a elt
+                    and type 'a wrap = 'a React.signal Eliom_pervasives.client_value
                     and type 'a attrib = 'a attrib
                     and type uri = uri
     include module type of Raw (*BB TODO Hide untyped [input]. *)
@@ -499,6 +499,10 @@ module Html5 : sig
         type [my_data] with value [value] for injecting it into an a HTML5 tree
         ({% <<a_api | type Eliom_content.Html5.elt >> %}). *)
     val attrib : 'a t -> 'a -> [> | `User_data ] attrib
+
+    val get_dom : Dom_html.element Js.t -> 'a t -> 'a
+
+    val set_dom : Dom_html.element Js.t -> 'a t -> 'a -> unit
   end
 
   (** Conversion from HTML5 [elt]s to Javascript DOM elements ([<:] {% <<a_api
