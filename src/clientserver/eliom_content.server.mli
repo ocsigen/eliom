@@ -255,8 +255,8 @@ module Svg : sig
 
   (** Creation of content from client-side values. *)
   module C : sig
-    val node : ?init:'a elt -> 'a elt client_value -> 'a elt
-    val attr : ?init:'a attrib -> 'a attrib client_value -> 'a attrib
+    val node : ?init:'a elt -> 'a elt Eliom_lib.client_value -> 'a elt
+    val attr : ?init:'a attrib -> 'a attrib Eliom_lib.client_value -> 'a attrib
   end
 
 end
@@ -484,8 +484,8 @@ module Html5 : sig
 
     (** See Eliom manual for more detail on
         {% <<a_manual chapter="clientserver-html" fragment="inject" | Dom & Client-values >>%}. *)
-    val node : ?init:'a elt -> 'a elt client_value -> 'a elt
-    val attr : ?init:'a attrib -> 'a attrib client_value -> 'a attrib
+    val node : ?init:'a elt -> 'a elt Eliom_lib.client_value -> 'a elt
+    val attr : ?init:'a attrib -> 'a attrib Eliom_lib.client_value -> 'a attrib
   end
 end
 
