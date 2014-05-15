@@ -72,7 +72,7 @@ module RawXML : sig
 
   type -'a caml_event_handler =
     | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) Client_value_server_repr.t
-    | CE_client_closure of ('a Js.t -> bool) (* Client side-only *)
+    | CE_client_closure of ('a Js.t -> unit)
     | CE_call_service of
         ([ `A | `Form_get | `Form_post] * (cookie_info option) * string option) option Eliom_lazy.request
 
@@ -92,6 +92,7 @@ module RawXML : sig
       event_handler
 
   val ce_registered_closure_class : string
+  val ce_registered_attr_class : string
   val ce_call_service_class : string
   val process_node_class : string
   val request_node_class : string
@@ -101,7 +102,10 @@ module RawXML : sig
   val node_id_attrib : string
 
   val closure_attr_prefix : string
-  val closure_attr_prefix_len : int
+  val closure_name_prefix : string
+
+  val client_attr_prefix : string
+  val client_name_prefix : string
 
   type aname = string
   type acontent =
@@ -116,7 +120,9 @@ module RawXML : sig
     | RACamlEventHandler of Dom_html.event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
-  type attrib = aname * racontent
+    | RAClient of string * attrib option * attrib Client_value_server_repr.t
+  and attrib = aname * racontent
+
   val aname : attrib -> aname
   val acontent : attrib -> acontent
   val racontent : attrib -> racontent
@@ -127,6 +133,7 @@ module RawXML : sig
   val react_space_sep_attrib : aname -> string list React.signal-> attrib
   val react_comma_sep_attrib : aname -> string list React.signal-> attrib
   val react_poly_attrib : aname -> string -> bool React.signal -> attrib
+
   val float_attrib : aname -> float -> attrib
   val int_attrib : aname -> int -> attrib
   val string_attrib : aname -> string -> attrib
@@ -146,6 +153,8 @@ module RawXML : sig
 
   type event_handler_table =
     ((Dom_html.event Js.t -> unit) Client_value_server_repr.t) ClosureMap.t
+
+  type client_attrib_table = attrib Client_value_server_repr.t ClosureMap.t
 
   val filter_class_attribs : node_id -> (string * racontent) list -> (string * racontent) list
 end

@@ -1961,6 +1961,7 @@ module Eliom_appl_reg_make_param
         ejs_global_data;
         ejs_request_data;
         ejs_event_handler_table = Eliom_content.Xml.make_event_handler_table (Eliom_content.Html5.D.toelt page);
+        ejs_client_attrib_table = Eliom_content.Xml.make_client_attrib_table (Eliom_content.Html5.D.toelt page);
         ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;
       } in
 

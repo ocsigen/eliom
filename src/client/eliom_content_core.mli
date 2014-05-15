@@ -34,7 +34,7 @@ module Xml : sig
 
   type -'a caml_event_handler =
     | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) Eliom_lib.Client_value_server_repr.t
-    | CE_client_closure of ('a Js.t -> bool)
+    | CE_client_closure of ('a Js.t -> unit)
     | CE_call_service of
         ([ `A | `Form_get | `Form_post] * (bool * string list) option * string option) option Eliom_lazy.request
 
@@ -77,6 +77,7 @@ module Xml : sig
     | RACamlEventHandler of Dom_html.event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
+    | RAClient of string * attrib option * attrib Eliom_lib.Client_value_server_repr.t
   val racontent : attrib -> racontent
 
   val aname : attrib -> aname

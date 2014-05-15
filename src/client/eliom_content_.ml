@@ -267,6 +267,10 @@ module Svg = struct
   module F = Svg.F
   module D = Svg.D
   module R = Svg.R
+  module C = struct
+    let node ?init x = x
+    let attr ?init x = x
+  end
 
   type +'a elt = 'a F.elt
   type +'a attrib = 'a F.attrib
@@ -342,6 +346,11 @@ module Html5 = struct
     let form = get_form
     let input = string_input
     let select = string_select ?required:None
+  end
+
+  module C = struct
+    let node ?init x = x
+    let attr ?init x = x
   end
 
   type +'a elt = 'a F.elt

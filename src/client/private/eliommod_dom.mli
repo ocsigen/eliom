@@ -31,10 +31,13 @@ val get_head : 'element #get_tag Js.t -> 'element Js.t
     * eliom links
     * eliom forms
     * process unique nodes
-    * nodes with closures ( events ) *)
+    * nodes with closures ( events )
+    * nodes with attributes *)
+
 val select_nodes : Dom_html.element Js.t ->
   Dom_html.anchorElement Dom.nodeList Js.t
   * Dom_html.formElement Dom.nodeList Js.t
+  * Dom_html.element Dom.nodeList Js.t
   * Dom_html.element Dom.nodeList Js.t
   * Dom_html.element Dom.nodeList Js.t
 

@@ -408,6 +408,72 @@ let register_event_handler, flush_load_script =
   in
   register, flush
 
+
+let rebuild_attrib_val = function
+  | Xml.AFloat f -> Obj.magic f
+  | Xml.AInt i ->   Obj.magic i
+  | Xml.AStr s ->   Js.string s
+  | Xml.AStrL (Xml.Space, sl) -> Js.string (String.concat " " sl)
+  | Xml.AStrL (Xml.Comma, sl) -> Js.string (String.concat "," sl)
+
+
+(* html attributes and dom properties use differant names
+   **exemple**: maxlength vs maxLenght (case sensitive).
+   - Before dom react, it was enought to set html attributes only as
+   there were no update after creation.
+   - Dom React may update attributes later.
+   Html attrib changes are not taken into account if the corresponding
+   Dom property is defined.
+   **exemple**: udpating html attribute `value` has no effect if the dom property
+   `value` has be set by the user.
+
+   =WE NEED TO SET DOM PROPERTIES=
+   -Tyxml only gives us html attribute names and we can set them safely.
+   -The name for dom properties is maybe differant.
+    We set it only if we find out that the property match_the_attribute_name / is_alerady_defined (get_prop).
+*)
+
+(* TODO: fix get_prop
+   it only work when html attribute and dom property names correspond.
+   find a way to get dom property name corresponding to html attribute
+*)
+
+let get_prop node name =
+  if Js.Optdef.test (Js.Unsafe.get node name)
+  then Some name
+  else None
+
+let iter_prop node name f =
+  match get_prop node name with
+  | Some n -> f n
+  | None -> ()
+
+let rebuild_rattrib node ra = match Xml.racontent ra with
+  | Xml.RA a ->
+    let name = Xml.aname ra in
+    let v = rebuild_attrib_val a in
+    node##setAttribute (name,v);
+  | Xml.RAReact s ->
+    let name = Js.string (Xml.aname ra) in
+    let _ = React.S.map (function
+        | None ->
+          node##removeAttribute (name);
+          iter_prop node name (Js.Unsafe.delete node);
+        | Some v ->
+          let v = rebuild_attrib_val v in
+          node##setAttribute (name,v);
+          iter_prop node name (fun name -> Js.Unsafe.set node name v);
+      ) s in ()
+  | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
+  | Xml.RALazyStr s ->
+      node##setAttribute(Js.string (Xml.aname ra), Js.string s)
+  | Xml.RALazyStrL (Xml.Space, l) ->
+      node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat " " l))
+  | Xml.RALazyStrL (Xml.Comma, l) ->
+    node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat "," l))
+  | Xml.RAClient _ -> assert false
+
+
 (* == Associate data to state of the History API.
 
    We store an 'id' in the state, and store data in an association
@@ -751,9 +817,9 @@ let relink_request_nodes root =
    closure nodes is returned for application on [relink_closure_node]
    after the client values are initialized.
 *)
-let relink_page_but_closure_nodes (root:Dom_html.element Js.t) =
+let relink_page_but_client_values (root:Dom_html.element Js.t) =
   trace "Relink page";
-  let (a_nodeList,form_nodeList,process_nodeList,closure_nodeList) =
+  let (a_nodeList,form_nodeList,process_nodeList,closure_nodeList,attrib_nodeList) =
     Eliommod_dom.select_nodes root in
   Eliommod_dom.iter_nodeList a_nodeList
     (fun node -> node##onclick <- a_handler);
@@ -761,7 +827,7 @@ let relink_page_but_closure_nodes (root:Dom_html.element Js.t) =
     (fun node -> node##onsubmit <- form_handler);
   Eliommod_dom.iter_nodeList process_nodeList
     relink_process_node;
-  closure_nodeList
+  closure_nodeList,attrib_nodeList
 
 (* == Rebuild event handlers
 
@@ -774,24 +840,38 @@ let relink_page_but_closure_nodes (root:Dom_html.element Js.t) =
    when on raises [False] (cf. [raw_event_handler]).
 *)
 
+let is_closure_attrib,get_closure_name,get_closure_id =
+  let v_prefix = Eliom_lib_base.RawXML.closure_attr_prefix in
+  let v_len = String.length v_prefix in
+  let v_prefix_js = Js.string v_prefix in
+
+  let n_prefix = Eliom_lib_base.RawXML.closure_name_prefix in
+  let n_len = String.length n_prefix in
+  let n_prefix_js = Js.string n_prefix in
+
+  (fun attr ->
+    attr##value##substring(0,v_len) = v_prefix_js &&
+    attr##name##substring(0,n_len) = n_prefix_js),
+  (fun attr -> attr##name##substring_toEnd(n_len)),
+  (fun attr -> attr##value##substring_toEnd(v_len))
+
 let relink_closure_node root onload table (node:Dom_html.element Js.t) =
   trace "Relink closure node";
   let aux attr =
     (* IE8 provides [null] in node##attributes; check this first of all *)
     if Obj.magic attr then
-      ( if attr##value##substring(0,Eliom_lib_base.RawXML.closure_attr_prefix_len) =
-          Js.string Eliom_lib_base.RawXML.closure_attr_prefix
+      ( if is_closure_attrib attr
         then
-          let cid = Js.to_bytestring (attr##value##substring_toEnd(
-            Eliom_lib_base.RawXML.closure_attr_prefix_len)) in
+          let cid = Js.to_bytestring (get_closure_id attr) in
+          let name = get_closure_name attr in
           try
             let cv = Eliom_lib.RawXML.ClosureMap.find cid table in
             let closure = raw_event_handler cv in
-            if attr##name = Js.string "onload" then
+            if name = Js.string "onload" then
               (if Eliommod_dom.ancessor root node
                (* if not inside a unique node replaced by an older one *)
                then onload := closure :: !onload)
-            else Js.Unsafe.set node (attr##name) (Dom_html.handler (fun ev -> Js.bool (closure ev)))
+            else Js.Unsafe.set node name (Dom_html.handler (fun ev -> Js.bool (closure ev)))
           with Not_found ->
             error "relink_closure_node: client value %s not found" cid )
   in
@@ -806,6 +886,51 @@ let relink_closure_nodes (root : Dom_html.element Js.t) event_handlers closure_n
     let ev = Eliommod_dom.createEvent (Js.string "load") in
     ignore
       (List.for_all (fun f -> f ev) (List.rev !onload))
+
+let is_attrib_attrib,get_attrib_id =
+  let v_prefix = Eliom_lib_base.RawXML.client_attr_prefix in
+  let v_len = String.length v_prefix in
+  let v_prefix_js = Js.string v_prefix in
+
+  let n_prefix = Eliom_lib_base.RawXML.client_name_prefix in
+  let n_len = String.length n_prefix in
+  let n_prefix_js = Js.string n_prefix in
+
+  (fun attr ->
+    attr##value##substring(0,v_len) = v_prefix_js &&
+    attr##name##substring(0,n_len) = n_prefix_js),
+  (fun attr -> attr##value##substring_toEnd(v_len))
+
+let relink_attrib root table (node:Dom_html.element Js.t) =
+  trace "Relink attribute";
+  let aux attr =
+    (* IE8 provides [null] in node##attributes; check this first of all *)
+    if Obj.magic attr then
+      ( if is_attrib_attrib attr
+        then
+          let cid = Js.to_bytestring (get_attrib_id attr) in
+          try
+            let cv = Eliom_lib.RawXML.ClosureMap.find cid table in
+            let closure_id = Client_value_server_repr.closure_id cv in
+            let instance_id = Client_value_server_repr.instance_id cv in
+            begin
+              try
+                let value = Client_value.find ~closure_id ~instance_id in
+                let rattrib = (Eliom_lib.from_poly value : Eliom_content_core.Xml.attrib) in
+                rebuild_rattrib node rattrib
+              with Not_found ->
+                error "Client value %Ld/%Ld not found as event handler" closure_id instance_id
+            end
+          with Not_found ->
+            error "relink_attrib: client value %s not found" cid)
+  in
+  Eliommod_dom.iter_nodeList (node##attributes:>Dom.attr Dom.nodeList Js.t) aux
+
+
+let relink_attribs (root : Dom_html.element Js.t) attribs attrib_nodeList =
+  trace "Relink %i attributes" (attrib_nodeList##length);
+  Eliommod_dom.iter_nodeList attrib_nodeList
+    (fun node -> relink_attrib root attribs node)
 
 (* == Extract the request data and the request tab-cookies from a page
 
@@ -912,7 +1037,7 @@ let set_content ?uri ?offset ?fragment content =
        (* Bind unique node (request and global) and register event
           handler.  Relinking closure nodes must take place after
           initializing the client values *)
-       let closure_nodeList = relink_page_but_closure_nodes fake_page in
+       let closure_nodeList,attrib_nodeList = relink_page_but_client_values fake_page in
        Eliom_request_info.set_session_info js_data.Eliom_common.ejs_sess_info;
        (* Really change page contents *)
        if !Eliom_config.debug_timings then
@@ -927,6 +1052,9 @@ let set_content ?uri ?offset ?fragment content =
           new DOM. Necessary for relinking closure nodes *)
        do_request_data js_data.Eliom_common.ejs_request_data;
        (* Replace closure ids in document with event handlers (from client values) *)
+       let () = relink_attribs
+           Dom_html.document##documentElement
+           js_data.Eliom_common.ejs_client_attrib_table attrib_nodeList in
        let onload_closure_nodes =
          relink_closure_nodes
            Dom_html.document##documentElement
@@ -1197,70 +1325,6 @@ type tmp_elt = {
   tmp_elt : tmp_recontent;
   tmp_node_id : Xml.node_id;
 }
-
-let rebuild_attrib_val = function
-  | Xml.AFloat f -> Obj.magic f
-  | Xml.AInt i ->   Obj.magic i
-  | Xml.AStr s ->   Js.string s
-  | Xml.AStrL (Xml.Space, sl) -> Js.string (String.concat " " sl)
-  | Xml.AStrL (Xml.Comma, sl) -> Js.string (String.concat "," sl)
-
-
-(* html attributes and dom properties use differant names
-   **exemple**: maxlength vs maxLenght (case sensitive).
-   - Before dom react, it was enought to set html attributes only as
-   there were no update after creation.
-   - Dom React may update attributes later.
-   Html attrib changes are not taken into account if the corresponding
-   Dom property is defined.
-   **exemple**: udpating html attribute `value` has no effect if the dom property
-   `value` has be set by the user.
-
-   =WE NEED TO SET DOM PROPERTIES=
-   -Tyxml only gives us html attribute names and we can set them safely.
-   -The name for dom properties is maybe differant.
-    We set it only if we find out that the property match_the_attribute_name / is_alerady_defined (get_prop).
-*)
-
-(* TODO: fix get_prop
-   it only work when html attribute and dom property names correspond.
-   find a way to get dom property name corresponding to html attribute
-*)
-
-let get_prop node name =
-  if Js.Optdef.test (Js.Unsafe.get node name)
-  then Some name
-  else None
-
-let iter_prop node name f =
-  match get_prop node name with
-  | Some n -> f n
-  | None -> ()
-
-let rebuild_rattrib node ra = match Xml.racontent ra with
-  | Xml.RA a ->
-    let name = Xml.aname ra in
-    let v = rebuild_attrib_val a in
-    node##setAttribute (name,v);
-  | Xml.RAReact s ->
-    let name = Js.string (Xml.aname ra) in
-    let _ = React.S.map (function
-        | None ->
-          node##removeAttribute (name);
-          iter_prop node name (Js.Unsafe.delete node);
-        | Some v ->
-          let v = rebuild_attrib_val v in
-          node##setAttribute (name,v);
-          iter_prop node name (fun name -> Js.Unsafe.set node name v);
-      ) s in ()
-  | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
-  | Xml.RALazyStr s ->
-      node##setAttribute(Js.string (Xml.aname ra), Js.string s)
-  | Xml.RALazyStrL (Xml.Space, l) ->
-      node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat " " l))
-  | Xml.RALazyStrL (Xml.Comma, l) ->
-      node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat "," l))
-
 
 let delay f = Lwt.ignore_result ( Lwt.pause () >>= (fun () -> f (); Lwt.return_unit))
 

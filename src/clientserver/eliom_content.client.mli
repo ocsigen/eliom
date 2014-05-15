@@ -117,6 +117,13 @@ module Svg : sig
     include "../client/sigs/eliom_svg_event_handler.mli"
   end
 
+  (** Creation of content from client-side values. *)
+  module C : sig
+    val node : ?init:'a D.elt -> 'a elt client_value -> 'a D.elt
+    val attr : ?init:'a attrib -> 'a attrib client_value -> 'a attrib
+  end
+
+
   (** Node identifiers *)
   module Id : sig
     (** The type of global SVG element identifier. *)
@@ -442,6 +449,16 @@ module Html5 : sig
     include module type of Raw (*BB TODO Hide untyped [input]. *)
   end
 
+  (** Creation of HTML5 content from client-side values. *)
+  module C : sig
+    (** {2 Content injection} *)
+
+    (** Those two function are the identity on client-side (the {{{init}}} argument is ignored).
+        See Eliom manual for more detail on
+        {% <<a_manual chapter="clientserver-html" fragment="inject" | Dom & Client-values >>%}. *)
+    val node : ?init:'a D.elt -> 'a elt client_value -> 'a D.elt
+    val attr : ?init:'a attrib -> 'a attrib client_value -> 'a attrib
+  end
 
   (** Node identifiers *)
   module Id : sig

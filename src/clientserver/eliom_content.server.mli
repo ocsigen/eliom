@@ -23,7 +23,7 @@
 (**
     XML tree manipulation within Eliom is based on the TyXML library
     but Eliom is using a custom representation for XML values (see
-    {!Xml}). Then, [Eliom_content] redefines the three high level
+    {!Xml}). Then, [Eliom_content] redefines the two high level
     interfaces ({!Svg}, {!Html5}) that are provided by
     TyXML for valid XML tree creation and printing.
 
@@ -31,9 +31,11 @@
     - If you want to write untyped html, use {!Eliom_content.Html_text},
     - If you want to generate typed svg, use {!Eliom_content.Svg}.
 
-    Modules {!Eliom_content.Html5}, {!Eliom_content.Svg} contain three
+    Modules {!Eliom_content.Html5}, {!Eliom_content.Svg} contain two
     sub-modules: {!Eliom_content.Html5.F}, {!Eliom_content.Html5.D}
-    and {!Eliom_content.Html5.R} corresponding to three different semantics.
+    corresponding to tow different semantics.
+    They also contain a module {!Eliom_content.Html5.C} that allows to
+    inject client-side content into server-side content.
 
     {5 Functional semantics}
 
@@ -68,18 +70,14 @@
     In case of doubt, always use [D]-nodes when you are writing a
     client-server Eliom app. You can also mix F-nodes and D-nodes.
 
+   {5 Client-side value injection}
 
-    {5 Reactive DOM}
+   The [C] modules provides functions to inject client-side elements and attributes
+   into server-side content.
 
-    The [R] modules provide functions to create reactive DOM elements
-    for the {{: http://erratique.ch/logiciel/react } react} library.
-    These nodes will change automatically according to (client-side)
-    react signals.
-
-    {b Please read
-    {% <<a_manual chapter="clientserver-html"|Eliom's manual>>%}
-    to learn how to generate HTML. }
-
+   {b Please read
+   {% <<a_manual chapter="clientserver-html"|Eliom's manual>>%}
+   to learn how to generate HTML. }
 
   *)
 
@@ -132,6 +130,7 @@ module Xml : sig
   type node_id
   val get_node_id : elt -> node_id
   val make_event_handler_table : elt -> Eliom_lib.RawXML.event_handler_table
+  val make_client_attrib_table : elt -> Eliom_lib.RawXML.client_attrib_table
 
   val event_handler_of_string : string -> event_handler
   val string_of_event_handler : event_handler -> string
@@ -149,6 +148,7 @@ module Xml : sig
     | RACamlEventHandler of Dom_html.event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
+    | RAClient of string * attrib option * attrib Eliom_lib.Client_value_server_repr.t
   val racontent : attrib -> racontent
 
   val lazy_node : ?a:(attrib list) -> ename -> elt list Eliom_lazy.request -> elt
@@ -227,31 +227,6 @@ module Svg : sig
 
   end
 
-
-  (** Typed interface for building valid SVG tree (reactive DOM). See
-      {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
-  module R : sig
-
-    module Raw : Svg_sigs.T
-      with type Xml.uri = Xml.uri
-       and type Xml.event_handler = Xml.event_handler
-       and type Xml.attrib = Xml.attrib
-       and type Xml.elt = Xml.elt
-       and type +'a elt = 'a elt
-       and type 'a Xml.wrap = 'a React.signal Eliom_pervasives.client_value
-       and type 'a wrap = 'a React.signal Eliom_pervasives.client_value
-       and type +'a attrib = 'a attrib
-       and type uri = uri
-
-    include module type of Raw
-
-    (** {2 Event handlers} *)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_svg_event_handler.mli"
-
-  end
-
   (** Node identifiers. *)
   module Id : sig
 
@@ -277,6 +252,12 @@ module Svg : sig
       See {% <<a_api project="tyxml" | module type Xml_sigs.Typed_simple_printer >> %}. *)
   module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a elt
                                                   and type doc := F.doc
+
+  (** Creation of content from client-side values. *)
+  module C : sig
+    val node : ?init:'a elt -> 'a elt client_value -> 'a elt
+    val attr : ?init:'a attrib -> 'a attrib client_value -> 'a attrib
+  end
 
 end
 
@@ -440,81 +421,6 @@ module Html5 : sig
 
   end
 
-  (** Creation of reactive HTML5 content. *)
-  module R : sig
-
-    (**
-      This nodes will react to client-side
-      {{: http://erratique.ch/software/react} React } signals.
-      Use {i client-values} to refer client-side signal from server side,
-      if you want to generate reactive node from server side. *)
-
-
-    (** {2 Content creation} *)
-    open Pervasives
-
-    (** the function [node s] create an HTML5 [elt] from a signal [s].
-    The resulting HTML5 [elt] can then be used like anyother HTML5 [elt] *)
-    val node : 'a elt React.signal Eliom_pervasives.client_value -> 'a elt
-
-    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
-    module Raw : Html5_sigs.T
-                   with type Xml.uri = Xml.uri
-                    and type Xml.event_handler = Xml.event_handler
-                    and type Xml.attrib = Xml.attrib
-                    and type Xml.elt = Xml.elt
-                    and type +'a elt = 'a elt
-                    and type 'a Xml.wrap = 'a React.signal Eliom_pervasives.client_value
-                    and type +'a attrib = 'a attrib
-                   with module Svg := Svg.D.Raw
-                   with type 'a wrap = 'a React.signal Eliom_pervasives.client_value
-                    and type +'a attrib = 'a attrib
-                    and type uri = uri
-    include module type of Raw (*BB TODO Hide untyped [input]. *)
-
-    (** {2 Event handlers} *)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_html5_event_handler.mli"
-
-    (**/**)
-    type ('a, 'b, 'c) lazy_plus =
-      ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
-
-    val lazy_form:
-      ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_plus
-    (**/**)
-
-
-    (* (\** {2 Forms} *\) *)
-    (* include "sigs/eliom_html5_forms2.mli" *)
-
-    (* (\** Creates an untyped form. *\) *)
-    (* val raw_form : ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) plus *)
-
-    (* (\** This is an alias to {% <<a_api|val Eliom_content.Html5.D.get_form>> %} *)
-    (*     to avoid the untyped [Eliom_content.Html5.D.form]. *\) *)
-    (* val form : ?absolute:bool -> ?absolute_path:bool -> ?https:bool -> ?a:Html5_types.form_attrib attrib list -> *)
-    (*   service:('get, unit, [< get_service_kind ], [<suff ], 'gn, 'pn, [< registrable ], [< non_ocaml_service ]) service -> *)
-    (*   ?hostname:string -> ?port:int -> ?fragment:string -> ?keep_nl_params:[ `All | `Persistent | `None ] -> *)
-    (*   ?nl_params: Eliom_parameter.nl_params_set -> ?xhr:bool -> *)
-    (*   ('gn -> Html5_types.form_content elt list) -> [> Html5_types.form ] elt *)
-
-    (* (\** This is an alias to *)
-    (*     {% <<a_api|val Eliom_content.Html5.D.string_input>> %} *)
-    (*     to avoid the untyped [Eliom_content.Html5.D.input]. *\) *)
-    (* val input : ?a:Html5_types.input_attrib attrib list -> input_type:[< *)
-    (*     | `Url | `Tel | `Text | `Time | `Search | `Password | `Checkbox | `Range | `Radio | `Submit | `Reset | `Number | `Hidden *)
-    (*     | `Month | `Week | `File | `Email | `Image | `Datetime_local | `Datetime | `Date | `Color | `Button] *)
-    (*   -> ?name:[< string setoneradio ] param_name -> ?value:string -> unit -> [> Html5_types.input ] elt *)
-
-    (* (\** This is an alias to *)
-    (*     {% <<a_api|val Eliom_content.Html5.D.string_select>> %} *)
-    (*     to avoid the untyped [Eliom_content.Html5.D.select]. *\) *)
-    (* val select : ?a:Html5_types.select_attrib attrib list -> name:[< `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt *)
-  end
-
-
   (** Node identifiers *)
   module Id : sig
 
@@ -572,7 +478,15 @@ module Html5 : sig
   module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a elt
                                                   and type doc := F.doc
 
+  (** Creation of HTML5 content from client-side values. *)
+  module C : sig
+    (** {2 Content injection} *)
 
+    (** See Eliom manual for more detail on
+        {% <<a_manual chapter="clientserver-html" fragment="inject" | Dom & Client-values >>%}. *)
+    val node : ?init:'a elt -> 'a elt client_value -> 'a elt
+    val attr : ?init:'a attrib -> 'a attrib client_value -> 'a attrib
+  end
 end
 
 (** Generate untyped html as text.*)
