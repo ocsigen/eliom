@@ -180,13 +180,14 @@ let node_bindings =
        }} in
        Lwt.return Html5.F.([
          Eliom_testsuite_base.thebutton ~msg:"Add onclick lines" add_onclick;
-         Eliom_testsuite_base.thebutton ~msg:"Run ocaml service" run_ocaml_service;
-         local_bound_global;
+         Eliom_testsuite_base.thebutton ~msg:"Run ocaml service" run_ocaml_service;]
+         @
+         (([local_bound_global;
          local_bound_request;
          bound_request;
          bound_global;
-         addenda;
-       ]))
+         addenda] :> Html5_types.div_content_fun Html5.F.elt list));
+       ))
 
 (******************************************************************************)
 (*                                Data sharing                                *)

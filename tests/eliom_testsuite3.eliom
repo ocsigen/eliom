@@ -3422,8 +3422,10 @@ let relink_page () =
       put_li %global_list "Global.";
       put_li %local_list "Request.")
   }};
-  [ div [pcdata "This div contains a global list sent by reference. While the application runs, there should be one new item in the list each time the page is loaded."; global_list];
-    div [pcdata "This div contains a request list sent by reference. There should be only one item in the list."; local_list];
+  [ div [pcdata "This div contains a global list sent by reference. While the application runs, there should be one new item in the list each time the page is loaded.";
+         (global_list :> Html5_types.div_content_fun Eliom_content.Html5.elt)];
+    div [pcdata "This div contains a request list sent by reference. There should be only one item in the list.";
+         (local_list  :> Html5_types.div_content_fun Eliom_content.Html5.elt)];
     div
       [Html5.D.a ~service:relink_test
          [pcdata "Same page"] ();
