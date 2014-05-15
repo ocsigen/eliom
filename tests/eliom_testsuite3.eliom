@@ -3410,10 +3410,8 @@ let relink_test =
     ~get_params:Eliom_parameter.unit
     ()
 
-let global_list : [`Ul] Eliom_content.Html5.elt
-  = Html5.Id.create_global_elt (ul [li [pcdata "First element"]])
-let local_list : [`Ul] Eliom_content.Html5.elt
-  = Html5.D.ul [li [pcdata "First element"]]
+let global_list = Html5.Id.create_global_elt (ul [li [pcdata "First element"]])
+let local_list = Html5.D.ul [li [pcdata "First element"]]
 
 let relink_page () =
   ignore {unit{
@@ -3423,9 +3421,9 @@ let relink_page () =
       put_li %local_list "Request.")
   }};
   [ div [pcdata "This div contains a global list sent by reference. While the application runs, there should be one new item in the list each time the page is loaded.";
-         (global_list :> Html5_types.div_content_fun Eliom_content.Html5.elt)];
+         global_list];
     div [pcdata "This div contains a request list sent by reference. There should be only one item in the list.";
-         (local_list  :> Html5_types.div_content_fun Eliom_content.Html5.elt)];
+         local_list];
     div
       [Html5.D.a ~service:relink_test
          [pcdata "Same page"] ();

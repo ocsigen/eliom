@@ -74,13 +74,13 @@ let test_client_value_on_caml_service =
 (******************************************************************************)
 (*                          Binding of escaped nodes                          *)
 
-let free_global : [`Div] Eliom_content.Html5.elt =
+let free_global =
   Html5.(Id.create_global_elt (D.div F.([b [pcdata "Global (free)"]])))
-let bound_global : [`Div] Eliom_content.Html5.elt =
+let bound_global =
   Html5.(Id.create_global_elt (D.div F.([b [pcdata "Global (bound)"]])))
-let free_request : [`Div] Eliom_content.Html5.elt =
+let free_request =
   Html5.(D.div F.([b [pcdata "Request (free)"]]))
-let bound_request : [`Div] Eliom_content.Html5.elt =
+let bound_request =
   Html5.(D.div F.([b [pcdata "Request (bound)"]]))
 
 let other_service =
@@ -145,11 +145,11 @@ let node_bindings =
       ];
     ])
     (fun () ->
-      let local_bound_global : [`Div] Eliom_content.Html5.elt =
+      let local_bound_global =
         Html5.Id.create_named_elt ~id:node_bindings_local_global_id
           Html5.(D.div [F.(b [pcdata "Global (bound, local)"])])
       in
-      let local_bound_request : [`Div] Eliom_content.Html5.elt =
+      let local_bound_request =
         Html5.Id.create_named_elt ~id:node_bindings_local_request_id
           Html5.(D.div [F.(b [pcdata "Request (bound, local)"])])
       in
@@ -180,14 +180,13 @@ let node_bindings =
        }} in
        Lwt.return Html5.F.([
          Eliom_testsuite_base.thebutton ~msg:"Add onclick lines" add_onclick;
-         Eliom_testsuite_base.thebutton ~msg:"Run ocaml service" run_ocaml_service;]
-         @
-         (([local_bound_global;
+         Eliom_testsuite_base.thebutton ~msg:"Run ocaml service" run_ocaml_service;
+         local_bound_global;
          local_bound_request;
          bound_request;
          bound_global;
-         addenda] :> Html5_types.div_content_fun Html5.F.elt list));
-       ))
+         addenda]);
+       )
 
 (******************************************************************************)
 (*                                Data sharing                                *)

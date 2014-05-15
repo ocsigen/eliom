@@ -187,11 +187,11 @@ module Svg : sig
                              and type Xml.event_handler = Xml.event_handler
                              and type Xml.attrib = Xml.attrib
                              and type Xml.elt = Xml.elt
-			     and type +'a elt = 'a elt
+                             and type +'a elt = 'a elt
                              and type 'a Xml.wrap = 'a
                              and type 'a wrap = 'a
                              and type +'a attrib = 'a attrib
-		             and type uri = uri
+                             and type uri = uri
 
     include module type of Raw
 
@@ -212,11 +212,11 @@ module Svg : sig
                              and type Xml.event_handler = Xml.event_handler
                              and type Xml.attrib = Xml.attrib
                              and type Xml.elt = Xml.elt
-			     and type +'a elt = 'a elt
+                             and type +'a elt = 'a elt
                              and type 'a Xml.wrap = 'a
                              and type 'a wrap = 'a
                              and type +'a attrib = 'a attrib
-		             and type uri = uri
+                             and type uri = uri
 
     include module type of Raw
 
@@ -340,8 +340,8 @@ module Html5 : sig
     (** This is an alias to {% <<a_api|val Eliom_content.Html5.F.string_input>>
         %} to avoid the untyped [Eliom_content.Html5.F.input]. *)
     val input : ?a:Html5_types.input_attrib attrib list -> input_type:[<
-	| `Url | `Tel | `Text | `Time | `Search | `Password | `Checkbox | `Range | `Radio | `Submit | `Reset | `Number | `Hidden
-	| `Month | `Week | `File | `Email | `Image | `Datetime_local | `Datetime | `Date | `Color | `Button]
+        | `Url | `Tel | `Text | `Time | `Search | `Password | `Checkbox | `Range | `Radio | `Submit | `Reset | `Number | `Hidden
+        | `Month | `Week | `File | `Email | `Image | `Datetime_local | `Datetime | `Date | `Color | `Button]
       -> ?name:[< string setoneradio ] param_name -> ?value:string -> unit -> [> Html5_types.input ] elt
 
     (** This is an alias to
@@ -410,8 +410,8 @@ module Html5 : sig
         {% <<a_api|val Eliom_content.Html5.D.string_input>> %}
         to avoid the untyped [Eliom_content.Html5.D.input]. *)
     val input : ?a:Html5_types.input_attrib attrib list -> input_type:[<
-	| `Url | `Tel | `Text | `Time | `Search | `Password | `Checkbox | `Range | `Radio | `Submit | `Reset | `Number | `Hidden
-	| `Month | `Week | `File | `Email | `Image | `Datetime_local | `Datetime | `Date | `Color | `Button]
+        | `Url | `Tel | `Text | `Time | `Search | `Password | `Checkbox | `Range | `Radio | `Submit | `Reset | `Number | `Hidden
+        | `Month | `Week | `File | `Email | `Image | `Datetime_local | `Datetime | `Date | `Color | `Button]
       -> ?name:[< string setoneradio ] param_name -> ?value:string -> unit -> [> Html5_types.input ] elt
 
     (** This is an alias to

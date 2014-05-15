@@ -40,7 +40,7 @@ let testsuite ~name testsuite_tests =
        List.map (uncurry tests) testsuite_tests)
   )
 
-let test_logger : [`Div] Eliom_content.Html5.elt =
+let test_logger =
   Html5.Id.create_global_elt
     (Html5.D.(div ~a:[a_class ["test_logger"]]
                 [h4 [pcdata "Client logger"]]))
@@ -77,7 +77,7 @@ let test ~path ~title:ttl ~description f =
                                div ~a:[a_class ["test_description"]] description ::
                                hr () ::
                                content @
-                               [ (test_logger :> Html5_types.div_content_fun Eliom_content.Html5.F.elt)]))))
+                               [ test_logger ]))))
 
 let thebutton ?(msg="THE BUTTON") onclick : [> Html5_types.button ] Html5.elt =
   Html5.F.(
