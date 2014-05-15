@@ -372,30 +372,38 @@ let raw_event_handler cv =
     fun ev -> try handler ev; true with False -> false
   with Not_found ->
     error "Client value %Ld/%Ld not found as event handler" closure_id instance_id
-
-let reify_caml_event node ce : #Dom_html.event Js.t -> bool = match ce with
-  | Xml.CE_call_service None -> (fun _ -> true)
+let closure_name_prefix = Eliom_lib_base.RawXML.closure_name_prefix
+let closure_name_prefix_len = String.length closure_name_prefix
+let reify_caml_event name node ce : string * (#Dom_html.event Js.t -> bool) = match ce with
+  | Xml.CE_call_service None -> name,(fun _ -> true)
   | Xml.CE_call_service (Some (`A, cookies_info, tmpl)) ->
-      (fun ev ->
+      name,(fun ev ->
         let node = Js.Opt.get (Dom_html.CoerceTo.a node) (fun () -> error "not an anchor element") in
         raw_a_handler node cookies_info tmpl ev)
   | Xml.CE_call_service (Some ((`Form_get | `Form_post) as kind, cookies_info, tmpl)) ->
-      (fun ev ->
+      name,(fun ev ->
         let form = Js.Opt.get (Dom_html.CoerceTo.form node) (fun () -> error "not a form element") in
         raw_form_handler form kind cookies_info tmpl ev)
   | Xml.CE_client_closure f ->
-      (fun ev -> try f ev; true with False -> false)
+      name,(fun ev -> try f ev; true with False -> false)
   | Xml.CE_registered_closure (_, cv) ->
-      raw_event_handler cv
-
-let reify_event node ev = match ev with
-  | Xml.Raw ev -> Js.Unsafe.variable ev
-  | Xml.Caml ce -> reify_caml_event node ce
+    let name =
+      let len = String.length name in
+      if len > closure_name_prefix_len && String.sub name 0 closure_name_prefix_len = closure_name_prefix
+      then begin
+        let s = String.sub name closure_name_prefix_len (len - closure_name_prefix_len) in
+        error "got event handler %s" s;
+        s
+      end
+      else begin
+        error "got event handler %s" name;
+        name end in
+    name, raw_event_handler cv
 
 let register_event_handler, flush_load_script =
   let add, flush = create_buffer () in
   let register node (name, ev) =
-    let f = reify_caml_event node ev in
+    let name,f = reify_caml_event name node ev in
     if name = "onload" then
       add f
     else
