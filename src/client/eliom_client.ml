@@ -390,14 +390,8 @@ let reify_caml_event name node ce : string * (#Dom_html.event Js.t -> bool) = ma
     let name =
       let len = String.length name in
       if len > closure_name_prefix_len && String.sub name 0 closure_name_prefix_len = closure_name_prefix
-      then begin
-        let s = String.sub name closure_name_prefix_len (len - closure_name_prefix_len) in
-        error "got event handler %s" s;
-        s
-      end
-      else begin
-        error "got event handler %s" name;
-        name end in
+      then String.sub name closure_name_prefix_len (len - closure_name_prefix_len)
+      else name in
     name, raw_event_handler cv
 
 let register_event_handler, flush_load_script =
