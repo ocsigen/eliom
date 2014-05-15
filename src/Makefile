@@ -25,7 +25,7 @@ opt: metas conf
 	${MAKE} -C server opt
 	${MAKE} -C client all
 	${MAKE} -C tools all
-	${MAKE} -C clientserver all
+	${MAKE} -C clientserver opt
 	${MAKE} -C server2 opt
 	${MAKE} -C client2 all
 	${MAKE} -C ocamlbuild $@

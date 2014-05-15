@@ -59,7 +59,7 @@ endif
 
 eliom.cma: ${SSFILES:.ml=.cmo} $(wildcard ../clientserver/_server/*.cmo) ${FILES:.ml=.cmo}
 	${OCAMLC} -a -o $@ $^
-eliom.cmxa: ${FILES:.ml=.cmx}
+eliom.cmxa: ${SSFILES:.ml=.cmx} $(wildcard ../clientserver/_server/*.cmx) ${FILES:.ml=.cmx}
 	${OCAMLOPT} -a -o $@ $^
 
 ##########
