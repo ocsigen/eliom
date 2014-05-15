@@ -910,7 +910,7 @@ let relink_attrib root table (node:Dom_html.element Js.t) =
         then
           let cid = Js.to_bytestring (get_attrib_id attr) in
           try
-            let cv = Xml.ClosureMap.find cid table in
+            let cv = Eliom_lib.RawXML.ClosureMap.find cid table in
             let closure_id = Client_value_server_repr.closure_id cv in
             let instance_id = Client_value_server_repr.instance_id cv in
             begin

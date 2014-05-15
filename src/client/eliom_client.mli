@@ -210,7 +210,7 @@ val set_initial_load : unit -> unit
 
 val relink_attribs :
   Dom_html.element Js.t ->
-  Eliom_content_core.Xml.attrib Client_value_server_repr.t Eliom_content_core.Xml.ClosureMap.t ->
+  Eliom_lib.RawXML.attrib Client_value_server_repr.t Eliom_lib.RawXML.ClosureMap.t ->
   Dom_html.element Dom.nodeList Js.t -> unit
 
 val relink_closure_nodes :

@@ -130,7 +130,7 @@ module Xml : sig
   type node_id
   val get_node_id : elt -> node_id
   val make_event_handler_table : elt -> Eliom_lib.RawXML.event_handler_table
-  val make_client_attrib_table : elt -> Eliom_lib.RawXML.event_handler_table
+  val make_client_attrib_table : elt -> Eliom_lib.RawXML.client_attrib_table
 
   val event_handler_of_string : string -> event_handler
   val string_of_event_handler : event_handler -> string
