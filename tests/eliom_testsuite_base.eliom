@@ -77,7 +77,7 @@ let test ~path ~title:ttl ~description f =
                                div ~a:[a_class ["test_description"]] description ::
                                hr () ::
                                content @
-                               [ test_logger ]))))
+                               [ (test_logger :> Html5_types.div_content_fun Eliom_content.Html5.F.elt)]))))
 
 let thebutton ?(msg="THE BUTTON") onclick : [> Html5_types.button ] Html5.elt =
   Html5.F.(
