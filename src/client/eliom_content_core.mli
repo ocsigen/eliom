@@ -34,7 +34,7 @@ module Xml : sig
 
   type -'a caml_event_handler =
     | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) Eliom_lib.Client_value_server_repr.t
-    | CE_client_closure of ('a Js.t -> bool)
+    | CE_client_closure of ('a Js.t -> unit)
     | CE_call_service of
         ([ `A | `Form_get | `Form_post] * (bool * string list) option * string option) option Eliom_lazy.request
 

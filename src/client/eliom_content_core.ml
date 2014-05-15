@@ -85,8 +85,9 @@ module XmlNoWrap = struct
   let node ?(a = []) name children = make (Node (name, a, children))
   let lazy_node ?a name children = node ?a name (Eliom_lazy.force children)
 
-  let event_handler_of_function ev =
-    Caml (CE_client_closure (Obj.magic ev))
+  let event_handler_of_function eh_untyped =
+    let eh : 'a Js.t -> unit = Obj.magic eh_untyped in
+    Caml (CE_client_closure eh)
 
   let end_re = Regexp.regexp_string "]]>"
 

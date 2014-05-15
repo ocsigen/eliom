@@ -72,7 +72,7 @@ module RawXML : sig
 
   type -'a caml_event_handler =
     | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) Client_value_server_repr.t
-    | CE_client_closure of ('a Js.t -> bool) (* Client side-only *)
+    | CE_client_closure of ('a Js.t -> unit)
     | CE_call_service of
         ([ `A | `Form_get | `Form_post] * (cookie_info option) * string option) option Eliom_lazy.request
 
