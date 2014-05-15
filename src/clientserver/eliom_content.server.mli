@@ -97,7 +97,6 @@ module Xml : sig
       Cf. {% <<a_api project="tyxml" | module Xml_sigs.Iterable >> %}. *)
 
   include Xml_sigs.Iterable with type 'a wrap = 'a
-                             and type uri = Eliom_content_core.Xml.uri
 
   (** {2 Unique nodes } *)
 
@@ -130,7 +129,7 @@ module Xml : sig
   val uri_of_fun: (unit -> string) -> uri
 
   (* Building ref tree. *)
-  type event_handler_table = Eliom_content_core.Xml.event_handler_table
+  type event_handler_table = Eliom_lib.RawXML.event_handler_table
   (* Concrete on client-side only. *)
   type node_id
   val get_node_id : elt -> node_id
@@ -175,8 +174,8 @@ module Svg : sig
       semantics>> %} for SVG tree manipulated by client/server
       application. *)
 
-  type +'a elt = 'a Eliom_content_core.Svg.elt
-  type +'a attrib = 'a Eliom_content_core.Svg.attrib
+  type +'a elt
+  type +'a attrib
   type 'a wrap = 'a
   type uri = Xml.uri
 
@@ -184,9 +183,6 @@ module Svg : sig
       semantics). See {% <<a_api project="tyxml" | module type
       Svg_sigs.T >> %}. *)
   module F : sig
-
-    type +'a elt = 'a Eliom_content_core.Svg.elt
-    type +'a attrib = 'a Eliom_content_core.Svg.attrib
 
     (** Cf. {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
     module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
@@ -200,8 +196,6 @@ module Svg : sig
 		             and type uri = uri
 
     include module type of Raw
-    with type +'a elt := 'a elt
-     and type +'a attrib := 'a attrib
 
 
     (** {2 Event handlers} *)
@@ -215,9 +209,6 @@ module Svg : sig
       {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
   module D : sig
 
-    type +'a elt = 'a Eliom_content_core.Svg.elt
-    type +'a attrib = 'a Eliom_content_core.Svg.attrib
-
     (** Cf. {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
     module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
                              and type Xml.event_handler = Xml.event_handler
@@ -230,8 +221,6 @@ module Svg : sig
 		             and type uri = uri
 
     include module type of Raw
-    with type +'a elt := 'a elt
-     and type +'a attrib := 'a attrib
 
     (** {2 Event handlers} *)
 
@@ -245,9 +234,6 @@ module Svg : sig
       {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
   module R : sig
 
-    type +'a elt = 'a Eliom_content_core.Svg.elt
-    type +'a attrib = 'a Eliom_content_core.Svg.attrib
-
     module Raw : Svg_sigs.T
       with type Xml.uri = Xml.uri
        and type Xml.event_handler = Xml.event_handler
@@ -260,8 +246,6 @@ module Svg : sig
        and type uri = uri
 
     include module type of Raw
-    with type +'a elt := 'a elt
-     and type +'a attrib := 'a attrib
 
     (** {2 Event handlers} *)
 
@@ -313,8 +297,8 @@ module Html5 : sig
       semantics>> %} in Eliom's manual
       for HTML5 tree manipulated by client/server application. *)
 
-  type +'a elt = 'a Eliom_content_core.Html5.elt
-  type +'a attrib = 'a Eliom_content_core.Html5.attrib
+  type +'a elt
+  type +'a attrib
   type uri = Xml.uri
 
   (** Creation of {b F}unctional HTML5 content (copy-able but not referable, see also {% <<a_api|module Eliom_content>> %}). *)
@@ -328,9 +312,6 @@ module Html5 : sig
         For more information,
         see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
     open Pervasives
-
-    type +'a elt = 'a Eliom_content_core.Html5.elt
-    type +'a attrib = 'a Eliom_content_core.Html5.attrib
 
     (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
@@ -346,8 +327,6 @@ module Html5 : sig
                    and type uri = uri
 
     include module type of Raw (*BB TODO Hide untyped [input]. *)
-    with type +'a elt := 'a elt
-     and type +'a attrib := 'a attrib
 
     (** {2 Event handlers} *)
 
@@ -406,9 +385,6 @@ module Html5 : sig
         see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
     open Pervasives
 
-    type +'a elt = 'a Eliom_content_core.Html5.elt
-    type +'a attrib = 'a Eliom_content_core.Html5.attrib
-
     (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
@@ -422,8 +398,6 @@ module Html5 : sig
                    and type +'a attrib = 'a attrib
                    and type uri = uri
     include module type of Raw (*BB TODO Hide untyped [input]. *)
-    with type +'a elt := 'a elt
-     and type +'a attrib := 'a attrib
 
     (** {2 Event handlers} *)
 
@@ -485,24 +459,20 @@ module Html5 : sig
     The resulting HTML5 [elt] can then be used like anyother HTML5 [elt] *)
     val node : 'a elt React.signal Eliom_pervasives.client_value -> 'a elt
 
-    type +'a elt = 'a Eliom_content_core.Html5.elt
-    type +'a attrib = 'a Eliom_content_core.Html5.attrib
-
     (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                     and type Xml.event_handler = Xml.event_handler
                     and type Xml.attrib = Xml.attrib
                     and type Xml.elt = Xml.elt
+                    and type +'a elt = 'a elt
                     and type 'a Xml.wrap = 'a React.signal Eliom_pervasives.client_value
+                    and type +'a attrib = 'a attrib
                    with module Svg := Svg.D.Raw
-                   with type +'a elt = 'a elt
-                    and type 'a wrap = 'a React.signal Eliom_pervasives.client_value
+                   with type 'a wrap = 'a React.signal Eliom_pervasives.client_value
                     and type +'a attrib = 'a attrib
                     and type uri = uri
     include module type of Raw (*BB TODO Hide untyped [input]. *)
-    with type +'a elt := 'a elt
-     and type +'a attrib := 'a attrib
 
     (** {2 Event handlers} *)
 
