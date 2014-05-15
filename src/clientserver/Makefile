@@ -65,6 +65,8 @@ depsort=$(call objs,$(1),$(2),$(call eliomdep,$(3),$(4),$(5)))
 ##----------------------------------------------------------------------
 ## General
 
+INCLUDEDOC := -I ../server2 -I ../clientserver -I ../common -I ../common2
+
 .PHONY: all byte opt
 all: $(SERVER_FILES:.eliom=.eliomi) \
      $(call objs,$(ELIOM_SERVER_DIR),cmi,$(SERVER_FILES)) \
@@ -137,10 +139,10 @@ ${ELIOM_CLIENT_DIR}/%.cmi: %.eliomi
 odoc: _server/eliom_content.odoc _client/eliom_content.odoc
 
 _server/%.odoc: %.server.mli
-	${OCAMLDOC} -syntax camlp4o ${LIBS} -dump ${ODOC_DIR}$@ $<
+	${OCAMLDOC} -syntax camlp4o ${LIBS} ${INCLUDEDOC} -dump ${ODOC_DIR}$@ $<
 
 _client/%.odoc: %.client.mli
-	${OCAMLDOC} -syntax camlp4o ${LIBS} -dump ${ODOC_DIR}$@ $<
+	${OCAMLDOC} -syntax camlp4o ${LIBS} ${INCLUDEDOC} -dump ${ODOC_DIR}$@ $<
 
 
 ##----------------------------------------------------------------------

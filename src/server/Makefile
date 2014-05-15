@@ -12,7 +12,7 @@ OCAMLDEP := $(OCAMLFIND) ocamldep
 OCAMLDOC := ${OCAMLFIND} ocamldoc ${THREAD} -ppopt o -ppopt -printer
 ## WTF -ppopt options must be given in reverse order...
 
-INCLUDEDOC := -I ../server2 -I ../server2/extensions -I ../clientserver/_server -I .
+INCLUDEDOC := -I ../server2 -I ../server2/extensions -I ../clientserver/_server -I . -I ../common -I ../common2
 
 all: byte opt
 
