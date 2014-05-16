@@ -229,6 +229,37 @@ module RawXML = struct
 
 end
 
+(* copied form js_of_ocaml: compiler/javascript.ml *)
+let string_of_number v =
+  if v = infinity
+  then "Infinity"
+  else if v = neg_infinity
+  then "-Infinity"
+  else if v <> v
+  then "NaN"
+  else
+    let vint = int_of_float v in
+    (* compiler 1000 into 1e3 *)
+    if float_of_int vint = v
+    then
+      let rec div n i =
+        if n <> 0 && n mod 10 = 0
+        then div (n/10) (succ i)
+        else
+        if i > 2
+        then Printf.sprintf "%de%d" n i
+        else string_of_int vint in
+      div vint 0
+    else
+      let s1 = Printf.sprintf "%.12g" v in
+      if v = float_of_string s1
+      then s1
+      else
+        let s2 = Printf.sprintf "%.15g" v in
+        if v = float_of_string s2
+        then s2
+        else  Printf.sprintf "%.18g" v
+
 let tyxml_unwrap_id_int = 1
 let client_value_unwrap_id_int = 7
 

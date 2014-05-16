@@ -237,7 +237,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
 
   let float_input ?a ~input_type
       ?name ?value () =
-    gen_input ?a ~input_type ?value ?name string_of_float
+    gen_input ?a ~input_type ?value ?name string_of_number
 
   let string_input ?a ~input_type
       ?name ?value () =
@@ -284,7 +284,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
 
   let float_image_input ?a ~name ~value ?src () =
     gen_input ?a ~input_type:Pages.image ~name
-      ~value ?src string_of_float
+      ~value ?src string_of_number
 
   let string_image_input ?a ~name ~value ?src () =
     gen_input ?a ~input_type:Pages.image ~name
@@ -321,7 +321,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
 
   let float_checkbox ?a ?checked ~name ~value () =
     Pages.make_input ?a ?checked ~typ:Pages.checkbox
-      ~name:(string_of_param_name name) ~value:(string_of_float value) ()
+      ~name:(string_of_param_name name) ~value:(string_of_number value) ()
 
   let string_checkbox ?a ?checked ~name ~value () =
     Pages.make_input ?a ?checked ~typ:Pages.checkbox
@@ -370,7 +370,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
   let float_radio ?a ?checked ~name ~value () =
     Pages.make_input
       ?a ?checked ~typ:Pages.radio
-      ~name:(string_of_param_name name) ~value:(string_of_float value) ()
+      ~name:(string_of_param_name name) ~value:(string_of_number value) ()
 
   let user_type_radio string_of ?a ?checked ~name ~value () =
     Pages.make_input
@@ -400,7 +400,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
 
   let float_button ?a ~name ~value c =
     Pages.make_button ?a ~button_type:Pages.buttonsubmit
-      ~name:(string_of_param_name name) ~value:(string_of_float value) c
+      ~name:(string_of_param_name name) ~value:(string_of_number value) c
 
   let user_type_button string_of ?a ~name ~value c =
     Pages.make_button ?a ~button_type:Pages.buttonsubmit
@@ -554,7 +554,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
   let float_select ?a ?required ~name
       (fl : float select_opt) (ol : float select_opt list) =
     gen_select ?a ~multiple:false
-      ~name:(string_of_param_name name) fl ol string_of_float
+      ~name:(string_of_param_name name) fl ol string_of_number
 
   let string_select ?a ?required ~name
       (fl : string select_opt) (ol : string select_opt list) =
@@ -588,7 +588,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
   let float_multiple_select ?a ?required ~name
       (fl : float select_opt) (ol : float select_opt list) =
     gen_select ?a ?required ~multiple:true
-      ~name:(string_of_param_name name) fl ol string_of_float
+      ~name:(string_of_param_name name) fl ol string_of_number
 
   let string_multiple_select ?a ?required ~name
       (fl : string select_opt) (ol : string select_opt list) =

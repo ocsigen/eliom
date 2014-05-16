@@ -159,6 +159,9 @@ module RawXML : sig
   val filter_class_attribs : node_id -> (string * racontent) list -> (string * racontent) list
 end
 
+(* copied form js_of_ocaml: compiler/javascript.ml *)
+val string_of_number : float -> string
+
 val tyxml_unwrap_id_int : int
 val client_value_unwrap_id_int : int
 
