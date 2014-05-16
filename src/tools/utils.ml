@@ -100,33 +100,38 @@ let get_server_package ?kind:k ?package:p () =
       | None -> !package
   in
   try
-    Findlib.package_deep_ancestors (get_predicates ?kind:k ()) ("eliom.server" :: package)
+    Findlib.package_deep_ancestors
+      (get_predicates ?kind:k ())
+      ("eliom.server" :: package)
   with Findlib.No_such_package (name, _) ->
     Printf.eprintf "Unknown package: %s\n%!" name;
     exit 1
 
 let get_client_package ?kind:k () =
   try
-    Findlib.package_deep_ancestors (get_predicates ?kind:k ()) ("eliom.client" :: !package)
+    Findlib.package_deep_ancestors
+      (get_predicates ?kind:k ())
+      ("eliom.client" :: !package)
   with Findlib.No_such_package (name, _) ->
     Printf.eprintf "Unknown package: %s\n%!" name;
     exit 1
 
-let get_syntax_package () =
-  try
-    Findlib.package_deep_ancestors syntax_predicates
-      ("eliom.syntax"
-       :: (List.filter
-             (fun p ->
-               try
-	         let objs =
-	           Findlib.package_property syntax_predicates p "archive" in
-	         List.concat (List.map (split ',') (split ' ' objs)) <> []
-	       with Not_found -> false)
-             !package))
-  with Findlib.No_such_package (name, _) ->
-    Printf.eprintf "Unknown package: %s\n%!" name;
-    exit 1
+let get_syntax_package pkg =
+  let resolve_syntax_packages pkgs =
+    try
+      Findlib.package_deep_ancestors syntax_predicates
+        (List.filter
+           (fun p ->
+             try
+	       let objs =
+	         Findlib.package_property syntax_predicates p "archive" in
+	       List.concat (List.map (split ',') (split ' ' objs)) <> []
+	     with Not_found -> false)
+           pkgs)
+    with Findlib.No_such_package (name, _) ->
+      Printf.eprintf "Unknown package: %s\n%!" name;
+      exit 1 in
+  resolve_syntax_packages ("eliom.syntax" :: pkg @ !package)
 
 let has_package name =
   try
@@ -148,8 +153,8 @@ let get_common_include ?kind:k ?build_dir:dir ?package:p () =
     | "" | "." -> []
     | d -> ["-I"; d]
 
-let get_common_syntax () =
-  map_include (List.map Findlib.package_directory (get_syntax_package ()))
+let get_common_syntax pkg =
+  map_include (List.map Findlib.package_directory (get_syntax_package pkg))
   @ List.concat
     (List.map
        (fun p ->
@@ -158,7 +163,7 @@ let get_common_syntax () =
 	     Findlib.package_property ("byte"::syntax_predicates) p "archive" in
 	   List.concat (List.map (split ',') (split ' ' objs))
 	 with Not_found -> [])
-       (get_syntax_package ()))
+       (get_syntax_package pkg))
 
 let get_client_lib ?kind:k () =
   List.concat
@@ -177,18 +182,18 @@ let get_client_js () =
   ]
 
 (* Should be calld only with -dump... *)
-let get_pp_dump opt = match !pp with
-  | None -> (!camlp4, get_common_syntax () @ opt)
+let get_pp_dump pkg opt = match !pp with
+  | None -> (!camlp4, get_common_syntax pkg @ opt)
   | Some pp ->
       try
         ignore(String.index pp ' ');
         Printf.eprintf "Incompatible option: -pp and -dump\n%!";
         exit 1
-      with Not_found -> (pp, get_common_syntax () @ opt)
+      with Not_found -> (pp, get_common_syntax pkg @ opt)
 
-let get_pp opt = match !pp with
-  | None -> String.concat " " (!camlp4 :: get_common_syntax () @ opt)
-  | Some pp -> pp ^ " " ^ String.concat " " (get_common_syntax () @ opt)
+let get_pp pkg opt = match !pp with
+  | None -> String.concat " " (!camlp4 :: get_common_syntax pkg @ opt)
+  | Some pp -> pp ^ " " ^ String.concat " " (get_common_syntax pkg @ opt)
 
 let get_thread_opt () = match !kind with
   | `Client -> []

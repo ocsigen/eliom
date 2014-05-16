@@ -29,7 +29,7 @@ OCAMLBUILDDIR := ${TEMPROOT}${LIBDIR}/${PROJECTNAME}/ocamlbuild
 
 SERVER_PACKAGE := ocsigenserver               \
 		  ocsigenserver.ext           \
-		  deriving                    \
+		  deriving.runtime            \
 		  js_of_ocaml.deriving        \
 	    	  react                       \
 	   	  calendar                    \
@@ -37,22 +37,24 @@ SERVER_PACKAGE := ocsigenserver               \
 		  lwt.react                   \
 		  cryptokit		      \
 
-SERVER_SYNTAX := deriving.syntax              \
-		 js_of_ocaml.deriving.syntax  \
+SERVER_SYNTAX := js_of_ocaml.deriving.syntax  \
 		 lwt.syntax                   \
 		 tyxml.syntax                 \
+# no deriving.syntax anymore, let the user decide
+# deriving.syntax.std or deriving.syntax.tc
 
 CLIENT_PACKAGE := ocsigenserver.cookies       \
 		  ocsigenserver.polytables    \
 		  ocsigenserver.baselib.base  \
-	          deriving                    \
+	          deriving.runtime            \
 	    	  js_of_ocaml                 \
 	    	  js_of_ocaml.deriving        \
 	    	  lwt.react                   \
 	    	  tyxml.functor               \
 
 CLIENT_SYNTAX  := lwt.syntax                  \
-	          deriving.syntax             \
 	          js_of_ocaml.syntax          \
 	          js_of_ocaml.deriving.syntax \
 		  tyxml.syntax                \
+# no deriving.syntax anymore, let the user decide
+# deriving.syntax.std or deriving.syntax.tc

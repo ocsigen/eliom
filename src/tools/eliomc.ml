@@ -138,14 +138,14 @@ let compile_ocaml ~impl_intf file =
     output_prefix file ^ ext in
   create_process !compiler ( ["-c" ;
                               "-o" ; obj ;
-                              "-pp"; get_pp !ppopt]
+                              "-pp"; get_pp [] !ppopt]
                              @ !args
 			     @ get_thread_opt ()
 			     @ get_common_include ()
 			     @ [impl_intf_opt impl_intf; file] )
 
 let output_ocaml_interface file =
-    create_process !compiler ( ["-i"; "-pp"; get_pp !ppopt] @ !args
+    create_process !compiler ( ["-i"; "-pp"; get_pp [] !ppopt] @ !args
                                @ get_common_include ()
                                @ [file] )
 
@@ -163,18 +163,19 @@ let compile_obj file =
 (* Process eliom and eliomi files *)
 
 let get_ppopts ?kind ~impl_intf file =
-  let pa_cmo =
+  let pkg =
     match get_kind kind with
-      | `Client -> "pa_eliom_client_client.cmo"
-      | `Server | `ServerOpt -> "pa_eliom_client_server.cmo"
+      | `Client -> ["eliom.client.syntax"]
+      | `Server | `ServerOpt -> ["eliom.server.syntax"]
   in
-  pa_cmo :: type_opt impl_intf file @ !ppopt @ [impl_intf_opt impl_intf]
+  pkg, type_opt impl_intf file @ !ppopt @ [impl_intf_opt impl_intf]
 
 let compile_server_type_eliom file =
   let obj = output_prefix ~ty:true file ^ !server_types_file_ext
-  and ppopts = ["pa_eliom_type_filter.cmo"] @ !ppopt @ ["-impl"] in
+  and ppopts = !ppopt @ ["-impl"] in
   if !do_dump then begin
-    let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopts @ [file]) in
+    let camlp4, ppopt =
+      get_pp_dump ["eliom.type.syntax"] ("-printer" :: "o" :: ppopts @ [file]) in
     create_process camlp4 ppopt;
     exit 0
   end;
@@ -184,7 +185,7 @@ let compile_server_type_eliom file =
     Sys.remove obj
   in
   create_process ~out ~on_error
-    !compiler ( [ "-i" ; "-pp"; get_pp ppopts]
+    !compiler ( [ "-i" ; "-pp"; get_pp ["eliom.type.syntax"] ppopts]
 		@ !args
     		@ get_common_include ()
 		@ ["-impl"; file] );
@@ -204,7 +205,8 @@ let output_eliom_interface ~impl_intf file =
     with End_of_file -> ()
   in
   let args kind =
-    let pp = get_pp (get_ppopts ~kind ~impl_intf file) in
+    let pkg, ppopts = get_ppopts ~kind ~impl_intf file in
+    let pp = get_pp pkg ppopts in
     [ "-i" ; "-pp" ; pp; "-intf-suffix"; ".eliomi" ]
     @ !args
     @ get_common_include ~kind ()
@@ -226,15 +228,15 @@ let compile_eliom ~impl_intf file =
     in
     output_prefix file ^ ext
   in
-  let ppopts = get_ppopts ~impl_intf file in
+  let pkg, ppopts = get_ppopts ~impl_intf file in
   if !do_dump then begin
-    let camlp4, ppopt = get_pp_dump ("-printer" :: "o" :: ppopts @ [file]) in
+    let camlp4, ppopt = get_pp_dump pkg ("-printer" :: "o" :: ppopts @ [file]) in
     create_process camlp4 ppopt;
     exit 0
   end;
   create_process !compiler ( [ "-c" ;
                                "-o"  ; obj ;
-                               "-pp" ; get_pp ppopts;
+                               "-pp" ; get_pp pkg ppopts;
                                "-intf-suffix"; ".eliomi" ]
                              @ get_thread_opt ()
 			     @ !args
@@ -244,11 +246,11 @@ let compile_eliom ~impl_intf file =
 
 let process_eliom ~impl_intf file =
   match !mode with
-    | `Infer when impl_intf = `Impl ->
+  | `Infer when impl_intf = `Impl ->
       compile_server_type_eliom file
-    | `Interface ->
+  | `Interface ->
       output_eliom_interface ~impl_intf file
-    | _ ->
+  | _ ->
       compile_eliom ~impl_intf file
 
 let build_server ?(name = "a.out") () =

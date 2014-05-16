@@ -3,7 +3,7 @@ include ../client/Makefile.filelist
 
 LIBS     := -I ../client -I ../client/private -I ../common -I ../common2 \
             -I ../clientserver/_client \
-            ${addprefix -package ,${CLIENT_PACKAGE} ${CLIENT_SYNTAX}} \
+            ${addprefix -package ,${CLIENT_PACKAGE} ${CLIENT_SYNTAX} deriving.syntax.std} \
 	    -ppopt ../syntax/pa_include.cmo
 
 OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG}
