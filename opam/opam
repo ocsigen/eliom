@@ -17,8 +17,8 @@ remove: [
 ]
 depends: [
   "ocamlfind"
-  "deriving"
-  "js_of_ocaml" {>= "9999"}
+  "deriving" {>= "0.6"}
+  "js_of_ocaml" {>= "2.2"}
   "calendar"
   "ocsigenserver" {>= "2.4"}
   "ipaddr" {>= "2.1"}
