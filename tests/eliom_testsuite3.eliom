@@ -3698,13 +3698,12 @@ let tmpl2_page2 = Eliom_service.App.service
   ~get_params:unit
   ()
 
-let tmpl1_update (id : Html5_types.flow5 Html5.Id.id) (contents : Html5_types.flow5 Html5.elt list) = {{
+let tmpl_update (id : Html5_types.flow5 Html5.Id.id) (contents : Html5_types.flow5 Html5.elt list) = {{
   Eliom_client.onload
     (fun () ->
       debug "Update";
       Html5.Manip.Named.replaceChildren %id %contents)
 }}
-
 module Tmpl_1 = Eliom_registration.Eliom_tmpl(My_appl)(struct
   type t = Html5_types.flow5 Html5.elt list
   let name = "template_one"
@@ -3730,7 +3729,7 @@ module Tmpl_1 = Eliom_registration.Eliom_tmpl(My_appl)(struct
                  [pcdata "Click me 2 (change_page, tmpl2)"];
              ];
           Html5.Id.create_named_elt ~id:content_id (div contents)])
-  let update  = tmpl1_update content_id
+  let update  = tmpl_update content_id
 end)
 
 module Tmpl_2 = Eliom_registration.Eliom_tmpl(My_appl)(struct
@@ -3758,23 +3757,23 @@ module Tmpl_2 = Eliom_registration.Eliom_tmpl(My_appl)(struct
                  [pcdata "Click me 2 (change_page)"];
              ];
           Html5.Id.create_named_elt ~id:content_id (div contents)])
-  let update  = tmpl1_update content_id
+  let update  = tmpl_update content_id
 end)
 
 let () = Tmpl_1.register ~service:tmpl1_page1
-  (fun () () -> Lwt.return [h3 [pcdata "Page 1"]])
+  (fun () () -> Lwt.return [h3 [pcdata "Page 1 with tmpl1"]])
 
 let () = Tmpl_1.register ~service:tmpl1_page2
-  (fun () () -> Lwt.return [h3 [pcdata "Page 2"]])
+  (fun () () -> Lwt.return [h3 [pcdata "Page 2 with tmpl1" ]])
 
 let () = Tmpl_1.register ~service:tmpl1_page3
-  (fun () () -> Lwt.return [h3 [pcdata "Page 3"]])
+  (fun () () -> Lwt.return [h3 [pcdata "Page 3 with tmpl1"]])
 
 let () = Tmpl_2.register ~service:tmpl2_page1
-  (fun () () -> Lwt.return [h3 [pcdata "Page 1"]])
+  (fun () () -> Lwt.return [h3 [pcdata "Page 1 with tmpl2"]])
 
 let () = Tmpl_2.register ~service:tmpl2_page2
-  (fun () () -> Lwt.return [h3 [pcdata "Page 2"]])
+  (fun () () -> Lwt.return [h3 [pcdata "Page 2 with tmpl2"]])
 
 
 (**** HISTORY ****)
