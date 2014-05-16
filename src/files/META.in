@@ -32,6 +32,7 @@ package "server" (
     )
     requires(syntax, preprocessor) = "%%NAME%%.server.syntax.deps"
     requires(syntax, toploop) = "%%NAME%%.server.syntax.deps"
+    requires(preprocessor, syntax, pkg_type_conv) = "type_conv"
     archive(syntax, preprocessor) = "pa_eliom_client_server.cmo"
     archive(syntax, toploop) = "pa_eliom_client_server.cmo"
   )
@@ -74,7 +75,7 @@ package "client" (
     )
     requires(syntax, preprocessor) = "%%NAME%%.client.syntax.deps"
     requires(syntax, toploop) = "%%NAME%%.client.syntax.deps"
-
+    requires(preprocessor, syntax, pkg_type_conv) = "type_conv"
     archive(syntax, preprocessor) = "pa_eliom_client_client.cmo"
     archive(syntax, toploop) = "pa_eliom_client_client.cmo"
   )
@@ -86,6 +87,7 @@ package "type" (
     description = "Syntax extension: spliting client and server code (type inference)"
     version = "[distributed with Eliom]"
     directory = "syntax"
+    requires(preprocessor, syntax, pkg_type_conv) = "type_conv"
     requires(syntax, preprocessor) = "%%NAME%%.syntax.common,%%NAME%%.syntax"
     archive(syntax, preprocessor) = "pa_eliom_type_filter.cmo"
   )
@@ -105,6 +107,7 @@ package "syntax" (
     description = "Syntax extension: spliting client and server code (base)"
     version = "[distributed with Eliom]"
     requires = "camlp4"
+    requires(preprocessor, syntax, pkg_type_conv) = "type_conv"
     archive(syntax, preprocessor) = "pa_eliom_seed.cmo"
   )
 )
