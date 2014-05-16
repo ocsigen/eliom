@@ -3,7 +3,7 @@ include ../server/Makefile.filelist
 
 LIBS     := -I ../server -I ../server/private -I ../common -I extensions \
             -I ../clientserver/_server \
-            ${addprefix -package ,${SERVER_PACKAGE} ${SERVER_SYNTAX} deriving.syntax} \
+            ${addprefix -package ,${SERVER_PACKAGE} ${SERVER_SYNTAX} deriving.syntax.std} \
 	    -ppopt ../syntax/pa_include.cmo
 OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG} ${THREAD}
 OCAMLOPT := $(OCAMLFIND) ocamlopt ${OPTDBG}  ${THREAD}

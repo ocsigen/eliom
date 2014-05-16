@@ -82,7 +82,7 @@ let compile_server_eliom ~impl_intf file =
   wait (create_process ~out "eliompp" ["-server"; file]);
   wait (
   create_process !compiler
-    ( "-pp" :: get_pp ["eliom.syntax.server"] (server_pp_opt impl_intf) :: !args @
+    ( "-pp" :: get_pp ["eliom.server.syntax"] (server_pp_opt impl_intf) :: !args @
         (get_default_args ())
       @ (get_common_include ())
       @ (map_include !eliom_inc_dirs)
@@ -93,7 +93,7 @@ let compile_client_eliom ~impl_intf file =
   wait (create_process ~out "eliompp" ["-client"; file]);
   wait (
   create_process !compiler
-    ( "-pp" :: get_pp ["eliom.syntax.client"] (client_pp_opt impl_intf) :: !args @
+    ( "-pp" :: get_pp ["eliom.client.syntax"] (client_pp_opt impl_intf) :: !args @
         (get_default_args ())
       @ (get_common_include ())
       @ (map_include !eliom_inc_dirs)

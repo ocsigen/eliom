@@ -359,7 +359,9 @@ It is now possible to send OCaml values to services.
 To do that, use the {{{Eliom_parameter.ocaml}}} function:
 *wiki*)
 {shared{
-  type ec3 = (int * string * string list) deriving (Json)
+
+type ec3 = (int * string * string list) deriving (Json)
+
 }}
 
 let caml_value : ec3 = (299, "oo", ["a";"b";"c"])

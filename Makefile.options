@@ -40,7 +40,8 @@ SERVER_PACKAGE := ocsigenserver               \
 SERVER_SYNTAX := js_of_ocaml.deriving.syntax  \
 		 lwt.syntax                   \
 		 tyxml.syntax                 \
-# deriving.syntax is hardcoded in META
+# no deriving.syntax anymore, let the user decide
+# deriving.syntax.std or deriving.syntax.tc
 
 CLIENT_PACKAGE := ocsigenserver.cookies       \
 		  ocsigenserver.polytables    \
@@ -55,4 +56,5 @@ CLIENT_SYNTAX  := lwt.syntax                  \
 	          js_of_ocaml.syntax          \
 	          js_of_ocaml.deriving.syntax \
 		  tyxml.syntax                \
-# deriving.syntax is hardcoded in META
+# no deriving.syntax anymore, let the user decide
+# deriving.syntax.std or deriving.syntax.tc

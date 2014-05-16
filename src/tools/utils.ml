@@ -132,22 +132,7 @@ let get_syntax_package pkg =
       Printf.eprintf "Unknown package: %s\n%!" name;
       exit 1 in
   let requested_packages = resolve_syntax_packages (pkg @ !package) in
-  if List.mem "eliom.syntax" requested_packages then
-    if List.mem "type_conv" requested_packages then begin
-      Printf.eprintf "Error: the 'type_conv' syntax extension is not compatible with 'eliom.syntax'. Use 'eliom.syntax_tc' instead.\n%!";
-      exit 1
-    end else
-      requested_packages
-  else if List.mem "eliom.syntax_tc" requested_packages then
-    if List.mem "deriving.syntax.std" requested_packages then begin
-      Printf.eprintf "Error: the 'eliom.syntax_tc' package is not compatible with 'deriving.syntax.std'. Use 'eliom.syntax' or 'deriving.syntax.tc' instead.\n%!";
-      exit 1
-    end else
-      requested_packages
-  else if List.mem "type_conv" requested_packages then
-    resolve_syntax_packages ("eliom.syntax_tc" :: requested_packages)
-  else
-    resolve_syntax_packages ("eliom.syntax" :: requested_packages)
+  resolve_syntax_packages ("eliom.syntax" :: requested_packages)
 
 let has_package name =
   try
