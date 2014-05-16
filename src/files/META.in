@@ -8,7 +8,7 @@ package "server" (
   directory = "server"
 
   requires = "%%NAME%%.server.base"
-  requires(syntax, preprocessor) = "%%NAME%%.server.syntax.deps"
+  requires(syntax, preprocessor) = "%%SDEPS%%"
   archive(syntax, preprocessor) = "-ignore dummy"
 
   package "base" (
@@ -26,15 +26,16 @@ package "server" (
     description = "Syntax extension: spliting client and server code (server side)"
     version = "[distributed with Eliom]"
     directory = "syntax"
-    package "deps" (
-      requires(syntax, preprocessor) = "%%SDEPS%%,%%NAME%%.syntax.common"
-      requires(syntax, toploop) = "%%SDEPS%%,%%NAME%%.syntax.common"
+    package "base" (
+      requires(syntax, preprocessor) = "%%NAME%%.syntax.common"
+      requires(syntax, toploop) = "%%NAME%%.syntax.common"
+      archive(syntax, preprocessor) = "pa_eliom_client_server.cmo"
+      archive(syntax, toploop) = "pa_eliom_client_server.cmo"
     )
-    requires(syntax, preprocessor) = "%%NAME%%.server.syntax.deps"
-    requires(syntax, toploop) = "%%NAME%%.server.syntax.deps"
+    requires(syntax, preprocessor) = "%%SDEPS%%,%%NAME%%.server.syntax.base"
+    requires(syntax, toploop) = "%%SDEPS%%,%%NAME%%.server.syntax.base"
     requires(preprocessor, syntax, pkg_type_conv) = "type_conv"
-    archive(syntax, preprocessor) = "pa_eliom_client_server.cmo"
-    archive(syntax, toploop) = "pa_eliom_client_server.cmo"
+    archive(syntax, preprocessor) = "-ignore dummy"
   )
 
 )
@@ -45,7 +46,7 @@ package "client" (
   version = "[distributed with Eliom]"
 
   requires = "%%NAME%%.client.base"
-  requires(syntax, preprocessor) = "%%NAME%%.client.syntax.deps"
+  requires(syntax, preprocessor) = "%%CSDEPS%%"
   archive(syntax, preprocessor) = "-ignore dummy"
   directory = "client"
 
@@ -69,15 +70,16 @@ package "client" (
     description = "Syntax extension: spliting client and server code (client side)"
     version = "[distributed with Eliom]"
     directory = "syntax"
-    package "deps" (
-      requires(syntax, preprocessor) = "%%CSDEPS%%,%%NAME%%.syntax.common"
-      requires(syntax, toploop) = "%%CSDEPS%%,%%NAME%%.syntax.common"
+    package "base" (
+      requires(syntax, preprocessor) = "%%NAME%%.syntax.common"
+      requires(syntax, toploop) = "%%NAME%%.syntax.common"
+      archive(syntax, preprocessor) = "pa_eliom_client_client.cmo"
+      archive(syntax, toploop) = "pa_eliom_client_client.cmo"
     )
-    requires(syntax, preprocessor) = "%%NAME%%.client.syntax.deps"
-    requires(syntax, toploop) = "%%NAME%%.client.syntax.deps"
+    requires(syntax, preprocessor) = "%%CSDEPS%%,%%NAME%%.client.syntax.base"
+    requires(syntax, toploop) = "%%CSDEPS%%,%%NAME%%.client.syntax.base"
     requires(preprocessor, syntax, pkg_type_conv) = "type_conv"
-    archive(syntax, preprocessor) = "pa_eliom_client_client.cmo"
-    archive(syntax, toploop) = "pa_eliom_client_client.cmo"
+    archive(syntax, preprocessor) = "-ignore dummy"
   )
 
 )
@@ -88,8 +90,12 @@ package "type" (
     version = "[distributed with Eliom]"
     directory = "syntax"
     requires(preprocessor, syntax, pkg_type_conv) = "type_conv"
-    requires(syntax, preprocessor) = "%%NAME%%.syntax.common,%%NAME%%.syntax"
-    archive(syntax, preprocessor) = "pa_eliom_type_filter.cmo"
+    requires(syntax, preprocessor) = "%%NAME%%.type.syntax.base,%%NAME%%.syntax"
+    archive(syntax, preprocessor) = "-ignore dummy"
+    package "base" (
+      requires(syntax, preprocessor) = "%%NAME%%.syntax.common"
+      archive(syntax, preprocessor) = "pa_eliom_type_filter.cmo"
+    )
   )
 )
 
@@ -99,8 +105,8 @@ package "syntax" (
   version = "[distributed with Eliom]"
   directory = "syntax"
 
-  requires(syntax, preprocessor) = "%%NAME%%.server.syntax.deps,%%NAME%%.client.syntax.deps"
-  requires(syntax, toploop) = "%%NAME%%.server.syntax.deps,%%NAME%%.client.syntax.deps"
+  requires(syntax, preprocessor) = "%%SDEPS%%,%%CSDEPS%%,%%NAME%%.syntax.common"
+  requires(syntax, toploop) = "%%SDEPS%%,%%CSDEPS%%,%%NAME%%.syntax.common"
   archive(syntax, preprocessor) = "-ignore dummy"
 
   package "common" (
