@@ -68,12 +68,13 @@ depsort=$(call objs,$(1),$(2),$(call eliomdep,$(3),$(4),$(5)))
 INCLUDEDOC := -I ../server2 -I ../clientserver -I ../common -I ../common2
 
 .PHONY: all byte opt
-all: $(SERVER_FILES:.eliom=.eliomi) \
+all: byte opt
+byte: $(SERVER_FILES:.eliom=.eliomi) \
      $(call objs,$(ELIOM_SERVER_DIR),cmi,$(SERVER_FILES)) \
      $(call objs,$(ELIOM_CLIENT_DIR),cmi,$(CLIENT_FILES)) \
      $(call objs,$(ELIOM_SERVER_DIR),cmo,$(SERVER_FILES)) \
      $(call objs,$(ELIOM_CLIENT_DIR),cmo,$(CLIENT_FILES))
-opt: all $(call objs,$(ELIOM_SERVER_DIR),cmx,$(SERVER_FILES))
+opt: byte $(call objs,$(ELIOM_SERVER_DIR),cmx,$(SERVER_FILES))
 
 
 ##----------------------------------------------------------------------
@@ -99,7 +100,7 @@ ${ELIOM_SERVER_DIR}/%.cmo: %.eliom
 
 ${ELIOM_SERVER_DIR}/%.cmx: %.ml
 	${ELIOMOPT} -c ${SERVER_INC} $(GENERATE_DEBUG) $<
-${ELIOM_SERVER_DIR}/%.cmx: %.eliom
+${ELIOM_SERVER_DIR}/%.cmx: %.eliom ${ELIOM_SERVER_DIR}/%.cmi
 	${ELIOMOPT} -c ${SERVER_INC} $(GENERATE_DEBUG) $<
 
 %.cmxs: %.cmxa
