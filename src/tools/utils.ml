@@ -144,7 +144,7 @@ let get_syntax_package pkg =
     with Findlib.No_such_package (name, _) ->
       Printf.eprintf "Unknown package: %s\n%!" name;
       exit 1 in
-  resolve_syntax_packages ("eliom.syntax" :: pkg @ !package)
+  resolve_syntax_packages ("eliom.client" :: "eliom.server" :: pkg @ !package)
 
 let has_package name =
   try
