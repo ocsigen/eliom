@@ -91,7 +91,14 @@ let get_predicates ?kind:k () = match get_kind k with
   | `Client -> ["byte"] @ !predicates
   | `ServerOpt -> ["native"] @ !predicates
 
-let syntax_predicates = [ "preprocessor"; "syntax"; "camlp4o" ] @ !predicates
+let syntax_predicates = lazy ([ "preprocessor"; "syntax"; "camlp4o" ] @ !predicates)
+
+(* compute pkg_`package_name` predicate like ocamlfind binary does *)
+let get_pkg_predicates pkgs =
+  List.map
+    (fun p -> "pkg_"^p)
+    (Findlib.package_deep_ancestors (Lazy.force syntax_predicates) pkgs)
+
 
 let get_server_package ?kind:k ?package:p () =
   let package =
@@ -99,34 +106,40 @@ let get_server_package ?kind:k ?package:p () =
       | Some p -> p
       | None -> !package
   in
+  let pkgs = "eliom.server" :: package in
+  let pkg_predicates = get_pkg_predicates pkgs in
   try
     Findlib.package_deep_ancestors
-      (get_predicates ?kind:k ())
-      ("eliom.server" :: package)
+      (get_predicates ?kind:k () @ pkg_predicates)
+      pkgs
   with Findlib.No_such_package (name, _) ->
     Printf.eprintf "Unknown package: %s\n%!" name;
     exit 1
 
 let get_client_package ?kind:k () =
+  let pkgs = "eliom.client" :: !package in
+  let pkg_predicates = get_pkg_predicates pkgs in
   try
     Findlib.package_deep_ancestors
-      (get_predicates ?kind:k ())
-      ("eliom.client" :: !package)
+      (get_predicates ?kind:k () @ pkg_predicates)
+      pkgs
   with Findlib.No_such_package (name, _) ->
     Printf.eprintf "Unknown package: %s\n%!" name;
     exit 1
 
 let get_syntax_package pkg =
   let resolve_syntax_packages pkgs =
+    let pkg_predicates = get_pkg_predicates pkgs in
     try
-      Findlib.package_deep_ancestors syntax_predicates
+      Findlib.package_deep_ancestors (Lazy.force syntax_predicates @ pkg_predicates )
         (List.filter
            (fun p ->
-             try
-	       let objs =
-	         Findlib.package_property syntax_predicates p "archive" in
-	       List.concat (List.map (split ',') (split ' ' objs)) <> []
-	     with Not_found -> false)
+              let all_predicates = pkg_predicates @ (Lazy.force syntax_predicates) in
+              try
+	              let objs =
+	                Findlib.package_property all_predicates  p "archive" in
+	              List.concat (List.map (split ',') (split ' ' objs)) <> []
+	            with Not_found -> false)
            pkgs)
     with Findlib.No_such_package (name, _) ->
       Printf.eprintf "Unknown package: %s\n%!" name;
@@ -160,7 +173,7 @@ let get_common_syntax pkg =
        (fun p ->
 	 try
 	   let objs =
-	     Findlib.package_property ("byte"::syntax_predicates) p "archive" in
+	     Findlib.package_property ("byte"::(Lazy.force syntax_predicates)) p "archive" in
 	   List.concat (List.map (split ',') (split ' ' objs))
 	 with Not_found -> [])
        (get_syntax_package pkg))
