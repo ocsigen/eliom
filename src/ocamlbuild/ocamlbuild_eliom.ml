@@ -47,7 +47,7 @@ module Make (Eliom : ELIOM) = struct
       (fun env dir name file ->
          let path = env "%(path)" in
          tag_file file
-           [ "package(eliom.server)"; "package(eliom.syntax.server)"; "thread";
+           [ "package(eliom.server)"; "package(eliom.server.syntax)"; "thread";
              "syntax(camlp4o)";
            ];
          (* Workaround. See: http://caml.inria.fr/mantis/view.php?id=6186 *)
@@ -62,7 +62,7 @@ module Make (Eliom : ELIOM) = struct
       (fun env dir name file ->
          let path = env "%(path)" in
          tag_file file
-           [ "package(eliom.client)"; "package(eliom.syntax.client)"; "thread";
+           [ "package(eliom.client)"; "package(eliom.client.syntax)"; "thread";
              "syntax(camlp4o)";
            ];
          (* Workaround. See: http://caml.inria.fr/mantis/view.php?id=6186 *)
