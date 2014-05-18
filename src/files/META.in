@@ -25,11 +25,10 @@ package "client" (
 )
 
 package "syntax" (
-
+  directory = "syntax"
   package "common" (
     description = "Syntax extension: spliting client and server code (base)"
     version = "[distributed with Eliom]"
-    directory = "syntax"
     requires = "camlp4"
     requires(preprocessor, syntax, pkg_type_conv) = "type_conv"
     archive(syntax, preprocessor) = "pa_eliom_seed.cmo"
@@ -38,7 +37,6 @@ package "syntax" (
   package "client" (
     description = "Syntax extension: spliting client and server code (client side)"
     version = "[distributed with Eliom]"
-    directory = "syntax"
     requires(syntax, preprocessor) = "%%NAME%%.syntax.common"
     requires(syntax, toploop) = "%%NAME%%.syntax.common"
     archive(syntax, preprocessor) = "pa_eliom_client_client.cmo"
@@ -48,7 +46,6 @@ package "syntax" (
   package "server" (
     description = "Syntax extension: spliting client and server code (server side)"
     version = "[distributed with Eliom]"
-    directory = "syntax"
     requires(syntax, preprocessor) = "%%NAME%%.syntax.common"
     requires(syntax, toploop) = "%%NAME%%.syntax.common"
     archive(syntax, preprocessor) = "pa_eliom_client_server.cmo"
@@ -58,12 +55,14 @@ package "syntax" (
   package "type" (
     description = "Syntax extension: spliting client and server code (type inference)"
     version = "[distributed with Eliom]"
-    directory = "syntax"
     requires(syntax, preprocessor) = "%%NAME%%.syntax.common"
     archive(syntax, preprocessor) = "pa_eliom_type_filter.cmo"
   )
 
   package "predef" (
+    description = "Syntax extension: predefined commonly use syntaxes"
+    version = "[distributed with Eliom]"
+
     requires(syntax, preprocessor) = "%%SDEPS%%"
     requires(syntax, toploop) = "%%SDEPS%%"
     requires(syntax, preprocessor,-pkg_type_conv) += "deriving.syntax.std"
