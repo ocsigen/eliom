@@ -26,8 +26,8 @@ endif
 
 #### Main site : eliom_testsuite ####
 
-SERVER_PACKAGE :=
-CLIENT_PACKAGE :=
+SERVER_PACKAGE := tyxml.syntax,lwt.syntax,js_of_ocaml.syntax,js_of_ocaml.deriving.syntax
+CLIENT_PACKAGE := tyxml.syntax,lwt.syntax,js_of_ocaml.syntax,js_of_ocaml.deriving.syntax
 
 SERVER_FILES := eliom_testsuite_base.eliom \
                 eliom_testsuite1.ml \

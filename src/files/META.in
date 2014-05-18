@@ -8,7 +8,6 @@ package "server" (
   directory = "server"
 
   requires = "%%NAME%%.server.base"
-  requires(syntax, preprocessor) = "%%SDEPS%%"
   archive(syntax, preprocessor) = "-ignore dummy"
 
   package "base" (
@@ -35,11 +34,9 @@ package "client" (
 
   description = "Eliom: client-side"
   version = "[distributed with Eliom]"
+  directory = "client"
 
   requires = "%%NAME%%.client.base"
-  requires(syntax, preprocessor) = "%%CSDEPS%%"
-  archive(syntax, preprocessor) = "-ignore dummy"
-  directory = "client"
 
   package "base" (
     description = "Eliom: client-side (without external syntax extension)"
