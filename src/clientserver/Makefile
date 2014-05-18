@@ -81,7 +81,7 @@ opt: byte $(call objs,$(ELIOM_SERVER_DIR),cmx,$(SERVER_FILES))
 ## Server side compilation
 
 SERVER_INC  := -I ../server/ -I ../server/private \
-               ${addprefix -package ,${SERVER_PACKAGES} ${SERVER_SYNTAX}} \
+               ${addprefix -package ,${SERVER_PACKAGES}} \
                -ppopt ../syntax/pa_include.cmo
 
 ${ELIOM_TYPE_DIR}/%.type_mli: %.eliom
@@ -118,7 +118,7 @@ ${ELIOM_SERVER_DIR}/%.cmx: %.eliom ${ELIOM_SERVER_DIR}/%.cmi
 ## Client side compilation
 
 CLIENT_INC  := -I ../client/ -I ../client/private \
-	       ${addprefix -package ,${CLIENT_PACKAGES} ${CLIENT_SYNTAX}} \
+	       ${addprefix -package ,${CLIENT_PACKAGES}} \
                -ppopt ../syntax/pa_include.cmo
 
 ${ELIOM_CLIENT_DIR}/%.cmi: %.mli

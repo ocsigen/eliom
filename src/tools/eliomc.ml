@@ -276,6 +276,7 @@ let rec process_option () =
   while !i < Array.length Sys.argv do
     match Sys.argv.(!i) with
     | "-help" | "--help" -> usage ()
+    | "-no-autoload" -> autoload_predef := false; incr i
     | "-i" -> set_mode `Interface; incr i
     | "-c" -> set_mode `Compile; incr i
     | "-a" -> set_mode `Library; incr i

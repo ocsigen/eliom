@@ -44,6 +44,8 @@ let pp : string option ref = ref None
 let kind : [ `Server | `Client | `ServerOpt ] ref = ref `Server
 let type_file : string option ref = ref None
 
+let autoload_predef = ref true
+
 let default_server_dir =
   try Sys.getenv "ELIOM_SERVER_DIR"
   with Not_found -> "_server"
@@ -99,6 +101,13 @@ let get_pkg_predicates pkgs =
     (fun p -> "pkg_"^p)
     (Findlib.package_deep_ancestors (Lazy.force syntax_predicates) pkgs)
 
+let with_autoload all_pkgs =
+  if !autoload_predef
+  then begin
+    (* Format.eprintf "\nAUTOLOADING PREDEF PKGS\n%s\n@." (String.concat ", " all_pkgs); *)
+    "eliom.predef.syntax"::all_pkgs
+  end
+  else all_pkgs
 
 let get_server_package ?kind:k ?package:p () =
   let package =
@@ -129,6 +138,7 @@ let get_client_package ?kind:k () =
 
 let get_syntax_package pkg =
   let resolve_syntax_packages pkgs =
+    (* Format.eprintf "pkgs: %s@." (String.concat ", " pkgs); *)
     let pkg_predicates = get_pkg_predicates pkgs in
     try
       Findlib.package_deep_ancestors (Lazy.force syntax_predicates @ pkg_predicates )
@@ -144,7 +154,8 @@ let get_syntax_package pkg =
     with Findlib.No_such_package (name, _) ->
       Printf.eprintf "Unknown package: %s\n%!" name;
       exit 1 in
-  resolve_syntax_packages (pkg @ !package)
+  let all_pkgs = pkg @ !package in
+  resolve_syntax_packages (with_autoload all_pkgs)
 
 let has_package name =
   try
@@ -167,16 +178,18 @@ let get_common_include ?kind:k ?build_dir:dir ?package:p () =
     | d -> ["-I"; d]
 
 let get_common_syntax pkg =
-  map_include (List.map Findlib.package_directory (get_syntax_package pkg))
+  let syntax_pkg = get_syntax_package pkg in
+  (* Format.eprintf "pkgs: %s@." (String.concat ", " syntax_pkg); *)
+  map_include (List.map Findlib.package_directory syntax_pkg)
   @ List.concat
     (List.map
        (fun p ->
-	 try
-	   let objs =
-	     Findlib.package_property ("byte"::(Lazy.force syntax_predicates)) p "archive" in
-	   List.concat (List.map (split ',') (split ' ' objs))
-	 with Not_found -> [])
-       (get_syntax_package pkg))
+          try
+            let objs =
+              Findlib.package_property ("byte"::(Lazy.force syntax_predicates)) p "archive" in
+            List.concat (List.map (split ',') (split ' ' objs))
+          with Not_found -> [])
+       syntax_pkg)
 
 let get_client_lib ?kind:k () =
   List.concat
@@ -204,9 +217,12 @@ let get_pp_dump pkg opt = match !pp with
         exit 1
       with Not_found -> (pp, get_common_syntax pkg @ opt)
 
-let get_pp pkg opt = match !pp with
-  | None -> String.concat " " (!camlp4 :: get_common_syntax pkg @ opt)
-  | Some pp -> pp ^ " " ^ String.concat " " (get_common_syntax pkg @ opt)
+let get_pp pkg opt =
+  let s = match !pp with
+    | None -> String.concat " " (!camlp4 :: get_common_syntax pkg @ opt)
+    | Some pp -> pp ^ " " ^ String.concat " " (get_common_syntax pkg @ opt)
+  (* Format.eprintf "get_pp %S@." s *)
+  in s
 
 let get_thread_opt () = match !kind with
   | `Client -> []

@@ -186,6 +186,7 @@ let process_option () =
   while !i < Array.length Sys.argv do
     match Sys.argv.(!i) with
     | "-verbose" -> verbose := true; incr i
+    | "-no-autoload" -> autoload_predef := false; incr i
     | "-sort" -> mode := `Sort; incr i
     | "-eliom-inc" ->
       if !i+1 >= Array.length Sys.argv then usage ();

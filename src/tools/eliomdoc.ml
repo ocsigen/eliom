@@ -118,6 +118,7 @@ let process_option () =
   while !i < Array.length Sys.argv do
     match Sys.argv.(!i) with
     | "-verbose" -> verbose := true; incr i
+    | "-no-autoload" -> autoload_predef := false; incr i
     | "-eliom-inc" ->
       if !i+1 >= Array.length Sys.argv then usage ();
       let dir = Sys.argv.(!i+1) in

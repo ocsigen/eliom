@@ -83,6 +83,18 @@ package "common" (
   )
 )
 
+package "predef" (
+  package "syntax" (
+    requires(syntax, preprocessor) = "%%SDEPS%%"
+    requires(syntax, toploop) = "%%SDEPS%%"
+    requires(syntax, preprocessor,-pkg_type_conv) += "deriving.syntax.std"
+    requires(syntax, toploop, -pkg_type_conv) += "deriving.syntax.std"
+    requires(syntax, preprocessor,pkg_type_conv) += "deriving.syntax.tc"
+    requires(syntax, toploop, pkg_type_conv) += "deriving.syntax.tc"
+    archive(syntax, preprocessor) = "-ignore dummy"
+  )
+)
+
 package "ocamlbuild" (
   description = "Eliom ocamlbuild plugin (js_of_ocaml part included)"
   version = "[distributed with Eliom]"
