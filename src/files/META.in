@@ -7,17 +7,9 @@ package "server" (
   version = "[distributed with Eliom]"
   directory = "server"
 
-  requires = "%%NAME%%.server.base"
-  archive(syntax, preprocessor) = "-ignore dummy"
-
-  package "base" (
-    description = "Eliom: server-side (without external syntax extension)"
-    version = "[distributed with Eliom]"
-
-    requires = "%%DEPS%%"
-    archive(byte) = "%%NAME%%.cma"
-    archive(native) = "%%NAME%%.cmxa"
-  )
+  requires = "%%DEPS%%"
+  archive(byte) = "%%NAME%%.cma"
+  archive(native) = "%%NAME%%.cmxa"
 
   package "syntax" (
     description = "Syntax extension: spliting client and server code (server side)"
@@ -36,20 +28,12 @@ package "client" (
   version = "[distributed with Eliom]"
   directory = "client"
 
-  requires = "%%NAME%%.client.base"
+  requires = "%%CDEPS%%"
+  archive(byte) = "%%NAME%%_client.cma eliom_client_main.cmo"
 
-  package "base" (
-    description = "Eliom: client-side (without external syntax extension)"
-    version = "[distributed with Eliom]"
-
-    archive(byte) = "%%NAME%%_client.cma eliom_client_main.cmo"
-
-    requires = "%%CDEPS%%"
-
-    linkopts(javascript) = "+%%NAME%%.client/eliom_client.js"
-    linkopts(javascript) += "+js_of_ocaml/weak.js"
-    linkopts(javascript) += "+js_of_ocaml/classlist.js"
-  )
+  linkopts(javascript) = "+%%NAME%%.client/eliom_client.js"
+  linkopts(javascript) += "+js_of_ocaml/weak.js"
+  linkopts(javascript) += "+js_of_ocaml/classlist.js"
 
   package "syntax" (
     description = "Syntax extension: spliting client and server code (client side)"
