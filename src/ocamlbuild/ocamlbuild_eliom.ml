@@ -49,7 +49,7 @@ module Make (Eliom : ELIOM) = struct
     ; "package(tyxml.syntax)"
     ]
 
-  let no_external_syntaxes = "no_external_syntaxes"
+  let no_extra_syntaxes = "no_extra_syntaxes"
 
   let tag_file_inside_rule file tags =
     tag_file file tags;
@@ -60,7 +60,7 @@ module Make (Eliom : ELIOM) = struct
     if Filename.check_suffix src "eliomi" then
       false
     else
-      not (Tags.mem no_external_syntaxes (tags_of_pathname src))
+      not (Tags.mem no_extra_syntaxes (tags_of_pathname src))
 
   let copy_rule_server =
     copy_rule_with_header
