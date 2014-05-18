@@ -105,7 +105,7 @@ let compile_server_eliom ~impl_intf file =
   if !do_dump then begin
     let camlp4, ppopt =
       get_pp_dump
-        ["eliom.server.syntax"]
+        ["eliom.syntax.server"]
         ("-printer" :: "o" :: server_pp_opt impl_intf @ [file]) in
     ignore (create_process camlp4 ppopt);
     exit 0
@@ -113,7 +113,7 @@ let compile_server_eliom ~impl_intf file =
   create_filter !compiler
     ( "-pp" ::
       get_pp
-        ["eliom.server.syntax"]
+        ["eliom.syntax.server"]
         (server_pp_opt impl_intf) :: eliom_synonyms @ !args
       @ (map_include !eliom_inc_dirs)
       @ [impl_intf_opt impl_intf; file] )
@@ -124,7 +124,7 @@ let compile_type_eliom ~impl_intf file =
     (* Won't run because [compile_server_eliom] is first and exits ... *)
     let camlp4, ppopt =
       get_pp_dump
-        ["eliom.type.syntax"]
+        ["eliom.syntax.type"]
         ("-printer" :: "o" :: type_pp_opt impl_intf @ [file]) in
     ignore (create_process camlp4 ppopt);
     exit 0
@@ -132,7 +132,7 @@ let compile_type_eliom ~impl_intf file =
   create_filter !compiler
     ( "-pp" ::
       get_pp
-        ["eliom.type.syntax"]
+        ["eliom.syntax.type"]
         (type_pp_opt impl_intf) :: eliom_synonyms @ !args
       @ (map_include !eliom_inc_dirs)
       @ [impl_intf_opt impl_intf; file] )
@@ -142,7 +142,7 @@ let compile_client_eliom ~impl_intf file =
   if !do_dump then begin
     let camlp4, ppopt =
       get_pp_dump
-        ["eliom.client.syntax"]
+        ["eliom.syntax.client"]
         ("-printer" :: "o" :: client_pp_opt impl_intf @ [file]) in
     ignore (create_process camlp4 ppopt);
     exit 0
@@ -150,7 +150,7 @@ let compile_client_eliom ~impl_intf file =
   create_filter !compiler
     ( "-pp" ::
       get_pp
-        ["eliom.client.syntax"]
+        ["eliom.syntax.client"]
         (client_pp_opt impl_intf) :: eliom_synonyms @ !args
       @ (map_include !eliom_inc_dirs)
       @ [impl_intf_opt impl_intf; file] )
@@ -174,8 +174,8 @@ let sort () =
   let pkg, ppopt =
     match !kind with
       | `Server | `ServerOpt ->
-          ["eliom.server.syntax"], server_pp_opt `Impl
-      | `Client -> ["eliom.client.syntax"], client_pp_opt `Impl
+          ["eliom.syntax.server"], server_pp_opt `Impl
+      | `Client -> ["eliom.syntax.client"], client_pp_opt `Impl
   in
   create_process !compiler
     ( "-sort" :: "-pp" :: get_pp pkg ppopt :: eliom_synonyms @

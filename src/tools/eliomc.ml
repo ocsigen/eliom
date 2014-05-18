@@ -165,8 +165,8 @@ let compile_obj file =
 let get_ppopts ?kind ~impl_intf file =
   let pkg =
     match get_kind kind with
-      | `Client -> ["eliom.client.syntax"]
-      | `Server | `ServerOpt -> ["eliom.server.syntax"]
+      | `Client -> ["eliom.syntax.client"]
+      | `Server | `ServerOpt -> ["eliom.syntax.server"]
   in
   pkg, type_opt impl_intf file @ !ppopt @ [impl_intf_opt impl_intf]
 
@@ -175,7 +175,7 @@ let compile_server_type_eliom file =
   and ppopts = !ppopt @ ["-impl"] in
   if !do_dump then begin
     let camlp4, ppopt =
-      get_pp_dump ["eliom.type.syntax"] ("-printer" :: "o" :: ppopts @ [file]) in
+      get_pp_dump ["eliom.syntax.type"] ("-printer" :: "o" :: ppopts @ [file]) in
     create_process camlp4 ppopt;
     exit 0
   end;
@@ -185,7 +185,7 @@ let compile_server_type_eliom file =
     Sys.remove obj
   in
   create_process ~out ~on_error
-    !compiler ( [ "-i" ; "-pp"; get_pp ["eliom.type.syntax"] ppopts]
+    !compiler ( [ "-i" ; "-pp"; get_pp ["eliom.syntax.type"] ppopts]
 		@ !args
     		@ get_common_include ()
 		@ ["-impl"; file] );

@@ -106,7 +106,7 @@ let with_autoload all_pkgs =
   if !autoload_predef
   then begin
     (* Format.eprintf "\nAUTOLOADING PREDEF PKGS\n%s\n@." (String.concat ", " all_pkgs); *)
-    let l = "eliom.predef.syntax"::all_pkgs in
+    let l = "eliom.syntax.predef"::all_pkgs in
     if !type_conv then "type_conv"::l else l
   end
   else all_pkgs

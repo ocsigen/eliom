@@ -42,7 +42,7 @@ module Make (Eliom : ELIOM) = struct
     List.iter f tags;
     flag ["ocaml"; "doc"; file_tag] (S [A "-ppopt"; A "-notype"])
 
-  let syntaxes = ["package(eliom.predef.syntax)"]
+  let syntaxes = ["package(eliom.syntax.predef)"]
 
   let no_extra_syntaxes = "no_extra_syntaxes"
 
@@ -63,7 +63,7 @@ module Make (Eliom : ELIOM) = struct
          let path = env "%(path)" in
          tag_file_inside_rule file
            ( "package(eliom.server)"
-             :: "package(eliom.server.syntax)"
+             :: "package(eliom.syntax.server)"
              :: "thread"
              :: "syntax(camlp4o)"
              :: (if use_all_syntaxes src then syntaxes else [])
@@ -80,7 +80,7 @@ module Make (Eliom : ELIOM) = struct
          let path = env "%(path)" in
          tag_file_inside_rule file
            ( "package(eliom.client)"
-             :: "package(eliom.client.syntax)"
+             :: "package(eliom.syntax.client)"
              :: "thread"
              :: "syntax(camlp4o)"
              :: (if use_all_syntaxes src then syntaxes else [])
@@ -97,7 +97,7 @@ module Make (Eliom : ELIOM) = struct
          let server_dir = Pathname.concat path Eliom.server_dir in
          let server_file = Pathname.concat server_dir name in
          tag_file_inside_rule file
-           ( "package(eliom.type.syntax)"
+           ( "package(eliom.syntax.type)"
              :: "thread"
              :: "syntax(camlp4o)"
              :: (if use_all_syntaxes src then syntaxes else [])
