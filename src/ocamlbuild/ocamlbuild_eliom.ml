@@ -42,12 +42,7 @@ module Make (Eliom : ELIOM) = struct
     List.iter f tags;
     flag ["ocaml"; "doc"; file_tag] (S [A "-ppopt"; A "-notype"])
 
-  let syntaxes =
-    [ "package(js_of_ocaml.syntax)"
-    ; "package(js_of_ocaml.deriving.syntax)"
-    ; "package(lwt.syntax)"
-    ; "package(tyxml.syntax)"
-    ]
+  let syntaxes = ["package(eliom.predef.syntax)"]
 
   let no_extra_syntaxes = "no_extra_syntaxes"
 
