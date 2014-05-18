@@ -277,6 +277,7 @@ let rec process_option () =
     match Sys.argv.(!i) with
     | "-help" | "--help" -> usage ()
     | "-no-autoload" -> autoload_predef := false; incr i
+    | "-type_conv" -> type_conv := true; incr i
     | "-i" -> set_mode `Interface; incr i
     | "-c" -> set_mode `Compile; incr i
     | "-a" -> set_mode `Library; incr i

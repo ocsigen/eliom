@@ -45,6 +45,7 @@ let kind : [ `Server | `Client | `ServerOpt ] ref = ref `Server
 let type_file : string option ref = ref None
 
 let autoload_predef = ref true
+let type_conv = ref false
 
 let default_server_dir =
   try Sys.getenv "ELIOM_SERVER_DIR"
@@ -105,7 +106,8 @@ let with_autoload all_pkgs =
   if !autoload_predef
   then begin
     (* Format.eprintf "\nAUTOLOADING PREDEF PKGS\n%s\n@." (String.concat ", " all_pkgs); *)
-    "eliom.predef.syntax"::all_pkgs
+    let l = "eliom.predef.syntax"::all_pkgs in
+    if !type_conv then "type_conv"::l else l
   end
   else all_pkgs
 
@@ -136,6 +138,27 @@ let get_client_package ?kind:k () =
     Printf.eprintf "Unknown package: %s\n%!" name;
     exit 1
 
+let explain_who_need ~find ~from =
+  let pkg_predicates = get_pkg_predicates from in
+  let l = List.filter (fun pkg ->
+      if
+        try
+          begin
+	          let objs = Findlib.package_property (pkg_predicates @ Lazy.force syntax_predicates) pkg "archive"
+	          in List.concat (List.map (split ',') (split ' ' objs)) <> []
+          end
+	      with Not_found -> false
+      then
+        begin
+          let l = Findlib.package_deep_ancestors (pkg_predicates @ Lazy.force syntax_predicates) [pkg] in
+          List.mem find l
+        end
+      else false
+    ) from in
+  match l with
+  | [] -> ()
+  | _ -> Printf.eprintf "List of packages requiring %s: %s.\n%!" find (String.concat ", " l)
+
 let get_syntax_package pkg =
   let resolve_syntax_packages pkgs =
     (* Format.eprintf "pkgs: %s@." (String.concat ", " pkgs); *)
@@ -155,7 +178,23 @@ let get_syntax_package pkg =
       Printf.eprintf "Unknown package: %s\n%!" name;
       exit 1 in
   let all_pkgs = pkg @ !package in
-  resolve_syntax_packages (with_autoload all_pkgs)
+  let resolved_pkgs = resolve_syntax_packages (with_autoload all_pkgs) in
+  if !autoload_predef
+  then
+    if !type_conv && List.mem "deriving.syntax.std" resolved_pkgs
+    then begin
+      Printf.eprintf "Error: '-type_conv' option enabled but some packages require the deriving syntax to be loaded.\n%!";
+      explain_who_need ~find:"deriving.syntax.std" ~from:all_pkgs;
+      exit 1
+    end
+    else if not !type_conv && List.mem "type_conv" resolved_pkgs
+    then begin
+      Printf.eprintf "Error: '-type_conv' option disabled but some packages require the type_conv syntax to be loaded.\n%!";
+      explain_who_need ~find:"type_conv" ~from:all_pkgs;
+      exit 1
+    end
+    else resolved_pkgs
+  else resolved_pkgs
 
 let has_package name =
   try
