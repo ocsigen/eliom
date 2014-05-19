@@ -37,9 +37,10 @@ SERVER_PACKAGE := ocsigenserver               \
 		  lwt.react                   \
 		  cryptokit		      \
 
-SERVER_SYNTAX := js_of_ocaml.deriving.syntax  \
-		 lwt.syntax                   \
-		 tyxml.syntax                 \
+EXTRA_SYNTAXES := js_of_ocaml.syntax          \
+                  js_of_ocaml.deriving.syntax \
+                  lwt.syntax                  \
+                  tyxml.syntax                \
 # no deriving.syntax anymore, let the user decide
 # deriving.syntax.std or deriving.syntax.tc
 
@@ -51,10 +52,3 @@ CLIENT_PACKAGE := ocsigenserver.cookies       \
 	    	  js_of_ocaml.deriving        \
 	    	  lwt.react                   \
 	    	  tyxml.functor               \
-
-CLIENT_SYNTAX  := lwt.syntax                  \
-	          js_of_ocaml.syntax          \
-	          js_of_ocaml.deriving.syntax \
-		  tyxml.syntax                \
-# no deriving.syntax anymore, let the user decide
-# deriving.syntax.std or deriving.syntax.tc

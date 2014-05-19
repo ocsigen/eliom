@@ -82,7 +82,7 @@ let compile_server_eliom ~impl_intf file =
   wait (create_process ~out "eliompp" ["-server"; file]);
   wait (
   create_process !compiler
-    ( "-pp" :: get_pp ["eliom.server.syntax"] (server_pp_opt impl_intf) :: !args @
+    ( "-pp" :: get_pp ["eliom.syntax.server"] (server_pp_opt impl_intf) :: !args @
         (get_default_args ())
       @ (get_common_include ())
       @ (map_include !eliom_inc_dirs)
@@ -93,7 +93,7 @@ let compile_client_eliom ~impl_intf file =
   wait (create_process ~out "eliompp" ["-client"; file]);
   wait (
   create_process !compiler
-    ( "-pp" :: get_pp ["eliom.client.syntax"] (client_pp_opt impl_intf) :: !args @
+    ( "-pp" :: get_pp ["eliom.syntax.client"] (client_pp_opt impl_intf) :: !args @
         (get_default_args ())
       @ (get_common_include ())
       @ (map_include !eliom_inc_dirs)
@@ -118,6 +118,8 @@ let process_option () =
   while !i < Array.length Sys.argv do
     match Sys.argv.(!i) with
     | "-verbose" -> verbose := true; incr i
+    | "-no-autoload" -> autoload_predef := false; incr i
+    | "-type_conv" -> type_conv := true; incr i
     | "-eliom-inc" ->
       if !i+1 >= Array.length Sys.argv then usage ();
       let dir = Sys.argv.(!i+1) in
