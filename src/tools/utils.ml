@@ -107,7 +107,9 @@ let with_autoload all_pkgs =
   then begin
     (* Format.eprintf "\nAUTOLOADING PREDEF PKGS\n%s\n@." (String.concat ", " all_pkgs); *)
     let l = "eliom.syntax.predef"::all_pkgs in
-    if !type_conv then "type_conv"::l else l
+    if !type_conv
+    then "deriving.syntax.tc"::"type_conv"::l
+    else "deriving.syntax.std"::l
   end
   else all_pkgs
 
@@ -140,6 +142,9 @@ let get_client_package ?kind:k () =
 
 let explain_who_need ~find ~from =
   let pkg_predicates = get_pkg_predicates from in
+  (* remove pkg_type_conv from predicates to exclude weak dependencies *)
+  (* Weak dependencies: pa_eliom_seed needs to be loaded after type_conv IF type_conv EXISTS *)
+  let pkg_predicates = List.filter ((<>) "pkg_type_conv") pkg_predicates in
   let l = List.filter (fun pkg ->
       if
         try

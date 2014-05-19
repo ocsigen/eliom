@@ -12,11 +12,14 @@ else
   DEBUG_OPTION :=
 endif
 
-ELIOMC   := eliomc ${DEBUG_OPTION} -package deriving.syntax.std
-ELIOMOPT := eliomopt ${DEBUG_OPTION} -package deriving.syntax.std
-ELIOMDEPS := eliomdep -server -package deriving.syntax.std
-ELIOMDEPC := eliomdep -client -package deriving.syntax.std
-JS_OF_ELIOM := js_of_eliom ${DEBUG_OPTION} -package deriving.syntax.std
+#BINPREFIX=../src/tools/
+BINPREFIX=
+
+ELIOMC   := ${BINPREFIX}eliomc ${DEBUG_OPTION} -package deriving.syntax.std
+ELIOMOPT := ${BINPREFIX}eliomopt ${DEBUG_OPTION} -package deriving.syntax.std
+ELIOMDEPS := ${BINPREFIX}eliomdep -server -package deriving.syntax.std
+ELIOMDEPC := ${BINPREFIX}eliomdep -client -package deriving.syntax.std
+JS_OF_ELIOM := ${BINPREFIX}js_of_eliom ${DEBUG_OPTION} -package deriving.syntax.std
 
 ifeq "${NATDYNLINK}" "YES"
 all: byte opt
