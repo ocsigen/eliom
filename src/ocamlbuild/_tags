@@ -1,2 +1,3 @@
 true: package(ocamlbuild)
 "ocamlbuild_eliom.ml": package(js_of_ocaml.ocamlbuild)
+"ocamlbuild_eliom.ml": syntax(camlp4o), package(optcomp)

@@ -49,8 +49,11 @@ module Make (Eliom : ELIOM) = struct
   let tag_file_inside_rule file tags =
     tag_file file tags;
     (* Workaround. See: http://caml.inria.fr/mantis/view.php?id=6186 *)
+#if ocaml_version < (4, 01)
+    Pack.Param_tags.init (Tags.of_list tags)
+#else
     Pack.Param_tags.partial_init (Tags.of_list tags)
-
+#endif
   let use_all_syntaxes src =
     if Filename.check_suffix src ".eliomi" then
       false
