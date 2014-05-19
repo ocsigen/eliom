@@ -50,7 +50,7 @@ module Make (Eliom : ELIOM) = struct
     tag_file file tags;
     (* Workaround. See: http://caml.inria.fr/mantis/view.php?id=6186 *)
 #if ocaml_version < (4, 01)
-    Pack.Param_tags.init (Tags.of_list tags)
+    Pack.Param_tags.init ()
 #else
     Pack.Param_tags.partial_init (Tags.of_list tags)
 #endif
