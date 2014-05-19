@@ -453,7 +453,7 @@ module Html5 : sig
   module C : sig
     (** {2 Content injection} *)
 
-    (** Those two function are the identity on client-side (the {{{init}}} argument is ignored).
+    (** Those two function are the identity on client-side (the [init] argument is ignored).
         See Eliom manual for more detail on
         {% <<a_manual chapter="clientserver-html" fragment="inject" | Dom & Client-values >>%}. *)
     val node : ?init:'a D.elt -> 'a elt Eliom_pervasives.client_value -> 'a D.elt
