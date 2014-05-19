@@ -52,7 +52,7 @@ module Make (Eliom : ELIOM) = struct
     Pack.Param_tags.partial_init (Tags.of_list tags)
 
   let use_all_syntaxes src =
-    if Filename.check_suffix src "eliomi" then
+    if Filename.check_suffix src ".eliomi" then
       false
     else
       not (Tags.mem no_extra_syntaxes (tags_of_pathname src))
