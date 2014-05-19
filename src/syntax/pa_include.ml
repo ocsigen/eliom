@@ -94,7 +94,10 @@ module Make(Syntax : Camlp4.Sig.Camlp4Syntax) = struct
     sig_item: BEFORE "top"
       [ [ "include"; mt = module_type ->
       begin match mt with
-	| <:module_type< sig $x$ end>> -> <:sig_item< $x$ >>
+	| <:module_type< sig $x$ end>> ->
+            (* Hack: insert SgNil with a correct location, in order to
+                     preserve comments locations *)
+            Ast.(SgSem(_loc, SgNil _loc, x))
 	| mt -> <:sig_item< include $mt$ >>
       end
 	] ];
