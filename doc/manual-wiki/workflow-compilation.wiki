@@ -121,7 +121,9 @@ Then in a file named {{{_tags}}} (at the root of your project), add:
 true: thread, syntax(camlp4o)
 }}}
 
-You can replace true by certain specific files, if you know what you are doing.
+You can and probably should replace {{{true}}} by certain specific pattern
+(see: [[https://github.com/gasche/manual-ocamlbuild/blob/master/manual.md#tags-and-the-_tags-file]])
+that effectively use a camlp4 syntax extention (other that your eliom files).
 Dependencies are added with {{{package(yourdep)}}} in the same line.
 
 For libraries, don't forget to add the corresponding .mllib file.
