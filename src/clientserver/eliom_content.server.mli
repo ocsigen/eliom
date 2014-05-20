@@ -105,7 +105,7 @@ module Xml : sig
       fragment="unique" |the eliom manual>>%} for more
       details. *)
 
-  (** Event handlers *)
+  (** {2 Event handlers } *)
 
   (** Values of type ['a caml_event_handler] represents event handler
       build with the [{{ ... }}] syntax (see the Eliom manual for more
@@ -178,11 +178,11 @@ module Svg : sig
   type uri = Xml.uri
 
   (** Typed interface for building valid SVG tree (functional
-      semantics). See {% <<a_api project="tyxml" | module type
+      semantics). See {% <<a_api project="tyxml" | module
       Svg_sigs.T >> %}. *)
   module F : sig
 
-    (** Cf. {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
                              and type Xml.event_handler = Xml.event_handler
                              and type Xml.attrib = Xml.attrib
@@ -204,10 +204,10 @@ module Svg : sig
   end
 
   (** Typed interface for building valid SVG tree (DOM semantics). See
-      {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
+      {% <<a_api project="tyxml" | module Svg_sigs.T >> %}. *)
   module D : sig
 
-    (** Cf. {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
                              and type Xml.event_handler = Xml.event_handler
                              and type Xml.attrib = Xml.attrib
@@ -249,7 +249,7 @@ module Svg : sig
   end
 
   (** SVG printer.
-      See {% <<a_api project="tyxml" | module type Xml_sigs.Typed_simple_printer >> %}. *)
+      See {% <<a_api project="tyxml" | module Xml_sigs.Typed_simple_printer >> %}. *)
   module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a elt
                                                   and type doc := F.doc
 
