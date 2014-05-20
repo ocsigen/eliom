@@ -54,11 +54,17 @@ module Make (Eliom : ELIOM) = struct
 #else
     Pack.Param_tags.partial_init (Tags.of_list tags)
 #endif
+
   let use_all_syntaxes src =
     if Filename.check_suffix src ".eliomi" then
       false
     else
       not (Tags.mem no_extra_syntaxes (tags_of_pathname src))
+
+  let get_syntaxes src =
+    "thread" :: "syntax(camlp4o)"
+    :: (if use_all_syntaxes src then syntaxes else [])
+    @ Tags.elements (tags_of_pathname src)
 
   let copy_rule_server =
     copy_rule_with_header
@@ -67,10 +73,7 @@ module Make (Eliom : ELIOM) = struct
          tag_file_inside_rule file
            ( "package(eliom.server)"
              :: "package(eliom.syntax.server)"
-             :: "thread"
-             :: "syntax(camlp4o)"
-             :: (if use_all_syntaxes src then syntaxes else [])
-             @ Tags.elements (tags_of_pathname src)
+             :: get_syntaxes src
            );
          flag_infer ~file ~name ~path;
          Pathname.define_context dir [path];
@@ -84,10 +87,7 @@ module Make (Eliom : ELIOM) = struct
          tag_file_inside_rule file
            ( "package(eliom.client)"
              :: "package(eliom.syntax.client)"
-             :: "thread"
-             :: "syntax(camlp4o)"
-             :: (if use_all_syntaxes src then syntaxes else [])
-             @ Tags.elements (tags_of_pathname src)
+             :: get_syntaxes src
            );
          flag_infer ~file ~name ~path;
          Pathname.define_context dir [path];
@@ -101,10 +101,7 @@ module Make (Eliom : ELIOM) = struct
          let server_file = Pathname.concat server_dir name in
          tag_file_inside_rule file
            ( "package(eliom.syntax.type)"
-             :: "thread"
-             :: "syntax(camlp4o)"
-             :: (if use_all_syntaxes src then syntaxes else [])
-             @ Tags.elements (tags_of_pathname src)
+             :: get_syntaxes src
              @ Tags.elements (tags_of_pathname server_file)
            );
          Pathname.define_context dir [path; server_dir];
