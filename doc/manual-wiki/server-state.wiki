@@ -67,7 +67,7 @@ We hope to simplify this when OCaml's serialization mechanism evolves.
 In the meantime, be very careful where you store your data.
 To avoid shutting down the server, note that it is possible
 to ask the server to load dynamically new versions of your site
-(see <<a_manual chapter="clientserver-configuration" fragment="reload"|command {{{reload}}} >>).
+(see <<a_manual chapter="workflow-configuration" fragment="reload"|command {{{reload}}} >>).
 
 
 

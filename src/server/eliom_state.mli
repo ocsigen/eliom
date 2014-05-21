@@ -23,7 +23,7 @@
     {% <<a_manual chapter="server-state" | Eliom manual >>%}
     before this page to learn how server side state works. }
 
-{% <<outline| <<header| =Table of contents= >> >>%}
+{% <<outline| <<header| **Table of contents** >> >>%}
 
 *)
 

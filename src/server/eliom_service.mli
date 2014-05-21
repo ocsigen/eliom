@@ -32,10 +32,10 @@
 
 (**
    The main functions to create services are in modules
-   <<a_api subproject="server"|module Eliom_service.Http>> (default),
-   <<a_api subproject="server"|module Eliom_service.Ocaml>>
+   {% <<a_api subproject="server"|module Eliom_service.Http>>%} (default),
+   {% <<a_api subproject="server"|module Eliom_service.Ocaml>>%}
    (for services returning OCaml values) and
-   <<a_api subproject="server"|module Eliom_service.App>>
+   {% <<a_api subproject="server"|module Eliom_service.App>>%}
    (for services belonging to an Eliom client-server app).
 
  *)
