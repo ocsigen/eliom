@@ -34,8 +34,8 @@
     chapter="params" fragment="nonlocalizedparameters"|non localized
     parameters>>%}.
 
-    The optional paramater [?rt] is used to constrain the type parameter ['rt]
-    of the returned service if is ['rt Eliom_service.caml_service].
+    The optional parameter [?rt] is used to constrain the type parameter ['rt]
+    of the service in the case it is ['rt Eliom_service.ocaml_service].
     Example:
     [service ~rt:(Eliom_service.rt : your_return_type Eliom_service.rt)].
 *)

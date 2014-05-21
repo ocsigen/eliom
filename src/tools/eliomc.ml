@@ -264,6 +264,7 @@ let build_client () =
   let js = name ^ ".js" in
   create_process !compiler ( ["-o"  ;  exe ]
 			     @ get_common_include ()
+linkall
 			     @ get_client_lib ()
 			     @ !args );
   create_process !js_of_ocaml ( ["-o" ; js ]

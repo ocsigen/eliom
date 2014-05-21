@@ -19,13 +19,22 @@
  *)
 
 
-(** Creation and manipulation of Eliom services.
+(** Creation and manipulation of Eliom services. *)
+
+(**
 
     {b See the Eliom manual for a detailed introduction to the concept of
     {% <<a_manual chapter="server-services"|Eliom services>>%}.
     }
 
-  {% <<outline| <<header| =Table of contents= >> >>%}
+  {% <<outline| <<header| **Table of contents** >> >>%}
+
+   The mainfunctions to create services are in modules
+   <<a_api subproject="server"|module Eliom_service.Http>> (default),
+   <<a_api subproject="server"|module Eliom_service.Ocaml>>
+   (for services returning OCaml values) and
+   <<a_api subproject="server"|module Eliom_service.App>>
+   (for services belonging to an Eliom client-server app).
 
  *)
 
@@ -162,43 +171,63 @@ type 'a ocaml_service
     {!appl_self_redirect}. *)
 type non_ocaml_service = [ appl_service | http_service ]
 
-(** Helper for typing ocaml services *)
+(** Helper for typing OCaml services.
+    In some cases, you may need to write the return type of the
+    service manually. Instead of writing the full type of the service,
+    (which may be huge), add a type constraint for parameter [?rt] of service
+    creation functions
+    (like <<a_api subproject="server"|fun Eliom_service.Http.service>>),
+    using the following value.
+
+*)
 type 'rt rt
 val rt : 'rt rt
 
 (***** Static dir and actions do not depend on the type of pages ******)
 
-(** {2 Registration of named modules}
+(** {2 Registration of services} *)
 
-    This functionality allows one to register initialization functions for
-    Eliom modules which will be executed when the corresponding module
-    is loaded in [ocsigenserver.conf].
 
-*)
-
-module Unsafe : "sigs/eliom_service_with_external.mli"
-  subst type returnB := 'returnB
-  and type returnT := 'returnT
-(** Module for creating services that are applications *)
-module App : "sigs/eliom_service.mli"
-  subst type returnB := [> appl_service ]
-  and type returnT := [< non_ocaml_service ]
-(** Module for creating services that returns ocaml values *)
-module Ocaml : "sigs/eliom_service_with_external.mli"
-  subst type returnB := 'rt ocaml_service
-  and type returnT := 'rt ocaml_service
 (** Default module for creating services *)
 module Http : "sigs/eliom_service_with_external.mli"
   subst type returnB := [> http_service ]
   and type returnT := [< non_ocaml_service ]
 
+(** Module for creating services returning applications *)
+module App : "sigs/eliom_service.mli"
+  subst type returnB := [> appl_service ]
+  and type returnT := [< non_ocaml_service ]
+
+(** Module for creating services that return OCaml values *)
+module Ocaml : "sigs/eliom_service_with_external.mli"
+  subst type returnB := 'rt ocaml_service
+  and type returnT := 'rt ocaml_service
+
+(** Module for creating services without specifying the return type *)
+module Unsafe : "sigs/eliom_service_with_external.mli"
+  subst type returnB := 'returnB
+  and type returnT := 'returnT
+
+
+(** {2 Static loading of Eliom modules} *)
+
+(**
+    This functionality allows one to register initialization functions for
+    Eliom modules which will be executed when the corresponding module
+    is loaded in [ocsigenserver.conf].
+    If the module is loaded dynamically, you probably don't need this.
+   But if the module is linked statically, some computations,
+   like service registrations must be delayed.
+
+*)
+
 (** The function [register_eliom_module mod f] is used to register the
     initialization function [f] to be executed when then module [mod]
-    is "loaded" by Ocsigen server. The module [mod] could either be a
+    is loaded by Ocsigen server. The module [mod] could either be a
     dynamically loaded module or linked statically into the server: in
     each case, the [f] function will be invoked when the module is
-    initialized in the configuration file using [<eliom name="name">
-    ... </eliom>]. If [register_eliom_module] is called twice with the
+    initialized in the configuration file using [<eliommodule ...>
+    ... </eliommodule>]. If [register_eliom_module] is called twice with the
     same module name, the second initialization function will replace
     the previous one. *)
 val register_eliom_module : string -> (unit -> unit) -> unit
