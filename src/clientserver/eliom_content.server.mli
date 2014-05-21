@@ -442,9 +442,10 @@ module Html5 : sig
         [create_named_elt ~id:(new_elt_id ()) elt]. *)
     val create_global_elt: 'a elt -> 'a elt
 
-    (**/**)
+    (* XXX: This function must be hidden in documentation but hidden rest of
+     * file *)
     val have_id: 'a id -> 'b elt -> bool
-    (**/**)
+
   end
 
 
