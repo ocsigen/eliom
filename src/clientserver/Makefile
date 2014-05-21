@@ -137,13 +137,13 @@ ${ELIOM_CLIENT_DIR}/%.cmi: %.eliomi
 ##----------------------------------------------------------------------
 ## Doc
 
-odoc: _server/eliom_content.odoc _client/eliom_content.odoc
+# odoc: _server/eliom_content.odoc _client/eliom_content.odoc
 
-_server/%.odoc: %.server.mli
-	${OCAMLDOC} -syntax camlp4o ${LIBS} ${INCLUDEDOC} -dump ${ODOC_DIR}$@ $<
+# _server/%.odoc: %.server.mli
+# 	${OCAMLDOC} -syntax camlp4o ${LIBS} ${INCLUDEDOC} -dump ${ODOC_DIR}$@ _server/$*.mli
 
-_client/%.odoc: %.client.mli
-	${OCAMLDOC} -syntax camlp4o ${LIBS} ${INCLUDEDOC} -dump ${ODOC_DIR}$@ $<
+# _client/%.odoc: %.client.mli
+# 	${OCAMLDOC} -syntax camlp4o ${LIBS} ${INCLUDEDOC} -dump ${ODOC_DIR}$@ _client/$*.mli
 
 
 ##----------------------------------------------------------------------

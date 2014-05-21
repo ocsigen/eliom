@@ -66,7 +66,7 @@ ${CINTF_NOP4:.mli=.cmi}: \
 ../clientserver/_client/%.odoc: ../clientserver/%.client.mli
 	-cp -f $< ${@:.odoc=.mli}
 	-ln -s ../sigs ../clientserver/_client
-	${OCAMLDOC} -syntax camlp4o ${LIBS} ${INCLUDEDOC} -dump ${ODOC_DIR}$@ $<
+	${OCAMLDOC} -syntax camlp4o ${LIBS} ${INCLUDEDOC} -dump ${ODOC_DIR}$@ ${@:.odoc=.mli}
 	-rm -f ${@:.odoc=.mli}
 
 ${CINTF_NOP4:.mli=.odoc}: \
