@@ -254,7 +254,7 @@ var caml_unwrap_value_from_string = function (){
       v[d] = intern_rec ();
       // If the value v[d] is marked for late unwrapping, register an
       // occurrence of it in v.
-      if (v[d][0] === 0 && v[d].length >= 2 && v[d][v[d].length-1][2] == late_unwrap_mark) {
+      if (v[d][0] === 0 && v[d].length >= 2 && v[d][v[d].length-1][2] === late_unwrap_mark) {
         register_late_occurrence(v, d, v[d],   v[d][v[d].length-1][1]);
       }
     }
