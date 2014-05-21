@@ -63,6 +63,7 @@ ${SINTF_NOP4:.mli=.cmi}: \
 ../clientserver/_server/%.odoc: ../clientserver/%.server.mli
 	-cp -f $< ${@:.odoc=.mli}
 	-ln -s ../sigs ../clientserver/_server
+	-ln -s ../server ../clientserver/server
 	${OCAMLDOC} -syntax camlp4o ${LIBS} ${INCLUDEDOC} -dump ${ODOC_DIR}$@ ${@:.odoc=.mli}
 	-rm -f ${@:.odoc=.mli}
 
