@@ -430,8 +430,8 @@ module Html5 : sig
         see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
     open Pervasives
 
-    (** the function [node s] create an HTML5 [elt] from a signal [s].
-    The resulting HTML5 [elt] can then be used like anyother HTML5 [elt] *)
+    (** Function [node s] create an HTML5 [elt] from a signal [s].
+        The resulting HTML5 [elt] can then be used like anyother HTML5 [elt] *)
     val node : 'a elt React.signal Eliom_pervasives.client_value -> 'a elt
 
     (** Cf. {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
@@ -449,16 +449,20 @@ module Html5 : sig
     include module type of Raw (*BB TODO Hide untyped [input]. *)
   end
 
-  (** Creation of HTML5 content from client-side values. *)
+  (** Creation of HTML5 content from client-side values.
+      This module is available on client side only to make possible
+      to use C-nodes in shared sections. *)
   module C : sig
     (** {2 Content injection} *)
 
-    (** Those two function are the identity on client-side (the [init] argument is ignored).
+    (** Those two functions are the identity on client-side
+        (the [init] argument is ignored).
         See Eliom manual for more detail on
         {% <<a_manual chapter="clientserver-html" fragment="inject" | Dom & Client-values >>%}. *)
     val node : ?init:'a D.elt -> 'a elt Eliom_pervasives.client_value -> 'a D.elt
     val attr : ?init:'a attrib -> 'a attrib Eliom_pervasives.client_value -> 'a attrib
   end
+
 
   (** Node identifiers *)
   module Id : sig

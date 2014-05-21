@@ -227,6 +227,15 @@ module Svg : sig
 
   end
 
+  (** Creation of content from client-side values.
+      This makes possible to insert in server side generated pages some
+      nodes that will be computed on client side (for example reactive nodes).
+  *)
+  module C : sig
+    val node : ?init:'a elt -> 'a elt Eliom_lib.client_value -> 'a elt
+    val attr : ?init:'a attrib -> 'a attrib Eliom_lib.client_value -> 'a attrib
+  end
+
   (** Node identifiers. *)
   module Id : sig
 
@@ -253,11 +262,6 @@ module Svg : sig
   module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a elt
                                                   and type doc := F.doc
 
-  (** Creation of content from client-side values. *)
-  module C : sig
-    val node : ?init:'a elt -> 'a elt Eliom_lib.client_value -> 'a elt
-    val attr : ?init:'a attrib -> 'a attrib Eliom_lib.client_value -> 'a attrib
-  end
 
 end
 

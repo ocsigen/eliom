@@ -28,8 +28,10 @@
     }
 
   {% <<outline| <<header| **Table of contents** >> >>%}
+*)
 
-   The mainfunctions to create services are in modules
+(**
+   The main functions to create services are in modules
    <<a_api subproject="server"|module Eliom_service.Http>> (default),
    <<a_api subproject="server"|module Eliom_service.Ocaml>>
    (for services returning OCaml values) and
