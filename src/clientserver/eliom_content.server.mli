@@ -425,6 +425,20 @@ module Html5 : sig
 
   end
 
+  (** Creation of HTML5 content from client-side values.
+      This makes possible to insert in server side generated pages some
+      nodes that will be computed on client side (for example reactive nodes).
+  *)
+  module C : sig
+    (** {2 Content injection} *)
+
+    (** See Eliom manual for more detail on
+        {% <<a_manual chapter="clientserver-html" fragment="inject" | Dom & Client-values >>%}. *)
+    val node : ?init:'a elt -> 'a elt Eliom_lib.client_value -> 'a elt
+    val attr : ?init:'a attrib -> 'a attrib Eliom_lib.client_value -> 'a attrib
+  end
+
+
   (** Node identifiers *)
   module Id : sig
 
@@ -483,15 +497,6 @@ module Html5 : sig
   module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a elt
                                                   and type doc := F.doc
 
-  (** Creation of HTML5 content from client-side values. *)
-  module C : sig
-    (** {2 Content injection} *)
-
-    (** See Eliom manual for more detail on
-        {% <<a_manual chapter="clientserver-html" fragment="inject" | Dom & Client-values >>%}. *)
-    val node : ?init:'a elt -> 'a elt Eliom_lib.client_value -> 'a elt
-    val attr : ?init:'a attrib -> 'a attrib Eliom_lib.client_value -> 'a attrib
-  end
 end
 
 (** Generate untyped html as text.*)

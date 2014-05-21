@@ -451,7 +451,8 @@ module Html5 : sig
 
   (** Creation of HTML5 content from client-side values.
       This module is available on client side only to make possible
-      to use C-nodes in shared sections. *)
+      to use C-nodes in shared sections.
+  *)
   module C : sig
     (** {2 Content injection} *)
 
