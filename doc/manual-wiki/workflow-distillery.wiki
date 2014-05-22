@@ -14,8 +14,11 @@ with it.
 
 === Project Initialization
 
-The {{{eliom-distillery}}} creates projects from templates. Currently,
-only a very simplistic project name "basic" is supported. To create it, just call
+The {{{eliom-distillery}}} creates projects from templates.
+Template "basic" create a very simple project (makefiles and configuration file
+and main service). There is also a template "mobile" for mobile apps.
+
+To create your project, do:
 
 <<code language="shell"|
 $ eliom-distillery -name <name> -template basic [-target-directory <dir>]

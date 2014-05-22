@@ -1,7 +1,7 @@
 
 = Sessions and server side state =
 
-<<outline depth="2"| <<header| =Table of contents= >> >>
+<<outline depth="2"| <<header| **Table of contents** >> >>
 
 == Introduction ==
 

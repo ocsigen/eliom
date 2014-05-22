@@ -5,9 +5,8 @@ let usage_msg = Printf.sprintf
   "Welcome to the Eliom distillery!\n\
    \n\
    This program generates the scaffold for your Eliom application\n\
-   from a template. Currently, it only supports a very simple\n\
-   template named \"basic\", but later versions will include more\n\
-   comprehensive templates!\n\
+   from a template.\n\
+   Available templates: \"basic\", \"mobile\", (and possibly more).\n\
    \n\
    Call it like this\
    \n\  $ %s -name <name> [-template basic] [-target-directory <dest>]\
