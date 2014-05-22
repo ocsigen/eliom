@@ -11,8 +11,8 @@ open Eliom_pervasives_base
     in the server section (cf. {% <<a_manual chapter="clientserver-language"
     fragment="clientvalues"|the manual>> %}).  They are abstract, but
     become concrete once sent to the client. See also {% <<a_api
-    subproject="client" text="the concrete representation on the
-    client"|type Eliom_pervasives.client_value>> %}. *)
+    subproject="client" text="the concrete representation on the client"
+    |type Eliom_pervasives.client_value>> %}. *)
 type 'a client_value = 'a Eliom_lib.client_value
 
 (** {2 RPC / Server functions}

@@ -92,7 +92,7 @@ module type Forms = "sigs/eliom_forms.mli"
 module Xml : sig
 
   (** {2 Base functions}
-      Cf. {% <<a_api project="tyxml" | module Xml_sigs.Iterable >> %}. *)
+      See {% <<a_api project="tyxml" | module Xml_sigs.Iterable >> %}. *)
 
   include Xml_sigs.Iterable with type 'a wrap = 'a
 
@@ -182,7 +182,7 @@ module Svg : sig
       Svg_sigs.T >> %}. *)
   module F : sig
 
-    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
+    (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
                              and type Xml.event_handler = Xml.event_handler
                              and type Xml.attrib = Xml.attrib
@@ -207,7 +207,7 @@ module Svg : sig
       {% <<a_api project="tyxml" | module Svg_sigs.T >> %}. *)
   module D : sig
 
-    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
+    (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
                              and type Xml.event_handler = Xml.event_handler
                              and type Xml.attrib = Xml.attrib
@@ -296,7 +296,7 @@ module Html5 : sig
         see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
     open Pervasives
 
-    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
+    (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
@@ -368,7 +368,7 @@ module Html5 : sig
         see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
     open Pervasives
 
-    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
+    (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
