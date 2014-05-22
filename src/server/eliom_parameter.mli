@@ -24,7 +24,7 @@
     to learn how to use
     {% <<a_manual chapter="server-params"|service parameters>>%}. }
 
-    {% <<outline| <<header| =Table of contents= >> >>%}
+    {% <<outline| <<header| **Table of contents** >> >>%}
 *)
 
 (* This comments should be in manual/params.wiki.

@@ -28,7 +28,7 @@
     >>%}. }
  *)
 
-(** {% <<outline| <<header| =Table of contents= >> >> %}*)
+(** {% <<outline| <<header| **Table of contents** >> >> %}*)
 
 open Eliom_lib
 open Eliom_content
