@@ -53,7 +53,7 @@ module Svg : sig
 
        See {% <<a_api project="tyxml" | module Svg_sigs.T >> %} *)
   module F : sig
-    (** Cf. {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
                              and type Xml.event_handler = Xml.event_handler
                              and type Xml.attrib = Xml.attrib
@@ -77,7 +77,7 @@ module Svg : sig
 
        See {% <<a_api project="tyxml" | module Svg_sigs.T >> %} *)
   module D : sig
-    (** Cf. {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
                              and type Xml.event_handler = Xml.event_handler
                              and type Xml.attrib = Xml.attrib
@@ -295,7 +295,7 @@ module Html5 : sig
         See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
     open Pervasives
 
-    (** Cf. {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
@@ -358,7 +358,7 @@ module Html5 : sig
         See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
     open Pervasives
 
-    (** Cf. {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
@@ -434,7 +434,7 @@ module Html5 : sig
         The resulting HTML5 [elt] can then be used like anyother HTML5 [elt] *)
     val node : 'a elt React.signal Eliom_pervasives.client_value -> 'a elt
 
-    (** Cf. {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                     and type Xml.event_handler = Xml.event_handler
