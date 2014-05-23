@@ -1,0 +1,4 @@
+<type_dir/*.ml{,i}>:package(eliom.server,eliom.server.ext)
+<server/*.ml{,i}>:package(eliom.server,eliom.server.ext)
+<**/*.ml{,i}>: syntax(camlp4o),package(ocsigenserver.baselib,js_of_ocaml.deriving.syntax,deriving.syntax.std,tyxml.syntax)
+<testsuite_client.{byte,js}>:package(eliom.client)

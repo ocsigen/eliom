@@ -1,4 +1,4 @@
-= Test page =
+= Test Page =
 
 == Lists ==
 * Test links [http://www.google.fi Google] and [http://www.google.fi]

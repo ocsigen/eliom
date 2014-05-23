@@ -1,0 +1,3 @@
+<client/api.*/index.*>: with_intro(doc/client/indexdoc)
+<server/api.*/index.*>: with_intro(doc/server/indexdoc)
+<ocamlbuild/api.*/index.*>: with_intro(doc/ocamlbuild/indexdoc)

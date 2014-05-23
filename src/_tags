@@ -1,0 +1,45 @@
+"lib/common": include
+
+
+<lib/type_dir/*.ml{,i}>:syntax(camlp4o), package(deriving.syntax.std, js_of_ocaml.deriving.syntax,lwt.syntax)
+<lib/type_dir/*.ml{,i}>:package(js_of_ocaml.syntax)
+
+<lib/server/*.ml{,i}>:syntax(camlp4o), package(deriving.syntax.std, js_of_ocaml.deriving.syntax,lwt.syntax)
+<lib/server/*.ml{,i}>:package(js_of_ocaml.syntax)
+
+<lib/server/*.ml{,i}>:thread
+<lib/server/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml)
+<lib/server/*.ml{,i}>:package(react,js_of_ocaml)
+
+<lib/server/*.ml{,i}>:pkg_pa_include,sig_inc(../src/lib/server),sig_inc(../src/lib/common)
+
+
+
+<lib/client/*.ml{,i}>:syntax(camlp4o), package(deriving.syntax.std, js_of_ocaml.deriving.syntax,lwt.syntax)
+<lib/client/*.ml{,i}>:package(js_of_ocaml.syntax)
+
+<lib/client/*.ml{,i}>:thread
+<lib/client/*.ml{,i}>:package(ocsigenserver.cookies,ocsigenserver.polytables,ocsigenserver.baselib.base)
+<lib/client/*.ml{,i}>:package(deriving.runtime,js_of_ocaml.deriving)
+<lib/client/*.ml{,i}>:package(lwt.react,tyxml.functor)
+<lib/client/*.ml{,i}>:package(react,js_of_ocaml)
+
+<lib/client/*.ml{,i}>:pkg_pa_include,sig_inc(../src/lib/client),sig_inc(../src/lib/common)
+
+<lib/server/extensions/*.ml{,i}>:syntax(camlp4o), package(deriving.syntax.std, js_of_ocaml.deriving.syntax,lwt.syntax)
+
+<lib/server/extensions/*.ml{,i}>:thread
+<lib/server/extensions/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml,calendar)
+<lib/server/extensions/*.ml{,i}>:pkg_pa_include,sig_inc(../src/lib/server),sig_inc(../src/lib/common)
+<lib/server/extensions/*.ml{,i}>:I(src/lib/server)
+
+<syntax/pa_*.ml{,i}>: syntax(camlp4o),package(camlp4.quotations.o,camlp4.extend)
+<syntax/pa_*.ml{,i}>: I(+camlp4/Camlp4Parsers)
+
+
+<ocamlbuild/ocamlbuild_eliom.ml{,i}>: package(ocamlbuild,js_of_ocaml.ocamlbuild)
+<ocamlbuild/ocamlbuild_eliom.ml{,i}>: syntax(camlp4o), package(optcomp)
+
+<tools/*.ml{,i}>:syntax(camlp4o),package(optcomp)
+<tools/*.ml{,i}>:package(unix,findlib)
+<tools/*.{byte,native}>:package(unix,str,findlib)
