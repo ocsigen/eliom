@@ -9,7 +9,7 @@ Makefile with rules for compiling, testing, installing, and running.
 This chapter, however, gives a bit more overview on the compilation
 process.
 
-<<outline depth="2"| <<header| =Table of contents= >> >>
+<<outline depth="2"| <<header| **Table of contents** >> >>
 
 ==@@id="compilation"@@ Compilation overview
 

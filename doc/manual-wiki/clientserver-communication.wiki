@@ -1,6 +1,6 @@
 =@@id="communication"@@ Communication between the client and the server
 
-<<outline depth="2"| <<header| =Table of contents= >> >>
+<<outline depth="2"| <<header| **Table of contents** >> >>
 
 Besides values passed by the mean of the {{{%variable}}}
 syntax, there are multiple ways for the client and server to exchange

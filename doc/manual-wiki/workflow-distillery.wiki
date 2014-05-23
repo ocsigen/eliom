@@ -8,7 +8,7 @@ It should be self-documenting (refer to {{{eliom-distillery -help}}} and the
 generated {{{README}}}), but here is a bit information on how to work
 with it.
 
-<<outline depth="2"| <<header| =Table of contents= >> >>
+<<outline depth="2"| <<header| **Table of contents** >> >>
 
 
 

@@ -9,7 +9,7 @@ Eliom's syntax extension automatically.
 These syntax extensions make much easier to write client-server applications
 in a very concise style. They are described in this chapter.
 
-<<outline depth="2"| <<header| =Table of contents= >> >>
+<<outline depth="2"| <<header| **Table of contents** >> >>
 
 
 == Server, client, and shared-sections

@@ -1,7 +1,7 @@
 
 = Compiling and configuring Eliom modules =
 
-<<outline depth="2"| <<header| =Table of contents= >> >>
+<<outline depth="2"| <<header| **Table of contents** >> >>
 
 This chapter explains how to set Eliom's
 options in the configuration file, and how to define options for your

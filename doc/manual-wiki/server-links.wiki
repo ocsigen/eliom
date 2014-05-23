@@ -1,7 +1,7 @@
 
 =Creating links and forms=
 
-<<outline depth="2"| <<header| =Table of contents= >> >>
+<<outline depth="2"| <<header| **Table of contents** >> >>
 
 ==@@id="links"@@Links
 

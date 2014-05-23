@@ -1,6 +1,6 @@
 = Programming client-server applications with Eliom
 
-<<outline depth="2"| <<header| =Table of contents= >> >>
+<<outline depth="2"| <<header| **Table of contents** >> >>
 
 == General principles
 === What is a client/server Eliom application

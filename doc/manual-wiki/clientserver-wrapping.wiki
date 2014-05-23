@@ -4,7 +4,7 @@ Reading of this chapter isn't mandatory for writing eliom
 application. It's worth a reading however before hacking in the eliom
 codebase.
 
-<<outline depth="2"| <<header| =Table of contents= >> >>
+<<outline depth="2"| <<header| **Table of contents** >> >>
 
 
 == Basics ==

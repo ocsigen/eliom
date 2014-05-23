@@ -1,7 +1,7 @@
 
 = Writing service handlers
 
-<<outline depth="2"| <<header| =Table of contents= >> >>
+<<outline depth="2"| <<header| **Table of contents** >> >>
 
 
 <<paragraph|Many kind of outputs modules>>
