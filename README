@@ -25,24 +25,14 @@ Libraries:
  * ipaddr            (need version >= 2.1)
 
 
-If OCaml 3.12 and the needed libraries (findlib/react/lwt...) are not
-installed on your computer and not available on your favorite linux
-distribution, you may use the Ocsigen bunble GODI to install them
-automatically, see:
-
-  http://ocsigen.org/install#bundle
-  http://godi.camlcity.org/godi/index.html
-
-To run the native code version of ocsigen server, you may need to
-generate cmxs files for the libraries you need, if they are not
-included in your distribution, see:
-
-  http://ocsigen.org/ocsigenserver/manual/misc
 
 ------------------------------------------------------------------
 
 Build instructions:
 ===================
+
+We recommand to use the opam package manager to install Eliom.
+If you want to compile manually:
 
  * run "sh configure [options]" to generate 'Makefile.config'
  - For the full list of options, run "sh configure --help".
@@ -86,52 +76,19 @@ Authors:
 ========
 
 Vincent Balat
- (project leader, Web server, Ocsigenmod, Eliom, Eliom client, Staticmod, XHTML syntax extension, documentation, Ocsimore, extension mechanism, Ocsidbm, Ocsipersist with DBM, ...)
 Jérôme Vouillon
-(Lwt, Web server, js_of_ocaml, O'Closure, ...)
-Boris Yakobowski
-(Ocsimore, module Extendconfiguration, Ocsigen server...)
-Benjamin Canou
-(O'Browser)
-Jérémie Dimino
-(Lwt)
-Raphaël Proust
-(Ocsforge, Eliom client, Comet)
-Stéphane Glondu
-(Configuration file, Findlib integration, access control, HTTP authentication, Debian package, ...)
-Gabriel Kerneis
-(XHTML syntax extension for OCaml 3.10, Ocsipersist with SQLite, CGI module, forms in Eliom, deflatemod, ...)
-Denis Berthod
-(HTTP protocol, Web server)
 Grégoire Henry
-(safe unmarshalling of client data)
 Pierre Chambart
-(Comet)
+Benedikt Becker
+Boris Yakobowski
+Hugo Heuzart
+Raphaël Proust
+Stéphane Glondu
+Gabriel Kerneis
+Denis Berthod
 Jaap Boender
-(Ocsimore, NetBSD and Godi packages)
-Gabriel Scherer
-(Macaque)
-Gabriel Cardoso
-(O'Closure)
-Jean-Henri Granarolo
-(Ocsforge)
 Simon Castellan
-(HTML5, OpenID, SVG)
-Piero Furiesi
-(Ocsimore)
-Thorsten Ohl
-(most of the functions generating XHTML (xML and xHTML modules))
 Mauricio Fernandez
-(Xhtmlcompact, static linking of extensions and Eliom modules)
-Nataliya Guts
-(Web server, HTTPS)
 Archibald Pontier
-(Atom, Pubsubhubbub)
-Jérôme Velleine
-(CGI module)
-Charles Oran
-(O'Closure)
-Pierre Clairambault
-(Lwt_lib, Gentoo package, configure script, ...)
-Cécile Herbelin
- (HTML5, Benchmarks)
+Simon Castellan
+Jacques-Pascal Deplaix

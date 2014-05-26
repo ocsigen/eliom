@@ -1,5 +1,5 @@
-description = "Eliom: module for generating pages"
-version = "dev"
+description = "Eliom: client-server Web and mobile applications"
+version = "4.0.0"
 
 package "server" (
   description = "Eliom: server-side"
