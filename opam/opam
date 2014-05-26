@@ -20,6 +20,6 @@ depends: [
   "deriving" {>= "0.6"}
   "js_of_ocaml" {>= "2.2"}
   "calendar"
-  "ocsigenserver" {>= "2.4"}
+  "ocsigenserver" {>= "2.4.0"}
   "ipaddr" {>= "2.1"}
 ]

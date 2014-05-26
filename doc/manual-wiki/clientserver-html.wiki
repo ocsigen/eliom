@@ -300,7 +300,8 @@ let () =
 
 ===@@id="inject"@@Dom & Client-values
 {{{Eliom_content.Html5.C}}} allows one to insert client-side content
-into server-side HTML5-trees.
+into server-side HTML5-trees. This makes possible, for example, to insert
+reactive nodes in a server-side generated page.
 
 ==== Example
 
@@ -346,6 +347,9 @@ let () =
          ))
 
 >>
+
+Module C is also available on client-side, to make it possible to use it
+in shared sections.
 
 
 ===@@id="global"@@Global elements of an application

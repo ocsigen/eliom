@@ -3,10 +3,11 @@
 
  * Main new features:
  ** Reactive DOM elements (thanks to a contribution by besport.com)
- ** EXPERIMENTAL: Mobile apps with Eliom. By making possible to start
- the application from client-side.
  ** PUT and DELETE services for RESTful Eliom Applications
  (Contribution by Domoco)
+ ** EXPERIMENTAL: Mobile apps with Eliom. By making it possible to start
+ the application from client-side.
+ ** Documentation improvements
 
  * Improvements:
  ** Improvements in typing of services (Contribution by Jacques-Pascal Deplaix)
@@ -28,7 +29,6 @@
  ** New programs: eliomdoc and eliompp
  ** Ocamlbuild package
  ** Various bugfixes
- ** Documentation improvements
 
 And many other things (see git commits)
 
