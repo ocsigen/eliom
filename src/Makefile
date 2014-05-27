@@ -155,7 +155,7 @@ reinstall: uninstall install
 reinstall.byte: uninstall install.byte
 reinstall.opt: uninstall install.opt
 
-metas: files/META files/META.${PROJECTNAME}
+metas: files/META files/META.${PROJECTNAME} ../tests/META.${PROJECTNAME}
 
 SED_META := -e s/%%NAME%%/$(PROJECTNAME)/g \
 	    -e s/%%DEPS%%/$(shell ${OCAMLFIND} query -p-format -separator ',' ${SERVER_PACKAGE})/g \
@@ -166,7 +166,10 @@ files/META: files/META.in ../Makefile.config  ../Makefile.options Makefile
 	sed ${SED_META} $< > $@
 
 files/META.${PROJECTNAME}: files/META.in ../Makefile.config  ../Makefile.options Makefile
-	echo "directory = \"../../local/lib\"" > $@
+	echo "directory = \"..\"" > $@
+	sed ${SED_META} $< >> $@
+../tests/META.${PROJECTNAME}: files/META.in ../Makefile.config  ../Makefile.options Makefile
+	echo "directory = \"../local/lib\"" > $@
 	sed ${SED_META} $< >> $@
 
 conf: ../local/etc/$(PROJECTNAME).conf
