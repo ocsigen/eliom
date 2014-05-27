@@ -69,7 +69,7 @@ clean.local:
 
 distclean: clean clean.local
 	${MAKE} -C tests distclean
-	-rm -f *~ \#* .\#*
+	-find ./ -name "*\#*" | xargs rm -f
 	-rm -f local/lib/syntax
 	-rm -f local/lib/client
 	-rm -f local/lib/server

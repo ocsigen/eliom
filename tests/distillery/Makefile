@@ -20,7 +20,6 @@ byte: | basic
 opt: | basic
 	make -C basic opt install.lib.opt
 
-clean: | basic
-	make -C basic clean
-distclean: | basic
-	make -C distbasic clean
+clean:
+	rm -Rf basic
+distclean: clean
