@@ -2,7 +2,7 @@ include ../../Makefile.config
 
 ## Use local files
 ## (tests do not require global installation of Eliom)
-export OCAMLPATH := ${SRC}/src/files:${OCAMLPATH}
+export OCAMLPATH := ${SRC}/tests:${OCAMLPATH}
 export PATH := ${SRC}/src/tools:${PATH}
 
 LIBS := -I ..
