@@ -2,7 +2,18 @@
 #directory "pkg";;
 #use "topkg.ml";;
 #use "filelist.ml"
-let exts_syntax = [".cmo";".cmx";".cma";".cmxa";".cmxs";".a"]
+
+(* DEBUG ONLY *)
+let nothing_should_be_rebuilt=false
+let except = function
+  (* cmxs are regerated every time ( bug in ocamlbuild rule) *)
+  | ".cmxs" when nothing_should_be_rebuilt -> false
+  | _ -> true
+(* END *)
+
+let exts_syntax = List.filter except [".cmo";".cmx";".cma";".cmxa";".cmxs";".a"]
+let exts_modlib = List.filter except Exts.module_library
+let exts_lib = List.filter except Exts.library
 
 let _ =
   list_to_file "src/lib/client/client.mllib" client_mllib;
@@ -15,7 +26,14 @@ let _ =
 
 let spf = Printf.sprintf
 
-let builder = `Other ("ocamlbuild -use-ocamlfind -plugin-tag \"package(js_of_ocaml.ocamlbuild)\"",
+let nothing =
+  if nothing_should_be_rebuilt
+  then "-nothing-should-be-rebuilt"
+  else ""
+
+let with_ocamlfind = "-use-ocamlfind -plugin-tag \"package(js_of_ocaml.ocamlbuild)\""
+
+let builder = `Other (spf "ocamlbuild %s %s" with_ocamlfind nothing,
                       "_build")
 
 let () =
@@ -45,7 +63,7 @@ let () =
     Pkg.lib ~exts:exts_syntax ~dst:"syntax/pa_eliom_client_server" "src/syntax/pa_eliom_client_server";
     Pkg.lib ~exts:exts_syntax ~dst:"syntax/pa_eliom_type_filter" "src/syntax/pa_eliom_type_filter";
 
-    Pkg.lib ~exts:Exts.module_library ~dst:"ocamlbuild/ocamlbuild_eliom" "src/ocamlbuild/ocamlbuild_eliom";
+    Pkg.lib ~exts:exts_modlib ~dst:"ocamlbuild/ocamlbuild_eliom" "src/ocamlbuild/ocamlbuild_eliom";
 
   ] @ (
     (* CLIENT LIBS *)
@@ -55,11 +73,11 @@ let () =
     List.map (fun x -> Pkg.lib ~dst:(spf "client/%s" x) (spf "src/lib/client/%s" x)) client_extra
   ) @ (
     (* SERVER LIBS *)
-    Pkg.lib ~dst:"server/server" ~exts:Exts.library "src/lib/server/server" ::
+    Pkg.lib ~dst:"server/server" ~exts:exts_lib "src/lib/server/server" ::
     List.map (fun x -> Pkg.lib ~dst:(spf "server/%s" x) (spf "src/lib/server/%s" x)) server_extra
   ) @ (
     (* SERVER EXTENSIONS *)
-    Pkg.lib ~dst:"server/extensions/extensions" ~exts:Exts.library "src/lib/server/extensions/extensions" ::
+    Pkg.lib ~dst:"server/extensions/extensions" ~exts:exts_lib "src/lib/server/extensions/extensions" ::
     List.map (fun x -> Pkg.lib ~dst:(spf "server/extensions/%s" x) (spf "src/lib/server/extensions/%s" x)) server_ext_extra
   ) @ [
     (* MISC *)
