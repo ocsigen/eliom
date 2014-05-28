@@ -3,7 +3,7 @@
 //This document is the Eliom manual, where you will find an explanation
 of all concepts provided by Eliom.
 If you are looking for a more didactic introduction,
-have a look at the [[wiki(36):|tutorial of the Ocsigen project]]
+have a look at the <<a_manual project="tuto"|tutorial of the Ocsigen project>>
 which is a good starting point for beginners.//
 
 In the past few years, the web evolved from something quite static
