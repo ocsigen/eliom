@@ -77,11 +77,13 @@ distclean: clean clean.local
 ### Installation ####
 .PHONY: install uninstall reinstall
 
-install: eliom.install
-	opam-installer --prefix $(PREFIX) eliom.install
 
-uninstall: eliom.install
-	opam-installer --uninstall --prefix $(PREFIX) eliom.install
+install uninstall: eliom.install
+ifneq ($(PREFIX),)
+	opam-installer --$@ --prefix $(PREFIX) eliom.install
+else
+	@echo you must provide a prefix with : make PREFIX=myprefix $@
+endif
 
 reinstall:
 	${MAKE} uninstall
