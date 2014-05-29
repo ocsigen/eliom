@@ -27,6 +27,11 @@ let simple_dom_react = Eliom_testsuite_base.test
          let v_minus = React.S.map (fun x -> - x) i in
          let r_int s = Html5.R.pcdata (React.S.map string_of_int s) in
          let style = React.S.map (fun x -> if x then "color:green;" else "color:red;") valid in
+         let rlist,rhandle = ReactiveData.RList.make [0] in
+         let _ = React.E.map (fun x ->
+             if x > 0
+             then ReactiveData.RList.append x rhandle
+             else ReactiveData.RList.cons x rhandle) (React.S.changes i) in
          Html5.(F.div ~a:[R.a_style style] [
              F.div [ F.pcdata "textarea : " ; R.textarea ~a:[F.a_maxlength 10; F.a_readonly `ReadOnly ; F.a_style "vertical-align: top"] (React.S.map F.pcdata s)];
              F.div [ F.pcdata "original : "; r_int i];
@@ -43,7 +48,8 @@ let simple_dom_react = Eliom_testsuite_base.test
                      else raise Not_found in
                    F.div [F.pcdata "sqrt : "; F.pcdata (string_of_int sq)]
                  with _ ->
-                   F.div [F.pcdata "not natural sqrt"]) i)
+                   F.div [F.pcdata "not natural sqrt"]) i);
+             R.div (ReactiveData.RList.map (fun i -> F.div [F.pcdata (string_of_int i)]) rlist)
            ])
        }} in
        Lwt.return [ Html5.F.div [input;Html5.C.node dom] ]

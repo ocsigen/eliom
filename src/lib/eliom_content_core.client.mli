@@ -139,6 +139,7 @@ module Xml : sig
     | DomNode of Dom.node Js.t
     | TyXMLNode of econtent
     | ReactNode of elt React.signal
+    | ReactChildren of econtent * elt ReactiveData.RList.t
 
   val get_node : elt -> node
   val set_dom_node : elt -> Dom.node Js.t -> unit
@@ -224,8 +225,8 @@ module Svg : sig
                               with type +'a elt = 'a elt
                               and type 'a Xml.wrap = 'a React.signal
                               and type 'a wrap = 'a React.signal
-                              and type 'a Xml.list_wrap = 'a list React.signal
-                              and type 'a list_wrap = 'a list React.signal
+                              and type 'a Xml.list_wrap = 'a ReactiveData.RList.t
+                              and type 'a list_wrap = 'a ReactiveData.RList.t
                               and type +'a attrib = 'a attrib
                               and type uri = uri
 
@@ -358,8 +359,8 @@ module Html5 : sig
                    and type +'a elt = 'a elt
                    and type 'a Xml.wrap = 'a React.signal
                    and type 'a wrap = 'a React.signal
-                   and type 'a Xml.list_wrap = 'a list React.signal
-                   and type 'a list_wrap = 'a list React.signal
+                   and type 'a Xml.list_wrap = 'a ReactiveData.RList.t
+                   and type 'a list_wrap = 'a ReactiveData.RList.t
                    and type +'a attrib = 'a attrib
                    and type uri = uri
     include module type of Raw

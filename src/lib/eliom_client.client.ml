@@ -1426,6 +1426,13 @@ let rec rebuild_node_with_state ns ?state elt =
   | Xml.DomNode node ->
       (* assert (Xml.get_node_id node <> NoId); *)
       node
+  | Xml.ReactChildren (node,elts) ->
+    let dom = raw_rebuild_node ns node in
+    Tyxml_js.Util.update_children
+      dom
+      (ReactiveData.RList.map (rebuild_node' ns) elts);
+    Xml.set_dom_node elt dom;
+    dom
   | Xml.ReactNode signal ->
       let state = ReactState.init_or_update ?state elt in
       let clear = ref None in

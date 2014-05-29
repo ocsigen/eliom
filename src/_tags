@@ -21,7 +21,7 @@ true:no_extra_syntaxes
 <lib/client/*.ml{,i}>:package(ocsigenserver.cookies,ocsigenserver.polytables,ocsigenserver.baselib.base)
 <lib/client/*.ml{,i}>:package(deriving.runtime,js_of_ocaml.deriving)
 <lib/client/*.ml{,i}>:package(lwt.react,tyxml.functor,js_of_ocaml.tyxml)
-<lib/client/*.ml{,i}>:package(react,js_of_ocaml)
+<lib/client/*.ml{,i}>:package(react,js_of_ocaml,reactiveData)
 
 <lib/client/*.ml{,i}>:pkg_pa_include,sig_inc(../src/lib/client),sig_inc(../src/lib/common)
 
