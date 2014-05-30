@@ -3,8 +3,7 @@ include Makefile.filelist
 include ../clientserver/Makefile.filelist
 include ../client2/Makefile.filelist
 
-LIBS     := -I private ${addprefix -package ,${CLIENT_PACKAGE} ${EXTRA_SYNTAXES} deriving.syntax.std} \
-	    -ppopt ../syntax/pa_include.cmo
+LIBS     := -I private ${addprefix -package ,${CLIENT_PACKAGE} ${EXTRA_SYNTAXES} deriving.syntax.std ${BUILD_ONLY_SYNTAXES}}
 
 OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG}
 OCAMLOPT := $(OCAMLFIND) ocamlopt ${OPTDBG}

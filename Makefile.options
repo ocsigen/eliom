@@ -37,6 +37,8 @@ SERVER_PACKAGE := ocsigenserver               \
 		  lwt.react                   \
 		  cryptokit		      \
 
+BUILD_ONLY_SYNTAXES := pa_include	      \
+
 EXTRA_SYNTAXES := js_of_ocaml.syntax          \
                   js_of_ocaml.deriving.syntax \
                   lwt.syntax                  \

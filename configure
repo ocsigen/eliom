@@ -374,6 +374,8 @@ check_library lwt.react "react lwt" "Missing support for 'react' in lwt."
 check_library calendar calendar "See also: http://calendar.forge.ocamlcore.org/"
 check_library cryptokit cryptokit "See also: http://pauillac.inria.fr/~xleroy/software.html#cryptokit"
 
+check_library pa_include pa_include "See also: https://github.com/ocsigen/pa_include"
+
 ######################################################################
 # Summary
 
