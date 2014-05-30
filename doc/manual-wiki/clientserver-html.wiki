@@ -284,7 +284,7 @@ let () =
     (fun () () ->
        let inp = make_input () in
        let cldiv = D.div [] in
-       ignore {unit{ Manip.appendChilds %cldiv (make_client_nodes ()) }};
+       ignore {unit{ Manip.appendChildren %cldiv (make_client_nodes ()) }};
        Lwt.return
          (Eliom_tools.F.html
             ~title:"testnodes"
