@@ -77,20 +77,28 @@ module RawXML = struct
     | CE_call_service of
         ([ `A | `Form_get | `Form_post] * (cookie_info option) * string option) option Eliom_lazy.request
 
-  type event_handler =
+  (* Inherit from all events.
+     Necessary for subtyping since caml_event_handler is contravariant. *)
+  class type biggest_event = object
+    inherit Dom_html.event
+    inherit Dom_html.mouseEvent
+    inherit Dom_html.keyboardEvent
+  end
+
+  type internal_event_handler =
     | Raw of string
-    | Caml of Dom_html.event caml_event_handler
+    | Caml of biggest_event caml_event_handler
 
   type uri = string Eliom_lazy.request
   let string_of_uri = Eliom_lazy.force
   let uri_of_string = Eliom_lazy.from_val
   let uri_of_fun = Eliom_lazy.from_fun
 
-  let event_handler_of_string s = Raw s
-  let string_of_event_handler = function
+  let internal_event_handler_of_string s = Raw s
+  let string_of_internal_event_handler = function
     | Raw s -> s
     | Caml _ -> "/* Invalid Caml value */"
-  let event_handler_of_service info = Caml (CE_call_service info)
+  let internal_event_handler_of_service info = Caml (CE_call_service info)
 
   let ce_registered_closure_class = "caml_closure"
   let ce_registered_attr_class = "caml_attr"
@@ -117,7 +125,7 @@ module RawXML = struct
   type racontent =
     | RA of acontent
     | RAReact of acontent option React.signal
-    | RACamlEventHandler of Dom_html.event caml_event_handler
+    | RACamlEventHandler of biggest_event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
     | RAClient of string * attrib option * attrib Client_value_server_repr.t
@@ -153,7 +161,7 @@ module RawXML = struct
   let string_attrib name value = name, RA (AStr value)
   let space_sep_attrib name values = name, RA (AStrL (Space, values))
   let comma_sep_attrib name values = name, RA (AStrL (Comma, values))
-  let event_handler_attrib name value = match value with
+  let internal_event_handler_attrib name value = match value with
     | Raw value -> name, RA (AStr value)
     | Caml v -> name, RACamlEventHandler v
   let uri_attrib name value = name, RALazyStr value

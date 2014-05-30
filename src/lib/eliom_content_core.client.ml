@@ -85,9 +85,21 @@ module XmlNoWrap = struct
   let node ?(a = []) name children = make (Node (name, a, children))
   let lazy_node ?a name children = node ?a name (Eliom_lazy.force children)
 
-  let event_handler_of_function eh_untyped =
-    let eh : 'a Js.t -> unit = Obj.magic eh_untyped in
-    Caml (CE_client_closure eh)
+  type biggest_event_handler = biggest_event Js.t -> unit
+
+  type event_handler = Dom_html.event Js.t -> unit
+  type mouse_event_handler = Dom_html.mouseEvent Js.t -> unit
+  type keyboard_event_handler = Dom_html.keyboardEvent Js.t -> unit
+
+  let event_handler_attrib name (value : event_handler) =
+    internal_event_handler_attrib name
+      (Caml (CE_client_closure (value :> biggest_event_handler)))
+  let mouse_event_handler_attrib name (value : mouse_event_handler) =
+    internal_event_handler_attrib name
+      (Caml (CE_client_closure (value :> biggest_event_handler)))
+  let keyboard_event_handler_attrib name (value : keyboard_event_handler) =
+    internal_event_handler_attrib name
+      (Caml (CE_client_closure (value :> biggest_event_handler)))
 
   let end_re = Regexp.regexp_string "]]>"
 
@@ -171,6 +183,8 @@ struct
   let uri_of_string = Xml.uri_of_string
   type aname = Xml.aname
   type event_handler = Xml.event_handler
+  type mouse_event_handler = Xml.mouse_event_handler
+  type keyboard_event_handler = Xml.keyboard_event_handler
   type attrib = Xml.attrib
 
   let float_attrib name s : attrib =
@@ -184,6 +198,8 @@ struct
   let comma_sep_attrib name s =
     name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AStrL (Xml.Comma,f))) s)
   let event_handler_attrib = Xml.event_handler_attrib
+  let mouse_event_handler_attrib = Xml.mouse_event_handler_attrib
+  let keyboard_event_handler_attrib = Xml.keyboard_event_handler_attrib
   let uri_attrib name value =
     name, Xml.RAReact (React.S.map
                          (fun f -> Some (Xml.AStr (Eliom_lazy.force f))) value)
@@ -236,17 +252,6 @@ module Svg = struct
 
     include Raw
 
-    let a_onabort ev = a_onabort (X.event_handler_of_function ev)
-    let a_onclick ev = a_onclick (X.event_handler_of_function ev)
-    let a_onmousedown ev = a_onmousedown (X.event_handler_of_function ev)
-    let a_onmouseup ev = a_onmouseup (X.event_handler_of_function ev)
-    let a_onmouseover ev = a_onmouseover (X.event_handler_of_function ev)
-    let a_onmousemove ev = a_onmousemove (X.event_handler_of_function ev)
-    let a_onmouseout ev = a_onmouseout (X.event_handler_of_function ev)
-    let a_onscroll ev = a_onscroll (X.event_handler_of_function ev)
-    let a_onload ev = a_onload (X.event_handler_of_function ev)
-    let a_onresize ev = a_onresize (X.event_handler_of_function ev)
-
   end
 
   module F = struct
@@ -255,33 +260,11 @@ module Svg = struct
 
     include Raw
 
-    let a_onabort ev = a_onabort (X.event_handler_of_function ev)
-    let a_onclick ev = a_onclick (X.event_handler_of_function ev)
-    let a_onmousedown ev = a_onmousedown (X.event_handler_of_function ev)
-    let a_onmouseup ev = a_onmouseup (X.event_handler_of_function ev)
-    let a_onmouseover ev = a_onmouseover (X.event_handler_of_function ev)
-    let a_onmousemove ev = a_onmousemove (X.event_handler_of_function ev)
-    let a_onmouseout ev = a_onmouseout (X.event_handler_of_function ev)
-    let a_onresize ev = a_onresize (X.event_handler_of_function ev)
-    let a_onscroll ev = a_onscroll (X.event_handler_of_function ev)
-    let a_onload ev = a_onload (X.event_handler_of_function ev)
-
   end
 
   module R = struct
     module Raw = Svg_f.MakeWrapped(Xml_w)(Xml_wed)
     include Raw
-
-    let a_onabort ev = a_onabort (X.event_handler_of_function ev)
-    let a_onclick ev = a_onclick (X.event_handler_of_function ev)
-    let a_onmousedown ev = a_onmousedown (X.event_handler_of_function ev)
-    let a_onmouseup ev = a_onmouseup (X.event_handler_of_function ev)
-    let a_onmouseover ev = a_onmouseover (X.event_handler_of_function ev)
-    let a_onmousemove ev = a_onmousemove (X.event_handler_of_function ev)
-    let a_onmouseout ev = a_onmouseout (X.event_handler_of_function ev)
-    let a_onresize ev = a_onresize (X.event_handler_of_function ev)
-    let a_onscroll ev = a_onscroll (X.event_handler_of_function ev)
-    let a_onload ev = a_onload (X.event_handler_of_function ev)
 
   end
 
@@ -336,76 +319,6 @@ module Html5 = struct
 
     include Raw
 
-    let a_onabort ev = a_onabort (X.event_handler_of_function ev)
-    let a_onafterprint ev = a_onafterprint (X.event_handler_of_function ev)
-    let a_onbeforeprint ev = a_onbeforeprint (X.event_handler_of_function ev)
-    let a_onbeforeunload ev = a_onbeforeunload (X.event_handler_of_function ev)
-    let a_onblur ev = a_onblur (X.event_handler_of_function ev)
-    let a_oncanplay ev = a_oncanplay (X.event_handler_of_function ev)
-    let a_oncanplaythrough ev = a_oncanplaythrough (X.event_handler_of_function ev)
-    let a_onchange ev = a_onchange (X.event_handler_of_function ev)
-    let a_onclick ev = a_onclick (X.event_handler_of_function ev)
-    let a_oncontextmenu ev = a_oncontextmenu (X.event_handler_of_function ev)
-    let a_ondblclick ev = a_ondblclick (X.event_handler_of_function ev)
-    let a_ondrag ev = a_ondrag (X.event_handler_of_function ev)
-    let a_ondragend ev = a_ondragend (X.event_handler_of_function ev)
-    let a_ondragenter ev = a_ondragenter (X.event_handler_of_function ev)
-    let a_ondragleave ev = a_ondragleave (X.event_handler_of_function ev)
-    let a_ondragover ev = a_ondragover (X.event_handler_of_function ev)
-    let a_ondragstart ev = a_ondragstart (X.event_handler_of_function ev)
-    let a_ondrop ev = a_ondrop (X.event_handler_of_function ev)
-    let a_ondurationchange ev = a_ondurationchange (X.event_handler_of_function ev)
-    let a_onemptied ev = a_onemptied (X.event_handler_of_function ev)
-    let a_onended ev = a_onended (X.event_handler_of_function ev)
-    let a_onerror ev = a_onerror (X.event_handler_of_function ev)
-    let a_onfocus ev = a_onfocus (X.event_handler_of_function ev)
-    let a_onformchange ev = a_onformchange (X.event_handler_of_function ev)
-    let a_onforminput ev = a_onforminput (X.event_handler_of_function ev)
-    let a_onhashchange ev = a_onhashchange (X.event_handler_of_function ev)
-    let a_oninput ev = a_oninput (X.event_handler_of_function ev)
-    let a_oninvalid ev = a_oninvalid (X.event_handler_of_function ev)
-    let a_onmousedown ev = a_onmousedown (X.event_handler_of_function ev)
-    let a_onmouseup ev = a_onmouseup (X.event_handler_of_function ev)
-    let a_onmouseover ev = a_onmouseover (X.event_handler_of_function ev)
-    let a_onmousemove ev = a_onmousemove (X.event_handler_of_function ev)
-    let a_onmouseout ev = a_onmouseout (X.event_handler_of_function ev)
-    let a_onmousewheel ev = a_onmousewheel (X.event_handler_of_function ev)
-    let a_onoffline ev = a_onoffline (X.event_handler_of_function ev)
-    let a_ononline ev = a_ononline (X.event_handler_of_function ev)
-    let a_onpause ev = a_onpause (X.event_handler_of_function ev)
-    let a_onplay ev = a_onplay (X.event_handler_of_function ev)
-    let a_onplaying ev = a_onplaying (X.event_handler_of_function ev)
-    let a_onpagehide ev = a_onpagehide (X.event_handler_of_function ev)
-    let a_onpageshow ev = a_onpageshow (X.event_handler_of_function ev)
-    let a_onpopstate ev = a_onpopstate (X.event_handler_of_function ev)
-    let a_onprogress ev = a_onprogress (X.event_handler_of_function ev)
-    let a_onratechange ev = a_onratechange (X.event_handler_of_function ev)
-    let a_onreadystatechange ev = a_onreadystatechange (X.event_handler_of_function ev)
-    let a_onredo ev = a_onredo (X.event_handler_of_function ev)
-    let a_onresize ev = a_onresize (X.event_handler_of_function ev)
-    let a_onscroll ev = a_onscroll (X.event_handler_of_function ev)
-    let a_onseeked ev = a_onseeked (X.event_handler_of_function ev)
-    let a_onseeking ev = a_onseeking (X.event_handler_of_function ev)
-    let a_onselect ev = a_onselect (X.event_handler_of_function ev)
-    let a_onshow ev = a_onshow (X.event_handler_of_function ev)
-    let a_onstalled ev = a_onstalled (X.event_handler_of_function ev)
-    let a_onstorage ev = a_onstorage (X.event_handler_of_function ev)
-    let a_onsubmit ev = a_onsubmit (X.event_handler_of_function ev)
-    let a_onsuspend ev = a_onsuspend (X.event_handler_of_function ev)
-    let a_ontimeupdate ev = a_ontimeupdate (X.event_handler_of_function ev)
-    let a_onundo ev = a_onundo (X.event_handler_of_function ev)
-    let a_onunload ev = a_onunload (X.event_handler_of_function ev)
-    let a_onvolumechange ev = a_onvolumechange (X.event_handler_of_function ev)
-    let a_onwaiting ev = a_onwaiting (X.event_handler_of_function ev)
-    let a_onkeypress ev = a_onkeypress (X.event_handler_of_function ev)
-    let a_onkeydown ev = a_onkeydown (X.event_handler_of_function ev)
-    let a_onkeyup ev = a_onkeyup (X.event_handler_of_function ev)
-    let a_onload ev = a_onload (X.event_handler_of_function ev)
-    let a_onloadeddata ev = a_onloadeddata (X.event_handler_of_function ev)
-    let a_onloadedmetadata ev = a_onloadedmetadata (X.event_handler_of_function ev)
-    let a_onloadstart ev = a_onloadstart (X.event_handler_of_function ev)
-    let a_onmessage ev = a_onmessage (X.event_handler_of_function ev)
-
     type ('a, 'b, 'c) lazy_star =
         ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
 
@@ -430,76 +343,6 @@ module Html5 = struct
 
     module Raw = Html5_f.Make(Xml)(Svg.F.Raw)
     include Raw
-
-    let a_onabort ev = a_onabort (X.event_handler_of_function ev)
-    let a_onafterprint ev = a_onafterprint (X.event_handler_of_function ev)
-    let a_onbeforeprint ev = a_onbeforeprint (X.event_handler_of_function ev)
-    let a_onbeforeunload ev = a_onbeforeunload (X.event_handler_of_function ev)
-    let a_onblur ev = a_onblur (X.event_handler_of_function ev)
-    let a_oncanplay ev = a_oncanplay (X.event_handler_of_function ev)
-    let a_oncanplaythrough ev = a_oncanplaythrough (X.event_handler_of_function ev)
-    let a_onchange ev = a_onchange (X.event_handler_of_function ev)
-    let a_onclick ev = a_onclick (X.event_handler_of_function ev)
-    let a_oncontextmenu ev = a_oncontextmenu (X.event_handler_of_function ev)
-    let a_ondblclick ev = a_ondblclick (X.event_handler_of_function ev)
-    let a_ondrag ev = a_ondrag (X.event_handler_of_function ev)
-    let a_ondragend ev = a_ondragend (X.event_handler_of_function ev)
-    let a_ondragenter ev = a_ondragenter (X.event_handler_of_function ev)
-    let a_ondragleave ev = a_ondragleave (X.event_handler_of_function ev)
-    let a_ondragover ev = a_ondragover (X.event_handler_of_function ev)
-    let a_ondragstart ev = a_ondragstart (X.event_handler_of_function ev)
-    let a_ondrop ev = a_ondrop (X.event_handler_of_function ev)
-    let a_ondurationchange ev = a_ondurationchange (X.event_handler_of_function ev)
-    let a_onemptied ev = a_onemptied (X.event_handler_of_function ev)
-    let a_onended ev = a_onended (X.event_handler_of_function ev)
-    let a_onerror ev = a_onerror (X.event_handler_of_function ev)
-    let a_onfocus ev = a_onfocus (X.event_handler_of_function ev)
-    let a_onformchange ev = a_onformchange (X.event_handler_of_function ev)
-    let a_onforminput ev = a_onforminput (X.event_handler_of_function ev)
-    let a_onhashchange ev = a_onhashchange (X.event_handler_of_function ev)
-    let a_oninput ev = a_oninput (X.event_handler_of_function ev)
-    let a_oninvalid ev = a_oninvalid (X.event_handler_of_function ev)
-    let a_onmousedown ev = a_onmousedown (X.event_handler_of_function ev)
-    let a_onmouseup ev = a_onmouseup (X.event_handler_of_function ev)
-    let a_onmouseover ev = a_onmouseover (X.event_handler_of_function ev)
-    let a_onmousemove ev = a_onmousemove (X.event_handler_of_function ev)
-    let a_onmouseout ev = a_onmouseout (X.event_handler_of_function ev)
-    let a_onmousewheel ev = a_onmousewheel (X.event_handler_of_function ev)
-    let a_onoffline ev = a_onoffline (X.event_handler_of_function ev)
-    let a_ononline ev = a_ononline (X.event_handler_of_function ev)
-    let a_onpause ev = a_onpause (X.event_handler_of_function ev)
-    let a_onplay ev = a_onplay (X.event_handler_of_function ev)
-    let a_onplaying ev = a_onplaying (X.event_handler_of_function ev)
-    let a_onpagehide ev = a_onpagehide (X.event_handler_of_function ev)
-    let a_onpageshow ev = a_onpageshow (X.event_handler_of_function ev)
-    let a_onpopstate ev = a_onpopstate (X.event_handler_of_function ev)
-    let a_onprogress ev = a_onprogress (X.event_handler_of_function ev)
-    let a_onratechange ev = a_onratechange (X.event_handler_of_function ev)
-    let a_onreadystatechange ev = a_onreadystatechange (X.event_handler_of_function ev)
-    let a_onredo ev = a_onredo (X.event_handler_of_function ev)
-    let a_onresize ev = a_onresize (X.event_handler_of_function ev)
-    let a_onscroll ev = a_onscroll (X.event_handler_of_function ev)
-    let a_onseeked ev = a_onseeked (X.event_handler_of_function ev)
-    let a_onseeking ev = a_onseeking (X.event_handler_of_function ev)
-    let a_onselect ev = a_onselect (X.event_handler_of_function ev)
-    let a_onshow ev = a_onshow (X.event_handler_of_function ev)
-    let a_onstalled ev = a_onstalled (X.event_handler_of_function ev)
-    let a_onstorage ev = a_onstorage (X.event_handler_of_function ev)
-    let a_onsubmit ev = a_onsubmit (X.event_handler_of_function ev)
-    let a_onsuspend ev = a_onsuspend (X.event_handler_of_function ev)
-    let a_ontimeupdate ev = a_ontimeupdate (X.event_handler_of_function ev)
-    let a_onundo ev = a_onundo (X.event_handler_of_function ev)
-    let a_onunload ev = a_onunload (X.event_handler_of_function ev)
-    let a_onvolumechange ev = a_onvolumechange (X.event_handler_of_function ev)
-    let a_onwaiting ev = a_onwaiting (X.event_handler_of_function ev)
-    let a_onkeypress ev = a_onkeypress (X.event_handler_of_function ev)
-    let a_onkeydown ev = a_onkeydown (X.event_handler_of_function ev)
-    let a_onkeyup ev = a_onkeyup (X.event_handler_of_function ev)
-    let a_onload ev = a_onload (X.event_handler_of_function ev)
-    let a_onloadeddata ev = a_onloadeddata (X.event_handler_of_function ev)
-    let a_onloadedmetadata ev = a_onloadedmetadata (X.event_handler_of_function ev)
-    let a_onloadstart ev = a_onloadstart (X.event_handler_of_function ev)
-    let a_onmessage ev = a_onmessage (X.event_handler_of_function ev)
 
     type ('a, 'b, 'c) lazy_star =
         ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt

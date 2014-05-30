@@ -38,9 +38,20 @@ module Xml : sig
     | CE_call_service of
         ([ `A | `Form_get | `Form_post] * (bool * string list) option * string option) option Eliom_lazy.request
 
-  type event_handler =
+  (* Inherit from all events.
+     Necessary for subtyping since caml_event_handler is contravariant. *)
+  class type biggest_event = object
+    inherit Dom_html.event
+    inherit Dom_html.mouseEvent
+    inherit Dom_html.keyboardEvent
+  end
+
+  type internal_event_handler =
     | Raw of string
-    | Caml of Dom_html.event caml_event_handler
+    | Caml of biggest_event caml_event_handler
+  type event_handler = Dom_html.event Js.t -> unit
+  type mouse_event_handler = Dom_html.mouseEvent Js.t -> unit
+  type keyboard_event_handler = Dom_html.keyboardEvent Js.t -> unit
 
   type ename = string
   type elt
@@ -56,11 +67,10 @@ module Xml : sig
 
   (**/**)
 
-  val event_handler_of_service :
+  val internal_event_handler_of_service :
     ( [ `A | `Form_get | `Form_post ]
       * (bool * string list) option
-      * string option) option Eliom_lazy.request -> event_handler
-  val event_handler_of_function : (Dom_html.event Js.t -> unit) -> event_handler
+      * string option) option Eliom_lazy.request -> internal_event_handler
 
   type separator = Space | Comma
   type acontent = private
@@ -74,7 +84,7 @@ module Xml : sig
   type racontent =
     | RA of acontent
     | RAReact of acontent option React.signal
-    | RACamlEventHandler of Dom_html.event caml_event_handler
+    | RACamlEventHandler of biggest_event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
     | RAClient of string * attrib option * attrib Eliom_lib.Client_value_server_repr.t
@@ -87,7 +97,10 @@ module Xml : sig
   val string_attrib : aname -> string -> attrib
   val space_sep_attrib : aname -> string list -> attrib
   val comma_sep_attrib : aname -> string list -> attrib
+  val internal_event_handler_attrib : aname -> internal_event_handler -> attrib
   val event_handler_attrib : aname -> event_handler -> attrib
+  val mouse_event_handler_attrib : aname -> mouse_event_handler -> attrib
+  val keyboard_event_handler_attrib : aname -> keyboard_event_handler -> attrib
   val uri_attrib : aname -> uri -> attrib
   val uris_attrib : aname -> uri list -> attrib
 
@@ -147,12 +160,14 @@ module Svg : sig
 
   (** {2 Functional semantics} *)
 
-  (** Typed interface for building valid SVG tree (functional
-      semantics). See {% <<a_api project="tyxml" | module type
-      Svg_sigs.T >> %}. *)
+  (** Typed interface for building valid SVG tree (functional semantics).
+      See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
   module F : sig
+
     module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
                             and type Xml.event_handler = Xml.event_handler
+                            and type Xml.mouse_event_handler = Xml.mouse_event_handler
+                            and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
                             and type Xml.attrib = Xml.attrib
                             and type Xml.elt = Xml.elt
                               with type +'a elt = 'a elt
@@ -179,6 +194,8 @@ module Svg : sig
 
     module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
                             and type Xml.event_handler = Xml.event_handler
+                            and type Xml.mouse_event_handler = Xml.mouse_event_handler
+                            and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
                             and type Xml.attrib = Xml.attrib
                             and type Xml.elt = Xml.elt
                               with type +'a elt = 'a elt
@@ -204,6 +221,8 @@ module Svg : sig
 
     module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
                             and type Xml.event_handler = Xml.event_handler
+                            and type Xml.mouse_event_handler = Xml.mouse_event_handler
+                            and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
                             and type Xml.attrib = Xml.attrib
                             and type Xml.elt = Xml.elt
                               with type +'a elt = 'a elt
@@ -258,14 +277,15 @@ module Html5 : sig
   type +'a attrib
   type uri = Xml.uri
 
-  (** Typed interface for building valid HTML5 tree (functional
-      semantics). See {% <<a_api project="tyxml" | module type
-      Html5_sigs.T >> %}. *)
+  (** Typed interface for building valid HTML5 tree (functional semantics).
+      See {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
   module F : sig
 
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
+                   and type Xml.mouse_event_handler = Xml.mouse_event_handler
+                   and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
                    and type Xml.attrib = Xml.attrib
                    and type Xml.elt = Xml.elt
                    with module Svg := Svg.F.Raw
@@ -300,6 +320,8 @@ module Html5 : sig
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
+                   and type Xml.mouse_event_handler = Xml.mouse_event_handler
+                   and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
                    and type Xml.attrib = Xml.attrib
                    and type Xml.elt = Xml.elt
                    and module Svg := Svg.D.Raw
@@ -338,6 +360,8 @@ module Html5 : sig
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
+                   and type Xml.mouse_event_handler = Xml.mouse_event_handler
+                   and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
                    and type Xml.attrib = Xml.attrib
                    and type Xml.elt = Xml.elt
                    and module Svg := Svg.D.Raw
@@ -347,6 +371,7 @@ module Html5 : sig
                    and type +'a attrib = 'a attrib
                    and type uri = uri
     include module type of Raw
+
   end
 
 
