@@ -70,7 +70,7 @@ let wrap_and_marshall_poly : poly -> string =
   fun poly ->
     string_escape (Marshal.to_string (Eliom_wrap.wrap poly) [])
 
-type 'a client_value =
+type +'a client_value =
     'a Client_value_server_repr.t * Eliom_wrap.unwrapper
 
 let create_client_value cv =

@@ -176,7 +176,7 @@ module RawXML = struct
   module ClosureMap = Map.Make(struct type t = string let compare = compare end)
 
   type event_handler_table =
-    ((Dom_html.event Js.t -> unit) Client_value_server_repr.t) ClosureMap.t
+    ((biggest_event Js.t -> unit) Client_value_server_repr.t) ClosureMap.t
 
   type client_attrib_table = attrib Client_value_server_repr.t ClosureMap.t
 
