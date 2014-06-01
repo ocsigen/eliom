@@ -93,8 +93,6 @@ module RawXML : sig
   val uri_of_string : string -> uri
   val uri_of_fun : (unit -> string) -> uri
 
-  val internal_event_handler_of_string : string -> internal_event_handler
-  val string_of_internal_event_handler : internal_event_handler -> string
   val internal_event_handler_of_service :
     ([ `A | `Form_get | `Form_post] * (cookie_info option) * string option) option Eliom_lazy.request ->
       internal_event_handler

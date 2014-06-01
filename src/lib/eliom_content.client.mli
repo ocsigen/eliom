@@ -56,6 +56,8 @@ module Svg : sig
     (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
                              and type Xml.event_handler = Xml.event_handler
+                             and type Xml.mouse_event_handler = Xml.mouse_event_handler
+                             and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
                              and type Xml.attrib = Xml.attrib
                              and type Xml.elt = Xml.elt
 			     and type 'a elt = 'a elt
@@ -80,6 +82,8 @@ module Svg : sig
     (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
                              and type Xml.event_handler = Xml.event_handler
+                             and type Xml.mouse_event_handler = Xml.mouse_event_handler
+                             and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
                              and type Xml.attrib = Xml.attrib
                              and type Xml.elt = Xml.elt
 			     and type 'a elt = 'a elt
@@ -101,6 +105,8 @@ module Svg : sig
     module Raw : Svg_sigs.T
       with type Xml.uri = Xml.uri
        and type Xml.event_handler = Xml.event_handler
+       and type Xml.mouse_event_handler = Xml.mouse_event_handler
+       and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
        and type Xml.attrib = Xml.attrib
        and type Xml.elt = Xml.elt
        and type 'a elt = 'a elt
@@ -299,6 +305,8 @@ module Html5 : sig
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
+                   and type Xml.mouse_event_handler = Xml.mouse_event_handler
+                   and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
                    and type Xml.attrib = Xml.attrib
                    and type Xml.elt = Xml.elt
                    and type 'a Xml.wrap = 'a
@@ -362,6 +370,8 @@ module Html5 : sig
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
+                   and type Xml.mouse_event_handler = Xml.mouse_event_handler
+                   and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
                    and type Xml.attrib = Xml.attrib
                    and type Xml.elt = Xml.elt
                    and type 'a Xml.wrap = 'a
@@ -438,6 +448,8 @@ module Html5 : sig
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                     and type Xml.event_handler = Xml.event_handler
+                    and type Xml.mouse_event_handler = Xml.mouse_event_handler
+                    and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
                     and type Xml.attrib = Xml.attrib
                     and type Xml.elt = Xml.elt
                     and type 'a Xml.wrap = 'a React.signal Eliom_pervasives.client_value

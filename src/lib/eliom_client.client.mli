@@ -215,7 +215,7 @@ val relink_attribs :
 
 val relink_closure_nodes :
   Dom_html.element Js.t ->
-  (Dom_html.event Js.t -> unit) Client_value_server_repr.t Eliom_lib.RawXML.ClosureMap.t ->
+  Eliom_lib.RawXML.event_handler_table ->
   Dom_html.element Dom.nodeList Js.t ->
   (unit -> unit)
 val getElementById : string -> Dom.node Js.t
