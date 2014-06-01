@@ -73,7 +73,7 @@ module Html5_forms(*  : sig *)
                          and type 'a wrap = 'a
                          and type +'a attrib = 'a Html5.attrib
                          and type uri = Html5.uri
-    include "sigs/eliom_html5_event_handler.mli"
+
     type ('a, 'b, 'c) lazy_star =
         ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
     val lazy_form:

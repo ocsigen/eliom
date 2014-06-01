@@ -67,11 +67,6 @@ module Svg : sig
 		             and type uri = uri
 
     include module type of Raw
-
-    (** {2 Event handlers} *)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_svg_event_handler.mli"
   end
 
 
@@ -93,11 +88,6 @@ module Svg : sig
 		             and type uri = uri
 
     include module type of Raw
-
-    (** {2 Event handlers} *)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_svg_event_handler.mli"
   end
 
   (** Creation of reactive content *)
@@ -116,11 +106,6 @@ module Svg : sig
        and type uri = uri
 
     include module type of Raw
-
-    (** {2 Event handlers} *)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_svg_event_handler.mli"
   end
 
   (** Creation of content from client-side values. *)
@@ -316,12 +301,7 @@ module Html5 : sig
                    and type 'a attrib = 'a attrib
                    and type uri = uri
 
-    include module type of Raw (*BB TODO Hide untyped [input]. *)
-
-    (** {2 Event handlers} *)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_html5_event_handler.mli"
+    include module type of Raw
 
     (**/**)
     type ('a, 'b, 'c) lazy_star =
@@ -380,12 +360,7 @@ module Html5 : sig
                    and type 'a wrap = 'a
                    and type 'a attrib = 'a attrib
                    and type uri = uri
-    include module type of Raw (*BB TODO Hide untyped [input]. *)
-
-    (** {2 Event handlers} *)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_html5_event_handler.mli"
+    include module type of Raw
 
     (**/**)
     type ('a, 'b, 'c) lazy_star =
@@ -458,7 +433,7 @@ module Html5 : sig
                     and type 'a wrap = 'a React.signal Eliom_pervasives.client_value
                     and type 'a attrib = 'a attrib
                     and type uri = uri
-    include module type of Raw (*BB TODO Hide untyped [input]. *)
+    include module type of Raw
   end
 
   (** Creation of HTML5 content from client-side values.

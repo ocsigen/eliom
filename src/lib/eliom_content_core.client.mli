@@ -179,11 +179,6 @@ module Svg : sig
     (** See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
     include module type of Raw
 
-    (** {2 Event handlers} *)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_svg_event_handler.mli"
-
   end
 
   (** {2 DOM semantics} *)
@@ -207,11 +202,6 @@ module Svg : sig
     (** See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
     include module type of Raw
 
-    (** {2 Event handlers} *)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_svg_event_handler.mli"
-
   end
 
   (** {2 Reactive DOM} *)
@@ -233,11 +223,6 @@ module Svg : sig
 
     (** See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
     include module type of Raw
-
-    (** {2 Event handlers} *)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_svg_event_handler.mli"
 
   end
 
@@ -298,11 +283,6 @@ module Html5 : sig
     (** See {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
     include module type of Raw (*BB TODO Hide untyped [input]. *)
 
-    (** {2 Event handlers} *)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_html5_event_handler.mli"
-
     (**/**)
     type ('a, 'b, 'c) lazy_star =
       ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
@@ -330,10 +310,7 @@ module Html5 : sig
                    and type 'a wrap = 'a
                    and type +'a attrib = 'a attrib
                    and type uri = uri
-    include module type of Raw (*BB TODO Hide untyped [input]. *)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_html5_event_handler.mli"
+    include module type of Raw
 
     (**/**)
     type ('a, 'b, 'c) lazy_star =

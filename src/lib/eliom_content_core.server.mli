@@ -111,8 +111,6 @@ module Svg : sig
 
     include module type of Raw
 
-    include "sigs/eliom_svg_event_handler.mli"
-
   end
 
   module D : sig
@@ -132,8 +130,6 @@ module Svg : sig
     include module type of Raw
 
     val client_attrib : ?init:'a attrib -> 'a attrib Eliom_lib.client_value -> 'a attrib
-
-    include "sigs/eliom_svg_event_handler.mli"
 
   end
 
@@ -181,9 +177,7 @@ module Html5 : sig
                    and type +'a attrib = 'a attrib
                    and type uri = uri
 
-    include module type of Raw (*BB TODO Hide untyped [input]. *)
-
-    include "sigs/eliom_html5_event_handler.mli"
+    include module type of Raw
 
     (**/**)
     type ('a, 'b, 'c) lazy_star =
@@ -208,11 +202,9 @@ module Html5 : sig
                    and type 'a wrap = 'a
                    and type +'a attrib = 'a attrib
                    and type uri = uri
-    include module type of Raw (*BB TODO Hide untyped [input]. *)
+    include module type of Raw
 
     val client_attrib : ?init:'a attrib -> 'a attrib Eliom_lib.client_value -> 'a attrib
-
-    include "sigs/eliom_html5_event_handler.mli"
 
     (**/**)
     type ('a, 'b, 'c) lazy_star =
