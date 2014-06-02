@@ -52,7 +52,7 @@ let () =
     Pkg.man ~dst:"man1/eliomopt.1" "pkg/man/eliomc.1";
     Pkg.man ~dst:"man1/eliomdep.1" "pkg/man/eliomc.1";
     Pkg.man ~dst:"man1/js_of_eliom.1" "pkg/man/eliomc.1";
-    Pkg.man ~dst:"man1/man1/eliom-distillery.1" "pkg/man/eliom-distillery.1";
+    Pkg.man ~dst:"man1/eliom-distillery.1" "pkg/man/eliom-distillery.1";
 
     (* TOOLS *)
     Pkg.bin ~auto:true "src/tools/eliomc";
