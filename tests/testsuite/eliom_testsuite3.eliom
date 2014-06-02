@@ -515,7 +515,7 @@ let caml_service_cookies =
     )
 
 let default_no_appl =
-  let module App = Eliom_registration.App (struct let application_name = "eliom_testsuite" end) in
+  let module App = Eliom_registration.App (struct let application_name = "testsuite_client" end) in
   let open Html5.D in
   let id = Html5.Id.new_elt_id ~global:true () in
   let unique_content =
@@ -2666,7 +2666,7 @@ let postformc =
 module Another_appl =
   Eliom_registration.App (
     struct
-      let application_name = "eliom_testsuite3bis"
+      let application_name = "testsuite_client_bis"
     end)
 
 let make_page_bis ?(css = []) content =

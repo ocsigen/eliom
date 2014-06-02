@@ -16,7 +16,7 @@
 module My_appl =
   Eliom_registration.App (
     struct
-      let application_name = "eliom_testsuite"
+      let application_name = "testsuite_client"
     end)
 
 let main = Eliom_service.Http.service [] Eliom_parameter.unit ()
