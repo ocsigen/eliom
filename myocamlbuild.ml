@@ -172,10 +172,6 @@ let init_wikidoc () =
       (Ocamlbuild_pack.Ocaml_tools.document_ocaml_project
          ~ocamldoc:ocamldoc_wiki
          "%.odocl" "%.wikidocdir/index.wiki" "%.wikidocdir");
-
-    tag_file "doc/client/api.wikidocdir/index.wiki" ["apiref";"wikidoc"];
-    tag_file "doc/server/api.wikidocdir/index.wiki" ["apiref";"wikidoc"];
-    tag_file "doc/ocamlbuild/api.wikidocdir/index.wiki" ["apiref";"wikidoc"];
     flag ["wikidoc"] & S[A"-i";A wikidoc_dir;A"-g";A"odoc_wiki.cma"]
 
   with Failure e -> () (* Silently fail if the package wikidoc isn't available *)
@@ -184,17 +180,13 @@ let init_mandoc () =
   Ocamlbuild_pack.Rule.rule
     "ocamldoc: document ocaml project odocl & *odoc -> mandocdir"
     ~insert:`top
-    ~prod:"%.mandocdir/man.3o"
-    ~stamp:"%.mandocdir/man.stamp"
+    ~prod:"%.mandocdir/man.%(ext)"
+    ~stamp:"%.mandocdir/man.%(ext).stamp"
       ~dep:"%.odocl"
       (Ocamlbuild_pack.Ocaml_tools.document_ocaml_project
          ~ocamldoc:ocamldoc_man
-         "%.odocl" "%.mandocdir/man.3o" "%.mandocdir");
-
-    tag_file "doc/client/api.mandocdir/man.3o" ["apiref";"manpage"];
-    tag_file "doc/server/api.mandocdir/man.3o" ["apiref";"manpage"];
-    tag_file "doc/ocamlbuild/api.mandocdir/man.3o" ["apiref";"manpage"];
-    flag ["manpage"] & S[A"-man-mini";A "-man-section"; A"3o"; A"-man-suffix";A"3o"]
+         "%.odocl" "%.mandocdir/man.%(ext)" "%.mandocdir");
+    pflag ["apiref"] "man_ext" (fun ext -> S[A"-man-mini";A "-man-section"; A ext; A"-man-suffix";A ext])
 
 
 let subst vars s =

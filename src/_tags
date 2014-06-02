@@ -1,4 +1,3 @@
-"lib/common": include
 
 
 <lib/type_dir/*.ml{,i}>:syntax(camlp4o), package(deriving.syntax.std, js_of_ocaml.deriving.syntax,lwt.syntax)
@@ -43,3 +42,14 @@
 <tools/*.ml{,i}>:syntax(camlp4o),package(optcomp)
 <tools/*.ml{,i}>:package(unix,findlib)
 <tools/*.{byte,native}>:package(unix,str,findlib)
+
+
+<lib/client/api.*/index.*>: with_intro(doc/client.indexdoc)
+<lib/server/api.*/index.*>: with_intro(doc/server.indexdoc)
+<ocamlbuild/api.*/index.*>: with_intro(doc/ocamlbuild.indexdoc)
+
+<lib/client/api.*/man.*>: manpage,man_ext(3oc),apiref
+<lib/server/api.*/man.*>: manpage,man_ext(3os),apiref
+<ocamlbuild/api.*/man.*>: manpage,man_ext(3o),apiref
+
+<**/api.wikidocdir/index.wiki>: apiref, wikidoc

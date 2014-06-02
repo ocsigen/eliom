@@ -113,6 +113,12 @@ let server_ext = {
   internal = []
 }
 
+let ocamlbuild = {
+  interface = [ "ocamlbuild_eliom" ];
+  internal = []
+
+}
+
 let (-.-) name ext = name ^ "." ^ ext
 let exts el sl =
   List.flatten (
@@ -135,7 +141,7 @@ let client_extra = exts ["cmi"] client.interface
 
 let client_api =
   let names = client.interface in
-  List.map (fun i -> "/src/lib/client/"^i) names
+  names
 
 let server_mllib =
   server.interface @ server.internal
@@ -149,12 +155,18 @@ let server_api =
     server.interface @
     List.map (fun e -> "extensions/" ^ e) server_ext.interface
   in
-  List.map (fun i -> "/src/lib/server/"^i) names
+  names
 
 let server_ext_mllib = server_ext.interface @ server_ext.internal
 let server_ext_extra =
   exts ["cmi"] server_ext.interface @
   exts ["cmx"] (server_ext.interface @ server_ext.internal)
+
+let ocamlbuild_mllib = ocamlbuild.interface @ ocamlbuild.internal
+let ocamlbuild_extra =
+  exts ["cmi"] ocamlbuild.interface @
+  exts ["cmx"] (ocamlbuild.interface @ ocamlbuild.internal)
+let ocamlbuild_api = ocamlbuild.interface
 
 
 let templates_dir = "pkg/distillery"

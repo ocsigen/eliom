@@ -12,10 +12,12 @@ opt:
 
 ### Doc
 .PHONY: doc wikidoc doc man alldoc
-DOCS_DIR=doc/client doc/server doc/ocamlbuild
+DOCS_DIR=src/lib/client src/lib/server src/ocamlbuild
 DOCS_HTML=$(addsuffix /api.docdir/index.html,$(DOCS_DIR))
 DOCS_WIKI=$(addsuffix /api.wikidocdir/index.wiki,$(DOCS_DIR))
-DOCS_MAN=$(addsuffix /api.mandocdir/man.3o,$(DOCS_DIR))
+DOCS_MAN= src/lib/client/api.mandocdir/man.3oc \
+          src/lib/server/api.mandocdir/man.3os \
+          src/ocamlbuild/api.mandocdir/man.3o
 doc:
 	$(OCB) $(DOCS_HTML)
 wikidoc:

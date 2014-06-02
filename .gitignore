@@ -5,6 +5,10 @@
 _build
 eliom.install
 
+src/**/*.mllib
+src/**/*.mldylib
+src/**/*.odocl
+
 local/var/run
 local/var/lib/
 local/var/log/

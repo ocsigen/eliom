@@ -17,12 +17,17 @@ let exts_lib = List.filter except Exts.library
 
 let _ =
   list_to_file "src/lib/client/client.mllib" client_mllib;
+  list_to_file "src/lib/client/api.odocl" client_api;
+
   list_to_file "src/lib/server/server.mllib" server_mllib;
   list_to_file "src/lib/server/server.mldylib" server_mllib;
   list_to_file "src/lib/server/extensions/extensions.mllib" server_ext_mllib;
   list_to_file "src/lib/server/extensions/extensions.mldylib" server_ext_mllib;
-  list_to_file "doc/client/api.odocl" client_api;
-  list_to_file "doc/server/api.odocl" server_api
+  list_to_file "src/lib/server/api.odocl" server_api;
+
+  list_to_file "src/ocamlbuild/ocamlbuild.mllib" ocamlbuild_mllib;
+  list_to_file "src/ocamlbuild/ocamlbuild.mldylib" ocamlbuild_mllib;
+  list_to_file "src/ocamlbuild/api.odocl" ocamlbuild_api
 
 let spf = Printf.sprintf
 
