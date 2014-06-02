@@ -41,6 +41,8 @@ let with_ocamlfind = "-use-ocamlfind -plugin-tag \"package(js_of_ocaml.ocamlbuil
 let builder = `Other (spf "ocamlbuild %s %s" with_ocamlfind nothing,
                       "_build")
 
+let with_man3 = true (* Env.bool "manpage" *)
+
 let () =
   Pkg.describe "eliom" ~builder ([
     (* META *)
@@ -53,6 +55,10 @@ let () =
     Pkg.man ~dst:"man1/eliomdep.1" "pkg/man/eliomc.1";
     Pkg.man ~dst:"man1/js_of_eliom.1" "pkg/man/eliomc.1";
     Pkg.man ~dst:"man1/eliom-distillery.1" "pkg/man/eliom-distillery.1";
+
+    Pkg.man ~cond:with_man3 ~dst:"man3/%.3oc" ~target:"src/lib/client/api.mandocdir/man.3oc" "src/lib/client/api.mandocdir/%.3oc";
+    Pkg.man ~cond:with_man3 ~dst:"man3/%.3os" ~target:"src/lib/server/api.mandocdir/man.3os" "src/lib/server/api.mandocdir/%.3os";
+    Pkg.man ~cond:with_man3 ~dst:"man3/%.3o"  ~target:"src/ocamlbuild/api.mandocdir/man.3o"  "src/ocamlbuild/api.mandocdir/%.3o";
 
     (* TOOLS *)
     Pkg.bin ~auto:true "src/tools/eliomc";

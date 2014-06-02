@@ -44,7 +44,7 @@ module type Pkg = sig
   type moves
   (** The type for install moves. *)
 
-  type field = ?cond:bool -> ?exts:string list -> ?dst:string -> string -> moves
+  type field = ?cond:bool -> ?exts:string list -> ?dst:string -> ?target:string -> string -> moves
   (** The type for field install functions. A call
       [field cond exts dst path] generates install moves as follows:
       {ul
@@ -60,6 +60,7 @@ module type Pkg = sig
   (** If [auto] is true (defaults to false) generates
       [path ^ ".native"] if {!Env.native} is [true] and
       [path ^ ".byte"] if {!Env.native} is [false]. *)
+
   val sbin : ?auto:bool -> field (** See {!bin}. *)
   val toplevel : field
   val share : field
@@ -149,8 +150,13 @@ end
 
 module Pkg : Pkg = struct
   type builder = [ `OCamlbuild | `Other of string * string ]
-  type moves = (string * (string * string)) list
-  type field = ?cond:bool -> ?exts:string list -> ?dst:string -> string -> moves
+  type move = {
+    field_name : string;
+    target : string option;
+    source : string;
+    dest : string }
+  type moves = move list
+  type field = ?cond:bool -> ?exts:string list -> ?dst:string -> ?target:string -> string -> moves
 
   let str = Printf.sprintf
   let warn_unused () =
@@ -160,34 +166,82 @@ module Pkg : Pkg = struct
     List.iter Topkg.warn_unused unused
 
   let has_suffix = Filename.check_suffix
-  let build_strings ?(exec_sep = " ") btool bdir mvs =
-    let no_build = [ ".cmti"; ".cmt" ] in
-    let install = Buffer.create 1871 in
+
+  let build_command ?(exec_sep = " ") btool mvs =
+    let no_build = [ ".cmti"; ".cmt"] in
     let exec = Buffer.create 1871 in
+    let add_target = function {field_name=field; source=src; dest=dst;target} ->
+      let target = match target with
+        | None -> src
+        | Some s -> s in
+      if not (List.exists (has_suffix target) no_build) then
+        Buffer.add_string exec (str "%s%s" exec_sep target)
+    in
+    Buffer.add_string exec btool;
+    List.iter add_target mvs;
+    Buffer.contents exec
+
+  let split_char sep p =
+    let len = String.length p in
+    let rec split beg cur =
+      if cur >= len then
+        if cur - beg > 0
+        then [String.sub p beg (cur - beg)]
+        else []
+      else if p.[cur] = sep then
+        String.sub p beg (cur - beg) :: split (cur + 1) (cur + 1)
+      else
+        split beg (cur + 1) in
+    split 0 0
+
+  let holes src dst =
+    let aux x = match split_char '%' x with
+      | [x;y] -> Some (x,y)
+      | _ -> None in
+    match aux src, aux dst with
+    | Some (s_path,s_suffix),Some(d_path,d_suffix) -> Some (s_path,s_suffix,d_path,d_suffix)
+    | None,None -> None
+    | Some (s_path,s_suffix),None -> Some (s_path,s_suffix,dst,s_suffix)
+    | _ -> assert false
+
+  let list_files bdir src dst =
+    match holes src dst with
+    | None -> [str "%s/%s" bdir src, dst]
+    | Some (s_path,s_suffix,d_path,d_suffix) ->
+      let p = bdir ^ "/" ^ s_path in
+      let l = Array.to_list (Sys.readdir p) in
+      let l = List.filter (fun f -> has_suffix f s_suffix) l in
+      List.map (fun s -> str "%s/%s%s" bdir s_path s,
+                         str "%s%s%s" d_path (Filename.chop_suffix s s_suffix) d_suffix) l
+
+  let build_install bdir mvs =
+    let no_build = [ ".cmti"; ".cmt"] in
+    let install = Buffer.create 1871 in
     let rec add_mvs current = function
-    | (field, (src, dst)) :: mvs when field = current ->
-        if List.exists (has_suffix src) no_build then
-          Buffer.add_string install (str "\n  \"?%s/%s\" {\"%s\"}" bdir src dst)
-        else begin
-          Buffer.add_string exec (str "%s%s" exec_sep src);
-          Buffer.add_string install (str "\n  \"%s/%s\" {\"%s\"}" bdir src dst);
-        end;
+      | {field_name=field; source=src; dest=dst;target} :: mvs when field = current ->
+        let target = match target with
+          | None -> src
+          | Some s -> s in
+        let option = if List.exists (has_suffix target) no_build then "?" else "" in
+        List.iter (fun (src,dst) ->
+          Buffer.add_string install (str "\n  \"%s%s\" {\"%s\"}" option src dst)
+        ) (list_files bdir src dst);
         add_mvs current mvs
-    | (((field, _) :: _) as mvs) ->
+      | {field_name=field}::_ as mvs ->
         if current <> "" (* first *) then Buffer.add_string install " ]\n";
         Buffer.add_string install (str "%s: [" field);
         add_mvs field mvs
-    | [] -> ()
+      | [] -> ()
     in
-    Buffer.add_string exec btool;
     add_mvs "" mvs;
     Buffer.add_string install " ]\n";
-    Buffer.contents install, Buffer.contents exec
+    Buffer.contents install
 
   let pr = Format.printf
   let pr_explanation btool bdir pkg mvs  =
     let env = Env.get () in
-    let install, exec = build_strings ~exec_sep:" \\\n  " btool bdir mvs in
+    let exec = build_command ~exec_sep:" \\\n  " btool mvs in
+    let install = build_install bdir mvs in
     pr "@[<v>";
     pr "Package name: %s@," pkg;
     pr "Build tool: %s@," btool;
@@ -207,22 +261,23 @@ module Pkg : Pkg = struct
     pr "@."
 
   let build btool bdir pkg mvs =
-    let install, exec = build_strings btool bdir mvs in
+    let exec = build_command btool mvs in
     let e = Sys.command exec in
     if e <> 0 then exit e else
+    let install = build_install bdir mvs in
     let install_file = pkg ^ ".install" in
     try
       let oc = open_out install_file in
       output_string oc install; flush oc; close_out oc
     with Sys_error e -> Topkg.err_file install_file e
 
-  let mvs ?(drop_exts = []) field ?(cond = true) ?(exts = []) ?dst src =
+  let mvs ?(drop_exts = []) field ?(cond = true) ?(exts = []) ?dst ?target src =
     if not cond then [] else
-    let mv src dst = (field, (src, dst)) in
+    let mv src dst = {field_name=field; source=src; dest=dst; target} in
     let expand exts s d = List.map (fun e -> mv (s ^ e) (d ^ e)) exts in
     let dst = match dst with None -> Filename.basename src | Some dst -> dst in
     let files = if exts = [] then [mv src dst] else expand exts src dst in
-    let keep (_, (src, _)) = not (List.exists (has_suffix src) drop_exts) in
+    let keep {source=src} = not (List.exists (has_suffix src) drop_exts) in
     List.find_all keep files
 
   let lib =
@@ -242,7 +297,7 @@ module Pkg : Pkg = struct
   let man = mvs "man"
 
   let bin_drops = if not Env.native then [ ".native" ] else []
-  let bin_mvs field ?(auto = false) ?cond ?exts ?dst src =
+  let bin_mvs field ?(auto = false) ?cond ?exts ?dst ?target src =
     let src, dst =
       if not auto then src, dst else
       let dst = match dst with
@@ -252,7 +307,7 @@ module Pkg : Pkg = struct
       let src = if Env.native then src ^ ".native" else src ^ ".byte" in
       src, dst
     in
-    mvs ~drop_exts:bin_drops field ?cond ?dst ?exts src
+    mvs ~drop_exts:bin_drops field ?cond ?dst ?exts ?target src
 
   let bin = bin_mvs "bin"
   let sbin = bin_mvs "sbin"
