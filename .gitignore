@@ -12,9 +12,5 @@ src/**/*.odocl
 local/var/run
 local/var/lib/
 local/var/log/
-local/etc
-local/lib/client
-local/lib/server
-local/lib/syntax
 
 tests/distillery/basic

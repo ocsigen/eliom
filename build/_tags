@@ -1,0 +1,1 @@
+<*.{ml,byte,native}>:package(unix,ocamlbuild,js_of_ocaml.ocamlbuild)

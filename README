@@ -34,23 +34,15 @@ Build instructions:
 We recommand to use the opam package manager to install Eliom.
 If you want to compile manually:
 
- * run "sh configure [options]" to generate 'Makefile.config'
- - For the full list of options, run "sh configure --help".
-
- * verify that 'Makefile.config' suits to your needs.
-
  * run "make" to compile
- * run "make install" as root to install
-
- * [optional] run "make doc" to build the ocamldoc
- * [optional] run "make install.doc" as root to install the ocamldoc
-
- * run "make uninstall" to uninstall (almost) everything
+ * run "make PREFIX=yourprefix install" as root to install
+ * run "make PREFIX=yourprefix uninstall" to uninstall everything
 
 ------------------------------------------------------------------
 
 Local testings:
 ===============
+ * install eliom
 
  * run "make run.local" of "make run.opt.local"
    in the ocsigen source directory.
@@ -62,7 +54,7 @@ Local testings:
    (verbose and debug mode).
 
  * sources for this example may be found in the directory
-   'examples/miniwiki'. For a full tutorial, see:
+   'tests/miniwiki'. For a full tutorial, see:
 
       http://ocsigen.org/tutorial
 

@@ -1,9 +1,7 @@
 opam-version: "1"
 maintainer: "dev@ocsigen.org"
 version: "dev"
-build: [ "ocaml" "pkg/build.ml" "native=%{ocaml-native}%"
-                                "native-dynlink=%{ocaml-native-dynlink}%"
-]
+build: [ make ]
 depends: [
   "ocamlfind"
   "deriving" {>= "0.6"}

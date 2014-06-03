@@ -1,0 +1,25 @@
+== internal description of compilation/installation steps
+
+ 1 - build custom ocamlbuild (build/build.native)
+     this custom ocamlbuld uses src/ocamlbuild/ocamlbuild_eliom.ml to
+     avoid duplication
+
+ 2 - call `ocaml pkg/build.ml` (topkg) that will call the custom
+     builder (from 1) to build request targets
+
+ 3 - eliom.install is generated and can be used by opam-installer
+
+
+== How to update the build system
+
+ - add new files
+   => update pkg/filelist.ml
+   client only files can be : src/lib/client/*.ml, src/lib/*.client.ml
+   server only files can be : src/lib/server/*.ml, src/lib/*.server.ml
+   common files can be : src/common/*.ml, src/*.eliom (with shared_section)
+
+ - add packages requirement
+   => update pkg/META (if needed) and src/_tags "package(new_package)"
+
+ - change version
+   update VERSION and pkg/META

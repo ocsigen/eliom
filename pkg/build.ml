@@ -36,12 +36,9 @@ let nothing =
   then "-nothing-should-be-rebuilt"
   else ""
 
-let with_ocamlfind = "-use-ocamlfind -plugin-tag \"package(js_of_ocaml.ocamlbuild)\""
+let builder = `Other ("_build/build/build.native","_build")
 
-let builder = `Other (spf "ocamlbuild %s %s" with_ocamlfind nothing,
-                      "_build")
-
-let with_man3 = true (* Env.bool "manpage" *)
+let with_man3 = Env.bool "manpage"
 
 let () =
   Pkg.describe "eliom" ~builder ([
