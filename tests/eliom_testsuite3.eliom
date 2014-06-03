@@ -1193,7 +1193,7 @@ let comet_message_board_maker name message_bus cb =
          in
 
          (make_page [ h2 [pcdata "Message board"];
-           raw_form ~a:[a_action (Xml.uri_of_string "")] (div [field; go]) [];
+           raw_form ~a:[a_action (Xml.uri_of_string "")] [div [field; go]];
            container; br ();
            Html5.D.a ~service:Eliom_testsuite_base.main [pcdata "go outside of application"] ();
          ]))

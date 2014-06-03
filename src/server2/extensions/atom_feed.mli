@@ -140,11 +140,6 @@ val inlineC : ?meta:[> metaAttr ] list
    -> string list
    -> [> `Content of content ]
 
-(** An xhtml content, embedded in a div *)
-val xhtmlC : ?meta:[> metaAttr ] list
-   -> ([ `PCDATA | Xhtml_types.flow ] Xhtml.M.elt list)
-   -> [> `Content of content ]
-
 (** An html5 content, embedded in a div *)
 val html5C : ?meta:[> metaAttr ] list
    -> ([ `PCDATA | Html5_types.flow5 ] Eliom_content.Html5.elt list)
@@ -164,11 +159,6 @@ val outOfLineC : ?meta:[> metaAttr ] list
 val plain : ?meta:[> metaAttr ] list
    -> ?html:bool
    -> string
-   -> textConstruct
-
-(** XHTML text construct *)
-val xhtml : ?meta:[> metaAttr ] list
-   -> [ `PCDATA | Xhtml_types.flow ] Xhtml.M.elt list
    -> textConstruct
 
 (** HTML5 text construct *)

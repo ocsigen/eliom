@@ -18,7 +18,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *)
 
-module M = Xhtml.M
+module M = Html5.M
 module Html5 = Eliom_content.Html5.F
 open Atom_feed
 open CalendarLib
@@ -30,7 +30,7 @@ let f () = Lwt.return (
       (* let's build the feed *)
       feed ~updated:r2 ~id:"http://test.org" ~title:(plain "Un flux Atom")
          (* the optional fields *)
-         ~fields:[ authors [author "Tyruiop"]; subtitle (xhtml [M.pcdata "Voilà un exemple du flux atom généré avec Ocsigen !"]);
+         ~fields:[ authors [author "Tyruiop"]; subtitle (html5 [Html5.pcdata "Voilà un exemple du flux atom généré avec Ocsigen !"]);
                links [link ~elt:[`Rel ("alternate"); `Type ("text/html") ] "http://test.org"]]
          (* the entry list *)
          [entry ~updated:r2 ~id:"http://test.org/1" ~title:(plain "Article 1")
@@ -43,7 +43,7 @@ let f () = Lwt.return (
             [authors [author "Tyruiop"];
             summary (plain "Un petit résumé de l'article 2");
             published d2;
-            xhtmlC [M.pcdata "un exemple de content en xHTML !"]];
+            html5C [Html5.pcdata "un exemple de content en xHTML !"]];
          entry ~updated:d3 ~id:"http://test.org/3" ~title:(plain "Article 3")
             [authors [author "bépo"];
              summary

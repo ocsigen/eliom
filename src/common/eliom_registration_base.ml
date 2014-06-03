@@ -74,10 +74,10 @@ module Html5_forms(*  : sig *)
                          and type +'a attrib = 'a Html5.attrib
                          and type uri = Html5.uri
     include "sigs/eliom_html5_event_handler.mli"
-    type ('a, 'b, 'c) lazy_plus =
-        ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
+    type ('a, 'b, 'c) lazy_star =
+        ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
     val lazy_form:
-      ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_plus
+      ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_star
   end) = struct
 
     type uri = Html5.uri
@@ -162,13 +162,7 @@ module Html5_forms(*  : sig *)
       | [] -> (make_empty_form_content ()), []
 
     let make_get_form ?(a=[]) ~action elts : form_elt =
-      let elts = Eliom_lazy.from_fun (fun () -> remove_first (Eliom_lazy.force elts)) in
-      let elt1 = Eliom_lazy.from_fun (fun () -> fst (Eliom_lazy.force elts))
-      and elts = Eliom_lazy.from_fun (fun () -> snd (Eliom_lazy.force elts)) in
-      let r =
-        Html5.lazy_form ~a:((a_method `Get)::(a_action action)::a) elt1 elts
-      in
-      r
+      Html5.lazy_form ~a:((a_method `Get)::(a_action action)::a) elts
 
     let make_post_form ?(a=[]) ~action ?id ?(inline = false) elts
         : form_elt =
@@ -176,18 +170,12 @@ module Html5_forms(*  : sig *)
       | None -> a
       | Some i -> (a_id i)::a)
       in
-      let elts = Eliom_lazy.from_fun (fun () -> remove_first (Eliom_lazy.force elts)) in
-      let elt1 = Eliom_lazy.from_fun (fun () -> fst (Eliom_lazy.force elts))
-      and elts = Eliom_lazy.from_fun (fun () -> snd (Eliom_lazy.force elts)) in
-      let r =
-        lazy_form ~a:((Html5.a_enctype "multipart/form-data")::
-                  (* Always Multipart!!! How to test if there is a file?? *)
+      lazy_form ~a:((Html5.a_enctype "multipart/form-data")::
+                    (* Always Multipart!!! How to test if there is a file?? *)
                     (a_action action)::
                     (a_method `Post)::
                     (if inline then (a_class ["inline"])::aa else aa))
-          elt1 elts
-      in
-      r
+        elts
 
     let empty_seq = []
     let cons_hidden_fieldset fields content =

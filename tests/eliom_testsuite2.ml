@@ -501,7 +501,7 @@ let create_form f =
       ["one";"two";"three"]
       []
   in
-  [table (List.hd l) (List.tl l);
+  [table l;
    p [string_input ~input_type:`Submit ~value:"Click" ()]]
 
 let () = register lilists
@@ -1765,7 +1765,7 @@ let create_sufliform f =
       ["one";"two";"three"]
       []
   in
-  [table (List.hd l) (List.tl l);
+  [table l;
    p [string_input ~input_type:`Submit ~value:"Click" ()]]
 
 let sufliform = register_service ["sufliform"] unit
@@ -1942,7 +1942,7 @@ let create_listform f =
       ["one";"two";"three"]
       []
   in
-  [table (List.hd l) (List.tl l);
+  [table l;
    p [raw_input ~input_type:`Submit ~value:"Click" ()]]
 
 let boollistform = register_service ["boolform"] unit
