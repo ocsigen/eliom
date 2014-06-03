@@ -27,3 +27,6 @@ let init () =
   pflag [ "ocaml"; "compile"] "I" (fun x -> S[A"-I"; A x]);
   pflag [ "ocaml"; "infer_interface"] "I" (fun x -> S[A"-I"; A x]);
   pflag [ "ocaml"; "doc"] "I" (fun x -> S[A"-I"; A x]);
+  flag ["ocaml"; "compile"; "thread"] (A "-thread");
+  flag ["ocaml"; "link"; "thread"] (A "-thread");
+  flag ["ocaml"; "infer_interface"] (A "-thread")
