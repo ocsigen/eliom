@@ -4,7 +4,7 @@ BUILD=ocaml pkg/build.ml
 
 .PHONY: all byte opt builder
 all: $(BUILDER)
-	$(BUILD) manpage=true native=true native-dynlink=true
+	$(BUILD) manpage=false native=true native-dynlink=true
 byte: $(BUILDER)
 	$(BUILD) manpage=false native=false native-dynlink=false
 opt: $(BUILDER)
