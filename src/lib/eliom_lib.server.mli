@@ -40,7 +40,7 @@ include module type of Eliom_lib_base
   with type request_data = Eliom_lib_base.request_data
 
 (** See {% <<a_api subproject="server"|type Eliom_lib.client_value>> %}. *)
-type 'a client_value
+type +'a client_value
 
 (** Raised if a client value of the given closure ID is created at a
     point in time where it is neither global (i.e. during the

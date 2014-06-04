@@ -68,12 +68,12 @@ module Html5_forms(*  : sig *)
 (* end *) = struct
 
   module Html5_forms_base(Html5 : sig
-    include Html5_sigs.T with module Xml := Xml and module Svg := Svg.D.Raw
+    include Html5_sigs.T with module Xml := Xml and module Svg := Svg.D
                          and type +'a elt = 'a Html5.elt
                          and type 'a wrap = 'a
                          and type +'a attrib = 'a Html5.attrib
                          and type uri = Html5.uri
-    include "sigs/eliom_html5_event_handler.mli"
+
     type ('a, 'b, 'c) lazy_star =
         ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
     val lazy_form:
@@ -942,6 +942,18 @@ module Html5_forms(*  : sig *)
       | Some xhr -> xhr
       | None -> Eliom_config.get_default_links_xhr ()
 
+    let a_onclick_service info =
+      Html5.D.to_attrib (
+        Xml.internal_event_handler_attrib
+          "onclick"
+          (Xml.internal_event_handler_of_service info))
+
+    let a_onsubmit_service info =
+      Html5.D.to_attrib (
+        Xml.internal_event_handler_attrib
+          "onsubmit"
+          (Xml.internal_event_handler_of_service info))
+
     let a ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname ?port ?fragment
           ?keep_nl_params ?nl_params
           ?xhr
@@ -950,7 +962,7 @@ module Html5_forms(*  : sig *)
       let a =
         if xhr then
           let info = make_info ~https `A service in
-          Html5.D.Raw.a_onclick (Xml.event_handler_of_service info) :: a
+          a_onclick_service info :: a
         else
           a
       in
@@ -966,7 +978,7 @@ module Html5_forms(*  : sig *)
       let a =
         if get_xhr xhr then
           let info = make_info ~https `Form_get service in
-          Html5.D.Raw.a_onsubmit (Xml.event_handler_of_service info) :: a
+          a_onsubmit_service info :: a
         else
           a
       in
@@ -981,7 +993,7 @@ module Html5_forms(*  : sig *)
       let a =
         if get_xhr xhr then
           let info = make_info ~https `Form_get service in
-          Html5.D.Raw.a_onsubmit (Xml.event_handler_of_service info) :: a
+          a_onsubmit_service info :: a
         else
           a
       in
@@ -997,7 +1009,7 @@ module Html5_forms(*  : sig *)
       let a =
         if get_xhr xhr then
           let info = make_info ~https `Form_post service in
-          Html5.D.Raw.a_onsubmit (Xml.event_handler_of_service info) :: a
+          a_onsubmit_service info :: a
         else
           a
       in
@@ -1013,7 +1025,7 @@ module Html5_forms(*  : sig *)
       let a =
         if get_xhr xhr then
           let info = make_info ~https `Form_post service in
-          Html5.D.Raw.a_onsubmit (Xml.event_handler_of_service info) :: a
+          a_onsubmit_service info :: a
         else
           a
       in

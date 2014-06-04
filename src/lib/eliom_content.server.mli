@@ -132,20 +132,18 @@ module Xml : sig
   val make_event_handler_table : elt -> Eliom_lib.RawXML.event_handler_table
   val make_client_attrib_table : elt -> Eliom_lib.RawXML.client_attrib_table
 
-  val event_handler_of_string : string -> event_handler
-  val string_of_event_handler : event_handler -> string
-  val event_handler_of_service :
-    ( [ `A | `Form_get | `Form_post ]
-      * (bool * string list) option
-      * string option) option Eliom_lazy.request -> event_handler
-
   val caml_event_handler : ((#Dom_html.event as 'a) Js.t -> unit) Eliom_lib.client_value -> 'a caml_event_handler
-  val event_handler : (Dom_html.event Js.t -> unit) Eliom_lib.client_value -> event_handler
+
+  class type biggest_event = object
+    inherit Dom_html.event
+    inherit Dom_html.mouseEvent
+    inherit Dom_html.keyboardEvent
+  end
 
   type racontent =
     | RA of acontent
     | RAReact of acontent option React.signal
-    | RACamlEventHandler of Dom_html.event caml_event_handler
+    | RACamlEventHandler of biggest_event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
     | RAClient of string * attrib option * attrib Eliom_lib.Client_value_server_repr.t
@@ -185,6 +183,8 @@ module Svg : sig
     (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
                              and type Xml.event_handler = Xml.event_handler
+                             and type Xml.mouse_event_handler = Xml.mouse_event_handler
+                             and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
                              and type Xml.attrib = Xml.attrib
                              and type Xml.elt = Xml.elt
                              and type +'a elt = 'a elt
@@ -194,12 +194,6 @@ module Svg : sig
                              and type uri = uri
 
     include module type of Raw
-
-
-    (** {2 Event handlers} *)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_svg_event_handler.mli"
 
   end
 
@@ -210,6 +204,8 @@ module Svg : sig
     (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
                              and type Xml.event_handler = Xml.event_handler
+                             and type Xml.mouse_event_handler = Xml.mouse_event_handler
+                             and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
                              and type Xml.attrib = Xml.attrib
                              and type Xml.elt = Xml.elt
                              and type +'a elt = 'a elt
@@ -219,11 +215,6 @@ module Svg : sig
                              and type uri = uri
 
     include module type of Raw
-
-    (** {2 Event handlers} *)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_svg_event_handler.mli"
 
   end
 
@@ -300,6 +291,8 @@ module Html5 : sig
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
+                   and type Xml.mouse_event_handler = Xml.mouse_event_handler
+                   and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
                    and type Xml.attrib = Xml.attrib
                    and type Xml.elt = Xml.elt
                    and type 'a Xml.wrap = 'a
@@ -309,13 +302,7 @@ module Html5 : sig
                    and type +'a attrib = 'a attrib
                    and type uri = uri
 
-    include module type of Raw (*BB TODO Hide untyped [input]. *)
-
-    (** {2 Event handlers} *)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-
-    include "sigs/eliom_html5_event_handler.mli"
+    include module type of Raw
 
     (**/**)
     type ('a, 'b, 'c) lazy_star =
@@ -372,6 +359,8 @@ module Html5 : sig
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler
+                   and type Xml.mouse_event_handler = Xml.mouse_event_handler
+                   and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
                    and type Xml.attrib = Xml.attrib
                    and type Xml.elt = Xml.elt
                    and type 'a Xml.wrap = 'a
@@ -380,12 +369,7 @@ module Html5 : sig
                    and type 'a wrap = 'a
                    and type +'a attrib = 'a attrib
                    and type uri = uri
-    include module type of Raw (*BB TODO Hide untyped [input]. *)
-
-    (** {2 Event handlers} *)
-
-    (** Redefine event handler attributes to simplify their usage. *)
-    include "sigs/eliom_html5_event_handler.mli"
+    include module type of Raw
 
     (**/**)
     type ('a, 'b, 'c) lazy_star =

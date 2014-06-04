@@ -76,20 +76,26 @@ module RawXML : sig
     | CE_call_service of
         ([ `A | `Form_get | `Form_post] * (cookie_info option) * string option) option Eliom_lazy.request
 
-  type event_handler =
+  (* Inherit from all events.
+     Necessary for subtyping since caml_event_handler is contravariant. *)
+  class type biggest_event = object
+    inherit Dom_html.event
+    inherit Dom_html.mouseEvent
+    inherit Dom_html.keyboardEvent
+  end
+
+  type internal_event_handler =
     | Raw of string
-    | Caml of Dom_html.event caml_event_handler
+    | Caml of biggest_event caml_event_handler
 
   type uri = string Eliom_lazy.request
   val string_of_uri : uri -> string
   val uri_of_string : string -> uri
   val uri_of_fun : (unit -> string) -> uri
 
-  val event_handler_of_string : string -> event_handler
-  val string_of_event_handler : event_handler -> string
-  val event_handler_of_service :
+  val internal_event_handler_of_service :
     ([ `A | `Form_get | `Form_post] * (cookie_info option) * string option) option Eliom_lazy.request ->
-      event_handler
+      internal_event_handler
 
   val ce_registered_closure_class : string
   val ce_registered_attr_class : string
@@ -117,7 +123,7 @@ module RawXML : sig
   type racontent =
     | RA of acontent
     | RAReact of acontent option React.signal
-    | RACamlEventHandler of Dom_html.event caml_event_handler
+    | RACamlEventHandler of biggest_event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
     | RAClient of string * attrib option * attrib Client_value_server_repr.t
@@ -139,7 +145,7 @@ module RawXML : sig
   val string_attrib : aname -> string -> attrib
   val space_sep_attrib : aname -> string list -> attrib
   val comma_sep_attrib : aname -> string list -> attrib
-  val event_handler_attrib : aname -> event_handler -> attrib
+  val internal_event_handler_attrib : aname -> internal_event_handler -> attrib
   val uri_attrib : aname -> string Eliom_lazy.request -> attrib
   val uris_attrib : aname -> string Eliom_lazy.request list -> attrib
 
@@ -152,7 +158,7 @@ module RawXML : sig
   module ClosureMap : Map.S with type key = string (* crypto *)
 
   type event_handler_table =
-    ((Dom_html.event Js.t -> unit) Client_value_server_repr.t) ClosureMap.t
+    ((biggest_event Js.t -> unit) Client_value_server_repr.t) ClosureMap.t
 
   type client_attrib_table = attrib Client_value_server_repr.t ClosureMap.t
 
