@@ -318,11 +318,11 @@ module Html5 : sig
     include "sigs/eliom_html5_event_handler.mli"
 
     (**/**)
-    type ('a, 'b, 'c) lazy_plus =
-      ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
+    type ('a, 'b, 'c) lazy_star =
+      ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     val lazy_form:
-      ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_plus
+      ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_star
 
     (**/**)
 
@@ -331,7 +331,7 @@ module Html5 : sig
     include "sigs/eliom_html5_forms2.mli"
 
     (** Creates an untyped form. *)
-    val raw_form : ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) plus
+    val raw_form : ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) star
 
     (** This is an alias to {% <<a_api|val Eliom_content.Html5.F.get_form>> %}
         to avoid the untyped [Eliom_content.Html5.F.form]. *)
@@ -388,11 +388,11 @@ module Html5 : sig
     include "sigs/eliom_html5_event_handler.mli"
 
     (**/**)
-    type ('a, 'b, 'c) lazy_plus =
-      ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
+    type ('a, 'b, 'c) lazy_star =
+      ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     val lazy_form:
-      ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_plus
+      ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_star
     (**/**)
 
 
@@ -400,7 +400,7 @@ module Html5 : sig
     include "sigs/eliom_html5_forms2.mli"
 
     (** Creates an untyped form. *)
-    val raw_form : ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) plus
+    val raw_form : ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) star
 
     (** This is an alias to {% <<a_api|val Eliom_content.Html5.D.get_form>> %}
         to avoid the untyped [Eliom_content.Html5.D.form]. *)

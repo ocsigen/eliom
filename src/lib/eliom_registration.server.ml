@@ -81,7 +81,7 @@ module Html5_make_reg_base
   open Eliom_content.Html5.F
   open Html5_types
 
-  type page = xhtml elt
+  type page = html elt
 
   type options = unit
 

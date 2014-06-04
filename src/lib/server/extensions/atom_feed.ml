@@ -131,9 +131,6 @@ let rec metaAttr_extract l = match l with
 let rec c_pcdata l = match l with | [] -> [] | a::r -> Xml.pcdata a :: c_pcdata
 r
 
-let xhtmlDiv b = Xml.node ~a:[(Xml.string_attrib "xmlns"
-      "http://www.w3.org/1999/xhtml")] "div" (Xhtml.M.toeltl b)
-
 let print_html5 l =
   let buffer = Buffer.create 500 in
   let output = Buffer.add_string buffer in
@@ -143,9 +140,6 @@ let print_html5 l =
 let inlineC ?(meta = []) ?(html = false) c = `Content (Xml.node ~a:(a_type (if
             html then "html" else "text") :: metaAttr_extract meta) "content"
       (c_pcdata c))
-
-let xhtmlC ?(meta = []) c = `Content (Xml.node ~a:(a_type "xhtml" ::
-         metaAttr_extract meta) "content" [xhtmlDiv c])
 
 let html5C ?meta c =
   inlineC ?meta ~html:true [print_html5 [Eliom_content.Html5.F.div c]]
@@ -225,9 +219,6 @@ let rec feedOAttr_extract l = match l with
 let plain ?(meta = []) ?(html = false) content = (Xml.string_attrib "type"
     (if html then "html" else "text"):: metaAttr_extract meta, [Xml.pcdata
     content])
-
-let xhtml ?(meta = []) content = (Xml.string_attrib "type" "xhtml" ::
-      metaAttr_extract meta, [xhtmlDiv content])
 
 let html5 ?meta content =
   plain ?meta ~html:true (print_html5 content)

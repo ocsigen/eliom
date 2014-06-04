@@ -376,15 +376,13 @@ module Html5 = struct
 
     include Raw
 
-    type ('a, 'b, 'c) lazy_plus =
-      ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
+    type ('a, 'b, 'c) lazy_star =
+      ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
 
-    let lazy_form ?(a = []) elt1 elts =
+    let lazy_form ?(a = []) elts =
       tot (Xml'.lazy_node ~a:(to_xmlattribs a) "form"
              (Eliom_lazy.from_fun
-                (fun () ->
-                  toelt (Eliom_lazy.force elt1)
-                  :: toeltl (Eliom_lazy.force elts))))
+                (fun () -> toeltl (Eliom_lazy.force elts))))
     let a_onabort ev = Raw.a_onabort (Eliom_xml.event_handler ev)
     let a_onafterprint ev = Raw.a_onafterprint (Eliom_xml.event_handler ev)
     let a_onbeforeprint ev = Raw.a_onbeforeprint (Eliom_xml.event_handler ev)
@@ -480,15 +478,13 @@ module Html5 = struct
     module Raw = Html5_f.Make(Xml)(Svg.F.Raw)
     include Raw
 
-    type ('a, 'b, 'c) lazy_plus =
-      ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
+    type ('a, 'b, 'c) lazy_star =
+      ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
 
-    let lazy_form ?(a = []) elt1 elts =
+    let lazy_form ?(a = []) elts =
       tot (Eliom_xml.lazy_node ~a:(to_xmlattribs a) "form"
              (Eliom_lazy.from_fun
-                (fun () ->
-                  toelt (Eliom_lazy.force elt1)
-                  :: toeltl (Eliom_lazy.force elts))))
+                (fun () -> toeltl (Eliom_lazy.force elts))))
 
     let a_onabort ev = a_onabort (Eliom_xml.event_handler ev)
     let a_onafterprint ev = a_onafterprint (Eliom_xml.event_handler ev)
