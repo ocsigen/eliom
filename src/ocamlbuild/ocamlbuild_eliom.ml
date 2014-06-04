@@ -7,7 +7,11 @@ module type ELIOM = sig
   val client_dir : Ocamlbuild_plugin.Pathname.t
 end
 
-module Make (Eliom : ELIOM) = struct
+module type INTERNALS = sig
+  val with_package : string -> string
+end
+module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
+
   let copy_with_header src prod =
     let contents = Pathname.read src in
     let header = "# 1 \"" ^ src ^ "\"\n" in
@@ -42,7 +46,7 @@ module Make (Eliom : ELIOM) = struct
     List.iter f tags;
     flag ["ocaml"; "doc"; file_tag] (S [A "-ppopt"; A "-notype"])
 
-  let syntaxes = ["package(eliom.syntax.predef)"]
+  let syntaxes = [I.with_package "eliom.syntax.predef"]
 
   let no_extra_syntaxes = "no_extra_syntaxes"
 
@@ -71,8 +75,8 @@ module Make (Eliom : ELIOM) = struct
       (fun env dir name src file ->
          let path = env "%(path)" in
          tag_file_inside_rule file
-           ( "package(eliom.server)"
-             :: "package(eliom.syntax.server)"
+           ( I.with_package "eliom.server"
+             :: I.with_package "eliom.syntax.server"
              :: get_syntaxes src
            );
          flag_infer ~file ~name ~path;
@@ -85,8 +89,8 @@ module Make (Eliom : ELIOM) = struct
       (fun env dir name src file ->
          let path = env "%(path)" in
          tag_file_inside_rule file
-           ( "package(eliom.client)"
-             :: "package(eliom.syntax.client)"
+           ( I.with_package "eliom.client"
+             :: I.with_package "eliom.syntax.client"
              :: get_syntaxes src
            );
          flag_infer ~file ~name ~path;
@@ -100,7 +104,7 @@ module Make (Eliom : ELIOM) = struct
          let server_dir = Pathname.concat path Eliom.server_dir in
          let server_file = Pathname.concat server_dir name in
          tag_file_inside_rule file
-           ( "package(eliom.syntax.type)"
+           ( I.with_package"eliom.syntax.type"
              :: get_syntaxes src
              @ Tags.elements (tags_of_pathname server_file)
            );
@@ -145,3 +149,5 @@ module Make (Eliom : ELIOM) = struct
     Ocamlbuild_js_of_ocaml.dispatcher ?oasis_executables hook;
     init hook
 end
+
+module Make(Eliom : ELIOM) = MakeIntern(struct let with_package = Printf.sprintf "package(%s)" end)(Eliom)

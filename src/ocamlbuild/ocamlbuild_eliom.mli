@@ -35,3 +35,16 @@ module Make (Eliom : ELIOM) : sig
     Ocamlbuild_plugin.hook ->
     unit
 end
+
+
+(**/**)
+module type INTERNALS = sig
+  val with_package : string -> string
+end
+
+module MakeIntern (I : INTERNALS)(Eliom : ELIOM) : sig
+  val dispatcher :
+    ?oasis_executables:Ocamlbuild_plugin.Pathname.t list ->
+    Ocamlbuild_plugin.hook ->
+    unit
+end

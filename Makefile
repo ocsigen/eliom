@@ -1,36 +1,46 @@
-include Makefile.config
-
 ### Building
+BUILDER=_build/build/build.native
+BUILD=ocaml pkg/build.ml
 
-.PHONY: all byte opt doc
+.PHONY: all byte opt builder
+all: $(BUILDER)
+	$(BUILD) manpage=false native=true native-dynlink=true
+byte: $(BUILDER)
+	$(BUILD) manpage=false native=false native-dynlink=false
+opt: $(BUILDER)
+	$(BUILD) manpage=false native=true native-dynlink=true
 
-all:
-	${MAKE} -C src all
-
-byte:
-	${MAKE} -C src byte
-
-opt:
-	${MAKE} -C src opt
-
-odoc:
-	$(MAKE) -C src odoc
-
-doc:
-	$(MAKE) -C doc doc
+$(BUILDER): $(wildcard build/*.ml)
+	ocamlbuild -no-plugin -I src/ocamlbuild -no-links -use-ocamlfind build/build.native 1> /dev/null
+builder: $(BUILDER)
+### Doc
+.PHONY: doc wikidoc doc man alldoc
+DOCS_DIR=src/lib/client src/lib/server src/ocamlbuild
+DOCS_HTML=$(addsuffix /api.docdir/index.html,$(DOCS_DIR))
+DOCS_WIKI=$(addsuffix /api.wikidocdir/index.wiki,$(DOCS_DIR))
+DOCS_MAN= src/lib/client/api.mandocdir/man.3oc \
+          src/lib/server/api.mandocdir/man.3os \
+          src/ocamlbuild/api.mandocdir/man.3o
+doc: $(BUILDER)
+	$(BUILDER) $(DOCS_HTML)
+wikidoc: $(BUILDER)
+	$(BUILDER) $(DOCS_WIKI)
+man: $(BUILDER)
+	$(BUILDER) $(DOCS_MAN)
+alldoc: man wikidoc doc
 
 ### Testing ###
 
-.PHONY: run.local run.opt.local top links
+.PHONY: run.local run.opt.local links
 
-run.local: tests.byte fifo
-	ocsigenserver -c local/etc/${PROJECTNAME}.conf
+run.local: tests.byte fifo tests/eliom.conf
+	OCAMLPATH=tests/:$(OCAMLPATH) ocsigenserver -c tests/eliom.conf
+
+run.opt.local: tests.opt fifo tests/eliom.conf
+	OCAMLPATH=tests/:$(OCAMLPATH) ocsigenserver.opt -c tests/eliom.conf
 
 tests.byte: byte links
 	${MAKE} -C tests byte
-
-run.opt.local: tests.opt fifo
-	ocsigenserver.opt -c local/etc/${PROJECTNAME}.conf
 
 tests.opt: opt links
 	${MAKE} -C tests opt
@@ -39,89 +49,37 @@ links:
 	-mkdir -p local/var/run
 	-mkdir -p local/var/log
 	-mkdir -p local/var/lib
-	-mkdir -p local/lib/server
-	-mkdir -p local/lib/client
-	cd local/lib ; \
-        ln -sf ../../src/syntax .  ; \
-	cd server ; \
-	ln -sf ../../../src/server/*cmi . ; \
-	ln -sf ../../../src/clientserver/_server/*cmi . ; \
-	ln -sf ../../../src/server2/*cmi . ; \
-	ln -sf ../../../src/server2/extensions/*cmi . ; \
-	ln -sf ../../../src/server2/eliom.cm* . ; \
-	cd ../client ; \
-	ln -sf ../../../src/client/*cmi . ; \
-	ln -sf ../../../src/clientserver/_client/*cmi . ; \
-	ln -sf ../../../src/client2/*cmi . ; \
-	ln -sf ../../../src/client2/eliom_client.cma . ; \
-	ln -sf ../../../src/client2/eliom_client_main.cmo .  ; \
-	ln -sf ../../../src/client2/eliom_client.js .  ; \
-	cd ../../..
 
 fifo:
-	[ -p local/var/run/${PROJECTNAME}_command ] || \
-	 { mkfifo local/var/run/${PROJECTNAME}_command; \
-	   chmod 660 local/var/run/${PROJECTNAME}_command; }
+	[ -p local/var/run/eliom_command ] || \
+	 { mkfifo local/var/run/eliom_command; \
+	   chmod 660 local/var/run/eliom_command; }
 
 
 ### Cleaning ###
-
+.PHONY: clean clean.local distclean
 clean: clean.local
-	${MAKE} -C src clean
+	ocamlbuild -quiet -no-plugin -clean
 	${MAKE} -C tests clean
 
 clean.local:
-	-rm -f $(PROJECTNAME)-*.tar.gz
+	-rm -f eliom-*.tar.gz
 
-distclean: clean.local
+distclean: clean clean.local
 	${MAKE} -C tests distclean
-	-${MAKE} -C doc clean
-	${MAKE} -C src distclean
-	-rm Makefile.config
-	-rm -f *~ \#* .\#*
+	-find ./ -name "*\#*" | xargs rm -f
 
 ### Installation ####
-
 .PHONY: install uninstall reinstall
 
-install:
-	$(MAKE) -C src install
-	@echo
-	@echo "## Run \"make doc\" and \"make install.doc\" to build and install the ocamldoc."
-install.byte:
-	$(MAKE) -C src install.byte
-install.opt:
-	$(MAKE) -C src install.opt
 
-uninstall:
-	-$(MAKE) -C src uninstall
+install uninstall: eliom.install
+ifneq ($(PREFIX),)
+	opam-installer --$@ --prefix $(PREFIX) eliom.install
+else
+	@echo you must provide a prefix with : make PREFIX=myprefix $@
+endif
 
 reinstall:
-	$(MAKE) -C src reinstall
-reinstall.byte:
-	$(MAKE) -C src reinstall.byte
-reinstall.opt:
-	$(MAKE) -C src reinstall.opt
-
-install.doc:
-	${MAKE} -C doc install
-
-###
-
-.PHONY: dist
-
-VERSION := $(shell head -n 1 VERSION)
-dist:
-	DARCS_REPO=$(PWD) darcs dist -d $(PROJECTNAME)-$(VERSION)
-
-###
-
-.PHONY: depend
-depend:
-	${MAKE} -C src syntax.depend
-	${MAKE} -C src/syntax
-	${MAKE} -C src tools.depend
-	${MAKE} -C src/tools
-	${MAKE} -C src files/META.${PROJECTNAME}
-	${MAKE} -C src server.depend client.depend
-	${MAKE} -C tests depend
+	${MAKE} uninstall
+	${MAKE} install

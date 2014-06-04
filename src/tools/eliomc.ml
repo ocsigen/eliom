@@ -361,24 +361,36 @@ let rec process_option () =
   | `Compile | `Infer | `Interface -> ()
 
 let main () =
+  let cmd = Filename.basename Sys.argv.(0) in
+  let cmd =
+    try
+      let idx = String.index cmd '.' in
+      String.sub cmd 0 idx
+    with Not_found -> cmd in
   let k =
-    match Filename.basename Sys.argv.(0) with
-      | "eliomopt" ->
-	  compiler := ocamlopt;
-	  build_dir := default_server_dir;
-	  `ServerOpt
-      | "eliomcp" ->
-	  compiler := ocamlcp;
-	  build_dir := default_server_dir;
-	  `Server
-      | "js_of_eliom" ->
-	  compiler := ocamlc;
-	  build_dir := default_client_dir;
-	  `Client
-      | "eliomc" | _ ->
-	  compiler := ocamlc;
-	  build_dir := default_server_dir;
-	  `Server in
+    match cmd with
+    | "eliomopt" ->
+	    compiler := ocamlopt;
+	    build_dir := default_server_dir;
+	    `ServerOpt
+    | "eliomcp" ->
+	    compiler := ocamlcp;
+	    build_dir := default_server_dir;
+	    `Server
+    | "js_of_eliom" ->
+	    compiler := ocamlc;
+	    build_dir := default_client_dir;
+	    `Client
+    | "eliomc" ->
+	    compiler := ocamlc;
+	    build_dir := default_server_dir;
+	    `Server
+    | s ->
+      Format.eprintf "exec name not recognize %S: fallback to ocamlc@." s;
+  	  compiler := ocamlc;
+	    build_dir := default_server_dir;
+	    `Server
+  in
   kind := k;
   process_option ()
 

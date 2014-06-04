@@ -2,29 +2,15 @@ Miniwiki
 ---------
 
 Miniwiki is a simple wiki written for Ocsigen by Janne Hellsten
-(jjhellst@gmail.com).  It's primary purpose is to server as a code
-example for Ocsigen module developers.
-
-Compiling & running
--------------------
-
-Miniwiki should be compiled and install with Ocsigen.
-
-The default config file usually contains miniwiki preconfigured.
-
-If not, adapt files/miniwiki.conf and start Ocsigen with Miniwiki by running
-
-   ocsigen -c examples/miniwiki/files/miniwiki.conf
-
-4. Point your browser to localhost:9999/
+(jjhellst@gmail.com).  It's primary purpose is to serve as a code
+example for Ocsigen developers.
 
 Implementation
 --------------
 
 Wiki page storage
 
-Each wiki page is a file in the wiki storage directory
-(/var/lib/ocsigen/miniwiki/wikidata/ is the default).  A wiki page "Foo"
+Each wiki page is a file in the wiki storage directory. A wiki page "Foo"
 corresponds to a file called "Foo.wiki" in the "wikidata" directory.
 
 Character encoding

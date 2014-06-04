@@ -1,0 +1,12 @@
+opam-version: "1"
+maintainer: "dev@ocsigen.org"
+version: "dev"
+build: [ make ]
+depends: [
+  "ocamlfind"
+  "deriving" {>= "0.6"}
+  "js_of_ocaml" {>= "2.2"}
+  "calendar"
+  "ocsigenserver" {>= "2.4.0"}
+  "ipaddr" {>= "2.1"}
+]
