@@ -95,6 +95,9 @@ module Xml : sig
       See {% <<a_api project="tyxml" | module Xml_sigs.Iterable >> %}. *)
 
   include Xml_sigs.Iterable with type 'a wrap = 'a
+                             and type event_handler = (Dom_html.event Js.t -> unit) Eliom_lib.client_value
+                             and type mouse_event_handler = (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value
+                             and type keyboard_event_handler = (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value
 
   (** {2 Unique nodes } *)
 
