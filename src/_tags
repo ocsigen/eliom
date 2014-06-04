@@ -8,7 +8,7 @@ true:no_extra_syntaxes
 <lib/server/*.ml{,i}>:package(js_of_ocaml.syntax)
 
 <lib/server/*.ml{,i}>:thread
-<lib/server/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml)
+<lib/server/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml.functor)
 <lib/server/*.ml{,i}>:package(react,js_of_ocaml)
 
 <lib/server/*.ml{,i}>:pkg_pa_include,sig_inc(../src/lib/server),sig_inc(../src/lib/common)
@@ -20,7 +20,7 @@ true:no_extra_syntaxes
 
 <lib/client/*.ml{,i}>:package(ocsigenserver.cookies,ocsigenserver.polytables,ocsigenserver.baselib.base)
 <lib/client/*.ml{,i}>:package(deriving.runtime,js_of_ocaml.deriving)
-<lib/client/*.ml{,i}>:package(lwt.react,tyxml.functor)
+<lib/client/*.ml{,i}>:package(lwt.react,tyxml.functor,js_of_ocaml.tyxml)
 <lib/client/*.ml{,i}>:package(react,js_of_ocaml)
 
 <lib/client/*.ml{,i}>:pkg_pa_include,sig_inc(../src/lib/client),sig_inc(../src/lib/common)
