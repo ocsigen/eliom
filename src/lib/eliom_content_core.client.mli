@@ -414,7 +414,7 @@ module Html5 : sig
 
   (** Conversion of Javascript DOM elements to HTML5 elts (with DOM semantics of course).
       One conversion function per source type (stressed by the [of_] prefix). *)
-  module Of_dom : Tyxml_cast.OF with type 'a elt = 'a elt
+  module Of_dom : Tyxml_cast_sigs.OF with type 'a elt = 'a elt
   (**/**)
 
   val set_classes_of_elt : 'a elt -> 'a elt
