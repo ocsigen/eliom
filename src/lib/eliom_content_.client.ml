@@ -40,7 +40,7 @@ module MakeManip
        val get_element': 'a id -> Dom.node Js.t
      end)
     (Ns: sig
-       val content_ns : content_ns
+       val content_ns : Eliom_client.content_ns
      end) = struct
 
     let get_node elt = ((To_dom.of_element elt) :> Dom.node Js.t)

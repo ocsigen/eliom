@@ -24,12 +24,9 @@
 
 open Eliom_lib
 
-type content_ns = [ `HTML5 | `SVG ]
-
-module XmlNoWrap = struct
-
+module Xml = struct
   include RawXML
-
+  type 'a wrap = 'a
   type econtent =
     | Empty
     | Comment of string
@@ -157,14 +154,6 @@ module XmlNoWrap = struct
 
 end
 
-module Xml = struct
-  include XmlNoWrap
-  type 'a wrap = 'a
-end
-
-module X = Xml
-
-
 module Xml_w = struct
   type 'a t = 'a React.signal
   let return x = Lwt_react.S.return x
@@ -286,7 +275,7 @@ module Svg = struct
 
   module Of_dom = struct
     let rebuild_xml (node: 'a Js.t) : 'a F.elt =
-      Obj.magic { Xml.elt = Lazy.lazy_from_val (Xml.DomNode (node :> Dom.node Js.t)); node_id = Xml.NoId }
+      Xml.make_dom (node :> Dom.node Js.t)
     let of_element : Dom_html.element Js.t -> 'a elt = rebuild_xml
   end
 
@@ -296,8 +285,7 @@ end
 module Html5 = struct
 
   module D = struct
-
-    module Raw = Html5_f.Make(struct
+    module Xml' = struct
       include Xml
 
       let make elt = make_request_node (make elt)
@@ -314,8 +302,8 @@ module Html5 = struct
       let node ?(a = []) name children = make (Node (name, a, children))
       let lazy_node ?(a = []) name children =
         make (Node (name, a, Eliom_lazy.force children))
-
-    end)(Svg.D.Raw)
+    end
+    module Raw = Html5_f.Make(Xml')(Svg.D.Raw)
 
     include Raw
 
@@ -323,7 +311,7 @@ module Html5 = struct
         ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     let lazy_form ?(a = []) elts =
-      tot (X.lazy_node ~a:(to_xmlattribs a) "form"
+      tot (Xml'.lazy_node ~a:(to_xmlattribs a) "form"
 	     (Eliom_lazy.from_fun
 	        (fun () -> toeltl (Eliom_lazy.force elts))))
 
@@ -341,14 +329,15 @@ module Html5 = struct
 
   module F = struct
 
-    module Raw = Html5_f.Make(Xml)(Svg.F.Raw)
+    module Xml' = Xml
+    module Raw = Html5_f.Make(Xml')(Svg.F.Raw)
     include Raw
 
     type ('a, 'b, 'c) lazy_star =
         ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     let lazy_form ?(a = []) elts =
-      tot (X.lazy_node ~a:(to_xmlattribs a) "form"
+      tot (Xml'.lazy_node ~a:(to_xmlattribs a) "form"
 	     (Eliom_lazy.from_fun
 	        (fun () -> toeltl (Eliom_lazy.force elts))))
 
@@ -411,11 +400,9 @@ module Html5 = struct
 
   module Of_dom = Tyxml_cast.MakeOf(struct
       type 'a elt = 'a F.elt
-      let elt (node: 'a Js.t) : 'a elt =
-        Obj.magic { Xml.elt = Lazy.lazy_from_val (Xml.DomNode (node :> Dom.node Js.t));
-                    node_id = Xml.NoId }
+      let elt (node: 'a Js.t) : 'a elt = Xml.make_dom (node :> Dom.node Js.t)
     end)
 
-  let set_classes_of_elt elt = F.tot (X.set_classes_of_elt (F.toelt elt))
+  let set_classes_of_elt elt = F.tot (Xml.set_classes_of_elt (F.toelt elt))
 
 end

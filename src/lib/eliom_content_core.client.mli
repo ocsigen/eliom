@@ -20,8 +20,6 @@
 (** XML building and deconstructing. Cf. {% <<a_api subproject="server" |
     module Eliom_content_core.Xml >> %}. *)
 
-type content_ns = [ `HTML5 | `SVG ]
-
 module Xml : sig
 
   type uri = string
@@ -143,6 +141,8 @@ module Xml : sig
 
   val get_node : elt -> node
   val set_dom_node : elt -> Dom.node Js.t -> unit
+
+  val set_classes_of_elt : elt -> elt
 end
 
 (** Building SVG tree. *)

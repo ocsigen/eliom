@@ -23,9 +23,7 @@ open Eliom_content_core
 
 module type Forms = "sigs/eliom_forms.mli"
 
-module Xml = Xml
-
-module Eliom_xml = Xml
+module Xml = Eliom_content_core.Xml
 
 module Svg = struct
 

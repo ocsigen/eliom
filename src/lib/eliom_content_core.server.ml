@@ -26,9 +26,9 @@ open Eliom_lib
 
 (*****************************************************************************)
 
-module XmlNoWrap = struct
-
+module Xml = struct
   include RawXML
+  type 'a wrap = 'a
 
   type econtent =
     | Empty
@@ -133,6 +133,12 @@ module XmlNoWrap = struct
   let keyboard_event_handler_attrib name (cf : keyboard_event_handler) =
     biggest_event_handler_attrib name (cf :> biggest_event_handler)
 
+  let client_attrib ?init (x : attrib Eliom_lib.client_value) =
+    let crypto = make_cryptographic_safe_string () in
+    let empty_name = "" in
+    empty_name,RAClient (crypto,init,Eliom_lib.client_value_server_repr x)
+
+
   let cdata s = (* GK *)
     (* For security reasons, we do not allow "]]>" inside CDATA
        (as this string is to be considered as the end of the cdata)
@@ -224,13 +230,6 @@ module XmlNoWrap = struct
 
 end
 
-module Xml = struct
-  include XmlNoWrap
-  type 'a wrap = 'a
-end
-
-module Eliom_xml = Xml
-
 module Svg = struct
 
   module D = struct
@@ -255,11 +254,8 @@ module Svg = struct
 
     end
     module Raw = Svg_f.Make(Xml')
-
     let client_attrib ?init (x : 'a Raw.attrib Eliom_lib.client_value) =
-      let crypto = make_cryptographic_safe_string () in
-      let empty_name = "" in
-      empty_name,Xml.RAClient (crypto,init,Obj.magic (Eliom_lib.client_value_server_repr x))
+      Xml.client_attrib ?init x
 
     include Raw
 
@@ -298,7 +294,7 @@ module Html5 = struct
 
     (* This is [Eliom_content.Xml] adapted such that request nodes are produced *)
     module Xml' = struct
-      include Eliom_xml
+      include Xml
 
       let make elt = make_request_node (make elt)
       let make_lazy elt = make_request_node (make_lazy elt)
@@ -320,9 +316,7 @@ module Html5 = struct
 
     module Raw = Html5_f.Make(Xml')(Svg.D.Raw)
     let client_attrib ?init (x : 'a Raw.attrib Eliom_lib.client_value) =
-      let crypto = make_cryptographic_safe_string () in
-      let empty_name = "" in
-      empty_name,Xml.RAClient (crypto,init,Obj.magic (Eliom_lib.client_value_server_repr x))
+      Xml.client_attrib ?init x
 
     include Raw
 
@@ -337,14 +331,15 @@ module Html5 = struct
 
   module F = struct
 
-    module Raw = Html5_f.Make(Xml)(Svg.F.Raw)
+    module Xml' = Xml
+    module Raw = Html5_f.Make(Xml')(Svg.F.Raw)
     include Raw
 
     type ('a, 'b, 'c) lazy_star =
       ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     let lazy_form ?(a = []) elts =
-      tot (Eliom_xml.lazy_node ~a:(to_xmlattribs a) "form"
+      tot (Xml'.lazy_node ~a:(to_xmlattribs a) "form"
              (Eliom_lazy.from_fun
                 (fun () -> toeltl (Eliom_lazy.force elts))))
 
@@ -390,8 +385,3 @@ module Html5 = struct
   module Printer = Xml_print.Make_typed_simple(Xml)(F)
 
 end
-
-
-(* internal modules used by reactive nodes
-   (here to escape from the interface) *)
-module Xmld = Html5.D.Xml'

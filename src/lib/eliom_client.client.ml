@@ -20,7 +20,8 @@
  *)
 
 open Eliom_lib
-open Eliom_content_core
+
+module Xml = Eliom_content_core.Xml
 
 module JsTable = Eliommod_jstable
 
@@ -1422,6 +1423,8 @@ end = struct
 
 end
 
+type content_ns = [ `HTML5 | `SVG ]
+
 let rec rebuild_node_with_state ns ?state elt =
   match Xml.get_node elt with
   | Xml.DomNode node ->
@@ -1508,14 +1511,14 @@ let rebuild_node_ns ns context elt' =
   node
 
 let rebuild_node_svg context elt =
-  let elt' = Svg.F.toelt elt in
+  let elt' = Eliom_content_core.Svg.F.toelt elt in
   rebuild_node_ns `SVG context elt'
 
 
 (** The first argument describes the calling function (if any) in case
     of an error. *)
 let rebuild_node context elt =
-  let elt' = Html5.F.toelt elt in
+  let elt' = Eliom_content_core.Html5.F.toelt elt in
   rebuild_node_ns `HTML5 context elt'
 
 (******************************************************************************)
@@ -1552,11 +1555,10 @@ let unwrap_tyxml =
                     (fun () ->
                        trace "not found";
                        let xml_elt : Xml.elt = Xml.make ~id elt in
-                       let html_elt = (Obj.magic xml_elt : _ Html5.elt) in
-                       let html_elt = Html5.set_classes_of_elt html_elt in
+                       let xml_elt = Eliom_content_core.Xml.set_classes_of_elt xml_elt in
                        register_process_node (Js.bytestring process_id)
-                         (rebuild_node context html_elt);
-                       (Obj.magic html_elt : Xml.elt))
+                         (rebuild_node_ns `HTML5 context xml_elt);
+                       xml_elt)
                     (fun elt ->
                        trace "found";
                        Xml.make_dom ~id elt)
@@ -1566,11 +1568,9 @@ let unwrap_tyxml =
                     (fun () ->
                        trace "not found";
                        let xml_elt : Xml.elt = Xml.make ~id elt in
-                       let html_elt = (Obj.magic xml_elt : _ Html5.elt) in
-                       let html_elt = Html5.set_classes_of_elt html_elt in
                        register_request_node (Js.bytestring request_id)
-                         (rebuild_node context html_elt);
-                       (Obj.magic html_elt : Xml.elt))
+                         (rebuild_node_ns `HTML5 context xml_elt);
+                       xml_elt)
                     (fun elt -> trace "found"; Xml.make_dom ~id elt)
               | Xml.NoId as id ->
                   trace "Unwrap tyxml from NoId";
@@ -1603,6 +1603,70 @@ let _ =
     (Eliom_unwrap.id_of_int Eliom_lib_base.global_data_unwrap_id_int)
     unwrap_global_data;
   ()
+
+
+let init () =
+  let js_data =
+    Eliom_request_info.get_request_data () in
+
+  let onload ev =
+    trace "onload (client main)";
+    set_initial_load ();
+    Lwt.async
+      (fun () ->
+         if !Eliom_config.debug_timings then
+           Firebug.console##time(Js.string "onload");
+         Eliommod_cookies.update_cookie_table (Some Url.Current.host)
+           (Eliom_request_info.get_request_cookies ());
+         Eliom_request_info.set_session_info js_data.Eliom_common.ejs_sess_info;
+         (* Give the browser the chance to actually display the page NOW *)
+         lwt () = Lwt_js.sleep 0.001 in
+         (* Ordering matters. See [Eliom_client.set_content] for explanations *)
+         relink_request_nodes (Dom_html.document##documentElement);
+         let root = Dom_html.document##documentElement in
+         let closure_nodeList,attrib_nodeList = relink_page_but_client_values root in
+         do_request_data js_data.Eliom_common.ejs_request_data;
+         ((* A similar check is necessary in Injection.initialize *)
+           match Eliom_unwrap.remaining_values_for_late_unwrapping () with
+           | [] -> ()
+           | unwrap_ids ->
+             alert "Values marked for unwrapping remain (for unwrapping id %s)."
+               (String.concat ", " (List.map string_of_int unwrap_ids)));
+         let () =
+           relink_attribs root
+             js_data.Eliom_common.ejs_client_attrib_table attrib_nodeList in
+
+         let onload_closure_nodes =
+           relink_closure_nodes root js_data.Eliom_common.ejs_event_handler_table
+             closure_nodeList
+         in
+         reset_request_nodes ();
+         run_callbacks
+           (Eliommod_dom.add_formdata_hack_onclick_handler ::
+            flush_onload () @
+            [ onload_closure_nodes; broadcast_load_end ]);
+         if !Eliom_config.debug_timings then
+           Firebug.console##timeEnd(Js.string "onload");
+         Lwt.return ());
+    Js._false in
+
+  trace "Set load/onload events";
+  let onunload _ = leave_page (); Js._true in
+  (* IE<9: Script438: Object doesn't support property or method
+     addEventListener.
+     Other browsers: Ask whether you really want to navigate away if
+     onbeforeunload is assigned *)
+  if Js.Unsafe.get Dom_html.window (Js.string "addEventListener") == Js.undefined then
+    ( Dom_html.window##onload <- Dom_html.handler onload;
+      Dom_html.window##onbeforeunload <- Dom_html.handler onunload )
+  else
+    ( ignore
+        (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
+           (Dom.handler onload) Js._true);
+      ignore
+        (Dom.addEventListener Dom_html.window (Dom.Event.make "unload")
+           (Dom_html.handler onunload) Js._false) )
+
 
 (******************************************************************************)
 
