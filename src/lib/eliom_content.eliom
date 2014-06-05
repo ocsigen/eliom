@@ -18,12 +18,6 @@
  *)
 
 
-{shared{
-type boxed
-let boxed   : 'a -> boxed = Obj.magic
-let unboxed : boxed -> 'a = Obj.magic
-  }}
-
 {client{
 
   include Eliom_content_
@@ -34,6 +28,13 @@ let unboxed : boxed -> 'a = Obj.magic
   let force_link = ()
 
 }}
+
+{shared{
+type boxed
+let boxed   : 'a -> boxed = Obj.magic
+let unboxed : boxed -> 'a = Obj.magic
+}}
+
 
 {server{
 

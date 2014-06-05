@@ -68,6 +68,7 @@ val html_document : Dom.element Dom.document Js.t ->
 val preload_css : Dom_html.element Js.t -> unit Lwt.t
 
 val iter_nodeList : 'a Dom.nodeList Js.t -> ('a Js.t -> unit) -> unit
+val iter_attrList : Dom.attr Dom.namedNodeMap Js.t -> (Dom.attr Js.t -> unit) -> unit
 
 (** Window scrolling. *)
 

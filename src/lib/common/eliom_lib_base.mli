@@ -29,8 +29,6 @@ module Lwt_ops : sig
   val ( =|< ) : ('a -> 'b) -> 'a Lwt.t -> 'b Lwt.t
 end
 
-val escape_quotes : string -> string
-
 module type Map_S = sig
   include Map.S
   val from_list : (key * 'a) list -> 'a t
@@ -60,7 +58,6 @@ end
 type escaped_value = poly
 
 val fresh_ix : unit -> int64
-val get_option : 'a option -> 'a
 
 module RawXML : sig
 

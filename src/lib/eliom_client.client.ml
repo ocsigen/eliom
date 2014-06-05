@@ -413,8 +413,8 @@ let register_event_handler, flush_load_script =
 
 
 let rebuild_attrib_val = function
-  | Xml.AFloat f -> Obj.magic f
-  | Xml.AInt i ->   Obj.magic i
+  | Xml.AFloat f -> (Js.number_of_float f)##toString()
+  | Xml.AInt i ->   (Js.number_of_float (float_of_int i))##toString()
   | Xml.AStr s ->   Js.string s
   | Xml.AStrL (Xml.Space, sl) -> Js.string (String.concat " " sl)
   | Xml.AStrL (Xml.Comma, sl) -> Js.string (String.concat "," sl)
@@ -861,24 +861,22 @@ let is_closure_attrib,get_closure_name,get_closure_id =
 let relink_closure_node root onload table (node:Dom_html.element Js.t) =
   trace "Relink closure node";
   let aux attr =
-    (* IE8 provides [null] in node##attributes; check this first of all *)
-    if Obj.magic attr then
-      ( if is_closure_attrib attr
-        then
-          let cid = Js.to_bytestring (get_closure_id attr) in
-          let name = get_closure_name attr in
-          try
-            let cv = Eliom_lib.RawXML.ClosureMap.find cid table in
-            let closure = raw_event_handler cv in
-            if name = Js.string "onload" then
-              (if Eliommod_dom.ancessor root node
-               (* if not inside a unique node replaced by an older one *)
-               then onload := closure :: !onload)
-            else Js.Unsafe.set node name (Dom_html.handler (fun ev -> Js.bool (closure ev)))
-          with Not_found ->
-            error "relink_closure_node: client value %s not found" cid )
+    if is_closure_attrib attr
+    then
+      let cid = Js.to_bytestring (get_closure_id attr) in
+      let name = get_closure_name attr in
+      try
+        let cv = Eliom_lib.RawXML.ClosureMap.find cid table in
+        let closure = raw_event_handler cv in
+        if name = Js.string "onload" then
+          (if Eliommod_dom.ancessor root node
+          (* if not inside a unique node replaced by an older one *)
+           then onload := closure :: !onload)
+        else Js.Unsafe.set node name (Dom_html.handler (fun ev -> Js.bool (closure ev)))
+      with Not_found ->
+        error "relink_closure_node: client value %s not found" cid
   in
-  Eliommod_dom.iter_nodeList (node##attributes:>Dom.attr Dom.nodeList Js.t) aux
+  Eliommod_dom.iter_attrList (node##attributes) aux
 
 let relink_closure_nodes (root : Dom_html.element Js.t) event_handlers closure_nodeList =
   trace "Relink %i closure nodes" (closure_nodeList##length);
@@ -907,27 +905,25 @@ let is_attrib_attrib,get_attrib_id =
 let relink_attrib root table (node:Dom_html.element Js.t) =
   trace "Relink attribute";
   let aux attr =
-    (* IE8 provides [null] in node##attributes; check this first of all *)
-    if Obj.magic attr then
-      ( if is_attrib_attrib attr
-        then
-          let cid = Js.to_bytestring (get_attrib_id attr) in
+    if is_attrib_attrib attr
+    then
+      let cid = Js.to_bytestring (get_attrib_id attr) in
+      try
+        let cv = Eliom_lib.RawXML.ClosureMap.find cid table in
+        let closure_id = Client_value_server_repr.closure_id cv in
+        let instance_id = Client_value_server_repr.instance_id cv in
+        begin
           try
-            let cv = Eliom_lib.RawXML.ClosureMap.find cid table in
-            let closure_id = Client_value_server_repr.closure_id cv in
-            let instance_id = Client_value_server_repr.instance_id cv in
-            begin
-              try
-                let value = Client_value.find ~closure_id ~instance_id in
-                let rattrib = (Eliom_lib.from_poly value : Eliom_content_core.Xml.attrib) in
-                rebuild_rattrib node rattrib
-              with Not_found ->
-                error "Client value %Ld/%Ld not found as event handler" closure_id instance_id
-            end
+            let value = Client_value.find ~closure_id ~instance_id in
+            let rattrib = (Eliom_lib.from_poly value : Eliom_content_core.Xml.attrib) in
+            rebuild_rattrib node rattrib
           with Not_found ->
-            error "relink_attrib: client value %s not found" cid)
+            error "Client value %Ld/%Ld not found as event handler" closure_id instance_id
+        end
+      with Not_found ->
+        error "relink_attrib: client value %s not found" cid
   in
-  Eliommod_dom.iter_nodeList (node##attributes:>Dom.attr Dom.nodeList Js.t) aux
+  Eliommod_dom.iter_attrList (node##attributes) aux
 
 
 let relink_attribs (root : Dom_html.element Js.t) attribs attrib_nodeList =
@@ -1282,7 +1278,7 @@ let () =
       Dom_html.handler (fun event ->
         let full_uri = Js.to_string Dom_html.window##location##href in
         Eliommod_dom.touch_base ();
-        Js.Opt.case (Obj.magic event##state : int Js.opt)
+        Js.Opt.case ((Js.Unsafe.coerce event)##state : int Js.opt)
           (fun () -> () (* Ignore dummy popstate event fired by chromium. *))
           (goto_uri full_uri);
         Js._false)

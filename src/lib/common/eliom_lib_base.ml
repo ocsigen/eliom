@@ -31,19 +31,6 @@ end
 let fresh_ix () =
   Int64.of_int (Oo.id (object end))
 
-let get_option = function
-  | Some x -> x
-  | None -> failwith "get_option"
-
-let escape_quotes s =
-  let b = Buffer.create (2 * String.length s) in
-  String.iter
-    (function
-       | '"' -> Buffer.add_string b "\\\""
-       | c -> Buffer.add_char b c)
-    s;
-  Buffer.contents b
-
 (**/**)
 
 module Client_value_server_repr = struct
