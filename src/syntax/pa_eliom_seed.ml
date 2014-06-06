@@ -153,7 +153,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       type t = string
       exception E of t
       let print fmt msg =
-        Format.fprintf fmt "Syntax error: %s" msg
+        Format.fprintf fmt "Error: %s" msg
       let to_string msg =
         ignore(Format.flush_str_formatter ());
         print Format.str_formatter msg;
