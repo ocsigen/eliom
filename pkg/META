@@ -39,6 +39,7 @@ package "client" (
               deriving.runtime,
               js_of_ocaml,
 	    	      js_of_ocaml.deriving,
+              js_of_ocaml.tyxml,
               lwt.react,
               tyxml.functor"
   archive(byte) = "client.cma eliom_client_main.cmo"

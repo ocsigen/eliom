@@ -20,7 +20,8 @@
  *)
 
 open Eliom_lib
-open Eliom_content_core
+
+module Xml = Eliom_content_core.Xml
 
 module JsTable = Eliommod_jstable
 
@@ -412,8 +413,8 @@ let register_event_handler, flush_load_script =
 
 
 let rebuild_attrib_val = function
-  | Xml.AFloat f -> Obj.magic f
-  | Xml.AInt i ->   Obj.magic i
+  | Xml.AFloat f -> (Js.number_of_float f)##toString()
+  | Xml.AInt i ->   (Js.number_of_float (float_of_int i))##toString()
   | Xml.AStr s ->   Js.string s
   | Xml.AStrL (Xml.Space, sl) -> Js.string (String.concat " " sl)
   | Xml.AStrL (Xml.Comma, sl) -> Js.string (String.concat "," sl)
@@ -860,24 +861,22 @@ let is_closure_attrib,get_closure_name,get_closure_id =
 let relink_closure_node root onload table (node:Dom_html.element Js.t) =
   trace "Relink closure node";
   let aux attr =
-    (* IE8 provides [null] in node##attributes; check this first of all *)
-    if Obj.magic attr then
-      ( if is_closure_attrib attr
-        then
-          let cid = Js.to_bytestring (get_closure_id attr) in
-          let name = get_closure_name attr in
-          try
-            let cv = Eliom_lib.RawXML.ClosureMap.find cid table in
-            let closure = raw_event_handler cv in
-            if name = Js.string "onload" then
-              (if Eliommod_dom.ancessor root node
-               (* if not inside a unique node replaced by an older one *)
-               then onload := closure :: !onload)
-            else Js.Unsafe.set node name (Dom_html.handler (fun ev -> Js.bool (closure ev)))
-          with Not_found ->
-            error "relink_closure_node: client value %s not found" cid )
+    if is_closure_attrib attr
+    then
+      let cid = Js.to_bytestring (get_closure_id attr) in
+      let name = get_closure_name attr in
+      try
+        let cv = Eliom_lib.RawXML.ClosureMap.find cid table in
+        let closure = raw_event_handler cv in
+        if name = Js.string "onload" then
+          (if Eliommod_dom.ancessor root node
+          (* if not inside a unique node replaced by an older one *)
+           then onload := closure :: !onload)
+        else Js.Unsafe.set node name (Dom_html.handler (fun ev -> Js.bool (closure ev)))
+      with Not_found ->
+        error "relink_closure_node: client value %s not found" cid
   in
-  Eliommod_dom.iter_nodeList (node##attributes:>Dom.attr Dom.nodeList Js.t) aux
+  Eliommod_dom.iter_attrList (node##attributes) aux
 
 let relink_closure_nodes (root : Dom_html.element Js.t) event_handlers closure_nodeList =
   trace "Relink %i closure nodes" (closure_nodeList##length);
@@ -906,27 +905,25 @@ let is_attrib_attrib,get_attrib_id =
 let relink_attrib root table (node:Dom_html.element Js.t) =
   trace "Relink attribute";
   let aux attr =
-    (* IE8 provides [null] in node##attributes; check this first of all *)
-    if Obj.magic attr then
-      ( if is_attrib_attrib attr
-        then
-          let cid = Js.to_bytestring (get_attrib_id attr) in
+    if is_attrib_attrib attr
+    then
+      let cid = Js.to_bytestring (get_attrib_id attr) in
+      try
+        let cv = Eliom_lib.RawXML.ClosureMap.find cid table in
+        let closure_id = Client_value_server_repr.closure_id cv in
+        let instance_id = Client_value_server_repr.instance_id cv in
+        begin
           try
-            let cv = Eliom_lib.RawXML.ClosureMap.find cid table in
-            let closure_id = Client_value_server_repr.closure_id cv in
-            let instance_id = Client_value_server_repr.instance_id cv in
-            begin
-              try
-                let value = Client_value.find ~closure_id ~instance_id in
-                let rattrib = (Eliom_lib.from_poly value : Eliom_content_core.Xml.attrib) in
-                rebuild_rattrib node rattrib
-              with Not_found ->
-                error "Client value %Ld/%Ld not found as event handler" closure_id instance_id
-            end
+            let value = Client_value.find ~closure_id ~instance_id in
+            let rattrib = (Eliom_lib.from_poly value : Eliom_content_core.Xml.attrib) in
+            rebuild_rattrib node rattrib
           with Not_found ->
-            error "relink_attrib: client value %s not found" cid)
+            error "Client value %Ld/%Ld not found as event handler" closure_id instance_id
+        end
+      with Not_found ->
+        error "relink_attrib: client value %s not found" cid
   in
-  Eliommod_dom.iter_nodeList (node##attributes:>Dom.attr Dom.nodeList Js.t) aux
+  Eliommod_dom.iter_attrList (node##attributes) aux
 
 
 let relink_attribs (root : Dom_html.element Js.t) attribs attrib_nodeList =
@@ -1281,7 +1278,7 @@ let () =
       Dom_html.handler (fun event ->
         let full_uri = Js.to_string Dom_html.window##location##href in
         Eliommod_dom.touch_base ();
-        Js.Opt.case (Obj.magic event##state : int Js.opt)
+        Js.Opt.case ((Js.Unsafe.coerce event)##state : int Js.opt)
           (fun () -> () (* Ignore dummy popstate event fired by chromium. *))
           (goto_uri full_uri);
         Js._false)
@@ -1422,6 +1419,8 @@ end = struct
 
 end
 
+type content_ns = [ `HTML5 | `SVG ]
+
 let rec rebuild_node_with_state ns ?state elt =
   match Xml.get_node elt with
   | Xml.DomNode node ->
@@ -1508,14 +1507,14 @@ let rebuild_node_ns ns context elt' =
   node
 
 let rebuild_node_svg context elt =
-  let elt' = Svg.F.toelt elt in
+  let elt' = Eliom_content_core.Svg.F.toelt elt in
   rebuild_node_ns `SVG context elt'
 
 
 (** The first argument describes the calling function (if any) in case
     of an error. *)
 let rebuild_node context elt =
-  let elt' = Html5.F.toelt elt in
+  let elt' = Eliom_content_core.Html5.F.toelt elt in
   rebuild_node_ns `HTML5 context elt'
 
 (******************************************************************************)
@@ -1552,11 +1551,10 @@ let unwrap_tyxml =
                     (fun () ->
                        trace "not found";
                        let xml_elt : Xml.elt = Xml.make ~id elt in
-                       let html_elt = (Obj.magic xml_elt : _ Html5.elt) in
-                       let html_elt = Html5.set_classes_of_elt html_elt in
+                       let xml_elt = Eliom_content_core.Xml.set_classes_of_elt xml_elt in
                        register_process_node (Js.bytestring process_id)
-                         (rebuild_node context html_elt);
-                       (Obj.magic html_elt : Xml.elt))
+                         (rebuild_node_ns `HTML5 context xml_elt);
+                       xml_elt)
                     (fun elt ->
                        trace "found";
                        Xml.make_dom ~id elt)
@@ -1566,11 +1564,9 @@ let unwrap_tyxml =
                     (fun () ->
                        trace "not found";
                        let xml_elt : Xml.elt = Xml.make ~id elt in
-                       let html_elt = (Obj.magic xml_elt : _ Html5.elt) in
-                       let html_elt = Html5.set_classes_of_elt html_elt in
                        register_request_node (Js.bytestring request_id)
-                         (rebuild_node context html_elt);
-                       (Obj.magic html_elt : Xml.elt))
+                         (rebuild_node_ns `HTML5 context xml_elt);
+                       xml_elt)
                     (fun elt -> trace "found"; Xml.make_dom ~id elt)
               | Xml.NoId as id ->
                   trace "Unwrap tyxml from NoId";
@@ -1603,6 +1599,70 @@ let _ =
     (Eliom_unwrap.id_of_int Eliom_lib_base.global_data_unwrap_id_int)
     unwrap_global_data;
   ()
+
+
+let init () =
+  let js_data =
+    Eliom_request_info.get_request_data () in
+
+  let onload ev =
+    trace "onload (client main)";
+    set_initial_load ();
+    Lwt.async
+      (fun () ->
+         if !Eliom_config.debug_timings then
+           Firebug.console##time(Js.string "onload");
+         Eliommod_cookies.update_cookie_table (Some Url.Current.host)
+           (Eliom_request_info.get_request_cookies ());
+         Eliom_request_info.set_session_info js_data.Eliom_common.ejs_sess_info;
+         (* Give the browser the chance to actually display the page NOW *)
+         lwt () = Lwt_js.sleep 0.001 in
+         (* Ordering matters. See [Eliom_client.set_content] for explanations *)
+         relink_request_nodes (Dom_html.document##documentElement);
+         let root = Dom_html.document##documentElement in
+         let closure_nodeList,attrib_nodeList = relink_page_but_client_values root in
+         do_request_data js_data.Eliom_common.ejs_request_data;
+         ((* A similar check is necessary in Injection.initialize *)
+           match Eliom_unwrap.remaining_values_for_late_unwrapping () with
+           | [] -> ()
+           | unwrap_ids ->
+             alert "Values marked for unwrapping remain (for unwrapping id %s)."
+               (String.concat ", " (List.map string_of_int unwrap_ids)));
+         let () =
+           relink_attribs root
+             js_data.Eliom_common.ejs_client_attrib_table attrib_nodeList in
+
+         let onload_closure_nodes =
+           relink_closure_nodes root js_data.Eliom_common.ejs_event_handler_table
+             closure_nodeList
+         in
+         reset_request_nodes ();
+         run_callbacks
+           (Eliommod_dom.add_formdata_hack_onclick_handler ::
+            flush_onload () @
+            [ onload_closure_nodes; broadcast_load_end ]);
+         if !Eliom_config.debug_timings then
+           Firebug.console##timeEnd(Js.string "onload");
+         Lwt.return ());
+    Js._false in
+
+  trace "Set load/onload events";
+  let onunload _ = leave_page (); Js._true in
+  (* IE<9: Script438: Object doesn't support property or method
+     addEventListener.
+     Other browsers: Ask whether you really want to navigate away if
+     onbeforeunload is assigned *)
+  if Js.Unsafe.get Dom_html.window (Js.string "addEventListener") == Js.undefined then
+    ( Dom_html.window##onload <- Dom_html.handler onload;
+      Dom_html.window##onbeforeunload <- Dom_html.handler onunload )
+  else
+    ( ignore
+        (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
+           (Dom.handler onload) Js._true);
+      ignore
+        (Dom.addEventListener Dom_html.window (Dom.Event.make "unload")
+           (Dom_html.handler onunload) Js._false) )
+
 
 (******************************************************************************)
 

@@ -24,12 +24,9 @@
 
 open Eliom_lib
 
-type content_ns = [ `HTML5 | `SVG ]
-
-module XmlNoWrap = struct
-
+module Xml = struct
   include RawXML
-
+  type 'a wrap = 'a
   type econtent =
     | Empty
     | Comment of string
@@ -157,14 +154,6 @@ module XmlNoWrap = struct
 
 end
 
-module Xml = struct
-  include XmlNoWrap
-  type 'a wrap = 'a
-end
-
-module X = Xml
-
-
 module Xml_w = struct
   type 'a t = 'a React.signal
   let return x = Lwt_react.S.return x
@@ -286,7 +275,7 @@ module Svg = struct
 
   module Of_dom = struct
     let rebuild_xml (node: 'a Js.t) : 'a F.elt =
-      Obj.magic { Xml.elt = Lazy.lazy_from_val (Xml.DomNode (node :> Dom.node Js.t)); node_id = Xml.NoId }
+      Xml.make_dom (node :> Dom.node Js.t)
     let of_element : Dom_html.element Js.t -> 'a elt = rebuild_xml
   end
 
@@ -296,8 +285,7 @@ end
 module Html5 = struct
 
   module D = struct
-
-    module Raw = Html5_f.Make(struct
+    module Xml' = struct
       include Xml
 
       let make elt = make_request_node (make elt)
@@ -314,8 +302,8 @@ module Html5 = struct
       let node ?(a = []) name children = make (Node (name, a, children))
       let lazy_node ?(a = []) name children =
         make (Node (name, a, Eliom_lazy.force children))
-
-    end)(Svg.D.Raw)
+    end
+    module Raw = Html5_f.Make(Xml')(Svg.D.Raw)
 
     include Raw
 
@@ -323,7 +311,7 @@ module Html5 = struct
         ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     let lazy_form ?(a = []) elts =
-      tot (X.lazy_node ~a:(to_xmlattribs a) "form"
+      tot (Xml'.lazy_node ~a:(to_xmlattribs a) "form"
 	     (Eliom_lazy.from_fun
 	        (fun () -> toeltl (Eliom_lazy.force elts))))
 
@@ -341,14 +329,15 @@ module Html5 = struct
 
   module F = struct
 
-    module Raw = Html5_f.Make(Xml)(Svg.F.Raw)
+    module Xml' = Xml
+    module Raw = Html5_f.Make(Xml')(Svg.F.Raw)
     include Raw
 
     type ('a, 'b, 'c) lazy_star =
         ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     let lazy_form ?(a = []) elts =
-      tot (X.lazy_node ~a:(to_xmlattribs a) "form"
+      tot (Xml'.lazy_node ~a:(to_xmlattribs a) "form"
 	     (Eliom_lazy.from_fun
 	        (fun () -> toeltl (Eliom_lazy.force elts))))
 
@@ -409,56 +398,11 @@ module Html5 = struct
 
   end
 
-  module Of_dom = struct
-    let rebuild_xml (node: 'a Js.t) : 'a F.elt =
-      Obj.magic { Xml.elt = Lazy.lazy_from_val (Xml.DomNode (node :> Dom.node Js.t)); node_id = Xml.NoId }
-    let of_element : Dom_html.element Js.t -> 'a elt = rebuild_xml
-    let of_html : Dom_html.htmlElement Js.t -> Html5_types.html elt = rebuild_xml
-    let of_head : Dom_html.headElement Js.t -> Html5_types.head elt = rebuild_xml
-    let of_link : Dom_html.linkElement Js.t -> Html5_types.link elt = rebuild_xml
-    let of_title : Dom_html.titleElement Js.t -> Html5_types.title elt = rebuild_xml
-    let of_meta : Dom_html.metaElement Js.t -> Html5_types.meta elt = rebuild_xml
-    let of_base : Dom_html.baseElement Js.t -> Html5_types.base elt = rebuild_xml
-    let of_style : Dom_html.styleElement Js.t -> Html5_types.style elt = rebuild_xml
-    let of_body : Dom_html.bodyElement Js.t -> Html5_types.body elt = rebuild_xml
-    let of_form : Dom_html.formElement Js.t -> Html5_types.form elt = rebuild_xml
-    let of_optGroup : Dom_html.optGroupElement Js.t -> Html5_types.optgroup elt = rebuild_xml
-    let of_option : Dom_html.optionElement Js.t -> Html5_types.selectoption elt = rebuild_xml
-    let of_select : Dom_html.selectElement Js.t -> Html5_types.select elt = rebuild_xml
-    let of_input : Dom_html.inputElement Js.t -> Html5_types.input elt = rebuild_xml
-    let of_textArea : Dom_html.textAreaElement Js.t -> Html5_types.textarea elt = rebuild_xml
-    let of_button : Dom_html.buttonElement Js.t -> Html5_types.button elt = rebuild_xml
-    let of_label : Dom_html.labelElement Js.t -> Html5_types.label elt = rebuild_xml
-    let of_fieldSet : Dom_html.fieldSetElement Js.t -> Html5_types.fieldset elt = rebuild_xml
-    let of_legend : Dom_html.legendElement Js.t -> Html5_types.legend elt = rebuild_xml
-    let of_uList : Dom_html.uListElement Js.t -> Html5_types.ul elt = rebuild_xml
-    let of_oList : Dom_html.oListElement Js.t -> Html5_types.ol elt = rebuild_xml
-    let of_dList : Dom_html.dListElement Js.t -> [`Dl] elt = rebuild_xml
-    let of_li : Dom_html.liElement Js.t -> Html5_types.li elt = rebuild_xml
-    let of_div : Dom_html.divElement Js.t -> Html5_types.div elt = rebuild_xml
-    let of_paragraph : Dom_html.paragraphElement Js.t -> Html5_types.p elt = rebuild_xml
-    let of_heading : Dom_html.headingElement Js.t -> Html5_types.heading elt = rebuild_xml
-    let of_quote : Dom_html.quoteElement Js.t -> Html5_types.blockquote elt = rebuild_xml
-    let of_pre : Dom_html.preElement Js.t -> Html5_types.pre elt = rebuild_xml
-    let of_br : Dom_html.brElement Js.t -> Html5_types.br elt = rebuild_xml
-    let of_hr : Dom_html.hrElement Js.t -> Html5_types.hr elt = rebuild_xml
-    let of_anchor : Dom_html.anchorElement Js.t -> 'a Html5_types.a elt = rebuild_xml
-    let of_image : Dom_html.imageElement Js.t -> [`Img] elt = rebuild_xml
-    let of_object : Dom_html.objectElement Js.t -> 'a Html5_types.object_ elt = rebuild_xml
-    let of_param : Dom_html.paramElement Js.t -> Html5_types.param elt = rebuild_xml
-    let of_area : Dom_html.areaElement Js.t -> Html5_types.area elt = rebuild_xml
-    let of_map : Dom_html.mapElement Js.t -> 'a Html5_types.map elt = rebuild_xml
-    let of_script : Dom_html.scriptElement Js.t -> Html5_types.script elt = rebuild_xml
-    let of_tableCell : Dom_html.tableCellElement Js.t -> [ Html5_types.td | Html5_types.td ] elt = rebuild_xml
-    let of_tableRow : Dom_html.tableRowElement Js.t -> Html5_types.tr elt = rebuild_xml
-    let of_tableCol : Dom_html.tableColElement Js.t -> Html5_types.col elt = rebuild_xml
-    let of_tableSection : Dom_html.tableSectionElement Js.t -> [ Html5_types.tfoot | Html5_types.thead | Html5_types.tbody ] elt = rebuild_xml
-    let of_tableCaption : Dom_html.tableCaptionElement Js.t -> Html5_types.caption elt = rebuild_xml
-    let of_table : Dom_html.tableElement Js.t -> Html5_types.table elt = rebuild_xml
-    let of_canvas : Dom_html.canvasElement Js.t -> 'a Html5_types.canvas elt = rebuild_xml
-    let of_iFrame : Dom_html.iFrameElement Js.t -> Html5_types.iframe elt = rebuild_xml
-  end
+  module Of_dom = Tyxml_cast.MakeOf(struct
+      type 'a elt = 'a F.elt
+      let elt (node: 'a Js.t) : 'a elt = Xml.make_dom (node :> Dom.node Js.t)
+    end)
 
-  let set_classes_of_elt elt = F.tot (X.set_classes_of_elt (F.toelt elt))
+  let set_classes_of_elt elt = F.tot (Xml.set_classes_of_elt (F.toelt elt))
 
 end

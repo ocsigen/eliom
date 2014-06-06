@@ -31,6 +31,16 @@ let iter_nodeList nodeList f =
     f (Js.Unsafe.get nodeList i)
   done
 
+let iter_attrList attrList f =
+  for i = 0 to attrList##length - 1 do
+    (* Unsafe.get is ten time faster than nodeList##item
+       Same for attrList ? *)
+    let v = Js.Unsafe.get attrList i in
+    (* IE8 provides [null] in node##attributes; check this first of all *)
+    if Obj.magic v then f v
+  done
+
+
 (* Dummy type used in the following "test_*" functions to test the
    presence of methods in various browsers. *)
 class type dom_tester = object

@@ -18,12 +18,6 @@
  *)
 
 
-{shared{
-type boxed
-let boxed   : 'a -> boxed = Obj.magic
-let unboxed : boxed -> 'a = Obj.magic
-  }}
-
 {client{
 
   include Eliom_content_
@@ -34,6 +28,13 @@ let unboxed : boxed -> 'a = Obj.magic
   let force_link = ()
 
 }}
+
+{shared{
+type boxed
+let boxed   : 'a -> boxed = Obj.magic
+let unboxed : boxed -> 'a = Obj.magic
+}}
+
 
 {server{
 
@@ -81,7 +82,7 @@ module Html5 = struct
           let real = Html5.To_dom.of_element (unboxed client_boxed) in
           Js.Opt.iter
             (dummy_dom##parentNode)
-            (fun parent -> parent##replaceChild(real, dummy_dom));
+            (fun parent -> ignore (parent##replaceChild(real, dummy_dom)));
         }} in
       init
 

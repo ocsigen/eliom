@@ -197,32 +197,14 @@ val wait_load_end : unit -> unit Lwt.t
 (**/**)
 (* Documentation rather in eliom_client.ml *)
 val in_onload : unit -> bool
-val run_callbacks : (unit -> unit) list -> unit
-val broadcast_load_end : unit -> unit
-val flush_onload : unit -> (unit -> unit) list
-val relink_request_nodes : Dom_html.htmlElement Js.t -> unit
-val reset_request_nodes : unit -> unit
-val force_unwrapped_elts : unit -> unit
-val do_request_data : request_data -> unit
-val relink_page_but_client_values : Dom_html.element Js.t -> Dom_html.element Dom.nodeList Js.t * Dom_html.element Dom.nodeList Js.t
-val leave_page : unit -> unit
-val set_initial_load : unit -> unit
 
-val relink_attribs :
-  Dom_html.element Js.t ->
-  Eliom_lib.RawXML.attrib Client_value_server_repr.t Eliom_lib.RawXML.ClosureMap.t ->
-  Dom_html.element Dom.nodeList Js.t -> unit
-
-val relink_closure_nodes :
-  Dom_html.element Js.t ->
-  Eliom_lib.RawXML.event_handler_table ->
-  Dom_html.element Dom.nodeList Js.t ->
-  (unit -> unit)
 val getElementById : string -> Dom.node Js.t
-val rebuild_node' : Eliom_content_core.content_ns -> Eliom_content_core.Xml.elt -> Dom.node Js.t
+type content_ns = [ `HTML5 | `SVG ]
+val rebuild_node' : content_ns -> Eliom_content_core.Xml.elt -> Dom.node Js.t
 val rebuild_node : string -> 'a Eliom_content_core.Html5.elt -> < .. > Js.t
 val rebuild_node_svg : string -> 'a Eliom_content_core.Svg.elt -> < .. > Js.t
 
+val init : unit -> unit
 (* This is necessary when generating/hacking eliom forms, e.g. when
    deriving forms from a runtime type represantation. *)
 val form_handler : (Dom_html.element Js.t, Dom_html.event Js.t) Dom_html.event_listener

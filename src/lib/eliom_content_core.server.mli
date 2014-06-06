@@ -77,17 +77,6 @@ module Xml : sig
 
 end
 
-(**/**)
-module Eliom_xml : module type of Xml
-    with type uri = Xml.uri
-    and type separator = Xml.separator
-    and type acontent = Xml.acontent
-    and type attrib = Xml.attrib
-    and type elt = Xml.elt
-    and type 'a wrap = 'a
-    and type -'a caml_event_handler = 'a Xml.caml_event_handler
-(**/**)
-
 module Svg : sig
 
   type +'a elt = Xml.elt (* ***!!! will be abstracted later! O.o DO NOT INSTALL eliom_content_core.cmi **)
@@ -243,22 +232,4 @@ module Html5 : sig
   module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a F.elt
                                           and type doc := F.doc
 
-end
-
-
-module Xmld : sig
-  include module type of Xml
-  with type uri = Xml.uri
-   and type separator = Xml.separator
-   and type acontent = Xml.acontent
-   and type attrib = Xml.attrib
-   and type elt = Xml.elt
-   and type 'a wrap = 'a
-   and type -'a caml_event_handler = 'a Xml.caml_event_handler
-   and type event_handler = Xml.event_handler
-   and type mouse_event_handler = Xml.mouse_event_handler
-   and type keyboard_event_handler = Xml.keyboard_event_handler
-  val make_request_node : elt -> elt
-  val make : econtent -> elt
-  val make_lazy : econtent Eliom_lazy.request -> elt
 end
