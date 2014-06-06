@@ -98,9 +98,8 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     let _loc = loc in
     <:expr< begin
       $flush_typing_expr ()$;
-      let x = (Eliom_service.Syntax_helpers.client_value 0L 0 : $typ$ Eliom_pervasives.client_value) in
-      $lid:gen_tid$ := Some (x);
-      x
+      $lid:gen_tid$ := Some (Eliom_service.Syntax_helpers.client_value 0L 0 : $typ$ Eliom_pervasives.client_value);
+      match ! $lid:gen_tid$ with | Some x -> x | None -> assert false
     end >>
 
   let escape_inject context_level orig_expr gen_id =
