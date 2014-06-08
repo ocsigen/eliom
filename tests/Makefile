@@ -1,4 +1,4 @@
-TARGETS=miniwiki testsuite distillery #monitoring
+TARGETS=miniwiki testsuite distillery
 
 .PHONY: clean distclean byte opt
 clean:

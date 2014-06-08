@@ -81,6 +81,8 @@ let () =
     List.map (fun x -> Pkg.lib ~dst:(spf "client/%s" x) (spf "src/lib/client/%s" x)) client_extra
   ) @ (
     (* SERVER LIBS *)
+    Pkg.lib ~dst:"server/monitor/eliom_monitor" ~exts:Exts.module_library "src/lib/server/monitor/eliom_monitor" ::
+    Pkg.lib ~dst:"server/monitor/eliom_monitor_main" ~exts:Exts.module_library "src/lib/server/monitor/eliom_monitor_main" ::
     Pkg.lib ~dst:"server/server" ~exts:exts_lib "src/lib/server/server" ::
     List.map (fun x -> Pkg.lib ~dst:(spf "server/%s" x) (spf "src/lib/server/%s" x)) server_extra
   ) @ (
