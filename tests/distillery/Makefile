@@ -1,25 +1,34 @@
 #### Distillery ####
 
-.PHONY: byte opt
+.PHONY: byte opt clean
 
 DISTILLERY := eliom-distillery
+ALL = basic mobile
 
-basic:
+byte:
+	for i in $(ALL); do $(MAKE) byte-$$i; done
+
+opt:
+	for i in $(ALL); do $(MAKE) opt-$$i; done
+
+distillery-%:
 	mkdir -p $@
-	$(DISTILLERY) -name distillery_basic -target-directory $@
-	echo 'PREFIX=local/' >> $@/Makefile.options
-	echo 'STATICDIR=var/www/distillery-basic/static' >> $@/Makefile.options
-	echo 'ELIOMSTATICDIR=var/www/distillery-basic/eliomstatic' >> $@/Makefile.options
-	echo 'LIBDIR=var/www/distillery-basic/lib' >> $@/Makefile.options
+	$(DISTILLERY) -name distillery_$* -template $* -target-directory $@
+	echo 'TEST_PREFIX=local/' >> $@/Makefile.options
+	echo 'PREFIX=../../../local/' >> $@/Makefile.options
+	echo 'STATICDIR=var/www/$@/static' >> $@/Makefile.options
+	echo 'ELIOMSTATICDIR=var/www/$@/eliomstatic' >> $@/Makefile.options
+	echo 'LIBDIR=var/www/$@/lib' >> $@/Makefile.options
 	echo 'WWWUSER=' >> $@/Makefile.options
 	echo 'WWWGROUP=' >> $@/Makefile.options
 	make -C $@ byte install.static
 
-byte: | basic
-	make -C basic byte install.lib.byte
-opt: | basic
-	make -C basic opt install.lib.opt
+byte-%: | distillery-%
+	make -C distillery-$* byte install.byte
+opt-%: | distillery-%
+	make -C distillery-$* opt install.opt
 
 clean:
-	rm -Rf basic
+	for i in $(ALL); do rm -Rf distillery-$$i clean; done
+
 distclean: clean

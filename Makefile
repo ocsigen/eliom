@@ -39,10 +39,10 @@ run.local: tests.byte fifo tests/eliom.conf
 run.opt.local: tests.opt fifo tests/eliom.conf
 	OCAMLPATH=tests/:$(OCAMLPATH) ocsigenserver.opt -c tests/eliom.conf
 
-tests.byte: byte links
+tests.byte: links
 	${MAKE} -C tests byte
 
-tests.opt: opt links
+tests.opt: links
 	${MAKE} -C tests opt
 
 links:
