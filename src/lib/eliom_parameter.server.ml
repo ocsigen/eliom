@@ -166,8 +166,9 @@ let reconstruct_params_
           then Obj.magic (), l
           else raise Eliom_common.Eliom_Wrong_parameter
       | TSum (t1, t2), l ->
-          (try parse_suffix t1 l
-           with Eliom_common.Eliom_Wrong_parameter -> parse_suffix t2 l)
+          (try let x,l = parse_suffix t1 l in Obj.magic (Inj1 x), l
+           with Eliom_common.Eliom_Wrong_parameter ->
+             let x,l = parse_suffix t2 l in Obj.magic (Inj2 x), l)
       | TCoord _, l ->
           (match Obj.magic (parse_suffix (TInt "") l) with
              | _, [] -> raise Eliom_common.Eliom_Wrong_parameter

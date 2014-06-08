@@ -305,7 +305,8 @@ let construct_params_list_raw
         ((make_suffix (TInt "") (Obj.magic (snd (Obj.magic params)).abscissa))@
            (make_suffix (TInt "") (Obj.magic (snd (Obj.magic params)).ordinate)))
     | TESuffixs _ -> [Obj.magic params]
-    | TAny | TESuffix _ -> (match Obj.magic params with [] -> [""] | p -> p)
+    | TESuffix _ -> (match Obj.magic params with [] -> [""] | p -> p)
+    (* | TAny       -> (match Obj.magic params with [] -> [""] | p -> p) *)
     | TESuffixu (_, of_string, string_of) -> [string_of (Obj.magic params)]
     | TJson (_, typ) -> (* server or client side *)
       [ to_json ?typ (Obj.magic params) ]
@@ -396,8 +397,6 @@ let construct_params_list_raw
       failwith "Constructing an URL with raw POST data not possible"
   in
   aux typ None nlp params "" "" []
-
-
 
 
 (** Given a parameter type, get the two functions
