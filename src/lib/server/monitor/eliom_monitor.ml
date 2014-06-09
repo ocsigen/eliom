@@ -130,26 +130,32 @@ let http_stats () =
 
 let eliom_stats () =
   lwt persist_nb_of_groups = Eliommod_sessiongroups.Pers.nb_of_groups () in
-  lwt number_of_persistent_data_cookies = Eliom_state.number_of_persistent_data_cookies () in
+  lwt number_of_persistent_data_cookies =
+    Eliom_state.number_of_persistent_data_cookies () in
   Lwt.return (
   div [
-    p [ ppf "session group: %s" (String.concat ", " (Eliom_state.Ext.get_session_group_list ()))];
-    h3 [ppf "Volatile"];
+    h3 [ppf "Sessions"];
     ul [
-      li [ppf "%d service cookie." (Eliom_state.number_of_service_cookies ())];
-      li [ppf "%d data." (Eliom_state.number_of_volatile_data_cookies ())];
-      li [ppf "%d table." (Eliom_state.number_of_tables ())];
+      li [ppf "%d service cookies." (Eliom_state.number_of_service_cookies ())];
+      li [ppf "%d volatile data cookies."
+            (Eliom_state.number_of_volatile_data_cookies ())];
+      li [ppf "%d volatile data tables (volatile Eliom references)."
+            (Eliom_state.number_of_tables ())];
+      li [ppf "%d persistent data cookies." number_of_persistent_data_cookies];
+      li [ppf "%d persistent data tables (persistent data reference)."
+            (Eliom_state.number_of_persistent_tables ())];
     ];
-    h3 [ppf "Persistent"];
-    ul [
-      li [ppf "%d data." number_of_persistent_data_cookies];
-      li [ppf "%d table." (Eliom_state.number_of_persistent_tables ())];
-    ];
+    h3 [ppf "Client processes"];
+    p [em [pcdata "Not implemented yet"]];
     h3 [ppf "Session groups"];
     ul [
-      li [ppf "%d service sessions." (Eliommod_sessiongroups.Serv.nb_of_groups ())];
-      li [ppf "%d volatile data sessions." (Eliommod_sessiongroups.Data.nb_of_groups ())];
-      li [ppf "%d persistent data sessions." persist_nb_of_groups ];
+      li [ppf "%d service session groups."
+            (Eliommod_sessiongroups.Serv.nb_of_groups ())];
+      li [ppf "%d volatile data session groups."
+            (Eliommod_sessiongroups.Data.nb_of_groups ())];
+      li [ppf "%d persistent data session groups." persist_nb_of_groups ];
+      li [ppf "Session groups: %s"
+            (String.concat ", " (Eliom_state.Ext.get_session_group_list ()))];
     ]
   ])
 
