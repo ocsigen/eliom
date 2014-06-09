@@ -79,9 +79,9 @@ end
 
 module Svg : sig
 
-  type +'a elt = Xml.elt (* ***!!! will be abstracted later! O.o DO NOT INSTALL eliom_content_core.cmi **)
   type 'a wrap = 'a
-  type 'a attrib = Xml.attrib (* ***!!!! will be abstracted later! O.o DO NOT INSTALL eliom_content_core.cmi **)
+  type +'a elt
+  type +'a attrib
   type uri = Xml.uri
 
   module F : sig
@@ -145,9 +145,9 @@ module Html5 : sig
       semantics>> %} for HTML5 tree manipulated by client/server
       application. *)
 
-  type +'a elt = Xml.elt (* ***!!! will be abstracted later! O.o DO NOT INSTALL eliom_content_core.cmi **)
   type 'a wrap = 'a
-  type 'a attrib = Xml.attrib (* ***!!! will be abstracted later! O.o DO NOT INSTALL eliom_content_core.cmi **)
+  type +'a elt
+  type +'a attrib
   type uri = Xml.uri
 
   module F : sig
