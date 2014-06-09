@@ -262,7 +262,7 @@ let build_client () =
   let exe = prefix_output_dir (Filename.basename name) in
   check_or_create_dir (Filename.dirname exe);
   let js = name ^ ".js" in
-  create_process !compiler ( ["-o"  ;  exe ]
+  create_process !compiler ( ["-o"  ;  exe ; "-linkall"]
 			     @ get_common_include ()
 			     @ get_client_lib ()
 			     @ !args );
