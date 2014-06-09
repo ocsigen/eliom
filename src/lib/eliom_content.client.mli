@@ -63,6 +63,8 @@ module Svg : sig
 			     and type 'a elt = 'a elt
                              and type 'a Xml.wrap = 'a
                              and type 'a wrap = 'a
+                             and type 'a Xml.list_wrap = 'a list
+                             and type 'a list_wrap = 'a list
                              and type 'a attrib = 'a attrib
 		             and type uri = uri
 
@@ -84,6 +86,8 @@ module Svg : sig
 			     and type 'a elt = 'a elt
                              and type 'a Xml.wrap = 'a
                              and type 'a wrap = 'a
+                             and type 'a Xml.list_wrap = 'a list
+                             and type 'a list_wrap = 'a list
                              and type 'a attrib = 'a attrib
 		             and type uri = uri
 
@@ -102,6 +106,8 @@ module Svg : sig
        and type 'a elt = 'a elt
        and type 'a Xml.wrap = 'a React.signal Eliom_pervasives.client_value
        and type 'a wrap = 'a React.signal Eliom_pervasives.client_value
+       and type 'a Xml.list_wrap = 'a list React.signal Eliom_pervasives.client_value
+       and type 'a list_wrap = 'a list React.signal Eliom_pervasives.client_value
        and type 'a attrib = 'a attrib
        and type uri = uri
 
@@ -295,9 +301,11 @@ module Html5 : sig
                    and type Xml.attrib = Xml.attrib
                    and type Xml.elt = Xml.elt
                    and type 'a Xml.wrap = 'a
+                   and type 'a Xml.list_wrap = 'a list
                    with module Svg := Svg.F.Raw
                    with type +'a elt = 'a elt
-                   and type 'a wrap = 'a
+                    and type 'a wrap = 'a
+                    and type 'a list_wrap = 'a list
                    and type 'a attrib = 'a attrib
                    and type uri = uri
 
@@ -355,9 +363,11 @@ module Html5 : sig
                    and type Xml.attrib = Xml.attrib
                    and type Xml.elt = Xml.elt
                    and type 'a Xml.wrap = 'a
+                   and type 'a Xml.list_wrap = 'a list
                    with module Svg := Svg.D.Raw
                    with type +'a elt = 'a elt
-                   and type 'a wrap = 'a
+                    and type 'a wrap = 'a
+                    and type 'a list_wrap = 'a list
                    and type 'a attrib = 'a attrib
                    and type uri = uri
     include module type of Raw
@@ -428,9 +438,11 @@ module Html5 : sig
                     and type Xml.attrib = Xml.attrib
                     and type Xml.elt = Xml.elt
                     and type 'a Xml.wrap = 'a React.signal Eliom_pervasives.client_value
+                    and type 'a Xml.list_wrap = 'a list React.signal Eliom_pervasives.client_value
                    with module Svg := Svg.D.Raw
                    with type +'a elt = 'a elt
                     and type 'a wrap = 'a React.signal Eliom_pervasives.client_value
+                    and type 'a list_wrap = 'a list React.signal Eliom_pervasives.client_value
                     and type 'a attrib = 'a attrib
                     and type uri = uri
     include module type of Raw

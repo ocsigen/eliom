@@ -95,6 +95,7 @@ module Xml : sig
       See {% <<a_api project="tyxml" | module Xml_sigs.Iterable >> %}. *)
 
   include Xml_sigs.Iterable with type 'a wrap = 'a
+                             and type 'a list_wrap = 'a list
                              and type event_handler = (Dom_html.event Js.t -> unit) Eliom_lib.client_value
                              and type mouse_event_handler = (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value
                              and type keyboard_event_handler = (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value
@@ -176,6 +177,7 @@ module Svg : sig
   type +'a elt
   type +'a attrib
   type 'a wrap = 'a
+  type 'a list_wrap = 'a list
   type uri = Xml.uri
 
   (** Typed interface for building valid SVG tree (functional
@@ -193,6 +195,8 @@ module Svg : sig
                              and type +'a elt = 'a elt
                              and type 'a Xml.wrap = 'a
                              and type 'a wrap = 'a
+                             and type 'a Xml.list_wrap = 'a list
+                             and type 'a list_wrap = 'a list
                              and type +'a attrib = 'a attrib
                              and type uri = uri
 
@@ -214,6 +218,8 @@ module Svg : sig
                              and type +'a elt = 'a elt
                              and type 'a Xml.wrap = 'a
                              and type 'a wrap = 'a
+                             and type 'a Xml.list_wrap = 'a list
+                             and type 'a list_wrap = 'a list
                              and type +'a attrib = 'a attrib
                              and type uri = uri
 
@@ -299,9 +305,11 @@ module Html5 : sig
                    and type Xml.attrib = Xml.attrib
                    and type Xml.elt = Xml.elt
                    and type 'a Xml.wrap = 'a
+                   and type 'a Xml.list_wrap = 'a list
                    with module Svg := Svg.F.Raw
                    with type +'a elt = 'a elt
-                   and type 'a wrap = 'a
+                    and type 'a wrap = 'a
+                    and type 'a list_wrap = 'a list
                    and type +'a attrib = 'a attrib
                    and type uri = uri
 
@@ -367,9 +375,11 @@ module Html5 : sig
                    and type Xml.attrib = Xml.attrib
                    and type Xml.elt = Xml.elt
                    and type 'a Xml.wrap = 'a
+                   and type 'a Xml.list_wrap = 'a list
                    with module Svg := Svg.D.Raw
                    with type +'a elt = 'a elt
-                   and type 'a wrap = 'a
+                    and type 'a wrap = 'a
+                    and type 'a list_wrap = 'a list
                    and type +'a attrib = 'a attrib
                    and type uri = uri
     include module type of Raw

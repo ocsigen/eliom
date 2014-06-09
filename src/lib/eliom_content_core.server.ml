@@ -29,6 +29,7 @@ open Eliom_lib
 module Xml = struct
   include RawXML
   type 'a wrap = 'a
+  type 'a list_wrap = 'a list
 
   type econtent =
     | Empty
@@ -271,6 +272,7 @@ module Svg = struct
 
   type +'a elt = 'a F.elt
   type 'a wrap = 'a
+  type 'a list_wrap = 'a list
   type +'a attrib = 'a F.attrib
   type uri = F.uri
 
@@ -347,6 +349,7 @@ module Html5 = struct
 
   type +'a elt = 'a F.elt
   type 'a wrap = 'a
+  type 'a list_wrap = 'a list
   type +'a attrib = 'a F.attrib
   type uri = F.uri
 

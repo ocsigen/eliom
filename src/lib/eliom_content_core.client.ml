@@ -27,6 +27,7 @@ open Eliom_lib
 module Xml = struct
   include RawXML
   type 'a wrap = 'a
+  type 'a list_wrap = 'a list
   type econtent =
     | Empty
     | Comment of string
@@ -154,19 +155,10 @@ module Xml = struct
 
 end
 
-module Xml_w = struct
-  type 'a t = 'a React.signal
-  let return x = Lwt_react.S.return x
-  let bind x = Lwt_react.S.bind x
-  let fmap x = React.S.map x
-  let fmap2 x = React.S.l2 x
-  let fmap3 x = React.S.l3 x
-  let fmap4 x = React.S.l4 x
-  let fmap5 x = React.S.l5 x
-end
 module Xml_wed =
 struct
-  type 'a wrap = 'a Xml_w.t
+  type 'a wrap = 'a Tyxml_js.Xml_wrap.t
+  type 'a list_wrap = 'a Tyxml_js.Xml_wrap.tlist
   type uri = Xml.uri
   let string_of_uri = Xml.string_of_uri
   let uri_of_string = Xml.uri_of_string
@@ -177,7 +169,7 @@ struct
   type attrib = Xml.attrib
 
   let float_attrib name s : attrib =
-    name, Xml.RAReact (Xml_w.fmap (fun f -> Some (Xml.AFloat f)) s)
+    name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AFloat f)) s)
   let int_attrib name s =
     name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AInt f)) s)
   let string_attrib name s =
@@ -252,13 +244,14 @@ module Svg = struct
   end
 
   module R = struct
-    module Raw = Svg_f.MakeWrapped(Xml_w)(Xml_wed)
+    module Raw = Svg_f.MakeWrapped(Tyxml_js.Xml_wrap)(Xml_wed)
     include Raw
 
   end
 
   type +'a elt = 'a F.elt
   type 'a wrap = 'a F.wrap
+  type 'a list_wrap = 'a F.list_wrap
   type +'a attrib = 'a F.attrib
   type uri = F.uri
 
@@ -323,7 +316,7 @@ module Html5 = struct
 
     let node s = Xml.make_react s
 
-    module Raw = Html5_f.MakeWrapped(Xml_w)(Xml_wed)(Svg.R)
+    module Raw = Html5_f.MakeWrapped(Tyxml_js.Xml_wrap)(Xml_wed)(Svg.R)
     include Raw
   end
 
@@ -345,6 +338,7 @@ module Html5 = struct
 
   type +'a elt = 'a F.elt
   type 'a wrap = 'a F.wrap
+  type 'a list_wrap = 'a F.list_wrap
   type +'a attrib = 'a F.attrib
   type uri = F.uri
 
