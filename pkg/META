@@ -26,6 +26,21 @@ package "server" (
     archive(byte) = "extensions.cma"
     archive(native) = "extensions.cmxa"
   )
+
+  package "monitor" (
+    directory = "monitor"
+    description = "Eliom: monitoring"
+    version = "[distributed with Eliom]"
+    archive(byte) = "eliom_monitor.cma"
+    archive(native) = "eliom_monitor.cmxa"
+    package "start" (
+      description = "Eliom: monitoring"
+      version = "[distributed with Eliom]"
+      require = "eliom.server.monitor"
+      archive(byte) = "eliom_monitor_main.cma"
+      archive(native) = "eliom_monitor_main.cmxa"
+    )
+  )
 )
 
 package "client" (

@@ -32,6 +32,11 @@ true:no_extra_syntaxes
 <lib/server/extensions/*.ml{,i}>:pkg_pa_include,sig_inc(../src/lib/server),sig_inc(../src/lib/common)
 <lib/server/extensions/*.ml{,i}>:I(src/lib/server)
 
+<lib/server/monitor/*.ml{,i}>:syntax(camlp4o), package(lwt.syntax)
+<lib/server/monitor/*.ml{,i}>:thread
+<lib/server/monitor/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml,calendar)
+<lib/server/monitor/*.ml{,i}>:I(src/lib/server)
+
 <syntax/pa_*.ml{,i}>: syntax(camlp4o),package(camlp4.quotations.o,camlp4.extend)
 <syntax/pa_*.ml{,i}>: I(+camlp4/Camlp4Parsers)
 
