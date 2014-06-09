@@ -48,6 +48,7 @@ module MakeManip
       match Xml.get_node (Kind.toelt elt) with
       | Xml.DomNode node -> node
       | Xml.ReactNode s -> get_node elt
+      | Xml.ReactChildren (node,rl) -> get_node elt
       | Xml.TyXMLNode desc ->
         let elt' = Kind.toelt elt in
           match Xml.get_node_id elt' with

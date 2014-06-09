@@ -40,6 +40,7 @@ module Xml = struct
     | DomNode of Dom.node Js.t
     | TyXMLNode of econtent
     | ReactNode of elt React.signal
+    | ReactChildren of econtent * elt ReactiveData.RList.t
   and elt = {
     (* See Eliom_content.Html5.To_dom for the 'unwrap' function that convert
        the server's tree representation into the client one. *)
@@ -49,6 +50,7 @@ module Xml = struct
 
   let content e =
     match Lazy.force e.elt with
+    | ReactChildren _
     | ReactNode _
     | DomNode _ -> assert false (* TODO *)
     | TyXMLNode elt -> elt
@@ -99,6 +101,9 @@ module Xml = struct
     internal_event_handler_attrib name
       (Caml (CE_client_closure (value :> biggest_event_handler)))
 
+  let node_react_children ?(a = []) name children =
+    {elt = Lazy.lazy_from_val (ReactChildren (Node (name,a,[]),children)); node_id=NoId}
+
   let end_re = Regexp.regexp_string "]]>"
 
   let make_node_name =
@@ -145,6 +150,7 @@ module Xml = struct
      match Lazy.force elt.elt with
       | DomNode _ -> failwith "Eliom_content_core.set_classes_of_elt"
       | ReactNode _ -> failwith "Eliom_content_core.set_classes_of_elt"
+      | ReactChildren _ -> failwith "Eliom_content_core.set_classes_of_elt"
       | TyXMLNode econtent ->
           { elt with elt = Lazy.lazy_from_val (TyXMLNode (set_classes elt.node_id econtent)) }
 
@@ -169,7 +175,7 @@ struct
   type attrib = Xml.attrib
 
   let float_attrib name s : attrib =
-    name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AFloat f)) s)
+    name, Xml.RAReact (Tyxml_js.Xml_wrap.fmap (fun f -> Some (Xml.AFloat f)) s)
   let int_attrib name s =
     name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AInt f)) s)
   let string_attrib name s =
@@ -199,7 +205,7 @@ struct
   let encodedpcdata s = Xml.make_react (React.S.map Xml.encodedpcdata s)
   let entity = Xml.entity
   let leaf = Xml.leaf
-  let node ?a name l = Xml.make_react (React.S.map (fun l -> Xml.node ?a name l) l)
+  let node ?a name l = Xml.node_react_children ?a name l
   let cdata = Xml.cdata
   let cdata_script = Xml.cdata_script
   let cdata_style = Xml.cdata_style
