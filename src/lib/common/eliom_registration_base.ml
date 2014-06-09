@@ -71,6 +71,7 @@ module Html5_forms(*  : sig *)
     include Html5_sigs.T with module Xml := Xml and module Svg := Svg.D
                          and type +'a elt = 'a Html5.elt
                          and type 'a wrap = 'a
+                         and type 'a list_wrap = 'a list
                          and type +'a attrib = 'a Html5.attrib
                          and type uri = Html5.uri
 

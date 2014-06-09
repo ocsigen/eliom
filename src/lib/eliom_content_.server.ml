@@ -34,6 +34,7 @@ module Svg = struct
 
   type +'a elt = 'a F.elt
   type 'a wrap = 'a F.wrap
+  type 'a list_wrap = 'a F.list_wrap
   type 'a attrib = 'a F.attrib
   type uri = F.uri
 
@@ -69,6 +70,7 @@ module Html5 = struct
 
   type +'a elt = 'a F.elt
   type 'a wrap = 'a F.wrap
+  type 'a list_wrap = 'a F.list_wrap
   type 'a attrib = 'a F.attrib
   type uri = F.uri
 end

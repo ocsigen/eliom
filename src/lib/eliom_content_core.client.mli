@@ -54,6 +54,7 @@ module Xml : sig
   type ename = string
   type elt
   type 'a wrap = 'a
+  type 'a list_wrap = 'a list
   type econtent = private
     | Empty
     | Comment of string
@@ -155,6 +156,7 @@ module Svg : sig
 
   type +'a elt
   type 'a wrap = 'a
+  type 'a list_wrap = 'a list
   type +'a attrib
   type uri = Xml.uri
 
@@ -173,6 +175,8 @@ module Svg : sig
                               with type +'a elt = 'a elt
                               and type 'a Xml.wrap = 'a
                               and type 'a wrap = 'a
+                              and type 'a Xml.list_wrap = 'a list
+                              and type 'a list_wrap = 'a list
                               and type +'a attrib = 'a attrib
                               and type uri = uri
 
@@ -196,6 +200,8 @@ module Svg : sig
                               with type +'a elt = 'a elt
                               and type 'a Xml.wrap = 'a
                               and type 'a wrap = 'a
+                              and type 'a Xml.list_wrap = 'a list
+                              and type 'a list_wrap = 'a list
                               and type +'a attrib = 'a attrib
                               and type uri = uri
 
@@ -218,6 +224,8 @@ module Svg : sig
                               with type +'a elt = 'a elt
                               and type 'a Xml.wrap = 'a React.signal
                               and type 'a wrap = 'a React.signal
+                              and type 'a Xml.list_wrap = 'a list React.signal
+                              and type 'a list_wrap = 'a list React.signal
                               and type +'a attrib = 'a attrib
                               and type uri = uri
 
@@ -259,6 +267,7 @@ module Html5 : sig
 
   type +'a elt
   type 'a wrap = 'a
+  type 'a list_wrap = 'a list
   type +'a attrib
   type uri = Xml.uri
 
@@ -277,6 +286,8 @@ module Html5 : sig
                    with type +'a elt = 'a elt
                    and type 'a Xml.wrap = 'a
                    and type 'a wrap = 'a
+                   and type 'a Xml.list_wrap = 'a list
+                   and type 'a list_wrap = 'a list
                    and type +'a attrib = 'a attrib
                    and type uri = uri
 
@@ -308,6 +319,8 @@ module Html5 : sig
                    and type +'a elt = 'a elt
                    and type 'a Xml.wrap = 'a
                    and type 'a wrap = 'a
+                   and type 'a Xml.list_wrap = 'a list
+                   and type 'a list_wrap = 'a list
                    and type +'a attrib = 'a attrib
                    and type uri = uri
     include module type of Raw
@@ -345,6 +358,8 @@ module Html5 : sig
                    and type +'a elt = 'a elt
                    and type 'a Xml.wrap = 'a React.signal
                    and type 'a wrap = 'a React.signal
+                   and type 'a Xml.list_wrap = 'a list React.signal
+                   and type 'a list_wrap = 'a list React.signal
                    and type +'a attrib = 'a attrib
                    and type uri = uri
     include module type of Raw
