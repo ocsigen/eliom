@@ -300,8 +300,7 @@ let rec aux : type a b c. (a,b,c) params_type -> string list option -> 'y -> a -
 (* The following function takes a 'a params_type and a 'a and
    constructs the list of parameters (GET or POST)
    (This is a marshalling function towards HTTP parameters format) *)
-let construct_params_list_raw : type a b c. 's -> (a,b,c) params_type -> a -> 't * 's * ((string * Eliommod_parameters.field) list) = fun nlp typ params ->
-  aux typ None nlp params "" "" []
+let construct_params_list_raw nlp typ params = aux typ None nlp params "" "" []
 
 
 
@@ -388,7 +387,7 @@ let construct_params nonlocparams typ p =
 
 
 
-let make_params_names : type a b c. (a,b,c) params_type -> bool * c = fun params ->
+let make_params_names params =
   let rec aux : type a b c. bool -> string -> string -> (a,b,c) params_type -> bool * c = fun issuffix prefix suffix x ->
     match x with
       | TNLParams (_, t) -> aux issuffix prefix suffix t
