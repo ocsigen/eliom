@@ -238,7 +238,7 @@ val preapply :
     than the current one. It is not possible to register something
     on the service returned by this function. *)
 val attach_coservice' :
-  fallback:(unit, unit, [< `Get ],[< `Attached],[< internal_service_kind ],
+  fallback:(unit, unit, [< `Get ],[< `Attached],[< `AttachedCoservice | `Service ],
 	   [< suff ], unit, unit, 'rg1, 'return1) service ->
   service: ('get, 'post, 'meth, [< `Nonattached], [< `NonattachedCoservice],
             [< `WithoutSuffix] as 'sf, 'gn, 'pn, 'rg2, 'return) service ->
