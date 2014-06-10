@@ -439,7 +439,7 @@ module Html5 : sig
                     and type Xml.elt = Xml.elt
                     and type 'a Xml.wrap = 'a React.signal Eliom_pervasives.client_value
                     and type 'a Xml.list_wrap = 'a list React.signal Eliom_pervasives.client_value
-                   with module Svg := Svg.D.Raw
+                   with module Svg := Svg.R.Raw
                    with type +'a elt = 'a elt
                     and type 'a wrap = 'a React.signal Eliom_pervasives.client_value
                     and type 'a list_wrap = 'a list React.signal Eliom_pervasives.client_value
