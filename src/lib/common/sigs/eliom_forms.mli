@@ -472,7 +472,7 @@ val raw_input :
 (** Creates an [<input>] tag for sending a file *)
 val file_input :
   ?a:input_attrib_t ->
-  name:[file_info setoneradio ] param_name ->
+  name:[< file_info setoneradio ] param_name ->
   unit -> input_elt
 
 (** Creates an [<input type="image" name="...">] tag that sends the coordinates

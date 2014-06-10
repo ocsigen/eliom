@@ -25,15 +25,15 @@ open Eliom_lib
 
 type ('a, +'b, 'c) params_type
 
-type 'a param_name
+type +'a param_name
 
 type no_param_name
 
-type 'a setoneradio = [ `Set of 'a | `One of 'a | `Radio of 'a ]
+type +'a setoneradio = [ `Set of 'a | `One of 'a | `Radio of 'a ]
 
-type 'a oneradio = [ `One of 'a | `Radio of 'a ]
+type +'a oneradio = [ `One of 'a | `Radio of 'a ]
 
-type 'a setone = [ `Set of 'a | `One of 'a ]
+type +'a setone = [ `Set of 'a | `One of 'a ]
 
 type 'a to_and_from = {
   of_string : string -> 'a;

@@ -21,7 +21,7 @@
 open Eliom_lib
 
 (** Type of names in a form *)
-type 'a param_name = string
+type +'a param_name = string
 
 (** empty type used when it is not possible to use the parameter in a form *)
 type no_param_name

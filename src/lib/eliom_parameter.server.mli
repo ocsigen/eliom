@@ -88,7 +88,7 @@ type suff = [ `WithoutSuffix | `WithSuffix | `Endsuffix ]
 (** Abstract type for parameters' name. The ['a] type parameter is a phantom type, usually a
     subtype of {!setoneradio}, used to denotes the parameter's arity.
 *)
-type 'a param_name
+type +'a param_name
 
 (** Empty type used to denotes it is not possible to use the parameter
     in a form. See for example {!raw_post_data}.
@@ -100,13 +100,14 @@ type no_param_name
     - [`One of 'a] means: exactly one ['a].
     - [`Radio of 'a] means: zero or one ['a].
 *)
-type 'a setoneradio = [ `Set of 'a | `One of 'a | `Radio of 'a ]
+type +'a setoneradio = [ `Set of 'a | `One of 'a | `Radio of 'a ]
 
 (** Restriction of {!setoneradio} unary and optional parameters. *)
-type 'a oneradio = [ `One of 'a | `Radio of 'a ]
+type +'a oneradio = [ `One of 'a | `Radio of 'a ]
 
 (** Restriction of {!setoneradio} unary and set parameters. *)
-type 'a setone = [ `Set of 'a | `One of 'a ]
+type +'a setone = [ `Set of 'a | `One of 'a ]
+
 
 (** {2 Types helpers} *)
 
