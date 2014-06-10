@@ -37,6 +37,7 @@ let iter_attrList attrList f =
        Same for attrList ? *)
     let v = Js.Unsafe.get attrList i in
     (* IE8 provides [null] in node##attributes; check this first of all *)
+    (* js_of_ocaml lib/dom.ml use the same magic trick for IE *)
     if Obj.magic v then f v
   done
 
