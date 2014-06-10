@@ -134,7 +134,7 @@ type registrable = [ `Registrable | `Unregistrable ]
     - [ 'ret] is an information on what the service returns.
             See {!Eliom_registration.kind}.
 *)
-type ('get,'post,+'meth,+'attached,+'kind,+'tipo,+'gn,+'pn,+'reg,+'ret) service
+type ('get,'post,+'meth,+'attached,+'kind,+'tipo,'gn,'pn,+'reg,+'ret) service
   constraint 'meth = [< getpost ]
   constraint 'attached = [< attached]
   constraint 'kind = [< service_kind ]

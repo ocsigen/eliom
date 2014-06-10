@@ -75,7 +75,7 @@ open Eliom_lib
     {{!section:Eliom_content.Html5.D.form_widgets}Form widget} of
     {!Eliom_content.HTML5.D}). )
 *)
-type ('a, +'b, +'c) params_type
+type ('a, +'b, 'c) params_type
 
 (** This type is used as a phantom type in {!params_type} to describe
     whether a parameter is encoded in the path of the URI as a suffix

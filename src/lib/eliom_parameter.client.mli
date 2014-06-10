@@ -23,7 +23,7 @@
 
 open Eliom_lib
 
-type ('a, +'b, +'c) params_type
+type ('a, +'b, 'c) params_type
 
 type 'a param_name
 

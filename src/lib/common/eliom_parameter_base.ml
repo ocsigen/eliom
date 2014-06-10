@@ -42,7 +42,7 @@ type 'a setone = [ `Set of 'a | `One of 'a ]
 (* This is a generalized algebraic datatype *)
 (* Use only with constructors from eliom.ml *)
     (* 'tipo is [`WithSuffix] or [`WithoutSuffix] *)
-type ('a, 'tipo, +'names) params_type =
+type ('a, 'tipo, 'names) params_type =
     TProd of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = 'a1 * 'a2 ; 'names = 'names1 * 'names2 *)
   | TOption of (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 option *)
   | TNEOption of (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 option *)
@@ -80,7 +80,7 @@ type ('a, 'tipo, +'names) params_type =
    and always None client side.*)
   | TRaw_post_data
 
-and ('a, 'tipo, +'names) non_localized_params =
+and ('a, 'tipo, 'names) non_localized_params =
     string *
       bool (* persistent *) *
       ('a option Polytables.key * 'a option Polytables.key) *

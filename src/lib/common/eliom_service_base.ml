@@ -100,7 +100,7 @@ type send_appl_content =
 *)
 
 (* 'return is the value returned by the service *)
-type ('get,'post,+'meth,+'attached,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) service = {
+type ('get,'post,+'meth,+'attached,+'kind,+'tipo,'getnames,'postnames,+'registr,+'return) service = {
   pre_applied_parameters:
     (string * Eliommod_parameters.param) list String.Table.t
     (* non localized parameters *) *
