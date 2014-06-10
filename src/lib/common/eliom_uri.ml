@@ -204,13 +204,13 @@ let make_uri_components_ (* does not take into account getparams *)
       nlp preapplied_params
   in
 
-  match get_kind_ service with
-  | `Attached attser ->
+  match get_info_ service with
+  | Attached attser ->
     begin
 
       let uri =
         let suff= None in
-        if (get_att_kind_ attser) = `External
+        if (get_kind_ service) = `External
         then
           (get_prefix_ attser)^
             "/"^  (* we add the "/" even if there is no prefix,
@@ -273,7 +273,7 @@ let make_uri_components_ (* does not take into account getparams *)
          fragment)
 
     end
-  | `Nonattached naser ->
+  | Nonattached naser ->
 
     let sp = Eliom_common.get_sp () in
     let na_name = get_na_name_ naser in
@@ -410,8 +410,8 @@ let make_post_uri_components_ (* do not take into account postparams *)
     ?keep_get_na_params
     getparams
     () =
-  match get_kind_ service with
-  | `Attached attser ->
+  match get_info_ service with
+  | Attached attser ->
     let (uri, getparams, fragment), getname =
       let getname = get_get_name_ attser in
       match getname with
@@ -480,7 +480,7 @@ let make_post_uri_components_ (* do not take into account postparams *)
      Eliommod_parameters.inject_param_list postparams)
 
 
-  | `Nonattached naser ->
+  | Nonattached naser ->
 
     let sp = Eliom_common.get_sp () in
     let nl_params = Eliom_parameter.table_of_nl_params_set nl_params in
@@ -530,12 +530,7 @@ let make_post_uri_components_ (* do not take into account postparams *)
     let keep_get_na_params =
       match keep_get_na_params with
       | Some b -> b
-      | None ->
-        match get_na_kind_ naser with
-        | `Post b -> b
-        | `Put b -> b
-        | `Delete b -> b
-        | _ -> assert false
+      | None -> get_na_keep_get_na_params_ naser
     in
     let params =
       params @
@@ -658,12 +653,12 @@ let make_cookies_info (https, service) =
                    AND WITHOUT SUFFIX *)
       ~service
       =
-    match Eliom_service.get_kind_ service with
-      | `Attached attser ->
-        if (Eliom_service.get_att_kind_ attser) = `External
+    match Eliom_service.get_info_ service with
+      | Attached attser ->
+        if (Eliom_service.get_kind_ service) = `External
         then None
         else Some (Eliom_service.get_full_path_ attser)
-      | `Nonattached naser ->
+      | Nonattached naser ->
         Some (Eliom_request_info.get_csp_original_full_path ())
   in
   match get_path_ ~service with

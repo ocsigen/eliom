@@ -334,7 +334,7 @@ module Html5 : sig
     (** This is an alias to {% <<a_api|val Eliom_content.Html5.F.get_form>> %}
         to avoid the untyped [Eliom_content.Html5.F.form]. *)
     val form : ?absolute:bool -> ?absolute_path:bool -> ?https:bool -> ?a:Html5_types.form_attrib attrib list ->
-      service:('get, unit, [< get_service_kind ], [<suff ], 'gn, 'pn, [< registrable ], [< non_ocaml_service ]) service ->
+      service:('get, unit, [< get_service_kind ], _, _, [<suff ], 'gn, 'pn, [< registrable ], [< non_ocaml_service ]) service ->
       ?hostname:string -> ?port:int -> ?fragment:string -> ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameter.nl_params_set -> ?xhr:bool ->
       ('gn -> Html5_types.form_content elt list) -> [> Html5_types.form ] elt
@@ -402,7 +402,7 @@ module Html5 : sig
     (** This is an alias to {% <<a_api|val Eliom_content.Html5.D.get_form>> %}
         to avoid the untyped [Eliom_content.Html5.D.form]. *)
     val form : ?absolute:bool -> ?absolute_path:bool -> ?https:bool -> ?a:Html5_types.form_attrib attrib list ->
-      service:('get, unit, [< get_service_kind ], [<suff ], 'gn, 'pn, [< registrable ], [< non_ocaml_service ]) service ->
+      service:('get, unit, [< get_service_kind ], _, _, [<suff ], 'gn, 'pn, [< registrable ], [< non_ocaml_service ]) service ->
       ?hostname:string -> ?port:int -> ?fragment:string -> ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameter.nl_params_set -> ?xhr:bool ->
       ('gn -> Html5_types.form_content elt list) -> [> Html5_types.form ] elt

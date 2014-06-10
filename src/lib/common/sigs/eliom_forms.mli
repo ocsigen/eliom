@@ -117,7 +117,7 @@ val make_uri :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, unit, [< get_service_kind ],
+  service:('get, unit, [< get_service_kind ], _, _,
            [< suff ], 'gn, unit,
            [< registrable ], 'return) service ->
   ?hostname:string ->
@@ -147,7 +147,7 @@ val make_string_uri :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, unit, [< get_service_kind ],
+  service:('get, unit, [< get_service_kind ], _, _,
            [< suff ], 'gn, unit,
            [< registrable ], 'return) service ->
   ?hostname:string ->
@@ -189,7 +189,7 @@ val make_uri_components :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, unit, [< get_service_kind ],
+  service:('get, unit, [< get_service_kind ], _, _,
            [< suff ], 'gn, unit,
            [< registrable ], 'return) service ->
   ?hostname:string ->
@@ -206,7 +206,7 @@ val make_post_uri_components :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, 'post, [< post_service_kind ],
+  service:('get, 'post, [< post_service_kind ], _, _,
            [< suff ], 'gn, 'pn,
            [< registrable ], 'return) service ->
 (*  service:('get, 'post,
@@ -264,7 +264,7 @@ val a :
   ?absolute_path:bool ->
   ?https:bool ->
   ?a:a_attrib_t ->
-  service:('get, unit, [< get_service_kind ],
+  service:('get, unit, [< get_service_kind ], _, _,
            [< suff ], 'd, unit,
            [< registrable ], [< non_ocaml_service])
     service ->
@@ -335,7 +335,7 @@ val get_form :
   ?absolute_path:bool ->
   ?https:bool ->
   ?a:form_attrib_t ->
-  service:('get, unit, [< get_service_kind ],
+  service:('get, unit, [< get_service_kind ], _, _,
            [<suff ], 'gn, 'pn,
            [< registrable ], [< non_ocaml_service]) service ->
   ?hostname:string ->
@@ -354,7 +354,7 @@ val lwt_get_form :
   ?absolute_path:bool ->
   ?https:bool ->
   ?a:form_attrib_t ->
-  service:('get, unit, [< get_service_kind ],
+  service:('get, unit, [< get_service_kind ], _, _,
            [<suff ], 'gn, 'pn,
            [< registrable ], [< non_ocaml_service]) service ->
   ?hostname:string ->
@@ -386,7 +386,7 @@ val post_form :
   ?absolute_path:bool ->
   ?https:bool ->
   ?a:form_attrib_t ->
-  service:('get, 'post, [< post_service_kind ],
+  service:('get, 'post, [< post_service_kind ], _, _,
            [< suff ], 'gn, 'pn,
            [< registrable ], [< non_ocaml_service]) service ->
   ?hostname:string ->
@@ -407,7 +407,7 @@ val lwt_post_form :
   ?absolute_path:bool ->
   ?https:bool ->
   ?a:form_attrib_t ->
-  service:('get, 'post, [< post_service_kind ],
+  service:('get, 'post, [< post_service_kind ], _, _,
            [< suff ], 'gn, 'pn,
            [< registrable ], [< non_ocaml_service]) service ->
   ?hostname:string ->

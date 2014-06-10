@@ -47,9 +47,7 @@ val service :
   ?priority:int ->
   get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
   unit ->
-  ('get,unit,
-   [> `Attached of ([> `Internal of [> `Service ] ], [> `Get ]) a_s ],
-   'tipo,'gn,
+  ('get,unit,[> get_service_kind],[> `Attached], [> `Service ], 'tipo,'gn,
    unit, [> `Registrable ], returnB) service
 
 (** The function [post_service ~fallback ~post_params ()] creates a
@@ -71,15 +69,14 @@ val service :
 val post_service :
   ?rt:'rt rt ->
   ?https:bool ->
-  fallback: ('get, unit,
-             [`Attached of ([`Internal of ([ `Service | `Coservice ] as 'kind) ], [`Get]) a_s ],
+  fallback: ('get, unit, [< `Get], [< `Attached], [< `Service | `AttachedCoservice ] as 'kind,
              [< suff] as 'tipo, 'gn, unit,
              [< `Registrable ], returnT) service ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   ?priority:int ->
   post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
   unit ->
-  ('get, 'post, [> `Attached of ([> `Internal of 'kind ], [> `Post]) a_s ],
+  ('get, 'post, [> `Post],[> `Attached], 'kind,
    'tipo, 'gn, 'pn, [> `Registrable ], returnB) service
 
 (** The function [put_service ~path ~get_params ()] creates a service
@@ -100,8 +97,7 @@ val put_service :
   get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
   unit ->
   ('get, Eliom_parameter.raw_post_data,
-   [> `Attached of ([> `Internal of [> `Service ] ], [> `Put]) a_s ],
-   'tipo, 'gn,
+   [> `Put],[> `Attached],[> `Service ], 'tipo, 'gn,
    no_param_name, [> `Registrable ], returnB) service
 
 (** The function [delete_service ~path ~get_params ()] creates a
@@ -122,8 +118,7 @@ val delete_service :
   get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
   unit ->
   ('get, Eliom_parameter.raw_post_data,
-   [> `Attached of ([> `Internal of [> `Service ] ], [> `Delete]) a_s ],
-   'tipo, 'gn,
+   [> `Delete],[> `Attached],[> `Service ], 'tipo, 'gn,
    no_param_name, [> `Registrable ], returnB) service
 
 
@@ -179,14 +174,13 @@ val coservice :
   ?timeout:float ->
   ?https:bool ->
   fallback:
-    (unit, unit, [ `Attached of ([ `Internal of [ `Service ] ], [`Get]) a_s ],
-     [ `WithoutSuffix ] as 'tipo,
+    (unit, unit, [<`Get], [<`Attached], [<`Service ], [ `WithoutSuffix ] as 'tipo,
      unit, unit, [< registrable ], returnT) service ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:
     ('get,[`WithoutSuffix],'gn) params_type ->
   unit ->
-  ('get,unit,[> `Attached of ([> `Internal of [> `Coservice] ], [> `Get]) a_s ],
+  ('get,unit,[> `Get],[> `Attached], [> `AttachedCoservice],
    'tipo, 'gn, unit,
    [> `Registrable ], returnB) service
 
@@ -212,15 +206,13 @@ val post_coservice :
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
-  fallback: ('get, unit,
-             [ `Attached of ([`Internal of [<`Service | `Coservice] ], [`Get]) a_s ],
+  fallback: ('get, unit,[<`Get],[<`Attached],[<`Service | `AttachedCoservice],
              [< suff ] as 'tipo,
              'gn, unit, [< `Registrable ], returnT) service ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
   unit ->
-  ('get, 'post,
-   [> `Attached of ([> `Internal of [> `Coservice] ], [> `Post]) a_s ],
+  ('get, 'post, [>`Post], [> `Attached],[> `AttachedCoservice],
    'tipo, 'gn, 'pn, [> `Registrable ], returnB) service
 
 (** The function [put_coservice ~fallback ~get_params] creates an {%
@@ -244,16 +236,15 @@ val put_coservice :
   ?timeout:float ->
   ?https:bool ->
   fallback:
-    (unit, Eliom_parameter.raw_post_data,
-      [ `Attached of ([ `Internal of [ `Service ] ], [`Put]) a_s ],
+    (unit, Eliom_parameter.raw_post_data,[`Put], [ `Attached],[ `Service ],
       [ `WithoutSuffix ] as 'tipo,
       unit, no_param_name, [< registrable ], returnT) service ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:
     ('get,[`WithoutSuffix],'gn) params_type ->
   unit ->
-  ('get, Eliom_parameter.raw_post_data,
-   [> `Attached of ([> `Internal of [> `Coservice] ], [> `Put]) a_s ],
+  ('get, Eliom_parameter.raw_post_data,[> `Put],
+   [> `Attached], [> `AttachedCoservice],
    'tipo, 'gn, no_param_name,
    [> `Registrable ], returnB) service
 
@@ -278,16 +269,15 @@ val delete_coservice :
   ?timeout:float ->
   ?https:bool ->
   fallback:
-    (unit, Eliom_parameter.raw_post_data,
-      [ `Attached of ([ `Internal of [ `Service ] ], [`Delete]) a_s ],
+    (unit, Eliom_parameter.raw_post_data,[`Delete],
+      [ `Attached], [ `Service ],
       [ `WithoutSuffix ] as 'tipo,
       unit, no_param_name, [< registrable ], returnT) service ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:
     ('get,[`WithoutSuffix],'gn) params_type ->
   unit ->
-  ('get, Eliom_parameter.raw_post_data,
-   [> `Attached of ([> `Internal of [> `Coservice] ], [> `Delete]) a_s ],
+  ('get, Eliom_parameter.raw_post_data,[>`Delete],[> `Attached],[> `AttachedCoservice],
    'tipo, 'gn, no_param_name,
    [> `Registrable ], returnB) service
 
@@ -317,7 +307,7 @@ val coservice' :
   get_params:
     ('get, [`WithoutSuffix], 'gn) params_type ->
   unit ->
-  ('get, unit, [> `Nonattached of [> `Get] na_s ],
+  ('get, unit, [> `Get], [> `Nonattached],[> `NonattachedCoservice],
    [`WithoutSuffix], 'gn, unit, [> `Registrable ], returnB) service
 
 
@@ -349,8 +339,7 @@ val post_coservice' :
   ?keep_get_na_params:bool ->
   post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
   unit ->
-  (unit, 'post,
-   [> `Nonattached of [> `Post ] na_s ],
+  (unit, 'post,[>`Post],[> `Nonattached],[> `NonattachedCoservice ],
    [ `WithoutSuffix ], unit, 'pn, [> `Registrable ], returnB) service
 
 (** The function [put_coservice' ~get_params] creates a {% <<a_manual
@@ -375,8 +364,7 @@ val put_coservice' :
   get_params:
     ('get, [`WithoutSuffix], 'gn) params_type ->
   unit ->
-  ('get, Eliom_parameter.raw_post_data,
-   [> `Nonattached of [> `Put] na_s ],
+  ('get, Eliom_parameter.raw_post_data,[>`Put],[> `Nonattached], [>`NonattachedCoservice],
    [`WithoutSuffix], 'gn,
    no_param_name, [> `Registrable ], returnB) service
 
@@ -402,7 +390,6 @@ val delete_coservice' :
   get_params:
     ('get, [`WithoutSuffix], 'gn) params_type ->
   unit ->
-  ('get, Eliom_parameter.raw_post_data,
-   [> `Nonattached of [> `Delete] na_s ],
+  ('get, Eliom_parameter.raw_post_data, [> `Delete], [> `Nonattached], [>`NonattachedCoservice],
    [`WithoutSuffix], 'gn,
    no_param_name, [> `Registrable ], returnB) service

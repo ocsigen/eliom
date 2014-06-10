@@ -68,7 +68,7 @@ type answer =
 deriving (Json)
 
 type comet_service =
-    (unit, comet_request,
+    (unit, comet_request, Eliom_service.getpost, Eliom_service.attached,
      Eliom_service.service_kind,
      [ `WithoutSuffix ], unit,
      [ `One of comet_request Eliom_parameter.ocaml ] Eliom_parameter.param_name,
@@ -77,7 +77,7 @@ type comet_service =
       Eliom_service.service
 
 type internal_comet_service =
-    (unit, comet_request,
+    (unit, comet_request, Eliom_service.getpost, Eliom_service.attached,
      Eliom_service.internal_service_kind,
      [ `WithoutSuffix ], unit,
      [ `One of comet_request Eliom_parameter.ocaml ] Eliom_parameter.param_name,
@@ -98,7 +98,7 @@ type 'a wrapped_channel =
 type 'a bus_send_service =
     (unit,
      'a list,
-     [ `Nonattached of [ `Post ] Eliom_service.na_s ],
+     [ `Post ], [ `Nonattached], [ `NonattachedCoservice],
      [ `WithoutSuffix ],
      unit,
      [ `One of 'a list Eliom_parameter.ocaml ] Eliom_parameter.param_name,

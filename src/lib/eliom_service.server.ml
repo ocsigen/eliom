@@ -51,7 +51,7 @@ let xhr_with_cookies s =
 
 (**********)
 
-let get_or_post_ s = match s.get_or_post with
+let get_or_post_ s = match get_get_or_post s with
   | `Get -> Ocsigen_http_frame.Http_header.GET
   | `Post -> Ocsigen_http_frame.Http_header.POST
   | `Put -> Ocsigen_http_frame.Http_header.PUT
@@ -142,9 +142,9 @@ let set_delayed_post_registration_function tables k f =
 
 (*****************************************************************************)
 let remove_service table service =
-  match get_kind_ service with
-    | `Attached attser ->
-        let key_kind = get_or_post_ attser in
+  match get_info_ service with
+    | Attached attser ->
+        let key_kind = get_or_post_ service in
         let attserget = get_get_name_ attser in
         let attserpost = get_post_name_ attser in
         let sgpt = get_get_params_type_ service in
@@ -158,7 +158,7 @@ let remove_service table service =
            then (anonymise_params_type sgpt,
                  anonymise_params_type sppt)
            else (0, 0))
-    | `Nonattached naser ->
+    | Nonattached naser ->
         let na_name = get_na_name_ naser in
         Eliommod_naservices.remove_naservice table na_name
 

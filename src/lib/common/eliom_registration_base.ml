@@ -263,7 +263,7 @@ module Html5_forms(*  : sig *)
                 ?absolute_path:bool ->
                 ?https:bool ->
                 ?a:a_attrib attrib list ->
-                service:('get, unit, [< get_service_kind ],
+                service:('get, unit, [< get_service_kind ], 'attached, 'kind,
                          [< suff ], 'gn, 'pn,
                          [< registrable ], [< non_ocaml_service ]) service ->
                 ?hostname:string ->
@@ -278,7 +278,7 @@ module Html5_forms(*  : sig *)
                 ?absolute_path:bool ->
                 ?https:bool ->
                 ?a:a_attrib attrib list ->
-                service:('get, unit, [< get_service_kind ],
+                service:('get, unit, [< get_service_kind ], 'attached, 'kind,
                          [< suff ], 'gn, 'pn,
                          [< registrable ], [< non_ocaml_service ]) service ->
                 ?hostname:string ->
@@ -306,7 +306,7 @@ module Html5_forms(*  : sig *)
                         ?absolute:bool ->
                        ?absolute_path:bool ->
                        ?https:bool ->
-                       service:('get, unit, [< get_service_kind ],
+                       service:('get, unit, [< get_service_kind ], 'attached, 'kind,
                                 [< suff ], 'gn, unit,
                                 [< registrable ], 'return) service ->
                        ?hostname:string ->
@@ -321,7 +321,7 @@ module Html5_forms(*  : sig *)
                        ?absolute_path:bool ->
                        ?https:bool ->
                        ?a:form_attrib attrib list ->
-                       service:('get, unit, [< get_service_kind ],
+                       service:('get, unit, [< get_service_kind ], 'attached, 'kind,
                                 [<suff ], 'gn, 'pn,
                                 [< registrable ], [< non_ocaml_service ]) service ->
                        ?hostname:string ->
@@ -335,7 +335,7 @@ module Html5_forms(*  : sig *)
                        ?absolute_path:bool ->
                        ?https:bool ->
                        ?a:form_attrib attrib list ->
-                       service:('get, unit, [< get_service_kind ],
+                       service:('get, unit, [< get_service_kind ], 'attached, 'kind,
                                 [<suff ], 'gn, 'pn,
                                 [< registrable ], [< non_ocaml_service ]) service ->
                        ?hostname:string ->
@@ -352,7 +352,7 @@ module Html5_forms(*  : sig *)
                            ?absolute_path:bool ->
                            ?https:bool ->
                            ?a:form_attrib attrib list ->
-                           service:('get, unit, [< get_service_kind ],
+                           service:('get, unit, [< get_service_kind ], 'attached, 'kind,
                                     [<suff ], 'gn, 'pn,
                                     [< registrable ], [< non_ocaml_service ]) service ->
                            ?hostname:string ->
@@ -366,7 +366,7 @@ module Html5_forms(*  : sig *)
                            ?absolute_path:bool ->
                            ?https:bool ->
                            ?a:form_attrib attrib list ->
-                           service:('get, unit, [< get_service_kind ],
+                           service:('get, unit, [< get_service_kind ], 'attached, 'kind,
                                     [<suff ], 'gn, 'pn,
                                     [< registrable ], [< non_ocaml_service ]) service ->
                            ?hostname:string ->
@@ -384,7 +384,7 @@ module Html5_forms(*  : sig *)
                         ?absolute_path:bool ->
                         ?https:bool ->
                         ?a:form_attrib attrib list ->
-                        service:('get, 'post, [< post_service_kind ],
+                        service:('get, 'post, [< post_service_kind ], 'attached, 'kind,
                                  [< suff ], 'gn, 'pn,
                                  [< registrable ], [< non_ocaml_service ]) service ->
                         ?hostname:string ->
@@ -399,7 +399,7 @@ module Html5_forms(*  : sig *)
                         ?absolute_path:bool ->
                         ?https:bool ->
                         ?a:form_attrib attrib list ->
-                        service:('get, 'post, [< post_service_kind ],
+                        service:('get, 'post, [< post_service_kind ], 'attached, 'kind,
                                  [< suff ], 'gn, 'pn,
                                  [< registrable ], [< non_ocaml_service ]) service ->
                         ?hostname:string ->
@@ -416,7 +416,7 @@ module Html5_forms(*  : sig *)
                             ?absolute_path:bool ->
                             ?https:bool ->
                             ?a:form_attrib attrib list ->
-                            service:('get, 'post, [< post_service_kind ],
+                            service:('get, 'post, [< post_service_kind ], 'attached, 'kind,
                                      [< suff ], 'gn, 'pn,
                                      [< registrable ], [< non_ocaml_service ]) service ->
                             ?hostname:string ->
@@ -432,7 +432,7 @@ module Html5_forms(*  : sig *)
                             ?absolute_path:bool ->
                             ?https:bool ->
                             ?a:form_attrib attrib list ->
-                            service:('get, 'post, [< post_service_kind ],
+                            service:('get, 'post, [< post_service_kind ], 'attached, 'kind,
                                      [< suff ], 'gn, 'pn,
                                      [< registrable ], [< non_ocaml_service ]) service ->
                             ?hostname:string ->

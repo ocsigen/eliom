@@ -27,7 +27,7 @@ val external_service :
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
   unit ->
-  ('get, unit, [> `Attached of ([> `External ], [> `Get ]) a_s ], 'tipo,
+  ('get, unit, [>`Get],[> `Attached],[> `External ],'tipo,
    'gn, unit, [> `Unregistrable ], returnB) service
 
 
@@ -40,7 +40,7 @@ val external_post_service :
   get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
   post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
   unit ->
-  ('get, 'post, [> `Attached of ([> `External ], [> `Post ]) a_s ], 'tipo,
+  ('get, 'post, [>`Post],[> `Attached], [> `External ], 'tipo,
    'gn, 'pn, [> `Unregistrable ], returnB) service
 
 (** Same as {!external_service} but with PUT method. *)
@@ -52,7 +52,7 @@ val external_put_service :
   get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
   unit ->
   ('get, Eliom_parameter.raw_post_data,
-    [> `Attached of ([> `External ], [> `Put ]) a_s ], 'tipo,
+    [> `Put], [> `Attached], [> `External ], 'tipo,
    'gn, no_param_name, [> `Unregistrable ], returnB) service
 
 (** Same as {!external_service} but with DELETE method. *)
@@ -64,5 +64,5 @@ val external_delete_service :
   get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
   unit ->
   ('get, Eliom_parameter.raw_post_data,
-    [> `Attached of ([> `External ], [> `Delete ]) a_s ], 'tipo,
+   [>`Delete ], [> `Attached], [> `External], 'tipo,
    'gn, no_param_name, [> `Unregistrable ], returnB) service

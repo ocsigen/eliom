@@ -32,8 +32,7 @@ open Eliom_tools_common
 (** Restriction of {!type:Eliom_service.service} to services without
     parameters that do not returns a marshalled OCaml value. *)
 type ('a, 'b, 'c) one_page =
-    (unit, unit,
-     'a,
+    (unit, unit,'a, attached, service_kind,
      [ `WithoutSuffix ],
      unit, unit,
      'b, 'c) service
@@ -52,7 +51,8 @@ type get_page =
     displayed in menus and a {!hierarchical_site_item}. *)
 type ('a, 'b, 'c) hierarchical_site =
     (('a, 'b) main_page *
-        ('c * ('a, 'b, 'c) hierarchical_site_item) list)
+     ('c * ('a, 'b, 'c) hierarchical_site_item) list)
+constraint 'a = [< Eliom_service.getpost ]
 constraint 'b = [< Eliom_service.registrable ]
 
 (* Be kind with ocamldoc when source code is preprocessed with camlp4,
@@ -72,6 +72,7 @@ and ('a, 'b) main_page =
   | Not_clickable
     (** When you do not want the menu entry to be a link
         but you want subpages. *)
+constraint 'a = [< Eliom_service.getpost ]
 constraint 'b = [< Eliom_service.registrable ]
 
 (* Be kind with ocamldoc when source code is preprocessed with camlp4:
@@ -81,6 +82,7 @@ constraint 'b = [< Eliom_service.registrable ]
 and ('a, 'b, 'c) hierarchical_site_item =
   | Disabled (** The menu entry is disabled. *)
   | Site_tree of ('a, 'b, 'c) hierarchical_site (** The menu entry as a label and subsections. *)
+constraint 'a = [< Eliom_service.getpost ]
 constraint 'b = [< Eliom_service.registrable ]
 
 (** {2 Tools for generating certain HTML elements} *)

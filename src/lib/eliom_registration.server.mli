@@ -354,7 +354,7 @@ module Unit : "sigs/eliom_reg.mli"
 *)
 module Redirection : "sigs/eliom_reg_alpha_return.mli"
   subst type page :=
-      (unit, unit, Eliom_service.get_service_kind,
+      (unit, unit, Eliom_service.get_service_kind, Eliom_service.attached, Eliom_service.service_kind,
        [ `WithoutSuffix ],
        unit, unit, Eliom_service.registrable, 'b)
       Eliom_service.service

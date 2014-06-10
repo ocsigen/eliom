@@ -58,7 +58,7 @@ let internal_wrap (bus: ('a, 'b) t)
 	  | _ ->
 	    register_sender bus.scope
 	      (bus.service:>
-		 ('h, 'a list, [ Eliom_service.internal_service_kind ], 'f, 'c, 'd, 'e, 'g)
+		 ('h, 'a list, _, _, [ Eliom_service.internal_service_kind ], 'f, 'c, 'd, 'e, 'g)
 		 Eliom_service.service)
 	      bus.write;
 	    Eliom_state.set_volatile_data ~table true
