@@ -479,49 +479,49 @@ val file_input :
     the user clicked on *)
 val image_input :
   ?a:input_attrib_t ->
-  name:[coordinates oneradio ] param_name ->
+  name:[< coordinates oneradio ] param_name ->
   ?src:uri -> unit -> input_elt
 
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
     the coordinates the user clicked on and a value of type int *)
 val int_image_input :
   ?a:input_attrib_t ->
-  name:[(int * coordinates) oneradio ] param_name -> value:int ->
+  name:[< (int * coordinates) oneradio ] param_name -> value:int ->
   ?src:uri -> unit -> input_elt
 
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
     the coordinates the user clicked on and a value of type int32 *)
 val int32_image_input :
   ?a:input_attrib_t ->
-  name:[ (int32 * coordinates) oneradio ] param_name -> value:int32 ->
+  name:[< (int32 * coordinates) oneradio ] param_name -> value:int32 ->
   ?src:uri -> unit -> input_elt
 
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
     the coordinates the user clicked on and a value of type int64 *)
 val int64_image_input :
   ?a:input_attrib_t ->
-  name:[(int64 * coordinates) oneradio ] param_name -> value:int64 ->
+  name:[< (int64 * coordinates) oneradio ] param_name -> value:int64 ->
   ?src:uri -> unit -> input_elt
 
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
     the coordinates the user clicked on and a value of type float *)
 val float_image_input :
   ?a:input_attrib_t ->
-  name:[(float * coordinates) oneradio ] param_name -> value:float ->
+  name:[< (float * coordinates) oneradio ] param_name -> value:float ->
   ?src:uri -> unit -> input_elt
 
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
     the coordinates the user clicked on and a value of type string *)
 val string_image_input :
   ?a:input_attrib_t ->
-  name:[(string * coordinates) oneradio ] param_name -> value:string ->
+  name:[< (string * coordinates) oneradio ] param_name -> value:string ->
   ?src:uri -> unit -> input_elt
 
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
     the coordinates the user clicked on and a value of user defined type *)
 val user_type_image_input : ('a -> string) ->
   ?a:input_attrib_t ->
-  name:[('a * coordinates) oneradio ] param_name -> value:'a ->
+  name:[< ('a * coordinates) oneradio ] param_name -> value:'a ->
   ?src:uri -> unit -> input_elt
 
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
@@ -736,7 +736,7 @@ type 'a select_opt =
 val int_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `One of int ] param_name ->
+  name:[ `One of int ] param_name ->
   int select_opt ->
   int select_opt list ->
   select_elt
@@ -746,7 +746,7 @@ val int_select :
 val int32_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `One of int32 ] param_name ->
+  name:[ `One of int32 ] param_name ->
   int32 select_opt ->
   int32 select_opt list ->
   select_elt
@@ -756,7 +756,7 @@ val int32_select :
 val int64_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `One of int64 ] param_name ->
+  name:[ `One of int64 ] param_name ->
   int64 select_opt ->
   int64 select_opt list ->
   select_elt
@@ -766,7 +766,7 @@ val int64_select :
 val float_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `One of float ] param_name ->
+  name:[ `One of float ] param_name ->
   float select_opt ->
   float select_opt list ->
   select_elt
@@ -776,7 +776,7 @@ val float_select :
 val string_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `One of string ] param_name ->
+  name:[ `One of string ] param_name ->
   string select_opt ->
   string select_opt list ->
   select_elt
@@ -786,7 +786,7 @@ val string_select :
 val user_type_select : ('a -> string) ->
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `One of 'a ] param_name ->
+  name:[ `One of 'a ] param_name ->
   'a select_opt ->
   'a select_opt list ->
   select_elt
@@ -806,7 +806,7 @@ val raw_select :
 val int_multiple_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `Set of int ] param_name ->
+  name:[ `Set of int ] param_name ->
   int select_opt ->
   int select_opt list ->
   select_elt
@@ -816,7 +816,7 @@ val int_multiple_select :
 val int32_multiple_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `Set of int32 ] param_name ->
+  name:[ `Set of int32 ] param_name ->
   int32 select_opt ->
   int32 select_opt list ->
   select_elt
@@ -826,7 +826,7 @@ val int32_multiple_select :
 val int64_multiple_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `Set of int64 ] param_name ->
+  name:[ `Set of int64 ] param_name ->
   int64 select_opt ->
   int64 select_opt list ->
   select_elt
@@ -836,7 +836,7 @@ val int64_multiple_select :
 val float_multiple_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `Set of float ] param_name ->
+  name:[ `Set of float ] param_name ->
   float select_opt ->
   float select_opt list ->
   select_elt
@@ -846,7 +846,7 @@ val float_multiple_select :
 val string_multiple_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `Set of string ] param_name ->
+  name:[ `Set of string ] param_name ->
   string select_opt ->
   string select_opt list ->
   select_elt
@@ -857,7 +857,7 @@ val user_type_multiple_select :
   ('a -> string) ->
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `Set of 'a ] param_name ->
+  name:[ `Set of 'a ] param_name ->
   'a select_opt ->
   'a select_opt list ->
   select_elt

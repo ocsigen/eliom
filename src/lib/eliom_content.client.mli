@@ -345,7 +345,7 @@ module Html5 : sig
     (** This is an alias to
         {% <<a_api|val Eliom_content.Html5.F.string_select>> %}
         to avoid the untyped [Eliom_content_core.Html5.F.select]. *)
-    val select : ?a:Html5_types.select_attrib attrib list -> name:[< `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt
+    val select : ?a:Html5_types.select_attrib attrib list -> name:[`One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt
   end
 
   (** Creation of HTML5 content with {e D}OM semantics (referable) *)
@@ -407,7 +407,7 @@ module Html5 : sig
     (** This is an alias to
         {% <<a_api|val Eliom_content.Html5.D.string_select>> %}
         to avoid the untyped [Eliom_content_core.Html5.D.select]. *)
-    val select : ?a:Html5_types.select_attrib attrib list -> name:[< `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt
+    val select : ?a:Html5_types.select_attrib attrib list -> name:[`One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt
   end
 
 
