@@ -20,6 +20,8 @@
 
 open Eliom_lib
 
+module OX = Ocsigen_extensions
+
 let make_full_named_group_name_ ~cookie_level sitedata g =
   (sitedata.Eliom_common.site_dir_string, cookie_level, Left g)
 
@@ -30,7 +32,7 @@ let make_full_group_name ~cookie_level ri site_dir_string ipv4mask ipv6mask =
              cookie_level,
              Right 
                (Eliom_common.network_of_ip
-                  (!!(ri.Ocsigen_extensions.ri_remote_ip_parsed))
+                  (!!(OX.RI.remote_ip_parsed ri))
                   ipv4mask
                   ipv6mask
                ))

@@ -27,6 +27,9 @@ open Eliom_parameter
 open Eliom_service
 open Lazy
 
+module OX = Ocsigen_extensions
+module RE = Ocsigen_http_frame.Result
+
 let suffix_redir_uri_key = Polytables.make_key ()
 
 (****************************************************************************)
@@ -94,7 +97,7 @@ let check_after name result =
   try
     let appl_name = Http_headers.find
       (Http_headers.name Eliom_common_base.appl_name_header_name)
-      result.Ocsigen_http_frame.res_headers
+      (RE.headers result)
     in
     not (appl_name = name)
   with
@@ -122,11 +125,11 @@ let check_process_redir sp f param =
       (Eliom_common.Eliom_do_half_xhr_redirection
 	 ("/"^
              String.may_concat
-                  ri.Ocsigen_extensions.ri_original_full_path_string
+                  (OX.RI.original_full_path_string ri)
                   ~sep:"?"
                   (Eliom_parameter.construct_params_string
                      (Lazy.force
-                        ri.Ocsigen_extensions.ri_get_params)
+                        (OX.RI.get_params ri))
                   )))
   (* We do not put hostname and port.
      It is ok with half or full xhr redirections. *)
@@ -162,15 +165,17 @@ let send_with_cookies
   (* TODO: do not add header when no cookies *)
   let tab_cookies = Eliommod_cookies.cookieset_to_json tab_cookies in
   Lwt.return
-    { result with
-      Ocsigen_http_frame.res_cookies =
-        Ocsigen_cookies.add_cookies
+    (RE.update result
+       ~cookies:
+         (Ocsigen_cookies.add_cookies
           (Eliom_request_info.get_user_cookies ())
-          result.Ocsigen_http_frame.res_cookies;
-      res_headers = Http_headers.add
-	(Http_headers.name Eliom_common_base.set_tab_cookies_header_name)
-	tab_cookies
-	result.Ocsigen_http_frame.res_headers; }
+          (RE.cookies result))
+       ~headers:
+         (Http_headers.add
+          (Http_headers.name Eliom_common_base.set_tab_cookies_header_name)
+          tab_cookies
+          (RE.headers result))
+       ())
 
 let register_aux pages
       ?options
@@ -220,7 +225,7 @@ let register_aux pages
 			reconstruct_params
 			  ~sp
 			  sgpt
-			  (Some (Lwt.return (force ri.ri_get_params)))
+			  (Some (Lwt.return (force (OX.RI.get_params ri))))
 			  (Some (Lwt.return []))
 			  nosuffixversion
 			  suff
@@ -414,7 +419,7 @@ let register_aux pages
                          reconstruct_params
                            ~sp
                            (get_get_params_type_ service)
-                           (Some (Lwt.return (force ri.ri_get_params)))
+                           (Some (Lwt.return (force (OX.RI.get_params ri))))
                            (Some (Lwt.return []))
                            false
                            None

@@ -404,7 +404,7 @@ let find_service
                (fst si.Eliom_common.si_state_info),
              Eliom_common.att_key_serv_of_req
                (snd si.Eliom_common.si_state_info));
-         Eliom_common.key_kind = ri.request_info.ri_method}
+         Eliom_common.key_kind = RI.meth ri.request_info}
     in
     let aux a l =
       let aa = match a with
@@ -483,7 +483,7 @@ let find_service
     (fun () ->
       search_by_priority_generation
         tables.Eliom_common.table_services
-        (Url.change_empty_list ri.request_info.ri_sub_path))
+        (Url.change_empty_list (RI.sub_path ri.request_info)))
     (function Exn1 -> Lwt.fail Eliom_common.Eliom_404 | e -> Lwt.fail e)
 
 
@@ -552,7 +552,7 @@ let get_page
                    (fun () -> String.concat ""
                      ["--Eliom: I'm looking for ";
                       (Url.string_of_url_path
-                         ~encode:true ri.request_info.ri_sub_path);
+                         ~encode:true (RI.sub_path ri.request_info));
                       " in the "; table_name; ":"]);
                  find_aux Eliom_common.Eliom_404 table
                | e -> Lwt.fail e))
@@ -585,23 +585,22 @@ let get_page
                    Ocsigen_messages.debug2
                      "--Eliom: Link too old. I will try without POST parameters:";
                    Polytables.set
-                     ri.request_info.ri_request_cache
+                     (RI.request_cache ri.request_info)
                      Eliom_common.eliom_link_too_old
                      true;
                    fail (Eliom_common.Eliom_retry_with
                            ({ri with request_info =
-                               { ri.request_info with
-                                 ri_post_params =
-                                   (match ri.request_info.ri_post_params with
-                                     | None -> None
-                                     | Some _ -> Some (fun _ -> Lwt.return []));
-                                 ri_files =
-                                   (match ri.request_info.ri_files with
-                                     | None -> None
-                                     | Some _ -> Some (fun _ -> Lwt.return []));
-                                 ri_method =
-                                   Ocsigen_http_frame.Http_header.GET;
-                               }},
+                             RI.update ri.request_info
+                               ~post_params:
+                                 (match RI.post_params ri.request_info with
+                                  | None -> None
+                                  | Some _ -> Some (fun _ -> Lwt.return []))
+                               ~files:
+                                 (match RI.files ri.request_info with
+                                  | None -> None
+                                  | Some _ -> Some (fun _ -> Lwt.return []))
+                               ~meth:Ocsigen_http_frame.Http_header.GET
+                             ()},
                             {si with
                               Eliom_common.si_nonatt_info=
                                 Eliom_common.RNa_no;
@@ -621,25 +620,21 @@ let get_page
                    Ocsigen_messages.debug2
                      "--Eliom: Link to old. I will try without GET state parameters and POST parameters:";
                    Polytables.set
-                     ri.request_info.ri_request_cache
+                     (RI.request_cache ri.request_info)
                      Eliom_common.eliom_link_too_old
                      true;
                    fail (Eliom_common.Eliom_retry_with
                            ({ri with request_info =
-                               { ri.request_info with
-                                 ri_get_params =
-                                   lazy si.Eliom_common.si_other_get_params;
-                                 ri_post_params =
-                                   (match ri.request_info.ri_post_params with
-                                     | None -> None
-                                     | Some _ -> Some (fun _ -> Lwt.return []));
-                                 ri_files =
-                                   (match ri.request_info.ri_files with
-                                     | None -> None
-                                     | Some _ -> Some (fun _ -> Lwt.return []));
-                                 ri_method =
-                                   Ocsigen_http_frame.Http_header.GET;
-                               }
+                             RI.update ri.request_info
+                               ~get_params:(lazy si.Eliom_common.si_other_get_params)
+                               ~post_params:(match RI.post_params ri.request_info with
+                                             | None -> None
+                                             | Some _ -> Some (fun _ -> Lwt.return []))
+                               ~files:(match RI.files ri.request_info with
+                                       | None -> None
+                                       | Some _ -> Some (fun _ -> Lwt.return []))
+                               ~meth:Ocsigen_http_frame.Http_header.GET
+                               ()
                             },
                             {si with
                               Eliom_common.si_nonatt_info=

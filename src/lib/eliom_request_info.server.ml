@@ -36,24 +36,24 @@ let find_sitedata fun_name =
 (*****************************************************************************)
 let get_http_method () =
   let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_request.request_info.ri_method
+  RI.meth sp.Eliom_common.sp_request.request_info
 let get_user_agent () =
   let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_request.request_info.ri_user_agent
+  RI.user_agent sp.Eliom_common.sp_request.request_info
 let get_full_url_sp sp =
-  sp.Eliom_common.sp_request.request_info.ri_url_string
+  RI.url_string sp.Eliom_common.sp_request.request_info
 let get_full_url () =
   let sp = Eliom_common.get_sp () in
   get_full_url_sp sp
 let get_remote_ip () =
   let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_request.request_info.ri_remote_ip
+  RI.remote_ip sp.Eliom_common.sp_request.request_info
 let get_remote_inet_addr () =
   let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_request.request_info.ri_remote_inet_addr
+  RI.remote_inet_addr sp.Eliom_common.sp_request.request_info
 let get_get_params () =
   let sp = Eliom_common.get_sp () in
-  Lazy.force sp.Eliom_common.sp_request.request_info.ri_get_params
+  Lazy.force (RI.get_params sp.Eliom_common.sp_request.request_info)
 let get_all_current_get_params_sp sp =
   sp.Eliom_common.sp_si.Eliom_common.si_all_get_params
 let get_all_current_get_params () =
@@ -61,51 +61,57 @@ let get_all_current_get_params () =
   get_all_current_get_params_sp sp
 let get_initial_get_params () =
   let sp = Eliom_common.get_sp () in
-  Lazy.force sp.Eliom_common.sp_request.request_info.ri_initial_get_params
+  Lazy.force (RI.initial_get_params sp.Eliom_common.sp_request.request_info)
 let get_get_params_string () =
   let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_request.request_info.ri_get_params_string
+  RI.get_params_string sp.Eliom_common.sp_request.request_info
 let get_post_params_sp sp =
-  match sp.Eliom_common.sp_request.request_info.ri_post_params with
+  match RI.post_params sp.Eliom_common.sp_request.request_info with
     | None -> None
-    | Some f -> Some (f sp.Eliom_common.sp_request.request_config)
+    | Some f ->
+      Some (f
+        (sp.Eliom_common.sp_request.request_config.uploaddir,
+         sp.Eliom_common.sp_request.request_config.maxuploadfilesize))
 let get_post_params () =
   let sp = Eliom_common.get_sp () in
   get_post_params_sp sp
 let get_files_sp sp =
-  match sp.Eliom_common.sp_request.request_info.ri_files with
+  match RI.files sp.Eliom_common.sp_request.request_info with
     | None -> None
-    | Some f -> Some (f sp.Eliom_common.sp_request.request_config)
+    | Some f ->
+      Some (f
+        (sp.Eliom_common.sp_request.request_config.uploaddir,
+         sp.Eliom_common.sp_request.request_config.maxuploadfilesize))
 let get_all_post_params () =
   let sp = Eliom_common.get_sp () in
   sp.Eliom_common.sp_si.Eliom_common.si_all_post_params
 let get_original_full_path_string_sp sp =
-  sp.Eliom_common.sp_request.request_info.ri_original_full_path_string
+  RI.original_full_path_string sp.Eliom_common.sp_request.request_info
 let get_original_full_path_string () =
   let sp = Eliom_common.get_sp () in
   get_original_full_path_string_sp sp
 let get_original_full_path_sp sp =
-  sp.Eliom_common.sp_request.request_info.ri_original_full_path
+  RI.original_full_path sp.Eliom_common.sp_request.request_info
 let get_original_full_path () =
   let sp = Eliom_common.get_sp () in
   get_original_full_path_sp sp
 let get_current_full_path () =
   let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_request.request_info.ri_full_path
+  RI.full_path sp.Eliom_common.sp_request.request_info
 let get_current_full_path_string () =
   let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_request.request_info.ri_full_path_string
+  RI.full_path_string sp.Eliom_common.sp_request.request_info
 let get_current_sub_path () =
   let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_request.request_info.ri_sub_path
+  RI.sub_path sp.Eliom_common.sp_request.request_info
 let get_current_sub_path_string () =
   let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_request.request_info.ri_sub_path_string
+  RI.sub_path_string sp.Eliom_common.sp_request.request_info
 let get_header_hostname () =
   let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_request.request_info.ri_host
+  RI.host sp.Eliom_common.sp_request.request_info
 let get_timeofday_sp sp =
-  sp.Eliom_common.sp_request.request_info.ri_timeofday
+  RI.timeofday sp.Eliom_common.sp_request.request_info
 let get_request_id_sp sp = Int64.bits_of_float (get_timeofday_sp sp)
 let get_timeofday () =
   let sp = Eliom_common.get_sp () in
@@ -122,14 +128,14 @@ let get_server_port () =
   let sp = Eliom_common.get_sp () in
   get_server_port_sp sp
 let get_ssl_sp sp =
-  sp.Eliom_common.sp_request.request_info.ri_ssl
+  RI.ssl sp.Eliom_common.sp_request.request_info
 let get_ssl () =
   let sp = Eliom_common.get_sp () in
   get_ssl_sp sp
 
 let get_accept_language () =
   let sp = Eliom_common.get_sp () in
-  Lazy.force (sp.Eliom_common.sp_request.request_info.ri_accept_language)
+  Lazy.force (RI.accept_language sp.Eliom_common.sp_request.request_info)
 
 let get_other_get_params () =
   let sp = Eliom_common.get_sp () in
@@ -162,26 +168,26 @@ let get_state_name () =
   let sp = Eliom_common.get_sp () in
   sp.Eliom_common.sp_full_state_name
 let get_request_cache_sp sp =
-  sp.Eliom_common.sp_request.request_info.ri_request_cache
+  RI.request_cache sp.Eliom_common.sp_request.request_info
 let get_request_cache () =
   let sp = Eliom_common.get_sp () in
   get_request_cache_sp sp
 let clean_request_cache () =
   let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_request.request_info.ri_request_cache <-
-    Polytables.create ()
+  RI.update_request_cache sp.Eliom_common.sp_request.request_info
+    (Polytables.create ())
 let get_link_too_old () =
   let sp = Eliom_common.get_sp () in
   try
     Polytables.get
-      ~table:sp.Eliom_common.sp_request.request_info.ri_request_cache
+      ~table:(RI.request_cache sp.Eliom_common.sp_request.request_info)
       ~key:Eliom_common.eliom_link_too_old
   with Not_found -> false
 let get_expired_service_sessions () =
   let sp = Eliom_common.get_sp () in
   try
     Polytables.get
-      ~table:sp.Eliom_common.sp_request.request_info.ri_request_cache
+      ~table:(RI.request_cache sp.Eliom_common.sp_request.request_info)
       ~key:Eliom_common.eliom_service_session_expired
   with Not_found -> ([], [])
 
@@ -189,7 +195,7 @@ let get_cookies ?(cookie_level = `Session) () =
   let sp = Eliom_common.get_sp () in
   match cookie_level with
     | `Session ->
-      Lazy.force sp.Eliom_common.sp_request.request_info.ri_cookies
+      Lazy.force (RI.cookies sp.Eliom_common.sp_request.request_info)
     | `Client_process ->
       sp.Eliom_common.sp_si.Eliom_common.si_tab_cookies
 

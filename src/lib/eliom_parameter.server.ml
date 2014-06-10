@@ -383,8 +383,8 @@ let reconstruct_params ~sp typ params files nosuffixversion urlsuffix =
       let ri = Eliom_request_info.get_ri_sp sp in
       Lwt.return
         (Obj.magic
-           (ri.Ocsigen_extensions.ri_content_type,
-            ri.Ocsigen_extensions.ri_http_frame.Ocsigen_http_frame.frame_content))
+           (RI.content_type ri,
+            (RI.http_frame ri).Ocsigen_http_frame.frame_content))
     | _, None, None ->
       (try
          Lwt.return
@@ -415,7 +415,7 @@ let get_non_localized_parameters params getorpost ~sp
   (try
      (* first, look in cache: *)
      Polytables.get
-       ~table:sp.Eliom_common.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+       ~table:(RI.request_cache sp.Eliom_common.sp_request.request_info)
        ~key
    with Not_found ->
      let p =
@@ -428,7 +428,7 @@ let get_non_localized_parameters params getorpost ~sp
      in
      (* add in cache: *)
      Polytables.set
-       ~table:sp.Eliom_common.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+       ~table:(RI.request_cache sp.Eliom_common.sp_request.request_info)
        ~key
        ~value:p;
      p)

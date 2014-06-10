@@ -28,6 +28,7 @@ module OFrame  = Ocsigen_http_frame
 module OStream = Ocsigen_stream
 module OMsg    = Ocsigen_messages
 module Ecb     = Eliom_comet_base
+module OX      = Ocsigen_extensions
 
 type chan_id = string
 
@@ -465,7 +466,7 @@ end = struct
 
   let wait_closed_connection () =
     let ri = Eliom_request_info.get_ri () in
-    lwt () = ri.Ocsigen_extensions.ri_connection_closed in
+    lwt () = OX.RI.connection_closed ri in
     raise_lwt Connection_closed
 
   (* register the service handler.hd_service *)
