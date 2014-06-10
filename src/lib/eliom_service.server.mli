@@ -72,13 +72,10 @@ type getpost = [ `Get | `Post | `Put | `Delete ]
 
 (** {4 Attached or Non-attached} *)
 
-(** The abstract type for attached service representation.
-    - ['a] is a subtype of {!attached_service_kind}
-    - ['b] is a subtype of {!getpost} *)
+(** The abstract type for attached service representation. *)
 type a_s
 
-(** The abstract type for non-attached service representation.
-    - ['a] is a subtype of {!getpost} *)
+(** The abstract type for non-attached service representation. *)
 type na_s
 
 (** The type [service_kind] describe all four kind of services:
@@ -87,14 +84,9 @@ type na_s
     - (internal) attached coservices
     - (internal) non-attached coservices
 *)
-type attached =
-  [ `Attached
-  | `Nonattached ]
-
-type service_info =
-  | Attached of a_s
-  | Nonattached of na_s
-
+type attached_kind = [ `Attached of a_s ]
+type non_attached_kind = [ `Nonattached of na_s ]
+type attached = [ attached_kind | non_attached_kind ]
 (** {4 Common subtypes of [service_kind] } *)
 
 (** Restriction of [service_kind] to GET services. *)
@@ -233,7 +225,7 @@ val register_eliom_module : string -> (unit -> unit) -> unit
     the configuration file with the staticmod extension. *)
 val static_dir :
   unit ->
-  (string list, unit, [> `Get],[> `Attached], [> `Service ],
+  (string list, unit, [> `Get],[> attached_kind], [> `Service ],
    [ `WithSuffix ],
    [ `One of string list ] param_name, unit, [> `Unregistrable ],
    [> http_service ])
@@ -242,7 +234,7 @@ val static_dir :
 (** Same as {!static_dir} but forcing https link. *)
 val https_static_dir :
   unit ->
-  (string list, unit, [> `Get], [> `Attached], [> `Service ],
+  (string list, unit, [> `Get], [> attached_kind], [> `Service ],
    [ `WithSuffix ],
    [ `One of string list ] param_name, unit, [> `Unregistrable ],
    [> http_service ])
@@ -253,7 +245,7 @@ val static_dir_with_params :
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('a, [`WithoutSuffix], 'an) params_type ->
   unit ->
-  ((string list * 'a), unit, [> `Get], [> `Attached], [> `Service ],
+  ((string list * 'a), unit, [> `Get], [> attached_kind], [> `Service ],
    [ `WithSuffix ],
    [ `One of string list ] param_name *'an, unit, [> `Unregistrable ],
    [> http_service ])
@@ -264,7 +256,7 @@ val https_static_dir_with_params :
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('a, [`WithoutSuffix], 'an) params_type ->
   unit ->
-  ((string list * 'a), unit, [> `Get], [> `Attached], [> `Service ],
+  ((string list * 'a), unit, [> `Get], [> attached_kind], [> `Service ],
    [ `WithSuffix ],
    [ `One of string list ] param_name *'an, unit, [> `Unregistrable ],
    [> http_service ])
@@ -284,28 +276,28 @@ val https_static_dir_with_params :
     it with <a> links, not only forms.  It does not keep non attached
     GET parameters.  *)
 val void_coservice' :
-  (unit, unit, [> `Get], [> `Nonattached], [> `NonattachedCoservice],
+  (unit, unit, [> `Get], [> non_attached_kind], [> `NonattachedCoservice],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ], [> non_ocaml_service ])
   service
 
 (** Same as {!void_coservice'} but forcing https. *)
 val https_void_coservice' :
-  (unit, unit, [> `Get], [> `Nonattached], [> `NonattachedCoservice],
+  (unit, unit, [> `Get], [> non_attached_kind], [> `NonattachedCoservice],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ], [> non_ocaml_service ])
   service
 
 (** Same as {!void_coservice'} but keeps non attached GET parameters. *)
 val void_hidden_coservice' :
-  (unit, unit, [> `Get], [> `Nonattached], [> `NonattachedCoservice],
+  (unit, unit, [> `Get], [> non_attached_kind], [> `NonattachedCoservice],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ], [> non_ocaml_service ])
   service
 
 (** Same as {!void_hidden_coservice'} but forcing https. *)
 val https_void_hidden_coservice' :
-  (unit, unit, [> `Get], [> `Nonattached], [> `NonattachedCoservice],
+  (unit, unit, [> `Get], [> non_attached_kind], [> `NonattachedCoservice],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ], [> non_ocaml_service ])
   service
@@ -319,7 +311,7 @@ val https_void_hidden_coservice' :
     preapplied services may be used in links or as fallbacks for
     coservices *)
 val preapply :
-  service:('a, 'b, 'meth, [> `Attached] as 'attached, 'kind,
+  service:('a, 'b, 'meth, [> attached_kind] as 'attached, 'kind,
 	   [< suff ], 'e, 'f, 'g, 'return)
   service ->
   'a ->
@@ -332,11 +324,11 @@ val preapply :
     than the current one. It is not possible to register something
     on the service returned by this function. *)
 val attach_coservice' :
-  fallback:(unit, unit, [< `Get ], [< `Attached], [< `Service | `AttachedCoservice ],
+  fallback:(unit, unit, [< `Get ], [< attached_kind], [< `Service | `AttachedCoservice ],
 	   [< suff ], unit, unit, 'rg1, 'return1) service ->
-  service: ('get, 'post, 'meth, [< `Nonattached], [< `NonattachedCoservice],
+  service: ('get, 'post, 'meth, [< non_attached_kind], [< `NonattachedCoservice],
             [< `WithoutSuffix] as 'sf, 'gn, 'pn, 'rg2, 'return) service ->
-  ('get, 'post, 'meth, [> `Attached], [> `AttachedCoservice ],
+  ('get, 'post, 'meth, [> attached_kind], [> `AttachedCoservice ],
    'sf, 'gn, 'pn, [< registrable > `Unregistrable ], 'return) service
 
 (** The function [add_non_localized_get_parameters ~params ~service]
@@ -373,7 +365,7 @@ val unregister :
 
 val get_get_or_post : ('a, 'b,[<getpost] as 'c,[< attached],'kind, 'd, 'e, 'f, 'g, 'h) service -> 'c
 
-val get_info_ : ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'return) service -> service_info
+val get_info_ : ('a, 'b, 'meth,'attach,'kind, 'd, 'e, 'f, 'g, 'return) service -> 'attach
 val get_kind_ : ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'return) service -> service_kind
 val get_or_post_ :('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'return) service -> Ocsigen_http_frame.Http_header.http_method
 
@@ -407,7 +399,7 @@ val change_get_num :
   ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'return) service ->
   a_s ->
   Eliom_common.att_key_serv ->
-  ('a, 'b, 'meth,[> `Attached ], 'kind, 'd, 'e, 'f, 'i, 'return) service
+  ('a, 'b, 'meth,[> attached_kind ], 'kind, 'd, 'e, 'f, 'i, 'return) service
 
 val new_state : unit -> string
 

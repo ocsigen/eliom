@@ -205,7 +205,7 @@ let make_uri_components_ (* does not take into account getparams *)
   in
 
   match get_info_ service with
-  | Attached attser ->
+  | `Attached attser ->
     begin
 
       let uri =
@@ -273,7 +273,7 @@ let make_uri_components_ (* does not take into account getparams *)
          fragment)
 
     end
-  | Nonattached naser ->
+  | `Nonattached naser ->
 
     let sp = Eliom_common.get_sp () in
     let na_name = get_na_name_ naser in
@@ -411,7 +411,7 @@ let make_post_uri_components_ (* do not take into account postparams *)
     getparams
     () =
   match get_info_ service with
-  | Attached attser ->
+  | `Attached attser ->
     let (uri, getparams, fragment), getname =
       let getname = get_get_name_ attser in
       match getname with
@@ -480,7 +480,7 @@ let make_post_uri_components_ (* do not take into account postparams *)
      Eliommod_parameters.inject_param_list postparams)
 
 
-  | Nonattached naser ->
+  | `Nonattached naser ->
 
     let sp = Eliom_common.get_sp () in
     let nl_params = Eliom_parameter.table_of_nl_params_set nl_params in
@@ -654,11 +654,11 @@ let make_cookies_info (https, service) =
       ~service
       =
     match Eliom_service.get_info_ service with
-      | Attached attser ->
+      | `Attached attser ->
         if (Eliom_service.get_kind_ service) = `External
         then None
         else Some (Eliom_service.get_full_path_ attser)
-      | Nonattached naser ->
+      | `Nonattached naser ->
         Some (Eliom_request_info.get_csp_original_full_path ())
   in
   match get_path_ ~service with

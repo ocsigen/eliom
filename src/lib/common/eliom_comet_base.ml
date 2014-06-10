@@ -95,7 +95,7 @@ type 'a wrapped_channel =
 
 type 'a bus_send_service =
     (unit,
-     'a list, [`Post], [`Nonattached], [`NonattachedCoservice],
+     'a list, [`Post], Eliom_service.non_attached_kind, [`NonattachedCoservice],
      [ `WithoutSuffix ],
      unit,
      [ `One of 'a list Eliom_parameter.ocaml ] Eliom_parameter.param_name,

@@ -101,7 +101,7 @@ struct
           (unit,
            'a,
            [`Post],
-           [ `Nonattached],
+           [ Eliom_service.non_attached_kind],
            [ `NonattachedCoservice],
            [ `WithoutSuffix ],
            unit,
