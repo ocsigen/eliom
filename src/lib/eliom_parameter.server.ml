@@ -204,13 +204,20 @@ let reconstruct_params_
               (match aux t2 l f pref suff with
                 | Res_ (_, ll, ff) -> Errors_ (errs, ll, ff)
                 | Errors_ (errs2, ll, ff) -> Errors_ ((errs2@errs), ll, ff)))
-        | TOption (t,b) ->
+        | TOption (TAtom (_,TString) as t,b) ->
           (try
              (match aux t params files pref suff with
                | Res_ (v, l, f) ->
-                 if b &&  (Obj.tag (Obj.repr v) = Obj.string_tag) && (String.length (Obj.magic v : string) = 0)  (* Is the value an empty string? *)
+                 if b && String.length v = 0  (* Is the value an empty string? *)
                  then Res_ (None, l, f)
                  else Res_ (Some v, l, f)
+               | Errors_ (errs, ll, ff) when List.for_all (fun (_,s,_) -> s="") errs -> Res_ (None, ll, ff)
+               | Errors_ err   -> Errors_ err)
+           with Not_found -> Res_ (None, params, files))
+        | TOption (t,b) ->
+          (try
+             (match aux t params files pref suff with
+               | Res_ (v, l, f) -> Res_ (Some v, l, f)
                | Errors_ (errs, ll, ff) when List.for_all (fun (_,s,_) -> s="") errs -> Res_ (None, ll, ff)
                | Errors_ err   -> Errors_ err)
            with Not_found -> Res_ (None, params, files))
