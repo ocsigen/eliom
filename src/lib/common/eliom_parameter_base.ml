@@ -90,6 +90,8 @@ type (_,_) params_type_ =
   | TSum : (('a, 'an) params_type_ * ('b, 'bn) params_type_) -> (('a,'b) binsum, 'an * 'bn ) params_type_
 
   | TAtom : (string * 'a atom) -> ('a, [`One of 'a] param_name) params_type_
+  | TCoord : string -> (coordinates,[`One of coordinates] param_name) params_type_
+  | TCoordv : (string * ('a,'an) params_type_) -> ('a * coordinates,[`One of 'a * coordinates] param_name) params_type_
   | TFile : string -> (file_info , [ `One of file_info ] param_name) params_type_
 
   | TUserType : (string * 'a to_and_from) -> ('a, [ `One of 'a ] param_name) params_type_
@@ -138,22 +140,18 @@ let file (n : string) = TFile n
 
 let unit = TUnit
 
+let coordinates n = TCoord n
+let string_coordinates n = TCoordv (n,string n)
+let int_coordinates n =    TCoordv (n,int n)
+let int32_coordinates n =  TCoordv (n,int32 n)
+let int64_coordinates n =  TCoordv (n,int64 n)
+let float_coordinates n =  TCoordv (n,float n)
 let type_checker check t = TTypeFilter (t, Some check)
 
 let user_type ~(of_string : string -> 'a) ~(to_string : 'a -> string) (n : string) =
   TUserType (n,{of_string;to_string})
 
-let coordinates_to_string {abscissa;ordinate}= Printf.sprintf "%d_%d" abscissa ordinate
-let coordinates_of_string s =
-  let i = String.index s '_' in
-  let a = String.sub s 0 i in
-  let o = String.sub s (i+1) (String.length s - i -1) in
-  {abscissa=int_of_string a;ordinate=int_of_string o}
-
-let coordinates s = user_type
-    ~of_string:coordinates_of_string
-    ~to_string:coordinates_to_string
-    s
+let user_type_coordinates ~of_string ~to_string n = TCoordv (n,user_type ~of_string ~to_string n)
 
 let sum t1 t2 = TSum (t1, t2)
 
@@ -208,6 +206,12 @@ let rec make_suffix : type a c. (a,'b,c) params_type -> a -> string list = fun t
     (make_suffix t1 (fst params)) @
     (make_suffix t2 (snd params))
   | TAtom (_,a) -> [string_of_atom a params]
+  | TCoord n -> (make_suffix (TAtom ("",TInt)) (params.abscissa))@
+                (make_suffix (TAtom ("",TInt)) (params.ordinate))
+  | TCoordv (_,t) ->
+    (make_suffix t (fst params)) @
+    (make_suffix (TAtom("",TInt)) ((snd params).abscissa)) @
+    (make_suffix (TAtom("",TInt)) ((snd params).ordinate))
   | TUnit -> [""]
   | TConst v -> [v]
   | TOption (t,_) ->
@@ -270,6 +274,12 @@ let rec aux : type a c. (a,'b,c) params_type -> string list option -> 'y -> a ->
         (psuff, nlp, l)
         params
     | TAtom (name,a) -> psuff,nlp,((pref^name^suff,insert_string (string_of_atom a params))::l )
+    | TCoord name ->
+      psuff, nlp,
+      let coord = params in
+      ((pref^name^suff^".x"), insert_string (string_of_int coord.abscissa))::
+      ((pref^name^suff^".y"), insert_string (string_of_int coord.ordinate))::l
+    | TCoordv (name,t) -> aux (TProd (t, TCoord name)) psuff nlp params pref suff l
     | TSum (t1, t2) -> (match params with
         | Inj1 v -> aux t1 psuff nlp v pref suff l
         | Inj2 v -> aux t2 psuff nlp v pref suff l)
@@ -346,6 +356,8 @@ let rec walk_parameter_tree : type a c. string -> (a,'b,c) params_type -> a to_a
       None in
   match x with
     | TUserType (name', _) -> get name'
+    | TCoord name' -> get name'
+    | TCoordv (name',_) -> get name'
     | TAtom (name',_) -> get name'
     | TFile name' -> get name'
     | TConst name' -> get name'
@@ -390,6 +402,8 @@ let make_params_names params =
         let issuffix, b = aux issuffix prefix suffix t2 in
         issuffix, (a, b)
       | TAtom(name,a) -> issuffix, prefix^name^suffix
+      | TCoord(name) -> issuffix, prefix^name^suffix
+      | TCoordv(name,_) -> issuffix, prefix^name^suffix
       | TFile name -> issuffix, prefix^name^suffix
       | TUserType (name, _) -> issuffix, prefix^name^suffix
       | TJson (name, _)        -> issuffix, prefix^name^suffix
@@ -442,6 +456,9 @@ let rec add_pref_params : type a c. string -> (a,'b,c) params_type -> (a,'b,c) p
                            (add_pref_params pref t2))
   | TFile name -> TFile (pref^name)
   | TUserType (name, to_of) -> TUserType (pref^name, to_of)
+
+  | TCoord name -> TCoord (pref^name)
+  | TCoordv (name,t) -> TCoordv (pref^name,add_pref_params pref t)
   | TUnit -> TUnit
   | TAny -> TAny
   | TConst v -> TConst v  (* ??? no recursive call ??? *)
@@ -537,7 +554,7 @@ let rec wrap_param_type : type a c. (a,'b,c) params_type -> (a,'b,c) params_type
   | TUserType (name, _) ->
     (*VVV *)
     failwith ("User service parameters '"^name^"' type not supported client side.")
-
+  | TCoordv (name, t) -> TCoordv (name, wrap_param_type t)
   (* We remove the type information here: not possible to send a closure.
      marshaling is just basic json marshaling on client side. *)
   | TJson (name, _) -> TJson (name, None)

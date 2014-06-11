@@ -89,35 +89,35 @@ val coordinates :
   (coordinates, [ `WithoutSuffix ],
    [ `One of coordinates ] param_name) params_type
 
-(* val string_coordinates : *)
-(*   string -> *)
-(*   (string * coordinates, [ `WithoutSuffix ], *)
-(*    [ `One of (string * coordinates) ] param_name) params_type *)
+val string_coordinates :
+  string ->
+  (string * coordinates, [ `WithoutSuffix ],
+   [ `One of (string * coordinates) ] param_name) params_type
 
-(* val int_coordinates : *)
-(*     string -> *)
-(*       (int * coordinates, [`WithoutSuffix], *)
-(*        [ `One of (int * coordinates) ] param_name) params_type *)
+val int_coordinates :
+    string ->
+      (int * coordinates, [`WithoutSuffix],
+       [ `One of (int * coordinates) ] param_name) params_type
 
-(* val int32_coordinates : *)
-(*     string -> *)
-(*       (int32 * coordinates, [`WithoutSuffix], *)
-(*        [ `One of (int32 * coordinates) ] param_name) params_type *)
+val int32_coordinates :
+    string ->
+      (int32 * coordinates, [`WithoutSuffix],
+       [ `One of (int32 * coordinates) ] param_name) params_type
 
-(* val int64_coordinates : *)
-(*     string -> *)
-(*       (int64 * coordinates, [`WithoutSuffix], *)
-(*        [ `One of (int64 * coordinates) ] param_name) params_type *)
+val int64_coordinates :
+    string ->
+      (int64 * coordinates, [`WithoutSuffix],
+       [ `One of (int64 * coordinates) ] param_name) params_type
 
-(* val float_coordinates : *)
-(*     string -> *)
-(*       (float * coordinates, [`WithoutSuffix], *)
-(*        [ `One of (float * coordinates) ] param_name) params_type *)
+val float_coordinates :
+    string ->
+      (float * coordinates, [`WithoutSuffix],
+       [ `One of (float * coordinates) ] param_name) params_type
 
-(* val user_type_coordinates : *)
-(*   of_string:(string -> 'a) -> to_string:('a -> string) -> string -> *)
-(*   ('a * coordinates, [`WithoutSuffix], *)
-(*    [ `One of ('a * coordinates) ] param_name) params_type *)
+val user_type_coordinates :
+  of_string:(string -> 'a) -> to_string:('a -> string) -> string ->
+  ('a * coordinates, [`WithoutSuffix],
+   [ `One of ('a * coordinates) ] param_name) params_type
 
 val ( ** ) :
   ('a, [ `WithoutSuffix ], 'b) params_type ->

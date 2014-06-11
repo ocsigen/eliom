@@ -184,6 +184,7 @@ val user_type :
     service handler.
 *)
 val type_checker :
+  (* ?client: ('a -> unit) client_value -> *)
   ('a -> unit) ->
   ('a, [<suff] as 'b, 'c) params_type ->
   ('a, 'b, 'c) params_type
@@ -202,45 +203,45 @@ val coordinates :
   (coordinates, [ `WithoutSuffix ],
    [ `One of coordinates ] param_name) params_type
 
-(* (\** Specifying parameter as [string_coordinates s] tells that the service takes *)
-(*     as parameters the coordinates of a point and the associated *)
-(*     [string] value in an [<input type="image" value="..." ...>]. *\) *)
-(* val string_coordinates : *)
-(*   string -> *)
-(*   (string * coordinates, [ `WithoutSuffix ], *)
-(*    [ `One of (string * coordinates) ] param_name) params_type *)
+(** Specifying parameter as [string_coordinates s] tells that the service takes
+    as parameters the coordinates of a point and the associated
+    [string] value in an [<input type="image" value="..." ...>]. *)
+val string_coordinates :
+  string ->
+  (string * coordinates, [ `WithoutSuffix ],
+   [ `One of (string * coordinates) ] param_name) params_type
 
-(* (\** Same as [string_coordinates] but for an integer value *\) *)
-(* val int_coordinates : *)
-(*     string -> *)
-(*       (int * coordinates, [`WithoutSuffix], *)
-(*        [ `One of (int * coordinates) ] param_name) params_type *)
+(** Same as [string_coordinates] but for an integer value *)
+val int_coordinates :
+    string ->
+      (int * coordinates, [`WithoutSuffix],
+       [ `One of (int * coordinates) ] param_name) params_type
 
-(* (\** Same as [string_coordinates] but for a 32 bits integer value *\) *)
-(* val int32_coordinates : *)
-(*     string -> *)
-(*       (int32 * coordinates, [`WithoutSuffix], *)
-(*        [ `One of (int32 * coordinates) ] param_name) params_type *)
+(** Same as [string_coordinates] but for a 32 bits integer value *)
+val int32_coordinates :
+    string ->
+      (int32 * coordinates, [`WithoutSuffix],
+       [ `One of (int32 * coordinates) ] param_name) params_type
 
-(* (\** Same as [string_coordinates] but for a 64 integer value *\) *)
-(* val int64_coordinates : *)
-(*     string -> *)
-(*       (int64 * coordinates, [`WithoutSuffix], *)
-(*        [ `One of (int64 * coordinates) ] param_name) params_type *)
+(** Same as [string_coordinates] but for a 64 integer value *)
+val int64_coordinates :
+    string ->
+      (int64 * coordinates, [`WithoutSuffix],
+       [ `One of (int64 * coordinates) ] param_name) params_type
 
-(* (\** Same as [string_coordinates] but for a float value *\) *)
-(* val float_coordinates : *)
-(*     string -> *)
-(*       (float * coordinates, [`WithoutSuffix], *)
-(*        [ `One of (float * coordinates) ] param_name) params_type *)
+(** Same as [string_coordinates] but for a float value *)
+val float_coordinates :
+    string ->
+      (float * coordinates, [`WithoutSuffix],
+       [ `One of (float * coordinates) ] param_name) params_type
 
-(* (\** Same as [string_coordinates] but for a value of your own type. See *)
-(*     {!user_type} for a description of the [of_string] and [to_string] *)
-(*     parameters. *\) *)
-(* val user_type_coordinates : *)
-(*   of_string:(string -> 'a) -> to_string:('a -> string) -> string -> *)
-(*   ('a * coordinates, [`WithoutSuffix], *)
-(*    [ `One of ('a * coordinates) ] param_name) params_type *)
+(** Same as [string_coordinates] but for a value of your own type. See
+    {!user_type} for a description of the [of_string] and [to_string]
+    parameters. *)
+val user_type_coordinates :
+  of_string:(string -> 'a) -> to_string:('a -> string) -> string ->
+  ('a * coordinates, [`WithoutSuffix],
+   [ `One of ('a * coordinates) ] param_name) params_type
 
 (** {2 Composing types of pages parameters} *)
 

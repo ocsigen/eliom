@@ -67,11 +67,6 @@ let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string) :
     n
 
 
-
-
-
-
-
 (******************************************************************)
 (* The following function reconstructs the value of parameters
    from expected type and GET or POST parameters *)
@@ -150,12 +145,29 @@ let reconstruct_params_
         (try let x, l = parse_suffix t1 l in Inj1 x,l
          with Eliom_common.Eliom_Wrong_parameter ->
            let x,l = parse_suffix t2 l in Inj2 x,l)
+      | TCoord _, l ->
+        (match parse_suffix (TAtom ("",TInt)) l with
+         | _, [] -> raise Eliom_common.Eliom_Wrong_parameter
+         | r, l ->
+           let rr, ll = parse_suffix (TAtom ("",TInt)) l in
+           {abscissa = r; ordinate=rr}, ll)
+      | TCoordv (_, t), l ->
+          let a, l = parse_suffix t l in
+          (match parse_suffix (TAtom ("",TInt)) l with
+           | _, [] -> raise Eliom_common.Eliom_Wrong_parameter
+           | r, l ->
+             let rr, ll = parse_suffix (TAtom ("",TInt)) l in
+             (a, {abscissa = r; ordinate=rr}), ll)
       | TNLParams _, _ ->
           failwith "It is not possible to have non localized parameters in suffix"
       | TJson (_, Some typ), v::l -> Deriving_Json.from_string typ v, l
       | TJson (_, None), v::l -> assert false (* client side only *)
       | TAny, _ -> failwith "It is not possible to use any in suffix. May be try with all_suffix ?"
-      | _ -> raise Eliom_common.Eliom_Wrong_parameter
+      | TFile _, _ -> assert false
+      | TRaw_post_data, _ -> assert false
+      | TUnit, _ -> failwith "It is not possible to use TUnit in suffix."
+      | TSuffix _, _ -> failwith "It is not possible to use TSuffix in suffix."
+      | _,[]-> raise Eliom_common.Eliom_Wrong_parameter
   in
   let rec aux_list : type a c. (a,'b,c) params_type -> params -> files -> string -> string -> string -> a list res_reconstr_param =
     fun t params files name pref suff ->
@@ -243,6 +255,27 @@ let reconstruct_params_
              Res_ (v, params, f)
            with e ->
              Errors_ ([pref^name^suff,"",e], [], files))
+        | TCoord name ->
+          let r1 =
+            let v, l = (List.assoc_remove (pref^name^suff^".x") params) in
+            (try (Res_ ((int_of_string v), l, files))
+             with e -> Errors_ ([(pref^name^suff^".x"), v, e], l, files))
+          in
+          (match r1 with
+           | Res_ (x1, l1, f) ->
+             let v, l = (List.assoc_remove (pref^name^suff^".y") l1) in
+             (try (Res_ (
+                  {abscissa= x1;
+                   ordinate= int_of_string v}, l, f))
+              with e -> Errors_ ([(pref^name^suff^".y"), v, e], l, f))
+           | Errors_ (errs, l1, f) ->
+             let v, l = (List.assoc_remove (pref^name^suff^".y") l1) in
+             (try
+                ignore (int_of_string v);
+                Errors_ (errs, l, f)
+              with e -> Errors_ (((pref^name^suff^".y"), v, e)::errs, l, f)))
+        | TCoordv (name, t) ->
+            aux (TProd (t, TCoord name)) params files pref suff
         | TUserType (name, ofto) ->
           let v,l = (List.assoc_remove (pref^name^suff) params) in
           (try Res_ (ofto.of_string v,l,files)
