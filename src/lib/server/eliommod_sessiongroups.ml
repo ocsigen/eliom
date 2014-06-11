@@ -20,19 +20,17 @@
 
 open Eliom_lib
 
-module OX = Ocsigen_extensions
-
 let make_full_named_group_name_ ~cookie_level sitedata g =
   (sitedata.Eliom_common.site_dir_string, cookie_level, Left g)
 
-let make_full_group_name ~cookie_level ri site_dir_string ipv4mask ipv6mask = 
+let make_full_group_name ~cookie_level ri site_dir_string ipv4mask ipv6mask =
   function
   (* The scope is the scope of group members (`Session by default). *)
   | None -> (site_dir_string,
              cookie_level,
-             Right 
+             Right
                (Eliom_common.network_of_ip
-                  (!!(OX.RI.remote_ip_parsed ri))
+                  (!!(Ocsigen_extensions.Ocsigen_request_info.remote_ip_parsed ri))
                   ipv4mask
                   ipv6mask
                ))
@@ -61,7 +59,7 @@ module type MEMTAB =
     (** Groups of browser sessions belongs to a group of groups.
         As these groups are not associated to a cookie,
         we put this information here. *)
-    val find_node_in_group_of_groups : 
+    val find_node_in_group_of_groups :
       Eliom_common.cookie_level Eliom_common.sessgrp ->
       group_of_group_data option
 
@@ -84,10 +82,10 @@ module GroupTable = Hashtbl.Make(struct
   let hash = Hashtbl.hash
 end)
 
-module Make(A: sig 
+module Make(A: sig
   type group_of_group_data
   val table :
-    (group_of_group_data option * 
+    (group_of_group_data option *
        (string Ocsigen_cache.Dlist.t)) GroupTable.t
   val close_session : Eliom_common.sitedata -> string -> unit
   val max_tab_per_session : Eliom_common.sitedata -> int
@@ -98,7 +96,7 @@ module Make(A: sig
     (GroupTable.key -> group_of_group_data option) ->
     (string Ocsigen_cache.Dlist.node -> unit) ->
     (group_of_group_data -> unit) -> unit
-  val node_of_group_of_group_data : 
+  val node_of_group_of_group_data :
     group_of_group_data ->
     [ `Session ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node
   val create_group_of_group_data :
@@ -127,7 +125,7 @@ struct
       let cl = find sess_grp in
       let rec close_all cl =
         match Ocsigen_cache.Dlist.oldest cl with
-          | Some node -> 
+          | Some node ->
             Ocsigen_cache.Dlist.remove node;
             close_all cl
           | None -> ()
@@ -176,9 +174,9 @@ struct
               the finaliser for these groups is created in eliommod.ml *)
             | `Session (* We are closing a browser session *) ->
               (* First we close all tab sessions in the session (subgrp): *)
-              let subgrp = 
+              let subgrp =
                 make_full_named_group_name_
-                  ~cookie_level:`Client_process sitedata name 
+                  ~cookie_level:`Client_process sitedata name
               in
               remove_group subgrp
             | `Client_process (* We are closing a tab session *) -> ());
@@ -240,11 +238,11 @@ end
 
 module Data =
   Make (struct
-    type group_of_group_data = 
+    type group_of_group_data =
       [ `Session ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node
 
-    let table : (group_of_group_data option * 
-                   (string Ocsigen_cache.Dlist.t)) GroupTable.t = 
+    let table : (group_of_group_data option *
+                   (string Ocsigen_cache.Dlist.t)) GroupTable.t =
       (* The table associates the dlist for a group
          to a full session group name.
          It work both for groups of tab sessions and
@@ -262,10 +260,10 @@ module Data =
       GroupTable.create 100
 
     let close_session sitedata sess_id =
-      Eliom_common.SessionCookies.remove 
+      Eliom_common.SessionCookies.remove
         sitedata.Eliom_common.session_data sess_id;
       (* iterate on all session data tables: *)
-      sitedata.Eliom_common.remove_session_data sess_id 
+      sitedata.Eliom_common.remove_session_data sess_id
     (* see also in eliommod.ml if you modify this *)
 
     let max_tab_per_session sitedata =
@@ -276,11 +274,11 @@ module Data =
       fst sitedata.Eliom_common.max_volatile_data_sessions_per_subnet
 
 
-    let clean_session sitedata sess_grp find_node_in_group_of_groups 
+    let clean_session sitedata sess_grp find_node_in_group_of_groups
         remove1 remove2 =
       (* We removed the last session from a group.
          Do we want to close the group completely?
-         - For volatile browser sessions, yes. 
+         - For volatile browser sessions, yes.
          We do not keep group data when there is no session in the group.
          We remove the group of groups from the site dlist.
 -- Vincent 2011/08: This is not coherent with persistent group data!
@@ -291,9 +289,9 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
          bound in tables and is not in a group (like in Eliommod_gc)
          (means that we do not use the browser session).
       *)
-(*VVV See also in Eliommod_gc and 
+(*VVV See also in Eliommod_gc and
   Eliom_state.close_volatile_session_if_empty.
-  Should we use this function here?  
+  Should we use this function here?
 *)
 (*VVV remove is not polymorphic enough -> remove1 remove2 *)
       match (sess_grp : GroupTable.key) with
@@ -312,7 +310,7 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
                | _ -> ()
              )
            with Not_found -> ())
-        | (_, `Session, _) -> 
+        | (_, `Session, _) ->
           (match find_node_in_group_of_groups sess_grp with
             | Some node -> remove2 node | None -> ())
         | _ -> ()
@@ -325,15 +323,15 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
 
 module Serv =
   Make (struct
-    type group_of_group_data = 
-        Eliom_common.tables ref * 
+    type group_of_group_data =
+        Eliom_common.tables ref *
           [ `Session ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node
 
-    let table : (group_of_group_data option * 
-                    (string Ocsigen_cache.Dlist.t)) GroupTable.t = 
+    let table : (group_of_group_data option *
+                    (string Ocsigen_cache.Dlist.t)) GroupTable.t =
       GroupTable.create 100
     let close_session sitedata sess_id =
-      Eliom_common.SessionCookies.remove 
+      Eliom_common.SessionCookies.remove
         sitedata.Eliom_common.session_services sess_id
     let max_tab_per_session sitedata =
       fst sitedata.Eliom_common.max_service_tab_sessions_per_group
@@ -343,11 +341,11 @@ module Serv =
       fst sitedata.Eliom_common.max_service_sessions_per_subnet
 
 
-    let clean_session sitedata sess_grp find_node_in_group_of_groups 
+    let clean_session sitedata sess_grp find_node_in_group_of_groups
         remove1 remove2 =
       (* We removed the last session from a group.
          Do we want to close the group completely?
-         - For volatile browser sessions, yes. 
+         - For volatile browser sessions, yes.
          We do not keep group data when there is no session in the group.
          We remove the group of groups from the site dlist.
 -- Vincent 2011/08: This is not coherent with persistent group data!
@@ -360,9 +358,9 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
       *)
 (*VVV We close even if browser session is in a group.
   It is not coherent with data sessions. *)
-(*VVV See also in Eliommod_gc and 
+(*VVV See also in Eliommod_gc and
   Eliom_state.close_service_session_if_empty.
-  Should we use this function here?  
+  Should we use this function here?
 *)
 (*VVV remove is not polymorphic enough -> remove1 remove2 *)
       match (sess_grp : GroupTable.key) with
@@ -377,7 +375,7 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
              then remove1 sgn
 
            with Not_found -> ())
-        | (_, `Session, _) -> 
+        | (_, `Session, _) ->
           (match find_node_in_group_of_groups sess_grp with
             | Some node -> remove2 node | None -> ())
         | _ -> ()
@@ -413,7 +411,7 @@ let cut n l =
 
 module Pers = struct
 (*VVV Verify this carefully! *)
-(*VVV VERIFY concurrent access *)
+(*VVV VEOcsigen_request_infoFY concurrent access *)
 
   let grouptable : (nbmax * string list) Ocsipersist.table Lazy.t =
     lazy (Ocsipersist.open_table "__eliom_session_group_table")
@@ -465,12 +463,12 @@ module Pers = struct
             Lwt.return []
           | e -> Lwt.fail e)
     | None -> Lwt.return []
-      
+
 
   let rec remove_group ~cookie_level sitedata sess_grp =
     (* cookie_level is the scope of group members *)
 (*VVV NEW 201007 closing all sessions in the group and removing group data *)
-(*VVV VERIFY concurrent access *)
+(*VVV VEOcsigen_request_infoFY concurrent access *)
 (*VVV Check this carefully!!!! Verify the order of actions. *)
     Lwt.catch
       (fun () ->
@@ -484,7 +482,7 @@ module Pers = struct
              sitedata None) cl
         (* None because we will close the group *)
         >>= fun () ->
-        
+
         (* Then, we remove group data: *)
         let group_name =
           match sess_grp with
@@ -495,7 +493,7 @@ module Pers = struct
             | None -> Eliom_common.default_group_name
         in
         Eliom_common.remove_from_all_persistent_tables group_name >>= fun () ->
-        
+
         (* If it is associated to a session,
            we remove the session from its group,
            and we remove cookie info: *)
@@ -518,7 +516,7 @@ module Pers = struct
       )
       (function Not_found -> Lwt.return () | e -> Lwt.fail e)
 
-  (* close a persistent session (tab or browser) 
+  (* close a persistent session (tab or browser)
      and the associated group (if browser session) by cookie value *)
   and close_persistent_session2 ~cookie_level sitedata fullsessgrp cookie =
 (*VVV Check this carefully!!!! *)
@@ -560,7 +558,7 @@ module Pers = struct
           Ocsipersist.find !!grouptable sg >>= fun (max, cl) ->
           let newcl = List.remove_first_if_any sess_id cl in
           (match newcl with
-            | [] -> 
+            | [] ->
               (* The last session has been removed from the group.
                  If it was a browser session, we close the group,
                  by removing group data.
@@ -595,7 +593,7 @@ module Pers = struct
           (function
             | Not_found -> Lwt.return ()
             | e -> Lwt.fail e)
-          
+
   let move sitedata ?set_max max sess_id grp1 grp2 =
     if set_max <> None || grp1 <> grp2 then begin
       remove sitedata sess_id grp1 >>= fun () ->

@@ -216,17 +216,17 @@ let make_naservice
          Ocsigen_messages.debug2
            "--Eliom: Link too old to a non-attached POST coservice. I will try without POST parameters:";
          Polytables.set
-           (RI.request_cache ri.request_info)
+           (Ocsigen_request_info.request_cache ri.request_info)
            Eliom_common.eliom_link_too_old
            true;
          Eliom_common.get_session_info
            {ri with Ocsigen_extensions.request_info =
-               RI.update ri.request_info
+               Ocsigen_request_info.update ri.request_info
                  ~get_params:(lazy si.Eliom_common.si_other_get_params)
-                 ~post_params:(match RI.post_params ri.request_info with
+                 ~post_params:(match Ocsigen_request_info.post_params ri.request_info with
                                | None -> None
                                | Some _ -> Some (fun _ -> Lwt.return []))
-                 ~files:(match RI.files ri.request_info with
+                 ~files:(match Ocsigen_request_info.files ri.request_info with
                          | None -> None
                          | Some _ -> Some (fun _ -> Lwt.return []))
                  ~meth:Ocsigen_http_frame.Http_header.GET
@@ -245,17 +245,17 @@ let make_naservice
          Ocsigen_messages.debug2
            "--Eliom: Link too old. I will try without non-attached parameters:";
          Polytables.set
-           (RI.request_cache ri.request_info)
+           (Ocsigen_request_info.request_cache ri.request_info)
            Eliom_common.eliom_link_too_old
            true;
          Eliom_common.get_session_info
            {ri with request_info =
-               RI.update ri.request_info
+               Ocsigen_request_info.update ri.request_info
                  ~get_params:(lazy si.Eliom_common.si_other_get_params)
-                 ~post_params:(match RI.post_params ri.request_info with
+                 ~post_params:(match Ocsigen_request_info.post_params ri.request_info with
                                | None -> None
                                | Some _ -> Some (fun _ -> Lwt.return []))
-                 ~files:(match RI.files ri.request_info with
+                 ~files:(match Ocsigen_request_info.files ri.request_info with
                          | None -> None
                          | Some _ -> Some (fun _ -> Lwt.return []))
                  ~meth:Ocsigen_http_frame.Http_header.GET

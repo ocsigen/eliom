@@ -22,7 +22,6 @@ open Eliom_lib
 
 module F = Ocsigen_http_frame
 module H = Ocsigen_http_frame.Http_header
-module RE = F.Result
 
 let get_etag c = Some (Digest.to_hex (Digest.string c))
 
@@ -41,15 +40,15 @@ let result_of_content feed headers =
    Format.print_list ~output:(Buffer.add_string b) [Atom_feed.xml_of_feed feed];
    let c = Buffer.contents b in
    let md5 = get_etag c in
-   let dr = RE.default () in
-   (RE.update dr
+   let dr = Ocsigen_http_frame.Result.default () in
+   (Ocsigen_http_frame.Result.update dr
       ~content_length:(Some (Int64.of_int (String.length c)))
       ~content_type:(Some "application/atom+xml")
       ~etag:md5
       ~headers:(match headers with
-            | None -> RE.headers dr
+            | None -> Ocsigen_http_frame.Result.headers dr
             | Some headers ->
-            Http_headers.with_defaults headers (RE.headers dr)
+            Http_headers.with_defaults headers (Ocsigen_http_frame.Result.headers dr)
             )
       ~stream:
          (Ocsigen_stream.make

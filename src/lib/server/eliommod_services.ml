@@ -404,7 +404,7 @@ let find_service
                (fst si.Eliom_common.si_state_info),
              Eliom_common.att_key_serv_of_req
                (snd si.Eliom_common.si_state_info));
-         Eliom_common.key_kind = RI.meth ri.request_info}
+         Eliom_common.key_kind = Ocsigen_request_info.meth ri.request_info}
     in
     let aux a l =
       let aa = match a with
@@ -483,7 +483,7 @@ let find_service
     (fun () ->
       search_by_priority_generation
         tables.Eliom_common.table_services
-        (Url.change_empty_list (RI.sub_path ri.request_info)))
+        (Url.change_empty_list (Ocsigen_request_info.sub_path ri.request_info)))
     (function Exn1 -> Lwt.fail Eliom_common.Eliom_404 | e -> Lwt.fail e)
 
 
@@ -552,7 +552,7 @@ let get_page
                    (fun () -> String.concat ""
                      ["--Eliom: I'm looking for ";
                       (Url.string_of_url_path
-                         ~encode:true (RI.sub_path ri.request_info));
+                         ~encode:true (Ocsigen_request_info.sub_path ri.request_info));
                       " in the "; table_name; ":"]);
                  find_aux Eliom_common.Eliom_404 table
                | e -> Lwt.fail e))
@@ -585,18 +585,18 @@ let get_page
                    Ocsigen_messages.debug2
                      "--Eliom: Link too old. I will try without POST parameters:";
                    Polytables.set
-                     (RI.request_cache ri.request_info)
+                     (Ocsigen_request_info.request_cache ri.request_info)
                      Eliom_common.eliom_link_too_old
                      true;
                    fail (Eliom_common.Eliom_retry_with
                            ({ri with request_info =
-                             RI.update ri.request_info
+                             Ocsigen_request_info.update ri.request_info
                                ~post_params:
-                                 (match RI.post_params ri.request_info with
+                                 (match Ocsigen_request_info.post_params ri.request_info with
                                   | None -> None
                                   | Some _ -> Some (fun _ -> Lwt.return []))
                                ~files:
-                                 (match RI.files ri.request_info with
+                                 (match Ocsigen_request_info.files ri.request_info with
                                   | None -> None
                                   | Some _ -> Some (fun _ -> Lwt.return []))
                                ~meth:Ocsigen_http_frame.Http_header.GET
@@ -620,17 +620,17 @@ let get_page
                    Ocsigen_messages.debug2
                      "--Eliom: Link to old. I will try without GET state parameters and POST parameters:";
                    Polytables.set
-                     (RI.request_cache ri.request_info)
+                     (Ocsigen_request_info.request_cache ri.request_info)
                      Eliom_common.eliom_link_too_old
                      true;
                    fail (Eliom_common.Eliom_retry_with
                            ({ri with request_info =
-                             RI.update ri.request_info
+                             Ocsigen_request_info.update ri.request_info
                                ~get_params:(lazy si.Eliom_common.si_other_get_params)
-                               ~post_params:(match RI.post_params ri.request_info with
+                               ~post_params:(match Ocsigen_request_info.post_params ri.request_info with
                                              | None -> None
                                              | Some _ -> Some (fun _ -> Lwt.return []))
-                               ~files:(match RI.files ri.request_info with
+                               ~files:(match Ocsigen_request_info.files ri.request_info with
                                        | None -> None
                                        | Some _ -> Some (fun _ -> Lwt.return []))
                                ~meth:Ocsigen_http_frame.Http_header.GET
