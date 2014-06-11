@@ -17,6 +17,8 @@
  *)
 
 type poly
+external to_poly : 'a -> poly = "%identity"
+
 type 'a wrapped_value = poly * 'a
 
 module AddrType =
@@ -191,5 +193,4 @@ let empty_unwrapper =
   { id = -1;
     umark = Mark.do_nothing_mark }
 
-let wrap v =
-  Obj.magic Mark.unwrap_mark, Obj.obj (search_and_replace (Obj.repr v))
+let wrap v = to_poly Mark.unwrap_mark, Obj.obj (search_and_replace (Obj.repr v))
