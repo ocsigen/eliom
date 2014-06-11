@@ -23,7 +23,9 @@
 
 open Eliom_lib
 
-type ('a, +'b, 'c) params_type
+type suff = [ `WithoutSuffix | `WithSuffix | `Endsuffix ]
+
+type ('a, +'b, 'c) params_type constraint 'b = [<suff]
 
 type +'a param_name
 
@@ -201,7 +203,7 @@ val raw_post_data :
   (raw_post_data,
    [ `WithoutSuffix ], no_param_name) params_type
 
-type ('a, +'tipo, 'names) non_localized_params
+type ('a, +'b, 'names) non_localized_params  constraint 'b = [<suff]
 
 val make_non_localized_parameters :
   prefix : string ->

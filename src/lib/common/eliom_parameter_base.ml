@@ -78,7 +78,7 @@ let to_from_of_atom x =
 type 'a filter = ('a -> unit) option
 
 type raw = (((string * string) * (string * string) list) option * string Ocsigen_stream.t option)
-type 'a caml = string (* marshaled values of type 'a *)
+type 'a ocaml = string (* marshaled values of type 'a *)
 
 type suff = [ `WithoutSuffix | `WithSuffix | `Endsuffix ]
 
@@ -107,18 +107,20 @@ type (_,_) params_type_ =
   | TConst : string -> (unit, [ `One of unit ] param_name) params_type_
   | TNLParams : ('a, 'names) non_localized_params_ -> ('a, 'names) params_type_
 
-  | TJson :  (string * 'a Deriving_Json.t option) -> ('a, [ `One of 'a caml ] param_name) params_type_
+  | TJson :  (string * 'a Deriving_Json.t option) -> ('a, [ `One of 'a ocaml ] param_name) params_type_
   (* custom *)
   | TRaw_post_data : (raw, no_param_name) params_type_
 
-and ('a, 'names) non_localized_params_ =
-  (string *
-  bool (* persistent *) *
-  ('a option Polytables.key * 'a option Polytables.key))
-  * ('a, 'names) params_type_
+and ('a, 'names) non_localized_params_ = {
+  name : string;
+  persistent : bool;
+  get : 'a option Polytables.key;
+  post : 'a option Polytables.key;
+  param : ('a, 'names) params_type_
+}
 
-type ('a,+'suff,'an) non_localized_params = ('a, 'an) non_localized_params_
-type ('a,+'suff,'an) params_type = ('a,'an) params_type_
+type ('a,+'suff,'an) non_localized_params = ('a, 'an) non_localized_params_ constraint 'suff = [<suff]
+type ('a,+'suff,'an) params_type = ('a,'an) params_type_ constraint 'suff = [<suff]
 
 let int (n : string) = TAtom (n,TInt)
 
@@ -152,9 +154,6 @@ let coordinates s = user_type
     ~of_string:coordinates_of_string
     ~to_string:coordinates_to_string
     s
-
-
-
 
 let sum t1 t2 = TSum (t1, t2)
 
@@ -191,8 +190,6 @@ let suffix_prod ?(redirect_if_not_suffix = true)
     (('s * 'a), [`WithSuffix], 'sn * 'an) params_type =
   TProd (TSuffix (redirect_if_not_suffix, s), t)
 
-type 'a ocaml = string
-
 let ocaml (n : string) typ = TJson (n, Some typ)
 
 type raw_post_data =
@@ -205,8 +202,8 @@ let raw_post_data = TRaw_post_data
 let make_list_suffix i = "["^(string_of_int i)^"]"
 
 
-let rec make_suffix : type a b c. (a,b,c) params_type -> a -> string list = fun typ params -> match typ with
-  | TNLParams (_, t) -> make_suffix t params
+let rec make_suffix : type a c. (a,'b,c) params_type -> a -> string list = fun typ params -> match typ with
+  | TNLParams {param} -> make_suffix param params
   | TProd (t1, t2) ->
     (make_suffix t1 (fst params)) @
     (make_suffix t2 (snd params))
@@ -244,11 +241,11 @@ let rec make_suffix : type a b c. (a,b,c) params_type -> a -> string list = fun 
   | _ -> raise (Eliom_Internal_Error "Bad parameter type in suffix")
 
 
-let rec aux : type a b c. (a,b,c) params_type -> string list option -> 'y -> a -> string -> string -> 'z -> ('x * 'y * ((string * Eliommod_parameters.field) list)) =
+let rec aux : type a c. (a,'b,c) params_type -> string list option -> 'y -> a -> string -> string -> 'z -> ('x * 'y * ((string * Eliommod_parameters.field) list)) =
   fun typ psuff nlp params pref suff l ->
   let open Eliommod_parameters in
   match typ with
-    | TNLParams ((name, _, _), t) ->
+    | TNLParams {name;param=t} ->
       let psuff, nlp, nl = aux t psuff nlp params pref suff [] in
       (psuff, String.Table.add name nl nlp, l)
     | TProd (t1, t2) ->
@@ -315,7 +312,7 @@ let construct_params_list_raw nlp typ params = aux typ None nlp params "" "" []
     - string
     - bool
  *)
-let rec get_to_and_from : type a b c. (a,b,c) params_type -> a to_and_from = function
+let rec get_to_and_from : type a c. (a,'b,c) params_type -> a to_and_from = function
   | TOption (o,_) ->
     let {to_string;of_string} = get_to_and_from o in
     {of_string=(fun s -> try Some (of_string s) with _ -> None);
@@ -341,7 +338,7 @@ let guard construct name guard =
       to_string})
 
 (** Walk the parameter tree to search for a parameter, given its name *)
-let rec walk_parameter_tree : type a b c. string -> (a,b,c) params_type -> a to_and_from option = fun name x ->
+let rec walk_parameter_tree : type a c. string -> (a,'b,c) params_type -> a to_and_from option = fun name x ->
   let get name' =
     if name = name' then
       Some (get_to_and_from x)
@@ -384,13 +381,10 @@ let construct_params nonlocparams typ p =
   let suff, pl = construct_params_list nonlocparams typ p in
   (suff, construct_params_string pl)
 
-
-
-
 let make_params_names params =
-  let rec aux : type a b c. bool -> string -> string -> (a,b,c) params_type -> bool * c = fun issuffix prefix suffix x ->
+  let rec aux : type a c. bool -> string -> string -> (a,'b,c) params_type -> bool * c = fun issuffix prefix suffix x ->
     match x with
-      | TNLParams (_, t) -> aux issuffix prefix suffix t
+      | TNLParams {param=t} -> aux issuffix prefix suffix t
       | TProd (t1, t2) ->
         let issuffix, a = aux issuffix prefix suffix t1 in
         let issuffix, b = aux issuffix prefix suffix t2 in
@@ -434,12 +428,10 @@ let make_params_names params =
 
 let string_of_param_name = id
 
-
-
 (* Add a prefix to parameters *)
-let rec add_pref_params : type a b c. string -> (a,b,c) params_type -> (a,b,c) params_type = fun pref x ->
+let rec add_pref_params : type a c. string -> (a,'b,c) params_type -> (a,'b,c) params_type = fun pref x ->
   match x with
-  | TNLParams (a, t) -> TNLParams (a, add_pref_params pref t)
+  | TNLParams t -> TNLParams {t with param = add_pref_params pref t.param }
   | TProd (t1, t2) -> TProd ((add_pref_params pref t1),
                              (add_pref_params pref t2))
   | TOption (t,b) -> TOption (add_pref_params pref t,b)
@@ -452,14 +444,14 @@ let rec add_pref_params : type a b c. string -> (a,b,c) params_type -> (a,b,c) p
   | TUserType (name, to_of) -> TUserType (pref^name, to_of)
   | TUnit -> TUnit
   | TAny -> TAny
-  | TConst v -> TConst v
+  | TConst v -> TConst v  (* ??? no recursive call ??? *)
   | TESuffix n -> TESuffix n
   | TESuffixs n -> TESuffixs n
   | TESuffixu a -> TESuffixu a
   | TSuffix s -> TSuffix s
   | TJson (name, typ) -> TJson (pref^name, typ)
-  | TTypeFilter a -> TTypeFilter a
-  | TRaw_post_data -> failwith "Not possible with raw post data"
+  | TTypeFilter a -> TTypeFilter a (* ??? no recursive call ??? *)
+  | TRaw_post_data -> failwith "Eliom_parameters: add_pref_params not possible with raw post data"
 
 
 (*****************************************************************************)
@@ -473,9 +465,9 @@ let nl_prod
 
 (* removes from nlp set the nlp parameters that are present in param
    specification *)
-let rec remove_from_nlp : type a b c. 's -> (a,b,c) params_type -> 's  = fun nlp x ->
+let rec remove_from_nlp : type a c. 's -> (a,'b,c) params_type -> 's  = fun nlp x ->
   match x with
-    | TNLParams ((n, _, _), _) -> String.Table.remove n nlp
+    | TNLParams {name=n} -> String.Table.remove n nlp
     | TProd (t1, t2) ->
       let nlp = remove_from_nlp nlp t1 in
       remove_from_nlp nlp t2
@@ -511,18 +503,19 @@ let make_non_localized_parameters
   let name = make_nlp_name persistent prefix name in
   if String.contains name '.'
   then failwith "Non localized parameters names cannot contain dots."
-  else
-    ((name,
-      persistent,
-      (Polytables.make_key () (* GET *),
-       Polytables.make_key () (* POST *))),
-     add_pref_params (Eliom_common.nl_param_prefix^name^".") p)
+  else {
+    name;
+    persistent;
+    get = Polytables.make_key ();
+    post = Polytables.make_key ();
+    param = add_pref_params (Eliom_common.nl_param_prefix^name^".") p
+  }
 
 
 
 
 (*****************************************************************************)
-let rec contains_suffix : type a b c. (a,b,c) params_type -> bool option = function
+let rec contains_suffix : type a c. (a,'b,c) params_type -> bool option = function
   | TProd (a, b) ->
     (match contains_suffix a with
       | None -> contains_suffix b
@@ -532,8 +525,8 @@ let rec contains_suffix : type a b c. (a,b,c) params_type -> bool option = funct
 
 (*****************************************************************************)
 
-let rec wrap_param_type : type a b c. (a,b,c) params_type -> (a,b,c) params_type = function
-  | TNLParams (a, t) -> TNLParams (a, wrap_param_type t)
+let rec wrap_param_type : type a c. (a,'b,c) params_type -> (a,'b,c) params_type = function
+  | TNLParams t -> TNLParams { t with param = wrap_param_type t.param}
   | TProd (t1, t2) -> TProd ((wrap_param_type t1),
                              (wrap_param_type t2))
   | TOption (t,b) -> TOption (wrap_param_type t,b)
@@ -544,6 +537,7 @@ let rec wrap_param_type : type a b c. (a,b,c) params_type -> (a,b,c) params_type
   | TUserType (name, _) ->
     (*VVV *)
     failwith ("User service parameters '"^name^"' type not supported client side.")
+
   (* We remove the type information here: not possible to send a closure.
      marshaling is just basic json marshaling on client side. *)
   | TJson (name, _) -> TJson (name, None)

@@ -84,9 +84,9 @@ type +'a res_reconstr_param =
 
 let reconstruct_params_
     req
-    (typ : ('a, 'c, 'b) params_type)
+    typ
     params files nosuffixversion urlsuffix : 'a =
-  let rec parse_suffix : type a b c. (a,b,c) params_type -> string list -> (a * string list) = fun typ suff ->
+  let rec parse_suffix : type a c. (a,'b,c) params_type -> string list -> (a * string list) = fun typ suff ->
     match (typ, suff) with
       | TESuffix _, l -> l, []
           (*VVV encode=false? *)
@@ -157,7 +157,7 @@ let reconstruct_params_
       | TAny, _ -> failwith "It is not possible to use any in suffix. May be try with all_suffix ?"
       | _ -> raise Eliom_common.Eliom_Wrong_parameter
   in
-  let rec aux_list : type a b c. (a,b,c) params_type -> params -> files -> string -> string -> string -> a list res_reconstr_param =
+  let rec aux_list : type a c. (a,'b,c) params_type -> params -> files -> string -> string -> string -> a list res_reconstr_param =
     fun t params files name pref suff ->
       let rec loop_list i lp fl pref =
         let rec end_of_list len = function
@@ -178,10 +178,10 @@ let reconstruct_params_
             | Errors_ errs -> Errors_ errs
       in
       loop_list 0 params files (pref^name^suff^".")
-  and aux : type a b c. (a, b(* [<`WithSuffix|`WithoutSuffix|`Endsuffix] *), c) params_type -> params -> files -> string -> string -> a res_reconstr_param =
+  and aux : type a c. (a, 'b, c) params_type -> params -> files -> string -> string -> a res_reconstr_param =
     fun typ params files pref suff ->
       match typ with
-        | TNLParams (_, t) -> aux t params files pref suff
+        | TNLParams {param=t} -> aux t params files pref suff
         | TProd (t1, t2) ->
           (match aux t1 params files pref suff with
             | Res_ (v1, l1, f) ->
@@ -301,7 +301,7 @@ let reconstruct_params_
   with | Not_found -> raise Eliom_common.Eliom_Wrong_parameter
 
 
-let reconstruct_params ~sp (type a) (type b) (type c) (typ : (a,b,c) params_type) params files nosuffixversion urlsuffix : a Lwt.t =
+let reconstruct_params ~sp (type a) (type c) (typ : (a,'b,c) params_type) params files nosuffixversion urlsuffix : a Lwt.t =
   match typ, params, files with
     | TRaw_post_data, None, None ->
       let ri = Eliom_request_info.get_ri_sp sp in
@@ -309,14 +309,14 @@ let reconstruct_params ~sp (type a) (type b) (type c) (typ : (a,b,c) params_type
         (
            (ri.Ocsigen_extensions.ri_content_type,
             ri.Ocsigen_extensions.ri_http_frame.Ocsigen_http_frame.frame_content))
-    | _, None, None ->
+    | typ, None, None ->
       (try
          Lwt.return
            (reconstruct_params_
               sp.Eliom_common.sp_request
               typ [] [] nosuffixversion urlsuffix)
        with e -> Lwt.fail e)
-    | _, Some params, Some files ->
+    | typ, Some params, Some files ->
       params >>= fun params ->
       files >>= fun files ->
       (try
@@ -331,11 +331,14 @@ let reconstruct_params ~sp (type a) (type b) (type c) (typ : (a,b,c) params_type
 (* Non localized parameters *)
 
 
-let get_non_localized_parameters params getorpost ~sp
-    ((name, _, keys), paramtype) =
+let get_non_localized_parameters params ~getorpost ~sp
+    {name;
+     get;
+     post;
+     param = paramtype} =
   (* non localized parameters are parsed only once,
      and cached in request_cache *)
-  let key = getorpost keys in
+  let key = if getorpost then get else post in
   (try
      (* first, look in cache: *)
      Polytables.get
@@ -360,9 +363,9 @@ let get_non_localized_parameters params getorpost ~sp
 let get_non_localized_get_parameters p =
   let sp = Eliom_common.get_sp () in
   get_non_localized_parameters
-    sp.Eliom_common.sp_si.Eliom_common.si_nl_get_params fst ~sp p
+    sp.Eliom_common.sp_si.Eliom_common.si_nl_get_params ~getorpost:true ~sp p
 
 let get_non_localized_post_parameters p =
   let sp = Eliom_common.get_sp () in
   get_non_localized_parameters
-    sp.Eliom_common.sp_si.Eliom_common.si_nl_post_params snd ~sp p
+    sp.Eliom_common.sp_si.Eliom_common.si_nl_post_params ~getorpost:false ~sp p

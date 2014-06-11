@@ -76,12 +76,13 @@ open Eliom_lib
     {!Eliom_content.HTML5.D}). )
 *)
 
-type ('a, +'b, 'c) params_type
-
 (** This type is used as a phantom type in {!params_type} to describe
     whether a parameter is encoded in the path of the URI as a suffix
     parameter. *)
 type suff = [ `WithoutSuffix | `WithSuffix | `Endsuffix ]
+
+type ('a, +'b, 'c) params_type constraint 'b = [<suff]
+
 
 (** {2 Typed parameter's name} *)
 
@@ -427,7 +428,7 @@ val raw_post_data :
 
 (** {2 Non localized parameters} *)
 
-type ('a, 'tipo, 'names) non_localized_params
+type ('a, +'b, 'names) non_localized_params constraint 'b = [<suff]
 
 (** create a new specification for non localized parameters.
     You must give a name to this set of parameters.
@@ -519,7 +520,7 @@ val construct_params_list :
 
 val reconstruct_params :
   sp:Eliom_common.server_params ->
-  ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
+  ('a, [< `WithSuffix | `WithoutSuffix ], 'c) params_type ->
   params Lwt.t option ->
   files Lwt.t option ->
   bool ->
