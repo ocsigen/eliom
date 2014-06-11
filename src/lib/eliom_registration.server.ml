@@ -1407,7 +1407,7 @@ module Ocaml = struct
       ?content_type
       ?headers
       ?secure_session
-      ~(service : ('get, 'post,
+      ~(service : ('get, 'post, _, _,
                    [< internal_service_kind ],
                    [< suff ], 'gn, 'pn, [ `Registrable ],
                    'return Eliom_service.ocaml_service) service)
@@ -2307,7 +2307,7 @@ module String_redirection = Eliom_mkreg.MakeRegister(String_redir_reg_base)
 module Redir_reg_base = struct
 
   type ('a, 'b) page =
-      (unit, unit, Eliom_service.get_service_kind,
+      (unit, unit, Eliom_service.get_service_kind , Eliom_service.attached, Eliom_service.service_kind,
        [ `WithoutSuffix ],
        unit, unit, Eliom_service.registrable, 'b)
         Eliom_service.service

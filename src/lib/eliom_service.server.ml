@@ -51,7 +51,7 @@ let xhr_with_cookies s =
 
 (**********)
 
-let get_or_post_ s = match s.get_or_post with
+let get_or_post_ s = match get_get_or_post s with
   | `Get -> Ocsigen_http_frame.Http_header.GET
   | `Post -> Ocsigen_http_frame.Http_header.POST
   | `Put -> Ocsigen_http_frame.Http_header.PUT
@@ -142,9 +142,9 @@ let set_delayed_post_registration_function tables k f =
 
 (*****************************************************************************)
 let remove_service table service =
-  match get_kind_ service with
+  match get_info_ service with
     | `Attached attser ->
-        let key_kind = get_or_post_ attser in
+        let key_kind = get_or_post_ service in
         let attserget = get_get_name_ attser in
         let attserpost = get_post_name_ attser in
         let sgpt = get_get_params_type_ service in

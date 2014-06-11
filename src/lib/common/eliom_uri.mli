@@ -56,7 +56,7 @@ val make_string_uri :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, unit, [< get_service_kind ],
+  service:('get, unit, [<get_service_kind], _, _,
            [< suff ], 'gn, unit,
            [< registrable ], 'return) service ->
   ?hostname:string ->
@@ -77,7 +77,7 @@ val make_uri_components :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, unit, [< get_service_kind ],
+  service:('get, unit, [< get_service_kind], _, _,
            [< suff ], 'gn, unit,
            [< registrable ], 'return) service ->
   ?hostname:string ->
@@ -94,7 +94,7 @@ val make_post_uri_components :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, 'post, [< post_service_kind ],
+  service:('get, 'post, [< post_service_kind], _, _,
            [< suff ], 'gn, 'pn,
            [< registrable ], 'return) service ->
   ?hostname:string ->
@@ -132,20 +132,14 @@ val reconstruct_relative_url_path :
 (* make_string_uri_ and make_post_uri_components__ are alias to
    make_string_uri and make_post_uri_components with a less
    restrictive type. They should be removed once there is way to
-   downcast a "getpost" service to "get" or "post" service. See
+   downcast a "service_method" service to "get" or "post" service. See
    Eliom_mkreg and Eliom_client. *)
 
 val make_string_uri_ :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('a, 'b,
-           [< `Attached of
-               (Eliom_service.attached_service_kind,
-                [< Eliom_service.getpost ])
-                 Eliom_service.a_s
-           | `Nonattached of
-               [< Eliom_service.getpost ] Eliom_service.na_s ],
+  service:('a, 'b, _, _, _,
            [< Eliom_service.suff ], 'c, 'd,
            [< Eliom_service.registrable ], 'e)
     Eliom_service.service ->
@@ -159,9 +153,7 @@ val make_post_uri_components__ :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('a, 'b,
-           [< `Attached of ([> `External ], 'c) Eliom_service.a_s
-           | `Nonattached of [< getpost ] Eliom_service.na_s ],
+  service:('a, 'b, _, _, _,
            [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h)
     Eliom_service.service ->
   ?hostname:string ->
@@ -180,9 +172,7 @@ val make_uri_components_ :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('a, 'b,
-           [< `Attached of ([> `External ], 'c) a_s
-           | `Nonattached of 'd na_s ],
+  service:('a, 'b, _, _, _,
            [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h)
     service ->
   ?hostname:string ->
@@ -196,9 +186,7 @@ val make_post_uri_components_ :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('a, 'b,
-           [< `Attached of ([> `External ], 'd) a_s
-           | `Nonattached of [< getpost ] na_s ],
+  service:('a, 'b, _, _, _,
            [< `WithSuffix | `WithoutSuffix ], 'g, 'h, 'i, 'j)
     service ->
   ?hostname:string ->
@@ -223,10 +211,5 @@ val make_proto_prefix :
 
 val make_cookies_info :
   bool option *
-  ('a, 'b,
-   [< `Attached of ([< `Internal of 'i
-                    | `External > `External], 'c) Eliom_service.a_s
-   | `Nonattached of 'd ],
-   [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h)
-           Eliom_service.service ->
+  ('a, 'b, _, [< attached], _, [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h) Eliom_service.service ->
   (bool * Url.path) option

@@ -117,7 +117,7 @@ val make_uri :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, unit, [< get_service_kind ],
+  service:('get, unit, [< get_service_kind ], _, _,
            [< suff ], 'gn, unit,
            [< registrable ], 'return) service ->
   ?hostname:string ->
@@ -147,7 +147,7 @@ val make_string_uri :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, unit, [< get_service_kind ],
+  service:('get, unit, [< get_service_kind ], _, _,
            [< suff ], 'gn, unit,
            [< registrable ], 'return) service ->
   ?hostname:string ->
@@ -189,7 +189,7 @@ val make_uri_components :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, unit, [< get_service_kind ],
+  service:('get, unit, [< get_service_kind ], _, _,
            [< suff ], 'gn, unit,
            [< registrable ], 'return) service ->
   ?hostname:string ->
@@ -206,7 +206,7 @@ val make_post_uri_components :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, 'post, [< post_service_kind ],
+  service:('get, 'post, [< post_service_kind ], _, _,
            [< suff ], 'gn, 'pn,
            [< registrable ], 'return) service ->
 (*  service:('get, 'post,
@@ -264,7 +264,7 @@ val a :
   ?absolute_path:bool ->
   ?https:bool ->
   ?a:a_attrib_t ->
-  service:('get, unit, [< get_service_kind ],
+  service:('get, unit, [< get_service_kind ], _, _,
            [< suff ], 'd, unit,
            [< registrable ], [< non_ocaml_service])
     service ->
@@ -335,7 +335,7 @@ val get_form :
   ?absolute_path:bool ->
   ?https:bool ->
   ?a:form_attrib_t ->
-  service:('get, unit, [< get_service_kind ],
+  service:('get, unit, [< get_service_kind ], _, _,
            [<suff ], 'gn, 'pn,
            [< registrable ], [< non_ocaml_service]) service ->
   ?hostname:string ->
@@ -354,7 +354,7 @@ val lwt_get_form :
   ?absolute_path:bool ->
   ?https:bool ->
   ?a:form_attrib_t ->
-  service:('get, unit, [< get_service_kind ],
+  service:('get, unit, [< get_service_kind ], _, _,
            [<suff ], 'gn, 'pn,
            [< registrable ], [< non_ocaml_service]) service ->
   ?hostname:string ->
@@ -386,7 +386,7 @@ val post_form :
   ?absolute_path:bool ->
   ?https:bool ->
   ?a:form_attrib_t ->
-  service:('get, 'post, [< post_service_kind ],
+  service:('get, 'post, [< post_service_kind ], _, _,
            [< suff ], 'gn, 'pn,
            [< registrable ], [< non_ocaml_service]) service ->
   ?hostname:string ->
@@ -407,7 +407,7 @@ val lwt_post_form :
   ?absolute_path:bool ->
   ?https:bool ->
   ?a:form_attrib_t ->
-  service:('get, 'post, [< post_service_kind ],
+  service:('get, 'post, [< post_service_kind ], _, _,
            [< suff ], 'gn, 'pn,
            [< registrable ], [< non_ocaml_service]) service ->
   ?hostname:string ->
@@ -736,7 +736,7 @@ type 'a select_opt =
 val int_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `One of int ] param_name ->
+  name:[ `One of int ] param_name ->
   int select_opt ->
   int select_opt list ->
   select_elt
@@ -746,7 +746,7 @@ val int_select :
 val int32_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `One of int32 ] param_name ->
+  name:[ `One of int32 ] param_name ->
   int32 select_opt ->
   int32 select_opt list ->
   select_elt
@@ -756,7 +756,7 @@ val int32_select :
 val int64_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `One of int64 ] param_name ->
+  name:[ `One of int64 ] param_name ->
   int64 select_opt ->
   int64 select_opt list ->
   select_elt
@@ -766,7 +766,7 @@ val int64_select :
 val float_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `One of float ] param_name ->
+  name:[ `One of float ] param_name ->
   float select_opt ->
   float select_opt list ->
   select_elt
@@ -776,7 +776,7 @@ val float_select :
 val string_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `One of string ] param_name ->
+  name:[ `One of string ] param_name ->
   string select_opt ->
   string select_opt list ->
   select_elt
@@ -786,7 +786,7 @@ val string_select :
 val user_type_select : ('a -> string) ->
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `One of 'a ] param_name ->
+  name:[ `One of 'a ] param_name ->
   'a select_opt ->
   'a select_opt list ->
   select_elt
@@ -806,7 +806,7 @@ val raw_select :
 val int_multiple_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `Set of int ] param_name ->
+  name:[ `Set of int ] param_name ->
   int select_opt ->
   int select_opt list ->
   select_elt
@@ -816,7 +816,7 @@ val int_multiple_select :
 val int32_multiple_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `Set of int32 ] param_name ->
+  name:[ `Set of int32 ] param_name ->
   int32 select_opt ->
   int32 select_opt list ->
   select_elt
@@ -826,7 +826,7 @@ val int32_multiple_select :
 val int64_multiple_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `Set of int64 ] param_name ->
+  name:[ `Set of int64 ] param_name ->
   int64 select_opt ->
   int64 select_opt list ->
   select_elt
@@ -836,7 +836,7 @@ val int64_multiple_select :
 val float_multiple_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `Set of float ] param_name ->
+  name:[ `Set of float ] param_name ->
   float select_opt ->
   float select_opt list ->
   select_elt
@@ -846,7 +846,7 @@ val float_multiple_select :
 val string_multiple_select :
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `Set of string ] param_name ->
+  name:[ `Set of string ] param_name ->
   string select_opt ->
   string select_opt list ->
   select_elt
@@ -857,7 +857,7 @@ val user_type_multiple_select :
   ('a -> string) ->
   ?a:select_attrib_t ->
   ?required:pcdata_elt ->
-  name:[< `Set of 'a ] param_name ->
+  name:[ `Set of 'a ] param_name ->
   'a select_opt ->
   'a select_opt list ->
   select_elt

@@ -19,13 +19,15 @@
 
 type param = string
 
-let insert_string = Ocsigen_lib.id
+type field = string
+
+let insert_string x : field = Ocsigen_lib.id x
 
 (* insert_file is implemented only on client side *)
-let insert_file _ =
+let insert_file _ : field =
   failwith "Constructing an URL with file parameters not possible"
 
-let to_string = Ocsigen_lib.id
+let to_string : field -> string = fun x -> Ocsigen_lib.id x
 
 let inject_param_list = Ocsigen_lib.id
 let get_param_list = Ocsigen_lib.id

@@ -3,7 +3,8 @@ module Pack = Ocamlbuild_pack
 
 let copy_with_header src prod =
   let contents = Pathname.read src in
-  let header = "# 1 \"" ^ src ^ "\"\n" in
+  (* we need an empty line to keep the comments : weird camlp4 *)
+  let header = "# 0 \"" ^ src ^ "\"\n\n" in
   Pack.Shell.mkdir_p (Filename.dirname prod);
   Echo ([header; contents], prod)
 

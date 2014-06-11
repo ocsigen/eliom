@@ -567,7 +567,7 @@ let default_no_appl =
         ])) in
   App.register ~service:get_service handler;
   App.register ~service:post_service handler;
-  Eliom_service.((get_service :  (_, _, get_service_kind, _, _, _, registrable, appl_service) service))
+  Eliom_service.((get_service :  (_, _, get_service_kind,_,_, _, _, _, registrable, appl_service) service))
 
 (*wiki*
 ====Other tests:

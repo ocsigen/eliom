@@ -23,17 +23,25 @@
 
 open Eliom_lib
 
-type ('a, +'b, +'c) params_type
+type suff = [ `WithoutSuffix | `WithSuffix | `Endsuffix ]
 
-type 'a param_name
+type ('a, +'b, 'c) params_type constraint 'b = [<suff]
+
+type +'a param_name
 
 type no_param_name
 
-type 'a setoneradio = [ `Set of 'a | `One of 'a | `Radio of 'a ]
+type +'a setoneradio = [ `Set of 'a | `One of 'a | `Radio of 'a ]
 
-type 'a oneradio = [ `One of 'a | `Radio of 'a ]
+type +'a oneradio = [ `One of 'a | `Radio of 'a ]
 
-type 'a setone = [ `Set of 'a | `One of 'a ]
+type +'a setone = [ `Set of 'a | `One of 'a ]
+
+type 'a to_and_from = {
+  of_string : string -> 'a;
+  to_string : 'a -> string
+}
+
 
 type ('a, 'b) binsum = Inj1 of 'a | Inj2 of 'b
 
@@ -151,7 +159,7 @@ val list :
         ('a list, [ `WithoutSuffix ], 'b listnames) params_type
 
 val guard : (string -> ('a, 'b, 'c) params_type) -> string
-  -> ('a -> bool) -> ('a, 'b, 'c) params_type
+  -> ('a -> bool) -> ('a, 'b, [ `One of 'a ] param_name) params_type
 
 val suffix :
   ?redirect_if_not_suffix:bool ->
@@ -195,7 +203,7 @@ val raw_post_data :
   (raw_post_data,
    [ `WithoutSuffix ], no_param_name) params_type
 
-type ('a, +'tipo, +'names) non_localized_params
+type ('a, +'b, 'names) non_localized_params  constraint 'b = [<suff]
 
 val make_non_localized_parameters :
   prefix : string ->
@@ -216,10 +224,9 @@ val add_nl_parameter :
 val get_nl_params_names :
   (_, [< `WithSuffix | `WithoutSuffix ], 'a) non_localized_params -> 'a
 
-val get_to_and_from : ('a, 'b, 'c) params_type -> (string -> 'a) * ('a -> string)
+val get_to_and_from : ('a, 'b, 'c) params_type -> 'a to_and_from
 
-val walk_parameter_tree : [ `One of string ] param_name -> ('a, 'b, 'c) params_type
-  -> ((string -> 'd) * ('d -> string)) option
+val walk_parameter_tree : string -> ('a, 'b, 'c) params_type -> 'a to_and_from option
 val contains_suffix : ('a, 'b, 'c) params_type -> bool option
 
 val add_pref_params :

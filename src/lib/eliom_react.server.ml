@@ -100,7 +100,9 @@ struct
         service :
           (unit,
            'a,
-           [ `Nonattached of [ `Post ] Eliom_service.na_s ],
+           [`Post],
+           [ Eliom_service.non_attached_kind],
+           [ `NonattachedCoservice],
            [ `WithoutSuffix ],
            unit,
            [ `One of 'a Eliom_parameter.ocaml ] Eliom_parameter.param_name,
