@@ -50,27 +50,30 @@ open Eliom_parameter
 
 (** {3 Services kind} *)
 
-(** {4 Internal or external} *)
+(** The type [service_kind] describe all four kind of services:
+    - external (attached) services
+    - (internal) attached services
+    - (internal) attached coservices
+    - (internal) non-attached coservices
+*)
 
 (** An internal attached service could either be a [`Service] or a [`AttachedCoservice]. *)
-type internal_service_kind =
+type internal_attached_service_kind =
   [ `Service
-  | `AttachedCoservice
+  | `AttachedCoservice ]
+
+(** An internal service could either be an internal attached service or a [`NonattachedCoservice]. *)
+type internal_service_kind =
+  [ internal_attached_service_kind
   | `NonattachedCoservice ]
 
-(** An attached service could either be an [`Internal] Eliom service or an
+(** An attached service could either be an internal Eliom service or an
     abstraction for an [`External] service. *)
 type service_kind =
   [ internal_service_kind
   | `External ]
 
-(** {4 POST or GET parameters} *)
-
-(** The kind of a service is [`Post] when there is at least one POST
-    parameters. It is [`Get] otherwise. *)
-type getpost = [ `Get | `Post | `Put | `Delete ]
-
-(** {4 Attached or Non-attached} *)
+(** {3 Attached or Non-attached} *)
 
 (** The abstract type for attached service representation. *)
 type a_s
@@ -78,27 +81,29 @@ type a_s
 (** The abstract type for non-attached service representation. *)
 type na_s
 
-(** The type [service_kind] describe all four kind of services:
-    - external (attached) services
-    - (internal) attached services
-    - (internal) attached coservices
-    - (internal) non-attached coservices
-*)
 type attached_kind = [ `Attached of a_s ]
 type non_attached_kind = [ `Nonattached of na_s ]
 type attached = [ attached_kind | non_attached_kind ]
-(** {4 Common subtypes of [service_kind] } *)
 
-(** Restriction of [service_kind] to GET services. *)
+
+(** {3 POST or GET parameters} *)
+
+(** The kind of a service is [`Post] when there is at least one POST
+    parameters. It is [`Get] otherwise. *)
+type service_method = [ `Get | `Post | `Put | `Delete ]
+
+(** {3 Common subtypes of [service_method] } *)
+
+(** Restriction of [service_method] to GET services. *)
 type get_service_kind = [`Get]
 
-(** Restriction of [service_kind] to POST services. *)
+(** Restriction of [service_method] to POST services. *)
 type post_service_kind = [`Post]
 
-(** Restriction of [service_kind] to PUT services. *)
+(** Restriction of [service_method] to PUT services. *)
 type put_service_kind = [`Put]
 
-(** Restriction of [service_kind] to DELETE services. *)
+(** Restriction of [service_method] to DELETE services. *)
 type delete_service_kind = [`Delete]
 
 (** {3 Kind of parameters} *)
@@ -135,7 +140,7 @@ type registrable = [ `Registrable | `Unregistrable ]
             See {!Eliom_registration.kind}.
 *)
 type ('get,'post,+'meth,+'attached,+'kind,+'tipo,'gn,'pn,+'reg,+'ret) service
-  constraint 'meth = [< getpost ]
+  constraint 'meth = [< service_method ]
   constraint 'attached = [< attached]
   constraint 'kind = [< service_kind ]
   constraint 'tipo = [< suff ]
@@ -363,7 +368,7 @@ val unregister :
 
 (**/**)
 
-val get_get_or_post : ('a, 'b,[<getpost] as 'c,[< attached],'kind, 'd, 'e, 'f, 'g, 'h) service -> 'c
+val get_get_or_post : ('a, 'b,[<service_method] as 'c,[< attached],'kind, 'd, 'e, 'f, 'g, 'h) service -> 'c
 
 val get_info_ : ('a, 'b, 'meth,'attach,'kind, 'd, 'e, 'f, 'g, 'return) service -> 'attach
 val get_kind_ : ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'return) service -> service_kind

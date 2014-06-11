@@ -24,40 +24,81 @@
 open Eliom_parameter
 open Eliom_lib
 
-(** {2 Types of services} *)
+(** {2 Type definitions for services} *)
 
-type suff = [ `WithSuffix | `WithoutSuffix ]
+(** {3 Services kind} *)
 
-type getpost = [ `Get | `Post | `Put | `Delete ]
-      (* `Post means that there is at least one post param
-         (possibly only the state post param).
-         `Get doesn't have any body content.
-         `Put means the HTTP PUT method has been used.
-         `Delete means the HTTP DELETE method has been used.
-         `Put and `Delete have [raw_post_data] as body content.
-       *)
+(** The type [service_kind] describe all four kind of services:
+    - external (attached) services
+    - (internal) attached services
+    - (internal) attached coservices
+    - (internal) non-attached coservices
+*)
 
-type registrable = [ `Registrable | `Unregistrable ]
-(** You can call register function only on registrable services *)
-(* Registrable means not pre-applied *)
-
-type internal_service_kind =
+(** An internal attached service could either be a [`Service] or a [`AttachedCoservice]. *)
+type internal_attached_service_kind =
   [ `Service
-  | `AttachedCoservice
+  | `AttachedCoservice ]
+
+(** An internal service could either be an internal attached service or a [`NonattachedCoservice]. *)
+type internal_service_kind =
+  [ internal_attached_service_kind
   | `NonattachedCoservice ]
 
+(** An attached service could either be an internal Eliom service or an
+    abstraction for an [`External] service. *)
 type service_kind =
   [ internal_service_kind
   | `External ]
 
+(** {3 Attached or Non-attached} *)
 
+(** The abstract type for attached service representation. *)
 type a_s
+
+(** The abstract type for non-attached service representation. *)
 type na_s
-(** An attached service could either be an [`Internal] Eliom service or an
-    abstraction for an [`External] service. *)
+
 type attached_kind = [ `Attached of a_s ]
 type non_attached_kind = [ `Nonattached of na_s ]
 type attached = [ attached_kind | non_attached_kind ]
+
+
+(** {3 POST or GET parameters} *)
+
+(** The kind of a service is [`Post] when there is at least one POST
+    parameters. It is [`Get] otherwise. *)
+type service_method = [ `Get | `Post | `Put | `Delete ]
+
+(** {3 Common subtypes of [service_method] } *)
+
+(** Restriction of [service_method] to GET services. *)
+type get_service_kind = [`Get]
+
+(** Restriction of [service_method] to POST services. *)
+type post_service_kind = [`Post]
+
+(** Restriction of [service_method] to PUT services. *)
+type put_service_kind = [`Put]
+
+(** Restriction of [service_method] to DELETE services. *)
+type delete_service_kind = [`Delete]
+
+(** {3 Kind of parameters} *)
+
+(** The kind of parameters for a service is [`WithSuffix] when it have
+    a suffix parameter, for examples {!Eliom_parameter.suffix} or
+    {!Eliom_parameter.suffix_prod}. Otherwise it is
+    [`WithoutSuffix]. *)
+type suff = [ `WithSuffix | `WithoutSuffix ]
+
+(** {3 Registrable service} *)
+
+(** A service is [`Registrable] only if it isn't a pre-applied
+    service, see {!preapply}. *)
+type registrable = [ `Registrable | `Unregistrable ]
+
+(** {3 Abstract type of services} *)
 
 (** Type of services.
     - [ 'get] is the type of GET parameters expected by the service.
@@ -65,35 +106,29 @@ type attached = [ attached_kind | non_attached_kind ]
     - [ 'meth] the HTTP method
     - [ 'attached] attached or non-attached
     - [ 'kind] describes the services's kind : service, coservice, external. It is a subtype of {!service_kind}.
-    - [ 'tipo] is a phantom type, subtype of {!suff} stating the kind
-            of parameters it uses: suffix or not.
+    - [ 'tipo] the type paremeter of subtype {!suff} states the kind
+      of parameters it uses: suffix or not.
     - [ 'gn] is the type of GET parameters names. See {!Eliom_parameter.param_name} and
-            form generation functions (e. g. {!Eliom_registration.Html5.get_form}).
+            form generation functions (e. g. {!Eliom_content.Html5.D.get_form}).
     - [ 'pn] is the type of POST parameters names. See {!Eliom_parameter.param_name} and
-            form generation functions (e. g. {!Eliom_registration.Html5.post_form}).
-    - [ 'reg] is a phantom type,  subtype of {!registrable},
-            telling if it is possible to register a handler
-            on this service.
+            form generation functions (e. g. {!Eliom_content.Html5.D.post_form}).
+    - [ 'reg] the type parameter of subtype {!registrable} tells if it is possible to
+      register a handler on this service.
     - [ 'ret] is an information on what the service returns.
             See {!Eliom_registration.kind}.
 *)
 type ('get,'post,+'meth,+'attached,+'kind,+'tipo,'gn,'pn,+'reg,+'ret) service
-  constraint 'meth = [< getpost ]
+  constraint 'meth = [< service_method ]
   constraint 'attached = [< attached]
   constraint 'kind = [< service_kind ]
   constraint 'tipo = [< suff ]
   constraint 'reg = [< registrable ]
 
 (** Types of groups of services. *)
+
 type http_service = [ `Http ]
 type appl_service = [ `Appl ]
 type 'a ocaml_service
-
-type get_service_kind = [`Get]
-type post_service_kind = [`Post]
-type put_service_kind = [`Put]
-type delete_service_kind = [`Delete]
-
 
 (** The type [non_ocaml_service] is used as phantom type parameters for
     the {!Eliom_registration.kind}. It used to type functions that operates
@@ -101,19 +136,19 @@ type delete_service_kind = [`Delete]
     {!appl_self_redirect}. *)
 type non_ocaml_service = [ appl_service | http_service ]
 
-(** Helper for typing OCaml services *)
+(** Helper for typing OCaml services.
+    In some cases, you may need to write the return type of the
+    service manually. Instead of writing the full type of the service,
+    (which may be huge), add a type constraint for parameter [?rt] of service
+    creation functions
+    (like <<a_api subproject="server"|fun Eliom_service.Http.service>>),
+    using the following value.
+
+*)
 type 'rt rt
 val rt : 'rt rt
 
 (***** Static dir and actions do not depend on the type of pages ******)
-
-(** {2 Registration of named modules}
-
-    This functionality allows one to register initialization functions for
-    Eliom modules which will be executed when the corresponding module
-    is loaded in [ocsigenserver.conf].
-
-*)
 
 module Unsafe : "sigs/eliom_service_with_external.mli"
   subst type returnB := 'returnB
@@ -314,7 +349,7 @@ val https_static_dir_with_params :
 
 (* used by Eliom_uri *)
 val get_get_or_post :
-  ('a, 'b,[<getpost] as 'c,[< attached],'kind, 'd, 'e, 'f, 'g, 'h) service -> 'c
+  ('a, 'b,[<service_method] as 'c,[< attached],'kind, 'd, 'e, 'f, 'g, 'h) service -> 'c
 
 val get_info_ : (_,_,_,'attached,_,_,_,_,_,_) service -> 'attached
 val get_kind_ : ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'return) service -> service_kind

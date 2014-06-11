@@ -256,10 +256,10 @@ let register_aux pages
 				  ~absolute:true
 				  ~service:
 				  (service :
-				     ('a, 'b, [< getpost],[<attached],[< Eliom_service.internal_service_kind ],
+				     ('a, 'b, [< service_method],[<attached],[< Eliom_service.internal_service_kind ],
 				      [< Eliom_service.suff ], 'c, 'd, [ `Registrable ],
 				      'return) Eliom_service.service :>
-				     ('a, 'b, [< getpost],[<attached],Eliom_service.service_kind,
+				     ('a, 'b, [< service_method],[<attached],Eliom_service.service_kind,
 				      [< Eliom_service.suff ], 'c, 'd,
 				      [< Eliom_service.registrable ], 'return)
 				     Eliom_service.service)
@@ -280,10 +280,10 @@ let register_aux pages
 				  ~absolute_path:true
 				  ~service:
 				  (service :
-				     ('a, 'b, [< getpost],[<attached],[< Eliom_service.internal_service_kind ],
+				     ('a, 'b, [< service_method],[<attached],[< Eliom_service.internal_service_kind ],
 				      [< Eliom_service.suff ], 'c, 'd, [ `Registrable ],
 				      'return) Eliom_service.service :>
-				     ('a, 'b, [< getpost],[<attached],Eliom_service.service_kind,
+				     ('a, 'b, [< service_method],[<attached],Eliom_service.service_kind,
 				      [< Eliom_service.suff ], 'c, 'd,
 				      [< Eliom_service.registrable ], 'return)
 				     Eliom_service.service)
@@ -646,7 +646,7 @@ let register_coservice pages
     ?max_use
     ?timeout
     ?https
-    ~(fallback: (unit, unit, [< Eliom_service.getpost > `Get ],
+    ~(fallback: (unit, unit, [< Eliom_service.service_method > `Get ],
                      [> Eliom_service.attached_kind ],
                      [< Eliom_service.service_kind > `Service ],
                      [ `WithoutSuffix ], unit, unit,

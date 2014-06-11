@@ -44,7 +44,7 @@ val register :
   ?content_type:string ->
   ?headers: Http_headers.t ->
   ?secure_session:bool ->
-  service:('get, 'post, [< getpost], [< attached],
+  service:('get, 'post, [< service_method], [< attached],
            [< internal_service_kind ],
            [< suff ], 'gn, 'pn, [ `Registrable ], returnT) service ->
   ?error_handler:((string * exn) list -> page Lwt.t) ->

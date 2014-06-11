@@ -43,7 +43,7 @@ val change_page :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('a, 'b,[<Eliom_service.getpost  > `Get `Post],[<Eliom_service.attached],[< Eliom_service.service_kind],
+  service:('a, 'b,[<Eliom_service.service_method  > `Get `Post],[<Eliom_service.attached],[< Eliom_service.service_kind],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
            [< Eliom_service.registrable ], [< Eliom_registration.non_ocaml_service ])
           Eliom_service.service ->
@@ -68,7 +68,7 @@ val call_ocaml_service :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
-           [<Eliom_service.getpost > `Get `Post],[<Eliom_service.attached ],[< Eliom_service.service_kind],
+           [<Eliom_service.service_method > `Get `Post],[<Eliom_service.attached ],[< Eliom_service.service_kind],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
            [< Eliom_service.registrable ], 'return Eliom_service.ocaml_service)
     Eliom_service.service ->
@@ -88,7 +88,7 @@ val exit_to :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
-           [<Eliom_service.getpost > `Get `Post ],[<Eliom_service.attached],[< Eliom_service.service_kind],
+           [<Eliom_service.service_method > `Get `Post ],[<Eliom_service.attached],[< Eliom_service.service_kind],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
            [< Eliom_service.registrable ], [< Eliom_registration.non_ocaml_service ])
           Eliom_service.service ->
@@ -143,7 +143,7 @@ val call_service :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
-           [<Eliom_service.getpost > `Get `Post],[< Eliom_service.attached],[< Eliom_service.service_kind],
+           [<Eliom_service.service_method > `Get `Post],[< Eliom_service.attached],[< Eliom_service.service_kind],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
            [< Eliom_service.registrable ], 'return)
           Eliom_service.service ->

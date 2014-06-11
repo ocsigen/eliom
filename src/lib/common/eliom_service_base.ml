@@ -30,16 +30,20 @@ type suff =
   [ `WithSuffix
   | `WithoutSuffix ]
 
-type internal_service_kind =
+
+type internal_attached_service_kind =
   [ `Service
-  | `AttachedCoservice
+  | `AttachedCoservice ]
+
+type internal_service_kind =
+  [ internal_attached_service_kind
   | `NonattachedCoservice ]
 
 type service_kind =
   [ internal_service_kind
   | `External ]
 
-type getpost =
+type service_method =
   [ `Get
   | `Post
   | `Put
@@ -120,10 +124,10 @@ type ('get,'post,+'meth,+'attached,+'kind,+'tipo,'getnames,'postnames,+'registr,
   (* XNever when we create the service, then changed at registration :/ *)
 
   service_mark :
-    (unit,unit,getpost,attached,service_kind,suff,unit,unit,registrable,unit)
+    (unit,unit,service_method,attached,service_kind,suff,unit,unit,registrable,unit)
       service Eliom_common.wrapper;
 }
-  constraint 'meth = [< getpost ]
+  constraint 'meth = [< service_method ]
   constraint 'attached = [< attached]
   constraint 'kind = [< service_kind ]
   constraint 'tipo = [< suff ]
@@ -629,7 +633,7 @@ let coservice
    timeout= timeout;
    get_params_type = add_pref_params Eliom_common.co_param_prefix get_params;
    kind = `AttachedCoservice;
-   meth = (`Get :> [< getpost]);
+   meth = (`Get :> [< service_method]);
    info = `Attached
        {k with
         get_name =
