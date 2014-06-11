@@ -899,10 +899,10 @@ let split_prefix_param pref l =
     with Invalid_argument _ -> false) l
 
 (* Special version for non localized parameters *)
-let split_nl_prefix_param =
-  let prefixlength = String.length nl_param_prefix in
-  let prefixlengthminusone = prefixlength - 1 in
-  fun l ->
+let prefixlength = String.length nl_param_prefix
+let prefixlengthminusone = prefixlength - 1
+
+let split_nl_prefix_param l =
     let rec aux other map = function
       | [] -> (map, other)
       | ((n, v) as a)::l ->
@@ -1007,7 +1007,13 @@ let get_session_info req previous_extension_err =
       | None -> true, Lwt.return []
       | Some f -> false, f (ci.Ocsigen_extensions.uploaddir, ci.Ocsigen_extensions.maxuploadfilesize)
   in
-  p >>= fun post_params ->
+  let no_file_param, file_params =
+    match Ocsigen_extensions.Ocsigen_request_info.files ri with
+      | None -> true, Lwt.return []
+      | Some f -> false, f (ci.Ocsigen_extensions.uploaddir, ci.Ocsigen_extensions.maxuploadfilesize)
+  in
+
+  lwt post_params = p in
 
   let (previous_tab_cookies_info, tab_cookies, post_params) =
     try
@@ -1016,7 +1022,7 @@ let get_session_info req previous_extension_err =
       in
       Polytables.remove ~table:rc ~key:tab_cookie_action_info_key;
       (Some (tci, utc), tc, post_params)
-    with Not_found ->
+    with Not_found -> begin
       let tab_cookies, post_params =
         try
 (* Tab cookies are found in HTTP headers,
@@ -1041,8 +1047,8 @@ let get_session_info req previous_extension_err =
           with Not_found -> CookiesTable.empty, post_params
       in
       (None, tab_cookies, post_params)
+      end
   in
-
 
   let cpi =
     try (* looking for client process info in headers *)
@@ -1089,24 +1095,29 @@ let get_session_info req previous_extension_err =
 
   let get_params0 = get_params in
   let post_params0 = post_params in
-
-  let get_params, post_params,
-    (all_get_params, all_post_params,
-     nl_get_params, nl_post_params,
+  lwt file_params0 = file_params in
+  let get_params, post_params, file_params,
+      (all_get_params, all_post_params, all_file_params,
+       nl_get_params, nl_post_params, nl_file_params,
      all_get_but_nl (*204FORMS*, internal_form *)) =
     try
       (get_params,
        post_params,
+       file_params0,
        Polytables.get
          ~table:(Ocsigen_extensions.Ocsigen_request_info.request_cache ri)
          ~key:eliom_params_after_action)
     with Not_found ->
       let nl_get_params, get_params = split_nl_prefix_param get_params0 in
       let nl_post_params, post_params = split_nl_prefix_param post_params0 in
+      let nl_file_params, file_params = split_nl_prefix_param file_params0 in
       let all_get_but_nl = get_params in
-      get_params, post_params,
-      (get_params0, (if no_post_param then None else Some post_params0),
-       nl_get_params, nl_post_params, all_get_but_nl (*204FORMS*, internal_form *))
+      get_params, post_params, file_params,
+      (get_params0,
+       (if no_post_param then None else Some post_params0),
+       (if no_file_param then None else Some file_params0),
+       nl_get_params, nl_post_params, nl_file_params,
+       all_get_but_nl (*204FORMS*, internal_form *))
   in
 
   let browser_cookies = Lazy.force (Ocsigen_extensions.Ocsigen_request_info.cookies ri) in
@@ -1284,7 +1295,10 @@ let get_session_info req previous_extension_err =
        *)
       ~get_params:(lazy get_params)
       ~post_params:(if no_post_param then None
-                    else Some (fun _ -> Lwt.return post_params)) (),
+                    else Some (fun _ -> Lwt.return post_params))
+      ~files:(if no_file_param then None
+              else Some (fun _ -> Lwt.return file_params))
+      (),
     {si_service_session_cookies= service_cookies;
      si_data_session_cookies= data_cookies;
      si_persistent_session_cookies= persistent_cookies;
@@ -1302,10 +1316,12 @@ let get_session_info req previous_extension_err =
      si_other_get_params= other_get_params;
      si_all_get_params= all_get_params;
      si_all_post_params= all_post_params;
+     si_all_file_params= all_file_params;
      si_previous_extension_error= previous_extension_err;
      si_na_get_params= na_get_params;
      si_nl_get_params= nl_get_params;
      si_nl_post_params= nl_post_params;
+     si_nl_file_params= nl_file_params;
      si_persistent_nl_get_params= persistent_nl_get_params;
      si_all_get_but_nl= all_get_but_nl;
      si_all_get_but_na_nl=

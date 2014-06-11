@@ -265,6 +265,7 @@ type sess_info = {
   si_other_get_params : (string * string) list;
   si_all_get_params : (string * string) list;
   si_all_post_params : (string * string) list option;
+  si_all_file_params: (string * file_info) list option;
 
   si_service_session_cookies : string Full_state_name_table.t;
   si_data_session_cookies : string Full_state_name_table.t;
@@ -291,6 +292,7 @@ type sess_info = {
   si_na_get_params: (string * string) list Lazy.t;
   si_nl_get_params: (string * string) list String.Table.t;
   si_nl_post_params: (string * string) list String.Table.t;
+  si_nl_file_params: (string * file_info) list String.Table.t;
   si_persistent_nl_get_params: (string * string) list String.Table.t Lazy.t;
 
   si_all_get_but_na_nl: (string * string) list Lazy.t;
@@ -631,9 +633,12 @@ val get_site_data : unit -> sitedata
 
 
 val eliom_params_after_action :
-  ((string * string) list * (string * string) list option *
+  ((string * string) list *
+   (string * string) list option *
+   (string * Eliom_lib.file_info) list option *
      (string * string) list String.Table.t *
      (string * string) list String.Table.t *
+   (string * file_info) list String.Table.t *
      (string * string) list (*204FORMS* * bool *))
   Polytables.key
 

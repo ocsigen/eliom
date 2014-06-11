@@ -340,7 +340,18 @@ let reconstruct_params_
       | Res_ (v, l, files) ->
         if (l, files) = ([], [])
         then v
-        else raise Eliom_common.Eliom_Wrong_parameter
+        else begin
+          Ocsigen_messages.debug2 "Eliom_Wrong_parameter because";
+          Ocsigen_messages.debug (fun () ->
+              match l with
+              | [] -> "params is empty (OK)"
+              | l  -> "params non-empty (ERROR): " ^ (String.concat ", " (List.map (fun (x,k) -> x^"="^k) l)));
+          Ocsigen_messages.debug (fun () ->
+              match files with
+              | [] -> "files is empty (OK)"
+              | l  -> "files non-empty (ERROR): " ^ (String.concat ", " (List.map (fun (x,k) -> x) files)));
+          raise Eliom_common.Eliom_Wrong_parameter
+        end
       | Errors_ (errs, l, files) ->
         if (l, files) = ([], [])
         then raise (Eliom_common.Eliom_Typing_Error (List.map (fun (v,l,e) -> (v,e)) errs))
@@ -377,15 +388,18 @@ let reconstruct_params ~sp (type a) (type c) (typ : (a,'b,c) params_type) params
 (*****************************************************************************)
 (* Non localized parameters *)
 
+type kind = | Get_ | Post_
 
-let get_non_localized_parameters params ~getorpost ~sp
+let get_non_localized_parameters params files ~getorpost ~sp
     {name;
      get;
      post;
      param = paramtype} =
   (* non localized parameters are parsed only once,
      and cached in request_cache *)
-  let key = if getorpost then get else post in
+  let key = match getorpost with
+    | Get_ -> get
+    | Post_ -> post in
   (try
      (* first, look in cache: *)
      Polytables.get
@@ -395,10 +409,12 @@ let get_non_localized_parameters params ~getorpost ~sp
      let p =
        try
          Some
-           (let params = String.Table.find name params in
+           (let params = try String.Table.find name params with Not_found -> [] in
+            let files = try String.Table.find name files with Not_found -> [] in
             reconstruct_params_
-              sp.Eliom_common.sp_request paramtype params [] false None)
-       with Eliom_common.Eliom_Wrong_parameter | Not_found -> None
+              sp.Eliom_common.sp_request paramtype params files false None)
+       with Eliom_common.Eliom_Wrong_parameter | Not_found ->
+         None
      in
      (* add in cache: *)
      Polytables.set
@@ -410,9 +426,13 @@ let get_non_localized_parameters params ~getorpost ~sp
 let get_non_localized_get_parameters p =
   let sp = Eliom_common.get_sp () in
   get_non_localized_parameters
-    sp.Eliom_common.sp_si.Eliom_common.si_nl_get_params ~getorpost:true ~sp p
+    sp.Eliom_common.sp_si.Eliom_common.si_nl_get_params
+    sp.Eliom_common.sp_si.Eliom_common.si_nl_file_params
+    ~getorpost:Get_ ~sp p
 
 let get_non_localized_post_parameters p =
   let sp = Eliom_common.get_sp () in
   get_non_localized_parameters
-    sp.Eliom_common.sp_si.Eliom_common.si_nl_post_params ~getorpost:false ~sp p
+    sp.Eliom_common.sp_si.Eliom_common.si_nl_post_params
+    sp.Eliom_common.sp_si.Eliom_common.si_nl_file_params
+    ~getorpost:Post_ ~sp p

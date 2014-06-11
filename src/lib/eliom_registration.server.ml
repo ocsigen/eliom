@@ -482,8 +482,10 @@ module Action_reg_base = struct
                 Eliom_common.eliom_params_after_action
                 (si.Eliom_common.si_all_get_params,
                  si.Eliom_common.si_all_post_params, (* is Some [] *)
+                 si.Eliom_common.si_all_file_params, (* is Some [] *)
                  si.Eliom_common.si_nl_get_params,
                  si.Eliom_common.si_nl_post_params,
+                 si.Eliom_common.si_nl_file_params,
                  si.Eliom_common.si_all_get_but_nl);
                 (*VVV Also put all_cookie_info in this,
                   to avoid update_cookie_table and get_cookie_info (?)
@@ -510,8 +512,10 @@ module Action_reg_base = struct
                 Eliom_common.eliom_params_after_action
                 (si.Eliom_common.si_all_get_params,
                  si.Eliom_common.si_all_post_params,
+                 si.Eliom_common.si_all_file_params,
                  si.Eliom_common.si_nl_get_params,
                  si.Eliom_common.si_nl_post_params,
+                 si.Eliom_common.si_nl_file_params,
                  si.Eliom_common.si_all_get_but_nl);
               let ri =
                 Ocsigen_extensions.Ocsigen_request_info.update ri.request_info
@@ -540,8 +544,10 @@ module Action_reg_base = struct
                 Eliom_common.eliom_params_after_action
                 (si.Eliom_common.si_all_get_params,
                  si.Eliom_common.si_all_post_params,
+                 si.Eliom_common.si_all_file_params,
                  si.Eliom_common.si_nl_get_params,
                  si.Eliom_common.si_nl_post_params,
+                 si.Eliom_common.si_nl_file_params,
                  si.Eliom_common.si_all_get_but_nl);
               let ri =
                 Ocsigen_extensions.Ocsigen_request_info.update ri.request_info
