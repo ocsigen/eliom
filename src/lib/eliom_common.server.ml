@@ -601,11 +601,10 @@ let make_server_params
     | Some cpi -> cpi
     | None ->
 	let request_info = ri.Ocsigen_extensions.request_info in
-	{ cpi_ssl = request_info.Ocsigen_extensions.ri_ssl;
+	{ cpi_ssl = Ocsigen_extensions.Ocsigen_request_info.ssl request_info;
 	  cpi_hostname = Ocsigen_extensions.get_hostname ri;
 	  cpi_server_port = Ocsigen_extensions.get_port ri;
-	  cpi_original_full_path =
-	    request_info.Ocsigen_extensions.ri_original_full_path;
+    cpi_original_full_path = Ocsigen_extensions.Ocsigen_request_info.original_full_path request_info;
 	}
   in
   { sp_request = ri;
@@ -859,7 +858,7 @@ let empty_tables max forsession =
                      | Some get -> get ())
               | Some sp ->
                   ((Lazy.force
-                      sp.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_remote_ip_parsed),
+                      (Ocsigen_extensions.Ocsigen_request_info.remote_ip_parsed sp.sp_request.Ocsigen_extensions.request_info)),
                    (fst sp.sp_sitedata.max_anonymous_services_per_subnet),
                    sp.sp_sitedata
                   )
@@ -1002,11 +1001,11 @@ let get_session_info req previous_extension_err =
   and ci = req.Ocsigen_extensions.request_config in
   (* *)
 
-  let rc = ri.Ocsigen_extensions.ri_request_cache in
+  let rc = Ocsigen_extensions.Ocsigen_request_info.request_cache ri in
   let no_post_param, p =
-    match ri.Ocsigen_extensions.ri_post_params with
+    match Ocsigen_extensions.Ocsigen_request_info.post_params ri with
       | None -> true, Lwt.return []
-      | Some f -> false, f ci
+      | Some f -> false, f (ci.Ocsigen_extensions.uploaddir, ci.Ocsigen_extensions.maxuploadfilesize)
   in
   p >>= fun post_params ->
 
@@ -1034,7 +1033,7 @@ let get_session_info req previous_extension_err =
         with Not_found ->
           try (* looking for tab cookies in headers *)
             let tc = Ocsigen_headers.find tab_cookies_header_name
-              ri.Ocsigen_extensions.ri_http_frame
+              (Ocsigen_extensions.Ocsigen_request_info.http_frame ri)
             in
 	    let tc = Json.from_string<(string * string) list> tc in
             (List.fold_left (fun t (k,v) -> CookiesTable.add k v t) CookiesTable.empty tc,
@@ -1050,7 +1049,7 @@ let get_session_info req previous_extension_err =
       let cpi =
 	Ocsigen_headers.find
 	  tab_cpi_header_name
-	  ri.Ocsigen_extensions.ri_http_frame in
+	  (Ocsigen_extensions.Ocsigen_request_info.http_frame ri) in
       Some (Json.from_string<cpi> cpi)
     with Not_found -> None
   in
@@ -1059,7 +1058,7 @@ let get_session_info req previous_extension_err =
     lazy (try (* looking in headers *)
             let epd = Ocsigen_headers.find
 	      expecting_process_page_name
-	      ri.Ocsigen_extensions.ri_http_frame
+	      (Ocsigen_extensions.Ocsigen_request_info.http_frame ri)
             in
             Json.from_string<bool> epd
       with Not_found -> false)
@@ -1068,13 +1067,13 @@ let get_session_info req previous_extension_err =
   let post_params, get_params, to_be_considered_as_get =
     try
       ([],
-       Lazy.force ri.Ocsigen_extensions.ri_get_params
+       Lazy.force (Ocsigen_extensions.Ocsigen_request_info.get_params ri)
        @snd (List.assoc_remove
                to_be_considered_as_get_param_name post_params),
        true)
     (* It was a POST request to be considered as GET *)
     with Not_found ->
-      (post_params, Lazy.force ri.Ocsigen_extensions.ri_get_params, false)
+      (post_params, Lazy.force (Ocsigen_extensions.Ocsigen_request_info.get_params ri), false)
   in
 
 
@@ -1099,7 +1098,7 @@ let get_session_info req previous_extension_err =
       (get_params,
        post_params,
        Polytables.get
-         ~table:ri.Ocsigen_extensions.ri_request_cache
+         ~table:(Ocsigen_extensions.Ocsigen_request_info.request_cache ri)
          ~key:eliom_params_after_action)
     with Not_found ->
       let nl_get_params, get_params = split_nl_prefix_param get_params0 in
@@ -1110,14 +1109,14 @@ let get_session_info req previous_extension_err =
        nl_get_params, nl_post_params, all_get_but_nl (*204FORMS*, internal_form *))
   in
 
-  let browser_cookies = Lazy.force ri.Ocsigen_extensions.ri_cookies in
+  let browser_cookies = Lazy.force (Ocsigen_extensions.Ocsigen_request_info.cookies ri) in
 
   let data_cookies = getcookies false `Session datacookiename browser_cookies in
   let service_cookies = getcookies false `Session servicecookiename browser_cookies in
   let persistent_cookies = getcookies false `Session persistentcookiename browser_cookies in
 
   let secure_cookie_info =
-    if ri.Ocsigen_extensions.ri_ssl
+    if Ocsigen_extensions.Ocsigen_request_info.ssl ri
     then
       let sdata_cookies = getcookies true `Session datacookiename browser_cookies in
       let sservice_cookies = getcookies true `Session servicecookiename browser_cookies in
@@ -1245,7 +1244,7 @@ let get_session_info req previous_extension_err =
   let persistent_cookies_tab = getcookies false `Client_process persistentcookiename tab_cookies in
 
   let secure_cookie_info_tab =
-    if ri.Ocsigen_extensions.ri_ssl
+    if Ocsigen_extensions.Ocsigen_request_info.ssl ri
     then
       let sdata_cookies = getcookies true `Client_process datacookiename tab_cookies in
       let sservice_cookies = getcookies true `Client_process servicecookiename tab_cookies in
@@ -1263,34 +1262,29 @@ let get_session_info req previous_extension_err =
       ((if gps = "" then None else Some gps),
        String.may_append uri ~sep:"?" gps)
     else *)
-    (ri.Ocsigen_extensions.ri_get_params_string,
-     ri.Ocsigen_extensions.ri_url_string)
+    (Ocsigen_extensions.Ocsigen_request_info.get_params_string ri,
+     Ocsigen_extensions.Ocsigen_request_info.url_string ri)
   in
 
   let ri', sess =
 (*VVV 2011/02/15 TODO: I think we'd better not change ri here.
   Keep ri for original values and use si for Eliom's values?
 *)
-    {ri with
-      Ocsigen_extensions.ri_url_string = url_string;
-      Ocsigen_extensions.ri_get_params_string = get_params_string;
-      Ocsigen_extensions.ri_method =
-        (if
-            (ri.Ocsigen_extensions.ri_method =
-                Ocsigen_http_frame.Http_header.HEAD) ||
-              to_be_considered_as_get
-         then Ocsigen_http_frame.Http_header.GET
-         else ri.Ocsigen_extensions.ri_method);
+    Ocsigen_extensions.Ocsigen_request_info.update ri
+      ~url_string
+      ~get_params_string
+      ~meth:(if (Ocsigen_extensions.Ocsigen_request_info.meth ri) = Ocsigen_http_frame.Http_header.HEAD
+                || to_be_considered_as_get
+             then Ocsigen_http_frame.Http_header.GET
+             else Ocsigen_extensions.Ocsigen_request_info.meth ri)
        (* Here we modify ri, instead of putting service parameters in si.
           Thus it works better after actions:
           the request can be taken by other extensions, with new parameters.
           Initial parameters are kept in si.
        *)
-      Ocsigen_extensions.ri_get_params = lazy get_params;
-      Ocsigen_extensions.ri_post_params =
-        if no_post_param
-        then None
-        else Some (fun _ -> Lwt.return post_params)},
+      ~get_params:(lazy get_params)
+      ~post_params:(if no_post_param then None
+                    else Some (fun _ -> Lwt.return post_params)) (),
     {si_service_session_cookies= service_cookies;
      si_data_session_cookies= data_cookies;
      si_persistent_session_cookies= persistent_cookies;
@@ -1410,22 +1404,20 @@ let bus_unwrap_id : unwrap_id = Eliom_wrap.id_of_int bus_unwrap_id_int
    between XHR and classical request in App. *)
 let patch_request_info req =
   if List.mem_assoc nl_get_appl_parameter
-    (Lazy.force req.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_get_params)
+    (Lazy.force (Ocsigen_extensions.Ocsigen_request_info.get_params req.Ocsigen_extensions.request_info))
   then
     { req with
       Ocsigen_extensions.request_info =
         let get_params =
           List.remove_assoc nl_get_appl_parameter
-            (Lazy.force req.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_get_params)
+            (Lazy.force (Ocsigen_extensions.Ocsigen_request_info.get_params req.Ocsigen_extensions.request_info))
         in
-        { req.Ocsigen_extensions.request_info with
-          Ocsigen_extensions.
-          ri_get_params = lazy get_params;
-          ri_get_params_string =
-            if get_params = []
-            then None
-            else Some (Url.make_encoded_parameters get_params);
-        } }
+        Ocsigen_extensions.Ocsigen_request_info.update req.Ocsigen_extensions.request_info
+          ~get_params:(lazy get_params)
+          ~get_params_string:
+            (if get_params = [] then None
+             else Some (Url.make_encoded_parameters get_params)) ()
+        }
   else
     req
 

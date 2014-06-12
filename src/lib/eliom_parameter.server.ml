@@ -347,8 +347,8 @@ let reconstruct_params ~sp (type a) (type c) (typ : (a,'b,c) params_type) params
       let ri = Eliom_request_info.get_ri_sp sp in
       Lwt.return
         (
-           (ri.Ocsigen_extensions.ri_content_type,
-            ri.Ocsigen_extensions.ri_http_frame.Ocsigen_http_frame.frame_content))
+           (Ocsigen_request_info.content_type ri,
+            (Ocsigen_request_info.http_frame ri).Ocsigen_http_frame.frame_content))
     | typ, None, None ->
       (try
          Lwt.return
@@ -382,7 +382,7 @@ let get_non_localized_parameters params ~getorpost ~sp
   (try
      (* first, look in cache: *)
      Polytables.get
-       ~table:sp.Eliom_common.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+       ~table:(Ocsigen_request_info.request_cache sp.Eliom_common.sp_request.request_info)
        ~key
    with Not_found ->
      let p =
@@ -395,7 +395,7 @@ let get_non_localized_parameters params ~getorpost ~sp
      in
      (* add in cache: *)
      Polytables.set
-       ~table:sp.Eliom_common.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+       ~table:(Ocsigen_request_info.request_cache sp.Eliom_common.sp_request.request_info)
        ~key
        ~value:p;
      p)

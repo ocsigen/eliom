@@ -216,24 +216,22 @@ let make_naservice
          Ocsigen_messages.debug2
            "--Eliom: Link too old to a non-attached POST coservice. I will try without POST parameters:";
          Polytables.set
-           ri.request_info.ri_request_cache
+           (Ocsigen_request_info.request_cache ri.request_info)
            Eliom_common.eliom_link_too_old
            true;
          Eliom_common.get_session_info
            {ri with Ocsigen_extensions.request_info =
-               { ri.Ocsigen_extensions.request_info with
-                 Ocsigen_extensions.ri_get_params =
-                   lazy si.Eliom_common.si_other_get_params;
-                 ri_post_params =
-                   (match ri.request_info.ri_post_params with
-                     | None -> None
-                     | Some _ -> Some (fun _ -> Lwt.return []));
-                 ri_files =
-                   (match ri.request_info.ri_files with
-                     | None -> None
-                     | Some _ -> Some (fun _ -> Lwt.return []));
-                 ri_method = Ocsigen_http_frame.Http_header.GET;
-               }}
+               Ocsigen_request_info.update ri.request_info
+                 ~get_params:(lazy si.Eliom_common.si_other_get_params)
+                 ~post_params:(match Ocsigen_request_info.post_params ri.request_info with
+                               | None -> None
+                               | Some _ -> Some (fun _ -> Lwt.return []))
+                 ~files:(match Ocsigen_request_info.files ri.request_info with
+                         | None -> None
+                         | Some _ -> Some (fun _ -> Lwt.return []))
+                 ~meth:Ocsigen_http_frame.Http_header.GET
+                 ()
+               }
            si.Eliom_common.si_previous_extension_error
          >>= fun (ri', si', previous_tab_cookies_info) ->
          Lwt.fail (Eliom_common.Eliom_retry_with (ri',
@@ -247,24 +245,21 @@ let make_naservice
          Ocsigen_messages.debug2
            "--Eliom: Link too old. I will try without non-attached parameters:";
          Polytables.set
-           ri.request_info.ri_request_cache
+           (Ocsigen_request_info.request_cache ri.request_info)
            Eliom_common.eliom_link_too_old
            true;
          Eliom_common.get_session_info
            {ri with request_info =
-               { ri.request_info with
-                 ri_get_params =
-                   lazy si.Eliom_common.si_other_get_params;
-                 ri_post_params =
-                   (match ri.request_info.ri_post_params with
-                     | None -> None
-                     | Some _ -> Some (fun _ -> Lwt.return []));
-                 ri_files =
-                   (match ri.request_info.ri_files with
-                     | None -> None
-                     | Some _ -> Some (fun _ -> Lwt.return []));
-                 ri_method = Ocsigen_http_frame.Http_header.GET;
-               }
+               Ocsigen_request_info.update ri.request_info
+                 ~get_params:(lazy si.Eliom_common.si_other_get_params)
+                 ~post_params:(match Ocsigen_request_info.post_params ri.request_info with
+                               | None -> None
+                               | Some _ -> Some (fun _ -> Lwt.return []))
+                 ~files:(match Ocsigen_request_info.files ri.request_info with
+                         | None -> None
+                         | Some _ -> Some (fun _ -> Lwt.return []))
+                 ~meth:Ocsigen_http_frame.Http_header.GET
+                 ()
            }
            si.Eliom_common.si_previous_extension_error
          >>= fun (ri', si', previous_tab_cookies_info) ->
