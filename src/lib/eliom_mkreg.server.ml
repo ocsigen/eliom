@@ -186,9 +186,9 @@ let register_aux pages
       page_generator =
     Eliom_service.set_send_appl_content service (pages.send_appl_content);
     begin
-      match get_kind_ service with
+      match get_info_ service with
 	| `Attached attser ->
-          let key_kind = get_or_post_ attser in
+          let key_kind = get_or_post_ service in
           let attserget = get_get_name_ attser in
           let attserpost = get_post_name_ attser in
           let suffix_with_redirect = get_redirect_suffix_ attser in
@@ -258,10 +258,10 @@ let register_aux pages
 				  ~absolute:true
 				  ~service:
 				  (service :
-				     ('a, 'b, [< Eliom_service.internal_service_kind ],
+				     ('a, 'b, [< service_method],[<attached],[< Eliom_service.internal_service_kind ],
 				      [< Eliom_service.suff ], 'c, 'd, [ `Registrable ],
 				      'return) Eliom_service.service :>
-				     ('a, 'b, Eliom_service.service_kind,
+				     ('a, 'b, [< service_method],[<attached],Eliom_service.service_kind,
 				      [< Eliom_service.suff ], 'c, 'd,
 				      [< Eliom_service.registrable ], 'return)
 				     Eliom_service.service)
@@ -282,10 +282,10 @@ let register_aux pages
 				  ~absolute_path:true
 				  ~service:
 				  (service :
-				     ('a, 'b, [< Eliom_service.internal_service_kind ],
+				     ('a, 'b, [< service_method],[<attached],[< Eliom_service.internal_service_kind ],
 				      [< Eliom_service.suff ], 'c, 'd, [ `Registrable ],
 				      'return) Eliom_service.service :>
-				     ('a, 'b, Eliom_service.service_kind,
+				     ('a, 'b, [< service_method],[<attached],Eliom_service.service_kind,
 				      [< Eliom_service.suff ], 'c, 'd,
 				      [< Eliom_service.registrable ], 'return)
 				     Eliom_service.service)
@@ -558,7 +558,7 @@ let register pages
       (match Eliom_common.global_register_allowed () with
         | Some get_current_sitedata ->
           let sitedata = get_current_sitedata () in
-          (match get_kind_ service with
+          (match get_info_ service with
             | `Attached attser ->
               Eliom_common.remove_unregistered
                 sitedata (get_sub_path_ attser)
@@ -650,7 +650,12 @@ let register_coservice pages
     ?max_use
     ?timeout
     ?https
-    ~fallback
+    ~(fallback: (unit, unit, [< Eliom_service.service_method > `Get ],
+                     [> Eliom_service.attached_kind ],
+                     [< Eliom_service.service_kind > `Service ],
+                     [ `WithoutSuffix ], unit, unit,
+                     [< Eliom_service.registrable ], 'returnT)
+                    Eliom_service.service)
     ~get_params
     ?error_handler
     page =

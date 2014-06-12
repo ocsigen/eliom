@@ -19,25 +19,21 @@
 
 open Eliom_lib
 
-class type ['node] unsafe_nodeList = object
-  method item : int -> 'node Js.t Js.meth
-  method length : int Js.readonly_prop
-end
-
 let iter_nodeList nodeList f =
-  let nodeList : 'a unsafe_nodeList Js.t = Js.Unsafe.coerce (nodeList : 'a Dom.nodeList Js.t) in
   for i = 0 to nodeList##length - 1 do
     (* Unsafe.get is ten time faster than nodeList##item *)
     f (Js.Unsafe.get nodeList i)
   done
 
-let iter_attrList attrList f =
+let iter_attrList (attrList : Dom.attr Dom.namedNodeMap Js.t) (f : Dom.attr Js.t -> unit) =
   for i = 0 to attrList##length - 1 do
-    (* Unsafe.get is ten time faster than nodeList##item
-       Same for attrList ? *)
+    (* Unsafe.get is ten time faster than nodeList##item.
+       Is it the same for attrList ? *)
+    (* let v = attrList##item(i) in *)
     let v = Js.Unsafe.get attrList i in
-    (* IE8 provides [null] in node##attributes; check this first of all *)
-    if Obj.magic v then f v
+    (* IE8 provides [null] in node##attributes;
+       so we wrap v to be a Js.opt *)
+    Js.Opt.iter v f
   done
 
 

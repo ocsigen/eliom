@@ -23,6 +23,8 @@
 
 open Eliom_lib
 
+module Ecb = Eliom_comet_base
+
 type chan_id = string
 
 let encode_downgoing s =
@@ -258,13 +260,14 @@ struct
   let global_service =
     Eliom_common.lazy_site_value_from_fun
       (fun () -> Comet.register_post_service
-(*VVV Why isn't this a POST non-attached coservice? --Vincent *)
-	~fallback:(Eliom_common.force_lazy_site_value fallback_global_service)
-	~post_params:Eliom_comet_base.comet_request_param
-	handle_request)
+          (*VVV Why isn't this a POST non-attached coservice? --Vincent *)
+	        ~fallback:(Eliom_common.force_lazy_site_value fallback_global_service)
+	       ~post_params:Ecb.comet_request_param
+	      handle_request)
 
   let get_service () =
-    Eliom_common.force_lazy_site_value global_service
+    ((Eliom_common.force_lazy_site_value global_service)
+     :> Ecb.comet_service)
 
   let get_id {ch_id} = ch_id
 

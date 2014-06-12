@@ -50,79 +50,61 @@ open Eliom_parameter
 
 (** {3 Services kind} *)
 
-(** {4 Internal or external} *)
-
-(** An internal attached service could either be a [`Service] or a [`Coservice]. *)
-type servcoserv = [ `Service | `Coservice ]
-
-(** An attached service could either be an [`Internal] Eliom service or an
-    abstraction for an [`External] service. *)
-type attached_service_kind =
-  [ `Internal of servcoserv
-  | `External ]
-
-(** {4 POST or GET parameters} *)
-
-(** The kind of a service is [`Post] when there is at least one POST
-    parameters. It is [`Get] otherwise. *)
-type getpost = [ `Get | `Post | `Put | `Delete ]
-
-(** {4 Attached or Non-attached} *)
-
-(** The abstract type for attached service representation.
-    - ['a] is a subtype of {!attached_service_kind}
-    - ['b] is a subtype of {!getpost} *)
-type (+'a, +'b) a_s
-
-(** The abstract type for non-attached service representation.
-    - ['a] is a subtype of {!getpost} *)
-type +'a na_s
-
 (** The type [service_kind] describe all four kind of services:
     - external (attached) services
     - (internal) attached services
     - (internal) attached coservices
     - (internal) non-attached coservices
 *)
-type service_kind =
-    [ `Attached of (attached_service_kind, getpost) a_s
-    | `Nonattached of getpost na_s ]
 
-(** {4 Common subtypes of [service_kind] } *)
+(** An internal attached service could either be a [`Service] or a [`AttachedCoservice]. *)
+type internal_attached_service_kind =
+  [ `Service
+  | `AttachedCoservice ]
 
-(** Restriction of [service_kind] to GET services. *)
-type get_service_kind =
-    [ `Attached of (attached_service_kind, [ `Get ]) a_s
-    | `Nonattached of [ `Get ] na_s ]
-
-(** Restriction of [service_kind] to POST services. *)
-type post_service_kind =
-    [ `Attached of (attached_service_kind, [ `Post ]) a_s
-    | `Nonattached of [ `Post ] na_s ]
-
-(** Restriction of [service_kind] to PUT services. *)
-type put_service_kind =
-    [ `Attached of (attached_service_kind, [ `Put ]) a_s
-    | `Nonattached of [ `Put ] na_s ]
-
-(** Restriction of [service_kind] to DELETE services. *)
-type delete_service_kind =
-    [ `Attached of (attached_service_kind, [ `Delete ]) a_s
-    | `Nonattached of [ `Delete ] na_s ]
-
-(** Restriction of [service_kind] to attached services. *)
-type attached =
-    [ `Attached of (attached_service_kind, getpost) a_s ]
-
-(** Restriction of [service_kind] to non-attached services. *)
-type nonattached =
-    [ `Nonattached of getpost na_s ]
-
-(** Restriction of [service_kind] to internal services. *)
+(** An internal service could either be an internal attached service or a [`NonattachedCoservice]. *)
 type internal_service_kind =
-    [ `Attached of ([ `Internal of servcoserv ], getpost) a_s
-    | `Nonattached of getpost na_s ]
+  [ internal_attached_service_kind
+  | `NonattachedCoservice ]
 
+(** An attached service could either be an internal Eliom service or an
+    abstraction for an [`External] service. *)
+type service_kind =
+  [ internal_service_kind
+  | `External ]
+
+(** {3 Attached or Non-attached} *)
+
+(** The abstract type for attached service representation. *)
+type a_s
+
+(** The abstract type for non-attached service representation. *)
+type na_s
+
+type attached_kind = [ `Attached of a_s ]
+type non_attached_kind = [ `Nonattached of na_s ]
+type attached = [ attached_kind | non_attached_kind ]
+
+
+(** {3 POST or GET parameters} *)
+
+(** The kind of a service is [`Post] when there is at least one POST
+    parameters. It is [`Get] otherwise. *)
+type service_method = [ `Get | `Post | `Put | `Delete ]
+
+(** {3 Common subtypes of [service_method] } *)
+
+(** Restriction of [service_method] to GET services. *)
+type get_service_kind = [`Get]
+
+(** Restriction of [service_method] to POST services. *)
+type post_service_kind = [`Post]
+
+(** Restriction of [service_method] to PUT services. *)
+type put_service_kind = [`Put]
+
+(** Restriction of [service_method] to DELETE services. *)
+type delete_service_kind = [`Delete]
 
 (** {3 Kind of parameters} *)
 
@@ -141,25 +123,28 @@ type registrable = [ `Registrable | `Unregistrable ]
 (** {3 Abstract type of services} *)
 
 (** Type of services.
-    - [ 'a] is the type of GET parameters expected by the service.
-    - [ 'b] is the type of POST parameters expected by the service.
-    - [ 'c] describes the services's kind: attached or non-attached,
-            internal or external, GET only or with POST
-            parameters. It is a subtype of {!service_kind}.
-    - the type paremeter of subtype {!suff} states the kind
+    - [ 'get] is the type of GET parameters expected by the service.
+    - [ 'post] is the type of POST parameters expected by the service.
+    - [ 'meth] the HTTP method
+    - [ 'attached] attached or non-attached
+    - [ 'kind] describes the services's kind : service, coservice, external. It is a subtype of {!service_kind}.
+    - [ 'tipo] the type paremeter of subtype {!suff} states the kind
       of parameters it uses: suffix or not.
-    - [ 'd] is the type of GET parameters names. See {!Eliom_parameter.param_name} and
+    - [ 'gn] is the type of GET parameters names. See {!Eliom_parameter.param_name} and
             form generation functions (e. g. {!Eliom_content.Html5.D.get_form}).
-    - [ 'e] is the type of POST parameters names. See {!Eliom_parameter.param_name} and
+    - [ 'pn] is the type of POST parameters names. See {!Eliom_parameter.param_name} and
             form generation functions (e. g. {!Eliom_content.Html5.D.post_form}).
-    - the type parameter of subtype {!registrable} tells if it is possible to
+    - [ 'reg] the type parameter of subtype {!registrable} tells if it is possible to
       register a handler on this service.
-    - [ 'f] is an information on what the service returns.
+    - [ 'ret] is an information on what the service returns.
             See {!Eliom_registration.kind}.
 *)
-type ('a,'b,+'c,+'d,+'e,+'f,+'g,+'h) service
-constraint 'd = [< suff ]
-constraint 'g = [< registrable ]
+type ('get,'post,+'meth,+'attached,+'kind,+'tipo,'gn,'pn,+'reg,+'ret) service
+  constraint 'meth = [< service_method ]
+  constraint 'attached = [< attached]
+  constraint 'kind = [< service_kind ]
+  constraint 'tipo = [< suff ]
+  constraint 'reg = [< registrable ]
 
 (** Types of groups of services. *)
 
@@ -245,8 +230,7 @@ val register_eliom_module : string -> (unit -> unit) -> unit
     the configuration file with the staticmod extension. *)
 val static_dir :
   unit ->
-  (string list, unit, [> `Attached of
-      ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
+  (string list, unit, [> `Get],[> attached_kind], [> `Service ],
    [ `WithSuffix ],
    [ `One of string list ] param_name, unit, [> `Unregistrable ],
    [> http_service ])
@@ -255,8 +239,7 @@ val static_dir :
 (** Same as {!static_dir} but forcing https link. *)
 val https_static_dir :
   unit ->
-  (string list, unit, [> `Attached of
-      ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
+  (string list, unit, [> `Get], [> attached_kind], [> `Service ],
    [ `WithSuffix ],
    [ `One of string list ] param_name, unit, [> `Unregistrable ],
    [> http_service ])
@@ -267,9 +250,7 @@ val static_dir_with_params :
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('a, [`WithoutSuffix], 'an) params_type ->
   unit ->
-  ((string list * 'a), unit,
-   [> `Attached of
-      ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
+  ((string list * 'a), unit, [> `Get], [> attached_kind], [> `Service ],
    [ `WithSuffix ],
    [ `One of string list ] param_name *'an, unit, [> `Unregistrable ],
    [> http_service ])
@@ -280,9 +261,7 @@ val https_static_dir_with_params :
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('a, [`WithoutSuffix], 'an) params_type ->
   unit ->
-  ((string list * 'a), unit,
-   [> `Attached of
-      ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
+  ((string list * 'a), unit, [> `Get], [> attached_kind], [> `Service ],
    [ `WithSuffix ],
    [ `One of string list ] param_name *'an, unit, [> `Unregistrable ],
    [> http_service ])
@@ -302,28 +281,28 @@ val https_static_dir_with_params :
     it with <a> links, not only forms.  It does not keep non attached
     GET parameters.  *)
 val void_coservice' :
-  (unit, unit, [> `Nonattached of [> `Get ] na_s ],
+  (unit, unit, [> `Get], [> non_attached_kind], [> `NonattachedCoservice],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ], [> non_ocaml_service ])
   service
 
 (** Same as {!void_coservice'} but forcing https. *)
 val https_void_coservice' :
-  (unit, unit, [> `Nonattached of [> `Get ] na_s ],
+  (unit, unit, [> `Get], [> non_attached_kind], [> `NonattachedCoservice],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ], [> non_ocaml_service ])
   service
 
 (** Same as {!void_coservice'} but keeps non attached GET parameters. *)
 val void_hidden_coservice' :
-  (unit, unit, [> `Nonattached of [> `Get ] na_s ],
+  (unit, unit, [> `Get], [> non_attached_kind], [> `NonattachedCoservice],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ], [> non_ocaml_service ])
   service
 
 (** Same as {!void_hidden_coservice'} but forcing https. *)
 val https_void_hidden_coservice' :
-  (unit, unit, [> `Nonattached of [> `Get ] na_s ],
+  (unit, unit, [> `Get], [> non_attached_kind], [> `NonattachedCoservice],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ], [> non_ocaml_service ])
   service
@@ -337,12 +316,12 @@ val https_void_hidden_coservice' :
     preapplied services may be used in links or as fallbacks for
     coservices *)
 val preapply :
-  service:('a, 'b, [> `Attached of ('d, 'dd) a_s ] as 'c,
+  service:('a, 'b, 'meth, [> attached_kind] as 'attached, 'kind,
 	   [< suff ], 'e, 'f, 'g, 'return)
   service ->
   'a ->
-  (unit, 'b, 'c,
-   [ `WithoutSuffix ], unit, 'f, [> `Unregistrable ], 'return) service
+  (unit, 'b, 'meth, 'attached, 'kind,
+     [ `WithoutSuffix ], unit, 'f, [> `Unregistrable ], 'return) service
 
 (** [attach_coservice' ~fallback ~service] attaches the non-attached
     coservice [service] on the URL of [fallback]. This allows to
@@ -350,13 +329,11 @@ val preapply :
     than the current one. It is not possible to register something
     on the service returned by this function. *)
 val attach_coservice' :
-  fallback:(unit, unit, [< `Attached of ([< `Internal of 'sc1 ],
-                                         [< `Get ]) a_s ],
+  fallback:(unit, unit, [< `Get ], [< attached_kind], [< `Service | `AttachedCoservice ],
 	   [< suff ], unit, unit, 'rg1, 'return1) service ->
-  service: ('get, 'post, [< `Nonattached of 'gp na_s ],
+  service: ('get, 'post, 'meth, [< non_attached_kind], [< `NonattachedCoservice],
             [< `WithoutSuffix] as 'sf, 'gn, 'pn, 'rg2, 'return) service ->
-  ('get, 'post, [> `Attached of ([> `Internal of [> `Coservice ] ],
-                                 'gp) a_s ],
+  ('get, 'post, 'meth, [> attached_kind], [> `AttachedCoservice ],
    'sf, 'gn, 'pn, [< registrable > `Unregistrable ], 'return) service
 
 (** The function [add_non_localized_get_parameters ~params ~service]
@@ -366,15 +343,15 @@ val attach_coservice' :
     parameters>>%}. *)
 val add_non_localized_get_parameters :
   params:('p, [ `WithoutSuffix ], 'pn) non_localized_params ->
-  service:('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
-  ('a * 'p, 'b, 'c, 'd, 'e * 'pn, 'f, 'g, 'return) service
+  service:('a, 'b, 'meth, 'attached, 'kind, 'd, 'e, 'f, 'g, 'return) service ->
+  ('a * 'p, 'b, 'meth, 'attached, 'kind, 'd, 'e * 'pn, 'f, 'g, 'return) service
 
 (** Same as {!add_non_localized_get_parameters} but with POST
     parameters.*)
 val add_non_localized_post_parameters :
   params:('p, [ `WithoutSuffix ], 'pn) non_localized_params ->
-  service:('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
-  ('a, 'b * 'p, 'c, 'd, 'e, 'f * 'pn, 'g, 'return) service
+  service:('a, 'b, 'meth, 'attached, 'kind, 'd, 'e, 'f, 'g, 'return) service ->
+  ('a, 'b * 'p, 'meth, 'attached, 'kind, 'd, 'e, 'f * 'pn, 'g, 'return) service
 
 (** The function [unregister service] unregister the service handler
     previously associated to [service] with
@@ -386,58 +363,53 @@ val add_non_localized_post_parameters :
 val unregister :
   ?scope:[< Eliom_common.scope ] ->
   ?secure:bool ->
-  ('a, 'b, [< `Attached of ([> `Internal of 'c ], [< `Get | `Post | `Put | `Delete ]) a_s
-	   | `Nonattached of 'd na_s ], 'e, 'f, 'g, 'h, 'return) service ->
-  unit
+  ('a, 'b, _, _, [> internal_service_kind], 'e, 'f, 'g, 'h, 'return) service -> unit
 
 
 (**/**)
-val get_get_or_post :
-  ('a, 'b,
-   [< `Attached of (attached_service_kind, [< getpost]) a_s
-   | `Nonattached of [< getpost ] na_s ], 'd, 'e, 'f, 'g, 'h) service ->
-  getpost
-val get_kind_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> 'c
-val get_or_post_ : ('a, [< `Get | `Post | `Put | `Delete ]) a_s ->
-  Ocsigen_http_frame.Http_header.http_method
-val get_pre_applied_parameters_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
+
+val get_get_or_post : ('a, 'b,[<service_method] as 'c,[< attached],'kind, 'd, 'e, 'f, 'g, 'h) service -> 'c
+
+val get_info_ : ('a, 'b, 'meth,'attach,'kind, 'd, 'e, 'f, 'g, 'return) service -> 'attach
+val get_kind_ : ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'return) service -> service_kind
+val get_or_post_ :('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'return) service -> Ocsigen_http_frame.Http_header.http_method
+
+val get_pre_applied_parameters_ : ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service ->
   (string * string) list String.Table.t *
   (string * string) list
-val get_get_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
+val get_get_params_type_ : ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service ->
   ('a, 'd, 'e) Eliom_parameter.params_type
-val get_post_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
+val get_post_params_type_ : ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service ->
   ('b, [ `WithoutSuffix ], 'f) Eliom_parameter.params_type
-val get_att_kind_ : ('a, 'b) a_s -> 'a
-val get_sub_path_ : ('a, 'b) a_s -> Url.path
-val get_full_path_ : ('a, 'b) a_s -> Url.path
-val get_prefix_ : ('a, 'b) a_s -> string
-val get_get_name_ : ('a, 'b) a_s -> Eliom_common.att_key_serv
-val get_post_name_ : ('a, 'b) a_s -> Eliom_common.att_key_serv
-val get_redirect_suffix_ : ('a, 'b) a_s -> bool
-val get_na_name_ : 'a na_s -> Eliom_common.na_key_serv
-val get_na_kind_ : [< getpost ] na_s -> [ `Get | `Post of bool | `Put of bool | `Delete of bool ]
-val get_max_use_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> int option
-val get_timeout_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> float option
-val get_https : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> bool
-val get_priority_ : ('a, 'b) a_s -> int
+val get_sub_path_ : a_s -> Url.path
+val get_full_path_ : a_s -> Url.path
+val get_prefix_ :   a_s -> string
+val get_get_name_ : a_s -> Eliom_common.att_key_serv
+val get_post_name_ : a_s -> Eliom_common.att_key_serv
+val get_redirect_suffix_ : a_s -> bool
+val get_na_name_ : na_s -> Eliom_common.na_key_serv
+val get_na_keep_get_na_params_: na_s -> bool
+val get_max_use_ : ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service -> int option
+val get_timeout_ : ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service -> float option
+val get_https : ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service -> bool
+val get_priority_ : a_s -> int
 (* val reconstruct_absolute_Url.path : Url.path -> Url.path -> Url.path option -> string
 val reconstruct_relative_Url.path : Url.path -> Url.path -> Url.path option -> string
 *)
 
-val keep_nl_params : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
+val keep_nl_params : ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service ->
   [ `All | `Persistent | `None ]
 
 val change_get_num :
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
-  ('h, 'hh) a_s ->
+  ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'return) service ->
+  a_s ->
   Eliom_common.att_key_serv ->
-  ('a, 'b, [> `Attached of ('h, 'hh) a_s ], 'd, 'e, 'f, 'i, 'return) service
-
+  ('a, 'b, 'meth,[> attached_kind ], 'kind, 'd, 'e, 'f, 'i, 'return) service
 
 val new_state : unit -> string
 
-val untype_service_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service
+val untype_service_ : ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
+  ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service
 
 (*****************************************************************************)
 
@@ -480,17 +452,17 @@ type send_appl_content =
 *)
 
 val set_send_appl_content :
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service -> send_appl_content -> unit
+  ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'rr) service -> send_appl_content -> unit
 
 (** Returns the name of the application to which belongs the service, if any. *)
-val get_send_appl_content : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> send_appl_content
+val get_send_appl_content : ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'h) service -> send_appl_content
 
 val xhr_with_cookies :
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> string option option
+  ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'h) service -> string option option
 
 val pre_wrap :
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service
+  ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
+  ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'rr) service
 
 val eliom_appl_answer_content_type : string
 

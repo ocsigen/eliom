@@ -75,19 +75,21 @@ open Eliom_lib
     {{!section:Eliom_content.Html5.D.form_widgets}Form widget} of
     {!Eliom_content.HTML5.D}). )
 *)
-type ('a, +'b, +'c) params_type
 
 (** This type is used as a phantom type in {!params_type} to describe
     whether a parameter is encoded in the path of the URI as a suffix
     parameter. *)
 type suff = [ `WithoutSuffix | `WithSuffix | `Endsuffix ]
 
+type ('a, +'b, 'c) params_type constraint 'b = [<suff]
+
+
 (** {2 Typed parameter's name} *)
 
 (** Abstract type for parameters' name. The ['a] type parameter is a phantom type, usually a
     subtype of {!setoneradio}, used to denotes the parameter's arity.
 *)
-type 'a param_name
+type +'a param_name
 
 (** Empty type used to denotes it is not possible to use the parameter
     in a form. See for example {!raw_post_data}.
@@ -99,13 +101,14 @@ type no_param_name
     - [`One of 'a] means: exactly one ['a].
     - [`Radio of 'a] means: zero or one ['a].
 *)
-type 'a setoneradio = [ `Set of 'a | `One of 'a | `Radio of 'a ]
+type +'a setoneradio = [ `Set of 'a | `One of 'a | `Radio of 'a ]
 
 (** Restriction of {!setoneradio} unary and optional parameters. *)
-type 'a oneradio = [ `One of 'a | `Radio of 'a ]
+type +'a oneradio = [ `One of 'a | `Radio of 'a ]
 
 (** Restriction of {!setoneradio} unary and set parameters. *)
-type 'a setone = [ `Set of 'a | `One of 'a ]
+type +'a setone = [ `Set of 'a | `One of 'a ]
+
 
 (** {2 Types helpers} *)
 
@@ -115,6 +118,14 @@ type ('a, 'b) binsum = Inj1 of 'a | Inj2 of 'b
 (** Helpers type used to construct forms from lists, see {!list}. *)
 type 'an listnames =
     {it:'el 'a. ('an -> 'el -> 'a -> 'a) -> 'el list -> 'a -> 'a}
+
+type 'a to_and_from = {
+  of_string : string -> 'a;
+  to_string : 'a -> string
+}
+
+type params = (string * string) list
+type files = (string * file_info) list
 
 (** {2 Basic types of pages parameters} *)
 
@@ -173,8 +184,9 @@ val user_type :
     service handler.
 *)
 val type_checker :
+  (* ?client: ('a -> unit) client_value -> *)
   ('a -> unit) ->
-  ('a, 'b, 'c) params_type ->
+  ('a, [<suff] as 'b, 'c) params_type ->
   ('a, 'b, 'c) params_type
 
 (** The type [coordinates] represent the data sent by an [<input
@@ -318,11 +330,11 @@ val regexp :
       (string, [ `WithoutSuffix ],
        [` One of string ] param_name) params_type
 
-(** [guard construct name pred] returns the same parameter
-    as [construct name] but with ensuring that each value must satisfy [pred].
-    For instance: [int "age" ((>=) 0)] *)
-val guard : (string -> ('a, 'b, 'c) params_type) -> string
-  -> ('a -> bool) -> ('a, 'b, 'c) params_type
+(* (\** [guard construct name pred] returns the same parameter *)
+(*     as [construct name] but with ensuring that each value must satisfy [pred]. *)
+(*     For instance: [int "age" ((>=) 0)] *\) *)
+(* val guard : (string -> ('a, 'b, 'c) params_type) -> string *)
+(*   -> ('a -> bool) -> ('a, 'b, 'c) params_type *)
 
 (** Tells that the parameter of the service handler is
     the suffix of the URL of the current service.
@@ -417,7 +429,7 @@ val raw_post_data :
 
 (** {2 Non localized parameters} *)
 
-type ('a, +'tipo, +'names) non_localized_params
+type ('a, +'b, 'names) non_localized_params constraint 'b = [<suff]
 
 (** create a new specification for non localized parameters.
     You must give a name to this set of parameters.
@@ -472,14 +484,13 @@ val get_nl_params_names :
     - string
     - bool
  *)
-val get_to_and_from : ('a, 'b, 'c) params_type -> (string -> 'a) * ('a -> string)
+val get_to_and_from : ('a, 'b, 'c) params_type -> 'a to_and_from
 
 
 (**/**)
 
 val walk_parameter_tree :
-  [ `One of string ] param_name -> ('a, 'b, 'c) params_type
-  -> ((string -> 'd) * ('d -> string)) option
+  [ `One of string ] param_name -> ('a, 'b, 'c) params_type -> 'a to_and_from option
 val contains_suffix : ('a, 'b, 'c) params_type -> bool option
   (* None = no suffix. The bool means : redirect_if_not_suffix *)
 
@@ -510,9 +521,9 @@ val construct_params_list :
 
 val reconstruct_params :
   sp:Eliom_common.server_params ->
-  ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
-  (string * string) list Lwt.t option ->
-  (string * file_info) list Lwt.t option ->
+  ('a, [< `WithSuffix | `WithoutSuffix ], 'c) params_type ->
+  params Lwt.t option ->
+  files Lwt.t option ->
   bool ->
   Url.path option -> 'a Lwt.t
 
