@@ -238,14 +238,21 @@ let reconstruct_params_
             with Not_found -> Res_ ([], params, files)
           in aux_set params files
         | TSum (t1, t2) ->
-          (try
-             match aux t1 params files pref suff with
-               | Res_ (v,l,files) -> Res_ (Inj1 v,l,files)
-               | Errors_ err -> Errors_ err
-           with Not_found ->
-             (match aux t2 params files pref suff with
-               | Res_ (v,l,files) -> Res_ (Inj2 v,l,files)
-               | Errors_ err -> Errors_ err))
+          begin
+            (* We try to decode both cases, if both succeed,
+               we choose the one that consumes parameters (or the 1st one if none consumes) *)
+            match aux t1 params files pref suff,aux t2 params files pref suff with
+            | Res_ (v,l,files), Errors_ _ -> Res_ (Inj1 v,l,files)
+            | Errors_ _, Res_ (v,l,files) -> Res_ (Inj2 v,l,files)
+            | Errors_ err, Errors_ _ -> Errors_ err
+            | Res_ (v1,l1,files1), Res_ (v2,l2,files2) ->
+              if l1 = params
+              then
+                if l2 = params
+                then Res_ (Inj1 v1,l1,files1)
+                else Res_ (Inj2 v2,l2,files2)
+              else Res_ (Inj1 v1,l1,files1)
+          end
         | TAtom (name,TBool) ->
           (try
              let v,l = (List.assoc_remove (pref^name^suff) params) in
