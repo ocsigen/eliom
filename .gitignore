@@ -9,8 +9,10 @@ src/**/*.mllib
 src/**/*.mldylib
 src/**/*.odocl
 
+local/etc
 local/var/run
-local/var/lib/
-local/var/log/
+local/var/lib
+local/var/log
+local/var/www/distillery-*
 
-tests/distillery/basic
+tests/distillery/distillery-*
