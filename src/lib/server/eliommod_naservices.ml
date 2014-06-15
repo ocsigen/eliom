@@ -137,7 +137,7 @@ let make_naservice
     sitedata
     =
 
-  let rec find_aux sci =
+  let find_aux sci =
     match
       Eliom_common.Full_state_name_table.fold
         (fun fullsessname (_, r) beg ->

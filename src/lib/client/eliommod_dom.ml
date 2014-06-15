@@ -719,7 +719,7 @@ let onhashchange f =
               Js._true : Dom_html.event_listener_id)
   else
     let last_fragment = ref Dom_html.window##location##hash in
-    let rec check () =
+    let check () =
       if !last_fragment != Dom_html.window##location##hash
       then
         (last_fragment := Dom_html.window##location##hash;

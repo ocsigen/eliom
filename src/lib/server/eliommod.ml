@@ -28,10 +28,7 @@
 
 open Eliom_lib
 
-open Lwt
-open Ocsigen_http_frame
 open Ocsigen_extensions
-open Lazy
 
 
 (****************************************************************************)

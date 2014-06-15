@@ -274,7 +274,7 @@ let build_client () =
 				@ !jsopt
 				@ [exe] )
 
-let rec process_option () =
+let process_option () =
   let i = ref 1 in
   while !i < Array.length Sys.argv do
     match Sys.argv.(!i) with

@@ -24,8 +24,6 @@ open Eliom_lib
 open Eliom_parameter
 open Eliom_service
 
-open Lwt
-
 
 (*****************************************************************************)
 (* Building href *)
@@ -39,7 +37,7 @@ let rec string_of_url_path' = function
       string_of_url_path' l
   | a::l -> (Url.encode ~plus:false a)^"/"^(string_of_url_path' l)
 
-let rec string_of_url_path_suff u = function
+let string_of_url_path_suff u = function
   | None -> string_of_url_path' u
   | Some suff ->
       let pref = string_of_url_path' u in

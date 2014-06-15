@@ -22,12 +22,8 @@
     chapter="misc" fragment="basic_menu"| menu>>%} or {% <<a_manual
     chapter="misc" fragment="hier_menu"| hierarchical site>>%}. *)
 
-open Eliom_lib
 open Eliom_content
 open Eliom_service
-open Eliom_parameter
-open Eliom_state
-open Eliom_tools_common
 
 (** Restriction of {!type:Eliom_service.service} to services without
     parameters that do not returns a marshalled OCaml value. *)
