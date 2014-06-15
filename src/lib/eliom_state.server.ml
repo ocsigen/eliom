@@ -20,7 +20,6 @@
 open Eliom_lib
 
 open Lwt
-open Ocsigen_extensions
 
 
 (* Expired session? *)
@@ -370,7 +369,7 @@ let rec close_volatile_state_if_empty ~scope ?secure () =
 
 
 
-let rec close_persistent_state_if_empty
+let close_persistent_state_if_empty
     ~scope ?secure () =
   Lwt.return ()
 (*VVV Can we implement this function? *)
@@ -893,8 +892,6 @@ let get_session_service_table_if_exists ~sp
 
 (*****************************************************************************)
 (** {2 persistent sessions} *)
-
-open Ocsipersist
 
 type 'a persistent_table =
     (Eliom_common.user_scope *

@@ -166,7 +166,7 @@ let compile_eliom ~impl_intf file =
     | `Server ->
       compile_server_eliom ~impl_intf file;
       if impl_intf = `Impl then
-        compile_type_eliom impl_intf file
+        compile_type_eliom ~impl_intf file
     | `Client ->
       compile_client_eliom ~impl_intf file
     | _ -> assert false);

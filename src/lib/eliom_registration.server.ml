@@ -155,9 +155,6 @@ module Make_typed_xml_registration
     module Cont_content =
       (* Pasted from ocsigen_senders.ml and modified *)
       struct
-        type t = E.content Typed_xml.elt list
-
-        let get_etag_aux x = None
 
         let get_etag ?options c = None
 
@@ -422,7 +419,6 @@ module Action_reg_base = struct
       let si = Eliom_request_info.get_si sp in
       let ri = Eliom_request_info.get_request_sp sp in
       let open Ocsigen_extensions in
-      let open Ocsigen_http_frame in
       match (si.Eliom_common.si_nonatt_info,
                        si.Eliom_common.si_state_info,
                        (Ocsigen_extensions.Ocsigen_request_info.meth ri.request_info)) with
@@ -651,7 +647,6 @@ module Any = Eliom_mkreg.MakeRegister_AlphaReturn(Any_reg_base)
 type 'a application_name = string
 
 let appl_self_redirect send page =
-  let open Ocsigen_http_frame in
       if Eliom_request_info.expecting_process_page ()
       then
         let url = Eliom_request_info.get_full_url () in
@@ -2156,9 +2151,6 @@ end
 module Eliom_tmpl_reg_make_param
   (Appl : ELIOM_APPL)
   (Tmpl_param : TMPL_PARAMS) = struct
-
-  open Eliom_content.Html5
-  open Html5_types
 
   type page = Tmpl_param.t
   type options = appl_service_options

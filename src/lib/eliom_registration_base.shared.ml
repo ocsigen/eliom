@@ -130,7 +130,6 @@ module Html5_forms(*  : sig *)
     type input_type_t = input_type
     type button_type_t = button_type
 
-    open Html5_types
     open Html5
 
     let hidden = `Hidden

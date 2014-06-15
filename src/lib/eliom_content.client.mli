@@ -17,11 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-
-open Eliom_service
-open Eliom_parameter
-open Eliom_lib
-
 (** This module provides the creation of valid XML content, i.e. XML, SVG,
     and (X)HTML5.
 
@@ -290,7 +285,6 @@ module Html5 : sig
   module F : sig
     (** {2 Content creation}
         See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
-    open Pervasives
 
     (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
@@ -352,7 +346,6 @@ module Html5 : sig
   module D : sig
     (** {2 Content creation}
         See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
-    open Pervasives
 
     (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
@@ -423,7 +416,6 @@ module Html5 : sig
         otherwise, use the form module.
         For more information,
         see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
-    open Pervasives
 
     (** Function [node s] create an HTML5 [elt] from a signal [s].
         The resulting HTML5 [elt] can then be used like anyother HTML5 [elt] *)
