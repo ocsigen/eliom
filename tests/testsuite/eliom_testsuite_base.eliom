@@ -54,9 +54,10 @@ let test ~path ~title:ttl ~description f =
               let toggle_tracing = {{
                 fun _ ->
                   Eliom_config.set_tracing (not (Eliom_config.get_tracing ()));
-                  alert "%s tracing"
+                  Dom_html.window##alert ( Js.string (
+                    Printf.sprintf "%s tracing"
                     (if Eliom_config.get_tracing ()
-                     then "Enabled" else "Disabled")
+                       then "Enabled" else "Disabled")))
               }}
               in
               Lwt.return
@@ -141,7 +142,7 @@ let monospace fmt =
   let ran_assertions : string list Eliom_reference.Volatile.eref =
     Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
   let report_flush_assertions name =
-    report_flush_assertions' name (debug "%s")
+    report_flush_assertions' name (fun s -> Lwt_log.ign_debug s)
       ~ran:(Eliom_reference.Volatile.get ran_assertions)
       ~failed:(Eliom_reference.Volatile.get failed_assertions);
     Eliom_reference.Volatile.set ran_assertions [];

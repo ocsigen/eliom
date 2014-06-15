@@ -25,6 +25,7 @@ open Eliom_lib
 
 module Ecb = Eliom_comet_base
 
+let section = Lwt_log.Section.make "eliom:comet"
 type chan_id = string
 
 let encode_downgoing s =
@@ -441,7 +442,7 @@ end = struct
     signal_update handler
 
   let register_channel handler chan_id =
-    Ocsigen_messages.debug2 (Printf.sprintf "eliom: comet: register channel %s" chan_id);
+    Lwt_log.ign_info_f ~section "register channel %s" chan_id;
     if not (List.mem_assoc chan_id handler.hd_active_streams)
     then
       try
@@ -454,7 +455,7 @@ end = struct
 	  handler.hd_registered_chan_id <- chan_id::handler.hd_registered_chan_id
 
   let close_channel' handler chan_id =
-    Ocsigen_messages.debug2 (Printf.sprintf "eliom: comet: close channel %s" chan_id);
+    Lwt_log.ign_info_f ~section "close channel %s" chan_id;
     handler.hd_active_streams <- List.remove_assoc chan_id handler.hd_active_streams;
     handler.hd_unregistered_streams <- List.remove_assoc chan_id handler.hd_unregistered_streams;
     handler.hd_registered_chan_id <- List.filter ((<>) chan_id) handler.hd_registered_chan_id;
@@ -472,7 +473,7 @@ end = struct
       | Eliom_comet_base.Stateless _ ->
 	failwith "attempting to request data on stateful service with a stateless request"
       | Eliom_comet_base.Stateful (Eliom_comet_base.Request_data number) ->
-	Ocsigen_messages.debug2 (Printf.sprintf "eliom: comet: received request %i" number);
+	      Lwt_log.ign_info_f ~section "received request %i" number;
 	(* if a new connection occurs for a service, we reply
 	   immediately to the previous with no data. *)
 
@@ -617,7 +618,7 @@ end = struct
       ?(name=new_id ()) stream =
     let name = (name_of_scope (scope:>Eliom_common.user_scope)) ^ name in
     let handler = get_handler scope in
-    Ocsigen_messages.debug2 (Printf.sprintf "eliom: comet: create channel %s" name);
+    Lwt_log.ign_info_f ~section "create channel %s" name;
     if List.mem name handler.hd_registered_chan_id
     then
       begin
@@ -748,7 +749,7 @@ end = struct
 	 (Lwt_stream.map
 	    (function
 	      | Eliom_comet_base.Closed ->
-		Ocsigen_messages.debug2 (Printf.sprintf "eliom: closed in stateful channels: this is an error: this should not be possible");
+        Lwt_log.ign_warning ~section "closed in stateful channels: this is an error: this should not be possible";
 		Eliom_comet_base.Closed
 	      | Eliom_comet_base.Full -> Eliom_comet_base.Full
 	      | Eliom_comet_base.Data s -> Eliom_comet_base.Data (marshal s)) stream))

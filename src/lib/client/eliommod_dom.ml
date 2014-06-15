@@ -19,6 +19,8 @@
 
 open Eliom_lib
 
+let section = Lwt_log.Section.make "eliom:dom"
+
 let iter_nodeList nodeList f =
   for i = 0 to nodeList##length - 1 do
     (* Unsafe.get is ten time faster than nodeList##item *)
@@ -198,7 +200,7 @@ let slow_select_nodes (root:Dom_html.element Js.t) =
             match Dom_html.tagged node with
               | Dom_html.A e -> ignore (a_array##push(e))
               | Dom_html.Form e -> ignore (form_array##push(e))
-              | _ -> error "%s element tagged as eliom link" (Js.to_string (node##tagName))
+              | _ -> Lwt_log.raise_error_f ~section "%s element tagged as eliom link" (Js.to_string (node##tagName))
         end;
         if process_node
         then ignore (node_array##push(node));
@@ -256,12 +258,12 @@ end
 let get_head (page:'element #get_tag Js.t) : 'element Js.t =
   Js.Opt.get
     ((page##getElementsByTagName(Js.string "head"))##item(0))
-    (fun () -> error "get_head")
+    (fun () -> Lwt_log.raise_error ~section "get_head")
 
 let get_body (page:'element #get_tag Js.t) : 'element Js.t =
   Js.Opt.get
     ((page##getElementsByTagName(Js.string "body"))##item(0))
-    (fun () -> error "get_body")
+    (fun () -> Lwt_log.raise_error ~section "get_body")
 
 let iter_dom_array (f:'a -> unit)
     (a:<length : <get : int; ..> Js.gen_prop; item : int -> 'a Js.opt Js.meth; ..> Js.t) =
@@ -300,7 +302,7 @@ let add_childrens (elt:Dom_html.element Js.t) (sons:Dom.node Js.t list) =
             let txt =
               match (Dom.nodeType t) with
                 | Dom.Text t -> t
-                | _ -> error "add_childrens: not text node in tag %s" (Js.to_string (elt##tagName)) in
+                | _ -> Lwt_log.raise_error_f ~section "add_childrens: not text node in tag %s" (Js.to_string (elt##tagName)) in
             concat (acc##concat(txt##data)) q
         in
         concat (Js.string "") l
@@ -317,7 +319,7 @@ let add_childrens (elt:Dom_html.element Js.t) (sons:Dom.node Js.t list) =
           let d = Dom_html.createHead Dom_html.document in
           Dom.appendChild d elt;
           (Js.Unsafe.coerce elt)##styleSheet##cssText <- concat sons
-        | _ -> debug_exn "add children: can't appendChild" exn; raise exn
+        | _ -> Lwt_log.raise_error ~section ~exn "add children: can't appendChild"
 
 (* END IE HACK *)
 
@@ -358,7 +360,7 @@ let copy_element (e:Dom.element Js.t)
         Some copy
   in
   match aux e with
-    | None -> error "copy_element"
+    | None -> Lwt_log.raise_error ~section "copy_element"
     | Some e -> e
 
 let html_document (src:Dom.element Dom.document Js.t) registered_process_node: Dom_html.element Js.t =
@@ -368,14 +370,14 @@ let html_document (src:Dom.element Dom.document Js.t) registered_process_node: D
       begin
         try Dom_html.document##adoptNode((e:>Dom.element Js.t)) with
           | exn ->
-            debug_exn "can't addopt node, import instead" exn;
+          Lwt_log.ign_info ~section ~exn "can't addopt node, import instead";
             try Dom_html.document##importNode((e:>Dom.element Js.t),Js._true) with
               | exn ->
-                debug_exn "can't import node, copy instead" exn;
+            Lwt_log.ign_info ~section ~exn "can't import node, copy instead";
                 copy_element content registered_process_node
       end
     | None ->
-      debug "can't addopt node, document not parsed as html. copy instead";
+      Lwt_log.ign_info ~section "can't addopt node, document not parsed as html. copy instead";
       copy_element content registered_process_node
 
 (** CSS preloading. *)
@@ -567,8 +569,8 @@ and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
       with
       | Incorrect_url ->
           Lwt.return ([], rewrite_css_url ~prefix css pos)
-      | e ->
-          debug "Exc2: %s" (Printexc.to_string e);
+      | exn ->
+        Lwt_log.ign_info ~section ~exn "Error while importing css";
           Lwt.return ([], rewrite_css_url ~prefix css pos)
 
 let max_preload_depth = ref 4
@@ -607,8 +609,7 @@ let preload_css (doc : Dom_html.element Js.t) =
                with _ ->
                     (* Node was a unique node that has been removed...
                        in a perfect settings we won't have parsed it... *)
-                 Firebug.console##debug(Js.string "Unique CSS skipped...");
-                 ()) css;
+                 Lwt_log.ign_info ~section "Unique CSS skipped...") css;
   if !Eliom_config.debug_timings then
     Firebug.console##timeEnd(Js.string "preload_css (fetch+rewrite)");
   Lwt.return ()

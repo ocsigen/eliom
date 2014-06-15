@@ -24,6 +24,8 @@
 (*****************************************************************************)
 (*****************************************************************************)
 
+open Eliom_lib
+
 let compute_cookie_info secure secure_ci cookie_info =
   let secure = match secure with
     | None -> true
@@ -69,8 +71,7 @@ let close_data_state ~scope ~secure ?sp () =
 		  Eliommod_sessiongroups.Data.find_node_in_group_of_groups
 		    !(c.Eliom_common.dc_session_group)
 		with
-		  | None -> Ocsigen_messages.errlog
-		    "Eliom: No group of groups. Please report this problem."
+		  | None -> Lwt_log.ign_error ~section:Lwt_log.eliom "No group of groups. Please report this problem."
 		  | Some g -> Eliommod_sessiongroups.Data.remove g
 	      end
 	    | `Session _ | `Client_process _ ->

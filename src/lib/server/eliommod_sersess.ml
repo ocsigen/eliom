@@ -23,6 +23,7 @@
 (*****************************************************************************)
 (*****************************************************************************)
 
+open Eliom_lib
 
 let compute_cookie_info secure secure_ci cookie_info =
   let secure_if_ssl = match secure with
@@ -67,8 +68,7 @@ let close_service_state ~scope ~secure ?sp () =
 		  Eliommod_sessiongroups.Serv.find_node_in_group_of_groups
 		    !(c.Eliom_common.sc_session_group)
 		with
-		  | None -> Ocsigen_messages.errlog
-		    "Eliom: No group of groups. Please report this problem."
+		  | None -> Lwt_log.ign_error ~section:Lwt_log.eliom "No group of groups. Please report this problem."
 		  | Some (service_table, g) ->
                     Eliommod_sessiongroups.Serv.remove g
 	      end

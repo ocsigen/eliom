@@ -23,6 +23,8 @@ open Eliom_lib
 
 module Xml = Eliom_content_core.Xml
 
+let section = Lwt_log.Section.make "eliom:client"
+
 module JsTable = Eliommod_jstable
 
 let init_client_app ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
@@ -74,7 +76,7 @@ end = struct
   let client_closures = JsTable.create ()
 
   let register ~closure_id ~closure =
-    trace "Register client closure %Ld" closure_id;
+    Lwt_log.ign_info_f ~section "Register client closure %Ld" closure_id;
     JsTable.add client_closures (key closure_id)
       (fun args ->
          to_poly (closure (from_poly args)))
@@ -100,7 +102,7 @@ end = struct
     Js.string (Int64.to_string instance_id)
 
   let find ~closure_id ~instance_id =
-    trace "Get client value %Ld/%Ld" closure_id instance_id;
+    Lwt_log.ign_info_f ~section "Get client value %Ld/%Ld" closure_id instance_id;
     let value =
       let instances =
         Js.Optdef.get
@@ -120,13 +122,12 @@ end = struct
     from_poly value
 
   let initialize {closure_id; instance_id; args} =
-    trace "Initialize client value %Ld/%Ld" closure_id instance_id;
+    Lwt_log.ign_info_f ~section "Initialize client value %Ld/%Ld" closure_id instance_id;
     let closure =
       try
         Client_closure.find ~closure_id
       with Not_found ->
-        Eliom_lib.error "Client closure %Ld not found (is the module linked on the client?)"
-          closure_id
+        Lwt_log.raise_error_f ~section "Client closure %Ld not found (is the module linked on the client?)" closure_id
     in
     let value = closure args in
     Eliom_unwrap.late_unwrap_value
@@ -155,15 +156,15 @@ end = struct
   let table = JsTable.create ()
 
   let get ~name =
-    trace "Get injection %s" name;
+    Lwt_log.ign_info_f ~section "Get injection %s" name;
     from_poly
       (Js.Optdef.get
          (JsTable.find table (Js.string name))
          (fun () ->
-            error "Did not find injection %S" name))
+            Lwt_log.raise_error_f ~section "Did not find injection %S" name))
 
   let initialize { Eliom_lib_base.injection_id; injection_value } =
-    trace "Initialize injection %s" injection_id;
+    Lwt_log.ign_info_f ~section "Initialize injection %s" injection_id;
     (* BBB One should assert that injection_value doesn't contain any
        value marked for late unwrapping. How to do this efficiently? *)
     JsTable.add table (Js.string injection_id) injection_value
@@ -175,7 +176,7 @@ end
 let global_data = ref String_map.empty
 
 let do_next_server_section_data ~compilation_unit_id =
-  trace "Do next client value data section in compilation unit %s" compilation_unit_id;
+  Lwt_log.ign_info_f ~section "Do next client value data section in compilation unit %s" compilation_unit_id;
   try
     let data = String_map.find compilation_unit_id !global_data in
     List.iter Client_value.initialize
@@ -183,12 +184,12 @@ let do_next_server_section_data ~compilation_unit_id =
   with
     | Not_found -> () (* Client-only compilation unit *)
     | Queue.Empty ->
-      error "Queue of client value data for compilation unit %s is empty \
+      Lwt_log.raise_error_f ~section "Queue of client value data for compilation unit %s is empty \
              (is it linked on the server?)"
         compilation_unit_id
 
 let do_next_client_section_data ~compilation_unit_id =
-  trace "Do next injection data section in compilation unit %s" compilation_unit_id;
+  Lwt_log.ign_info_f ~section "Do next injection data section in compilation unit %s" compilation_unit_id;
   try
     let data = String_map.find compilation_unit_id !global_data in
     List.iter Injection.initialize
@@ -196,14 +197,14 @@ let do_next_client_section_data ~compilation_unit_id =
   with
     | Not_found -> () (* Client-only compilation unit *)
     | Queue.Empty ->
-      error "Queue of injection data for compilation unit %s is empty \
+      Lwt_log.raise_error_f ~section "Queue of injection data for compilation unit %s is empty \
              (is it linked on the server?)"
         compilation_unit_id
 
 (* == Initialize the client values sent with a request *)
 
 let do_request_data request_data =
-  trace "Do request data (%a)" (fun () l -> string_of_int (List.length l)) request_data;
+  Lwt_log.ign_info_f ~section "Do request data (%a)" (fun () l -> string_of_int (List.length l)) request_data;
   (* On a request, i.e. after running the toplevel definitions, global_data
      must contain at most empty sections_data lists, which stem from server-
      only eliom files. *)
@@ -213,8 +214,7 @@ let do_request_data request_data =
          (function
            | [] -> ()
            | data ->
-             Printf.ksprintf (fun s -> Firebug.console##error(Js.string s))
-               "Code generating the following client values is not linked on the client: %s"
+             Lwt_log.ign_error_f ~section "Code generating the following client values is not linked on the client: %s"
                (String.concat ","
                   (List.map
                      (fun d -> Printf.sprintf "%Ld/%Ld" d.closure_id d.instance_id)
@@ -224,8 +224,7 @@ let do_request_data request_data =
          (function
            | [] -> ()
            | data ->
-             Printf.ksprintf (fun s -> Firebug.console##error(Js.string s))
-               "Code containing the following injections is not linked on the client: %s"
+             Lwt_log.ign_error_f ~section "Code containing the following injections is not linked on the client: %s"
                (String.concat ","
                   (List.map (fun d -> d.Eliom_lib_base.injection_id) data)))
          client_sections_data)
@@ -239,7 +238,7 @@ let register_unwrapped_elt, force_unwrapped_elts =
   (fun elt ->
      suspended_nodes := elt :: !suspended_nodes),
   (fun () ->
-     trace "Force unwrapped elements";
+     Lwt_log.ign_info ~section "Force unwrapped elements";
      List.iter Xml.force_lazy !suspended_nodes;
      suspended_nodes := [])
 
@@ -248,7 +247,7 @@ let register_unwrapped_elt, force_unwrapped_elts =
 let (register_process_node, find_process_node) =
   let process_nodes : Dom.node Js.t JsTable.t = JsTable.create () in
   let find id =
-    trace "Find process node %a" (fun () -> Js.to_string) id;
+    Lwt_log.ign_info_f ~section "Find process node %a" (fun () -> Js.to_string) id;
     Js.Optdef.bind
       (JsTable.find process_nodes id)
       (fun node ->
@@ -259,7 +258,7 @@ let (register_process_node, find_process_node) =
           Js.def node)
   in
   let register id node =
-    trace "Register process node %s" (Js.to_string id);
+    Lwt_log.ign_info_f ~section "Register process node %s" (Js.to_string id);
     JsTable.add process_nodes id node in
   (register, find)
 
@@ -267,7 +266,7 @@ let registered_process_node id = Js.Optdef.test (find_process_node id)
 
 let getElementById id =
   Js.Optdef.case (find_process_node (Js.string id))
-    (fun () -> debug "getElementById %s: Not_found" id; raise Not_found)
+    (fun () -> Lwt_log.ign_warning_f ~section "getElementById %s: Not_found" id; raise Not_found)
     (fun pnode -> pnode)
 
 (* == Request nodes (a.k.a. nodes with a unique Dom instance in the current request) *)
@@ -276,10 +275,10 @@ let register_request_node, find_request_node, reset_request_nodes =
   let request_nodes : Dom.node Js.t JsTable.t ref = ref (JsTable.create ()) in
   let find id = JsTable.find !request_nodes id in
   let register id node =
-    trace "Register request node %a" (fun () -> Js.to_string) id;
+    Lwt_log.ign_info_f ~section "Register request node %a" (fun () -> Js.to_string) id;
     JsTable.add !request_nodes id node in
   let reset () =
-    trace "Reset request nodes";
+    Lwt_log.ign_info ~section "Reset request nodes";
     (* Unwrapped elements must be forced before reseting the request node table. *)
     force_unwrapped_elts ();
     request_nodes := JsTable.create () in
@@ -372,18 +371,18 @@ let raw_event_handler cv =
     let handler = (Eliom_lib.from_poly value : #Dom_html.event Js.t -> unit) in
     fun ev -> try handler ev; true with False -> false
   with Not_found ->
-    error "Client value %Ld/%Ld not found as event handler" closure_id instance_id
+    Lwt_log.raise_error_f ~section "Client value %Ld/%Ld not found as event handler" closure_id instance_id
 let closure_name_prefix = Eliom_lib_base.RawXML.closure_name_prefix
 let closure_name_prefix_len = String.length closure_name_prefix
 let reify_caml_event name node ce : string * (#Dom_html.event Js.t -> bool) = match ce with
   | Xml.CE_call_service None -> name,(fun _ -> true)
   | Xml.CE_call_service (Some (`A, cookies_info, tmpl)) ->
       name,(fun ev ->
-        let node = Js.Opt.get (Dom_html.CoerceTo.a node) (fun () -> error "not an anchor element") in
+        let node = Js.Opt.get (Dom_html.CoerceTo.a node) (fun () -> Lwt_log.raise_error ~section "not an anchor element") in
         raw_a_handler node cookies_info tmpl ev)
   | Xml.CE_call_service (Some ((`Form_get | `Form_post) as kind, cookies_info, tmpl)) ->
       name,(fun ev ->
-        let form = Js.Opt.get (Dom_html.CoerceTo.form node) (fun () -> error "not a form element") in
+        let form = Js.Opt.get (Dom_html.CoerceTo.form node) (fun () -> Lwt_log.raise_error ~section "not a form element") in
         raw_form_handler form kind cookies_info tmpl ev)
   | Xml.CE_client_closure f ->
       name,(fun ev -> try f ev; true with False -> false)
@@ -507,9 +506,9 @@ let get_state i : state =
          (* We use this only when the history API is
             available. Sessionstorage seems to be available
             everywhere the history API exists. *)
-         error "sessionStorage not available")
+         Lwt_log.raise_error_f ~section "sessionStorage not available")
        (fun s -> s##getItem(state_key i)))
-    (fun () -> error "State id not found %d in sessionStorage" i)
+    (fun () -> Lwt_log.raise_error_f ~section "State id not found %d in sessionStorage" i)
     (fun s -> Json.unsafe_input s)
 let set_state i (v:state) =
   Js.Optdef.case ( Dom_html.window##sessionStorage )
@@ -664,7 +663,7 @@ let call_ocaml_service
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
     ?keep_nl_params ?nl_params ?keep_get_na_params
     get_params post_params =
-  trace "Call OCaml service";
+  Lwt_log.ign_info ~section "Call OCaml service";
   lwt _, content =
     raw_call_service
       ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -759,13 +758,13 @@ let get_element_template elt =
 let a_handler =
   Dom_html.full_handler
     (fun node ev ->
-      let node = Js.Opt.get (Dom_html.CoerceTo.a node) (fun () -> error "not an anchor element") in
+      let node = Js.Opt.get (Dom_html.CoerceTo.a node) (fun () -> Lwt_log.raise_error_f ~section "not an anchor element") in
       Js.bool (raw_a_handler node (get_element_cookies_info node) (get_element_template node) ev))
 
 let form_handler =
   Dom_html.full_handler
     (fun node ev ->
-      let form = Js.Opt.get (Dom_html.CoerceTo.form node) (fun () -> error "not a form element") in
+      let form = Js.Opt.get (Dom_html.CoerceTo.form node) (fun () -> Lwt_log.raise_error_f ~section "not a form element") in
       let kind =
         if String.lowercase(Js.to_string form##_method) = "get"
         then `Form_get
@@ -776,13 +775,13 @@ let form_handler =
 let relink_process_node (node:Dom_html.element Js.t) =
   let id = Js.Opt.get
     (node##getAttribute(Js.string Eliom_lib_base.RawXML.node_id_attrib))
-    (fun () -> error "unique node without id attribute") in
+    (fun () -> Lwt_log.raise_error_f ~section "unique node without id attribute") in
   Js.Optdef.case (find_process_node id)
     (fun () ->
-       trace "Relink process node: did not find %a" (fun () -> Js.to_string) id;
+       Lwt_log.ign_warning_f ~section "Relink process node: did not find %a" (fun () -> Js.to_string) id;
        register_process_node id (node:>Dom.node Js.t))
     (fun pnode ->
-       trace "Relink process node: found %a" (fun () -> Js.to_string) id;
+       Lwt_log.ign_info_f ~section "Relink process node: found %a" (fun () -> Js.to_string) id;
       Js.Opt.iter (node##parentNode)
         (fun parent -> Dom.replaceChild parent pnode node);
       if String.sub (Js.to_bytestring id) 0 7 <> "global_" then begin
@@ -795,18 +794,18 @@ let relink_process_node (node:Dom_html.element Js.t) =
 let relink_request_node (node:Dom_html.element Js.t) =
   let id = Js.Opt.get
     (node##getAttribute(Js.string Eliom_lib_base.RawXML.node_id_attrib))
-    (fun () -> error "unique node without id attribute") in
+    (fun () -> Lwt_log.raise_error_f ~section "unique node without id attribute") in
   Js.Optdef.case (find_request_node id)
     (fun () ->
-       trace "Relink request node: did not find %a" (fun () -> Js.to_string) id;
+       Lwt_log.ign_warning_f ~section "Relink request node: did not find %a" (fun () -> Js.to_string) id;
        register_request_node id (node:>Dom.node Js.t))
     (fun pnode ->
-       trace "Relink request node: found %a" (fun () -> Js.to_string) id;
+       Lwt_log.ign_info_f ~section "Relink request node: found %a" (fun () -> Js.to_string) id;
        Js.Opt.iter (node##parentNode)
          (fun parent -> Dom.replaceChild parent pnode node))
 
 let relink_request_nodes root =
-  trace "Relink request nodes";
+  Lwt_log.ign_info ~section "Relink request nodes";
   if !Eliom_config.debug_timings then
     Firebug.console##time
       (Js.string "relink_request_nodes");
@@ -821,7 +820,7 @@ let relink_request_nodes root =
    after the client values are initialized.
 *)
 let relink_page_but_client_values (root:Dom_html.element Js.t) =
-  trace "Relink page";
+  Lwt_log.ign_info ~section "Relink page";
   let (a_nodeList,form_nodeList,process_nodeList,closure_nodeList,attrib_nodeList) =
     Eliommod_dom.select_nodes root in
   Eliommod_dom.iter_nodeList a_nodeList
@@ -859,7 +858,7 @@ let is_closure_attrib,get_closure_name,get_closure_id =
   (fun attr -> attr##value##substring_toEnd(v_len))
 
 let relink_closure_node root onload table (node:Dom_html.element Js.t) =
-  trace "Relink closure node";
+  Lwt_log.ign_info ~section "Relink closure node";
   let aux attr =
     if is_closure_attrib attr
     then
@@ -874,12 +873,12 @@ let relink_closure_node root onload table (node:Dom_html.element Js.t) =
            then onload := closure :: !onload)
         else Js.Unsafe.set node name (Dom_html.handler (fun ev -> Js.bool (closure ev)))
       with Not_found ->
-        error "relink_closure_node: client value %s not found" cid
+        Lwt_log.raise_error_f ~section "relink_closure_node: client value %s not found" cid
   in
   Eliommod_dom.iter_attrList (node##attributes) aux
 
 let relink_closure_nodes (root : Dom_html.element Js.t) event_handlers closure_nodeList =
-  trace "Relink %i closure nodes" (closure_nodeList##length);
+  Lwt_log.ign_info_f ~section "Relink %i closure nodes" (closure_nodeList##length);
   let onload = ref [] in
   Eliommod_dom.iter_nodeList closure_nodeList
     (fun node -> relink_closure_node root onload event_handlers node);
@@ -903,7 +902,7 @@ let is_attrib_attrib,get_attrib_id =
   (fun attr -> attr##value##substring_toEnd(v_len))
 
 let relink_attrib root table (node:Dom_html.element Js.t) =
-  trace "Relink attribute";
+  Lwt_log.ign_info ~section "Relink attribute";
   let aux attr =
     if is_attrib_attrib attr
     then
@@ -918,16 +917,16 @@ let relink_attrib root table (node:Dom_html.element Js.t) =
             let rattrib = (Eliom_lib.from_poly value : Eliom_content_core.Xml.attrib) in
             rebuild_rattrib node rattrib
           with Not_found ->
-            error "Client value %Ld/%Ld not found as event handler" closure_id instance_id
+            Lwt_log.raise_error_f ~section "Client value %Ld/%Ld not found as event handler" closure_id instance_id
         end
       with Not_found ->
-        error "relink_attrib: client value %s not found" cid
+        Lwt_log.raise_error_f ~section "relink_attrib: client value %s not found" cid
   in
   Eliommod_dom.iter_attrList (node##attributes) aux
 
 
 let relink_attribs (root : Dom_html.element Js.t) attribs attrib_nodeList =
-  trace "Relink %i attributes" (attrib_nodeList##length);
+  Lwt_log.ign_info_f ~section "Relink %i attributes" (attrib_nodeList##length);
   Eliommod_dom.iter_nodeList attrib_nodeList
     (fun node -> relink_attrib root attribs node)
 
@@ -938,7 +937,7 @@ let relink_attribs (root : Dom_html.element Js.t) attribs attrib_nodeList =
 *)
 
 let load_data_script page =
-  trace "Load data script";
+  Lwt_log.ign_info ~section "Load data script";
   let head = Eliommod_dom.get_head page in
   let data_script : Dom_html.scriptElement Js.t =
     match Dom.list_of_nodeList head##childNodes with
@@ -947,10 +946,10 @@ let load_data_script page =
        (match Js.to_bytestring (data_script##tagName##toLowerCase ()) with
         | "script" -> (Js.Unsafe.coerce data_script)
         | t ->
-            Firebug.console##error_4(Js.string "load_data_script: the node ", data_script,
-                                     Js.string " is not a script, its tag is", t);
-            error "load_data_script: can't find data script (1).")
-    | _ -> error "load_data_script: can't find data script (2)."
+          Lwt_log.raise_error_f ~section
+            "load_data_script: can't find data script. the node 2nd is not a script, its tag is %s" t)
+    | _ -> Lwt_log.raise_error_f ~section
+             "load_data_script: can't find data script (2)."
   in
   let script = data_script##text in
   if !Eliom_config.debug_timings then
@@ -995,7 +994,7 @@ let with_progress_cursor : 'a Lwt.t -> 'a Lwt.t =
       the javascript application. *)
 
 let set_content ?uri ?offset ?fragment content =
-  trace "Set content";
+  Lwt_log.ign_info ~section "Set content";
   match content with
   | None -> Lwt.return ()
   | Some content ->
@@ -1043,7 +1042,7 @@ let set_content ?uri ?offset ?fragment content =
        (* Really change page contents *)
        if !Eliom_config.debug_timings then
          Firebug.console##time(Js.string "replace_page");
-       trace "Replace page";
+       Lwt_log.ign_info ~section "Replace page";
        Dom.replaceChild Dom_html.document
          fake_page
          Dom_html.document##documentElement;
@@ -1072,11 +1071,11 @@ let set_content ?uri ?offset ?fragment content =
        if !Eliom_config.debug_timings then
          Firebug.console##timeEnd(Js.string "set_content");
        Lwt.return ()
-    with e ->
-      debug_exn "set_content: exception raised: " e;
+    with exn ->
+      Lwt_log.ign_info ~section ~exn "set_content";
       if !Eliom_config.debug_timings then
         Firebug.console##timeEnd(Js.string "set_content");
-      raise_lwt e
+      raise_lwt exn
 
 let set_template_content ?uri ?fragment = function
   | None -> Lwt.return ()
@@ -1103,7 +1102,7 @@ let change_page
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
     ?keep_nl_params ?(nl_params = Eliom_parameter.empty_nl_params_set) ?keep_get_na_params
     get_params post_params =
-  trace "Change page";
+  Lwt_log.ign_info ~section "Change page";
   let xhr = Eliom_service.xhr_with_cookies service in
   if xhr = None
   || (https = Some true && not Eliom_request_info.ssl_)
@@ -1158,7 +1157,7 @@ let change_page
 (* Function used in "onclick" event handler of <a>.  *)
 
 let change_page_uri ?cookies_info ?tmpl ?(get_params = []) full_uri =
-  trace "Change page uri";
+  Lwt_log.ign_info ~section "Change page uri";
   with_progress_cursor
     ( let uri, fragment = Url.split_fragment full_uri in
       if uri <> !current_uri || fragment = None then begin
@@ -1224,13 +1223,13 @@ let change_page_post_form ?cookies_info ?tmpl form full_uri =
 let _ =
   change_page_uri_ :=
     (fun ?cookies_info ?tmpl href ->
-      lwt_ignore(change_page_uri ?cookies_info ?tmpl href));
+       Lwt.ignore_result (change_page_uri ?cookies_info ?tmpl href));
   change_page_get_form_ :=
     (fun ?cookies_info ?tmpl form href ->
-      lwt_ignore(change_page_get_form ?cookies_info ?tmpl form href));
+      Lwt.ignore_result (change_page_get_form ?cookies_info ?tmpl form href));
   change_page_post_form_ :=
     (fun ?cookies_info ?tmpl form href ->
-      lwt_ignore(change_page_post_form ?cookies_info ?tmpl form href))
+      Lwt.ignore_result (change_page_post_form ?cookies_info ?tmpl form href))
 
 (* == Navigating through the history... *)
 
@@ -1243,7 +1242,7 @@ let () =
       current_state_id := state_id;
       let state = get_state state_id in
       let tmpl = (if state.template = Js.string "" then None else Some (Js.to_string state.template))in
-      lwt_ignore
+      Lwt.ignore_result
         ( with_progress_cursor
             ( let uri, fragment = Url.split_fragment full_uri in
               if uri <> !current_uri then begin
@@ -1267,7 +1266,7 @@ let () =
                   Lwt.return () ) ) )
     in
 
-    lwt_ignore
+    Lwt.ignore_result
       ( lwt () = wait_load_end () in
         Dom_html.window##history##replaceState(Js.Opt.return !current_state_id,
                                                Js.string "",
@@ -1291,7 +1290,7 @@ let () =
 
     let read_fragment () = Js.to_string Dom_html.window##location##hash in
     let auto_change_page fragment =
-      lwt_ignore
+      Lwt.ignore_result
         (let l = String.length fragment in
          if (l = 0) || ((l > 1) && (fragment.[1] = '!'))
          then if fragment <> !current_pseudo_fragment then
@@ -1311,7 +1310,7 @@ let () =
     Eliommod_dom.onhashchange (fun s -> auto_change_page (Js.to_string s));
     let first_fragment = read_fragment () in
     if first_fragment <> !current_pseudo_fragment then
-      lwt_ignore (
+      Lwt.ignore_result (
         lwt () = wait_load_end () in
         auto_change_page first_fragment;
         Lwt.return ())
@@ -1498,17 +1497,19 @@ and raw_rebuild_node ns = function
     (node :> Dom.node Js.t)
 
 let rebuild_node_ns ns context elt' =
-  trace "Rebuild node %a (%s)"
+  Lwt_log.ign_info_f ~section "Rebuild node %a (%s)"
     (fun () e -> Eliom_content_core.Xml.string_of_node_id (Xml.get_node_id e))
     elt' context;
   if is_before_initial_load () then
-    error_any (rebuild_node' ns elt')
+    begin
+      Lwt_log.raise_error_f ~section ~inspect:(rebuild_node' ns elt')
       "Cannot apply %s%s before the document is initially loaded"
       context
       Xml.(match get_node_id elt' with
            | NoId -> " "
            | RequestId id -> " on request node "^id
-           | ProcessId id -> " on global node "^id);
+            | ProcessId id -> " on global node "^id)
+    end;
   let node = Js.Unsafe.coerce (rebuild_node' ns elt') in
   flush_load_script ();
   node
@@ -1543,7 +1544,7 @@ let unwrap_tyxml =
       | RELazy elt -> Eliom_lazy.force elt
       | RE elt -> elt
     in
-    trace "Unwrap tyxml";
+    Lwt_log.ign_info ~section "Unwrap tyxml";
     (* Do not rebuild dom node while unwrapping, otherwise we
        don't have control on when "onload" event handlers are
        triggered. *)
@@ -1553,30 +1554,30 @@ let unwrap_tyxml =
         (lazy
            (match tmp_elt.tmp_node_id with
               | Xml.ProcessId process_id as id ->
-                  trace "Unwrap tyxml from ProcessId %s" process_id;
+                  Lwt_log.ign_info_f ~section "Unwrap tyxml from ProcessId %s" process_id;
                   Js.Optdef.case (find_process_node (Js.bytestring process_id))
                     (fun () ->
-                       trace "not found";
+                       Lwt_log.ign_info ~section "not found";
                        let xml_elt : Xml.elt = Xml.make ~id elt in
                        let xml_elt = Eliom_content_core.Xml.set_classes_of_elt xml_elt in
                        register_process_node (Js.bytestring process_id)
                          (rebuild_node_ns `HTML5 context xml_elt);
                        xml_elt)
                     (fun elt ->
-                       trace "found";
+                       Lwt_log.ign_info ~section "found";
                        Xml.make_dom ~id elt)
               | Xml.RequestId request_id as id ->
-                  trace "Unwrap tyxml from RequestId %s" request_id;
+                  Lwt_log.ign_info_f ~section "Unwrap tyxml from RequestId %s" request_id;
                   Js.Optdef.case (find_request_node (Js.bytestring request_id))
                     (fun () ->
-                       trace "not found";
+                       Lwt_log.ign_info ~section "not found";
                        let xml_elt : Xml.elt = Xml.make ~id elt in
                        register_request_node (Js.bytestring request_id)
                          (rebuild_node_ns `HTML5 context xml_elt);
                        xml_elt)
-                    (fun elt -> trace "found"; Xml.make_dom ~id elt)
+                    (fun elt -> Lwt_log.ign_info ~section "found"; Xml.make_dom ~id elt)
               | Xml.NoId as id ->
-                  trace "Unwrap tyxml from NoId";
+                  Lwt_log.ign_info ~section "Unwrap tyxml from NoId";
                   Xml.make ~id elt))
     in
     register_unwrapped_elt elt;
@@ -1613,7 +1614,7 @@ let init () =
     Eliom_request_info.get_request_data () in
 
   let onload ev =
-    trace "onload (client main)";
+    Lwt_log.ign_info ~section "onload (client main)";
     set_initial_load ();
     Lwt.async
       (fun () ->
@@ -1633,7 +1634,8 @@ let init () =
            match Eliom_unwrap.remaining_values_for_late_unwrapping () with
            | [] -> ()
            | unwrap_ids ->
-             alert "Values marked for unwrapping remain (for unwrapping id %s)."
+             Lwt_log.raise_error_f ~section
+               "Values marked for unwrapping remain (for unwrapping id %s)."
                (String.concat ", " (List.map string_of_int unwrap_ids)));
          let () =
            relink_attribs root
@@ -1653,7 +1655,7 @@ let init () =
          Lwt.return ());
     Js._false in
 
-  trace "Set load/onload events";
+  Lwt_log.ign_info ~section "Set load/onload events";
   let onunload _ = leave_page (); Js._true in
   (* IE<9: Script438: Object doesn't support property or method
      addEventListener.

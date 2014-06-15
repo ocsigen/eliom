@@ -55,10 +55,20 @@ type file_info = Ocsigen_extensions.file_info
 
 val to_json : ?typ:'a Deriving_Json.t -> 'a -> string
 val of_json : ?typ:'a Deriving_Json.t -> string -> 'a
-val debug: ('a, unit, string, unit) format4 -> 'a
 
 (** Marshal an OCaml value into a string. All characters are escaped *)
 val jsmarshal : 'a -> string
+
+module Lwt_log : sig
+  include module type of Lwt_log
+  with type level = Lwt_log.level
+   and type logger = Lwt_log.logger
+   and type section = Lwt_log.section
+   and type template = Lwt_log.template
+   and module Section = Lwt_log.Section
+  val eliom : section
+end
+
 
 (**/**)
 
@@ -72,4 +82,5 @@ type global_data = poly Eliom_lib_base.global_data * Eliom_wrap.unwrapper
 
 val global_data_unwrapper : Eliom_wrap.unwrapper
 
+val debug : [`use_lwt_log_instead]
 (**/**)

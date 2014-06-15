@@ -24,6 +24,8 @@ include Eliom_parameter_base
 
 open Ocsigen_extensions
 
+let section = Lwt_log.Section.make "eliom:parameter"
+
 type anon_params_type = int
 
 let anonymise_params_type (t : ('a, 'b, 'c) params_type) : anon_params_type =
@@ -341,15 +343,12 @@ let reconstruct_params_
         if (l, files) = ([], [])
         then v
         else begin
-          Ocsigen_messages.debug2 "Eliom_Wrong_parameter because";
-          Ocsigen_messages.debug (fun () ->
-              match l with
-              | [] -> "params is empty (OK)"
-              | l  -> "params non-empty (ERROR): " ^ (String.concat ", " (List.map (fun (x,k) -> x^"="^k) l)));
-          Ocsigen_messages.debug (fun () ->
-              match files with
-              | [] -> "files is empty (OK)"
-              | l  -> "files non-empty (ERROR): " ^ (String.concat ", " (List.map (fun (x,k) -> x) files)));
+          if l <> []
+          then Lwt_log.ign_debug_f ~section
+              "Eliom_Wrong_parameter: params non-empty (ERROR): %a" (fun () l -> String.concat ", " (List.map (fun (x,k) -> x^"="^k) l)) l;
+          if files <> []
+          then Lwt_log.ign_debug_f ~section
+              "Eliom_Wrong_parameter: files non-empty (ERROR): %a" (fun () files -> String.concat ", " (List.map (fun (x,k) -> x) files)) files;
           raise Eliom_common.Eliom_Wrong_parameter
         end
       | Errors_ (errs, l, files) ->

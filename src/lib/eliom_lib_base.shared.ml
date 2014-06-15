@@ -21,12 +21,6 @@ open Ocsigen_lib_base
 
 exception Eliom_Internal_Error of string
 
-module Lwt_ops = struct
-  let (>>=) = Lwt.(>>=)
-  let (=<<) = Lwt.(=<<)
-  let (>|=) = Lwt.(>|=)
-  let (=|<) = Lwt.(=|<)
-end
 
 let fresh_ix () =
   Int64.of_int (Oo.id (object end))

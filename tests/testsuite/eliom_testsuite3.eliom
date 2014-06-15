@@ -418,7 +418,7 @@ let eliomclient4 =
            [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
               {{
                 fun _ ->
-                  lwt_ignore
+                  Lwt.ignore_result
                    (let body = Dom_html.document##body in
                     lwt l =
                       Eliom_client.call_ocaml_service
@@ -480,10 +480,10 @@ let caml_service_cookies =
               ignore (
                 lwt i =
                   try_lwt
-                    debug "caml_call_service";
+                    Lwt_log.ign_debug "caml_call_service";
                     Eliom_client.call_ocaml_service ~service:%caml_incr_service () ()
                   with
-                    | e -> debug_exn "caml_call_service exception: " e; Lwt.fail e
+                    | exn -> Lwt_log.ign_debug ~exn "caml_call_service"; Lwt.fail exn
                 in
                 Dom.appendChild (Dom_html.document##body)
                   (Dom_html.document##createTextNode
@@ -496,10 +496,10 @@ let caml_service_cookies =
               ignore (
                 lwt i =
                   try_lwt
-                    debug "call_service";
+                    Lwt_log.ign_debug "call_service";
                     Eliom_client.call_service ~service:%text_incr_service () ()
                   with
-                    | e -> debug_exn "call_service exception: " e; Lwt.fail e
+                    | exn -> Lwt_log.ign_debug ~exn "call_service"; Lwt.fail exn
                 in
                 Dom.appendChild (Dom_html.document##body)
                   (Dom_html.document##createTextNode
@@ -747,7 +747,7 @@ let () =
 	div ~a:[ a_onclick {{
                    fun _ ->
                      let v = %v1 in
-                     lwt_ignore
+                     Lwt.ignore_result
                        (lwt blocks =
                           Eliom_client.call_ocaml_service
                             ~service:v.Wrapping_test.v_service
@@ -940,7 +940,7 @@ let caml_service_wrapping =
                         try_lwt
                           iter_stream_append (Printf.sprintf "message: %i;  ") c
               with
-                | e -> debug_exn "caml_service_wrapping: exception: " e; Lwt.fail e
+                | exn -> Lwt_log.ign_debug ~exn "caml_service_wrapping"; Lwt.fail exn
                     )
                   }}]
             [pcdata "click to create a channel with scope client_process"];
@@ -956,7 +956,7 @@ let caml_service_wrapping =
                   Dom.appendChild (Dom_html.document##body)
                     (Dom_html.document##createTextNode (Js.string ("channel closed")));
                   Lwt.return ()
-                | e -> debug_exn "global_channel_wrapping_service: exception: " e; Lwt.fail e
+                | exn -> Lwt_log.ign_debug ~exn "global_channel_wrapping_service"; Lwt.fail exn
                     )
                   }}]
             [pcdata "click to create a channel with scope site: it has a lifetime of 3 seconds: after 3 seconds, there is no garanty on availability of this channel"];
@@ -1162,9 +1162,9 @@ let comet_message_board_maker name message_bus cb =
                        Dom.appendChild (Html5.To_dom.of_element %container)
                          (Html5.To_dom.of_li (li [pcdata "channel full, no more messages"]));
                        Lwt.return ()
-                     | e ->
-                       debug_exn "comet exception: " e;
-                       Lwt.fail e);
+                     | exn ->
+                       Lwt_log.ign_debug ~exn "comet exception";
+                       Lwt.fail exn);
                in ())
            }} ;
 
@@ -2726,10 +2726,10 @@ let _ =
 {client{
   let pinger : unit Lwt.t option ref = ref None
   let rec loop t i r =
-    debug "Ping %d %d" i !r; incr r;
-    try_lwt Lwt_js.sleep t >> loop t (i+1) r with _ -> debug "Pinger cancelled"; Lwt.return ()
+    Lwt_log.ign_debug_f "Ping %d %d" i !r; incr r;
+    try_lwt Lwt_js.sleep t >> loop t (i+1) r with _ -> Lwt_log.ign_debug "Pinger cancelled"; Lwt.return ()
   let loop_counter = ref 0
-  let () = debug "Application loading"
+  let () = Lwt_log.ign_debug "Application loading"
 }}
 
 let live1 = Eliom_service.App.service ["live";"one"] unit ()
@@ -2756,23 +2756,23 @@ let dead_links =
                    [pcdata "Link to another application."] ()];]]
 
 let () = My_appl.register ~service:live1 (fun () () ->
-    ignore {unit{ Eliom_client.onload (fun _ -> debug "Page 1 loading"; pinger := Some (loop 2. 0 loop_counter)) }};
-    ignore {unit{ Eliom_client.onunload (fun _ -> debug "Page 1 unloading"; Option.iter Lwt.cancel !pinger) }};
+    ignore {unit{ Eliom_client.onload (fun _ -> Lwt_log.ign_debug "Page 1 loading"; pinger := Some (loop 2. 0 loop_counter)) }};
+    ignore {unit{ Eliom_client.onunload (fun _ -> Lwt_log.ign_debug "Page 1 unloading"; Option.iter Lwt.cancel !pinger) }};
     Lwt.return
       (make_page [h1 [pcdata "Page one"]; live_description; live_links; dead_links]))
 
 let () = My_appl.register ~service:live2 (fun () () ->
     ignore {unit{
-      Eliom_client.onload (fun _ -> debug "Page 2 loading");
-      Eliom_client.onunload (fun _ -> debug "Page 2 unloading")
+      Eliom_client.onload (fun _ -> Lwt_log.ign_debug "Page 2 loading");
+      Eliom_client.onunload (fun _ -> Lwt_log.ign_debug "Page 2 unloading")
     }};
     Lwt.return
       (make_page [h1 [pcdata "Page two"];live_description; live_links; dead_links]))
 
 let () = My_appl.register ~service:live3 (fun () () ->
     ignore {unit{
-      Eliom_client.onload (fun _ -> debug "Page 3 loading");
-      Eliom_client.onunload (fun _ -> debug "Page 3 unloading")
+      Eliom_client.onload (fun _ -> Lwt_log.ign_debug "Page 3 loading");
+      Eliom_client.onunload (fun _ -> Lwt_log.ign_debug "Page 3 unloading")
     }};
     Lwt.return
       (make_page [h1 [pcdata "Page threee"]; live_description; live_links; dead_links]))
@@ -3206,21 +3206,21 @@ let xhr_form_with_file = My_appl.register_service ["xhr_form_with_file"] unit
 
 let global_div =
   Html5.Id.create_global_elt
-    (p ~a:[a_onload {{ fun _ -> debug "Div1: plop once." }}]
+    (p ~a:[a_onload {{ fun _ -> Lwt_log.ign_debug "Div1: plop once." }}]
        [pcdata "Div: ";
-        span ~a:[a_onload {{ fun _ -> debug "Span inside Div1: plop once"}}]
+        span ~a:[a_onload {{ fun _ -> Lwt_log.ign_debug "Span inside Div1: plop once"}}]
           [pcdata "global"]])
 
 let local_div =
-  Html5.D.p ~a:[a_onload {{ fun _ -> debug "Div2: always plop." }}]
+  Html5.D.p ~a:[a_onload {{ fun _ -> Lwt_log.ign_debug "Div2: always plop." }}]
     [pcdata "Div2: ";
-     span ~a:[a_onload {{ fun _ -> debug "Span inside Div2: always plop";}}]
+     span ~a:[a_onload {{ fun _ -> Lwt_log.ign_debug "Span inside Div2: always plop";}}]
        [pcdata "local"]]
 
 let simple_div =
-  p ~a:[a_onload {{ fun _ -> debug "Div3: always plop." }}]
+  p ~a:[a_onload {{ fun _ -> Lwt_log.ign_debug "Div3: always plop." }}]
     [pcdata "Div3: ";
-     span ~a:[a_onload {{ fun _ -> debug "Span inside Div3: always plop";}}]
+     span ~a:[a_onload {{ fun _ -> Lwt_log.ign_debug "Span inside Div3: always plop";}}]
        [pcdata "classical"]]
 
 let unique1 =
@@ -3239,7 +3239,7 @@ let _ =
   My_appl.register
     unique1
     (fun () () ->
-      ignore {unit{Eliom_client.onload (fun _ -> debug "Load page 1") }};
+      ignore {unit{Eliom_client.onload (fun _ -> Lwt_log.ign_debug "Load page 1") }};
       return
         (make_page [h1 [pcdata "Page 1"];
                     p [pcdata "This page contains three div with attached onload event.";
@@ -3262,7 +3262,7 @@ let body_onload =
       return
         (html
            (head (title (pcdata "body onload")) [])
-           (body ~a:[a_onload {{ fun _ ->debug "it works"}}]
+           (body ~a:[a_onload {{ fun _ ->Lwt_log.ign_debug "it works"}}]
               [
                 p [pcdata "onload on the body element.\n There should be \"it works\" in the console"]; br ();
                 p [pcdata "there will also probably be an error message (caml_closure_id... is not defined). It is not a problem, and we can't simply avoid it"];
@@ -3272,7 +3272,7 @@ let _ =
   My_appl.register
     unique2
     (fun () () ->
-      ignore {unit{Eliom_client.onload (fun _ -> debug "Load page 2") }};
+      ignore {unit{Eliom_client.onload (fun _ -> Lwt_log.ign_debug "Load page 2") }};
       return
         (make_page [h1 [pcdata "Page 2"];
                     Html5.D.a ~service:unique1 [pcdata "Get back to Page 1."] ();
@@ -3316,7 +3316,7 @@ let local_list = Html5.D.ul [li [pcdata "First element"]]
 let relink_page () =
   ignore {unit{
    Eliom_client.onload (fun _ ->
-      debug "onload";
+      Lwt_log.ign_debug "onload";
       put_li %global_list "Global.";
       put_li %local_list "Request.")
   }};
@@ -3601,7 +3601,7 @@ let tmpl2_page2 = Eliom_service.App.service
 let tmpl_update (id : Html5_types.flow5 Html5.Id.id) (contents : Html5_types.flow5 Html5.elt list) = {{
   Eliom_client.onload
     (fun () ->
-      debug "Update";
+      Lwt_log.ign_debug "Update";
       Html5.Manip.Named.replaceChildren %id %contents)
 }}
 module Tmpl_1 = Eliom_registration.Eliom_tmpl(My_appl)(struct
@@ -3617,15 +3617,15 @@ module Tmpl_1 = Eliom_registration.Eliom_tmpl(My_appl)(struct
               li [Html5.D.a ~service:tmpl1_page3 [pcdata "Page 3"] ()];
               li [Html5.D.a ~service:tmpl2_page1 [pcdata "Page 1 (tmpl2)"] ()];
               li [Html5.D.a ~service:tmpl2_page2 [pcdata "Page 2 (tmpl2)"] ()];
-              li ~a:[a_onclick {{ fun _ -> lwt_ignore(Eliom_client.change_page ~service:%tmpl1_page1 () ())}}]
+              li ~a:[a_onclick {{ fun _ -> Lwt.ignore_result(Eliom_client.change_page ~service:%tmpl1_page1 () ())}}]
                 [pcdata "Click me 1 (change_page)"];
-              li ~a:[a_onclick {{ fun _ -> lwt_ignore(Eliom_client.change_page ~service:%tmpl1_page2 () ())}}]
+              li ~a:[a_onclick {{ fun _ -> Lwt.ignore_result(Eliom_client.change_page ~service:%tmpl1_page2 () ())}}]
                  [pcdata "Click me 2 (change_page)"];
-              li ~a:[a_onclick {{ fun _ -> lwt_ignore(Eliom_client.change_page ~service:%tmpl1_page3 () ())}}]
+              li ~a:[a_onclick {{ fun _ -> Lwt.ignore_result(Eliom_client.change_page ~service:%tmpl1_page3 () ())}}]
                  [pcdata "Click me 3 (change_page)"];
-              li ~a:[a_onclick {{ fun _ -> lwt_ignore(Eliom_client.change_page ~service:%tmpl2_page1 () ())}}]
+              li ~a:[a_onclick {{ fun _ -> Lwt.ignore_result(Eliom_client.change_page ~service:%tmpl2_page1 () ())}}]
                  [pcdata "Click me 1 (change_page, tmpl2)"];
-              li ~a:[a_onclick {{ fun _ -> lwt_ignore(Eliom_client.change_page ~service:%tmpl2_page2 () ())}}]
+              li ~a:[a_onclick {{ fun _ -> Lwt.ignore_result(Eliom_client.change_page ~service:%tmpl2_page2 () ())}}]
                  [pcdata "Click me 2 (change_page, tmpl2)"];
              ];
           Html5.Id.create_named_elt ~id:content_id (div contents)])
@@ -3645,15 +3645,15 @@ module Tmpl_2 = Eliom_registration.Eliom_tmpl(My_appl)(struct
               li [Html5.D.a ~service:tmpl1_page3 [pcdata "Page 3 (tmpl1)"] ()];
               li [Html5.D.a ~service:tmpl2_page1 [pcdata "Page 1"] ()];
               li [Html5.D.a ~service:tmpl2_page2 [pcdata "Page 2"] ()];
-              li ~a:[a_onclick {{ fun _ -> lwt_ignore(Eliom_client.change_page ~service:%tmpl1_page1 () ())}}]
+              li ~a:[a_onclick {{ fun _ -> Lwt.ignore_result(Eliom_client.change_page ~service:%tmpl1_page1 () ())}}]
                 [pcdata "Click me 1 (change_page, tmpl1)"];
-              li ~a:[a_onclick {{ fun _ -> lwt_ignore(Eliom_client.change_page ~service:%tmpl1_page2 () ())}}]
+              li ~a:[a_onclick {{ fun _ -> Lwt.ignore_result(Eliom_client.change_page ~service:%tmpl1_page2 () ())}}]
                  [pcdata "Click me 2 (change_page, tmpl1)"];
-              li ~a:[a_onclick {{ fun _ -> lwt_ignore(Eliom_client.change_page ~service:%tmpl1_page3 () ())}}]
+              li ~a:[a_onclick {{ fun _ -> Lwt.ignore_result(Eliom_client.change_page ~service:%tmpl1_page3 () ())}}]
                  [pcdata "Click me 3 (change_page, tmpl1)"];
-              li ~a:[a_onclick {{ fun _ -> lwt_ignore(Eliom_client.change_page ~service:%tmpl2_page1 () ())}}]
+              li ~a:[a_onclick {{ fun _ -> Lwt.ignore_result(Eliom_client.change_page ~service:%tmpl2_page1 () ())}}]
                  [pcdata "Click me 1 (change_page)"];
-              li ~a:[a_onclick {{ fun _ -> lwt_ignore(Eliom_client.change_page ~service:%tmpl2_page2 () ())}}]
+              li ~a:[a_onclick {{ fun _ -> Lwt.ignore_result(Eliom_client.change_page ~service:%tmpl2_page2 () ())}}]
                  [pcdata "Click me 2 (change_page)"];
              ];
           Html5.Id.create_named_elt ~id:content_id (div contents)])
@@ -3832,10 +3832,10 @@ let _ = My_appl.register
         p ~a:[a_class ["clickable"];
           a_onclick {{
             fun _ ->
-              debug "click";
+              Lwt_log.ign_debug "click";
               ignore (
                 lwt r = Eliom_client.call_service ~service:%some_external_service () () in
-                debug "result: %s" r;
+                Lwt_log.ign_debug_f "result: %s" r;
                 Lwt.return ())
           }}] [pcdata "click to do an external xhr"]
       ]))

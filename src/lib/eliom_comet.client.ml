@@ -24,6 +24,8 @@
 open Eliom_lib
 module Ecb = Eliom_comet_base
 
+let section = Lwt_log.Section.make "eliom:comet"
+
 module Configuration =
 struct
   type configuration_data =
@@ -331,7 +333,8 @@ struct
         List.iter (function
           | ( chan_id, Ecb.Data _ ) -> ()
           | ( chan_id, Ecb.Closed ) ->
-            debug "Eliom_comet.update_stateful_state: received Closed: should not happen, this is an eliom bug, please report it"
+            Lwt_log.ign_warning ~section
+              "update_stateful_state: received Closed: should not happen, this is an eliom bug, please report it"
           | ( chan_id, Ecb.Full ) ->
             stop_waiting hd chan_id) message
       | Stateless_state _ ->
@@ -431,7 +434,7 @@ struct
 	  try_lwt
 	    lwt s = Lwt.pick [call_service hd;
 			      hd.hd_activity.restart_waiter
-			      >>= (fun _ -> error "Eliom_comet: should not happen")] in
+			      >>= (fun _ -> assert false)] in
 	    match s with
 	      | Ecb.Timeout ->
 		update_activity ~timeout:true hd;
@@ -450,14 +453,14 @@ struct
             | Eliom_request.Failed_request 0 ->
               if retries > max_retries
               then
-                (debug "Eliom_comet: connection failure";
+                (Lwt_log.ign_notice ~section "connection failure";
                  set_activity hd `Inactive;
                  aux 0)
               else
                 (Lwt_js.sleep 0.05 >>= (fun () -> aux (retries + 1)))
-            | Restart -> debug "Eliom_comet: restart";
+            | Restart -> Lwt_log.ign_info ~section "restart";
               aux 0
-            | e -> debug "Eliom_comet: exception %s" (Printexc.to_string e); Lwt.fail e
+            | exn -> Lwt_log.raise_error ~section ~exn "Error"
         end
     in
     update_activity hd;
@@ -469,7 +472,7 @@ struct
           call_service_after_load_end hd.hd_service ()
             (Ecb.Stateful (Ecb.Commands command))
        with
-         | e -> debug "Eliom_comet: request failed: exception %s" (Printexc.to_string e);
+         | exn -> Lwt_log.ign_notice_f ~section ~exn "request failed";
            Lwt.return "")
 
   let close hd chan_id =
@@ -486,7 +489,7 @@ struct
             { state with count = state.count - 1 } !map
         with
           | Not_found ->
-            debug "Eliom_comet: trying to close a non existent channel: %s" chan_id
+            Lwt_log.ign_info_f ~section "trying to close a non existent channel: %s" chan_id
 
   let add_channel_stateful hd chan_id =
     hd.hd_activity.active_channels <- String.Set.add chan_id hd.hd_activity.active_channels;
@@ -498,7 +501,7 @@ struct
     | Ecb.Last i, Ecb.Last j -> Ecb.Last (max i j)
     | p, Ecb.Last _ -> p
     | Ecb.Last _, p -> p
-    | _ -> error "Eliom_comet: not corresponding position"
+    | _ -> Lwt_log.raise_error ~section "not corresponding position"
 
   let add_channel_stateless hd chan_id kind =
     let pos =
@@ -636,7 +639,7 @@ let check_and_update_position position msg_pos data =
     | No_position, None, _ -> true
     | No_position, Some _, _
     | Position _, None, Ecb.Data _ ->
-      error "Eliom_comet: check_position: channel kind and message do not match"
+      Lwt_log.raise_error ~section "check_position: channel kind and message do not match"
     | Position _, None, (Ecb.Full | Ecb.Closed ) -> true
     | Position (relation,r), Some j, _ ->
       match !r with

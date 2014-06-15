@@ -79,8 +79,8 @@ let retry_after = Http_headers.name "Retry-After"
 
 open CalendarLib
 
-let log_error e = Ocsigen_messages.warning
-      ("Eliom_atom: error while contacting hub: " ^ Printexc.to_string e)
+let section = Lwt_log.Section.make "eliom:atom"
+let log_error e = Lwt_log.ign_warning_f ~section "Error while contacting hub: %s" (Printexc.to_string e)
 
 let parse_503 header = let r_int = Str.regexp "^[0-9]+$" in
       let r_date = Str.regexp

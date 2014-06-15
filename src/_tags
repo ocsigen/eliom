@@ -15,7 +15,7 @@ true:no_extra_syntaxes
 
 
 
-<lib/client/*.ml>:syntax(camlp4o), package(deriving.syntax.std, js_of_ocaml.deriving.syntax,lwt.syntax)
+<lib/client/*.ml>:syntax(camlp4o), package(deriving.syntax.std, js_of_ocaml.deriving.syntax,lwt.syntax,js_of_ocaml.log)
 <lib/client/*.ml>:package(js_of_ocaml.syntax)
 
 <lib/client/*.ml{,i}>:package(ocsigenserver.cookies,ocsigenserver.polytables,ocsigenserver.baselib.base)

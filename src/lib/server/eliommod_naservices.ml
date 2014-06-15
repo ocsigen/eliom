@@ -25,6 +25,7 @@ open Eliom_lib
 open Lwt
 open Ocsigen_extensions
 
+let section = Lwt_log.Section.make "eliom:service"
 
 let add_naservice_table at (key, elt) =
   match at with
@@ -106,8 +107,7 @@ let find_naservice now tables name =
   match expdate with
     | Some (_, e) when !e < now ->
         (* Service expired. Removing it. *)
-        Ocsigen_messages.debug2
-          "--Eliom: Non attached service expired. I'm removing it";
+      Lwt_log.ign_info ~section "Non attached service expired. Removing it";
         remove_naservice_ tables name nodeopt;
         raise Not_found
     | _ ->
@@ -187,17 +187,14 @@ let make_naservice
        let rec f = function
          | [] -> raise Not_found
          | (table, table_name)::l ->
-           Ocsigen_messages.debug
-             (fun () -> String.concat ""
-               ["--Eliom: I'm looking for a non attached service in the ";
-                table_name; ":"]);
+           Lwt_log.ign_info_f ~section
+             "Looking for a non attached service in the %s:" table_name;
            try return (find_aux table)
            with Not_found -> f l
        in f tables
      with Not_found ->
        begin
-         Ocsigen_messages.debug2
-           "--Eliom: Looking for a non attached service in the global table";
+         Lwt_log.ign_info ~section "Looking for a non attached service in the global table";
          return
            (find_naservice now sitedata.Eliom_common.global_services
               (Eliom_common.na_key_serv_of_req si.Eliom_common.si_nonatt_info),
@@ -213,8 +210,7 @@ let make_naservice
        | Eliom_common.RNa_post_ _
        | Eliom_common.RNa_post' _ ->
          (*VVV (Some, Some) or (_, Some)? *)
-         Ocsigen_messages.debug2
-           "--Eliom: Link too old to a non-attached POST coservice. I will try without POST parameters:";
+         Lwt_log.ign_info ~section "Link too old to a non-attached POST coservice. Try without POST parameters:";
          Polytables.set
            (Ocsigen_request_info.request_cache ri.request_info)
            Eliom_common.eliom_link_too_old
@@ -242,8 +238,7 @@ let make_naservice
 
        | Eliom_common.RNa_get_ _
        | Eliom_common.RNa_get' _ ->
-         Ocsigen_messages.debug2
-           "--Eliom: Link too old. I will try without non-attached parameters:";
+         Lwt_log.ign_info ~section "Link too old. Try without non-attached parameters:";
          Polytables.set
            (Ocsigen_request_info.request_cache ri.request_info)
            Eliom_common.eliom_link_too_old
@@ -274,8 +269,7 @@ let make_naservice
   let sp =
     Eliom_common.make_server_params sitedata info None fullsessname in
   naservice sp >>= fun r ->
-  Ocsigen_messages.debug2
-    "--Eliom: Non attached page found and generated successfully";
+  Lwt_log.ign_info ~section "Non attached page found and generated successfully";
   (match expdate with
     | Some (timeout, e) -> e := timeout +. now
     | None -> ());

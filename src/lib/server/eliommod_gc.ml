@@ -20,6 +20,8 @@
 
 (** Garbage collection of services and session data *)
 
+
+let section = Lwt_log.Section.make "eliom:gc"
 open Eliom_lib
 
 open Lwt
@@ -180,7 +182,7 @@ let service_session_gc sitedata =
         Lwt_unix.sleep t >>= fun () ->
         let service_cookie_table = sitedata.Eliom_common.session_services in
         let now = Unix.time () in
-        Ocsigen_messages.debug2 "--Eliom: GC of service sessions";
+        Lwt_log.ign_info ~section "GC of service sessions";
 
         (* public continuation tables: *)
         (if tables.Eliom_common.table_contains_services_with_timeout
@@ -249,7 +251,7 @@ let data_session_gc sitedata =
         let not_bound_in_data_tables =
           sitedata.Eliom_common.not_bound_in_data_tables in
         let now = Unix.time () in
-        Ocsigen_messages.debug2 "--Eliom: GC of session data";
+        Lwt_log.ign_info ~section "GC of session data";
         (* private continuation tables: *)
         Eliom_common.SessionCookies.fold
           (fun k (sessname,
@@ -280,7 +282,7 @@ let data_session_gc sitedata =
                           We can remove it. *)
                        if scope <> `Session
                        then
-                         Ocsigen_messages.errlog
+                         Lwt_log.ign_error ~section
                            "Eliom: Group associated to IP has scope different from `Session. Please report the problem.";
                        Eliommod_sessiongroups.Data.remove session_group_node;
                        (* See also the finalisers in Eliommod_sessiongroups
@@ -306,7 +308,7 @@ let persistent_session_gc sitedata =
         Lwt_unix.sleep t >>=
         (fun () ->
           let now = Unix.time () in
-          Ocsigen_messages.debug2 "--Eliom: GC of persistent sessions";
+          Lwt_log.ign_info ~section "GC of persistent sessions";
           (Ocsipersist.iter_table
              (fun k ((scope, _, _), exp, _, session_group) ->
                (match exp with

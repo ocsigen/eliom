@@ -79,24 +79,24 @@ module String : sig
   val remove_eols : string -> string
 end
 
-val error : ('a, unit, string, 'b) format4 -> 'a
-val error_any : _ -> ('a, unit, string, 'b) format4 -> 'a
-val alert : ('a, unit, string, unit) format4 -> 'a
-val jsalert : Js.js_string Js.t -> unit
-val debug : ('a, unit, string, unit) format4 -> 'a
-val debug_var : string -> 'a -> unit
-val debug_exn : ('a, unit, string, unit) format4 -> exn -> 'a
-val jsdebug : 'a -> unit
-val trace : ('a, unit, string, unit) format4 -> 'a
+val debug : [`use_lwt_log_instead]
 
-val lwt_ignore : ?message:string -> unit Lwt.t -> unit
+module Lwt_log : sig
+  include module type of Lwt_log_js
+  with type level = Lwt_log_core.level
+   and type logger = Lwt_log_core.logger
+   and type section = Lwt_log_core.section
+   and type template = Lwt_log_core.template
+   and module Section = Lwt_log_core.Section
+  val raise_error : ?inspect: 'v -> ?exn : exn -> ?section : section -> ?location : (string * int * int) -> ?logger : logger -> string -> 'a
+  val raise_error_f : ?inspect: 'v -> ?exn : exn ->  ?section : section -> ?location : (string * int * int) -> ?logger : logger -> ('a, unit, string, 'any) format4 -> 'a
+  val eliom : section
+end
 
 val encode_form_value : 'a -> string
 val unmarshal_js : Js.js_string Js.t -> 'a
 
 val encode_header_value : 'a -> string
-
-val js_array_to_list : 'a Js.js_array Js.t -> 'a list
 
 (**/**)
 

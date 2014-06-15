@@ -26,6 +26,8 @@
 
 open Lwt
 
+let section = Lwt_log.Section.make "eliom:admin"
+
 (*
 (** Iterator on volatile sessions *)
 let iter_sessions f =
@@ -123,8 +125,7 @@ let close_all_persistent_states
 
 (* Update the expiration date for all service sessions                      *)
 let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
-  Ocsigen_messages.debug2
-    "--Eliom: Updating expiration date for all service sessions";
+  Lwt_log.ign_notice ~section "Updating expiration date for all service sessions";
   match new_glob_timeout with
   | Some t when t <= 0. ->
       (* We close all sessions but those with user defined timeout *)
@@ -156,8 +157,7 @@ let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
 
 (* Update the expiration date for all in memory data sessions                *)
 let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
-  Ocsigen_messages.debug2
-    "--Eliom: Updating expiration date for all data sessions";
+  Lwt_log.ign_notice ~section "Updating expiration date for all data sessions";
   match new_glob_timeout with
   | Some t when t <= 0. ->
       (* We close all sessions but those with user defined timeout *)
@@ -188,8 +188,7 @@ let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
 
 (* Update the expiration date for all sessions                               *)
 let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
-  Ocsigen_messages.debug2
-    "--Eliom: Updating expiration date for all persistent sessions";
+  Lwt_log.ign_notice ~section "Updating expiration date for all persistent sessions";
   match new_glob_timeout with
   | Some t when t <= 0. ->
       (* We close all sessions but those with user defined timeout *)
@@ -220,5 +219,3 @@ let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
         else return ()
       )
       (Lazy.force Eliommod_persess.persistent_cookies_table)
-
-

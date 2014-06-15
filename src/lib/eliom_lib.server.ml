@@ -14,8 +14,6 @@ include (Eliom_lib_base : module type of Eliom_lib_base
 
 let escaped_value_escaped_value = fst
 
-let debug f = Printf.ksprintf (fun s -> Printf.eprintf "%s\n%!" s) f
-
 let to_json ?typ v =
   match typ with
     | Some typ -> Deriving_Json.to_string typ v
@@ -25,6 +23,11 @@ let of_json ?typ s =
   match typ with
     | Some typ -> Deriving_Json.from_string typ s
     | None -> assert false (* implemented only client side *)
+
+module Lwt_log = struct
+  include Lwt_log
+  let eliom = Section.make "eliom"
+end
 
 
 type file_info = Ocsigen_extensions.file_info
@@ -90,3 +93,6 @@ type global_data = poly Eliom_lib_base.global_data * Eliom_wrap.unwrapper
 let global_data_unwrapper =
   Eliom_wrap.create_unwrapper
     (Eliom_wrap.id_of_int global_data_unwrap_id_int)
+
+
+let debug = `use_lwt_log_instead
