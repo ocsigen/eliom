@@ -1,5 +1,4 @@
-OCB=ocamlbuild -use-ocamlfind \
-               -plugin-tag "package(eliom.ocamlbuild,js_of_ocaml.ocamlbuild)"
+OCB=eliombuild
 
 client:
 	$(OCB) testsuite_client.js
