@@ -928,7 +928,7 @@ let servreq =
        let ri = Eliom_request_info.get_ri () in
        let ri = Ocsigen_extensions.ri_of_url "tuto/" ri in
        Ocsigen_extensions.compute_result ri >>= fun result ->
-       let stream = fst result.Ocsigen_http_frame.res_stream in
+       let stream = fst (Ocsigen_http_frame.Result.stream result) in
        Ocsigen_stream.string_of_stream (Ocsigen_config.get_maxrequestbodysizeinmemory ()) (Ocsigen_stream.get stream) >>= fun s ->
        (* Here use an XML parser,
           or send the stream directly using an appropriate Eliom_mkreg module *)
@@ -944,7 +944,7 @@ let servreqloop =
     (fun () () ->
        let ri = Eliom_request_info.get_ri () in
        Ocsigen_extensions.compute_result ri >>= fun result ->
-       let stream = fst result.Ocsigen_http_frame.res_stream in
+       let stream = fst (Ocsigen_http_frame.Result.stream result)in
        Ocsigen_stream.string_of_stream (Ocsigen_config.get_maxrequestbodysizeinmemory ()) (Ocsigen_stream.get stream) >>= fun s ->
        (* Here use an XML parser,
           or send the stream directly using an appropriate Eliom_mkreg module *)

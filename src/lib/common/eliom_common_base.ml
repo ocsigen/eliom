@@ -212,6 +212,7 @@ type sess_info =
     {si_other_get_params: (string * string) list;
      si_all_get_params: (string * string) list;
      si_all_post_params: (string * string) list option;
+     si_all_file_params: (string * file_info) list option;
 
      si_service_session_cookies: string Full_state_name_table.t;
      (* the session service cookies sent by the request *)
@@ -250,6 +251,7 @@ type sess_info =
      si_na_get_params: (string * string) list Lazy.t;
      si_nl_get_params: (string * string) list String.Table.t;
      si_nl_post_params: (string * string) list String.Table.t;
+     si_nl_file_params: (string * file_info) list String.Table.t;
      si_persistent_nl_get_params: (string * string) list String.Table.t Lazy.t;
 
      si_all_get_but_na_nl: (string * string) list Lazy.t;

@@ -82,6 +82,11 @@ let get_files_sp sp =
       Some (f
         (sp.Eliom_common.sp_request.request_config.uploaddir,
          sp.Eliom_common.sp_request.request_config.maxuploadfilesize))
+
+let get_all_files () =
+  let sp = Eliom_common.get_sp () in
+  sp.Eliom_common.sp_si.Eliom_common.si_all_file_params
+
 let get_all_post_params () =
   let sp = Eliom_common.get_sp () in
   sp.Eliom_common.sp_si.Eliom_common.si_all_post_params

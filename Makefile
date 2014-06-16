@@ -49,6 +49,7 @@ links:
 	-mkdir -p local/var/run
 	-mkdir -p local/var/log
 	-mkdir -p local/var/lib
+	-mkdir -p local/tmp
 
 fifo:
 	[ -p local/var/run/eliom_command ] || \

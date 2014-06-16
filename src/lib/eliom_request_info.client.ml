@@ -177,6 +177,7 @@ let default_request_data =
       {Eliom_common.si_other_get_params = [];
        si_all_get_params = [];
        si_all_post_params = None;
+       si_all_file_params = None;
 
        si_service_session_cookies = Eliom_common.Full_state_name_table.empty;
        si_data_session_cookies = Eliom_common.Full_state_name_table.empty;
@@ -199,6 +200,7 @@ let default_request_data =
        si_na_get_params = lazy [];
        si_nl_get_params = Eliom_lib.String.Table.empty;
        si_nl_post_params = Eliom_lib.String.Table.empty;
+       si_nl_file_params = Eliom_lib.String.Table.empty;
        si_persistent_nl_get_params = lazy String.Table.empty;
 
        si_all_get_but_na_nl = lazy [];
