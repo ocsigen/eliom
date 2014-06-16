@@ -234,7 +234,9 @@ val get_post_params : unit -> (string * string) list Lwt.t option
    (even those that are for another service) *)
 val get_all_post_params : unit -> (string * string) list option
 
-
+(** returns all files in he HTTP request
+   (even those that are for another service) *)
+val get_all_files : unit -> (string * file_info) list option
 
 
 
@@ -377,6 +379,7 @@ val get_ssl_sp : Eliom_common.server_params -> bool
 val get_ri_sp : Eliom_common.server_params -> Ocsigen_extensions.request_info
 val get_post_params_sp : Eliom_common.server_params -> (string * string) list Lwt.t option
 val get_files_sp : Eliom_common.server_params -> (string * file_info) list Lwt.t option
+
 val get_suffix_sp : Eliom_common.server_params -> Url.path option
 val get_request_cache_sp : Eliom_common.server_params -> Polytables.t
 val get_request_id_sp : Eliom_common.server_params -> int64
