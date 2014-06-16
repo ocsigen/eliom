@@ -66,35 +66,34 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
     else
       not (Tags.mem no_extra_syntaxes (tags_of_pathname src))
 
-  let get_syntaxes src =
-    "thread" :: "syntax(camlp4o)"
-    :: (if use_all_syntaxes src then syntaxes else [])
-    @ Tags.elements (tags_of_pathname src)
+  let get_syntaxes with_eliom_syntax eliom_syntax src =
+    let s = if use_all_syntaxes src then syntaxes else [] in
+    let s = if with_eliom_syntax then I.with_package eliom_syntax :: s else s in
+    let s = if s = [] then [] else "thread" :: "syntax(camlp4o)" :: s in
+    s @ Tags.elements (tags_of_pathname src)
 
-  let copy_rule_server =
+  let copy_rule_server ?(eliom=true) =
     copy_rule_with_header
       (fun env dir name src file ->
          let path = env "%(path)" in
          tag_file_inside_rule file
            ( I.with_package "eliom.server"
-             :: I.with_package "eliom.syntax.server"
-             :: get_syntaxes src
+             :: get_syntaxes eliom "eliom.syntax.server" src
            );
-         flag_infer ~file ~name ~path;
+         if eliom then flag_infer ~file ~name ~path;
          Pathname.define_context dir [path];
          Pathname.define_context path [dir];
       )
 
-  let copy_rule_client =
+  let copy_rule_client ?(eliom=true) =
     copy_rule_with_header
       (fun env dir name src file ->
          let path = env "%(path)" in
          tag_file_inside_rule file
            ( I.with_package "eliom.client"
-             :: I.with_package "eliom.syntax.client"
-             :: get_syntaxes src
+             :: get_syntaxes eliom "eliom.syntax.client" src
            );
-         flag_infer ~file ~name ~path;
+         if eliom then flag_infer ~file ~name ~path;
          Pathname.define_context dir [path];
       )
 
@@ -105,8 +104,7 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
          let server_dir = Pathname.concat path Eliom.server_dir in
          let server_file = Pathname.concat server_dir name in
          tag_file_inside_rule file
-           ( I.with_package"eliom.syntax.type"
-             :: get_syntaxes src
+           ( get_syntaxes true "eliom.syntax.type" src
              @ Tags.elements (tags_of_pathname server_file)
            );
          Pathname.define_context dir [path; server_dir];
@@ -114,6 +112,7 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
 
   let init = function
     | After_rules ->
+        (* eliom files *)
         copy_rule_server "*.eliom -> **/_server/*.ml"
           ~deps:["%(path)/" ^ Eliom.type_dir ^ "/%(file).inferred.mli"]
           "%(path)/%(file).eliom"
@@ -144,6 +143,25 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
           "%(file).eliom" (Eliom.client_dir ^ "/%(file:<*>).ml");
         copy_rule_client "*.eliomi -> _client/*.mli"
           "%(file).eliomi" (Eliom.client_dir ^ "/%(file:<*>).mli");
+
+        (* copy {shared,client,server}.ml rules *)
+        copy_rule_client ~eliom:false "client.ml -> .ml"
+          "%(path)/%(file).client.ml" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).ml");
+        copy_rule_client ~eliom:false "client.mli -> .mli"
+          "%(path)/%(file).client.mli" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).mli");
+        copy_rule_client ~eliom:false "shared.ml -> client.ml"
+          "%(path)/%(file).shared.ml" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).ml");
+        copy_rule_client ~eliom:false "shared -> client.mli"
+          "%(path)/%(file).shared.mli" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).mli");
+        copy_rule_server ~eliom:false "server.ml -> .ml"
+          "%(path)/%(file).server.ml" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).ml");
+        copy_rule_server ~eliom:false "server.mli -> .mli"
+          "%(path)/%(file).server.mli" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).mli");
+        copy_rule_server ~eliom:false "shared.ml -> server.ml"
+          "%(path)/%(file).shared.ml" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).ml");
+        copy_rule_server ~eliom:false "shared.ml -> server.mli"
+          "%(path)/%(file).shared.mli" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).mli");
+
     | _ -> ()
 
   let dispatcher ?oasis_executables hook =

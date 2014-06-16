@@ -19,13 +19,20 @@ end
 
 module Eliom_plugin = Ocamlbuild_eliom.MakeIntern(Intern)(Conf)
 
-
 let _ = dispatch (fun x ->
   Eliom_plugin.dispatcher x;
   match x with
   | After_rules ->
     Doc.init ();
-    Util.init ();
+
+    let link source dest =
+      rule (Printf.sprintf "%s -> %s" source dest) ~dep:source ~prod:dest
+        (fun env _ -> Cmd (S [A"ln"; A"-f";P (env source); P (env dest)])) in
+
+    (* add I pflag *)
+    pflag [ "ocaml"; "compile"] "I" (fun x -> S[A"-I"; A x]);
+    pflag [ "ocaml"; "infer_interface"] "I" (fun x -> S[A"-I"; A x]);
+    pflag [ "ocaml"; "doc"] "I" (fun x -> S[A"-I"; A x]);
 
     (* add syntax extension *)
     let add_syntax ?needs name path =
@@ -53,28 +60,10 @@ let _ = dispatch (fun x ->
     add_syntax ~needs "pa_eliom_client_server" "src/syntax/";
     add_syntax ~needs "pa_eliom_type_filter" "src/syntax/";
 
-    (* copy rules *)
-    Util.copy_rule_with_header "client.ml -> .ml"
-      "%(path)/%(file).client.ml" ("%(path)/" ^ Conf.client_dir ^ "/%(file:<*>).ml");
-    Util.copy_rule_with_header "client.mli -> .mli"
-      "%(path)/%(file).client.mli" ("%(path)/" ^ Conf.client_dir ^ "/%(file:<*>).mli");
-    Util.copy_rule_with_header "common -> client.ml"
-      "%(path)/common/%(file).ml" ("%(path)/" ^ Conf.client_dir ^ "/%(file:<*>).ml");
-    Util.copy_rule_with_header "common -> client.mli"
-      "%(path)/common/%(file).mli" ("%(path)/" ^ Conf.client_dir ^ "/%(file:<*>).mli");
-    Util.copy_rule_with_header "server.ml -> .ml"
-      "%(path)/%(file).server.ml" ("%(path)/" ^ Conf.server_dir ^ "/%(file:<*>).ml");
-    Util.copy_rule_with_header "server.mli -> .mli"
-      "%(path)/%(file).server.mli" ("%(path)/" ^ Conf.server_dir ^ "/%(file:<*>).mli");
-    Util.copy_rule_with_header "common -> server.ml"
-      "%(path)/common/%(file).ml" ("%(path)/" ^ Conf.server_dir ^ "/%(file:<*>).ml");
-    Util.copy_rule_with_header "common -> server.mli"
-      "%(path)/common/%(file).mli" ("%(path)/" ^ Conf.server_dir ^ "/%(file:<*>).mli");
-
     (* link executable aliases *)
     let link_exec f t =
-      Util.link (Printf.sprintf "src/tools/%s.byte" f)   (Printf.sprintf "src/tools/%s.byte" t);
-      Util.link (Printf.sprintf "src/tools/%s.native" f) (Printf.sprintf "src/tools/%s.native" t);
+      link (Printf.sprintf "src/tools/%s.byte" f)   (Printf.sprintf "src/tools/%s.byte" t);
+      link (Printf.sprintf "src/tools/%s.native" f) (Printf.sprintf "src/tools/%s.native" t);
     in
     List.iter (link_exec "eliomc") [ "eliomopt";"eliomcp";"js_of_eliom"];
     link_exec "distillery" "eliom-distillery";

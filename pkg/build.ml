@@ -64,6 +64,7 @@ let () =
     Pkg.bin ~auto:true "src/tools/eliomopt";
     Pkg.bin ~auto:true "src/tools/js_of_eliom";
     Pkg.bin ~auto:true ~dst:"eliom-distillery" "src/tools/distillery";
+    Pkg.bin ~auto:true "src/ocamlbuild/eliombuild";
 
     (* SYNTAXES *)
     Pkg.lib ~exts:exts_syntax ~dst:"syntax/pa_eliom_seed" "src/syntax/pa_eliom_seed";
