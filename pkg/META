@@ -55,6 +55,7 @@ package "client" (
               js_of_ocaml,
 	    	      js_of_ocaml.deriving,
               js_of_ocaml.tyxml,
+              js_of_ocaml.weak,
               lwt.react,
               react,
               reactiveData,
@@ -62,7 +63,6 @@ package "client" (
   archive(byte) = "client.cma eliom_client_main.cmo"
 
   linkopts(javascript) = "+eliom.client/eliom_client.js"
-  linkopts(javascript) += "+js_of_ocaml/weak.js"
   linkopts(javascript) += "+js_of_ocaml/classlist.js"
 )
 
