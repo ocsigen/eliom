@@ -13,6 +13,7 @@ local/etc
 local/var/run
 local/var/lib
 local/var/log
+local/tmp
 local/var/www/distillery-*
 
 tests/distillery/distillery-*
