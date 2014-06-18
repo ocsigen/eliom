@@ -188,13 +188,13 @@ let get_syntax_package pkg =
   then
     if !type_conv && List.mem "deriving.syntax.std" resolved_pkgs
     then begin
-      Printf.eprintf "Error: '-type_conv' option enabled but some packages require the deriving syntax to be loaded.\n%!";
+      Printf.eprintf "Error: '-type-conv' option enabled but some packages require the deriving syntax to be loaded.\n%!";
       explain_who_need ~find:"deriving.syntax.std" ~from:all_pkgs;
       exit 1
     end
     else if not !type_conv && List.mem "type_conv" resolved_pkgs
     then begin
-      Printf.eprintf "Error: '-type_conv' option disabled but some packages require the type_conv syntax to be loaded.\n%!";
+      Printf.eprintf "Error: '-type-conv' option disabled but some packages require the type_conv syntax to be loaded.\n%!";
       explain_who_need ~find:"type_conv" ~from:all_pkgs;
       exit 1
     end
