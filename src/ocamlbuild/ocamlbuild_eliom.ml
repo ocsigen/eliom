@@ -104,7 +104,8 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
          let server_dir = Pathname.concat path Eliom.server_dir in
          let server_file = Pathname.concat server_dir name in
          tag_file_inside_rule file
-           ( get_syntaxes true "eliom.syntax.type" src
+           ( I.with_package "eliom.server"
+             :: get_syntaxes true "eliom.syntax.type" src
              @ Tags.elements (tags_of_pathname server_file)
            );
          Pathname.define_context dir [path; server_dir];
