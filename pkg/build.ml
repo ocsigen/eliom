@@ -63,6 +63,8 @@ let () =
     Pkg.bin ~auto:true "src/tools/eliomdep";
     Pkg.bin ~auto:true "src/tools/eliomopt";
     Pkg.bin ~auto:true "src/tools/js_of_eliom";
+    Pkg.bin ~auto:true "src/tools/eliomdoc";
+    Pkg.bin ~auto:true "src/tools/eliompp";
     Pkg.bin ~auto:true ~dst:"eliom-distillery" "src/tools/distillery";
     Pkg.bin ~auto:true "src/ocamlbuild/eliombuild";
 
