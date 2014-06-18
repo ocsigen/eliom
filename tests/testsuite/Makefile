@@ -15,5 +15,5 @@ build-%:
 	$(OCB) $*
 
 clean:
-	$(OCB) -clean
+	rm -Rf _build
 distclean: clean
