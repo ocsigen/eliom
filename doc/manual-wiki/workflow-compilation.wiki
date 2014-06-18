@@ -105,15 +105,15 @@ let () = Ocamlbuild_plugin.dispatch M.dispatcher
 >>
 (if you are using OASIS, see also the next section)
 
-The {{{client_dir}}} {{{server_dir}}} and {{{type_dir}}} values are
+The {{{client_dir}}}, {{{server_dir}}} and {{{type_dir}}} values are
 directories (relative the location of each eliom file) that are used for
 client, server and type parts.  The plugin will dispatch the {{{.eliom}}} in
 three {{{.ml}}} and one {{{.js}}} files in server, client and type
-dir. 
-For example, if you have {{{test.eliom}}} in src, it will be dispatched to
-{{{_build/server/test.ml}}}, {{{_build/client/test.ml}}} and {{{src/type/test.ml}}} (same for {{{.eliomi}}} files).
-Don't forget to mention the good one in your {{{.mllib}}} file
-(for a server lib, it will be {{{src/server/Test}}}).
+dir.  For example, if you have {{{test.eliom}}} in {{{./src/}}}, it will be
+dispatched to {{{./_build/src/server/test.ml}}},
+{{{./_build/src/client/test.ml}}} and {{{./_build/src/type/test.ml}}} (same for
+{{{.eliomi}}} files).  Don't forget to mention the good one in your
+{{{.mllib}}} file (for a server lib, it will be {{{src/server/Test}}}).
 
 Then in a file named {{{_tags}}} (at the root of your project), add:
 
