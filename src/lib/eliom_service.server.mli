@@ -475,7 +475,7 @@ module Syntax_helpers : sig
       executed in a global_data
       (cf. {!Eliom_service.Syntax_helpers.set_global}) or in the
       request_data when executed in a request. *)
-  val client_value : int64 -> 'args -> 'a client_value
+  val client_value : ?pos:Eliom_lib.pos -> int64 -> 'args -> 'a client_value
 
   (** All client values created between [set_global true] and
       [set_global false] are considered global client values
@@ -505,7 +505,7 @@ module Syntax_helpers : sig
 
       Called in parallel with <<a_api
       subproject="client"|Eliom_client.Syntax_helpers.open_client_section>>.  *)
-  val close_client_section : string -> (string * (unit -> poly)) list -> unit
+  val close_client_section : string -> (string * (unit -> poly) * Eliom_lib.pos * string option) list -> unit
 
   (** Convert any value to a {! Eliom_lib.escaped_value} for usage in
       the [args] argument to {! Eliom_service.Syntax_helpers.client_value}. *)

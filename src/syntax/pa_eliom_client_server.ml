@@ -56,12 +56,12 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let push_injection, flush_injections =
     let module String_set = Set.Make (String) in
-    let buffer = ref [] in
+    let buffer : (_ * _ * _) list ref = ref [] in
     let gen_ids = ref String_set.empty in
-    let push gen_id orig_expr =
+    let push ?ident gen_id orig_expr =
       if not (String_set.mem gen_id !gen_ids) then
         (gen_ids := String_set.add gen_id !gen_ids;
-         buffer := (gen_id, orig_expr) :: !buffer)
+         buffer := (gen_id, orig_expr,ident) :: !buffer)
     in
     let flush_all () =
       let res = List.rev !buffer in
@@ -73,13 +73,13 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     let flush () =
       let all = flush_all () in
       let novel =
-        let is_fresh (gen_id, _) =
+        let is_fresh (gen_id, _,_) =
           not (String_set.mem gen_id !global_known)
         in
         List.filter is_fresh all
       in
       List.iter
-        (function gen_id, _ ->
+        (function gen_id, _, _ ->
            global_known := String_set.add gen_id !global_known)
         novel;
       all
@@ -93,7 +93,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     let _loc = Loc.ghost in
     let bindings =
       List.map
-        (fun (gen_id, orig_expr) ->
+        (fun (gen_id, orig_expr,_) ->
            <:patt< $lid:gen_id$ >>,
            orig_expr)
         injections
@@ -112,8 +112,13 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     let _loc = Loc.ghost in
     let injection_list =
       List.fold_right
-        (fun (gen_id, expr) sofar ->
-           <:expr< ($str:gen_id$, (fun () -> Eliom_lib.to_poly $lid:gen_id$)) :: $sofar$ >>)
+        (fun (gen_id, expr, ident) sofar ->
+           let loc1 = Ast.loc_of_expr expr in
+           let loc1_expr = Helpers.position loc1 in
+           let ident = match ident with
+             | None -> <:expr<None>>
+             | Some i -> <:expr< Some $str:i$>> in
+           <:expr< ($str:gen_id$, (fun () -> Eliom_lib.to_poly $lid:gen_id$), $loc1_expr$, $ident$) :: $sofar$ >>)
         injections <:expr< [] >>
     in
     <:str_item<
@@ -160,13 +165,14 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
                        or from its type annotation"
                 | typ -> typ
     in
+    let _loc = Ast.loc_of_expr orig_expr in
     <:expr@loc<
-      (Eliom_service.Syntax_helpers.client_value $`int64:gen_num$
+      (Eliom_service.Syntax_helpers.client_value ~pos:($Helpers.position _loc$) $`int64:gen_num$
          $Helpers.expr_tuple (flush_escaped_bindings ())$
        : $typ$ Eliom_pervasives.client_value)
     >>
 
-  let escape_inject context_level orig_expr gen_id =
+  let escape_inject context_level ?ident orig_expr gen_id =
     let open Pa_eliom_seed in
     match context_level with
       | Escaped_in_client_value_in _ ->
@@ -174,7 +180,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           let _loc = Loc.ghost in
           <:expr< >>
       | Injected_in _ ->
-          push_injection gen_id orig_expr;
+          push_injection ?ident gen_id orig_expr;
           let _loc = Ast.loc_of_expr orig_expr in
           <:expr< $lid:gen_id$ >>
 
