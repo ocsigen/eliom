@@ -217,44 +217,54 @@ let do_request_data request_data =
      only eliom files. *)
   String_map.iter
     (fun _ { server_sections_data; client_sections_data } ->
+       let missing_client_values = ref [] in
+       let missing_injections = ref [] in
        Queue.iter
          (function
            | [] -> ()
-           | data ->
-             Printf.ksprintf (fun s -> Firebug.console##error(Js.string s))
-               "Code generating the following client values is not linked on the client:\n%s"
-               (String.concat "\n"
-                  (List.map
-                     (fun d ->
-                        match d.loc with
-                        | None -> Printf.sprintf "%Ld/%Ld" d.closure_id d.instance_id
-                        | Some pos -> Printf.sprintf "%Ld/%Ld at %s" d.closure_id d.instance_id (Eliom_lib.pos_to_string pos)
-                     )
-                     data)))
-         server_sections_data;
+           | data -> missing_client_values := List.rev_append data !missing_client_values) server_sections_data;
        Queue.iter
          (function
            | [] -> ()
-           | data ->
-             Printf.ksprintf (fun s -> Firebug.console##error(Js.string s))
-               "Code containing the following injections is not linked on the client:\n%s"
-               (String.concat "\n"
-                  (List.map (fun d ->
-                       match d.Eliom_lib_base.injection_ident,d.Eliom_lib_base.injection_loc with
-                       | None,None -> d.Eliom_lib_base.injection_id
-                       | Some i,None -> Printf.sprintf "%s (%s)" d.Eliom_lib_base.injection_id i
-                       | Some i,Some pos ->
-                         Printf.sprintf "%s (%s at %s)"
-                           d.Eliom_lib_base.injection_id
-                           i
-                           (Eliom_lib.pos_to_string pos)
-                       | None, Some pos ->
-                         Printf.sprintf "%s (at %s)"
-                           d.Eliom_lib_base.injection_id
+           | data -> missing_injections := List.rev_append data !missing_injections) client_sections_data;
 
-                           (Eliom_lib.pos_to_string pos)
-                     ) data)))
-         client_sections_data)
+       (match !missing_client_values with
+        | [] -> ()
+        | l ->
+          Printf.ksprintf (fun s -> Firebug.console##error(Js.string s))
+            "Code generating the following client values is not linked on the client:\n%s"
+            (String.concat "\n"
+               (List.rev_map
+                  (fun d ->
+                     match d.loc with
+                     | None -> Printf.sprintf "%Ld/%Ld" d.closure_id d.instance_id
+                     | Some pos -> Printf.sprintf "%Ld/%Ld at %s" d.closure_id d.instance_id (Eliom_lib.pos_to_string pos)
+                  )
+                  l
+               )));
+       (match !missing_injections with
+        | [] -> ()
+        | l ->
+          Printf.ksprintf (fun s -> Firebug.console##error(Js.string s))
+            "Code containing the following injections is not linked on the client:\n%s"
+            (String.concat "\n"
+               (List.rev_map (fun d ->
+                    let id =
+                      try
+                        Scanf.sscanf
+                          d.Eliom_lib_base.injection_id
+                          "__eliom__injected_ident__reserved_name__%019d__%d"
+                          (Printf.sprintf "%d/%d")
+                      with _ -> d.Eliom_lib_base.injection_id in
+                    match d.Eliom_lib_base.injection_ident,d.Eliom_lib_base.injection_loc with
+                    | None,None -> id
+                    | Some i,None -> Printf.sprintf "%s (%s)" id i
+                    | Some i,Some pos ->
+                      Printf.sprintf "%s (%s at %s)" id i (Eliom_lib.pos_to_string pos)
+                    | None, Some pos ->
+                      Printf.sprintf "%s (at %s)" id (Eliom_lib.pos_to_string pos)
+                  ) l)));
+    )
     !global_data;
   List.iter Client_value.initialize request_data
 
