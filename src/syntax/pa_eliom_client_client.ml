@@ -211,7 +211,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
             $lid:gen_id$ $args$
           >>
 
-  let escape_inject context_level orig_expr gen_id =
+  let escape_inject context_level ?ident orig_expr gen_id =
     let open Pa_eliom_seed in
     let _loc = Ast.loc_of_expr orig_expr in
     let assert_no_variables typ =
@@ -240,8 +240,11 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
               (get_type Helpers.find_injected_ident_type gen_id)
           in
           assert_no_variables typ;
+          let ident = match ident with
+            | None -> <:expr<None>>
+            | Some i -> <:expr<Some $str:i$>> in
           <:expr<
-            (Eliom_client.Syntax_helpers.get_injection $str:gen_id$ : $typ$)
+            (Eliom_client.Syntax_helpers.get_injection ?ident:($ident$) ~pos:($Helpers.position _loc$) $str:gen_id$ : $typ$)
           >>
 
   let implem _ sil = sil

@@ -119,14 +119,17 @@ end = struct
     in
     from_poly value
 
-  let initialize {closure_id; instance_id; args} =
+  let initialize {closure_id; loc; instance_id; args} =
     trace "Initialize client value %Ld/%Ld" closure_id instance_id;
     let closure =
       try
         Client_closure.find ~closure_id
       with Not_found ->
-        Eliom_lib.error "Client closure %Ld not found (is the module linked on the client?)"
-          closure_id
+        let pos = match loc with
+          | None -> ""
+          | Some p -> Printf.sprintf "(%s)" (Eliom_lib.pos_to_string p) in
+        Eliom_lib.error "Client closure %Ld not found %s: is the module linked on the client?"
+          closure_id pos
     in
     let value = closure args in
     Eliom_unwrap.late_unwrap_value
@@ -148,19 +151,24 @@ end = struct
 end
 
 module Injection : sig
-  val get : name:string -> _
+  val get : ?ident:string -> ?pos:Eliom_lib.pos -> name:string -> _
   val initialize : injection_datum -> unit
 end = struct
 
   let table = JsTable.create ()
 
-  let get ~name =
+  let get ?ident ?pos ~name =
     trace "Get injection %s" name;
     from_poly
       (Js.Optdef.get
          (JsTable.find table (Js.string name))
          (fun () ->
-            error "Did not find injection %S" name))
+            let name = match ident,pos with
+              | None,None -> Printf.sprintf "%s" name
+              | None,Some pos -> Printf.sprintf "%s at %s" name (Eliom_lib.pos_to_string pos)
+              | Some i,None -> Printf.sprintf "%s (%s)" name i
+              | Some i,Some pos -> Printf.sprintf "%s (%s at %s)" name i (Eliom_lib.pos_to_string pos) in
+            error "Did not find injection %s" name))
 
   let initialize { Eliom_lib_base.injection_id; injection_value } =
     trace "Initialize injection %s" injection_id;
@@ -214,10 +222,14 @@ let do_request_data request_data =
            | [] -> ()
            | data ->
              Printf.ksprintf (fun s -> Firebug.console##error(Js.string s))
-               "Code generating the following client values is not linked on the client: %s"
-               (String.concat ","
+               "Code generating the following client values is not linked on the client:\n%s"
+               (String.concat "\n"
                   (List.map
-                     (fun d -> Printf.sprintf "%Ld/%Ld" d.closure_id d.instance_id)
+                     (fun d ->
+                        match d.loc with
+                        | None -> Printf.sprintf "%Ld/%Ld" d.closure_id d.instance_id
+                        | Some pos -> Printf.sprintf "%Ld/%Ld at %s" d.closure_id d.instance_id (Eliom_lib.pos_to_string pos)
+                     )
                      data)))
          server_sections_data;
        Queue.iter
@@ -225,9 +237,23 @@ let do_request_data request_data =
            | [] -> ()
            | data ->
              Printf.ksprintf (fun s -> Firebug.console##error(Js.string s))
-               "Code containing the following injections is not linked on the client: %s"
-               (String.concat ","
-                  (List.map (fun d -> d.Eliom_lib_base.injection_id) data)))
+               "Code containing the following injections is not linked on the client:\n%s"
+               (String.concat "\n"
+                  (List.map (fun d ->
+                       match d.Eliom_lib_base.injection_ident,d.Eliom_lib_base.injection_loc with
+                       | None,None -> d.Eliom_lib_base.injection_id
+                       | Some i,None -> Printf.sprintf "%s (%s)" d.Eliom_lib_base.injection_id i
+                       | Some i,Some pos ->
+                         Printf.sprintf "%s (%s at %s)"
+                           d.Eliom_lib_base.injection_id
+                           i
+                           (Eliom_lib.pos_to_string pos)
+                       | None, Some pos ->
+                         Printf.sprintf "%s (at %s)"
+                           d.Eliom_lib_base.injection_id
+
+                           (Eliom_lib.pos_to_string pos)
+                     ) data)))
          client_sections_data)
     !global_data;
   List.iter Client_value.initialize request_data
@@ -1695,7 +1721,7 @@ module Syntax_helpers = struct
   let get_escaped_value =
     from_poly
 
-  let get_injection name =
-    Injection.get ~name
+  let get_injection ?ident ?pos name =
+    Injection.get ?ident ?pos ~name
 
 end

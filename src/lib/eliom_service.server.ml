@@ -298,8 +298,8 @@ let close_client_section ~compilation_unit_id injection_data =
   let { client_sections_data } =
     get_compilation_unit_global_data compilation_unit_id
   in
-  let injection_datum (injection_id, injection_value) =
-    { injection_id; injection_value }
+  let injection_datum (injection_id, injection_value, loc, ident) =
+    { injection_id; injection_value ; injection_loc = Some loc; injection_ident = ident }
   in
   Queue.push (List.map injection_datum injection_data)
     client_sections_data
@@ -332,8 +332,8 @@ let get_request_data () =
 
 let is_global = ref false
 
-let register_client_value_data ~closure_id ~instance_id ~args =
-  let client_value_datum = { closure_id; instance_id; args } in
+let register_client_value_data ?loc ~closure_id ~instance_id ~args () =
+  let client_value_datum = { closure_id; instance_id; args; loc } in
   if !is_global then
     if Eliom_common.get_sp_option () = None then
       current_server_section_data :=
@@ -350,9 +350,9 @@ module Syntax_helpers = struct
 
   let escaped_value = Eliom_lib.escaped_value
 
-  let client_value closure_id args =
+  let client_value ?pos closure_id args =
     let instance_id = Eliom_lib.fresh_ix () in
-    register_client_value_data ~closure_id ~instance_id ~args:(to_poly args);
+    register_client_value_data ?loc:pos ~closure_id ~instance_id ~args:(to_poly args) ();
     create_client_value
       (Client_value_server_repr.create closure_id instance_id)
 
