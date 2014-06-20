@@ -1342,8 +1342,12 @@ module Ocaml = struct
   module M = Eliom_mkreg.MakeRegister(Ocaml_reg_base)
 
   let prepare_data data =
-    let ecs_request_data = Eliom_service.get_request_data () in
-(*     debug_client_value_data (debug "%s") client_value_data; *)
+    let ecs_request_data =
+      let data = Eliom_service.get_request_data () in
+      if (Ocsigen_config.get_debugmode())
+      then data
+      else List.map (fun x -> {x with loc = None}) data in
+    (*     debug_client_value_data (debug "%s") client_value_data; *)
     let r = { Eliom_types.
               ecs_request_data;
               ecs_data = data } in
