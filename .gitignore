@@ -17,3 +17,5 @@ local/tmp
 local/var/www/distillery-*
 
 tests/distillery/distillery-*
+
+ocsigen.org-data
