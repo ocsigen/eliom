@@ -38,6 +38,7 @@ commit-doc: wikidoc
 	cp -Rf doc/manual-wiki/* ocsigen.org-data/eliom/dev/manual/src/
 	cp -Rf _build/src/lib/server/api.wikidocdir/* ocsigen.org-data/eliom/dev/api/server/
 	cp -Rf _build/src/lib/client/api.wikidocdir/* ocsigen.org-data/eliom/dev/api/client/
+	cp -Rf doc/index.wiki ocsigen.org-data/eliom/dev/api/
 	cd ocsigen.org-data \
 	&& git add eliom/dev \
 	&& ( (git commit -m `git log -n 1 --format=eliom-%h` && git push) || echo "nothing to update" )
