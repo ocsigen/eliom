@@ -1342,8 +1342,12 @@ module Ocaml = struct
   module M = Eliom_mkreg.MakeRegister(Ocaml_reg_base)
 
   let prepare_data data =
-    let ecs_request_data = Eliom_service.get_request_data () in
-(*     debug_client_value_data (debug "%s") client_value_data; *)
+    let ecs_request_data =
+      let data = Eliom_service.get_request_data () in
+      if (Ocsigen_config.get_debugmode())
+      then data
+      else List.map (fun x -> {x with loc = None}) data in
+    (*     debug_client_value_data (debug "%s") client_value_data; *)
     let r = { Eliom_types.
               ecs_request_data;
               ecs_data = data } in
@@ -1907,23 +1911,44 @@ module Eliom_appl_reg_make_param
       (Eliom_content.Html5.Id.create_named_elt ~id:eliom_appl_data_script_id
 	 (Eliom_content.Html5.F.script (cdata_script script)))
 
-  let make_eliom_data_script ~sp page =
+  let queue_map (q : 'a Queue.t) (f : 'a -> 'b) : 'b Queue.t =
+    let q2 = Queue.create () in
+    Queue.iter (fun x ->
+        let y = f x in
+        Queue.add y q2
+      ) q;
+    q2
+
+  let make_eliom_data_script ?(keep_debug=false) ~sp page =
 
     let ejs_global_data =
+      let open Eliom_lib_base in
       if is_initial_request () then
-        Some (Eliom_service.get_global_data (), global_data_unwrapper)
+        let data = Eliom_service.get_global_data () in
+        let data =
+          if keep_debug
+          then data
+          else String_map.map (fun {server_sections_data;client_sections_data} ->
+              { server_sections_data = queue_map server_sections_data
+                    (
+                      List.map (fun x -> {x with loc = None})
+                    );
+                client_sections_data = queue_map client_sections_data
+                    (
+                      List.map (fun x -> {x with injection_loc = None;
+                                                 injection_ident = None})
+                    )
+              }) data
+        in
+        Some (data, global_data_unwrapper)
       else None
     in
-    let ejs_request_data = Eliom_service.get_request_data () in
-
-(*
-    debug "Global data %s"
-      (match ejs_global_data with
-         | Some (global_data, _) -> global_data_to_string global_data
-         | None -> "-/-");
-    debug "Request data %s"
-      (request_data_to_string ejs_request_data);
- *)
+    let ejs_request_data =
+      let data = Eliom_service.get_request_data () in
+      if keep_debug
+      then data
+      else List.map (fun x -> {x with loc = None}) data
+    in
 
     (* wrapping of values could create eliom references that may
        create cookies that needs to be sent along the page. Hence,
@@ -2007,7 +2032,9 @@ module Eliom_appl_reg_make_param
       Eliom_content.Html5.F.html ~a:html_attribs
 	(Eliom_content.Html5.F.head ~a:head_attribs title head_elts)
 	body in
-    lwt data_script = make_eliom_data_script ~sp fake_page in
+  lwt data_script = make_eliom_data_script
+    ~keep_debug:(Ocsigen_config.get_debugmode ())
+    ~sp fake_page in
 
     (* Then we replace the faked data_script *)
     let head_elts =

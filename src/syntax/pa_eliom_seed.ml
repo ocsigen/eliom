@@ -90,6 +90,9 @@ module type Helpers  = sig
 
   val patt_tuple : string list -> Ast.patt
   val expr_tuple : Ast.expr list -> Ast.expr
+
+  val string_of_ident : Ast.ident -> string option
+  val position : Ast.Loc.t -> Ast.expr
 end
 
 type client_value_context = [ `Server | `Shared ]
@@ -132,7 +135,7 @@ module type Pass = functor (Helpers: Helpers) -> sig
   val client_value_expr: Ast.ctyp option -> client_value_context -> Ast.expr -> Int64.t -> string -> Ast.Loc.t -> Ast.expr
 
   (** How to handle escaped "%ident" inside "{{ ... }}". *)
-  val escape_inject: escape_inject -> Ast.expr -> string -> Ast.expr
+  val escape_inject: escape_inject -> ?ident: string -> Ast.expr -> string -> Ast.expr
 
   val implem : Ast.Loc.t -> Ast.str_item list -> Ast.str_item list
 
@@ -206,7 +209,30 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
              | Ast.TyQuo (x, var) when var.[0] = '_' ->
                Ast.TyQuo (x, (String.sub var 1 (String.length var - 1)) ^ pfix)
              | ty -> ty in
-           (Ast.map_ctyp map)#ctyp ty
+          (Ast.map_ctyp map)#ctyp ty
+
+      let rec string_of_ident =
+        function
+        | <:ident< $lid:s$ >> -> Some s
+        | <:ident< $uid:s$ >> -> Some s
+        | <:ident< $i1$.$i2$ >> ->
+          begin match (string_of_ident i1), (string_of_ident i2) with
+            | Some s1,Some s2 -> Some (s1 ^ "." ^ s2)
+            | _ -> None end
+        | _ -> None
+
+      let lexing_position l =
+        let _loc = Loc.ghost in
+        <:expr<
+          { Lexing.pos_fname = $str:l.Lexing.pos_fname$;
+            Lexing.pos_lnum = $int:string_of_int l.Lexing.pos_lnum$;
+            Lexing.pos_bol = $int:string_of_int l.Lexing.pos_bol$;
+            Lexing.pos_cnum = $int:string_of_int l.Lexing.pos_cnum$; }>>
+
+      let position _loc =
+        let start = Loc.start_pos _loc in
+        let stop = Loc.stop_pos _loc in
+        <:expr< ($lexing_position start$ , $lexing_position stop$) >>
 
       let escaped_ident_prefix = "__eliom__escaped_ident__reserved_name__"
       let escaped_ident_prefix_len = String.length escaped_ident_prefix
@@ -694,7 +720,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                          | Injected_in _ ->
                              gen_injected_ident _loc id
                      in
-                     Pass.escape_inject context <:expr< $id:id$ >> gen_id)
+                     Pass.escape_inject context ?ident:(Helpers.string_of_ident id) <:expr< $id:id$ >> gen_id)
                 "The syntax \"%%ident\" is not allowed in %s."
                 (level_to_string !current_level)
 

@@ -40,12 +40,14 @@ module Int_map : Map_S with type key = int
 module String_map : Map_S with type key = string
 
 (**/**)
+type pos = Lexing.position * Lexing.position
+val pos_to_string : pos -> string
 
 (** Server representation of client values.
     Developer-visible functions should always operate on
     {% <<a_api subproject="server" | type Eliom_pervasives.client_value >> %} or
     {% <<a_api subproject="server" | type Eliom_lib.client_value >> %}.
-  *)
+*)
 module Client_value_server_repr : sig
   type +'a t
   val create: closure_id:int64 -> instance_id:int64 -> _ t
@@ -169,6 +171,7 @@ val client_value_unwrap_id_int : int
 type client_value_datum = {
   closure_id : int64;
   instance_id : int64;
+  loc : pos option;
   args : poly;
 }
 
@@ -176,12 +179,14 @@ type client_value_datum = {
 type 'injection_value injection_datum = {
   injection_id : string;
   injection_value : 'injection_value;
+  injection_loc : pos option;
+  injection_ident : string option;
 }
 
 (** Data for initializing client values and injections of one compilation unit *)
 type 'injection_value compilation_unit_global_data = {
-  mutable server_sections_data : (client_value_datum list) Queue.t;
-  mutable client_sections_data : ('injection_value injection_datum list) Queue.t;
+  server_sections_data : (client_value_datum list) Queue.t;
+  client_sections_data : ('injection_value injection_datum list) Queue.t;
 }
 
 (** Data for initializing client values and injection of the client
@@ -195,6 +200,3 @@ type 'injection_value global_data =
 type request_data = client_value_datum list
 
 val global_data_unwrap_id_int : int
-
-val global_data_to_string : _ global_data -> string
-val request_data_to_string : request_data -> string
