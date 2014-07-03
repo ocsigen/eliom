@@ -18,6 +18,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(* ocamldoc/camlp4 hack ? : need an open first ? *)
+open Eliom_lib
 
 (** This module defines the functor to use to creates modules
    generating form widgets for your own types of pages.
