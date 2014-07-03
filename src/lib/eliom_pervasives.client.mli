@@ -1,6 +1,4 @@
 
-open Eliom_pervasives_base
-
 (** This module is automatically open by {v eliomc v} and {v js_of_eliom v}. *)
 
 (** {2 Client values}

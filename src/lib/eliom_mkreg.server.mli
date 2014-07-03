@@ -24,13 +24,6 @@
    It is used for example in {!Eliom_registration}.
  *)
 
-open Eliom_lib
-
-open Ocsigen_extensions
-open Eliom_state
-open Eliom_parameter
-open Eliom_service
-
 (** {2 Creating modules to register services for one type of pages} *)
 module type REG_PARAM = "sigs/eliom_reg_param.mli"
 

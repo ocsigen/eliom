@@ -1,5 +1,4 @@
 
-open Eliom_lib
 
 type non_ocaml_service = Eliom_service.non_ocaml_service
 type appl_service = Eliom_service.appl_service

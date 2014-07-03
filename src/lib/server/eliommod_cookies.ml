@@ -19,9 +19,7 @@
  *)
 
 (** Cookie management                                                       *)
-
 open Eliom_lib
-
 open Lwt
 open Ocsigen_cookies
 

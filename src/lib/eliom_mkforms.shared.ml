@@ -20,7 +20,7 @@
 
 open Eliom_lib
 
-open Lwt
+
 open Eliom_parameter
 open Eliom_service
 open Eliom_uri
@@ -513,7 +513,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
        | Some c -> Pages.make_option ~a ~selected:sel
            ~value:(string_of cv) c)
     in
-    let rec make_optg = function
+    let make_optg = function
       | Option o -> Pages.select_content_of_option (make_opt o)
       | Optgroup (a, label, og1, ogl) ->
           Pages.make_optgroup

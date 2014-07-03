@@ -24,7 +24,6 @@ open Simplexmlparser
 open Ocsigen_http_frame
 open Cryptokit
 open Eliom_parameter
-open Eliom_content.Html5
 open Ocsigen_headers
 module Base64 = Netencoding.Base64
 
@@ -281,7 +280,7 @@ let associations = ref M.empty
 let associate endpoint =
   let secret = gen_new_secret () in
   let parse args =
-    let rec aux v (name, value) =
+    let aux v (name, value) =
       match name with
         | "expires_in" -> { v with t_delay = float_of_string value +. Unix.time () }
         | "enc_mac_key" -> { v with t_mac_crypted = Base64.decode value }

@@ -37,7 +37,7 @@ let get_persistentsessiongcfrequency () = !persistentsessiongcfrequency
 
 
 (* garbage collection of timeouted sessions *)
-let rec gc_timeouted_services now tables =
+let gc_timeouted_services now tables =
   let rec aux t filename direltr thr =
     thr >>= fun () -> (* we wait for the previous one to be completed *)
     match !direltr with

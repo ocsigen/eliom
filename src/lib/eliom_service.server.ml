@@ -22,9 +22,6 @@ open Eliom_lib
 open Eliom_state
 open Eliom_parameter
 
-open Lwt
-open Lazy
-
 (* Manipulation of services - this code can be use only on server side. *)
 
 include Eliom_service_base

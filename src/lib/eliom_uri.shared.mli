@@ -20,10 +20,7 @@
 
 (** Low-level functions for relative or absolute URL calculation. *)
 
-open Lwt
-
 open Eliom_lib
-open Eliom_common
 open Eliom_parameter
 open Eliom_service
 

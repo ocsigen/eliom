@@ -73,7 +73,7 @@ let copy_file ?(env=[]) ?(preds=[]) src_name dst_name =
           else ifdef_pred rest
       in
       match ifdef_pred preds with
-        | Some pred ->
+        | Some _pred ->
           ifdef_stack := true :: !ifdef_stack;
           false
         | None ->

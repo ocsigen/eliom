@@ -21,10 +21,6 @@
 {client{
 
   include Eliom_content_
-
-  open Html5
-  open Html5.F
-
   let force_link = ()
 
 }}
