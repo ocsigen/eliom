@@ -29,21 +29,6 @@ man: $(BUILDER)
 	$(BUILDER) $(DOCS_MAN)
 alldoc: man wikidoc doc
 
-commit-doc: wikidoc
-	ls ocsigen.org-data || git clone git@github.com:ocsigen/ocsigen.org-data.git
-	cd ocsigen.org-data && git fetch && git reset --hard origin/master
-	mkdir -p ocsigen.org-data/eliom/dev/manual/src
-	mkdir -p ocsigen.org-data/eliom/dev/api/client
-	mkdir -p ocsigen.org-data/eliom/dev/api/server
-	cp -Rf doc/manual-wiki/* ocsigen.org-data/eliom/dev/manual/src/
-	cp -Rf _build/src/lib/server/api.wikidocdir/* ocsigen.org-data/eliom/dev/api/server/
-	cp -Rf _build/src/lib/client/api.wikidocdir/* ocsigen.org-data/eliom/dev/api/client/
-	cp -Rf doc/index.wiki ocsigen.org-data/eliom/dev/api/
-	cd ocsigen.org-data \
-	&& git add eliom/dev \
-	&& ( (git commit -m `git log -n 1 --format=eliom-%h` && git push) || echo "nothing to update" )
-
-
 ### Testing ###
 
 .PHONY: run.local run.opt.local links
