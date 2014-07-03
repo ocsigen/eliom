@@ -5,6 +5,9 @@ let usage () =
   Printf.eprintf "Usage: %s <options> <files>\n" (Filename.basename Sys.argv.(0));
   Printf.eprintf "SPECIFIC OPTIONS:\n";
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
+  Printf.eprintf "  -no-autoload\t\tDo not load commonly used syntax extensions (deriving, lwt, js_of_ocaml, tyxml)\n";
+  Printf.eprintf "  -type-conv\t\tUse type_conv syntax extensions instead of deriving one\n";
+  Printf.eprintf "\t\t\tIt has no effect if used in conjunction with -no-autoload\n";
   if !kind <> `Client then
     Printf.eprintf "  -infer\t\tOnly infer the type of values sent by the server\n";
   Printf.eprintf "  -dir <dir>\t\tThe directory for generated files (default %S)\n"
@@ -277,7 +280,7 @@ let rec process_option () =
     match Sys.argv.(!i) with
     | "-help" | "--help" -> usage ()
     | "-no-autoload" -> autoload_predef := false; incr i
-    | "-type_conv" -> type_conv := true; incr i
+    | "-type-conv" -> type_conv := true; incr i
     | "-i" -> set_mode `Interface; incr i
     | "-c" -> set_mode `Compile; incr i
     | "-a" -> set_mode `Library; incr i
