@@ -451,7 +451,7 @@ let iter_prop node name f =
   | Some n -> f n
   | None -> ()
 
-let rebuild_rattrib node ra = match Xml.racontent ra with
+let rec rebuild_rattrib node ra = match Xml.racontent ra with
   | Xml.RA a ->
     let name = Xml.aname ra in
     let v = rebuild_attrib_val a in
@@ -474,7 +474,15 @@ let rebuild_rattrib node ra = match Xml.racontent ra with
       node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat " " l))
   | Xml.RALazyStrL (Xml.Comma, l) ->
     node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat "," l))
-  | Xml.RAClient _ -> assert false
+  | Xml.RAClient (_,_,cv) ->
+    let closure_id = Client_value_server_repr.closure_id cv in
+    let instance_id = Client_value_server_repr.instance_id cv in
+    try
+      let value = Client_value.find ~closure_id ~instance_id in
+      rebuild_rattrib node (Eliom_lib.from_poly value : Xml.attrib)
+    with Not_found ->
+      error "Client value %Ld/%Ld not found as client attrib" closure_id instance_id
+
 
 
 (* == Associate data to state of the History API.
