@@ -430,6 +430,11 @@ module Html5 : sig
         The resulting HTML5 [elt] can then be used like anyother HTML5 [elt] *)
     val node : 'a elt React.signal Eliom_pervasives.client_value -> 'a elt
 
+    (** [filter_attrib att on] returns an attrib that
+        behave like [att] when [on] is [true]
+        and behave like if there was no attribute when [on] is [false] *)
+    val filter_attrib : 'a attrib -> bool React.signal -> 'a attrib
+
     (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
