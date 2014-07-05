@@ -1,6 +1,7 @@
 
 ===== 4.0 (2014-05) =====
 
+
  * Main new features:
  ** Reactive DOM elements (thanks to a contribution by besport.com)
  ** PUT and DELETE services for RESTful Eliom Applications
