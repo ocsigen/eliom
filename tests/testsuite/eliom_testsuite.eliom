@@ -10,6 +10,8 @@ open Eliom_testsuite1
 open Eliom_testsuite2
 open Eliom_testsuite3
 
+
+let _ = Eliom_testsuite6.mainservice
 (* Main page for the test suite *)
 let _ = Eliom_registration.Html5.register Eliom_testsuite_base.main
   (fun () () ->
