@@ -76,12 +76,29 @@ let wrap_and_marshall_poly : poly -> string =
     string_escape (Marshal.to_string (Eliom_wrap.wrap poly) [])
 
 type +'a client_value =
-    'a Client_value_server_repr.t * Eliom_wrap.unwrapper
+  'a Client_value_server_repr.t * Eliom_wrap.unwrapper
 
 let create_client_value cv =
   cv, Eliom_wrap.create_unwrapper
         (Eliom_wrap.id_of_int
            Eliom_lib_base.client_value_unwrap_id_int)
+
+type +'a shared_value =
+  {
+    sh_server : 'a;
+    sh_client : 'a client_value;
+    sh_mark : 'a shared_value Eliom_wrap.wrapper
+  }
+
+let internal_wrap (x : 'a shared_value) : 'a client_value = x.sh_client
+
+let shared_value_mark () : 'a shared_value Eliom_wrap.wrapper =
+  Eliom_wrap.create_wrapper internal_wrap
+
+let create_shared_value (v : 'a) (c : 'a client_value) : 'a shared_value =
+  {sh_server=v; sh_client=c; sh_mark=(shared_value_mark ())}
+
+let shared_value_server_repr x = x.sh_server,x.sh_client
 
 let client_value_server_repr = fst
 
