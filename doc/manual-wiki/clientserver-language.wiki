@@ -239,25 +239,6 @@ Note that for some reason, it is impossible to use the {{{ {...{ }} }}} and
 circumvent this limitation by declaring a function at toplevel with all the
 {{{%variable}}} as parameters.
 
-Furthermore, the type of an injected value must not contain any type
-variable when regarding only the server code. Otherwise
-{{{js_of_eliom}}} fails with the error message "The type of an
-injected value must not contain any type variable". If you encounter
-this error the type of the injected value has to be constrained in the
-server code, for example:
-
-<<code language="ocaml"|
-{server{
-  let f x =
-    ignore {unit{
-      ignore %x (* Error, type of x is 'a. *)
-    }}
-  let g (x:int) =
-    ignore {unit{
-      ignore %x (* OK, type of x is int. *)
-    }}
-}}
->>
 
 ==@@id="implementation"@@ Technical Documentation: Implementation of the language extensions
 
