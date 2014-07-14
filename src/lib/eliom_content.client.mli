@@ -140,7 +140,8 @@ module Svg : sig
         [create_named_elt ~id:(new_elt_id ()) elt]. *)
     val create_global_elt: 'a elt -> 'a elt
 
-    (** [get_element id] returns the HTML element in the DOM with the given [id].
+    (** [get_element id] returns the HTML element in the DOM with the given
+        [id].
         @raises Not_found if the [id] was no such element. *)
     val get_element : 'a id -> 'a elt
   end
@@ -483,6 +484,12 @@ module Html5 : sig
     (** The function [create_named_elt elt] is equivalent to
         [create_named_elt ~id:(new_elt_id ()) elt]. *)
     val create_global_elt: 'a elt -> 'a elt
+
+    (** [get_element id] returns the HTML element in the DOM with the given
+        [id].
+        @raises Not_found if the [id] was no such element. *)
+    val get_element : 'a id -> 'a elt
+
   end
 
   module Custom_data : sig

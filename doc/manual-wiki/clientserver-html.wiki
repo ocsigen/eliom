@@ -166,7 +166,7 @@ HTTP request: hence, sending an element built with
 {{{Eliom_content.Html5.D}}} in
 two different pages will produce two distinct nodes. If you want to
 define a element reference that is preserved accross the different
-page of an application, you must explicitely name this element with
+pages of an application, you must explicitely name this element with
 the function <<a_api subproject="server" | val
 Eliom_content.Html5.Id.create_named_elt >>, that takes as parameters an
 element identifier and a non named element.  Element identifiers are
