@@ -5,11 +5,11 @@ opam install --verbose eliom
 
 do_build_doc () {
   make wikidoc
-  cp -Rf doc/manual-wiki/*.wiki $(MANUAL_SRC_DIR)
-  mkdir -p $(API_DIR)/server $(API_DIR)/client
-  cp -Rf _build/src/lib/server/api.wikidocdir/*.wiki $(API_DIR)/server/
-  cp -Rf _build/src/lib/client/api.wikidocdir/*.wiki $(API_DIR)/client/
-  cp -Rf doc/index.wiki $(API_DIR)/
+  cp -Rf doc/manual-wiki/*.wiki ${(MANUAL_SRC_DIR)}
+  mkdir -p ${(API_DIR)}/server ${(API_DIR)}/client
+  cp -Rf _build/src/lib/server/api.wikidocdir/*.wiki ${(API_DIR)}/server/
+  cp -Rf _build/src/lib/client/api.wikidocdir/*.wiki ${(API_DIR)}/client/
+  cp -Rf doc/index.wiki ${(API_DIR)}/
 }
 
 do_remove () {
