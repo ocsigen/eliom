@@ -200,30 +200,252 @@ let new_sitedata =
 (****************************************************************************)
 (****************************************************************************)
 (****************************************************************************)
-open Simplexmlparser
 
+let compute_timeout_attrs :
+  bool ->
+    ?value:float ->
+    ?hierarchy_name:string option ->
+    ?level:[> `Client_process | `Session ] ->
+    unit ->
+    (float option * string option option * [> `Client_process | `Session ]) =
+  fun global_option ?value ?hierarchy_name ?(level = `Session) () ->
+    (value, hierarchy_name, level)
+
+let compute_options
+  global_option
+  (set_volatile_timeout,
+   set_data_timeout,
+   set_service_timeout,
+   set_persistent_timeout,
+   set_max_service_sessions_per_group,
+   set_max_service_sessions_per_subnet,
+   set_max_data_sessions_per_group,
+   set_max_data_sessions_per_subnet,
+   set_max_persistent_sessions_per_group,
+   set_max_service_tab_sessions_per_group,
+   set_max_data_tab_sessions_per_group,
+   set_max_persistent_tab_sessions_per_group,
+   set_max_services_per_sessions,
+   set_max_services_per_subnet,
+   set_max_volatile_groups_per_site,
+   set_ipv4mask,
+   set_ipv6mask)
+  ?volatile_timeout
+  ?data_timeout
+  ?service_timeout
+  ?persistent_timeout
+  ?max_volatile_sessions_per_group
+  ?max_service_sessions_per_group
+  ?max_data_sessions_per_group
+  ?max_volatile_sessions_per_subnet
+  ?max_service_sessions_per_subnet
+  ?max_data_sessions_per_subnet
+  ?max_persistent_sessions_per_group
+  ?max_volatile_tab_sessions_per_group
+  ?max_service_tab_sessions_per_group
+  ?max_data_tab_sessions_per_group
+  ?max_persistent_tab_sessions_per_group
+  ?max_anonymous_coservices_per_session
+  ?max_anonymous_coservices_per_subnet
+  ?max_volatile_groups_per_site
+  ?ipv4_subnet_mask
+  ?ipv6_subnet_mask () =
+    let ( *> ) a f = match a with
+      | None -> ()
+      | Some a -> f a
+    in
+    volatile_timeout *>
+      (fun (value, hierarchy_name, level)
+       -> compute_timeout_attrs global_option ?value ?hierarchy_name ~level ()
+          |> fun (t, snoo, ct) -> set_volatile_timeout ct snoo t);
+    data_timeout *>
+      (fun (value, hierarchy_name, level)
+       -> compute_timeout_attrs global_option ?value ?hierarchy_name ~level ()
+          |> fun (t, snoo, ct) -> set_data_timeout ct snoo t);
+    service_timeout *>
+      (fun (value, hierarchy_name, level)
+       -> compute_timeout_attrs global_option ?value ?hierarchy_name ~level ()
+          |> fun (t, snoo, ct) -> set_service_timeout ct snoo t);
+    persistent_timeout *>
+      (fun (value, hierarchy_name, level)
+       -> compute_timeout_attrs global_option ?value ?hierarchy_name ~level ()
+          |> fun (t, snoo, ct) -> set_persistent_timeout ct snoo t);
+    max_volatile_sessions_per_group *>
+      (fun i -> set_max_service_sessions_per_group i;
+                set_max_data_sessions_per_group i);
+    max_service_sessions_per_group *> set_max_service_sessions_per_group;
+    max_data_sessions_per_group *> set_max_data_sessions_per_group;
+    max_volatile_sessions_per_subnet *>
+      (fun i -> set_max_service_sessions_per_subnet i;
+                set_max_data_sessions_per_subnet i);
+    max_service_sessions_per_subnet *> set_max_service_sessions_per_subnet;
+    max_data_sessions_per_subnet *> set_max_data_sessions_per_subnet;
+    max_persistent_sessions_per_group *> set_max_persistent_sessions_per_group;
+    max_volatile_tab_sessions_per_group *>
+      (fun i -> set_max_service_tab_sessions_per_group i;
+                set_max_data_tab_sessions_per_group i);
+    max_service_tab_sessions_per_group *>
+      set_max_service_tab_sessions_per_group;
+    max_data_tab_sessions_per_group *> set_max_data_tab_sessions_per_group;
+    max_persistent_tab_sessions_per_group *>
+      set_max_persistent_tab_sessions_per_group;
+    max_anonymous_coservices_per_session *> set_max_services_per_sessions;
+    max_anonymous_coservices_per_subnet *> set_max_services_per_subnet;
+    max_volatile_groups_per_site *> set_max_volatile_groups_per_site;
+    ipv4_subnet_mask *> set_ipv4mask;
+    ipv6_subnet_mask *> set_ipv6mask
+
+(** init : initilization of eliommod
+ *
+ * @param session_gc_frequency : Time between two garbage collections of
+ * session, in seconds (default 3600). The value [None] means no GC of session.
+ *
+ * @param persistent_session_gc_frequency : Time between two garbage collections
+ * of persistent sessions, in seconds (default 86400.). The value [None] means
+ * no GC of session.
+ *
+ * @param service_session_gc_frequency : Like [session_gc_frequency], but for
+ * service sessions only.
+ *
+ * @param data_session_gc_frequency : Like [session_gc_frequency], but for
+ * "in memory data" sessions only.
+ *
+ * @param volatile_timeout : The default timeout for volatile (in memory)
+ * states. (None, _, _) means that the state will never finish. Note that each
+ * eliom module may set its own default, that will override this one.
+ *
+ * @param persistent_timeout : Idem for persistent state data.
+ *
+ * @param data_timeout : Like timeout, but for in memory data states only (not
+ * service states).
+ *
+ * @param service_timeout : Like timeout, but for service states only (not in
+ * memory data states).
+ *
+ * @param max_volatile_sessions_per_group : A limitation of the number of
+ * service and data sessions in a session group (default: 5)
+ *
+ * @param max_service_sessions_per_group : A limitation of the number of service
+ * sessions in a session group (default: 5)
+ *
+ * @param max_data_sessions_per_group : A limitation of the number of data
+ * sessions in a session group (default: 5)
+ *
+ * @param max_volatile_sessions_per_subnet : A limitation of the number of
+ * service and date sessions in a session subnet (default: 1000000)
+ *
+ * @param max_service_sessions_per_subnet : A limitation of the number of
+ * service sessions in a session subnet (default: 1000000)
+ *
+ * @param max_data_sessions_per_subnet : A limitation of the number of data
+ * sessions in a session subnet (default: 1000000)
+ *
+ * @param max_persistent_sessions_per_group : A limitation of the number of
+ * persistent services in a session group (default: 5)
+ *
+ * @param max_volatile_tab_sessions_per_group : A limitation of the number of
+ * service and data tab sessions in a session group (default: 50)
+ *
+ * @param max_service_tab_sessions_per_group : A limitation of the number of
+ * service tab sessions in a session group (default: 50)
+ *
+ * @param max_data_tab_sessions_per_group : A limitation of the number of data
+ * tab sessions in a session group (default: 50)
+ *
+ * @param max_persistent_tab_sessions_per_group : A limitation of the number of
+ * persistent tab sessions in a session group (default: 50)
+ *
+ * @param max_anonymous_coservice_per_session : A limitation of the number of
+ * anonymous coservice in session (default: 500000)
+ *
+ * @param max_anonymous_coservices_per_subnet : A limitation of the number of
+ * anonymous coservice in session (default: 1000)
+ *
+ * @param max_volatile_groups_per_site : A limitation of the number o volatile
+ * groups per site (default: 1000000)
+ *
+ * @param ipv4_subnet_mask : mask for sub network IPv4 (default: 16)
+ *
+ * @param ipv6_subnet_mask : mask for sub network Ipv6 (default: 56)
+*)
+
+let init
+  ?session_gc_frequency
+  ?persistent_session_gc_frequency
+  ?service_session_gc_frequency
+  ?data_session_gc_frequency
+  ?volatile_timeout
+  ?persistent_timeout
+  ?data_timeout
+  ?service_timeout
+  ?max_volatile_sessions_per_group
+  ?max_service_sessions_per_group
+  ?max_data_sessions_per_group
+  ?max_volatile_sessions_per_subnet
+  ?max_service_sessions_per_subnet
+  ?max_data_sessions_per_subnet
+  ?max_persistent_sessions_per_group
+  ?max_volatile_tab_sessions_per_group
+  ?max_service_tab_sessions_per_group
+  ?max_data_tab_sessions_per_group
+  ?max_persistent_tab_sessions_per_group
+  ?max_anonymous_coservices_per_session
+  ?max_anonymous_coservices_per_subnet
+  ?max_volatile_groups_per_site
+  ?ipv4_subnet_mask
+  ?ipv6_subnet_mask () =
+    let ( *> ) a f = match a with
+      | None -> ()
+      | Some a -> f a
+    in
+    session_gc_frequency *>
+      (fun f -> Eliommod_gc.set_servicesessiongcfrequency f;
+                Eliommod_gc.set_datasessiongcfrequency f);
+    service_session_gc_frequency *> Eliommod_gc.set_servicesessiongcfrequency;
+    data_session_gc_frequency *> Eliommod_gc.set_datasessiongcfrequency;
+    persistent_session_gc_frequency *>
+      Eliommod_gc.set_persistentsessiongcfrequency;
+    compute_options false
+      ((fun ct _ -> Eliommod_timeouts.set_default_volatile_timeout ct),
+       (fun ct _ -> Eliommod_timeouts.set_default_data_timeout ct),
+       (fun ct _ -> Eliommod_timeouts.set_default_service_timeout ct),
+       (fun ct _ -> Eliommod_timeouts.set_default_persistent_timeout ct),
+       (fun v -> default_max_service_sessions_per_group := v),
+       (fun v -> default_max_service_sessions_per_subnet := v),
+       (fun v -> default_max_data_sessions_per_group := v),
+       (fun v -> default_max_data_sessions_per_subnet := v),
+       (fun v -> default_max_persistent_sessions_per_group := v),
+       (fun v -> default_max_service_tab_sessions_per_group := v),
+       (fun v -> default_max_data_tab_sessions_per_group := v),
+       (fun v -> default_max_persistent_tab_sessions_per_group := v),
+       (fun v -> default_max_anonymous_services_per_session := v),
+       (fun v -> default_max_anonymous_services_per_subnet := v),
+       (fun v -> default_max_volatile_groups_per_site := v),
+       (fun v -> Eliom_common.ipv4mask := v),
+       (fun v -> Eliom_common.ipv6mask := v))
+      ?max_volatile_sessions_per_group
+      ?max_service_sessions_per_group
+      ?max_data_sessions_per_group
+      ?max_volatile_sessions_per_subnet
+      ?max_service_sessions_per_subnet
+      ?max_data_sessions_per_subnet
+      ?max_persistent_sessions_per_group
+      ?max_volatile_tab_sessions_per_group
+      ?max_service_tab_sessions_per_group
+      ?max_data_tab_sessions_per_group
+      ?max_persistent_tab_sessions_per_group
+      ?max_anonymous_coservices_per_session
+      ?max_anonymous_coservices_per_subnet
+      ?max_volatile_groups_per_site
+      ?ipv4_subnet_mask
+      ?ipv6_subnet_mask ()
+
+open Simplexmlparser
 
 (* The following is common to global config and site config *)
 let parse_eliom_option
     globaloption
-    (set_volatile_timeout,
-     set_data_timeout,
-     set_service_timeout,
-     set_persistent_timeout,
-     set_max_service_sessions_per_group,
-     set_max_service_sessions_per_subnet,
-     set_max_data_sessions_per_group,
-     set_max_data_sessions_per_subnet,
-     set_max_persistent_sessions_per_group,
-     set_max_service_tab_sessions_per_group,
-     set_max_data_tab_sessions_per_group,
-     set_max_persistent_tab_sessions_per_group,
-     set_max_services_per_session,
-     set_max_services_per_subnet,
-     set_max_volatile_groups_per_site,
-     set_ipv4mask,
-     set_ipv6mask
-    )
+    setters_options
     =
   let parse_timeout_attrs tn attrs =
     let rec aux ((v, sn, ct) as res) = function
@@ -270,137 +492,134 @@ let parse_eliom_option
         (Error_in_config_file
            ("Eliom: sessionname attribute not allowed for "^tn^" tag in global configuration"))
   in
+  let compute_options = compute_options globaloption setters_options in
   function
   | (Element ("volatiletimeout", attrs, [])) ->
-      let t, snoo, ct = parse_timeout_attrs "volatiletimeout" attrs in
-      set_volatile_timeout ct snoo (t : float option)
+      let volatile_timeout = parse_timeout_attrs "volatiletimeout" attrs in
+      compute_options ~volatile_timeout ()
   | (Element ("datatimeout", attrs, [])) ->
-      let t, snoo, ct = parse_timeout_attrs "datatimeout" attrs in
-      set_data_timeout ct snoo t
+      let data_timeout = parse_timeout_attrs "datatimeout" attrs in
+      compute_options ~data_timeout ()
   | (Element ("servicetimeout", attrs, [])) ->
-      let t, snoo, ct = parse_timeout_attrs "servicetimeout" attrs in
-      set_service_timeout ct snoo t
+      let service_timeout = parse_timeout_attrs "servicetimeout" attrs in
+      compute_options ~service_timeout ()
   | (Element ("persistenttimeout", attrs, [])) ->
-      let t, snoo, ct = parse_timeout_attrs "persistenttimeout" attrs in
-      set_persistent_timeout ct snoo t
-
+      let persistent_timeout = parse_timeout_attrs "persistenttimeout" attrs in
+      compute_options ~persistent_timeout ()
   | (Element ("maxvolatilesessionspergroup", [("value", v)], [])) ->
       (try
-         let i = int_of_string v in
-         set_max_service_sessions_per_group i;
-         set_max_data_sessions_per_group i
+         let max_volatile_sessions_per_group = int_of_string v in
+         compute_options ~max_volatile_sessions_per_group ()
        with Failure _ ->
          raise
            (Error_in_config_file
               ("Eliom: Wrong attribute value for maxvolatilesessionspergroup tag")))
   | (Element ("maxservicesessionspergroup", [("value", v)], [])) ->
       (try
-         let i = int_of_string v in
-         set_max_service_sessions_per_group i;
+         let max_service_sessions_per_group = int_of_string v in
+         compute_options ~max_service_sessions_per_group ()
        with Failure _ ->
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for maxservicesessionspergroup tag")))
   | (Element ("maxdatasessionspergroup", [("value", v)], [])) ->
       (try
-         let i = int_of_string v in
-         set_max_data_sessions_per_group i
+         let max_data_sessions_per_group = int_of_string v in
+         compute_options ~max_data_sessions_per_group ()
        with Failure _ ->
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for maxdatasessionspergroup tag")))
   | (Element ("maxvolatilesessionspersubnet", [("value", v)], [])) ->
       (try
-         let i = int_of_string v in
-         set_max_service_sessions_per_subnet i;
-         set_max_data_sessions_per_subnet i
+         let max_volatile_sessions_per_subnet = int_of_string v in
+         compute_options ~max_volatile_sessions_per_subnet ()
        with Failure _ ->
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for maxvolatilesessionspersubnet tag")))
   | (Element ("maxservicesessionspersubnet", [("value", v)], [])) ->
       (try
-         let i = int_of_string v in
-         set_max_service_sessions_per_subnet i;
+         let max_service_sessions_per_subnet = int_of_string v in
+         compute_options ~max_service_sessions_per_subnet ()
        with Failure _ ->
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for maxservicesessionspersubnet tag")))
   | (Element ("maxdatasessionspersubnet", [("value", v)], [])) ->
       (try
-         let i = int_of_string v in
-         set_max_data_sessions_per_subnet i
+         let max_data_sessions_per_subnet = int_of_string v in
+         compute_options ~max_data_sessions_per_subnet ()
        with Failure _ ->
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for maxdatasessionspersubnet tag")))
   | (Element ("maxpersistentsessionspergroup", [("value", v)], [])) ->
       (try
-         let i = int_of_string v in
-         set_max_persistent_sessions_per_group i;
+         let max_persistent_sessions_per_group = int_of_string v in
+         compute_options ~max_persistent_sessions_per_group ()
        with Failure _ ->
          raise
            (Error_in_config_file
               ("Eliom: Wrong attribute value for maxpersistentsessionspergroup tag")))
   | (Element ("maxvolatiletabsessionspergroup", [("value", v)], [])) ->
       (try
-         let i = int_of_string v in
-         set_max_service_tab_sessions_per_group i;
-         set_max_data_tab_sessions_per_group i
+         let max_volatile_tab_sessions_per_group = int_of_string v in
+         compute_options ~max_volatile_tab_sessions_per_group ()
        with Failure _ ->
          raise
            (Error_in_config_file
               ("Eliom: Wrong attribute value for maxvolatiletabsessionspergroup tag")))
   | (Element ("maxservicetabsessionspergroup", [("value", v)], [])) ->
       (try
-         let i = int_of_string v in
-         set_max_service_tab_sessions_per_group i;
+         let max_service_tab_sessions_per_group = int_of_string v in
+         compute_options ~max_service_tab_sessions_per_group ()
        with Failure _ ->
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for maxservicetabsessionspergroup tag")))
   | (Element ("maxdatatabsessionspergroup", [("value", v)], [])) ->
       (try
-         let i = int_of_string v in
-         set_max_data_tab_sessions_per_group i
+         let max_data_tab_sessions_per_group = int_of_string v in
+         compute_options ~max_data_tab_sessions_per_group ()
        with Failure _ ->
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for maxdatatabsessionspergroup tag")))
   | (Element ("maxpersistenttabsessionspergroup", [("value", v)], [])) ->
       (try
-         let i = int_of_string v in
-         set_max_persistent_tab_sessions_per_group i;
+         let max_persistent_tab_sessions_per_group = int_of_string v in
+         compute_options ~max_persistent_tab_sessions_per_group ()
        with Failure _ ->
          raise
            (Error_in_config_file
               ("Eliom: Wrong attribute value for maxpersistenttabsessionspergroup tag")))
   | (Element ("maxanonymouscoservicespersession", [("value", v)], [])) ->
       (try
-         let i = int_of_string v in
-         set_max_services_per_session i;
+         let max_anonymous_coservices_per_session = int_of_string v in
+         compute_options ~max_anonymous_coservices_per_session ()
        with Failure _ ->
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for maxanonymouscoservicespersession tag")))
   | (Element ("maxanonymouscoservicespersubnet", [("value", v)], [])) ->
       (try
-         let i = int_of_string v in
-         set_max_services_per_subnet i;
+         let max_anonymous_coservices_per_subnet = int_of_string v in
+         compute_options ~max_anonymous_coservices_per_subnet ()
        with Failure _ ->
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for maxanonymouscoservicespersubnet tag")))
   | (Element ("maxvolatilegroupspersite", [("value", v)], [])) ->
       (try
-         let i = int_of_string v in
-         set_max_volatile_groups_per_site i
+         let max_volatile_groups_per_site = int_of_string v in
+         compute_options ~max_volatile_groups_per_site ()
        with Failure _ ->
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for maxvolatilegroupspersite tag")))
 
   | (Element ("ipv4subnetmask", [("value", v)], [])) ->
       (try
-         let mask = int_of_string v in
-         set_ipv4mask mask
+         let ipv4_subnet_mask = int_of_string v in
+         compute_options ~ipv4_subnet_mask ()
        with _ ->
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for ipv4subnetmask tag")))
   | (Element ("ipv6subnetmask", [("value", v)], [])) ->
       (try
-         let mask = int_of_string v in
-         set_ipv6mask mask
+         let ipv6_subnet_mask = int_of_string v in
+         compute_options ~ipv6_subnet_mask ()
        with _ ->
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for ipv6subnetmask tag")))
@@ -429,44 +648,40 @@ let rec parse_global_config = function
   | [] -> ()
   | (Element ("sessiongcfrequency", [("value", s)], p))::ll ->
       (try
-        let t = float_of_string s in
-        Eliommod_gc.set_servicesessiongcfrequency (Some t);
-        Eliommod_gc.set_datasessiongcfrequency (Some t)
+        init ~session_gc_frequency:(Some (float_of_string s)) ()
       with Failure _ ->
         if s = "infinity"
-        then begin
-          Eliommod_gc.set_servicesessiongcfrequency None;
-          Eliommod_gc.set_datasessiongcfrequency None
-        end
+        then init ~session_gc_frequency:None ()
         else raise (Error_in_config_file
                       "Eliom: Wrong value for <sessiongcfrequency>"));
       parse_global_config ll
   | (Element ("servicesessiongcfrequency", [("value", s)], p))::ll ->
       (try
-        Eliommod_gc.set_servicesessiongcfrequency (Some (float_of_string s))
+        init ~service_session_gc_frequency:(Some (float_of_string s)) ()
       with Failure _ ->
         if s = "infinity"
-        then Eliommod_gc.set_servicesessiongcfrequency None
+        then init ~service_session_gc_frequency:None ()
         else raise (Error_in_config_file
                       "Eliom: Wrong value for <servicesessiongcfrequency>"));
       parse_global_config ll
   | (Element ("datasessiongcfrequency", [("value", s)], p))::ll ->
       (try
-        Eliommod_gc.set_datasessiongcfrequency (Some (float_of_string s))
+        init ~data_session_gc_frequency:(Some (float_of_string s)) ()
       with Failure _ ->
         if s = "infinity"
-        then Eliommod_gc.set_datasessiongcfrequency None
+        then init ~data_session_gc_frequency:None ()
         else raise (Error_in_config_file
                       "Eliom: Wrong value for <datasessiongcfrequency>"));
       parse_global_config ll
   | (Element ("persistentsessiongcfrequency",
               [("value", s)], p))::ll ->
                 (try
-                  Eliommod_gc.set_persistentsessiongcfrequency
-                    (Some (float_of_string s))
+                  init
+                    ~persistent_session_gc_frequency:(Some (float_of_string s))
+                    ()
                 with Failure _ ->
                   if s = "infinity"
-                  then Eliommod_gc.set_persistentsessiongcfrequency None
+                  then init ~persistent_session_gc_frequency:None ()
                   else raise
                     (Error_in_config_file
                        "Eliom: Wrong value for <persistentsessiongcfrequency>"));
@@ -831,8 +1046,6 @@ let parse_config hostpattern conf_info site_dir =
     | Element (t, _, _) ->
         raise (Ocsigen_extensions.Bad_config_tag_for_extension t)
     | _ -> raise (Error_in_config_file "(Eliommod extension)")
-
-
 
 (*****************************************************************************)
 (** extension registration *)
