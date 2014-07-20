@@ -216,9 +216,12 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     let _loc = Ast.loc_of_expr orig_expr in
     let assert_no_variables typ =
       let f = function
-        | Ast.TyQuo _ ->
-            Helpers.raise_syntax_error _loc
-              "The type of an injected value must not contain any type variable."
+        | Ast.TyQuo _ as typ ->
+            Printf.eprintf
+              "%s: %s\n"
+              (Loc.to_string _loc)
+              ": Warning. The type of an injected value contains a type variable that could be wrongly infered (to be fixed in Eliom).";
+            typ
         | typ -> typ
       in
       ignore ((Ast.map_ctyp f)#ctyp typ)
