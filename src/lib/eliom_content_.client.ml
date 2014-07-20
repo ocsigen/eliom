@@ -299,7 +299,8 @@ module Svg = struct
         (fun x -> x)
 
     let get_element id =
-      Of_dom.of_element (get_element' id)
+      try Some (Of_dom.of_element (get_element' id))
+      with Failure _ -> None
 
   end
 
@@ -376,7 +377,8 @@ module Html5 = struct
         (fun x -> x)
 
     let get_element id =
-      Of_dom.of_element (get_element' id)
+      try Some (Of_dom.of_element (get_element' id))
+      with Failure _ -> None
 
   end
 
