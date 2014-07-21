@@ -250,50 +250,81 @@ let compute_options
   ?max_volatile_groups_per_site
   ?ipv4_subnet_mask
   ?ipv6_subnet_mask () =
-    let ( *> ) a f = match a with
-      | None -> ()
-      | Some a -> f a
-    in
-    volatile_timeout *>
+    Ocsigen_lib_base.Option.iter
       (fun (value, hierarchy_name, level)
-       -> compute_timeout_attrs global_option ?value ?hierarchy_name ~level ()
-          |> fun (t, snoo, ct) -> set_volatile_timeout ct snoo t);
-    data_timeout *>
+       -> let (t, snoo, ct) =
+            compute_timeout_attrs global_option ?value ?hierarchy_name ~level ()
+          in set_volatile_timeout ct snoo t)
+      volatile_timeout;
+    Ocsigen_lib_base.Option.iter
       (fun (value, hierarchy_name, level)
-       -> compute_timeout_attrs global_option ?value ?hierarchy_name ~level ()
-          |> fun (t, snoo, ct) -> set_data_timeout ct snoo t);
-    service_timeout *>
+       -> let (t, snoo, ct) =
+            compute_timeout_attrs global_option ?value ?hierarchy_name ~level ()
+          in set_data_timeout ct snoo t)
+      data_timeout;
+    Ocsigen_lib_base.Option.iter
       (fun (value, hierarchy_name, level)
-       -> compute_timeout_attrs global_option ?value ?hierarchy_name ~level ()
-          |> fun (t, snoo, ct) -> set_service_timeout ct snoo t);
-    persistent_timeout *>
+       -> let (t, snoo, ct) =
+            compute_timeout_attrs global_option ?value ?hierarchy_name ~level ()
+          in set_service_timeout ct snoo t)
+      service_timeout;
+    Ocsigen_lib_base.Option.iter
       (fun (value, hierarchy_name, level)
-       -> compute_timeout_attrs global_option ?value ?hierarchy_name ~level ()
-          |> fun (t, snoo, ct) -> set_persistent_timeout ct snoo t);
-    max_volatile_sessions_per_group *>
+       -> let (t, snoo, ct) =
+            compute_timeout_attrs global_option ?value ?hierarchy_name ~level ()
+          in set_persistent_timeout ct snoo t)
+      persistent_timeout;
+    Ocsigen_lib_base.Option.iter
       (fun i -> set_max_service_sessions_per_group i;
-                set_max_data_sessions_per_group i);
-    max_service_sessions_per_group *> set_max_service_sessions_per_group;
-    max_data_sessions_per_group *> set_max_data_sessions_per_group;
-    max_volatile_sessions_per_subnet *>
+                set_max_data_sessions_per_group i)
+      max_volatile_sessions_per_group;
+    Ocsigen_lib_base.Option.iter
+      set_max_service_sessions_per_group
+      max_service_sessions_per_group;
+    Ocsigen_lib_base.Option.iter
+      set_max_data_sessions_per_group
+      max_data_sessions_per_group;
+    Ocsigen_lib_base.Option.iter
       (fun i -> set_max_service_sessions_per_subnet i;
-                set_max_data_sessions_per_subnet i);
-    max_service_sessions_per_subnet *> set_max_service_sessions_per_subnet;
-    max_data_sessions_per_subnet *> set_max_data_sessions_per_subnet;
-    max_persistent_sessions_per_group *> set_max_persistent_sessions_per_group;
-    max_volatile_tab_sessions_per_group *>
+                set_max_data_sessions_per_subnet i)
+      max_volatile_sessions_per_subnet;
+    Ocsigen_lib_base.Option.iter
+      set_max_service_sessions_per_subnet
+      max_service_sessions_per_subnet;
+    Ocsigen_lib_base.Option.iter
+      set_max_data_sessions_per_subnet
+      max_data_sessions_per_subnet;
+    Ocsigen_lib_base.Option.iter
+      set_max_persistent_sessions_per_group
+      max_persistent_sessions_per_group;
+    Ocsigen_lib_base.Option.iter
       (fun i -> set_max_service_tab_sessions_per_group i;
-                set_max_data_tab_sessions_per_group i);
-    max_service_tab_sessions_per_group *>
-      set_max_service_tab_sessions_per_group;
-    max_data_tab_sessions_per_group *> set_max_data_tab_sessions_per_group;
-    max_persistent_tab_sessions_per_group *>
-      set_max_persistent_tab_sessions_per_group;
-    max_anonymous_coservices_per_session *> set_max_services_per_sessions;
-    max_anonymous_coservices_per_subnet *> set_max_services_per_subnet;
-    max_volatile_groups_per_site *> set_max_volatile_groups_per_site;
-    ipv4_subnet_mask *> set_ipv4mask;
-    ipv6_subnet_mask *> set_ipv6mask
+                set_max_data_tab_sessions_per_group i)
+      max_volatile_tab_sessions_per_group;
+    Ocsigen_lib_base.Option.iter
+      set_max_service_tab_sessions_per_group
+      max_service_tab_sessions_per_group;
+    Ocsigen_lib_base.Option.iter
+      set_max_data_tab_sessions_per_group
+      max_data_tab_sessions_per_group;
+    Ocsigen_lib_base.Option.iter
+      set_max_persistent_tab_sessions_per_group
+      max_persistent_tab_sessions_per_group;
+    Ocsigen_lib_base.Option.iter
+      set_max_services_per_sessions
+      max_anonymous_coservices_per_session;
+    Ocsigen_lib_base.Option.iter
+      set_max_services_per_subnet
+      max_anonymous_coservices_per_subnet;
+    Ocsigen_lib_base.Option.iter
+      set_max_volatile_groups_per_site
+      max_volatile_groups_per_site;
+    Ocsigen_lib_base.Option.iter
+      set_ipv4mask
+      ipv4_subnet_mask;
+    Ocsigen_lib_base.Option.iter
+      set_ipv6mask
+      ipv6_subnet_mask
 
 (** init : initilization of eliommod
  *
@@ -394,17 +425,19 @@ let init
   ?max_volatile_groups_per_site
   ?ipv4_subnet_mask
   ?ipv6_subnet_mask () =
-    let ( *> ) a f = match a with
-      | None -> ()
-      | Some a -> f a
-    in
-    session_gc_frequency *>
+    Ocsigen_lib_base.Option.iter
       (fun f -> Eliommod_gc.set_servicesessiongcfrequency f;
-                Eliommod_gc.set_datasessiongcfrequency f);
-    service_session_gc_frequency *> Eliommod_gc.set_servicesessiongcfrequency;
-    data_session_gc_frequency *> Eliommod_gc.set_datasessiongcfrequency;
-    persistent_session_gc_frequency *>
-      Eliommod_gc.set_persistentsessiongcfrequency;
+                Eliommod_gc.set_datasessiongcfrequency f)
+      session_gc_frequency;
+    Ocsigen_lib_base.Option.iter
+      Eliommod_gc.set_servicesessiongcfrequency
+      service_session_gc_frequency;
+    Ocsigen_lib_base.Option.iter
+      Eliommod_gc.set_datasessiongcfrequency
+      data_session_gc_frequency;
+    Ocsigen_lib_base.Option.iter
+      Eliommod_gc.set_persistentsessiongcfrequency
+      persistent_session_gc_frequency;
     compute_options false
       ((fun ct _ -> Eliommod_timeouts.set_default_volatile_timeout ct),
        (fun ct _ -> Eliommod_timeouts.set_default_data_timeout ct),
