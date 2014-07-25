@@ -78,7 +78,9 @@ module Html5 = struct
           let real = Html5.To_dom.of_element (unboxed client_boxed) in
           Js.Opt.iter
             (dummy_dom##parentNode)
-            (fun parent -> ignore (parent##replaceChild(real, dummy_dom)));
+            (fun parent -> ignore (parent##replaceChild(
+                                    (real :> Dom.node Js.t),
+                                    (dummy_dom :> Dom.node Js.t))));
         }} in
       init
 
