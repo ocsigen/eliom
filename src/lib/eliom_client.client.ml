@@ -491,7 +491,7 @@ let iter_prop node name f =
 
 let rec rebuild_rattrib node ra = match Xml.racontent ra with
   | Xml.RA a ->
-    let name = Xml.aname ra in
+    let name = Js.string (Xml.aname ra) in
     let v = rebuild_attrib_val a in
     node##setAttribute (name,v);
   | Xml.RAReact s ->
