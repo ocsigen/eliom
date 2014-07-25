@@ -1922,7 +1922,6 @@ module Eliom_appl_reg_make_param
   let make_eliom_data_script ?(keep_debug=false) ~sp page =
 
     let ejs_global_data =
-      let open Eliom_lib_base in
       if is_initial_request () then
         let data = Eliom_service.get_global_data () in
         let data =

@@ -236,7 +236,7 @@ let createEvent_ie ev_type =
 let createEvent_normal ev_type =
   let evt : #Dom_html.event Js.t =
     (Js.Unsafe.coerce Dom_html.document)##createEvent(Js.string "HTMLEvents") in
-  (Js.Unsafe.coerce evt)##initEvent(ev_type, false, false);
+  let () = (Js.Unsafe.coerce evt)##initEvent(ev_type, false, false) in
   evt
 
 let createEvent =
