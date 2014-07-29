@@ -28,7 +28,7 @@ let _ = Js.Unsafe.global##updateme <- (fun s -> match !cache with
 }}
 
 let mainservice = Eliom_testsuite_base.My_appl.register_service
- ~path:["ttt"]
+ ~path:["csreact1"]
  ~get_params:Eliom_parameter.unit
  (fun () () ->
     Lwt.return (
