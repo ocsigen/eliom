@@ -1,6 +1,13 @@
 
 open Utils
 
+let force_link_all = ref true
+
+let link_all () =
+  if !force_link_all
+  then ["-linkall"]
+  else []
+
 let usage () =
   Printf.eprintf "Usage: %s <options> <files>\n" (Filename.basename Sys.argv.(0));
   Printf.eprintf "SPECIFIC OPTIONS:\n";
@@ -20,6 +27,8 @@ let usage () =
     Printf.eprintf "  -jsopt <opt>\t\tAppend option <opt> to js_of_ocaml invocation\n";
   Printf.eprintf "  -ppopt <p>\t\tAppend option <opt> to preprocessor invocation\n";
   Printf.eprintf "  -predicates <p>\tAdd predicate <p> when resolving package properties\n";
+  if !kind = `Client then
+    Printf.eprintf "  -dont-force-linkall\t\tDo not add linkall option by default\n";
   create_filter !compiler ["-help"] (help_filter 2 "STANDARD OPTIONS:");
   if !kind = `Client then
     create_filter !js_of_ocaml ["-help"] (help_filter 1 "JS_OF_OCAML OPTIONS:");
@@ -265,7 +274,8 @@ let build_client () =
   let exe = prefix_output_dir (Filename.basename name) in
   check_or_create_dir (Filename.dirname exe);
   let js = name ^ ".js" in
-  create_process !compiler ( ["-o"  ;  exe ; "-linkall"]
+  create_process !compiler ( ["-o"  ;  exe ]
+           @ link_all ()
 			     @ get_common_include ()
 			     @ get_client_lib ()
 			     @ !args );
@@ -281,6 +291,9 @@ let process_option () =
     | "-help" | "--help" -> usage ()
     | "-no-autoload" -> autoload_predef := false; incr i
     | "-type-conv" -> type_conv := true; incr i
+    | "-dont-force-linkall"->
+      if !kind <> `Client then usage ();
+      force_link_all := false; incr i
     | "-i" -> set_mode `Interface; incr i
     | "-c" -> set_mode `Compile; incr i
     | "-a" -> set_mode `Library; incr i
