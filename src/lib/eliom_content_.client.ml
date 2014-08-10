@@ -22,6 +22,7 @@ open Eliom_lib
 open Eliom_content_core
 
 module Xml = Xml
+module Xml_wrapped = Xml_wrapped
 
 module MakeManip
     (Kind : sig

@@ -35,6 +35,9 @@ open Eliom_lib
 (** Low-level XML manipulation. *)
 module Xml : module type of Eliom_content_core.Xml
 
+(** Low-level XML reactive nodes. *)
+module Xml_wrapped : module type of Eliom_content_core.Xml_wrapped
+
 (** Building valid SVG . *)
 module Svg : sig
 
@@ -74,7 +77,7 @@ module Svg : sig
 
   (** Creation of reactive content *)
   module R : sig
-    module Raw : Svg_sigs.MakeWrapped(Tyxml_js.Xml_wrap)(Xml).T
+    module Raw : Svg_sigs.Make(Xml_wrapped).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
@@ -376,7 +379,7 @@ module Html5 : sig
     val filter_attrib : 'a attrib -> bool React.signal -> 'a attrib
 
     (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
-    module Raw : Html5_sigs.MakeWrapped(Tyxml_js.Xml_wrap)(Xml)(Svg.R.Raw).T
+    module Raw : Html5_sigs.Make(Xml_wrapped)(Svg.R.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 

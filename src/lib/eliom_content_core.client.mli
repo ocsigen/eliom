@@ -22,6 +22,8 @@
 
 module Xml : sig
 
+  module W : module type of Xml_wrap.NoWrap
+
   type uri = string
   val uri_of_string : uri -> string
   val string_of_uri : string -> uri
@@ -147,6 +149,13 @@ module Xml : sig
   val set_classes_of_elt : elt -> elt
 end
 
+module Xml_wrapped : Xml_sigs.Wrapped
+  with module W = Tyxml_js.React_Wrap
+   and type event_handler = (Dom_html.event Js.t -> unit) Eliom_lib.client_value
+   and type mouse_event_handler = (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value
+   and type keyboard_event_handler = (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value
+end
+
 (** Building SVG tree. *)
 module Svg : sig
 
@@ -197,7 +206,7 @@ module Svg : sig
   (** Typed interface for building valid reactive SVG tree. *)
   module R : sig
 
-    module Raw : Svg_sigs.MakeWrapped(Tyxml_js.Xml_wrap)(Xml).T
+    module Raw : Svg_sigs.Make(Xml_wrapped).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
@@ -298,7 +307,7 @@ module Html5 : sig
 
     val filter_attrib : 'a attrib -> bool React.signal -> 'a attrib
 
-    module Raw : Html5_sigs.MakeWrapped(Tyxml_js.Xml_wrap)(Xml)(Svg.R.Raw).T
+    module Raw : Html5_sigs.Make(Xml_wrapped)(Svg.R.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
