@@ -234,30 +234,33 @@ module Xml = struct
 
 end
 
+(** Adapted {!Xml} such that request nodes are produced *)
+module Xml_dom = struct
+
+  include Xml
+
+  let make elt = make_request_node (make elt)
+  let make_lazy elt = make_request_node (make_lazy elt)
+
+  let empty () = make Empty
+
+  let comment c = make (Comment c)
+  let pcdata d = make (PCDATA d)
+  let encodedpcdata d = make (EncodedPCDATA d)
+  let entity e = make (Entity e)
+
+  let leaf ?(a = []) name =  make (Leaf (name, a))
+  let node ?(a = []) name children = make (Node (name, a, children))
+  let lazy_node ?(a = []) name children =
+    make_lazy (Eliom_lazy.from_fun (fun () -> (Node (name, a, Eliom_lazy.force children))))
+
+end
+
+
 module Svg = struct
 
   module D = struct
-    module Xml' = struct
-
-      include Xml
-
-      let make elt = make_request_node (make elt)
-      let make_lazy elt = make_request_node (make_lazy elt)
-
-      let empty () = make Empty
-
-      let comment c = make (Comment c)
-      let pcdata d = make (PCDATA d)
-      let encodedpcdata d = make (EncodedPCDATA d)
-      let entity e = make (Entity e)
-
-      let leaf ?(a = []) name =  make (Leaf (name, a))
-      let node ?(a = []) name children = make (Node (name, a, children))
-      let lazy_node ?(a = []) name children =
-        make_lazy (Eliom_lazy.from_fun (fun () -> (Node (name, a, Eliom_lazy.force children))))
-
-    end
-    module Raw = Svg_f.Make(Xml')
+    module Raw = Svg_f.Make(Xml_dom)
     let client_attrib ?init (x : 'a Raw.attrib Eliom_lib.client_value) =
       Xml.client_attrib ?init x
 
@@ -297,29 +300,7 @@ module Html5 = struct
 
   module D = struct
 
-    (* This is [Eliom_content.Xml] adapted such that request nodes are produced *)
-    module Xml' = struct
-      include Xml
-
-      let make elt = make_request_node (make elt)
-      let make_lazy elt = make_request_node (make_lazy elt)
-
-      let empty () = make Empty
-
-      let comment c = make (Comment c)
-      let pcdata d = make (PCDATA d)
-      let encodedpcdata d = make (EncodedPCDATA d)
-      let entity e = make (Entity e)
-
-      let leaf ?(a = []) name =  make (Leaf (name, a))
-      let node ?(a = []) name children = make (Node (name, a, children))
-      let lazy_node ?(a = []) name children =
-        make_lazy (Eliom_lazy.from_fun (fun () -> (Node (name, a, Eliom_lazy.force children))))
-
-
-    end
-
-    module Raw = Html5_f.Make(Xml')(Svg.D.Raw)
+    module Raw = Html5_f.Make(Xml_dom)(Svg.D.Raw)
     let client_attrib ?init (x : 'a Raw.attrib Eliom_lib.client_value) =
       Xml.client_attrib ?init x
 
@@ -329,7 +310,7 @@ module Html5 = struct
       ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     let lazy_form ?(a = []) elts =
-      tot (Xml'.lazy_node ~a:(to_xmlattribs a) "form"
+      tot (Xml_dom.lazy_node ~a:(to_xmlattribs a) "form"
              (Eliom_lazy.from_fun
                 (fun () -> toeltl (Eliom_lazy.force elts))))
   end
