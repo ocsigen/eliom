@@ -60,6 +60,8 @@ module Xml = struct
   let set_dom_node elt node = elt.elt <- Lazy.lazy_from_val (DomNode node)
   let get_node_id elt = elt.node_id
 
+  (** Node creation *)
+
   let make ?(id = NoId) elt =
     { elt = Lazy.lazy_from_val (TyXMLNode elt); node_id = id; }
   let make_dom ?(id = NoId) node =
@@ -87,26 +89,50 @@ module Xml = struct
   let node ?(a = []) name children = make (Node (name, a, children))
   let lazy_node ?a name children = node ?a name (Eliom_lazy.force children)
 
+  (** Event handlers. *)
+
   type biggest_event_handler = biggest_event Js.t -> unit
 
   type event_handler = Dom_html.event Js.t -> unit
   type mouse_event_handler = Dom_html.mouseEvent Js.t -> unit
   type keyboard_event_handler = Dom_html.keyboardEvent Js.t -> unit
 
-  let event_handler_attrib name (value : event_handler) =
-    internal_event_handler_attrib name
-      (Caml (CE_client_closure (value :> biggest_event_handler)))
-  let mouse_event_handler_attrib name (value : mouse_event_handler) =
-    internal_event_handler_attrib name
-      (Caml (CE_client_closure (value :> biggest_event_handler)))
-  let keyboard_event_handler_attrib name (value : keyboard_event_handler) =
-    internal_event_handler_attrib name
-      (Caml (CE_client_closure (value :> biggest_event_handler)))
+  let biggest_event_handler_attrib name cf =
+    internal_event_handler_attrib name (Caml (CE_client_closure cf))
+  let event_handler_attrib name (cf : event_handler) =
+    biggest_event_handler_attrib name (cf :> biggest_event_handler)
+  let mouse_event_handler_attrib name (cf : mouse_event_handler) =
+    biggest_event_handler_attrib name (cf :> biggest_event_handler)
+  let keyboard_event_handler_attrib name (cf : keyboard_event_handler) =
+    biggest_event_handler_attrib name (cf :> biggest_event_handler)
+
+
+  (** CDATA *)
+  (* For security reasons, we do not allow "]]>" inside CDATA
+     (as this string is to be considered as the end of the cdata)
+  *)
+
+  let end_re = Regexp.regexp_string "]]>"
+
+  let cdata s =
+    let s' = "\n<![CDATA[\n" ^
+        Regexp.global_replace end_re s "" ^ "\n]]>\n"
+    in encodedpcdata s'
+
+  let cdata_script s =
+    let s' = "\n//<![CDATA[\n" ^
+        Regexp.global_replace end_re s "" ^ "\n//]]>\n"
+    in encodedpcdata s'
+
+  let cdata_style s =
+    let s' = "\n/* <![CDATA[ */\n" ^
+        Regexp.global_replace end_re s "" ^ "\n/* ]]> */\n"
+    in encodedpcdata s'
+
+
 
   let node_react_children ?(a = []) name children =
     {elt = Lazy.lazy_from_val (ReactChildren (Node (name,a,[]),children)); node_id=NoId}
-
-  let end_re = Regexp.regexp_string "]]>"
 
   let make_node_name =
     let node_id_counter = ref 0 in
@@ -122,20 +148,6 @@ module Xml = struct
     { elt with
       node_id = RequestId (make_node_name ()) }
 
-  let cdata s =
-    let s' =
-      "\n<![CDATA[\n" ^ Regexp.global_replace end_re s "" ^ "\n]]>\n" in
-    encodedpcdata s'
-
-  let cdata_script s =
-    let s' =
-      "\n//<![CDATA[\n" ^ Regexp.global_replace end_re s "" ^ "\n//]]>\n" in
-    encodedpcdata s'
-
-  let cdata_style s =
-    let s' =
-      "\n/* <![CDATA[ */\n" ^ Regexp.global_replace end_re s "" ^ "\n/* ]]> */\n" in
-    encodedpcdata s'
 
   let set_classes node_id = function
     | Empty

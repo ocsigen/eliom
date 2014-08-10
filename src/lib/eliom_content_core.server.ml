@@ -90,6 +90,8 @@ module Xml = struct
 
   let tyxml_unwrap_id = Eliom_wrap.id_of_int tyxml_unwrap_id_int
 
+  (** Node creation *)
+
   let make elt =
     { elt =
         { recontent = RE elt;
@@ -116,20 +118,21 @@ module Xml = struct
   let lazy_node ?(a = []) name children =
     make_lazy (Eliom_lazy.from_fun (fun () -> (Node (name, a, Eliom_lazy.force children))))
 
-  type biggest_event_handler = (biggest_event Js.t -> unit) Eliom_lib.client_value
-  type event_handler = (Dom_html.event Js.t -> unit) Eliom_lib.client_value
-  type mouse_event_handler = (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value
-  type keyboard_event_handler = (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value
+  (** Event handlers. *)
+
+  type biggest_event_handler = (biggest_event Js.t -> unit) client_value
+
+  type event_handler = (Dom_html.event Js.t -> unit) client_value
+  type mouse_event_handler = (Dom_html.mouseEvent Js.t -> unit) client_value
+  type keyboard_event_handler =
+    (Dom_html.keyboardEvent Js.t -> unit) client_value
 
   let caml_event_handler cf =
     let crypto = make_cryptographic_safe_string () in
     CE_registered_closure (crypto, Eliom_lib.client_value_server_repr cf)
 
-  let event_handler cf =
-    Caml (caml_event_handler cf)
-
   let biggest_event_handler_attrib name cf =
-    internal_event_handler_attrib name (event_handler cf)
+    internal_event_handler_attrib name (Caml (caml_event_handler cf))
   let event_handler_attrib name (cf : event_handler) =
     biggest_event_handler_attrib name (cf :> biggest_event_handler)
   let mouse_event_handler_attrib name (cf : mouse_event_handler) =
@@ -137,41 +140,38 @@ module Xml = struct
   let keyboard_event_handler_attrib name (cf : keyboard_event_handler) =
     biggest_event_handler_attrib name (cf :> biggest_event_handler)
 
+
+  (** CDATA *)
+  (* For security reasons, we do not allow "]]>" inside CDATA
+     (as this string is to be considered as the end of the cdata)
+  *)
+
+  let end_re = Netstring_pcre.regexp_string "]]>"
+
+  let cdata s =
+    let s' = "\n<![CDATA[\n" ^
+      Netstring_pcre.global_replace end_re "" s ^ "\n]]>\n"
+    in encodedpcdata s'
+
+  let cdata_script s =
+    let s' = "\n//<![CDATA[\n" ^
+      Netstring_pcre.global_replace end_re "" s ^ "\n//]]>\n"
+    in encodedpcdata s'
+
+  let cdata_style s =
+    let s' = "\n/* <![CDATA[ */\n" ^
+      Netstring_pcre.global_replace end_re "" s ^ "\n/* ]]> */\n"
+    in encodedpcdata s'
+
+
+
+
   let client_attrib ?init (x : attrib Eliom_lib.client_value) =
     let crypto = make_cryptographic_safe_string () in
     let empty_name = "" in
     empty_name,RAClient (crypto,init,Eliom_lib.client_value_server_repr x)
 
 
-  let cdata s = (* GK *)
-    (* For security reasons, we do not allow "]]>" inside CDATA
-       (as this string is to be considered as the end of the cdata)
-     *)
-    let s' = "\n<![CDATA[\n"^
-      (Netstring_pcre.global_replace
-         (Netstring_pcre.regexp_string "]]>") "" s)
-      ^"\n]]>\n" in
-    encodedpcdata s'
-
-  let cdata_script s = (* GK *)
-    (* For security reasons, we do not allow "]]>" inside CDATA
-       (as this string is to be considered as the end of the cdata)
-     *)
-    let s' = "\n//<![CDATA[\n"^
-      (Netstring_pcre.global_replace
-         (Netstring_pcre.regexp_string "]]>") "" s)
-      ^"\n//]]>\n" in
-    encodedpcdata s'
-
-  let cdata_style s = (* GK *)
-    (* For security reasons, we do not allow "]]>" inside CDATA
-       (as this string is to be considered as the end of the cdata)
-     *)
-    let s' = "\n/* <![CDATA[ */\n"^
-      (Netstring_pcre.global_replace
-         (Netstring_pcre.regexp_string "]]>") "" s)
-      ^"\n/* ]]> */\n" in
-    encodedpcdata s'
 
   let make_node_name ~global () =
     (if global then "global_" else "")
