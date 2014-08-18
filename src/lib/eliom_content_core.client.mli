@@ -348,6 +348,8 @@ module Html5 : sig
     The resulting HTML5 [elt] can then be used like anyother HTML5 [elt] *)
     val node : 'a elt React.signal -> 'a elt
 
+    val filter_attrib : 'a attrib -> bool React.signal -> 'a attrib
+
     module Raw : Html5_sigs.T
                    with type Xml.uri = Xml.uri
                    and type Xml.event_handler = Xml.event_handler

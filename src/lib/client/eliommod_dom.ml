@@ -72,8 +72,7 @@ let test_onhashchange () =
   Js.Optdef.test ((Js.Unsafe.coerce Dom_html.window:dom_tester Js.t)##onhashchange)
 
 let fast_ancessor (elt1:#Dom.node Js.t) (elt2:#Dom.node Js.t) =
-  (elt1##compareDocumentPosition((elt2:>Dom.node Js.t)))
-  land Dom.document_position_contained_by == Dom.document_position_contained_by
+  Dom.DocumentPosition.(has (elt1##compareDocumentPosition((elt2:>Dom.node Js.t))) contained_by)
 
 let slow_ancessor (elt1:#Dom.node Js.t) (elt2:#Dom.node Js.t) =
   let rec check_parent n =
@@ -239,7 +238,7 @@ let createEvent_ie ev_type =
 let createEvent_normal ev_type =
   let evt : #Dom_html.event Js.t =
     (Js.Unsafe.coerce Dom_html.document)##createEvent(Js.string "HTMLEvents") in
-  (Js.Unsafe.coerce evt)##initEvent(ev_type, false, false);
+  let () = (Js.Unsafe.coerce evt)##initEvent(ev_type, false, false) in
   evt
 
 let createEvent =
@@ -720,7 +719,7 @@ let onhashchange f =
               Js._true : Dom_html.event_listener_id)
   else
     let last_fragment = ref Dom_html.window##location##hash in
-    let rec check () =
+    let check () =
       if !last_fragment != Dom_html.window##location##hash
       then
         (last_fragment := Dom_html.window##location##hash;

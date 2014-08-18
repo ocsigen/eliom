@@ -73,6 +73,10 @@ the following specific options:
 
 * {{{-package}}} is the same to the {{{ocamlfind}}} option.
 * {{{-predicates <p>}}} is the same to the {{{ocamlfind}}} option.
+* {{{-no-autoload}}} Do not load commonly used syntax extensions
+  (deriving, lwt, js_of_ocaml, tyxml).
+* {{{-type-conv}}} Use type_conv syntax extensions instead of deriving
+  one. It has no effect if used in conjunction with {{{-no-autoload}}}.
 * {{{-dir <dir>}}} set default directory for temporary files.
 * {{{-jsopt <opt>}}} pass {{{opt}}} to the {{{js_of_ocaml}}} compiler **{{{js_of_eliom}}} only**
 

@@ -21,10 +21,6 @@
 {client{
 
   include Eliom_content_
-
-  open Html5
-  open Html5.F
-
   let force_link = ()
 
 }}
@@ -82,7 +78,7 @@ module Html5 = struct
           let real = Html5.To_dom.of_element (unboxed client_boxed) in
           Js.Opt.iter
             (dummy_dom##parentNode)
-            (fun parent -> ignore (parent##replaceChild(real, dummy_dom)));
+            (fun parent -> Dom.replaceChild parent real dummy_dom)
         }} in
       init
 

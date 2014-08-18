@@ -83,7 +83,7 @@ is a wrapper around the OCaml documentation generator
 .B ocamldoc.
 It allows you to generate documentation from
 .B client
-or 
+or
 .B server
 side. It accepts the same set of option than
 .BR ocamldoc (1).
@@ -145,6 +145,14 @@ This is the same option as the ocamlfind one.
 .TP
 .BR \-predicates\ <p>
 This is the same option as the ocamlfind one.
+.TP
+.BR \-no-autoload
+Do not load commonly used syntax extensions
+(deriving, lwt, js_of_ocaml, tyxml).
+.TP
+.BR \-type-conv
+Use type_conv syntax extensions instead of deriving one. It has no effect
+if used in conjunction with \-no-autoload.
 .TP
 .BR \-ppopt\ <opt>
 Append <opt> to preprocessor invocation.

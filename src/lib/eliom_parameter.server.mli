@@ -56,8 +56,6 @@
 
 *)
 
-open Ocsigen_extensions
-
 open Eliom_lib
 
 (** Abstract type for service parameters. See for example the

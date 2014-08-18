@@ -81,9 +81,6 @@
 
   *)
 
-open Eliom_service
-open Eliom_parameter
-
 (** Abstract signature for links and forms creation functions, for
     concrete instances see {!Html5}, or {!Html_text}. *)
 module type Forms = "sigs/eliom_forms.mli"
@@ -294,7 +291,6 @@ module Html5 : sig
         otherwise, use Eliom form widgets.
         For more information,
         see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
-    open Pervasives
 
     (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
@@ -364,7 +360,6 @@ module Html5 : sig
         otherwise, use the form module.
         For more information,
         see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
-    open Pervasives
 
     (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T

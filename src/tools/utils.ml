@@ -15,7 +15,7 @@ let remove_spaces s beg endd =
   then String.sub s first (1+ last - first)
   else ""
 
-let rec split c s =
+let split c s =
   let longueur = String.length s in
   let rec aux deb =
     if deb >= longueur then []
@@ -66,7 +66,7 @@ let default_server_types_ext =
 let build_dir : string ref = ref ""
 let type_dir : string ref = ref default_type_dir
 
-let get_kind ~k =
+let get_kind k =
   match k with
     | Some k -> k
     | None -> !kind
@@ -188,13 +188,13 @@ let get_syntax_package pkg =
   then
     if !type_conv && List.mem "deriving.syntax.std" resolved_pkgs
     then begin
-      Printf.eprintf "Error: '-type_conv' option enabled but some packages require the deriving syntax to be loaded.\n%!";
+      Printf.eprintf "Error: '-type-conv' option enabled but some packages require the deriving syntax to be loaded.\n%!";
       explain_who_need ~find:"deriving.syntax.std" ~from:all_pkgs;
       exit 1
     end
     else if not !type_conv && List.mem "type_conv" resolved_pkgs
     then begin
-      Printf.eprintf "Error: '-type_conv' option disabled but some packages require the type_conv syntax to be loaded.\n%!";
+      Printf.eprintf "Error: '-type-conv' option disabled but some packages require the type_conv syntax to be loaded.\n%!";
       explain_who_need ~find:"type_conv" ~from:all_pkgs;
       exit 1
     end
@@ -212,7 +212,7 @@ let rec map_include xs = match xs with
 
 let get_common_include ?kind:k ?build_dir:dir ?package:p () =
   let dir = match dir with Some d -> d | None -> !build_dir in
-  (match get_kind ~k with
+  (match get_kind k with
   | `Server | `ServerOpt ->
       map_include (List.map Findlib.package_directory (get_server_package ?kind:k ?package:p ()))
   | `Client ->
@@ -328,7 +328,7 @@ let create_filter name args f =
   try f ch with _ -> close_in ch; wait pid
 
 let help_filter skip msg ch =
-  for i = 1 to skip do ignore (input_line ch) done;
+  for _i = 1 to skip do ignore (input_line ch) done;
   prerr_endline msg;
   while true do prerr_endline (input_line ch) done
 

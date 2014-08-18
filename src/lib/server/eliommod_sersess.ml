@@ -101,7 +101,7 @@ let rec find_or_create_service_cookie_ ?set_session_group
 
   let cookie_level = Eliom_common.cookie_level_of_user_scope cookie_scope in
 
-  let rec new_service_cookie sitedata full_st_name table =
+  let new_service_cookie sitedata full_st_name table =
 
     let set_session_group =
       match cookie_scope with

@@ -48,8 +48,6 @@ struct
 
   type t = int
 
-  type configurations = (int, configuration_data) Hashtbl.t
-
   let configuration_table = Hashtbl.create 1
 
   let global_configuration = ref default_configuration
@@ -168,7 +166,6 @@ exception Comet_error of string
 
 type chan_id = string
 
-type stateful_message = ( chan_id * string Ecb.channel_data ) list
 type stateless_message = ( chan_id * (string * int) Ecb.channel_data ) list
 
 module Service_handler : sig

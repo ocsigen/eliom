@@ -21,7 +21,6 @@
 open Eliom_lib
 
 open Lwt
-open Ocsigen_extensions
 open Eliom_state
 open Eliom_parameter
 open Eliom_service

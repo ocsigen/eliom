@@ -18,7 +18,6 @@
  *)
 
 open Eliom_lib
-open Ocsigen_cookies
 
 exception Looping_redirection
 exception Failed_request of int
@@ -116,7 +115,7 @@ let nl_template =
 (* Warning: it must correspond to [nl_template]. *)
 let nl_template_string = "__nl_n_eliom-template.name"
 
-let rec send ?(expecting_process_page = false) ?cookies_info
+let send ?(expecting_process_page = false) ?cookies_info
     ?get_args ?post_args ?form_arg url result =
   let rec aux i ?cookies_info ?(get_args=[]) ?post_args ?form_arg url =
     let (https, path) = match cookies_info with

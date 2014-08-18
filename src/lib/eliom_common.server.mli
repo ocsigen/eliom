@@ -20,7 +20,6 @@
 
 (** Low level functions for Eliom, exceptions and types. *)
 
-open Ocsigen_extensions
 open Ocsigen_cookies
 
 open Eliom_lib

@@ -27,10 +27,6 @@
 
 *)
 
-open Eliom_lib
-
-open Ocsigen_extensions
-
 (*****************************************************************************)
 (** {2 Managing the state of an application} *)
 

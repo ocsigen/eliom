@@ -121,13 +121,16 @@ end = struct
     in
     from_poly value
 
-  let initialize {closure_id; instance_id; args} =
+  let initialize {closure_id; loc; instance_id; args} =
     Lwt_log.ign_info_f ~section "Initialize client value %Ld/%Ld" closure_id instance_id;
     let closure =
       try
         Client_closure.find ~closure_id
       with Not_found ->
-        Lwt_log.raise_error_f ~section "Client closure %Ld not found (is the module linked on the client?)" closure_id
+        let pos = match loc with
+          | None -> ""
+          | Some p -> Printf.sprintf "(%s)" (Eliom_lib.pos_to_string p) in
+        Lwt_log.raise_error_f ~section "Client closure %Ld not found %s (is the module linked on the client?)" closure_id pos
     in
     let value = closure args in
     Eliom_unwrap.late_unwrap_value
@@ -149,20 +152,24 @@ end = struct
 end
 
 module Injection : sig
-  val get : name:string -> _
+  val get : ?ident:string -> ?pos:Eliom_lib.pos -> name:string -> _
   val initialize : injection_datum -> unit
 end = struct
 
   let table = JsTable.create ()
 
-  let get ~name =
+  let get ?ident ?pos ~name =
     Lwt_log.ign_info_f ~section "Get injection %s" name;
     from_poly
       (Js.Optdef.get
          (JsTable.find table (Js.string name))
          (fun () ->
-            Lwt_log.raise_error_f ~section "Did not find injection %S" name))
-
+            let name = match ident,pos with
+              | None,None -> Printf.sprintf "%s" name
+              | None,Some pos -> Printf.sprintf "%s at %s" name (Eliom_lib.pos_to_string pos)
+              | Some i,None -> Printf.sprintf "%s (%s)" name i
+              | Some i,Some pos -> Printf.sprintf "%s (%s at %s)" name i (Eliom_lib.pos_to_string pos) in
+            Lwt_log.raise_error_f "Did not find injection %s" name))
   let initialize { Eliom_lib_base.injection_id; injection_value } =
     Lwt_log.ign_info_f ~section "Initialize injection %s" injection_id;
     (* BBB One should assert that injection_value doesn't contain any
@@ -201,6 +208,58 @@ let do_next_client_section_data ~compilation_unit_id =
              (is it linked on the server?)"
         compilation_unit_id
 
+let check_global_data global_data =
+  let missing_client_values = ref [] in
+  let missing_injections = ref [] in
+  String_map.iter
+    (fun _ { server_sections_data; client_sections_data } ->
+       Queue.iter
+         (function
+           | [] -> ()
+           | data -> missing_client_values := List.rev_append data !missing_client_values) server_sections_data;
+       Queue.iter
+         (function
+           | [] -> ()
+           | data -> missing_injections := List.rev_append data !missing_injections) client_sections_data;
+    )
+    global_data;
+  (match !missing_client_values with
+   | [] -> ()
+   | l ->
+     Printf.ksprintf (fun s -> Firebug.console##error(Js.string s))
+       "Code generating the following client values is not linked on the client:\n%s"
+       (String.concat "\n"
+          (List.rev_map
+             (fun d ->
+                match d.loc with
+                | None -> Printf.sprintf "%Ld/%Ld" d.closure_id d.instance_id
+                | Some pos -> Printf.sprintf "%Ld/%Ld at %s" d.closure_id d.instance_id (Eliom_lib.pos_to_string pos)
+             )
+             l
+          )));
+  (match !missing_injections with
+   | [] -> ()
+   | l ->
+     Printf.ksprintf (fun s -> Firebug.console##error(Js.string s))
+       "Code containing the following injections is not linked on the client:\n%s"
+       (String.concat "\n"
+          (List.rev_map (fun d ->
+               let id =
+                 try
+                   Scanf.sscanf
+                     d.Eliom_lib_base.injection_id
+                     "__eliom__injected_ident__reserved_name__%019d__%d"
+                     (Printf.sprintf "%d/%d")
+                 with _ -> d.Eliom_lib_base.injection_id in
+               match d.Eliom_lib_base.injection_ident,d.Eliom_lib_base.injection_loc with
+               | None,None -> id
+               | Some i,None -> Printf.sprintf "%s (%s)" id i
+               | Some i,Some pos ->
+                 Printf.sprintf "%s (%s at %s)" id i (Eliom_lib.pos_to_string pos)
+               | None, Some pos ->
+                 Printf.sprintf "%s (at %s)" id (Eliom_lib.pos_to_string pos)
+             ) l)))
+
 (* == Initialize the client values sent with a request *)
 
 let do_request_data request_data =
@@ -208,27 +267,7 @@ let do_request_data request_data =
   (* On a request, i.e. after running the toplevel definitions, global_data
      must contain at most empty sections_data lists, which stem from server-
      only eliom files. *)
-  String_map.iter
-    (fun _ { server_sections_data; client_sections_data } ->
-       Queue.iter
-         (function
-           | [] -> ()
-           | data ->
-             Lwt_log.ign_error_f ~section "Code generating the following client values is not linked on the client: %s"
-               (String.concat ","
-                  (List.map
-                     (fun d -> Printf.sprintf "%Ld/%Ld" d.closure_id d.instance_id)
-                     data)))
-         server_sections_data;
-       Queue.iter
-         (function
-           | [] -> ()
-           | data ->
-             Lwt_log.ign_error_f ~section "Code containing the following injections is not linked on the client: %s"
-               (String.concat ","
-                  (List.map (fun d -> d.Eliom_lib_base.injection_id) data)))
-         client_sections_data)
-    !global_data;
+  check_global_data !global_data;
   List.iter Client_value.initialize request_data
 
 (*******************************************************************************)
@@ -450,9 +489,9 @@ let iter_prop node name f =
   | Some n -> f n
   | None -> ()
 
-let rebuild_rattrib node ra = match Xml.racontent ra with
+let rec rebuild_rattrib node ra = match Xml.racontent ra with
   | Xml.RA a ->
-    let name = Xml.aname ra in
+    let name = Js.string (Xml.aname ra) in
     let v = rebuild_attrib_val a in
     node##setAttribute (name,v);
   | Xml.RAReact s ->
@@ -473,7 +512,15 @@ let rebuild_rattrib node ra = match Xml.racontent ra with
       node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat " " l))
   | Xml.RALazyStrL (Xml.Comma, l) ->
     node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat "," l))
-  | Xml.RAClient _ -> assert false
+  | Xml.RAClient (_,_,cv) ->
+    let closure_id = Client_value_server_repr.closure_id cv in
+    let instance_id = Client_value_server_repr.instance_id cv in
+    try
+      let value = Client_value.find ~closure_id ~instance_id in
+      rebuild_rattrib node (Eliom_lib.from_poly value : Xml.attrib)
+    with Not_found ->
+      Lwt_log.raise_error_f "Client value %Ld/%Ld not found as client attrib" closure_id instance_id
+
 
 
 (* == Associate data to state of the History API.
@@ -1689,7 +1736,7 @@ module Syntax_helpers = struct
   let get_escaped_value =
     from_poly
 
-  let get_injection name =
-    Injection.get ~name
+  let get_injection ?ident ?pos name =
+    Injection.get ?ident ?pos ~name
 
 end

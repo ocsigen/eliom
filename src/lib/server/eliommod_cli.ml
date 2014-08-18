@@ -18,9 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_lib
-
-let fresh_id = 
+let fresh_id =
   let c = ref 0 in
   fun () -> c := !c+1; "id"^string_of_int !c
 
@@ -31,13 +29,13 @@ let client_sitedata sp =
   }
 
 
-let client_si s = 
+let client_si s =
   (* we force all lazys before serialization *)
   {s with
-     Eliom_common.si_na_get_params = 
+     Eliom_common.si_na_get_params =
       (let r = Lazy.force s.Eliom_common.si_na_get_params in lazy r);
      Eliom_common.si_persistent_nl_get_params =
       (let r = Lazy.force s.Eliom_common.si_persistent_nl_get_params in lazy r);
-     Eliom_common.si_all_get_but_na_nl = 
+     Eliom_common.si_all_get_but_na_nl =
       (let r = Lazy.force s.Eliom_common.si_all_get_but_na_nl in lazy r);
    }

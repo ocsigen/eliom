@@ -99,10 +99,10 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     <:expr< begin
       $flush_typing_expr ()$;
       $lid:gen_tid$ := Some (Eliom_service.Syntax_helpers.client_value 0L 0 : $typ$ Eliom_pervasives.client_value);
-      match ! $lid:gen_tid$ with | Some x -> x | None -> assert false
+      match ! $lid:gen_tid $ with | Some x -> x | None -> assert false
     end >>
 
-  let escape_inject context_level orig_expr gen_id =
+  let escape_inject context_level ?ident orig_expr gen_id =
     let open Pa_eliom_seed in
     push_typing_str_item orig_expr gen_id;
     push_typing_expr orig_expr gen_id;

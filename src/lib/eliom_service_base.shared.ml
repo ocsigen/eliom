@@ -22,9 +22,6 @@
 open Eliom_lib
 open Eliom_parameter
 
-open Lwt
-open Lazy
-
 (** Typed services *)
 type suff =
   [ `WithSuffix

@@ -31,7 +31,6 @@
 (** {% <<outline| <<header| **Table of contents** >> >> %}*)
 
 open Eliom_lib
-open Eliom_content
 
 (** {2 Type definitions} *)
 

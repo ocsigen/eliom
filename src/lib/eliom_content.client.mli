@@ -17,9 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-
-open Eliom_service
-open Eliom_parameter
+(* ocamldoc/camlp4 hack ? : need an open first ? *)
 open Eliom_lib
 
 (** This module provides the creation of valid XML content, i.e. XML, SVG,
@@ -140,9 +138,9 @@ module Svg : sig
         [create_named_elt ~id:(new_elt_id ()) elt]. *)
     val create_global_elt: 'a elt -> 'a elt
 
-    (** [get_element id] returns the HTML element in the DOM with the given [id].
-        @raises Not_found if the [id] was no such element. *)
-    val get_element : 'a id -> 'a elt
+    (** [get_element id] returns
+        the HTML element in the DOM with the given [id] if it exists. *)
+    val get_element : 'a id -> 'a elt option
   end
 
   (** DOM-like manipulation functions.
@@ -290,7 +288,6 @@ module Html5 : sig
   module F : sig
     (** {2 Content creation}
         See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
-    open Pervasives
 
     (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
@@ -352,7 +349,6 @@ module Html5 : sig
   module D : sig
     (** {2 Content creation}
         See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
-    open Pervasives
 
     (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
@@ -423,11 +419,15 @@ module Html5 : sig
         otherwise, use the form module.
         For more information,
         see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
-    open Pervasives
 
     (** Function [node s] create an HTML5 [elt] from a signal [s].
         The resulting HTML5 [elt] can then be used like anyother HTML5 [elt] *)
     val node : 'a elt React.signal Eliom_pervasives.client_value -> 'a elt
+
+    (** [filter_attrib att on] returns an attrib that
+        behave like [att] when [on] is [true]
+        and behave like if there was no attribute when [on] is [false] *)
+    val filter_attrib : 'a attrib -> bool React.signal -> 'a attrib
 
     (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
     module Raw : Html5_sigs.T
@@ -483,6 +483,10 @@ module Html5 : sig
     (** The function [create_named_elt elt] is equivalent to
         [create_named_elt ~id:(new_elt_id ()) elt]. *)
     val create_global_elt: 'a elt -> 'a elt
+
+    (** [get_element id] returns
+        the HTML element in the DOM with the given [id] if it exists. *)
+    val get_element : 'a id -> 'a elt option
   end
 
   module Custom_data : sig

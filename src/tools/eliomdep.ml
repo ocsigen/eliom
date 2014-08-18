@@ -11,6 +11,10 @@ let usage () =
      default_type_dir;
   Printf.eprintf "  -eliom-inc <dir>\tAdd <dir> to the list of eliom include directories (prepend eliom build directories)\n";
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
+  Printf.eprintf "  -no-autoload\t\tDo not load commonly used syntax extensions (deriving, lwt, js_of_ocaml, tyxml)\n";
+  Printf.eprintf "  -type-conv\t\tUse type_conv syntax extensions instead of deriving one\n";
+  Printf.eprintf "\t\t\tIt has no effect if used in conjunction with -no-autoload\n";
+
   Printf.eprintf "  -ppopt <p>\t\tAppend option <opt> to preprocessor invocation\n";
   Printf.eprintf "  -predicates <p>\tAdd predicate <p> when resolving package properties\n";
   Printf.eprintf "  -verbose\t\tPrint calls to external commands\n";
@@ -162,7 +166,7 @@ let compile_eliom ~impl_intf file =
     | `Server ->
       compile_server_eliom ~impl_intf file;
       if impl_intf = `Impl then
-        compile_type_eliom impl_intf file
+        compile_type_eliom ~impl_intf file
     | `Client ->
       compile_client_eliom ~impl_intf file
     | _ -> assert false);
@@ -187,7 +191,7 @@ let process_option () =
     match Sys.argv.(!i) with
     | "-verbose" -> verbose := true; incr i
     | "-no-autoload" -> autoload_predef := false; incr i
-    | "-type_conv" -> type_conv := true; incr i
+    | "-type-conv" -> type_conv := true; incr i
     | "-sort" -> mode := `Sort; incr i
     | "-eliom-inc" ->
       if !i+1 >= Array.length Sys.argv then usage ();

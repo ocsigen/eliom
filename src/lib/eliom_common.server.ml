@@ -308,8 +308,6 @@ module Net_addr_Hashtbl =
                             let hash = Hashtbl.hash
                           end)
 
-     type m = int option * bool
-
      let add m4 m6 t k v =
        add t (network_of_ip k (get_mask4 m4) (get_mask6 m6)) v
 

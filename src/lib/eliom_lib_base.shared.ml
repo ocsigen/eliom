@@ -243,20 +243,35 @@ module Int64_map = Map_make (Int64)
 module Int_map = Map_make (struct type t = int let compare = (-) let to_string = string_of_int end)
 module String_map = Map_make (struct include String let to_string x = x end)
 
+type pos = Lexing.position * Lexing.position
+
+let pos_to_string ((start,stop) : pos) =
+  let open Lexing in
+  let start_col = start.pos_cnum - start.pos_bol in
+  let stop_col = stop.pos_cnum - stop.pos_bol in
+  if start.pos_lnum = stop.pos_lnum
+  then if start_col = stop_col
+    then Printf.sprintf "%s %d:%d" start.pos_fname start.pos_lnum start_col
+    else Printf.sprintf "%s %d:%d-%d" start.pos_fname start.pos_lnum start_col stop_col
+  else Printf.sprintf "%s %d:%d-%d:%d" start.pos_fname start.pos_lnum start_col stop.pos_lnum stop_col
+
 type client_value_datum = {
   closure_id : int64;
   instance_id : int64;
+  loc: pos option;
   args : poly;
 }
 
 type 'injection_value injection_datum = {
   injection_id : string;
   injection_value : 'injection_value;
+  injection_loc : pos option;
+  injection_ident : string option;
 }
 
 type 'injection_value compilation_unit_global_data = {
-  mutable server_sections_data : (client_value_datum list) Queue.t;
-  mutable client_sections_data : ('injection_value injection_datum list) Queue.t;
+  server_sections_data : (client_value_datum list) Queue.t;
+  client_sections_data : ('injection_value injection_datum list) Queue.t;
 }
 
 type 'injection_value global_data =
@@ -265,31 +280,3 @@ type 'injection_value global_data =
 type request_data = client_value_datum list
 
 let global_data_unwrap_id_int = 8
-
-let queue_to_list q =
-  let res = ref [] in
-  Queue.iter (fun x -> res := x :: !res) q;
-  List.rev !res
-
-let client_value_datum_to_string cv =
-  Printf.sprintf "%Ld/%Ld" cv.closure_id cv.instance_id
-
-let list_to_string to_string li =
-  "["^String.concat " " (List.map to_string li)^"]"
-
-let global_data_to_string global_data =
-  let list_list_to_string to_string lili =
-    String.concat " "
-      (List.map (list_to_string to_string) lili)
-  in
-  let compilation_unit_global_data_to_string { server_sections_data; client_sections_data } =
-    Printf.sprintf "\n    server_sections_data: %s\n    client_sections_data: %s"
-      (list_list_to_string client_value_datum_to_string
-         (queue_to_list server_sections_data))
-      (list_list_to_string (fun inj -> inj.injection_id)
-         (queue_to_list client_sections_data))
-  in
-  String_map.to_string ~sep:"\n  " compilation_unit_global_data_to_string global_data
-
-let request_data_to_string =
-  list_to_string client_value_datum_to_string

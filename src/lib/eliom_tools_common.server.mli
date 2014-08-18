@@ -17,8 +17,6 @@
  *)
 
 open Eliom_service
-open Eliom_parameter
-open Eliom_state
 
 (** {2 Menus } *)
 
