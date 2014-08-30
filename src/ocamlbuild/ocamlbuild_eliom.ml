@@ -57,7 +57,11 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
 #if ocaml_version < (4, 01)
     Pack.Param_tags.init ()
 #else
+#if ocaml_version < (4, 02)
     Pack.Param_tags.partial_init (Tags.of_list tags)
+#else
+    Pack.Param_tags.partial_init "Eliom plugin" (Tags.of_list tags)
+#endif
 #endif
 
   let use_all_syntaxes src =
