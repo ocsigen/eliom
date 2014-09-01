@@ -1,8 +1,8 @@
 // Unmarshall and unwrapping.
 
 //Provides: caml_unwrap_value_from_string mutable
-//Requires: caml_failwith, MlStringFromArray, caml_marshal_constants
-//Requires: caml_int64_float_of_bits, caml_int64_of_bytes, MlString
+//Requires: caml_failwith, caml_string_of_array, caml_marshal_constants
+//Requires: caml_int64_float_of_bits, caml_int64_of_bytes, caml_new_string
 var caml_unwrap_value_from_string = function (){
   function ArrayReader (a, i) { this.a = a; this.i = i; }
   ArrayReader.prototype = {
@@ -31,7 +31,7 @@ var caml_unwrap_value_from_string = function (){
     readstr:function (len) {
       var i = this.i;
       this.i = i + len;
-      return new MlStringFromArray(this.a.slice(i, i + len));
+      return caml_string_of_array(this.a.slice(i, i + len));
     }
   }
   function StringReader (s, i) { this.s = s; this.i = i; }
@@ -63,7 +63,7 @@ var caml_unwrap_value_from_string = function (){
     readstr:function (len) {
       var i = this.i;
       this.i = i + len;
-      return new MlString(this.s.substring(i, i + len));
+      return caml_new_string(this.s.substring(i, i + len));
     }
   }
   function caml_float_of_bytes (a) {
