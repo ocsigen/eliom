@@ -117,6 +117,10 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
 
   let init = function
     | After_rules ->
+#if ocaml_version >= (4, 02)
+        mark_tag_used no_extra_syntaxes;
+#endif
+
         (* eliom files *)
         copy_rule_server "*.eliom -> **/_server/*.ml"
           ~deps:["%(path)/" ^ Eliom.type_dir ^ "/%(file).inferred.mli"]
