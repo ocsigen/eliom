@@ -195,7 +195,7 @@ let rec find_or_create_persistent_cookie_
          cookie_info :=
            Eliom_common.Full_state_name_table.add
            full_st_name
-           (Lazy.lazy_from_val (return (None, ref (Eliom_common.SC v))))
+           (Lazy.from_val (return (None, ref (Eliom_common.SC v))))
            !cookie_info;
          return v)
       | e -> fail e)

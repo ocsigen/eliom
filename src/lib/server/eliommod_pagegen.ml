@@ -75,7 +75,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
     Eliom_common.Full_state_name_table.iter
 
       (fun name v ->
-        if Lazy.lazy_is_val v (* Only sessions that have been used *)
+        if Lazy.is_val v (* Only sessions that have been used *)
         then
           let (oldvalue, newr) = Lazy.force v in
           match !newr with
@@ -104,7 +104,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
 
       (fun name v thr ->
         let thr2 =
-          if Lazy.lazy_is_val v
+          if Lazy.is_val v
           then begin
             Lazy.force v >>= fun (oldvalue, newr) ->
             match !newr with

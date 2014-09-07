@@ -79,7 +79,7 @@ val eref :
 
 (** The function [eref_from_fun] works like the above {!Eliom_reference.eref},
     but instead of providing a value for the initial content, a function [f] for
-    {e creating the initial content} is provided (cf. also {!Lazy.lazy_from_fun}).
+    {e creating the initial content} is provided (cf. also {!Lazy.from_fun}).
 
     In each scope, the function [f] is called for creating the value of the
     reference the first time the reference is read (by {!Eliom_reference.get}),

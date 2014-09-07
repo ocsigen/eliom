@@ -59,7 +59,7 @@ module Volatile = struct
   let eref_from_fun_ ~ext ~scope ?secure f : 'a eref =
     f, ext, match scope with
       | `Request -> Req (Polytables.make_key ())
-      | `Global -> Ref (ref (Lazy.lazy_from_fun f))
+      | `Global -> Ref (ref (Lazy.from_fun f))
       | `Site -> Sit (Polytables.make_key ())
       | (#Eliom_common.user_scope as scope) ->
         Vol (lazy (create_volatile_table ~scope ?secure ()))
@@ -105,7 +105,7 @@ module Volatile = struct
         let table = Eliom_common.((get_site_data ()).site_value_table) in
         Polytables.set ~table ~key ~value
       | Vol t -> set_volatile_data ~table:(Lazy.force t) value;
-      | Ref r -> r := Lazy.lazy_from_val value
+      | Ref r -> r := Lazy.from_val value
       | _ -> assert false
 
   let modify eref f =
@@ -120,7 +120,7 @@ module Volatile = struct
         let table = Eliom_common.((get_site_data ()).site_value_table) in
         Polytables.remove ~table ~key
       | Vol t -> remove_volatile_data ~table:(Lazy.force t) ();
-      | Ref r -> r := Lazy.lazy_from_fun f
+      | Ref r -> r := Lazy.from_fun f
       | _ -> assert false
 
 
