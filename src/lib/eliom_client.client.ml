@@ -1551,10 +1551,10 @@ let rebuild_node_ns ns context elt' =
     error_any (rebuild_node' ns elt')
       "Cannot apply %s%s before the document is initially loaded"
       context
-      match Xml.get_node_id elt' with
-           | Xml.NoId -> " "
-           | Xml.RequestId id -> " on request node "^id
-           | Xml.ProcessId id -> " on global node "^id;
+      Xml.(match get_node_id elt' with
+           | NoId -> " "
+           | RequestId id -> " on request node "^id
+           | ProcessId id -> " on global node "^id);
   let node = Js.Unsafe.coerce (rebuild_node' ns elt') in
   flush_load_script ();
   node

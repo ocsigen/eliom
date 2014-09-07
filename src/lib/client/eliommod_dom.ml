@@ -582,9 +582,9 @@ let build_style (e, css) =
         style##_type <- Js.string "text/css";
         style##media <- media;
         (* IE8: Assigning to style##innerHTML results in "Unknown runtime error" *)
-        let styleSheet = Js.Unsafe.get style (Js.string "styleSheet") in
+        let styleSheet = Js.Unsafe.(get style (Js.string "styleSheet")) in
         if styleSheet != Js.undefined then
-          Js.Unsafe.set styleSheet (Js.string "cssText") (Js.string css)
+          Js.Unsafe.(set styleSheet (Js.string "cssText") (Js.string css))
         else
           style##innerHTML <- Js.string css;
         Lwt.return (e, (style :> Dom.node Js.t)))

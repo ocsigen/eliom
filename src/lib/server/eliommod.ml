@@ -781,7 +781,7 @@ let parse_config hostpattern conf_info site_dir =
                     sitedata.Eliom_common.ipv4mask (* unused *)
                     oldipv6mask
                     sitedata.Eliom_common.dlist_ip_table
-                    Ipaddr.V6 Ipaddr.V6.localhost
+                    Ipaddr.(V6 V6.localhost)
                   in
                   ignore (Ocsigen_cache.Dlist.set_maxsize dlist v)
                 with Not_found -> () (* should not occure *)
