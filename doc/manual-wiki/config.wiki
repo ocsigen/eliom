@@ -169,7 +169,7 @@ site. For example:
     </eliom>
 >>
 
-Use <<a_api| val Eliom_state.get_config >> during the initialization
+Use <<a_api| val Eliom_config.get_config >> during the initialization
 of your module to get the data between <<span class="code"|<eliom>>>
 and <<span class="code"|</eliom>>>.
 
