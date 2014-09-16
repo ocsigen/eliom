@@ -61,3 +61,5 @@ true:warn(+A-4-6-7-9-27-32-33-34-37-44)
 <ocamlbuild/api.*/man.*>: manpage,man_ext(3o),apiref
 
 <**/api.wikidocdir/index.wiki>: apiref, wikidoc
+
+<lib/eliom_csreact.eliom{,i}>:package(reactiveData)
