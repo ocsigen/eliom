@@ -6,7 +6,7 @@ ocaml-version: [>= "4.00.0"]
 depends: [
   "ocamlfind"
   "deriving" {>= "0.6"}
-  "js_of_ocaml" {>= "2.2"}
+  "js_of_ocaml" {>= "dev"}
   "calendar"
   "ocsigenserver" {>= "2.4.0"}
   "ipaddr" {>= "2.1"}
