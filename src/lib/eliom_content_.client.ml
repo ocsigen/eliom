@@ -131,7 +131,7 @@ module MakeManip
           Of_dom.of_element (Dom_html.element node)
         )
       ) in
-      Js.Opt.iter res (fun p -> removeChild p  elt)
+      Js.Opt.iter res (fun p -> removeChild p elt)
 
     let appendChildFirst p c =
       let before = nth p 0 in
@@ -165,6 +165,46 @@ module MakeManip
     let childElements elt =
       let node = get_unique_node "childElements" elt in
       filterElements (Dom.list_of_nodeList (node##childNodes))
+
+    let parentNode elt =
+      let node = get_unique_node "parentNode" elt in
+      let res = Js.Opt.bind
+          (node##parentNode)
+          (fun node ->
+             Js.Opt.map (Dom.CoerceTo.element node)
+               (fun node -> Of_dom.of_element (Dom_html.element node)))
+      in
+      Js.Opt.to_option res
+
+    let nextSibling elt =
+      let node = get_unique_node "nextSibling" elt in
+      let res = Js.Opt.bind (node##nextSibling)
+          (fun node ->
+             Js.Opt.map (Dom.CoerceTo.element node)
+               (fun node -> Of_dom.of_element (Dom_html.element node)))
+      in
+      Js.Opt.to_option res
+
+    let previousSibling elt =
+      let node = get_unique_node "previousSibling" elt in
+      let res = Js.Opt.bind (node##previousSibling)
+          (fun node ->
+             Js.Opt.map (Dom.CoerceTo.element node)
+               (fun node -> Of_dom.of_element (Dom_html.element node)))
+      in
+      Js.Opt.to_option res
+
+    let appendBefore ~before elt =
+      Eliom_lib.Option.iter
+        (fun parent -> appendChild ~before parent elt)
+        (parentNode elt)
+
+    let appendAfter ~after elt =
+      Eliom_lib.Option.iter
+        (fun parent ->
+           let before = nextSibling after in
+           appendChild ?before parent elt)
+        (parentNode elt)
 
     module RawNamed = struct
 

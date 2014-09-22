@@ -151,13 +151,13 @@ module Svg : sig
   *)
   module Manip : sig
 
-    (** The function [appendChild e1 e2] inserts the element [e2] as last
+    (** [appendChild e1 e2] inserts the element [e2] as last
         child of [e1]. If the optional parameter [~before:e3] is present
         and if [e3] is a child of [e1], then [e2] is inserted before [e3]
         in the list of [e1] children. *)
     val appendChild: ?before:'a elt -> 'b elt ->  'c elt -> unit
 
-    (** The function [appendChildren e1 elts] inserts [elts] as last children
+    (** [appendChildren e1 elts] inserts [elts] as last children
         of [e1]. If the optional parameter [~before:e3] is present and if
         [e3] is a child of [e1], then [elts] are inserted before [e3] in
         the list of [e1] children. *)
@@ -172,23 +172,41 @@ module Svg : sig
     (** [childLength e] returns the number of chilren of [e] *)
     val childLength : 'a elt -> int
 
-    (** The function [removeChild e1 e2] removes for [e2] from the list of
+    (** [removeChild e1 e2] removes for [e2] from the list of
         [e1] children. *)
     val removeChild: 'a elt -> 'b elt -> unit
 
-    (** The function [replace e1 e2 e3] replaces for [e2] by [e3] in the
+    (** [replace e1 e2 e3] replaces for [e2] by [e3] in the
         list of [e1] children. *)
     val replaceChild: 'a elt -> 'b elt -> 'c elt -> unit
 
-    (** The function [removeChildren e1] removes [e1] children. *)
+    (** [removeChildren e1] removes [e1] children. *)
     val removeChildren: 'a elt -> unit
 
     (** [removeSelf e] removes element e from the DOM. *)
     val removeSelf: 'a elt -> unit
 
-    (** The function [replaceChildren e1 elts] replaces all the children of
+    (** [replaceChildren e1 elts] replaces all the children of
         [e1] by [elt]. *)
     val replaceChildren: 'a elt -> 'b elt list -> unit
+
+    (** [parentNode elt] returns the parent of [elt], if any. *)
+    val parentNode: 'a elt -> 'b elt option
+
+    (** [nextSibling elt] returns the next element that has the same parent,
+        if [elt] is not the last. *)
+    val nextSibling: 'a elt -> 'b elt option
+
+    (** [previousSibling elt] returns the previous element
+        that has the same parent,
+        if [elt] is not the first. *)
+    val previousSibling: 'a elt -> 'b elt option
+
+    (** [appendBefore ~before elt] insert [elt] before [before]. *)
+    val appendBefore: before:'a elt -> 'b elt -> unit
+
+    (** [appendAfter ~after elt] insert [elt] after [after]. *)
+    val appendAfter: after:'a elt -> 'b elt -> unit
 
     (* (\** The function [addEventListener elt evt handler] attach the *)
         (* [handler] for the event [evt] on the element [elt]. See the *)
