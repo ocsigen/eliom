@@ -544,7 +544,7 @@ module Html5 : sig
   *)
   module Manip : sig
 
-    (** The function [appendChild e1 e2] inserts the element [e2] as last
+    (** [appendChild e1 e2] inserts the element [e2] as last
         child of [e1]. If the optional parameter [~before:e3] is present
         and if [e3] is a child of [e1], then [e2] is inserted before [e3]
         in the list of [e1] children. *)
@@ -553,7 +553,7 @@ module Html5 : sig
     (** Append to the body of the document. *)
     val appendToBody: ?before:'a elt -> 'c elt -> unit
 
-    (** The function [appendChildren e1 elts] inserts [elts] as last children
+    (** [appendChildren e1 elts] inserts [elts] as last children
         of [e1]. If the optional parameter [~before:e3] is present and if
         [e3] is a child of [e1], then [elts] are inserted before [e3] in
         the list of [e1] children. *)
@@ -585,6 +585,24 @@ module Html5 : sig
     (** The function [replaceChildren e1 elts] replaces all the children of
         [e1] by [elt]. *)
     val replaceChildren: 'a elt -> 'b elt list -> unit
+
+    (** [parentNode elt] returns the parent of [elt], if any. *)
+    val parentNode: 'a elt -> 'b elt option
+
+    (** [nextSibling elt] returns the next element that has the same parent,
+        if [elt] is not the last. *)
+    val nextSibling: 'a elt -> 'b elt option
+
+    (** [previousSibling elt] returns the previous element
+        that has the same parent,
+        if [elt] is not the first. *)
+    val previousSibling: 'a elt -> 'b elt option
+
+    (** [appendBefore ~before elt] insert [elt] before [before]. *)
+    val appendBefore: before:'a elt -> 'b elt -> unit
+
+    (** [appendAfter ~after elt] insert [elt] after [after]. *)
+    val appendAfter: after:'a elt -> 'b elt -> unit
 
     (** The function [addEventListener elt evt handler] attach the
         [handler] for the event [evt] on the element [elt]. See the
