@@ -197,14 +197,14 @@ module MakeManip
     let appendBefore ~before elt =
       Eliom_lib.Option.iter
         (fun parent -> appendChild ~before parent elt)
-        (parentNode elt)
+        (parentNode before)
 
     let appendAfter ~after elt =
       Eliom_lib.Option.iter
         (fun parent ->
            let before = nextSibling after in
            appendChild ?before parent elt)
-        (parentNode elt)
+        (parentNode after)
 
     module RawNamed = struct
 
