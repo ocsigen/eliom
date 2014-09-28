@@ -1,8 +1,9 @@
 // Unmarshall and unwrapping.
 
 //Provides: caml_unwrap_value_from_string mutable
-//Requires: caml_failwith, caml_string_of_array, caml_marshal_constants
+//Requires: caml_failwith, caml_marshal_constants
 //Requires: caml_int64_float_of_bits, caml_int64_of_bytes, caml_new_string
+//Requires: caml_bytes_of_string
 var caml_unwrap_value_from_string = function (){
   function StringReader (s, i) { this.s = caml_bytes_of_string(s); this.i = i; }
   StringReader.prototype = {
