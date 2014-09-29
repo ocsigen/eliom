@@ -194,6 +194,7 @@ module FakeReactiveData = struct
     val make : 'a list -> 'a t * 'a handle
     val from_signal : 'a list FakeReact.S.t -> 'a t
     val value : 'a t -> 'a list
+    val value_s : 'a t -> 'a list FakeReact.S.t
     val singleton_s : 'a FakeReact.S.t -> 'a t
     val map : ('a -> 'b) -> 'a t -> 'b t
     module Lwt : sig
@@ -206,6 +207,7 @@ module FakeReactiveData = struct
     let from_signal s = FakeReact.S.value s
     let singleton_s s = [s]
     let value l = l
+    let value_s l = l
     let map f s = List.map f s
     module Lwt = struct
       let map_p = Lwt_list.map_p
@@ -269,7 +271,7 @@ module SharedReactiveData = struct
       let sv = FakeReactiveData.RList.from_signal (Shared.local x) in
       let cv = {'a FakeReactiveData.RList.t{
         FakeReactiveData.RList.from_signal (Shared.local %x) }} in
-      (Eliom_lib.create_shared_value sv {{ %cv }})
+      Eliom_lib.create_shared_value sv cv
 
     let make ?default x =
       let sv = FakeReactiveData.RList.make x in
@@ -291,13 +293,20 @@ module SharedReactiveData = struct
       let sv = FakeReactiveData.RList.singleton_s (Shared.local s) in
       let cv = {'a FakeReactiveData.RList.t{
         FakeReactiveData.RList.singleton_s %s }} in
-      (Eliom_lib.create_shared_value sv {'a FakeReactiveData.RList.t{ %cv }})
+      Eliom_lib.create_shared_value sv cv
+
+    let value_s (s : 'a t) : 'a list SharedReact.S.t =
+      let sv : 'a list FakeReact.S.t =
+        FakeReactiveData.RList.value_s (Shared.local s) in
+      let cv : 'a list FakeReact.S.t client_value =
+        {{ FakeReactiveData.RList.value_s %s }} in
+      Eliom_lib.create_shared_value sv cv
 
     let map f s =
       let sv = FakeReactiveData.RList.map (Shared.local f) (Shared.local s) in
       let cv = {'a FakeReactiveData.RList.t{
         FakeReactiveData.RList.map %f %s }} in
-      (Eliom_lib.create_shared_value sv {'a FakeReactiveData.RList.t{ %cv }})
+      Eliom_lib.create_shared_value sv cv
 
     module Lwt = struct
       let map_p (f : ('a -> 'b Lwt.t) shared_value) (l : 'a t) : 'b t Lwt.t =
@@ -351,6 +360,15 @@ end
           ~init:(Eliom_content.Html5.D.div
                    (FakeReactiveData.RList.value (Shared.local l)))
           {{ Eliom_content.Html5.R.div (Shared.local %l) }}
+
+        let ul ?a l = Eliom_content.Html5.C.node
+(*VVV
+ * This will blink at startup! FIX!
+ * This makes impossible to use %d for such elements! FIX!
+*)
+          ~init:(Eliom_content.Html5.D.ul ?a
+                   (FakeReactiveData.RList.value (Shared.local l)))
+          {{ Eliom_content.Html5.R.ul ?a:%a (Shared.local %l) }}
 
         let p l = Eliom_content.Html5.C.node
 (*VVV
