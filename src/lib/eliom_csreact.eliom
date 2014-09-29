@@ -20,7 +20,7 @@
 
 
 {shared{
-open Eliom_lib
+open Eliom_lib (**** ????????? *)
 module type RE = sig
   module S : sig
     type 'a t
@@ -222,9 +222,16 @@ module SharedReact = struct
         (FakeReact.S.value (Shared.local x))
         {'a{ FakeReact.S.value (Shared.local %x) }}
 
-    let create x =
+    let create ?default (x : 'a) =
       let sv = FakeReact.S.create x in
-      let cv = {'a FakeReact.S.t * ('a -> unit){ FakeReact.S.create %x }} in
+      let cv = match default with
+        | None -> {{ FakeReact.S.create %x }}
+        | Some default -> {'a FakeReact.S.t * ('a -> unit){
+          match %default with
+          | None ->  FakeReact.S.create %x
+          | Some v -> v
+        }}
+      in
       let si =
         Eliom_lib.create_shared_value (fst sv) {'a FakeReact.S.t{ fst %cv }} in
       let up =
@@ -264,10 +271,17 @@ module SharedReactiveData = struct
         FakeReactiveData.RList.from_signal (Shared.local %x) }} in
       (Eliom_lib.create_shared_value sv {{ %cv }})
 
-    let make x =
+    let make ?default x =
       let sv = FakeReactiveData.RList.make x in
-      let cv = {'a FakeReactiveData.RList.t * 'a FakeReactiveData.RList.handle{
-        FakeReactiveData.RList.make %x }} in
+      let cv = match default with
+        | None -> {{ FakeReactiveData.RList.make %x }}
+        | Some default -> {'a FakeReactiveData.RList.t
+                           * 'a FakeReactiveData.RList.handle{
+                             match %default with
+                             | None -> FakeReactiveData.RList.make %x
+                             | Some v -> v
+                           }}
+      in
       (Eliom_lib.create_shared_value (fst sv)
          {'a FakeReactiveData.RList.t{ fst %cv }},
        Eliom_lib.create_shared_value (snd sv)
@@ -321,8 +335,6 @@ end
           ~init:(FakeReact.S.value (Shared.local signal))
           {{ Eliom_content.Html5.R.node %signal }}
 
-
-
         let pcdata (s : string React.S.t) = Eliom_content.Html5.C.node
 (*VVV
  * This will blink at startup! FIX!
@@ -334,6 +346,7 @@ end
         let div l = Eliom_content.Html5.C.node
 (*VVV
  * This will blink at startup! FIX!
+ * This makes impossible to use %d for such elements! FIX!
 *)
           ~init:(Eliom_content.Html5.D.div
                    (FakeReactiveData.RList.value (Shared.local l)))

@@ -37,7 +37,11 @@ open Eliom_csreact
     Lwt.return (string_of_int i)
   let get_msg_and_cache i =
     lwt v = get_msg i in
-    let signal = fst (SharedReact.S.create (Some v)) in
+    (* Warning: if you want to make possible to generate html from server
+       side even if the data is already present on client side, you must give
+       the ~default parameter to SharedReact.S.create and
+       SharedReactiveData.RList.make above. *)
+    let signal = fst (SharedReact.S.create v) in
     let _ = {unit{ cache_msg %i %signal }} in
     Lwt.return signal
   let get_msg_rpc = server_function Json.t<int> get_msg
@@ -46,10 +50,8 @@ open Eliom_csreact
   let get_msg_and_cache i =
     try Lwt.return (MsgCache.find msgcache i)
     with Not_found ->
-      let (s, set) = React.S.create None in
+      lwt msg = %get_msg_rpc i in
+      let (s, set) = React.S.create msg in
       cache_msg i s;
-      Lwt.async (fun () -> lwt msg = %get_msg_rpc i in
-                           set (Some msg);
-                           Lwt.return ());
       Lwt.return s
 }}

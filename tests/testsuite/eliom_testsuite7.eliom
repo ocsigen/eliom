@@ -8,8 +8,8 @@ open Eliom_csreact
 
 
 {shared{
-  let display_msg0 = function | None -> p [em [pcdata "loading ..."]]
-                              | Some msg -> p [em [pcdata msg]]
+  let display_msg0 = function | "" -> p [em [pcdata "empty message"]]
+                              | msg -> p [pcdata msg]
 }}
 {shared{
   let display_msg id =
