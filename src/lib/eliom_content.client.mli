@@ -208,6 +208,9 @@ module Svg : sig
     (** [appendAfter ~after elt] insert [elt] after [after]. *)
     val appendAfter: after:'a elt -> 'b elt -> unit
 
+    (** [replaceSelf elt1 elt2] replaces [elt1] by [elt2]. *)
+    val replaceSelf: 'a elt -> 'b elt -> unit
+
     (* (\** The function [addEventListener elt evt handler] attach the *)
         (* [handler] for the event [evt] on the element [elt]. See the *)
         (* Js_of_ocaml manual, for a list of {% <<a_api project="js_of_ocaml" *)
@@ -603,6 +606,9 @@ module Html5 : sig
 
     (** [appendAfter ~after elt] insert [elt] after [after]. *)
     val appendAfter: after:'a elt -> 'b elt -> unit
+
+    (** [replaceSelf elt1 elt2] replaces [elt1] by [elt2]. *)
+    val replaceSelf: 'a elt -> 'b elt -> unit
 
     (** The function [addEventListener elt evt handler] attach the
         [handler] for the event [evt] on the element [elt]. See the

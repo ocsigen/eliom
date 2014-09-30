@@ -206,6 +206,13 @@ module MakeManip
            appendChild ?before parent elt)
         (parentNode after)
 
+    let replaceSelf elt1 elt2 =
+      Eliom_lib.Option.iter
+        (fun parent ->
+           appendChild ~before:elt1 parent elt2;
+           removeChild parent elt1)
+        (parentNode elt1)
+
     module RawNamed = struct
 
       let appendChild ?before id1 elt2 =
