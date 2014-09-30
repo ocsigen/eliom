@@ -11,7 +11,7 @@ build: [make]
 depends: [
   "ocamlfind"
   "deriving" {>= "0.6"}
-  "js_of_ocaml" {>= "2.4.1"}
+  "js_of_ocaml" {>= "2.5"}
   "tyxml" {>= "3.2.1"}
   "calendar"
   "ocsigenserver" {>= "dev"}
