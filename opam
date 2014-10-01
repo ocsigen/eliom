@@ -12,9 +12,9 @@ depends: [
   "ocamlfind"
   "deriving" {>= "0.6"}
   "js_of_ocaml" {>= "2.5"}
-  "tyxml" {>= "3.2.1"}
+  "tyxml" {>= "3.3.0"}
   "calendar"
-  "ocsigenserver" {= "dev"}
+  "ocsigenserver" {>= "2.5"}
   "ipaddr" {>= "2.1"}
   "reactiveData"
 ]
