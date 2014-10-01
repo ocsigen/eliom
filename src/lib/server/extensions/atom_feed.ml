@@ -134,7 +134,8 @@ r
 let print_html5 l =
   let buffer = Buffer.create 500 in
   let output = Buffer.add_string buffer in
-  Eliom_content.Html5.Printer.print_list ~output l;
+  let encode x = fst (Xml_print.Utf8.normalize_html x) in
+  Eliom_content.Html5.Printer.print_list ~encode ~output l;
   Buffer.contents buffer
 
 let inlineC ?(meta = []) ?(html = false) c = `Content (Xml.node ~a:(a_type (if
