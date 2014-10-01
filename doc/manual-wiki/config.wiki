@@ -247,7 +247,7 @@ Here are Eliom's options you can use in configuration files.
 <<wip|Revoir les timeouts pour client processes et groupes>>
 
 Timeouts for states (and other states) can be set either inside tag
-{{{<extension findlib-package="ocsigen.ext.eliom"/>}}} (default value
+{{{<extension findlib-package="eliom.server"/>}}} (default value
 for all sites), or inside a {{{<eliom/>}}} tag (default for one site).
 
 Timeouts can also be modified programmatically using functions like
@@ -268,7 +268,7 @@ that in configuration file, use the optional attribute
 If this attribute is absent, the timeout will affect all
 states for which no other default has been set. The
 {{{hierarchyname}}} attribute exists only inside an {{{<eliom/>}}} tag
-(and not inside {{{<extension findlib-package="ocsigen.ext.eliom"/>}}}).
+(and not inside {{{<extension findlib-package="eliom.server"/>}}}).
 
 The level attribute can take values {{{session}}} (browser)
 or {{{clientprocess}}} (tab).
@@ -293,7 +293,7 @@ or {{{clientprocess}}} (tab).
 ===Garbage collector of states and services
 
 These options can appear inside tag
-{{{<extension findlib-package="ocsigen.ext.eliom"/>}}}.
+{{{<extension findlib-package="eliom.server"/>}}}.
 For now, it cannot be set for each site independently
 (tell us if you need that).
 
@@ -384,7 +384,7 @@ Thus, a website can set its own defaults and the user can still
 override them from the configuration file.
 
 The configuration file options can be set either inside the tag
-{{{<extension findlib-package="ocsigen.ext.eliom"/>}}}
+{{{<extension findlib-package="eliom.server"/>}}}
 (global configuration), or inside the {{{<eliom/>}}} tag
 (configuration for each site). But the limits always are for one
 site (that is: a global limit value of 10 means 10 for each Eliom site).
