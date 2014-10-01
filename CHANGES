@@ -1,3 +1,12 @@
+===== 4.1 (2014-10-01) =====
+
+* Compatibility with js_of_ocaml-2.5 and tyxml-3.3.0
+ * Improvements:
+ ** Simplify typing of services
+ ** Use GADT to encode service parameters (Eliom_parameter)
+    Eliom need OCaml 4.00 at least.
+ ** bugfixes for service parameters
+ ** Various bugfixes and enhancement
 
 ===== 4.0 (2014-05) =====
 
