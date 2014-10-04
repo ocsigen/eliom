@@ -489,12 +489,37 @@ let iter_prop node name f =
   | Some n -> f n
   | None -> ()
 
+let setAttribute node ra v =
+  let known_namespaces = [("svg","http://www.w3.org/2000/svg");
+                          ("xlink","http://www.w3.org/1999/xlink");
+                         ]
+  in
+  let namespace_url =
+    if String.contains ra ':'
+    then
+      let k = String.index ra ':' in
+      let ns_nick = String.sub ra 0 k in
+      if ns_nick = "xmlns"
+      then None
+      else
+        try
+          Some (Js.string (List.assoc ns_nick known_namespaces))
+        with
+        | Not_found -> failwith ("unknown namespace nickname " ^ ns_nick)
+    else
+      None
+  in
+  let name = Js.string ra in
+  match namespace_url with
+  | Some ns_url -> node##setAttributeNS (ns_url, name, v)
+  | None -> node##setAttribute (name, v)
+
 let rec rebuild_rattrib node ra = match Xml.racontent ra with
   | Xml.RA a ->
-    let name = Js.string (Xml.aname ra) in
     let v = rebuild_attrib_val a in
-    node##setAttribute (name,v);
+    setAttribute node (Xml.aname ra) v
   | Xml.RAReact s ->
+    let o_name = Xml.aname ra in
     let name = Js.string (Xml.aname ra) in
     let _ = React.S.map (function
         | None ->
@@ -502,7 +527,7 @@ let rec rebuild_rattrib node ra = match Xml.racontent ra with
           iter_prop node name (Js.Unsafe.delete node);
         | Some v ->
           let v = rebuild_attrib_val v in
-          node##setAttribute (name,v);
+          setAttribute node o_name v;
           iter_prop node name (fun name -> Js.Unsafe.set node name v);
       ) s in ()
   | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
