@@ -100,28 +100,6 @@ let js_array_to_list arr =
   (Js.Unsafe.coerce Dom_html.window)##set_tracing <-
     Js.wrap_callback (fun v -> set_tracing (Js.to_bool v)) *)
 
-let debug_exn f e =
-  Printf.ksprintf
-    (fun s -> Firebug.console##log (Js.string (s^" "^(Printexc.to_string e)))) f
-let debug f = Printf.ksprintf (fun s -> Firebug.console##log (Js.string s)) f
-let error f =
-  Printf.ksprintf (fun s -> Firebug.console##error (Js.string s); failwith s) f
-let error_any any f =
-  Printf.ksprintf (fun s -> Firebug.console##error_2 (Js.string s, any);
-                            failwith s) f
-let trace f =
-  if Eliom_config.get_tracing ()
-  then debug (">> "^^f)
-  else Printf.ksprintf ignore f
-let jsdebug a = Firebug.console##log (a)
-let alert f = Printf.ksprintf (fun s -> Dom_html.window##alert (Js.string s)) f
-let jsalert a = Dom_html.window##alert (a)
-
-let debug_var s v = Js.Unsafe.set Dom_html.window (Js.string s) v
-
-let lwt_ignore ?(message="") t =
-  Lwt.on_failure t (fun e -> debug_exn "%s" e message)
-
 (* We do not use the deriving (un)marshaling even if typ is available
    because direct jsn (un)marshaling is very fast client side
 *)
