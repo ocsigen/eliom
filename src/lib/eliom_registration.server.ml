@@ -143,7 +143,8 @@ module Make_typed_xml_registration
     module Format = Xml_print.Make_typed(Xml)(Typed_xml)(Ocsigen_stream.StringStream)
 
     let result_of_content_subxhtml get_etag c =
-      let x = Format.print_list c in
+      let encode x = fst (Xml_print.Utf8.normalize_html x) in
+      let x = Format.print_list ~encode c in
       let default_result = Ocsigen_http_frame.Result.default () in
       Lwt.return
         (Ocsigen_http_frame.Result.update default_result

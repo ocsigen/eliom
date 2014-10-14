@@ -36,26 +36,27 @@ end
 module Format = Xml_print.Make_simple(Xml)(Atom_info)
 
 let result_of_content feed headers =
-   let b = Buffer.create 10 in
-   Format.print_list ~output:(Buffer.add_string b) [Atom_feed.xml_of_feed feed];
-   let c = Buffer.contents b in
-   let md5 = get_etag c in
-   let dr = Ocsigen_http_frame.Result.default () in
-   (Ocsigen_http_frame.Result.update dr
-      ~content_length:(Some (Int64.of_int (String.length c)))
-      ~content_type:(Some "application/atom+xml")
-      ~etag:md5
-      ~headers:(match headers with
-            | None -> Ocsigen_http_frame.Result.headers dr
-            | Some headers ->
-            Http_headers.with_defaults headers (Ocsigen_http_frame.Result.headers dr)
-            )
-      ~stream:
-         (Ocsigen_stream.make
+  let b = Buffer.create 10 in
+  let encode x = fst (Xml_print.Utf8.normalize_html x) in
+  Format.print_list ~output:(Buffer.add_string b) ~encode [Atom_feed.xml_of_feed feed];
+  let c = Buffer.contents b in
+  let md5 = get_etag c in
+  let dr = Ocsigen_http_frame.Result.default () in
+  (Ocsigen_http_frame.Result.update dr
+     ~content_length:(Some (Int64.of_int (String.length c)))
+     ~content_type:(Some "application/atom+xml")
+     ~etag:md5
+     ~headers:(match headers with
+         | None -> Ocsigen_http_frame.Result.headers dr
+         | Some headers ->
+           Http_headers.with_defaults headers (Ocsigen_http_frame.Result.headers dr)
+       )
+     ~stream:
+       (Ocsigen_stream.make
           (fun () ->
-           Ocsigen_stream.cont c
-           (fun () -> Ocsigen_stream.empty None)), None)
-      ())
+             Ocsigen_stream.cont c
+               (fun () -> Ocsigen_stream.empty None)), None)
+     ())
 
 module Reg_base = struct
    type page = Atom_feed.feed

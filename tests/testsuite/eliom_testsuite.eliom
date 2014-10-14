@@ -341,6 +341,7 @@ let _ = Eliom_registration.Html5.register Eliom_testsuite_base.main
 (* broken        a any4 [pcdata "Any in suffix"] [("bo","ba");("bi","bu")]; br (); *)
          a any5 [pcdata "Suffix + any parameters"]
            ("ee", [("bo","ba");("bi","bu")]); br ();
+         a upload [pcdata "Upload"] (); br ();
          a uploadgetform [pcdata "Upload with GET"] (); br ();
          a sufli [pcdata "List in suffix"] [("bo", 4);("ba", 3);("bi", 2);("bu", 1)]; br ();
          a sufliform [pcdata "Form to list in suffix"] (); br ();

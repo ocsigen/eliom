@@ -1,40 +1,11 @@
 // Unmarshall and unwrapping.
 
 //Provides: caml_unwrap_value_from_string mutable
-//Requires: caml_failwith, MlStringFromArray, caml_marshal_constants
-//Requires: caml_int64_float_of_bits, caml_int64_of_bytes, MlString
+//Requires: caml_failwith, caml_marshal_constants
+//Requires: caml_int64_float_of_bits, caml_int64_of_bytes, caml_new_string
+//Requires: caml_bytes_of_string
 var caml_unwrap_value_from_string = function (){
-  function ArrayReader (a, i) { this.a = a; this.i = i; }
-  ArrayReader.prototype = {
-    read8u:function () { return this.a[this.i++]; },
-    read8s:function () { return this.a[this.i++] << 24 >> 24; },
-    read16u:function () {
-      var a = this.a, i = this.i;
-      this.i = i + 2;
-      return (a[i] << 8) | a[i + 1]
-    },
-    read16s:function () {
-      var a = this.a, i = this.i;
-      this.i = i + 2;
-      return (a[i] << 24 >> 16) | a[i + 1];
-    },
-    read32u:function () {
-      var a = this.a, i = this.i;
-      this.i = i + 4;
-      return ((a[i] << 24) | (a[i+1] << 16) | (a[i+2] << 8) | a[i+3]) >>> 0;
-    },
-    read32s:function () {
-      var a = this.a, i = this.i;
-      this.i = i + 4;
-      return (a[i] << 24) | (a[i+1] << 16) | (a[i+2] << 8) | a[i+3];
-    },
-    readstr:function (len) {
-      var i = this.i;
-      this.i = i + len;
-      return new MlStringFromArray(this.a.slice(i, i + len));
-    }
-  }
-  function StringReader (s, i) { this.s = s; this.i = i; }
+  function StringReader (s, i) { this.s = caml_bytes_of_string(s); this.i = i; }
   StringReader.prototype = {
     read8u:function () { return this.s.charCodeAt(this.i++); },
     read8s:function () { return this.s.charCodeAt(this.i++) << 24 >> 24; },
@@ -63,7 +34,7 @@ var caml_unwrap_value_from_string = function (){
     readstr:function (len) {
       var i = this.i;
       this.i = i + len;
-      return new MlString(this.s.substring(i, i + len));
+      return caml_new_string(this.s.substring(i, i + len));
     }
   }
   function caml_float_of_bytes (a) {
@@ -71,8 +42,7 @@ var caml_unwrap_value_from_string = function (){
   }
   var late_unwrap_mark = "late_unwrap_mark";
   return function (apply_unwrapper, register_late_occurrence, s, ofs) {
-    var reader = s.array?new ArrayReader (s.array, ofs):
-                         new StringReader (s.getFullBytes(), ofs);
+    var reader = new StringReader (s, ofs);
     var magic = reader.read32u ();
     var block_len = reader.read32u ();
     var num_objects = reader.read32u ();

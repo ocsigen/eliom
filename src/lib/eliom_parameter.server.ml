@@ -233,10 +233,12 @@ let reconstruct_params_
                     | Res_ (vv2, ll2, ff2) ->
                       Res_ (vv::vv2, ll2, ff2)
                     | err -> err)
+                | Errors_ (errs, ll, ff) when ll = params && ff = files ->
+                  Res_ ([], params, files)
                 | Errors_ (errs, ll, ff) ->
                   (match aux_set ll ff with
-                    | Res_ (_, ll2, ff2) -> Errors_ (errs, ll2, ff2)
-                    | Errors_ (errs2, ll2, ff2) -> Errors_ (errs@errs2, ll2, ff2))
+                   | Res_ (_, ll2, ff2) -> Errors_ (errs, ll2, ff2)
+                   | Errors_ (errs2, ll2, ff2) -> Errors_ (errs@errs2, ll2, ff2))
             with Not_found -> Res_ ([], params, files)
           in aux_set params files
         | TSum (t1, t2) ->

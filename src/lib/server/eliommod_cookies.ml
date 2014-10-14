@@ -279,7 +279,7 @@ let compute_session_cookies_to_send
       in (old, newinfo))
   in
   let getdatavexp v =
-    if Lazy.lazy_is_val v
+    if Lazy.is_val v
     then
       return
         (let (old, newi) = Lazy.force v in
@@ -294,7 +294,7 @@ let compute_session_cookies_to_send
     else fail Not_found
   in
   let getpersvexp v =
-    if Lazy.lazy_is_val v
+    if Lazy.is_val v
     then
       Lazy.force v >>= fun (old, newi) ->
       return
@@ -460,7 +460,7 @@ let compute_new_ri_cookies
           else
             let n = Eliom_common.make_full_cookie_name
               Eliom_common.datacookiename full_st_name in
-            if Lazy.lazy_is_val v
+            if Lazy.is_val v
             then
               let (_, v) = Lazy.force v in
               match !v with
@@ -485,7 +485,7 @@ let compute_new_ri_cookies
             let n = Eliom_common.make_full_cookie_name
               Eliom_common.persistentcookiename full_st_name in
             beg >>= fun beg ->
-            if Lazy.lazy_is_val v
+            if Lazy.is_val v
             then
               (Lazy.force v >>= fun (_, v) ->
                match !v with

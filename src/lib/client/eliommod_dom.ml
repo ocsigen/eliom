@@ -72,7 +72,8 @@ let test_onhashchange () =
   Js.Optdef.test ((Js.Unsafe.coerce Dom_html.window:dom_tester Js.t)##onhashchange)
 
 let fast_ancessor (elt1:#Dom.node Js.t) (elt2:#Dom.node Js.t) =
-  Dom.DocumentPosition.(has (elt1##compareDocumentPosition((elt2:>Dom.node Js.t))) contained_by)
+  let open Dom.DocumentPosition in
+  has (elt1##compareDocumentPosition((elt2:>Dom.node Js.t))) contained_by
 
 let slow_ancessor (elt1:#Dom.node Js.t) (elt2:#Dom.node Js.t) =
   let rec check_parent n =

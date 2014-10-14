@@ -57,7 +57,11 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
 #if ocaml_version < (4, 01)
     Pack.Param_tags.init ()
 #else
+#if ocaml_version < (4, 02)
     Pack.Param_tags.partial_init (Tags.of_list tags)
+#else
+    Pack.Param_tags.partial_init "Eliom plugin" (Tags.of_list tags)
+#endif
 #endif
 
   let use_all_syntaxes src =
@@ -113,6 +117,10 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
 
   let init = function
     | After_rules ->
+#if ocaml_version >= (4, 02)
+        mark_tag_used no_extra_syntaxes;
+#endif
+
         (* eliom files *)
         copy_rule_server "*.eliom -> **/_server/*.ml"
           ~deps:["%(path)/" ^ Eliom.type_dir ^ "/%(file).inferred.mli"]

@@ -55,24 +55,24 @@ module Xml = struct
     | DomNode _ -> assert false (* TODO *)
     | TyXMLNode elt -> elt
   let get_node e = Lazy.force e.elt
-  let set_dom_node elt node = elt.elt <- Lazy.lazy_from_val (DomNode node)
+  let set_dom_node elt node = elt.elt <- Lazy.from_val (DomNode node)
   let get_node_id elt = elt.node_id
 
   let make ?(id = NoId) elt =
-    { elt = Lazy.lazy_from_val (TyXMLNode elt); node_id = id; }
+    { elt = Lazy.from_val (TyXMLNode elt); node_id = id; }
   let make_dom ?(id = NoId) node =
-    { elt = Lazy.lazy_from_val (DomNode node); node_id = id; }
+    { elt = Lazy.from_val (DomNode node); node_id = id; }
   let make_lazy ?(id = NoId) lazy_elt =
     let f () =
        let elt = Lazy.force lazy_elt in
        assert (elt.node_id = id);
        Lazy.force elt.elt
     in
-    { node_id = id; elt = Lazy.lazy_from_fun f }
+    { node_id = id; elt = Lazy.from_fun f }
   let force_lazy { elt } = ignore (Lazy.force elt)
 
   let make_react ?(id = NoId) signal =
-    {elt = Lazy.lazy_from_val (ReactNode signal); node_id = id; }
+    {elt = Lazy.from_val (ReactNode signal); node_id = id; }
 
   let empty () = make Empty
 
@@ -102,7 +102,7 @@ module Xml = struct
       (Caml (CE_client_closure (value :> biggest_event_handler)))
 
   let node_react_children ?(a = []) name children =
-    {elt = Lazy.lazy_from_val (ReactChildren (Node (name,a,[]),children)); node_id=NoId}
+    {elt = Lazy.from_val (ReactChildren (Node (name,a,[]),children)); node_id=NoId}
 
   let end_re = Regexp.regexp_string "]]>"
 
@@ -152,7 +152,7 @@ module Xml = struct
       | ReactNode _ -> failwith "Eliom_content_core.set_classes_of_elt"
       | ReactChildren _ -> failwith "Eliom_content_core.set_classes_of_elt"
       | TyXMLNode econtent ->
-          { elt with elt = Lazy.lazy_from_val (TyXMLNode (set_classes elt.node_id econtent)) }
+          { elt with elt = Lazy.from_val (TyXMLNode (set_classes elt.node_id econtent)) }
 
   let string_of_node_id = function
     | NoId -> "NoId"
