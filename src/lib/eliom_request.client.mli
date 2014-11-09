@@ -37,7 +37,11 @@ val send :
   ?cookies_info:bool * string list ->
   ?get_args:(string * string) list ->
   ?post_args:(string * Eliommod_parameters.param) list ->
-  ?form_arg:((string * Form.form_elt) list) -> string ->
+  ?form_arg:((string * Form.form_elt) list) ->
+  ?progress:(int -> int -> unit) ->
+  ?upload_progress:(int -> int -> unit) ->
+  ?override_mime_type:string ->
+  string ->
   'a result ->
   (string * 'a option) Lwt.t
 
@@ -46,6 +50,9 @@ val send_get_form :
   ?cookies_info:bool * string list ->
   ?get_args:(string * string) list ->
   ?post_args:(string * Eliommod_parameters.param) list ->
+  ?progress:(int -> int -> unit) ->
+  ?upload_progress:(int -> int -> unit) ->
+  ?override_mime_type:string ->
   Dom_html.formElement Js.t ->
   string ->
   'a result ->
@@ -56,6 +63,9 @@ val send_post_form :
   ?cookies_info:bool * string list ->
   ?get_args:(string * string) list ->
   ?post_args:(string * Eliommod_parameters.param) list ->
+  ?progress:(int -> int -> unit) ->
+  ?upload_progress:(int -> int -> unit) ->
+  ?override_mime_type:string ->
   Dom_html.formElement Js.t ->
   string ->
   'a result ->
@@ -64,6 +74,9 @@ val send_post_form :
 val http_get :
   ?expecting_process_page:bool ->
   ?cookies_info:bool * string list ->
+  ?progress:(int -> int -> unit) ->
+  ?upload_progress:(int -> int -> unit) ->
+  ?override_mime_type:string ->
   string ->
   (string * string) list ->
   'a result ->
@@ -72,6 +85,9 @@ val http_get :
 val http_post :
   ?expecting_process_page:bool ->
   ?cookies_info:bool * string list ->
+  ?progress:(int -> int -> unit) ->
+  ?upload_progress:(int -> int -> unit) ->
+  ?override_mime_type:string ->
   string ->
   (string * Eliommod_parameters.param) list ->
   'a result ->
@@ -80,6 +96,9 @@ val http_post :
 val http_put :
   ?expecting_process_page:bool ->
   ?cookies_info:bool * string list ->
+  ?progress:(int -> int -> unit) ->
+  ?upload_progress:(int -> int -> unit) ->
+  ?override_mime_type:string ->
   string ->
   (string * Eliommod_parameters.param) list ->
   'a result ->
@@ -88,6 +107,9 @@ val http_put :
 val http_delete :
   ?expecting_process_page:bool ->
   ?cookies_info:bool * string list ->
+  ?progress:(int -> int -> unit) ->
+  ?upload_progress:(int -> int -> unit) ->
+  ?override_mime_type:string ->
   string ->
   (string * Eliommod_parameters.param) list ->
   'a result ->

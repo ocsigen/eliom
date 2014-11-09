@@ -625,6 +625,7 @@ let create_request_
 let raw_call_service
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
     ?keep_nl_params ?nl_params ?keep_get_na_params
+    ?progress ?upload_progress ?override_mime_type
     get_params post_params =
   lwt uri, content =
     match create_request_
@@ -635,18 +636,22 @@ let raw_call_service
       | `Get uri ->
         Eliom_request.http_get
           ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
+          ?progress ?upload_progress ?override_mime_type
           Eliom_request.string_result
       | `Post (uri, post_params) ->
         Eliom_request.http_post
           ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
+          ?progress ?upload_progress ?override_mime_type
           uri post_params Eliom_request.string_result
       | `Put (uri, post_params) ->
         Eliom_request.http_put
           ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
+          ?progress ?upload_progress ?override_mime_type
           uri post_params Eliom_request.string_result
       | `Delete (uri, post_params) ->
         Eliom_request.http_delete
           ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
+          ?progress ?upload_progress ?override_mime_type
           uri post_params Eliom_request.string_result in
   match content with
     | None -> raise_lwt (Eliom_request.Failed_request 204)
@@ -655,10 +660,13 @@ let raw_call_service
 let call_service
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
     ?keep_nl_params ?nl_params ?keep_get_na_params
+    ?progress ?upload_progress ?override_mime_type
     get_params post_params =
   lwt _, content =
-    raw_call_service ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+    raw_call_service
+      ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
       ?keep_nl_params ?nl_params ?keep_get_na_params
+      ?progress ?upload_progress ?override_mime_type
       get_params post_params in
   Lwt.return content
 
@@ -709,12 +717,14 @@ let unwrap_caml_content content =
 let call_ocaml_service
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
     ?keep_nl_params ?nl_params ?keep_get_na_params
+    ?progress ?upload_progress ?override_mime_type
     get_params post_params =
   Lwt_log.ign_info ~section "Call OCaml service";
   lwt _, content =
     raw_call_service
       ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
       ?keep_nl_params ?nl_params ?keep_get_na_params
+      ?progress ?upload_progress ?override_mime_type
       get_params post_params in
   lwt content, request_data = unwrap_caml_content content in
   do_request_data request_data;
@@ -767,7 +777,8 @@ let change_url
     ?port
     ?fragment
     ?keep_nl_params
-    ?nl_params params =
+    ?nl_params
+    params =
   change_url_string
     (Eliom_uri.make_string_uri
        ?absolute
@@ -1148,6 +1159,7 @@ let set_template_content ?uri ?fragment = function
 let change_page
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
     ?keep_nl_params ?(nl_params = Eliom_parameter.empty_nl_params_set) ?keep_get_na_params
+    ?progress ?upload_progress ?override_mime_type
     get_params post_params =
   Lwt_log.ign_info ~section "Change page";
   let xhr = Eliom_service.xhr_with_cookies service in
@@ -1171,6 +1183,7 @@ let change_page
             raw_call_service
               ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
               ?keep_nl_params ~nl_params ?keep_get_na_params
+              ?progress ?upload_progress ?override_mime_type
               get_params post_params in
           set_template_content ~uri ?fragment (Some content)
         | _ ->
