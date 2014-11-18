@@ -61,7 +61,7 @@ services returning OCaml data.
 
 These services are registered using <<a_api | module Eliom_registration.Ocaml >>
 and can be called using
-<<a_api subproject="client" | val Eliom_client.call_caml_service >>.
+<<a_api subproject="client" | val Eliom_client.call_ocaml_service >>.
 
 Those services cannot be visited by the browser as web pages.
 You usually want POST coservices for this use.
@@ -85,7 +85,7 @@ let _ =
       ignore {unit{
         Lwt.ignore_result(
           lwt pi =
-            Eliom_client.call_caml_service ~service:%pi_service () ()
+            Eliom_client.call_ocaml_service ~service:%pi_service () ()
           in
 	  Lwt.return (
 	    Dom_html.window##alert(Js.string

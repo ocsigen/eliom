@@ -22,7 +22,7 @@
  ** Improving comet configurations: now possible to stay idle instead of being completely inactive
  ** Now using defaultprotocol option (from ocsigenserver) to compute URLs
  ** The default expiration date for cookies on client side is now 10 years
- ** Now possible to send files in {{{Eliom_client.call_caml_service}}}
+ ** Now possible to send files in {{{Eliom_client.call_ocaml_service}}}
  ** Various additions and bugfixes in {{{Manip}}}, {{{Eliom_request_info}}},
  {{{Eliom_content.html5}}} (events) (contributions by besport.com)
  ** eliom-destillery renamed into eliom-distillery

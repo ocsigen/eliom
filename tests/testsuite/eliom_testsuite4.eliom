@@ -872,7 +872,7 @@ let client_handler_syntax_2 =
                      Js.null));
            hidden_widget_set_content_getter %w
              (fun () ->
-                Eliom_client.call_caml_service ~service: %get_slow_content () ())
+                Eliom_client.call_ocaml_service ~service: %get_slow_content () ())
        }};
        Lwt.return Html5.F.(
          html
