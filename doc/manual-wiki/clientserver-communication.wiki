@@ -102,11 +102,11 @@ is not possible to send any Ocaml value, the restriction on what can
 be sent are the same as for the {{{%variable}}} mechanism
 (see the <<a_manual chapter="clientserver-wrapping"| chapter Wrapping>>).
 
-== Client sending data
+==@@id="client_sending_data"@@Client sending data
 
 The client can send OCaml values as parameters to services.
 To do that, declare the expected parameter type using
-<<a_api | val Eliom_parameter.caml >>.
+<<a_api | val Eliom_parameter.ocaml >>.
 
 Since the server can't trust the client to send correcly formed data,
 Eliom is not using the standard OCaml marshalling mechanism (the
@@ -133,7 +133,7 @@ open Eliom_content
 let s =
   My_appl.register_service
     ~path:["s1"]
-    ~get_params:(caml "param" Json.t<another_type>)
+    ~get_params:(ocaml "param" Json.t<another_type>)
     (fun () v ->
       Lwt.return
         Html5.D.(html

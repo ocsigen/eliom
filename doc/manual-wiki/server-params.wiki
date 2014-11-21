@@ -169,6 +169,11 @@ let mytype =
 
 See [[http://tests.ocsigen.org/mytype?valeur=A]].
 
+See also <<a_manual chapter="clientserver-communication"
+fragment="client_sending_data" |Client sending data>> in the chapter
+about client-server communication, which shows how to use a <<code
+language="ocaml"|user_type>> from the client-side.
+
 ===@@id="any"@@Untyped parameters
 
 If you want a service that answers to requests with any parameters,
