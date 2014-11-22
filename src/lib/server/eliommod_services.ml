@@ -161,7 +161,13 @@ let add_page_table tables url_act tref
     | {Eliom_common.key_state = (_, Eliom_common.SAtt_anon _) ;
        Eliom_common.key_kind = Ocsigen_http_frame.Http_header.PUT }
     | {Eliom_common.key_state = (_, Eliom_common.SAtt_anon _) ;
-       Eliom_common.key_kind = Ocsigen_http_frame.Http_header.DELETE } ->
+       Eliom_common.key_kind = Ocsigen_http_frame.Http_header.DELETE }
+    | {Eliom_common.key_state = (_, Eliom_common.SAtt_anon _) ;
+       Eliom_common.key_kind = Ocsigen_http_frame.Http_header.HEAD }
+    | {Eliom_common.key_state = (_, Eliom_common.SAtt_anon _) ;
+       Eliom_common.key_kind = Ocsigen_http_frame.Http_header.PATCH }
+    | {Eliom_common.key_state = (_, Eliom_common.SAtt_anon _) ;
+       Eliom_common.key_kind = Ocsigen_http_frame.Http_header.OPTIONS } ->
         (* Anonymous coservice:
            - only one for each key
            - we add a node in the dlist to limit their number *)

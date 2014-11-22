@@ -88,7 +88,7 @@ type attached = [ attached_kind | non_attached_kind ]
 
 (** The kind of a service is [`Post] when there is at least one POST
     parameters. It is [`Get] otherwise. *)
-type service_method = [ `Get | `Post | `Put | `Delete ]
+type service_method = [ `Get | `Post | `Put | `Delete | `Head | `Patch | `Options ]
 
 (** {3 Common subtypes of [service_method] } *)
 
@@ -103,6 +103,15 @@ type put_service_kind = [`Put]
 
 (** Restriction of [service_method] to DELETE services. *)
 type delete_service_kind = [`Delete]
+
+(** Restriction of [service_method] to HEAD services. *)
+type head_service_kind = [`Head]
+
+(** Restriction of [service_method] to PATCH services. *)
+type patch_service_kind = [`Patch]
+
+(** Restriction of [service_method] to OPTIONS services. *)
+type options_service_kind = [`Options]
 
 (** {3 Kind of parameters} *)
 

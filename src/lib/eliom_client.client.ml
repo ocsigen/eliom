@@ -606,7 +606,7 @@ let create_request_
           ?hostname ?port ?fragment ?keep_nl_params ?nl_params get_params
       in
       `Get uri
-  | `Post | `Put | `Delete as http_method ->
+  | `Post | `Put | `Delete | `Head | `Patch | `Options as http_method ->
       let path, get_params, fragment, post_params =
         Eliom_uri.make_post_uri_components__
           ?absolute ?absolute_path ?https
@@ -620,7 +620,10 @@ let create_request_
       (match http_method with
       | `Post -> `Post (uri, post_params)
       | `Put -> `Put (uri, post_params)
-      | `Delete -> `Delete (uri, post_params))
+      | `Delete -> `Delete (uri, post_params)
+      | `Head -> `Head (uri, post_params)
+      | `Patch -> `Patch (uri, post_params)
+      | `Options -> `Options (uri, post_params))
 
 let raw_call_service
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -647,7 +650,20 @@ let raw_call_service
       | `Delete (uri, post_params) ->
         Eliom_request.http_delete
           ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
-          uri post_params Eliom_request.string_result in
+          uri post_params Eliom_request.string_result
+      | `Head (uri, post_params) ->
+          Eliom_request.http_head
+            ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
+            uri post_params Eliom_request.string_result
+      | `Patch (uri, post_params) ->
+          Eliom_request.http_patch
+            ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
+            uri post_params Eliom_request.string_result
+      | `Options (uri, post_params) ->
+          Eliom_request.http_options
+            ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
+            uri post_params Eliom_request.string_result in
+
   match content with
     | None -> raise_lwt (Eliom_request.Failed_request 204)
     | Some content -> Lwt.return (uri, content)
@@ -677,7 +693,10 @@ let exit_to
      | `Get uri -> Eliom_request.redirect_get uri
      | `Post (uri, post_params) -> Eliom_request.redirect_post uri post_params
      | `Put (uri, post_params) -> Eliom_request.redirect_put uri post_params
-     | `Delete (uri, post_params) -> Eliom_request.redirect_delete uri post_params)
+     | `Delete (uri, post_params) -> Eliom_request.redirect_delete uri post_params
+     | `Head (uri, post_params) -> Eliom_request.redirect_head uri post_params
+     | `Patch (uri, post_params) -> Eliom_request.redirect_patch uri post_params
+     | `Options (uri, post_params) -> Eliom_request.redirect_options uri post_params)
 
 let window_open ~window_name ?window_features
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -693,6 +712,9 @@ let window_open ~window_name ?window_features
     | `Post (uri, post_params) -> assert false
     | `Put (uri, post_params) -> assert false
     | `Delete (uri, post_params) -> assert false
+    | `Head (uri, post_params) -> assert false
+    | `Patch (uri, post_params) -> assert false
+    | `Options (uri, post_params) -> assert false
 
 (* == Call caml service.
 
@@ -1197,6 +1219,19 @@ let change_page
                 Eliom_request.http_delete
                   ~expecting_process_page:true ?cookies_info uri p
                   Eliom_request.xml_result
+	      | `Head (uri, p) ->
+		Eliom_request.http_head
+                  ~expecting_process_page:true ?cookies_info uri p
+                  Eliom_request.xml_result
+	      | `Patch (uri, p) ->
+		Eliom_request.http_patch
+                  ~expecting_process_page:true ?cookies_info uri p
+                  Eliom_request.xml_result
+	      | `Options (uri, p) ->
+		Eliom_request.http_options
+                  ~expecting_process_page:true ?cookies_info uri p
+                  Eliom_request.xml_result
+
           in
           let uri, fragment = Url.split_fragment uri in
           set_content ~uri ?fragment content )

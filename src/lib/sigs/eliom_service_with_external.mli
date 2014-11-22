@@ -66,3 +66,39 @@ val external_delete_service :
   ('get, Eliom_parameter.raw_post_data,
    [>`Delete ], [> attached_kind], [> `External], 'tipo,
    'gn, no_param_name, [> `Unregistrable ], returnB) service
+
+(** Same as {!external_service} but with HEAD method. *)
+val external_head_service :
+  prefix: string ->
+  path:Url.path ->
+  ?rt:'rt rt ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
+  unit ->
+  ('get, Eliom_parameter.raw_post_data,
+   [>`Head ], [> attached_kind], [> `External], 'tipo,
+   'gn, no_param_name, [> `Unregistrable ], returnB) service
+
+(** Same as {!external_service} but with PATCH method. *)
+val external_patch_service :
+  prefix: string ->
+  path:Url.path ->
+  ?rt:'rt rt ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
+  unit ->
+  ('get, Eliom_parameter.raw_post_data,
+   [>`Patch ], [> attached_kind], [> `External], 'tipo,
+   'gn, no_param_name, [> `Unregistrable ], returnB) service
+
+(** Same as {!external_service} but with OPTIONS method. *)
+val external_options_service :
+  prefix: string ->
+  path:Url.path ->
+  ?rt:'rt rt ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
+  unit ->
+  ('get, Eliom_parameter.raw_post_data,
+   [>`Options ], [> attached_kind], [> `External], 'tipo,
+   'gn, no_param_name, [> `Unregistrable ], returnB) service
