@@ -230,7 +230,6 @@ let handled_method = function
   | Ocsigen_http_frame.Http_header.POST
   | Ocsigen_http_frame.Http_header.PUT
   | Ocsigen_http_frame.Http_header.DELETE
-  | Ocsigen_http_frame.Http_header.HEAD
   | Ocsigen_http_frame.Http_header.PATCH
   | Ocsigen_http_frame.Http_header.OPTIONS -> true
   | _ -> false
