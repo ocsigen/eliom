@@ -153,18 +153,24 @@ module MakeManip
       let node = get_unique_node "childNodes" elt in
       Dom.list_of_nodeList (node##childNodes)
 
-    let rec filterElements nodes = match nodes with
+    let rec filterElements coerce nodes = match nodes with
       | [] -> []
       | node :: nodes ->
-        let elts = filterElements nodes in
+        let elts = filterElements coerce nodes in
         Js.Opt.case
-          (Dom.CoerceTo.element node)
+          (coerce node)
           (fun () -> elts)
           (fun elt -> elt :: elts)
 
     let childElements elt =
       let node = get_unique_node "childElements" elt in
-      filterElements (Dom.list_of_nodeList (node##childNodes))
+      filterElements Dom.CoerceTo.element (Dom.list_of_nodeList (node##childNodes))
+
+    let children elt =
+      let node = get_unique_node "children" elt in
+      List.map Of_dom.of_element
+        (filterElements Dom_html.CoerceTo.element
+           (Dom.list_of_nodeList (node##childNodes)))
 
     let parentNode elt =
       let node = get_unique_node "parentNode" elt in

@@ -610,6 +610,9 @@ module Html5 : sig
     (** [replaceSelf elt1 elt2] replaces [elt1] by [elt2]. *)
     val replaceSelf: 'a elt -> 'b elt -> unit
 
+    (** [children elt] returns the list of html children of [elt]. *)
+    val children: 'a elt -> 'b elt list
+
     (** The function [addEventListener elt evt handler] attach the
         [handler] for the event [evt] on the element [elt]. See the
         Js_of_ocaml manual, for a list of {% <<a_api project="js_of_ocaml"
