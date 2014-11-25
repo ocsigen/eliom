@@ -183,19 +183,9 @@ module Svg : sig
   module F : sig
 
     (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
-    module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
-                             and type Xml.event_handler = Xml.event_handler
-                             and type Xml.mouse_event_handler = Xml.mouse_event_handler
-                             and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
-                             and type Xml.attrib = Xml.attrib
-                             and type Xml.elt = Xml.elt
-                             and type +'a elt = 'a elt
-                             and type 'a Xml.wrap = 'a
-                             and type 'a wrap = 'a
-                             and type 'a Xml.list_wrap = 'a list
-                             and type 'a list_wrap = 'a list
-                             and type +'a attrib = 'a attrib
-                             and type uri = uri
+    module Raw : Svg_sigs.Make(Xml).T
+      with type +'a elt = 'a elt
+       and type +'a attrib = 'a attrib
 
     include module type of Raw
 
@@ -206,19 +196,9 @@ module Svg : sig
   module D : sig
 
     (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
-    module Raw : Svg_sigs.T with type Xml.uri = Xml.uri
-                             and type Xml.event_handler = Xml.event_handler
-                             and type Xml.mouse_event_handler = Xml.mouse_event_handler
-                             and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
-                             and type Xml.attrib = Xml.attrib
-                             and type Xml.elt = Xml.elt
-                             and type +'a elt = 'a elt
-                             and type 'a Xml.wrap = 'a
-                             and type 'a wrap = 'a
-                             and type 'a Xml.list_wrap = 'a list
-                             and type 'a list_wrap = 'a list
-                             and type +'a attrib = 'a attrib
-                             and type uri = uri
+    module Raw : Svg_sigs.Make(Xml).T
+      with type +'a elt = 'a elt
+       and type +'a attrib = 'a attrib
 
     include module type of Raw
 
@@ -293,21 +273,9 @@ module Html5 : sig
         see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
 
     (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
-    module Raw : Html5_sigs.T
-                   with type Xml.uri = Xml.uri
-                   and type Xml.event_handler = Xml.event_handler
-                   and type Xml.mouse_event_handler = Xml.mouse_event_handler
-                   and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
-                   and type Xml.attrib = Xml.attrib
-                   and type Xml.elt = Xml.elt
-                   and type 'a Xml.wrap = 'a
-                   and type 'a Xml.list_wrap = 'a list
-                   with module Svg := Svg.F.Raw
-                   with type +'a elt = 'a elt
-                    and type 'a wrap = 'a
-                    and type 'a list_wrap = 'a list
-                   and type +'a attrib = 'a attrib
-                   and type uri = uri
+    module Raw : Html5_sigs.Make(Xml)(Svg.F.Raw).T
+      with type +'a elt = 'a elt
+       and type +'a attrib = 'a attrib
 
     include module type of Raw
 
@@ -362,21 +330,10 @@ module Html5 : sig
         see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
 
     (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
-    module Raw : Html5_sigs.T
-                   with type Xml.uri = Xml.uri
-                   and type Xml.event_handler = Xml.event_handler
-                   and type Xml.mouse_event_handler = Xml.mouse_event_handler
-                   and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
-                   and type Xml.attrib = Xml.attrib
-                   and type Xml.elt = Xml.elt
-                   and type 'a Xml.wrap = 'a
-                   and type 'a Xml.list_wrap = 'a list
-                   with module Svg := Svg.D.Raw
-                   with type +'a elt = 'a elt
-                    and type 'a wrap = 'a
-                    and type 'a list_wrap = 'a list
-                   and type +'a attrib = 'a attrib
-                   and type uri = uri
+    module Raw : Html5_sigs.Make(Xml)(Svg.D.Raw).T
+      with type +'a elt = 'a elt
+       and type +'a attrib = 'a attrib
+
     include module type of Raw
 
     (**/**)
