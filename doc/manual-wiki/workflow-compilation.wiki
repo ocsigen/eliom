@@ -89,7 +89,7 @@ replace {{{eliomc}}} by {{{eliomopt}}}.
 {{{ocamlbuild}}} is a standard tool for building ocaml programs and libraries.
 It contains a powerful plugin system which has been improved in ocaml 4.01 by
 the {{{-plugin-tags}}} option. This option allows you to give tags to the plugin
-itself and to (for example) use some libraries. In fact, the best usage is to
+itself, for example to use some libraries. In fact, the best usage is to
 import libraries that are ocamlbuild plugins.
 
 eliom has now an ocamlbuild plugin contained in the package {{{eliom.ocamlbuild}}}.
@@ -109,35 +109,44 @@ let () = Ocamlbuild_plugin.dispatch M.dispatcher
 >>
 (if you are using OASIS, see also the next section)
 
-The {{{client_dir}}} {{{server_dir}}} and {{{type_dir}}} values are the
-directories that are used for client server and type parts.
-The plugin will dispatch the .eliom in three .ml files in server, client and type
-dir. Those three dir will be concatenated to the current directory.
-For example, if you have {{{test.eliom}}} in src, it will be dispatched in
-src/server/test.ml, src/client/test.ml and src/type/test.ml
-(same for .eliomi files).
-Don't forget to mention the good one in your .mllib file
-(for a server lib, it will be {{{src/server/Test}}}).
+The {{{client_dir}}}, {{{server_dir}}} and {{{type_dir}}} values are
+directories (relative the location of each eliom file) that are used for
+client, server and type parts.  The plugin will dispatch the {{{.eliom}}} in
+three {{{.ml}}} files in server, client and type
+dir, from which {{{ocamlbuild}}} can eventually create {{{.cma}}} or {{{.js}}}
+files.  For example, if you have {{{test.eliom}}} in {{{./src/}}}, it will be
+dispatched to {{{./_build/src/server/test.ml}}},
+{{{./_build/src/client/test.ml}}} and {{{./_build/src/type/test.ml}}} (same for
+{{{.eliomi}}} files).  Don't forget to mention the good one in your
+{{{.mllib}}} file (for a server lib, it will be {{{src/server/Test}}}).
 
 Then in a file named {{{_tags}}} (at the root of your project), add:
 
 {{{
-true: thread, syntax(camlp4o)
+<server/*>: package(eliom.server), package(yourserverdep), thread
+<client/*>: package(eliom.client), package(yourclientdep)
+true: package(yourlibdeps)
 }}}
 
-You can and probably should replace {{{true}}} by certain specific pattern
-(see: [[https://github.com/gasche/manual-ocamlbuild/blob/master/manual.md#tags-and-the-_tags-file]])
-that effectively use a camlp4 syntax extention (other that your eliom files).
-Dependencies are added with {{{package(yourdep)}}} in the same line.
+See
+[[https://github.com/gasche/manual-ocamlbuild/blob/master/manual.md#tags-and-the-_tags-file]]
+for more details.  In some cases {{{syntax(camlp4o}}} is needed, and in newer
+versions of Eliom, {{{package(eliom.server)}}} and {{{package(eliom.client)}}}
+may be omitted.  Dependencies are added with {{{package(yourdep)}}} in the
+same line.
 
 For libraries, don't forget to add the corresponding .mllib file.
 Then, you can compile your project with:
 
 {{{
 ocamlbuild -use-ocamlfind -plugin-tags "package(eliom.ocamlbuild)" \
-    yourlib.cma yourlib.cmxa yourlib.cmxs yourexecutable.js
+    server/yoursite.cma server/yoursite.cmxa server/yoursite.cmxs \
+    yourlib.cma yourlib.cmxa yourlib.cmxs \
+    client/yoursite.js
 }}}
 
+This will create the {{{server/yoursite.cma}}} and {{{client/yoursite.js}}}
+files required by {{{ocsigenserver}}} inside {{{_build}}}.
 
 ==Using {{{ocamlbuild and OASIS}}} (ocaml >= 4.01 and eliom >= 4 only)
 
