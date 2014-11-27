@@ -211,7 +211,6 @@ to insert a reactive node in a page.
   open Eliom_content
   open Html5
   open F
-  open ReactiveData
 }}
 
 module Testnodes_app =
