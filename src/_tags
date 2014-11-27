@@ -1,5 +1,5 @@
-true:no_extra_syntaxes
-true:warn(+A-4-6-7-9-27-32-33-34-37-44)
+true:no_extra_syntaxes-
+true:warn(+A-4-6-7-9-27-32-33-34-37-40-42-44-48)
 
 <lib/type_dir/*.ml{,i}>:thread
 <lib/type_dir/*.ml>:syntax(camlp4o), package(deriving.syntax.std, js_of_ocaml.deriving.syntax,lwt.syntax)
@@ -41,6 +41,7 @@ true:warn(+A-4-6-7-9-27-32-33-34-37-44)
 <syntax/pa_*.ml{,i}>: syntax(camlp4o),package(camlp4.quotations.o,camlp4.extend)
 <syntax/pa_*.ml{,i}>: I(+camlp4/Camlp4Parsers)
 
+<ppx/ppx_*.ml{,i}>: package(ppx_tools, compiler-libs.common, ppx_tools.metaquot)
 
 <ocamlbuild/ocamlbuild_eliom.ml{,i}>: package(ocamlbuild,js_of_ocaml.ocamlbuild)
 <ocamlbuild/ocamlbuild_eliom.ml>: syntax(camlp4o), package(optcomp)

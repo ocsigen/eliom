@@ -139,6 +139,12 @@ let ocamlbuild = {
 
 }
 
+let ppx = {
+  interface = [ "ppx_eliom_client" ];
+  internal = [ "ppx_eliom_seed" ];
+}
+
+
 let (-.-) name ext = name ^ "." ^ ext
 let exts el sl =
   List.flatten (
@@ -189,6 +195,12 @@ let ocamlbuild_extra =
   exts ["cmi"] (ocamlbuild.interface_only @ ocamlbuild.interface) @
   exts ["cmx"] (ocamlbuild.interface @ ocamlbuild.internal)
 let ocamlbuild_api = ocamlbuild.interface_only @ ocamlbuild.interface
+
+let ppx_mllib = ppx.interface @ ppx.internal
+let ppx_extra =
+  exts ["cmi"] ppx.interface @
+  exts ["cmx"] (ppx.interface @ ppx.internal)
+let ppx_api = ppx.interface
 
 
 let templates_dir = "pkg/distillery"

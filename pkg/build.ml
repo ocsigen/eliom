@@ -27,7 +27,11 @@ let _ =
 
   list_to_file "src/ocamlbuild/ocamlbuild.mllib" ocamlbuild_mllib;
   list_to_file "src/ocamlbuild/ocamlbuild.mldylib" ocamlbuild_mllib;
-  list_to_file "src/ocamlbuild/api.odocl" ocamlbuild_api
+  list_to_file "src/ocamlbuild/api.odocl" ocamlbuild_api;
+
+  list_to_file "src/ppx/ppx.mllib" ppx_mllib;
+  list_to_file "src/ppx/ppx.mldylib" ppx_mllib;
+  list_to_file "src/ppx/api.odocl" ppx_api
 
 let spf = Printf.sprintf
 
@@ -75,6 +79,10 @@ let () =
     Pkg.lib ~exts:exts_syntax ~dst:"syntax/pa_eliom_type_filter" "src/syntax/pa_eliom_type_filter";
 
     Pkg.lib ~exts:exts_modlib ~dst:"ocamlbuild/ocamlbuild_eliom" "src/ocamlbuild/ocamlbuild_eliom";
+
+    (* PPX *)
+    Pkg.lib ~exts:exts_modlib ~dst:"ppx/ppx_eliom_seed" "src/ppx/ppx_eliom_seed";
+    Pkg.lib ~exts:exts_modlib ~dst:"ppx/ppx_eliom_client" "src/ppx/ppx_eliom_client";
 
   ] @ (
     (* CLIENT LIBS *)
