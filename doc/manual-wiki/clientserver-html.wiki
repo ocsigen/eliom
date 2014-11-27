@@ -211,6 +211,7 @@ to insert a reactive node in a page.
   open Eliom_content
   open Html5
   open F
+  open ReactiveData
 }}
 
 module Testnodes_app =
@@ -245,8 +246,8 @@ let content_signal : Html5_types.div_content_fun elt React.signal =
                 )
               ) value_signal
 
-let html_value_signal : [ `PCDATA ] R.elt list React.signal
-  = React.S.map (fun s -> [pcdata s]) value_signal
+let html_value_signal : [ `PCDATA ] R.elt RList.t
+  = RList.singleton_s (React.S.map pcdata value_signal)
 
 let make_color len =
   let d = (len * 10) mod 255 in
