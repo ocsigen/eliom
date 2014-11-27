@@ -67,20 +67,20 @@ Local testings:
 Authors:
 ========
 
-Vincent Balat
-J�r�me Vouillon
-Gr�goire Henry
-Pierre Chambart
-Benedikt Becker
-Boris Yakobowski
-Hugo Heuzard
-Rapha�l Proust
-St�phane Glondu
-Gabriel Kerneis
-Denis Berthod
-Jaap Boender
-Simon Castellan
-Mauricio Fernandez
-Archibald Pontier
-Simon Castellan
-Jacques-Pascal Deplaix
+* Vincent Balat
+* J�r�me Vouillon
+* Gr�goire Henry
+* Pierre Chambart
+* Benedikt Becker
+* Boris Yakobowski
+* Hugo Heuzard
+* Rapha�l Proust
+* St�phane Glondu
+* Gabriel Kerneis
+* Denis Berthod
+* Jaap Boender
+* Simon Castellan
+* Mauricio Fernandez
+* Archibald Pontier
+* Simon Castellan
+* Jacques-Pascal Deplaix
