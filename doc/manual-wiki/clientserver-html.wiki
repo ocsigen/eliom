@@ -186,7 +186,7 @@ of an HTML5 elements.
 {{{Eliom_content.Html5.R}}} allows one to insert time varying values
 into the DOM tree.
 It relies on React's signal {{{'a React.signal}}}. More information about react
-can be found on the [[http://erratique.ch/software/react| homepage]].
+can be found on the [[http://erratique.ch/software/react| homepage]]. The react nodes also uses [[https://github.com/hhugo/reactiveData|ReactiveData]], which allows to manipulate list of nodes in a reactive way.
 
 When dealing with dynamic content, one usally ends up with a lot
 of imperative DOM manipulations: replacing, appending, removing DOM
@@ -284,8 +284,7 @@ let () =
     ~service:main_service
     (fun () () ->
        let inp = make_input () in
-       let cldiv = D.div [] in
-       ignore {unit{ Manip.appendChildren %cldiv (make_client_nodes ()) }};
+       let cldiv = C.node {{ D.div (make_client_nodes ()) }} in
        Lwt.return
          (Eliom_tools.F.html
             ~title:"testnodes"
