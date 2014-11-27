@@ -246,16 +246,13 @@ let content_signal : Html5_types.div_content_fun elt React.signal =
                 )
               ) value_signal
 
-let html_value_signal : [ `PCDATA ] R.elt RList.t
-  = RList.singleton_s (React.S.map pcdata value_signal)
-
 let make_color len =
   let d = (len * 10) mod 255 in
   Printf.sprintf "color: rgb(%d,%d,%d)" d d d
 
 let make_client_nodes () =
   [
-    R.p html_value_signal;
+    D.p [R.pcdata value_signal];
     D.p ~a:[ R.a_style (React.S.map make_color value_len)]
       [R.pcdata value_signal];
     R.node content_signal
