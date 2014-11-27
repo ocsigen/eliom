@@ -11,6 +11,7 @@ package "server" (
               deriving.runtime,
               js_of_ocaml.deriving,
               react,
+              reactiveData,
               calendar,
               tyxml,
               lwt.react,
