@@ -319,7 +319,7 @@ let add_childrens (elt:Dom_html.element Js.t) (sons:Dom.node Js.t list) =
           let d = Dom_html.createHead Dom_html.document in
           Dom.appendChild d elt;
           (Js.Unsafe.coerce elt)##styleSheet##cssText <- concat sons
-        | _ -> Lwt_log.raise_error ~section ~exn "add children: can't appendChild"
+        | _ -> Lwt_log.raise_error ~section ~exn "add_childrens: can't appendChild"
 
 (* END IE HACK *)
 
