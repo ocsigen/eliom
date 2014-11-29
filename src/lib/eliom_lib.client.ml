@@ -82,18 +82,6 @@ module String = struct
     Regexp.global_replace eol_re s ""
 end
 
-let js_array_to_list arr =
-  let li = ref [] in
-  for i = 0 to pred arr##length do
-    let x =
-      Js.Optdef.get
-        (Js.array_get arr i)
-        (fun () -> failwith "js_array_to_list")
-    in
-    li := x :: !li
-  done;
-  List.rev !li
-
 (*****************************************************************************)
 
 (* let () =
