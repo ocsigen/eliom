@@ -984,7 +984,7 @@ let relink_attribs (root : Dom_html.element Js.t) attribs attrib_nodeList =
 *)
 
 let load_data_script page =
-  Lwt_log.ign_info ~section "Load data script";
+  Lwt_log.ign_info ~section "Load Eliom application data";
   let head = Eliommod_dom.get_head page in
   let data_script : Dom_html.scriptElement Js.t =
     match Dom.list_of_nodeList head##childNodes with
@@ -994,9 +994,9 @@ let load_data_script page =
         | "script" -> (Js.Unsafe.coerce data_script)
         | t ->
           Lwt_log.raise_error_f ~section
-            "load_data_script: can't find data script. the node 2nd is not a script, its tag is %s" t)
+            "Unable to find Eliom application data (script element expected, found %s element)" t)
     | _ -> Lwt_log.raise_error_f ~section
-             "load_data_script: can't find data script (2)."
+             "Unable to find Eliom application data."
   in
   let script = data_script##text in
   if !Eliom_config.debug_timings then
