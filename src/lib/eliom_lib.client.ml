@@ -72,8 +72,29 @@ let _ =
   Lwt_log.add_rule "*" Lwt_log.Debug;
   Lwt.async_exception_hook := (fun exn -> Lwt_log.ign_error ~section:Lwt_log.eliom ~exn "Async" )
 
+(* Deprecated ON *)
+let debug_exn fmt exn = Lwt_log.ign_info_f ~exn fmt
+let debug fmt = Lwt_log.ign_info_f fmt
 
-let debug = `use_lwt_log_instead
+let error fmt = Lwt_log.raise_error_f fmt
+let error_any any fmt = Lwt_log.raise_error_f ~inspect:any fmt
+let jsdebug a = Lwt_log.ign_info ~inspect:a "Jsdebug"
+(* Deprecated OFF *)
+
+let trace fmt =
+  if Eliom_config.get_tracing ()
+  then Lwt_log.ign_info_f (">> "^^fmt)
+  else Printf.ksprintf ignore fmt
+
+let lwt_ignore ?(message="") t =
+  Lwt.on_failure t (fun exn -> Lwt_log.ign_info_f ~exn "%s" message)
+
+(* Debbuging *)
+let jsalert a = Dom_html.window##alert (a)
+let alert fmt = Printf.ksprintf (fun s -> jsalert (Js.string s)) fmt
+
+let debug_var s v = Js.Unsafe.set Dom_html.window (Js.string s) v
+
 
 module String = struct
   include String_base

@@ -79,8 +79,6 @@ module String : sig
   val remove_eols : string -> string
 end
 
-val debug : [`use_lwt_log_instead]
-
 module Lwt_log : sig
   include module type of Lwt_log_js
   with type level = Lwt_log_core.level
@@ -92,6 +90,23 @@ module Lwt_log : sig
   val raise_error_f : ?inspect: 'v -> ?exn : exn ->  ?section : section -> ?location : (string * int * int) -> ?logger : logger -> ('a, unit, string, 'any) format4 -> 'a
   val eliom : section
 end
+
+(** Deprecated. Use Lwt_log.ign_raise_error_f instead *)
+val error : ('a, unit, string, 'b) format4 -> 'a
+(** Deprecated. Use Lwt_log.ign_raise_error_f (with ~inspect argument) instead *)
+val error_any : _ -> ('a, unit, string, 'b) format4 -> 'a
+(** Deprecated. Use Lwt_log.ign_info_f instead *)
+val debug : ('a, unit, string, unit) format4 -> 'a
+(** Deprecated. Use Lwt_log.ign_info_f instead *)
+val debug_exn : ('a, unit, string, unit) format4 -> exn -> 'a
+(** Deprecated. Use Lwt_log.ign_info (with ~inspect argument) instead *)
+val jsdebug : 'a -> unit
+
+val alert : ('a, unit, string, unit) format4 -> 'a
+val jsalert : Js.js_string Js.t -> unit
+val debug_var : string -> 'a -> unit
+val trace : ('a, unit, string, unit) format4 -> 'a
+val lwt_ignore : ?message:string -> unit Lwt.t -> unit
 
 val encode_form_value : 'a -> string
 val unmarshal_js : Js.js_string Js.t -> 'a
