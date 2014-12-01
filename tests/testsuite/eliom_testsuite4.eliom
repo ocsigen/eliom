@@ -58,7 +58,8 @@ let test_client_value_on_caml_service =
          fun _ ->
            Lwt.ignore_result
              (try_lwt
-                lwt number = Eliom_client.call_ocaml_service %ocaml_service () () in
+                lwt number =
+                  Eliom_client.call_ocaml_service %ocaml_service () () in
                 Eliom_testsuite_base.log "number: %d" number;
                 Lwt.return ()
               with Exception_on_server msg ->
@@ -872,7 +873,7 @@ let client_handler_syntax_2 =
                      Js.null));
            hidden_widget_set_content_getter %w
              (fun () ->
-                Eliom_client.call_ocaml_service ~service: %get_slow_content () ())
+                Eliom_client.call_caml_service ~service: %get_slow_content () ())
        }};
        Lwt.return Html5.F.(
          html
@@ -1544,12 +1545,42 @@ let cross_change_page_client_values =
       ]))
 
 (******************************************************************************)
+let ocaml_service_sleep =
+  Eliom_registration.Ocaml.register_coservice'
+    ~get_params:Eliom_parameter.unit
+    (fun () () -> Lwt_unix.sleep 10.)
+
+let test_ocaml_service_timeout =
+  Eliom_testsuite_base.test
+    ~title:"Timeout for ocaml services"
+    ~path:["timeout_ocaml_service"]
+    ~description:Html5.F.([
+      pcdata "Demo on how to put a timeout on an Ocaml service call.";
+    ])
+    (fun () ->
+       ignore {unit{
+         Lwt.async (fun () ->
+           try_lwt
+             lwt () =
+               Lwt.pick
+                 [Eliom_client.call_ocaml_service %ocaml_service_sleep () ();
+                  lwt () = Lwt_js.sleep 2. in Lwt.fail (Failure "timeout")]
+             in
+             Eliom_testsuite_base.log "Data received without timeout";
+             Lwt.return ()
+           with Failure _ ->
+             Eliom_testsuite_base.log "Timeout reached";
+             Lwt.return ())
+       }};
+       Lwt.return Html5.F.([]))
+(*****************************************************************************)
 
 let tests = [
   "Mixed", [
     test_custom_data;
     test_server_function;
     wrap_handler;
+    test_ocaml_service_timeout;
   ];
   "Holes", [
     test_injection_scoping;
