@@ -489,29 +489,64 @@ let iter_prop node name f =
   | Some n -> f n
   | None -> ()
 
+(* This ugly hack is needed because tyxml does not know about
+   namespaces, but js needs to be explicitely given the namespace
+   urls when working with elements/attributes in namespaces *)
+let ns_url_for name =
+  let known_namespaces = [("svg","http://www.w3.org/2000/svg");
+                          ("xlink","http://www.w3.org/1999/xlink");
+                         ]
+  in
+  if String.contains name ':'
+  then
+    let k = String.index name ':' in
+    let ns_nick = String.sub name 0 k in
+    if ns_nick = "xmlns"
+    then None
+    else
+      try
+        Some (Js.string (List.assoc ns_nick known_namespaces))
+      with
+      | Not_found -> failwith ("unknown namespace nickname " ^ ns_nick)
+  else
+    None
+
+let setAttribute node ocaml_name v =
+  let name = Js.string ocaml_name in
+  match ns_url_for ocaml_name with
+  | Some ns_url -> node##setAttributeNS (ns_url, name, v)
+  | None -> node##setAttribute (name, v)
+
+let removeAttribute node ocaml_name =
+  let name = Js.string ocaml_name in
+  match ns_url_for ocaml_name with
+  | Some ns_url -> node##removeAttributeNS (ns_url, name)
+  | None -> node##removeAttribute (name)
+
+
 let rec rebuild_rattrib node ra = match Xml.racontent ra with
   | Xml.RA a ->
-    let name = Js.string (Xml.aname ra) in
     let v = rebuild_attrib_val a in
-    node##setAttribute (name,v);
+    setAttribute node (Xml.aname ra) v
   | Xml.RAReact s ->
+    let o_name = Xml.aname ra in
     let name = Js.string (Xml.aname ra) in
     let _ = React.S.map (function
         | None ->
-          node##removeAttribute (name);
+          removeAttribute node o_name;
           iter_prop node name (Js.Unsafe.delete node);
         | Some v ->
           let v = rebuild_attrib_val v in
-          node##setAttribute (name,v);
+          setAttribute node o_name v;
           iter_prop node name (fun name -> Js.Unsafe.set node name v);
       ) s in ()
   | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
   | Xml.RALazyStr s ->
-      node##setAttribute(Js.string (Xml.aname ra), Js.string s)
+      setAttribute node (Xml.aname ra) (Js.string s)
   | Xml.RALazyStrL (Xml.Space, l) ->
-      node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat " " l))
+      setAttribute node (Xml.aname ra) (Js.string (String.concat " " l))
   | Xml.RALazyStrL (Xml.Comma, l) ->
-    node##setAttribute(Js.string (Xml.aname ra), Js.string (String.concat "," l))
+    setAttribute node (Xml.aname ra) (Js.string (String.concat "," l))
   | Xml.RAClient (_,_,cv) ->
     let closure_id = Client_value_server_repr.closure_id cv in
     let instance_id = Client_value_server_repr.instance_id cv in
@@ -792,14 +827,20 @@ let register_event_handlers node attribs =
     (fun ev -> register_event_handler (Js.Unsafe.coerce node : Dom_html.element Js.t) ev)
     attribs
 
+let getAttribute elt ocaml_name =
+  let name = Js.string ocaml_name in
+  match ns_url_for ocaml_name with
+  | Some ns_url -> elt##getAttributeNS (ns_url, name)
+  | None -> elt##getAttribute(name)
+
 let get_element_cookies_info elt =
   Js.Opt.to_option
-    (Js.Opt.map (elt##getAttribute(Js.string Eliom_lib_base.RawXML.ce_call_service_attrib))
+    (Js.Opt.map (getAttribute elt Eliom_lib_base.RawXML.ce_call_service_attrib)
        (fun s -> of_json (Js.to_string s)))
 
 let get_element_template elt =
   Js.Opt.to_option
-    (Js.Opt.map (elt##getAttribute(Js.string Eliom_lib_base.RawXML.ce_template_attrib))
+    (Js.Opt.map (getAttribute elt Eliom_lib_base.RawXML.ce_template_attrib)
        (fun s -> Js.to_string s))
 
 let a_handler =
@@ -821,7 +862,7 @@ let form_handler =
 
 let relink_process_node (node:Dom_html.element Js.t) =
   let id = Js.Opt.get
-    (node##getAttribute(Js.string Eliom_lib_base.RawXML.node_id_attrib))
+    (getAttribute node Eliom_lib_base.RawXML.node_id_attrib)
     (fun () -> error "unique node without id attribute") in
   Js.Optdef.case (find_process_node id)
     (fun () ->
@@ -840,7 +881,7 @@ let relink_process_node (node:Dom_html.element Js.t) =
 
 let relink_request_node (node:Dom_html.element Js.t) =
   let id = Js.Opt.get
-    (node##getAttribute(Js.string Eliom_lib_base.RawXML.node_id_attrib))
+    (getAttribute node Eliom_lib_base.RawXML.node_id_attrib)
     (fun () -> error "unique node without id attribute") in
   Js.Optdef.case (find_request_node id)
     (fun () ->
@@ -1467,6 +1508,12 @@ end
 
 type content_ns = [ `HTML5 | `SVG ]
 
+let createElement node ocaml_name =
+  let name = Js.string ocaml_name in
+  match ns_url_for ocaml_name with
+  | Some ns_url -> node##createElementNS (ns_url, name)
+  | None -> node##createElement(name)
+
 let rec rebuild_node_with_state ns ?state elt =
   match Xml.get_node elt with
   | Xml.DomNode node ->
@@ -1527,14 +1574,14 @@ and raw_rebuild_node ns = function
       let entity = Dom_html.decode_html_entities (Js.string ("&" ^ s ^ ";")) in
       (Dom_html.document##createTextNode(entity) :> Dom.node Js.t)
   | Xml.Leaf (name,attribs) ->
-    let node = Dom_html.document##createElement (Js.string name) in
+    let node = createElement Dom_html.document name in
     List.iter (rebuild_rattrib node) attribs;
     (node :> Dom.node Js.t)
   | Xml.Node (name,attribs,childrens) ->
     let ns = if name = "svg" then `SVG else ns in
     let node =
       match ns with
-      | `HTML5 -> Dom_html.document##createElement (Js.string name)
+      | `HTML5 -> createElement Dom_html.document name
       | `SVG ->
 	let svg_ns = "http://www.w3.org/2000/svg" in
 	Dom_html.document##createElementNS (Js.string svg_ns, Js.string name)
