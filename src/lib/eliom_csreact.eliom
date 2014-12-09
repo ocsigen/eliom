@@ -18,6 +18,20 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+{shared{
+
+   (* put this in Lwt_react? Find a better name? *)
+
+   let to_signal ~init (th : 'a React.S.t Lwt.t) : 'a React.S.t =
+     let s, set = React.S.create init in
+     Lwt.async (fun () ->
+       lwt ss = th in
+       let effectful_signal = React.S.map (fun v -> set v) ss in
+       ignore (React.S.retain s (fun () -> ignore effectful_signal));
+       Lwt.return ());
+     s
+
+ }}
 
 {shared{
 open Eliom_lib (**** ????????? *)
@@ -108,7 +122,7 @@ module ReactiveData = struct
 
     (** Same as map_p but we do not compute the initial list.
         Instead, we give the initial list as parameter.
-        To be used when the initial list has been computed on client side.
+        To be used when the initial list has been computed on server side.
     *)
       let map_p_init ~init (f : 'a -> 'b Lwt.t) (l : 'a t) : 'b t =
         let (rr, _) as r = ReactiveData.RList.make init in
@@ -158,32 +172,59 @@ module React = struct
     module Lwt = struct
       let map_s = Lwt_react.S.map_s
       let map_s_init ~init ?eq f s =
-        let event, push = React.E.create () in
-        let mutex = Lwt_mutex.create () in
-        let iter = React.E.fmap
-          (fun x -> Lwt.on_success
-            (Lwt_mutex.with_lock mutex (fun () -> f x)) push; None)
-          (changes s)
-        in
-        hold ?eq init (React.E.select [iter; event])
+        let th = map_s ?eq f s in
+        to_signal ~init th
+      let merge_s = Lwt_react.S.merge_s
+      let merge_s_init ~init ?eq f a l =
+        let th = merge_s ?eq f a l in
+        to_signal ~init th
     end
   end
+  module E = React.E
 end
 
 module FakeReact = React
 module FakeReactiveData = ReactiveData
 module SharedReact = React
-module SharedReactiveData = ReactiveData
+module SharedReactiveData = struct
+  module RList = struct
+    include ReactiveData.RList
+    let make_from_s = ReactiveData.RList.make_from_s
+  end
+end
 }}
 {server{
 module FakeReact = struct
-  module S = struct
+  module S : sig
+    type 'a t
+    val create : 'a -> 'a t * ('a -> unit)
+    val value : 'a t -> 'a
+    val const : 'a -> 'a t
+    val map : ?eq:('b -> 'b -> bool) -> ('a -> 'b) -> 'a t -> 'b t
+    val merge : ?eq:('a -> 'a -> bool) ->
+       ('a -> 'b -> 'a) -> 'a -> 'b t list -> 'a t
+    val l2 : ?eq:('d -> 'd -> bool) ->
+      ('a -> 'b -> 'c) ->
+      'a t -> 'b t -> 'c t
+    val l3 : ?eq:('d -> 'd -> bool) ->
+      ('a -> 'b -> 'c -> 'd) ->
+      'a t -> 'b t -> 'c t -> 'd t
+    val switch : ?eq:('a -> 'a -> bool) -> 'a t t -> 'a t
+
+  end = struct
     type 'a t = 'a
     let create x =
       (x, fun _ ->
           failwith "Fact react values cannot be changed on server side")
     let value x = x
+    let const x = x
     let map ?eq (f : 'a -> 'b) (s : 'a t) : 'b t = f s
+    let merge ?eq f acc l = List.fold_left f acc l
+    let l2 ?eq (f : 'a -> 'b -> 'c) (s1 : 'a t) (s2 : 'b t)
+      : 'c t = f s1 s2
+    let l3 ?eq (f : 'a -> 'b -> 'c -> 'd) (s1 : 'a t) (s2 : 'b t) (s3 : 'c t)
+      : 'd t = f s1 s2 s3
+    let switch ?eq (a : 'a t t) : 'a t = a
   end
 end
 
@@ -197,6 +238,7 @@ module FakeReactiveData = struct
     val value_s : 'a t -> 'a list FakeReact.S.t
     val singleton_s : 'a FakeReact.S.t -> 'a t
     val map : ('a -> 'b) -> 'a t -> 'b t
+    val make_from_s : 'a list FakeReact.S.t -> 'a t
     module Lwt : sig
       val map_p : ('a -> 'b Lwt.t) -> 'a t -> 'b t Lwt.t
     end
@@ -205,10 +247,11 @@ module FakeReactiveData = struct
     type 'a handle = unit
     let make l = l, ()
     let from_signal s = FakeReact.S.value s
-    let singleton_s s = [s]
+    let singleton_s s = [FakeReact.S.value s]
     let value l = l
-    let value_s l = l
+    let value_s l = fst (FakeReact.S.create l)
     let map f s = List.map f s
+    let make_from_s s = FakeReact.S.value s
     module Lwt = struct
       let map_p = Lwt_list.map_p
     end
@@ -243,7 +286,51 @@ module SharedReact = struct
     let map ?eq (f : ('a -> 'b) shared_value) (s : 'a t) : 'b t =
       Eliom_lib.create_shared_value
         (FakeReact.S.map (Shared.local f) (Shared.local s))
-        {'b FakeReact.S.t{ React.S.map ?eq:%eq %f %s }}
+        {'b FakeReact.S.t{ FakeReact.S.map
+                             ?eq:%eq (Shared.local %f) (Shared.local %s) }}
+
+    let merge ?eq (f : ('a -> 'b -> 'a) shared_value)
+        (acc : 'a) (l : 'b t list) : 'a t =
+      Eliom_lib.create_shared_value
+        (FakeReact.S.merge ?eq
+           (Shared.local f) acc (List.map Shared.local l))
+        {'a FakeReact.S.t{
+           FakeReact.S.merge ?eq:%eq
+             (fun a b -> (Shared.local %f) a (Shared.local b)) %acc %l }}
+
+    let const (v : 'a) : 'a t =
+      Eliom_lib.create_shared_value
+        (FakeReact.S.const v)
+        {'a FakeReact.S.t{ React.S.const %v }}
+
+    let l2 ?eq (f : ('a -> 'b -> 'c) shared_value)
+        (s1 : 'a t) (s2 : 'b t)
+      : 'c t =
+      Eliom_lib.create_shared_value
+        (FakeReact.S.l2 (Shared.local f) (Shared.local s1) (Shared.local s2))
+        {'d FakeReact.S.t{ React.S.l2 ?eq:%eq
+                             (Shared.local %f)
+                             (Shared.local %s1)
+                             (Shared.local %s2)
+                         }}
+
+    let l3 ?eq (f : ('a -> 'b -> 'c -> 'd) shared_value)
+        (s1 : 'a t) (s2 : 'b t) (s3 : 'c t)
+      : 'd t =
+      Eliom_lib.create_shared_value
+        (FakeReact.S.l3 (Shared.local f)
+           (Shared.local s1) (Shared.local s2) (Shared.local s3))
+        {'d FakeReact.S.t{ React.S.l3 ?eq:%eq
+                             (Shared.local %f)
+                             (Shared.local %s1)
+                             (Shared.local %s2)
+                             (Shared.local %s3) }}
+
+    let switch ?eq (s : 'a t t) : 'a t =
+      Eliom_lib.create_shared_value
+        (Shared.local (FakeReact.S.value (Shared.local s)))
+        {'a FakeReact.S.t{ Shared.local
+                             (React.S.switch ?eq:%eq (Shared.local %s)) }}
 
     module Lwt = struct
       let map_s ?eq (f : ('a -> 'b Lwt.t) shared_value) (s : 'a t) : 'b t Lwt.t
@@ -258,6 +345,26 @@ module SharedReact = struct
                 ~init:%server_result
                 ?eq:%eq
                 (Shared.local %f) (Shared.local %s) }})
+
+      let merge_s ?eq (f : ('a -> 'b -> 'a Lwt.t) shared_value)
+          (acc : 'a) (l : 'b t list) : 'a t Lwt.t
+          =
+        lwt server_result =
+          Lwt_list.fold_left_s
+            (fun acc v ->
+               (Shared.local f) acc (FakeReact.S.value (Shared.local v)))
+            acc l
+        in
+        Lwt.return
+          (Eliom_lib.create_shared_value
+             (fst (FakeReact.S.create server_result))
+             {'a FakeReact.S.t{ SharedReact.S.Lwt.merge_s_init
+                ~init:%server_result
+                ?eq:%eq
+                (fun a b -> (Shared.local %f) a (Shared.local b))
+                %acc
+                %l
+                              }})
 
     end
   end
@@ -308,8 +415,27 @@ module SharedReactiveData = struct
         FakeReactiveData.RList.map %f %s }} in
       Eliom_lib.create_shared_value sv cv
 
+    let make_from_s (s : 'a list SharedReact.S.t) : 'a t =
+      let sv = FakeReactiveData.RList.make_from_s (Shared.local s) in
+      let cv = {{ ReactiveData.RList.make_from_s (Shared.local %s) }} in
+      Eliom_lib.create_shared_value sv cv
+
+
     module Lwt = struct
       let map_p (f : ('a -> 'b Lwt.t) shared_value) (l : 'a t) : 'b t Lwt.t =
+        lwt server_result =
+          Lwt_list.map_p
+            (Shared.local f)
+            (FakeReactiveData.RList.value (Shared.local l))
+        in
+        Lwt.return
+          (Eliom_lib.create_shared_value
+             (fst (FakeReactiveData.RList.make server_result))
+             {{ SharedReactiveData.RList.Lwt.map_p_init
+                ~init:%server_result
+                (Shared.local %f) (Shared.local %l) }})
+
+      let fold_p (f : ('a -> 'b Lwt.t) shared_value) (l : 'a t) : 'b t Lwt.t =
         lwt server_result =
           Lwt_list.map_p
             (Shared.local f)
@@ -344,22 +470,23 @@ end
           ~init:(FakeReact.S.value (Shared.local signal))
           {{ Eliom_content.Html5.R.node %signal }}
 
-        let pcdata (s : string React.S.t) = Eliom_content.Html5.C.node
+        let pcdata (s : string SharedReact.S.t) = Eliom_content.Html5.C.node
 (*VVV
  * This will blink at startup! FIX!
  * How to avoid the span? (implement D.pcdata ...)
 *)
-          ~init:(Eliom_content.Html5.D.(span [pcdata (Shared.local s)]))
+          ~init:(Eliom_content.Html5.D.(
+              span [pcdata (FakeReact.S.value (Shared.local s))]))
           {{ Eliom_content.Html5.R.pcdata %s }}
 
-        let div l = Eliom_content.Html5.C.node
+        let div ?a l = Eliom_content.Html5.C.node
 (*VVV
  * This will blink at startup! FIX!
  * This makes impossible to use %d for such elements! FIX!
 *)
-          ~init:(Eliom_content.Html5.D.div
+          ~init:(Eliom_content.Html5.D.div ?a
                    (FakeReactiveData.RList.value (Shared.local l)))
-          {{ Eliom_content.Html5.R.div (Shared.local %l) }}
+          {{ Eliom_content.Html5.R.div ?a:%a (Shared.local %l) }}
 
         let ul ?a l = Eliom_content.Html5.C.node
 (*VVV
@@ -369,6 +496,15 @@ end
           ~init:(Eliom_content.Html5.D.ul ?a
                    (FakeReactiveData.RList.value (Shared.local l)))
           {{ Eliom_content.Html5.R.ul ?a:%a (Shared.local %l) }}
+
+        let li ?a l = Eliom_content.Html5.C.node
+(*VVV
+ * This will blink at startup! FIX!
+ * This makes impossible to use %d for such elements! FIX!
+*)
+          ~init:(Eliom_content.Html5.D.li ?a
+                   (FakeReactiveData.RList.value (Shared.local l)))
+          {{ Eliom_content.Html5.R.li ?a:%a (Shared.local %l) }}
 
         let p l = Eliom_content.Html5.C.node
 (*VVV
