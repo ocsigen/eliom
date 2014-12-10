@@ -4,7 +4,7 @@
 open Eliom_lib
 open Eliom_content.Html5
 open Eliom_content.Html5.F
-open E_csreact
+open Eliom_csreact
 }}
 
 {shared{
