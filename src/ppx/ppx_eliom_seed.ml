@@ -35,6 +35,11 @@ let injected_ident_fmt : (_,_,_,_) format4 =
   "__eliom__injected_ident__reserved_name__%019d__%d"
 
 
+let escaped_ident_prefix_len = String.length escaped_ident_prefix
+let is_escaped_ident_string id =
+  String.length id > escaped_ident_prefix_len &&
+  String.sub id 0 escaped_ident_prefix_len = escaped_ident_prefix
+
 
 
 type client_value_context = [ `Server | `Shared ]
@@ -54,7 +59,6 @@ let id_of_string str =
 
 
 (** Signature of specific code of a preprocessor. *)
-
 module type Pass = sig
 
   (** How to handle "client", "shared" and "server" sections for top level structure items. *)
@@ -87,12 +91,13 @@ type context =
   | Client (* [%%client ... ] *)
   | Shared (* [%shared  ... ] *)
   | Client_value of client_value_context (* [%cval ... ] *)
-  | Escaped_value of client_value_context (* *)
-  | Injection of injection_context
+  | Escaped_value of client_value_context (* [%cval .... ~%x ... ] *)
+  | Injection of injection_context (* [%%client .... ~%x ... ] *)
 
 
 (* Identifiers for the closure representing "Hole_expr". *)
-let gen_closure_num_base _loc = Int64.of_int (Hashtbl.hash !Location.input_name)
+let gen_closure_num_base _loc =
+  Int64.of_int (Hashtbl.hash !Location.input_name)
 let gen_closure_num_count = ref Int64.zero
 let gen_closure_num _loc =
   gen_closure_num_count := Int64.succ !gen_closure_num_count;
@@ -110,30 +115,36 @@ let gen_escaped_expr_ident, gen_escaped_ident =
   let r = ref 0 in
   (fun () ->
      incr r;
-     Helpers.escaped_ident_prefix ^ string_of_int !r),
-  (fun id ->
-     let id = (Ast.map_loc (fun _ -> Loc.ghost))#ident id in
-     try List.assoc id !escaped_idents
-     with Not_found ->
-       incr r; let gen_id = Helpers.escaped_ident_prefix ^ string_of_int !r in
-       escaped_idents := (id, gen_id) :: !escaped_idents;
-       gen_id)
+     escaped_ident_prefix ^ string_of_int !r),
+  (fun {Location. txt = id ; loc } ->
+     Location.mkloc
+       (try List.assoc id !escaped_idents
+        with Not_found ->
+          incr r; let gen_id = escaped_ident_prefix ^ string_of_int !r in
+          escaped_idents := (id, gen_id) :: !escaped_idents;
+          gen_id
+       )
+       loc
+  )
+
 
 let gen_injected_expr_ident, gen_injected_ident =
   let injected_idents = ref [] in
   let r = ref 0 in
-  let gen_ident loc =
-    let hash = Hashtbl.hash (Loc.file_name loc) in
+  let gen_ident () =
+    let hash = Hashtbl.hash !Location.input_name in
     incr r;
-    Printf.sprintf (Helpers.injected_ident_fmt ()) hash !r
+    Printf.sprintf injected_ident_fmt hash !r
   in
-  let gen_injected_ident loc id =
-    let id = (Ast.map_loc (fun _ -> Loc.ghost))#ident id in
-    try List.assoc id !injected_idents
-    with Not_found ->
-      let gen_id = gen_ident loc in
-      injected_idents := (id, gen_id) :: !injected_idents;
-      gen_id
+  let gen_injected_ident {Location. txt = id ; loc } =
+    Location.mkloc
+      (try List.assoc id !injected_idents
+       with Not_found ->
+         let gen_id = gen_ident () in
+         injected_idents := (id, gen_id) :: !injected_idents;
+         gen_id
+      )
+      loc
   in
   gen_ident, gen_injected_ident
 
@@ -142,35 +153,43 @@ let gen_injected_expr_ident, gen_injected_ident =
 module Register (Pass : Pass) = struct
 
   let eliom_expr context mapper expr =
-    let current_context = !context in
+    let previous_context = !context in
     let loc = expr.pexp_loc in
     let new_expr = match expr with
-      | [%expr [%cval [%e? expr]]] ->
+      | [%expr [%cval [%e? expr]]] -> begin
 
-        let (cval, typ) = match expr with
-          | [%expr ([%e? cval]:[%t? typ]) ] -> (cval, Some typ)
-          | _ -> (expr, None)
-        in
+          let (cval, typ) = match expr with
+            | [%expr ([%e? cval]:[%t? typ]) ] -> (cval, Some typ)
+            | _ -> (expr, None)
+          in
 
-        let id = gen_closure_num cval.pexp_loc in
+          let id = gen_closure_num cval.pexp_loc in
 
-        begin match current_context with
+          match previous_context with
           | Server ->
-            mapper @@ Pass.client_value_expr ~context:`Server ~id e
+            context := Client_value `Server ;
+            let e = mapper @@ Pass.client_value_expr ~context:`Server ~id cval in
+            context := previous_context ;
+            e
           | Shared ->
-            mapper @@ Pass.client_value_expr ~context:`Shared ~id e
+            context := Client_value `Shared ;
+            let e = mapper @@ Pass.client_value_expr ~context:`Shared ~id cval in
+            context := previous_context ;
+            e
           | Client ->
             Exp.extension @@ Ast_mapper.extension_of_error @@
             Location.error ~loc
               "The syntax [%cval ...] is not allowed inside client code."
-          | Hole_expr _ | Escaped_expr _ | Injected_expr _ ->
+          | Client_value _ | Escaped_value _ | Injection _ ->
             Exp.extension @@ Ast_mapper.extension_of_error @@
             Location.error ~loc
               "The syntax [%cval ...] can not be nested."
         end
 
-      | [%expr ~% [%e? inj ]] ->
-        ()
+      | [%expr ~% [%e? inj ]] -> begin
+
+
+        end
       | _ -> mapper expr
     in
     context := current_context ;
@@ -197,20 +216,6 @@ module Register (Pass : Pass) = struct
         (** Reject sections not at toplevel. *)
         structure_item = structure_item
 
-        (* (\** Reject sections not at toplevel. *\) *)
-        (* signature_item = (fun mapper sig_i -> *)
-        (*   match sig_i with *)
-        (*   | [%sig [%server [%e? stuct_items ]]] -> *)
-        (*     Ast_mapper.extension_of_error @@ *)
-        (*     Location.error ~loc:sig_i.psig_loc "The extension node %server is only allowed at toplevel." *)
-        (*   | [%sig [%shared [%e? stuct_items ]]] -> *)
-        (*     Ast_mapper.extension_of_error @@ *)
-        (*     Location.error ~loc:sig_i.psig_loc "The extension node %shared is only allowed at toplevel." *)
-        (*   | [%sig [%client [%e? stuct_items ]]] -> *)
-        (*     Ast_mapper.extension_of_error @@ *)
-        (*     Location.error ~loc:sig_i.psig_loc "The extension node %client is only allowed at toplevel." *)
-        (*   | _ -> mapper sig_i *)
-        (* ); *)
     }
 
 
@@ -227,22 +232,11 @@ module Register (Pass : Pass) = struct
     in
     flatmap f structs
 
-  (** Toplevel sections in signatures. *)
-  let toplevel_signature _mapper sigs =
-    let f sig_i = match sig_i with
-      (* | [%sig [%server [%e? sig_items ]]] -> List.map server_sig_items sig_items *)
-      (* | [%sig [%shared [%e? sig_items ]]] -> List.map shared_sig_items sig_items *)
-      (* | [%sig [%client [%e? sig_items ]]] -> List.map client_sig_items sig_items *)
-      | _ -> [sig_i]
-    in
-    flatmap f sigs
-
   let toplevel_mapper _args =
     { Ast_mapper.default_mapper
       with
         Ast_mapper.
         structure = toplevel_structure ;
-        signature = toplevel_signature ;
     }
 
 end

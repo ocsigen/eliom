@@ -1,4 +1,4 @@
-PKG compiler-libs
+PKG compiler-libs.common
 PKG ppx_tools
 
 REC
