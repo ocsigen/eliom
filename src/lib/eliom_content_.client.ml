@@ -53,18 +53,19 @@ module MakeManip
         let elt' = Kind.toelt elt in
           match Xml.get_node_id elt' with
           | Xml.NoId ->
-            Eliom_lib.error_any (Eliom_client.rebuild_node' Ns.content_ns elt')
-              "Cannot call %s on an element with functional semantics"
-              context
+            Lwt_log.raise_error_f ~section:Lwt_log.eliom
+              ~inspect:(Eliom_client.rebuild_node' Ns.content_ns (Kind.toelt elt))
+              "Cannot call %s on an element with functional semantics" context
           | _ -> get_node elt
 
     let get_unique_elt name elt : Dom_html.element Js.t =
       Js.Opt.case
         (Dom_html.CoerceTo.element (get_unique_node name elt))
         (fun () ->
-          Eliom_lib.error_any (Eliom_client.rebuild_node' Ns.content_ns (Kind.toelt elt))
-            "Cannot call %s on a node which is not an element"
-            name)
+           Lwt_log.raise_error_f ~section:Lwt_log.eliom
+             ~inspect:(Eliom_client.rebuild_node' Ns.content_ns (Kind.toelt elt))
+             "Cannot call %s on a node which is not an element" name;
+        )
         id
 
     let raw_appendChild ?before node elt2 =

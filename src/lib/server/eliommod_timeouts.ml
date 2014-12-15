@@ -142,11 +142,9 @@ let set_timeout_ get set get_default update =
               ignore
                 (catch
                    (fun () -> update full_st_name sitedata oldt t)
-                   (function e ->
-                      Ocsigen_messages.warning
-                        ("Eliom: Error while updating timeouts: "^
-                           Printexc.to_string e);
-                      Lwt.return ())
+                   (function exn ->
+                     Lwt_log.warning ~exn ~section:Lwt_log.eliom
+                       "Error while updating timeouts")
                 )
                 (*VVV Check possible exceptions raised *)
 

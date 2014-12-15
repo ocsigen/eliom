@@ -824,7 +824,8 @@ let parse_config hostpattern conf_info site_dir =
         end
         else begin
           if not !eliommodulewarningdisplayed
-          then Ocsigen_messages.warning "Tag <eliom> used several times in the same site: will run Eliom only the first time. Prefer <eliommodule> to load a module, and <eliom/> without attibute only once at the position you want to generate your Eliom pages for this site.";
+          then Lwt_log.ign_warning ~section:Lwt_log.eliom
+              "Tag <eliom> used several times in the same site: will run Eliom only the first time. Prefer <eliommodule> to load a module, and <eliom/> without attibute only once at the position you want to generate your Eliom pages for this site.";
           eliommodulewarningdisplayed := true;
           gen_nothing ()
         end

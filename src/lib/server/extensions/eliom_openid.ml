@@ -27,6 +27,8 @@ open Eliom_parameter
 open Ocsigen_headers
 module Base64 = Netencoding.Base64
 
+let section = Lwt_log.Section.make "eliom:openid"
+
 type openid_error =
   | Invalid_XRDS_File of string * string
   | Discovery_Error of string * string
@@ -306,8 +308,7 @@ let associate endpoint =
         assoc_handle = assoc.t_assoc_handle
       }
       in
-      Ocsigen_messages.warning (Printf.sprintf "--OpenID: Associated to `%s' (%s)"
-                                  endpoint (Base64.encode assoc.mac));
+      Lwt_log.ign_warning_f ~section "Associated to `%s' (%s)" endpoint (Base64.encode assoc.mac);
       Lwt.return assoc
     end
   in
@@ -328,7 +329,7 @@ let get_assoc end_point =
 
 
 let reassociate end_point =
-  Ocsigen_messages.warning ("OpenID: reassociating to " ^ end_point);
+  Lwt_log.ign_warning_f ~section "reassociating to %s" end_point;
   associations := M.remove end_point !associations;
   get_assoc end_point
 

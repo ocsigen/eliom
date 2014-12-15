@@ -24,6 +24,7 @@ exception Failed_request of int
 exception Program_terminated
 exception Non_xml_content
 
+let section = Lwt_log.Section.make "eliom:request"
 (* == ... *)
 
 let max_redirection_level = 12
@@ -89,8 +90,7 @@ let redirect_post url params =
           i##value <- v;
           Dom.appendChild f i
         | `File i ->
-          Firebug.console##error(Js.string "can't do POST redirection with file parameters");
-          failwith "redirect_post not implemented for files")
+          Lwt_log.raise_error ~section "redirect_post not implemented for files")
     params;
   f##style##display <- (Js.string "none");
   Dom.appendChild (Dom_html.document##body) f;
@@ -102,13 +102,11 @@ let redirect_post_form_elt ?(post_args=[]) ?(form_arg=[]) url =
 
 (* Forms cannot use PUT http method: do not redirect *)
 let redirect_put _url _params =
-  Firebug.console##error(Js.string "can't do PUT redirection");
-  failwith "redirect_put not implemented"
+  Lwt_log.raise_error ~section "redirect_put not implemented"
 
 (* Forms cannot use DELETE http method: do not redirect *)
 let redirect_delete _url _params =
-  Firebug.console##error(Js.string "can't do DELETE redirection");
-  failwith "redirect_delete not implemented"
+  Lwt_log.raise_error ~section "redirect_delete not implemented"
 
 let nl_template =
   Eliom_parameter.make_non_localized_parameters
@@ -228,7 +226,7 @@ let send ?(expecting_process_page = false) ?cookies_info
         if expecting_process_page
         then
           match r.XmlHttpRequest.headers Eliom_common.response_url_header with
-            | None | Some "" -> error "Eliom_request: no location header"
+            | None | Some "" -> Lwt_log.raise_error ~section "no location header"
             | Some url -> Lwt.return (url, Some (result r))
         else
           if r.XmlHttpRequest.code = 200
@@ -242,21 +240,23 @@ let send ?(expecting_process_page = false) ?cookies_info
           | None | Some "" -> (* Empty appl_name for IE compat. *)
             (match post_args, form_arg with
               | None, None -> redirect_get url
-              | _, _ -> error "Eliom_request: can't silently redirect a Post request to non application content");
+              | _, _ -> Lwt_log.raise_error ~section  "can't silently redirect a Post request to non application content");
             Lwt.fail Program_terminated
           | Some appl_name ->
             match Eliom_process.get_application_name () with
               | None ->
-                debug "Eliom_request: no application name? please report this bug";
-                assert false
+                Lwt_log.raise_error ~section "no application name? please report this bug"
               | Some current_appl_name ->
                 if appl_name = current_appl_name
                 then assert false (* we can't go here:
                                      this case is already handled before *)
                 else
-                  (debug "Eliom_request: received content for application %S when running application %s"
+                  begin
+                    Lwt_log.ign_warning_f ~section
+                      "received content for application %S when running application %s"
                      appl_name current_appl_name;
-                   Lwt.fail (Failed_request code))
+                    Lwt.fail (Failed_request code)
+                  end
   in
   lwt (url, content) = aux 0 ?cookies_info ?get_args ?post_args ?form_arg url in
   let filter_url url =

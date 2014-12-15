@@ -47,8 +47,7 @@ let tenable_value ~name v = object
     if not tenable || override_tenable then (
       value <- v;
       tenable <- override_tenable
-    ) else
-      Ocsigen_messages.warning ("Ignored setting tenable value \""^name^"\".")
+    ) else Lwt_log.ign_warning_f ~section:Lwt_log.eliom "Ignored setting tenable value %S." name
 end
 
 (*****************************************************************************)

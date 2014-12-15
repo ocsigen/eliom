@@ -88,7 +88,7 @@ let other_service =
     ~get_params:Eliom_parameter.unit
     (fun () () ->
        ignore {unit{
-         debug "on other service";
+           Lwt_log.ign_debug "on other service";
          Html5.Manip.appendChild
            %free_request
            Html5.F.(div [pcdata "from ocaml service"]);
@@ -106,10 +106,10 @@ let other_service =
        Lwt.return ())
 
 {client{
-  debug "toplevel";
+   Lwt_log.ign_debug "toplevel";
   Eliom_client.onload
     (fun () ->
-       debug "onload";
+       Lwt_log.ign_debug "onload";
        Html5.Manip.appendChild
          %free_request
          Html5.F.(div [pcdata "from client init"]);
@@ -154,7 +154,7 @@ let node_bindings =
           Html5.(D.div [F.(b [pcdata "Request (bound, local)"])])
       in
       ignore {unit{
-         debug "Adding free";
+          Lwt_log.ign_debug "Adding free";
          Html5.Manip.appendChild %addenda %free_request;
          Html5.Manip.appendChild %addenda %free_global;
          ignore %bound_global;
@@ -165,7 +165,7 @@ let node_bindings =
        }};
        let add_onclick = {{
          fun _ ->
-           debug "onclick";
+           Lwt_log.ign_debug "onclick";
            List.iter
              (fun node ->
                Html5.Manip.appendChild node
@@ -174,7 +174,7 @@ let node_bindings =
        }} in
        let run_ocaml_service = {{
          fun _ ->
-           debug "run_ocaml_service";
+           Lwt_log.ign_debug "run_ocaml_service";
            Lwt.ignore_result
              (Eliom_client.call_ocaml_service ~service: %other_service () ())
        }} in
@@ -256,7 +256,7 @@ let data_sharing =
   let show_my_data (ev : Dom_html.mouseEvent Js.t) =
     let elt = Js.Opt.get (ev##target) (fun () -> failwith "show_my_data") in
     let i = Html5.Custom_data.get_dom elt my_data in
-    alert "custom_data : {x=%d;y=%d}" i.x i.y
+    Dom_html.window##alert (Js.string (Printf.sprintf "custom_data : {x=%d;y=%d}" i.x i.y))
 
   let change_data container =
     let element = Html5.To_dom.of_element container in
@@ -1181,7 +1181,7 @@ let deep_client_values =
     Eliom_testsuite_base.assert_equal
       ~name:"injection_scoping_shared_v1"
       injection_scoping_shared_v1 "shared1";
-    debug "%%injection_scoping_shared_v1=%s (server1)" %injection_scoping_shared_v1;
+    Lwt_log.ign_debug_f "%%injection_scoping_shared_v1=%s (server1)" %injection_scoping_shared_v1;
     Eliom_testsuite_base.assert_equal
       ~name:"%injection_scoping_shared_v1"
       %injection_scoping_shared_v1 "server1";
@@ -1329,7 +1329,7 @@ let test_server_function =
       Lwt.fail (Failure "Empty string")
     else
       let strstr = str ^ str in
-      debug "test_server_function: received %S sending %S" str strstr;
+      Lwt_log.ign_debug_f "test_server_function: received %S sending %S" str strstr;
       Lwt.return (str ^ str)
   in
   let rpc_f = server_function Json.t<string> f in
@@ -1392,8 +1392,8 @@ let test_server_function =
   let client_value_initialization_f2 () =
     let () = ignore %client_value_initialization_a in
     let () = ignore %client_value_initialization_a in
-    let () = ignore %(debug "STEP 0") in
-    let () = ignore %(debug "STEP 1") in
+    let () = ignore %(Lwt_log.ign_debug "STEP 0") in
+    let () = ignore %(Lwt_log.ign_debug "STEP 1") in
     ()
 }}
 {server{

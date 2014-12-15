@@ -527,8 +527,7 @@ let wlf_lists =
   Http.service [ "wlflists" ] (list "items" (list "followers" (int "follower"))) ()
 
 let handler elements _ =
-  Ocsigen_messages.debug (fun () -> "> nb of elements: "^
-    string_of_int (List.length elements)) ;
+  lwt () = Lwt_log.debug "> nb of elements: %a" (fun _ e -> string_of_int (List.length e)) elements in
   Lwt.return "ok"
 
 let _ = Eliom_registration.Html_text.register wlf_lists handler

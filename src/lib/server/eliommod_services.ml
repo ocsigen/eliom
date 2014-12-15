@@ -33,6 +33,8 @@ open Ocsigen_extensions
 
 (*****************************************************************************)
 
+let section = Lwt_log.Section.make "eliom:service"
+
 let find_page_table
     nosuffixversion
     now
@@ -61,18 +63,17 @@ let find_page_table
       match expdate with
         | Some (_, e) when !e < now ->
               (* Service expired. Removing it. *)
-          Ocsigen_messages.debug2 "--Eliom: Service expired. I'm removing it";
+          Lwt_log.ign_info ~section "Service expired. Removing it";
           aux toremove l >>= fun (r, toremove) ->
           Lwt.return (r, a::toremove)
             | _ ->
               catch
                 (fun () ->
-                  Ocsigen_messages.debug2 "--Eliom: I'm trying a service";
+                   Lwt_log.ign_info ~section "Trying a service";
                   funct nosuffixversion sp >>= fun p ->
                       (* warning: the list ll may change during funct
                          if funct register something on the same URL!! *)
-                  Ocsigen_messages.debug2
-                    "--Eliom: Page found and generated successfully";
+                  Lwt_log.ign_info ~section "Page found and generated successfully";
 
                       (* If this is an anonymous coservice,
                          we place it at the top of the dlist
@@ -302,11 +303,6 @@ let add_or_remove_service
       | Eliom_common.Dir dcr -> search_page_table_ref dcr l
       | Eliom_common.File ptr ->
           raise (Eliom_common.Eliom_page_erasing a)
-            (* Ocsigen_messages.warning ("Eliom page registration: Page "^
-               a^" has been replaced by a directory");
-               let newdcr = ref (Eliom_common.empty_dircontent ()) in
-               (direltref := Eliom_common.Dir newdcr;
-               search_page_table_ref newdcr l) *)
     with
     | Not_found ->
         let newdcr = ref (Eliom_common.empty_dircontent ()) in
@@ -324,11 +320,6 @@ let add_or_remove_service
           (match !direltref with
           | Eliom_common.Dir _ ->
               raise (Eliom_common.Eliom_page_erasing a)
-                (* Ocsigen_messages.warning ("Eliom page registration: Directory "^
-                   a^" has been replaced by a page");
-                   let newpagetableref = ref (empty_page_table ()) in
-                   (direltref := File newpagetableref;
-                   newpagetableref) *)
           | Eliom_common.File ptr -> ptr)
         with
         | Not_found ->
@@ -548,12 +539,12 @@ let get_page
              (function
                | Eliom_common.Eliom_404
                | Eliom_common.Eliom_Wrong_parameter ->
-                 Ocsigen_messages.debug
-                   (fun () -> String.concat ""
-                     ["--Eliom: I'm looking for ";
+                 Lwt_log.ign_info_f ~section "Looking for %a in the table %s:"
+                   (fun _ ri ->
                       (Url.string_of_url_path
-                         ~encode:true (Ocsigen_request_info.sub_path ri.request_info));
-                      " in the "; table_name; ":"]);
+                         ~encode:true (Ocsigen_request_info.sub_path ri.request_info)))
+                   ri
+                   table_name;
                  find_aux Eliom_common.Eliom_404 table
                | e -> Lwt.fail e))
          (Lwt.fail Eliom_common.Eliom_404)
@@ -564,7 +555,7 @@ let get_page
        | Eliom_common.Eliom_Wrong_parameter ->
          catch (* ensuite dans la table globale *)
            (fun () ->
-             Ocsigen_messages.debug2 "--Eliom: I'm searching in the global table:";
+             Lwt_log.ign_info ~section "Searching in the global table:";
              find_service
                now
                sitedata.Eliom_common.global_services
@@ -582,8 +573,7 @@ let get_page
                         (* There was a POST state.
                            We remove it, and remove POST parameters.
                         *)
-                   Ocsigen_messages.debug2
-                     "--Eliom: Link too old. I will try without POST parameters:";
+                   Lwt_log.ign_info ~section "Link too old. Try without POST parameters:";
                    Polytables.set
                      (Ocsigen_request_info.request_cache ri.request_info)
                      Eliom_common.eliom_link_too_old
@@ -617,8 +607,7 @@ let get_page
                            We remove it with its parameters,
                            and remove POST parameters.
                         *)
-                   Ocsigen_messages.debug2
-                     "--Eliom: Link to old. I will try without GET state parameters and POST parameters:";
+                   Lwt_log.ign_info ~section "Link to old. Trying without GET state parameters and POST parameters:";
                    Polytables.set
                      (Ocsigen_request_info.request_cache ri.request_info)
                      Eliom_common.eliom_link_too_old

@@ -21,7 +21,9 @@ let simple_dom_react = Eliom_testsuite_base.test
        let dom = {{
          let s,_ = %signal in
          let i,set_i = React.S.create 0 in
-         let valid = React.S.map (fun s -> try set_i (int_of_string s);true with _ -> false) s in
+         let valid = React.S.map (fun s ->
+             try set_i (int_of_string s); true
+             with _ -> false) s in
          let v_succ = React.S.map succ i in
          let v_double = React.S.map (( * ) 2) i in
          let v_minus = React.S.map (fun x -> - x) i in

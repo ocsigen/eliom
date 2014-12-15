@@ -261,9 +261,7 @@ let get_global_data, modify_global_data =
             | None, None -> assert false
             | Some data, None | None, Some data -> Some data
             | Some _, Some site_data ->
-              Printf.ksprintf Ocsigen_messages.errlog
-                "Compilation unit %s linked globally AND as Eliom module"
-                compilation_unit_id;
+              Lwt_log.ign_error_f ~section:Lwt_log.eliom "Compilation unit %s linked globally AND as Eliom module" compilation_unit_id;
               Some site_data)
         !global_data
         (Eliom_reference.Volatile.get site_data)

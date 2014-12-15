@@ -54,6 +54,47 @@ module Url = struct
       (Regexp.string_match ssl_re s 0)
 
 end
+module Lwt_log = struct
+  include Lwt_log_js
+  let raise_error ?inspect ?exn ?section ?location ?logger msg =
+    Lwt.ignore_result (log ?inspect ?exn ?section ?location ?logger ~level:Error msg);
+    match exn with
+    | Some exn -> raise exn
+    | None -> failwith msg
+  let raise_error_f ?inspect ?exn ?section ?location ?logger fmt =
+    Printf.ksprintf (raise_error ?inspect ?exn ?section ?location ?logger) fmt
+
+  let eliom = Section.make "eliom"
+end
+
+let _ =
+  Lwt_log.default := Lwt_log.console;
+  Lwt_log.add_rule "*" Lwt_log.Debug;
+  Lwt.async_exception_hook := (fun exn -> Lwt_log.ign_error ~section:Lwt_log.eliom ~exn "Async" )
+
+(* Deprecated ON *)
+let debug_exn fmt exn = Lwt_log.ign_info_f ~exn fmt
+let debug fmt = Lwt_log.ign_info_f fmt
+
+let error fmt = Lwt_log.raise_error_f fmt
+let error_any any fmt = Lwt_log.raise_error_f ~inspect:any fmt
+let jsdebug a = Lwt_log.ign_info ~inspect:a "Jsdebug"
+(* Deprecated OFF *)
+
+let trace fmt =
+  if Eliom_config.get_tracing ()
+  then Lwt_log.ign_info_f (">> "^^fmt)
+  else Printf.ksprintf ignore fmt
+
+let lwt_ignore ?(message="") t =
+  Lwt.on_failure t (fun exn -> Lwt_log.ign_info_f ~exn "%s" message)
+
+(* Debbuging *)
+let jsalert a = Dom_html.window##alert (a)
+let alert fmt = Printf.ksprintf (fun s -> jsalert (Js.string s)) fmt
+
+let debug_var s v = Js.Unsafe.set Dom_html.window (Js.string s) v
+
 
 module String = struct
   include String_base
@@ -62,45 +103,11 @@ module String = struct
     Regexp.global_replace eol_re s ""
 end
 
-let js_array_to_list arr =
-  let li = ref [] in
-  for i = 0 to pred arr##length do
-    let x =
-      Js.Optdef.get
-        (Js.array_get arr i)
-        (fun () -> failwith "js_array_to_list")
-    in
-    li := x :: !li
-  done;
-  List.rev !li
-
 (*****************************************************************************)
 
 (* let () =
   (Js.Unsafe.coerce Dom_html.window)##set_tracing <-
     Js.wrap_callback (fun v -> set_tracing (Js.to_bool v)) *)
-
-let debug_exn f e =
-  Printf.ksprintf
-    (fun s -> Firebug.console##log (Js.string (s^" "^(Printexc.to_string e)))) f
-let debug f = Printf.ksprintf (fun s -> Firebug.console##log (Js.string s)) f
-let error f =
-  Printf.ksprintf (fun s -> Firebug.console##error (Js.string s); failwith s) f
-let error_any any f =
-  Printf.ksprintf (fun s -> Firebug.console##error_2 (Js.string s, any);
-                            failwith s) f
-let trace f =
-  if Eliom_config.get_tracing ()
-  then debug (">> "^^f)
-  else Printf.ksprintf ignore f
-let jsdebug a = Firebug.console##log (a)
-let alert f = Printf.ksprintf (fun s -> Dom_html.window##alert (Js.string s)) f
-let jsalert a = Dom_html.window##alert (a)
-
-let debug_var s v = Js.Unsafe.set Dom_html.window (Js.string s) v
-
-let lwt_ignore ?(message="") t =
-  Lwt.on_failure t (fun e -> debug_exn "%s" e message)
 
 (* We do not use the deriving (un)marshaling even if typ is available
    because direct jsn (un)marshaling is very fast client side

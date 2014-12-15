@@ -19,10 +19,11 @@
  *)
 
 open Eliom_lib
-open Eliom_lib.Lwt_ops
 open Eliom_content
 open Eliom_service
 open Eliom_parameter
+
+let (>>=) = Lwt.(>>=)
 
 let code_of_code_option = function
   | None -> 200

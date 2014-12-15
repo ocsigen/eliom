@@ -34,6 +34,10 @@ let get_obj_copy map o = Js.Optdef.to_option ( map##get(o) )
 let set_obj_copy map o c = map##set(o,c)
 *)
 
+open Eliom_lib
+
+let section = Lwt_log.Section.make "eliom.unwrap"
+
 class type obj_with_copy = object
   method camlObjCopy : Obj.t Js.optdef Js.prop
 end
@@ -96,9 +100,9 @@ let register_unwrapper' id f =
   (* Do late unwrapping *)
   Js.Optdef.iter (Js.array_get occurrences_table id)
     (fun all_occurrences ->
-      if Eliom_config.get_tracing () then
-        Firebug.console##log(Printf.ksprintf Js.string "Late unwrapping for %i in %d instances"
-                               id (List.length all_occurrences));
+       Lwt_log.ign_info_f ~section
+         "Late unwrapping for %i in %d instances"
+         id (List.length all_occurrences);
       List.iter
         (fun { value; occurrences } ->
           match f value with
@@ -108,8 +112,8 @@ let register_unwrapper' id f =
                   Js.Unsafe.set parent field value')
                 occurrences
             | None ->
-              Printf.ksprintf (fun s -> Firebug.console##error_2(Js.string s, value); failwith s)
-                "User defined unwrapping function must yield some value, not None")
+              Lwt_log.raise_error ~section ~inspect:value "User defined unwrapping function must yield some value, not None"
+         )
         all_occurrences;
       Js.Unsafe.delete occurrences_table id)
 
@@ -125,10 +129,9 @@ let apply_unwrapper unwrapper v =
    at position [field].
 *)
 let register_late_occurrence parent field value unwrap_id =
-  if Eliom_config.get_tracing () then
-    Firebug.console##log_3
-      (Printf.ksprintf Js.string ">> register_late_occurrence unwrapper:%d at"
-         unwrap_id, parent, Printf.ksprintf Js.string "[%d]" field);
+  Lwt_log.ign_info_f ~inspect:parent ~section
+    "register_late_occurrence unwrapper:%d at for field [%d]"
+    unwrap_id field;
   let parent = Obj.repr parent in
   let value = Obj.repr value in
   let all_occurrences =
@@ -159,10 +162,9 @@ let late_unwrap_value unwrap_id predicate new_value =
   let current_occurrences, all_occurrences' =
     List.partition (fun { value } -> predicate (Obj.obj value)) all_occurrences
   in
-  if Eliom_config.get_tracing () then
-    Firebug.console##log
-      (Printf.ksprintf Js.string ">> late_unwrap_value unwrapper:%d for %d cases"
-         unwrap_id (List.length current_occurrences));
+  Lwt_log.ign_info_f ~section
+    "late_unwrap_value unwrapper:%d for %d cases"
+    unwrap_id (List.length current_occurrences);
   List.iter
     (fun { occurrences } ->
       List.iter
@@ -177,7 +179,7 @@ let late_unwrap_value unwrap_id predicate new_value =
 
 let raw_unmarshal_and_unwrap
   : (unwrapper -> _ -> _ option) ->
-    (_ -> int -> _ -> int -> unit) ->
+    (Obj.t -> int -> Obj.t -> int -> unit) ->
     string -> int -> _
         = Js.Unsafe.variable "caml_unwrap_value_from_string"
 
