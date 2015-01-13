@@ -56,6 +56,9 @@ type file_info = Ocsigen_extensions.file_info
 val to_json : ?typ:'a Deriving_Json.t -> 'a -> string
 val of_json : ?typ:'a Deriving_Json.t -> string -> 'a
 
+(** Deprecated. Use Lwt_log.ign_info_f instead *)
+val debug: ('a, unit, string, unit) format4 -> 'a
+
 (** Marshal an OCaml value into a string. All characters are escaped *)
 val jsmarshal : 'a -> string
 
@@ -82,5 +85,4 @@ type global_data = poly Eliom_lib_base.global_data * Eliom_wrap.unwrapper
 
 val global_data_unwrapper : Eliom_wrap.unwrapper
 
-val debug : [`use_lwt_log_instead]
 (**/**)
