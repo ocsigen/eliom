@@ -99,7 +99,6 @@ let update_cookie_table ?now sitedata (ci, sci) =
 
 
   (* Update persistent expiration date, user timeout and value *)
-  (* Lwt_util.iter *)
     Eliom_common.Full_state_name_table.fold
 
       (fun name v thr ->

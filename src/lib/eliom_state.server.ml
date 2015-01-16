@@ -561,7 +561,7 @@ let set_persistent_data_session_group ?set_max
     ?set_max
     (fst sitedata.Eliom_common.max_persistent_data_sessions_per_group)
     c.Eliom_common.pc_value !grp n in
-  lwt () = Lwt_util.iter
+  lwt () = Lwt_list.iter_p
     (Eliommod_persess.close_persistent_state2
        ~scope:(scope:>Eliom_common.user_scope) sitedata None) l in
   grp := n;

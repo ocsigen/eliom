@@ -152,7 +152,7 @@ let rec find_or_create_persistent_cookie_
       ?set_max:set_max_in_group
       (fst sitedata.Eliom_common.max_persistent_data_sessions_per_group)
       c fullsessgrp >>= fun l ->
-    Lwt_util.iter (close_persistent_state2
+    Lwt_list.iter_p (close_persistent_state2
                      ~scope:(cookie_scope :> Eliom_common.user_scope)
                      sitedata None) l
     >>= fun () ->

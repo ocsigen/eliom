@@ -475,7 +475,7 @@ module Pers = struct
         (* First we close all sessions in the group *)
 
         find sess_grp >>= fun cl ->
-        Lwt_util.iter
+        Lwt_list.iter_p
           (close_persistent_session2
              ~cookie_level:(match cookie_level with
                | `Client_process _ -> `Client_process | `Session -> `Session)

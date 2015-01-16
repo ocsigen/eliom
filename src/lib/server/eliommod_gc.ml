@@ -135,7 +135,7 @@ let gc_timeouted_services now tables =
               Lwt.return ()
         end
   in
-  Lwt_util.iter_serial
+  Lwt_list.iter_s
     (fun (_gen, _prio, t) -> empty_one t) tables.Eliom_common.table_services
   >>= fun () ->
   tables.Eliom_common.table_services <-
