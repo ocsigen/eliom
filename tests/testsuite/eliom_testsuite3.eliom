@@ -113,6 +113,7 @@ let eliomclient1 =
                [pcdata "I am a clickable paragraph"];
 
            ]))
+
 (*wiki*
 All services belonging to the application will be entry points to the
 application. It means that if you call such a service, the client side
@@ -2777,6 +2778,13 @@ let () = My_appl.register ~service:live3 (fun () () ->
     Lwt.return
       (make_page [h1 [pcdata "Page threee"]; live_description; live_links; dead_links]))
 
+
+(*VVV REMOVE THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*)
+let _ = Eliom_service.set_client_fun_ long_page
+    (Obj.magic {_ -> _{fun _ _ -> Lwt.return
+         (Obj.magic
+            (html (head (title (pcdata "")) []) (body [pcdata "oui"])))}})
+(*VVV REMOVE THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*)
 
 let formc = My_appl.register_service ["formc"] unit
   (fun () () ->

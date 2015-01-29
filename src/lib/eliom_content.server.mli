@@ -495,3 +495,6 @@ module Html_text : sig
     and type button_type_t := string
     and type for_attrib := string
 end
+
+(**/**)
+val to_core_ : 'a Html5.elt -> 'a Eliom_content_core.Html5.elt

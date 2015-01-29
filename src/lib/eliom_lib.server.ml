@@ -1,16 +1,19 @@
 
 include Ocsigen_lib
-include (Eliom_lib_base : module type of Eliom_lib_base
-                          with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
-                          with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
-                          with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
-                          with type escaped_value = Eliom_lib_base.escaped_value
-                          with type +'a Client_value_server_repr.t = 'a Eliom_lib_base.Client_value_server_repr.t
-                          with type client_value_datum = Eliom_lib_base.client_value_datum
-                          with type 'a injection_datum = 'a Eliom_lib_base.injection_datum
-                          with type 'a compilation_unit_global_data = 'a Eliom_lib_base.compilation_unit_global_data
-                          with type 'a global_data := 'a Eliom_lib_base.global_data
-                          with type request_data = Eliom_lib_base.request_data)
+include (Eliom_lib_base :
+           module type of Eliom_lib_base
+         with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
+         with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
+         with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
+         with type escaped_value = Eliom_lib_base.escaped_value
+         with type +'a Client_value_server_repr.t =
+           'a Eliom_lib_base.Client_value_server_repr.t
+         with type client_value_datum = Eliom_lib_base.client_value_datum
+         with type 'a injection_datum = 'a Eliom_lib_base.injection_datum
+         with type 'a compilation_unit_global_data =
+           'a Eliom_lib_base.compilation_unit_global_data
+         with type 'a global_data := 'a Eliom_lib_base.global_data
+         with type request_data = Eliom_lib_base.request_data)
 
 let escaped_value_escaped_value = fst
 
@@ -75,8 +78,7 @@ let wrap_and_marshall_poly : poly -> string =
   fun poly ->
     string_escape (Marshal.to_string (Eliom_wrap.wrap poly) [])
 
-type +'a client_value =
-  'a Client_value_server_repr.t * Eliom_wrap.unwrapper
+type +'a client_value = 'a Client_value_server_repr.t * Eliom_wrap.unwrapper
 
 let create_client_value cv =
   cv, Eliom_wrap.create_unwrapper

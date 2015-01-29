@@ -1114,6 +1114,20 @@ let with_progress_cursor : 'a Lwt.t -> 'a Lwt.t =
 (* == Main (internal) function: change the content of the page without leaving
       the javascript application. *)
 
+let set_content_local ?uri ?offset ?fragment fake_page =
+  (* Inline CSS in the header to avoid the "flashing effect".
+     Otherwise, the browser start to display the page before
+     loading the CSS. *)
+  let preloaded_css = Eliommod_dom.preload_css fake_page in
+  (* Wait for CSS to be inlined before substituting global nodes: *)
+  lwt () = preloaded_css in
+  (* Really change page contents *)
+  Dom.replaceChild Dom_html.document
+    fake_page
+    Dom_html.document##documentElement;
+  scroll_to_fragment ?offset fragment;
+  Lwt.return ()
+
 let set_content ?uri ?offset ?fragment content =
   Lwt_log.ign_info ~section "Set content";
   match content with
@@ -1130,20 +1144,21 @@ let set_content ?uri ?offset ?fragment content =
        | _ -> ());
       (* Convert the DOM nodes from XML elements to HTML elements. *)
       let fake_page =
-        Eliommod_dom.html_document content registered_process_node in
+        Eliommod_dom.html_document content registered_process_node
+      in
       (* Inline CSS in the header to avoid the "flashing effect".
          Otherwise, the browser start to display the page before
          loading the CSS. *)
       let preloaded_css = Eliommod_dom.preload_css fake_page in
       (* Unique nodes of scope request must be bound before the
-          unmarshalling/unwrapping of page data. *)
+         unmarshalling/unwrapping of page data. *)
       relink_request_nodes fake_page;
       (* Put the loaded data script in action *)
       load_data_script fake_page;
       (* Unmarshall page data. *)
       let cookies = Eliom_request_info.get_request_cookies () in
       let js_data = Eliom_request_info.get_request_data () in
-      (* Update tab-cookies. *)
+      (* Update tab-cookies: *)
       let host =
         match uri with
         | None -> None
@@ -1153,7 +1168,7 @@ let set_content ?uri ?offset ?fragment content =
           | Some (Url.Https url) -> Some url.Url.hu_host
           | _ -> None in
       Eliommod_cookies.update_cookie_table host cookies;
-      (* Wait for CSS to be inlined before to substitute global nodes. *)
+      (* Wait for CSS to be inlined before substituting global nodes: *)
       lwt () = preloaded_css in
       (* Bind unique node (request and global) and register event
          handler.  Relinking closure nodes must take place after
@@ -1197,8 +1212,8 @@ let set_content ?uri ?offset ?fragment content =
       Lwt.return ()
     with exn ->
       Lwt_log.ign_info ~section ~exn "set_content";
-      if !Eliom_config.debug_timings then
-        Firebug.console##timeEnd(Js.string "set_content");
+      if !Eliom_config.debug_timings
+      then Firebug.console##timeEnd(Js.string "set_content");
       raise_lwt exn
 
 let set_template_content ?uri ?fragment = function
@@ -1216,6 +1231,10 @@ let set_template_content ?uri ?fragment = function
     run_callbacks (flush_onload ());
     reset_request_nodes ();
     Lwt.return ()
+
+
+(* Fixing a dependency problem: *)
+let of_element_ = ref (fun _ -> failwith "of_element_")
 
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
@@ -1256,32 +1275,42 @@ let change_page
              get_params post_params in
          set_template_content ~uri ?fragment (Some content)
        | _ ->
-         let cookies_info = Eliom_uri.make_cookies_info (https, service) in
-         lwt (uri, content) = match
-             create_request_
-               ?absolute ?absolute_path ?https ~service ?hostname ?port
-               ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
-               get_params post_params
-           with
-           | `Get uri ->
-             Eliom_request.http_get
-               ~expecting_process_page:true ?cookies_info uri []
-               Eliom_request.xml_result
-           | `Post (uri, p) ->
-             Eliom_request.http_post
-               ~expecting_process_page:true ?cookies_info uri p
-               Eliom_request.xml_result
-           | `Put (uri, p) ->
-             Eliom_request.http_put
-               ~expecting_process_page:true ?cookies_info uri p
-               Eliom_request.xml_result
-           | `Delete (uri, p) ->
-             Eliom_request.http_delete
-               ~expecting_process_page:true ?cookies_info uri p
-               Eliom_request.xml_result
-         in
-         let uri, fragment = Url.split_fragment uri in
-         set_content ~uri ?fragment content)
+         match Eliom_service.get_client_fun_ service with
+         | Some f ->
+           (* The service has a client side implementation.
+              We do not make the request *)
+           lwt content = f get_params post_params in
+           let content = !of_element_ content in
+           let uri, fragment = Url.split_fragment "POPO" in
+           set_content_local ~uri ?fragment content
+         | None ->
+           let cookies_info = Eliom_uri.make_cookies_info (https, service) in
+           lwt (uri, content) =
+             match
+               create_request_
+                 ?absolute ?absolute_path ?https ~service ?hostname ?port
+                 ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
+                 get_params post_params
+             with
+             | `Get uri ->
+               Eliom_request.http_get
+                 ~expecting_process_page:true ?cookies_info uri []
+                 Eliom_request.xml_result
+             | `Post (uri, p) ->
+               Eliom_request.http_post
+                 ~expecting_process_page:true ?cookies_info uri p
+                 Eliom_request.xml_result
+             | `Put (uri, p) ->
+               Eliom_request.http_put
+                 ~expecting_process_page:true ?cookies_info uri p
+                 Eliom_request.xml_result
+             | `Delete (uri, p) ->
+               Eliom_request.http_delete
+                 ~expecting_process_page:true ?cookies_info uri p
+                 Eliom_request.xml_result
+           in
+           let uri, fragment = Url.split_fragment uri in
+           set_content ~uri ?fragment content)
 
 (* Function used in "onclick" event handler of <a>.  *)
 
@@ -1366,7 +1395,8 @@ let _ =
 
 let () =
 
-  if Eliom_process.history_api then
+  if Eliom_process.history_api
+  then
 
     let goto_uri full_uri state_id =
       leave_page ();
@@ -1649,8 +1679,8 @@ let rebuild_node_ns ns context elt' =
   Lwt_log.ign_info_f ~section "Rebuild node %a (%s)"
     (fun () e -> Eliom_content_core.Xml.string_of_node_id (Xml.get_node_id e))
     elt' context;
-  if is_before_initial_load () then
-    begin
+  if is_before_initial_load ()
+  then begin
       Lwt_log.raise_error_f ~section ~inspect:(rebuild_node' ns elt')
       "Cannot apply %s%s before the document is initially loaded"
       context
@@ -1803,8 +1833,8 @@ let init () =
            (Eliommod_dom.add_formdata_hack_onclick_handler ::
             flush_onload () @
             [ onload_closure_nodes; broadcast_load_end ]);
-         if !Eliom_config.debug_timings then
-           Firebug.console##timeEnd(Js.string "onload");
+         if !Eliom_config.debug_timings
+         then Firebug.console##timeEnd(Js.string "onload");
          Lwt.return ());
     Js._false
   in
@@ -1816,9 +1846,9 @@ let init () =
      Other browsers: Ask whether you really want to navigate away if
      onbeforeunload is assigned *)
   if Js.Unsafe.get Dom_html.window (Js.string "addEventListener")
-     == Js.undefined then
-    (Dom_html.window##onload <- Dom_html.handler onload;
-     Dom_html.window##onbeforeunload <- Dom_html.handler onunload)
+     == Js.undefined
+  then (Dom_html.window##onload <- Dom_html.handler onload;
+        Dom_html.window##onbeforeunload <- Dom_html.handler onunload)
   else
     (ignore
        (Dom.addEventListener Dom_html.window (Dom.Event.make "load")

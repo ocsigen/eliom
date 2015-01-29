@@ -19,7 +19,8 @@
 
 
 (* This the core of [Eliom_content] without its dependencies to [Eliom_service],
-   [Eliom_client] et al.  Its name is not [Eliom_content_base] because this would
+   [Eliom_client] et al.
+   Its name is not [Eliom_content_base] because this would
    suggest the sharing between server and client. *)
 
 open Eliom_lib

@@ -274,3 +274,8 @@ module Syntax_helpers : sig
       constraints accordingly. *)
   val get_escaped_value : escaped_value -> 'a
 end
+
+
+(** Internal function. *)
+val of_element_ :
+  ([`Html] Eliom_content_core.Html5.elt -> Dom_html.element Js.t) ref

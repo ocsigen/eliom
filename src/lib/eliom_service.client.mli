@@ -372,6 +372,9 @@ val get_max_use_ : ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'return) service
 val get_timeout_ : ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'return) service -> float option
 val get_https : ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'return) service -> bool
 val get_priority_ : a_s -> int
+val get_client_fun_ :
+  ('a, 'b, 'meth, 'attch, 'kind, 'd, 'e, 'f, 'g, 'return) service ->
+  ('a -> 'b -> [ `Html ] Eliom_content_core.Html5.elt Lwt.t) option
 
 val keep_nl_params : ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'return) service ->
   [ `All | `Persistent | `None ]

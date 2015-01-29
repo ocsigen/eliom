@@ -17,15 +17,17 @@
  *)
 
 include Ocsigen_lib_base
-include (Eliom_lib_base : module type of Eliom_lib_base
-                          with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
-                          with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
-                          with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
-                          with type client_value_datum = Eliom_lib_base.client_value_datum
-                          with type 'a injection_datum := 'a Eliom_lib_base.injection_datum
-                          with type 'a compilation_unit_global_data = 'a Eliom_lib_base.compilation_unit_global_data
-                          with type 'a global_data := 'a Eliom_lib_base.global_data
-                          with type request_data = Eliom_lib_base.request_data)
+include (Eliom_lib_base :
+           module type of Eliom_lib_base
+         with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
+         with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
+         with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
+         with type client_value_datum = Eliom_lib_base.client_value_datum
+         with type 'a injection_datum := 'a Eliom_lib_base.injection_datum
+         with type 'a compilation_unit_global_data =
+           'a Eliom_lib_base.compilation_unit_global_data
+         with type 'a global_data := 'a Eliom_lib_base.global_data
+         with type request_data = Eliom_lib_base.request_data)
 
 exception False
 

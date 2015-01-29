@@ -89,3 +89,30 @@ end
 
 
 }}
+
+{shared{
+(* Initializing function from Eliom_service_base here,
+   because client-server syntax cannot be used in Eliom_service_base
+   for dependency reasons.
+   Not actually the best place to do it, but I don't want to create
+   a file just for this ...
+*)
+
+let _ =
+(*VVV The Obj.magic here is related to client value syntax extension.
+  I hope we can remove this when typing of client-server syntax is fixed.
+  In the meantime, if someone knows how to remove it, I'd be happy :/
+*)
+  Eliom_service_base.preapply_client_fun.Eliom_service_base.clvpreapp_f <-
+    Obj.magic (fun f getparams -> {_ -> _{ fun _ pp -> %f %getparams pp }});
+  Eliom_service_base.add_nl_get_client.Eliom_service_base.clvnlget_f <-
+    Obj.magic (fun f -> {_ -> _{ fun (g, _) p -> %f g p }});
+  Eliom_service_base.add_nl_post_client.Eliom_service_base.clvnlpost_f <-
+    Obj.magic (fun f -> {_ -> _{ fun g (p, _) -> %f g p }})
+ }}
+{server{
+   let to_core_ x = x
+ }}
+{client{
+   let _ = Eliom_client.of_element_ := Html5.To_dom.of_element
+ }}
