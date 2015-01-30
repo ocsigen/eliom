@@ -374,7 +374,7 @@ val get_https : ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'return) service ->
 val get_priority_ : a_s -> int
 val get_client_fun_ :
   ('a, 'b, 'meth, 'attch, 'kind, 'd, 'e, 'f, 'g, 'return) service ->
-  ('a -> 'b -> [ `Html ] Eliom_content_core.Html5.elt Lwt.t) option
+  ('a -> 'b -> [ `Html ] Eliom_content_core.Html5.elt Lwt.t) client_value option
 
 val keep_nl_params : ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'return) service ->
   [ `All | `Persistent | `None ]

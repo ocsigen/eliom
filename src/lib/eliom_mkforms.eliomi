@@ -18,6 +18,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+{shared{
+
 (* ocamldoc/camlp4 hack ? : need an open first ? *)
 open Eliom_lib
 
@@ -75,3 +77,5 @@ module MakeForms(Pages: FORMS_PARAM) : sig
         and type for_attrib := Pages.for_attrib
 
 end
+
+}}

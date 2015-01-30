@@ -59,10 +59,13 @@ module RawXML = struct
   type cookie_info = (bool * string list) deriving (Json)
 
   type -'a caml_event_handler =
-    | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) Client_value_server_repr.t
+    | CE_registered_closure of
+        string *
+        ((#Dom_html.event as 'a) Js.t -> unit) Client_value_server_repr.t
     | CE_client_closure of ('a Js.t -> unit) (* Client side-only *)
     | CE_call_service of
-        ([ `A | `Form_get | `Form_post] * (cookie_info option) * string option) option Eliom_lazy.request
+        ([ `A | `Form_get | `Form_post] * (cookie_info option) * string option)
+          option Eliom_lazy.request
 
   (* Inherit from all events.
      Necessary for subtyping since caml_event_handler is contravariant. *)

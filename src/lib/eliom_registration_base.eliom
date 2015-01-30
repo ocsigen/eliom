@@ -18,6 +18,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+{shared{
+
 open Eliom_lib
 open Eliom_content_core
 
@@ -61,7 +63,8 @@ type button_type =
 (*****************************************************************************)
 (*****************************************************************************)
 
-(*BB Has nothing to do with Eliom_registration in fact, should live in something like Eliom_content_base. *)
+(*BB Has nothing to do with Eliom_registration in fact,
+  should live in something like Eliom_content_base. *)
 module Html5_forms(*  : sig *)
 (*   module F : "sigs/eliom_html5_forms.mli" *)
 (*   module D : "sigs/eliom_html5_forms.mli" *)
@@ -149,7 +152,8 @@ module Html5_forms(*  : sig *)
 
     let make_pcdata s = pcdata s
 
-    let make_a ?(a=[]) ?href (l : 'a a_content_elt_list) : 'a a_elt =
+    let make_a ?(a=[]) ?href (l : 'a a_content_elt_list)
+      : 'a a_elt =
       let a = match href with
         | None -> a
         | Some href -> a_href href :: a
@@ -158,7 +162,7 @@ module Html5_forms(*  : sig *)
 
     let make_empty_form_content () = fieldset []
     let remove_first = function
-      | a::l -> a,l
+      | a::l -> a, l
       | [] -> (make_empty_form_content ()), []
 
     let make_get_form ?(a=[]) ~action elts : form_elt =
@@ -942,11 +946,11 @@ module Html5_forms(*  : sig *)
       | Some xhr -> xhr
       | None -> Eliom_config.get_default_links_xhr ()
 
-    let a_onclick_service info =
-      Html5.D.to_attrib (
-        Xml.internal_event_handler_attrib
-          "onclick"
-          (Xml.internal_event_handler_of_service info))
+    (* let a_onclick_service info = *)
+    (*   Html5.D.to_attrib ( *)
+    (*     Xml.internal_event_handler_attrib *)
+    (*       "onclick" *)
+    (*       (Xml.internal_event_handler_of_service info)) *)
 
     let a_onsubmit_service info =
       Html5.D.to_attrib (
@@ -954,22 +958,54 @@ module Html5_forms(*  : sig *)
           "onsubmit"
           (Xml.internal_event_handler_of_service info))
 
-    let a ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname ?port ?fragment
-          ?keep_nl_params ?nl_params
-          ?xhr
-          content getparams =
+    let a ?absolute ?absolute_path ?https ?(a = [])
+        ~service ?hostname ?port ?fragment
+        ?keep_nl_params ?nl_params
+        ?xhr
+        content getparams =
       let xhr = get_xhr xhr in
       let a =
-        if xhr then
-          let info = make_info ~https `A service in
-          a_onclick_service info :: a
-        else
+        (* Was:
+          if xhr then
+            let info = make_info ~https `A service in
+            a_onclick_service info :: a
+          else
+            a
+           before enabling client server syntax in this file.
+        *)
+        match xhr, Eliom_service.get_client_fun_ service with
+        | true, _
+        | _, Some _ ->
+          Eliom_content_core.Html5.F.a_onclick
+            {{ fun ev ->
+               Dom.preventDefault ev;
+               Lwt.async (fun () ->
+                 Eliom_client.change_page
+                   ?absolute:%absolute
+                   ?absolute_path:%absolute_path
+                   ?https:%https
+                   ~service:%service
+                   ?hostname:%hostname
+                   ?port:%port
+                   ?fragment:%fragment
+                   ?keep_nl_params:%keep_nl_params
+                   ?nl_params:%nl_params
+                   %getparams
+                     ())
+             }}::
           a
+        | _ -> a
       in
       Forms.a
         ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
         ?keep_nl_params ?nl_params ~xhr
         content getparams
+
+    let warn_client_service service =
+      if Eliom_service.get_client_fun_ service <> None
+      then Eliom_lib.debug "Client side services not imoplemented with forms. \
+                            Please do it manually using \
+                            Eliom_client.change_page, or contribute."
 
     let get_form
         ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname ?port ?fragment
@@ -982,6 +1018,7 @@ module Html5_forms(*  : sig *)
         else
           a
       in
+      warn_client_service service;
       Forms.get_form
         ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
         ?keep_nl_params ?nl_params contents
@@ -997,6 +1034,7 @@ module Html5_forms(*  : sig *)
         else
           a
       in
+      warn_client_service service;
       Forms.lwt_get_form
         ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
         ?nl_params ?keep_nl_params
@@ -1013,6 +1051,7 @@ module Html5_forms(*  : sig *)
         else
           a
       in
+      warn_client_service service;
       Forms.post_form
         ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
         ?keep_nl_params ?keep_get_na_params ?nl_params
@@ -1029,6 +1068,7 @@ module Html5_forms(*  : sig *)
         else
           a
       in
+      warn_client_service service;
       Forms.lwt_post_form
         ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
         ?keep_nl_params ?keep_get_na_params ?nl_params
@@ -1039,3 +1079,5 @@ module Html5_forms(*  : sig *)
   module F = MakeApplForms(Open_Html5_forms(Eliom_mkforms.MakeForms(Html5_forms_base(Html5.F))))
   module D = MakeApplForms(Open_Html5_forms(Eliom_mkforms.MakeForms(Html5_forms_base(Html5.D))))
 end
+
+}}
