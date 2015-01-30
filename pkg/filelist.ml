@@ -82,6 +82,7 @@ let client = {
     "eliom_registration";
     "eliom_service";
     "eliom_tools";
+    "eliom_tools_common";
     "eliom_types";
     "eliom_unwrap";
     "eliom_uri";
