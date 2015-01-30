@@ -2129,6 +2129,10 @@ module Eliom_appl_reg_make_param
   end
 
 module type ELIOM_APPL = sig
+  val set_client_fun :
+    ('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return) Eliom_service.service ->
+    ('a -> 'b -> [`Html] Eliom_content.Html5.elt Lwt.t) client_value ->
+    unit
   val application_script : ?async:bool -> unit -> [> `Script ] Eliom_content.Html5.elt
   val application_name : string
   val is_initial_request : unit -> bool
@@ -2166,6 +2170,8 @@ module App (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
   let is_initial_request = Eliom_appl_reg_param.is_initial_request
 
   let application_script = Eliom_appl_reg_param.application_script
+
+  let set_client_fun = Eliom_content.set_client_fun
 
 end
 

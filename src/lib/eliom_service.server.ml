@@ -363,3 +363,6 @@ module Syntax_helpers = struct
   let set_global b = is_global := b
 
 end
+
+(*****************************************************************************)
+let set_client_fun = set_client_fun_

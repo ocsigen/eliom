@@ -111,7 +111,7 @@ let _ =
     Obj.magic (fun f -> {_ -> _{ fun g (p, _) -> %f g p }})
  }}
 {server{
-   let to_core_ x = x
+   let set_client_fun = Eliom_service.set_client_fun_
  }}
 {client{
    let _ = Eliom_client.of_element_ := Html5.To_dom.of_element

@@ -497,4 +497,7 @@ module Html_text : sig
 end
 
 (**/**)
-val to_core_ : 'a Html5.elt -> 'a Eliom_content_core.Html5.elt
+  val set_client_fun :
+    ('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return) Eliom_service.service ->
+    ('a -> 'b -> [`Html] Html5.elt Lwt.t) Eliom_lib.client_value ->
+    unit

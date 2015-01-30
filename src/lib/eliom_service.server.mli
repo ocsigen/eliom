@@ -363,7 +363,6 @@ val unregister :
   ?secure:bool ->
   ('a, 'b, _, _, [> internal_service_kind], 'e, 'f, 'g, 'h, 'return) service -> unit
 
-
 (**/**)
 
 val get_get_or_post : ('a, 'b,[<service_method] as 'c,[< attached],'kind, 'd, 'e, 'f, 'g, 'h) service -> 'c
