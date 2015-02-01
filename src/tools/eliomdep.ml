@@ -183,7 +183,8 @@ let sort () =
   in
   create_process !compiler
     ( "-sort" :: "-pp" :: get_pp pkg ppopt :: eliom_synonyms @
-        List.(concat (map (fun file -> ["-impl"; file]) !sort_files)) )
+      List.(concat (map (fun file -> ["-impl"; file]) !sort_files)) )
+  |> wait ; 0
 
 let process_option () =
   let i = ref 2 in
