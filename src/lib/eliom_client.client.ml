@@ -1121,6 +1121,11 @@ let set_content_local ?uri ?offset ?fragment fake_page =
   let preloaded_css = Eliommod_dom.preload_css fake_page in
   (* Wait for CSS to be inlined before substituting global nodes: *)
   lwt () = preloaded_css in
+  (* Changing url: *)
+  (match uri, fragment with
+   | Some uri, None -> change_url_string uri
+   | Some uri, Some fragment -> change_url_string (uri ^ "#" ^ fragment)
+   | _ -> ());
   (* Really change page contents *)
   Dom.replaceChild Dom_html.document
     fake_page
@@ -1281,7 +1286,19 @@ let change_page
               We do not make the request *)
            lwt content = f get_params post_params in
            let content = !of_element_ content in
-           let uri, fragment = Url.split_fragment "POPO" in
+           let uri =
+             match
+               create_request_
+                 ?absolute ?absolute_path ?https ~service ?hostname ?port
+                 ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
+                 get_params post_params
+             with
+             | `Get uri
+             | `Post (uri, _)
+             | `Put (uri, _)
+             | `Delete (uri, _) -> uri
+           in
+           let uri, fragment = Url.split_fragment uri in
            set_content_local ~uri ?fragment content
          | None ->
            let cookies_info = Eliom_uri.make_cookies_info (https, service) in
