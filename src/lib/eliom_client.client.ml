@@ -44,6 +44,13 @@ let init_client_app ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
   Eliom_process.set_request_template None;
   Eliom_process.set_request_cookies Ocsigen_cookies.Cookies.empty
 
+let int64_to_string i = (Obj.magic i)##toString()
+(*VVV
+  Was:
+    Js.string (Int64.to_string i)
+  But unsafe version is much more efficient.
+  FIX! (may be: do not use int64)
+*)
 
 (* == Auxiliaries *)
 
@@ -75,7 +82,7 @@ module Client_closure : sig
   val find : closure_id:int64 -> (poly -> poly)
 end = struct
 
-  let key closure_id = Js.string (Int64.to_string closure_id)
+  let key closure_id = int64_to_string closure_id
 
   let client_closures = JsTable.create ()
 
@@ -99,11 +106,9 @@ end = struct
 
   let table = JsTable.create ()
 
-  let closure_key closure_id =
-    Js.string (Int64.to_string closure_id)
+  let closure_key closure_id = int64_to_string closure_id
 
-  let instance_key instance_id =
-    Js.string (Int64.to_string instance_id)
+  let instance_key instance_id = int64_to_string instance_id
 
   let find ~closure_id ~instance_id =
     Lwt_log.ign_debug_f ~section "Get client value %Ld/%Ld"
@@ -139,11 +144,17 @@ end = struct
           closure_id pos
     in
     let value = closure args in
+    (*VVV That part is very unefficient and causing very long delay
+      (several seconds) when loading pages.
+      This must be rewritten.
+    *)
     Eliom_unwrap.late_unwrap_value
       (Eliom_unwrap.id_of_int Eliom_lib_base.client_value_unwrap_id_int)
       (fun (cv, _) ->
-         Client_value_server_repr.closure_id cv = closure_id &&
-         Client_value_server_repr.instance_id cv = instance_id)
+         Int64.compare (Client_value_server_repr.closure_id cv) closure_id = 0
+         &&
+         Int64.compare (Client_value_server_repr.instance_id cv) instance_id = 0
+      )
       value;
     let instances =
       Js.Optdef.get
@@ -896,7 +907,9 @@ let relink_process_node (node:Dom_html.element Js.t) =
   in
   Js.Optdef.case (find_process_node id)
     (fun () ->
-       Lwt_log.ign_warning_f ~section "Relink process node: did not find %a" (fun () -> Js.to_string) id;
+       Lwt_log.ign_debug_f ~section
+         "Relink process node: did not find %a. Will add it."
+         (fun () -> Js.to_string) id;
        register_process_node id (node:>Dom.node Js.t))
     (fun pnode ->
        Lwt_log.ign_debug_f ~section "Relink process node: found %a"
@@ -918,7 +931,8 @@ let relink_request_node (node:Dom_html.element Js.t) =
   in
   Js.Optdef.case (find_request_node id)
     (fun () ->
-       Lwt_log.ign_warning_f ~section "Relink request node: did not find %a"
+       Lwt_log.ign_debug_f ~section
+         "Relink request node: did not find %a. Will add it."
          (fun () -> Js.to_string) id;
        register_request_node id (node:>Dom.node Js.t))
     (fun pnode ->
