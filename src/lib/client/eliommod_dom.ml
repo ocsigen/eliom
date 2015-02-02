@@ -416,15 +416,15 @@ let html_document (src : Dom.element Dom.document Js.t) registered_process_node
     begin
       try Dom_html.document##adoptNode((e:>Dom.element Js.t)) with
       | exn ->
-        Lwt_log.ign_info ~section ~exn "can't addopt node, import instead";
+        Lwt_log.ign_debug ~section ~exn "can't adopt node, import instead";
         try Dom_html.document##importNode((e:>Dom.element Js.t),Js._true) with
         | exn ->
-          Lwt_log.ign_info ~section ~exn "can't import node, copy instead";
+          Lwt_log.ign_debug ~section ~exn "can't import node, copy instead";
           copy_element content registered_process_node
     end
   | None ->
-    Lwt_log.ign_info ~section
-      "can't addopt node, document not parsed as html. copy instead";
+    Lwt_log.ign_debug ~section
+      "can't adopt node, document not parsed as html. copy instead";
     copy_element content registered_process_node
 
 (** CSS preloading. *)

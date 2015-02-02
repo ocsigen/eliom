@@ -275,6 +275,12 @@ module Syntax_helpers : sig
   val get_escaped_value : escaped_value -> 'a
 end
 
+(** Lwt_log section for this module.
+    Default level is [Lwt_log.Info].
+    Use [Lwt_log.Section.set_level Eliom_client.log_section Lwt_log.Debug]
+    to see debug messages.
+*)
+val log_section : Lwt_log.section
 
 (** Internal function. *)
 val of_element_ :

@@ -37,6 +37,8 @@ let set_obj_copy map o c = map##set(o,c)
 open Eliom_lib
 
 let section = Lwt_log.Section.make "eliom.unwrap"
+let log_section = section
+let _ = Lwt_log.Section.set_level section Lwt_log.Info
 
 class type obj_with_copy = object
   method camlObjCopy : Obj.t Js.optdef Js.prop
@@ -100,7 +102,7 @@ let register_unwrapper' id f =
   (* Do late unwrapping *)
   Js.Optdef.iter (Js.array_get occurrences_table id)
     (fun all_occurrences ->
-       Lwt_log.ign_info_f ~section
+       Lwt_log.ign_debug_f ~section
          "Late unwrapping for %i in %d instances"
          id (List.length all_occurrences);
       List.iter
@@ -129,7 +131,7 @@ let apply_unwrapper unwrapper v =
    at position [field].
 *)
 let register_late_occurrence parent field value unwrap_id =
-  Lwt_log.ign_info_f ~inspect:parent ~section
+  Lwt_log.ign_debug_f ~inspect:parent ~section
     "register_late_occurrence unwrapper:%d at for field [%d]"
     unwrap_id field;
   let parent = Obj.repr parent in
@@ -162,7 +164,7 @@ let late_unwrap_value unwrap_id predicate new_value =
   let current_occurrences, all_occurrences' =
     List.partition (fun { value } -> predicate (Obj.obj value)) all_occurrences
   in
-  Lwt_log.ign_info_f ~section
+  Lwt_log.ign_debug_f ~section
     "late_unwrap_value unwrapper:%d for %d cases"
     unwrap_id (List.length current_occurrences);
   List.iter

@@ -103,3 +103,6 @@ val late_unwrap_value : unwrap_id -> (_ -> bool) -> _ -> unit
 (** The list of unwrap_id for which values marked for late unwrapping
     remain. *)
 val remaining_values_for_late_unwrapping : unit -> int list
+
+(** Lwt_log section for this module. *)
+val log_section : Lwt_log.section
