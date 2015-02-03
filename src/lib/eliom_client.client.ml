@@ -1136,25 +1136,47 @@ let with_progress_cursor : 'a Lwt.t -> 'a Lwt.t =
 (* == Main (internal) function: change the content of the page without leaving
       the javascript application. *)
 
-let set_content_local ?uri ?offset ?fragment fake_page =
-  (* Inline CSS in the header to avoid the "flashing effect".
-     Otherwise, the browser start to display the page before
-     loading the CSS. *)
-  let preloaded_css = Eliommod_dom.preload_css fake_page in
-  (* Wait for CSS to be inlined before substituting global nodes: *)
-  lwt () = preloaded_css in
-  (* Changing url: *)
-  (match uri, fragment with
-   | Some uri, None -> change_url_string uri
-   | Some uri, Some fragment -> change_url_string (uri ^ "#" ^ fragment)
-   | _ -> ());
-  (* Really change page contents *)
-  Dom.replaceChild Dom_html.document
-    fake_page
-    Dom_html.document##documentElement;
-  scroll_to_fragment ?offset fragment;
-  Lwt.return ()
+(* Function to be called for client side services: *)
+let set_content_local ?uri ?offset ?fragment new_page =
+  try_lwt
+    set_loading_phase ();
+    if !Eliom_config.debug_timings
+    then Firebug.console##time(Js.string "set_content_local");
+    run_callbacks (flush_onunload ());
+    (* Changing url: *)
+    (match uri, fragment with
+     | Some uri, None -> change_url_string uri
+     | Some uri, Some fragment -> change_url_string (uri ^ "#" ^ fragment)
+     | _ -> ());
+    (* Inline CSS in the header to avoid the "flashing effect".
+       Otherwise, the browser start to display the page before
+       loading the CSS. *)
+    let preloaded_css = Eliommod_dom.preload_css new_page in
+    (* Wait for CSS to be inlined before substituting global nodes: *)
+    lwt () = preloaded_css in
+    (* Really change page contents *)
+    if !Eliom_config.debug_timings
+    then Firebug.console##time(Js.string "replace_page");
+    Dom.replaceChild Dom_html.document
+      new_page
+      Dom_html.document##documentElement;
+    if !Eliom_config.debug_timings
+    then Firebug.console##timeEnd(Js.string "replace_page");
+    run_callbacks
+      (Eliommod_dom.add_formdata_hack_onclick_handler ::
+       flush_onload () @
+       [broadcast_load_end]);
+    scroll_to_fragment ?offset fragment;
+    if !Eliom_config.debug_timings then
+      Firebug.console##timeEnd(Js.string "set_content_local");
+    Lwt.return ()
+  with exn ->
+    Lwt_log.ign_debug ~section ~exn "set_content_local";
+    if !Eliom_config.debug_timings
+    then Firebug.console##timeEnd(Js.string "set_content_local");
+    raise_lwt exn
 
+(* Function to be called for server side services: *)
 let set_content ?uri ?offset ?fragment content =
   Lwt_log.ign_debug ~section "Set content";
   match content with
@@ -1261,7 +1283,7 @@ let set_template_content ?uri ?fragment = function
 
 
 (* Fixing a dependency problem: *)
-let of_element_ = ref (fun _ -> failwith "of_element_")
+let of_element_ = ref (fun _ -> assert false)
 
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
