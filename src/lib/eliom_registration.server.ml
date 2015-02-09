@@ -1898,15 +1898,28 @@ module Eliom_appl_reg_make_param
 
   let make_eliom_appl_data_script ~sp =
 
+    let encode_slashs = List.map (Url.encode ~plus:false) in
+    let base_url =
+      Eliom_uri.make_proto_prefix
+        (Eliom_config.default_protocol_is_https () ||
+           Eliom_request_info.get_csp_ssl_sp sp)
+      ^
+      (String.concat "/"
+         (encode_slashs (Eliom_request_info.get_csp_original_full_path ()))
+      )
+    in
+
     let script =
       Printf.sprintf
         "var __eliom_appl_sitedata = \'%s\';\n\
          var __eliom_appl_process_info = \'%s\'\n\
+         var __eliom_base_url = \'%s\'\n\
          var __eliom_request_data;\n\
          var __eliom_request_cookies;\n\
          var __eliom_request_template;\n"
         (Eliom_lib.jsmarshal (Eliommod_cli.client_sitedata sp))
         (Eliom_lib.jsmarshal (sp.Eliom_common.sp_client_process_info))
+        base_url
     in
 
     Lwt.return
@@ -2006,28 +2019,19 @@ module Eliom_appl_reg_make_param
 
     lwt appl_data_script = make_eliom_appl_data_script ~sp in
 
-    let encode_slashs = List.map (Url.encode ~plus:false) in
-
-    let base_url =
-      Eliom_uri.make_proto_prefix
-        (Eliom_config.default_protocol_is_https () ||
-           Eliom_request_info.get_csp_ssl_sp sp)
-      ^
-      (String.concat "/"
-         (encode_slashs (Eliom_request_info.get_csp_original_full_path ()))
-      )
-    in
-
     (* First we build a fake page to build the ref_tree... *)
     let (html_attribs, (head_attribs, title, head_elts), body) =
       split_page (Eliom_content.Html5.D.toelt page) in
     let head_elts =
-         appl_data_script
-      :: Eliom_content.Html5.F.base ~a:[a_id Eliom_common_base.base_elt_id; Eliom_content.Html5.D.a_href (Eliom_content.Xml.uri_of_string base_url)] ()
-      :: ( if List.exists is_eliom_appl_script head_elts
-           then head_elts
-	   else ( head_elts
-		  @ [application_script ()] ) )
+      appl_data_script
+      (* <base> elt is now added on client side :-) *)
+      (* :: Eliom_content.Html5.F.base *)
+      (*   ~a:[a_id Eliom_common_base.base_elt_id; *)
+      (*       Eliom_content.Html5.D.a_href *)
+      (*         (Eliom_content.Xml.uri_of_string base_url)] () *)
+      :: (if List.exists is_eliom_appl_script head_elts
+          then head_elts
+	  else (head_elts @ [application_script ()]))
     in
     let fake_page =
       Eliom_content.Html5.F.html ~a:html_attribs

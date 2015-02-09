@@ -71,6 +71,21 @@ let appl_name =
              (Eliommod_cookies.get_table (Some Url.Current.host))))
      in v)
 
+let get_base_url_from_header () =
+  Js.Optdef.case
+    (Js.def (Js.Unsafe.get Js.Unsafe.global (Js.string "__eliom_base_url")))
+    (fun () -> raise Not_found)
+    Js.to_string
+
+let set_base_url, get_base_url =
+  let r : string option ref = ref None in
+  (fun s -> r := Some s),
+  (fun () -> match !r with
+     | Some s -> s
+     | None -> failwith
+                 "base_url not set. \
+                  Did you forget to call Eliom_client.init_client_app?")
+
 (** None on server side *)
 let get_application_name () = Some (!!appl_name)
 

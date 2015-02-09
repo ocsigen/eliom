@@ -31,7 +31,19 @@ let _ = Lwt_log.Section.set_level log_section Lwt_log.Info
 
 module JsTable = Eliommod_jstable
 
+let insert_base page =
+  let b = Dom_html.createBase Dom_html.document in
+  b##href <- Js.string (Eliom_process.get_base_url ());
+  b##id <- Js.string Eliom_common_base.base_elt_id;
+  Js.Opt.case
+    page##querySelector(Js.string "head")
+    (fun () -> Lwt_log.ign_debug_f "No <head> found in document")
+    (fun head -> Dom.appendChild head b)
+
+
 let init_client_app ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
+  Lwt_log.ign_debug_f "Eliom_client.init_client_app called.";
+  let encode_slashs = List.map (Url.encode ~plus:false) in
   Eliom_request_info.client_app_initialised := true;
   Eliom_process.set_sitedata
     {Eliom_types.site_dir = full_path;
@@ -42,7 +54,12 @@ let init_client_app ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
                           cpi_original_full_path = full_path
                          };
   Eliom_process.set_request_template None;
-  Eliom_process.set_request_cookies Ocsigen_cookies.Cookies.empty
+  Eliom_process.set_request_cookies Ocsigen_cookies.Cookies.empty;
+  Eliom_process.set_base_url
+    (Eliom_uri.make_proto_prefix ssl
+     ^ (String.concat "/" (encode_slashs full_path)));
+  insert_base Dom_html.document
+
 
 let int64_to_string i = (Obj.magic i)##toString()
 (*VVV
@@ -68,8 +85,7 @@ let create_buffer () =
 
 (* == Callbacks for onload and onunload *)
 
-let run_callbacks handlers =
-  List.iter (fun f -> f ()) handlers
+let run_callbacks handlers = List.iter (fun f -> f ()) handlers
 
 let onload, flush_onload = create_buffer ()
 
@@ -1157,6 +1173,7 @@ let set_content_local ?uri ?offset ?fragment new_page =
     (* Really change page contents *)
     if !Eliom_config.debug_timings
     then Firebug.console##time(Js.string "replace_page");
+    insert_base new_page;
     Dom.replaceChild Dom_html.document
       new_page
       Dom_html.document##documentElement;
@@ -1195,6 +1212,7 @@ let set_content ?uri ?offset ?fragment content =
       let fake_page =
         Eliommod_dom.html_document content registered_process_node
       in
+      insert_base fake_page;
       (* Inline CSS in the header to avoid the "flashing effect".
          Otherwise, the browser start to display the page before
          loading the CSS. *)
@@ -1852,8 +1870,24 @@ let _ =
   ()
 
 
+(* Function called (in Eliom_client_main), once when starting the app.
+   Either when sent by a server or initiated on client side. *)
 let init () =
   let js_data = Eliom_request_info.get_request_data () in
+
+  (* <base> *)
+  (* The first time we load the page, we record the initial URL in a client
+     side ref, in order to set <base> (on client-side) in header for each
+     pages. *)
+  (try
+     Eliom_process.set_base_url (Eliom_process.get_base_url_from_header ());
+     insert_base Dom_html.document
+   with Not_found ->
+     Lwt_log.ign_info_f ~section
+       "No base_url info found in header. \
+        Waiting for a call to Eliom_client.init_client_app.");
+  (* </base> *)
+
   let onload ev =
     Lwt_log.ign_debug ~section "onload (client main)";
     set_initial_load ();
