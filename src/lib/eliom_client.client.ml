@@ -505,11 +505,11 @@ let register_event_handler, flush_load_script =
   let add, flush = create_buffer () in
   let register node (name, ev) =
     let name,f = reify_caml_event name node ev in
-    if name = "onload" then
-      add f
-    else
-      Js.Unsafe.set node (Js.bytestring name)
-        (Dom_html.handler (fun ev -> Js.bool (f ev))) in
+    if name = "onload"
+    then add f
+    else Js.Unsafe.set node (Js.bytestring name)
+        (Dom_html.handler (fun ev -> Js.bool (f ev)))
+  in
   let flush () =
     let fs = flush () in
     let ev = Eliommod_dom.createEvent (Js.string "load") in

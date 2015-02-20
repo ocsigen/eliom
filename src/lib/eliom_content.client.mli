@@ -132,8 +132,8 @@ module Svg : sig
         the list of [e1] children. *)
     val appendChildren: ?before:'a elt -> 'b elt ->  'c elt list -> unit
 
-    (** [appendChildFirst p c] appends [c] as first child of [p] *)
-    val appendChildFirst: 'b elt ->  'c elt -> unit
+    (** [insertFirstChild p c] inserts [c] as first child of [p] *)
+    val insertFirstChild: 'b elt ->  'c elt -> unit
 
     (** [nth e n] returns the nth child of [e] (first is 0) *)
     val nth : 'a elt -> int -> 'b elt option
@@ -171,11 +171,11 @@ module Svg : sig
         if [elt] is not the first. *)
     val previousSibling: 'a elt -> 'b elt option
 
-    (** [appendBefore ~before elt] insert [elt] before [before]. *)
-    val appendBefore: before:'a elt -> 'b elt -> unit
+    (** [insertBefore ~before elt] insert [elt] before [before]. *)
+    val insertBefore: before:'a elt -> 'b elt -> unit
 
-    (** [appendAfter ~after elt] insert [elt] after [after]. *)
-    val appendAfter: after:'a elt -> 'b elt -> unit
+    (** [insertAfter ~after elt] insert [elt] after [after]. *)
+    val insertAfter: after:'a elt -> 'b elt -> unit
 
     (** [replaceSelf elt1 elt2] replaces [elt1] by [elt2]. *)
     val replaceSelf: 'a elt -> 'b elt -> unit
@@ -497,8 +497,8 @@ module Html5 : sig
         the list of [e1] children. *)
     val appendChildren: ?before:'a elt -> 'b elt ->  'c elt list -> unit
 
-    (** [appendChildFirst p c] appends [c] as first child of [p] *)
-    val appendChildFirst: 'b elt ->  'c elt -> unit
+    (** [insertFirstChild p c] inserts [c] as first child of [p] *)
+    val insertFirstChild: 'b elt ->  'c elt -> unit
 
     (** [nth e n] returns the nth child of [e] (first is 0) *)
     val nth : 'a elt -> int -> 'b elt option
@@ -536,11 +536,11 @@ module Html5 : sig
         if [elt] is not the first. *)
     val previousSibling: 'a elt -> 'b elt option
 
-    (** [appendBefore ~before elt] insert [elt] before [before]. *)
-    val appendBefore: before:'a elt -> 'b elt -> unit
+    (** [insertBefore ~before elt] insert [elt] before [before]. *)
+    val insertBefore: before:'a elt -> 'b elt -> unit
 
-    (** [appendAfter ~after elt] insert [elt] after [after]. *)
-    val appendAfter: after:'a elt -> 'b elt -> unit
+    (** [insertAfter ~after elt] insert [elt] after [after]. *)
+    val insertAfter: after:'a elt -> 'b elt -> unit
 
     (** [replaceSelf elt1 elt2] replaces [elt1] by [elt2]. *)
     val replaceSelf: 'a elt -> 'b elt -> unit

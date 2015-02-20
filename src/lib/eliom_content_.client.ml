@@ -137,7 +137,7 @@ module MakeManip
       ) in
       Js.Opt.iter res (fun p -> removeChild p elt)
 
-    let appendChildFirst p c =
+    let insertFirstChild p c =
       let before = nth p 0 in
       appendChild ?before p c
 
@@ -204,12 +204,12 @@ module MakeManip
       in
       Js.Opt.to_option res
 
-    let appendBefore ~before elt =
+    let insertBefore ~before elt =
       Eliom_lib.Option.iter
         (fun parent -> appendChild ~before parent elt)
         (parentNode before)
 
-    let appendAfter ~after elt =
+    let insertAfter ~after elt =
       Eliom_lib.Option.iter
         (fun parent ->
            let before = nextSibling after in
