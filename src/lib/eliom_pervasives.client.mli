@@ -30,7 +30,7 @@ type 'a client_value = 'a Eliom_lib.client_value
     The handling of exception on the server corresponds to that of
     <<a_api subproject="client"|val Eliom_client.call_ocaml_service>>.
 *)
-type ('a, 'b) server_function = 'a -> 'b Lwt.t
+type ('a, +'b) server_function = 'a -> 'b Lwt.t
 
 (**/**)
 

@@ -23,7 +23,7 @@ type 'a client_value = 'a Eliom_lib.client_value
     function ['a -> 'b Lwt.t] and provides a given function on the client side.
     See also {% <<a_api subproject="client" text="the concrete client side representation"|
               type Eliom_pervasives.server_function>> %}. *)
-type ('a, 'b) server_function
+type ('a, +'b) server_function
 
 (** [server_function argument_type f] creates a value of type {%
     <<a_api | type Eliom_pervasives.server_function>> %}. This allows
