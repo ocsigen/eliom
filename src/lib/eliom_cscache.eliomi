@@ -64,4 +64,7 @@ val do_cache : ('a, 'b) t -> 'a -> 'b -> unit
   *)
   val find_if_ready : ('a, 'b) t -> 'a -> 'b
 
+  (** Load (or reload) in cache the piece of data from server  *)
+  val load : ('a, 'b) t -> ('a -> 'b Lwt.t) -> 'a -> 'b Lwt.t
+
 }}

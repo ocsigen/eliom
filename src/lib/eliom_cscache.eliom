@@ -29,8 +29,8 @@ let create () =
 
 {shared{
   let do_cache_raw cache id data =
-    if not (Hashtbl.mem ((Shared.local cache) ()) id)
-    then Hashtbl.add ((Shared.local cache) ()) id data
+    Hashtbl.remove ((Shared.local cache) ()) id;
+    Hashtbl.add ((Shared.local cache) ()) id data
 
   let do_cache cache id data = do_cache_raw cache id (Lwt.return data)
 }}
@@ -57,16 +57,19 @@ let create () =
 
 {client{
 
-  let find cache get_data id =
+  let load cache get_data id =
+    let th = get_data id in
+    (* On client side,
+       we put immediately in table the thread that is fetching the data.
+       Thus, [get_data_from_cache] returns immediately
+       (in order to display a spinner). *)
+    do_cache_raw cache id th;
+    th
+
+let find cache get_data id =
     try Hashtbl.find ((Shared.local cache) ()) id
-    with Not_found ->
-      let th = get_data id in
-      (* On client side,
-         we put immediately in table the thread that is fetching the data.
-         Thus, [get_data_from_cache] returns immediately
-         (in order to display a spinner). *)
-      do_cache_raw cache id th;
-      th
+    with Not_found -> load cache get_data id
+
 }}
 
 {client{
