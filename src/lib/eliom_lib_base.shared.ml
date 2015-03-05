@@ -269,6 +269,7 @@ type client_value_datum = {
   instance_id : int64;
   loc: pos option;
   args : poly;
+  value : poly;
 }
 
 type 'injection_value injection_datum = {

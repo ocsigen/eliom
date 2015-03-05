@@ -103,7 +103,6 @@ end = struct
   let client_closures = JsTable.create ()
 
   let register ~closure_id ~closure =
-    Lwt_log.ign_debug_f ~section "Register client closure %Ld" closure_id;
     JsTable.add client_closures (key closure_id)
       (fun args ->
          to_poly (closure (from_poly args)))
@@ -127,8 +126,6 @@ end = struct
   let instance_key instance_id = int64_to_string instance_id
 
   let find ~closure_id ~instance_id =
-    Lwt_log.ign_debug_f ~section "Get client value %Ld/%Ld"
-      closure_id instance_id;
     let value =
       let instances =
         Js.Optdef.get
@@ -145,9 +142,7 @@ end = struct
     in
     from_poly value
 
-  let initialize {closure_id; loc; instance_id; args} =
-    Lwt_log.ign_debug_f ~section
-      "Initialize client value %Ld/%Ld" closure_id instance_id;
+  let initialize {closure_id; loc; instance_id; args; value = old_value} =
     let closure =
       try
         Client_closure.find ~closure_id
@@ -160,18 +155,7 @@ end = struct
           closure_id pos
     in
     let value = closure args in
-    (*VVV That part is very unefficient and causing very long delay
-      (several seconds) when loading pages.
-      This must be rewritten.
-    *)
-    Eliom_unwrap.late_unwrap_value
-      (Eliom_unwrap.id_of_int Eliom_lib_base.client_value_unwrap_id_int)
-      (fun (cv, _) ->
-         Int64.compare (Client_value_server_repr.closure_id cv) closure_id = 0
-         &&
-         Int64.compare (Client_value_server_repr.instance_id cv) instance_id = 0
-      )
-      value;
+    Eliom_unwrap.late_unwrap_value old_value value;
     let instances =
       Js.Optdef.get
         (JsTable.find table (closure_key closure_id))
@@ -181,7 +165,6 @@ end = struct
            instances)
     in
     JsTable.add instances (instance_key instance_id) value
-
 end
 
 module Injection : sig
@@ -1907,13 +1890,9 @@ let init () =
            relink_page_but_client_values root
          in
          do_request_data js_data.Eliom_common.ejs_request_data;
-         ((* A similar check is necessary in Injection.initialize *)
-           match Eliom_unwrap.remaining_values_for_late_unwrapping () with
-           | [] -> ()
-           | unwrap_ids ->
-             Lwt_log.raise_error_f ~section
-               "Values marked for unwrapping remain (for unwrapping id %s)."
-               (String.concat ", " (List.map string_of_int unwrap_ids)));
+         (* XXX One should check that all values have been unwrapped.
+            In fact, client values should be special and all other values
+            should be eagerly unwrapped. *)
          let () =
            relink_attribs root
              js_data.Eliom_common.ejs_client_attrib_table attrib_nodeList in

@@ -80,10 +80,11 @@ let wrap_and_marshall_poly : poly -> string =
 
 type +'a client_value = 'a Client_value_server_repr.t * Eliom_wrap.unwrapper
 
-let create_client_value cv =
-  cv, Eliom_wrap.create_unwrapper
-        (Eliom_wrap.id_of_int
-           Eliom_lib_base.client_value_unwrap_id_int)
+let client_value_unwrapper =
+  Eliom_wrap.create_unwrapper
+    (Eliom_wrap.id_of_int Eliom_lib_base.client_value_unwrap_id_int)
+
+let create_client_value cv = (cv, client_value_unwrapper)
 
 type +'a shared_value =
   {

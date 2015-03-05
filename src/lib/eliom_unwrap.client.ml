@@ -76,48 +76,12 @@ type occurrence = {
   parent : Obj.t;
   field : int
 }
-type occurrences = {
-  value : Obj.t;
-  mutable occurrences : occurrence list
-}
-type all_occurrences = occurrences list
-let occurrences_table : all_occurrences Js.js_array Js.t = jsnew Js.array_empty ()
-
-let remaining_values_for_late_unwrapping () =
-  let rec aux sofar n =
-    if n = occurrences_table##length then
-      List.rev sofar
-    else
-      if Js.Optdef.test (Js.array_get occurrences_table n) then
-        aux (n :: sofar) (succ n)
-      else aux sofar (succ n)
-  in aux [] 0
-
 let register_unwrapper' id f =
   if Js.Optdef.test (Js.array_get unwrap_table id) then
     failwith (Printf.sprintf ">> the unwrapper id %i is already registered" id);
   let f x = Ocsigen_lib_base.Option.map Obj.repr (f (Obj.obj x)) in
   (* Store unwrapper *)
-  Js.array_set unwrap_table id f;
-  (* Do late unwrapping *)
-  Js.Optdef.iter (Js.array_get occurrences_table id)
-    (fun all_occurrences ->
-       Lwt_log.ign_debug_f ~section
-         "Late unwrapping for %i in %d instances"
-         id (List.length all_occurrences);
-      List.iter
-        (fun { value; occurrences } ->
-          match f value with
-            | Some value' ->
-              List.iter
-                (fun { parent; field } ->
-                  Js.Unsafe.set parent field value')
-                occurrences
-            | None ->
-              Lwt_log.raise_error ~section ~inspect:value "User defined unwrapping function must yield some value, not None"
-         )
-        all_occurrences;
-      Js.Unsafe.delete occurrences_table id)
+  Js.array_set unwrap_table id f
 
 let register_unwrapper id f =
   register_unwrapper' id (fun x -> Some (f x))
@@ -127,61 +91,15 @@ let apply_unwrapper unwrapper v =
     (fun () -> None) (* Use late unwrapping! *)
     (fun f -> f v)
 
-(* Register the occurrence of a [value] inside another value [parent]
-   at position [field].
-*)
-let register_late_occurrence parent field value unwrap_id =
-  Lwt_log.ign_debug_f ~inspect:parent ~section
-    "register_late_occurrence unwrapper:%d at for field [%d]"
-    unwrap_id field;
-  let parent = Obj.repr parent in
-  let value = Obj.repr value in
-  let all_occurrences =
-    Js.Optdef.get
-      (Js.array_get occurrences_table unwrap_id)
-      (fun () -> [])
-  in
-  let all_occurrences' =
-    let occurrence = { parent; field } in
-    try
-      let occurrences =
-        List.find (fun occurrences -> occurrences.value == value)
-          all_occurrences
-      in
-      occurrences.occurrences <- occurrence :: occurrences.occurrences;
-      all_occurrences
-    with Not_found ->
-      { value; occurrences = [ occurrence ] } :: all_occurrences
-  in
-  Js.array_set occurrences_table unwrap_id all_occurrences'
-
-let late_unwrap_value unwrap_id predicate new_value =
-  let all_occurrences =
-    Js.Optdef.get
-      (Js.array_get occurrences_table unwrap_id)
-      (fun () -> [])
-  in
-  let current_occurrences, all_occurrences' =
-    List.partition (fun { value } -> predicate (Obj.obj value)) all_occurrences
-  in
-  Lwt_log.ign_debug_f ~section
-    "late_unwrap_value unwrapper:%d for %d cases"
-    unwrap_id (List.length current_occurrences);
+let late_unwrap_value old_value new_value =
+  let old_value = Obj.repr old_value in
   List.iter
-    (fun { occurrences } ->
-      List.iter
-        (fun { parent; field } ->
-          Js.Unsafe.set parent field new_value)
-        occurrences)
-    current_occurrences;
-  if all_occurrences' = [] then
-    Js.Unsafe.delete occurrences_table unwrap_id
-  else
-    Js.array_set occurrences_table unwrap_id all_occurrences'
+    (fun { parent; field } ->
+      Js.Unsafe.set parent field new_value)
+    (Obj.obj (Obj.field (Obj.field old_value (Obj.size old_value - 1)) 2))
 
 let raw_unmarshal_and_unwrap
   : (unwrapper -> _ -> _ option) ->
-    (Obj.t -> int -> Obj.t -> int -> unit) ->
     string -> int -> _
         = Js.Unsafe.variable "caml_unwrap_value_from_string"
 
@@ -189,10 +107,7 @@ let unwrap s i =
   if !Eliom_config.debug_timings then
     Firebug.console##time
       (Js.string "unwrap");
-  let res =
-    raw_unmarshal_and_unwrap
-      apply_unwrapper register_late_occurrence s i
-  in
+  let res = raw_unmarshal_and_unwrap apply_unwrapper s i in
   if !Eliom_config.debug_timings then
     Firebug.console##timeEnd
       (Js.string "unwrap");

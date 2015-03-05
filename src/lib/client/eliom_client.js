@@ -40,8 +40,8 @@ var caml_unwrap_value_from_string = function (){
   function caml_float_of_bytes (a) {
     return caml_int64_float_of_bits (caml_int64_of_bytes (a));
   }
-  var late_unwrap_mark = "late_unwrap_mark";
-  return function (apply_unwrapper, register_late_occurrence, s, ofs) {
+  var late_unwrap_mark = {};
+  return function (apply_unwrapper, s, ofs) {
     var reader = new StringReader (s, ofs);
     var magic = reader.read32u ();
     var block_len = reader.read32u ();
@@ -52,7 +52,18 @@ var caml_unwrap_value_from_string = function (){
     var intern_obj_table = new Array(num_objects+1);
     var obj_counter = 1;
     intern_obj_table[0] = [];
-    function intern_rec () {
+    function register_sharing (anc, d, v) {
+      // If the value v is marked for late unwrapping, register an
+      // occurrence of it in anc.
+      if (v[0] === 0 && v.length >= 2 &&
+          v[v.length-1] instanceof Array &&
+          v[v.length-1].length == 4 &&
+          v[v.length-1][2] === late_unwrap_mark) {
+        v[v.length-1][3] = [0, [0, anc, d], v[v.length-1][3]];
+      }
+      return v;
+    }
+    function intern_rec (v0, d) {
       var cst = caml_marshal_constants;
       var code = reader.read8u ();
       if (code >= cst.PREFIX_SMALL_INT) {
@@ -85,13 +96,13 @@ var caml_unwrap_value_from_string = function (){
             break;
           case cst.CODE_SHARED8:
             var ofs = reader.read8u ();
-            return intern_obj_table[obj_counter - ofs];
+            return register_sharing(v0, d, intern_obj_table[obj_counter - ofs]);
           case cst.CODE_SHARED16:
             var ofs = reader.read16u ();
-            return intern_obj_table[obj_counter - ofs];
+            return register_sharing(v0, d, intern_obj_table[obj_counter - ofs]);
           case cst.CODE_SHARED32:
             var ofs = reader.read32u ();
-            return intern_obj_table[obj_counter - ofs];
+            return register_sharing(v0, d, intern_obj_table[obj_counter - ofs]);
           case cst.CODE_BLOCK32:
             var header = reader.read32u ();
             var tag = header & 0xFF;
@@ -203,29 +214,27 @@ var caml_unwrap_value_from_string = function (){
       if (size + 1 == d) {
         var ancestor = intern_obj_table[stack[stack.length-2]];
         // See Eliom_wrap.ml.
-        if (v[0] === 0 && size >= 2 && v[size][2] === intern_obj_table[2]) {
+        if (v[0] === 0 && size >= 2 &&
+            v[size] instanceof Array && v[size].length == 3 &&
+            v[size][2] === intern_obj_table[2] /*unwrap_mark*/) {
           var unwrapped_v = apply_unwrapper(v[size], v);
           if (unwrapped_v === 0) {
             // No unwrapper is registered, so replace the unwrap
             // marker v[size] by a late_unwrap marker
             //   (unwrapper_id, "late_unwrap_mark")
-            v[size] = [0, v[size][1], late_unwrap_mark];
-            // And register an occurrence in ancestor
-            register_late_occurrence(ancestor, ancestor.length-1, v, v[size][1]);
+            // and register an occurrence in ancestor
+            v[size] =
+              [0, v[size][1], late_unwrap_mark,
+               [0, [0, ancestor, ancestor.length - 1], 0]];
           } else {
             v = unwrapped_v[1];
           }
           intern_obj_table[ofs] = v;
 	  ancestor[ancestor.length-1] = v;
         }
-        continue;
-      }
-      stack.push(ofs, size);
-      v[d] = intern_rec ();
-      // If the value v[d] is marked for late unwrapping, register an
-      // occurrence of it in v.
-      if (v[d][0] === 0 && v[d].length >= 2 && v[d][v[d].length-1][2] === late_unwrap_mark) {
-        register_late_occurrence(v, d, v[d],   v[d][v[d].length-1][1]);
+      } else {
+        stack.push(ofs, size);
+        v[d] = intern_rec (v, d);
       }
     }
     s.offset = reader.i;
