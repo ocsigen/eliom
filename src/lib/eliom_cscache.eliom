@@ -48,11 +48,12 @@ let create () =
   let find cache get_data id =
     try Hashtbl.find ((Shared.local cache) ()) id
     with Not_found ->
-      lwt v = get_data id in
-   (* On server side, we wait for the data to be ready
-      before putting it in cache. *)
-      do_cache cache id v;
-      Lwt.return v
+      let th = get_data id in
+    (* On server side,
+       we put immediately in table the thread that is fetching the data.
+       in order to avoid fetching it several times. *)
+      do_cache_raw cache id th;
+      th
 }}
 
 {client{
