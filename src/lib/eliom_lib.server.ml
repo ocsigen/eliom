@@ -37,9 +37,11 @@ end
 
 type file_info = Ocsigen_extensions.file_info
 
+let b = Buffer.create (16 * 1024)
+
 let string_escape s =
   let l = String.length s in
-  let b = Buffer.create (4 * l) in
+  Buffer.clear b;
   let conv = "0123456789abcdef" in
   for i = 0 to l - 1 do
     let c = s.[i] in
