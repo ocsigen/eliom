@@ -164,11 +164,14 @@ end
 
 {client{
 module React = struct
+  type 'a event = 'a React.event
+  type 'a signal = 'a React.signal
+  type step = React.step
   module S = struct
     include React.S
-    let create x =
-      let s,u = create x in
-      s,(fun x -> u x)
+    let create ?eq x =
+      let s, u = create ?eq x in
+      s, (fun ?step x -> u ?step x)
     module Lwt = struct
       let map_s = Lwt_react.S.map_s
       let map_s_init ~init ?eq f s =
@@ -185,11 +188,22 @@ end
 
 module FakeReact = React
 module FakeReactiveData = ReactiveData
-module SharedReact = React
+module SharedReact = struct
+  module S = struct
+    include React.S
+    let create ?eq ?default v = match default with
+      | Some (Some s) -> s
+      | _ -> React.S.create ?eq v
+  end
+  include React.E
+end
 module SharedReactiveData = struct
   module RList = struct
     include ReactiveData.RList
     let make_from_s = ReactiveData.RList.make_from_s
+    let make ?default v = match default with
+      | Some (Some s) -> s
+      | _ -> ReactiveData.RList.make v
   end
 end
 }}
@@ -197,7 +211,7 @@ end
 module FakeReact = struct
   module S : sig
     type 'a t
-    val create : 'a -> 'a t * ('a -> unit)
+    val create : 'a -> 'a t * (?step:React.step -> 'a -> unit)
     val value : 'a t -> 'a
     val const : 'a -> 'a t
     val map : ?eq:('b -> 'b -> bool) -> ('a -> 'b) -> 'a t -> 'b t
@@ -214,7 +228,7 @@ module FakeReact = struct
   end = struct
     type 'a t = 'a
     let create x =
-      (x, fun _ ->
+      (x, fun ?step _ ->
           failwith "Fact react values cannot be changed on server side")
     let value x = x
     let const x = x
@@ -271,7 +285,8 @@ module SharedReact = struct
       let sv = FakeReact.S.create x in
       let cv = match default with
         | None -> {{ FakeReact.S.create %x }}
-        | Some default -> {'a FakeReact.S.t * ('a -> unit){
+        | Some default ->
+          {'a FakeReact.S.t * (?step:React.step -> 'a -> unit){
           match %default with
           | None ->  FakeReact.S.create %x
           | Some v -> v
@@ -280,7 +295,9 @@ module SharedReact = struct
       let si =
         Eliom_lib.create_shared_value (fst sv) {'a FakeReact.S.t{ fst %cv }} in
       let up =
-        Eliom_lib.create_shared_value (snd sv) {'a -> unit{ snd %cv }} in
+        Eliom_lib.create_shared_value (snd sv)
+          {?step:React.step -> 'a -> unit{ snd %cv }}
+      in
       (si, up)
 
     let map ?eq (f : ('a -> 'b) shared_value) (s : 'a t) : 'b t =
