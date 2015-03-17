@@ -46,7 +46,7 @@ val do_cache : ('a, 'b) t -> 'a -> 'b -> unit
 
 }}
 
-{client{
+{shared{
 
   (** Find a piece of data in local cache,
       without trying to fetch it from server. Raises [Not_found] instead.
@@ -63,6 +63,9 @@ val do_cache : ('a, 'b) t -> 'a -> 'b -> unit
       If the value is currently beeing retrieved, it raises [Not_ready].
   *)
   val find_if_ready : ('a, 'b) t -> 'a -> 'b
+}}
+
+{client{
 
   (** Load (or reload) in cache the piece of data from server  *)
   val load : ('a, 'b) t -> ('a -> 'b Lwt.t) -> 'a -> 'b Lwt.t

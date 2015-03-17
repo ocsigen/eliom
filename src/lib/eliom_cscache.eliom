@@ -77,7 +77,7 @@ let find cache get_data id =
 
 }}
 
-{client{
+{shared{
   exception Not_ready
 
   let local_find cache id = Hashtbl.find ((Shared.local cache) ()) id
