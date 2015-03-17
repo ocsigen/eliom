@@ -192,7 +192,7 @@ module SharedReact = struct
   module S = struct
     include React.S
     let create ?eq ?default v = match default with
-      | Some (Some s) -> s
+      | Some (Some ((_, set) as s)) -> set ?step:None v; s
       | _ -> React.S.create ?eq v
   end
   include React.E
@@ -202,7 +202,7 @@ module SharedReactiveData = struct
     include ReactiveData.RList
     let make_from_s = ReactiveData.RList.make_from_s
     let make ?default v = match default with
-      | Some (Some s) -> s
+      | Some (Some ((_, handle) as s)) -> ReactiveData.RList.set handle v; s
       | _ -> ReactiveData.RList.make v
   end
 end
@@ -289,7 +289,16 @@ module SharedReact = struct
           {'a FakeReact.S.t * (?step:React.step -> 'a -> unit){
           match %default with
           | None ->  FakeReact.S.create %x
-          | Some v -> v
+          | Some ((_, set) as s) ->
+            (* The reactive data is already on client side.
+               But the value sent by server is more recent.
+               I update the signal. *)
+            set ?step:None %x;
+            (*VVV Make possible to disable this?
+              Warning: removing this or changing the default
+              will break some existing code relying on this!
+              Do not change the default without wide announcement. *)
+            s
         }}
       in
       let si =
@@ -405,7 +414,8 @@ module SharedReactiveData = struct
                            * 'a FakeReactiveData.RList.handle{
                              match %default with
                              | None -> FakeReactiveData.RList.make %x
-                             | Some v -> v
+                             | Some ((_, handle) as s) ->
+                               ReactiveData.RList.set handle %x; s
                            }}
       in
       (Eliom_lib.create_shared_value (fst sv)
