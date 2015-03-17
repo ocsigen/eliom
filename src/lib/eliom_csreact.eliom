@@ -274,6 +274,9 @@ end
 }}
 {server{
 module SharedReact = struct
+  type 'a event = 'a React.event
+  type 'a signal = 'a React.signal
+  type step = React.step
   module S = struct
     type 'a t = 'a FakeReact.S.t shared_value
     let value (x : 'a t) : 'a shared_value =
@@ -488,6 +491,7 @@ end
 
 
       module R = struct
+
         let node (signal : 'a Eliom_content.Html5.elt SharedReact.S.t) =
           Eliom_content.Html5.C.node
 (*VVV
@@ -497,6 +501,21 @@ end
           ~init:(FakeReact.S.value (Shared.local signal))
           {{ Eliom_content.Html5.R.node %signal }}
 
+
+        let a_class s =
+          (*VVV How to implement this properly? *)
+          Eliom_content.Html5.C.attr
+            (* ~init:(Eliom_content.Html5.F.a_class (FakeReact.S.value (Shared.local s))) *)
+            {{Eliom_content.Html5.R.a_class (Shared.local %s)}}
+
+        let a_style s =
+          (*VVV How to implement this properly? *)
+          Eliom_content.Html5.C.attr
+            ~init:(Eliom_content.Html5.F.a_style
+                     (FakeReact.S.value (Shared.local s)))
+            {{Eliom_content.Html5.R.a_style (Shared.local %s)}}
+
+
         let pcdata (s : string SharedReact.S.t) = Eliom_content.Html5.C.node
 (*VVV
  * This will blink at startup! FIX!
@@ -505,6 +524,7 @@ end
           ~init:(Eliom_content.Html5.D.(
               span [pcdata (FakeReact.S.value (Shared.local s))]))
           {{ Eliom_content.Html5.R.pcdata %s }}
+
 
         let div ?a l = Eliom_content.Html5.C.node
 (*VVV
@@ -540,6 +560,9 @@ end
           ~init:(Eliom_content.Html5.D.p
                    (FakeReactiveData.RList.value (Shared.local l)))
           {{ Eliom_content.Html5.R.p (Shared.local %l) }}
+
+
+        (*VVV The case of textarea, input, etc. is tricky *)
 
 end
 
