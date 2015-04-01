@@ -181,10 +181,12 @@ let sort () =
           ["eliom.syntax.server"], server_pp_opt `Impl
       | `Client -> ["eliom.syntax.client"], client_pp_opt `Impl
   in
-  create_process !compiler
-    ( "-sort" :: "-pp" :: get_pp pkg ppopt :: eliom_synonyms @
-      List.(concat (map (fun file -> ["-impl"; file]) !sort_files)) )
-  |> wait ; 0
+  wait
+    (create_process !compiler
+       ( "-sort" :: "-pp" :: get_pp pkg ppopt :: eliom_synonyms @
+         List.(concat (map (fun file -> ["-impl"; file]) !sort_files)) )
+    ) ;
+  0
 
 let process_option () =
   let i = ref 2 in
