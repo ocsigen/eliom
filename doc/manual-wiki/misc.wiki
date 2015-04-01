@@ -12,15 +12,16 @@
 
 
 <<code language="ocaml"|img ~alt:"Ocsigen"
-    ~src:(Eliom_registration.Html5.make_uri ~service:senddoc ["ocsigen1024.jpg"])
+    ~src:(Eliom_content.Html5.F.make_uri ~service:(Eliom_service.static_dir ()) ["images"; "ocsigen1024.jpg"])
     ()
 >>
 
 
+
 The function <<a_api | value Eliom_content.Html5.D.make_uri>>
         creates the relative URL string from current URL
-        (see above) to the URL of the image in the static directory
-        configured in the configuration file.
+        (see above) to the URL of the image (here in the static directory
+        configured in the configuration file).
 
 
 
@@ -201,5 +202,3 @@ let _ =
 ==Open ID==
 
 ==Atom==
-
-
