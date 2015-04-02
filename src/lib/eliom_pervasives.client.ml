@@ -3,7 +3,7 @@ type 'a client_value = 'a Eliom_lib.client_value
 
 (* exception False = Eliom_lib.False *)
 
-type ('a, 'b) server_function = 'a -> 'b Lwt.t
+type ('a, +'b) server_function = 'a -> 'b Lwt.t
 
 let () =
   Eliom_unwrap.register_unwrapper
