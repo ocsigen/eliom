@@ -535,6 +535,15 @@ end
                    (FakeReactiveData.RList.value (Shared.local l)))
           {{ Eliom_content.Html5.R.div ?a:%a (Shared.local %l) }}
 
+        let span ?a l = Eliom_content.Html5.C.node
+(*VVV
+ * This will blink at startup! FIX!
+ * This makes impossible to use %d for such elements! FIX!
+*)
+          ~init:(Eliom_content.Html5.D.span ?a
+                   (FakeReactiveData.RList.value (Shared.local l)))
+          {{ Eliom_content.Html5.R.span ?a:%a (Shared.local %l) }}
+
         let ul ?a l = Eliom_content.Html5.C.node
 (*VVV
  * This will blink at startup! FIX!
