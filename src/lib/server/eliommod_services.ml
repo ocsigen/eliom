@@ -434,7 +434,8 @@ let find_service
     in function
       | [] ->
           (* It is a directory, without / at the end. We do a redirection. *)
-          Lwt.fail (Ocsigen_extensions.Ocsigen_Is_a_directory ri)
+          Lwt.fail (Ocsigen_extensions.Ocsigen_Is_a_directory
+                      (new_url_of_directory_request ri))
       | [""] -> aux None []
       | [a] when a = Eliom_common.eliom_nosuffix_page ->
           (* version without suffix of suffix service *)
