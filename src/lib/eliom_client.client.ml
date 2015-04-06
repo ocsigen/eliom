@@ -430,10 +430,16 @@ let middleClick ev =
 let raw_a_handler node cookies_info tmpl ev =
   let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in
   let https = Url.get_ssl (Js.to_string href) in
+  (* Returns true when the default link behaviour is to be kept: *)
   (middleClick ev)
   || (https = Some true && not Eliom_request_info.ssl_)
   || (https = Some false && Eliom_request_info.ssl_)
-  || (!change_page_uri_ ?cookies_info ?tmpl (Js.to_string href); false)
+  || (
+    (* If a link is clicked, we do not want to continue propagation
+       (for example if the link is in a wider clickable area)  *)
+    Dom_html.stopPropagation ev;
+    !change_page_uri_ ?cookies_info ?tmpl (Js.to_string href);
+    false)
 
 let raw_form_handler form kind cookies_info tmpl ev =
   let action = Js.to_string form##action in
@@ -882,6 +888,9 @@ let a_handler =
        let node = Js.Opt.get (Dom_html.CoerceTo.a node)
            (fun () -> Lwt_log.raise_error_f ~section "not an anchor element")
        in
+       (* We prevent default behaviour
+          only if raw_a_handler has taken the change page itself *)
+       (*VVV Better: use preventdefault rather than returning false *)
        Js.bool (raw_a_handler node (get_element_cookies_info node)
                   (get_element_template node) ev))
 
