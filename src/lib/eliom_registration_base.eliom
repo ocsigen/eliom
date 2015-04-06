@@ -979,6 +979,7 @@ module Html5_forms(*  : sig *)
           Eliom_content_core.Html5.F.a_onclick
             {{ fun ev ->
                Dom.preventDefault ev;
+               Dom_html.stopPropagation ev;
                Lwt.async (fun () ->
                  Eliom_client.change_page
                    ?absolute:%absolute
