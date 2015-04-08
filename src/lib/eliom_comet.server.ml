@@ -461,13 +461,13 @@ end = struct
     handler.hd_registered_chan_id <- List.filter ((<>) chan_id) handler.hd_registered_chan_id;
     signal_update handler
 
-  let wait_closed_connection () =
-    let ri = Eliom_request_info.get_ri () in
-    lwt () = Ocsigen_extensions.Ocsigen_request_info.connection_closed ri in
-    raise_lwt Connection_closed
-
   (* register the service handler.hd_service *)
   let run_handler handler =
+    let wait_closed_connection =
+      let ri = Eliom_request_info.get_ri () in
+      lwt () = Ocsigen_extensions.Ocsigen_request_info.connection_closed ri in
+      raise_lwt Connection_closed
+    in
     let f () req =
       match req with
       | Eliom_comet_base.Stateless _ ->
@@ -485,8 +485,8 @@ end = struct
 	    (fun () -> Lwt_unix.with_timeout timeout
 	      (fun () ->
                 lwt () = Lwt.choose
-                  [ wait_closed_connection ();
-		    wait_data handler ] in
+                    [wait_closed_connection;
+		     wait_data handler ] in
 		let messages = read_streams 100 handler.hd_active_streams in
 		let message = encode_downgoing messages in
 		handler.hd_last <- (message,number);
