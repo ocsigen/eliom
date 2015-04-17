@@ -90,17 +90,17 @@ module RawXML = struct
     | Caml _ -> "/* Invalid Caml value */"
   let internal_event_handler_of_service info = Caml (CE_call_service info)
 
-  let ce_registered_closure_class = "caml_closure"
+  let ce_registered_closure_class = "caml_c" (*"caml_closure"*)
   let ce_registered_attr_class = "caml_attr"
   let ce_call_service_class = "caml_link"
-  let process_node_class = "caml_process_node"
-  let request_node_class = "caml_request_node"
+  let process_node_class = "caml_p" (*"caml_process_node"*)
+  let request_node_class = "caml_r" (*"caml_request_node"*)
 
   let ce_call_service_attrib = "data-eliom-cookies-info"
   let ce_template_attrib = "data-eliom-template"
-  let node_id_attrib = "data-eliom-node-id"
+  let node_id_attrib = "data-eliom-id" (*"data-eliom-node-id"*)
 
-  let closure_attr_prefix = "caml_closure_id"
+  let closure_attr_prefix = "" (*"caml_closure_id"*)
   let closure_name_prefix = "data-eliom-"
 
   let client_attr_prefix = "eliom_attrib"

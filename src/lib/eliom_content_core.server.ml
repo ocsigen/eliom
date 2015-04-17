@@ -118,6 +118,10 @@ module Xml = struct
   type mouse_event_handler = (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value
   type keyboard_event_handler = (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value
 
+  let make_cryptographic_safe_string () =
+    (* FIX: we should directly produce a string of the right length *)
+    String.sub (make_cryptographic_safe_string ()) 0 12
+
   let caml_event_handler cf =
     let crypto = make_cryptographic_safe_string () in
     CE_registered_closure (crypto, Eliom_lib.client_value_server_repr cf)
@@ -169,8 +173,9 @@ module Xml = struct
     encodedpcdata s'
 
   let make_node_name ~global () =
-    (if global then "global_" else "")
-    ^ "server_" ^ make_cryptographic_safe_string ()
+    (* FIX: put a prefix as a debugging option? *)
+    (* (if global then "global_" else "")
+       ^ "server_" ^ *) make_cryptographic_safe_string ()
 
   let make_process_node ?(id = make_node_name ~global:true ()) elt' =
     { elt' with elt = { elt'.elt with node_id = ProcessId id } }
