@@ -177,6 +177,10 @@ module React = struct
       let map_s_init ~init ?eq f s =
         let th = map_s ?eq f s in
         to_signal ~init th
+      let l2_s = Lwt_react.S.l2_s
+      let l2_s_init ~init ?eq f s1 s2 =
+        let th = l2_s ?eq f s1 s2 in
+        to_signal ~init th
       let merge_s = Lwt_react.S.merge_s
       let merge_s_init ~init ?eq f a l =
         let th = merge_s ?eq f a l in
@@ -375,6 +379,22 @@ module SharedReact = struct
                 ?eq:%eq
                 (Shared.local %f) (Shared.local %s) }})
 
+        let l2_s ?eq (f : ('a -> 'b -> 'c Lwt.t) shared_value)
+            (s1 : 'a t) (s2 : 'b t) : 'c t Lwt.t
+          =
+        lwt server_result =
+          (Shared.local f)
+            (FakeReact.S.value (Shared.local s1))
+            (FakeReact.S.value (Shared.local s2))
+        in
+        Lwt.return
+          (Eliom_lib.create_shared_value
+             (fst (FakeReact.S.create server_result))
+             {'c FakeReact.S.t{ SharedReact.S.Lwt.l2_s_init
+                ~init:%server_result
+                ?eq:%eq
+                (Shared.local %f) (Shared.local %s1) (Shared.local %s2) }})
+
       let merge_s ?eq (f : ('a -> 'b -> 'a Lwt.t) shared_value)
           (acc : 'a) (l : 'b t list) : 'a t Lwt.t
           =
@@ -500,7 +520,6 @@ end
 *)
           ~init:(FakeReact.S.value (Shared.local signal))
           {{ Eliom_content.Html5.R.node %signal }}
-
 
         let a_class s =
           (*VVV How to implement this properly? *)
