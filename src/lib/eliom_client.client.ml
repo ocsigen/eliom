@@ -167,6 +167,16 @@ end = struct
     JsTable.add instances (instance_key instance_id) value
 end
 
+let middleClick ev =
+  match Dom_html.taggedEvent ev with
+  | Dom_html.MouseEvent ev ->
+    Dom_html.buttonPressed ev = Dom_html.Middle_button
+    || Js.to_bool ev##ctrlKey
+    || Js.to_bool ev##shiftKey
+    || Js.to_bool ev##altKey
+    || Js.to_bool ev##metaKey
+  | _ -> false
+
 module Injection : sig
   val get : ?ident:string -> ?pos:Eliom_lib.pos -> name:string -> _
   val initialize : injection_datum -> unit
@@ -416,16 +426,6 @@ let change_page_get_form_ =
   ref (fun ?cookies_info ?tmpl form href -> assert false)
 let change_page_post_form_ =
   ref (fun ?cookies_info ?tmpl form href -> assert false)
-
-let middleClick ev =
-  match Dom_html.taggedEvent ev with
-  | Dom_html.MouseEvent ev ->
-    Dom_html.buttonPressed ev = Dom_html.Middle_button
-    || Js.to_bool ev##ctrlKey
-    || Js.to_bool ev##shiftKey
-    || Js.to_bool ev##altKey
-    || Js.to_bool ev##metaKey
-  | _ -> false
 
 let raw_a_handler node cookies_info tmpl ev =
   let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in

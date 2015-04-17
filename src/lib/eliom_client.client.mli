@@ -285,3 +285,6 @@ val log_section : Lwt_log.section
 (** Internal function. *)
 val of_element_ :
   ([`Html] Eliom_content_core.Html5.elt -> Dom_html.element Js.t) ref
+
+(** Is it a middle-click event? *)
+val middleClick : Dom_html.mouseEvent Js.t -> bool

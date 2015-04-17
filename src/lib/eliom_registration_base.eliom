@@ -946,11 +946,11 @@ module Html5_forms(*  : sig *)
       | Some xhr -> xhr
       | None -> Eliom_config.get_default_links_xhr ()
 
-    (* let a_onclick_service info = *)
-    (*   Html5.D.to_attrib ( *)
-    (*     Xml.internal_event_handler_attrib *)
-    (*       "onclick" *)
-    (*       (Xml.internal_event_handler_of_service info)) *)
+    let a_onclick_service info =
+      Html5.D.to_attrib (
+        Xml.internal_event_handler_attrib
+          "onclick"
+          (Xml.internal_event_handler_of_service info))
 
     let a_onsubmit_service info =
       Html5.D.to_attrib (
@@ -974,10 +974,15 @@ module Html5_forms(*  : sig *)
            before enabling client server syntax in this file.
         *)
         match xhr, Eliom_service.get_client_fun_ service with
-        | true, _
+(*
+        | true, None ->
+            let info = make_info ~https `A service in
+            a_onclick_service info :: a
+*)
         | _, Some _ ->
           Eliom_content_core.Html5.F.a_onclick
             {{ fun ev ->
+                 if not (Eliom_client.middleClick ev) then begin
                Dom.preventDefault ev;
                Dom_html.stopPropagation ev;
                Lwt.async (fun () ->
@@ -993,6 +998,7 @@ module Html5_forms(*  : sig *)
                    ?nl_params:%nl_params
                    %getparams
                      ())
+               end
              }}::
           a
         | _ -> a
