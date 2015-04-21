@@ -173,9 +173,10 @@ module Xml = struct
     encodedpcdata s'
 
   let make_node_name ~global () =
+    (* !!! The "global_" prefix is checked in eliom_client.client.ml !!! *)
+    (if global then "global_" else "")
     (* FIX: put a prefix as a debugging option? *)
-    (* (if global then "global_" else "")
-       ^ "server_" ^ *) make_cryptographic_safe_string ()
+       ^ (* "server_" ^ *) make_cryptographic_safe_string ()
 
   let make_process_node ?(id = make_node_name ~global:true ()) elt' =
     { elt' with elt = { elt'.elt with node_id = ProcessId id } }
