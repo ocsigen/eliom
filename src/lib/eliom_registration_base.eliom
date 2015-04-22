@@ -979,6 +979,7 @@ module Html5_forms(*  : sig *)
             let info = make_info ~https `A service in
             a_onclick_service info :: a
 *)
+        | true, _
         | _, Some _ ->
           Eliom_content_core.Html5.F.a_onclick
             {{ fun ev ->
