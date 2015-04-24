@@ -56,6 +56,12 @@ val is_active : unit -> [ `Active | `Idle | `Inactive ]
     connection to start receiving server messages *)
 val activate : unit -> unit
 
+(** Makes possible to customize the function called when comet fails,
+    for example when the server side process changed.
+    The usual practice is to warn the user and ask to reload the page. *)
+val set_close_process_function : (?exn:exn -> unit -> unit Lwt.t) -> unit
+
+
 (** Change the reactivity of channels. Multiples configurations ( of
     type [t] ) can be created. The resulting behaviour is the minimal
     ( in the meaning of maximal reactivity ) between all

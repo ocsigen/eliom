@@ -26,6 +26,7 @@ module Ecb = Eliom_comet_base
 
 let section = Lwt_log.Section.make "eliom:comet"
 
+
 module Configuration =
 struct
   type configuration_data =
@@ -163,6 +164,18 @@ exception Process_closed
 exception Channel_closed
 exception Channel_full
 exception Comet_error of string
+
+let close_process, set_close_process_function =
+  let r = ref (fun ?exn () ->
+    let s = "Process closed. \
+             Customize this with Eliom_comet.set_close_process_function. "
+    in
+    match exn with
+    | Some exn -> Lwt_log.raise_error ~section ~exn s
+    | None -> Lwt_log.debug ~section s)
+  in
+  ((fun ?exn () -> !r ?exn ()), (fun f -> r := f))
+
 
 type chan_id = string
 
@@ -457,7 +470,9 @@ struct
                 (Lwt_js.sleep 0.05 >>= (fun () -> aux (retries + 1)))
             | Restart -> Lwt_log.ign_info ~section "restart";
               aux 0
-            | exn -> Lwt_log.raise_error ~section ~exn "Error"
+            | exn ->
+              lwt () = close_process ~exn () in
+              Lwt.fail exn
         end
     in
     update_activity hd;
