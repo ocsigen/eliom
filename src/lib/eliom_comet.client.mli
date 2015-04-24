@@ -145,3 +145,7 @@ val restart : unit -> unit
 val close : 'a Eliom_comet_base.wrapped_channel -> unit
 
 val force_link : unit
+
+(** Call manually the function that is usually call when an exception
+    is received during communication. *)
+val close_process : ?exn:exn -> unit -> unit Lwt.t
