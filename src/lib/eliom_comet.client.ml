@@ -166,6 +166,7 @@ exception Channel_full
 exception Comet_error of string
 
 let close_process, set_close_process_function =
+  let closed = ref false in
   let r = ref (fun ?exn () ->
     let s = "Process closed. \
              Customize this with Eliom_comet.set_close_process_function. "
@@ -174,7 +175,14 @@ let close_process, set_close_process_function =
     | Some exn -> Lwt_log.raise_error ~section ~exn s
     | None -> Lwt_log.debug ~section s)
   in
-  ((fun ?exn () -> !r ?exn ()), (fun f -> r := f))
+  ((fun ?exn () ->
+     if not !closed
+     then begin
+       closed := true;
+       !r ?exn ()
+     end
+     else Lwt.return ()),
+   (fun f -> r := f))
 
 
 type chan_id = string

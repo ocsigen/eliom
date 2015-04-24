@@ -37,7 +37,8 @@ struct
     let stream = Lwt_stream.map_exn channel in
     Lwt.async (fun () -> Lwt_stream.iter_s
                   (function
-                    | Lwt_stream.Error exn -> Eliom_comet.close_process ~exn ()
+                    | Lwt_stream.Error exn -> Eliom_comet.close_process ~exn ();
+                      Lwt.fail exn
                     | Lwt_stream.Value _ -> Lwt.return ())
                   stream);
     E.of_stream channel
