@@ -160,7 +160,6 @@ end
 
 
 exception Restart
-exception Process_closed
 exception Channel_closed
 exception Channel_full
 exception Comet_error of string
@@ -371,6 +370,11 @@ struct
       | Ecb.After i -> i
       | Ecb.Last _ -> 0
 
+  let close_all_channels hd =
+    let s = hd.hd_activity.active_channels in
+    String.Set.iter (fun chan_id -> stop_waiting hd chan_id) s;
+    String.Set.fold (fun chan_id l -> (chan_id, None, Ecb.Closed) :: l) s []
+
   let update_stateless_state hd (message:stateless_message) =
     match hd.hd_state with
       | Stateless_state r ->
@@ -457,7 +461,8 @@ struct
 	      | Ecb.Timeout ->
 		update_activity ~timeout:true hd;
 		aux 0
-	      | Ecb.Process_closed -> Lwt.fail Process_closed
+              | Ecb.State_closed ->
+                Lwt.return (close_all_channels hd)
 	      | Ecb.Comet_error e -> Lwt.fail (Comet_error e)
 	      | Ecb.Stateless_messages l ->
                 let l = Array.to_list l in
@@ -479,6 +484,7 @@ struct
             | Restart -> Lwt_log.ign_info ~section "restart";
               aux 0
             | exn ->
+               Lwt_log.ign_notice ~exn ~section "connection failure";
               lwt () = close_process ~exn () in
               Lwt.fail exn
         end

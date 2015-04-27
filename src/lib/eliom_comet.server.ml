@@ -38,8 +38,8 @@ let encode_global_downgoing s =
 
 let timeout_msg =
  Eliom_comet_base.Json_answer.to_string Eliom_comet_base.Timeout
-let process_closed_msg =
-  Eliom_comet_base.Json_answer.to_string Eliom_comet_base.Process_closed
+let state_closed_msg =
+  Eliom_comet_base.Json_answer.to_string Eliom_comet_base.State_closed
 let error_msg s =
   Eliom_comet_base.Json_answer.to_string (Eliom_comet_base.Comet_error s)
 
@@ -62,7 +62,7 @@ let fallback_service =
   Eliom_common.lazy_site_value_from_fun
     (fun () -> Comet.register_service ~path:comet_path
       ~get_params:Eliom_parameter.unit
-      (fun () () -> Lwt.return process_closed_msg))
+      (fun () () -> Lwt.return state_closed_msg))
 
 let fallback_global_service =
   Eliom_common.lazy_site_value_from_fun
