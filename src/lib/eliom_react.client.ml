@@ -25,10 +25,25 @@ let (>>=) = Lwt.(>>=)
 
 open Lwt_react
 
+let section = Lwt_log.Section.make "eliom:comet"
+
+
 module Down =
 struct
 
   type 'a t = 'a React.E.t
+
+  let handle_react_exn, set_handle_react_exn_function =
+  let r = ref (fun ?exn () ->
+    let s = "Exception during comet with react. \
+             Customize this with Eliom_react.set_handle_react_exn_function. "
+    in
+    match exn with
+    | Some exn -> Eliom_lib.Lwt_log.raise_error ~section ~exn s
+    | None -> Lwt_log.debug ~section s)
+  in
+  ((fun ?exn () -> !r ?exn ()),
+   (fun f -> r := f))
 
   let internal_unwrap ( channel, unwrapper ) =
     (* We want to catch more exceptions here than the usual exceptions caught
@@ -38,7 +53,7 @@ struct
     Lwt.async (fun () -> Lwt_stream.iter_s
                   (function
                     | Lwt_stream.Error exn ->
-                      Eliom_comet.handle_exn ~exn ();
+                      handle_react_exn ~exn ();
                       Lwt.fail exn
                     | Lwt_stream.Value _ -> Lwt.return ())
                   stream);

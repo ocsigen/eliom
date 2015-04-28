@@ -167,7 +167,7 @@ exception Comet_error of string
 let handle_exn, set_handle_exn_function =
   let closed = ref false in
   let r = ref (fun ?exn () ->
-    let s = "Process closed. \
+    let s = "Unknown exception during comet. \
              Customize this with Eliom_comet.set_handle_exn_function. "
     in
     match exn with
@@ -325,7 +325,7 @@ struct
     Lwt.wakeup_exn wakener Restart;
     activate hd
 
-  let max_retries = 5
+  let max_retries = 3
 
   let call_service_after_load_end service p1 p2 =
     lwt () = Eliom_client.wait_load_end () in
@@ -473,6 +473,7 @@ struct
 		update_stateful_state hd l;
 		Lwt.return (add_no_index l)
           with
+            | Eliom_request.Failed_request 504
             | Eliom_request.Failed_request 0 ->
               if retries > max_retries
               then
@@ -480,7 +481,8 @@ struct
                  set_activity hd `Inactive;
                  aux 0)
               else
-                (Lwt_js.sleep 0.5 >>= (fun () -> aux (retries + 1)))
+                (Lwt_js.sleep (2. ** float (retries - 1)) >>= fun () ->
+                 aux (retries + 1))
             | Restart -> Lwt_log.ign_info ~section "restart";
               aux 0
             | exn ->

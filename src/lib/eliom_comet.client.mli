@@ -52,10 +52,12 @@ val is_active : unit -> [ `Active | `Idle | `Inactive ]
     connection to start receiving server messages *)
 val activate : unit -> unit
 
-(** Makes possible to customize the function called when comet fails,
-    for example when the server side process changed or when user session
-    has been closed.
-    The usual practice is to warn the user and ask to reload the page. *)
+(** Makes possible to customize the function called when comet fails
+    for unknown reason.
+    The usual practice is to warn the user and ask to reload the page.
+    This function is not called when a channel is full or closed.
+    It is called only once, for the first exception.
+*)
 val set_handle_exn_function : (?exn:exn -> unit -> unit Lwt.t) -> unit
 
 
