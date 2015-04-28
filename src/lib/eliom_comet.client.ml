@@ -164,11 +164,11 @@ exception Channel_closed
 exception Channel_full
 exception Comet_error of string
 
-let close_process, set_close_process_function =
+let handle_exn, set_handle_exn_function =
   let closed = ref false in
   let r = ref (fun ?exn () ->
     let s = "Process closed. \
-             Customize this with Eliom_comet.set_close_process_function. "
+             Customize this with Eliom_comet.set_handle_exn_function. "
     in
     match exn with
     | Some exn -> Lwt_log.raise_error ~section ~exn s
@@ -484,8 +484,8 @@ struct
             | Restart -> Lwt_log.ign_info ~section "restart";
               aux 0
             | exn ->
-               Lwt_log.ign_notice ~exn ~section "connection failure";
-              lwt () = close_process ~exn () in
+              Lwt_log.ign_notice ~exn ~section "connection failure";
+              lwt () = handle_exn ~exn () in
               Lwt.fail exn
         end
     in

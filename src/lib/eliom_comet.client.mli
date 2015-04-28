@@ -53,9 +53,10 @@ val is_active : unit -> [ `Active | `Idle | `Inactive ]
 val activate : unit -> unit
 
 (** Makes possible to customize the function called when comet fails,
-    for example when the server side process changed.
+    for example when the server side process changed or when user session
+    has been closed.
     The usual practice is to warn the user and ask to reload the page. *)
-val set_close_process_function : (?exn:exn -> unit -> unit Lwt.t) -> unit
+val set_handle_exn_function : (?exn:exn -> unit -> unit Lwt.t) -> unit
 
 
 (** Change the reactivity of channels. Multiples configurations ( of
@@ -142,6 +143,7 @@ val close : 'a Eliom_comet_base.wrapped_channel -> unit
 
 val force_link : unit
 
-(** Call manually the function that is usually call when an exception
+(** This function calls manually the function
+    that is usually called automatically when an exception
     is received during communication. *)
-val close_process : ?exn:exn -> unit -> unit Lwt.t
+val handle_exn : ?exn:exn -> unit -> unit Lwt.t
