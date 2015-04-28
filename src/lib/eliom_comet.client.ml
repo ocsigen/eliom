@@ -480,7 +480,7 @@ struct
                  set_activity hd `Inactive;
                  aux 0)
               else
-                (Lwt_js.sleep 0.05 >>= (fun () -> aux (retries + 1)))
+                (Lwt_js.sleep 0.5 >>= (fun () -> aux (retries + 1)))
             | Restart -> Lwt_log.ign_info ~section "restart";
               aux 0
             | exn ->
