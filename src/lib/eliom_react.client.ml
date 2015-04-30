@@ -25,7 +25,7 @@ let (>>=) = Lwt.(>>=)
 
 open Lwt_react
 
-let section = Lwt_log.Section.make "eliom:comet"
+let section = Lwt_log_js.Section.make "eliom:comet"
 
 
 module Down =
@@ -38,9 +38,7 @@ struct
     let s = "Exception during comet with react. \
              Customize this with Eliom_react.set_handle_react_exn_function. "
     in
-    match exn with
-    | Some exn -> Eliom_lib.Lwt_log.raise_error ~section ~exn s
-    | None -> Lwt_log.debug ~section s)
+    Lwt_log_js.log ~section ~level:Lwt_log_js.Debug ?exn s)
   in
   ((fun ?exn () -> !r ?exn ()),
    (fun f -> r := f))

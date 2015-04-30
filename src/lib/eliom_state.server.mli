@@ -800,7 +800,8 @@ module Ext : sig
     (([< `Session | `Client_process ], 'k) state -> unit) ->
     unit
 
-  (** Fold all sessions in a groups, or all client processes in a session.
+  (** Fold all sessions in a groups, or all client processes in a session
+      (volatile and persistant).
       See {!fold_volatile_sub_states} for explanation about the [?sitedata]
       parameter.
   *)
@@ -811,7 +812,8 @@ module Ext : sig
     ('a -> ([< `Session | `Client_process ], 'k) state -> 'a Lwt.t) ->
     'a -> 'a Lwt.t
 
-  (** Iter on all sessions in a groups, or all client processes in a session.
+  (** Iter on all sessions in a groups, or all client processes in a session
+      (volatile and persistant).
       See {!fold_volatile_sub_states} for explanation about the [?sitedata]
       parameter.
   *)
