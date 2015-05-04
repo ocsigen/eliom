@@ -36,8 +36,8 @@ let iter_service_cookies f =
   Eliom_common.SessionCookies.fold
     (fun k v thr ->
       thr >>= fun () ->
-        f (k, v) >>=
-        Lwt_unix.yield
+      f (k, v) >>=
+      Lwt_unix.yield
     )
     sitedata.Eliom_common.session_services
     (return ())
@@ -49,8 +49,8 @@ let iter_data_cookies f =
   Eliom_common.SessionCookies.fold
     (fun k v thr ->
       thr >>= fun () ->
-        f (k, v) >>=
-        Lwt_unix.yield
+      f (k, v) >>=
+      Lwt_unix.yield
     )
     sitedata.Eliom_common.session_data
     (return ())
@@ -86,8 +86,8 @@ let fold_data_cookies f beg =
     (fun k v thr ->
       thr >>= fun res1 ->
         f (k, v) res1 >>= fun res ->
-          Lwt_unix.yield () >>= fun () ->
-            return res
+        Lwt_unix.yield () >>= fun () ->
+        return res
     )
     sitedata.Eliom_common.session_data
     (return beg)
@@ -97,8 +97,8 @@ let fold_persistent_cookies f beg =
   Ocsipersist.fold_table
     (fun k v beg ->
       f (k, v) beg >>= fun res ->
-        Lwt_unix.yield () >>= fun () ->
-          return res
+      Lwt_unix.yield () >>= fun () ->
+      return res
     )
     (Lazy.force Eliommod_persess.persistent_cookies_table)
     beg
@@ -122,5 +122,3 @@ let number_of_table_elements () =
 
 let number_of_persistent_cookies () =
   Ocsipersist.length (Lazy.force Eliommod_persess.persistent_cookies_table)
-
-
