@@ -101,7 +101,8 @@ module RawXML = struct
   let node_id_attrib = "data-eliom-id" (*"data-eliom-node-id"*)
 
   let closure_attr_prefix = "" (*"caml_closure_id"*)
-  let closure_name_prefix = "data-eliom-"
+  let closure_name_prefix = "data-eliom-c-"
+      (*!!! This prefix has to be different from any other prefix *)
 
   let client_attr_prefix = "eliom_attrib"
   let client_name_prefix = "data-eliom-"
