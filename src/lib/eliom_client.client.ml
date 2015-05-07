@@ -1018,7 +1018,7 @@ let relink_closure_node root onload table (node:Dom_html.element Js.t) =
            then onload := closure :: !onload)
         else Js.Unsafe.set node name (Dom_html.handler (fun ev -> Js.bool (closure ev)))
       with Not_found ->
-        Lwt_log.raise_error_f ~section "relink_closure_node: client value %s not found" cid
+        Lwt_log.ign_error_f ~section "relink_closure_node: client value %s not found" cid
   in
   Eliommod_dom.iter_attrList (node##attributes) aux
 
