@@ -14,7 +14,7 @@ depends: [
   "js_of_ocaml" {>= "2.5"}
   "tyxml" {>= "3.3.0"}
   "calendar"
-  "ocsigenserver" {>= "2.5"}
+  "ocsigenserver" {>= "dev"}
   "ipaddr" {>= "2.1"}
   "reactiveData"
 ]
