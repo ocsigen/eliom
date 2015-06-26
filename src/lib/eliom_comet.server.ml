@@ -765,7 +765,9 @@ end = struct
 	 (Lwt_stream.map marshal stream))
 
   let create_stateful ?scope ?name ?(size=1000) stream =
-    let stream = limit_stream ~size stream in
+    let stream =
+      Lwt.with_value Eliom_common.sp_key None
+        (fun () -> limit_stream ~size stream) in
     { channel = create_stateful_channel ?scope ?name stream;
       channel_mark = channel_mark () }
 
