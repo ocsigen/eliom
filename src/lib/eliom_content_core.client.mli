@@ -197,6 +197,11 @@ module Svg : sig
   (** Typed interface for building valid reactive SVG tree. *)
   module R : sig
 
+    (** the function [node s] create an SVG [elt] from a signal [s].
+        The resulting SVG [elt] can then be used like any other SVG
+        [elt] *)
+    val node : 'a elt React.signal -> 'a elt
+
     module Raw : Svg_sigs.MakeWrapped(Tyxml_js.Xml_wrap)(Xml).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
