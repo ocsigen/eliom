@@ -115,9 +115,6 @@ let rec find_or_create_service_cookie_ ?set_session_group
               ~sp
               ()
             in
-            Eliommod_sessiongroups.Data.set_max
-              v.Eliom_common.sc_session_group_node
-              (fst sitedata.Eliom_common.max_service_tab_sessions_per_group);
             Some v.Eliom_common.sc_value
 	  end
 	|  _ -> set_session_group
@@ -126,37 +123,38 @@ let rec find_or_create_service_cookie_ ?set_session_group
 
     let rec aux () =
       let c = Eliommod_cookies.make_new_session_id () in
-      try
-        ignore (Eliom_common.SessionCookies.find table c);
-        (* Just to be sure it is not already used.
-           Actually not needed for the cookies we use *)
-        aux ()
-      with Not_found ->
-        let str = ref (Eliom_common.new_service_session_tables sitedata) in
-        let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
-        let serverexp = ref None (*Some 0.*) (* None = never. We'll change it later. *) in
-        let fullsessgrpref = ref fullsessgrp in
-        let node = Eliommod_sessiongroups.Serv.add sitedata c fullsessgrp in
-        Eliom_common.SessionCookies.replace
-        (* actually it will add the cookie *)
-          table
-          c
-          (full_st_name,
-           !str,
-           serverexp (* exp on server *),
-           usertimeout,
-           fullsessgrpref,
-           node);
-        {Eliom_common.sc_value= c;
-         Eliom_common.sc_table= str;
-         Eliom_common.sc_timeout= usertimeout;
-         Eliom_common.sc_exp= serverexp;
-         Eliom_common.sc_cookie_exp=
-            ref (Eliom_common.default_client_cookie_exp ());
-         Eliom_common.sc_session_group= fullsessgrpref;
-         Eliom_common.sc_session_group_node= node;
-        }
-    in aux ()
+      (* Just to be sure it is not already used.
+         Actually not needed for the cookies we use *)
+      if Eliom_common.SessionCookies.mem table c
+      then aux ()
+      else c
+    in
+    let c = aux () in
+    let str = ref (Eliom_common.new_service_session_tables sitedata) in
+    let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
+    let serverexp = ref None (*Some 0.*) (* None = never. We'll change it later. *) in
+    let fullsessgrpref = ref fullsessgrp in
+    let node = Eliommod_sessiongroups.Serv.add sitedata c fullsessgrp in
+    Eliom_common.SessionCookies.replace
+      (* actually it will add the cookie *)
+      table
+      c
+      (full_st_name,
+       !str,
+       serverexp (* exp on server *),
+       usertimeout,
+       fullsessgrpref,
+       node);
+    {Eliom_common.sc_value= c;
+     Eliom_common.sc_table= str;
+     Eliom_common.sc_timeout= usertimeout;
+     Eliom_common.sc_exp= serverexp;
+     Eliom_common.sc_cookie_exp=
+       ref (Eliom_common.default_client_cookie_exp ());
+     Eliom_common.sc_session_group= fullsessgrpref;
+     Eliom_common.sc_session_group_node= node;
+    }
+
   in
 
   let ((cookie_info, _, _), secure_ci) =
