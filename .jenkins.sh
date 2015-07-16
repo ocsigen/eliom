@@ -1,4 +1,5 @@
 opam pin add --no-action eliom .
+opam pin add --no-action reactiveData 'https://github.com/hhugo/reactiveData.git#master'
 #opam pin add --no-action tyxml 'https://github.com/ocsigen/tyxml.git#master'
 #opam pin add --no-action ocsigenserver 'https://github.com/ocsigen/ocsigenserver.git#master'
 #opam pin add --no-action js_of_ocaml 'https://github.com/ocsigen/js_of_ocaml.git#master'
