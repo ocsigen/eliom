@@ -279,7 +279,7 @@ let create_volatile_table, create_volatile_table_during_session =
     (scope, secure, t)
   in
   ((fun ~scope ~secure ->
-    let sitedata = Eliom_common.get_current_sitedata () in
-    aux ~scope ~secure sitedata),
+     let sitedata = Eliom_common.get_current_sitedata () in
+     aux ~scope ~secure sitedata),
    (fun ~scope ~secure sitedata ->
-     aux ~scope ~secure sitedata))
+      aux ~scope ~secure sitedata))

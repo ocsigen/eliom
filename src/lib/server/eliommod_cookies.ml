@@ -58,8 +58,7 @@ let get_cookie_info
           match !expref with
           | Some t when t < now ->
               (* session expired by timeout *)
-              Eliom_common.SessionCookies.remove
-                sitedata.Eliom_common.session_services value;
+              Eliommod_sessiongroups.Serv.remove sessgrpnode;
               ((Eliom_common.Full_state_name_table.add
                   name
                   (Some value          (* value sent by the browser *),
@@ -115,9 +114,7 @@ let get_cookie_info
             match !expref with
               | Some t when t < now ->
                   (* session expired by timeout *)
-                  sitedata.Eliom_common.remove_session_data value;
-                  Eliom_common.SessionCookies.remove
-                    sitedata.Eliom_common.session_data value;
+                  Eliommod_sessiongroups.Data.remove sessgrpnode;
                   (Some value                 (* value sent by the browser *),
                    ref Eliom_common.SCData_session_expired
                                               (* ask the browser
