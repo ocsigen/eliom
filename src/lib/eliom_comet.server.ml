@@ -502,7 +502,7 @@ end = struct
               | Connection_closed ->
                 set_inactive handler;
                 (* it doesn't matter what we do here *)
-                raise_lwt Connection_closed
+                Lwt.return timeout_msg
 	      | e ->
 		set_inactive handler;
 		Lwt.fail e )
