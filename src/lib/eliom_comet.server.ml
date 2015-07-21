@@ -321,19 +321,21 @@ end = struct
     | Inactive of float
     (** The last request from the client completed at that time *)
 
+  type waiter = [`Data | `Update] Lwt.t
+
   type handler =
       {
         hd_scope : Eliom_common.client_process_scope;
         (* id : int; pour tester que ce sont des service differents... *)
-        mutable hd_active_streams : ( chan_id * ( string Eliom_comet_base.channel_data Lwt_stream.t ) ) list;
+        mutable hd_active_streams : ( chan_id * ( string Eliom_comet_base.channel_data Lwt_stream.t * waiter ) ) list;
         (** streams that are currently sent to client *)
-        mutable hd_unregistered_streams : ( chan_id * ( string Eliom_comet_base.channel_data Lwt_stream.t ) ) list;
+        mutable hd_unregistered_streams : ( chan_id * ( string Eliom_comet_base.channel_data Lwt_stream.t * waiter ) ) list;
         (** streams that are created on the server side, but client did not register *)
         mutable hd_registered_chan_id : chan_id list;
         (** the fusion of all the streams from hd_active_streams *)
-        mutable hd_update_streams : unit Lwt.t;
+        mutable hd_update_streams : waiter;
         (** thread that wakeup when there are new active streams. *)
-        mutable hd_update_streams_w : unit Lwt.u;
+        mutable hd_update_streams_w : [`Data | `Update] Lwt.u;
         hd_service : internal_comet_service;
         mutable hd_last : string * int;
         (** the last message sent to the client, if he sends a request
@@ -390,7 +392,7 @@ end = struct
       opened when the client wants to listen to new channels for
       instance. *)
   let new_connection handler =
-    let t,w = Lwt.task () in
+    let t,w = Lwt.wait () in
     let wakener = handler.hd_update_streams_w in
     handler.hd_update_streams <- t;
     handler.hd_update_streams_w <- w;
@@ -401,41 +403,52 @@ end = struct
       wainting for inputs ( wait_data ) such that it can receive the messages from
       the new channel *)
   let signal_update handler =
-    let t,w = Lwt.task () in
+    let t,w = Lwt.wait () in
     let wakener = handler.hd_update_streams_w in
     handler.hd_update_streams <- t;
     handler.hd_update_streams_w <- w;
-    Lwt.wakeup wakener ()
+    Lwt.wakeup wakener `Update
 
   let wait_streams streams =
-    Lwt.pick (List.map (fun (_,s) -> Lwt_stream.peek s) streams)
+    List.map (fun (_,(_, w)) -> w) streams
+
+  let stream_waiter s =
+    Lwt.no_cancel (Lwt_stream.peek s >>= fun _ -> Lwt.return `Data)
 
   (** read up to [n] messages in the list of streams [streams] without blocking. *)
-  let read_streams n streams =
-    let rec aux acc n streams =
+  let read_streams n handler =
+    let streams = handler.hd_active_streams in
+    let rec aux stream_acc acc n streams =
       match streams with
-        | [] -> acc
-        | (id,stream)::other_streams ->
-          match n with
-            | 0 -> acc
-            | _ ->
-              let l = Lwt_stream.get_available_up_to n stream in
-              let l' = List.map (fun v -> id,v) l in
-              let rest = n - (List.length l) in
-              aux (l'@acc) rest other_streams
+      | [] -> (List.rev stream_acc, acc)
+      | (id,(stream, waiter))::other_streams ->
+        if n = 0 then
+          (List.rev_append stream_acc streams, acc)
+        else
+          let l = Lwt_stream.get_available_up_to n stream in
+          let l' = List.map (fun v -> id,v) l in
+          let rest = n - (List.length l) in
+          let stream_acc =
+            if l = [] then (id, (stream, waiter)) :: stream_acc
+            else (id, (stream, stream_waiter stream)) :: stream_acc
+          in
+          aux stream_acc (l'@acc) rest other_streams
     in
-    aux [] n streams
+    let (streams, acc) = aux [] [] n streams in
+    handler.hd_active_streams <- streams;
+    acc
 
   (** wait for data on any channel that the client asks. It correcly
       handles new channels the server creates after that the client
       registered them *)
-  let rec wait_data handler =
+  let rec wait_data wait_closed_connection handler =
     Lwt.choose
-      [ Lwt.protected (wait_streams handler.hd_active_streams) >>= ( fun _ -> Lwt.return `Data );
-        Lwt.protected (handler.hd_update_streams) >>= ( fun _ -> Lwt.return `Update ) ]
+      (wait_closed_connection ::
+       handler.hd_update_streams ::
+       wait_streams handler.hd_active_streams)
     >>= ( function
       | `Data -> Lwt.return ()
-      | `Update -> wait_data handler )
+      | `Update -> wait_data wait_closed_connection handler )
 
   let launch_stream handler (chan_id,stream) =
     handler.hd_active_streams <- (chan_id,stream)::handler.hd_active_streams;
@@ -484,10 +497,8 @@ end = struct
           Lwt.catch
             (fun () -> Lwt_unix.with_timeout timeout
               (fun () ->
-                lwt () = Lwt.choose
-                  [ wait_closed_connection ();
-                    wait_data handler ] in
-                let messages = read_streams 100 handler.hd_active_streams in
+                lwt () = wait_data (wait_closed_connection ()) handler in
+                let messages = read_streams 100 handler in
                 let message = encode_downgoing messages in
                 handler.hd_last <- (message,number);
                 set_inactive handler;
@@ -619,15 +630,18 @@ end = struct
     let name = (name_of_scope (scope:>Eliom_common.user_scope)) ^ name in
     let handler = get_handler scope in
     Lwt_log.ign_info_f ~section "create channel %s" name;
+    let waiter =
+      Lwt.with_value Eliom_common.sp_key None (fun () -> stream_waiter stream)
+    in
     if List.mem name handler.hd_registered_chan_id
     then
       begin
         handler.hd_registered_chan_id <-
           List.filter ((<>) name) handler.hd_registered_chan_id;
-        launch_stream handler (name,stream)
+        launch_stream handler (name,(stream, waiter))
       end
     else
-      handler.hd_unregistered_streams <- (name,stream)::handler.hd_unregistered_streams;
+      handler.hd_unregistered_streams <- (name,(stream, waiter))::handler.hd_unregistered_streams;
     { ch_handler = handler;
       ch_stream = stream;
       ch_id = name; }
@@ -702,40 +716,28 @@ end = struct
 
   let channel_mark () = Eliom_common.make_wrapper internal_wrap
 
-  exception Halt
-
-  (* TODO close on full *)
   let limit_stream ~size s =
-    let open Lwt in
-        let full = ref false in
-        let closed = ref false in
-        let count = ref 0 in
-        let str, push = Lwt_stream.create () in
-        let stopper,wake_stopper = wait () in
-        let rec loop () =
-          ( Lwt_stream.get s <?> stopper ) >>= function
-            | Some x ->
-              if !count >= size
-              then (full := true;
-                    ignore (Lwt_stream.get_available str);
-                  (* flush the channel *)
-                    return ())
-              else (incr count; push (Some ( Eliom_comet_base.Data x )); loop ())
-            | None ->
-              return ()
-        in
-        ignore (loop ():'a Lwt.t);
-        let res = Lwt_stream.from (fun () ->
-          if !full
-          then
-            if !closed
-            then return None
-            else ( closed := true;
-                   return (Some Eliom_comet_base.Full) )
-          else (decr count;
-                Lwt_stream.get str)) in
-        Gc.finalise (fun _ -> wakeup_exn wake_stopper Halt) res;
-        res
+    let (res, pusher) = Lwt_stream.create_bounded size in
+    let rec loop full =
+      match_lwt Lwt_stream.get s with
+        None ->
+          Lwt.return ()
+      | Some x ->
+          if full then
+            loop true
+          else if pusher#count = size then begin
+            ignore (Lwt_stream.get_available res);
+            lwt () = pusher#push (Eliom_comet_base.Full) in
+            pusher#close;
+            pusher#set_reference ();
+            loop true
+          end else begin
+            lwt () = pusher#push (Eliom_comet_base.Data x) in
+            loop false
+          end
+    in
+    pusher#set_reference (loop false);
+    res
 
   let marshal (v:'a) =
     let wrapped = Eliom_wrap.wrap v in
