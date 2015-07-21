@@ -1,20 +1,17 @@
 ===== 4.2 (2015-07-21) =====
 
-* Add Manip.children, to get the html children of an element
-* Simplify Html5 and Svg signatures using tyxml's signature functors
-* improve log in Eliom_client
-* use Lwt_log everywhere
-* Remove dependency to Lwt_util
-* eliomdep: fixed exit code when calling option "-sort"
-* Fix #168: call_ocaml_service always sends boolean true
-* Remove the use of |> for 4.00.1 compat
-* Makes server function return types covariant
-* compatibility with ocsigenserver.2.6
-* various bugfixes and wiki updates
+* Add Manip.children, to get the html children of an element.
+* Simplify Html5 and Svg signatures using tyxml's signature functors.
+* Various logging improvements, in particular in Eliom_client.
+* Fix eliomdep's exit code when calling option "-sort".
+* Fix #168: call_ocaml_service always sends boolean true.
+* Makes server function return types covariant.
+* Restore compatibility with ocsigenserver 2.6 and lwt 2.4.6.
+* Various bugfixes and wiki updates.
 
 ===== 4.1 (2014-10-01) =====
 
-* Compatibility with js_of_ocaml-2.5 and tyxml-3.3.0
+ * Compatibility with js_of_ocaml-2.5 and tyxml-3.3.0
  * Improvements:
  ** Simplify typing of services
  ** Use GADT to encode service parameters (Eliom_parameter)
