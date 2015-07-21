@@ -6,7 +6,7 @@
 * Fix eliomdep's exit code when calling option "-sort".
 * Fix #168: call_ocaml_service always sends boolean true.
 * Makes server function return types covariant.
-* Restore compatibility with ocsigenserver 2.6 and lwt 2.4.6.
+* Restore compatibility with ocsigenserver 2.6 and lwt 2.4.7.
 * Various bugfixes and wiki updates.
 
 ===== 4.1 (2014-10-01) =====
