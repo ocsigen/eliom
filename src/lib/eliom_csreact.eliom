@@ -195,8 +195,9 @@ module FakeReactiveData = ReactiveData
 module SharedReact = struct
   module S = struct
     include React.S
-    let create ?eq ?default v = match default with
-      | Some (Some ((_, set) as s)) -> set ?step:None v; s
+    let create ?eq ?default ?(reset_default = false) v = match default with
+      | Some (Some ((_, set) as s)) ->
+        if reset_default then set ?step:None v; s
       | _ -> React.S.create ?eq v
   end
   include React.E
@@ -205,8 +206,9 @@ module SharedReactiveData = struct
   module RList = struct
     include ReactiveData.RList
     let make_from_s = ReactiveData.RList.make_from_s
-    let make ?default v = match default with
-      | Some (Some ((_, handle) as s)) -> ReactiveData.RList.set handle v; s
+    let make ?default ?(reset_default = false) v = match default with
+      | Some (Some ((_, handle) as s)) ->
+        if reset_default then ReactiveData.RList.set handle v; s
       | _ -> ReactiveData.RList.make v
   end
 end
@@ -288,7 +290,11 @@ module SharedReact = struct
         (FakeReact.S.value (Shared.local x))
         {'a{ FakeReact.S.value (Shared.local %x) }}
 
-    let create ?default (x : 'a) =
+(*VVV What is the good default value for reset_default?
+  Setting default to true may be difficult to understand.
+  I prefer false.
+*)
+    let create ?default ?(reset_default = false) (x : 'a) =
       let sv = FakeReact.S.create x in
       let cv = match default with
         | None -> {{ FakeReact.S.create %x }}
@@ -300,7 +306,7 @@ module SharedReact = struct
             (* The reactive data is already on client side.
                But the value sent by server is more recent.
                I update the signal. *)
-            set ?step:None %x;
+            if %reset_default then set ?step:None %x;
             (*VVV Make possible to disable this?
               Warning: removing this or changing the default
               will break some existing code relying on this!
@@ -429,7 +435,7 @@ module SharedReactiveData = struct
         FakeReactiveData.RList.from_signal (Shared.local %x) }} in
       Eliom_lib.create_shared_value sv cv
 
-    let make ?default x =
+    let make ?default ?(reset_default = false) x =
       let sv = FakeReactiveData.RList.make x in
       let cv = match default with
         | None -> {{ FakeReactiveData.RList.make %x }}
@@ -438,7 +444,9 @@ module SharedReactiveData = struct
                              match %default with
                              | None -> FakeReactiveData.RList.make %x
                              | Some ((_, handle) as s) ->
-                               ReactiveData.RList.set handle %x; s
+                               if %reset_default
+                               then ReactiveData.RList.set handle %x;
+                               s
                            }}
       in
       (Eliom_lib.create_shared_value (fst sv)
