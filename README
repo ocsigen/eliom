@@ -5,26 +5,7 @@ Eliom
 Requirements:
 =============
 
-Compilers:
-
- * ocaml and camlp4  (need version >= 4.0)
- * js_of_ocaml       (need version >= 2.2, with deriving support)
- * a C compiler      (tested with gcc-4.4.5)
-
-Libraries:
-
- * findlib
- * ocsigenserver     (need version >= 2.4)
- * tyxml             (need version >= 3)
- * react             (need version >= 0.9.3)
- * deriving          (need version >= 0.6)
-                     See: https://github.com/ocsigen/deriving
- * ocamlssl          (tested with 0.4.6)
- * calendar          (tested with 2.03.1)
- * optcomp
- * ipaddr            (need version >= 2.1)
-
-
+* See `opam`
 
 ------------------------------------------------------------------
 
