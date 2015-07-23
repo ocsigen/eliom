@@ -273,6 +273,12 @@ let rec aux : type a c. (a,'b,c) params_type -> string list option -> 'y -> a ->
         (fun (psuff, nlp, l) v -> aux t psuff nlp v pref suff l)
         (psuff, nlp, l)
         params
+    | TAtom (name,TBool) ->
+      psuff, nlp,
+      if params then
+        (pref^name^suff, insert_string "on") :: l
+      else
+        l
     | TAtom (name,a) -> psuff,nlp,((pref^name^suff,insert_string (string_of_atom a params))::l )
     | TCoord name ->
       psuff, nlp,
