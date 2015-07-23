@@ -266,10 +266,8 @@ let reconstruct_params_
         | TAtom (name,TBool) ->
           (try
              let v,l = (List.assoc_remove (pref^name^suff) params) in
-             Res_ (atom_of_string TBool v,l,files)
-           with
-             | Not_found -> Res_ (false, params, files)
-             | e -> Errors_ ([pref^name^suff,"",e], [], files))
+             Res_ (true,l,files)
+           with Not_found -> Res_ (false, params, files))
 
         | TAtom (name,a) ->
           let v,l = (List.assoc_remove (pref^name^suff) params) in
