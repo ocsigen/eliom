@@ -108,9 +108,15 @@ type stack =
   | Do of (Obj.t * action)
   | Wrap of ((Obj.t -> Obj.t) * Obj.t)
 
-let find t v =
-  if Obj.tag v < Obj.no_scan_tag
+let rec find t v =
+  let tag = Obj.tag v in
+  if
+    tag = Obj.forward_tag &&
+    let tag' = Obj.tag (Obj.field v 0) in
+    not (tag' = Obj.forward_tag || tag' = Obj.double_tag)
   then
+    find t (Obj.field v 0)
+  else if tag < Obj.no_scan_tag then
     try
       Some (T.find t v)
     with
