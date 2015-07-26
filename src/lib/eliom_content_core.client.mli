@@ -149,7 +149,28 @@ module Xml : sig
   val set_classes_of_elt : elt -> elt
 end
 
-module Xml_wed : Xml_sigs.T with module W = Tyxml_js.Xml_wrap
+module Xml_wed : sig
+
+  include Xml_sigs.T with module W = Tyxml_js.Xml_wrap
+                      and type elt = Xml.elt
+                      and type aname = Xml.aname
+                      and type attrib = Xml.attrib
+                      and type uri = Xml.uri
+                      and type 'a W.t = 'a React.signal
+                      and type 'a W.tlist = 'a ReactiveData.RList.t
+                      and type ('a, 'b) W.ft = 'a -> 'b
+
+  val float_attrib : aname -> float React.S.t -> attrib
+  val int_attrib : aname -> int React.S.t -> attrib
+  val string_attrib : aname -> string React.S.t -> attrib
+  val space_sep_attrib : aname -> string list React.S.t -> attrib
+  val comma_sep_attrib : aname -> string list React.S.t -> attrib
+  val uri_attrib : aname -> uri React.S.t -> attrib
+  val uris_attrib : aname -> uri list React.S.t -> attrib
+
+  val node : ?a:(attrib list) -> string -> elt list_wrap -> elt
+
+end
 
 (** Building SVG tree. *)
 module Svg : sig

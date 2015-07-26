@@ -352,6 +352,13 @@ module Html5 = struct
 
   end
 
+  module Make_NoSVG
+      (Xml : Xml_sigs.T
+       with type elt = Xml.elt
+        and type attrib = Xml.attrib)
+      (C : Html5_sigs.Conv with type ('a, 'b) ft = ('a, 'b) Xml.W.ft) =
+    Html5_f.NoSVG.Make'(Xml)(C)
+
   type +'a elt = 'a F.elt
   type 'a wrap = 'a
   type 'a list_wrap = 'a list

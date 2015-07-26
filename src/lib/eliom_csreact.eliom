@@ -253,6 +253,8 @@ module FakeReactiveData = struct
     type 'a t
     type 'a handle
     val make : 'a list -> 'a t * 'a handle
+    val cons : 'a FakeReact.S.t -> 'a t -> 'a t
+    val append : 'a t -> 'a t -> 'a t
     val from_signal : 'a list FakeReact.S.t -> 'a t
     val value : 'a t -> 'a list
     val value_s : 'a t -> 'a list FakeReact.S.t
@@ -266,6 +268,8 @@ module FakeReactiveData = struct
     type 'a t = 'a list
     type 'a handle = unit
     let make l = l, ()
+    let cons a l = FakeReact.S.value a :: l
+    let append l1 l2 = List.append l1 l2
     let from_signal s = FakeReact.S.value s
     let singleton_s s = [FakeReact.S.value s]
     let value l = l
@@ -454,6 +458,27 @@ module SharedReactiveData = struct
        Eliom_lib.create_shared_value (snd sv)
          {'b FakeReactiveData.RList.handle{ snd %cv }})
 
+    let cons a l =
+      let sv =
+        FakeReactiveData.RList.cons (Shared.local a) (Shared.local l)
+      and cv =
+        {'a FakeReactiveData.RList.t{
+           FakeReactiveData.RList.concat
+             (FakeReactiveData.RList.singleton_s %a) %l }}
+      in
+      Eliom_lib.create_shared_value sv cv
+
+    let append a b =
+      let sv =
+        FakeReactiveData.RList.append
+          (Shared.local a)
+          (Shared.local b)
+      and cv =
+        {'a FakeReactiveData.RList.t{
+           FakeReactiveData.RList.concat %a %b }}
+      in
+      Eliom_lib.create_shared_value sv cv
+
     let singleton_s s =
       let sv = FakeReactiveData.RList.singleton_s (Shared.local s) in
       let cv = {'a FakeReactiveData.RList.t{
@@ -510,96 +535,4 @@ module SharedReactiveData = struct
 
   end
 end
-}}
-
-
-{server{
-      module React = SharedReact
-      (* module ReactiveData = SharedReactiveData *)
-
-
-      module R = struct
-
-        let node (signal : 'a Eliom_content.Html5.elt SharedReact.S.t) =
-          Eliom_content.Html5.C.node
-(*VVV
- * This will blink at startup! FIX!
- * How to avoid the span? (implement D.pcdata ...)
-*)
-          ~init:(FakeReact.S.value (Shared.local signal))
-          {{ Eliom_content.Html5.R.node %signal }}
-
-        let a_class s =
-          (*VVV How to implement this properly? *)
-          Eliom_content.Html5.C.attr
-            (* ~init:(Eliom_content.Html5.F.a_class (FakeReact.S.value (Shared.local s))) *)
-            {{Eliom_content.Html5.R.a_class (Shared.local %s)}}
-
-        let a_style s =
-          (*VVV How to implement this properly? *)
-          Eliom_content.Html5.C.attr
-            ~init:(Eliom_content.Html5.F.a_style
-                     (FakeReact.S.value (Shared.local s)))
-            {{Eliom_content.Html5.R.a_style (Shared.local %s)}}
-
-
-        let pcdata (s : string SharedReact.S.t) = Eliom_content.Html5.C.node
-(*VVV
- * This will blink at startup! FIX!
- * How to avoid the span? (implement D.pcdata ...)
-*)
-          ~init:(Eliom_content.Html5.D.(
-              span [pcdata (FakeReact.S.value (Shared.local s))]))
-          {{ Eliom_content.Html5.R.pcdata %s }}
-
-
-        let div ?a l = Eliom_content.Html5.C.node
-(*VVV
- * This will blink at startup! FIX!
- * This makes impossible to use %d for such elements! FIX!
-*)
-          ~init:(Eliom_content.Html5.D.div ?a
-                   (FakeReactiveData.RList.value (Shared.local l)))
-          {{ Eliom_content.Html5.R.div ?a:%a (Shared.local %l) }}
-
-        let span ?a l = Eliom_content.Html5.C.node
-(*VVV
- * This will blink at startup! FIX!
- * This makes impossible to use %d for such elements! FIX!
-*)
-          ~init:(Eliom_content.Html5.D.span ?a
-                   (FakeReactiveData.RList.value (Shared.local l)))
-          {{ Eliom_content.Html5.R.span ?a:%a (Shared.local %l) }}
-
-        let ul ?a l = Eliom_content.Html5.C.node
-(*VVV
- * This will blink at startup! FIX!
- * This makes impossible to use %d for such elements! FIX!
-*)
-          ~init:(Eliom_content.Html5.D.ul ?a
-                   (FakeReactiveData.RList.value (Shared.local l)))
-          {{ Eliom_content.Html5.R.ul ?a:%a (Shared.local %l) }}
-
-        let li ?a l = Eliom_content.Html5.C.node
-(*VVV
- * This will blink at startup! FIX!
- * This makes impossible to use %d for such elements! FIX!
-*)
-          ~init:(Eliom_content.Html5.D.li ?a
-                   (FakeReactiveData.RList.value (Shared.local l)))
-          {{ Eliom_content.Html5.R.li ?a:%a (Shared.local %l) }}
-
-        let p l = Eliom_content.Html5.C.node
-(*VVV
- * This will blink at startup! FIX!
-*)
-          ~init:(Eliom_content.Html5.D.p
-                   (FakeReactiveData.RList.value (Shared.local l)))
-          {{ Eliom_content.Html5.R.p (Shared.local %l) }}
-
-
-        (*VVV The case of textarea, input, etc. is tricky *)
-
-end
-
 }}

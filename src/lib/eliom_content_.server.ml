@@ -62,6 +62,8 @@ module Html5 = struct
     let select = string_select ?required:None
   end
 
+  module R = Eliom_csreact_content.Html5.R
+
   module Custom_data = Eliom_content_core.Html5.Custom_data
 
   module Id = Html5.Id

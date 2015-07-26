@@ -387,7 +387,6 @@ module Html5 : sig
     val attr : ?init:'a attrib -> 'a attrib Eliom_lib.client_value -> 'a attrib
   end
 
-
   (** Node identifiers *)
   module Id : sig
 
@@ -415,7 +414,18 @@ module Html5 : sig
 
   end
 
+  module R : sig
 
+    include
+      Html5_sigs.Make_NoSVG(Eliom_csreact_content.Xml).T
+      with type 'a elt = 'a elt
+       and type 'a attrib = 'a attrib
+
+    val pcdata :
+      string Eliom_csreact.SharedReact.S.t ->
+      [> | Html5_types.span] elt
+
+  end
 
   (** Type-safe custom data for HTML5.
       See the {% <<a_manual chapter="clientserver-html"

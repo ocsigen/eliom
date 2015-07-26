@@ -76,6 +76,9 @@ module Xml : sig
   (**/**)
   val wrap : elt -> 'a -> 'a Eliom_wrap.wrapped_value
 
+  val client_attrib :
+    ?init:attrib -> attrib Eliom_lib.client_value -> attrib
+
 end
 
 module Svg : sig
@@ -171,6 +174,15 @@ module Html5 : sig
       ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_star
 
   end
+
+  module Make_NoSVG
+      (Xml : Xml_sigs.T
+       with type elt = Xml.elt
+        and type attrib = Xml.attrib)
+      (C : Html5_sigs.Conv with type ('a, 'b) ft = ('a, 'b) Xml.W.ft) :
+    Html5_sigs.Make_NoSVG(Xml).T
+    with type +'a elt = 'a elt
+     and type +'a attrib = 'a attrib
 
   module Id : sig
     type +'a id
