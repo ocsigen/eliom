@@ -323,6 +323,12 @@ let register_aux pages
             | (Ocsigen_http_frame.Http_header.PUT, _,
                Eliom_common.SAtt_csrf_safe (id, scope, secure_session))
             | (Ocsigen_http_frame.Http_header.DELETE, _,
+               Eliom_common.SAtt_csrf_safe (id, scope, secure_session))
+	    | (Ocsigen_http_frame.Http_header.HEAD, _,
+               Eliom_common.SAtt_csrf_safe (id, scope, secure_session))
+	    | (Ocsigen_http_frame.Http_header.PATCH, _,
+               Eliom_common.SAtt_csrf_safe (id, scope, secure_session))
+	    | (Ocsigen_http_frame.Http_header.OPTIONS, _,
                Eliom_common.SAtt_csrf_safe (id, scope, secure_session)) ->
               let tablereg, forsession =
                 match table with
@@ -1028,6 +1034,315 @@ let register_delete_coservice' pages
     ~service:u ?error_handler page_gen;
   u
 
+let register_head_service pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ?https
+    ?priority
+    ~path
+    ~get_params
+    ?error_handler
+    page_gen =
+  let u = Unsafe.head_service ?https ?priority ~path ~get_params () in
+  register pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ~service:u ?error_handler page_gen;
+  u
+
+let register_head_coservice pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ?name
+    ?csrf_safe
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ?https
+    ~fallback
+    ~get_params
+    ?error_handler
+    page_gen =
+  let u =
+    Unsafe.head_coservice ?name
+      ?csrf_safe
+      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
+      ?csrf_secure
+      ?max_use ?timeout ?https
+      ~fallback ~get_params () in
+  register pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ~service:u ?error_handler page_gen;
+  u
+
+let register_head_coservice' pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ?name
+    ?csrf_safe
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ?https
+    ~get_params
+    ?error_handler
+    page_gen =
+  let u =
+    Unsafe.head_coservice'
+      ?name
+      ?csrf_safe
+      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~get_params ()
+  in
+  register pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ~service:u ?error_handler page_gen;
+  u
+
+let register_patch_service pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ?https
+    ?priority
+    ~path
+    ~get_params
+    ?error_handler
+    page_gen =
+  let u = Unsafe.patch_service ?https ?priority ~path ~get_params () in
+  register pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ~service:u ?error_handler page_gen;
+  u
+
+let register_patch_coservice pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ?name
+    ?csrf_safe
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ?https
+    ~fallback
+    ~get_params
+    ?error_handler
+    page_gen =
+  let u =
+    Unsafe.patch_coservice ?name
+      ?csrf_safe
+      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
+      ?csrf_secure
+      ?max_use ?timeout ?https
+      ~fallback ~get_params () in
+  register pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ~service:u ?error_handler page_gen;
+  u
+
+let register_patch_coservice' pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ?name
+    ?csrf_safe
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ?https
+    ~get_params
+    ?error_handler
+    page_gen =
+  let u =
+    Unsafe.patch_coservice'
+      ?name
+      ?csrf_safe
+      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~get_params ()
+  in
+  register pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ~service:u ?error_handler page_gen;
+  u
+
+let register_options_service pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ?https
+    ?priority
+    ~path
+    ~get_params
+    ?error_handler
+    page_gen =
+  let u = Unsafe.options_service ?https ?priority ~path ~get_params () in
+  register pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ~service:u ?error_handler page_gen;
+  u
+
+let register_options_coservice pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ?name
+    ?csrf_safe
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ?https
+    ~fallback
+    ~get_params
+    ?error_handler
+    page_gen =
+  let u =
+    Unsafe.options_coservice ?name
+      ?csrf_safe
+      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
+      ?csrf_secure
+      ?max_use ?timeout ?https
+      ~fallback ~get_params () in
+  register pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ~service:u ?error_handler page_gen;
+  u
+
+let register_options_coservice' pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ?name
+    ?csrf_safe
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ?https
+    ~get_params
+    ?error_handler
+    page_gen =
+  let u =
+    Unsafe.options_coservice'
+      ?name
+      ?csrf_safe
+      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~get_params ()
+  in
+  register pages
+    ?scope
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ~service:u ?error_handler page_gen;
+  u
+
 module type REG_PARAM = "sigs/eliom_reg_param.mli"
 
 module MakeRegister(Pages : REG_PARAM) = struct
@@ -1056,6 +1371,15 @@ module MakeRegister(Pages : REG_PARAM) = struct
   let register_delete_service ?scope = register_delete_service pages ?scope
   let register_delete_coservice ?scope = register_delete_coservice pages ?scope
   let register_delete_coservice' ?scope = register_delete_coservice' pages ?scope
+  let register_head_service ?scope = register_head_service pages ?scope
+  let register_head_coservice ?scope = register_head_coservice pages ?scope
+  let register_head_coservice' ?scope = register_head_coservice' pages ?scope
+  let register_patch_service ?scope = register_patch_service pages ?scope
+  let register_patch_coservice ?scope = register_patch_coservice pages ?scope
+  let register_patch_coservice' ?scope = register_patch_coservice' pages ?scope
+  let register_options_service ?scope = register_options_service pages ?scope
+  let register_options_coservice ?scope = register_options_coservice pages ?scope
+  let register_options_coservice' ?scope = register_options_coservice' pages ?scope
 
 end
 
@@ -1096,5 +1420,14 @@ module MakeRegister_AlphaReturn(Pages : REG_PARAM_ALPHA_RETURN) = struct
   let register_delete_service ?scope = register_delete_service pages ?scope
   let register_delete_coservice ?scope = register_delete_coservice pages ?scope
   let register_delete_coservice' ?scope = register_delete_coservice' pages ?scope
+  let register_head_service ?scope = register_head_service pages ?scope
+  let register_head_coservice ?scope = register_head_coservice pages ?scope
+  let register_head_coservice' ?scope = register_head_coservice' pages ?scope
+  let register_patch_service ?scope = register_patch_service pages ?scope
+  let register_patch_coservice ?scope = register_patch_coservice pages ?scope
+  let register_patch_coservice' ?scope = register_patch_coservice' pages ?scope
+  let register_options_service ?scope = register_options_service pages ?scope
+  let register_options_coservice ?scope = register_options_coservice pages ?scope
+  let register_options_coservice' ?scope = register_options_coservice' pages ?scope
 
 end

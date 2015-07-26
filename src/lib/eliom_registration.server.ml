@@ -1313,6 +1313,321 @@ module Customize
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
+  let register_head_service
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?priority
+      ~path
+      ~get_params
+      ?error_handler
+      f =
+    R.register_head_service
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?priority
+      ~path
+      ~get_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let register_head_coservice
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback
+      ~get_params
+      ?error_handler
+      f =
+    R.register_head_coservice
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback:(Eliom_service.untype_service_ fallback)
+      ~get_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let register_head_coservice'
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~get_params
+      ?error_handler
+      f =
+    R.register_head_coservice'
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~get_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let register_patch_service
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?priority
+      ~path
+      ~get_params
+      ?error_handler
+      f =
+    R.register_patch_service
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?priority
+      ~path
+      ~get_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let register_patch_coservice
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback
+      ~get_params
+      ?error_handler
+      f =
+    R.register_patch_coservice
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback:(Eliom_service.untype_service_ fallback)
+      ~get_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let register_patch_coservice'
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~get_params
+      ?error_handler
+      f =
+    R.register_patch_coservice'
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~get_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let register_options_service
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?priority
+      ~path
+      ~get_params
+      ?error_handler
+      f =
+    R.register_options_service
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?priority
+      ~path
+      ~get_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let register_options_coservice
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback
+      ~get_params
+      ?error_handler
+      f =
+    R.register_options_coservice
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback:(Eliom_service.untype_service_ fallback)
+      ~get_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let register_options_coservice'
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~get_params
+      ?error_handler
+      f =
+    R.register_options_coservice'
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~get_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
 end
 
 (****************************************************************************)
@@ -1827,7 +2142,320 @@ module Ocaml = struct
                                       ?error_handler:(make_eh error_handler)
                                       (make_service_handler f))
 
+  let register_head_service
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?priority
+      ~path
+      ~get_params
+      ?error_handler
+      f =
+    Eliom_service.untype_service_ (M.register_head_service
+                                      ?scope
+                                      ?options
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?secure_session
+                                      ?https
+                                      ?priority
+                                      ~path
+                                      ~get_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
 
+  let register_head_coservice
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback
+      ~get_params
+      ?error_handler
+      f =
+    Eliom_service.untype_service_ (M.register_head_coservice
+                                      ?scope
+                                      ?options
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?secure_session
+                                      ?name
+                                      ?csrf_safe
+                                      ?csrf_scope
+                                      ?csrf_secure
+                                      ?max_use
+                                      ?timeout
+                                      ?https
+                                      ~fallback:(Eliom_service.untype_service_ fallback)
+                                      ~get_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_head_coservice'
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~get_params
+      ?error_handler
+      f =
+    Eliom_service.untype_service_ (M.register_head_coservice'
+                                      ?scope
+                                      ?options
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?secure_session
+                                      ?name
+                                      ?csrf_safe
+                                      ?csrf_scope
+                                      ?csrf_secure
+                                      ?max_use
+                                      ?timeout
+                                      ?https
+                                      ~get_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_patch_service
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?priority
+      ~path
+      ~get_params
+      ?error_handler
+      f =
+    Eliom_service.untype_service_ (M.register_patch_service
+                                      ?scope
+                                      ?options
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?secure_session
+                                      ?https
+                                      ?priority
+                                      ~path
+                                      ~get_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_patch_coservice
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback
+      ~get_params
+      ?error_handler
+      f =
+    Eliom_service.untype_service_ (M.register_patch_coservice
+                                      ?scope
+                                      ?options
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?secure_session
+                                      ?name
+                                      ?csrf_safe
+                                      ?csrf_scope
+                                      ?csrf_secure
+                                      ?max_use
+                                      ?timeout
+                                      ?https
+                                      ~fallback:(Eliom_service.untype_service_ fallback)
+                                      ~get_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_patch_coservice'
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~get_params
+      ?error_handler
+      f =
+    Eliom_service.untype_service_ (M.register_patch_coservice'
+                                      ?scope
+                                      ?options
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?secure_session
+                                      ?name
+                                      ?csrf_safe
+                                      ?csrf_scope
+                                      ?csrf_secure
+                                      ?max_use
+                                      ?timeout
+                                      ?https
+                                      ~get_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_options_service
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?priority
+      ~path
+      ~get_params
+      ?error_handler
+      f =
+    Eliom_service.untype_service_ (M.register_options_service
+                                      ?scope
+                                      ?options
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?secure_session
+                                      ?https
+                                      ?priority
+                                      ~path
+                                      ~get_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_options_coservice
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback
+      ~get_params
+      ?error_handler
+      f =
+    Eliom_service.untype_service_ (M.register_options_coservice
+                                      ?scope
+                                      ?options
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?secure_session
+                                      ?name
+                                      ?csrf_safe
+                                      ?csrf_scope
+                                      ?csrf_secure
+                                      ?max_use
+                                      ?timeout
+                                      ?https
+                                      ~fallback:(Eliom_service.untype_service_ fallback)
+                                      ~get_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_options_coservice'
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ~get_params
+      ?error_handler
+      f =
+    Eliom_service.untype_service_ (M.register_options_coservice'
+                                      ?scope
+                                      ?options
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?secure_session
+                                      ?name
+                                      ?csrf_safe
+                                      ?csrf_scope
+                                      ?csrf_secure
+                                      ?max_use
+                                      ?timeout
+                                      ?https
+                                      ~get_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
 
 end
 

@@ -121,6 +121,68 @@ val delete_service :
    [> `Delete],[> attached_kind],[> `Service ], 'tipo, 'gn,
    no_param_name, [> `Registrable ], returnB) service
 
+(** The function [head_service ~path ~get_params ()] creates a
+    service that answers the HTTP HEAD method, and only takes
+    {!Eliom_parameter.raw_post_data} as POST parameter.
+
+    [path] and [get_params], however, can be set at will.
+
+    See {!service} for a description of optional [~https],
+    [~keep_nl_params], [~priority] and [~rt] parameters .
+*)
+val head_service :
+  ?rt:'rt rt ->
+  ?https:bool ->
+  path:Url.path ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  ?priority:int ->
+  get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
+  unit ->
+  ('get, Eliom_parameter.raw_post_data,
+   [> `Head],[> attached_kind],[> `Service ], 'tipo, 'gn,
+   no_param_name, [> `Registrable ], returnB) service
+
+(** The function [patch_service ~path ~get_params ()] creates a
+    service that answers the HTTP PATCH method, and only takes
+    {!Eliom_parameter.raw_post_data} as POST parameter.
+
+    [path] and [get_params], however, can be set at will.
+
+    See {!service} for a description of optional [~https],
+    [~keep_nl_params], [~priority] and [~rt] parameters .
+*)
+val patch_service :
+  ?rt:'rt rt ->
+  ?https:bool ->
+  path:Url.path ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  ?priority:int ->
+  get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
+  unit ->
+  ('get, Eliom_parameter.raw_post_data,
+   [> `Patch],[> attached_kind],[> `Service ], 'tipo, 'gn,
+   no_param_name, [> `Registrable ], returnB) service
+
+(** The function [options_service ~path ~get_params ()] creates a
+    service that answers the HTTP OPTIONS method, and only takes
+    {!Eliom_parameter.raw_post_data} as POST parameter.
+
+    [path] and [get_params], however, can be set at will.
+
+    See {!service} for a description of optional [~https],
+    [~keep_nl_params], [~priority] and [~rt] parameters .
+*)
+val options_service :
+  ?rt:'rt rt ->
+  ?https:bool ->
+  path:Url.path ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  ?priority:int ->
+  get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
+  unit ->
+  ('get, Eliom_parameter.raw_post_data,
+   [> `Options],[> attached_kind],[> `Service ], 'tipo, 'gn,
+   no_param_name, [> `Registrable ], returnB) service
 
 (** {3 Attached coservices} *)
 
@@ -281,6 +343,105 @@ val delete_coservice :
    'tipo, 'gn, no_param_name,
    [> `Registrable ], returnB) service
 
+(** The function [head_coservice ~fallback ~get_params] creates an {%
+    <<a_manual chapter="services" fragment="attached_coservices"|attached
+    coservice>>%} with the same path and GET parameters than the
+    service [fallback] and taking a single POST parameter of type
+    {!Eliom_parameter.raw_post_data}.
+
+    The service [fallback] should be an (internal) attached HEAD
+    service or coservice without any GET parameters ; it could be a
+    preapplied service.
+
+    See {!coservice} for a description of optional parameters. *)
+val head_coservice :
+  ?rt:'rt rt ->
+  ?name: string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  fallback:
+    (unit, Eliom_parameter.raw_post_data,[`Head],
+      [ attached_kind], [ `Service ],
+      [ `WithoutSuffix ] as 'tipo,
+      unit, no_param_name, [< registrable ], returnT) service ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:
+    ('get,[`WithoutSuffix],'gn) params_type ->
+  unit ->
+  ('get, Eliom_parameter.raw_post_data,[>`Head],[> attached_kind],[> `AttachedCoservice],
+   'tipo, 'gn, no_param_name,
+   [> `Registrable ], returnB) service
+
+(** The function [patch_coservice ~fallback ~get_params] creates an {%
+    <<a_manual chapter="services" fragment="attached_coservices"|attached
+    coservice>>%} with the same path and GET parameters than the
+    service [fallback] and taking a single POST parameter of type
+    {!Eliom_parameter.raw_post_data}.
+
+    The service [fallback] should be an (internal) attached PATCH
+    service or coservice without any GET parameters ; it could be a
+    preapplied service.
+
+    See {!coservice} for a description of optional parameters. *)
+val patch_coservice :
+  ?rt:'rt rt ->
+  ?name: string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  fallback:
+    (unit, Eliom_parameter.raw_post_data,[`Patch],
+      [ attached_kind], [ `Service ],
+      [ `WithoutSuffix ] as 'tipo,
+      unit, no_param_name, [< registrable ], returnT) service ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:
+    ('get,[`WithoutSuffix],'gn) params_type ->
+  unit ->
+  ('get, Eliom_parameter.raw_post_data,[>`Patch],[> attached_kind],[> `AttachedCoservice],
+   'tipo, 'gn, no_param_name,
+   [> `Registrable ], returnB) service
+
+(** The function [options_coservice ~fallback ~get_params] creates an {%
+    <<a_manual chapter="services" fragment="attached_coservices"|attached
+    coservice>>%} with the same path and GET parameters than the
+    service [fallback] and taking a single POST parameter of type
+    {!Eliom_parameter.raw_post_data}.
+
+    The service [fallback] should be an (internal) attached OPTIONS
+    service or coservice without any GET parameters ; it could be a
+    preapplied service.
+
+    See {!coservice} for a description of optional parameters. *)
+val options_coservice :
+  ?rt:'rt rt ->
+  ?name: string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  fallback:
+    (unit, Eliom_parameter.raw_post_data,[`Options],
+      [ attached_kind], [ `Service ],
+      [ `WithoutSuffix ] as 'tipo,
+      unit, no_param_name, [< registrable ], returnT) service ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:
+    ('get,[`WithoutSuffix],'gn) params_type ->
+  unit ->
+  ('get, Eliom_parameter.raw_post_data,[>`Options],[> attached_kind],[> `AttachedCoservice],
+   'tipo, 'gn, no_param_name,
+   [> `Registrable ], returnB) service
+
 (** {3 Non attached coservices} *)
 
 (** The function [coservice' ~get_param] creates a {% <<a_manual
@@ -391,5 +552,83 @@ val delete_coservice' :
     ('get, [`WithoutSuffix], 'gn) params_type ->
   unit ->
   ('get, Eliom_parameter.raw_post_data, [> `Delete], [> non_attached_kind], [>`NonattachedCoservice],
+   [`WithoutSuffix], 'gn,
+   no_param_name, [> `Registrable ], returnB) service
+
+(** The function [head_coservice' ~get_params] creates a {% <<a_manual
+    chapter="services" fragment="non-attached_coservices"|non-attached
+    coservice>>%} taking a single POST parameter of type
+    {!Eliom_parameter.raw_post_data}.
+
+    See {!service} for a description of the optional [~https], [~rt] and
+    [~keep_nl_params] parameters ; see {!coservice} for others
+    optional parameters.
+*)
+val head_coservice' :
+  ?rt:'rt rt ->
+  ?name:string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:
+    ('get, [`WithoutSuffix], 'gn) params_type ->
+  unit ->
+  ('get, Eliom_parameter.raw_post_data, [> `Head], [> non_attached_kind], [>`NonattachedCoservice],
+   [`WithoutSuffix], 'gn,
+   no_param_name, [> `Registrable ], returnB) service
+
+(** The function [patch_coservice' ~get_params] creates a {% <<a_manual
+    chapter="services" fragment="non-attached_coservices"|non-attached
+    coservice>>%} taking a single POST parameter of type
+    {!Eliom_parameter.raw_post_data}.
+
+    See {!service} for a description of the optional [~https], [~rt] and
+    [~keep_nl_params] parameters ; see {!coservice} for others
+    optional parameters.
+*)
+val patch_coservice' :
+  ?rt:'rt rt ->
+  ?name:string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:
+    ('get, [`WithoutSuffix], 'gn) params_type ->
+  unit ->
+  ('get, Eliom_parameter.raw_post_data, [> `Patch], [> non_attached_kind], [>`NonattachedCoservice],
+   [`WithoutSuffix], 'gn,
+   no_param_name, [> `Registrable ], returnB) service
+
+(** The function [options_coservice' ~get_params] creates a {% <<a_manual
+    chapter="services" fragment="non-attached_coservices"|non-attached
+    coservice>>%} taking a single POST parameter of type
+    {!Eliom_parameter.raw_post_data}.
+
+    See {!service} for a description of the optional [~https], [~rt] and
+    [~keep_nl_params] parameters ; see {!coservice} for others
+    optional parameters.
+*)
+val options_coservice' :
+  ?rt:'rt rt ->
+  ?name:string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:
+    ('get, [`WithoutSuffix], 'gn) params_type ->
+  unit ->
+  ('get, Eliom_parameter.raw_post_data, [> `Options], [> non_attached_kind], [>`NonattachedCoservice],
    [`WithoutSuffix], 'gn,
    no_param_name, [> `Registrable ], returnB) service

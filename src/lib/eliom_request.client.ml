@@ -108,6 +108,21 @@ let redirect_put _url _params =
 let redirect_delete _url _params =
   Lwt_log.raise_error ~section "redirect_delete not implemented"
 
+(* Forms cannot use HEAD http method: do not redirect *)
+let redirect_head _url _params =
+  Firebug.console##error(Js.string "can't do HEAD redirection");
+  failwith "redirect_head not implemented"
+
+(* Forms cannot use PATCH http method: do not redirect *)
+let redirect_patch _url _params =
+  Firebug.console##error(Js.string "can't do PATCH redirection");
+  failwith "redirect_patch not implemented"
+
+(* Forms cannot use OPTIONS http method: do not redirect *)
+let redirect_options _url _params =
+  Firebug.console##error(Js.string "can't do OPTIONS redirection");
+  failwith "redirect_options not implemented"
+
 let nl_template =
   Eliom_parameter.make_non_localized_parameters
     ~prefix:"eliom" ~name:"template"
@@ -338,4 +353,13 @@ let http_put ?expecting_process_page ?cookies_info url post_args =
   send ?expecting_process_page ?cookies_info ~post_args url
 
 let http_delete ?expecting_process_page ?cookies_info url post_args =
+  send ?expecting_process_page ?cookies_info ~post_args url
+
+let http_head ?expecting_process_page ?cookies_info url post_args =
+  send ?expecting_process_page ?cookies_info ~post_args url
+
+let http_patch ?expecting_process_page ?cookies_info url post_args =
+  send ?expecting_process_page ?cookies_info ~post_args url
+
+let http_options ?expecting_process_page ?cookies_info url post_args =
   send ?expecting_process_page ?cookies_info ~post_args url

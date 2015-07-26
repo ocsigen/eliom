@@ -344,6 +344,223 @@ val register_delete_coservice' :
    'tipo, 'gn, no_param_name, [> `Registrable ], returnB)
     service
 
+(** Same as {!Eliom_service.Http.head_service} followed by {!register}. *)
+val register_head_service :
+  ?scope:[<Eliom_common.scope] ->
+  ?options:options ->
+  ?charset:string ->
+  ?code: int ->
+  ?content_type:string ->
+  ?headers: Http_headers.t ->
+  ?secure_session:bool ->
+  ?https:bool ->
+  ?priority:int ->
+  path:Url.path ->
+  get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
+  ?error_handler:((string * exn) list -> page Lwt.t) ->
+  ('get -> raw_post_data -> page Lwt.t) ->
+  ('get, raw_post_data, [> `Head], [> Eliom_service.attached_kind],[> `Service ],
+   'tipo, 'gn, no_param_name,
+   [> `Registrable ], returnB) service
+
+(** Same as {!Eliom_service.Http.head_coservice} followed by {!register}. *)
+val register_head_coservice :
+  ?scope:[<Eliom_common.scope] ->
+  ?options:options ->
+  ?charset:string ->
+  ?code: int ->
+  ?content_type:string ->
+  ?headers: Http_headers.t ->
+  ?secure_session:bool ->
+  ?name: string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [<Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  fallback:(unit, raw_post_data,[`Head],[ Eliom_service.attached_kind],[ `Service ],
+            [ `WithoutSuffix ] as 'tipo,
+            unit, no_param_name, [< registrable ], returnT)
+    service ->
+  get_params:
+    ('get, [`WithoutSuffix], 'gn) params_type ->
+  ?error_handler:((string * exn) list -> page Lwt.t) ->
+  ('get -> raw_post_data -> page Lwt.t) ->
+  ('get, raw_post_data, [> `Head], [> Eliom_service.attached_kind], [> `AttachedCoservice ],
+   'tipo, 'gn, no_param_name,
+   [> `Registrable ], returnB)
+    service
+
+(** Same as {!Eliom_service.Http.head_coservice'} followed by {!register}. *)
+val register_head_coservice' :
+  ?scope:[<Eliom_common.scope] ->
+  ?options:options ->
+  ?charset:string ->
+  ?code: int ->
+  ?content_type:string ->
+  ?headers: Http_headers.t ->
+  ?secure_session:bool ->
+  ?name: string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [<Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  get_params:
+    ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
+  ?error_handler:((string * exn) list -> page Lwt.t) ->
+  ('get -> raw_post_data -> page Lwt.t) ->
+  ('get, raw_post_data, [> `Head], [> Eliom_service.non_attached_kind ], [> `NonattachedCoservice],
+   'tipo, 'gn, no_param_name, [> `Registrable ], returnB)
+    service
+
+(** Same as {!Eliom_service.Http.patch_service} followed by {!register}. *)
+val register_patch_service :
+  ?scope:[<Eliom_common.scope] ->
+  ?options:options ->
+  ?charset:string ->
+  ?code: int ->
+  ?content_type:string ->
+  ?headers: Http_headers.t ->
+  ?secure_session:bool ->
+  ?https:bool ->
+  ?priority:int ->
+  path:Url.path ->
+  get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
+  ?error_handler:((string * exn) list -> page Lwt.t) ->
+  ('get -> raw_post_data -> page Lwt.t) ->
+  ('get, raw_post_data, [> `Patch], [> Eliom_service.attached_kind],[> `Service ],
+   'tipo, 'gn, no_param_name,
+   [> `Registrable ], returnB) service
+
+(** Same as {!Eliom_service.Http.patch_coservice} followed by {!register}. *)
+val register_patch_coservice :
+  ?scope:[<Eliom_common.scope] ->
+  ?options:options ->
+  ?charset:string ->
+  ?code: int ->
+  ?content_type:string ->
+  ?headers: Http_headers.t ->
+  ?secure_session:bool ->
+  ?name: string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [<Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  fallback:(unit, raw_post_data,[`Patch],[ Eliom_service.attached_kind],[ `Service ],
+            [ `WithoutSuffix ] as 'tipo,
+            unit, no_param_name, [< registrable ], returnT)
+    service ->
+  get_params:
+    ('get, [`WithoutSuffix], 'gn) params_type ->
+  ?error_handler:((string * exn) list -> page Lwt.t) ->
+  ('get -> raw_post_data -> page Lwt.t) ->
+  ('get, raw_post_data, [> `Patch], [> Eliom_service.attached_kind], [> `AttachedCoservice ],
+   'tipo, 'gn, no_param_name,
+   [> `Registrable ], returnB)
+    service
+
+(** Same as {!Eliom_service.Http.patch_coservice'} followed by {!register}. *)
+val register_patch_coservice' :
+  ?scope:[<Eliom_common.scope] ->
+  ?options:options ->
+  ?charset:string ->
+  ?code: int ->
+  ?content_type:string ->
+  ?headers: Http_headers.t ->
+  ?secure_session:bool ->
+  ?name: string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [<Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  get_params:
+    ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
+  ?error_handler:((string * exn) list -> page Lwt.t) ->
+  ('get -> raw_post_data -> page Lwt.t) ->
+  ('get, raw_post_data, [> `Patch], [> Eliom_service.non_attached_kind ], [> `NonattachedCoservice],
+   'tipo, 'gn, no_param_name, [> `Registrable ], returnB)
+    service
+
+(** Same as {!Eliom_service.Http.options_service} followed by {!register}. *)
+val register_options_service :
+  ?scope:[<Eliom_common.scope] ->
+  ?options:options ->
+  ?charset:string ->
+  ?code: int ->
+  ?content_type:string ->
+  ?headers: Http_headers.t ->
+  ?secure_session:bool ->
+  ?https:bool ->
+  ?priority:int ->
+  path:Url.path ->
+  get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
+  ?error_handler:((string * exn) list -> page Lwt.t) ->
+  ('get -> raw_post_data -> page Lwt.t) ->
+  ('get, raw_post_data, [> `Options], [> Eliom_service.attached_kind],[> `Service ],
+   'tipo, 'gn, no_param_name,
+   [> `Registrable ], returnB) service
+
+(** Same as {!Eliom_service.Http.options_coservice} followed by {!register}. *)
+val register_options_coservice :
+  ?scope:[<Eliom_common.scope] ->
+  ?options:options ->
+  ?charset:string ->
+  ?code: int ->
+  ?content_type:string ->
+  ?headers: Http_headers.t ->
+  ?secure_session:bool ->
+  ?name: string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [<Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  fallback:(unit, raw_post_data,[`Options],[ Eliom_service.attached_kind],[ `Service ],
+            [ `WithoutSuffix ] as 'tipo,
+            unit, no_param_name, [< registrable ], returnT)
+    service ->
+  get_params:
+    ('get, [`WithoutSuffix], 'gn) params_type ->
+  ?error_handler:((string * exn) list -> page Lwt.t) ->
+  ('get -> raw_post_data -> page Lwt.t) ->
+  ('get, raw_post_data, [> `Options], [> Eliom_service.attached_kind], [> `AttachedCoservice ],
+   'tipo, 'gn, no_param_name,
+   [> `Registrable ], returnB)
+    service
+
+(** Same as {!Eliom_service.Http.options_coservice'} followed by {!register}. *)
+val register_options_coservice' :
+  ?scope:[<Eliom_common.scope] ->
+  ?options:options ->
+  ?charset:string ->
+  ?code: int ->
+  ?content_type:string ->
+  ?headers: Http_headers.t ->
+  ?secure_session:bool ->
+  ?name: string ->
+  ?csrf_safe: bool ->
+  ?csrf_scope: [<Eliom_common.user_scope] ->
+  ?csrf_secure: bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  get_params:
+    ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
+  ?error_handler:((string * exn) list -> page Lwt.t) ->
+  ('get -> raw_post_data -> page Lwt.t) ->
+  ('get, raw_post_data, [> `Options], [> Eliom_service.non_attached_kind ], [> `NonattachedCoservice],
+   'tipo, 'gn, no_param_name, [> `Registrable ], returnB)
+    service
+
+
 (** {2 Low-level function } *)
 
 (** The function [send page] build the HTTP frame corresponding to

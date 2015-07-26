@@ -228,7 +228,9 @@ let handled_method = function
   | Ocsigen_http_frame.Http_header.HEAD
   | Ocsigen_http_frame.Http_header.POST
   | Ocsigen_http_frame.Http_header.PUT
-  | Ocsigen_http_frame.Http_header.DELETE -> true
+  | Ocsigen_http_frame.Http_header.DELETE
+  | Ocsigen_http_frame.Http_header.PATCH
+  | Ocsigen_http_frame.Http_header.OPTIONS -> true
   | _ -> false
 
 let gen is_eliom_extension sitedata = function
