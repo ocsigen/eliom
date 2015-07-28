@@ -116,7 +116,9 @@ let nl_template =
 let nl_template_string = "__nl_n_eliom-template.name"
 
 let send ?(expecting_process_page = false) ?cookies_info
-    ?get_args ?post_args ?form_arg url result =
+    ?get_args ?post_args ?form_arg
+    ?progress ?upload_progress ?override_mime_type
+    url result =
   let rec aux i ?cookies_info ?(get_args=[]) ?post_args ?form_arg url =
     let (https, path) = match cookies_info with
       | Some c -> c
@@ -199,7 +201,8 @@ let send ?(expecting_process_page = false) ?cookies_info
     try_lwt
       lwt r = XmlHttpRequest.perform_raw_url
         ?headers:(Some headers) ?content_type:None
-        ?post_args ~get_args ?form_arg:form_contents ~check_headers url in
+        ?post_args ~get_args ?form_arg:form_contents ~check_headers
+        ?progress ?upload_progress ?override_mime_type url in
       (match r.XmlHttpRequest.headers Eliom_common.set_tab_cookies_header_name
        with
          | None | Some "" -> () (* Empty tab_cookies for IE compat *)
@@ -312,30 +315,53 @@ let add_button_arg inj args form =
     If [~get_params] is present, it will be appended to the form fields.
 *)
 let send_get_form
-    ?expecting_process_page ?cookies_info ?(get_args=[]) ?post_args form url =
+    ?expecting_process_page ?cookies_info ?(get_args=[]) ?post_args
+    ?progress ?upload_progress ?override_mime_type
+    form url =
   let get_args = get_args@(Form.get_form_contents form) in
   (* BEGIN FORMDATA HACK *)
   let get_args = add_button_arg Js.to_string (Some get_args) form in
   (* END FORMDATA HACK *)
-  send ?expecting_process_page ?cookies_info ?get_args ?post_args url
+  send ?expecting_process_page ?cookies_info ?get_args ?post_args
+    ?progress ?upload_progress ?override_mime_type
+    url
 
 (** Send a POST form with tab cookies and half/full XHR. *)
 let send_post_form
-    ?expecting_process_page ?cookies_info ?get_args ?post_args form url =
+    ?expecting_process_page ?cookies_info ?get_args ?post_args
+    ?progress ?upload_progress ?override_mime_type
+    form url =
   (* BEGIN FORMDATA HACK *)
   let post_args = add_button_arg (fun x -> `String x) post_args form in
   (* END FORMDATA HACK *)
   send ?expecting_process_page ?cookies_info ?get_args ?post_args
+    ?progress ?upload_progress ?override_mime_type
     ~form_arg:(Form.form_elements form) url
 
-let http_get ?expecting_process_page ?cookies_info url get_args =
-  send ?expecting_process_page ?cookies_info ~get_args url
+let http_get ?expecting_process_page ?cookies_info
+    ?progress ?upload_progress ?override_mime_type
+    url get_args =
+  send ?expecting_process_page ?cookies_info
+    ?progress ?upload_progress ?override_mime_type
+    ~get_args url
 
-let http_post ?expecting_process_page ?cookies_info url post_args =
-  send ?expecting_process_page ?cookies_info ~post_args url
+let http_post ?expecting_process_page ?cookies_info
+    ?progress ?upload_progress ?override_mime_type
+    url post_args =
+  send ?expecting_process_page ?cookies_info ~post_args
+    ?progress ?upload_progress ?override_mime_type
+    url
 
-let http_put ?expecting_process_page ?cookies_info url post_args =
-  send ?expecting_process_page ?cookies_info ~post_args url
+let http_put ?expecting_process_page ?cookies_info
+    ?progress ?upload_progress ?override_mime_type
+    url post_args =
+  send ?expecting_process_page ?cookies_info ~post_args
+    ?progress ?upload_progress ?override_mime_type
+    url
 
-let http_delete ?expecting_process_page ?cookies_info url post_args =
-  send ?expecting_process_page ?cookies_info ~post_args url
+let http_delete ?expecting_process_page ?cookies_info
+    ?progress ?upload_progress ?override_mime_type
+    url post_args =
+  send ?expecting_process_page ?cookies_info ~post_args
+    ?progress ?upload_progress ?override_mime_type
+    url

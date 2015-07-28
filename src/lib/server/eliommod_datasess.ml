@@ -61,25 +61,25 @@ let close_data_state ~scope ~secure ?sp () =
            remove it from the session group table.
            It will remove all the data table entries
            and also the entry in the session table *)
-	begin
-	  match scope with
+        begin
+          match scope with
             | `Session_group _ ->
-	      begin
-		(* If we want to close all the group of browser sessions,
-		   the node is found in the group table: *)
-		match
-		  Eliommod_sessiongroups.Data.find_node_in_group_of_groups
-		    !(c.Eliom_common.dc_session_group)
-		with
-		  | None -> Lwt_log.ign_error ~section:Lwt_log.eliom "No group of groups. Please report this problem."
-		  | Some g -> Eliommod_sessiongroups.Data.remove g
-	      end
-	    | `Session _ | `Client_process _ ->
+              begin
+                (* If we want to close all the group of browser sessions,
+                   the node is found in the group table: *)
+                match
+                  Eliommod_sessiongroups.Data.find_node_in_group_of_groups
+                    !(c.Eliom_common.dc_session_group)
+                with
+                  | None -> Lwt_log.ign_error ~section:Lwt_log.eliom "No group of groups. Please report this problem."
+                  | Some g -> Eliommod_sessiongroups.Data.remove g
+              end
+            | `Session _ | `Client_process _ ->
               (* If we want to close a (tab/browser) session, the node is found
-		 in the cookie info: *)
+                 in the cookie info: *)
               Eliommod_sessiongroups.Data.remove
-		c.Eliom_common.dc_session_group_node
-	end;
+                c.Eliom_common.dc_session_group_node
+        end;
         ior := Eliom_common.SCNo_data
       | _ -> ()
 
@@ -108,56 +108,53 @@ let rec find_or_create_data_cookie ?set_session_group
 
     let set_session_group =
       match cookie_scope with
-	| `Client_process n ->
-	  begin (* We create a group whose name is the
-		   browser session cookie
-		   and put the tab session into it. *)
+        | `Client_process n ->
+          begin (* We create a group whose name is the
+                   browser session cookie
+                   and put the tab session into it. *)
             let v = find_or_create_data_cookie
-	      ~cookie_scope:(`Session n)
+              ~cookie_scope:(`Session n)
               ~secure
               ~sp
               ()
             in
-            Eliommod_sessiongroups.Data.set_max
-              v.Eliom_common.dc_session_group_node
-              (fst sitedata.Eliom_common.max_volatile_data_tab_sessions_per_group);
             Some v.Eliom_common.dc_value
-	  end
-	| _ -> set_session_group
+          end
+        | _ -> set_session_group
     in
     let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
 
     let rec aux () =
       let c = Eliommod_cookies.make_new_session_id () in
-      try
-        ignore (Eliom_common.SessionCookies.find table c);
-        (* Just to be sure it is not already used.
-           Actually not needed for the cookies we use *)
-        aux ()
-      with Not_found ->
-        let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
-        let serverexp = ref None (* Some 0. *) (* None = never. We'll change it later. *) in
-        let fullsessgrpref = ref fullsessgrp in
-        let node = Eliommod_sessiongroups.Data.add sitedata c fullsessgrp in
-        Eliom_common.SessionCookies.replace
-        (* actually it will add the cookie *)
-          table
-          c
-          (full_st_name,
-           serverexp (* exp on server *),
-           usertimeout,
-           fullsessgrpref,
-           node);
-        {Eliom_common.dc_value= c;
-         Eliom_common.dc_timeout= usertimeout;
-         Eliom_common.dc_exp= serverexp;
-         Eliom_common.dc_cookie_exp=
-            ref (Eliom_common.default_client_cookie_exp ());
-         Eliom_common.dc_session_group= fullsessgrpref;
-         Eliom_common.dc_session_group_node= node;
-        }
+      (* Just to be sure it is not already used.
+         Actually not needed for the cookies we use *)
+      if Eliom_common.SessionCookies.mem table c
+      then aux ()
+      else c
     in
-    aux ()
+    let c = aux () in
+    let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
+    let serverexp = ref None (* Some 0. *) (* None = never. We'll change it later. *) in
+    let fullsessgrpref = ref fullsessgrp in
+    let node = Eliommod_sessiongroups.Data.add sitedata c fullsessgrp in
+    Eliom_common.SessionCookies.replace
+      (* actually it will add the cookie *)
+      table
+      c
+      (full_st_name,
+       serverexp (* exp on server *),
+       usertimeout,
+       fullsessgrpref,
+       node);
+    {Eliom_common.dc_value= c;
+     Eliom_common.dc_timeout= usertimeout;
+     Eliom_common.dc_exp= serverexp;
+     Eliom_common.dc_cookie_exp=
+       ref (Eliom_common.default_client_cookie_exp ());
+     Eliom_common.dc_session_group= fullsessgrpref;
+     Eliom_common.dc_session_group_node= node;
+    }
+
   in
 
   let ((_, cookie_info, _), secure_ci) =
@@ -282,7 +279,7 @@ let create_volatile_table, create_volatile_table_during_session =
     (scope, secure, t)
   in
   ((fun ~scope ~secure ->
-    let sitedata = Eliom_common.get_current_sitedata () in
-    aux ~scope ~secure sitedata),
+     let sitedata = Eliom_common.get_current_sitedata () in
+     aux ~scope ~secure sitedata),
    (fun ~scope ~secure sitedata ->
-     aux ~scope ~secure sitedata))
+      aux ~scope ~secure sitedata))

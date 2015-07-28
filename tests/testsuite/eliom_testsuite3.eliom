@@ -113,6 +113,7 @@ let eliomclient1 =
                [pcdata "I am a clickable paragraph"];
 
            ]))
+
 (*wiki*
 All services belonging to the application will be entry points to the
 application. It means that if you call such a service, the client side

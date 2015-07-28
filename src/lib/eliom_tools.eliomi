@@ -16,6 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+{shared{
 
 (** Helpers for (hierarchical) menu generation in HTML5. See
     the Eliom manual for more information about {% <<a_manual
@@ -250,3 +251,14 @@ val wrap_handler :
   ('get -> 'post -> 'res Lwt.t) ->
   ('a -> 'get -> 'post -> 'res Lwt.t) ->
   ('get -> 'post -> 'res Lwt.t)
+
+}}
+{client{
+
+(** Record an (external) JavaScript file to be included in {!Eliom_tools.F.html}. *)
+val with_js_file : string list -> unit
+
+(** Record an CSS file to be included in {!Eliom_tools.F.html}. *)
+val with_css_file : string list -> unit
+
+ }}

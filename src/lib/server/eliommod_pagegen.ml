@@ -71,7 +71,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
 
       !service_cookies_info;
 
-  (* Update "in memory data" expiration date and value *)
+    (* Update "in memory data" expiration date and value *)
     Eliom_common.Full_state_name_table.iter
 
       (fun name v ->
@@ -98,7 +98,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
       !data_cookies_info;
 
 
-  (* Update persistent expiration date, user timeout and value *)
+    (* Update persistent expiration date, user timeout and value *)
     Eliom_common.Full_state_name_table.fold
 
       (fun name v thr ->
@@ -196,7 +196,6 @@ let execute
     (fun () -> generate_page now info sitedata)
     (fun e -> handle_site_exn e info sitedata)
   >>= fun result ->
-
   update_cookie_table ~now sitedata
     ((service_cookies_info, data_cookies_info, pers_cookies_info), secure_ci)
   >>= fun () ->
@@ -204,7 +203,6 @@ let execute
   update_cookie_table ~now sitedata
     ((service_tab_cookies_info, data_tab_cookies_info, pers_tab_cookies_info), secure_ci_tab)
   >>= fun () ->
-
   Lwt.return result
 
 

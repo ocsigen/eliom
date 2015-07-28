@@ -32,14 +32,14 @@ open Ocsigen_extensions
 
 
 (****************************************************************************)
-let default_max_persistent_sessions_per_group = ref 5
+let default_max_persistent_data_sessions_per_group = ref 5
 let default_max_service_sessions_per_group = ref 5
 let default_max_service_sessions_per_subnet = ref 1000000
-let default_max_data_sessions_per_group = ref 5
-let default_max_data_sessions_per_subnet = ref 1000000
-let default_max_persistent_tab_sessions_per_group = ref 50
+let default_max_volatile_data_sessions_per_group = ref 5
+let default_max_volatile_data_sessions_per_subnet = ref 1000000
+let default_max_persistent_data_tab_sessions_per_group = ref 50
 let default_max_service_tab_sessions_per_group = ref 50
-let default_max_data_tab_sessions_per_group = ref 50
+let default_max_volatile_data_tab_sessions_per_group = ref 50
 
 (* Subnet defaults be large enough, because it must work behind a reverse proxy.
 
@@ -124,26 +124,37 @@ let new_sitedata =
            exn_handler = Eliommod_pagegen.def_handler;
            unregistered_services = [];
            unregistered_na_services = [];
+
            max_service_sessions_per_group =
-              !default_max_service_sessions_per_group, false;
+  !default_max_service_sessions_per_group, false;
+
            max_volatile_data_sessions_per_group =
-              !default_max_service_sessions_per_group, false;
-           max_persistent_data_sessions_per_group =
-              Some !default_max_persistent_sessions_per_group, false;
+  !default_max_volatile_data_sessions_per_group, false;
+
+              max_persistent_data_sessions_per_group =
+Some !default_max_persistent_data_sessions_per_group, false;
+
            max_service_tab_sessions_per_group =
-              !default_max_service_tab_sessions_per_group, false;
+  !default_max_service_tab_sessions_per_group, false;
+
            max_volatile_data_tab_sessions_per_group =
-              !default_max_service_tab_sessions_per_group, false;
-           max_persistent_data_tab_sessions_per_group =
-              Some !default_max_persistent_tab_sessions_per_group, false;
+  !default_max_volatile_data_tab_sessions_per_group, false;
+
+              max_persistent_data_tab_sessions_per_group =
+Some !default_max_persistent_data_tab_sessions_per_group, false;
+
            max_service_sessions_per_subnet =
-              !default_max_data_sessions_per_subnet, false;
+  !default_max_service_sessions_per_subnet, false;
+
            max_volatile_data_sessions_per_subnet =
-              !default_max_data_sessions_per_subnet, false;
+  !default_max_volatile_data_sessions_per_subnet, false;
+
            max_anonymous_services_per_session =
-              !default_max_anonymous_services_per_session, false;
+  !default_max_anonymous_services_per_session, false;
+
            max_anonymous_services_per_subnet =
-              !default_max_anonymous_services_per_subnet, false;
+  !default_max_anonymous_services_per_subnet, false;
+
            dlist_ip_table = dlist_table;
            ipv4mask = None, false;
            ipv6mask = None, false;
@@ -480,12 +491,12 @@ let rec parse_global_config = function
          (fun ct _ -> Eliommod_timeouts.set_default_persistent_timeout ct),
          (fun v -> default_max_service_sessions_per_group := v),
          (fun v -> default_max_service_sessions_per_subnet := v),
-         (fun v -> default_max_data_sessions_per_group := v),
-         (fun v -> default_max_data_sessions_per_subnet := v),
-         (fun v -> default_max_persistent_sessions_per_group := v),
+         (fun v -> default_max_volatile_data_sessions_per_group := v),
+         (fun v -> default_max_volatile_data_sessions_per_subnet := v),
+         (fun v -> default_max_persistent_data_sessions_per_group := v),
          (fun v -> default_max_service_tab_sessions_per_group := v),
-         (fun v -> default_max_data_tab_sessions_per_group := v),
-         (fun v -> default_max_persistent_tab_sessions_per_group := v),
+         (fun v -> default_max_volatile_data_tab_sessions_per_group := v),
+         (fun v -> default_max_persistent_data_tab_sessions_per_group := v),
          (fun v -> default_max_anonymous_services_per_session := v),
          (fun v -> default_max_anonymous_services_per_subnet := v),
          (fun v -> default_max_volatile_groups_per_site := v),
@@ -754,7 +765,6 @@ let parse_config hostpattern conf_info site_dir =
         let content =
           parse_eliom_options
             ((fun ct snoo v ->
-          print_endline "svt";
               set_timeout Eliommod_timeouts.set_global_data_timeout_ ct snoo v;
               set_timeout Eliommod_timeouts.set_global_service_timeout_ ct snoo v
              ),

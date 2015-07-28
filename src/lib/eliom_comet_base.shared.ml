@@ -61,7 +61,7 @@ type answer =
   | Stateless_messages of (string * (string * int) channel_data) array
   | Stateful_messages of (string * string channel_data) array
   | Timeout
-  | Process_closed
+  | State_closed
   | Comet_error of string
 deriving (Json)
 

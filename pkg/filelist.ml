@@ -18,6 +18,8 @@ let server = {
     "eliom_parameter";
     "eliom_pervasives";
     "eliom_react";
+    "eliom_csreact";
+    "eliom_cscache";
     "eliom_reference";
     "eliom_registration";
     "eliom_request_info";
@@ -75,9 +77,12 @@ let client = {
     "eliom_parameter";
     "eliom_pervasives";
     "eliom_react";
+    "eliom_csreact";
+    "eliom_cscache";
     "eliom_registration";
     "eliom_service";
     "eliom_tools";
+    "eliom_tools_common";
     "eliom_types";
     "eliom_unwrap";
     "eliom_uri";

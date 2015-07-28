@@ -75,31 +75,23 @@ val unwrap : string -> int -> 'a
      (id, "late_unwrap_mark").
 
    Every occurrence of such a value in a field of another value
-   (i.e. sharing) is recorded during unwrapping.  There are two way
-   for replacing values marked for late unwrapping:
+   (i.e. sharing) is recorded during unwrapping.
 
-   Either, register an unwrapping function [f] for unwrap_id [id] {e
-   late}. For every value [v] with late unwrapping marker with unwrap
-   ID [id], [f v] is computed and every occurrence of [v] in the
-   originally unwrapped value is replaced by the result.
-
-   Or, replace a set of values marked for late unwrapping, defined by
-   a predicate, explicitly by a new value. This is used for the
-   consecutive unwrapping of client values.
+   These values can be later replaced using the function
+   [late_unwrap_value] below. This is used for the consecutive
+   unwrapping of client values.
 
    Note, that when starting the actual client program, i.e. after
    running all top level declarations, no values marked for late
-   unwrapping should remain (cf. [has_values_for_late_unwrapping]).
+   unwrapping should remain.
 *)
 
 val register_unwrapper' : unwrap_id -> ('a -> 'b option) -> unit
 
-(** [late_unwrap_value id predicate new_value] replaces each occurrence
-    of every value which is marked for late unwrapping and on which
-    applies [predicate], with [new_value].
+(** [late_unwrap_value old_value new_value] replaces each occurrence
+    of [old_value] with [new_value].
 *)
-val late_unwrap_value : unwrap_id -> (_ -> bool) -> _ -> unit
+val late_unwrap_value : Ocsigen_lib.poly -> _ -> unit
 
-(** The list of unwrap_id for which values marked for late unwrapping
-    remain. *)
-val remaining_values_for_late_unwrapping : unit -> int list
+(** Lwt_log section for this module. *)
+val log_section : Lwt_log.section

@@ -38,8 +38,8 @@ let encode_global_downgoing s =
 
 let timeout_msg =
  Eliom_comet_base.Json_answer.to_string Eliom_comet_base.Timeout
-let process_closed_msg =
-  Eliom_comet_base.Json_answer.to_string Eliom_comet_base.Process_closed
+let state_closed_msg =
+  Eliom_comet_base.Json_answer.to_string Eliom_comet_base.State_closed
 let error_msg s =
   Eliom_comet_base.Json_answer.to_string (Eliom_comet_base.Comet_error s)
 
@@ -62,7 +62,7 @@ let fallback_service =
   Eliom_common.lazy_site_value_from_fun
     (fun () -> Comet.register_service ~path:comet_path
       ~get_params:Eliom_parameter.unit
-      (fun () () -> Lwt.return process_closed_msg))
+      (fun () () -> Lwt.return state_closed_msg))
 
 let fallback_global_service =
   Eliom_common.lazy_site_value_from_fun
@@ -120,17 +120,17 @@ struct
   let find_channel =
     let dummy_channel =
       { ch_id = "";
-	ch_index = 0;
-	ch_content = Dlist.create 1;
-	ch_wakeup = Lwt_condition.create (); }
+        ch_index = 0;
+        ch_content = Dlist.create 1;
+        ch_wakeup = Lwt_condition.create (); }
     in
     fun ch_id ->
       let dummy = { dummy_channel with ch_id = ch_id } in
       try
-	Some (Weak_channel_table.find channels dummy)
+        Some (Weak_channel_table.find channels dummy)
       with
-	| Not_found ->
-	  None
+        | Not_found ->
+          None
 
   let wakeup_waiters channel =
     Lwt_condition.broadcast channel.ch_wakeup ()
@@ -143,14 +143,14 @@ struct
     (* hide non weak reference to be sure not to keep a strong reference *)
     let f msg =
       match Weak.get channel 0 with
-	| None ->
-	  raise_lwt Not_found
-	  (* terminates the loop: remove reference on the stream, etc ... *)
-	| Some channel ->
-	  channel.ch_index <- succ channel.ch_index;
-	  ignore (Dlist.add (msg,channel.ch_index) channel.ch_content: 'a option);
-	  wakeup_waiters channel;
-	  Lwt.return ()
+        | None ->
+          raise_lwt Not_found
+          (* terminates the loop: remove reference on the stream, etc ... *)
+        | Some channel ->
+          channel.ch_index <- succ channel.ch_index;
+          ignore (Dlist.add (msg,channel.ch_index) channel.ch_content: 'a option);
+          wakeup_waiters channel;
+          Lwt.return ()
     in
     ignore (Lwt_stream.iter_s f stream:unit Lwt.t)
 
@@ -161,17 +161,17 @@ struct
     let name = make_name name in
     let channel =
       { ch_id = name;
-	ch_index = 0;
-	ch_content = Dlist.create size;
-	ch_wakeup = Lwt_condition.create () }
+        ch_index = 0;
+        ch_content = Dlist.create size;
+        ch_wakeup = Lwt_condition.create () }
     in
     run_channel channel stream;
     match find_channel name with
       | Some _ ->
-	failwith (Printf.sprintf "can't create channel %s: a channel with the same name already exists" name)
+        failwith (Printf.sprintf "can't create channel %s: a channel with the same name already exists" name)
       | None ->
-	Weak_channel_table.add channels channel;
-	channel
+        Weak_channel_table.add channels channel;
+        channel
 
   let get_channel (ch_id,position) =
     match find_channel ch_id with
@@ -183,12 +183,12 @@ struct
   let queue_take channel last =
     try
       Dlist.fold
-	(fun l (v,index) ->
-	  if index >= last
-	  then (channel.ch_id,Eliom_comet_base.Data (v,index))::l
-	  else raise (Finished l))
-	[]
-	channel.ch_content
+        (fun l (v,index) ->
+          if index >= last
+          then (channel.ch_id,Eliom_comet_base.Data (v,index))::l
+          else raise (Finished l))
+        []
+        channel.ch_content
     with
       | Finished l -> l
 
@@ -196,37 +196,37 @@ struct
     | Right ch_id -> [ch_id, Eliom_comet_base.Closed]
     | Left (channel,position) ->
       match position with
-	(* the first request of the client should be with i = 1 *)
-	(* when the client is requesting the newest data, only return
-	   one if he don't already have it *)
-	| Eliom_comet_base.Newest i when i > channel.ch_index -> []
-	| Eliom_comet_base.Newest _
-	| Eliom_comet_base.Last None -> (* initialisation of external newest channels *)
-	  (match Dlist.newest channel.ch_content with
-	    | None -> [] (* should not happen *)
-	    | Some node ->
-	      [channel.ch_id,Eliom_comet_base.Data (Dlist.value node)])
-	(* when the client is requesting the data after index i return
-	   all data with index gretter or equal to i*)
-	| Eliom_comet_base.After i when i > channel.ch_index -> []
-	(* if the requested value is not in the queue anymore, tell
-	   the client that its request was dropped *)
-	| Eliom_comet_base.After i when i <= channel.ch_index - (Dlist.size channel.ch_content) ->
-	  [channel.ch_id,Eliom_comet_base.Full]
-	| Eliom_comet_base.After i ->
-	  queue_take channel i
-	| Eliom_comet_base.Last (Some n) ->
+        (* the first request of the client should be with i = 1 *)
+        (* when the client is requesting the newest data, only return
+           one if he don't already have it *)
+        | Eliom_comet_base.Newest i when i > channel.ch_index -> []
+        | Eliom_comet_base.Newest _
+        | Eliom_comet_base.Last None -> (* initialisation of external newest channels *)
+          (match Dlist.newest channel.ch_content with
+            | None -> [] (* should not happen *)
+            | Some node ->
+              [channel.ch_id,Eliom_comet_base.Data (Dlist.value node)])
+        (* when the client is requesting the data after index i return
+           all data with index gretter or equal to i*)
+        | Eliom_comet_base.After i when i > channel.ch_index -> []
+        (* if the requested value is not in the queue anymore, tell
+           the client that its request was dropped *)
+        | Eliom_comet_base.After i when i <= channel.ch_index - (Dlist.size channel.ch_content) ->
+          [channel.ch_id,Eliom_comet_base.Full]
+        | Eliom_comet_base.After i ->
+          queue_take channel i
+        | Eliom_comet_base.Last (Some n) ->
           let i = channel.ch_index - (min (Dlist.size channel.ch_content) n) in
-	  queue_take channel i
+          queue_take channel i
 
   let has_data = function
     | Right _ -> true (* a channel was closed: need to tell it to the client *)
     | Left (channel, position) ->
       match position with
-	| Eliom_comet_base.Newest i when i > channel.ch_index -> false
-	| Eliom_comet_base.Newest i -> true
-	| Eliom_comet_base.After i when i > channel.ch_index -> false
-	| Eliom_comet_base.After i -> true
+        | Eliom_comet_base.Newest i when i > channel.ch_index -> false
+        | Eliom_comet_base.Newest i -> true
+        | Eliom_comet_base.After i when i > channel.ch_index -> false
+        | Eliom_comet_base.After i -> true
         | Eliom_comet_base.Last n when (Dlist.size channel.ch_content) > 0 -> true
         | Eliom_comet_base.Last n -> false
 
@@ -243,18 +243,18 @@ struct
     then Lwt.return ()
     else
       Lwt_unix.with_timeout timeout
-	(fun () -> really_wait_data requests)
+        (fun () -> really_wait_data requests)
 
   let handle_request () = function
     | Eliom_comet_base.Stateful _ -> failwith "attempting to request data on stateless service with a stateful request"
     | Eliom_comet_base.Stateless requests ->
       let requests = List.map get_channel (Array.to_list requests) in
       lwt res =
-	try_lwt
+        try_lwt
           lwt () = wait_data requests in
-	  Lwt.return (List.flatten (List.map get_available_data requests))
+          Lwt.return (List.flatten (List.map get_available_data requests))
         with
-	  | Lwt_unix.Timeout -> Lwt.return []
+          | Lwt_unix.Timeout -> Lwt.return []
       in
       Lwt.return (encode_global_downgoing res)
 
@@ -262,9 +262,9 @@ struct
     Eliom_common.lazy_site_value_from_fun
       (fun () -> Comet.register_post_service
           (*VVV Why isn't this a POST non-attached coservice? --Vincent *)
-	        ~fallback:(Eliom_common.force_lazy_site_value fallback_global_service)
-	       ~post_params:Ecb.comet_request_param
-	      handle_request)
+                ~fallback:(Eliom_common.force_lazy_site_value fallback_global_service)
+               ~post_params:Ecb.comet_request_param
+              handle_request)
 
   let get_service () =
     ((Eliom_common.force_lazy_site_value global_service)
@@ -321,25 +321,27 @@ end = struct
     | Inactive of float
     (** The last request from the client completed at that time *)
 
+  type waiter = [`Data | `Update] Lwt.t
+
   type handler =
       {
-	hd_scope : Eliom_common.client_process_scope;
-	(* id : int; pour tester que ce sont des service differents... *)
-	mutable hd_active_streams : ( chan_id * ( string Eliom_comet_base.channel_data Lwt_stream.t ) ) list;
-	(** streams that are currently sent to client *)
-	mutable hd_unregistered_streams : ( chan_id * ( string Eliom_comet_base.channel_data Lwt_stream.t ) ) list;
-	(** streams that are created on the server side, but client did not register *)
-	mutable hd_registered_chan_id : chan_id list;
-	(** the fusion of all the streams from hd_active_streams *)
-	mutable hd_update_streams : unit Lwt.t;
-	(** thread that wakeup when there are new active streams. *)
-	mutable hd_update_streams_w : unit Lwt.u;
-	hd_service : internal_comet_service;
-	mutable hd_last : string * int;
+        hd_scope : Eliom_common.client_process_scope;
+        (* id : int; pour tester que ce sont des service differents... *)
+        mutable hd_active_streams : ( chan_id * ( string Eliom_comet_base.channel_data Lwt_stream.t * waiter ) ) list;
+        (** streams that are currently sent to client *)
+        mutable hd_unregistered_streams : ( chan_id * ( string Eliom_comet_base.channel_data Lwt_stream.t * waiter ) ) list;
+        (** streams that are created on the server side, but client did not register *)
+        mutable hd_registered_chan_id : chan_id list;
+        (** the fusion of all the streams from hd_active_streams *)
+        mutable hd_update_streams : waiter;
+        (** thread that wakeup when there are new active streams. *)
+        mutable hd_update_streams_w : [`Data | `Update] Lwt.u;
+        hd_service : internal_comet_service;
+        mutable hd_last : string * int;
         (** the last message sent to the client, if he sends a request
-	    with the same number, this message is immediately sent
-	    back.*)
-	mutable hd_activity : activity;
+            with the same number, this message is immediately sent
+            back.*)
+        mutable hd_activity : activity;
       }
 
   exception Connection_closed
@@ -352,35 +354,35 @@ end = struct
   let set_inactive handler =
     match handler.hd_activity with
       | Active l ->
-	handler.hd_activity <- Inactive (Unix.gettimeofday ());
-	List.iter (fun waiter -> Lwt.wakeup waiter ()) l
+        handler.hd_activity <- Inactive (Unix.gettimeofday ());
+        List.iter (fun waiter -> Lwt.wakeup waiter ()) l
       | Inactive _ -> ()
 
   let update_inactive handler =
     match handler.hd_activity with
       | Active _ -> ()
       | Inactive _ ->
-	handler.hd_activity <- Inactive (Unix.gettimeofday ())
+        handler.hd_activity <- Inactive (Unix.gettimeofday ())
 
   let wait_handler_timeout handler t =
     let rec run () =
       match handler.hd_activity with
-	| Active l ->
-	  let waiter,waker = Lwt.task () in
-	  let t =
-	    lwt () = waiter in
-	    lwt () = Lwt_unix.sleep t in
-	    run ()
-	  in
-	  handler.hd_activity <- Active (waker::l);
-	  t
-	| Inactive inactive_time ->
-	  let now = Unix.gettimeofday () in
-	  if now -. inactive_time > t
-	  then Lwt.return ()
-	  else
-	    lwt () = Lwt_unix.sleep (t -. (now -. inactive_time)) in
-	    run ()
+        | Active l ->
+          let waiter,waker = Lwt.task () in
+          let t =
+            lwt () = waiter in
+            lwt () = Lwt_unix.sleep t in
+            run ()
+          in
+          handler.hd_activity <- Active (waker::l);
+          t
+        | Inactive inactive_time ->
+          let now = Unix.gettimeofday () in
+          if now -. inactive_time > t
+          then Lwt.return ()
+          else
+            lwt () = Lwt_unix.sleep (t -. (now -. inactive_time)) in
+            run ()
     in
     run ()
 
@@ -390,7 +392,7 @@ end = struct
       opened when the client wants to listen to new channels for
       instance. *)
   let new_connection handler =
-    let t,w = Lwt.task () in
+    let t,w = Lwt.wait () in
     let wakener = handler.hd_update_streams_w in
     handler.hd_update_streams <- t;
     handler.hd_update_streams_w <- w;
@@ -401,41 +403,52 @@ end = struct
       wainting for inputs ( wait_data ) such that it can receive the messages from
       the new channel *)
   let signal_update handler =
-    let t,w = Lwt.task () in
+    let t,w = Lwt.wait () in
     let wakener = handler.hd_update_streams_w in
     handler.hd_update_streams <- t;
     handler.hd_update_streams_w <- w;
-    Lwt.wakeup wakener ()
+    Lwt.wakeup wakener `Update
 
   let wait_streams streams =
-    Lwt.pick (List.map (fun (_,s) -> Lwt_stream.peek s) streams)
+    List.map (fun (_,(_, w)) -> w) streams
+
+  let stream_waiter s =
+    Lwt.no_cancel (Lwt_stream.peek s >>= fun _ -> Lwt.return `Data)
 
   (** read up to [n] messages in the list of streams [streams] without blocking. *)
-  let read_streams n streams =
-    let rec aux acc n streams =
+  let read_streams n handler =
+    let streams = handler.hd_active_streams in
+    let rec aux stream_acc acc n streams =
       match streams with
-	| [] -> acc
-	| (id,stream)::other_streams ->
-	  match n with
-	    | 0 -> acc
-	    | _ ->
-	      let l = Lwt_stream.get_available_up_to n stream in
-	      let l' = List.map (fun v -> id,v) l in
-	      let rest = n - (List.length l) in
-	      aux (l'@acc) rest other_streams
+      | [] -> (List.rev stream_acc, acc)
+      | (id,(stream, waiter))::other_streams ->
+        if n = 0 then
+          (List.rev_append stream_acc streams, acc)
+        else
+          let l = Lwt_stream.get_available_up_to n stream in
+          let l' = List.map (fun v -> id,v) l in
+          let rest = n - (List.length l) in
+          let stream_acc =
+            if l = [] then (id, (stream, waiter)) :: stream_acc
+            else (id, (stream, stream_waiter stream)) :: stream_acc
+          in
+          aux stream_acc (l'@acc) rest other_streams
     in
-    aux [] n streams
+    let (streams, acc) = aux [] [] n streams in
+    handler.hd_active_streams <- streams;
+    acc
 
   (** wait for data on any channel that the client asks. It correcly
       handles new channels the server creates after that the client
       registered them *)
-  let rec wait_data handler =
+  let rec wait_data wait_closed_connection handler =
     Lwt.choose
-      [ Lwt.protected (wait_streams handler.hd_active_streams) >>= ( fun _ -> Lwt.return `Data );
-	Lwt.protected (handler.hd_update_streams) >>= ( fun _ -> Lwt.return `Update ) ]
+      (wait_closed_connection ::
+       handler.hd_update_streams ::
+       wait_streams handler.hd_active_streams)
     >>= ( function
       | `Data -> Lwt.return ()
-      | `Update -> wait_data handler )
+      | `Update -> wait_data wait_closed_connection handler )
 
   let launch_stream handler (chan_id,stream) =
     handler.hd_active_streams <- (chan_id,stream)::handler.hd_active_streams;
@@ -446,13 +459,13 @@ end = struct
     if not (List.mem_assoc chan_id handler.hd_active_streams)
     then
       try
-	let stream = List.assoc chan_id handler.hd_unregistered_streams in
-	handler.hd_unregistered_streams <-
-	  List.remove_assoc chan_id handler.hd_unregistered_streams;
-	launch_stream handler (chan_id,stream)
+        let stream = List.assoc chan_id handler.hd_unregistered_streams in
+        handler.hd_unregistered_streams <-
+          List.remove_assoc chan_id handler.hd_unregistered_streams;
+        launch_stream handler (chan_id,stream)
       with
-	| Not_found ->
-	  handler.hd_registered_chan_id <- chan_id::handler.hd_registered_chan_id
+        | Not_found ->
+          handler.hd_registered_chan_id <- chan_id::handler.hd_registered_chan_id
 
   let close_channel' handler chan_id =
     Lwt_log.ign_info_f ~section "close channel %s" chan_id;
@@ -471,50 +484,48 @@ end = struct
     let f () req =
       match req with
       | Eliom_comet_base.Stateless _ ->
-	failwith "attempting to request data on stateful service with a stateless request"
+        failwith "attempting to request data on stateful service with a stateless request"
       | Eliom_comet_base.Stateful (Eliom_comet_base.Request_data number) ->
-	      Lwt_log.ign_info_f ~section "received request %i" number;
-	(* if a new connection occurs for a service, we reply
-	   immediately to the previous with no data. *)
+              Lwt_log.ign_info_f ~section "received request %i" number;
+        (* if a new connection occurs for a service, we reply
+           immediately to the previous with no data. *)
 
-	new_connection handler;
-	if snd handler.hd_last = number
-	then Lwt.return (fst handler.hd_last)
-	else
-	  Lwt.catch
-	    (fun () -> Lwt_unix.with_timeout timeout
-	      (fun () ->
-                lwt () = Lwt.choose
-                  [ wait_closed_connection ();
-		    wait_data handler ] in
-		let messages = read_streams 100 handler.hd_active_streams in
-		let message = encode_downgoing messages in
-		handler.hd_last <- (message,number);
-		set_inactive handler;
-		Lwt.return message ) )
-	    (function
-	      | New_connection -> Lwt.return (encode_downgoing [])
-	      (* happens if an other connection has been opened on that service *)
-	      (* CCC in this case, it would be beter to return code 204: no content *)
-	      | Lwt_unix.Timeout ->
-		set_inactive handler;
-		Lwt.return timeout_msg
+        new_connection handler;
+        if snd handler.hd_last = number
+        then Lwt.return (fst handler.hd_last)
+        else
+          Lwt.catch
+            (fun () -> Lwt_unix.with_timeout timeout
+              (fun () ->
+                lwt () = wait_data (wait_closed_connection ()) handler in
+                let messages = read_streams 100 handler in
+                let message = encode_downgoing messages in
+                handler.hd_last <- (message,number);
+                set_inactive handler;
+                Lwt.return message ) )
+            (function
+              | New_connection -> Lwt.return (encode_downgoing [])
+              (* happens if an other connection has been opened on that service *)
+              (* CCC in this case, it would be beter to return code 204: no content *)
+              | Lwt_unix.Timeout ->
+                set_inactive handler;
+                Lwt.return timeout_msg
               | Connection_closed ->
                 set_inactive handler;
                 (* it doesn't matter what we do here *)
-                raise_lwt Connection_closed
-	      | e ->
-		set_inactive handler;
-		Lwt.fail e )
+                Lwt.return timeout_msg
+              | e ->
+                set_inactive handler;
+                Lwt.fail e )
       | Eliom_comet_base.Stateful (Eliom_comet_base.Commands commands) ->
-	update_inactive handler;
-	List.iter (function
-	  | Eliom_comet_base.Register channel -> register_channel handler channel
-	  | Eliom_comet_base.Close channel -> close_channel' handler channel)
+        update_inactive handler;
+        List.iter (function
+          | Eliom_comet_base.Register channel -> register_channel handler channel
+          | Eliom_comet_base.Close channel -> close_channel' handler channel)
           (Array.to_list commands);
-	      (* command connections are replied immediately by an
-		 empty answer *)
-	Lwt.return (encode_downgoing [])
+              (* command connections are replied immediately by an
+                 empty answer *)
+        Lwt.return (encode_downgoing [])
     in
     Comet.register
       ~scope:handler.hd_scope
@@ -538,13 +549,13 @@ end = struct
     match Lwt.state (Eliom_reference.get eref) with
       | Lwt.Return v -> v
       | _ ->
-	failwith "Eliom_comet: accessing channel references should not be blocking: this is an eliom bug"
+        failwith "Eliom_comet: accessing channel references should not be blocking: this is an eliom bug"
 
   let set_ref eref v =
     match Lwt.state (Eliom_reference.set eref v) with
       | Lwt.Return () -> ()
       | _ ->
-	failwith "Eliom_comet: accessing channel references should not be blocking: this is an eliom bug"
+        failwith "Eliom_comet: accessing channel references should not be blocking: this is an eliom bug"
 
   let get_handler_eref scope =
     let scope_hierarchy = Eliom_common_base.scope_hierarchy_of_scope scope in
@@ -552,42 +563,42 @@ end = struct
       Hashtbl.find handler_ref_table scope_hierarchy
     with
       | Not_found ->
-	let eref = Eliom_reference.eref ~scope:(`Client_process scope_hierarchy) None in
-	Hashtbl.add handler_ref_table scope_hierarchy eref;
-	eref
+        let eref = Eliom_reference.eref ~scope:(`Client_process scope_hierarchy) None in
+        Hashtbl.add handler_ref_table scope_hierarchy eref;
+        eref
 
   let get_handler scope =
     let eref = get_handler_eref scope in
     match get_ref eref with
       | Some t -> t
       | None ->
-	begin
-	  let hd_service =
-	    (* CCC ajouter possibilité d'https *)
-	    Eliom_service.Http.post_coservice
+        begin
+          let hd_service =
+            (* CCC ajouter possibilité d'https *)
+            Eliom_service.Http.post_coservice
 (*VVV Why is it attached? --Vincent *)
-	      ~fallback:(Eliom_common.force_lazy_site_value fallback_service)
-	      (*~name:"comet" (* CCC faut il mettre un nom ? *)*)
-	      ~post_params:Eliom_comet_base.comet_request_param
-	      ()
-	  in
-	  let hd_update_streams,hd_update_streams_w = Lwt.task () in
-	  let handler = {
-	    hd_scope = scope;
-	    hd_active_streams = [];
-	    hd_unregistered_streams = [];
-	    hd_registered_chan_id = [];
-	    hd_service;
-	    hd_update_streams;
-	    hd_update_streams_w;
-	    hd_last = "", -1;
-	    hd_activity = Inactive (Unix.gettimeofday ());
-	  }
-	  in
-	  set_ref eref (Some handler);
-	  run_handler handler;
-	  handler
-	end
+              ~fallback:(Eliom_common.force_lazy_site_value fallback_service)
+              (*~name:"comet" (* CCC faut il mettre un nom ? *)*)
+              ~post_params:Eliom_comet_base.comet_request_param
+              ()
+          in
+          let hd_update_streams,hd_update_streams_w = Lwt.task () in
+          let handler = {
+            hd_scope = scope;
+            hd_active_streams = [];
+            hd_unregistered_streams = [];
+            hd_registered_chan_id = [];
+            hd_service;
+            hd_update_streams;
+            hd_update_streams_w;
+            hd_last = "", -1;
+            hd_activity = Inactive (Unix.gettimeofday ());
+          }
+          in
+          set_ref eref (Some handler);
+          run_handler handler;
+          handler
+        end
 
   let wait_timeout ?(scope=Eliom_common.comet_client_process_scope) t =
     let hd = get_handler scope in
@@ -595,8 +606,8 @@ end = struct
 
   type t =
       {
-	ch_handler : handler;
-	ch_id : chan_id;
+        ch_handler : handler;
+        ch_id : chan_id;
         ch_stream : string Eliom_comet_base.channel_data Lwt_stream.t;
       }
 
@@ -619,15 +630,18 @@ end = struct
     let name = (name_of_scope (scope:>Eliom_common.user_scope)) ^ name in
     let handler = get_handler scope in
     Lwt_log.ign_info_f ~section "create channel %s" name;
+    let waiter =
+      Lwt.with_value Eliom_common.sp_key None (fun () -> stream_waiter stream)
+    in
     if List.mem name handler.hd_registered_chan_id
     then
       begin
-	handler.hd_registered_chan_id <-
-	  List.filter ((<>) name) handler.hd_registered_chan_id;
-	launch_stream handler (name,stream)
+        handler.hd_registered_chan_id <-
+          List.filter ((<>) name) handler.hd_registered_chan_id;
+        launch_stream handler (name,(stream, waiter))
       end
     else
-      handler.hd_unregistered_streams <- (name,stream)::handler.hd_unregistered_streams;
+      handler.hd_unregistered_streams <- (name,(stream, waiter))::handler.hd_unregistered_streams;
     { ch_handler = handler;
       ch_stream = stream;
       ch_id = name; }
@@ -682,19 +696,19 @@ end = struct
   let get_wrapped t =
     match t.channel with
       | Stateful channel ->
-	Eliom_comet_base.Stateful_channel
-	  (Stateful.get_service channel,
-	   Eliom_comet_base.chan_id_of_string (Stateful.get_id channel))
+        Eliom_comet_base.Stateful_channel
+          (Stateful.get_service channel,
+           Eliom_comet_base.chan_id_of_string (Stateful.get_id channel))
       | Stateless channel ->
-	Eliom_comet_base.Stateless_channel
-	  (Stateless.get_service (),
-	   Eliom_comet_base.chan_id_of_string (Stateless.get_id channel),
-	   Stateless.get_kind ~newest:false channel)
+        Eliom_comet_base.Stateless_channel
+          (Stateless.get_service (),
+           Eliom_comet_base.chan_id_of_string (Stateless.get_id channel),
+           Stateless.get_kind ~newest:false channel)
       | Stateless_newest channel ->
-	Eliom_comet_base.Stateless_channel
-	  (Stateless.get_service (),
-	   Eliom_comet_base.chan_id_of_string (Stateless.get_id channel),
-	   Stateless.get_kind ~newest:true channel)
+        Eliom_comet_base.Stateless_channel
+          (Stateless.get_service (),
+           Eliom_comet_base.chan_id_of_string (Stateless.get_id channel),
+           Stateless.get_kind ~newest:true channel)
       | External wrapped -> wrapped
 
   let internal_wrap c =
@@ -702,40 +716,28 @@ end = struct
 
   let channel_mark () = Eliom_common.make_wrapper internal_wrap
 
-  exception Halt
-
-  (* TODO close on full *)
   let limit_stream ~size s =
-    let open Lwt in
-        let full = ref false in
-        let closed = ref false in
-        let count = ref 0 in
-        let str, push = Lwt_stream.create () in
-        let stopper,wake_stopper = wait () in
-        let rec loop () =
-          ( Lwt_stream.get s <?> stopper ) >>= function
-            | Some x ->
-              if !count >= size
-              then (full := true;
-                    ignore (Lwt_stream.get_available str);
-                  (* flush the channel *)
-                    return ())
-              else (incr count; push (Some ( Eliom_comet_base.Data x )); loop ())
-            | None ->
-              return ()
-        in
-        ignore (loop ():'a Lwt.t);
-        let res = Lwt_stream.from (fun () ->
-          if !full
-          then
-            if !closed
-            then return None
-            else ( closed := true;
-                   return (Some Eliom_comet_base.Full) )
-          else (decr count;
-                Lwt_stream.get str)) in
-        Gc.finalise (fun _ -> wakeup_exn wake_stopper Halt) res;
-        res
+    let (res, pusher) = Lwt_stream.create_bounded size in
+    let rec loop full =
+      match_lwt Lwt_stream.get s with
+        None ->
+          Lwt.return ()
+      | Some x ->
+          if full then
+            loop true
+          else if pusher#count = size then begin
+            ignore (Lwt_stream.get_available res);
+            lwt () = pusher#push (Eliom_comet_base.Full) in
+            pusher#close;
+            pusher#set_reference ();
+            loop true
+          end else begin
+            lwt () = pusher#push (Eliom_comet_base.Data x) in
+            loop false
+          end
+    in
+    pusher#set_reference (loop false);
+    res
 
   let marshal (v:'a) =
     let wrapped = Eliom_wrap.wrap v in
@@ -746,26 +748,28 @@ end = struct
   let create_stateful_channel ?scope ?name stream =
     Stateful
       (Stateful.create ?scope ?name
-	 (Lwt_stream.map
-	    (function
-	      | Eliom_comet_base.Closed ->
+         (Lwt_stream.map
+            (function
+              | Eliom_comet_base.Closed ->
         Lwt_log.ign_warning ~section "closed in stateful channels: this is an error: this should not be possible";
-		Eliom_comet_base.Closed
-	      | Eliom_comet_base.Full -> Eliom_comet_base.Full
-	      | Eliom_comet_base.Data s -> Eliom_comet_base.Data (marshal s)) stream))
+                Eliom_comet_base.Closed
+              | Eliom_comet_base.Full -> Eliom_comet_base.Full
+              | Eliom_comet_base.Data s -> Eliom_comet_base.Data (marshal s)) stream))
 
   let create_stateless_channel ?name ~size stream =
     Stateless
       (Stateless.create ?name ~size
-	 (Lwt_stream.map marshal stream))
+         (Lwt_stream.map marshal stream))
 
   let create_stateless_newest_channel ?name stream =
     Stateless_newest
       (Stateless.create ?name ~size:1
-	 (Lwt_stream.map marshal stream))
+         (Lwt_stream.map marshal stream))
 
   let create_stateful ?scope ?name ?(size=1000) stream =
-    let stream = limit_stream ~size stream in
+    let stream =
+      Lwt.with_value Eliom_common.sp_key None
+        (fun () -> limit_stream ~size stream) in
     { channel = create_stateful_channel ?scope ?name stream;
       channel_mark = channel_mark () }
 

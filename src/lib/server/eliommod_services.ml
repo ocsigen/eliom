@@ -540,10 +540,11 @@ let get_page
              (function
                | Eliom_common.Eliom_404
                | Eliom_common.Eliom_Wrong_parameter ->
-                 Lwt_log.ign_info_f ~section "Looking for %a in the table %s:"
+                 Lwt_log.ign_info_f ~section "Looking for %a in the %s:"
                    (fun _ ri ->
                       (Url.string_of_url_path
-                         ~encode:true (Ocsigen_request_info.sub_path ri.request_info)))
+                         ~encode:true
+                         (Ocsigen_request_info.sub_path ri.request_info)))
                    ri
                    table_name;
                  find_aux Eliom_common.Eliom_404 table

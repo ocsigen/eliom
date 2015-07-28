@@ -173,6 +173,7 @@ type client_value_datum = {
   instance_id : int64;
   loc : pos option;
   args : poly;
+  value : poly;
 }
 
 (** Data for initializing one injection *)

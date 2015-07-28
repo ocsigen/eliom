@@ -16,6 +16,6 @@ depends: [
   "calendar"
   "ocsigenserver" {>= "2.6"}
   "ipaddr" {>= "2.1"}
-  "reactiveData"
+  "reactiveData" {= "dev"}
 ]
 available: [ ocaml-version >= "4.00.0" ]

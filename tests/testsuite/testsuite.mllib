@@ -4,5 +4,8 @@ server/eliom_testsuite2
 server/eliom_testsuite3
 server/eliom_testsuite4
 server/eliom_testsuite5
+server/eliom_testsuite6
+server/eliom_testsuite7
 server/eliom_testsuite
+server/eliom_testsuite7_db
 server/atom_example

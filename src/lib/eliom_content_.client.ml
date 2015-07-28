@@ -54,7 +54,8 @@ module MakeManip
           match Xml.get_node_id elt' with
           | Xml.NoId ->
             Lwt_log.raise_error_f ~section:Lwt_log.eliom
-              ~inspect:(Eliom_client.rebuild_node' Ns.content_ns (Kind.toelt elt))
+              ~inspect:(Eliom_client.rebuild_node'
+                          Ns.content_ns (Kind.toelt elt))
               "Cannot call %s on an element with functional semantics" context
           | _ -> get_node elt
 
@@ -63,7 +64,8 @@ module MakeManip
         (Dom_html.CoerceTo.element (get_unique_node name elt))
         (fun () ->
            Lwt_log.raise_error_f ~section:Lwt_log.eliom
-             ~inspect:(Eliom_client.rebuild_node' Ns.content_ns (Kind.toelt elt))
+             ~inspect:(Eliom_client.rebuild_node'
+                         Ns.content_ns (Kind.toelt elt))
              "Cannot call %s on a node which is not an element" name;
         )
         id
@@ -82,7 +84,8 @@ module MakeManip
           List.iter (fun elt2 -> ignore(node##appendChild(get_node elt2))) elts
       | Some elt3 ->
           let node3 = get_unique_node "appendChild" elt3 in
-          List.iter (fun elt2 -> ignore(node##insertBefore(get_node elt2, Js.some node3))) elts
+          List.iter (fun elt2 ->
+            ignore(node##insertBefore(get_node elt2, Js.some node3))) elts
 
     let raw_removeChild node1 elt2 =
       let node2 = get_unique_node "removeChild" elt2 in
@@ -134,7 +137,7 @@ module MakeManip
       ) in
       Js.Opt.iter res (fun p -> removeChild p elt)
 
-    let appendChildFirst p c =
+    let insertFirstChild p c =
       let before = nth p 0 in
       appendChild ?before p c
 
@@ -201,12 +204,12 @@ module MakeManip
       in
       Js.Opt.to_option res
 
-    let appendBefore ~before elt =
+    let insertBefore ~before elt =
       Eliom_lib.Option.iter
         (fun parent -> appendChild ~before parent elt)
         (parentNode before)
 
-    let appendAfter ~after elt =
+    let insertAfter ~after elt =
       Eliom_lib.Option.iter
         (fun parent ->
            let before = nextSibling after in

@@ -180,6 +180,13 @@ val default_appl_service_options : appl_service_options
 
 module type ELIOM_APPL = sig
 
+  (** Attach a client function to a service,
+      that will be used instead of calling the server to generate the page. *)
+  val set_client_fun :
+    ('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return) Eliom_service.service ->
+    ('a -> 'b -> [`Html] Eliom_content.Html5.elt Lwt.t) client_value ->
+    unit
+
   (** The function [application_name ()] returns a [<script>] node
       that represents the javascript part of the application. If you
       do not include this script in the [<head>] node of your page, it

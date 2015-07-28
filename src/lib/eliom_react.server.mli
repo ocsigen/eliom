@@ -21,6 +21,10 @@
 (** Propagate events
     occurrences from the server to the client and the other way
     around. Occurrence propagation is done asynchronously.
+
+    Warning: it is not possible to catch exceptions on each channel
+    using Eliom_react (for example channel closed or full).
+    If you need an error handling, use Eliom_comet.Channel instead.
 *)
 
 (** {b Please read the

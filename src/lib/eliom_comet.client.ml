@@ -26,6 +26,7 @@ module Ecb = Eliom_comet_base
 
 let section = Lwt_log.Section.make "eliom:comet"
 
+
 module Configuration =
 struct
   type configuration_data =
@@ -159,10 +160,29 @@ end
 
 
 exception Restart
-exception Process_closed
 exception Channel_closed
 exception Channel_full
 exception Comet_error of string
+
+let handle_exn, set_handle_exn_function =
+  let closed = ref false in
+  let r = ref (fun ?exn () ->
+    let s = "Unknown exception during comet. \
+             Customize this with Eliom_comet.set_handle_exn_function. "
+    in
+    match exn with
+    | Some exn -> Lwt_log.raise_error ~section ~exn s
+    | None -> Lwt_log.debug ~section s)
+  in
+  ((fun ?exn () ->
+     if not !closed
+     then begin
+       closed := true;
+       !r ?exn ()
+     end
+     else Lwt.return ()),
+   (fun f -> r := f))
+
 
 type chan_id = string
 
@@ -305,7 +325,7 @@ struct
     Lwt.wakeup_exn wakener Restart;
     activate hd
 
-  let max_retries = 5
+  let max_retries = 3
 
   let call_service_after_load_end service p1 p2 =
     lwt () = Eliom_client.wait_load_end () in
@@ -349,6 +369,11 @@ struct
       | Ecb.Newest i
       | Ecb.After i -> i
       | Ecb.Last _ -> 0
+
+  let close_all_channels hd =
+    let s = hd.hd_activity.active_channels in
+    String.Set.iter (fun chan_id -> stop_waiting hd chan_id) s;
+    String.Set.fold (fun chan_id l -> (chan_id, None, Ecb.Closed) :: l) s []
 
   let update_stateless_state hd (message:stateless_message) =
     match hd.hd_state with
@@ -436,7 +461,8 @@ struct
 	      | Ecb.Timeout ->
 		update_activity ~timeout:true hd;
 		aux 0
-	      | Ecb.Process_closed -> Lwt.fail Process_closed
+              | Ecb.State_closed ->
+                Lwt.return (close_all_channels hd)
 	      | Ecb.Comet_error e -> Lwt.fail (Comet_error e)
 	      | Ecb.Stateless_messages l ->
                 let l = Array.to_list l in
@@ -447,6 +473,7 @@ struct
 		update_stateful_state hd l;
 		Lwt.return (add_no_index l)
           with
+            | Eliom_request.Failed_request 504
             | Eliom_request.Failed_request 0 ->
               if retries > max_retries
               then
@@ -454,10 +481,14 @@ struct
                  set_activity hd `Inactive;
                  aux 0)
               else
-                (Lwt_js.sleep 0.05 >>= (fun () -> aux (retries + 1)))
+                (Lwt_js.sleep (2. ** float (retries - 1)) >>= fun () ->
+                 aux (retries + 1))
             | Restart -> Lwt_log.ign_info ~section "restart";
               aux 0
-            | exn -> Lwt_log.raise_error ~section ~exn "Error"
+            | exn ->
+              Lwt_log.ign_notice ~exn ~section "connection failure";
+              lwt () = handle_exn ~exn () in
+              Lwt.fail exn
         end
     in
     update_activity hd;

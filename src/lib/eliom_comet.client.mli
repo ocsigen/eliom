@@ -39,14 +39,10 @@
     full channel. *)
 exception Channel_full
 
-(** [Process_closed] is raised when reading on a channel and the
-    server side of the application closed the client process.
-    This apply only to stateful channels *)
-exception Process_closed
-
-(** [Process_closed] is raised when reading on a channel and the
-    server side of the application closed channel ( the channel
-    was garbage collected ). This apply only to stateless channels *)
+(** [Channel_closed] is raised when reading on a channel and the
+    server side of the application closed channel ( the server was restarted,
+    a session was closed, or a stateless channel was garbage collected).
+     *)
 exception Channel_closed
 
 (** [is_active ()] returns the current activity state *)
@@ -55,6 +51,15 @@ val is_active : unit -> [ `Active | `Idle | `Inactive ]
 (** if the client is inactive [activate ()] launch a new xhr
     connection to start receiving server messages *)
 val activate : unit -> unit
+
+(** Makes possible to customize the function called when comet fails
+    for unknown reason.
+    The usual practice is to warn the user and ask to reload the page.
+    This function is not called when a channel is full or closed.
+    It is called only once, for the first exception.
+*)
+val set_handle_exn_function : (?exn:exn -> unit -> unit Lwt.t) -> unit
+
 
 (** Change the reactivity of channels. Multiples configurations ( of
     type [t] ) can be created. The resulting behaviour is the minimal
@@ -139,3 +144,8 @@ val restart : unit -> unit
 val close : 'a Eliom_comet_base.wrapped_channel -> unit
 
 val force_link : unit
+
+(** This function calls manually the function
+    that is usually called automatically when an exception
+    is received during communication. *)
+val handle_exn : ?exn:exn -> unit -> unit Lwt.t

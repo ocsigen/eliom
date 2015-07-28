@@ -18,9 +18,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+{shared{
+
 open Eliom_lib
-
-
 open Eliom_parameter
 open Eliom_service
 open Eliom_uri
@@ -604,3 +604,5 @@ module MakeForms(Pages : FORMS_PARAM) = struct
   let a_for pname = Pages.make_for_attrib (Eliom_parameter.string_of_param_name pname)
 
 end
+
+}}

@@ -118,6 +118,10 @@ module Xml = struct
   type mouse_event_handler = (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value
   type keyboard_event_handler = (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value
 
+  let make_cryptographic_safe_string () =
+    (* FIX: we should directly produce a string of the right length *)
+    String.sub (make_cryptographic_safe_string ()) 0 12
+
   let caml_event_handler cf =
     let crypto = make_cryptographic_safe_string () in
     CE_registered_closure (crypto, Eliom_lib.client_value_server_repr cf)
@@ -139,14 +143,14 @@ module Xml = struct
     let empty_name = "" in
     empty_name,RAClient (crypto,init,Eliom_lib.client_value_server_repr x)
 
+  let closing_cdata = Netstring_pcre.regexp_string "]]>"
 
   let cdata s = (* GK *)
     (* For security reasons, we do not allow "]]>" inside CDATA
        (as this string is to be considered as the end of the cdata)
      *)
     let s' = "\n<![CDATA[\n"^
-      (Netstring_pcre.global_replace
-         (Netstring_pcre.regexp_string "]]>") "" s)
+      (Netstring_pcre.global_replace closing_cdata "" s)
       ^"\n]]>\n" in
     encodedpcdata s'
 
@@ -155,8 +159,7 @@ module Xml = struct
        (as this string is to be considered as the end of the cdata)
      *)
     let s' = "\n//<![CDATA[\n"^
-      (Netstring_pcre.global_replace
-         (Netstring_pcre.regexp_string "]]>") "" s)
+      (Netstring_pcre.global_replace closing_cdata "" s)
       ^"\n//]]>\n" in
     encodedpcdata s'
 
@@ -165,14 +168,15 @@ module Xml = struct
        (as this string is to be considered as the end of the cdata)
      *)
     let s' = "\n/* <![CDATA[ */\n"^
-      (Netstring_pcre.global_replace
-         (Netstring_pcre.regexp_string "]]>") "" s)
+      (Netstring_pcre.global_replace closing_cdata "" s)
       ^"\n/* ]]> */\n" in
     encodedpcdata s'
 
   let make_node_name ~global () =
+    (* !!! The "global_" prefix is checked in eliom_client.client.ml !!! *)
     (if global then "global_" else "")
-    ^ "server_" ^ make_cryptographic_safe_string ()
+    (* FIX: put a prefix as a debugging option? *)
+       ^ (* "server_" ^ *) make_cryptographic_safe_string ()
 
   let make_process_node ?(id = make_node_name ~global:true ()) elt' =
     { elt' with elt = { elt'.elt with node_id = ProcessId id } }

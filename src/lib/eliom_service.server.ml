@@ -330,8 +330,8 @@ let get_request_data () =
 
 let is_global = ref false
 
-let register_client_value_data ?loc ~closure_id ~instance_id ~args () =
-  let client_value_datum = { closure_id; instance_id; args; loc } in
+let register_client_value_data ?loc ~closure_id ~instance_id ~args ~value () =
+  let client_value_datum = { closure_id; instance_id; args; loc; value } in
   if !is_global then
     if Eliom_common.get_sp_option () = None then
       current_server_section_data :=
@@ -350,9 +350,14 @@ module Syntax_helpers = struct
 
   let client_value ?pos closure_id args =
     let instance_id = Eliom_lib.fresh_ix () in
-    register_client_value_data ?loc:pos ~closure_id ~instance_id ~args:(to_poly args) ();
-    create_client_value
-      (Client_value_server_repr.create closure_id instance_id)
+    let v =
+      create_client_value
+        (Client_value_server_repr.create closure_id instance_id)
+    in
+    register_client_value_data
+      ?loc:pos ~closure_id ~instance_id
+      ~args:(to_poly args) ~value:(to_poly v) ();
+    v
 
   let close_server_section compilation_unit_id =
     close_server_section ~compilation_unit_id
@@ -363,3 +368,6 @@ module Syntax_helpers = struct
   let set_global b = is_global := b
 
 end
+
+(*****************************************************************************)
+let set_client_fun = set_client_fun_

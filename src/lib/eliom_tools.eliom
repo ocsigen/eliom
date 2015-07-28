@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+{shared{
+
 open Eliom_lib
 open Eliom_content
 open Eliom_service
@@ -144,16 +146,26 @@ module type HTML5_TOOLS = sig
     Html5_types.body Html5.elt ->
     Html5_types.html Html5.elt
 end
-
-
+}}
+{server{
 let css_files = Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
 let js_files = Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
 let with_css_file file =
   Eliom_reference.Volatile.modify css_files (fun files -> file :: files)
 let with_js_file file =
   Eliom_reference.Volatile.modify js_files (fun files -> file :: files)
-
-
+let get_css_files () = Eliom_reference.Volatile.get css_files
+let get_js_files () = Eliom_reference.Volatile.get js_files
+}}
+{client{
+let css_files = ref []
+let js_files = ref []
+let with_css_file file = css_files := file :: !css_files
+let with_js_file file = js_files := file :: !js_files
+let get_css_files () = let f = !css_files in css_files := []; f
+let get_js_files () = let f = !js_files in js_files := []; f
+}}
+{shared{
 module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
   open Html5_types
   open Html5.F
@@ -169,7 +181,7 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
       make_string_uri ~absolute_path:true ~service:s () = url in
     match sopt with
       | None ->
-        same_url ("/"^(Eliom_request_info.get_current_sub_path_string ()))
+        same_url ("/"^(Eliom_request_info.get_original_full_path_string ()))
       | Some s' -> same_url (make_string_uri ~absolute_path:true ~service:s' ())
 
 
@@ -206,7 +218,7 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
     match sopt with
       | None -> string_prefix service_url
         ((* MAYBE : use get_original_full_path_string? *)
-          ("/" ^ Eliom_request_info.get_current_full_path_string ()))
+          ("/" ^ Eliom_request_info.get_original_full_path_string ()))
       | Some s' ->
 	let node_url = make_string_uri ~absolute_path:true ~service:s' () in
 	string_prefix service_url node_url
@@ -436,18 +448,14 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
       css_link ~uri () in
     let mk_js_script path =
       let uri = make_uri  (Eliom_service.static_dir ()) path in
-      js_script ~uri () in
+      js_script ~a:[a_defer `Defer] ~uri () in
     DorF.head
       (title (pcdata ttl))
       List.(map mk_css_link css @ map mk_js_script js @ other)
 
   let html ~title ?a ?(css=[]) ?(js=[]) ?other_head body =
-    let css =
-      List.rev (Eliom_reference.Volatile.get css_files) @ css
-    in
-    let js =
-      List.rev (Eliom_reference.Volatile.get js_files) @ js
-    in
+    let css = List.rev (get_css_files ()) @ css in
+    let js = List.rev (get_js_files ()) @ js in
     DorF.html ?a
       (head ~title ~css ~js ?other:other_head ())
       body
@@ -462,3 +470,33 @@ let wrap_handler information none some =
     match_lwt information () with
       | None -> none get post
       | Some value -> some value get post
+
+}}
+
+(* Alternative semantics for with_js_file and with_css_file on client side: *)
+{client{
+let add_js_file path =
+  let uri =
+    Html5.F.make_uri
+      (Eliom_service.static_dir () )
+      path
+  in
+  let script =
+    Html5.F.js_script ~a:[Html5.F.a_defer `Defer] ~uri ()
+  in
+  ignore
+    Dom_html.document##head##appendChild (Html5.To_dom.of_node script)
+
+let add_css_file path =
+  let uri =
+    Html5.F.make_uri
+      (Eliom_service.static_dir () )
+      path
+  in
+  let link =
+    Html5.F.css_link ~uri ()
+  in
+  ignore
+    Dom_html.document##head##appendChild
+      (Html5.To_dom.of_node link)
+}}

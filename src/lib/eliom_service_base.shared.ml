@@ -120,6 +120,12 @@ type ('get,'post,+'meth,+'attached,+'kind,+'tipo,'getnames,'postnames,+'registr,
   mutable send_appl_content : send_appl_content;
   (* XNever when we create the service, then changed at registration :/ *)
 
+  (* If the service has a client-side implementation,
+     we put the generating function here: *)
+  mutable client_fun: ('get -> 'post ->
+                       [ `Html] Eliom_content_core.Html5.elt Lwt.t)
+      Eliom_lib.client_value option;
+
   service_mark :
     (unit,unit,service_method,attached,service_kind,suff,unit,unit,registrable,unit)
       service Eliom_common.wrapper;
@@ -157,6 +163,8 @@ let get_max_use_ s = s.max_use
 let get_timeout_ s = s.timeout
 let get_https s = s.https
 let get_priority_ s = s.priority
+let get_client_fun_ s = s.client_fun
+let set_client_fun_ s f = s.client_fun <- Some f
 
 let is_external = function
   | {kind=`External} -> true
@@ -197,6 +205,7 @@ let static_dir_ ?(https = false) () =
     keep_nl_params = `None;
     service_mark = service_mark ();
     send_appl_content = XNever;
+    client_fun = None;
   }
 
 let static_dir () = static_dir_ ()
@@ -230,6 +239,7 @@ let get_static_dir_ ?(https = false)
      keep_nl_params = keep_nl_params;
      service_mark = service_mark ();
      send_appl_content = XNever;
+     client_fun = None;
    }
 
 let static_dir_with_params ?keep_nl_params ~get_params () =
@@ -245,6 +255,19 @@ let set_send_appl_content s n = s.send_appl_content <- n
 
 (****************************************************************************)
 
+type clvpreapp =
+  { mutable clvpreapp_f : 'a 'b.
+             (('a -> 'b -> [ `Html ] Eliom_content_core.Html5.elt Lwt.t)
+                Eliom_lib.client_value ->
+              'a ->
+              (unit -> 'b -> [ `Html ] Eliom_content_core.Html5.elt Lwt.t)
+                Eliom_lib.client_value)}
+
+let preapply_client_fun =
+  {clvpreapp_f = fun f getparams -> failwith "preapply_client_fun"}
+(* will be initialized later (in eliom_content for now),
+   when client syntax is available, with:
+   fun f getparams -> {{ fun _ pp -> %f %getparams pp }} *)
 
 let rec append_suffix l m = match l with
   | [] -> m
@@ -260,17 +283,21 @@ let preapply ~service getparams =
   {service with
    pre_applied_parameters = nlp, params@preapp;
    get_params_type = Eliom_parameter.unit;
-   info = match service.info with
+   info = (match service.info with
      | `Attached k -> `Attached {
-         k with
-         subpath = (match suff with
-             | Some suff -> append_suffix k.subpath suff
-             | _ -> k.subpath);
-         fullpath = (match suff with
-             | Some suff -> append_suffix k.fullpath suff
-             | _ -> k.fullpath);
-       }
-     | k -> k
+       k with
+       subpath = (match suff with
+         | Some suff -> append_suffix k.subpath suff
+         | _ -> k.subpath);
+       fullpath = (match suff with
+         | Some suff -> append_suffix k.fullpath suff
+         | _ -> k.fullpath);
+     }
+     | k -> k);
+   client_fun = (match service.client_fun with
+     | None -> None
+     | Some f_cl_val ->
+       Some (preapply_client_fun.clvpreapp_f f_cl_val getparams))
   }
 
 
@@ -291,6 +318,7 @@ let void_coservice' =
     https = false;
     keep_nl_params = `All;
     service_mark = service_mark ();
+    client_fun = None;
     send_appl_content = XAlways;
   }
 
@@ -310,6 +338,7 @@ let https_void_coservice' =
     https = true;
     keep_nl_params = `All;
     service_mark = service_mark ();
+    client_fun = None;
     send_appl_content = XAlways;
   }
 
@@ -333,16 +362,49 @@ let https_void_hidden_coservice' =
         };
   }
 
+type clvnlget =
+  { mutable clvnlget_f : 'a 'b 'c.
+             (('a -> 'b -> [ `Html ] Eliom_content_core.Html5.elt Lwt.t)
+                Eliom_lib.client_value ->
+              (('a * 'c) -> 'b -> [ `Html ] Eliom_content_core.Html5.elt Lwt.t)
+                Eliom_lib.client_value)}
+
+type clvnlpost =
+  { mutable clvnlpost_f : 'a 'b 'c.
+             (('a -> 'b -> [ `Html ] Eliom_content_core.Html5.elt Lwt.t)
+                Eliom_lib.client_value ->
+              ('a -> ('b * 'c) -> [ `Html ] Eliom_content_core.Html5.elt Lwt.t)
+                Eliom_lib.client_value)}
+
+let add_nl_get_client =
+  {clvnlget_f = fun f -> failwith "add_nl_get_client"}
+(* will be initialized later  (in eliom_content for now),
+   when client syntax is available, with:
+   fun f -> {{ fun (g, _) p -> %f g p }} *)
+
+let add_nl_post_client =
+  {clvnlpost_f = fun f -> failwith "add_nl_post_client"}
+(* will be initialized later (in eliom_content for now),
+   when client syntax is available, with:
+   fun f -> {{ fun g (p, _) -> %f g p }} *)
+
+(*VVV Non localized parameters not implemented for client side services *)
 let add_non_localized_get_parameters ~params ~service =
   {service with
-     get_params_type =
-      Eliom_parameter.nl_prod service.get_params_type params
+   get_params_type =
+     Eliom_parameter.nl_prod service.get_params_type params;
+   client_fun = match service.client_fun with
+     | None -> None
+     | Some f -> Some (add_nl_get_client.clvnlget_f f)
   }
 
 let add_non_localized_post_parameters ~params ~service =
   {service with
-     post_params_type =
-      Eliom_parameter.nl_prod service.post_params_type params
+   post_params_type =
+     Eliom_parameter.nl_prod service.post_params_type params;
+   client_fun = match service.client_fun with
+     | None -> None
+     | Some f -> Some (add_nl_post_client.clvnlpost_f f)
   }
 
 let keep_nl_params s = s.keep_nl_params
@@ -395,6 +457,7 @@ let service_aux_aux
    keep_nl_params = keep_nl_params;
    service_mark = service_mark ();
    send_appl_content = XNever;
+   client_fun = None;
   }
 
 
@@ -644,8 +707,9 @@ let coservice
               | Some name -> Eliom_common.SAtt_named name));
        };
    https = https || fallback.https;
-   keep_nl_params = match keep_nl_params with
-     | None -> fallback.keep_nl_params | Some k -> k;
+   keep_nl_params = (match keep_nl_params with
+     | None -> fallback.keep_nl_params | Some k -> k);
+   client_fun = None;
   }
 (* Warning: here no GET parameters for the fallback.
    Preapply services if you want fallbacks with GET parameters *)
@@ -697,7 +761,8 @@ let coservice'
           https = https;
           keep_nl_params = keep_nl_params;
           send_appl_content = XNever;
-	        service_mark = service_mark ();
+          service_mark = service_mark ();
+          client_fun = None;
         }
 
 
@@ -718,6 +783,7 @@ let attach_coservice' :
     send_appl_content = service.send_appl_content;
     max_use = service.max_use;
     timeout = service.timeout;
+    client_fun = service.client_fun;
 
     kind = `AttachedCoservice;
     meth = service.meth;
@@ -778,6 +844,7 @@ let post_service_aux ~https ~fallback
    keep_nl_params = keep_nl_params;
    send_appl_content = XNever;
    service_mark = service_mark ();
+   client_fun = None;
   }
 
 let post_service ?rt ?(https = false) ~fallback
@@ -843,8 +910,9 @@ let post_coservice
               | Some name -> Eliom_common.SAtt_named name));
        };
    https = https;
-   keep_nl_params = match keep_nl_params with
-     | None -> fallback.keep_nl_params | Some k -> k;
+   keep_nl_params = (match keep_nl_params with
+     | None -> fallback.keep_nl_params | Some k -> k);
+   client_fun = None;
   }
 (* It is not possible to make a post_coservice function
    with an optional ?fallback parameter
@@ -894,6 +962,7 @@ let post_coservice'
     keep_nl_params = keep_nl_params;
     send_appl_content = XNever;
     service_mark = service_mark ();
+    client_fun = None;
   }
 
 
@@ -1018,8 +1087,9 @@ let put_coservice
               | Some name -> Eliom_common.SAtt_named name));
        };
    https = https || fallback.https;
-   keep_nl_params = match keep_nl_params with
-     | None -> fallback.keep_nl_params | Some k -> k;
+   keep_nl_params = (match keep_nl_params with
+     | None -> fallback.keep_nl_params | Some k -> k);
+   client_fun = None;
   }
 (* Warning: here no GET parameters for the fallback.
    Preapply services if you want fallbacks with GET parameters *)
@@ -1070,7 +1140,8 @@ let put_coservice'
           https = https;
           keep_nl_params = keep_nl_params;
           send_appl_content = XNever;
-	  service_mark = service_mark ();
+          service_mark = service_mark ();
+          client_fun = None;
         }
 
 
@@ -1134,8 +1205,9 @@ let delete_coservice
                | Some name -> Eliom_common.SAtt_named name));
      };
    https = https || fallback.https;
-   keep_nl_params = match keep_nl_params with
-     | None -> fallback.keep_nl_params | Some k -> k;
+   keep_nl_params = (match keep_nl_params with
+     | None -> fallback.keep_nl_params | Some k -> k);
+   client_fun = None;
  }
 (* Warning: here no GET parameters for the fallback.
    Preapply services if you want fallbacks with GET parameters *)
@@ -1186,5 +1258,6 @@ let delete_coservice'
           https = https;
           keep_nl_params = keep_nl_params;
           send_appl_content = XNever;
-	        service_mark = service_mark ();
+          service_mark = service_mark ();
+          client_fun = None;
         }

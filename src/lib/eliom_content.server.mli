@@ -495,3 +495,9 @@ module Html_text : sig
     and type button_type_t := string
     and type for_attrib := string
 end
+
+(**/**)
+  val set_client_fun :
+    ('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return) Eliom_service.service ->
+    ('a -> 'b -> [`Html] Html5.elt Lwt.t) Eliom_lib.client_value ->
+    unit

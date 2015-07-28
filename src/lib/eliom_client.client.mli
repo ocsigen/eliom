@@ -55,7 +55,11 @@ val change_page :
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:Eliom_parameter.nl_params_set ->
-  ?keep_get_na_params:bool -> 'a -> 'b -> unit Lwt.t
+  ?keep_get_na_params:bool ->
+  ?progress:(int -> int -> unit) ->
+  ?upload_progress:(int -> int -> unit) ->
+  ?override_mime_type:string ->
+  'a -> 'b -> unit Lwt.t
 
 (** Call a server side service that return an OCaml value.
 
@@ -82,7 +86,11 @@ val call_ocaml_service :
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:Eliom_parameter.nl_params_set ->
-  ?keep_get_na_params:bool -> 'a -> 'b -> 'return Lwt.t
+  ?keep_get_na_params:bool ->
+  ?progress:(int -> int -> unit) ->
+  ?upload_progress:(int -> int -> unit) ->
+  ?override_mime_type:string ->
+  'a -> 'b -> 'return Lwt.t
 
 
 (** Stop current program and load a new page.  Note that for string arguments,
@@ -105,7 +113,8 @@ val exit_to :
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:Eliom_parameter.nl_params_set ->
-  ?keep_get_na_params:bool -> 'a -> 'b -> unit
+  ?keep_get_na_params:bool ->
+  'a -> 'b -> unit
 
 (** Loads an Eliom service in a window (cf. Javascript's [window.open]). *)
 val window_open :
@@ -126,7 +135,8 @@ val window_open :
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:Eliom_parameter.nl_params_set ->
-  ?keep_get_na_params:bool -> 'a -> Dom_html.window Js.t
+  ?keep_get_na_params:bool ->
+  'a -> Dom_html.window Js.t
 
 (** Changes the URL, without doing a request.
     It takes a GET (co-)service as parameter and its parameters.
@@ -144,7 +154,8 @@ val change_url :
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:Eliom_parameter.nl_params_set -> 'get -> unit
+  ?nl_params:Eliom_parameter.nl_params_set ->
+  'get -> unit
 
 (** (low level) Call a server side service and return the content
     of the resulting HTTP frame as a string. *)
@@ -164,7 +175,11 @@ val call_service :
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:Eliom_parameter.nl_params_set ->
-  ?keep_get_na_params:bool -> 'a -> 'b -> string Lwt.t
+  ?keep_get_na_params:bool ->
+  ?progress:(int -> int -> unit) ->
+  ?upload_progress:(int -> int -> unit) ->
+  ?override_mime_type:string ->
+  'a -> 'b -> string Lwt.t
 
 
 
@@ -259,3 +274,17 @@ module Syntax_helpers : sig
       constraints accordingly. *)
   val get_escaped_value : escaped_value -> 'a
 end
+
+(** Lwt_log section for this module.
+    Default level is [Lwt_log.Info].
+    Use [Lwt_log.Section.set_level Eliom_client.log_section Lwt_log.Debug]
+    to see debug messages.
+*)
+val log_section : Lwt_log.section
+
+(** Internal function. *)
+val of_element_ :
+  ([`Html] Eliom_content_core.Html5.elt -> Dom_html.element Js.t) ref
+
+(** Is it a middle-click event? *)
+val middleClick : Dom_html.mouseEvent Js.t -> bool

@@ -74,6 +74,12 @@ module Svg : sig
 
   (** Creation of reactive content *)
   module R : sig
+
+    (** The function [node s] creates an SVG [elt] from a signal [s].
+        The resulting SVG [elt] can then be used like any other SVG
+        [elt]. *)
+    val node : 'a elt React.signal -> 'a elt
+
     module Raw : Svg_sigs.MakeWrapped(Tyxml_js.Xml_wrap)(Xml).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
@@ -132,8 +138,8 @@ module Svg : sig
         the list of [e1] children. *)
     val appendChildren: ?before:'a elt -> 'b elt ->  'c elt list -> unit
 
-    (** [appendChildFirst p c] appends [c] as first child of [p] *)
-    val appendChildFirst: 'b elt ->  'c elt -> unit
+    (** [insertFirstChild p c] inserts [c] as first child of [p] *)
+    val insertFirstChild: 'b elt ->  'c elt -> unit
 
     (** [nth e n] returns the nth child of [e] (first is 0) *)
     val nth : 'a elt -> int -> 'b elt option
@@ -171,11 +177,11 @@ module Svg : sig
         if [elt] is not the first. *)
     val previousSibling: 'a elt -> 'b elt option
 
-    (** [appendBefore ~before elt] insert [elt] before [before]. *)
-    val appendBefore: before:'a elt -> 'b elt -> unit
+    (** [insertBefore ~before elt] insert [elt] before [before]. *)
+    val insertBefore: before:'a elt -> 'b elt -> unit
 
-    (** [appendAfter ~after elt] insert [elt] after [after]. *)
-    val appendAfter: after:'a elt -> 'b elt -> unit
+    (** [insertAfter ~after elt] insert [elt] after [after]. *)
+    val insertAfter: after:'a elt -> 'b elt -> unit
 
     (** [replaceSelf elt1 elt2] replaces [elt1] by [elt2]. *)
     val replaceSelf: 'a elt -> 'b elt -> unit
@@ -497,8 +503,8 @@ module Html5 : sig
         the list of [e1] children. *)
     val appendChildren: ?before:'a elt -> 'b elt ->  'c elt list -> unit
 
-    (** [appendChildFirst p c] appends [c] as first child of [p] *)
-    val appendChildFirst: 'b elt ->  'c elt -> unit
+    (** [insertFirstChild p c] inserts [c] as first child of [p] *)
+    val insertFirstChild: 'b elt ->  'c elt -> unit
 
     (** [nth e n] returns the nth child of [e] (first is 0) *)
     val nth : 'a elt -> int -> 'b elt option
@@ -536,11 +542,11 @@ module Html5 : sig
         if [elt] is not the first. *)
     val previousSibling: 'a elt -> 'b elt option
 
-    (** [appendBefore ~before elt] insert [elt] before [before]. *)
-    val appendBefore: before:'a elt -> 'b elt -> unit
+    (** [insertBefore ~before elt] insert [elt] before [before]. *)
+    val insertBefore: before:'a elt -> 'b elt -> unit
 
-    (** [appendAfter ~after elt] insert [elt] after [after]. *)
-    val appendAfter: after:'a elt -> 'b elt -> unit
+    (** [insertAfter ~after elt] insert [elt] after [after]. *)
+    val insertAfter: after:'a elt -> 'b elt -> unit
 
     (** [replaceSelf elt1 elt2] replaces [elt1] by [elt2]. *)
     val replaceSelf: 'a elt -> 'b elt -> unit

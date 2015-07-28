@@ -15,7 +15,8 @@ package "server" (
               calendar,
               tyxml,
               lwt.react,
-              cryptokit"
+              cryptokit,
+              reactiveData"
   archive(byte) = "server.cma"
   archive(native) = "server.cmxa"
 

@@ -363,7 +363,6 @@ val unregister :
   ?secure:bool ->
   ('a, 'b, _, _, [> internal_service_kind], 'e, 'f, 'g, 'h, 'return) service -> unit
 
-
 (**/**)
 
 val get_get_or_post : ('a, 'b,[<service_method] as 'c,[< attached],'kind, 'd, 'e, 'f, 'g, 'h) service -> 'c
@@ -391,6 +390,13 @@ val get_max_use_ : ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) servi
 val get_timeout_ : ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service -> float option
 val get_https : ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service -> bool
 val get_priority_ : a_s -> int
+val get_client_fun_ :
+  ('a, 'b, 'meth, 'attch, 'kind, 'd, 'e, 'f, 'g, 'return) service ->
+  ('a -> 'b -> [ `Html ] Eliom_content_core.Html5.elt Lwt.t) client_value option
+val set_client_fun_ :
+  ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service ->
+  ('a -> 'b -> [`Html] Eliom_content_core.Html5.elt Lwt.t) client_value ->
+  unit
 (* val reconstruct_absolute_Url.path : Url.path -> Url.path -> Url.path option -> string
 val reconstruct_relative_Url.path : Url.path -> Url.path -> Url.path option -> string
 *)
