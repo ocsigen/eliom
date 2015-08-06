@@ -22,6 +22,8 @@
 
 module Xml : sig
 
+  module W : Xml_wrap.T with type 'a t = 'a and type 'a tlist = 'a list
+
   type uri = string
   val uri_of_string : uri -> string
   val string_of_uri : string -> uri
@@ -147,6 +149,8 @@ module Xml : sig
   val set_classes_of_elt : elt -> elt
 end
 
+module Xml_wed : Xml_sigs.T with module W = Tyxml_js.Xml_wrap
+
 (** Building SVG tree. *)
 module Svg : sig
 
@@ -202,7 +206,7 @@ module Svg : sig
         [elt]. *)
     val node : 'a elt React.signal -> 'a elt
 
-    module Raw : Svg_sigs.MakeWrapped(Tyxml_js.Xml_wrap)(Xml).T
+    module Raw : Svg_sigs.Make(Xml_wed).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
@@ -303,7 +307,7 @@ module Html5 : sig
 
     val filter_attrib : 'a attrib -> bool React.signal -> 'a attrib
 
-    module Raw : Html5_sigs.MakeWrapped(Tyxml_js.Xml_wrap)(Xml)(Svg.R.Raw).T
+    module Raw : Html5_sigs.Make(Xml_wed)(Svg.R.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
