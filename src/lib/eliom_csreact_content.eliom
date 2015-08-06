@@ -288,48 +288,70 @@ module Xml = struct
 
   type attrib = Eliom_content_core.Xml.attrib
 
-  let float_attrib name s : attrib =
+  let float_attrib name s =
+    let init =
+      Eliom_csreact.(Shared.local s |> FakeReact.S.value) |>
+      Eliom_content_core.Xml.float_attrib name
+    in
     {{ Eliom_content_core.Xml_wed.float_attrib %name %s }} |>
-    Eliom_content_core.Xml.client_attrib ?init:None
+    Eliom_content_core.Xml.client_attrib ~init
 
-  let int_attrib name s : attrib =
+  let int_attrib name s =
+    let init =
+      Eliom_csreact.(Shared.local s |> FakeReact.S.value) |>
+      Eliom_content_core.Xml.int_attrib name
+    in
     {{ Eliom_content_core.Xml_wed.int_attrib %name %s }} |>
-    Eliom_content_core.Xml.client_attrib ?init:None
+    Eliom_content_core.Xml.client_attrib ~init
 
-  let string_attrib name s : attrib =
+  let string_attrib name s =
+    let init =
+      Eliom_csreact.(Shared.local s |> FakeReact.S.value) |>
+      Eliom_content_core.Xml.string_attrib name
+    in
     {{ Eliom_content_core.Xml_wed.string_attrib %name %s }} |>
-    Eliom_content_core.Xml.client_attrib ?init:None
+    Eliom_content_core.Xml.client_attrib ~init
 
-  let space_sep_attrib name s : attrib =
+  let space_sep_attrib name s =
+    let init =
+      Eliom_csreact.(Shared.local s |> FakeReact.S.value) |>
+      Eliom_content_core.Xml.space_sep_attrib name
+    in
     {{ Eliom_content_core.Xml_wed.space_sep_attrib %name %s }} |>
-    Eliom_content_core.Xml.client_attrib ?init:None
+    Eliom_content_core.Xml.client_attrib ~init
 
-  let comma_sep_attrib name s : attrib =
+  let comma_sep_attrib name s =
+    let init =
+      Eliom_csreact.(Shared.local s |> FakeReact.S.value) |>
+      Eliom_content_core.Xml.comma_sep_attrib name
+    in
     {{ Eliom_content_core.Xml_wed.comma_sep_attrib %name %s }} |>
-    Eliom_content_core.Xml.client_attrib ?init:None
+    Eliom_content_core.Xml.client_attrib ~init
 
-  let uri_attrib name s : attrib =
+  let uri_attrib name s =
+    let init =
+      Eliom_csreact.(Shared.local s |> FakeReact.S.value) |>
+      Eliom_content_core.Xml.uri_attrib name
+    in
     {{ Eliom_content_core.Xml_wed.uri_attrib %name %s }} |>
-    Eliom_content_core.Xml.client_attrib ?init:None
+    Eliom_content_core.Xml.client_attrib ~init
 
-  let uris_attrib name s : attrib =
+  let uris_attrib name s =
+    let init =
+      Eliom_csreact.(Shared.local s |> FakeReact.S.value) |>
+      Eliom_content_core.Xml.uris_attrib name
+    in
     {{ Eliom_content_core.Xml_wed.uris_attrib %name %s }} |>
-    Eliom_content_core.Xml.client_attrib ?init:None
+    Eliom_content_core.Xml.client_attrib ~init
 
-  let event_handler_attrib name ev : attrib =
-    {{ Eliom_content_core.Xml.event_handler_attrib
-       %name %ev }} |>
-    Eliom_content_core.Xml.client_attrib ?init:None
+  let event_handler_attrib =
+    Eliom_content_core.Xml.event_handler_attrib
 
-  let keyboard_event_handler_attrib name ev : attrib =
-    {{ Eliom_content_core.Xml.keyboard_event_handler_attrib
-       %name %ev }} |>
-    Eliom_content_core.Xml.client_attrib ?init:None
+  let keyboard_event_handler_attrib =
+    Eliom_content_core.Xml.keyboard_event_handler_attrib
 
-  let mouse_event_handler_attrib name ev : attrib =
-    {{ Eliom_content_core.Xml.mouse_event_handler_attrib
-       %name %ev }} |>
-    Eliom_content_core.Xml.client_attrib ?init:None
+  let mouse_event_handler_attrib =
+    Eliom_content_core.Xml.mouse_event_handler_attrib
 
   (* elements *)
 
