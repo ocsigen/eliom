@@ -514,6 +514,25 @@ let rebuild_attrib_val = function
   | Xml.AStrL (Xml.Space, sl) -> Js.string (String.concat " " sl)
   | Xml.AStrL (Xml.Comma, sl) -> Js.string (String.concat "," sl)
 
+let class_list_of_racontent_o = function
+  | Some (Xml.AStr s) ->
+    [s]
+  | Some (Xml.AStrL (space, l)) ->
+    l
+  | Some _ ->
+    failwith "attribute class is not a string"
+  | None ->
+    []
+
+let rebuild_class_list l1 l2 l3 =
+  let f s =
+    not (List.exists ((=) s) l2) &&
+    not (List.exists ((=) s) l3)
+  in
+  l3 @ List.filter f l1
+
+let rebuild_class_string l1 l2 l3 =
+  rebuild_class_list l1 l2 l3 |> String.concat " " |> Js.string
 
 (* html attributes and dom properties use different names
    **exemple**: maxlength vs maxLenght (case sensitive).
@@ -547,11 +566,34 @@ let iter_prop node name f =
   | Some n -> f n
   | None -> ()
 
+let rebuild_reactive_class_rattrib node s =
+  let name = Js.string "class" in
+  let e = React.S.diff (fun v v' -> v', v) s
+  and f = function
+    | _, None ->
+      node##removeAttribute (name);
+      iter_prop node name (Js.Unsafe.delete node)
+    | v, v' ->
+      let l1 =
+        Js.Opt.case (node##getAttribute(name))
+          (fun () -> [])
+          (fun s -> Js.to_string s |> Regexp.(split (regexp " ")))
+      and l2 = class_list_of_racontent_o v
+      and l3 = class_list_of_racontent_o v' in
+      let s = rebuild_class_string l1 l2 l3 in
+      node##setAttribute (name, s);
+      iter_prop node name (fun name -> Js.Unsafe.set node name s)
+  in
+  f (None, React.S.value s);
+  React.E.map f e |> ignore
+
 let rec rebuild_rattrib node ra = match Xml.racontent ra with
   | Xml.RA a ->
     let name = Js.string (Xml.aname ra) in
     let v = rebuild_attrib_val a in
     node##setAttribute (name,v);
+  | Xml.RAReact s when Xml.aname ra = "class" ->
+    rebuild_reactive_class_rattrib node s
   | Xml.RAReact s ->
     let name = Js.string (Xml.aname ra) in
     let _ = React.S.map (function

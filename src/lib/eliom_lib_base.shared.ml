@@ -171,16 +171,17 @@ module RawXML = struct
 
   type client_attrib_table = attrib Client_value_server_repr.t ClosureMap.t
 
+  let filter_class_value acc = function
+    | AStr v ->
+      v :: acc
+    | AStrL (space, v) ->
+      v @ acc
+    | _ ->
+      failwith "attribute class is not a string"
+
   let filter_class (freepos,acc_class,acc_attr) = function
     | "class", RA value ->
-      begin
-        match value with
-          | AStr v ->
-            (freepos,v::acc_class,acc_attr)
-          | AStrL (Space,v) ->
-            (freepos,v@acc_class,acc_attr)
-          | _ -> failwith "attribute class is not a string"
-      end
+      freepos, filter_class_value acc_class value, acc_attr
     | _, RACamlEventHandler (CE_registered_closure _) as attr ->
       (freepos,ce_registered_closure_class :: acc_class, attr :: acc_attr)
     | _, RACamlEventHandler (CE_call_service link_info) ->
@@ -203,6 +204,11 @@ module RawXML = struct
             in
             freepos, acc_class, acc_attr
       end
+    | "" , RAClient (crypt, Some ("class", RA v), cv) ->
+      let acc_class = filter_class_value acc_class v in
+      let acc_class = ce_registered_attr_class :: acc_class
+      and acc_attr = ("class", RAClient (crypt, None, cv)) :: acc_attr in
+      freepos, acc_class, acc_attr
     | "" , RAClient (crypt,init,cv)->
       let freepos,acc_attr = match init with
         | Some ((an,_) as a) -> freepos, (an,RAClient(crypt,None,cv))::a::acc_attr
