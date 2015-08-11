@@ -18,209 +18,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-{shared{
-
-module Conv_ = struct
-
-  type (-'a, 'b) ft = ('a -> 'b) Eliom_lib.shared_value
-
-  let string_of_sandbox_token :
-    [< Html5_types.sandbox_token ] -> string =
-    function
-    | `AllowForms -> "allow-forms"
-    | `AllowPointerLock -> "allow-pointer-lock"
-    | `AllowPopups -> "allow-popups"
-    | `AllowTopNavigation -> "allow-top-navigation"
-    | `AllowSameOrigin -> "allow-same-origin"
-    | `AllowScript -> "allow-script"
-
-  let string_of_multilength :
-    [< Html5_types.multilength ] -> string =
-    function
-    | `Percent p -> (string_of_int p) ^ "%"
-    | `Pixels p -> string_of_int p
-    | `Relative 1 -> "*"
-    | `Relative i -> (string_of_int i) ^ "*"
-
-  let string_of_linktype :
-    [< Html5_types.linktype ] -> string =
-    function
-    | `Alternate -> "alternate"
-    | `Archives -> "archives"
-    | `Author -> "author"
-    | `Bookmark -> "bookmark"
-    | `External -> "external"
-    | `First -> "first"
-    | `Help -> "help"
-    | `Icon -> "icon"
-    | `Index -> "index"
-    | `Last -> "last"
-    | `License -> "license"
-    | `Next -> "next"
-    | `Nofollow -> "nofollow"
-    | `Noreferrer -> "noreferrer"
-    | `Pingback -> "pingback"
-    | `Prefetch -> "prefetch"
-    | `Prev -> "prev"
-    | `Search -> "search"
-    | `Stylesheet -> "stylesheet"
-    | `Sidebar -> "sidebar"
-    | `Tag -> "tag"
-    | `Up -> "up"
-    | `Other s -> s
-
-  let string_of_mediadesc_token :
-    [< Html5_types.mediadesc_token ] -> string =
-    function
-    | `All -> "all"
-    | `Aural -> "aural"
-    | `Braille -> "braille"
-    | `Embossed -> "embossed"
-    | `Handheld -> "handheld"
-    | `Print -> "print"
-    | `Projection -> "projection"
-    | `Screen -> "screen"
-    | `Speech -> "speech"
-    | `TTY -> "tty"
-    | `TV -> "tv"
-    | `Raw_mediadesc s -> s
-
-  let string_of_variant :
-    [< Html5_types.big_variant] -> string =
-    function
-    | `Anonymous -> "anonymous"
-    | `Async -> "async"
-    | `Autofocus -> "autofocus"
-    | `Autoplay -> "autoplay"
-    | `Checked -> "checked"
-    | `Defer -> "defer"
-    | `Disabled -> "disabled"
-    | `Muted -> "muted"
-    | `Off -> "off"
-    | `On -> "on"
-    | `ReadOnly -> "readonly"
-    | `Rect -> "rect"
-    | `Selected -> "selected"
-    | `Use_credentials -> "use-credentials"
-    | `W3_org_1999_xhtml -> "http://www.w3.org/1999/xhtml"
-    | `All -> "all"
-    | `Preserve -> "preserve"
-    | `Default -> "default"
-    | `Controls -> "controls"
-    | `Ltr -> "ltr"
-    | `Rtl -> "rtl"
-    | `Get -> "GET"
-    | `Post -> "POST"
-    | `Put -> "PUT"
-    | `Delete -> "DELETE"
-    | `Formnovalidate -> "formnovalidate"
-    | `Hidden -> "hidden"
-    | `Ismap -> "ismap"
-    | `Loop -> "loop"
-    | `Novalidate -> "novalidate"
-    | `Open -> "open"
-    | `None -> "none"
-    | `Metadata -> "metadata"
-    | `Audio -> "audio"
-    | `Pubdate -> "pubdate"
-    | `Required -> "required"
-    | `Reversed -> "reserved"
-    | `Scoped -> "scoped"
-    | `Seamless -> "seamless"
-    | `Soft -> "soft"
-    | `Hard -> "hard"
-    | `Context -> "context"
-    | `Toolbar -> "toolbar"
-    | `Command -> "command"
-    | `Checkbox -> "checkbox"
-    | `Radio -> "radio"
-    | `Multiple -> "multiple"
-    | `Left -> "left"
-    | `Right -> "right"
-    | `Justify -> "justify"
-    | `Char -> "char"
-    | `Row -> "row"
-    | `Col -> "col"
-    | `Rowgroup -> "rowgroup"
-    | `Colgroup -> "colgroup"
-    | `Groups -> "groups"
-    | `Rows -> "rows"
-    | `Cols -> "cols"
-    | `Zero -> "0"
-    | `One -> "1"
-    | `Yes -> "yes"
-    | `No -> "no"
-    | `Auto -> "auto"
-    | `Circle -> "circle"
-    | `Poly -> "poly"
-
-  let string_of_input_type :
-    [< Html5_types.input_type ] -> string =
-    function
-    | `Button -> "button"
-    | `Checkbox -> "checkbox"
-    | `Color -> "color"
-    | `Date -> "date"
-    | `Datetime -> "datetime"
-    | `Datetime_local -> "datetime-local"
-    | `Email -> "email"
-    | `File -> "file"
-    | `Hidden -> "hidden"
-    | `Image -> "image"
-    | `Month -> "month"
-    | `Number -> "number"
-    | `Password -> "password"
-    | `Radio -> "radio"
-    | `Range -> "range"
-    | `Reset -> "reset"
-    | `Search -> "search"
-    | `Submit -> "submit"
-    | `Tel -> "tel"
-    | `Text -> "text"
-    | `Time -> "time"
-    | `Url -> "url"
-    | `Week -> "week"
-
-  let string_of_character = String.make 1
-
-  let string_of_number = string_of_int
-
-  let string_of_bool = string_of_bool
-
-  let unoption_string = function
-    | Some x -> x
-    | None -> ""
-
-  let string_of_step = function
-    | Some x -> string_of_float x
-    | None -> "any"
-
-  let string_of_sizes = function
-    | `Sizes l ->
-      String.concat " "
-        (List.map
-           (fun (x, y) -> Printf.sprintf "%dx%d" x y)
-           l)
-    | `Any ->
-      "any"
-
-  let string_of_sandbox l =
-    String.concat " " (List.map string_of_sandbox_token l)
-
-  let string_of_numbers l =
-    String.concat "," (List.map string_of_number l)
-
-  let string_of_multilengths l =
-    String.concat ", " (List.map string_of_multilength l)
-
-  let string_of_mediadesc l =
-    String.concat ", " (List.map string_of_mediadesc_token l)
-
-  let string_of_linktypes l =
-    String.concat " " (List.map string_of_linktype l)
-
-end }}
-
 {client{
 
 module Xml = struct
@@ -427,78 +224,70 @@ struct
 
   type (-'a, 'b) ft = ('a, 'b) Xml.W.ft
 
-  let string_of_sizes =
+  let string_of_big_variant =
     Eliom_lib.create_shared_value
-      Conv_.string_of_sizes {{Conv_.string_of_sizes}}
-
-  let string_of_input_type =
-    Eliom_lib.create_shared_value
-      Conv_.string_of_input_type {{Conv_.string_of_input_type}}
-
-  let string_of_mediadesc_token =
-    Eliom_lib.create_shared_value
-      Conv_.string_of_mediadesc_token
-      {{Conv_.string_of_mediadesc_token}}
-
-  let string_of_variant =
-    Eliom_lib.create_shared_value
-      Conv_.string_of_variant {{Conv_.string_of_variant}}
-
-  let string_of_linktype =
-    Eliom_lib.create_shared_value
-      Conv_.string_of_linktype {{Conv_.string_of_linktype}}
-
-  let string_of_sandbox_token =
-    Eliom_lib.create_shared_value
-      Conv_.string_of_sandbox_token {{Conv_.string_of_sandbox_token}}
-
-  let string_of_multilength =
-    Eliom_lib.create_shared_value
-      Conv_.string_of_multilength {{Conv_.string_of_multilength}}
-
-  let string_of_character =
-    Eliom_lib.create_shared_value
-      Conv_.string_of_character {{Conv_.string_of_character}}
-
-  let string_of_number =
-    Eliom_lib.create_shared_value
-      Conv_.string_of_number {{Conv_.string_of_number}}
+      Html5_f.Conv.string_of_big_variant
+      {{Html5_f.Conv.string_of_big_variant}}
 
   let string_of_bool =
     Eliom_lib.create_shared_value
-      Conv_.string_of_bool {{Conv_.string_of_bool}}
+      Html5_f.Conv.string_of_bool
+      {{Html5_f.Conv.string_of_bool}}
 
-  let string_of_step =
+  let string_of_character =
     Eliom_lib.create_shared_value
-      Conv_.string_of_step {{Conv_.string_of_step}}
+      Html5_f.Conv.string_of_character
+      {{Html5_f.Conv.string_of_character}}
 
-  let unoption_string =
+  let string_of_input_type =
     Eliom_lib.create_shared_value
-      Conv_.unoption_string {{Conv_.unoption_string}}
-
-  let string_of_sizes =
-    Eliom_lib.create_shared_value
-      Conv_.string_of_sizes {{Conv_.string_of_sizes}}
-
-  let string_of_sandbox =
-    Eliom_lib.create_shared_value
-      Conv_.string_of_sandbox {{Conv_.string_of_sandbox}}
-
-  let string_of_numbers =
-    Eliom_lib.create_shared_value
-      Conv_.string_of_numbers {{Conv_.string_of_numbers}}
-
-  let string_of_multilengths =
-    Eliom_lib.create_shared_value
-      Conv_.string_of_multilengths {{Conv_.string_of_multilengths}}
-
-  let string_of_mediadesc =
-    Eliom_lib.create_shared_value
-      Conv_.string_of_mediadesc {{Conv_.string_of_mediadesc}}
+      Html5_f.Conv.string_of_input_type
+      {{Html5_f.Conv.string_of_input_type}}
 
   let string_of_linktypes =
     Eliom_lib.create_shared_value
-      Conv_.string_of_linktypes {{Conv_.string_of_linktypes}}
+      Html5_f.Conv.string_of_linktypes
+      {{Html5_f.Conv.string_of_linktypes}}
+
+  let string_of_mediadesc =
+    Eliom_lib.create_shared_value
+      Html5_f.Conv.string_of_mediadesc
+      {{Html5_f.Conv.string_of_mediadesc}}
+
+  let string_of_multilength =
+    Eliom_lib.create_shared_value
+      Html5_f.Conv.string_of_multilength
+      {{Html5_f.Conv.string_of_multilength}}
+
+  let string_of_multilengths =
+    Eliom_lib.create_shared_value
+      Html5_f.Conv.string_of_multilengths
+      {{Html5_f.Conv.string_of_multilengths}}
+
+  let string_of_numbers =
+    Eliom_lib.create_shared_value
+      Html5_f.Conv.string_of_numbers
+      {{Html5_f.Conv.string_of_numbers}}
+
+  let string_of_sandbox =
+    Eliom_lib.create_shared_value
+      Html5_f.Conv.string_of_sandbox
+      {{Html5_f.Conv.string_of_sandbox}}
+
+  let string_of_sizes =
+    Eliom_lib.create_shared_value
+      Html5_f.Conv.string_of_sizes
+      {{Html5_f.Conv.string_of_sizes}}
+
+  let string_of_step =
+    Eliom_lib.create_shared_value
+      Html5_f.Conv.string_of_step
+      {{Html5_f.Conv.string_of_step}}
+
+  let unoption_string =
+    Eliom_lib.create_shared_value
+      Html5_f.Conv.unoption_string
+      {{Html5_f.Conv.unoption_string}}
 
 end ;;
 
