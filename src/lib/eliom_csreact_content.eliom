@@ -218,29 +218,6 @@ end
 
 module Svg = struct
 
-  module Xml = struct
-
-    include Xml
-
-    let pcdata s =
-      let e =
-        let s = Eliom_csreact.(Shared.local (SharedReact.S.value s)) in
-        Eliom_content_core.Xml.(node "span" [pcdata s]) |> name_node
-      in
-      let _ = {unit{
-        let (>>!) = Js.Opt.iter in
-        let e = Eliom_client.rebuild_node' `SVG %e in
-        e##firstChild >>! fun e ->
-        Dom.CoerceTo.text e >>! fun e ->
-        React.E.map
-          (fun x -> e##data <- Js.string x)
-          (React.S.changes %s) |>
-        ignore;
-      }} in
-      e
-
-  end
-
   module Conv :
 
     Svg_sigs.Conv with type (-'a, 'b) ft = ('a, 'b) Xml.W.ft =

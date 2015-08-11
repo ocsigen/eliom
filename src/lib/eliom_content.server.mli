@@ -204,10 +204,17 @@ module Svg : sig
 
   end
 
-  module R :
-    Svg_sigs.Make(Eliom_csreact_content.Xml).T
-    with type 'a elt = 'a elt
-     and type 'a attrib = 'a attrib
+  module R : sig
+
+    module Raw : Svg_sigs.Make(Eliom_csreact_content.Xml).T
+      with type 'a elt = 'a elt
+       and type 'a attrib = 'a attrib
+
+    include module type of Raw
+
+    val pcdata : string Raw.Xml.W.t -> [> `Unimplemented ]
+
+  end
 
   (** Creation of content from client-side values.
       This makes possible to insert in server side generated pages some
@@ -421,8 +428,7 @@ module Html5 : sig
 
   module R : sig
 
-    include
-      Html5_sigs.Make(Eliom_csreact_content.Xml)(Svg.R).T
+    include Html5_sigs.Make(Eliom_csreact_content.Xml)(Svg.R.Raw).T
       with type 'a elt = 'a elt
        and type 'a attrib = 'a attrib
 
