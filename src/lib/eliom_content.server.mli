@@ -422,7 +422,7 @@ module Html5 : sig
   module R : sig
 
     include
-      Html5_sigs.Make_NoSVG(Eliom_csreact_content.Xml).T
+      Html5_sigs.Make(Eliom_csreact_content.Xml)(Svg.R).T
       with type 'a elt = 'a elt
        and type 'a attrib = 'a attrib
 

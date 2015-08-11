@@ -41,7 +41,7 @@ module Html5 : sig
 
   module R : sig
 
-    include Html5_sigs.Make_NoSVG(Xml).T
+    include Html5_sigs.Make(Xml)(Svg.R).T
       with type 'a elt = 'a Eliom_content_core.Html5.elt
        and type 'a attrib = 'a Eliom_content_core.Html5.attrib
 
