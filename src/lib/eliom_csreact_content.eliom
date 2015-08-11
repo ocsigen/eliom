@@ -216,85 +216,224 @@ module Xml = struct
 
 end
 
-module Conv :
+module Svg = struct
 
-  Html5_sigs.Conv with type (-'a, 'b) ft = ('a, 'b) Xml.W.ft =
+  module Xml = struct
 
-struct
+    include Xml
 
-  type (-'a, 'b) ft = ('a, 'b) Xml.W.ft
+    let pcdata s =
+      let e =
+        let s = Eliom_csreact.(Shared.local (SharedReact.S.value s)) in
+        Eliom_content_core.Xml.(node "span" [pcdata s]) |> name_node
+      in
+      let _ = {unit{
+        let (>>!) = Js.Opt.iter in
+        let e = Eliom_client.rebuild_node' `SVG %e in
+        e##firstChild >>! fun e ->
+        Dom.CoerceTo.text e >>! fun e ->
+        React.E.map
+          (fun x -> e##data <- Js.string x)
+          (React.S.changes %s) |>
+        ignore;
+      }} in
+      e
 
-  let string_of_big_variant =
-    Eliom_lib.create_shared_value
-      Html5_f.Conv.string_of_big_variant
-      {{Html5_f.Conv.string_of_big_variant}}
+  end
 
-  let string_of_bool =
-    Eliom_lib.create_shared_value
-      Html5_f.Conv.string_of_bool
-      {{Html5_f.Conv.string_of_bool}}
+  module Conv :
 
-  let string_of_character =
-    Eliom_lib.create_shared_value
-      Html5_f.Conv.string_of_character
-      {{Html5_f.Conv.string_of_character}}
+    Svg_sigs.Conv with type (-'a, 'b) ft = ('a, 'b) Xml.W.ft =
 
-  let string_of_input_type =
-    Eliom_lib.create_shared_value
-      Html5_f.Conv.string_of_input_type
-      {{Html5_f.Conv.string_of_input_type}}
+  struct
 
-  let string_of_linktypes =
-    Eliom_lib.create_shared_value
-      Html5_f.Conv.string_of_linktypes
-      {{Html5_f.Conv.string_of_linktypes}}
+    type (-'a, 'b) ft = ('a, 'b) Xml.W.ft
 
-  let string_of_mediadesc =
-    Eliom_lib.create_shared_value
-      Html5_f.Conv.string_of_mediadesc
-      {{Html5_f.Conv.string_of_mediadesc}}
+    let string_of_alignment_baseline =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_alignment_baseline
+        {{Svg_f.Conv.string_of_alignment_baseline}}
 
-  let string_of_multilength =
-    Eliom_lib.create_shared_value
-      Html5_f.Conv.string_of_multilength
-      {{Html5_f.Conv.string_of_multilength}}
+    let string_of_big_variant =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_big_variant
+        {{Svg_f.Conv.string_of_big_variant}}
 
-  let string_of_multilengths =
-    Eliom_lib.create_shared_value
-      Html5_f.Conv.string_of_multilengths
-      {{Html5_f.Conv.string_of_multilengths}}
+    let string_of_bool =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_bool
+        {{Svg_f.Conv.string_of_bool}}
 
-  let string_of_numbers =
-    Eliom_lib.create_shared_value
-      Html5_f.Conv.string_of_numbers
-      {{Html5_f.Conv.string_of_numbers}}
+    let string_of_coords =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_coords
+        {{Svg_f.Conv.string_of_coords}}
 
-  let string_of_sandbox =
-    Eliom_lib.create_shared_value
-      Html5_f.Conv.string_of_sandbox
-      {{Html5_f.Conv.string_of_sandbox}}
+    let string_of_dominant_baseline =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_dominant_baseline
+        {{Svg_f.Conv.string_of_dominant_baseline}}
 
-  let string_of_sizes =
-    Eliom_lib.create_shared_value
-      Html5_f.Conv.string_of_sizes
-      {{Html5_f.Conv.string_of_sizes}}
+    let string_of_fourfloats =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_fourfloats
+        {{Svg_f.Conv.string_of_fourfloats}}
 
-  let string_of_step =
-    Eliom_lib.create_shared_value
-      Html5_f.Conv.string_of_step
-      {{Html5_f.Conv.string_of_step}}
+    let string_of_in_value =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_in_value
+        {{Svg_f.Conv.string_of_in_value}}
 
-  let unoption_string =
-    Eliom_lib.create_shared_value
-      Html5_f.Conv.unoption_string
-      {{Html5_f.Conv.unoption_string}}
+    let string_of_int =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_int
+        {{Svg_f.Conv.string_of_int}}
 
-end ;;
+    let string_of_length =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_length
+        {{Svg_f.Conv.string_of_length}}
+
+    let string_of_lengths =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_lengths
+        {{Svg_f.Conv.string_of_lengths}}
+
+    let string_of_number =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_number
+        {{Svg_f.Conv.string_of_number}}
+
+    let string_of_number_optional_number =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_number_optional_number
+        {{Svg_f.Conv.string_of_number_optional_number}}
+
+    let string_of_numbers =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_numbers
+        {{Svg_f.Conv.string_of_numbers}}
+
+    let string_of_numbers_semicolon =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_numbers_semicolon
+        {{Svg_f.Conv.string_of_numbers_semicolon}}
+
+    let string_of_offset =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_offset
+        {{Svg_f.Conv.string_of_offset}}
+
+    let string_of_orient =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_orient
+        {{Svg_f.Conv.string_of_orient}}
+
+    let string_of_paint =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_paint
+        {{Svg_f.Conv.string_of_paint}}
+
+    let string_of_strokedasharray =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_strokedasharray
+        {{Svg_f.Conv.string_of_strokedasharray}}
+
+    let string_of_transform =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_transform
+        {{Svg_f.Conv.string_of_transform}}
+
+    let string_of_transforms =
+      Eliom_lib.create_shared_value
+        Svg_f.Conv.string_of_transforms
+        {{Svg_f.Conv.string_of_transforms}}
+
+  end
+
+  module R = Eliom_content_core.Svg.Make(Xml)(Conv)
+
+end
 
 module Html5 = struct
 
+  module Conv :
+
+    Html5_sigs.Conv with type (-'a, 'b) ft = ('a, 'b) Xml.W.ft =
+
+  struct
+
+    type (-'a, 'b) ft = ('a, 'b) Xml.W.ft
+
+    let string_of_big_variant =
+      Eliom_lib.create_shared_value
+        Html5_f.Conv.string_of_big_variant
+        {{Html5_f.Conv.string_of_big_variant}}
+
+    let string_of_bool =
+      Eliom_lib.create_shared_value
+        Html5_f.Conv.string_of_bool
+        {{Html5_f.Conv.string_of_bool}}
+
+    let string_of_character =
+      Eliom_lib.create_shared_value
+        Html5_f.Conv.string_of_character
+        {{Html5_f.Conv.string_of_character}}
+
+    let string_of_input_type =
+      Eliom_lib.create_shared_value
+        Html5_f.Conv.string_of_input_type
+        {{Html5_f.Conv.string_of_input_type}}
+
+    let string_of_linktypes =
+      Eliom_lib.create_shared_value
+        Html5_f.Conv.string_of_linktypes
+        {{Html5_f.Conv.string_of_linktypes}}
+
+    let string_of_mediadesc =
+      Eliom_lib.create_shared_value
+        Html5_f.Conv.string_of_mediadesc
+        {{Html5_f.Conv.string_of_mediadesc}}
+
+    let string_of_multilength =
+      Eliom_lib.create_shared_value
+        Html5_f.Conv.string_of_multilength
+        {{Html5_f.Conv.string_of_multilength}}
+
+    let string_of_multilengths =
+      Eliom_lib.create_shared_value
+        Html5_f.Conv.string_of_multilengths
+        {{Html5_f.Conv.string_of_multilengths}}
+
+    let string_of_numbers =
+      Eliom_lib.create_shared_value
+        Html5_f.Conv.string_of_numbers
+        {{Html5_f.Conv.string_of_numbers}}
+
+    let string_of_sandbox =
+      Eliom_lib.create_shared_value
+        Html5_f.Conv.string_of_sandbox
+        {{Html5_f.Conv.string_of_sandbox}}
+
+    let string_of_sizes =
+      Eliom_lib.create_shared_value
+        Html5_f.Conv.string_of_sizes
+        {{Html5_f.Conv.string_of_sizes}}
+
+    let string_of_step =
+      Eliom_lib.create_shared_value
+        Html5_f.Conv.string_of_step
+        {{Html5_f.Conv.string_of_step}}
+
+    let unoption_string =
+      Eliom_lib.create_shared_value
+        Html5_f.Conv.unoption_string
+        {{Html5_f.Conv.unoption_string}}
+
+  end
+
   module R = struct
-    include Eliom_content_core.Html5.Make_NoSVG(Xml)(Conv)
+    include Eliom_content_core.Html5.Make(Xml)(Conv)(Svg.R)
     let pcdata x = pcdata x |> Unsafe.coerce_elt
   end
 

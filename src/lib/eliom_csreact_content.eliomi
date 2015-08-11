@@ -29,6 +29,14 @@ module Xml : Xml_sigs.T
    and type keyboard_event_handler =
          (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value
 
+module Svg : sig
+
+  module R : Svg_sigs.Make(Xml).T
+    with type 'a elt = 'a Eliom_content_core.Svg.elt
+     and type 'a attrib = 'a Eliom_content_core.Svg.attrib
+
+end
+
 module Html5 : sig
 
   module R : sig

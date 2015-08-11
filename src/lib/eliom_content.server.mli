@@ -204,6 +204,11 @@ module Svg : sig
 
   end
 
+  module R :
+    Svg_sigs.Make(Eliom_csreact_content.Xml).T
+    with type 'a elt = 'a elt
+     and type 'a attrib = 'a attrib
+
   (** Creation of content from client-side values.
       This makes possible to insert in server side generated pages some
       nodes that will be computed on client side (for example reactive nodes).

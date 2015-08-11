@@ -29,6 +29,7 @@ module Svg = struct
 
   module F = Svg.F
   module D = Svg.D
+  module R = Eliom_csreact_content.Svg.R
 
   module Id = Svg.Id
 

@@ -111,6 +111,15 @@ module Svg : sig
 
   end
 
+  module Make
+      (Xml : Xml_sigs.T
+       with type elt = Xml.elt
+        and type attrib = Xml.attrib)
+      (C : Svg_sigs.Conv with type ('a, 'b) ft = ('a, 'b) Xml.W.ft) :
+    Svg_sigs.Make(Xml).T
+    with type +'a elt = 'a elt
+     and type +'a attrib = 'a attrib
+
   module Id : sig
 
     type +'a id
@@ -175,12 +184,13 @@ module Html5 : sig
 
   end
 
-  module Make_NoSVG
+  module Make
       (Xml : Xml_sigs.T
        with type elt = Xml.elt
         and type attrib = Xml.attrib)
-      (C : Html5_sigs.Conv with type ('a, 'b) ft = ('a, 'b) Xml.W.ft) :
-    Html5_sigs.Make_NoSVG(Xml).T
+      (Conv : Html5_sigs.Conv with type ('a, 'b) ft = ('a, 'b) Xml.W.ft)
+      (Svg : Svg_sigs.T with module Xml := Xml) :
+    Html5_sigs.Make(Xml)(Svg).T
     with type +'a elt = 'a elt
      and type +'a attrib = 'a attrib
 

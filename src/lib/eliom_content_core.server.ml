@@ -275,6 +275,12 @@ module Svg = struct
 
     end
 
+  module Make
+      (Xml : Xml_sigs.T with type elt = Xml.elt
+                         and type attrib = Xml.attrib)
+      (C : Svg_sigs.Conv with type ('a, 'b) ft = ('a, 'b) Xml.W.ft) =
+    Svg_f.Make'(Xml)(C)
+
   type +'a elt = 'a F.elt
   type 'a wrap = 'a
   type 'a list_wrap = 'a list
@@ -352,12 +358,13 @@ module Html5 = struct
 
   end
 
-  module Make_NoSVG
+  module Make
       (Xml : Xml_sigs.T
        with type elt = Xml.elt
         and type attrib = Xml.attrib)
-      (C : Html5_sigs.Conv with type ('a, 'b) ft = ('a, 'b) Xml.W.ft) =
-    Html5_f.NoSVG.Make'(Xml)(C)
+      (Conv : Html5_sigs.Conv with type ('a, 'b) ft = ('a, 'b) Xml.W.ft)
+      (Svg : Svg_sigs.T with module Xml := Xml) =
+    Html5_f.Make'(Xml)(Conv)(Svg)
 
   type +'a elt = 'a F.elt
   type 'a wrap = 'a
