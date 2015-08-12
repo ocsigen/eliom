@@ -201,3 +201,16 @@ type 'injection_value global_data =
 type request_data = client_value_datum list
 
 val global_data_unwrap_id_int : int
+
+module type SHARED = sig
+
+  (* TODO : enhance this to contain all shared_value-related
+     operations *)
+
+  type +'a t
+  type +'a c
+
+  val client : 'a t -> 'a c
+  val local : 'a t -> 'a
+
+end

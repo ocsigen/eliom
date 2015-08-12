@@ -38,6 +38,11 @@ type 'a shared_value = 'a
 
 let create_shared_value (_ : 'a) (c : 'a client_value) = c
 
+module Shared = struct
+  let client x = x
+  let local x = x
+end
+
 (*****************************************************************************)
 
 module Url = struct

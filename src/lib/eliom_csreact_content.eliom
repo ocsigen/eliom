@@ -87,7 +87,7 @@ module Xml = struct
 
   let float_attrib name s =
     let init =
-      Eliom_csreact.(Shared.local s |> FakeReact.S.value) |>
+      Eliom_lib.Shared.local s |> Eliom_csreact.FakeReact.S.value |>
       Eliom_content_core.Xml.float_attrib name
     in
     {{ Eliom_content_core.Xml_wed.float_attrib %name %s }} |>
@@ -95,7 +95,7 @@ module Xml = struct
 
   let int_attrib name s =
     let init =
-      Eliom_csreact.(Shared.local s |> FakeReact.S.value) |>
+      Eliom_lib.Shared.local s |> Eliom_csreact.FakeReact.S.value |>
       Eliom_content_core.Xml.int_attrib name
     in
     {{ Eliom_content_core.Xml_wed.int_attrib %name %s }} |>
@@ -103,7 +103,7 @@ module Xml = struct
 
   let string_attrib name s =
     let init =
-      Eliom_csreact.(Shared.local s |> FakeReact.S.value) |>
+      Eliom_lib.Shared.local s |> Eliom_csreact.FakeReact.S.value |>
       Eliom_content_core.Xml.string_attrib name
     in
     {{ Eliom_content_core.Xml_wed.string_attrib %name %s }} |>
@@ -111,7 +111,7 @@ module Xml = struct
 
   let space_sep_attrib name s =
     let init =
-      Eliom_csreact.(Shared.local s |> FakeReact.S.value) |>
+      Eliom_lib.Shared.local s |> Eliom_csreact.FakeReact.S.value |>
       Eliom_content_core.Xml.space_sep_attrib name
     in
     {{ Eliom_content_core.Xml_wed.space_sep_attrib %name %s }} |>
@@ -119,7 +119,7 @@ module Xml = struct
 
   let comma_sep_attrib name s =
     let init =
-      Eliom_csreact.(Shared.local s |> FakeReact.S.value) |>
+      Eliom_lib.Shared.local s |> Eliom_csreact.FakeReact.S.value |>
       Eliom_content_core.Xml.comma_sep_attrib name
     in
     {{ Eliom_content_core.Xml_wed.comma_sep_attrib %name %s }} |>
@@ -127,7 +127,7 @@ module Xml = struct
 
   let uri_attrib name s =
     let init =
-      Eliom_csreact.(Shared.local s |> FakeReact.S.value) |>
+      Eliom_lib.Shared.local s |> Eliom_csreact.FakeReact.S.value |>
       Eliom_content_core.Xml.uri_attrib name
     in
     {{ Eliom_content_core.Xml_wed.uri_attrib %name %s }} |>
@@ -135,7 +135,7 @@ module Xml = struct
 
   let uris_attrib name s =
     let init =
-      Eliom_csreact.(Shared.local s |> FakeReact.S.value) |>
+      Eliom_lib.Shared.local s |> Eliom_csreact.FakeReact.S.value |>
       Eliom_content_core.Xml.uris_attrib name
     in
     {{ Eliom_content_core.Xml_wed.uris_attrib %name %s }} |>
@@ -171,7 +171,10 @@ module Xml = struct
 
   let pcdata s =
     let e =
-      let s = Eliom_csreact.(Shared.local (SharedReact.S.value s)) in
+      let s =
+        Eliom_csreact.SharedReact.S.value s |>
+        Eliom_lib.Shared.local
+      in
       Eliom_content_core.Xml.(node "span" [pcdata s]) |> name_node
     in
     let _ = {unit{
@@ -198,7 +201,7 @@ module Xml = struct
 
   let node ?a name l =
     let e =
-      Eliom_csreact.Shared.local l |>
+      Eliom_lib.Shared.local l |>
       Eliom_csreact.FakeReactiveData.RList.value |>
       Eliom_content_core.Xml.node ?a name |>
       name_node
