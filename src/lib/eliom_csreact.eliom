@@ -224,7 +224,7 @@ module FakeReactiveData = struct
     type 'a handle
     val make : 'a list -> 'a t * 'a handle
     val cons : 'a FakeReact.S.t -> 'a t -> 'a t
-    val append : 'a t -> 'a t -> 'a t
+    val concat : 'a t -> 'a t -> 'a t
     val from_signal : 'a list FakeReact.S.t -> 'a t
     val value : 'a t -> 'a list
     val value_s : 'a t -> 'a list FakeReact.S.t
@@ -239,7 +239,7 @@ module FakeReactiveData = struct
     type 'a handle = unit
     let make l = l, ()
     let cons a l = FakeReact.S.value a :: l
-    let append l1 l2 = List.append l1 l2
+    let concat l1 l2 = List.append l1 l2
     let from_signal s = FakeReact.S.value s
     let singleton_s s = [FakeReact.S.value s]
     let value l = l
@@ -438,9 +438,9 @@ module SharedReactiveData = struct
       in
       create_shared_value sv cv
 
-    let append a b =
+    let concat a b =
       let sv =
-        FakeReactiveData.RList.append
+        FakeReactiveData.RList.concat
           (Shared.local a)
           (Shared.local b)
       and cv =
@@ -453,6 +453,11 @@ module SharedReactiveData = struct
       let sv = FakeReactiveData.RList.singleton_s (Shared.local s) in
       let cv = {'a FakeReactiveData.RList.t{
         FakeReactiveData.RList.singleton_s %s }} in
+      create_shared_value sv cv
+
+    let value (s : 'a t) : 'a list shared_value =
+      let sv = FakeReactiveData.RList.value (Shared.local s)
+      and cv = {'a list{ FakeReactiveData.RList.value %s }} in
       create_shared_value sv cv
 
     let value_s (s : 'a t) : 'a list SharedReact.S.t =
@@ -476,19 +481,6 @@ module SharedReactiveData = struct
 
     module Lwt = struct
       let map_p (f : ('a -> 'b Lwt.t) shared_value) (l : 'a t) : 'b t Lwt.t =
-        lwt server_result =
-          Lwt_list.map_p
-            (Shared.local f)
-            (FakeReactiveData.RList.value (Shared.local l))
-        in
-        Lwt.return
-          (create_shared_value
-             (fst (FakeReactiveData.RList.make server_result))
-             {{ SharedReactiveData.RList.Lwt.map_p_init
-                ~init:%server_result
-                (Shared.local %f) (Shared.local %l) }})
-
-      let fold_p (f : ('a -> 'b Lwt.t) shared_value) (l : 'a t) : 'b t Lwt.t =
         lwt server_result =
           Lwt_list.map_p
             (Shared.local f)

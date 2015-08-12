@@ -38,9 +38,10 @@ module Xml = struct
 
     let return = const
 
-    let append = Eliom_csreact.SharedReactiveData.RList.append
+    let append = Eliom_csreact.SharedReactiveData.RList.concat
 
-    let cons = Eliom_csreact.SharedReactiveData.RList.cons
+    let cons a l =
+      Eliom_csreact.SharedReactiveData.RList.(concat (singleton_s a) l)
 
     let singleton = Eliom_csreact.SharedReactiveData.RList.singleton_s
 
@@ -85,58 +86,55 @@ module Xml = struct
 
   type attrib = Eliom_content_core.Xml.attrib
 
+  let local_value s =
+    Eliom_csreact.SharedReact.S.value s |>
+    Eliom_lib.Shared.local
+
   let float_attrib name s =
     let init =
-      Eliom_lib.Shared.local s |> Eliom_csreact.FakeReact.S.value |>
-      Eliom_content_core.Xml.float_attrib name
+      local_value s |> Eliom_content_core.Xml.float_attrib name
     in
     {{ Eliom_content_core.Xml_wed.float_attrib %name %s }} |>
     Eliom_content_core.Xml.client_attrib ~init
 
   let int_attrib name s =
     let init =
-      Eliom_lib.Shared.local s |> Eliom_csreact.FakeReact.S.value |>
-      Eliom_content_core.Xml.int_attrib name
+      local_value s |> Eliom_content_core.Xml.int_attrib name
     in
     {{ Eliom_content_core.Xml_wed.int_attrib %name %s }} |>
     Eliom_content_core.Xml.client_attrib ~init
 
   let string_attrib name s =
     let init =
-      Eliom_lib.Shared.local s |> Eliom_csreact.FakeReact.S.value |>
-      Eliom_content_core.Xml.string_attrib name
+      local_value s |> Eliom_content_core.Xml.string_attrib name
     in
     {{ Eliom_content_core.Xml_wed.string_attrib %name %s }} |>
     Eliom_content_core.Xml.client_attrib ~init
 
   let space_sep_attrib name s =
     let init =
-      Eliom_lib.Shared.local s |> Eliom_csreact.FakeReact.S.value |>
-      Eliom_content_core.Xml.space_sep_attrib name
+      local_value s |> Eliom_content_core.Xml.space_sep_attrib name
     in
     {{ Eliom_content_core.Xml_wed.space_sep_attrib %name %s }} |>
     Eliom_content_core.Xml.client_attrib ~init
 
   let comma_sep_attrib name s =
     let init =
-      Eliom_lib.Shared.local s |> Eliom_csreact.FakeReact.S.value |>
-      Eliom_content_core.Xml.comma_sep_attrib name
+      local_value s |> Eliom_content_core.Xml.comma_sep_attrib name
     in
     {{ Eliom_content_core.Xml_wed.comma_sep_attrib %name %s }} |>
     Eliom_content_core.Xml.client_attrib ~init
 
   let uri_attrib name s =
     let init =
-      Eliom_lib.Shared.local s |> Eliom_csreact.FakeReact.S.value |>
-      Eliom_content_core.Xml.uri_attrib name
+      local_value s |> Eliom_content_core.Xml.uri_attrib name
     in
     {{ Eliom_content_core.Xml_wed.uri_attrib %name %s }} |>
     Eliom_content_core.Xml.client_attrib ~init
 
   let uris_attrib name s =
     let init =
-      Eliom_lib.Shared.local s |> Eliom_csreact.FakeReact.S.value |>
-      Eliom_content_core.Xml.uris_attrib name
+      local_value s |> Eliom_content_core.Xml.uris_attrib name
     in
     {{ Eliom_content_core.Xml_wed.uris_attrib %name %s }} |>
     Eliom_content_core.Xml.client_attrib ~init
@@ -201,8 +199,8 @@ module Xml = struct
 
   let node ?a name l =
     let e =
-      Eliom_lib.Shared.local l |>
-      Eliom_csreact.FakeReactiveData.RList.value |>
+      Eliom_csreact.SharedReactiveData.RList.value l |>
+      Eliom_lib.Shared.local |>
       Eliom_content_core.Xml.node ?a name |>
       name_node
     in
