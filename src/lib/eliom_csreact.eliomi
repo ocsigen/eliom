@@ -49,5 +49,6 @@ module SharedReactiveData : sig
   module RList : Eliom_csreact_sigs.RLIST
     with type 'a t = 'a ReactiveData.RList.t
      and type 'a signal := 'a SharedReact.S.t
+     and type 'a handle = 'a ReactiveData.RList.handle
 end
 }}
