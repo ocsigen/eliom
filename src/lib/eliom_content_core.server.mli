@@ -33,7 +33,7 @@ module Xml : sig
   (**/**)
 
   val make_process_node : ?id:string -> elt -> elt
-  val make_request_node : elt -> elt
+  val make_request_node : ?reset:bool -> elt -> elt
 
   val uri_of_fun: (unit -> string) -> uri
 
@@ -129,6 +129,9 @@ module Svg : sig
     val create_named_elt: id:'a id -> 'a elt -> 'a elt
 
     val create_global_elt: 'a elt -> 'a elt
+
+    val create_request_elt: ?reset:bool -> 'a elt -> 'a elt
+
   end
 
   module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a F.elt
@@ -202,6 +205,8 @@ module Html5 : sig
     val create_named_elt: id:'a id -> 'a elt -> 'a elt
 
     val create_global_elt: 'a elt -> 'a elt
+
+    val create_request_elt: ?reset:bool -> 'a elt -> 'a elt
 
     (**/**)
     val have_id: 'a id -> 'b elt -> bool

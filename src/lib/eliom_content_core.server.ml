@@ -182,8 +182,19 @@ module Xml = struct
   let make_process_node ?(id = make_node_name ~global:true ()) elt' =
     { elt' with elt = { elt'.elt with node_id = ProcessId id } }
 
-  let make_request_node elt' =
-    { elt' with elt = { elt'.elt with node_id = RequestId (make_node_name ~global:false ()) } }
+  let make_request_node ?(reset = false) elt' =
+    let f () =
+      let id = RequestId (make_node_name ~global:false ()) in
+      { elt' with elt = { elt'.elt with node_id = id } }
+    in
+    if reset then
+      f ()
+    else
+      match elt'.elt.node_id with
+      | Eliom_lib.RawXML.NoId ->
+        f ()
+      | _ ->
+        elt'
 
   (** Ref tree *)
 
@@ -295,6 +306,8 @@ module Svg = struct
       D.tot (Xml.make_process_node ~id (D.toelt elt))
     let create_global_elt elt =
       D.tot (Xml.make_process_node (D.toelt elt))
+    let create_request_elt ?reset elt =
+      D.tot (Xml.make_request_node ?reset (D.toelt elt))
   end
 
   module Printer = Xml_print.Make_typed_simple(Xml)(F)
@@ -380,6 +393,8 @@ module Html5 = struct
       D.tot (Xml.make_process_node ~id (D.toelt elt))
     let create_global_elt elt =
       D.tot (Xml.make_process_node (D.toelt elt))
+    let create_request_elt ?reset elt =
+      D.tot (Xml.make_request_node ?reset (D.toelt elt))
     let have_id name elt = Xml.get_node_id (D.toelt elt) = Xml.ProcessId name
   end
 

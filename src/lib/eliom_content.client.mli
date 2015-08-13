@@ -113,6 +113,11 @@ module Svg : sig
         [create_named_elt ~id:(new_elt_id ()) elt]. *)
     val create_global_elt: 'a elt -> 'a elt
 
+    (** [create_request_elt ?reset elt] creates a referable copy of
+        [elt]. If [~reset = true] is provided (default: false), a new
+        ID is created even if [elt] has an ID already. *)
+    val create_request_elt: ?reset:bool -> 'a elt -> 'a elt
+
     (** [get_element id] returns
         the HTML element in the DOM with the given [id] if it exists. *)
     val get_element : 'a id -> 'a elt option
@@ -445,6 +450,11 @@ module Html5 : sig
     (** The function [create_named_elt elt] is equivalent to
         [create_named_elt ~id:(new_elt_id ()) elt]. *)
     val create_global_elt: 'a elt -> 'a elt
+
+    (** [create_request_elt ?reset elt] creates a referable copy of
+        [elt]. If [~reset = true] is provided (default: false), a new
+        ID is created even if [elt] has an ID already. *)
+    val create_request_elt: ?reset:bool -> 'a elt -> 'a elt
 
     (** [get_element id] returns
         the HTML element in the DOM with the given [id] if it exists. *)

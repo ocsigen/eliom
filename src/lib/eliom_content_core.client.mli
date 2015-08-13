@@ -134,7 +134,7 @@ module Xml : sig
   val make_react : ?id:node_id -> elt React.signal -> elt
 
   val make_process_node : ?id:string -> elt -> elt
-  val make_request_node : elt -> elt
+  val make_request_node : ?reset:bool -> elt -> elt
   val get_node_id : elt -> node_id
 
   type node =
@@ -248,6 +248,8 @@ module Svg : sig
     val create_named_elt: id:'a id -> 'a elt -> 'a elt
     (** See {!Eliom_content.Html5.Id.create_global_elt} *)
     val create_global_elt: 'a elt -> 'a elt
+    (** See {!Eliom_content.Html5.Id.create_request_elt} *)
+    val create_request_elt: ?reset:bool -> 'a elt -> 'a elt
 
     (**/**)
     val string_of_id : 'a id -> string
@@ -356,6 +358,9 @@ module Html5 : sig
     (** The function [create_named_elt elt] is equivalent to
         [create_named_elt ~id:(new_elt_id ()) elt]. *)
     val create_global_elt: 'a elt -> 'a elt
+
+    (** See {!Eliom_content.Svg.Id.create_request_elt} *)
+    val create_request_elt: ?reset:bool -> 'a elt -> 'a elt
 
     (**/**)
     val string_of_id : 'a id -> string

@@ -118,9 +118,19 @@ module Xml = struct
   let make_process_node ?(id = make_node_name ~global:true ()) elt =
     { elt with node_id = ProcessId id }
 
-  let make_request_node elt =
-    { elt with
-      node_id = RequestId (make_node_name ()) }
+  let make_request_node ?(reset = true) elt =
+    let f () =
+      let id = RequestId (make_node_name ~global:false ()) in
+      { elt with node_id = id }
+    in
+    if reset then
+      f ()
+    else
+      match elt.node_id with
+      | Eliom_lib.RawXML.NoId ->
+        f ()
+      | _ ->
+        elt
 
   let cdata s =
     let s' =
@@ -274,6 +284,8 @@ module Svg = struct
       D.tot (Xml.make_process_node ~id (D.toelt elt))
     let create_global_elt elt =
       D.tot (Xml.make_process_node (D.toelt elt))
+    let create_request_elt ?reset:(reset = true) elt =
+      D.tot (Xml.make_request_node ~reset (D.toelt elt))
     let string_of_id x = x
   end
 
@@ -380,7 +392,8 @@ module Html5 = struct
       D.tot (Xml.make_process_node ~id (D.toelt elt))
     let create_global_elt elt =
       D.tot (Xml.make_process_node (D.toelt elt))
-
+    let create_request_elt ?reset:(reset = true) elt =
+      D.tot (Xml.make_request_node ~reset (D.toelt elt))
     let string_of_id x = x
   end
 

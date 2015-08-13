@@ -123,7 +123,7 @@ module Xml : sig
   (**/**)
 
   val make_process_node : ?id:string -> elt -> elt
-  val make_request_node : elt -> elt
+  val make_request_node : ?reset:bool -> elt -> elt
 
   val uri_of_fun: (unit -> string) -> uri
 
@@ -246,6 +246,12 @@ module Svg : sig
     (** The function [create_named_elt elt] is equivalent to
         [create_named_elt ~id:(new_elt_id ()) elt]. *)
     val create_global_elt: 'a elt -> 'a elt
+
+    (** [create_request_elt ?reset elt] creates a referable copy of
+        [elt]. If [~reset = true] is provided (default: false), a new
+        ID is created even if [elt] has an ID already. *)
+    val create_request_elt: ?reset:bool -> 'a elt -> 'a elt
+
   end
 
   (** SVG printer.
@@ -421,6 +427,11 @@ module Html5 : sig
     (** The function [create_named_elt elt] is equivalent to
         [create_named_elt ~id:(new_elt_id ()) elt]. *)
     val create_global_elt: 'a elt -> 'a elt
+
+    (** [create_request_elt ?reset elt] creates a referable copy of
+        [elt]. If [~reset = true] is provided (default: false), a new
+        ID is created even if [elt] has an ID already. *)
+    val create_request_elt: ?reset:bool -> 'a elt -> 'a elt
 
     (* XXX: This function must be hidden in documentation but hidden rest of
      * file *)
