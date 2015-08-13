@@ -45,6 +45,11 @@ module type S = sig
     ?eq:('a -> 'a -> bool) Eliom_lib.shared_value ->
     'a t t -> 'a t
 
+  module Infix : sig
+    val (>|=) : 'a t -> ('a -> 'b) Eliom_lib.shared_value -> 'b t
+    val (=|<) : ('a -> 'b) Eliom_lib.shared_value -> 'a t -> 'b t
+  end
+
   module Lwt : sig
     val map_s :
       ?eq:('b -> 'b -> bool) Eliom_lib.shared_value ->

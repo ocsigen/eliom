@@ -169,6 +169,10 @@ module SharedReact = struct
       | Some (Some ((_, set) as s)) ->
         if reset_default then set ?step:None v; s
       | _ -> React.S.create ?eq v
+    module Infix = struct
+      let (>|=) a f = map f a
+      let (=|<) f a = map f a
+    end
   end
   include React.E
 end
@@ -344,6 +348,11 @@ module SharedReact = struct
         (Shared.local (FakeReact.S.value (Shared.local s)))
         {'a FakeReact.S.t{ Shared.local
                              (React.S.switch ?eq:%eq (Shared.local %s)) }}
+
+    module Infix = struct
+      let (>|=) a f = map f a
+      let (=|<) f a = map f a
+    end
 
     module Lwt = struct
       let map_s ?eq (f : ('a -> 'b Lwt.t) shared_value) (s : 'a t) : 'b t Lwt.t
