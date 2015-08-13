@@ -212,7 +212,9 @@ module Svg : sig
 
     include module type of Raw
 
-    val pcdata : string Raw.Xml.W.t -> [> `Unimplemented ]
+    val pcdata : string Xml.W.t -> [> `Unimplemented ]
+
+    val node : 'a elt Eliom_csreact.SharedReact.S.t -> 'a elt
 
   end
 
@@ -435,6 +437,8 @@ module Html5 : sig
     val pcdata :
       string Eliom_csreact.SharedReact.S.t ->
       [> | Html5_types.span] elt
+
+    val node : 'a elt Eliom_csreact.SharedReact.S.t -> 'a elt
 
   end
 

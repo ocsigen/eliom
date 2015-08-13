@@ -329,7 +329,42 @@ module Svg = struct
 
   end
 
-  module R = Eliom_content_core.Svg.Make(Xml)(Conv)
+  module R = struct
+
+    let node s =
+      let e =
+        Eliom_csreact.SharedReact.S.value s |>
+        Eliom_lib.Shared.local |>
+        Eliom_content_core.Svg.D.toelt |>
+        Xml.name_node
+      in
+      let _ = {unit{
+        let replace e e' =
+          let e =
+            Eliom_content_core.Svg.D.toelt e |>
+            Eliom_client.rebuild_node' `SVG
+          and e' =
+            Eliom_content_core.Svg.D.toelt e' |>
+            Eliom_client.rebuild_node' `SVG
+          in
+          let f p = Dom.replaceChild p e' e in
+          Js.Opt.iter (e##parentNode) f
+        in
+        let e = Eliom_content_core.Svg.D.tot %e in
+        let ev = React.(S.changes %s |> E.once)
+        and f e' =
+          replace e e';
+          let ev = React.S.diff (fun e' e -> e, e') %s
+          and f (e, e') = replace e e' in
+          React.E.map f ev |> ignore
+        in
+        React.E.map f ev |> ignore
+      }} in
+      e |> Eliom_content_core.Svg.D.tot
+
+    include Eliom_content_core.Svg.Make(Xml)(Conv)
+
+  end
 
 end
 
@@ -411,8 +446,42 @@ module Html5 = struct
   end
 
   module R = struct
+
+    let node s =
+      let e =
+        Eliom_csreact.SharedReact.S.value s |>
+        Eliom_lib.Shared.local |>
+        Eliom_content_core.Html5.D.toelt |>
+        Xml.name_node
+      in
+      let _ = {unit{
+        let replace e e' =
+          let e =
+            Eliom_content_core.Html5.D.toelt e |>
+            Eliom_client.rebuild_node' `HTML5
+          and e' =
+            Eliom_content_core.Html5.D.toelt e' |>
+            Eliom_client.rebuild_node' `HTML5
+          in
+          let f p = Dom.replaceChild p e' e in
+          Js.Opt.iter (e##parentNode) f
+        in
+        let e = Eliom_content_core.Html5.D.tot %e in
+        let ev = React.(S.changes %s |> E.once)
+        and f e' =
+          replace e e';
+          let ev = React.S.diff (fun e' e -> e, e') %s
+          and f (e, e') = replace e e' in
+          React.E.map f ev |> ignore
+        in
+        React.E.map f ev |> ignore
+      }} in
+      e |> Eliom_content_core.Html5.D.tot
+
     include Eliom_content_core.Html5.Make(Xml)(Conv)(Svg.R)
+
     let pcdata x = pcdata x |> Unsafe.coerce_elt
+
   end
 
 end

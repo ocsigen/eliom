@@ -67,10 +67,7 @@ module Html5 = struct
     let select = string_select ?required:None
   end
 
-  module R = struct
-    module Raw = Eliom_csreact_content.Html5.R
-    include Raw
-  end
+  module R = Eliom_csreact_content.Html5.R
 
   module Custom_data = Eliom_content_core.Html5.Custom_data
 

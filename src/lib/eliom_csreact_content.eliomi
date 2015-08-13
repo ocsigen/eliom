@@ -31,9 +31,15 @@ module Xml : Xml_sigs.T
 
 module Svg : sig
 
-  module R : Svg_sigs.Make(Xml).T
-    with type 'a elt = 'a Eliom_content_core.Svg.elt
-     and type 'a attrib = 'a Eliom_content_core.Svg.attrib
+  module R : sig
+
+    include Svg_sigs.Make(Xml).T
+      with type 'a elt = 'a Eliom_content_core.Svg.elt
+       and type 'a attrib = 'a Eliom_content_core.Svg.attrib
+
+    val node : 'a elt Eliom_csreact.SharedReact.S.t -> 'a elt
+
+  end
 
 end
 
@@ -48,6 +54,8 @@ module Html5 : sig
     val pcdata :
       string Eliom_csreact.SharedReact.S.t ->
       [> | Html5_types.span] elt
+
+    val node : 'a elt Eliom_csreact.SharedReact.S.t -> 'a elt
 
   end
 
