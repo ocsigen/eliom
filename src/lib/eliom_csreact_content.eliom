@@ -157,12 +157,7 @@ module Xml = struct
   let comment = Eliom_content_core.Xml.comment
 
   let name_node e =
-    let id =
-      String.sub
-        (Ocsigen_lib.make_cryptographic_safe_string ())
-        0 12
-    in
-    Eliom_content_core.Xml.make_process_node ~id e
+    Eliom_content_core.Xml.make_request_node e
 
   let leaf ?(a : attrib list option) name =
     Eliom_content_core.Xml.leaf ?a name |> name_node
@@ -336,7 +331,7 @@ module Svg = struct
         Eliom_csreact.SharedReact.S.value s |>
         Eliom_lib.Shared.local |>
         Eliom_content_core.Svg.D.toelt |>
-        Xml.name_node
+        Eliom_content_core.Xml.make_request_node ~reset:false
       in
       let _ = {unit{
         let replace e e' =
@@ -349,12 +344,18 @@ module Svg = struct
           in
           let f p = Dom.replaceChild p e' e in
           Js.Opt.iter (e##parentNode) f
+        and s =
+          let f =
+            Eliom_content_core.Svg.Id.create_request_elt
+              ~reset:false
+          in
+          React.S.map f %s
         in
         let e = Eliom_content_core.Svg.D.tot %e in
-        let ev = React.(S.changes %s |> E.once)
+        let ev = React.(S.changes s |> E.once)
         and f e' =
           replace e e';
-          let ev = React.S.diff (fun e' e -> e, e') %s
+          let ev = React.S.diff (fun e' e -> e, e') s
           and f (e, e') = replace e e' in
           React.E.map f ev |> ignore
         in
@@ -452,7 +453,7 @@ module Html5 = struct
         Eliom_csreact.SharedReact.S.value s |>
         Eliom_lib.Shared.local |>
         Eliom_content_core.Html5.D.toelt |>
-        Xml.name_node
+        Eliom_content_core.Xml.make_request_node ~reset:false
       in
       let _ = {unit{
         let replace e e' =
@@ -465,12 +466,18 @@ module Html5 = struct
           in
           let f p = Dom.replaceChild p e' e in
           Js.Opt.iter (e##parentNode) f
+        and s =
+          let f =
+            Eliom_content_core.Html5.Id.create_request_elt
+              ~reset:false
+          in
+          React.S.map f %s
         in
         let e = Eliom_content_core.Html5.D.tot %e in
-        let ev = React.(S.changes %s |> E.once)
+        let ev = React.(S.changes s |> E.once)
         and f e' =
           replace e e';
-          let ev = React.S.diff (fun e' e -> e, e') %s
+          let ev = React.S.diff (fun e' e -> e, e') s
           and f (e, e') = replace e e' in
           React.E.map f ev |> ignore
         in
