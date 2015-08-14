@@ -272,43 +272,43 @@ module SharedReact = struct
   Setting default to true may be difficult to understand.
   I prefer false.
 *)
-    let create ?default ?(reset_default = false) (x : 'a) =
-      let sv = FakeReact.S.create x in
-      let cv = match default with
-        | None -> {{ FakeReact.S.create %x }}
-        | Some default ->
+
+    let create ?default ?(reset_default = false) x =
+      let sv = FakeReact.S.create x
+      and cv, synced = match default with
+        | None ->
+          {{ FakeReact.S.create %x }}, true
+        | Some ((_, set) as s) ->
           {'a FakeReact.S.t * (?step:React.step -> 'a -> unit){
-          match %default with
-          | None ->  FakeReact.S.create %x
-          | Some ((_, set) as s) ->
-            (* The reactive data is already on client side.
-               But the value sent by server is more recent.
-               I update the signal. *)
-            if %reset_default then set ?step:None %x;
-            (*VVV Make possible to disable this?
-              Warning: removing this or changing the default
-              will break some existing code relying on this!
-              Do not change the default without wide announcement. *)
-            s
-        }}
+             (* The reactive data is already on client side.  But the
+                value sent by server is more recent.  I update the
+                signal. *)
+             if %reset_default then %set ?step:None %x;
+             (*VVV Make possible to disable this?  Warning: removing
+               this or changing the default will break some existing
+               code relying on this!  Do not change the default
+               without wide announcement. *)
+             %s }}, reset_default
       in
       let si =
-        create_shared_value (fst sv) {'a FakeReact.S.t{ fst %cv }} in
-      let up =
-        create_shared_value (snd sv)
-          {?step:React.step -> 'a -> unit{ snd %cv }}
+        create_shared_value ~synced
+          (fst sv) {'a FakeReact.S.t{ fst %cv }}
+      and up =
+        create_shared_value
+          (snd sv) {?step:React.step -> 'a -> unit{ snd %cv }}
       in
       (si, up)
 
     let map ?eq (f : ('a -> 'b) shared_value) (s : 'a t) : 'b t =
-      create_shared_value
+      create_shared_value ~synced:(Shared.synced s)
         (FakeReact.S.map (Shared.local f) (Shared.local s))
         {'b FakeReact.S.t{ FakeReact.S.map
                              ?eq:%eq (Shared.local %f) (Shared.local %s) }}
 
     let merge ?eq (f : ('a -> 'b -> 'a) shared_value)
         (acc : 'a) (l : 'b t list) : 'a t =
-      create_shared_value
+      let synced = List.for_all Shared.synced l in
+      create_shared_value ~synced
         (FakeReact.S.merge ?eq
            (Shared.local f) acc (List.map Shared.local l))
         {'a FakeReact.S.t{
@@ -316,14 +316,15 @@ module SharedReact = struct
              (fun a b -> (Shared.local %f) a (Shared.local b)) %acc %l }}
 
     let const (v : 'a) : 'a t =
-      create_shared_value
+      create_shared_value ~synced:true
         (FakeReact.S.const v)
         {'a FakeReact.S.t{ React.S.const %v }}
 
     let l2 ?eq (f : ('a -> 'b -> 'c) shared_value)
         (s1 : 'a t) (s2 : 'b t)
       : 'c t =
-      create_shared_value
+      let synced = Shared.(synced s1 && synced s2) in
+      create_shared_value ~synced
         (FakeReact.S.l2 (Shared.local f) (Shared.local s1) (Shared.local s2))
         {'d FakeReact.S.t{ React.S.l2 ?eq:%eq
                              (Shared.local %f)
@@ -334,7 +335,8 @@ module SharedReact = struct
     let l3 ?eq (f : ('a -> 'b -> 'c -> 'd) shared_value)
         (s1 : 'a t) (s2 : 'b t) (s3 : 'c t)
       : 'd t =
-      create_shared_value
+      let synced = Shared.(synced s1 && synced s2 && synced s3) in
+      create_shared_value ~synced
         (FakeReact.S.l3 (Shared.local f)
            (Shared.local s1) (Shared.local s2) (Shared.local s3))
         {'d FakeReact.S.t{ React.S.l3 ?eq:%eq
@@ -344,10 +346,14 @@ module SharedReact = struct
                              (Shared.local %s3) }}
 
     let switch ?eq (s : 'a t t) : 'a t =
-      create_shared_value
+      (* TODO : setting synced to false is safe, but can we do
+         better? *)
+      create_shared_value ~synced:false
         (Shared.local (FakeReact.S.value (Shared.local s)))
         {'a FakeReact.S.t{ Shared.local
                              (React.S.switch ?eq:%eq (Shared.local %s)) }}
+
+    let synced = Shared.synced
 
     module Infix = struct
       let (>|=) a f = map f a
@@ -413,15 +419,16 @@ module SharedReactiveData = struct
     type 'a handle = 'a FakeReactiveData.RList.handle shared_value
 
     let from_signal (x : 'a list SharedReact.S.t) =
+      let synced = Shared.synced x in
       let sv = FakeReactiveData.RList.from_signal (Shared.local x) in
       let cv = {'a FakeReactiveData.RList.t{
         FakeReactiveData.RList.from_signal (Shared.local %x) }} in
-      create_shared_value sv cv
+      create_shared_value ~synced sv cv
 
     let make ?default ?(reset_default = false) x =
       let sv = FakeReactiveData.RList.make x in
-      let cv = match default with
-        | None -> {{ FakeReactiveData.RList.make %x }}
+      let cv, synced = match default with
+        | None -> {{ FakeReactiveData.RList.make %x }}, true
         | Some default -> {'a FakeReactiveData.RList.t
                            * 'a FakeReactiveData.RList.handle{
                              match %default with
@@ -430,22 +437,12 @@ module SharedReactiveData = struct
                                if %reset_default
                                then ReactiveData.RList.set handle %x;
                                s
-                           }}
+                           }}, reset_default
       in
-      (create_shared_value (fst sv)
-         {'a FakeReactiveData.RList.t{ fst %cv }},
-       create_shared_value (snd sv)
-         {'b FakeReactiveData.RList.handle{ snd %cv }})
-
-    let cons a l =
-      let sv =
-        FakeReactiveData.RList.cons (Shared.local a) (Shared.local l)
-      and cv =
-        {'a FakeReactiveData.RList.t{
-           FakeReactiveData.RList.concat
-             (FakeReactiveData.RList.singleton_s %a) %l }}
-      in
-      create_shared_value sv cv
+      create_shared_value ~synced (fst sv)
+        {'a FakeReactiveData.RList.t{ fst %cv }},
+      create_shared_value (snd sv)
+        {'b FakeReactiveData.RList.handle{ snd %cv }}
 
     let concat a b =
       let sv =
@@ -455,14 +452,15 @@ module SharedReactiveData = struct
       and cv =
         {'a FakeReactiveData.RList.t{
            FakeReactiveData.RList.concat %a %b }}
-      in
-      create_shared_value sv cv
+      and synced = Shared.(synced a && synced b) in
+      create_shared_value ~synced sv cv
 
     let singleton_s s =
-      let sv = FakeReactiveData.RList.singleton_s (Shared.local s) in
-      let cv = {'a FakeReactiveData.RList.t{
-        FakeReactiveData.RList.singleton_s %s }} in
-      create_shared_value sv cv
+      let sv = FakeReactiveData.RList.singleton_s (Shared.local s)
+      and cv = {'a FakeReactiveData.RList.t{
+        FakeReactiveData.RList.singleton_s %s }}
+      and synced = Shared.synced s in
+      create_shared_value ~synced sv cv
 
     let value (s : 'a t) : 'a list shared_value =
       let sv = FakeReactiveData.RList.value (Shared.local s)
@@ -471,22 +469,26 @@ module SharedReactiveData = struct
 
     let value_s (s : 'a t) : 'a list SharedReact.S.t =
       let sv : 'a list FakeReact.S.t =
-        FakeReactiveData.RList.value_s (Shared.local s) in
-      let cv : 'a list FakeReact.S.t client_value =
-        {{ FakeReactiveData.RList.value_s %s }} in
-      create_shared_value sv cv
+        FakeReactiveData.RList.value_s (Shared.local s)
+      and cv : 'a list FakeReact.S.t client_value =
+        {{ FakeReactiveData.RList.value_s %s }}
+      and synced = Shared.synced s in
+      create_shared_value ~synced sv cv
 
     let map f s =
-      let sv = FakeReactiveData.RList.map (Shared.local f) (Shared.local s) in
-      let cv = {'a FakeReactiveData.RList.t{
-        FakeReactiveData.RList.map %f %s }} in
-      create_shared_value sv cv
+      let sv = FakeReactiveData.RList.map (Shared.local f) (Shared.local s)
+      and cv = {'a FakeReactiveData.RList.t{
+        FakeReactiveData.RList.map %f %s }}
+      and synced = Shared.synced s in
+      create_shared_value ~synced sv cv
 
     let make_from_s (s : 'a list SharedReact.S.t) : 'a t =
       let sv = FakeReactiveData.RList.make_from_s (Shared.local s) in
-      let cv = {{ ReactiveData.RList.make_from_s (Shared.local %s) }} in
-      create_shared_value sv cv
+      let cv = {{ ReactiveData.RList.make_from_s (Shared.local %s) }}
+      and synced = Shared.synced s in
+      create_shared_value ~synced sv cv
 
+    let synced = Shared.synced
 
     module Lwt = struct
       let map_p (f : ('a -> 'b Lwt.t) shared_value) (l : 'a t) : 'b t Lwt.t =

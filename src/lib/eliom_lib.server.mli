@@ -77,13 +77,17 @@ end
 (**/**)
 
 val create_client_value : 'a Client_value_server_repr.t -> 'a client_value
-val create_shared_value : 'a -> 'a client_value -> 'a shared_value
+val create_shared_value :
+  ?synced:bool -> 'a -> 'a client_value -> 'a shared_value
 val shared_value_server_repr : 'a shared_value -> 'a * 'a client_value
 val client_value_server_repr : 'a client_value -> 'a Client_value_server_repr.t
 
-module Shared : SHARED
+module Shared : sig
+  include SHARED
   with type +'a t := 'a shared_value
    and type +'a c := 'a client_value
+  val synced : 'a shared_value -> bool
+end
 
 val escaped_value : 'a -> escaped_value (* * Eliom_wrap.unwrapper *)
 

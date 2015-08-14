@@ -27,16 +27,22 @@ module SharedReact : sig
   module S : sig
     include Eliom_csreact_sigs.S
     val create :
-      ?default:'a ->
+      ?default :
+        ('a t Eliom_lib.client_value *
+         (?step:React.step -> 'a -> unit) Eliom_lib.client_value) ->
       ?reset_default:bool ->
       'a ->
       'a t * (?step:React.step -> 'a -> unit) Eliom_lib.shared_value
+    val synced : 'a t -> bool
   end
 end
 
 module SharedReactiveData : sig
-  module RList : Eliom_csreact_sigs.RLIST
-    with type 'a signal := 'a SharedReact.S.t
+  module RList : sig
+    include Eliom_csreact_sigs.RLIST
+      with type 'a signal := 'a SharedReact.S.t
+    val synced : 'a t -> bool
+  end
 end
 }}
 
