@@ -169,16 +169,18 @@ module Xml = struct
         Eliom_lib.Shared.local
       in
       Eliom_content_core.Xml.(node "span" [pcdata s]) |> name_node
-    in
+    and synced = Eliom_csreact.SharedReact.S.synced s in
     let _ = {unit{
       let (>>!) = Js.Opt.iter in
-      let e = Eliom_client.rebuild_node' `HTML5 %e in
-      e##firstChild >>! fun e ->
-      Dom.CoerceTo.text e >>! fun e ->
-      React.E.map
-        (fun x -> e##data <- Js.string x)
-        (React.S.changes %s) |>
-      ignore;
+      let update =
+        let e = Eliom_client.rebuild_node' `HTML5 %e in
+        fun x ->
+          e##firstChild >>! fun e ->
+          Dom.CoerceTo.text e >>! fun e ->
+          e##data <- Js.string x
+      in
+      if not %synced then update (React.S.value %s);
+      React.S.changes %s |> React.E.map update |> ignore;
     }} in
     e
 
@@ -198,15 +200,20 @@ module Xml = struct
       Eliom_lib.Shared.local |>
       Eliom_content_core.Xml.node ?a name |>
       name_node
-    in
+    and synced = Eliom_csreact.SharedReactiveData.RList.synced l in
     let _ = {unit{
-      let f _ =
+      let f () =
         let f = Eliom_client.rebuild_node' `HTML5 in
         let e = f %e
         and l = Eliom_csreact.SharedReactiveData.RList.map f %l in
         Tyxml_js.Util.update_children e l
-      and e = ReactiveData.RList.event %l |> React.E.once in
-      React.E.map f e |> ignore
+      in
+      if %synced then
+        ReactiveData.RList.event %l |>
+        React.E.once |>
+        React.E.map (fun _ -> f ()) |> ignore
+      else
+        f ()
     }} in
     e
 
@@ -326,13 +333,16 @@ module Svg = struct
 
   module R = struct
 
+    (* Same as the HTML version, with Html5 -> SVG and `HTML5 ->
+       `SVG. We can in principle functorize, but probably not worth
+       the trouble. Make sure they stay synced! *)
     let node s =
       let e =
         Eliom_csreact.SharedReact.S.value s |>
         Eliom_lib.Shared.local |>
         Eliom_content_core.Svg.D.toelt |>
         Eliom_content_core.Xml.make_request_node ~reset:false
-      in
+      and synced = Eliom_csreact.SharedReact.S.synced s in
       let _ = {unit{
         let replace e e' =
           let e =
@@ -351,15 +361,19 @@ module Svg = struct
           in
           React.S.map f %s
         in
-        let e = Eliom_content_core.Svg.D.tot %e in
-        let ev = React.(S.changes s |> E.once)
-        and f e' =
-          replace e e';
-          let ev = React.S.diff (fun e' e -> e, e') s
-          and f (e, e') = replace e e' in
-          React.E.map f ev |> ignore
+        let f =
+          let e = Eliom_content_core.Svg.D.tot %e in
+          fun e' ->
+            replace e e';
+            let ev = React.S.diff (fun e' e -> e, e') s
+            and f (e, e') = replace e e' in
+            React.E.map f ev |> ignore
         in
-        React.E.map f ev |> ignore
+        if %synced then
+          let ev = React.(S.changes s |> E.once) in
+          React.E.map f ev |> ignore
+        else
+          f (React.S.value s)
       }} in
       e |> Eliom_content_core.Svg.D.tot
 
@@ -448,13 +462,16 @@ module Html5 = struct
 
   module R = struct
 
+    (* Same as the SVG version, with Svg -> Html5 and `SVG ->
+       `HTML5. We can in principle functorize, but probably not worth the
+       trouble. Make sure they stay synced! *)
     let node s =
       let e =
         Eliom_csreact.SharedReact.S.value s |>
         Eliom_lib.Shared.local |>
         Eliom_content_core.Html5.D.toelt |>
         Eliom_content_core.Xml.make_request_node ~reset:false
-      in
+      and synced = Eliom_csreact.SharedReact.S.synced s in
       let _ = {unit{
         let replace e e' =
           let e =
@@ -473,15 +490,19 @@ module Html5 = struct
           in
           React.S.map f %s
         in
-        let e = Eliom_content_core.Html5.D.tot %e in
-        let ev = React.(S.changes s |> E.once)
-        and f e' =
-          replace e e';
-          let ev = React.S.diff (fun e' e -> e, e') s
-          and f (e, e') = replace e e' in
-          React.E.map f ev |> ignore
+        let f =
+          let e = Eliom_content_core.Html5.D.tot %e in
+          fun e' ->
+            replace e e';
+            let ev = React.S.diff (fun e' e -> e, e') s
+            and f (e, e') = replace e e' in
+            React.E.map f ev |> ignore
         in
-        React.E.map f ev |> ignore
+        if %synced then
+          let ev = React.(S.changes s |> E.once) in
+          React.E.map f ev |> ignore
+        else
+          f (React.S.value s)
       }} in
       e |> Eliom_content_core.Html5.D.tot
 
