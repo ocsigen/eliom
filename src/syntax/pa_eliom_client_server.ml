@@ -170,11 +170,40 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
       (Eliom_service.Syntax_helpers.client_value ~pos:($Helpers.position _loc$) $`int64:gen_num$
          $Helpers.expr_tuple (flush_escaped_bindings ())$
        : $typ$ Eliom_pervasives.client_value)
+    >> ;;
+
+  let shared_value_expr typ orig_expr gen_num _ loc =
+    let typ =
+      match typ with
+        | Some typ -> typ
+        | None ->
+            if !notyp then
+              let _loc = Loc.ghost in <:ctyp< _ >>
+            else
+              match Helpers.find_client_value_type gen_num with
+                | Ast.TyQuo _ ->
+                    Helpers.raise_syntax_error loc
+                      "The types of shared values must be monomorphic from its usage \
+                       or from its type annotation"
+                | typ -> typ
+    in
+    let _loc = Ast.loc_of_expr orig_expr in
+    <:expr@loc<
+    Eliom_lib.create_shared_value
+      $orig_expr$
+      (Eliom_service.Syntax_helpers.client_value
+        ~pos:($Helpers.position _loc$)
+        $`int64:gen_num$
+        $Helpers.expr_tuple (flush_escaped_bindings ())$
+      : $typ$ Eliom_pervasives.client_value)
     >>
 
   let escape_inject context_level ?ident orig_expr gen_id =
     let open Pa_eliom_seed in
     match context_level with
+      | Escaped_in_client_value_in `Shared ->
+          push_escaped_binding orig_expr gen_id;
+          orig_expr
       | Escaped_in_client_value_in _ ->
           push_escaped_binding orig_expr gen_id;
           let _loc = Loc.ghost in

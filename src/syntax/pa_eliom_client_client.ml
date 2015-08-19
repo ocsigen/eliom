@@ -209,7 +209,10 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           <:expr@loc<
             let $Ast.binding_of_pel bindings$ in
             $lid:gen_id$ $args$
-          >>
+          >> ;;
+
+  let shared_value_expr typ orig_expr gen_num gen_id loc =
+    client_value_expr typ `Server orig_expr gen_num gen_id loc
 
   let escape_inject context_level ?ident orig_expr gen_id =
     let open Pa_eliom_seed in

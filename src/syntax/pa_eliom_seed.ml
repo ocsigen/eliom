@@ -134,6 +134,10 @@ module type Pass = functor (Helpers: Helpers) -> sig
   (** How to handle "{{ ... }}" expr. *)
   val client_value_expr: Ast.ctyp option -> client_value_context -> Ast.expr -> Int64.t -> string -> Ast.Loc.t -> Ast.expr
 
+  (** How to handle "{shared{ ... }}" expr. *)
+  val shared_value_expr:
+    Ast.ctyp option -> Ast.expr -> Int64.t -> string -> Ast.Loc.t -> Ast.expr
+
   (** How to handle escaped "%ident" inside "{{ ... }}". *)
   val escape_inject: escape_inject -> ?ident: string -> Ast.expr -> string -> Ast.expr
 
@@ -383,7 +387,25 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           | [< '(KEYWORD "{", loc1); nnext >] -> (* {{ *)
               [< '(KEYWORD "{{", merge_locs [loc0] loc1); filter nnext >]
 
-          | [< '(LIDENT ("client"|"server"|"shared" as s), loc1); nnnext >] ->
+          | [< '(LIDENT "shared", loc1); nnnext >] ->
+              (match nnnext with parser
+              | [< '(KEYWORD "|", loc2); nnnnext >] -> (* {shared| *)
+                  [< '(KEYWORD ("{shared|"), merge_locs [loc0; loc1] loc2);
+                     filter nnnnext
+                       >]
+
+              | [< '(KEYWORD "{", loc2); nnnnext >] -> (* {shared{ *)
+                  [< '(KEYWORD ("{shared{"), merge_locs [loc0; loc1] loc2);
+                     filter nnnnext
+                       >]
+
+              | [< 'other; nnnnext >] -> (* back *)
+                [< '(KEYWORD "{", loc0); '(LIDENT "shared", loc1); 'other;
+                     filter nnnnext
+                       >]
+              )
+
+          | [< '(LIDENT ("client"|"server" as s), loc1); nnnext >] ->
               (match nnnext with parser
               | [< '(KEYWORD "{", loc2); nnnnext >] -> (* {smthg{ *)
                   [< '(KEYWORD ("{"^s^"{"), merge_locs [loc0; loc1] loc2);
@@ -444,6 +466,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       | Shared_item
       | Module_expr
       | Hole_expr of client_value_context
+      | Shared_expr
       | Escaped_expr of client_value_context
       | Injected_expr of injection_context
     let level_to_string = function
@@ -453,6 +476,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       | Client_item -> "client section"
       | Shared_item -> "shared section"
       | Module_expr -> "module expr"
+      | Shared_expr -> "shared expr"
       | Hole_expr client_value_context ->
           "client value expr in " ^ client_value_context_to_string client_value_context
       | Escaped_expr client_value_context ->
@@ -463,7 +487,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
     let client_value_context = function
       | Server_item | Toplevel | Toplevel_module_expr -> `Server
       | Shared_item -> `Shared
-      | Client_item | Hole_expr _ | Escaped_expr _ | Injected_expr _ | Module_expr as context ->
+      | Client_item | Hole_expr _ | Escaped_expr _ | Injected_expr _
+      | Shared_expr | Module_expr as context ->
           failwith ("client_value_context: " ^ level_to_string context)
     let injection_context_to_parsing_level : injection_context -> parsing_level = function
       | `Client -> Client_item
@@ -562,13 +587,26 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                | Toplevel | Toplevel_module_expr | Server_item | Shared_item as old ->
                    set_current_level (Hole_expr (client_value_context old));
                    Some old
-               | Client_item | Hole_expr _ | Escaped_expr _ | Injected_expr _ | Module_expr ->
+               | Client_item | Hole_expr _ | Escaped_expr _ | Injected_expr _
+               | Module_expr | Shared_expr ->
+                   None
+         ]];
+      dummy_set_level_shared_value_expr:
+        [[ -> reset_escaped_ident ();
+             match !current_level with
+               | Toplevel | Toplevel_module_expr | Server_item as old ->
+                   set_current_level Shared_expr;
+                   Some old
+               | Shared_item | Client_item | Shared_expr | Hole_expr _
+               | Escaped_expr _ | Injected_expr _ | Module_expr ->
                    None
          ]];
       dummy_check_level_escaped_ident:
         [[ -> match !current_level with
               | Hole_expr context ->
                   Some (Escaped_in_client_value_in context)
+              | Shared_expr ->
+                  Some (Escaped_in_client_value_in `Shared)
               | Client_item ->
                   Some (Injected_in `Client)
               | Shared_item ->
@@ -580,6 +618,9 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
               | Hole_expr context ->
                   set_current_level (Escaped_expr context);
                   Some (Escaped_in_client_value_in context)
+              | Shared_expr ->
+                  set_current_level (Escaped_expr `Shared);
+                  Some (Escaped_in_client_value_in `Shared)
               | Client_item ->
                   set_current_level (Injected_expr `Client);
                   Some (Injected_in `Client)
@@ -686,6 +727,15 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
         [ [ KEYWORD "{"; lel = TRY [lel = label_expr_list; "}" -> lel] ->
               <:expr< { $lel$ } >>
+          | KEYWORD "{shared|"; typ = TRY [ typ = OPT ctyp; KEYWORD "{" -> typ]; opt_lvl = dummy_set_level_shared_value_expr ; e = expr; KEYWORD "}}" ->
+              from_some_or_raise opt_lvl _loc
+                (fun lvl ->
+                   set_current_level lvl;
+                   let id = gen_closure_num _loc in
+                   Pass.shared_value_expr typ e id
+                     (gen_closure_escaped_ident id) _loc)
+                "The syntax {shared| type{ ... } is not allowed in %s."
+                (level_to_string !current_level)
           | KEYWORD "{"; typ = TRY [ typ = OPT ctyp; KEYWORD "{" -> typ]; opt_lvl = dummy_set_level_client_value_expr ; e = expr; KEYWORD "}}" ->
               from_some_or_raise opt_lvl _loc
                 (fun lvl ->
