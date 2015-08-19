@@ -128,6 +128,8 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     match context_level with
       | Escaped_in_client_value_in `Shared ->
         orig_expr
+      | Escaped_in_client_value_in `Shared_Expr ->
+        orig_expr
       | Escaped_in_client_value_in `Server ->
           let _loc = Ast.loc_of_expr orig_expr in
           <:expr< >>

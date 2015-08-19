@@ -190,6 +190,8 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     match context_level with
       | `Server ->
           <:expr@loc< >>
+      | `Shared_Expr ->
+          orig_expr
       | `Shared ->
           let bindings =
             List.map
