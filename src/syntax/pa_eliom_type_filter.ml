@@ -126,11 +126,9 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     push_typing_str_item orig_expr gen_id;
     push_typing_expr orig_expr gen_id;
     match context_level with
-      | Escaped_in_client_value_in `Shared ->
-        orig_expr
       | Escaped_in_client_value_in `Shared_Expr ->
-        orig_expr
-      | Escaped_in_client_value_in `Server ->
+          orig_expr
+      | Escaped_in_client_value_in _ ->
           let _loc = Ast.loc_of_expr orig_expr in
           <:expr< >>
       | Injected_in `Shared ->

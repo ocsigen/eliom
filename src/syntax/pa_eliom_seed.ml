@@ -609,7 +609,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
               | Hole_expr context ->
                   Some (Escaped_in_client_value_in context)
               | Shared_expr ->
-                  Some (Escaped_in_client_value_in `Shared)
+                  Some (Escaped_in_client_value_in `Shared_Expr)
               | Client_item ->
                   Some (Injected_in `Client)
               | Shared_item ->
@@ -622,8 +622,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                   set_current_level (Escaped_expr context);
                   Some (Escaped_in_client_value_in context)
               | Shared_expr ->
-                  set_current_level (Escaped_expr `Shared);
-                  Some (Escaped_in_client_value_in `Shared)
+                  set_current_level (Escaped_expr `Shared_Expr);
+                  Some (Escaped_in_client_value_in `Shared_Expr)
               | Client_item ->
                   set_current_level (Injected_expr `Client);
                   Some (Injected_in `Client)

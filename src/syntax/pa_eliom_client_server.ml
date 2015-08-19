@@ -201,7 +201,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let escape_inject context_level ?ident orig_expr gen_id =
     let open Pa_eliom_seed in
     match context_level with
-      | Escaped_in_client_value_in `Shared ->
+      | Escaped_in_client_value_in `Shared_Expr ->
           push_escaped_binding orig_expr gen_id;
           orig_expr
       | Escaped_in_client_value_in _ ->
