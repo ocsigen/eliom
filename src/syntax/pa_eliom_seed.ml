@@ -390,8 +390,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
           | [< '(LIDENT "shared", loc1); nnnext >] ->
               (match nnnext with parser
-              | [< '(KEYWORD "|", loc2); nnnnext >] -> (* {shared| *)
-                  [< '(KEYWORD ("{shared|"), merge_locs [loc0; loc1] loc2);
+              | [< '(KEYWORD "#", loc2); nnnnext >] -> (* {shared| *)
+                  [< '(KEYWORD ("{shared#"), merge_locs [loc0; loc1] loc2);
                      filter nnnnext
                        >]
 
@@ -730,7 +730,10 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
         [ [ KEYWORD "{"; lel = TRY [lel = label_expr_list; "}" -> lel] ->
               <:expr< { $lel$ } >>
-          | KEYWORD "{shared|"; typ = TRY [ typ = OPT ctyp; KEYWORD "{" -> typ]; opt_lvl = dummy_set_level_shared_value_expr ; e = expr; KEYWORD "}}" ->
+          | KEYWORD "{shared#";
+            typ = TRY [ typ = OPT ctyp; KEYWORD "{" -> typ];
+            opt_lvl = dummy_set_level_shared_value_expr ;
+            e = expr; KEYWORD "}}" ->
               from_some_or_raise opt_lvl _loc
                 (fun lvl ->
                    set_current_level lvl;
@@ -738,6 +741,16 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                    Pass.shared_value_expr typ e id
                      (gen_closure_escaped_ident id) _loc)
                 "The syntax {shared| type{ ... } is not allowed in %s."
+                (level_to_string !current_level)
+          | KEYWORD "{shared{"; opt_lvl = dummy_set_level_shared_value_expr ;
+            e = expr; KEYWORD "}}" ->
+              from_some_or_raise opt_lvl _loc
+                (fun lvl ->
+                   set_current_level lvl;
+                   let id = gen_closure_num _loc in
+                   Pass.shared_value_expr None e id
+                     (gen_closure_escaped_ident id) _loc)
+                "The syntax {shared{ ... } is not allowed in %s."
                 (level_to_string !current_level)
           | KEYWORD "{"; typ = TRY [ typ = OPT ctyp; KEYWORD "{" -> typ]; opt_lvl = dummy_set_level_client_value_expr ; e = expr; KEYWORD "}}" ->
               from_some_or_raise opt_lvl _loc
