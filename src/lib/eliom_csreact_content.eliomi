@@ -21,7 +21,7 @@
 module Xml : Xml_sigs.T
   with type 'a W.t = 'a Eliom_csreact.SharedReact.S.t
    and type 'a W.tlist = 'a Eliom_csreact.SharedReactiveData.RList.t
-   and type ('a, 'b) W.ft = ('a -> 'b) Eliom_lib.shared_value
+   and type ('a, 'b) W.ft = unit -> ('a -> 'b) Eliom_lib.shared_value
    and type event_handler =
          (Dom_html.event Js.t -> unit) Eliom_lib.client_value
    and type mouse_event_handler =
