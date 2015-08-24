@@ -24,8 +24,10 @@
     - a toplevel structure item "{server{ ... }}" (optional) for server side code ;
     - a toplevel structure item "{shared{ ... }}" for code that will be used
       both for the server and the client ;
-    - a expression "{{ ... }}" for client side code inside server side expressions ;
-    - a escaped expression "%ident" for referencing server value from
+    - an expression "{{ ... }}" for client side code inside server side expressions ;
+    - an expression "{shared# ... { ... }}" for shared code inside
+      server side expressions ;
+    - an escaped expression "%ident" for referencing server value from
       client side code expressions.
 
 
@@ -135,7 +137,7 @@ module type Pass = functor (Helpers: Helpers) -> sig
   (** How to handle "{{ ... }}" expr. *)
   val client_value_expr: Ast.ctyp option -> client_value_context -> Ast.expr -> Int64.t -> string -> Ast.Loc.t -> Ast.expr
 
-  (** How to handle "{shared{ ... }}" expr. *)
+  (** How to handle "{shared# ... { ... }}" expr. *)
   val shared_value_expr:
     Ast.ctyp option -> Ast.expr -> Int64.t -> string -> Ast.Loc.t -> Ast.expr
 
@@ -390,7 +392,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
           | [< '(LIDENT "shared", loc1); nnnext >] ->
               (match nnnext with parser
-              | [< '(KEYWORD "#", loc2); nnnnext >] -> (* {shared| *)
+              | [< '(KEYWORD "#", loc2); nnnnext >] -> (* {shared# *)
                   [< '(KEYWORD ("{shared#"), merge_locs [loc0; loc1] loc2);
                      filter nnnnext
                        >]
@@ -740,7 +742,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                    let id = gen_closure_num _loc in
                    Pass.shared_value_expr typ e id
                      (gen_closure_escaped_ident id) _loc)
-                "The syntax {shared| type{ ... } is not allowed in %s."
+                "The syntax {shared# type{ ... } is not allowed in %s."
                 (level_to_string !current_level)
           | KEYWORD "{"; typ = TRY [ typ = OPT ctyp; KEYWORD "{" -> typ]; opt_lvl = dummy_set_level_client_value_expr ; e = expr; KEYWORD "}}" ->
               from_some_or_raise opt_lvl _loc
