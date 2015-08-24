@@ -506,6 +506,10 @@ module Html5 = struct
       }} in
       e |> Eliom_content_core.Html5.D.tot
 
+    let filter_attrib a s =
+      {{ Eliom_content_core.Html5.R.filter_attrib %a %s }} |>
+      Eliom_content_core.Html5.D.client_attrib
+
     include Eliom_content_core.Html5.Make(Xml)(Conv)(Svg.R)
 
     let pcdata x = pcdata x |> Unsafe.coerce_elt

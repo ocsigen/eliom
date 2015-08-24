@@ -451,6 +451,9 @@ module Html5 : sig
 
     val node : 'a elt Eliom_csreact.SharedReact.S.t -> 'a elt
 
+    val filter_attrib :
+      'a attrib -> bool Eliom_csreact.SharedReact.S.t -> 'a attrib
+
   end
 
   (** Type-safe custom data for HTML5.
