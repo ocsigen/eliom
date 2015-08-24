@@ -507,8 +507,16 @@ module Html5 = struct
       e |> Eliom_content_core.Html5.D.tot
 
     let filter_attrib a s =
-      {{ Eliom_content_core.Html5.R.filter_attrib %a %s }} |>
-      Eliom_content_core.Html5.D.client_attrib
+      let init =
+        if
+          Eliom_csreact.SharedReact.S.value s |>
+          Eliom_lib.Shared.local
+        then
+          Some a
+        else
+          None
+      and c = {{ Eliom_content_core.Html5.R.filter_attrib %a %s }} in
+      Eliom_content_core.Html5.D.client_attrib ?init c
 
     include Eliom_content_core.Html5.Make(Xml)(Conv)(Svg.R)
 
