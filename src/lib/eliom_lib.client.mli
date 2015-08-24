@@ -39,6 +39,8 @@ include module type of Eliom_lib_base
 type 'a client_value = 'a
 type 'a shared_value = 'a
 
+val create_shared_value : 'a -> 'a client_value -> 'a shared_value
+
 exception Eliom_Internal_Error of string
 
 (** This exception is raised (in Lwt) on the client if a call to a
