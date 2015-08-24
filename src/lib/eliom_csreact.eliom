@@ -166,7 +166,7 @@ module SharedReact = struct
   module S = struct
     include React.S
     let create ?eq ?default ?(reset_default = false) v = match default with
-      | Some (Some ((_, set) as s)) ->
+      | Some ((_, set) as s) ->
         if reset_default then set ?step:None v; s
       | _ -> React.S.create ?eq v
     module Infix = struct

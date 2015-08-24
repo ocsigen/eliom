@@ -48,7 +48,14 @@ end
 
 {client{
 module SharedReact : sig
-  module S : Eliom_csreact_sigs.S with type 'a t = 'a React.S.t
+  module S : sig
+    include Eliom_csreact_sigs.S with type 'a t = 'a React.S.t
+    val create :
+      ?eq:('a -> 'a -> bool) ->
+      ?default:('a t * (?step:React.step -> 'a -> unit)) ->
+      ?reset_default:bool ->
+      'a -> 'a React.signal * (?step:React.step -> 'a -> unit)
+  end
 end
 
 module SharedReactiveData : sig
