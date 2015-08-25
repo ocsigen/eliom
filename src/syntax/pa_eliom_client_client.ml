@@ -190,7 +190,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     match context_level with
       | `Server ->
           <:expr@loc< >>
-      | `Shared_Expr ->
+      | `Shared_expr _ ->
           orig_expr
       | `Shared ->
           let bindings =
@@ -231,8 +231,10 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
       ignore ((Ast.map_ctyp f)#ctyp typ)
     in
     match context_level with
-      | Escaped_in_client_value_in section ->
-          (* {section{ ... {{ ... %x ... }} ... }} *)
+      | Escaped_in_client_value_in _
+      | Escaped_in_shared_value_in _ ->
+          (* {section{ ... {{ ... %x ... }} ... }} or
+             {section{ ... {shared# ... { ... %x ... }} ... }} *)
           let typ =
             drop_client_value_ctyp
               (get_type Helpers.find_escaped_ident_type gen_id)

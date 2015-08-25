@@ -97,16 +97,20 @@ module type Helpers  = sig
   val position : Ast.Loc.t -> Ast.expr
 end
 
-type client_value_context = [ `Server | `Shared | `Shared_Expr ]
-let client_value_context_to_string = function
-  | `Server -> "server"
-  | `Shared -> "shared"
-  | `Shared_Expr -> "shared-expr"
-
 type shared_value_context = [ `Server | `Shared ]
 let shared_value_context_to_string = function
   | `Server -> "server"
   | `Shared -> "shared"
+
+type client_value_context =
+  [ `Server
+  | `Shared
+  | `Shared_expr of shared_value_context ]
+let client_value_context_to_string = function
+  | `Server -> "server"
+  | `Shared -> "shared"
+  | `Shared_expr c ->
+    "shared expr on " ^ (shared_value_context_to_string c)
 
 type injection_context = [ `Client | `Shared ]
 let injection_context_to_string = function
@@ -115,6 +119,7 @@ let injection_context_to_string = function
 
 type escape_inject =
   | Escaped_in_client_value_in of client_value_context
+  | Escaped_in_shared_value_in of shared_value_context
   | Injected_in of injection_context
 
 let id_of_string str =
@@ -475,8 +480,9 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       | Shared_item
       | Module_expr
       | Hole_expr of client_value_context
-      | Shared_expr
+      | Shared_expr of shared_value_context
       | Escaped_expr of client_value_context
+      | Escaped_expr_in_shared of shared_value_context
       | Injected_expr of injection_context
     let level_to_string = function
       | Toplevel -> "toplevel"
@@ -485,19 +491,24 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       | Client_item -> "client section"
       | Shared_item -> "shared section"
       | Module_expr -> "module expr"
-      | Shared_expr -> "shared expr"
+      | Shared_expr c ->
+        "shared expr in" ^ (shared_value_context_to_string c)
       | Hole_expr client_value_context ->
           "client value expr in " ^ client_value_context_to_string client_value_context
       | Escaped_expr client_value_context ->
           "escaped expression in " ^ client_value_context_to_string client_value_context
+      | Escaped_expr_in_shared shared_value_context ->
+          "escaped expression inside shared expression in " ^
+          shared_value_context_to_string shared_value_context
       | Injected_expr injection_context ->
           "injected expression in " ^ injection_context_to_string injection_context
     (* [client_value_context] captures where [client_value_expr]s are allowed. *)
     let client_value_context = function
       | Server_item | Toplevel | Toplevel_module_expr -> `Server
       | Shared_item -> `Shared
-      | Shared_expr -> `Shared_Expr
-      | Client_item | Hole_expr _ | Escaped_expr _ | Injected_expr _
+      | Shared_expr c -> `Shared_expr c
+      | Client_item | Hole_expr _ | Escaped_expr _
+      | Escaped_expr_in_shared _ | Injected_expr _
       | Module_expr as context ->
           failwith ("client_value_context: " ^ level_to_string context)
     let injection_context_to_parsing_level : injection_context -> parsing_level = function
@@ -511,8 +522,9 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
     let shared_value_context = function
       | Server_item | Toplevel | Toplevel_module_expr -> `Server
       | Shared_item -> `Shared
-      | Client_item | Hole_expr _ | Shared_expr | Escaped_expr _
-      | Injected_expr _ | Module_expr as context ->
+      | Client_item | Hole_expr _ | Shared_expr _ | Escaped_expr _
+      | Escaped_expr_in_shared _ | Injected_expr _
+      | Module_expr as context ->
           failwith ("shared_value_context: " ^ level_to_string context)
 
     (* Identifiers for the closure representing "Hole_expr". *)
@@ -603,30 +615,34 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         [[ -> reset_escaped_ident ();
              match !current_level with
                | Toplevel | Toplevel_module_expr | Server_item
-               | Shared_item | Shared_expr as old ->
+               | Shared_item | (Shared_expr _) as old ->
                    set_current_level (Hole_expr (client_value_context old));
                    Some old
-               | Client_item | Hole_expr _ | Escaped_expr _ | Injected_expr _
+               | Client_item | Hole_expr _ | Escaped_expr _
+               | Escaped_expr_in_shared _ | Injected_expr _
                | Module_expr ->
                    None
          ]];
       dummy_set_level_shared_value_expr:
         [[ -> reset_escaped_ident ();
-             match !current_level with
-               | Toplevel | Toplevel_module_expr | Server_item
-               | Shared_item as old ->
-                   set_current_level Shared_expr;
+           match !current_level with
+               | Toplevel | Toplevel_module_expr | Server_item as old ->
+                   set_current_level (Shared_expr `Server);
                    Some old
-               | Client_item | Shared_expr | Hole_expr _
-               | Escaped_expr _ | Injected_expr _ | Module_expr ->
+               | Shared_item ->
+                   set_current_level (Shared_expr `Shared);
+                   Some Shared_item
+               | Client_item | Shared_expr _ | Hole_expr _
+               | Escaped_expr _ | Escaped_expr_in_shared _
+               | Injected_expr _ | Module_expr ->
                    None
          ]];
       dummy_check_level_escaped_ident:
         [[ -> match !current_level with
               | Hole_expr context ->
                   Some (Escaped_in_client_value_in context)
-              | Shared_expr ->
-                  Some (Escaped_in_client_value_in `Shared_Expr)
+              | Shared_expr context ->
+                  Some (Escaped_in_shared_value_in context)
               | Client_item ->
                   Some (Injected_in `Client)
               | Shared_item ->
@@ -638,9 +654,9 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
               | Hole_expr context ->
                   set_current_level (Escaped_expr context);
                   Some (Escaped_in_client_value_in context)
-              | Shared_expr ->
-                  set_current_level (Escaped_expr `Shared_Expr);
-                  Some (Escaped_in_client_value_in `Shared_Expr)
+              | Shared_expr context ->
+                  set_current_level (Escaped_expr_in_shared context);
+                  Some (Escaped_in_shared_value_in context)
               | Client_item ->
                   set_current_level (Injected_expr `Client);
                   Some (Injected_in `Client)
@@ -788,7 +804,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                 (fun context ->
                      let gen_id =
                        match context with
-                         | Escaped_in_client_value_in _ ->
+                         | Escaped_in_client_value_in _
+                         | Escaped_in_shared_value_in _ ->
                              gen_escaped_ident id
                          | Injected_in _ ->
                              gen_injected_ident _loc id
@@ -803,10 +820,12 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                    set_current_level
                      (match context with
                         | Escaped_in_client_value_in context -> Hole_expr context
+                        | Escaped_in_shared_value_in context -> Shared_expr context
                         | Injected_in context -> injection_context_to_parsing_level context);
                    let gen_id =
                      match context with
-                       | Escaped_in_client_value_in _ ->
+                       | Escaped_in_client_value_in _
+                       | Escaped_in_shared_value_in _ ->
                            gen_escaped_expr_ident ()
                        | Injected_in _ ->
                            gen_injected_expr_ident _loc
