@@ -102,7 +102,7 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
       match ! $lid:gen_tid $ with | Some x -> x | None -> assert false
     end >>
 
-  let shared_value_expr typ orig_expr gen_id gen_tid loc =
+  let shared_value_expr typ _ orig_expr gen_id gen_tid loc =
     push_typing_str_item orig_expr gen_tid;
     let typ = match typ with
       | Some typ -> typ

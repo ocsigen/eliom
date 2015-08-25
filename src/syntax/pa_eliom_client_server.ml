@@ -172,7 +172,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
        : $typ$ Eliom_pervasives.client_value)
     >> ;;
 
-  let shared_value_expr typ orig_expr gen_num _ loc =
+  let shared_value_expr typ _ orig_expr gen_num _ loc =
     let typ =
       match typ with
         | Some typ -> typ

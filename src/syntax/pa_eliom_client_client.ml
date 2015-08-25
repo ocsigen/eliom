@@ -213,8 +213,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
             $lid:gen_id$ $args$
           >> ;;
 
-  let shared_value_expr typ orig_expr gen_num gen_id loc =
-    client_value_expr typ `Server orig_expr gen_num gen_id loc
+  let shared_value_expr = client_value_expr
 
   let escape_inject context_level ?ident orig_expr gen_id =
     let open Pa_eliom_seed in

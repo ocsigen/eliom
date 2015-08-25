@@ -103,6 +103,11 @@ let client_value_context_to_string = function
   | `Shared -> "shared"
   | `Shared_Expr -> "shared-expr"
 
+type shared_value_context = [ `Server | `Shared ]
+let shared_value_context_to_string = function
+  | `Server -> "server"
+  | `Shared -> "shared"
+
 type injection_context = [ `Client | `Shared ]
 let injection_context_to_string = function
   | `Client -> "client"
@@ -139,7 +144,8 @@ module type Pass = functor (Helpers: Helpers) -> sig
 
   (** How to handle "{shared# ... { ... }}" expr. *)
   val shared_value_expr:
-    Ast.ctyp option -> Ast.expr -> Int64.t -> string -> Ast.Loc.t -> Ast.expr
+    Ast.ctyp option -> shared_value_context -> Ast.expr ->
+    Int64.t -> string -> Ast.Loc.t -> Ast.expr
 
   (** How to handle escaped "%ident" inside "{{ ... }}". *)
   val escape_inject: escape_inject -> ?ident: string -> Ast.expr -> string -> Ast.expr
@@ -501,6 +507,14 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
     let set_current_level level =
       current_level := level
 
+    (* [shared_value_context] captures where [shared_value_expr]s are allowed. *)
+    let shared_value_context = function
+      | Server_item | Toplevel | Toplevel_module_expr -> `Server
+      | Shared_item -> `Shared
+      | Client_item | Hole_expr _ | Shared_expr | Escaped_expr _
+      | Injected_expr _ | Module_expr as context ->
+          failwith ("shared_value_context: " ^ level_to_string context)
+
     (* Identifiers for the closure representing "Hole_expr". *)
     let gen_closure_num_base _loc = Int64.of_int (Hashtbl.hash (Loc.file_name _loc))
     let gen_closure_num_count = ref Int64.zero
@@ -599,10 +613,11 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       dummy_set_level_shared_value_expr:
         [[ -> reset_escaped_ident ();
              match !current_level with
-               | Toplevel | Toplevel_module_expr | Server_item as old ->
+               | Toplevel | Toplevel_module_expr | Server_item
+               | Shared_item as old ->
                    set_current_level Shared_expr;
                    Some old
-               | Shared_item | Client_item | Shared_expr | Hole_expr _
+               | Client_item | Shared_expr | Hole_expr _
                | Escaped_expr _ | Injected_expr _ | Module_expr ->
                    None
          ]];
@@ -740,8 +755,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                 (fun lvl ->
                    set_current_level lvl;
                    let id = gen_closure_num _loc in
-                   Pass.shared_value_expr typ e id
-                     (gen_closure_escaped_ident id) _loc)
+                   Pass.shared_value_expr typ (shared_value_context lvl) e
+                     id (gen_closure_escaped_ident id) _loc)
                 "The syntax {shared# type{ ... } is not allowed in %s."
                 (level_to_string !current_level)
           | KEYWORD "{"; typ = TRY [ typ = OPT ctyp; KEYWORD "{" -> typ]; opt_lvl = dummy_set_level_client_value_expr ; e = expr; KEYWORD "}}" ->
