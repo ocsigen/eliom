@@ -566,6 +566,11 @@ let iter_prop node name f =
   | Some n -> f n
   | None -> ()
 
+let iter_prop_protected node name f =
+  match get_prop node name with
+  | Some n -> begin try f n with _ -> () end
+  | None -> ()
+
 let rebuild_reactive_class_rattrib node s =
   let name = Js.string "class" in
   let e = React.S.diff (fun v v' -> v', v) s
@@ -599,11 +604,13 @@ let rec rebuild_rattrib node ra = match Xml.racontent ra with
     let _ = React.S.map (function
       | None ->
         node##removeAttribute (name);
-        iter_prop node name (Js.Unsafe.delete node);
+        iter_prop_protected node name
+          (fun name -> Js.Unsafe.set node name Js.null)
       | Some v ->
         let v = rebuild_attrib_val v in
         node##setAttribute (name,v);
-        iter_prop node name (fun name -> Js.Unsafe.set node name v);
+        iter_prop_protected node name
+          (fun name -> Js.Unsafe.set node name v)
     ) s in ()
   | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
   | Xml.RALazyStr s ->
