@@ -574,20 +574,16 @@ let iter_prop_protected node name f =
 let rebuild_reactive_class_rattrib node s =
   let name = Js.string "class" in
   let e = React.S.diff (fun v v' -> v', v) s
-  and f = function
-    | _, None ->
-      node##removeAttribute (name);
-      iter_prop node name (Js.Unsafe.delete node)
-    | v, v' ->
-      let l1 =
-        Js.Opt.case (node##getAttribute(name))
-          (fun () -> [])
-          (fun s -> Js.to_string s |> Regexp.(split (regexp " ")))
-      and l2 = class_list_of_racontent_o v
-      and l3 = class_list_of_racontent_o v' in
-      let s = rebuild_class_string l1 l2 l3 in
-      node##setAttribute (name, s);
-      iter_prop node name (fun name -> Js.Unsafe.set node name s)
+  and f (v, v') =
+    let l1 =
+      Js.Opt.case (node##getAttribute(name))
+        (fun () -> [])
+        (fun s -> Js.to_string s |> Regexp.(split (regexp " ")))
+    and l2 = class_list_of_racontent_o v
+    and l3 = class_list_of_racontent_o v' in
+    let s = rebuild_class_string l1 l2 l3 in
+    node##setAttribute (name, s);
+    iter_prop node name (fun name -> Js.Unsafe.set node name s)
   in
   f (None, React.S.value s);
   React.E.map f e |> ignore
