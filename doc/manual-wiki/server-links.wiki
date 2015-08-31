@@ -49,7 +49,7 @@ See [[http://tests.ocsigen.org/rep/links]].
 
 <<a_api| val Eliom_content.Html5.D.a >> takes as first parameter
 the service you want to link to.
-The third parameter is the text of the link.
+The second parameter is the text of the link.
 The last parameter is for
 GET parameters you want to put in the link.
 The type of this parameter and the name of GET parameters depend
