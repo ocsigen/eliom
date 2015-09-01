@@ -87,8 +87,7 @@ let uasuffix =
                          strong [pcdata (Eliom_request_info.get_remote_ip ())]]])))
 >>
 
-This service will answer to URLs like {{{http://.../uasuffix/2000/11}}}, see
-[[http://tests.ocsigen.org/uasuffix/2007/7]].
+This service will answer to URLs like {{{http://.../uasuffix/2000/11}}}.
 
 Suffix parameters have names, because we can create forms towards
 these services. {{{uasuffix/2000/11}}} is equivalent to
@@ -116,7 +115,6 @@ let isuffix =
                strong [pcdata (string_of_int i_param)]]])))28
 
 >>
-See [[http://tests.ocsigen.org/isuffix/11/a/b/c?i=22]].
 
 If you want parameters in the path but not always at the end,
 use the  <<a_api| val Eliom_parameter.const >>
@@ -138,8 +136,6 @@ let constfix =
                      h1 [pcdata "Suffix with constants"];
                      p [pcdata ("Parameters are "^s1^" and "^s2)]])))
 >>
-
-See [[http://tests.ocsigen.org/constfix/aa/toto/bb]].
 
 ===Custom parameter types
 
@@ -166,8 +162,6 @@ let mytype =
          (head (title (pcdata "")) [])
          (body [p [pcdata (v^" is valid. Now try with another value.")]])))
 >>
-
-See [[http://tests.ocsigen.org/mytype?valeur=A]].
 
 See also <<a_manual chapter="clientserver-communication"
 fragment="client_sending_data" |Client sending data>> in the chapter
@@ -201,8 +195,6 @@ let raw_serv = Eliom_registration.Html5.register_service
           </body>
         </html> ~>>)
 >>
-
-See [[http://tests.ocsigen.org/any?sun=yellow&sea=blue]].
 
 It is possible to use {{{Eliom_parameter.any}}} with other parameters
 combinators. But {{{any}}} must be the last one. For example:
@@ -305,5 +297,4 @@ let nlparams = Eliom_registration.Html5.register_service
   Eliom_service.add_non_localized_get_parameters my_nl_params nlparams
 >>
 
-Then create your link as usual, for example
-[[http://tests.ocsigen.org/nlparams?i=22&__nl_n_tutoeliom-mynlparams.s=aa&__nl_n_tutoeliom-mynlparams.a=11]].
+Then create your link as usual.

@@ -44,9 +44,6 @@ as in these examples:
          ]])))
 >>
 
-See [[http://tests.ocsigen.org/rep/links]].
-
-
 <<a_api| val Eliom_content.Html5.D.a >> takes as first parameter
 the service you want to link to.
 The second parameter is the text of the link.
@@ -81,8 +78,6 @@ let _ = Eliom_registration.Html5.register linkrec
         (body [p [a linkrec [pcdata "click"] ()]])))
 >>
 
-See[[http://tests.ocsigen.org./linkrec]].
-
 (But you can also refer to //the current service// as <<a_api project="eliom"|val Eliom_service.void_coservice'>>.)
 
 ==@@id="forms"@@Forms
@@ -116,8 +111,6 @@ let form = Eliom_registration.Html5.register_service ["form"] unit
          (body [f])))
 >>
 
-
-See [[http://tests.ocsigen.org/form]] to see the function <<span class="code"|form~>> in action]].\\ >>
 
 If you want to use typed parameters,
 you cannot use functions like  <<a_api project="tyxml"| val Html5.M.input >> to
@@ -156,9 +149,6 @@ let raw_form =
                                raw_input ~input_type:`Submit ~value:"Click" ()]])
                         ])))
 >>
-
-Try this [[http://tests.ocsigen.org/anyform|form]]. >>
-
 
 ===POST parameters
 
@@ -282,14 +272,6 @@ let form4 = Eliom_registration.Html5.register_service ["form4"] Eliom_parameter.
         (body [f])))
 >>
 
-See the urls:
-[[http://tests.ocsigen.org/post|post without parameter]],
-[[http://tests.ocsigen.org/post2?i=123|post2 without POST parameter]],
-[[http://tests.ocsigen.org/form2|form2]],
-[[http://tests.ocsigen.org/form3|form3]],
-[[http://tests.ocsigen.org/form4|form4]].
-
-
 ==@@id="advancedformsandparameters"@@Advanced forms and parameters
 
 This section shows more advanced use of page parameters and
@@ -332,7 +314,6 @@ let regexpserv =
                   (head (title (pcdata "")) [])
                   (body [p [pcdata g]])))
 >>
-[[http://tests.ocsigen.org/regexp?myparam=%5Btoto%5D| Try it]].
 
 ===Boolean checkboxes
 
@@ -373,8 +354,6 @@ let form_bool = Eliom_registration.Html5.register_service ["formbool"] unit
 
 
 >>
-
-[[http://tests.ocsigen.org/formbool| Try it]].\\
 
 //Important warning://
 As you can see, browsers do not send any value
@@ -451,8 +430,6 @@ let setform = Eliom_registration.Html5.register_service
                 ])))
 >>
 
-[[http://tests.ocsigen.org/setform|Try it]].\\
-
 Once again, note that there is no difference between an empty
 set or no parameter at all. If you register a service without parameters
 and a service with a set of parameters on the same URL, the service with
@@ -510,8 +487,6 @@ let select_example = Eliom_registration.Html5.register_service ["select"] Eliom_
          (body [f])))
 >>
 
-[[http://tests.ocsigen.org/select| Try it]].\\
-
 To do "multiple" select boxes, use functions like
  <<a_api| val Eliom_content.Html5.D.string_multiple_select >>.
 As you can see in the type, the service must be declared with parameters
@@ -557,8 +532,6 @@ let imageform = Eliom_registration.Html5.register_service
                 ])))
 >>
 
-[[http://tests.ocsigen.org/imageform| Try it]].\\
-
 You may also send a value with the coordinates:
 
 <<code language="ocaml"|let coord2 = Eliom_registration.Html5.register_service
@@ -597,9 +570,6 @@ let imageform2 = Eliom_registration.Html5.register_service
 
 >>
 
-[[http://tests.ocsigen.org/imageform2|Try it]].
-
-
 ===Type <<span class="code"|list>>
 
 Another way (than  <<a_api| val Eliom_parameter.set >>) to do variable length forms
@@ -627,9 +597,6 @@ let coucou_list = Eliom_registration.Html5.register_service
              </body>
            </html> ~>>)
 >>
-
-Here is an example of link towards this service:
-[[http://tests.ocsigen.org/coucou?a.str%5B1%5D=titi&a.str%5B0%5D=toto|coucou?a.str[0]=toto&a.str[1]=titi]].
 
 //Warning://
 As for sets or bools,
@@ -670,8 +637,6 @@ let listform = Eliom_registration.Html5.register_service ["listform"] Eliom_para
 
 >>
 
-[[http://tests.ocsigen.org/listform| Try it]].\\
-
 //Important warning://
 As we have seen in the section about boolean (or optional)
 parameters, it is not possible to distinguish between a boolean
@@ -709,8 +674,6 @@ let suffixform = Eliom_registration.Html5.register_service ["suffixform"] Eliom_
          </html> ~>>)
 
 >>
-
-[[http://tests.ocsigen.org/suffixform| Try it]].
 
 ===Uploading files
 
@@ -787,10 +750,6 @@ let uploadform = Eliom_registration.Html5.register upload
 
 
 >>
-
-[[http://tests.ocsigen.org/upload| Try it]]
-(warning: uploading on ocsigen.org is forbidden).
-
 
 ===Raw POST data (advanced use)
 
