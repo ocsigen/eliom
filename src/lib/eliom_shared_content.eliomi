@@ -19,8 +19,8 @@
  *)
 
 module Xml : Xml_sigs.T
-  with type 'a W.t = 'a Eliom_csreact.SharedReact.S.t
-   and type 'a W.tlist = 'a Eliom_csreact.SharedReactiveData.RList.t
+  with type 'a W.t = 'a Eliom_shared.SharedReact.S.t
+   and type 'a W.tlist = 'a Eliom_shared.SharedReactiveData.RList.t
    and type event_handler =
          (Dom_html.event Js.t -> unit) Eliom_lib.client_value
    and type mouse_event_handler =
@@ -36,7 +36,7 @@ module Svg : sig
       with type 'a elt = 'a Eliom_content_core.Svg.elt
        and type 'a attrib = 'a Eliom_content_core.Svg.attrib
 
-    val node : 'a elt Eliom_csreact.SharedReact.S.t -> 'a elt
+    val node : 'a elt Eliom_shared.SharedReact.S.t -> 'a elt
 
   end
 
@@ -51,13 +51,13 @@ module Html5 : sig
        and type 'a attrib = 'a Eliom_content_core.Html5.attrib
 
     val pcdata :
-      string Eliom_csreact.SharedReact.S.t ->
+      string Eliom_shared.SharedReact.S.t ->
       [> | Html5_types.span] elt
 
-    val node : 'a elt Eliom_csreact.SharedReact.S.t -> 'a elt
+    val node : 'a elt Eliom_shared.SharedReact.S.t -> 'a elt
 
     val filter_attrib :
-      'a attrib -> bool Eliom_csreact.SharedReact.S.t -> 'a attrib
+      'a attrib -> bool Eliom_shared.SharedReact.S.t -> 'a attrib
 
   end
 

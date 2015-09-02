@@ -28,34 +28,36 @@ end
 
 }}
 
+{shared{ open Eliom_shared }}
+
 module Xml = struct
 
   module W = struct
 
-    include Eliom_csreact.SharedReact.S
+    include SharedReact.S
 
     type (-'a, 'b) ft = unit -> ('a -> 'b) Eliom_lib.shared_value
 
     let return = const
 
-    let append = Eliom_csreact.SharedReactiveData.RList.concat
+    let append = SharedReactiveData.RList.concat
 
     let cons a l =
-      Eliom_csreact.SharedReactiveData.RList.(concat (singleton_s a) l)
+      SharedReactiveData.RList.(concat (singleton_s a) l)
 
-    let singleton = Eliom_csreact.SharedReactiveData.RList.singleton_s
+    let singleton = SharedReactiveData.RList.singleton_s
 
     let nil () =
-      Eliom_csreact.SharedReactiveData.RList.make [] |> fst
+      SharedReactiveData.RList.make [] |> fst
 
     let fmap f a =
-      Eliom_csreact.SharedReact.S.map (f ()) a
+      SharedReact.S.map (f ()) a
 
-    type 'a tlist = 'a Eliom_csreact.SharedReactiveData.RList.t
+    type 'a tlist = 'a SharedReactiveData.RList.t
 
     let map _ _ =
       if true then assert false;
-      Eliom_csreact.SharedReactiveData.RList.make [] |> fst
+      SharedReactiveData.RList.make [] |> fst
 
   end
 
@@ -87,7 +89,7 @@ module Xml = struct
   type attrib = Eliom_content_core.Xml.attrib
 
   let local_value s =
-    Eliom_csreact.SharedReact.S.value s |>
+    SharedReact.S.value s |>
     Eliom_lib.Shared.local
 
   let float_attrib name s =
@@ -165,11 +167,11 @@ module Xml = struct
   let pcdata s =
     let e =
       let s =
-        Eliom_csreact.SharedReact.S.value s |>
+        SharedReact.S.value s |>
         Eliom_lib.Shared.local
       in
       Eliom_content_core.Xml.(node "span" [pcdata s]) |> name_node
-    and synced = Eliom_csreact.SharedReact.S.synced s in
+    and synced = SharedReact.S.synced s in
     let _ = {unit{
       let (>>!) = Js.Opt.iter in
       let update =
@@ -196,16 +198,16 @@ module Xml = struct
 
   let node ?a name l =
     let e =
-      Eliom_csreact.SharedReactiveData.RList.value l |>
+      SharedReactiveData.RList.value l |>
       Eliom_lib.Shared.local |>
       Eliom_content_core.Xml.node ?a name |>
       name_node
-    and synced = Eliom_csreact.SharedReactiveData.RList.synced l in
+    and synced = SharedReactiveData.RList.synced l in
     let _ = {unit{
       let f () =
         let f = Eliom_client.rebuild_node' `HTML5 in
         let e = f %e
-        and l = Eliom_csreact.SharedReactiveData.RList.map f %l in
+        and l = SharedReactiveData.RList.map f %l in
         Tyxml_js.Util.update_children e l
       in
       if %synced then
@@ -338,11 +340,11 @@ module Svg = struct
        the trouble. Make sure they stay synced! *)
     let node s =
       let e =
-        Eliom_csreact.SharedReact.S.value s |>
+        SharedReact.S.value s |>
         Eliom_lib.Shared.local |>
         Eliom_content_core.Svg.D.toelt |>
         Eliom_content_core.Xml.make_request_node ~reset:false
-      and synced = Eliom_csreact.SharedReact.S.synced s in
+      and synced = SharedReact.S.synced s in
       let _ = {unit{
         let replace e e' =
           let e =
@@ -467,11 +469,11 @@ module Html5 = struct
        trouble. Make sure they stay synced! *)
     let node s =
       let e =
-        Eliom_csreact.SharedReact.S.value s |>
+        SharedReact.S.value s |>
         Eliom_lib.Shared.local |>
         Eliom_content_core.Html5.D.toelt |>
         Eliom_content_core.Xml.make_request_node ~reset:false
-      and synced = Eliom_csreact.SharedReact.S.synced s in
+      and synced = SharedReact.S.synced s in
       let _ = {unit{
         let replace e e' =
           let e =
@@ -509,7 +511,7 @@ module Html5 = struct
     let filter_attrib a s =
       let init =
         if
-          Eliom_csreact.SharedReact.S.value s |>
+          SharedReact.S.value s |>
           Eliom_lib.Shared.local
         then
           Some a

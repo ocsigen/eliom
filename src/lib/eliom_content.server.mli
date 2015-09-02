@@ -206,7 +206,7 @@ module Svg : sig
 
   module R : sig
 
-    module Raw : Svg_sigs.Make(Eliom_csreact_content.Xml).T
+    module Raw : Svg_sigs.Make(Eliom_shared_content.Xml).T
       with type 'a elt = 'a elt
        and type 'a attrib = 'a attrib
 
@@ -214,7 +214,7 @@ module Svg : sig
 
     val pcdata : string Xml.W.t -> [> `Unimplemented ]
 
-    val node : 'a elt Eliom_csreact.SharedReact.S.t -> 'a elt
+    val node : 'a elt Eliom_shared.SharedReact.S.t -> 'a elt
 
   end
 
@@ -441,18 +441,18 @@ module Html5 : sig
 
   module R : sig
 
-    include Html5_sigs.Make(Eliom_csreact_content.Xml)(Svg.R.Raw).T
+    include Html5_sigs.Make(Eliom_shared_content.Xml)(Svg.R.Raw).T
       with type 'a elt = 'a elt
        and type 'a attrib = 'a attrib
 
     val pcdata :
-      string Eliom_csreact.SharedReact.S.t ->
+      string Eliom_shared.SharedReact.S.t ->
       [> | Html5_types.span] elt
 
-    val node : 'a elt Eliom_csreact.SharedReact.S.t -> 'a elt
+    val node : 'a elt Eliom_shared.SharedReact.S.t -> 'a elt
 
     val filter_attrib :
-      'a attrib -> bool Eliom_csreact.SharedReact.S.t -> 'a attrib
+      'a attrib -> bool Eliom_shared.SharedReact.S.t -> 'a attrib
 
   end
 
