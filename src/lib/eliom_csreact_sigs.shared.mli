@@ -74,7 +74,8 @@ module type RLIST = sig
   type 'a signal
 
   val make :
-    ?default:('a t * 'a handle) option ->
+    ?default:('a t Eliom_lib.client_value *
+              'a handle Eliom_lib.client_value) ->
     ?reset_default:bool ->
     'a list ->
     'a t * 'a handle

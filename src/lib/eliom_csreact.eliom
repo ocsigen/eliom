@@ -181,7 +181,7 @@ module SharedReactiveData = struct
     include ReactiveData.RList
     let make_from_s = ReactiveData.RList.make_from_s
     let make ?default ?(reset_default = false) v = match default with
-      | Some (Some ((_, handle) as s)) ->
+      | Some ((_, handle) as s) ->
         if reset_default then ReactiveData.RList.set handle v; s
       | _ -> ReactiveData.RList.make v
   end
@@ -447,15 +447,12 @@ module SharedReactiveData = struct
       let cv, synced = match default with
         | None ->
           {{ FakeReactiveData.RList.make %x }}, true
-        | Some default ->
+        | Some (v, handle) ->
           {'a FakeReactiveData.RList.t *
            'a FakeReactiveData.RList.handle{
-             match %default with
-             | None -> FakeReactiveData.RList.make %x
-             | Some ((_, handle) as s) ->
-               if %reset_default
-               then ReactiveData.RList.set handle %x;
-               s
+             let (v, handle) as s = %v, %handle in
+             if %reset_default then ReactiveData.RList.set handle %x;
+             s
            }}, reset_default
       in
       let sv = FakeReactiveData.RList.make ~synced x in
