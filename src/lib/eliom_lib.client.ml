@@ -35,6 +35,9 @@ exception Exception_on_server of string
 
 type 'a client_value = 'a
 type 'a shared_value = 'a
+
+let create_shared_value (_ : 'a) (c : 'a client_value) = c
+
 (*****************************************************************************)
 
 module Url = struct

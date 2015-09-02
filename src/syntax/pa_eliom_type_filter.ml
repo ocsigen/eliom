@@ -102,11 +102,32 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
       match ! $lid:gen_tid $ with | Some x -> x | None -> assert false
     end >>
 
+  let shared_value_expr typ _ orig_expr gen_id gen_tid loc =
+    push_typing_str_item orig_expr gen_tid;
+    let typ = match typ with
+      | Some typ -> typ
+      | None -> let _loc = Loc.ghost in <:ctyp< _ >>
+    in
+    let _loc = loc in
+    <:expr<
+      Eliom_lib.create_shared_value $orig_expr$
+        begin
+          $flush_typing_expr ()$;
+          $lid:gen_tid$ :=
+            Some (Eliom_service.Syntax_helpers.client_value 0L 0 :
+                   $typ$ Eliom_pervasives.client_value);
+          match ! $lid:gen_tid $ with
+          | Some x -> x
+          | None -> assert false
+        end >>
+
   let escape_inject context_level ?ident orig_expr gen_id =
     let open Pa_eliom_seed in
     push_typing_str_item orig_expr gen_id;
     push_typing_expr orig_expr gen_id;
     match context_level with
+      | Escaped_in_shared_value_in _ ->
+          orig_expr
       | Escaped_in_client_value_in _ ->
           let _loc = Ast.loc_of_expr orig_expr in
           <:expr< >>
