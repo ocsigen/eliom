@@ -272,14 +272,14 @@ let parse_eliom_option
     if (not globaloption) || sn = None
     then
       let sn = match sn with
-        | None -> None
-        | Some "" -> Some None
+        | None -> None (* all hierarchies *)
+        | Some "" -> Some None (* default hierarchy *)
         | c -> Some c
       in (a, sn, ct)
     else
       raise
         (Error_in_config_file
-           ("Eliom: sessionname attribute not allowed for "^tn^" tag in global configuration"))
+           ("Eliom: hierarchyname attribute not allowed for "^tn^" tag in global configuration"))
   in
   function
   | (Element ("volatiletimeout", attrs, [])) ->
@@ -427,7 +427,7 @@ let parse_eliom_options f l =
     | [] -> rest
     | e::l ->
         try
-          parse_eliom_option true f e;
+          parse_eliom_option false f e;
           aux rest l
         with Error_in_config_file _ -> aux (e::rest) l
   in List.rev (aux [] l)
@@ -484,7 +484,7 @@ let rec parse_global_config = function
                 parse_global_config ll
   | e::ll ->
       parse_eliom_option
-        false
+        true
         ((fun ct _ -> Eliommod_timeouts.set_default_volatile_timeout ct),
          (fun ct _ -> Eliommod_timeouts.set_default_data_timeout ct),
          (fun ct _ -> Eliommod_timeouts.set_default_service_timeout ct),

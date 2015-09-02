@@ -93,7 +93,7 @@ let set_timeout_ get set get_default update =
          only if full_st_name is not present *)
       let def_bro, def_tab, tl = get sitedata in
       match full_st_name with
-        | None -> (* means default timeout *)
+        | None -> (* means default timeout for all hierarchies *)
           (match def_bro, def_tab, cookie_level with
             | Some (_, true), _, Some `Session
               when not override_configfile -> ()
