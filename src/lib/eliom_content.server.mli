@@ -214,7 +214,7 @@ module Svg : sig
 
     val pcdata : string Xml.W.t -> [> `Unimplemented ]
 
-    val node : 'a elt Eliom_shared.SharedReact.S.t -> 'a elt
+    val node : 'a elt Eliom_shared.React.S.t -> 'a elt
 
   end
 
@@ -446,13 +446,12 @@ module Html5 : sig
        and type 'a attrib = 'a attrib
 
     val pcdata :
-      string Eliom_shared.SharedReact.S.t ->
-      [> | Html5_types.span] elt
+      string Eliom_shared.React.S.t -> [> Html5_types.span] elt
 
-    val node : 'a elt Eliom_shared.SharedReact.S.t -> 'a elt
+    val node : 'a elt Eliom_shared.React.S.t -> 'a elt
 
     val filter_attrib :
-      'a attrib -> bool Eliom_shared.SharedReact.S.t -> 'a attrib
+      'a attrib -> bool Eliom_shared.React.S.t -> 'a attrib
 
   end
 

@@ -23,9 +23,12 @@ val to_signal : init:'a -> 'a React.S.t Lwt.t -> 'a React.S.t
 }}
 
 {server{
-module SharedReact : sig
+module React : sig
+
   module S : sig
+
     include Eliom_shared_sigs.S
+
     val create :
       ?default :
         ('a t Eliom_lib.client_value *
@@ -33,35 +36,62 @@ module SharedReact : sig
       ?reset_default:bool ->
       'a ->
       'a t * (?step:React.step -> 'a -> unit) Eliom_lib.shared_value
+
     val synced : 'a t -> bool
+
   end
+
 end
 
-module SharedReactiveData : sig
+module ReactiveData : sig
   module RList : sig
     include Eliom_shared_sigs.RLIST
-      with type 'a signal := 'a SharedReact.S.t
+      with type 'a signal := 'a React.S.t
     val synced : 'a t -> bool
   end
 end
 }}
 
 {client{
-module SharedReact : sig
+module React : sig
+
   module S : sig
-    include Eliom_shared_sigs.S with type 'a t = 'a React.S.t
+
+    include module type of React.S
+
+    include Eliom_shared_sigs.S with type 'a t := 'a t
+
     val create :
       ?eq:('a -> 'a -> bool) ->
       ?default:('a t * (?step:React.step -> 'a -> unit)) ->
       ?reset_default:bool ->
       'a -> 'a React.signal * (?step:React.step -> 'a -> unit)
+
   end
+
 end
 
-module SharedReactiveData : sig
-  module RList : Eliom_shared_sigs.RLIST
+module ReactiveData : sig
+
+  module RList : sig
+
+    include module type of ReactiveData.RList
     with type 'a t = 'a ReactiveData.RList.t
-     and type 'a signal := 'a SharedReact.S.t
      and type 'a handle = 'a ReactiveData.RList.handle
+
+    include Eliom_shared_sigs.RLIST
+      with type 'a t := 'a t
+       and type 'a handle := 'a handle
+       and type 'a signal := 'a React.S.t
+
+    val make :
+      ?default:('a t Eliom_lib.client_value *
+                'a handle Eliom_lib.client_value) ->
+      ?reset_default:bool ->
+      'a list ->
+      'a t * 'a handle
+
+  end
+
 end
 }}
