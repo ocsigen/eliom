@@ -21,7 +21,7 @@
 {shared{
 val to_signal : init:'a -> 'a React.S.t Lwt.t -> 'a React.S.t
 
-module Value : Eliom_shared_sigs.VALUE
+module Value : sig include Eliom_shared_sigs.VALUE end
 }}
 
 {server{
