@@ -115,7 +115,8 @@ module Svg : sig
       (Xml : Xml_sigs.T
        with type elt = Xml.elt
         and type attrib = Xml.attrib)
-      (C : Svg_sigs.Conv with type ('a, 'b) ft = ('a, 'b) Xml.W.ft) :
+      (C : Svg_sigs.Wrapped_functions
+       with type ('a, 'b) ft = ('a, 'b) Xml.W.ft) :
     Svg_sigs.Make(Xml).T
     with type +'a elt = 'a elt
      and type +'a attrib = 'a attrib
@@ -191,7 +192,8 @@ module Html5 : sig
       (Xml : Xml_sigs.T
        with type elt = Xml.elt
         and type attrib = Xml.attrib)
-      (Conv : Html5_sigs.Conv with type ('a, 'b) ft = ('a, 'b) Xml.W.ft)
+      (C : Html5_sigs.Wrapped_functions
+       with type ('a, 'b) ft = ('a, 'b) Xml.W.ft)
       (Svg : Svg_sigs.T with module Xml := Xml) :
     Html5_sigs.Make(Xml)(Svg).T
     with type +'a elt = 'a elt
