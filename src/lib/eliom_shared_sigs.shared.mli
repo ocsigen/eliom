@@ -18,6 +18,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+module type VALUE = sig
+  type 'a t = 'a Eliom_lib.shared_value
+  val client : 'a t -> 'a Eliom_lib.client_value
+  val local : 'a t -> 'a
+end
+
 module type S = sig
 
   type 'a t

@@ -110,11 +110,6 @@ let shared_value_server_repr x = x.sh_server,x.sh_client
 
 let client_value_server_repr = fst
 
-module Shared = struct
-  let client {sh_client} = sh_client
-  let local {sh_server} = sh_server
-end
-
 exception Client_value_creation_invalid_context of int64
 
 let escaped_value value : escaped_value (* * Eliom_wrap.unwrapper *) =

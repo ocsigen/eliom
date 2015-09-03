@@ -89,8 +89,7 @@ module Xml = struct
   type attrib = Eliom_content_core.Xml.attrib
 
   let local_value s =
-    React.S.value s |>
-    Eliom_lib.Shared.local
+    React.S.value s |> Value.local
 
   let float_attrib name s =
     let init =
@@ -166,10 +165,7 @@ module Xml = struct
 
   let pcdata s =
     let e =
-      let s =
-        React.S.value s |>
-        Eliom_lib.Shared.local
-      in
+      let s = local_value s in
       Eliom_content_core.Xml.(node "span" [pcdata s]) |> name_node
     and synced = React.S.synced s in
     let _ = {unit{
@@ -199,7 +195,7 @@ module Xml = struct
   let node ?a name l =
     let e =
       ReactiveData.RList.value l |>
-      Eliom_lib.Shared.local |>
+      Value.local |>
       Eliom_content_core.Xml.node ?a name |>
       name_node
     and synced = ReactiveData.RList.synced l in
@@ -341,7 +337,7 @@ module Svg = struct
     let node s =
       let e =
         React.S.value s |>
-        Eliom_lib.Shared.local |>
+        Value.local |>
         Eliom_content_core.Svg.D.toelt |>
         Eliom_content_core.Xml.make_request_node ~reset:false
       and synced = React.S.synced s in
@@ -470,7 +466,7 @@ module Html5 = struct
     let node s =
       let e =
         React.S.value s |>
-        Eliom_lib.Shared.local |>
+        Value.local |>
         Eliom_content_core.Html5.D.toelt |>
         Eliom_content_core.Xml.make_request_node ~reset:false
       and synced = React.S.synced s in
@@ -512,7 +508,7 @@ module Html5 = struct
       let init =
         if
           React.S.value s |>
-          Eliom_lib.Shared.local
+          Value.local
         then
           Some a
         else

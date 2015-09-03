@@ -4,7 +4,6 @@
 open Eliom_lib
 open Eliom_content.Html5
 open Eliom_content.Html5.F
-open Eliom_shared
 }}
 
 {shared{
@@ -29,8 +28,8 @@ let create () =
 
 {shared{
   let do_cache_raw cache id data =
-    Hashtbl.remove ((Shared.local cache) ()) id;
-    Hashtbl.add ((Shared.local cache) ()) id data
+    Hashtbl.remove ((Eliom_shared.Value.local cache) ()) id;
+    Hashtbl.add ((Eliom_shared.Value.local cache) ()) id data
 
   let do_cache cache id data = do_cache_raw cache id (Lwt.return data)
 }}
@@ -46,7 +45,7 @@ let create () =
 {server{
 
   let find cache get_data id =
-    try Hashtbl.find ((Shared.local cache) ()) id
+    try Hashtbl.find ((Eliom_shared.Value.local cache) ()) id
     with Not_found ->
       let th =
         lwt v = get_data id in
@@ -72,7 +71,7 @@ let create () =
     th
 
 let find cache get_data id =
-    try Hashtbl.find ((Shared.local cache) ()) id
+    try Hashtbl.find ((Eliom_shared.Value.local cache) ()) id
     with Not_found -> load cache get_data id
 
 }}
@@ -80,7 +79,8 @@ let find cache get_data id =
 {shared{
   exception Not_ready
 
-  let local_find cache id = Hashtbl.find ((Shared.local cache) ()) id
+  let local_find cache id =
+    Hashtbl.find ((Eliom_shared.Value.local cache) ()) id
 
   let find_if_ready cache id =
     let v = local_find cache id in
