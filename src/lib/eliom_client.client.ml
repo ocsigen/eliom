@@ -514,13 +514,17 @@ let rebuild_attrib_val = function
   | Xml.AStrL (Xml.Space, sl) -> Js.string (String.concat " " sl)
   | Xml.AStrL (Xml.Comma, sl) -> Js.string (String.concat "," sl)
 
-let class_list_of_racontent_o = function
-  | Some (Xml.AStr s) ->
+let class_list_of_racontent = function
+  | Xml.AStr s ->
     [s]
-  | Some (Xml.AStrL (space, l)) ->
+  | Xml.AStrL (space, l) ->
     l
-  | Some _ ->
+  | _ ->
     failwith "attribute class is not a string"
+
+let class_list_of_racontent_o = function
+  | Some c ->
+    class_list_of_racontent c
   | None ->
     []
 
@@ -571,14 +575,17 @@ let iter_prop_protected node name f =
   | Some n -> begin try f n with _ -> () end
   | None -> ()
 
+let current_classes node =
+  let name = Js.string "class" in
+  Js.Opt.case (node##getAttribute(name))
+    (fun () -> [])
+    (fun s -> Js.to_string s |> Regexp.(split (regexp " ")))
+
 let rebuild_reactive_class_rattrib node s =
   let name = Js.string "class" in
   let e = React.S.diff (fun v v' -> v', v) s
   and f (v, v') =
-    let l1 =
-      Js.Opt.case (node##getAttribute(name))
-        (fun () -> [])
-        (fun s -> Js.to_string s |> Regexp.(split (regexp " ")))
+    let l1 = current_classes node
     and l2 = class_list_of_racontent_o v
     and l3 = class_list_of_racontent_o v' in
     let s = rebuild_class_string l1 l2 l3 in
@@ -589,6 +596,12 @@ let rebuild_reactive_class_rattrib node s =
   React.E.map f e |> ignore
 
 let rec rebuild_rattrib node ra = match Xml.racontent ra with
+  | Xml.RA a when Xml.aname ra = "class" ->
+    let l1 = current_classes node
+    and l2 = class_list_of_racontent a in
+    let name = Js.string "class"
+    and s = rebuild_class_string l1 l2 l2 in
+    node##setAttribute (name, s)
   | Xml.RA a ->
     let name = Js.string (Xml.aname ra) in
     let v = rebuild_attrib_val a in
