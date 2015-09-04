@@ -204,6 +204,10 @@ module Svg : sig
 
   end
 
+  (** Creation of SVG content from shared reactive signals and data
+      ({% <<a_api project="eliom" subproject="server"|module Eliom_shared>> %}).
+      For the operations provided, see
+      {% <<a_api project="tyxml" | module Svg_sigs.T >> %}. *)
   module R : sig
 
     module Raw : Svg_sigs.Make(Eliom_shared_content.Xml).T
@@ -212,8 +216,11 @@ module Svg : sig
 
     include module type of Raw
 
+    (** [pcdata] is not implemented reactively for SVG. *)
     val pcdata : string Xml.W.t -> [> `Unimplemented ]
 
+    (** [node s] produces an ['a elt] out of the shared reactive
+        signal [s]. *)
     val node : 'a elt Eliom_shared.React.S.t -> 'a elt
 
   end
@@ -439,17 +446,28 @@ module Html5 : sig
 
   end
 
+  (** Creation of HTML5 content from shared reactive signals and data
+      ({% <<a_api project="eliom" subproject="server"|module Eliom_shared>> %}).
+      For the operations provided, see
+      {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
   module R : sig
 
     include Html5_sigs.Make(Eliom_shared_content.Xml)(Svg.R.Raw).T
       with type 'a elt = 'a elt
        and type 'a attrib = 'a attrib
 
+    (** [pcdata s] produces a node of type
+        [\[> Html5_types.span\] elt]
+        out of the string signal [s]. *)
     val pcdata :
       string Eliom_shared.React.S.t -> [> Html5_types.span] elt
 
+    (** [node s] produces an ['a elt] out of the shared reactive
+        signal [s]. *)
     val node : 'a elt Eliom_shared.React.S.t -> 'a elt
 
+    (** [filter_attrib a b] amounts to the attribute [a] while [b] is
+        [true], and to no attribute while [b] is [false]. *)
     val filter_attrib :
       'a attrib -> bool Eliom_shared.React.S.t -> 'a attrib
 
