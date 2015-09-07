@@ -177,6 +177,10 @@ module React = struct
       let l2_s_init ~init ?eq f s1 s2 =
         let th = l2_s ?eq f s1 s2 in
         to_signal ~init th
+      let l3_s = Lwt_react.S.l3_s
+      let l3_s_init ~init ?eq f s1 s2 s3 =
+        let th = l3_s ?eq f s1 s2 s3 in
+        to_signal ~init th
       let merge_s = Lwt_react.S.merge_s
       let merge_s_init ~init ?eq f a l =
         let th = merge_s ?eq f a l in
@@ -426,6 +430,28 @@ module React = struct
                 ~init:%server_result
                 ?eq:%eq
                 (Value.local %f) (Value.local %s1) (Value.local %s2) }})
+
+        let l3_s ?eq
+            (f : ('a -> 'b -> 'c -> 'd Lwt.t) shared_value)
+            (s1 : 'a t) (s2 : 'b t) (s3 : 'c t) : 'd t Lwt.t =
+          lwt server_result =
+            (Value.local f)
+              (FakeReact.S.value (Value.local s1))
+              (FakeReact.S.value (Value.local s2))
+              (FakeReact.S.value (Value.local s3))
+          in
+          let synced =
+            FakeReact.S.synced (Value.local s1) &&
+            FakeReact.S.synced (Value.local s2) &&
+            FakeReact.S.synced (Value.local s3)
+          in
+          Lwt.return
+            (create_shared_value
+               (fst (FakeReact.S.create ~synced server_result))
+               {'d FakeReact.S.t{
+                  React.S.Lwt.l3_s_init ?eq:%eq
+                    ~init:%server_result
+                    %f %s1 %s2 %s3 }})
 
         let merge_s ?eq (f : ('a -> 'b -> 'a Lwt.t) shared_value)
             (acc : 'a) (l : 'b t list) : 'a t Lwt.t =
