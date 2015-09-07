@@ -25,26 +25,18 @@
     comprised of a server-side version and a client-side version. The
     server-side signals (and data structures) are evaluated only once.
 
-    Client-side signals and data are type-wise and behavior-wise
-    equivalent to those provided by the underlying React and
-    ReactiveData libraries. Thus, all the operations from React and
-    ReactiveData apply. We provide extended versions of these
-    libraries.
-
     All operations on signals and data need to be provided in the form
     of shared functions, i.e., functions that have both a client-side
     and a server-side implementation. *)
 
-{shared{
-   (** [to_signal ~init s] converts the Lwt-wrapped signal [s] into a
-       regular signal with initial value [init]. *)
+(** [to_signal ~init s] converts the Lwt-wrapped signal [s] into a
+    regular signal with initial value [init]. *)
 val to_signal : init:'a -> 'a React.S.t Lwt.t -> 'a React.S.t
 
 (** Accessing shared values *)
 module Value : Eliom_shared_sigs.VALUE
-}}
 
-{server{
+(** Shared implementation of React *)
 module React : sig
 
   module S : sig
@@ -81,6 +73,7 @@ module React : sig
 
 end
 
+(** Shared implementation of ReactiveData *)
 module ReactiveData : sig
 
   module RList : sig
@@ -97,49 +90,3 @@ module ReactiveData : sig
   end
 
 end
-}}
-
-{client{
-module React : sig
-
-  module S : sig
-
-    include module type of React.S
-
-    include Eliom_shared_sigs.S with type 'a t := 'a t
-
-    (** [create ?eq ?default ?reset_default x] produces a pair [s, f],
-        where [s] is a reactive signal, and [f] is a function for
-        updating the signal.
-
-        The initial value of the signal is [x], unless [default] is
-        provided.  [default], if provided, is used as the
-        signal. [reset_default], if set to true (default: false),
-        resets the value of [default] to [x]. *)
-    val create :
-      ?eq:('a -> 'a -> bool) ->
-      ?default:('a t * (?step:React.step -> 'a -> unit)) ->
-      ?reset_default:bool ->
-      'a -> 'a React.signal * (?step:React.step -> 'a -> unit)
-
-  end
-
-end
-
-module ReactiveData : sig
-
-  module RList : sig
-
-    include module type of ReactiveData.RList
-    with type 'a t = 'a ReactiveData.RList.t
-     and type 'a handle = 'a ReactiveData.RList.handle
-
-    include Eliom_shared_sigs.RLIST
-      with type 'a t := 'a t
-       and type 'a handle := 'a handle
-       and type 'a signal := 'a React.S.t
-
-  end
-
-end
-}}
