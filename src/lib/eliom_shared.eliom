@@ -61,26 +61,23 @@ module ReactiveData_ = struct
 (*VVV effectful_signal could be garbage collected. FIX!
   Keeping the warning for now. *)
       let effectful_signal = React.S.map (ReactiveData.RList.set handle) s in
+      ignore effectful_signal;
       l
 
     module Lwt = struct
 
       let map_data_p_lwt = Lwt_list.map_p
 
-      let map_patch_p_lwt f v =
-        let open ReactiveData.RList in
-            match v with
-              | I (i, x) -> lwt p = f x in Lwt.return (I (i, p))
-              | R i -> Lwt.return (R i)
-              | X (i, j) -> Lwt.return (X (i, j))
-              | U (i, x) -> lwt p = f x in Lwt.return (U (i, p))
+      let map_patch_p_lwt f = function
+        | I (i, x) -> lwt p = f x in Lwt.return (I (i, p))
+        | R i -> Lwt.return (R i)
+        | X (i, j) -> Lwt.return (X (i, j))
+        | U (i, x) -> lwt p = f x in Lwt.return (U (i, p))
       let map_patch_p_lwt f = Lwt_list.map_p (map_patch_p_lwt f)
 
-      let map_msg_p_lwt f v =
-        let open ReactiveData.RList in
-            match v with
-              | Set l -> lwt p = map_data_p_lwt f l in Lwt.return (Set p)
-              | Patch p -> lwt p = map_patch_p_lwt f p in Lwt.return (Patch p)
+      let map_msg_p_lwt f = function
+        | Set l -> lwt p = map_data_p_lwt f l in Lwt.return (Set p)
+        | Patch p -> lwt p = map_patch_p_lwt f p in Lwt.return (Patch p)
 
       let map_p_aux r_th f l =
       (* We react to all events occurring on initial list *)
