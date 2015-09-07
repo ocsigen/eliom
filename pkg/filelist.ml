@@ -1,9 +1,13 @@
 type descr = {
+  interface_only : string list;
   interface : string list;
   internal : string list;
 }
 
 let server = {
+  interface_only = [
+    "eliom_shared_sigs";
+  ];
   interface = [
     "eliom_bus";
     "eliom_comet";
@@ -19,7 +23,6 @@ let server = {
     "eliom_pervasives";
     "eliom_react";
     "eliom_shared";
-    "eliom_shared_content";
     "eliom_cscache";
     "eliom_reference";
     "eliom_registration";
@@ -46,6 +49,7 @@ let server = {
     "eliom_process";
     "eliom_registration_base";
     "eliom_service_base";
+    "eliom_shared_content";
     "eliom_types_base";
     "eliommod";
     "eliommod_cli";
@@ -65,6 +69,9 @@ let server = {
   ]
 }
 let client = {
+  interface_only = [
+    "eliom_shared_sigs";
+  ];
   interface = [
     "eliom_bus";
     "eliom_client";
@@ -79,7 +86,6 @@ let client = {
     "eliom_pervasives";
     "eliom_react";
     "eliom_shared";
-    "eliom_shared_content";
     "eliom_cscache";
     "eliom_registration";
     "eliom_service";
@@ -103,6 +109,7 @@ let client = {
     "eliom_request";
     "eliom_request_info";
     "eliom_service_base";
+    "eliom_shared_content";
     "eliom_types_base";
     "eliommod_cookies";
     "eliommod_dom";
@@ -112,6 +119,7 @@ let client = {
 }
 
 let server_ext = {
+  interface_only = [];
   interface = [
     "atom_feed";
     "eliom_atom";
@@ -121,6 +129,7 @@ let server_ext = {
 }
 
 let ocamlbuild = {
+  interface_only = [];
   interface = [ "ocamlbuild_eliom" ];
   internal = []
 
@@ -144,36 +153,38 @@ let list_to_file filename list =
 let client_mllib =
   client.interface @ client.internal
 
-let client_extra = exts ["cmi"] client.interface
+let client_extra =
+  exts ["cmi"] (client.interface_only @ client.interface)
 
 let client_api =
-  let names = client.interface in
-  names
+  client.interface_only @ client.interface
 
 let server_mllib =
   server.interface @ server.internal
 
 let server_extra =
-  exts ["cmi"] server.interface @
+  exts ["cmi"] (server.interface_only @ server.interface) @
   exts ["cmx"] (server.interface @ server.internal)
 
 let server_api =
   let names =
+    server.interface_only @
     server.interface @
-    List.map (fun e -> "extensions/" ^ e) server_ext.interface
+    List.map (fun e -> "extensions/" ^ e)
+      (server_ext.interface_only @ server_ext.interface)
   in
   names
 
 let server_ext_mllib = server_ext.interface @ server_ext.internal
 let server_ext_extra =
-  exts ["cmi"] server_ext.interface @
+  exts ["cmi"] (server_ext.interface_only @ server_ext.interface) @
   exts ["cmx"] (server_ext.interface @ server_ext.internal)
 
 let ocamlbuild_mllib = ocamlbuild.interface @ ocamlbuild.internal
 let ocamlbuild_extra =
-  exts ["cmi"] ocamlbuild.interface @
+  exts ["cmi"] (ocamlbuild.interface_only @ ocamlbuild.interface) @
   exts ["cmx"] (ocamlbuild.interface @ ocamlbuild.internal)
-let ocamlbuild_api = ocamlbuild.interface
+let ocamlbuild_api = ocamlbuild.interface_only @ ocamlbuild.interface
 
 
 let templates_dir = "pkg/distillery"

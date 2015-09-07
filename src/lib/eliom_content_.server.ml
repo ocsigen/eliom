@@ -25,6 +25,8 @@ module type Forms = "sigs/eliom_forms.mli"
 
 module Xml = Eliom_content_core.Xml
 
+module Xml_shared = Eliom_shared_content.Xml
+
 module Svg = struct
 
   module F = Svg.F

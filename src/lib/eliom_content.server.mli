@@ -162,6 +162,16 @@ module Xml : sig
 
 end
 
+module Xml_shared : Xml_sigs.T
+  with type 'a W.t = 'a Eliom_shared.React.S.t
+   and type 'a W.tlist = 'a Eliom_shared.ReactiveData.RList.t
+   and type event_handler =
+         (Dom_html.event Js.t -> unit) Eliom_lib.client_value
+   and type mouse_event_handler =
+         (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value
+   and type keyboard_event_handler =
+         (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value
+
 (** Building and pretty-printing valid SVG tree.
 Information about Svg api can be found at {% <<a_api project="tyxml" | module Svg_sigs.T >> %}*)
 module Svg : sig
@@ -210,7 +220,7 @@ module Svg : sig
       {% <<a_api project="tyxml" | module Svg_sigs.T >> %}. *)
   module R : sig
 
-    module Raw : Svg_sigs.Make(Eliom_shared_content.Xml).T
+    module Raw : Svg_sigs.Make(Xml_shared).T
       with type 'a elt = 'a elt
        and type 'a attrib = 'a attrib
 
@@ -452,7 +462,7 @@ module Html5 : sig
       {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
   module R : sig
 
-    include Html5_sigs.Make(Eliom_shared_content.Xml)(Svg.R.Raw).T
+    include Html5_sigs.Make(Xml_shared)(Svg.R.Raw).T
       with type 'a elt = 'a elt
        and type 'a attrib = 'a attrib
 
