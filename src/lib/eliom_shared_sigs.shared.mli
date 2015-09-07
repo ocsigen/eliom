@@ -18,9 +18,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(** Accessing shared values *)
 module type VALUE = sig
   type 'a t = 'a Eliom_lib.shared_value
+  (** [client x] is the client-side portion of [x]. *)
   val client : 'a t -> 'a Eliom_lib.client_value
+  (** [local x] is the local portion of [x]. *)
   val local : 'a t -> 'a
 end
 
@@ -51,11 +54,15 @@ module type S = sig
     ?eq:('a -> 'a -> bool) Eliom_lib.shared_value ->
     'a t t -> 'a t
 
+  (** Infix operators *)
   module Infix : sig
+    (** [s >|= f] is [map f s]. *)
     val (>|=) : 'a t -> ('a -> 'b) Eliom_lib.shared_value -> 'b t
+    (** [f =|< s] is [map f s]. *)
     val (=|<) : ('a -> 'b) Eliom_lib.shared_value -> 'a t -> 'b t
   end
 
+  (** Cooperative versions of the React operators *)
   module Lwt : sig
     val map_s :
       ?eq:('b -> 'b -> bool) Eliom_lib.shared_value ->
@@ -75,10 +82,20 @@ end
 
 module type RLIST = sig
 
+  (** The type of (shared) reactive lists *)
   type 'a t
+  (** Handles are used to manipulate reactive lists *)
   type 'a handle
   type 'a signal
 
+  (** [make ?default ?reset_default l] produces a pair [l, f], where
+      [s] is a (shared) reactive list, and [f] is a handle for
+      manipulating the list.
+
+      The initial value of the list is [l], unless [default] is
+      provided.  [default], if provided, is used as the client-side
+      list (and corresponding handle). [reset_default], if set to true
+      (default: false), resets the value of [default] to [l]. *)
   val make :
     ?default:('a t Eliom_lib.client_value *
               'a handle Eliom_lib.client_value) ->
@@ -94,6 +111,7 @@ module type RLIST = sig
   val map : ('a -> 'b) Eliom_lib.shared_value -> 'a t -> 'b t
   val make_from_s : 'a list signal -> 'a t
 
+  (** Cooperative versions of the ReactiveData operators *)
   module Lwt : sig
     val map_p :
       ('a -> 'b Lwt.t) Eliom_lib.shared_value ->

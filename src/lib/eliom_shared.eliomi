@@ -36,12 +36,12 @@
     and a server-side implementation. *)
 
 {shared{
-
    (** [to_signal ~init s] converts the Lwt-wrapped signal [s] into a
        regular signal with initial value [init]. *)
 val to_signal : init:'a -> 'a React.S.t Lwt.t -> 'a React.S.t
 
-module Value : sig include Eliom_shared_sigs.VALUE end
+(** Accessing shared values *)
+module Value : Eliom_shared_sigs.VALUE
 }}
 
 {server{
@@ -53,7 +53,7 @@ module React : sig
 
     (** [create ?default ?reset_default x] produces a pair [s, f],
         where [s] is a (shared) reactive signal, and [f] is a shared
-        function that can be used to update the signal.
+        function for updating the signal.
 
         The initial value of the signal is [x], unless [default] is
         provided.  [default], if provided, is used as the client-side
@@ -108,6 +108,14 @@ module React : sig
 
     include Eliom_shared_sigs.S with type 'a t := 'a t
 
+    (** [create ?eq ?default ?reset_default x] produces a pair [s, f],
+        where [s] is a reactive signal, and [f] is a function for
+        updating the signal.
+
+        The initial value of the signal is [x], unless [default] is
+        provided.  [default], if provided, is used as the
+        signal. [reset_default], if set to true (default: false),
+        resets the value of [default] to [x]. *)
     val create :
       ?eq:('a -> 'a -> bool) ->
       ?default:('a t * (?step:React.step -> 'a -> unit)) ->
@@ -130,13 +138,6 @@ module ReactiveData : sig
       with type 'a t := 'a t
        and type 'a handle := 'a handle
        and type 'a signal := 'a React.S.t
-
-    val make :
-      ?default:('a t Eliom_lib.client_value *
-                'a handle Eliom_lib.client_value) ->
-      ?reset_default:bool ->
-      'a list ->
-      'a t * 'a handle
 
   end
 
