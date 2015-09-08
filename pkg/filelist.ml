@@ -89,6 +89,7 @@ let client = {
     "eliom_cscache";
     "eliom_registration";
     "eliom_service";
+    "eliom_storage";
     "eliom_tools";
     "eliom_tools_common";
     "eliom_types";
