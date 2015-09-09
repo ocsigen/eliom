@@ -158,7 +158,7 @@ module React = struct
 
     let create ?eq ?default ?(reset_default = false) v =
       match default with
-      | Some ((_, set) as s) ->
+      | Some (Some ((_, set) as s)) ->
         if reset_default then set ?step:None v; s
       | _ ->
         create ?eq v
@@ -201,7 +201,7 @@ module ReactiveData = struct
     let make_from_s = ReactiveData.RList.make_from_s
     let make ?default ?(reset_default = false) v =
       match default with
-      | Some ((_, handle) as s) ->
+      | Some (Some ((_, handle) as s)) ->
         if reset_default then ReactiveData.RList.set handle v; s
       | _ ->
         ReactiveData.RList.make v
@@ -313,17 +313,21 @@ module React = struct
       let cv, synced = match default with
         | None ->
           {{ FakeReact.S.create %x }}, true
-        | Some ((_, set) as s) ->
+        | Some v ->
           {'a FakeReact.S.t * (?step:React.step -> 'a -> unit){
-             (* The reactive data is already on client side.  But the
-                value sent by server is more recent.  I update the
-                signal. *)
-             if %reset_default then %set ?step:None %x;
-             (*VVV Make possible to disable this?  Warning: removing
-               this or changing the default will break some existing
-               code relying on this!  Do not change the default
-               without wide announcement. *)
-             %s }}, reset_default
+             match %v with
+             | Some ((_, set) as s) ->
+               (* The reactive data is already on client side.  But
+                  the value sent by server is more recent.  I update
+                  the signal. *)
+               if %reset_default then set ?step:None %x; s
+             | None ->
+               FakeReact.S.create %x
+               (*VVV Make possible to disable this?  Warning: removing
+                 this or changing the default will break some existing
+                 code relying on this!  Do not change the default
+                 without wide announcement. *)
+           }}, reset_default
       in
       let v, f = FakeReact.S.create ~synced x in
       let si =
@@ -494,12 +498,15 @@ module ReactiveData = struct
       let cv, synced = match default with
         | None ->
           {{ FakeReactiveData.RList.make %x }}, true
-        | Some (v, handle) ->
+        | Some v ->
           {'a FakeReactiveData.RList.t *
            'a FakeReactiveData.RList.handle{
-             let (v, handle) as s = %v, %handle in
-             if %reset_default then ReactiveData.RList.set handle %x;
-             s
+             match %v with
+             | Some ((_, handle) as s) ->
+               if %reset_default then ReactiveData.RList.set handle %x;
+               s
+             | None ->
+               FakeReactiveData.RList.make %x
            }}, reset_default
       in
       let sv = FakeReactiveData.RList.make ~synced x in

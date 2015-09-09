@@ -92,6 +92,11 @@ module type RLIST = sig
   type 'a handle
   type 'a signal
 
+  (** Client-side version of 'a t *)
+  type 'a ct
+  (** Client-side version of 'a handle *)
+  type 'a chandle
+
   (** [make ?default ?reset_default l] produces a pair [l, f], where
       [s] is a (shared) reactive list, and [f] is a handle for
       manipulating the list.
@@ -101,8 +106,7 @@ module type RLIST = sig
       list (and corresponding handle). [reset_default], if set to true
       (default: false), resets the value of [default] to [l]. *)
   val make :
-    ?default:('a t Eliom_lib.client_value *
-              'a handle Eliom_lib.client_value) ->
+    ?default:(('a ct * 'a chandle) option Eliom_lib.client_value) ->
     ?reset_default:bool ->
     'a list ->
     'a t * 'a handle

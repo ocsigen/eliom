@@ -54,12 +54,22 @@ module React : sig
         resets the value of [default] to [x]. *)
     val create :
       ?eq:('a -> 'a -> bool) ->
-      ?default:('a t * (?step:React.step -> 'a -> unit)) ->
+      ?default:(('a t * (?step:React.step -> 'a -> unit)) option) ->
       ?reset_default:bool ->
       'a -> 'a React.signal * (?step:React.step -> 'a -> unit)
 
   end
 
+end
+
+(** This is a dummy ReactiveData module that allows us to refer to
+    client-side ReactiveData types on the server side, without
+    actually linking against ReactiveData. *)
+module FakeReactiveData : sig
+  module RList : sig
+    type 'a t = 'a ReactiveData.RList.t
+    type 'a handle = 'a ReactiveData.RList.handle
+  end
 end
 
 (** Shared implementation of ReactiveData; client-side behavior is
@@ -76,6 +86,8 @@ module ReactiveData : sig
       with type 'a t := 'a t
        and type 'a handle := 'a handle
        and type 'a signal := 'a React.S.t
+       and type 'a ct := 'a ReactiveData.RList.t
+       and type 'a chandle := 'a ReactiveData.RList.handle
 
   end
 

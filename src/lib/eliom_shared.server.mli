@@ -57,9 +57,10 @@ module React : sig
         update functions. *)
     val create :
       ?default :
-        ('a t Eliom_lib.client_value *
-         (?step:React.step -> 'a -> unit) Eliom_lib.client_value) ->
-      ?reset_default:bool ->
+        ('a React.S.t * (?step:React.step -> 'a -> unit))
+          option
+          Eliom_lib.client_value ->
+      ?reset_default : bool ->
       'a ->
       'a t * (?step:React.step -> 'a -> unit) Eliom_lib.shared_value
 
@@ -73,6 +74,16 @@ module React : sig
 
 end
 
+(** This is a dummy ReactiveData module that allows us to refer to
+    client-side ReactiveData types on the server side, without
+    actually linking against ReactiveData. *)
+module FakeReactiveData : sig
+  module RList : sig
+    type 'a t
+    type 'a handle
+  end
+end
+
 (** Shared implementation of ReactiveData *)
 module ReactiveData : sig
 
@@ -80,6 +91,8 @@ module ReactiveData : sig
 
     include Eliom_shared_sigs.RLIST
       with type 'a signal := 'a React.S.t
+       and type 'a ct := 'a FakeReactiveData.RList.t
+       and type 'a chandle := 'a FakeReactiveData.RList.handle
 
     (** If [synced l] is true, then the server-side and client-side
         values of [l] are equal. This means that the client-side code
