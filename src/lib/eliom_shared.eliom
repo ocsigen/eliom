@@ -51,100 +51,6 @@ module Value = struct
 end
 }}
 
-{shared{
-module ReactiveData_ = struct
-  module RList = struct
-    include ReactiveData.RList
-
-    let from_signal s =
-      let l, handle = ReactiveData.RList.make (React.S.value s) in
-(*VVV effectful_signal could be garbage collected. FIX!
-  Keeping the warning for now. *)
-      let effectful_signal = React.S.map (ReactiveData.RList.set handle) s in
-      ignore effectful_signal;
-      l
-
-    module Lwt = struct
-
-      let map_data_p_lwt = Lwt_list.map_p
-
-      let map_patch_p_lwt f = function
-        | I (i, x) -> lwt p = f x in Lwt.return (I (i, p))
-        | R i -> Lwt.return (R i)
-        | X (i, j) -> Lwt.return (X (i, j))
-        | U (i, x) -> lwt p = f x in Lwt.return (U (i, p))
-      let map_patch_p_lwt f = Lwt_list.map_p (map_patch_p_lwt f)
-
-      let map_msg_p_lwt f = function
-        | Set l -> lwt p = map_data_p_lwt f l in Lwt.return (Set p)
-        | Patch p -> lwt p = map_patch_p_lwt f p in Lwt.return (Patch p)
-
-      let map_p_aux r_th f l =
-      (* We react to all events occurring on initial list *)
-        let event = ReactiveData.RList.event l in
-      (* the waiter is used a a lock to keep the order of events *)
-        let waiter = ref (Lwt.wait ()) in
-        Lwt.wakeup (snd !waiter) ();
-        React.E.map
-          (fun msg ->
-            Lwt.async (fun () ->
-              let waiter1 = !waiter in
-              let new_waiter = Lwt.wait () in
-              waiter := new_waiter;
-              lwt new_msg = map_msg_p_lwt f msg in
-              lwt rr, rhandle = r_th in
-              lwt () = fst waiter1 in
-              (match new_msg with
-                | ReactiveData.RList.Set s -> ReactiveData.RList.set rhandle s
-                | ReactiveData.RList.Patch p ->
-                  ReactiveData.RList.patch rhandle p);
-              Lwt.wakeup (snd new_waiter) ();
-              Lwt.return ())
-          )
-          event
-
-    (** Same as map_p but we do not compute the initial list.
-        Instead, we give the initial list as parameter.
-        To be used when the initial list has been computed on server side.
-    *)
-      let map_p_init ~init (f : 'a -> 'b Lwt.t) (l : 'a t) : 'b t =
-        let (rr, _) as r = ReactiveData.RList.make init in
-        let effectul_event = map_p_aux (Lwt.return r) f l in
-      (* We keep a reference to the effectul_event in the resulting
-         reactive list in order that the effectul_event is garbage collected
-         only if the resulting list is garbage collected. *)
-        ignore (React.E.retain (ReactiveData.RList.event rr)
-                  (fun () -> ignore effectul_event));
-        rr
-
-    (** [map_p f l] is the equivalent of [ReactiveData.Rlist.map]
-        but with a function that may yield.
-        If a patch arrives
-        when the previous one has not finished to be computed,
-        we launch the computation of [f] in parallel,
-        but we wait for the previous one to be applied
-        before applying it.
-    *)
-      let map_p (f : 'a -> 'b Lwt.t) (l : 'a t) : 'b t Lwt.t =
-      (* First we build the initial value of the result list *)
-        let r_th =
-          lwt r = Lwt_list.map_p f (ReactiveData.RList.value l) in
-          Lwt.return (ReactiveData.RList.make r)
-        in
-        let effectul_event = map_p_aux r_th f l in
-        lwt rr, rhandle = r_th in
-      (* We keep a reference to the effectul_event in the resulting
-         reactive list in order that the effectul_event is garbage collected
-         only if the resulting list is garbage collected. *)
-        ignore (React.E.retain (ReactiveData.RList.event rr)
-                  (fun () -> ignore effectul_event));
-        Lwt.return rr
-
-    end
-  end
-end
-}}
-
 {client{
 module React = struct
 
@@ -193,23 +99,112 @@ module React = struct
 
 end
 
-module FakeReact = React
-
 module ReactiveData = struct
+
   module RList = struct
-    include ReactiveData_.RList
+
+    include ReactiveData.RList
+
+    let from_signal s =
+      let l, handle = ReactiveData.RList.make (React.S.value s) in
+      (*VVV e could be garbage collected. FIX!  Keeping the warning
+        for now. *)
+      let e = React.S.map (ReactiveData.RList.set handle) s in
+      ignore e;
+      l
+
+    module Lwt = struct
+
+      let map_data_p_lwt = Lwt_list.map_p
+
+      let map_patch_p_lwt f = function
+        | I (i, x) -> lwt p = f x in Lwt.return (I (i, p))
+        | R i -> Lwt.return (R i)
+        | X (i, j) -> Lwt.return (X (i, j))
+        | U (i, x) -> lwt p = f x in Lwt.return (U (i, p))
+      let map_patch_p_lwt f = Lwt_list.map_p (map_patch_p_lwt f)
+
+      let map_msg_p_lwt f = function
+        | Set l -> lwt p = map_data_p_lwt f l in Lwt.return (Set p)
+        | Patch p -> lwt p = map_patch_p_lwt f p in Lwt.return (Patch p)
+
+      let map_p_aux r_th f l =
+        (* We react to all events occurring on initial list *)
+        let event = ReactiveData.RList.event l in
+        (* the waiter is used a a lock to keep the order of events *)
+        let waiter = ref (Lwt.wait ()) in
+        Lwt.wakeup (snd !waiter) ();
+        React.E.map
+          (fun msg ->
+             Lwt.async (fun () ->
+               let waiter1 = !waiter in
+               let new_waiter = Lwt.wait () in
+               waiter := new_waiter;
+               lwt new_msg = map_msg_p_lwt f msg in
+               lwt rr, rhandle = r_th in
+               lwt () = fst waiter1 in
+               (match new_msg with
+                | ReactiveData.RList.Set s ->
+                  ReactiveData.RList.set rhandle s
+                | ReactiveData.RList.Patch p ->
+                  ReactiveData.RList.patch rhandle p);
+               Lwt.wakeup (snd new_waiter) ();
+               Lwt.return ()))
+          event
+
+      (** Same as map_p but we do not compute the initial list.
+          Instead, we give the initial list as parameter.  To be used
+          when the initial list has been computed on server side.  *)
+      let map_p_init ~init (f : 'a -> 'b Lwt.t) (l : 'a t) : 'b t =
+        let (rr, _) as r = ReactiveData.RList.make init in
+        let effectul_event = map_p_aux (Lwt.return r) f l in
+        (* We keep a reference to the effectul_event in the resulting
+           reactive list in order that the effectul_event is garbage
+           collected only if the resulting list is garbage
+           collected. *)
+        ignore (React.E.retain (ReactiveData.RList.event rr)
+                  (fun () -> ignore effectul_event));
+        rr
+
+      (** [map_p f l] is the equivalent of [ReactiveData.Rlist.map]
+          but with a function that may yield.  If a patch arrives when
+          the previous one has not finished to be computed, we launch
+          the computation of [f] in parallel, but we wait for the
+          previous one to be applied before applying it.  *)
+      let map_p (f : 'a -> 'b Lwt.t) (l : 'a t) : 'b t Lwt.t =
+        (* First we build the initial value of the result list *)
+        let r_th =
+          lwt r = Lwt_list.map_p f (ReactiveData.RList.value l) in
+          Lwt.return (ReactiveData.RList.make r)
+        in
+        let effectul_event = map_p_aux r_th f l in
+        lwt rr, rhandle = r_th in
+        (* We keep a reference to the effectul_event in the resulting
+           reactive list in order that the effectul_event is garbage
+           collected only if the resulting list is garbage
+           collected. *)
+        ignore (React.E.retain (ReactiveData.RList.event rr)
+                  (fun () -> ignore effectul_event));
+        Lwt.return rr
+
+    end
+
     let make_from_s = ReactiveData.RList.make_from_s
+
     let make ?default ?(reset_default = false) v =
       match default with
       | Some (Some ((_, handle) as s)) ->
         if reset_default then ReactiveData.RList.set handle v; s
       | _ ->
         ReactiveData.RList.make v
+
   end
+
 end
 
-module FakeReactiveData = ReactiveData
+module FakeReact = React
 
+module FakeReactiveData = ReactiveData
 }}
 
 {server{
