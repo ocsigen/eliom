@@ -198,6 +198,14 @@ module ReactiveData = struct
       | _ ->
         ReactiveData.RList.make v
 
+    let acc_e ?default ?reset_default e =
+      let l, h = make ?default ?reset_default [] in
+      let _ =
+        let f x = ReactiveData.RList.cons x h in
+        React.E.map f e
+      in
+      l
+
   end
 
 end
@@ -552,6 +560,14 @@ module ReactiveData = struct
       let sv = FakeReactiveData.RList.make_from_s (Value.local s)
       and cv = {{ ReactiveData.RList.make_from_s (Value.local %s) }} in
       create_shared_value sv cv
+
+    let acc_e ?default ?reset_default e =
+      let l, h = make ?default ?reset_default [] in
+      let _ = {unit{
+        let f x = ReactiveData.RList.cons x (Value.local %h) in
+        ignore (React.E.map f %e)
+      }} in
+      l
 
     let synced s = Value.local s |> FakeReactiveData.RList.synced
 

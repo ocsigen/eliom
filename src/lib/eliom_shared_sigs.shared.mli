@@ -118,6 +118,11 @@ module type RLIST = sig
   val singleton_s : 'a signal -> 'a t
   val map : ('a -> 'b) Eliom_lib.shared_value -> 'a t -> 'b t
   val make_from_s : 'a list signal -> 'a t
+  val acc_e :
+    ?default:(('a ct * 'a chandle) option Eliom_lib.client_value) ->
+    ?reset_default:bool ->
+    'a React.E.t Eliom_lib.client_value ->
+    'a t
 
   (** Cooperative versions of the ReactiveData operators *)
   module Lwt : sig

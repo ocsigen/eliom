@@ -60,6 +60,8 @@ module React : sig
 
   end
 
+  module E : module type of React.E
+
 end
 
 (** This is a dummy ReactiveData module that allows us to refer to
