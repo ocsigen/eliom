@@ -261,7 +261,6 @@ module FakeReactiveData = struct
     type 'a t
     type 'a handle
     val make : ?synced:bool -> 'a list -> 'a t * 'a handle
-    val cons : 'a FakeReact.S.t -> 'a t -> 'a t
     val concat : 'a t -> 'a t -> 'a t
     val from_signal : 'a list FakeReact.S.t -> 'a t
     val value : 'a t -> 'a list
@@ -277,8 +276,6 @@ module FakeReactiveData = struct
     type 'a t = 'a list * bool
     type 'a handle = unit
     let make ?synced:(synced = false) l = (l, synced), ()
-    let cons a (l, b) =
-      FakeReact.S.value a :: l, FakeReact.S.synced a && b
     let concat (l1, b1) (l2, b2) = List.append l1 l2, b1 && b2
     let from_signal s = FakeReact.S.(value s, synced s)
     let singleton_s s = [FakeReact.S.value s], FakeReact.S.synced s
