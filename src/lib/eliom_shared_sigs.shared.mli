@@ -119,8 +119,7 @@ module type RLIST = sig
   val map : ('a -> 'b) Eliom_lib.shared_value -> 'a t -> 'b t
   val make_from_s : 'a list signal -> 'a t
   val acc_e :
-    ?default:(('a ct * 'a chandle) option Eliom_lib.client_value) ->
-    ?reset_default:bool ->
+    ?init:('a t * 'a handle) ->
     'a React.E.t Eliom_lib.client_value ->
     'a t
 
