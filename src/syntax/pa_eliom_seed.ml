@@ -90,6 +90,8 @@ module type Helpers  = sig
 
   val is_escaped_indent_string: string -> bool
 
+  val is_nested_escaped_indent_string: string -> bool
+
   val patt_tuple : string list -> Ast.patt
   val expr_tuple : Ast.expr list -> Ast.expr
 
@@ -262,6 +264,15 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         | Ast.SgVal (_loc, id, t) ->
             is_escaped_indent_string id
         | si -> false
+
+      (* separate set of IDs for client values inside shared values *)
+      let nested_escaped_ident_prefix = "__eliom__cv_in_sv__reserved_name__"
+      let nested_escaped_ident_prefix_len =
+        String.length nested_escaped_ident_prefix
+      let is_nested_escaped_indent_string id =
+        String.length id > nested_escaped_ident_prefix_len &&
+        String.sub id 0 nested_escaped_ident_prefix_len =
+        nested_escaped_ident_prefix
 
       let injected_ident_fmt () =
         format_of_string "__eliom__injected_ident__reserved_name__%019d__%d"
@@ -555,6 +566,24 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           escaped_idents := (id, gen_id) :: !escaped_idents;
           gen_id)
 
+    let nested_escaped_idents = ref []
+    let reset_nested_escaped_ident () = nested_escaped_idents := []
+    let gen_nested_escaped_expr_ident,
+        gen_nested_escaped_ident =
+      let r = ref 0 in
+      (fun () ->
+         incr r;
+         Helpers.nested_escaped_ident_prefix ^ string_of_int !r),
+      (fun id ->
+        let id = (Ast.map_loc (fun _ -> Loc.ghost))#ident id in
+        try List.assoc id !nested_escaped_idents
+        with Not_found ->
+          incr r;
+          let gen_id =
+            Helpers.nested_escaped_ident_prefix ^ string_of_int !r in
+          nested_escaped_idents := (id, gen_id) :: !nested_escaped_idents;
+          gen_id)
+
     let gen_injected_expr_ident, gen_injected_ident =
       let injected_idents = ref [] in
       let r = ref 0 in
@@ -612,7 +641,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
               | _ -> None
          ]];
       dummy_set_level_client_value_expr:
-        [[ -> reset_escaped_ident ();
+        [[ -> reset_escaped_ident (); reset_nested_escaped_ident ();
              match !current_level with
                | Toplevel | Toplevel_module_expr | Server_item
                | Shared_item | (Shared_expr _) as old ->
@@ -804,6 +833,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                 (fun context ->
                      let gen_id =
                        match context with
+                         | Escaped_in_client_value_in (`Shared_expr _) ->
+                             gen_nested_escaped_ident id
                          | Escaped_in_client_value_in _
                          | Escaped_in_shared_value_in _ ->
                              gen_escaped_ident id
@@ -824,6 +855,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                         | Injected_in context -> injection_context_to_parsing_level context);
                    let gen_id =
                      match context with
+                       | Escaped_in_client_value_in (`Shared_expr _) ->
+                           gen_nested_escaped_expr_ident ()
                        | Escaped_in_client_value_in _
                        | Escaped_in_shared_value_in _ ->
                            gen_escaped_expr_ident ()

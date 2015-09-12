@@ -54,6 +54,27 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     in
     push, flush
 
+  let push_escaped_binding_nested,
+      flush_escaped_bindings_nested =
+    let arg_ids = ref [] in
+    let arg_collection = ref [] in
+    let push orig_expr gen_id =
+      if not (List.mem gen_id !arg_ids) then begin
+        arg_collection := (gen_id, orig_expr) :: !arg_collection;
+        arg_ids := gen_id :: !arg_ids
+      end
+    and flush () =
+      let res = List.rev !arg_collection
+      and aux (_, arg) =
+        let _loc = Ast.loc_of_expr arg in
+        <:expr< Eliom_service.Syntax_helpers.escaped_value $arg$ >>
+      in
+      arg_ids := [];
+      arg_collection := [];
+      List.map aux res
+    in
+    push, flush
+
   let push_injection, flush_injections =
     let module String_set = Set.Make (String) in
     let buffer : (_ * _ * _) list ref = ref [] in
@@ -153,39 +174,46 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let client_value_expr typ context_level orig_expr gen_num _ loc =
     let typ =
       match typ with
-        | Some typ -> typ
-        | None ->
-            if !notyp then
-              let _loc = Loc.ghost in <:ctyp< _ >>
-            else
-              match Helpers.find_client_value_type gen_num with
-                | Ast.TyQuo _ ->
-                    Helpers.raise_syntax_error loc
-                      "The types of client values must be monomorphic from its usage \
-                       or from its type annotation"
-                | typ -> typ
+      | Some typ -> typ
+      | None ->
+        if !notyp then
+          let _loc = Loc.ghost in <:ctyp< _ >>
+        else
+          match Helpers.find_client_value_type gen_num with
+          | Ast.TyQuo _ ->
+            Helpers.raise_syntax_error loc
+              "The types of client values must be monomorphic from its usage \
+               or from its type annotation"
+          | typ -> typ
     in
-    let _loc = Ast.loc_of_expr orig_expr in
+    let _loc = Ast.loc_of_expr orig_expr
+    and l =
+      match context_level with
+      | `Shared_expr _ ->
+        flush_escaped_bindings_nested ()
+      | _ ->
+        flush_escaped_bindings ()
+    in
     <:expr@loc<
-      (Eliom_service.Syntax_helpers.client_value ~pos:($Helpers.position _loc$) $`int64:gen_num$
-         $Helpers.expr_tuple (flush_escaped_bindings ())$
-       : $typ$ Eliom_pervasives.client_value)
-    >> ;;
+      (Eliom_service.Syntax_helpers.client_value
+         ~pos:($Helpers.position _loc$)
+         $`int64:gen_num$ $Helpers.expr_tuple l$
+       : $typ$ Eliom_pervasives.client_value) >> ;;
 
   let shared_value_expr typ _ orig_expr gen_num _ loc =
     let typ =
       match typ with
-        | Some typ -> typ
-        | None ->
-            if !notyp then
-              let _loc = Loc.ghost in <:ctyp< _ >>
-            else
-              match Helpers.find_client_value_type gen_num with
-                | Ast.TyQuo _ ->
-                    Helpers.raise_syntax_error loc
-                      "The types of shared values must be monomorphic from its usage \
-                       or from its type annotation"
-                | typ -> typ
+      | Some typ -> typ
+      | None ->
+        if !notyp then
+          let _loc = Loc.ghost in <:ctyp< _ >>
+        else
+          match Helpers.find_client_value_type gen_num with
+          | Ast.TyQuo _ ->
+            Helpers.raise_syntax_error loc
+              "The types of shared values must be monomorphic from its usage \
+               or from its type annotation"
+          | typ -> typ
     in
     let _loc = Ast.loc_of_expr orig_expr in
     <:expr@loc<
@@ -201,6 +229,10 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let escape_inject context_level ?ident orig_expr gen_id =
     let open Pa_eliom_seed in
     match context_level with
+      | Escaped_in_client_value_in (`Shared_expr _) ->
+          push_escaped_binding_nested orig_expr gen_id;
+          let _loc = Loc.ghost in
+          <:expr< >>
       | Escaped_in_shared_value_in _ ->
           push_escaped_binding orig_expr gen_id;
           orig_expr

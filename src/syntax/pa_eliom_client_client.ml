@@ -53,14 +53,25 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     in
     fun typ -> ast_mapper#ctyp typ
 
-  (* Replace every escaped identifier [v] with [Eliom_client.Syntax_helpers.get_escaped_value v] *)
-  let map_get_escaped_values =
+  (* Replace every escaped identifier [v] with
+     [Eliom_client.Syntax_helpers.get_escaped_value v] *)
+  let map_get_escaped_values ?nested:(nested = false) =
     let mapper =
       Ast.map_expr
         (function
-           | <:expr@_loc< $lid:str$ >> when Helpers.is_escaped_indent_string str ->
-               <:expr< Eliom_client.Syntax_helpers.get_escaped_value $lid:str$ >>
-           | expr -> expr)
+          | <:expr@_loc< $lid:str$ >>
+            when Helpers.is_escaped_indent_string str ->
+            <:expr<
+              Eliom_client.Syntax_helpers.get_escaped_value
+                $lid:str$ >>
+          | <:expr@_loc< $lid:str$ >>
+            when (Helpers.is_nested_escaped_indent_string str &&
+                  nested) ->
+            <:expr<
+              Eliom_client.Syntax_helpers.get_escaped_value
+                $lid:str$ >>
+          | expr ->
+            expr)
     in
     fun expr ->
       mapper#expr expr
@@ -83,11 +94,28 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     in
     push, flush
 
+  let push_escaped_binding_nested, flush_escaped_bindings_nested =
+    let server_arg_ids = ref [] in
+    let is_unknown gen_id =
+      List.for_all
+        (fun (gen_id', _) -> gen_id <> gen_id')
+        !server_arg_ids
+    in
+    let push gen_id expr =
+      if is_unknown gen_id then
+        server_arg_ids := (gen_id, expr) :: !server_arg_ids
+    and flush () =
+      let res = List.rev !server_arg_ids in
+      server_arg_ids := [];
+      res
+    in
+    push, flush
+
   let push_client_value_data, flush_client_value_datas =
     let client_value_datas = ref [] in
-    let push gen_num gen_id expr args =
+    let push gen_num gen_id expr nested args =
       client_value_datas :=
-        (gen_num, gen_id, expr, args) :: !client_value_datas
+        (gen_num, gen_id, expr, nested, args) :: !client_value_datas
     in
     let flush () =
       let res = List.rev !client_value_datas in
@@ -105,14 +133,14 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let register_client_closures client_value_datas =
     let registrations =
       List.map
-        (fun (gen_num, _, expr, args) ->
+        (fun (gen_num, _, expr, nested, args) ->
            let typ = get_type Helpers.find_client_value_type gen_num in
            let _loc = Ast.loc_of_expr expr in
            <:expr<
              Eliom_client.Syntax_helpers.register_client_closure
                $`int64:gen_num$
                (fun $Helpers.patt_tuple args$ ->
-                  ($map_get_escaped_values expr$ : $typ$))
+                  ($map_get_escaped_values ~nested expr$ : $typ$))
            >>)
         client_value_datas
     in
@@ -122,7 +150,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let define_client_functions client_value_datas =
     let bindings =
       List.map
-        (fun (gen_num, gen_id, expr, args) ->
+        (fun (gen_num, gen_id, expr, _, args) ->
            let patt =
              let _loc = Loc.ghost in
              <:patt< $lid:gen_id$ >>
@@ -182,23 +210,41 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let client_value_expr typ context_level orig_expr gen_num gen_id loc =
 
-    let escaped_bindings = flush_escaped_bindings () in
-
-    push_client_value_data gen_num gen_id orig_expr
-      (List.map fst escaped_bindings);
-
     match context_level with
       | `Server ->
+          let l = flush_escaped_bindings () in
+          push_client_value_data gen_num gen_id orig_expr false
+            (List.map fst l);
           <:expr@loc< >>
       | `Shared_expr _ ->
-          orig_expr
-      | `Shared ->
+          let l = flush_escaped_bindings_nested () in
+          push_client_value_data gen_num gen_id orig_expr true
+            (List.map fst l);
+          (* Escaped bindings can only refer to the parent client
+             context. To allow IDs that refer to the outer context, we
+             would need to determine whether an ID should be injected
+             by the server or not. This would require knowledge of
+             variable scopes. *)
           let bindings =
             List.map
               (fun (gen_id, expr) ->
                  let _loc = Loc.ghost in
                  <:patt< $lid:gen_id$ >>, expr)
-              escaped_bindings
+              l
+          in
+          <:expr@loc<
+            let $Ast.binding_of_pel bindings$ in
+            $orig_expr$ >>
+      | `Shared ->
+          let l = flush_escaped_bindings () in
+          push_client_value_data gen_num gen_id orig_expr false
+            (List.map fst l);
+          let bindings =
+            List.map
+              (fun (gen_id, expr) ->
+                 let _loc = Loc.ghost in
+                 <:patt< $lid:gen_id$ >>, expr)
+              l
           in
           let args =
             let _loc = Loc.ghost in
@@ -206,7 +252,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
               (List.map
                  (fun (gen_id, _) ->
                     <:expr< $lid:gen_id$ >>)
-                 escaped_bindings)
+                 l)
           in
           <:expr@loc<
             let $Ast.binding_of_pel bindings$ in
@@ -231,6 +277,10 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
       ignore ((Ast.map_ctyp f)#ctyp typ)
     in
     match context_level with
+      | Escaped_in_client_value_in (`Shared_expr _) ->
+          (* {section{ ... {shared#{ ... {{ ... }} ... }} ... }} *)
+          push_escaped_binding_nested gen_id orig_expr;
+          <:expr< $lid:gen_id$ >>
       | Escaped_in_client_value_in _
       | Escaped_in_shared_value_in _ ->
           (* {section{ ... {{ ... %x ... }} ... }} or
