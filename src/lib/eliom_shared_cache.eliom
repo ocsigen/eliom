@@ -35,7 +35,7 @@ end
 
 {client{
 module Table : TABLE = struct
-  include Eliom_storage.Local.Table
+  include Eliom_storage.Local.Json.Table
 end
 }}
 

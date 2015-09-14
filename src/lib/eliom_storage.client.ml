@@ -22,60 +22,118 @@ let get_storage s =
     (fun () -> failwith "Browser storage not supported")
     (fun v -> v)
 
-module type Get_storage_object = sig
+let valid_name s =
+  match
+    let re = Regexp.regexp "^[A-Za-z0-9]+$" in
+    Regexp.string_match re s 0
+  with
+  | Some _ ->
+    true
+  | None ->
+    false
+
+module type GET_STORAGE = sig
   val get : unit -> Dom_html.storage Js.t
 end
 
-module type PREFIXED_STORAGE = sig
+module type PREFIXED_RAW = sig
+  type key
+  val length : unit -> int
+  val find : key -> string
+  val set : key -> string -> unit
+  val remove : key -> unit
+  val clear : unit -> unit
+  val create_key : prefix:string -> string -> key
+end
+
+module type PREFIXED_JSON = sig
   include Eliom_storage_sigs.STORAGE
   val create_key :
     prefix:string -> string -> 'a Deriving_Json.t -> 'a key
 end
 
-module Make_prefixed_storage (G : Get_storage_object) :
+module type PREFIXED_POLY = sig
+  include Eliom_storage_sigs.STORAGE
+  val create_key : prefix:string -> string -> 'a key
+end
 
-  PREFIXED_STORAGE =
+module Make_prefixed_raw (G : GET_STORAGE) : PREFIXED_RAW = struct
 
-struct
-
-  type 'a key = Js.js_string Js.t * 'a Deriving_Json.t
+  type key = Js.js_string Js.t
 
   let length () = (G.get ())##length
 
-  let create_key ~prefix id j =
-    Js.string (prefix ^ id), j
+  let create_key ~prefix key =
+    Js.bytestring (Printf.sprintf "__%s_%s" prefix key)
 
-  let find (id, j) =
-    let v = (G.get ())##getItem(id)
-    and f v = Deriving_Json.from_string j (Js.to_string v)
+  let find key =
+    let v = (G.get ())##getItem(key)
+    and f = Js.to_bytestring
     and g () = raise Not_found in
     Js.Opt.case v g f
 
-  let set (id, j) v =
-    let v = Js.string (Deriving_Json.to_string j v) in
-    (G.get ())##setItem(id, v)
+  let set key v =
+    (G.get ())##setItem(key, Js.bytestring v)
 
-  let remove (id, _) =
-    (G.get ())##removeItem(id)
+  let remove key = (G.get ())##removeItem(key)
 
-  let clear () =
-    (G.get ())##clear()
+  let clear () = (G.get ())##clear()
 
 end
 
-module Make_table (S : PREFIXED_STORAGE) :
+module Make_prefixed_json (R : PREFIXED_RAW) : PREFIXED_JSON = struct
 
-  Eliom_storage_sigs.TABLE =
+  type 'a key = R.key * 'a Deriving_Json.t
 
-struct
+  let length = R.length
+
+  let create_key ~prefix key j =
+    R.create_key ~prefix key, j
+
+  let find (key, j) =
+    R.find key |> Deriving_Json.from_string j
+
+  let set (key, j) v =
+    Deriving_Json.to_string j v |> R.set key
+
+  let remove (key, _) =
+    R.remove key
+
+  let clear = R.clear
+
+end
+
+module Make_prefixed_poly (R : PREFIXED_RAW) : PREFIXED_POLY = struct
+
+  type 'a key = R.key
+
+  let length = R.length
+
+  let create_key = R.create_key
+
+  let find key =
+    let v = R.find key in
+    Marshal.from_string v 0
+
+  let set key v =
+    Marshal.to_string v [] |> R.set key
+
+  let remove = R.remove
+
+  let clear = R.clear
+
+end
+
+module Make_table_json (S : PREFIXED_JSON) = struct
 
   type ('a, 'b) t =
     string * 'a Deriving_Json.t * 'b Deriving_Json.t
 
   let create s j j' =
-    (* TODO: check s against regexp to make sure it becomes a unique
-       prefix *)
-    Printf.sprintf "__%s_" s, j, j'
+    if valid_name s then
+      s, j, j'
+    else
+      failwith "create: invalid name"
 
   let wrap_key (prefix, j, j') key =
     S.create_key ~prefix (Deriving_Json.to_string j key) j'
@@ -91,27 +149,70 @@ struct
 
 end
 
-module Make_all (G : Get_storage_object) = struct
+module Make_table_poly (S : PREFIXED_POLY) = struct
 
-  module Prefixed_storage = Make_prefixed_storage(G)
+  type ('a, 'b) t = string
 
-  module Storage = struct
-    include Prefixed_storage
-    let create_key s j = create_key ~prefix:"_storage_" s j
-  end
+  let create prefix =
+    if valid_name prefix then
+      prefix
+    else
+      failwith "create: invalid name"
 
-  module Table = Make_table(Prefixed_storage)
+  let wrap_key ~prefix key =
+    Marshal.to_string key [] |> S.create_key ~prefix
+
+  let find prefix key =
+    let v = wrap_key ~prefix key |> S.find in
+    Marshal.from_string v 0
+
+  let set prefix key v =
+    let key = wrap_key ~prefix key
+    and v = Marshal.to_string v [] in
+    S.set key v
+
+  let remove prefix key =
+    wrap_key ~prefix key |> S.remove
 
 end
 
-module Local = struct
+module Make_all (G : GET_STORAGE) : Eliom_storage_sigs.ALL = struct
+
+  module Raw_ = Make_prefixed_raw(G)
+
+  module Raw = struct
+    include Raw_
+    let create_key s = create_key ~prefix:"_raw_" s
+  end
+
+  module Json = struct
+    module Prefixed_storage = Make_prefixed_json(Raw_)
+    module Storage = struct
+      include Prefixed_storage
+      let create_key s j = create_key ~prefix:"_storage_" s j
+    end
+    module Table = Make_table_json(Prefixed_storage)
+  end
+
+  module Poly = struct
+    module Prefixed_storage = Make_prefixed_poly(Raw_)
+    module Storage = struct
+      include Prefixed_storage
+      let create_key s = create_key ~prefix:"_storage_" s
+    end
+    module Table = Make_table_poly(Prefixed_storage)
+  end
+
+end
+
+module Local : Eliom_storage_sigs.ALL = struct
   module G = struct
     let get () = get_storage (Dom_html.window##localStorage)
   end
   include Make_all(G)
 end
 
-module Session = struct
+module Session : Eliom_storage_sigs.ALL = struct
   module G = struct
     let get () = get_storage (Dom_html.window##sessionStorage)
   end

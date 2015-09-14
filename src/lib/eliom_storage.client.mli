@@ -17,12 +17,5 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-module Local : sig
-  module Storage : Eliom_storage_sigs.STORAGE
-  module Table : Eliom_storage_sigs.TABLE
-end
-
-module Session : sig
-  module Storage : Eliom_storage_sigs.STORAGE
-  module Table : Eliom_storage_sigs.TABLE
-end
+module Local : Eliom_storage_sigs.ALL
+module Session : Eliom_storage_sigs.ALL
