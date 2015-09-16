@@ -29,7 +29,7 @@ let server = {
     "eliom_request_info";
     "eliom_service";
     "eliom_state";
-    "eliom_shared_cache";
+    "eliom_shared_db";
     "eliom_tools";
     "eliom_tools_common";
     "eliom_types";
@@ -91,7 +91,7 @@ let client = {
     "eliom_cscache";
     "eliom_registration";
     "eliom_service";
-    "eliom_shared_cache";
+    "eliom_shared_db";
     "eliom_storage";
     "eliom_tools";
     "eliom_tools_common";

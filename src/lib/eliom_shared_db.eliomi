@@ -28,15 +28,19 @@ exception Not_ready
 {server{
 val create :
   string ->
-  'a Deriving_Json.t Eliom_lib.client_value ->
-  'b Deriving_Json.t Eliom_lib.client_value ->
+  'a Deriving_Json.t Eliom_lib.shared_value ->
+  'b Deriving_Json.t Eliom_lib.shared_value ->
   ('a, 'b) t
+
+val set : ('a, 'b) t -> 'a -> 'b -> unit Lwt.t
 }}
 
 {shared{
-val do_cache : ('a, 'b) t -> 'a -> 'b -> unit
 
-val find : ('a, 'b) t -> ('a -> 'b Lwt.t) -> 'a -> 'b Lwt.t
+type ('a, 'b) et = Set of ('a * 'b) | Remove of 'a
 
-val find_if_ready : ('a, 'b) t -> 'a -> 'b
+val find : ('a, 'b) t -> 'a -> 'b Lwt.t
+
+val event : ('a, 'b) t -> ('a, 'b) et Eliom_react.Down.t
+
 }}
