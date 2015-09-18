@@ -28,6 +28,7 @@ open Eliom_lib
 
 module Xml = struct
   include RawXML
+  module W = Xml_wrap.NoWrap
   type 'a wrap = 'a
   type 'a list_wrap = 'a list
 

@@ -27,6 +27,7 @@ open Eliom_lib
 
 module Xml = struct
   include RawXML
+  module W = Xml_wrap.NoWrap
   type 'a wrap = 'a
   type 'a list_wrap = 'a list
   type econtent =
@@ -164,8 +165,9 @@ end
 
 module Xml_wed =
 struct
-  type 'a wrap = 'a Tyxml_js.Xml_wrap.t
-  type 'a list_wrap = 'a Tyxml_js.Xml_wrap.tlist
+  module W = Tyxml_js.Xml_wrap
+  type 'a wrap = 'a W.t
+  type 'a list_wrap = 'a W.tlist
   type uri = Xml.uri
   let string_of_uri = Xml.string_of_uri
   let uri_of_string = Xml.uri_of_string
@@ -254,7 +256,7 @@ module Svg = struct
 
     let node s = Xml.make_react s
 
-    module Raw = Svg_f.MakeWrapped(Tyxml_js.Xml_wrap)(Xml_wed)
+    module Raw = Svg_f.Make(Xml_wed)
     include Raw
 
   end
@@ -326,7 +328,7 @@ module Html5 = struct
 
     let node s = Xml.make_react s
 
-    module Raw = Html5_f.MakeWrapped(Tyxml_js.Xml_wrap)(Xml_wed)(Svg.R)
+    module Raw = Html5_f.Make(Xml_wed)(Svg.R)
     let filter_attrib (name,a) on =
       let v = match a with
         | Xml.RA a -> Xml.RAReact (React.S.map (function

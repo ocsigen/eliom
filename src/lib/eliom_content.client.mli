@@ -80,7 +80,7 @@ module Svg : sig
         [elt]. *)
     val node : 'a elt React.signal -> 'a elt
 
-    module Raw : Svg_sigs.MakeWrapped(Tyxml_js.Xml_wrap)(Xml).T
+    module Raw : Svg_sigs.Make(Eliom_content_core.Xml_wed).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
@@ -403,7 +403,7 @@ module Html5 : sig
     val filter_attrib : 'a attrib -> bool React.signal -> 'a attrib
 
     (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
-    module Raw : Html5_sigs.MakeWrapped(Tyxml_js.Xml_wrap)(Xml)(Svg.R.Raw).T
+    module Raw : Html5_sigs.Make(Eliom_content_core.Xml_wed)(Svg.R.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
