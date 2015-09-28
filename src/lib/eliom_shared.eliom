@@ -87,6 +87,18 @@ module React = struct
       let l3_s_init ~init ?eq f s1 s2 s3 =
         let th = l3_s ?eq f s1 s2 s3 in
         to_signal ~init th
+      let l4_s = Lwt_react.S.l4_s
+      let l4_s_init ~init ?eq f s1 s2 s3 s4 =
+        let th = l4_s ?eq f s1 s2 s3 s4 in
+        to_signal ~init th
+      let l5_s = Lwt_react.S.l5_s
+      let l5_s_init ~init ?eq f s1 s2 s3 s4 s5 =
+        let th = l5_s ?eq f s1 s2 s3 s4 s5 in
+        to_signal ~init th
+      let l6_s = Lwt_react.S.l6_s
+      let l6_s_init ~init ?eq f s1 s2 s3 s4 s5 s6 =
+        let th = l6_s ?eq f s1 s2 s3 s4 s5 s6 in
+        to_signal ~init th
       let merge_s = Lwt_react.S.merge_s
       let merge_s_init ~init ?eq f a l =
         let th = merge_s ?eq f a l in
@@ -239,6 +251,15 @@ module FakeReact = struct
     val l3 : ?eq:('d -> 'd -> bool) ->
       ('a -> 'b -> 'c -> 'd) ->
       'a t -> 'b t -> 'c t -> 'd t
+    val l4 : ?eq:('e -> 'e -> bool) ->
+      ('a -> 'b -> 'c -> 'd -> 'e) ->
+      'a t -> 'b t -> 'c t -> 'd t -> 'e t
+    val l5 : ?eq:('f -> 'f -> bool) ->
+      ('a -> 'b -> 'c -> 'd -> 'e -> 'f) ->
+      'a t -> 'b t -> 'c t -> 'd t -> 'e t -> 'f t
+    val l6 : ?eq:('g -> 'g -> bool) ->
+      ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g) ->
+      'a t -> 'b t -> 'c t -> 'd t -> 'e t -> 'f t -> 'g t
     val switch : ?eq:('a -> 'a -> bool) -> 'a t t -> 'a t
   end = struct
     type 'a t = 'a * bool
@@ -253,11 +274,16 @@ module FakeReact = struct
     let merge ?eq f acc l =
       let f (acc, acc_b) (x, b) = f acc x, acc_b && b in
       List.fold_left f (acc, true) l
-    let l2 ?eq (f : 'a -> 'b -> 'c) ((x1, b1) : 'a t) ((x2, b2) : 'b t)
-      : 'c t = f x1 x2, b1 && b2
-    let l3 ?eq (f : 'a -> 'b -> 'c -> 'd)
-        ((x1, b1) : 'a t) ((x2, b2) : 'b t) ((x3, b3) : 'c t)
-      : 'd t = f x1 x2 x3, b1 && b2 && b3
+    let l2 ?eq f (x1, b1) (x2, b2) =
+      f x1 x2, b1 && b2
+    let l3 ?eq f (x1, b1) (x2, b2) (x3, b3) =
+      f x1 x2 x3, b1 && b2 && b3
+    let l4 ?eq f (x1, b1) (x2, b2) (x3, b3) (x4, b4) =
+      f x1 x2 x3 x4, b1 && b2 && b3 && b4
+    let l5 ?eq f (x1, b1) (x2, b2) (x3, b3) (x4, b4) (x5, b5) =
+      f x1 x2 x3 x4 x5, b1 && b2 && b3 && b4 && b5
+    let l6 ?eq f (x1, b1) (x2, b2) (x3, b3) (x4, b4) (x5, b5) (x6, b6) =
+      f x1 x2 x3 x4 x5 x6, b1 && b2 && b3 && b4 && b5 && b6
     let switch ?eq (((x, b1), b2): 'a t t) : 'a t = x, b1 && b2
   end
 end
@@ -386,6 +412,54 @@ module React = struct
                              (Value.local %s2)
                              (Value.local %s3) }}
 
+    let l4 ?(eq : ('e -> 'e -> bool) Eliom_lib.shared_value option)
+        (f : ('a -> 'b -> 'c -> 'd -> 'e) shared_value)
+        (s1 : 'a t) (s2 : 'b t) (s3 : 'c t) (s4 : 'd t)
+      : 'e t =
+      create_shared_value
+        (FakeReact.S.l4 (Value.local f)
+           (Value.local s1) (Value.local s2) (Value.local s3)
+           (Value.local s4))
+        {'e FakeReact.S.t{ React.S.l4 ?eq:%eq
+                             (Value.local %f)
+                             (Value.local %s1)
+                             (Value.local %s2)
+                             (Value.local %s3)
+                             (Value.local %s4) }}
+
+    let l5 ?eq (f : ('a -> 'b -> 'c -> 'd -> 'e -> 'f) shared_value)
+        (s1 : 'a t) (s2 : 'b t) (s3 : 'c t) (s4 : 'd t) (s5 : 'e t)
+      : 'f t =
+      create_shared_value
+        (FakeReact.S.l5 (Value.local f)
+           (Value.local s1) (Value.local s2) (Value.local s3)
+           (Value.local s4) (Value.local s5))
+        {'f FakeReact.S.t{ React.S.l5 ?eq:%eq
+                             (Value.local %f)
+                             (Value.local %s1)
+                             (Value.local %s2)
+                             (Value.local %s3)
+                             (Value.local %s4)
+                             (Value.local %s5) }}
+
+    let l6 ?eq
+        (f : ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g) shared_value)
+        (s1 : 'a t) (s2 : 'b t) (s3 : 'c t)
+        (s4 : 'd t) (s5 : 'e t) (s6 : 'f t)
+      : 'g t =
+      create_shared_value
+        (FakeReact.S.l6 (Value.local f)
+           (Value.local s1) (Value.local s2) (Value.local s3)
+           (Value.local s4) (Value.local s5) (Value.local s6))
+        {'g FakeReact.S.t{ React.S.l6 ?eq:%eq
+                             (Value.local %f)
+                             (Value.local %s1)
+                             (Value.local %s2)
+                             (Value.local %s3)
+                             (Value.local %s4)
+                             (Value.local %s5)
+                             (Value.local %s6) }}
+
     let switch ?eq (s : 'a t t) : 'a t =
       (* TODO : setting synced to false is safe, but can we do
          better? *)
@@ -462,6 +536,86 @@ module React = struct
                   React.S.Lwt.l3_s_init ?eq:%eq
                     ~init:%server_result
                     %f %s1 %s2 %s3 }})
+
+        let l4_s ?eq
+            (f : ('a -> 'b -> 'c -> 'd -> 'e Lwt.t) shared_value)
+            (s1 : 'a t) (s2 : 'b t) (s3 : 'c t) (s4 : 'd t)
+          : 'e t Lwt.t =
+          lwt server_result =
+            (Value.local f)
+              (FakeReact.S.value (Value.local s1))
+              (FakeReact.S.value (Value.local s2))
+              (FakeReact.S.value (Value.local s3))
+              (FakeReact.S.value (Value.local s4))
+          in
+          let synced =
+            FakeReact.S.synced (Value.local s1) &&
+            FakeReact.S.synced (Value.local s2) &&
+            FakeReact.S.synced (Value.local s3) &&
+            FakeReact.S.synced (Value.local s4)
+          in
+          Lwt.return
+            (create_shared_value
+               (fst (FakeReact.S.create ~synced server_result))
+               {'e FakeReact.S.t{
+                  React.S.Lwt.l4_s_init ?eq:%eq ~init:%server_result
+                    %f %s1 %s2 %s3 %s4 }})
+
+        let l5_s ?eq
+            (f : ('a -> 'b -> 'c -> 'd -> 'e -> 'f Lwt.t) shared_value)
+            (s1 : 'a t) (s2 : 'b t) (s3 : 'c t) (s4 : 'd t) (s5 : 'e t)
+          : 'f t Lwt.t =
+          lwt server_result =
+            (Value.local f)
+              (FakeReact.S.value (Value.local s1))
+              (FakeReact.S.value (Value.local s2))
+              (FakeReact.S.value (Value.local s3))
+              (FakeReact.S.value (Value.local s4))
+              (FakeReact.S.value (Value.local s5))
+          in
+          let synced =
+            FakeReact.S.synced (Value.local s1) &&
+            FakeReact.S.synced (Value.local s2) &&
+            FakeReact.S.synced (Value.local s3) &&
+            FakeReact.S.synced (Value.local s4) &&
+            FakeReact.S.synced (Value.local s5)
+          in
+          Lwt.return
+            (create_shared_value
+               (fst (FakeReact.S.create ~synced server_result))
+               {'f FakeReact.S.t{
+                  React.S.Lwt.l5_s_init ?eq:%eq ~init:%server_result
+                    %f %s1 %s2 %s3 %s4 %s5 }})
+
+        let l6_s ?eq
+            (f : ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g Lwt.t)
+                 shared_value)
+            (s1 : 'a t) (s2 : 'b t) (s3 : 'c t)
+            (s4 : 'd t) (s5 : 'e t) (s6 : 'f t)
+          : 'g t Lwt.t =
+          lwt server_result =
+            (Value.local f)
+              (FakeReact.S.value (Value.local s1))
+              (FakeReact.S.value (Value.local s2))
+              (FakeReact.S.value (Value.local s3))
+              (FakeReact.S.value (Value.local s4))
+              (FakeReact.S.value (Value.local s5))
+              (FakeReact.S.value (Value.local s6))
+          in
+          let synced =
+            FakeReact.S.synced (Value.local s1) &&
+            FakeReact.S.synced (Value.local s2) &&
+            FakeReact.S.synced (Value.local s3) &&
+            FakeReact.S.synced (Value.local s4) &&
+            FakeReact.S.synced (Value.local s5) &&
+            FakeReact.S.synced (Value.local s6)
+          in
+          Lwt.return
+            (create_shared_value
+               (fst (FakeReact.S.create ~synced server_result))
+               {'g FakeReact.S.t{
+                  React.S.Lwt.l6_s_init ?eq:%eq ~init:%server_result
+                    %f %s1 %s2 %s3 %s4 %s5 %s6 }})
 
         let merge_s ?eq (f : ('a -> 'b -> 'a Lwt.t) shared_value)
             (acc : 'a) (l : 'b t list) : 'a t Lwt.t =

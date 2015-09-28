@@ -50,6 +50,18 @@ module type S = sig
     ?eq:('d -> 'd -> bool) Eliom_lib.shared_value ->
     ('a -> 'b -> 'c -> 'd) Eliom_lib.shared_value ->
     'a t -> 'b t -> 'c t -> 'd t
+  val l4 :
+    ?eq:('e -> 'e -> bool) Eliom_lib.shared_value ->
+    ('a -> 'b -> 'c -> 'd -> 'e) Eliom_lib.shared_value ->
+    'a t -> 'b t -> 'c t -> 'd t -> 'e t
+  val l5 :
+    ?eq:('f -> 'f -> bool) Eliom_lib.shared_value ->
+    ('a -> 'b -> 'c -> 'd -> 'e -> 'f) Eliom_lib.shared_value ->
+    'a t -> 'b t -> 'c t -> 'd t -> 'e t -> 'f t
+  val l6 :
+    ?eq:('g -> 'g -> bool) Eliom_lib.shared_value ->
+    ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g) Eliom_lib.shared_value ->
+    'a t -> 'b t -> 'c t -> 'd t -> 'e t -> 'f t -> 'g t
   val switch :
     ?eq:('a -> 'a -> bool) Eliom_lib.shared_value ->
     'a t t -> 'a t
@@ -76,6 +88,20 @@ module type S = sig
       ?eq:('d -> 'd -> bool) Eliom_lib.shared_value ->
       ('a -> 'b -> 'c -> 'd Lwt.t) Eliom_lib.shared_value ->
       'a t -> 'b t -> 'c t -> 'd t Lwt.t
+    val l4_s :
+      ?eq:('e -> 'e -> bool) Eliom_lib.shared_value ->
+      ('a -> 'b -> 'c -> 'd -> 'e Lwt.t) Eliom_lib.shared_value ->
+      'a t -> 'b t -> 'c t -> 'd t -> 'e t Lwt.t
+    val l5_s :
+      ?eq:('f -> 'f -> bool) Eliom_lib.shared_value ->
+      ('a -> 'b -> 'c -> 'd -> 'e -> 'f Lwt.t)
+        Eliom_lib.shared_value ->
+      'a t -> 'b t -> 'c t -> 'd t -> 'e t -> 'f t Lwt.t
+    val l6_s :
+      ?eq:('g -> 'g -> bool) Eliom_lib.shared_value ->
+      ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g Lwt.t)
+        Eliom_lib.shared_value ->
+      'a t -> 'b t -> 'c t -> 'd t -> 'e t -> 'f t -> 'g t Lwt.t
     val merge_s :
       ?eq:('a -> 'a -> bool) Eliom_lib.shared_value ->
       ('a -> 'b -> 'a Lwt.t) Eliom_lib.shared_value ->
