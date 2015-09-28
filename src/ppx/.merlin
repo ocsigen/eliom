@@ -1,4 +1,4 @@
 PKG compiler-libs.common
-PKG ppx_tools
+PKG ppx_tools ppx_tools.metaquot
 
 REC
