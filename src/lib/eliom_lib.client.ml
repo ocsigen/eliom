@@ -113,8 +113,14 @@ let lwt_ignore ?(message="") t =
 let jsalert a = Dom_html.window##alert (a)
 let alert fmt = Printf.ksprintf (fun s -> jsalert (Js.string s)) fmt
 
-let debug_var s v = Js.Unsafe.set Dom_html.window (Js.string s) v
+let confirm =
+  let f s =
+    let s = Js.string s in
+    Dom_html.window##confirm(s) |> Js.to_bool
+  in
+  fun fmt -> Printf.ksprintf f fmt
 
+let debug_var s v = Js.Unsafe.set Dom_html.window (Js.string s) v
 
 module String = struct
   include String_base

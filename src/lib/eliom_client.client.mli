@@ -216,8 +216,11 @@ val call_service :
 val onload : (unit -> unit) -> unit
 
 (** Register a function to be called before changing the page the next
-    time. *)
-val onunload : (unit -> unit) -> unit
+    time. If the return value is [Some s], then we ask the user to
+    confirm quitting; [s] is used in the confirmation pop-up, if the
+    browser permits. None means no confirmation needed. Multiple
+    callbacks can be registered. *)
+val onunload : (unit -> string option) -> unit
 
 (** Wait for the initialization phase to terminate *)
 val wait_load_end : unit -> unit Lwt.t

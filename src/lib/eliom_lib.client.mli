@@ -109,6 +109,7 @@ val jsdebug : 'a -> unit
 
 val alert : ('a, unit, string, unit) format4 -> 'a
 val jsalert : Js.js_string Js.t -> unit
+val confirm : ('a, unit, string, bool) format4 -> 'a
 val debug_var : string -> 'a -> unit
 val trace : ('a, unit, string, unit) format4 -> 'a
 val lwt_ignore : ?message:string -> unit Lwt.t -> unit
