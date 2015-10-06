@@ -79,23 +79,59 @@ let int64_to_string i = (Obj.magic i)##toString()
 
 let create_buffer () =
   let elts = ref [] in
-  let add x =
-    elts := x :: !elts
+  let add x = elts := x :: !elts
+  and get () =
+    (* NOTE: the caller needs to reverse the list *)
+    !elts
   in
   let flush () =
-    let res = List.rev !elts in
+    let res = List.rev (get ()) in
     elts := [];
     res
   in
-  add, flush
+  add, get, flush
 
 (* == Callbacks for onload and onunload *)
 
 let run_callbacks handlers = List.iter (fun f -> f ()) handlers
 
-let onload, flush_onload = create_buffer ()
+let onload, _, flush_onload = create_buffer ()
 
-let onunload, flush_onunload = create_buffer ()
+exception Cancel_onunload of string
+
+let onunload, run_onunload =
+  let add, get, flush = create_buffer () in
+  let r = ref (get ()) in
+  let add x = add x; r := get () in
+  let rec run acc ~final =
+    match acc with
+    | f :: acc ->
+      (match f () with
+       | None ->
+         run acc ~final
+       | Some s when not final ->
+         (* we will run the rest of the callbacks in case the user
+            decides not to quit *)
+         r := acc; Some s
+       | Some _ ->
+         run acc ~final)
+    | [] ->
+      ignore (flush ()); None
+  in
+  let run ?(final = false) () =
+    (if final then List.rev !r else get ()) |> run ~final
+  in
+  add, run
+
+let run_onunload_wrapper f g =
+  match run_onunload ~final:false () with
+  | Some s ->
+    if confirm "%s" s then
+      let _ = run_onunload ~final:true () in f ()
+    else
+      g ()
+  | None ->
+    f ()
 
 (* == Closure *)
 
@@ -500,7 +536,7 @@ let reify_caml_event name node ce : string * (#Dom_html.event Js.t -> bool) =
     name, raw_event_handler cv
 
 let register_event_handler, flush_load_script =
-  let add, flush = create_buffer () in
+  let add, _, flush = create_buffer () in
   let register node (name, ev) =
     let name,f = reify_caml_event name node ev in
     if name = "onload"
@@ -698,12 +734,6 @@ let update_state () =
          | Some tmpl -> Js.bytestring tmpl
          | None -> Js.string  "");
       position = Eliommod_dom.getDocumentScroll () }
-
-(* == Leaving page *)
-
-let leave_page () =
-  update_state ();
-  run_callbacks (flush_onunload ())
 
 (* TODO: Registering a global "onunload" event handler breaks the
    'bfcache' mechanism of Firefox and Safari. We may try to use
@@ -1216,12 +1246,11 @@ let with_progress_cursor : 'a Lwt.t -> 'a Lwt.t =
 (* Function to be called for client side services: *)
 let set_content_local ?uri ?offset ?fragment new_page =
   let locked = ref true in
-  try_lwt
-    lwt () = Lwt_mutex.lock load_mutex in
-    set_loading_phase ();
-    if !Eliom_config.debug_timings
-    then Firebug.console##time(Js.string "set_content_local");
-    run_callbacks (flush_onunload ());
+  let recover () =
+    if !locked then Lwt_mutex.unlock load_mutex;
+    if !Eliom_config.debug_timings then
+      Firebug.console##timeEnd(Js.string "set_content_local")
+  and really_set () =
     (* Changing url: *)
     (match uri, fragment with
      | Some uri, None -> change_url_string uri
@@ -1250,11 +1279,17 @@ let set_content_local ?uri ?offset ?fragment new_page =
     if !Eliom_config.debug_timings then
       Firebug.console##timeEnd(Js.string "set_content_local");
     Lwt.return ()
+  in
+  let cancel () = recover (); Lwt.return () in
+  try_lwt
+    lwt () = Lwt_mutex.lock load_mutex in
+    set_loading_phase ();
+    if !Eliom_config.debug_timings then
+      Firebug.console##time(Js.string "set_content_local");
+    run_onunload_wrapper really_set cancel
   with exn ->
-    if !locked then Lwt_mutex.unlock load_mutex;
+    recover ();
     Lwt_log.ign_debug ~section ~exn "set_content_local";
-    if !Eliom_config.debug_timings
-    then Firebug.console##timeEnd(Js.string "set_content_local");
     raise_lwt exn
 
 (* Function to be called for server side services: *)
@@ -1264,12 +1299,7 @@ let set_content ?uri ?offset ?fragment content =
   | None -> Lwt.return ()
   | Some content ->
     let locked = ref true in
-    try_lwt
-      lwt () = Lwt_mutex.lock load_mutex in
-      set_loading_phase ();
-      if !Eliom_config.debug_timings
-      then Firebug.console##time(Js.string "set_content");
-      run_callbacks (flush_onunload ());
+    let really_set () =
       (match uri, fragment with
        | Some uri, None -> change_url_string uri
        | Some uri, Some fragment -> change_url_string (uri ^ "#" ^ fragment)
@@ -1344,18 +1374,25 @@ let set_content ?uri ?offset ?fragment content =
       if !Eliom_config.debug_timings then
         Firebug.console##timeEnd(Js.string "set_content");
       Lwt.return ()
-    with exn ->
+    and recover () =
       if !locked then Lwt_mutex.unlock load_mutex;
-      Lwt_log.ign_debug ~section ~exn "set_content";
       if !Eliom_config.debug_timings
-      then Firebug.console##timeEnd(Js.string "set_content");
+      then Firebug.console##timeEnd(Js.string "set_content")
+    in
+    try_lwt
+      lwt () = Lwt_mutex.lock load_mutex in
+      set_loading_phase ();
+      if !Eliom_config.debug_timings
+      then Firebug.console##time(Js.string "set_content");
+      let g () = recover (); Lwt.return () in
+      run_onunload_wrapper really_set g
+    with exn ->
+      recover ();
+      Lwt_log.ign_debug ~section ~exn "set_content";
       raise_lwt exn
 
-let set_template_content ?uri ?fragment = function
-  | None -> Lwt.return ()
-  | Some content ->
-    (* Side-effect in the 'onload' event handler. *)
-    run_callbacks (flush_onunload ());
+let set_template_content ?uri ?fragment =
+  let really_set content () =
     (match uri, fragment with
      | Some uri, None -> change_url_string uri
      | Some uri, Some fragment ->
@@ -1368,7 +1405,12 @@ let set_template_content ?uri ?fragment = function
     Lwt_mutex.unlock load_mutex;
     run_callbacks (flush_onload ());
     Lwt.return ()
-
+  and cancel () = Lwt.return () in
+  function
+  | None ->
+    Lwt.return ()
+  | Some content ->
+    run_onunload_wrapper (really_set content) cancel
 
 (* Fixing a dependency problem: *)
 let of_element_ = ref (fun _ -> assert false)
@@ -1548,7 +1590,6 @@ let () =
   then
 
     let goto_uri full_uri state_id =
-      leave_page ();
       current_state_id := state_id;
       let state = get_state state_id in
       let tmpl = (if state.template = Js.string ""
@@ -1557,28 +1598,37 @@ let () =
       in
       Lwt.ignore_result
         (with_progress_cursor
-            (let uri, fragment = Url.split_fragment full_uri in
-             if uri <> !current_uri
-             then begin
-               current_uri := uri;
-               match tmpl with
-               | Some t
-                 when tmpl = Eliom_request_info.get_request_template () ->
-                 lwt (uri, content) = Eliom_request.http_get
-                     uri [(Eliom_request.nl_template_string, t)]
-                     Eliom_request.string_result
-                 in
-                 set_template_content content >>
-                 (scroll_to_fragment ~offset:state.position fragment;
-                  Lwt.return ())
-               | _ ->
-                 lwt uri, content =
-                   Eliom_request.http_get ~expecting_process_page:true uri []
-                     Eliom_request.xml_result in
-                 set_content ~offset:state.position ?fragment content
-             end else
-               (scroll_to_fragment ~offset:state.position fragment;
-                Lwt.return ())))
+           (let uri, fragment = Url.split_fragment full_uri in
+            if uri <> !current_uri
+            then begin
+              current_uri := uri;
+              match tmpl with
+              | Some t
+                when tmpl = Eliom_request_info.get_request_template () ->
+                lwt (uri, content) = Eliom_request.http_get
+                    uri [(Eliom_request.nl_template_string, t)]
+                    Eliom_request.string_result
+                in
+                set_template_content content >>
+                (scroll_to_fragment ~offset:state.position fragment;
+                 Lwt.return ())
+              | _ ->
+                lwt uri, content =
+                  Eliom_request.http_get ~expecting_process_page:true uri []
+                    Eliom_request.xml_result in
+                set_content ~offset:state.position ?fragment content
+            end else
+              (scroll_to_fragment ~offset:state.position fragment;
+               Lwt.return ())))
+    in
+
+    let goto_uri full_uri state_id =
+      (* CHECKME: is it OK that set_state happens after the unload
+         callbacks are executed? *)
+      let f () = update_state (); goto_uri full_uri state_id
+      and g () = () in
+      run_onunload_wrapper f g
+
     in
 
     Lwt.ignore_result
@@ -1598,7 +1648,7 @@ let () =
           (goto_uri full_uri);
         Js._false)
 
-  else (* Whithout history API *)
+  else (* Without history API *)
 
     (* FIXME: This should be adapted to work with template...
        Solution: add the "state_id" in the fragment ??
@@ -1997,22 +2047,44 @@ let init () =
   in
 
   Lwt_log.ign_debug ~section "Set load/onload events";
-  let onunload _ = leave_page (); Js._true in
+
+  let onunload _ =
+    update_state ();
+    (* running remaining callbacks, if onbeforeunload left some *)
+    let _ = run_onunload ~final:true () in
+    Js._true
+
+  and onbeforeunload e =
+    match run_onunload ~final:false () with
+    | None ->
+      update_state ();
+      Js._true
+    | Some s ->
+      (Js.Unsafe.coerce e)##returnValue <- Js.string s;
+      Js._true
+  in
+
   (* IE<9: Script438: Object doesn't support property or method
      addEventListener.
      Other browsers: Ask whether you really want to navigate away if
      onbeforeunload is assigned *)
   if Js.Unsafe.get Dom_html.window (Js.string "addEventListener")
      == Js.undefined
-  then (Dom_html.window##onload <- Dom_html.handler onload;
-        Dom_html.window##onbeforeunload <- Dom_html.handler onunload)
+  then
+    Dom_html.(
+      window##onload <- handler onload;
+      window##onbeforeunload <- handler onbeforeunload;
+      window##onunload <- handler onunload)
   else
     (ignore
        (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
           (Dom.handler onload) Js._true);
      ignore
+       (Dom.addEventListener Dom_html.window (Dom.Event.make "beforeunload")
+          (Dom_html.handler onbeforeunload) Js._false);
+     ignore
        (Dom.addEventListener Dom_html.window (Dom.Event.make "unload")
-          (Dom_html.handler onunload) Js._false) )
+          (Dom_html.handler onunload) Js._false))
 
 
 (******************************************************************************)
