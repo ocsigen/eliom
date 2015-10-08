@@ -18,17 +18,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+{shared{ open Eliom_shared.React.S.Infix }}
+
 {client{
-
 module Xml = struct
-
   type elt =  Eliom_content_core.Xml.elt
-
 end
-
 }}
 
-{server{ open Eliom_shared }}
+{server{
+open Eliom_shared
+let local_value s = React.S.value s |> Value.local
+}}
 
 module Xml = struct
 
@@ -37,27 +38,15 @@ module Xml = struct
     include React.S
 
     type (-'a, 'b) ft = unit -> ('a -> 'b) Eliom_lib.shared_value
-
-    let return = const
-
-    let append = ReactiveData.RList.concat
-
-    let cons a l =
-      ReactiveData.RList.(concat (singleton_s a) l)
-
-    let singleton = ReactiveData.RList.singleton_s
-
-    let nil () =
-      ReactiveData.RList.make [] |> fst
-
-    let fmap f a =
-      React.S.map (f ()) a
-
     type 'a tlist = 'a ReactiveData.RList.t
 
-    let map _ _ =
-      if true then assert false;
-      ReactiveData.RList.make [] |> fst
+    let return = const
+    let append = ReactiveData.RList.concat
+    let singleton = ReactiveData.RList.singleton_s
+    let cons a l = append (singleton a) l
+    let nil () = ReactiveData.RList.make [] |> fst
+    let fmap f a = React.S.map (f ()) a
+    let map f l = ReactiveData.RList.map (f ()) l
 
   end
 
@@ -87,9 +76,6 @@ module Xml = struct
   (* attributes *)
 
   type attrib = Eliom_content_core.Xml.attrib
-
-  let local_value s =
-    React.S.value s |> Value.local
 
   let float_attrib name s =
     let init =
@@ -298,42 +284,30 @@ module Svg = struct
        the trouble. Make sure they stay synced! *)
     let node s =
       let e =
-        React.S.value s |>
-        Value.local |>
+        local_value s |>
         Eliom_content_core.Svg.D.toelt |>
         Eliom_content_core.Xml.make_request_node ~reset:false
       and synced = React.S.synced s in
       let _ = {unit{
-        let replace e e' =
-          let e =
-            Eliom_content_core.Svg.D.toelt e |>
-            Eliom_client.rebuild_node' `SVG
-          and e' =
-            Eliom_content_core.Svg.D.toelt e' |>
-            Eliom_client.rebuild_node' `SVG
-          in
-          let f p = Dom.replaceChild p e' e in
-          Js.Opt.iter (e##parentNode) f
-        and s =
-          let f =
-            Eliom_content_core.Svg.Id.create_request_elt
-              ~reset:false
-          in
-          React.S.map f %s
+        let s =
+          %s >|= (fun s ->
+            Eliom_content_core.Svg.
+              (Id.create_request_elt s ~reset:false |> D.toelt) |>
+            Eliom_client.rebuild_node' `SVG)
         in
         let f =
-          let e = Eliom_content_core.Svg.D.tot %e in
+          let replace e' e =
+            let f p = Dom.replaceChild p e' e in
+            Js.Opt.iter (e##parentNode) f |> ignore
+          and e = Eliom_client.rebuild_node' `SVG %e in
           fun e' ->
-            replace e e';
-            let ev = React.S.diff (fun e' e -> e, e') s
-            and f (e, e') = replace e e' in
-            React.E.map f ev |> ignore
+            replace e' e;
+            React.S.diff replace s |> ignore
         in
         if %synced then
-          let ev = React.(S.changes s |> E.once) in
-          React.E.map f ev |> ignore
+          React.(S.changes s |> E.once |> E.map f) |> ignore
         else
-          f (React.S.value s)
+          f (React.S.value s) |> ignore
       }} in
       e |> Eliom_content_core.Svg.D.tot
 
@@ -402,54 +376,35 @@ module Html5 = struct
        the trouble. Make sure they stay synced! *)
     let node s =
       let e =
-        React.S.value s |>
-        Value.local |>
+        local_value s |>
         Eliom_content_core.Html5.D.toelt |>
         Eliom_content_core.Xml.make_request_node ~reset:false
       and synced = React.S.synced s in
       let _ = {unit{
-        let replace e e' =
-          let e =
-            Eliom_content_core.Html5.D.toelt e |>
-            Eliom_client.rebuild_node' `HTML5
-          and e' =
-            Eliom_content_core.Html5.D.toelt e' |>
-            Eliom_client.rebuild_node' `HTML5
-          in
-          let f p = Dom.replaceChild p e' e in
-          Js.Opt.iter (e##parentNode) f
-        and s =
-          let f =
-            Eliom_content_core.Html5.Id.create_request_elt
-              ~reset:false
-          in
-          React.S.map f %s
+        let s =
+          %s >|= (fun s ->
+            Eliom_content_core.Html5.
+              (Id.create_request_elt s ~reset:false |> D.toelt) |>
+            Eliom_client.rebuild_node' `HTML5)
         in
         let f =
-          let e = Eliom_content_core.Html5.D.tot %e in
+          let replace e' e =
+            let f p = Dom.replaceChild p e' e in
+            Js.Opt.iter (e##parentNode) f |> ignore
+          and e = Eliom_client.rebuild_node' `HTML5 %e in
           fun e' ->
-            replace e e';
-            let ev = React.S.diff (fun e' e -> e, e') s
-            and f (e, e') = replace e e' in
-            React.E.map f ev |> ignore
+            replace e' e;
+            React.S.diff replace s |> ignore
         in
         if %synced then
-          let ev = React.(S.changes s |> E.once) in
-          React.E.map f ev |> ignore
+          React.(S.changes s |> E.once |> E.map f) |> ignore
         else
-          f (React.S.value s)
+          f (React.S.value s) |> ignore
       }} in
       e |> Eliom_content_core.Html5.D.tot
 
     let filter_attrib a s =
-      let init =
-        if
-          React.S.value s |>
-          Value.local
-        then
-          Some a
-        else
-          None
+      let init = if local_value s then Some a else None
       and c = {{ Eliom_content_core.Html5.R.filter_attrib %a %s }} in
       Eliom_content_core.Html5.D.client_attrib ?init c
 
