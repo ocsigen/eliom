@@ -270,7 +270,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
             Printf.eprintf
               "%s: %s\n"
               (Loc.to_string _loc)
-              ": Warning. The type of an injected value contains a type variable that could be wrongly infered (to be fixed in Eliom).";
+              ": Warning. The type of an injected value contains a type variable that could be wrongly inferred (to be fixed in Eliom).";
             typ
         | typ -> typ
       in
