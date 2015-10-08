@@ -75,13 +75,13 @@ module type Helpers  = sig
   module Syntax : Camlp4.Sig.Camlp4Syntax
   open Syntax
 
-  (** find infered type for escaped expr *)
+  (** find inferred type for escaped expr *)
   val find_client_value_type: Int64.t -> Ast.ctyp
 
-  (** find infered type for escaped expr *)
+  (** find inferred type for escaped expr *)
   val find_escaped_ident_type: string -> Ast.ctyp
 
-  (** find infered type for injected ident *)
+  (** find inferred type for injected ident *)
   val find_injected_ident_type: string -> Ast.ctyp
 
   val is_client_value_type : Ast.ctyp -> Ast.ctyp option
@@ -207,7 +207,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       (** MLI READER ***)
 
       (* Here we define a set of functions for mli reading. This is used
-         to peek at the type infered by the first pass.*)
+         to peek at the type inferred by the first pass.*)
 
       let type_file = ref ""
       let _ =
@@ -345,13 +345,13 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
               (Loc.to_string loc) (Printexc.to_string exn);
             exit 1
 
-      let infered_sig = lazy (load_file (get_type_file ()))
+      let inferred_sig = lazy (load_file (get_type_file ()))
 
       let find_escaped_ident_type id =
         try
           let len = String.length id - escaped_ident_prefix_len in
           let id = int_of_string (String.sub id escaped_ident_prefix_len len) in
-          List.assoc id (fst_3 (Lazy.force infered_sig))
+          List.assoc id (fst_3 (Lazy.force inferred_sig))
         with Not_found ->
           Printf.eprintf "Error: Infered type of escaped ident not found (%s). \
                           You need to regenerate %s.\n"
@@ -361,7 +361,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       let find_injected_ident_type id =
         try
           let id = Scanf.sscanf id (injected_ident_fmt ()) (fun _filehash n -> n) in
-          List.assoc id (snd_3 (Lazy.force infered_sig))
+          List.assoc id (snd_3 (Lazy.force inferred_sig))
         with Not_found ->
           Printf.eprintf "Error: Infered type of injected ident not found (%s). \
                           You need to regenerate %s.\n"
@@ -370,7 +370,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
       let find_client_value_type id =
         try
-          List.assoc id (trd_3 (Lazy.force infered_sig))
+          List.assoc id (trd_3 (Lazy.force inferred_sig))
         with Not_found ->
           Printf.eprintf "Error: Infered type client value not found (%s). \
                           You need to regenerate %s.\n"
