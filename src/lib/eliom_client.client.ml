@@ -33,7 +33,14 @@ module JsTable = Eliommod_jstable
 
 let insert_base page =
   let b = Dom_html.createBase Dom_html.document in
-  b##href <- Js.string (Eliom_process.get_base_url ());
+  let url = Eliom_process.get_base_url () in
+  (* If we are behind a proxy, the server knowns the host name and the path,
+     but not the protocol. So, we fix it here.
+     XXX Can we just use the location string? *)
+  let protocol = Js.to_string (Dom_html.window##location##protocol) in
+  let i = String.index url ':' in
+  b##href <- Js.string (protocol ^
+                        String.sub url (i + 1) (String.length url - i - 1));
   b##id <- Js.string Eliom_common_base.base_elt_id;
   Js.Opt.case
     page##querySelector(Js.string "head")
