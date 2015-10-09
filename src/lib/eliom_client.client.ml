@@ -1989,6 +1989,25 @@ let _ =
     unwrap_global_data;
   ()
 
+let add_string_event_listener o e f capt =
+  let e = Js.string e
+  and capt = Js.bool capt
+  and f e =
+    match f e with
+    | Some s ->
+      let s = Js.string s in
+      (Js.Unsafe.coerce e)##returnValue <- s;
+      Js.some s
+    | None ->
+      Js.null
+  in
+  let f = Js.Unsafe.callback f in
+  if (Js.Unsafe.coerce o)##addEventListener == Js.undefined then
+    let e = (Js.string "on")##concat(e)
+    and cb e = Js.Unsafe.call (f, e, [||]) in
+    (Js.Unsafe.coerce o)##attachEvent(e, cb)
+  else
+    (Js.Unsafe.coerce o)##addEventListener(e, f, capt)
 
 (* Function called (in Eliom_client_main), once when starting the app.
    Either when sent by a server or initiated on client side. *)
@@ -2057,35 +2076,21 @@ let init () =
   and onbeforeunload e =
     match run_onunload ~final:false () with
     | None ->
-      update_state ();
-      Js._true
-    | Some s ->
-      (Js.Unsafe.coerce e)##returnValue <- Js.string s;
-      Js._true
+      update_state (); None
+    | r ->
+      r
   in
 
-  (* IE<9: Script438: Object doesn't support property or method
-     addEventListener.
-     Other browsers: Ask whether you really want to navigate away if
-     onbeforeunload is assigned *)
-  if Js.Unsafe.get Dom_html.window (Js.string "addEventListener")
-     == Js.undefined
-  then
-    Dom_html.(
-      window##onload <- handler onload;
-      window##onbeforeunload <- handler onbeforeunload;
-      window##onunload <- handler onunload)
-  else
-    (ignore
-       (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
-          (Dom.handler onload) Js._true);
-     ignore
-       (Dom.addEventListener Dom_html.window (Dom.Event.make "beforeunload")
-          (Dom_html.handler onbeforeunload) Js._false);
-     ignore
-       (Dom.addEventListener Dom_html.window (Dom.Event.make "unload")
-          (Dom_html.handler onunload) Js._false))
+  ignore
+    (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
+       (Dom.handler onload) Js._true);
 
+  add_string_event_listener Dom_html.window "beforeunload"
+    onbeforeunload false;
+
+  ignore
+    (Dom.addEventListener Dom_html.window (Dom.Event.make "unload")
+       (Dom_html.handler onunload) Js._false)
 
 (******************************************************************************)
 
