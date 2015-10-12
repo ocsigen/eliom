@@ -33,7 +33,7 @@ module Xml : sig
   (**/**)
 
   val make_process_node : ?id:string -> elt -> elt
-  val make_request_node : elt -> elt
+  val make_request_node : ?reset:bool -> elt -> elt
 
   val uri_of_fun: (unit -> string) -> uri
 
@@ -76,6 +76,9 @@ module Xml : sig
   (**/**)
   val wrap : elt -> 'a -> 'a Eliom_wrap.wrapped_value
 
+  val client_attrib :
+    ?init:attrib -> attrib Eliom_lib.client_value -> attrib
+
 end
 
 module Svg : sig
@@ -108,6 +111,16 @@ module Svg : sig
 
   end
 
+  module Make
+      (Xml : Xml_sigs.T
+       with type elt = Xml.elt
+        and type attrib = Xml.attrib)
+      (C : Svg_sigs.Wrapped_functions
+       with type ('a, 'b) ft = ('a, 'b) Xml.W.ft) :
+    Svg_sigs.Make(Xml).T
+    with type +'a elt = 'a elt
+     and type +'a attrib = 'a attrib
+
   module Id : sig
 
     type +'a id
@@ -117,6 +130,9 @@ module Svg : sig
     val create_named_elt: id:'a id -> 'a elt -> 'a elt
 
     val create_global_elt: 'a elt -> 'a elt
+
+    val create_request_elt: ?reset:bool -> 'a elt -> 'a elt
+
   end
 
   module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a F.elt
@@ -172,6 +188,17 @@ module Html5 : sig
 
   end
 
+  module Make
+      (Xml : Xml_sigs.T
+       with type elt = Xml.elt
+        and type attrib = Xml.attrib)
+      (C : Html5_sigs.Wrapped_functions
+       with type ('a, 'b) ft = ('a, 'b) Xml.W.ft)
+      (Svg : Svg_sigs.T with module Xml := Xml) :
+    Html5_sigs.Make(Xml)(Svg).T
+    with type +'a elt = 'a elt
+     and type +'a attrib = 'a attrib
+
   module Id : sig
     type +'a id
 
@@ -180,6 +207,8 @@ module Html5 : sig
     val create_named_elt: id:'a id -> 'a elt -> 'a elt
 
     val create_global_elt: 'a elt -> 'a elt
+
+    val create_request_elt: ?reset:bool -> 'a elt -> 'a elt
 
     (**/**)
     val have_id: 'a id -> 'b elt -> bool

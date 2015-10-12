@@ -123,7 +123,7 @@ module Xml : sig
   (**/**)
 
   val make_process_node : ?id:string -> elt -> elt
-  val make_request_node : elt -> elt
+  val make_request_node : ?reset:bool -> elt -> elt
 
   val uri_of_fun: (unit -> string) -> uri
 
@@ -161,6 +161,16 @@ module Xml : sig
   val wrap : elt -> 'a -> 'a Eliom_wrap.wrapped_value
 
 end
+
+module Xml_shared : Xml_sigs.T
+  with type 'a W.t = 'a Eliom_shared.React.S.t
+   and type 'a W.tlist = 'a Eliom_shared.ReactiveData.RList.t
+   and type event_handler =
+         (Dom_html.event Js.t -> unit) Eliom_lib.client_value
+   and type mouse_event_handler =
+         (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value
+   and type keyboard_event_handler =
+         (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value
 
 (** Building and pretty-printing valid SVG tree.
 Information about Svg api can be found at {% <<a_api project="tyxml" | module Svg_sigs.T >> %}*)
@@ -204,6 +214,27 @@ module Svg : sig
 
   end
 
+  (** Creation of SVG content from shared reactive signals and data
+      ({% <<a_api project="eliom" subproject="server"|module Eliom_shared>> %}).
+      For the operations provided, see
+      {% <<a_api project="tyxml" | module Svg_sigs.T >> %}. *)
+  module R : sig
+
+    module Raw : Svg_sigs.Make(Xml_shared).T
+      with type 'a elt = 'a elt
+       and type 'a attrib = 'a attrib
+
+    include module type of Raw
+
+    (** [pcdata] is not implemented reactively for SVG. *)
+    val pcdata : string Xml.W.t -> [> `Unimplemented ]
+
+    (** [node s] produces an ['a elt] out of the shared reactive
+        signal [s]. *)
+    val node : 'a elt Eliom_shared.React.S.t -> 'a elt
+
+  end
+
   (** Creation of content from client-side values.
       This makes possible to insert in server side generated pages some
       nodes that will be computed on client side (for example reactive nodes).
@@ -232,6 +263,12 @@ module Svg : sig
     (** The function [create_named_elt elt] is equivalent to
         [create_named_elt ~id:(new_elt_id ()) elt]. *)
     val create_global_elt: 'a elt -> 'a elt
+
+    (** [create_request_elt ?reset elt] creates a referable copy of
+        [elt]. If [~reset = true] is provided (default: false), a new
+        ID is created even if [elt] has an ID already. *)
+    val create_request_elt: ?reset:bool -> 'a elt -> 'a elt
+
   end
 
   (** SVG printer.
@@ -387,7 +424,6 @@ module Html5 : sig
     val attr : ?init:'a attrib -> 'a attrib Eliom_lib.client_value -> 'a attrib
   end
 
-
   (** Node identifiers *)
   module Id : sig
 
@@ -409,13 +445,43 @@ module Html5 : sig
         [create_named_elt ~id:(new_elt_id ()) elt]. *)
     val create_global_elt: 'a elt -> 'a elt
 
+    (** [create_request_elt ?reset elt] creates a referable copy of
+        [elt]. If [~reset = true] is provided (default: false), a new
+        ID is created even if [elt] has an ID already. *)
+    val create_request_elt: ?reset:bool -> 'a elt -> 'a elt
+
     (* XXX: This function must be hidden in documentation but hidden rest of
      * file *)
     val have_id: 'a id -> 'b elt -> bool
 
   end
 
+  (** Creation of HTML5 content from shared reactive signals and data
+      ({% <<a_api project="eliom" subproject="server"|module Eliom_shared>> %}).
+      For the operations provided, see
+      {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
+  module R : sig
 
+    include Html5_sigs.Make(Xml_shared)(Svg.R.Raw).T
+      with type 'a elt = 'a elt
+       and type 'a attrib = 'a attrib
+
+    (** [pcdata s] produces a node of type
+        [\[> Html5_types.span\] elt]
+        out of the string signal [s]. *)
+    val pcdata :
+      string Eliom_shared.React.S.t -> [> Html5_types.span] elt
+
+    (** [node s] produces an ['a elt] out of the shared reactive
+        signal [s]. *)
+    val node : 'a elt Eliom_shared.React.S.t -> 'a elt
+
+    (** [filter_attrib a b] amounts to the attribute [a] while [b] is
+        [true], and to no attribute while [b] is [false]. *)
+    val filter_attrib :
+      'a attrib -> bool Eliom_shared.React.S.t -> 'a attrib
+
+  end
 
   (** Type-safe custom data for HTML5.
       See the {% <<a_manual chapter="clientserver-html"

@@ -41,6 +41,7 @@ Eliom_registration.Redirection
 Eliom_bus
 Eliom_comet
 Eliom_react
+Eliom_shared
 }
 
 {2 Extensions}

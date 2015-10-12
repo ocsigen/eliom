@@ -21,6 +21,7 @@ Eliom_service
 Eliom_bus
 Eliom_comet
 Eliom_react
+Eliom_shared
 }
 
 {2 Index}

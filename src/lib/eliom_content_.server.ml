@@ -25,10 +25,17 @@ module type Forms = "sigs/eliom_forms.mli"
 
 module Xml = Eliom_content_core.Xml
 
+module Xml_shared = Eliom_shared_content.Xml
+
 module Svg = struct
 
   module F = Svg.F
   module D = Svg.D
+  module R = struct
+    module Raw = Eliom_shared_content.Svg.R
+    include Raw
+    let pcdata _ = `Unimplemented
+  end
 
   module Id = Svg.Id
 
@@ -61,6 +68,8 @@ module Html5 = struct
     let input = string_input
     let select = string_select ?required:None
   end
+
+  module R = Eliom_shared_content.Html5.R
 
   module Custom_data = Eliom_content_core.Html5.Custom_data
 

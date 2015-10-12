@@ -100,8 +100,11 @@ let internal_wrap (x : 'a shared_value) : 'a client_value = x.sh_client
 let shared_value_mark () : 'a shared_value Eliom_wrap.wrapper =
   Eliom_wrap.create_wrapper internal_wrap
 
-let create_shared_value (v : 'a) (c : 'a client_value) : 'a shared_value =
-  {sh_server=v; sh_client=c; sh_mark=(shared_value_mark ())}
+let create_shared_value
+    (v : 'a) (c : 'a client_value) : 'a shared_value =
+  {sh_server = v;
+   sh_client = c;
+   sh_mark = shared_value_mark ()}
 
 let shared_value_server_repr x = x.sh_server,x.sh_client
 
