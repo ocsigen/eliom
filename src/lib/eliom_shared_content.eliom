@@ -178,7 +178,7 @@ module Xml = struct
 
   let entity = Eliom_content_core.Xml.entity
 
-  let node ?a name l =
+  let node_aux ns ?a name l =
     let e =
       ReactiveData.RList.value l |>
       Value.local |>
@@ -187,7 +187,7 @@ module Xml = struct
     and synced = ReactiveData.RList.synced l in
     let _ = {unit{
       let f () =
-        let f = Eliom_client.rebuild_node' `HTML5 in
+        let f = Eliom_client.rebuild_node' %ns in
         let e = f %e
         and l = ReactiveData.RList.map f %l in
         Tyxml_js.Util.update_children e l
@@ -200,6 +200,8 @@ module Xml = struct
         f ()
     }} in
     e
+
+  let node = node_aux `HTML5
 
 end
 
@@ -277,11 +279,15 @@ module Svg = struct
 
   end
 
+  module Xml = struct
+    include Xml
+    let node = node_aux `SVG
+  end
+
   module R = struct
 
     (* Same as the HTML version, with Html5 -> SVG and `HTML5 ->
-       `SVG. We can in principle functorize, but probably not worth
-       the trouble. Make sure they stay synced! *)
+       `SVG. Hard to functorize. Make sure they stay synced! *)
     let node s =
       let e =
         local_value s |>
@@ -372,8 +378,7 @@ module Html5 = struct
   module R = struct
 
     (* Same as the SVG version, with Svg -> Html5 and `SVG ->
-       `HTML5. We can in principle functorize, but probably not worth
-       the trouble. Make sure they stay synced! *)
+       `HTML5. Hard to functorize. Make sure they stay synced! *)
     let node s =
       let e =
         local_value s |>
