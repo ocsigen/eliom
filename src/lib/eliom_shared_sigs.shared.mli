@@ -138,7 +138,6 @@ module type RLIST = sig
     'a t * 'a handle
 
   val concat : 'a t -> 'a t -> 'a t
-  val from_signal : 'a list signal -> 'a t
   val value : 'a t -> 'a list Eliom_lib.shared_value
   val value_s : 'a t -> 'a list signal
   val singleton_s : 'a signal -> 'a t

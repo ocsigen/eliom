@@ -115,14 +115,6 @@ module ReactiveData = struct
 
     include ReactiveData.RList
 
-    let from_signal s =
-      let l, handle = ReactiveData.RList.make (React.S.value s) in
-      (*VVV e could be garbage collected. FIX!  Keeping the warning
-        for now. *)
-      let e = React.S.map (ReactiveData.RList.set handle) s in
-      ignore e;
-      l
-
     module Lwt = struct
 
       let map_data_p_lwt = Lwt_list.map_p
@@ -198,8 +190,6 @@ module ReactiveData = struct
         Lwt.return rr
 
     end
-
-    let make_from_s = ReactiveData.RList.make_from_s
 
     let make ?default ?(reset_default = false) v =
       match default with
@@ -292,7 +282,6 @@ module FakeReactiveData = struct
     type 'a handle
     val make : ?synced:bool -> 'a list -> 'a t * 'a handle
     val concat : 'a t -> 'a t -> 'a t
-    val from_signal : 'a list FakeReact.S.t -> 'a t
     val value : 'a t -> 'a list
     val synced : 'a t -> bool
     val value_s : 'a t -> 'a list FakeReact.S.t
@@ -307,13 +296,12 @@ module FakeReactiveData = struct
     type 'a handle = unit
     let make ?synced:(synced = false) l = (l, synced), ()
     let concat (l1, b1) (l2, b2) = List.append l1 l2, b1 && b2
-    let from_signal s = FakeReact.S.(value s, synced s)
     let singleton_s s = [FakeReact.S.value s], FakeReact.S.synced s
     let value (l, _) = l
     let synced (_, b) = b
     let value_s (l, synced) = fst (FakeReact.S.create ~synced l)
     let map f (l, b) = List.map f l, b
-    let make_from_s s = FakeReact.S.value s, FakeReact.S.synced s
+    let make_from_s s = FakeReact.S.(value s, synced s)
     module Lwt = struct
       let map_p f (l, b) =
         lwt l = Lwt_list.map_p f l in
@@ -587,10 +575,6 @@ module ReactiveData = struct
   module RList = struct
     type 'a t = 'a FakeReactiveData.RList.t Value.t
     type 'a handle = 'a FakeReactiveData.RList.handle Value.t
-
-    let from_signal (x : 'a list React.S.t) =
-      {shared# 'a FakeReactiveData.RList.t {
-         FakeReactiveData.RList.from_signal (Value.local %x) }}
 
     let make ?default ?(reset_default = false) x =
       let cv, synced = match default with
