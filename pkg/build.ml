@@ -95,7 +95,7 @@ let () =
   ) @ [
     (* MISC *)
 
-    Pkg.doc "README";
+    Pkg.doc "README.md";
     Pkg.doc "CHANGES";
     Pkg.etc "pkg/etc/mime.types"
   ] @ (
