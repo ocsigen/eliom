@@ -39,7 +39,7 @@ module type S = sig
     ('a -> 'b) Eliom_lib.shared_value ->
     'a t -> 'b t
   val merge :
-    ?eq:('a -> 'a -> bool) ->
+    ?eq:('a -> 'a -> bool) Eliom_lib.shared_value ->
     ('a -> 'b -> 'a) Eliom_lib.shared_value ->
     'a -> 'b t list -> 'a t
   val l2 :

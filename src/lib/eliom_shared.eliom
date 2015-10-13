@@ -374,8 +374,7 @@ module React = struct
       (* we do not use {shared# ... { ... }} to avoid client-side
          List.map Value.local *)
       Eliom_lib.create_shared_value
-        (FakeReact.S.merge ?eq
-           (Value.local f) acc (List.map Value.local l))
+        (FakeReact.S.merge (Value.local f) acc (List.map Value.local l))
         {'a FakeReact.S.t{ FakeReact.S.merge ?eq:%eq %f %acc %l }}
 
     let const (v : 'a) : 'a t =
