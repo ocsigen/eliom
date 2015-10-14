@@ -751,7 +751,10 @@ module Ext : sig
     ([> `Session_group ], [> `Service ]) state
 
   (** [current_volatile_session_state ~scope] returns the state corresponding
-      to current session in scope [scope]. *)
+      to current session in scope [scope].
+      Raises [Not_found] if not connected
+      or [Eliom_common.Eliom_Session_expired] if a cookie was present but
+      expired. *)
   val current_volatile_session_state :
     ?secure:bool ->
     ?scope:Eliom_common.session_scope ->
