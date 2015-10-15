@@ -80,12 +80,9 @@ let int64_to_string i = (Obj.magic i)##toString()
 let create_buffer () =
   let elts = ref [] in
   let add x = elts := x :: !elts
-  and get () =
-    (* NOTE: the caller needs to reverse the list *)
-    !elts
-  in
+  and get () = List.rev !elts in
   let flush () =
-    let res = List.rev (get ()) in
+    let res = get () in
     elts := [];
     res
   in
@@ -102,7 +99,6 @@ exception Cancel_onunload of string
 let onunload, run_onunload =
   let add, get, flush = create_buffer () in
   let r = ref (get ()) in
-  let add x = add x; r := get () in
   let rec run acc ~final =
     match acc with
     | f :: acc ->
@@ -110,8 +106,8 @@ let onunload, run_onunload =
        | None ->
          run acc ~final
        | Some s when not final ->
-         (* we will run the rest of the callbacks in case the user
-            decides not to quit *)
+         (* we will run the rest of the callbacks later, in case the
+            user decides not to quit *)
          r := acc; Some s
        | Some _ ->
          run acc ~final)
@@ -119,7 +115,7 @@ let onunload, run_onunload =
       ignore (flush ()); None
   in
   let run ?(final = false) () =
-    (if final then List.rev !r else get ()) |> run ~final
+    (if final then !r else get ()) |> run ~final
   in
   add, run
 
