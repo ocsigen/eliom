@@ -230,7 +230,17 @@ let send ?(expecting_process_page = false) ?cookies_info
         then
           match r.XmlHttpRequest.headers Eliom_common.response_url_header with
             | None | Some "" -> Lwt_log.raise_error ~section "no location header"
-            | Some url -> Lwt.return (url, Some (result r))
+            | Some url ->
+     (* If we are behind a proxy, the server knowns the host name and the path,
+        but not the protocol. So, we fix it here.
+        XXX Can we just use the location string? *)
+              let protocol =
+                Js.to_string (Dom_html.window##location##protocol) in
+              let i = String.index url ':' in
+              let url =
+                protocol ^ String.sub url (i + 1) (String.length url - i - 1)
+              in
+              Lwt.return (url, Some (result r))
         else
           if r.XmlHttpRequest.code = 200
           then Lwt.return (r.XmlHttpRequest.url, Some (result r))
