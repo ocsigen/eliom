@@ -529,7 +529,7 @@ and sitedata =
    mutable max_persistent_data_tab_sessions_per_group : int option * bool;
    mutable max_anonymous_services_per_session : int * bool;
    mutable max_anonymous_services_per_subnet : int * bool;
-   mutable secure_cookies : bool option;
+   mutable secure_cookies : bool;
    dlist_ip_table : dlist_ip_table;
    mutable ipv4mask : int option * bool;
    mutable ipv6mask : int option * bool;
@@ -1441,7 +1441,6 @@ let get_site_dir_string sitedata = sitedata.site_dir_string
 
 (* Returns if we want secure cookie *)
 let get_secure secure sitedata =
-  match secure, sitedata.secure_cookies with
-  | None, None -> false
-  | None, Some c -> c
-  | Some s, _ -> s
+  match secure with
+  | None -> sitedata.secure_cookies
+  | Some s -> s

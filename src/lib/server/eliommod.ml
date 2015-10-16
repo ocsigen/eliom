@@ -40,6 +40,7 @@ let default_max_volatile_data_sessions_per_subnet = ref 1000000
 let default_max_persistent_data_tab_sessions_per_group = ref 50
 let default_max_service_tab_sessions_per_group = ref 50
 let default_max_volatile_data_tab_sessions_per_group = ref 50
+let default_secure_cookies = ref false
 
 (* Subnet defaults be large enough, because it must work behind a reverse proxy.
 
@@ -155,7 +156,7 @@ Some !default_max_persistent_data_tab_sessions_per_group, false;
            max_anonymous_services_per_subnet =
   !default_max_anonymous_services_per_subnet, false;
 
-           secure_cookies = None; (* default *)
+           secure_cookies = !default_secure_cookies;
 
            dlist_ip_table = dlist_table;
            ipv4mask = None, false;
@@ -234,6 +235,7 @@ let parse_eliom_option
      set_max_services_per_session,
      set_max_services_per_subnet,
      set_max_volatile_groups_per_site,
+     set_secure_cookies,
      set_ipv4mask,
      set_ipv6mask
     )
@@ -403,6 +405,18 @@ let parse_eliom_option
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for maxvolatilegroupspersite tag")))
 
+  | (Element ("securecookies", [("value", v)], [])) ->
+      (try
+         let i = match v with
+           | "true" -> true
+           | "false" -> false
+           | _ -> failwith ""
+         in
+         set_secure_cookies i
+       with Failure _ ->
+         raise (Error_in_config_file
+                  ("Eliom: Wrong attribute value for securecookies tag")))
+
   | (Element ("ipv4subnetmask", [("value", v)], [])) ->
       (try
          let mask = int_of_string v in
@@ -502,6 +516,7 @@ let rec parse_global_config = function
          (fun v -> default_max_anonymous_services_per_session := v),
          (fun v -> default_max_anonymous_services_per_subnet := v),
          (fun v -> default_max_volatile_groups_per_site := v),
+         (fun v -> default_secure_cookies := v),
          (fun v -> Eliom_common.ipv4mask := v),
          (fun v -> Eliom_common.ipv6mask := v)
         )
@@ -813,6 +828,7 @@ let parse_config hostpattern conf_info site_dir =
              (fun v ->
                ignore (Ocsigen_cache.Dlist.set_maxsize
                          sitedata.Eliom_common.group_of_groups v)),
+             (fun v -> sitedata.Eliom_common.secure_cookies <- v),
              (fun v -> sitedata.Eliom_common.ipv4mask <- Some v, true),
              (fun v -> sitedata.Eliom_common.ipv6mask <- Some v, true)
             )

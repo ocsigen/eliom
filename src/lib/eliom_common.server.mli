@@ -554,9 +554,7 @@ and sitedata = {
   mutable max_persistent_data_tab_sessions_per_group : int option * bool;
   mutable max_anonymous_services_per_session : int * bool;
   mutable max_anonymous_services_per_subnet : int * bool;
-  mutable secure_cookies : bool option;
-  (* By default (None), will use secure cookies in HTTPS,
-     otherwise secure if true, unsecure if false. *)
+  mutable secure_cookies : bool; (* Use secure cookies (default is false). *)
   dlist_ip_table : dlist_ip_table;
   mutable ipv4mask : int option * bool;
   mutable ipv6mask : int option * bool;
