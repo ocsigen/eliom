@@ -27,8 +27,8 @@
 open Eliom_lib
 
 let compute_cookie_info sitedata secure secure_ci cookie_info =
-  let secure_if_ssl = Eliom_common.get_secure secure sitedata in
-  if secure_if_ssl
+  let secure = Eliom_common.get_secure secure sitedata in
+  if secure
   then match secure_ci with
     | None (* not ssl *) -> cookie_info, false
     | Some (_, c, _) -> c, true

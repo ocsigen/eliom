@@ -1439,9 +1439,9 @@ let patch_request_info req =
 let get_site_dir sitedata = sitedata.site_dir
 let get_site_dir_string sitedata = sitedata.site_dir_string
 
-(* Returns if we want secure cookie when https *)
+(* Returns if we want secure cookie *)
 let get_secure secure sitedata =
   match secure, sitedata.secure_cookies with
-  | None, None -> true (* Default is true when HTTPS *)
+  | None, None -> false
   | None, Some c -> c
   | Some s, _ -> s

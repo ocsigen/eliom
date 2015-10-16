@@ -714,4 +714,4 @@ type eliom_js_page_data = {
 
 val get_site_dir : sitedata -> Url.path
 val get_site_dir_string : sitedata -> string
-val get_secure: bool option -> sitedata -> bool
+val get_secure : bool option -> sitedata -> bool

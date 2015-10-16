@@ -1017,7 +1017,7 @@ val remove_volatile_data :
     all users. It uses {!Ocsipersist}.  (low level) *)
 val create_persistent_table :
   scope:Eliom_common.user_scope ->
-  secure:bool ->
+  ?secure:bool ->
   string -> 'a persistent_table
 
 (** gets persistent session data for the current persistent session (if any).

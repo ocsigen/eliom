@@ -906,7 +906,9 @@ type 'a persistent_table =
        bool *
        (int64 * 'a) Ocsipersist.table)
 
-let create_persistent_table ~scope ~secure name : 'a persistent_table =
+let create_persistent_table ~scope ?secure name : 'a persistent_table =
+  let sitedata = Eliom_request_info.find_sitedata "create_persistent_table" in
+  let secure = Eliom_common.get_secure secure sitedata in
   let t = Eliom_common.create_persistent_table name in
   (scope, secure, t)
 
@@ -980,8 +982,8 @@ let create_volatile_table ~scope ?secure () =
   | None ->
       (match Eliom_common.global_register_allowed () with
       | Some get_current_sitedata ->
-        let secure = Eliom_common.get_secure secure (get_current_sitedata ()) in
-        Eliommod_datasess.create_volatile_table ~scope ~secure
+        (* We are not during a request: default is secure:false *)
+        Eliommod_datasess.create_volatile_table ~scope ~secure:false
       | None -> raise
             (Eliom_common.Eliom_site_information_not_available
                "create_volatile_table"))
