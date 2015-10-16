@@ -33,14 +33,7 @@ module JsTable = Eliommod_jstable
 
 let insert_base page =
   let b = Dom_html.createBase Dom_html.document in
-  let url = Eliom_process.get_base_url () in
-  (* If we are behind a proxy, the server knowns the host name and the path,
-     but not the protocol. So, we fix it here.
-     XXX Can we just use the location string? *)
-  let protocol = Js.to_string (Dom_html.window##location##protocol) in
-  let i = String.index url ':' in
-  b##href <- Js.string (protocol ^
-                        String.sub url (i + 1) (String.length url - i - 1));
+  b##href <- Js.string (Eliom_process.get_base_url ());
   b##id <- Js.string Eliom_common_base.base_elt_id;
   Js.Opt.case
     page##querySelector(Js.string "head")
@@ -1951,7 +1944,15 @@ let init () =
      side ref, in order to set <base> (on client-side) in header for each
      pages. *)
   (try
-     Eliom_process.set_base_url (Eliom_process.get_base_url_from_header ());
+     let url = Eliom_process.get_base_url_from_header () in
+     (* If we are behind a proxy, the server knowns the host name and the path,
+        but not the protocol. So, we fix it here.
+        XXX Can we just use the location string? *)
+     let protocol = Js.to_string (Dom_html.window##location##protocol) in
+     let i = String.index url ':' in
+     let url =
+       protocol ^ String.sub url (i + 1) (String.length url - i - 1) in
+     Eliom_process.set_base_url url;
      insert_base Dom_html.document
    with Not_found ->
      Lwt_log.ign_info_f ~section
