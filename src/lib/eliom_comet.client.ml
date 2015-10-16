@@ -597,7 +597,9 @@ type 'a handler =
 let handler_stream hd =
   Lwt_stream.map_list (fun x -> x)
     (Lwt_stream.from (fun () ->
-      lwt s = Service_handler.wait_data hd in Lwt.return (Some s)))
+       Lwt.try_bind (fun () -> Service_handler.wait_data hd)
+         (fun s -> Lwt.return (Some s))
+         (fun _ -> Lwt.return None)))
 
 let stateful_handler_table : (Ecb.comet_service, Service_handler.stateful handler) Hashtbl.t
     = Hashtbl.create 1
