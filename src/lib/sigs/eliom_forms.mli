@@ -872,4 +872,4 @@ val raw_multiple_select :
   string select_opt list ->
   select_elt
 
-val a_for: 'a Eliom_parameter.param_name -> for_attrib
+val a_for: string -> for_attrib

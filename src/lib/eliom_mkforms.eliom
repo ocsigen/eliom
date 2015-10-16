@@ -601,7 +601,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
     gen_select ?a ?required ~multiple:true
       ~name:(string_of_param_name name) fl ol string_of
 
-  let a_for pname = Pages.make_for_attrib (Eliom_parameter.string_of_param_name pname)
+  let a_for = Pages.make_for_attrib
 
 end
 
