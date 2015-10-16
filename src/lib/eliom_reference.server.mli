@@ -56,7 +56,7 @@ exception Eref_not_initialized
     be available only using HTTPS. This parameter has no effect for
     scopes {!Eliom_common.global_scope}, {!Eliom_common.site_scope}, and
     {!Eliom_common.request_scope}. The default is [false], but this default
-    can be changed in configuration file ([<securecookies value="true"/>).
+    can be changed in configuration file ([<securecookies value="true"/>]).
     {e Warning: Eliom references of scope {!Eliom_common.global_scope},
     {!Eliom_common.site_scope} or
     {!Eliom_common.request_scope} may be created at any time ; but for other
