@@ -40,6 +40,7 @@ let default_max_volatile_data_sessions_per_subnet = ref 1000000
 let default_max_persistent_data_tab_sessions_per_group = ref 50
 let default_max_service_tab_sessions_per_group = ref 50
 let default_max_volatile_data_tab_sessions_per_group = ref 50
+let default_secure_cookies = ref false
 
 (* Subnet defaults be large enough, because it must work behind a reverse proxy.
 
@@ -104,7 +105,7 @@ let new_sitedata =
           {Eliom_common.servtimeout = None, None, [];
            datatimeout =  None, None, [];
            perstimeout =  None, None, [];
-	   site_value_table = Polytables.create ();
+           site_value_table = Polytables.create ();
            site_dir = site_dir;
 (*VVV encode=false??? *)
            site_dir_string = Url.string_of_url_path
@@ -115,7 +116,7 @@ let new_sitedata =
               Eliom_common.empty_tables
                 !default_max_anonymous_services_per_subnet
                 false;
-	   registered_scope_hierarchies = Eliom_common.Hier_set.empty;
+           registered_scope_hierarchies = Eliom_common.Hier_set.empty;
            session_services = Eliommod_cookies.new_service_cookie_table ();
            session_data = Eliommod_cookies.new_data_cookie_table ();
            group_of_groups = gog;
@@ -154,6 +155,8 @@ Some !default_max_persistent_data_tab_sessions_per_group, false;
 
            max_anonymous_services_per_subnet =
   !default_max_anonymous_services_per_subnet, false;
+
+           secure_cookies = !default_secure_cookies;
 
            dlist_ip_table = dlist_table;
            ipv4mask = None, false;
@@ -232,6 +235,7 @@ let parse_eliom_option
      set_max_services_per_session,
      set_max_services_per_subnet,
      set_max_volatile_groups_per_site,
+     set_secure_cookies,
      set_ipv4mask,
      set_ipv6mask
     )
@@ -401,6 +405,18 @@ let parse_eliom_option
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for maxvolatilegroupspersite tag")))
 
+  | (Element ("securecookies", [("value", v)], [])) ->
+      (try
+         let i = match v with
+           | "true" -> true
+           | "false" -> false
+           | _ -> failwith ""
+         in
+         set_secure_cookies i
+       with Failure _ ->
+         raise (Error_in_config_file
+                  ("Eliom: Wrong attribute value for securecookies tag")))
+
   | (Element ("ipv4subnetmask", [("value", v)], [])) ->
       (try
          let mask = int_of_string v in
@@ -500,6 +516,7 @@ let rec parse_global_config = function
          (fun v -> default_max_anonymous_services_per_session := v),
          (fun v -> default_max_anonymous_services_per_subnet := v),
          (fun v -> default_max_volatile_groups_per_site := v),
+         (fun v -> default_secure_cookies := v),
          (fun v -> Eliom_common.ipv4mask := v),
          (fun v -> Eliom_common.ipv6mask := v)
         )
@@ -729,31 +746,43 @@ let parse_config hostpattern conf_info site_dir =
         let set_timeout (f : ?full_st_name:Eliom_common.full_state_name ->
                          ?cookie_level:[< Eliom_common.cookie_level ] ->
                          recompute_expdates:bool ->
-                         bool -> bool -> Eliom_common.sitedata ->
+                         bool (* override configfile *) ->
+                         bool (* from config file *) ->
+                         Eliom_common.sitedata ->
                          float option -> unit)
             cookie_type state_hier_oo v =
-	  let make_full_st_name state_hier =
-	    let state_hier : Eliom_common.scope_hierarchy =
-	      match state_hier with
-		| None -> Eliom_common_base.Default_ref_hier
-		| Some s when String.lowercase s = "default" ->
-                  Eliom_common_base.Default_ref_hier
-		| Some s when String.lowercase s = "comet" ->
-                  Eliom_common_base.Default_comet_hier
-		| Some s -> Eliom_common_base.User_hier s
-	    in
-	    let scope =
-	      match cookie_type with
-		| `Session -> `Session state_hier
-		| `Client_process -> `Client_process state_hier
-	    in
-	    Eliom_common.make_full_state_name2
+          let make_full_st_name secure state_hier =
+            let state_hier : Eliom_common.scope_hierarchy =
+              match state_hier with
+              | None -> Eliom_common_base.Default_ref_hier
+              | Some s when String.lowercase s = "default" ->
+                Eliom_common_base.Default_ref_hier
+              | Some s when String.lowercase s = "comet" ->
+                Eliom_common_base.Default_comet_hier
+              | Some s -> Eliom_common_base.User_hier s
+            in
+            let scope =
+              match cookie_type with
+              | `Session -> `Session state_hier
+              | `Client_process -> `Client_process state_hier
+            in
+            Eliom_common.make_full_state_name2
               sitedata.Eliom_common.site_dir_string
-              false (*VVV and secure??? *)
+              secure
               ~scope
-	  in
+          in
+          (*VVV We set timeout for both secure and unsecure states.
+            Make possible to customize this? *)
           f
-            ?full_st_name:(Option.map make_full_st_name state_hier_oo)
+            ?full_st_name:(Option.map (make_full_st_name false) state_hier_oo)
+            ?cookie_level:(Some cookie_type)
+            ~recompute_expdates:false
+            true
+            true
+            sitedata
+            v;
+          f
+            ?full_st_name:(Option.map (make_full_st_name true) state_hier_oo)
             ?cookie_level:(Some cookie_type)
             ~recompute_expdates:false
             true
@@ -799,6 +828,7 @@ let parse_config hostpattern conf_info site_dir =
              (fun v ->
                ignore (Ocsigen_cache.Dlist.set_maxsize
                          sitedata.Eliom_common.group_of_groups v)),
+             (fun v -> sitedata.Eliom_common.secure_cookies <- v),
              (fun v -> sitedata.Eliom_common.ipv4mask <- Some v, true),
              (fun v -> sitedata.Eliom_common.ipv6mask <- Some v, true)
             )

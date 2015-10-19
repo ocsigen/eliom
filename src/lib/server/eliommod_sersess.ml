@@ -25,18 +25,13 @@
 
 open Eliom_lib
 
-let compute_cookie_info secure secure_ci cookie_info =
-  let secure_if_ssl = match secure with
-    | None -> true (* If HTTPS, than the default is secure *)
-    | Some s -> s
-  in
+let compute_cookie_info sitedata secure secure_ci cookie_info =
+  let secure_if_ssl = Eliom_common.get_secure secure sitedata in
   if secure_if_ssl
   then match secure_ci with
     | None (* not ssl *) -> cookie_info, false
     | Some (c, _, _) -> c, true
   else cookie_info, false
-
-
 
 (*****************************************************************************)
 let close_service_state ~scope ~secure ?sp () =
@@ -46,8 +41,10 @@ let close_service_state ~scope ~secure ?sp () =
     let ((cookie_info, _, _), secure_ci) =
       Eliom_common.get_cookie_info sp cookie_level
     in
+    let sitedata = Eliom_request_info.get_sitedata_sp sp in
     let cookie_info, secure =
-      compute_cookie_info secure secure_ci cookie_info in
+      compute_cookie_info sitedata secure secure_ci cookie_info
+    in
     let full_st_name = Eliom_common.make_full_state_name ~sp ~secure ~scope in
     let (_, ior) =
       Eliom_common.Full_state_name_table.find full_st_name !cookie_info
@@ -160,7 +157,10 @@ let rec find_or_create_service_cookie_ ?set_session_group
   let ((cookie_info, _, _), secure_ci) =
     Eliom_common.get_cookie_info sp cookie_level
   in
-  let cookie_info, secure = compute_cookie_info secure secure_ci cookie_info in
+  let sitedata = Eliom_request_info.get_sitedata_sp sp in
+  let cookie_info, secure =
+    compute_cookie_info sitedata secure secure_ci cookie_info
+  in
   let full_st_name =
     Eliom_common.make_full_state_name ~sp ~secure ~scope:cookie_scope in
 
@@ -174,7 +174,6 @@ let rec find_or_create_service_cookie_ ?set_session_group
         (* We do not trust the value sent by the client,
            for security reasons *)
     | Eliom_common.SCNo_data ->
-      let sitedata = Eliom_request_info.get_sitedata_sp sp in
       let v =
         new_service_cookie
           sitedata full_st_name
@@ -186,7 +185,6 @@ let rec find_or_create_service_cookie_ ?set_session_group
       (match set_session_group with
         | None -> ()
         | Some session_group ->
-          let sitedata = Eliom_request_info.get_sitedata_sp sp in
           let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
           let node = Eliommod_sessiongroups.Serv.move
             sitedata
@@ -197,7 +195,6 @@ let rec find_or_create_service_cookie_ ?set_session_group
       );
       c
   with Not_found ->
-    let sitedata = Eliom_request_info.get_sitedata_sp sp in
     let v =
       new_service_cookie
         sitedata full_st_name
@@ -238,9 +235,13 @@ let find_service_cookie_only ~cookie_scope ~secure ?sp () =
      Returns the cookie info for the cookie *)
   let sp = Eliom_common.sp_of_option sp in
   let ((cookie_info, _, _), secure_ci) =
-      Eliom_common.get_cookie_info sp (Eliom_common.cookie_level_of_user_scope cookie_scope)
-    in
-  let cookie_info, secure = compute_cookie_info secure secure_ci cookie_info in
+    Eliom_common.get_cookie_info sp
+      (Eliom_common.cookie_level_of_user_scope cookie_scope)
+  in
+  let sitedata = Eliom_request_info.get_sitedata_sp sp in
+  let cookie_info, secure =
+    compute_cookie_info sitedata secure secure_ci cookie_info
+  in
   let full_st_name =
     Eliom_common.make_full_state_name ~sp ~secure ~scope:cookie_scope in
   let (_, ior) =

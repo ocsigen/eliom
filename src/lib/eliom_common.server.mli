@@ -554,6 +554,7 @@ and sitedata = {
   mutable max_persistent_data_tab_sessions_per_group : int option * bool;
   mutable max_anonymous_services_per_session : int * bool;
   mutable max_anonymous_services_per_subnet : int * bool;
+  mutable secure_cookies : bool; (* Use secure cookies (default is false). *)
   dlist_ip_table : dlist_ip_table;
   mutable ipv4mask : int option * bool;
   mutable ipv6mask : int option * bool;
@@ -711,3 +712,4 @@ type eliom_js_page_data = {
 
 val get_site_dir : sitedata -> Url.path
 val get_site_dir_string : sitedata -> string
+val get_secure : bool option -> sitedata -> bool

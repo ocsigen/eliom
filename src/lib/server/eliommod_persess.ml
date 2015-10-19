@@ -31,12 +31,9 @@
 open Lwt
 
 
-let compute_cookie_info secure secure_ci cookie_info =
-  let secure = match secure with
-    | None -> true
-    | Some s -> s
-  in
-  if secure
+let compute_cookie_info sitedata secure secure_ci cookie_info =
+  let secure_if_ssl = Eliom_common.get_secure secure sitedata in
+  if secure_if_ssl
   then match secure_ci with
     | None (* not ssl *) -> cookie_info, false
     | Some (_, _, c) -> c, true
@@ -81,7 +78,10 @@ let close_persistent_state ~scope ~secure ?sp () =
       let ((_, _, cookie_info), secure_ci) =
         Eliom_common.get_cookie_info sp cookie_level
       in
-      let cookie_info, secure = compute_cookie_info secure secure_ci cookie_info in
+      let sitedata = Eliom_request_info.get_sitedata_sp sp in
+      let cookie_info, secure =
+        compute_cookie_info sitedata secure secure_ci cookie_info
+      in
       let full_st_name = Eliom_common.make_full_state_name ~sp ~secure ~scope in
       Lazy.force
         (Eliom_common.Full_state_name_table.find full_st_name !cookie_info)
@@ -168,7 +168,10 @@ let rec find_or_create_persistent_cookie_
   let ((_, _, cookie_info), secure_ci) =
     Eliom_common.get_cookie_info sp cookie_level
   in
-  let cookie_info, secure = compute_cookie_info secure secure_ci cookie_info in
+  let sitedata = Eliom_request_info.get_sitedata_sp sp in
+  let cookie_info, secure =
+    compute_cookie_info sitedata secure secure_ci cookie_info
+  in
   let full_st_name =
     Eliom_common.make_full_state_name ~sp ~secure ~scope:cookie_scope in
   catch
@@ -182,7 +185,7 @@ let rec find_or_create_persistent_cookie_
              for security reasons *)
       | Eliom_common.SCNo_data ->
         new_persistent_cookie
-          sp.Eliom_common.sp_sitedata
+          sitedata
           full_st_name >>= fun v ->
         ior := Eliom_common.SC v;
         return v
@@ -190,7 +193,7 @@ let rec find_or_create_persistent_cookie_
     (function
       | Not_found ->
         (new_persistent_cookie
-           sp.Eliom_common.sp_sitedata
+           sitedata
            full_st_name >>= fun v ->
          cookie_info :=
            Eliom_common.Full_state_name_table.add
@@ -230,7 +233,10 @@ let find_persistent_cookie_only ~cookie_scope ~secure ?sp () =
   let ((_, _, cookie_info), secure_ci) =
     Eliom_common.get_cookie_info sp cookie_level
   in
-  let cookie_info, secure = compute_cookie_info secure secure_ci cookie_info in
+  let sitedata = Eliom_request_info.get_sitedata_sp sp in
+  let cookie_info, secure =
+    compute_cookie_info sitedata secure secure_ci cookie_info
+  in
   let full_st_name =
     Eliom_common.make_full_state_name ~sp ~secure ~scope:cookie_scope in
   Lazy.force (Eliom_common.Full_state_name_table.find full_st_name !cookie_info)
