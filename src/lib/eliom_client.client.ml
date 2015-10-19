@@ -55,10 +55,16 @@ let init_client_app ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
                          };
   Eliom_process.set_request_template None;
   Eliom_process.set_request_cookies Ocsigen_cookies.Cookies.empty;
-  Eliom_process.set_base_url
-    (Eliom_uri.make_proto_prefix ssl
-     ^ (String.concat "/" (encode_slashs full_path)));
-  insert_base Dom_html.document
+  let url =
+    Eliom_uri.make_proto_prefix ssl
+    ^ (String.concat "/" (encode_slashs full_path)) in
+  Eliom_process.set_base_url url;
+  Js.Opt.iter
+    (Js.Opt.bind
+       (Dom_html.document##getElementById
+          (Js.string Eliom_common_base.base_elt_id))
+       Dom_html.CoerceTo.base)
+    (fun e -> e##href <- Js.string url)
 
 
 let int64_to_string i = (Obj.magic i)##toString()
@@ -1943,21 +1949,9 @@ let init () =
   (* The first time we load the page, we record the initial URL in a client
      side ref, in order to set <base> (on client-side) in header for each
      pages. *)
-  (try
-     let url = Eliom_process.get_base_url_from_header () in
-     (* If we are behind a proxy, the server knowns the host name and the path,
-        but not the protocol. So, we fix it here.
-        XXX Can we just use the location string? *)
-     let protocol = Js.to_string (Dom_html.window##location##protocol) in
-     let i = String.index url ':' in
-     let url =
-       protocol ^ String.sub url (i + 1) (String.length url - i - 1) in
-     Eliom_process.set_base_url url;
-     insert_base Dom_html.document
-   with Not_found ->
-     Lwt_log.ign_info_f ~section
-       "No base_url info found in header. \
-        Waiting for a call to Eliom_client.init_client_app.");
+  Eliom_process.set_base_url
+    (Js.to_string (Dom_html.window##location##href));
+    insert_base Dom_html.document;
   (* </base> *)
 
   let onload ev =

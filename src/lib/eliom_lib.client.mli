@@ -75,6 +75,8 @@ module Url : sig
   val make_encoded_parameters : (string * string) list -> string
   val split_path : string -> string list
   val get_ssl : string -> bool option
+  val resolve : string -> string
+  val add_get_args : string -> (string * string) list -> string
 end
 
 module String : sig

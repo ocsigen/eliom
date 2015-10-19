@@ -1898,28 +1898,15 @@ module Eliom_appl_reg_make_param
 
   let make_eliom_appl_data_script ~sp =
 
-    let encode_slashs = List.map (Url.encode ~plus:false) in
-    let base_url =
-      Eliom_uri.make_proto_prefix
-        (Eliom_config.default_protocol_is_https () ||
-           Eliom_request_info.get_csp_ssl_sp sp)
-      ^
-      (String.concat "/"
-         (encode_slashs (Eliom_request_info.get_csp_original_full_path ()))
-      )
-    in
-
     let script =
       Printf.sprintf
         "var __eliom_appl_sitedata = \'%s\';\n\
          var __eliom_appl_process_info = \'%s\'\n\
-         var __eliom_base_url = \'%s\'\n\
          var __eliom_request_data;\n\
          var __eliom_request_cookies;\n\
          var __eliom_request_template;\n"
         (Eliom_lib.jsmarshal (Eliommod_cli.client_sitedata sp))
         (Eliom_lib.jsmarshal (sp.Eliom_common.sp_client_process_info))
-        base_url
     in
 
     Lwt.return
@@ -2097,22 +2084,16 @@ module Eliom_appl_reg_make_param
     in
 
     let rc = Eliom_request_info.get_request_cache () in
-    let headers = Http_headers.replace
-      (Http_headers.name Eliom_common_base.response_url_header)
-      (Eliom_uri.make_proto_prefix
-         (Eliom_config.default_protocol_is_https () ||
-            Eliom_request_info.get_csp_ssl_sp sp)
-       ^
-         try Polytables.get ~table:rc ~key:Eliom_mkreg.suffix_redir_uri_key
-          (* If it is a suffix service with redirection,
-             the uri has already been computed in rc *)
-         with Not_found ->
-            let get_params =
-              match Ocsigen_extensions.Ocsigen_request_info.get_params_string ri with
-              | None -> ""
-              | Some p -> "?" ^ p in
-            (Ocsigen_extensions.Ocsigen_request_info.original_full_path_string ri) ^ get_params)
-      headers
+    let headers =
+      try
+        (* If it is a suffix service with redirection,
+           we may have to normalize the uri *)
+        Http_headers.replace
+          (Http_headers.name Eliom_common_base.response_url_header)
+          (Polytables.get ~table:rc ~key:Eliom_mkreg.suffix_redir_uri_key)
+        headers
+      with Not_found ->
+        headers
     in
 
     Lwt.return
@@ -2269,9 +2250,7 @@ module String_redir_reg_base = struct
        If the request is an xhr done by a client side Eliom program
        expecting a process page,
        we do not send an HTTP redirection.
-       In that case, we send a full xhr redirection.
-       If the application to which belongs the destination service is the same,
-       then it is ok, otherwise, there will be another redirection ...
+       In that case, we send a half xhr redirection.
     *)
     if not (Eliom_request_info.expecting_process_page ())
     then (* the browser did not ask application eliom data,
@@ -2299,7 +2278,7 @@ module String_redir_reg_base = struct
           ~content_type
           ~headers:
             (Http_headers.add
-              (Http_headers.name Eliom_common.full_xhr_redir_header)
+              (Http_headers.name Eliom_common.half_xhr_redir_header)
               uri headers)
           ())
 
@@ -2334,8 +2313,8 @@ module Redir_reg_base = struct
 
   let send ?(options = `Found) ?charset ?code
       ?content_type ?headers service =
-    let uri = lazy (Eliom_content.Html5.F.make_string_uri
-                      ~absolute:true ~service ()) in
+    let uri absolute =
+      Eliom_content.Html5.F.make_string_uri ~absolute:true ~service () in
     let empty_result = Ocsigen_http_frame.Result.empty () in
     let content_type = match content_type with
       | None -> Ocsigen_http_frame.Result.content_type empty_result
@@ -2377,7 +2356,7 @@ module Redir_reg_base = struct
         Lwt.return
           (Ocsigen_http_frame.Result.update empty_result
             ~code
-            ~location:(Some (Lazy.force uri))
+            ~location:(Some (uri true))
             ~content_type
             ~headers ())
 
@@ -2402,7 +2381,7 @@ module Redir_reg_base = struct
                   ~headers:
                     (Http_headers.add
                       (Http_headers.name Eliom_common.full_xhr_redir_header)
-                      (Lazy.force uri) headers) ())
+                      (uri false) headers) ())
 
             | Eliom_service.XAlways ->
             (* It is probably an action, or a void coservice. Full xhr again *)
@@ -2412,7 +2391,7 @@ module Redir_reg_base = struct
                   ~headers:
                     (Http_headers.add
                       (Http_headers.name Eliom_common.full_xhr_redir_header)
-                      (Lazy.force uri) headers) ())
+                      (uri false) headers) ())
 
             | _ -> (* No application, or another application.
                       We ask the browser to do an HTTP redirection. *)
@@ -2422,7 +2401,7 @@ module Redir_reg_base = struct
                   ~headers:
                     (Http_headers.add
                       (Http_headers.name Eliom_common.half_xhr_redir_header)
-                      (Lazy.force uri) headers) ())
+                      (uri true) headers) ())
 
 
 end

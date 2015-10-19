@@ -276,26 +276,7 @@ let register_aux pages
 			       (see Eliom_request_info.rebuild_uri_without_iternal_form_info_)
 			    *)
 			      let redir_uri =
-			        Eliom_uri.make_string_uri_
-				  ~absolute:false
-				  ~absolute_path:true
-				  ~service:
-				  (service :
-				     ('a, 'b, [< service_method],[<attached],[< Eliom_service.internal_service_kind ],
-				      [< Eliom_service.suff ], 'c, 'd, [ `Registrable ],
-				      'return) Eliom_service.service :>
-				     ('a, 'b, [< service_method],[<attached],Eliom_service.service_kind,
-				      [< Eliom_service.suff ], 'c, 'd,
-				      [< Eliom_service.registrable ], 'return)
-				     Eliom_service.service)
-				  g
-			      in
-                              let redir_uri =
-                                if String.length redir_uri > 0
-                                then String.sub redir_uri 1
-                                  (String.length redir_uri - 1)
-                                else redir_uri
-                              in
+			        Eliom_uri.make_string_uri_ ~service g in
 			      let rc = Eliom_request_info.get_request_cache_sp sp in
 			      Polytables.set ~table:rc ~key:suffix_redir_uri_key ~value:redir_uri;
 			      Lwt.return ()
