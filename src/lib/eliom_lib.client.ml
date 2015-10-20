@@ -59,6 +59,20 @@ module Url = struct
       (fun r -> Regexp.matched_group r 1 = Some "https")
       (Regexp.string_match ssl_re s 0)
 
+  let resolve s =
+    let a = Dom_html.createA Dom_html.document in
+    a##href <- Js.string s;
+    Js.to_string a##href
+
+  let has_get_args url =
+    try ignore (String.index url '?'); true with Not_found -> false
+
+  let add_get_args url get_args =
+    if get_args = [] then
+      url
+    else
+      url ^ (if has_get_args url then "&" else "?") ^
+      encode_arguments get_args
 end
 module Lwt_log = struct
   include Lwt_log_js
