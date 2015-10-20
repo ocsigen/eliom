@@ -215,11 +215,20 @@ val call_service :
 *)
 val onload : (unit -> unit) -> unit
 
-(** Register a function to be called before changing the page the next
-    time. If the return value is [Some s], then we ask the user to
-    confirm quitting; [s] is used in the confirmation pop-up, if the
-    browser permits. None means no confirmation needed. Multiple
-    callbacks can be registered. *)
+(** [onunload f] registers [f] as a handler to be called before
+    changing the page the next time. If [f] returns [Some s], then we
+    ask the user to confirm quitting. We try to use [s] in the
+    confirmation pop-up. [None] means no confirmation needed.
+
+    The callback [f] is sometimes trigerred by internal service calls,
+    and sometimes by the browser [onbeforeunload] event. In the
+    [onbeforeunload] case, the confirmation pop-up is managed by the
+    browser. For Firefox, the string [s] returned by [f] is ignored:
+    https://bugzilla.mozilla.org/show_bug.cgi?id=641509
+
+    [onunload] can be used to register multiple callbacks. If the user
+    decides to stay, we call any remaining callbacks, but these cannot
+    ask for further confirmation. *)
 val onunload : (unit -> string option) -> unit
 
 (** Wait for the initialization phase to terminate *)
