@@ -316,7 +316,7 @@ module Html5 : sig
   end
 
   (** Typed interface for building valid HTML5 tree from
-      {{: http://erratique.ch/software/react} React } signals.
+      {{:http://erratique.ch/software/react} React} signals.
       HTML5's trees are automatically updated whenever
       corresponding signals change.
 

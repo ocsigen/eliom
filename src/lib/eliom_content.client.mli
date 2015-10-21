@@ -386,7 +386,7 @@ module Html5 : sig
 
 
   (** Creation of HTML5 content from
-      {{: http://erratique.ch/software/react} React } signals.
+      {{:http://erratique.ch/software/react} React} signals.
       HTML5's trees are automatically updated whenever
       corresponding signals change.  *)
   module R : sig
