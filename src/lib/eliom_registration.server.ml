@@ -2313,8 +2313,7 @@ module Redir_reg_base = struct
 
   let send ?(options = `Found) ?charset ?code
       ?content_type ?headers service =
-    let uri absolute =
-      Eliom_content.Html5.F.make_string_uri ~absolute:true ~service () in
+    let uri = Eliom_content.Html5.F.make_string_uri ~service () in
     let empty_result = Ocsigen_http_frame.Result.empty () in
     let content_type = match content_type with
       | None -> Ocsigen_http_frame.Result.content_type empty_result
@@ -2356,7 +2355,7 @@ module Redir_reg_base = struct
         Lwt.return
           (Ocsigen_http_frame.Result.update empty_result
             ~code
-            ~location:(Some (uri true))
+            ~location:(Some uri)
             ~content_type
             ~headers ())
 
@@ -2381,7 +2380,7 @@ module Redir_reg_base = struct
                   ~headers:
                     (Http_headers.add
                       (Http_headers.name Eliom_common.full_xhr_redir_header)
-                      (uri false) headers) ())
+                      uri headers) ())
 
             | Eliom_service.XAlways ->
             (* It is probably an action, or a void coservice. Full xhr again *)
@@ -2391,7 +2390,7 @@ module Redir_reg_base = struct
                   ~headers:
                     (Http_headers.add
                       (Http_headers.name Eliom_common.full_xhr_redir_header)
-                      (uri false) headers) ())
+                      uri headers) ())
 
             | _ -> (* No application, or another application.
                       We ask the browser to do an HTTP redirection. *)
@@ -2401,7 +2400,7 @@ module Redir_reg_base = struct
                   ~headers:
                     (Http_headers.add
                       (Http_headers.name Eliom_common.half_xhr_redir_header)
-                      (uri true) headers) ())
+                      uri headers) ())
 
 
 end
