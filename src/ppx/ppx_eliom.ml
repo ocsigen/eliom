@@ -23,33 +23,31 @@ let (%) f g x = f (g x)
 let exp_add_attrs e attr =
   {e with pexp_attributes = attr}
 
+let id_of_string str =
+  Printf.sprintf "%019d" (Hashtbl.hash str)
+
+
 (** Identifiers generation. *)
 module Name = struct
 
-  let escaped_ident_prefix = "_eliom_escaped_ident_"
+  let escaped_ident_fmt : _ format6 =
+    "_eliom_escaped_ident_%Ld"
 
-  let fragment_ident_prefix = "_eliom_fragment_"
+  let fragment_ident_fmt : _ format6 =
+    "_eliom_fragment_%Ld"
 
-  let injected_ident_fmt : (_,_,_,_) format4 =
-    "_eliom_injected_ident_%019d_%d"
-
-  let id_of_string str =
-    Printf.sprintf "%019d" (Hashtbl.hash str)
-
-  let escaped_ident_prefix_len = String.length escaped_ident_prefix
-  let is_escaped_ident_string id =
-    String.length id > escaped_ident_prefix_len &&
-    String.sub id 0 escaped_ident_prefix_len = escaped_ident_prefix
+  let injected_ident_fmt : _ format6 =
+    "_eliom_injected_ident_%019d_%Ld"
 
   (* Identifiers for the closure representing a fragment. *)
   let fragment_num_base _loc =
     Int64.of_int (Hashtbl.hash !Location.input_name)
-  let gen_closure_num_count = ref Int64.zero
+  let fragment_num_count = ref Int64.zero
   let fragment_num _loc =
-    gen_closure_num_count := Int64.succ !gen_closure_num_count;
-    Int64.add (fragment_num_base _loc) !gen_closure_num_count
+    fragment_num_count := Int64.succ !fragment_num_count;
+    Int64.add (fragment_num_base _loc) !fragment_num_count
   let fragment_ident id =
-    fragment_ident_prefix ^ Int64.to_string id
+    Printf.sprintf fragment_ident_fmt id
 
   (* Globaly unique ident for escaped expression *)
   (* It's used for type inference and as argument name for the
@@ -58,9 +56,10 @@ module Name = struct
   let escaped_idents = ref []
   let reset_escaped_ident () = escaped_idents := []
   let escaped_expr, escaped_ident =
-    let r = ref 0 in
+    let r = ref 0L in
     let make () =
-      incr r; escaped_ident_prefix ^ string_of_int !r
+      r := Int64.(add one) !r ;
+      Printf.sprintf escaped_ident_fmt !r
     in
     let for_expr loc = Location.mkloc (make ()) loc in
     let for_id {Location. txt = id ; loc } =
@@ -77,9 +76,10 @@ module Name = struct
   let nested_escaped_idents = ref []
   let reset_nested_escaped_ident () = nested_escaped_idents := []
   let nested_escaped_expr, nested_escaped_ident =
-    let r = ref 0 in
+    let r = ref Int64.zero in
     let make () =
-      incr r; escaped_ident_prefix ^ string_of_int !r
+      r := Int64.(add one) !r ;
+      Printf.sprintf escaped_ident_fmt !r
     in
     let for_expr loc = Location.mkloc (make ()) loc in
     let for_id {Location. txt = id ; loc } =
@@ -94,10 +94,10 @@ module Name = struct
 
   let injected_expr, injected_ident =
     let injected_idents = ref [] in
-    let r = ref 0 in
+    let r = ref Int64.zero in
     let gen_ident loc =
       let hash = Hashtbl.hash !Location.input_name in
-      incr r;
+      r := Int64.(add one) !r ;
       let s = Printf.sprintf injected_ident_fmt hash !r in
       {Location. txt = s ; loc }
     in
@@ -109,6 +109,95 @@ module Name = struct
         gen_id
     in
     gen_ident, gen_injected_ident
+
+end
+
+module Mli = struct
+
+  let type_file = ref ""
+  let get_type_file () = match !type_file with
+    | "" -> Filename.chop_extension !Location.input_name ^ ".type_mli"
+    | f -> f
+
+  let suppress_underscore =
+    let c = ref 0 in
+    let uid () = incr c ; !c in
+    let pfix = Printf.sprintf "__eliom_inferred_type_%d" (uid ()) in
+    let typ mapper ty = match ty.ptyp_desc with
+      (* | Ptyp_constr  (_, Ast.TyAny _, ty) *)
+      (* | Ptyp_constr (_, ty, Ast.TyAny _) -> ty *)
+      | Ptyp_var var when var.[0] = '_' ->
+        mapper.AM.typ mapper
+          {ty with
+           ptyp_desc = Ptyp_var (String.sub var 1 (String.length var - 1) ^ pfix)
+          }
+      | _ -> mapper.AM.typ mapper ty in
+    let m = { AM.default_mapper with typ } in
+    m.AM.typ m
+
+  let is_injected_ident id =
+    try Scanf.sscanf id Name.injected_ident_fmt (fun _ _ -> true)
+    with Scanf.Scan_failure _ -> false
+
+  let is_escaped_ident id =
+    try Scanf.sscanf id Name.escaped_ident_fmt (fun _ -> true)
+    with Scanf.Scan_failure _ -> false
+
+  let is_fragment_ident id =
+    try Scanf.sscanf id Name.fragment_ident_fmt (fun _ -> true)
+    with Scanf.Scan_failure _ -> false
+
+  let get_fragment_type = function
+    | [%type: [%t? typ] Eliom_lib.client_value ]
+    | [%type: [%t? typ] Eliom_pervasives.client_value ] ->
+      Some typ
+    | _ -> None
+
+  let get_binding sig_item = match sig_item.psig_desc with
+    | Psig_value {
+      pval_name = {txt} ; pval_loc ;
+      pval_type = [%type: [%t? typ] option ref ] } ->
+      if is_injected_ident txt || is_escaped_ident txt then
+        Some (txt, suppress_underscore typ)
+      else if is_fragment_ident txt then
+        match get_fragment_type typ with
+        | Some typ -> Some (txt, typ)
+        | None -> None
+      else
+        None
+    | _ -> None
+
+  let load_file file =
+    try
+      let items =
+        Pparse.parse_interface ~tool_name:"eliom" Format.err_formatter file
+      in
+      let h = Hashtbl.create 17 in
+      let f item = match get_binding item with
+        | Some (s, typ) -> Hashtbl.add h s typ
+        | None -> ()
+      in
+      List.iter f items ;
+      h
+    with
+    | Sys_error s ->
+      Location.raise_errorf
+        ~loc:(Location.in_file file)
+        "Eliom: Error while loading types: %s" s
+
+  let infered_sig = lazy (load_file (get_type_file ()))
+
+  let find err {Location. txt ; loc } =
+    try Hashtbl.find (Lazy.force infered_sig) txt with
+    | Not_found ->
+      Location.raise_errorf ~loc
+        "Error: Infered type of %s not found. You need to regenerate %s."
+        err (get_type_file ())
+
+  let find_escaped_ident = find "escaped ident"
+  let find_injected_ident = find "injected ident"
+  let find_fragment = find "client value"
+
 end
 
 (** Context convenience module. *)
@@ -164,16 +253,17 @@ module type Pass = sig
   (** How to handle "[%client ...]" and "[%shared ...]" expr. *)
   val fragment:
     ?typ:core_type -> context:Context.server ->
-    id:Int64.t ->
+    num:Int64.t -> id:string Location.loc ->
     expression -> expression
 
   (** How to handle escaped "~%ident" inside a fragment. *)
   val escape_inject:
     ?ident:string -> context:Context.escape_inject ->
-    string Location.loc -> expression -> expression
+    id:string Location.loc ->
+    expression -> expression
 
-  val implem :
-    structure_item -> structure_item
+  val prelude : loc -> structure
+  val postlude : loc -> structure
 
 end
 
@@ -254,28 +344,33 @@ module Register (Pass : Pass) = struct
         | [%expr ([%e? cval]:[%t? typ]) ] -> (cval, Some typ)
         | _ -> (expr, None)
       in
-      let id = Name.fragment_num side_val.pexp_loc in
+      let num = Name.fragment_num side_val.pexp_loc in
+      let id = Location.mkloc (Name.fragment_ident num) side_val.pexp_loc in
       in_context context (`Fragment c)
-        (Pass.fragment ?typ ~context:c ~id % mapper.AM.expr mapper)
+        (Pass.fragment ?typ ~context:c ~num ~id % mapper.AM.expr mapper)
         side_val
 
     | [%expr ~% [%e? inj ]], _ ->
+      let ident = match inj.pexp_desc with
+        | Pexp_ident i -> Some (Longident.last i.txt)
+        | _ -> None
+      in
       begin match !context with
         | `Client | `Shared as c ->
-          let ident = Name.injected_ident loc inj in
+          let id = Name.injected_ident loc inj in
           let new_context = `Injection c in
           in_context context new_context
-            (Pass.escape_inject ~context:new_context ident %
+            (Pass.escape_inject ?ident ~context:new_context ~id %
              mapper.AM.expr mapper)
             inj
         | `Fragment c ->
-          let ident = match c with
+          let id = match c with
             | `Shared -> Name.nested_escaped_expr loc
             | `Server -> Name.escaped_expr loc
           in
           let new_context = `Escaped_value c in
           in_context context new_context
-            (Pass.escape_inject ~context:new_context ident %
+            (Pass.escape_inject ?ident ~context:new_context ~id %
              mapper.AM.expr mapper)
             inj
         | `Server ->
@@ -350,7 +445,8 @@ module Register (Pass : Pass) = struct
       | _ ->
         dispatch_str !context mapper pstr
     in
-    flatmap f structs
+    let loc = Location.in_file !Location.input_name in
+    Pass.prelude loc @ flatmap f structs @ Pass.postlude loc
 
   let toplevel_signature context mapper sigs =
     let f psig =

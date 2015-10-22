@@ -81,7 +81,7 @@ let () =
     Pkg.lib ~exts:exts_modlib ~dst:"ocamlbuild/ocamlbuild_eliom" "src/ocamlbuild/ocamlbuild_eliom";
 
     (* PPX *)
-    Pkg.lib ~exts:exts_modlib ~dst:"ppx/ppx_eliom_seed" "src/ppx/ppx_eliom_seed";
+    Pkg.lib ~exts:exts_modlib ~dst:"ppx/ppx_eliom" "src/ppx/ppx_eliom";
     Pkg.lib ~exts:exts_modlib ~dst:"ppx/ppx_eliom_client" "src/ppx/ppx_eliom_client";
 
   ] @ (

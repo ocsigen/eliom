@@ -22,9 +22,15 @@ module Context : sig
 end
 
 
-module Name : sig
+val id_of_string : _ -> string
 
-  val is_escaped_ident_string : string -> bool
+module Mli : sig
+
+  val is_escaped_ident : string -> bool
+
+  val find_escaped_ident : string Location.loc -> core_type
+  val find_injected_ident : string Location.loc -> core_type
+  val find_fragment : string Location.loc -> core_type
 
 end
 
@@ -46,16 +52,17 @@ module type Pass = sig
   (** How to handle "[%client ...]" and "[%shared ...]" expr. *)
   val fragment:
     ?typ:core_type -> context:Context.server ->
-    id:Int64.t ->
+    num:Int64.t -> id:string Location.loc ->
     expression -> expression
 
   (** How to handle escaped "~%ident" inside a fragment. *)
   val escape_inject:
     ?ident:string -> context:Context.escape_inject ->
-    string Location.loc -> expression -> expression
+    id:string Location.loc ->
+    expression -> expression
 
-  val implem :
-    structure_item -> structure_item
+  val prelude : Location.t -> structure
+  val postlude : Location.t -> structure
 
 end
 
