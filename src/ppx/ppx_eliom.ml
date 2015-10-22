@@ -23,25 +23,6 @@ let (%) f g x = f (g x)
 let exp_add_attrs e attr =
   {e with pexp_attributes = attr}
 
-module type Helpers = sig
-
-  (** find infered type for escaped expr *)
-  val find_fragment_type: Int64.t -> core_type
-
-  (** find infered type for escaped expr *)
-  val find_escaped_ident_type: string -> core_type
-
-  (** find infered type for injected ident *)
-  val find_injected_ident_type: string -> core_type
-
-  val is_fragment_type : core_type -> core_type option
-
-  val raise_syntax_error : _ Location.loc -> string -> _
-
-  val is_escaped_indent_string: string -> bool
-end
-
-
 (** Identifiers generation. *)
 module Name = struct
 
@@ -254,15 +235,13 @@ module Register (Pass : Pass) = struct
     | ([%expr [%client [%e? _ ]]] | [%expr [%shared [%e? _ ]]])
     , `Client ->
       let side = get_extension expr in
-      Exp.extension @@ AM.extension_of_error @@
-      Location.errorf ~loc
+      Location.raise_errorf ~loc
         "The syntax [%%%s ...] is not allowed inside client code."
         side
     | ([%expr [%client [%e? _ ]]] | [%expr [%shared [%e? _ ]]])
     , (`Fragment _ | `Escaped_value _ | `Injection _) ->
       let side = get_extension expr in
-      Exp.extension @@ AM.extension_of_error @@
-      Location.errorf ~loc
+      Location.raise_errorf ~loc
         "The syntax [%%%s ...] can not be nested."
         side
 
@@ -300,12 +279,10 @@ module Register (Pass : Pass) = struct
              mapper.AM.expr mapper)
             inj
         | `Server ->
-          Exp.extension @@ AM.extension_of_error @@
-          Location.errorf ~loc
+          Location.raise_errorf ~loc
             "The syntax ~%% ... is not allowed inside server code."
         | `Escaped_value _ | `Injection _ ->
-          Exp.extension @@ AM.extension_of_error @@
-          Location.errorf ~loc
+          Location.raise_errorf ~loc
             "The syntax ~%% ... can not be nested."
       end
     | _ -> mapper.AM.expr mapper expr
@@ -313,12 +290,18 @@ module Register (Pass : Pass) = struct
   let structure_item mapper str =
     let loc = str.pstr_loc in
     match str.pstr_desc with
-    | Pstr_extension (({txt=("server"|"shared"|"client") as txt}, _), _) ->
-      Str.extension @@ Ast_mapper.extension_of_error @@
-      Location.errorf ~loc
-        "The %%%%%s extension is only allowed at toplevel."
-        txt
+    | Pstr_extension (({txt=("server"|"shared"|"client")}, _), _) ->
+      Location.raise_errorf ~loc
+        "Sections are only allowed at toplevel."
     | _ -> mapper.AM.structure_item mapper str
+
+  let signature_item mapper sig_ =
+    let loc = sig_.psig_loc in
+    match sig_.psig_desc with
+    | Psig_extension (({txt=("server"|"shared"|"client")}, _), _) ->
+      Location.raise_errorf ~loc
+        "Sections are only allowed at toplevel."
+    | _ -> mapper.AM.signature_item mapper sig_
 
   let eliom_mapper context =
     let context = ref (context :> Context.t) in
@@ -329,8 +312,8 @@ module Register (Pass : Pass) = struct
         expr = eliom_expr context ;
 
         (* Reject sections not at toplevel. *)
-        structure_item = structure_item
-
+        structure_item ;
+        signature_item ;
     }
 
 
