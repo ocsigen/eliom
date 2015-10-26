@@ -8,6 +8,8 @@ val file_loc : unit -> Location.t
 
 val eid : string Location.loc -> expression
 
+val position : Location.t -> expression
+
 (** Context convenience module. *)
 module Context : sig
 

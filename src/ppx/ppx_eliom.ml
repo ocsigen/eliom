@@ -2,6 +2,7 @@ open Parsetree
 open Ast_helper
 
 module AM = Ast_mapper
+module AC = Ast_convenience
 
 (** Various misc functions *)
 
@@ -32,6 +33,18 @@ let file_loc () =
 let eid {Location. txt ; loc } =
   Exp.ident ~loc { loc ; txt = Longident.Lident txt }
 
+let lexing_position ~loc l =
+  [%expr
+    { Lexing.pos_fname = [%e AC.str l.Lexing.pos_fname];
+      Lexing.pos_lnum = [%e AC.int @@ l.Lexing.pos_lnum];
+      Lexing.pos_bol = [%e AC.int @@ l.Lexing.pos_bol];
+      Lexing.pos_cnum = [%e AC.int @@ l.Lexing.pos_cnum]; }
+  ] [@metaloc loc]
+
+let position loc =
+  let start = loc.Location.loc_start in
+  let stop = loc.Location.loc_start in
+  Exp.tuple ~loc [ lexing_position ~loc start ; lexing_position ~loc stop ]
 
 (** Identifiers generation. *)
 module Name = struct
