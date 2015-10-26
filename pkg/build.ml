@@ -83,6 +83,7 @@ let () =
     (* PPX *)
     Pkg.lib ~exts:exts_modlib ~dst:"ppx/ppx_eliom" "src/ppx/ppx_eliom";
     Pkg.lib ~exts:exts_modlib ~dst:"ppx/ppx_eliom_client" "src/ppx/ppx_eliom_client";
+    Pkg.lib ~exts:exts_modlib ~dst:"ppx/ppx_eliom_type" "src/ppx/ppx_eliom_type";
 
   ] @ (
     (* CLIENT LIBS *)
