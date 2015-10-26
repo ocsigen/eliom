@@ -81,10 +81,6 @@
 
   *)
 
-(** Abstract signature for links and forms creation functions, for
-    concrete instances see {!Html5}, or {!Html_text}. *)
-module type Forms = "sigs/eliom_forms.mli"
-
 (** Low-level XML manipulation. *)
 module Xml : sig
 
@@ -512,54 +508,6 @@ module Html5 : sig
   module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a elt
                                                   and type doc := F.doc
 
-end
-
-(** Generate untyped html as text.*)
-module Html_text : sig
-
-  include "sigs/eliom_forms.mli"
-    (** Have a look on  {% <<a_manual
-      chapter="clientserver-html" fragment="text_html" | Client and Server side HTML>> %} for HTML tree manipulated by client/server
-      application. *)
-    subst type uri := string
-    and type pcdata_elt := string
-
-    and type form_elt := string
-    and type form_content_elt := string
-    and type form_content_elt_list := string
-    and type form_attrib_t := string
-
-    and type 'a a_elt := string
-    and type 'a a_content_elt := string
-    and type 'a a_content_elt_list := string
-    and type a_attrib_t := string
-
-    and type link_elt := string
-    and type link_attrib_t := string
-
-    and type script_elt := string
-    and type script_attrib_t := string
-
-    and type textarea_elt := string
-    and type textarea_attrib_t := string
-
-    and type input_elt := string
-    and type input_attrib_t := string
-
-    and type select_elt := string
-    and type select_attrib_t := string
-
-    and type button_elt := string
-    and type button_content_elt := string
-    and type button_content_elt_list := string
-    and type button_attrib_t := string
-
-    and type optgroup_attrib_t := string
-    and type option_attrib_t := string
-
-    and type input_type_t := string
-    and type button_type_t := string
-    and type for_attrib := string
 end
 
 (**/**)

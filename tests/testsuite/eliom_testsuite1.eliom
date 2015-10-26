@@ -61,15 +61,7 @@ let coucou1_xthml =
            </html> >>)
 
  *)
-let coucoutext =
-  Eliom_registration.Html_text.register_service
-    ~path:["coucoutext"]
-    ~get_params:Eliom_parameter.unit
-    (fun () () ->
-      return
-        ("<html>n'importe quoi "^
-         (Eliom_content.Html_text.a coucou "clic" ())^
-         "</html>"))
+
 (*wiki*
 
         Page generation may have side-effects:

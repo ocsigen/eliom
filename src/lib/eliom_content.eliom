@@ -34,8 +34,6 @@ external unboxed : boxed client_value -> 'a client_value = "%identity"
 
 {server{
 
-module type Forms = "sigs/eliom_forms.mli"
-
 module Xml = Eliom_content_.Xml
 
 module Xml_shared = Eliom_content_.Xml_shared
@@ -63,7 +61,6 @@ module Svg = struct
 
 
 end
-module Html_text = Eliom_content_.Html_text
 
 module Html5 = struct
 
