@@ -315,7 +315,11 @@ module Shared = struct
   let expr loc expr =
     let server_expr = server.AM.expr server expr in
     let client_expr = client.AM.expr client expr in
-    [%expr ([%e server_expr], [%client [%e client_expr]])] [@metaloc loc]
+    [%expr
+      Eliom_lib.create_shared_value
+        [%e server_expr]
+        [%client [%e client_expr]]
+    ] [@metaloc loc]
 end
 
 
