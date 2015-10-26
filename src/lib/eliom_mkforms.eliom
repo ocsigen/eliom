@@ -25,9 +25,7 @@ open Eliom_parameter
 open Eliom_service
 open Eliom_uri
 
-module type FORMS_PARAM = "sigs/eliom_forms_param.mli"
-
-module MakeForms(Pages : FORMS_PARAM) = struct
+module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
 
   type uri = Pages.uri
 

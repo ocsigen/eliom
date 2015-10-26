@@ -28,9 +28,7 @@ open Eliom_lib
    It is used for example in {!Eliom_registration}.
  *)
 
-module type FORMS_PARAM = "sigs/eliom_forms_param.mli"
-
-module MakeForms(Pages: FORMS_PARAM) : sig
+module MakeForms(Pages: Eliom_form_sigs.PARAM) : sig
 
   type uri = Pages.uri
 
