@@ -3503,10 +3503,18 @@ let activate_timings_button =
 let update_tree service w h =
   Html5.F.get_form ~service (fun (wn,hn) ->
     [ Html5.F.fieldset
-        [ Html5.F.label ~a:[Html5.D.a_for wn] [pcdata "Tree width: "];
-          Html5.F.int_input ~name:wn ~input_type:`Text ~value:w ();
-          Html5.F.label ~a:[Html5.D.a_for wn] [pcdata "and height: "];
-          Html5.F.int_input ~name:hn ~input_type:`Text ~value:h ();
+        [ Html5.F.label
+            ~a:[Html5.D.a_for "i_width"]
+            [pcdata "Tree width: "];
+          Html5.F.int_input
+            ~a:[Html5.F.a_id "i_width"]
+            ~name:wn ~input_type:`Text ~value:w ();
+          Html5.F.label
+            ~a:[Html5.D.a_for "i_height"]
+            [pcdata "and height: "];
+          Html5.F.int_input
+            ~a:[Html5.F.a_id "i_height"]
+            ~name:hn ~input_type:`Text ~value:h ();
           Html5.F.string_input ~input_type:`Submit ~value:"Update" ();
         ]
     ])

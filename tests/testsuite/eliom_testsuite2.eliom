@@ -2476,19 +2476,19 @@ let neopt_form ((e_a, e_b), (e_c, e_d)) =
   [
   fieldset
     [
-    label ~a:[a_for e_a] [pcdata "Enter string 'a':"];
+    label ~a:[a_for "e_a"] [pcdata "Enter string 'a':"];
     Html5.D.string_input ~a:[a_id "e_a"] ~input_type:`Text ~name:e_a ();
     br ();
 
-    label ~a:[a_for e_b] [pcdata "Enter int 'b' (neopt):"];
+    label ~a:[a_for "e_b"] [pcdata "Enter int 'b' (neopt):"];
     Html5.D.int_input ~a:[a_id "e_b"] ~input_type:`Text ~name:e_b ();
     br ();
 
-    label ~a:[a_for e_c] [pcdata "Enter float 'c' (neopt):"];
+    label ~a:[a_for "e_c"] [pcdata "Enter float 'c' (neopt):"];
     Html5.D.float_input ~a:[a_id "e_c"] ~input_type:`Text ~name:e_c ();
     br ();
 
-    label ~a:[a_for e_d] [pcdata "Enter string 'd' (neopt):"];
+    label ~a:[a_for "e_d"] [pcdata "Enter string 'd' (neopt):"];
     Html5.D.string_input ~a:[a_id "e_d"] ~input_type:`Text ~name:e_d ();
     br ();
 

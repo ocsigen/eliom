@@ -3,7 +3,6 @@
 open Eliom_lib
 open Eliom_content.Html5
 open Eliom_content.Html5.F
-open Eliom_csreact
 }}
 
 {client{
@@ -29,7 +28,7 @@ open Eliom_csreact
   let get_msg_ids () =
     lwt () = Lwt_unix.sleep 1. in
     let v = [1;2;3;4] in
-    let s = SharedReactiveData.RList.make v in
+    let s = Eliom_shared.ReactiveData.RList.make v in
     let _ = {unit{ init_msgs_ids_cache %s }} in
     Lwt.return (fst s)
   let get_msg i =
@@ -39,9 +38,9 @@ open Eliom_csreact
     lwt v = get_msg i in
     (* Warning: if you want to make possible to generate html from server
        side even if the data is already present on client side, you must give
-       the ~default parameter to SharedReact.S.create and
-       SharedReactiveData.RList.make above. *)
-    let signal = fst (SharedReact.S.create v) in
+       the ~default parameter to Eliom_shared.React.S.create and
+       Eliom_shared.ReactiveData.RList.make above. *)
+    let signal = fst (Eliom_shared.React.S.create v) in
     let _ = {unit{ cache_msg %i %signal }} in
     Lwt.return signal
   let get_msg_rpc = server_function Json.t<int> get_msg
