@@ -1,5 +1,5 @@
 true:no_extra_syntaxes-
-true:warn(+A-4-6-7-9-27-32-33-34-37-40-42-44-48)
+<{lib,tools,ocamlbuild,syntax}/**/*>:warn(+A-4-6-7-9-27-32-33-34-37-40-42-44-48)
 true:keep_locs
 
 <lib/type_dir/*.ml{,i}>:thread

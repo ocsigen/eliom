@@ -23,7 +23,7 @@ module Pass = struct
          match e.pexp_desc with
          | Pexp_ident {txt} when Mli.is_escaped_ident @@ Longident.last txt ->
            [%expr Eliom_client.Syntax_helpers.get_escaped_value [%e e] ]
-         | _ -> e
+         | _ -> mapper.AM.expr mapper e
        );
       }
     in
@@ -84,7 +84,7 @@ module Pass = struct
   let define_client_functions ~loc client_value_datas =
     let bindings =
       List.map
-        (fun (num, id, expr, args) ->
+        (fun (_num, id, expr, args) ->
            let patt = Pat.var id in
            let typ = Mli.find_fragment id in
            let args = List.map Pat.var args in
@@ -139,7 +139,7 @@ module Pass = struct
 
 
 
-  let fragment ?typ ~context ~num ~id expr =
+  let fragment ?typ:_ ~context ~num ~id expr =
 
     let eid = Exp.ident ~loc:id.loc (lid_of_str id) in
     let escaped_bindings = flush_escaped_bindings () in
@@ -193,7 +193,7 @@ module Pass = struct
     match context with
 
     (* [%%server [%client ~%( ... ) ] ] *)
-    | `Escaped_value section ->
+    | `Escaped_value _section ->
       let typ = Mli.find_escaped_ident id in
       let typ = assert_no_variables typ in
       push_escaped_binding id orig_expr;

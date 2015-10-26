@@ -155,7 +155,7 @@ module Mli = struct
 
   let get_binding sig_item = match sig_item.psig_desc with
     | Psig_value {
-      pval_name = {txt} ; pval_loc ;
+      pval_name = {txt} ;
       pval_type = [%type: [%t? typ] option ref ] } ->
       if is_injected_ident txt || is_escaped_ident txt then
         Some (txt, suppress_underscore typ)
@@ -315,9 +315,6 @@ end
 
 module Register (Pass : Pass) = struct
 
-  (** Environment of discovered injection/escaped values. *)
-  let inj_map = Hashtbl.create 17
-
   let eliom_expr (context : Context.t ref) mapper expr =
     let loc = expr.pexp_loc in
     let attr = expr.pexp_attributes in
@@ -425,11 +422,11 @@ module Register (Pass : Pass) = struct
     let m = eliom_mapper context in
     f @@ (field m) m str
 
-  let dispatch_str c mapper =
+  let dispatch_str c _mapper =
     dispatch Pass.(server_str, shared_str, client_str)
       (fun x -> x.AM.structure_item) c
 
-  let dispatch_sig c mapper =
+  let dispatch_sig c _mapper =
     dispatch Pass.(server_sig, shared_sig, client_sig)
       (fun x -> x.AM.signature_item) c
 
@@ -462,7 +459,7 @@ module Register (Pass : Pass) = struct
     in
     flatmap f sigs
 
-  let toplevel_mapper _args =
+  let mapper _args =
     let c = ref `Server in
     {AM.default_mapper
      with
