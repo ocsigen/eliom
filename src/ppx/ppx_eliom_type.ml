@@ -50,7 +50,7 @@ module Pass = struct
   let push_typing_expr, flush_typing_expr =
     let typing_expr = ref [] in
     let add orig_expr id =
-      if List.for_all (function id', _ -> id <> id') !typing_expr
+      if List.for_all (function id', _ -> id.txt <> id'.txt) !typing_expr
       then
         let eid = Ppx_eliom.eid id in
         typing_expr :=
@@ -72,7 +72,7 @@ module Pass = struct
   let push_typing_str_item, flush_typing_str_item =
     let typing_strs = ref [] in
     let add orig_expr id =
-      if List.for_all (function id', _ -> id' <> id) !typing_strs
+      if List.for_all (function id', _ -> id'.txt <> id.txt) !typing_strs
       then
         typing_strs :=
           (id,
