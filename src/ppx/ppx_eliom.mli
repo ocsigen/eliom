@@ -1,5 +1,13 @@
 open Parsetree
 
+(** {2 Various helping functions} *)
+
+val id_of_string : _ -> string
+
+val file_loc : unit -> Location.t
+
+val eid : string Location.loc -> expression
+
 (** Context convenience module. *)
 module Context : sig
 
@@ -20,9 +28,6 @@ module Context : sig
     | `Injection of client (* [%%client ~%( ... ) ] *)
   ]
 end
-
-
-val id_of_string : _ -> string
 
 module Mli : sig
 

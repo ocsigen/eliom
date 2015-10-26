@@ -7,10 +7,6 @@ module AM = Ast_mapper
 
 open Ppx_eliom
 
-let lid_of_str { txt ; loc } =
-  { loc ; txt = Longident.Lident txt }
-
-
 module Pass = struct
 
   (** {2 Auxiliaries} *)
@@ -141,7 +137,7 @@ module Pass = struct
 
   let fragment ?typ:_ ~context ~num ~id expr =
 
-    let eid = Exp.ident ~loc:id.loc (lid_of_str id) in
+    let eid = eid id in
     let escaped_bindings = flush_escaped_bindings () in
 
     push_client_value_data num id expr
@@ -159,7 +155,7 @@ module Pass = struct
       in
       let args =
         Exp.tuple @@ List.map
-          (fun (id, _) -> Exp.ident (lid_of_str id))
+          (fun (id, _) -> Ppx_eliom.eid id)
           escaped_bindings
       in
       let new_e =
@@ -170,10 +166,9 @@ module Pass = struct
       in new_e
 
 
-  let escape_inject ?ident ~(context:Context.escape_inject) ~id orig_expr =
-    let loc = orig_expr.pexp_loc in
-
-    let eid = Exp.ident ~loc:id.loc (lid_of_str id) in
+  let escape_inject ?ident ~(context:Context.escape_inject) ~id expr =
+    let loc = expr.pexp_loc in
+    let eid = Ppx_eliom.eid id in
 
     let assert_no_variables t =
       let typ mapper = function
@@ -196,7 +191,7 @@ module Pass = struct
     | `Escaped_value _section ->
       let typ = Mli.find_escaped_ident id in
       let typ = assert_no_variables typ in
-      push_escaped_binding id orig_expr;
+      push_escaped_binding id expr;
       [%expr ([%e eid] : [%t typ]) ]
 
 

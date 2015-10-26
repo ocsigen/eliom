@@ -26,6 +26,12 @@ let exp_add_attrs e attr =
 let id_of_string str =
   Printf.sprintf "%019d" (Hashtbl.hash str)
 
+let file_loc () =
+  Location.in_file !Location.input_name
+
+let eid {Location. txt ; loc } =
+  Exp.ident ~loc { loc ; txt = Longident.Lident txt }
+
 
 (** Identifiers generation. *)
 module Name = struct
@@ -442,7 +448,7 @@ module Register (Pass : Pass) = struct
       | _ ->
         dispatch_str !context mapper pstr
     in
-    let loc = Location.in_file !Location.input_name in
+    let loc = file_loc () in
     Pass.prelude loc @ flatmap f structs @ Pass.postlude loc
 
   let toplevel_signature context mapper sigs =
