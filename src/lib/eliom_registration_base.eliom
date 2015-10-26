@@ -178,7 +178,14 @@ module Html5_forms(*  : sig *)
   (*****************************************************************************)
   (*****************************************************************************)
 
-  module MakeApplForms(Forms: "sigs/eliom_html5_forms_.mli") = struct
+  module MakeApplForms
+
+      (Forms: Eliom_form_sigs.S
+       with type +'a elt := 'a Eliom_content_core.Html5.elt
+        and type +'a attrib := 'a Eliom_content_core.Html5.attrib
+        and type uri := Eliom_content_core.Html5.uri) =
+
+  struct
 
     include Forms
 
