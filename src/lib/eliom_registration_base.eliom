@@ -28,37 +28,7 @@ open Eliom_parameter
 
 type non_ocaml_service = Eliom_service.non_ocaml_service
 
-type input_type =
-  [
-  | `Url
-  | `Tel
-  | `Text
-  | `Time
-  | `Search
-  | `Password
-  | `Checkbox
-  | `Range
-  | `Radio
-  | `Submit
-  | `Reset
-  | `Number
-  | `Hidden
-  | `Month
-  | `Week
-  | `File
-  | `Email
-  | `Image
-  | `Datetime_local
-  | `Datetime
-  | `Date
-  | `Color
-  | `Button]
 
-type button_type =
-    [ `Button
-    | `Reset
-    | `Submit
-    ]
 
 (*****************************************************************************)
 (*****************************************************************************)
@@ -79,59 +49,23 @@ module Html5_forms(*  : sig *)
                          and type uri = Html5.uri
 
     type ('a, 'b, 'c) lazy_star =
-        ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
+      ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
     val lazy_form:
-      ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_star
-  end) = struct
+      ([< Html5_types.form_attrib ],
+       [< Html5_types.form_content_fun ],
+       [> Html5_types.form ])
+        lazy_star
+    end) = struct
+
+    type +'a elt = 'a Html5.elt
+    type +'a attrib = 'a Html5.attrib
 
     type uri = Html5.uri
-    type pcdata_elt = Html5_types.pcdata Html5.elt
 
-    type form_elt = Html5_types.form Html5.elt
-    type form_content_elt = Html5_types.form_content Html5.elt
-    type form_content_elt_list = Html5_types.form_content Html5.elt list
-    type form_attrib_t = Html5_types.form_attrib Html5.attrib list
-
-    type +'a a_elt = 'a Html5_types.a Html5.elt
-    type +'a a_elt_list = 'a Html5_types.a Html5.elt list
-    type +'a a_content_elt = 'a Html5.elt
-    type +'a a_content_elt_list = 'a Html5.elt list
-    type a_attrib_t = Html5_types.a_attrib Html5.attrib list
-
-    type link_elt = Html5_types.link Html5.elt
-    type link_attrib_t = Html5_types.link_attrib Html5.attrib list
-
-    type script_elt = Html5_types.script Html5.elt
-    type script_attrib_t = Html5_types.script_attrib Html5.attrib list
-
-    type textarea_elt = Html5_types.textarea Html5.elt
-    type textarea_attrib_t = Html5_types.textarea_attrib Html5.attrib list
-
-    type input_elt = Html5_types.input Html5.elt
-    type input_attrib_t = Html5_types.input_attrib Html5.attrib list
     let a_input_required required = [Html5.a_required required]
-    let input_attrib_append = List.append
 
-    type select_elt = Html5_types.select Html5.elt
-    type select_content_elt = Html5_types.select_content Html5.elt
-    type select_content_elt_list = Html5_types.select_content Html5.elt list
-    type select_attrib_t = Html5_types.select_attrib Html5.attrib list
     let select_content_cons hd tl = hd :: tl
     let a_select_required required = [Html5.a_required required]
-    let select_attrib_append = List.append
-
-    type button_elt = Html5_types.button Html5.elt
-    type button_content_elt = Html5_types.button_content Html5.elt
-    type button_content_elt_list = Html5_types.button_content Html5.elt list
-    type button_attrib_t = Html5_types.button_attrib Html5.attrib list
-
-    type option_elt = Html5_types.selectoption Html5.elt
-    type option_elt_list = Html5_types.selectoption Html5.elt list
-    type optgroup_attrib_t = [ Html5_types.common | `Disabled ] Html5.attrib list
-    type option_attrib_t = Html5_types.option_attrib Html5.attrib list
-
-    type input_type_t = input_type
-    type button_type_t = button_type
 
     open Html5
 
@@ -146,14 +80,12 @@ module Html5_forms(*  : sig *)
 
     let uri_of_string = Xml.uri_of_fun
 
-    let map_option = List.map
     let map_optgroup f a l = ((f a), List.map f l)
-    let select_content_of_option a = (a :> select_content_elt)
+    let select_content_of_option a = (a :> Html5_types.select_content elt)
 
     let make_pcdata s = pcdata s
 
-    let make_a ?(a=[]) ?href (l : 'a a_content_elt_list)
-      : 'a a_elt =
+    let make_a ?(a=[]) ?href l =
       let a = match href with
         | None -> a
         | Some href -> a_href href :: a
@@ -165,11 +97,10 @@ module Html5_forms(*  : sig *)
       | a::l -> a, l
       | [] -> (make_empty_form_content ()), []
 
-    let make_get_form ?(a=[]) ~action elts : form_elt =
+    let make_get_form ?(a=[]) ~action elts =
       Html5.lazy_form ~a:((a_method `Get)::(a_action action)::a) elts
 
-    let make_post_form ?(a=[]) ~action ?id ?(inline = false) elts
-        : form_elt =
+    let make_post_form ?(a=[]) ~action ?id ?(inline = false) elts =
       let aa = (match id with
       | None -> a
       | Some i -> (a_id i)::a)
@@ -181,13 +112,12 @@ module Html5_forms(*  : sig *)
                     (if inline then (a_class ["inline"])::aa else aa))
         elts
 
-    let empty_seq = []
     let cons_hidden_fieldset fields content =
       let fieldset =
         Html5.fieldset
           ~a:[a_style "display: none;"]
           fields in
-      (fieldset :: content :> form_content_elt_list)
+      fieldset :: content
 
     let make_input ?(a=[]) ?(checked=false) ~typ ?name ?src ?value () =
       let a2 = match value with
@@ -241,7 +171,6 @@ module Html5_forms(*  : sig *)
     let make_js_script ?(a=[]) ~uri () =
       script ~a:(a_mime_type "text/javascript" :: a_src uri :: a) (pcdata "")
 
-    type for_attrib = [`For] Html5.attrib
     let make_for_attrib = a_for
 
   end

@@ -202,7 +202,7 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
   let js_script = Pages.make_js_script
   let css_link = Pages.make_css_link
 
-  let gen_input ?a ~(input_type: Pages.input_type_t)
+  let gen_input ?a ~input_type
       ?value ?src
       ?name (string_of : 'a -> string) =
     let name = match name with
@@ -344,7 +344,7 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
       let required = Pages.a_input_required `Required in
       match a with
         | None -> required
-        | Some a -> Pages.input_attrib_append required a
+        | Some a -> List.append required a
     in
     Pages.make_input
       ~a ?checked ~typ:Pages.radio
@@ -420,14 +420,14 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
 
 
   type 'a soption =
-      Pages.option_attrib_t
+      Html5_types.option_attrib Pages.attrib list
       * 'a (* Content (or value if the following is present) *)
-      * Pages.pcdata_elt option (* if content different from value *)
+      * Html5_types.pcdata Pages.elt option (* if content different from value *)
       * bool (* selected *)
 
   type 'a select_opt =
     | Optgroup of
-        Pages.optgroup_attrib_t
+        [ Html5_types.common | `Disabled ] Pages.attrib list
         * string (* label *)
         * 'a soption
         * 'a soption list
@@ -441,7 +441,7 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
       | Some _ ->
         let required = Pages.a_select_required `Required in
         match a with
-        | Some a -> Some (Pages.select_attrib_append required a)
+        | Some a -> Some (List.append required a)
         | None -> Some required
     in
 
@@ -515,7 +515,7 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
       | Option o -> Pages.select_content_of_option (make_opt o)
       | Optgroup (a, label, og1, ogl) ->
           Pages.make_optgroup
-            ~a ~label (make_opt og1) (Pages.map_option make_opt ogl)
+            ~a ~label (make_opt og1) (List.map make_opt ogl)
     in
     let fl2, ol2 = Pages.map_optgroup make_optg fl ol in
     let fl3, ol3 =
