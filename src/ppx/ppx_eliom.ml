@@ -150,7 +150,7 @@ module Mli = struct
           {ty with
            ptyp_desc = Ptyp_var (String.sub var 1 (String.length var - 1) ^ pfix)
           }
-      | _ -> mapper.AM.typ mapper ty in
+      | _ -> AM.default_mapper.typ mapper ty in
     let m = { AM.default_mapper with typ } in
     m.AM.typ m
 
@@ -309,7 +309,7 @@ module Shared = struct
     match expr with
     | [%expr [%client [%e? _ ]]] -> expr
     | [%expr ~% [%e? injection_expr ]] -> injection_expr
-    | _ -> mapper.AM.expr mapper expr
+    | _ -> AM.default_mapper.expr mapper expr
   let server = {AM.default_mapper with expr = server_expr}
 
   let client_expr context mapper expr =
@@ -322,7 +322,7 @@ module Shared = struct
         | `Top -> expr
         | `Fragment -> injection_expr
       end
-    | _ -> mapper.AM.expr mapper expr
+    | _ -> AM.default_mapper.expr mapper expr
   let client = {AM.default_mapper with expr = client_expr (ref `Top)}
 
   let expr loc expr =
@@ -399,7 +399,7 @@ module Make (Pass : Pass) = struct
           Location.raise_errorf ~loc
             "The syntax ~%% ... can not be nested."
       end
-    | _ -> mapper.AM.expr mapper expr
+    | _ -> AM.default_mapper.expr mapper expr
 
   let structure_item mapper str =
     let loc = str.pstr_loc in
@@ -407,7 +407,7 @@ module Make (Pass : Pass) = struct
     | Pstr_extension (({txt=("server"|"shared"|"client")}, _), _) ->
       Location.raise_errorf ~loc
         "Sections are only allowed at toplevel."
-    | _ -> mapper.AM.structure_item mapper str
+    | _ -> AM.default_mapper.structure_item mapper str
 
   let signature_item mapper sig_ =
     let loc = sig_.psig_loc in
@@ -415,7 +415,7 @@ module Make (Pass : Pass) = struct
     | Psig_extension (({txt=("server"|"shared"|"client")}, _), _) ->
       Location.raise_errorf ~loc
         "Sections are only allowed at toplevel."
-    | _ -> mapper.AM.signature_item mapper sig_
+    | _ -> AM.default_mapper.signature_item mapper sig_
 
   let eliom_mapper context =
     let context = ref (context :> Context.t) in

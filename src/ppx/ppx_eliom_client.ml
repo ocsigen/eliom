@@ -19,7 +19,7 @@ module Pass = struct
          match e.pexp_desc with
          | Pexp_ident {txt} when Mli.is_escaped_ident @@ Longident.last txt ->
            [%expr Eliom_client.Syntax_helpers.get_escaped_value [%e e] ]
-         | _ -> mapper.AM.expr mapper e
+         | _ -> AM.default_mapper.expr mapper e
        );
       }
     in
@@ -179,7 +179,7 @@ module Pass = struct
                that could be wrongly infered."
           in
           { typ with ptyp_attributes = attr :: typ.ptyp_attributes }
-        | typ -> mapper.AM.typ mapper typ
+        | typ -> AM.default_mapper.typ mapper typ
       in
       let m = { AM.default_mapper with typ } in
       m.AM.typ m t
