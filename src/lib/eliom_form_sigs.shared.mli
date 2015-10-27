@@ -37,47 +37,34 @@ module type PARAM = sig
 
   type uri
 
-  val a_input_required : [`Required] -> Html5_types.input_attrib attrib list
+  val a_input_required : unit -> Html5_types.input_attrib attrib
 
-  val select_content_cons :
-    Html5_types.select_content elt ->
-    Html5_types.select_content elt list ->
-    Html5_types.select_content elt list
-  val a_select_required : [`Required] -> Html5_types.select_attrib attrib list
-
-  val hidden : input_type
-  val checkbox : input_type
-  val radio : input_type
-  val submit : input_type
-  val file : input_type
-  val image : input_type
-
-  val buttonsubmit : button_type
-
-  val map_optgroup :
-    ('a -> Html5_types.select_content elt) -> 'a -> 'a list ->
-    (Html5_types.select_content elt * Html5_types.select_content elt list)
+  val a_select_required : unit -> Html5_types.select_attrib attrib
 
   val select_content_of_option :
-    Html5_types.selectoption elt ->
-    Html5_types.select_content elt
+    Html5_types.selectoption elt -> Html5_types.select_content elt
 
   val make_pcdata : string -> Html5_types.pcdata elt
+
   val make_a :
     ?a:Html5_types.a_attrib attrib list -> ?href:uri -> 'a elt list ->
     [> 'a Html5_types.a] elt
+
   val make_get_form :
     ?a:Html5_types.form_attrib attrib list -> action:uri ->
     Html5_types.form_content elt list Eliom_lazy.request ->
     [> Html5_types.form] elt
+
   val make_post_form : ?a:Html5_types.form_attrib attrib list ->
     action:uri -> ?id:string -> ?inline:bool ->
     Html5_types.form_content elt list Eliom_lazy.request ->
     [> Html5_types.form] elt
+
   val cons_hidden_fieldset :
     Html5_types.input elt list ->
     Html5_types.form_content elt list ->
     Html5_types.form_content elt list
+
   val make_input :
     ?a:Html5_types.input_attrib attrib list ->
     ?checked:bool ->
@@ -87,6 +74,7 @@ module type PARAM = sig
     ?value:string ->
     unit ->
     [> Html5_types.input] elt
+
   val make_button :
     ?a:Html5_types.button_attrib attrib list ->
     button_type:[< button_type] ->
@@ -94,11 +82,13 @@ module type PARAM = sig
     ?value:string ->
     Html5_types.button_content elt list ->
     [> Html5_types.button] elt
+
   val make_textarea :
     ?a:Html5_types.textarea_attrib attrib list ->
     name:string -> ?value:string ->
     unit ->
     [> Html5_types.textarea] elt
+
   val make_select :
     ?a:Html5_types.select_attrib attrib list ->
     multiple:bool ->
@@ -106,18 +96,21 @@ module type PARAM = sig
     Html5_types.select_content elt ->
     Html5_types.select_content elt list ->
     [> Html5_types.select] elt
+
   val make_option :
     ?a:Html5_types.option_attrib attrib list ->
     selected:bool ->
     ?value:string ->
     Html5_types.pcdata elt ->
     Html5_types.selectoption elt
+
   val make_optgroup :
     ?a:[ Html5_types.common | `Disabled ] attrib list ->
     label:string ->
     Html5_types.selectoption elt ->
     Html5_types.selectoption elt list ->
     Html5_types.select_content elt
+
   val uri_of_string : (unit -> string) -> uri
 
   val make_css_link :
@@ -151,67 +144,77 @@ module type S = sig
 
   (** {3 Links and forms} *)
 
-  (** The function [make_uri service get_params] returns the URL of the
-      service [service] applied to the GET parameters [get_params]. By
-      default the returned URL is relative to the current request URL
-      but it is absolute when one of the following conditions is met:
+  (** The function [make_uri service get_params] returns the URL of
+      the service [service] applied to the GET parameters
+      [get_params]. By default the returned URL is relative to the
+      current request URL but it is absolute when one of the following
+      conditions is met:
 
       - the optional parameter [~absolute_path] is [true].
       - the optional parameter [~absolute] is [true].
-      - the optional parameter [~https] is [true] (resp. [false])
-      and the current request protocol is [http] (resp. [https]).
-      - the optional parameter [~https] is [true] and the
-      function is used outside of a service handler
+      - the optional parameter [~https] is [true] (resp. [false]) and
+        the current request protocol is [http] (resp. [https]).
+      - the optional parameter [~https] is [true] and the function is
+        used outside of a service handler
       - the [service] has been created with [~https:true] and the
-      current request protocol is [http].
+        current request protocol is [http].
       - the [service] has been created with [~https:true] and the
-      function is used outside of a service handler.
+        function is used outside of a service handler.
 
-      When only the first condition is met ([~absolute_path] is [true])
-      the returned URL is just the absolute path, but when any other
-      condition is satisfied the returned URL is prefixed with
+      When only the first condition is met ([~absolute_path] is
+      [true]) the returned URL is just the absolute path, but when any
+      other condition is satisfied the returned URL is prefixed with
       [protocol://hostname\[:port\]], where:
 
       - [protocol] is:
-      {ul {- [https] if the [service] has been created with [~https:true]
-      or the optional parameter [~https] is [true];}
-      {- [http] if  the optional parameter [~https] is [false];}
-      {- the current request protocol if available;}
-      {- [http] in any other case.}}
+        {ul {- [https] if the [service] has been created with
+             [~https:true] or the optional parameter [~https] is
+             [true];}
+            {- [http] if the optional parameter [~https] is [false];}
+            {- the current request protocol if available;}
+            {- [http] in any other case.}}
       - [hostname] is:
-      {ul {- the optional parameter [~hostname] if given;}
-      {- the attribute [defaulthostname] of [<host>] tag in
-      configuration file or the machine hostname
-      if the option [<usedefaulthostname/>] is set;}
-      {- the [Host] http header of the current request if available;}
-      {- the attribute [defaulthostname] of [<host>] tag in
-      configuration file or the machine hostname in any other case.}}
+        {ul {- the optional parameter [~hostname] if given;}
+            {- the attribute [defaulthostname] of [<host>] tag in
+               configuration file or the machine hostname if the
+               option [<usedefaulthostname/>] is set;}
+            {- the [Host] http header of the current request if
+               available;}
+            {- the attribute [defaulthostname] of [<host>] tag in
+               configuration file or the machine hostname in any other
+               case.}}
       - [port] is:
-      {ul {- the optional parameter [~port] if given;}
-      {- the attribute [defaulthttpsport] (resp. [defaulthttpport]) of [<host>] tag
-      in configuration file or [443] (resp. 80) if [protocol] is [https] (resp. [http]) and
-      the current request protocol is [http] (resp. [https]);}
-      {- the attribute [defaulthttpsport] (resp. [defaulthttpsport]) of [<host>] tag
-      in configuration file or [443] (resp. 80) if the option [<usedefaulthostname/>]
-      is set and [protocol] is [https] (resp. [http]);}
-      {- the port associated to the [Host] http header of the current
-      request if available;}
-      {- the incoming port of the current request if available;}
-      {- the attribute [defaulthttpport] (resp. [defaulthttpsport]) of [<host>] tag
-      in configuration file or [80] (resp. [443]) in any other case.}}
+        {ul {- the optional parameter [~port] if given;}
+            {- the attribute [defaulthttpsport]
+               (resp. [defaulthttpport]) of [<host>] tag in
+               configuration file or [443] (resp. 80) if [protocol] is
+               [https] (resp. [http]) and the current request protocol
+               is [http] (resp. [https]);}
+            {- the attribute [defaulthttpsport]
+               (resp. [defaulthttpsport]) of [<host>] tag in
+               configuration file or [443] (resp. 80) if the option
+               [<usedefaulthostname/>] is set and [protocol] is
+               [https] (resp. [http]);}
+            {- the port associated to the [Host] http header of the
+               current request if available;}
+            {- the incoming port of the current request if available;}
+            {- the attribute [defaulthttpport]
+               (resp. [defaulthttpsport]) of [<host>] tag in
+               configuration file or [80] (resp. [443]) in any other
+               case.}}
 
       If given the optional parameter [~fragment] is prefixed by [#]
       and appended to the URL.
 
-      The optional parameter [keep_nl_params] allows one to override the
-      [keep_nl_params] parameter used when creating the [service], see
-      {!Eliom_service.Http.service} for a detailled description.
+      The optional parameter [keep_nl_params] allows one to override
+      the [keep_nl_params] parameter used when creating the [service],
+      see {!Eliom_service.Http.service} for a detailled description.
 
-      The optional parameter [nl_params] allows one to add non localized
-      GET parameter to the URL.  See the eliom manual for more
-      information about {% <<a_manual chapter="server-params"
-      fragment="nonlocalizedparameters"|non localized parameters>>%}.
-  *)
+      The optional parameter [nl_params] allows one to add non
+      localized GET parameter to the URL.  See the eliom manual for
+      more information about {% <<a_manual chapter="server-params"
+      fragment="nonlocalizedparameters"|non localized
+      parameters>>%}.  *)
   val make_uri :
     ?absolute:bool ->
     ?absolute_path:bool ->
@@ -361,8 +364,8 @@ module type S = sig
       The optional parameter [~a] allows one to add extra HTML
       attributes to the generated node.
 
-      See {!make_uri} for description of other optional parameters.
-  *)
+      See {!make_uri} for description of other optional
+      parameters.  *)
   val a :
     ?absolute:bool ->
     ?absolute_path:bool ->
@@ -396,7 +399,6 @@ module type S = sig
   val css_link :
     ?a:Html5_types.link_attrib attrib list ->
     uri:uri -> unit -> [> Html5_types.link] elt
-
 
   (** The function [js_script ~uri ()] creates a [<script>] node that
       reference a javascript file.
@@ -436,8 +438,8 @@ module type S = sig
       The optional parameter [~a] allows one to add extra HTML
       attributes to the generated node.
 
-      See {!make_uri} for description of other optional parameters.
-  *)
+      See {!make_uri} for description of other optional
+      parameters.  *)
   val get_form :
     ?absolute:bool ->
     ?absolute_path:bool ->
@@ -473,7 +475,6 @@ module type S = sig
     ?xhr:bool ->
     ('gn -> Html5_types.form_content elt list Lwt.t) ->
     [> Html5_types.form ] elt Lwt.t
-
 
   (** The function [post_form service formgen get_params] creates a
       POST [<form>] to [service] preapplied to the GET parameters
@@ -528,9 +529,6 @@ module type S = sig
     ('pn -> Html5_types.form_content elt list Lwt.t) ->
     'get ->
     [> Html5_types.form ] elt Lwt.t
-
-
-
 
   (** {2:form_widgets Form widgets } *)
 

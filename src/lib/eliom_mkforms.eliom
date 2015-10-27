@@ -109,7 +109,7 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
 		(List.map
 		   (fun (n, v) ->
 		     Pages.make_input
-		       ~typ:Pages.hidden
+		       ~typ:`Hidden
 		       ~name:n ~value:(Eliommod_parameters.to_string v) ())
 		   hiddenparams)
 		inside)
@@ -165,7 +165,7 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
 		(List.map
 		   (fun (n,v) ->
 		     (Pages.make_input
-			~typ:Pages.hidden
+			~typ:`Hidden
 			~name:n ~value:(Eliommod_parameters.to_string v) ()))
 		   hiddenparams)
 	      inside) in
@@ -258,150 +258,150 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
            ())
 
   let file_input ?a ~name () =
-    Pages.make_input ?a ~typ:Pages.file ~name:(string_of_param_name name) ()
+    Pages.make_input ?a ~typ:`File ~name:(string_of_param_name name) ()
       (* value attribute not supported by browsers for security reasons *)
 
   let image_input ?a ~name ?src () =
     Pages.make_input
-      ?a ~typ:Pages.image
+      ?a ~typ:`Image
       ~name:(string_of_param_name name) ?src ()
       (* The behaviour of <input type="image"> without name attribute
 	 depends on browsers *)
 
   let int_image_input ?a ~name ~value ?src () =
-    gen_input ?a ~input_type:Pages.image ~name
+    gen_input ?a ~input_type:`Image ~name
       ~value ?src string_of_int
 
   let int32_image_input ?a ~name ~value ?src () =
-    gen_input ?a ~input_type:Pages.image ~name
+    gen_input ?a ~input_type:`Image ~name
       ~value ?src Int32.to_string
 
   let int64_image_input ?a ~name ~value ?src () =
-    gen_input ?a ~input_type:Pages.image ~name
+    gen_input ?a ~input_type:`Image ~name
       ~value ?src Int64.to_string
 
   let float_image_input ?a ~name ~value ?src () =
-    gen_input ?a ~input_type:Pages.image ~name
+    gen_input ?a ~input_type:`Image ~name
       ~value ?src Xml_print.string_of_number
 
   let string_image_input ?a ~name ~value ?src () =
-    gen_input ?a ~input_type:Pages.image ~name
+    gen_input ?a ~input_type:`Image ~name
       ~value ?src id
 
   let user_type_image_input string_of ?a ~name ~value ?src () =
-    gen_input ?a ~input_type:Pages.image ~name
+    gen_input ?a ~input_type:`Image ~name
       ~value ?src string_of
 
   let raw_image_input ?a ~(name : string) ~value ?src () =
     Pages.make_input
       ?a
       ~value
-      ~typ:Pages.image
+      ~typ:`Image
       ?src
       ~name
       ()
 
   let bool_checkbox ?a ?checked ~name () =
-    Pages.make_input ?a ?checked ~typ:Pages.checkbox
+    Pages.make_input ?a ?checked ~typ:`Checkbox
       ~name:(string_of_param_name name) ()
 
   let int_checkbox ?a ?checked ~name ~value () =
-    Pages.make_input ?a ?checked ~typ:Pages.checkbox
+    Pages.make_input ?a ?checked ~typ:`Checkbox
       ~name:(string_of_param_name name) ~value:(string_of_int value) ()
 
   let int32_checkbox ?a ?checked ~name ~value () =
-    Pages.make_input ?a ?checked ~typ:Pages.checkbox
+    Pages.make_input ?a ?checked ~typ:`Checkbox
       ~name:(string_of_param_name name) ~value:(Int32.to_string value) ()
 
   let int64_checkbox ?a ?checked ~name ~value () =
-    Pages.make_input ?a ?checked ~typ:Pages.checkbox
+    Pages.make_input ?a ?checked ~typ:`Checkbox
       ~name:(string_of_param_name name) ~value:(Int64.to_string value) ()
 
   let float_checkbox ?a ?checked ~name ~value () =
-    Pages.make_input ?a ?checked ~typ:Pages.checkbox
+    Pages.make_input ?a ?checked ~typ:`Checkbox
       ~name:(string_of_param_name name) ~value:(Xml_print.string_of_number value) ()
 
   let string_checkbox ?a ?checked ~name ~value () =
-    Pages.make_input ?a ?checked ~typ:Pages.checkbox
+    Pages.make_input ?a ?checked ~typ:`Checkbox
       ~name:(string_of_param_name name) ~value ()
 
   let user_type_checkbox string_of ?a ?checked ~name ~value () =
-    Pages.make_input ?a ?checked ~typ:Pages.checkbox
+    Pages.make_input ?a ?checked ~typ:`Checkbox
       ~name:(string_of_param_name name) ~value:(string_of value) ()
 
   let raw_checkbox ?a ?checked ~name ~value () =
-    Pages.make_input ?a ?checked ~typ:Pages.checkbox
+    Pages.make_input ?a ?checked ~typ:`Checkbox
       ~name:name ~value ()
 
 
   let string_radio ?a ?checked ~name ~value () =
     Pages.make_input
-      ?a ?checked ~typ:Pages.radio
+      ?a ?checked ~typ:`Radio
       ~name:(string_of_param_name name) ~value ()
 
   let string_radio_required ?a ?checked ~name ~value () =
     let a =
-      let required = Pages.a_input_required `Required in
+      let required = Pages.a_input_required () in
       match a with
-        | None -> required
-        | Some a -> List.append required a
+        | None -> [required]
+        | Some a -> required :: a
     in
     Pages.make_input
-      ~a ?checked ~typ:Pages.radio
+      ~a ?checked ~typ:`Radio
       ~name:(string_of_param_name name) ~value ()
 
   let int_radio ?a ?checked ~name ~value () =
     Pages.make_input
-      ?a ?checked ~typ:Pages.radio
+      ?a ?checked ~typ:`Radio
       ~name:(string_of_param_name name) ~value:(string_of_int value) ()
 
   let int32_radio ?a ?checked ~name ~value () =
     Pages.make_input
-      ?a ?checked ~typ:Pages.radio
+      ?a ?checked ~typ:`Radio
       ~name:(string_of_param_name name) ~value:(Int32.to_string value) ()
 
   let int64_radio ?a ?checked ~name ~value () =
     Pages.make_input
-      ?a ?checked ~typ:Pages.radio
+      ?a ?checked ~typ:`Radio
       ~name:(string_of_param_name name) ~value:(Int64.to_string value) ()
 
   let float_radio ?a ?checked ~name ~value () =
     Pages.make_input
-      ?a ?checked ~typ:Pages.radio
+      ?a ?checked ~typ:`Radio
       ~name:(string_of_param_name name) ~value:(Xml_print.string_of_number value) ()
 
   let user_type_radio string_of ?a ?checked ~name ~value () =
     Pages.make_input
-      ?a ?checked ~typ:Pages.radio
+      ?a ?checked ~typ:`Radio
       ~name:(string_of_param_name name) ~value:(string_of value) ()
 
   let raw_radio ?a ?checked ~(name : string) ~value () =
     Pages.make_input
-      ?a ?checked ~typ:Pages.radio
+      ?a ?checked ~typ:`Radio
       ~name:name ~value:value ()
 
   let string_button ?a ~name ~value c =
-    Pages.make_button ?a ~button_type:Pages.buttonsubmit
+    Pages.make_button ?a ~button_type:`Submit
       ~name:(string_of_param_name name) ~value c
 
   let int_button ?a ~name ~value c =
-    Pages.make_button ?a ~button_type:Pages.buttonsubmit
+    Pages.make_button ?a ~button_type:`Submit
       ~name:(string_of_param_name name) ~value:(string_of_int value) c
 
   let int32_button ?a ~name ~value c =
-    Pages.make_button ?a ~button_type:Pages.buttonsubmit
+    Pages.make_button ?a ~button_type:`Submit
       ~name:(string_of_param_name name) ~value:(Int32.to_string value) c
 
   let int64_button ?a ~name ~value c =
-    Pages.make_button ?a ~button_type:Pages.buttonsubmit
+    Pages.make_button ?a ~button_type:`Submit
       ~name:(string_of_param_name name) ~value:(Int64.to_string value) c
 
   let float_button ?a ~name ~value c =
-    Pages.make_button ?a ~button_type:Pages.buttonsubmit
+    Pages.make_button ?a ~button_type:`Submit
       ~name:(string_of_param_name name) ~value:(Xml_print.string_of_number value) c
 
   let user_type_button string_of ?a ~name ~value c =
-    Pages.make_button ?a ~button_type:Pages.buttonsubmit
+    Pages.make_button ?a ~button_type:`Submit
       ~name:(string_of_param_name name) ~value:(string_of value) c
 
   let raw_button ?a ~button_type ~name ~value c =
@@ -439,10 +439,10 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
     let a = match required with
       | None -> a
       | Some _ ->
-        let required = Pages.a_select_required `Required in
+        let required = Pages.a_select_required () in
         match a with
-        | Some a -> Some (List.append required a)
-        | None -> Some required
+        | Some a -> Some (required :: a)
+        | None -> Some [required]
     in
 
     let normalize_selected l =
@@ -512,12 +512,13 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
            ~value:(string_of cv) c)
     in
     let make_optg = function
-      | Option o -> Pages.select_content_of_option (make_opt o)
+      | Option o ->
+        Pages.select_content_of_option (make_opt o)
       | Optgroup (a, label, og1, ogl) ->
-          Pages.make_optgroup
-            ~a ~label (make_opt og1) (List.map make_opt ogl)
+        Pages.make_optgroup
+          ~a ~label (make_opt og1) (List.map make_opt ogl)
     in
-    let fl2, ol2 = Pages.map_optgroup make_optg fl ol in
+    let fl2, ol2 = make_optg fl, List.map make_optg ol in
     let fl3, ol3 =
       match required with
       | None -> fl2, ol2
@@ -526,7 +527,7 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
           Pages.make_option ~selected:(not has_selected) ~value:"" label
         in
         Pages.select_content_of_option placeholder,
-        Pages.select_content_cons fl2 ol2
+        fl2 :: ol2
     in
     Pages.make_select ?a ~multiple ~name fl3 ol3
 
