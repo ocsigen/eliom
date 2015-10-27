@@ -195,3 +195,5 @@ module Pass = struct
   let client_sig _    = []
 
 end
+
+include Ppx_eliom.Make(Pass)

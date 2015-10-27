@@ -224,3 +224,5 @@ module Pass = struct
   let postlude _ = []
 
 end
+
+include Ppx_eliom.Make(Pass)

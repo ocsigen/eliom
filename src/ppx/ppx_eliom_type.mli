@@ -1,2 +1,2 @@
 
-module Pass : Ppx_eliom.Pass
+val mapper : string list -> Ast_mapper.mapper

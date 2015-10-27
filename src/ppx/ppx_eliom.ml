@@ -335,8 +335,7 @@ module Shared = struct
     ] [@metaloc loc]
 end
 
-
-module Register (Pass : Pass) = struct
+module Make (Pass : Pass) = struct
 
   let eliom_expr (context : Context.t ref) mapper expr =
     let loc = expr.pexp_loc in

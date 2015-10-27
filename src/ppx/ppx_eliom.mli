@@ -73,6 +73,6 @@ module type Pass = sig
 
 end
 
-module Register (P : Pass) : sig
-  val mapper : 'a -> Ast_mapper.mapper
+module Make (P : Pass) : sig
+  val mapper : string list -> Ast_mapper.mapper
 end
