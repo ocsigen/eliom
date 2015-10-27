@@ -42,7 +42,7 @@ true:keep_locs
 <syntax/pa_*.ml{,i}>: syntax(camlp4o),package(camlp4.quotations.o,camlp4.extend)
 <syntax/pa_*.ml{,i}>: I(+camlp4/Camlp4Parsers)
 
-<ppx/ppx_*.ml{,i}>: package(ppx_tools, compiler-libs.common, ppx_tools.metaquot)
+<ppx/**/*>: package(ppx_tools, compiler-libs.common, ppx_tools.metaquot)
 
 <ocamlbuild/ocamlbuild_eliom.ml{,i}>: package(ocamlbuild,js_of_ocaml.ocamlbuild)
 <ocamlbuild/ocamlbuild_eliom.ml>: syntax(camlp4o), package(optcomp)

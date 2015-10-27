@@ -81,10 +81,14 @@ let () =
     Pkg.lib ~exts:exts_modlib ~dst:"ocamlbuild/ocamlbuild_eliom" "src/ocamlbuild/ocamlbuild_eliom";
 
     (* PPX *)
-    Pkg.lib ~exts:exts_modlib ~dst:"ppx/ppx_eliom" "src/ppx/ppx_eliom";
-    Pkg.lib ~exts:exts_modlib ~dst:"ppx/ppx_eliom_client" "src/ppx/ppx_eliom_client";
-    Pkg.lib ~exts:exts_modlib ~dst:"ppx/ppx_eliom_type" "src/ppx/ppx_eliom_type";
-    Pkg.lib ~exts:exts_modlib ~dst:"ppx/ppx_eliom_server" "src/ppx/ppx_eliom_server";
+    Pkg.lib ~exts:Exts.module_library ~dst:"ppx/ppx_eliom" "src/ppx/ppx_eliom";
+    Pkg.lib ~exts:Exts.module_library ~dst:"ppx/ppx_eliom_client" "src/ppx/ppx_eliom_client";
+    Pkg.lib ~exts:Exts.module_library ~dst:"ppx/ppx_eliom_type" "src/ppx/ppx_eliom_type";
+    Pkg.lib ~exts:Exts.module_library ~dst:"ppx/ppx_eliom_server" "src/ppx/ppx_eliom_server";
+
+    Pkg.bin ~auto:true ~dst:"ppx_eliom_client" "src/ppx/ppx_eliom_client_ex" ;
+    Pkg.bin ~auto:true ~dst:"ppx_eliom_server" "src/ppx/ppx_eliom_server_ex" ;
+    Pkg.bin ~auto:true ~dst:"ppx_eliom_types" "src/ppx/ppx_eliom_types_ex" ;
 
   ] @ (
     (* CLIENT LIBS *)
