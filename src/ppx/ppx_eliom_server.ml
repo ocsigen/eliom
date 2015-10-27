@@ -111,9 +111,9 @@ module Pass = struct
            let eid = Ppx_eliom.eid {txt;loc} in
            let ident = match ident with
              | None -> [%expr None]
-             | Some i -> [%expr Some [%e AC.evar i ]] in
+             | Some i -> [%expr Some [%e AC.str i ]] in
            [%expr
-             ([%e eid ],
+             ([%e AC.str txt],
               (fun () -> Eliom_lib.to_poly [%e eid ]),
               [%e loc_expr], [%e ident ]) :: [%e sofar ]
            ])
@@ -124,7 +124,7 @@ module Pass = struct
     [%stri
       let () =
         Eliom_service.Syntax_helpers.close_client_section
-          [%e Exp.constant (Const_string (s,None)) ]
+          [%e AC.str s ]
           [%e injection_list ]
     ][@metaloc loc]
 
@@ -184,7 +184,9 @@ module Pass = struct
       Ppx_eliom.eid id
 
   let set_global ~loc b =
-    let b = Exp.variant ~loc (if b then "true" else "false") None in
+    let b = Exp.construct ~loc
+        {loc ; txt = Longident.Lident (if b then "true" else "false")} None
+    in
     [%stri let () = Eliom_service.Syntax_helpers.set_global [%e b ] ]
 
   let prelude loc = [ set_global ~loc true ]

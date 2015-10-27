@@ -120,11 +120,11 @@ module Name = struct
       let s = Printf.sprintf injected_ident_fmt hash !r in
       {Location. txt = s ; loc }
     in
-    let gen_injected_ident loc expr =
-      try List.assoc expr !injected_idents
+    let gen_injected_ident loc (s:string) =
+      try List.assoc s !injected_idents
       with Not_found ->
         let gen_id = gen_ident loc in
-        injected_idents := (expr, gen_id) :: !injected_idents;
+        injected_idents := (s, gen_id) :: !injected_idents;
         gen_id
     in
     gen_ident, gen_injected_ident
@@ -344,13 +344,13 @@ module Make (Pass : Pass) = struct
     | ([%expr [%client [%e? _ ]]] | [%expr [%shared [%e? _ ]]])
     , `Client ->
       let side = get_extension expr in
-      Location.raise_errorf ~loc
+      Exp.extension @@ AM.extension_of_error @@ Location.errorf ~loc
         "The syntax [%%%s ...] is not allowed inside client code."
         side
     | ([%expr [%client [%e? _ ]]] | [%expr [%shared [%e? _ ]]])
     , (`Fragment _ | `Escaped_value _ | `Injection _) ->
       let side = get_extension expr in
-      Location.raise_errorf ~loc
+      Exp.extension @@ AM.extension_of_error @@ Location.errorf ~loc
         "The syntax [%%%s ...] can not be nested."
         side
 
@@ -359,9 +359,9 @@ module Make (Pass : Pass) = struct
       mapper.AM.expr mapper @@ exp_add_attrs e attr
 
     | [%expr [%client [%e? side_val ]]], (`Server | `Shared as c) ->
-      let (side_val, typ) = match side_val with
+      let side_val, typ = match side_val with
         | [%expr ([%e? cval]:[%t? typ]) ] -> (cval, Some typ)
-        | _ -> (expr, None)
+        | _ -> (side_val, None)
       in
       let num = Name.fragment_num side_val.pexp_loc in
       let id = Location.mkloc (Name.fragment_ident num) side_val.pexp_loc in
@@ -376,7 +376,10 @@ module Make (Pass : Pass) = struct
       in
       begin match !context with
         | `Client | `Shared as c ->
-          let id = Name.injected_ident loc inj in
+          let id = match ident with
+            | Some i -> Name.injected_ident loc i
+            | None -> Name.injected_expr loc
+          in
           let new_context = `Injection c in
           in_context context new_context
             (Pass.escape_inject ?ident ~context:new_context ~id %
