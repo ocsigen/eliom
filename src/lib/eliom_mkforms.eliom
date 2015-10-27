@@ -27,6 +27,10 @@ open Eliom_uri
 
 module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
 
+  type +'a elt = 'a Pages.elt
+
+  type +'a attrib = 'a Pages.attrib
+
   type uri = Pages.uri
 
   (** Functions to construct web pages: *)

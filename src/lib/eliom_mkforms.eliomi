@@ -26,8 +26,8 @@
 
 module MakeForms(Pages: Eliom_form_sigs.PARAM) :
   Eliom_form_sigs.S
-  with type +'a elt := 'a Pages.elt
-   and type +'a attrib := 'a Pages.attrib
-   and type uri = Pages.uri
+  with type +'a elt = 'a Pages.elt
+   and type +'a attrib = 'a Pages.attrib
+   and type uri := Pages.uri
 
 }}

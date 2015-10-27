@@ -51,7 +51,18 @@ module Html5 = struct
 
   module F = struct
     include Html5.F
-    include Eliom_form.Html5_forms.F
+    include
+      Eliom_form.Make(struct
+        include Html5.F
+        module Svg = Eliom_content_core.Svg.F
+        let uri_of_fun = Eliom_content_core.Xml.uri_of_fun
+        let attrib_of_service s info =
+          Eliom_content_core.
+            (Html5.F.to_attrib
+               (Xml.internal_event_handler_attrib
+                  s (Xml.internal_event_handler_of_service info)))
+        let attrib_onclick = Eliom_content_core.Html5.F.a_onclick
+      end)
     let raw_form = form
     let form = get_form
     let input = string_input
@@ -60,7 +71,18 @@ module Html5 = struct
 
   module D = struct
     include Html5.D
-    include Eliom_form.Html5_forms.D
+    include
+      Eliom_form.Make(struct
+        include Html5.D
+        module Svg = Eliom_content_core.Svg.D
+        let uri_of_fun = Eliom_content_core.Xml.uri_of_fun
+        let attrib_of_service s info =
+          Eliom_content_core.
+            (Html5.D.to_attrib
+               (Xml.internal_event_handler_attrib
+                  s (Xml.internal_event_handler_of_service info)))
+        let attrib_onclick = Eliom_content_core.Html5.D.a_onclick
+      end)
     let raw_form = form
     let form = get_form
     let input = string_input
