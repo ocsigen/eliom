@@ -51,7 +51,7 @@ module Html5 = struct
 
   module F = struct
     include Html5.F
-    include Eliom_registration_base.Html5_forms.F
+    include Eliom_form.Html5_forms.F
     let raw_form = form
     let form = get_form
     let input = string_input
@@ -60,7 +60,7 @@ module Html5 = struct
 
   module D = struct
     include Html5.D
-    include Eliom_registration_base.Html5_forms.D
+    include Eliom_form.Html5_forms.D
     let raw_form = form
     let form = get_form
     let input = string_input

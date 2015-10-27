@@ -43,12 +43,12 @@ let server = {
     "eliom_content_core";
     "eliom_cookies_base";
     "eliom_error_pages";
+    "eliom_form";
     "eliom_lazy";
     "eliom_lib_base";
     "eliom_parameter_base";
     "eliom_pervasives_base";
     "eliom_process";
-    "eliom_registration_base";
     "eliom_service_base";
     "eliom_shared_content";
     "eliom_types_base";
@@ -103,11 +103,11 @@ let client = {
     "eliom_common_base";
     "eliom_content_";
     "eliom_cookies_base";
+    "eliom_form";
     "eliom_lib_base";
     "eliom_parameter_base";
     "eliom_pervasives_base";
     "eliom_process";
-    "eliom_registration_base";
     "eliom_request";
     "eliom_request_info";
     "eliom_service_base";
