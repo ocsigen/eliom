@@ -20,7 +20,7 @@
 
 {shared{
 
-module type S = sig
+module type Html5_core = sig
 
   include Html5_sigs.T
     with type 'a Xml.W.t = 'a
@@ -57,12 +57,12 @@ module type Attribs = sig
 
 end
 
-module type S_with_attribs = sig
-  include S
+module type Html5 = sig
+  include Html5_core
   include Attribs with type +'a attrib := 'a attrib
 end
 
-module Html5_forms_base (Html5 : S) = struct
+module Html5_forms_base (Html5 : Html5_core) = struct
 
   type +'a elt = 'a Html5.elt
   type +'a attrib = 'a Html5.attrib
@@ -318,13 +318,20 @@ module MakeApplForms
 
 end
 
-module Make (H : S_with_attribs) = struct
-  include MakeApplForms(struct
-      include Eliom_mkforms.MakeForms(Html5_forms_base(H))
-      let attrib_of_service = H.attrib_of_service
-      let attrib_onclick = H.attrib_onclick
-      type uri = H.uri
-    end)
-end
+(* Multi-argument functors would be nicer, but they trigger a Camlp4
+   issue. A multi-argument functor would result in the following
+   construct
+
+     functor (A : S) (B : T) -> ...
+
+   appearing in the inferred.mli file. Camlp4 cannot parse that. *)
+
+module Make (H : Html5) =
+  MakeApplForms(struct
+    include Eliom_mkforms.MakeForms(Html5_forms_base(H))
+    let attrib_of_service = H.attrib_of_service
+    let attrib_onclick = H.attrib_onclick
+    type uri = H.uri
+  end)
 
 }}

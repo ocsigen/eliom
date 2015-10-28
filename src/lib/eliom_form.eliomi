@@ -20,7 +20,7 @@
 
 {shared{
 
-module Make (S : sig
+module type Html5 = sig
 
   include Html5_sigs.T
     with type 'a Xml.W.t = 'a
@@ -31,7 +31,7 @@ module Make (S : sig
     ('b elt) list Eliom_lazy.request ->
     'c elt
 
-  val lazy_form:
+  val lazy_form :
     ([< Html5_types.form_attrib ],
      [< Html5_types.form_content_fun ],
      [> Html5_types.form ]) lazy_star
@@ -49,10 +49,12 @@ module Make (S : sig
     (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value ->
     Html5_types.a_attrib attrib
 
-  end) :
-  (Eliom_form_sigs.S
-   with type +'a elt := 'a S.elt
-    and type +'a attrib := 'a S.attrib
-    and type uri := S.uri)
+end
+
+module Make (H : Html5) :
+  Eliom_form_sigs.S
+  with type +'a elt := 'a H.elt
+   and type +'a attrib := 'a H.attrib
+   and type uri := H.uri
 
 }}
