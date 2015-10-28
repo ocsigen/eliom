@@ -20,7 +20,7 @@ let usage () =
   Printf.eprintf "  -dir <dir>\t\tThe directory for generated files (default %S)\n"
     (if !kind = `Client then default_client_dir else default_server_dir);
   Printf.eprintf "  -type-dir <dir>\tThe directory to read server type files from (default %S)\n"
-     default_type_dir;
+    default_type_dir;
   Printf.eprintf "  -server-types-ext <ext> The extension for server type files (default %S)\n"
     default_server_types_ext;
   if !kind = `Client then
@@ -55,15 +55,15 @@ let rec check_or_create_dir name =
     try ignore(Unix.stat name) with Unix.Unix_error _ ->
       check_or_create_dir (Filename.dirname name);
       try Unix.mkdir name 0o777 with
-        (* this append sometime with // compilation *)
-        | Unix.Unix_error (Unix.EEXIST,_,_) -> ()
-        | Unix.Unix_error (_,_,_) ->
-          Printf.eprintf "Unexpected error while creating directory %S" name
+      (* this append sometime with // compilation *)
+      | Unix.Unix_error (Unix.EEXIST,_,_) -> ()
+      | Unix.Unix_error (_,_,_) ->
+        Printf.eprintf "Unexpected error while creating directory %S" name
 
 let prefix_output_dir name =
   match !build_dir with
-    | "" -> name
-    | d -> d ^ "/" ^ name
+  | "" -> name
+  | d -> d ^ "/" ^ name
 
 let chop_extension_if_any name =
   try Filename.chop_extension name with Invalid_argument _ -> name
@@ -72,66 +72,70 @@ let output_prefix ?(ty = false) name =
   let name =
     match !output_name with
     | None ->
-	if !mode = `Infer || ty
-	then prefix_type_dir name
-	else prefix_output_dir name
+      if !mode = `Infer || ty
+      then prefix_type_dir name
+      else prefix_output_dir name
     | Some n ->
-	if !mode = `Compile || !mode = `Infer
-	then (output_name := None; n)
-	else prefix_output_dir name in
+      if !mode = `Compile || !mode = `Infer
+      then (output_name := None; n)
+      else prefix_output_dir name in
   check_or_create_dir (Filename.dirname name);
   chop_extension_if_any name
 
 let set_mode m =
- if !mode = `Link then
-   ( if
-       (m = `Shared && !kind <> `ServerOpt) ||
-       (m = `Infer && !kind = `Client) ||
-       (m = `Interface && !kind = `Client)
-     then
-       usage ()
-     else
-       mode := m )
- else
-   let args =
-     let basic_args = ["-pack"; "-a"; "-c"; "output-obj"] in
-     let infer_args = if !kind <> `Client then ["-i"; "-infer"] else [] in
-     let shared_args = if !kind <> `ServerOpt then ["-shared"] else [] in
-     basic_args @ infer_args @ shared_args
-   in
-   Printf.eprintf
-     "Please specify at most one of %s\n%!"
-     (String.concat ", " args);
-  exit 1
+  if !mode = `Link then
+    ( if
+      (m = `Shared && !kind <> `ServerOpt) ||
+      (m = `Infer && !kind = `Client) ||
+      (m = `Interface && !kind = `Client)
+      then
+        usage ()
+      else
+        mode := m )
+  else
+    let args =
+      let basic_args = ["-pack"; "-a"; "-c"; "output-obj"] in
+      let infer_args = if !kind <> `Client then ["-i"; "-infer"] else [] in
+      let shared_args = if !kind <> `ServerOpt then ["-shared"] else [] in
+      basic_args @ infer_args @ shared_args
+    in
+    Printf.eprintf
+      "Please specify at most one of %s\n%!"
+      (String.concat ", " args);
+    exit 1
 
 let get_product_name () = match !output_name with
   | None ->
-      Printf.eprintf
-	"Please specify the name of the output file, using option -o\n%!";
-      exit 1
+    Printf.eprintf
+      "Please specify the name of the output file, using option -o\n%!";
+    exit 1
   | Some name ->
-      check_or_create_dir (Filename.dirname name);
-      name
+    check_or_create_dir (Filename.dirname name);
+    name
 
 let build_library () =
-  create_process !compiler ( ["-a" ; "-o"  ; get_product_name () ]
-			     @ get_common_include ()
-			     @ !args )
+  create_process !compiler (
+    ["-a" ; "-o"  ; get_product_name () ]
+    @ get_common_include ()
+    @ !args )
 
 let build_pack () =
-  create_process !compiler ( [ "-pack" ; "-o"  ; get_product_name () ]
-			     @ get_common_include ()
-			     @ !args )
+  create_process !compiler (
+    [ "-pack" ; "-o"  ; get_product_name () ]
+    @ get_common_include ()
+    @ !args )
 
 let build_obj () =
-  create_process !compiler ( ["-output-obj" ; "-o"  ; get_product_name () ]
-			     @ get_common_include ()
-			     @ !args )
+  create_process !compiler (
+    ["-output-obj" ; "-o"  ; get_product_name () ]
+    @ get_common_include ()
+    @ !args )
 
 let build_shared () =
-  create_process !compiler ( ["-shared" ; "-o"  ; get_product_name () ]
-			     @ get_common_include ()
-			     @ !args )
+  create_process !compiler (
+    ["-shared" ; "-o"  ; get_product_name () ]
+    @ get_common_include ()
+    @ !args )
 
 let get_thread_opt () = match !kind with
   | `Client -> []
@@ -148,18 +152,20 @@ let compile_ocaml ~impl_intf file =
       | `Intf -> ".cmi"
     in
     output_prefix file ^ ext in
-  create_process !compiler ( ["-c" ;
-                              "-o" ; obj ;
-                              "-pp"; get_pp [] !ppopt]
-                             @ !args
-			     @ get_thread_opt ()
-			     @ get_common_include ()
-			     @ [impl_intf_opt impl_intf; file] )
+  create_process !compiler (
+    ["-c" ;
+     "-o" ; obj ;
+     "-pp"; get_pp [] !ppopt]
+    @ !args
+    @ get_thread_opt ()
+    @ get_common_include ()
+    @ [impl_intf_opt impl_intf; file] )
 
 let output_ocaml_interface file =
-    create_process !compiler ( ["-i"; "-pp"; get_pp [] !ppopt] @ !args
-                               @ get_common_include ()
-                               @ [file] )
+  create_process !compiler (
+    ["-i"; "-pp"; get_pp [] !ppopt] @ !args
+    @ get_common_include ()
+    @ [file] )
 
 let process_ocaml ~impl_intf file =
   if do_compile () then
@@ -196,11 +202,11 @@ let compile_server_type_eliom file =
     Unix.close out;
     Sys.remove obj
   in
-  create_process ~out ~on_error
-    !compiler ( [ "-i" ; "-pp"; get_pp ["eliom.syntax.type"] ppopts]
-		@ !args
-    		@ get_common_include ()
-		@ ["-impl"; file] );
+  create_process ~out ~on_error !compiler (
+    [ "-i" ; "-pp"; get_pp ["eliom.syntax.type"] ppopts]
+    @ !args
+    @ get_common_include ()
+    @ ["-impl"; file] );
   Unix.close out
 
 let output_eliom_interface ~impl_intf file =
@@ -246,43 +252,46 @@ let compile_eliom ~impl_intf file =
     create_process camlp4 ppopt;
     exit 0
   end;
-  create_process !compiler ( [ "-c" ;
-                               "-o"  ; obj ;
-                               "-pp" ; get_pp pkg ppopts;
-                               "-intf-suffix"; ".eliomi" ]
-                             @ get_thread_opt ()
-			     @ !args
-			     @ get_common_include ()
-			     @ [impl_intf_opt impl_intf; file] );
+  create_process !compiler (
+    [ "-c" ;
+      "-o"  ; obj ;
+      "-pp" ; get_pp pkg ppopts;
+      "-intf-suffix"; ".eliomi" ]
+    @ get_thread_opt ()
+    @ !args
+    @ get_common_include ()
+    @ [impl_intf_opt impl_intf; file] );
   args := !args @ [obj]
 
 let process_eliom ~impl_intf file =
   match !mode with
   | `Infer when impl_intf = `Impl ->
-      compile_server_type_eliom file
+    compile_server_type_eliom file
   | `Interface ->
-      output_eliom_interface ~impl_intf file
+    output_eliom_interface ~impl_intf file
   | _ ->
-      compile_eliom ~impl_intf file
+    compile_eliom ~impl_intf file
 
 let build_server ?(name = "a.out") () =
   fail "Linking eliom server is not yet supported"
-  (* TODO ? Build a staticaly linked ocsigenserver. *)
+(* TODO ? Build a staticaly linked ocsigenserver. *)
 
 let build_client () =
   let name = chop_extension_if_any (get_product_name ()) in
   let exe = prefix_output_dir (Filename.basename name) in
   check_or_create_dir (Filename.dirname exe);
   let js = name ^ ".js" in
-  create_process !compiler ( ["-o"  ;  exe ]
-           @ link_all ()
-			     @ get_common_include ()
-			     @ get_client_lib ()
-			     @ !args );
-  create_process !js_of_ocaml ( ["-o" ; js ]
-				@ get_client_js ()
-				@ !jsopt
-				@ [exe] )
+  create_process !compiler (
+    ["-o"  ;  exe ]
+    @ link_all ()
+    @ get_common_include ()
+    @ get_client_lib ()
+    @ !args );
+  create_process !js_of_ocaml (
+    ["-o" ; js ]
+    @ get_client_js ()
+    @ !jsopt
+    @ [exe] )
 
 let process_option () =
   let i = ref 1 in
@@ -386,26 +395,26 @@ let main () =
   let k =
     match cmd with
     | "eliomopt" ->
-	    compiler := ocamlopt;
-	    build_dir := default_server_dir;
-	    `ServerOpt
+      compiler := ocamlopt;
+      build_dir := default_server_dir;
+      `ServerOpt
     | "eliomcp" ->
-	    compiler := ocamlcp;
-	    build_dir := default_server_dir;
-	    `Server
+      compiler := ocamlcp;
+      build_dir := default_server_dir;
+      `Server
     | "js_of_eliom" ->
-	    compiler := ocamlc;
-	    build_dir := default_client_dir;
-	    `Client
+      compiler := ocamlc;
+      build_dir := default_client_dir;
+      `Client
     | "eliomc" ->
-	    compiler := ocamlc;
-	    build_dir := default_server_dir;
-	    `Server
+      compiler := ocamlc;
+      build_dir := default_server_dir;
+      `Server
     | s ->
       Format.eprintf "exec name not recognize %S: fallback to ocamlc@." s;
-  	  compiler := ocamlc;
-	    build_dir := default_server_dir;
-	    `Server
+      compiler := ocamlc;
+      build_dir := default_server_dir;
+      `Server
   in
   kind := k;
   process_option ()
