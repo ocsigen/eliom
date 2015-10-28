@@ -323,30 +323,62 @@ module Html5 : sig
 
     (** {2 Forms} *)
 
-    include "sigs/eliom_html5_forms2.mli"
+    include Eliom_form_sigs.S
+      with type +'a elt := 'a elt
+       and type +'a attrib := 'a attrib
+       and type uri := uri
 
     (** Creates an untyped form. *)
-    val raw_form : ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) star
+    val raw_form :
+      ([< Html5_types.form_attrib ],
+       [< Html5_types.form_content_fun ],
+       [> Html5_types.form ]) star
 
-    (** This is an alias to {% <<a_api|val Eliom_content.Html5.F.get_form>> %}
-        to avoid the untyped [Eliom_content.Html5.F.form]. *)
-    val form : ?absolute:bool -> ?absolute_path:bool -> ?https:bool -> ?a:Html5_types.form_attrib attrib list ->
-      service:('get, unit, [< get_service_kind ], _, _, [<suff ], 'gn, 'pn, [< registrable ], [< non_ocaml_service ]) service ->
-      ?hostname:string -> ?port:int -> ?fragment:string -> ?keep_nl_params:[ `All | `Persistent | `None ] ->
-      ?nl_params: Eliom_parameter.nl_params_set -> ?xhr:bool ->
-      ('gn -> Html5_types.form_content elt list) -> [> Html5_types.form ] elt
+    (** This is an alias to {% <<a_api|val
+        Eliom_content.Html5.F.get_form>> %} to avoid the untyped
+        [Eliom_content.Html5.F.form]. *)
+    val form :
+      ?absolute:bool -> ?absolute_path:bool -> ?https:bool
+      -> ?a:Html5_types.form_attrib attrib list ->
+      service:
+        ('get, unit,
+         [< Eliom_service.get_service_kind],
+         _, _,
+         [< Eliom_service.suff],
+         'gn, 'pn,
+         [< Eliom_service.registrable],
+         [< Eliom_service.non_ocaml_service ]) Eliom_service.service ->
+      ?hostname:string ->
+      ?port:int ->
+      ?fragment:string ->
+      ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameter.nl_params_set ->
+      ?xhr:bool ->
+      ('gn -> Html5_types.form_content elt list) ->
+      [> Html5_types.form ] elt
 
-    (** This is an alias to {% <<a_api|val Eliom_content.Html5.F.string_input>>
-        %} to avoid the untyped [Eliom_content.Html5.F.input]. *)
-    val input : ?a:Html5_types.input_attrib attrib list -> input_type:[<
-        | `Url | `Tel | `Text | `Time | `Search | `Password | `Checkbox | `Range | `Radio | `Submit | `Reset | `Number | `Hidden
-        | `Month | `Week | `File | `Email | `Image | `Datetime_local | `Datetime | `Date | `Color | `Button]
-      -> ?name:[< string setoneradio ] param_name -> ?value:string -> unit -> [> Html5_types.input ] elt
+    (** This is an alias to {% <<a_api|val
+        Eliom_content.Html5.F.string_input>> %} to avoid the untyped
+        [Eliom_content.Html5.F.input]. *)
+    val input :
+      ?a:Html5_types.input_attrib attrib list ->
+      input_type:[< Eliom_form_sigs.input_type] ->
+      ?name:
+        [< string Eliom_parameter.setoneradio]
+        Eliom_parameter.param_name ->
+      ?value:string ->
+      unit ->
+      [> Html5_types.input ] elt
 
-    (** This is an alias to
-        {% <<a_api|val Eliom_content.Html5.F.string_select>> %}
-        to avoid the untyped [Eliom_content.Html5.F.select]. *)
-    val select : ?a:Html5_types.select_attrib attrib list -> name:[ `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt
+    (** This is an alias to {% <<a_api|val
+        Eliom_content.Html5.F.string_select>> %} to avoid the untyped
+        [Eliom_content.Html5.F.select]. *)
+    val select :
+      ?a:Html5_types.select_attrib attrib list ->
+      name:[ `One of string ] Eliom_parameter.param_name ->
+      string select_opt ->
+      string select_opt list ->
+      [> Html5_types.select ] elt
 
   end
 
@@ -377,33 +409,63 @@ module Html5 : sig
       ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_star
     (**/**)
 
-
     (** {2 Forms} *)
-    include "sigs/eliom_html5_forms2.mli"
+    include Eliom_form_sigs.S
+      with type +'a elt := 'a elt
+       and type +'a attrib := 'a attrib
+       and type uri := uri
 
     (** Creates an untyped form. *)
-    val raw_form : ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) star
+    val raw_form :
+      ([< Html5_types.form_attrib ],
+       [< Html5_types.form_content_fun ],
+       [> Html5_types.form ]) star
 
-    (** This is an alias to {% <<a_api|val Eliom_content.Html5.D.get_form>> %}
-        to avoid the untyped [Eliom_content.Html5.D.form]. *)
-    val form : ?absolute:bool -> ?absolute_path:bool -> ?https:bool -> ?a:Html5_types.form_attrib attrib list ->
-      service:('get, unit, [< get_service_kind ], _, _, [<suff ], 'gn, 'pn, [< registrable ], [< non_ocaml_service ]) service ->
-      ?hostname:string -> ?port:int -> ?fragment:string -> ?keep_nl_params:[ `All | `Persistent | `None ] ->
-      ?nl_params: Eliom_parameter.nl_params_set -> ?xhr:bool ->
-      ('gn -> Html5_types.form_content elt list) -> [> Html5_types.form ] elt
+    (** This is an alias to {% <<a_api|val
+        Eliom_content.Html5.D.get_form>> %} to avoid the untyped
+        [Eliom_content.Html5.D.form]. *)
+    val form :
+      ?absolute:bool -> ?absolute_path:bool -> ?https:bool ->
+      ?a:Html5_types.form_attrib attrib list ->
+      service:
+        ('get, unit,
+         [< Eliom_service.get_service_kind],
+         _, _,
+         [< Eliom_service.suff],
+         'gn, 'pn,
+         [< Eliom_service.registrable],
+         [< Eliom_service.non_ocaml_service ]) Eliom_service.service ->
+      ?hostname:string ->
+      ?port:int ->
+      ?fragment:string ->
+      ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameter.nl_params_set ->
+      ?xhr:bool ->
+      ('gn -> Html5_types.form_content elt list) ->
+      [> Html5_types.form ] elt
 
-    (** This is an alias to
-        {% <<a_api|val Eliom_content.Html5.D.string_input>> %}
-        to avoid the untyped [Eliom_content.Html5.D.input]. *)
-    val input : ?a:Html5_types.input_attrib attrib list -> input_type:[<
-        | `Url | `Tel | `Text | `Time | `Search | `Password | `Checkbox | `Range | `Radio | `Submit | `Reset | `Number | `Hidden
-        | `Month | `Week | `File | `Email | `Image | `Datetime_local | `Datetime | `Date | `Color | `Button]
-      -> ?name:[< string setoneradio ] param_name -> ?value:string -> unit -> [> Html5_types.input ] elt
+    (** This is an alias to {% <<a_api|val
+        Eliom_content.Html5.D.string_input>> %} to avoid the untyped
+        [Eliom_content.Html5.D.input]. *)
+    val input :
+      ?a:Html5_types.input_attrib attrib list ->
+      input_type:[< Eliom_form_sigs.input_type] ->
+      ?name:
+        [< string Eliom_parameter.setoneradio]
+        Eliom_parameter.param_name ->
+      ?value:string ->
+      unit ->
+      [> Html5_types.input ] elt
 
     (** This is an alias to
         {% <<a_api|val Eliom_content.Html5.D.string_select>> %}
         to avoid the untyped [Eliom_content.Html5.D.select]. *)
-    val select : ?a:Html5_types.select_attrib attrib list -> name:[ `One of string ] param_name -> string select_opt -> string select_opt list -> [> Html5_types.select ] elt
+    val select :
+      ?a:Html5_types.select_attrib attrib list ->
+      name:[ `One of string ] Eliom_parameter.param_name ->
+      string select_opt ->
+      string select_opt list ->
+      [> Html5_types.select ] elt
 
   end
 
