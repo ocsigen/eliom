@@ -61,7 +61,6 @@ module Html5 = struct
             (Html5.F.to_attrib
                (Xml.internal_event_handler_attrib
                   s (Xml.internal_event_handler_of_service info)))
-        let attrib_onclick = Eliom_content_core.Html5.F.a_onclick
       end)
     let raw_form = form
     let form = get_form
@@ -81,7 +80,6 @@ module Html5 = struct
             (Html5.D.to_attrib
                (Xml.internal_event_handler_attrib
                   s (Xml.internal_event_handler_of_service info)))
-        let attrib_onclick = Eliom_content_core.Html5.D.a_onclick
       end)
     let raw_form = form
     let form = get_form

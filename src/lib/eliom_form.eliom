@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module Eliom_predefmod
+ * Module Eliom_form
  * Copyright (C) 2007 Vincent Balat
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,6 +25,8 @@ module type Html5_core = sig
   include Html5_sigs.T
     with type 'a Xml.W.t = 'a
      and type 'a Xml.W.tlist = 'a list
+     and type Xml.mouse_event_handler =
+           (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value
 
   type ('a, 'b, 'c) lazy_star =
     ?a: (('a attrib) list) ->
@@ -50,10 +52,6 @@ module type Attribs = sig
      (bool * string list) option *
      string option) option Eliom_lazy.request ->
     Html5_types.form_attrib attrib
-
-  val attrib_onclick :
-    (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value ->
-    Html5_types.a_attrib attrib
 
 end
 
@@ -182,6 +180,9 @@ module MakeApplForms
     (Forms: sig
        include Eliom_form_sigs.S
        include Attribs with type +'a attrib := 'a attrib
+       val a_onclick :
+         (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value ->
+         [> `OnClick] attrib
      end) = struct
 
   include Forms
@@ -213,7 +214,7 @@ module MakeApplForms
       match xhr, Eliom_service.get_client_fun_ service with
       | true, _
       | _, Some _ ->
-        attrib_onclick
+        Forms.a_onclick
           {{ fun ev ->
              if not (Eliom_client.middleClick ev) then begin
                Dom.preventDefault ev;
@@ -330,7 +331,7 @@ module Make (H : Html5) =
   MakeApplForms(struct
     include Eliom_mkforms.MakeForms(Html5_forms_base(H))
     let attrib_of_service = H.attrib_of_service
-    let attrib_onclick = H.attrib_onclick
+    let a_onclick = H.a_onclick
     type uri = H.uri
   end)
 

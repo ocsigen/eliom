@@ -48,7 +48,7 @@ module type FORMS = sig
       [Eliom_content.Html5.D.input]. *)
   val input :
     ?a:Html5_types.input_attrib attrib list ->
-    input_type:[< Eliom_form_sigs.input_type] ->
+    input_type:[< Html5_types.input_type] ->
     ?name:
       [< string Eliom_parameter.setoneradio]
       Eliom_parameter.param_name ->

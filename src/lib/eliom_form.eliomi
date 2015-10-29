@@ -25,6 +25,8 @@ module type Html5 = sig
   include Html5_sigs.T
     with type 'a Xml.W.t = 'a
      and type 'a Xml.W.tlist = 'a list
+     and type Xml.mouse_event_handler =
+           (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value
 
   type ('a, 'b, 'c) lazy_star =
     ?a: (('a attrib) list) ->
@@ -44,10 +46,6 @@ module type Html5 = sig
      (bool * string list) option *
      string option) option Eliom_lazy.request ->
     Html5_types.form_attrib attrib
-
-  val attrib_onclick :
-    (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value ->
-    Html5_types.a_attrib attrib
 
 end
 
