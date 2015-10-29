@@ -6,6 +6,7 @@ type descr = {
 
 let server = {
   interface_only = [
+    "eliom_content_sigs";
     "eliom_form_sigs";
     "eliom_shared_sigs";
   ];
@@ -71,6 +72,7 @@ let server = {
 }
 let client = {
   interface_only = [
+    "eliom_content_sigs";
     "eliom_form_sigs";
     "eliom_shared_sigs";
   ];
