@@ -79,6 +79,15 @@ type +'a res_reconstr_param =
   | Res_ of 'a * params * files
   | Errors_ of ((string * string * exn) list * params * files)
 
+let end_of_list lp pref =
+  let f (a, _) =
+    try
+      String.(sub a 0 (length pref)) = pref
+    with Invalid_argument _ ->
+      false
+  in
+  not (List.exists f lp)
+
 let reconstruct_params_
     req
     typ
@@ -174,15 +183,14 @@ let reconstruct_params_
   let rec aux_list : type a c. (a,'b,c) params_type -> params -> files -> string -> string -> string -> a list res_reconstr_param =
     fun t params files name pref suff ->
       let rec loop_list i lp fl pref =
-        let rec end_of_list len = function
-          | [] -> true
-          | (a, _)::_ when
-              (try (String.sub a 0 len) = pref
-               with Invalid_argument _ -> false) -> false
-          | _::l -> end_of_list len l
-        in
-        if end_of_list (String.length pref) lp
-        then Res_ ([], lp, fl)
+        if
+          match t with
+          | TFile _ ->
+            end_of_list fl pref
+          | _ ->
+            end_of_list lp pref
+        then
+          Res_ ([], lp, fl)
         else
           match aux t lp fl pref (make_list_suffix i) with
             | Res_ (v, lp2, f) ->
