@@ -94,8 +94,6 @@ let run_callbacks handlers = List.iter (fun f -> f ()) handlers
 
 let onload, _, flush_onload = create_buffer ()
 
-exception Cancel_onunload of string
-
 let onunload, run_onunload =
   let add, get, flush = create_buffer () in
   let r = ref (get ()) in
