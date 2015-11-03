@@ -519,6 +519,15 @@ module type S = sig
 
   (** {2:form_widgets Form widgets } *)
 
+  (** Creates an [<input>] tag. *)
+  val input :
+    ?a:Html5_types.input_attrib attrib list ->
+    input_type:[< Html5_types.input_type] ->
+    ?name:[< 'a setoneradio] param_name ->
+    ?value:'a ->
+    'a Eliom_parameter_base.atom ->
+    [> Html5_types.input] elt
+
   (** Creates an [<input>] tag for an integer *)
   val int_input :
     ?a:Html5_types.input_attrib attrib list ->
@@ -582,12 +591,13 @@ module type S = sig
     unit ->
     [> Html5_types.input] elt
 
-  (** Creates an [<input type="image" name="...">] tag that sends the
-      coordinates the user clicked on *)
+  (** Creates an [<input type="image" name="...">] tag. *)
   val image_input :
     ?a:Html5_types.input_attrib attrib list ->
-    name:[< coordinates oneradio ] param_name ->
-    ?src:uri -> unit ->
+    name:[< 'a oneradio ] param_name ->
+    value:'a ->
+    ?src:uri ->
+    'a Eliom_parameter_base.atom ->
     [> Html5_types.input] elt
 
   (** Creates an [<input type="image" name="..." value="...">] tag
@@ -720,6 +730,14 @@ module type S = sig
     ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
     name:string -> value:string -> unit -> [> Html5_types.input] elt
 
+  (** Creates a radio [<input>] tag. *)
+  val radio :
+    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
+    name:[ `Radio of 'a ] param_name ->
+    value:'a ->
+    'a Eliom_parameter_base.atom ->
+    [> Html5_types.input] elt
+
   (** Creates a radio [<input>] tag with string content *)
   val string_radio :
     ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
@@ -775,6 +793,15 @@ module type S = sig
     name:string -> value:string -> unit ->
     [> Html5_types.input] elt
 
+  (** Creates a [<button>] tag. *)
+  val button :
+    ?a:Html5_types.button_attrib attrib list ->
+    name:[< 'a setone ] param_name ->
+    value:'a ->
+    'a Eliom_parameter_base.atom ->
+    Html5_types.button_content elt list ->
+    [> Html5_types.button] elt
+
   (** Creates a [<button>] tag with string content *)
   val string_button :
     ?a:Html5_types.button_attrib attrib list ->
@@ -826,7 +853,7 @@ module type S = sig
     [> Html5_types.button] elt
 
   (** Creates a [<button>] tag with no value. No value is sent. *)
-  val button :
+  val button_no_value :
     ?a:Html5_types.button_attrib attrib list ->
     button_type:[< button_type] ->
     Html5_types.button_content elt list ->
@@ -864,6 +891,16 @@ module type S = sig
         * 'a soption
         * 'a soption list
     | Option of 'a soption
+
+  (** Creates a [<select>] tag. *)
+  val select :
+    ?a:Html5_types.select_attrib attrib list ->
+    ?required:Html5_types.pcdata elt ->
+    name:[ `One of 'a ] param_name ->
+    'a Eliom_parameter_base.atom ->
+    'a select_opt ->
+    'a select_opt list ->
+    [> Html5_types.select] elt
 
   (** Creates a [<select>] tag for int values. *)
   val int_select :
@@ -926,6 +963,16 @@ module type S = sig
     name:string ->
     string select_opt ->
     string select_opt list ->
+    [> Html5_types.select] elt
+
+  (** Creates a multiple-selection [<select>] tag. *)
+  val multiple_select :
+    ?a:Html5_types.select_attrib attrib list ->
+    ?required:Html5_types.pcdata elt ->
+    name:[ `Set of 'a ] param_name ->
+    'a Eliom_parameter_base.atom ->
+    'a select_opt ->
+    'a select_opt list ->
     [> Html5_types.select] elt
 
   (** Creates a [<select>] tag for int values. *)

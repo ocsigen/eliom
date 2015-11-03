@@ -207,8 +207,7 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
   let css_link = Pages.make_css_link
 
   let gen_input ?a ~input_type
-      ?value ?src
-      ?name (string_of : 'a -> string) =
+      ?value ?src ?name string_of =
     let name = match name with
       | None -> None
       | Some n -> Some (string_of_param_name n)
@@ -224,6 +223,10 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
            ?src
            ?name
            ())
+
+  let input ?a ~input_type ?name ?value y =
+    let f = Eliom_parameter_base.string_of_atom y in
+    gen_input ?a ~input_type ?value ?name f
 
   let int_input ?a ~input_type
       ?name ?value () =
@@ -265,12 +268,9 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
     Pages.make_input ?a ~typ:`File ~name:(string_of_param_name name) ()
       (* value attribute not supported by browsers for security reasons *)
 
-  let image_input ?a ~name ?src () =
-    Pages.make_input
-      ?a ~typ:`Image
-      ~name:(string_of_param_name name) ?src ()
-      (* The behaviour of <input type="image"> without name attribute
-	 depends on browsers *)
+  let image_input ?a ~name ~value ?src y =
+    let f = Eliom_parameter_base.string_of_atom y in
+    gen_input ?a ~input_type:`Image ~name ~value ?src f
 
   let int_image_input ?a ~name ~value ?src () =
     gen_input ?a ~input_type:`Image ~name
@@ -305,6 +305,12 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
       ~name
       ()
 
+  let checkbox ?a ?checked ~name ~value y =
+    let name = string_of_param_name name
+    and value = Eliom_parameter_base.string_of_atom y value
+    and typ = `Checkbox in
+    Pages.make_input ?a ?checked ~typ ~name ~value ()
+
   let bool_checkbox ?a ?checked ~name () =
     Pages.make_input ?a ?checked ~typ:`Checkbox
       ~name:(string_of_param_name name) ()
@@ -337,6 +343,11 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
     Pages.make_input ?a ?checked ~typ:`Checkbox
       ~name:name ~value ()
 
+  let radio ?a ?checked ~name ~value y =
+    let name = string_of_param_name name
+    and value = Eliom_parameter_base.string_of_atom y value
+    and typ = `Radio in
+    Pages.make_input ?a ?checked ~typ ~name ~value ()
 
   let string_radio ?a ?checked ~name ~value () =
     Pages.make_input
@@ -384,6 +395,12 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
       ?a ?checked ~typ:`Radio
       ~name:name ~value:value ()
 
+  let button ?a ~name ~value y c =
+    let name = string_of_param_name name
+    and value = Eliom_parameter_base.string_of_atom y value
+    and button_type = `Submit in
+    Pages.make_button ?a ~button_type ~name ~value c
+
   let string_button ?a ~name ~value c =
     Pages.make_button ?a ~button_type:`Submit
       ~name:(string_of_param_name name) ~value c
@@ -411,9 +428,8 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
   let raw_button ?a ~button_type ~name ~value c =
     Pages.make_button ?a ~button_type ~name ~value c
 
-  let button ?a ~button_type c =
+  let button_no_value ?a ~button_type c =
     Pages.make_button ?a ~button_type c
-
 
   let textarea ?a ~name =
     Pages.make_textarea ?a ~name:(string_of_param_name name)
@@ -535,6 +551,12 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
     in
     Pages.make_select ?a ~multiple ~name fl3 ol3
 
+  let select ?a ?required ~name y fl ol =
+    let multiple = false
+    and name = string_of_param_name name
+    and f = Eliom_parameter_base.string_of_atom y in
+    gen_select ?a ?required ~multiple ~name fl ol f
+
   let raw_select ?a ?required ~(name : string)
       (fl : string select_opt) (ol : string select_opt list) =
     gen_select ?a ?required ~multiple:false ~name fl ol id
@@ -568,6 +590,12 @@ module MakeForms(Pages : Eliom_form_sigs.PARAM) = struct
       (ol : 'a select_opt list) =
     gen_select ?a ?required ~multiple:false
       ~name:(string_of_param_name name) fl ol string_of
+
+  let multiple_select ?a ?required ~name y fl ol =
+    let multiple = true
+    and name = string_of_param_name name
+    and f = Eliom_parameter_base.string_of_atom y in
+    gen_select ?a ?required ~multiple ~name fl ol f
 
   let raw_multiple_select ?a ?required ~(name : string)
       (fl : string select_opt) (ol : string select_opt list) =
