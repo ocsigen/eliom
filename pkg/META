@@ -115,6 +115,23 @@ package "syntax" (
 
 )
 
+package "ppx" (
+  directory = "ppx"
+  package "server" (
+    description = "Ppx syntax extension: server side"
+    ppx = "ppx_eliom_server"
+  )
+  package "client" (
+    description = "Ppx syntax extension: client side"
+    ppx = "ppx_eliom_client"
+  )
+  package "type" (
+    description = "Ppx syntax extension: type inference"
+    ppx = "ppx_eliom_types"
+  )
+)
+
+
 package "templates" (
   directory = "templates"
 )

@@ -41,11 +41,16 @@ let args : string list ref = ref []
 let package : string list ref = ref []
 let predicates : string list ref = ref []
 let pp : string option ref = ref None
-let kind : [ `Server | `Client | `ServerOpt ] ref = ref `Server
+type kind = [ `Server | `Client | `ServerOpt ]
+let kind : kind ref = ref `Server
 let type_file : string option ref = ref None
 
 let autoload_predef = ref true
 let type_conv = ref false
+
+type pp_mode = [ `Camlp4 | `Ppx ]
+let pp_mode : pp_mode ref = ref `Camlp4
+
 
 let default_server_dir =
   try Sys.getenv "ELIOM_SERVER_DIR"
@@ -69,7 +74,7 @@ let type_dir : string ref = ref default_type_dir
 let get_kind k =
   match k with
   | Some k -> k
-  | None -> !kind
+  | None -> (!kind : kind :> [> kind])
 
 (** Findlib *)
 
@@ -261,12 +266,15 @@ let get_pp_dump pkg opt = match !pp with
       exit 1
     with Not_found -> (pp, get_common_syntax pkg @ opt)
 
-let get_pp pkg opt =
+let get_pp pkg =
   let s = match !pp with
-    | None -> String.concat " " (!camlp4 :: get_common_syntax pkg @ opt)
-    | Some pp -> pp ^ " " ^ String.concat " " (get_common_syntax pkg @ opt)
+    | None -> String.concat " " (!camlp4 :: get_common_syntax pkg)
+    | Some pp -> pp ^ " " ^ String.concat " " (get_common_syntax pkg)
     (* Format.eprintf "get_pp %S@." s *)
   in s
+
+let get_ppx pkg =
+  Findlib.package_property [] pkg "ppx"
 
 let get_thread_opt () = match !kind with
   | `Client -> []
@@ -293,6 +301,35 @@ let type_opt impl_intf file =
   match impl_intf with
   | `Impl -> ["-type"; get_type_file file]
   | `Intf -> ["-notype"]
+
+let simplify_kind ?kind () =
+  match get_kind kind with
+  | `Client -> `Client
+  | `Server | `ServerOpt -> `Server
+  | `Types -> `Types
+
+let get_ppopts ~impl_intf file =
+  match !pp_mode with
+  | `Camlp4 ->
+    type_opt impl_intf file @ !ppopt @ [impl_intf_opt impl_intf]
+  | `Ppx ->
+    !ppopt
+
+let preprocess_opt ?kind opts = match !pp_mode with
+  | `Camlp4 ->
+    let pkg = match simplify_kind ?kind () with
+      | `Client -> ["eliom.syntax.client"]
+      | `Server -> ["eliom.syntax.server"]
+      | `Types  -> ["eliom.syntax.type"]
+    in
+    [ "-pp"; get_pp pkg ^ " " ^ String.concat " " opts ]
+  | `Ppx ->
+    let pkg = match simplify_kind ?kind () with
+      | `Client -> "eliom.ppx.client"
+      | `Server -> "eliom.ppx.server"
+      | `Types  -> "eliom.ppx.type"
+    in
+    [ "-ppx"; get_ppx pkg ^ " " ^ String.concat " " opts ]
 
 (** Process *)
 

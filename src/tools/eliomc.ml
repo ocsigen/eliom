@@ -27,6 +27,7 @@ let usage () =
     Printf.eprintf "  -jsopt <opt>\t\tAppend option <opt> to js_of_ocaml invocation\n";
   Printf.eprintf "  -ppopt <p>\t\tAppend option <opt> to preprocessor invocation\n";
   Printf.eprintf "  -predicates <p>\tAdd predicate <p> when resolving package properties\n";
+  Printf.eprintf "  -ppx\t\t\tUse the ppx syntax extension (Beta)\n";
   if !kind = `Client then
     Printf.eprintf "  -dont-force-linkall\t\tDo not add linkall option by default\n";
   create_filter !compiler ["-help"] (help_filter 2 "STANDARD OPTIONS:");
@@ -154,8 +155,8 @@ let compile_ocaml ~impl_intf file =
     output_prefix file ^ ext in
   create_process !compiler (
     ["-c" ;
-     "-o" ; obj ;
-     "-pp"; get_pp [] !ppopt]
+     "-o" ; obj ]
+    @ preprocess_opt !ppopt
     @ !args
     @ get_thread_opt ()
     @ get_common_include ()
@@ -163,7 +164,9 @@ let compile_ocaml ~impl_intf file =
 
 let output_ocaml_interface file =
   create_process !compiler (
-    ["-i"; "-pp"; get_pp [] !ppopt] @ !args
+    [ "-i" ]
+    @ preprocess_opt !ppopt
+    @ !args
     @ get_common_include ()
     @ [file] )
 
@@ -180,14 +183,6 @@ let compile_obj file =
 
 (* Process eliom and eliomi files *)
 
-let get_ppopts ?kind ~impl_intf file =
-  let pkg =
-    match get_kind kind with
-      | `Client -> ["eliom.syntax.client"]
-      | `Server | `ServerOpt -> ["eliom.syntax.server"]
-  in
-  pkg, type_opt impl_intf file @ !ppopt @ [impl_intf_opt impl_intf]
-
 let compile_server_type_eliom file =
   let obj = output_prefix ~ty:true file ^ !server_types_file_ext
   and ppopts = !ppopt @ ["-impl"] in
@@ -203,7 +198,8 @@ let compile_server_type_eliom file =
     Sys.remove obj
   in
   create_process ~out ~on_error !compiler (
-    [ "-i" ; "-pp"; get_pp ["eliom.syntax.type"] ppopts]
+    [ "-i" ]
+    @ preprocess_opt ~kind:`Types ppopts
     @ !args
     @ get_common_include ()
     @ ["-impl"; file] );
@@ -223,9 +219,10 @@ let output_eliom_interface ~impl_intf file =
     with End_of_file -> ()
   in
   let args kind =
-    let pkg, ppopts = get_ppopts ~kind ~impl_intf file in
-    let pp = get_pp pkg ppopts in
-    [ "-i" ; "-pp" ; pp; "-intf-suffix"; ".eliomi" ]
+    let ppopts = get_ppopts ~impl_intf file in
+    [ "-i" ]
+    @ preprocess_opt ~kind ppopts
+    @ [ "-intf-suffix"; ".eliomi" ]
     @ !args
     @ get_common_include ~kind ()
     @ [ impl_intf_opt impl_intf; file ]
@@ -246,17 +243,16 @@ let compile_eliom ~impl_intf file =
     in
     output_prefix file ^ ext
   in
-  let pkg, ppopts = get_ppopts ~impl_intf file in
-  if !do_dump then begin
-    let camlp4, ppopt = get_pp_dump pkg ("-printer" :: "o" :: ppopts @ [file]) in
-    create_process camlp4 ppopt;
-    exit 0
-  end;
+  let ppopts = get_ppopts ~impl_intf file in
+  (* if !do_dump then begin *)
+  (*   let camlp4, ppopt = get_pp_dump pkg ("-printer" :: "o" :: ppopts @ [file]) in *)
+  (*   create_process camlp4 ppopt; *)
+  (*   exit 0 *)
+  (* end; *)
   create_process !compiler (
-    [ "-c" ;
-      "-o"  ; obj ;
-      "-pp" ; get_pp pkg ppopts;
-      "-intf-suffix"; ".eliomi" ]
+    [ "-c" ; "-o"  ; obj ]
+    @ preprocess_opt ppopts
+    @ [ "-intf-suffix"; ".eliomi" ]
     @ get_thread_opt ()
     @ !args
     @ get_common_include ()
@@ -318,6 +314,9 @@ let process_option () =
       i := !i+2
     | "-dump" ->
       do_dump := not !do_dump;
+      i := !i+1
+    | "-ppx" ->
+      pp_mode := `Ppx;
       i := !i+1
     | "-dir" ->
       if !i+1 >= Array.length Sys.argv then usage ();
