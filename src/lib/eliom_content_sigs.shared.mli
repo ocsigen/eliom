@@ -39,9 +39,8 @@ module type FORMS = sig
      [< Html5_types.form_content_fun ],
      [> Html5_types.form ]) star
 
-  (** This is an alias to {% <<a_api|val
-      Eliom_content.Html5.D.get_form>> %} to avoid the untyped
-      [Eliom_content.Html5.D.form]. *)
+  (** This is an alias to {% <<a_api|val Eliom_form_sigs.S.get_form>>
+      %} to avoid the untyped [Html5_sigs.T.form]. *)
   val form :
     ?absolute:bool -> ?absolute_path:bool -> ?https:bool ->
     ?a:Html5_types.form_attrib attrib list ->
@@ -63,8 +62,8 @@ module type FORMS = sig
     [> Html5_types.form ] elt
 
   (** This is an alias to {% <<a_api|val
-      Eliom_content.Html5.D.string_input>> %} to avoid the untyped
-      [Eliom_content.Html5.D.input]. *)
+      Eliom_form_sigs.S.string_input>> %} to avoid the untyped
+      [Html5_sigs.T.input]. *)
   val input :
     ?a:Html5_types.input_attrib attrib list ->
     input_type:[< Html5_types.input_type] ->
@@ -76,8 +75,8 @@ module type FORMS = sig
     [> Html5_types.input ] elt
 
   (** This is an alias to {% <<a_api|val
-      Eliom_content.Html5.D.string_select>> %} to avoid the untyped
-      [Eliom_content.Html5.D.select]. *)
+      Eliom_form_sigs.S.string_select>> %} to avoid the untyped
+      [Html5_sigs.T.select]. *)
   val select :
     ?a:Html5_types.select_attrib attrib list ->
     name:[ `One of string ] Eliom_parameter.param_name ->
