@@ -20,7 +20,7 @@
 
 {shared{
 
-module type Html5_core = sig
+module type Html5 = sig
 
   include Html5_sigs.T
     with type 'a Xml.W.t = 'a
@@ -40,12 +40,6 @@ module type Html5_core = sig
 
   val uri_of_fun : (unit -> string) -> Xml.uri
 
-end
-
-module type Attribs = sig
-
-  type +'a attrib
-
   val attrib_of_service :
     string ->
     ([ `A | `Form_get | `Form_post] *
@@ -55,12 +49,7 @@ module type Attribs = sig
 
 end
 
-module type Html5 = sig
-  include Html5_core
-  include Attribs with type +'a attrib := 'a attrib
-end
-
-module Html5_forms_base (Html5 : Html5_core) = struct
+module Make (Html5 : Html5) = struct
 
   type +'a elt = 'a Html5.elt
   type +'a attrib = 'a Html5.attrib
@@ -173,19 +162,638 @@ module Html5_forms_base (Html5 : Html5_core) = struct
 
   let make_for_attrib = a_for
 
-end
+  (* what follows is copied from eliom_mkforms *)
 
-module MakeApplForms
+  (** Functions to construct web pages: *)
 
-    (Forms: sig
-       include Eliom_form_sigs.S
-       include Attribs with type +'a attrib := 'a attrib
-       val a_onclick :
-         (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value ->
-         [> `OnClick] attrib
-     end) = struct
+  let make_proto_prefix = Eliom_uri.make_proto_prefix
 
-  include Forms
+  let make_string_uri = Eliom_uri.make_string_uri
+
+  let make_uri_components = Eliom_uri.make_uri_components
+
+  let make_post_uri_components = Eliom_uri.make_post_uri_components
+
+  let make_uri
+      ?absolute
+      ?absolute_path
+      ?https ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?nl_params gp =
+    uri_of_string
+      (fun () ->
+	 make_string_uri
+           ?absolute ?absolute_path
+           ?https ?fragment ~service
+           ?hostname ?port ?keep_nl_params ?nl_params gp)
+
+
+  let make_a ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?nl_params ?xhr content getparams =
+    let href =
+      uri_of_string
+	(fun () ->
+	   make_string_uri
+	     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+	     ?keep_nl_params ?nl_params getparams)
+    in
+    make_a ?a ~href content
+
+  let get_form_
+      bind return
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
+      ?(nl_params = Eliom_parameter.empty_nl_params_set) ?keep_nl_params
+      f =
+
+    let issuffix, paramnames =
+      Eliom_service.get_get_params_type_ service |>
+      Eliom_parameter.make_params_names
+    in
+
+    let components =
+      Eliom_lazy.from_fun @@ fun () ->
+      Eliom_uri.make_uri_components_
+        ?absolute ?absolute_path ?https ~service ?hostname ?port
+        ?fragment ~nl_params ?keep_nl_params
+        ()
+    in
+
+    let uri =
+      uri_of_string @@ fun () ->
+      let uri, _, fragment = Eliom_lazy.force components in
+      let uri =
+	if issuffix then
+          if uri.[String.length uri - 1] = '/' then
+            uri^Eliom_common.eliom_nosuffix_page
+          else
+            String.concat "/" [uri; Eliom_common.eliom_nosuffix_page]
+        else
+          uri
+      in
+      match fragment with
+      | None -> uri
+      | Some f -> String.concat "#" [uri; Eliom_lib.Url.encode f]
+    in
+
+    bind (f paramnames) @@ fun inside ->
+    let inside =
+      Eliom_lazy.from_fun @@ fun () ->
+      let (_, hiddenparams, _) = Eliom_lazy.force components
+      and f (n, v) =
+        let name = n
+        and value = Eliommod_parameters.to_string v
+        and typ = `Hidden in
+	make_input ~typ ~name ~value ()
+      in
+      cons_hidden_fieldset (List.map f hiddenparams) inside
+    in
+    return (make_get_form ?a ~action:uri inside)
+
+  let get_form
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?nl_params ?xhr f =
+    get_form_
+      (fun x f -> f x) (fun x -> x)
+      ?absolute ?absolute_path
+      ?https ?a ~service ?keep_nl_params
+      ?nl_params ?hostname ?port ?fragment f
+
+  let lwt_get_form
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?nl_params ?xhr f =
+    get_form_
+      Lwt.bind Lwt.return
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
+      ?nl_params ?keep_nl_params f
+
+  let post_form_
+      bind return
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
+      ?(nl_params = Eliom_parameter.empty_nl_params_set)
+      ?(keep_nl_params : [ `All | `Persistent | `None ] option)
+      ?keep_get_na_params
+      f getparams =
+
+    let _, paramnames =
+      Eliom_service.get_post_params_type_ service |>
+      Eliom_parameter.make_params_names
+    in
+
+    let components =
+      let f () =
+	Eliom_uri.make_post_uri_components_
+          ?absolute ?absolute_path ?https ~service ?hostname ?port
+          ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
+          getparams
+          ()
+      in
+      Eliom_lazy.from_fun f
+    in
+
+    bind (f paramnames) @@ fun inside ->
+    let inside =
+      let f () =
+	let (uri, getparams, fragment, hiddenparams) =
+	  Eliom_lazy.force components in
+	cons_hidden_fieldset
+	  (List.map
+	     (fun (n,v) ->
+		(make_input
+		   ~typ:`Hidden
+		   ~name:n ~value:(Eliommod_parameters.to_string v) ()))
+	     hiddenparams)
+          inside
+      in
+      Eliom_lazy.from_fun f
+    in
+    let uri =
+      uri_of_string
+        (fun () ->
+	   let (uri, getparams, fragment, hiddenparams) =
+	     Eliom_lazy.force components in
+           Eliom_uri.make_string_uri_from_components (uri, getparams, fragment))
+    in
+    return (make_post_form ?a ~action:uri inside)
+
+  let post_form
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?keep_get_na_params ?nl_params ?xhr f getparams =
+    post_form_
+      (fun x f -> f x) (fun x -> x)
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
+      ?fragment ?keep_get_na_params
+      ?keep_nl_params ?nl_params
+      f getparams
+
+  let lwt_post_form
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?keep_get_na_params
+      ?nl_params
+      ?xhr f getparams =
+    post_form_ Lwt.bind Lwt.return
+      ?absolute ?absolute_path
+      ?https ?a ~service ?hostname ?port
+      ?fragment ?keep_get_na_params ?keep_nl_params ?nl_params
+      f getparams
+
+  let js_script = make_js_script
+  let css_link = make_css_link
+
+  let gen_input ?a ~input_type
+      ?value ?src ?name string_of =
+    let name = match name with
+      | None -> None
+      | Some n -> Some (Eliom_parameter.string_of_param_name n)
+    in
+    (match value with
+     | None ->
+       make_input ?a ~typ:input_type ?name ?src ()
+     | Some v ->
+       make_input
+         ?a
+         ~value:(string_of v)
+         ~typ:input_type
+         ?src
+         ?name
+         ())
+
+  let input ?a ~input_type ?name ?value y =
+    let f = Eliom_parameter_base.string_of_atom y in
+    gen_input ?a ~input_type ?value ?name f
+
+  let int_input ?a ~input_type
+      ?name ?value () =
+    gen_input ?a ~input_type ?value ?name string_of_int
+
+  let int32_input ?a ~input_type
+      ?name ?value () =
+    gen_input ?a ~input_type ?value ?name Int32.to_string
+
+  let int64_input ?a ~input_type
+      ?name ?value () =
+    gen_input ?a ~input_type ?value ?name Int64.to_string
+
+  let float_input ?a ~input_type
+      ?name ?value () =
+    gen_input ?a ~input_type ?value ?name Xml_print.string_of_number
+
+  let string_input ?a ~input_type
+      ?name ?value () =
+    gen_input ?a ~input_type ?value ?name Eliom_lib.id
+
+  let user_type_input string_of ?a ~input_type
+      ?name ?value () =
+    gen_input ?a ~input_type ?value ?name string_of
+
+  let raw_input ?a ~input_type ?name ?value () =
+    (match value with
+     | None ->
+       make_input ?a ~typ:input_type ?name ()
+     | Some v ->
+       make_input
+         ?a
+         ~value:v
+         ~typ:input_type
+         ?name
+         ())
+
+  let file_input ?a ~name () =
+    make_input ?a ~typ:`File
+      ~name:(Eliom_parameter.string_of_param_name name) ()
+  (* value attribute not supported by browsers for security reasons *)
+
+  let image_input ?a ~name ~value ?src y =
+    let f = Eliom_parameter_base.string_of_atom y in
+    gen_input ?a ~input_type:`Image ~name ~value ?src f
+
+  let int_image_input ?a ~name ~value ?src () =
+    gen_input ?a ~input_type:`Image ~name
+      ~value ?src string_of_int
+
+  let int32_image_input ?a ~name ~value ?src () =
+    gen_input ?a ~input_type:`Image ~name
+      ~value ?src Int32.to_string
+
+  let int64_image_input ?a ~name ~value ?src () =
+    gen_input ?a ~input_type:`Image ~name
+      ~value ?src Int64.to_string
+
+  let float_image_input ?a ~name ~value ?src () =
+    gen_input ?a ~input_type:`Image ~name
+      ~value ?src Xml_print.string_of_number
+
+  let string_image_input ?a ~name ~value ?src () =
+    gen_input ?a ~input_type:`Image ~name
+      ~value ?src Eliom_lib.id
+
+  let user_type_image_input string_of ?a ~name ~value ?src () =
+    gen_input ?a ~input_type:`Image ~name
+      ~value ?src string_of
+
+  let raw_image_input ?a ~(name : string) ~value ?src () =
+    make_input
+      ?a
+      ~value
+      ~typ:`Image
+      ?src
+      ~name
+      ()
+
+  let checkbox ?a ?checked ~name ~value y =
+    let name = Eliom_parameter.string_of_param_name name
+    and value = Eliom_parameter_base.string_of_atom y value
+    and typ = `Checkbox in
+    make_input ?a ?checked ~typ ~name ~value ()
+
+  let bool_checkbox ?a ?checked ~name () =
+    make_input ?a ?checked ~typ:`Checkbox
+      ~name:(Eliom_parameter.string_of_param_name name) ()
+
+  let int_checkbox ?a ?checked ~name ~value () =
+    make_input ?a ?checked ~typ:`Checkbox
+      ~name:(Eliom_parameter.string_of_param_name name)
+      ~value:(string_of_int value) ()
+
+  let int32_checkbox ?a ?checked ~name ~value () =
+    make_input ?a ?checked ~typ:`Checkbox
+      ~name:(Eliom_parameter.string_of_param_name name)
+      ~value:(Int32.to_string value) ()
+
+  let int64_checkbox ?a ?checked ~name ~value () =
+    make_input ?a ?checked ~typ:`Checkbox
+      ~name:(Eliom_parameter.string_of_param_name name)
+      ~value:(Int64.to_string value) ()
+
+  let float_checkbox ?a ?checked ~name ~value () =
+    make_input ?a ?checked ~typ:`Checkbox
+      ~name:(Eliom_parameter.string_of_param_name name)
+      ~value:(Xml_print.string_of_number value) ()
+
+  let string_checkbox ?a ?checked ~name ~value () =
+    make_input ?a ?checked ~typ:`Checkbox
+      ~name:(Eliom_parameter.string_of_param_name name)
+      ~value ()
+
+  let user_type_checkbox string_of ?a ?checked ~name ~value () =
+    make_input ?a ?checked ~typ:`Checkbox
+      ~name:(Eliom_parameter.string_of_param_name name)
+      ~value:(string_of value) ()
+
+  let raw_checkbox ?a ?checked ~name ~value () =
+    make_input ?a ?checked ~typ:`Checkbox
+      ~name:name ~value ()
+
+  let radio ?a ?checked ~name ~value y =
+    let name = Eliom_parameter.string_of_param_name name
+    and value = Eliom_parameter_base.string_of_atom y value
+    and typ = `Radio in
+    make_input ?a ?checked ~typ ~name ~value ()
+
+  let string_radio ?a ?checked ~name ~value () =
+    make_input
+      ?a ?checked ~typ:`Radio
+      ~name:(Eliom_parameter.string_of_param_name name) ~value ()
+
+  let string_radio_required ?a ?checked ~name ~value () =
+    let a =
+      let required = a_input_required () in
+      match a with
+      | None -> [required]
+      | Some a -> required :: a
+    in
+    make_input
+      ~a ?checked ~typ:`Radio
+      ~name:(Eliom_parameter.string_of_param_name name) ~value ()
+
+  let int_radio ?a ?checked ~name ~value () =
+    make_input
+      ?a ?checked ~typ:`Radio
+      ~name:(Eliom_parameter.string_of_param_name name)
+      ~value:(string_of_int value) ()
+
+  let int32_radio ?a ?checked ~name ~value () =
+    make_input
+      ?a ?checked ~typ:`Radio
+      ~name:(Eliom_parameter.string_of_param_name name)
+      ~value:(Int32.to_string value) ()
+
+  let int64_radio ?a ?checked ~name ~value () =
+    make_input
+      ?a ?checked ~typ:`Radio
+      ~name:(Eliom_parameter.string_of_param_name name)
+      ~value:(Int64.to_string value) ()
+
+  let float_radio ?a ?checked ~name ~value () =
+    make_input
+      ?a ?checked ~typ:`Radio
+      ~name:(Eliom_parameter.string_of_param_name name)
+      ~value:(Xml_print.string_of_number value) ()
+
+  let user_type_radio string_of ?a ?checked ~name ~value () =
+    make_input
+      ?a ?checked ~typ:`Radio
+      ~name:(Eliom_parameter.string_of_param_name name)
+      ~value:(string_of value) ()
+
+  let raw_radio ?a ?checked ~(name : string) ~value () =
+    make_input
+      ?a ?checked ~typ:`Radio
+      ~name:name ~value:value ()
+
+  let button ?a ~name ~value y c =
+    let name = Eliom_parameter.string_of_param_name name
+    and value = Eliom_parameter_base.string_of_atom y value
+    and button_type = `Submit in
+    make_button ?a ~button_type ~name ~value c
+
+  let string_button ?a ~name ~value c =
+    make_button ?a ~button_type:`Submit
+      ~name:(Eliom_parameter.string_of_param_name name) ~value c
+
+  let int_button ?a ~name ~value c =
+    make_button ?a ~button_type:`Submit
+      ~name:(Eliom_parameter.string_of_param_name name)
+      ~value:(string_of_int value) c
+
+  let int32_button ?a ~name ~value c =
+    make_button ?a ~button_type:`Submit
+      ~name:(Eliom_parameter.string_of_param_name name)
+      ~value:(Int32.to_string value) c
+
+  let int64_button ?a ~name ~value c =
+    make_button ?a ~button_type:`Submit
+      ~name:(Eliom_parameter.string_of_param_name name)
+      ~value:(Int64.to_string value) c
+
+  let float_button ?a ~name ~value c =
+    make_button ?a ~button_type:`Submit
+      ~name:(Eliom_parameter.string_of_param_name name)
+      ~value:(Xml_print.string_of_number value) c
+
+  let user_type_button string_of ?a ~name ~value c =
+    make_button ?a ~button_type:`Submit
+      ~name:(Eliom_parameter.string_of_param_name name)
+      ~value:(string_of value) c
+
+  let raw_button ?a ~button_type ~name ~value c =
+    make_button ?a ~button_type ~name ~value c
+
+  let button_no_value ?a ~button_type c =
+    make_button ?a ~button_type c
+
+  let textarea ?a ~name =
+    make_textarea ?a ~name:(Eliom_parameter.string_of_param_name name)
+
+  let raw_textarea ?a ~name =
+    make_textarea ?a ~name
+
+  type 'a soption =
+    Html5_types.option_attrib attrib list
+    * 'a (* Content (or value if the following is present) *)
+    * Html5_types.pcdata elt option (* if content different from value *)
+    * bool (* selected *)
+
+  type 'a select_opt =
+    | Optgroup of
+        [ Html5_types.common | `Disabled ] attrib list
+        * string (* label *)
+        * 'a soption
+        * 'a soption list
+    | Option of 'a soption
+
+  let gen_select ?a ?(multiple=false) ?required ~name
+      (fl : 'a select_opt) (ol : 'a select_opt list) string_of =
+
+    let a = match required with
+      | None -> a
+      | Some _ ->
+        let required = a_select_required () in
+        match a with
+        | Some a -> Some (required :: a)
+        | None -> Some [required]
+    in
+
+    let normalize_selected l =
+      (* We change the list of option to have exactly one selected item.
+         We do this because the behaviour of browsers differs.
+         We select the first one if nothing is selected.
+         We select the first selected if several are selected.
+         Thus all browsers will behave the same way.
+      *)
+      let aux1 trouve ((a, b, c, selected) as line) =
+        if trouve
+        then ((a, b, c, false), true)
+        else if selected
+        then (line, true)
+        else (line, false)
+      in
+      let rec aux2 trouve = function
+        | line::l ->
+          let (line, trouve) = aux1 trouve line in
+          let (l, trouve) = aux2 trouve l in
+          (line::l, trouve)
+        | [] -> ([], trouve)
+      in
+      let rec aux trouve = function
+        | (Option line)::l ->
+          let (line, trouve) = aux1 trouve line in
+          let (l, trouve) = aux trouve l in
+          ((Option line)::l, trouve)
+        | (Optgroup (a, b, fl, ol))::l ->
+          let (fl, trouve) = aux1 trouve fl in
+          let (ol, trouve) = aux2 trouve ol in
+          let (l, trouve) = aux trouve l in
+          ((Optgroup (a, b, fl, ol))::l, trouve)
+        | [] -> ([], trouve)
+      in
+      let select_first = function
+        | Option (a, b, c, _) -> Option (a, b, c, true)
+        | Optgroup (a, b, (c, d, e, _), ol) ->
+          Optgroup (a, b, (c, d, e, true), ol)
+      in
+      let (newl, trouve) = aux false l in
+      if trouve
+      then ((List.hd newl), (List.tl newl), true)
+      else
+        let first = List.hd newl in
+        (* We select the first one by default *)
+        let first =
+          if required = None then
+            select_first first
+          else
+            first
+        in
+        (first, (List.tl newl), false)
+    in
+
+
+    let (fl, ol, has_selected) =
+      if multiple
+      then (fl, ol, let _, _, hs = normalize_selected (fl :: ol) in hs)
+      else normalize_selected (fl::ol)
+    in
+    let make_opt (a, cv, co, sel) =
+      (match co with
+       | None -> make_option ~a ~selected:sel
+                   (make_pcdata (string_of cv))
+       | Some c -> make_option ~a ~selected:sel
+                     ~value:(string_of cv) c)
+    in
+    let make_optg = function
+      | Option o ->
+        select_content_of_option (make_opt o)
+      | Optgroup (a, label, og1, ogl) ->
+        make_optgroup
+          ~a ~label (make_opt og1) (List.map make_opt ogl)
+    in
+    let fl2, ol2 = make_optg fl, List.map make_optg ol in
+    let fl3, ol3 =
+      match required with
+      | None -> fl2, ol2
+      | Some label ->
+        let placeholder =
+          make_option ~selected:(not has_selected) ~value:"" label
+        in
+        select_content_of_option placeholder,
+        fl2 :: ol2
+    in
+    make_select ?a ~multiple ~name fl3 ol3
+
+  let select ?a ?required ~name y fl ol =
+    let multiple = false
+    and name = Eliom_parameter.string_of_param_name name
+    and f = Eliom_parameter_base.string_of_atom y in
+    gen_select ?a ?required ~multiple ~name fl ol f
+
+  let raw_select ?a ?required ~(name : string)
+      (fl : string select_opt) (ol : string select_opt list) =
+    gen_select ?a ?required ~multiple:false ~name
+      fl ol Eliom_lib.id
+
+  let int_select ?a ?required ~name
+      (fl : int select_opt) (ol : int select_opt list) =
+    gen_select ?a ?required ~multiple:false
+      ~name:(Eliom_parameter.string_of_param_name name)
+      fl ol string_of_int
+
+  let int32_select ?a ?required ~name
+      (fl : int32 select_opt) (ol : int32 select_opt list) =
+    gen_select ?a ?required ~multiple:false
+      ~name:(Eliom_parameter.string_of_param_name name)
+      fl ol Int32.to_string
+
+  let int64_select ?a ?required ~name
+      (fl : int64 select_opt) (ol : int64 select_opt list) =
+    gen_select ?a ?required ~multiple:false
+      ~name:(Eliom_parameter.string_of_param_name name)
+      fl ol Int64.to_string
+
+  let float_select ?a ?required ~name
+      (fl : float select_opt) (ol : float select_opt list) =
+    gen_select ?a ~multiple:false
+      ~name:(Eliom_parameter.string_of_param_name name)
+      fl ol Xml_print.string_of_number
+
+  let string_select ?a ?required ~name
+      (fl : string select_opt) (ol : string select_opt list) =
+    gen_select ?a ?required ~multiple:false
+      ~name:(Eliom_parameter.string_of_param_name name) fl ol
+      Eliom_lib.id
+
+  let user_type_select string_of ?a ?required ~name (fl : 'a select_opt)
+      (ol : 'a select_opt list) =
+    gen_select ?a ?required ~multiple:false
+      ~name:(Eliom_parameter.string_of_param_name name)
+      fl ol string_of
+
+  let multiple_select ?a ?required ~name y fl ol =
+    let multiple = true
+    and name = Eliom_parameter.string_of_param_name name
+    and f = Eliom_parameter_base.string_of_atom y in
+    gen_select ?a ?required ~multiple ~name fl ol f
+
+  let raw_multiple_select ?a ?required ~(name : string)
+      (fl : string select_opt) (ol : string select_opt list) =
+    gen_select ?a ?required ~multiple:true ~name fl ol
+      Eliom_lib.id
+
+  let int_multiple_select ?a ?required ~name
+      (fl : int select_opt) (ol : int select_opt list) =
+    gen_select ?a ?required ~multiple:true
+      ~name:(Eliom_parameter.string_of_param_name name)
+      fl ol string_of_int
+
+  let int32_multiple_select ?a ?required ~name
+      (fl : int32 select_opt) (ol : int32 select_opt list) =
+    gen_select ?a ?required ~multiple:true
+      ~name:(Eliom_parameter.string_of_param_name name)
+      fl ol Int32.to_string
+
+  let int64_multiple_select ?a ?required ~name
+      (fl : int64 select_opt) (ol : int64 select_opt list) =
+    gen_select ?a ?required ~multiple:true
+      ~name:(Eliom_parameter.string_of_param_name name)
+      fl ol Int64.to_string
+
+  let float_multiple_select ?a ?required ~name
+      (fl : float select_opt) (ol : float select_opt list) =
+    gen_select ?a ?required ~multiple:true
+      ~name:(Eliom_parameter.string_of_param_name name)
+      fl ol Xml_print.string_of_number
+
+  let string_multiple_select ?a ?required ~name
+      (fl : string select_opt) (ol : string select_opt list) =
+    gen_select ?a ?required ~multiple:true
+      ~name:(Eliom_parameter.string_of_param_name name) fl ol
+      Eliom_lib.id
+
+  let user_type_multiple_select string_of ?a ?required
+      ~name (fl : 'a select_opt)
+      (ol : 'a select_opt list) =
+    gen_select ?a ?required ~multiple:true
+      ~name:(Eliom_parameter.string_of_param_name name)
+      fl ol string_of
+
+  let a_for = make_for_attrib
 
   let make_info ~https kind service =
     let f () =
@@ -201,9 +809,9 @@ module MakeApplForms
     | Some xhr -> xhr
     | None -> Eliom_config.get_default_links_xhr ()
 
-  let a_onclick_service info = attrib_of_service "onclick" info
+  let a_onclick_service info = Html5.attrib_of_service "onclick" info
 
-  let a_onsubmit_service info = attrib_of_service "onsubmit" info
+  let a_onsubmit_service info = Html5.attrib_of_service "onsubmit" info
 
   let a ?absolute ?absolute_path ?https ?(a = [])
       ~service ?hostname ?port ?fragment ?keep_nl_params ?nl_params
@@ -214,7 +822,7 @@ module MakeApplForms
       match xhr, Eliom_service.get_client_fun_ service with
       | true, _
       | _, Some _ ->
-        Forms.a_onclick
+        Html5.a_onclick
           {{ fun ev ->
              if not (Eliom_client.middleClick ev) then begin
                Dom.preventDefault ev;
@@ -235,7 +843,7 @@ module MakeApplForms
            }} :: a
       | _ -> a
     in
-    Forms.a
+    make_a
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port
       ?fragment ?keep_nl_params ?nl_params ~xhr
       content getparams
@@ -259,7 +867,7 @@ module MakeApplForms
         a
     in
     warn_client_service service;
-    Forms.get_form
+    get_form
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port
       ?fragment ?keep_nl_params ?nl_params
       contents
@@ -276,7 +884,7 @@ module MakeApplForms
         a
     in
     warn_client_service service;
-    Forms.lwt_get_form
+    lwt_get_form
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port
       ?fragment ?nl_params ?keep_nl_params
       contents
@@ -294,7 +902,7 @@ module MakeApplForms
         a
     in
     warn_client_service service;
-    Forms.post_form
+    post_form
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port
       ?fragment ?keep_nl_params ?keep_get_na_params ?nl_params
       contents getparams
@@ -312,27 +920,11 @@ module MakeApplForms
         a
     in
     warn_client_service service;
-    Forms.lwt_post_form
+    lwt_post_form
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port
       ?fragment ?keep_nl_params ?keep_get_na_params ?nl_params
       contents getparams
 
 end
-
-(* Multi-argument functors would be nicer, but they trigger a Camlp4
-   issue. A multi-argument functor would result in the following
-   construct
-
-     functor (A : S) (B : T) -> ...
-
-   appearing in the inferred.mli file. Camlp4 cannot parse that. *)
-
-module Make (H : Html5) =
-  MakeApplForms(struct
-    include Eliom_mkforms.MakeForms(Html5_forms_base(H))
-    let attrib_of_service = H.attrib_of_service
-    let a_onclick = H.a_onclick
-    type uri = H.uri
-  end)
 
 }}

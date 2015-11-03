@@ -19,7 +19,6 @@ let server = {
     "eliom_cookie";
     "eliom_extension";
     "eliom_lib";
-    "eliom_mkforms";
     "eliom_mkreg";
     "eliom_parameter";
     "eliom_pervasives";
@@ -85,7 +84,6 @@ let client = {
     "eliom_content_core";
     "eliom_lazy";
     "eliom_lib";
-    "eliom_mkforms";
     "eliom_parameter";
     "eliom_pervasives";
     "eliom_react";
