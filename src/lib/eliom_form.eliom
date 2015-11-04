@@ -48,18 +48,89 @@ module type Html5 = sig
 
 end
 
+let get_xhr = function
+  | Some xhr -> xhr
+  | None -> Eliom_config.get_default_links_xhr ()
+
+module Make_links (Html5 : Html5) = struct
+
+  type +'a elt = 'a Html5.elt
+  type +'a attrib = 'a Html5.attrib
+  type uri = Html5.uri
+
+  let make_uri
+      ?absolute
+      ?absolute_path
+      ?https ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?nl_params gp =
+    Html5.uri_of_fun @@ fun () ->
+    Eliom_uri.make_string_uri
+      ?absolute ?absolute_path
+      ?https ?fragment ~service
+      ?hostname ?port ?keep_nl_params ?nl_params gp
+
+  let uri_of_string = Html5.uri_of_fun
+
+  let a ?absolute ?absolute_path ?https ?(a = [])
+      ~service ?hostname ?port ?fragment ?keep_nl_params ?nl_params
+      ?xhr
+      content getparams =
+    let a =
+      let href =
+        Html5.uri_of_fun @@ fun () ->
+        Eliom_uri.make_string_uri
+          ?absolute ?absolute_path ?https ~service ?hostname ?port
+          ?fragment ?keep_nl_params ?nl_params getparams
+      in
+      let href = Html5.a_href href in
+      match get_xhr xhr, Eliom_service.get_client_fun_ service with
+      | true, _
+      | _, Some _ ->
+        let f = {{ fun ev ->
+          if not (Eliom_client.middleClick ev) then begin
+            Dom.preventDefault ev;
+            Dom_html.stopPropagation ev;
+            Lwt.async @@ fun () ->
+            Eliom_client.change_page
+              ?absolute:%absolute
+              ?absolute_path:%absolute_path
+              ?https:%https
+              ~service:%service
+              ?hostname:%hostname
+              ?port:%port
+              ?fragment:%fragment
+              ?keep_nl_params:%keep_nl_params
+              ?nl_params:%nl_params
+              %getparams ()
+          end }}
+        in
+        Html5.a_onclick f :: href :: a
+      | _ ->
+        href :: a
+    in
+    Html5.a ~a content
+
+  let css_link ?(a = []) ~uri () =
+    let a = Html5.a_mime_type "text/css" :: a in
+    Html5.link ~href:uri ~rel:[`Stylesheet] ~a ()
+
+  let js_script ?(a = []) ~uri () =
+    let a =
+      Html5.a_mime_type "text/javascript" ::
+      Html5.a_src uri ::
+      a
+    in
+    Html5.script ~a (Html5.pcdata "")
+
+end
+
 module Make (Html5 : Html5) = struct
 
   type +'a elt = 'a Html5.elt
   type +'a attrib = 'a Html5.attrib
   type uri = Html5.uri
 
-  let a_input_required () = Html5.a_required `Required
-  let a_select_required () = Html5.a_required `Required
-
   open Html5
-
-  let uri_of_string = Html5.uri_of_fun
 
   let id = Eliom_lib.id
 
@@ -129,51 +200,9 @@ module Make (Html5 : Html5) = struct
   let make_optgroup ?(a = []) ~label elt elts =
     optgroup ~label ~a (elt :: elts)
 
-  let make_css_link ?(a = []) ~uri () =
-    let a = a_mime_type "text/css" :: a in
-    link ~href:uri ~rel:[`Stylesheet] ~a ()
-
-  let make_js_script ?(a = []) ~uri () =
-    let a = a_mime_type "text/javascript" :: a_src uri :: a in
-    script ~a (pcdata "")
-
-  (* what follows is copied from eliom_mkforms *)
-
   (** Functions to construct web pages: *)
 
-  let make_proto_prefix = Eliom_uri.make_proto_prefix
-
-  let make_string_uri = Eliom_uri.make_string_uri
-
-  let make_uri_components = Eliom_uri.make_uri_components
-
   let make_post_uri_components = Eliom_uri.make_post_uri_components
-
-  let make_uri
-      ?absolute
-      ?absolute_path
-      ?https ~service ?hostname ?port ?fragment
-      ?keep_nl_params ?nl_params gp =
-    uri_of_string @@ fun () ->
-    Eliom_uri.make_string_uri
-      ?absolute ?absolute_path
-      ?https ?fragment ~service
-      ?hostname ?port ?keep_nl_params ?nl_params gp
-
-  let make_a
-      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
-      ?fragment ?keep_nl_params ?nl_params ?xhr content getparams =
-    let a =
-      let href =
-        uri_of_string @@ fun () ->
-        Eliom_uri.make_string_uri
-          ?absolute ?absolute_path ?https ~service ?hostname ?port
-          ?fragment ?keep_nl_params ?nl_params getparams
-      in
-      let href = a_href href in
-      match a with Some a -> href :: a | _ -> [href]
-    in
-    Html5.a ~a content
 
   let get_form_
       bind return
@@ -196,7 +225,7 @@ module Make (Html5 : Html5) = struct
     in
 
     let uri =
-      uri_of_string @@ fun () ->
+      Html5.uri_of_fun @@ fun () ->
       let uri, _, fragment = Eliom_lazy.force components in
       let uri =
         if issuffix then
@@ -270,7 +299,7 @@ module Make (Html5 : Html5) = struct
       in
       cons_hidden_fieldset (List.map f hiddenparams) inside
     and action =
-      uri_of_string @@ fun () ->
+      Html5.uri_of_fun @@ fun () ->
       let (uri, g, r, _) = Eliom_lazy.force components in
       Eliom_uri.make_string_uri_from_components (uri, g, r)
     in
@@ -285,9 +314,6 @@ module Make (Html5 : Html5) = struct
       ?fragment ?keep_get_na_params
       ?keep_nl_params ?nl_params
       f getparams
-
-  let js_script = make_js_script
-  let css_link = make_css_link
 
   let option_map f = function Some x -> Some (f x) | None -> None
 
@@ -417,7 +443,7 @@ module Make (Html5 : Html5) = struct
 
   let string_radio_required ?a ?checked ~name ~value () =
     let a =
-      let required = a_input_required () in
+      let required = Html5.a_required `Required in
       match a with
       | None -> [required]
       | Some a -> required :: a
@@ -526,7 +552,7 @@ module Make (Html5 : Html5) = struct
     let a = match required with
       | None -> a
       | Some _ ->
-        let required = a_select_required () in
+        let required = Html5.a_required `Required in
         match a with
         | Some a -> Some (required :: a)
         | None -> Some [required]
@@ -713,49 +739,9 @@ module Make (Html5 : Html5) = struct
     in
     Eliom_lazy.from_fun f
 
-  let get_xhr = function
-    | Some xhr -> xhr
-    | None -> Eliom_config.get_default_links_xhr ()
-
   let a_onclick_service info = Html5.attrib_of_service "onclick" info
 
   let a_onsubmit_service info = Html5.attrib_of_service "onsubmit" info
-
-  let a ?absolute ?absolute_path ?https ?(a = [])
-      ~service ?hostname ?port ?fragment ?keep_nl_params ?nl_params
-      ?xhr
-      content getparams =
-    let xhr = get_xhr xhr in
-    let a =
-      match xhr, Eliom_service.get_client_fun_ service with
-      | true, _
-      | _, Some _ ->
-        let f = {{ fun ev ->
-          if not (Eliom_client.middleClick ev) then begin
-            Dom.preventDefault ev;
-            Dom_html.stopPropagation ev;
-            Lwt.async @@ fun () ->
-            Eliom_client.change_page
-              ?absolute:%absolute
-              ?absolute_path:%absolute_path
-              ?https:%https
-              ~service:%service
-              ?hostname:%hostname
-              ?port:%port
-              ?fragment:%fragment
-              ?keep_nl_params:%keep_nl_params
-              ?nl_params:%nl_params
-              %getparams ()
-          end }}
-        in
-        Html5.a_onclick f :: a
-      | _ ->
-        a
-    in
-    make_a
-      ?absolute ?absolute_path ?https ~a ~service ?hostname ?port
-      ?fragment ?keep_nl_params ?nl_params ~xhr
-      content getparams
 
   let warn_client_service service =
     if Eliom_service.get_client_fun_ service <> None then

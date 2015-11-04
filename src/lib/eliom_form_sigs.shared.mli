@@ -19,24 +19,11 @@
 
 type button_type = [ `Button | `Reset | `Submit ]
 
-module type S = sig
-
-  (* When modifying this interface, please ensure that the ocamldoc is
-   coherent with the ocamldoc from Eliom_uri. *)
-
-  open Eliom_lib
-
-  open Eliom_parameter
-  open Eliom_service
+module type LINKS = sig
 
   type +'a elt
   type +'a attrib
-
   type uri
-
-  (** {2 Forms creation } *)
-
-  (** {3 Links and forms} *)
 
   (** The function [make_uri service get_params] returns the URL of
       the service [service] applied to the GET parameters
@@ -113,9 +100,10 @@ module type S = sig
     ?absolute:bool ->
     ?absolute_path:bool ->
     ?https:bool ->
-    service:('get, unit, [< get_service_kind ], _, _,
-             [< suff ], 'gn, unit,
-             [< registrable ], 'return) service ->
+    service:('get, unit, [< Eliom_service.get_service_kind ], _, _,
+             [< Eliom_service.suff ], 'gn, unit,
+             [< Eliom_service.registrable ],
+             'return) Eliom_service.service ->
     ?hostname:string ->
     ?port:int ->
     ?fragment:string ->
@@ -123,38 +111,6 @@ module type S = sig
     ?nl_params: Eliom_parameter.nl_params_set ->
     'get ->
     uri
-
-  (** The function [make_string_uri service get_params] returns the
-      URL of the of the service [service] applied to the GET
-      parameters [get_params]. See {!make_uri} for a detailled
-      description of optional parameters.
-
-      The function [make_string_uri] is an alias of
-      {!Eliom_uri.make_string_uri}.
-
-      {e Warning: The function [make_string_uri] should not be called
-      outside of a service handler, unless one of the following
-      condition is met:}
-
-      - the optional parameter [~absolute_path] is [true].
-      - the optional parameter [~absolute] is [true].
-      - the optional parameter [~https] is [true].
-      - the [service] has been created with [~https:true].
-      - the [service] is an external service. *)
-  val make_string_uri :
-    ?absolute:bool ->
-    ?absolute_path:bool ->
-    ?https:bool ->
-    service:('get, unit, [< get_service_kind ], _, _,
-             [< suff ], 'gn, unit,
-             [< registrable ], 'return) service ->
-    ?hostname:string ->
-    ?port:int ->
-    ?fragment:string ->
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    ?nl_params: Eliom_parameter.nl_params_set ->
-    'get ->
-    string
 
   (** The function [uri_of_string f] returns a URI whose content is
       equivalent to [f ()].
@@ -167,111 +123,6 @@ module type S = sig
 
       For other module, the function [f] is immediatly applied. *)
   val uri_of_string : (unit -> string) -> uri
-
-  (** The function [make_uri_components service get_params] returns
-      the a triplet [(path, get_params, fragment)] that is a
-      decomposition of the URL for the service [service] applied to
-      the GET parameters [get_params]. By default the returned [path]
-      is relative to the current request URL but it could be absolute
-      URL in some situation, see {!make_uri} for more information and
-      a description of optional parameters.
-
-      The function [make_uri_components] is an alias for
-      {!Eliom_uri.make_uri_components}.
-
-      {e Warning: depending on the optional parameters, the function
-      [make_uri_components] may not be used outside of a service
-      handler. See {!make_string_uri} for a detailled
-      description.}  *)
-  val make_uri_components :
-    ?absolute:bool ->
-    ?absolute_path:bool ->
-    ?https:bool ->
-    service:('get, unit, [< get_service_kind ], _, _,
-             [< suff ], 'gn, unit,
-             [< registrable ], 'return) service ->
-    ?hostname:string ->
-    ?port:int ->
-    ?fragment:string ->
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    ?nl_params: Eliom_parameter.nl_params_set ->
-    'get ->
-    string * (string * Eliommod_parameters.param) list * string option
-
-  (** Same a {!make_uri_components}, but also returns a list of post
-      parameters. *)
-  val make_post_uri_components :
-    ?absolute:bool ->
-    ?absolute_path:bool ->
-    ?https:bool ->
-    service:('get, 'post, [< post_service_kind ], _, _,
-             [< suff ], 'gn, 'pn,
-             [< registrable ], 'return) service ->
-    ?hostname:string ->
-    ?port:int ->
-    ?fragment:string ->
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    ?nl_params: Eliom_parameter.nl_params_set ->
-    ?keep_get_na_params:bool ->
-    'get ->
-    'post ->
-    string * (string * Eliommod_parameters.param) list * string option *
-    (string * Eliommod_parameters.param) list
-
-  (**/**)
-  (** Creates the string corresponding to the beginning of the URL,
-      containing the scheme (protocol), server and port number (if
-      necessary).  *)
-  val make_proto_prefix :
-    ?hostname:string ->
-    ?port:int ->
-    bool ->
-    string
-  (**/**)
-
-  (** The function [a service a_content get_params] creates a [<a>]
-      node that link to [service] applied to GET parameters
-      [get_params] and whose content is [a_content]. By default, the
-      [href] attribute is a relative URL recomputed at each request
-      with {!make_uri}.
-
-      By default, the link is realized such that the client-side Eliom
-      application keeps running irrespectable of the usage of the link
-      (cf. {% <<a_api project="eliom" subproject="client" | val
-      Eliom_client.change_page>> %}).
-
-      By contrast, if the optional parameter [~xhr:false] is given,
-      the link is realized as a standard HTML link and clicking it
-      discontinues the Eliom application.  The [~xhr] parameter has no
-      effect outside an Eliom application.
-
-      NB that the default value of [~xhr] is configurable through
-      <<a_api project="eliom" subproject="server" | val
-      Eliom_config.set_default_links_xhr >>
-
-      The optional parameter [~a] allows one to add extra HTML
-      attributes to the generated node.
-
-      See {!make_uri} for description of other optional
-      parameters.  *)
-  val a :
-    ?absolute:bool ->
-    ?absolute_path:bool ->
-    ?https:bool ->
-    ?a:Html5_types.a_attrib attrib list ->
-    service:('get, unit, [< get_service_kind ], _, _,
-             [< suff ], 'd, unit,
-             [< registrable ], [< non_ocaml_service])
-        service ->
-    ?hostname:string ->
-    ?port:int ->
-    ?fragment:string ->
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    ?nl_params: Eliom_parameter.nl_params_set ->
-    ?xhr:bool ->
-    'a elt list ->
-    'get ->
-    [> 'a Html5_types.a] elt
 
   (** The function [css_link ~uri ()] creates a [<link>] node that
       reference a Cascading StyleSheet (CSS).
@@ -302,6 +153,88 @@ module type S = sig
   val js_script :
     ?a:Html5_types.script_attrib attrib list -> uri:uri -> unit ->
     [> Html5_types.script] elt
+
+  (** The function [a service a_content get_params] creates a [<a>]
+      node that link to [service] applied to GET parameters
+      [get_params] and whose content is [a_content]. By default, the
+      [href] attribute is a relative URL recomputed at each request
+      with {!make_uri}.
+
+      By default, the link is implemented in a way that allows the
+      client-side Eliom application to keep running, irrespectable of
+      the usage of the link (cf. {% <<a_api project="eliom"
+      subproject="client" | val Eliom_client.change_page>> %}).
+
+      By contrast, if the optional parameter [~xhr:false] is given,
+      the link is realized as a standard HTML link and clicking it
+      discontinues the Eliom application.  The [~xhr] parameter has no
+      effect outside an Eliom application.
+
+      NB that the default value of [~xhr] is configurable through
+      <<a_api project="eliom" subproject="server" | val
+      Eliom_config.set_default_links_xhr >>
+
+      The optional parameter [~a] allows one to add extra HTML
+      attributes to the generated node.
+
+      See {!make_uri} for description of other optional
+      parameters.  *)
+  val a :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    ?a:Html5_types.a_attrib attrib list ->
+    service:('get, unit, [< Eliom_service.get_service_kind ], _, _,
+             [< Eliom_service.suff ], 'd, unit,
+             [< Eliom_service.registrable ],
+             [< Eliom_service.non_ocaml_service])
+        Eliom_service.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    ?nl_params: Eliom_parameter.nl_params_set ->
+    ?xhr:bool ->
+    'a elt list ->
+    'get ->
+    [> 'a Html5_types.a] elt
+
+end
+
+module type S = sig
+
+  (* When modifying this interface, please ensure that the ocamldoc is
+   coherent with the ocamldoc from Eliom_uri. *)
+
+  open Eliom_lib
+
+  open Eliom_parameter
+  open Eliom_service
+
+  type +'a elt
+  type +'a attrib
+
+  type uri
+
+  (** Same as {!LINK.make_uri_components}, but also returns a list of
+      post parameters. *)
+  val make_post_uri_components :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('get, 'post, [< post_service_kind ], _, _,
+             [< suff ], 'gn, 'pn,
+             [< registrable ], 'return) service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    ?nl_params: Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool ->
+    'get ->
+    'post ->
+    string * (string * Eliommod_parameters.param) list * string option *
+    (string * Eliommod_parameters.param) list
 
   (** The function [post_form service formgen] creates a GET [<form>]
       to [service]. The content of the [<form>] is generated by the
@@ -417,8 +350,6 @@ module type S = sig
     ('pn -> Html5_types.form_content elt list Lwt.t) ->
     'get ->
     [> Html5_types.form ] elt Lwt.t
-
-  (** {2:form_widgets Form widgets } *)
 
   (** Creates an [<input>] tag. *)
   val input :
@@ -939,7 +870,5 @@ module type S = sig
     string select_opt ->
     string select_opt list ->
     [> Html5_types.select] elt
-
-  val a_for: string -> [> `For] attrib
 
 end

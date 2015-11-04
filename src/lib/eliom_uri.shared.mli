@@ -46,9 +46,18 @@ open Eliom_service
     to the GET parameters [get_params].
 
     See {!Eliom_registration.Html5.make_string_uri} or any other
-    {!Eliom_registration}[.*.make_string_uri] for a detailled description of
-    optional parameters.
-*)
+    {!Eliom_registration}[.*.make_string_uri] for a detailled
+    description of optional parameters.
+
+    {e Warning: The function [make_string_uri] should not be called
+    outside of a service handler, unless one of the following
+    condition is met:}
+
+    - the optional parameter [~absolute_path] is [true].
+    - the optional parameter [~absolute] is [true].
+    - the optional parameter [~https] is [true].
+    - the [service] has been created with [~https:true].
+    - the [service] is an external service. *)
 val make_string_uri :
   ?absolute:bool ->
   ?absolute_path:bool ->
@@ -202,6 +211,9 @@ val make_post_uri_components_ :
 
 val make_actual_path: string list -> string list
 
+(** Creates the string corresponding to the beginning of the URL,
+    containing the scheme (protocol), server and port number (if
+    necessary).  *)
 val make_proto_prefix :
   ?hostname:string -> ?port:int ->
   bool -> string

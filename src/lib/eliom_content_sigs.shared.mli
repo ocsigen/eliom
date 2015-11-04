@@ -17,10 +17,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-module type FORMS = sig
+module type LINKS_AND_FORMS = sig
 
-  include Eliom_form_sigs.S
-
+  type +'a elt
+  type +'a attrib
+  type uri
   type (_, _, _) star
 
   type ('a, 'b, 'c) lazy_star =
@@ -33,55 +34,14 @@ module type FORMS = sig
      [< Html5_types.form_content_fun ],
      [> Html5_types.form ]) lazy_star
 
-  (** Creates an untyped form. *)
-  val raw_form :
-    ([< Html5_types.form_attrib ],
-     [< Html5_types.form_content_fun ],
-     [> Html5_types.form ]) star
+  include Eliom_form_sigs.LINKS
+    with type +'a elt := 'a elt
+     and type +'a attrib := 'a attrib
+     and type uri := uri
 
-  (** This is an alias to {% <<a_api|val Eliom_form_sigs.S.get_form>>
-      %} to avoid the untyped [Html5_sigs.T.form]. *)
-  val form :
-    ?absolute:bool -> ?absolute_path:bool -> ?https:bool ->
-    ?a:Html5_types.form_attrib attrib list ->
-    service:
-      ('get, unit,
-       [< Eliom_service.get_service_kind],
-       _, _,
-       [< Eliom_service.suff],
-       'gn, 'pn,
-       [< Eliom_service.registrable],
-       [< Eliom_service.non_ocaml_service ]) Eliom_service.service ->
-    ?hostname:string ->
-    ?port:int ->
-    ?fragment:string ->
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    ?nl_params: Eliom_parameter.nl_params_set ->
-    ?xhr:bool ->
-    ('gn -> Html5_types.form_content elt list) ->
-    [> Html5_types.form ] elt
-
-  (** This is an alias to {% <<a_api|val
-      Eliom_form_sigs.S.string_input>> %} to avoid the untyped
-      [Html5_sigs.T.input]. *)
-  val input :
-    ?a:Html5_types.input_attrib attrib list ->
-    input_type:[< Html5_types.input_type] ->
-    ?name:
-      [< string Eliom_parameter.setoneradio]
-      Eliom_parameter.param_name ->
-    ?value:string ->
-    unit ->
-    [> Html5_types.input ] elt
-
-  (** This is an alias to {% <<a_api|val
-      Eliom_form_sigs.S.string_select>> %} to avoid the untyped
-      [Html5_sigs.T.select]. *)
-  val select :
-    ?a:Html5_types.select_attrib attrib list ->
-    name:[ `One of string ] Eliom_parameter.param_name ->
-    string select_opt ->
-    string select_opt list ->
-    [> Html5_types.select ] elt
+  module Form : Eliom_form_sigs.S
+    with type +'a elt := 'a elt
+     and type +'a attrib := 'a attrib
+     and type uri := uri
 
 end
