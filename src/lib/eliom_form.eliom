@@ -19,7 +19,6 @@
 *)
 
 {shared{
-
 module type Html5 = sig
 
   include Html5_sigs.T
@@ -53,7 +52,6 @@ module Make (Html5 : Html5) = struct
 
   type +'a elt = 'a Html5.elt
   type +'a attrib = 'a Html5.attrib
-
   type uri = Html5.uri
 
   let a_input_required () = Html5.a_required `Required
@@ -63,29 +61,13 @@ module Make (Html5 : Html5) = struct
 
   let uri_of_string = Html5.uri_of_fun
 
-  let select_content_of_option a =
-    (a :> Html5_types.select_content elt)
-
-  let make_pcdata s = pcdata s
-
-  let make_a ?(a = []) ?href l =
-    let a = match href with
-      | None -> a
-      | Some href -> a_href href :: a
-    in
-    Html5.a ~a l
-
-  let make_empty_form_content () = fieldset []
-
-  let make_get_form ?(a = []) ~action elts =
-    let a = a_method `Get :: a_action action :: a in
-    Html5.lazy_form ~a:a elts
+  let id = Eliom_lib.id
 
   let make_post_form ?(a = []) ~action ?id ?(inline = false) elts =
     let a =
       match id with
       | None -> a
-      | Some i -> a_id i :: a
+      | Some id -> a_id id :: a
     in
     let a =
       Html5.a_enctype "multipart/form-data" ::
@@ -97,25 +79,20 @@ module Make (Html5 : Html5) = struct
     lazy_form ~a elts
 
   let cons_hidden_fieldset fields content =
-    let fieldset =
-      Html5.fieldset
-        ~a:[a_style "display: none;"]
-        fields in
-    fieldset :: content
+    Html5.fieldset ~a:[a_style "display: none;"] fields :: content
 
-  let make_input ?(a = [])
-      ?(checked=false) ~typ ?name ?src ?value () =
+  let make_input ?(a = []) ?(checked = false) ~typ ?name ?src ?value () =
     let a = match value with
       | None -> a
-      | Some v -> a_value v :: a
+      | Some value -> a_value value :: a
     in
     let a = match name with
       | None -> a
-      | Some v -> a_name v :: a
+      | Some name -> a_name name :: a
     in
     let a = match src with
       | None -> a
-      | Some v -> a_src v :: a
+      | Some src -> a_src src :: a
     in
     let a = if checked then a_checked `Checked :: a else a in
     let a = a_input_type typ :: a in
@@ -124,11 +101,11 @@ module Make (Html5 : Html5) = struct
   let make_button ?(a = []) ~button_type ?name ?value c =
     let a = match value with
       | None -> a
-      | Some v -> a_text_value v :: a
+      | Some value -> a_text_value value :: a
     in
     let a = match name with
       | None -> a
-      | Some v -> a_name v :: a
+      | Some name -> a_name name :: a
     in
     button ~a:(a_button_type button_type :: a) c
 
@@ -160,8 +137,6 @@ module Make (Html5 : Html5) = struct
     let a = a_mime_type "text/javascript" :: a_src uri :: a in
     script ~a (pcdata "")
 
-  let make_for_attrib = a_for
-
   (* what follows is copied from eliom_mkforms *)
 
   (** Functions to construct web pages: *)
@@ -179,29 +154,32 @@ module Make (Html5 : Html5) = struct
       ?absolute_path
       ?https ~service ?hostname ?port ?fragment
       ?keep_nl_params ?nl_params gp =
-    uri_of_string
-      (fun () ->
-	 make_string_uri
-           ?absolute ?absolute_path
-           ?https ?fragment ~service
-           ?hostname ?port ?keep_nl_params ?nl_params gp)
+    uri_of_string @@ fun () ->
+    Eliom_uri.make_string_uri
+      ?absolute ?absolute_path
+      ?https ?fragment ~service
+      ?hostname ?port ?keep_nl_params ?nl_params gp
 
-
-  let make_a ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
-      ?keep_nl_params ?nl_params ?xhr content getparams =
-    let href =
-      uri_of_string
-	(fun () ->
-	   make_string_uri
-	     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
-	     ?keep_nl_params ?nl_params getparams)
+  let make_a
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
+      ?fragment ?keep_nl_params ?nl_params ?xhr content getparams =
+    let a =
+      let href =
+        uri_of_string @@ fun () ->
+        Eliom_uri.make_string_uri
+          ?absolute ?absolute_path ?https ~service ?hostname ?port
+          ?fragment ?keep_nl_params ?nl_params getparams
+      in
+      let href = a_href href in
+      match a with Some a -> href :: a | _ -> [href]
     in
-    make_a ?a ~href content
+    Html5.a ~a content
 
   let get_form_
       bind return
-      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
-      ?(nl_params = Eliom_parameter.empty_nl_params_set) ?keep_nl_params
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
+      ?fragment ?(nl_params = Eliom_parameter.empty_nl_params_set)
+      ?keep_nl_params
       f =
 
     let issuffix, paramnames =
@@ -221,7 +199,7 @@ module Make (Html5 : Html5) = struct
       uri_of_string @@ fun () ->
       let uri, _, fragment = Eliom_lazy.force components in
       let uri =
-	if issuffix then
+        if issuffix then
           if uri.[String.length uri - 1] = '/' then
             uri^Eliom_common.eliom_nosuffix_page
           else
@@ -242,33 +220,28 @@ module Make (Html5 : Html5) = struct
         let name = n
         and value = Eliommod_parameters.to_string v
         and typ = `Hidden in
-	make_input ~typ ~name ~value ()
+        make_input ~typ ~name ~value ()
       in
       cons_hidden_fieldset (List.map f hiddenparams) inside
+    and a =
+      let a' = [a_method `Get; a_action uri] in
+      match a with Some a -> a' @ a | _ -> a'
     in
-    return (make_get_form ?a ~action:uri inside)
+    return (Html5.lazy_form ~a inside)
 
   let get_form
-      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
-      ?keep_nl_params ?nl_params ?xhr f =
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
+      ?fragment ?keep_nl_params ?nl_params ?xhr f =
     get_form_
       (fun x f -> f x) (fun x -> x)
       ?absolute ?absolute_path
       ?https ?a ~service ?keep_nl_params
       ?nl_params ?hostname ?port ?fragment f
 
-  let lwt_get_form
-      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
-      ?keep_nl_params ?nl_params ?xhr f =
-    get_form_
-      Lwt.bind Lwt.return
-      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
-      ?nl_params ?keep_nl_params f
-
   let post_form_
       bind return
-      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
-      ?(nl_params = Eliom_parameter.empty_nl_params_set)
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
+      ?fragment ?(nl_params = Eliom_parameter.empty_nl_params_set)
       ?(keep_nl_params : [ `All | `Persistent | `None ] option)
       ?keep_get_na_params
       f getparams =
@@ -279,82 +252,50 @@ module Make (Html5 : Html5) = struct
     in
 
     let components =
-      let f () =
-	Eliom_uri.make_post_uri_components_
-          ?absolute ?absolute_path ?https ~service ?hostname ?port
-          ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
-          getparams
-          ()
-      in
-      Eliom_lazy.from_fun f
+      Eliom_lazy.from_fun @@ fun () ->
+      Eliom_uri.make_post_uri_components_
+        ?absolute ?absolute_path ?https ~service ?hostname ?port
+        ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
+        getparams
+        ()
     in
 
     bind (f paramnames) @@ fun inside ->
     let inside =
-      let f () =
-	let (uri, getparams, fragment, hiddenparams) =
-	  Eliom_lazy.force components in
-	cons_hidden_fieldset
-	  (List.map
-	     (fun (n,v) ->
-		(make_input
-		   ~typ:`Hidden
-		   ~name:n ~value:(Eliommod_parameters.to_string v) ()))
-	     hiddenparams)
-          inside
+      Eliom_lazy.from_fun @@ fun () ->
+      let (_, _, _, hiddenparams) = Eliom_lazy.force components
+      and f (name, value) =
+        let value = Eliommod_parameters.to_string value in
+        make_input ~typ:`Hidden ~name ~value ()
       in
-      Eliom_lazy.from_fun f
+      cons_hidden_fieldset (List.map f hiddenparams) inside
+    and action =
+      uri_of_string @@ fun () ->
+      let (uri, g, r, _) = Eliom_lazy.force components in
+      Eliom_uri.make_string_uri_from_components (uri, g, r)
     in
-    let uri =
-      uri_of_string
-        (fun () ->
-	   let (uri, getparams, fragment, hiddenparams) =
-	     Eliom_lazy.force components in
-           Eliom_uri.make_string_uri_from_components (uri, getparams, fragment))
-    in
-    return (make_post_form ?a ~action:uri inside)
+    return (make_post_form ?a ~action inside)
 
   let post_form
-      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
-      ?keep_nl_params ?keep_get_na_params ?nl_params ?xhr f getparams =
-    post_form_
-      (fun x f -> f x) (fun x -> x)
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
+      ?fragment ?keep_nl_params ?keep_get_na_params ?nl_params ?xhr
+      f getparams =
+    post_form_ (fun x f -> f x) (fun x -> x)
       ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
       ?fragment ?keep_get_na_params
       ?keep_nl_params ?nl_params
       f getparams
 
-  let lwt_post_form
-      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
-      ?keep_nl_params ?keep_get_na_params
-      ?nl_params
-      ?xhr f getparams =
-    post_form_ Lwt.bind Lwt.return
-      ?absolute ?absolute_path
-      ?https ?a ~service ?hostname ?port
-      ?fragment ?keep_get_na_params ?keep_nl_params ?nl_params
-      f getparams
-
   let js_script = make_js_script
   let css_link = make_css_link
 
+  let option_map f = function Some x -> Some (f x) | None -> None
+
   let gen_input ?a ~input_type
       ?value ?src ?name string_of =
-    let name = match name with
-      | None -> None
-      | Some n -> Some (Eliom_parameter.string_of_param_name n)
-    in
-    (match value with
-     | None ->
-       make_input ?a ~typ:input_type ?name ?src ()
-     | Some v ->
-       make_input
-         ?a
-         ~value:(string_of v)
-         ~typ:input_type
-         ?src
-         ?name
-         ())
+    let name = option_map Eliom_parameter.string_of_param_name name
+    and value = option_map string_of value in
+    make_input ?a ?value ~typ:input_type ?name ?src ()
 
   let input ?a ~input_type ?name ?value y =
     let f = Eliom_parameter_base.string_of_atom y in
@@ -378,23 +319,14 @@ module Make (Html5 : Html5) = struct
 
   let string_input ?a ~input_type
       ?name ?value () =
-    gen_input ?a ~input_type ?value ?name Eliom_lib.id
+    gen_input ?a ~input_type ?value ?name id
 
   let user_type_input string_of ?a ~input_type
       ?name ?value () =
     gen_input ?a ~input_type ?value ?name string_of
 
   let raw_input ?a ~input_type ?name ?value () =
-    (match value with
-     | None ->
-       make_input ?a ~typ:input_type ?name ()
-     | Some v ->
-       make_input
-         ?a
-         ~value:v
-         ~typ:input_type
-         ?name
-         ())
+    make_input ?a ?value ~typ:input_type ?name ()
 
   let file_input ?a ~name () =
     make_input ?a ~typ:`File
@@ -406,37 +338,28 @@ module Make (Html5 : Html5) = struct
     gen_input ?a ~input_type:`Image ~name ~value ?src f
 
   let int_image_input ?a ~name ~value ?src () =
-    gen_input ?a ~input_type:`Image ~name
-      ~value ?src string_of_int
+    gen_input ?a ~input_type:`Image ~name ~value ?src string_of_int
 
   let int32_image_input ?a ~name ~value ?src () =
-    gen_input ?a ~input_type:`Image ~name
-      ~value ?src Int32.to_string
+    gen_input ?a ~input_type:`Image ~name ~value ?src
+      Int32.to_string
 
   let int64_image_input ?a ~name ~value ?src () =
-    gen_input ?a ~input_type:`Image ~name
-      ~value ?src Int64.to_string
+    gen_input ?a ~input_type:`Image ~name ~value ?src
+      Int64.to_string
 
   let float_image_input ?a ~name ~value ?src () =
-    gen_input ?a ~input_type:`Image ~name
-      ~value ?src Xml_print.string_of_number
+    gen_input ?a ~input_type:`Image ~name ~value ?src
+      Xml_print.string_of_number
 
   let string_image_input ?a ~name ~value ?src () =
-    gen_input ?a ~input_type:`Image ~name
-      ~value ?src Eliom_lib.id
+    gen_input ?a ~input_type:`Image ~name ~value ?src id
 
   let user_type_image_input string_of ?a ~name ~value ?src () =
-    gen_input ?a ~input_type:`Image ~name
-      ~value ?src string_of
+    gen_input ?a ~input_type:`Image ~name ~value ?src string_of
 
   let raw_image_input ?a ~(name : string) ~value ?src () =
-    make_input
-      ?a
-      ~value
-      ~typ:`Image
-      ?src
-      ~name
-      ()
+    make_input ?a ~value ~typ:`Image ?src ~name ()
 
   let checkbox ?a ?checked ~name ~value y =
     let name = Eliom_parameter.string_of_param_name name
@@ -479,8 +402,7 @@ module Make (Html5 : Html5) = struct
       ~value:(string_of value) ()
 
   let raw_checkbox ?a ?checked ~name ~value () =
-    make_input ?a ?checked ~typ:`Checkbox
-      ~name:name ~value ()
+    make_input ?a ?checked ~typ:`Checkbox ~name ~value ()
 
   let radio ?a ?checked ~name ~value y =
     let name = Eliom_parameter.string_of_param_name name
@@ -535,9 +457,7 @@ module Make (Html5 : Html5) = struct
       ~value:(string_of value) ()
 
   let raw_radio ?a ?checked ~(name : string) ~value () =
-    make_input
-      ?a ?checked ~typ:`Radio
-      ~name:name ~value:value ()
+    make_input ?a ?checked ~typ:`Radio ~name ~value ()
 
   let button ?a ~name ~value y c =
     let name = Eliom_parameter.string_of_param_name name
@@ -613,87 +533,81 @@ module Make (Html5 : Html5) = struct
     in
 
     let normalize_selected l =
-      (* We change the list of option to have exactly one selected item.
-         We do this because the behaviour of browsers differs.
-         We select the first one if nothing is selected.
-         We select the first selected if several are selected.
-         Thus all browsers will behave the same way.
-      *)
-      let aux1 trouve ((a, b, c, selected) as line) =
-        if trouve
-        then ((a, b, c, false), true)
-        else if selected
-        then (line, true)
-        else (line, false)
+      (* We change the list of option to have exactly one selected
+         item.  We do this because the behaviour of browsers differs.
+         We select the first one if nothing is selected.  We select
+         the first selected if several are selected.  Thus all
+         browsers will behave the same way.  *)
+      let aux1 found ((a, b, c, selected) as line) =
+        if found then
+          (a, b, c, false), true
+        else
+          line, selected
       in
-      let rec aux2 trouve = function
-        | line::l ->
-          let (line, trouve) = aux1 trouve line in
-          let (l, trouve) = aux2 trouve l in
-          (line::l, trouve)
-        | [] -> ([], trouve)
+      let rec aux2 found = function
+        | line :: l ->
+          let line, found = aux1 found line in
+          let l, found = aux2 found l in
+          line :: l, found
+        | [] ->
+          [], found
       in
-      let rec aux trouve = function
-        | (Option line)::l ->
-          let (line, trouve) = aux1 trouve line in
-          let (l, trouve) = aux trouve l in
-          ((Option line)::l, trouve)
-        | (Optgroup (a, b, fl, ol))::l ->
-          let (fl, trouve) = aux1 trouve fl in
-          let (ol, trouve) = aux2 trouve ol in
-          let (l, trouve) = aux trouve l in
-          ((Optgroup (a, b, fl, ol))::l, trouve)
-        | [] -> ([], trouve)
+      let rec aux found = function
+        | Option line :: l ->
+          let line, found = aux1 found line in
+          let l, found = aux found l in
+          Option line :: l, found
+        | Optgroup (a, b, fl, ol) :: l ->
+          let fl, found = aux1 found fl in
+          let ol, found = aux2 found ol in
+          let l, found = aux found l in
+          Optgroup (a, b, fl, ol) :: l, found
+        | [] ->
+          [], found
       in
       let select_first = function
         | Option (a, b, c, _) -> Option (a, b, c, true)
         | Optgroup (a, b, (c, d, e, _), ol) ->
           Optgroup (a, b, (c, d, e, true), ol)
       in
-      let (newl, trouve) = aux false l in
-      if trouve
-      then ((List.hd newl), (List.tl newl), true)
+      let newl, found = aux false l in
+      if found then
+        List.hd newl, List.tl newl, true
       else
         let first = List.hd newl in
         (* We select the first one by default *)
         let first =
-          if required = None then
-            select_first first
-          else
-            first
+          match required with
+          | None -> select_first first
+          | _ -> first
         in
-        (first, (List.tl newl), false)
+        first, (List.tl newl), false
     in
 
-
-    let (fl, ol, has_selected) =
-      if multiple
-      then (fl, ol, let _, _, hs = normalize_selected (fl :: ol) in hs)
-      else normalize_selected (fl::ol)
+    let fl, ol, has_selected =
+      if multiple then
+        fl, ol, let _, _, hs = normalize_selected (fl :: ol) in hs
+      else
+        normalize_selected (fl :: ol)
     in
     let make_opt (a, cv, co, sel) =
       (match co with
-       | None -> make_option ~a ~selected:sel
-                   (make_pcdata (string_of cv))
-       | Some c -> make_option ~a ~selected:sel
-                     ~value:(string_of cv) c)
+       | None ->
+         make_option ~a ~selected:sel (pcdata (string_of cv))
+       | Some c -> make_option ~a ~selected:sel ~value:(string_of cv) c)
     in
     let make_optg = function
       | Option o ->
-        select_content_of_option (make_opt o)
+        make_opt o
       | Optgroup (a, label, og1, ogl) ->
-        make_optgroup
-          ~a ~label (make_opt og1) (List.map make_opt ogl)
+        make_optgroup ~a ~label (make_opt og1) (List.map make_opt ogl)
     in
     let fl2, ol2 = make_optg fl, List.map make_optg ol in
     let fl3, ol3 =
       match required with
       | None -> fl2, ol2
       | Some label ->
-        let placeholder =
-          make_option ~selected:(not has_selected) ~value:"" label
-        in
-        select_content_of_option placeholder,
+        make_option ~selected:(not has_selected) ~value:"" label,
         fl2 :: ol2
     in
     make_select ?a ~multiple ~name fl3 ol3
@@ -706,8 +620,7 @@ module Make (Html5 : Html5) = struct
 
   let raw_select ?a ?required ~(name : string)
       (fl : string select_opt) (ol : string select_opt list) =
-    gen_select ?a ?required ~multiple:false ~name
-      fl ol Eliom_lib.id
+    gen_select ?a ?required ~multiple:false ~name fl ol id
 
   let int_select ?a ?required ~name
       (fl : int select_opt) (ol : int select_opt list) =
@@ -736,8 +649,7 @@ module Make (Html5 : Html5) = struct
   let string_select ?a ?required ~name
       (fl : string select_opt) (ol : string select_opt list) =
     gen_select ?a ?required ~multiple:false
-      ~name:(Eliom_parameter.string_of_param_name name) fl ol
-      Eliom_lib.id
+      ~name:(Eliom_parameter.string_of_param_name name) fl ol id
 
   let user_type_select string_of ?a ?required ~name (fl : 'a select_opt)
       (ol : 'a select_opt list) =
@@ -753,8 +665,7 @@ module Make (Html5 : Html5) = struct
 
   let raw_multiple_select ?a ?required ~(name : string)
       (fl : string select_opt) (ol : string select_opt list) =
-    gen_select ?a ?required ~multiple:true ~name fl ol
-      Eliom_lib.id
+    gen_select ?a ?required ~multiple:true ~name fl ol id
 
   let int_multiple_select ?a ?required ~name
       (fl : int select_opt) (ol : int select_opt list) =
@@ -783,8 +694,7 @@ module Make (Html5 : Html5) = struct
   let string_multiple_select ?a ?required ~name
       (fl : string select_opt) (ol : string select_opt list) =
     gen_select ?a ?required ~multiple:true
-      ~name:(Eliom_parameter.string_of_param_name name) fl ol
-      Eliom_lib.id
+      ~name:(Eliom_parameter.string_of_param_name name) fl ol id
 
   let user_type_multiple_select string_of ?a ?required
       ~name (fl : 'a select_opt)
@@ -792,8 +702,6 @@ module Make (Html5 : Html5) = struct
     gen_select ?a ?required ~multiple:true
       ~name:(Eliom_parameter.string_of_param_name name)
       fl ol string_of
-
-  let a_for = make_for_attrib
 
   let make_info ~https kind service =
     let f () =
@@ -822,26 +730,27 @@ module Make (Html5 : Html5) = struct
       match xhr, Eliom_service.get_client_fun_ service with
       | true, _
       | _, Some _ ->
-        Html5.a_onclick
-          {{ fun ev ->
-             if not (Eliom_client.middleClick ev) then begin
-               Dom.preventDefault ev;
-               Dom_html.stopPropagation ev;
-               Lwt.async (fun () ->
-                 Eliom_client.change_page
-                   ?absolute:%absolute
-                   ?absolute_path:%absolute_path
-                   ?https:%https
-                   ~service:%service
-                   ?hostname:%hostname
-                   ?port:%port
-                   ?fragment:%fragment
-                   ?keep_nl_params:%keep_nl_params
-                   ?nl_params:%nl_params
-                 %getparams ())
-             end
-           }} :: a
-      | _ -> a
+        let f = {{ fun ev ->
+          if not (Eliom_client.middleClick ev) then begin
+            Dom.preventDefault ev;
+            Dom_html.stopPropagation ev;
+            Lwt.async @@ fun () ->
+            Eliom_client.change_page
+              ?absolute:%absolute
+              ?absolute_path:%absolute_path
+              ?https:%https
+              ~service:%service
+              ?hostname:%hostname
+              ?port:%port
+              ?fragment:%fragment
+              ?keep_nl_params:%keep_nl_params
+              ?nl_params:%nl_params
+              %getparams ()
+          end }}
+        in
+        Html5.a_onclick f :: a
+      | _ ->
+        a
     in
     make_a
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port
@@ -884,7 +793,7 @@ module Make (Html5 : Html5) = struct
         a
     in
     warn_client_service service;
-    lwt_get_form
+    get_form_ Lwt.bind Lwt.return
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port
       ?fragment ?nl_params ?keep_nl_params
       contents
@@ -920,11 +829,12 @@ module Make (Html5 : Html5) = struct
         a
     in
     warn_client_service service;
-    lwt_post_form
+    post_form_ Lwt.bind Lwt.return
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port
-      ?fragment ?keep_nl_params ?keep_get_na_params ?nl_params
+      ?fragment ?keep_get_na_params ?keep_nl_params ?nl_params
       contents getparams
 
-end
+  let a_for = a_for
 
+end
 }}
