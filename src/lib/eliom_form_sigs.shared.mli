@@ -360,46 +360,6 @@ module type S = sig
     'a Eliom_parameter_base.atom ->
     [> Html5_types.input] elt
 
-  (** Creates an [<input>] tag for an integer *)
-  val int_input :
-    ?a:Html5_types.input_attrib attrib list ->
-    input_type:[< Html5_types.input_type] ->
-    ?name:[< int setoneradio] param_name ->
-    ?value:int -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates an [<input>] tag for an integer *)
-  val int32_input :
-    ?a:Html5_types.input_attrib attrib list ->
-    input_type:[< Html5_types.input_type] ->
-    ?name:[< int32 setoneradio ] param_name ->
-    ?value:int32 -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates an [<input>] tag for an integer *)
-  val int64_input :
-    ?a:Html5_types.input_attrib attrib list ->
-    input_type:[< Html5_types.input_type] ->
-    ?name:[< int64 setoneradio ] param_name ->
-    ?value:int64 -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates an [<input>] tag for a float *)
-  val float_input :
-    ?a:Html5_types.input_attrib attrib list ->
-    input_type:[< Html5_types.input_type] ->
-    ?name:[< float setoneradio ] param_name ->
-    ?value:float -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates an [<input>] tag for a string *)
-  val string_input :
-    ?a:Html5_types.input_attrib attrib list ->
-    input_type:[< Html5_types.input_type] ->
-    ?name:[< string setoneradio ] param_name ->
-    ?value:string -> unit ->
-    [> Html5_types.input] elt
-
   (** Creates an [<input>] tag for a user type *)
   val user_type_input : ('a -> string) ->
     ?a:Html5_types.input_attrib attrib list ->
@@ -434,51 +394,6 @@ module type S = sig
 
   (** Creates an [<input type="image" name="..." value="...">] tag
       that sends the coordinates the user clicked on and a value of
-      type int *)
-  val int_image_input :
-    ?a:Html5_types.input_attrib attrib list ->
-    name:[< (int * coordinates) oneradio ] param_name -> value:int ->
-    ?src:uri -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates an [<input type="image" name="..." value="...">] tag
-      that sends the coordinates the user clicked on and a value of
-      type int32 *)
-  val int32_image_input :
-    ?a:Html5_types.input_attrib attrib list ->
-    name:[< (int32 * coordinates) oneradio ] param_name -> value:int32 ->
-    ?src:uri -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates an [<input type="image" name="..." value="...">] tag
-      that sends the coordinates the user clicked on and a value of
-      type int64 *)
-  val int64_image_input :
-    ?a:Html5_types.input_attrib attrib list ->
-    name:[< (int64 * coordinates) oneradio ] param_name -> value:int64 ->
-    ?src:uri -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates an [<input type="image" name="..." value="...">] tag
-      that sends the coordinates the user clicked on and a value of
-      type float *)
-  val float_image_input :
-    ?a:Html5_types.input_attrib attrib list ->
-    name:[< (float * coordinates) oneradio ] param_name -> value:float ->
-    ?src:uri -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates an [<input type="image" name="..." value="...">] tag
-      that sends the coordinates the user clicked on and a value of
-      type string *)
-  val string_image_input :
-    ?a:Html5_types.input_attrib attrib list ->
-    name:[< (string * coordinates) oneradio ] param_name -> value:string ->
-    ?src:uri -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates an [<input type="image" name="..." value="...">] tag
-      that sends the coordinates the user clicked on and a value of
       user defined type *)
   val user_type_image_input : ('a -> string) ->
     ?a:Html5_types.input_attrib attrib list ->
@@ -492,58 +407,6 @@ module type S = sig
   val raw_image_input :
     ?a:Html5_types.input_attrib attrib list ->
     name:string -> value:string -> ?src:uri -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates a checkbox [<input>] tag that will have a boolean value.
-      The service must declare a [bool] parameter. *)
-  val bool_checkbox :
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
-    name:[ `One of bool ] param_name -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates a checkbox [<input>] tag that will have an int value.
-      Thus you can do several checkboxes with the same name (and
-      different values).
-      The service must declare a parameter of type [set]. *)
-  val int_checkbox :
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
-    name:[ `Set of int ] param_name -> value:int -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates a checkbox [<input>] tag that will have an int32 value.
-      Thus you can do several checkboxes with the same name (and
-      different values).
-      The service must declare a parameter of type [set]. *)
-  val int32_checkbox :
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
-    name:[ `Set of int32 ] param_name -> value:int32 -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates a checkbox [<input>] tag that will have an int64 value.
-      Thus you can do several checkboxes with the same name (and
-      different values).
-      The service must declare a parameter of type [set]. *)
-  val int64_checkbox :
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
-    name:[ `Set of int64 ] param_name -> value:int64 -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates a checkbox [<input>] tag that will have a float value.
-      Thus you can do several checkboxes with the same name (and
-      different values).  The service must declare a parameter of type
-      [set]. *)
-  val float_checkbox :
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
-    name:[ `Set of float ] param_name -> value:float -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates a checkbox [<input>] tag that will have a string value.
-      Thus you can do several checkboxes with the same name (and
-      different values).  The service must declare a parameter of type
-      [set]. *)
-  val string_checkbox :
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
-    name:[ `Set of string ] param_name -> value:string -> unit ->
     [> Html5_types.input] elt
 
   (** Creates a checkbox [<input>] tag that will have a "user type"
@@ -570,45 +433,10 @@ module type S = sig
     'a Eliom_parameter_base.atom ->
     [> Html5_types.input] elt
 
-  (** Creates a radio [<input>] tag with string content *)
-  val string_radio :
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
-    name:[ `Radio of string ] param_name ->
-    value:string -> unit ->
-    [> Html5_types.input] elt
-
   val string_radio_required :
     ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
     name:[ `One of string ] param_name ->
     value:string -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates a radio [<input>] tag with int content *)
-  val int_radio :
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
-    name:[ `Radio of int ] param_name ->
-    value:int -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates a radio [<input>] tag with int32 content *)
-  val int32_radio :
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
-    name:[ `Radio of int32 ] param_name ->
-    value:int32 -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates a radio [<input>] tag with int64 content *)
-  val int64_radio :
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
-    name:[ `Radio of int64 ] param_name ->
-    value:int64 -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates a radio [<input>] tag with float content *)
-  val float_radio :
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
-    name:[ `Radio of float ] param_name ->
-    value:float -> unit ->
     [> Html5_types.input] elt
 
   (** Creates a radio [<input>] tag with user_type content *)
@@ -631,41 +459,6 @@ module type S = sig
     name:[< 'a setone ] param_name ->
     value:'a ->
     'a Eliom_parameter_base.atom ->
-    Html5_types.button_content elt list ->
-    [> Html5_types.button] elt
-
-  (** Creates a [<button>] tag with string content *)
-  val string_button :
-    ?a:Html5_types.button_attrib attrib list ->
-    name:[< string setone ] param_name -> value:string ->
-    Html5_types.button_content elt list ->
-    [> Html5_types.button] elt
-
-  (** Creates a [<button>] tag with int content *)
-  val int_button :
-    ?a:Html5_types.button_attrib attrib list ->
-    name:[< int setone ] param_name -> value:int ->
-    Html5_types.button_content elt list ->
-    [> Html5_types.button] elt
-
-  (** Creates a [<button>] tag with int32 content *)
-  val int32_button :
-    ?a:Html5_types.button_attrib attrib list ->
-    name:[< int32 setone ] param_name -> value:int32 ->
-    Html5_types.button_content elt list ->
-    [> Html5_types.button] elt
-
-  (** Creates a [<button>] tag with int64 content *)
-  val int64_button :
-    ?a:Html5_types.button_attrib attrib list ->
-    name:[< int64 setone ] param_name -> value:int64 ->
-    Html5_types.button_content elt list ->
-    [> Html5_types.button] elt
-
-  (** Creates a [<button>] tag with float content *)
-  val float_button :
-    ?a:Html5_types.button_attrib attrib list ->
-    name:[< float setone ] param_name -> value:float ->
     Html5_types.button_content elt list ->
     [> Html5_types.button] elt
 
@@ -734,51 +527,6 @@ module type S = sig
     'a select_opt list ->
     [> Html5_types.select] elt
 
-  (** Creates a [<select>] tag for int values. *)
-  val int_select :
-    ?a:Html5_types.select_attrib attrib list ->
-    ?required:Html5_types.pcdata elt ->
-    name:[ `One of int ] param_name ->
-    int select_opt ->
-    int select_opt list ->
-    [> Html5_types.select] elt
-
-  (** Creates a [<select>] tag for int32 values. *)
-  val int32_select :
-    ?a:Html5_types.select_attrib attrib list ->
-    ?required:Html5_types.pcdata elt ->
-    name:[ `One of int32 ] param_name ->
-    int32 select_opt ->
-    int32 select_opt list ->
-    [> Html5_types.select] elt
-
-  (** Creates a [<select>] tag for int64 values. *)
-  val int64_select :
-    ?a:Html5_types.select_attrib attrib list ->
-    ?required:Html5_types.pcdata elt ->
-    name:[ `One of int64 ] param_name ->
-    int64 select_opt ->
-    int64 select_opt list ->
-    [> Html5_types.select] elt
-
-  (** Creates a [<select>] tag for float values. *)
-  val float_select :
-    ?a:Html5_types.select_attrib attrib list ->
-    ?required:Html5_types.pcdata elt ->
-    name:[ `One of float ] param_name ->
-    float select_opt ->
-    float select_opt list ->
-    [> Html5_types.select] elt
-
-  (** Creates a [<select>] tag for string values. *)
-  val string_select :
-    ?a:Html5_types.select_attrib attrib list ->
-    ?required:Html5_types.pcdata elt ->
-    name:[ `One of string ] param_name ->
-    string select_opt ->
-    string select_opt list ->
-    [> Html5_types.select] elt
-
   (** Creates a [<select>] tag for user type values. *)
   val user_type_select : ('a -> string) ->
     ?a:Html5_types.select_attrib attrib list ->
@@ -805,51 +553,6 @@ module type S = sig
     'a Eliom_parameter_base.atom ->
     'a select_opt ->
     'a select_opt list ->
-    [> Html5_types.select] elt
-
-  (** Creates a [<select>] tag for int values. *)
-  val int_multiple_select :
-    ?a:Html5_types.select_attrib attrib list ->
-    ?required:Html5_types.pcdata elt ->
-    name:[ `Set of int ] param_name ->
-    int select_opt ->
-    int select_opt list ->
-    [> Html5_types.select] elt
-
-  (** Creates a [<select>] tag for int32 values. *)
-  val int32_multiple_select :
-    ?a:Html5_types.select_attrib attrib list ->
-    ?required:Html5_types.pcdata elt ->
-    name:[ `Set of int32 ] param_name ->
-    int32 select_opt ->
-    int32 select_opt list ->
-    [> Html5_types.select] elt
-
-  (** Creates a [<select>] tag for int64 values. *)
-  val int64_multiple_select :
-    ?a:Html5_types.select_attrib attrib list ->
-    ?required:Html5_types.pcdata elt ->
-    name:[ `Set of int64 ] param_name ->
-    int64 select_opt ->
-    int64 select_opt list ->
-    [> Html5_types.select] elt
-
-  (** Creates a [<select>] tag for float values. *)
-  val float_multiple_select :
-    ?a:Html5_types.select_attrib attrib list ->
-    ?required:Html5_types.pcdata elt ->
-    name:[ `Set of float ] param_name ->
-    float select_opt ->
-    float select_opt list ->
-    [> Html5_types.select] elt
-
-  (** Creates a [<select>] tag for string values. *)
-  val string_multiple_select :
-    ?a:Html5_types.select_attrib attrib list ->
-    ?required:Html5_types.pcdata elt ->
-    name:[ `Set of string ] param_name ->
-    string select_opt ->
-    string select_opt list ->
     [> Html5_types.select] elt
 
   (** Creates a [<select>] tag for user type values. *)

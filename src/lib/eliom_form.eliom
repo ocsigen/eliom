@@ -327,26 +327,6 @@ module Make (Html5 : Html5) = struct
     let f = Eliom_parameter_base.string_of_atom y in
     gen_input ?a ~input_type ?value ?name f
 
-  let int_input ?a ~input_type
-      ?name ?value () =
-    gen_input ?a ~input_type ?value ?name string_of_int
-
-  let int32_input ?a ~input_type
-      ?name ?value () =
-    gen_input ?a ~input_type ?value ?name Int32.to_string
-
-  let int64_input ?a ~input_type
-      ?name ?value () =
-    gen_input ?a ~input_type ?value ?name Int64.to_string
-
-  let float_input ?a ~input_type
-      ?name ?value () =
-    gen_input ?a ~input_type ?value ?name Xml_print.string_of_number
-
-  let string_input ?a ~input_type
-      ?name ?value () =
-    gen_input ?a ~input_type ?value ?name id
-
   let user_type_input string_of ?a ~input_type
       ?name ?value () =
     gen_input ?a ~input_type ?value ?name string_of
@@ -363,24 +343,6 @@ module Make (Html5 : Html5) = struct
     let f = Eliom_parameter_base.string_of_atom y in
     gen_input ?a ~input_type:`Image ~name ~value ?src f
 
-  let int_image_input ?a ~name ~value ?src () =
-    gen_input ?a ~input_type:`Image ~name ~value ?src string_of_int
-
-  let int32_image_input ?a ~name ~value ?src () =
-    gen_input ?a ~input_type:`Image ~name ~value ?src
-      Int32.to_string
-
-  let int64_image_input ?a ~name ~value ?src () =
-    gen_input ?a ~input_type:`Image ~name ~value ?src
-      Int64.to_string
-
-  let float_image_input ?a ~name ~value ?src () =
-    gen_input ?a ~input_type:`Image ~name ~value ?src
-      Xml_print.string_of_number
-
-  let string_image_input ?a ~name ~value ?src () =
-    gen_input ?a ~input_type:`Image ~name ~value ?src id
-
   let user_type_image_input string_of ?a ~name ~value ?src () =
     gen_input ?a ~input_type:`Image ~name ~value ?src string_of
 
@@ -392,35 +354,6 @@ module Make (Html5 : Html5) = struct
     and value = Eliom_parameter_base.string_of_atom y value
     and typ = `Checkbox in
     make_input ?a ?checked ~typ ~name ~value ()
-
-  let bool_checkbox ?a ?checked ~name () =
-    make_input ?a ?checked ~typ:`Checkbox
-      ~name:(Eliom_parameter.string_of_param_name name) ()
-
-  let int_checkbox ?a ?checked ~name ~value () =
-    make_input ?a ?checked ~typ:`Checkbox
-      ~name:(Eliom_parameter.string_of_param_name name)
-      ~value:(string_of_int value) ()
-
-  let int32_checkbox ?a ?checked ~name ~value () =
-    make_input ?a ?checked ~typ:`Checkbox
-      ~name:(Eliom_parameter.string_of_param_name name)
-      ~value:(Int32.to_string value) ()
-
-  let int64_checkbox ?a ?checked ~name ~value () =
-    make_input ?a ?checked ~typ:`Checkbox
-      ~name:(Eliom_parameter.string_of_param_name name)
-      ~value:(Int64.to_string value) ()
-
-  let float_checkbox ?a ?checked ~name ~value () =
-    make_input ?a ?checked ~typ:`Checkbox
-      ~name:(Eliom_parameter.string_of_param_name name)
-      ~value:(Xml_print.string_of_number value) ()
-
-  let string_checkbox ?a ?checked ~name ~value () =
-    make_input ?a ?checked ~typ:`Checkbox
-      ~name:(Eliom_parameter.string_of_param_name name)
-      ~value ()
 
   let user_type_checkbox string_of ?a ?checked ~name ~value () =
     make_input ?a ?checked ~typ:`Checkbox
@@ -436,11 +369,6 @@ module Make (Html5 : Html5) = struct
     and typ = `Radio in
     make_input ?a ?checked ~typ ~name ~value ()
 
-  let string_radio ?a ?checked ~name ~value () =
-    make_input
-      ?a ?checked ~typ:`Radio
-      ~name:(Eliom_parameter.string_of_param_name name) ~value ()
-
   let string_radio_required ?a ?checked ~name ~value () =
     let a =
       let required = Html5.a_required `Required in
@@ -451,30 +379,6 @@ module Make (Html5 : Html5) = struct
     make_input
       ~a ?checked ~typ:`Radio
       ~name:(Eliom_parameter.string_of_param_name name) ~value ()
-
-  let int_radio ?a ?checked ~name ~value () =
-    make_input
-      ?a ?checked ~typ:`Radio
-      ~name:(Eliom_parameter.string_of_param_name name)
-      ~value:(string_of_int value) ()
-
-  let int32_radio ?a ?checked ~name ~value () =
-    make_input
-      ?a ?checked ~typ:`Radio
-      ~name:(Eliom_parameter.string_of_param_name name)
-      ~value:(Int32.to_string value) ()
-
-  let int64_radio ?a ?checked ~name ~value () =
-    make_input
-      ?a ?checked ~typ:`Radio
-      ~name:(Eliom_parameter.string_of_param_name name)
-      ~value:(Int64.to_string value) ()
-
-  let float_radio ?a ?checked ~name ~value () =
-    make_input
-      ?a ?checked ~typ:`Radio
-      ~name:(Eliom_parameter.string_of_param_name name)
-      ~value:(Xml_print.string_of_number value) ()
 
   let user_type_radio string_of ?a ?checked ~name ~value () =
     make_input
@@ -490,30 +394,6 @@ module Make (Html5 : Html5) = struct
     and value = Eliom_parameter_base.string_of_atom y value
     and button_type = `Submit in
     make_button ?a ~button_type ~name ~value c
-
-  let string_button ?a ~name ~value c =
-    make_button ?a ~button_type:`Submit
-      ~name:(Eliom_parameter.string_of_param_name name) ~value c
-
-  let int_button ?a ~name ~value c =
-    make_button ?a ~button_type:`Submit
-      ~name:(Eliom_parameter.string_of_param_name name)
-      ~value:(string_of_int value) c
-
-  let int32_button ?a ~name ~value c =
-    make_button ?a ~button_type:`Submit
-      ~name:(Eliom_parameter.string_of_param_name name)
-      ~value:(Int32.to_string value) c
-
-  let int64_button ?a ~name ~value c =
-    make_button ?a ~button_type:`Submit
-      ~name:(Eliom_parameter.string_of_param_name name)
-      ~value:(Int64.to_string value) c
-
-  let float_button ?a ~name ~value c =
-    make_button ?a ~button_type:`Submit
-      ~name:(Eliom_parameter.string_of_param_name name)
-      ~value:(Xml_print.string_of_number value) c
 
   let user_type_button string_of ?a ~name ~value c =
     make_button ?a ~button_type:`Submit
@@ -648,35 +528,6 @@ module Make (Html5 : Html5) = struct
       (fl : string select_opt) (ol : string select_opt list) =
     gen_select ?a ?required ~multiple:false ~name fl ol id
 
-  let int_select ?a ?required ~name
-      (fl : int select_opt) (ol : int select_opt list) =
-    gen_select ?a ?required ~multiple:false
-      ~name:(Eliom_parameter.string_of_param_name name)
-      fl ol string_of_int
-
-  let int32_select ?a ?required ~name
-      (fl : int32 select_opt) (ol : int32 select_opt list) =
-    gen_select ?a ?required ~multiple:false
-      ~name:(Eliom_parameter.string_of_param_name name)
-      fl ol Int32.to_string
-
-  let int64_select ?a ?required ~name
-      (fl : int64 select_opt) (ol : int64 select_opt list) =
-    gen_select ?a ?required ~multiple:false
-      ~name:(Eliom_parameter.string_of_param_name name)
-      fl ol Int64.to_string
-
-  let float_select ?a ?required ~name
-      (fl : float select_opt) (ol : float select_opt list) =
-    gen_select ?a ~multiple:false
-      ~name:(Eliom_parameter.string_of_param_name name)
-      fl ol Xml_print.string_of_number
-
-  let string_select ?a ?required ~name
-      (fl : string select_opt) (ol : string select_opt list) =
-    gen_select ?a ?required ~multiple:false
-      ~name:(Eliom_parameter.string_of_param_name name) fl ol id
-
   let user_type_select string_of ?a ?required ~name (fl : 'a select_opt)
       (ol : 'a select_opt list) =
     gen_select ?a ?required ~multiple:false
@@ -692,35 +543,6 @@ module Make (Html5 : Html5) = struct
   let raw_multiple_select ?a ?required ~(name : string)
       (fl : string select_opt) (ol : string select_opt list) =
     gen_select ?a ?required ~multiple:true ~name fl ol id
-
-  let int_multiple_select ?a ?required ~name
-      (fl : int select_opt) (ol : int select_opt list) =
-    gen_select ?a ?required ~multiple:true
-      ~name:(Eliom_parameter.string_of_param_name name)
-      fl ol string_of_int
-
-  let int32_multiple_select ?a ?required ~name
-      (fl : int32 select_opt) (ol : int32 select_opt list) =
-    gen_select ?a ?required ~multiple:true
-      ~name:(Eliom_parameter.string_of_param_name name)
-      fl ol Int32.to_string
-
-  let int64_multiple_select ?a ?required ~name
-      (fl : int64 select_opt) (ol : int64 select_opt list) =
-    gen_select ?a ?required ~multiple:true
-      ~name:(Eliom_parameter.string_of_param_name name)
-      fl ol Int64.to_string
-
-  let float_multiple_select ?a ?required ~name
-      (fl : float select_opt) (ol : float select_opt list) =
-    gen_select ?a ?required ~multiple:true
-      ~name:(Eliom_parameter.string_of_param_name name)
-      fl ol Xml_print.string_of_number
-
-  let string_multiple_select ?a ?required ~name
-      (fl : string select_opt) (ol : string select_opt list) =
-    gen_select ?a ?required ~multiple:true
-      ~name:(Eliom_parameter.string_of_param_name name) fl ol id
 
   let user_type_multiple_select string_of ?a ?required
       ~name (fl : 'a select_opt)
@@ -819,8 +641,6 @@ module Make (Html5 : Html5) = struct
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port
       ?fragment ?keep_get_na_params ?keep_nl_params ?nl_params
       contents getparams
-
-  let a_for = a_for
 
 end
 }}
