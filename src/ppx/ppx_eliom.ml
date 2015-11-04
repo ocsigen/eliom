@@ -251,6 +251,8 @@ module Context = struct
   ]
 end
 
+let open_eliom_pervasives =
+  [%stri open Eliom_pervasives ]
 
 let match_args = function
   | [ ] -> ()
@@ -473,7 +475,7 @@ module Make (Pass : Pass) = struct
         dispatch_str !context mapper pstr
     in
     let loc = file_loc () in
-    Pass.prelude loc @ flatmap f structs @ Pass.postlude loc
+    open_eliom_pervasives :: Pass.prelude loc @ flatmap f structs @ Pass.postlude loc
 
   let toplevel_signature context mapper sigs =
     let f psig =
