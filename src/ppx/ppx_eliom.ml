@@ -33,6 +33,19 @@ let file_loc () =
 let eid {Location. txt ; loc } =
   Exp.ident ~loc { loc ; txt = Longident.Lident txt }
 
+let format_args = function
+  | [] -> AC.unit ()
+  | [e] -> e
+  | l -> Exp.tuple l
+
+let pat_args = function
+  | [] -> AC.punit ()
+  | [p] -> p
+  | l -> Pat.tuple l
+
+let file_hash loc =
+  Hashtbl.hash @@ loc.Location.loc_start.pos_fname
+
 let lexing_position ~loc l =
   [%expr
     { Lexing.pos_fname = [%e AC.str l.Lexing.pos_fname];
@@ -59,8 +72,8 @@ module Name = struct
     "_eliom_injected_ident_%019d_%Ld"
 
   (* Identifiers for the closure representing a fragment. *)
-  let fragment_num_base _loc =
-    Int64.of_int (Hashtbl.hash !Location.input_name)
+  let fragment_num_base loc =
+    Int64.of_int @@ file_hash loc
   let fragment_num_count = ref Int64.zero
   let fragment_num _loc =
     fragment_num_count := Int64.succ !fragment_num_count;
@@ -81,7 +94,7 @@ module Name = struct
       Printf.sprintf escaped_ident_fmt !r
     in
     let for_expr loc = Location.mkloc (make ()) loc in
-    let for_id {Location. txt = id ; loc } =
+    let for_id loc id =
       let txt =
         try List.assoc id !escaped_idents
         with Not_found ->
@@ -101,7 +114,7 @@ module Name = struct
       Printf.sprintf escaped_ident_fmt !r
     in
     let for_expr loc = Location.mkloc (make ()) loc in
-    let for_id {Location. txt = id ; loc } =
+    let for_id loc id =
       let txt =
         try List.assoc id !nested_escaped_idents
         with Not_found ->
@@ -115,7 +128,7 @@ module Name = struct
     let injected_idents = ref [] in
     let r = ref Int64.zero in
     let gen_ident loc =
-      let hash = Hashtbl.hash !Location.input_name in
+      let hash = file_hash loc in
       r := Int64.(add one) !r ;
       let s = Printf.sprintf injected_ident_fmt hash !r in
       {Location. txt = s ; loc }
@@ -384,7 +397,7 @@ module Make (Pass : Pass) = struct
       begin match !context with
         | `Client | `Shared as c ->
           let id = match ident with
-            | Some i -> Name.injected_ident loc i
+            | Some id -> Name.injected_ident loc id
             | None -> Name.injected_expr loc
           in
           let new_context = `Injection c in
@@ -393,9 +406,11 @@ module Make (Pass : Pass) = struct
              mapper.AM.expr mapper)
             inj
         | `Fragment c ->
-          let id = match c with
-            | `Shared -> Name.nested_escaped_expr loc
-            | `Server -> Name.escaped_expr loc
+          let id = match ident, c with
+            | None, `Shared -> Name.nested_escaped_expr loc
+            | Some id, `Shared -> Name.nested_escaped_ident loc id
+            | None, `Server -> Name.escaped_expr loc
+            | Some id, `Server -> Name.escaped_ident loc id
           in
           let new_context = `Escaped_value c in
           in_context context new_context

@@ -29,10 +29,10 @@ module Pass = struct
     let server_arg_ids = ref [] in
     let is_unknown gen_id =
       List.for_all
-        (fun (gen_id', _) -> gen_id <> gen_id')
+        (fun (gen_id', _) -> gen_id.txt <> gen_id'.txt)
         !server_arg_ids
     in
-    let push (gen_id : string Location.loc) (expr : expression) =
+    let push gen_id (expr : expression) =
       if is_unknown gen_id then
         server_arg_ids := (gen_id, expr) :: !server_arg_ids
     in
@@ -65,7 +65,7 @@ module Pass = struct
            [%expr
              Eliom_client.Syntax_helpers.register_client_closure
                [%e Exp.constant @@ Const_int64 num]
-               (fun [%p Pat.tuple args] ->
+               (fun [%p pat_args args] ->
                   ([%e map_get_escaped_values expr] : [%t typ]))
            ] [@metaloc expr.pexp_loc]
         )
@@ -86,7 +86,7 @@ module Pass = struct
            let args = List.map Pat.var args in
            let expr =
              [%expr
-               fun [%p Pat.tuple args] -> ([%e expr] : [%t typ])
+               fun [%p pat_args args] -> ([%e expr] : [%t typ])
              ] [@metaloc loc]
            in
            Vb.mk ~loc patt expr)
@@ -154,7 +154,7 @@ module Pass = struct
           escaped_bindings
       in
       let args =
-        Exp.tuple @@ List.map
+        format_args @@ List.map
           (fun (id, _) -> Ppx_eliom.eid id)
           escaped_bindings
       in
@@ -201,17 +201,12 @@ module Pass = struct
       let typ = assert_no_variables typ in
       let ident = match ident with
         | None   -> [%expr None]
-        | Some i -> [%expr Some [%e AC.evar i]]
+        | Some i -> [%expr Some [%e AC.str i]]
       in
-      let str_pos =
-        AC.str @@
-        Format.asprintf "%a" Location.print loc
-      in
-
       [%expr
         (Eliom_client.Syntax_helpers.get_injection
            ?ident:([%e ident])
-           ~pos:([%e str_pos])
+           ~pos:([%e position loc])
            [%e Exp.constant ~loc:id.loc (Const_string (id.txt, None))]
          : [%t typ])
       ]

@@ -10,6 +10,10 @@ val eid : string Location.loc -> expression
 
 val position : Location.t -> expression
 
+val format_args : expression list -> expression
+
+val pat_args : pattern list -> pattern
+
 (** Context convenience module. *)
 module Context : sig
 

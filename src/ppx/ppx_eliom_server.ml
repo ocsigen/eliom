@@ -159,18 +159,19 @@ module Pass = struct
       | None ->
         match Mli.find_fragment id with
         | { ptyp_desc = Ptyp_var _ } ->
-          Location.raise_errorf ~loc:expr.pexp_loc
+          let loc = expr.pexp_loc in
+          Typ.extension ~loc @@ AM.extension_of_error @@ Location.errorf ~loc
             "The types of client values must be monomorphic from its usage \
              or from its type annotation"
         | typ -> typ
     in
     let loc = expr.pexp_loc in
-    let l = flush_escaped_bindings () in
+    let e = format_args @@ flush_escaped_bindings () in
     [%expr
       (Eliom_service.Syntax_helpers.client_value
          ~pos:([%e position loc ])
-         [%e AC.int @@ Int64.to_int num ]
-         [%e Exp.tuple l ]
+         [%e Exp.constant (Const_int64 num) ]
+         [%e e ]
        : [%t typ ] Eliom_pervasives.client_value)
     ][@metaloc loc]
 
