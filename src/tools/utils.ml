@@ -313,7 +313,7 @@ let get_ppopts ~impl_intf file =
   | `Camlp4 ->
     type_opt impl_intf file @ !ppopt @ [impl_intf_opt impl_intf]
   | `Ppx ->
-    !ppopt
+    type_opt impl_intf file @ !ppopt
 
 let preprocess_opt ?kind opts = match !pp_mode with
   | `Camlp4 ->

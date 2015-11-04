@@ -185,7 +185,7 @@ let compile_obj file =
 
 let compile_server_type_eliom file =
   let obj = output_prefix ~ty:true file ^ !server_types_file_ext
-  and ppopts = !ppopt @ ["-impl"] in
+  and ppopts = !ppopt @ (if !pp_mode = `Ppx then [] else ["-impl"]) in
   if !do_dump then begin
     let camlp4, ppopt =
       get_pp_dump ["eliom.syntax.type"] ("-printer" :: "o" :: ppopts @ [file]) in

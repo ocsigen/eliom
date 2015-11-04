@@ -133,10 +133,10 @@ end
 
 module Mli = struct
 
-  let type_file = ref ""
+  let type_file = ref None
   let get_type_file () = match !type_file with
-    | "" -> Filename.chop_extension !Location.input_name ^ ".type_mli"
-    | f -> f
+    | None -> Filename.chop_extension !Location.input_name ^ ".type_mli"
+    | Some f -> f
 
   let suppress_underscore =
     let c = ref 0 in
@@ -209,8 +209,8 @@ module Mli = struct
   let find err {Location. txt ; loc } =
     try Hashtbl.find (Lazy.force infered_sig) txt with
     | Not_found ->
-      Location.raise_errorf ~loc
-        "Error: Infered type of %s not found. You need to regenerate %s."
+      Typ.extension ~loc @@ AM.extension_of_error @@ Location.errorf ~loc
+        "Error: Inferred type of %s not found. You need to regenerate %s."
         err (get_type_file ())
 
   let find_escaped_ident = find "escaped ident"
@@ -252,7 +252,12 @@ module Context = struct
 end
 
 
-
+let match_args = function
+  | [ ] -> ()
+  | [ "-type" ; type_file ] -> Mli.type_file := Some type_file
+  | [ "-notype" ] -> Mli.type_file := None
+  | args -> Location.raise_errorf ~loc:Location.(in_file !input_name)
+           "Wrong arguments:@ %s" (String.concat " " args)
 
 (** Signature of specific code of a preprocessor. *)
 module type Pass = sig
@@ -484,7 +489,8 @@ module Make (Pass : Pass) = struct
     in
     flatmap f sigs
 
-  let mapper _args =
+  let mapper args =
+    let () = match_args args in
     let c = ref `Server in
     {AM.default_mapper
      with
