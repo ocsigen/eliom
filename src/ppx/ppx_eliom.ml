@@ -21,7 +21,7 @@ let in_context cref c f x =
 
 let (%) f g x = f (g x)
 
-let exp_add_attrs e attr =
+let exp_add_attrs attr e =
   {e with pexp_attributes = attr}
 
 let id_of_string str =
@@ -58,6 +58,9 @@ let position loc =
   let start = loc.Location.loc_start in
   let stop = loc.Location.loc_start in
   Exp.tuple ~loc [ lexing_position ~loc start ; lexing_position ~loc stop ]
+
+let is_annotation txt l =
+  List.exists (fun s -> txt = s || txt = "eliom."^s) l
 
 (** Identifiers generation. *)
 module Name = struct
@@ -361,24 +364,32 @@ module Make (Pass : Pass) = struct
     let loc = expr.pexp_loc in
     let attr = expr.pexp_attributes in
     match expr, !context with
-    | ([%expr [%client [%e? _ ]]] | [%expr [%shared [%e? _ ]]])
-    , `Client ->
+    | {pexp_desc = Pexp_extension ({txt},_)},
+      `Client
+      when is_annotation txt ["client"; "shared"] ->
       let side = get_extension expr in
       Exp.extension @@ AM.extension_of_error @@ Location.errorf ~loc
         "The syntax [%%%s ...] is not allowed inside client code."
         side
-    | ([%expr [%client [%e? _ ]]] | [%expr [%shared [%e? _ ]]])
-    , (`Fragment _ | `Escaped_value _ | `Injection _) ->
+    | {pexp_desc = Pexp_extension ({txt},_)}
+    , (`Fragment _ | `Escaped_value _ | `Injection _)
+      when is_annotation txt ["client"; "shared"] ->
       let side = get_extension expr in
       Exp.extension @@ AM.extension_of_error @@ Location.errorf ~loc
         "The syntax [%%%s ...] can not be nested."
         side
 
-    | [%expr [%shared [%e? side_val ]]], (`Server | `Shared) ->
+    (* [%shared ... ] *)
+    | {pexp_desc = Pexp_extension ({txt},PStr [{pstr_desc = Pstr_eval (side_val,attr')}])},
+      (`Server | `Shared)
+      when is_annotation txt ["shared"] ->
       let e = Shared.expr loc side_val in
-      mapper.AM.expr mapper @@ exp_add_attrs e attr
+      mapper.AM.expr mapper @@ exp_add_attrs (attr@attr') e
 
-    | [%expr [%client [%e? side_val ]]], (`Server | `Shared as c) ->
+    (* [%client ... ] *)
+    | {pexp_desc = Pexp_extension ({txt},PStr [{pstr_desc = Pstr_eval (side_val,attr)}])},
+      (`Server | `Shared as c)
+      when is_annotation txt ["client"] ->
       let side_val, typ = match side_val with
         | [%expr ([%e? cval]:[%t? typ]) ] -> (cval, Some typ)
         | _ -> (side_val, None)
@@ -387,8 +398,9 @@ module Make (Pass : Pass) = struct
       let id = Location.mkloc (Name.fragment_ident num) side_val.pexp_loc in
       in_context context (`Fragment c)
         (Pass.fragment ?typ ~context:c ~num ~id % mapper.AM.expr mapper)
-        side_val
+        (exp_add_attrs attr side_val)
 
+    (* ~%( ... ) ] *)
     | [%expr ~% [%e? inj ]], _ ->
       let ident = match inj.pexp_desc with
         | Pexp_ident i -> Some (Longident.last i.txt)
