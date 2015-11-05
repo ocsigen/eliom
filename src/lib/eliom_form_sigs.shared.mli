@@ -419,24 +419,33 @@ module type S = sig
     name:string -> value:string -> ?src:uri -> unit ->
     [> Html5_types.input] elt
 
-  (** Creates a checkbox [<input>] tag. *)
+  (** Creates a checkbox [<input>] tag. You can produce several
+      checkboxes with the same name (and different values). The
+      service must declare a parameter of type [set]. *)
   val checkbox :
     ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
-    name:[ `One of 'a ] Eliom_parameter.param_name -> value:'a ->
+    name:[ `Set of 'a ] Eliom_parameter.param_name -> value:'a ->
     'a param ->
     [> Html5_types.input] elt
 
+  (** Creates a checkbox [<input>] tag of type bool. *)
+  val bool_checkbox :
+    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
+    name:[ `One of bool ] Eliom_parameter.param_name ->
+    unit ->
+    [> Html5_types.input] elt
+
   (** Creates a checkbox [<input>] tag that will have a "user type"
-      value.  Thus you can do several checkboxes with the same name
-      (and different values).  The service must declare a parameter of
+      value. You can produce several checkboxes with the same name
+      (and different values). The service must declare a parameter of
       type [set]. *)
   val user_type_checkbox : ('a -> string) ->
     ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
     name:[ `Set of 'a ] param_name -> value:'a -> unit ->
     [> Html5_types.input] elt
 
-  (** Creates a checkbox [<input>] tag with untyped content.  Thus you
-      can do several checkboxes with the same name (and different
+  (** Creates a checkbox [<input>] tag with untyped content. You can
+      produce several checkboxes with the same name (and different
       values).  The service must declare a parameter of type [any]. *)
   val raw_checkbox :
     ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->

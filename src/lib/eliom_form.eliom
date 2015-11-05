@@ -364,6 +364,11 @@ module Make (Html5 : Html5) = struct
     and typ = `Checkbox in
     make_input ?a ?checked ~typ ~name ~value ()
 
+  let bool_checkbox ?a ?checked ~name () =
+    let typ = `Checkbox
+    and name = Eliom_parameter.string_of_param_name name in
+    make_input ?a ?checked ~typ ~name ()
+
   let user_type_checkbox string_of ?a ?checked ~name ~value () =
     make_input ?a ?checked ~typ:`Checkbox
       ~name:(Eliom_parameter.string_of_param_name name)
