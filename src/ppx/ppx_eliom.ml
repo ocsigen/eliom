@@ -390,6 +390,8 @@ module Make (Pass : Pass) = struct
     | {pexp_desc = Pexp_extension ({txt},PStr [{pstr_desc = Pstr_eval (side_val,attr)}])},
       (`Server | `Shared as c)
       when is_annotation txt ["client"] ->
+      Name.reset_escaped_ident () ;
+      Name.reset_nested_escaped_ident () ;
       let side_val, typ = match side_val with
         | [%expr ([%e? cval]:[%t? typ]) ] -> (cval, Some typ)
         | _ -> (side_val, None)
