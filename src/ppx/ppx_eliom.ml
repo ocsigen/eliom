@@ -247,9 +247,9 @@ module Context = struct
     | `Server -> "server"
 
   let of_string = function
-    | "server" -> `Server
-    | "shared" -> `Shared
-    | "client" -> `Client
+    | "server" | "server.start" -> `Server
+    | "shared" | "shared.start" -> `Shared
+    | "client" | "client.start" -> `Client
     | _ -> invalid_arg "Eliom ppx: Not a context"
 
   type escape_inject = [
@@ -493,11 +493,16 @@ module Make (Pass : Pass) = struct
     let f pstr =
       let loc = pstr.pstr_loc in
       match pstr.pstr_desc with
-      | Pstr_extension (({txt=("shared"|"client"|"server" as txt)}, PStr strs), _) ->
+      | Pstr_extension (({txt}, PStr strs), _)
+        when is_annotation txt ["shared.start"; "client.start" ;"server.start"] ->
         if strs <> [] then
           [ Str.extension ~loc @@ AM.extension_of_error @@ Location.errorf ~loc
               "The %%%%%s extension doesn't accept arguments." txt ]
         else ( context := Context.of_string txt ; [] )
+      | Pstr_extension (({txt}, PStr strs), _)
+        when is_annotation txt ["shared"; "client" ;"server"] ->
+        let c = Context.of_string txt in
+        flatmap (dispatch_str c mapper) strs
       | _ ->
         dispatch_str !context mapper pstr
     in
