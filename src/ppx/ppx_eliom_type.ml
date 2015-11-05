@@ -41,7 +41,7 @@ open Ast_helper
 module AC = Ast_convenience
 module AM = Ast_mapper
 
-open Ppx_eliom
+open Ppx_eliom_utils
 
 module Pass = struct
 
@@ -52,10 +52,10 @@ module Pass = struct
     let add orig_expr id =
       if List.for_all (function id', _ -> id.txt <> id'.txt) !typing_expr
       then
-        let eid = Ppx_eliom.eid id in
+        let frag_eid = eid id in
         typing_expr :=
           (id,
-           [%expr [%e eid] := Some [%e orig_expr]]
+           [%expr [%e frag_eid] := Some [%e orig_expr]]
              [@metaloc orig_expr.pexp_loc]
           ) :: !typing_expr
     in
@@ -102,7 +102,7 @@ module Pass = struct
 
   let fragment ?typ ~context:_ ~num:_ ~id expr =
     let loc = expr.pexp_loc in
-    let eid = Ppx_eliom.eid id in
+    let frag_eid = eid id in
     push_typing_str_item expr id;
     let typ = match typ with
       | Some typ -> typ
@@ -110,10 +110,10 @@ module Pass = struct
     in
     [%expr
       [%e flush_typing_expr () ];
-      [%e eid] :=
+      [%e frag_eid] :=
         Some ( Eliom_service.Syntax_helpers.client_value 0L 0 :
                  [%t typ] Eliom_pervasives.client_value);
-      match ! [%e eid] with
+      match ! [%e frag_eid] with
       | Some x -> x
       | None -> assert false
     ]
@@ -141,4 +141,4 @@ module Pass = struct
 
 end
 
-include Ppx_eliom.Make(Pass)
+include Make(Pass)

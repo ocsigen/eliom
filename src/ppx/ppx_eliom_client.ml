@@ -5,7 +5,7 @@ open Ast_helper
 module AC = Ast_convenience
 module AM = Ast_mapper
 
-open Ppx_eliom
+open Ppx_eliom_utils
 
 module Pass = struct
 
@@ -137,7 +137,7 @@ module Pass = struct
 
   let fragment ?typ:_ ~context ~num ~id expr =
 
-    let eid = eid id in
+    let frag_eid = eid id in
     let escaped_bindings = flush_escaped_bindings () in
 
     push_client_value_data num id expr
@@ -155,20 +155,20 @@ module Pass = struct
       in
       let args =
         format_args @@ List.map
-          (fun (id, _) -> Ppx_eliom.eid id)
+          (fun (id, _) -> eid id)
           escaped_bindings
       in
       let new_e =
         Exp.let_
           Nonrecursive
           bindings
-          (Exp.apply eid [ "" , args ])
+          (Exp.apply frag_eid [ "" , args ])
       in new_e
 
 
   let escape_inject ?ident ~(context:Context.escape_inject) ~id expr =
     let loc = expr.pexp_loc in
-    let eid = Ppx_eliom.eid id in
+    let frag_eid = eid id in
 
     let assert_no_variables t =
       let typ mapper = function
@@ -192,7 +192,7 @@ module Pass = struct
       let typ = Mli.find_escaped_ident id in
       let typ = assert_no_variables typ in
       push_escaped_binding id expr;
-      [%expr ([%e eid] : [%t typ]) ]
+      [%expr ([%e frag_eid] : [%t typ]) ]
 
 
     (* [%%server ... %x ... ] *)
@@ -220,4 +220,4 @@ module Pass = struct
 
 end
 
-include Ppx_eliom.Make(Pass)
+include Make(Pass)

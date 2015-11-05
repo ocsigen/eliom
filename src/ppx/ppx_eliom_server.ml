@@ -27,7 +27,7 @@ open Ast_helper
 module AC = Ast_convenience
 module AM = Ast_mapper
 
-open Ppx_eliom
+open Ppx_eliom_utils
 
 module Pass = struct
 
@@ -108,13 +108,13 @@ module Pass = struct
         (fun (txt, expr, ident) sofar ->
            let loc = expr.pexp_loc in
            let loc_expr = position loc in
-           let eid = Ppx_eliom.eid {txt;loc} in
+           let frag_eid = eid {txt;loc} in
            let ident = match ident with
              | None -> [%expr None]
              | Some i -> [%expr Some [%e AC.str i ]] in
            [%expr
              ([%e AC.str txt],
-              (fun () -> Eliom_lib.to_poly [%e eid ]),
+              (fun () -> Eliom_lib.to_poly [%e frag_eid ]),
               [%e loc_expr], [%e ident ]) :: [%e sofar ]
            ])
         injections
@@ -182,7 +182,7 @@ module Pass = struct
       [%expr assert false ]
     | `Injection _ ->
       push_injection ?ident id.txt expr;
-      Ppx_eliom.eid id
+      eid id
 
   let set_global ~loc b =
     let b = Exp.construct ~loc
@@ -199,4 +199,4 @@ module Pass = struct
 
 end
 
-include Ppx_eliom.Make(Pass)
+include Make(Pass)
