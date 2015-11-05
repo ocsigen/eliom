@@ -425,6 +425,7 @@ module Html5 = struct
   type +'a elt = 'a F.elt
   type +'a attrib = 'a F.attrib
   type uri = F.uri
+  type 'a form_param = 'a Eliom_parameter_base.atom
 
   module Custom_data = Eliom_content_core.Html5.Custom_data
 

@@ -23,6 +23,7 @@ module type LINKS_AND_FORMS = sig
   type +'a attrib
   type uri
   type (_, _, _) star
+  type 'a form_param
 
   type ('a, 'b, 'c) lazy_star =
     ?a: (('a attrib) list) ->
@@ -43,5 +44,6 @@ module type LINKS_AND_FORMS = sig
     with type +'a elt := 'a elt
      and type +'a attrib := 'a attrib
      and type uri := uri
+     and type 'a param = 'a form_param
 
 end

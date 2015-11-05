@@ -211,10 +211,20 @@ module type S = sig
   open Eliom_parameter
   open Eliom_service
 
+  type 'a param
+
   type +'a elt
   type +'a attrib
 
   type uri
+
+  val float : float param
+  val int : int param
+  val int32 : int32 param
+  val int64: int64 param
+  val nativeint : nativeint param
+  val bool : bool param
+  val string : string param
 
   (** Same as {!LINK.make_uri_components}, but also returns a list of
       post parameters. *)
@@ -357,7 +367,7 @@ module type S = sig
     input_type:[< Html5_types.input_type] ->
     ?name:[< 'a setoneradio] param_name ->
     ?value:'a ->
-    'a Eliom_parameter_base.atom ->
+    'a param ->
     [> Html5_types.input] elt
 
   (** Creates an [<input>] tag for a user type *)
@@ -389,7 +399,7 @@ module type S = sig
     name:[< 'a oneradio ] param_name ->
     value:'a ->
     ?src:uri ->
-    'a Eliom_parameter_base.atom ->
+    'a param ->
     [> Html5_types.input] elt
 
   (** Creates an [<input type="image" name="..." value="...">] tag
@@ -407,6 +417,13 @@ module type S = sig
   val raw_image_input :
     ?a:Html5_types.input_attrib attrib list ->
     name:string -> value:string -> ?src:uri -> unit ->
+    [> Html5_types.input] elt
+
+  (** Creates a checkbox [<input>] tag. *)
+  val checkbox :
+    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
+    name:[ `One of 'a ] Eliom_parameter.param_name -> value:'a ->
+    'a param ->
     [> Html5_types.input] elt
 
   (** Creates a checkbox [<input>] tag that will have a "user type"
@@ -430,7 +447,7 @@ module type S = sig
     ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
     name:[ `Radio of 'a ] param_name ->
     value:'a ->
-    'a Eliom_parameter_base.atom ->
+    'a param ->
     [> Html5_types.input] elt
 
   val string_radio_required :
@@ -458,7 +475,7 @@ module type S = sig
     ?a:Html5_types.button_attrib attrib list ->
     name:[< 'a setone ] param_name ->
     value:'a ->
-    'a Eliom_parameter_base.atom ->
+    'a param ->
     Html5_types.button_content elt list ->
     [> Html5_types.button] elt
 
@@ -522,7 +539,7 @@ module type S = sig
     ?a:Html5_types.select_attrib attrib list ->
     ?required:Html5_types.pcdata elt ->
     name:[ `One of 'a ] param_name ->
-    'a Eliom_parameter_base.atom ->
+    'a param ->
     'a select_opt ->
     'a select_opt list ->
     [> Html5_types.select] elt
@@ -550,7 +567,7 @@ module type S = sig
     ?a:Html5_types.select_attrib attrib list ->
     ?required:Html5_types.pcdata elt ->
     name:[ `Set of 'a ] param_name ->
-    'a Eliom_parameter_base.atom ->
+    'a param ->
     'a select_opt ->
     'a select_opt list ->
     [> Html5_types.select] elt

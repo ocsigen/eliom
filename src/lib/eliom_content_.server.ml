@@ -94,4 +94,6 @@ module Html5 = struct
   type 'a list_wrap = 'a F.list_wrap
   type 'a attrib = 'a F.attrib
   type uri = F.uri
+  type 'a form_param = 'a Eliom_parameter_base.atom
+
 end

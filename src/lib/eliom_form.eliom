@@ -126,9 +126,18 @@ end
 
 module Make (Html5 : Html5) = struct
 
+  type 'a param = 'a Eliom_parameter_base.atom
   type +'a elt = 'a Html5.elt
   type +'a attrib = 'a Html5.attrib
   type uri = Html5.uri
+
+  let float = Eliom_parameter_base.TFloat
+  let int = Eliom_parameter_base.TInt
+  let int32 = Eliom_parameter_base.TInt32
+  let int64 = Eliom_parameter_base.TInt64
+  let nativeint = Eliom_parameter_base.TNativeint
+  let bool = Eliom_parameter_base.TBool
+  let string = Eliom_parameter_base.TString
 
   open Html5
 
