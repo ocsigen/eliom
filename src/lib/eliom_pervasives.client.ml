@@ -1,6 +1,8 @@
 
 type 'a client_value = 'a Eliom_lib.client_value
 
+type 'a fragment = 'a client_value
+
 (* exception False = Eliom_lib.False *)
 
 type ('a, +'b) server_function = 'a -> 'b Lwt.t

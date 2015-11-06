@@ -15,6 +15,9 @@ open Eliom_pervasives_base
     |type Eliom_pervasives.client_value>> %}. *)
 type 'a client_value = 'a Eliom_lib.client_value
 
+(** An alias for {!client_value}. *)
+type 'a fragment = 'a client_value
+
 (** {2 RPC / Server functions}
 
     See the {% <<a_manual chapter="clientserver-communication" fragment="rpc"|manual>> %}.*)
