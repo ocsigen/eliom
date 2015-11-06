@@ -9,6 +9,8 @@ Eliom's syntax extension automatically.
 These syntax extensions make much easier to write client-server applications
 in a very concise style. They are described in this chapter.
 
+For the ppx syntax extension, see <<a_api subproject="ppx"|module Eliom_ppx>>.
+
 <<outline depth="2"| <<header| **Table of contents** >> >>
 
 
