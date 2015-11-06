@@ -153,14 +153,14 @@ module Svg : sig
     val childLength : 'a elt -> int
 
     (** [removeChild e1 e2] removes for [e2] from the list of
-        [e1] children. *)
+        children of [e1]. *)
     val removeChild: 'a elt -> 'b elt -> unit
 
-    (** [replace e1 e2 e3] replaces for [e2] by [e3] in the
-        list of [e1] children. *)
+    (** [replace e1 e2 e3] replaces [e3] by [e2] in the
+        list of children of [e1]. *)
     val replaceChild: 'a elt -> 'b elt -> 'c elt -> unit
 
-    (** [removeChildren e1] removes [e1] children. *)
+    (** [removeChildren e1] removes all children of [e1]. *)
     val removeChildren: 'a elt -> unit
 
     (** [removeSelf e] removes element e from the DOM. *)

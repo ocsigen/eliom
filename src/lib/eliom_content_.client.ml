@@ -92,8 +92,8 @@ module MakeManip
       ignore(node1##removeChild(node2))
 
     let raw_replaceChild node1 elt2 elt3 =
-      let node2 = get_unique_node "replaceChild" elt2 in
-      ignore(node1##replaceChild(node2, get_node elt3))
+      let node3 = get_unique_node "replaceChild" elt3 in
+      ignore(node1##replaceChild(get_node elt2, node3))
 
     let raw_removeChildren node =
       let childrens = Dom.list_of_nodeList (node##childNodes) in
