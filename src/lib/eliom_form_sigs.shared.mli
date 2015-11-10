@@ -370,22 +370,6 @@ module type S = sig
     'a param ->
     [> Html5_types.input] elt
 
-  (** Creates an [<input>] tag for a user type *)
-  val user_type_input : ('a -> string) ->
-    ?a:Html5_types.input_attrib attrib list ->
-    input_type:[< Html5_types.input_type] ->
-    ?name:[< 'a setoneradio ] param_name ->
-    ?value:'a -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates an untyped [<input>] tag. You may use the name you want
-      (for example to use with {!Eliom_parameter.any}). *)
-  val raw_input :
-    ?a:Html5_types.input_attrib attrib list ->
-    input_type:[< Html5_types.input_type] ->
-    ?name:string -> ?value:string -> unit ->
-    [> Html5_types.input] elt
-
   (** Creates an [<input>] tag for sending a file *)
   val file_input :
     ?a:Html5_types.input_attrib attrib list ->
@@ -400,23 +384,6 @@ module type S = sig
     value:'a ->
     ?src:uri ->
     'a param ->
-    [> Html5_types.input] elt
-
-  (** Creates an [<input type="image" name="..." value="...">] tag
-      that sends the coordinates the user clicked on and a value of
-      user defined type *)
-  val user_type_image_input : ('a -> string) ->
-    ?a:Html5_types.input_attrib attrib list ->
-    name:[< ('a * coordinates) oneradio ] param_name -> value:'a ->
-    ?src:uri -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates an [<input type="image" name="..." value="...">] tag
-      that sends the coordinates the user clicked on and an untyped
-      value *)
-  val raw_image_input :
-    ?a:Html5_types.input_attrib attrib list ->
-    name:string -> value:string -> ?src:uri -> unit ->
     [> Html5_types.input] elt
 
   (** Creates a checkbox [<input>] tag. You can produce several
@@ -435,22 +402,6 @@ module type S = sig
     unit ->
     [> Html5_types.input] elt
 
-  (** Creates a checkbox [<input>] tag that will have a "user type"
-      value. You can produce several checkboxes with the same name
-      (and different values). The service must declare a parameter of
-      type [set]. *)
-  val user_type_checkbox : ('a -> string) ->
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
-    name:[ `Set of 'a ] param_name -> value:'a -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates a checkbox [<input>] tag with untyped content. You can
-      produce several checkboxes with the same name (and different
-      values).  The service must declare a parameter of type [any]. *)
-  val raw_checkbox :
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
-    name:string -> value:string -> unit -> [> Html5_types.input] elt
-
   (** Creates a radio [<input>] tag. *)
   val radio :
     ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
@@ -465,41 +416,12 @@ module type S = sig
     value:string -> unit ->
     [> Html5_types.input] elt
 
-  (** Creates a radio [<input>] tag with user_type content *)
-  val user_type_radio : ('a -> string) ->
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
-    name:[ `Radio of 'a ] param_name ->
-    value:'a -> unit ->
-    [> Html5_types.input] elt
-
-  (** Creates a radio [<input>] tag with untyped string content (low
-      level) *)
-  val raw_radio :
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
-    name:string -> value:string -> unit ->
-    [> Html5_types.input] elt
-
   (** Creates a [<button>] tag. *)
   val button :
     ?a:Html5_types.button_attrib attrib list ->
     name:[< 'a setone ] param_name ->
     value:'a ->
     'a param ->
-    Html5_types.button_content elt list ->
-    [> Html5_types.button] elt
-
-  (** Creates a [<button>] tag with user_type content *)
-  val user_type_button : ('a -> string) ->
-    ?a:Html5_types.button_attrib attrib list ->
-    name:[< 'a setone ] param_name -> value:'a ->
-    Html5_types.button_content elt list ->
-    [> Html5_types.button] elt
-
-  (** Creates a [<button>] tag with untyped string content *)
-  val raw_button :
-    ?a:Html5_types.button_attrib attrib list ->
-    button_type:[< button_type] ->
-    name:string -> value:string ->
     Html5_types.button_content elt list ->
     [> Html5_types.button] elt
 
@@ -515,12 +437,6 @@ module type S = sig
     ?a:Html5_types.textarea_attrib attrib list ->
     name:[< string setoneradio ] param_name -> ?value:string ->
     unit -> [> Html5_types.textarea] elt
-
-  (** Creates a [<textarea>] tag for untyped form *)
-  val raw_textarea :
-    ?a:Html5_types.textarea_attrib attrib list ->
-    name:string -> ?value:string -> unit ->
-    [> Html5_types.textarea] elt
 
   type 'a soption =
     Html5_types.option_attrib attrib list
@@ -553,24 +469,6 @@ module type S = sig
     'a select_opt list ->
     [> Html5_types.select] elt
 
-  (** Creates a [<select>] tag for user type values. *)
-  val user_type_select : ('a -> string) ->
-    ?a:Html5_types.select_attrib attrib list ->
-    ?required:Html5_types.pcdata elt ->
-    name:[ `One of 'a ] param_name ->
-    'a select_opt ->
-    'a select_opt list ->
-    [> Html5_types.select] elt
-
-  (** Creates a [<select>] tag for any (untyped) value. *)
-  val raw_select :
-    ?a:Html5_types.select_attrib attrib list ->
-    ?required:Html5_types.pcdata elt ->
-    name:string ->
-    string select_opt ->
-    string select_opt list ->
-    [> Html5_types.select] elt
-
   (** Creates a multiple-selection [<select>] tag. *)
   val multiple_select :
     ?a:Html5_types.select_attrib attrib list ->
@@ -579,25 +477,6 @@ module type S = sig
     'a param ->
     'a select_opt ->
     'a select_opt list ->
-    [> Html5_types.select] elt
-
-  (** Creates a [<select>] tag for user type values. *)
-  val user_type_multiple_select :
-    ('a -> string) ->
-    ?a:Html5_types.select_attrib attrib list ->
-    ?required:Html5_types.pcdata elt ->
-    name:[ `Set of 'a ] param_name ->
-    'a select_opt ->
-    'a select_opt list ->
-    [> Html5_types.select] elt
-
-  (** Creates a [<select>] tag for any (untyped) value. *)
-  val raw_multiple_select :
-    ?a:Html5_types.select_attrib attrib list ->
-    ?required:Html5_types.pcdata elt ->
-    name:string ->
-    string select_opt ->
-    string select_opt list ->
     [> Html5_types.select] elt
 
 end

@@ -336,13 +336,6 @@ module Make (Html5 : Html5) = struct
     let f = Eliom_parameter_base.string_of_atom y in
     gen_input ?a ~input_type ?value ?name f
 
-  let user_type_input string_of ?a ~input_type
-      ?name ?value () =
-    gen_input ?a ~input_type ?value ?name string_of
-
-  let raw_input ?a ~input_type ?name ?value () =
-    make_input ?a ?value ~typ:input_type ?name ()
-
   let file_input ?a ~name () =
     make_input ?a ~typ:`File
       ~name:(Eliom_parameter.string_of_param_name name) ()
@@ -351,12 +344,6 @@ module Make (Html5 : Html5) = struct
   let image_input ?a ~name ~value ?src y =
     let f = Eliom_parameter_base.string_of_atom y in
     gen_input ?a ~input_type:`Image ~name ~value ?src f
-
-  let user_type_image_input string_of ?a ~name ~value ?src () =
-    gen_input ?a ~input_type:`Image ~name ~value ?src string_of
-
-  let raw_image_input ?a ~(name : string) ~value ?src () =
-    make_input ?a ~value ~typ:`Image ?src ~name ()
 
   let checkbox ?a ?checked ~name ~value y =
     let name = Eliom_parameter.string_of_param_name name
@@ -368,14 +355,6 @@ module Make (Html5 : Html5) = struct
     let typ = `Checkbox
     and name = Eliom_parameter.string_of_param_name name in
     make_input ?a ?checked ~typ ~name ()
-
-  let user_type_checkbox string_of ?a ?checked ~name ~value () =
-    make_input ?a ?checked ~typ:`Checkbox
-      ~name:(Eliom_parameter.string_of_param_name name)
-      ~value:(string_of value) ()
-
-  let raw_checkbox ?a ?checked ~name ~value () =
-    make_input ?a ?checked ~typ:`Checkbox ~name ~value ()
 
   let radio ?a ?checked ~name ~value y =
     let name = Eliom_parameter.string_of_param_name name
@@ -394,27 +373,10 @@ module Make (Html5 : Html5) = struct
       ~a ?checked ~typ:`Radio
       ~name:(Eliom_parameter.string_of_param_name name) ~value ()
 
-  let user_type_radio string_of ?a ?checked ~name ~value () =
-    make_input
-      ?a ?checked ~typ:`Radio
-      ~name:(Eliom_parameter.string_of_param_name name)
-      ~value:(string_of value) ()
-
-  let raw_radio ?a ?checked ~(name : string) ~value () =
-    make_input ?a ?checked ~typ:`Radio ~name ~value ()
-
   let button ?a ~name ~value y c =
     let name = Eliom_parameter.string_of_param_name name
     and value = Eliom_parameter_base.string_of_atom y value
     and button_type = `Submit in
-    make_button ?a ~button_type ~name ~value c
-
-  let user_type_button string_of ?a ~name ~value c =
-    make_button ?a ~button_type:`Submit
-      ~name:(Eliom_parameter.string_of_param_name name)
-      ~value:(string_of value) c
-
-  let raw_button ?a ~button_type ~name ~value c =
     make_button ?a ~button_type ~name ~value c
 
   let button_no_value ?a ~button_type c =
@@ -422,9 +384,6 @@ module Make (Html5 : Html5) = struct
 
   let textarea ?a ~name =
     make_textarea ?a ~name:(Eliom_parameter.string_of_param_name name)
-
-  let raw_textarea ?a ~name =
-    make_textarea ?a ~name
 
   type 'a soption =
     Html5_types.option_attrib attrib list
@@ -538,32 +497,11 @@ module Make (Html5 : Html5) = struct
     and f = Eliom_parameter_base.string_of_atom y in
     gen_select ?a ?required ~multiple ~name fl ol f
 
-  let raw_select ?a ?required ~(name : string)
-      (fl : string select_opt) (ol : string select_opt list) =
-    gen_select ?a ?required ~multiple:false ~name fl ol id
-
-  let user_type_select string_of ?a ?required ~name (fl : 'a select_opt)
-      (ol : 'a select_opt list) =
-    gen_select ?a ?required ~multiple:false
-      ~name:(Eliom_parameter.string_of_param_name name)
-      fl ol string_of
-
   let multiple_select ?a ?required ~name y fl ol =
     let multiple = true
     and name = Eliom_parameter.string_of_param_name name
     and f = Eliom_parameter_base.string_of_atom y in
     gen_select ?a ?required ~multiple ~name fl ol f
-
-  let raw_multiple_select ?a ?required ~(name : string)
-      (fl : string select_opt) (ol : string select_opt list) =
-    gen_select ?a ?required ~multiple:true ~name fl ol id
-
-  let user_type_multiple_select string_of ?a ?required
-      ~name (fl : 'a select_opt)
-      (ol : 'a select_opt list) =
-    gen_select ?a ?required ~multiple:true
-      ~name:(Eliom_parameter.string_of_param_name name)
-      fl ol string_of
 
   let make_info ~https kind service =
     let f () =
