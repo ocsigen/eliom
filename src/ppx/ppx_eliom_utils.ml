@@ -107,26 +107,6 @@ module Name = struct
       in {Location. txt ; loc }
     in for_expr, for_id
 
-  (* Escaped expression inside shared sections. *)
-  let nested_escaped_idents = ref []
-  let reset_nested_escaped_ident () = nested_escaped_idents := []
-  let nested_escaped_expr, nested_escaped_ident =
-    let r = ref Int64.zero in
-    let make () =
-      r := Int64.(add one) !r ;
-      Printf.sprintf escaped_ident_fmt !r
-    in
-    let for_expr loc = Location.mkloc (make ()) loc in
-    let for_id loc id =
-      let txt =
-        try List.assoc id !nested_escaped_idents
-        with Not_found ->
-          let gen_id = make () in
-          nested_escaped_idents := (id, gen_id) :: !nested_escaped_idents;
-          gen_id
-      in {Location. txt ; loc }
-    in for_expr, for_id
-
   let injected_expr, injected_ident =
     let injected_idents = ref [] in
     let r = ref Int64.zero in
@@ -392,7 +372,6 @@ module Make (Pass : Pass) = struct
       (`Server | `Shared as c)
       when is_annotation txt ["client"] ->
       Name.reset_escaped_ident () ;
-      Name.reset_nested_escaped_ident () ;
       let side_val, typ = match side_val with
         | [%expr ([%e? cval]:[%t? typ]) ] -> (cval, Some typ)
         | _ -> (side_val, None)
@@ -421,11 +400,9 @@ module Make (Pass : Pass) = struct
              mapper.AM.expr mapper)
             inj
         | `Fragment c ->
-          let id = match ident, c with
-            | None, `Shared -> Name.nested_escaped_expr loc
-            | Some id, `Shared -> Name.nested_escaped_ident loc id
-            | None, `Server -> Name.escaped_expr loc
-            | Some id, `Server -> Name.escaped_ident loc id
+          let id = match ident with
+            | None -> Name.escaped_expr loc
+            | Some id -> Name.escaped_ident loc id
           in
           let new_context = `Escaped_value c in
           in_context context new_context
