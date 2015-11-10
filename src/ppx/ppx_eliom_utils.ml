@@ -184,7 +184,8 @@ module Mli = struct
 
   let get_fragment_type = function
     | [%type: [%t? typ] Eliom_lib.client_value ]
-    | [%type: [%t? typ] Eliom_pervasives.client_value ] ->
+    | [%type: [%t? typ] Eliom_pervasives.client_value ]
+    | [%type: [%t? typ] Eliom_pervasives.fragment ] ->
       Some typ
     | _ -> None
 
