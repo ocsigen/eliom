@@ -140,6 +140,7 @@ let ocamlbuild = {
 }
 
 let ppx = {
+  interface_only = [];
   interface = [ "ppx_eliom" ; "ppx_eliom_client" ; "ppx_eliom_type" ; "ppx_eliom_server" ];
   internal = [ "ppx_eliom_utils" ];
 }
