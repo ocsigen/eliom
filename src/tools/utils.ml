@@ -315,14 +315,18 @@ let get_ppopts ~impl_intf file =
   | `Ppx ->
     type_opt impl_intf file @ !ppopt
 
-let preprocess_opt ?kind opts = match !pp_mode with
+let preprocess_opt ?(ocaml = false) ?kind opts =
+  match !pp_mode with
   | `Camlp4 ->
-    let pkg = match simplify_kind ?kind () with
-      | `Client -> ["eliom.syntax.client"]
-      | `Server -> ["eliom.syntax.server"]
-      | `Types  -> ["eliom.syntax.type"]
+    let pkg = match ocaml, simplify_kind ?kind () with
+      | true, _ -> []
+      | false, `Client -> ["eliom.syntax.client"]
+      | false, `Server -> ["eliom.syntax.server"]
+      | false, `Types  -> ["eliom.syntax.type"]
     in
     [ "-pp"; get_pp pkg ^ " " ^ String.concat " " opts ]
+  | `Ppx when ocaml ->
+    [ "-ppx"; String.concat " " opts ]
   | `Ppx ->
     let pkg = match simplify_kind ?kind () with
       | `Client -> "eliom.ppx.client"

@@ -156,7 +156,7 @@ let compile_ocaml ~impl_intf file =
   create_process !compiler (
     ["-c" ;
      "-o" ; obj ]
-    @ preprocess_opt !ppopt
+    @ preprocess_opt ~ocaml:true !ppopt
     @ !args
     @ get_thread_opt ()
     @ get_common_include ()
