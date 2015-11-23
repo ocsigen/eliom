@@ -160,6 +160,7 @@ let compile_ocaml ~impl_intf file =
     @ !args
     @ get_thread_opt ()
     @ get_common_include ()
+    @ get_common_ppx ()
     @ [impl_intf_opt impl_intf; file] )
 
 let output_ocaml_interface file =
@@ -168,6 +169,7 @@ let output_ocaml_interface file =
     @ preprocess_opt !ppopt
     @ !args
     @ get_common_include ()
+    @ get_common_ppx ()
     @ [file] )
 
 let process_ocaml ~impl_intf file =
@@ -202,6 +204,7 @@ let compile_server_type_eliom file =
     @ preprocess_opt ~kind:`Types ppopts
     @ !args
     @ get_common_include ()
+    @ get_common_ppx ()
     @ ["-impl"; file] );
   Unix.close out
 
@@ -225,6 +228,7 @@ let output_eliom_interface ~impl_intf file =
     @ [ "-intf-suffix"; ".eliomi" ]
     @ !args
     @ get_common_include ~kind ()
+    @ get_common_ppx ~kind ()
     @ [ impl_intf_opt impl_intf; file ]
   in
   Printf.printf "(* WARNING `eliomc -i' generated this pretty ad-hoc - use with care! *)\n";
@@ -256,6 +260,7 @@ let compile_eliom ~impl_intf file =
     @ get_thread_opt ()
     @ !args
     @ get_common_include ()
+    @ get_common_ppx ()
     @ [impl_intf_opt impl_intf; file] );
   args := !args @ [obj]
 

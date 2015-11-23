@@ -122,6 +122,7 @@ let compile_server_eliom ~impl_intf file =
     ( preprocess_opt ~kind:`Server (server_pp_opt impl_intf)
       @ eliom_synonyms @ !args
       @ (map_include !eliom_inc_dirs)
+      @ get_common_ppx ~kind:`Server ()
       @ [impl_intf_opt impl_intf; file] )
     (on_each_line add_build_dirs)
 
@@ -139,6 +140,7 @@ let compile_type_eliom ~impl_intf file =
     ( preprocess_opt ~kind:`Types (type_pp_opt impl_intf)
       @ eliom_synonyms @ !args
       @ (map_include !eliom_inc_dirs)
+      @ get_common_ppx ~kind:`Server ()
       @ [impl_intf_opt impl_intf; file] )
     (on_each_line server_type_file_dependencies)
 
@@ -155,6 +157,7 @@ let compile_client_eliom ~impl_intf file =
     ( preprocess_opt ~kind:`Client (client_pp_opt impl_intf)
       @ eliom_synonyms @ !args
       @ (map_include !eliom_inc_dirs)
+      @ get_common_ppx ~kind:`Client ()
       @ [impl_intf_opt impl_intf; file] )
     (on_each_line add_build_dirs)
 

@@ -211,6 +211,29 @@ let has_package name =
     ignore(Findlib.package_directory name);true
   with Findlib.No_such_package (_, _) -> false
 
+let get_ppxs l =
+  let f p acc =
+    let d = Findlib.package_directory p in
+    try
+      let ppx = Findlib.package_property [] p "ppx" in
+      let ppx =
+        if String.sub ppx 0 2 = "./" then
+          d ^ "/" ^ ppx
+        else
+          ppx
+      in
+      "-ppx" :: ppx :: acc
+    with Not_found -> acc
+  in
+  List.fold_right f l []
+
+let get_common_ppx ?kind ?package () =
+  get_ppxs @@ match get_kind kind with
+  | `Server | `ServerOpt ->
+    get_server_package ?kind ?package ()
+  | `Client ->
+    get_client_package ?kind ()
+
 let rec map_include xs = match xs with
   | [] -> []
   | x::xs -> "-I" :: x :: map_include xs
