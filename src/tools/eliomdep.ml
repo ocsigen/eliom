@@ -103,11 +103,27 @@ let compile_impl file =
     (on_each_line add_build_dirs)
 
 let server_pp_opt impl_intf =
-  ["-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
+  let l = ["-notype"] @ !ppopt in
+  match !pp_mode with
+  | `Ppx ->
+    l
+  | _ ->
+    l @ [impl_intf_opt impl_intf]
+
 let client_pp_opt impl_intf =
-  ["-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
+  let l = ["-notype"] @ !ppopt in
+  match !pp_mode with
+  | `Ppx ->
+    l
+  | _ ->
+    l @ [impl_intf_opt impl_intf]
+
 let type_pp_opt impl_intf =
-  !ppopt @ [impl_intf_opt impl_intf]
+  match !pp_mode with
+  | `Ppx ->
+    !ppopt
+  | _ ->
+    !ppopt @ [impl_intf_opt impl_intf]
 
 let compile_server_eliom ~impl_intf file =
   if !do_dump then begin
