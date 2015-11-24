@@ -137,14 +137,14 @@ module Mli = struct
   let suppress_underscore =
     let c = ref 0 in
     let uid () = incr c ; !c in
-    let pfix = Printf.sprintf "__eliom_inferred_type_%d" (uid ()) in
+    let pfix () = Printf.sprintf "__eliom_inferred_type_%d" (uid ()) in
     let typ mapper ty = match ty.ptyp_desc with
       (* | Ptyp_constr  (_, Ast.TyAny _, ty) *)
       (* | Ptyp_constr (_, ty, Ast.TyAny _) -> ty *)
       | Ptyp_var var when var.[0] = '_' ->
         mapper.AM.typ mapper
           {ty with
-           ptyp_desc = Ptyp_var (String.sub var 1 (String.length var - 1) ^ pfix)
+           ptyp_desc = Ptyp_var (String.sub var 1 (String.length var - 1) ^ pfix ())
           }
       | _ -> AM.default_mapper.typ mapper ty in
     let m = { AM.default_mapper with typ } in
