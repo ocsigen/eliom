@@ -39,6 +39,8 @@ module Mli : sig
 
   val is_escaped_ident : string -> bool
 
+  val exists : unit -> bool
+
   val find_escaped_ident : string Location.loc -> core_type
   val find_injected_ident : string Location.loc -> core_type
   val find_fragment : string Location.loc -> core_type

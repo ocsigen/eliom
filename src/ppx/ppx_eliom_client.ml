@@ -56,11 +56,20 @@ module Pass = struct
     in
     push, flush
 
+  let find_escaped_ident id =
+    if Mli.exists () then Mli.find_escaped_ident id else [%type: _]
+
+  let find_injected_ident id =
+    if Mli.exists () then Mli.find_injected_ident id else [%type: _]
+
+  let find_fragment id =
+    if Mli.exists () then Mli.find_fragment id else [%type: _]
+
   let register_client_closures client_value_datas =
     let registrations =
       List.map
         (fun (num, id, expr, args) ->
-           let typ = Mli.find_fragment id in
+           let typ = find_fragment id in
            let args = List.map Pat.var args in
            [%expr
              Eliom_client.Syntax_helpers.register_client_closure
@@ -82,7 +91,7 @@ module Pass = struct
       List.map
         (fun (_num, id, expr, args) ->
            let patt = Pat.var id in
-           let typ = Mli.find_fragment id in
+           let typ = find_fragment id in
            let args = List.map Pat.var args in
            let expr =
              [%expr
@@ -189,7 +198,7 @@ module Pass = struct
 
     (* [%%server [%client ~%( ... ) ] ] *)
     | `Escaped_value _section ->
-      let typ = Mli.find_escaped_ident id in
+      let typ = find_escaped_ident id in
       let typ = assert_no_variables typ in
       push_escaped_binding id expr;
       [%expr ([%e frag_eid] : [%t typ]) ]
@@ -197,7 +206,7 @@ module Pass = struct
 
     (* [%%server ... %x ... ] *)
     | `Injection _section ->
-      let typ = Mli.find_injected_ident id in
+      let typ = find_injected_ident id in
       let typ = assert_no_variables typ in
       let ident = match ident with
         | None   -> [%expr None]

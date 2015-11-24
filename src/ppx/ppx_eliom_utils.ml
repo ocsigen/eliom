@@ -134,6 +134,8 @@ module Mli = struct
     | None -> Filename.chop_extension !Location.input_name ^ ".type_mli"
     | Some f -> f
 
+  let exists () = match !type_file with Some _ -> true | _ -> false
+
   let suppress_underscore =
     let c = ref 0 in
     let uid () = incr c ; !c in
