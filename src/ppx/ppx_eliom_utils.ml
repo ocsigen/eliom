@@ -385,7 +385,7 @@ module Make (Pass : Pass) = struct
     (* ~%( ... ) ] *)
     | [%expr ~% [%e? inj ]], _ ->
       let ident = match inj.pexp_desc with
-        | Pexp_ident i -> Some (Longident.last i.txt)
+        | Pexp_ident i -> Some (String.concat "_" @@ Longident.flatten i.txt)
         | _ -> None
       in
       begin match !context with
