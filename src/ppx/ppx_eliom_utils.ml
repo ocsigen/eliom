@@ -137,16 +137,21 @@ module Mli = struct
   let exists () = match !type_file with Some _ -> true | _ -> false
 
   let suppress_underscore =
-    let c = ref 0 in
-    let uid () = incr c ; !c in
-    let pfix () = Printf.sprintf "__eliom_inferred_type_%d" (uid ()) in
+    let rename =
+      let c = ref 0 in
+      fun s -> incr c; Printf.sprintf "an_%s_%d" s !c
+    and has_pfix =
+      let pfix = "eliom_inferred_type_" in
+      let len = String.length pfix in
+      fun s -> String.length s >= len && String.sub s 0 len = pfix
+    in
     let typ mapper ty = match ty.ptyp_desc with
       (* | Ptyp_constr  (_, Ast.TyAny _, ty) *)
       (* | Ptyp_constr (_, ty, Ast.TyAny _) -> ty *)
-      | Ptyp_var var when var.[0] = '_' ->
+      | Ptyp_var var when has_pfix var ->
         mapper.AM.typ mapper
           {ty with
-           ptyp_desc = Ptyp_var (String.sub var 1 (String.length var - 1) ^ pfix ())
+           ptyp_desc = Ptyp_var (rename var)
           }
       | _ -> AM.default_mapper.typ mapper ty in
     let m = { AM.default_mapper with typ } in
