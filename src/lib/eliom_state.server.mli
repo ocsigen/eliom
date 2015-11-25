@@ -128,9 +128,8 @@ val persistent_data_state_status :
     Web site).
 
     Cookies can have an expiration date, specified (in seconds
-    since the 1st of January 1970) in the optional parameter [?exp].
-    If the parameter is not set,
-    the expiration date will be when the browser is closed.
+    since the 1st of January 1970) in the optional parameter [?exp]
+    (see how to set default expiration dates below).
 
     Secure cookies are sent by the browser only with HTTPS (default: [false]).
 *)
@@ -429,8 +428,10 @@ val set_max_volatile_states_for_group_or_subnet :
 (** The functions in this section ask the browser to set the state cookie
     expiration date, for the different kinds of session, in seconds,
     since the 1st of January 1970. [None] means the cookie will expire
-    when the browser is closed. Note: there is no way to set cookies
+    when the browser is closed. There is no way to set cookies
     for an infinite time on browsers.
+    By default, Eliom sets default expiration date to
+    10 years after opening the session.
 
     By default, it will affect regular browser cookies (sessions).
     But if you set [~cookie_level:`Client_process],
