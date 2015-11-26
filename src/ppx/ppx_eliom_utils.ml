@@ -24,12 +24,6 @@ let (%) f g x = f (g x)
 let exp_add_attrs attr e =
   {e with pexp_attributes = attr}
 
-let id_of_string str =
-  Printf.sprintf "%019d" (Hashtbl.hash str)
-
-let file_loc () =
-  Location.in_file !Location.input_name
-
 let eid {Location. txt ; loc } =
   Exp.ident ~loc { loc ; txt = Longident.Lident txt }
 
@@ -45,6 +39,9 @@ let pat_args = function
 
 let file_hash loc =
   Hashtbl.hash @@ loc.Location.loc_start.pos_fname
+
+let id_of_loc loc =
+  Printf.sprintf "%019d" (file_hash loc)
 
 let lexing_position ~loc l =
   [%expr
@@ -493,7 +490,7 @@ module Make (Pass : Pass) = struct
       | _ ->
         dispatch_str !context mapper pstr
     in
-    let loc = file_loc () in
+    let loc = {(Location.in_file !Location.input_name) with loc_ghost = true} in
     open_eliom_pervasives :: Pass.prelude loc @ flatmap f structs @ Pass.postlude loc
 
   let toplevel_signature context mapper sigs =

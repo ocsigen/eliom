@@ -2,9 +2,7 @@ open Parsetree
 
 (** {2 Various helping functions} *)
 
-val id_of_string : _ -> string
-
-val file_loc : unit -> Location.t
+val id_of_loc : Location.t -> string
 
 val eid : string Location.loc -> expression
 
