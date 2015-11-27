@@ -124,6 +124,10 @@ module Name = struct
 
 end
 
+(* WARNING: if you change this, also change inferred_type_prefix in
+   tools/eliomc.ml *)
+let inferred_type_prefix = "eliom_inferred_type_"
+
 module Mli = struct
 
   let type_file = ref None
@@ -138,9 +142,10 @@ module Mli = struct
       let c = ref 0 in
       fun s -> incr c; Printf.sprintf "an_%s_%d" s !c
     and has_pfix =
-      let pfix = "eliom_inferred_type_" in
-      let len = String.length pfix in
-      fun s -> String.length s >= len && String.sub s 0 len = pfix
+      let len = String.length inferred_type_prefix in
+      fun s ->
+        String.length s >= len &&
+        String.sub s 0 len = inferred_type_prefix
     in
     let typ mapper ty = match ty.ptyp_desc with
       (* | Ptyp_constr  (_, Ast.TyAny _, ty) *)

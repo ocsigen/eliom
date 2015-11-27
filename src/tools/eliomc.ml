@@ -185,6 +185,33 @@ let compile_obj file =
 
 (* Process eliom and eliomi files *)
 
+let run_command s =
+  let v = Sys.command s in
+  if v != 0 then
+    failwith (Printf.sprintf "Warning: command [%s] returned %d" s v)
+
+(* WARNING: if you change this, also change inferred_type_prefix in
+   ppx/ppx_eliom_utils.ml *)
+let inferred_type_prefix = "eliom_inferred_type_"
+
+(* FIXME!
+
+   run_sed is a temporary hack to parse weakly monomorphic types of
+   the following forms:
+
+   '_a
+   _[< ... ]
+   _[> ... ]
+
+   These appear in type_mli files, but they are not accepted by
+   the OCaml parser.  *)
+let run_sed file =
+  run_command ("sed -i -e 's/_\\[\\([<>]\\)/[\\1/g' " ^ file);
+  run_command
+    (Printf.sprintf
+       "sed -i -e \"s/'\\(_[a-z0-9_]*\\)/'%s\\1/g\" %s"
+       inferred_type_prefix file)
+
 let compile_server_type_eliom file =
   let obj = output_prefix ~ty:true file ^ !server_types_file_ext
   and ppopts = !ppopt @ (if !pp_mode = `Ppx then [] else ["-impl"]) in
@@ -206,7 +233,8 @@ let compile_server_type_eliom file =
     @ get_common_include ()
     @ get_common_ppx ()
     @ ["-impl"; file] );
-  Unix.close out
+  Unix.close out;
+  if !pp_mode = `Ppx then run_sed obj
 
 let output_eliom_interface ~impl_intf file =
   if !do_dump then begin
