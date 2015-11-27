@@ -349,7 +349,7 @@ let preprocess_opt ?(ocaml = false) ?kind opts =
     in
     [ "-pp"; get_pp pkg ^ " " ^ String.concat " " opts ]
   | `Ppx when ocaml ->
-    [ "-ppx"; String.concat " " opts ]
+    []
   | `Ppx ->
     let pkg = match simplify_kind ?kind () with
       | `Client -> "eliom.ppx.client"
