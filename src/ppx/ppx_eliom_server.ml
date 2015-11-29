@@ -156,6 +156,8 @@ module Pass = struct
     let typ =
       match typ with
       | Some typ -> typ
+      | None when not (Mli.exists ()) ->
+        [%type: _]
       | None ->
         match Mli.find_fragment id with
         | { ptyp_desc = Ptyp_var _ } ->
