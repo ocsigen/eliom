@@ -237,9 +237,12 @@ module Context = struct
     | `Server -> "server"
 
   let of_string = function
-    | "server" | "server.start" -> `Server
-    | "shared" | "shared.start" -> `Shared
-    | "client" | "client.start" -> `Client
+    | "server" | "server.start"
+    | "eliom.server" | "eliom.server.start" -> `Server
+    | "shared" | "shared.start"
+    | "eliom.shared" | "eliom.shared.start" -> `Shared
+    | "client" | "client.start"
+    | "eliom.client" | "eliom.client.start" -> `Client
     | _ -> invalid_arg "Eliom ppx: Not a context"
 
   type escape_inject = [
