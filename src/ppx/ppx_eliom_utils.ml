@@ -502,7 +502,8 @@ module Make (Pass : Pass) = struct
     let f psig =
       let loc = psig.psig_loc in
       match psig.psig_desc with
-      | Psig_extension (({txt=("shared"|"client"|"server" as txt)}, PStr strs), _) ->
+      | Psig_extension (({txt}, PStr strs), _)
+        when is_annotation txt ["shared.start"; "client.start" ;"server.start"] ->
         if strs <> [] then
           [ Sig.extension ~loc @@ AM.extension_of_error @@ Location.errorf ~loc
               "The %%%%%s extension doesn't accept arguments." txt ]
