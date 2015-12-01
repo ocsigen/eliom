@@ -395,8 +395,9 @@ module type S = sig
     'a param ->
     [> Html5_types.input] elt
 
-  (** Creates a checkbox [<input>] tag of type bool. *)
-  val bool_checkbox :
+  (** Creates a checkbox [<input>] tag of type bool. Only one checkbox
+      with the same [name] is allowed. *)
+  val bool_checkbox_one :
     ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
     name:[ `One of bool ] Eliom_parameter.param_name ->
     unit ->
