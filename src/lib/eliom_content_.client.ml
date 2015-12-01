@@ -383,7 +383,7 @@ module Html5 = struct
 
   module F = struct
     include Html5.F
-    module PARAM = struct
+    module Arg = struct
       include Html5.F
       module Svg = Eliom_content_core.Svg.F
       let uri_of_fun = Eliom_content_core.Xml.uri_of_fun
@@ -393,8 +393,8 @@ module Html5 = struct
              (Xml.internal_event_handler_attrib
                 s (Xml.internal_event_handler_of_service info)))
     end
-    include Eliom_form.Make_links(PARAM)
-    module Form = Eliom_form.Make(PARAM)
+    include Eliom_form.Make_links(Arg)
+    module Form = Eliom_form.Make(Arg)
   end
 
   module R = struct
@@ -403,7 +403,7 @@ module Html5 = struct
 
   module D = struct
     include Html5.D
-    module PARAM = struct
+    module Arg = struct
       include Html5.D
       module Svg = Eliom_content_core.Svg.D
       let uri_of_fun = Eliom_content_core.Xml.uri_of_fun
@@ -413,8 +413,8 @@ module Html5 = struct
              (Xml.internal_event_handler_attrib
                 s (Xml.internal_event_handler_of_service info)))
     end
-    include Eliom_form.Make_links(PARAM)
-    module Form = Eliom_form.Make(PARAM)
+    include Eliom_form.Make_links(Arg)
+    module Form = Eliom_form.Make(Arg)
   end
 
   module C = struct
