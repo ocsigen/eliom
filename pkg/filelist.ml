@@ -67,6 +67,7 @@ let server = {
     "eliommod_sessadmin";
     "eliommod_sessexpl";
     "eliommod_sessiongroups";
+    "eliom_state_base";
     "eliommod_timeouts";
   ]
 }
