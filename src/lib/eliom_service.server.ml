@@ -19,8 +19,9 @@
 
 open Eliom_lib
 
-open Eliom_state
 open Eliom_parameter
+
+module Sb = Eliom_state_base
 
 (* Manipulation of services - this code can be use only on server side. *)
 
@@ -89,13 +90,13 @@ exception Unregistered_CSRF_safe_coservice
 let register_delayed_get_or_na_coservice ~sp (k, scope, secure) =
   let f =
     try
-      let table = !(Eliom_state.get_session_service_table_if_exists ~sp
+      let table = !(Sb.get_session_service_table_if_exists ~sp
                       ~scope:(scope:>Eliom_common.user_scope) ?secure ())
       in
       Int.Table.find
         k table.Eliom_common.csrf_get_or_na_registration_functions
     with Not_found ->
-      let table = Eliom_state.get_global_table () in
+      let table = Sb.get_global_table () in
       try
         Int.Table.find
           k table.Eliom_common.csrf_get_or_na_registration_functions
@@ -107,13 +108,13 @@ let register_delayed_get_or_na_coservice ~sp (k, scope, secure) =
 let register_delayed_post_coservice ~sp (k, scope, secure) getname =
   let f =
     try
-      let table = !(Eliom_state.get_session_service_table_if_exists ~sp
+      let table = !(Sb.get_session_service_table_if_exists ~sp
                       ~scope:(scope:>Eliom_common.user_scope) ?secure ())
       in
       Int.Table.find
         k table.Eliom_common.csrf_post_registration_functions
     with Not_found ->
-      let table = Eliom_state.get_global_table () in
+      let table = Sb.get_global_table () in
       try
         Int.Table.find
           k table.Eliom_common.csrf_post_registration_functions
@@ -174,7 +175,7 @@ let unregister ?scope ?secure service =
               | _ -> raise
 		(Eliom_common.Eliom_site_information_not_available
                    "unregister"))
-          | Some sp -> get_global_table ()
+          | Some sp -> Sb.get_global_table ()
       in
       remove_service table service
     | Some (#Eliom_common.user_scope as scope) ->
@@ -183,7 +184,7 @@ let unregister ?scope ?secure service =
           raise (failwith "Unregistering service for non global scope must be done during a request")
 	| Some sp ->
           let table =
-            !(Eliom_state.get_session_service_table ~sp ?secure ~scope ())
+            !(Sb.get_session_service_table ~sp ?secure ~scope ())
           in
           remove_service table service
 

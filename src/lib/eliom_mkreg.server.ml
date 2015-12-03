@@ -21,10 +21,11 @@
 open Eliom_lib
 
 open Lwt
-open Eliom_state
 open Eliom_parameter
 open Eliom_service
 open Lazy
+
+module Sb = Eliom_state_base
 
 let suffix_redir_uri_key = Polytables.make_key ()
 
@@ -312,7 +313,7 @@ let register_aux pages
                     if secure_session <> sec || scope <> ct
                     then raise
                       Wrong_session_table_for_CSRF_safe_coservice;
-                    !(Eliom_state.get_session_service_table
+                    !(Sb.get_session_service_table
                         ?secure:secure_session ~scope ~sp ()),
                       true
               in
@@ -329,7 +330,7 @@ let register_aux pages
                       (* we do not register in global table,
                          but in the table specified while creating
                          the csrf safe service *)
-                      !(Eliom_state.get_session_service_table
+                      !(Sb.get_session_service_table
                           ?secure:secure_session
                           ~scope ~sp ())
                   in
@@ -345,7 +346,7 @@ let register_aux pages
                     if secure_session <> sec || ct <> scope
                     then raise
                       Wrong_session_table_for_CSRF_safe_coservice;
-                    !(Eliom_state.get_session_service_table
+                    !(Sb.get_session_service_table
                         ?secure:secure_session ~scope ~sp ()), true
               in
               Eliom_service.set_delayed_get_or_na_registration_function
@@ -361,7 +362,7 @@ let register_aux pages
                       (* we do not register in global table,
                          but in the table specified while creating
                          the csrf safe service *)
-                      !(Eliom_state.get_session_service_table
+                      !(Sb.get_session_service_table
                           ?secure:secure_session ~scope ~sp ())
                   in
                   f table (attserget, attserpost);
@@ -371,7 +372,7 @@ let register_aux pages
                 match table with
                   | Left globtbl -> globtbl
                   | Right (sp, scope, secure_session) ->
-                    !(Eliom_state.get_session_service_table
+                    !(Sb.get_session_service_table
                         ?secure:secure_session ~scope ~sp ())
               in
               f tablereg (attserget, attserpost))
@@ -440,7 +441,7 @@ let register_aux pages
                     if secure_session <> sec || ct <> scope
                     then raise
                       Wrong_session_table_for_CSRF_safe_coservice;
-                    !(Eliom_state.get_session_service_table
+                    !(Sb.get_session_service_table
                         ?secure:secure_session ~scope ~sp ()), true
               in
               set_delayed_get_or_na_registration_function
@@ -456,7 +457,7 @@ let register_aux pages
                       (* we do not register in global table,
                          but in the table specified while creating
                          the csrf safe service *)
-                      !(Eliom_state.get_session_service_table
+                      !(Sb.get_session_service_table
                           ?secure:secure_session ~scope ~sp ())
                   in
                   f table na_name;
@@ -470,7 +471,7 @@ let register_aux pages
                     if secure_session <> sec || ct <> scope
                     then raise
                       Wrong_session_table_for_CSRF_safe_coservice;
-                    !(Eliom_state.get_session_service_table
+                    !(Sb.get_session_service_table
                         ?secure:secure_session ~scope ~sp ()), true
               in
               set_delayed_get_or_na_registration_function
@@ -486,7 +487,7 @@ let register_aux pages
                       (* we do not register in global table,
                          but in the table specified while creating
                          the csrf safe service *)
-                      !(Eliom_state.get_session_service_table
+                      !(Sb.get_session_service_table
                           ?secure:secure_session ~scope ~sp ())
                   in
                   f table na_name;
@@ -496,7 +497,7 @@ let register_aux pages
                 match table with
                   | Left globtbl -> globtbl
                   | Right (sp, scope, secure_session) ->
-                    !(Eliom_state.get_session_service_table
+                    !(Sb.get_session_service_table
                         ?secure:secure_session ~scope ~sp ())
               in
               f tablereg na_name
@@ -565,7 +566,7 @@ let register pages
         ?content_type
         ?headers
         ?error_handler
-        (Left (get_global_table ()))
+        (Left (Sb.get_global_table ()))
         ~service
         page_gen
     | _, None ->

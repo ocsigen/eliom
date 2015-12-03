@@ -27,7 +27,7 @@ type ('a, 'b) t = {
   channel  : 'b Eliom_comet.Channel.t option;
   write    : ('a -> unit Lwt.t);
   service  : 'a Ecb.bus_send_service;
-  service_registered : bool Eliom_state.volatile_table option;
+  service_registered : bool Eliom_state_base.volatile_table option;
   size     : int option;
   bus_mark : ('a, 'b) t Eliom_common.wrapper; (* must be the last field ! *)
 }
@@ -53,15 +53,15 @@ let internal_wrap (bus: ('a, 'b) t)
     match bus.service_registered with
       | None -> ()
       | Some table ->
-	match Eliom_state.get_volatile_data ~table () with
-	  | Eliom_state.Data true -> ()
+	match Eliom_state_base.get_volatile_data ~table () with
+	  | Eliom_state_base.Data true -> ()
 	  | _ ->
 	    register_sender bus.scope
 	      (bus.service:>
 		 ('h, 'a list, _, _, [ Eliom_service.internal_service_kind ], 'f, 'c, 'd, 'e, 'g)
 		 Eliom_service.service)
 	      bus.write;
-	    Eliom_state.set_volatile_data ~table true
+	    Eliom_state_base.set_volatile_data ~table true
   end;
   ( ( Eliom_comet.Channel.get_wrapped channel,
       bus.service ),
@@ -114,7 +114,7 @@ let create_filtered ?scope ?name ?size ~filter typ =
 	register_sender scope distant_write push;
 	None
       | `Client_process _ as scope ->
-	Some (Eliom_state.create_volatile_table ~scope ()) in
+	Some (Eliom_state_base.create_volatile_table ~scope ()) in
   (*The bus*)
   let bus =
     { stream;
