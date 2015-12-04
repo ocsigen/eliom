@@ -27,7 +27,15 @@ let _ =
 
   list_to_file "src/ocamlbuild/ocamlbuild.mllib" ocamlbuild_mllib;
   list_to_file "src/ocamlbuild/ocamlbuild.mldylib" ocamlbuild_mllib;
-  list_to_file "src/ocamlbuild/api.odocl" ocamlbuild_api
+  list_to_file "src/ocamlbuild/api.odocl" ocamlbuild_api;
+
+  list_to_file "src/ppx/ppx.mllib" ppx_mllib;
+  list_to_file "src/ppx/ppx.mldylib" ppx_mllib;
+  list_to_file "src/ppx/api.odocl" ppx_api;
+
+  list_to_file "src/ppx/ppx.mllib" ppx_mllib;
+  list_to_file "src/ppx/ppx.mldylib" ppx_mllib;
+  list_to_file "src/ppx/api.odocl" ppx_api
 
 let spf = Printf.sprintf
 
@@ -56,6 +64,7 @@ let () =
     Pkg.man ~cond:with_man3 ~dst:"man3/%.3oc" ~target:"src/lib/client/api.mandocdir/man.3oc" "src/lib/client/api.mandocdir/%.3oc";
     Pkg.man ~cond:with_man3 ~dst:"man3/%.3os" ~target:"src/lib/server/api.mandocdir/man.3os" "src/lib/server/api.mandocdir/%.3os";
     Pkg.man ~cond:with_man3 ~dst:"man3/%.3o"  ~target:"src/ocamlbuild/api.mandocdir/man.3o"  "src/ocamlbuild/api.mandocdir/%.3o";
+    Pkg.man ~cond:with_man3 ~dst:"man3/%.3o"  ~target:"src/ppx/api.mandocdir/man.3o"  "src/ppx/api.mandocdir/%.3o";
 
     (* TOOLS *)
     Pkg.bin ~auto:true "src/tools/eliomc";
@@ -75,6 +84,16 @@ let () =
     Pkg.lib ~exts:exts_syntax ~dst:"syntax/pa_eliom_type_filter" "src/syntax/pa_eliom_type_filter";
 
     Pkg.lib ~exts:exts_modlib ~dst:"ocamlbuild/ocamlbuild_eliom" "src/ocamlbuild/ocamlbuild_eliom";
+
+    (* PPX *)
+    Pkg.lib ~exts:Exts.module_library ~dst:"ppx/ppx_eliom" "src/ppx/ppx_eliom";
+    Pkg.lib ~exts:Exts.module_library ~dst:"ppx/ppx_eliom_client" "src/ppx/ppx_eliom_client";
+    Pkg.lib ~exts:Exts.module_library ~dst:"ppx/ppx_eliom_type" "src/ppx/ppx_eliom_type";
+    Pkg.lib ~exts:Exts.module_library ~dst:"ppx/ppx_eliom_server" "src/ppx/ppx_eliom_server";
+
+    Pkg.bin ~auto:true ~dst:"ppx_eliom_client" "src/ppx/ppx_eliom_client_ex" ;
+    Pkg.bin ~auto:true ~dst:"ppx_eliom_server" "src/ppx/ppx_eliom_server_ex" ;
+    Pkg.bin ~auto:true ~dst:"ppx_eliom_types" "src/ppx/ppx_eliom_types_ex" ;
 
   ] @ (
     (* CLIENT LIBS *)

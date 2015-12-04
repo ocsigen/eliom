@@ -5,9 +5,9 @@ let remove_spaces s beg endd =
   let rec find_not_space s i step =
     if (i > endd) || (beg > i) then i
     else
-      if s.[i] = ' '
-      then find_not_space s (i+step) step
-      else i
+    if s.[i] = ' '
+    then find_not_space s (i+step) step
+    else i
   in
   let first = find_not_space s beg 1 in
   let last = find_not_space s endd (-1) in
@@ -20,11 +20,11 @@ let split c s =
   let rec aux deb =
     if deb >= longueur then []
     else try
-      let firstsep = String.index_from s deb c in
-      if firstsep = deb then
-        aux (deb + 1)
-      else
-        (remove_spaces s deb (firstsep-1))::
+        let firstsep = String.index_from s deb c in
+        if firstsep = deb then
+          aux (deb + 1)
+        else
+          (remove_spaces s deb (firstsep-1))::
           (aux (firstsep+1))
       with Not_found -> [remove_spaces s deb (longueur-1)]
   in
@@ -41,11 +41,16 @@ let args : string list ref = ref []
 let package : string list ref = ref []
 let predicates : string list ref = ref []
 let pp : string option ref = ref None
-let kind : [ `Server | `Client | `ServerOpt ] ref = ref `Server
+type kind = [ `Server | `Client | `ServerOpt ]
+let kind : kind ref = ref `Server
 let type_file : string option ref = ref None
 
 let autoload_predef = ref true
 let type_conv = ref false
+
+type pp_mode = [ `Camlp4 | `Ppx ]
+let pp_mode : pp_mode ref = ref `Camlp4
+
 
 let default_server_dir =
   try Sys.getenv "ELIOM_SERVER_DIR"
@@ -68,8 +73,8 @@ let type_dir : string ref = ref default_type_dir
 
 let get_kind k =
   match k with
-    | Some k -> k
-    | None -> !kind
+  | Some k -> k
+  | None -> (!kind : kind :> [> kind])
 
 (** Findlib *)
 
@@ -116,8 +121,8 @@ let with_autoload all_pkgs =
 let get_server_package ?kind:k ?package:p () =
   let package =
     match p with
-      | Some p -> p
-      | None -> !package
+    | Some p -> p
+    | None -> !package
   in
   let pkgs = "eliom.server" :: package in
   let pkg_predicates = get_pkg_predicates pkgs in
@@ -146,20 +151,20 @@ let explain_who_need ~find ~from =
   (* Weak dependencies: pa_eliom_seed needs to be loaded after type_conv IF type_conv EXISTS *)
   let pkg_predicates = List.filter ((<>) "pkg_type_conv") pkg_predicates in
   let l = List.filter (fun pkg ->
-      if
-        try
-          begin
-	          let objs = Findlib.package_property (pkg_predicates @ Lazy.force syntax_predicates) pkg "archive"
-	          in List.concat (List.map (split ',') (split ' ' objs)) <> []
-          end
-	      with Not_found -> false
-      then
+    if
+      try
         begin
-          let l = Findlib.package_deep_ancestors (pkg_predicates @ Lazy.force syntax_predicates) [pkg] in
-          List.mem find l
+          let objs = Findlib.package_property (pkg_predicates @ Lazy.force syntax_predicates) pkg "archive"
+          in List.concat (List.map (split ',') (split ' ' objs)) <> []
         end
-      else false
-    ) from in
+      with Not_found -> false
+    then
+      begin
+        let l = Findlib.package_deep_ancestors (pkg_predicates @ Lazy.force syntax_predicates) [pkg] in
+        List.mem find l
+      end
+    else false
+  ) from in
   match l with
   | [] -> ()
   | _ -> Printf.eprintf "List of packages requiring %s: %s.\n%!" find (String.concat ", " l)
@@ -174,10 +179,10 @@ let get_syntax_package pkg =
            (fun p ->
               let all_predicates = pkg_predicates @ (Lazy.force syntax_predicates) in
               try
-	              let objs =
-	                Findlib.package_property all_predicates  p "archive" in
-	              List.concat (List.map (split ',') (split ' ' objs)) <> []
-	            with Not_found -> false)
+                let objs =
+                  Findlib.package_property all_predicates  p "archive" in
+                List.concat (List.map (split ',') (split ' ' objs)) <> []
+              with Not_found -> false)
            pkgs)
     with Findlib.No_such_package (name, _) ->
       Printf.eprintf "Unknown package: %s\n%!" name;
@@ -206,6 +211,29 @@ let has_package name =
     ignore(Findlib.package_directory name);true
   with Findlib.No_such_package (_, _) -> false
 
+let get_ppxs l =
+  let f p acc =
+    let d = Findlib.package_directory p in
+    try
+      let ppx = Findlib.package_property [] p "ppx" in
+      let ppx =
+        if String.sub ppx 0 2 = "./" then
+          d ^ "/" ^ ppx
+        else
+          ppx
+      in
+      "-ppx" :: ppx :: acc
+    with Not_found -> acc
+  in
+  List.fold_right f l []
+
+let get_common_ppx ?kind ?package () =
+  get_ppxs @@ match get_kind kind with
+  | `Server | `ServerOpt ->
+    get_server_package ?kind ?package ()
+  | `Client ->
+    get_client_package ?kind ()
+
 let rec map_include xs = match xs with
   | [] -> []
   | x::xs -> "-I" :: x :: map_include xs
@@ -213,13 +241,13 @@ let rec map_include xs = match xs with
 let get_common_include ?kind:k ?build_dir:dir ?package:p () =
   let dir = match dir with Some d -> d | None -> !build_dir in
   (match get_kind k with
-  | `Server | `ServerOpt ->
-      map_include (List.map Findlib.package_directory (get_server_package ?kind:k ?package:p ()))
-  | `Client ->
-      map_include (List.map Findlib.package_directory (get_client_package ?kind:k ())))
+   | `Server | `ServerOpt ->
+     map_include (List.map Findlib.package_directory (get_server_package ?kind:k ?package:p ()))
+   | `Client ->
+     map_include (List.map Findlib.package_directory (get_client_package ?kind:k ())))
   @ match dir with
-    | "" | "." -> []
-    | d -> ["-I"; d]
+  | "" | "." -> []
+  | d -> ["-I"; d]
 
 let get_common_syntax pkg =
   let syntax_pkg = get_syntax_package pkg in
@@ -239,9 +267,9 @@ let get_client_lib ?kind:k () =
   List.concat
     (List.map
        (fun p ->
-	 try
-	   split ' ' (Findlib.package_property (get_predicates ?kind:k ()) p "archive")
-	 with Not_found -> [])
+          try
+            split ' ' (Findlib.package_property (get_predicates ?kind:k ()) p "archive")
+          with Not_found -> [])
        (get_client_package ?kind:k ()))
 
 let get_client_js () =
@@ -255,18 +283,21 @@ let get_client_js () =
 let get_pp_dump pkg opt = match !pp with
   | None -> (!camlp4, get_common_syntax pkg @ opt)
   | Some pp ->
-      try
-        ignore(String.index pp ' ');
-        Printf.eprintf "Incompatible option: -pp and -dump\n%!";
-        exit 1
-      with Not_found -> (pp, get_common_syntax pkg @ opt)
+    try
+      ignore(String.index pp ' ');
+      Printf.eprintf "Incompatible option: -pp and -dump\n%!";
+      exit 1
+    with Not_found -> (pp, get_common_syntax pkg @ opt)
 
-let get_pp pkg opt =
+let get_pp pkg =
   let s = match !pp with
-    | None -> String.concat " " (!camlp4 :: get_common_syntax pkg @ opt)
-    | Some pp -> pp ^ " " ^ String.concat " " (get_common_syntax pkg @ opt)
-  (* Format.eprintf "get_pp %S@." s *)
+    | None -> String.concat " " (!camlp4 :: get_common_syntax pkg)
+    | Some pp -> pp ^ " " ^ String.concat " " (get_common_syntax pkg)
+    (* Format.eprintf "get_pp %S@." s *)
   in s
+
+let get_ppx pkg =
+  Findlib.package_property [] pkg "ppx"
 
 let get_thread_opt () = match !kind with
   | `Client -> []
@@ -283,7 +314,7 @@ let get_type_file file =
   match !type_file with
   | Some f -> f
   | None ->
-      prefix_type_dir (chop_extension_if_any file ^ !server_types_file_ext)
+    prefix_type_dir (chop_extension_if_any file ^ !server_types_file_ext)
 
 let impl_intf_opt = function
   | `Impl -> "-impl"
@@ -294,6 +325,39 @@ let type_opt impl_intf file =
   | `Impl -> ["-type"; get_type_file file]
   | `Intf -> ["-notype"]
 
+let simplify_kind ?kind () =
+  match get_kind kind with
+  | `Client -> `Client
+  | `Server | `ServerOpt -> `Server
+  | `Types -> `Types
+
+let get_ppopts ~impl_intf file =
+  match !pp_mode with
+  | `Camlp4 ->
+    type_opt impl_intf file @ !ppopt @ [impl_intf_opt impl_intf]
+  | `Ppx ->
+    type_opt impl_intf file @ !ppopt
+
+let preprocess_opt ?(ocaml = false) ?kind opts =
+  match !pp_mode with
+  | `Camlp4 ->
+    let pkg = match ocaml, simplify_kind ?kind () with
+      | true, _ -> []
+      | false, `Client -> ["eliom.syntax.client"]
+      | false, `Server -> ["eliom.syntax.server"]
+      | false, `Types  -> ["eliom.syntax.type"]
+    in
+    [ "-pp"; get_pp pkg ^ " " ^ String.concat " " opts ]
+  | `Ppx when ocaml ->
+    []
+  | `Ppx ->
+    let pkg = match simplify_kind ?kind () with
+      | `Client -> "eliom.ppx.client"
+      | `Server -> "eliom.ppx.server"
+      | `Types  -> "eliom.ppx.type"
+    in
+    [ "-ppx"; get_ppx pkg ^ " " ^ String.concat " " opts ]
+
 (** Process *)
 
 let rec wait ?(on_error=fun _ -> ()) pid =
@@ -302,13 +366,13 @@ let rec wait ?(on_error=fun _ -> ()) pid =
   | Unix.WEXITED 0 -> ()
   | Unix.WEXITED i -> on_error e; exit i
   | Unix.WSIGNALED i ->
-      Printf.eprintf "Child killed with signal: %d" i;
-      on_error e;
-      exit 255
+    Printf.eprintf "Child killed with signal: %d" i;
+    on_error e;
+    exit 255
   | Unix.WSTOPPED i ->
-      Printf.eprintf "Child stoped with signal: %d" i;
-      on_error e;
-      wait pid
+    Printf.eprintf "Child stoped with signal: %d" i;
+    on_error e;
+    wait pid
 
 let create_process
     ?(in_= Unix.stdin) ?(out= Unix.stdout) ?(err= Unix.stderr)
@@ -335,8 +399,8 @@ let help_filter skip msg ch =
 let fail fmt =
   Printf.ksprintf
     (fun msg ->
-      prerr_endline msg;
-      exit 1)
+       prerr_endline msg;
+       exit 1)
     fmt
 
 (** *)

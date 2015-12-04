@@ -44,21 +44,25 @@ let in_an_eliom_inc_dir s =
 
 let compile_intf file =
   wait (
-  create_process
-    !compiler ( "-pp" :: get_pp [] !ppopt :: !args @
-          (get_default_args ())
-        @ (get_common_include ())
-        @ (map_include !eliom_inc_dirs)
-		@ ["-intf"; file] ))
+    create_process
+      !compiler (
+      preprocess_opt !ppopt
+      @ !args
+      @ (get_default_args ())
+      @ (get_common_include ())
+      @ (map_include !eliom_inc_dirs)
+		  @ ["-intf"; file] ))
 
 let compile_impl file =
   wait (
-  create_process
-    !compiler ( "-pp" :: get_pp [] !ppopt :: !args @
-          (get_default_args ())
-        @ (get_common_include ())
-        @ (map_include !eliom_inc_dirs)
-		@ ["-impl"; file] ))
+    create_process
+      !compiler (
+      preprocess_opt !ppopt
+      @ !args
+      @ (get_default_args ())
+      @ (get_common_include ())
+      @ (map_include !eliom_inc_dirs)
+		  @ ["-impl"; file] ))
 
 let server_pp_opt impl_intf =
   ["-printer"; "o"; "-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
@@ -85,8 +89,9 @@ let compile_server_eliom ~impl_intf file =
   wait (create_process ~out "eliompp" ["-server"; file]);
   wait (
   create_process !compiler
-    ( "-pp" :: get_pp ["eliom.syntax.server"] (server_pp_opt impl_intf) :: !args @
-        (get_default_args ())
+    ( preprocess_opt ~kind:`Server (server_pp_opt impl_intf)
+      @ !args
+      @ (get_default_args ())
       @ (get_common_include ())
       @ (map_include !eliom_inc_dirs)
       @ [impl_intf_opt impl_intf; file'] ))
@@ -96,8 +101,9 @@ let compile_client_eliom ~impl_intf file =
   wait (create_process ~out "eliompp" ["-client"; file]);
   wait (
   create_process !compiler
-    ( "-pp" :: get_pp ["eliom.syntax.client"] (client_pp_opt impl_intf) :: !args @
-        (get_default_args ())
+    ( preprocess_opt ~kind:`Client (client_pp_opt impl_intf)
+      @ !args
+      @ (get_default_args ())
       @ (get_common_include ())
       @ (map_include !eliom_inc_dirs)
       @ [impl_intf_opt impl_intf; file'] ))
@@ -141,6 +147,9 @@ let process_option () =
       if !i+1 >= Array.length Sys.argv then usage ();
       pp := Some Sys.argv.(!i+1);
       i := !i+2
+    | "-ppx" ->
+      pp_mode := `Ppx;
+      i := !i+1
     | "-ppopt" ->
       if !i+1 >= Array.length Sys.argv then usage ();
       ppopt := !ppopt @ [Sys.argv.(!i+1)];

@@ -12,6 +12,9 @@ open Eliom_pervasives_base
     type Eliom_pervasives.client_value >> %}. *)
 type 'a client_value = 'a Eliom_lib.client_value
 
+(** An alias for {!client_value}. *)
+type 'a fragment = 'a client_value
+
 (* Re-export Eliom_lib.False here, when
    cf. http://caml.inria.fr/mantis/view.php?id=5778 is fixed *)
 (* exception False *)
