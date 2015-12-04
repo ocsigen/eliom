@@ -19,6 +19,8 @@
 
 (* provides infos about the server (number of sessions, uptime...) *)
 
+module Sb = Eliom_state_base
+
 let uptime =
   let launchtime = Unix.time () in
   (fun () -> Unix.time () -. launchtime)
@@ -131,19 +133,19 @@ let http_stats () =
 let eliom_stats () =
   lwt persist_nb_of_groups = Eliommod_sessiongroups.Pers.nb_of_groups () in
   lwt number_of_persistent_data_cookies =
-    Eliom_state.number_of_persistent_data_cookies () in
+    Sb.number_of_persistent_data_cookies () in
   Lwt.return (
   div [
     h3 [ppf "Sessions"];
     ul [
-      li [ppf "%d service cookies." (Eliom_state.number_of_service_cookies ())];
+      li [ppf "%d service cookies." (Sb.number_of_service_cookies ())];
       li [ppf "%d volatile data cookies."
-            (Eliom_state.number_of_volatile_data_cookies ())];
+            (Sb.number_of_volatile_data_cookies ())];
       li [ppf "%d volatile data tables (volatile Eliom references)."
-            (Eliom_state.number_of_tables ())];
+            (Sb.number_of_tables ())];
       li [ppf "%d persistent data cookies." number_of_persistent_data_cookies];
       li [ppf "%d persistent data tables (persistent data reference)."
-            (Eliom_state.number_of_persistent_tables ())];
+            (Sb.number_of_persistent_tables ())];
     ];
     h3 [ppf "Client processes"];
     p [em [pcdata "Not implemented yet"]];
@@ -155,7 +157,7 @@ let eliom_stats () =
             (Eliommod_sessiongroups.Data.nb_of_groups ())];
       li [ppf "%d persistent data session groups." persist_nb_of_groups ];
       li [ppf "Session groups: %s"
-            (String.concat ", " (Eliom_state.Ext.get_session_group_list ()))];
+            (String.concat ", " (Sb.Ext.get_session_group_list ()))];
     ]
   ])
 

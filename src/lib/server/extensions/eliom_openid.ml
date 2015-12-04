@@ -466,7 +466,7 @@ type 'a authentication_result =
 let end_login_handler ext ret_to endpoint assoc f args =
   let args = strip_ns "openid" args in
   let mode = get args "mode" in
-  let _ = Eliom_state.discard ~scope () in
+  let _ = Eliom_state.Discard.discard ~scope () in
   if mode = "id_res" then
     (if List.mem_assoc "invalidate_handle" args then
         reassociate endpoint
@@ -516,12 +516,12 @@ module Make (S : HiddenServiceInfo) = struct
       (fun args _ ->
         end_login_handler ext !uri (fst discovery) assoc handler args)
     in
-    let _ = Eliom_state.set_service_session_group
+    let _ = Eliom_state.Group.set_service_session_group
       ~set_max: 1000
       ~scope
       group_name
     in
-    let _ = Eliom_state.set_global_service_state_timeout
+    let _ = Eliom_state.Timeout.set_global_service_state_timeout
       ~cookie_scope:scope
       (Some 60.)
     in

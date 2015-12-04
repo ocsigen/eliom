@@ -17,5 +17,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-include module type of Eliom_state_base
-  with type ('a, 'b) Ext.state = ('a, 'b) Eliom_state_base.Ext.state
+module Discard : Eliom_state_sigs.DISCARD
+
+module Group   : Eliom_state_sigs.GROUP
+
+module Expire  : Eliom_state_sigs.EXPIRE
+
+module Timeout : Eliom_state_sigs.TIMEOUT
+
+module Ext     : Eliom_state_sigs.EXT
+  with type ('a, 'b) state = ('a, 'b) Eliom_state_base.Ext.state

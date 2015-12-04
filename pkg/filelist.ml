@@ -9,6 +9,7 @@ let server = {
     "eliom_content_sigs";
     "eliom_form_sigs";
     "eliom_shared_sigs";
+    "eliom_state_sigs";
   ];
   interface = [
     "eliom_bus";
