@@ -186,18 +186,10 @@ module Xml = struct
       name_node
     and synced = ReactiveData.RList.synced l in
     let _ = {unit{
-      let f () =
-        let f = Eliom_client.rebuild_node' %ns in
-        let e = f %e
-        and l = ReactiveData.RList.map f %l in
-        Tyxml_js.Util.update_children e l
-      in
-      if %synced then
-        ReactiveData.RList.event %l |>
-        React.E.once |>
-        React.E.map (fun _ -> f ()) |> ignore
-      else
-        f ()
+      let f = Eliom_client.rebuild_node' %ns in
+      let e = f %e
+      and l = ReactiveData.RList.map f %l in
+      Tyxml_js.Util.update_children e l
     }} in
     e
 
