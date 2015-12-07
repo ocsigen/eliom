@@ -578,7 +578,7 @@ module Html5 : sig
     end
 
     module Elt : sig
-      val body : [`Body] elt
+      val body : unit -> [`Body] elt
     end
 
     module Ev : sig

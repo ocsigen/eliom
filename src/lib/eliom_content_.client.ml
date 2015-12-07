@@ -522,7 +522,7 @@ module Html5 = struct
       elt##scrollIntoView(Js.bool (not bottom))
 
     module Elt = struct
-      let body = Of_dom.of_body (Dom_html.window##document##body)
+      let body () = Of_dom.of_body (Dom_html.window##document##body)
     end
 
     module Ev = struct
