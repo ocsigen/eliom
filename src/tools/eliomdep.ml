@@ -87,7 +87,7 @@ let eliom_synonyms = [ "-ml-synonym"; ".eliom"; "-mli-synonym"; ".eliomi" ]
 let compile_intf file =
   create_filter
     !compiler (
-    preprocess_opt !ppopt
+    preprocess_opt ~ocaml:true !ppopt
     @ eliom_synonyms @ !args
     @ (map_include !eliom_inc_dirs)
 		@ ["-intf"; file] )
@@ -96,7 +96,7 @@ let compile_intf file =
 let compile_impl file =
   create_filter
     !compiler (
-    preprocess_opt !ppopt
+    preprocess_opt ~ocaml:true !ppopt
     @ eliom_synonyms @ !args
     @ (map_include !eliom_inc_dirs)
 		@ ["-impl"; file] )

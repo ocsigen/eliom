@@ -166,7 +166,7 @@ let compile_ocaml ~impl_intf file =
 let output_ocaml_interface file =
   create_process !compiler (
     [ "-i" ]
-    @ preprocess_opt !ppopt
+    @ preprocess_opt ~ocaml:true !ppopt
     @ !args
     @ get_common_include ()
     @ get_common_ppx ()
