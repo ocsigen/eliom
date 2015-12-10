@@ -29,6 +29,8 @@ open Lwt
 
 let fst3 (a,b,c) = a
 
+type kind = [ `Service | `Data | `Persistent ]
+
 (*****************************************************************************)
 (* Table of timeouts for sessions *)
 
@@ -43,48 +45,30 @@ let group_service_t = ref (Some 3600.) (* 1 hour by default *)
 let group_data_t = ref (Some 3600.) (* 1 hour by default *)
 let group_persistent_t = ref (Some 86400.) (* 1 day by default *)
 
+let get_ref kind level =
+  match kind, level with
+  | `Service    , `Session        -> service_t
+  | `Data       , `Session        -> data_t
+  | `Persistent , `Session        -> persistent_t
+  | `Service    , `Client_process -> tab_service_t
+  | `Data       , `Client_process -> tab_data_t
+  | `Persistent , `Client_process -> tab_persistent_t
+
 let set_default_service_timeout level timeout =
-  match level with
-    | `Session -> service_t := timeout
-    | `Client_process -> tab_service_t := timeout
-    | `Session_group -> group_service_t := timeout
+  (match level with
+   | `Session        -> service_t
+   | `Client_process -> tab_service_t
+   | `Session_group  -> group_service_t) := timeout
 
-let (set_default_data_timeout,
-     set_default_persistent_timeout,
-     get_default_service_timeout,
-     get_default_data_timeout,
-     get_default_persistent_timeout) =
+let set_default kind level timeout = (get_ref kind level) := timeout
 
-  ((fun cookie_level timeout ->
-     match cookie_level with
-       | `Session -> data_t := timeout
-       | `Client_process -> tab_data_t := timeout
-   ),
-   (fun cookie_level timeout ->
-     match cookie_level with
-       | `Session -> persistent_t := timeout
-       | `Client_process -> tab_persistent_t := timeout
-   ),
-   (function
-      | `Session -> !service_t
-      | `Client_process -> !tab_service_t
-   ),
-   (function
-      | `Session -> !data_t
-      | `Client_process -> !tab_data_t
-   ),
-   (function
-      | `Session -> !persistent_t
-      | `Client_process -> !tab_persistent_t
-   ))
+let get_default kind level = !(get_ref kind level)
 
-let set_default_service_timeout a b = set_default_service_timeout a b
+let set_default_volatile level timeout =
+  set_default `Data    level timeout ;
+  set_default `Service level timeout
 
-let set_default_volatile_timeout ct t =
-  set_default_data_timeout ct t;
-  set_default_service_timeout ct t
-
-let add k v l = (k, v)::List.remove_assoc k l
+let add k v l = (k, v) :: List.remove_assoc k l
 
 let set_timeout_ get set get_default update =
   fun ?full_st_name ?cookie_level ~recompute_expdates
@@ -151,128 +135,69 @@ let set_timeout_ get set get_default update =
 
 (* global timeout = timeout for the whole site (may be changed dynamically) *)
 
-let find_global_service_timeout full_st_name sitedata =
-  let def_bro, def_tab, tl = sitedata.Eliom_common.servtimeout in
+let sitedata_timeout kind sitedata =
+  match kind with
+  | `Service ->
+    sitedata.Eliom_common.servtimeout
+  | `Data ->
+    sitedata.Eliom_common.datatimeout
+  | `Persistent ->
+    sitedata.Eliom_common.perstimeout
+
+let set_sitedata_timeout kind sitedata v =
+  match kind with
+  | `Service ->
+    sitedata.Eliom_common.servtimeout <- v
+  | `Data ->
+    sitedata.Eliom_common.datatimeout <- v
+  | `Persistent ->
+    sitedata.Eliom_common.perstimeout <- v
+
+let update_exp = function
+  | `Service ->
+    Eliommod_sessadmin.update_serv_exp
+  | `Data ->
+    Eliommod_sessadmin.update_data_exp
+  | `Persistent ->
+    Eliommod_sessadmin.update_pers_exp
+
+let find_global kind full_st_name sitedata =
+  let def_bro, def_tab, tl = sitedata_timeout kind sitedata in
   try
     fst (List.assoc full_st_name tl)
   with Not_found ->
-    match def_bro, def_tab, (fst3 full_st_name) with
-      | Some (t, _), _, `Session _ -> t
-      | _, Some (t, _), `Client_process _ -> t
-      | _, _, ct -> get_default_service_timeout
-        (Eliom_common.cookie_level_of_user_scope ct)
+    (match def_bro, def_tab, (fst3 full_st_name) with
+     | Some (t, _), _, `Session _ -> t
+     | _, Some (t, _), `Client_process _ -> t
+     | _, _, ct ->
+       get_default kind (Eliom_common.cookie_level_of_user_scope ct))
 
-let find_global_data_timeout full_st_name sitedata =
-  let def_bro, def_tab, tl = sitedata.Eliom_common.datatimeout in
-  try
-    fst (List.assoc full_st_name tl)
-  with Not_found ->
-    match def_bro, def_tab, (fst3 full_st_name) with
-      | Some (t, _), _, `Session _ -> t
-      | _, Some (t, _), `Client_process _ -> t
-      | _, _, ct -> get_default_data_timeout
-        (Eliom_common.cookie_level_of_user_scope ct)
-
-let find_global_persistent_timeout full_st_name sitedata =
-  let def_bro, def_tab, tl = sitedata.Eliom_common.perstimeout in
-  try
-    fst (List.assoc full_st_name tl)
-  with Not_found ->
-    match def_bro, def_tab, (fst3 full_st_name) with
-      | Some (t, _), _, `Session _ -> t
-      | _, Some (t, _), `Client_process _ -> t
-      | _, _, ct -> get_default_persistent_timeout
-        (Eliom_common.cookie_level_of_user_scope ct)
-
-let set_global_service_timeout_
-    ?full_st_name ?cookie_level ~recompute_expdates a =
+let set_global_
+    ?full_st_name ?cookie_level ~kind ~recompute_expdates a =
   set_timeout_
-    (fun sitedata -> sitedata.Eliom_common.servtimeout)
-    (fun sitedata v -> sitedata.Eliom_common.servtimeout <- v)
-    get_default_service_timeout
+    (sitedata_timeout kind)
+    (set_sitedata_timeout kind)
+    (get_default kind)
     Eliommod_sessadmin.update_serv_exp
     ?full_st_name ?cookie_level ~recompute_expdates a
 
-let set_global_data_timeout_
-    ?full_st_name ?cookie_level ~recompute_expdates a =
-  set_timeout_
-    (fun sitedata -> sitedata.Eliom_common.datatimeout)
-    (fun sitedata v -> sitedata.Eliom_common.datatimeout <- v)
-    get_default_data_timeout
-    Eliommod_sessadmin.update_data_exp
-    ?full_st_name ?cookie_level ~recompute_expdates a
-
-let set_global_persistent_timeout_
-    ?full_st_name ?cookie_level ~recompute_expdates a =
-  set_timeout_
-    (fun sitedata -> sitedata.Eliom_common.perstimeout)
-    (fun sitedata v -> sitedata.Eliom_common.perstimeout <- v)
-    get_default_persistent_timeout
-    Eliommod_sessadmin.update_pers_exp
-    ?full_st_name ?cookie_level ~recompute_expdates a
-
-
-let get_global_service_timeout ~cookie_scope ~secure sitedata =
+let get_global ~kind ~cookie_scope ~secure sitedata =
   let full_st_name =
     Eliom_common.make_full_state_name2
       sitedata.Eliom_common.site_dir_string secure ~scope:cookie_scope
   in
-  find_global_service_timeout full_st_name sitedata
+  find_global kind full_st_name sitedata
 
-let get_global_data_timeout ~cookie_scope ~secure sitedata =
-  let full_st_name =
-    Eliom_common.make_full_state_name2
-      sitedata.Eliom_common.site_dir_string secure ~scope:cookie_scope
-  in
-  find_global_data_timeout full_st_name sitedata
-
-let get_global_persistent_timeout ~cookie_scope ~secure sitedata =
-  let full_st_name =
-    Eliom_common.make_full_state_name2
-      sitedata.Eliom_common.site_dir_string secure ~scope:cookie_scope
-  in
-  find_global_persistent_timeout full_st_name sitedata
-
-let set_global_service_timeout ~cookie_scope ~secure ~recompute_expdates
-    override_configfile sitedata timeout =
-  let full_st_name = Eliom_common.make_full_state_name2
-    sitedata.Eliom_common.site_dir_string secure ~scope:cookie_scope
-  in
-  set_global_service_timeout_ ~full_st_name ~recompute_expdates
-    override_configfile false sitedata timeout
-
-let set_global_data_timeout ~cookie_scope ~secure ~recompute_expdates
+let set_global ~kind ~cookie_scope ~secure ~recompute_expdates
     override_configfile sitedata timeout =
   let full_st_name =
     Eliom_common.make_full_state_name2
       sitedata.Eliom_common.site_dir_string secure ~scope:cookie_scope
   in
-  set_global_data_timeout_ ~full_st_name ~recompute_expdates
+  set_global_ ~kind ~full_st_name ~recompute_expdates
     override_configfile false sitedata timeout
 
-let set_global_persistent_timeout
-    ~cookie_scope ~secure ~recompute_expdates
-    override_configfile sitedata timeout =
-  let full_st_name =
-    Eliom_common.make_full_state_name2
-      sitedata.Eliom_common.site_dir_string secure ~scope:cookie_scope
-  in
-  set_global_persistent_timeout_
-    ~full_st_name ~recompute_expdates
-    override_configfile false sitedata timeout
-
-
-let set_default_global_service_timeout cookie_level
+let set_default_global kind cookie_level
     override_configfile fromconfigfile sitedata timeout =
-  set_global_service_timeout_ ~cookie_level ~recompute_expdates:false
-    override_configfile fromconfigfile sitedata timeout
-
-let set_default_global_data_timeout cookie_level
-    override_configfile fromconfigfile sitedata timeout =
-  set_global_data_timeout_ ~cookie_level ~recompute_expdates:false
-    override_configfile fromconfigfile sitedata timeout
-
-let set_default_global_persistent_timeout cookie_level
-    override_configfile fromconfigfile sitedata timeout =
-  set_global_persistent_timeout_ ~cookie_level ~recompute_expdates:false
+  set_global_ ~kind ~cookie_level ~recompute_expdates:false
     override_configfile fromconfigfile sitedata timeout

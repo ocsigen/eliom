@@ -60,7 +60,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
               match !(newc.Eliom_common.sc_timeout) with
                 | Eliom_common.TGlobal ->
                   let globaltimeout =
-                    Eliommod_timeouts.find_global_service_timeout name sitedata
+                    Eliommod_timeouts.find_global `Service name sitedata
                   in
                   (match globaltimeout with
                     | None -> None
@@ -86,7 +86,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
                 match !(newc.Eliom_common.dc_timeout) with
                   | Eliom_common.TGlobal ->
                     let globaltimeout =
-                      Eliommod_timeouts.find_global_data_timeout name sitedata
+                      Eliommod_timeouts.find_global `Data name sitedata
                     in
                     (match globaltimeout with
                       | None -> None
@@ -115,7 +115,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
                   match !(newc.Eliom_common.pc_timeout) with
                     | Eliom_common.TGlobal ->
                       let globaltimeout =
-                        Eliommod_timeouts.find_global_persistent_timeout
+                        Eliommod_timeouts.find_global `Persistent
                           name sitedata
                       in
                       (match globaltimeout with

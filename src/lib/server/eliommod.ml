@@ -501,10 +501,10 @@ let rec parse_global_config = function
   | e::ll ->
       parse_eliom_option
         true
-        ((fun ct _ -> Eliommod_timeouts.set_default_volatile_timeout ct),
-         (fun ct _ -> Eliommod_timeouts.set_default_data_timeout ct),
-         (fun ct _ -> Eliommod_timeouts.set_default_service_timeout ct),
-         (fun ct _ -> Eliommod_timeouts.set_default_persistent_timeout ct),
+        ((fun ct _ -> Eliommod_timeouts.set_default_volatile ct),
+         (fun ct _ -> Eliommod_timeouts.set_default `Data ct),
+         (fun ct _ -> Eliommod_timeouts.set_default `Service ct),
+         (fun ct _ -> Eliommod_timeouts.set_default `Persistent ct),
          (fun v -> default_max_service_sessions_per_group := v),
          (fun v -> default_max_service_sessions_per_subnet := v),
          (fun v -> default_max_volatile_data_sessions_per_group := v),
@@ -794,12 +794,17 @@ let parse_config hostpattern conf_info site_dir =
         let content =
           parse_eliom_options
             ((fun ct snoo v ->
-              set_timeout Eliommod_timeouts.set_global_data_timeout_ ct snoo v;
-              set_timeout Eliommod_timeouts.set_global_service_timeout_ ct snoo v
+              set_timeout
+                (Eliommod_timeouts.set_global_ ~kind:`Data) ct snoo v;
+              set_timeout
+                (Eliommod_timeouts.set_global_ ~kind:`Service) ct snoo v
              ),
-             (set_timeout Eliommod_timeouts.set_global_data_timeout_),
-             (set_timeout Eliommod_timeouts.set_global_service_timeout_),
-             (set_timeout Eliommod_timeouts.set_global_persistent_timeout_),
+             (set_timeout
+                (Eliommod_timeouts.set_global_ ~kind:`Data)),
+             (set_timeout
+                (Eliommod_timeouts.set_global_ ~kind:`Service)),
+             (set_timeout
+                (Eliommod_timeouts.set_global_ ~kind:`Persistent)),
              (fun v -> sitedata.Eliom_common.max_service_sessions_per_group <- v, true),
              (fun v -> sitedata.Eliom_common.max_service_sessions_per_subnet <- v, true),
              (fun v -> sitedata.Eliom_common.max_volatile_data_sessions_per_group <- v, true),
