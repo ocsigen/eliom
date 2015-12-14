@@ -8,7 +8,7 @@ let usage_msg = Printf.sprintf
    \n\
    This program generates the scaffold for your Eliom application\n\
    from a template.\n\
-   Available templates: \"basic\", \"mobile\", (and possibly more).\n\
+   Available templates: \"basic.ppx\", \"basic\", \"mobile\", (and possibly more).\n\
    \n\
    Call it like this\
    \n\  $ %s -name <name> [-template basic] [-target-directory <dest>]\

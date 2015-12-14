@@ -11,6 +11,7 @@ build: [make]
 depends: [
   "ocamlfind"
   "deriving" {>= "0.6"}
+  "ppx_deriving"
   "js_of_ocaml" {> "2.6"}
   "tyxml" {> "3.5.0"}
   "calendar"
