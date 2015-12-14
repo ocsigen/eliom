@@ -212,17 +212,40 @@ let has_package name =
   with Findlib.No_such_package (_, _) -> false
 
 let get_ppxs l =
+  let meta_ppx_opts =
+    List.concat
+      (List.map
+         (fun pname ->
+            try
+              let opts = Findlib.package_property [] pname "ppxopt" in
+              List.concat
+                (List.map
+                   (fun opts ->
+                     match split ',' opts with
+                     | pkg :: opts ->
+                       [pkg, (pname, opts)]
+                     | [] ->
+                       [])
+                   (split ' ' opts))
+            with Not_found ->
+              [])
+         l)
+  in
+
   let f p acc =
     let d = Findlib.package_directory p in
     try
       let ppx = Findlib.package_property [] p "ppx" in
-      let ppx =
-        if String.sub ppx 0 2 = "./" then
-          d ^ "/" ^ ppx
-        else
-          ppx
+      let ppx = Findlib.resolve_path ~base:d ~explicit:true ppx in
+      let options =
+        List.concat
+          (List.map
+             (fun (_, (pname, opts)) ->
+                let base = Findlib.package_directory pname in
+                List.map (Findlib.resolve_path ~base ~explicit:true) opts)
+             (List.filter (fun (p', _) -> p' = p) meta_ppx_opts))
       in
-      "-ppx" :: ppx :: acc
+      "-ppx" :: String.concat " " (ppx :: options) :: acc
     with Not_found -> acc
   in
   List.fold_right f l []
