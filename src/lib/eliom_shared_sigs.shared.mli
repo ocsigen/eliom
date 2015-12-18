@@ -141,10 +141,7 @@ module type RLIST = sig
   val value : 'a t -> 'a list Eliom_lib.shared_value
   val value_s : 'a t -> 'a list signal
   val singleton_s : 'a signal -> 'a t
-  val map :
-    ?eq:('b -> 'b -> bool) Eliom_lib.shared_value ->
-    ('a -> 'b) Eliom_lib.shared_value ->
-    'a t -> 'b t
+  val map : ('a -> 'b) Eliom_lib.shared_value -> 'a t -> 'b t
   val make_from_s :
     ?eq:(('a -> 'a -> bool) Eliom_lib.shared_value) ->
     'a list signal -> 'a t

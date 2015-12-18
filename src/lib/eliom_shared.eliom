@@ -286,7 +286,7 @@ module FakeReactiveData = struct
     val synced : 'a t -> bool
     val value_s : 'a t -> 'a list FakeReact.S.t
     val singleton_s : 'a FakeReact.S.t -> 'a t
-    val map : ?eq:('b -> 'b -> bool) -> ('a -> 'b) -> 'a t -> 'b t
+    val map : ('a -> 'b) -> 'a t -> 'b t
     val make_from_s :
       ?eq:('a -> 'a -> bool) -> 'a list FakeReact.S.t -> 'a t
     module Lwt : sig
@@ -301,7 +301,7 @@ module FakeReactiveData = struct
     let value (l, _) = l
     let synced (_, b) = b
     let value_s (l, synced) = fst (FakeReact.S.create ~synced l)
-    let map ?eq f (l, b) = List.map f l, b
+    let map f (l, b) = List.map f l, b
     let make_from_s ?eq s = FakeReact.S.(value s, synced s)
     module Lwt = struct
       let map_p f (l, b) =
@@ -621,15 +621,8 @@ module ReactiveData = struct
     let value_s (s : 'a t) = {shared# 'a list FakeReact.S.t {
       FakeReactiveData.RList.value_s (Value.local %s) }}
 
-    let map ?eq f s = {shared# 'a FakeReactiveData.RList.t {
-      let eq =
-        match %eq with
-        | Some eq ->
-          Some (Value.local eq)
-        | None ->
-          None
-      in
-      FakeReactiveData.RList.map ?eq (Value.local %f) (Value.local %s) }}
+    let map f s = {shared# 'a FakeReactiveData.RList.t {
+      FakeReactiveData.RList.map (Value.local %f) (Value.local %s) }}
 
     let make_from_s ?eq (s : 'a list React.S.t) : 'a t =
       let sv =
