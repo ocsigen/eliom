@@ -186,7 +186,7 @@ module Mli = struct
         Some (txt, suppress_underscore typ)
       else if is_fragment_ident txt then
         match get_fragment_type typ with
-        | Some typ -> Some (txt, typ)
+        | Some typ -> Some (txt, suppress_underscore typ)
         | None -> None
       else
         None
