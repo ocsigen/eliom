@@ -22,13 +22,8 @@ type kind = [ `Service | `Data | `Persistent ]
 val set_default :
   [< kind ] -> [< Eliom_common.cookie_level ] -> float option -> unit
 
-val set_default_volatile :
-  [< Eliom_common.cookie_level ] -> float option -> unit
-
 val get_default :
   [< kind ] -> [< Eliom_common.cookie_level ] -> float option
-
-val add : 'a -> 'b -> ('a * 'b) list -> ('a * 'b) list
 
 val find_global :
   [< kind ] ->

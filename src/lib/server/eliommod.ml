@@ -501,7 +501,9 @@ let rec parse_global_config = function
   | e::ll ->
       parse_eliom_option
         true
-        ((fun ct _ -> Eliommod_timeouts.set_default_volatile ct),
+        ((fun ct _ m ->
+           Eliommod_timeouts.set_default `Data ct m;
+           Eliommod_timeouts.set_default `Service ct m),
          (fun ct _ -> Eliommod_timeouts.set_default `Data ct),
          (fun ct _ -> Eliommod_timeouts.set_default `Service ct),
          (fun ct _ -> Eliommod_timeouts.set_default `Persistent ct),

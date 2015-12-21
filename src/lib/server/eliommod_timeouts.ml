@@ -64,12 +64,6 @@ let set_default kind level timeout = (get_ref kind level) := timeout
 
 let get_default kind level = !(get_ref kind level)
 
-let set_default_volatile level timeout =
-  set_default `Data    level timeout ;
-  set_default `Service level timeout
-
-let add k v l = (k, v) :: List.remove_assoc k l
-
 let set_timeout_ get set get_default update =
   fun ?full_st_name ?cookie_level ~recompute_expdates
     override_configfile fromconfigfile sitedata t ->
