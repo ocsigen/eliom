@@ -550,8 +550,8 @@ and sitedata = {
   mutable max_service_sessions_per_group : int * bool;
   mutable max_service_sessions_per_subnet : int * bool;
   mutable max_service_tab_sessions_per_group : int * bool;
-  mutable max_persistent_data_sessions_per_group : int option * bool;
-  mutable max_persistent_data_tab_sessions_per_group : int option * bool;
+  mutable max_persistent_data_sessions_per_group : int * bool;
+  mutable max_persistent_data_tab_sessions_per_group : int * bool;
   mutable max_anonymous_services_per_session : int * bool;
   mutable max_anonymous_services_per_subnet : int * bool;
   mutable secure_cookies : bool; (* Use secure cookies (default is false). *)

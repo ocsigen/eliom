@@ -442,7 +442,7 @@ module Pers = struct
           Ocsipersist.find !!grouptable sg >>= fun (max2, cl) ->
           let max, newmax = match set_max with
             | None -> ((match max2 with
-                | Default -> defaultmax
+                | Default -> Some defaultmax
                 | Nolimit -> None
                 | Val m -> Some m), max2)
             | Some None -> None, Nolimit

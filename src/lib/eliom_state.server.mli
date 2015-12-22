@@ -19,32 +19,33 @@
 
 (** Storing server-side values for your applications or sessions. *)
 
-(** {b Please read the
-    {% <<a_manual chapter="server-state" | Eliom manual >>%}
-    before this page to learn how server side state works. }
+(** {b Please read the {% <<a_manual chapter="server-state" | Eliom
+    manual >>%} before this page to learn how server side state
+    works. }
 
-{% <<outline| <<header| **Table of contents** >> >>%}
+    {% <<outline| <<header| **Table of contents** >> >>%} *)
 
-*)
+type kind = [ `Service | `Data | `Persistent ]
 
 (*****************************************************************************)
 (** {2 Managing the state of an application} *)
 
 (** {3 Closing sessions, removing state data and services} *)
 
-(** Delete server-side (volatile and persistent) state data and services
-    for a session,
-    a group of sessions, a client process or a request.
+(** Delete server-side (volatile and persistent) state data and
+    services for a session, a group of sessions, a client process or a
+    request.
 
-    Use that function to close a session (using scope [Eliom_common.session]).
+    Use that function to close a session (using scope
+    [Eliom_common.session]).
 
     Closing a group of sessions will close all sessions in the group.
 
-    By default will remove both secure and unsecure data and services, but
-    if [~secure] is present.
+    By default will remove both secure and unsecure data and services,
+    but if [~secure] is present.
 
-    {e Warning: you may also want to unset some request-scoped Eliom references
-    when discarding a state.}
+    {e Warning: you may also want to unset some request-scoped Eliom
+    references when discarding a state.}
 *)
 val discard :
   scope:[< Eliom_common.user_scope | Eliom_common.request_scope ] ->
@@ -52,8 +53,8 @@ val discard :
   unit ->
   unit Lwt.t
 
-(* Discard services and (volatile and persistent) data
-   for all user and request scopes *)
+(* Discard services and (volatile and persistent) data for all user
+   and request scopes *)
 val discard_all_scopes :
   ?secure:bool ->
   unit ->
@@ -63,8 +64,7 @@ val discard_all_scopes :
 
     If the optional parameter [?persistent] is not present, will
     remove both volatile and persistent data. Otherwise only volatile
-    or persistent data.
- *)
+    or persistent data.  *)
 val discard_data :
   ?persistent:bool ->
   scope:[< Eliom_common.user_scope | Eliom_common.request_scope ] ->
@@ -72,8 +72,8 @@ val discard_data :
   unit ->
   unit Lwt.t
 
-(** Remove all services registered for the given scope (the default beeing
-    [`Session]). *)
+(** Remove all services registered for the given scope (the default
+    beeing [`Session]). *)
 val discard_services :
   scope:[< Eliom_common.user_scope ] ->
   ?secure:bool ->
@@ -83,12 +83,12 @@ val discard_services :
 (*****************************************************************************)
 (** {3 State status} *)
 
-(** The following functions return the current state of the state for a given
-    scope:
+(** The following functions return the current state of the state for
+    a given scope:
     - [Alive_state] means that data has been recorded for this scope
     - [Empty_state] means that there is no data for this scope
     - [Expired_state] means that data for this scope has been removed
-    because the timeout has been reached.
+      because the timeout has been reached.
 
     The default scope is [`Session].
 *)
@@ -115,24 +115,24 @@ val persistent_data_state_status :
 (** {3 User cookies}
 
     If you want to store a client-side state, and ask the browser to
-    send it back with each request, you can set manually your own cookies.
-    Usual cookies correspond to scope [`Session] (that is, one browser).
-    The browser send them with each request to the same Web site.
-    But Eliom also implements client-side process cookies
-    (scope [`Client_process]), that behave in the same way,
-    but for one instance of the client-side Eliom program (if there is one).
+    send it back with each request, you can set manually your own
+    cookies.  Usual cookies correspond to scope [`Session] (that is,
+    one browser).  The browser send them with each request to the same
+    Web site.  But Eliom also implements client-side process cookies
+    (scope [`Client_process]), that behave in the same way, but for
+    one instance of the client-side Eliom program (if there is one).
 
     Cookies can be limited to a subsite using the [?path] optional
     parameter. This path is relative to the main path of your Web site.
     (It is not possible to set a cookie for a subsite larger than your current
     Web site).
 
-    Cookies can have an expiration date, specified (in seconds
-    since the 1st of January 1970) in the optional parameter [?exp]
-    (see how to set default expiration dates below).
+    Cookies can have an expiration date, specified (in seconds since
+    the 1st of January 1970) in the optional parameter [?exp] (see how
+    to set default expiration dates below).
 
-    Secure cookies are sent by the browser only with HTTPS (default: [false]).
-*)
+    Secure cookies are sent by the browser only with HTTPS (default:
+    [false]). *)
 
 (** Ask the browser to record a cookie. *)
 val set_cookie :
@@ -147,59 +147,94 @@ val unset_cookie :
   ?path:string list ->
   name:string -> unit -> unit
 
-
-
 (*****************************************************************************)
+
 (** {2 Session groups} *)
 
-(** If your Web site has users,
-    it is a good idea to group together all the sessions for one user.
-    Otherwise, you may want to group sessions according to another
-    criterion.
+(** If your Web site has users, it is a good idea to group together
+    all the sessions for one user. Otherwise, you may want to group
+    sessions according to another criterion.
 
-    Session groups may be used for example to limit
-    the number of sessions one user can open at the same time, or to implement
-    a "close all your sessions" feature.
-    Usually, the group is the user name.
-*)
+    Session groups may be used for example to limit the number of
+    sessions one user can open at the same time, or to implement a
+    "close all your sessions" feature.  Usually, the group is the user
+    name. *)
 
-(** {3 Putting a session in a group, removing a session from a group} *)
+(** {3 Putting a session in a group, removing a session from a
+    group} *)
 
-(** sets the group to which belong the service session.
+module Group : sig
 
-    If the optional [?set_max] parameter is present, also sets the
-    maximum number of sessions in the group. Default: follow current
-    configuration for the group or default configuration if the group
-    does not exist.
+  (** sets the group to which belong the session.
 
-    If [~secure] is true, it will affect the secure session (secure cookies),
-    otherwise (default), the unsecure one (behavior change in Eliom 4).
-*)
-val set_service_session_group :
-  ?set_max: int ->
-  ?scope:Eliom_common.session_scope ->
-  ?secure:bool ->
-  string ->
-  unit
+      If the optional [?set_max] parameter is present, also sets the
+      maximum number of sessions in the group. Default: follow current
+      configuration for the group or default configuration if the
+      group does not exist.
 
-(** Remove the session from its group.
-    Will not close the session if it contains data. *)
-val unset_service_session_group :
-  ?set_max: int ->
-  ?scope:Eliom_common.session_scope ->
-  ?secure:bool ->
-  unit ->
-  unit
+      If [~secure] is true, it will affect the secure session (secure
+      cookies), otherwise (default), the unsecure one (behavior change
+      in Eliom 4). *)
+  val set :
+    ?set_max: int ->
+    ?scope:Eliom_common.session_scope ->
+    ?secure:bool ->
+    kind:[< kind ] ->
+    string ->
+    unit Lwt.t
 
-(** returns the group to which belong the service session.
-    If the session does not belong to any group,
-    or if no session is opened, return [None].
-*)
-val get_service_session_group :
-  ?scope:Eliom_common.session_scope ->
-  ?secure:bool ->
-  unit ->
-  string option
+  val unset :
+    ?set_max: int ->
+    ?scope:Eliom_common.session_scope ->
+    ?secure:bool ->
+    [< kind ] ->
+    unit Lwt.t
+
+  (** Returns the group to which belong the session. If the session
+      does not belong to any group, or if no session is opened, return
+      [None]. *)
+  val get :
+    ?scope:Eliom_common.session_scope ->
+    ?secure:bool ->
+    [< kind ] ->
+    string option Lwt.t
+
+  (** Sets the maximum number of sessions in a session group, for the
+      different kinds of session.  This won't modify existing groups.
+      That value will be used only as default value if you do not
+      specify the optional parameter [?set_max] of function
+      {!Eliom_state.Group.set}.
+
+      If there is no group, the number of sessions is limitated by sub
+      network (which can be a problem for example if the server is
+      behind a reverse proxy).  It is highly recommended to use
+      session groups!
+
+      - Default number of sessions in a group: 5
+      - Default number of sessions in a sub network: 1000000
+      - Default IPV4 sub network: /16
+      - Default IPV6 sub network: /56
+
+      These default can be changed from configuration file and/or
+      using these functions.
+
+      If [~override_configfile] is [true] (default ([false]), then the
+      function will set the value even if it has been modified in the
+      configuration file.  It means that by default, these functions
+      have no effect if there is a value in the configuration file.
+      This gives the ability to override the values chosen by the
+      module in the configuration file.  Use
+      [~override_configfile:true] for example if your Eliom module
+      wants to change the values afterwards (for example in the site
+      configuration Web interface).  *)
+  val set_default_max :
+    ?override_configfile:bool -> kind:[< kind] -> int -> unit
+
+  (** Sets the maximum number of tab sessions in a session group. *)
+  val set_default_max_tab :
+    ?override_configfile:bool -> kind:kind -> int -> unit
+
+end
 
 (** returns the number of sessions in the group. If he session does not
     belong to any group or if no session is opened, returns [None] *)
@@ -209,39 +244,6 @@ val get_service_session_group_size :
   unit ->
   int option
 
-(** sets the group to which belong the volatile data session.
-
-    If the optional [?set_max] parameter is present, also sets the maximum
-    number of sessions in the group.
-    Default: follow current configuration for the group
-    or default configuration if the group does not exist.
-*)
-val set_volatile_data_session_group :
-  ?set_max: int ->
-  ?scope:Eliom_common.session_scope ->
-  ?secure:bool ->
-  string ->
-  unit
-
-(** Remove the session from its group.
-    Will not close the session if it contains data. *)
-val unset_volatile_data_session_group :
-  ?set_max: int ->
-  ?scope:Eliom_common.session_scope ->
-  ?secure:bool ->
-  unit ->
-  unit
-
-(** returns the group to which belong the data session.
-    If the session does not belong to any group, or if no session is opened,
-    return [None].
-*)
-val get_volatile_data_session_group :
-  ?scope:Eliom_common.session_scope ->
-  ?secure:bool ->
-  unit ->
-  string option
-
 (** returns the number of sessions in the group. If he session does not
     belong to any group or if no session is opened, returns [None] *)
 val get_volatile_data_session_group_size :
@@ -250,89 +252,7 @@ val get_volatile_data_session_group_size :
   unit ->
   int option
 
-(** sets the group to which belong the persistent session.
-
-    If the optional [?set_max] parameter is present, also sets the
-    maximum number of sessions in the group. When [~set_max:None] is
-    present, the number of session is unlimited. Default: follow
-    current configuration for the group or default configuration if
-    the group does not exist.
-*)
-val set_persistent_data_session_group :
-  ?set_max: int option ->
-  ?scope:Eliom_common.session_scope ->
-  ?secure:bool ->
-  string ->
-  unit Lwt.t
-
-(** Remove the session from its group.
-    Will not close the session if it contains data. *)
-val unset_persistent_data_session_group :
-  ?scope:Eliom_common.session_scope ->
-  ?secure:bool ->
-  unit ->
-  unit Lwt.t
-
-(** returns the group to which belong the persistent session.
-    If the session does not belong to any group, or if no session is opened,
-    return [None].
-*)
-val get_persistent_data_session_group :
-  ?scope:Eliom_common.session_scope ->
-  ?secure:bool ->
-  unit ->
-  string option Lwt.t
-
 (** {3 Maximum group size} *)
-(** The following functions of this section set the maximum number of
-    sessions in a session group, for the different kinds of session.
-    This won't modify existing groups.
-    That value will be used only as default value if you do not specify the
-    optional parameter [?set_max] of function
-    {!Eliom_state.set_volatile_data_session_group}.
-
-    If there is no group, the number of sessions is limitated by sub network
-    (which can be a problem for example if the server is behind a
-    reverse proxy).
-    It is highly recommended to use session groups!
-
-    - Default number of sessions in a group: 5
-    - Default number of sessions in a sub network: 1000000
-    - Default IPV4 sub network: /16
-    - Default IPV6 sub network: /56
-
-    These default can be changed from configuration file and/or
-    using these functions.
-
-    If [~override_configfile] is [true] (default ([false]),
-    then the function will set the value even if it has been
-    modified in the configuration file.
-    It means that by default, these functions have no effect
-    if there is a value in the configuration file.
-    This gives the ability to override the values chosen by the module
-    in the configuration file.
-    Use [~override_configfile:true] for example if your
-    Eliom module wants to change the values afterwards
-    (for example in the site configuration Web interface).
-*)
-
-(** Sets the maximum number of service sessions in a session group
-    (see above).
-*)
-val set_default_max_service_sessions_per_group :
-  ?override_configfile:bool -> int -> unit
-
-(** Sets the maximum number of volatile data sessions in a session
-    group (see above).
-*)
-val set_default_max_volatile_data_sessions_per_group :
-  ?override_configfile:bool -> int -> unit
-
-(** Sets the maximum number of persistent data sessions in a session
-    group (see above). [None] means "no limitation".
-*)
-val set_default_max_persistent_data_sessions_per_group :
-  ?override_configfile:bool -> int option -> unit
 
 (** Sets the maximum number of volatile sessions (data and service) in a session
     group (see above).
@@ -355,25 +275,6 @@ val set_default_max_volatile_data_sessions_per_subnet :
 *)
 val set_default_max_volatile_sessions_per_subnet :
   ?override_configfile:bool -> int -> unit
-
-
-(** Sets the maximum number of tab service sessions in a session group
-    (see above).
-*)
-val set_default_max_service_tab_sessions_per_group :
-  ?override_configfile:bool -> int -> unit
-
-(** Sets the maximum number of volatile data tab sessions in a session
-    group (see above).
-*)
-val set_default_max_volatile_data_tab_sessions_per_group :
-  ?override_configfile:bool -> int -> unit
-
-(** Sets the maximum number of persistent data tab sessions in a session
-    group (see above).
-*)
-val set_default_max_persistent_data_tab_sessions_per_group :
-  ?override_configfile:bool -> int option -> unit
 
 (** Sets the maximum number of volatile tab sessions (data and service)
     in a session group (see above).
@@ -420,7 +321,6 @@ val set_max_volatile_states_for_group_or_subnet :
   ?secure:bool ->
   int ->
   unit
-
 
 (** {2 Expiration of cookies and timeouts} *)
 (** {3 Cookie expiration} *)
@@ -502,8 +402,6 @@ module Timeout : sig
       [~override_configfile:true] for example if your Eliom module
       wants to change the values afterwards (for example in the site
       configuration Web interface).  *)
-
-  type kind = [ `Service | `Data | `Persistent ]
 
   (** Sets the (server side) timeout for service states.  *)
   val set_global :

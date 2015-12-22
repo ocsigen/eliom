@@ -127,22 +127,22 @@ let new_sitedata =
            unregistered_na_services = [];
 
            max_service_sessions_per_group =
-  !default_max_service_sessions_per_group, false;
+             !default_max_service_sessions_per_group, false;
 
            max_volatile_data_sessions_per_group =
-  !default_max_volatile_data_sessions_per_group, false;
+             !default_max_volatile_data_sessions_per_group, false;
 
-              max_persistent_data_sessions_per_group =
-Some !default_max_persistent_data_sessions_per_group, false;
+           max_persistent_data_sessions_per_group =
+             !default_max_persistent_data_sessions_per_group, false;
 
            max_service_tab_sessions_per_group =
-  !default_max_service_tab_sessions_per_group, false;
+             !default_max_service_tab_sessions_per_group, false;
 
            max_volatile_data_tab_sessions_per_group =
-  !default_max_volatile_data_tab_sessions_per_group, false;
+             !default_max_volatile_data_tab_sessions_per_group, false;
 
-              max_persistent_data_tab_sessions_per_group =
-Some !default_max_persistent_data_tab_sessions_per_group, false;
+           max_persistent_data_tab_sessions_per_group =
+             !default_max_persistent_data_tab_sessions_per_group, false;
 
            max_service_sessions_per_subnet =
   !default_max_service_sessions_per_subnet, false;
@@ -811,10 +811,10 @@ let parse_config hostpattern conf_info site_dir =
              (fun v -> sitedata.Eliom_common.max_service_sessions_per_subnet <- v, true),
              (fun v -> sitedata.Eliom_common.max_volatile_data_sessions_per_group <- v, true),
              (fun v -> sitedata.Eliom_common.max_volatile_data_sessions_per_subnet <- v, true),
-             (fun v -> sitedata.Eliom_common.max_persistent_data_sessions_per_group <- Some v,true),
+             (fun v -> sitedata.Eliom_common.max_persistent_data_sessions_per_group <- v, true),
              (fun v -> sitedata.Eliom_common.max_service_tab_sessions_per_group <- v, true),
              (fun v -> sitedata.Eliom_common.max_volatile_data_tab_sessions_per_group <- v, true),
-             (fun v -> sitedata.Eliom_common.max_persistent_data_tab_sessions_per_group <- Some v,true),
+             (fun v -> sitedata.Eliom_common.max_persistent_data_tab_sessions_per_group <- v,true),
              (fun v -> sitedata.Eliom_common.max_anonymous_services_per_session <- v, true),
              (fun v ->
                 sitedata.Eliom_common.max_anonymous_services_per_subnet <- v, true;

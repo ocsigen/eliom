@@ -21,6 +21,8 @@ open Eliom_lib
 
 open Lwt
 
+type kind = [ `Service | `Data | `Persistent ]
+
 (* Expired session? *)
 type state_status = Alive_state | Empty_state | Expired_state
 
@@ -58,8 +60,6 @@ let persistent_data_state_status ~scope ?secure () =
 (************)
 
 module Timeout = struct
-
-  type kind = [ `Service | `Data | `Persistent ]
 
   let set_string = function
     | `Service    -> "set_global_service_timeout"
@@ -306,7 +306,6 @@ let close_persistent_state_if_empty ~scope ?secure () =
   Lwt.return ()
 (*VVV Can we implement this function? *)
 
-
 (* session groups *)
 
 type 'a state_data =
@@ -314,68 +313,313 @@ type 'a state_data =
   | Data_session_expired
   | Data of 'a
 
+module Group = struct
 
-let set_service_session_group
-    ?set_max ?(scope = Eliom_common.default_session_scope)
-    ?secure session_group =
-  let c =
-    Eliommod_sersess.find_or_create_service_cookie
-      ~set_session_group:session_group
-      ~cookie_scope:(scope:>Eliom_common.cookie_scope) ~secure ()
-  in
-  match set_max with
+  let set_
+      ?set_max
+      ?(scope = Eliom_common.default_session_scope)
+      ?secure ~kind session_group =
+    let n =
+      match kind with
+      | `Service ->
+        (Eliommod_sersess.find_or_create_service_cookie
+           ~set_session_group:session_group
+           ~cookie_scope:(scope :> Eliom_common.cookie_scope)
+           ~secure ())
+        .Eliom_common.sc_session_group_node
+      | `Data ->
+        (Eliommod_datasess.find_or_create_data_cookie
+           ~set_session_group:session_group
+           ~cookie_scope:(scope :> Eliom_common.cookie_scope)
+           ~secure ())
+        .Eliom_common.dc_session_group_node
+      | `Persistent ->
+        assert false
+    in
+    match set_max with
     | None -> ()
     | Some m ->
-        Eliommod_sessiongroups.Data.set_max
-          c.Eliom_common.sc_session_group_node m
+      Eliommod_sessiongroups.Data.set_max n m
 
-let unset_service_session_group
-    ?set_max ?(scope = Eliom_common.default_session_scope) ?secure () =
-  try
+  let set_persistent
+      ?set_max
+      ?(scope = Eliom_common.default_session_scope)
+      ?secure n =
     let sp = Eliom_common.get_sp () in
     let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
-    let c =
-      Eliommod_sersess.find_service_cookie_only
-         ~cookie_scope:(scope:>Eliom_common.cookie_scope) ~secure ~sp ()
+    lwt c =
+      Eliommod_persess.find_or_create_persistent_cookie
+        ~cookie_scope:(scope:>Eliom_common.cookie_scope) ~secure ~sp ()
     in
     let n =
-      Eliommod_sessiongroups.make_full_group_name
+      Eliommod_sessiongroups.make_persistent_full_group_name
         ~cookie_level:`Session
-        (Eliom_request_info.get_request_sp sp).Ocsigen_extensions.request_info
-        sitedata.Eliom_common.site_dir_string
-        (Eliom_common.get_mask4 sitedata)
-        (Eliom_common.get_mask6 sitedata)
-        None
+        sitedata.Eliom_common.site_dir_string (Some n)
     in
-    let node = Eliommod_sessiongroups.Serv.move ?set_max
-      sitedata
-      c.Eliom_common.sc_session_group_node n
+    let grp = c.Eliom_common.pc_session_group in
+    let set_max =
+      (* FIXME: Eliommod_sessiongroups expects double option; fix
+         weird API *)
+      match set_max with
+      | Some m -> Some (Some m)
+      | _ -> None
     in
-    c.Eliom_common.sc_session_group_node <- node;
-    c.Eliom_common.sc_session_group := n;
+    lwt l =
+      Eliommod_sessiongroups.Pers.move
+        sitedata
+        ?set_max
+        (fst sitedata.Eliom_common.max_persistent_data_sessions_per_group)
+        c.Eliom_common.pc_value !grp n
+    in
+    lwt () =
+      Lwt_list.iter_p
+        (Eliommod_persess.close_persistent_state2
+           ~scope:(scope:>Eliom_common.user_scope) sitedata None) l
+    in
+    grp := n;
+    Lwt.return ()
 
-    (* Now we want to close the session if it has not data inside
-       and no tab sessions *)
-    close_service_state_if_empty
-      ~scope:(scope:>Eliom_common.user_scope) ?secure ()
+  let set
+      ?set_max
+      ?(scope = Eliom_common.default_session_scope)
+      ?secure ~kind n =
+    match kind with
+    | `Persistent ->
+      set_persistent ?set_max ~scope ?secure n
+    | `Service | `Data ->
+      set_ ?set_max ~scope ?secure ~kind n;
+      Lwt.return ()
 
-  with
-    | Not_found
-    | Eliom_common.Eliom_Session_expired -> ()
+  let unset_service
+      ?set_max ?(scope = Eliom_common.default_session_scope) ?secure
+      () =
+    try
+      let sp = Eliom_common.get_sp () in
+      let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
+      let c =
+        Eliommod_sersess.find_service_cookie_only
+          ~cookie_scope:(scope:>Eliom_common.cookie_scope)
+          ~secure ~sp ()
+      in
+      let n =
+        Eliommod_sessiongroups.make_full_group_name
+          ~cookie_level:`Session
+          (Eliom_request_info.get_request_sp sp)
+          .Ocsigen_extensions.request_info
+          sitedata.Eliom_common.site_dir_string
+          (Eliom_common.get_mask4 sitedata)
+          (Eliom_common.get_mask6 sitedata)
+          None
+      in
+      let node = Eliommod_sessiongroups.Serv.move ?set_max
+          sitedata
+          c.Eliom_common.sc_session_group_node n
+      in
+      c.Eliom_common.sc_session_group_node <- node;
+      c.Eliom_common.sc_session_group := n;
 
-let get_service_session_group
-    ?(scope = Eliom_common.default_session_scope) ?secure () =
-  try
+      (* Now we want to close the session if it has not data inside
+         and no tab sessions *)
+      close_service_state_if_empty
+        ~scope:(scope:>Eliom_common.user_scope) ?secure ()
+    with Not_found | Eliom_common.Eliom_Session_expired ->
+      ()
+
+  let unset_data
+      ?set_max ?(scope = Eliom_common.default_session_scope)
+      ?secure () =
+    try
+      let sp = Eliom_common.get_sp () in
+      let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
+      let c =
+        Eliommod_datasess.find_data_cookie_only
+          ~cookie_scope:(scope:>Eliom_common.cookie_scope)
+	  ~secure ~sp ()
+      in
+      let n =
+        Eliommod_sessiongroups.make_full_group_name
+          ~cookie_level:`Session
+          (Eliom_request_info.get_request_sp sp)
+          .Ocsigen_extensions.request_info
+          sitedata.Eliom_common.site_dir_string
+          (Eliom_common.get_mask4 sitedata)
+          (Eliom_common.get_mask6 sitedata)
+          None
+      in
+      let node = Eliommod_sessiongroups.Data.move ?set_max
+          sitedata c.Eliom_common.dc_session_group_node n
+      in
+      c.Eliom_common.dc_session_group_node <- node;
+      c.Eliom_common.dc_session_group := n;
+
+      (* Now we want to close the session if it has not data inside
+         and no tab sessions *)
+      close_volatile_state_if_empty
+        ~scope:(scope:>Eliom_common.user_scope) ?secure ()
+    with Not_found | Eliom_common.Eliom_Session_expired ->
+      ()
+
+  let unset_persistent
+      ?(scope = Eliom_common.default_session_scope) ?secure () =
+    let sp = Eliom_common.get_sp () in
+    let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
+    try_lwt
+      lwt c = Eliommod_persess.find_persistent_cookie_only
+          ~cookie_scope:(scope:>Eliom_common.cookie_scope)
+          ~secure ~sp () in
+      let grp = c.Eliom_common.pc_session_group in
+      lwt () = Eliommod_sessiongroups.Pers.remove
+          sitedata c.Eliom_common.pc_value !grp in
+      grp := None;
+      close_persistent_state_if_empty
+        ~scope:(scope:>Eliom_common.user_scope) ?secure ()
+    with Not_found | Eliom_common.Eliom_Session_expired ->
+      Lwt.return ()
+
+  let unset ?set_max ?scope ?secure = function
+    | `Service ->
+      unset_service ?set_max ?scope ?secure ();
+      Lwt.return ()
+    | `Data ->
+      unset_data ?set_max ?scope ?secure ();
+      Lwt.return ()
+    | `Persistent ->
+      unset_persistent ?scope ?secure ()
+
+  let get_service
+      ?(scope = Eliom_common.default_session_scope)
+      ?secure () =
     let c =
       Eliommod_sersess.find_service_cookie_only
 	~cookie_scope:(scope:>Eliom_common.cookie_scope) ~secure ()
     in
     match !(c.Eliom_common.sc_session_group) with
-      | _, _, Right _ -> None
-      | _, _, Left v -> Some v
-  with
-    | Not_found
-    | Eliom_common.Eliom_Session_expired -> None
+    | _, _, Right _ -> None
+    | _, _, Left v  -> Some v
+
+  let get_data
+      ?(scope = Eliom_common.default_session_scope)
+      ?secure () =
+    let c =
+      Eliommod_datasess.find_data_cookie_only
+        ~cookie_scope:(scope:>Eliom_common.cookie_scope) ~secure ()
+    in
+    match !(c.Eliom_common.dc_session_group) with
+    | _, _, Right _ -> None
+    | _, _, Left v -> Some v
+
+  let get_persistent
+      ?(scope = Eliom_common.default_session_scope)
+      ?secure () =
+    lwt c =
+      Eliommod_persess.find_persistent_cookie_only
+        ~cookie_scope:(scope :> Eliom_common.cookie_scope)
+        ~secure ()
+    in
+    Lwt.return @@ match !(c.Eliom_common.pc_session_group) with
+    | None -> None
+    | Some v ->
+      (match Eliommod_sessiongroups.getperssessgrp v with
+       | _, _, Left s -> Some s
+       | _ -> None)
+
+  let get ?scope ?secure kind =
+    try_lwt
+      match kind with
+      | `Service ->
+        Lwt.return (get_service ?scope ?secure ())
+      | `Data ->
+        Lwt.return (get_data ?scope ?secure ())
+      | `Persistent ->
+        get_persistent ?scope ?secure ()
+    with Not_found | Eliom_common.Eliom_Session_expired ->
+      Lwt.return None
+
+  let set_default_max_service ~override_configfile n =
+    let sitedata =
+      Eliom_request_info.find_sitedata
+        "set_default_max_service_sessions_per_group"
+    in
+    let _, b = sitedata.Eliom_common.max_service_sessions_per_group in
+    if override_configfile || not b then
+      sitedata.Eliom_common.max_service_sessions_per_group <- (n, b)
+
+  let set_default_max_data ~override_configfile n =
+    let sitedata =
+      Eliom_request_info.find_sitedata
+        "set_default_max_volatile_data_sessions_per_group"
+    in
+    let _, b =
+      sitedata.Eliom_common.max_volatile_data_sessions_per_group
+    in
+    if override_configfile || not b then
+      sitedata.Eliom_common.max_volatile_data_sessions_per_group <- (n, b)
+
+  let set_default_max_persistent ~override_configfile n =
+    let sitedata =
+      Eliom_request_info.find_sitedata
+        "set_default_max_persistent_data_sessions_per_group"
+    in
+    let _, b =
+      sitedata.Eliom_common.max_persistent_data_sessions_per_group
+    in
+    if override_configfile || not b then
+      sitedata.Eliom_common.max_persistent_data_sessions_per_group <- (n, b)
+
+  let set_default_max ?(override_configfile = false) ~kind n =
+    match kind with
+    | `Service ->
+      set_default_max_service ~override_configfile n
+    | `Data ->
+      set_default_max_data ~override_configfile n
+    | `Persistent ->
+      set_default_max_persistent ~override_configfile n
+
+  let set_default_max_tab_service ~override_configfile n =
+    let sitedata =
+      Eliom_request_info.find_sitedata
+        "set_default_max_service_tab_sessions_per_group"
+    in
+    let _, b =
+      sitedata.Eliom_common.max_service_tab_sessions_per_group
+    in
+    if override_configfile || not b then
+      sitedata.Eliom_common.max_service_tab_sessions_per_group <- (n, b)
+
+  let set_default_max_tab_data ~override_configfile n =
+    let sitedata =
+      Eliom_request_info.find_sitedata
+        "set_default_max_volatile_data_tab_sessions_per_group"
+    in
+    let _, b =
+      sitedata.Eliom_common.max_volatile_data_tab_sessions_per_group
+    in
+    if override_configfile || not b then
+      sitedata.Eliom_common.max_volatile_data_tab_sessions_per_group <-
+        (n, b)
+
+  let set_default_max_tab_persistent ~override_configfile n =
+    let sitedata =
+      Eliom_request_info.find_sitedata
+        "set_default_max_persistent_data_tab_sessions_per_group"
+    in
+    let _, b =
+      sitedata.Eliom_common.max_persistent_data_tab_sessions_per_group
+    in
+    if override_configfile || not b then
+      sitedata.Eliom_common.max_persistent_data_tab_sessions_per_group <-
+        (n, b)
+
+  let set_default_max_tab ?(override_configfile = false) ~kind n =
+    match kind with
+    | `Service ->
+      set_default_max_tab_service ~override_configfile n
+    | `Data ->
+      set_default_max_tab_data ~override_configfile n
+    | `Persistent ->
+      set_default_max_tab_persistent ~override_configfile n
+
+end
 
 let get_service_session_group_size
     ?(scope = Eliom_common.default_session_scope) ?secure () =
@@ -389,73 +633,8 @@ let get_service_session_group_size
       | _, _, Left v ->
 	Some (Eliommod_sessiongroups.Serv.group_size !(c.Eliom_common.sc_session_group))
   with
-    | Not_found
-    | Eliom_common.Eliom_Session_expired -> None
-
-let set_volatile_data_session_group
-    ?set_max ?(scope = Eliom_common.default_session_scope)
-    ?secure session_group =
-  let c =
-    Eliommod_datasess.find_or_create_data_cookie
-      ~set_session_group:session_group
-      ~cookie_scope:(scope:>Eliom_common.cookie_scope)
-      ~secure ()
-  in
-  match set_max with
-    | None -> ()
-    | Some m ->
-        Eliommod_sessiongroups.Data.set_max
-          c.Eliom_common.dc_session_group_node m
-
-let unset_volatile_data_session_group ?set_max
-    ?(scope = Eliom_common.default_session_scope)
-    ?secure () =
-  try
-    let sp = Eliom_common.get_sp () in
-    let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
-    let c =
-      Eliommod_datasess.find_data_cookie_only
-        ~cookie_scope:(scope:>Eliom_common.cookie_scope)
-	~secure ~sp ()
-    in
-    let n =
-      Eliommod_sessiongroups.make_full_group_name
-        ~cookie_level:`Session
-        (Eliom_request_info.get_request_sp sp).Ocsigen_extensions.request_info
-        sitedata.Eliom_common.site_dir_string
-        (Eliom_common.get_mask4 sitedata)
-        (Eliom_common.get_mask6 sitedata)
-        None
-    in
-    let node = Eliommod_sessiongroups.Data.move ?set_max
-      sitedata c.Eliom_common.dc_session_group_node n
-    in
-    c.Eliom_common.dc_session_group_node <- node;
-    c.Eliom_common.dc_session_group := n;
-
-    (* Now we want to close the session if it has not data inside
-       and no tab sessions *)
-    close_volatile_state_if_empty
-      ~scope:(scope:>Eliom_common.user_scope) ?secure ()
-
-  with
-    | Not_found
-    | Eliom_common.Eliom_Session_expired -> ()
-
-let get_volatile_data_session_group
-    ?(scope =Eliom_common.default_session_scope)
-    ?secure () =
-  try
-    let c =
-      Eliommod_datasess.find_data_cookie_only
-        ~cookie_scope:(scope:>Eliom_common.cookie_scope) ~secure ()
-    in
-    match !(c.Eliom_common.dc_session_group) with
-      | _, _, Right _ -> None
-      | _, _, Left v -> Some v
-  with
-    | Not_found
-    | Eliom_common.Eliom_Session_expired -> None
+  | Not_found
+  | Eliom_common.Eliom_Session_expired -> None
 
 let get_volatile_data_session_group_size
     ?(scope = Eliom_common.default_session_scope)
@@ -473,98 +652,7 @@ let get_volatile_data_session_group_size
     | Not_found
     | Eliom_common.Eliom_Session_expired -> None
 
-let set_persistent_data_session_group ?set_max
-    ?(scope = Eliom_common.default_session_scope)
-    ?secure n =
-  let sp = Eliom_common.get_sp () in
-  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
-  lwt c = Eliommod_persess.find_or_create_persistent_cookie
-    ~cookie_scope:(scope:>Eliom_common.cookie_scope) ~secure ~sp () in
-  let n =
-    Eliommod_sessiongroups.make_persistent_full_group_name
-      ~cookie_level:`Session
-      sitedata.Eliom_common.site_dir_string (Some n)
-  in
-  let grp = c.Eliom_common.pc_session_group in
-  lwt l = Eliommod_sessiongroups.Pers.move
-    sitedata
-    ?set_max
-    (fst sitedata.Eliom_common.max_persistent_data_sessions_per_group)
-    c.Eliom_common.pc_value !grp n in
-  lwt () = Lwt_list.iter_p
-    (Eliommod_persess.close_persistent_state2
-       ~scope:(scope:>Eliom_common.user_scope) sitedata None) l in
-  grp := n;
-  Lwt.return ()
-
-let unset_persistent_data_session_group
-    ?(scope = Eliom_common.default_session_scope) ?secure () =
-  let sp = Eliom_common.get_sp () in
-  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
-  try_lwt
-    lwt c = Eliommod_persess.find_persistent_cookie_only
-      ~cookie_scope:(scope:>Eliom_common.cookie_scope)
-      ~secure ~sp () in
-    let grp = c.Eliom_common.pc_session_group in
-    lwt () = Eliommod_sessiongroups.Pers.remove
-      sitedata c.Eliom_common.pc_value !grp in
-    grp := None;
-
-    close_persistent_state_if_empty
-      ~scope:(scope:>Eliom_common.user_scope) ?secure ()
-  with
-    | Not_found
-    | Eliom_common.Eliom_Session_expired -> Lwt.return ()
-
-let get_persistent_data_session_group
-    ?(scope = Eliom_common.default_session_scope) ?secure () =
-  try_lwt
-    lwt c = Eliommod_persess.find_persistent_cookie_only
-      ~cookie_scope:(scope:>Eliom_common.cookie_scope) ~secure () in
-    Lwt.return (match !(c.Eliom_common.pc_session_group) with
-      | None -> None
-      | Some v ->
-        match Eliommod_sessiongroups.getperssessgrp v with
-          | (_, _, Left s) -> Some s
-          | _ -> None)
-  with
-    | Not_found
-    | Eliom_common.Eliom_Session_expired -> Lwt.return None
-
-
-
-
 (* max *)
-let set_default_max_service_sessions_per_group
-    ?(override_configfile = false) n =
-  let sitedata =
-    Eliom_request_info.find_sitedata "set_default_max_service_sessions_per_group"
-  in
-  let b = snd sitedata.Eliom_common.max_service_sessions_per_group in
-  if override_configfile || not b
-  then
-    sitedata.Eliom_common.max_service_sessions_per_group <- (n, b)
-
-let set_default_max_volatile_data_sessions_per_group
-    ?(override_configfile = false) n =
-  let sitedata =
-    Eliom_request_info.find_sitedata "set_default_max_volatile_data_sessions_per_group"
-  in
-  let b = snd sitedata.Eliom_common.max_volatile_data_sessions_per_group in
-  if override_configfile || not b
-  then
-    sitedata.Eliom_common.max_volatile_data_sessions_per_group <- (n, b)
-
-let set_default_max_persistent_data_sessions_per_group
-    ?(override_configfile = false) n =
-  let sitedata =
-    Eliom_request_info.find_sitedata "set_default_max_persistent_data_sessions_per_group"
-  in
-  let b = snd sitedata.Eliom_common.max_persistent_data_sessions_per_group in
-  if override_configfile || not b
-  then
-    sitedata.Eliom_common.max_persistent_data_sessions_per_group <- (n, b)
-
 let set_default_max_service_sessions_per_subnet
     ?(override_configfile = false) n =
   let sitedata =
@@ -586,49 +674,16 @@ let set_default_max_volatile_data_sessions_per_subnet
     sitedata.Eliom_common.max_volatile_data_sessions_per_subnet <- (n, b)
 
 let set_default_max_volatile_sessions_per_group ?override_configfile n =
-  set_default_max_service_sessions_per_group ?override_configfile n;
-  set_default_max_volatile_data_sessions_per_group ?override_configfile n
+  Group.set_default_max ?override_configfile ~kind:`Service n;
+  Group.set_default_max ?override_configfile ~kind:`Data n
 
 let set_default_max_volatile_sessions_per_subnet ?override_configfile n =
   set_default_max_service_sessions_per_subnet ?override_configfile n;
   set_default_max_volatile_data_sessions_per_subnet ?override_configfile n
 
-
-
-let set_default_max_service_tab_sessions_per_group
-    ?(override_configfile = false) n =
-  let sitedata =
-    Eliom_request_info.find_sitedata "set_default_max_service_tab_sessions_per_group"
-  in
-  let b = snd sitedata.Eliom_common.max_service_tab_sessions_per_group in
-  if override_configfile || not b
-  then
-    sitedata.Eliom_common.max_service_tab_sessions_per_group <- (n, b)
-
-let set_default_max_volatile_data_tab_sessions_per_group
-    ?(override_configfile = false) n =
-  let sitedata =
-    Eliom_request_info.find_sitedata "set_default_max_volatile_data_tab_sessions_per_group"
-  in
-  let b = snd sitedata.Eliom_common.max_volatile_data_tab_sessions_per_group in
-  if override_configfile || not b
-  then
-    sitedata.Eliom_common.max_volatile_data_tab_sessions_per_group <- (n, b)
-
-let set_default_max_persistent_data_tab_sessions_per_group
-    ?(override_configfile = false) n =
-  let sitedata =
-    Eliom_request_info.find_sitedata "set_default_max_persistent_data_tab_sessions_per_group"
-  in
-  let b = snd sitedata.Eliom_common.max_persistent_data_tab_sessions_per_group in
-  if override_configfile || not b
-  then
-    sitedata.Eliom_common.max_persistent_data_tab_sessions_per_group <- (n, b)
-
 let set_default_max_volatile_tab_sessions_per_group ?override_configfile n =
-  set_default_max_service_tab_sessions_per_group ?override_configfile n;
-  set_default_max_volatile_data_tab_sessions_per_group ?override_configfile n
-
+  Group.set_default_max_tab ?override_configfile ~kind:`Service n;
+  Group.set_default_max_tab ?override_configfile ~kind:`Data n
 
 let set_default_max_anonymous_services_per_session
     ?(override_configfile = false) n =
@@ -839,10 +894,12 @@ let get_p_table_key_
   lwt key = match scope with
     | `Session_group state_name ->
       begin
-        match_lwt get_persistent_data_session_group
-                    ~scope:(`Session state_name) ~secure () with
-          | Some a -> Lwt.return a
-          | _ -> Lwt.return Eliom_common.default_group_name
+        match_lwt
+          Group.get
+            ~scope:(`Session state_name) ~secure `Persistent
+        with
+        | Some a -> Lwt.return a
+        | _ -> Lwt.return Eliom_common.default_group_name
       end
     | _ ->
       let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
@@ -921,8 +978,8 @@ let get_table_key_ ~table:(scope, secure, table)
      and the group name for groups *)
   (table, match scope with
     | `Session_group state_name ->
-      (match get_volatile_data_session_group
-          ~scope:(`Session state_name) ~secure ()
+      (match
+         Group.get_data ~scope:(`Session state_name) ~secure ()
        with Some a -> a
          | _ -> Eliom_common.default_group_name)
     | _ ->
