@@ -130,18 +130,18 @@ let http_stats () =
 
 let eliom_stats () =
   lwt persist_nb_of_groups = Eliommod_sessiongroups.Pers.nb_of_groups () in
-  lwt number_of_persistent_data_cookies =
-    Eliom_state.number_of_persistent_data_cookies () in
+  lwt ns = Eliom_state.number_of_cookies `Service in
+  lwt nd = Eliom_state.number_of_cookies `Data in
+  lwt np = Eliom_state.number_of_cookies `Persistent in
   Lwt.return (
   div [
     h3 [ppf "Sessions"];
     ul [
-      li [ppf "%d service cookies." (Eliom_state.number_of_service_cookies ())];
-      li [ppf "%d volatile data cookies."
-            (Eliom_state.number_of_volatile_data_cookies ())];
+      li [ppf "%d service cookies." ns];
+      li [ppf "%d volatile data cookies." nd];
       li [ppf "%d volatile data tables (volatile Eliom references)."
             (Eliom_state.number_of_tables ())];
-      li [ppf "%d persistent data cookies." number_of_persistent_data_cookies];
+      li [ppf "%d persistent data cookies." np];
       li [ppf "%d persistent data tables (persistent data reference)."
             (Eliom_state.number_of_persistent_tables ())];
     ];

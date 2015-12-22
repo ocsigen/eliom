@@ -27,7 +27,6 @@
 
 type kind = [ `Service | `Data | `Persistent ]
 
-(*****************************************************************************)
 (** {2 Managing the state of an application} *)
 
 (** {3 Closing sessions, removing state data and services} *)
@@ -45,8 +44,7 @@ type kind = [ `Service | `Data | `Persistent ]
     but if [~secure] is present.
 
     {e Warning: you may also want to unset some request-scoped Eliom
-    references when discarding a state.}
-*)
+    references when discarding a state.} *)
 val discard :
   scope:[< Eliom_common.user_scope | Eliom_common.request_scope ] ->
   ?secure:bool ->
@@ -80,7 +78,6 @@ val discard_services :
   unit ->
   unit
 
-(*****************************************************************************)
 (** {3 State status} *)
 
 (** The following functions return the current state of the state for
@@ -110,8 +107,6 @@ val persistent_data_state_status :
   ?secure:bool ->
   unit -> state_status Lwt.t
 
-
-(*****************************************************************************)
 (** {3 User cookies}
 
     If you want to store a client-side state, and ask the browser to
@@ -123,9 +118,9 @@ val persistent_data_state_status :
     one instance of the client-side Eliom program (if there is one).
 
     Cookies can be limited to a subsite using the [?path] optional
-    parameter. This path is relative to the main path of your Web site.
-    (It is not possible to set a cookie for a subsite larger than your current
-    Web site).
+    parameter. This path is relative to the main path of your Web
+    site.  (It is not possible to set a cookie for a subsite larger
+    than your current Web site).
 
     Cookies can have an expiration date, specified (in seconds since
     the 1st of January 1970) in the optional parameter [?exp] (see how
@@ -146,8 +141,6 @@ val unset_cookie :
   ?cookie_level:Eliom_common.cookie_level ->
   ?path:string list ->
   name:string -> unit -> unit
-
-(*****************************************************************************)
 
 (** {2 Session groups} *)
 
@@ -234,35 +227,30 @@ module Group : sig
   val set_default_max_tab :
     ?override_configfile:bool -> kind:kind -> int -> unit
 
+  (** returns the number of sessions in the group. If the session does
+      not belong to any group or if no session is opened, returns
+      [None] *)
+  val get_size :
+    ?scope:Eliom_common.session_scope ->
+    ?secure:bool ->
+    [< `Service | `Data ] ->
+    int option
+
+  (** Sets the maximum number of service sessions in a subnet (see
+      above). *)
+  val set_default_max_per_subnet :
+    ?override_configfile:bool ->
+    kind:[< `Service | `Data ] ->
+    int -> unit
+
+  val set_max_for_group_or_subnet :
+    scope:Eliom_common.user_scope ->
+    ?secure:bool ->
+    kind:[< `Service | `Data] ->
+    int ->
+    unit
+
 end
-
-(** returns the number of sessions in the group. If he session does not
-    belong to any group or if no session is opened, returns [None] *)
-val get_service_session_group_size :
-  ?scope:Eliom_common.session_scope ->
-  ?secure:bool ->
-  unit ->
-  int option
-
-(** returns the number of sessions in the group. If he session does not
-    belong to any group or if no session is opened, returns [None] *)
-val get_volatile_data_session_group_size :
-  ?scope:Eliom_common.session_scope ->
-  ?secure:bool ->
-  unit ->
-  int option
-
-(** {3 Maximum group size} *)
-
-(** Sets the maximum number of service sessions in a subnet (see
-    above). *)
-val set_default_max_service_sessions_per_subnet :
-  ?override_configfile:bool -> int -> unit
-
-(** Sets the maximum number of volatile data sessions in a subnet (see
-    above). *)
-val set_default_max_volatile_data_sessions_per_subnet :
-  ?override_configfile:bool -> int -> unit
 
 (** Sets the mask for subnet (IPV4). *)
 val set_ipv4_subnet_mask :
@@ -271,23 +259,6 @@ val set_ipv4_subnet_mask :
 (** Sets the mask for subnet (IPV6). *)
 val set_ipv6_subnet_mask :
   ?override_configfile:bool -> int -> unit
-
-(** Sets the maximum number of service sessions in the current session
-    group (or for the client sub network, if there is no group). *)
-val set_max_service_states_for_group_or_subnet :
-  scope:Eliom_common.user_scope ->
-  ?secure:bool ->
-  int ->
-  unit
-
-(** Sets the maximum number of volatile data sessions in the current
-    session group (or for the client sub network, if there is no
-    group). *)
-val set_max_volatile_data_states_for_group_or_subnet :
-  scope:Eliom_common.user_scope ->
-  ?secure:bool ->
-  int ->
-  unit
 
 (** {2 Expiration of cookies and timeouts} *)
 
@@ -396,30 +367,30 @@ module Timeout : sig
 
 end
 
-(*****************************************************************************)
 (** {2 Administrating server side state} *)
 
 (** {e Warning: Most these functions must be called when the site
-    information is available, that is, either
-    during a request or during the initialisation phase of the site.
-    Otherwise, it will raise the exception
-    {!Eliom_common.Eliom_site_information_not_available}.
-    If you are using static linking, you must delay the call to this function
+    information is available, that is, either during a request or
+    during the initialisation phase of the site.  Otherwise, it will
+    raise the exception
+    {!Eliom_common.Eliom_site_information_not_available}.  If you are
+    using static linking, you must delay the call to this function
     until the configuration file is read, using
-    {!Eliom_service.register_eliom_module}. Otherwise you will also get
-    this exception.}
- *)
+    {!Eliom_service.register_eliom_module}. Otherwise you will also
+    get this exception.}  *)
 
 (** The type of (volatile) state data tables. *)
 type 'a volatile_table
 (** The type of persistent state data tables. *)
 type 'a persistent_table
 
-(** Discard all services and persistent and volatile data for every scopes. *)
+(** Discard all services and persistent and volatile data for every
+    scopes. *)
 val discard_everything : unit -> unit Lwt.t
 (*CCC missing ~secure? *)
 
-(** Discard all services and persistent and volatile data for one scope. *)
+(** Discard all services and persistent and volatile data for one
+    scope. *)
 val discard_all :
   scope:Eliom_common.user_scope ->
   ?secure:bool ->
@@ -429,9 +400,8 @@ val discard_all :
 
 (** Discard server side data for all clients, for the given scope.
 
-    If the optional parameter [?persistent] is not present,
-    both the persistent and volatile data will be removed.
- *)
+    If the optional parameter [?persistent] is not present, both the
+    persistent and volatile data will be removed. *)
 val discard_all_data :
   ?persistent:bool ->
   scope:Eliom_common.user_scope ->
@@ -441,7 +411,6 @@ val discard_all_data :
 (*VVV missing: scope group *)
 (*VVV missing ~secure? *)
 
-
 (** Remove all services registered for clients for the given scope. *)
 val discard_all_services :
   scope:Eliom_common.user_scope ->
@@ -450,7 +419,6 @@ val discard_all_services :
   unit Lwt.t
 (*VVV missing: scope group *)
 (*VVV missing ~secure? *)
-
 
 module Ext : sig
 
@@ -534,7 +502,7 @@ module Ext : sig
     'a -> 'a
 
   (** Iter on all sessions in a groups, or all client processes in a
-      session.  See {!fold_volatile_sub_states} for explanation about
+      session. See {!fold_volatile_sub_states} for explanation about
       the [?sitedata] parameter.  *)
   val iter_volatile_sub_states :
     ?sitedata : Eliom_common.sitedata ->
@@ -543,11 +511,10 @@ module Ext : sig
     (([< `Session | `Client_process ], 'k) state -> unit) ->
     unit
 
-  (** Fold all sessions in a groups, or all client processes in a session
-      (volatile and persistant).
-      See {!fold_volatile_sub_states} for explanation about the [?sitedata]
-      parameter.
-  *)
+  (** Fold all sessions in a groups, or all client processes in a
+      session (volatile and persistant). See
+      {!fold_volatile_sub_states} for explanation about the
+      [?sitedata] parameter.  *)
   val fold_sub_states :
     ?sitedata : Eliom_common.sitedata ->
     state : ([< `Session_group | `Session ],
@@ -556,7 +523,7 @@ module Ext : sig
     'a -> 'a Lwt.t
 
   (** Iter on all sessions in a groups, or all client processes in a
-      session (volatile and persistant).  See
+      session (volatile and persistant). See
       {!fold_volatile_sub_states} for explanation about the
       [?sitedata] parameter.  *)
   val iter_sub_states :
@@ -637,10 +604,8 @@ module Ext : sig
 
   val get_service_cookie_timeout :
     cookie:service_cookie_info -> timeout
-
   val get_volatile_data_cookie_timeout :
     cookie:data_cookie_info -> timeout
-
   val get_persistent_data_cookie_timeout :
     cookie:persistent_cookie_info -> timeout
 
@@ -651,55 +616,50 @@ module Ext : sig
   val unset_persistent_data_cookie_timeout :
     cookie:persistent_cookie_info -> unit Lwt.t
 
-  (** Returns a list containing the names of all session group
-      that are available for this site. *)
+  (** Returns a list containing the names of all session group that
+      are available for this site. *)
   val get_session_group_list : unit -> string list
 
-  (** Iterator on all active service cookies.
-      [Lwt_unix.yield] is called automatically after each iteration.
-   *)
+  (** Iterator on all active service cookies.  [Lwt_unix.yield] is
+      called automatically after each iteration.  *)
   val iter_service_cookies :
     (service_cookie_info -> unit Lwt.t) -> unit Lwt.t
 
-  (** Iterator on data cookies. [Lwt_unix.yield] is called automatically
-      after each iteration.
-   *)
+  (** Iterator on data cookies. [Lwt_unix.yield] is called
+      automatically after each iteration.  *)
   val iter_volatile_data_cookies :
     (data_cookie_info -> unit Lwt.t) -> unit Lwt.t
 
-  (** Iterator on persistent cookies. [Lwt_unix.yield] is called automatically
-      after each iteration. *)
+  (** Iterator on persistent cookies. [Lwt_unix.yield] is called
+      automatically after each iteration. *)
   val iter_persistent_data_cookies :
     (persistent_cookie_info -> unit Lwt.t) -> unit Lwt.t
 
-  (** Iterator on service cookies. [Lwt_unix.yield] is called automatically
-      after each iteration.
-  *)
+  (** Iterator on service cookies. [Lwt_unix.yield] is called
+      automatically after each iteration.  *)
   val fold_service_cookies :
     (service_cookie_info -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
 
-  (** Iterator on data cookies. [Lwt_unix.yield] is called automatically
-     after each iteration.
-   *)
+  (** Iterator on data cookies. [Lwt_unix.yield] is called
+      automatically after each iteration.  *)
   val fold_volatile_data_cookies :
     (data_cookie_info -> 'b -> 'b Lwt.t) -> 'b  -> 'b Lwt.t
 
-  (** Iterator on persistent cookies. [Lwt_unix.yield] is called automatically
-     after each iteration. *)
+  (** Iterator on persistent cookies. [Lwt_unix.yield] is called
+      automatically after each iteration. *)
   val fold_persistent_data_cookies :
     (persistent_cookie_info -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
 
-(**/**)
+  (**/**)
   val untype_state : ('a, 'b) state -> ('c, 'd) state
 
 end
 
-
-(*****************************************************************************)
 (**/**)
 (** {3 Session data (deprecated interface)} *)
 
-(** This is the low level interface (deprecated). Use now Eliom references. *)
+(** This is the low level interface (deprecated). Use now Eliom
+    references. *)
 
 (** The type used for getting data from a state. *)
 type 'a state_data =
@@ -713,15 +673,14 @@ type 'a state_data =
     all users. (low level)
 
     {e Warning: This functions must be called when the site
-    information is available, that is, either
-    during a request or during the initialisation phase of the site.
-    Otherwise, it will raise the exception
-    {!Eliom_common.Eliom_site_information_not_available}.
-    If you are using static linking, you must delay the call to this function
+    information is available, that is, either during a request or
+    during the initialisation phase of the site.  Otherwise, it will
+    raise the exception
+    {!Eliom_common.Eliom_site_information_not_available}.  If you are
+    using static linking, you must delay the call to this function
     until the configuration file is read, using
-    {!Eliom_service.register_eliom_module}. Otherwise you will also get
-    this exception.}
- *)
+    {!Eliom_service.register_eliom_module}. Otherwise you will also
+    get this exception.}  *)
 val create_volatile_table :
   scope:Eliom_common.user_scope ->
   ?secure:bool ->
@@ -753,15 +712,15 @@ val remove_volatile_data :
 
 (**/**)
 (** {4 Persistent state data} *)
-(** creates a table on hard disk where you can store the session data for
-    all users. It uses {!Ocsipersist}.  (low level) *)
+(** creates a table on hard disk where you can store the session data
+    for all users. It uses {!Ocsipersist}.  (low level) *)
 val create_persistent_table :
   scope:Eliom_common.user_scope ->
   ?secure:bool ->
   string -> 'a persistent_table
 
-(** gets persistent session data for the current persistent session (if any).
-    (low level) *)
+(** gets persistent session data for the current persistent session
+    (if any).  (low level) *)
 val get_persistent_data :
   table:'a persistent_table ->
   unit ->
@@ -774,72 +733,40 @@ val set_persistent_data :
   'a ->
   unit Lwt.t
 
-(** removes session data for the current persistent session
-    (but does not close the session).
-    If the session does not exist, does nothing.
-    (low level)
- *)
+(** removes session data for the current persistent session (but does
+    not close the session).  If the session does not exist, does
+    nothing.  (low level) *)
 val remove_persistent_data :
   table:'a persistent_table ->
   unit ->
   unit Lwt.t
 (**/**)
 
-(*****************************************************************************)
-
 (**/**)
-(** {3 Other low level functions}
-    You probably don't need these functions. *)
+(** {3 Other low level functions} You probably don't need these
+    functions. *)
 
-(** returns the value of the Eliom's cookies for one persistent session.
-    Returns [None] is no session is active.
- *)
-val get_persistent_data_cookie :
+(** returns the value of the Eliom's cookies. Returns [None] is no
+    session is active.  *)
+val get_cookie :
   cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  unit -> string option Lwt.t
-
-(** returns the value of Eliom's cookies for one service session.
-    Returns [None] is no session is active.
- *)
-val get_service_cookie :
-  cookie_scope:Eliom_common.cookie_scope ->
-  ?secure:bool ->
-  unit -> string option
-
-(** returns the value of Eliom's cookies for one "volatile data" session.
-    Returns [None] is no session is active.
- *)
-val get_volatile_data_cookie :
-  cookie_scope:Eliom_common.cookie_scope ->
-  ?secure:bool ->
-  unit -> string option
+  [< kind ] ->
+  string option Lwt.t
 (**/**)
 
-
-
-
-
-
-
-(**/**)
-(*****************************************************************************)
-val number_of_service_cookies : unit -> int
-
-val number_of_volatile_data_cookies : unit -> int
+val number_of_cookies : [< kind ] -> int Lwt.t
 
 val number_of_tables : unit -> int
 
 val number_of_table_elements : unit -> int list
 
-val number_of_persistent_data_cookies : unit -> int Lwt.t
-
 val number_of_persistent_tables : unit -> int
 
 val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
-(* Because of Dbm implementation, the result may be less than the expected
-   result in some case (with a version of ocsipersist based on Dbm) *)
-
+(* Because of Dbm implementation, the result may be less than the
+   expected result in some case (with a version of ocsipersist based
+   on Dbm) *)
 
 val get_global_table : unit -> Eliom_common.tables
 
