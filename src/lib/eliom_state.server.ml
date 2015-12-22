@@ -61,15 +61,12 @@ let persistent_data_state_status ~scope ?secure () =
 
 module Timeout = struct
 
-  let set_string = function
-    | `Service    -> "set_global_service_timeout"
-    | `Data       -> "set_global_data_timeout"
-    | `Persistent -> "set_global_persistent_timeout"
-
   let set_default_global
       ~kind ~cookie_level
       ?(override_configfile = false) timeout =
-    let sitedata = Eliom_request_info.find_sitedata (set_string kind) in
+    let sitedata =
+      Eliom_request_info.find_sitedata "set_default_global"
+    in
     Eliommod_timeouts.set_default_global
       kind cookie_level override_configfile false sitedata timeout
 
@@ -78,19 +75,14 @@ module Timeout = struct
       ?(recompute_expdates = false)
       ?(override_configfile = false)
       timeout =
-    let sitedata = Eliom_request_info.find_sitedata (set_string kind) in
+    let sitedata = Eliom_request_info.find_sitedata "set_global" in
     let secure = Eliom_common.get_secure secure sitedata in
     Eliommod_timeouts.set_global
       ~kind ~cookie_scope ~secure ~recompute_expdates
       override_configfile sitedata timeout
 
   let get_global ?secure ~kind ~cookie_scope () =
-    let sitedata =
-      Eliom_request_info.find_sitedata @@ match kind with
-      | `Service    -> "get_global_timeout"
-      | `Data       -> "get_global_timeout"
-      | `Persistent -> "get_global_persistent_timeout"
-    in
+    let sitedata = Eliom_request_info.find_sitedata "get_global" in
     let secure = Eliom_common.get_secure secure sitedata in
     Eliommod_timeouts.get_global ~kind ~cookie_scope ~secure sitedata
 
@@ -187,32 +179,6 @@ module Timeout = struct
     with Not_found | Eliom_common.Eliom_Session_expired ->
       Lwt.return @@ Eliommod_timeouts.get_global
         ~kind ~cookie_scope ~secure sitedata
-
-  let set_default_global_volatile
-      ~cookie_level ?(override_configfile = false) timeout =
-    let sitedata =
-      Eliom_request_info.find_sitedata "set_global_volatile_timeouts"
-    in
-    Eliommod_timeouts.set_default_global
-      `Service cookie_level override_configfile false sitedata timeout;
-    Eliommod_timeouts.set_default_global
-      `Data cookie_level override_configfile false sitedata timeout
-
-  let set_global_volatile
-      ~cookie_scope ?secure
-      ?(recompute_expdates = false)
-      ?(override_configfile = false)
-      timeout =
-    let sitedata =
-      Eliom_request_info.find_sitedata "set_global_volatile_timeouts"
-    in
-    let secure = Eliom_common.get_secure secure sitedata in
-    Eliommod_timeouts.set_global
-      ~kind:`Service ~cookie_scope ~secure ~recompute_expdates
-      override_configfile sitedata timeout;
-    Eliommod_timeouts.set_global
-      ~kind:`Data ~cookie_scope ~secure ~recompute_expdates
-      override_configfile sitedata timeout
 
 end
 
@@ -535,31 +501,19 @@ module Group = struct
     with Not_found | Eliom_common.Eliom_Session_expired ->
       Lwt.return None
 
-  let set_default_max_service ~override_configfile n =
-    let sitedata =
-      Eliom_request_info.find_sitedata
-        "set_default_max_service_sessions_per_group"
-    in
+  let set_default_max_service ~override_configfile ~sitedata n =
     let _, b = sitedata.Eliom_common.max_service_sessions_per_group in
     if override_configfile || not b then
       sitedata.Eliom_common.max_service_sessions_per_group <- (n, b)
 
-  let set_default_max_data ~override_configfile n =
-    let sitedata =
-      Eliom_request_info.find_sitedata
-        "set_default_max_volatile_data_sessions_per_group"
-    in
+  let set_default_max_data ~override_configfile ~sitedata n =
     let _, b =
       sitedata.Eliom_common.max_volatile_data_sessions_per_group
     in
     if override_configfile || not b then
       sitedata.Eliom_common.max_volatile_data_sessions_per_group <- (n, b)
 
-  let set_default_max_persistent ~override_configfile n =
-    let sitedata =
-      Eliom_request_info.find_sitedata
-        "set_default_max_persistent_data_sessions_per_group"
-    in
+  let set_default_max_persistent ~override_configfile ~sitedata n =
     let _, b =
       sitedata.Eliom_common.max_persistent_data_sessions_per_group
     in
@@ -567,30 +521,25 @@ module Group = struct
       sitedata.Eliom_common.max_persistent_data_sessions_per_group <- (n, b)
 
   let set_default_max ?(override_configfile = false) ~kind n =
+    let sitedata =
+      Eliom_request_info.find_sitedata "set_default_max"
+    in
     match kind with
     | `Service ->
-      set_default_max_service ~override_configfile n
+      set_default_max_service ~override_configfile ~sitedata n
     | `Data ->
-      set_default_max_data ~override_configfile n
+      set_default_max_data ~override_configfile ~sitedata n
     | `Persistent ->
-      set_default_max_persistent ~override_configfile n
+      set_default_max_persistent ~override_configfile ~sitedata n
 
-  let set_default_max_tab_service ~override_configfile n =
-    let sitedata =
-      Eliom_request_info.find_sitedata
-        "set_default_max_service_tab_sessions_per_group"
-    in
+  let set_default_max_tab_service ~override_configfile ~sitedata n =
     let _, b =
       sitedata.Eliom_common.max_service_tab_sessions_per_group
     in
     if override_configfile || not b then
       sitedata.Eliom_common.max_service_tab_sessions_per_group <- (n, b)
 
-  let set_default_max_tab_data ~override_configfile n =
-    let sitedata =
-      Eliom_request_info.find_sitedata
-        "set_default_max_volatile_data_tab_sessions_per_group"
-    in
+  let set_default_max_tab_data ~override_configfile ~sitedata n =
     let _, b =
       sitedata.Eliom_common.max_volatile_data_tab_sessions_per_group
     in
@@ -598,11 +547,7 @@ module Group = struct
       sitedata.Eliom_common.max_volatile_data_tab_sessions_per_group <-
         (n, b)
 
-  let set_default_max_tab_persistent ~override_configfile n =
-    let sitedata =
-      Eliom_request_info.find_sitedata
-        "set_default_max_persistent_data_tab_sessions_per_group"
-    in
+  let set_default_max_tab_persistent ~override_configfile ~sitedata n =
     let _, b =
       sitedata.Eliom_common.max_persistent_data_tab_sessions_per_group
     in
@@ -611,13 +556,16 @@ module Group = struct
         (n, b)
 
   let set_default_max_tab ?(override_configfile = false) ~kind n =
+    let sitedata =
+      Eliom_request_info.find_sitedata "set_default_max_tab"
+    in
     match kind with
     | `Service ->
-      set_default_max_tab_service ~override_configfile n
+      set_default_max_tab_service ~override_configfile ~sitedata n
     | `Data ->
-      set_default_max_tab_data ~override_configfile n
+      set_default_max_tab_data ~override_configfile ~sitedata n
     | `Persistent ->
-      set_default_max_tab_persistent ~override_configfile n
+      set_default_max_tab_persistent ~override_configfile ~sitedata n
 
 end
 
@@ -632,9 +580,8 @@ let get_service_session_group_size
       | _, _, Right _ -> None
       | _, _, Left v ->
 	Some (Eliommod_sessiongroups.Serv.group_size !(c.Eliom_common.sc_session_group))
-  with
-  | Not_found
-  | Eliom_common.Eliom_Session_expired -> None
+  with Not_found | Eliom_common.Eliom_Session_expired ->
+    None
 
 let get_volatile_data_session_group_size
     ?(scope = Eliom_common.default_session_scope)
@@ -645,12 +592,11 @@ let get_volatile_data_session_group_size
 	~cookie_scope:(scope:>Eliom_common.cookie_scope) ~secure ()
     in
     match !(c.Eliom_common.dc_session_group) with
-      | _, _, Right _ -> None
-      | _, _, Left v ->
-	Some (Eliommod_sessiongroups.Data.group_size !(c.Eliom_common.dc_session_group))
-  with
-    | Not_found
-    | Eliom_common.Eliom_Session_expired -> None
+    | _, _, Right _ -> None
+    | _, _, Left v ->
+      Some (Eliommod_sessiongroups.Data.group_size !(c.Eliom_common.dc_session_group))
+  with Not_found | Eliom_common.Eliom_Session_expired ->
+    None
 
 (* max *)
 let set_default_max_service_sessions_per_subnet
@@ -659,8 +605,7 @@ let set_default_max_service_sessions_per_subnet
     Eliom_request_info.find_sitedata "set_default_max_service_sessions_per_subnet"
   in
   let b = snd sitedata.Eliom_common.max_service_sessions_per_subnet in
-  if override_configfile || not b
-  then
+  if override_configfile || not b then
     sitedata.Eliom_common.max_service_sessions_per_subnet <- (n, b)
 
 let set_default_max_volatile_data_sessions_per_subnet
@@ -672,18 +617,6 @@ let set_default_max_volatile_data_sessions_per_subnet
   if override_configfile || not b
   then
     sitedata.Eliom_common.max_volatile_data_sessions_per_subnet <- (n, b)
-
-let set_default_max_volatile_sessions_per_group ?override_configfile n =
-  Group.set_default_max ?override_configfile ~kind:`Service n;
-  Group.set_default_max ?override_configfile ~kind:`Data n
-
-let set_default_max_volatile_sessions_per_subnet ?override_configfile n =
-  set_default_max_service_sessions_per_subnet ?override_configfile n;
-  set_default_max_volatile_data_sessions_per_subnet ?override_configfile n
-
-let set_default_max_volatile_tab_sessions_per_group ?override_configfile n =
-  Group.set_default_max_tab ?override_configfile ~kind:`Service n;
-  Group.set_default_max_tab ?override_configfile ~kind:`Data n
 
 let set_default_max_anonymous_services_per_session
     ?(override_configfile = false) n =
@@ -705,7 +638,6 @@ let set_default_max_anonymous_services_per_subnet
   then
     sitedata.Eliom_common.max_anonymous_services_per_subnet <- (n, b)
 
-
 let set_ipv4_subnet_mask ?(override_configfile = false) n =
   let sitedata =
     Eliom_request_info.find_sitedata "set_ipv4_subnet_mask"
@@ -723,9 +655,6 @@ let set_ipv6_subnet_mask ?(override_configfile = false) n =
   if override_configfile || not b
   then
     sitedata.Eliom_common.ipv6mask <- (Some n, b)
-
-
-
 
 let set_max_service_states_for_group_or_subnet ~scope ?secure m =
   let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
@@ -758,12 +687,6 @@ let set_max_volatile_data_states_for_group_or_subnet ~scope ?secure m =
          | _ -> ())
     | _ ->
       Eliommod_sessiongroups.Data.set_max c.Eliom_common.dc_session_group_node m
-
-let set_max_volatile_states_for_group_or_subnet ~scope ?secure m =
-  set_max_service_states_for_group_or_subnet
-    ~scope ?secure m;
-  set_max_volatile_data_states_for_group_or_subnet
-    ~scope ?secure m
 
 (*VVV No version for persistent sessions? Why? *)
 

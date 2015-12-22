@@ -254,35 +254,15 @@ val get_volatile_data_session_group_size :
 
 (** {3 Maximum group size} *)
 
-(** Sets the maximum number of volatile sessions (data and service) in a session
-    group (see above).
-*)
-val set_default_max_volatile_sessions_per_group :
-  ?override_configfile:bool -> int -> unit
-
-(** Sets the maximum number of service sessions in a subnet (see above).
-*)
+(** Sets the maximum number of service sessions in a subnet (see
+    above). *)
 val set_default_max_service_sessions_per_subnet :
   ?override_configfile:bool -> int -> unit
 
-(** Sets the maximum number of volatile data sessions in a subnet (see above).
-*)
+(** Sets the maximum number of volatile data sessions in a subnet (see
+    above). *)
 val set_default_max_volatile_data_sessions_per_subnet :
   ?override_configfile:bool -> int -> unit
-
-(** Sets the maximum number of volatile sessions (data and service)
-    in a subnet (see above).
-*)
-val set_default_max_volatile_sessions_per_subnet :
-  ?override_configfile:bool -> int -> unit
-
-(** Sets the maximum number of volatile tab sessions (data and service)
-    in a session group (see above).
-*)
-val set_default_max_volatile_tab_sessions_per_group :
-  ?override_configfile:bool -> int -> unit
-
-
 
 (** Sets the mask for subnet (IPV4). *)
 val set_ipv4_subnet_mask :
@@ -292,31 +272,18 @@ val set_ipv4_subnet_mask :
 val set_ipv6_subnet_mask :
   ?override_configfile:bool -> int -> unit
 
-
-
 (** Sets the maximum number of service sessions in the current session
-    group (or for the client sub network, if there is no group).
-*)
+    group (or for the client sub network, if there is no group). *)
 val set_max_service_states_for_group_or_subnet :
   scope:Eliom_common.user_scope ->
   ?secure:bool ->
   int ->
   unit
 
-(** Sets the maximum number of volatile data sessions in the current session
-    group (or for the client sub network, if there is no group).
-*)
+(** Sets the maximum number of volatile data sessions in the current
+    session group (or for the client sub network, if there is no
+    group). *)
 val set_max_volatile_data_states_for_group_or_subnet :
-  scope:Eliom_common.user_scope ->
-  ?secure:bool ->
-  int ->
-  unit
-
-(** Sets the maximum number of volatile sessions
-    (both data and service sessions) in the current
-    group (or for the client sub network, if there is no group).
-*)
-val set_max_volatile_states_for_group_or_subnet :
   scope:Eliom_common.user_scope ->
   ?secure:bool ->
   int ->
@@ -392,15 +359,6 @@ module Timeout : sig
   val set_default_global :
     kind:[< kind ] ->
     cookie_level:[< Eliom_common.cookie_level ] ->
-    ?override_configfile:bool ->
-    float option -> unit
-
-  (** Sets the (server side) timeout for volatile (= "in memory")
-      sessions (both service session and volatile data session).  *)
-  val set_global_volatile :
-    cookie_scope:[< Eliom_common.cookie_scope ] ->
-    ?secure: bool ->
-    ?recompute_expdates:bool ->
     ?override_configfile:bool ->
     float option -> unit
 
@@ -513,13 +471,13 @@ module Ext : sig
   type data_cookie_info
   type persistent_cookie_info
 
-  (** The type of states. The first parameter corresponds to the scope level
-      and the second one to the kind of state (volatile or persistent data,
-      or service state) *)
+  (** The type of states. The first parameter corresponds to the scope
+      level and the second one to the kind of state (volatile or
+      persistent data, or service state) *)
   type (+'a, +'b) state
 
-  (** [volatile_data_group_state ~scope n] returns the state corresponding to
-      the group named [n] in scope [scope]. *)
+  (** [volatile_data_group_state ~scope n] returns the state
+      corresponding to the group named [n] in scope [scope]. *)
   val volatile_data_group_state :
     ?scope:Eliom_common.session_group_scope -> string ->
     ([> `Session_group ], [> `Data ]) state
@@ -534,10 +492,10 @@ module Ext : sig
     ?scope:Eliom_common.session_group_scope -> string ->
     ([> `Session_group ], [> `Service ]) state
 
-  (** [current_volatile_session_state ~scope] returns the state corresponding
-      to current session in scope [scope].
-      Raises [Not_found] if not connected
-      or [Eliom_common.Eliom_Session_expired] if a cookie was present but
+  (** [current_volatile_session_state ~scope] returns the state
+      corresponding to current session in scope [scope].  Raises
+      [Not_found] if not connected or
+      [Eliom_common.Eliom_Session_expired] if a cookie was present but
       expired. *)
   val current_volatile_session_state :
     ?secure:bool ->
@@ -562,13 +520,12 @@ module Ext : sig
   (** Discard external states *)
   val discard_state : state : ('a, 'b) state -> unit Lwt.t
 
-  (** Fold all sessions in a groups, or all client processes in a session.
-      If you do not call the function during
-      a request or during the initialisation phase of the Eliom module,
-      you must provide the extra parameter [?sitedata],
-      that you can get by calling {!Eliom_request_info.get_sitedata}
-      during the initialisation phase of the Eliom module.
-  *)
+  (** Fold all sessions in a groups, or all client processes in a
+      session.  If you do not call the function during a request or
+      during the initialisation phase of the Eliom module, you must
+      provide the extra parameter [?sitedata], that you can get by
+      calling {!Eliom_request_info.get_sitedata} during the
+      initialisation phase of the Eliom module.  *)
   val fold_volatile_sub_states :
     ?sitedata : Eliom_common.sitedata ->
     state : ([< `Session_group | `Session ],
@@ -576,10 +533,9 @@ module Ext : sig
     ('a -> ([< `Session | `Client_process ], 'k) state -> 'a) ->
     'a -> 'a
 
-  (** Iter on all sessions in a groups, or all client processes in a session.
-      See {!fold_volatile_sub_states} for explanation about the [?sitedata]
-      parameter.
-  *)
+  (** Iter on all sessions in a groups, or all client processes in a
+      session.  See {!fold_volatile_sub_states} for explanation about
+      the [?sitedata] parameter.  *)
   val iter_volatile_sub_states :
     ?sitedata : Eliom_common.sitedata ->
     state: ([< `Session_group | `Session ],
@@ -599,11 +555,10 @@ module Ext : sig
     ('a -> ([< `Session | `Client_process ], 'k) state -> 'a Lwt.t) ->
     'a -> 'a Lwt.t
 
-  (** Iter on all sessions in a groups, or all client processes in a session
-      (volatile and persistant).
-      See {!fold_volatile_sub_states} for explanation about the [?sitedata]
-      parameter.
-  *)
+  (** Iter on all sessions in a groups, or all client processes in a
+      session (volatile and persistant).  See
+      {!fold_volatile_sub_states} for explanation about the
+      [?sitedata] parameter.  *)
   val iter_sub_states :
     ?sitedata : Eliom_common.sitedata ->
     state: ([< `Session_group | `Session ], 'k) state ->
@@ -611,8 +566,8 @@ module Ext : sig
     unit Lwt.t
 
   module Low_level : sig
-    (** Functions to access table data.
-        Prefer using Eliom references. *)
+    (** Functions to access table data.  Prefer using Eliom
+        references. *)
 
     (** Raises [Not_found] if no data in the table for the cookie. *)
     val get_volatile_data :
@@ -635,8 +590,8 @@ module Ext : sig
       table:'a volatile_table ->
       'a -> unit
 
-    (** Fails with lwt exception [Not_found]
-        if no data in the table for the cookie. *)
+    (** Fails with lwt exception [Not_found] if no data in the table
+        for the cookie. *)
     val set_persistent_data :
       state:([< `Session_group | `Session | `Client_process ],
              [< `Pers ]) state ->
