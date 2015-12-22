@@ -323,49 +323,26 @@ val set_max_volatile_states_for_group_or_subnet :
   unit
 
 (** {2 Expiration of cookies and timeouts} *)
+
 (** {3 Cookie expiration} *)
 
-(** The functions in this section ask the browser to set the state cookie
-    expiration date, for the different kinds of session, in seconds,
-    since the 1st of January 1970. [None] means the cookie will expire
-    when the browser is closed. There is no way to set cookies
-    for an infinite time on browsers.
-    By default, Eliom sets default expiration date to
-    10 years after opening the session.
+(** Asks the browser to set the state cookie expiration date, for the
+    different kinds of session, in seconds, since the 1st of January
+    1970. [None] means the cookie will expire when the browser is
+    closed. There is no way to set cookies for an infinite time on
+    browsers.  By default, Eliom sets default expiration date to 10
+    years after opening the session.
 
     By default, it will affect regular browser cookies (sessions).
-    But if you set [~cookie_level:`Client_process],
-    it will only affect the client-side Eliom process (if there is one),
-    which simulates some kind of "tab cookies".
-*)
-
-(** Sets the cookie expiration date for the current service state
-    (see above).
-*)
-val set_service_cookie_exp_date :
+    But if you set [~cookie_level:`Client_process], it will only
+    affect the client-side Eliom process (if there is one), which
+    simulates some kind of "tab cookies".*)
+val set_cookie_exp_date :
   cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  float option ->
-  unit
-
-(** Sets the cookie expiration date for the current data state (see
-    above).
-*)
-val set_volatile_data_cookie_exp_date :
-  cookie_scope:Eliom_common.cookie_scope ->
-  ?secure:bool ->
-  float option ->
-  unit
-
-(** Sets the cookie expiration date for the persistent state (see
-    above).
-*)
-val set_persistent_data_cookie_exp_date :
-  cookie_scope:Eliom_common.cookie_scope ->
-  ?secure:bool ->
+  kind:kind ->
   float option ->
   unit Lwt.t
-
 
 (** {3 Global configuration of state timeouts} *)
 

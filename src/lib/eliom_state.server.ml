@@ -767,67 +767,35 @@ let set_max_volatile_states_for_group_or_subnet ~scope ?secure m =
 
 (*VVV No version for persistent sessions? Why? *)
 
-
-
-
-
-
-(* expiration dates *)
-let set_service_cookie_exp_date ~cookie_scope ?secure t =
-  let c = Eliommod_sersess.find_or_create_service_cookie
-    ~cookie_scope ~secure () in
-  let exp = c.Eliom_common.sc_cookie_exp in
-  match t with
-  | None -> exp := Eliom_common.CEBrowser
-  | Some t -> exp := Eliom_common.CESome t
-
-(*
-let get_service_cookie_exp_date ?state_name ?(cookie_level = `Session) ?secure () =
-  try
-    let (_, _, _, _, exp) = find_service_cookie_only ?state_name ~cookie_level ~secure () in
-  let exp = c.Eliom_common.sc_cookie_exp in
-    !exp
-  with Not_found | Eliom_common.Eliom_Session_expired -> Eliom_common.CEBrowser
-*)
-
-let set_volatile_data_cookie_exp_date ~cookie_scope ?secure t =
-  let c = Eliommod_datasess.find_or_create_data_cookie
-    ~cookie_scope ~secure () in
-  let exp = c.Eliom_common.dc_cookie_exp in
-  match t with
-  | None -> exp := Eliom_common.CEBrowser
-  | Some t -> exp := Eliom_common.CESome t
-
-
-
-let set_persistent_data_cookie_exp_date ~cookie_scope ?secure t =
-  lwt c = Eliommod_persess.find_or_create_persistent_cookie
-    ~cookie_scope ~secure () in
-  let exp = c.Eliom_common.pc_cookie_exp in
-  return
-      (match t with
-      | None -> exp := Eliom_common.CEBrowser
-      | Some t -> exp := Eliom_common.CESome t)
-
-let get_persistent_data_cookie_exp_date ~cookie_scope ?secure () =
-  try_lwt
-    lwt c = Eliommod_persess.find_persistent_cookie_only
-      ~cookie_scope ~secure () in
-    return !(c.Eliom_common.pc_cookie_exp)
-  with
-    | Not_found
-    | Eliom_common.Eliom_Session_expired ->
-      return Eliom_common.CEBrowser
-
-
-
-
+let set_cookie_exp_date ~cookie_scope ?secure ~kind t =
+  lwt exp =
+    match kind with
+    | `Service ->
+      (Eliommod_sersess.find_or_create_service_cookie
+         ~cookie_scope ~secure ())
+      . Eliom_common.sc_cookie_exp
+      |> Lwt.return
+    | `Data ->
+      (Eliommod_datasess.find_or_create_data_cookie
+         ~cookie_scope ~secure ())
+      .Eliom_common.dc_cookie_exp
+      |> Lwt.return
+    | `Persistent ->
+      lwt c =
+        Eliommod_persess.find_or_create_persistent_cookie
+          ~cookie_scope ~secure ()
+      in
+      Lwt.return (c.Eliom_common.pc_cookie_exp)
+  in
+  (match t with
+   | None -> exp := Eliom_common.CEBrowser
+   | Some t -> exp := Eliom_common.CESome t);
+  Lwt.return ()
 
 (* *)
 let get_global_table () =
   let sitedata = Eliom_request_info.find_sitedata "get_global_table" in
   sitedata.Eliom_common.global_services
-
 
 (** If the session does not exist, we create it
    (new cookie, new session service table) *)
