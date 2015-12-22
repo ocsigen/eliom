@@ -469,190 +469,99 @@ val set_persistent_data_cookie_exp_date :
 
 (** {3 Global configuration of state timeouts} *)
 
-(** The following functions set the timeout for states, for the
-    different kinds of states.  States will be closed after
-    this amount of time of inactivity from the user. [None] means no
-    timeout.
+module Timeout : sig
 
-    The optional parameter [?recompute_expdates] is [false] by
-    default.  If you set it to [true], the expiration dates for all
-    states in the table will be recomputed with the new timeout.
-    That is, the difference between the new timeout and the old one
-    will be added to their expiration dates (asynchronously,
-    by another Lwt thread, as this can take a long time).
-    States whose timeout has been set individually with
-    functions like
-    {!Eliom_state.set_volatile_data_state_timeout} won't be affected.
+  (** The following functions set or get the timeout for states, for
+      the different kinds of states. States will be closed after this
+      amount of time of inactivity from the user. [None] means no
+      timeout.
 
-    If [~scope_hierarchy] is not present,
-    it is the default for all scope hierarchies,
-    and in that case [recompute_expdates] is ignored. [~scope_hierarchy:None]
-    means the default scope hierarchy.
+      The [~kind] parameter specifies the kind of state.
 
-    If [~override_configfile] is [true] (default ([false]),
-    then the function will set the timeout even if it has been
-    modified in the configuration file.
-    It means that by default, these functions have no effect
-    if there is a value in the configuration file.
-    This gives the ability to override the values chosen by the module
-    in the configuration file.
-    Use [~override_configfile:true] for example if your
-    Eliom module wants to change the values afterwards
-    (for example in the site configuration Web interface).
-*)
+      The optional parameter [?recompute_expdates] is [false] by
+      default.  If you set it to [true], the expiration dates for all
+      states in the table will be recomputed with the new timeout.
+      That is, the difference between the new timeout and the old one
+      will be added to their expiration dates (asynchronously, by
+      another Lwt thread, as this can take a long time).  States whose
+      timeout has been set individually with functions like
+      {!Eliom_state.set_volatile_data_state_timeout} won't be
+      affected.
 
-(** Sets the (server side) timeout for volatile (= "in memory") sessions (both
-    service session and volatile data session).
-*)
-val set_global_volatile_state_timeout :
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
-  ?secure: bool ->
-  ?recompute_expdates:bool ->
-  ?override_configfile:bool ->
-  float option -> unit
+      If [~scope_hierarchy] is not present, it is the default for all
+      scope hierarchies, and in that case [recompute_expdates] is
+      ignored. [~scope_hierarchy:None] means the default scope
+      hierarchy.
 
-val set_default_global_service_state_timeout :
-  cookie_level:[< Eliom_common.cookie_level ] ->
-  ?override_configfile:bool ->
-  float option -> unit
+      If [~override_configfile] is [true] (default ([false]), then the
+      function will set the timeout even if it has been modified in
+      the configuration file.  It means that by default, these
+      functions have no effect if there is a value in the
+      configuration file.  This gives the ability to override the
+      values chosen by the module in the configuration file.  Use
+      [~override_configfile:true] for example if your Eliom module
+      wants to change the values afterwards (for example in the site
+      configuration Web interface).  *)
 
-(** Sets the (server side) timeout for service states.
-*)
-val set_global_service_state_timeout :
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
-  ?secure: bool ->
-  ?recompute_expdates:bool ->
-  ?override_configfile:bool ->
-  float option -> unit
+  type kind = [ `Service | `Data | `Persistent ]
 
-val set_default_global_service_state_timeout :
-  cookie_level:[< Eliom_common.cookie_level ] ->
-  ?override_configfile:bool ->
-  float option -> unit
+  (** Sets the (server side) timeout for service states.  *)
+  val set_global :
+    kind:[< kind ] ->
+    cookie_scope:[< Eliom_common.cookie_scope ] ->
+    ?secure: bool ->
+    ?recompute_expdates:bool ->
+    ?override_configfile:bool ->
+    float option -> unit
 
-(** Sets the (server side) timeout for volatile (= "in memory") data states.
-*)
-val set_global_volatile_data_state_timeout :
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
-  ?secure: bool ->
-  ?recompute_expdates:bool ->
-  ?override_configfile:bool ->
-  float option -> unit
+  val set_default_global :
+    kind:[< kind ] ->
+    cookie_level:[< Eliom_common.cookie_level ] ->
+    ?override_configfile:bool ->
+    float option -> unit
 
-val set_default_global_volatile_data_state_timeout :
-  cookie_level:[< Eliom_common.cookie_level ] ->
-  ?override_configfile:bool ->
-  float option -> unit
+  (** Sets the (server side) timeout for volatile (= "in memory")
+      sessions (both service session and volatile data session).  *)
+  val set_global_volatile :
+    cookie_scope:[< Eliom_common.cookie_scope ] ->
+    ?secure: bool ->
+    ?recompute_expdates:bool ->
+    ?override_configfile:bool ->
+    float option -> unit
 
-(** Sets the (server side) timeout for persistent states.
-*)
-val set_global_persistent_data_state_timeout :
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
-  ?secure: bool ->
-  ?recompute_expdates:bool ->
-  ?override_configfile:bool ->
-  float option -> unit
+  (** Returns the (server side) timeout. *)
+  val get_global :
+    ?secure:bool ->
+    kind:[< kind ] ->
+    cookie_scope:[< Eliom_common.cookie_scope ] ->
+    unit -> float option
 
-val set_default_global_persistent_data_state_timeout :
-  cookie_level:[< Eliom_common.cookie_level ] ->
-  ?override_configfile:bool ->
-  float option -> unit
+  (** {3 Personalizing timeouts for current state} *)
 
+  (** sets the state timeout for current user, in seconds. [None] = no
+      timeout *)
+  val set :
+    kind:[< kind ] ->
+    cookie_scope:Eliom_common.cookie_scope ->
+    ?secure:bool ->
+    float option -> unit Lwt.t
 
-(** Returns the (server side) timeout for service states.
-*)
-val get_global_service_state_timeout :
-  ?secure: bool ->
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
-  unit -> float option
+  (** returns the timeout for current state. [None] = no timeout *)
+  val get :
+    kind:[< kind ] ->
+    cookie_scope:[< Eliom_common.cookie_scope ] ->
+    ?secure:bool ->
+    unit -> float option Lwt.t
 
-(** Returns the (server side) timeout for "volatile data" states.
-*)
-val get_global_volatile_data_state_timeout :
-  ?secure: bool ->
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
-  unit -> float option
+  (** remove the state timeout for current user (and turn back to the
+      default). *)
+  val unset :
+    kind:[< kind ] ->
+    cookie_scope:[< Eliom_common.cookie_scope ] ->
+    ?secure:bool ->
+    unit -> unit Lwt.t
 
-(** Returns the (server side) timeout for persistent states.
-*)
-val get_global_persistent_data_state_timeout :
-  ?secure: bool ->
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
-  unit -> float option
-
-
-
-(** {3 Personalizing timeouts for current state} *)
-
-(** sets the timeout for service state (server side) for current user,
-   in seconds. [None] = no timeout *)
-val set_service_state_timeout :
-  cookie_scope:Eliom_common.cookie_scope ->
-  ?secure:bool ->
-  float option -> unit
-
-(** remove the service state timeout for current user
-   (and turn back to the default). *)
-val unset_service_state_timeout :
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
-  ?secure:bool ->
-  unit -> unit
-
-(** returns the timeout for current service state.
-    [None] = no timeout
- *)
-val get_service_state_timeout :
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
-  ?secure:bool ->
-  unit -> float option
-
-
-(** sets the (server side) timeout for volatile data state for current user,
-   in seconds. [None] = no timeout *)
-val set_volatile_data_state_timeout :
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
-  ?secure:bool ->
-  float option -> unit
-
-(** remove the "volatile data" state timeout for current user
-   (and turn back to the default). *)
-val unset_volatile_data_state_timeout :
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
-  ?secure:bool ->
-  unit -> unit
-
-(** returns the timeout for current volatile data state.
-    [None] = no timeout
- *)
-val get_volatile_data_state_timeout :
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
-  ?secure:bool ->
-  unit -> float option
-
-
-
-(** sets the (server side) timeout for persistent state for current user,
-   in seconds. [None] = no timeout *)
-val set_persistent_data_state_timeout :
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
-  ?secure:bool ->
-  float option -> unit Lwt.t
-
-(** remove the persistent state timeout for current user
-   (and turn back to the default). *)
-val unset_persistent_data_state_timeout :
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
-  ?secure:bool ->
-  unit -> unit Lwt.t
-
-(** returns the persistent state timeout for current user.
-    [None] = no timeout *)
-val get_persistent_data_state_timeout :
-  cookie_scope:[< Eliom_common.cookie_scope ] ->
-  ?secure:bool ->
-  unit -> float option Lwt.t
-
-
+end
 
 (*****************************************************************************)
 (** {2 Administrating server side state} *)

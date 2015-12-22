@@ -523,9 +523,10 @@ module Make (S : HiddenServiceInfo) = struct
       ~scope
       group_name
     in
-    let _ = Eliom_state.set_global_service_state_timeout
-      ~cookie_scope:scope
-      (Some 60.)
+    let _ =
+      Eliom_state.Timeout.set_global
+        ~kind:`Service ~cookie_scope:scope
+        (Some 60.)
     in
     let params =
       ["return_to", !uri;
