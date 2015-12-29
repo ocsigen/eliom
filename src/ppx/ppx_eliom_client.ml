@@ -185,7 +185,7 @@ module Pass = struct
           let attr =
             AM.attribute_of_warning ptyp_loc
               "The type of this injected value contains a type variable \
-               that could be wrongly infered."
+               that could be wrongly inferred."
           in
           { typ with ptyp_attributes = attr :: typ.ptyp_attributes }
         | typ -> AM.default_mapper.typ mapper typ
