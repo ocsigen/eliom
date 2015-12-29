@@ -210,10 +210,10 @@ module Mli = struct
         ~loc:(Location.in_file file)
         "Eliom: Error while loading types: %s" s
 
-  let infered_sig = lazy (load_file (get_type_file ()))
+  let inferred_sig = lazy (load_file (get_type_file ()))
 
   let find err {Location. txt ; loc } =
-    try Hashtbl.find (Lazy.force infered_sig) txt with
+    try Hashtbl.find (Lazy.force inferred_sig) txt with
     | Not_found ->
       Typ.extension ~loc @@ AM.extension_of_error @@ Location.errorf ~loc
         "Error: Inferred type of %s not found. You need to regenerate %s."
