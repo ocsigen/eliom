@@ -2,13 +2,19 @@
 BUILDER=_build/build/build.native
 BUILD=ocaml pkg/build.ml
 
+PPX_ARGS="ppx=true"
+
+ifeq ($(PPX),false)
+  PPX_ARGS="ppx=false"
+endif
+
 .PHONY: all byte opt builder
 all: $(BUILDER)
-	$(BUILD) manpage=false native=true native-dynlink=true
+	$(BUILD) $(PPX_ARGS) manpage=false native=true native-dynlink=true
 byte: $(BUILDER)
-	$(BUILD) manpage=false native=false native-dynlink=false
+	$(BUILD) $(PPX_ARGS) manpage=false native=false native-dynlink=false
 opt: $(BUILDER)
-	$(BUILD) manpage=false native=true native-dynlink=true
+	$(BUILD) $(PPX_ARGS) manpage=false native=true native-dynlink=true
 
 $(BUILDER): $(wildcard build/*.ml)
 	ocamlbuild -no-plugin -I src/ocamlbuild -no-links -use-ocamlfind build/build.native 1> /dev/null
