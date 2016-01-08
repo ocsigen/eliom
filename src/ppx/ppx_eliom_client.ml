@@ -19,6 +19,7 @@ module Pass = struct
          match e.pexp_desc with
          | Pexp_ident {txt} when Mli.is_escaped_ident @@ Longident.last txt ->
            [%expr Eliom_client.Syntax_helpers.get_escaped_value [%e e] ]
+           [@metaloc e.pexp_loc]
          | _ -> AM.default_mapper.expr mapper e
        );
       }
@@ -146,6 +147,7 @@ module Pass = struct
 
   let fragment ?typ:_ ~context ~num ~id expr =
 
+    let loc = expr.pexp_loc in
     let frag_eid = eid id in
     let escaped_bindings = flush_escaped_bindings () in
 
@@ -159,7 +161,8 @@ module Pass = struct
     | `Shared ->
       let bindings =
         List.map
-          (fun (gen_id, expr) -> Vb.mk (Pat.var gen_id) expr )
+          (fun (gen_id, expr) ->
+             Vb.mk ~loc:expr.pexp_loc (Pat.var gen_id) expr )
           escaped_bindings
       in
       let args =
@@ -167,12 +170,11 @@ module Pass = struct
           (fun (id, _) -> eid id)
           escaped_bindings
       in
-      let new_e =
-        Exp.let_
-          Nonrecursive
-          bindings
-          (Exp.apply frag_eid [ "" , args ])
-      in new_e
+      Exp.let_ ~loc
+        Nonrecursive
+        bindings
+        (Exp.apply ~loc frag_eid [ "" , args ])
+
 
 
   let escape_inject ?ident ~(context:Context.escape_inject) ~id expr =
@@ -181,9 +183,9 @@ module Pass = struct
 
     let assert_no_variables t =
       let typ mapper = function
-        | {ptyp_desc = Ptyp_var _ ; ptyp_loc } as typ ->
+        | {ptyp_desc = Ptyp_var _ } as typ ->
           let attr =
-            AM.attribute_of_warning ptyp_loc
+            AM.attribute_of_warning loc
               "The type of this injected value contains a type variable \
                that could be wrongly inferred."
           in
@@ -201,7 +203,7 @@ module Pass = struct
       let typ = find_escaped_ident id in
       let typ = assert_no_variables typ in
       push_escaped_binding id expr;
-      [%expr ([%e frag_eid] : [%t typ]) ]
+      [%expr ([%e frag_eid] : [%t typ]) ][@metaloc loc]
 
 
     (* [%%server ... %x ... ] *)
@@ -218,7 +220,7 @@ module Pass = struct
            ~pos:([%e position loc])
            [%e Exp.constant ~loc:id.loc (Const_string (id.txt, None))]
          : [%t typ])
-      ]
+      ][@metaloc loc]
 
   let shared_sig item = [item]
   let server_sig _    = []
