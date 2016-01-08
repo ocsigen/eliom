@@ -29,9 +29,9 @@ include module type of Eliom_lib_base
   with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
   with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
   with type client_value_datum = Eliom_lib_base.client_value_datum
-  with type 'a injection_datum := 'a Eliom_lib_base.injection_datum
-  with type 'a compilation_unit_global_data = 'a Eliom_lib_base.compilation_unit_global_data
-  with type 'a global_data := 'a Eliom_lib_base.global_data
+  with type injection_datum := Eliom_lib_base.injection_datum
+  with type compilation_unit_global_data = Eliom_lib_base.compilation_unit_global_data
+  with type global_data := Eliom_lib_base.global_data
   with type request_data = Eliom_lib_base.request_data
 
 (** See {% <<a_api subproject="client"|type
@@ -121,8 +121,8 @@ val encode_header_value : 'a -> string
 
 (**/**)
 
-type injection_datum = poly Eliom_lib_base.injection_datum
-type global_data = unit (* Global data only needed while unwrapping *)
+type injection_datum = Eliom_lib_base.injection_datum
+type global_data (* Global data only needed while unwrapping *)
 
 (** Return a base-64 encoded cryptographic safe string of the given length.
     Not implemented client-side. *)

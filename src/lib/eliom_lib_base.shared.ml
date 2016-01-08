@@ -279,19 +279,18 @@ type client_value_datum = {
   value : poly;
 }
 
-type 'injection_value injection_datum = {
+type injection_datum = {
   injection_id : string;
-  injection_value : 'injection_value;
+  injection_value : poly;
   injection_dbg : (pos * string option) option;
 }
 
-type 'injection_value compilation_unit_global_data = {
-  server_sections_data : (client_value_datum array) array;
-  client_sections_data : ('injection_value injection_datum array) array;
+type compilation_unit_global_data = {
+  server_sections_data : client_value_datum array array;
+  client_sections_data : injection_datum array array;
 }
 
-type 'injection_value global_data =
-    'injection_value compilation_unit_global_data String_map.t
+type global_data = compilation_unit_global_data String_map.t
 
 type request_data = client_value_datum list
 

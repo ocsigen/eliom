@@ -472,7 +472,7 @@ val eliom_appl_answer_content_type : string
 
 exception Wrong_session_table_for_CSRF_safe_coservice
 
-val get_global_data : unit -> poly Eliom_lib_base.global_data
+val get_global_data : unit -> Eliom_lib_base.global_data
 val get_request_data : unit -> request_data
 
 module Syntax_helpers : sig

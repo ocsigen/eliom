@@ -242,9 +242,9 @@ let pre_wrap s =
 
 (* Global data *)
 
-type 'a compilation_unit_global_data =
-  { mutable server_section : (client_value_datum array) list;
-    mutable client_section : ('a injection_datum array) list }
+type compilation_unit_global_data =
+  { mutable server_section : client_value_datum array list;
+    mutable client_section : injection_datum array list }
 
 let get_global_data, modify_global_data =
   (* We have to classify global data from ocsigen extensions (no site

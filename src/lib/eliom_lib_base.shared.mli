@@ -177,23 +177,22 @@ type client_value_datum = {
 }
 
 (** Data for initializing one injection *)
-type 'injection_value injection_datum = {
+type injection_datum = {
   injection_id : string;
-  injection_value : 'injection_value;
+  injection_value : poly;
   injection_dbg : (pos * string option) option;
 }
 
 (** Data for initializing client values and injections of one compilation unit *)
-type 'injection_value compilation_unit_global_data = {
-  server_sections_data : (client_value_datum array) array;
-  client_sections_data : ('injection_value injection_datum array) array;
+type compilation_unit_global_data = {
+  server_sections_data : client_value_datum array array;
+  client_sections_data : injection_datum array array;
 }
 
 (** Data for initializing client values and injection of the client
     program. Sent with the response to the initial request of a client
     process. *)
-type 'injection_value global_data =
-    'injection_value compilation_unit_global_data String_map.t
+type global_data = compilation_unit_global_data String_map.t
 
 (** Data for initializing client values sent with a request. Sent with
     the response to any follow-up request of a client process. *)

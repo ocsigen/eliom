@@ -212,7 +212,7 @@ let middleClick ev =
   | _ -> false
 
 module Injection : sig
-  val get : ?ident:string -> ?pos:Eliom_lib.pos -> name:string -> _
+  val get : ?ident:string -> ?pos:pos -> name:string -> _
   val initialize : injection_datum -> unit
 end = struct
 
@@ -246,8 +246,8 @@ end
 (* == Populating client values and injections by global data *)
 
 type compilation_unit_global_data =
-  { mutable server_section : (client_value_datum array) list;
-    mutable client_section : (injection_datum array) list }
+  { mutable server_section : client_value_datum array list;
+    mutable client_section : injection_datum array list }
 
 let global_data = ref String_map.empty
 
