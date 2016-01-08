@@ -28,22 +28,34 @@ module Lwt_ops = struct
   let (=|<) = Lwt.(=|<)
 end
 
-let fresh_ix () =
-  Int64.of_int (Oo.id (object end))
+type pos = Lexing.position * Lexing.position
+
+let pos_to_string ((start,stop) : pos) =
+  let open Lexing in
+  let start_col = start.pos_cnum - start.pos_bol in
+  let stop_col = stop.pos_cnum - stop.pos_bol in
+  if start.pos_lnum = stop.pos_lnum
+  then if start_col = stop_col
+    then Printf.sprintf "%s %d:%d" start.pos_fname start.pos_lnum start_col
+    else Printf.sprintf "%s %d:%d-%d" start.pos_fname start.pos_lnum start_col stop_col
+  else Printf.sprintf "%s %d:%d-%d:%d" start.pos_fname start.pos_lnum start_col stop.pos_lnum stop_col
 
 (**/**)
 
 module Client_value_server_repr = struct
 
-  type +'a t = {
-    closure_id: int64;
-    instance_id: int64;
+  type u = {
+    mutable loc : pos option;
+    instance_id: int;
+    unwrapper: Eliom_wrap.unwrapper
   }
+  type 'a t = u
 
-  let create ~closure_id ~instance_id =
-    { closure_id; instance_id }
-  let closure_id { closure_id } = closure_id
-  let instance_id { instance_id } = instance_id
+  let create ?loc ~instance_id ~unwrapper = { instance_id; loc; unwrapper }
+  let instance_id cv = cv.instance_id
+  let loc cv = cv.loc
+  let clear_loc cv = cv.loc <- None
+  let to_poly v = v
 end
 
 type escaped_value = poly
@@ -60,9 +72,9 @@ module RawXML = struct
 
   type -'a caml_event_handler =
     | CE_registered_closure of
-        string *
-        ((#Dom_html.event as 'a) Js.t -> unit) Client_value_server_repr.t
-    | CE_client_closure of ('a Js.t -> unit) (* Client side-only *)
+        string * poly (* 'a Js.t -> unit) client_value *)
+    | CE_client_closure of
+        ((#Dom_html.event as 'a) Js.t -> unit) (* Client side-only *)
     | CE_call_service of
         ([ `A | `Form_get | `Form_post] * (cookie_info option) * string option)
           option Eliom_lazy.request
@@ -119,7 +131,7 @@ module RawXML = struct
     | RACamlEventHandler of biggest_event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
-    | RAClient of string * attrib option * attrib Client_value_server_repr.t
+    | RAClient of string * attrib option * poly (*attrib client_value *)
   and attrib = aname * racontent
 
   let aname = function
@@ -167,9 +179,9 @@ module RawXML = struct
   module ClosureMap = Map.Make(struct type t = string let compare = compare end)
 
   type event_handler_table =
-    ((biggest_event Js.t -> unit) Client_value_server_repr.t) ClosureMap.t
+    poly (* (biggest_event Js.t -> unit) client_value *) ClosureMap.t
 
-  type client_attrib_table = attrib Client_value_server_repr.t ClosureMap.t
+  type client_attrib_table = poly (* attrib client_value *) ClosureMap.t
 
   let filter_class_value acc = function
     | AStr v ->
@@ -259,24 +271,10 @@ module Int64_map = Map_make (Int64)
 module Int_map = Map_make (struct type t = int let compare = (-) let to_string = string_of_int end)
 module String_map = Map_make (struct include String let to_string x = x end)
 
-type pos = Lexing.position * Lexing.position
-
-let pos_to_string ((start,stop) : pos) =
-  let open Lexing in
-  let start_col = start.pos_cnum - start.pos_bol in
-  let stop_col = stop.pos_cnum - stop.pos_bol in
-  if start.pos_lnum = stop.pos_lnum
-  then if start_col = stop_col
-    then Printf.sprintf "%s %d:%d" start.pos_fname start.pos_lnum start_col
-    else Printf.sprintf "%s %d:%d-%d" start.pos_fname start.pos_lnum start_col stop_col
-  else Printf.sprintf "%s %d:%d-%d:%d" start.pos_fname start.pos_lnum start_col stop.pos_lnum stop_col
-
 type client_value_datum = {
   closure_id : int64;
-  instance_id : int64;
-  loc: pos option;
   args : poly;
-  value : poly;
+  value : poly Client_value_server_repr.t
 }
 
 type injection_datum = {

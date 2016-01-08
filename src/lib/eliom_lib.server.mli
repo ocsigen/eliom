@@ -76,10 +76,14 @@ end
 
 (**/**)
 
-val create_client_value : 'a Client_value_server_repr.t -> 'a client_value
+val create_client_value :
+  ?loc:pos -> instance_id:int -> _ Client_value_server_repr.t
+val client_value_from_server_repr :
+  'a Client_value_server_repr.t -> 'a client_value
+val client_value_datum :
+  closure_id:int64 -> args:poly -> value:'a client_value -> client_value_datum
 val create_shared_value : 'a -> 'a client_value -> 'a shared_value
 val shared_value_server_repr : 'a shared_value -> 'a * 'a client_value
-val client_value_server_repr : 'a client_value -> 'a Client_value_server_repr.t
 
 val escaped_value : 'a -> escaped_value (* * Eliom_wrap.unwrapper *)
 

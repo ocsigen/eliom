@@ -149,39 +149,23 @@ end = struct
 end
 
 module Client_value : sig
-  val find : closure_id:int64 -> instance_id:int64 -> _
+  val find : instance_id:int -> poly option
   val initialize : client_value_datum -> unit
 end = struct
 
-  let table = Jstable.create ()
+  let table = jsnew Js.array_empty ()
 
-  let closure_key closure_id = int64_to_string closure_id
+  let find ~instance_id =
+    if instance_id = 0 then (* local client value *) None else
+    Js.Optdef.to_option (Js.array_get table instance_id)
 
-  let instance_key instance_id = int64_to_string instance_id
-
-  let find ~closure_id ~instance_id =
-    let value =
-      let instances =
-        Js.Optdef.get
-          (Jstable.find
-             table
-             (closure_key closure_id))
-          (fun () -> raise Not_found)
-      in
-      Js.Optdef.get
-        (Jstable.find
-           instances
-           (instance_key instance_id))
-        (fun () -> raise Not_found)
-    in
-    from_poly value
-
-  let initialize {closure_id; loc; instance_id; args; value = old_value} =
+  let initialize {closure_id; args; value = server_value} =
     let closure =
       try
         Client_closure.find ~closure_id
       with Not_found ->
-        let pos = match loc with
+        let pos =
+          match Client_value_server_repr.loc server_value with
           | None -> ""
           | Some p -> Printf.sprintf "(%s)" (Eliom_lib.pos_to_string p) in
         Lwt_log.raise_error_f ~section
@@ -189,16 +173,10 @@ end = struct
           closure_id pos
     in
     let value = closure args in
-    Eliom_unwrap.late_unwrap_value old_value value;
-    let instances =
-      Js.Optdef.get
-        (Jstable.find table (closure_key closure_id))
-        (fun () ->
-           let instances = Jstable.create () in
-           Jstable.add table (closure_key closure_id) instances;
-           instances)
-    in
-    Jstable.add instances (instance_key instance_id) value
+    Eliom_unwrap.late_unwrap_value server_value value;
+    (* Only register global client values *)
+    let instance_id = Client_value_server_repr.instance_id server_value in
+    if instance_id <> 0 then Js.array_set table instance_id value
 end
 
 let middleClick ev =
@@ -309,11 +287,12 @@ let check_global_data global_data =
        "Code generating the following client values is not linked on the client:\n%s"
        (String.concat "\n"
           (List.rev_map
-             (fun d ->
-                match d.loc with
-                | None -> Printf.sprintf "%Ld/%Ld" d.closure_id d.instance_id
+             (fun {closure_id; value} ->
+                let instance_id = Client_value_server_repr.instance_id value in
+                match Client_value_server_repr.loc value with
+                | None -> Printf.sprintf "%Ld/%d" closure_id instance_id
                 | Some pos ->
-                  Printf.sprintf "%Ld/%Ld at %s" d.closure_id d.instance_id
+                  Printf.sprintf "%Ld/%d at %s" closure_id instance_id
                     (Eliom_lib.pos_to_string pos)
              )
              l
@@ -491,16 +470,10 @@ let raw_form_handler form kind cookies_info tmpl ev =
   || (https = Some false && Eliom_request_info.ssl_)
   || (change_page_form ?cookies_info ?tmpl form action; false)
 
-let raw_event_handler cv =
-  let closure_id = Client_value_server_repr.closure_id cv in
-  let instance_id = Client_value_server_repr.instance_id cv in
-  try
-    let value = Client_value.find ~closure_id ~instance_id in
-    let handler = (Eliom_lib.from_poly value : #Dom_html.event Js.t -> unit) in
-    fun ev -> try handler ev; true with False -> false
-  with Not_found ->
-    Lwt_log.raise_error_f ~section
-      "Client value %Ld/%Ld not found as event handler" closure_id instance_id
+let raw_event_handler value =
+  let handler = (*XXX???*)
+    (Eliom_lib.from_poly (Eliom_lib.to_poly value) : #Dom_html.event Js.t -> unit) in
+  fun ev -> try handler ev; true with False -> false
 
 let closure_name_prefix = Eliom_lib_base.RawXML.closure_name_prefix
 let closure_name_prefix_len = String.length closure_name_prefix
@@ -670,15 +643,9 @@ let rec rebuild_rattrib node ra = match Xml.racontent ra with
   | Xml.RALazyStrL (Xml.Comma, l) ->
     node##setAttribute(Js.string (Xml.aname ra),
                        Js.string (String.concat "," l))
-  | Xml.RAClient (_,_,cv) ->
-    let closure_id = Client_value_server_repr.closure_id cv in
-    let instance_id = Client_value_server_repr.instance_id cv in
-    try
-      let value = Client_value.find ~closure_id ~instance_id in
-      rebuild_rattrib node (Eliom_lib.from_poly value : Xml.attrib)
-    with Not_found ->
-      Lwt_log.raise_error_f "Client value %Ld/%Ld not found as client attrib"
-        closure_id instance_id
+  | Xml.RAClient (_,_,value) ->
+    rebuild_rattrib node
+      (Eliom_lib.from_poly (Eliom_lib.to_poly value) : Xml.attrib)
 
 
 
@@ -1148,21 +1115,10 @@ let relink_attrib root table (node:Dom_html.element Js.t) =
     then
       let cid = Js.to_bytestring (get_attrib_id attr) in
       try
-        let cv = Eliom_lib.RawXML.ClosureMap.find cid table in
-        let closure_id = Client_value_server_repr.closure_id cv in
-        let instance_id = Client_value_server_repr.instance_id cv in
-        begin
-          try
-            let value = Client_value.find ~closure_id ~instance_id in
-            let rattrib =
-              (Eliom_lib.from_poly value : Eliom_content_core.Xml.attrib)
-            in
-            rebuild_rattrib node rattrib
-          with Not_found ->
-            Lwt_log.raise_error_f ~section
-              "Client value %Ld/%Ld not found as event handler"
-              closure_id instance_id
-        end
+        let value = Eliom_lib.RawXML.ClosureMap.find cid table in
+        let rattrib: Eliom_content_core.Xml.attrib =
+          (Eliom_lib.from_poly (Eliom_lib.to_poly value)) in
+        rebuild_rattrib node rattrib
       with Not_found ->
         Lwt_log.raise_error_f ~section
           "relink_attrib: client value %s not found" cid
@@ -1961,14 +1917,11 @@ let unwrap_tyxml =
     register_unwrapped_elt elt;
     elt
 
-let unwrap_client_value ({closure_id; instance_id},_) =
-  try
-    Some (Client_value.find ~closure_id ~instance_id)
-  with Not_found ->
-    (* BB By returning [None] this value will be registered for late
-       unwrapping, and late unwrapped in Client_value.initialize as
-       soon as it is available. *)
-    None
+let unwrap_client_value cv =
+  Client_value.find ~instance_id:(Client_value_server_repr.instance_id cv)
+  (* BB By returning [None] this value will be registered for late
+     unwrapping, and late unwrapped in Client_value.initialize as
+     soon as it is available. *)
 
 let unwrap_global_data = fun (global_data', _) ->
   global_data :=

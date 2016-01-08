@@ -143,7 +143,8 @@ module Xml : sig
     | RACamlEventHandler of biggest_event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
-    | RAClient of string * attrib option * attrib Eliom_lib.Client_value_server_repr.t
+    | RAClient of string * attrib option * Eliom_lib.poly
+                                           (* attrib client_value *)
   val racontent : attrib -> racontent
 
   val lazy_node : ?a:(attrib list) -> ename -> elt list Eliom_lazy.request -> elt

@@ -80,13 +80,19 @@ let wrap_and_marshall_poly : poly -> string =
   fun poly ->
     string_escape (Marshal.to_string (Eliom_wrap.wrap poly) [])
 
-type +'a client_value = 'a Client_value_server_repr.t * Eliom_wrap.unwrapper
+type +'a client_value = 'a Client_value_server_repr.t
 
 let client_value_unwrapper =
   Eliom_wrap.create_unwrapper
     (Eliom_wrap.id_of_int Eliom_lib_base.client_value_unwrap_id_int)
 
-let create_client_value cv = (cv, client_value_unwrapper)
+let create_client_value ?loc ~instance_id =
+  Client_value_server_repr.create
+    ?loc ~instance_id ~unwrapper:client_value_unwrapper
+let client_value_from_server_repr cv = cv
+
+let client_value_datum ~closure_id ~args ~value =
+  {closure_id; args; value = Client_value_server_repr.to_poly value}
 
 type +'a shared_value =
   {
@@ -107,8 +113,6 @@ let create_shared_value
    sh_mark = shared_value_mark ()}
 
 let shared_value_server_repr x = x.sh_server,x.sh_client
-
-let client_value_server_repr = fst
 
 exception Client_value_creation_invalid_context of int64
 

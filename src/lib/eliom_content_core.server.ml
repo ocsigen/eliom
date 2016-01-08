@@ -125,7 +125,7 @@ module Xml = struct
 
   let caml_event_handler cf =
     let crypto = make_cryptographic_safe_string () in
-    CE_registered_closure (crypto, Eliom_lib.client_value_server_repr cf)
+    CE_registered_closure (crypto, Eliom_lib.to_poly cf)
 
   let event_handler cf =
     Caml (caml_event_handler cf)
@@ -142,7 +142,7 @@ module Xml = struct
   let client_attrib ?init (x : attrib Eliom_lib.client_value) =
     let crypto = make_cryptographic_safe_string () in
     let empty_name = "" in
-    empty_name,RAClient (crypto,init,Eliom_lib.client_value_server_repr x)
+    empty_name,RAClient (crypto,init,Eliom_lib.to_poly x)
 
   let closing_cdata = Netstring_pcre.regexp_string "]]>"
 
