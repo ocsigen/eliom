@@ -180,8 +180,7 @@ type client_value_datum = {
 type 'injection_value injection_datum = {
   injection_id : string;
   injection_value : 'injection_value;
-  injection_loc : pos option;
-  injection_ident : string option;
+  injection_dbg : (pos * string option) option;
 }
 
 (** Data for initializing client values and injections of one compilation unit *)

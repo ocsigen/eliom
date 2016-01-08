@@ -1936,8 +1936,7 @@ module Eliom_appl_reg_make_param
                     );
                 client_sections_data = queue_map client_sections_data
                     (
-                      List.map (fun x -> {x with injection_loc = None;
-                                                 injection_ident = None})
+                      List.map (fun x -> {x with injection_dbg = None})
                     )
               }) data
         in

@@ -327,13 +327,11 @@ let check_global_data global_data =
                    "__eliom__injected_ident__reserved_name__%019d__%d"
                    (Printf.sprintf "%d/%d")
                with _ -> d.Eliom_lib_base.injection_id in
-             match d.Eliom_lib_base.injection_ident,
-                   d.Eliom_lib_base.injection_loc with
-             | None,None -> id
-             | Some i,None -> Printf.sprintf "%s (%s)" id i
-             | Some i,Some pos ->
+             match d.Eliom_lib_base.injection_dbg with
+             | None -> id
+             | Some (pos, Some i) ->
                Printf.sprintf "%s (%s at %s)" id i (Eliom_lib.pos_to_string pos)
-             | None, Some pos ->
+             | Some (pos, None) ->
                Printf.sprintf "%s (at %s)" id (Eliom_lib.pos_to_string pos)
            ) l)))
 

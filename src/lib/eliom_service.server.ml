@@ -297,7 +297,7 @@ let close_client_section ~compilation_unit_id injection_data =
     get_compilation_unit_global_data compilation_unit_id
   in
   let injection_datum (injection_id, injection_value, loc, ident) =
-    { injection_id; injection_value ; injection_loc = Some loc; injection_ident = ident }
+    { injection_id; injection_value ; injection_dbg = Some (loc, ident) }
   in
   Queue.push (List.map injection_datum injection_data)
     client_sections_data
