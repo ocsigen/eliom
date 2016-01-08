@@ -286,8 +286,8 @@ type 'injection_value injection_datum = {
 }
 
 type 'injection_value compilation_unit_global_data = {
-  server_sections_data : (client_value_datum list) Queue.t;
-  client_sections_data : ('injection_value injection_datum list) Queue.t;
+  server_sections_data : (client_value_datum array) array;
+  client_sections_data : ('injection_value injection_datum array) array;
 }
 
 type 'injection_value global_data =

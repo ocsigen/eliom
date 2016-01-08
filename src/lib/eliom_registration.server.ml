@@ -1930,14 +1930,16 @@ module Eliom_appl_reg_make_param
           if keep_debug
           then data
           else String_map.map (fun {server_sections_data;client_sections_data} ->
-              { server_sections_data = queue_map server_sections_data
+              { server_sections_data = Array.map
                     (
-                      List.map (fun x -> {x with loc = None})
-                    );
-                client_sections_data = queue_map client_sections_data
-                    (
-                      List.map (fun x -> {x with injection_dbg = None})
+                      Array.map (fun x -> {x with loc = None})
                     )
+                    server_sections_data;
+                client_sections_data = Array.map
+                    (
+                      Array.map (fun x -> {x with injection_dbg = None})
+                    )
+                    client_sections_data
               }) data
         in
         Some (data, global_data_unwrapper)

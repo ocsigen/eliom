@@ -242,6 +242,10 @@ let pre_wrap s =
 
 (* Global data *)
 
+type 'a compilation_unit_global_data =
+  { mutable server_section : (client_value_datum array) list;
+    mutable client_section : ('a injection_datum array) list }
+
 let get_global_data, modify_global_data =
   (* We have to classify global data from ocsigen extensions (no site
      available) and eliommodules (site data available).
@@ -280,27 +284,25 @@ let current_server_section_data = ref []
 
 let get_compilation_unit_global_data compilation_unit_id =
   if not (String_map.mem compilation_unit_id (get_global_data ())) then
-    ( let data = { server_sections_data = Queue.create (); client_sections_data = Queue.create () } in
+    ( let data = { server_section = []; client_section = [] } in
       ignore (modify_global_data (String_map.add compilation_unit_id data)) );
   String_map.find compilation_unit_id (get_global_data ())
 
 let close_server_section ~compilation_unit_id =
-  let { server_sections_data } =
-    get_compilation_unit_global_data compilation_unit_id
-  in
-  Queue.push (List.rev !current_server_section_data)
-    server_sections_data;
+  let data = get_compilation_unit_global_data compilation_unit_id in
+  data.server_section
+    <- Array.of_list (List.rev !current_server_section_data)
+         :: data.server_section;
   current_server_section_data := []
 
 let close_client_section ~compilation_unit_id injection_data =
-  let { client_sections_data } =
-    get_compilation_unit_global_data compilation_unit_id
-  in
+  let data = get_compilation_unit_global_data compilation_unit_id in
   let injection_datum (injection_id, injection_value, loc, ident) =
     { injection_id; injection_value ; injection_dbg = Some (loc, ident) }
   in
-  Queue.push (List.map injection_datum injection_data)
-    client_sections_data
+  let injection_data = Array.of_list injection_data in
+  data.client_section <-
+    Array.map injection_datum injection_data :: data.client_section
 
 let get_global_data () =
   let on_injection_datum injection_datum =
@@ -308,14 +310,11 @@ let get_global_data () =
     { injection_datum with injection_value  }
   in
   String_map.map
-    (fun compilation_unit_global_data ->
-       let client_sections_data = Queue.create () in
-       Queue.iter
-         (fun injection_data ->
-            Queue.push (List.map on_injection_datum injection_data)
-              client_sections_data)
-         compilation_unit_global_data.client_sections_data;
-       { compilation_unit_global_data with client_sections_data })
+    (fun {server_section; client_section}->
+       { server_sections_data = Array.of_list (List.rev server_section);
+         client_sections_data =
+           Array.of_list
+             (List.rev_map (Array.map on_injection_datum) client_section) })
     (get_global_data ())
 
 (* Request data *)

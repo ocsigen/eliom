@@ -245,6 +245,10 @@ end
 
 (* == Populating client values and injections by global data *)
 
+type compilation_unit_global_data =
+  { mutable server_section : (client_value_datum array) list;
+    mutable client_section : (injection_datum array) list }
+
 let global_data = ref String_map.empty
 
 let do_next_server_section_data ~compilation_unit_id =
@@ -253,15 +257,16 @@ let do_next_server_section_data ~compilation_unit_id =
     compilation_unit_id;
   try
     let data = String_map.find compilation_unit_id !global_data in
-    List.iter Client_value.initialize
-      (Queue.take data.server_sections_data)
-  with
-    | Not_found -> () (* Client-only compilation unit *)
-    | Queue.Empty ->
-      Lwt_log.raise_error_f ~section
-        "Queue of client value data for compilation unit %s is empty \
-         (is it linked on the server?)"
-        compilation_unit_id
+    match data.server_section with
+      l :: r ->
+        data.server_section <- r;
+        Array.iter Client_value.initialize l
+    | [] ->
+        Lwt_log.raise_error_f ~section
+          "Queue of client value data for compilation unit %s is empty \
+           (is it linked on the server?)"
+          compilation_unit_id
+  with Not_found -> () (* Client-only compilation unit *)
 
 let do_next_client_section_data ~compilation_unit_id =
   Lwt_log.ign_debug_f ~section
@@ -269,32 +274,32 @@ let do_next_client_section_data ~compilation_unit_id =
     compilation_unit_id;
   try
     let data = String_map.find compilation_unit_id !global_data in
-    List.iter Injection.initialize
-      (Queue.take data.client_sections_data)
-  with
-    | Not_found -> () (* Client-only compilation unit *)
-    | Queue.Empty ->
-      Lwt_log.raise_error_f ~section "Queue of injection data for compilation unit %s is empty \
-             (is it linked on the server?)"
-        compilation_unit_id
+    match data.client_section with
+      l :: r ->
+        data.client_section <- r;
+        Array.iter Injection.initialize l
+    | [] ->
+        Lwt_log.raise_error_f ~section
+          "Queue of injection data for compilation unit %s is empty \
+               (is it linked on the server?)"
+          compilation_unit_id
+  with Not_found -> () (* Client-only compilation unit *)
 
 let check_global_data global_data =
   let missing_client_values = ref [] in
   let missing_injections = ref [] in
   String_map.iter
-    (fun _ { server_sections_data; client_sections_data } ->
-       Queue.iter
-         (function
-           | [] -> ()
-           | data -> missing_client_values :=
-               List.rev_append data !missing_client_values)
-         server_sections_data;
-       Queue.iter
-         (function
-           | [] -> ()
-           | data -> missing_injections :=
-               List.rev_append data !missing_injections)
-         client_sections_data;
+    (fun _ { server_section; client_section } ->
+       List.iter
+         (fun data ->
+            missing_client_values :=
+              List.rev_append (Array.to_list data) !missing_client_values)
+         server_section;
+       List.iter
+         (fun data ->
+            missing_injections :=
+              List.rev_append (Array.to_list data) !missing_injections)
+         client_section;
     )
     global_data;
   (match !missing_client_values with
@@ -1965,7 +1970,13 @@ let unwrap_client_value ({closure_id; instance_id},_) =
        soon as it is available. *)
     None
 
-let unwrap_global_data = fun (global_data', _) -> global_data := global_data'
+let unwrap_global_data = fun (global_data', _) ->
+  global_data :=
+    String_map.map
+      (fun {server_sections_data; client_sections_data} ->
+         {server_section = Array.to_list server_sections_data;
+          client_section = Array.to_list client_sections_data})
+      global_data'
 
 let _ =
   Eliom_unwrap.register_unwrapper'

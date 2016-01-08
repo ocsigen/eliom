@@ -185,8 +185,8 @@ type 'injection_value injection_datum = {
 
 (** Data for initializing client values and injections of one compilation unit *)
 type 'injection_value compilation_unit_global_data = {
-  server_sections_data : (client_value_datum list) Queue.t;
-  client_sections_data : ('injection_value injection_datum list) Queue.t;
+  server_sections_data : (client_value_datum array) array;
+  client_sections_data : ('injection_value injection_datum array) array;
 }
 
 (** Data for initializing client values and injection of the client
