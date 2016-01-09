@@ -313,11 +313,11 @@ let get_global_data () =
 
 (* Request data *)
 
-let request_data : request_data Eliom_reference.Volatile.eref =
+let request_data : client_value_datum list Eliom_reference.Volatile.eref =
   Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
 
 let get_request_data () =
-  List.rev (Eliom_reference.Volatile.get request_data)
+  Array.of_list (List.rev (Eliom_reference.Volatile.get request_data))
 
 (* Register data *)
 

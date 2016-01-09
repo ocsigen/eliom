@@ -292,6 +292,6 @@ type compilation_unit_global_data = {
 
 type global_data = compilation_unit_global_data String_map.t
 
-type request_data = client_value_datum list
+type request_data = client_value_datum array
 
 let global_data_unwrap_id_int = 8

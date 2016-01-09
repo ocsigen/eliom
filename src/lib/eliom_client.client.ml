@@ -344,12 +344,12 @@ let check_global_data global_data =
 
 let do_request_data request_data =
   Lwt_log.ign_debug_f ~section "Do request data (%a)"
-    (fun () l -> string_of_int (List.length l)) request_data;
+    (fun () l -> string_of_int (Array.length l)) request_data;
   (* On a request, i.e. after running the toplevel definitions, global_data
      must contain at most empty sections_data lists, which stem from server-
      only eliom files. *)
   check_global_data !global_data;
-  List.iter Client_value.initialize request_data
+  Array.iter Client_value.initialize request_data
 
 (*******************************************************************************)
 

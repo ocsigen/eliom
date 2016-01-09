@@ -169,7 +169,7 @@ let get_request_template = Eliom_process.get_request_template
    (i.e. when the client side process is initiated by client (mobile app...)) *)
 let default_request_data =
   {Eliom_common.ejs_global_data = None;
-   ejs_request_data = [];
+   ejs_request_data = [||];
    ejs_event_handler_table = Eliom_lib.RawXML.ClosureMap.empty;
    ejs_client_attrib_table = Eliom_lib.RawXML.ClosureMap.empty;
 

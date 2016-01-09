@@ -1348,7 +1348,7 @@ module Ocaml = struct
       let data = Eliom_service.get_request_data () in
       if (Ocsigen_config.get_debugmode())
       then data
-      else List.map (fun x -> {x with loc = None}) data in
+      else Array.map (fun x -> {x with loc = None}) data in
     (*     debug_client_value_data (debug "%s") client_value_data; *)
     let r = { Eliom_types.
               ecs_request_data;
@@ -1949,7 +1949,7 @@ module Eliom_appl_reg_make_param
       let data = Eliom_service.get_request_data () in
       if keep_debug
       then data
-      else List.map (fun x -> {x with loc = None}) data
+      else Array.map (fun x -> {x with loc = None}) data
     in
 
     (* wrapping of values could create eliom references that may

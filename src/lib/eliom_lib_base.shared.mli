@@ -196,6 +196,6 @@ type global_data = compilation_unit_global_data String_map.t
 
 (** Data for initializing client values sent with a request. Sent with
     the response to any follow-up request of a client process. *)
-type request_data = client_value_datum list
+type request_data = client_value_datum array
 
 val global_data_unwrap_id_int : int
