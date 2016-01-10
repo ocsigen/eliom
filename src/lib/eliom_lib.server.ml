@@ -120,3 +120,8 @@ type global_data = poly Eliom_lib_base.global_data * Eliom_wrap.unwrapper
 let global_data_unwrapper =
   Eliom_wrap.create_unwrapper
     (Eliom_wrap.id_of_int global_data_unwrap_id_int)
+
+let make_cryptographic_safe_string ?len () =
+  match len with
+  | None   -> Ocsigen_lib.make_cryptographic_safe_string ()
+  | Some l -> String.sub (Ocsigen_lib.make_cryptographic_safe_string ()) 0 l

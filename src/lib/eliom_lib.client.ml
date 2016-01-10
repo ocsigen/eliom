@@ -159,3 +159,6 @@ type file_info = File.file Js.t
 type injection_datum = poly Eliom_lib_base.injection_datum
 
 type global_data = unit
+
+let make_cryptographic_safe_string ?len () =
+  failwith "make_cryptographic_safe_string not implemented client-side"

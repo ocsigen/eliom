@@ -26,7 +26,7 @@ open Ocsigen_cookies
 include Eliom_cookies_base
 
 (*****************************************************************************)
-let make_new_session_id = make_cryptographic_safe_string
+let make_new_session_id = Ocsigen_lib.make_cryptographic_safe_string
 
 
 

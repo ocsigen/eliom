@@ -90,3 +90,7 @@ type global_data = poly Eliom_lib_base.global_data * Eliom_wrap.unwrapper
 val global_data_unwrapper : Eliom_wrap.unwrapper
 
 (**/**)
+
+(** Return a base-64 encoded cryptographic safe string of the given length.
+    Not implemented client-side. *)
+val make_cryptographic_safe_string : ?len:int -> unit -> string

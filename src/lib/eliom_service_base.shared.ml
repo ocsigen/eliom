@@ -570,21 +570,13 @@ let uniqueid =
   let r = ref (-1) in
   fun () -> r := !r + 1; !r
 
-let new_state = Eliommod_cookies.make_new_session_id
-(* WAS:
-  (* This does not need to be cryptographickly robust.
-     We just want to avoid the same values when the server is relaunched.
-   *)
-  let c = ref (Int64.bits_of_float (Unix.gettimeofday ())) in
-  fun () ->
-    c := Int64.add !c Int64.one ;
-    (Printf.sprintf "%x" (Random.int 0xFFFF))^(Printf.sprintf "%Lx" !c)
-
-   But I turned this into cryptographickly robust version
-   to implement CSRF-safe services.
-*)
-
-
+let new_state () =
+  (* FIX: we should directly produce a string of the right length *)
+  (* 72bit of entropy is large enough:
+     CSRF-safe services are short-lived;
+     with 65536 services, the probability of a collision is about 2^-41.
+  *)
+  make_cryptographic_safe_string ~len:12 ()
 
 (** Definition of services *)
 let service_aux

@@ -123,3 +123,7 @@ val encode_header_value : 'a -> string
 
 type injection_datum = poly Eliom_lib_base.injection_datum
 type global_data = unit (* Global data only needed while unwrapping *)
+
+(** Return a base-64 encoded cryptographic safe string of the given length.
+    Not implemented client-side. *)
+val make_cryptographic_safe_string : ?len:int -> unit -> string
