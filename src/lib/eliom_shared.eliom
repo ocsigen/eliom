@@ -231,6 +231,8 @@ module FakeReact = struct
     val const : ?synced:bool -> 'a -> 'a t
     val synced : 'a t -> bool
     val map : ?eq:('b -> 'b -> bool) -> ('a -> 'b) -> 'a t -> 'b t
+    val fmap : ?eq:('b -> 'b -> bool) ->
+      ('a -> 'b option) -> 'b -> 'a t -> 'b t
     val merge : ?eq:('a -> 'a -> bool) ->
       ('a -> 'b -> 'a) -> 'a -> 'b t list -> 'a t
     val l2 : ?eq:('d -> 'd -> bool) ->
@@ -259,6 +261,8 @@ module FakeReact = struct
     let const ?synced:(synced = false) x = (x, synced)
     let synced (_, b) = b
     let map ?eq (f : 'a -> 'b) ((x, b) : 'a t) : 'b t = f x, b
+    let fmap ?eq f i (s, b) =
+      (match f s with Some v -> v | None -> i), b
     let merge ?eq f acc l =
       let f (acc, acc_b) (x, b) = f acc x, acc_b && b in
       List.fold_left f (acc, true) l
@@ -357,6 +361,19 @@ module React = struct
       Eliom_lib.create_shared_value
         (FakeReact.S.map (Value.local f) (Value.local s))
         {'b FakeReact.S.t{ FakeReact.S.map ?eq:%eq %f %s }}
+
+    let fmap ?(eq : ('b -> 'b -> bool) Value.t option)
+        (f : ('a -> 'b option) Value.t) (i : 'b Value.t) (s : 'a t)
+      : 'b t =
+      match eq with
+      | Some eq ->
+        {shared#{
+           FakeReact.S.fmap ~eq:(Value.local %eq)
+             (Value.local %f) (Value.local %i) (Value.local %s) }}
+      | None ->
+        {shared#{
+           FakeReact.S.fmap
+             (Value.local %f) (Value.local %i) (Value.local %s) }}
 
     let merge ?eq (f : ('a -> 'b -> 'a) Value.t)
         (acc : 'a) (l : 'b t list) : 'a t =

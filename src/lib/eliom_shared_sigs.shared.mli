@@ -38,6 +38,10 @@ module type S = sig
     ?eq:('b -> 'b -> bool) Eliom_lib.shared_value ->
     ('a -> 'b) Eliom_lib.shared_value ->
     'a t -> 'b t
+  val fmap : ?eq:('b -> 'b -> bool) Eliom_lib.shared_value ->
+    ('a -> 'b option) Eliom_lib.shared_value ->
+    'b Eliom_lib.shared_value ->
+    'a t -> 'b t
   val merge :
     ?eq:('a -> 'a -> bool) Eliom_lib.shared_value ->
     ('a -> 'b -> 'a) Eliom_lib.shared_value ->
