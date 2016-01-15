@@ -22,21 +22,19 @@ open Ocsigen_cookies
 
 include Eliom_cookies_base
 
-module JsTable = Eliommod_jstable
-
 (* CCC The tables are indexed by the hostname, not the port appear.
    there are no particular reason. If needed it is possible to add it *)
-let cookie_tables = JsTable.create ()
+let cookie_tables = Jstable.create ()
 let get_table = function
   | None -> Cookies.empty
   | Some host ->
-    Js.Optdef.get (JsTable.find cookie_tables (Js.string host))
+    Js.Optdef.get (Jstable.find cookie_tables (Js.string host))
       (fun () -> Cookies.empty)
 let set_table host t =
   match host with
     | None -> ()
     | Some host ->
-      JsTable.add cookie_tables (Js.string host) t
+      Jstable.add cookie_tables (Js.string host) t
 
 let now () =
   let date = jsnew Js.date_now () in

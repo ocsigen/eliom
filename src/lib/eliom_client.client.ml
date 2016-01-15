@@ -29,8 +29,6 @@ let log_section = section
 let _ = Lwt_log.Section.set_level log_section Lwt_log.Info
 (* *)
 
-module JsTable = Eliommod_jstable
-
 let insert_base page =
   let b = Dom_html.createBase Dom_html.document in
   b##href <- Js.string (Eliom_process.get_base_url ());
@@ -136,16 +134,16 @@ end = struct
 
   let key closure_id = int64_to_string closure_id
 
-  let client_closures = JsTable.create ()
+  let client_closures = Jstable.create ()
 
   let register ~closure_id ~closure =
-    JsTable.add client_closures (key closure_id)
+    Jstable.add client_closures (key closure_id)
       (fun args ->
          to_poly (closure (from_poly args)))
 
   let find ~closure_id =
     Js.Optdef.get
-      (JsTable.find client_closures (key closure_id))
+      (Jstable.find client_closures (key closure_id))
       (fun () ->
          raise Not_found)
 end
@@ -155,7 +153,7 @@ module Client_value : sig
   val initialize : client_value_datum -> unit
 end = struct
 
-  let table = JsTable.create ()
+  let table = Jstable.create ()
 
   let closure_key closure_id = int64_to_string closure_id
 
@@ -165,13 +163,13 @@ end = struct
     let value =
       let instances =
         Js.Optdef.get
-          (JsTable.find
+          (Jstable.find
              table
              (closure_key closure_id))
           (fun () -> raise Not_found)
       in
       Js.Optdef.get
-        (JsTable.find
+        (Jstable.find
            instances
            (instance_key instance_id))
         (fun () -> raise Not_found)
@@ -194,13 +192,13 @@ end = struct
     Eliom_unwrap.late_unwrap_value old_value value;
     let instances =
       Js.Optdef.get
-        (JsTable.find table (closure_key closure_id))
+        (Jstable.find table (closure_key closure_id))
         (fun () ->
-           let instances = JsTable.create () in
-           JsTable.add table (closure_key closure_id) instances;
+           let instances = Jstable.create () in
+           Jstable.add table (closure_key closure_id) instances;
            instances)
     in
-    JsTable.add instances (instance_key instance_id) value
+    Jstable.add instances (instance_key instance_id) value
 end
 
 let middleClick ev =
@@ -218,13 +216,13 @@ module Injection : sig
   val initialize : injection_datum -> unit
 end = struct
 
-  let table = JsTable.create ()
+  let table = Jstable.create ()
 
   let get ?ident ?pos ~name =
     Lwt_log.ign_debug_f ~section "Get injection %s" name;
     from_poly
       (Js.Optdef.get
-         (JsTable.find table (Js.string name))
+         (Jstable.find table (Js.string name))
          (fun () ->
             let name = match ident,pos with
               | None,None -> Printf.sprintf "%s" name
@@ -241,7 +239,7 @@ end = struct
     Lwt_log.ign_debug_f ~section "Initialize injection %s" injection_id;
     (* BBB One should assert that injection_value doesn't contain any
        value marked for late unwrapping. How to do this efficiently? *)
-    JsTable.add table (Js.string injection_id) injection_value
+    Jstable.add table (Js.string injection_id) injection_value
 
 end
 
@@ -365,12 +363,12 @@ let register_unwrapped_elt, force_unwrapped_elts =
    (a.k.a. nodes with a unique Dom instance on each client process) *)
 
 let (register_process_node, find_process_node) =
-  let process_nodes : Dom.node Js.t JsTable.t = JsTable.create () in
+  let process_nodes : Dom.node Js.t Jstable.t = Jstable.create () in
   let find id =
     Lwt_log.ign_debug_f ~section "Find process node %a"
       (fun () -> Js.to_string) id;
     Js.Optdef.bind
-      (JsTable.find process_nodes id)
+      (Jstable.find process_nodes id)
       (fun node ->
          if Js.to_bytestring (node##nodeName##toLowerCase()) == "script"
          then
@@ -382,7 +380,7 @@ let (register_process_node, find_process_node) =
   let register id node =
     Lwt_log.ign_debug_f ~section "Register process node %a"
       (fun () -> Js.to_string) id;
-    JsTable.add process_nodes id node in
+    Jstable.add process_nodes id node in
   (register, find)
 
 let registered_process_node id = Js.Optdef.test (find_process_node id)
@@ -396,18 +394,18 @@ let getElementById id =
    (a.k.a. nodes with a unique Dom instance in the current request) *)
 
 let register_request_node, find_request_node, reset_request_nodes =
-  let request_nodes : Dom.node Js.t JsTable.t ref = ref (JsTable.create ()) in
-  let find id = JsTable.find !request_nodes id in
+  let request_nodes : Dom.node Js.t Jstable.t ref = ref (Jstable.create ()) in
+  let find id = Jstable.find !request_nodes id in
   let register id node =
     Lwt_log.ign_debug_f ~section "Register request node %a"
       (fun () -> Js.to_string) id;
-    JsTable.add !request_nodes id node in
+    Jstable.add !request_nodes id node in
   let reset () =
     Lwt_log.ign_debug ~section "Reset request nodes";
     (* Unwrapped elements must be forced
        before reseting the request node table. *)
     force_unwrapped_elts ();
-    request_nodes := JsTable.create () in
+    request_nodes := Jstable.create () in
   (register, find, reset)
 
 (* == Current uri.

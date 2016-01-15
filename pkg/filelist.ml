@@ -117,7 +117,6 @@ let client = {
     "eliom_types_base";
     "eliommod_cookies";
     "eliommod_dom";
-    "eliommod_jstable";
     "eliommod_parameters";
   ];
 }
