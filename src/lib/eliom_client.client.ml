@@ -1981,7 +1981,7 @@ let _ =
     unwrap_global_data;
   ()
 
-let add_string_event_listener o e f capt =
+let add_string_event_listener o e f capt : unit =
   let e = Js.string e
   and capt = Js.bool capt
   and f e =
@@ -1994,6 +1994,7 @@ let add_string_event_listener o e f capt =
       Js.null
   in
   let f = Js.Unsafe.callback f in
+  ignore @@
   if (Js.Unsafe.coerce o)##addEventListener == Js.undefined then
     let e = (Js.string "on")##concat(e)
     and cb e = Js.Unsafe.call (f, e, [||]) in
