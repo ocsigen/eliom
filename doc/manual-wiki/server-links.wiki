@@ -53,14 +53,14 @@ The type of this parameter and the name of GET parameters depend
 on the service you link to.
 
 
-The links to Wikipedia shows how to define an external service (here it
+The link to Wikipedia shows how to define an external service (here it
 uses a suffix URL).
 For an external service without parameters, you can use the low level
 function  <<a_api| val Eliom_content.Html5.D.Raw.a >>, if you don't want to create an
 external service explicitly.
 Note that the path must be a list of strings:
 do not write {{{["foo/bar"]}}},
-but {{{["foo";"bar"]}}}, otherwise, the "/" will be encoded in
+but {{{["foo";"bar"]}}}; otherwise, the "/" will be encoded in
 the URL.\\
 
 
@@ -68,17 +68,22 @@ If you want to create (mutually or not) recursive pages, create the
 service using <<a_api| val Eliom_service.App.service >> or  <<a_api| val Eliom_service.Http.service >> first, then
 register it in the table using (for example) <<a_api| val Eliom_registration.Html5.register >>:
 
-<<code language="ocaml"|let linkrec = Eliom_service.Http.service ["linkrec"] Eliom_parameter.unit ()
+<<code language="ocaml"|
+let linkrec =
+  Eliom_service.Http.service ["linkrec"] Eliom_parameter.unit ()
 
-let _ = Eliom_registration.Html5.register linkrec
+let _ =
+  Eliom_registration.Html5.register
+    linkrec
     (fun () () ->
-      Lwt.return
-       (html
-        (head (title (pcdata "")) [])
-        (body [p [a linkrec [pcdata "click"] ()]])))
+       Lwt.return
+         (html
+            (head (title (pcdata "")) [])
+            (body [p [a linkrec [pcdata "click"] ()]])))
 >>
 
-(But you can also refer to //the current service// as <<a_api project="eliom"|val Eliom_service.void_coservice'>>.)
+(You can also refer to //the current service// as <<a_api
+project="eliom"|val Eliom_service.void_coservice'>>.)
 
 ==@@id="forms"@@Forms
 
@@ -111,23 +116,20 @@ let form = Eliom_registration.Html5.register_service ["form"] unit
          (body [f])))
 >>
 
+Parameter names are typed to make sure that they are used properly. In
+our example, <<span class="code"|number_name>> has type <<span
+class="code"|int param_name>> and must be used with <<span
+class="code"|int_input>> (or other widgets), whereas <<span
+class="code"|string_name>> has type <<span class="code"|string
+param_name>> and must be used with <<span class="code"|string_input>>
+(or other widgets).  The functions for creating form widgets are
+described in detail in <<a_api | module Eliom_content.Html5.D >> (and
+<<a_api | module Eliom_content.Html5.F >>).
 
-If you want to use typed parameters,
-you cannot use functions like  <<a_api project="tyxml"| val Html5.M.input >> to
-create your forms (but you can use it if you want to use parameters defined with
- <<a_api| val Eliom_parameter.any >>). Indeed, parameter names are typed to force them
-be used properly. In our example, <<span class="code"|number_name>> has type
-<<span class="code"|int param_name>> and must be used with
-<<span class="code"|int_input>> (or other widgets), whereas
-<<span class="code"|string_name>> has type
-<<span class="code"|string param_name>> and must be used with
-<<span class="code"|string_input>> (or other widgets).
-All functions for creating form widgets are detailed
-in <<a_api | module Eliom_content.Html5.D >> (and <<a_api | module Eliom_content.Html5.D >>).
-
-For untyped forms, you may use functions from <<a_api project="tyxml"
-| module Html5.M >> or functions from the module <<a_api project="eliom" subproject="server"|module Eliom_content.Html5.D.Raw>>.  Here is a form linking to our (untyped) service
-<<span class="code"|raw_serv>>.
+For untyped forms, you may use functions from the module <<a_api
+project="eliom" subproject="server"|module
+Eliom_content.Html5.D.Raw>>.  Here is a form linking to our (untyped)
+service <<span class="code"|raw_serv>>.
 
 <<code language="ocaml"|
 let raw_form =
@@ -377,8 +379,8 @@ Page may take several parameters of the same name.
 It is useful when you want to create a form with a variable number
 of fields.
 To do that with Eliom, use the type  <<a_api| val Eliom_parameter.set >>.
-For example <<span class="code"|set int "val">> means that the page will take
-zero, one or several parameters of name <<span class="code"|"val">>,
+For example, <<span class="code"|set int "val">> means that the page will take
+zero, one, or several parameters of name <<span class="code"|"val">>,
 all of type <<span class="code"|int>>.
 The function you register will receive the parameters in a list.
 Example:
@@ -405,8 +407,8 @@ Example:
 >>
 
 These parameters may come from several kinds of widgets in forms.
-   Here is an example of a form with several checkboxes, all sharing the same
-   name, but with different values:
+Here is an example of a form with several checkboxes, all sharing the
+same name, but with different values:
 
 <<code language="ocaml"|
 (* form to set *)
@@ -693,18 +695,16 @@ val get_original_filename : Ocsigen_extensions.file_info -> string
 of the uploaded file on the hard drive.
  <<a_api| val Eliom_request_info.get_original_filename >> gives the original filename.
 
-To make possible the upload of files, you must configure a
-directory for uploaded files in Ocsigen's configuration file.
-For example:
+To enable file upload, you must configure a directory for uploaded
+files in Ocsigen's configuration file.  For example:
 <<div class="pre"|
   <uploaddir>/tmp</uploaddir> >>
 
 Files are kept in this directory only while processing the request.
-Then they are automatically cancelled.
-Thus your services must copy them
-somewhere else themselves if they want to keep them.
-In the following example, we create a new hard link to the file
-to keep it (the destination must be on the same partition of the disk).
+They are automatically removed afterwards. Therefore, your services
+must copy the files somewhere else, if the files are to be kept. In
+the following example, we create a new hard link to the file to keep
+it. (The destination must be on the same partition of the disk.)
 
 
 <<code language="ocaml"|let upload = Eliom_service.Http.service

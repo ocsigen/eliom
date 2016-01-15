@@ -7,11 +7,11 @@
 
 <<paragraph| Different scopes for data and services >>
 
-The server-side state of an application refers to data stored on
-server side that could be shared by all clients, or that could be
-specific to a limited //scope// such as:
+The server-side state of an application refers to server-side data
+that can be shared by all clients, or that can be specific to a
+limited //scope//, such as:
 
-* the site
+* the site,
 * a session,
 * a group of sessions (for example all sessions of the same user),
 * a client-side process (when programming an Eliom app), or
@@ -22,23 +22,24 @@ For a given scope, server-side state consists of:
 * //services// registered with this specific scope, and
 * data encapsulated within an //Eliom reference// created with this
   specific scope.
-* Bus, channels, etc. (actually implemented using services and Eliom references)
+* Bus, channels, etc. (actually implemented using services and Eliom
+  references)
 
-States disappear either when the associated scope is discarded
-explicitely or by a timeout.
+States disappear either when the associated scope is explicitely
+discarded, or after a timeout.
 
 <<paragraph| Scope and cookies >>
 
-On a technical point of view, sessions and groups of sessions are
+From a technical point of view, sessions and groups of sessions are
 implemented automatically within Eliom by asking the browser to send a
 session identifier in a cookie. Client-side processes also send an
-identifier in each request, using some kind of "client-side
+identifier with each request, using a kind of "client-side
 process-cookie".
 
 It is possible to create different scopes of the same level if you
 want several states for the same application (advanced use). Each
-scope uses its own cookies and you can discard data for one scope
-only.
+scope uses its own cookies, and you can discard data for a single
+scope.
 
 <<paragraph| Secure cookies >>
 
@@ -49,7 +50,7 @@ confidential data, that you do not want to send through HTTP.
 
 <<paragraph| Three kind of states >>
 
-In the current implementation, because of some limitation in OCaml's
+In the current implementation, because of a limitation in OCaml's
 serialization mechanism, there are three kinds of states (for each
 scope):
 
@@ -60,14 +61,15 @@ scope):
 Volatile states will not survive after relaunching the server.  There
 is no persistent service state. Be very careful if you use both
 persistent state data and service state, as your session may become
-inconsistent (use service states only for volatile services, like
-coservices with timeouts).
+inconsistent. (Use service states only for volatile services, like
+coservices with timeouts.)
 
 We hope to simplify this when OCaml's serialization mechanism evolves.
-In the meantime, be very careful where you store your data.
-To avoid shutting down the server, note that it is possible
-to ask the server to load dynamically new versions of your site
-(see <<a_manual chapter="workflow-configuration" fragment="reload"|command {{{reload}}} >>).
+In the meantime, be very careful where you store your data.  To avoid
+shutting down the server, note that it is possible to ask the server
+to dynamically load new versions of your site (see <<a_manual
+chapter="workflow-configuration" fragment="reload"|command
+{{{reload}}} >>).
 
 
 
@@ -78,54 +80,54 @@ to ask the server to load dynamically new versions of your site
 === Basics ===
 
 Eliom uses a notion of //scopes// to restrict the visibility of
-server-side data to some clients. Together with <<a_manual
-chapter="server-state" fragment="eref"|Eliom references>>, this is a very
-convenient way to implement a mechanism of session for your website.
+server-side data to a set of clients. Together with <<a_manual
+chapter="server-state" fragment="eref"|Eliom references>>, this is a
+very convenient way to implement a session mechanism for your website.
 
 There are two categories of scopes:
 
-* //Eliom scopes//, that consist in:
+* //Eliom scopes//, which are:
 ** <<a_api| val Eliom_common.global_scope >>: for data
    shared by all clients,
 ** <<a_api| val Eliom_common.site_scope >>: for data
-   and services shared by all clients of one eliom site, and
+   and services shared by all clients of an Eliom site, and
 ** <<a_api| val Eliom_common.request_scope >>: for
    data specific to the current request.
-* //User scopes//: used to restrict the accessibility of a data or a
-  service to subset of the clients.
+* //User scopes//: used to restrict the accessibility of a piece of
+  data or a service to a subset of the clients.
 
-Within the users scopes, Eliom distinguishes three scopes that differ
-on how Eliom associates clients and data.
+Within the user scopes, Eliom distinguishes three scopes that differ
+with respect to how Eliom associates clients and data.
 
-*  Data and dynamic services created with scope
-   <<a_api| val Eliom_common.default_session_scope >> are only
+* Data and dynamic services created with scope
+  <<a_api| val Eliom_common.default_session_scope >> are only
   visible to the client belonging to a same session
   (all tabs of a single browser).
-* Data and dynamic services created with scope
-  <<a_api| val Eliom_common.default_group_scope >> are
-  only visible to client whose session belongs to the same session group.
-  See section <<a_manual chapter="server-state"
-  fragment="session_groups"|Session groups>> for more information.
-* Data and dynamic services created with scope
-  <<a_api| val Eliom_common.default_process_scope>> are only visible to a specific
-  instance of the Eliom application (one tab, running the Eliom client process).
-  See section <<a_manual
-  chapter="clientserver-applications" fragment="session_groups"|Eliom applications>> for
-  more information.
+* Data and dynamic services created with scope <<a_api| val
+  Eliom_common.default_group_scope >> are only visible to the clients
+  whose sessions belong to the same session group.  See section
+  <<a_manual chapter="server-state" fragment="session_groups"|Session
+  groups>> for more information.
+* Data and dynamic services created with scope <<a_api| val
+  Eliom_common.default_process_scope>> are only visible to a specific
+  instance of the Eliom application (i.e., a single tab, running the
+  Eliom client process).  See section <<a_manual
+  chapter="clientserver-applications" fragment="session_groups"|Eliom
+  applications>> for more information.
 
-User scopes are organised in //hierarchy//: client processes belong to a
-session, and sessions belong to a group of sessions.
+User scopes are organised in a //hierarchy//: client processes belong
+to a session, and sessions belong to a group of sessions.
 
 Data and dynamic services with a user scope can be discarded
-explicitely or by timeout. See sections <<a_manual chapter="server-state"
-fragment="closing_sessions"|Closing session>> and <<a_manual
-chapter="server-state" fragment="timeouts"|Timeouts and session duration>>
-for more information.
+explicitely or via a timeout. See sections <<a_manual
+chapter="server-state" fragment="closing_sessions"|Closing session>>
+and <<a_manual chapter="server-state" fragment="timeouts"|Timeouts and
+session duration>> for more information.
 
-If you want to handle multiple sessions for the same site
----~ e.g. several different data sessions that could be created and
-discarded independently~ --- you can create new users scope that will use
-different cookies, see section <<a_manual chapter="server-state"
+If you want to handle multiple sessions for the same site ---~
+e.g. several different data sessions that could be created and
+discarded independently~ --- you can create new users scopes that will
+use different cookies. See section <<a_manual chapter="server-state"
 fragment="new_scope" |Hierarchies of scopes>> for more information.
 
 
@@ -137,8 +139,9 @@ fragment="new_scope" |Hierarchies of scopes>> for more information.
 
 Eliom automatically creates a session ---~ and sets the corresponding
 cookie on the client~ --- when you first modify an Eliom reference of
-scope <<a_api text="session" | val Eliom_common.default_session_scope >>, when you
-register a service with this scope or when you enter a session group.
+scope <<a_api text="session" | val Eliom_common.default_session_scope >>,
+when you register a service with this scope or when you enter a session
+group.
 
 By default, Eliom is using three cookies for sessions (and session groups):
 
@@ -151,7 +154,7 @@ process cookies.
 
 ====@@id="new_scope"@@ Hierarchies of scopes and multiple sessions (advanced use) ====
 
-If you want to handle multiple sessions for the same site that could
+If you want to handle multiple sessions for the same site that can
 be created and discarded independently, you can create a new hierarchy of
 users scope that will use different cookies, with the function <<a_api
 | val Eliom_common.create_scope_hierarchy >>.
@@ -161,26 +164,28 @@ let custom_session_hierarchy = Eliom_common.create_scope_hierarchy "custom"
 let custom_session = `Session custom_session_hierarchy
 >>
 
-Then, the value {{{custom_session}}} could replace the usual <<a_api |
-val Eliom_common.default_session_scope>> for the {{{~scope}}} parameter of functions
+Then, the value {{{custom_session}}} can replace the usual <<a_api |
+val Eliom_common.default_session_scope>> for the {{{~scope}}} parameter of
+the functions
 <<a_api | val Eliom_reference.eref>>, <<a_api| val
-Eliom_registration.Html5.register >>, <<a_api| val Eliom_state.discard >>,~ ...
+Eliom_registration.Html5.register >>,
+<<a_api| val Eliom_state.discard >>,~ ...
 
 (Same for {{{`Client_process}}} or  {{{`Session_group}}} scope levels).
 
 The function <<a_api | val
-Eliom_common.create_scope_hierarchy >> will prevent you to create
+Eliom_common.create_scope_hierarchy >> will prevent you from creating
 two scope hierarchies with the same name.
 
 =====Example of use:
 
-A typical use of hierarchies is to have one hierarchy for connected users
-(the default hierarchy),
-and one independent from connection. Use the first one to save user
-related content. It will be discarded when the user logs out.
-Use the second one to save data corresponding to one tab or browser, (the user
-being connected or not), for example because this data must be available
-before the user logs in.
+A typical use of hierarchies is to have one hierarchy for connected
+users (the default hierarchy), and one independent from
+connection. Use the first hierarchy to save user-related content. It
+will be discarded when the user logs out.  Use the second hierarchy to
+save data corresponding to a tab or browser, (the user being connected
+or not), for example because this data must be available before the
+user logs in.
 
 
 ===@@id="closing_sessions"@@ Closing sessions (and other states) ===
@@ -192,15 +197,15 @@ or not) for the given scope. Used with
 with {{{~scope:Eliom_common.default_group_scope}}}, this will close all
 sessions in the group.
 
-It is also possible to discard selectively only services, persistent
-data or volatile data (see the <<a_api | module Eliom_state >>
+It is also possible to selectively discard only services, persistent
+data, or volatile data (see the <<a_api | module Eliom_state >>
 module). But this may be periculous.  Be very careful when doing this,
 as you are desynchronizing the three kinds of sessions.
 
 <<wip|
 
   The behaviour of <<a_api | val Eliom_state.discard >> on a session
-  group is subject to discussion and may evolve in future version.
+  group is subject to discussion and may evolve in future versions.
 
 >>
 
@@ -223,13 +228,13 @@ as you are desynchronizing the three kinds of sessions.
 
 ===@@id="timeouts"@@ Timeouts and session duration ===
 
-The default timeout for sessions in one hour. Sessions will be
-automatically closed after that amount of time of inactivity from the
-user. You can change that value for your whole site using the <<a_api
+The default timeout for sessions is one hour. Sessions will be
+automatically closed after this amount of time of inactivity from the
+user. You can change the timeout for your whole site using the <<a_api
 | val Eliom_state.set_global_volatile_state_timeout >>.
 
-There is also a possibility to change the default value for Eliom in
-the configuration file like this:
+It is also possible to change the default value for Eliom through the
+configuration file, like this:
 
 <<code language="ocaml"|
 <extension findlib-package="ocsigenserver.ext.eliom">
@@ -242,7 +247,7 @@ timeout.
 
 <<div style="font-style: italic"|
 
-  That default may be overriden by each site using <<a_api| val
+  This default may be overriden by each site using <<a_api| val
   Eliom_state.set_global_volatile_state_timeout >> or <<a_api| val
   Eliom_state.set_default_volatile_state_timeout >>.  If you want your user
   to be able to set the default in the configuration file for your
@@ -258,18 +263,18 @@ timeout.
 
 ===@@id="secure_state"@@ Secure session ===
 
-By default, data and services saved in a session are available to requests
-using both http or https protocols. If you want to
-keep some state in a //secure session// that are visible only to
-client accessing with the https protocol, you may give the optional
-parameter {{{~secure:true}}} when calling functions like <<a_api | val
-Eliom_reference.eref >>, <<a_api | val Eliom_registration.Html5.register
->>, etc.
+By default, data and services saved in a session are available to
+requests using both HTTP and HTTPS. If you want to keep some state in
+a //secure session// that is visible only to a client accessing with
+the HTTPS protocol, you may provide the optional parameter
+{{{~secure:true}}} when calling functions like <<a_api | val
+Eliom_reference.eref >>, <<a_api | val
+Eliom_registration.Html5.register >>, etc.
 
-Secure sessions are using secure cookies (i.e. Ocsigen Server will ask
-the browsers to send the cookie only if the protocol is HTTPS). Thus
-it is not possible to access secure references and services if the
-user is using http.
+Secure sessions are using secure cookies, i.e., Ocsigen Server will
+ask the browsers to send the cookie only if the protocol is
+HTTPS. Thus it is not possible to access secure references and
+services if the user is using HTTP.
 
 
 

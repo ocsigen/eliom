@@ -395,8 +395,8 @@ let service =
   Eliom_service.attach_coservice'
     ~fallback:myfirstservice
     ~service:myget_coserv'
-  in
-  a ~service [pcdata "click"] ()
+in
+a ~service [pcdata "click"] ()
 >>
 
 It works with GET or POST coservices. The fallback must be a GET
@@ -540,7 +540,7 @@ very simple key / value store. Supported operations are:
   Delete the pair {{{KEY / VALUE}}}.
 
 
-{{{
+<<code language="ocaml"|
 open Lwt
 open Eliom_parameter
 
@@ -637,7 +637,7 @@ let () =
   in
 
   ()
-}}}
+>>
 
 
 == Tips
