@@ -184,7 +184,7 @@ module Xml = struct
       Value.local |>
       Eliom_content_core.Xml.node ?a name |>
       name_node
-    and synced = ReactiveData.RList.synced l in
+    in
     let _ = {unit{
       let f = Eliom_client.rebuild_node' %ns in
       let e = f %e

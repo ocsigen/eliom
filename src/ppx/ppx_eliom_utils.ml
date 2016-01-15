@@ -231,11 +231,6 @@ module Context = struct
   type server = [ `Server | `Shared ]
   type client = [ `Client | `Shared ]
 
-  let to_string = function
-    | `Client -> "client"
-    | `Shared -> "shared"
-    | `Server -> "server"
-
   let of_string = function
     | "server" | "server.start"
     | "eliom.server" | "eliom.server.start" -> `Server

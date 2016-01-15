@@ -253,7 +253,9 @@ let decrypt ~encrypted_mac ~secret ~pub_server =
   let hzz = hash_string (Hash.sha1 ()) shared_secret in
   let mac = String.make (String.length hzz) ' ' in
   for k = 0 to String.length mac - 1 do
-    mac.[k] <- char_of_int ((int_of_char hzz.[k]) lxor (int_of_char encrypted_mac.[k]))
+    (int_of_char hzz.[k]) lxor (int_of_char encrypted_mac.[k])
+    |> char_of_int
+    |> Bytes.set mac k
   done;
   mac
 
