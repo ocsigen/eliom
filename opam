@@ -19,4 +19,4 @@ depends: [
   "ipaddr" {>= "2.1"}
   "reactiveData" {= "dev"}
 ]
-available: [ ocaml-version >= "4.00.0" ]
+available: [ ocaml-version >= "4.01" ]
