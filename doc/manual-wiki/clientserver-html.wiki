@@ -53,7 +53,7 @@ are not used for the same thing.
 
 For example, here is a {{{div}}} element built with TyXML and then
 converted to the DOM representation using the module << a_api
-subproject="client" | module Eliom_client.Html5 >>:
+subproject="client" | module Eliom_content.Html5 >>:
 
 <<code language="ocaml"|
 open Eliom_content.Html5.D
@@ -88,14 +88,16 @@ section for HTML5 element manipulation, by value and by reference.
 ===@@id="unique"@@ HTML5 element manipulation, by value and by reference
 
 There are four modules to create typed HTML:
-{{{Eliom_content.Html5.F}}}, {{{Eliom_content.Html5.D}}},
-{{{Eliom_content.Html5.R}}} and {{{Eliom_content.Html5.C}}}.
+   <<a_api | module Eliom_content.Html5.F >>,
+   <<a_api | module Eliom_content.Html5.D >>,
+   <<a_api | module Eliom_content.Html5.R >> and
+   <<a_api | module Eliom_content.Html5.C >>.
 The last one is for reactive elements and is addressed in another section.
 
 It is possible to mix the four kinds of nodes in the same page.
 
-Elements built with {{{Eliom_content.Html5.F}}} are sent by value, while
-elements built with {{{Eliom_content.Html5.D}}} are sent to the client by
+Elements built with {{{Html5.F}}} are sent by value, while
+elements built with {{{Html5.D}}} are sent to the client by
 reference. Eliom adds an identifier as attribute of {{{D}}} elements
 to make it possible to find them back in the page from client side.
 
@@ -163,7 +165,7 @@ elements sent by value in the same document.
 
 By default, a reference on an element is only valid in the current
 HTTP request: hence, sending an element built with
-{{{Eliom_content.Html5.D}}} in
+{{{Html5.D}}} in
 two different pages will produce two distinct nodes. If you want to
 define a element reference that is preserved accross the different
 page of an application, you must explicitely name this element with
@@ -187,7 +189,7 @@ of an HTML5 elements.
 into the DOM tree.
 It relies on React's signal {{{'a React.signal}}}. More information about react
 can be found on the [[http://erratique.ch/software/react| homepage]].
-The react nodes also use [[https://github.com/hhugo/reactiveData|ReactiveData]],
+The react nodes also use [[https://github.com/ocsigen/reactiveData|ReactiveData]],
 which allows to manipulate lists of nodes in a reactive way.
 
 When dealing with dynamic content, one usally ends up with a lot
@@ -444,7 +446,7 @@ let _ = My_appl.register ~service:main_service
 
 === HTML syntax extension===
 
-<<wip| Warning: the HTML syntax extension is used by very few people.
+<<| Warning: the HTML syntax extension is used by very few people.
 If you like it, give us feedback and possibly improvements when needed. >>
 
 Ocsigen also has a syntax extension for OCaml that allows you to write
@@ -456,23 +458,24 @@ XML-implementation you have to provide a module named ##Html5##
 
 For example, the following code:
 <<code language="ocaml"|
-module Html5 = Html5.M (* NB this is TyXML's Html5; could also be Eliom_content.Html5.F *)
+module Html5 = Eliom_content.Html5.F
 
 << <html>
      <head><title></title></head>
      <body><h1>plop</h1></body>
    </html> ~>>
 >>
-is a caml value of type {{{Html5_types.html Html5.M.elt}}}.
+is a caml value of type {{{Html5_types.html Eliom_content.Html5.F.elt}}}.
 
-To compile a module containing this syntax, you need the camlp4 preprocessor:
+To compile a module containing this syntax, you need the camlp4 preprocessor and the {{{tyxml.syntax}}} package:
 {{{
-ocamlc -I /path_to/ocsigen/
- -pp "camlp4o /path_to/ocsigen/xhtmlsyntax.cma -loc loc"
+ocamlfind ocamlc
+ -pp camlp4o
+ -package tyxml.syntax
  -c your_module.ml
 }}}
 
-You can insert OCaml expressions of type {{{'a Html5.M.elt}}} inside
+You can insert OCaml expressions of type {{{'a Html5.elt}}} inside
 html using {{{$...$}}}, like this:
 
 <<code language="ocaml"|
@@ -480,7 +483,7 @@ let oc = << <em>Ocsigen</em> >> in
 << <p>$oc$ will revolutionize web programming.</p> ~>>
 >>
 
-<<|wip| remove \ before $, _ in code, everywhere in pdf version!!!!!!!!!! >>
+<<| remove \ before $, _ in code, everywhere in pdf version!!!!!!!!!! >>
 
 You can insert OCaml expressions of type string inside html
 using ##$str:... $##, like this:
@@ -541,14 +544,14 @@ The last possibility is to use untyped HTML. Just build strings
 containing your pages. Here is an example:
 
 <<code language="ocaml"|
-let coucoutext =
+let hello =
   Eliom_registration.Html_text.register_service
-    ~path:["coucoutext"]
+    ~path:["hello"]
     ~get_params:Eliom_parameter.unit
     (fun () () ->
       Lwt.return
-        ("<html>n'importe quoi "^
-         (Eliom_content.Html_text.a coucou "clic" ())^
+        ("<html>This page: "^
+         (Eliom_content.Html_text.a hello "hello" ())^
          "</html>"))
 >>
 
@@ -558,8 +561,7 @@ We do not recommend this.
 
 ===@@id="custom_data"@@Custom data for HTML5===
 
-Eliom provides a type-safe interface for using HTML5's custom data, <<a_api | module
-Eliom_content.Html5.Custom_data>>.
+Eliom provides a type-safe interface for create new attributes of the form {{{data-*}}}, using  <<a_api | module Eliom_content.Html5.Custom_data>>.
 
 ==== Creation ====
 Custom data may be created either from string-conversation functions by <<a_api | val
@@ -591,9 +593,6 @@ project="eliom"|val Eliom_content.Html5.Custom_data.attrib>>:
 <<code language="ocaml"|
   div ~a:[Html5.Custom_data.attrib coord_data {x = 100; y = 200}] []
 >>
-
-NB, HTML5 gives no restriction on the usage of custom data, any custom data can
-may be added to //any// HTML5 element.
 
 ==== Reading/writing the DOM ====
 
