@@ -380,13 +380,13 @@ module type S = sig
     unit ->
     [> Html5_types.input] elt
 
-  (** Creates an [<input type="image" name="...">] tag. *)
+  (** Creates an [<input type="image" name="...">] tag. The server
+      receives the coordinates that the user clicked on. *)
   val image_input :
     ?a:Html5_types.input_attrib attrib list ->
-    name:[< 'a oneradio ] param_name ->
-    value:'a ->
+    name:[< coordinates oneradio ] param_name ->
     ?src:uri ->
-    'a param ->
+    unit ->
     [> Html5_types.input] elt
 
   (** Creates a checkbox [<input>] tag. You can produce several

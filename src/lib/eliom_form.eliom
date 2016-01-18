@@ -341,9 +341,9 @@ module Make (Html5 : Html5) = struct
       ~name:(Eliom_parameter.string_of_param_name name) ()
   (* value attribute not supported by browsers for security reasons *)
 
-  let image_input ?a ~name ~value ?src y =
-    let f = Eliom_parameter_base.string_of_atom y in
-    gen_input ?a ~input_type:`Image ~name ~value ?src f
+  let image_input ?a ~name ?src () =
+    make_input ?a ~typ:`Image
+      ~name:(Eliom_parameter.string_of_param_name name) ?src ()
 
   let checkbox ?a ?checked ~name ~value y =
     let name = Eliom_parameter.string_of_param_name name
