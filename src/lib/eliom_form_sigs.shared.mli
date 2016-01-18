@@ -169,8 +169,7 @@ module type LINKS = sig
       the link is realized as a standard HTML link and clicking it
       discontinues the Eliom application.  The [~xhr] parameter has no
       effect outside an Eliom application.
-
-      NB that the default value of [~xhr] is configurable through
+      The default value of [~xhr] is configurable through
       <<a_api project="eliom" subproject="server" | val
       Eliom_config.set_default_links_xhr >>
 
@@ -178,7 +177,11 @@ module type LINKS = sig
       attributes to the generated node.
 
       See {!make_uri} for description of other optional
-      parameters.  *)
+      parameters.
+
+      To create a [<a>] node that is not associated to a service, use
+      [Raw.a].
+  *)
   val a :
     ?absolute:bool ->
     ?absolute_path:bool ->
