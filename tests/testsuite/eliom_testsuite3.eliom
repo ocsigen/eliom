@@ -2758,14 +2758,20 @@ let dead_links =
 
 let () = My_appl.register ~service:live1 (fun () () ->
     ignore {unit{ Eliom_client.onload (fun _ -> Lwt_log.ign_debug "Page 1 loading"; pinger := Some (loop 2. 0 loop_counter)) }};
-    ignore {unit{ Eliom_client.onunload (fun _ -> Lwt_log.ign_debug "Page 1 unloading"; Option.iter Lwt.cancel !pinger) }};
+    ignore {unit{ Eliom_client.onunload
+                    (fun _ ->
+                       Lwt_log.ign_debug "Page 1 unloading";
+                       Option.iter Lwt.cancel !pinger;
+                       None)
+                }};
     Lwt.return
       (make_page [h1 [pcdata "Page one"]; live_description; live_links; dead_links]))
 
 let () = My_appl.register ~service:live2 (fun () () ->
     ignore {unit{
       Eliom_client.onload (fun _ -> Lwt_log.ign_debug "Page 2 loading");
-      Eliom_client.onunload (fun _ -> Lwt_log.ign_debug "Page 2 unloading")
+      Eliom_client.onunload
+        (fun _ -> Lwt_log.ign_debug "Page 2 unloading"; None)
     }};
     Lwt.return
       (make_page [h1 [pcdata "Page two"];live_description; live_links; dead_links]))
@@ -2773,8 +2779,11 @@ let () = My_appl.register ~service:live2 (fun () () ->
 let () = My_appl.register ~service:live3 (fun () () ->
     ignore {unit{
       Eliom_client.onload (fun _ -> Lwt_log.ign_debug "Page 3 loading");
-      Eliom_client.onunload (fun _ -> Lwt_log.ign_debug "Page 3 unloading")
-    }};
+      Eliom_client.onunload
+        (fun _ ->
+           Lwt_log.ign_debug "Page 3 unloading";
+           None)
+  }};
     Lwt.return
       (make_page [h1 [pcdata "Page threee"]; live_description; live_links; dead_links]))
 

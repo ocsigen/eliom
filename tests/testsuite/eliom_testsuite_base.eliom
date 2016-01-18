@@ -21,6 +21,10 @@ module My_appl =
 
 let main = Eliom_service.Http.service [] Eliom_parameter.unit ()
 
+(* an alias to allow using main even when it is shadowed by some open
+   HTML module *)
+let main_service = main
+
 let tests description services =
   Html5.F.(
     div [
@@ -67,7 +71,8 @@ let test ~path ~title:ttl ~description f =
                               ~css:[["style.css"]] ())
                            (body
                               (div [
-                                a ~xhr:false ~service:main [pcdata "Home and break app"] () ;
+                                a ~xhr:false ~service:main_service
+                                  [pcdata "Home and break app"] () ;
                                 pcdata " - " ;
                                 a ~service:Eliom_service.void_coservice' [pcdata "Reload in running app"] () ;
                                 pcdata " - " ;
