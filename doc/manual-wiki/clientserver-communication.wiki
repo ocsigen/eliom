@@ -2,9 +2,9 @@
 
 <<outline depth="2"| <<header| **Table of contents** >> >>
 
-Besides values passed by the mean of the {{{%variable}}}
-syntax, there are multiple ways for the client and server to exchange
-values.
+Besides injections and client values, passed by the mean of the {{{%variable}}}
+syntax described <<a_manual chapter="clientserver-language" | here>>, there are multiple ways
+for the client and server to exchange values.
 
 ==@@id="rpc"@@ Remote Procedure Calls
 
@@ -12,7 +12,7 @@ Eliom provides you an easy way to call server functions from the client:
 <<a_api subproject="server" | type Eliom_pervasives.server_function>>
 (and on <<a_api subproject="client" text="client" | type Eliom_pervasives.server_function>>).
 
-A function ##'a -> 'b Lwt.t## can me wrapped on the server side by
+A function ##'a -> 'b Lwt.t## can be wrapped on the server side by
 <<a_api subproject="server" | val Eliom_pervasives.server_function>>.
 When the result is sent to the client, it appears as a plain
 function ##'a -> 'b Lwt##.
@@ -55,7 +55,7 @@ exception (according to {{{Printexc.to_string}}}).
 
 == Client requesting data
 
-Server function are implemented using special services taking and
+Server functions are implemented using special services taking and
 returning OCaml values. In this section we will see how to define
 services returning OCaml data.
 
@@ -108,7 +108,7 @@ The client can send OCaml values as parameters to services.
 To do that, declare the expected parameter type using
 <<a_api | val Eliom_parameter.ocaml >>.
 
-Since the server can't trust the client to send correcly formed data,
+Since the server can't trust the client to send correctly formed data,
 Eliom is not using the standard OCaml marshalling mechanism (the
 server needs to be able to check that the value is of the expected
 type). For this reason, you must declare the types of the data
@@ -164,10 +164,6 @@ OCaml's standard library. For types defined in third third party
 libraries, have a look at deriving's
 [[href:http://code.google.com/p/deriving/wiki/Introduction|documentation]]
 and Js_of_ocaml's <<a_api project="js_of_ocaml"|module Deriving_Json>>.
-
-<<wip| We are currently working with the OCaml team to make possible to
-do that whithout deriving. We hope to have a good solution included in OCaml
-as soon as possible.>>
 
 == Server sending data
 
@@ -246,8 +242,7 @@ created with the same stream do not share memory. They are closed
 when requested or when the client process is closed. It is possible
 to know when a client stop requesting data on those channels using
 <<a_api | val Eliom_comet.Channel.wait_timeout >>.
-
-//Warning:// Be careful about memory consumption when using
+Be careful about memory consumption when using
 client process channels.
 
 === Comet configuration
@@ -286,7 +281,7 @@ The original setting will be reset after the drop.
 A common usage of comet is for the server to update a value available
 on client side. A convenient way to implement this is to use reactive
 programming. Eliom provides a reactive interface for channels, using
-Daniel Bünzli's React library.
+the [[http://erratique.ch/software/react| react]]. library.
 
 To share a React event or signal with the client, use functions
 <<a_api | val Eliom_react.Down.of_react >> or
@@ -297,12 +292,12 @@ a React event or signal.
 
 The contrary is also available using <<a_api | val Eliom_react.Up.create >>.
 
-Since this is implemented using comet, tunnig comet configuration will
+Since this is implemented using comet, tuning comet configuration will
 also affect the behaviour of shared react variables.
 
 == Client-Server shared bus
 
-It is cometimes useful to have a bidirectionnal channels shared between
+It is sometimes useful to have a bidirectional channels shared between
 multiple clients.
 This is the purpose of buses. Those are created using
 <<a_api | val Eliom_bus.create >>. Since the server will also receive data on
