@@ -1,14 +1,13 @@
 = Eliom's language extensions
 
-Use extension {{{.eliom}}} for the files belonging to a client-server
-Eliom application. Use extension {{{.eliomi}}} for the corresponding interface.
-By using this naming conventions,
-the programs {{{eliomc}}} and {{{js_of_eliom}}} will be using
-Eliom's syntax extension automatically.
+Eliom uses syntax extensions to make the development of client-server applications easier.
 
-These syntax extensions make much easier to write client-server applications
-in a very concise style. They are described in this chapter.
+In order to use these syntax extensions, use the file extension {{{.eliom}}}
+for the implementation and {{{.eliomi}}} for the corresponding interface.
+By using this naming conventions, {{{eliomc}}} and {{{js_of_eliom}}}
+will use Eliom's syntax extension automatically.
 
+This manual describes the Camlp4 extension.
 For the ppx syntax extension, see <<a_api subproject="ppx"|module Eliom_ppx>>.
 
 <<outline depth="2"| <<header| **Table of contents** >> >>
@@ -55,7 +54,7 @@ server and/or the client program.
 Structuring the source code of your application into client and
 server sections wouldn't be of much use as it; we need a possibility
 to exchange data between those parts in a way which reflects the
-asymetries between the client and the server parts, i.e. that the
+asymmetries between the client and the server parts, i.e. that the
 client program is sent and initialized by the server program.
 
 Thus to ease the direct exchange of values between server and client,
@@ -74,8 +73,8 @@ called //injecting// a server value into the client:
 >>
 
 The server side value is injected once and for all when the page is sent
-for the first time. There is no automatic request to the server whan the
-client tries to access this value. In particuler, if the server side
+for the first time. There is no automatic request to the server when the
+client tries to access this value. In particular, if the server side
 value is mutable, a copy is sent to the client.
 
 == Server side client values
@@ -96,8 +95,8 @@ value has the type {{{typ client_value}}} which is //abstract on the
 server//. But once it is sent to the client, it evaluates to the value
 of {{{expr}}} having type {{{typ}}}.
 
-<<wip|There is no type inference on client values for now.
-      You must write {{{typ}}} yourself.>>
+In some cases where inference is not sufficient, {{{eliomc}}} will emits
+a warning indicating than this type annotation is needed.
 
 ==== Injections
 
@@ -145,7 +144,7 @@ program, i.e. //before// setting up the document. This is necessary
 in order to safely inject them into the next client-section.
 
 Thus, if you want to refer the DOM in global client values (e.g. by
-injecting variabels holding Html5-elements) you must be sure to delay
+injecting variables holding Html5-elements) you must be sure to delay
 this by using <<a_api subproject="client"|Eliom_client.onload>>.
 
 Request client values, however, are sent with the next response to the
@@ -200,7 +199,7 @@ section.
 
 == Restrictions to injections into the client values/sections
 
-It is not possible to send values containg closures that way.
+It is not possible to send values containing closures that way.
 There are two executables: one on server side, and one one on client side,
 and closures just contains a pointer to the code.
 Extra code is never sent dynamically on the network.
@@ -303,5 +302,5 @@ injections. This must be done post-hoc because client values are
 unwrapped late.
 
 The syntax extensions then generates for an injection just a lookup in
-that global table for its identifer. Type constraints are generated
+that global table for its identifier. Type constraints are generated
 from the syntax extension.
