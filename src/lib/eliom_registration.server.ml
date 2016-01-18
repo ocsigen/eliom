@@ -1877,19 +1877,23 @@ module Eliom_appl_reg_make_param
 
   let eliom_appl_script_id : [ `Script ] Eliom_content.Html5.Id.id =
     Eliom_content.Html5.Id.new_elt_id ~global:true ()
-  let application_script ?(async = false) () =
+  let application_script ?(defer = false) ?(async = false) () =
+    let a =
+      (if defer then [Eliom_content.Html5.D.a_defer `Defer] else [])
+        @
+      (if async then [Eliom_content.Html5.D.a_async `Async] else [])
+    in
     Eliom_content.Html5.Id.create_named_elt
       ~id:eliom_appl_script_id
-      (Eliom_content.Html5.D.js_script
-	 ~a:(if async then [Eliom_content.Html5.D.a_async `Async] else [] )
+      (Eliom_content.Html5.D.js_script ~a
 	 ~uri:(Eliom_content.Html5.D.make_uri
 		 ~service:(Eliom_service.static_dir ())
 		 [Appl_params.application_name ^ ".js"])
 	 ())
   let application_script =
     (application_script
-     : ?async:_ -> unit -> [ `Script ] Eliom_content.Html5.elt
-     :> ?async:_ -> unit -> [> `Script ] Eliom_content.Html5.elt)
+     : ?defer:_ -> ?async:_ -> _ -> [ `Script ] Eliom_content.Html5.elt
+     :> ?defer:_ -> ?async:_ -> _ -> [> `Script ] Eliom_content.Html5.elt)
   let is_eliom_appl_script elt =
     Eliom_content.Html5.Id.have_id eliom_appl_script_id elt
 
@@ -2118,7 +2122,8 @@ module type ELIOM_APPL = sig
     ('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return) Eliom_service.service ->
     ('a -> 'b -> [`Html] Eliom_content.Html5.elt Lwt.t) client_value ->
     unit
-  val application_script : ?async:bool -> unit -> [> `Script ] Eliom_content.Html5.elt
+  val application_script :
+    ?defer:bool -> ?async:bool -> unit -> [> `Script ] Eliom_content.Html5.elt
   val application_name : string
   val is_initial_request : unit -> bool
   type appl

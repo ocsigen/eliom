@@ -191,7 +191,8 @@ module type ELIOM_APPL = sig
       that represents the javascript part of the application. If you
       do not include this script in the [<head>] node of your page, it
       will be automatically added at the end of the [<head>] node. *)
-  val application_script : ?async:bool -> unit -> [> `Script ] Eliom_content.Html5.elt
+  val application_script :
+    ?defer:bool -> ?async:bool -> unit -> [> `Script ] Eliom_content.Html5.elt
 
   (** Unique identifier for this application. Currently, it is just
       the application name as defined by {!Appl_params.application_name}.
