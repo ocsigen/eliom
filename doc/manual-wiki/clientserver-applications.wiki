@@ -18,7 +18,7 @@ keep the traditional Web interaction (with URLs, bookmarks, back button, etc).
 For example if the page is playing music, it won't stop when the user continue
 his visit on the Web site.
 
-Client side parts are using <<a_manual project="Lwt" |  >> for concurrency, making possible
+Client side parts are using <<a_manual project="lwt"|Lwt>> for concurrency, making possible
 to have concurrent programs in the browser very easily.
 
 As both parts are implemented in OCaml, it is very easy to use client side
