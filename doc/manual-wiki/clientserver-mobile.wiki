@@ -3,7 +3,7 @@
 <<outline depth="2"| <<header| **Table of contents** >> >>
 
 Eliom now has an experimental feature making possible to start the application
-from client side, making possible offline or mobile apps.
+from client side, making it possible to create offline or mobile apps.
 
 As this feature is still very young, we still need to understand the needs
 of developers to improve it. If you try this, we would be happy to receive your
