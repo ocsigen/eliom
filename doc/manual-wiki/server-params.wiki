@@ -243,8 +243,8 @@ let nlparams = Eliom_registration.Html5.register_service
 To create a link or a form with non-localized parameters, use the
 optional parameter <<span class="code"|nl_params>> of functions
 <<a_api| val Eliom_content.Html5.D.a >>, <<a_api| val
-Eliom_content.Html5.D.get_form >>, or <<a_api| val
-Eliom_content.Html5.D.post_form >>. Example:
+Eliom_content.Html5.D.Form.get_form >>, or <<a_api| val
+Eliom_content.Html5.D.Form.post_form >>. Example:
 
 <<code language="ocaml"|let tonlparams = Eliom_registration.Html5.register_service
     ~path:["nlparams"]
@@ -263,7 +263,7 @@ Eliom_content.Html5.D.post_form >>. Example:
                                )
                     [pcdata "with nl params"]
                     5];
-               get_form
+               Form.get_form
                  ~service:nlparams
                  ~nl_params:(Eliom_parameter.add_nl_parameter
                                Eliom_parameter.empty_nl_params_set
@@ -272,21 +272,27 @@ Eliom_content.Html5.D.post_form >>. Example:
                             )
                  (fun iname ->
                     [p [pcdata "form with hidden nl params";
-                        int_input
-                          ~input_type:`Text ~name:iname ();
-                        string_input
-                          ~input_type:`Submit ~value:"Send" ()]]);
-               get_form
+                        Form.input
+                          ~input_type:`Text ~name:iname
+                          Form.int;
+                        Form.input
+                          ~input_type:`Submit ~value:"Send"
+                          Form.string]]);
+               Form.get_form
                  ~service:nlparams
                  (fun iname ->
                     let (aname, sname) =
                       Eliom_parameter.get_nl_params_names my_nl_params
                     in
                     [p [pcdata "form with nl params fiels";
-                        int_input ~input_type:`Text ~name:iname ();
-                        int_input ~input_type:`Text ~name:aname ();
-                        string_input ~input_type:`Text ~name:sname ();
-                        string_input ~input_type:`Submit ~value:"Send" ()]]);
+                        Form.input ~input_type:`Text ~name:iname Form.int;
+                        Form.input ~input_type:`Text ~name:aname Form.int;
+                        Form.input
+                          ~input_type:`Text ~name:sname
+                          Form.string;
+                        Form.input
+                          ~input_type:`Submit ~value:"Send"
+                          Form.string]]);
               ]))
     )
 >>

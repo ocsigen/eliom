@@ -89,42 +89,57 @@ project="eliom"|val Eliom_service.void_coservice'>>.)
 
 ===Forms towards GET services
 
-The function  <<a_api|  val Eliom_content.Html5.D.get_form >> allows creation of forms
-that use the GET method (parameters in the URL).
-It works like  <<a_api| val Eliom_content.Html5.D.a >> but takes a //function// that creates the form from the parameters names as parameter.
+The modules <<a_api| val Eliom_content.Html5.D.Form >>
+and <<a_api| val Eliom_content.Html5.F.Form >> provide functions
+for creating forms. Our examples use shorthands to these modules, e.g.,
+simply <<span class="code"|Form>>, assuming an appropriate context.
 
+The function <<a_api| val Eliom_content.Html5.D.Form.get_form >>
+allows creation of forms that use the GET method (parameters in the
+URL). It works like <<a_api| val Eliom_content.Html5.D.a >> but takes
+a //function// that creates the form from the parameters names as
+parameter.
 
 <<code language="ocaml"|
 let create_form =
   (fun (number_name, (number2_name, string_name)) ->
     Html5.D.(
       [p [pcdata "Write an int: ";
-        int_input ~input_type:`Text ~name:number_name ();
+        Form.input ~input_type:`Text ~name:number_name Form.int;
         pcdata "Write another int: ";
-        int_input ~input_type:`Text ~name:number2_name ();
+        Form.input ~input_type:`Text ~name:number2_name Form.int;
         pcdata "Write a string: ";
-        string_input ~input_type:`Text ~name:string_name ();
-        string_input ~input_type:`Submit ~value:"Click" ()]]
+        Form.input ~input_type:`Text ~name:string_name Form.string;
+        Form.input ~input_type:`Submit ~value:"Click" Form.string]]
     ))
 
 let form = Eliom_registration.Html5.register_service ["form"] unit
   (fun () () ->
-     let f = Html5.D.get_form coucou_params create_form in
+     let f = Html5.D.Form.get_form coucou_params create_form in
      Lwt.return
        (html
          (head (title (pcdata "")) [])
          (body [f])))
 >>
 
-Parameter names are typed to make sure that they are used properly. In
-our example, <<span class="code"|number_name>> has type <<span
-class="code"|int param_name>> and must be used with <<span
-class="code"|int_input>> (or other widgets), whereas <<span
-class="code"|string_name>> has type <<span class="code"|string
-param_name>> and must be used with <<span class="code"|string_input>>
-(or other widgets).  The functions for creating form widgets are
-described in detail in <<a_api | module Eliom_content.Html5.D >> (and
-<<a_api | module Eliom_content.Html5.F >>).
+Parameter names are typed to make sure that they are used
+properly. The form-creating functions in <<span
+class="code"|Eliom_content.Html5.D.Form>> (respectively <<span
+class="code"|Eliom_content.Html5.F.Form>>) accept an argument of type
+<<a_api| type Eliom_content.Html5.D.Form.param >> (respectively
+<<a_api| type Eliom_content.Html5.F.Form.param >>), which needs to
+match the type of the parameter used. For example,
+<<span class="code"|number_name>> has type <<span
+class="code"|int param_name>>, so <<span class="code"|Form.int>>
+must be used with <<span class="code"|Form.input>>
+(or with the other widgets), whereas
+<<span class="code"|string_name>> has type
+<<span class="code"|string param_name>>
+and must be used in conjunction with the argument
+<<span class="code"|Form.string>>.
+Creating form widgets are described in detail in
+<<a_api | module Eliom_content.Html5.D.Form >>
+(and <<a_api | module Eliom_content.Html5.F.Form >>).
 
 For untyped forms, you may use functions from the module <<a_api
 project="eliom" subproject="server"|module
@@ -142,7 +157,7 @@ let raw_form =
                    (head (title (pcdata "")) [])
                    (body
                       [h1 [pcdata "Any Form"];
-                       get_form raw_serv
+                       Form.get_form raw_serv
                          (fun () ->
                            [p [pcdata "Form to raw_serv: ";
                                raw_input ~input_type:`Text ~name:"plop" ();
@@ -215,26 +230,25 @@ let my_service_with_get_and_post = Eliom_registration.Html5.register_post_servic
 ===@@id="postforms"@@POST forms
 
 
- To create a POST form, use the
-    <<a_api| val Eliom_content.Html5.D.post_form >> function.
-   It is similar to  <<a_api| val Eliom_content.Html5.D.get_form >>
-   with an additional parameter
-   for the GET parameters you want to put in the URL (if any).
-   Here, <<span class="code"|form2>> is a page containing a form
-   to the service <<span class="code"|post>> (using Html5.F's functions)
-   and <<span class="code"|form3>> (defined using the syntax extension)
-   contains a form to <<span class="code"|post2>>, with a GET parameter.
-   <<span class="code"|form4>> is a form to an external page.
-
-
+To create a POST form, use the
+<<a_api| val Eliom_content.Html5.D.Form.post_form >> function.
+It is similar to <<a_api| val Eliom_content.Html5.D.Form.get_form >>
+with an additional parameter for the GET parameters you want to put in
+the URL (if any). Here, <<span class="code"|form2>> is a page containing
+a form to the service <<span class="code"|post>> (using Html5.F's
+functions) and <<span class="code"|form3>> (defined using the syntax
+contains a form to <<span class="code"|post2>>, with a GET parameter.
+<<span class="code"|form4>> is a form to an external page.
 
 <<code language="ocaml"|let form2 = Eliom_registration.Html5.register_service ["form2"] Eliom_parameter.unit
   (fun () () ->
      let f =
-       (Eliom_content.Html5.D.post_form my_service_with_post_params
+       (Eliom_content.Html5.D.Form.post_form my_service_with_post_params
           (fun chaine ->
             [p [pcdata "Write a string: ";
-                string_input ~input_type:`Text ~name:chaine ()]]) ()) in
+                Form.input
+                  ~input_type:`Text ~name:chaine
+                  Form.string]]) ()) in
      Lwt.return
        (html
          (head (title (pcdata "form")) [])
@@ -244,10 +258,12 @@ let form3 = Eliom_registration.Html5.register_service ["form3"] Eliom_parameter.
   (fun () () ->
      let module Html5 = Html5.D in
      let f  =
-       (Eliom_content.Html5.D.post_form my_service_with_get_and_post
+       (Eliom_content.Html5.D.Form.post_form my_service_with_get_and_post
           (fun chaine ->
             <:html5list< <p> Write a string:
-                    $string_input ~input_type:`Text ~name:chaine ()$ </p> ~>>)
+                    $Form.input
+                       ~input_type:`Text ~name:chaine
+                       Form.string$ </p> ~>>)
           222) in
      Lwt.return
        << <html>
@@ -258,7 +274,7 @@ let form4 = Eliom_registration.Html5.register_service ["form4"] Eliom_parameter.
   (fun () () ->
      let module Html5 = Eliom_content.Html5.D in
      let f  =
-       (Eliom_content.Html5.D.post_form
+       (Eliom_content.Html5.D.Form.post_form
           (external_post_service
              ~prefix:"http://www.petizomverts.com"
              ~path:["zebulon"]
@@ -266,7 +282,8 @@ let form4 = Eliom_registration.Html5.register_service ["form4"] Eliom_parameter.
              ~post_params:(string "chaine") ())
           (fun chaine ->
             <:html5list< <p> Write a string:
-                     $string_input ~input_type:`Text ~name:chaine ()$ </p> ~>>)
+                     $Form.input ~input_type:`Text ~name:chaine
+                        Form.string$ </p> ~>>)
           222) in
      Lwt.return
        (html
@@ -342,12 +359,12 @@ let bool_params = Eliom_registration.Html5.register_service
 let create_form_bool casename =
     let module Html5 = Html5.D in
     <:html5list< <p>check? $bool_checkbox ~name:casename ()$ <br/>
-      $string_input ~input_type:`Submit ~value:"Click" ()$</p> ~>>
+      $Form.input ~input_type:`Submit ~value:"Click" Form.string$</p> ~>>
 
 let form_bool = Eliom_registration.Html5.register_service ["formbool"] unit
   (fun () () ->
      let module Html5 = Html5.D in
-     let f = get_form bool_params create_form_bool in
+     let f = Form.get_form bool_params create_form_bool in
      Lwt.return
        << <html>
             <head><title></title></head>
@@ -420,15 +437,24 @@ let setform = Eliom_registration.Html5.register_service
         (html
            (head (title (pcdata "")) [])
            (body [h1 [pcdata "Set Form"];
-                  get_form set
+                  Form.get_form set
                     (fun n ->
                       [p [pcdata "Form to set: ";
-                          string_checkbox ~name:n ~value:"box1" ();
-                          string_checkbox
-                            ~name:n ~value:"box2" ~checked:true ();
-                          string_checkbox ~name:n ~value:"box3" ();
-                          string_checkbox ~name:n ~value:"box4" ();
-                          string_input ~input_type:`Submit ~value:"Click" ()]])
+                          Form.checkbox
+                            ~name:n ~value:"box1"
+                            Form.string;
+                          Form.checkbox
+                            ~name:n ~value:"box2" ~checked:true
+                            Form.string;
+                          Form.checkbox
+                            ~name:n ~value:"box3"
+                            Form.string;
+                          Form.checkbox
+                            ~name:n ~value:"box4"
+                            Form.string;
+                          Form.input
+                            ~input_type:`Submit ~value:"Click"
+                            Form.string]])
                 ])))
 >>
 
@@ -459,13 +485,13 @@ let create_select_form =
   (fun select_name ->
     Html5.D.(
       [p [pcdata "Select something: ";
-        string_select ~name:select_name
-          (Option ([] (* attributes *),
-                   "Bob" (* value *),
-                   None (* Content, if different from value *),
-                   false (* not selected *))) (* first line *)
-          [Option ([], "Marc", None, false);
-          (Optgroup
+        Form.select Form.string ~name:select_name
+          (Form.Option ([] (* attributes *),
+                        "Bob" (* value *),
+                        None (* Content, if different from value *),
+                        false (* not selected *))) (* first line *)
+          [Form.Option ([], "Marc", None, false);
+          (Form.Optgroup
           ([],
            "Girls",
            ([], "Karin", None, false),
@@ -473,16 +499,14 @@ let create_select_form =
             ([], "Alice", None, true);
             ([], "Germaine", Some (pcdata "Bob's mother"), false)]))]
           ;
-        string_input ~input_type:`Submit ~value:"Send" ()]]
+        Form.input ~input_type:`Submit ~value:"Send" Form.string]]
     ))
 
-let select_example = Eliom_registration.Html5.register_service ["select"] Eliom_parameter.unit
+let select_example =
+  Eliom_registration.Html5.register_service ["select"] Eliom_parameter.unit
   (fun () () ->
      let open Html5.D in
-     let f =
-       get_form
-         select_example_result create_select_form
-     in
+     let f = Form.get_form select_example_result create_select_form in
      Lwt.return
        (html
          (head (title (pcdata "")) [])
@@ -490,7 +514,7 @@ let select_example = Eliom_registration.Html5.register_service ["select"] Eliom_
 >>
 
 To do "multiple" select boxes, use functions like
- <<a_api| val Eliom_content.Html5.D.string_multiple_select >>.
+ <<a_api| val Eliom_content.Html5.D.Form.multiple_select >>.
 As you can see in the type, the service must be declared with parameters
 of type  <<a_api| val Eliom_parameter.set >>.
 
@@ -525,51 +549,13 @@ let imageform = Eliom_registration.Html5.register_service
         (html
            (head (title (pcdata "")) [])
            (body [h1 [pcdata "Image Form"];
-                  get_form coord
+                  Form.get_form coord
                     (fun n ->
-                      [p [image_input
+                      [p [Form.image_input
                             ~src:(make_uri ~service:(Eliom_service.static_dir ()) ["ocsigen5.png"])
                             ~name:n
                             ()]])
                 ])))
->>
-
-You may also send a value with the coordinates:
-
-<<code language="ocaml"|let coord2 = Eliom_registration.Html5.register_service
-    ~path:["coord2"]
-    ~get_params:Eliom_parameter.(int_coordinates "coord")
-  (fun (i, c) () ->
-    let module Html5 = Html5.D in
-    Lwt.return
-      << <html>
-           <head><title></title></head>
-           <body>
-           <p>
-             You clicked on coordinates:
-             ($str:(string_of_int c.abscissa)$, $str:(string_of_int c.ordinate)$)
-           </p>
-           </body>
-         </html> ~>>)
-
-(* form to image *)
-let imageform2 = Eliom_registration.Html5.register_service
-    ~path:["imageform2"]
-    ~get_params:Eliom_parameter.unit
-    (fun () () ->
-      Lwt.return
-        (html
-           (head (title (pcdata "")) [])
-           (body [h1 [pcdata "Image Form"];
-                  get_form coord2
-                    (fun n ->
-                      [p [int_image_input
-                            ~src:(make_uri ~service:(Eliom_service.static_dir ()) ["ocsigen5.png"])
-                            ~name:n
-                            ~value:3
-                            ()]])
-                ])))
-
 >>
 
 ===Type <<span class="code"|list>>
@@ -623,13 +609,13 @@ let create_listform f =
   let module Html5 = Eliom_content.Html5.D in
   f.it (fun stringname v init ->
     <:html5list< <p>Write the value for $str:v$:
-      $string_input ~input_type:`Text ~name:stringname ()$ </p> ~>>@init)
+      $Form.input ~input_type:`Text ~name:stringname Form.string$ </p> ~>>@init)
     ["one";"two";"three";"four"]
-    <:html5list< <p>$string_input ~input_type:`Submit ~value:"Click" ()$</p> ~>>
+    <:html5list< <p>$Form.input ~input_type:`Submit ~value:"Click" Form.string$</p> ~>>
 
 let listform = Eliom_registration.Html5.register_service ["listform"] Eliom_parameter.unit
   (fun () () ->
-     let f = get_form coucou_list create_listform in
+     let f = Form.get_form coucou_list create_listform in
      let module Html5 = Eliom_content.Html5.D in
      Lwt.return
        << <html>
@@ -657,17 +643,17 @@ Example:
 let create_suffixform ((suff, endsuff),i) =
      let module Html5 = Eliom_content.Html5.D in
     <:html5list< <p>Write the suffix:
-      $int_input ~input_type:`Text ~name:suff ()$ <br/>
+      $Form.input ~input_type:`Text ~name:suff Form.int$ <br/>
       Write a string: $user_type_input
       (Ocsigen_lib.Url.string_of_url_path ~encode:false)
          ~input_type:`Text ~name:endsuff ()
          $ <br/>
-      Write an int: $int_input ~input_type:`Text ~name:i ()$ <br/>
-      $string_input ~input_type:`Submit ~value:"Click" ()$</p> ~>>
+      Write an int: $Form.input ~input_type:`Text ~name:i Form.int$ <br/>
+      $Form.input ~input_type:`Submit ~value:"Click" Form.string$</p> ~>>
 
 let suffixform = Eliom_registration.Html5.register_service ["suffixform"] Eliom_parameter.unit
   (fun () () ->
-     let f = get_form isuffix create_suffixform in
+     let f = Form.get_form isuffix create_suffixform in
      let module Html5 = Eliom_content.Html5.D in
      Lwt.return
       << <html>
@@ -737,11 +723,11 @@ let upload2 = Eliom_registration.Html5.register_post_service
 let uploadform = Eliom_registration.Html5.register upload
     (fun () () ->
       let f =
-        (post_form upload2
+        (Form.post_form upload2
            (fun file ->
-             [p [file_input ~name:file ();
+             [p [Form.file_input ~name:file ();
                  br ();
-                 string_input ~input_type:`Submit ~value:"Send" ()
+                 Form.input ~input_type:`Submit ~value:"Send" Form.string
                ]]) ()) in
       Lwt.return
         (html
