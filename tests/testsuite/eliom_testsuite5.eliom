@@ -13,11 +13,14 @@ let simple_dom_react = Eliom_testsuite_base.test
        let signal = {(string React.S.t * (string -> unit)){
            let s,set =  React.S.create "" in
            s, (fun s -> set s)}} in
-       let input = Html5.D.input ~input_type:`Text ~a:[Html5.D.a_onkeyup {{ fun e ->
-           let i = Dom.eventTarget e in
-           let i = Js.Unsafe.coerce i in
-           (snd %signal)(Js.to_string (i##value))
-         }}] () in
+       let input =
+         Html5.D.Form.input
+           Html5.D.Form.string
+           ~input_type:`Text ~a:[Html5.D.a_onkeyup {{ fun e ->
+             let i = Dom.eventTarget e in
+             let i = Js.Unsafe.coerce i in
+             (snd %signal)(Js.to_string (i##value))
+           }}] in
        let dom = {{
          let s,_ = %signal in
          let i,set_i = React.S.create 0 in

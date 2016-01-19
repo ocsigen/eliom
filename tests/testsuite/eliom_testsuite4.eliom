@@ -67,7 +67,7 @@ let test_client_value_on_caml_service =
                 Lwt.return ())
        }} in
        Lwt.return Html5.F.([
-         button ~a:[a_onclick onclick ] ~button_type:`Submit [
+         Form.button_no_value ~a:[a_onclick onclick ] ~button_type:`Submit [
            pcdata "Click to get ocaml service";
          ]
        ]))
@@ -280,7 +280,9 @@ let test_custom_data =
            [pcdata "A: click me (my_data is originally {x=100;y=100})"]
        in
        let change_button =
-         button ~a:[a_onclick {{ fun _ -> change_data %container }}] ~button_type:`Submit
+         Form.button_no_value
+           ~a:[a_onclick {{ fun _ -> change_data %container }}]
+           ~button_type:`Submit
            [pcdata "In-/decrement my_data"]
        in
        Lwt.return
@@ -1348,7 +1350,7 @@ let test_server_function =
         "If you send the empty string, however, an exception is raised on the server.";
     ])
     (fun () ->
-       let field = Html5.D.raw_input ~input_type:`Text () in
+       let field = Html5.D.input ~a:[Html5.D.a_input_type `Text] () in
        let onclick = {{
          fun _ ->
            let field_dom = Html5.To_dom.of_input %field in

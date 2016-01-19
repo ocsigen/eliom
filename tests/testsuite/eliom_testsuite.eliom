@@ -77,9 +77,9 @@ let _ = Eliom_registration.Html5.register Eliom_testsuite_base.main
               a constfix [pcdata "Page with constants in suffix"] ("aa", ((), "bb"));
               br ();
 
-              pcdata "Form towards page with suffix: ";
-              a suffixform [pcdata "formsuffix"] ();
-              br ();
+              (* pcdata "Form towards page with suffix: "; *)
+              (* a suffixform [pcdata "formsuffix"] (); *)
+              (* br (); *)
 
               pcdata "A page with a parameter of user-defined type : ";
               a mytype [code [pcdata "mytype"]] A;

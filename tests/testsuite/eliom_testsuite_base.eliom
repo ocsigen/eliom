@@ -87,7 +87,7 @@ let test ~path ~title:ttl ~description f =
 
 let thebutton ?(msg="THE BUTTON") onclick : [> Html5_types.button ] Html5.elt =
   Html5.F.(
-    button ~button_type:`Submit
+    Form.button_no_value ~button_type:`Submit
       ~a:[a_class ["thebutton"]; a_onclick onclick]
       [ pcdata msg ])
 
