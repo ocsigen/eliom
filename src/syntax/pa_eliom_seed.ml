@@ -84,6 +84,8 @@ module type Helpers  = sig
   (** find inferred type for injected ident *)
   val find_injected_ident_type: string -> Ast.ctyp
 
+  val get_injected_ident_info: string -> string * int
+
   val is_client_value_type : Ast.ctyp -> Ast.ctyp option
 
   val raise_syntax_error : Ast.Loc.t -> string -> _
@@ -357,9 +359,12 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
             id (get_type_file ());
           exit 1
 
+      let get_injected_ident_info id =
+        Scanf.sscanf id (injected_ident_fmt ()) (fun u n -> (u, n))
+
       let find_injected_ident_type id =
         try
-          let id = Scanf.sscanf id (injected_ident_fmt ()) (fun _filehash n -> n) in
+          let (_, id) = get_injected_ident_info id in
           List.assoc id (snd_3 (Lazy.force inferred_sig))
         with Not_found ->
           Printf.eprintf "Error: Infered type of injected ident not found (%s). \

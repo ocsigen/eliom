@@ -214,11 +214,13 @@ module Pass = struct
         | None   -> [%expr None]
         | Some i -> [%expr Some [%e AC.str i]]
       in
+      let (u, d) = Mli.get_injected_ident_info id.txt in
+      let s = Printf.sprintf "%s%d" u d in
       [%expr
         (Eliom_client.Syntax_helpers.get_injection
            ?ident:([%e ident])
            ~pos:([%e position loc])
-           [%e Exp.constant ~loc:id.loc (Const_string (id.txt, None))]
+           [%e Exp.constant ~loc:id.loc (Const_string (s, None))]
          : [%t typ])
       ][@metaloc loc]
 

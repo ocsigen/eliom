@@ -181,9 +181,9 @@ type client_value_datum = {
 
 (** Data for initializing one injection *)
 type injection_datum = {
-  injection_id : string;
-  injection_value : poly;
   injection_dbg : (pos * string option) option;
+  injection_id : int;
+  injection_value : poly;
 }
 
 (** Data for initializing client values and injections of one compilation unit *)

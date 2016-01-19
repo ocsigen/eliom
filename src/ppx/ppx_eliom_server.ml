@@ -112,8 +112,9 @@ module Pass = struct
            let ident = match ident with
              | None -> [%expr None]
              | Some i -> [%expr Some [%e AC.str i ]] in
+           let (_, num) = Mli.get_injected_ident_info txt in
            [%expr
-             ([%e AC.str txt],
+             ([%e AC.int num],
               Eliom_lib.to_poly [%e frag_eid ],
               [%e loc_expr], [%e ident ]) :: [%e sofar ]
            ])

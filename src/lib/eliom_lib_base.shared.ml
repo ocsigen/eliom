@@ -278,9 +278,9 @@ type client_value_datum = {
 }
 
 type injection_datum = {
-  injection_id : string;
-  injection_value : poly;
   injection_dbg : (pos * string option) option;
+  injection_id : int;
+  injection_value : poly;
 }
 
 type compilation_unit_global_data = {

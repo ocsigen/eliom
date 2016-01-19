@@ -178,7 +178,7 @@ let middleClick ev =
 
 module Injection : sig
   val get : ?ident:string -> ?pos:pos -> name:string -> _
-  val initialize : injection_datum -> unit
+  val initialize : compilation_unit_id:string -> injection_datum -> unit
 end = struct
 
   let table = Jstable.create ()
@@ -200,11 +200,14 @@ end = struct
             in
             Lwt_log.raise_error_f "Did not find injection %s" name))
 
-  let initialize { Eliom_lib_base.injection_id; injection_value } =
-    Lwt_log.ign_debug_f ~section "Initialize injection %s" injection_id;
+  let initialize ~compilation_unit_id
+        { Eliom_lib_base.injection_id; injection_value } =
+    Lwt_log.ign_debug_f ~section "Initialize injection %d" injection_id;
     (* BBB One should assert that injection_value doesn't contain any
        value marked for late unwrapping. How to do this efficiently? *)
-    Jstable.add table (Js.string injection_id) injection_value
+    Jstable.add table
+      (Js.string (compilation_unit_id ^ string_of_int injection_id))
+      injection_value
 
 end
 
@@ -242,7 +245,7 @@ let do_next_client_section_data ~compilation_unit_id =
     match data.client_section with
       l :: r ->
         data.client_section <- r;
-        Array.iter Injection.initialize l
+        Array.iter (fun i -> Injection.initialize ~compilation_unit_id i) l
     | [] ->
         Lwt_log.raise_error_f ~section
           "Queue of injection data for compilation unit %s is empty \
@@ -291,19 +294,13 @@ let check_global_data global_data =
        "Code containing the following injections is not linked on the client:\n%s"
        (String.concat "\n"
           (List.rev_map (fun d ->
-             let id =
-               try
-                 Scanf.sscanf
-                   d.Eliom_lib_base.injection_id
-                   "__eliom__injected_ident__reserved_name__%019d__%d"
-                   (Printf.sprintf "%d/%d")
-               with _ -> d.Eliom_lib_base.injection_id in
+             let id = d.Eliom_lib_base.injection_id in
              match d.Eliom_lib_base.injection_dbg with
-             | None -> id
+             | None -> Printf.sprintf "%d" id
              | Some (pos, Some i) ->
-               Printf.sprintf "%s (%s at %s)" id i (Eliom_lib.pos_to_string pos)
+               Printf.sprintf "%d (%s at %s)" id i (Eliom_lib.pos_to_string pos)
              | Some (pos, None) ->
-               Printf.sprintf "%s (at %s)" id (Eliom_lib.pos_to_string pos)
+               Printf.sprintf "%d (at %s)" id (Eliom_lib.pos_to_string pos)
            ) l)))
 
 (* == Initialize the client values sent with a request *)

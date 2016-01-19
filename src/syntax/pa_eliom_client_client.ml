@@ -302,8 +302,10 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           let ident = match ident with
             | None -> <:expr<None>>
             | Some i -> <:expr<Some $str:i$>> in
+          let (u, d) = Helpers.get_injected_ident_info gen_id in
+          let s = Printf.sprintf "%s%d" u d in
           <:expr<
-            (Eliom_client.Syntax_helpers.get_injection ?ident:($ident$) ~pos:($Helpers.position _loc$) $str:gen_id$ : $typ$)
+            (Eliom_client.Syntax_helpers.get_injection ?ident:($ident$) ~pos:($Helpers.position _loc$) $str:s$ : $typ$)
           >>
 
   let implem _ sil = sil

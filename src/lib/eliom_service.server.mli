@@ -511,7 +511,8 @@ module Syntax_helpers : sig
 
       Called in parallel with <<a_api
       subproject="client"|Eliom_client.Syntax_helpers.open_client_section>>.  *)
-  val close_client_section : string -> (string * poly * Eliom_lib.pos * string option) list -> unit
+  val close_client_section :
+    string -> (int * poly * Eliom_lib.pos * string option) list -> unit
 
   (** Convert any value to a {! Eliom_lib.escaped_value} for usage in
       the [args] argument to {! Eliom_service.Syntax_helpers.client_value}. *)

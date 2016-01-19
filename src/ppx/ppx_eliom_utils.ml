@@ -181,6 +181,9 @@ module Mli = struct
     try Scanf.sscanf id Name.fragment_ident_fmt (fun _ -> true)
     with Scanf.Scan_failure _ -> false
 
+  let get_injected_ident_info id =
+    Scanf.sscanf id Name.injected_ident_fmt (fun u n -> (u, n))
+
   let get_fragment_type = function
     | [%type: [%t? typ] Eliom_lib.client_value ]
     | [%type: [%t? typ] Eliom_pervasives.client_value ]

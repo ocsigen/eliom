@@ -139,7 +139,10 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
            let ident = match ident with
              | None -> <:expr<None>>
              | Some i -> <:expr< Some $str:i$>> in
-           <:expr< ($str:gen_id$, Eliom_lib.to_poly $lid:gen_id$, $loc1_expr$, $ident$) :: $sofar$ >>)
+           let num =
+             string_of_int (snd (Helpers.get_injected_ident_info gen_id)) in
+           <:expr< ($int:num$, Eliom_lib.to_poly $lid:gen_id$,
+                    $loc1_expr$, $ident$) :: $sofar$ >>)
         injections <:expr< [] >>
     in
     <:str_item<
