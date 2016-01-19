@@ -114,7 +114,7 @@ module Pass = struct
              | Some i -> [%expr Some [%e AC.str i ]] in
            [%expr
              ([%e AC.str txt],
-              (fun () -> Eliom_lib.to_poly [%e frag_eid ]),
+              Eliom_lib.to_poly [%e frag_eid ],
               [%e loc_expr], [%e ident ]) :: [%e sofar ]
            ])
         injections

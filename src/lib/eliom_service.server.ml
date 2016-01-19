@@ -305,16 +305,10 @@ let close_client_section ~compilation_unit_id injection_data =
     Array.map injection_datum injection_data :: data.client_section
 
 let get_global_data () =
-  let on_injection_datum injection_datum =
-    let injection_value = injection_datum.injection_value () in
-    { injection_datum with injection_value  }
-  in
   String_map.map
     (fun {server_section; client_section}->
        { server_sections_data = Array.of_list (List.rev server_section);
-         client_sections_data =
-           Array.of_list
-             (List.rev_map (Array.map on_injection_datum) client_section) })
+         client_sections_data = Array.of_list (List.rev client_section) })
     (get_global_data ())
 
 (* Request data *)
