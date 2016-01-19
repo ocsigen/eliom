@@ -140,8 +140,8 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let implem loc sil =
     let _loc = Loc.ghost in
     let debug_compilation_unit_name =
-      let name = Printf.sprintf "__eliom__compilation_unit_id__%d"
-        (Hashtbl.hash (Loc.file_name loc)) in
+      let name = Printf.sprintf "__eliom__compilation_unit_id__%s"
+        (Helpers.file_hash loc) in
       <:str_item< let $lid:name$ = () >>
     in
     debug_compilation_unit_name :: sil

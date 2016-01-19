@@ -274,7 +274,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         nested_escaped_ident_prefix
 
       let injected_ident_fmt () =
-        format_of_string "__eliom__injected_ident__reserved_name__%019d__%d"
+        format_of_string "__eliom__injected_ident__reserved_name__%6s__%d"
       let is_injected_ident = function
           (* | <:sig_item< val $id$ : $t$ >> -> *)
         | Ast.SgVal (_loc, id, t) ->
@@ -394,7 +394,17 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         | es -> <:expr< $tup:Ast.exCom_of_list es$ >>
 
       let file_hash loc =
-        Printf.sprintf "%010d" (Hashtbl.hash (Ast.Loc.file_name loc))
+        let s = Digest.string (Ast.Loc.file_name loc) in
+        let e =
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_'" in
+        let o = Bytes.create 6 in
+        let g p = Char.code s.[p] in
+        for i = 0 to 5 do
+          let p = i * 6 / 8 in
+          let d = 10 - (i * 6) mod 8 in
+          Bytes.set o i e.[(g p lsl 8 + g (p + 1)) lsr d land 63]
+        done;
+        Bytes.to_string o
 
     end (* End of Helpers *)
 
@@ -589,7 +599,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       let injected_idents = ref [] in
       let r = ref 0 in
       let gen_ident loc =
-        let hash = Hashtbl.hash (Loc.file_name loc) in
+        let hash = Helpers.file_hash loc in
         incr r;
         Printf.sprintf (Helpers.injected_ident_fmt ()) hash !r
       in

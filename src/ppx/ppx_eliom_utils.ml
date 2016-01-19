@@ -37,11 +37,23 @@ let pat_args = function
   | [p] -> p
   | l -> Pat.tuple l
 
+(* We use a strong hash (MD5) of the file name.
+   We only keep the first 36 bit, which should be well enough: with
+   256 files, the likelihood of a collision is about one in two
+   millions.
+   These bits are encoded using an OCaml-compatible variant of Base
+   64, as the hash is used to generate OCaml identifiers. *)
 let file_hash loc =
-  Hashtbl.hash @@ loc.Location.loc_start.pos_fname
-
-let id_of_loc loc =
-  Printf.sprintf "%019d" (file_hash loc)
+  let s = Digest.string loc.Location.loc_start.pos_fname in
+  let e = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_'" in
+  let o = Bytes.create 6 in
+  let g p = Char.code s.[p] in
+  for i = 0 to 5 do
+    let p = i * 6 / 8 in
+    let d = 10 - (i * 6) mod 8 in
+    Bytes.set o i e.[(g p lsl 8 + g (p + 1)) lsr d land 63]
+  done;
+  Bytes.to_string o
 
 let lexing_position ~loc l =
   [%expr
@@ -69,13 +81,13 @@ module Name = struct
     "_eliom_fragment_%s"
 
   let injected_ident_fmt : _ format6 =
-    "_eliom_injected_ident_%019d_%Ld"
+    "_eliom_injected_ident_%6s%d"
 
   (* Identifiers for the closure representing a fragment. *)
   let fragment_num_count = ref 0
   let fragment_num _loc =
     incr fragment_num_count;
-    Format.sprintf "%010d%d" (file_hash _loc) !fragment_num_count
+    Printf.sprintf "%s%d" (file_hash _loc) !fragment_num_count
   let fragment_ident id =
     Printf.sprintf fragment_ident_fmt id
 
@@ -104,10 +116,10 @@ module Name = struct
 
   let injected_expr, injected_ident =
     let injected_idents = ref [] in
-    let r = ref Int64.zero in
+    let r = ref 0 in
     let gen_ident loc =
       let hash = file_hash loc in
-      r := Int64.(add one) !r ;
+      incr r;
       let s = Printf.sprintf injected_ident_fmt hash !r in
       {Location. txt = s ; loc }
     in

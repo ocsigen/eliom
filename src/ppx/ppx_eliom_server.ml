@@ -95,7 +95,7 @@ module Pass = struct
     Str.value Nonrecursive bindings
 
   let close_server_section loc =
-    let s = id_of_loc loc in
+    let s = file_hash loc in
     [%stri
       let () =
         Eliom_service.Syntax_helpers.close_server_section
@@ -120,7 +120,7 @@ module Pass = struct
         injections
         [%expr []]
     in
-    let s = id_of_loc loc in
+    let s = file_hash loc in
     [%stri
       let () =
         Eliom_service.Syntax_helpers.close_client_section

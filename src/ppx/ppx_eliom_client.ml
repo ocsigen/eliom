@@ -110,14 +110,14 @@ module Pass = struct
     [%stri
       let () =
         Eliom_client.Syntax_helpers.close_server_section
-          [%e AC.str @@ id_of_loc loc]
+          [%e AC.str @@ file_hash loc]
     ][@metaloc loc]
 
   let open_client_section loc =
     [%stri
       let () =
         Eliom_client.Syntax_helpers.open_client_section
-          [%e AC.str @@ id_of_loc loc]
+          [%e AC.str @@ file_hash loc]
     ][@metaloc loc]
 
   (** Syntax extension *)
