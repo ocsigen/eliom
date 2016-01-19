@@ -126,7 +126,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     <:str_item<
         let () =
           Eliom_service.Syntax_helpers.close_server_section
-            $str:Pa_eliom_seed.id_of_string (Loc.file_name loc)$
+            $str:Helpers.file_hash loc$
     >>
 
   let close_client_section loc injections =
@@ -145,7 +145,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     <:str_item<
         let () =
           Eliom_service.Syntax_helpers.close_client_section
-            $str:Pa_eliom_seed.id_of_string (Loc.file_name loc)$
+            $str:Helpers.file_hash loc$
             $injection_list$
     >>
 
@@ -171,7 +171,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
        [ close_server_section loc;
          close_client_section loc all_injections ])
 
-  let client_value_expr typ context_level orig_expr gen_num _ loc =
+  let client_value_expr typ context_level orig_expr gen_id _ loc =
     let typ =
       match typ with
       | Some typ -> typ
@@ -179,7 +179,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
         if !notyp then
           let _loc = Loc.ghost in <:ctyp< _ >>
         else
-          match Helpers.find_client_value_type gen_num with
+          match Helpers.find_client_value_type gen_id with
           | Ast.TyQuo _ ->
             Helpers.raise_syntax_error loc
               "The types of client values must be monomorphic from its usage \
@@ -197,10 +197,10 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     <:expr@loc<
       (Eliom_service.Syntax_helpers.client_value
          ~pos:($Helpers.position _loc$)
-         $`int64:gen_num$ $Helpers.expr_tuple l$
+         $str:gen_id$ $Helpers.expr_tuple l$
        : $typ$ Eliom_pervasives.client_value) >> ;;
 
-  let shared_value_expr typ _ orig_expr gen_num _ loc =
+  let shared_value_expr typ _ orig_expr gen_id _ loc =
     let typ =
       match typ with
       | Some typ -> typ
@@ -208,7 +208,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
         if !notyp then
           let _loc = Loc.ghost in <:ctyp< _ >>
         else
-          match Helpers.find_client_value_type gen_num with
+          match Helpers.find_client_value_type gen_id with
           | Ast.TyQuo _ ->
             Helpers.raise_syntax_error loc
               "The types of shared values must be monomorphic from its usage \
@@ -221,7 +221,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
       $orig_expr$
       (Eliom_service.Syntax_helpers.client_value
         ~pos:($Helpers.position _loc$)
-        $`int64:gen_num$
+        $str:gen_id$
         $Helpers.expr_tuple (flush_escaped_bindings ())$
       : $typ$ Eliom_pervasives.client_value)
     >>

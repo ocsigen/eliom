@@ -174,7 +174,7 @@ val client_value_unwrap_id_int : int
 
 (** Data for initializing one client value *)
 type client_value_datum = {
-  closure_id : int64;
+  closure_id : string;
   args : poly;
   value : poly Client_value_server_repr.t
 }

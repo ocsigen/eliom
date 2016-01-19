@@ -257,7 +257,7 @@ module Syntax_helpers : sig
   (** Register a function from the tuple of injected values (['args])
       to the actual code of the client value (['res]) under some
       closure ID *)
-  val register_client_closure : int64 -> ('args -> 'res) -> unit
+  val register_client_closure : string -> ('args -> 'res) -> unit
 
   (** Takes the next list of {!Eliom_lib_base.client_value_datum}s
       from the queue of server section data of the compilation unit

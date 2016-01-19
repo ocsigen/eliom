@@ -111,7 +111,7 @@ module Pass = struct
     [%expr
       [%e flush_typing_expr () ];
       [%e frag_eid] :=
-        Some ( Eliom_service.Syntax_helpers.client_value 0L 0 :
+        Some ( Eliom_service.Syntax_helpers.client_value "" 0 :
                  [%t typ] Eliom_pervasives.client_value);
       match ! [%e frag_eid] with
       | Some x -> x

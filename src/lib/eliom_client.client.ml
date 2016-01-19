@@ -64,15 +64,6 @@ let init_client_app ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
        Dom_html.CoerceTo.base)
     (fun e -> e##href <- Js.string url)
 
-
-let int64_to_string i = (Obj.magic i)##toString()
-(*VVV
-  Was:
-    Js.string (Int64.to_string i)
-  But unsafe version is much more efficient.
-  FIX! (may be: do not use int64)
-*)
-
 (* == Auxiliaries *)
 
 let create_buffer () =
@@ -128,24 +119,20 @@ let run_onunload_wrapper f g =
 (* == Closure *)
 
 module Client_closure : sig
-  val register : closure_id:int64 -> closure:(_ -> _) -> unit
-  val find : closure_id:int64 -> (poly -> poly)
+  val register : closure_id:string -> closure:(_ -> _) -> unit
+  val find : closure_id:string -> (poly -> poly)
 end = struct
-
-  let key closure_id = int64_to_string closure_id
 
   let client_closures = Jstable.create ()
 
   let register ~closure_id ~closure =
-    Jstable.add client_closures (key closure_id)
-      (fun args ->
-         to_poly (closure (from_poly args)))
+    Jstable.add client_closures (Js.string closure_id)
+      (from_poly (to_poly closure))
 
   let find ~closure_id =
     Js.Optdef.get
-      (Jstable.find client_closures (key closure_id))
-      (fun () ->
-         raise Not_found)
+      (Jstable.find client_closures (Js.string closure_id))
+      (fun () -> raise Not_found)
 end
 
 module Client_value : sig
@@ -169,7 +156,7 @@ end = struct
           | None -> ""
           | Some p -> Printf.sprintf "(%s)" (Eliom_lib.pos_to_string p) in
         Lwt_log.raise_error_f ~section
-         "Client closure %Ld not found %s (is the module linked on the client?)"
+         "Client closure %s not found %s (is the module linked on the client?)"
           closure_id pos
     in
     let value = closure args in
@@ -290,9 +277,9 @@ let check_global_data global_data =
              (fun {closure_id; value} ->
                 let instance_id = Client_value_server_repr.instance_id value in
                 match Client_value_server_repr.loc value with
-                | None -> Printf.sprintf "%Ld/%d" closure_id instance_id
+                | None -> Printf.sprintf "%s/%d" closure_id instance_id
                 | Some pos ->
-                  Printf.sprintf "%Ld/%d at %s" closure_id instance_id
+                  Printf.sprintf "%s/%d at %s" closure_id instance_id
                     (Eliom_lib.pos_to_string pos)
              )
              l

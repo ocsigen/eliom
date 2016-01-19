@@ -48,7 +48,7 @@ type +'a shared_value
     initialization of the server program), nor request (i.e. during
     the processing of a request).
 *)
-exception Client_value_creation_invalid_context of int64
+exception Client_value_creation_invalid_context of string
 
 exception Eliom_Internal_Error of string
 
@@ -81,7 +81,7 @@ val create_client_value :
 val client_value_from_server_repr :
   'a Client_value_server_repr.t -> 'a client_value
 val client_value_datum :
-  closure_id:int64 -> args:poly -> value:'a client_value -> client_value_datum
+  closure_id:string -> args:poly -> value:'a client_value -> client_value_datum
 val create_shared_value : 'a -> 'a client_value -> 'a shared_value
 val shared_value_server_repr : 'a shared_value -> 'a * 'a client_value
 

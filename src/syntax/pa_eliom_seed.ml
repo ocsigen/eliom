@@ -42,8 +42,8 @@
      '{{ ... }}' are compiled on the client as a function
      parameterized by the values of escaped expressions. On the
      server-side, '{{ ... }}' are compiled as a distant call.  To keep
-     the link, each '{{ ... }}' is associated unique integer (see
-     gen_closure_num).
+     the link, each '{{ ... }}' is associated unique string (see
+     gen_closure_id).
 
      In order to type-check escaped-value with the same type on both
      sides, compilation of Eliom sources infers the static type of
@@ -76,7 +76,7 @@ module type Helpers  = sig
   open Syntax
 
   (** find inferred type for escaped expr *)
-  val find_client_value_type: Int64.t -> Ast.ctyp
+  val find_client_value_type: string -> Ast.ctyp
 
   (** find inferred type for escaped expr *)
   val find_escaped_ident_type: string -> Ast.ctyp
@@ -97,6 +97,8 @@ module type Helpers  = sig
 
   val string_of_ident : Ast.ident -> string option
   val position : Ast.Loc.t -> Ast.expr
+
+  val file_hash : Ast.Loc.t -> string
 end
 
 type shared_value_context = [ `Server | `Shared ]
@@ -124,9 +126,6 @@ type escape_inject =
   | Escaped_in_shared_value_in of shared_value_context
   | Injected_in of injection_context
 
-let id_of_string str =
-  Printf.sprintf "%019d" (Hashtbl.hash str)
-
 (** Signature of specific code of a preprocessor. *)
 
 module type Pass = functor (Helpers: Helpers) -> sig
@@ -147,12 +146,12 @@ module type Pass = functor (Helpers: Helpers) -> sig
   val server_sig_items: Ast.Loc.t -> Ast.sig_item list -> Ast.sig_item
 
   (** How to handle "{{ ... }}" expr. *)
-  val client_value_expr: Ast.ctyp option -> client_value_context -> Ast.expr -> Int64.t -> string -> Ast.Loc.t -> Ast.expr
+  val client_value_expr: Ast.ctyp option -> client_value_context -> Ast.expr -> string -> string -> Ast.Loc.t -> Ast.expr
 
   (** How to handle "{shared# ... { ... }}" expr. *)
   val shared_value_expr:
     Ast.ctyp option -> shared_value_context -> Ast.expr ->
-    Int64.t -> string -> Ast.Loc.t -> Ast.expr
+    string -> string -> Ast.Loc.t -> Ast.expr
 
   (** How to handle escaped "%ident" inside "{{ ... }}". *)
   val escape_inject: escape_inject -> ?ident: string -> Ast.expr -> string -> Ast.expr
@@ -319,7 +318,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
             (match is_client_value_type typ with
               | Some t ->
                 let len = String.length id - client_value_ident_prefix_len in
-                Int64.of_string (String.sub id client_value_ident_prefix_len len),
+                String.sub id client_value_ident_prefix_len len,
                 suppress_underscore t
               | None ->
                   Printf.ksprintf failwith
@@ -374,7 +373,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         with Not_found ->
           Printf.eprintf "Error: Infered type client value not found (%s). \
                           You need to regenerate %s.\n"
-            (Int64.to_string id) (get_type_file ());
+            id (get_type_file ());
           exit 1
 
       (* Convert a list of patterns to a tuple of pattern, one single pattern, or (). *)
@@ -393,6 +392,9 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         | [] -> <:expr< () >>
         | [e] -> e
         | es -> <:expr< $tup:Ast.exCom_of_list es$ >>
+
+      let file_hash loc =
+        Printf.sprintf "%010d" (Hashtbl.hash (Ast.Loc.file_name loc))
 
     end (* End of Helpers *)
 
@@ -539,13 +541,12 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           failwith ("shared_value_context: " ^ level_to_string context)
 
     (* Identifiers for the closure representing "Hole_expr". *)
-    let gen_closure_num_base _loc = Int64.of_int (Hashtbl.hash (Loc.file_name _loc))
-    let gen_closure_num_count = ref Int64.zero
-    let gen_closure_num _loc =
-      gen_closure_num_count := Int64.succ !gen_closure_num_count;
-      Int64.add (gen_closure_num_base _loc) !gen_closure_num_count
+    let gen_closure_num_count = ref 0
+    let gen_closure_id _loc =
+      incr gen_closure_num_count;
+      Format.sprintf "%s%d" (Helpers.file_hash _loc) !gen_closure_num_count
     let gen_closure_escaped_ident id =
-      Helpers.client_value_ident_prefix ^ Int64.to_string id
+      Helpers.client_value_ident_prefix ^ id
 
     (* Globaly unique ident for escaped expression *)
     (* It's used for type inference and as argument name for the
@@ -799,7 +800,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
               from_some_or_raise opt_lvl _loc
                 (fun lvl ->
                    set_current_level lvl;
-                   let id = gen_closure_num _loc in
+                   let id = gen_closure_id _loc in
                    Pass.shared_value_expr typ (shared_value_context lvl) e
                      id (gen_closure_escaped_ident id) _loc)
                 "The syntax {shared# type{ ... } is not allowed in %s."
@@ -808,7 +809,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
               from_some_or_raise opt_lvl _loc
                 (fun lvl ->
                    set_current_level lvl;
-                   let id = gen_closure_num _loc in
+                   let id = gen_closure_id _loc in
                    Pass.client_value_expr typ (client_value_context lvl) e
                      id (gen_closure_escaped_ident id) _loc)
                 "The syntax {type{ ... } is not allowed in %s."
@@ -819,7 +820,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
               from_some_or_raise opt_lvl _loc
                 (fun lvl ->
                    set_current_level lvl;
-                   let id = gen_closure_num _loc in
+                   let id = gen_closure_id _loc in
                    Pass.client_value_expr None (client_value_context lvl) e
                      id (gen_closure_escaped_ident id) _loc)
                 "The syntax {{ ... }} is not allowed in %s."

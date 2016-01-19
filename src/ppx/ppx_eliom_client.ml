@@ -74,7 +74,7 @@ module Pass = struct
            let args = List.map Pat.var args in
            [%expr
              Eliom_client.Syntax_helpers.register_client_closure
-               [%e Exp.constant @@ Const_int64 num]
+               [%e Exp.constant @@ Const_string (num, None)]
                (fun [%p pat_args args] ->
                   ([%e map_get_escaped_values expr] : [%t typ]))
            ] [@metaloc expr.pexp_loc]

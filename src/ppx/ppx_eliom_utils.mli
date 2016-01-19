@@ -63,7 +63,7 @@ module type Pass = sig
   (** How to handle "[%client ...]" and "[%shared ...]" expr. *)
   val fragment:
     ?typ:core_type -> context:Context.server ->
-    num:Int64.t -> id:string Location.loc ->
+    num:string -> id:string Location.loc ->
     expression -> expression
 
   (** How to handle escaped "~%ident" inside a fragment. *)

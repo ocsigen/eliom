@@ -66,18 +66,16 @@ module Name = struct
     "_eliom_escaped_ident_%Ld"
 
   let fragment_ident_fmt : _ format6 =
-    "_eliom_fragment_%Ld"
+    "_eliom_fragment_%s"
 
   let injected_ident_fmt : _ format6 =
     "_eliom_injected_ident_%019d_%Ld"
 
   (* Identifiers for the closure representing a fragment. *)
-  let fragment_num_base loc =
-    Int64.of_int @@ file_hash loc
-  let fragment_num_count = ref Int64.zero
+  let fragment_num_count = ref 0
   let fragment_num _loc =
-    fragment_num_count := Int64.succ !fragment_num_count;
-    Int64.add (fragment_num_base _loc) !fragment_num_count
+    incr fragment_num_count;
+    Format.sprintf "%010d%d" (file_hash _loc) !fragment_num_count
   let fragment_ident id =
     Printf.sprintf fragment_ident_fmt id
 
@@ -283,7 +281,7 @@ module type Pass = sig
   (** How to handle "[%client ...]" and "[%shared ...]" expr. *)
   val fragment:
     ?typ:core_type -> context:Context.server ->
-    num:Int64.t -> id:string Location.loc ->
+    num:string -> id:string Location.loc ->
     expression -> expression
 
   (** How to handle escaped "~%ident" inside a fragment. *)

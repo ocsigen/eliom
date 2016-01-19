@@ -272,7 +272,7 @@ module Int_map = Map_make (struct type t = int let compare = (-) let to_string =
 module String_map = Map_make (struct include String let to_string x = x end)
 
 type client_value_datum = {
-  closure_id : int64;
+  closure_id : string;
   args : poly;
   value : poly Client_value_server_repr.t
 }

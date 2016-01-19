@@ -138,7 +138,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
            let _loc = Ast.loc_of_expr expr in
            <:expr<
              Eliom_client.Syntax_helpers.register_client_closure
-               $`int64:gen_num$
+               $str:gen_num$
                (fun $Helpers.patt_tuple args$ ->
                   ($map_get_escaped_values ~nested expr$ : $typ$))
            >>)
@@ -176,7 +176,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     <:str_item<
         let () =
           Eliom_client.Syntax_helpers.close_server_section
-            $str:Pa_eliom_seed.id_of_string (Loc.file_name loc)$
+            $str:Helpers.file_hash loc$
     >>
 
   let open_client_section loc =
@@ -184,7 +184,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     <:str_item<
         let () =
           Eliom_client.Syntax_helpers.open_client_section
-            $str:Pa_eliom_seed.id_of_string (Loc.file_name loc)$
+            $str:Helpers.file_hash loc$
     >>
 
   (** Syntax extension *)

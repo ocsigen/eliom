@@ -114,7 +114,7 @@ let create_shared_value
 
 let shared_value_server_repr x = x.sh_server,x.sh_client
 
-exception Client_value_creation_invalid_context of int64
+exception Client_value_creation_invalid_context of string
 
 let escaped_value value : escaped_value (* * Eliom_wrap.unwrapper *) =
   to_poly value

@@ -172,7 +172,7 @@ module Pass = struct
     [%expr
       (Eliom_service.Syntax_helpers.client_value
          ~pos:([%e position loc ])
-         [%e Exp.constant (Const_int64 num) ]
+         [%e Exp.constant (Const_string (num, None)) ]
          [%e e ]
        : [%t typ ] Eliom_pervasives.client_value)
     ][@metaloc loc]

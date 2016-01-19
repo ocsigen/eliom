@@ -481,7 +481,7 @@ module Syntax_helpers : sig
       executed in a global_data
       (cf. {!Eliom_service.Syntax_helpers.set_global}) or in the
       request_data when executed in a request. *)
-  val client_value : ?pos:Eliom_lib.pos -> int64 -> 'args -> 'a client_value
+  val client_value : ?pos:Eliom_lib.pos -> string -> 'args -> 'a client_value
 
   (** All client values created between [set_global true] and
       [set_global false] are considered global client values
