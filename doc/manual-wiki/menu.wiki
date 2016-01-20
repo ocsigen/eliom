@@ -27,5 +27,4 @@
 ==Migration between versions
 ===[[ppx-migration|Migration to PPX (Eliom 5.0)]]
 
-==[[examples|Examples]]
 ==[[misc|Miscellaneous]]

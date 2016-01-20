@@ -6,7 +6,7 @@
 ===Images, CSS, Javascript
 
 
- To include an image, simply use the function  <<a_api| val Eliom_content.Html5.D.img >>:
+ To include an image, simply use function  <<a_api| val Eliom_content.Html5.D.img >>:
 
 
 
@@ -19,7 +19,7 @@
 
 
 The function <<a_api | value Eliom_content.Html5.D.make_uri>>
-        creates the relative URL string from current URL
+        creates a relative URL string from current URL
         (see above) to the URL of the image (here in the static directory
         configured in the configuration file).
 
@@ -42,7 +42,7 @@ To simplify the creation of <<span class="code"|<link>>> tags
 ===@@id="basic_menu"@@Basic menus
 
 
-      To make a menu on your web page, you can use the function
+      To build a menu on your web page, you can use the function
           <<a_api| val Eliom_tools.menu >>.
       First, define your menu like this:
 
@@ -82,24 +82,15 @@ Then <<span class="code"|mymenu ~service:home>> will generate the following
 </ul>
 >>
 
-Personalise it in your CSS style-sheet.
+Personalize it in your CSS stylesheet.
 
 
 
  <<a_api| val Eliom_tools.menu >> takes a list of services without
     GET parameters.
-    If you want one of the link to contains GET parameters, pre-apply
+    If you want one of the links to contain GET parameters, pre-apply
     the service.
 
-
-          <<concept title="How to make a menu entry with GET parameters?"
-
-
-          Preapply your service.
-
-
-
-          >>
 ===@@id="hier_menu"@@Hierarchical menus
 
 <<code language="ocaml"|(* Hierarchical menu *)
@@ -199,6 +190,6 @@ let _ =
 >>
 
 
-==Open ID==
-
 ==Atom==
+
+An extension is provided to build Atom fields (modules <<a_api| module Eliom_atom >> and <<a_api| module Atom_feed >>).
