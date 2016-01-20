@@ -423,6 +423,7 @@ module type S = sig
   (** Creates a [<button>] tag. *)
   val button :
     ?a:Html5_types.button_attrib attrib list ->
+    button_type:[< button_type] ->
     name:[< 'a setone ] param_name ->
     value:'a ->
     'a param ->

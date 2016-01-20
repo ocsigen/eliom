@@ -373,10 +373,9 @@ module Make (Html5 : Html5) = struct
       ~a ?checked ~typ:`Radio
       ~name:(Eliom_parameter.string_of_param_name name) ~value ()
 
-  let button ?a ~name ~value y c =
+  let button ?a ~button_type ~name ~value y c =
     let name = Eliom_parameter.string_of_param_name name
-    and value = Eliom_parameter_base.string_of_atom y value
-    and button_type = `Submit in
+    and value = Eliom_parameter_base.string_of_atom y value in
     make_button ?a ~button_type ~name ~value c
 
   let button_no_value ?a ~button_type c =
