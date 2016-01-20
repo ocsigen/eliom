@@ -1,5 +1,0 @@
-=@@id="examples"@@Demos=
-
-Go to the
-<<a_manual project="tuto" chapter="intro"| tutorial>>
-for several examples of code.

@@ -4,19 +4,19 @@
 <<outline depth="2"| <<header| **Table of contents** >> >>
 
 This chapter explains how to set Eliom's
-options in the configuration file, and how to define options for your
+options in the Ocsigen server configuration file, and how to define options for your
 Eliom modules. See the Ocsigen server documentation for more information about the
 <<a_manual project="ocsigenserver" chapter="clientserver-configuration" |server's configuration>>.
 
 Note, however, that <<a_manual chapter="workflow-distillery"|Eliom's
-distillery>> provides you a way to just get productive with Eliom!
+distillery>> provides templates to get started at once with Eliom!
 
 ==@@id="misc"@@Using Eliom modules with Ocsigen server==
 
 ====Configuration file
 
 To run an Ocsigen server with an Eliom module {{{example.cmo}}},
-add the following lines to Ocsigen's configuration file
+add the following lines to the Ocsigen configuration file
 (<<span class="code"|/etc/ocsigen/ocsigen.conf>> most of the times):
 
 {{{
@@ -64,7 +64,7 @@ the generation of a page in error pages.
 add the option {{{-v}}} or {{{-V}}} of
 the {{{ocsigen}}} command to have verbose information on what succeeds
 during request. Also think to have look in the log files when something goes
-wrong!>>
+wrong.>>
 
 
 ===Several Eliom modules for one site===
@@ -166,14 +166,14 @@ and <<span class="code"|</eliom>>>.
 From version 1.2, it is possible to link extensions and Eliom modules
 <<a_manual project="ocsigenserver" chapter="staticlink"|statically>>.
 But this is not straightforward.  For Eliom modules, service
-registration and options setting must be delayed until the
+registration and option settings must be delayed until the
 configuration file is read. To create a statically linkable Eliom
-module, use the function
+module, use function
 <<a_api| val Eliom_service.register_eliom_module >>.
 It takes as parameters the name of the module and the initialization
-function, that will be called when the module is initialized in the
-configuration file. That function will register services (and possibly
-call <<a_api| val Eliom_config.get_config >> if the module has
+function that will be called once the module is initialized in the
+configuration file. That function should register the module services
+(and possibly call <<a_api| val Eliom_config.get_config >> if the module has
 configuration options).
 
 <<wip|How to improve this and this easier to use?>>
@@ -196,18 +196,18 @@ which is equivalent to:
 with the exception that it does not load the module using <<span
 class="code"|Dynlink>>, but calls the initialization function.\\
 
-You can use functions like
+You can use functions such as
 <<a_api| val Eliom_state.create_volatile_table >>
-that needs some information about the site (here, volatile tables are
+that needs information about the site (here, volatile tables are
 associated to a site), only during a request or during the
-initialisation phase of the server.
+initialization phase of the server.
 
-If you want to use that kind of function before the initialisation
+If you want to use this kind of function before the initialization
 phase, for example if your module is linked statically with the
-server, you must call these function using the function
+server, you must call these function using function
 <<a_api| val Eliom_service.register_eliom_module >>.
 (One solution is to use a lazy value to delay the creation of the
-table, and force that value during the registration function).
+table, and force that value from the registration function).
 
 
 ===@@id="extensions"@@Advanced use: create an extension for the server that access Eliom's data
@@ -229,7 +229,7 @@ Here are Eliom's options you can use in configuration files.
 
 <<wip|Revoir les timeouts pour client processes et groupes>>
 
-Timeouts for states (and other states) can be set either inside tag
+State timeouts can be set either inside tag
 {{{<extension findlib-package="eliom.server"/>}}} (default value
 for all sites), or inside a {{{<eliom/>}}} tag (default for one site).
 
@@ -244,9 +244,9 @@ configuration file, use the optional parameter
 {{{~override_configfile:true}}}.
 
 Timeouts can be set either for all scopes hierarchies, for one precise
-hierarchy, or for the default scope hierarchy.  To do that
-programmatically, use the optional parameter {{{~scope}}}.  To do
-that in configuration file, use the optional attribute
+hierarchy, or for the default scope hierarchy.  To do this
+programmatically, use the optional parameter {{{~scope}}}.
+In a configuration file, use the optional attribute
 {{{hierarchyname}}} (where an empty string value means default hierarchy).
 If this attribute is absent, the timeout will affect all
 states for which no other default has been set. The
@@ -259,8 +259,8 @@ The level attribute can take values {{{session}}} or {{{tab}}}.
   The default timeout for
   volatile (in memory) states.
   {{{value="infinity"}}} means that the state will
-  never finish.
-  Note that each eliom module may set its own
+  never expire.
+  Note that each eliom module can set its own
   default, that will override this one.
 * {{{<persistenttimeout value="7200"/>}}}
   Idem for persistent state data
@@ -297,18 +297,18 @@ For now, it cannot be set for each site independently
 
 ===Limiting the number of sessions or coservices
 
-To prevent from denial of service, Eliom limits the number of sessions
+To fight denial of service, Eliom limits the number of sessions
 and the number of dynamic coservices. Without these limitations, it would
 be possible for an attacker to open repeatedly lots of sessions,
 or creating new services (for example CSRF safe coservices can create lots
 of coservices when you reload repeatedly a page). When the limit is reached,
-it is still possible to open new sessions or create new services, but the
-oldest session or service will disappear (the one that has not been used
+it is still possible to open a new session or create a new service, but the
+oldest session or services disappear (the one that has not been used
 for the longest time).
 
 ====Limiting sessions
 First of all, there is a limitation of the number of sessions in a
-session group. The typical use of this is when an user opens several
+session group. A typical use is when a user opens several
 sessions from several computers. All the sessions belong to the same
 group (the group name is usually the user name).
 The limit is usually small (5 sessions per group by default).
@@ -318,16 +318,16 @@ implementation is not very efficient for very large limits.
 
 It is highly recommended to use session groups when possible.
 
-If you can't use session groups, the number of sessions is limitated
+If you can't use session groups, the number of sessions is limited
 by sub network for volatile sessions (service sessions and data sessions).
-The limitation is larger (default 1 million). The limit must be large enough,
-for example if the server is behind a reverse proxy, all incoming requests
+The limitation is larger (default 1 million). The limit must be large enough.
+For instance, if the server is behind a reverse proxy, all incoming requests
 will come from the same IP address. Limiting by sub network instead of by
-IP address prevents attacks even if the attacker has a whole sub network
+IP address prevents attacks even when the attacker has a whole sub network
 available. The default mask for sub networks is {{{/16}}} for IPv4
 and {{{/56}}} for IPv6.
 
-Some figures: If 1 session takes 1000 bytes (data + tables etc),
+Some figures: if 1 session takes 1000 bytes (data + tables etc),
 1 million sessions take 1 GB. If somebody opens 1000 sessions per second,
 then it will take 1000 s (16 minutes) to reach 1000000.
 It means that regular users will have their sessions closed
@@ -355,7 +355,7 @@ of this kinds dynamically.
 The limits and the subnet mask can be set programmatically by each module
 (for example to adapt the values to the size of session data) or in the
 configuration file
-(for example to adapt the values to the size of memory or network
+(for instance, to adapt the values to the size of memory or network
 configuration)
 (see module  <<a_api| module Eliom_state >>).
 By default, functions like
@@ -388,17 +388,17 @@ The syntax is:
 
 === Disabling XHR-links
 
-By default, all links (##a##, ##form##) of an Eliom application are realized
-by Eliom's ##change_page## magic (unless their creation is augmented
-with ##~xhr:false##).
+By default, all links (##a##, ##form##) of an Eliom application are performed
+by Eliom's ##change_page## machinery, unless they are created with the
+##~xhr:false## option.
 
-In contrast, you may add the attribute ##xhr-links## into the content of the
-configuration of a Eliom module:
+You can change this default by adding the attribute ##xhr-links## to
+the content of the configuration of the Eliom module:
 {{{
   <eliom ... xhr-links="no" />
 }}}
-Then, all links that are not explicitely specfied as ##~xhr:true## are
-realized by their default HTTP behaviour.
+Then, all links will perform a normal HTTP request unless explicitely
+created with the ##~xhr:true## option.
 
-You can also set this value through the function
+This value can also be set through function
 <<a_api | val Eliom_config.set_default_links_xhr >>.
