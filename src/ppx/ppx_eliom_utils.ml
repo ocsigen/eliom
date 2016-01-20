@@ -114,7 +114,7 @@ module Name = struct
       in {Location. txt ; loc }
     in for_expr, for_id
 
-  let injected_expr, injected_ident =
+  let injected_expr, injected_ident, reset_injected_ident =
     let injected_idents = ref [] in
     let r = ref 0 in
     let gen_ident loc =
@@ -129,8 +129,8 @@ module Name = struct
         let gen_id = gen_ident loc in
         injected_idents := (s, gen_id) :: !injected_idents;
         gen_id
-    in
-    gen_ident, gen_injected_ident
+    and reset () = injected_idents := [] in
+    gen_ident, gen_injected_ident, reset
 
 end
 
@@ -491,18 +491,31 @@ module Make (Pass : Pass) = struct
 
   let toplevel_structure context mapper structs =
     let f pstr =
-      let loc = pstr.pstr_loc in
+      let loc = pstr.pstr_loc
+      and maybe_reset_injected_idents = function
+        | `Client | `Shared ->
+          Name.reset_injected_ident ();
+        | _ ->
+          ()
+      in
       match pstr.pstr_desc with
       | Pstr_extension (({txt}, PStr strs), _)
-        when is_annotation txt ["shared.start"; "client.start" ;"server.start"] ->
+        when is_annotation txt ["shared.start";
+                                "client.start";
+                                "server.start"] ->
         if strs <> [] then
           [ Str.extension ~loc @@ AM.extension_of_error @@ Location.errorf ~loc
               "The %%%%%s extension doesn't accept arguments." txt ]
-        else ( context := Context.of_string txt ; [] )
+        else (
+          maybe_reset_injected_idents !context ;
+          context := Context.of_string txt ;
+          []
+        )
       | Pstr_extension (({txt}, PStr strs), _)
         when is_annotation txt ["shared"; "client" ;"server"] ->
         let c = Context.of_string txt in
-        flatmap (dispatch_str c mapper) strs
+        let l = flatmap (dispatch_str c mapper) strs in
+        maybe_reset_injected_idents c ; l
       | _ ->
         dispatch_str !context mapper pstr
     in
