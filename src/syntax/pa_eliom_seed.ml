@@ -600,7 +600,10 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           nested_escaped_idents := (id, gen_id) :: !nested_escaped_idents;
           gen_id)
 
-    let gen_injected_expr_ident, gen_injected_ident =
+    let
+      gen_injected_expr_ident ,
+      gen_injected_ident ,
+      reset_injected_ident =
       let injected_idents = ref [] in
       let r = ref 0 in
       let gen_ident loc =
@@ -615,8 +618,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           let gen_id = gen_ident loc in
           injected_idents := (id, gen_id) :: !injected_idents;
           gen_id
-      in
-      gen_ident, gen_injected_ident
+      and reset () = injected_idents := [] in
+      gen_ident, gen_injected_ident, reset
 
 
     (* BBB Before the syntax error was thrown in the productions dummy_set_*. This
@@ -776,7 +779,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
              from_some_or_raise opt _loc
                (fun () ->
                   set_current_level Toplevel;
-                  Pass.shared_str_items _loc es)
+                  let v = Pass.shared_str_items _loc es in
+                  reset_injected_ident () ; v)
                "The syntax {shared{ ... }} is only allowed at toplevel"
 
          | KEYWORD "{server{" ; opt = dummy_set_level_server ; es = LIST0 str_item ; KEYWORD "}}" ->
@@ -790,7 +794,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
              from_some_or_raise opt _loc
                (fun () ->
                   set_current_level Toplevel;
-                  Pass.client_str_items _loc es)
+                  let v = Pass.client_str_items _loc es in
+                  reset_injected_ident () ; v)
                "The syntax {client{ ... }} is only allowed at toplevel"
 
          | si = str_item LEVEL "top" ->
