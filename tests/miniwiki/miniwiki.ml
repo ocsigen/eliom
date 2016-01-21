@@ -348,10 +348,11 @@ let _ =
         return "")
       >>= fun wikitext ->
       let f =
-        post_form service_save_page_post
+        Form.post_form service_save_page_post
           (fun chain ->
-            [(p [string_input ~input_type:`Submit ~value:"Save" (); br ();
-                 textarea ~name:chain ~value:wikitext ()])])
+             [(p [Form.input ~input_type:`Submit ~value:"Save" Form.string;
+                  br ();
+                  Form.textarea ~name:chain ~value:wikitext ()])])
           page
       in
       wiki_page_contents_html page ~content:[f] () >>= fun c ->

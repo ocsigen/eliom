@@ -2318,7 +2318,7 @@ module Redir_reg_base = struct
 
   let send ?(options = `Found) ?charset ?code
       ?content_type ?headers service =
-    let uri = Eliom_content.Html5.F.make_string_uri ~service () in
+    let uri = Eliom_uri.make_string_uri ~service () in
     let empty_result = Ocsigen_http_frame.Result.empty () in
     let content_type = match content_type with
       | None -> Ocsigen_http_frame.Result.content_type empty_result

@@ -51,40 +51,34 @@ module Html5 = struct
 
   module F = struct
     include Html5.F
-    include
-      Eliom_form.Make(struct
-        include Html5.F
-        module Svg = Eliom_content_core.Svg.F
-        let uri_of_fun = Eliom_content_core.Xml.uri_of_fun
-        let attrib_of_service s info =
-          Eliom_content_core.
-            (Html5.F.to_attrib
-               (Xml.internal_event_handler_attrib
-                  s (Xml.internal_event_handler_of_service info)))
-      end)
-    let raw_form = form
-    let form = get_form
-    let input = string_input
-    let select = string_select ?required:None
+    module Arg = struct
+      include Html5.F
+      module Svg = Eliom_content_core.Svg.F
+      let uri_of_fun = Eliom_content_core.Xml.uri_of_fun
+      let attrib_of_service s info =
+        Eliom_content_core.
+          (Html5.F.to_attrib
+             (Xml.internal_event_handler_attrib
+                s (Xml.internal_event_handler_of_service info)))
+    end
+    include Eliom_form.Make_links(Arg)
+    module Form = Eliom_form.Make(Arg)
   end
 
   module D = struct
     include Html5.D
-    include
-      Eliom_form.Make(struct
-        include Html5.D
-        module Svg = Eliom_content_core.Svg.D
-        let uri_of_fun = Eliom_content_core.Xml.uri_of_fun
-        let attrib_of_service s info =
-          Eliom_content_core.
-            (Html5.D.to_attrib
-               (Xml.internal_event_handler_attrib
-                  s (Xml.internal_event_handler_of_service info)))
-      end)
-    let raw_form = form
-    let form = get_form
-    let input = string_input
-    let select = string_select ?required:None
+    module Arg = struct
+      include Html5.D
+      module Svg = Eliom_content_core.Svg.D
+      let uri_of_fun = Eliom_content_core.Xml.uri_of_fun
+      let attrib_of_service s info =
+        Eliom_content_core.
+          (Html5.D.to_attrib
+             (Xml.internal_event_handler_attrib
+                s (Xml.internal_event_handler_of_service info)))
+    end
+    include Eliom_form.Make_links(Arg)
+    module Form = Eliom_form.Make(Arg)
   end
 
   module R = Eliom_shared_content.Html5.R
@@ -100,4 +94,6 @@ module Html5 = struct
   type 'a list_wrap = 'a F.list_wrap
   type 'a attrib = 'a F.attrib
   type uri = F.uri
+  type 'a form_param = 'a Eliom_parameter_base.atom
+
 end

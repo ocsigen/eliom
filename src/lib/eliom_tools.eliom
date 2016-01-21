@@ -170,6 +170,8 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
   open Html5_types
   open Html5.F
 
+  let make_string_uri = Eliom_uri.make_string_uri
+
   let a_ul classes id level =
     let classes = [a_class classes] in
     match id, level with

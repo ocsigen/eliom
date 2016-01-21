@@ -117,7 +117,8 @@ let reconstruct_params_
           | _ ->
             let c, l = parse_suffix typ l in
             (b::c), l)
-      | TSet _, [] -> [], []
+      | TSet (TAtom (_, TBool) as y), l ->
+        let b, l = parse_suffix y l in [b], l
       | TSet t, l ->
           let b, l = parse_suffix t l in
           (match l with
@@ -232,6 +233,12 @@ let reconstruct_params_
                | Errors_ err   -> Errors_ err)
            with Not_found -> Res_ (None, params, files))
         | TList (n, t) -> aux_list t params files n pref suff
+        | TSet (TAtom (_, TBool) as y) ->
+          (match aux y params files pref suff with
+           | Res_ (vv, ll, ff) ->
+             Res_ ([vv], ll, ff)
+           | Errors_ (err, ll, ff) ->
+             Errors_ (err, ll, ff))
         | TSet t ->
           let rec aux_set params files =
             try

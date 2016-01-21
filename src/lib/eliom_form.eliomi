@@ -49,10 +49,17 @@ module type Html5 = sig
 
 end
 
+module Make_links (H : Html5) :
+  Eliom_form_sigs.LINKS
+  with type +'a elt := 'a H.elt
+   and type +'a attrib := 'a H.attrib
+   and type uri := H.uri
+
 module Make (H : Html5) :
   Eliom_form_sigs.S
   with type +'a elt := 'a H.elt
    and type +'a attrib := 'a H.attrib
    and type uri := H.uri
+   and type 'a param = 'a Eliom_parameter_base.atom
 
 }}

@@ -542,17 +542,17 @@ let default_no_appl =
           div [pcdata "Unique content: "; unique_content ()];
           div Html5.D.([
             a ~service:get_service [pcdata "Link to self"] ();
-            get_form ~service:get_service
+            Form.get_form ~service:get_service
               (fun () -> [
-                 string_input ~input_type:`Submit ~value:"Get to self" ()
+                 Form.input Form.string ~input_type:`Submit ~value:"Get to self"
               ]);
-            post_form ~service:post_service
+            Form.post_form ~service:post_service
               (fun () -> [
-                 string_input ~input_type:`Submit ~value:"Post to self" ()
+                 Form.input Form.string ~input_type:`Submit ~value:"Post to self"
               ]) ();
-            post_form ~service:toggle_default_no_appl
+            Form.post_form ~service:toggle_default_no_appl
               (fun () -> [
-                string_input ~input_type:`Submit ~value:"Toggle" ();
+                Form.input Form.string ~input_type:`Submit ~value:"Toggle";
                 pcdata " value of ";
                 code [pcdata "sitedata.default_link_xhr"];
                 pcdata (Printf.sprintf " (is %b)" (Eliom_config.get_default_links_xhr ()))
@@ -1144,7 +1144,7 @@ let comet_message_board_maker name message_bus cb =
        cb ();
        Lwt.return (
          let container = Html5.D.ul [li [em [pcdata "This is the message board"]]] in
-         let field = Html5.D.raw_input ~a:[a_id "msg"; a_name "message"] ~input_type:`Text () in
+         let field = Html5.D.input ~a:[a_id "msg"; a_name "message"; a_input_type `Text] () in
          ignore {unit{
          Eliom_client.onload
              (fun _ ->
@@ -1194,7 +1194,7 @@ let comet_message_board_maker name message_bus cb =
          in
 
          (make_page [ h2 [pcdata "Message board"];
-           raw_form ~a:[a_action (Xml.uri_of_string "")] [div [field; go]];
+           form ~a:[a_action (Xml.uri_of_string "")] [div [field; go]];
            container; br ();
            Html5.D.a ~service:Eliom_testsuite_base.main [pcdata "go outside of application"] ();
          ]))
@@ -1442,9 +1442,9 @@ let event2_service =
       let target15 = make_target "Annuler le précédent" in
       let target16 = make_target "Mouse over change color" in
       let target17 = make_target "Mouse wheel (browser dependant - test in several browsers)" in
-      let target18 = Html5.D.raw_textarea ~name:"a" () in
+      let target18 = Html5.D.textarea ~a:[a_name "a"] (pcdata "") in
       let target19 = make_target "If you click very quickly after having entered a letter below, my handler (short) will occure, and the long handler for the keypress will be cancelled (event if it already started)." in
-      let target20 = Html5.D.raw_textarea ~name:"b" () in
+      let target20 = Html5.D.textarea ~a:[a_name "b"] (pcdata "") in
       let target21 = make_target "If you click very quickly after having entered a letter below, my handler will not occure because the long handler for the keypress below is detached." in
 
       let targetresult = Html5.D.p [] in
@@ -1613,12 +1613,12 @@ let tsession_data_example_handler _ _  =
                [pcdata "close session"] ()]
         | Eliom_state.Data_session_expired
         | Eliom_state.No_data ->
-          Html5.D.post_form
+          Html5.D.Form.post_form
             tsession_data_example_with_post_params
             (fun login ->
               [p [pcdata "login: ";
-                  Html5.D.string_input
-                    ~input_type:`Text ~name:login ()]]) ()
+                  Html5.D.Form.input Html5.D.Form.string
+                    ~input_type:`Text ~name:login]]) ()
     ])
 
 
@@ -1709,11 +1709,11 @@ let tsession_services_example_close =
 
 let tsession_services_example_handler () () =
   let f =
-    Html5.D.post_form
+    Html5.D.Form.post_form
       tsession_services_example_with_post_params
       (fun login ->
         [p [pcdata "login: ";
-            string_input ~input_type:`Text ~name:login ()]]) ()
+            Form.input Form.string ~input_type:`Text ~name:login]]) ()
   in
   return (make_page [f])
 
@@ -1823,15 +1823,15 @@ let tcoservices_example_get =
 let _ =
   let c = ref 0 in
   let page () () =
-    let l3 = Html5.D.post_form tcoservices_example_post
-        (fun _ -> [p [Html5.D.string_input
+    let l3 = Html5.D.Form.post_form tcoservices_example_post
+        (fun _ -> [p [Html5.D.Form.input Html5.D.Form.string
                         ~input_type:`Submit
-                        ~value:"incr i (post)" ()]]) ()
+                        ~value:"incr i (post)"]]) ()
     in
-    let l4 = Html5.D.get_form tcoservices_example_get
-        (fun _ -> [p [Html5.D.string_input
+    let l4 = Html5.D.Form.get_form tcoservices_example_get
+        (fun _ -> [p [Html5.D.Form.input Html5.D.Form.string
                         ~input_type:`Submit
-                        ~value:"incr i (get)" ()]])
+                        ~value:"incr i (get)"]])
     in
     return
       (make_page [p [pcdata "The random number in the container must not change!"; br ();
@@ -1883,11 +1883,11 @@ let tcalc_i =
 let tcalc_handler () () =
   let create_form intname =
     [p [pcdata "Write a number: ";
-        Html5.D.int_input ~input_type:`Text ~name:intname ();
+        Html5.D.Form.input Html5.D.Form.int ~input_type:`Text ~name:intname;
         br ();
-        Html5.D.string_input ~input_type:`Submit ~value:"Send" ()]]
+        Html5.D.Form.input Html5.D.Form.string ~input_type:`Submit ~value:"Send"]]
   in
-  let f = Html5.D.get_form tcalc_i create_form in
+  let f = Html5.D.Form.get_form tcalc_i create_form in
   return (make_page [f])
 
 
@@ -1903,9 +1903,9 @@ let tcalc_i_handler i () =
   let create_form is =
     (fun entier ->
        [p [pcdata (is^" + ");
-           int_input ~input_type:`Text ~name:entier ();
+           Form.input Form.int ~input_type:`Text ~name:entier;
            br ();
-           string_input ~input_type:`Submit ~value:"Sum" ()]])
+           Form.input Form.string ~input_type:`Submit ~value:"Sum"]])
   in
   let is = string_of_int i in
   let tcalc_result =
@@ -1918,7 +1918,7 @@ let tcalc_i_handler i () =
         let ijs = string_of_int (i+j) in
         return (make_page [p [pcdata (is^" + "^js^" = "^ijs)]]))
   in
-  let f = get_form tcalc_result (create_form is) in
+  let f = Form.get_form tcalc_result (create_form is) in
   return (make_page [f])
 
 
@@ -1968,17 +1968,17 @@ let tdisconnect_action =
 (* login ang logout boxes:                                  *)
 
 let tdisconnect_box s =
-  Html5.D.post_form tdisconnect_action
-    (fun _ -> [p [Html5.D.string_input
-                    ~input_type:`Submit ~value:s ()]]) ()
+  Html5.D.Form.post_form tdisconnect_action
+    (fun _ -> [p [Html5.D.Form.input Html5.D.Form.string
+                    ~input_type:`Submit ~value:s]]) ()
 
 let tlogin_box () =
-  Html5.D.post_form tconnect_action
+  Html5.D.Form.post_form tconnect_action
     (fun loginname ->
       [p
          (let l = [pcdata "login: ";
-                   Html5.D.string_input
-                     ~input_type:`Text ~name:loginname ()]
+                   Html5.D.Form.input Html5.D.Form.string
+                     ~input_type:`Text ~name:loginname]
          in l)
      ])
     ()
@@ -2070,9 +2070,9 @@ let tdisconnect_action =
 
 
 let tdisconnect_box s =
-  Html5.D.post_form tdisconnect_action
-    (fun _ -> [p [Html5.D.string_input
-                    ~input_type:`Submit ~value:s ()]]) ()
+  Html5.D.Form.post_form tdisconnect_action
+    (fun _ -> [p [Html5.D.Form.input Html5.D.Form.string
+                    ~input_type:`Submit ~value:s]]) ()
 
 
 let bad_user_key = Polytables.make_key ()
@@ -2084,11 +2084,11 @@ let get_bad_user table =
 (* new login box:                                           *)
 
 let tlogin_box session_expired action =
-  Html5.D.post_form action
+  Html5.D.Form.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
-         string_input ~input_type:`Text ~name:loginname ()]
+         Form.input Form.string ~input_type:`Text ~name:loginname]
       in
       [p (if get_bad_user (Eliom_request_info.get_request_cache ())
       then (pcdata "Wrong user")::(br ())::l
@@ -2209,7 +2209,7 @@ let tdisconnect_action =
 
 let tdisconnect_box s =
   Eliom_registration.Html5.post_form tdisconnect_action
-    (fun _ -> [p [Html5.D.string_input
+    (fun _ -> [p [Html5.D.Form.input Html5.D.Form.string
                     ~input_type:`Submit ~value:s ()]]) ()
 
 
@@ -2224,11 +2224,11 @@ let get_bad_user table =
 (* new login box:                                           *)
 
 let tlogin_box session_expired action =
-  Html5.D.post_form action
+  Html5.D.Form.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
-         string_input ~input_type:`Text ~name:loginname ()]
+         Form.input Form.string ~input_type:`Text ~name:loginname ()]
       in
       [p (if get_bad_user (Eliom_request_info.get_request_cache ())
       then (pcdata "Wrong user")::(br ())::l
@@ -2317,10 +2317,10 @@ let tcsrfsafe_example_post =
 
 let _ =
   let page () () =
-    let l3 = Html5.D.post_form tcsrfsafe_example_post
-        (fun _ -> [p [Html5.D.string_input
+    let l3 = Html5.D.Form.post_form tcsrfsafe_example_post
+        (fun _ -> [p [Html5.D.Form.input Html5.D.Form.string
                          ~input_type:`Submit
-                         ~value:"Click" ()]]) ()
+                         ~value:"Click"]]) ()
     in
     Lwt.return
       (make_page
@@ -2529,20 +2529,20 @@ let disconnect_action789 =
     (fun () () -> Eliom_state.discard ~scope:session ())
 
 let disconnect_box s =
-  Html5.D.post_form disconnect_action789
-    (fun _ -> [p [Html5.D.string_input
-                    ~input_type:`Submit ~value:s ()]]) ()
+  Html5.D.Form.post_form disconnect_action789
+    (fun _ -> [p [Html5.D.Form.input Html5.D.Form.string
+                    ~input_type:`Submit ~value:s]]) ()
 
 let bad_user = Eliom_reference.eref ~scope:Eliom_common.request_scope false
 
 let user = Eliom_reference.eref ~scope:session None
 
 let login_box session_expired bad_u action =
-  Html5.D.post_form action
+  Html5.D.Form.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
-         Html5.D.string_input ~input_type:`Text ~name:loginname ()]
+         Html5.D.Form.input Html5.D.Form.string ~input_type:`Text ~name:loginname]
       in
       [p (if bad_u
         then (pcdata "Wrong user")::(br ())::l
@@ -2601,12 +2601,12 @@ let isuffixc =
 let create_suffixformc ((suff, endsuff),i) =
     [pcdata "Form to an (internal appl) suffix service.";
      pcdata "Write an int for the suffix:";
-     Html5.D.int_input ~input_type:`Text ~name:suff ();
+     Html5.D.Form.input Html5.D.Form.int ~input_type:`Text ~name:suff;
      pcdata "Write a string: ";
-     Html5.D.string_input ~input_type:`Text ~name:endsuff ();
+     Html5.D.Form.input Html5.D.Form.string ~input_type:`Text ~name:endsuff;
      pcdata "Write an int: ";
-     Html5.D.int_input ~input_type:`Text ~name:i ();
-     Html5.D.string_input ~input_type:`Submit ~value:"Click" ()
+     Html5.D.Form.input Html5.D.Form.int ~input_type:`Text ~name:i;
+     Html5.D.Form.input Html5.D.Form.string ~input_type:`Submit ~value:"Click"
     ]
 }}
 
@@ -2635,13 +2635,13 @@ let appl_redir =
           br ();
           a ~service:appl_redir2 [ pcdata "Link to a redirection outside the Eliom application"] ();
          ];
-         Html5.D.get_form ~service:appl_redir1
+         Html5.D.Form.get_form ~service:appl_redir1
             (fun () ->
-              [Html5.D.string_input ~input_type:`Submit ~value:"Form to a redirection inside the Eliom application" ()]
+              [Html5.D.Form.input Html5.D.Form.string ~input_type:`Submit ~value:"Form to a redirection inside the Eliom application"]
             );
-         Html5.D.get_form ~service:appl_redir2
+         Html5.D.Form.get_form ~service:appl_redir2
             (fun () ->
-              [Html5.D.string_input ~input_type:`Submit ~value:"Form to a redirection outside the Eliom application" ()]
+              [Html5.D.Form.input Html5.D.Form.string ~input_type:`Submit ~value:"Form to a redirection outside the Eliom application"]
             )
         ]))
 
@@ -2806,15 +2806,15 @@ let formc = My_appl.register_service ["formc"] unit
                    [pcdata "Link to a service outside the application, with params (unicode)"]
                    (1, (2, "tutu cccéccc+ccc"))];
 
-             Html5.D.get_form ~service:%Eliom_testsuite1.coucou
+             Html5.D.Form.get_form ~service:%Eliom_testsuite1.coucou
                (fun () ->
-                 [Html5.D.string_input ~input_type:`Submit ~value:"GET form to a service outside the Eliom application" ()]
+                 [Html5.D.Form.input Html5.D.Form.string ~input_type:`Submit ~value:"GET form to a service outside the Eliom application"]
                );
 
-             Html5.D.post_form ~service:%Eliom_testsuite1.my_service_with_post_params
+             Html5.D.Form.post_form ~service:%Eliom_testsuite1.my_service_with_post_params
                (fun s ->
-                 [Html5.D.string_input ~input_type:`Hidden ~name:s ~value:"plop" ();
-                  Html5.D.string_input ~input_type:`Submit ~value:"POST form to a service outside the Eliom application" ()]
+                 [Html5.D.Form.input Html5.D.Form.string ~input_type:`Hidden ~name:s ~value:"plop";
+                  Html5.D.Form.input Html5.D.Form.string ~input_type:`Submit ~value:"POST form to a service outside the Eliom application"]
                )
                ();
 
@@ -2823,9 +2823,9 @@ let formc = My_appl.register_service ["formc"] unit
                     ();
                 ];
 
-              Html5.D.get_form ~service:%otherappl
+              Html5.D.Form.get_form ~service:%otherappl
                 (fun () ->
-                  [Html5.D.string_input ~input_type:`Submit ~value:"GET form to another application" ();];
+                  [Html5.D.Form.input Html5.D.Form.string ~input_type:`Submit ~value:"GET form to another application";];
                 );
 
 
@@ -2855,25 +2855,25 @@ let formc = My_appl.register_service ["formc"] unit
                                         ("toto aaaéaaa+aaa", "tata oooéooo+ooo") ())) ]
                [pcdata "Change page to a service inside the application (GET parameters, with spaces and Unicode)."];
 
-             Html5.D.get_form ~service:%eliomclient1
+             Html5.D.Form.get_form ~service:%eliomclient1
                (fun () ->
-                 [Html5.D.string_input ~input_type:`Submit ~value:"GET form to a service inside the Eliom application" ()]
+                 [Html5.D.Form.input Html5.D.Form.string ~input_type:`Submit ~value:"GET form to a service inside the Eliom application"]
                );
 
-             Html5.D.post_form ~service:%postformc
+             Html5.D.Form.post_form ~service:%postformc
                (fun s ->
-                 [Html5.D.string_input ~input_type:`Submit ~name:s ~value:"POST form to a service inside the Eliom application" ()]
+                 [Html5.D.Form.input Html5.D.Form.string ~input_type:`Submit ~name:s ~value:"POST form to a service inside the Eliom application"]
                )
                ();
 
-             Html5.D.get_form %isuffixc create_suffixformc;
+             Html5.D.Form.get_form %isuffixc create_suffixformc;
 
-             Html5.D.post_form ~service:%applvoid_redir
+             Html5.D.Form.post_form ~service:%applvoid_redir
                (fun () ->
                  [pcdata "POST form towards action with void service redirection. This must not stop the application (same random number in the container but not in the here: ";
                   pcdata (string_of_int (Random.int 1000));
                   pcdata ") ";
-                  Html5.D.string_input ~input_type:`Submit ~value:"Click to send POST form to myself." ()]
+                  Html5.D.Form.input Html5.D.Form.string ~input_type:`Submit ~value:"Click to send POST form to myself."]
                )
                ();
 
@@ -2899,15 +2899,15 @@ let formc = My_appl.register_service ["formc"] unit
               [pcdata "Link to a service outside the application, with params (unicode)"]
               (1, (2, "tutu cccéccc+ccc"))];
 
-        Html5.D.get_form ~service:Eliom_testsuite1.coucou
+        Html5.D.Form.get_form ~service:Eliom_testsuite1.coucou
           (fun () ->
-            [Html5.D.string_input ~input_type:`Submit ~value:"GET form to a service outside the Eliom application" ()]
+            [Html5.D.Form.input Html5.D.Form.string ~input_type:`Submit ~value:"GET form to a service outside the Eliom application"]
           );
 
-        Html5.D.post_form ~service:Eliom_testsuite1.my_service_with_post_params
+        Html5.D.Form.post_form ~service:Eliom_testsuite1.my_service_with_post_params
           (fun s ->
-            [Html5.D.string_input ~input_type:`Hidden ~name:s ~value:"plop" ();
-             Html5.D.string_input ~input_type:`Submit ~value:"POST form to a service outside the Eliom application" ()]
+            [Html5.D.Form.input Html5.D.Form.string ~input_type:`Hidden ~name:s ~value:"plop";
+             Html5.D.Form.input Html5.D.Form.string ~input_type:`Submit ~value:"POST form to a service outside the Eliom application"]
           )
           ();
 
@@ -2916,9 +2916,9 @@ let formc = My_appl.register_service ["formc"] unit
               ();
            pcdata " (The other appl won't work as it is not compiled)"];
 
-        Html5.D.get_form ~service:otherappl
+        Html5.D.Form.get_form ~service:otherappl
           (fun () ->
-            [Html5.D.string_input ~input_type:`Submit ~value:"GET form to another application" ();]
+            [Html5.D.Form.input Html5.D.Form.string ~input_type:`Submit ~value:"GET form to another application";]
           );
 
 
@@ -2941,25 +2941,25 @@ let formc = My_appl.register_service ["formc"] unit
               [pcdata "Link to a service inside the application (GET parameters, with spaces and Unicode)."]
               ("toto aaaéaaa+aaa", "tata oooéooo+ooo")];
 
-        Html5.D.get_form ~service:eliomclient1
+        Html5.D.Form.get_form ~service:eliomclient1
           (fun () ->
-            [Html5.D.string_input ~input_type:`Submit ~value:"GET form to a service inside the Eliom application" ()]
+            [Html5.D.Form.input Html5.D.Form.string ~input_type:`Submit ~value:"GET form to a service inside the Eliom application"]
           );
 
-        Html5.D.post_form ~service:postformc
+        Html5.D.Form.post_form ~service:postformc
           (fun s ->
-            [Html5.D.string_input ~input_type:`Submit ~name:s ~value:"POST form to a service inside the Eliom application" ()]
+            [Html5.D.Form.input Html5.D.Form.string ~input_type:`Submit ~name:s ~value:"POST form to a service inside the Eliom application"]
           )
           ();
 
-        Html5.D.get_form isuffixc create_suffixformc;
+        Html5.D.Form.get_form isuffixc create_suffixformc;
 
-        Html5.D.post_form ~service:applvoid_redir
+        Html5.D.Form.post_form ~service:applvoid_redir
           (fun () ->
             [pcdata "POST form towards action with void service redirection. This must not stop the application (same random number in the container but not in the here: ";
              pcdata (string_of_int (Random.int 1000));
              pcdata ") ";
-             Html5.D.string_input ~input_type:`Submit ~value:"Click to send POST form to myself." ()]
+             Html5.D.Form.input Html5.D.Form.string ~input_type:`Submit ~value:"Click to send POST form to myself."]
           )
           ();
 
@@ -3189,8 +3189,8 @@ let make_xhr_form ((((((casename,radio),select),multi),text),pass),file) =
                      ([],"chose3",None,false)]);
          ];
      ];
-   p [string_input ~name:text ~input_type:`Text ~value:"text" ()];
-   p [string_input ~name:pass ~input_type:`Password ~value:"pass" ()];
+   p [Form.input Form.string ~name:text ~input_type:`Text ~value:"text" ()];
+   p [Form.input Form.string ~name:pass ~input_type:`Password ~value:"pass" ()];
    p [file_input ~name:file ()]]
 
 let xhr_form_with_file = My_appl.register_service ["xhr_form_with_file"] unit
@@ -3500,31 +3500,31 @@ let rec power n m =
 
 let activate_timings_button =
   Html5.Id.create_global_elt
-    (Html5.F.string_input
+    (Html5.F.Form.input Html5.F.Form.string
        ~a:[ Html5.F.a_onclick {{
             fun ev ->
               Eliom_config.debug_timings := not (!Eliom_config.debug_timings);
               change_target_value ev;
             }}]
        ~input_type:`Submit
-       ~value:"Activate timings" ())
+       ~value:"Activate timings")
 
 let update_tree service w h =
-  Html5.F.get_form ~service (fun (wn,hn) ->
+  Html5.F.Form.get_form ~service (fun (wn,hn) ->
     [ Html5.F.fieldset
         [ Html5.F.label
             ~a:[Html5.D.a_for "i_width"]
             [pcdata "Tree width: "];
-          Html5.F.int_input
+          Html5.F.Form.input Html5.F.Form.int
             ~a:[Html5.F.a_id "i_width"]
-            ~name:wn ~input_type:`Text ~value:w ();
+            ~name:wn ~input_type:`Text ~value:w;
           Html5.F.label
             ~a:[Html5.D.a_for "i_height"]
             [pcdata "and height: "];
-          Html5.F.int_input
+          Html5.F.Form.input Html5.F.Form.int
             ~a:[Html5.F.a_id "i_height"]
-            ~name:hn ~input_type:`Text ~value:h ();
-          Html5.F.string_input ~input_type:`Submit ~value:"Update" ();
+            ~name:hn ~input_type:`Text ~value:h;
+          Html5.F.Form.input Html5.F.Form.string ~input_type:`Submit ~value:"Update";
         ]
     ])
 
@@ -3802,7 +3802,7 @@ let nlpost_with_nlp =
     nl_params nlpost
 
 let create_form_nl s =
-  (fun () -> [Html5.F.p [Html5.D.string_input ~input_type:`Submit ~value:s ()]])
+  (fun () -> [Html5.F.p [Html5.D.Form.input Html5.D.Form.string ~input_type:`Submit ~value:s]])
 
 let () = My_appl.register nlpost
   (fun () () ->
@@ -3815,9 +3815,9 @@ let () = My_appl.register nlpost
           (head (title (pcdata "")) [])
           (body [div [
             pcdata nlp; br();
-            Html5.D.post_form nlpost_with_nlp (create_form_nl "with nl param") ((),(12, "ab"));
+            Html5.D.Form.post_form nlpost_with_nlp (create_form_nl "with nl param") ((),(12, "ab"));
             br ();
-            Html5.D.post_form nlpost (create_form_nl "without nl param") ();
+            Html5.D.Form.post_form nlpost (create_form_nl "without nl param") ();
           ]])))
 
 let () = My_appl.register nlpost_entry
@@ -3826,9 +3826,9 @@ let () = My_appl.register nlpost_entry
        Html5.F.(html
           (head (title (pcdata "")) [])
           (body [div [
-            Html5.D.post_form nlpost_with_nlp (create_form_nl "with nl param") ((),(12, "ab"));
+            Html5.D.Form.post_form nlpost_with_nlp (create_form_nl "with nl param") ((),(12, "ab"));
             br ();
-            Html5.D.post_form nlpost (create_form_nl "without nl param") ();
+            Html5.D.Form.post_form nlpost (create_form_nl "without nl param") ();
           ]])))
 
 

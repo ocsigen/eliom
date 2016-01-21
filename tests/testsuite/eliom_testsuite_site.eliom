@@ -34,10 +34,11 @@ let reference_scope_site =
                pcdata ", persistent "; i [v'];
              ];
              pcdata "Enter a new string for both references";
-             Html5.D.post_form
+             Html5.D.Form.post_form
                ~service:action
                (fun name ->
-                  [Html5.D.string_input ~input_type:`Text ~name ()])
+                  [Html5.D.Form.input ~input_type:`Text ~name
+                     Html5.D.Form.string ])
                ()
            ])
        ))

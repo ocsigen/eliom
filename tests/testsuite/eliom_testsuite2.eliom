@@ -108,9 +108,9 @@ let disconnect_action =
       Eliom_state.discard ~scope:session ())
 
 let disconnect_box s =
-  Html5.D.post_form disconnect_action
-    (fun _ -> [p [Html5.D.string_input
-                    ~input_type:`Submit ~value:s ()]]) ()
+  Html5.D.Form.post_form disconnect_action
+    (fun _ -> [p [Html5.D.Form.input
+                    ~input_type:`Submit ~value:s Form.string]]) ()
 
 (* The following eref is true if the connection has action failed: *)
 let bad_user = Eliom_reference.eref ~scope:Eliom_common.request_scope false
@@ -122,11 +122,12 @@ let user = Eliom_reference.eref ~scope:session None
 (* new login box:                                           *)
 
 let login_box session_expired bad_u action =
-  Html5.D.post_form action
+  Html5.D.Form.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
-         Html5.D.string_input ~input_type:`Text ~name:loginname ()]
+         Html5.D.Form.input ~input_type:`Text ~name:loginname
+           Html5.D.Form.string]
       in
       [p (if bad_u
         then (pcdata "Wrong user")::(br ())::l
@@ -215,9 +216,9 @@ let disconnect_action =
       Eliom_state.discard ~scope:session ())
 
 let disconnect_box s =
-  Html5.D.post_form disconnect_action
-    (fun _ -> [p [Html5.D.string_input
-                    ~input_type:`Submit ~value:s ()]]) ()
+  Html5.D.Form.post_form disconnect_action
+    (fun _ -> [p [Html5.D.Form.input
+                    ~input_type:`Submit ~value:s Html5.D.Form.string]]) ()
 
 (* The following eref is true if the connection has action failed: *)
 let bad_user = Eliom_reference.eref ~scope:Eliom_common.request_scope false
@@ -226,11 +227,12 @@ let bad_user = Eliom_reference.eref ~scope:Eliom_common.request_scope false
 (* new login box:                                           *)
 
 let login_box session_expired bad_u action =
-  Html5.D.post_form action
+  Html5.D.Form.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
-         Html5.D.string_input ~input_type:`Text ~name:loginname ()]
+         Html5.D.Form.input ~input_type:`Text ~name:loginname
+           Html5.D.Form.string]
       in
       [p (if bad_u
         then (pcdata "Wrong user")::(br ())::l
@@ -379,16 +381,16 @@ let volatile_references =
              h2 [pcdata "Volatile reference"];
              p [pcdata "Value is "; pcdata (string_of_int v)];
              Html5.D.(
-               post_form ~service:set_service
+               Form.post_form ~service:set_service
                  (fun name -> [
-                   int_input ~input_type:`Text ~name ();
-                   string_input ~input_type:`Submit ~value:"Set" ();
+                   Form.input ~input_type:`Text ~name Form.int;
+                   Form.input ~input_type:`Submit ~value:"Set" Form.string;
                  ]) ()
              );
              Html5.D.(
-               post_form ~service:unset_service
+               Form.post_form ~service:unset_service
                  (fun () -> [
-                   string_input ~input_type:`Submit ~value:"Unset" ();
+                   Form.input ~input_type:`Submit ~value:"Unset" Form.string;
                  ]) ()
              );
          ])));
@@ -455,16 +457,16 @@ let reference_from_fun =
              h2 [pcdata "Reference from fun"];
              p [pcdata "Value is "; pcdata (string_of_int v)];
              Html5.D.(
-               post_form ~service:set_service
+               Form.post_form ~service:set_service
                  (fun name -> [
-                   int_input ~input_type:`Text ~name ();
-                   string_input ~input_type:`Submit ~value:"Set" ();
+                   Form.input ~input_type:`Text ~name Form.int;
+                   Form.input ~input_type:`Submit ~value:"Set" Form.string;
                  ]) ()
              );
              Html5.D.(
-               post_form ~service:unset_service
+               Form.post_form ~service:unset_service
                  (fun () -> [
-                   string_input ~input_type:`Submit ~value:"Unset" ();
+                      Form.input ~input_type:`Submit ~value:"Unset" Form.string;
                  ]) ()
              );
          ])));
@@ -490,10 +492,10 @@ let create_form f =
   let l =
     f.it (fun (sn, l2) v init ->
             (tr ((td [pcdata ("Write a string: ")])
-                 ::(td [string_input ~input_type:`Text ~name:sn ()])
+                 ::(td [Form.input ~input_type:`Text ~name:sn Form.string])
                  ::(td [pcdata ("Write integers: ")])
                  ::(l2.it (fun iname v init ->
-                   (td [int_input ~input_type:`Text ~name:iname ()])::init)
+                   (td [Form.input ~input_type:`Text ~name:iname Form.int])::init)
                       ["A"; "B"]
                       []))
 
@@ -502,11 +504,11 @@ let create_form f =
       []
   in
   [table l;
-   p [string_input ~input_type:`Submit ~value:"Click" ()]]
+   p [Form.input ~input_type:`Submit ~value:"Click" Form.string]]
 
 let () = register lilists
   (fun () () ->
-     let f = Html5.D.get_form lilists2 create_form in
+     let f = Html5.D.Form.get_form lilists2 create_form in
      return
        (html
          (head (title (pcdata "")) [])
@@ -552,17 +554,20 @@ let sumserv = register_service
 let create_form =
   (fun (name1, (name2, name3)) ->
     [p [
-       Html5.D.int_input
-         ~name:name1 ~input_type:`Submit ~value:48 ();
-       Html5.D.int_input
-         ~name:name2 ~input_type:`Submit ~value:55 ();
-       Html5.D.string_input
-         ~name:name3 ~input_type:`Submit ~value:"plop" ();
+       Html5.D.Form.input
+         ~name:name1 ~input_type:`Submit ~value:48
+         Html5.D.Form.int;
+       Html5.D.Form.input
+         ~name:name2 ~input_type:`Submit ~value:55
+         Html5.D.Form.int;
+       Html5.D.Form.input
+         ~name:name3 ~input_type:`Submit ~value:"plop"
+         Html5.D.Form.string;
      ]])
 
 let sumform = register_service ["sumform"] unit
   (fun () () ->
-     let f = Html5.D.get_form sumserv create_form in
+     let f = Html5.D.Form.get_form sumserv create_form in
      return
        (html
          (head (title (pcdata "")) [])
@@ -587,9 +592,9 @@ let sumserv = register_post_service
 
 let () = register sumform2
   (fun () () ->
-     let f = Html5.D.post_form sumserv create_form () in
-     return
-       (html
+    let f = Html5.D.Form.post_form sumserv create_form () in
+    return
+      (html
          (head (title (pcdata "")) [])
          (body [f])))
 
@@ -657,10 +662,10 @@ let csrfsafe_example_get =
 
 let _ =
   let page () () =
-    let l3 = Html5.D.get_form csrfsafe_example_get
-        (fun _ -> [p [Html5.D.string_input
+    let l3 = Html5.D.Form.get_form csrfsafe_example_get
+        (fun _ -> [p [Html5.D.Form.input
                         ~input_type:`Submit
-                        ~value:"Click" ()]])
+                        ~value:"Click" Form.string]])
     in
     return
       (html
@@ -695,10 +700,10 @@ let csrfsafe_example_post =
 
 let _ =
   let page () () =
-    let l3 = Html5.D.post_form csrfsafe_example_post
-        (fun _ -> [p [Html5.D.string_input
+    let l3 = Html5.D.Form.post_form csrfsafe_example_post
+        (fun _ -> [p [Html5.D.Form.input
                         ~input_type:`Submit
-                        ~value:"Click" ()]]) ()
+                        ~value:"Click" Html5.D.Form.string]]) ()
     in
     return
       (html
@@ -745,10 +750,11 @@ let _ =
            (html
               (head (title (pcdata "CSRF safe service")) [])
               (body [p [pcdata "This is a POST CSRF safe service"]])));
-    let l3 = Html5.D.post_form csrfsafe_example_session
-        (fun _ -> [p [Html5.D.string_input
+    let l3 = Html5.D.Form.post_form csrfsafe_example_session
+        (fun _ -> [p [Html5.D.Form.input
                         ~input_type:`Submit
-                        ~value:"Click" ()]])
+                        ~value:"Click"
+                        Html5.D.Form.string]])
         ()
     in
     return
@@ -871,7 +877,9 @@ let nlpost_with_nlp =
     my_nl_params nlpost
 
 let create_form_nl s =
-  (fun () -> [Html5.F.p [Html5.D.string_input ~input_type:`Submit ~value:s ()]])
+  (fun () -> [Html5.F.p [Html5.D.Form.input
+                           ~input_type:`Submit ~value:s
+                           Html5.D.Form.string]])
 
 let () = Eliom_registration.Html5.register nlpost
   (fun () () ->
@@ -884,8 +892,10 @@ let () = Eliom_registration.Html5.register nlpost
           (head (title (pcdata "")) [])
           (body [div [
             pcdata nlp; br();
-            Html5.D.post_form nlpost_with_nlp (create_form_nl "with nl param") ((),(12, "ab"));
-            Html5.D.post_form nlpost (create_form_nl "without nl param") ();
+            Html5.D.Form.post_form
+              nlpost_with_nlp (create_form_nl "with nl param") ((),(12, "ab"));
+            Html5.D.Form.post_form
+              nlpost (create_form_nl "without nl param") ();
           ]])))
 
 let () = Eliom_registration.Html5.register nlpost_entry
@@ -894,8 +904,11 @@ let () = Eliom_registration.Html5.register nlpost_entry
        Html5.F.(html
           (head (title (pcdata "")) [])
           (body [div [
-            Html5.D.post_form nlpost_with_nlp (create_form_nl "with nl param") ((),(12, "ab"));
-            Html5.D.post_form nlpost (create_form_nl "without nl param") ();
+             Html5.D.Form.post_form
+               nlpost_with_nlp (create_form_nl "with nl param")
+               ((),(12, "ab"));
+             Html5.D.Form.post_form
+               nlpost (create_form_nl "without nl param") ();
           ]])))
 
 
@@ -982,14 +995,14 @@ let headers =
 (* form towards a suffix service with constants *)
 let create_form (n1, (_, n2)) =
   let module Html5 = Eliom_content.Html5.F in
-    <:html5list< <p>
-      $string_input ~input_type:`Text ~name:n1 ()$
-      $string_input ~input_type:`Text ~name:n2 ()$
-      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
+  <:html5list< <p>
+      $Form.input ~input_type:`Text ~name:n1 Form.string$
+      $Form.input ~input_type:`Text ~name:n2 Form.string$
+      $Form.input ~input_type:`Submit ~value:"Click" Form.string$</p> >>
 
 let constform = register_service ["constform"] unit
   (fun () () ->
-     let f = get_form Eliom_testsuite1.constfix create_form in
+     let f = Form.get_form Eliom_testsuite1.constfix create_form in
      return
         (html
           (head (title (pcdata "")) [])
@@ -1046,12 +1059,12 @@ let su4 =
 let create_suffixform_su2 s =
   let module Html5 = Eliom_content.Html5.F in
     <:html5list< <p>Write a string:
-      $string_input ~input_type:`Text ~name:s ()$ <br/>
-      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
+      $Form.input ~input_type:`Text ~name:s Form.string$ <br/>
+      $Form.input ~input_type:`Submit ~value:"Click" Form.string$</p> >>
 
 let suffixform_su2 = register_service ["suffixform_su2"] unit
   (fun () () ->
-     let f = get_form su2 create_suffixform_su2 in
+     let f = Form.get_form su2 create_suffixform_su2 in
      return
        (html
           (head (title (pcdata "")) [])
@@ -1084,16 +1097,16 @@ let optform =
     ~get_params:unit
     (fun () () ->
 (* testing lwt_get_form *)
-       Html5.D.lwt_get_form
+       Html5.D.Form.lwt_get_form
          ~service:optparam
          (fun (an, bn) ->
             Lwt.return
               [p [
-                 string_input ~input_type:`Text ~name:an ();
-                 string_input ~input_type:`Text ~name:bn ();
-                 Html5.D.string_input
+                 Form.input ~input_type:`Text ~name:an Form.string;
+                 Form.input ~input_type:`Text ~name:bn Form.string;
+                 Html5.D.Form.input
                    ~input_type:`Submit
-                   ~value:"Click" ()]])
+                   ~value:"Click" Html5.D.Form.string]])
       >>= fun form ->
       return
         (html
@@ -1120,9 +1133,9 @@ let presu_service =
 
 let creator_handler () () =
   let create_form () =
-    [fieldset [string_input ~input_type:`Submit ~value:"Click" ()]] in
+    [fieldset [Form.input ~input_type:`Submit ~value:"Click" Form.string]] in
   let myservice = preapply presu_service 10 in
-  let myform = get_form myservice create_form in
+  let myform = Form.get_form myservice create_form in
   Lwt.return
     (html
        (head (title (pcdata "")) [])
@@ -1202,11 +1215,13 @@ let f s =
      (head (title (pcdata "")) [])
      (body [h1 [pcdata s];
             p [a nonatt [pcdata "clic"] "nonon"];
-            get_form nonatt
+            Form.get_form nonatt
               (fun string_name ->
                 [p [pcdata "Non attached coservice: ";
-                    string_input ~input_type:`Text ~name:string_name ();
-                    string_input ~input_type:`Submit ~value:"Click" ()]])
+                    Form.input ~input_type:`Text ~name:string_name
+                      Form.string;
+                    Form.input ~input_type:`Submit ~value:"Click"
+                      Form.string]])
           ]))
 
 let getco = register_coservice
@@ -1225,13 +1240,16 @@ let getcoex =
         (html
           (head (title (pcdata "")) [])
           (body [p [a getco [pcdata "clic"] (22,"eee") ];
-                 get_form getco
+                 Form.get_form getco
                    (fun (number_name,string_name) ->
                      [p [pcdata "Write an int: ";
-                         int_input ~input_type:`Text ~name:number_name ();
+                         Form.input ~input_type:`Text ~name:number_name
+                           Form.int;
                          pcdata "Write a string: ";
-                         string_input ~input_type:`Text ~name:string_name ();
-                         string_input  ~input_type:`Submit ~value:"Click" ()]])
+                         Form.input ~input_type:`Text ~name:string_name
+                           Form.string;
+                         Form.input  ~input_type:`Submit ~value:"Click"
+                           Form.string]])
                ])))
 
 
@@ -1277,10 +1295,10 @@ let my_service_with_post_params =
 let postcoex = register_service ["postco"] unit
   (fun () () ->
      let f =
-       (post_form my_service_with_post_params
+       (Form.post_form my_service_with_post_params
           (fun chaine ->
             [p [pcdata "Write a string: ";
-                string_input ~input_type:`Text ~name:chaine ()]])
+                Form.input ~input_type:`Text ~name:chaine Form.string]])
           (222,"ooo")) in
      return
        (html
@@ -1379,10 +1397,12 @@ let attnonatt_service =
            (body [p [pcdata "This is an example of link to a GET non-attached coservice, with URL change (attach_coserv'): ";
                      a ~service [pcdata "click"] "LO"];
                   p [pcdata "And a form to a POST non-attached coservice:"];
-                  post_form ~service:service2
+                  Form.post_form ~service:service2
                     (fun n ->
-                      [string_input ~input_type:`Hidden ~name:n ~value:"toto" ();
-                       string_input ~input_type:`Submit ~value:"send" ()]) ()
+                       [Form.input ~input_type:`Hidden ~name:n ~value:"toto"
+                          Form.string;
+                        Form.input ~input_type:`Submit ~value:"send"
+                          Form.string]) ()
                  ])))
 
 
@@ -1518,17 +1538,17 @@ let suffix3 =
 
 let create_suffixform2 (suf1, (ii, ee)) =
   let module Html5 = Eliom_content.Html5.F in
-    <:html5list< <p>Write a string:
-      $string_input ~input_type:`Text ~name:suf1 ()$ <br/>
-      Write an int: $int_input ~input_type:`Text ~name:ii ()$ <br/>
-      Write a string: $user_type_input
-      (Url.string_of_url_path ~encode:false)
-      ~input_type:`Text ~name:ee ()$ <br/>
-      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
+  <:html5list< <p>Write a string:
+      $Form.input ~input_type:`Text ~name:suf1 Form.string$ <br/>
+      Write an int: $Form.input ~input_type:`Text ~name:ii Form.int$ <br/>
+      $Form.input ~input_type:`Submit ~value:"Click" Form.string$</p> >>
+      (* Write a string: $user_type_input *)
+      (* (Url.string_of_url_path ~encode:false) *)
+      (* ~input_type:`Text ~name:ee ()$ <br/> *)
 
 let suffixform2 = register_service ["suffixform2"] unit
   (fun () () ->
-     let f = get_form suffix2 create_suffixform2 in
+    let f = Form.get_form suffix2 create_suffixform2 in
      return
        (html
           (head (title (pcdata "")) [])
@@ -1538,16 +1558,16 @@ let suffixform2 = register_service ["suffixform2"] unit
 let create_suffixform3 ((suf1, (ii, ee)), (a, b)) =
   let module Html5 = Eliom_content.Html5.F in
     <:html5list< <p>Write a string:
-      $string_input ~input_type:`Text ~name:suf1 ()$ <br/>
-      Write an int: $int_input ~input_type:`Text ~name:ii ()$ <br/>
-      Write an int: $int_input ~input_type:`Text ~name:ee ()$ <br/>
-      Write a string: $string_input ~input_type:`Text ~name:a ()$ <br/>
-      Write an int: $int_input ~input_type:`Text ~name:b ()$ <br/>
-      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
+      $Form.input ~input_type:`Text ~name:suf1 Form.string$ <br/>
+      Write an int: $Form.input ~input_type:`Text ~name:ii Form.int$ <br/>
+      Write an int: $Form.input ~input_type:`Text ~name:ee Form.int$ <br/>
+      Write a string: $Form.input ~input_type:`Text ~name:a Form.string$ <br/>
+      Write an int: $Form.input ~input_type:`Text ~name:b Form.int$ <br/>
+      $Form.input ~input_type:`Submit ~value:"Click" Form.string$</p> >>
 
 let suffixform3 = register_service ["suffixform3"] unit
   (fun () () ->
-     let f = get_form suffix3 create_suffixform3 in
+     let f = Form.get_form suffix3 create_suffixform3 in
      return
         (html
           (head (title (pcdata "")) [])
@@ -1621,12 +1641,12 @@ let sendfile2 =
 let create_suffixform4 n =
   let module Html5 = Eliom_content.Html5.F in
     <:html5list< <p>Write the name of the file:
-      $string_input ~input_type:`Text ~name:n ()$
-      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
+      $Form.input ~input_type:`Text ~name:n Form.string$
+      $Form.input ~input_type:`Submit ~value:"Click" Form.string$</p> >>
 
 let suffixform4 = register_service ["suffixform4"] unit
   (fun () () ->
-     let f = get_form sendfile2 create_suffixform4 in
+     let f = Form.get_form sendfile2 create_suffixform4 in
      return
         (html
           (head (title (pcdata "")) [])
@@ -1757,19 +1777,19 @@ let create_sufliform f =
   let l =
     f.it (fun (sn, iname) v init ->
       (tr [td [pcdata ("Write a string: ")];
-           td [string_input ~input_type:`Text ~name:sn ()];
+           td [Form.input ~input_type:`Text ~name:sn Form.string];
            td [pcdata ("Write an integer: ")];
-           td [int_input ~input_type:`Text ~name:iname ()];
+           td [Form.input ~input_type:`Text ~name:iname Form.int];
           ])::init)
       ["one";"two";"three"]
       []
   in
   [table l;
-   p [string_input ~input_type:`Submit ~value:"Click" ()]]
+   p [Form.input ~input_type:`Submit ~value:"Click" Form.string]]
 
 let sufliform = register_service ["sufliform"] unit
   (fun () () ->
-     let f = get_form sufli create_sufliform in
+     let f = Form.get_form sufli create_sufliform in
      return
        (html
           (head (title (pcdata "")) [])
@@ -1900,14 +1920,15 @@ let any2form = register_service
         (html
            (head (title (pcdata "")) [])
            (body [h1 [pcdata "Any Form"];
-                  get_form any2
+                  Form.get_form any2
                     (fun (iname,grr) ->
                       [p [pcdata "Form to any2: ";
-                          int_input ~input_type:`Text ~name:iname ();
-                          raw_input ~input_type:`Text ~name:"plop" ();
-                          raw_input ~input_type:`Text ~name:"plip" ();
-                          raw_input ~input_type:`Text ~name:"plap" ();
-                          string_input ~input_type:`Submit ~value:"Click" ()]])
+                          Form.input ~input_type:`Text ~name:iname Form.int;
+                          input ~a:[a_input_type `Text; a_name "plop"] ();
+                          input ~a:[a_input_type `Text; a_name "plip"] ();
+                          input ~a:[a_input_type `Text; a_name "plap"] ();
+                          Form.input ~input_type:`Submit ~value:"Click"
+                            Form.string]])
                 ])))
 
 
@@ -1937,16 +1958,16 @@ let create_listform f =
   let l =
     f.it (fun boolname v init ->
             (tr[td [pcdata ("Write the value for "^v^": ")];
-                td [bool_checkbox ~name:boolname ()]])::init)
+                td [Form.bool_checkbox_one ~name:boolname ()]])::init)
       ["one";"two";"three"]
       []
   in
   [table l;
-   p [raw_input ~input_type:`Submit ~value:"Click" ()]]
+   p [input ~a:[a_input_type `Submit; a_value "Click"] ()]]
 
 let boollistform = register_service ["boolform"] unit
   (fun () () ->
-     let f = get_form boollist create_listform in return
+     let f = Form.get_form boollist create_listform in return
         (html
           (head (title (pcdata "")) [])
           (body [f])))
@@ -1994,10 +2015,11 @@ let anypostform = register_service
         (html
            (head (title (pcdata "")) [])
            (body [h1 [pcdata "Any Form"];
-                  post_form any
+                  Form.post_form any
                     (fun () ->
                       [p [pcdata "Empty form to any: ";
-                          string_input ~input_type:`Submit ~value:"Click" ()]])
+                          Form.input ~input_type:`Submit ~value:"Click"
+                            Form.string]])
                     ()
                 ])))
 
@@ -2031,13 +2053,13 @@ let uploadgetform = register_service ["uploadget"] unit
   (fun () () ->
     let f =
 (* ARG        (post_form ~a:[(Html5.F.a_enctype "multipart/form-data")] fichier2 *)
-     (get_form ~a:[(Html5.F.a_enctype "multipart/form-data")] ~service:get_param_service
+     (Form.get_form ~a:[(Html5.F.a_enctype "multipart/form-data")] ~service:get_param_service
      (*post_form my_service_with_post_params        *)
         (fun (str, file) ->
           [p [pcdata "Write a string: ";
-              string_input ~input_type:`Text ~name:str ();
+              Form.input ~input_type:`Text ~name:str Form.string;
               br ();
-              file_input ~name:file ()]])) in  return
+              Form.file_input ~name:file ()]])) in  return
          (html
            (head (title (pcdata "form")) [])
            (body [f])))
@@ -2110,21 +2132,23 @@ register_service
 let create_form =
   (fun (number_name, (bool1name, bool2name)) ->
     [p [pcdata "New timeout: ";
-        Html5.D.int_input ~input_type:`Text ~name:number_name ();
+        Html5.D.Form.input ~input_type:`Text ~name:number_name
+          Html5.D.Form.int;
         br ();
         pcdata "Check the box if you want to recompute all timeouts: ";
-        Html5.D.bool_checkbox ~name:bool1name ();
+        Html5.D.Form.bool_checkbox_one ~name:bool1name ();
         br ();
         pcdata "Check the box if you want to override configuration file: ";
-        Html5.D.bool_checkbox ~name:bool2name ();
-        Html5.D.string_input ~input_type:`Submit ~value:"Submit" ()]])
+        Html5.D.Form.bool_checkbox_one ~name:bool2name ();
+        Html5.D.Form.input ~input_type:`Submit ~value:"Submit"
+          Html5.D.Form.string]])
 
 let set_timeout_form =
   register_service
     ["set_timeout"]
     unit
     (fun () () ->
-      let f = Html5.D.get_form set_timeout create_form in
+      let f = Html5.D.Form.get_form set_timeout create_form in
       return
         (html
            (head (title (pcdata "")) [])
@@ -2184,9 +2208,9 @@ let disconnect_action =
     (fun () () -> Eliom_state.discard ~scope:session ())
 
 let disconnect_box s =
-  Html5.D.post_form disconnect_action
-    (fun _ -> [p [Html5.D.string_input
-                    ~input_type:`Submit ~value:s ()]]) ()
+  Html5.D.Form.post_form disconnect_action
+    (fun _ -> [p [Html5.D.Form.input
+                    ~input_type:`Submit ~value:s Html5.D.Form.string]]) ()
 
 (* The following eref is true if the connection has action failed: *)
 let bad_user = Eliom_reference.eref ~scope:Eliom_common.request_scope false
@@ -2203,11 +2227,12 @@ let change_gd =
 (* new login box:                                           *)
 
 let login_box session_expired bad_u action =
-  Html5.D.post_form action
+  Html5.D.Form.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
-         Html5.D.string_input ~input_type:`Text ~name:loginname ()]
+         Html5.D.Form.input ~input_type:`Text ~name:loginname
+           Html5.D.Form.string]
       in
       [p (if bad_u
         then (pcdata "Wrong user")::(br ())::l
@@ -2240,10 +2265,11 @@ let connect_example_handler () () =
                   (match my_group_data with
                     | None -> pcdata "You have no group data."
                     | Some i -> pcdata ("Your group data is "^string_of_int i^"."))];
-               Html5.D.post_form change_gd
-                 (fun () -> [p [Html5.D.string_input
-                                   ~input_type:`Submit
-                                   ~value:"Change group data" ()]]) ();
+               Html5.D.Form.post_form change_gd
+                 (fun () -> [p [Html5.D.Form.input
+                                  ~input_type:`Submit
+                                   ~value:"Change group data"
+                                   Html5.D.Form.string]]) ();
                p [pcdata "Check that several sessions have the same group data."];
                p [pcdata "Volatile group data are currently discarded when all group disappear. This is weird and not coherent with persistent group data. But I don't really see a correct use of volatile group data. Is there any? And there is a risk of memory leak if we keep them. Besides, volatile sessions are (hopefully) going to disappear soon."];
                disconnect_box "Close session"]
@@ -2319,9 +2345,10 @@ let disconnect_action =
     (fun () () -> Eliom_state.discard ~scope:session ())
 
 let disconnect_box s =
-  Html5.D.post_form disconnect_action
-    (fun _ -> [p [Html5.D.string_input
-                    ~input_type:`Submit ~value:s ()]]) ()
+  Html5.D.Form.post_form disconnect_action
+    (fun _ -> [p [Html5.D.Form.input
+                    ~input_type:`Submit ~value:s
+                    Html5.D.Form.string]]) ()
 
 (* The following eref is true if the connection has action failed: *)
 let bad_user = Eliom_reference.eref ~scope:Eliom_common.request_scope false
@@ -2339,11 +2366,12 @@ let change_gd =
 (* new login box:                                           *)
 
 let login_box session_expired bad_u action =
-  Html5.D.post_form action
+  Html5.D.Form.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
-         Html5.D.string_input ~input_type:`Text ~name:loginname ()]
+         Html5.D.Form.input ~input_type:`Text ~name:loginname
+           Html5.D.Form.string]
       in
       [p (if bad_u
         then (pcdata "Wrong user")::(br ())::l
@@ -2377,10 +2405,11 @@ let connect_example_handler () () =
                     | None -> pcdata "You have no group data."
                     | Some i -> pcdata ("Your group data is "^string_of_int i^"."));
                  ];
-               Html5.D.post_form change_gd
-                 (fun () -> [p [Html5.D.string_input
+               Html5.D.Form.post_form change_gd
+                 (fun () -> [p [Html5.D.Form.input
                                    ~input_type:`Submit
-                                   ~value:"Change group data" ()]]) ();
+                                   ~value:"Change group data"
+                                   Html5.D.Form.string]]) ();
                p [pcdata "Check that several sessions have the same group data."];
                p [pcdata "Check that persistent group data do not disappear when all sessions from the group are closed."];
                p [pcdata "Persistent group data are used as a basic database, for example to store user information (email, etc)."];
@@ -2477,22 +2506,26 @@ let neopt_form ((e_a, e_b), (e_c, e_d)) =
   fieldset
     [
     label ~a:[a_for "e_a"] [pcdata "Enter string 'a':"];
-    Html5.D.string_input ~a:[a_id "e_a"] ~input_type:`Text ~name:e_a ();
+    Html5.D.Form.input ~a:[a_id "e_a"] ~input_type:`Text ~name:e_a
+      Html5.D.Form.string;
     br ();
 
     label ~a:[a_for "e_b"] [pcdata "Enter int 'b' (neopt):"];
-    Html5.D.int_input ~a:[a_id "e_b"] ~input_type:`Text ~name:e_b ();
+    Html5.D.Form.input ~a:[a_id "e_b"] ~input_type:`Text ~name:e_b
+      Html5.D.Form.int;
     br ();
 
     label ~a:[a_for "e_c"] [pcdata "Enter float 'c' (neopt):"];
-    Html5.D.float_input ~a:[a_id "e_c"] ~input_type:`Text ~name:e_c ();
+    Html5.D.Form.input ~a:[a_id "e_c"] ~input_type:`Text ~name:e_c
+      Html5.D.Form.float;
     br ();
 
     label ~a:[a_for "e_d"] [pcdata "Enter string 'd' (neopt):"];
-    Html5.D.string_input ~a:[a_id "e_d"] ~input_type:`Text ~name:e_d ();
+    Html5.D.Form.input ~a:[a_id "e_d"] ~input_type:`Text ~name:e_d
+      Html5.D.Form.string;
     br ();
 
-    Html5.D.button ~button_type:`Submit [pcdata "Apply"];
+    Html5.D.Form.button_no_value ~button_type:`Submit [pcdata "Apply"];
     ]
   ]
 
@@ -2522,7 +2555,7 @@ let main_neopt_handler () () =
           Html5.D.a neopt_service [pcdata "link"] (("foo", Some 1), (Some 2.0, Some "Olá!"));
           pcdata " to the neopt service"
           ];
-        Html5.D.get_form neopt_service neopt_form;
+        Html5.D.Form.get_form neopt_service neopt_form;
         ]))
 
 let main_neopt_service =

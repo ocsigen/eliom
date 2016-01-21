@@ -370,12 +370,14 @@ Then wherever you want to add a button to do that action (on data
 
 <<code language="ocaml"|
 
-Html5.D.(post_form remove_action
+Html5.D.(Form.post_form remove_action
           (fun id_name -> [
-             int_input
-               ~input_type:`Hidden ~name:id_name ~value:id ();
-             string_input
-               ~input_type:`Submit ~value:("remove "^string_of_int id) ();
+             Form.input
+               ~input_type:`Hidden ~name:id_name ~value:id
+               Form.int;
+             Form.input
+               ~input_type:`Submit ~value:("remove "^string_of_int id)
+               Form.string;
            ]))
 
 >>

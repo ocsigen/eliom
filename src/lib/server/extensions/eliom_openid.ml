@@ -509,8 +509,8 @@ module Make (S : HiddenServiceInfo) = struct
     get_assoc (fst discovery) >>= fun assoc ->
     let uri = ref "" in
     let () = uri :=
-      Eliom_content.Html5.F.make_string_uri ~absolute: true
-      ~service:return_service []
+        Eliom_uri.make_string_uri ~absolute: true
+          ~service:return_service []
     in
     let _ = Eliom_registration.Any.register
       ~scope
