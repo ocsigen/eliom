@@ -91,7 +91,8 @@ val register_unwrapper' : unwrap_id -> ('a -> 'b option) -> unit
 (** [late_unwrap_value old_value new_value] replaces each occurrence
     of [old_value] with [new_value].
 *)
-val late_unwrap_value : Ocsigen_lib.poly -> _ -> unit
+val late_unwrap_value :
+  _ Eliom_lib.Client_value_server_repr.t -> _ -> unit
 
 (** Lwt_log section for this module. *)
 val log_section : Lwt_log.section

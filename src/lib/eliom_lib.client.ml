@@ -22,11 +22,13 @@ include (Eliom_lib_base :
          with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
          with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
          with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
+         with type 'a Client_value_server_repr.t =
+                        'a Eliom_lib_base.Client_value_server_repr.t
          with type client_value_datum = Eliom_lib_base.client_value_datum
-         with type 'a injection_datum := 'a Eliom_lib_base.injection_datum
-         with type 'a compilation_unit_global_data =
-           'a Eliom_lib_base.compilation_unit_global_data
-         with type 'a global_data := 'a Eliom_lib_base.global_data
+         with type injection_datum := Eliom_lib_base.injection_datum
+         with type compilation_unit_global_data =
+           Eliom_lib_base.compilation_unit_global_data
+         with type global_data := Eliom_lib_base.global_data
          with type request_data = Eliom_lib_base.request_data)
 
 exception False
@@ -156,6 +158,9 @@ let unmarshal_js var =
 
 type file_info = File.file Js.t
 
-type injection_datum = poly Eliom_lib_base.injection_datum
+type injection_datum = Eliom_lib_base.injection_datum
 
-type global_data = unit
+type global_data
+
+let make_cryptographic_safe_string ?len () =
+  failwith "make_cryptographic_safe_string not implemented client-side"

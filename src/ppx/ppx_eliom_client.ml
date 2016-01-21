@@ -74,7 +74,7 @@ module Pass = struct
            let args = List.map Pat.var args in
            [%expr
              Eliom_client.Syntax_helpers.register_client_closure
-               [%e Exp.constant @@ Const_int64 num]
+               [%e Exp.constant @@ Const_string (num, None)]
                (fun [%p pat_args args] ->
                   ([%e map_get_escaped_values expr] : [%t typ]))
            ] [@metaloc expr.pexp_loc]
@@ -110,14 +110,14 @@ module Pass = struct
     [%stri
       let () =
         Eliom_client.Syntax_helpers.close_server_section
-          [%e AC.str @@ id_of_loc loc]
+          [%e AC.str @@ file_hash loc]
     ][@metaloc loc]
 
   let open_client_section loc =
     [%stri
       let () =
         Eliom_client.Syntax_helpers.open_client_section
-          [%e AC.str @@ id_of_loc loc]
+          [%e AC.str @@ file_hash loc]
     ][@metaloc loc]
 
   (** Syntax extension *)
@@ -214,11 +214,13 @@ module Pass = struct
         | None   -> [%expr None]
         | Some i -> [%expr Some [%e AC.str i]]
       in
+      let (u, d) = Mli.get_injected_ident_info id.txt in
+      let s = Printf.sprintf "%s%d" u d in
       [%expr
         (Eliom_client.Syntax_helpers.get_injection
            ?ident:([%e ident])
            ~pos:([%e position loc])
-           [%e Exp.constant ~loc:id.loc (Const_string (id.txt, None))]
+           [%e Exp.constant ~loc:id.loc (Const_string (s, None))]
          : [%t typ])
       ][@metaloc loc]
 

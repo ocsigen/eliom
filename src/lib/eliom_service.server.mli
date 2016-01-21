@@ -472,7 +472,7 @@ val eliom_appl_answer_content_type : string
 
 exception Wrong_session_table_for_CSRF_safe_coservice
 
-val get_global_data : unit -> poly Eliom_lib_base.global_data
+val get_global_data : unit -> Eliom_lib_base.global_data
 val get_request_data : unit -> request_data
 
 module Syntax_helpers : sig
@@ -481,7 +481,7 @@ module Syntax_helpers : sig
       executed in a global_data
       (cf. {!Eliom_service.Syntax_helpers.set_global}) or in the
       request_data when executed in a request. *)
-  val client_value : ?pos:Eliom_lib.pos -> int64 -> 'args -> 'a client_value
+  val client_value : ?pos:Eliom_lib.pos -> string -> 'args -> 'a client_value
 
   (** All client values created between [set_global true] and
       [set_global false] are considered global client values
@@ -511,7 +511,8 @@ module Syntax_helpers : sig
 
       Called in parallel with <<a_api
       subproject="client"|Eliom_client.Syntax_helpers.open_client_section>>.  *)
-  val close_client_section : string -> (string * (unit -> poly) * Eliom_lib.pos * string option) list -> unit
+  val close_client_section :
+    string -> (int * poly * Eliom_lib.pos * string option) list -> unit
 
   (** Convert any value to a {! Eliom_lib.escaped_value} for usage in
       the [args] argument to {! Eliom_service.Syntax_helpers.client_value}. *)

@@ -64,15 +64,6 @@ let init_client_app ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
        Dom_html.CoerceTo.base)
     (fun e -> e##href <- Js.string url)
 
-
-let int64_to_string i = (Obj.magic i)##toString()
-(*VVV
-  Was:
-    Js.string (Int64.to_string i)
-  But unsafe version is much more efficient.
-  FIX! (may be: do not use int64)
-*)
-
 (* == Auxiliaries *)
 
 let create_buffer () =
@@ -128,77 +119,51 @@ let run_onunload_wrapper f g =
 (* == Closure *)
 
 module Client_closure : sig
-  val register : closure_id:int64 -> closure:(_ -> _) -> unit
-  val find : closure_id:int64 -> (poly -> poly)
+  val register : closure_id:string -> closure:(_ -> _) -> unit
+  val find : closure_id:string -> (poly -> poly)
 end = struct
-
-  let key closure_id = int64_to_string closure_id
 
   let client_closures = Jstable.create ()
 
   let register ~closure_id ~closure =
-    Jstable.add client_closures (key closure_id)
-      (fun args ->
-         to_poly (closure (from_poly args)))
+    Jstable.add client_closures (Js.string closure_id)
+      (from_poly (to_poly closure))
 
   let find ~closure_id =
     Js.Optdef.get
-      (Jstable.find client_closures (key closure_id))
-      (fun () ->
-         raise Not_found)
+      (Jstable.find client_closures (Js.string closure_id))
+      (fun () -> raise Not_found)
 end
 
 module Client_value : sig
-  val find : closure_id:int64 -> instance_id:int64 -> _
+  val find : instance_id:int -> poly option
   val initialize : client_value_datum -> unit
 end = struct
 
-  let table = Jstable.create ()
+  let table = jsnew Js.array_empty ()
 
-  let closure_key closure_id = int64_to_string closure_id
+  let find ~instance_id =
+    if instance_id = 0 then (* local client value *) None else
+    Js.Optdef.to_option (Js.array_get table instance_id)
 
-  let instance_key instance_id = int64_to_string instance_id
-
-  let find ~closure_id ~instance_id =
-    let value =
-      let instances =
-        Js.Optdef.get
-          (Jstable.find
-             table
-             (closure_key closure_id))
-          (fun () -> raise Not_found)
-      in
-      Js.Optdef.get
-        (Jstable.find
-           instances
-           (instance_key instance_id))
-        (fun () -> raise Not_found)
-    in
-    from_poly value
-
-  let initialize {closure_id; loc; instance_id; args; value = old_value} =
+  let initialize {closure_id; args; value = server_value} =
     let closure =
       try
         Client_closure.find ~closure_id
       with Not_found ->
-        let pos = match loc with
+        let pos =
+          match Client_value_server_repr.loc server_value with
           | None -> ""
           | Some p -> Printf.sprintf "(%s)" (Eliom_lib.pos_to_string p) in
         Lwt_log.raise_error_f ~section
-         "Client closure %Ld not found %s (is the module linked on the client?)"
+         "Client closure %s not found %s (is the module linked on the client?)"
           closure_id pos
     in
     let value = closure args in
-    Eliom_unwrap.late_unwrap_value old_value value;
-    let instances =
-      Js.Optdef.get
-        (Jstable.find table (closure_key closure_id))
-        (fun () ->
-           let instances = Jstable.create () in
-           Jstable.add table (closure_key closure_id) instances;
-           instances)
-    in
-    Jstable.add instances (instance_key instance_id) value
+    Eliom_unwrap.late_unwrap_value server_value value;
+    (* Only register global client values *)
+    let instance_id = Client_value_server_repr.instance_id server_value in
+    if instance_id <> 0 then Js.array_set table instance_id value
 end
 
 let middleClick ev =
@@ -212,8 +177,8 @@ let middleClick ev =
   | _ -> false
 
 module Injection : sig
-  val get : ?ident:string -> ?pos:Eliom_lib.pos -> name:string -> _
-  val initialize : injection_datum -> unit
+  val get : ?ident:string -> ?pos:pos -> name:string -> _
+  val initialize : compilation_unit_id:string -> injection_datum -> unit
 end = struct
 
   let table = Jstable.create ()
@@ -235,15 +200,22 @@ end = struct
             in
             Lwt_log.raise_error_f "Did not find injection %s" name))
 
-  let initialize { Eliom_lib_base.injection_id; injection_value } =
-    Lwt_log.ign_debug_f ~section "Initialize injection %s" injection_id;
+  let initialize ~compilation_unit_id
+        { Eliom_lib_base.injection_id; injection_value } =
+    Lwt_log.ign_debug_f ~section "Initialize injection %d" injection_id;
     (* BBB One should assert that injection_value doesn't contain any
        value marked for late unwrapping. How to do this efficiently? *)
-    Jstable.add table (Js.string injection_id) injection_value
+    Jstable.add table
+      (Js.string (compilation_unit_id ^ string_of_int injection_id))
+      injection_value
 
 end
 
 (* == Populating client values and injections by global data *)
+
+type compilation_unit_global_data =
+  { mutable server_section : client_value_datum array list;
+    mutable client_section : injection_datum array list }
 
 let global_data = ref String_map.empty
 
@@ -253,15 +225,16 @@ let do_next_server_section_data ~compilation_unit_id =
     compilation_unit_id;
   try
     let data = String_map.find compilation_unit_id !global_data in
-    List.iter Client_value.initialize
-      (Queue.take data.server_sections_data)
-  with
-    | Not_found -> () (* Client-only compilation unit *)
-    | Queue.Empty ->
-      Lwt_log.raise_error_f ~section
-        "Queue of client value data for compilation unit %s is empty \
-         (is it linked on the server?)"
-        compilation_unit_id
+    match data.server_section with
+      l :: r ->
+        data.server_section <- r;
+        Array.iter Client_value.initialize l
+    | [] ->
+        Lwt_log.raise_error_f ~section
+          "Queue of client value data for compilation unit %s is empty \
+           (is it linked on the server?)"
+          compilation_unit_id
+  with Not_found -> () (* Client-only compilation unit *)
 
 let do_next_client_section_data ~compilation_unit_id =
   Lwt_log.ign_debug_f ~section
@@ -269,32 +242,32 @@ let do_next_client_section_data ~compilation_unit_id =
     compilation_unit_id;
   try
     let data = String_map.find compilation_unit_id !global_data in
-    List.iter Injection.initialize
-      (Queue.take data.client_sections_data)
-  with
-    | Not_found -> () (* Client-only compilation unit *)
-    | Queue.Empty ->
-      Lwt_log.raise_error_f ~section "Queue of injection data for compilation unit %s is empty \
-             (is it linked on the server?)"
-        compilation_unit_id
+    match data.client_section with
+      l :: r ->
+        data.client_section <- r;
+        Array.iter (fun i -> Injection.initialize ~compilation_unit_id i) l
+    | [] ->
+        Lwt_log.raise_error_f ~section
+          "Queue of injection data for compilation unit %s is empty \
+               (is it linked on the server?)"
+          compilation_unit_id
+  with Not_found -> () (* Client-only compilation unit *)
 
 let check_global_data global_data =
   let missing_client_values = ref [] in
   let missing_injections = ref [] in
   String_map.iter
-    (fun _ { server_sections_data; client_sections_data } ->
-       Queue.iter
-         (function
-           | [] -> ()
-           | data -> missing_client_values :=
-               List.rev_append data !missing_client_values)
-         server_sections_data;
-       Queue.iter
-         (function
-           | [] -> ()
-           | data -> missing_injections :=
-               List.rev_append data !missing_injections)
-         client_sections_data;
+    (fun _ { server_section; client_section } ->
+       List.iter
+         (fun data ->
+            missing_client_values :=
+              List.rev_append (Array.to_list data) !missing_client_values)
+         server_section;
+       List.iter
+         (fun data ->
+            missing_injections :=
+              List.rev_append (Array.to_list data) !missing_injections)
+         client_section;
     )
     global_data;
   (match !missing_client_values with
@@ -304,11 +277,12 @@ let check_global_data global_data =
        "Code generating the following client values is not linked on the client:\n%s"
        (String.concat "\n"
           (List.rev_map
-             (fun d ->
-                match d.loc with
-                | None -> Printf.sprintf "%Ld/%Ld" d.closure_id d.instance_id
+             (fun {closure_id; value} ->
+                let instance_id = Client_value_server_repr.instance_id value in
+                match Client_value_server_repr.loc value with
+                | None -> Printf.sprintf "%s/%d" closure_id instance_id
                 | Some pos ->
-                  Printf.sprintf "%Ld/%Ld at %s" d.closure_id d.instance_id
+                  Printf.sprintf "%s/%d at %s" closure_id instance_id
                     (Eliom_lib.pos_to_string pos)
              )
              l
@@ -320,33 +294,25 @@ let check_global_data global_data =
        "Code containing the following injections is not linked on the client:\n%s"
        (String.concat "\n"
           (List.rev_map (fun d ->
-             let id =
-               try
-                 Scanf.sscanf
-                   d.Eliom_lib_base.injection_id
-                   "__eliom__injected_ident__reserved_name__%019d__%d"
-                   (Printf.sprintf "%d/%d")
-               with _ -> d.Eliom_lib_base.injection_id in
-             match d.Eliom_lib_base.injection_ident,
-                   d.Eliom_lib_base.injection_loc with
-             | None,None -> id
-             | Some i,None -> Printf.sprintf "%s (%s)" id i
-             | Some i,Some pos ->
-               Printf.sprintf "%s (%s at %s)" id i (Eliom_lib.pos_to_string pos)
-             | None, Some pos ->
-               Printf.sprintf "%s (at %s)" id (Eliom_lib.pos_to_string pos)
+             let id = d.Eliom_lib_base.injection_id in
+             match d.Eliom_lib_base.injection_dbg with
+             | None -> Printf.sprintf "%d" id
+             | Some (pos, Some i) ->
+               Printf.sprintf "%d (%s at %s)" id i (Eliom_lib.pos_to_string pos)
+             | Some (pos, None) ->
+               Printf.sprintf "%d (at %s)" id (Eliom_lib.pos_to_string pos)
            ) l)))
 
 (* == Initialize the client values sent with a request *)
 
 let do_request_data request_data =
   Lwt_log.ign_debug_f ~section "Do request data (%a)"
-    (fun () l -> string_of_int (List.length l)) request_data;
+    (fun () l -> string_of_int (Array.length l)) request_data;
   (* On a request, i.e. after running the toplevel definitions, global_data
      must contain at most empty sections_data lists, which stem from server-
      only eliom files. *)
   check_global_data !global_data;
-  List.iter Client_value.initialize request_data
+  Array.iter Client_value.initialize request_data
 
 (*******************************************************************************)
 
@@ -488,16 +454,10 @@ let raw_form_handler form kind cookies_info tmpl ev =
   || (https = Some false && Eliom_request_info.ssl_)
   || (change_page_form ?cookies_info ?tmpl form action; false)
 
-let raw_event_handler cv =
-  let closure_id = Client_value_server_repr.closure_id cv in
-  let instance_id = Client_value_server_repr.instance_id cv in
-  try
-    let value = Client_value.find ~closure_id ~instance_id in
-    let handler = (Eliom_lib.from_poly value : #Dom_html.event Js.t -> unit) in
-    fun ev -> try handler ev; true with False -> false
-  with Not_found ->
-    Lwt_log.raise_error_f ~section
-      "Client value %Ld/%Ld not found as event handler" closure_id instance_id
+let raw_event_handler value =
+  let handler = (*XXX???*)
+    (Eliom_lib.from_poly (Eliom_lib.to_poly value) : #Dom_html.event Js.t -> unit) in
+  fun ev -> try handler ev; true with False -> false
 
 let closure_name_prefix = Eliom_lib_base.RawXML.closure_name_prefix
 let closure_name_prefix_len = String.length closure_name_prefix
@@ -667,15 +627,9 @@ let rec rebuild_rattrib node ra = match Xml.racontent ra with
   | Xml.RALazyStrL (Xml.Comma, l) ->
     node##setAttribute(Js.string (Xml.aname ra),
                        Js.string (String.concat "," l))
-  | Xml.RAClient (_,_,cv) ->
-    let closure_id = Client_value_server_repr.closure_id cv in
-    let instance_id = Client_value_server_repr.instance_id cv in
-    try
-      let value = Client_value.find ~closure_id ~instance_id in
-      rebuild_rattrib node (Eliom_lib.from_poly value : Xml.attrib)
-    with Not_found ->
-      Lwt_log.raise_error_f "Client value %Ld/%Ld not found as client attrib"
-        closure_id instance_id
+  | Xml.RAClient (_,_,value) ->
+    rebuild_rattrib node
+      (Eliom_lib.from_poly (Eliom_lib.to_poly value) : Xml.attrib)
 
 
 
@@ -1145,21 +1099,10 @@ let relink_attrib root table (node:Dom_html.element Js.t) =
     then
       let cid = Js.to_bytestring (get_attrib_id attr) in
       try
-        let cv = Eliom_lib.RawXML.ClosureMap.find cid table in
-        let closure_id = Client_value_server_repr.closure_id cv in
-        let instance_id = Client_value_server_repr.instance_id cv in
-        begin
-          try
-            let value = Client_value.find ~closure_id ~instance_id in
-            let rattrib =
-              (Eliom_lib.from_poly value : Eliom_content_core.Xml.attrib)
-            in
-            rebuild_rattrib node rattrib
-          with Not_found ->
-            Lwt_log.raise_error_f ~section
-              "Client value %Ld/%Ld not found as event handler"
-              closure_id instance_id
-        end
+        let value = Eliom_lib.RawXML.ClosureMap.find cid table in
+        let rattrib: Eliom_content_core.Xml.attrib =
+          (Eliom_lib.from_poly (Eliom_lib.to_poly value)) in
+        rebuild_rattrib node rattrib
       with Not_found ->
         Lwt_log.raise_error_f ~section
           "relink_attrib: client value %s not found" cid
@@ -1958,16 +1901,19 @@ let unwrap_tyxml =
     register_unwrapped_elt elt;
     elt
 
-let unwrap_client_value ({closure_id; instance_id},_) =
-  try
-    Some (Client_value.find ~closure_id ~instance_id)
-  with Not_found ->
-    (* BB By returning [None] this value will be registered for late
-       unwrapping, and late unwrapped in Client_value.initialize as
-       soon as it is available. *)
-    None
+let unwrap_client_value cv =
+  Client_value.find ~instance_id:(Client_value_server_repr.instance_id cv)
+  (* BB By returning [None] this value will be registered for late
+     unwrapping, and late unwrapped in Client_value.initialize as
+     soon as it is available. *)
 
-let unwrap_global_data = fun (global_data', _) -> global_data := global_data'
+let unwrap_global_data = fun (global_data', _) ->
+  global_data :=
+    String_map.map
+      (fun {server_sections_data; client_sections_data} ->
+         {server_section = Array.to_list server_sections_data;
+          client_section = Array.to_list client_sections_data})
+      global_data'
 
 let _ =
   Eliom_unwrap.register_unwrapper'

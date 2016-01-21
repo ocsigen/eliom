@@ -138,7 +138,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
            let _loc = Ast.loc_of_expr expr in
            <:expr<
              Eliom_client.Syntax_helpers.register_client_closure
-               $`int64:gen_num$
+               $str:gen_num$
                (fun $Helpers.patt_tuple args$ ->
                   ($map_get_escaped_values ~nested expr$ : $typ$))
            >>)
@@ -176,7 +176,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     <:str_item<
         let () =
           Eliom_client.Syntax_helpers.close_server_section
-            $str:Pa_eliom_seed.id_of_string (Loc.file_name loc)$
+            $str:Helpers.file_hash loc$
     >>
 
   let open_client_section loc =
@@ -184,7 +184,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     <:str_item<
         let () =
           Eliom_client.Syntax_helpers.open_client_section
-            $str:Pa_eliom_seed.id_of_string (Loc.file_name loc)$
+            $str:Helpers.file_hash loc$
     >>
 
   (** Syntax extension *)
@@ -302,8 +302,10 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           let ident = match ident with
             | None -> <:expr<None>>
             | Some i -> <:expr<Some $str:i$>> in
+          let (u, d) = Helpers.get_injected_ident_info gen_id in
+          let s = Printf.sprintf "%s%d" u d in
           <:expr<
-            (Eliom_client.Syntax_helpers.get_injection ?ident:($ident$) ~pos:($Helpers.position _loc$) $str:gen_id$ : $typ$)
+            (Eliom_client.Syntax_helpers.get_injection ?ident:($ident$) ~pos:($Helpers.position _loc$) $str:s$ : $typ$)
           >>
 
   let implem _ sil = sil

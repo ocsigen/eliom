@@ -42,8 +42,8 @@
      '{{ ... }}' are compiled on the client as a function
      parameterized by the values of escaped expressions. On the
      server-side, '{{ ... }}' are compiled as a distant call.  To keep
-     the link, each '{{ ... }}' is associated unique integer (see
-     gen_closure_num).
+     the link, each '{{ ... }}' is associated unique string (see
+     gen_closure_id).
 
      In order to type-check escaped-value with the same type on both
      sides, compilation of Eliom sources infers the static type of
@@ -76,13 +76,15 @@ module type Helpers  = sig
   open Syntax
 
   (** find inferred type for escaped expr *)
-  val find_client_value_type: Int64.t -> Ast.ctyp
+  val find_client_value_type: string -> Ast.ctyp
 
   (** find inferred type for escaped expr *)
   val find_escaped_ident_type: string -> Ast.ctyp
 
   (** find inferred type for injected ident *)
   val find_injected_ident_type: string -> Ast.ctyp
+
+  val get_injected_ident_info: string -> string * int
 
   val is_client_value_type : Ast.ctyp -> Ast.ctyp option
 
@@ -97,6 +99,8 @@ module type Helpers  = sig
 
   val string_of_ident : Ast.ident -> string option
   val position : Ast.Loc.t -> Ast.expr
+
+  val file_hash : Ast.Loc.t -> string
 end
 
 type shared_value_context = [ `Server | `Shared ]
@@ -124,9 +128,6 @@ type escape_inject =
   | Escaped_in_shared_value_in of shared_value_context
   | Injected_in of injection_context
 
-let id_of_string str =
-  Printf.sprintf "%019d" (Hashtbl.hash str)
-
 (** Signature of specific code of a preprocessor. *)
 
 module type Pass = functor (Helpers: Helpers) -> sig
@@ -147,12 +148,12 @@ module type Pass = functor (Helpers: Helpers) -> sig
   val server_sig_items: Ast.Loc.t -> Ast.sig_item list -> Ast.sig_item
 
   (** How to handle "{{ ... }}" expr. *)
-  val client_value_expr: Ast.ctyp option -> client_value_context -> Ast.expr -> Int64.t -> string -> Ast.Loc.t -> Ast.expr
+  val client_value_expr: Ast.ctyp option -> client_value_context -> Ast.expr -> string -> string -> Ast.Loc.t -> Ast.expr
 
   (** How to handle "{shared# ... { ... }}" expr. *)
   val shared_value_expr:
     Ast.ctyp option -> shared_value_context -> Ast.expr ->
-    Int64.t -> string -> Ast.Loc.t -> Ast.expr
+    string -> string -> Ast.Loc.t -> Ast.expr
 
   (** How to handle escaped "%ident" inside "{{ ... }}". *)
   val escape_inject: escape_inject -> ?ident: string -> Ast.expr -> string -> Ast.expr
@@ -275,7 +276,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         nested_escaped_ident_prefix
 
       let injected_ident_fmt () =
-        format_of_string "__eliom__injected_ident__reserved_name__%019d__%d"
+        format_of_string "__eliom__injected_ident__reserved_name__%6s__%d"
       let is_injected_ident = function
           (* | <:sig_item< val $id$ : $t$ >> -> *)
         | Ast.SgVal (_loc, id, t) ->
@@ -319,7 +320,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
             (match is_client_value_type typ with
               | Some t ->
                 let len = String.length id - client_value_ident_prefix_len in
-                Int64.of_string (String.sub id client_value_ident_prefix_len len),
+                String.sub id client_value_ident_prefix_len len,
                 suppress_underscore t
               | None ->
                   Printf.ksprintf failwith
@@ -358,9 +359,12 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
             id (get_type_file ());
           exit 1
 
+      let get_injected_ident_info id =
+        Scanf.sscanf id (injected_ident_fmt ()) (fun u n -> (u, n))
+
       let find_injected_ident_type id =
         try
-          let id = Scanf.sscanf id (injected_ident_fmt ()) (fun _filehash n -> n) in
+          let (_, id) = get_injected_ident_info id in
           List.assoc id (snd_3 (Lazy.force inferred_sig))
         with Not_found ->
           Printf.eprintf "Error: Infered type of injected ident not found (%s). \
@@ -374,7 +378,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         with Not_found ->
           Printf.eprintf "Error: Infered type client value not found (%s). \
                           You need to regenerate %s.\n"
-            (Int64.to_string id) (get_type_file ());
+            id (get_type_file ());
           exit 1
 
       (* Convert a list of patterns to a tuple of pattern, one single pattern, or (). *)
@@ -393,6 +397,19 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         | [] -> <:expr< () >>
         | [e] -> e
         | es -> <:expr< $tup:Ast.exCom_of_list es$ >>
+
+      let file_hash loc =
+        let s = Digest.string (Ast.Loc.file_name loc) in
+        let e =
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_'" in
+        let o = Bytes.create 6 in
+        let g p = Char.code s.[p] in
+        for i = 0 to 5 do
+          let p = i * 6 / 8 in
+          let d = 10 - (i * 6) mod 8 in
+          Bytes.set o i e.[(g p lsl 8 + g (p + 1)) lsr d land 63]
+        done;
+        Bytes.to_string o
 
     end (* End of Helpers *)
 
@@ -539,13 +556,12 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           failwith ("shared_value_context: " ^ level_to_string context)
 
     (* Identifiers for the closure representing "Hole_expr". *)
-    let gen_closure_num_base _loc = Int64.of_int (Hashtbl.hash (Loc.file_name _loc))
-    let gen_closure_num_count = ref Int64.zero
-    let gen_closure_num _loc =
-      gen_closure_num_count := Int64.succ !gen_closure_num_count;
-      Int64.add (gen_closure_num_base _loc) !gen_closure_num_count
+    let gen_closure_num_count = ref 0
+    let gen_closure_id _loc =
+      incr gen_closure_num_count;
+      Format.sprintf "%s%d" (Helpers.file_hash _loc) !gen_closure_num_count
     let gen_closure_escaped_ident id =
-      Helpers.client_value_ident_prefix ^ Int64.to_string id
+      Helpers.client_value_ident_prefix ^ id
 
     (* Globaly unique ident for escaped expression *)
     (* It's used for type inference and as argument name for the
@@ -588,7 +604,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       let injected_idents = ref [] in
       let r = ref 0 in
       let gen_ident loc =
-        let hash = Hashtbl.hash (Loc.file_name loc) in
+        let hash = Helpers.file_hash loc in
         incr r;
         Printf.sprintf (Helpers.injected_ident_fmt ()) hash !r
       in
@@ -799,7 +815,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
               from_some_or_raise opt_lvl _loc
                 (fun lvl ->
                    set_current_level lvl;
-                   let id = gen_closure_num _loc in
+                   let id = gen_closure_id _loc in
                    Pass.shared_value_expr typ (shared_value_context lvl) e
                      id (gen_closure_escaped_ident id) _loc)
                 "The syntax {shared# type{ ... } is not allowed in %s."
@@ -808,7 +824,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
               from_some_or_raise opt_lvl _loc
                 (fun lvl ->
                    set_current_level lvl;
-                   let id = gen_closure_num _loc in
+                   let id = gen_closure_id _loc in
                    Pass.client_value_expr typ (client_value_context lvl) e
                      id (gen_closure_escaped_ident id) _loc)
                 "The syntax {type{ ... } is not allowed in %s."
@@ -819,7 +835,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
               from_some_or_raise opt_lvl _loc
                 (fun lvl ->
                    set_current_level lvl;
-                   let id = gen_closure_num _loc in
+                   let id = gen_closure_id _loc in
                    Pass.client_value_expr None (client_value_context lvl) e
                      id (gen_closure_escaped_ident id) _loc)
                 "The syntax {{ ... }} is not allowed in %s."

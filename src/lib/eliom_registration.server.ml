@@ -1346,9 +1346,10 @@ module Ocaml = struct
   let prepare_data data =
     let ecs_request_data =
       let data = Eliom_service.get_request_data () in
-      if (Ocsigen_config.get_debugmode())
-      then data
-      else List.map (fun x -> {x with loc = None}) data in
+      if not (Ocsigen_config.get_debugmode()) then
+        Array.iter (fun d -> Client_value_server_repr.clear_loc d.value) data;
+      data
+    in
     (*     debug_client_value_data (debug "%s") client_value_data; *)
     let r = { Eliom_types.
               ecs_request_data;
@@ -1933,16 +1934,19 @@ module Eliom_appl_reg_make_param
         let data =
           if keep_debug
           then data
-          else String_map.map (fun {server_sections_data;client_sections_data} ->
-              { server_sections_data = queue_map server_sections_data
+          else
+            String_map.map
+              (fun {server_sections_data;client_sections_data} ->
+                 Array.iter
+                   (Array.iter (fun d ->
+                                  Client_value_server_repr.clear_loc d.value))
+                   server_sections_data;
+              { server_sections_data;
+                client_sections_data = Array.map
                     (
-                      List.map (fun x -> {x with loc = None})
-                    );
-                client_sections_data = queue_map client_sections_data
-                    (
-                      List.map (fun x -> {x with injection_loc = None;
-                                                 injection_ident = None})
+                      Array.map (fun x -> {x with injection_dbg = None})
                     )
+                    client_sections_data
               }) data
         in
         Some (data, global_data_unwrapper)
@@ -1950,9 +1954,9 @@ module Eliom_appl_reg_make_param
     in
     let ejs_request_data =
       let data = Eliom_service.get_request_data () in
-      if keep_debug
-      then data
-      else List.map (fun x -> {x with loc = None}) data
+      if not keep_debug then
+        Array.iter (fun d -> Client_value_server_repr.clear_loc d.value) data;
+      data
     in
 
     (* wrapping of values could create eliom references that may

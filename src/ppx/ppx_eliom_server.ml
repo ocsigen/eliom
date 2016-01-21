@@ -95,7 +95,7 @@ module Pass = struct
     Str.value Nonrecursive bindings
 
   let close_server_section loc =
-    let s = id_of_loc loc in
+    let s = file_hash loc in
     [%stri
       let () =
         Eliom_service.Syntax_helpers.close_server_section
@@ -112,15 +112,16 @@ module Pass = struct
            let ident = match ident with
              | None -> [%expr None]
              | Some i -> [%expr Some [%e AC.str i ]] in
+           let (_, num) = Mli.get_injected_ident_info txt in
            [%expr
-             ([%e AC.str txt],
-              (fun () -> Eliom_lib.to_poly [%e frag_eid ]),
+             ([%e AC.int num],
+              Eliom_lib.to_poly [%e frag_eid ],
               [%e loc_expr], [%e ident ]) :: [%e sofar ]
            ])
         injections
         [%expr []]
     in
-    let s = id_of_loc loc in
+    let s = file_hash loc in
     [%stri
       let () =
         Eliom_service.Syntax_helpers.close_client_section
@@ -172,7 +173,7 @@ module Pass = struct
     [%expr
       (Eliom_service.Syntax_helpers.client_value
          ~pos:([%e position loc ])
-         [%e Exp.constant (Const_int64 num) ]
+         [%e Exp.constant (Const_string (num, None)) ]
          [%e e ]
        : [%t typ ] Eliom_pervasives.client_value)
     ][@metaloc loc]

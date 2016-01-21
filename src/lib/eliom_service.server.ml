@@ -242,6 +242,10 @@ let pre_wrap s =
 
 (* Global data *)
 
+type compilation_unit_global_data =
+  { mutable server_section : client_value_datum array list;
+    mutable client_section : injection_datum array list }
+
 let get_global_data, modify_global_data =
   (* We have to classify global data from ocsigen extensions (no site
      available) and eliommodules (site data available).
@@ -280,58 +284,47 @@ let current_server_section_data = ref []
 
 let get_compilation_unit_global_data compilation_unit_id =
   if not (String_map.mem compilation_unit_id (get_global_data ())) then
-    ( let data = { server_sections_data = Queue.create (); client_sections_data = Queue.create () } in
+    ( let data = { server_section = []; client_section = [] } in
       ignore (modify_global_data (String_map.add compilation_unit_id data)) );
   String_map.find compilation_unit_id (get_global_data ())
 
 let close_server_section ~compilation_unit_id =
-  let { server_sections_data } =
-    get_compilation_unit_global_data compilation_unit_id
-  in
-  Queue.push (List.rev !current_server_section_data)
-    server_sections_data;
+  let data = get_compilation_unit_global_data compilation_unit_id in
+  data.server_section
+    <- Array.of_list (List.rev !current_server_section_data)
+         :: data.server_section;
   current_server_section_data := []
 
 let close_client_section ~compilation_unit_id injection_data =
-  let { client_sections_data } =
-    get_compilation_unit_global_data compilation_unit_id
-  in
+  let data = get_compilation_unit_global_data compilation_unit_id in
   let injection_datum (injection_id, injection_value, loc, ident) =
-    { injection_id; injection_value ; injection_loc = Some loc; injection_ident = ident }
+    { injection_id; injection_value ; injection_dbg = Some (loc, ident) }
   in
-  Queue.push (List.map injection_datum injection_data)
-    client_sections_data
+  let injection_data = Array.of_list injection_data in
+  data.client_section <-
+    Array.map injection_datum injection_data :: data.client_section
 
 let get_global_data () =
-  let on_injection_datum injection_datum =
-    let injection_value = injection_datum.injection_value () in
-    { injection_datum with injection_value  }
-  in
   String_map.map
-    (fun compilation_unit_global_data ->
-       let client_sections_data = Queue.create () in
-       Queue.iter
-         (fun injection_data ->
-            Queue.push (List.map on_injection_datum injection_data)
-              client_sections_data)
-         compilation_unit_global_data.client_sections_data;
-       { compilation_unit_global_data with client_sections_data })
+    (fun {server_section; client_section}->
+       { server_sections_data = Array.of_list (List.rev server_section);
+         client_sections_data = Array.of_list (List.rev client_section) })
     (get_global_data ())
 
 (* Request data *)
 
-let request_data : request_data Eliom_reference.Volatile.eref =
+let request_data : client_value_datum list Eliom_reference.Volatile.eref =
   Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
 
 let get_request_data () =
-  List.rev (Eliom_reference.Volatile.get request_data)
+  Array.of_list (List.rev (Eliom_reference.Volatile.get request_data))
 
 (* Register data *)
 
 let is_global = ref false
 
-let register_client_value_data ?loc ~closure_id ~instance_id ~args ~value () =
-  let client_value_datum = { closure_id; instance_id; args; loc; value } in
+let register_client_value_data ~closure_id ~args ~value =
+  let client_value_datum = { closure_id; args; value } in
   if !is_global then
     if Eliom_common.get_sp_option () = None then
       current_server_section_data :=
@@ -348,16 +341,19 @@ module Syntax_helpers = struct
 
   let escaped_value = Eliom_lib.escaped_value
 
+  let last_id = ref 0
+
   let client_value ?pos closure_id args =
-    let instance_id = Eliom_lib.fresh_ix () in
-    let v =
-      create_client_value
-        (Client_value_server_repr.create closure_id instance_id)
+    let instance_id =
+      if !is_global then begin
+        incr last_id;
+        !last_id
+      end else
+        0
     in
-    register_client_value_data
-      ?loc:pos ~closure_id ~instance_id
-      ~args:(to_poly args) ~value:(to_poly v) ();
-    v
+    let value = create_client_value ?loc:pos ~instance_id in
+    register_client_value_data ~closure_id ~args:(to_poly args) ~value;
+    client_value_from_server_repr value
 
   let close_server_section compilation_unit_id =
     close_server_section ~compilation_unit_id

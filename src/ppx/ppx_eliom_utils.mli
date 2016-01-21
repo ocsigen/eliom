@@ -2,7 +2,7 @@ open Parsetree
 
 (** {2 Various helping functions} *)
 
-val id_of_loc : Location.t -> string
+val file_hash : Location.t -> string
 
 val eid : string Location.loc -> expression
 
@@ -37,6 +37,8 @@ module Mli : sig
 
   val is_escaped_ident : string -> bool
 
+  val get_injected_ident_info : string -> (string * int)
+
   val exists : unit -> bool
 
   val find_escaped_ident : string Location.loc -> core_type
@@ -63,7 +65,7 @@ module type Pass = sig
   (** How to handle "[%client ...]" and "[%shared ...]" expr. *)
   val fragment:
     ?typ:core_type -> context:Context.server ->
-    num:Int64.t -> id:string Location.loc ->
+    num:string -> id:string Location.loc ->
     expression -> expression
 
   (** How to handle escaped "~%ident" inside a fragment. *)

@@ -98,7 +98,7 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     let _loc = loc in
     <:expr< begin
       $flush_typing_expr ()$;
-      $lid:gen_tid$ := Some (Eliom_service.Syntax_helpers.client_value 0L 0 : $typ$ Eliom_pervasives.client_value);
+      $lid:gen_tid$ := Some (Eliom_service.Syntax_helpers.client_value "" 0 : $typ$ Eliom_pervasives.client_value);
       match ! $lid:gen_tid $ with | Some x -> x | None -> assert false
     end >>
 
@@ -114,7 +114,7 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
         begin
           $flush_typing_expr ()$;
           $lid:gen_tid$ :=
-            Some (Eliom_service.Syntax_helpers.client_value 0L 0 :
+            Some (Eliom_service.Syntax_helpers.client_value "" 0 :
                    $typ$ Eliom_pervasives.client_value);
           match ! $lid:gen_tid $ with
           | Some x -> x
@@ -140,8 +140,8 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let implem loc sil =
     let _loc = Loc.ghost in
     let debug_compilation_unit_name =
-      let name = Printf.sprintf "__eliom__compilation_unit_id__%d"
-        (Hashtbl.hash (Loc.file_name loc)) in
+      let name = Printf.sprintf "__eliom__compilation_unit_id__%s"
+        (Helpers.file_hash loc) in
       <:str_item< let $lid:name$ = () >>
     in
     debug_compilation_unit_name :: sil

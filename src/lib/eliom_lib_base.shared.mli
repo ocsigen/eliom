@@ -40,6 +40,7 @@ module Int_map : Map_S with type key = int
 module String_map : Map_S with type key = string
 
 (**/**)
+
 type pos = Lexing.position * Lexing.position
 val pos_to_string : pos -> string
 
@@ -50,16 +51,19 @@ val pos_to_string : pos -> string
 *)
 module Client_value_server_repr : sig
   type +'a t
-  val create: closure_id:int64 -> instance_id:int64 -> _ t
-  val closure_id: _ t -> int64
-  val instance_id: _ t -> int64
+  (** instance_id is zero for local client values, unique for global
+      client values *)
+  val create:
+    ?loc:pos -> instance_id:int -> unwrapper:Eliom_wrap.unwrapper -> _ t
+  val instance_id: _ t -> int
+  val loc : _ t -> pos option
+  val clear_loc : _ t -> unit
+  val to_poly : _ t -> poly t
 end
 
 (** The representation of escaped values (values injected into client
     values) is opaque. *)
 type escaped_value = poly
-
-val fresh_ix : unit -> int64
 
 module RawXML : sig
 
@@ -70,8 +74,9 @@ module RawXML : sig
   type cookie_info = (bool * string list) deriving (Json)
 
   type -'a caml_event_handler =
-    | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) Client_value_server_repr.t
-    | CE_client_closure of ('a Js.t -> unit)
+    | CE_registered_closure of
+        string * poly (* 'a Js.t -> unit) client_value *)
+    | CE_client_closure of ((#Dom_html.event as 'a) Js.t -> unit)
     | CE_call_service of
         ([ `A | `Form_get | `Form_post] * (cookie_info option) * string option) option Eliom_lazy.request
 
@@ -125,7 +130,7 @@ module RawXML : sig
     | RACamlEventHandler of biggest_event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
-    | RAClient of string * attrib option * attrib Client_value_server_repr.t
+    | RAClient of string * attrib option * poly (* attrib client_value *)
   and attrib = aname * racontent
 
   val aname : attrib -> aname
@@ -157,9 +162,9 @@ module RawXML : sig
   module ClosureMap : Map.S with type key = string (* crypto *)
 
   type event_handler_table =
-    ((biggest_event Js.t -> unit) Client_value_server_repr.t) ClosureMap.t
+    poly (* (biggest_event Js.t -> unit) client_value*) ClosureMap.t
 
-  type client_attrib_table = attrib Client_value_server_repr.t ClosureMap.t
+  type client_attrib_table = poly (* attrib client_value *) ClosureMap.t
 
   val filter_class_attribs : node_id -> (string * racontent) list -> (string * racontent) list
 end
@@ -169,35 +174,31 @@ val client_value_unwrap_id_int : int
 
 (** Data for initializing one client value *)
 type client_value_datum = {
-  closure_id : int64;
-  instance_id : int64;
-  loc : pos option;
+  closure_id : string;
   args : poly;
-  value : poly;
+  value : poly Client_value_server_repr.t
 }
 
 (** Data for initializing one injection *)
-type 'injection_value injection_datum = {
-  injection_id : string;
-  injection_value : 'injection_value;
-  injection_loc : pos option;
-  injection_ident : string option;
+type injection_datum = {
+  injection_dbg : (pos * string option) option;
+  injection_id : int;
+  injection_value : poly;
 }
 
 (** Data for initializing client values and injections of one compilation unit *)
-type 'injection_value compilation_unit_global_data = {
-  server_sections_data : (client_value_datum list) Queue.t;
-  client_sections_data : ('injection_value injection_datum list) Queue.t;
+type compilation_unit_global_data = {
+  server_sections_data : client_value_datum array array;
+  client_sections_data : injection_datum array array;
 }
 
 (** Data for initializing client values and injection of the client
     program. Sent with the response to the initial request of a client
     process. *)
-type 'injection_value global_data =
-    'injection_value compilation_unit_global_data String_map.t
+type global_data = compilation_unit_global_data String_map.t
 
 (** Data for initializing client values sent with a request. Sent with
     the response to any follow-up request of a client process. *)
-type request_data = client_value_datum list
+type request_data = client_value_datum array
 
 val global_data_unwrap_id_int : int

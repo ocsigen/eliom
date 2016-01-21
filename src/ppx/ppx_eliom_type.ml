@@ -111,7 +111,7 @@ module Pass = struct
     [%expr
       [%e flush_typing_expr () ];
       [%e frag_eid] :=
-        Some ( Eliom_service.Syntax_helpers.client_value 0L 0 :
+        Some ( Eliom_service.Syntax_helpers.client_value "" 0 :
                  [%t typ] Eliom_pervasives.client_value);
       match ! [%e frag_eid] with
       | Some x -> x
@@ -127,9 +127,8 @@ module Pass = struct
     | `Injection `Client -> [%expr assert false]
 
   let prelude loc =
-    let txt = Printf.sprintf "__eliom__compilation_unit_id__%d"
-        (Hashtbl.hash !Location.input_name)
-    in
+    let txt =
+      Printf.sprintf "__eliom__compilation_unit_id__%s" (file_hash loc) in
     let id = Pat.var ~loc { loc ; txt } in
     [%str let [%p id] = () ]
 
