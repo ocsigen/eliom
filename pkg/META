@@ -74,7 +74,7 @@ package "syntax" (
   package "common" (
     description = "Syntax extension: spliting client and server code (base)"
     version = "[distributed with Eliom]"
-    requires = "camlp4"
+    requires = "camlp4, bytes"
     requires(preprocessor, syntax, pkg_type_conv) = "type_conv"
     archive(syntax, preprocessor) = "pa_eliom_seed.cmo"
   )

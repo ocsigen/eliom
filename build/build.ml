@@ -34,11 +34,21 @@ let _ = dispatch (fun x ->
     pflag [ "ocaml"; "infer_interface"] "I" (fun x -> S[A"-I"; A x]);
     pflag [ "ocaml"; "doc"] "I" (fun x -> S[A"-I"; A x]);
 
+    let ppopt = A "-ppopt" in
+    let rec for_camlp4 = function
+      | [] -> []
+      | S l::t -> S (for_camlp4 l) :: for_camlp4 t
+      | (T _ as h) :: t -> h :: for_camlp4 t
+      | P s :: t -> ppopt :: Quote (A s) :: for_camlp4 t
+      | h::t -> ppopt :: h :: for_camlp4 t
+    in
+
     (* add syntax extension *)
     let add_syntax ?needs name path =
+      let bytes_dep = Findlib.(link_flags_byte [query "bytes"]) in
       let _S l = match needs with
-        | None -> S l
-        | Some p -> S (A "-ppopt":: P p ::l) in
+        | None -> S (for_camlp4 [bytes_dep] @ l)
+        | Some p -> S (for_camlp4 [bytes_dep] @ ppopt :: P p ::l) in
       (* hack : not dep when "compile" to avoid the extension syntax to be link with binaries *)
       (* the dep with ocamldep make sure the extension syntax is compiled before *)
       flag ["ocaml";"compile";"pkg_"^name]  (_S [A "-ppopt" ;P (path ^ name -.- "cmo") ]);
