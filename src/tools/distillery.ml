@@ -3,17 +3,26 @@ open Printf
 
 let distillery_basic = "basic.ppx"
 
-let usage_msg = Printf.sprintf
+let pp_list () l =
+  let f s =
+    if s = distillery_basic
+    then s ^ " (default)"
+    else s
+  in
+  String.concat ", " (List.map f l)
+
+let gen_usage_msg l = Printf.sprintf
   "Welcome to the Eliom distillery!\n\
    \n\
    This program generates the scaffold for your Eliom application\n\
    from a template.\n\
-   Available templates: \"basic.ppx\", \"basic\", \"mobile\", (and possibly more).\n\
+   Available templates: %a.\n\
    \n\
    Call it like this\
    \n\  $ %s -name <name> [-template basic] [-target-directory <dest>]\
    \n\  $ %s -dir \n\
    where"
+  pp_list l
   (Filename.basename Sys.argv.(0))
   (Filename.basename Sys.argv.(0))
 
@@ -199,6 +208,7 @@ let main () =
   let name = ref None in
   let template = ref distillery_basic in
   let templates = get_templates () in
+  let usage_msg = gen_usage_msg templates in
   let select_template s =
     try template := (List.find ((=) s) templates)
     with Not_found -> bad "Not a known template name: %S" s
