@@ -12,12 +12,41 @@ and {{{?persistent}}} (for keeping the values on hard disk).
 For example if you create an Eliom reference of //scope// session, its value
 will be different for each session (one session = one browser process).
 
-But most of the time, what we want is to store data for one user,
-not for one browser instance. To do that, we group all the sessions
-for one user together, by creating a group of sessions.
-The name of the group may be for example the user id:
+To create an Eliom reference containing initial value {{{None}}}:
+<<code language="ocaml"|
+let myref = Eliom_reference.Volatile.eref ~scope None
+>>
 
-To create a session group, open the session by doing something like:
+Where {{{~scope}}} may be (amongst others):
+* {{{Eliom_common.default_session_scope}}} if you want to store server side
+data for one browser (one session),
+* {{{Eliom_common.default_process_scope}}} if you want to store server side
+data for one tab of a browser (one client process),
+* {{{Eliom_common.request_scope}}} if you want to store server side data
+during one request,
+* {{{Eliom_common.default_group_scope}}} if you want to store server side
+data for a group of sessions (for example all browsers belonging to the same
+user -- see below).
+
+Setting this reference, during a request:
+<<code language="ocaml"|
+  ...
+  Eliom_reference.Volatile.Ext.set myref (Some "user data")
+>>
+
+Getting the value of this reference (different for each user):
+<<code language="ocaml"|
+  Eliom_reference.Volatile.Ext.get myref
+>>
+
+Most of the time, what we want is to store data for one user,
+not for one browser instance. To do that, we use scope "group of sessions".
+A session is attached to a group of session by calling function
+<<a_api project="eliom" subproject="server"| val Eliom_state.set_volatile_data_session_group >> (for non-persistent groups).
+The name of the group may be for example the user id.
+This will automatically create a session (and set a cookie) if needed.
+
+Example:
 <<code language="ocaml"|
 let open_session login password =
   let%lwt b = check_password login password in
@@ -27,36 +56,6 @@ let open_session login password =
       (Int64.to_string (get_userid login))
   else ...
 >>
-
-If you want to store user data,
-just create a global Eliom reference of scope group:
-<<code language="ocaml"|
-let myref =
-  Eliom_reference.Volatile.eref
-    ~scope:Eliom_common.default_group_scope
-    None
->>
-
-And during a request, set this reference:
-<<code language="ocaml"|
-  ...
-  Eliom_reference.Volatile.Ext.set myref (Some "user data")
->>
-
-The value of this reference is different for each user:
-<<code language="ocaml"|
-  Eliom_reference.Volatile.Ext.get myref
->>
-
-==Other scopes==
-If you want to store server side data for one browser (one session),
-use scope {{{Eliom_common.default_session_scope}}}.
-
-If you want to store server side data for one tab of your browser (one client process),
-use scope {{{Eliom_common.default_process_scope}}}.
-
-If you want to store server side data during one request,
-use scope {{{Eliom_common.request_scope}}}.
 
 >>
 
