@@ -3,7 +3,3 @@
 {!modules:
 Ocamlbuild_eliom
 }
-
-{2 Index}
-
-{!indexlist}
