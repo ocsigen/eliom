@@ -8,7 +8,7 @@ By using this naming conventions, {{{eliomc}}} and {{{js_of_eliom}}}
 will use Eliom's syntax extension automatically.
 
 This manual describes the Camlp4 extension.
-For the ppx syntax extension, see <<a_api subproject="ppx"|module Eliom_ppx>>.
+For the ppx syntax extension, see <<a_api subproject="ppx"|module Ppx_eliom>>.
 
 <<outline depth="2"| <<header| **Table of contents** >> >>
 

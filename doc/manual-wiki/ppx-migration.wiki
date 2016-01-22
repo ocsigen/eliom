@@ -11,7 +11,7 @@ still supported, future development will focus on PPX, and therefore
 users are advised to migrate.
 
 For more extensive information on the PPX extension itself, refer to
-the <<a_api| module Ppx_eliom>>.
+the <<a_api subproject="ppx"|module Ppx_eliom>>.
 
 ==Source code conversion==
 
