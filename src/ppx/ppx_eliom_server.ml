@@ -99,7 +99,7 @@ module Pass = struct
     [%stri
       let () =
         Eliom_service.Syntax_helpers.close_server_section
-          [%e Exp.constant (Const_string (s,None)) ]
+          [%e AC.str s]
     ] [@metaloc loc]
 
   let close_client_section loc injections =
@@ -173,7 +173,7 @@ module Pass = struct
     [%expr
       (Eliom_service.Syntax_helpers.client_value
          ~pos:([%e position loc ])
-         [%e Exp.constant (Const_string (num, None)) ]
+         [%e AC.str num ]
          [%e e ]
        : [%t typ ] Eliom_pervasives.client_value)
     ][@metaloc loc]

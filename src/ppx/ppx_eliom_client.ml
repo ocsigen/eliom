@@ -74,7 +74,7 @@ module Pass = struct
            let args = List.map Pat.var args in
            [%expr
              Eliom_client.Syntax_helpers.register_client_closure
-               [%e Exp.constant @@ Const_string (num, None)]
+               [%e AC.str num]
                (fun [%p pat_args args] ->
                   ([%e map_get_escaped_values expr] : [%t typ]))
            ] [@metaloc expr.pexp_loc]
@@ -173,7 +173,7 @@ module Pass = struct
       Exp.let_ ~loc
         Nonrecursive
         bindings
-        (Exp.apply ~loc frag_eid [ "" , args ])
+        [%expr [%e frag_eid] [%e args]][@metaloc loc]
 
 
 
@@ -215,12 +215,12 @@ module Pass = struct
         | Some i -> [%expr Some [%e AC.str i]]
       in
       let (u, d) = Mli.get_injected_ident_info id.txt in
-      let s = Printf.sprintf "%s%d" u d in
+      let es = (AC.str @@ Printf.sprintf "%s%d" u d)[@metaloc id.loc] in
       [%expr
         (Eliom_client.Syntax_helpers.get_injection
            ?ident:([%e ident])
            ~pos:([%e position loc])
-           [%e Exp.constant ~loc:id.loc (Const_string (s, None))]
+           [%e es]
          : [%t typ])
       ][@metaloc loc]
 
