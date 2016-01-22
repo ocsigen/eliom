@@ -3,6 +3,63 @@
 
 <<outline depth="2"| <<header| **Table of contents** >> >>
 
+<<concept title="Summary" |
+
+//Eliom references// allow to store data on server for one user (session data).
+The interface is very similar to regular OCaml references,
+with extra parameters {{{?scope}}} (session, client process, group of sessions)
+and {{{?persistent}}} (for keeping the values on hard disk).
+For example if you create an Eliom reference of //scope// session, its value
+will be different for each session (one session = one browser process).
+
+But most of the time, what we want is to store data for one user,
+not for one browser instance. To do that, we group all the sessions
+for one user together, by creating a group of sessions.
+The name of the group may be for example the user id:
+
+To create a session group, open the session by doing something like:
+<<code language="ocaml"|
+let open_session login password =
+  let%lwt b = check_password login password in
+  if b
+  then Eliom_state.set_volatile_data_session_group
+      ~scope:Eliom_common.default_session_scope
+      (Int64.to_string (get_userid login))
+  else ...
+>>
+
+If you want to store user data,
+just create a global Eliom reference of scope group:
+<<code language="ocaml"|
+let myref =
+  Eliom_reference.Volatile.eref
+    ~scope:Eliom_common.default_group_scope
+    None
+>>
+
+And during a request, set this reference:
+<<code language="ocaml"|
+  ...
+  Eliom_reference.Volatile.Ext.set myref (Some "user data")
+>>
+
+The value of this reference is different for each user:
+<<code language="ocaml"|
+  Eliom_reference.Volatile.Ext.get myref
+>>
+
+==Other scopes==
+If you want to store server side data for one browser (one session),
+use scope {{{Eliom_common.default_session_scope}}}.
+
+If you want to store server side data for one tab of your browser (one client process),
+use scope {{{Eliom_common.default_process_scope}}}.
+
+If you want to store server side data during one request,
+use scope {{{Eliom_common.request_scope}}}.
+
+>>
+
 == Introduction ==
 
 <<paragraph| Different scopes for data and services >>
