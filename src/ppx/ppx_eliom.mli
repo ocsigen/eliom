@@ -6,7 +6,7 @@ The eliom syntax extension allows to write, in one file, both the client and ser
 For the camlp4 syntax extension, see
 {% <<a_manual chapter="clientserver-language" | here >>%}
 
-Also the extensions presented here are also available with the [eliom.] prefix.
+The extensions presented here are also available with the [eliom.] prefix.
 
 {2 Sections}
 
@@ -74,7 +74,7 @@ Client fragments cannot be nested.
 
 It is also possible to use shared fragments.
 {[
-let%server x =  [[%shared ...]]
+let%server x =  [%shared ...]
 ]}
 
 It will produce values of type {% <<a_api subproject="server"|type Eliom_lib.shared_value>> %}.
@@ -108,7 +108,8 @@ The value inside the client fragment is extracted by [~%x], whose value is [4] h
 
 It is not possible to use injections on values containing a closure. This includes lazy values, objects or anything containing functions. You can use either {% <<a_api subproject="server"|type Eliom_pervasive.server_function>> %} and client or shared fragments to circumvent this limitation.
 
-To extend and customize the serialization from client to server, see chapter <<a_manual chapter="clientserver-wrapping"|Wrapping values>>.
+To extend and customize the serialization from client to server, see chapter
+{% <<a_manual chapter="clientserver-wrapping"|Wrapping values>> %}.
 
 {2 Note about evaluation}
 
