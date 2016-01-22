@@ -1,4 +1,4 @@
-{1 The ocamlbuild plugin API}
+{1 Ocamlbuild plugin}
 
 {!modules:
 Ocamlbuild_eliom
