@@ -127,7 +127,7 @@ module type RLIST = sig
   (** Client-side version of 'a handle *)
   type 'a chandle
 
-  (** [make ?default ?reset_default l] produces a pair [l, f], where
+  (** [create ?default ?reset_default l] produces a pair [l, f], where
       [s] is a (shared) reactive list, and [f] is a handle for
       manipulating the list.
 
@@ -135,7 +135,7 @@ module type RLIST = sig
       provided.  [default], if provided, is used as the client-side
       list (and corresponding handle). [reset_default], if set to true
       (default: false), resets the value of [default] to [l]. *)
-  val make :
+  val create :
     ?default:(('a ct * 'a chandle) option Eliom_lib.client_value) ->
     ?reset_default:bool ->
     'a list ->
@@ -143,10 +143,10 @@ module type RLIST = sig
 
   val concat : 'a t -> 'a t -> 'a t
   val value : 'a t -> 'a list Eliom_lib.shared_value
-  val value_s : 'a t -> 'a list signal
+  val signal : 'a t -> 'a list signal
   val singleton_s : 'a signal -> 'a t
   val map : ('a -> 'b) Eliom_lib.shared_value -> 'a t -> 'b t
-  val make_from_s :
+  val from_signal :
     ?eq:(('a -> 'a -> bool) Eliom_lib.shared_value) ->
     'a list signal -> 'a t
   val acc_e :

@@ -44,7 +44,7 @@ module Xml = struct
     let append = ReactiveData.RList.concat
     let singleton = ReactiveData.RList.singleton_s
     let cons a l = append (singleton a) l
-    let nil () = ReactiveData.RList.make [] |> fst
+    let nil () = fst (ReactiveData.RList.create [])
     let fmap f a = React.S.map (f ()) a
     let map f l = ReactiveData.RList.map (f ()) l
 

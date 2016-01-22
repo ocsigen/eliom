@@ -158,7 +158,7 @@ module ReactiveData = struct
           Instead, we give the initial list as parameter.  To be used
           when the initial list has been computed on server side.  *)
       let map_p_init ~init (f : 'a -> 'b Lwt.t) (l : 'a t) : 'b t =
-        let (rr, _) as r = ReactiveData.RList.make init in
+        let (rr, _) as r = ReactiveData.RList.create init in
         let effectul_event = map_p_aux (Lwt.return r) f l in
         (* We keep a reference to the effectul_event in the resulting
            reactive list in order that the effectul_event is garbage
@@ -177,7 +177,7 @@ module ReactiveData = struct
         (* First we build the initial value of the result list *)
         let r_th =
           lwt r = Lwt_list.map_p f (ReactiveData.RList.value l) in
-          Lwt.return (ReactiveData.RList.make r)
+          Lwt.return (ReactiveData.RList.create r)
         in
         let effectul_event = map_p_aux r_th f l in
         lwt rr, rhandle = r_th in
@@ -191,12 +191,12 @@ module ReactiveData = struct
 
     end
 
-    let make ?default ?(reset_default = false) v =
+    let create ?default ?(reset_default = false) v =
       match default with
       | Some (Some ((_, handle) as s)) ->
         if reset_default then ReactiveData.RList.set handle v; s
       | _ ->
-        ReactiveData.RList.make v
+        ReactiveData.RList.create v
 
     let acc_e ?init e =
       let l, h =
@@ -204,7 +204,7 @@ module ReactiveData = struct
         | Some p ->
           p
         | None ->
-          make []
+          create []
       in
       let _ =
         let f x = ReactiveData.RList.cons x h in
@@ -284,14 +284,14 @@ module FakeReactiveData = struct
   module RList : sig
     type 'a t
     type 'a handle
-    val make : ?synced:bool -> 'a list -> 'a t * 'a handle
+    val create : ?synced:bool -> 'a list -> 'a t * 'a handle
     val concat : 'a t -> 'a t -> 'a t
     val value : 'a t -> 'a list
     val synced : 'a t -> bool
-    val value_s : 'a t -> 'a list FakeReact.S.t
+    val signal : 'a t -> 'a list FakeReact.S.t
     val singleton_s : 'a FakeReact.S.t -> 'a t
     val map : ('a -> 'b) -> 'a t -> 'b t
-    val make_from_s :
+    val from_signal :
       ?eq:('a -> 'a -> bool) -> 'a list FakeReact.S.t -> 'a t
     module Lwt : sig
       val map_p : ('a -> 'b Lwt.t) -> 'a t -> 'b t Lwt.t
@@ -299,14 +299,14 @@ module FakeReactiveData = struct
   end = struct
     type 'a t = 'a list * bool
     type 'a handle = unit
-    let make ?synced:(synced = false) l = (l, synced), ()
+    let create ?synced:(synced = false) l = (l, synced), ()
     let concat (l1, b1) (l2, b2) = List.append l1 l2, b1 && b2
     let singleton_s s = [FakeReact.S.value s], FakeReact.S.synced s
     let value (l, _) = l
     let synced (_, b) = b
-    let value_s (l, synced) = fst (FakeReact.S.create ~synced l)
+    let signal (l, synced) = fst (FakeReact.S.create ~synced l)
     let map f (l, b) = List.map f l, b
-    let make_from_s ?eq s = FakeReact.S.(value s, synced s)
+    let from_signal ?eq s = FakeReact.S.(value s, synced s)
     module Lwt = struct
       let map_p f (l, b) =
         lwt l = Lwt_list.map_p f l in
@@ -598,10 +598,10 @@ module ReactiveData = struct
     type 'a t = 'a FakeReactiveData.RList.t Value.t
     type 'a handle = 'a FakeReactiveData.RList.handle Value.t
 
-    let make ?default ?(reset_default = false) x =
+    let create ?default ?(reset_default = false) x =
       let cv, synced = match default with
         | None ->
-          {{ FakeReactiveData.RList.make %x }}, true
+          {{ FakeReactiveData.RList.create %x }}, true
         | Some v ->
           {'a FakeReactiveData.RList.t *
            'a FakeReactiveData.RList.handle{
@@ -610,10 +610,10 @@ module ReactiveData = struct
                if %reset_default then ReactiveData.RList.set handle %x;
                s
              | None ->
-               FakeReactiveData.RList.make %x
+               FakeReactiveData.RList.create %x
            }}, reset_default
       in
-      let sv = FakeReactiveData.RList.make ~synced x in
+      let sv = FakeReactiveData.RList.create ~synced x in
       Eliom_lib.create_shared_value (fst sv)
         {'a FakeReactiveData.RList.t{ fst %cv }},
       Eliom_lib.create_shared_value (snd sv)
@@ -635,18 +635,18 @@ module ReactiveData = struct
     let value (s : 'a t) = {shared# 'a list {
       FakeReactiveData.RList.value (Value.local %s) }}
 
-    let value_s (s : 'a t) = {shared# 'a list FakeReact.S.t {
-      FakeReactiveData.RList.value_s (Value.local %s) }}
+    let signal (s : 'a t) = {shared# 'a list FakeReact.S.t {
+      FakeReactiveData.RList.signal (Value.local %s) }}
 
     let map f s = {shared# 'a FakeReactiveData.RList.t {
       FakeReactiveData.RList.map (Value.local %f) (Value.local %s) }}
 
-    let make_from_s ?eq (s : 'a list React.S.t) : 'a t =
+    let from_signal ?eq (s : 'a list React.S.t) : 'a t =
       let sv =
         let eq = Ocsigen_lib.Option.map Value.local eq in
-        FakeReactiveData.RList.make_from_s ?eq (Value.local s)
+        FakeReactiveData.RList.from_signal ?eq (Value.local s)
       and cv =
-        {{ ReactiveData.RList.make_from_s ?eq:%eq (Value.local %s) }}
+        {{ ReactiveData.RList.from_signal ?eq:%eq (Value.local %s) }}
       in
       Eliom_lib.create_shared_value sv cv
 
@@ -656,7 +656,7 @@ module ReactiveData = struct
         | Some p ->
           p
         | None ->
-          make []
+          create []
       in
       let _ = {unit{
         let f x = ReactiveData.RList.cons x (Value.local %h) in
@@ -675,7 +675,7 @@ module ReactiveData = struct
         let synced = FakeReactiveData.RList.synced l' in
         Lwt.return
           (Eliom_lib.create_shared_value
-             (fst (FakeReactiveData.RList.make ~synced server_result))
+             (fst (FakeReactiveData.RList.create ~synced server_result))
              {{ ReactiveData.RList.Lwt.map_p_init
                   ~init:%server_result %f %l }})
 
