@@ -55,7 +55,7 @@ preprocessed through Camlp4.
 
 Our PPX language is more flexible than our Camlp4
 language. Specifically, the {{{[%%client.start]}}},
-{{{[%server.start]}}}, and {{{[%shared.start]}}} can be used to
+{{{[%%server.start]}}}, and {{{[%%shared.start]}}} can be used to
 specify the default location of all the signature or structure items
 that follow in the file, while locations can apply to single structure
 or signature items (overriding the default), e.g.,
@@ -67,8 +67,8 @@ let%client x = 0
 The code produced by {{{camlp4-to-ppx}}} is a literal translation of
 the original code, and thus does not use the additional features. It
 is advised that future development utilizes the new constructs, for
-example by using one of {{{[%%client.start]}}}, {{{[%server.start]}}},
-and {{{[%shared.start]}}} in the beginning of the file to specify a
+example by using one of {{{[%%client.start]}}}, {{{[%%server.start]}}},
+and {{{[%%shared.start]}}} in the beginning of the file to specify a
 sane default for the functionality implemented, and to explicitly
 override with {{{let%client}}}, {{{let%server}}}, {{{let%shared}}}
 only when necessary.
