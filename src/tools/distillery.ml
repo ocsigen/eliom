@@ -1,7 +1,7 @@
 
 open Printf
 
-let distillery_basic = "basic"
+let distillery_basic = "basic.ppx"
 
 let usage_msg = Printf.sprintf
   "Welcome to the Eliom distillery!\n\
