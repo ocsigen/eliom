@@ -46,7 +46,7 @@ byte opt:: $(TEST_PREFIX)$(ETCDIR)/$(PROJECT_NAME)-test.conf
 byte:: $(TEST_PREFIX)$(LIBDIR)/${PROJECT_NAME}.cma
 opt:: $(TEST_PREFIX)$(LIBDIR)/${PROJECT_NAME}.cmxs
 
-DIST_DIRS = $(ETCDIR) $(DATADIR) $(LIBDIR) $(LOGDIR) $(STATICDIR) $(ELIOMSTATICDIR) $(shell dirname $(CMDPIPE))
+DIST_DIRS = $(ETCDIR) $(DATADIR) $(LIBDIR) $(LOGDIR) $(STATICDIR) $(ELIOMSTATICDIR) $(shell dirname $(CMDPIPE)) $(ELIOMTMPDIR)
 
 ##----------------------------------------------------------------------
 ## Testing

@@ -68,3 +68,5 @@ DATADIR := var/data/${PROJECT_NAME}
 STATICDIR := var/www/${PROJECT_NAME}/static
 # Project's JavaScript file
 ELIOMSTATICDIR := var/www/${PROJECT_NAME}/eliom
+# Project's temporary files directory
+ELIOMTMPDIR := tmp
