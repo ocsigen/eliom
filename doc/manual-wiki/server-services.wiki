@@ -595,7 +595,7 @@ let () =
             ("Error: No content provided", "plain/text")
         | Some key, Some raw_content ->
           let content_stream = Ocsigen_stream.get raw_content in
-          Ocsigen_stream.string_of_stream 1024 content_stream >>= fun value ->
+          Ocsigen_stream.string_of_stream 1024 content_stream ~>>= fun value ->
           Hashtbl.replace store key value;
           Eliom_registration.String.send ~code:200 ("", "plain/text"))
   in
@@ -618,7 +618,7 @@ let () =
             ("Error: No content provided", "plain/text")
         | true, Some raw_content ->
           let content_stream = Ocsigen_stream.get raw_content in
-          Ocsigen_stream.string_of_stream 1024 content_stream >>= fun value ->
+          Ocsigen_stream.string_of_stream 1024 content_stream ~>>= fun value ->
           Hashtbl.replace store key value;
           Eliom_registration.String.send ~code:200 ("", "plain/text"))
   in
