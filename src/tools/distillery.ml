@@ -19,7 +19,7 @@ let gen_usage_msg l = Printf.sprintf
    Available templates: %a.\n\
    \n\
    Call it like this\
-   \n\  $ %s -name <name> [-template basic] [-target-directory <dest>]\
+   \n\  $ %s -name <name> [-template <template>] [-target-directory <dest>]\
    \n\  $ %s -dir \n\
    where"
   pp_list l
@@ -141,7 +141,7 @@ let copy_file ?(env=[]) ?(preds=[]) src_name dst_name =
 
 let create_project ~name ~env ~preds ~source_dir ~destination_dir =
   if not (Sys.file_exists destination_dir) then
-    ( if ksprintf (yes_no ~default:true) "Destination directory %S doesn't exists. Create it?" destination_dir then
+    ( if ksprintf (yes_no ~default:true) "Destination directory %S doesn't exist. Create it?" destination_dir then
         mkdir_p destination_dir
       else
         exit 1 );
@@ -224,7 +224,7 @@ let main () =
       "-name", String (fun s -> check_name s; name := Some s),
       "<name> Name of the project (a valid compilation unit name)";
       "-template", String select_template,
-      "basic The template for the project";
+      "<template> The template for the project";
       "-target-directory", String (fun s -> destination_dir := Some s),
       "<dir> Generate the project in directory <dir> (the project's name by default)";
   ]) in
