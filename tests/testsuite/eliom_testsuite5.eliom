@@ -32,10 +32,10 @@ let simple_dom_react = Eliom_testsuite_base.test
          let v_minus = React.S.map (fun x -> - x) i in
          let r_int s = Html5.R.pcdata (React.S.map string_of_int s) in
          let style = React.S.map (fun x -> if x then "color:green;" else "color:red;") valid in
-         let rlist,rhandle = ReactiveData.RList.make [0] in
+         let rlist, rhandle = ReactiveData.RList.create [0] in
          let _ = React.E.map (fun x ->
              if x > 0
-             then ReactiveData.RList.append x rhandle
+             then ReactiveData.RList.snoc x rhandle
              else ReactiveData.RList.cons x rhandle) (React.S.changes i) in
          Html5.(F.div ~a:[R.a_style style] [
              F.div [ F.pcdata "textarea : " ; R.textarea ~a:[F.a_maxlength 10; F.a_readonly `ReadOnly ; F.a_style "vertical-align: top"] (React.S.map F.pcdata s)];

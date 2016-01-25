@@ -3,7 +3,7 @@
 .PHONY: byte opt clean
 
 DISTILLERY := eliom-distillery
-ALL = basic mobile
+ALL = basic.camlp4 mobile
 
 byte:
 	for i in $(ALL); do $(MAKE) byte-$$i; done
@@ -13,7 +13,7 @@ opt:
 
 distillery-%:
 	mkdir -p $@
-	$(DISTILLERY) -name distillery_$* -template $* -target-directory $@
+	$(DISTILLERY) -name distillery_$(subst .,_,$*) -template $* -target-directory $@
 	echo 'TEST_PREFIX=local/' >> $@/Makefile.options
 	echo 'PREFIX=../../../local/' >> $@/Makefile.options
 	echo 'STATICDIR=var/www/$@/static' >> $@/Makefile.options

@@ -28,7 +28,7 @@ open Eliom_content.Html5.F
   let get_msg_ids () =
     lwt () = Lwt_unix.sleep 1. in
     let v = [1;2;3;4] in
-    let s = Eliom_shared.ReactiveData.RList.make v in
+    let s = Eliom_shared.ReactiveData.RList.create v in
     let _ = {unit{ init_msgs_ids_cache %s }} in
     Lwt.return (fst s)
   let get_msg i =

@@ -54,7 +54,7 @@ let mainservice = Eliom_testsuite_base.My_appl.register_service
         f (i+1)
     in f 5
 
-let test, testh = ReactiveData.RList.make
+let test, testh = ReactiveData.RList.create
     ([pcdata "a"; pcdata "b"; ] : Html5_types.div_content_fun elt list)
  }}
 {shared{
@@ -65,7 +65,7 @@ let test, testh = ReactiveData.RList.make
     lwt content =
       Eliom_shared.ReactiveData.RList.Lwt.map_p
         (Eliom_lib.create_shared_value test0 {{test0}})
-        (fst (Eliom_shared.ReactiveData.RList.make [1;2]))
+        (fst (Eliom_shared.ReactiveData.RList.create [1; 2]))
     in
     Lwt.return (D.div [p [pcdata "les boîtes :"]; R.div content])
 
@@ -75,7 +75,7 @@ let test, testh = ReactiveData.RList.make
     lwt content =
       Eliom_shared.ReactiveData.RList.Lwt.map_p
         test0
-        (fst (Eliom_shared.ReactiveData.RList.make [1;2;3]))
+        (fst (Eliom_shared.ReactiveData.RList.create [1; 2; 3]))
     in
     Lwt.return (D.div [p [pcdata "les boîtes :"]; R.div content])
 
