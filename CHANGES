@@ -1,3 +1,12 @@
+===== dev (2016-01-xx) =====
+
+* Add Eliom_shared and server-side Eliom_content.{Html5,Svg}.R modules
+* Add PPX syntax extension
+* Clean-up form APIs, now available under Eliom_content.Html5.{D,F}.Form
+* Patches to significantly reduce the size of request data
+* Compatibility with TyXML 3.6, Js_of_ocaml 2.7, and reactiveData 0.2
+* Various bugfixes and enhancements
+
 ===== 4.2 (2015-07-21) =====
 
 * Add Manip.children, to get the html children of an element.
