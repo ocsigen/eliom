@@ -65,9 +65,18 @@ let compile_impl file =
 		  @ ["-impl"; file] ))
 
 let server_pp_opt impl_intf =
-  ["-printer"; "o"; "-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
+  match !pp_mode with
+  | `Camlp4 ->
+    "-printer" :: "o" :: !ppopt @ [impl_intf_opt impl_intf]
+  | `Ppx ->
+    !ppopt
+
 let client_pp_opt impl_intf =
-  ["-printer"; "o"; "-notype"] @ !ppopt @ [impl_intf_opt impl_intf]
+  match !pp_mode with
+  | `Camlp4 ->
+    "-printer" :: "o" :: !ppopt @ [impl_intf_opt impl_intf]
+  | `Ppx ->
+    !ppopt
 
 let generate_temp_file file =
   let tmp_dir =
