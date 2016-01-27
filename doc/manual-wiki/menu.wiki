@@ -16,14 +16,14 @@
 ===[[clientserver-html|Generating HTML5]]
 ===[[clientserver-communication|Communication]]
 ===[[clientserver-wrapping|Custom wrapping]]
-===[[clientserver-language|Camlp4 syntax extension]]
 
 ==Workflows
 ===[[workflow-distillery|Distillery]]
 ===[[workflow-compilation|Compilation]]
 ===[[workflow-configuration|Configuration & running]]
 
-==Migration between versions
-===[[ppx-migration|Migration to PPX (Eliom 5.0)]]
+==Syntax
+===[[clientserver-language|Camlp4-based syntax]]
+===[[ppx-migration|Migration to PPX]]
 
 ==[[misc|Miscellaneous]]
