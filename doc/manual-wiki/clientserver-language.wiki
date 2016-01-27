@@ -1,14 +1,17 @@
 = Eliom's language extensions
 
-Eliom uses syntax extensions to make the development of client-server applications easier.
+Eliom uses syntax extensions to make the development of client-server
+applications easier.
 
 In order to use these syntax extensions, use the file extension {{{.eliom}}}
 for the implementation and {{{.eliomi}}} for the corresponding interface.
 By using this naming conventions, {{{eliomc}}} and {{{js_of_eliom}}}
 will use Eliom's syntax extension automatically.
 
-This manual describes the Camlp4 extension.
-For the ppx syntax extension, see <<a_api subproject="ppx"|module Ppx_eliom>>.
+We provide two different syntax extensions, one based on PPX (which we
+recommend) and an older one based on Camlp4. The PPX syntax extension
+is documented as part of the API: <<a_api subproject="ppx"|module
+Ppx_eliom>>. This manual page documents our Camlp4 syntax extension.
 
 <<outline depth="2"| <<header| **Table of contents** >> >>
 

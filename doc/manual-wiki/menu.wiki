@@ -13,11 +13,10 @@
 
 ==Client-server programming
 ===[[clientserver-applications|Eliom applications]]
-===[[clientserver-language|Client-server syntax]]
 ===[[clientserver-html|Generating HTML5]]
 ===[[clientserver-communication|Communication]]
-===[[clientserver-mobile|Mobile apps]]
 ===[[clientserver-wrapping|Custom wrapping]]
+===[[clientserver-language|Camlp4 syntax extension]]
 
 ==Workflows
 ===[[workflow-distillery|Distillery]]

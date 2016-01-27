@@ -12,6 +12,9 @@ Both parts are extracted during the compilation process, the server part
 is compiled as usual for an Eliom website, and the client part is compiled
 to Javascript to be run in the browser.
 
+For developing an Eliom application, we recommend that you use our PPX
+syntax extension: <<a_api subproject="ppx"|module Ppx_eliom>>.
+
 An interesting feature of Eliom applications is that the client side process
 does not stop when you click on a link or send a form, and it is possible to
 keep the traditional Web interaction (with URLs, bookmarks, back button, etc).
@@ -158,17 +161,6 @@ opens an
 Eliom service in a new browser window (cf. Javascript's {{{window.open}}}).
 <<a_api  subproject="client"| val Eliom_client.exit_to >>
 changes the current page and always leaves the application.
-
-<<|
-== Using Eliom on client side
-
-Liens, formulaires, utilisation des services côté client
-Le module Eliom_client
-Modules Eliom disponibles des deux côtés (et différences)
-
-parler de Eliom_service.void_coservice ?
-
->>
 
 == Misc ==
 
