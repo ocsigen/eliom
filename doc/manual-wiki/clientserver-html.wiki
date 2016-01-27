@@ -70,14 +70,15 @@ And here the same built using the DOM API:
 open Dom
 open Dom_html
 
-let d = createDiv document in
-let t1 = document##createTextNode( Js.string "some text" ) in
-let t2 = document##createTextNode( Js.string "some other text" ) in
-let b = createB document in
+let d =
+  let d = createDiv document in
+  let t1 = document##createTextNode(Js.string "some text") in
+  let t2 = document##createTextNode(Js.string "some other text") in
+  let b = createB document in
   appendChild d t1;
   appendChild d b;
   appendChild d t2;
-  d##id <- (Js.string "some div id");
+  d##.id := (Js.string "some div id");
   d
 >>
 
@@ -110,7 +111,7 @@ to make it possible to find them back in the page from client side.
   We recommend this as the default for beginners.
   But it will add identifiers attributes to each node.
 * If you want to avoid these identifiers when not needed,
-  use module {{{D}}} only when the node is used in an injection ({{{%n}}}),
+  use module {{{D}}} only when the node is used in an injection ({{{~%n}}}),
   and module {{{F}}} otherwise.
 
 >>
@@ -125,19 +126,20 @@ let main_service =
     (fun () () ->
        let open Eliom_content.Html5.D in
        let input = input ~a:[a_input_type `Text] () in
-       let onclick_handler =
-	 {{ let v =
-	      Js.to_string (Eliom_client.Html5.of_input %input)##value
-	    in
-	    Dom_html.window##alert(Js.string ("Input value :" ^ v)) }}
-       in
+       let onclick_handler = [%client (fun _ ->
+            let v =
+              Js.to_string
+                (Eliom_content.Html5.To_dom.of_input ~%input)##.value
+            in
+            Dom_html.window##alert(Js.string ("Input value :" ^ v)))
+       ] in
        let button =
          button ~a:[a_onclick onclick_handler] [pcdata "Read value"]
        in
        Lwt.return
          (html
-	    (head (title (pcdata "Test")) [])
-            (body [input; button]) ) )
+            (head (title (pcdata "Test")) [])
+            (body [input; button])))
 >>
 
 In this example, if the input button would have been incorrectly sent
@@ -185,7 +187,7 @@ of an HTML5 elements.
 
 ===@@id="reactive"@@Reactive DOM
 
-{{{Eliom_content.Html5.R}}} allows one to insert time varying values
+{{{Eliom_content.Html5.R}}} allows one to insert time-varying values
 into the DOM tree.
 It relies on React's signal {{{'a React.signal}}}. More information about react
 can be found on the [[http://erratique.ch/software/react| homepage]].
@@ -210,92 +212,89 @@ to insert a reactive node in a page.
 ===== Example
 
 <<code language="ocaml"|
-{shared{
-  open Eliom_lib
-  open Eliom_content
-  open Html5
-  open F
-}}
+[%%shared
+    open Eliom_lib
+    open Eliom_content
+    open Html5
+    open F
+]
 
-module Testnodes_app =
+module Reactivenodes_app =
   Eliom_registration.App (
-    struct
-      let application_name = "testnodes"
-    end)
+  struct
+    let application_name = "reactivenodes"
+  end)
 
-{client{
+[%%client
 
-open Eliom_content.Html5
+    open Eliom_content.Html5
 
-let split s =
-    let len = String.length s in
-    let rec aux acc = function
-      | 0 -> acc
-      | n -> aux (s.[n - 1] :: acc) (pred n)
-    in aux [] len
+    let split s =
+      let len = String.length s in
+      let rec aux acc = function
+        | 0 -> acc
+        | n -> aux (s.[n - 1] :: acc) (pred n)
+      in aux [] len
 
-let value_signal, set_value = React.S.create "initial"
-(* value_signal : string React.signal *)
+    let value_signal, set_value = React.S.create "initial"
 
-let value_len = React.S.map String.length value_signal
-(* value_len : int React.signal *)
+    let value_len = React.S.map String.length value_signal
 
-let content_signal : Html5_types.div_content_fun elt React.signal =
-  React.S.map (fun value ->  let l = split value in
-                F.div (
-                  List.map (fun c ->
-                      F.p [F.pcdata (Printf.sprintf "%c" c) ]
-                    ) l
-                )
-              ) value_signal
+    let content_signal : Html5_types.div_content_fun elt React.signal =
+      React.S.map
+        (fun value ->
+           let l = split value in
+           F.div (
+             List.map (fun c -> F.p [F.pcdata (Printf.sprintf "%c" c)]) l
+           ))
+        value_signal
 
-let make_color len =
-  let d = (len * 10) mod 255 in
-  Printf.sprintf "color: rgb(%d,%d,%d)" d d d
+    let make_color len =
+      let d = (len * 10) mod 255 in
+      Printf.sprintf "color: rgb(%d,%d,%d)" d d d
 
-let make_client_nodes () =
-  [
-    D.p [R.pcdata value_signal];
-    D.p ~a:[ R.a_style (React.S.map make_color value_len)]
-      [R.pcdata value_signal];
-    R.node content_signal
-  ]
+    let make_client_nodes () =
+      [
+        D.p [R.pcdata value_signal];
+        D.p ~a:[ R.a_style (React.S.map make_color value_len)]
+          [R.pcdata value_signal];
+        R.node content_signal
+      ]
 
-
- }}
-
+]
 
 let make_input () =
   let inp = D.Raw.input ~a:[a_input_type `Text] () in
-  let _ = {unit{ Lwt_js_events.(async (fun () ->
-      let inp = To_dom.of_input %inp in
-      keyups inp (fun _ _ ->
-          let s = Js.to_string (inp##value) in
-          set_value s;
-          Lwt.return ()))) }}
-  in
+  let _ = [%client
+    (Lwt_js_events.(async (fun () ->
+       let inp = To_dom.of_input ~%inp in
+       keyups inp (fun _ _ ->
+         let s = Js.to_string (inp##.value) in
+         set_value s;
+         Lwt.return ())))
+     : unit)
+  ] in
   inp
 
 let main_service =
   Eliom_service.App.service ~path:[] ~get_params:Eliom_parameter.unit ()
 
 let () =
-  Testnodes_app.register
+  Reactivenodes_app.register
     ~service:main_service
     (fun () () ->
        let inp = make_input () in
-       let cldiv = C.node {{ D.div (make_client_nodes ()) }} in
+       let cldiv = C.node [%client D.div (make_client_nodes ())] in
        Lwt.return
          (Eliom_tools.F.html
-            ~title:"testnodes"
-            ~css:[["css"; "testnodes.css"]]
+            ~title:"reactivenodes"
+            ~css:[["css"; "reactivenodes.css"]]
             (body [F.h1 [pcdata "Reactive DOM"];
                    inp;
                    F.h2 [pcdata "Client side reactive nodes:"];
                    cldiv;
-                   ])
+                  ])
          ))
-
 >>
 
 ===@@id="inject"@@Dom & Client-values
@@ -306,31 +305,36 @@ reactive nodes in a server-side generated page.
 ==== Example
 
 <<code language="ocaml"|
-{shared{
-  open Eliom_lib
-  open Eliom_content
-  open Html5
-  open F
-}}
+[%%shared
+    open Eliom_lib
+    open Eliom_content
+    open Html5
+    open F
+]
 
 module Testnodes_app =
   Eliom_registration.App (
-    struct
-      let application_name = "testnodes"
-    end)
+  struct
+    let application_name = "testnodes"
+  end)
 
 let main_service =
   Eliom_service.App.service ~path:[] ~get_params:Eliom_parameter.unit ()
 
-{client{
-open Eliom_content.Html5
-let value_signal, set_value = React.S.create "initial"
-(* value_signal : string React.signal *)
-}}
+[%%client
+    open Eliom_content.Html5
+    let
+      (value_signal : string React.signal),
+      set_value = React.S.create "initial"
+]
 
-let client_reactive_attrib () = {{  R.a_style value_signal }}
+let client_reactive_attrib () = [%client
+  R.a_style value_signal
+]
 
-let client_reactive_title () = {{ F.h1 [pcdata "I'm a client node"]; }}
+let client_reactive_title () = [%client
+  F.h1 [pcdata "I'm a client node"]
+]
 
 let () =
   Testnodes_app.register
@@ -341,11 +345,10 @@ let () =
             ~title:"testnodes"
             ~css:[["css"; "testnodes.css"]]
             (body [
-                    F.div ~a:[C.attr (client_reactive_attrib ())] [
-                      C.node (client_reactive_title ());
-                  ]
-         ))
-
+               F.div ~a:[C.attr (client_reactive_attrib ())] [
+                 C.node (client_reactive_title ())
+               ]
+             ])))
 >>
 
 Module C is also available on client-side, to make it possible to use it
@@ -374,11 +377,16 @@ In the following example, the content of {{{global_list}}} will be
 preserved when you click on the "reload page" link.
 
 <<code language="ocaml"|
-{shared{
-open Eliom_content.Html5.D
-}}
+[%%shared open Eliom_content.Html5.D ]
 
-let global_list = create_global_elt (ul [])
+module My_appl =
+  Eliom_registration.App (
+  struct
+    let application_name = "myo"
+  end)
+
+
+let global_list = Eliom_content.Html5.Id.create_global_elt (ul [])
 let cpt = ref 0
 
 let main_service =
@@ -390,13 +398,14 @@ let reload_link =
   a ~service:main_service [pcdata "reload page"] ()
 
 let _ =
-  My_appl.register ~service:main_service
+  Eliom_registration.App.register ~service:main_service
     (fun () () ->
        let page_number = incr cpt; string_of_int !cpt in
-       let append_item =
-	 {{ let item_text = "item inserted in page #" ^ %page_number in
-	    let item = Eliom_client.Html5.of_li (li [pcdata item_text]) in
-	    Dom.appendChild (Eliom_client.Html5.of_ul %global_list) item }}
+       let append_item = [%client
+	 let item_text = "item inserted in page #" ^ ~%page_number in
+         let item = Eliom_client.Html5.of_li (li [pcdata item_text]) in
+         Dom.appendChild (Eliom_client.Html5.of_ul ~%global_list) item
+       ]
        in
        let append_link =
          a ~a:[a_onclick append_item] [pcdata "append item"]
@@ -420,34 +429,33 @@ every time you click on the "reload page" link.
 open Eliom_content.Html5.D
 
 let global_script =
-  create_global_elt
+  Eliom_content.Html5.Id.create_global_elt
     (script (cdata_script "alert(\"global script\")"))
 let simple_script =
-     script (cdata_script "alert(\"non global script\")")
+  script (cdata_script "alert(\"non global script\")")
 
 let main_service =
   Eliom_service.App.service
-     ~path:[] ~get_params:Eliom_parameter.unit ()
+    ~path:[] ~get_params:Eliom_parameter.unit ()
 
 let reload_link =
   a ~service:main_service [pcdata "reload page"] ()
 
-let _ = My_appl.register ~service:main_service
-  (fun () () ->
-    Lwt.return
-      (html
-         (head
-	   (title (pcdata "Global script example"))
-	   [ global_script;
-	     simple_script ])
-         (body
-	   [ p [reload_link] ])))
+let _ =
+  My_appl.register ~service:main_service
+    (fun () () ->
+       Lwt.return
+         (html
+            (head
+               (title (pcdata "Global script example"))
+               [global_script; simple_script])
+            (body [p [reload_link]])))
 >>
 
 === HTML syntax extension===
 
-<<| Warning: the HTML syntax extension is used by very few people.
-If you like it, give us feedback and possibly improvements when needed. >>
+<<| Warning: The HTML syntax extension is only provided for Camlp4,
+    not for PPX. Its use is very limited. >>
 
 Ocsigen also has a syntax extension for OCaml that allows you to write
 pages using HTML syntax (but you are free not to use it).  This is
@@ -548,11 +556,7 @@ let hello =
   Eliom_registration.Html_text.register_service
     ~path:["hello"]
     ~get_params:Eliom_parameter.unit
-    (fun () () ->
-      Lwt.return
-        ("<html>This page: "^
-         (Eliom_content.Html_text.a hello "hello" ())^
-         "</html>"))
+    (fun () () -> Lwt.return "<html>Hello</html>")
 >>
 
 Writing HTML as text makes applications much more difficult to maintain.
@@ -578,11 +582,12 @@ let my_int_data =
 or by a Json-deriving type <<a_api | val Eliom_content.Html5.Custom_data.create_json>>
 
 <<code language="ocaml"|
-{shared{
-  type coord = { x : int; y : int; } deriving (Json)
-  let coord_data =
-    Html5.Custom_data.create_json ~name:"coord" Json.t<coord>
-}} >>
+[%%shared
+    type coord = { x : int; y : int; } [@@deriving json]
+    let coord_data =
+      Html5.Custom_data.create_json ~name:"coord" [%derive.json: coord]
+]
+>>
 
 ==== Injecting ====
 
@@ -609,12 +614,12 @@ The custom data of a DOM-element can be set with the function
 <<a_api subproject="client"|val Eliom_content.Html5.Custom_data.set_dom>>.
 
 <<code language="ocaml"|
-  {client{
+  [%client
     fun (div : Dom_html.element Js.t) ->
       let i = Html5.Custom_data.get_dom div coord_data in
       debug "{x=%d; y=%d}" i.x i.y;
       Html5.Custom_data.set_dom div coord_data { x = i.x + 1; y = i.y - 1 }
-  }}
+  ]
 >>
 
 ==== Default value ====
@@ -626,5 +631,5 @@ exception [Not_found].
 <<code language="ocaml"|
   let coord_data' =
     Html5.Custom_data.create_json
-       ~name:"coord" default:{x=0;y=0;} Json.t<my_data>
+       ~name:"coord" default:{x=0;y=0;} [%derive.json: my_data]
 >>
