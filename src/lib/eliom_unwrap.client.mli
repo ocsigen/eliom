@@ -22,15 +22,18 @@ type unwrap_id
 
 val id_of_int : int -> unwrap_id
 
-(** [register_unwrapper id f] register an unwrapping function [f] to
-    be called when a value is marked with the id [id] *)
-val register_unwrapper : unwrap_id -> ('a -> 'b) -> unit
-
-(** [unwrap_js_var v] execute [unwrap] on the content of the javascript
-    variable [v] *)
+(** [unwrap_js v] unwraps the content of the JavaScript variable [v] *)
 val unwrap_js : Js.js_string Js.t -> 'a
 
 (**/**)
+
+(** [register_unwrapper id f] register an unwrapping function [f] to
+    be called when a value is marked with the id [id].
+
+    This function will only work if called very early during
+    client-side initialization, before the values sent by the server
+    are unmarshalled. See issue #232. *)
+val register_unwrapper : unwrap_id -> ('a -> 'b) -> unit
 
 (** [unwrap s i] unmarshal [s] (starting at character [i]) and
     transform the value [v] using registered wrappers. The marshalled
