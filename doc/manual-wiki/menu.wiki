@@ -2,7 +2,7 @@
 
 ==[[intro|Introduction]]
 
-==Server side programming
+==Server-side programming
 ===Services
 ====[[server-services|The different types of services]]
 ====[[server-params|Typing service parameters]]
@@ -15,6 +15,7 @@
 ===[[clientserver-applications|Eliom applications]]
 ===[[clientserver-html|Generating HTML5]]
 ===[[clientserver-communication|Communication]]
+===[[clientserver-react|Shared reactive programming]]
 ===[[clientserver-wrapping|Custom wrapping]]
 
 ==Workflows
