@@ -522,10 +522,6 @@ after a POST request if you want to do a redirection towards the same
 page without POST parameters (and thus prevent from reposting data if
 the user reloads the page).
 
-<<wip|Example: link to fragment of the current page>>
-
-
-
 == RESTful apps: PUT and DELETE services
 
 This is an example showing how to define RESTful services with Eliom.

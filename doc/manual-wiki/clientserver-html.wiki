@@ -91,9 +91,10 @@ section for HTML5 element manipulation, by value and by reference.
 There are four modules to create typed HTML:
    <<a_api | module Eliom_content.Html5.F >>,
    <<a_api | module Eliom_content.Html5.D >>,
-   <<a_api | module Eliom_content.Html5.R >> and
-   <<a_api | module Eliom_content.Html5.C >>.
-The last one is for reactive elements and is addressed in another section.
+   <<a_api | module Eliom_content.Html5.C >> and
+   <<a_api | module Eliom_content.Html5.R >>.
+The last one is for reactive elements and is addressed in
+<<a_manual chapter="clientserver-html"| another section >>.
 
 It is possible to mix the four kinds of nodes in the same page.
 
@@ -455,7 +456,11 @@ let _ =
 === HTML syntax extension===
 
 <<| Warning: The HTML syntax extension is only provided for Camlp4,
-    not for PPX. Its use is very limited. >>
+    not for PPX. Its use is very limited. We recommend that you use
+    the modules <<a_api subproject="server" | module
+    Eliom_content.Html5.D >> and <<a_api subproject="server" text="F"|
+    module Eliom_content.Html5.F >> to produce HTML content. >>
+
 
 Ocsigen also has a syntax extension for OCaml that allows you to write
 pages using HTML syntax (but you are free not to use it).  This is

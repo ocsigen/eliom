@@ -240,6 +240,12 @@ functions) and <<span class="code"|form3>> (defined using the syntax
 contains a form to <<span class="code"|post2>>, with a GET parameter.
 <<span class="code"|form4>> is a form to an external page.
 
+<<| Warning: Some examples in this section use a HTML syntax extension
+    which is only provided for Camlp4, not for PPX. We recommend that
+    you use the modules <<a_api subproject="server" | module
+    Eliom_content.Html5.D >> and <<a_api subproject="server" text="F"|
+    module Eliom_content.Html5.F >> to produce HTML content. >>
+
 <<code language="ocaml"|let form2 = Eliom_registration.Html5.register_service ["form2"] Eliom_parameter.unit
   (fun () () ->
      let f =

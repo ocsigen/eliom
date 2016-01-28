@@ -382,8 +382,8 @@ struct
       ~scope:Eliom_common.default_session_scope () with
 	| None -> login_page ()
 	| Some group_name ->
-	  lwt user_info = get_user_info group_name in
-	  lwt (page_title,content) = page user_info in
+	  let%lwt user_info = get_user_info group_name in
+	  let%lwt page_title, content = page user_info in
 	  return (html (head (title (pcdata page_title))
 	                 [ Some css and things like that ])
 	               (body content))
@@ -419,7 +419,7 @@ module Int_reg_base = struct
 
   let send ?options ?charset ?code ?content_type ?headers content =
     let content = string_of_int content in
-    lwt r = Ocsigen_senders.Text_content.result_of_content content in
+    let%lwt r = Ocsigen_senders.Text_content.result_of_content content in
     Lwt.return
       { r with
         Ocsigen_http_frame.
@@ -486,7 +486,7 @@ let looong =
     ~path:["looong"]
     ~get_params:Eliom_parameter.unit
     (fun () () ->
-       lwt () = Lwt_unix.sleep 5.0 in
+       let%lwt () = Lwt_unix.sleep 5.0 in
        Lwt.return
          Html5.D.(html
                    (head (title (pcdata "")) [])
@@ -504,7 +504,7 @@ If you want to use, say, a database library that is not written
     ~path:["looong2"]
     ~get_params:unit
     (fun () () ->
-       lwt () = Lwt_preemptive.detach Unix.sleep 5 in
+       let%lwt () = Lwt_preemptive.detach Unix.sleep 5 in
        Lwt.return
          (html
            (head (title (pcdata "")) [])

@@ -90,9 +90,9 @@ This service will answer to URLs like {{{http://.../uasuffix/2000/11}}}.
 Suffix parameters have names, because we can create forms towards
 these services. {{{uasuffix/2000/11}}} is equivalent to
 {{{uasuffix/?year=2000&month=11}}}.\\
-<a_api |val Eliom_parameter.suffix_prod>>
+<<a_api |val Eliom_parameter.suffix_prod>>
 allows both a suffix and other parameters.\\
-<a_api |val Eliom_parameter.all_suffix>>
+<<a_api |val Eliom_parameter.all_suffix>>
 allows the end of the suffix to be taken as a {{{string list}}}.\\
 
 <<code language="ocaml"|
@@ -199,8 +199,8 @@ let raw_serv =
 >>
 
 It is possible to use {{{Eliom_parameter.any}}} with other parameter
-combinators, but {{{any}}} must be the last one. For example: {{{(int
-"i" ** any)}}}.
+combinators, but {{{any}}} must be the last one. For example:
+{{{(int "i" ** any)}}}.
 
 ==@@id="nonlocalizedparameters"@@Non localized parameters==
 
@@ -210,7 +210,8 @@ prefix (added automatically by Eliom).  Use this if you want some
 information to be available or not, through parameters, for all of
 your services.
 
-<<code language="ocaml"|let my_nl_params =
+<<code language="ocaml"|
+let my_nl_params =
   Eliom_parameter.make_non_localized_parameters
     ~prefix:"tutoeliom"
     ~name:"mynlparams"
