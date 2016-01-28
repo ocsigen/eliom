@@ -455,12 +455,12 @@ let _ =
 
 === HTML syntax extension===
 
-<<| Warning: The HTML syntax extension is only provided for Camlp4,
-    not for PPX. Its use is very limited. We recommend that you use
-    the modules <<a_api subproject="server" | module
-    Eliom_content.Html5.D >> and <<a_api subproject="server" text="F"|
-    module Eliom_content.Html5.F >> to produce HTML content. >>
-
+//Warning:// The HTML syntax extension is only provided for Camlp4,
+not for PPX. Its use is very limited. We recommend that you use the
+modules
+<<a_api subproject="server" | module Eliom_content.Html5.D >> and
+<<a_api subproject="server" text="F"| module Eliom_content.Html5.F >>
+to produce HTML content.
 
 Ocsigen also has a syntax extension for OCaml that allows you to write
 pages using HTML syntax (but you are free not to use it).  This is
@@ -520,8 +520,8 @@ Here are some other examples showing what you can do:
    </ul> ~>>
 >>
 
-Warning: lists antiquotations are allowed only at the end (before a
-closing tag). For example, the following is not valid:
+//Warning:// lists antiquotations are allowed only at the end (before
+a closing tag). For example, the following is not valid:
 
 <<code language="ocaml"|
 << <ul $list:other_attrs$ class=$ulclass$>
