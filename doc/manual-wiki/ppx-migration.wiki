@@ -17,7 +17,7 @@ the <<a_api subproject="ppx"|module Ppx_eliom>>.
 
 The [[https://github.com/janestreet/camlp4-to-ppx|camlp4-to-ppx]] tool
 can be used to translate source code using Camlp4 syntax extensions to
-PPX. We [[https://github.com/vasilisp/camlp4-to-ppx|provide a
+PPX. We [[https://github.com/ocsigen/camlp4-to-ppx|provide a
 version]] of camlp4-to-ppx that handles all the Ocsigen extensions.
 
 You need to run our version of camlp4-to-ppx on all the {{{.eliom}}} and
@@ -26,7 +26,7 @@ snippet:
 
 <<code language="shell"|
 for FILE in *.eliom *.eliomi; do
-  camlp4-to-ppx.bin $FILE > $FILE.ppx
+  camlp4-to-ppx $FILE > $FILE.ppx
   mv $FILE.ppx $FILE
 done
 >>
@@ -44,7 +44,7 @@ Our tools do not automatically load PPX extensions for js_of_ocaml,
 Lwt, etc.; these need to be loaded explicitly, e.g., by loading
 Ocamlfind packages like {{{js_of_ocaml.ppx}}} and {{{lwt.ppx}}} (via
 the {{{-package}}} argument). Similarly, Ocamlfind packages need to be
-loaded for any {{{ppx_deriving}}} plugins that apply (if any).
+loaded for any {{{ppx_deriving}}} plugins that apply.
 
 Camlp4 and PPX extensions cannot be used in the same file. Code
 relying on Camlp4 extensions with no PPX equivalents (as is the case
