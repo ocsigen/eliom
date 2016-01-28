@@ -24,8 +24,8 @@
 ===[[workflow-configuration|Configuration & running]]
 
 ==Syntax
-===[[clientserver-language|Camlp4-based syntax]]
 ===[[ppx-syntax|PPX-based syntax]]
+===[[clientserver-language|Camlp4-based syntax]]
 ===[[ppx-migration|Migration to PPX]]
 
 ==[[misc|Miscellaneous]]

@@ -6,7 +6,7 @@ automatically enabled by the {{{eliomc}}} and {{{js_of_eliom}}}
 compilers on {{{.eliom}}} and {{{.eliomi}}} files.
 
 For the Camlp4 syntax extension, see
-<<a_manual chapter="clientserver-language" | here >>>.
+<<a_manual chapter="clientserver-language" | here >>.
 
 The extensions presented here are also available with the {{{eliom.}}}
 prefix.
