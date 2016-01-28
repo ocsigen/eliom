@@ -114,6 +114,9 @@ let () =
     ])
 >>
 
+<<a_api project="eliom" subproject="server"| module Eliom_content.Svg.R >>
+operates in a similar fashion, allowing for shared reactive graphics.
+
 == ReactiveData
 
 Just like
@@ -136,7 +139,7 @@ let%client cons_to_l () =
   Eliom_shared.ReactiveData.RList.cons 1 ~%h
 >>
 
-We use {{{create}} to produce a shared reactive list {{{l}}} of
+We use {{{create}}} to produce a shared reactive list {{{l}}} of
 integers.  We also obtain a //handle// that allows us to manipulate
 the list on the client, e.g., by adding elements as per the function
 {{{cons_to_l}}}.
@@ -159,7 +162,7 @@ Shared reactive lists can (and need to) be used wherever
 <<a_api project="eliom" subproject="server"| module Eliom_content.Html5.R >>
 expects lists, e.g., we can build a {{{<div>}}} as follows:
 
-<<code language="ocaml"
+<<code language="ocaml"|
 let l_div () = Eliom_content.Html5.R.div (l_nodes ())
 >>
 
