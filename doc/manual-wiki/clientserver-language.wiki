@@ -8,10 +8,10 @@ for the implementation and {{{.eliomi}}} for the corresponding interface.
 By using this naming conventions, {{{eliomc}}} and {{{js_of_eliom}}}
 will use Eliom's syntax extension automatically.
 
-We provide two different syntax extensions, one based on PPX (which we
-recommend) and an older one based on Camlp4. The PPX syntax extension
-is documented as part of the API: <<a_api subproject="ppx"|module
-Ppx_eliom>>. This manual page documents our Camlp4 syntax extension.
+We provide two different syntax extensions,
+<<a_manual chapter="ppx-syntax"|one based on PPX>>
+(which we recommend) and an older one based on Camlp4. This manual
+page documents our Camlp4 syntax extension.
 
 <<outline depth="2"| <<header| **Table of contents** >> >>
 

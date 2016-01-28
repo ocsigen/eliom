@@ -175,5 +175,5 @@ re-rendered after every update operation.
 
  * [[http://erratique.ch/software/react| React]]
  * [[https://github.com/ocsigen/reactiveData|ReactiveData]]
- * <<a_api subproject="ppx"|module Ppx_eliom>> for the Eliom language,
-   which is crucial for enabling this paradigm.
+ * <<a_manual chapter="ppx-syntax"|Our PPX syntax extension>>,
+   which is crucial for enabling the discussed paradigm

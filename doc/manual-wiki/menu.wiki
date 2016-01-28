@@ -25,6 +25,7 @@
 
 ==Syntax
 ===[[clientserver-language|Camlp4-based syntax]]
+===[[ppx-syntax|PPX-based syntax]]
 ===[[ppx-migration|Migration to PPX]]
 
 ==[[misc|Miscellaneous]]

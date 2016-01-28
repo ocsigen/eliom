@@ -12,8 +12,8 @@ Both parts are extracted during the compilation process, the server part
 is compiled as usual for an Eliom website, and the client part is compiled
 to Javascript to be run in the browser.
 
-For developing an Eliom application, we recommend that you use our PPX
-syntax extension: <<a_api subproject="ppx"|module Ppx_eliom>>.
+For developing an Eliom application, we recommend that you use our
+<<a_manual chapter="ppx-syntax"|PPX syntax extension>>.
 
 An interesting feature of Eliom applications is that the client side process
 does not stop when you click on a link or send a form, and it is possible to

@@ -3,9 +3,9 @@
 <<outline depth="2"| <<header| **Table of contents** >> >>
 
 Besides injections and client values, as described in the
-documentation of our syntax extension
-(<<a_api subproject="ppx" | module Ppx_eliom>>), there are multiple
-ways for the client and the server to exchange values.
+documentation of our
+<<a_manual chapter="ppx-syntax"|PPX syntax extension>>,
+there are multiple ways for the client and the server to exchange values.
 
 ==@@id="rpc"@@ Remote Procedure Calls
 
