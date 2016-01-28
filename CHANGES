@@ -1,4 +1,4 @@
-===== dev (2016-01-xx) =====
+===== 5.0 (2016-01-28) =====
 
 * Add Eliom_shared and server-side Eliom_content.{Html5,Svg}.R modules
 * Add PPX syntax extension
