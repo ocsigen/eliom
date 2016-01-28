@@ -104,8 +104,8 @@ let%client c = ~%s + 1
 
 Here, the expression {{{1 + 2}}} is evaluated and bound to variable
 {{{s}}} on the server.  The resulting value {{{3}}} is transferred to
-the client together with the Web page, then the expression {{{~%s +
-1}}} is computed client-side.  An injection makes it possible to
+the client together with the Web page, then the expression
+{{{~%s + 1}}} is computed client-side.  An injection makes it possible to
 access client-side a client fragment which has been specified on the
 server:
 

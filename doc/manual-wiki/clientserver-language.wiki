@@ -1,4 +1,4 @@
-= Eliom's language extensions
+= Eliom Camlp4 syntax extension
 
 Eliom uses syntax extensions to make the development of client-server
 applications easier.
