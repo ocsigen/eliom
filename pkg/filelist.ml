@@ -31,7 +31,6 @@ let server = {
     "eliom_service";
     "eliom_state";
     "eliom_tools";
-    "eliom_tools_common";
     "eliom_types";
     "eliom_uri";
     "eliom_wrap";
@@ -92,7 +91,6 @@ let client = {
     "eliom_registration";
     "eliom_service";
     "eliom_tools";
-    "eliom_tools_common";
     "eliom_types";
     "eliom_unwrap";
     "eliom_uri";

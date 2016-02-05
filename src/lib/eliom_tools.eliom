@@ -22,11 +22,42 @@ open Eliom_lib
 open Eliom_content
 open Eliom_service
 
-include Eliom_tools_common
+let menu_class = "eliomtools_menu"
+let last_class = "eliomtools_last"
+let current_class = "eliomtools_current"
+let current_path_class = "eliomtools_current_path"
+let disabled_class = "eliomtools_disabled"
+let first_class = "eliomtools_first"
+let level_class = "eliomtools_level"
 
 let string_prefix s1 s2 =
   String.length s1 <= String.length s2 &&
     s1 = String.sub s2 0 (String.length s1)
+
+type ('a, 'b, 'c) one_page =
+    (unit, unit, 'a, attached, service_kind,
+     [ `WithoutSuffix ],
+     unit, unit,
+     'b, 'c) service
+    constraint 'a = [< Eliom_service.service_method ]
+    constraint 'c = [< Eliom_registration.non_ocaml_service ]
+
+type ('a, 'b, 'c) hierarchical_site_item =
+  | Disabled
+  | Site_tree of ('a, 'b, 'c) hierarchical_site
+  constraint 'a = [< Eliom_service.service_method ]
+  constraint 'b = [< Eliom_service.registrable ]
+and ('a, 'b) main_page =
+  | Main_page of ('a, 'b, Eliom_registration.non_ocaml_service) one_page
+  | Default_page of ('a, 'b, Eliom_registration.non_ocaml_service) one_page
+  | Not_clickable
+  constraint 'a = [< Eliom_service.service_method ]
+  constraint 'b = [< Eliom_service.registrable ]
+and ('a, 'b, 'c) hierarchical_site =
+      (('a, 'b) main_page *
+         ('c * ('a, 'b, 'c) hierarchical_site_item) list)
+  constraint 'a = [< Eliom_service.service_method ]
+  constraint 'b = [< Eliom_service.registrable ]
 
 module type HTML5_TOOLS = sig
 

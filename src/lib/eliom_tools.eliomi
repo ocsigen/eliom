@@ -35,14 +35,6 @@ type ('a, 'b, 'c) one_page =
      'b, 'c) service
 constraint 'c = [< Eliom_registration.non_ocaml_service ]
 
-(** Restriction of {!type:Eliom_service.service} to registrable GET
-    services without parameters that do not returns a marshalled OCaml
-    value. *)
-type get_page =
-    (Eliom_service.get_service_kind,
-     Eliom_service.registrable,
-     Eliom_registration.non_ocaml_service) one_page
-
 (** Hierarchical sites description. This is is a pair [(main page,
     subpages list)]. Each subpage is defined by the text to be
     displayed in menus and a {!hierarchical_site_item}. *)
@@ -261,4 +253,14 @@ val with_js_file : string list -> unit
 (** Record an CSS file to be included in {!Eliom_tools.F.html}. *)
 val with_css_file : string list -> unit
 
- }}
+}}
+
+(**/**)
+
+val menu_class : string
+val last_class : string
+val current_class : string
+val current_path_class : string
+val disabled_class : string
+val first_class : string
+val level_class : string
