@@ -159,9 +159,13 @@ module Xml = struct
       let update =
         let e = Eliom_client.rebuild_node' `HTML5 %e in
         fun x ->
-          e##firstChild >>! fun e ->
-          Dom.CoerceTo.text e >>! fun e ->
-          e##data <- Js.string x
+          Js.Opt.case (e##firstChild)
+            (fun () ->
+               Dom.appendChild e
+                 (Dom_html.document##createTextNode(Js.string x)))
+            (fun e ->
+               Dom.CoerceTo.text e >>! fun e ->
+               e##data <- Js.string x)
       in
       if not %synced then update (React.S.value %s);
       React.S.changes %s |> React.E.map update |> ignore;
