@@ -459,7 +459,7 @@ module Html5 : sig
 end
 
 (**/**)
-  val set_client_fun :
-    ('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return) Eliom_service.service ->
-    ('a -> 'b -> [`Html] Html5.elt Lwt.t) Eliom_lib.client_value ->
-    unit
+val set_client_fun :
+  ('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return) Eliom_service.service ->
+  ('a -> 'b -> [`Html] Html5.elt Lwt.t) Eliom_lib.client_value ->
+  unit
