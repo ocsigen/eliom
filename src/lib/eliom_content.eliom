@@ -109,7 +109,7 @@ let _ =
   Eliom_service_base.add_nl_post_client.Eliom_service_base.clvnlpost_f <-
     Obj.magic (fun f -> {_ -> _{ fun g (p, _) -> %f g p }})
  }}
-{server{
+{shared{
    let set_client_fun = Eliom_service.set_client_fun_
  }}
 {client{

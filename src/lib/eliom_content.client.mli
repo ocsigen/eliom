@@ -866,3 +866,10 @@ module Html5 : sig
 end
 
 val force_link : unit
+
+
+(**/**)
+val set_client_fun :
+  ('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return) Eliom_service.service ->
+  ('a -> 'b -> [`Html] Html5.elt Lwt.t) ->
+  unit

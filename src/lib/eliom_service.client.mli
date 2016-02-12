@@ -344,7 +344,6 @@ val https_static_dir_with_params :
 
 
 
-
 (**/**)
 
 (* used by Eliom_uri *)
@@ -375,6 +374,10 @@ val get_priority_ : a_s -> int
 val get_client_fun_ :
   ('a, 'b, 'meth, 'attch, 'kind, 'd, 'e, 'f, 'g, 'return) service ->
   ('a -> 'b -> [ `Html ] Eliom_content_core.Html5.elt Lwt.t) client_value option
+val set_client_fun_ :
+  ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service ->
+  ('a -> 'b -> [`Html] Eliom_content_core.Html5.elt Lwt.t) client_value ->
+  unit
 
 val keep_nl_params : ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'return) service ->
   [ `All | `Persistent | `None ]

@@ -69,3 +69,6 @@ let xhr_with_cookies s =
     | XNever -> None
     | XSame_appl (appl, _) when Some appl <> Eliom_process.get_application_name () -> None
     | XSame_appl (_, tmpl) -> Some tmpl
+
+
+let set_client_fun = set_client_fun_
