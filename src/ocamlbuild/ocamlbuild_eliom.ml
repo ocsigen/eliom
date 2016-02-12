@@ -47,9 +47,14 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
     List.iter f tags;
     flag ["ocaml"; "doc"; file_tag] (S [A "-ppopt"; A "-notype"])
 
-  let syntaxes = [I.with_package "eliom.syntax.predef"]
+  let syntaxes_p4 = [I.with_package "eliom.syntax.predef"]
 
   let no_extra_syntaxes = "no_extra_syntaxes"
+
+  let eliom_ppx = "eliom_ppx"
+
+  let use_ppx src =
+    Tags.mem eliom_ppx (tags_of_pathname src)
 
   let tag_file_inside_rule file tags =
     tag_file file tags;
@@ -70,11 +75,43 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
     else
       not (Tags.mem no_extra_syntaxes (tags_of_pathname src))
 
-  let get_syntaxes with_eliom_syntax eliom_syntax src =
-    let s = if use_all_syntaxes src then syntaxes else [] in
-    let s = if with_eliom_syntax then I.with_package eliom_syntax :: s else s in
+  let get_eliom_syntax_p4 = function
+    | `Client ->
+      "eliom.syntax.client"
+    | `Server ->
+      "eliom.syntax.server"
+    | `Type ->
+      "eliom.syntax.type"
+
+  let get_eliom_syntax_ppx = function
+    | `Client ->
+      "eliom.ppx.client"
+    | `Server ->
+      "eliom.ppx.server"
+    | `Type ->
+      "eliom.ppx.type"
+
+  let get_syntaxes_p4 with_eliom_syntax eliom_syntax src =
+    let eliom_syntax = get_eliom_syntax_p4 eliom_syntax in
+    let s = if use_all_syntaxes src then syntaxes_p4 else [] in
+    let s =
+      if with_eliom_syntax then
+        I.with_package eliom_syntax :: s
+      else
+        s
+    in
     let s = if s = [] then [] else "thread" :: "syntax(camlp4o)" :: s in
     s @ Tags.elements (tags_of_pathname src)
+
+  let get_syntaxes_ppx with_eliom_syntax eliom_syntax src =
+    if with_eliom_syntax then
+      [I.with_package (get_eliom_syntax_ppx eliom_syntax)]
+    else
+      []
+
+  let get_syntaxes with_eliom_syntax eliom_syntax src =
+    (if use_ppx src then get_syntaxes_ppx else get_syntaxes_p4)
+      with_eliom_syntax eliom_syntax src
 
   let copy_rule_server ?(eliom=true) =
     copy_rule_with_header
@@ -82,7 +119,7 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
          let path = env "%(path)" in
          tag_file_inside_rule file
            ( I.with_package "eliom.server"
-             :: get_syntaxes eliom "eliom.syntax.server" src
+             :: get_syntaxes eliom `Server src
            );
          if eliom then flag_infer ~file ~name ~path;
          Pathname.define_context dir [path];
@@ -95,7 +132,7 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
          let path = env "%(path)" in
          tag_file_inside_rule file
            ( I.with_package "eliom.client"
-             :: get_syntaxes eliom "eliom.syntax.client" src
+             :: get_syntaxes eliom `Client src
            );
          if eliom then flag_infer ~file ~name ~path;
          Pathname.define_context dir [path];
@@ -109,7 +146,7 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
          let server_file = Pathname.concat server_dir name in
          tag_file_inside_rule file
            ( I.with_package "eliom.server"
-             :: get_syntaxes true "eliom.syntax.type" src
+             :: get_syntaxes true `Type src
              @ Tags.elements (tags_of_pathname server_file)
            );
          Pathname.define_context dir [path; server_dir];
@@ -119,6 +156,7 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
     | After_rules ->
 #if ocaml_version >= (4, 02)
         mark_tag_used no_extra_syntaxes;
+        mark_tag_used eliom_ppx;
 #endif
 
         (* eliom files *)
