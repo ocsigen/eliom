@@ -98,7 +98,11 @@ module Pass = struct
     flush_typing_str_item () @
     [ item ]
 
-  let shared_str = server_str
+  let shared_str item =
+    let loc = item.pstr_loc in
+    flush_typing_str_item () @
+    [%str let () = [%e flush_typing_expr () ] ] [@metaloc loc] @
+    [ item ]
 
   let fragment ?typ ~context:_ ~num:_ ~id expr =
     let loc = expr.pexp_loc in
