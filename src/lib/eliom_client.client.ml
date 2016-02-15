@@ -68,6 +68,23 @@ let is_client_app () =
   (* Testing if variable __eliom_appl_process_info exists: *)
   Js.Unsafe.global##___eliom_appl_process_info_foo = Js.undefined
 
+let _ =
+  (* Initialize client app if the __eliom_server variable is defined *)
+  if is_client_app () && Js.Unsafe.global##___eliom_server_foo <> Js.undefined
+  then begin
+    match
+      Url.url_of_string (Js.to_string (Js.Unsafe.global##___eliom_server_foo))
+    with
+    | Some (Http { hu_host; hu_port; hu_path; _ }) ->
+      init_client_app
+        ~ssl:false ~hostname:hu_host ~port:hu_port ~full_path:hu_path ()
+    | Some (Https { hu_host; hu_port; hu_path; _ }) ->
+      init_client_app
+        ~ssl:true ~hostname:hu_host ~port:hu_port ~full_path:hu_path ()
+    | _ -> ()
+  end
+
+
 (* == Auxiliaries *)
 
 let create_buffer () =
