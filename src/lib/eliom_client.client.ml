@@ -64,6 +64,10 @@ let init_client_app ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
        Dom_html.CoerceTo.base)
     (fun e -> e##href <- Js.string url)
 
+let is_client_app () =
+  (* Testing if variable __eliom_appl_process_info exists: *)
+  Js.Unsafe.global##___eliom_appl_process_info_foo = Js.undefined
+
 (* == Auxiliaries *)
 
 let create_buffer () =

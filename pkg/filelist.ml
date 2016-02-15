@@ -12,6 +12,7 @@ let server = {
   ];
   interface = [
     "eliom_bus";
+    "eliom_client";
     "eliom_comet";
     "eliom_common";
     "eliom_config";
