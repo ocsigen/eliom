@@ -363,6 +363,9 @@ module Html5 = struct
     let string_of_sizes () =
       {shared#{ Html5_f.Wrapped_functions.string_of_sizes }}
 
+    let string_of_srcset () =
+      {shared#{ Html5_f.Wrapped_functions.string_of_srcset }}
+
     let string_of_step () =
       {shared#{ Html5_f.Wrapped_functions.string_of_step }}
 
