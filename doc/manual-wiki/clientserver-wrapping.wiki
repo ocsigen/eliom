@@ -9,7 +9,7 @@ on the Eliom codebase.
 
 == Basics ==
 
-The server side of Eliom can communicates to the client other kind of
+The server side of Eliom can communicate to the client other kinds of
 data than the raw XML contents of the pages. The wrapper mechanism is
 used to allow the browser side to access to the contents of variables
 declared on server side. For instance when we write
