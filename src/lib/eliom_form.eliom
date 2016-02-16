@@ -124,20 +124,33 @@ module Make_links (Html5 : Html5) = struct
 
 end
 
+type _ param =
+  | Atom : 'a Eliom_parameter_base.atom -> 'a param
+  | User : ('a -> string) -> 'a param
+
 module Make (Html5 : Html5) = struct
 
-  type 'a param = 'a Eliom_parameter_base.atom
+  type 'a param' = 'a param
+  type 'a param = 'a param'
+
+  let string_of_param = function
+    | Atom a ->
+      Eliom_parameter_base.string_of_atom a
+    | User f ->
+      f
+
   type +'a elt = 'a Html5.elt
   type +'a attrib = 'a Html5.attrib
   type uri = Html5.uri
 
-  let float = Eliom_parameter_base.TFloat
-  let int = Eliom_parameter_base.TInt
-  let int32 = Eliom_parameter_base.TInt32
-  let int64 = Eliom_parameter_base.TInt64
-  let nativeint = Eliom_parameter_base.TNativeint
-  let bool = Eliom_parameter_base.TBool
-  let string = Eliom_parameter_base.TString
+  let float     = Atom Eliom_parameter_base.TFloat
+  let int       = Atom Eliom_parameter_base.TInt
+  let int32     = Atom Eliom_parameter_base.TInt32
+  let int64     = Atom Eliom_parameter_base.TInt64
+  let nativeint = Atom Eliom_parameter_base.TNativeint
+  let bool      = Atom Eliom_parameter_base.TBool
+  let string    = Atom Eliom_parameter_base.TString
+  let user f    = User f
 
   open Html5
 
@@ -333,7 +346,7 @@ module Make (Html5 : Html5) = struct
     make_input ?a ?value ~typ:input_type ?name ?src ()
 
   let input ?a ~input_type ?name ?value y =
-    let f = Eliom_parameter_base.string_of_atom y in
+    let f = string_of_param y in
     gen_input ?a ~input_type ?value ?name f
 
   let file_input ?a ~name () =
@@ -347,7 +360,7 @@ module Make (Html5 : Html5) = struct
 
   let checkbox ?a ?checked ~name ~value y =
     let name = Eliom_parameter.string_of_param_name name
-    and value = Eliom_parameter_base.string_of_atom y value
+    and value = string_of_param y value
     and typ = `Checkbox in
     make_input ?a ?checked ~typ ~name ~value ()
 
@@ -358,7 +371,7 @@ module Make (Html5 : Html5) = struct
 
   let radio ?a ?checked ~name ~value y =
     let name = Eliom_parameter.string_of_param_name name
-    and value = Eliom_parameter_base.string_of_atom y value
+    and value = string_of_param y value
     and typ = `Radio in
     make_input ?a ?checked ~typ ~name ~value ()
 
@@ -375,7 +388,7 @@ module Make (Html5 : Html5) = struct
 
   let button ?a ~button_type ~name ~value y c =
     let name = Eliom_parameter.string_of_param_name name
-    and value = Eliom_parameter_base.string_of_atom y value in
+    and value = string_of_param y value in
     make_button ?a ~button_type ~name ~value c
 
   let button_no_value ?a ~button_type c =
@@ -493,13 +506,13 @@ module Make (Html5 : Html5) = struct
   let select ?a ?required ~name y fl ol =
     let multiple = false
     and name = Eliom_parameter.string_of_param_name name
-    and f = Eliom_parameter_base.string_of_atom y in
+    and f = string_of_param y in
     gen_select ?a ?required ~multiple ~name fl ol f
 
   let multiple_select ?a ?required ~name y fl ol =
     let multiple = true
     and name = Eliom_parameter.string_of_param_name name
-    and f = Eliom_parameter_base.string_of_atom y in
+    and f = string_of_param y in
     gen_select ?a ?required ~multiple ~name fl ol f
 
   let make_info ~https kind service =

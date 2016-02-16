@@ -228,6 +228,7 @@ module type S = sig
   val nativeint : nativeint param
   val bool : bool param
   val string : string param
+  val user : ('a -> string) -> 'a param
 
   (** Same as {!LINK.make_uri_components}, but also returns a list of
       post parameters. *)
