@@ -10,11 +10,22 @@
 
 {shared{
 
-   (** The type of association tables (implemented using Hashtbl) *)
-type ('a, 'b) t
+(** The type of local (client or server)
+    association tables (implemented using Hashtbl) *)
+type ('a, 'b) local_t
+}}
+{shared{
+(** The type of client-server association tables (implemented using Hashtbl) *)
+type ('a, 'b) t = ('a, 'b) local_t Eliom_lib.shared_value
 
 }}
 
+{shared{
+
+(** Create a new local (client or server) table. *)
+val local_create : unit -> ('a, 'b) local_t
+
+}}
 {server{
 
    (** Create a new table. Must be called from server side. *)
