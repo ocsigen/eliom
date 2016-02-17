@@ -132,6 +132,16 @@ versions of Eliom, {{{package(eliom.server)}}} and {{{package(eliom.client)}}}
 may be omitted.  Dependencies are added with {{{package(yourdep)}}} on the
 same line.
 
+By default, our {{{ocamlbuild}}} plugin uses the
+<<a_manual chapter="clientserver-language"|Camlp4 syntax extension>>.
+To use <<a_manual chapter="ppx-syntax"|PPX>>, you can set the
+{{{eliom_ppx}}} flag in {{{_tags}}}, as follows:
+
+{{{
+<*.eliom>: eliom_ppx
+<*.eliomi>: eliom_ppx
+}}}
+
 For libraries, don't forget to add the corresponding .mllib file.
 Then, you can compile your project with:
 
