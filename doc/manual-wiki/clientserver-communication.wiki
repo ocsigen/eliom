@@ -114,7 +114,7 @@ data, Eliom is not using the standard OCaml marshalling
 mechanism. (The server needs to be able to check that the value is of
 the expected type.) For this reason, you must declare the types of the
 data you want to be able to send to the server using our
-{{{Ppx_deriving}}} syntax extension:
+{{{ppx_deriving}}} syntax extension:
 
 <<code language="ocaml"|
 [%%shared
@@ -125,6 +125,9 @@ data you want to be able to send to the server using our
     [@@deriving json]
 ]
 >>
+
+You will need to explicitly install {{{ppx_deriving}}} for the above
+to work; {{{ppx_deriving}}} is only an optional dependency of Eliom.
 
 This type can now be used as a parameter for a service:
 

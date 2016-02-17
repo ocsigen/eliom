@@ -21,10 +21,10 @@ and main service). There is also a template "mobile" for mobile apps.
 To create your project, do:
 
 <<code language="shell"|
-$ eliom-distillery -name <name> -template basic [-target-directory <dir>]
+$ eliom-distillery -name <name> -template basic.ppx [-target-directory <dir>]
 >>
 
-This creates a project named {{{<name>}}} from the {{{"basic"}}}
+This creates a project named {{{<name>}}} from the {{{"basic.ppx"}}}
 template in the directory {{{<dir>}}} or {{{<name>}}} by default.
 The project name should be a valid name for an OCaml compilation unit.
 The project directory contains the following files

@@ -20,9 +20,9 @@ CLIENT_FILES := %%%PROJECT_NAME%%%.eliom
 %%%endif%%%
 
 # OCamlfind packages for the server
-SERVER_PACKAGES := lwt.ppx js_of_ocaml.deriving.ppx
+SERVER_PACKAGES := lwt.ppx
 # OCamlfind packages for the client
-CLIENT_PACKAGES := lwt.ppx js_of_ocaml.deriving.ppx js_of_ocaml.ppx
+CLIENT_PACKAGES := lwt.ppx js_of_ocaml.ppx
 
 # Directory with files to be statically served
 LOCAL_STATIC = static

@@ -44,7 +44,9 @@ Our tools do not automatically load PPX extensions for js_of_ocaml,
 Lwt, etc.; these need to be loaded explicitly, e.g., by loading
 Ocamlfind packages like {{{js_of_ocaml.ppx}}} and {{{lwt.ppx}}} (via
 the {{{-package}}} argument). Similarly, Ocamlfind packages need to be
-loaded for any {{{ppx_deriving}}} plugins that apply.
+loaded for any {{{ppx_deriving}}} plugins that apply. Note that
+{{{ppx_deriving}}} needs to be installed manually, since it is only an
+optional dependency of Eliom and js_of_ocaml.
 
 Camlp4 and PPX extensions cannot be used in the same file. Code
 relying on Camlp4 extensions with no PPX equivalents (as is the case
