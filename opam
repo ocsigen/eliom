@@ -12,9 +12,8 @@ depends: [
   "ocamlfind"
   "deriving" {>= "0.6"}
   ( "base-no-ppx" | "ppx_tools" )
-  ( "base-no-ppx" | "ppx_deriving" )
   "js_of_ocaml" {> "2.6"}
-  "tyxml" {> "3.5.0"}
+  "tyxml" {>= "dev"}
   "calendar"
   "ocsigenserver" {>= "2.6"}
   "ipaddr" {>= "2.1"}
