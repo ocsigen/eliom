@@ -375,7 +375,8 @@ val get_client_fun_ :
   ('a, 'b, 'meth, 'attch, 'kind, 'd, 'e, 'f, 'g, 'return) service ->
   ('a -> 'b -> [ `Html ] Eliom_content_core.Html5.elt Lwt.t) client_value option
 val set_client_fun_ :
-  ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service ->
+  ?app:string ->
+  service:('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service ->
   ('a -> 'b -> [`Html] Eliom_content_core.Html5.elt Lwt.t) client_value ->
   unit
 

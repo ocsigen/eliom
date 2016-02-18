@@ -164,7 +164,10 @@ let get_timeout_ s = s.timeout
 let get_https s = s.https
 let get_priority_ s = s.priority
 let get_client_fun_ s = s.client_fun
-let set_client_fun_ s f = s.client_fun <- Some f
+let set_client_fun_ ?app ~service:s f =
+  Eliom_lib.Option.iter
+    (fun app_name -> s.send_appl_content <- XSame_appl (app_name, None)) app;
+  s.client_fun <- Some f
 
 let is_external = function
   | {kind=`External} -> true

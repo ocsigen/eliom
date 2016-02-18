@@ -2123,7 +2123,9 @@ module Eliom_appl_reg_make_param
 
 module type ELIOM_APPL = sig
   val set_client_fun :
-    ('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return) Eliom_service.service ->
+  ?app:string ->
+  service:('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return)
+    Eliom_service.service ->
     ('a -> 'b -> [`Html] Eliom_content.Html5.elt Lwt.t) client_value ->
     unit
   val application_script :
