@@ -81,6 +81,10 @@ let set_base_url, get_base_url =
                   Did you forget to call Eliom_client.init_client_app?")
 
 (** None on server side *)
-let get_application_name () = Some (!!appl_name)
+let appl_name_r = ref None (* Set by Eliom_client.init_client_app *)
+let get_application_name () =
+  match !appl_name_r with
+  | None -> Some (!!appl_name)
+  | Some n -> Some n
 
 let client_side = true

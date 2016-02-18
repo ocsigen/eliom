@@ -39,8 +39,10 @@ let insert_base page =
     (fun head -> Dom.appendChild head b)
 
 
-let init_client_app ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
+let init_client_app
+    ~app_name ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
   Lwt_log.ign_debug_f "Eliom_client.init_client_app called.";
+  Eliom_process.appl_name_r := Some app_name;
   let encode_slashs = List.map (Url.encode ~plus:false) in
   Eliom_request_info.client_app_initialised := true;
   Eliom_process.set_sitedata
@@ -70,16 +72,21 @@ let is_client_app () =
 
 let _ =
   (* Initialize client app if the __eliom_server variable is defined *)
-  if is_client_app () && Js.Unsafe.global##___eliom_server_foo <> Js.undefined
+  if is_client_app ()
+  && Js.Unsafe.global##___eliom_server_ <> Js.undefined
+  && Js.Unsafe.global##___eliom_app_name_ <> Js.undefined
   then begin
+    let app_name = Js.to_string (Js.Unsafe.global##___eliom_app_name_) in
     match
-      Url.url_of_string (Js.to_string (Js.Unsafe.global##___eliom_server_foo))
+      Url.url_of_string (Js.to_string (Js.Unsafe.global##___eliom_server_))
     with
     | Some (Http { hu_host; hu_port; hu_path; _ }) ->
       init_client_app
+        ~app_name
         ~ssl:false ~hostname:hu_host ~port:hu_port ~full_path:hu_path ()
     | Some (Https { hu_host; hu_port; hu_path; _ }) ->
       init_client_app
+        ~app_name
         ~ssl:true ~hostname:hu_host ~port:hu_port ~full_path:hu_path ()
     | _ -> ()
   end
