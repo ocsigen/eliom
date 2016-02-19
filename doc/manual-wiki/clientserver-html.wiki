@@ -61,7 +61,7 @@ let n = div ~a:[a_id "some div id"]
   [ pcdata "some text";
     br ();
     pcdata "some other text"; ]
-let b = Eliom_client.Html5.of_div n
+let b = Eliom_content.Html5.To_dom.of_div n
 >>
 
 And here the same built using the DOM API:
