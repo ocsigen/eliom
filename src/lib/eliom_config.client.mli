@@ -29,3 +29,7 @@ val debug_timings : bool ref
     the URL. *)
 val set_tracing : bool -> unit
 val get_tracing : unit -> bool
+
+(** Same as [Ocsigen_config.get_debugmode].
+    On client side, returns [false] for now. *)
+val get_debugmode : unit -> bool

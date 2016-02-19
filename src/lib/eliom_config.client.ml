@@ -38,3 +38,5 @@ let get_tracing () =
 (*     set_tracing true; *)
 (*   if Js.to_string Dom_html.window##location##hash = "#__timings" then *)
 (*     debug_timings := true *)
+
+let get_debugmode () = false (*VVV*)

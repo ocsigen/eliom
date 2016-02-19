@@ -105,6 +105,10 @@ val parse_config : ?pcdata:(string -> unit) -> ?other_elements:(string -> (strin
 *)
 val get_config_info : unit -> Ocsigen_extensions.config_info
 
+(** Same as [Ocsigen_config.get_debugmode].
+    On client side, returns [false] for now. *)
+val get_debugmode : unit -> bool
+
 (**/**)
 val get_config_info_sp :
   Eliom_common.server_params -> Ocsigen_extensions.config_info
