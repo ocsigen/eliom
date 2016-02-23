@@ -128,7 +128,11 @@ let is_https https ssl service =
 
 
 let make_uri_components_ (* does not take into account getparams *)
-    ?(absolute = false) (* used to force absolute link *)
+    ?(absolute = !Eliom_common.is_client_app)
+    (* absolute is used to force absolute link.
+       The default is false for regular application.
+       But for client side apps (mobile apps), it is true, because
+       relative URLs are used for local assets. *)
     ?(absolute_path = false) (* used to force absolute link without protocol/server/port *)
     ?https
     ~service
@@ -396,7 +400,7 @@ let make_string_uri_ = make_string_uri
 
 
 let make_post_uri_components_ (* do not take into account postparams *)
-    ?(absolute = false)
+    ?(absolute = !Eliom_common.is_client_app)
     ?(absolute_path = false)
     ?https
     ~service

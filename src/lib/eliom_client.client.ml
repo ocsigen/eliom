@@ -56,9 +56,12 @@ let init_client_app
   Eliom_process.set_request_template None;
   Eliom_process.set_request_cookies Ocsigen_cookies.Cookies.empty
 
-let is_client_app () =
-  (* Testing if variable __eliom_appl_process_info exists: *)
-  Js.Unsafe.global##___eliom_appl_process_info_foo = Js.undefined
+let is_client_app () = !Eliom_common.is_client_app
+
+let _ =
+  Eliom_common.is_client_app :=
+    (* Testing if variable __eliom_appl_process_info exists: *)
+    Js.Unsafe.global##___eliom_appl_process_info_foo = Js.undefined
 
 let _ =
   (* Initialize client app if the __eliom_server variable is defined *)
