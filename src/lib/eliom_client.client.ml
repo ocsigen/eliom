@@ -54,17 +54,7 @@ let init_client_app
                           cpi_original_full_path = full_path
                          };
   Eliom_process.set_request_template None;
-  Eliom_process.set_request_cookies Ocsigen_cookies.Cookies.empty;
-  let url =
-    Eliom_uri.make_proto_prefix ssl
-    ^ (String.concat "/" (encode_slashs full_path)) in
-  Eliom_process.set_base_url url;
-  Js.Opt.iter
-    (Js.Opt.bind
-       (Dom_html.document##getElementById
-          (Js.string Eliom_common_base.base_elt_id))
-       Dom_html.CoerceTo.base)
-    (fun e -> e##href <- Js.string url)
+  Eliom_process.set_request_cookies Ocsigen_cookies.Cookies.empty
 
 let is_client_app () =
   (* Testing if variable __eliom_appl_process_info exists: *)
@@ -1985,9 +1975,8 @@ let init () =
   (* The first time we load the page, we record the initial URL in a client
      side ref, in order to set <base> (on client-side) in header for each
      pages. *)
-  Eliom_process.set_base_url
-    (Js.to_string (Dom_html.window##location##href));
-    insert_base Dom_html.document;
+  Eliom_process.set_base_url (Js.to_string (Dom_html.window##location##href));
+  insert_base Dom_html.document;
   (* </base> *)
 
   let onload ev =
