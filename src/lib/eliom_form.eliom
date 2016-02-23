@@ -187,7 +187,7 @@ module Make (Html5 : Html5) = struct
       | None -> a
       | Some src -> a_src src :: a
     in
-    let a = if checked then a_checked `Checked :: a else a in
+    let a = if checked then a_checked :: a else a in
     let a = a_input_type typ :: a in
     input ~a ()
 
@@ -207,7 +207,7 @@ module Make (Html5 : Html5) = struct
     textarea ~a (pcdata value)
 
   let make_select ?(a = []) ~multiple ~name elt elts =
-    let a = if multiple then a_multiple `Multiple :: a else a in
+    let a = if multiple then a_multiple :: a else a in
     let a = a_name name :: a in
     select ~a (elt :: elts)
 
@@ -216,7 +216,7 @@ module Make (Html5 : Html5) = struct
       | None -> a
       | Some v -> a_text_value v :: a
     in
-    let a = if selected then a_selected `Selected :: a else a in
+    let a = if selected then a_selected :: a else a in
     option ~a c
 
   let make_optgroup ?(a = []) ~label elt elts =
@@ -377,7 +377,7 @@ module Make (Html5 : Html5) = struct
 
   let string_radio_required ?a ?checked ~name ~value () =
     let a =
-      let required = Html5.a_required `Required in
+      let required = Html5.a_required in
       match a with
       | None -> [required]
       | Some a -> required :: a
@@ -417,7 +417,7 @@ module Make (Html5 : Html5) = struct
     let a = match required with
       | None -> a
       | Some _ ->
-        let required = Html5.a_required `Required in
+        let required = Html5.a_required in
         match a with
         | Some a -> Some (required :: a)
         | None -> Some [required]

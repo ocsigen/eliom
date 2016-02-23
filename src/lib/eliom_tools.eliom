@@ -481,7 +481,7 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
       css_link ~uri () in
     let mk_js_script path =
       let uri = make_uri  (Eliom_service.static_dir ()) path in
-      js_script ~a:[a_defer `Defer] ~uri () in
+      js_script ~a:[a_defer] ~uri () in
     DorF.head
       (title (pcdata ttl))
       List.(map mk_css_link css @ map mk_js_script js @ other)
@@ -515,7 +515,7 @@ let add_js_file path =
       path
   in
   let script =
-    Html5.F.js_script ~a:[Html5.F.a_defer `Defer] ~uri ()
+    Html5.F.js_script ~a:[Html5.F.a_defer] ~uri ()
   in
   ignore
     Dom_html.document##head##appendChild (Html5.To_dom.of_node script)
