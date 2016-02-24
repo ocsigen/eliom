@@ -32,11 +32,15 @@ To simplify the creation of <<span class="code"|<link>>> tags
 
 
 
-<<code language="ocaml"|css_link ~uri:(make_uri ~service:(static_dir ()) ["style.css"]) ()
+<<code language="ocaml"|Eliom_content.Html5.F.css_link
+  ~uri:(Eliom_content.Html5.F.make_uri
+         ~service:(Eliom_service.static_dir ()) ["style.css"]) ()
 >>
 
 
-<<code language="ocaml"|js_script ~uri:(make_uri ~service:(static_dir ()) ["funs.js"]) ()
+<<code language="ocaml"|Eliom_content.Html5.F.js_script
+  ~uri:(Eliom_content.Html5.F.make_uri
+         ~service:(Eliom_service.static_dir ()) ["funs.js"]) ()
 >>
 
 ===@@id="basic_menu"@@Basic menus
