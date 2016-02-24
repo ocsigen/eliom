@@ -492,8 +492,8 @@ let raw_url_re =
                    dbl_quoted_url_raw
                    quoted_url_raw)
 
-let absolute_re = Regexp.regexp "\\s*(https?:\\/\\/|\\/)"
-let absolute_re2 = Regexp.regexp "['\\\"]\\s*((https?:\\/\\/|\\/).*)['\\\"]$"
+let absolute_re = Regexp.regexp "\\s*(https?:\\/\\/|data:|file:|\\/)"
+let absolute_re2 = Regexp.regexp "['\\\"]\\s*((https?:\\/\\/|data:|file:|\\/).*)['\\\"]$"
 
 exception Incorrect_url
 
@@ -536,7 +536,7 @@ let parse_media css pos =
   (i+1, String.sub css pos (i - pos))
 
 (* Look for relative URL only... *)
-let url_re = Regexp.regexp "url\\s*\\(\\s*(?!('|\")?(https?:\\/\\/|\\/))"
+let url_re = Regexp.regexp "url\\s*\\(\\s*(?!('|\")?(https?:\\/\\/|data:|file:|\\/))"
 
 let rewrite_css_url ~prefix css pos =
   let len = String.length css - pos in
