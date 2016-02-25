@@ -242,10 +242,15 @@ let output_eliom_interface ~impl_intf file =
     exit 1
   end;
   let indent ch =
+    let spaces =
+      match !pp_mode with
+      | `Ppx -> ""
+      | `Camlp4 -> "  "
+    in
     try
       while true do
         let line = input_line ch in
-        Printf.printf "  %s\n" line
+        Printf.printf "%s%s\n" spaces line
       done
     with End_of_file -> ()
   in
@@ -258,14 +263,27 @@ let output_eliom_interface ~impl_intf file =
     @ get_common_include ~kind ()
     @ get_common_ppx ~kind ()
     @ [ impl_intf_opt impl_intf; file ]
+  and open_block str =
+    match !pp_mode with
+    | `Ppx ->
+      Printf.printf "[%%%%%s.start]\n" str
+    | `Camlp4 ->
+      Printf.printf "{%s{\n" str
+  and close_block () =
+    match !pp_mode with
+    | `Ppx ->
+      ()
+    | `Camlp4 ->
+      print_endline "}}"
   in
-  Printf.printf "(* WARNING `eliomc -i' generated this pretty ad-hoc - use with care! *)\n";
-  Printf.printf "{server{\n";
+  Printf.printf
+    "(* WARNING generated in an ad-hoc fashion. Use with care! *)\n";
+  open_block "server";
   create_filter !compiler (args `Server) indent;
-  Printf.printf "}}\n";
-  Printf.printf "{client{\n";
+  close_block ();
+  open_block "client";
   create_filter !compiler (args `Client) indent;
-  Printf.printf "}}\n"
+  close_block ()
 
 let compile_eliom ~impl_intf file =
   let obj =
