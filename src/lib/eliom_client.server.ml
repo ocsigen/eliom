@@ -20,3 +20,17 @@
  *)
 
 let is_client_app () = false
+
+let server_function
+    ?scope ?options ?charset ?code ?content_type ?headers ?secure_session ?name
+    ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https ?error_handler
+    argument_type f =
+  Eliom_pervasives.mk_serv_fun
+    (Ocaml.register_post_coservice'
+       ?scope ?options ?charset ?code ?content_type ?headers ?secure_session
+       ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
+       ?error_handler
+       ~post_params:Eliom_parameter.(ocaml "argument" argument_type)
+       (fun () argument -> f argument))
+    (Eliom_wrap.create_unwrapper
+       (Eliom_wrap.id_of_int Eliom_common_base.server_function_unwrap_id_int))
