@@ -69,7 +69,8 @@ val service :
 val post_service :
   ?rt:'rt rt ->
   ?https:bool ->
-  fallback: ('get, unit, [< `Get], [< attached_kind], [< `Service | `AttachedCoservice ] as 'kind,
+  fallback: ('get, unit, [< `Get], [< attached_kind],
+             [< `Service | `AttachedCoservice ] as 'kind,
              [< suff] as 'tipo, 'gn, unit,
              [< `Registrable ], returnT) service ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
@@ -168,7 +169,7 @@ val coservice :
   ?rt:'rt rt ->
   ?name: string ->
   ?csrf_safe: bool ->
-  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_scope: [< Eliom_types.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -201,7 +202,7 @@ val post_coservice :
   ?rt:'rt rt ->
   ?name: string ->
   ?csrf_safe: bool ->
-  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_scope: [< Eliom_types.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -230,7 +231,7 @@ val put_coservice :
   ?rt:'rt rt ->
   ?name: string ->
   ?csrf_safe: bool ->
-  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_scope: [< Eliom_types.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -263,7 +264,7 @@ val delete_coservice :
   ?rt:'rt rt ->
   ?name: string ->
   ?csrf_safe: bool ->
-  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_scope: [< Eliom_types.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -298,7 +299,7 @@ val coservice' :
   ?rt:'rt rt ->
   ?name:string ->
   ?csrf_safe: bool ->
-  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_scope: [< Eliom_types.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -330,7 +331,7 @@ val post_coservice' :
   ?rt:'rt rt ->
   ?name:string ->
   ?csrf_safe: bool ->
-  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_scope: [< Eliom_types.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -355,7 +356,7 @@ val put_coservice' :
   ?rt:'rt rt ->
   ?name:string ->
   ?csrf_safe: bool ->
-  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_scope: [< Eliom_types.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -381,7 +382,7 @@ val delete_coservice' :
   ?rt:'rt rt ->
   ?name:string ->
   ?csrf_safe: bool ->
-  ?csrf_scope: [< Eliom_common.user_scope] ->
+  ?csrf_scope: [< Eliom_types.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
