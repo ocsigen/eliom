@@ -72,3 +72,8 @@ let xhr_with_cookies s =
 
 
 let set_client_fun = set_client_fun_
+
+let get_reload_fun s =
+  match s.reload_fun with
+  | Rf_keep -> None
+  | Rf_some f -> !f ()
