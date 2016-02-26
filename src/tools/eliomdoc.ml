@@ -132,7 +132,8 @@ let generate_doc () =
       wait (create_process !compiler ("-load" :: file :: !args))
 
 let process_option () =
-  let i = ref 2 in
+  let i = ref 2
+  and ppx = ref false in
   while !i < Array.length Sys.argv do
     match Sys.argv.(!i) with
     | "-verbose" -> verbose := true; incr i
@@ -156,7 +157,8 @@ let process_option () =
       if !i+1 >= Array.length Sys.argv then usage ();
       pp := Some Sys.argv.(!i+1);
       i := !i+2
-    | "-ppx" ->
+    | "-ppx" when not !ppx ->
+      ppx := true;
       pp_mode := `Ppx;
       i := !i+1
     | "-ppopt" ->

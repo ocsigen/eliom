@@ -341,7 +341,8 @@ let build_client () =
     @ [exe] )
 
 let process_option () =
-  let i = ref 1 in
+  let i = ref 1
+  and ppx = ref false in
   while !i < Array.length Sys.argv do
     match Sys.argv.(!i) with
     | "-help" | "--help" -> usage ()
@@ -366,7 +367,8 @@ let process_option () =
     | "-dump" ->
       do_dump := not !do_dump;
       i := !i+1
-    | "-ppx" ->
+    | "-ppx" when not !ppx ->
+      ppx := true;
       pp_mode := `Ppx;
       i := !i+1
     | "-dir" ->
