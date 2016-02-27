@@ -26,8 +26,13 @@ include module type of Eliom_client_common_base
   with type global_data := Eliom_lib_base.global_data
   with type request_data = Eliom_lib_base.request_data
 
-(** See {% <<a_api subproject="client"|type
-    Eliom_pervasives.client_value>> %}. *)
+(** {2 Client and shared values}
+
+    See the {% <<a_manual chapter="clientserver-language"|manual>> %}. *)
+
+(** An ['a] client value on the client is just an ['a].
+    See also {% <<a_api subproject="server" text="the abstract representation on the server" |
+    type Eliom_pervasives.client_value >> %}. *)
 type 'a client_value = 'a
 type 'a shared_value = 'a
 
