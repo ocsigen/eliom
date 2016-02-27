@@ -23,7 +23,7 @@
 (** Server representation of client values.
     Developer-visible functions should always operate on
     {% <<a_api subproject="server" | type Eliom_pervasives.client_value >> %} or
-    {% <<a_api subproject="server" | type Eliom_lib.client_value >> %}.
+    {% <<a_api subproject="server" | type Eliom_client_common.client_value >> %}.
 *)
 module Client_value_server_repr : sig
   type +'a t
