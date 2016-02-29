@@ -23,7 +23,7 @@
 module Client_value_server_repr = struct
 
   type u = {
-    mutable loc : pos option;
+    mutable loc : Eliom_lib_base.pos option;
     instance_id: int;
     unwrapper: Eliom_wrap.unwrapper
   }
@@ -36,7 +36,7 @@ module Client_value_server_repr = struct
   let to_poly v = v
 end
 
-type escaped_value = poly
+type escaped_value = Ocsigen_lib.poly
 
 module RawXML = struct
 
@@ -50,7 +50,7 @@ module RawXML = struct
 
   type -'a caml_event_handler =
     | CE_registered_closure of
-        string * poly (* 'a Js.t -> unit) client_value *)
+        string * Ocsigen_lib.poly (* 'a Js.t -> unit) client_value *)
     | CE_client_closure of
         ((#Dom_html.event as 'a) Js.t -> unit) (* Client side-only *)
     | CE_call_service of
@@ -109,7 +109,7 @@ module RawXML = struct
     | RACamlEventHandler of biggest_event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
-    | RAClient of string * attrib option * poly (*attrib client_value *)
+    | RAClient of string * attrib option * Ocsigen_lib.poly (*attrib client_value *)
   and attrib = aname * racontent
 
   let aname = function
@@ -157,9 +157,9 @@ module RawXML = struct
   module ClosureMap = Map.Make(struct type t = string let compare = compare end)
 
   type event_handler_table =
-    poly (* (biggest_event Js.t -> unit) client_value *) ClosureMap.t
+    Ocsigen_lib.poly (* (biggest_event Js.t -> unit) client_value *) ClosureMap.t
 
-  type client_attrib_table = poly (* attrib client_value *) ClosureMap.t
+  type client_attrib_table = Ocsigen_lib.poly (* attrib client_value *) ClosureMap.t
 
   let filter_class_value acc = function
     | AStr v ->
@@ -229,14 +229,14 @@ let client_value_unwrap_id_int = 7
 
 type client_value_datum = {
   closure_id : string;
-  args : poly;
-  value : poly Client_value_server_repr.t
+  args : Ocsigen_lib.poly;
+  value : Ocsigen_lib.poly Client_value_server_repr.t
 }
 
 type injection_datum = {
-  injection_dbg : (pos * string option) option;
+  injection_dbg : (Eliom_lib_base.pos * string option) option;
   injection_id : int;
-  injection_value : poly;
+  injection_value : Ocsigen_lib.poly;
 }
 
 type compilation_unit_global_data = {
@@ -244,8 +244,16 @@ type compilation_unit_global_data = {
   client_sections_data : injection_datum array array;
 }
 
-type global_data = compilation_unit_global_data String_map.t
+type global_data = compilation_unit_global_data Eliom_lib.String_map.t
 
 type request_data = client_value_datum array
 
 let global_data_unwrap_id_int = 8
+
+type 'a eliom_caml_service_data = {
+  ecs_request_data: request_data;
+  ecs_data: 'a;
+}
+
+(* the data sent on channels *)
+type 'a eliom_comet_data_type = 'a Eliom_wrap.wrapped_value

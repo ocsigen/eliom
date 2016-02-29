@@ -1,7 +1,7 @@
 {1 Client API}
 
 {!modules:
-Eliom_pervasives
+Eliom_client_common
 Eliom_lib
 Eliom_client
 }

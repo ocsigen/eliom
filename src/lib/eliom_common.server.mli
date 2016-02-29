@@ -700,12 +700,12 @@ val nl_get_appl_parameter: string
 val patch_request_info: Ocsigen_extensions.request -> Ocsigen_extensions.request
 
 type eliom_js_page_data = {
-  ejs_global_data: global_data option;
-  ejs_request_data: request_data;
+  ejs_global_data: Eliom_client_common.global_data2 option;
+  ejs_request_data: Eliom_client_common.request_data;
   (* Event handlers *)
-  ejs_event_handler_table: Eliom_lib.RawXML.event_handler_table;
+  ejs_event_handler_table: Eliom_client_common_base.RawXML.event_handler_table;
   (* Client attrib *)
-  ejs_client_attrib_table: Eliom_lib.RawXML.client_attrib_table;
+  ejs_client_attrib_table: Eliom_client_common_base.RawXML.client_attrib_table;
   (* Session info *)
   ejs_sess_info: sess_info;
 }
@@ -715,3 +715,5 @@ val get_site_dir_string : sitedata -> string
 val get_secure : bool option -> sitedata -> bool
 
 val is_client_app : bool ref
+
+val make_actual_path : string list -> string list

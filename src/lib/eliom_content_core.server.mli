@@ -24,9 +24,9 @@ module Xml : sig
   include Xml_sigs.Iterable
     with type 'a wrap = 'a
      and type 'a list_wrap = 'a list
-     and type event_handler = (Dom_html.event Js.t -> unit) Eliom_lib.client_value
-     and type mouse_event_handler = (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value
-     and type keyboard_event_handler = (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value
+     and type event_handler = (Dom_html.event Js.t -> unit) Eliom_client_common.client_value
+     and type mouse_event_handler = (Dom_html.mouseEvent Js.t -> unit) Eliom_client_common.client_value
+     and type keyboard_event_handler = (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_common.client_value
 
   type -'a caml_event_handler constraint 'a = #Dom_html.event
 
@@ -40,8 +40,8 @@ module Xml : sig
   (* Building ref tree. *)
   type node_id
   val get_node_id : elt -> node_id
-  val make_event_handler_table : elt -> Eliom_lib.RawXML.event_handler_table
-  val make_client_attrib_table : elt -> Eliom_lib.RawXML.client_attrib_table
+  val make_event_handler_table : elt -> Eliom_client_common_base.RawXML.event_handler_table
+  val make_client_attrib_table : elt -> Eliom_client_common_base.RawXML.client_attrib_table
 
   class type biggest_event = object
     inherit Dom_html.event
@@ -59,7 +59,7 @@ module Xml : sig
       * (bool * string list) option
       * string option) option Eliom_lazy.request -> internal_event_handler
 
-  val caml_event_handler : ((#Dom_html.event as 'a) Js.t -> unit) Eliom_lib.client_value -> 'a caml_event_handler
+  val caml_event_handler : ((#Dom_html.event as 'a) Js.t -> unit) Eliom_client_common.client_value -> 'a caml_event_handler
 
   type racontent =
     | RA of acontent
@@ -78,7 +78,7 @@ module Xml : sig
   val wrap : elt -> 'a -> 'a Eliom_wrap.wrapped_value
 
   val client_attrib :
-    ?init:attrib -> attrib Eliom_lib.client_value -> attrib
+    ?init:attrib -> attrib Eliom_client_common.client_value -> attrib
 
 end
 
@@ -108,7 +108,7 @@ module Svg : sig
 
     include module type of Raw
 
-    val client_attrib : ?init:'a attrib -> 'a attrib Eliom_lib.client_value -> 'a attrib
+    val client_attrib : ?init:'a attrib -> 'a attrib Eliom_client_common.client_value -> 'a attrib
 
   end
 
@@ -178,7 +178,7 @@ module Html5 : sig
 
     include module type of Raw
 
-    val client_attrib : ?init:'a attrib -> 'a attrib Eliom_lib.client_value -> 'a attrib
+    val client_attrib : ?init:'a attrib -> 'a attrib Eliom_client_common.client_value -> 'a attrib
 
     (**/**)
     type ('a, 'b, 'c) lazy_star =

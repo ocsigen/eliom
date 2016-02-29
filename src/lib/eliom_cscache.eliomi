@@ -16,7 +16,7 @@ type ('a, 'b) local_t
 }}
 {shared{
 (** The type of client-server association tables (implemented using Hashtbl) *)
-type ('a, 'b) t = ('a, 'b) local_t Eliom_lib.shared_value
+type ('a, 'b) t = ('a, 'b) local_t Eliom_client_common.shared_value
 
 }}
 

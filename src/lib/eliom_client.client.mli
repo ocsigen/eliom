@@ -22,6 +22,7 @@
 
 open Eliom_lib
 
+(** {2 Mobile applications} *)
 (** Call this function if you want to be able to run your client side app
     before doing the first request, that is, when the client side app
     is not sent by the server. This may be the case for example if you are
@@ -50,6 +51,7 @@ val init_client_app :
 val is_client_app : unit -> bool
 
 
+(** {2 Calling services} *)
 (** Call a server side service and change the current page.
     If the service belongs to the same application,
     the client side program is not stopped, and only
@@ -197,6 +199,7 @@ val call_service :
   'a -> 'b -> string Lwt.t
 
 
+(** {2 Misc} *)
 
 (** Registers some code to be executed after loading the client
     application, or after changing the page the next time.
@@ -250,6 +253,22 @@ val onunload : (unit -> string option) -> unit
 val wait_load_end : unit -> unit Lwt.t
 
 
+(** {2 RPC / Server functions}
+
+    See the {% <<a_manual chapter="clientserver-communication" fragment="rpc"|manual>> %}.*)
+
+(** A [('a, 'b) server_function] provides transparently access to a
+    server side function which has been created by {% <<a_api
+    subproject="server"|Eliom_client.server_function>> %}.
+
+    See also {% <<a_api subproject="server" text="the opaque server
+    side representation"| type Eliom_client.server_function>> %}.
+
+    The handling of exception on the server corresponds to that of
+    <<a_api subproject="client"|val Eliom_client.call_ocaml_service>>.
+*)
+type ('a, +'b) server_function = 'a -> 'b Lwt.t
+
 (** [server_function argument_type f] creates a value of type {%
     <<a_api | type Eliom_client.server_function>> %}. This allows
     to call [f] from the client. The first argument [argument_type] is
@@ -281,7 +300,7 @@ val server_function :
   ?timeout:float ->
   ?https:bool ->
   ?error_handler:((string * exn) list -> 'b Lwt.t) ->
-  'a Deriving_Json.t -> unit -> ('a, 'b) Eliom_pervasives.server_function
+  'a Deriving_Json.t -> unit -> ('a, 'b) server_function
 
 
 

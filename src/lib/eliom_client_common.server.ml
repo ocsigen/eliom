@@ -1,26 +1,42 @@
-(* Please put in this file ONLY extensions of the standard OCaml library.
-   And remove all the Eliom/Ocsigen specific stuff. *)
-
+(* Ocsigen
+ * http://www.ocsigen.org
+ * Copyright (C) CNRS Univ Paris Diderot
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, with linking exception;
+ * either version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *)
 
 include (Eliom_client_common_base :
            module type of Eliom_client_common_base
-         with type escaped_value = Eliom_lib_base.escaped_value
+         with type escaped_value = Eliom_client_common_base.escaped_value
          with type +'a Client_value_server_repr.t =
-           'a Eliom_lib_base.Client_value_server_repr.t
-         with type client_value_datum = Eliom_lib_base.client_value_datum
-         with type injection_datum = Eliom_lib_base.injection_datum
+           'a Eliom_client_common_base.Client_value_server_repr.t
+         with type client_value_datum = Eliom_client_common_base.client_value_datum
+         with type injection_datum = Eliom_client_common_base.injection_datum
          with type compilation_unit_global_data =
-           Eliom_lib_base.compilation_unit_global_data
-         with type global_data := Eliom_lib_base.global_data
-         with type request_data = Eliom_lib_base.request_data)
+           Eliom_client_common_base.compilation_unit_global_data
+         with type global_data := Eliom_client_common_base.global_data
+         with type request_data = Eliom_client_common_base.request_data)
 
 let escaped_value_escaped_value = fst
 
 type +'a client_value = 'a Client_value_server_repr.t
+type 'a fragment = 'a client_value
 
 let client_value_unwrapper =
   Eliom_wrap.create_unwrapper
-    (Eliom_wrap.id_of_int Eliom_lib_base.client_value_unwrap_id_int)
+    (Eliom_wrap.id_of_int Eliom_client_common_base.client_value_unwrap_id_int)
 
 let create_client_value ?loc ~instance_id =
   Client_value_server_repr.create
@@ -53,9 +69,9 @@ let shared_value_server_repr x = x.sh_server,x.sh_client
 exception Client_value_creation_invalid_context of string
 
 let escaped_value value : escaped_value (* * Eliom_wrap.unwrapper *) =
-  to_poly value
+  Ocsigen_lib.to_poly value
 
-type global_data = Eliom_lib_base.global_data * Eliom_wrap.unwrapper
+type global_data2 = Eliom_client_common_base.global_data * Eliom_wrap.unwrapper
 
 let global_data_unwrapper =
   Eliom_wrap.create_unwrapper

@@ -50,7 +50,8 @@ let get_cookie_info_for_uri_js uri_js =
             in
             let path = match path with
               | ""::_ -> path (* absolute *)
-              | _ -> Eliom_uri.make_actual_path (Eliom_request_info.get_csp_original_full_path () @ path)
+              | _ -> Eliom_common_base.make_actual_path
+                       (Eliom_request_info.get_csp_original_full_path () @ path)
             in
             (Eliom_request_info.get_csp_ssl (), path)
          )

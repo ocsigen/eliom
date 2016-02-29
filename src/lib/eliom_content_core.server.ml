@@ -27,7 +27,7 @@ open Eliom_lib
 (*****************************************************************************)
 
 module Xml = struct
-  include RawXML
+  include Eliom_client_common_base.RawXML
   module W = Xml_wrap.NoWrap
   type 'a wrap = 'a
   type 'a list_wrap = 'a list
@@ -86,7 +86,8 @@ module Xml = struct
 
   let get_node_id { elt } = elt.node_id
 
-  let tyxml_unwrap_id = Eliom_wrap.id_of_int tyxml_unwrap_id_int
+  let tyxml_unwrap_id =
+    Eliom_wrap.id_of_int Eliom_client_common.tyxml_unwrap_id_int
 
   let make elt =
     { elt =
@@ -114,10 +115,10 @@ module Xml = struct
   let lazy_node ?(a = []) name children =
     make_lazy (Eliom_lazy.from_fun (fun () -> (Node (name, a, Eliom_lazy.force children))))
 
-  type biggest_event_handler = (biggest_event Js.t -> unit) Eliom_lib.client_value
-  type event_handler = (Dom_html.event Js.t -> unit) Eliom_lib.client_value
-  type mouse_event_handler = (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value
-  type keyboard_event_handler = (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value
+  type biggest_event_handler = (biggest_event Js.t -> unit) Eliom_client_common.client_value
+  type event_handler = (Dom_html.event Js.t -> unit) Eliom_client_common.client_value
+  type mouse_event_handler = (Dom_html.mouseEvent Js.t -> unit) Eliom_client_common.client_value
+  type keyboard_event_handler = (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_common.client_value
 
   let make_cryptographic_safe_string () =
     (* FIX: we should directly produce a string of the right length *)
@@ -139,7 +140,7 @@ module Xml = struct
   let keyboard_event_handler_attrib name (cf : keyboard_event_handler) =
     biggest_event_handler_attrib name (cf :> biggest_event_handler)
 
-  let client_attrib ?init (x : attrib Eliom_lib.client_value) =
+  let client_attrib ?init (x : attrib Eliom_client_common.client_value) =
     let crypto = make_cryptographic_safe_string () in
     let empty_name = "" in
     empty_name,RAClient (crypto,init,Eliom_lib.to_poly x)
@@ -191,7 +192,7 @@ module Xml = struct
       f ()
     else
       match elt'.elt.node_id with
-      | Eliom_lib.RawXML.NoId ->
+      | Eliom_client_common_base.RawXML.NoId ->
         f ()
       | _ ->
         elt'
@@ -271,7 +272,7 @@ module Svg = struct
 
     end
     module Raw = Svg_f.Make(Xml')
-    let client_attrib ?init (x : 'a Raw.attrib Eliom_lib.client_value) =
+    let client_attrib ?init (x : 'a Raw.attrib Eliom_client_common.client_value) =
       Xml.client_attrib ?init x
 
     include Raw
@@ -342,7 +343,7 @@ module Html5 = struct
     end
 
     module Raw = Html5_f.Make(Xml')(Svg.D.Raw)
-    let client_attrib ?init (x : 'a Raw.attrib Eliom_lib.client_value) =
+    let client_attrib ?init (x : 'a Raw.attrib Eliom_client_common.client_value) =
       Xml.client_attrib ?init x
 
     include Raw

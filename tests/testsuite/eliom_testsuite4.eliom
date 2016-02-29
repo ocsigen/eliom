@@ -62,7 +62,7 @@ let test_client_value_on_caml_service =
                   Eliom_client.call_ocaml_service %ocaml_service () () in
                 Eliom_testsuite_base.log "number: %d" number;
                 Lwt.return ()
-              with Exception_on_server msg ->
+              with Eliom_client_common.Exception_on_server msg ->
                 Eliom_testsuite_base.log "Exception on server: %s" msg;
                 Lwt.return ())
        }} in
@@ -1362,7 +1362,7 @@ let test_server_function =
                  lwt strstr = %rpc_f str in
                  Eliom_testsuite_base.log "Sent %S received %S" str strstr;
                  Lwt.return ()
-               with Exception_on_server str ->
+               with Eliom_client_common.Exception_on_server str ->
                  Eliom_testsuite_base.log "Exception on server: %s" str;
                  Lwt.return ())
        }} in

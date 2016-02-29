@@ -27,8 +27,12 @@
 
 {shared{
 type boxed
-external boxed   : 'a client_value -> boxed client_value = "%identity"
-external unboxed : boxed client_value -> 'a client_value = "%identity"
+external boxed : 'a Eliom_client_common.client_value
+  -> boxed Eliom_client_common.client_value
+  = "%identity"
+external unboxed : boxed Eliom_client_common.client_value
+  -> 'a Eliom_client_common.client_value
+  = "%identity"
 }}
 
 
@@ -70,7 +74,7 @@ module Html5 = struct
     let node ?(init=D.Unsafe.node "span" []) x =
       let dummy_elt = D.toelt init in
       (* We need to box / unbox the client_value to convince eliom it's not polymorphic *)
-      let client_boxed : boxed client_value = boxed x in
+      let client_boxed : boxed Eliom_client_common.client_value = boxed x in
       let _ = {unit{
           let dummy_dom = Html5.To_dom.of_element (Html5.D.tot %((dummy_elt : Xml.elt))) in
           let client_boxed = %client_boxed in
@@ -90,28 +94,8 @@ end
 }}
 
 {shared{
-(* Initializing function from Eliom_service_base here,
-   because client-server syntax cannot be used in Eliom_service_base
-   for dependency reasons.
-   Not actually the best place to do it, but I don't want to create
-   a file just for this ...
-*)
-
-let _ =
-(*VVV The Obj.magic here is related to client value syntax extension.
-  I hope we can remove this when typing of client-server syntax is fixed.
-  In the meantime, if someone knows how to remove it, I'd be happy :/
-*)
-  Eliom_service_base.preapply_client_fun.Eliom_service_base.clvpreapp_f <-
-    Obj.magic (fun f getparams -> {_ -> _{ fun _ pp -> %f %getparams pp }});
-  Eliom_service_base.add_nl_get_client.Eliom_service_base.clvnlget_f <-
-    Obj.magic (fun f -> {_ -> _{ fun (g, _) p -> %f g p }});
-  Eliom_service_base.add_nl_post_client.Eliom_service_base.clvnlpost_f <-
-    Obj.magic (fun f -> {_ -> _{ fun g (p, _) -> %f g p }})
- }}
-{shared{
    let set_client_fun = Eliom_service.set_client_fun_
  }}
 {client{
-   let _ = Eliom_client.of_element_ := Html5.To_dom.of_element
+   let _ = Eliom_client0.of_element_ := Html5.To_dom.of_element
  }}

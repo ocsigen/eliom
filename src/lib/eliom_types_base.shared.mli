@@ -31,14 +31,6 @@ val sp : server_params
 (**/**)
 
 
-type 'a eliom_caml_service_data = {
-  ecs_request_data: request_data;
-  ecs_data: 'a;
-}
-
-(* the data sent on channels *)
-type 'a eliom_comet_data_type = 'a Eliom_wrap.wrapped_value
-
 (*SGO* Server generated onclicks/onsubmits
 val a_closure_id : int
 val a_closure_id_string : string

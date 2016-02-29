@@ -26,8 +26,7 @@ let _ = Eliom_client.init ()
 let _force_link =
   Eliom_react.force_link,
   Eliom_comet.force_link,
-  Eliom_bus.force_link,
-  Eliom_pervasives._force_link
+  Eliom_bus.force_link
 }}
 
 {client{

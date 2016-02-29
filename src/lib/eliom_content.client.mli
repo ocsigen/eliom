@@ -89,8 +89,8 @@ module Svg : sig
 
   (** Creation of content from client-side values. *)
   module C : sig
-    val node : ?init:'a D.elt -> 'a elt Eliom_pervasives.client_value -> 'a D.elt
-    val attr : ?init:'a attrib -> 'a attrib Eliom_pervasives.client_value -> 'a attrib
+    val node : ?init:'a D.elt -> 'a elt Eliom_client_common.client_value -> 'a D.elt
+    val attr : ?init:'a attrib -> 'a attrib Eliom_client_common.client_value -> 'a attrib
   end
 
 
@@ -344,7 +344,7 @@ module Html5 : sig
 
     (** Function [node s] create an HTML5 [elt] from a signal [s].
         The resulting HTML5 [elt] can then be used like anyother HTML5 [elt] *)
-    val node : 'a elt React.signal Eliom_pervasives.client_value -> 'a elt
+    val node : 'a elt React.signal Eliom_client_common.client_value -> 'a elt
 
     (** [filter_attrib att on] returns an attrib that
         behave like [att] when [on] is [true]
@@ -370,8 +370,8 @@ module Html5 : sig
         (the [init] argument is ignored).
         See Eliom manual for more detail on
         {% <<a_manual chapter="clientserver-html" fragment="inject" | Dom & Client-values >>%}. *)
-    val node : ?init:'a D.elt -> 'a elt Eliom_pervasives.client_value -> 'a D.elt
-    val attr : ?init:'a attrib -> 'a attrib Eliom_pervasives.client_value -> 'a attrib
+    val node : ?init:'a D.elt -> 'a elt Eliom_client_common.client_value -> 'a D.elt
+    val attr : ?init:'a attrib -> 'a attrib Eliom_client_common.client_value -> 'a attrib
   end
 
 

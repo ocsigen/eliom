@@ -169,7 +169,7 @@ val coservice :
   ?rt:'rt rt ->
   ?name: string ->
   ?csrf_safe: bool ->
-  ?csrf_scope: [< Eliom_types.user_scope] ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -202,7 +202,7 @@ val post_coservice :
   ?rt:'rt rt ->
   ?name: string ->
   ?csrf_safe: bool ->
-  ?csrf_scope: [< Eliom_types.user_scope] ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -231,7 +231,7 @@ val put_coservice :
   ?rt:'rt rt ->
   ?name: string ->
   ?csrf_safe: bool ->
-  ?csrf_scope: [< Eliom_types.user_scope] ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -264,7 +264,7 @@ val delete_coservice :
   ?rt:'rt rt ->
   ?name: string ->
   ?csrf_safe: bool ->
-  ?csrf_scope: [< Eliom_types.user_scope] ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -299,7 +299,7 @@ val coservice' :
   ?rt:'rt rt ->
   ?name:string ->
   ?csrf_safe: bool ->
-  ?csrf_scope: [< Eliom_types.user_scope] ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -331,7 +331,7 @@ val post_coservice' :
   ?rt:'rt rt ->
   ?name:string ->
   ?csrf_safe: bool ->
-  ?csrf_scope: [< Eliom_types.user_scope] ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -356,7 +356,7 @@ val put_coservice' :
   ?rt:'rt rt ->
   ?name:string ->
   ?csrf_safe: bool ->
-  ?csrf_scope: [< Eliom_types.user_scope] ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -382,7 +382,7 @@ val delete_coservice' :
   ?rt:'rt rt ->
   ?name:string ->
   ?csrf_safe: bool ->
-  ?csrf_scope: [< Eliom_types.user_scope] ->
+  ?csrf_scope: [< Eliom_common.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->

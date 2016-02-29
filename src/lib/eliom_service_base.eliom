@@ -87,7 +87,7 @@ type 'a reload_fun =
   | Rf_some of
       (unit ->
        ('a -> unit -> [ `Html] Eliom_content_core.Html5.elt Lwt.t) option)
-        client_value ref
+        Eliom_client_common.client_value ref
 
 type send_appl_content =
   | XNever
@@ -132,7 +132,7 @@ type ('get,'post,+'meth,+'attached,+'kind,+'tipo,'getnames,'postnames,+'registr,
      we put the generating function here: *)
   client_fun: (unit -> ('get -> 'post ->
                         [ `Html] Eliom_content_core.Html5.elt Lwt.t)
-                 option) client_value ref;
+                 option) Eliom_client_common.client_value ref;
 
   reload_fun: 'get reload_fun;
   (* The function to be used to generate the page on client side,
@@ -204,7 +204,7 @@ let change_get_num service attser n =
 
 (** Satic directories **)
 let static_dir_ ?(https = false) () =
-  let cf = ref (Eliom_service_shared.default_client_fun ()) in
+  let cf = ref {_ -> _{ fun () -> None }} in
   {
     pre_applied_parameters = String.Table.empty, [];
     get_params_type = Eliom_parameter.suffix
@@ -238,7 +238,7 @@ let https_static_dir () = static_dir_ ~https:true ()
 
 let get_static_dir_ ?(https = false)
     ?(keep_nl_params = `None) ~get_params () =
-  let cf = ref (Eliom_service_shared.default_client_fun ()) in
+  let cf = ref {_ -> _{ fun () -> None }} in
   {
      pre_applied_parameters = String.Table.empty, [];
      get_params_type =
@@ -322,7 +322,7 @@ let preapply ~service getparams =
 
 
 let void_coservice' =
-  let cf = ref (Eliom_service_shared.default_client_fun ()) in
+  let cf = ref {_ -> _{ fun () -> None }} in
   {
     max_use= None;
     timeout= None;
@@ -344,7 +344,7 @@ let void_coservice' =
   }
 
 let https_void_coservice' =
-  let cf = ref (Eliom_service_shared.default_client_fun ()) in
+  let cf = ref {_ -> _{ fun () -> None }} in
   {
     max_use= None;
     timeout= None;
@@ -512,7 +512,7 @@ let external_post_service
     ~getorpost:`Post
     ~get_params
     ~post_params
-    ~cf:(ref (Eliom_service_shared.default_client_fun ()))
+    ~cf:(ref {_ -> _{ fun () -> None }})
     ()
 
 let external_put_service
@@ -529,7 +529,7 @@ let external_put_service
     ~getorpost:`Put
     ~get_params
     ~post_params:Eliom_parameter.raw_post_data
-    ~cf:(ref (Eliom_service_shared.default_client_fun ()))
+    ~cf:(ref {_ -> _{ fun () -> None }})
     ()
 
 let external_delete_service
@@ -546,7 +546,7 @@ let external_delete_service
     ~getorpost:`Delete
     ~get_params
     ~post_params:Eliom_parameter.raw_post_data
-    ~cf:(ref (Eliom_service_shared.default_client_fun ()))
+    ~cf:(ref {_ -> _{ fun () -> None }})
     ()
 
 let external_service
@@ -563,7 +563,7 @@ let external_service
     ~getorpost:`Get
     ~get_params
     ~post_params:Eliom_parameter.unit
-    ~cf:(ref (Eliom_service_shared.default_client_fun ()))
+    ~cf:(ref {_ -> _{ fun () -> None }})
     ()
 
 
@@ -602,7 +602,7 @@ let service_aux
     ?priority
     ~get_params =
   let sp = Eliom_common.get_sp_option () in
-  let cf = ref (Eliom_service_shared.default_client_fun ()) in
+  let cf = ref {_ -> _{ fun () -> None }} in
   match sp with
   | None ->
       (match Eliom_common.global_register_allowed () with
@@ -700,7 +700,7 @@ let coservice
   (* (match Eliom_common.global_register_allowed () with
      | Some _ -> Eliom_common.add_unregistered k.path;
      | _ -> ()); *)
-  let cf = ref (Eliom_service_shared.default_client_fun ()) in
+  let cf = ref {_ -> _{ fun () -> None }} in
   {fallback with
    max_use= max_use;
    timeout= timeout;
@@ -750,7 +750,7 @@ let coservice'
      | None ->
      ...
   *)
-  let cf = ref (Eliom_service_shared.default_client_fun ()) in
+  let cf = ref {_ -> _{ fun () -> None }} in
         {
 (*VVV allow timeout and max_use for named coservices? *)
           max_use= max_use;
@@ -840,7 +840,7 @@ let post_service_aux ~https ~fallback
 (* Create a main service (not a coservice) internal, post only *)
 (* ici faire une vérification "duplicate parameter" ? *)
   let `Attached k1 = fallback.info in
-  let cf = ref (Eliom_service_shared.default_client_fun ()) in
+  let cf = ref {_ -> _{ fun () -> None }} in
   {
    pre_applied_parameters = fallback.pre_applied_parameters;
    get_params_type = fallback.get_params_type;
@@ -910,7 +910,7 @@ let post_coservice
   (* (match Eliom_common.global_register_allowed () with
   | Some _ -> Eliom_common.add_unregistered k1.path;
   | _ -> ()); *)
-  let cf = ref (Eliom_service_shared.default_client_fun ()) in
+  let cf = ref {_ -> _{ fun () -> None }} in
   {fallback with
    post_params_type = post_params;
    max_use= max_use;
@@ -957,7 +957,7 @@ let post_coservice'
   (* match Eliom_common.global_register_allowed () with
   | Some _ -> Eliom_common.add_unregistered None
   | _ -> () *)
-  let cf = ref (Eliom_service_shared.default_client_fun ()) in
+  let cf = ref {_ -> _{ fun () -> None }} in
   {
 (*VVV allow timeout and max_use for named coservices? *)
     max_use= max_use;
@@ -1003,7 +1003,7 @@ let raw_post_data_service_aux
     ?priority
     ~get_params =
   let sp = Eliom_common.get_sp_option () in
-  let cf = ref (Eliom_service_shared.default_client_fun ()) in
+  let cf = ref {_ -> _{ fun () -> None }} in
   match sp with
   | None ->
       (match Eliom_common.global_register_allowed () with
@@ -1098,7 +1098,7 @@ let put_coservice
   (* (match Eliom_common.global_register_allowed () with
      | Some _ -> Eliom_common.add_unregistered k.path;
      | _ -> ()); *)
-  let cf = ref (Eliom_service_shared.default_client_fun ()) in
+  let cf = ref {_ -> _{ fun () -> None }} in
   {fallback with
    max_use= max_use;
    timeout= timeout;
@@ -1147,7 +1147,7 @@ let put_coservice'
      | None ->
      ...
   *)
-  let cf = ref (Eliom_service_shared.default_client_fun ()) in
+  let cf = ref {_ -> _{ fun () -> None }} in
   {
 (*VVV allow timeout and max_use for named coservices? *)
           max_use= max_use;
@@ -1221,7 +1221,7 @@ let delete_coservice
   (* (match Eliom_common.global_register_allowed () with
      | Some _ -> Eliom_common.add_unregistered k.path;
      | _ -> ()); *)
-  let cf = ref (Eliom_service_shared.default_client_fun ()) in
+  let cf = ref {_ -> _{ fun () -> None }} in
   {fallback with
    max_use= max_use;
    timeout= timeout;
@@ -1270,7 +1270,7 @@ let delete_coservice'
      | None ->
      ...
   *)
-  let cf = ref (Eliom_service_shared.default_client_fun ()) in
+  let cf = ref {_ -> _{ fun () -> None }} in
   {
 (*VVV allow timeout and max_use for named coservices? *)
           max_use= max_use;

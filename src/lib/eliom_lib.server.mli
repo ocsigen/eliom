@@ -36,6 +36,8 @@ exception Eliom_Internal_Error of string
 
 type file_info = Ocsigen_extensions.file_info
 
+val string_escape : string -> string
+
 val to_json : ?typ:'a Deriving_Json.t -> 'a -> string
 val of_json : ?typ:'a Deriving_Json.t -> string -> 'a
 

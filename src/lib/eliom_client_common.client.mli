@@ -19,12 +19,12 @@
 
 include module type of Eliom_client_common_base
   with type 'a Client_value_server_repr.t =
-                 'a Eliom_lib_base.Client_value_server_repr.t
-  with type client_value_datum = Eliom_lib_base.client_value_datum
-  with type injection_datum := Eliom_lib_base.injection_datum
-  with type compilation_unit_global_data = Eliom_lib_base.compilation_unit_global_data
-  with type global_data := Eliom_lib_base.global_data
-  with type request_data = Eliom_lib_base.request_data
+                 'a Eliom_client_common_base.Client_value_server_repr.t
+  with type client_value_datum = Eliom_client_common_base.client_value_datum
+  with type injection_datum := Eliom_client_common_base.injection_datum
+  with type compilation_unit_global_data = Eliom_client_common_base.compilation_unit_global_data
+  with type global_data := Eliom_client_common_base.global_data
+  with type request_data = Eliom_client_common_base.request_data
 
 (** {2 Client and shared values}
 
@@ -32,7 +32,7 @@ include module type of Eliom_client_common_base
 
 (** An ['a] client value on the client is just an ['a].
     See also {% <<a_api subproject="server" text="the abstract representation on the server" |
-    type Eliom_pervasives.client_value >> %}. *)
+    type Eliom_client_common.client_value >> %}. *)
 type 'a client_value = 'a
 type 'a shared_value = 'a
 
@@ -40,7 +40,7 @@ val create_shared_value : 'a -> 'a client_value -> 'a shared_value
 
 (** This exception is raised (in Lwt) on the client if a call to a
     server function {% <<a_api subproject="server"|val
-    Eliom_pervasives.server_function>> %} fails (in Lwt) on the server
+    Eliom_client.server_function>> %} fails (in Lwt) on the server
     side.
 
     The argument describes the original exception by
@@ -59,5 +59,5 @@ exception False
 
 (**/**)
 
-type injection_datum = Eliom_lib_base.injection_datum
-type global_data (* Global data only needed while unwrapping *)
+type injection_datum = Eliom_client_common_base.injection_datum
+type global_data2 (* Global data only needed while unwrapping *)

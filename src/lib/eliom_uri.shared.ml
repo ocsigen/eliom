@@ -72,17 +72,7 @@ let reconstruct_relative_url_path_string current_url u suff =
   then (* possible with optional parameters *) "./"^s
   else s
 
-(* make a path by going up when there is a '..' *)
-let make_actual_path path =
-  let rec aux accu path =
-    match (accu, path) with
-      | ([], ".."::path') -> aux accu path'
-      | (_::accu',  ".."::path') -> aux accu' path'
-      | (_,  a::path') -> aux (a::accu) path'
-      | (_,  []) -> accu
-  in match path with
-    | ""::path -> ""::List.rev (aux [] path)
-    | _ -> List.rev (aux [] path)
+let make_actual_path = Eliom_common.make_actual_path
 
 (*****************************************************************************)
 
