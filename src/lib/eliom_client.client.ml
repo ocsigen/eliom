@@ -27,6 +27,8 @@ include Eliom_client0
 
 open Eliom_lib
 
+type ('a, +'b) server_function = 'a -> 'b Lwt.t
+
 (* Logs *)
 let section = Lwt_log.Section.make "eliom:client"
 let log_section = section
@@ -299,10 +301,11 @@ let window_open ~window_name ?window_features
 *)
 
 let unwrap_caml_content content =
-  let r : 'a Eliom_types.eliom_caml_service_data =
+  let r : 'a Eliom_client_common.eliom_caml_service_data =
     Eliom_unwrap.unwrap (Url.decode content) 0
   in
-  Lwt.return (r.Eliom_types.ecs_data, r.Eliom_types.ecs_request_data)
+  Lwt.return (r.Eliom_client_common.ecs_data,
+              r.Eliom_client_common.ecs_request_data)
 
 let call_ocaml_service
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -324,7 +327,7 @@ let call_ocaml_service
   run_callbacks (flush_onload ());
   match content with
   | `Success result -> Lwt.return result
-  | `Failure msg -> Lwt.fail (Exception_on_server msg)
+  | `Failure msg -> Lwt.fail (Eliom_client_common.Exception_on_server msg)
 
 (* == Function [change_url_string] changes the URL, without doing a request.
 

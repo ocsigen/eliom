@@ -41,12 +41,12 @@ let get_set_js_serverside_value r name =
 
 let set_sitedata, is_set_sitedata,
     (get_sitedata : unit -> Eliom_types.sitedata),
-    (reset_sitedata)=
+    reset_sitedata =
   get_set_js_serverside_value Eliom_common.sitedata "__eliom_appl_sitedata"
 
 let set_info, is_set_info,
     (get_info : unit -> Eliom_common.client_process_info),
-    (reset_info)
+    reset_info
   =
   get_set_js_serverside_value (ref None) "__eliom_appl_process_info"
 

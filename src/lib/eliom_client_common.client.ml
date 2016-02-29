@@ -17,15 +17,15 @@
  *)
 
 include (Eliom_client_common_base :
-           module type of Eliom_lib_base
+           module type of Eliom_client_common_base
          with type 'a Client_value_server_repr.t =
-                        'a Eliom_lib_base.Client_value_server_repr.t
-         with type client_value_datum = Eliom_lib_base.client_value_datum
-         with type injection_datum := Eliom_lib_base.injection_datum
+                        'a Eliom_client_common_base.Client_value_server_repr.t
+         with type client_value_datum = Eliom_client_common_base.client_value_datum
+         with type injection_datum := Eliom_client_common_base.injection_datum
          with type compilation_unit_global_data =
-           Eliom_lib_base.compilation_unit_global_data
-         with type global_data := Eliom_lib_base.global_data
-         with type request_data = Eliom_lib_base.request_data)
+           Eliom_client_common_base.compilation_unit_global_data
+         with type global_data := Eliom_client_common_base.global_data
+         with type request_data = Eliom_client_common_base.request_data)
 
 exception False
 
@@ -37,6 +37,6 @@ type 'a shared_value = 'a
 let create_shared_value (_ : 'a) (c : 'a client_value) = c
 
 (*****************************************************************************)
-type injection_datum = Eliom_lib_base.injection_datum
+type injection_datum = Eliom_client_common_base.injection_datum
 
-type global_data
+type global_data2

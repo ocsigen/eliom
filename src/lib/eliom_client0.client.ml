@@ -106,7 +106,7 @@ end
 
 module Client_value : sig
   val find : instance_id:int -> poly option
-  val initialize : client_value_datum -> unit
+  val initialize : Eliom_client_common.client_value_datum -> unit
 end = struct
 
   let table = jsnew Js.array_empty ()
@@ -115,13 +115,14 @@ end = struct
     if instance_id = 0 then (* local client value *) None else
     Js.Optdef.to_option (Js.array_get table instance_id)
 
-  let initialize {closure_id; args; value = server_value} =
+  let initialize {Eliom_client_common.closure_id; args; value = server_value} =
     let closure =
       try
         Client_closure.find ~closure_id
       with Not_found ->
         let pos =
-          match Client_value_server_repr.loc server_value with
+          match Eliom_client_common.Client_value_server_repr.loc server_value
+          with
           | None -> ""
           | Some p -> Printf.sprintf "(%s)" (Eliom_lib.pos_to_string p) in
         Lwt_log.raise_error_f ~section
@@ -131,7 +132,8 @@ end = struct
     let value = closure args in
     Eliom_unwrap.late_unwrap_value server_value value;
     (* Only register global client values *)
-    let instance_id = Client_value_server_repr.instance_id server_value in
+    let instance_id =
+      Eliom_client_common.Client_value_server_repr.instance_id server_value in
     if instance_id <> 0 then Js.array_set table instance_id value
 end
 
@@ -147,7 +149,8 @@ let middleClick ev =
 
 module Injection : sig
   val get : ?ident:string -> ?pos:pos -> name:string -> _
-  val initialize : compilation_unit_id:string -> injection_datum -> unit
+  val initialize :
+    compilation_unit_id:string -> Eliom_client_common.injection_datum -> unit
 end = struct
 
   let table = Jstable.create ()
@@ -170,7 +173,7 @@ end = struct
             Lwt_log.raise_error_f "Did not find injection %s" name))
 
   let initialize ~compilation_unit_id
-        { Eliom_common_base.injection_id; injection_value } =
+        { Eliom_client_common_base.injection_id; injection_value } =
     Lwt_log.ign_debug_f ~section "Initialize injection %d" injection_id;
     (* BBB One should assert that injection_value doesn't contain any
        value marked for late unwrapping. How to do this efficiently? *)
@@ -183,8 +186,8 @@ end
 (* == Populating client values and injections by global data *)
 
 type compilation_unit_global_data =
-  { mutable server_section : client_value_datum array list;
-    mutable client_section : injection_datum array list }
+  { mutable server_section : Eliom_client_common.client_value_datum array list;
+    mutable client_section : Eliom_client_common.injection_datum array list }
 
 let global_data = ref String_map.empty
 
@@ -246,9 +249,12 @@ let check_global_data global_data =
        "Code generating the following client values is not linked on the client:\n%s"
        (String.concat "\n"
           (List.rev_map
-             (fun {closure_id; value} ->
-                let instance_id = Client_value_server_repr.instance_id value in
-                match Client_value_server_repr.loc value with
+             (fun {Eliom_client_common.closure_id; value} ->
+                let instance_id =
+                  Eliom_client_common.Client_value_server_repr.instance_id value
+                in
+                match Eliom_client_common.Client_value_server_repr.loc value
+                with
                 | None -> Printf.sprintf "%s/%d" closure_id instance_id
                 | Some pos ->
                   Printf.sprintf "%s/%d at %s" closure_id instance_id
@@ -263,8 +269,8 @@ let check_global_data global_data =
        "Code containing the following injections is not linked on the client:\n%s"
        (String.concat "\n"
           (List.rev_map (fun d ->
-             let id = d.Eliom_common_base.injection_id in
-             match d.Eliom_common_base.injection_dbg with
+             let id = d.Eliom_client_common_base.injection_id in
+             match d.Eliom_client_common_base.injection_dbg with
              | None -> Printf.sprintf "%d" id
              | Some (pos, Some i) ->
                Printf.sprintf "%d (%s at %s)" id i (Eliom_lib.pos_to_string pos)
@@ -424,9 +430,9 @@ let raw_form_handler form kind cookies_info tmpl ev =
 let raw_event_handler value =
   let handler = (*XXX???*)
     (Eliom_lib.from_poly (Eliom_lib.to_poly value) : #Dom_html.event Js.t -> unit) in
-  fun ev -> try handler ev; true with False -> false
+  fun ev -> try handler ev; true with Eliom_client_common.False -> false
 
-let closure_name_prefix = Eliom_lib_base.RawXML.closure_name_prefix
+let closure_name_prefix = Eliom_client_common_base.RawXML.closure_name_prefix
 let closure_name_prefix_len = String.length closure_name_prefix
 let reify_caml_event name node ce : string * (#Dom_html.event Js.t -> bool) =
   match ce with
@@ -444,7 +450,7 @@ let reify_caml_event name node ce : string * (#Dom_html.event Js.t -> bool) =
           (fun () -> Lwt_log.raise_error ~section "not a form element") in
       raw_form_handler form kind cookies_info tmpl ev)
   | Xml.CE_client_closure f ->
-      name, (fun ev -> try f ev; true with False -> false)
+    name, (fun ev -> try f ev; true with Eliom_client_common.False -> false)
   | Xml.CE_registered_closure (_, cv) ->
     let name =
       let len = String.length name in
@@ -678,13 +684,13 @@ let get_element_cookies_info elt =
   Js.Opt.to_option
     (Js.Opt.map
        (elt##getAttribute(Js.string
-                            Eliom_lib_base.RawXML.ce_call_service_attrib))
+                            Eliom_client_common_base.RawXML.ce_call_service_attrib))
        (fun s -> of_json (Js.to_string s)))
 
 let get_element_template elt =
   Js.Opt.to_option
     (Js.Opt.map (elt##getAttribute(Js.string
-                                     Eliom_lib_base.RawXML.ce_template_attrib))
+                                     Eliom_client_common_base.RawXML.ce_template_attrib))
        (fun s -> Js.to_string s))
 
 let a_handler =
@@ -716,7 +722,7 @@ let form_handler
 
 let relink_process_node (node:Dom_html.element Js.t) =
   let id = Js.Opt.get
-      (node##getAttribute(Js.string Eliom_lib_base.RawXML.node_id_attrib))
+      (node##getAttribute(Js.string Eliom_client_common_base.RawXML.node_id_attrib))
       (fun () -> Lwt_log.raise_error_f ~section
           "unique node without id attribute")
   in
@@ -740,7 +746,7 @@ let relink_process_node (node:Dom_html.element Js.t) =
 
 let relink_request_node (node:Dom_html.element Js.t) =
   let id = Js.Opt.get
-    (node##getAttribute(Js.string Eliom_lib_base.RawXML.node_id_attrib))
+    (node##getAttribute(Js.string Eliom_client_common_base.RawXML.node_id_attrib))
     (fun () -> Lwt_log.raise_error_f ~section
         "unique node without id attribute")
   in
@@ -795,11 +801,11 @@ let relink_page_but_client_values (root:Dom_html.element Js.t) =
 *)
 
 let is_closure_attrib, get_closure_name, get_closure_id =
-  let v_prefix = Eliom_lib_base.RawXML.closure_attr_prefix in
+  let v_prefix = Eliom_client_common_base.RawXML.closure_attr_prefix in
   let v_len = String.length v_prefix in
   let v_prefix_js = Js.string v_prefix in
 
-  let n_prefix = Eliom_lib_base.RawXML.closure_name_prefix in
+  let n_prefix = Eliom_client_common_base.RawXML.closure_name_prefix in
   let n_len = String.length n_prefix in
   let n_prefix_js = Js.string n_prefix in
 
@@ -817,7 +823,7 @@ let relink_closure_node root onload table (node:Dom_html.element Js.t) =
       let cid = Js.to_bytestring (get_closure_id attr) in
       let name = get_closure_name attr in
       try
-        let cv = Eliom_lib.RawXML.ClosureMap.find cid table in
+        let cv = Eliom_client_common_base.RawXML.ClosureMap.find cid table in
         let closure = raw_event_handler cv in
         if name = Js.string "onload" then
           (if Eliommod_dom.ancessor root node
@@ -841,11 +847,11 @@ let relink_closure_nodes (root : Dom_html.element Js.t)
     ignore (List.for_all (fun f -> f ev) (List.rev !onload))
 
 let is_attrib_attrib,get_attrib_id =
-  let v_prefix = Eliom_lib_base.RawXML.client_attr_prefix in
+  let v_prefix = Eliom_client_common_base.RawXML.client_attr_prefix in
   let v_len = String.length v_prefix in
   let v_prefix_js = Js.string v_prefix in
 
-  let n_prefix = Eliom_lib_base.RawXML.client_name_prefix in
+  let n_prefix = Eliom_client_common_base.RawXML.client_name_prefix in
   let n_len = String.length n_prefix in
   let n_prefix_js = Js.string n_prefix in
 
@@ -861,7 +867,7 @@ let relink_attrib root table (node:Dom_html.element Js.t) =
     then
       let cid = Js.to_bytestring (get_attrib_id attr) in
       try
-        let value = Eliom_lib.RawXML.ClosureMap.find cid table in
+        let value = Eliom_client_common_base.RawXML.ClosureMap.find cid table in
         let rattrib: Eliom_content_core.Xml.attrib =
           (Eliom_lib.from_poly (Eliom_lib.to_poly value)) in
         rebuild_rattrib node rattrib
@@ -1231,7 +1237,8 @@ let unwrap_tyxml =
     elt
 
 let unwrap_client_value cv =
-  Client_value.find ~instance_id:(Client_value_server_repr.instance_id cv)
+  Client_value.find
+    ~instance_id:(Eliom_client_common.Client_value_server_repr.instance_id cv)
   (* BB By returning [None] this value will be registered for late
      unwrapping, and late unwrapped in Client_value.initialize as
      soon as it is available. *)
@@ -1239,7 +1246,7 @@ let unwrap_client_value cv =
 let unwrap_global_data = fun (global_data', _) ->
   global_data :=
     String_map.map
-      (fun {server_sections_data; client_sections_data} ->
+      (fun {Eliom_client_common.server_sections_data; client_sections_data} ->
          {server_section = Array.to_list server_sections_data;
           client_section = Array.to_list client_sections_data})
       global_data'
@@ -1249,7 +1256,7 @@ let _ =
     (Eliom_unwrap.id_of_int Eliom_common_base.client_value_unwrap_id_int)
     unwrap_client_value;
   Eliom_unwrap.register_unwrapper
-    (Eliom_unwrap.id_of_int Eliom_lib_base.tyxml_unwrap_id_int)
+    (Eliom_unwrap.id_of_int Eliom_client_common.tyxml_unwrap_id_int)
     unwrap_tyxml;
   Eliom_unwrap.register_unwrapper
     (Eliom_unwrap.id_of_int Eliom_common_base.global_data_unwrap_id_int)

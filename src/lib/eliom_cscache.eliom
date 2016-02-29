@@ -8,7 +8,7 @@ open Eliom_content.Html5.F
 
 {shared{
   type ('a, 'b) local_t = unit -> ('a, 'b Lwt.t) Hashtbl.t
-  type ('a, 'b) t = ('a, 'b) local_t shared_value
+  type ('a, 'b) t = ('a, 'b) local_t Eliom_client_common.shared_value
 }}
 
 {client{
@@ -24,7 +24,7 @@ open Eliom_content.Html5.F
     fun () -> Eliom_reference.Volatile.get c
 
 let create () =
-  Eliom_lib.create_shared_value (local_create ()) {{ local_create () }}
+  Eliom_client_common.create_shared_value (local_create ()) {{ local_create () }}
 }}
 
 {shared{

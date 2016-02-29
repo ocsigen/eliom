@@ -59,10 +59,10 @@ module React : sig
       ?default :
         ('a React.S.t * (?step:React.step -> 'a -> unit))
           option
-          Eliom_lib.client_value ->
+          Eliom_client_common.client_value ->
       ?reset_default : bool ->
       'a ->
-      'a t * (?step:React.step -> 'a -> unit) Eliom_lib.shared_value
+      'a t * (?step:React.step -> 'a -> unit) Eliom_client_common.shared_value
 
     (** If [synced s] is true, then the server-side and client-side
         values of [s] are equal. This means that the client-side code

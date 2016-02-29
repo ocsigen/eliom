@@ -296,9 +296,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         | si -> false
 
       let is_client_value_type = function
-        | <:ctyp< $typ$ Eliom_lib.client_value >>
-        | <:ctyp< $typ$ Eliom_pervasives.client_value >> ->
-            Some typ
+        | <:ctyp< $typ$ Eliom_client_common.client_value >> -> Some typ
         | _ -> None
 
       let extract_escaped_ident_type = function
@@ -910,21 +908,13 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       (* Cf. Camlp4OCamlRevisedParser *)
       implem:
         [[ si = str_item; semi; (sil, stopped) = SELF ->
-             let open_pervasives =
-               let _loc = Loc.ghost in
-               <:str_item< open Eliom_pervasives >>
-             in
-             (open_pervasives :: Pass.implem _loc (si :: sil), stopped)
+             (Pass.implem _loc (si :: sil), stopped)
          | `EOI -> ([], None)
         ]];
 
       interf:
         [[ si = sig_item; semi; (sil, stopped) = SELF ->
-           let open_pervasives =
-             let _loc = Loc.ghost in
-             <:sig_item< open Eliom_pervasives >>
-           in
-           (open_pervasives :: si :: sil, stopped)
+           (si :: sil, stopped)
          | `EOI -> ([], None) ]];
 
 
@@ -954,12 +944,12 @@ module Make(Syntax : Camlp4.Sig.Camlp4Syntax) = struct
 
   implem: FIRST
     [[ (sil, stopped) = implem LEVEL "top" ->
-      ( <:str_item< open Eliom_pervasives >>:: sil , stopped) ]
+      ( sil , stopped) ]
   | "top" [] ];
 
   interf: FIRST
     [[ (sil, stopped) = interf LEVEL "top" ->
-      ( <:sig_item< open Eliom_pervasives >> :: sil , stopped) ]
+      ( sil , stopped) ]
   | "top" [] ];
 
   END

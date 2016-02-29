@@ -374,16 +374,16 @@ val get_priority_ : a_s -> int
 val get_client_fun_ :
   ('a, 'b, 'meth, 'attch, 'kind, 'd, 'e, 'f, 'g, 'return) service ->
   (unit ->
-   ('a -> 'b -> [ `Html ] Eliom_content_core.Html5.elt Lwt.t) option) client_value
+   ('a -> 'b -> [ `Html ] Eliom_content_core.Html5.elt Lwt.t) option) Eliom_client_common.client_value
 val set_client_fun_ :
   ?app:string ->
   service:('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service ->
-  ('a -> 'b -> [`Html] Eliom_content_core.Html5.elt Lwt.t) client_value ->
+  ('a -> 'b -> [`Html] Eliom_content_core.Html5.elt Lwt.t) Eliom_client_common.client_value ->
   unit
 val internal_set_client_fun_ :
   service:('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service ->
   (unit ->
-   ('a -> 'b -> [`Html] Eliom_content_core.Html5.elt Lwt.t) client_value option)
+   ('a -> 'b -> [`Html] Eliom_content_core.Html5.elt Lwt.t) Eliom_client_common.client_value option)
   ->
   unit
 

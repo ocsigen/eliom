@@ -24,7 +24,7 @@
    The expression $expr$ inside a client_value will be used for for registering
    the client closure (cf. [Client_pass.register_client_closures]), as well as
    for creating a client-only function (cf. [Client_pass.define_client_functions]).
-   Only for the former it is necessary to call [Eliom_client.Syntax_helpers.get_escaped_value]
+   Only for the former it is necessary to call [Eliom_client0.Syntax_helpers.get_escaped_value]
    on the escaped identifier.
    This is done post-hoc by [map_get_escaped_values] in [register_client_closures]. *)
 
@@ -54,7 +54,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     fun typ -> ast_mapper#ctyp typ
 
   (* Replace every escaped identifier [v] with
-     [Eliom_client.Syntax_helpers.get_escaped_value v] *)
+     [Eliom_client0.Syntax_helpers.get_escaped_value v] *)
   let map_get_escaped_values ?nested:(nested = false) =
     let mapper =
       Ast.map_expr
@@ -62,13 +62,13 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           | <:expr@_loc< $lid:str$ >>
             when Helpers.is_escaped_indent_string str ->
             <:expr<
-              Eliom_client.Syntax_helpers.get_escaped_value
+              Eliom_client0.Syntax_helpers.get_escaped_value
                 $lid:str$ >>
           | <:expr@_loc< $lid:str$ >>
             when (Helpers.is_nested_escaped_indent_string str &&
                   nested) ->
             <:expr<
-              Eliom_client.Syntax_helpers.get_escaped_value
+              Eliom_client0.Syntax_helpers.get_escaped_value
                 $lid:str$ >>
           | expr ->
             expr)
@@ -137,7 +137,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
            let typ = get_type Helpers.find_client_value_type gen_num in
            let _loc = Ast.loc_of_expr expr in
            <:expr<
-             Eliom_client.Syntax_helpers.register_client_closure
+             Eliom_client0.Syntax_helpers.register_client_closure
                $str:gen_num$
                (fun $Helpers.patt_tuple args$ ->
                   ($map_get_escaped_values ~nested expr$ : $typ$))
@@ -175,7 +175,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     let _loc = Loc.ghost in
     <:str_item<
         let () =
-          Eliom_client.Syntax_helpers.close_server_section
+          Eliom_client0.Syntax_helpers.close_server_section
             $str:Helpers.file_hash loc$
     >>
 
@@ -183,7 +183,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     let _loc = Loc.ghost in
     <:str_item<
         let () =
-          Eliom_client.Syntax_helpers.open_client_section
+          Eliom_client0.Syntax_helpers.open_client_section
             $str:Helpers.file_hash loc$
     >>
 
@@ -305,7 +305,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           let (u, d) = Helpers.get_injected_ident_info gen_id in
           let s = Printf.sprintf "%s%d" u d in
           <:expr<
-            (Eliom_client.Syntax_helpers.get_injection ?ident:($ident$) ~pos:($Helpers.position _loc$) $str:s$ : $typ$)
+            (Eliom_client0.Syntax_helpers.get_injection ?ident:($ident$) ~pos:($Helpers.position _loc$) $str:s$ : $typ$)
           >>
 
   let implem _ sil = sil

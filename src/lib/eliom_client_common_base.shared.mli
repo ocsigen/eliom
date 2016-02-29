@@ -20,9 +20,10 @@
 
 (**/**)
 
+
 (** Server representation of client values.
     Developer-visible functions should always operate on
-    {% <<a_api subproject="server" | type Eliom_pervasives.client_value >> %} or
+    {% <<a_api subproject="server" | type Eliom_client_common.client_value >> %} or
     {% <<a_api subproject="server" | type Eliom_client_common.client_value >> %}.
 *)
 module Client_value_server_repr : sig
@@ -30,16 +31,18 @@ module Client_value_server_repr : sig
   (** instance_id is zero for local client values, unique for global
       client values *)
   val create:
-    ?loc:pos -> instance_id:int -> unwrapper:Eliom_wrap.unwrapper -> _ t
+    ?loc:Eliom_lib_base.pos ->
+    instance_id:int ->
+    unwrapper:Eliom_wrap.unwrapper -> _ t
   val instance_id: _ t -> int
-  val loc : _ t -> pos option
+  val loc : _ t -> Eliom_lib_base.pos option
   val clear_loc : _ t -> unit
-  val to_poly : _ t -> poly t
+  val to_poly : _ t -> Ocsigen_lib.poly t
 end
 
 (** The representation of escaped values (values injected into client
     values) is opaque. *)
-type escaped_value = poly
+type escaped_value = Ocsigen_lib.poly
 
 module RawXML : sig
 
@@ -51,7 +54,7 @@ module RawXML : sig
 
   type -'a caml_event_handler =
     | CE_registered_closure of
-        string * poly (* 'a Js.t -> unit) client_value *)
+        string * Ocsigen_lib.poly (* 'a Js.t -> unit) client_value *)
     | CE_client_closure of ((#Dom_html.event as 'a) Js.t -> unit)
     | CE_call_service of
         ([ `A | `Form_get | `Form_post] * (cookie_info option) * string option) option Eliom_lazy.request
@@ -106,7 +109,7 @@ module RawXML : sig
     | RACamlEventHandler of biggest_event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
-    | RAClient of string * attrib option * poly (* attrib client_value *)
+    | RAClient of string * attrib option * Ocsigen_lib.poly (* attrib client_value *)
   and attrib = aname * racontent
 
   val aname : attrib -> aname
@@ -138,9 +141,9 @@ module RawXML : sig
   module ClosureMap : Map.S with type key = string (* crypto *)
 
   type event_handler_table =
-    poly (* (biggest_event Js.t -> unit) client_value*) ClosureMap.t
+    Ocsigen_lib.poly (* (biggest_event Js.t -> unit) client_value*) ClosureMap.t
 
-  type client_attrib_table = poly (* attrib client_value *) ClosureMap.t
+  type client_attrib_table = Ocsigen_lib.poly (* attrib client_value *) ClosureMap.t
 
   val filter_class_attribs : node_id -> (string * racontent) list -> (string * racontent) list
 end
@@ -151,15 +154,15 @@ val client_value_unwrap_id_int : int
 (** Data for initializing one client value *)
 type client_value_datum = {
   closure_id : string;
-  args : poly;
-  value : poly Client_value_server_repr.t
+  args : Ocsigen_lib.poly;
+  value : Ocsigen_lib.poly Client_value_server_repr.t
 }
 
 (** Data for initializing one injection *)
 type injection_datum = {
-  injection_dbg : (pos * string option) option;
+  injection_dbg : (Eliom_lib_base.pos * string option) option;
   injection_id : int;
-  injection_value : poly;
+  injection_value : Ocsigen_lib.poly;
 }
 
 (** Data for initializing client values and injections of one compilation unit *)
@@ -171,10 +174,18 @@ type compilation_unit_global_data = {
 (** Data for initializing client values and injection of the client
     program. Sent with the response to the initial request of a client
     process. *)
-type global_data = compilation_unit_global_data String_map.t
+type global_data = compilation_unit_global_data Eliom_lib.String_map.t
 
 (** Data for initializing client values sent with a request. Sent with
     the response to any follow-up request of a client process. *)
 type request_data = client_value_datum array
 
 val global_data_unwrap_id_int : int
+
+type 'a eliom_caml_service_data = {
+  ecs_request_data: request_data;
+  ecs_data: 'a;
+}
+
+(* the data sent on channels *)
+type 'a eliom_comet_data_type = 'a Eliom_wrap.wrapped_value

@@ -185,9 +185,8 @@ module Mli = struct
     Scanf.sscanf id Name.injected_ident_fmt (fun u n -> (u, n))
 
   let get_fragment_type = function
-    | [%type: [%t? typ] Eliom_lib.client_value ]
-    | [%type: [%t? typ] Eliom_pervasives.client_value ]
-    | [%type: [%t? typ] Eliom_pervasives.fragment ] ->
+    | [%type: [%t? typ] Eliom_client_common.fragment ]
+    | [%type: [%t? typ] Eliom_client_common.client_value ] ->
       Some typ
     | _ -> None
 
@@ -268,8 +267,6 @@ module Context = struct
   ]
 end
 
-let open_eliom_pervasives =
-  [%stri open Eliom_pervasives ]
 
 let match_args = function
   | [ ] -> ()
@@ -353,7 +350,7 @@ module Shared = struct
     let server_expr = server.AM.expr server expr in
     let client_expr = client.AM.expr client expr in
     [%expr
-      Eliom_lib.create_shared_value
+      Eliom_client_common.create_shared_value
         [%e server_expr]
         [%client [%e client_expr]]
     ] [@metaloc loc]
@@ -450,8 +447,7 @@ module Make (Pass : Pass) = struct
     let loc = sig_.psig_loc in
     match sig_.psig_desc with
     | Psig_extension (({txt=("server"|"shared"|"client")}, _), _) ->
-      Location.raise_errorf ~loc
-        "Sections are only allowed at toplevel."
+      Location.raise_errorf ~loc "Sections are only allowed at toplevel."
     | _ -> AM.default_mapper.signature_item mapper sig_
 
   let eliom_mapper context =
@@ -520,7 +516,7 @@ module Make (Pass : Pass) = struct
         dispatch_str !context mapper pstr
     in
     let loc = {(Location.in_file !Location.input_name) with loc_ghost = true} in
-    open_eliom_pervasives :: Pass.prelude loc @ flatmap f structs @ Pass.postlude loc
+    Pass.prelude loc @ flatmap f structs @ Pass.postlude loc
 
   let toplevel_signature context mapper sigs =
     let f psig =

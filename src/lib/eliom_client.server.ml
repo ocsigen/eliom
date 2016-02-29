@@ -21,12 +21,17 @@
 
 let is_client_app () = false
 
+type ('a, +'b) server_function =
+  ('a, 'b) Eliom_client_base.server_function_service * Eliom_wrap.unwrapper
+
+let mk_serv_fun a b : ('a, 'b) server_function = (a, b)
+
 let server_function
     ?scope ?options ?charset ?code ?content_type ?headers ?secure_session ?name
     ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https ?error_handler
     argument_type f =
-  Eliom_pervasives.mk_serv_fun
-    (Ocaml.register_post_coservice'
+  mk_serv_fun
+    (Eliom_registration.Ocaml.register_post_coservice'
        ?scope ?options ?charset ?code ?content_type ?headers ?secure_session
        ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
        ?error_handler

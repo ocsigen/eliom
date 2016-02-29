@@ -30,13 +30,7 @@ type sitedata = (* sent while starting the program *)
    site_dir_string: string;
   }
 
-type 'a eliom_caml_service_data = {
-  ecs_request_data: request_data;
-  ecs_data: 'a;
-}
 
-(* the data sent on channels *)
-type 'a eliom_comet_data_type = 'a Eliom_wrap.wrapped_value
 
 (*SGO* Server generated onclicks/onsubmits
 (* For client side program, we sometimes simulate links and forms

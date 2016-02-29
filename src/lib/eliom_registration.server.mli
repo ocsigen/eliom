@@ -186,7 +186,7 @@ module type ELIOM_APPL = sig
   ?app:string ->
   service:('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return)
       Eliom_service.service ->
-  ('a -> 'b -> [`Html] Eliom_content.Html5.elt Lwt.t) client_value ->
+  ('a -> 'b -> [`Html] Eliom_content.Html5.elt Lwt.t) Eliom_client_common.client_value ->
   unit
 
   (** The function [application_name ()] returns a [<script>] node
@@ -234,7 +234,7 @@ module type TMPL_PARAMS = sig
   type t
   val name: string
   val make_page: t -> Html5_types.html Eliom_content.Html5.elt Lwt.t
-  val update: t -> unit client_value
+  val update: t -> unit Eliom_client_common.client_value
 end
 
 module Eliom_tmpl (Appl : ELIOM_APPL) (Tmpl_param : TMPL_PARAMS): sig

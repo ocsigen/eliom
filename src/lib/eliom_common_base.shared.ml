@@ -264,28 +264,28 @@ type sess_info =
    }
 
 type eliom_js_page_data = {
-  ejs_global_data: global_data option;
-  ejs_request_data: request_data;
+  ejs_global_data: Eliom_client_common.global_data2 option;
+  ejs_request_data: Eliom_client_common.request_data;
   (* Event handlers *)
-  ejs_event_handler_table: Eliom_lib.RawXML.event_handler_table;
+  ejs_event_handler_table: Eliom_client_common_base.RawXML.event_handler_table;
   (* Client Attributes *)
-  ejs_client_attrib_table: Eliom_lib.RawXML.client_attrib_table;
+  ejs_client_attrib_table: Eliom_client_common_base.RawXML.client_attrib_table;
   (* Session info *)
   ejs_sess_info: sess_info;
 }
 
 (************ unwrapping identifiers *********************)
 
-let tyxml_unwrap_id_int = Eliom_lib_base.tyxml_unwrap_id_int
+let tyxml_unwrap_id_int = Eliom_client_common_base.tyxml_unwrap_id_int
 let () = assert (tyxml_unwrap_id_int = 1)
 let comet_channel_unwrap_id_int = 2
 let react_up_unwrap_id_int = 3
 let react_down_unwrap_id_int = 4
 let signal_down_unwrap_id_int = 5
 let bus_unwrap_id_int = 6
-let client_value_unwrap_id_int = Eliom_lib_base.client_value_unwrap_id_int
+let client_value_unwrap_id_int = Eliom_client_common_base.client_value_unwrap_id_int
 let () = assert (client_value_unwrap_id_int = 7)
-let global_data_unwrap_id_int = Eliom_lib_base.global_data_unwrap_id_int
+let global_data_unwrap_id_int = Eliom_client_common_base.global_data_unwrap_id_int
 let () = assert (global_data_unwrap_id_int = 8)
 let server_function_unwrap_id_int = 9
 
@@ -297,5 +297,18 @@ type node_ref = string
 (* CCC take care: this must remain of the same syntax as non localised
    non persistent get parameter name *)
 let nl_get_appl_parameter = "__nl_n_eliom-process.p"
+
+
+(* make a path by going up when there is a '..' *)
+let make_actual_path path =
+  let rec aux accu path =
+    match (accu, path) with
+    | ([], ".."::path') -> aux accu path'
+    | (_::accu',  ".."::path') -> aux accu' path'
+    | (_,  a::path') -> aux (a::accu) path'
+    | (_,  []) -> accu
+  in match path with
+  | ""::path -> ""::List.rev (aux [] path)
+  | _ -> List.rev (aux [] path)
 
 let is_client_app = ref false

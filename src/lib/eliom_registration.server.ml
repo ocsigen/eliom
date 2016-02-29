@@ -1345,13 +1345,15 @@ module Ocaml = struct
 
   let prepare_data data =
     let ecs_request_data =
-      let data = Eliom_service.get_request_data () in
+      let data = Eliom_client_common2.get_request_data () in
       if not (Ocsigen_config.get_debugmode()) then
-        Array.iter (fun d -> Client_value_server_repr.clear_loc d.value) data;
+        Array.iter (fun d ->
+          Eliom_client_common.Client_value_server_repr.clear_loc
+            d.Eliom_client_common.value) data;
       data
     in
     (*     debug_client_value_data (debug "%s") client_value_data; *)
-    let r = { Eliom_types.
+    let r = { Eliom_client_common.
               ecs_request_data;
               ecs_data = data } in
     Lwt.return (Eliom_types.encode_eliom_data r)
@@ -1930,32 +1932,38 @@ module Eliom_appl_reg_make_param
 
     let ejs_global_data =
       if is_initial_request () then
-        let data = Eliom_service.get_global_data () in
+        let data = Eliom_client_common2.get_global_data () in
         let data =
           if keep_debug
           then data
           else
             String_map.map
-              (fun {server_sections_data;client_sections_data} ->
+              (fun {Eliom_client_common_base.server_sections_data;
+                    client_sections_data} ->
                  Array.iter
                    (Array.iter (fun d ->
-                                  Client_value_server_repr.clear_loc d.value))
+                      Eliom_client_common_base.Client_value_server_repr.clear_loc
+                        d.Eliom_client_common_base.value))
                    server_sections_data;
-              { server_sections_data;
+              { Eliom_client_common_base.server_sections_data;
                 client_sections_data = Array.map
                     (
-                      Array.map (fun x -> {x with injection_dbg = None})
+                      Array.map (fun x ->
+                        {x with
+                         Eliom_client_common_base.injection_dbg = None})
                     )
                     client_sections_data
               }) data
         in
-        Some (data, global_data_unwrapper)
+        Some (data, Eliom_client_common.global_data_unwrapper)
       else None
     in
     let ejs_request_data =
-      let data = Eliom_service.get_request_data () in
+      let data = Eliom_client_common2.get_request_data () in
       if not keep_debug then
-        Array.iter (fun d -> Client_value_server_repr.clear_loc d.value) data;
+        Array.iter (fun d ->
+          Eliom_client_common.Client_value_server_repr.clear_loc
+            d.Eliom_client_common_base.value) data;
       data
     in
 
@@ -2061,7 +2069,7 @@ module Eliom_appl_reg_make_param
 
     let sp = Eliom_common.get_sp () in
 
-    (* GRGR FIXME et si le nom de l'application diff�re ?? Il faut
+    (* GRGR FIXME et si le nom de l'application diffère ?? Il faut
        renvoyer un full_redirect... TODO *)
     if sp.Eliom_common.sp_client_appl_name <> Some Appl_params.application_name then
 
@@ -2126,7 +2134,8 @@ module type ELIOM_APPL = sig
   ?app:string ->
   service:('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return)
     Eliom_service.service ->
-    ('a -> 'b -> [`Html] Eliom_content.Html5.elt Lwt.t) client_value ->
+  ('a -> 'b -> [`Html] Eliom_content.Html5.elt Lwt.t)
+    Eliom_client_common.client_value ->
     unit
   val application_script :
     ?defer:bool -> ?async:bool -> unit -> [> `Script ] Eliom_content.Html5.elt
@@ -2175,7 +2184,7 @@ module type TMPL_PARAMS = sig
   type t
   val name: string
   val make_page: t -> Html5_types.html Eliom_content.Html5.elt Lwt.t
-  val update: t -> unit client_value
+  val update: t -> unit Eliom_client_common.client_value
 end
 
 module Eliom_tmpl_reg_make_param
@@ -2427,20 +2436,3 @@ let set_exn_handler h =
 
 
 module String = Text
-
-
-let _ =
-  Eliom_pervasives.server_function_hook.Eliom_pervasives.a <-
-    fun ?scope ?options ?charset ?code ?content_type ?headers
-      ?secure_session ?name
-      ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
-      ?error_handler
-      argument_type f ->
-      Eliom_pervasives.mk_serv_fun
-      (Ocaml.register_post_coservice'
-         ?scope ?options ?charset ?code ?content_type ?headers ?secure_session ?name
-         ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https ?error_handler
-         ~post_params:Eliom_parameter.(ocaml "argument" argument_type)
-         (fun () argument -> f argument))
-      (Eliom_wrap.create_unwrapper
-         (Eliom_wrap.id_of_int Eliom_common_base.server_function_unwrap_id_int))
