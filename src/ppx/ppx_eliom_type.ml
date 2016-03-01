@@ -118,7 +118,7 @@ module Pass = struct
         Some ( Eliom_client_common2.Syntax_helpers.client_value "" 0 :
                  [%t typ] Eliom_client_common.client_value);
       match ! [%e frag_eid] with
-      | Some x -> x
+      | Some x -> (x : _ Eliom_client_common.client_value)
       | None -> assert false
     ]
 
