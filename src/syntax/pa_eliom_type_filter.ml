@@ -99,7 +99,9 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     <:expr< begin
       $flush_typing_expr ()$;
       $lid:gen_tid$ := Some (Eliom_client_common2.Syntax_helpers.client_value "" 0 : $typ$ Eliom_client_common.client_value);
-      match ! $lid:gen_tid $ with | Some x -> x | None -> assert false
+            match ! $lid:gen_tid $ with
+            | Some x -> (x : _ Eliom_client_common.client_value)
+            | None -> assert false
     end >>
 
   let shared_value_expr typ _ orig_expr gen_id gen_tid loc =
