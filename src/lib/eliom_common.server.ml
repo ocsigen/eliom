@@ -624,8 +624,8 @@ let get_sp_option () = Lwt.get sp_key
 
 let get_sp () =
   match Lwt.get sp_key with
-    | Some sp -> sp
-    | None -> failwith "That function cannot be called here because it needs information about the request or the site."
+  | Some sp -> sp
+  | None -> failwith "This function cannot be called here because it needs information about the request or the site."
 
 let sp_of_option sp =
   match sp with
