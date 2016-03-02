@@ -632,8 +632,26 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         | None ->
             Printf.ksprintf (Syntax_error.raise loc) fmt
 
-    module E2 = Camlp4.ErrorHandler.Register(Syntax_error)
-    DELETE_RULE Gram expr: "{"; TRY [label_expr_list; "}"] END;
+    module E2 = Camlp4.ErrorHandler.Register(Syntax_error) ;;
+
+    try
+      DELETE_RULE Gram expr: "{"; TRY [label_expr_list; "}"] END
+    with Camlp4.Struct.Grammar.Delete.Rule_not_found _ ->
+      (let test_record_field =
+         Gram.Entry.of_parser "record_field" (fun strm ->
+           let rec loop = function
+             | [] -> ()
+             | (UIDENT _, _) :: (KEYWORD ".", _) :: rest -> loop rest
+             | (LIDENT _, _) :: (KEYWORD "=", _) :: _    -> ()
+             | (LIDENT _, _) :: (KEYWORD ";", _) :: _    -> ()
+             | [LIDENT _, _] -> ()
+             | _ -> raise Stream.Failure
+           in
+           loop (Stream.npeek 100 strm))
+       in
+       DELETE_RULE Gram expr:
+         "{"; test_record_field; label_expr_list; "}" END) ;;
+
     DELETE_RULE Gram expr: "{"; TRY [expr LEVEL "."; "with"]; label_expr_list; "}" END;
 
     (* Extending syntax *)
@@ -812,7 +830,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       expr: LEVEL "simple"
 
         [ [ KEYWORD "{"; lel = TRY [lel = label_expr_list; "}" -> lel] ->
-              <:expr< { $lel$ } >>
+            Ast.ExRec (_loc, lel, Ast.ExNil _loc)
           | KEYWORD "{shared#";
             typ = TRY [ typ = OPT ctyp; KEYWORD "{" -> typ];
             opt_lvl = dummy_set_level_shared_value_expr ;
