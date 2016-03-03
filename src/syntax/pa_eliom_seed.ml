@@ -637,20 +637,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
     try
       DELETE_RULE Gram expr: "{"; TRY [label_expr_list; "}"] END
     with Camlp4.Struct.Grammar.Delete.Rule_not_found _ ->
-      (let test_record_field =
-         Gram.Entry.of_parser "record_field" (fun strm ->
-           let rec loop = function
-             | [] -> ()
-             | (UIDENT _, _) :: (KEYWORD ".", _) :: rest -> loop rest
-             | (LIDENT _, _) :: (KEYWORD "=", _) :: _    -> ()
-             | (LIDENT _, _) :: (KEYWORD ";", _) :: _    -> ()
-             | [LIDENT _, _] -> ()
-             | _ -> raise Stream.Failure
-           in
-           loop (Stream.npeek 100 strm))
-       in
-       DELETE_RULE Gram expr:
-         "{"; test_record_field; label_expr_list; "}" END) ;;
+      DELETE_RULE Gram expr: "{"; label_expr_list; "}" END ;;
 
     DELETE_RULE Gram expr: "{"; TRY [expr LEVEL "."; "with"]; label_expr_list; "}" END;
 
