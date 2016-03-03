@@ -85,9 +85,8 @@ let redirect_post url params =
     (fun (n, v) ->
       match v with
         | `String v ->
-          let i =
-            Dom_html.createTextarea
-              ~_type:(Js.string "text") ~name:(Js.string n) Dom_html.document in
+          let i = Dom_html.createTextarea ~name:(Js.string n) Dom_html.document
+          in
           i##value <- v;
           Dom.appendChild f i
         | `File i ->
