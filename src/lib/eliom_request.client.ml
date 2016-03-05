@@ -195,7 +195,7 @@ let send ?(expecting_process_page = false) ?cookies_info
         then true
         else
           headers Eliom_common.appl_name_header_name
-          = Eliom_process.get_application_name ()
+          = Some (Eliom_process.get_application_name ())
       else true
     in
     try_lwt
@@ -251,20 +251,17 @@ let send ?(expecting_process_page = false) ?cookies_info
               | _, _ -> Lwt_log.raise_error ~section  "can't silently redirect a Post request to non application content");
             Lwt.fail Program_terminated
           | Some appl_name ->
-            match Eliom_process.get_application_name () with
-              | None ->
-                Lwt_log.raise_error ~section "no application name? please report this bug"
-              | Some current_appl_name ->
-                if appl_name = current_appl_name
-                then assert false (* we can't go here:
+            let current_appl_name = Eliom_process.get_application_name () in
+            if appl_name = current_appl_name
+            then assert false (* we can't go here:
                                      this case is already handled before *)
-                else
-                  begin
-                    Lwt_log.ign_warning_f ~section
-                      "received content for application %S when running application %s"
-                     appl_name current_appl_name;
-                    Lwt.fail (Failed_request code)
-                  end
+            else
+              begin
+                Lwt_log.ign_warning_f ~section
+                  "received content for application %S when running application %s"
+                  appl_name current_appl_name;
+                Lwt.fail (Failed_request code)
+              end
   in
   lwt (url, content) = aux 0 ?cookies_info ?get_args ?post_args ?form_arg url in
   let filter_url url =

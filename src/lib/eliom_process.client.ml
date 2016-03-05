@@ -20,6 +20,12 @@
 open Eliom_lib
 open Ocsigen_cookies
 
+(* Logs *)
+let section = Lwt_log.Section.make "eliom:client"
+let log_section = section
+let _ = Lwt_log.Section.set_level log_section Lwt_log.Info
+(* *)
+
 let history_api = Dom_html.hasPushState ()
 
 let get_set_js_serverside_value r name =
@@ -64,6 +70,8 @@ let set_request_template, is_set_request_template,
 let appl_name =
   lazy
     (let (_, v, _) =
+       (* VVV 2016-03 Why are we using an appl cookie for this?
+          We need the JS variable anyway for mobile app. → remove? *)
        (CookiesTable.find
           Eliom_common.appl_name_cookie_name
           (Cookies.find
@@ -84,7 +92,9 @@ let set_base_url, get_base_url =
 let appl_name_r = ref None (* Set by Eliom_client.init_client_app *)
 let get_application_name () =
   match !appl_name_r with
-  | None -> Some (!!appl_name)
-  | Some n -> Some n
+  | None ->
+    (try !!appl_name with
+     | Not_found -> Lwt_log.raise_error ~section "Application name not defined")
+  | Some n -> n
 
 let client_side = true
