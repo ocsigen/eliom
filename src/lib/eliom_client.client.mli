@@ -252,6 +252,9 @@ val onunload : (unit -> string option) -> unit
 (** Wait for the initialization phase to terminate *)
 val wait_load_end : unit -> unit Lwt.t
 
+(** Returns the name of currently running Eliom application,
+    defined while applying [Eliom_registration.App] functor. *)
+val get_application_name : unit -> string
 
 (** {2 RPC / Server functions}
 

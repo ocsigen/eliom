@@ -104,6 +104,13 @@ let init () =
   insert_base Dom_html.document;
   (* </base> *)
 
+  (* Decoding tab cookies.
+     2016-03 This was done at the beginning of onload below
+     but this makes it impossible to use cookies
+     during initialisation phase. I move this here. -- Vincent *)
+  Eliommod_cookies.update_cookie_table (Some Url.Current.host)
+    (Eliom_request_info.get_request_cookies ());
+
   let onload ev =
     Lwt_log.ign_debug ~section "onload (client main)";
     set_initial_load ();
@@ -111,8 +118,6 @@ let init () =
       (fun () ->
          if !Eliom_config.debug_timings
          then Firebug.console##time(Js.string "onload");
-         Eliommod_cookies.update_cookie_table (Some Url.Current.host)
-           (Eliom_request_info.get_request_cookies ());
          Eliom_request_info.set_session_info js_data.Eliom_common.ejs_sess_info;
          (* Give the browser the chance to actually display the page NOW *)
          lwt () = Lwt_js.sleep 0.001 in
@@ -441,16 +446,16 @@ let set_content_local ?uri ?offset ?fragment new_page =
     Lwt_mutex.unlock load_mutex;
     run_callbacks (flush_onload () @ [broadcast_load_end]);
     scroll_to_fragment ?offset fragment;
-    if !Eliom_config.debug_timings then
-      Firebug.console##timeEnd(Js.string "set_content_local");
+    if !Eliom_config.debug_timings
+    then Firebug.console##timeEnd(Js.string "set_content_local");
     Lwt.return ()
   in
   let cancel () = recover (); Lwt.return () in
   try_lwt
     lwt () = Lwt_mutex.lock load_mutex in
     set_loading_phase ();
-    if !Eliom_config.debug_timings then
-      Firebug.console##time(Js.string "set_content_local");
+    if !Eliom_config.debug_timings
+    then Firebug.console##time(Js.string "set_content_local");
     run_onunload_wrapper really_set cancel
   with exn ->
     recover ();
@@ -862,3 +867,5 @@ let () =
           Is it a problem?
           -- Vincent *)
        call_ocaml_service ~absolute:true ~service ())
+
+let get_application_name = Eliom_process.get_application_name
