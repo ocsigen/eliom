@@ -60,7 +60,15 @@ let init_client_app
                           cpi_original_full_path = full_path
                          };
   Eliom_process.set_request_template None;
-  Eliom_process.set_request_cookies Ocsigen_cookies.Cookies.empty
+  (* We set the tab cookie table, with the app name inside: *)
+  Eliom_process.set_request_cookies
+    (Ocsigen_cookies.Cookies.add
+       []
+       (Ocsigen_cookies.CookiesTable.add
+          Eliom_common.appl_name_cookie_name
+          (Eliommod_cookies.OSet (None, app_name, false))
+          Ocsigen_cookies.CookiesTable.empty)
+       Ocsigen_cookies.Cookies.empty)
 
 let is_client_app () = !Eliom_common.is_client_app
 
