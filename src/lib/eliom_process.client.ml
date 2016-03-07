@@ -70,8 +70,10 @@ let set_request_template, is_set_request_template,
 let appl_name =
   lazy
     (let (_, v, _) =
-       (* VVV 2016-03 Why are we using an appl cookie for this?
-          We need the JS variable anyway for mobile app. → remove? *)
+       (* We are using an appl cookie for this,
+          and not a JS variable,
+          because we want to send it back with each request.
+          For mobile apps, we set the cookie from JS variable. *)
        (CookiesTable.find
           Eliom_common.appl_name_cookie_name
           (Cookies.find
