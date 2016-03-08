@@ -116,7 +116,8 @@ let init () =
      2016-03 This was done at the beginning of onload below
      but this makes it impossible to use cookies
      during initialisation phase. I move this here. -- Vincent *)
-  Eliommod_cookies.update_cookie_table (Some Url.Current.host)
+  Eliommod_cookies.update_cookie_table
+    (Some (Eliom_process.get_info ()).cpi_hostname)
     (Eliom_request_info.get_request_cookies ());
 
   let onload ev =
