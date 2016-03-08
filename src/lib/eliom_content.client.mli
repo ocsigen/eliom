@@ -149,7 +149,7 @@ module Svg : sig
     (** [nth e n] returns the nth child of [e] (first is 0) *)
     val nth : 'a elt -> int -> 'b elt option
 
-    (** [childLength e] returns the number of chilren of [e] *)
+    (** [childLength e] returns the number of children of [e] *)
     val childLength : 'a elt -> int
 
     (** [removeChild e1 e2] removes for [e2] from the list of
@@ -463,7 +463,7 @@ module Html5 : sig
     (** [nth e n] returns the nth child of [e] (first is 0) *)
     val nth : 'a elt -> int -> 'b elt option
 
-    (** [childLength e] returns the number of chilren of [e] *)
+    (** [childLength e] returns the number of children of [e] *)
     val childLength : 'a elt -> int
 
     (** The function [removeChild e1 e2] removes for [e2] from the list of
