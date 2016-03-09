@@ -2133,10 +2133,9 @@ module type ELIOM_APPL = sig
   val set_client_fun :
   ?app:string ->
   service:('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return)
-    Eliom_service.service ->
-  ('a -> 'b -> [`Html] Eliom_content.Html5.elt Lwt.t)
-    Eliom_client_common.client_value ->
-    unit
+      Eliom_service.service ->
+  ('a -> 'b -> unit Lwt.t) Eliom_client_common.client_value ->
+  unit
   val application_script :
     ?defer:bool -> ?async:bool -> unit -> [> `Script ] Eliom_content.Html5.elt
   val application_name : string

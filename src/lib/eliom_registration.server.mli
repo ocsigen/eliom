@@ -186,7 +186,7 @@ module type ELIOM_APPL = sig
   ?app:string ->
   service:('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return)
       Eliom_service.service ->
-  ('a -> 'b -> [`Html] Eliom_content.Html5.elt Lwt.t) Eliom_client_common.client_value ->
+  ('a -> 'b -> unit Lwt.t) Eliom_client_common.client_value ->
   unit
 
   (** The function [application_name ()] returns a [<script>] node

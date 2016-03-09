@@ -422,19 +422,20 @@ let set_template_content ?uri ?fragment =
   | Some content ->
     run_onunload_wrapper (really_set content) cancel
 
+let set_uri ?fragment uri =
+  (* Changing url: *)
+  match fragment with
+  | None -> change_url_string uri
+  | Some fragment -> change_url_string (uri ^ "#" ^ fragment)
+
 (* Function to be called for client side services: *)
-let set_content_local ?uri ?offset ?fragment new_page =
+let set_content_local ?offset ?fragment new_page =
   let locked = ref true in
   let recover () =
     if !locked then Lwt_mutex.unlock load_mutex;
     if !Eliom_config.debug_timings then
       Firebug.console##timeEnd(Js.string "set_content_local")
   and really_set () =
-    (* Changing url: *)
-    (match uri, fragment with
-     | Some uri, None -> change_url_string uri
-     | Some uri, Some fragment -> change_url_string (uri ^ "#" ^ fragment)
-     | _ -> ());
     (* Inline CSS in the header to avoid the "flashing effect".
        Otherwise, the browser start to display the page before
        loading the CSS. *)
@@ -479,10 +480,7 @@ let set_content ?uri ?offset ?fragment content =
   | Some content ->
     let locked = ref true in
     let really_set () =
-      (match uri, fragment with
-       | Some uri, None -> change_url_string uri
-       | Some uri, Some fragment -> change_url_string (uri ^ "#" ^ fragment)
-       | _ -> ());
+      Eliom_lib.Option.iter (set_uri ?fragment) uri;
       (* Convert the DOM nodes from XML elements to HTML elements. *)
       let fake_page =
         Eliommod_dom.html_document content registered_process_node
@@ -617,12 +615,12 @@ let change_page
          | Some f ->
            (* The service has a client side implementation.
               We do not make the request *)
+           (* I record the function to be used for void coservices: *)
            Eliom_lib.Option.iter
              (fun rf ->
                 reload_function := Some (fun () () -> rf get_params ()))
              (Eliom_service.get_reload_fun service);
-           lwt content = f get_params post_params in
-           let content = !of_element_ content in
+           lwt () = f get_params post_params in
            let uri =
              match
                create_request_
@@ -636,7 +634,8 @@ let change_page
              | `Delete (uri, _) -> uri
            in
            let uri, fragment = Url.split_fragment uri in
-           set_content_local ~uri ?fragment content
+           set_uri uri;
+           Lwt.return ()
          | None ->
            (* No client-side implementation *)
            reload_function := None;

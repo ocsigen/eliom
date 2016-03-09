@@ -463,5 +463,5 @@ val set_client_fun :
   ?app:string ->
   service:('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return)
     Eliom_service.service ->
-  ('a -> 'b -> [`Html] Html5.elt Lwt.t) Eliom_client_common.client_value ->
+  ('a -> 'b -> unit Lwt.t) Eliom_client_common.client_value ->
   unit

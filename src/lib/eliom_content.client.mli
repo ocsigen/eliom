@@ -873,5 +873,9 @@ val set_client_fun :
   ?app:string ->
   service:('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return)
       Eliom_service.service ->
-  ('a -> 'b -> [`Html] Html5.elt Lwt.t) ->
+  ('a -> 'b -> unit Lwt.t) ->
   unit
+
+val wrap_client_fun :
+  ('g -> 'p -> Html5_types.html Html5.elt Lwt.t)
+  -> ('g -> 'p -> unit Lwt.t)
