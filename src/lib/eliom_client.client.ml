@@ -44,6 +44,20 @@ let insert_base page =
     (fun () -> Lwt_log.ign_debug_f "No <head> found in document")
     (fun head -> Dom.appendChild head b)
 
+let get_global_data () =
+  let def () = None
+  and id = Js.string "__global_data" in
+  Js.Optdef.case (Dom_html.window##localStorage) def @@ fun storage ->
+  Js.Opt.case (storage##getItem(id)) def @@ fun v ->
+  Lwt_log.ign_debug_f "Unwrap __global_data";
+  match
+    Eliom_unwrap.unwrap (Url.decode (Js.to_string v)) 0
+  with
+  | {Eliom_client_common.ecs_data = `Success v} ->
+    Lwt_log.ign_debug_f "Unwrap __global_data success";
+    Some v
+  | _ ->
+    None
 
 let init_client_app
     ~app_name ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
@@ -68,7 +82,8 @@ let init_client_app
           Eliom_common.appl_name_cookie_name
           (Eliommod_cookies.OSet (None, app_name, false))
           Ocsigen_cookies.CookiesTable.empty)
-       Ocsigen_cookies.Cookies.empty)
+       Ocsigen_cookies.Cookies.empty);
+  ignore (get_global_data ())
 
 let is_client_app () = !Eliom_common.is_client_app
 
