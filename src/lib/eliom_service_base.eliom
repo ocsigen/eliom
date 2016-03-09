@@ -366,6 +366,7 @@ let https_void_coservice' =
   }
 
 let void_hidden_coservice' =
+  let cf = ref {_ -> _{ fun () -> None }} in
   { void_coservice' with
     kind = `NonattachedCoservice;
     meth = `Get;
@@ -373,9 +374,12 @@ let void_hidden_coservice' =
         { na_name = Eliom_common.SNa_void_keep;
          keep_get_na_params=true;
         };
+    client_fun = cf;
+    reload_fun = Rf_some cf;
   }
 
 let https_void_hidden_coservice' =
+  let cf = ref {_ -> _{ fun () -> None }} in
   { void_coservice' with
     kind = `NonattachedCoservice;
     meth = `Get;
@@ -383,6 +387,8 @@ let https_void_hidden_coservice' =
         {na_name = Eliom_common.SNa_void_keep;
          keep_get_na_params=true;
         };
+    client_fun = cf;
+    reload_fun = Rf_some cf;
   }
 }}
 {shared{
