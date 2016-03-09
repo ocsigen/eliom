@@ -96,6 +96,13 @@ end
 {shared{
    let set_client_fun = Eliom_service.set_client_fun_
  }}
+
 {client{
-   let _ = Eliom_client0.of_element_ := Html5.To_dom.of_element
+let wrap_client_fun f get_params post_params =
+  print_endline "wrap :";
+  lwt content = f get_params post_params in
+  print_endline "f ok, of_elt :";
+  let content = Html5.To_dom.of_element content in
+  print_endline "of_elt ok, set_content_local :";
+  Eliom_client.set_content_local content
  }}

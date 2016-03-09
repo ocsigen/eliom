@@ -312,9 +312,7 @@ val server_function :
 
 val init : unit -> unit
 
-val reload_function :
-  (unit -> unit -> [ `Html ] Eliom_content_core.Html5.elt Lwt.t)
-    option ref
+val reload_function : (unit -> unit -> unit Lwt.t) option ref
 
 (** Lwt_log section for this module.
     Default level is [Lwt_log.Info].
@@ -326,3 +324,7 @@ val log_section : Lwt_log.section
 
 (** Is it a middle-click event? *)
 val middleClick : Dom_html.mouseEvent Js.t -> bool
+
+val set_content_local :
+  ?offset:Eliommod_dom.position ->
+  ?fragment:string -> Dom_html.element Js.t -> unit Lwt.t

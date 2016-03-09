@@ -129,7 +129,9 @@ end = struct
          "Client closure %s not found %s (is the module linked on the client?)"
           closure_id pos
     in
-    let value = closure args in
+    let value = try closure args
+      with e -> Js.debugger (); raise e
+    in
     Eliom_unwrap.late_unwrap_value server_value value;
     (* Only register global client values *)
     let instance_id =
@@ -1303,8 +1305,3 @@ module Syntax_helpers = struct
   let get_injection ?ident ?pos name = Injection.get ?ident ?pos ~name
 
 end
-
-(* Fixing a dependency problem: *)
-let of_element_
-  : ([ `Html ] Eliom_content_core.Html5.elt -> Dom_html.element Js.t) ref =
-  ref (fun _ -> assert false)

@@ -85,8 +85,7 @@ type delete_service_kind = [`Delete]
 type 'a reload_fun =
   | Rf_keep (* Keep previous reload function *)
   | Rf_some of
-      (unit ->
-       ('a -> unit -> [ `Html] Eliom_content_core.Html5.elt Lwt.t) option)
+      (unit -> ('a -> unit -> unit Lwt.t) option)
         Eliom_client_common.client_value ref
 
 type send_appl_content =
@@ -130,9 +129,8 @@ type ('get,'post,+'meth,+'attached,+'kind,+'tipo,'getnames,'postnames,+'registr,
 
   (* If the service has a client-side implementation,
      we put the generating function here: *)
-  client_fun: (unit -> ('get -> 'post ->
-                        [ `Html] Eliom_content_core.Html5.elt Lwt.t)
-                 option) Eliom_client_common.client_value ref;
+  client_fun: (unit -> ('get -> 'post -> unit Lwt.t) option)
+      Eliom_client_common.client_value ref;
 
   reload_fun: 'get reload_fun;
   (* The function to be used to generate the page on client side,
