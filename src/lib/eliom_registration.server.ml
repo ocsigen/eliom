@@ -1339,6 +1339,7 @@ module Ocaml_reg_base = struct
 
 end
 
+
 module Ocaml = struct
 
   module M = Eliom_mkreg.MakeRegister(Ocaml_reg_base)
@@ -1847,7 +1848,8 @@ type appl_service_options =
 let default_appl_service_options = {do_not_launch = false; }
 
 module type APPL_PARAMS = sig
-     val application_name : string
+  val application_name : string
+  val data_service_path : string list
 end
 
 let comet_service_key : unit Polytables.key = Polytables.make_key ()
@@ -2198,6 +2200,16 @@ module App (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
   let application_script = Eliom_appl_reg_param.application_script
 
   let set_client_fun = Eliom_content.set_client_fun
+
+  let data_service_handler () () =
+    Lwt.return (Eliom_client_common2.get_global_data ())
+
+  let data_service =
+    Ocaml.register_service
+      ~get_params:Eliom_parameter.unit
+      ~https:true
+      ~path:Appl_params.data_service_path
+      data_service_handler
 
 end
 
