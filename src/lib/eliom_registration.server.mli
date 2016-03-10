@@ -156,9 +156,6 @@ module type APPL_PARAMS = sig
   *)
   val application_name : string
 
-  (** Path for a GET service that provides the global data *)
-  val data_service_path : string list
-
 end
 
 (** Type for the options of an Eliom application service.
