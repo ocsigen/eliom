@@ -2201,15 +2201,31 @@ module App (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
   let set_client_fun = Eliom_content.set_client_fun
 
   let data_service_handler () () =
-    Lwt.return (Eliom_client_common2.get_global_data (),
-                Eliom_client_common.global_data_unwrapper)
+    Lwt.return
+      (Eliom_client_common2.get_global_data (),
+       Eliom_client_common.global_data_unwrapper)
 
-  let data_service =
+  let _ =
     Ocaml.register_service
       ~get_params:Eliom_parameter.unit
       ~https:true
       ~path:["__global_data__"]
       data_service_handler
+
+  let app_name_service_handler () () =
+    let v =
+      match Eliom_process.get_application_name () with
+      | Some v -> v
+      | None -> ""
+    in
+    Lwt.return (v, "text/plain")
+
+  let _ =
+    Text.register_service
+      ~get_params:Eliom_parameter.unit
+      ~https:true
+      ~path:["__app_name__"]
+      app_name_service_handler
 
 end
 
