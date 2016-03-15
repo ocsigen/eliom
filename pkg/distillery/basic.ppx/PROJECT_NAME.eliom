@@ -22,5 +22,5 @@ let () =
            ~title:"%%%PROJECT_NAME%%%"
            ~css:[["css";"%%%PROJECT_NAME%%%.css"]]
            Html5.F.(body [
-             h2 [pcdata "Welcome from Eliom's distillery!"];
+             h1 [pcdata "Welcome from Eliom's distillery!"];
            ])))
