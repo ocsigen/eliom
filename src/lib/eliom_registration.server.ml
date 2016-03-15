@@ -1889,10 +1889,10 @@ module Eliom_appl_reg_make_param
     Eliom_content.Html5.Id.create_named_elt
       ~id:eliom_appl_script_id
       (Eliom_content.Html5.D.js_script ~a
-	 ~uri:(Eliom_content.Html5.D.make_uri
-		 ~service:(Eliom_service.static_dir ())
-		 [Appl_params.application_name ^ ".js"])
-	 ())
+         ~uri:(Eliom_content.Html5.D.make_uri
+                 ~service:(Eliom_service.static_dir ())
+                 [Appl_params.application_name ^ ".js"])
+         ())
   let application_script =
     (application_script
      : ?defer:_ -> ?async:_ -> _ -> [ `Script ] Eliom_content.Html5.elt
@@ -1918,7 +1918,7 @@ module Eliom_appl_reg_make_param
 
     Lwt.return
       (Eliom_content.Html5.Id.create_named_elt ~id:eliom_appl_data_script_id
-	 (Eliom_content.Html5.F.script (cdata_script script)))
+         (Eliom_content.Html5.F.script (cdata_script script)))
 
   let queue_map (q : 'a Queue.t) (f : 'a -> 'b) : 'b Queue.t =
     let q2 = Queue.create () in
@@ -2007,15 +2007,15 @@ module Eliom_appl_reg_make_param
         * Html5_types.body Eliom_content.Html5.elt ) =
     match Eliom_content.Xml.content page with
       | Eliom_content.Xml.Node (_, html_attribs, [head; body]) ->
-	begin match Eliom_content.Xml.content head with
-	  | Eliom_content.Xml.Node (_, head_attribs, head_elts) ->
-	    ( List.map Eliom_content.Html5.D.to_attrib html_attribs,
-	      ( List.map Eliom_content.Html5.D.to_attrib head_attribs,
-		Eliom_content.Html5.D.tot (List.hd head_elts),
-		Eliom_content.Html5.D.totl (List.tl head_elts) ),
-	      Eliom_content.Html5.D.tot body )
-	  | _ -> assert false
-	end
+        begin match Eliom_content.Xml.content head with
+          | Eliom_content.Xml.Node (_, head_attribs, head_elts) ->
+            ( List.map Eliom_content.Html5.D.to_attrib html_attribs,
+              ( List.map Eliom_content.Html5.D.to_attrib head_attribs,
+                Eliom_content.Html5.D.tot (List.hd head_elts),
+                Eliom_content.Html5.D.totl (List.tl head_elts) ),
+              Eliom_content.Html5.D.tot body )
+          | _ -> assert false
+        end
       | _ -> assert false
 
   let add_eliom_scripts ~sp page =
@@ -2025,32 +2025,54 @@ module Eliom_appl_reg_make_param
     (* First we build a fake page to build the ref_tree... *)
     let (html_attribs, (head_attribs, title, head_elts), body) =
       split_page (Eliom_content.Html5.D.toelt page) in
+    let encode_slashs = List.map (Url.encode ~plus:false) in
+    let base_url =
+      Eliom_uri.make_proto_prefix
+        (Eliom_config.default_protocol_is_https () ||
+         Eliom_request_info.get_csp_ssl_sp sp)
+      ^
+      (String.concat "/"
+         (encode_slashs (Eliom_request_info.get_csp_original_full_path ()))
+      )
+    in
+    let head_elts =
+      if List.exists is_eliom_appl_script head_elts
+      then head_elts
+      else (head_elts @ [application_script ()])
+    in
     let head_elts =
       appl_data_script
-      (* <base> elt is now added on client side :-) *)
-      (* :: Eliom_content.Html5.F.base *)
-      (*   ~a:[a_id Eliom_common_base.base_elt_id; *)
-      (*       Eliom_content.Html5.D.a_href *)
-      (*         (Eliom_content.Xml.uri_of_string base_url)] () *)
-      :: (if List.exists is_eliom_appl_script head_elts
-          then head_elts
-	  else (head_elts @ [application_script ()]))
+      (* <base> elt is added only for xhr done by client process,
+         because in that case, URLs are relative to the URL of
+         the first page, not the current URL.
+         We don't want to put base for non-xhr,
+         to make it possible to have truly relative URLs in HTML pages.
+      *)
+      :: if Eliom_request_info.expecting_process_page ()
+      then Eliom_content.Html5.F.base
+          ~a:[a_id Eliom_common_base.base_elt_id;
+              Eliom_content.Html5.D.a_href
+                (Eliom_content.Xml.uri_of_string base_url)] ()
+           :: head_elts
+      else head_elts
     in
     let fake_page =
       Eliom_content.Html5.F.html ~a:html_attribs
-	(Eliom_content.Html5.F.head ~a:head_attribs title head_elts)
-	body in
-  lwt data_script = make_eliom_data_script
-    ~keep_debug:(Ocsigen_config.get_debugmode ())
-    ~sp fake_page in
+        (Eliom_content.Html5.F.head ~a:head_attribs title head_elts)
+        body
+    in
+    lwt data_script = make_eliom_data_script
+        ~keep_debug:(Ocsigen_config.get_debugmode ())
+        ~sp fake_page
+    in
 
     (* Then we replace the faked data_script *)
     let head_elts =
       List.hd head_elts :: data_script :: (List.tl head_elts) in
     Lwt.return
       (Eliom_content.Html5.F.html ~a:html_attribs
-	 (Eliom_content.Html5.F.head ~a:head_attribs title head_elts)
-	 body )
+         (Eliom_content.Html5.F.head ~a:head_attribs title head_elts)
+         body )
 
   let remove_eliom_scripts page =
     let (html_attribs, (head_attribs, title, head_elts), body) =
