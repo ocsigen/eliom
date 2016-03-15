@@ -445,7 +445,7 @@ let set_content_local ?offset ?fragment new_page =
     (* Really change page contents *)
     if !Eliom_config.debug_timings
     then Firebug.console##time(Js.string "replace_page");
-    insert_base new_page;
+    (* insert_base new_page; Now done server-side *)
     Dom.replaceChild Dom_html.document
       new_page
       Dom_html.document##documentElement;
@@ -485,6 +485,9 @@ let set_content ?uri ?offset ?fragment content =
       let fake_page =
         Eliommod_dom.html_document content registered_process_node
       in
+      (* We insert <base> in the page.
+         The URLs of all other pages will be computed w.r.t.
+         the base URL. *)
       insert_base fake_page;
       (* Inline CSS in the header to avoid the "flashing effect".
          Otherwise, the browser start to display the page before
