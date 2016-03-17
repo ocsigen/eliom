@@ -434,6 +434,27 @@ let make_params_names params =
       | TRaw_post_data -> failwith "Not possible with raw post data"
   in aux false "" "" params
 
+type boxed_atom_fun =
+  { boxed_atom_fun : 'a . 'a atom -> string -> 'a option }
+
+let rec read_params :
+  type y n . f:boxed_atom_fun -> (y, _, n) params_type -> y option =
+  let (>>=) x f = match x with Some x -> f x | None -> None in
+  fun ~f:({boxed_atom_fun} as f) -> function
+    | TAtom (name, a) ->
+      boxed_atom_fun a name
+    | TProd (y1, y2) ->
+      read_params ~f y1 >>= fun x1 ->
+      read_params ~f y2 >>= fun x2 ->
+      Some (x1, x2)
+    | TUnit ->
+      Some ()
+    | TOption (y, b) ->
+      (* TODO: check meaning of b *)
+      Some (read_params ~f y)
+    | _ ->
+      None
+
 let string_of_param_name = id
 
 (* Add a prefix to parameters *)

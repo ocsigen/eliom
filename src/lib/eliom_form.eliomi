@@ -47,6 +47,8 @@ module type Html5 = sig
      string option) option Eliom_lazy.request ->
     Html5_types.form_attrib attrib
 
+  val to_elt : 'a elt -> Eliom_content_core.Xml.elt
+
 end
 
 type 'a param

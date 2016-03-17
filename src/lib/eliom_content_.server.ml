@@ -60,6 +60,7 @@ module Html5 = struct
           (Html5.F.to_attrib
              (Xml.internal_event_handler_attrib
                 s (Xml.internal_event_handler_of_service info)))
+      let to_elt = toelt
     end
     include Eliom_form.Make_links(Arg)
     module Form = Eliom_form.Make(Arg)
@@ -76,6 +77,7 @@ module Html5 = struct
           (Html5.D.to_attrib
              (Xml.internal_event_handler_attrib
                 s (Xml.internal_event_handler_of_service info)))
+      let to_elt = toelt
     end
     include Eliom_form.Make_links(Arg)
     module Form = Eliom_form.Make(Arg)

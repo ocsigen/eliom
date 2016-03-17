@@ -46,6 +46,8 @@ module type Html5 = sig
      string option) option Eliom_lazy.request ->
     Html5_types.form_attrib attrib
 
+  val to_elt : 'a elt -> Eliom_content_core.Xml.elt
+
 end
 
 let get_xhr = function
@@ -231,6 +233,35 @@ module Make (Html5 : Html5) = struct
 
   let make_post_uri_components = Eliom_uri.make_post_uri_components
 
+  let submit_form_client ~service elt = {unit{
+    let service = %service in
+    (* FIXME *)
+    let y = Obj.magic (Eliom_service.get_get_params_type_ service)
+    and elt = Eliom_client0.rebuild_node' `HTML5 %(Html5.to_elt elt) in
+    (* FIXME *)
+    let elt = Js.Unsafe.coerce elt in
+    Lwt_js_events.async @@ fun () ->
+    Lwt_js_events.submits elt @@ fun ev _ ->
+    match Eliom_service.get_client_fun_ service () with
+    | Some f ->
+      (match
+         let f y field =
+           let v = (Js.Unsafe.get elt (Js.string field))##value in
+           let v = Js.to_string v in
+           Some (Eliom_parameter_base.atom_of_string y v)
+         in
+         let f = { Eliom_parameter_base.boxed_atom_fun = f } in
+         Eliom_parameter_base.read_params ~f y
+       with
+       | Some v ->
+         Dom.preventDefault ev;
+         f v ()
+       | None ->
+         Lwt.return ())
+    | None ->
+      Lwt.return ()
+  }}
+
   let get_form_
       bind return
       ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
@@ -284,7 +315,9 @@ module Make (Html5 : Html5) = struct
       let a' = [a_method `Get; a_action uri] in
       match a with Some a -> a' @ a | _ -> a'
     in
-    return (Html5.lazy_form ~a inside)
+    let elt = Html5.lazy_form ~a inside in
+    ignore (submit_form_client ~service elt);
+    return elt
 
   let get_form
       ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
