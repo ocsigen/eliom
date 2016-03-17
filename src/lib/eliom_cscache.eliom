@@ -7,24 +7,24 @@ open Eliom_content.Html5.F
 }}
 
 {shared{
-  type ('a, 'b) local_t = unit -> ('a, 'b Lwt.t) Hashtbl.t
-  type ('a, 'b) t = ('a, 'b) local_t Eliom_client_common.shared_value
+type ('a, 'b) t =
+  (unit -> ('a, 'b Lwt.t) Hashtbl.t) Eliom_client_common.shared_value
 }}
 
 {client{
-  let local_create () = let c = Hashtbl.create 100 in fun () -> c
+let create_ () = let c = Hashtbl.create 100 in fun () -> c
 }}
 
 {server{
-  let local_create () =
-    let c = Eliom_reference.Volatile.eref_from_fun
-        ~scope:Eliom_common.request_scope
-        (fun () -> Hashtbl.create 10)
-    in
-    fun () -> Eliom_reference.Volatile.get c
+let create_ () =
+  let c = Eliom_reference.Volatile.eref_from_fun
+      ~scope:Eliom_common.request_scope
+      (fun () -> Hashtbl.create 10)
+  in
+  fun () -> Eliom_reference.Volatile.get c
 
 let create () =
-  Eliom_client_common.create_shared_value (local_create ()) {{ local_create () }}
+  Eliom_client_common.create_shared_value (create_ ()) {{ create_ () }}
 }}
 
 {shared{
