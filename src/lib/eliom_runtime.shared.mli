@@ -56,7 +56,11 @@ module RawXML : sig
         string * Ocsigen_lib.poly (* 'a Js.t -> unit) client_value *)
     | CE_client_closure of ((#Dom_html.event as 'a) Js.t -> unit)
     | CE_call_service of
-        ([ `A | `Form_get | `Form_post] * (cookie_info option) * string option) option Eliom_lazy.request
+        ( [ `A | `Form_get | `Form_post] *
+          (cookie_info option) *
+          string option *
+          Ocsigen_lib.poly (* (unit -> bool) client_value *)
+        ) option Eliom_lazy.request
 
   (* Inherit from all events.
      Necessary for subtyping since caml_event_handler is contravariant. *)
@@ -76,8 +80,12 @@ module RawXML : sig
   val uri_of_fun : (unit -> string) -> uri
 
   val internal_event_handler_of_service :
-    ([ `A | `Form_get | `Form_post] * (cookie_info option) * string option) option Eliom_lazy.request ->
-      internal_event_handler
+    (  [ `A | `Form_get | `Form_post]
+       * cookie_info option
+       * string option
+       * Eliom_lib.poly
+    )  option Eliom_lazy.request
+    -> internal_event_handler
 
   val ce_registered_closure_class : string
   val ce_registered_attr_class : string

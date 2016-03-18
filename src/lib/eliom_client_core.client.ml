@@ -425,15 +425,21 @@ let raw_a_handler node cookies_info tmpl ev =
     !change_page_uri_ ?cookies_info ?tmpl (Js.to_string href);
     false)
 
-let raw_form_handler form kind cookies_info tmpl ev =
+let raw_form_handler form kind cookies_info tmpl ev has_client_fun =
   let action = Js.to_string form##action in
   let https = Url.get_ssl action in
   let change_page_form = match kind with
     | `Form_get -> !change_page_get_form_
     | `Form_post -> !change_page_post_form_ in
-  (https = Some true && not Eliom_request_info.ssl_)
-  || (https = Some false && Eliom_request_info.ssl_)
-  || (change_page_form ?cookies_info ?tmpl form action; false)
+  let f () =
+    if has_client_fun () then
+      ()
+    else
+      change_page_form ?cookies_info ?tmpl form action
+  in
+  (   https = Some true  && not Eliom_request_info.ssl_)
+  || (https = Some false &&     Eliom_request_info.ssl_)
+  || (f (); false)
 
 let raw_event_handler value =
   let handler = (*XXX???*)
@@ -445,18 +451,20 @@ let closure_name_prefix_len = String.length closure_name_prefix
 let reify_caml_event name node ce : string * (#Dom_html.event Js.t -> bool) =
   match ce with
   | Xml.CE_call_service None -> name,(fun _ -> true)
-  | Xml.CE_call_service (Some (`A, cookies_info, tmpl)) ->
+  | Xml.CE_call_service (Some (`A, cookies_info, tmpl, _)) ->
     name, (fun ev ->
       let node = Js.Opt.get (Dom_html.CoerceTo.a node)
           (fun () -> Lwt_log.raise_error ~section "not an anchor element")
       in
       raw_a_handler node cookies_info tmpl ev)
   | Xml.CE_call_service
-      (Some ((`Form_get | `Form_post) as kind, cookies_info, tmpl)) ->
+      (Some ((`Form_get | `Form_post) as kind, cookies_info, tmpl,
+             has_client_fun)) ->
     name, (fun ev ->
       let form = Js.Opt.get (Dom_html.CoerceTo.form node)
           (fun () -> Lwt_log.raise_error ~section "not a form element") in
-      raw_form_handler form kind cookies_info tmpl ev)
+      raw_form_handler form kind cookies_info tmpl ev
+        (Eliom_lib.from_poly has_client_fun))
   | Xml.CE_client_closure f ->
     name, (fun ev -> try f ev; true with Eliom_client_value.False -> false)
   | Xml.CE_registered_closure (_, cv) ->
@@ -732,14 +740,15 @@ let form_handler
   Dom_html.full_handler
     (fun node ev ->
        let form = Js.Opt.get (Dom_html.CoerceTo.form node)
-           (fun () -> Lwt_log.raise_error_f ~section "not a form element") in
+           (fun () -> Lwt_log.raise_error_f ~section "not a form element")
+       in
        let kind =
          if String.lowercase(Js.to_string form##_method) = "get"
          then `Form_get
          else `Form_post
-       in
+       and f () = false in
        Js.bool (raw_form_handler form kind (get_element_cookies_info form)
-                  (get_element_template node) ev))
+                  (get_element_template node) ev f))
 
 let relink_process_node (node:Dom_html.element Js.t) =
   let id = Js.Opt.get

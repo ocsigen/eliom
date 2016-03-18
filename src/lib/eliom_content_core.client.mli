@@ -37,7 +37,11 @@ module Xml : sig
                                     (* 'a Js.t -> unit) client_value_server *)
     | CE_client_closure of ((#Dom_html.event as 'a) Js.t -> unit)
     | CE_call_service of
-        ([ `A | `Form_get | `Form_post] * (bool * string list) option * string option) option Eliom_lazy.request
+        ( [ `A | `Form_get | `Form_post] *
+          ((bool * string list) option) *
+          string option *
+          Ocsigen_lib.poly (* (unit -> bool) client_value *)
+        ) option Eliom_lazy.request
 
   (* Inherit from all events.
      Necessary for subtyping since caml_event_handler is contravariant. *)
@@ -70,9 +74,12 @@ module Xml : sig
   (**/**)
 
   val internal_event_handler_of_service :
-    ( [ `A | `Form_get | `Form_post ]
-      * (bool * string list) option
-      * string option) option Eliom_lazy.request -> internal_event_handler
+    (  [ `A | `Form_get | `Form_post]
+       * (bool * string list) option
+       * string option
+       * Eliom_lib.poly
+    )  option Eliom_lazy.request
+    -> internal_event_handler
 
   type separator = Space | Comma
   type acontent = private

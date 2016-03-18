@@ -43,7 +43,8 @@ module type Html5 = sig
     string ->
     ([ `A | `Form_get | `Form_post] *
      (bool * string list) option *
-     string option) option Eliom_lazy.request ->
+     string option *
+     Eliom_lib.poly) option Eliom_lazy.request ->
     Html5_types.form_attrib attrib
 
   val to_elt : 'a elt -> Eliom_content_core.Xml.elt
@@ -237,7 +238,7 @@ module Make (Html5 : Html5) = struct
     let service = %service in
     (* FIXME *)
     let y = Obj.magic (Eliom_service.get_get_params_type_ service)
-    and elt = Eliom_client0.rebuild_node' `HTML5 %(Html5.to_elt elt) in
+    and elt = Eliom_client_core.rebuild_node' `HTML5 %(Html5.to_elt elt) in
     (* FIXME *)
     let elt = Js.Unsafe.coerce elt in
     Lwt_js_events.async @@ fun () ->
@@ -562,7 +563,12 @@ module Make (Html5 : Html5) = struct
       | None ->
         None
       | Some tmpl ->
-        Some (kind, Eliom_uri.make_cookies_info (https, service), tmpl)
+        Some (
+          kind,
+          Eliom_uri.make_cookies_info (https, service),
+          tmpl,
+          Eliom_lib.to_poly (Eliom_service.has_client_fun_lazy service)
+        )
     in
     Eliom_lazy.from_fun f
 

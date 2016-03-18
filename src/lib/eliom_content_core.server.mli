@@ -60,7 +60,8 @@ module Xml : sig
   val internal_event_handler_of_service :
     ( [ `A | `Form_get | `Form_post ]
       * (bool * string list) option
-      * string option) option Eliom_lazy.request -> internal_event_handler
+      * string option
+      * Eliom_lib.poly) option Eliom_lazy.request -> internal_event_handler
 
   val caml_event_handler :
     ((#Dom_html.event as 'a) Js.t -> unit) Eliom_client_value.t ->

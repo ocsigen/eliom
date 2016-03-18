@@ -178,6 +178,17 @@ let get_timeout_ s = s.timeout
 let get_https s = s.https
 let get_priority_ s = s.priority
 let get_client_fun_ s = !(s.client_fun)
+let has_client_fun_lazy s =
+  let f = get_client_fun_ s in
+  {unit -> bool{
+     fun () ->
+       match %f () with
+       | Some _ ->
+         true
+       | None ->
+         false
+   }}
+
 let internal_set_client_fun_ ~service:s f = s.client_fun := f
 
 let set_client_fun_ ?app ~service:s f =

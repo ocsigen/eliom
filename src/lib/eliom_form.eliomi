@@ -42,9 +42,11 @@ module type Html5 = sig
 
   val attrib_of_service :
     string ->
-    ([ `A | `Form_get | `Form_post] *
-     (bool * string list) option *
-     string option) option Eliom_lazy.request ->
+    ([ `A | `Form_get | `Form_post]
+     * (bool * string list) option
+     * string option
+     * Eliom_lib.poly
+    ) option Eliom_lazy.request ->
     Html5_types.form_attrib attrib
 
   val to_elt : 'a elt -> Eliom_content_core.Xml.elt

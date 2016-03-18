@@ -405,6 +405,9 @@ val set_client_fun_ :
   unit
 val has_client_fun_ :
   ('a, 'b, 'meth, 'attch, 'kind, 'd, 'e, 'f, 'g, 'return) service -> bool
+val has_client_fun_lazy :
+  (_, _, _, _, _, _, _, _, _, _) service ->
+  (unit -> bool) Eliom_client_value.t
 val internal_set_client_fun_ :
   service:('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service ->
   (unit ->

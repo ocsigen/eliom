@@ -54,8 +54,11 @@ module RawXML = struct
     | CE_client_closure of
         ((#Dom_html.event as 'a) Js.t -> unit) (* Client side-only *)
     | CE_call_service of
-        ([ `A | `Form_get | `Form_post] * (cookie_info option) * string option)
-          option Eliom_lazy.request
+        ( [ `A | `Form_get | `Form_post] *
+          (cookie_info option) *
+          string option *
+          Ocsigen_lib.poly (* (unit -> bool) client_value *)
+        ) option Eliom_lazy.request
 
   (* Inherit from all events.
      Necessary for subtyping since caml_event_handler is contravariant. *)
@@ -178,7 +181,7 @@ module RawXML = struct
       begin
         match Eliom_lazy.force link_info with
           | None -> freepos, acc_class, acc_attr
-          | Some (kind,cookie_info,tmpl) ->
+          | Some (kind, cookie_info, tmpl, _) ->
             let acc_class = ce_call_service_class::acc_class in
             let acc_attr =
               match cookie_info with
