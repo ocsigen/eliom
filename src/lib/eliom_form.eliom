@@ -18,6 +18,20 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 *)
 
+{client{
+
+   let read_params form y =
+     let f y field =
+       let v = (Js.Unsafe.get form (Js.string field))##value in
+       let v = Js.to_string v in
+       Some (Eliom_parameter_base.atom_of_string y v)
+     in
+     let f = { Eliom_parameter_base.boxed_atom_fun = f } in
+     Eliom_parameter_base.read_params ~f y
+
+}}
+
+
 {shared{
 module type Html5 = sig
 
@@ -234,7 +248,7 @@ module Make (Html5 : Html5) = struct
 
   let make_post_uri_components = Eliom_uri.make_post_uri_components
 
-  let submit_form_client ~service elt = {unit{
+  let submit_get_form_client ~service elt = {unit{
     let service = %service in
     (* FIXME *)
     let y = Obj.magic (Eliom_service.get_get_params_type_ service)
@@ -245,18 +259,31 @@ module Make (Html5 : Html5) = struct
     Lwt_js_events.submits elt @@ fun ev _ ->
     match Eliom_service.get_client_fun_ service () with
     | Some f ->
-      (match
-         let f y field =
-           let v = (Js.Unsafe.get elt (Js.string field))##value in
-           let v = Js.to_string v in
-           Some (Eliom_parameter_base.atom_of_string y v)
-         in
-         let f = { Eliom_parameter_base.boxed_atom_fun = f } in
-         Eliom_parameter_base.read_params ~f y
-       with
+      (match read_params elt y with
        | Some v ->
          Dom.preventDefault ev;
          f v ()
+       | None ->
+         Lwt.return ())
+    | None ->
+      Lwt.return ()
+  }}
+
+  let submit_post_form_client ~service ~get_params elt = {unit{
+    let service = %service in
+    (* FIXME *)
+    let y  = Obj.magic (Eliom_service.get_post_params_type_ service)
+    and elt = Eliom_client_core.rebuild_node' `HTML5 %(Html5.to_elt elt) in
+    (* FIXME *)
+    let elt = Js.Unsafe.coerce elt in
+    Lwt_js_events.async @@ fun () ->
+    Lwt_js_events.submits elt @@ fun ev _ ->
+    match Eliom_service.get_client_fun_ service () with
+    | Some f ->
+      (match read_params elt y with
+       | Some v ->
+         Dom.preventDefault ev;
+         f %get_params v
        | None ->
          Lwt.return ())
     | None ->
@@ -317,7 +344,7 @@ module Make (Html5 : Html5) = struct
       match a with Some a -> a' @ a | _ -> a'
     in
     let elt = Html5.lazy_form ~a inside in
-    ignore (submit_form_client ~service elt);
+    ignore (submit_get_form_client ~service elt);
     return elt
 
   let get_form
@@ -335,7 +362,7 @@ module Make (Html5 : Html5) = struct
       ?fragment ?(nl_params = Eliom_parameter.empty_nl_params_set)
       ?(keep_nl_params : [ `All | `Persistent | `None ] option)
       ?keep_get_na_params
-      f getparams =
+      f get_params =
 
     let _, paramnames =
       Eliom_service.get_post_params_type_ service |>
@@ -347,7 +374,7 @@ module Make (Html5 : Html5) = struct
       Eliom_uri.make_post_uri_components_
         ?absolute ?absolute_path ?https ~service ?hostname ?port
         ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
-        getparams
+        get_params
         ()
     in
 
@@ -366,7 +393,9 @@ module Make (Html5 : Html5) = struct
       let (uri, g, r, _) = Eliom_lazy.force components in
       Eliom_uri.make_string_uri_from_components (uri, g, r)
     in
-    return (make_post_form ?a ~action inside)
+    let elt = make_post_form ?a ~action inside in
+    ignore (submit_post_form_client ~service ~get_params elt);
+    return elt
 
   let post_form
       ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
@@ -576,15 +605,6 @@ module Make (Html5 : Html5) = struct
 
   let a_onsubmit_service info = Html5.attrib_of_service "onsubmit" info
 
-  let warn_client_service service =
-    ignore {unit{
-      if Eliom_service.get_client_fun_ %service () <> None then
-        Eliom_lib.debug
-          "Client side services not implemented with forms. \
-           Please do it manually using \
-           Eliom_client.change_page, or contribute."
-    }}
-
   let get_form
       ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname
       ?port ?fragment ?keep_nl_params ?nl_params ?xhr
@@ -597,7 +617,6 @@ module Make (Html5 : Html5) = struct
       else
         a
     in
-    warn_client_service service;
     get_form
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port
       ?fragment ?keep_nl_params ?nl_params
@@ -615,7 +634,6 @@ module Make (Html5 : Html5) = struct
       else
         a
     in
-    warn_client_service service;
     get_form_ Lwt.bind Lwt.return
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port
       ?fragment ?nl_params ?keep_nl_params
@@ -634,7 +652,6 @@ module Make (Html5 : Html5) = struct
       else
         a
     in
-    warn_client_service service;
     post_form
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port
       ?fragment ?keep_nl_params ?keep_get_na_params ?nl_params
@@ -653,7 +670,6 @@ module Make (Html5 : Html5) = struct
       else
         a
     in
-    warn_client_service service;
     post_form_ Lwt.bind Lwt.return
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port
       ?fragment ?keep_get_na_params ?keep_nl_params ?nl_params
