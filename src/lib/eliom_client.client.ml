@@ -63,7 +63,6 @@ let init_client_app
     ~app_name ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
   Lwt_log.ign_debug_f "Eliom_client.init_client_app called.";
   Eliom_process.appl_name_r := Some app_name;
-  let encode_slashs = List.map (Url.encode ~plus:false) in
   Eliom_request_info.client_app_initialised := true;
   Eliom_process.set_sitedata
     {Eliom_types.site_dir = full_path;
@@ -349,11 +348,12 @@ let call_ocaml_service
       ?progress ?upload_progress ?override_mime_type
       get_params post_params in
   lwt () = Lwt_mutex.lock load_mutex in
+  Eliom_client0.set_loading_phase ();
   lwt content, request_data = unwrap_caml_content content in
   do_request_data request_data;
   reset_request_nodes ();
   Lwt_mutex.unlock load_mutex;
-  run_callbacks (flush_onload ());
+  run_callbacks (flush_onload () @ [broadcast_load_end]);
   match content with
   | `Success result -> Lwt.return result
   | `Failure msg -> Lwt.fail (Eliom_client_common.Exception_on_server msg)

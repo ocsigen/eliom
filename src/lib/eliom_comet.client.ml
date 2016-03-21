@@ -332,10 +332,12 @@ struct
 
   let make_request hd =
     match hd.hd_state with
-      | Stateful_state count -> (Ecb.Stateful (Ecb.Request_data !count))
-      | Stateless_state map ->
-        let l = Eliom_lib.String.Table.fold (fun channel { position } l -> (channel,position)::l) !map [] in
-        Ecb.Stateless (Array.of_list l)
+    | Stateful_state count -> (Ecb.Stateful (Ecb.Request_data !count))
+    | Stateless_state map ->
+      let l = Eliom_lib.String.Table.fold
+          (fun channel { position } l -> (channel,position)::l) !map []
+      in
+      Ecb.Stateless (Array.of_list l)
 
   let stop_waiting hd chan_id =
     hd.hd_activity.active_channels <- Eliom_lib.String.Set.remove chan_id hd.hd_activity.active_channels;

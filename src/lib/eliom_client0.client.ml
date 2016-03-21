@@ -367,7 +367,8 @@ let current_uri =
 (* == Organize the phase of loading or change_page
 
    In the following functions, onload referers the initial loading phase
-   *and* to the phange_page phase. *)
+   *and* to the change_page phase
+   *and* to the loading phase after caml services (added 2016-03 --V). *)
 
 let load_mutex = Lwt_mutex.create ()
 let _ = ignore (Lwt_mutex.lock load_mutex)

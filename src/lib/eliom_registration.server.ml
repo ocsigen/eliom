@@ -386,7 +386,8 @@ module Action_reg_base = struct
       let h = match headers with
         | None -> Ocsigen_http_frame.Result.headers empty_result
         | Some headers ->
-          Http_headers.with_defaults headers (Ocsigen_http_frame.Result.headers empty_result)
+          Http_headers.with_defaults headers
+            (Ocsigen_http_frame.Result.headers empty_result)
       in
       let h =
         match Eliom_request_info.get_sp_client_appl_name () with
