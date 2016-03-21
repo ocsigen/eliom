@@ -137,7 +137,7 @@ let send ?(expecting_process_page = false) ?cookies_info
     let headers = match cookies with
       | [] -> []
       | _ -> [ Eliom_common.tab_cookies_header_name,
-              encode_header_value cookies ] in
+               encode_header_value cookies ] in
     (* CCC *
        For now we assume that an eliom application is not distributed
        among different server with different hostnames:
