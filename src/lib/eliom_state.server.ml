@@ -1240,20 +1240,21 @@ module Ext = struct
 
   let current_volatile_session_state
       ?secure ?(scope = Eliom_common.default_session_scope) () =
-    let cookie = Eliommod_datasess.find_data_cookie_only
+    let cookie = Eliommod_datasess.find_or_create_data_cookie
         ~secure ~cookie_scope:scope () in
     ((scope :> Eliom_common.user_scope), `Data, cookie.Eliom_common.dc_value)
 
   let current_persistent_session_state
       ?secure ?(scope = Eliom_common.default_session_scope) () =
-    Eliommod_persess.find_persistent_cookie_only ~secure ~cookie_scope:scope ()
+    Eliommod_persess.find_or_create_persistent_cookie
+      ~secure ~cookie_scope:scope ()
     >>= fun cookie ->
     Lwt.return ((scope :> Eliom_common.user_scope),
                 `Pers, cookie.Eliom_common.pc_value)
 
   let current_service_session_state
       ?secure ?(scope = Eliom_common.default_session_scope) () =
-    let cookie = Eliommod_sersess.find_service_cookie_only
+    let cookie = Eliommod_sersess.find_or_create_service_cookie
       ~secure ~cookie_scope:scope () in
     ((scope :> Eliom_common.user_scope), `Service, cookie.Eliom_common.sc_value)
 
