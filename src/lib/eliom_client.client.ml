@@ -244,6 +244,13 @@ let raw_call_service
     ?keep_nl_params ?nl_params ?keep_get_na_params
     ?progress ?upload_progress ?override_mime_type
     get_params post_params =
+  (* with_credentials = true is necessary for client side apps when
+     we want the Eliom server to be different from the server for
+     static files (if any). For example when testing a mobile app
+     in a browser, with Cordova's Web server.
+     Also set with_credentials to true in CORS configuration.
+  *)
+  let with_credentials = not (Eliom_service.is_external service) in
   lwt uri, content =
     match create_request_
             ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -251,22 +258,26 @@ let raw_call_service
             get_params post_params
     with
     | `Get uri ->
-        Eliom_request.http_get
-          ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
-          ?progress ?upload_progress ?override_mime_type
-          Eliom_request.string_result
+      Eliom_request.http_get
+        ~with_credentials
+        ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
+        ?progress ?upload_progress ?override_mime_type
+        Eliom_request.string_result
     | `Post (uri, post_params) ->
       Eliom_request.http_post
+        ~with_credentials
         ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
         ?progress ?upload_progress ?override_mime_type
         uri post_params Eliom_request.string_result
     | `Put (uri, post_params) ->
       Eliom_request.http_put
+        ~with_credentials
         ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
         ?progress ?upload_progress ?override_mime_type
         uri post_params Eliom_request.string_result
     | `Delete (uri, post_params) ->
       Eliom_request.http_delete
+        ~with_credentials
         ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
         ?progress ?upload_progress ?override_mime_type
         uri post_params Eliom_request.string_result in

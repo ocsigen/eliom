@@ -343,6 +343,12 @@ val https_static_dir_with_params :
     service
 
 
+(** Returns whether it is an external service or not. *)
+val is_external :
+  ('a, 'b, [< service_method ], [< attached ], [< service_kind ],
+   [< suff ], 'c, 'd, [< registrable ], 'e)
+    service -> bool
+
 
 (**/**)
 
