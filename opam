@@ -13,7 +13,7 @@ depends: [
   "deriving" {>= "0.6"}
   ("base-no-ppx" | "ppx_tools" {>= "0.99.3"})
   "js_of_ocaml" {> "2.6"}
-  "tyxml" {>= "dev"}
+  "tyxml" {= "3.6.0"}
   "calendar"
   "ocsigenserver" {>= "2.6"}
   "ipaddr" {>= "2.1"}
