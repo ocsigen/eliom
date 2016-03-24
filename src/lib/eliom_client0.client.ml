@@ -34,26 +34,31 @@ let _ = Lwt_log.Section.set_level log_section Lwt_log.Info
 (* == Auxiliaries *)
 
 let create_buffer () =
+  let stack = ref [] in
   let elts = ref [] in
   let add x = elts := x :: !elts
   and get () = List.rev !elts in
+  let push () = stack := !elts :: !stack; elts := [] in
   let flush () =
     let res = get () in
-    elts := [];
+    begin match !stack with
+      l :: r -> elts := l; stack := r
+    | []     -> elts := []
+    end;
     res
   in
-  add, get, flush
+  add, get, flush, push
 
 (* == Callbacks for onload and onunload *)
 
 let run_callbacks handlers = List.iter (fun f -> f ()) handlers
 
-let onload, _, flush_onload :
-  ((unit -> unit) -> unit) * (unit -> (unit -> unit) list) * (unit -> (unit -> unit) list)
+let onload, _, flush_onload, push_onload :
+  ((unit -> unit) -> unit) * (unit -> (unit -> unit) list) * (unit -> (unit -> unit) list) * (unit -> unit)
   = create_buffer ()
 
 let onunload, run_onunload =
-  let add, get, flush = create_buffer () in
+  let add, get, flush, _ = create_buffer () in
   let r = ref (get ()) in
   let rec run acc ~final =
     match acc with
@@ -465,7 +470,7 @@ let reify_caml_event name node ce : string * (#Dom_html.event Js.t -> bool) =
     name, raw_event_handler cv
 
 let register_event_handler, flush_load_script =
-  let add, _, flush = create_buffer () in
+  let add, _, flush, _ = create_buffer () in
   let register node (name, ev) =
     let name,f = reify_caml_event name node ev in
     if name = "onload"

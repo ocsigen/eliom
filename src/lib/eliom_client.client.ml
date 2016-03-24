@@ -165,9 +165,10 @@ let init () =
          in
          reset_request_nodes ();
          Eliommod_dom.add_formdata_hack_onclick_handler ();
+         let load_callbacks =
+           flush_onload () @ [ onload_closure_nodes; broadcast_load_end ] in
          Lwt_mutex.unlock load_mutex;
-         run_callbacks
-           (flush_onload () @ [ onload_closure_nodes; broadcast_load_end ]);
+         run_callbacks load_callbacks;
          if !Eliom_config.debug_timings
          then Firebug.console##timeEnd(Js.string "onload");
          Lwt.return ());
@@ -359,12 +360,14 @@ let call_ocaml_service
       ?progress ?upload_progress ?override_mime_type
       get_params post_params in
   lwt () = Lwt_mutex.lock load_mutex in
-  Eliom_client0.set_loading_phase ();
+  set_loading_phase ();
+  push_onload ();
   lwt content, request_data = unwrap_caml_content content in
   do_request_data request_data;
   reset_request_nodes ();
+  let load_callbacks = flush_onload () @ [broadcast_load_end] in
   Lwt_mutex.unlock load_mutex;
-  run_callbacks (flush_onload () @ [broadcast_load_end]);
+  run_callbacks load_callbacks;
   match content with
   | `Success result -> Lwt.return result
   | `Failure msg -> Lwt.fail (Eliom_client_common.Exception_on_server msg)
@@ -438,8 +441,9 @@ let set_template_content ?uri ?fragment =
     lwt (), request_data = unwrap_caml_content content in
     do_request_data request_data;
     reset_request_nodes ();
+    let load_callbacks = flush_onload () in
     Lwt_mutex.unlock load_mutex;
-    run_callbacks (flush_onload ());
+    run_callbacks load_callbacks;
     Lwt.return ()
   and cancel () = Lwt.return () in
   function
@@ -482,8 +486,9 @@ let set_content_local ?offset ?fragment new_page =
     then Firebug.console##timeEnd(Js.string "replace_page");
     Eliommod_dom.add_formdata_hack_onclick_handler ();
     locked := false;
+    let load_callbacks = flush_onload () @ [broadcast_load_end] in
     Lwt_mutex.unlock load_mutex;
-    run_callbacks (flush_onload () @ [broadcast_load_end]);
+    run_callbacks load_callbacks;
     scroll_to_fragment ?offset fragment;
     if !Eliom_config.debug_timings
     then Firebug.console##timeEnd(Js.string "set_content_local");
@@ -573,9 +578,10 @@ let set_content ?uri ?offset ?fragment content =
       reset_request_nodes ();
       Eliommod_dom.add_formdata_hack_onclick_handler ();
       locked := false;
+      let load_callbacks =
+        flush_onload () @ [onload_closure_nodes; broadcast_load_end] in
       Lwt_mutex.unlock load_mutex;
-      run_callbacks
-        (flush_onload () @ [onload_closure_nodes; broadcast_load_end]);
+      run_callbacks load_callbacks;
       scroll_to_fragment ?offset fragment;
       if !Eliom_config.debug_timings then
         Firebug.console##timeEnd(Js.string "set_content");
