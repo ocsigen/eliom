@@ -363,17 +363,11 @@ module Html5 = struct
     let string_of_sizes () =
       {shared#{ Html5_f.Wrapped_functions.string_of_sizes }}
 
-    let string_of_srcset () =
-      {shared#{ Html5_f.Wrapped_functions.string_of_srcset }}
-
     let string_of_step () =
       {shared#{ Html5_f.Wrapped_functions.string_of_step }}
 
     let unoption_string () =
       {shared#{ Html5_f.Wrapped_functions.unoption_string }}
-
-    let onoff_of_bool () =
-      {shared#{ Html5_f.Wrapped_functions.onoff_of_bool }}
 
   end
 

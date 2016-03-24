@@ -1884,9 +1884,9 @@ module Eliom_appl_reg_make_param
     Eliom_content.Html5.Id.new_elt_id ~global:true ()
   let application_script ?(defer = false) ?(async = false) () =
     let a =
-      (if defer then [Eliom_content.Html5.D.a_defer] else [])
+      (if defer then [Eliom_content.Html5.D.a_defer `Defer] else [])
         @
-      (if async then [Eliom_content.Html5.D.a_async] else [])
+      (if async then [Eliom_content.Html5.D.a_async `Async] else [])
     in
     Eliom_content.Html5.Id.create_named_elt
       ~id:eliom_appl_script_id
