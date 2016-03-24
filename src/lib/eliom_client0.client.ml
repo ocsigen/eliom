@@ -289,6 +289,7 @@ let do_request_data request_data =
      must contain at most empty sections_data lists, which stem from server-
      only eliom files. *)
   check_global_data !global_data;
+  global_data := String_map.empty;
   Array.iter Client_value.initialize request_data
 
 (*******************************************************************************)
