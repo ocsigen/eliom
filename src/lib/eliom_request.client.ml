@@ -242,6 +242,10 @@ let send
           Lwt.return (url, Some (result r))
         else
           if r.XmlHttpRequest.code = 200
+             || XmlHttpRequest.(r.code = 0 && r.content <> "")
+                (* HACK for file access within Cordova which yields code 0 *)
+                (* Code 0 might mean a network error, but then we have no
+                   content. *)
           then Lwt.return (r.XmlHttpRequest.url, Some (result r))
           else Lwt.fail (Failed_request r.XmlHttpRequest.code)
     with
