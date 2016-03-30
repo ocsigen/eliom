@@ -35,8 +35,8 @@
 
 {client{
 module Value = struct
-  type 'a t = 'a Eliom_client_value.shared_value
-  let create = Eliom_client_value.create_shared_value
+  type 'a t = 'a
+  let create _ x = x
   let client x = x
   let local x = x
 end
@@ -44,10 +44,28 @@ end
 
 {server{
 module Value = struct
-  type 'a t = 'a Eliom_client_value.shared_value
-  let create = Eliom_client_value.create_shared_value
-  let client x = snd (Eliom_client_value.shared_value_server_repr x)
-  let local x = fst (Eliom_client_value.shared_value_server_repr x)
+
+  type +'a t = {
+    sh_server : 'a;
+    sh_client : 'a Eliom_client_value.t;
+    sh_mark : 'a t Eliom_wrap.wrapper
+  }
+
+  let internal_wrap {sh_client} = sh_client
+
+  let shared_value_mark () : 'a t Eliom_wrap.wrapper =
+    Eliom_wrap.create_wrapper internal_wrap
+
+  let create sh_server sh_client = {
+    sh_server ;
+    sh_client ;
+    sh_mark = shared_value_mark ()
+  }
+
+  let client {sh_client} = sh_client
+
+  let local {sh_server} = sh_server
+
 end
 }}
 
@@ -324,8 +342,10 @@ module React = struct
   type step = React.step
   module S = struct
     type 'a t = 'a FakeReact.S.t Value.t
-    let value (x : 'a t) = {shared# 'a {
-      FakeReact.S.value (Value.local %x) }}
+    let value (x : 'a t) =
+      Value.create
+        (FakeReact.S.value (Value.local x))
+        { 'a { FakeReact.S.value (Value.local %x) }}
 
     (*VVV What is the good default value for reset_default?  Setting
       default to true may be difficult to understand.  I prefer
@@ -369,18 +389,20 @@ module React = struct
       : 'b t =
       match eq with
       | Some eq ->
-        {shared#{
-           FakeReact.S.fmap ~eq:(Value.local %eq)
-             (Value.local %f) (Value.local %i) (Value.local %s) }}
+        Value.create
+          (FakeReact.S.fmap ~eq:(Value.local eq)
+             (Value.local f) (Value.local i) (Value.local s))
+          {{ FakeReact.S.fmap ~eq:(Value.local %eq)
+               (Value.local %f) (Value.local %i) (Value.local %s) }}
       | None ->
-        {shared#{
-           FakeReact.S.fmap
-             (Value.local %f) (Value.local %i) (Value.local %s) }}
+        Value.create
+          (FakeReact.S.fmap
+             (Value.local f) (Value.local i) (Value.local s))
+          {{ FakeReact.S.fmap
+               (Value.local %f) (Value.local %i) (Value.local %s) }}
 
     let merge ?eq (f : ('a -> 'b -> 'a) Value.t)
         (acc : 'a) (l : 'b t list) : 'a t =
-      (* we do not use {shared# ... { ... }} to avoid client-side
-         List.map Value.local *)
       Value.create
         (FakeReact.S.merge (Value.local f) acc (List.map Value.local l))
         {'a FakeReact.S.t{ FakeReact.S.merge ?eq:%eq %f %acc %l }}
@@ -631,17 +653,28 @@ module ReactiveData = struct
       }} in
       Value.create sv cv
 
-    let singleton_s s = {shared# 'a FakeReactiveData.RList.t {
-      FakeReactiveData.RList.singleton_s (Value.local %s) }}
+    let singleton_s s =
+      Value.create
+        (FakeReactiveData.RList.singleton_s (Value.local s))
+        {'a FakeReactiveData.RList.t{
+           FakeReactiveData.RList.singleton_s (Value.local %s) }}
 
-    let value (s : 'a t) = {shared# 'a list {
-      FakeReactiveData.RList.value (Value.local %s) }}
+    let value (s : 'a t) =
+      Value.create
+        (FakeReactiveData.RList.value (Value.local s))
+        {'a list{ FakeReactiveData.RList.value (Value.local %s) }}
 
-    let signal (s : 'a t) = {shared# 'a list FakeReact.S.t {
-      FakeReactiveData.RList.signal (Value.local %s) }}
+    let signal (s : 'a t) =
+      Value.create
+        (FakeReactiveData.RList.signal (Value.local s))
+        {'a list FakeReact.S.t{
+           FakeReactiveData.RList.signal (Value.local %s) }}
 
-    let map f s = {shared# 'a FakeReactiveData.RList.t {
-      FakeReactiveData.RList.map (Value.local %f) (Value.local %s) }}
+    let map f s =
+      Value.create
+        (FakeReactiveData.RList.map (Value.local f) (Value.local s))
+        {'a FakeReactiveData.RList.t{
+           FakeReactiveData.RList.map (Value.local %f) (Value.local %s) }}
 
     let from_signal ?eq (s : 'a list React.S.t) : 'a t =
       let sv =

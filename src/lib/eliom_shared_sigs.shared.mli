@@ -20,7 +20,7 @@
 
 (** Accessing shared values *)
 module type VALUE = sig
-  type 'a t = 'a Eliom_client_value.shared_value
+  type +'a t
   val create : 'a -> 'a Eliom_client_value.t -> 'a t
   (** [client x] is the client-side portion of [x]. *)
   val client : 'a t -> 'a Eliom_client_value.t

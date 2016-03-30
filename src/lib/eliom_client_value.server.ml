@@ -39,26 +39,6 @@ let client_value_datum ~closure_id ~args ~value = {
   value = Eliom_runtime.Client_value_server_repr.to_poly value
 }
 
-type +'a shared_value = {
-  sh_server : 'a;
-  sh_client : 'a t;
-  sh_mark : 'a shared_value Eliom_wrap.wrapper
-}
-
-let internal_wrap (x : 'a shared_value) : 'a t = x.sh_client
-
-let shared_value_mark () : 'a shared_value Eliom_wrap.wrapper =
-  Eliom_wrap.create_wrapper internal_wrap
-
-let create_shared_value
-    (v : 'a) (c : 'a t) : 'a shared_value = {
-  sh_server = v;
-  sh_client = c;
-  sh_mark = shared_value_mark ()
-}
-
-let shared_value_server_repr x = x.sh_server,x.sh_client
-
 exception Client_value_creation_invalid_context of string
 
 let escaped_value value :

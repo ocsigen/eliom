@@ -112,7 +112,7 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     in
     let _loc = loc in
     <:expr<
-      Eliom_client_value.create_shared_value $orig_expr$
+      Eliom_shared.Value.create $orig_expr$
         begin
           $flush_typing_expr ()$;
           $lid:gen_tid$ :=

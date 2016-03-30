@@ -32,7 +32,7 @@
 val to_signal : init:'a -> 'a React.S.t Lwt.t -> 'a React.S.t
 
 (** Accessing shared values *)
-module Value : Eliom_shared_sigs.VALUE
+module Value : Eliom_shared_sigs.VALUE with type +'a t = 'a
 
 (** Shared implementation of React; client-side behavior is like
     standard React *)

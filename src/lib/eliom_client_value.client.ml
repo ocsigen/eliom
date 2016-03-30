@@ -22,10 +22,6 @@ exception Exception_on_server of string
 
 type 'a t = 'a
 
-type 'a shared_value = 'a
-
-let create_shared_value (_ : 'a) (c : 'a t) = c
-
 type injection_datum = Eliom_runtime.injection_datum
 
 type global_data2

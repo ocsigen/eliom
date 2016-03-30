@@ -31,8 +31,6 @@
     Eliom_client_value.t>> %}. *)
 type +'a t
 
-type +'a shared_value
-
 (** Raised if a client value of the given closure ID is created at a
     point in time where it is neither global (i.e. during the
     initialization of the server program), nor request (i.e. during
@@ -53,10 +51,6 @@ val client_value_datum :
   closure_id:string -> args:Ocsigen_lib.poly ->
   value:'a t ->
   Eliom_runtime.client_value_datum
-
-val create_shared_value : 'a -> 'a t -> 'a shared_value
-
-val shared_value_server_repr : 'a shared_value -> 'a * 'a t
 
 val escaped_value :
   'a -> Eliom_runtime.escaped_value (* * Eliom_wrap.unwrapper *)

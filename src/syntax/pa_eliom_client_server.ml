@@ -220,7 +220,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     in
     let _loc = Ast.loc_of_expr orig_expr in
     <:expr@loc<
-    Eliom_client_value.create_shared_value
+    Eliom_shared.Value.create
       $orig_expr$
       (Eliom_syntax.client_value
         ~pos:($Helpers.position _loc$)

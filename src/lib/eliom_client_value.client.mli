@@ -27,10 +27,6 @@
     the server" | type Eliom_client_value.t >> %}. *)
 type 'a t = 'a
 
-type 'a shared_value = 'a
-
-val create_shared_value : 'a -> 'a t -> 'a shared_value
-
 (** This exception is raised (in Lwt) on the client if a call to a
     server function {% <<a_api subproject="server"|val
     Eliom_client.server_function>> %} fails (in Lwt) on the server
