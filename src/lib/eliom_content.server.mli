@@ -126,8 +126,8 @@ module Xml : sig
   (* Concrete on client-side only. *)
   type node_id
   val get_node_id : elt -> node_id
-  val make_event_handler_table : elt -> Eliom_client_common_base.RawXML.event_handler_table
-  val make_client_attrib_table : elt -> Eliom_client_common_base.RawXML.client_attrib_table
+  val make_event_handler_table : elt -> Eliom_runtime.RawXML.event_handler_table
+  val make_client_attrib_table : elt -> Eliom_runtime.RawXML.client_attrib_table
 
   val caml_event_handler : ((#Dom_html.event as 'a) Js.t -> unit) Eliom_client_common.client_value -> 'a caml_event_handler
 

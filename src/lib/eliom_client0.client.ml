@@ -180,7 +180,7 @@ end = struct
             Lwt_log.raise_error_f "Did not find injection %s" name))
 
   let initialize ~compilation_unit_id
-        { Eliom_client_common_base.injection_id; injection_value } =
+        { Eliom_runtime.injection_id; injection_value } =
     Lwt_log.ign_debug_f ~section "Initialize injection %d" injection_id;
     (* BBB One should assert that injection_value doesn't contain any
        value marked for late unwrapping. How to do this efficiently? *)
@@ -276,8 +276,8 @@ let check_global_data global_data =
        "Code containing the following injections is not linked on the client:\n%s"
        (String.concat "\n"
           (List.rev_map (fun d ->
-             let id = d.Eliom_client_common_base.injection_id in
-             match d.Eliom_client_common_base.injection_dbg with
+             let id = d.Eliom_runtime.injection_id in
+             match d.Eliom_runtime.injection_dbg with
              | None -> Printf.sprintf "%d" id
              | Some (pos, Some i) ->
                Printf.sprintf "%d (%s at %s)" id i (Eliom_lib.pos_to_string pos)
@@ -441,7 +441,7 @@ let raw_event_handler value =
     (Eliom_lib.from_poly (Eliom_lib.to_poly value) : #Dom_html.event Js.t -> unit) in
   fun ev -> try handler ev; true with Eliom_client_common.False -> false
 
-let closure_name_prefix = Eliom_client_common_base.RawXML.closure_name_prefix
+let closure_name_prefix = Eliom_runtime.RawXML.closure_name_prefix
 let closure_name_prefix_len = String.length closure_name_prefix
 let reify_caml_event name node ce : string * (#Dom_html.event Js.t -> bool) =
   match ce with
@@ -693,13 +693,13 @@ let get_element_cookies_info elt =
   Js.Opt.to_option
     (Js.Opt.map
        (elt##getAttribute(Js.string
-                            Eliom_client_common_base.RawXML.ce_call_service_attrib))
+                            Eliom_runtime.RawXML.ce_call_service_attrib))
        (fun s -> of_json (Js.to_string s)))
 
 let get_element_template elt =
   Js.Opt.to_option
     (Js.Opt.map (elt##getAttribute(Js.string
-                                     Eliom_client_common_base.RawXML.ce_template_attrib))
+                                     Eliom_runtime.RawXML.ce_template_attrib))
        (fun s -> Js.to_string s))
 
 let a_handler =
@@ -731,7 +731,7 @@ let form_handler
 
 let relink_process_node (node:Dom_html.element Js.t) =
   let id = Js.Opt.get
-      (node##getAttribute(Js.string Eliom_client_common_base.RawXML.node_id_attrib))
+      (node##getAttribute(Js.string Eliom_runtime.RawXML.node_id_attrib))
       (fun () -> Lwt_log.raise_error_f ~section
           "unique node without id attribute")
   in
@@ -755,7 +755,7 @@ let relink_process_node (node:Dom_html.element Js.t) =
 
 let relink_request_node (node:Dom_html.element Js.t) =
   let id = Js.Opt.get
-    (node##getAttribute(Js.string Eliom_client_common_base.RawXML.node_id_attrib))
+    (node##getAttribute(Js.string Eliom_runtime.RawXML.node_id_attrib))
     (fun () -> Lwt_log.raise_error_f ~section
         "unique node without id attribute")
   in
@@ -810,11 +810,11 @@ let relink_page_but_client_values (root:Dom_html.element Js.t) =
 *)
 
 let is_closure_attrib, get_closure_name, get_closure_id =
-  let v_prefix = Eliom_client_common_base.RawXML.closure_attr_prefix in
+  let v_prefix = Eliom_runtime.RawXML.closure_attr_prefix in
   let v_len = String.length v_prefix in
   let v_prefix_js = Js.string v_prefix in
 
-  let n_prefix = Eliom_client_common_base.RawXML.closure_name_prefix in
+  let n_prefix = Eliom_runtime.RawXML.closure_name_prefix in
   let n_len = String.length n_prefix in
   let n_prefix_js = Js.string n_prefix in
 
@@ -832,7 +832,7 @@ let relink_closure_node root onload table (node:Dom_html.element Js.t) =
       let cid = Js.to_bytestring (get_closure_id attr) in
       let name = get_closure_name attr in
       try
-        let cv = Eliom_client_common_base.RawXML.ClosureMap.find cid table in
+        let cv = Eliom_runtime.RawXML.ClosureMap.find cid table in
         let closure = raw_event_handler cv in
         if name = Js.string "onload" then
           (if Eliommod_dom.ancessor root node
@@ -856,11 +856,11 @@ let relink_closure_nodes (root : Dom_html.element Js.t)
     ignore (List.for_all (fun f -> f ev) (List.rev !onload))
 
 let is_attrib_attrib,get_attrib_id =
-  let v_prefix = Eliom_client_common_base.RawXML.client_attr_prefix in
+  let v_prefix = Eliom_runtime.RawXML.client_attr_prefix in
   let v_len = String.length v_prefix in
   let v_prefix_js = Js.string v_prefix in
 
-  let n_prefix = Eliom_client_common_base.RawXML.client_name_prefix in
+  let n_prefix = Eliom_runtime.RawXML.client_name_prefix in
   let n_len = String.length n_prefix in
   let n_prefix_js = Js.string n_prefix in
 
@@ -876,7 +876,7 @@ let relink_attrib root table (node:Dom_html.element Js.t) =
     then
       let cid = Js.to_bytestring (get_attrib_id attr) in
       try
-        let value = Eliom_client_common_base.RawXML.ClosureMap.find cid table in
+        let value = Eliom_runtime.RawXML.ClosureMap.find cid table in
         let rattrib: Eliom_content_core.Xml.attrib =
           (Eliom_lib.from_poly (Eliom_lib.to_poly value)) in
         rebuild_rattrib node rattrib

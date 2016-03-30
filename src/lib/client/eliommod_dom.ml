@@ -101,36 +101,36 @@ let ancessor =
 
 let fast_select_request_nodes root =
   root##querySelectorAll(Js.string
-                           ("."^Eliom_client_common_base.RawXML.request_node_class))
+                           ("."^Eliom_runtime.RawXML.request_node_class))
 
 let fast_select_nodes root =
   if !Eliom_config.debug_timings
   then Firebug.console##time(Js.string "fast_select_nodes");
   let a_nodeList : Dom_html.element Dom.nodeList Js.t =
     root##querySelectorAll(
-      Js.string ("a."^Eliom_client_common_base.RawXML.ce_call_service_class))
+      Js.string ("a."^Eliom_runtime.RawXML.ce_call_service_class))
   in
   let a_nodeList : Dom_html.anchorElement Dom.nodeList Js.t =
     Js.Unsafe.coerce a_nodeList
   in
   let form_nodeList : Dom_html.element Dom.nodeList Js.t =
     root##querySelectorAll(
-      Js.string ("form."^Eliom_client_common_base.RawXML.ce_call_service_class))
+      Js.string ("form."^Eliom_runtime.RawXML.ce_call_service_class))
   in
   let form_nodeList : Dom_html.formElement Dom.nodeList Js.t =
     Js.Unsafe.coerce form_nodeList
   in
   let process_node_nodeList =
     root##querySelectorAll(
-      Js.string ("."^Eliom_client_common_base.RawXML.process_node_class))
+      Js.string ("."^Eliom_runtime.RawXML.process_node_class))
   in
   let closure_nodeList =
     root##querySelectorAll(
-      Js.string ("."^Eliom_client_common_base.RawXML.ce_registered_closure_class))
+      Js.string ("."^Eliom_runtime.RawXML.ce_registered_closure_class))
   in
   let attrib_nodeList =
     root##querySelectorAll(
-      Js.string ("."^Eliom_client_common_base.RawXML.ce_registered_attr_class))
+      Js.string ("."^Eliom_runtime.RawXML.ce_registered_attr_class))
   in
   if !Eliom_config.debug_timings
   then Firebug.console##timeEnd(Js.string "fast_select_nodes");
@@ -156,19 +156,19 @@ let slow_has_classes (node:Dom_html.element Js.t) =
   for i = 0 to (classes##length) - 1 do
     found_call_service :=
       (Js.array_get classes i
-       == Js.def (Js.string Eliom_client_common_base.RawXML.ce_call_service_class))
+       == Js.def (Js.string Eliom_runtime.RawXML.ce_call_service_class))
       || !found_call_service;
     found_process_node :=
       (Js.array_get classes i
-       == Js.def (Js.string Eliom_client_common_base.RawXML.process_node_class))
+       == Js.def (Js.string Eliom_runtime.RawXML.process_node_class))
       || !found_process_node;
     found_closure :=
       (Js.array_get classes i
-       == Js.def (Js.string Eliom_client_common_base.RawXML.ce_registered_closure_class))
+       == Js.def (Js.string Eliom_runtime.RawXML.ce_registered_closure_class))
       || !found_closure;
     found_attrib :=
       (Js.array_get classes i
-       == Js.def (Js.string Eliom_client_common_base.RawXML.ce_registered_attr_class))
+       == Js.def (Js.string Eliom_runtime.RawXML.ce_registered_attr_class))
       || !found_attrib;
   done;
   !found_call_service,!found_process_node,!found_closure,!found_attrib
@@ -179,24 +179,24 @@ let slow_has_request_class (node:Dom_html.element Js.t) =
   for i = 0 to (classes##length) - 1 do
     found_request_node :=
       (Js.array_get classes i
-       == Js.def (Js.string Eliom_client_common_base.RawXML.request_node_class))
+       == Js.def (Js.string Eliom_runtime.RawXML.request_node_class))
       || !found_request_node;
   done;
   !found_request_node
 
 let fast_has_classes (node:Dom_html.element Js.t) =
   Js.to_bool (node##classList##contains(
-    (Js.string Eliom_client_common_base.RawXML.ce_call_service_class))),
+    (Js.string Eliom_runtime.RawXML.ce_call_service_class))),
   Js.to_bool (node##classList##contains(
-    (Js.string Eliom_client_common_base.RawXML.process_node_class))),
+    (Js.string Eliom_runtime.RawXML.process_node_class))),
   Js.to_bool (node##classList##contains(
-    (Js.string Eliom_client_common_base.RawXML.ce_registered_closure_class))),
+    (Js.string Eliom_runtime.RawXML.ce_registered_closure_class))),
   Js.to_bool (node##classList##contains(
-    (Js.string Eliom_client_common_base.RawXML.ce_registered_attr_class)))
+    (Js.string Eliom_runtime.RawXML.ce_registered_attr_class)))
 
 let fast_has_request_class (node:Dom_html.element Js.t) =
   Js.to_bool (node##classList##contains(
-    (Js.string Eliom_client_common_base.RawXML.request_node_class)))
+    (Js.string Eliom_runtime.RawXML.request_node_class)))
 
 let has_classes : Dom_html.element Js.t -> (bool*bool*bool*bool) =
   if test_classList ()
@@ -379,13 +379,13 @@ let copy_element (e:Dom.element Js.t)
     Js.Opt.iter (Dom_html.CoerceTo.element e)
       (fun e -> copy##className <- e##className);
     let node_id = Js.Opt.to_option
-        (e##getAttribute(Js.string Eliom_client_common_base.RawXML.node_id_attrib)) in
+        (e##getAttribute(Js.string Eliom_runtime.RawXML.node_id_attrib)) in
     match node_id with
     | Some id when registered_process_node id ->
       Js.Opt.iter
         (e##getAttribute(Js.string "class"))
         (fun classes -> copy##setAttribute(Js.string "class",classes));
-      copy##setAttribute(Js.string Eliom_client_common_base.RawXML.node_id_attrib,id);
+      copy##setAttribute(Js.string Eliom_runtime.RawXML.node_id_attrib,id);
       Some copy
     | _ ->
       let add_attribute a =

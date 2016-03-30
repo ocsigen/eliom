@@ -40,7 +40,7 @@ let server = {
   internal = [
     "eliom_comet_base";
     "eliom_common_base";
-    "eliom_client_common_base";
+    "eliom_runtime";
     "eliom_content_";
     "eliom_content_core";
     "eliom_cookies_base";
@@ -102,7 +102,7 @@ let client = {
     "eliom_comet_base";
     "eliom_common";
     "eliom_common_base";
-    "eliom_client_common_base";
+    "eliom_runtime";
     "eliom_client0";
     "eliom_content_";
     "eliom_cookies_base";

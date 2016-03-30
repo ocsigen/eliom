@@ -17,8 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-val get_global_data : unit -> Eliom_client_common_base.global_data
-val get_request_data : unit -> Eliom_client_common_base.request_data
+val get_global_data : unit -> Eliom_runtime.global_data
+val get_request_data : unit -> Eliom_runtime.request_data
 
 (*****************************************************************************)
 

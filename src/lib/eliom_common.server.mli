@@ -703,9 +703,9 @@ type eliom_js_page_data = {
   ejs_global_data: Eliom_client_common.global_data2 option;
   ejs_request_data: Eliom_client_common.request_data;
   (* Event handlers *)
-  ejs_event_handler_table: Eliom_client_common_base.RawXML.event_handler_table;
+  ejs_event_handler_table: Eliom_runtime.RawXML.event_handler_table;
   (* Client attrib *)
-  ejs_client_attrib_table: Eliom_client_common_base.RawXML.client_attrib_table;
+  ejs_client_attrib_table: Eliom_runtime.RawXML.client_attrib_table;
   (* Session info *)
   ejs_sess_info: sess_info;
 }

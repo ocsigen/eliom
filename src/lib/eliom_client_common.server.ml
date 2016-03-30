@@ -17,17 +17,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-include (Eliom_client_common_base :
-           module type of Eliom_client_common_base
-         with type escaped_value = Eliom_client_common_base.escaped_value
+include (Eliom_runtime :
+           module type of Eliom_runtime
+         with type escaped_value = Eliom_runtime.escaped_value
          with type +'a Client_value_server_repr.t =
-           'a Eliom_client_common_base.Client_value_server_repr.t
-         with type client_value_datum = Eliom_client_common_base.client_value_datum
-         with type injection_datum = Eliom_client_common_base.injection_datum
+           'a Eliom_runtime.Client_value_server_repr.t
+         with type client_value_datum = Eliom_runtime.client_value_datum
+         with type injection_datum = Eliom_runtime.injection_datum
          with type compilation_unit_global_data =
-           Eliom_client_common_base.compilation_unit_global_data
-         with type global_data := Eliom_client_common_base.global_data
-         with type request_data = Eliom_client_common_base.request_data)
+           Eliom_runtime.compilation_unit_global_data
+         with type global_data := Eliom_runtime.global_data
+         with type request_data = Eliom_runtime.request_data)
 
 let escaped_value_escaped_value = fst
 
@@ -36,7 +36,7 @@ type 'a fragment = 'a client_value
 
 let client_value_unwrapper =
   Eliom_wrap.create_unwrapper
-    (Eliom_wrap.id_of_int Eliom_client_common_base.client_value_unwrap_id_int)
+    (Eliom_wrap.id_of_int Eliom_runtime.client_value_unwrap_id_int)
 
 let create_client_value ?loc ~instance_id =
   Client_value_server_repr.create
@@ -71,7 +71,7 @@ exception Client_value_creation_invalid_context of string
 let escaped_value value : escaped_value (* * Eliom_wrap.unwrapper *) =
   Ocsigen_lib.to_poly value
 
-type global_data2 = Eliom_client_common_base.global_data * Eliom_wrap.unwrapper
+type global_data2 = Eliom_runtime.global_data * Eliom_wrap.unwrapper
 
 let global_data_unwrapper =
   Eliom_wrap.create_unwrapper

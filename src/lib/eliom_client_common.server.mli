@@ -17,14 +17,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-include module type of Eliom_client_common_base
-  with type escaped_value = Eliom_client_common_base.escaped_value
-  with type +'a Client_value_server_repr.t = 'a Eliom_client_common_base.Client_value_server_repr.t
-  with type client_value_datum = Eliom_client_common_base.client_value_datum
-  with type injection_datum = Eliom_client_common_base.injection_datum
-  with type compilation_unit_global_data = Eliom_client_common_base.compilation_unit_global_data
-  with type global_data := Eliom_client_common_base.global_data
-  with type request_data = Eliom_client_common_base.request_data
+include module type of Eliom_runtime
+  with type escaped_value = Eliom_runtime.escaped_value
+  with type +'a Client_value_server_repr.t = 'a Eliom_runtime.Client_value_server_repr.t
+  with type client_value_datum = Eliom_runtime.client_value_datum
+  with type injection_datum = Eliom_runtime.injection_datum
+  with type compilation_unit_global_data = Eliom_runtime.compilation_unit_global_data
+  with type global_data := Eliom_runtime.global_data
+  with type request_data = Eliom_runtime.request_data
 
 (** {2 Client and shared values}
 
@@ -61,6 +61,6 @@ val shared_value_server_repr : 'a shared_value -> 'a * 'a client_value
 
 val escaped_value : 'a -> escaped_value (* * Eliom_wrap.unwrapper *)
 
-type global_data2 = Eliom_client_common_base.global_data * Eliom_wrap.unwrapper
+type global_data2 = Eliom_runtime.global_data * Eliom_wrap.unwrapper
 
 val global_data_unwrapper : Eliom_wrap.unwrapper

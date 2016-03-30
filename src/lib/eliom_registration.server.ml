@@ -1940,19 +1940,19 @@ module Eliom_appl_reg_make_param
           then data
           else
             String_map.map
-              (fun {Eliom_client_common_base.server_sections_data;
+              (fun {Eliom_runtime.server_sections_data;
                     client_sections_data} ->
                  Array.iter
                    (Array.iter (fun d ->
-                      Eliom_client_common_base.Client_value_server_repr.clear_loc
-                        d.Eliom_client_common_base.value))
+                      Eliom_runtime.Client_value_server_repr.clear_loc
+                        d.Eliom_runtime.value))
                    server_sections_data;
-              { Eliom_client_common_base.server_sections_data;
+              { Eliom_runtime.server_sections_data;
                 client_sections_data = Array.map
                     (
                       Array.map (fun x ->
                         {x with
-                         Eliom_client_common_base.injection_dbg = None})
+                         Eliom_runtime.injection_dbg = None})
                     )
                     client_sections_data
               }) data
@@ -1965,7 +1965,7 @@ module Eliom_appl_reg_make_param
       if not keep_debug then
         Array.iter (fun d ->
           Eliom_client_common.Client_value_server_repr.clear_loc
-            d.Eliom_client_common_base.value) data;
+            d.Eliom_runtime.value) data;
       data
     in
 
