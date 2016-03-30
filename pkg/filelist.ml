@@ -79,6 +79,7 @@ let client = {
   interface = [
     "eliom_bus";
     "eliom_client_value";
+    "eliom_client_core";
     "eliom_client";
     "eliom_comet";
     "eliom_config";
@@ -102,7 +103,6 @@ let client = {
     "eliom_common";
     "eliom_common_base";
     "eliom_runtime";
-    "eliom_client_core";
     "eliom_content_";
     "eliom_cookies_base";
     "eliom_form";
