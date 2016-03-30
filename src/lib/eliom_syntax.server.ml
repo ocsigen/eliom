@@ -123,7 +123,7 @@ let register_client_value_data ~closure_id ~args ~value =
       current_server_section_data :=
         client_value_datum :: !current_server_section_data
     else
-      raise (Eliom_client_common.Client_value_creation_invalid_context
+      raise (Eliom_client_value.Client_value_creation_invalid_context
                closure_id)
   else
     Eliom_reference.Volatile.modify request_data
@@ -133,7 +133,7 @@ let register_client_value_data ~closure_id ~args ~value =
 (*****************************************************************************)
 (* Syntax helpers *)
 
-let escaped_value = Eliom_client_common.escaped_value
+let escaped_value = Eliom_client_value.escaped_value
 
 let last_id = ref 0
 
@@ -145,9 +145,9 @@ let client_value ?pos closure_id args =
     end else
       0
   in
-  let value = Eliom_client_common.create_client_value ?loc:pos ~instance_id in
+  let value = Eliom_client_value.create_client_value ?loc:pos ~instance_id in
   register_client_value_data
     ~closure_id ~args:(Eliom_lib.to_poly args) ~value;
-  Eliom_client_common.client_value_from_server_repr value
+  Eliom_client_value.client_value_from_server_repr value
 
 let set_global b = is_global := b

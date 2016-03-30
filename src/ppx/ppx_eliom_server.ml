@@ -175,7 +175,7 @@ module Pass = struct
          ~pos:([%e position loc ])
          [%e AC.str num ]
          [%e e ]
-       : [%t typ ] Eliom_client_common.client_value)
+       : [%t typ ] Eliom_client_value.t)
     ][@metaloc loc]
 
   let escape_inject ?ident ~(context:Context.escape_inject) ~id expr =

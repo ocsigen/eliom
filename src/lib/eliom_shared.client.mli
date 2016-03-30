@@ -42,7 +42,9 @@ module React : sig
 
     include module type of React.S
 
-    include Eliom_shared_sigs.S with type 'a t := 'a t
+    include Eliom_shared_sigs.S
+      with type 'a t := 'a t
+       and type 'a sv := 'a Value.t
 
     (** [create ?eq ?default ?reset_default x] produces a pair [s, f],
         where [s] is a reactive signal, and [f] is a function for
@@ -86,6 +88,7 @@ module ReactiveData : sig
 
     include Eliom_shared_sigs.RLIST
       with type 'a t := 'a t
+       and type 'a sv := 'a Value.t
        and type 'a handle := 'a handle
        and type 'a signal := 'a React.S.t
        and type 'a ct := 'a ReactiveData.RList.t

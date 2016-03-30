@@ -23,8 +23,7 @@
 
 (** Server representation of client values.
     Developer-visible functions should always operate on
-    {% <<a_api subproject="server" | type Eliom_client_common.client_value >> %} or
-    {% <<a_api subproject="server" | type Eliom_client_common.client_value >> %}.
+    {% <<a_api subproject="server" | type Eliom_client_value.t >> %}.
 *)
 module Client_value_server_repr : sig
   type +'a t
@@ -109,7 +108,8 @@ module RawXML : sig
     | RACamlEventHandler of biggest_event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
-    | RAClient of string * attrib option * Ocsigen_lib.poly (* attrib client_value *)
+    | RAClient of string * attrib option * Ocsigen_lib.poly
+    (* attrib Eliom_client_value.t *)
   and attrib = aname * racontent
 
   val aname : attrib -> aname

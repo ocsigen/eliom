@@ -748,7 +748,7 @@ end = struct
 
   let marshal (v:'a) =
     let wrapped = Eliom_wrap.wrap v in
-    let value : 'a Eliom_client_common.eliom_comet_data_type = wrapped in
+    let value : 'a Eliom_runtime.eliom_comet_data_type = wrapped in
     (Url.encode ~plus:false
        (Marshal.to_string value []))
 

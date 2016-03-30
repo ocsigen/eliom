@@ -86,7 +86,7 @@ type 'a reload_fun =
   | Rf_keep (* Keep previous reload function *)
   | Rf_some of
       (unit -> ('a -> unit -> unit Lwt.t) option)
-        Eliom_client_common.client_value ref
+        Eliom_client_value.t ref
 
 type send_appl_content =
   | XNever
@@ -130,7 +130,7 @@ type ('get,'post,+'meth,+'attached,+'kind,+'tipo,'getnames,'postnames,+'registr,
   (* If the service has a client-side implementation,
      we put the generating function here: *)
   client_fun: (unit -> ('get -> 'post -> unit Lwt.t) option)
-      Eliom_client_common.client_value ref;
+      Eliom_client_value.t ref;
 
   reload_fun: 'get reload_fun;
   (* The function to be used to generate the page on client side,

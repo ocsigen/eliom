@@ -296,7 +296,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         | si -> false
 
       let is_client_value_type = function
-        | <:ctyp< $typ$ Eliom_client_common.client_value >> -> Some typ
+        | <:ctyp< $typ$ Eliom_client_value.t >> -> Some typ
         | _ -> None
 
       let extract_escaped_ident_type = function

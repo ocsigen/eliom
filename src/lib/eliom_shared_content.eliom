@@ -37,7 +37,7 @@ module Xml = struct
 
     include React.S
 
-    type (-'a, 'b) ft = unit -> ('a -> 'b) Eliom_client_common.shared_value
+    type (-'a, 'b) ft = unit -> ('a -> 'b) Eliom_shared.Value.t
     type 'a tlist = 'a ReactiveData.RList.t
 
     let return = const
@@ -65,13 +65,13 @@ module Xml = struct
   type ename = Eliom_content_core.Xml.ename
 
   type event_handler =
-    (Dom_html.event Js.t -> unit) Eliom_client_common.client_value
+    (Dom_html.event Js.t -> unit) Eliom_client_value.t
 
   type mouse_event_handler =
-    (Dom_html.mouseEvent Js.t -> unit) Eliom_client_common.client_value
+    (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
 
   type keyboard_event_handler =
-    (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_common.client_value
+    (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
 
   (* attributes *)
 

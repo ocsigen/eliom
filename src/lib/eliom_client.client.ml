@@ -53,7 +53,7 @@ let get_global_data () =
   match
     Eliom_unwrap.unwrap (Url.decode (Js.to_string v)) 0
   with
-  | {Eliom_client_common.ecs_data = `Success v} ->
+  | {Eliom_runtime.ecs_data = `Success v} ->
     Lwt_log.ign_debug_f "Unwrap __global_data success";
     Some v
   | _ ->
@@ -341,11 +341,11 @@ let window_open ~window_name ?window_features
 *)
 
 let unwrap_caml_content content =
-  let r : 'a Eliom_client_common.eliom_caml_service_data =
+  let r : 'a Eliom_runtime.eliom_caml_service_data =
     Eliom_unwrap.unwrap (Url.decode content) 0
   in
-  Lwt.return (r.Eliom_client_common.ecs_data,
-              r.Eliom_client_common.ecs_request_data)
+  Lwt.return (r.Eliom_runtime.ecs_data,
+              r.Eliom_runtime.ecs_request_data)
 
 let call_ocaml_service
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -370,7 +370,7 @@ let call_ocaml_service
   run_callbacks load_callbacks;
   match content with
   | `Success result -> Lwt.return result
-  | `Failure msg -> Lwt.fail (Eliom_client_common.Exception_on_server msg)
+  | `Failure msg -> Lwt.fail (Eliom_client_value.Exception_on_server msg)
 
 (* == Function [change_url_string] changes the URL, without doing a request.
 

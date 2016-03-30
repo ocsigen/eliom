@@ -1350,13 +1350,12 @@ module Ocaml = struct
       let data = Eliom_syntax.get_request_data () in
       if not (Ocsigen_config.get_debugmode()) then
         Array.iter (fun d ->
-          Eliom_client_common.Client_value_server_repr.clear_loc
-            d.Eliom_client_common.value) data;
+          Eliom_runtime.Client_value_server_repr.clear_loc
+            d.Eliom_runtime.value) data;
       data
     in
     (*     debug_client_value_data (debug "%s") client_value_data; *)
-    let r = { Eliom_client_common.
-              ecs_request_data;
+    let r = { Eliom_runtime.ecs_request_data;
               ecs_data = data } in
     Lwt.return (Eliom_types.encode_eliom_data r)
 
@@ -1857,6 +1856,10 @@ let comet_service_key : unit Polytables.key = Polytables.make_key ()
 let request_template =
   Eliom_reference.eref ~scope:Eliom_common.request_scope None
 
+let global_data_unwrapper =
+  Eliom_wrap.create_unwrapper
+    (Eliom_wrap.id_of_int Eliom_runtime.global_data_unwrap_id_int)
+
 module Eliom_appl_reg_make_param
   (Html5_content
      : Ocsigen_http_frame.HTTP_CONTENT
@@ -1957,14 +1960,14 @@ module Eliom_appl_reg_make_param
                     client_sections_data
               }) data
         in
-        Some (data, Eliom_client_common.global_data_unwrapper)
+        Some (data, global_data_unwrapper)
       else None
     in
     let ejs_request_data =
       let data = Eliom_syntax.get_request_data () in
       if not keep_debug then
         Array.iter (fun d ->
-          Eliom_client_common.Client_value_server_repr.clear_loc
+          Eliom_runtime.Client_value_server_repr.clear_loc
             d.Eliom_runtime.value) data;
       data
     in
@@ -2158,7 +2161,7 @@ module type ELIOM_APPL = sig
   ?app:string ->
   service:('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return)
       Eliom_service.service ->
-  ('a -> 'b -> unit Lwt.t) Eliom_client_common.client_value ->
+  ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
   unit
   val application_script :
     ?defer:bool -> ?async:bool -> unit -> [> `Script ] Eliom_content.Html5.elt
@@ -2202,9 +2205,7 @@ module App (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
   let set_client_fun = Eliom_content.set_client_fun
 
   let data_service_handler () () =
-    Lwt.return
-      (Eliom_syntax.get_global_data (),
-       Eliom_client_common.global_data_unwrapper)
+    Lwt.return (Eliom_syntax.get_global_data (), global_data_unwrapper)
 
   let _ =
     Ocaml.register_service
@@ -2234,7 +2235,7 @@ module type TMPL_PARAMS = sig
   type t
   val name: string
   val make_page: t -> Html5_types.html Eliom_content.Html5.elt Lwt.t
-  val update: t -> unit Eliom_client_common.client_value
+  val update: t -> unit Eliom_client_value.t
 end
 
 module Eliom_tmpl_reg_make_param

@@ -201,7 +201,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
       (Eliom_syntax.client_value
          ~pos:($Helpers.position _loc$)
          $str:gen_id$ $Helpers.expr_tuple l$
-       : $typ$ Eliom_client_common.client_value) >> ;;
+       : $typ$ Eliom_client_value.t) >> ;;
 
   let shared_value_expr typ _ orig_expr gen_id _ loc =
     let typ =
@@ -220,13 +220,13 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     in
     let _loc = Ast.loc_of_expr orig_expr in
     <:expr@loc<
-    Eliom_client_common.create_shared_value
+    Eliom_client_value.create_shared_value
       $orig_expr$
       (Eliom_syntax.client_value
         ~pos:($Helpers.position _loc$)
         $str:gen_id$
         $Helpers.expr_tuple (flush_escaped_bindings ())$
-      : $typ$ Eliom_client_common.client_value)
+      : $typ$ Eliom_client_value.t)
     >>
 
   let escape_inject context_level ?ident orig_expr gen_id =

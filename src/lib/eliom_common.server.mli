@@ -700,8 +700,9 @@ val nl_get_appl_parameter: string
 val patch_request_info: Ocsigen_extensions.request -> Ocsigen_extensions.request
 
 type eliom_js_page_data = {
-  ejs_global_data: Eliom_client_common.global_data2 option;
-  ejs_request_data: Eliom_client_common.request_data;
+  ejs_global_data:
+    (Eliom_runtime.global_data * Eliom_wrap.unwrapper) option;
+  ejs_request_data: Eliom_runtime.request_data;
   (* Event handlers *)
   ejs_event_handler_table: Eliom_runtime.RawXML.event_handler_table;
   (* Client attrib *)

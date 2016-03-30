@@ -111,7 +111,7 @@ end
 
 module Client_value : sig
   val find : instance_id:int -> poly option
-  val initialize : Eliom_client_common.client_value_datum -> unit
+  val initialize : Eliom_runtime.client_value_datum -> unit
 end = struct
 
   let table = jsnew Js.array_empty ()
@@ -120,13 +120,13 @@ end = struct
     if instance_id = 0 then (* local client value *) None else
     Js.Optdef.to_option (Js.array_get table instance_id)
 
-  let initialize {Eliom_client_common.closure_id; args; value = server_value} =
+  let initialize {Eliom_runtime.closure_id; args; value = server_value} =
     let closure =
       try
         Client_closure.find ~closure_id
       with Not_found ->
         let pos =
-          match Eliom_client_common.Client_value_server_repr.loc server_value
+          match Eliom_runtime.Client_value_server_repr.loc server_value
           with
           | None -> ""
           | Some p -> Printf.sprintf "(%s)" (Eliom_lib.pos_to_string p) in
@@ -140,7 +140,7 @@ end = struct
     Eliom_unwrap.late_unwrap_value server_value value;
     (* Only register global client values *)
     let instance_id =
-      Eliom_client_common.Client_value_server_repr.instance_id server_value in
+      Eliom_runtime.Client_value_server_repr.instance_id server_value in
     if instance_id <> 0 then Js.array_set table instance_id value
 end
 
@@ -157,7 +157,7 @@ let middleClick ev =
 module Injection : sig
   val get : ?ident:string -> ?pos:pos -> name:string -> _
   val initialize :
-    compilation_unit_id:string -> Eliom_client_common.injection_datum -> unit
+    compilation_unit_id:string -> Eliom_client_value.injection_datum -> unit
 end = struct
 
   let table = Jstable.create ()
@@ -193,8 +193,8 @@ end
 (* == Populating client values and injections by global data *)
 
 type compilation_unit_global_data =
-  { mutable server_section : Eliom_client_common.client_value_datum array list;
-    mutable client_section : Eliom_client_common.injection_datum array list }
+  { mutable server_section : Eliom_runtime.client_value_datum array list;
+    mutable client_section : Eliom_runtime.injection_datum array list }
 
 let global_data = ref String_map.empty
 
@@ -256,11 +256,11 @@ let check_global_data global_data =
        "Code generating the following client values is not linked on the client:\n%s"
        (String.concat "\n"
           (List.rev_map
-             (fun {Eliom_client_common.closure_id; value} ->
+             (fun {Eliom_runtime.closure_id; value} ->
                 let instance_id =
-                  Eliom_client_common.Client_value_server_repr.instance_id value
+                  Eliom_runtime.Client_value_server_repr.instance_id value
                 in
-                match Eliom_client_common.Client_value_server_repr.loc value
+                match Eliom_runtime.Client_value_server_repr.loc value
                 with
                 | None -> Printf.sprintf "%s/%d" closure_id instance_id
                 | Some pos ->
@@ -439,7 +439,7 @@ let raw_form_handler form kind cookies_info tmpl ev =
 let raw_event_handler value =
   let handler = (*XXX???*)
     (Eliom_lib.from_poly (Eliom_lib.to_poly value) : #Dom_html.event Js.t -> unit) in
-  fun ev -> try handler ev; true with Eliom_client_common.False -> false
+  fun ev -> try handler ev; true with Eliom_client_value.False -> false
 
 let closure_name_prefix = Eliom_runtime.RawXML.closure_name_prefix
 let closure_name_prefix_len = String.length closure_name_prefix
@@ -459,7 +459,7 @@ let reify_caml_event name node ce : string * (#Dom_html.event Js.t -> bool) =
           (fun () -> Lwt_log.raise_error ~section "not a form element") in
       raw_form_handler form kind cookies_info tmpl ev)
   | Xml.CE_client_closure f ->
-    name, (fun ev -> try f ev; true with Eliom_client_common.False -> false)
+    name, (fun ev -> try f ev; true with Eliom_client_value.False -> false)
   | Xml.CE_registered_closure (_, cv) ->
     let name =
       let len = String.length name in
@@ -1247,7 +1247,7 @@ let unwrap_tyxml =
 
 let unwrap_client_value cv =
   Client_value.find
-    ~instance_id:(Eliom_client_common.Client_value_server_repr.instance_id cv)
+    ~instance_id:(Eliom_runtime.Client_value_server_repr.instance_id cv)
   (* BB By returning [None] this value will be registered for late
      unwrapping, and late unwrapped in Client_value.initialize as
      soon as it is available. *)
@@ -1255,7 +1255,7 @@ let unwrap_client_value cv =
 let unwrap_global_data = fun (global_data', _) ->
   global_data :=
     String_map.map
-      (fun {Eliom_client_common.server_sections_data; client_sections_data} ->
+      (fun {Eliom_runtime.server_sections_data; client_sections_data} ->
          {server_section = Array.to_list server_sections_data;
           client_section = Array.to_list client_sections_data})
       global_data'
@@ -1265,7 +1265,7 @@ let _ =
     (Eliom_unwrap.id_of_int Eliom_common_base.client_value_unwrap_id_int)
     unwrap_client_value;
   Eliom_unwrap.register_unwrapper
-    (Eliom_unwrap.id_of_int Eliom_client_common.tyxml_unwrap_id_int)
+    (Eliom_unwrap.id_of_int Eliom_runtime.tyxml_unwrap_id_int)
     unwrap_tyxml;
   Eliom_unwrap.register_unwrapper
     (Eliom_unwrap.id_of_int Eliom_common_base.global_data_unwrap_id_int)

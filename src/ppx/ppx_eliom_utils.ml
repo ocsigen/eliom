@@ -185,8 +185,8 @@ module Mli = struct
     Scanf.sscanf id Name.injected_ident_fmt (fun u n -> (u, n))
 
   let get_fragment_type = function
-    | [%type: [%t? typ] Eliom_client_common.fragment ]
-    | [%type: [%t? typ] Eliom_client_common.client_value ] ->
+    | [%type: [%t? typ] Eliom_client_value.fragment ]
+    | [%type: [%t? typ] Eliom_client_value.t ] ->
       Some typ
     | _ -> None
 
@@ -350,7 +350,7 @@ module Shared = struct
     let server_expr = server.AM.expr server expr in
     let client_expr = client.AM.expr client expr in
     [%expr
-      Eliom_client_common.create_shared_value
+      Eliom_shared.Value.create
         [%e server_expr]
         [%client [%e client_expr]]
     ] [@metaloc loc]

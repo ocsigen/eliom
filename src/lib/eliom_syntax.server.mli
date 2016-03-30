@@ -28,20 +28,20 @@ val get_request_data : unit -> Eliom_runtime.request_data
     the request_data when executed in a request. *)
 val client_value :
   ?pos:Eliom_lib.pos -> string -> 'args ->
-  'a Eliom_client_common.client_value
+  'a Eliom_client_value.t
 
 (** All client values created between [set_global true] and
     [set_global false] are considered global client values
     (cf. <<a_manual chapter="clientserver-language"
     chapter="clientvalues"|the manual>>).  *)
-  val set_global : bool -> unit
+val set_global : bool -> unit
 
 (** Called at the end of each server or shared section. The argument
     identifies the compilation unit.
 
     Adds the list of recently registered
-    {!Eliom_client_common.client_value_datum}s into the queue of
-    server section data of the compilation unit
+    {!Eliom_runtime.client_value_datum}s into the queue of server
+    section data of the compilation unit
     ({!Eliom_lib_base.compilation_unit_global_data}).
 
     Called in parallel with <<a_api
@@ -63,7 +63,6 @@ val close_client_section :
   (int * Ocsigen_lib.poly * Eliom_lib.pos * string option) list ->
   unit
 
-(** Convert any value to a {! Eliom_client_common.escaped_value} for
-    usage in the [args] argument to {!
-    Eliom_syntax.client_value}. *)
-val escaped_value : 'a -> Eliom_client_common.escaped_value
+(** Convert any value to a {! Eliom_runtime.escaped_value} for usage
+    in the [args] argument to {! Eliom_syntax.client_value}. *)
+val escaped_value : 'a -> Eliom_runtime.escaped_value

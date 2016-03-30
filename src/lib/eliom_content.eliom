@@ -27,11 +27,11 @@
 
 {shared{
 type boxed
-external boxed : 'a Eliom_client_common.client_value
-  -> boxed Eliom_client_common.client_value
+external boxed : 'a Eliom_client_value.t
+  -> boxed Eliom_client_value.t
   = "%identity"
-external unboxed : boxed Eliom_client_common.client_value
-  -> 'a Eliom_client_common.client_value
+external unboxed : boxed Eliom_client_value.t
+  -> 'a Eliom_client_value.t
   = "%identity"
 }}
 
@@ -74,7 +74,7 @@ module Html5 = struct
     let node ?(init=D.Unsafe.node "span" []) x =
       let dummy_elt = D.toelt init in
       (* We need to box / unbox the client_value to convince eliom it's not polymorphic *)
-      let client_boxed : boxed Eliom_client_common.client_value = boxed x in
+      let client_boxed : boxed Eliom_client_value.t = boxed x in
       let _ = {unit{
           let dummy_dom = Html5.To_dom.of_element (Html5.D.tot %((dummy_elt : Xml.elt))) in
           let client_boxed = %client_boxed in
