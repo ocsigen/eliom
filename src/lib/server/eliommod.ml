@@ -646,9 +646,9 @@ let load_eliom_module sitedata cmo_or_name content =
     config := content;
     Eliom_common.begin_load_eliom_module ();
     (* I want to be able to define global client values during that phase: *)
-    Eliom_client_common2.Syntax_helpers.set_global true;
+    Eliom_syntax.set_global true;
     List.iter (fun f -> f ()) !site_init_ref;
-    Eliom_client_common2.Syntax_helpers.set_global false
+    Eliom_syntax.set_global false
   in
   let postload () =
     Eliom_common.end_load_eliom_module ();

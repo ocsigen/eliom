@@ -1347,7 +1347,7 @@ module Ocaml = struct
 
   let prepare_data data =
     let ecs_request_data =
-      let data = Eliom_client_common2.get_request_data () in
+      let data = Eliom_syntax.get_request_data () in
       if not (Ocsigen_config.get_debugmode()) then
         Array.iter (fun d ->
           Eliom_client_common.Client_value_server_repr.clear_loc
@@ -1934,7 +1934,7 @@ module Eliom_appl_reg_make_param
 
     let ejs_global_data =
       if is_initial_request () then
-        let data = Eliom_client_common2.get_global_data () in
+        let data = Eliom_syntax.get_global_data () in
         let data =
           if keep_debug
           then data
@@ -1961,7 +1961,7 @@ module Eliom_appl_reg_make_param
       else None
     in
     let ejs_request_data =
-      let data = Eliom_client_common2.get_request_data () in
+      let data = Eliom_syntax.get_request_data () in
       if not keep_debug then
         Array.iter (fun d ->
           Eliom_client_common.Client_value_server_repr.clear_loc
@@ -2203,7 +2203,7 @@ module App (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
 
   let data_service_handler () () =
     Lwt.return
-      (Eliom_client_common2.get_global_data (),
+      (Eliom_syntax.get_global_data (),
        Eliom_client_common.global_data_unwrapper)
 
   let _ =

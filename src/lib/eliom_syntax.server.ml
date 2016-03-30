@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (******************************************************************************)
 
@@ -44,15 +44,15 @@ let get_global_data, modify_global_data =
     if is_site_available () then
       Eliom_lib.String_map.merge
         (fun compilation_unit_id global site ->
-          match global, site with
-            | None, None -> assert false
-            | Some data, None | None, Some data -> Some data
-            | Some _, Some site_data ->
-              Eliom_lib.Lwt_log.ign_error_f
-                ~section:Eliom_lib.Lwt_log.eliom
-                "Compilation unit %s linked globally AND as Eliom module"
-                compilation_unit_id;
-              Some site_data)
+           match global, site with
+           | None, None -> assert false
+           | Some data, None | None, Some data -> Some data
+           | Some _, Some site_data ->
+             Eliom_lib.Lwt_log.ign_error_f
+               ~section:Eliom_lib.Lwt_log.eliom
+               "Compilation unit %s linked globally AND as Eliom module"
+               compilation_unit_id;
+             Some site_data)
         !global_data
         (Eliom_reference.Volatile.get site_data)
     else
@@ -76,14 +76,14 @@ let get_compilation_unit_global_data compilation_unit_id =
                 (Eliom_lib.String_map.add compilation_unit_id data)) );
   Eliom_lib.String_map.find compilation_unit_id (get_global_data ())
 
-let close_server_section ~compilation_unit_id =
+let close_server_section compilation_unit_id =
   let data = get_compilation_unit_global_data compilation_unit_id in
   data.server_section
-    <- Array.of_list (List.rev !current_server_section_data)
-         :: data.server_section;
+  <- Array.of_list (List.rev !current_server_section_data)
+     :: data.server_section;
   current_server_section_data := []
 
-let close_client_section ~compilation_unit_id injection_data =
+let close_client_section compilation_unit_id injection_data =
   let data = get_compilation_unit_global_data compilation_unit_id in
   let injection_datum (injection_id, injection_value, loc, ident) =
     { Eliom_runtime.injection_id;
@@ -133,31 +133,21 @@ let register_client_value_data ~closure_id ~args ~value =
 (*****************************************************************************)
 (* Syntax helpers *)
 
-module Syntax_helpers = struct
+let escaped_value = Eliom_client_common.escaped_value
 
-  let escaped_value = Eliom_client_common.escaped_value
+let last_id = ref 0
 
-  let last_id = ref 0
+let client_value ?pos closure_id args =
+  let instance_id =
+    if !is_global then begin
+      incr last_id;
+      !last_id
+    end else
+      0
+  in
+  let value = Eliom_client_common.create_client_value ?loc:pos ~instance_id in
+  register_client_value_data
+    ~closure_id ~args:(Eliom_lib.to_poly args) ~value;
+  Eliom_client_common.client_value_from_server_repr value
 
-  let client_value ?pos closure_id args =
-    let instance_id =
-      if !is_global then begin
-        incr last_id;
-        !last_id
-      end else
-        0
-    in
-    let value = Eliom_client_common.create_client_value ?loc:pos ~instance_id in
-    register_client_value_data
-      ~closure_id ~args:(Eliom_lib.to_poly args) ~value;
-    Eliom_client_common.client_value_from_server_repr value
-
-  let close_server_section compilation_unit_id =
-    close_server_section ~compilation_unit_id
-
-  let close_client_section compilation_unit_id =
-    close_client_section ~compilation_unit_id
-
-  let set_global b = is_global := b
-
-end
+let set_global b = is_global := b
