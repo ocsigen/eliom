@@ -19,11 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-include Eliom_client0
-(* TODO: Implement better separation between Eliom_client0 and Eliom_client.
-   Eliom_client0 is supposed to be linked early, before Eliom_service,
-   in order to make possible to use the client-server syntax in Eliom itself.
-*)
+include Eliom_client_core
+(* TODO: Implement better separation between Eliom_client_core and
+   Eliom_client. Eliom_client_core is supposed to be linked early,
+   before Eliom_service, in order to make possible to use the
+   client-server syntax in Eliom itself. *)
 
 open Eliom_lib
 

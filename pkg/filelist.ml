@@ -80,7 +80,6 @@ let client = {
     "eliom_bus";
     "eliom_client_value";
     "eliom_client";
-    "eliom_client0";
     "eliom_comet";
     "eliom_config";
     "eliom_content";
@@ -103,7 +102,7 @@ let client = {
     "eliom_common";
     "eliom_common_base";
     "eliom_runtime";
-    "eliom_client0";
+    "eliom_client_core";
     "eliom_content_";
     "eliom_cookies_base";
     "eliom_form";

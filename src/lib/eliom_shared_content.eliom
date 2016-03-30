@@ -157,7 +157,7 @@ module Xml = struct
     let _ = {unit{
       let (>>!) = Js.Opt.iter in
       let update =
-        let e = Eliom_client0.rebuild_node' `HTML5 %e in
+        let e = Eliom_client_core.rebuild_node' `HTML5 %e in
         fun x ->
           Js.Opt.case (e##firstChild)
             (fun () ->
@@ -190,7 +190,7 @@ module Xml = struct
       name_node
     in
     let _ = {unit{
-      let f = Eliom_client0.rebuild_node' %ns in
+      let f = Eliom_client_core.rebuild_node' %ns in
       let e = f %e
       and l = ReactiveData.RList.map f %l in
       Tyxml_js.Util.update_children e l
@@ -295,13 +295,13 @@ module Svg = struct
           %s >|= (fun s ->
             Eliom_content_core.Svg.
               (Id.create_request_elt s ~reset:false |> D.toelt) |>
-            Eliom_client0.rebuild_node' `SVG)
+            Eliom_client_core.rebuild_node' `SVG)
         in
         let f =
           let replace e' e =
             let f p = Dom.replaceChild p e' e in
             Js.Opt.iter (e##parentNode) f |> ignore
-          and e = Eliom_client0.rebuild_node' `SVG %e in
+          and e = Eliom_client_core.rebuild_node' `SVG %e in
           fun e' ->
             replace e' e;
             React.S.diff replace s |> ignore
@@ -386,13 +386,13 @@ module Html5 = struct
           %s >|= (fun s ->
             Eliom_content_core.Html5.
               (Id.create_request_elt s ~reset:false |> D.toelt) |>
-            Eliom_client0.rebuild_node' `HTML5)
+            Eliom_client_core.rebuild_node' `HTML5)
         in
         let f =
           let replace e' e =
             let f p = Dom.replaceChild p e' e in
             Js.Opt.iter (e##parentNode) f |> ignore
-          and e = Eliom_client0.rebuild_node' `HTML5 %e in
+          and e = Eliom_client_core.rebuild_node' `HTML5 %e in
           fun e' ->
             replace e' e;
             React.S.diff replace s |> ignore
