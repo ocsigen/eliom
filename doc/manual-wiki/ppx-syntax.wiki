@@ -87,7 +87,7 @@ let%server x =  [%shared ...]
 >>
 
 It will produce values of type
-<<a_api subproject="server"|type Eliom_client_common.shared_value>>.
+<<a_api subproject="server"|type Eliom_shared.Value.t>>.
 
 Shared fragments can be nested and can contain client fragments.
 

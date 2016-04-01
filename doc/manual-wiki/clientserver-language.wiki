@@ -255,7 +255,7 @@ chapter="eliomc"|language extensions in Eliom>>.  To investigate this
 in more details, it is advisable to dump the source code for the server
 or client program with with ##eliomc -c -infer## or ##js_of_eliom -c -infer##
 respectively, and to refer to the API of the generated
-functions in ##Eliom_client_common2.Syntax_helpers## on the server
+functions in ##Eliom_syntax## on the server
 and ##Eliom_client.Syntax_helpers## on the client.
 
 === Client values
