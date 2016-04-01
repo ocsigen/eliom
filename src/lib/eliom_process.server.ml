@@ -19,10 +19,10 @@
 
 exception Server_side_process_closed
 
-let get_application_name, set_application_name =
-  let r = ref (None : string option) in
-  (fun () -> !r),
-  (fun s -> r := Some s)
+
+(** returns None on server side *)
+let get_application_name () = None
+
 
 (** false on server side *)
 let client_side = false

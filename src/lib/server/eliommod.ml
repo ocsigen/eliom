@@ -237,8 +237,7 @@ let parse_eliom_option
      set_max_volatile_groups_per_site,
      set_secure_cookies,
      set_ipv4mask,
-     set_ipv6mask,
-     set_app_name
+     set_ipv6mask
     )
     =
   let parse_timeout_attrs tn attrs =
@@ -432,12 +431,7 @@ let parse_eliom_option
        with _ ->
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for ipv6subnetmask tag")))
-  | (Element ("appname", [("value", v)], [])) ->
-      (try
-        set_app_name v
-       with _ ->
-         raise (Error_in_config_file
-                  ("Eliom: Wrong attribute value for appname tag")))
+
   | (Element (s, _, _)) ->
       raise (Error_in_config_file
                ("Unexpected content <"^s^"> inside eliom config"))
@@ -526,8 +520,7 @@ let rec parse_global_config = function
          (fun v -> default_max_volatile_groups_per_site := v),
          (fun v -> default_secure_cookies := v),
          (fun v -> Eliom_common.ipv4mask := v),
-         (fun v -> Eliom_common.ipv6mask := v),
-         Eliom_process.set_application_name
+         (fun v -> Eliom_common.ipv6mask := v)
         )
         e;
       parse_global_config ll
@@ -847,8 +840,7 @@ let parse_config hostpattern conf_info site_dir =
                          sitedata.Eliom_common.group_of_groups v)),
              (fun v -> sitedata.Eliom_common.secure_cookies <- v),
              (fun v -> sitedata.Eliom_common.ipv4mask <- Some v, true),
-             (fun v -> sitedata.Eliom_common.ipv6mask <- Some v, true),
-             Eliom_process.set_application_name
+             (fun v -> sitedata.Eliom_common.ipv6mask <- Some v, true)
             )
             content
         in
