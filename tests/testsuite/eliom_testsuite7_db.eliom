@@ -43,7 +43,7 @@ open Eliom_content.Html5.F
     let signal = fst (Eliom_shared.React.S.create v) in
     let _ = {unit{ cache_msg %i %signal }} in
     Lwt.return signal
-  let get_msg_rpc = server_function Json.t<int> get_msg
+  let get_msg_rpc = Eliom_client.server_function Json.t<int> get_msg
 }}
 {client{
   let get_msg_and_cache i =

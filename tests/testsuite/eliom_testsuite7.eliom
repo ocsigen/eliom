@@ -15,8 +15,7 @@ open Eliom_content.Html5.F
     lwt msg_signal = Eliom_testsuite7_db.get_msg_and_cache id in
     Lwt.return
       (R.node (Eliom_shared.React.S.map
-                 (Eliom_client_common.create_shared_value
-                    display_msg0 {{ display_msg0 }})
+                 {shared#{ display_msg0 }}
                  msg_signal))
  }}
 
@@ -24,8 +23,9 @@ open Eliom_content.Html5.F
 
   let display_msg_list () =
     lwt msg_ids_signal = Eliom_testsuite7_db.get_msg_ids () in
-    lwt content = Eliom_shared.ReactiveData.RList.Lwt.map_p
-        (Eliom_client_common.create_shared_value display_msg {{display_msg}})
+    lwt content =
+      Eliom_shared.ReactiveData.RList.Lwt.map_p
+        {shared#{ display_msg }}
         msg_ids_signal
     in
     Lwt.return (R.div content)
@@ -64,7 +64,7 @@ let test, testh = ReactiveData.RList.create
   let testfun () =
     lwt content =
       Eliom_shared.ReactiveData.RList.Lwt.map_p
-        (Eliom_client_common.create_shared_value test0 {{test0}})
+        {shared#{ test0 }}
         (fst (Eliom_shared.ReactiveData.RList.create [1; 2]))
     in
     Lwt.return (D.div [p [pcdata "les boîtes :"]; R.div content])

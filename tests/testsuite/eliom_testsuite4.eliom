@@ -62,7 +62,7 @@ let test_client_value_on_caml_service =
                   Eliom_client.call_ocaml_service %ocaml_service () () in
                 Eliom_testsuite_base.log "number: %d" number;
                 Lwt.return ()
-              with Eliom_client_common.Exception_on_server msg ->
+              with Eliom_client_value.Exception_on_server msg ->
                 Eliom_testsuite_base.log "Exception on server: %s" msg;
                 Lwt.return ())
        }} in
@@ -1335,7 +1335,7 @@ let test_server_function =
       Lwt_log.ign_debug_f "test_server_function: received %S sending %S" str strstr;
       Lwt.return (str ^ str)
   in
-  let rpc_f = server_function Json.t<string> f in
+  let rpc_f = Eliom_client.server_function Json.t<string> f in
   Eliom_testsuite_base.test
     ~title:"RPC / server functions"
     ~path:["mixed"; "server_function"]
@@ -1362,7 +1362,7 @@ let test_server_function =
                  lwt strstr = %rpc_f str in
                  Eliom_testsuite_base.log "Sent %S received %S" str strstr;
                  Lwt.return ()
-               with Eliom_client_common.Exception_on_server str ->
+               with Eliom_client_value.Exception_on_server str ->
                  Eliom_testsuite_base.log "Exception on server: %s" str;
                  Lwt.return ())
        }} in
@@ -1385,7 +1385,8 @@ let test_server_function =
 }}
 {server{
   let () = ignore {unit{ Eliom_testsuite_base.log "STEP 3" }}
-  let client_value_initialization_f (x : int client_value) : unit client_value =
+  let client_value_initialization_f (x : int Eliom_client_value.t)
+    : unit Eliom_client_value.t =
     {{ Eliom_testsuite_base.log "STEP %d" %x }}
   let client_value_initialization_y1 =
     client_value_initialization_f {{ client_value_initialization_x1 }}

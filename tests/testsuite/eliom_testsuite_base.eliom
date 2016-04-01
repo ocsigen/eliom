@@ -120,7 +120,7 @@ let monospace fmt =
     fun fmt ->
       Printf.ksprintf
         (fun msg ->
-           if Eliom_client.in_onload ()
+           if Eliom_client_core.in_onload ()
            then buffer := msg :: !buffer
            else append_log_message msg)
         fmt
