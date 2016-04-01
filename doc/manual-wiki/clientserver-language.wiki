@@ -255,7 +255,7 @@ chapter="eliomc"|language extensions in Eliom>>.  To investigate this
 in more details, it is advisable to dump the source code for the server
 or client program with with ##eliomc -c -infer## or ##js_of_eliom -c -infer##
 respectively, and to refer to the API of the generated
-functions in ##Eliom_service.Syntax_helpers## on the server
+functions in ##Eliom_client_common2.Syntax_helpers## on the server
 and ##Eliom_client.Syntax_helpers## on the client.
 
 === Client values
@@ -273,10 +273,10 @@ where ##exp'## is ##exp## with occurrences of ##%v_i## replaced
 by ##v'_i## where all ##v'_i## are free in ##exp##.
 
 When a client value is then created dynamically, a <<a_api|type
-Eliom_lib_base.client_value_datum>> is registered to be sent to the
+Eliom_common_base.client_value_datum>> is registered to be sent to the
 client with the <<a_api project="eliom" subproject="server"|val
-Eliom_lib_base.global_data>> or <<a_api project="eliom"
-subproject="server"|val Eliom_lib_base.request_data>> respectively. It
+Eliom_common_base.global_data>> or <<a_api project="eliom"
+subproject="server"|val Eliom_common_base.request_data>> respectively. It
 contains the closure ID, an instance ID (unique per client value), and
 the tuple of injected values (sometimes known as ##args##).
 

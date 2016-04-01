@@ -165,23 +165,23 @@ let unregister ?scope ?secure service =
     | None
     | Some `Site ->
       let table =
-	match sp with
+        match sp with
           | None ->
             (match Eliom_common.global_register_allowed () with
               | Some get_current_sitedata ->
-		let sitedata = get_current_sitedata () in
-		sitedata.Eliom_common.global_services
+                let sitedata = get_current_sitedata () in
+                sitedata.Eliom_common.global_services
               | _ -> raise
-		(Eliom_common.Eliom_site_information_not_available
+                (Eliom_common.Eliom_site_information_not_available
                    "unregister"))
           | Some sp -> get_global_table ()
       in
       remove_service table service
     | Some (#Eliom_common.user_scope as scope) ->
       match sp with
-	| None ->
+        | None ->
           raise (failwith "Unregistering service for non global scope must be done during a request")
-	| Some sp ->
+        | Some sp ->
           let table =
             !(Eliom_state.get_session_service_table ~sp ?secure ~scope ())
           in
@@ -229,6 +229,7 @@ module Http = struct
   include MakeBase
 end
 
+
 (*****************************************************************************)
 let pre_wrap s =
   {s with
@@ -237,133 +238,6 @@ let pre_wrap s =
   }
 
 (* let wrap s = Eliom_types.wrap_parameters (pre_wrap s) *)
-
-(******************************************************************************)
-
-(* Global data *)
-
-type compilation_unit_global_data =
-  { mutable server_section : client_value_datum array list;
-    mutable client_section : injection_datum array list }
-
-let get_global_data, modify_global_data =
-  (* We have to classify global data from ocsigen extensions (no site
-     available) and eliommodules (site data available).
-     Furthermore, the Eliom services must only send global data from
-     ocsigen extensions and their own site.  *)
-  let global_data = ref String_map.empty in
-  let site_data = Eliom_reference.Volatile.eref ~scope:Eliom_common.site_scope String_map.empty in
-  let is_site_available () =
-    (* Matches valid states for Eliom_common.get_site_data *)
-    Eliom_common.(get_sp_option () <> None || during_eliom_module_loading ())
-  in
-  let get () =
-    if is_site_available () then
-      String_map.merge
-        (fun compilation_unit_id global site ->
-          match global, site with
-            | None, None -> assert false
-            | Some data, None | None, Some data -> Some data
-            | Some _, Some site_data ->
-              Lwt_log.ign_error_f ~section:Lwt_log.eliom "Compilation unit %s linked globally AND as Eliom module" compilation_unit_id;
-              Some site_data)
-        !global_data
-        (Eliom_reference.Volatile.get site_data)
-    else
-      !global_data
-  in
-  let modify f =
-    if is_site_available () then
-      Eliom_reference.Volatile.modify site_data f
-    else
-      global_data := f !global_data
-  in
-  get, modify
-
-let current_server_section_data = ref []
-
-let get_compilation_unit_global_data compilation_unit_id =
-  if not (String_map.mem compilation_unit_id (get_global_data ())) then
-    ( let data = { server_section = []; client_section = [] } in
-      ignore (modify_global_data (String_map.add compilation_unit_id data)) );
-  String_map.find compilation_unit_id (get_global_data ())
-
-let close_server_section ~compilation_unit_id =
-  let data = get_compilation_unit_global_data compilation_unit_id in
-  data.server_section
-    <- Array.of_list (List.rev !current_server_section_data)
-         :: data.server_section;
-  current_server_section_data := []
-
-let close_client_section ~compilation_unit_id injection_data =
-  let data = get_compilation_unit_global_data compilation_unit_id in
-  let injection_datum (injection_id, injection_value, loc, ident) =
-    { injection_id; injection_value ; injection_dbg = Some (loc, ident) }
-  in
-  let injection_data = Array.of_list injection_data in
-  data.client_section <-
-    Array.map injection_datum injection_data :: data.client_section
-
-let get_global_data () =
-  String_map.map
-    (fun {server_section; client_section}->
-       { server_sections_data = Array.of_list (List.rev server_section);
-         client_sections_data = Array.of_list (List.rev client_section) })
-    (get_global_data ())
-
-(* Request data *)
-
-let request_data : client_value_datum list Eliom_reference.Volatile.eref =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
-
-let get_request_data () =
-  Array.of_list (List.rev (Eliom_reference.Volatile.get request_data))
-
-(* Register data *)
-
-let is_global = ref false
-
-let register_client_value_data ~closure_id ~args ~value =
-  let client_value_datum = { closure_id; args; value } in
-  if !is_global then
-    if Eliom_common.get_sp_option () = None then
-      current_server_section_data :=
-        client_value_datum :: !current_server_section_data
-    else
-      raise (Client_value_creation_invalid_context closure_id)
-  else
-    Eliom_reference.Volatile.modify request_data
-      (fun sofar -> client_value_datum :: sofar)
-
-(* Syntax helpers *)
-
-module Syntax_helpers = struct
-
-  let escaped_value = Eliom_lib.escaped_value
-
-  let last_id = ref 0
-
-  let client_value ?pos closure_id args =
-    let instance_id =
-      if !is_global then begin
-        incr last_id;
-        !last_id
-      end else
-        0
-    in
-    let value = create_client_value ?loc:pos ~instance_id in
-    register_client_value_data ~closure_id ~args:(to_poly args) ~value;
-    client_value_from_server_repr value
-
-  let close_server_section compilation_unit_id =
-    close_server_section ~compilation_unit_id
-
-  let close_client_section compilation_unit_id =
-    close_client_section ~compilation_unit_id
-
-  let set_global b = is_global := b
-
-end
 
 (*****************************************************************************)
 let set_client_fun = set_client_fun_

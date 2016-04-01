@@ -69,7 +69,8 @@ val service :
 val post_service :
   ?rt:'rt rt ->
   ?https:bool ->
-  fallback: ('get, unit, [< `Get], [< attached_kind], [< `Service | `AttachedCoservice ] as 'kind,
+  fallback: ('get, unit, [< `Get], [< attached_kind],
+             [< `Service | `AttachedCoservice ] as 'kind,
              [< suff] as 'tipo, 'gn, unit,
              [< `Registrable ], returnT) service ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->

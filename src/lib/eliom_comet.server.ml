@@ -60,15 +60,19 @@ let comet_global_path = ["__eliom_comet_global__"]
 
 let fallback_service =
   Eliom_common.lazy_site_value_from_fun
-    (fun () -> Comet.register_service ~path:comet_path
-      ~get_params:Eliom_parameter.unit
-      (fun () () -> Lwt.return state_closed_msg))
+    (fun () ->
+       Comet.register_service
+         ~path:comet_path
+         ~get_params:Eliom_parameter.unit
+         (fun () () -> Lwt.return state_closed_msg))
 
 let fallback_global_service =
   Eliom_common.lazy_site_value_from_fun
-    (fun () -> Comet.register_service ~path:comet_global_path
-      ~get_params:Eliom_parameter.unit
-      (fun () () -> Lwt.return (error_msg "request with no post parameters, or there isn't any registered site comet channel")))
+    (fun () ->
+       Comet.register_service
+         ~path:comet_global_path
+         ~get_params:Eliom_parameter.unit
+         (fun () () -> Lwt.return (error_msg "request with no post parameters, or there isn't any registered site comet channel")))
 
 let new_id = make_cryptographic_safe_string
 
@@ -260,11 +264,13 @@ struct
 
   let global_service =
     Eliom_common.lazy_site_value_from_fun
-      (fun () -> Comet.register_post_service
-          (*VVV Why isn't this a POST non-attached coservice? --Vincent *)
-                ~fallback:(Eliom_common.force_lazy_site_value fallback_global_service)
-               ~post_params:Ecb.comet_request_param
-              handle_request)
+      (fun () ->
+         Comet.register_post_service
+           (*VVV Why isn't this a POST non-attached coservice? --Vincent *)
+           ~fallback:(Eliom_common.force_lazy_site_value
+                        fallback_global_service)
+           ~post_params:Ecb.comet_request_param
+           handle_request)
 
   let get_service () =
     ((Eliom_common.force_lazy_site_value global_service)
@@ -280,10 +286,11 @@ struct
 end
 
 (** Register services at site initialization *)
-let () = Eliommod.register_site_init (fun () ->
-  ignore (Eliom_common.force_lazy_site_value fallback_global_service);
-  ignore (Eliom_common.force_lazy_site_value fallback_service);
-  ignore (Stateless.get_service ()))
+let () =
+  Eliommod.register_site_init (fun () ->
+    ignore (Eliom_common.force_lazy_site_value fallback_global_service);
+    ignore (Eliom_common.force_lazy_site_value fallback_service);
+    ignore (Stateless.get_service ()))
 
 module Stateful :
 (** String channels on wich is build the module Channel *)
@@ -741,7 +748,7 @@ end = struct
 
   let marshal (v:'a) =
     let wrapped = Eliom_wrap.wrap v in
-    let value : 'a Eliom_types.eliom_comet_data_type = wrapped in
+    let value : 'a Eliom_runtime.eliom_comet_data_type = wrapped in
     (Url.encode ~plus:false
        (Marshal.to_string value []))
 

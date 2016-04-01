@@ -67,8 +67,14 @@ let xhr_with_cookies s =
     match s.send_appl_content with
     | XAlways -> Some None
     | XNever -> None
-    | XSame_appl (appl, _) when Some appl <> Eliom_process.get_application_name () -> None
+    | XSame_appl (appl, _) when appl <> Eliom_process.get_application_name () ->
+      None
     | XSame_appl (_, tmpl) -> Some tmpl
 
 
 let set_client_fun = set_client_fun_
+
+let get_reload_fun s =
+  match s.reload_fun with
+  | Rf_keep -> None
+  | Rf_some f -> !f ()

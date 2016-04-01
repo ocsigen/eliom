@@ -184,14 +184,14 @@ compiled only for the client program, and may make use of any
 libraries available on the client, and where ##exp## has type ##typ##
 on the client side.
 
-The hole client value then has type ##typ Eliom_lib.client_value##.
+The hole client value then has type ##typ Eliom_client_common.client_value##.
 
-A value of type ##typ Eliom_lib.client_value## is //abstract on the
+A value of type ##typ Eliom_client_common.client_value## is //abstract on the
 server// (cf. <<a_api subproject="server" | type
-Eliom_lib.client_value>> (server)).  But once it is sent to the client
+Eliom_client_common.client_value>> (server)).  But once it is sent to the client
 it becomes the value to which the expression ##exp## evaluated on the
 client side (cf. <<a_api subproject="server" | type
-Eliom_lib.client_value>> (client)).
+Eliom_client_common.client_value>> (client)).
 
 A client value expression is an arbitrary OCaml expression, but may
 additionaly contain //injections of server variables//,
@@ -201,7 +201,7 @@ injected by prefixing it with a percent sign, ##%v##. A server-side
 expression ##exp## can be injected by ##%(exp)##.
 
 Note well, that the injection of a server side client-value ##v## of
-type ##typ Eliom_lib.client_value## results in a value ##%v## of
+type ##typ Eliom_client_common.client_value## results in a value ##%v## of
 type ##typ##. Thus, the value of the client value becomes concrete.
 
 The other way to make a client value concrete is to send it to the
@@ -267,7 +267,7 @@ content has changed//. That way they may refer to the new DOM.
 If a client value is created outside of the initialization of the
 server program and also outside of the processing of a request, the
 exception {% <<a_api subproject="server"|exception
-Eliom_lib.client_value_creation_invalid_context>> %} is raised.
+Eliom_client_common.client_value_creation_invalid_context>> %} is raised.
 
 ===@@id="sharedclientvalues"@@ In a shared section
 

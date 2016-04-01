@@ -343,6 +343,12 @@ val https_static_dir_with_params :
     service
 
 
+(** Returns whether it is an external service or not. *)
+val is_external :
+  ('a, 'b, [< service_method ], [< attached ], [< service_kind ],
+   [< suff ], 'c, 'd, [< registrable ], 'e)
+    service -> bool
+
 
 (**/**)
 
@@ -373,11 +379,18 @@ val get_https : ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'return) service ->
 val get_priority_ : a_s -> int
 val get_client_fun_ :
   ('a, 'b, 'meth, 'attch, 'kind, 'd, 'e, 'f, 'g, 'return) service ->
-  ('a -> 'b -> [ `Html ] Eliom_content_core.Html5.elt Lwt.t) client_value option
+  (unit ->
+   ('a -> 'b -> unit Lwt.t) option) Eliom_client_value.t
 val set_client_fun_ :
   ?app:string ->
   service:('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service ->
-  ('a -> 'b -> [`Html] Eliom_content_core.Html5.elt Lwt.t) client_value ->
+  ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
+  unit
+val internal_set_client_fun_ :
+  service:('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service ->
+  (unit ->
+   ('a -> 'b -> unit Lwt.t) Eliom_client_value.t option)
+  ->
   unit
 
 val keep_nl_params : ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'return) service ->
@@ -423,3 +436,7 @@ val get_send_appl_content : ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'h) ser
 
 val xhr_with_cookies :
   ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'h) service -> string option option
+
+val get_reload_fun :
+  ('a, 'b, 'meth,'attch,'kind, 'd, 'e, 'f, 'g, 'h) service ->
+  ('a -> unit -> unit Lwt.t) option

@@ -42,6 +42,7 @@ module React : sig
   module S : sig
 
     include Eliom_shared_sigs.S
+      with type 'a sv := 'a Value.t
 
     (** [create ?default ?reset_default x] produces a pair [s, f],
         where [s] is a (shared) reactive signal, and [f] is a shared
@@ -59,10 +60,10 @@ module React : sig
       ?default :
         ('a React.S.t * (?step:React.step -> 'a -> unit))
           option
-          Eliom_lib.client_value ->
+          Eliom_client_value.t ->
       ?reset_default : bool ->
       'a ->
-      'a t * (?step:React.step -> 'a -> unit) Eliom_lib.shared_value
+      'a t * (?step:React.step -> 'a -> unit) Value.t
 
     (** If [synced s] is true, then the server-side and client-side
         values of [s] are equal. This means that the client-side code
@@ -91,6 +92,7 @@ module ReactiveData : sig
 
     include Eliom_shared_sigs.RLIST
       with type 'a signal := 'a React.S.t
+       and type 'a sv := 'a Value.t
        and type 'a ct := 'a FakeReactiveData.RList.t
        and type 'a chandle := 'a FakeReactiveData.RList.handle
 

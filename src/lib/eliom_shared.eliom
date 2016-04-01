@@ -35,7 +35,8 @@
 
 {client{
 module Value = struct
-  type 'a t = 'a Eliom_lib.shared_value
+  type 'a t = 'a
+  let create _ x = x
   let client x = x
   let local x = x
 end
@@ -43,9 +44,28 @@ end
 
 {server{
 module Value = struct
-  type 'a t = 'a Eliom_lib.shared_value
-  let client x = snd (Eliom_lib.shared_value_server_repr x)
-  let local x = fst (Eliom_lib.shared_value_server_repr x)
+
+  type +'a t = {
+    sh_server : 'a;
+    sh_client : 'a Eliom_client_value.t;
+    sh_mark : 'a t Eliom_wrap.wrapper
+  }
+
+  let internal_wrap {sh_client} = sh_client
+
+  let shared_value_mark () : 'a t Eliom_wrap.wrapper =
+    Eliom_wrap.create_wrapper internal_wrap
+
+  let create sh_server sh_client = {
+    sh_server ;
+    sh_client ;
+    sh_mark = shared_value_mark ()
+  }
+
+  let client {sh_client} = sh_client
+
+  let local {sh_server} = sh_server
+
 end
 }}
 
@@ -322,8 +342,10 @@ module React = struct
   type step = React.step
   module S = struct
     type 'a t = 'a FakeReact.S.t Value.t
-    let value (x : 'a t) = {shared# 'a {
-      FakeReact.S.value (Value.local %x) }}
+    let value (x : 'a t) =
+      Value.create
+        (FakeReact.S.value (Value.local x))
+        { 'a { FakeReact.S.value (Value.local %x) }}
 
     (*VVV What is the good default value for reset_default?  Setting
       default to true may be difficult to understand.  I prefer
@@ -350,15 +372,15 @@ module React = struct
       in
       let v, f = FakeReact.S.create ~synced x in
       let si =
-        Eliom_lib.create_shared_value v {'a FakeReact.S.t{ fst %cv }}
+        Value.create v {'a FakeReact.S.t{ fst %cv }}
       and up =
-        Eliom_lib.create_shared_value f
+        Value.create f
           {?step:React.step -> 'a -> unit{ snd %cv }}
       in
       (si, up)
 
     let map ?eq (f : ('a -> 'b) Value.t) (s : 'a t) : 'b t =
-      Eliom_lib.create_shared_value
+      Value.create
         (FakeReact.S.map (Value.local f) (Value.local s))
         {'b FakeReact.S.t{ FakeReact.S.map ?eq:%eq %f %s }}
 
@@ -367,44 +389,46 @@ module React = struct
       : 'b t =
       match eq with
       | Some eq ->
-        {shared#{
-           FakeReact.S.fmap ~eq:(Value.local %eq)
-             (Value.local %f) (Value.local %i) (Value.local %s) }}
+        Value.create
+          (FakeReact.S.fmap ~eq:(Value.local eq)
+             (Value.local f) (Value.local i) (Value.local s))
+          {{ FakeReact.S.fmap ~eq:(Value.local %eq)
+               (Value.local %f) (Value.local %i) (Value.local %s) }}
       | None ->
-        {shared#{
-           FakeReact.S.fmap
-             (Value.local %f) (Value.local %i) (Value.local %s) }}
+        Value.create
+          (FakeReact.S.fmap
+             (Value.local f) (Value.local i) (Value.local s))
+          {{ FakeReact.S.fmap
+               (Value.local %f) (Value.local %i) (Value.local %s) }}
 
     let merge ?eq (f : ('a -> 'b -> 'a) Value.t)
         (acc : 'a) (l : 'b t list) : 'a t =
-      (* we do not use {shared# ... { ... }} to avoid client-side
-         List.map Value.local *)
-      Eliom_lib.create_shared_value
+      Value.create
         (FakeReact.S.merge (Value.local f) acc (List.map Value.local l))
         {'a FakeReact.S.t{ FakeReact.S.merge ?eq:%eq %f %acc %l }}
 
     let const (v : 'a) : 'a t =
-      Eliom_lib.create_shared_value
+      Value.create
         (FakeReact.S.const ~synced:true v)
         {'a FakeReact.S.t{ React.S.const %v }}
 
     let l2 ?eq (f : ('a -> 'b -> 'c) Value.t)
         (s1 : 'a t) (s2 : 'b t) : 'c t =
-      Eliom_lib.create_shared_value
+      Value.create
         (FakeReact.S.l2 (Value.local f)
            (Value.local s1) (Value.local s2))
         {'d FakeReact.S.t{ React.S.l2 ?eq:%eq %f %s1 %s2 }}
 
     let l3 ?eq (f : ('a -> 'b -> 'c -> 'd) Value.t)
         (s1 : 'a t) (s2 : 'b t) (s3 : 'c t) : 'd t =
-      Eliom_lib.create_shared_value
+      Value.create
         (FakeReact.S.l3 (Value.local f)
            (Value.local s1) (Value.local s2) (Value.local s3))
         {'d FakeReact.S.t{ React.S.l3 ?eq:%eq %f %s1 %s2 %s3 }}
 
     let l4 ?eq (f : ('a -> 'b -> 'c -> 'd -> 'e) Value.t)
         (s1 : 'a t) (s2 : 'b t) (s3 : 'c t) (s4 : 'd t) : 'e t =
-      Eliom_lib.create_shared_value
+      Value.create
         (FakeReact.S.l4 (Value.local f)
            (Value.local s1) (Value.local s2) (Value.local s3)
            (Value.local s4))
@@ -413,7 +437,7 @@ module React = struct
     let l5 ?eq (f : ('a -> 'b -> 'c -> 'd -> 'e -> 'f) Value.t)
         (s1 : 'a t) (s2 : 'b t) (s3 : 'c t) (s4 : 'd t) (s5 : 'e t)
       : 'f t =
-      Eliom_lib.create_shared_value
+      Value.create
         (FakeReact.S.l5 (Value.local f)
            (Value.local s1) (Value.local s2) (Value.local s3)
            (Value.local s4) (Value.local s5))
@@ -425,7 +449,7 @@ module React = struct
         (s1 : 'a t) (s2 : 'b t) (s3 : 'c t)
         (s4 : 'd t) (s5 : 'e t) (s6 : 'f t)
       : 'g t =
-      Eliom_lib.create_shared_value
+      Value.create
         (FakeReact.S.l6 (Value.local f)
            (Value.local s1) (Value.local s2) (Value.local s3)
            (Value.local s4) (Value.local s5) (Value.local s6))
@@ -435,7 +459,7 @@ module React = struct
     let switch ?eq (s : 'a t t) : 'a t =
       (* TODO : setting synced to false is safe, but can we do
          better? *)
-      Eliom_lib.create_shared_value
+      Value.create
         (Value.local s |>
          FakeReact.S.value |>
          Value.local |>
@@ -458,7 +482,7 @@ module React = struct
         lwt server_result = (Value.local f) (FakeReact.S.value s') in
         let synced = FakeReact.S.synced s' in
         Lwt.return
-          (Eliom_lib.create_shared_value
+          (Value.create
              (fst (FakeReact.S.create ~synced server_result))
              {'b FakeReact.S.t{
                 React.S.Lwt.map_s_init
@@ -472,7 +496,7 @@ module React = struct
         in
         let synced = FakeReact.S.(synced s1' && synced s2') in
         Lwt.return
-          (Eliom_lib.create_shared_value
+          (Value.create
              (fst (FakeReact.S.create ~synced server_result))
              {'c FakeReact.S.t{
                 React.S.Lwt.l2_s_init
@@ -494,7 +518,7 @@ module React = struct
           FakeReact.S.(synced s1' && synced s2' && synced s3')
         in
         Lwt.return
-          (Eliom_lib.create_shared_value
+          (Value.create
              (fst (FakeReact.S.create ~synced server_result))
              {'d FakeReact.S.t{
                 React.S.Lwt.l3_s_init ?eq:%eq
@@ -517,7 +541,7 @@ module React = struct
             synced s3' && synced s4')
         in
         Lwt.return
-          (Eliom_lib.create_shared_value
+          (Value.create
              (fst (FakeReact.S.create ~synced server_result))
              {'e FakeReact.S.t{
                 React.S.Lwt.l4_s_init ?eq:%eq ~init:%server_result
@@ -541,7 +565,7 @@ module React = struct
           synced s4' && synced s5')
         in
         Lwt.return
-          (Eliom_lib.create_shared_value
+          (Value.create
              (fst (FakeReact.S.create ~synced server_result))
              {'f FakeReact.S.t{
                 React.S.Lwt.l5_s_init ?eq:%eq ~init:%server_result
@@ -566,7 +590,7 @@ module React = struct
           synced s4' && synced s5' && synced s6')
         in
         Lwt.return
-          (Eliom_lib.create_shared_value
+          (Value.create
              (fst (FakeReact.S.create ~synced server_result))
              {'g FakeReact.S.t{
                 React.S.Lwt.l6_s_init ?eq:%eq ~init:%server_result
@@ -584,7 +608,7 @@ module React = struct
           Lwt_list.fold_left_s f (acc, true) l
         in
         Lwt.return
-          (Eliom_lib.create_shared_value
+          (Value.create
              (fst (FakeReact.S.create ~synced server_result))
              {'a FakeReact.S.t{
                 React.S.Lwt.merge_s_init
@@ -614,9 +638,9 @@ module ReactiveData = struct
            }}, reset_default
       in
       let sv = FakeReactiveData.RList.create ~synced x in
-      Eliom_lib.create_shared_value (fst sv)
+      Value.create (fst sv)
         {'a FakeReactiveData.RList.t{ fst %cv }},
-      Eliom_lib.create_shared_value (snd sv)
+      Value.create (snd sv)
         {'b FakeReactiveData.RList.handle{ snd %cv }}
 
     let concat a b =
@@ -627,19 +651,30 @@ module ReactiveData = struct
       and cv = {'a FakeReactiveData.RList.t{
         FakeReactiveData.RList.concat %a %b
       }} in
-      Eliom_lib.create_shared_value sv cv
+      Value.create sv cv
 
-    let singleton_s s = {shared# 'a FakeReactiveData.RList.t {
-      FakeReactiveData.RList.singleton_s (Value.local %s) }}
+    let singleton_s s =
+      Value.create
+        (FakeReactiveData.RList.singleton_s (Value.local s))
+        {'a FakeReactiveData.RList.t{
+           FakeReactiveData.RList.singleton_s (Value.local %s) }}
 
-    let value (s : 'a t) = {shared# 'a list {
-      FakeReactiveData.RList.value (Value.local %s) }}
+    let value (s : 'a t) =
+      Value.create
+        (FakeReactiveData.RList.value (Value.local s))
+        {'a list{ FakeReactiveData.RList.value (Value.local %s) }}
 
-    let signal (s : 'a t) = {shared# 'a list FakeReact.S.t {
-      FakeReactiveData.RList.signal (Value.local %s) }}
+    let signal (s : 'a t) =
+      Value.create
+        (FakeReactiveData.RList.signal (Value.local s))
+        {'a list FakeReact.S.t{
+           FakeReactiveData.RList.signal (Value.local %s) }}
 
-    let map f s = {shared# 'a FakeReactiveData.RList.t {
-      FakeReactiveData.RList.map (Value.local %f) (Value.local %s) }}
+    let map f s =
+      Value.create
+        (FakeReactiveData.RList.map (Value.local f) (Value.local s))
+        {'a FakeReactiveData.RList.t{
+           FakeReactiveData.RList.map (Value.local %f) (Value.local %s) }}
 
     let from_signal ?eq (s : 'a list React.S.t) : 'a t =
       let sv =
@@ -648,7 +683,7 @@ module ReactiveData = struct
       and cv =
         {{ ReactiveData.RList.from_signal ?eq:%eq (Value.local %s) }}
       in
-      Eliom_lib.create_shared_value sv cv
+      Value.create sv cv
 
     let acc_e ?init e =
       let l, h =
@@ -674,7 +709,7 @@ module ReactiveData = struct
         in
         let synced = FakeReactiveData.RList.synced l' in
         Lwt.return
-          (Eliom_lib.create_shared_value
+          (Value.create
              (fst (FakeReactiveData.RList.create ~synced server_result))
              {{ ReactiveData.RList.Lwt.map_p_init
                   ~init:%server_result %f %l }})

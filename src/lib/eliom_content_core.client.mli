@@ -90,7 +90,7 @@ module Xml : sig
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
     | RAClient of string * attrib option * Eliom_lib.poly
-                                           (* attrib Eliom_lib.client_value *)
+    (* attrib Eliom_client_value.t *)
   val racontent : attrib -> racontent
 
   val aname : attrib -> aname

@@ -41,7 +41,7 @@ module Pass = struct
       let res = List.rev !args in
       args := [];
       let aux (_, arg) =
-        [%expr Eliom_service.Syntax_helpers.escaped_value [%e arg ] ]
+        [%expr Eliom_syntax.escaped_value [%e arg ] ]
         [@metaloc arg.pexp_loc]
       in
       List.map aux res
@@ -98,7 +98,7 @@ module Pass = struct
     let s = file_hash loc in
     [%stri
       let () =
-        Eliom_service.Syntax_helpers.close_server_section
+        Eliom_syntax.close_server_section
           [%e AC.str s]
     ] [@metaloc loc]
 
@@ -124,7 +124,7 @@ module Pass = struct
     let s = file_hash loc in
     [%stri
       let () =
-        Eliom_service.Syntax_helpers.close_client_section
+        Eliom_syntax.close_client_section
           [%e AC.str s ]
           [%e injection_list ]
     ][@metaloc loc]
@@ -171,11 +171,11 @@ module Pass = struct
     let loc = expr.pexp_loc in
     let e = format_args @@ flush_escaped_bindings () in
     [%expr
-      (Eliom_service.Syntax_helpers.client_value
+      (Eliom_syntax.client_value
          ~pos:([%e position loc ])
          [%e AC.str num ]
          [%e e ]
-       : [%t typ ] Eliom_pervasives.client_value)
+       : [%t typ ] Eliom_client_value.t)
     ][@metaloc loc]
 
   let escape_inject ?ident ~(context:Context.escape_inject) ~id expr =
@@ -191,7 +191,7 @@ module Pass = struct
     let b = Exp.construct ~loc
         {loc ; txt = Longident.Lident (if b then "true" else "false")} None
     in
-    [%stri let () = Eliom_service.Syntax_helpers.set_global [%e b ] ]
+    [%stri let () = Eliom_syntax.set_global [%e b ] ]
 
   let prelude loc = [ set_global ~loc true ]
   let postlude loc = [ set_global ~loc false ]

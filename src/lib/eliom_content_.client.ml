@@ -40,7 +40,7 @@ module MakeManip
        val get_element': 'a id -> Dom.node Js.t
      end)
     (Ns: sig
-       val content_ns : Eliom_client.content_ns
+       val content_ns : Eliom_client_core.content_ns
      end) = struct
 
     let get_node elt = ((To_dom.of_element elt) :> Dom.node Js.t)
@@ -54,7 +54,7 @@ module MakeManip
           match Xml.get_node_id elt' with
           | Xml.NoId ->
             Lwt_log.raise_error_f ~section:Lwt_log.eliom
-              ~inspect:(Eliom_client.rebuild_node'
+              ~inspect:(Eliom_client_core.rebuild_node'
                           Ns.content_ns (Kind.toelt elt))
               "Cannot call %s on an element with functional semantics" context
           | _ -> get_node elt
@@ -64,7 +64,7 @@ module MakeManip
         (Dom_html.CoerceTo.element (get_unique_node name elt))
         (fun () ->
            Lwt_log.raise_error_f ~section:Lwt_log.eliom
-             ~inspect:(Eliom_client.rebuild_node'
+             ~inspect:(Eliom_client_core.rebuild_node'
                          Ns.content_ns (Kind.toelt elt))
              "Cannot call %s on a node which is not an element" name;
         )
@@ -334,7 +334,7 @@ module Svg = struct
 
   module To_dom = struct
 
-    open Eliom_client
+    open Eliom_client_core
 
     let of_element elt = rebuild_node_svg "of_element" elt
     let of_node elt = rebuild_node_svg "of_node" elt
@@ -349,7 +349,7 @@ module Svg = struct
 
     let get_element' id =
       let id = string_of_id id in
-      let node = Eliom_client.getElementById id in
+      let node = Eliom_client_core.getElementById id in
       Js.Opt.case
         (Dom_html.CoerceTo.element node)
         (fun () -> failwith (Printf.sprintf "Non element node (%s)" id))
@@ -433,7 +433,7 @@ module Html5 = struct
 
   module To_dom = Tyxml_cast.MakeTo(struct
       type 'a elt = 'a F.elt
-      let elt x = Js.Unsafe.coerce (Eliom_client.rebuild_node "n/a" x)
+      let elt x = Js.Unsafe.coerce (Eliom_client_core.rebuild_node "n/a" x)
     end)
 
   module Id = struct
@@ -442,7 +442,7 @@ module Html5 = struct
 
     let get_element' id =
       let id = string_of_id id in
-      let node = Eliom_client.getElementById id in
+      let node = Eliom_client_core.getElementById id in
       Js.Opt.case
         (Dom_html.CoerceTo.element node)
         (fun () -> failwith (Printf.sprintf "Non element node (%s)" id))

@@ -24,9 +24,12 @@ module Xml : sig
   include Xml_sigs.Iterable
     with type 'a wrap = 'a
      and type 'a list_wrap = 'a list
-     and type event_handler = (Dom_html.event Js.t -> unit) Eliom_lib.client_value
-     and type mouse_event_handler = (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value
-     and type keyboard_event_handler = (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value
+     and type event_handler =
+           (Dom_html.event Js.t -> unit) Eliom_client_value.t
+     and type mouse_event_handler =
+           (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
+     and type keyboard_event_handler =
+           (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
 
   type -'a caml_event_handler constraint 'a = #Dom_html.event
 
@@ -40,8 +43,8 @@ module Xml : sig
   (* Building ref tree. *)
   type node_id
   val get_node_id : elt -> node_id
-  val make_event_handler_table : elt -> Eliom_lib.RawXML.event_handler_table
-  val make_client_attrib_table : elt -> Eliom_lib.RawXML.client_attrib_table
+  val make_event_handler_table : elt -> Eliom_runtime.RawXML.event_handler_table
+  val make_client_attrib_table : elt -> Eliom_runtime.RawXML.client_attrib_table
 
   class type biggest_event = object
     inherit Dom_html.event
@@ -59,7 +62,9 @@ module Xml : sig
       * (bool * string list) option
       * string option) option Eliom_lazy.request -> internal_event_handler
 
-  val caml_event_handler : ((#Dom_html.event as 'a) Js.t -> unit) Eliom_lib.client_value -> 'a caml_event_handler
+  val caml_event_handler :
+    ((#Dom_html.event as 'a) Js.t -> unit) Eliom_client_value.t ->
+    'a caml_event_handler
 
   type racontent =
     | RA of acontent
@@ -68,7 +73,7 @@ module Xml : sig
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
     | RAClient of string * attrib option * Eliom_lib.poly
-                                           (* attrib client_value *)
+    (* attrib client_value *)
 
   val racontent : attrib -> racontent
 
@@ -78,7 +83,7 @@ module Xml : sig
   val wrap : elt -> 'a -> 'a Eliom_wrap.wrapped_value
 
   val client_attrib :
-    ?init:attrib -> attrib Eliom_lib.client_value -> attrib
+    ?init:attrib -> attrib Eliom_client_value.t -> attrib
 
 end
 
@@ -108,7 +113,8 @@ module Svg : sig
 
     include module type of Raw
 
-    val client_attrib : ?init:'a attrib -> 'a attrib Eliom_lib.client_value -> 'a attrib
+    val client_attrib :
+      ?init:'a attrib -> 'a attrib Eliom_client_value.t -> 'a attrib
 
   end
 
@@ -178,7 +184,8 @@ module Html5 : sig
 
     include module type of Raw
 
-    val client_attrib : ?init:'a attrib -> 'a attrib Eliom_lib.client_value -> 'a attrib
+    val client_attrib :
+      ?init:'a attrib -> 'a attrib Eliom_client_value.t -> 'a attrib
 
     (**/**)
     type ('a, 'b, 'c) lazy_star =

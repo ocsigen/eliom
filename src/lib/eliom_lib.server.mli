@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** A few common functions used by Eliom.
+(** A few common functions used by Eliom. Extension of OCaml stdlib.
     See also {% <<a_api project="ocsigenserver" | module Ocsigen_lib>> %} *)
 
 include module type of Ocsigen_lib
@@ -31,28 +31,12 @@ include module type of Eliom_lib_base
   with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
   with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
   with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
-  with type escaped_value = Eliom_lib_base.escaped_value
-  with type +'a Client_value_server_repr.t = 'a Eliom_lib_base.Client_value_server_repr.t
-  with type client_value_datum = Eliom_lib_base.client_value_datum
-  with type injection_datum = Eliom_lib_base.injection_datum
-  with type compilation_unit_global_data = Eliom_lib_base.compilation_unit_global_data
-  with type global_data := Eliom_lib_base.global_data
-  with type request_data = Eliom_lib_base.request_data
-
-(** See {% <<a_api subproject="server"|type Eliom_lib.client_value>> %}. *)
-type +'a client_value
-type +'a shared_value
-
-(** Raised if a client value of the given closure ID is created at a
-    point in time where it is neither global (i.e. during the
-    initialization of the server program), nor request (i.e. during
-    the processing of a request).
-*)
-exception Client_value_creation_invalid_context of string
 
 exception Eliom_Internal_Error of string
 
 type file_info = Ocsigen_extensions.file_info
+
+val string_escape : string -> string
 
 val to_json : ?typ:'a Deriving_Json.t -> 'a -> string
 val of_json : ?typ:'a Deriving_Json.t -> string -> 'a
@@ -73,27 +57,6 @@ module Lwt_log : sig
   val eliom : section
 end
 
-
-(**/**)
-
-val create_client_value :
-  ?loc:pos -> instance_id:int -> _ Client_value_server_repr.t
-val client_value_from_server_repr :
-  'a Client_value_server_repr.t -> 'a client_value
-val client_value_datum :
-  closure_id:string -> args:poly -> value:'a client_value -> client_value_datum
-val create_shared_value : 'a -> 'a client_value -> 'a shared_value
-val shared_value_server_repr : 'a shared_value -> 'a * 'a client_value
-
-val escaped_value : 'a -> escaped_value (* * Eliom_wrap.unwrapper *)
-
-val string_escape : string -> string
-
-type global_data = Eliom_lib_base.global_data * Eliom_wrap.unwrapper
-
-val global_data_unwrapper : Eliom_wrap.unwrapper
-
-(**/**)
 
 (** Return a base-64 encoded cryptographic safe string of the given length.
     Not implemented client-side. *)

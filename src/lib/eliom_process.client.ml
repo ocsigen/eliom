@@ -20,6 +20,12 @@
 open Eliom_lib
 open Ocsigen_cookies
 
+(* Logs *)
+let section = Lwt_log.Section.make "eliom:client"
+let log_section = section
+let _ = Lwt_log.Section.set_level log_section Lwt_log.Info
+(* *)
+
 let history_api = Dom_html.hasPushState ()
 
 let get_set_js_serverside_value r name =
@@ -41,12 +47,12 @@ let get_set_js_serverside_value r name =
 
 let set_sitedata, is_set_sitedata,
     (get_sitedata : unit -> Eliom_types.sitedata),
-    (reset_sitedata)=
+    reset_sitedata =
   get_set_js_serverside_value Eliom_common.sitedata "__eliom_appl_sitedata"
 
 let set_info, is_set_info,
     (get_info : unit -> Eliom_common.client_process_info),
-    (reset_info)
+    reset_info
   =
   get_set_js_serverside_value (ref None) "__eliom_appl_process_info"
 
@@ -64,6 +70,10 @@ let set_request_template, is_set_request_template,
 let appl_name =
   lazy
     (let (_, v, _) =
+       (* We are using an appl cookie for this,
+          and not a JS variable,
+          because we want to send it back with each request.
+          For mobile apps, we set the cookie from JS variable. *)
        (CookiesTable.find
           Eliom_common.appl_name_cookie_name
           (Cookies.find
@@ -84,7 +94,9 @@ let set_base_url, get_base_url =
 let appl_name_r = ref None (* Set by Eliom_client.init_client_app *)
 let get_application_name () =
   match !appl_name_r with
-  | None -> Some (!!appl_name)
-  | Some n -> Some n
+  | None ->
+    (try !!appl_name with
+     | Not_found -> Lwt_log.raise_error ~section "Application name not defined")
+  | Some n -> n
 
 let client_side = true

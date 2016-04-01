@@ -315,7 +315,7 @@ val https_void_hidden_coservice' :
     coservices *)
 val preapply :
   service:('a, 'b, 'meth, [> attached_kind] as 'attached, 'kind,
-	   [< suff ], 'e, 'f, 'g, 'return)
+           [< suff ], 'e, 'f, 'g, 'return)
   service ->
   'a ->
   (unit, 'b, 'meth, 'attached, 'kind,
@@ -328,7 +328,7 @@ val preapply :
     on the service returned by this function. *)
 val attach_coservice' :
   fallback:(unit, unit, [< `Get ], [< attached_kind], [< `Service | `AttachedCoservice ],
-	   [< suff ], unit, unit, 'rg1, 'return1) service ->
+           [< suff ], unit, unit, 'rg1, 'return1) service ->
   service: ('get, 'post, 'meth, [< non_attached_kind], [< `NonattachedCoservice],
             [< `WithoutSuffix] as 'sf, 'gn, 'pn, 'rg2, 'return) service ->
   ('get, 'post, 'meth, [> attached_kind], [> `AttachedCoservice ],
@@ -363,6 +363,11 @@ val unregister :
   ?secure:bool ->
   ('a, 'b, _, _, [> internal_service_kind], 'e, 'f, 'g, 'h, 'return) service -> unit
 
+(** Returns whether it is an external service or not. *)
+val is_external :
+  ('a, 'b, [< service_method ], [< attached ], [< service_kind ],
+   [< suff ], 'c, 'd, [< registrable ], 'e)
+    service -> bool
 (**/**)
 
 val get_get_or_post : ('a, 'b,[<service_method] as 'c,[< attached],'kind, 'd, 'e, 'f, 'g, 'h) service -> 'c
@@ -392,11 +397,17 @@ val get_https : ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service 
 val get_priority_ : a_s -> int
 val get_client_fun_ :
   ('a, 'b, 'meth, 'attch, 'kind, 'd, 'e, 'f, 'g, 'return) service ->
-  ('a -> 'b -> [ `Html ] Eliom_content_core.Html5.elt Lwt.t) client_value option
+  (unit -> ('a -> 'b -> unit Lwt.t) option) Eliom_client_value.t
 val set_client_fun_ :
   ?app:string ->
   service:('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service ->
-  ('a -> 'b -> [`Html] Eliom_content_core.Html5.elt Lwt.t) client_value ->
+  ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
+  unit
+val internal_set_client_fun_ :
+  service:('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service ->
+  (unit ->
+   ('a -> 'b -> unit Lwt.t) option) Eliom_client_value.t
+  ->
   unit
 (* val reconstruct_absolute_Url.path : Url.path -> Url.path -> Url.path option -> string
 val reconstruct_relative_Url.path : Url.path -> Url.path -> Url.path option -> string
@@ -465,57 +476,10 @@ val get_send_appl_content : ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'h) s
 val xhr_with_cookies :
   ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'h) service -> string option option
 
-val pre_wrap :
-  ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
-  ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'rr) service
-
 val eliom_appl_answer_content_type : string
 
 exception Wrong_session_table_for_CSRF_safe_coservice
 
-val get_global_data : unit -> Eliom_lib_base.global_data
-val get_request_data : unit -> request_data
-
-module Syntax_helpers : sig
-
-  (** Registers a client value datum for the next server section when
-      executed in a global_data
-      (cf. {!Eliom_service.Syntax_helpers.set_global}) or in the
-      request_data when executed in a request. *)
-  val client_value : ?pos:Eliom_lib.pos -> string -> 'args -> 'a client_value
-
-  (** All client values created between [set_global true] and
-      [set_global false] are considered global client values
-      (cf. <<a_manual chapter="clientserver-language" chapter="clientvalues"|the
-      manual>>).  *)
-  val set_global : bool -> unit
-
-  (** Called at the end of each server or shared section. The argument
-      identifies the compilation unit.
-
-      Adds the list of recently registered
-      {!Eliom_lib_base.client_value_datum}s into the queue of server
-      section data of the compilation unit
-      ({!Eliom_lib_base.compilation_unit_global_data}).
-
-      Called in parallel with <<a_api
-      subproject="client"|Eliom_client.Syntax_helpers.close_server_section>>.  *)
-  val close_server_section : string -> unit
-
-  (** Called at the end of every client or shared section. The first
-      argument identifies the compilation unit. The second is the list
-      of novel injections in that section.
-
-      Adds a list of {!Eliom_lib_base.injection_datum}s into the queue
-      of client section data of the compilation unit
-      ({!Eliom_lib_base.compilation_unit_global_data}).
-
-      Called in parallel with <<a_api
-      subproject="client"|Eliom_client.Syntax_helpers.open_client_section>>.  *)
-  val close_client_section :
-    string -> (int * poly * Eliom_lib.pos * string option) list -> unit
-
-  (** Convert any value to a {! Eliom_lib.escaped_value} for usage in
-      the [args] argument to {! Eliom_service.Syntax_helpers.client_value}. *)
-  val escaped_value : 'a -> escaped_value
-end
+val pre_wrap :
+  ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
+  ('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'rr) service

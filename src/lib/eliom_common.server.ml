@@ -598,12 +598,13 @@ let make_server_params
     match si.si_client_process_info with
     | Some cpi -> cpi
     | None ->
-	let request_info = ri.Ocsigen_extensions.request_info in
-	{ cpi_ssl = Ocsigen_extensions.Ocsigen_request_info.ssl request_info;
-	  cpi_hostname = Ocsigen_extensions.get_hostname ri;
-	  cpi_server_port = Ocsigen_extensions.get_port ri;
-    cpi_original_full_path = Ocsigen_extensions.Ocsigen_request_info.original_full_path request_info;
-	}
+      let request_info = ri.Ocsigen_extensions.request_info in
+      { cpi_ssl = Ocsigen_extensions.Ocsigen_request_info.ssl request_info;
+        cpi_hostname = Ocsigen_extensions.get_hostname ri;
+        cpi_server_port = Ocsigen_extensions.get_port ri;
+        cpi_original_full_path =
+          Ocsigen_extensions.Ocsigen_request_info.original_full_path request_info;
+      }
   in
   { sp_request = ri;
     sp_si = si;
@@ -624,8 +625,8 @@ let get_sp_option () = Lwt.get sp_key
 
 let get_sp () =
   match Lwt.get sp_key with
-    | Some sp -> sp
-    | None -> failwith "That function cannot be called here because it needs information about the request or the site."
+  | Some sp -> sp
+  | None -> failwith "This function cannot be called here because it needs information about the request or the site."
 
 let sp_of_option sp =
   match sp with

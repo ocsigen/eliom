@@ -1,7 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module eliom_client_types.ml
- * Copyright (C) 2010 Vincent Balat
+ * Copyright (C) CNRS Univ Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,40 +17,30 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** Types shared by client and server. *)
+let escaped_value_escaped_value = fst
 
-open Eliom_lib
+type +'a t = 'a Eliom_runtime.Client_value_server_repr.t
 
-type sitedata = {
-  site_dir: string list;
-  site_dir_string: string;
+type 'a fragment = 'a t
+
+let client_value_unwrapper =
+  Eliom_wrap.create_unwrapper
+    (Eliom_wrap.id_of_int Eliom_runtime.client_value_unwrap_id_int)
+
+let create_client_value ?loc ~instance_id =
+  Eliom_runtime.Client_value_server_repr.create
+    ?loc ~instance_id ~unwrapper:client_value_unwrapper
+
+let client_value_from_server_repr cv = cv
+
+let client_value_datum ~closure_id ~args ~value = {
+  Eliom_runtime.closure_id;
+  args;
+  value = Eliom_runtime.Client_value_server_repr.to_poly value
 }
 
-type server_params
-val sp : server_params
+exception Client_value_creation_invalid_context of string
 
-(**/**)
-
-(*SGO* Server generated onclicks/onsubmits
-
-val a_closure_id : int
-val a_closure_id_string : string
-val get_closure_id : int
-val get_closure_id_string : string
-val post_closure_id : int
-val post_closure_id_string : string
-
-val eliom_temporary_form_node_name : string
-*)
-
-(*POSTtabcookies* forms with tab cookies in POST params:
-
-val add_tab_cookies_to_get_form_id : int
-val add_tab_cookies_to_get_form_id_string : string
-val add_tab_cookies_to_post_form_id : int
-val add_tab_cookies_to_post_form_id_string : string
-
-*)
-
-
-val encode_eliom_data : 'a -> string
+let escaped_value value :
+  Eliom_runtime.escaped_value (* * Eliom_wrap.unwrapper *) =
+  Ocsigen_lib.to_poly value

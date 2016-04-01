@@ -36,7 +36,7 @@ the following example.
 <<code language="ocaml" |
 let%server
   (s : int Eliom_shared.React.S.t),
-  (f : (?step:React.step -> int -> unit) Eliom_lib.shared_value)
+  (f : (?step:React.step -> int -> unit) Eliom_client_common.shared_value)
   =
   Eliom_shared.React.S.create 0
 

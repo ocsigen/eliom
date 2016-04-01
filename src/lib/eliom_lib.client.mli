@@ -28,46 +28,13 @@ include module type of Eliom_lib_base
   with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
   with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
   with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
-  with type 'a Client_value_server_repr.t =
-                 'a Eliom_lib_base.Client_value_server_repr.t
-  with type client_value_datum = Eliom_lib_base.client_value_datum
-  with type injection_datum := Eliom_lib_base.injection_datum
-  with type compilation_unit_global_data = Eliom_lib_base.compilation_unit_global_data
-  with type global_data := Eliom_lib_base.global_data
-  with type request_data = Eliom_lib_base.request_data
-
-(** See {% <<a_api subproject="client"|type
-    Eliom_pervasives.client_value>> %}. *)
-type 'a client_value = 'a
-type 'a shared_value = 'a
-
-val create_shared_value : 'a -> 'a client_value -> 'a shared_value
 
 exception Eliom_Internal_Error of string
-
-(** This exception is raised (in Lwt) on the client if a call to a
-    server function {% <<a_api subproject="server"|val
-    Eliom_pervasives.server_function>> %} fails (in Lwt) on the server
-    side.
-
-    The argument describes the original exception by
-    {!Printexc.to_string}.
-*)
-exception Exception_on_server of string
 
 type file_info = File.file Js.t
 
 val to_json : ?typ:'a -> 'b -> string
 val of_json : ?typ:'a -> string -> 'b
-
-(** Event handlers like {% <<a_api | Eliom_content.Html5.F.a_onclick
-    >> %} may raise [False] to cancel the event (as if the JavaScript
-    function returned [false]).
-*)
-(* Cannot re-export exception Eliom_lib.False,
-   cf. http://caml.inria.fr/mantis/view.php?id=5778 *)
-(* (\** See {% <<a_api subproject="client"|exception Eliom_lib.False>> %}. *\) *)
-exception False
 
 module Url : sig
   include module type of Url_base (* From ocsigenserver *)
@@ -120,11 +87,6 @@ val encode_form_value : 'a -> string
 val unmarshal_js : Js.js_string Js.t -> 'a
 
 val encode_header_value : 'a -> string
-
-(**/**)
-
-type injection_datum = Eliom_lib_base.injection_datum
-type global_data (* Global data only needed while unwrapping *)
 
 (** Return a base-64 encoded cryptographic safe string of the given length.
     Not implemented client-side. *)

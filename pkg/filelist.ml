@@ -12,6 +12,8 @@ let server = {
   ];
   interface = [
     "eliom_bus";
+    "eliom_client_value";
+    "eliom_syntax";
     "eliom_client";
     "eliom_comet";
     "eliom_common";
@@ -22,7 +24,6 @@ let server = {
     "eliom_lib";
     "eliom_mkreg";
     "eliom_parameter";
-    "eliom_pervasives";
     "eliom_react";
     "eliom_shared";
     "eliom_cscache";
@@ -39,6 +40,7 @@ let server = {
   internal = [
     "eliom_comet_base";
     "eliom_common_base";
+    "eliom_runtime";
     "eliom_content_";
     "eliom_content_core";
     "eliom_cookies_base";
@@ -47,7 +49,6 @@ let server = {
     "eliom_lazy";
     "eliom_lib_base";
     "eliom_parameter_base";
-    "eliom_pervasives_base";
     "eliom_process";
     "eliom_service_base";
     "eliom_shared_content";
@@ -77,6 +78,8 @@ let client = {
   ];
   interface = [
     "eliom_bus";
+    "eliom_client_value";
+    "eliom_client_core";
     "eliom_client";
     "eliom_comet";
     "eliom_config";
@@ -85,7 +88,6 @@ let client = {
     "eliom_lazy";
     "eliom_lib";
     "eliom_parameter";
-    "eliom_pervasives";
     "eliom_react";
     "eliom_shared";
     "eliom_cscache";
@@ -100,12 +102,12 @@ let client = {
     "eliom_comet_base";
     "eliom_common";
     "eliom_common_base";
+    "eliom_runtime";
     "eliom_content_";
     "eliom_cookies_base";
     "eliom_form";
     "eliom_lib_base";
     "eliom_parameter_base";
-    "eliom_pervasives_base";
     "eliom_process";
     "eliom_request";
     "eliom_request_info";

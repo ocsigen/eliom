@@ -26,7 +26,7 @@ module type Html5 = sig
     with type 'a Xml.W.t = 'a
      and type 'a Xml.W.tlist = 'a list
      and type Xml.mouse_event_handler =
-           (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value
+           (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
 
   type ('a, 'b, 'c) lazy_star =
     ?a: (('a attrib) list) ->

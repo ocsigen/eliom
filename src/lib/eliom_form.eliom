@@ -25,7 +25,7 @@ module type Html5 = sig
     with type 'a Xml.W.t = 'a
      and type 'a Xml.W.tlist = 'a list
      and type Xml.mouse_event_handler =
-           (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value
+           (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
 
   type ('a, 'b, 'c) lazy_star =
     ?a: (('a attrib) list) ->
@@ -83,9 +83,9 @@ module Make_links (Html5 : Html5) = struct
           ?fragment ?keep_nl_params ?nl_params getparams
       in
       let href = Html5.a_href href in
-      match get_xhr xhr, Eliom_service.get_client_fun_ service with
-      | true, _
-      | _, Some _ ->
+      match get_xhr xhr(* , Eliom_service.get_client_fun_ service  *)with
+      | true(* , _ *)
+      (* | _, Some _ *) ->
         let f = {{ fun ev ->
           if not (Eliom_client.middleClick ev) then begin
             Dom.preventDefault ev;
@@ -530,11 +530,13 @@ module Make (Html5 : Html5) = struct
   let a_onsubmit_service info = Html5.attrib_of_service "onsubmit" info
 
   let warn_client_service service =
-    if Eliom_service.get_client_fun_ service <> None then
-      Eliom_lib.debug
-        "Client side services not implemented with forms. \
-         Please do it manually using \
-         Eliom_client.change_page, or contribute."
+    ignore {unit{
+      if Eliom_service.get_client_fun_ %service () <> None then
+        Eliom_lib.debug
+          "Client side services not implemented with forms. \
+           Please do it manually using \
+           Eliom_client.change_page, or contribute."
+    }}
 
   let get_form
       ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname

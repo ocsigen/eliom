@@ -10,11 +10,11 @@ there are multiple ways for the client and the server to exchange values.
 ==@@id="rpc"@@ Remote Procedure Calls
 
 Eliom provides an easy way to call server functions from the client:
-<<a_api subproject="server" | type Eliom_pervasives.server_function>>
-(and <<a_api subproject="client" | type Eliom_pervasives.server_function>>).
+<<a_api subproject="server" | type Eliom_client.server_function>>
+(and <<a_api subproject="client" | type Eliom_client.server_function>>).
 
 A function ##'a -> 'b Lwt.t## can be wrapped on the server by
-<<a_api subproject="server" | val Eliom_pervasives.server_function>>.
+<<a_api subproject="server" | val Eliom_client.server_function>>.
 When the result is injected to the client, it appears as a plain function
 ##'a -> 'b Lwt##.
 
@@ -47,7 +47,7 @@ directly on the client; it is impossible to marshal them in OCaml to
 send them to the client. Instead, if an exception is raised in the
 server function, the function application fails (in Lwt) on the client
 with the exception <<a_api subproject="client"|exception
-Eliom_lib.Exception_on_server>> whose argument describes the original
+Eliom_client_common.Exception_on_server>> whose argument describes the original
 exception (according to {{{Printexc.to_string}}}).
 
 == Client requesting data

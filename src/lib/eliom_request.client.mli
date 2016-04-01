@@ -33,6 +33,7 @@ val xml_result : Dom.element Dom.document Js.t result
 val string_result : string result
 
 val send :
+  ?with_credentials:bool ->
   ?expecting_process_page:bool ->
   ?cookies_info:bool * string list ->
   ?get_args:(string * string) list ->
@@ -46,6 +47,7 @@ val send :
   (string * 'a option) Lwt.t
 
 val send_get_form :
+  ?with_credentials:bool ->
   ?expecting_process_page:bool ->
   ?cookies_info:bool * string list ->
   ?get_args:(string * string) list ->
@@ -59,6 +61,7 @@ val send_get_form :
   (string * 'a option) Lwt.t
 
 val send_post_form :
+  ?with_credentials:bool ->
   ?expecting_process_page:bool ->
   ?cookies_info:bool * string list ->
   ?get_args:(string * string) list ->
@@ -72,6 +75,7 @@ val send_post_form :
   (string * 'a option) Lwt.t
 
 val http_get :
+  ?with_credentials:bool ->
   ?expecting_process_page:bool ->
   ?cookies_info:bool * string list ->
   ?progress:(int -> int -> unit) ->
@@ -83,6 +87,7 @@ val http_get :
   (string * 'a option) Lwt.t
 
 val http_post :
+  ?with_credentials:bool ->
   ?expecting_process_page:bool ->
   ?cookies_info:bool * string list ->
   ?progress:(int -> int -> unit) ->
@@ -94,6 +99,7 @@ val http_post :
   (string * 'a option) Lwt.t
 
 val http_put :
+  ?with_credentials:bool ->
   ?expecting_process_page:bool ->
   ?cookies_info:bool * string list ->
   ?progress:(int -> int -> unit) ->
@@ -105,6 +111,7 @@ val http_put :
   (string * 'a option) Lwt.t
 
 val http_delete :
+  ?with_credentials:bool ->
   ?expecting_process_page:bool ->
   ?cookies_info:bool * string list ->
   ?progress:(int -> int -> unit) ->

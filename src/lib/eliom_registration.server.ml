@@ -386,7 +386,8 @@ module Action_reg_base = struct
       let h = match headers with
         | None -> Ocsigen_http_frame.Result.headers empty_result
         | Some headers ->
-          Http_headers.with_defaults headers (Ocsigen_http_frame.Result.headers empty_result)
+          Http_headers.with_defaults headers
+            (Ocsigen_http_frame.Result.headers empty_result)
       in
       let h =
         match Eliom_request_info.get_sp_client_appl_name () with
@@ -1339,20 +1340,22 @@ module Ocaml_reg_base = struct
 
 end
 
+
 module Ocaml = struct
 
   module M = Eliom_mkreg.MakeRegister(Ocaml_reg_base)
 
   let prepare_data data =
     let ecs_request_data =
-      let data = Eliom_service.get_request_data () in
+      let data = Eliom_syntax.get_request_data () in
       if not (Ocsigen_config.get_debugmode()) then
-        Array.iter (fun d -> Client_value_server_repr.clear_loc d.value) data;
+        Array.iter (fun d ->
+          Eliom_runtime.Client_value_server_repr.clear_loc
+            d.Eliom_runtime.value) data;
       data
     in
     (*     debug_client_value_data (debug "%s") client_value_data; *)
-    let r = { Eliom_types.
-              ecs_request_data;
+    let r = { Eliom_runtime.ecs_request_data;
               ecs_data = data } in
     Lwt.return (Eliom_types.encode_eliom_data r)
 
@@ -1845,13 +1848,17 @@ type appl_service_options =
 let default_appl_service_options = {do_not_launch = false; }
 
 module type APPL_PARAMS = sig
-     val application_name : string
+  val application_name : string
 end
 
 let comet_service_key : unit Polytables.key = Polytables.make_key ()
 
 let request_template =
   Eliom_reference.eref ~scope:Eliom_common.request_scope None
+
+let global_data_unwrapper =
+  Eliom_wrap.create_unwrapper
+    (Eliom_wrap.id_of_int Eliom_runtime.global_data_unwrap_id_int)
 
 module Eliom_appl_reg_make_param
   (Html5_content
@@ -1887,10 +1894,10 @@ module Eliom_appl_reg_make_param
     Eliom_content.Html5.Id.create_named_elt
       ~id:eliom_appl_script_id
       (Eliom_content.Html5.D.js_script ~a
-	 ~uri:(Eliom_content.Html5.D.make_uri
-		 ~service:(Eliom_service.static_dir ())
-		 [Appl_params.application_name ^ ".js"])
-	 ())
+         ~uri:(Eliom_content.Html5.D.make_uri
+                 ~service:(Eliom_service.static_dir ())
+                 [Appl_params.application_name ^ ".js"])
+         ())
   let application_script =
     (application_script
      : ?defer:_ -> ?async:_ -> _ -> [ `Script ] Eliom_content.Html5.elt
@@ -1916,7 +1923,7 @@ module Eliom_appl_reg_make_param
 
     Lwt.return
       (Eliom_content.Html5.Id.create_named_elt ~id:eliom_appl_data_script_id
-	 (Eliom_content.Html5.F.script (cdata_script script)))
+         (Eliom_content.Html5.F.script (cdata_script script)))
 
   let queue_map (q : 'a Queue.t) (f : 'a -> 'b) : 'b Queue.t =
     let q2 = Queue.create () in
@@ -1930,21 +1937,25 @@ module Eliom_appl_reg_make_param
 
     let ejs_global_data =
       if is_initial_request () then
-        let data = Eliom_service.get_global_data () in
+        let data = Eliom_syntax.get_global_data () in
         let data =
           if keep_debug
           then data
           else
             String_map.map
-              (fun {server_sections_data;client_sections_data} ->
+              (fun {Eliom_runtime.server_sections_data;
+                    client_sections_data} ->
                  Array.iter
                    (Array.iter (fun d ->
-                                  Client_value_server_repr.clear_loc d.value))
+                      Eliom_runtime.Client_value_server_repr.clear_loc
+                        d.Eliom_runtime.value))
                    server_sections_data;
-              { server_sections_data;
+              { Eliom_runtime.server_sections_data;
                 client_sections_data = Array.map
                     (
-                      Array.map (fun x -> {x with injection_dbg = None})
+                      Array.map (fun x ->
+                        {x with
+                         Eliom_runtime.injection_dbg = None})
                     )
                     client_sections_data
               }) data
@@ -1953,9 +1964,11 @@ module Eliom_appl_reg_make_param
       else None
     in
     let ejs_request_data =
-      let data = Eliom_service.get_request_data () in
+      let data = Eliom_syntax.get_request_data () in
       if not keep_debug then
-        Array.iter (fun d -> Client_value_server_repr.clear_loc d.value) data;
+        Array.iter (fun d ->
+          Eliom_runtime.Client_value_server_repr.clear_loc
+            d.Eliom_runtime.value) data;
       data
     in
 
@@ -1999,15 +2012,15 @@ module Eliom_appl_reg_make_param
         * Html5_types.body Eliom_content.Html5.elt ) =
     match Eliom_content.Xml.content page with
       | Eliom_content.Xml.Node (_, html_attribs, [head; body]) ->
-	begin match Eliom_content.Xml.content head with
-	  | Eliom_content.Xml.Node (_, head_attribs, head_elts) ->
-	    ( List.map Eliom_content.Html5.D.to_attrib html_attribs,
-	      ( List.map Eliom_content.Html5.D.to_attrib head_attribs,
-		Eliom_content.Html5.D.tot (List.hd head_elts),
-		Eliom_content.Html5.D.totl (List.tl head_elts) ),
-	      Eliom_content.Html5.D.tot body )
-	  | _ -> assert false
-	end
+        begin match Eliom_content.Xml.content head with
+          | Eliom_content.Xml.Node (_, head_attribs, head_elts) ->
+            ( List.map Eliom_content.Html5.D.to_attrib html_attribs,
+              ( List.map Eliom_content.Html5.D.to_attrib head_attribs,
+                Eliom_content.Html5.D.tot (List.hd head_elts),
+                Eliom_content.Html5.D.totl (List.tl head_elts) ),
+              Eliom_content.Html5.D.tot body )
+          | _ -> assert false
+        end
       | _ -> assert false
 
   let add_eliom_scripts ~sp page =
@@ -2017,32 +2030,54 @@ module Eliom_appl_reg_make_param
     (* First we build a fake page to build the ref_tree... *)
     let (html_attribs, (head_attribs, title, head_elts), body) =
       split_page (Eliom_content.Html5.D.toelt page) in
+    let encode_slashs = List.map (Url.encode ~plus:false) in
+    let base_url =
+      Eliom_uri.make_proto_prefix
+        (Eliom_config.default_protocol_is_https () ||
+         Eliom_request_info.get_csp_ssl_sp sp)
+      ^
+      (String.concat "/"
+         (encode_slashs (Eliom_request_info.get_csp_original_full_path ()))
+      )
+    in
+    let head_elts =
+      if List.exists is_eliom_appl_script head_elts
+      then head_elts
+      else (head_elts @ [application_script ()])
+    in
     let head_elts =
       appl_data_script
-      (* <base> elt is now added on client side :-) *)
-      (* :: Eliom_content.Html5.F.base *)
-      (*   ~a:[a_id Eliom_common_base.base_elt_id; *)
-      (*       Eliom_content.Html5.D.a_href *)
-      (*         (Eliom_content.Xml.uri_of_string base_url)] () *)
-      :: (if List.exists is_eliom_appl_script head_elts
-          then head_elts
-	  else (head_elts @ [application_script ()]))
+      (* <base> elt is added only for xhr done by client process,
+         because in that case, URLs are relative to the URL of
+         the first page, not the current URL.
+         We don't want to put base for non-xhr,
+         to make it possible to have truly relative URLs in HTML pages.
+      *)
+      :: if Eliom_request_info.expecting_process_page ()
+      then Eliom_content.Html5.F.base
+          ~a:[a_id Eliom_common_base.base_elt_id;
+              Eliom_content.Html5.D.a_href
+                (Eliom_content.Xml.uri_of_string base_url)] ()
+           :: head_elts
+      else head_elts
     in
     let fake_page =
       Eliom_content.Html5.F.html ~a:html_attribs
-	(Eliom_content.Html5.F.head ~a:head_attribs title head_elts)
-	body in
-  lwt data_script = make_eliom_data_script
-    ~keep_debug:(Ocsigen_config.get_debugmode ())
-    ~sp fake_page in
+        (Eliom_content.Html5.F.head ~a:head_attribs title head_elts)
+        body
+    in
+    lwt data_script = make_eliom_data_script
+        ~keep_debug:(Ocsigen_config.get_debugmode ())
+        ~sp fake_page
+    in
 
     (* Then we replace the faked data_script *)
     let head_elts =
       List.hd head_elts :: data_script :: (List.tl head_elts) in
     Lwt.return
       (Eliom_content.Html5.F.html ~a:html_attribs
-	 (Eliom_content.Html5.F.head ~a:head_attribs title head_elts)
-	 body )
+         (Eliom_content.Html5.F.head ~a:head_attribs title head_elts)
+         body )
 
   let remove_eliom_scripts page =
     let (html_attribs, (head_attribs, title, head_elts), body) =
@@ -2061,7 +2096,7 @@ module Eliom_appl_reg_make_param
 
     let sp = Eliom_common.get_sp () in
 
-    (* GRGR FIXME et si le nom de l'application diff�re ?? Il faut
+    (* GRGR FIXME et si le nom de l'application diffère ?? Il faut
        renvoyer un full_redirect... TODO *)
     if sp.Eliom_common.sp_client_appl_name <> Some Appl_params.application_name then
 
@@ -2125,9 +2160,9 @@ module type ELIOM_APPL = sig
   val set_client_fun :
   ?app:string ->
   service:('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return)
-    Eliom_service.service ->
-    ('a -> 'b -> [`Html] Eliom_content.Html5.elt Lwt.t) client_value ->
-    unit
+      Eliom_service.service ->
+  ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
+  unit
   val application_script :
     ?defer:bool -> ?async:bool -> unit -> [> `Script ] Eliom_content.Html5.elt
   val application_name : string
@@ -2169,13 +2204,38 @@ module App (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
 
   let set_client_fun = Eliom_content.set_client_fun
 
+  let data_service_handler () () =
+    Lwt.return (Eliom_syntax.get_global_data (), global_data_unwrapper)
+
+  let _ =
+    Ocaml.register_service
+      ~get_params:Eliom_parameter.unit
+      ~https:true
+      ~path:["__global_data__"]
+      data_service_handler
+
+  let app_name_service_handler () () =
+    let v =
+      match Eliom_process.get_application_name () with
+      | Some v -> v
+      | None -> ""
+    in
+    Lwt.return (v, "text/plain")
+
+  let _ =
+    Text.register_service
+      ~get_params:Eliom_parameter.unit
+      ~https:true
+      ~path:["__app_name__"]
+      app_name_service_handler
+
 end
 
 module type TMPL_PARAMS = sig
   type t
   val name: string
   val make_page: t -> Html5_types.html Eliom_content.Html5.elt Lwt.t
-  val update: t -> unit client_value
+  val update: t -> unit Eliom_client_value.t
 end
 
 module Eliom_tmpl_reg_make_param
@@ -2427,20 +2487,3 @@ let set_exn_handler h =
 
 
 module String = Text
-
-
-let _ =
-  Eliom_pervasives.server_function_hook.Eliom_pervasives.a <-
-    fun ?scope ?options ?charset ?code ?content_type ?headers
-      ?secure_session ?name
-      ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
-      ?error_handler
-      argument_type f ->
-      Eliom_pervasives.mk_serv_fun
-      (Ocaml.register_post_coservice'
-         ?scope ?options ?charset ?code ?content_type ?headers ?secure_session ?name
-         ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https ?error_handler
-         ~post_params:Eliom_parameter.(ocaml "argument" argument_type)
-         (fun () argument -> f argument))
-      (Eliom_wrap.create_unwrapper
-         (Eliom_wrap.id_of_int Eliom_common_base.server_function_unwrap_id_int))

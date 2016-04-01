@@ -1,7 +1,5 @@
 (* Ocsigen
- * http://www.ocsigen.org
- * Copyright (C) 2010
- * Vincent Balat
+ * Copyright (C) 2005-2008 Vincent Balat, Stéphane Glondu
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,11 +16,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-let _ = Eliom_client.init ()
+exception False
 
-(* The following lines are for Eliom_bus, Eliom_comet and Eliom_react to be linked. *)
-let _force_link =
-  Eliom_react.force_link,
-  Eliom_comet.force_link,
-  Eliom_bus.force_link,
-  Eliom_pervasives._force_link
+exception Exception_on_server of string
+
+type 'a t = 'a
+
+type injection_datum = Eliom_runtime.injection_datum
+
+type global_data2

@@ -87,11 +87,15 @@ module Xml : sig
   (** {2 Base functions}
       See {% <<a_api project="tyxml" | module Xml_sigs.Iterable >> %}. *)
 
-  include Xml_sigs.Iterable with type 'a wrap = 'a
-                             and type 'a list_wrap = 'a list
-                             and type event_handler = (Dom_html.event Js.t -> unit) Eliom_lib.client_value
-                             and type mouse_event_handler = (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value
-                             and type keyboard_event_handler = (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value
+  include Xml_sigs.Iterable
+    with type 'a wrap = 'a
+     and type 'a list_wrap = 'a list
+     and type event_handler =
+           (Dom_html.event Js.t -> unit) Eliom_client_value.t
+     and type mouse_event_handler =
+           (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
+     and type keyboard_event_handler =
+           (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
 
   (** {2 Unique nodes } *)
 
@@ -126,10 +130,10 @@ module Xml : sig
   (* Concrete on client-side only. *)
   type node_id
   val get_node_id : elt -> node_id
-  val make_event_handler_table : elt -> Eliom_lib.RawXML.event_handler_table
-  val make_client_attrib_table : elt -> Eliom_lib.RawXML.client_attrib_table
+  val make_event_handler_table : elt -> Eliom_runtime.RawXML.event_handler_table
+  val make_client_attrib_table : elt -> Eliom_runtime.RawXML.client_attrib_table
 
-  val caml_event_handler : ((#Dom_html.event as 'a) Js.t -> unit) Eliom_lib.client_value -> 'a caml_event_handler
+  val caml_event_handler : ((#Dom_html.event as 'a) Js.t -> unit) Eliom_client_value.t -> 'a caml_event_handler
 
   class type biggest_event = object
     inherit Dom_html.event
@@ -163,11 +167,11 @@ module Xml_shared : Xml_sigs.T
   with type 'a W.t = 'a Eliom_shared.React.S.t
    and type 'a W.tlist = 'a Eliom_shared.ReactiveData.RList.t
    and type event_handler =
-         (Dom_html.event Js.t -> unit) Eliom_lib.client_value
+         (Dom_html.event Js.t -> unit) Eliom_client_value.t
    and type mouse_event_handler =
-         (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value
+         (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
    and type keyboard_event_handler =
-         (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value
+         (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
 
 (** Building and pretty-printing valid SVG tree.
 Information about Svg api can be found at {% <<a_api project="tyxml" | module Svg_sigs.T >> %}*)
@@ -237,8 +241,8 @@ module Svg : sig
       nodes that will be computed on client side (for example reactive nodes).
   *)
   module C : sig
-    val node : ?init:'a elt -> 'a elt Eliom_lib.client_value -> 'a elt
-    val attr : ?init:'a attrib -> 'a attrib Eliom_lib.client_value -> 'a attrib
+    val node : ?init:'a elt -> 'a elt Eliom_client_value.t -> 'a elt
+    val attr : ?init:'a attrib -> 'a attrib Eliom_client_value.t -> 'a attrib
   end
 
   (** Node identifiers. *)
@@ -363,9 +367,9 @@ module Html5 : sig
         chapter="clientserver-html" fragment="inject" | Dom &
         Client-values >>%}. *)
     val node :
-      ?init:'a elt -> 'a elt Eliom_lib.client_value -> 'a elt
+      ?init:'a elt -> 'a elt Eliom_client_value.t -> 'a elt
     val attr :
-      ?init:'a attrib -> 'a attrib Eliom_lib.client_value -> 'a attrib
+      ?init:'a attrib -> 'a attrib Eliom_client_value.t -> 'a attrib
   end
 
   (** Node identifiers *)
@@ -463,5 +467,5 @@ val set_client_fun :
   ?app:string ->
   service:('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return)
     Eliom_service.service ->
-  ('a -> 'b -> [`Html] Html5.elt Lwt.t) Eliom_lib.client_value ->
+  ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
   unit

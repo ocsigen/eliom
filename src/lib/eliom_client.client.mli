@@ -22,6 +22,7 @@
 
 open Eliom_lib
 
+(** {2 Mobile applications} *)
 (** Call this function if you want to be able to run your client side app
     before doing the first request, that is, when the client side app
     is not sent by the server. This may be the case for example if you are
@@ -50,6 +51,7 @@ val init_client_app :
 val is_client_app : unit -> bool
 
 
+(** {2 Calling services} *)
 (** Call a server side service and change the current page.
     If the service belongs to the same application,
     the client side program is not stopped, and only
@@ -197,6 +199,7 @@ val call_service :
   'a -> 'b -> string Lwt.t
 
 
+(** {2 Misc} *)
 
 (** Registers some code to be executed after loading the client
     application, or after changing the page the next time.
@@ -249,58 +252,67 @@ val onunload : (unit -> string option) -> unit
 (** Wait for the initialization phase to terminate *)
 val wait_load_end : unit -> unit Lwt.t
 
+(** Returns the name of currently running Eliom application,
+    defined while applying [Eliom_registration.App] functor. *)
+val get_application_name : unit -> string
+
+(** {2 RPC / Server functions}
+
+    See the {% <<a_manual chapter="clientserver-communication" fragment="rpc"|manual>> %}.*)
+
+(** A [('a, 'b) server_function] provides transparently access to a
+    server side function which has been created by {% <<a_api
+    subproject="server"|Eliom_client.server_function>> %}.
+
+    See also {% <<a_api subproject="server" text="the opaque server
+    side representation"| type Eliom_client.server_function>> %}.
+
+    The handling of exception on the server corresponds to that of
+    <<a_api subproject="client"|val Eliom_client.call_ocaml_service>>.
+*)
+type ('a, +'b) server_function = 'a -> 'b Lwt.t
+
+(** [server_function argument_type f] creates a value of type {%
+    <<a_api | type Eliom_client.server_function>> %}. This allows
+    to call [f] from the client. The first argument [argument_type] is
+    an instance of [Deriving_Json] for the type of the argument. It is
+    used to safely encode and decode the argument sent to the server.
+
+    The optional parameters correspond directly to the optional
+    parameters of {% <<a_api|val Eliom_registration.Ocaml.register_coservice'>> %}.
+
+    See also the {% <<a_manual chapter="clientserver-communication"
+    fragment="rpc"|manual>> %}.
+
+    Defining server functions in shared or client sections is possible only
+    if you give them a name.
+*)
+val server_function :
+  ?scope:[< Eliom_common.scope ] ->
+  ?options:unit ->
+  ?charset:string ->
+  ?code:int ->
+  ?content_type:string ->
+  ?headers:Http_headers.t ->
+  ?secure_session:bool ->
+  name:string ->
+  ?csrf_safe:bool ->
+  ?csrf_scope:[< Eliom_common.user_scope ] ->
+  ?csrf_secure:bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  ?error_handler:((string * exn) list -> 'b Lwt.t) ->
+  'a Deriving_Json.t -> unit -> ('a, 'b) server_function
+
+
+
 (**/**)
 (* Documentation rather in eliom_client.ml *)
-val in_onload : unit -> bool
-
-val getElementById : string -> Dom.node Js.t
-type content_ns = [ `HTML5 | `SVG ]
-val rebuild_node' : content_ns -> Eliom_content_core.Xml.elt -> Dom.node Js.t
-val rebuild_node : string -> 'a Eliom_content_core.Html5.elt -> < .. > Js.t
-val rebuild_node_svg : string -> 'a Eliom_content_core.Svg.elt -> < .. > Js.t
 
 val init : unit -> unit
-(* This is necessary when generating/hacking eliom forms, e.g. when
-   deriving forms from a runtime type represantation. *)
-val form_handler : (Dom_html.element Js.t, Dom_html.event Js.t) Dom_html.event_listener
 
-module Syntax_helpers : sig
-
-  (** Look-up of the value of an injection in the global injection table. *)
-  val get_injection : ?ident: string -> ?pos:Eliom_lib.pos -> string -> 'a
-
-  (** Register a function from the tuple of injected values (['args])
-      to the actual code of the client value (['res]) under some
-      closure ID *)
-  val register_client_closure : string -> ('args -> 'res) -> unit
-
-  (** Takes the next list of {!Eliom_lib_base.client_value_datum}s
-      from the queue of server section data of the compilation unit
-      provided by the first argument
-      (cf. {!Eliom_lib_base.compilation_unit_global_data}). It
-      initializes and registers the global client values created in
-      that section.
-
-      Called in parallel with <<a_api subproject="server"|val
-      Eliom_service.Syntax_helpers.close_server_section>>. *)
-  val close_server_section : string -> unit
-
-  (** Takes the next list of {!Eliom_lib_base.injection_datum}s from
-      the queue of client section data of the compilation unit
-      specfied with the argument
-      (cf. {!Eliom_lib_base.compilation_unit_global_data}). It
-      registers those injections for subsequent usage of
-      {!Eliom_client.Syntax_helpers.get_injection}.
-
-      Called in parallel with <<a_api subproject="server"|val
-      Eliom_service.Syntax_helpers.close_client_section>>. *)
-  val open_client_section : string -> unit
-
-  (** {!Eliom_lib_base.escaped_value}s are opaque and can be converted
-      to ['a] by this function. The syntax extension adds the type
-      constraints accordingly. *)
-  val get_escaped_value : escaped_value -> 'a
-end
+val reload_function : (unit -> unit -> unit Lwt.t) option ref
 
 (** Lwt_log section for this module.
     Default level is [Lwt_log.Info].
@@ -309,9 +321,10 @@ end
 *)
 val log_section : Lwt_log.section
 
-(** Internal function. *)
-val of_element_ :
-  ([`Html] Eliom_content_core.Html5.elt -> Dom_html.element Js.t) ref
 
 (** Is it a middle-click event? *)
 val middleClick : Dom_html.mouseEvent Js.t -> bool
+
+val set_content_local :
+  ?offset:Eliommod_dom.position ->
+  ?fragment:string -> Dom_html.element Js.t -> unit Lwt.t

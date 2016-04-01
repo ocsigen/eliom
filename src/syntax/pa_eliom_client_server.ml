@@ -48,7 +48,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
       arg_collection := [];
       let aux (_, arg) =
         let _loc = Ast.loc_of_expr arg in
-        <:expr< Eliom_service.Syntax_helpers.escaped_value $arg$ >>
+        <:expr< Eliom_syntax.escaped_value $arg$ >>
       in
       List.map aux res
     in
@@ -67,7 +67,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
       let res = List.rev !arg_collection
       and aux (_, arg) =
         let _loc = Ast.loc_of_expr arg in
-        <:expr< Eliom_service.Syntax_helpers.escaped_value $arg$ >>
+        <:expr< Eliom_syntax.escaped_value $arg$ >>
       in
       arg_ids := [];
       arg_collection := [];
@@ -125,7 +125,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     let _loc = Loc.ghost in
     <:str_item<
         let () =
-          Eliom_service.Syntax_helpers.close_server_section
+          Eliom_syntax.close_server_section
             $str:Helpers.file_hash loc$
     >>
 
@@ -147,7 +147,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     in
     <:str_item<
         let () =
-          Eliom_service.Syntax_helpers.close_client_section
+          Eliom_syntax.close_client_section
             $str:Helpers.file_hash loc$
             $injection_list$
     >>
@@ -198,10 +198,10 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
         flush_escaped_bindings ()
     in
     <:expr@loc<
-      (Eliom_service.Syntax_helpers.client_value
+      (Eliom_syntax.client_value
          ~pos:($Helpers.position _loc$)
          $str:gen_id$ $Helpers.expr_tuple l$
-       : $typ$ Eliom_pervasives.client_value) >> ;;
+       : $typ$ Eliom_client_value.t) >> ;;
 
   let shared_value_expr typ _ orig_expr gen_id _ loc =
     let typ =
@@ -220,13 +220,13 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     in
     let _loc = Ast.loc_of_expr orig_expr in
     <:expr@loc<
-    Eliom_lib.create_shared_value
+    Eliom_shared.Value.create
       $orig_expr$
-      (Eliom_service.Syntax_helpers.client_value
+      (Eliom_syntax.client_value
         ~pos:($Helpers.position _loc$)
         $str:gen_id$
         $Helpers.expr_tuple (flush_escaped_bindings ())$
-      : $typ$ Eliom_pervasives.client_value)
+      : $typ$ Eliom_client_value.t)
     >>
 
   let escape_inject context_level ?ident orig_expr gen_id =
@@ -251,7 +251,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let implem loc sil =
     let _loc = Loc.ghost in
     let set_global b =
-      <:str_item< let () = Eliom_service.Syntax_helpers.set_global $`bool:b$ >>
+      <:str_item< let () = Eliom_syntax.set_global $`bool:b$ >>
     in
     set_global true :: sil @ [ set_global false ]
 
