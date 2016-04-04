@@ -200,11 +200,14 @@ let sort () =
   wait
     (create_process !compiler
        ( "-sort" ::
-         preprocess_opt ppopt @
+         preprocess_opt ~kind:!kind ppopt @
          eliom_synonyms @
+         get_common_ppx ~kind:!kind () @
+         map_include !eliom_inc_dirs @
          List.(concat (map (fun file -> ["-impl"; file]) !sort_files)) )
     ) ;
   0
+
 
 let process_option () =
   let i = ref 2
