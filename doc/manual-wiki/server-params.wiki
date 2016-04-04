@@ -37,8 +37,8 @@ let writeparams (i1, (i2, s1)) () =
                         strong [pcdata s1]]]))
 >>
 
-<<code language="ocaml"|let coucou_params = Eliom_registration.Html5.register_service
-    ~path:["coucou"]
+<<code language="ocaml"|let service_with_params = Eliom_registration.Html5.register_service
+    ~path:["thepath"]
     ~get_params:(int "i" ** (int "ii" ** string "s"))
     writeparams
 >>

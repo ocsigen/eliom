@@ -181,7 +181,7 @@ let redir1 = Eliom_registration.Redirection.register_service
     ~options:`TemporaryRedirect
     ~path:["redir"]
     ~get_params:Eliom_parameter.unit
-   (fun () () -> Lwt.return coucou)
+   (fun () () -> Lwt.return someservice)
 >>
 
 If you want to give parameters to such services, use
@@ -196,7 +196,7 @@ let redir = Eliom_registration.Redirection.register_service
    ~get_params:Eliom_parameter.(int "o")
    (fun o () ->
       Lwt.return
-        (Eliom_service.preapply coucou_params (o,(22,"ee"))))
+        (Eliom_service.preapply service_with_params (o,(22,"ee"))))
 >>
 
 The <<span class="code"|options>> parameter may be either
