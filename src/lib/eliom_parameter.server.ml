@@ -1,6 +1,5 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module eliom_parameter.ml
  * Copyright (C) 2007 Vincent Balat
  *
  * This program is free software; you can redistribute it and/or modify
@@ -73,7 +72,6 @@ let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string) :
 (* The following function reconstructs the value of parameters
    from expected type and GET or POST parameters *)
 
-type params = (string * string) list
 type files = (string * file_info) list
 type +'a res_reconstr_param =
   | Res_ of 'a * params * files

@@ -20,6 +20,8 @@
 
 open Eliom_lib
 
+type params = (string * Eliommod_parameters.param) list
+
 (** Type of names in a form *)
 type +'a param_name = string
 
