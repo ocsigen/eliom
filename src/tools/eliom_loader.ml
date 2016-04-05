@@ -10,10 +10,9 @@
 *)
 
 let url =
-  if Js.Unsafe.global##.___eliom_server_ = Js.undefined then
-    "127.0.0.1:8080/__global_data__"
-  else
-    Js.to_string (Js.Unsafe.global##.___eliom_server_) ^ "/__global_data__"
+  Js.Optdef.case (Js.Unsafe.global##.___eliom_server_)
+    (fun ()     -> "127.0.0.1:8080/__global_data__")
+    (fun server -> Js.to_string server ^ "/__global_data__")
 
 let storage () =
   Js.Optdef.case (Dom_html.window##.localStorage)
@@ -49,11 +48,8 @@ and get_data wake =
   Lwt.return ()
 
 let redirect () =
-  if Js.Unsafe.global##.___eliom_html_url_ = Js.undefined then
-    ()
-  else
-    (Js.Unsafe.coerce Dom_html.window)##.location :=
-      (Js.Unsafe.global ##.___eliom_html_url_)
+  Js.Optdef.iter (Js.Unsafe.global##.___eliom_html_url_)
+    (fun url -> Dom_html.window##.location##replace (url))
 
 let _ =
   Lwt.async @@ fun () ->
