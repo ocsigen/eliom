@@ -386,6 +386,8 @@ val set_client_fun_ :
   service:('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service ->
   ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
   unit
+val has_client_fun_ :
+  ('a, 'b, 'meth, 'attch, 'kind, 'd, 'e, 'f, 'g, 'return) service -> bool
 val internal_set_client_fun_ :
   service:('a, 'b, 'meth, 'attached, 'c, 'd, 'e, 'f, 'g, 'return) service ->
   (unit ->

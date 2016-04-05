@@ -116,9 +116,8 @@ let is_https https ssl service =
     (https = None && ssl)
 
 
-
 let make_uri_components_ (* does not take into account getparams *)
-    ?(absolute = !Eliom_common.is_client_app)
+    ?absolute
     (* absolute is used to force absolute link.
        The default is false for regular application.
        But for client side apps (mobile apps), it is true, because
@@ -133,6 +132,12 @@ let make_uri_components_ (* does not take into account getparams *)
     ?(nl_params = Eliom_parameter.empty_nl_params_set)
     () =
 
+  let absolute =
+    match absolute with
+      Some a -> a
+    | None -> !Eliom_common.is_client_app &&
+              not (Eliom_service.has_client_fun_ service)
+  in
   let ssl =
     match Eliom_common.get_sp_option () with
       | Some sp -> Eliom_request_info.get_csp_ssl_sp sp

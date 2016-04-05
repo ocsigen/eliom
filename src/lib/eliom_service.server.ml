@@ -241,3 +241,4 @@ let pre_wrap s =
 
 (*****************************************************************************)
 let set_client_fun = set_client_fun_
+let has_client_fun_ _ = false
