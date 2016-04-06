@@ -594,7 +594,6 @@ let register pages
      like "let rec" for service...
   *)
 
-
 let register_service pages
     ?scope
     ?options
@@ -604,33 +603,6 @@ let register_service pages
     ?headers
     ?secure_session
     ?https
-    ?priority
-    ~path
-    ~rt
-    ~meth
-    ?error_handler
-    page =
-  let service = service ?https ?priority ~path ~rt ~meth () in
-  register pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ~service ?error_handler page;
-  service
-
-let register_coservice pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ?https
     ?name
     ?csrf_safe
     ?csrf_scope
@@ -638,20 +610,17 @@ let register_coservice pages
     ?max_use
     ?timeout
     ~meth
-    ~(fallback:
-        (_, _, _, Eliom_service.att, _, _, _,
-         [ `WithoutSuffix ], _, _, _) Eliom_service.service)
+    ~id
     ~rt
     ?error_handler
     page =
   let service =
-    coservice ?name
+    service
+      ?name
       ?csrf_safe
-      ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
+      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
       ?csrf_secure
-      ?max_use ?timeout ?https
-      ~rt ~fallback ~meth
-      ()
+      ?max_use ?timeout ?https ~meth ~id ~rt ()
   in
   register pages
     ?scope
@@ -663,44 +632,6 @@ let register_coservice pages
     ?secure_session
     ~service ?error_handler page;
   service
-
-let register_coservice' pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ?https
-    ?name
-    ?csrf_safe
-    ?csrf_scope
-    ?csrf_secure
-    ?max_use
-    ?timeout
-    ~meth
-    ~rt
-    ?error_handler
-    page =
-  let u =
-    coservice'
-      ?name
-      ?csrf_safe
-      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
-      ?csrf_secure
-      ?max_use ?timeout ?https ~meth ~rt ()
-  in
-  register pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ~service:u ?error_handler page;
-  u
 
 module MakeRegister (Pages: Eliom_reg_sigs.PARAM) = struct
 
@@ -722,12 +653,6 @@ module MakeRegister (Pages: Eliom_reg_sigs.PARAM) = struct
 
   let register_service ?scope =
     register_service pages ?scope ~rt
-
-  let register_coservice ?scope =
-    register_coservice pages ?scope ~rt
-
-  let register_coservice' ?scope =
-    register_coservice' pages ?scope ~rt
 
 end
 
@@ -753,11 +678,5 @@ struct
 
   let register_service ?scope =
     register_service pages ?scope ~rt
-
-  let register_coservice ?scope =
-    register_coservice pages ?scope ~rt
-
-  let register_coservice' ?scope =
-    register_coservice' pages ?scope ~rt
 
 end

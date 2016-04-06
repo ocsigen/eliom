@@ -129,9 +129,11 @@ struct
       | _ -> (Eliom_common.comet_client_process_scope :> Eliom_common.scope)
     in
     let e_writer =
-      Eliom_service.coservice'
-        ?name ~rt:Eliom_service.Http
+      Eliom_service.service
+        ?name
+        ~rt:Eliom_service.Http
         ~meth:(Eliom_service.Post (Eliom_parameter.unit, post_params))
+        ~id:Eliom_service.Global
         ()
     in
     Eliom_registration.Action.register

@@ -50,6 +50,17 @@ module type S_types = sig
         +'tipo, 'gn, 'pn, +'ret) service
     constraint 'tipo = [< `WithSuffix | `WithoutSuffix ]
 
+  type (_, _, _, _, _) id =
+    | Path :
+        Eliom_lib.Url.path
+      -> (att, non_co, _, _, _) id
+    | Overlay :
+        (unit, unit, 'mf, att, non_co, non_ext, reg,
+         [ `WithoutSuffix ], unit, unit, 'rt) service
+      -> (att, co, 'mf, 'rt, unit) id
+    | Global :
+        (non_att, co, _, _, unit) id
+
 end
 
 module type S = sig
@@ -68,9 +79,10 @@ module type S = sig
       {!Eliom_service.register_eliom_module}. Otherwise you will also
       get this exception.}  *)
 
-  (** The function [service m ~rt ()] creates a {!service} identified
-      as per m. The parameter [~rt] is used to constrain the type
-      parameter ['rt] of the service.
+  (** The function [service ~id ~meth ~rt ()] creates a {!service}
+      identified as per [id] and accepting parameters as per [m]. The
+      parameter [~rt] is used to constrain the type parameter ['rt] of
+      the service.
 
       If the optional parameter [~https:true] is given, all links
       towards that service will use https. By default, links will keep
@@ -90,49 +102,6 @@ module type S = sig
       chapter="params" fragment="nonlocalizedparameters"|non localized
       parameters>>%}.  *)
   val service :
-    ?https:bool ->
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    ?priority:int ->
-    path:Eliom_lib.Url.path ->
-    rt:('rt, _) rt ->
-    meth:('m, 'gp, 'gn, 'pp, 'pn, [`WithoutSuffix], _, _) meth ->
-    unit ->
-    ('gp, 'pp, 'm, att, non_co, non_ext, reg, [`WithoutSuffix],
-     'gn, 'pn, 'rt) service
-  (* FIXME ^^^ : WithoutSuffix *)
-
-  val coservice :
-    ?name: string ->
-    ?csrf_safe: bool ->
-    ?csrf_scope: [< Eliom_common.user_scope] ->
-    ?csrf_secure: bool ->
-    ?max_use:int ->
-    ?timeout:float ->
-    ?https:bool ->
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    ?priority:int ->
-    rt:('rt, _) rt ->
-    meth:('m, 'gp, 'gn, 'pp, 'pn, [ `WithoutSuffix ], 'mf, unit) meth ->
-    fallback:
-      (unit, unit, 'mf, att, non_co, non_ext, reg,
-       [ `WithoutSuffix ], unit, unit, 'rt) service ->
-    unit ->
-    ('gp, 'pp, 'm, att, co, non_ext, reg,
-     [ `WithoutSuffix ], 'gn, 'pn, 'rt) service
-
-  (** {3 Non attached coservices} *)
-
-  (** The function [coservice' ~get_param] creates a {% <<a_manual
-      chapter="services"
-      fragment="non-attached_coservices"|non-attached coservice>>%}.
-
-      The GET parameters of [coservice'] couldn't contain a suffix
-      parameter.
-
-      See {!service} for a description of the optional [~https], [~rt]
-      and [~keep_nl_params] parameters ; see {!coservice} for others
-      optional parameters.  *)
-  val coservice' :
     ?name:string ->
     ?csrf_safe: bool ->
     ?csrf_scope: [< Eliom_common.user_scope] ->
@@ -141,11 +110,12 @@ module type S = sig
     ?timeout:float ->
     ?https:bool ->
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    ?priority:int ->
     rt:('rt, _) rt ->
-    meth:('m, 'gp, 'gn, 'pp, 'pn, [ `WithoutSuffix ], 'mf, unit) meth ->
+    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, 'gp_) meth ->
+    id:('att, 'co, 'mf, 'rt, 'gp_) id ->
     unit ->
-    ('gp, 'pp, 'm, non_att, co, non_ext, reg,
-     [`WithoutSuffix], 'gn, 'pn, 'rt) service
+    ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'rt) service
 
   (** {2 External services} *)
 

@@ -61,15 +61,15 @@ let comet_global_path = ["__eliom_comet_global__"]
 let fallback_service =
   Eliom_common.lazy_site_value_from_fun @@ fun () ->
   Comet.register_service
-    ~path:comet_path
+    ~id:(Eliom_service.Path comet_path)
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () -> Lwt.return state_closed_msg)
 
 let fallback_global_service =
   Eliom_common.lazy_site_value_from_fun @@ fun () ->
   Comet.register_service
-    comet_global_path
-    (Eliom_service.Get Eliom_parameter.unit)
+    ~id:(Eliom_service.Path comet_global_path)
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () ->
        Lwt.return (error_msg "request with no post parameters, or there isn't any registered site comet channel"))
 
@@ -265,11 +265,13 @@ struct
     Eliom_common.lazy_site_value_from_fun @@ fun () ->
     (*VVV Why isn't this a POST non-attached coservice? --Vincent *)
 
-    Comet.register_coservice
+    Comet.register_service
       ~meth:
         (Eliom_service.Post (Eliom_parameter.unit, Ecb.comet_request_param))
-      ~fallback:
-        (Eliom_common.force_lazy_site_value fallback_global_service)
+      ~id:
+        (Eliom_service.Overlay
+           (Eliom_common.force_lazy_site_value
+              fallback_global_service))
       handle_request
 
   let get_service () =
@@ -584,16 +586,17 @@ end = struct
           let hd_service =
             Eliom_comet_base.Internal_comet_service
               (* CCC ajouter possibilité d'https *)
-              (Eliom_service.coservice
+              (Eliom_service.service
                  (*VVV Why is it attached? --Vincent *)
                  ~rt:Eliom_service.Http
                  ~meth:
                    (Eliom_service.Post
                       (Eliom_parameter.unit,
                        Eliom_comet_base.comet_request_param))
-                 ~fallback:
-                   (Eliom_common.force_lazy_site_value
-                      fallback_service)
+                 ~id:
+                   (Eliom_service.Overlay
+                      (Eliom_common.force_lazy_site_value
+                         fallback_service))
                  (*~name:"comet" (* CCC faut il mettre un nom ? *)*)
                  ())
           in

@@ -896,9 +896,14 @@ module Customize
       ?headers
       ?secure_session
       ?https
-      ?priority
-      ~path
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
       ~meth
+      ~id
       ?error_handler
       f =
     R.register_service
@@ -910,21 +915,6 @@ module Customize
       ?headers
       ?secure_session
       ?https
-      ?priority
-      ~path
-      ~meth
-      ?error_handler:(make_eh error_handler)
-      (make_service_handler f)
-
-  let register_coservice
-      ?scope
-      ?options
-      ?charset
-      ?code
-      ?content_type
-      ?headers
-      ?secure_session
-      ?https
       ?name
       ?csrf_safe
       ?csrf_scope
@@ -932,63 +922,7 @@ module Customize
       ?max_use
       ?timeout
       ~meth
-      ~fallback
-      ?error_handler
-      f =
-    R.register_coservice
-      ?scope
-      ?options
-      ?charset
-      ?code
-      ?content_type
-      ?headers
-      ?secure_session
-      ?https
-      ?name
-      ?csrf_safe
-      ?csrf_scope
-      ?csrf_secure
-      ?max_use
-      ?timeout
-      ~meth
-      ~fallback
-      ?error_handler:(make_eh error_handler)
-      (make_service_handler f)
-
-  let register_coservice'
-      ?scope
-      ?options
-      ?charset
-      ?code
-      ?content_type
-      ?headers
-      ?secure_session
-      ?https
-      ?name
-      ?csrf_safe
-      ?csrf_scope
-      ?csrf_secure
-      ?max_use
-      ?timeout
-      ~meth
-      ?error_handler
-      f =
-    R.register_coservice'
-      ?scope
-      ?options
-      ?charset
-      ?code
-      ?content_type
-      ?headers
-      ?secure_session
-      ?https
-      ?name
-      ?csrf_safe
-      ?csrf_scope
-      ?csrf_secure
-      ?max_use
-      ?timeout
-      ~meth
+      ~id
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
@@ -1097,9 +1031,14 @@ module Ocaml = struct
       ?headers
       ?secure_session
       ?https
-      ?priority
-      ~path
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
       ~meth
+      ~id
       ?error_handler
       f =
     Eliom_service.untype_service_ @@
@@ -1112,21 +1051,6 @@ module Ocaml = struct
       ?headers
       ?secure_session
       ?https
-      ?priority
-      ~path
-      ~meth
-      ?error_handler:(make_eh error_handler)
-      (make_service_handler f)
-
-  let register_coservice
-      ?scope
-      ?options
-      ?charset
-      ?code
-      ?content_type
-      ?headers
-      ?secure_session
-      ?https
       ?name
       ?csrf_safe
       ?csrf_scope
@@ -1134,65 +1058,8 @@ module Ocaml = struct
       ?max_use
       ?timeout
       ~meth
-      ~fallback
-      ?error_handler
-      f =
-    Eliom_service.untype_service_ @@
-    M.register_coservice
-      ?scope
-      ?options
-      ?charset
-      ?code
-      ?content_type
-      ?headers
-      ?secure_session
-      ?https
-      ?name
-      ?csrf_safe
-      ?csrf_scope
-      ?csrf_secure
-      ?max_use
-      ?timeout
-      ~fallback:(Eliom_service.untype_service_ fallback)
-      ~meth
-      ?error_handler:(make_eh error_handler)
-      (make_service_handler f)
-
-  let register_coservice'
-      ?scope
-      ?options
-      ?charset
-      ?code
-      ?content_type
-      ?headers
-      ?secure_session
-      ?https
-      ?name
-      ?csrf_safe
-      ?csrf_scope
-      ?csrf_secure
-      ?max_use
-      ?timeout
-      ~meth
-      ?error_handler
-      f =
-    Eliom_service.untype_service_ @@
-    M.register_coservice'
-      ?scope
-      ?options
-      ?charset
-      ?code
-      ?content_type
-      ?headers
-      ?secure_session
-      ?https
-      ?name
-      ?csrf_safe
-      ?csrf_scope
-      ?csrf_secure
-      ?max_use
-      ?timeout
-      ~meth
+      (* FIXME FIXME FIXME *)
+      ~id:(Obj.magic id)
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
@@ -1577,7 +1444,7 @@ module App (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
 
   let _ =
     Ocaml.register_service
-      ~path:["__global_data__"]
+      ~id:(Eliom_service.Path ["__global_data__"])
       ~meth:(Get Eliom_parameter.unit)
       ~https:true
       data_service_handler

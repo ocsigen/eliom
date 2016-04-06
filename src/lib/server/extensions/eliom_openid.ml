@@ -500,8 +500,8 @@ module Make (S : HiddenServiceInfo) = struct
   let return_service =
     Eliom_service.service
       ~rt:Eliom_service.Unsafe
-      ~path:S.path
       ~meth:(Eliom_service.Get any)
+      ~id:(Eliom_service.Path S.path)
       ()
 
   let () = Eliom_registration.Any.register ~service:return_service S.f

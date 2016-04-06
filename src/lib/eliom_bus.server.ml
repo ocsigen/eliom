@@ -108,9 +108,11 @@ let create_filtered ?scope ?name ?size ~filter typ =
        : ('a, 'aa, 'aaa) Eliom_parameter.params_type)
   in
   let distant_write =
-    Eliom_service.coservice'
-      ?name ~rt:Eliom_service.Http
+    Eliom_service.service
+      ?name
+      ~rt:Eliom_service.Http
       ~meth:(Eliom_service.Post (Eliom_parameter.unit, post_params))
+      ~id:Eliom_service.Global
       ()
   in
   let service_registered =

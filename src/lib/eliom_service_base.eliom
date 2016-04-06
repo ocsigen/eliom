@@ -128,6 +128,13 @@ type ('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg,
 }
   constraint 'tipo = [< suff ]
 
+type (_, _, _, _, _) id =
+  | Path : Eliom_lib.Url.path -> (att, non_co, _, _, _) id
+  | Overlay : (unit, unit, 'mf, att, non_co, non_ext, reg,
+               [ `WithoutSuffix ], unit, unit, 'rt) service ->
+    (att, co, 'mf, 'rt, unit) id
+  | Global : (non_att, co, _, _, unit) id
+
 let pre_wrap s = {
   s with
   get_params_type = Eliom_parameter.wrap_param_type s.get_params_type;
@@ -518,8 +525,8 @@ let external_service
 
 let untype_service_ s =
   (s
-   : ('get, 'post, 'meth, 'attached, 'co, 'ext,
-      'tipo, 'getnames, 'postnames, 'register, _) service
+   :  ('get, 'post, 'meth, 'attached, 'co, 'ext,
+       'tipo, 'getnames, 'postnames, 'register, _) service
    :> ('get, 'post, 'meth, 'attached, 'co, 'ext,
        'tipo, 'getnames, 'postnames,'register, _) service)
 
@@ -711,7 +718,7 @@ let service_aux
     ~rf
     ()
 
-let service :
+let plain_service :
   type m gp gn pp pn mf pg_ .
   ?https:bool ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
@@ -946,5 +953,34 @@ let coservice'
       ~https ~keep_nl_params
       ~get_params ~post_params:Eliom_parameter.unit
       Delete'
+
+let service
+    ?name
+    ?(csrf_safe = false)
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ?(https = false)
+    ?(keep_nl_params = `Persistent)
+    ?priority
+    (type m) (type gp) (type gn) (type pp) (type pn) (type mf) (type gp')
+    (type rr) (type att_) (type co_)
+    ~(rt : (rr, _) rt)
+    ~(meth : (m, gp, gn, pp, pn, _, mf, gp') meth)
+    ~(id : (att_, co_, mf, rr, gp') id)
+    ()
+  : (gp, pp, m, att_, co_, non_ext, reg, _, gn, pn, rr) service =
+  match id with
+  | Path path ->
+    plain_service ~https ~keep_nl_params ?priority ~path ~rt ~meth ()
+  | Overlay fallback ->
+    coservice
+      ?name ~csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ~https
+      ~keep_nl_params ?priority ~rt ~meth ~fallback ()
+  | Global ->
+    coservice'
+      ?name ~csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ~https
+      ~keep_nl_params ~rt ~meth ()
 
 }}

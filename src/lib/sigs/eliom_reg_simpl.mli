@@ -33,9 +33,8 @@ open Eliom_service
 
     The optional parameter [~error_handler] is used to specialize the
     error page when actual parameters aren't compatible with the
-    expected type. The default error handler is
-    [ fun l -> raise (]{!Eliom_common.Eliom_Typing_Error}[ l) ].
-*)
+    expected type. The default error handler is [ fun l -> raise
+    (]{!Eliom_common.Eliom_Typing_Error}[ l) ]. *)
 val register :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
@@ -62,61 +61,17 @@ val register_service :
   ?headers: Http_headers.t ->
   ?secure_session:bool ->
   ?https:bool ->
-  ?priority:int ->
-  path:Eliom_lib.Url.path ->
-  meth:('m, 'gp, 'gn, 'pp, 'pn, [`WithoutSuffix], _, _) meth ->
-  ?error_handler:((string * exn) list -> page Lwt.t) ->
-  ('gp -> 'pp -> page Lwt.t) ->
-  ('gp, 'pp, 'm, att, non_co, non_ext, reg, [`WithoutSuffix],
-   'gn, 'pn, return) service
-
-(** Same as {!Eliom_service.coservice} followed by {!register}. *)
-val register_coservice :
-  ?scope:[<Eliom_common.scope] ->
-  ?options:options ->
-  ?charset:string ->
-  ?code: int ->
-  ?content_type:string ->
-  ?headers: Http_headers.t ->
-  ?secure_session:bool ->
-  ?https:bool ->
   ?name: string ->
   ?csrf_safe: bool ->
   ?csrf_scope: [<Eliom_common.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
-  meth:('m , 'gp , 'gn , 'pp, 'pn, [ `WithoutSuffix ], 'mf, unit) meth ->
-  fallback:
-    (unit, unit, 'mf, att, non_co, non_ext, reg,
-     [ `WithoutSuffix ], unit, unit, return) service ->
+  meth:('m , 'gp , 'gn , 'pp, 'pn, 'tipo, 'mf, 'gp_) meth ->
+  id:('att, 'co, 'mf, return, 'gp_) id ->
   ?error_handler:((string * exn) list -> page Lwt.t) ->
   ('gp -> 'pp -> page Lwt.t) ->
-  ('gp, 'pp, 'm, att, co, non_ext, reg,
-   [ `WithoutSuffix ], 'gn, 'pn, return) service
-
-(** Same as {!Eliom_service.coservice'} followed by {!register}. *)
-val register_coservice' :
-  ?scope:[<Eliom_common.scope] ->
-  ?options:options ->
-  ?charset:string ->
-  ?code: int ->
-  ?content_type:string ->
-  ?headers: Http_headers.t ->
-  ?secure_session:bool ->
-  ?https:bool ->
-  ?name: string ->
-  ?csrf_safe: bool ->
-  ?csrf_scope: [<Eliom_common.user_scope] ->
-  ?csrf_secure: bool ->
-  ?max_use:int ->
-  ?timeout:float ->
-  meth:('m , 'gp , 'gn , 'pp, 'pn, [ `WithoutSuffix ], 'mf, unit) meth ->
-  ?error_handler:((string * exn) list -> page Lwt.t) ->
-  ('gp -> 'pp -> page Lwt.t) ->
-  ('gp, 'pp, 'm, non_att, co, non_ext, reg, [ `WithoutSuffix ],
-   'gn, 'pn, return)
-    service
+  ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, return) service
 
 (** {2 Low-level function } *)
 

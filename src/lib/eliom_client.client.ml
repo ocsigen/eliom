@@ -936,9 +936,10 @@ let server_function
     ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https ?error_handler
     argument_type () =
   let service =
-    Eliom_service.coservice'
+    Eliom_service.service
       ~name
       ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
+      ~id:Eliom_service.Global
       ~meth:
         (Eliom_service.Post
            (Eliom_parameter.unit,
