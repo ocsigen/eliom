@@ -382,12 +382,22 @@ let current_pseudo_fragment = ref ""
 let url_fragment_prefix = "!"
 let url_fragment_prefix_with_sharp = "#!"
 
+let reload_function = ref None
+let reload_functions = ref []
+
 let change_url_string uri =
   current_uri := fst (Url.split_fragment uri);
   if Eliom_process.history_api
   then begin
     update_state();
-    current_state_id := random_int ();
+    let state_id = next_state_id () in
+    reload_functions :=
+      List.filter (fun (id, _) -> id <= !current_state_id) !reload_functions;
+    begin match !reload_function with
+      Some f -> reload_functions := (state_id, f) :: !reload_functions
+    | None   -> ()
+    end;
+    current_state_id := state_id;
     Dom_html.window##history##pushState(Js.Opt.return (!current_state_id),
                                         Js.string "",
                                         Js.Opt.return (Js.string uri));
@@ -605,8 +615,6 @@ let set_content ?uri ?offset ?fragment content =
 
 
 
-let reload_function = ref None
-
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
    function used to change page when clicking a link and
@@ -807,6 +815,9 @@ let () =
             if uri <> !current_uri
             then begin
               current_uri := uri;
+              try
+                List.assq state_id !reload_functions () ()
+              with Not_found ->
               match tmpl with
               | Some t
                 when tmpl = Eliom_request_info.get_request_template () ->

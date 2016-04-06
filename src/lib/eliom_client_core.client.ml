@@ -634,11 +634,23 @@ type state =
     position : Eliommod_dom.position;
   }
 
-let random_int () = (truncate (Js.to_float (Js.math##random()) *. 1000000000.))
-let current_state_id = ref (random_int ())
+let random_int =
+  if Js.Optdef.test Js.Unsafe.global##crypto &&
+     Js.Optdef.test Js.Unsafe.global##crypto##getRandomValues
+  then
+    fun () ->
+      Typed_array.unsafe_get
+        (Js.Unsafe.global##crypto##getRandomValues
+           (jsnew Typed_array.int32Array (1)))
+        0
+  else
+     fun () -> truncate (4294967296. *. Js.math##random())
+let next_state_id = let last = ref 0 in fun () -> incr last; !last
+let current_state_id = ref (next_state_id ())
 
-let state_key i =
-  (Js.string "state_history")##concat(Js.string (string_of_int i))
+let state_key =
+  let base = Printf.sprintf "state_history_%x_" (random_int ()) in
+  fun i -> Js.string (base ^ string_of_int i)
 
 let get_state i : state =
   Js.Opt.case
