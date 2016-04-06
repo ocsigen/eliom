@@ -43,25 +43,26 @@ let internal_wrap (bus: ('a, 'b) t)
   : ('a, 'b) Ecb.wrapped_bus * Eliom_common.unwrapper =
   let channel =
     match bus.channel with
-      | None ->
-	Eliom_comet.Channel.create
-          ~scope:bus.scope ?name:bus.name ?size:bus.size
-	  (Lwt_stream.clone bus.stream)
-      | Some c -> c
+    | None ->
+      Eliom_comet.Channel.create
+        ~scope:bus.scope ?name:bus.name ?size:bus.size
+        (Lwt_stream.clone bus.stream)
+    | Some c -> c
   in
   begin
     match bus.service_registered with
-      | None -> ()
-      | Some table ->
-	match Eliom_state.get_volatile_data ~table () with
-	  | Eliom_state.Data true -> ()
-	  | _ ->
-	    register_sender bus.scope
-	      (bus.service:>
-		 ('h, 'a list, _, _, [ Eliom_service.internal_service_kind ], 'f, 'c, 'd, 'e, 'g)
-		 Eliom_service.service)
-	      bus.write;
-	    Eliom_state.set_volatile_data ~table true
+    | None -> ()
+    | Some table ->
+      match Eliom_state.get_volatile_data ~table () with
+      | Eliom_state.Data true -> ()
+      | _ ->
+        let {service = Ecb.Bus_send_service srv} = bus in
+        register_sender bus.scope
+          (srv :>
+             (_, _ list, _, _, _, Eliom_service.non_ext, _, _, _, _, _)
+               Eliom_service.service)
+          bus.write;
+        Eliom_state.set_volatile_data ~table true
   end;
   ( ( Eliom_comet.Channel.get_wrapped channel,
       bus.service ),
@@ -94,8 +95,8 @@ let create_filtered ?scope ?name ?size ~filter typ =
   let channel =
     match scope with
       | `Site ->
-	Some (Eliom_comet.Channel.create ~scope ?name ?size
-		(Lwt_stream.clone stream))
+        Some (Eliom_comet.Channel.create ~scope ?name ?size
+                (Lwt_stream.clone stream))
       | `Client_process _ -> None
   in
 
@@ -107,14 +108,18 @@ let create_filtered ?scope ?name ?size ~filter typ =
        : ('a, 'aa, 'aaa) Eliom_parameter.params_type)
   in
   let distant_write =
-    Eliom_service.Http.post_coservice' ?name ~post_params () in
+    Eliom_service.coservice'
+      ?name ~rt:Eliom_service.Http
+      ~meth:(Eliom_service.Post (Eliom_parameter.unit, post_params))
+      ()
+  in
   let service_registered =
     match scope with
       | `Site ->
-	register_sender scope distant_write push;
-	None
+        register_sender scope distant_write push;
+        None
       | `Client_process _ as scope ->
-	Some (Eliom_state.create_volatile_table ~scope ()) in
+        Some (Eliom_state.create_volatile_table ~scope ()) in
   (*The bus*)
   let bus =
     { stream;
@@ -122,7 +127,7 @@ let create_filtered ?scope ?name ?size ~filter typ =
       scope;
       name;
       write   = push;
-      service = distant_write;
+      service = Eliom_comet_base.Bus_send_service distant_write;
       service_registered;
       bus_mark = bus_mark ();
       size = size}

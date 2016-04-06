@@ -124,7 +124,9 @@ let make_uri_components_ (* does not take into account getparams *)
        relative URLs are used for local assets. *)
     ?(absolute_path = false) (* used to force absolute link without protocol/server/port *)
     ?https
-    ~service
+    (type a)
+    ~(service :
+        (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.service)
     ?hostname
     ?port
     ?fragment
@@ -201,14 +203,13 @@ let make_uri_components_ (* does not take into account getparams *)
       nlp preapplied_params
   in
 
-  match get_info_ service with
-  | `Attached attser ->
+  match Eliom_service.get_info service with
+  | Attached attser ->
     begin
 
       let uri =
         let suff= None in
-        if (get_kind_ service) = `External
-        then
+        if is_external service then
           (get_prefix_ attser)^
             "/"^  (* we add the "/" even if there is no prefix,
                      because we should do absolute links in that case *)
@@ -270,7 +271,7 @@ let make_uri_components_ (* does not take into account getparams *)
          fragment)
 
     end
-  | `Nonattached naser ->
+  | Nonattached naser ->
 
     let sp = Eliom_common.get_sp () in
     let na_name = get_na_name_ naser in
@@ -312,11 +313,12 @@ let make_uri_components_ (* does not take into account getparams *)
     in
     (beg, params, fragment)
 
-let make_uri_components
+let make_uri_components (type a)
     ?absolute
     ?absolute_path
     ?https
-    ~service
+    ~(service :
+        (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.service)
     ?hostname
     ?port
     ?fragment
@@ -394,11 +396,13 @@ let make_string_uri
 let make_string_uri_ = make_string_uri
 
 
-let make_post_uri_components_ (* do not take into account postparams *)
+let make_post_uri_components_ (type att)
+    (* do not take into account postparams *)
     ?(absolute = !Eliom_common.is_client_app)
     ?(absolute_path = false)
     ?https
-    ~service
+    ~(service :
+        (_, _, _, att, _, _, _, _, _, _, _) Eliom_service.service)
     ?hostname
     ?port
     ?fragment
@@ -407,8 +411,8 @@ let make_post_uri_components_ (* do not take into account postparams *)
     ?keep_get_na_params
     getparams
     () =
-  match get_info_ service with
-  | `Attached attser ->
+  match get_info service with
+  | Attached attser ->
     let (uri, getparams, fragment), getname =
       let getname = get_get_name_ attser in
       match getname with
@@ -477,7 +481,7 @@ let make_post_uri_components_ (* do not take into account postparams *)
      Eliommod_parameters.inject_param_list postparams)
 
 
-  | `Nonattached naser ->
+  | Nonattached naser ->
 
     let sp = Eliom_common.get_sp () in
     let nl_params = Eliom_parameter.table_of_nl_params_set nl_params in
@@ -645,26 +649,27 @@ let make_post_uri_components__ = make_post_uri_components
 *)
 let make_cookies_info (https, service) =
   (* https is what the user asked while creating the link/form *)
-  let get_path_ (* simplified version of make_uri_components.
-                   Returns only the absolute path without protocol/server/port
-                   AND WITHOUT SUFFIX *)
-      ~service
-      =
-    match Eliom_service.get_info_ service with
-      | `Attached attser ->
-        if (Eliom_service.get_kind_ service) = `External
-        then None
-        else Some (Eliom_service.get_full_path_ attser)
-      | `Nonattached naser ->
-        Some (Eliom_request_info.get_csp_original_full_path ())
+  let get_path_ (type a) (* simplified version of make_uri_components.
+                            Returns only the absolute path without
+                            protocol/server/port AND WITHOUT SUFFIX *)
+      ~(service :
+          (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.service) =
+    match Eliom_service.get_info service with
+    | Attached attser ->
+      if is_external service then
+        None
+      else
+        Some (Eliom_service.get_full_path_ attser)
+    | Nonattached naser ->
+      Some (Eliom_request_info.get_csp_original_full_path ())
   in
   match get_path_ ~service with
-    | None -> None
-    | Some path ->
-      let ssl = Eliom_request_info.get_csp_ssl () in
-      let https =
-        (https = Some true) ||
-          (Eliom_service.get_https service) ||
-          (https = None && ssl)
-      in
-      Some (https, path)
+  | None -> None
+  | Some path ->
+    let ssl = Eliom_request_info.get_csp_ssl () in
+    let https =
+      (https = Some true) ||
+      (Eliom_service.get_https service) ||
+      (https = None && ssl)
+    in
+    Some (https, path)

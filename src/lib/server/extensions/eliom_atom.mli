@@ -19,13 +19,12 @@
  *)
 
 (** Register an atom feed *)
-module Reg : "sigs/eliom_reg.mli"
-  subst type page      := Atom_feed.feed
+module Reg : "sigs/eliom_reg_simpl.mli"
+  subst type page    := Atom_feed.feed
     and type options := unit
     and type return  := Eliom_registration.http_service
-    and type returnB := [> Eliom_registration.http_service ]
-    and type returnT := [< Eliom_registration.http_service ]
-    and type result  := Eliom_registration.browser_content Eliom_registration.kind
+    and type result  :=
+      Eliom_registration.browser_content Eliom_registration.kind
 
 (** Needed when used with Pubsubhubbub *)
 type feed = { notify_updates : unit -> unit }

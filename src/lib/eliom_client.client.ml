@@ -210,8 +210,28 @@ let init () =
 
 (* == Low-level: call service. *)
 
-let create_request_
-    ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+let create_request__ (type m)
+    ?absolute ?absolute_path ?https
+    ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.service)
+    ?hostname ?port ?fragment
+    ?keep_nl_params ?nl_params ?keep_get_na_params
+    get_params post_params =
+  let path, get_params, fragment, post_params =
+    Eliom_uri.make_post_uri_components__
+      ?absolute ?absolute_path ?https
+      ~service
+      ?hostname ?port ?fragment ?keep_nl_params ?nl_params
+      ?keep_get_na_params get_params post_params
+  in
+  let uri =
+    Eliom_uri.make_string_uri_from_components (path, get_params, fragment)
+  in
+  uri, post_params
+
+let create_request_ (type m)
+    ?absolute ?absolute_path ?https
+    ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.service)
+    ?hostname ?port ?fragment
     ?keep_nl_params ?nl_params ?keep_get_na_params
     get_params post_params =
 
@@ -220,30 +240,32 @@ let create_request_
      and Eliom_uri.make_post_uri_components instead of Eliom_uri.make_string_uri_
      and Eliom_uri.make_post_uri_components__ *)
 
-  match Eliom_service.get_get_or_post service with
-  | `Get ->
+  match Eliom_service.which_meth service with
+  | Eliom_service.Get' ->
     let uri =
       Eliom_uri.make_string_uri_
-        ?absolute ?absolute_path ?https
-        ~service
+        ?absolute ?absolute_path ?https ~service
         ?hostname ?port ?fragment ?keep_nl_params ?nl_params get_params
     in
     `Get uri
-  | `Post | `Put | `Delete as http_method ->
-    let path, get_params, fragment, post_params =
-      Eliom_uri.make_post_uri_components__
-        ?absolute ?absolute_path ?https
-        ~service
-        ?hostname ?port ?fragment ?keep_nl_params ?nl_params
-        ?keep_get_na_params get_params post_params
-    in
-    let uri =
-      Eliom_uri.make_string_uri_from_components (path, get_params, fragment)
-    in
-    (match http_method with
-     | `Post -> `Post (uri, post_params)
-     | `Put -> `Put (uri, post_params)
-     | `Delete -> `Delete (uri, post_params))
+  | Eliom_service.Post' ->
+    `Post
+      (create_request__
+         ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+         ?keep_nl_params ?nl_params ?keep_get_na_params
+         get_params post_params)
+  | Eliom_service.Put' ->
+    `Put
+      (create_request__
+         ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+         ?keep_nl_params ?nl_params ?keep_get_na_params
+         get_params post_params)
+  | Eliom_service.Delete' ->
+    `Delete
+      (create_request__
+         ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+         ?keep_nl_params ?nl_params ?keep_get_na_params
+         get_params post_params)
 
 let raw_call_service
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -626,8 +648,10 @@ let set_content ?uri ?offset ?fragment content =
    function used to change page when clicking a link and
    [change_page_{get,post}_form] when submiting a form. *)
 
-let change_page
-    ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+let change_page (type m)
+    ?absolute ?absolute_path ?https
+    ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.service)
+    ?hostname ?port ?fragment
     ?keep_nl_params ?(nl_params = Eliom_parameter.empty_nl_params_set)
     ?keep_get_na_params
     ?progress ?upload_progress ?override_mime_type
@@ -912,10 +936,14 @@ let server_function
     ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https ?error_handler
     argument_type () =
   let service =
-    Eliom_service.Ocaml.post_coservice'
+    Eliom_service.coservice'
       ~name
       ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
-      ~post_params:Eliom_parameter.(ocaml "argument" argument_type)
+      ~meth:
+        (Eliom_service.Post
+           (Eliom_parameter.unit,
+            Eliom_parameter.(ocaml "argument" argument_type)))
+      ~rt:Eliom_service.Ocaml
       ()
   in
   fun a -> call_ocaml_service ~absolute:true ~service () a

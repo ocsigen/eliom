@@ -180,13 +180,14 @@ let register_aux pages
       ?content_type
       ?headers
       table
-      ~service
+      (type a)
+      ~(service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.service)
       ?(error_handler = fun l -> raise (Eliom_common.Eliom_Typing_Error l))
       page_generator =
     Eliom_service.set_send_appl_content service (pages.send_appl_content);
     begin
-      match get_info_ service with
-	| `Attached attser ->
+      match get_info service with
+	| Attached attser ->
           let key_kind = get_or_post_ service in
           let attserget = get_get_name_ attser in
           let attserpost = get_post_name_ attser in
@@ -257,12 +258,14 @@ let register_aux pages
 				  ~absolute:true
 				  ~service:
 				  (service :
-				     ('a, 'b, [< service_method],[<attached],[< Eliom_service.internal_service_kind ],
-				      [< Eliom_service.suff ], 'c, 'd, [ `Registrable ],
-				      'return) Eliom_service.service :>
-				     ('a, 'b, [< service_method],[<attached],Eliom_service.service_kind,
-				      [< Eliom_service.suff ], 'c, 'd,
-				      [< Eliom_service.registrable ], 'return)
+				     ('a, 'b, _, _, _,
+                                      Eliom_service.non_ext, reg,
+				      [< `WithSuffix | `WithoutSuffix ],
+                                      'c, 'd,'return)
+                                       Eliom_service.service :>
+				     ('a, 'b, _, _, _, _, _,
+				      [< `WithSuffix | `WithoutSuffix ],
+				      'c, 'd, 'return)
 				     Eliom_service.service)
 				  g
 			      in
@@ -375,7 +378,7 @@ let register_aux pages
                         ?secure:secure_session ~scope ~sp ())
               in
               f tablereg (attserget, attserpost))
-	| `Nonattached naser ->
+	| Nonattached naser ->
           let na_name = get_na_name_ naser in
           let f table na_name =
             Eliommod_naservices.add_naservice
@@ -528,7 +531,10 @@ let register pages
     ?content_type
     ?headers
     ?secure_session
-    ~service
+    (type a)
+    ~(service :
+        (_, _, _, a, _, _, Eliom_service.reg,
+         _, _, _, _) Eliom_service.service)
     ?error_handler
     page_gen =
   let sp = Eliom_common.get_sp_option () in
@@ -538,11 +544,11 @@ let register pages
       (match Eliom_common.global_register_allowed () with
         | Some get_current_sitedata ->
           let sitedata = get_current_sitedata () in
-          (match get_info_ service with
-            | `Attached attser ->
+          (match get_info service with
+            | Attached attser ->
               Eliom_common.remove_unregistered
                 sitedata (get_sub_path_ attser)
-            | `Nonattached naser ->
+            | Nonattached naser ->
               Eliom_common.remove_unregistered_na
                 sitedata (get_na_name_ naser));
           register_aux pages
@@ -600,10 +606,11 @@ let register_service pages
     ?https
     ?priority
     ~path
-    ~get_params
+    ~rt
+    ~meth
     ?error_handler
     page =
-  let u = Unsafe.service ?https ?priority ~path ~get_params () in
+  let service = service ?https ?priority ~path ~rt ~meth () in
   register pages
     ?scope
     ?options
@@ -612,8 +619,8 @@ let register_service pages
     ?content_type
     ?headers
     ?secure_session
-    ~service:u ?error_handler page;
-  u
+    ~service ?error_handler page;
+  service
 
 let register_coservice pages
     ?scope
@@ -623,29 +630,28 @@ let register_coservice pages
     ?content_type
     ?headers
     ?secure_session
+    ?https
     ?name
     ?csrf_safe
     ?csrf_scope
     ?csrf_secure
     ?max_use
     ?timeout
-    ?https
-    ~(fallback: (unit, unit, [< Eliom_service.service_method > `Get ],
-                     [> Eliom_service.attached_kind ],
-                     [< Eliom_service.service_kind > `Service ],
-                     [ `WithoutSuffix ], unit, unit,
-                     [< Eliom_service.registrable ], 'returnT)
-                    Eliom_service.service)
-    ~get_params
+    ~meth
+    ~(fallback:
+        (_, _, _, Eliom_service.att, _, _, _,
+         [ `WithoutSuffix ], _, _, _) Eliom_service.service)
+    ~rt
     ?error_handler
     page =
-  let u =
-    Unsafe.coservice ?name
+  let service =
+    coservice ?name
       ?csrf_safe
-      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
+      ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
       ?csrf_secure
       ?max_use ?timeout ?https
-      ~fallback ~get_params ()
+      ~rt ~fallback ~meth
+      ()
   in
   register pages
     ?scope
@@ -655,8 +661,8 @@ let register_coservice pages
     ?content_type
     ?headers
     ?secure_session
-    ~service:u ?error_handler page;
-  u
+    ~service ?error_handler page;
+  service
 
 let register_coservice' pages
     ?scope
@@ -666,23 +672,24 @@ let register_coservice' pages
     ?content_type
     ?headers
     ?secure_session
+    ?https
     ?name
     ?csrf_safe
     ?csrf_scope
     ?csrf_secure
     ?max_use
     ?timeout
-    ?https
-    ~get_params
+    ~meth
+    ~rt
     ?error_handler
     page =
   let u =
-    Unsafe.coservice'
+    coservice'
       ?name
       ?csrf_safe
       ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
       ?csrf_secure
-      ?max_use ?timeout ?https ~get_params ()
+      ?max_use ?timeout ?https ~meth ~rt ()
   in
   register pages
     ?scope
@@ -695,328 +702,14 @@ let register_coservice' pages
     ~service:u ?error_handler page;
   u
 
-let register_post_service pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ?https
-    ?priority
-    ~fallback
-    ~post_params
-    ?error_handler
-    page_gen =
-  let u = Unsafe.post_service ?https ?priority
-    ~fallback:fallback ~post_params:post_params ()
-  in
-  register pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ~service:u ?error_handler page_gen;
-  u
-
-let register_post_coservice pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ?name
-    ?csrf_safe
-    ?csrf_scope
-    ?csrf_secure
-    ?max_use
-    ?timeout
-    ?https
-    ~fallback
-    ~post_params
-    ?error_handler
-    page_gen =
-  let u =
-    Unsafe.post_coservice ?name
-      ?csrf_safe
-      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
-      ?csrf_secure
-      ?max_use ?timeout ?https
-      ~fallback ~post_params () in
-  register pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ~service:u ?error_handler page_gen;
-  u
-
-let register_post_coservice' pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ?name
-    ?csrf_safe
-    ?csrf_scope
-    ?csrf_secure
-    ?max_use
-    ?timeout
-    ?keep_get_na_params
-    ?https
-    ~post_params
-    ?error_handler
-    page_gen =
-  let u =
-    Unsafe.post_coservice'
-      ?name
-      ?csrf_safe
-      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
-      ?csrf_secure
-      ?keep_get_na_params
-      ?max_use
-      ?timeout
-      ?https
-      ~post_params ()
-  in
-  register pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ~service:u ?error_handler page_gen;
-  u
-
-let register_put_service pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ?https
-    ?priority
-    ~path
-    ~get_params
-    ?error_handler
-    page_gen =
-  let u = Unsafe.put_service ?https ?priority ~path ~get_params () in
-  register pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ~service:u ?error_handler page_gen;
-  u
-
-let register_put_coservice pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ?name
-    ?csrf_safe
-    ?csrf_scope
-    ?csrf_secure
-    ?max_use
-    ?timeout
-    ?https
-    ~fallback
-    ~get_params
-    ?error_handler
-    page_gen =
-  let u =
-    Unsafe.put_coservice ?name
-      ?csrf_safe
-      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
-      ?csrf_secure
-      ?max_use ?timeout ?https
-      ~fallback ~get_params ()
-  in
-  register pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ~service:u ?error_handler page_gen;
-  u
-
-let register_put_coservice' pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ?name
-    ?csrf_safe
-    ?csrf_scope
-    ?csrf_secure
-    ?max_use
-    ?timeout
-    ?https
-    ~get_params
-    ?error_handler
-    page_gen =
-  let u =
-    Unsafe.put_coservice'
-      ?name
-      ?csrf_safe
-      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
-      ?csrf_secure
-      ?max_use
-      ?timeout
-      ?https
-      ~get_params ()
-  in
-  register pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ~service:u ?error_handler page_gen;
-  u
-
-let register_delete_service pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ?https
-    ?priority
-    ~path
-    ~get_params
-    ?error_handler
-    page_gen =
-  let u = Unsafe.delete_service ?https ?priority ~path ~get_params () in
-  register pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ~service:u ?error_handler page_gen;
-  u
-
-let register_delete_coservice pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ?name
-    ?csrf_safe
-    ?csrf_scope
-    ?csrf_secure
-    ?max_use
-    ?timeout
-    ?https
-    ~fallback
-    ~get_params
-    ?error_handler
-    page_gen =
-  let u =
-    Unsafe.delete_coservice ?name
-      ?csrf_safe
-      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
-      ?csrf_secure
-      ?max_use ?timeout ?https
-      ~fallback ~get_params () in
-  register pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ~service:u ?error_handler page_gen;
-  u
-
-let register_delete_coservice' pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ?name
-    ?csrf_safe
-    ?csrf_scope
-    ?csrf_secure
-    ?max_use
-    ?timeout
-    ?https
-    ~get_params
-    ?error_handler
-    page_gen =
-  let u =
-    Unsafe.delete_coservice'
-      ?name
-      ?csrf_safe
-      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
-      ?csrf_secure
-      ?max_use
-      ?timeout
-      ?https
-      ~get_params ()
-  in
-  register pages
-    ?scope
-    ?options
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?secure_session
-    ~service:u ?error_handler page_gen;
-  u
-
-module type REG_PARAM = "sigs/eliom_reg_param.mli"
-
-module MakeRegister(Pages : REG_PARAM) = struct
+module MakeRegister (Pages: Eliom_reg_sigs.PARAM) = struct
 
   type page = Pages.page
   type options = Pages.options
   type return = Pages.return
   type result = Pages.result
+
+  let rt = Pages.rt
 
   let pages =
     { send = Pages.send;
@@ -1024,38 +717,27 @@ module MakeRegister(Pages : REG_PARAM) = struct
       result_of_http_result = Pages.result_of_http_result; }
 
   let send ?options = send pages ?options
+
   let register ?scope = register pages ?scope
-  let register_service ?scope = register_service pages ?scope
-  let register_coservice ?scope = register_coservice pages ?scope
-  let register_coservice' ?scope = register_coservice' pages ?scope
-  let register_post_service ?scope = register_post_service pages ?scope
-  let register_post_coservice ?scope = register_post_coservice pages ?scope
-  let register_post_coservice' ?scope = register_post_coservice' pages ?scope
-  let register_put_service ?scope = register_put_service pages ?scope
-  let register_put_coservice ?scope = register_put_coservice pages ?scope
-  let register_put_coservice' ?scope = register_put_coservice' pages ?scope
-  let register_delete_service ?scope = register_delete_service pages ?scope
-  let register_delete_coservice ?scope = register_delete_coservice pages ?scope
-  let register_delete_coservice' ?scope = register_delete_coservice' pages ?scope
+
+  let register_service ?scope =
+    register_service pages ?scope ~rt
+
+  let register_coservice ?scope =
+    register_coservice pages ?scope ~rt
+
+  let register_coservice' ?scope =
+    register_coservice' pages ?scope ~rt
 
 end
 
-module type REG_PARAM_ALPHA_RETURN =
-sig
-  type ('a, 'b) page
-  type 'a return
-  type 'a result
-  include "sigs/eliom_reg_param.mli"
-    subst type page := ('a, 'b) page
-      and type return := 'b return
-      and type result := 'a result
-end
-
-module MakeRegister_AlphaReturn(Pages : REG_PARAM_ALPHA_RETURN) = struct
+module MakeRegister_AlphaReturn
+    (Pages : Eliom_reg_sigs.PARAM_ALPHA_RETURN) =
+struct
 
   type ('a, 'b) page = ('a, 'b) Pages.page
   type options = Pages.options
-  type 'b return = 'b Pages.return
+  type 'b return = 'b
   type 'a result = 'a Pages.result
 
   let pages =
@@ -1063,19 +745,19 @@ module MakeRegister_AlphaReturn(Pages : REG_PARAM_ALPHA_RETURN) = struct
       send_appl_content = Pages.send_appl_content;
       result_of_http_result = Pages.result_of_http_result; }
 
+  let rt = Eliom_service.Unsafe
+
   let send ?options = send pages ?options
+
   let register ?scope = register pages ?scope
-  let register_service ?scope = register_service pages ?scope
-  let register_coservice ?scope = register_coservice pages ?scope
-  let register_coservice' ?scope = register_coservice' pages ?scope
-  let register_post_service ?scope = register_post_service pages ?scope
-  let register_post_coservice ?scope = register_post_coservice pages ?scope
-  let register_post_coservice' ?scope = register_post_coservice' pages ?scope
-  let register_put_service ?scope = register_put_service pages ?scope
-  let register_put_coservice ?scope = register_put_coservice pages ?scope
-  let register_put_coservice' ?scope = register_put_coservice' pages ?scope
-  let register_delete_service ?scope = register_delete_service pages ?scope
-  let register_delete_coservice ?scope = register_delete_coservice pages ?scope
-  let register_delete_coservice' ?scope = register_delete_coservice' pages ?scope
+
+  let register_service ?scope =
+    register_service pages ?scope ~rt
+
+  let register_coservice ?scope =
+    register_coservice pages ?scope ~rt
+
+  let register_coservice' ?scope =
+    register_coservice' pages ?scope ~rt
 
 end

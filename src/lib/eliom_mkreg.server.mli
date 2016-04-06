@@ -24,40 +24,24 @@
    It is used for example in {!Eliom_registration}.
  *)
 
-(** {2 Creating modules to register services for one type of pages} *)
-module type REG_PARAM = "sigs/eliom_reg_param.mli"
+(** {2 Creates modules to register services for one type of pages} *)
+module MakeRegister (Pages: Eliom_reg_sigs.PARAM) :
+  Eliom_reg_sigs.S
+  with type page = Pages.page
+   and type options = Pages.options
+   and type return = Pages.return
+   and type result = Pages.result
 
-module MakeRegister(Pages: REG_PARAM) : sig
-
-  include "sigs/eliom_reg_unsafe.mli"
-    subst type page := Pages.page
-    and type options := Pages.options
-    and type return := Pages.return
-    and type result := Pages.result
-
-end
-
-(** {2 Creating modules to register services for one type of parametrised pages} *)
-
-module type REG_PARAM_ALPHA_RETURN =
+(** {2 Creating modules to register services for one type of
+    parametrised pages} *)
+module MakeRegister_AlphaReturn
+    (Pages : Eliom_reg_sigs.PARAM_ALPHA_RETURN) :
 sig
-  type ('a, 'b) page
-  type 'a return
-  type 'a result
-  include "sigs/eliom_reg_param.mli"
-    subst type page := ('a, 'b) page
-      and type return := 'b return
-      and type result := 'a result
-end
-
-module MakeRegister_AlphaReturn(Pages: REG_PARAM_ALPHA_RETURN) : sig
-
-  include "sigs/eliom_reg_alpha_return_unsafe.mli"
+  include "sigs/eliom_reg_alpha_return.mli"
      subst type page := ('a, 'b) Pages.page
        and type options := Pages.options
-       and type return := 'b Pages.return
+       and type return := 'b
        and type result := 'a Pages.result
-
 end
 
 (**/**)

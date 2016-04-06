@@ -39,18 +39,19 @@ open Eliom_lib
     content of the frame:
 
     - The second parameter is the same as the last type parameters of
-    the corresponding {!type:Eliom_service.service}. Currently, one of the
-    following types:
-    {ul {- {!Eliom_service.appl_service}}
-        {- {!Eliom_service.http_service}}
-        {- {!Eliom_service.ocaml_service}} }
+      the corresponding {!type:Eliom_service.service}. Currently, one of
+      the following types:
+      {ul {- {!Eliom_service.appl_service}}
+          {- {!Eliom_service.http_service}}
+          {- {!Eliom_service.ocaml_service}} }
+
     - The first parameter is a refinement of the second
-    parameter. Currently, one of the following types:
-    {ul {- {!application_content}}
-        {- {!browser_content}}
-        {- {!block_content}}
-        {- {!unknown_content}}
-        {- {!ocaml_content}}}
+      parameter. Currently, one of the following types:
+      {ul {- {!application_content}}
+          {- {!browser_content}}
+          {- {!block_content}}
+          {- {!unknown_content}}
+          {- {!ocaml_content}}}
 
 *)
 type 'a kind
@@ -60,44 +61,45 @@ type 'a kind
 (** {4 Classical content} *)
 
 (** The type [http_service] is used as a phantom type parameters for
-    {!Eliom_service.service} and {!Eliom_registration.kind}. It means the
-    returned content is classical HTTP content described by the
-    content type header. See {!Eliom_registration.kind} for a list of others
-    return types. *)
-type http_service = Eliom_service.http_service
+    {!Eliom_service.service} and {!Eliom_registration.kind}. It means
+    the returned content is classical HTTP content described by the
+    content type header. See {!Eliom_registration.kind} for a list of
+    others return types. *)
+type http_service = Eliom_service.http Eliom_service.non_ocaml
 
 (** The type [browser_content] is a refinement of {!http_service} to
-    be used as a phantom type parameters for {!Eliom_registration.kind}. It
-    means the returned content must be interpreted in the browser as
-    stated by the content-type header. This is most common return type
-    for an eliom service, see for example {!Html5},
-    {!CssText}, {!File}, {!Redirection}, ….*)
+    be used as a phantom type parameters for
+    {!Eliom_registration.kind}. It means the returned content must be
+    interpreted in the browser as stated by the content-type
+    header. This is most common return type for an eliom service, see
+    for example {!Html5}, {!CssText}, {!File}, {!Redirection}, ... *)
 type browser_content = [ `Browser ]
 
 (** The type [block_content] is a refinement of {!http_service} to be
-    used as a phantom type parameters for {!Eliom_registration.kind}. It
-    means the returned content is a subtree of an XML value. See for
-    example {!Block5} or {!Make_typed_xml_registration}. *)
+    used as a phantom type parameters for
+    {!Eliom_registration.kind}. It means the returned content is a
+    subtree of an XML value. See for example {!Block5} or
+    {!Make_typed_xml_registration}. *)
 type block_content
 
 (** The type [unknown_content] is a refinement of {!http_service} to
-    be used as a phantom type parameters for {!Eliom_registration.kind} when
-    the content-type can't be determined staticaly. See {!Text} or
-    {!Any}. *)
+    be used as a phantom type parameters for
+    {!Eliom_registration.kind} when the content-type can't be
+    determined staticaly. See {!Text} or {!Any}. *)
 type unknown_content
 
 (** {4 Application content} *)
 
 (** The type [appl_service] is used as a phantom type parameters for
-    {!Eliom_service.service} and {!Eliom_registration.kind}. It means the
-    service is part of an Eliom application. See {!Eliom_registration.kind}
-    for a list of others return types. *)
-type appl_service = Eliom_service.appl_service
+    {!Eliom_service.service} and {!Eliom_registration.kind}. It means
+    the service is part of an Eliom application. See
+    {!Eliom_registration.kind} for a list of others return types. *)
+type appl_service = Eliom_service.appl Eliom_service.non_ocaml
 
 (** The type [application_content] is a refinement of {!appl_service}
-    to be used as a phantom type parameters for {!Eliom_registration.kind}. The
-    parameter ['a] is phantom type that is unique for a given
-    application. *)
+    to be used as a phantom type parameters for
+    {!Eliom_registration.kind}. The parameter ['a] is phantom type
+    that is unique for a given application. *)
 type 'a application_content = [ `Appl of 'a ]
 
 (**/**)
@@ -106,56 +108,29 @@ type 'a application_name
 
 (** {4 OCaml content} *)
 
-(** The type [ocaml_content] is an synomyn for {!Eliom_service.ocaml_service}
-    to be used as a phantom type parameters for {!Eliom_registration.kind}. See
-    {!Ocaml}. *)
+(** The type [ocaml_content] is an synomyn for
+    {!Eliom_service.ocaml_service} to be used as a phantom type
+    parameters for {!Eliom_registration.kind}. See {!Ocaml}. *)
 type 'a ocaml_content
-
-(** The type [non_ocaml_service] is used as phantom type parameters for
-    the {!Eliom_registration.kind}. It used to type functions that operates
-    over service that do not returns OCaml values, like
-    {!appl_self_redirect}. *)
-type non_ocaml_service = Eliom_service.non_ocaml_service
-
-(** {3 Module signature} *)
-
-(** Abstract signature for service registration functions. For
-    concrete instance see {!Html5}, {!CssText}, {!File},
-    {!Redirection}, … *)
-module type Registration = sig
-  type page
-  type options
-  type return
-  type result
-  include "sigs/eliom_reg_simpl.mli"
-  subst type returnB := return
-  and type returnT := return
-end
 
 (** {2 Using HTML5 with services } *)
 
 (** Eliom service registration for services that returns HTML5
-    page. This is a subset of the {!Html5} module and an instance of
-    the {!Registration} abstract signature. *)
-module Html5_registration : "sigs/eliom_html5_reg.mli"
-
-
-(** Eliom service registration for HTML5 page. This
-    an instance the {!modtype:Registration} abstract signatures. *)
-module Html5 : sig
-  include "sigs/eliom_html5_reg.mli"
-end
+    page. This is a subset of the {!Html5} module. *)
+(** Eliom service registration for HTML5 page. *)
+module Html5 : Eliom_reg_sigs.S
+  with type page = Html5_types.html Eliom_content.Html5.elt
+   and type options = unit
+   and type return = http_service
+   and type result = browser_content kind
 
 (** {2 Eliom client/server applications} *)
 
 (** Signature for application creation. *)
 module type APPL_PARAMS = sig
-
-  (** Name of the application.
-      Two distincts applications must have distincts names.
-  *)
+  (** Name of the application. Two distincts applications must have
+      distincts names. *)
   val application_name : string
-
 end
 
 (** Type for the options of an Eliom application service.
@@ -165,13 +140,12 @@ end
     program. However, if the program is already lanched, the client
     side process won't be stopped. Use this if some of your pages are
     not using the client side program and you want to make them load
-    faster.
-*)
+    faster. *)
 type appl_service_options =
     {
       do_not_launch : bool;
-    (** Do not launch the client side program if it is not already
-        launched.  Default: [false]. *)
+      (** Do not launch the client side program if it is not already
+          launched.  Default: [false]. *)
     }
 
 (** The default options record for an eliom service. See
@@ -180,24 +154,25 @@ val default_appl_service_options : appl_service_options
 
 module type ELIOM_APPL = sig
 
-  (** Attach a client function to a service,
-      that will be used instead of calling the server to generate the page. *)
+  (** Attach a client function to a service, that will be used instead
+      of calling the server to generate the page. *)
   val set_client_fun :
-  ?app:string ->
-  service:('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return)
-      Eliom_service.service ->
-  ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
-  unit
+    ?app:string ->
+    service:('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.service ->
+    ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
+    unit
 
   (** The function [application_name ()] returns a [<script>] node
       that represents the javascript part of the application. If you
       do not include this script in the [<head>] node of your page, it
       will be automatically added at the end of the [<head>] node. *)
   val application_script :
-    ?defer:bool -> ?async:bool -> unit -> [> `Script ] Eliom_content.Html5.elt
+    ?defer:bool -> ?async:bool -> unit ->
+    [> `Script ] Eliom_content.Html5.elt
 
   (** Unique identifier for this application. Currently, it is just
-      the application name as defined by {!Appl_params.application_name}.
+      the application name as defined by
+      {!Appl_params.application_name}.
 
       {e Warning: do not mix up with the "application instance id",
       that is unique for each instance of the application on a
@@ -211,23 +186,20 @@ module type ELIOM_APPL = sig
   (** The type [appl] is an abstract type for identifying an
       application. It usually used a phantom parameter for
       {!application_content}. *)
-  type appl
+  type app_id
 
-  include "sigs/eliom_reg.mli"
-    subst type page    := Html5_types.html Eliom_content.Html5.elt
-      and type options := appl_service_options
-      and type return  := appl_service
-      and type returnB := [> appl_service ]
-      and type returnT := [< non_ocaml_service ]
-      and type result  := appl application_content kind
+  include Eliom_reg_sigs.S
+    with type page = Html5_types.html Eliom_content.Html5.elt
+     and type options = appl_service_options
+     and type return = Eliom_service.appl Eliom_service.non_ocaml
+     and type result = app_id application_content kind
 
   (**/**)
-  val typed_name : appl application_name
+  val typed_name : app_id application_name
 
 end
 
-(** Functor for application creation. The resulting module is an
-    instance of the {!modtype:Registration} abstract signature. *)
+(** Functor for application creation. *)
 module App (Appl_params : APPL_PARAMS) : ELIOM_APPL
 
 module type TMPL_PARAMS = sig
@@ -237,83 +209,59 @@ module type TMPL_PARAMS = sig
   val update: t -> unit Eliom_client_value.t
 end
 
-module Eliom_tmpl (Appl : ELIOM_APPL) (Tmpl_param : TMPL_PARAMS): sig
+module Eliom_tmpl (Appl : ELIOM_APPL) (Tmpl_param : TMPL_PARAMS):
+  Eliom_reg_sigs.S
+  with type page = Tmpl_param.t
+   and type options = appl_service_options
+   and type return = appl_service
+   and type result = Appl.app_id application_content kind
 
-  include "sigs/eliom_reg.mli"
-  subst type page    := Tmpl_param.t
-    and type options := appl_service_options
-    and type return  := appl_service
-    and type returnB := [> appl_service ]
-    and type returnT := [< non_ocaml_service ]
-    and type result  := Appl.appl application_content kind
-
-end
-
-(** {3 Services returning only fragment of HTML (or others TyXML tree)} *)
+(** {3 Services returning only fragment of HTML (or others TyXML
+    tree)} *)
 
 (** Eliom service registration and forms creation for fragment of
-    HTML5 page. This is an instance of the {!Registration} abstract
-    signature.
+    HTML5 page.
 
     For Eliom application, prefers {!Ocaml} services to send page
-    fragments.
-*)
-module Flow5 : "sigs/eliom_reg.mli"
-  subst type page    := Html5_types.flow5 Eliom_content.Html5.elt list
-  and type options := unit
-  and type return  := http_service
-  and type returnB := [> http_service ]
-  and type returnT := [< non_ocaml_service ]
-  and type result  := block_content kind
+    fragments. *)
+module Flow5 : Eliom_reg_sigs.S
+  with type page = Html5_types.flow5 Eliom_content.Html5.elt list
+   and type options = unit
+   and type return = http_service
+   and type result = block_content kind
 
 (** Eliom service registration for services that returns fragment of
-    TyXML's tree. The returned module is an instance of the
-    {!Registration} abstract signature. *)
+    TyXML's tree. *)
 module Make_typed_xml_registration
   (Xml: Xml_sigs.Iterable)
   (Typed_xml: Xml_sigs.Typed_xml with module Xml := Xml)
   (E : sig type content end) :
-
-  "sigs/eliom_reg.mli"
-  subst type page    := E.content Typed_xml.elt list
-  and type options := unit
-  and type return  := http_service
-  and type returnB := [> http_service ]
-  and type returnT := [< non_ocaml_service ]
-  and type result  := block_content kind
+  Eliom_reg_sigs.S
+  with type page = E.content Typed_xml.elt list
+   and type options = unit
+   and type return = http_service
+   and type result = block_content kind
 
 (** {2 Untyped pages} *)
 
 (** Eliom service registration and forms creation for untyped HTML
-    page. This an instance the {!Registration}
-    abstract signature. The page content is a [string] that must
-    contains valid HTML and the content type is always [text/html]. *)
-module Html_text : sig
-
-  include "sigs/eliom_reg.mli"
-    subst type page    := string
-    and type options := unit
-    and type return  := http_service
-    and type returnB := [> http_service ]
-    and type returnT := [< non_ocaml_service ]
-    and type result  := browser_content kind
-
-end
+    page. The page content is a [string] that must contains valid HTML
+    and the content type is always [text/html]. *)
+module Html_text : Eliom_reg_sigs.S
+  with type page = string
+   and type options = unit
+   and type return = http_service
+   and type result = browser_content kind
 
 (** Eliom service registration for services that returns CSS. The page
     content is a [string] that must contains valid CSS and the content
     type is always [text/css]. The option is the optional
-    "Cache-policy: max-age" header value to be sent.
-
-    This an instance of the {!Registration} abstract signature.
-*)
-module CssText : "sigs/eliom_reg.mli"
-  subst type page  := string
-  and type options := int
-  and type return  := http_service
-  and type returnB := [> http_service ]
-  and type returnT := [< non_ocaml_service ]
-  and type result  := browser_content kind
+    "Cache-policy: max-age" header value to be sent. *)
+module CssText : Eliom_reg_sigs.S
+  with type page = string
+   and type options = int
+   and type return = http_service
+   and type result = browser_content kind
 
 (** {2 Other kinds of services} *)
 
@@ -324,30 +272,31 @@ module CssText : "sigs/eliom_reg.mli"
 
     If you give the optional parameter [~options:`NoReload] to the
     registration function, the action will executed and a [204 No
-    Content] will be sent to the server.
-
-    This an instance of the {!Registration} abstract signature.
-*)
-module Action : "sigs/eliom_reg.mli"
- subst type page    := unit
-   and type options := [ `Reload | `NoReload ]
-   and type return  := http_service
-   and type returnB := [> http_service ]
-   and type returnT := [< non_ocaml_service ]
-   and type result  := browser_content kind
+    Content] will be sent to the server. *)
+module Action : Eliom_reg_sigs.S
+  with type return = http_service
+   and type page = unit
+   and type options = [ `Reload | `NoReload ]
+   and type result = browser_content kind
 
 (** Similar to {!Actions} with [`NoReload] option. *)
-module Unit : "sigs/eliom_reg.mli"
-  subst type page    := unit
-  and type options := unit
-  and type return  := http_service
-  and type returnB := [> http_service ]
-  and type returnT := [< non_ocaml_service ]
-  and type result  := browser_content kind
+module Unit : Eliom_reg_sigs.S
+  with type page = unit
+   and type options = unit
+   and type return = http_service
+   and type result = browser_content kind
 
-(** Eliom service registration for services that returns a redirections
-    towards another service. See the Eliom manual for more
-    information about {% <<a_manual chapter="server-outputs"
+(** Auxiliarry type to hide non-interesting type parameters *)
+type (_, _) redirected_service =
+    Service :
+      (unit, unit, Eliom_service.get , _, _, _, _,
+       [ `WithoutSuffix ], unit, unit, 'b)
+        Eliom_service.service ->
+    (_, 'b) redirected_service
+
+(** Eliom service registration for services that returns a
+    redirections towards another service. See the Eliom manual for
+    more information about {% <<a_manual chapter="server-outputs"
     fragment="redirections"|Redirections outputs>>%}.
 
     The default returned HTTP code is [302 Found]. You could use the
@@ -358,110 +307,97 @@ module Unit : "sigs/eliom_reg.mli"
     - [`SeeOther] to return [303 See Other].
     - [`NotNodifed] to return [304 Not Modified].
     - [`UseProxy] to return [305 Use Proxy].
-    - [`TemporaryRedirect] to return [307 Temporary Redirect].
+    - [`TemporaryRedirect] to return [307 Temporary Redirect]. *)
+module Redirection : sig
 
-*)
-module Redirection : "sigs/eliom_reg_alpha_return.mli"
-  subst type page :=
-      (unit, unit, Eliom_service.get_service_kind, Eliom_service.attached, Eliom_service.service_kind,
-       [ `WithoutSuffix ],
-       unit, unit, Eliom_service.registrable, 'b)
-      Eliom_service.service
-  and type options := [ `MovedPermanently
-		      | `Found
-		      | `SeeOther
-		      | `NotNodifed
-		      | `UseProxy
-		      | `TemporaryRedirect ]
-  and type return  := 'b
-  and type returnB := 'b
-  and type returnT := 'b
-  and type result  := 'a kind
+  type ('a, 'b) page = ('a, 'b) redirected_service
 
-(** Eliom service registration for services that returns a redirections
-    towards a string-URL. See the Eliom manual for more information
-    about {% <<a_manual chapter="server-outputs"
+  type options =
+    [ `MovedPermanently
+    | `Found
+    | `SeeOther
+    | `NotNodifed
+    | `UseProxy
+    | `TemporaryRedirect ]
+
+  type 'b return = 'b
+  type 'a result = 'a kind
+
+  include "sigs/eliom_reg_simpl.mli"
+    subst type return := 'b return
+      and type result := 'a result
+      and type page := ('a, 'b) page
+
+end
+
+(** Eliom service registration for services that returns a
+    redirections towards a string-URL. See the Eliom manual for more
+    information about {% <<a_manual chapter="server-outputs"
     fragment="redirections"|Redirections outputs>>%}. The URL given
     must be an absolute URI.
 
     The default returned HTTP code is [302 Found]. You could use the
     optional parameter [~options] to change this value, see
-    {!Redirections} for a detailled description.
-
-    This an instance of the {!Registration} abstract signature.
-*)
-module String_redirection : "sigs/eliom_reg.mli"
-  subst type page    := Url.uri
-  and type options := [ `MovedPermanently
-		      | `Found
-		      | `SeeOther
-		      | `NotNodifed
-		      | `UseProxy
-		      | `TemporaryRedirect ]
-  and type return  := http_service
-  and type returnB := [> http_service ]
-  and type returnT := [< non_ocaml_service ]
-  and type result  := browser_content kind
+    {!Redirections} for a detailled description. *)
+module String_redirection : Eliom_reg_sigs.S
+  with type page = Url.uri
+   and type options =
+         [ `MovedPermanently
+         | `Found
+         | `SeeOther
+         | `NotNodifed
+         | `UseProxy
+         | `TemporaryRedirect ]
+   and type return = http_service
+   and type result = browser_content kind
 
 (** Eliom service registration for services that returns file
-    contents. The value returned by service handlers is the name of the file
-    to send. See the Eliom
-    manual for more information on {% <<a_manual chapter="server-outputs"
-    fragment="eliomfiles"|how to send files with Eliom>>%}.
-    The option is the optional "Cache-policy: max-age"
-    header value to be sent.
+    contents. The value returned by service handlers is the name of
+    the file to send. See the Eliom manual for more information on {%
+    <<a_manual chapter="server-outputs" fragment="eliomfiles"|how to
+    send files with Eliom>>%}.  The option is the optional
+    "Cache-policy: max-age" header value to be sent.
 
 *)
 module File : sig
 
-  (** The function [check_file file] is true if [File.send file]
-      would effectively return the file (i.e. the file is present and
-      readable.)
-  *)
+  (** The function [check_file file] is true if [File.send file] would
+      effectively return the file (i.e. the file is present and
+      readable) *)
   val check_file : string -> bool
 
-  include "sigs/eliom_reg.mli"
-    subst type page    := string
-      and type options := int
-      and type return  := http_service
-      and type returnB := [> http_service ]
-      and type returnT := [< non_ocaml_service ]
-      and type result  := browser_content kind
+  include Eliom_reg_sigs.S
+    with type page = string
+     and type options = int
+     and type return = http_service
+     and type result = browser_content kind
 
 end
 
-(** Same as file but makes possible to specify the content type
-    for each file. The value returned by service handlers is a pair
-    [(file_name, content_type)] *)
+(** Same as file but makes possible to specify the content type for
+    each file. The value returned by service handlers is a pair
+    [(file_name, content_type)]. *)
 module File_ct : sig
 
-  (** The function [check_file file] is true if [File.send file]
-      would effectively return the file (i.e. the file is present and
-      readable.)
-  *)
-
+  (** The function [check_file file] is true if [File.send file] would
+      effectively return the file (i.e. the file is present and
+      readable) *)
   val check_file : string -> bool
 
-  include "sigs/eliom_reg.mli"
-    subst type page    := string * string
-      and type options := int
-      and type return  := http_service
-      and type returnB := [> http_service ]
-      and type returnT := [< non_ocaml_service ]
-      and type result  := browser_content kind
+  include Eliom_reg_sigs.S
+    with type page = string * string
+     and type options = int
+     and type return = http_service
+     and type result = browser_content kind
 
 end
 
-(** Eliom service registration for services that send marshalled OCaml values.
-
-    This an instance of the {!Registration} abstract signature.
-*)
+(** Eliom service registration for services that send marshalled OCaml
+    values. *)
 module Ocaml : "sigs/eliom_reg_simpl.mli"
   subst type page    := 'return
     and type options := unit
-    and type return  := 'return Eliom_service.ocaml_service
-    and type returnB := 'return Eliom_service.ocaml_service
-    and type returnT := 'return Eliom_service.ocaml_service
+    and type return  := 'return Eliom_service.ocaml
     and type result  := 'return ocaml_content kind
 
 (** Eliom service registration for services that choose dynamically
@@ -474,43 +410,35 @@ module Any : "sigs/eliom_reg_alpha_return.mli"
   subst type page  := 'a kind
   and type options := unit
   and type return  := 'b
-  and type returnB := 'b
-  and type returnT := 'b
   and type result  := 'a kind
 
 (** The function [appl_self_redirect send page] is an helper function
     required for defining {!Any} service usable inside an Eliom
-    application ({!App}). It allows casting an Eliom senders
-    that do not returns {!application_content} (like {!File.send},
+    application ({!App}). It allows casting an Eliom senders that do
+    not returns {!application_content} (like {!File.send},
     {!String.send}, ...) into a senders returns
     {!application_content}.
 
     When the service is called from an Eliom application, this is
-    implemented with half-redirection (a redirection that leaves
-    the application). Hence, the service may be called two times in a
-    row and you should not use this function for service that use POST
-    parameters.
-*)
+    implemented with half-redirection (a redirection that leaves the
+    application). Hence, the service may be called two times in a row
+    and you should not use this function for service that use POST
+    parameters. *)
 val appl_self_redirect :
-  ('page -> [< 'a application_content | browser_content ] kind Lwt.t) -> 'page ->
+  ('page -> [< 'a application_content | browser_content ] kind Lwt.t) ->
+  'page ->
   'appl application_content kind Lwt.t
-
 
 (** Eliom service registration for services that returns "byte"-string
     contents. The page content is a pair [(raw_content,
     content_type)]. See also {!Streamlist} for another kind of service
     that returns "byte" contents. The option is the optional
-    "Cache-policy: max-age" header value to be sent.
-
-    This an instance of the {!Registration} abstract signature.
-*)
-module String : "sigs/eliom_reg.mli"
-  subst type page  := string * string
-  and type options := int
-  and type return  := http_service
-  and type returnB := [> http_service ]
-  and type returnT := [< non_ocaml_service ]
-  and type result  := unknown_content kind
+    "Cache-policy: max-age" header value to be sent. *)
+module String : Eliom_reg_sigs.S
+  with type page = string * string
+   and type options = int
+   and type return = http_service
+   and type result = unknown_content kind
 
 (** Eliom service registration for services that returns "byte"
     contents with {% <<a_api project="ocsigenserver" text="Ocsigen's
@@ -522,39 +450,39 @@ module String : "sigs/eliom_reg.mli"
     <<a_api project="ocsigenserver"| val Ocsigen_stream.finalize>>%}
     is called at the end of the stream. If something goes wrong while
     processing a stream, the current stream is closed and the
-    following streams are not created.
-*)
-module Streamlist : "sigs/eliom_reg.mli"
-  subst type page    := (((unit -> string Ocsigen_stream.t Lwt.t) list) * string)
-  and type options := unit
-  and type return  := http_service
-  and type returnB := [> http_service ]
-  and type returnT := [< non_ocaml_service ]
-  and type result  := unknown_content kind
+    following streams are not created. *)
+module Streamlist : Eliom_reg_sigs.S
+  with type page =
+         (unit -> string Ocsigen_stream.t Lwt.t) list * string
+   and type options = unit
+   and type return = http_service
+   and type result = unknown_content kind
 
 (** {2 Customizing registration} *)
 
-(** The [Customize] functor allows specialization of service registration
-    functions by customizing the page type. See the {% <<a_manual
-    project="tutorial" chapter="interaction"| Eliom tutorial>>%} for
-    example. *)
-module Customize :
-    functor (R : Registration) ->
-      functor (T : sig type page val translate : page -> R.page Lwt.t end) -> Registration
-  with type options := R.options
-  and type return  := R.return
-  and type page    := T.page
-  and type result  := R.result
+(** The [Customize] functor allows specialization of service
+    registration functions by customizing the page type. See the {%
+    <<a_manual project="tutorial" chapter="interaction"| Eliom
+    tutorial>>%} for example. *)
+module Customize
+    (R : Eliom_reg_sigs.S)
+    (T : sig type page val translate : page -> R.page Lwt.t end) :
+  Eliom_reg_sigs.S
+  with type options = R.options
+   and type return = R.return
+   and type page = T.page
+   and type result = R.result
 
 (** {2 Using your own error pages} *)
 
 (** The [set_exn_handler handler] allows redefinition of error pages:
     [404] or any exception during page generation.
 
-    Note that you should not catch every exception here since some Eliom
-    mechanisms are done using exceptions, like redirections.
-    Do not catch exception defined in Eliom except {!Eliom_common.Eliom_404},
-    {!Eliom_common.Eliom_Wrong_parameter} {!Eliom_common.Eliom_Typing_Error}.
+    Note that you should not catch every exception here since some
+    Eliom mechanisms are done using exceptions, like redirections.  Do
+    not catch exception defined in Eliom except
+    {!Eliom_common.Eliom_404}, {!Eliom_common.Eliom_Wrong_parameter}
+    {!Eliom_common.Eliom_Typing_Error}.
 
     {e Warning: This functions must be called when the site
     information is available, that is, either during a request or
@@ -570,11 +498,12 @@ val set_exn_handler : (exn -> browser_content kind Lwt.t) -> unit
 
 (** {2 Unsafe cast of contents} *)
 
+(** If you know that the content you generated using [Text.send] or
+    [Streamlist.send] is the same as some other kind, you can cast it
+    with [cast_unknown_content_kind] for use with [Any] module.*)
 val cast_unknown_content_kind :
   unknown_content kind -> 'a kind
-(** If you know that the content you generated using [Text.send] or
-    [Streamlist.send] is the same as some other kind, you can cast
-    it with [cast_unknown_content_kind] for use with [Any] module.*)
 
+(** [cast_http_result] should only be used to register new output
+    modules *)
 val cast_http_result : Ocsigen_http_frame.result -> 'a kind
-(** [cast_http_result] should only be used to register new output modules *)

@@ -18,6 +18,7 @@
  *)
 
 let _ =
-  Eliom_registration.Html5.register_service ~path:[] ~get_params:Eliom_parameter.unit (fun _ _ ->
-    Eliom_monitor.content_html ()
-    )
+  Eliom_registration.Html5.register_service
+    ~path:[]
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    (fun _ _ -> Eliom_monitor.content_html ())

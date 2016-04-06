@@ -402,14 +402,18 @@ struct
       | Stateful_state _ ->
         raise (Comet_error ("update_stateless_state on stateful one"))
 
-  let call_service hd =
-    lwt () = Configuration.sleep_before_next_request
-      (fun () -> hd.hd_activity.focused)
-      (fun () -> hd.hd_activity.active = `Idle)
-      (fun () -> hd.hd_activity.active_waiter)
+  let call_service
+      ({ hd_activity = {focused; active; active_waiter};
+         hd_service = Ecb.Comet_service srv
+       } as hd) =
+    lwt () =
+      Configuration.sleep_before_next_request
+        (fun () -> focused)
+        (fun () -> active = `Idle)
+        (fun () -> active_waiter)
     in
     let request = make_request hd in
-    lwt s = call_service_after_load_end hd.hd_service () request in
+    lwt s = call_service_after_load_end srv () request in
     Lwt.return (Ecb.Json_answer.from_string s)
 
   let drop_message_index =
@@ -495,14 +499,15 @@ struct
     update_activity hd;
     aux 0
 
-  let call_commands hd command =
+  let call_commands {hd_service = Ecb.Comet_service srv} command =
     ignore
       (try_lwt
-          call_service_after_load_end hd.hd_service ()
-            (Ecb.Stateful (Ecb.Commands command))
+         call_service_after_load_end srv ()
+           (Ecb.Stateful (Ecb.Commands command))
        with
-         | exn -> Eliom_lib.Lwt_log.ign_notice_f ~section ~exn "request failed";
-           Lwt.return "")
+       | exn ->
+         Eliom_lib.Lwt_log.ign_notice_f ~section ~exn "request failed";
+         Lwt.return "")
 
   let close hd chan_id =
     match hd.hd_state with
@@ -590,6 +595,7 @@ struct
     hd
 
 end
+
 
 type 'a handler =
     { hd_service_handler : 'a Service_handler.t;

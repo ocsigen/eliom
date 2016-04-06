@@ -60,13 +60,9 @@ val change_page :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('a, 'b,[< Eliom_service.service_method ],
-           [< Eliom_service.attached ],
-           [< Eliom_service.service_kind ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
-           [< Eliom_service.registrable ],
-           [< Eliom_registration.non_ocaml_service ])
-          Eliom_service.service ->
+  service:
+    ('a, 'b, _, _, _, _, _, _, _, _, _ Eliom_service.non_ocaml)
+      Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -91,13 +87,9 @@ val call_ocaml_service :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('a, 'b,
-           [< Eliom_service.service_method ],
-           [< Eliom_service.attached ],
-           [< Eliom_service.service_kind ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
-           [< Eliom_service.registrable ], 'return Eliom_service.ocaml_service)
-    Eliom_service.service ->
+  service:
+    ('a, 'b, _, _, _, _, _, _, _, _, 'return Eliom_service.ocaml)
+      Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -117,14 +109,9 @@ val exit_to :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('a, 'b,
-           [< Eliom_service.service_method ],
-           [< Eliom_service.attached ],
-           [< Eliom_service.service_kind ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
-           [< Eliom_service.registrable ],
-           [< Eliom_registration.non_ocaml_service ])
-          Eliom_service.service ->
+  service:
+    ('a, 'b, _, _, _, _, _, _, _, _, _ Eliom_service.non_ocaml)
+      Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -140,13 +127,9 @@ val window_open :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('a, unit,
-           [< Eliom_service.get_service_kind ],
-           [< Eliom_service.attached ],
-           [< Eliom_service.service_kind ],
-           [< `WithSuffix | `WithoutSuffix ], _, unit,
-           [< Eliom_service.registrable ], _)
-          Eliom_service.service ->
+  service:
+    ('a, unit, Eliom_service.get, _, _, _, _, _, _, unit, _)
+      Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -162,11 +145,9 @@ val change_url :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, unit, [< Eliom_service.get_service_kind ],
-           [< Eliom_service.attached ],
-           [< Eliom_service.service_kind ],
-           [< Eliom_service.suff ], 'gn, unit,
-           [< Eliom_service.registrable ], 'return) Eliom_service.service ->
+  service:
+    ('get, unit, Eliom_service.get,
+     _, _, _, _, _, _, unit, _) Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -180,13 +161,8 @@ val call_service :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('a, 'b,
-           [< Eliom_service.service_method ],
-           [< Eliom_service.attached],
-           [< Eliom_service.service_kind],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
-           [< Eliom_service.registrable ], 'return)
-          Eliom_service.service ->
+  service:
+    ('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -197,7 +173,6 @@ val call_service :
   ?upload_progress:(int -> int -> unit) ->
   ?override_mime_type:string ->
   'a -> 'b -> string Lwt.t
-
 
 (** {2 Misc} *)
 

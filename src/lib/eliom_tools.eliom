@@ -34,34 +34,27 @@ let string_prefix s1 s2 =
   String.length s1 <= String.length s2 &&
     s1 = String.sub s2 0 (String.length s1)
 
-type ('a, 'b, 'c) one_page =
-    (unit, unit, 'a, attached, service_kind,
-     [ `WithoutSuffix ],
-     unit, unit,
-     'b, 'c) service
-    constraint 'a = [< Eliom_service.service_method ]
-    constraint 'c = [< Eliom_registration.non_ocaml_service ]
+type srv =
+  Srv :
+    (unit, unit, get, _, _, _, _, [ `WithoutSuffix ],
+     unit, unit, _ Eliom_service.non_ocaml) service ->
+  srv
 
-type ('a, 'b, 'c) hierarchical_site_item =
+type 'a hierarchical_site_item =
   | Disabled
-  | Site_tree of ('a, 'b, 'c) hierarchical_site
-  constraint 'a = [< Eliom_service.service_method ]
-  constraint 'b = [< Eliom_service.registrable ]
-and ('a, 'b) main_page =
-  | Main_page of ('a, 'b, Eliom_registration.non_ocaml_service) one_page
-  | Default_page of ('a, 'b, Eliom_registration.non_ocaml_service) one_page
+  | Site_tree of 'a hierarchical_site
+
+and main_page =
+  | Main_page     of srv
+  | Default_page  of srv
   | Not_clickable
-  constraint 'a = [< Eliom_service.service_method ]
-  constraint 'b = [< Eliom_service.registrable ]
-and ('a, 'b, 'c) hierarchical_site =
-      (('a, 'b) main_page *
-         ('c * ('a, 'b, 'c) hierarchical_site_item) list)
-  constraint 'a = [< Eliom_service.service_method ]
-  constraint 'b = [< Eliom_service.registrable ]
+
+and 'a hierarchical_site =
+  main_page * ('a * 'a hierarchical_site_item) list
 
 module type HTML5_TOOLS = sig
 
-(** {2 Simple menu } *)
+  (** {2 Simple menu } *)
 
   (** The function [menu elts ()], where [elts] is a list of pair
       [(service, content)], creates a list of link towards the
@@ -79,19 +72,20 @@ module type HTML5_TOOLS = sig
   val menu :
     ?classe:Html5_types.nmtoken list ->
     ?id:string ->
-    (([< get_service_kind ] as 'a,
-      [< registrable ] as 'b,
-      [< Eliom_registration.non_ocaml_service ] as 'c) one_page *
-      [< Html5_types.flow5_without_interactive] Html5.elt list)
+    ((unit, unit, get, _, _, _, _, [ `WithoutSuffix ],
+      unit, unit, _ Eliom_service.non_ocaml) service *
+     [< Html5_types.flow5_without_interactive] Html5.elt list)
       list ->
-    ?service:('a, 'b, 'c) one_page ->
+    ?service:
+      (unit, unit, get, _, _, _, _, [ `WithoutSuffix ],
+       unit, unit, _ Eliom_service.non_ocaml) service ->
     unit ->
     [> `Ul ] Html5.elt
 
-(** {2 Hierchical sites } *)
+  (** {2 Hierchical sites } *)
 
   (** The function [hierarchical_menu_depth_first site ()] constructs
-      a hierarchical menu by exploring the hierarchical [site]
+      a hieranrchical menu by exploring the hierarchical [site]
       description using a depth-first algorithm: the first menu item
       will be displayed, followed by the whole sub-menu for this item,
       then the second menu item with its sub-menu, and so on.
@@ -108,15 +102,12 @@ module type HTML5_TOOLS = sig
     ?classe:Html5_types.nmtoken list ->
     ?id:string ->
     ?whole_tree:bool ->
-    ([< Eliom_service.get_service_kind ] as 'a,
-     [< Eliom_service.registrable ] as 'b,
-     [< Html5_types.a_content ] Html5.elt list)
-      hierarchical_site ->
-    ?service:('a, 'b, 'c) one_page ->
+    [< Html5_types.a_content ] Html5.elt list hierarchical_site ->
+    ?service:
+      (unit, unit, get, _, _, _, _, [ `WithoutSuffix ],
+       unit, unit, _ Eliom_service.non_ocaml) service ->
     unit ->
     [> `Ul ] Html5.elt list
-
-
 
   (** The function [hierarchical_menu_breadth_first site ()]
       constructs a hierarchical menu by exploring the hierarchical
@@ -129,16 +120,14 @@ module type HTML5_TOOLS = sig
       current service.
 
       See {!menu} for a description of the optional parameters [id]
-      and [classe].
-  *)
+      and [classe].  *)
   val hierarchical_menu_breadth_first :
     ?classe:Html5_types.nmtoken list ->
     ?id:string ->
-    ([< Eliom_service.get_service_kind ] as 'a,
-     [< Eliom_service.registrable ] as 'b,
-     [< Html5_types.a_content ] Html5.elt list)
-      hierarchical_site ->
-    ?service:('a, 'b, [< Eliom_registration.non_ocaml_service]) one_page ->
+    [< Html5_types.a_content ] Html5.elt list hierarchical_site ->
+    ?service:
+      (unit, unit, get, _, _, _, _, [ `WithoutSuffix ],
+       unit, unit, _ Eliom_service.non_ocaml) service ->
     unit ->
     [> `Ul ] Html5.elt list
 
@@ -150,16 +139,16 @@ module type HTML5_TOOLS = sig
       url. The optional parameter [service] allow to override the
       current service. *)
   val structure_links :
-    ([< Eliom_service.get_service_kind ] as 'a,
-     [< Eliom_service.registrable ] as 'b,
-     [< Html5_types.a_content ] Html5.elt list)
-    hierarchical_site ->
-    ?service:('a, 'b, [< Eliom_registration.non_ocaml_service ]) one_page ->
+    [< Html5_types.a_content ] Html5.elt list hierarchical_site ->
+    ?service:
+      (unit, unit, get, _, _, _, _, [ `WithoutSuffix ],
+       unit, unit, _ Eliom_service.non_ocaml) service ->
     unit ->
     [> `Link ] Html5.elt list
 
-  (** An auxiliary function for creating an HTML head elements. Resources (JS,
-      CSS) are taken from the static directory. *)
+  (** An auxiliary function for creating an HTML head
+      elements. Resources (JS, CSS) are taken from the static
+      directory. *)
   val head :
     title:string ->
     ?css:string list list ->
@@ -174,9 +163,11 @@ module type HTML5_TOOLS = sig
     ?css:string list list ->
     ?js:string list list ->
     ?other_head:[< Html5_types.head_content_fun ] Html5.elt list ->
-    [`Body] Html5.elt ->
-    [`Html] Html5.elt
+    Html5_types.body Html5.elt ->
+    Html5_types.html Html5.elt
+
 end
+
 }}
 {server{
 let css_files = Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
@@ -216,7 +207,6 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
       | None ->
         same_url ("/"^(Eliom_request_info.get_original_full_path_string ()))
       | Some s' -> same_url (make_string_uri ~absolute_path:true ~service:s' ())
-
 
   let menu ?(classe=[]) ?id l ?service:current () =
     let l = (l :> (_ * flow5_without_interactive elt list) list) in
@@ -260,7 +250,7 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
   let find_longest_prefix_in_hierarchy service (main, pages) =
     let rec aux prefix (max_len, _ as max) i = function
       | [] -> max
-      | (_, Site_tree (Main_page s, hsl)) :: pages when service_prefix s service ->
+      | (_, Site_tree (Main_page (Srv s), hsl)) :: pages when service_prefix s service ->
 	let len =
 	  String.length (make_string_uri ~absolute_path:true ~service:s ()) in
 	let max = if len >= max_len then (len, List.rev (i::prefix)) else max in
@@ -277,7 +267,7 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
   let find_in_hierarchy service (main, pages) =
     let rec aux service i = function
       | [] -> raise Not_found
-      | (_, Site_tree (Main_page s, hsl))::_ when same_service_opt s service ->
+      | (_, Site_tree (Main_page (Srv s), hsl))::_ when same_service_opt s service ->
         (try
            i::aux service 0 hsl
          with Not_found -> [i])
@@ -325,15 +315,23 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
           else [a_class classe]
         in
         match s with
-          | (text, Site_tree (Default_page page, []))
-          | (text, Site_tree (Main_page page, [])) ->
+          | (text, Site_tree (Default_page (Srv page), [])) ->
+            li ~a:attclass [a page text ()]
+          | (text, Site_tree (Main_page (Srv page), [])) ->
             li ~a:attclass [a page text ()]
           | (text, Site_tree (Not_clickable, [])) ->
             li ~a:attclass text
           | (text, Disabled) ->
             li ~a:[a_class (disabled_class::classe)] text
-          | (text, Site_tree (Default_page page, hsl))
-          | (text, Site_tree (Main_page page, hsl)) ->
+          | (text, Site_tree (Default_page (Srv page), hsl)) ->
+            li ~a:attclass
+              ((a page text ())::
+                  if deplier || whole_tree then
+                    (depth_first_fun hsl (level+1) pos2
+                       : [ `Ul ] elt list
+                     :> [< li_content > `Ul ] elt list)
+                  else [])
+          | (text, Site_tree (Main_page (Srv page), hsl)) ->
             li ~a:attclass
               ((a page text ())::
                   if deplier || whole_tree then
@@ -394,8 +392,9 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
           else [a_class classe]
         in
         match s with
-          | (text, Site_tree (Default_page page, _))
-          | (text, Site_tree (Main_page page, _)) ->
+          | (text, Site_tree (Default_page (Srv page), _)) ->
+            li ~a:attclass [a page text ()]
+          | (text, Site_tree (Main_page (Srv page), _)) ->
             li ~a:attclass [a page text ()]
           | (text, Site_tree (Not_clickable, _)) ->
             li ~a:attclass text
@@ -432,7 +431,7 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
     (* I am a subsection of s *)
       match s with
         | None -> endlist
-        | Some s ->
+        | Some (Srv s) ->
           (link ~rel: [ `Next ] (* ?? *)
              ~href: (make_uri ~service: s ()) ()) :: endlist
     in
@@ -444,16 +443,16 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
     in
     let make_rels beg a =
       match snd a with
-        | Site_tree (Main_page page, _) -> (make_rel page)::beg
+        | Site_tree (Main_page (Srv page), _) -> (make_rel page)::beg
         | _ -> beg
     in
-    let rec create_rev parent = function
+    let rec create_rev (parent : srv option) = function
       | [] -> raise Not_found
-      | (_, (Site_tree (Main_page s, [])))::l when same_service_opt s service ->
+      | (_, (Site_tree (Main_page (Srv s), [])))::l when same_service_opt s service ->
         make_rev parent []
       | (_, Disabled)::l
       | (_, Site_tree (_, []))::l -> create_rev parent l
-      | (_, Site_tree (Main_page page, hsl))::_ when same_service_opt page service ->
+      | (_, Site_tree (Main_page (Srv page), hsl))::_ when same_service_opt page service ->
         make_rev parent (List.fold_left make_rels [] hsl)
       | (_, Site_tree (Main_page page, hsl))::l ->
         (try create_rev (Some page) hsl
@@ -464,10 +463,10 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
     in
     try
       match default with
-        | Main_page def ->
+        | Main_page ((Srv def) as def') ->
           if same_service_opt def service then
             List.fold_left make_rels [] pages
-          else create_rev (Some def) pages
+          else create_rev (Some def') pages
         | _ ->
           create_rev None pages
     with Not_found -> []

@@ -59,20 +59,19 @@ let comet_path = ["__eliom_comet__"]
 let comet_global_path = ["__eliom_comet_global__"]
 
 let fallback_service =
-  Eliom_common.lazy_site_value_from_fun
-    (fun () ->
-       Comet.register_service
-         ~path:comet_path
-         ~get_params:Eliom_parameter.unit
-         (fun () () -> Lwt.return state_closed_msg))
+  Eliom_common.lazy_site_value_from_fun @@ fun () ->
+  Comet.register_service
+    ~path:comet_path
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    (fun () () -> Lwt.return state_closed_msg)
 
 let fallback_global_service =
-  Eliom_common.lazy_site_value_from_fun
-    (fun () ->
-       Comet.register_service
-         ~path:comet_global_path
-         ~get_params:Eliom_parameter.unit
-         (fun () () -> Lwt.return (error_msg "request with no post parameters, or there isn't any registered site comet channel")))
+  Eliom_common.lazy_site_value_from_fun @@ fun () ->
+  Comet.register_service
+    comet_global_path
+    (Eliom_service.Get Eliom_parameter.unit)
+    (fun () () ->
+       Lwt.return (error_msg "request with no post parameters, or there isn't any registered site comet channel"))
 
 let new_id = make_cryptographic_safe_string
 
@@ -263,18 +262,19 @@ struct
       Lwt.return (encode_global_downgoing res)
 
   let global_service =
-    Eliom_common.lazy_site_value_from_fun
-      (fun () ->
-         Comet.register_post_service
-           (*VVV Why isn't this a POST non-attached coservice? --Vincent *)
-           ~fallback:(Eliom_common.force_lazy_site_value
-                        fallback_global_service)
-           ~post_params:Ecb.comet_request_param
-           handle_request)
+    Eliom_common.lazy_site_value_from_fun @@ fun () ->
+    (*VVV Why isn't this a POST non-attached coservice? --Vincent *)
+
+    Comet.register_coservice
+      ~meth:
+        (Eliom_service.Post (Eliom_parameter.unit, Ecb.comet_request_param))
+      ~fallback:
+        (Eliom_common.force_lazy_site_value fallback_global_service)
+      handle_request
 
   let get_service () =
-    ((Eliom_common.force_lazy_site_value global_service)
-     :> Ecb.comet_service)
+    Eliom_comet_base.Comet_service
+      (Eliom_common.force_lazy_site_value global_service)
 
   let get_id {ch_id} = ch_id
 
@@ -534,10 +534,11 @@ end = struct
                  empty answer *)
         Lwt.return (encode_downgoing [])
     in
-    Comet.register
-      ~scope:handler.hd_scope
-      ~service:handler.hd_service
-      f
+    let
+      {hd_service = Eliom_comet_base.Internal_comet_service service} =
+      handler
+    in
+    Comet.register ~scope:handler.hd_scope ~service f
 
 
   (** For each scope there is a reference containing the handler. The
@@ -581,13 +582,20 @@ end = struct
       | None ->
         begin
           let hd_service =
-            (* CCC ajouter possibilité d'https *)
-            Eliom_service.Http.post_coservice
-(*VVV Why is it attached? --Vincent *)
-              ~fallback:(Eliom_common.force_lazy_site_value fallback_service)
-              (*~name:"comet" (* CCC faut il mettre un nom ? *)*)
-              ~post_params:Eliom_comet_base.comet_request_param
-              ()
+            Eliom_comet_base.Internal_comet_service
+              (* CCC ajouter possibilité d'https *)
+              (Eliom_service.coservice
+                 (*VVV Why is it attached? --Vincent *)
+                 ~rt:Eliom_service.Http
+                 ~meth:
+                   (Eliom_service.Post
+                      (Eliom_parameter.unit,
+                       Eliom_comet_base.comet_request_param))
+                 ~fallback:
+                   (Eliom_common.force_lazy_site_value
+                      fallback_service)
+                 (*~name:"comet" (* CCC faut il mettre un nom ? *)*)
+                 ())
           in
           let hd_update_streams,hd_update_streams_w = Lwt.task () in
           let handler = {
@@ -656,11 +664,11 @@ end = struct
   let get_id {ch_id} =
     ch_id
 
-  let get_service chan =
-    (chan.ch_handler.hd_service :> comet_service)
+  let get_service
+      {ch_handler = {hd_service = Ecb.Internal_comet_service srv}} =
+    Ecb.Comet_service srv
 
 end
-
 
 module Channel :
 sig
@@ -804,16 +812,19 @@ end = struct
       | Some `Site -> create_stateless ?name ~size stream
 
   let external_channel ?(history=1) ?(newest=false) ~prefix ~name () =
-    let service = Eliom_service.Http.external_post_service
-      ~prefix
-      ~path:comet_global_path
-      ~get_params:Eliom_parameter.unit
-      ~post_params:Eliom_comet_base.comet_request_param
-      ()
+    let service = Eliom_service.external_service
+        ~rt:Eliom_service.Http
+        ~prefix
+        ~path:comet_global_path
+        ~meth:
+          (Eliom_service.Post
+             (Eliom_parameter.unit,
+              Eliom_comet_base.comet_request_param))
+        ()
     in
     let last = if newest then None else Some history in
     { channel = External (Eliom_comet_base.Stateless_channel
-                            (service,
+                            (Eliom_comet_base.Comet_service service,
                              Stateless.chan_id_of_string name,
                              Eliom_comet_base.Last_kind last));
       channel_mark = channel_mark () }

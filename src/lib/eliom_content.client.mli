@@ -871,8 +871,7 @@ val force_link : unit
 (**/**)
 val set_client_fun :
   ?app:string ->
-  service:('a, 'b, 'meth, 'att, 'c, 'd, 'e, 'f, 'g, 'return)
-      Eliom_service.service ->
+  service:('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.service ->
   ('a -> 'b -> unit Lwt.t) ->
   unit
 

@@ -62,9 +62,8 @@ val make_string_uri :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, unit, [<get_service_kind], _, _,
-           [< suff ], 'gn, unit,
-           [< registrable ], 'return) service ->
+  service:('get, unit, Eliom_service.get, _, _, _, _,
+           _, 'gn, unit, 'return) service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -83,15 +82,16 @@ val make_uri_components :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, unit, [< get_service_kind], _, _,
-           [< suff ], 'gn, unit,
-           [< registrable ], 'return) service ->
+  service:
+    ('get, unit, Eliom_service.get, _, _, _, _, _, _, unit, _)
+      service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:nl_params_set ->
-  'get -> string * (string * Eliommod_parameters.param) list * string option
+  'get ->
+  string * (string * Eliommod_parameters.param) list * string option
 
 
 (** Same a {!make_uri_components}, but also returns a table of post
@@ -100,9 +100,8 @@ val make_post_uri_components :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, 'post, [< post_service_kind], _, _,
-           [< suff ], 'gn, 'pn,
-           [< registrable ], 'return) service ->
+  service:
+    ('get, 'post, Eliom_service.post, _, _, _, _, _, _, _, _) service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -145,10 +144,7 @@ val make_string_uri_ :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('a, 'b, _, _, _,
-           [< Eliom_service.suff ], 'c, 'd,
-           [< Eliom_service.registrable ], 'e)
-    Eliom_service.service ->
+  service:('a, _, _, _, _, _, _, _, _, _, _) Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -159,9 +155,7 @@ val make_post_uri_components__ :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('a, 'b, _, _, _,
-           [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h)
-    Eliom_service.service ->
+  service:('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -178,9 +172,7 @@ val make_uri_components_ :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('a, 'b, _, _, _,
-           [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h)
-    service ->
+  service:('a, 'b, _, _, _, _, _, 'e, 'f, 'g, 'h) service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -192,9 +184,8 @@ val make_post_uri_components_ :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('a, 'b, _, _, _,
-           [< `WithSuffix | `WithoutSuffix ], 'g, 'h, 'i, 'j)
-    service ->
+  service:
+    ('a, 'b, _, _, _, _, _, 'g, 'h, 'i, 'j) service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -220,5 +211,5 @@ val make_proto_prefix :
 
 val make_cookies_info :
   bool option *
-  ('a, 'b, _, [< attached], _, [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h) Eliom_service.service ->
+  (_, _, _, _, _, _, _, _, _, _, _) Eliom_service.service ->
   (bool * Url.path) option

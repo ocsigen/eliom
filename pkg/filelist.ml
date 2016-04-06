@@ -9,7 +9,9 @@ let server = {
     "eliom_content_sigs";
     "eliom_form_sigs";
     "eliom_parameter_sigs";
+    "eliom_reg_sigs";
     "eliom_shared_sigs";
+    "eliom_service_sigs";
   ];
   interface = [
     "eliom_bus";
@@ -32,6 +34,7 @@ let server = {
     "eliom_registration";
     "eliom_request_info";
     "eliom_service";
+    "eliom_service_types";
     "eliom_state";
     "eliom_tools";
     "eliom_types";
@@ -76,6 +79,7 @@ let client = {
     "eliom_content_sigs";
     "eliom_form_sigs";
     "eliom_parameter_sigs";
+    "eliom_service_sigs";
     "eliom_shared_sigs";
   ];
   interface = [
@@ -95,6 +99,7 @@ let client = {
     "eliom_cscache";
     "eliom_registration";
     "eliom_service";
+    "eliom_service_types";
     "eliom_tools";
     "eliom_types";
     "eliom_unwrap";

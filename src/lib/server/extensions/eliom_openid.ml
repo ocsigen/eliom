@@ -497,7 +497,12 @@ module type HiddenServiceInfo = sig
 end
 
 module Make (S : HiddenServiceInfo) = struct
-  let return_service = Eliom_service.Unsafe.service ~path:S.path ~get_params:any ()
+  let return_service =
+    Eliom_service.service
+      ~rt:Eliom_service.Unsafe
+      ~path:S.path
+      ~meth:(Eliom_service.Get any)
+      ()
 
   let () = Eliom_registration.Any.register ~service:return_service S.f
 

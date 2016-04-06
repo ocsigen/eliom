@@ -59,15 +59,17 @@ let result_of_content feed headers =
      ())
 
 module Reg_base = struct
-   type page = Atom_feed.feed
-   type options = unit
-   type return = Eliom_registration.http_service
-   type result = Eliom_registration.browser_content Eliom_registration.kind
-   let result_of_http_result = Eliom_registration.cast_http_result
-   let send_appl_content = Eliom_service.XNever
-   let pre_service ?options () = Lwt.return ()
-   let send ?options ?charset ?code ?content_type ?headers
-     feed = Lwt.return (result_of_content feed headers )
+  type page = Atom_feed.feed
+  type options = unit
+  type return = Eliom_registration.http_service
+  type result = Eliom_registration.browser_content Eliom_registration.kind
+  type maybe_ext = Eliom_service.ext
+  let rt = Eliom_service.Http
+  let result_of_http_result = Eliom_registration.cast_http_result
+  let send_appl_content = Eliom_service.XNever
+  let pre_service ?options () = Lwt.return ()
+  let send ?options ?charset ?code ?content_type ?headers
+      feed = Lwt.return (result_of_content feed headers )
 end
 
 module Reg =  Eliom_mkreg.MakeRegister(Reg_base)
@@ -125,7 +127,13 @@ let notify_feed_updates address hubs s =
    nfu_s hubs address; ()
 
 let register_feed ~path ~hubs address f =
-   let s = Eliom_service.Http.service ~path ~get_params:Eliom_parameter.unit () in
+  let s =
+    Eliom_service.service
+      ~rt:Eliom_service.Http
+      ~path
+      ~meth:(Eliom_service.Get Eliom_parameter.unit)
+      ()
+  in
    Reg.register ~service:s
      (fun () () -> f () >>= fun feed -> Lwt.return
        (Atom_feed.insert_hub_links hubs feed));
