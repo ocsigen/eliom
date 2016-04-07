@@ -929,7 +929,6 @@ let load_data_script page =
   if !Eliom_config.debug_timings
   then Firebug.console##time(Js.string "load_data_script");
   ignore (Js.Unsafe.eval_string (Js.to_string script));
-  Eliom_request_info.reset_request_data ();
   Eliom_process.reset_request_template ();
   Eliom_process.reset_request_cookies ();
   if !Eliom_config.debug_timings

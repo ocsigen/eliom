@@ -212,25 +212,8 @@ let default_request_data =
 
   }
 
-let get_request_data, set_request_data, reset_request_data =
-  let eliom_data = ref None in
-  let get () =
-    match !eliom_data with
-      | Some data -> data
-      | None ->
-        let eliom_request_data = Js.Unsafe.get Js.Unsafe.global (Js.string "__eliom_request_data") in
-        Js.Optdef.case (Js.def eliom_request_data)
-          (fun () -> eliom_data := Some default_request_data;
-            default_request_data)
-          (fun var ->
-             let data = Eliom_unwrap.unwrap_js var in
-            eliom_data := Some data;
-            data)
-  in
-  let reset () =
-    eliom_data := None
-  in
-  let set (v : Eliom_common.eliom_js_page_data) =
-    eliom_data := Some v
-  in
-  get, set, reset
+let get_request_data () =
+  let eliom_request_data = Js.Unsafe.global##___eliom_request_data_ in
+  Js.Optdef.case eliom_request_data
+    (fun () -> default_request_data)
+    (fun var -> Eliom_unwrap.unwrap_js var)
