@@ -113,6 +113,19 @@ let _ =
   end
 
 
+let onunload_fun _ =
+  update_state ();
+  (* running remaining callbacks, if onbeforeunload left some *)
+  let _ = run_onunload ~final:true () in
+  Js._true
+
+and onbeforeunload_fun e =
+  match run_onunload ~final:false () with
+  | None ->
+    update_state (); None
+  | r ->
+    r
+
 (* Function called (in Eliom_client_main), once when starting the app.
    Either when sent by a server or initiated on client side. *)
 let init () =
@@ -134,8 +147,14 @@ let init () =
     (Some (Eliom_process.get_info ()).cpi_hostname)
     (Eliom_request_info.get_request_cookies ());
 
+  let onload_handler = ref None in
+
   let onload ev =
     Lwt_log.ign_debug ~section "onload (client main)";
+    begin match !onload_handler with
+      Some h -> Dom.removeEventListener h; onload_handler := None
+    | None   -> ()
+    end;
     set_initial_load ();
     Lwt.async
       (fun () ->
@@ -177,30 +196,16 @@ let init () =
 
   Lwt_log.ign_debug ~section "Set load/onload events";
 
-  let onunload _ =
-    update_state ();
-    (* running remaining callbacks, if onbeforeunload left some *)
-    let _ = run_onunload ~final:true () in
-    Js._true
-
-  and onbeforeunload e =
-    match run_onunload ~final:false () with
-    | None ->
-      update_state (); None
-    | r ->
-      r
-  in
-
-  ignore
-    (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
-       (Dom.handler onload) Js._true);
+  onload_handler :=
+    Some (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
+            (Dom.handler onload) Js._true);
 
   add_string_event_listener Dom_html.window "beforeunload"
-    onbeforeunload false;
+    onbeforeunload_fun false;
 
   ignore
     (Dom.addEventListener Dom_html.window (Dom.Event.make "unload")
-       (Dom_html.handler onunload) Js._false)
+       (Dom_html.handler onunload_fun) Js._false)
 
 
 (* == Low-level: call service. *)
