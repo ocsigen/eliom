@@ -397,9 +397,10 @@ let change_url_string uri =
     update_state();
     let state_id = next_state_id () in
     reload_functions :=
-      List.filter (fun (id, _) -> id <= !current_state_id) !reload_functions;
+      List.filter (fun (id, _) -> id <= snd !current_state_id)
+        !reload_functions;
     begin match !reload_function with
-      Some f -> reload_functions := (state_id, f) :: !reload_functions
+      Some f -> reload_functions := (snd state_id, f) :: !reload_functions
     | None   -> ()
     end;
     current_state_id := state_id;
@@ -821,7 +822,9 @@ let () =
             then begin
               current_uri := uri;
               try
-                List.assq state_id !reload_functions () ()
+                List.assq (snd state_id) !reload_functions () () >>
+                (scroll_to_fragment ~offset:state.position fragment;
+                 Lwt.return ())
               with Not_found ->
               match tmpl with
               | Some t
@@ -864,7 +867,7 @@ let () =
       Dom_html.handler (fun event ->
         let full_uri = Js.to_string Dom_html.window##location##href in
         Eliommod_dom.touch_base ();
-        Js.Opt.case ((Js.Unsafe.coerce event)##state : int Js.opt)
+        Js.Opt.case ((Js.Unsafe.coerce event)##state : (int * int) Js.opt)
           (fun () -> () (* Ignore dummy popstate event fired by chromium. *))
           (goto_uri full_uri);
         Js._false)

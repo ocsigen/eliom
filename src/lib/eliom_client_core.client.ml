@@ -645,12 +645,13 @@ let random_int =
         0
   else
      fun () -> truncate (4294967296. *. Js.math##random())
-let next_state_id = let last = ref 0 in fun () -> incr last; !last
+let session_id = random_int ()
+let next_state_id =
+  let last = ref 0 in fun () -> incr last; (session_id, !last)
 let current_state_id = ref (next_state_id ())
 
-let state_key =
-  let base = Printf.sprintf "state_history_%x_" (random_int ()) in
-  fun i -> Js.string (base ^ string_of_int i)
+let state_key (session_id, i) =
+  Js.string (Printf.sprintf "state_history_%x_%x" session_id i)
 
 let get_state i : state =
   Js.Opt.case
@@ -661,7 +662,7 @@ let get_state i : state =
              everywhere the history API exists. *)
           Lwt_log.raise_error_f ~section "sessionStorage not available")
        (fun s -> s##getItem(state_key i)))
-    (fun () -> Lwt_log.raise_error_f ~section "State id not found %d in sessionStorage" i)
+    (fun () -> Lwt_log.raise_error_f ~section "State id not found %x/%x in sessionStorage" (fst i) (snd i))
     (fun s -> Json.unsafe_input s)
 let set_state i (v:state) =
   Js.Optdef.case ( Dom_html.window##sessionStorage )
