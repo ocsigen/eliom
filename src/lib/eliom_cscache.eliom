@@ -29,8 +29,7 @@ let create () =
 
 {shared{
   let do_cache_raw cache id data =
-    Hashtbl.remove ((Eliom_shared.Value.local cache) ()) id;
-    Hashtbl.add ((Eliom_shared.Value.local cache) ()) id data
+    Hashtbl.replace ((Eliom_shared.Value.local cache) ()) id data
 
   let do_cache cache id data = do_cache_raw cache id (Lwt.return data)
 }}
