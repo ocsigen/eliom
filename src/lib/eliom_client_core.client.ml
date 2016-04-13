@@ -316,19 +316,18 @@ let (register_process_node, find_process_node) =
   let find id =
     Lwt_log.ign_debug_f ~section "Find process node %a"
       (fun () -> Js.to_string) id;
-    Js.Optdef.bind
-      (Jstable.find process_nodes id)
-      (fun node ->
-         if Js.to_bytestring (node##nodeName##toLowerCase()) == "script"
-         then
-           (* We don't wan't to reexecute global script. *)
-           Js.def (Dom_html.document##createTextNode (Js.string "")
-                   :> Dom.node Js.t)
-         else Js.def node)
+    Jstable.find process_nodes id
   in
   let register id node =
     Lwt_log.ign_debug_f ~section "Register process node %a"
       (fun () -> Js.to_string) id;
+    let node =
+      if node##nodeName##toLowerCase() == Js.string "script" then
+        (* We don't wan't to reexecute global scripts. *)
+        (Dom_html.document##createTextNode (Js.string "") :> Dom.node Js.t)
+      else
+        node
+    in
     Jstable.add process_nodes id node in
   (register, find)
 
