@@ -164,53 +164,6 @@ module type S = sig
      [ `WithoutSuffix ],
      [ `One of coordinates ] param_name) params_type
 
-  (** [coordinates s] means that the service takes as parameters the
-      coordinates of a point in an [<input type="image" ...>] (plus
-      the associated string value). *)
-  val string_coordinates :
-    string ->
-    (string * coordinates,
-     [ `WithoutSuffix ],
-     [ `One of (string * coordinates) ] param_name) params_type
-
-  (** Same as [string_coordinates] but for an integer value *)
-  val int_coordinates :
-    string ->
-    (int * coordinates,
-     [`WithoutSuffix],
-     [ `One of (int * coordinates) ] param_name) params_type
-
-  (** Same as [string_coordinates] but for a 32-bit integer value *)
-  val int32_coordinates :
-    string ->
-    (int32 * coordinates,
-     [`WithoutSuffix],
-     [ `One of (int32 * coordinates) ] param_name) params_type
-
-  (** Same as [string_coordinates] but for a 64-bit integer value *)
-  val int64_coordinates :
-    string ->
-    (int64 * coordinates,
-     [`WithoutSuffix],
-     [ `One of (int64 * coordinates) ] param_name) params_type
-
-  (** Same as [string_coordinates] but for a float value *)
-  val float_coordinates :
-    string ->
-    (float * coordinates,
-     [`WithoutSuffix],
-     [ `One of (float * coordinates) ] param_name) params_type
-
-  (** Same as [string_coordinates] but for a value of your own
-      type. See {!user_type} for a description of the [of_string] and
-      [to_string] parameters. *)
-  val user_type_coordinates :
-    of_string:(string -> 'a) ->
-    to_string:('a -> string) -> string ->
-    ('a * coordinates,
-     [`WithoutSuffix],
-     [ `One of ('a * coordinates) ] param_name) params_type
-
   (** {2 Composing types of pages parameters} *)
 
   (** The combinator [p1 ** p2] allows one to define a service that

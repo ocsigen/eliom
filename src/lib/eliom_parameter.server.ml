@@ -161,13 +161,6 @@ let reconstruct_params_
          | r, l ->
            let rr, ll = parse_suffix (TAtom ("",TInt)) l in
            {abscissa = r; ordinate=rr}, ll)
-      | TCoordv (_, t), l ->
-          let a, l = parse_suffix t l in
-          (match parse_suffix (TAtom ("",TInt)) l with
-           | _, [] -> raise Eliom_common.Eliom_Wrong_parameter
-           | r, l ->
-             let rr, ll = parse_suffix (TAtom ("",TInt)) l in
-             (a, {abscissa = r; ordinate=rr}), ll)
       | TNLParams _, _ ->
           failwith "It is not possible to have non localized parameters in suffix"
       | TJson (_, Some typ), v::l -> Deriving_Json.from_string typ v, l
@@ -311,8 +304,6 @@ let reconstruct_params_
                 ignore (int_of_string v);
                 Errors_ (errs, l, f)
               with e -> Errors_ (((pref^name^suff^".y"), v, e)::errs, l, f)))
-        | TCoordv (name, t) ->
-            aux (TProd (t, TCoord name)) params files pref suff
         | TUserType (name, ofto) ->
           let v,l = (List.assoc_remove (pref^name^suff) params) in
           (try Res_ (ofto.of_string v,l,files)
