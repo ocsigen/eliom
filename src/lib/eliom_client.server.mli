@@ -17,7 +17,7 @@ val is_client_app : unit -> bool
     function ['a -> 'b Lwt.t] and provides a given function on the client side.
     See also {% <<a_api subproject="client" text="the concrete client side representation"|
               type Eliom_client.server_function>> %}. *)
-type ('a, +'b) server_function
+type ('a, 'b) server_function
 
 (** [server_function argument_type f] creates a value of type {%
     <<a_api | type Eliom_client.server_function>> %}. This allows

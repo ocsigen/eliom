@@ -128,7 +128,7 @@ type ('get,'post,+'meth,+'attached,+'kind,+'tipo,'gn,'pn,+'reg,+'ret) service
 
 type http_service = [ `Http ]
 type appl_service = [ `Appl ]
-type +'a ocaml_service
+type 'a ocaml_service
 
 (** The type [non_ocaml_service] is used as phantom type parameters for
     the {!Eliom_registration.kind}. It used to type functions that operates
