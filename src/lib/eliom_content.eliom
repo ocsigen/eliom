@@ -102,4 +102,6 @@ let wrap_client_fun f get_params post_params =
   lwt content = f get_params post_params in
   let content = Html5.To_dom.of_element content in
   Eliom_client.set_content_local content
+
+let set_form_error_handler = Eliom_form.set_error_handler
  }}

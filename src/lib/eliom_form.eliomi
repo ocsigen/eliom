@@ -18,6 +18,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 *)
 
+{client{
+val set_error_handler : (unit -> unit Lwt.t) -> unit
+}}
+
 {shared{
 
 module type Html5 = sig

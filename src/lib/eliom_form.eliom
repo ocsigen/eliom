@@ -20,14 +20,16 @@
 
 {client{
 
-   let read_params form y =
-     let f y field =
-       let v = (Js.Unsafe.get form (Js.string field))##value in
-       let v = Js.to_string v in
-       Some (Eliom_parameter_base.atom_of_string y v)
-     in
-     let f = { Eliom_parameter_base.boxed_atom_fun = f } in
-     Eliom_parameter_base.read_params ~f y
+let read_params form y =
+  Eliom_parameter.reconstruct_params
+    (Form.form_elements form)
+    y
+
+let error_handler =
+  ref @@ fun _ ->
+  Lwt.fail_with "Cannot parse params for client-side service"
+
+let set_error_handler f = error_handler := f
 
 }}
 
@@ -250,10 +252,8 @@ module Make (Html5 : Html5) = struct
 
   let submit_get_form_client ~service elt = {unit{
     let service = %service in
-    (* FIXME *)
-    let y = Obj.magic (Eliom_service.get_get_params_type_ service)
+    let y = Eliom_service.get_get_params_type_ service
     and elt = Eliom_client_core.rebuild_node' `HTML5 %(Html5.to_elt elt) in
-    (* FIXME *)
     let elt = Js.Unsafe.coerce elt in
     Lwt_js_events.async @@ fun () ->
     Lwt_js_events.submits elt @@ fun ev _ ->
@@ -264,17 +264,15 @@ module Make (Html5 : Html5) = struct
          Dom.preventDefault ev;
          f v ()
        | None ->
-         Lwt.return ())
+         !error_handler ())
     | None ->
       Lwt.return ()
   }}
 
   let submit_post_form_client ~service ~get_params elt = {unit{
     let service = %service in
-    (* FIXME *)
-    let y  = Obj.magic (Eliom_service.get_post_params_type_ service)
+    let y  = Eliom_service.get_post_params_type_ service
     and elt = Eliom_client_core.rebuild_node' `HTML5 %(Html5.to_elt elt) in
-    (* FIXME *)
     let elt = Js.Unsafe.coerce elt in
     Lwt_js_events.async @@ fun () ->
     Lwt_js_events.submits elt @@ fun ev _ ->
@@ -285,7 +283,7 @@ module Make (Html5 : Html5) = struct
          Dom.preventDefault ev;
          f %get_params v
        | None ->
-         Lwt.return ())
+         !error_handler ())
     | None ->
       Lwt.return ()
   }}

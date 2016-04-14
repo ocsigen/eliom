@@ -879,3 +879,8 @@ val set_client_fun :
 val wrap_client_fun :
   ('g -> 'p -> Html5_types.html Html5.elt Lwt.t)
   -> ('g -> 'p -> unit Lwt.t)
+
+(** With [set_form_error_handler f], [f] becomes the action to be
+    called when we are unable to call a client-side service due to
+    invalid form data. *)
+val set_form_error_handler : (unit -> unit Lwt.t) -> unit
