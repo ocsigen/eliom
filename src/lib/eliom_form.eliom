@@ -76,6 +76,7 @@ module Make_links (Html5 : Html5) = struct
       ?xhr
       content getparams =
     let a =
+      let a = (a :> Html5_types.a_attrib attrib list) in
       let href =
         Html5.uri_of_fun @@ fun () ->
         Eliom_uri.make_string_uri
@@ -111,14 +112,16 @@ module Make_links (Html5 : Html5) = struct
     Html5.a ~a content
 
   let css_link ?(a = []) ~uri () =
-    let a = Html5.a_mime_type "text/css" :: a in
+    let a =
+      Html5.a_mime_type "text/css" ::
+      (a :> Html5_types.link_attrib attrib list) in
     Html5.link ~href:uri ~rel:[`Stylesheet] ~a ()
 
   let js_script ?(a = []) ~uri () =
     let a =
       Html5.a_mime_type "text/javascript" ::
       Html5.a_src uri ::
-      a
+      (a :> Html5_types.script_attrib attrib list)
     in
     Html5.script ~a (Html5.pcdata "")
 
@@ -175,6 +178,7 @@ module Make (Html5 : Html5) = struct
     Html5.fieldset ~a:[a_style "display: none;"] fields :: content
 
   let make_input ?(a = []) ?(checked = false) ~typ ?name ?src ?value () =
+    let a = (a :> Html5_types.input_attrib attrib list) in
     let a = match value with
       | None -> a
       | Some value -> a_value value :: a
@@ -192,6 +196,7 @@ module Make (Html5 : Html5) = struct
     input ~a ()
 
   let make_button ?(a = []) ~button_type ?name ?value c =
+    let a = (a :> Html5_types.button_attrib attrib list) in
     let a = match value with
       | None -> a
       | Some value -> a_text_value value :: a
@@ -203,7 +208,7 @@ module Make (Html5 : Html5) = struct
     button ~a:(a_button_type button_type :: a) c
 
   let make_textarea ?(a = []) ~name ?(value = "") () =
-    let a = a_name name :: a in
+    let a = a_name name :: (a :> Html5_types.textarea_attrib attrib list) in
     textarea ~a (pcdata value)
 
   let make_select ?(a = []) ~multiple ~name elt elts =
@@ -273,7 +278,8 @@ module Make (Html5 : Html5) = struct
         and typ = `Hidden in
         make_input ~typ ~name ~value ()
       in
-      cons_hidden_fieldset (List.map f hiddenparams) inside
+      cons_hidden_fieldset (List.map f hiddenparams)
+        (inside :> Html5_types.form_content elt list)
     and a =
       let a' = [a_method `Get; a_action uri] in
       match a with Some a -> a' @ a | _ -> a'
@@ -319,7 +325,8 @@ module Make (Html5 : Html5) = struct
         let value = Eliommod_parameters.to_string value in
         make_input ~typ:`Hidden ~name ~value ()
       in
-      cons_hidden_fieldset (List.map f hiddenparams) inside
+      cons_hidden_fieldset (List.map f hiddenparams)
+        (inside :> Html5_types.form_content elt list)
     and action =
       Html5.uri_of_fun @@ fun () ->
       let (uri, g, r, _) = Eliom_lazy.force components in
@@ -380,7 +387,7 @@ module Make (Html5 : Html5) = struct
       let required = Html5.a_required `Required in
       match a with
       | None -> [required]
-      | Some a -> required :: a
+      | Some a -> required :: (a :> Html5_types.input_attrib attrib list)
     in
     make_input
       ~a ?checked ~typ:`Radio
@@ -414,6 +421,7 @@ module Make (Html5 : Html5) = struct
   let gen_select ?a ?(multiple=false) ?required ~name
       (fl : 'a select_opt) (ol : 'a select_opt list) string_of =
 
+    let a = (a :> Html5_types.select_attrib attrib list option) in
     let a = match required with
       | None -> a
       | Some _ ->
@@ -543,6 +551,7 @@ module Make (Html5 : Html5) = struct
       ?port ?fragment ?keep_nl_params ?nl_params ?xhr
       contents =
     let a =
+      let a = (a :> Html5_types.form_attrib attrib list) in
       if get_xhr xhr then
         let info = make_info ~https `Form_get service in
         a_onsubmit_service info :: a
@@ -560,6 +569,7 @@ module Make (Html5 : Html5) = struct
       ?port ?fragment ?keep_nl_params ?nl_params ?xhr
       contents =
     let a =
+      let a = (a :> Html5_types.form_attrib attrib list) in
       if get_xhr xhr then
         let info = make_info ~https `Form_get service in
         a_onsubmit_service info :: a
@@ -578,6 +588,7 @@ module Make (Html5 : Html5) = struct
       ?xhr
       contents getparams =
     let a =
+      let a = (a :> Html5_types.form_attrib attrib list) in
       if get_xhr xhr then
         let info = make_info ~https `Form_post service in
         a_onsubmit_service info :: a
@@ -596,6 +607,7 @@ module Make (Html5 : Html5) = struct
       ?xhr
       contents getparams =
     let a =
+      let a = (a :> Html5_types.form_attrib attrib list) in
       if get_xhr xhr then
         let info = make_info ~https `Form_post service in
         a_onsubmit_service info :: a

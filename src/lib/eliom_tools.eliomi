@@ -102,7 +102,7 @@ module type HTML5_TOOLS = sig
     (([< get_service_kind ] as 'a,
       [< registrable ] as 'b,
       [< Eliom_registration.non_ocaml_service ] as 'c) one_page *
-        Html5_types.flow5_without_interactive Html5.elt list)
+      [< Html5_types.flow5_without_interactive] Html5.elt list)
       list ->
     ?service:('a, 'b, 'c) one_page ->
     unit ->
@@ -130,7 +130,7 @@ module type HTML5_TOOLS = sig
     ?whole_tree:bool ->
     ([< Eliom_service.get_service_kind ] as 'a,
      [< Eliom_service.registrable ] as 'b,
-     Html5_types.a_content Html5.elt list)
+     [< Html5_types.a_content ] Html5.elt list)
       hierarchical_site ->
     ?service:('a, 'b, 'c) one_page ->
     unit ->
@@ -156,7 +156,7 @@ module type HTML5_TOOLS = sig
     ?id:string ->
     ([< Eliom_service.get_service_kind ] as 'a,
      [< Eliom_service.registrable ] as 'b,
-     Html5_types.a_content Html5.elt list)
+     [< Html5_types.a_content] Html5.elt list)
       hierarchical_site ->
     ?service:('a, 'b, [< Eliom_registration.non_ocaml_service]) one_page ->
     unit ->
@@ -172,7 +172,7 @@ module type HTML5_TOOLS = sig
   val structure_links :
     ([< Eliom_service.get_service_kind ] as 'a,
      [< Eliom_service.registrable ] as 'b,
-     Html5_types.a_content Html5.elt list)
+     [< Html5_types.a_content] Html5.elt list)
     hierarchical_site ->
     ?service:('a, 'b, [< Eliom_registration.non_ocaml_service ]) one_page ->
     unit ->
@@ -184,18 +184,18 @@ module type HTML5_TOOLS = sig
     title:string ->
     ?css:string list list ->
     ?js:string list list ->
-    ?other:Html5_types.head_content_fun Html5.elt list ->
+    ?other:[< Html5_types.head_content_fun] Html5.elt list ->
     unit ->
-    Html5_types.head Html5.elt
+    [`Head] Html5.elt
 
   val html :
     title:string ->
-    ?a:Html5_types.html_attrib Html5.attrib list ->
+    ?a:[< Html5_types.html_attrib] Html5.attrib list ->
     ?css:string list list ->
     ?js:string list list ->
-    ?other_head:Html5_types.head_content_fun Html5.elt list ->
-    Html5_types.body Html5.elt ->
-    Html5_types.html Html5.elt
+    ?other_head:[< Html5_types.head_content_fun] Html5.elt list ->
+    [`Body] Html5.elt ->
+    [`Html] Html5.elt
 
 end
 

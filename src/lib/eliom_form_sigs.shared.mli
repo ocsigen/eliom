@@ -136,7 +136,7 @@ module type LINKS = sig
       The optional parameter [~a] allows one to add extra HTML
       attributes to the generated node.  *)
   val css_link :
-    ?a:Html5_types.link_attrib attrib list ->
+    ?a:[< Html5_types.link_attrib] attrib list ->
     uri:uri -> unit -> [> Html5_types.link] elt
 
   (** The function [js_script ~uri ()] creates a [<script>] node that
@@ -151,7 +151,7 @@ module type LINKS = sig
       The optional parameter [~a] allows one to add extra HTML
       attributes to the generated node.  *)
   val js_script :
-    ?a:Html5_types.script_attrib attrib list -> uri:uri -> unit ->
+    ?a:[< Html5_types.script_attrib] attrib list -> uri:uri -> unit ->
     [> Html5_types.script] elt
 
   (** The function [a service a_content get_params] creates a [<a>]
@@ -186,7 +186,7 @@ module type LINKS = sig
     ?absolute:bool ->
     ?absolute_path:bool ->
     ?https:bool ->
-    ?a:Html5_types.a_attrib attrib list ->
+    ?a:[< Html5_types.a_attrib] attrib list ->
     service:('get, unit, [< Eliom_service.get_service_kind ], _, _,
              [< Eliom_service.suff ], 'd, unit,
              [< Eliom_service.registrable ],
@@ -279,7 +279,7 @@ module type S = sig
     ?absolute:bool ->
     ?absolute_path:bool ->
     ?https:bool ->
-    ?a:Html5_types.form_attrib attrib list ->
+    ?a:[< Html5_types.form_attrib] attrib list ->
     service:('get, unit, [< get_service_kind ], _, _,
              [<suff ], 'gn, 'pn,
              [< registrable ], [< non_ocaml_service]) service ->
@@ -289,7 +289,7 @@ module type S = sig
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     ?nl_params: Eliom_parameter.nl_params_set ->
     ?xhr:bool ->
-    ('gn -> Html5_types.form_content elt list) ->
+    ('gn -> [< Html5_types.form_content] elt list) ->
     [> Html5_types.form ] elt
 
   (** Same as {!get_form} but taking a cooperative function for
@@ -298,7 +298,7 @@ module type S = sig
     ?absolute:bool ->
     ?absolute_path:bool ->
     ?https:bool ->
-    ?a:Html5_types.form_attrib attrib list ->
+    ?a:[< Html5_types.form_attrib] attrib list ->
     service:('get, unit, [< get_service_kind ], _, _,
              [<suff ], 'gn, 'pn,
              [< registrable ], [< non_ocaml_service]) service ->
@@ -308,7 +308,7 @@ module type S = sig
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     ?nl_params: Eliom_parameter.nl_params_set ->
     ?xhr:bool ->
-    ('gn -> Html5_types.form_content elt list Lwt.t) ->
+    ('gn -> [< Html5_types.form_content] elt list Lwt.t) ->
     [> Html5_types.form ] elt Lwt.t
 
   (** The function [post_form service formgen get_params] creates a
@@ -329,7 +329,7 @@ module type S = sig
     ?absolute:bool ->
     ?absolute_path:bool ->
     ?https:bool ->
-    ?a:Html5_types.form_attrib attrib list ->
+    ?a:[< Html5_types.form_attrib] attrib list ->
     service:('get, 'post, [< post_service_kind ], _, _,
              [< suff ], 'gn, 'pn,
              [< registrable ], [< non_ocaml_service]) service ->
@@ -340,7 +340,7 @@ module type S = sig
     ?keep_get_na_params:bool ->
     ?nl_params: Eliom_parameter.nl_params_set ->
     ?xhr:bool ->
-    ('pn -> Html5_types.form_content elt list) ->
+    ('pn -> [< Html5_types.form_content] elt list) ->
     'get ->
     [> Html5_types.form ] elt
 
@@ -350,7 +350,7 @@ module type S = sig
     ?absolute:bool ->
     ?absolute_path:bool ->
     ?https:bool ->
-    ?a:Html5_types.form_attrib attrib list ->
+    ?a:[< Html5_types.form_attrib] attrib list ->
     service:('get, 'post, [< post_service_kind ], _, _,
              [< suff ], 'gn, 'pn,
              [< registrable ], [< non_ocaml_service]) service ->
@@ -361,13 +361,13 @@ module type S = sig
     ?keep_get_na_params:bool ->
     ?nl_params: Eliom_parameter.nl_params_set ->
     ?xhr:bool ->
-    ('pn -> Html5_types.form_content elt list Lwt.t) ->
+    ('pn -> [< Html5_types.form_content] elt list Lwt.t) ->
     'get ->
     [> Html5_types.form ] elt Lwt.t
 
   (** Creates an [<input>] tag. *)
   val input :
-    ?a:Html5_types.input_attrib attrib list ->
+    ?a:[< Html5_types.input_attrib] attrib list ->
     input_type:[< Html5_types.input_type] ->
     ?name:[< 'a setoneradio] param_name ->
     ?value:'a ->
@@ -376,7 +376,7 @@ module type S = sig
 
   (** Creates an [<input>] tag for sending a file *)
   val file_input :
-    ?a:Html5_types.input_attrib attrib list ->
+    ?a:[< Html5_types.input_attrib] attrib list ->
     name:[< file_info setoneradio ] param_name ->
     unit ->
     [> Html5_types.input] elt
@@ -384,7 +384,7 @@ module type S = sig
   (** Creates an [<input type="image" name="...">] tag. The server
       receives the coordinates that the user clicked on. *)
   val image_input :
-    ?a:Html5_types.input_attrib attrib list ->
+    ?a:[< Html5_types.input_attrib] attrib list ->
     name:[< coordinates oneradio ] param_name ->
     ?src:uri ->
     unit ->
@@ -394,7 +394,7 @@ module type S = sig
       checkboxes with the same name (and different values). The
       service must declare a parameter of type [set]. *)
   val checkbox :
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
+    ?a:[< Html5_types.input_attrib] attrib list -> ?checked:bool ->
     name:[ `Set of 'a ] Eliom_parameter.param_name -> value:'a ->
     'a param ->
     [> Html5_types.input] elt
@@ -402,28 +402,28 @@ module type S = sig
   (** Creates a checkbox [<input>] tag of type bool. Only one checkbox
       with the same [name] is allowed. *)
   val bool_checkbox_one :
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
+    ?a:[< Html5_types.input_attrib] attrib list -> ?checked:bool ->
     name:[ `One of bool ] Eliom_parameter.param_name ->
     unit ->
     [> Html5_types.input] elt
 
   (** Creates a radio [<input>] tag. *)
   val radio :
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
+    ?a:[< Html5_types.input_attrib] attrib list -> ?checked:bool ->
     name:[ `Radio of 'a ] param_name ->
     value:'a ->
     'a param ->
     [> Html5_types.input] elt
 
   val string_radio_required :
-    ?a:Html5_types.input_attrib attrib list -> ?checked:bool ->
+    ?a:[< Html5_types.input_attrib] attrib list -> ?checked:bool ->
     name:[ `One of string ] param_name ->
     value:string -> unit ->
     [> Html5_types.input] elt
 
   (** Creates a [<button>] tag. *)
   val button :
-    ?a:Html5_types.button_attrib attrib list ->
+    ?a:[< Html5_types.button_attrib] attrib list ->
     button_type:[< button_type] ->
     name:[< 'a setone ] param_name ->
     value:'a ->
@@ -433,14 +433,14 @@ module type S = sig
 
   (** Creates a [<button>] tag with no value. No value is sent. *)
   val button_no_value :
-    ?a:Html5_types.button_attrib attrib list ->
+    ?a:[< Html5_types.button_attrib] attrib list ->
     button_type:[< button_type] ->
     Html5_types.button_content elt list ->
     [> Html5_types.button] elt
 
   (** Creates a [<textarea>] tag *)
   val textarea :
-    ?a:Html5_types.textarea_attrib attrib list ->
+    ?a:[< Html5_types.textarea_attrib] attrib list ->
     name:[< string setoneradio ] param_name -> ?value:string ->
     unit -> [> Html5_types.textarea] elt
 
@@ -467,7 +467,7 @@ module type S = sig
 
   (** Creates a [<select>] tag. *)
   val select :
-    ?a:Html5_types.select_attrib attrib list ->
+    ?a:[< Html5_types.select_attrib] attrib list ->
     ?required:Html5_types.pcdata elt ->
     name:[ `One of 'a ] param_name ->
     'a param ->
@@ -477,7 +477,7 @@ module type S = sig
 
   (** Creates a multiple-selection [<select>] tag. *)
   val multiple_select :
-    ?a:Html5_types.select_attrib attrib list ->
+    ?a:[< Html5_types.select_attrib] attrib list ->
     ?required:Html5_types.pcdata elt ->
     name:[ `Set of 'a ] param_name ->
     'a param ->
