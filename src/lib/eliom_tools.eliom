@@ -82,7 +82,7 @@ module type HTML5_TOOLS = sig
     (([< get_service_kind ] as 'a,
       [< registrable ] as 'b,
       [< Eliom_registration.non_ocaml_service ] as 'c) one_page *
-        Html5_types.flow5_without_interactive Html5.elt list)
+      [< Html5_types.flow5_without_interactive] Html5.elt list)
       list ->
     ?service:('a, 'b, 'c) one_page ->
     unit ->
@@ -110,7 +110,7 @@ module type HTML5_TOOLS = sig
     ?whole_tree:bool ->
     ([< Eliom_service.get_service_kind ] as 'a,
      [< Eliom_service.registrable ] as 'b,
-     Html5_types.a_content Html5.elt list)
+     [< Html5_types.a_content ] Html5.elt list)
       hierarchical_site ->
     ?service:('a, 'b, 'c) one_page ->
     unit ->
@@ -136,7 +136,7 @@ module type HTML5_TOOLS = sig
     ?id:string ->
     ([< Eliom_service.get_service_kind ] as 'a,
      [< Eliom_service.registrable ] as 'b,
-     Html5_types.a_content Html5.elt list)
+     [< Html5_types.a_content ] Html5.elt list)
       hierarchical_site ->
     ?service:('a, 'b, [< Eliom_registration.non_ocaml_service]) one_page ->
     unit ->
@@ -152,7 +152,7 @@ module type HTML5_TOOLS = sig
   val structure_links :
     ([< Eliom_service.get_service_kind ] as 'a,
      [< Eliom_service.registrable ] as 'b,
-     Html5_types.a_content Html5.elt list)
+     [< Html5_types.a_content ] Html5.elt list)
     hierarchical_site ->
     ?service:('a, 'b, [< Eliom_registration.non_ocaml_service ]) one_page ->
     unit ->
@@ -164,18 +164,18 @@ module type HTML5_TOOLS = sig
     title:string ->
     ?css:string list list ->
     ?js:string list list ->
-    ?other:Html5_types.head_content_fun Html5.elt list ->
+    ?other:[< Html5_types.head_content_fun ] Html5.elt list ->
     unit ->
-    Html5_types.head Html5.elt
+    [`Head] Html5.elt
 
   val html :
     title:string ->
-    ?a:Html5_types.html_attrib Html5.attrib list ->
+    ?a:[< Html5_types.html_attrib ] Html5.attrib list ->
     ?css:string list list ->
     ?js:string list list ->
-    ?other_head:Html5_types.head_content_fun Html5.elt list ->
-    Html5_types.body Html5.elt ->
-    Html5_types.html Html5.elt
+    ?other_head:[< Html5_types.head_content_fun ] Html5.elt list ->
+    [`Body] Html5.elt ->
+    [`Html] Html5.elt
 end
 }}
 {server{
@@ -219,6 +219,7 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
 
 
   let menu ?(classe=[]) ?id l ?service:current () =
+    let l = (l :> (_ * flow5_without_interactive elt list) list) in
     let rec aux = function
       | [] -> []
       | [(url, text)] ->
@@ -298,8 +299,9 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
       ?service
       () =
 
-    let rec depth_first_fun pages level pos =
+    let rec depth_first_fun pages level pos : [`Ul] elt list =
       let rec one_item first last i s =
+        let s = (s :> flow5_without_interactive elt list * _) in
         let (classe, pos2, deplier) =
           match pos with
             | [] -> ([], [], false)
@@ -335,18 +337,13 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
             li ~a:attclass
               ((a page text ())::
                   if deplier || whole_tree then
-                    (depth_first_fun hsl (level+1) pos2
-                       : [ `Ul ] elt list
-                     :> [< li_content > `Ul ] elt list)
+                    (depth_first_fun hsl (level+1) pos2 :> li_content elt list)
                   else [])
           | (text, Site_tree (Not_clickable, hsl)) ->
-            li ~a:attclass
-              ((text : a_content elt list
-                :> li_content elt list)@
+              li ~a:attclass
+              ((text :> li_content elt list)@
                   if deplier || whole_tree then
-                    (depth_first_fun hsl (level+1) pos2
-                       : [ `Ul ] elt list
-                     :> [< li_content > `Ul ] elt list)
+                    (depth_first_fun hsl (level+1) pos2 :> li_content elt list)
                   else [])
 
       and one_menu first i = function
@@ -373,6 +370,7 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
     let rec breadth_first_fun pages level pos
         : [ `Ul ] elt list =
       let rec one_item first last i s =
+        let s = (s :> flow5_without_interactive elt list * _) in
         let (classe, pos2, deplier) =
           match pos with
             | [] -> ([], [], false)
@@ -484,12 +482,13 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
       js_script ~a:[a_defer `Defer] ~uri () in
     DorF.head
       (title (pcdata ttl))
-      List.(map mk_css_link css @ map mk_js_script js @ other)
+      List.(map mk_css_link css @ map mk_js_script js @
+            (other :> head_content_fun elt list))
 
   let html ~title ?a ?(css=[]) ?(js=[]) ?other_head body =
     let css = List.rev (get_css_files ()) @ css in
     let js = List.rev (get_js_files ()) @ js in
-    DorF.html ?a
+    DorF.html ?a:(a :> html_attrib attrib list option)
       (head ~title ~css ~js ?other:other_head ())
       body
 end
