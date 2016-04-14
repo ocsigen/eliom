@@ -21,7 +21,7 @@
 
 let is_client_app () = false
 
-type ('a, +'b) server_function =
+type ('a, 'b) server_function =
   ('a, 'b) Eliom_client_base.server_function_service * Eliom_wrap.unwrapper
 
 let mk_serv_fun a b : ('a, 'b) server_function = (a, b)
