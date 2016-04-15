@@ -36,7 +36,7 @@ let server_function
        ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
        ?error_handler
        ~meth:
-         (Eliom_service.Post
+         (Eliom_service.Meth.Post
             (Eliom_parameter.unit,
              Eliom_parameter.(ocaml "argument" argument_type)))
        ~id:Eliom_service.Global

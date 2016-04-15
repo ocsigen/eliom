@@ -62,14 +62,14 @@ let fallback_service =
   Eliom_common.lazy_site_value_from_fun @@ fun () ->
   Comet.register_service
     ~id:(Eliom_service.Path comet_path)
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    ~meth:(Eliom_service.Meth.Get Eliom_parameter.unit)
     (fun () () -> Lwt.return state_closed_msg)
 
 let fallback_global_service =
   Eliom_common.lazy_site_value_from_fun @@ fun () ->
   Comet.register_service
     ~id:(Eliom_service.Path comet_global_path)
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    ~meth:(Eliom_service.Meth.Get Eliom_parameter.unit)
     (fun () () ->
        Lwt.return (error_msg "request with no post parameters, or there isn't any registered site comet channel"))
 
@@ -267,7 +267,7 @@ struct
 
     Comet.register_service
       ~meth:
-        (Eliom_service.Post (Eliom_parameter.unit, Ecb.comet_request_param))
+        (Eliom_service.Meth.Post (Eliom_parameter.unit, Ecb.comet_request_param))
       ~id:
         (Eliom_service.Fallback
            (Eliom_common.force_lazy_site_value
@@ -590,7 +590,7 @@ end = struct
                  (*VVV Why is it attached? --Vincent *)
                  ~rt:Eliom_service.Http
                  ~meth:
-                   (Eliom_service.Post
+                   (Eliom_service.Meth.Post
                       (Eliom_parameter.unit,
                        Eliom_comet_base.comet_request_param))
                  ~id:
@@ -820,7 +820,7 @@ end = struct
         ~prefix
         ~path:comet_global_path
         ~meth:
-          (Eliom_service.Post
+          (Eliom_service.Meth.Post
              (Eliom_parameter.unit,
               Eliom_comet_base.comet_request_param))
         ()

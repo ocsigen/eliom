@@ -52,37 +52,61 @@ type ('get, 'tipo, 'gn) params =
   ('get, 'tipo, 'gn) Eliom_parameter.params_type
   constraint 'tipo = [< `WithSuffix | `WithoutSuffix ]
 
-(**
-   - 0-th param : method
-   - params 1-4 : GET and POST param types
-   - param 5    : with/without suffix
-   - param 6    : method for fallback service
-   - param 7    : non-unit only for the Post (g, p) case when g != unit ;
-                  used to force unit GET parameters when needed
-*)
-type (_, _, _, _, _, _, _, _) meth =
+module Meth = struct
 
-  | Get : ('gp, 'tipo, 'gn) params ->
+  (**
+     - 0-th param : method
+     - params 1-4 : GET and POST param types
+     - param 5    : with/without suffix
+     - param 6    : method for fallback service
+     - param 7    : non-unit only for the Post (g, p) case when g != unit ;
+                    used to force unit GET parameters when needed
+  *)
+  type (_, _, _, _, _, _, _, _) t =
 
-    (get, 'gp, 'gn, unit, unit, 'tipo, get, unit) meth
+    | Get : ('gp, 'tipo, 'gn) params ->
 
-  | Post : ('gp, 'tipo, 'gn) params *
-           ('pp, [`WithoutSuffix], 'pn) params ->
+      (get, 'gp, 'gn, unit, unit, 'tipo, get, unit) t
 
-    (post, 'gp, 'gn, 'pp, 'pn, 'tipo, get, 'gp) meth
+    | Post : ('gp, 'tipo, 'gn) params *
+             ('pp, [`WithoutSuffix], 'pn) params ->
 
-  | Put : ('gp, 'tipo, 'gn) params ->
+      (post, 'gp, 'gn, 'pp, 'pn, 'tipo, get, 'gp) t
 
-    (put, 'gp, 'gn, unit, unit, 'tipo, put, unit) meth
+    | Put : ('gp, 'tipo, 'gn) params ->
 
-  | Delete : ('gp, 'tipo, 'gn) params ->
+      (put, 'gp, 'gn, unit, unit, 'tipo, put, unit) t
 
-    (delete, 'gp, 'gn, unit, unit, 'tipo, delete, unit) meth
+    | Delete : ('gp, 'tipo, 'gn) params ->
 
-(** Like [meth] but without the auxilliary parameters; used to query
-    about the service method from outside. *)
-type _ which_meth =
-  | Get'    : get which_meth
-  | Post'   : post which_meth
-  | Put'    : put which_meth
-  | Delete' : delete which_meth
+      (delete, 'gp, 'gn, unit, unit, 'tipo, delete, unit) t
+
+  let params :
+    type meth gp gn pp pn m x .
+    (meth, gp, gn, pp, pn, 'tipo, m, x) t ->
+    (gp, 'tipo, gn) params * (pp, [`WithoutSuffix], pn) params
+    = function
+      | Get gp -> (gp, Eliom_parameter.unit)
+      | Post (gp, pp) -> (gp, pp)
+      | Put gp -> (gp, Eliom_parameter.unit)
+      | Delete gp -> (gp, Eliom_parameter.unit)
+
+  (** Like [Meth.t] but without the auxilliary parameters; used to query
+      about the service method from outside. *)
+  type _ which =
+    | Get'    : get which
+    | Post'   : post which
+    | Put'    : put which
+    | Delete' : delete which
+
+  let which
+    : type meth m gp gn pp pn tipo x .
+      (meth, gp, gn, pp, pn, tipo, m, x) t -> meth which
+    = function
+      | Get _ -> Get'
+      | Post _ -> Post'
+      | Put _ -> Put'
+      | Delete _ -> Delete'
+
+
+end

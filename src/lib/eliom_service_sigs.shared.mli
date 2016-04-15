@@ -112,7 +112,7 @@ module type S = sig
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     ?priority:int ->
     rt:('rt, _) rt ->
-    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, 'gp_) meth ->
+    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, 'gp_) Meth.t ->
     id:('att, 'co, 'mf, 'rt, 'gp_) id ->
     unit ->
     ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'rt) service
@@ -143,7 +143,7 @@ module type S = sig
     path:Eliom_lib.Url.path ->
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     rt:('rt, ext) rt ->
-    meth:('m, 'gp, 'gn, 'pp, 'pn, [ `WithoutSuffix ], 'mf, _) meth ->
+    meth:('m, 'gp, 'gn, 'pp, 'pn, [ `WithoutSuffix ], 'mf, _) Meth.t ->
     unit ->
     ('gp, 'pp, 'm, att, non_co, ext, non_reg,
      [ `WithoutSuffix ], 'gn, 'pn, 'rt) service
@@ -290,7 +290,7 @@ module type S = sig
   (**/**)
 
   val which_meth :
-    (_, _, 'm, _, _, _, _, _, _, _, _) service -> 'm which_meth
+    (_, _, 'm, _, _, _, _, _, _, _, _) service -> 'm Meth.which
 
   val get_info :
     (_, _, _, 'att, _, _, _, _, _, _, _) service ->

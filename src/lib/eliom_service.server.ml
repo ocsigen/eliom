@@ -51,10 +51,10 @@ let xhr_with_cookies s =
 let get_or_post_
     (type m) (s : (_, _, m, _, _, _, _, _, _, _, _) service) =
   match which_meth s with
-  | Get' -> Ocsigen_http_frame.Http_header.GET
-  | Post' -> Ocsigen_http_frame.Http_header.POST
-  | Put' -> Ocsigen_http_frame.Http_header.PUT
-  | Delete' -> Ocsigen_http_frame.Http_header.DELETE
+  | Meth.Get' -> Ocsigen_http_frame.Http_header.GET
+  | Meth.Post' -> Ocsigen_http_frame.Http_header.POST
+  | Meth.Put' -> Ocsigen_http_frame.Http_header.PUT
+  | Meth.Delete' -> Ocsigen_http_frame.Http_header.DELETE
 
 let register_eliom_module name f =
   Ocsigen_loader.set_module_init_function name f

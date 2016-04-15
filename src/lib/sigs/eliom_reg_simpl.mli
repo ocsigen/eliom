@@ -67,7 +67,7 @@ val register_service :
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
-  meth:('m , 'gp , 'gn , 'pp, 'pn, 'tipo, 'mf, 'gp_) meth ->
+  meth:('m , 'gp , 'gn , 'pp, 'pn, 'tipo, 'mf, 'gp_) Meth.t ->
   id:('att, 'co, 'mf, return, 'gp_) id ->
   ?error_handler:((string * exn) list -> page Lwt.t) ->
   ('gp -> 'pp -> page Lwt.t) ->

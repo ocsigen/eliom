@@ -132,7 +132,7 @@ struct
       Eliom_service.service
         ?name
         ~rt:Eliom_service.Http
-        ~meth:(Eliom_service.Post (Eliom_parameter.unit, post_params))
+        ~meth:(Eliom_service.Meth.Post (Eliom_parameter.unit, post_params))
         ~id:Eliom_service.Global
         ()
     in

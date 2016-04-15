@@ -19,6 +19,6 @@
 
 let _ =
   Eliom_registration.Html5.register_service
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    ~meth:(Eliom_service.Meth.Get Eliom_parameter.unit)
     ~id:(Eliom_service.Path [])
     (fun _ _ -> Eliom_monitor.content_html ())

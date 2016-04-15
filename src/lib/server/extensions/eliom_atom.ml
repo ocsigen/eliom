@@ -130,7 +130,7 @@ let register_feed ~path ~hubs address f =
   let s =
     Eliom_service.service
       ~rt:Eliom_service.Http
-      ~meth:(Eliom_service.Get Eliom_parameter.unit)
+      ~meth:(Eliom_service.Meth.Get Eliom_parameter.unit)
       ~id:(Eliom_service.Path path)
       ()
   in
