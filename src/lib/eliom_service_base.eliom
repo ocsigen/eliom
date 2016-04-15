@@ -491,30 +491,15 @@ let external_service
     ~rt
     (type m) (type gp) (type gn) (type pp) (type pn) (type mf)
     (type gp')
-    ~(meth : (m, gp, gn, pp, pn, _, mf, gp') meth)
+    ~(meth : (m, gp, gn, pp, pn, _, mf, gp') Meth.t)
     ()
   : (gp, pp, m, _, _, _, _, _, gn, pn, _) service =
-  match meth with
-  | Get get_params ->
-    external_service_aux
-      ~prefix ~path ?keep_nl_params ~rt
-      ~get_params ~post_params:Eliom_parameter.unit
-      Get'
-  | Post (get_params, post_params) ->
-    external_service_aux
-      ~prefix ~path ?keep_nl_params ~rt
-      ~get_params ~post_params
-      Post'
-  | Put get_params ->
-    external_service_aux
-      ~prefix ~path ?keep_nl_params ~rt
-      ~get_params ~post_params:Eliom_parameter.unit
-      Put'
-  | Delete get_params ->
-    external_service_aux
-      ~prefix ~path ?keep_nl_params ~rt
-      ~get_params ~post_params:Eliom_parameter.unit
-      Delete'
+  let get_params, post_params = Meth.params meth in
+  let meth' = Meth.which meth in
+  external_service_aux
+    ~prefix ~path ?keep_nl_params ~rt
+    ~get_params ~post_params
+    meth'
 
 let untype_service_ s =
   (s
@@ -734,27 +719,12 @@ let plain_service :
     ~rt
     ~meth
     () ->
-    match meth with
-    | Get get_params ->
-      service_aux
-        ?https ~path ?keep_nl_params ?priority ~rt
-        ~get_params ~post_params:Eliom_parameter.unit
-        Get'
-    | Post (get_params, post_params) ->
-      service_aux
-        ?https ~path ?keep_nl_params ?priority ~rt
-        ~get_params ~post_params
-        Post'
-    | Put get_params ->
-      service_aux
-        ?https ~path ?keep_nl_params ?priority ~rt
-        ~get_params ~post_params:Eliom_parameter.unit
-        Put'
-    | Delete get_params ->
-      service_aux
-        ?https ~path ?keep_nl_params ?priority ~rt
-        ~get_params ~post_params:Eliom_parameter.unit
-        Delete'
+    let get_params, post_params = Meth.params meth in
+    let meth' = Meth.which meth in
+    service_aux
+      ?https ~path ?keep_nl_params ?priority ~rt
+      ~get_params ~post_params
+      meth'
 
 let coservice_aux
     ?name
@@ -899,37 +869,18 @@ let coservice'
     ?timeout
     ?(https = false)
     ?(keep_nl_params = `Persistent)
-    ~rt
+    ~rt:_
     (type m)  (type gp)  (type gn)  (type pp) (type pn) (type mf)
     ~(meth : (m, gp, gn, pp, pn, _, mf, unit) Meth.t)
     ()
   : (gp, pp, m, _, _, _, _, _, gn, pn, _) service =
-  ignore rt;
-  match meth with
-  | Get get_params ->
-    coservice'_aux
-      ?name ~csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout
-      ~https ~keep_nl_params
-      ~get_params ~post_params:Eliom_parameter.unit
-      Get'
-  | Post (get_params, post_params) ->
-    coservice'_aux
-      ?name ~csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout
-      ~https ~keep_nl_params
-      ~get_params ~post_params
-      Post'
-  | Put get_params ->
-    coservice'_aux
-      ?name ~csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout
-      ~https ~keep_nl_params
-      ~get_params ~post_params:Eliom_parameter.unit
-      Put'
-  | Delete get_params ->
-    coservice'_aux
-      ?name ~csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout
-      ~https ~keep_nl_params
-      ~get_params ~post_params:Eliom_parameter.unit
-      Delete'
+  let get_params, post_params = Meth.params meth in
+  let meth' = Meth.which meth in
+  coservice'_aux
+    ?name ~csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout
+    ~https ~keep_nl_params
+    ~get_params ~post_params
+    meth'
 
 let service
     ?name
