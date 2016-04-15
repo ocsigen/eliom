@@ -269,7 +269,7 @@ struct
       ~meth:
         (Eliom_service.Post (Eliom_parameter.unit, Ecb.comet_request_param))
       ~id:
-        (Eliom_service.Overlay
+        (Eliom_service.Fallback
            (Eliom_common.force_lazy_site_value
               fallback_global_service))
       handle_request
@@ -594,7 +594,7 @@ end = struct
                       (Eliom_parameter.unit,
                        Eliom_comet_base.comet_request_param))
                  ~id:
-                   (Eliom_service.Overlay
+                   (Eliom_service.Fallback
                       (Eliom_common.force_lazy_site_value
                          fallback_service))
                  (*~name:"comet" (* CCC faut il mettre un nom ? *)*)

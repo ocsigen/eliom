@@ -44,8 +44,8 @@ module type S_types = sig
       - ['pn] is the type of POST parameters names. See
         {!Eliom_parameter.param_name} and form generation functions
         (e. g. {!Eliom_content.Html5.D.post_form}).
-      - [ 'ret] is an information on what the service returns.
-        See {!Eliom_registration.kind}. *)
+      - [ 'ret] is an information on what the service returns.  See
+        {!Eliom_registration.kind}. *)
   type ('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg,
         +'tipo, 'gn, 'pn, +'ret) service
     constraint 'tipo = [< `WithSuffix | `WithoutSuffix ]
@@ -54,7 +54,7 @@ module type S_types = sig
     | Path :
         Eliom_lib.Url.path
       -> (att, non_co, _, _, _) id
-    | Overlay :
+    | Fallback :
         (unit, unit, 'mf, att, non_co, non_ext, reg,
          [ `WithoutSuffix ], unit, unit, 'rt) service
       -> (att, co, 'mf, 'rt, unit) id
@@ -121,16 +121,16 @@ module type S = sig
 
   (** The function [external_service ~prefix ~path ~get_params ()]
       creates a service for an external web site, that will use GET
-      method and requires [get_params] as parameters. This allows one to
-      creates links or forms towards other Web sites using Eliom's
+      method and requires [get_params] as parameters. This allows one
+      to creates links or forms towards other Web sites using Eliom's
       syntax.
 
       The parameter labelled [~path] is the URL path. Each element of
       the list will be URL-encoded.
 
-      The parameter labelled [~prefix] contains all what you want to put
-      before the path. It usually starts with "http://" plus the name of
-      the server. The prefix is not URL encoded.
+      The parameter labelled [~prefix] contains all what you want to
+      put before the path. It usually starts with "http://" plus the
+      name of the server. The prefix is not URL encoded.
 
       The whole URL is constructed from the prefix, the path and GET
       parameters. Hence, an empty prefix can be used to make a link to

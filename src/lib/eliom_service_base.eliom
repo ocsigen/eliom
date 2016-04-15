@@ -21,15 +21,11 @@
 
 {shared{
 
-open Eliom_lib
-open Eliom_parameter
+module Url = Eliom_lib.Url
+
+type suff = [ `WithSuffix | `WithoutSuffix ]
 
 include Eliom_service_types
-
-(** Typed services *)
-type suff = [ `WithSuffix | `WithoutSuffix ]
-(* TODO: replace poly variant like for other type parameters (involves
-   Eliom_parameter) *)
 
 type 'a reload_fun =
   | Rf_keep
@@ -39,10 +35,9 @@ type 'a reload_fun =
 
 type att = {
   prefix          : string;   (* name of the server and protocol for
-                                 external links
-                                 e.g., http://ocsigen.org *)
-  subpath         : Url.path; (* name of the service without
-                                 parameters *)
+                                 external links, e.g.,
+                                 http://ocsigen.org *)
+  subpath         : Url.path; (* name of the service without parameters *)
   fullpath        : Url.path; (* full path of the service =
                                  site_dir@subpath *)
   get_name        : Eliom_common.att_key_serv;
@@ -90,35 +85,35 @@ type service_kind =
 (* 'return is the value returned by the service *)
 type ('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg,
       +'tipo, 'getnames, 'postnames, +'rt) service = {
-  pre_applied_parameters:
-    (string * Eliommod_parameters.param) list String.Table.t
+  pre_applied_parameters :
+    (string * Eliommod_parameters.param) list Eliom_lib.String.Table.t
     (* non localized parameters *) *
     (string * Eliommod_parameters.param) list (* regular parameters *);
-  get_params_type:
+  get_params_type :
     ('get, 'tipo, 'getnames) Eliom_parameter.params_type;
-  post_params_type:
+  post_params_type :
     ('post, [`WithoutSuffix], 'postnames) Eliom_parameter.params_type;
-  max_use: int option;   (* Max number of use of this service *)
-  timeout: float option; (* Timeout for this service (the service will
-                            disappear if it has not been used during
-                            this amount of seconds) *)
-  meth: 'meth which_meth;
-  kind: service_kind;
-  info: 'attached attached_info;
+  max_use : int option;   (* Max number of use of this service *)
+  timeout : float option; (* Timeout for this service (the service
+                             will disappear if it has not been used
+                             during this amount of seconds) *)
+  meth : 'meth which_meth;
+  kind : service_kind;
+  info : 'attached attached_info;
 
-  https: bool; (* force https *)
-  keep_nl_params: [ `All | `Persistent | `None ];
+  https : bool; (* force https *)
+  keep_nl_params : [ `All | `Persistent | `None ];
   mutable send_appl_content : send_appl_content;
   (* XNever when we create the service, then changed at registration
      :/ *)
 
   (* If the service has a client-side implementation, we put the
      generating function here: *)
-  client_fun:
+  client_fun :
     (unit -> ('get -> 'post -> unit Lwt.t) option)
       Eliom_client_value.t ref;
 
-  reload_fun: 'get reload_fun;
+  reload_fun : 'get reload_fun;
 
   service_mark :
     (unit, unit, 'meth,
@@ -130,8 +125,8 @@ type ('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg,
 
 type (_, _, _, _, _) id =
   | Path : Eliom_lib.Url.path -> (att, non_co, _, _, _) id
-  | Overlay : (unit, unit, 'mf, att, non_co, non_ext, reg,
-               [ `WithoutSuffix ], unit, unit, 'rt) service ->
+  | Fallback : (unit, unit, 'mf, att, non_co, non_ext, reg,
+                [ `WithoutSuffix ], unit, unit, 'rt) service ->
     (att, co, 'mf, 'rt, unit) id
   | Global : (non_att, co, _, _, unit) id
 
@@ -173,16 +168,15 @@ let has_client_fun_lazy s =
          false
    }}
 
-let internal_set_client_fun_ ~service:s f = s.client_fun := f
-let set_client_fun_ ?app ~service:s f =
-  Eliom_lib.Option.iter
-    (fun app_name -> s.send_appl_content <- XSame_appl (app_name, None))
-    app;
-  s.client_fun := {{ fun () -> Some %f }}
+let internal_set_client_fun_ ~service:{client_fun} f = client_fun := f
 
-let is_external = function
-  | {kind=`External} -> true
-  | _ -> false
+let set_client_fun_ ?app ~service f =
+  Eliom_lib.Option.iter
+    (fun name -> service.send_appl_content <- XSame_appl (name, None))
+    app;
+  service.client_fun := {{ fun () -> Some %f }}
+
+let is_external = function {kind = `External} -> true | _ -> false
 
 let default_priority = 0
 
@@ -197,12 +191,13 @@ let change_get_num service attser n = {
 (** Static directories **)
 let static_dir_ ?(https = false) () =
   let client_fun = ref {_ -> _{ fun () -> None}} in {
-    pre_applied_parameters = String.Table.empty, [];
-    get_params_type = Eliom_parameter.suffix
+    pre_applied_parameters = Eliom_lib.String.Table.empty, [];
+    get_params_type =
+      Eliom_parameter.suffix
         (Eliom_parameter.all_suffix Eliom_common.eliom_suffix_name);
     post_params_type = Eliom_parameter.unit;
-    max_use= None;
-    timeout= None;
+    max_use = None;
+    timeout = None;
     kind = `Service;
     meth = Get';
     info = Attached {
@@ -230,14 +225,14 @@ let https_static_dir () = static_dir_ ~https:true ()
 let get_static_dir_ ?(https = false)
     ?(keep_nl_params = `None) ~get_params () =
   let client_fun = ref {_ -> _{ fun () -> None}} in {
-    pre_applied_parameters = String.Table.empty, [];
+    pre_applied_parameters = Eliom_lib.String.Table.empty, [];
     get_params_type =
       Eliom_parameter.suffix_prod
         (Eliom_parameter.all_suffix Eliom_common.eliom_suffix_name)
         get_params;
     post_params_type = Eliom_parameter.unit;
-    max_use= None;
-    timeout= None;
+    max_use = None;
+    timeout = None;
     kind = `Service;
     meth = Get';
     info = Attached {
@@ -250,8 +245,8 @@ let get_static_dir_ ?(https = false)
       redirect_suffix = true;
       priority = default_priority;
     };
-    https = https;
-    keep_nl_params = keep_nl_params;
+    https;
+    keep_nl_params;
     service_mark = service_mark ();
     send_appl_content = XNever;
     client_fun;
@@ -264,12 +259,8 @@ let static_dir_with_params ?keep_nl_params ~get_params () =
 let https_static_dir_with_params ?keep_nl_params ~get_params () =
   get_static_dir_ ~https:true ?keep_nl_params ~get_params ()
 
-
-(****************************************************************************)
 let get_send_appl_content s = s.send_appl_content
 let set_send_appl_content s n = s.send_appl_content <- n
-
-(****************************************************************************)
 
 type clvpreapp = {
   mutable clvpreapp_f :
@@ -284,6 +275,7 @@ type clvpreapp = {
 let preapply_client_fun = {
   clvpreapp_f = fun f getparams -> failwith "preapply_client_fun"
 }
+
 (* will be initialized later (in Eliom_content for now), when client
    syntax is available, with: fun f getparams -> {{ fun _ pp -> %f
    %getparams pp }} *)
@@ -343,7 +335,7 @@ let void_coservice'_aux https =
   let client_fun = ref {_ -> _{ fun () -> None }} in {
     max_use = None;
     timeout = None;
-    pre_applied_parameters = String.Table.empty, [];
+    pre_applied_parameters = Eliom_lib.String.Table.empty, [];
     get_params_type = Eliom_parameter.unit;
     post_params_type = Eliom_parameter.unit;
     kind = `NonattachedCoservice;
@@ -378,7 +370,8 @@ let void_hidden_coservice' = void_hidden_coservice'_aux false
 
 let https_void_hidden_coservice' = void_hidden_coservice'_aux true
 
-(*VVV Non localized parameters not implemented for client side services *)
+(*VVV Non localized parameters not implemented for client side
+  services *)
 let add_non_localized_get_parameters ~params ~service = {
   service with
   get_params_type =
@@ -436,15 +429,15 @@ let service_aux_aux
           Eliom_client_value.t ref)
     ~rf
     () = {
-  pre_applied_parameters = String.Table.empty, [];
+  pre_applied_parameters = Eliom_lib.String.Table.empty, [];
   get_params_type = get_params;
   post_params_type = post_params;
-  max_use= None;
-  timeout= None;
+  max_use = None;
+  timeout = None;
   meth;
-  kind = kind;
+  kind;
   info = Attached {
-    prefix = prefix;
+    prefix;
     subpath = path;
     fullpath = site_dir @ path;
     get_name = Eliom_common.SAtt_no;
@@ -452,8 +445,8 @@ let service_aux_aux
     redirect_suffix;
     priority;
   };
-  https = https;
-  keep_nl_params = keep_nl_params;
+  https;
+  keep_nl_params;
   service_mark = service_mark ();
   send_appl_content = XNever;
   client_fun = cf;
@@ -541,12 +534,12 @@ let new_state () =
   (* 72bit of entropy is large enough: CSRF-safe services are
      short-lived; with 65536 services, the probability of a collision
      is about 2^-41.  *)
-  make_cryptographic_safe_string ~len:12 ()
+  Eliom_lib.make_cryptographic_safe_string ~len:12 ()
 
 let default_csrf_scope = function
-  (* We do not use the classical syntax for default
-     value. Otherwise, the type for csrf_scope was:
-     [< Eliom_common.user_scope > `Session] *)
+  (* We do not use the classical syntax for default value. Otherwise,
+     the type for csrf_scope was: [< Eliom_common.user_scope >
+     `Session] *)
   | None -> `Session Eliom_common_base.Default_ref_hier
   | Some c -> (c :> [Eliom_common.user_scope])
 
@@ -577,39 +570,35 @@ let coservice'
     ~get_params
     () =
   ignore rt;
-  let csrf_scope = default_csrf_scope csrf_scope in
-  (* (match Eliom_common.global_register_allowed () with
-     | Some _ -> Eliom_common.add_unregistered_na n;
-     | _ -> () (* Do we accept unregistered non-attached coservices? *)); *)
-  (* (* Do we accept unregistered non-attached named coservices? *)
-     match sp with
-     | None ->
-     ...
-  *)
-  let client_fun = ref {_ -> _{ fun () -> None }} in {
+  let csrf_scope = default_csrf_scope csrf_scope
+  and client_fun = ref {_ -> _{ fun () -> None }} in {
     (*VVV allow timeout and max_use for named coservices? *)
-    max_use= max_use;
-    timeout= timeout;
-    pre_applied_parameters = String.Table.empty, [];
+    max_use;
+    timeout;
+    pre_applied_parameters = Eliom_lib.String.Table.empty, [];
     get_params_type =
-      add_pref_params Eliom_common.na_co_param_prefix get_params;
-    post_params_type = unit;
+      Eliom_parameter.add_pref_params
+        Eliom_common.na_co_param_prefix get_params;
+    post_params_type = Eliom_parameter.unit;
     kind = `NonattachedCoservice;
     meth = Get';
-    info = Nonattached
-        {na_name =
-           (if csrf_safe
-            then Eliom_common.SNa_get_csrf_safe (uniqueid (),
-                                                 (csrf_scope:>Eliom_common.user_scope),
-                                                 csrf_secure)
-            else
-              match name with
-              | None -> Eliom_common.SNa_get' (new_state ())
-              | Some name -> Eliom_common.SNa_get_ name);
-         keep_get_na_params= true
-        };
-    https = https;
-    keep_nl_params = keep_nl_params;
+    info = Nonattached {
+      na_name =
+        (if csrf_safe then
+           Eliom_common.SNa_get_csrf_safe
+             (uniqueid (),
+              (csrf_scope :> Eliom_common.user_scope),
+              csrf_secure)
+         else
+           match name with
+           | None ->
+             Eliom_common.SNa_get' (new_state ())
+           | Some name ->
+             Eliom_common.SNa_get_ name);
+      keep_get_na_params = true
+    };
+    https;
+    keep_nl_params;
     send_appl_content = XNever;
     service_mark = service_mark ();
     client_fun;
@@ -629,8 +618,7 @@ let attach_coservice' :
   fun ~fallback ~service ->
     let {na_name} = get_non_attached_info service in
     let fallbackkind = get_attached_info fallback in
-    let open Eliom_common in
-    {
+    let open Eliom_common in {
       pre_applied_parameters = service.pre_applied_parameters;
       get_params_type = service.get_params_type;
       post_params_type = service.post_params_type;
@@ -650,14 +638,18 @@ let attach_coservice' :
         fullpath = fallbackkind.fullpath;
         priority = fallbackkind.priority;
         redirect_suffix = fallbackkind.redirect_suffix;
-        get_name = (match na_name with
-          | SNa_get_ s -> SAtt_na_named s
-          | SNa_get' s -> SAtt_na_anon s
-          | SNa_get_csrf_safe a -> SAtt_na_csrf_safe a
-          | SNa_post_ s -> fallbackkind.get_name (*VVV check *)
-          | SNa_post' s -> fallbackkind.get_name (*VVV check *)
-          | SNa_post_csrf_safe a -> fallbackkind.get_name (*VVV check *)
-          | _ -> failwith "attach_coservice' non implemented for this kind of non-attached coservice. Please send us an email if you need this.");
+        get_name =
+          (match na_name with
+           | SNa_get_ s -> SAtt_na_named s
+           | SNa_get' s -> SAtt_na_anon s
+           | SNa_get_csrf_safe a -> SAtt_na_csrf_safe a
+           | SNa_post_ s -> fallbackkind.get_name (*VVV check *)
+           | SNa_post' s -> fallbackkind.get_name (*VVV check *)
+           | SNa_post_csrf_safe a -> fallbackkind.get_name (*VVV check *)
+           | _ ->
+             failwith "attach_coservice' non implemented for this\
+                       kind of non-attached coservice. Please send\
+                       us an email if you need this.");
         (*VVV Do we want to make possible to attach POST na coservices
           on GET attached coservices? *)
         post_name = (match na_name with
@@ -667,8 +659,11 @@ let attach_coservice' :
           | SNa_post_ s -> SAtt_na_named s
           | SNa_post' s -> SAtt_na_anon s
           | SNa_post_csrf_safe a -> SAtt_na_csrf_safe a
-          | _ -> failwith "attach_coservice' non implemented for this kind of non-attached coservice. Please send us an email if you need this.");
-      };
+          | _ ->
+            failwith "attach_coservice' non implemented for this\
+                      kind of non-attached coservice. Please send\
+                      us an email if you need this.");
+      }
     }
 
 let service_aux
@@ -681,11 +676,11 @@ let service_aux
     (type pp) ~(post_params : (pp, _, _) Eliom_parameter.params_type)
     meth =
   ignore rt;
-  let path =
-    Url.remove_internal_slash
-      (Url.change_empty_list
-         (Url.remove_slash_at_beginning path))
-  in
+  let path = Url.(
+    remove_slash_at_beginning path
+    |> change_empty_list
+    |> remove_internal_slash
+  ) in
   let site_dir =
     match Eliom_common.get_sp_option () with
     | Some sp ->
@@ -697,11 +692,11 @@ let service_aux
          Eliom_common.add_unregistered sitedata path;
          Eliom_common.get_site_dir sitedata
        | None ->
-         raise (Eliom_common.Eliom_site_information_not_available
-                  "service"))
-  and redirect_suffix = contains_suffix get_params in
+         raise
+           (Eliom_common.Eliom_site_information_not_available "service"))
+  and redirect_suffix = Eliom_parameter.contains_suffix get_params in
   let cf = Obj.magic (ref {_ -> _{ fun () -> None }}) in
-  let rf = (Rf_some cf) in
+  let rf = Rf_some cf in
   service_aux_aux
     ~https
     ~prefix:""
@@ -785,10 +780,11 @@ let coservice_aux
     post_params_type = post_params;
     send_appl_content = fallback.send_appl_content;
     service_mark = service_mark ();
-    max_use= max_use;
-    timeout= timeout;
+    max_use;
+    timeout;
     get_params_type =
-      add_pref_params Eliom_common.co_param_prefix get_params;
+      Eliom_parameter.add_pref_params
+        Eliom_common.co_param_prefix get_params;
     meth;
     kind = `AttachedCoservice;
     info = Attached {
@@ -846,7 +842,8 @@ let coservice
   | Put get_params ->
     coservice_aux
       ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
-      ~rt ~fallback ?keep_nl_params ~get_params ~post_params:unit
+      ~rt ~fallback ?keep_nl_params
+      ~get_params ~post_params:Eliom_parameter.unit
       Put'
   | Delete get_params ->
     coservice_aux
@@ -854,9 +851,6 @@ let coservice
       ~rt ~fallback ?keep_nl_params
       ~get_params ~post_params:Eliom_parameter.unit
       Delete'
-
-(* Warning: here no GET parameters for the fallback.
-   Preapply services if you want fallbacks with GET parameters *)
 
 let coservice'_aux
     ?name
@@ -878,9 +872,10 @@ let coservice'_aux
   and client_fun = Obj.magic (ref {_ -> _{ fun () -> None}}) in {
     max_use;
     timeout;
-    pre_applied_parameters = String.Table.empty, [];
+    pre_applied_parameters = Eliom_lib.String.Table.empty, [];
     get_params_type =
-      add_pref_params Eliom_common.na_co_param_prefix get_params;
+      Eliom_parameter.add_pref_params
+        Eliom_common.na_co_param_prefix get_params;
     post_params_type = post_params;
     meth;
     kind = `NonattachedCoservice;
@@ -974,7 +969,7 @@ let service
   match id with
   | Path path ->
     plain_service ~https ~keep_nl_params ?priority ~path ~rt ~meth ()
-  | Overlay fallback ->
+  | Fallback fallback ->
     coservice
       ?name ~csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ~https
       ~keep_nl_params ?priority ~rt ~meth ~fallback ()
