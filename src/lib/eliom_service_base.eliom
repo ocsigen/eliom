@@ -413,7 +413,7 @@ let register_delayed_post_coservice  ~sp s getname =
 (* external services *)
 (** Create a main service (not a coservice) internal or external, get
     only *)
-let service_aux_aux
+let service_aux
     ~https
     ~prefix
     ~(path : Url.path)
@@ -453,18 +453,18 @@ let service_aux_aux
   reload_fun = rf;
 }
 
-let external_service_aux
-    (type gp) (type pp)
+let external_service
+    (type m) (type gp) (type gn) (type pp) (type pn) (type mf) (type gp')
     ~prefix
     ~path
     ?keep_nl_params
-    ~rt
-    ~(get_params : (gp, _, _) Eliom_parameter.params_type)
-    ~(post_params : (pp, _, _) Eliom_parameter.params_type)
-    meth =
-  ignore rt;
+    ~rt:_
+    ~(meth : (m, gp, gn, pp, pn, _, mf, gp') Meth.t)
+    () =
+  let get_params, post_params = Meth.params meth in
   let suffix = Eliom_parameter.contains_suffix get_params in
-  service_aux_aux
+  let meth = Meth.which meth in
+  service_aux
     ~https:false (* not used for external links *)
     ~prefix
     ~path:
@@ -482,24 +482,6 @@ let external_service_aux
     ~cf:(Obj.magic (ref {_ -> _{ fun () -> None }}))
     ~rf:Rf_keep
     ()
-
-let external_service
-    (type gp) (type pp)
-    ~prefix
-    ~path
-    ?keep_nl_params
-    ~rt
-    (type m) (type gp) (type gn) (type pp) (type pn) (type mf)
-    (type gp')
-    ~(meth : (m, gp, gn, pp, pn, _, mf, gp') Meth.t)
-    ()
-  : (gp, pp, m, _, _, _, _, _, gn, pn, _) service =
-  let get_params, post_params = Meth.params meth in
-  let meth' = Meth.which meth in
-  external_service_aux
-    ~prefix ~path ?keep_nl_params ~rt
-    ~get_params ~post_params
-    meth'
 
 let untype_service_ s =
   (s
@@ -541,55 +523,6 @@ let get_non_attached_info = function
     k
   | _ ->
     failwith "get_non_attached_info"
-
-let coservice'
-    ?name
-    ?(csrf_safe = false)
-    ?csrf_scope
-    ?csrf_secure
-    ?max_use
-    ?timeout
-    ?(https = false)
-    ?(keep_nl_params = `Persistent)
-    ~rt
-    ~get_params
-    () =
-  ignore rt;
-  let csrf_scope = default_csrf_scope csrf_scope
-  and client_fun = ref {_ -> _{ fun () -> None }} in {
-    (*VVV allow timeout and max_use for named coservices? *)
-    max_use;
-    timeout;
-    pre_applied_parameters = Eliom_lib.String.Table.empty, [];
-    get_params_type =
-      Eliom_parameter.add_pref_params
-        Eliom_common.na_co_param_prefix get_params;
-    post_params_type = Eliom_parameter.unit;
-    kind = `NonattachedCoservice;
-    meth = Get';
-    info = Nonattached {
-      na_name =
-        (if csrf_safe then
-           Eliom_common.SNa_get_csrf_safe
-             (uniqueid (),
-              (csrf_scope :> Eliom_common.user_scope),
-              csrf_secure)
-         else
-           match name with
-           | None ->
-             Eliom_common.SNa_get' (new_state ())
-           | Some name ->
-             Eliom_common.SNa_get_ name);
-      keep_get_na_params = true
-    };
-    https;
-    keep_nl_params;
-    send_appl_content = XNever;
-    service_mark = service_mark ();
-    client_fun;
-    reload_fun = Rf_some client_fun
-  }
-
 
 let attach_coservice' :
   fallback:
@@ -651,16 +584,17 @@ let attach_coservice' :
       }
     }
 
-let service_aux
+let plain_service
+    (type m) (type gp) (type gn) (type pp) (type pn) (type mf) (type gp')
     ?(https = false)
     ~path
     ?keep_nl_params
     ?priority
-    ~rt
-    ~get_params
-    (type pp) ~(post_params : (pp, _, _) Eliom_parameter.params_type)
-    meth =
-  ignore rt;
+    ~rt:_
+    ~(meth : (m, gp, gn, pp, pn, _, mf, gp') Meth.t)
+    () =
+  let get_params, post_params = Meth.params meth in
+  let meth = Meth.which meth in
   let path = Url.(
     remove_slash_at_beginning path
     |> change_empty_list
@@ -682,7 +616,7 @@ let service_aux
   and redirect_suffix = Eliom_parameter.contains_suffix get_params in
   let cf = Obj.magic (ref {_ -> _{ fun () -> None }}) in
   let rf = Rf_some cf in
-  service_aux_aux
+  service_aux
     ~https
     ~prefix:""
     ~path
@@ -698,35 +632,8 @@ let service_aux
     ~rf
     ()
 
-let plain_service :
-  type m gp gn pp pn mf pg_ .
-  ?https:bool ->
-  ?keep_nl_params:[ `All | `Persistent | `None ] ->
-  ?priority:int ->
-  path:Eliom_lib.Url.path ->
-  rt:('rt, _) rt ->
-  meth:
-  (m, gp, gn, pp, pn, [< `WithSuffix | `WithoutSuffix],
-   mf, pg_) Meth.t ->
-  unit ->
-  (gp, pp, m, att, non_co, non_ext, reg, 'tipo, gn, pn, 'rt)
-    service =
-  fun
-    ?https
-    ?keep_nl_params
-    ?priority
-    ~path
-    ~rt
-    ~meth
-    () ->
-    let get_params, post_params = Meth.params meth in
-    let meth' = Meth.which meth in
-    service_aux
-      ?https ~path ?keep_nl_params ?priority ~rt
-      ~get_params ~post_params
-      meth'
-
-let coservice_aux
+let coservice
+    (type m) (type gp) (type gn) (type pp) (type pn) (type mf) (type gp')
     ?name
     ?(csrf_safe = false)
     ?csrf_scope
@@ -734,15 +641,14 @@ let coservice_aux
     ?max_use
     ?timeout
     ?(https = false)
-    ~rt
-    (type gp) (type gp') (type pp)
-    ~(fallback : (gp', _, _, _, _, _, _, _, _, _, _) service)
     ?keep_nl_params
-    ~(get_params : (gp, _, _) Eliom_parameter.params_type)
-    ~(post_params : (pp, _, _) Eliom_parameter.params_type)
-    meth
-  : (gp, pp, _, _, _, _, _, _, _, _, _) service =
-  ignore rt;
+    ?priority:_
+    ~rt:_
+    ~(meth : (m, gp, gn, pp, pn, _, mf, unit) Meth.t)
+    ~(fallback : (unit, unit, mf, _, _, _, _, _, unit, unit, _) service)
+    () =
+  let get_params, post_params = Meth.params meth in
+  let meth = Meth.which meth in
   let csrf_scope = default_csrf_scope csrf_scope in
   let k = get_attached_info fallback
   and client_fun = Obj.magic (ref {_ -> _{ fun () -> None }}) in {
@@ -779,32 +685,8 @@ let coservice_aux
     reload_fun = Rf_some client_fun
   }
 
-let coservice
-    ?name
-    ?csrf_safe
-    ?csrf_scope
-    ?csrf_secure
-    ?max_use
-    ?timeout
-    ?https
-    ?keep_nl_params
-    ?priority
-    ~rt
-    (type m)  (type gp)  (type gn)  (type pp) (type pn) (type mf)
-    ~(meth : (m, gp, gn, pp, pn, _, mf, unit) Meth.t)
-    ~(fallback :
-        (unit, unit, mf, _, _, _, _, _, unit, unit, _) service)
-    ()
-  : (gp, pp, m, _, _, _, _, _, gn, pn, _) service =
-  let get_params, post_params = Meth.params meth in
-  let meth' = Meth.which meth in
-  coservice_aux
-    ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
-    ~rt ~fallback ?keep_nl_params
-    ~get_params ~post_params
-    meth'
-
-let coservice'_aux
+let coservice'
+    (type m) (type gp) (type gn) (type pp) (type pn) (type mf) (type gp')
     ?name
     ?(csrf_safe = false)
     ?csrf_scope
@@ -813,12 +695,11 @@ let coservice'_aux
     ?timeout
     ?(https = false)
     ?(keep_nl_params = `Persistent)
-    (type gp) (type gn)
-    ~(get_params : (gp, _, gn) Eliom_parameter.params_type)
-    (type pp) (type pn)
-    ~(post_params : (pp, _, pn) Eliom_parameter.params_type)
-    (type m) (meth : m Meth.which)
-  : (gp, pp, m, _, _, _, _, _, gn, pn, _) service =
+    ~rt:_
+    ~(meth : (m, gp, gn, pp, pn, _, mf, unit) Meth.t)
+    () =
+  let get_params, post_params = Meth.params meth in
+  let meth = Meth.which meth in
   let csrf_scope = default_csrf_scope csrf_scope
   and is_post = match meth with Meth.Post' -> true | _ -> false
   and client_fun = Obj.magic (ref {_ -> _{ fun () -> None}}) in {
@@ -859,28 +740,6 @@ let coservice'_aux
     client_fun;
     reload_fun = Rf_some client_fun
   }
-
-let coservice'
-    ?name
-    ?(csrf_safe = false)
-    ?csrf_scope
-    ?csrf_secure
-    ?max_use
-    ?timeout
-    ?(https = false)
-    ?(keep_nl_params = `Persistent)
-    ~rt:_
-    (type m)  (type gp)  (type gn)  (type pp) (type pn) (type mf)
-    ~(meth : (m, gp, gn, pp, pn, _, mf, unit) Meth.t)
-    ()
-  : (gp, pp, m, _, _, _, _, _, gn, pn, _) service =
-  let get_params, post_params = Meth.params meth in
-  let meth' = Meth.which meth in
-  coservice'_aux
-    ?name ~csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout
-    ~https ~keep_nl_params
-    ~get_params ~post_params
-    meth'
 
 let service
     ?name
