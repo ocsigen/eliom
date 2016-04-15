@@ -410,79 +410,6 @@ let register_delayed_get_or_na_coservice ~sp s =
 let register_delayed_post_coservice  ~sp s getname =
   failwith "CSRF coservice not implemented client side for now"
 
-(* external services *)
-(** Create a main service (not a coservice) internal or external, get
-    only *)
-let service_aux
-    ~https
-    ~prefix
-    ~(path : Url.path)
-    ~site_dir
-    ~kind
-    ~meth
-    ?(redirect_suffix = true)
-    ?(keep_nl_params = `None)
-    ?(priority = default_priority)
-    ~get_params
-    (type pp) ~(post_params : (pp, _, _) Eliom_parameter.params_type)
-    ~(cf : (unit -> (_ -> pp -> unit Lwt.t) option)
-          Eliom_client_value.t ref)
-    ~rf
-    () = {
-  pre_applied_parameters = Eliom_lib.String.Table.empty, [];
-  get_params_type = get_params;
-  post_params_type = post_params;
-  max_use = None;
-  timeout = None;
-  meth;
-  kind;
-  info = Attached {
-    prefix;
-    subpath = path;
-    fullpath = site_dir @ path;
-    get_name = Eliom_common.SAtt_no;
-    post_name = Eliom_common.SAtt_no;
-    redirect_suffix;
-    priority;
-  };
-  https;
-  keep_nl_params;
-  service_mark = service_mark ();
-  send_appl_content = XNever;
-  client_fun = cf;
-  reload_fun = rf;
-}
-
-let external_service
-    (type m) (type gp) (type gn) (type pp) (type pn) (type mf) (type gp')
-    ~prefix
-    ~path
-    ?keep_nl_params
-    ~rt:_
-    ~(meth : (m, gp, gn, pp, pn, _, mf, gp') Meth.t)
-    () =
-  let get_params, post_params = Meth.params meth in
-  let suffix = Eliom_parameter.contains_suffix get_params in
-  let meth = Meth.which meth in
-  service_aux
-    ~https:false (* not used for external links *)
-    ~prefix
-    ~path:
-      (Url.remove_internal_slash
-         (match suffix with
-          | None -> path
-          | _ -> path @ [Eliom_common.eliom_suffix_internal_name]))
-    ~site_dir:[]
-    ~kind:`External
-    ~meth
-    ?keep_nl_params
-    ~redirect_suffix:false
-    ~get_params
-    ~post_params
-    ~cf:(Obj.magic (ref {_ -> _{ fun () -> None }}))
-    ~rf:Rf_keep
-    ()
-
 let untype_service_ s =
   (s
    :  ('get, 'post, 'meth, 'attached, 'co, 'ext,
@@ -536,53 +463,107 @@ let attach_coservice' :
   fun ~fallback ~service ->
     let {na_name} = get_non_attached_info service in
     let fallbackkind = get_attached_info fallback in
-    let open Eliom_common in {
-      pre_applied_parameters = service.pre_applied_parameters;
-      get_params_type = service.get_params_type;
-      post_params_type = service.post_params_type;
-      https = service.https;
-      keep_nl_params = service.keep_nl_params;
-      service_mark = service_mark ();
-      send_appl_content = service.send_appl_content;
-      max_use = service.max_use;
-      timeout = service.timeout;
-      client_fun = service.client_fun;
-      reload_fun = service.reload_fun;
-      kind = `AttachedCoservice;
-      meth = service.meth;
-      info = Attached {
-        prefix = fallbackkind.prefix;
-        subpath = fallbackkind.subpath;
-        fullpath = fallbackkind.fullpath;
-        priority = fallbackkind.priority;
-        redirect_suffix = fallbackkind.redirect_suffix;
-        get_name =
-          (match na_name with
-           | SNa_get_ s -> SAtt_na_named s
-           | SNa_get' s -> SAtt_na_anon s
-           | SNa_get_csrf_safe a -> SAtt_na_csrf_safe a
-           | SNa_post_ s -> fallbackkind.get_name (*VVV check *)
-           | SNa_post' s -> fallbackkind.get_name (*VVV check *)
-           | SNa_post_csrf_safe a -> fallbackkind.get_name (*VVV check *)
-           | _ ->
-             failwith "attach_coservice' non implemented for this\
-                       kind of non-attached coservice. Please send\
-                       us an email if you need this.");
-        (*VVV Do we want to make possible to attach POST na coservices
+    let open Eliom_common in
+    let error_msg =
+      "attach_coservice' is not implemented for this kind of non-attached\
+       coservice. Please report a bug if you need this."
+    in
+    let get_name = match na_name with
+      | SNa_get_ s -> SAtt_na_named s
+      | SNa_get' s -> SAtt_na_anon s
+      | SNa_get_csrf_safe a -> SAtt_na_csrf_safe a
+      | SNa_post_ s -> fallbackkind.get_name (*VVV check *)
+      | SNa_post' s -> fallbackkind.get_name (*VVV check *)
+      | SNa_post_csrf_safe a -> fallbackkind.get_name (*VVV check *)
+      | _ -> failwith error_msg
+    (*VVV Do we want to make possible to attach POST na coservices
           on GET attached coservices? *)
-        post_name = (match na_name with
-          | SNa_get_ s -> SAtt_no
-          | SNa_get' s -> SAtt_no
-          | SNa_get_csrf_safe a -> SAtt_no
-          | SNa_post_ s -> SAtt_na_named s
-          | SNa_post' s -> SAtt_na_anon s
-          | SNa_post_csrf_safe a -> SAtt_na_csrf_safe a
-          | _ ->
-            failwith "attach_coservice' non implemented for this\
-                      kind of non-attached coservice. Please send\
-                      us an email if you need this.");
-      }
+    and post_name = match na_name with
+      | SNa_get_ s -> SAtt_no
+      | SNa_get' s -> SAtt_no
+      | SNa_get_csrf_safe a -> SAtt_no
+      | SNa_post_ s -> SAtt_na_named s
+      | SNa_post' s -> SAtt_na_anon s
+      | SNa_post_csrf_safe a -> SAtt_na_csrf_safe a
+      | _ -> failwith error_msg
+    in
+    { service with
+      service_mark = service_mark ();
+      kind = `AttachedCoservice;
+      info =
+        Attached {fallbackkind with get_name ; post_name }
     }
+
+(** Create a main service (not a coservice) internal or external, get only *)
+let main_service
+    ~https
+    ~prefix
+    ~(path : Url.path)
+    ~site_dir
+    ~kind
+    ~meth
+    ?(redirect_suffix = true)
+    ?(keep_nl_params = `None)
+    ?(priority = default_priority)
+    ~get_params
+    (type pp) ~(post_params : (pp, _, _) Eliom_parameter.params_type)
+    ~(cf : (unit -> (_ -> pp -> unit Lwt.t) option)
+          Eliom_client_value.t ref)
+    ~rf
+    () = {
+  pre_applied_parameters = Eliom_lib.String.Table.empty, [];
+  get_params_type = get_params;
+  post_params_type = post_params;
+  max_use = None;
+  timeout = None;
+  meth;
+  kind;
+  info = Attached {
+    prefix;
+    subpath = path;
+    fullpath = site_dir @ path;
+    get_name = Eliom_common.SAtt_no;
+    post_name = Eliom_common.SAtt_no;
+    redirect_suffix;
+    priority;
+  };
+  https;
+  keep_nl_params;
+  service_mark = service_mark ();
+  send_appl_content = XNever;
+  client_fun = cf;
+  reload_fun = rf;
+}
+
+let external_service
+    (type m) (type gp) (type gn) (type pp) (type pn) (type mf) (type gp')
+    ~prefix
+    ~path
+    ?keep_nl_params
+    ~rt:_
+    ~(meth : (m, gp, gn, pp, pn, _, mf, gp') Meth.t)
+    () =
+  let get_params, post_params = Meth.params meth in
+  let suffix = Eliom_parameter.contains_suffix get_params in
+  let meth = Meth.which meth in
+  main_service
+    ~https:false (* not used for external links *)
+    ~prefix
+    ~path:
+      (Url.remove_internal_slash
+         (match suffix with
+          | None -> path
+          | _ -> path @ [Eliom_common.eliom_suffix_internal_name]))
+    ~site_dir:[]
+    ~kind:`External
+    ~meth
+    ?keep_nl_params
+    ~redirect_suffix:false
+    ~get_params
+    ~post_params
+    ~cf:(Obj.magic (ref {_ -> _{ fun () -> None }}))
+    ~rf:Rf_keep
+    ()
 
 let plain_service
     (type m) (type gp) (type gn) (type pp) (type pn) (type mf) (type gp')
@@ -616,7 +597,7 @@ let plain_service
   and redirect_suffix = Eliom_parameter.contains_suffix get_params in
   let cf = Obj.magic (ref {_ -> _{ fun () -> None }}) in
   let rf = Rf_some cf in
-  service_aux
+  main_service
     ~https
     ~prefix:""
     ~path
