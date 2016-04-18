@@ -150,36 +150,36 @@ module type S = sig
 
   (** {2 Predefined services} *)
 
-  (** {3 Void non-attached coservices} *)
+  (** {3 Reload actions} *)
 
-  (** The service [void_coservice'] is a predefined non-attached
-      action with special behaviour: it has no parameter at all, even
+  (** The service [reload_action] is a predefined non-attached action
+      with special behaviour: it has no parameter at all, even
       non-attached parameters.  Use it if you want to make a link to
       the current page without non-attached parameters.  It is almost
       equivalent to a POST non-attached service without POST
       parameters, on which you register an action that does nothing,
       but you can use it with <a> links, not only forms.  It does not
       keep non attached GET parameters.  *)
-  val void_coservice' :
+  val reload_action :
     (unit, unit, get, non_att, co, non_ext, non_reg,
      [ `WithoutSuffix ], unit, unit, _ non_ocaml)
       service
 
-  (** Same as {!void_coservice'} but forcing https. *)
-  val https_void_coservice' :
+  (** Same as {!reload_action} but forcing HTTPS. *)
+  val reload_action_https :
     (unit, unit, get, non_att, co, non_ext, non_reg,
      [ `WithoutSuffix ], unit, unit, _ non_ocaml)
       service
 
-  (** Same as {!void_coservice'} but keeps non attached GET
+  (** Same as {!reload_action} but keeps non-attached GET
       parameters. *)
-  val void_hidden_coservice' :
+  val reload_action_hidden :
     (unit, unit, get, non_att, co, non_ext, non_reg,
      [ `WithoutSuffix ], unit, unit, _ non_ocaml)
       service
 
-  (** Same as {!void_hidden_coservice'} but forcing https. *)
-  val https_void_hidden_coservice' :
+  (** Same as {!reload_action_hidden} but forcing HTTPS. *)
+  val reload_action_https_hidden :
     (unit, unit, get, non_att, co, non_ext, non_reg,
      [ `WithoutSuffix ], unit, unit, _ non_ocaml)
       service
@@ -233,9 +233,8 @@ module type S = sig
 
   (** The function [preapply ~service paramaters] creates a new
       service by preapplying [service] to the GET [parameters]. It is
-      not possible to register a handler on an preapplied service ;
-      preapplied services may be used in links or as fallbacks for
-      coservices *)
+      not possible to register a handler on an preapplied service;
+      preapplied services may be used in links or as fallbacks. *)
   val preapply :
     service:
       ('a, 'b, 'meth, att, 'co, 'ext, 'reg, _, 'e, 'f, 'return)
@@ -244,17 +243,17 @@ module type S = sig
     (unit, 'b, 'meth, att, 'co, 'ext, non_reg,
      [ `WithoutSuffix ], unit, 'f, 'return) service
 
-  (** [attach_coservice' ~fallback ~service] attaches the non-attached
-      coservice [service] on the URL of [fallback]. This allows to
-      create a link to a non-attached coservice but with another URL
-      than the current one. It is not possible to register something
-      on the service returned by this function. *)
-  val attach_coservice' :
+  (** [attach_global_to_fallback ~fallback ~service] attaches the
+      global service [service] on the URL of [fallback]. This allows
+      creating a link to a global service but with another URL than
+      the current one. It is not possible to register something on the
+      service returned by this function. *)
+  val attach_global_to_fallback :
     fallback:
-      (unit, unit, get, att, _, non_ext, 'rg1,
+      (unit, unit, get, att, _, non_ext, _,
        _, unit, unit, 'return1) service ->
     service:
-      ('get, 'post, 'meth, non_att, co, non_ext, 'rg2,
+      ('get, 'post, 'meth, non_att, co, non_ext, _,
        [< `WithoutSuffix] as 'sf, 'gn, 'pn, 'return) service ->
     ('get, 'post, 'meth, att, co, non_ext, non_reg,
      'sf, 'gn, 'pn, 'return) service
@@ -350,10 +349,10 @@ module type S = sig
     [ `All | `Persistent | `None ]
 
   val change_get_num :
-    ('a, 'b, 'meth, att, 'co, 'ext, 'rg0, 'd, 'e, 'f, 'return) service ->
+    ('a, 'b, 'meth, att, 'co, 'ext, _, 'd, 'e, 'f, 'return) service ->
     att ->
     Eliom_common.att_key_serv ->
-    ('a, 'b, 'meth, att, 'co, 'ext, 'rg1, 'd, 'e, 'f, 'return) service
+    ('a, 'b, 'meth, att, 'co, 'ext, _, 'd, 'e, 'f, 'return) service
 
   (* Not implemented on client side: TODO should not be called in
      Eliom_uri *)

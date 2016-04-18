@@ -332,7 +332,7 @@ let preapply ~service getparams =
   }
 
 
-let void_coservice'_aux https =
+let reload_action_aux https =
   let client_fun = ref {_ -> _{ fun () -> None }} in {
     max_use = None;
     timeout = None;
@@ -353,12 +353,12 @@ let void_coservice'_aux https =
     reload_fun = Rf_some client_fun;
   }
 
-let void_coservice' = void_coservice'_aux false
+let reload_action = reload_action_aux false
 
-let https_void_coservice' = void_coservice'_aux true
+let reload_action_https = reload_action_aux true
 
-let void_hidden_coservice'_aux https = {
-  void_coservice' with
+let reload_action_hidden_aux https = {
+  reload_action with
   kind = `NonattachedCoservice;
   meth = Meth.Get';
   info = Nonattached {
@@ -367,9 +367,9 @@ let void_hidden_coservice'_aux https = {
   };
 }
 
-let void_hidden_coservice' = void_hidden_coservice'_aux false
+let reload_action_hidden = reload_action_hidden_aux false
 
-let https_void_hidden_coservice' = void_hidden_coservice'_aux true
+let reload_action_https_hidden = reload_action_hidden_aux true
 
 (*VVV Non localized parameters not implemented for client side
   services *)
@@ -462,7 +462,7 @@ let get_non_attached_info = function
   | _ ->
     failwith "get_non_attached_info"
 
-let attach_coservice' :
+let attach_global_to_fallback :
   fallback:
   (unit, unit, get, att, _, non_ext, 'rg1,
    [< suff ], unit, unit, 'return1) service ->
@@ -476,8 +476,8 @@ let attach_coservice' :
     let fallbackkind = get_attached_info fallback in
     let open Eliom_common in
     let error_msg =
-      "attach_coservice' is not implemented for this kind of non-attached\
-       coservice. Please report a bug if you need this."
+      "attach_global_to_fallback' is not implemented for this kind of\
+       service. Please report a bug if you need this."
     in
     let get_name = match na_name with
       | SNa_get_ s -> SAtt_na_named s

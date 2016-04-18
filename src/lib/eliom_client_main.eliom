@@ -22,7 +22,8 @@
 
 let _ = Eliom_client.init ()
 
-(* The following lines are for Eliom_bus, Eliom_comet and Eliom_react to be linked. *)
+(* The following lines are for Eliom_bus, Eliom_comet and Eliom_react
+   to be linked. *)
 let _force_link =
   Eliom_react.force_link,
   Eliom_comet.force_link,
@@ -33,14 +34,12 @@ let _force_link =
 
 let reload_with_warning () =
   let f = !Eliom_client.reload_function in
-  (*VVV When calling server side (non hidden) void coservice,
-      GET non-attached parameters are removed.
-      But not when implemented on client side ...
-      I display a warning to remember that.
-      We should probably remember in service reload_function with na_param
-      and reload_function without ...
-      It is probably very rarely used anyway ...
-  *)
+  (*VVV When calling server side (non hidden) void coservice, GET
+      non-attached parameters are removed.  But not when implemented
+      on client side ...  I display a warning to remember that.  We
+      should probably remember in service reload_function with
+      na_param and reload_function without ...  It is probably very
+      rarely used anyway ...  *)
   if f <> None
   then print_endline
       "Warning: (non hidden) calling void coservice' on client side does not remone GET non-attached parameters (FIX in Eliom)";
@@ -53,19 +52,19 @@ let switch_to_https () =
 }}
 
 {shared{
-(*****************************************************************************)
+
 (* Client side implementation of void_coservices *)
 let _ =
   Eliom_service.internal_set_client_fun_
-    ~service:Eliom_service.void_coservice'
+    ~service:Eliom_service.reload_action
     {{ reload_with_warning }};
   Eliom_service.internal_set_client_fun_
-    ~service:Eliom_service.https_void_coservice'
+    ~service:Eliom_service.reload_action_https
     {{ fun () -> switch_to_https (); reload_with_warning () }};
   Eliom_service.internal_set_client_fun_
-    ~service:Eliom_service.void_hidden_coservice'
+    ~service:Eliom_service.reload_action_hidden
     {{ fun () -> !Eliom_client.reload_function }};
   Eliom_service.internal_set_client_fun_
-    ~service:Eliom_service.https_void_hidden_coservice'
+    ~service:Eliom_service.reload_action_https_hidden
     {{ fun () -> switch_to_https (); !Eliom_client.reload_function }}
 }}

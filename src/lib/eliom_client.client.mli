@@ -254,7 +254,8 @@ type ('a, +'b) server_function = 'a -> 'b Lwt.t
     used to safely encode and decode the argument sent to the server.
 
     The optional parameters correspond directly to the optional
-    parameters of {% <<a_api|val Eliom_registration.Ocaml.register_coservice'>> %}.
+    parameters of {% <<a_api|val
+    Eliom_registration.Ocaml.register_service >> %}.
 
     See also the {% <<a_manual chapter="clientserver-communication"
     fragment="rpc"|manual>> %}.

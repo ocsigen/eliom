@@ -319,7 +319,7 @@ module type S = sig
       The optional parameter [~a] allows one to add HTML attributes to
       the generated node.
 
-      See {!Eliom_service.Http.post_coservice'} for a description of
+      See {!Eliom_service.service} for a description of
       the [~keep_get_na_params] optional parameter ; see {!get_form}
       for [~xhr] and see {!make_uri} for other optional
       parameters.  *)
