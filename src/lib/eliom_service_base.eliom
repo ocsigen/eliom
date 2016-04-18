@@ -494,7 +494,7 @@ let attach_coservice' :
         Attached {fallbackkind with get_name ; post_name }
     }
 
-(** Create a main service (not a coservice) internal or external, get only *)
+(** Create a main service (not a coservice), internal or external *)
 let main_service
     ~https
     ~prefix
@@ -623,7 +623,6 @@ let coservice
     ?timeout
     ?(https = false)
     ?keep_nl_params
-    ?priority:_
     ~rt:_
     ~(meth : (m, gp, gn, pp, pn, _, mf, unit) Meth.t)
     ~(fallback : (unit, unit, mf, _, _, _, _, _, unit, unit, _) service)
@@ -745,7 +744,7 @@ let service
   | Fallback fallback ->
     coservice
       ?name ~csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ~https
-      ~keep_nl_params ?priority ~rt ~meth ~fallback ()
+      ~keep_nl_params ~rt ~meth ~fallback ()
   | Global ->
     coservice'
       ?name ~csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ~https
