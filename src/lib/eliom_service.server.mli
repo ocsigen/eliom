@@ -102,10 +102,6 @@ val set_send_appl_content :
   (_, _, _, _, _, _, _, _, _, _, _) service ->
   send_appl_content -> unit
 
-val pre_wrap :
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k) service ->
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k) service
-
 exception Wrong_session_table_for_CSRF_safe_coservice
 
 val eliom_appl_answer_content_type : string

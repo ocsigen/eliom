@@ -126,11 +126,5 @@ let unregister ?scope ?secure
       in
       remove_service table service
 
-let pre_wrap s = {
-  s with
-  get_params_type = Eliom_parameter.wrap_param_type s.get_params_type;
-  post_params_type = Eliom_parameter.wrap_param_type s.post_params_type;
-}
-
 let set_client_fun = set_client_fun_
 let has_client_fun_ _ = false
