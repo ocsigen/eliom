@@ -279,8 +279,7 @@ module type S = sig
     ?https:bool ->
     ?a:[< Html5_types.form_attrib] attrib list ->
     service:
-      ('get, unit, Eliom_service.get, _, _, _, _, _,
-       'gn, _, _ non_ocaml)
+      (_, unit, Eliom_service.get, _, _, _, _, _, 'gn, _, _ non_ocaml)
         service ->
     ?hostname:string ->
     ?port:int ->
@@ -299,7 +298,7 @@ module type S = sig
     ?https:bool ->
     ?a:[< Html5_types.form_attrib] attrib list ->
     service:
-      ('get, unit, Eliom_service.get, _, _, _, _, _, 'gn, _, _ non_ocaml)
+      (_, unit, Eliom_service.get, _, _, _, _, _, 'gn, _, _ non_ocaml)
         service ->
     ?hostname:string ->
     ?port:int ->

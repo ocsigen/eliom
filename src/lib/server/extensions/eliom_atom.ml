@@ -61,15 +61,15 @@ let result_of_content feed headers =
 module Reg_base = struct
   type page = Atom_feed.feed
   type options = unit
-  type return = Eliom_registration.http_service
+  type return = Eliom_service.http Eliom_service.non_ocaml
   type result = Eliom_registration.browser_content Eliom_registration.kind
   type maybe_ext = Eliom_service.ext
   let rt = Eliom_service.Http
   let result_of_http_result = Eliom_registration.cast_http_result
   let send_appl_content = Eliom_service.XNever
   let pre_service ?options () = Lwt.return ()
-  let send ?options ?charset ?code ?content_type ?headers
-      feed = Lwt.return (result_of_content feed headers )
+  let send ?options ?charset ?code ?content_type ?headers feed =
+    Lwt.return (result_of_content feed headers )
 end
 
 module Reg =  Eliom_mkreg.MakeRegister(Reg_base)

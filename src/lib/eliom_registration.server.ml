@@ -18,23 +18,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_lib
-open Eliom_content
-open Eliom_service
-open Eliom_parameter
-
 let (>>=) = Lwt.(>>=)
 
 let code_of_code_option = function
   | None -> 200
   | Some c -> c
-
-type appl_service = Eliom_service.appl Eliom_service.non_ocaml
-type http_service = Eliom_service.http Eliom_service.non_ocaml
-
-(******************************************************************************)
-(* Send return types                                                          *)
-(******************************************************************************)
 
 module Result_types :
 sig
@@ -68,22 +56,15 @@ let cast_unknown_content_kind (x:unknown_content kind) : 'a kind =
   Result_types.cast_result (Result_types.cast_kind x)
 let cast_http_result = Result_types.cast_result
 
-(******************************************************************************)
-
-(******************************************************************************)
-
 module Html5_make_reg_base
   (Html5_content : Ocsigen_http_frame.HTTP_CONTENT
-                   with type t = Html5_types.html Eliom_content.Html5.elt
-                   and type options = Http_headers.accept Lazy.t)
+   with type t = Html5_types.html Eliom_content.Html5.elt
+    and type options = Http_headers.accept Lazy.t)
   = struct
 
-  open Eliom_content.Html5.F
-  open Html5_types
-
-  type page = html elt
+  type page = Html5_types.html Eliom_content.Html5.elt
   type options = unit
-  type return = http_service
+  type return = Eliom_service.http Eliom_service.non_ocaml
   type result = browser_content kind
   type maybe_ext = Eliom_service.ext
 
@@ -120,15 +101,8 @@ module Html5 =
   Eliom_mkreg.MakeRegister
     (Html5_make_reg_base
        (Ocsigen_senders.Make_XML_Content
-          (Xml)
+          (Eliom_content.Xml)
           (Eliom_content.Html5.D)))
-
-(******************************************************************************)
-(******************************************************************************)
-
-
-(****************************************************************************)
-(****************************************************************************)
 
 module Make_typed_xml_registration
   (Xml: Xml_sigs.Iterable)
@@ -163,7 +137,7 @@ module Make_typed_xml_registration
 
       type page = E.content Typed_xml.elt list
       type options = unit
-      type return = http_service
+      type return = Eliom_service.http Eliom_service.non_ocaml
       type result = block_content kind
       type maybe_ext = Eliom_service.ext
 
@@ -197,13 +171,13 @@ module Make_typed_xml_registration
 
   end
 
-module Flow5 = Make_typed_xml_registration(Xml)(Eliom_content.Html5.D)(struct
-  type content = Html5_types.flow5
-end)
-
-
-(****************************************************************************)
-(****************************************************************************)
+module Flow5 =
+  Make_typed_xml_registration
+    (Eliom_content.Xml)
+    (Eliom_content.Html5.D)
+    (struct
+      type content = Html5_types.flow5
+    end)
 
 let (<-<) h (n, v) = Http_headers.replace n v h
 let add_cache_header cache headers =
@@ -224,7 +198,7 @@ module Text_reg_base = struct
 
   type page = (string * string)
   type options = int
-  type return = http_service
+  type return = Eliom_service.http Eliom_service.non_ocaml
   type result = unknown_content kind
   type maybe_ext = Eliom_service.ext
 
@@ -256,14 +230,11 @@ end
 
 module Text = Eliom_mkreg.MakeRegister(Text_reg_base)
 
-(****************************************************************************)
-(****************************************************************************)
-
 module CssText_reg_base = struct
 
   type page = string
   type options = int
-  type return = http_service
+  type return = Eliom_service.http Eliom_service.non_ocaml
   type result = browser_content kind
   type maybe_ext = Eliom_service.ext
 
@@ -296,14 +267,11 @@ end
 
 module CssText = Eliom_mkreg.MakeRegister(CssText_reg_base)
 
-(****************************************************************************)
-(****************************************************************************)
-
 module HtmlText_reg_base = struct
 
   type page = string
   type options = unit
-  type return = http_service
+  type return = Eliom_service.http Eliom_service.non_ocaml
   type result = browser_content kind
   type maybe_ext = Eliom_service.ext
 
@@ -339,9 +307,6 @@ module HtmlText_registration = Eliom_mkreg.MakeRegister(HtmlText_reg_base)
 
 module Html_text = HtmlText_registration
 
-(****************************************************************************)
-(****************************************************************************)
-
 (** Actions are like services, but do not generate any page. The current
    page is reloaded (but if you give the optional parameter
     [~options:`NoReload] to the registration function).
@@ -350,7 +315,7 @@ module Action_reg_base = struct
 
   type page = unit
   type options = [ `Reload | `NoReload ]
-  type return = http_service
+  type return = Eliom_service.http Eliom_service.non_ocaml
   type result = browser_content kind
   type maybe_ext = Eliom_service.ext
 
@@ -569,7 +534,7 @@ module Unit_reg_base = struct
 
   type page = unit
   type options = unit
-  type return = http_service
+  type return = Eliom_service.http Eliom_service.non_ocaml
   type result = browser_content kind
   type maybe_ext = Eliom_service.ext
 
@@ -601,12 +566,8 @@ end
 
 module Unit = Eliom_mkreg.MakeRegister(Unit_reg_base)
 
-(*****************************************************************************)
-(*****************************************************************************)
-
-(* Any is a module allowing to register services that decide themselves
-   what they want to send.
- *)
+(* Any is a module allowing to register services that decide
+   themselves what they want to send.  *)
 module Any_reg_base = struct
 
   type ('a, 'b) page = 'a kind
@@ -662,15 +623,12 @@ let appl_self_redirect send page =
 
 let http_redirect = appl_self_redirect
 
-(*****************************************************************************)
-(*****************************************************************************)
-
 (* File is a module allowing to register services that send files *)
 module File_reg_base = struct
 
   type page = string
   type options = int
-  type return = http_service
+  type return = Eliom_service.http Eliom_service.non_ocaml
   type result = browser_content kind
   type maybe_ext = Eliom_service.ext
 
@@ -737,7 +695,7 @@ module File_ct_reg_base = struct
 
   type page = string * string
   type options = int
-  type return = http_service
+  type return = Eliom_service.http Eliom_service.non_ocaml
   type result = browser_content kind
   type maybe_ext = Eliom_service.ext
 
@@ -800,14 +758,11 @@ struct
         false
 end
 
-(****************************************************************************)
-(****************************************************************************)
-
 module Streamlist_reg_base = struct
 
   type page = (((unit -> (string Ocsigen_stream.t) Lwt.t) list) * string)
   type options = unit
-  type return = http_service
+  type return = Eliom_service.http Eliom_service.non_ocaml
   type result = unknown_content kind
   type maybe_ext = Eliom_service.ext
 
@@ -841,9 +796,6 @@ module Streamlist_reg_base = struct
 end
 
 module Streamlist = Eliom_mkreg.MakeRegister(Streamlist_reg_base)
-
-(****************************************************************************)
-(****************************************************************************)
 
 module Customize
   (R : Eliom_reg_sigs.S)
@@ -928,14 +880,11 @@ module Customize
 
 end
 
-(****************************************************************************)
-(****************************************************************************)
-
 module Ocaml_reg_base = struct
 
   type page = string
   type options = unit
-  type return = http_service
+  type return = Eliom_service.http Eliom_service.non_ocaml
   type result = Ocsigen_http_frame.result
   type maybe_ext = Eliom_service.ext
 
@@ -1005,8 +954,8 @@ module Ocaml = struct
       ?headers
       ?secure_session
       ~(service :
-          ('get, 'post, _, _, _, Eliom_service.non_ext, reg,
-           _, 'gn, 'pn, 'return Eliom_service.ocaml)
+          ('get, 'post, _, _, _, Eliom_service.non_ext, Eliom_service.reg,
+           _, _, _, 'return Eliom_service.ocaml)
             Eliom_service.service)
       ?(error_handler : ((string * exn) list -> 'return Lwt.t) option)
       (f : ('get -> 'post -> 'return Lwt.t)) =
@@ -1058,15 +1007,11 @@ module Ocaml = struct
       ?max_use
       ?timeout
       ~meth
-      (* FIXME FIXME FIXME *)
-      ~id:(Obj.magic id)
+      ~id:(Eliom_service.untype_id_ id)
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
 end
-
-(****************************************************************************)
-(****************************************************************************)
 
 type appl_service_options =
     {
@@ -1097,14 +1042,11 @@ module Eliom_appl_reg_make_param
        and type options = Http_headers.accept Lazy.t)
   (Appl_params : APPL_PARAMS) = struct
 
-  open Eliom_content.Html5.D
-  open Html5_types
-
   type app_id
 
-  type page = html elt
+  type page = Html5_types.html Eliom_content.Html5.elt
   type options = appl_service_options
-  type return = appl_service
+  type return = Eliom_service.appl Eliom_service.non_ocaml
   type result = app_id application_content kind
   type maybe_ext = Eliom_service.non_ext
 
@@ -1155,8 +1097,9 @@ module Eliom_appl_reg_make_param
     in
 
     Lwt.return
-      (Eliom_content.Html5.Id.create_named_elt ~id:eliom_appl_data_script_id
-         (Eliom_content.Html5.F.script (cdata_script script)))
+      Eliom_content.Html5.(
+        Id.create_named_elt ~id:eliom_appl_data_script_id
+          (F.script (F.cdata_script script)))
 
   let queue_map (q : 'a Queue.t) (f : 'a -> 'b) : 'b Queue.t =
     let q2 = Queue.create () in
@@ -1175,7 +1118,7 @@ module Eliom_appl_reg_make_param
           if keep_debug
           then data
           else
-            String_map.map
+            Eliom_lib.String_map.map
               (fun {Eliom_runtime.server_sections_data;
                     client_sections_data} ->
                  Array.iter
@@ -1235,7 +1178,7 @@ module Eliom_appl_reg_make_param
         (Eliom_lib.jsmarshal tab_cookies)
         (Eliom_lib.jsmarshal (template: string option))
     in
-    Lwt.return (Eliom_content.Html5.F.script (cdata_script script))
+    Lwt.return Eliom_content.Html5.(F.script (F.cdata_script script))
 
   let split_page page :
       (Html5_types.html_attrib Eliom_content.Html5.attrib list
@@ -1263,7 +1206,7 @@ module Eliom_appl_reg_make_param
     (* First we build a fake page to build the ref_tree... *)
     let (html_attribs, (head_attribs, title, head_elts), body) =
       split_page (Eliom_content.Html5.D.toelt page) in
-    let encode_slashs = List.map (Url.encode ~plus:false) in
+    let encode_slashs = List.map (Eliom_lib.Url.encode ~plus:false) in
     let base_url =
       Eliom_uri.make_proto_prefix
         (Eliom_config.default_protocol_is_https () ||
@@ -1287,11 +1230,13 @@ module Eliom_appl_reg_make_param
          to make it possible to have truly relative URLs in HTML pages.
       *)
       :: if Eliom_request_info.expecting_process_page ()
-      then Eliom_content.Html5.F.base
-          ~a:[a_id Eliom_common_base.base_elt_id;
-              Eliom_content.Html5.D.a_href
-                (Eliom_content.Xml.uri_of_string base_url)] ()
-           :: head_elts
+      then
+        Eliom_content.Html5.(
+          F.base
+            ~a:[F.a_id Eliom_common_base.base_elt_id;
+                F.a_href (Eliom_content.Xml.uri_of_string base_url)]
+            ())
+        :: head_elts
       else head_elts
     in
     let fake_page =
@@ -1403,7 +1348,7 @@ module type ELIOM_APPL = sig
   type app_id
   type page = Html5_types.html Eliom_content.Html5.elt
   type options = appl_service_options
-  type return = Eliom_service.appl non_ocaml
+  type return = Eliom_service.appl Eliom_service.non_ocaml
   type result = app_id application_content kind
   include Eliom_reg_sigs.S
     with type page    := page
@@ -1417,7 +1362,9 @@ module App (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
 
   module P =
     Eliom_appl_reg_make_param
-      (Ocsigen_senders.Make_XML_Content(Xml)(Eliom_content.Html5.D))
+      (Ocsigen_senders.Make_XML_Content
+         (Eliom_content.Xml)
+         (Eliom_content.Html5.D))
       (Appl_params)
 
   type app_id = P.app_id
@@ -1464,7 +1411,7 @@ module Eliom_tmpl_reg_make_param
 
   type page = Tmpl_param.t
   type options = appl_service_options
-  type return = appl_service
+  type return = Eliom_service.appl Eliom_service.non_ocaml
   type result = Appl.app_id application_content kind
   type maybe_ext = Eliom_service.non_ext
 
@@ -1481,36 +1428,38 @@ module Eliom_tmpl_reg_make_param
 
   let send ?(options = default_appl_service_options) ?charset ?code
       ?content_type ?headers content =
-    match get_non_localized_get_parameters nl_template with
+    match
+      Eliom_parameter.get_non_localized_get_parameters nl_template
+    with
     | None ->
-        lwt () = Eliom_reference.set request_template (Some Tmpl_param.name) in
-        lwt content = Tmpl_param.make_page content in
-        Result_types.cast_kind_lwt
-          (Appl.send ~options ?charset ?code ?content_type ?headers content)
+      lwt () = Eliom_reference.set request_template (Some Tmpl_param.name) in
+      lwt content = Tmpl_param.make_page content in
+      Result_types.cast_kind_lwt
+        (Appl.send ~options ?charset ?code ?content_type ?headers content)
     | Some _ ->
-        ignore (Tmpl_param.update content);
-        Result_types.cast_kind_lwt (Ocaml.send ?charset ?code ?content_type ?headers ())
+      ignore (Tmpl_param.update content);
+      Result_types.cast_kind_lwt
+        (Ocaml.send ?charset ?code ?content_type ?headers ())
 
 end
 
 module Eliom_tmpl(Appl : ELIOM_APPL)(Tmpl_param : TMPL_PARAMS) =
   Eliom_mkreg.MakeRegister(Eliom_tmpl_reg_make_param(Appl)(Tmpl_param))
 
-(*****************************************************************************)
+(** Redirection services are like services, but send a redirection
+    instead of a page.
 
-(** Redirection services are like services, but send a redirection instead
- of a page.
+    The HTTP/1.1 RFC says: If the 301 status code is received in
+    response to a request other than GET or HEAD, the user agent MUST
+    NOT automatically redirect the request unless it can be confirmed
+    by the user, since this might change the conditions under which
+    the request was issued.
 
-   The HTTP/1.1 RFC says:
-   If the 301 status code is received in response to a request other than GET or HEAD, the user agent MUST NOT automatically redirect the request unless it can be confirmed by the user, since this might change the conditions under which the request was issued.
-
-   Here redirections are done towards services without parameters.
-   (possibly preapplied).
-
- *)
+    Here redirections are done towards services without parameters.
+    (possibly preapplied). *)
 module String_redir_reg_base = struct
 
-  type page = Url.uri
+  type page = Eliom_lib.Url.uri
   type options =
     [ `MovedPermanently
     | `Found
@@ -1518,7 +1467,7 @@ module String_redir_reg_base = struct
     | `NotNodifed
     | `UseProxy
     | `TemporaryRedirect ]
-  type return = http_service
+  type return = Eliom_service.http Eliom_service.non_ocaml
   type result = browser_content kind
   type maybe_ext = Eliom_service.ext
 
@@ -1708,8 +1657,6 @@ end
 
 
 module Redirection = Eliom_mkreg.MakeRegister_AlphaReturn(Redir_reg_base)
-
-(*****************************************************************************)
 
 let set_exn_handler h =
   let sitedata = Eliom_request_info.find_sitedata "set_exn_handler" in

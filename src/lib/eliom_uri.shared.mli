@@ -63,7 +63,7 @@ val make_string_uri :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('get, unit, Eliom_service.get, _, _, _, _,
-           _, 'gn, unit, 'return) service ->
+           _, _, unit, 'return) service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -144,26 +144,26 @@ val make_string_uri_ :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('a, _, _, _, _, _, _, _, _, _, _) Eliom_service.service ->
+  service:('get, _, _, _, _, _, _, _, _, _, _) Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:nl_params_set -> 'a -> string
+  ?nl_params:nl_params_set -> 'get -> string
 
 val make_post_uri_components__ :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.service ->
+  service:('get, 'post, _, _, _, _, _, _, _, _, _) Eliom_service.service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:nl_params_set ->
   ?keep_get_na_params:bool ->
-  'a ->
-  'b ->
+  'get ->
+  'post ->
   string * (string * Eliommod_parameters.param) list * string option *
     (string * Eliommod_parameters.param) list
 
@@ -172,7 +172,7 @@ val make_uri_components_ :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('a, 'b, _, _, _, _, _, 'e, 'f, 'g, 'h) service ->
+  service:(_, _, _, _, _, _, _, _, _, _, _) service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -184,15 +184,14 @@ val make_post_uri_components_ :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:
-    ('a, 'b, _, _, _, _, _, 'g, 'h, 'i, 'j) service ->
+  service:('get, 'post, _, _, _, _, _, _, _, _, _) service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:nl_params_set ->
   ?keep_get_na_params:bool ->
-  'a ->
+  'get ->
   unit ->
   string * (string * Eliommod_parameters.param) list * string option *
     (string * Eliommod_parameters.param) list

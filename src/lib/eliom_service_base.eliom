@@ -157,6 +157,7 @@ let get_timeout_ s = s.timeout
 let get_https s = s.https
 let get_priority_ s = s.priority
 let get_client_fun_ s = !(s.client_fun)
+
 let has_client_fun_lazy s =
   let f = get_client_fun_ s in
   {unit -> bool{
@@ -199,7 +200,7 @@ let static_dir_ ?(https = false) () =
     max_use = None;
     timeout = None;
     kind = `Service;
-    meth = Get';
+    meth = Meth.Get';
     info = Attached {
       prefix = "";
       subpath = [""];
@@ -210,7 +211,7 @@ let static_dir_ ?(https = false) () =
       redirect_suffix = true;
       priority = default_priority;
     };
-    https = https;
+    https;
     keep_nl_params = `None;
     service_mark = service_mark ();
     send_appl_content = XNever;
@@ -234,7 +235,7 @@ let get_static_dir_ ?(https = false)
     max_use = None;
     timeout = None;
     kind = `Service;
-    meth = Get';
+    meth = Meth.Get';
     info = Attached {
       prefix = "";
       subpath = [""];
@@ -339,7 +340,7 @@ let void_coservice'_aux https =
     get_params_type = Eliom_parameter.unit;
     post_params_type = Eliom_parameter.unit;
     kind = `NonattachedCoservice;
-    meth = Get';
+    meth = Meth.Get';
     info = Nonattached {
       na_name = Eliom_common.SNa_void_dontkeep;
       keep_get_na_params= true;
@@ -359,7 +360,7 @@ let https_void_coservice' = void_coservice'_aux true
 let void_hidden_coservice'_aux https = {
   void_coservice' with
   kind = `NonattachedCoservice;
-  meth = Get';
+  meth = Meth.Get';
   info = Nonattached {
     na_name = Eliom_common.SNa_void_keep;
     keep_get_na_params=true;
@@ -416,6 +417,16 @@ let untype_service_ s =
        'tipo, 'getnames, 'postnames, 'register, _) service
    :> ('get, 'post, 'meth, 'attached, 'co, 'ext,
        'tipo, 'getnames, 'postnames,'register, _) service)
+
+let untype_id_ :
+  type a c m r g . (a, c, m, r, g) id -> (a, c, m, _, g) id =
+  function
+  | Path path ->
+    Path path
+  | Fallback fallback ->
+    Fallback (untype_service_ fallback)
+  | Global ->
+    Global
 
 let eliom_appl_answer_content_type = "application/x-eliom"
 
@@ -486,12 +497,11 @@ let attach_coservice' :
       | SNa_post' s -> SAtt_na_anon s
       | SNa_post_csrf_safe a -> SAtt_na_csrf_safe a
       | _ -> failwith error_msg
-    in
-    { service with
+    in {
+      service with
       service_mark = service_mark ();
       kind = `AttachedCoservice;
-      info =
-        Attached {fallbackkind with get_name ; post_name }
+      info = Attached {fallbackkind with get_name ; post_name }
     }
 
 (** Create a main service (not a coservice), internal or external *)
@@ -507,9 +517,10 @@ let main_service
     ?(priority = default_priority)
     ~get_params
     (type pp) ~(post_params : (pp, _, _) Eliom_parameter.params_type)
-    ~(cf : (unit -> (_ -> pp -> unit Lwt.t) option)
+    ~(client_fun :
+        (unit -> (_ -> pp -> unit Lwt.t) option)
           Eliom_client_value.t ref)
-    ~rf
+    ~reload_fun
     () = {
   pre_applied_parameters = Eliom_lib.String.Table.empty, [];
   get_params_type = get_params;
@@ -531,8 +542,8 @@ let main_service
   keep_nl_params;
   service_mark = service_mark ();
   send_appl_content = XNever;
-  client_fun = cf;
-  reload_fun = rf;
+  client_fun;
+  reload_fun;
 }
 
 let external_service
@@ -561,8 +572,8 @@ let external_service
     ~redirect_suffix:false
     ~get_params
     ~post_params
-    ~cf:(Obj.magic (ref {_ -> _{ fun () -> None }}))
-    ~rf:Rf_keep
+    ~client_fun:(Obj.magic (ref {_ -> _{ fun () -> None }}))
+    ~reload_fun:Rf_keep
     ()
 
 let plain_service
@@ -595,8 +606,8 @@ let plain_service
          raise
            (Eliom_common.Eliom_site_information_not_available "service"))
   and redirect_suffix = Eliom_parameter.contains_suffix get_params in
-  let cf = Obj.magic (ref {_ -> _{ fun () -> None }}) in
-  let rf = Rf_some cf in
+  let client_fun = Obj.magic (ref {_ -> _{ fun () -> None }}) in
+  let reload_fun = Rf_some client_fun in
   main_service
     ~https
     ~prefix:""
@@ -609,8 +620,8 @@ let plain_service
     ?priority
     ~get_params
     ~post_params
-    ~cf
-    ~rf
+    ~client_fun
+    ~reload_fun
     ()
 
 let coservice

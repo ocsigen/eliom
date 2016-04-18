@@ -28,8 +28,6 @@ open Lazy
 
 let suffix_redir_uri_key = Polytables.make_key ()
 
-(****************************************************************************)
-
 type ('options,'page,'result) param =
     { send :
 	?options:'options ->
@@ -259,12 +257,10 @@ let register_aux pages
 				  ~service:
 				  (service :
 				     ('a, 'b, _, _, _,
-                                      Eliom_service.non_ext, reg,
-				      [< `WithSuffix | `WithoutSuffix ],
+                                      Eliom_service.non_ext, reg, _,
                                       'c, 'd,'return)
                                        Eliom_service.service :>
-				     ('a, 'b, _, _, _, _, _,
-				      [< `WithSuffix | `WithoutSuffix ],
+				     ('a, 'b, _, _, _, _, _, _,
 				      'c, 'd, 'return)
 				     Eliom_service.service)
 				  g

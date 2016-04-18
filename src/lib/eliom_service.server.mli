@@ -62,8 +62,7 @@ val register_eliom_module : string -> (unit -> unit) -> unit
 val unregister :
   ?scope:[< Eliom_common.scope ] ->
   ?secure:bool ->
-  ('a, 'b, _, _, _, non_ext,
-   'e, 'f, 'g, 'h, 'return) service -> unit
+  (_, _, _, _, _, non_ext, _, _, _, _, _) service -> unit
 
 (** Returns whether it is an external service or not. *)
 val is_external :
@@ -85,12 +84,14 @@ val untype_service_ :
   ('a, 'b, 'meth, 'attached, 'co, 'ext, 'd, 'e, 'f, 'g, 'rr) service ->
   ('a, 'b, 'meth, 'attached, 'co, 'ext, 'd, 'e, 'f, 'g, 'return) service
 
-(*****************************************************************************)
+val untype_id_ :
+  ('a, 'c, 'm, _, 'g) id -> ('a, 'c, 'm, _, 'g) id
 
 val set_delayed_get_or_na_registration_function :
   Eliom_common.tables ->
   int ->
-  (sp:Eliom_common.server_params -> string) -> unit
+  (sp:Eliom_common.server_params -> string) ->
+  unit
 
 val set_delayed_post_registration_function :
   Eliom_common.tables ->

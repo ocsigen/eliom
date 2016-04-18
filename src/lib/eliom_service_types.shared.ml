@@ -108,5 +108,4 @@ module Meth = struct
       | Put _ -> Put'
       | Delete _ -> Delete'
 
-
 end

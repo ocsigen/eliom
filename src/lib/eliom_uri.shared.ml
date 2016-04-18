@@ -313,10 +313,11 @@ let make_uri_components_ (* does not take into account getparams *)
     in
     (beg, params, fragment)
 
-let make_uri_components (type a)
+let make_uri_components
     ?absolute
     ?absolute_path
     ?https
+    (type a)
     ~(service :
         (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.service)
     ?hostname
@@ -396,13 +397,14 @@ let make_string_uri
 let make_string_uri_ = make_string_uri
 
 
-let make_post_uri_components_ (type att)
+let make_post_uri_components_
     (* do not take into account postparams *)
     ?(absolute = !Eliom_common.is_client_app)
     ?(absolute_path = false)
     ?https
+    (type a)
     ~(service :
-        (_, _, _, att, _, _, _, _, _, _, _) Eliom_service.service)
+        (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.service)
     ?hostname
     ?port
     ?fragment

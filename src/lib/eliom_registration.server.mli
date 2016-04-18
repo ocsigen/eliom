@@ -35,66 +35,39 @@ open Eliom_lib
 (** {2 Type definitions} *)
 
 (** The type [kind] is an abstract type for the HTTP frame returned by
-    a service. The type parameters are phantom types describing the
-    content of the frame:
-
-    - The second parameter is the same as the last type parameters of
-      the corresponding {!type:Eliom_service.service}. Currently, one of
-      the following types:
-      {ul {- {!Eliom_service.appl_service}}
-          {- {!Eliom_service.http_service}}
-          {- {!Eliom_service.ocaml_service}} }
-
-    - The first parameter is a refinement of the second
-      parameter. Currently, one of the following types:
-      {ul {- {!application_content}}
-          {- {!browser_content}}
-          {- {!block_content}}
-          {- {!unknown_content}}
-          {- {!ocaml_content}}}
-
-*)
+    a service. The type parameter indicates the content type, and is
+    one of the following types:
+    {ul {- {!application_content}}
+        {- {!browser_content}}
+        {- {!block_content}}
+        {- {!unknown_content}}
+        {- {!ocaml_content}}} *)
 type 'a kind
 
 (** {3 Return types for {!type:Eliom_service.service} } *)
 
 (** {4 Classical content} *)
 
-(** The type [http_service] is used as a phantom type parameters for
-    {!Eliom_service.service} and {!Eliom_registration.kind}. It means
-    the returned content is classical HTTP content described by the
-    content type header. See {!Eliom_registration.kind} for a list of
-    others return types. *)
-type http_service = Eliom_service.http Eliom_service.non_ocaml
-
-(** The type [browser_content] is a refinement of {!http_service} to
-    be used as a phantom type parameters for
-    {!Eliom_registration.kind}. It means the returned content must be
-    interpreted in the browser as stated by the content-type
-    header. This is most common return type for an eliom service, see
-    for example {!Html5}, {!CssText}, {!File}, {!Redirection}, ... *)
+(** The type [browser_content] is to be used as a phantom type
+    parameter for {!Eliom_registration.kind}. It means the returned
+    content must be interpreted in the browser as stated by the
+    content-type header. This is most common return type for an eliom
+    service, see for example {!Html5}, {!CssText}, {!File},
+    {!Redirection}. *)
 type browser_content = [ `Browser ]
 
-(** The type [block_content] is a refinement of {!http_service} to be
-    used as a phantom type parameters for
-    {!Eliom_registration.kind}. It means the returned content is a
+(** The type [block_content] is to be used as a phantom type parameter
+    for {!Eliom_registration.kind}. It means the returned content is a
     subtree of an XML value. See for example {!Block5} or
     {!Make_typed_xml_registration}. *)
 type block_content
 
-(** The type [unknown_content] is a refinement of {!http_service} to
-    be used as a phantom type parameters for
-    {!Eliom_registration.kind} when the content-type can't be
-    determined staticaly. See {!Text} or {!Any}. *)
+(** The type [unknown_content] is to be used as a phantom type
+    parameter for {!Eliom_registration.kind} when the content-type
+    can't be determined statically. See {!Text} or {!Any}. *)
 type unknown_content
 
 (** {4 Application content} *)
-
-(** The type [appl_service] is used as a phantom type parameters for
-    {!Eliom_service.service} and {!Eliom_registration.kind}. It means
-    the service is part of an Eliom application. See
-    {!Eliom_registration.kind} for a list of others return types. *)
-type appl_service = Eliom_service.appl Eliom_service.non_ocaml
 
 (** The type [application_content] is a refinement of {!appl_service}
     to be used as a phantom type parameters for
@@ -115,21 +88,20 @@ type 'a ocaml_content
 
 (** {2 Using HTML5 with services } *)
 
-(** Eliom service registration for services that returns HTML5
-    page. This is a subset of the {!Html5} module. *)
-(** Eliom service registration for HTML5 page. *)
+(** Eliom service registration for services that return HTML5
+    pages. *)
 module Html5 : Eliom_reg_sigs.S
   with type page = Html5_types.html Eliom_content.Html5.elt
    and type options = unit
-   and type return = http_service
+   and type return = Eliom_service.http Eliom_service.non_ocaml
    and type result = browser_content kind
 
 (** {2 Eliom client/server applications} *)
 
 (** Signature for application creation. *)
 module type APPL_PARAMS = sig
-  (** Name of the application. Two distincts applications must have
-      distincts names. *)
+  (** Name of the application. Applications must have distinct
+      names. *)
   val application_name : string
 end
 
@@ -213,11 +185,11 @@ module Eliom_tmpl (Appl : ELIOM_APPL) (Tmpl_param : TMPL_PARAMS):
   Eliom_reg_sigs.S
   with type page = Tmpl_param.t
    and type options = appl_service_options
-   and type return = appl_service
+   and type return = Eliom_service.appl Eliom_service.non_ocaml
    and type result = Appl.app_id application_content kind
 
-(** {3 Services returning only fragment of HTML (or others TyXML
-    tree)} *)
+(** {3 Services returning only fragments of HTML (or other TyXML
+    trees)} *)
 
 (** Eliom service registration and forms creation for fragment of
     HTML5 page.
@@ -227,7 +199,7 @@ module Eliom_tmpl (Appl : ELIOM_APPL) (Tmpl_param : TMPL_PARAMS):
 module Flow5 : Eliom_reg_sigs.S
   with type page = Html5_types.flow5 Eliom_content.Html5.elt list
    and type options = unit
-   and type return = http_service
+   and type return = Eliom_service.http Eliom_service.non_ocaml
    and type result = block_content kind
 
 (** Eliom service registration for services that returns fragment of
@@ -239,7 +211,7 @@ module Make_typed_xml_registration
   Eliom_reg_sigs.S
   with type page = E.content Typed_xml.elt list
    and type options = unit
-   and type return = http_service
+   and type return = Eliom_service.http Eliom_service.non_ocaml
    and type result = block_content kind
 
 (** {2 Untyped pages} *)
@@ -250,7 +222,7 @@ module Make_typed_xml_registration
 module Html_text : Eliom_reg_sigs.S
   with type page = string
    and type options = unit
-   and type return = http_service
+   and type return = Eliom_service.http Eliom_service.non_ocaml
    and type result = browser_content kind
 
 (** Eliom service registration for services that returns CSS. The page
@@ -260,7 +232,7 @@ module Html_text : Eliom_reg_sigs.S
 module CssText : Eliom_reg_sigs.S
   with type page = string
    and type options = int
-   and type return = http_service
+   and type return = Eliom_service.http Eliom_service.non_ocaml
    and type result = browser_content kind
 
 (** {2 Other kinds of services} *)
@@ -274,7 +246,7 @@ module CssText : Eliom_reg_sigs.S
     registration function, the action will executed and a [204 No
     Content] will be sent to the server. *)
 module Action : Eliom_reg_sigs.S
-  with type return = http_service
+  with type return = Eliom_service.http Eliom_service.non_ocaml
    and type page = unit
    and type options = [ `Reload | `NoReload ]
    and type result = browser_content kind
@@ -283,7 +255,7 @@ module Action : Eliom_reg_sigs.S
 module Unit : Eliom_reg_sigs.S
   with type page = unit
    and type options = unit
-   and type return = http_service
+   and type return = Eliom_service.http Eliom_service.non_ocaml
    and type result = browser_content kind
 
 (** Auxiliarry type to hide non-interesting type parameters *)
@@ -348,7 +320,7 @@ module String_redirection : Eliom_reg_sigs.S
          | `NotNodifed
          | `UseProxy
          | `TemporaryRedirect ]
-   and type return = http_service
+   and type return = Eliom_service.http Eliom_service.non_ocaml
    and type result = browser_content kind
 
 (** Eliom service registration for services that returns file
@@ -356,9 +328,7 @@ module String_redirection : Eliom_reg_sigs.S
     the file to send. See the Eliom manual for more information on {%
     <<a_manual chapter="server-outputs" fragment="eliomfiles"|how to
     send files with Eliom>>%}.  The option is the optional
-    "Cache-policy: max-age" header value to be sent.
-
-*)
+    "Cache-policy: max-age" header value to be sent. *)
 module File : sig
 
   (** The function [check_file file] is true if [File.send file] would
@@ -369,7 +339,7 @@ module File : sig
   include Eliom_reg_sigs.S
     with type page = string
      and type options = int
-     and type return = http_service
+     and type return = Eliom_service.http Eliom_service.non_ocaml
      and type result = browser_content kind
 
 end
@@ -387,7 +357,7 @@ module File_ct : sig
   include Eliom_reg_sigs.S
     with type page = string * string
      and type options = int
-     and type return = http_service
+     and type return = Eliom_service.http Eliom_service.non_ocaml
      and type result = browser_content kind
 
 end
@@ -437,7 +407,7 @@ val appl_self_redirect :
 module String : Eliom_reg_sigs.S
   with type page = string * string
    and type options = int
-   and type return = http_service
+   and type return = Eliom_service.http Eliom_service.non_ocaml
    and type result = unknown_content kind
 
 (** Eliom service registration for services that returns "byte"
@@ -455,7 +425,7 @@ module Streamlist : Eliom_reg_sigs.S
   with type page =
          (unit -> string Ocsigen_stream.t Lwt.t) list * string
    and type options = unit
-   and type return = http_service
+   and type return = Eliom_service.http Eliom_service.non_ocaml
    and type result = unknown_content kind
 
 (** {2 Customizing registration} *)
