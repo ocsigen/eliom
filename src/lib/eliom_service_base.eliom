@@ -132,27 +132,27 @@ let pre_wrap s = {
 
 let service_mark () = Eliom_common.make_wrapper pre_wrap
 
-let get_info {info} = info
+let info {info} = info
 
-let get_pre_applied_parameters_ s = s.pre_applied_parameters
-let get_get_params_type_ s = s.get_params_type
-let get_post_params_type_ s = s.post_params_type
-let get_prefix_ s = s.prefix
-let get_sub_path_ s = s.subpath
-let get_redirect_suffix_ s = s.redirect_suffix
-let get_full_path_ s = s.fullpath
-let get_get_name_ s = s.get_name
-let get_post_name_ s = s.post_name
-let get_na_name_ s = s.na_name
-let get_na_keep_get_na_params_ s = s.keep_get_na_params
-let get_max_use_ s = s.max_use
-let get_timeout_ s = s.timeout
-let get_https s = s.https
-let get_priority_ s = s.priority
-let get_client_fun_ s = !(s.client_fun)
+let pre_applied_parameters s = s.pre_applied_parameters
+let get_params_type s = s.get_params_type
+let post_params_type s = s.post_params_type
+let prefix s = s.prefix
+let sub_path s = s.subpath
+let redirect_suffix s = s.redirect_suffix
+let full_path s = s.fullpath
+let get_name s = s.get_name
+let post_name s = s.post_name
+let na_name s = s.na_name
+let na_keep_get_na_params s = s.keep_get_na_params
+let max_use s = s.max_use
+let timeout s = s.timeout
+let https s = s.https
+let priority s = s.priority
+let client_fun s = !(s.client_fun)
 
 let has_client_fun_lazy s =
-  let f = get_client_fun_ s in
+  let f = client_fun s in
   {unit -> bool{
      fun () ->
        match %f () with
@@ -162,9 +162,9 @@ let has_client_fun_lazy s =
          false
    }}
 
-let internal_set_client_fun_ ~service:{client_fun} f = client_fun := f
+let internal_set_client_fun ~service:{client_fun} f = client_fun := f
 
-let set_client_fun_ ?app ~service f =
+let set_client_fun ?app ~service f =
   Eliom_lib.Option.iter
     (fun name -> service.send_appl_content <- XSame_appl (name, None))
     app;
@@ -253,7 +253,7 @@ let static_dir_with_params ?keep_nl_params ~get_params () =
 let https_static_dir_with_params ?keep_nl_params ~get_params () =
   get_static_dir_ ~https:true ?keep_nl_params ~get_params ()
 
-let get_send_appl_content s = s.send_appl_content
+let send_appl_content s = s.send_appl_content
 let set_send_appl_content s n = s.send_appl_content <- n
 
 type clvpreapp = {
@@ -458,17 +458,17 @@ let default_csrf_scope = function
 
 exception Unreachable_exn
 
-let get_attached_info = function
+let attached_info = function
   | {info = Attached k} ->
     k
   | _ ->
-    failwith "get_attached_info"
+    failwith "attached_info"
 
-let get_non_attached_info = function
+let non_attached_info = function
   | {info = Nonattached k} ->
     k
   | _ ->
-    failwith "get_non_attached_info"
+    failwith "non_attached_info"
 
 let attach_global_to_fallback :
   fallback:
@@ -480,8 +480,8 @@ let attach_global_to_fallback :
   ('get, 'post, 'gp, att, co, non_ext, non_reg,
    'sf, 'gn, 'pn, 'return) t =
   fun ~fallback ~service ->
-    let {na_name} = get_non_attached_info service in
-    let fallbackkind = get_attached_info fallback in
+    let {na_name} = non_attached_info service in
+    let fallbackkind = attached_info fallback in
     let open Eliom_common in
     let error_msg =
       "attach_global_to_fallback' is not implemented for this kind of\
@@ -606,8 +606,8 @@ let plain_service
       Eliom_request_info.get_site_dir_sp sp
     | None ->
       (match Eliom_common.global_register_allowed () with
-       | Some get_current_site_data ->
-         let sitedata = get_current_site_data () in
+       | Some current_site_data ->
+         let sitedata = current_site_data () in
          Eliom_common.add_unregistered sitedata path;
          Eliom_common.get_site_dir sitedata
        | None ->
@@ -649,7 +649,7 @@ let coservice
   let get_params, post_params = Meth.params meth in
   let meth = Meth.which meth in
   let csrf_scope = default_csrf_scope csrf_scope in
-  let k = get_attached_info fallback
+  let k = attached_info fallback
   and client_fun = Obj.magic (ref {_ -> _{ fun () -> None }}) in {
     pre_applied_parameters = fallback.pre_applied_parameters;
     post_params_type = post_params;

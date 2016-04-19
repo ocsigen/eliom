@@ -40,7 +40,7 @@ let xhr_with_cookies s =
    only after calling send.  In case it is not the same name, we will
    not send the onload_form_creator_info. *)
 
-let get_or_post_
+let get_or_post
     (type m) (s : (_, _, m, _, _, _, _, _, _, _, _) t) =
   match which_meth s with
   | Meth.Get' -> Ocsigen_http_frame.Http_header.GET
@@ -65,16 +65,16 @@ let remove_service
     table
     (type m) (type a)
     (service : (_, _, m, a, _, _, _, _, _, _, _) t) =
-  match get_info service with
+  match info service with
   | Attached attser ->
-    let key_kind = get_or_post_ service in
-    let attserget = get_get_name_ attser in
-    let attserpost = get_post_name_ attser in
-    let sgpt = get_get_params_type_ service in
-    let sppt = get_post_params_type_ service in
+    let key_kind = get_or_post service in
+    let attserget = get_name attser in
+    let attserpost = post_name attser in
+    let sgpt = get_params_type service in
+    let sppt = post_params_type service in
     Eliommod_services.remove_service
       table
-      (get_sub_path_ attser)
+      (sub_path attser)
       {Eliom_common.key_state = (attserget, attserpost);
        Eliom_common.key_kind = key_kind}
       (if attserget = Eliom_common.SAtt_no
@@ -85,7 +85,7 @@ let remove_service
            anonymise_params_type sppt)
        else (0, 0))
   | Nonattached naser ->
-    let na_name = get_na_name_ naser in
+    let na_name = na_name naser in
     Eliommod_naservices.remove_naservice table na_name
 
 let unregister ?scope ?secure
@@ -122,5 +122,4 @@ let unregister ?scope ?secure
       in
       remove_service table service
 
-let set_client_fun = set_client_fun_
-let has_client_fun_ _ = false
+let has_client_fun _ = false

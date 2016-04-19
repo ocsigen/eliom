@@ -252,12 +252,12 @@ module Make (Html5 : Html5) = struct
 
   let submit_get_form_client ~service elt = {unit{
     let service = %service in
-    let y = Eliom_service.get_get_params_type_ service
+    let y = Eliom_service.get_params_type service
     and elt = Eliom_client_core.rebuild_node' `HTML5 %(Html5.to_elt elt) in
     let elt = Js.Unsafe.coerce elt in
     Lwt_js_events.async @@ fun () ->
     Lwt_js_events.submits elt @@ fun ev _ ->
-    match Eliom_service.get_client_fun_ service () with
+    match Eliom_service.client_fun service () with
     | Some f ->
       (match read_params elt y with
        | Some v ->
@@ -271,12 +271,12 @@ module Make (Html5 : Html5) = struct
 
   let submit_post_form_client ~service ~get_params elt = {unit{
     let service = %service in
-    let y  = Eliom_service.get_post_params_type_ service
+    let y  = Eliom_service.post_params_type service
     and elt = Eliom_client_core.rebuild_node' `HTML5 %(Html5.to_elt elt) in
     let elt = Js.Unsafe.coerce elt in
     Lwt_js_events.async @@ fun () ->
     Lwt_js_events.submits elt @@ fun ev _ ->
-    match Eliom_service.get_client_fun_ service () with
+    match Eliom_service.client_fun service () with
     | Some f ->
       (match read_params elt y with
        | Some v ->
@@ -296,8 +296,8 @@ module Make (Html5 : Html5) = struct
       f =
 
     let issuffix, paramnames =
-      Eliom_service.get_get_params_type_ service |>
       Eliom_parameter.make_params_names
+        (Eliom_service.get_params_type service)
     in
 
     let components =
@@ -363,8 +363,8 @@ module Make (Html5 : Html5) = struct
       f get_params =
 
     let _, paramnames =
-      Eliom_service.get_post_params_type_ service |>
       Eliom_parameter.make_params_names
+        (Eliom_service.post_params_type service)
     in
 
     let components =

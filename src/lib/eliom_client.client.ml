@@ -686,7 +686,7 @@ let change_page (type m)
              get_params post_params in
          set_template_content ~uri ?fragment (Some content)
        | _ ->
-         match Eliom_service.get_client_fun_ service () with
+         match Eliom_service.client_fun service () with
          | Some f ->
            (* The service has a client side implementation.
               We do not make the request *)

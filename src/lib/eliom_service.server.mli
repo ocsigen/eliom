@@ -69,11 +69,11 @@ val is_external :
   (_, _, _, _, _, _, _, _, _, _, _) t -> bool
 (**/**)
 
-val get_or_post_ :
+val get_or_post :
   (_, _, _, _, _, _, _, _, _, _, _) t ->
   Ocsigen_http_frame.Http_header.http_method
 
-val get_pre_applied_parameters_ :
+val pre_applied_parameters :
   (_, _, _, _, _, _, _, _, _, _, _) t ->
   (string * string) list String.Table.t *
   (string * string) list

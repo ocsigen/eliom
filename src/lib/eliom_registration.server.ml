@@ -1616,7 +1616,7 @@ module Redir_reg_base = struct
           anr
           headers
         in
-        match Eliom_service.get_send_appl_content service with
+        match Eliom_service.send_appl_content service with
           (* the appl name of the destination service *)
             | Eliom_service.XSame_appl (an,_) when (an = anr) ->
             (* Same appl, we do a full xhr redirection

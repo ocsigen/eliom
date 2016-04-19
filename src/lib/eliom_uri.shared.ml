@@ -104,9 +104,9 @@ let make_proto_prefix
   Eliom_lib.Url.make_absolute_url https host port "/"
 
 let is_https https ssl service =
-  (https = Some true) ||
-  ((https = None) && Eliom_config.default_protocol_is_https ()) ||
-  (Eliom_service.get_https service) ||
+  https = Some true ||
+  (https = None && Eliom_config.default_protocol_is_https ()) ||
+  Eliom_service.https service ||
   (https = None && ssl)
 
 
@@ -131,7 +131,7 @@ let make_uri_components_ (* does not take into account getparams *)
     match absolute with
       Some a -> a
     | None -> !Eliom_common.is_client_app &&
-              not (Eliom_service.has_client_fun_ service)
+              not (Eliom_service.has_client_fun service)
   in
   let ssl =
     match Eliom_common.get_sp_option () with
@@ -158,7 +158,7 @@ let make_uri_components_ (* does not take into account getparams *)
   in
   (* for preapplied non localized and not non localized: *)
   let preappnlp, preapplied_params =
-    Eliom_service.get_pre_applied_parameters_ service
+    Eliom_service.pre_applied_parameters service
   in
   let nlp =
     match Eliom_common.get_sp_option () with
@@ -187,7 +187,7 @@ let make_uri_components_ (* does not take into account getparams *)
   in
 
   (* remove in nlp the one present in the service parameters *)
-  let getparamstype = Eliom_service.get_get_params_type_ service in
+  let getparamstype = Eliom_service.get_params_type service in
   let nlp = Eliom_parameter.remove_from_nlp nlp getparamstype in
   let hiddenparams =
     Eliom_lib.String.Table.fold
@@ -195,32 +195,32 @@ let make_uri_components_ (* does not take into account getparams *)
       nlp preapplied_params
   in
 
-  match Eliom_service.get_info service with
+  match Eliom_service.info service with
   | Eliom_service.Attached attser ->
     begin
 
       let uri =
         let suff= None in
         if Eliom_service.is_external service then
-          Eliom_service.get_prefix_ attser ^
+          Eliom_service.prefix attser ^
           "/" ^  (* we add the "/" even if there is no prefix, because
                     we should do absolute links in that case *)
           reconstruct_absolute_url_path
-            (Eliom_service.get_full_path_ attser)
+            (Eliom_service.full_path attser)
             suff
         else
           match absolute with
           | Some proto_prefix ->
             proto_prefix ^
             reconstruct_absolute_url_path
-              (Eliom_service.get_full_path_ attser) suff
+              (Eliom_service.full_path attser) suff
           | None ->
             let sp = Eliom_common.get_sp () in
             reconstruct_relative_url_path_string
               (Eliom_request_info.get_csp_original_full_path_sp sp)
-              (Eliom_service.get_full_path_ attser) suff
+              (Eliom_service.full_path attser) suff
       in
-      match Eliom_service.get_get_name_ attser with
+      match Eliom_service.get_name attser with
       | Eliom_common.SAtt_no ->
         uri, hiddenparams, fragment
       | Eliom_common.SAtt_anon s ->
@@ -268,7 +268,7 @@ let make_uri_components_ (* does not take into account getparams *)
   | Eliom_service.Nonattached naser ->
 
     let sp = Eliom_common.get_sp () in
-    let na_name = Eliom_service.get_na_name_ naser in
+    let na_name = Eliom_service.na_name naser in
     let params' =
       let current_get_params =
         if na_name = Eliom_common.SNa_void_keep
@@ -336,7 +336,7 @@ let make_uri_components
   let suff, params =
     Eliom_parameter.construct_params_list
       Eliom_lib.String.Table.empty
-      (Eliom_service.get_get_params_type_ service) getparams
+      (Eliom_service.get_params_type service) getparams
       (* if nl params were already present, they will be replaced
          by new values *)
   in
@@ -403,10 +403,10 @@ let make_post_uri_components_
     ?keep_get_na_params
     getparams
     () =
-  match Eliom_service.get_info service with
+  match Eliom_service.info service with
   | Eliom_service.Attached attser ->
     let (uri, getparams, fragment), getname =
-      let getname = Eliom_service.get_get_name_ attser in
+      let getname = Eliom_service.get_name attser in
       match getname with
       | Eliom_common.SAtt_csrf_safe csrf_info ->
         (* special case for post-coservices on get csrf safe services:
@@ -445,7 +445,7 @@ let make_post_uri_components_
     in
 
     let postparams =
-      match Eliom_service.get_post_name_ attser with
+      match Eliom_service.post_name attser with
       | Eliom_common.SAtt_no -> []
       | Eliom_common.SAtt_anon s ->
         [(Eliom_common.post_numstate_param_name, s)]
@@ -482,9 +482,7 @@ let make_post_uri_components_
       | None -> Eliom_service.keep_nl_params service
       | Some b -> b
     in
-    let preappnlp, preapp =
-      Eliom_service.get_pre_applied_parameters_ service
-    in
+    let preappnlp, preapp = Eliom_service.pre_applied_parameters service in
     let nlp =
       match keep_nl_params with
       | `All ->
@@ -511,7 +509,7 @@ let make_post_uri_components_
     (* for getparams and non localized params: *)
     let suff, params =
       Eliom_parameter.construct_params_list
-        nlp (Eliom_service.get_get_params_type_ service) getparams
+        nlp (Eliom_service.get_params_type service) getparams
         (* if nl params were already present, they will be replaced
            by new values *)
         (* getparams can be something else than []
@@ -522,7 +520,7 @@ let make_post_uri_components_
     let keep_get_na_params =
       match keep_get_na_params with
       | Some b -> b
-      | None -> Eliom_service.get_na_keep_get_na_params_ naser
+      | None -> Eliom_service.na_keep_get_na_params naser
     in
     let params =
       params @
@@ -560,7 +558,7 @@ let make_post_uri_components_
     in
 
     let naservice_line =
-      match Eliom_service.get_na_name_ naser with
+      match Eliom_service.na_name naser with
       | Eliom_common.SNa_post' n -> (Eliom_common.naservice_num, n)
       | Eliom_common.SNa_post_ n -> (Eliom_common.naservice_name, n)
       | Eliom_common.SNa_post_csrf_safe csrf_info ->
@@ -612,7 +610,7 @@ let make_post_uri_components
   let _, postparams =
     Eliom_parameter.construct_params_list
       Eliom_lib.String.Table.empty
-      (Eliom_service.get_post_params_type_ service)
+      (Eliom_service.post_params_type service)
       postparams
   in
   (uri, getparams, fragment, postparams@prepostparams)
@@ -644,12 +642,12 @@ let make_cookies_info (https, service) =
                             Returns only the absolute path without
                             protocol/server/port AND WITHOUT SUFFIX *)
       ~(service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t) =
-    match Eliom_service.get_info service with
+    match Eliom_service.info service with
     | Eliom_service.Attached attser ->
       if Eliom_service.is_external service then
         None
       else
-        Some (Eliom_service.get_full_path_ attser)
+        Some (Eliom_service.full_path attser)
     | Eliom_service.Nonattached naser ->
       Some (Eliom_request_info.get_csp_original_full_path ())
   in
@@ -659,7 +657,7 @@ let make_cookies_info (https, service) =
     let ssl = Eliom_request_info.get_csp_ssl () in
     let https =
       (https = Some true) ||
-      (Eliom_service.get_https service) ||
+      (Eliom_service.https service) ||
       (https = None && ssl)
     in
     Some (https, path)

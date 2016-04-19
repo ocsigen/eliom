@@ -166,8 +166,7 @@ module type S = sig
       keep non attached GET parameters.  *)
   val reload_action :
     (unit, unit, get, non_att, co, non_ext, non_reg,
-     [ `WithoutSuffix ], unit, unit, _ non_ocaml)
-      t
+     [ `WithoutSuffix ], unit, unit, _ non_ocaml) t
 
   (** Same as {!reload_action} but forcing HTTPS. *)
   val reload_action_https :
@@ -286,51 +285,51 @@ module type S = sig
   val which_meth :
     (_, _, 'm, _, _, _, _, _, _, _, _) t -> 'm Meth.which
 
-  val get_info :
+  val info :
     (_, _, _, 'att, _, _, _, _, _, _, _) t -> 'att attached_info
 
   val is_external : (_, _, _, _, _, _, _, _, _, _, _) t -> bool
 
-  val get_get_params_type_ :
+  val get_params_type :
     ('a, _, _, _, _, _, _, 'b, 'c,  _, _) t ->
     ('a, 'b, 'c) Eliom_parameter.params_type
 
-  val get_post_params_type_ :
+  val post_params_type :
     (_, 'a, _, _, _, _, _, _, _, 'b, _) t ->
     ('a, [ `WithoutSuffix ], 'b) Eliom_parameter.params_type
 
-  val get_sub_path_ : att -> Eliom_lib.Url.path
+  val sub_path : att -> Eliom_lib.Url.path
 
-  val get_full_path_ : att -> Eliom_lib.Url.path
+  val full_path : att -> Eliom_lib.Url.path
 
-  val get_prefix_ :   att -> string
+  val prefix : att -> string
 
-  val get_get_name_ : att -> Eliom_common.att_key_serv
+  val get_name : att -> Eliom_common.att_key_serv
 
-  val get_post_name_ : att -> Eliom_common.att_key_serv
+  val post_name : att -> Eliom_common.att_key_serv
 
-  val get_redirect_suffix_ : att -> bool
+  val redirect_suffix : att -> bool
 
-  val get_na_name_ : non_att -> Eliom_common.na_key_serv
+  val na_name : non_att -> Eliom_common.na_key_serv
 
-  val get_na_keep_get_na_params_: non_att -> bool
+  val na_keep_get_na_params: non_att -> bool
 
-  val get_max_use_ :
+  val max_use :
     (_, _, _, _, _, _, _, _, _, _, _) t -> int option
 
-  val get_timeout_ :
+  val timeout :
     (_, _, _, _, _, _, _, _, _, _, _) t -> float option
 
-  val get_https :
+  val https :
     (_, _, _, _, _, _, _, _, _, _, _) t -> bool
 
-  val get_priority_ : att -> int
+  val priority : att -> int
 
-  val get_client_fun_ :
+  val client_fun :
     ('a, 'b, _, _, _, _, _, _, _, _, _) t ->
     (unit -> ('a -> 'b -> unit Lwt.t) option) Eliom_client_value.t
 
-  val has_client_fun_ :
+  val has_client_fun :
     (_, _, _, _, _, _, _, _, _, _, _) t -> bool
 
   val has_client_fun_lazy :
@@ -378,19 +377,19 @@ module type S = sig
 
   (** Returns the name of the application to which belongs the
       service, if any. *)
-  val get_send_appl_content :
+  val send_appl_content :
     (_, _, _, _, _, _, _, _, _, _, _) t -> send_appl_content
 
   val xhr_with_cookies :
     (_, _, _, _, _, _, _, _, _, _, _) t -> string option option
 
-  val set_client_fun_ :
+  val set_client_fun :
     ?app:string ->
     service:('a, 'b, _, _, _, _, _, _, _, _, _) t ->
     ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
     unit
 
-  val internal_set_client_fun_ :
+  val internal_set_client_fun :
     service :('a, 'b, _, _, _, _, _, _, _, _, _) t ->
     (unit -> ('a -> 'b -> unit Lwt.t) option) Eliom_client_value.t ->
     unit

@@ -30,10 +30,7 @@ let xhr_with_cookies s =
       None
     | XSame_appl (_, tmpl) -> Some tmpl
 
-
-let set_client_fun = set_client_fun_
-
-let has_client_fun_ service = get_client_fun_ service () <> None
+let has_client_fun service = client_fun service () <> None
 
 let get_reload_fun s =
   match s.reload_fun with

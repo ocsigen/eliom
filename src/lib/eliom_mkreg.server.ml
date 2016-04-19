@@ -69,7 +69,7 @@ type ('options,'page,'result) param =
    point: we must wait for the page to be generated and then see if it
    is effectively application content. *)
 let check_before name service =
-  match S.get_send_appl_content service
+  match S.send_appl_content service
   (* the appl name of the service *)
   with
     | S.XSame_appl (an, _)
@@ -179,20 +179,20 @@ let register_aux pages
       page_generator =
     S.set_send_appl_content service (pages.send_appl_content);
     begin
-      match S.get_info service with
+      match S.info service with
 	| S.Attached attser ->
-          let key_kind = S.get_or_post_ service in
-          let attserget = S.get_get_name_ attser in
-          let attserpost = S.get_post_name_ attser in
-          let suffix_with_redirect = S.get_redirect_suffix_ attser in
-          let priority = S.get_priority_ attser in
-          let sgpt = S.get_get_params_type_ service in
-          let sppt = S.get_post_params_type_ service in
+          let key_kind = S.get_or_post service in
+          let attserget = S.get_name attser in
+          let attserpost = S.post_name attser in
+          let suffix_with_redirect = S.redirect_suffix attser in
+          let priority = S.priority attser in
+          let sgpt = S.get_params_type service in
+          let sppt = S.post_params_type service in
           let f table ((attserget, attserpost) as attsernames) =
             Eliommod_services.add_service
               priority
               table
-              (S.get_sub_path_ attser)
+              (S.sub_path attser)
               {Eliom_common.key_state = attsernames;
                Eliom_common.key_kind = key_kind}
               ((if attserget = Eliom_common.SAtt_no
@@ -203,10 +203,10 @@ let register_aux pages
                     anonymise_params_type sppt
                   )
                 else (0, 0)),
-               ((match S.get_max_use_ service with
+               ((match S.max_use service with
                   | None -> None
                   | Some i -> Some (ref i)),
-                (match S.get_timeout_ service with
+                (match S.timeout service with
                  | None -> None
                  | Some t -> Some (t, ref (t +. Unix.time ()))),
                 (fun nosuffixversion sp ->
@@ -373,15 +373,15 @@ let register_aux pages
               in
               f tablereg (attserget, attserpost))
 	| S.Nonattached naser ->
-          let na_name = S.get_na_name_ naser in
+          let na_name = S.na_name naser in
           let f table na_name =
             Eliommod_naservices.add_naservice
               table
               na_name
-              ((match S.get_max_use_ service with
+              ((match S.max_use service with
                 | None -> None
                 | Some i -> Some (ref i)),
-               (match S.get_timeout_ service with
+               (match S.timeout service with
                  | None -> None
                  | Some t -> Some (t, ref (t +. Unix.time ()))),
                (fun sp ->
@@ -392,7 +392,7 @@ let register_aux pages
                        (fun () ->
                          Eliom_parameter.reconstruct_params
                            ~sp
-                           (S.get_get_params_type_ service)
+                           (S.get_params_type service)
                            (Some (Lwt.return
                               (Lazy.force (Ocsigen_extensions
                                       .Ocsigen_request_info.get_params ri))))
@@ -406,7 +406,7 @@ let register_aux pages
                          let files = Eliom_request_info.get_files_sp sp in
                          Eliom_parameter.reconstruct_params
 			   ~sp
-			   (S.get_post_params_type_ service)
+			   (S.post_params_type service)
 			   post_params
 			   files
 			   false
@@ -537,13 +537,13 @@ let register pages
       (match Eliom_common.global_register_allowed () with
         | Some get_current_sitedata ->
           let sitedata = get_current_sitedata () in
-          (match S.get_info service with
+          (match S.info service with
             | S.Attached attser ->
               Eliom_common.remove_unregistered
-                sitedata (S.get_sub_path_ attser)
+                sitedata (S.sub_path attser)
             | S.Nonattached naser ->
               Eliom_common.remove_unregistered_na
-                sitedata (S.get_na_name_ naser));
+                sitedata (S.na_name naser));
           register_aux pages
             ?options
             ?charset

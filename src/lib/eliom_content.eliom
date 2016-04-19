@@ -94,7 +94,7 @@ end
 }}
 
 {shared{
-   let set_client_fun = Eliom_service.set_client_fun_
+   let set_client_fun = Eliom_service.set_client_fun
  }}
 
 {client{

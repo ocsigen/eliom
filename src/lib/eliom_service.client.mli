@@ -21,7 +21,7 @@ include Eliom_service_sigs.S
 
 (**/**)
 
-val get_pre_applied_parameters_ :
+val pre_applied_parameters :
   (_, _, _, _, _, _, _, _, _, _, _) t ->
   (string * Eliommod_parameters.param) list Eliom_lib.String.Table.t *
     (string * Eliommod_parameters.param) list
@@ -30,7 +30,7 @@ val get_reload_fun :
   ('a, _, _, _, _, _, _, _, _, _, _) t ->
   ('a -> unit -> unit Lwt.t) option
 
-val internal_set_client_fun_ :
+val internal_set_client_fun :
   service : ('a, 'b, _, _, _, _, _, _, _, _, _) t ->
   (unit -> ('a -> 'b -> unit Lwt.t) option) ->
   unit

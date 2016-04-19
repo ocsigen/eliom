@@ -55,16 +55,16 @@ let switch_to_https () =
 
 (* Client side implementation of void_coservices *)
 let _ =
-  Eliom_service.internal_set_client_fun_
+  Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action
     {{ reload_with_warning }};
-  Eliom_service.internal_set_client_fun_
+  Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_https
     {{ fun () -> switch_to_https (); reload_with_warning () }};
-  Eliom_service.internal_set_client_fun_
+  Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_hidden
     {{ fun () -> !Eliom_client.reload_function }};
-  Eliom_service.internal_set_client_fun_
+  Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_https_hidden
     {{ fun () -> switch_to_https (); !Eliom_client.reload_function }}
 }}

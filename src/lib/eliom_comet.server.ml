@@ -21,8 +21,8 @@
 
 (* TODO: handle ended stream ( and on client side too ) *)
 
+open Lwt.Infix
 module Ecb = Eliom_comet_base
-let (>>=) = Lwt.(>>=)
 
 let section = Lwt_log.Section.make "eliom:comet"
 type chan_id = string
