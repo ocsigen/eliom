@@ -1,7 +1,3 @@
-open Eliom_lib
-open Eliom_parameter
-open Eliom_service
-
 (** {2 Service registration } *)
 
 (** The function [register service handler] will associate the
@@ -44,15 +40,17 @@ val register :
   ?headers: Http_headers.t ->
   ?secure_session:bool ->
   service:
-    ('get, 'post, _, _, _, non_ext, reg, _, _, _, return) service ->
+    ('get, 'post, _, _, _, Eliom_service.non_ext, Eliom_service.reg, _,
+     _, _, return)
+      Eliom_service.t ->
   ?error_handler:((string * exn) list -> page Lwt.t) ->
   ('get -> 'post -> page Lwt.t) ->
   unit
 (* FIXME: secure_session is called "secure" in Eliom_state and
    Eliom_Service.unregister. *)
 
-(** Same as {!Eliom_service.service} followed by {!register}. *)
-val register_service :
+(** Same as {!Eliom_service.create} followed by {!register}. *)
+val create :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
   ?charset:string ->
@@ -67,11 +65,14 @@ val register_service :
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
-  meth:('m , 'gp , 'gn , 'pp, 'pn, 'tipo, 'mf, 'gp_) Meth.t ->
-  id:('att, 'co, 'mf, return, 'gp_) id ->
+  meth:
+    ('m , 'gp , 'gn , 'pp, 'pn, 'tipo, 'mf, 'gp_) Eliom_service.Meth.t ->
+  id:('att, 'co, 'mf, return, 'gp_) Eliom_service.Id.t ->
   ?error_handler:((string * exn) list -> page Lwt.t) ->
   ('gp -> 'pp -> page Lwt.t) ->
-  ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, return) service
+  ('gp, 'pp, 'm, 'att, 'co, Eliom_service.non_ext, Eliom_service.reg, 'tipo,
+   'gn, 'pn, return)
+    Eliom_service.t
 
 (** {2 Low-level function } *)
 

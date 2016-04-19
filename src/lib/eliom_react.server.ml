@@ -108,8 +108,7 @@ struct
            [ `WithoutSuffix ],
            unit,
            [ `One of 'a Eliom_parameter.ocaml ] Eliom_parameter.param_name,
-           Eliom_registration.Action.return)
-            Eliom_service.service;
+           Eliom_registration.Action.return) Eliom_service.t;
         wrapper : 'a t Eliom_common.wrapper }
 
   let to_react t = t.event
@@ -129,11 +128,11 @@ struct
       | _ -> (Eliom_common.comet_client_process_scope :> Eliom_common.scope)
     in
     let e_writer =
-      Eliom_service.service
+      Eliom_service.create
         ?name
-        ~rt:Eliom_service.Http
+        ~ret:Eliom_service.Ret.Http
         ~meth:(Eliom_service.Meth.Post (Eliom_parameter.unit, post_params))
-        ~id:Eliom_service.Global
+        ~id:Eliom_service.Id.Global
         ()
     in
     Eliom_registration.Action.register

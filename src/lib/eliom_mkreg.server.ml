@@ -18,13 +18,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_lib
-
-open Lwt
-open Eliom_state
-open Eliom_parameter
-open Eliom_service
-open Lazy
+module S = Eliom_service
+let (>>=) = Lwt.(>>=)
 
 let suffix_redir_uri_key = Polytables.make_key ()
 
@@ -38,7 +33,7 @@ type ('options,'page,'result) param =
 	'page ->
 	Ocsigen_http_frame.result Lwt.t;
 
-      send_appl_content : Eliom_service.send_appl_content;
+      send_appl_content : S.send_appl_content;
       (** Whether the service is capable to send application content when
 	  required. This field is usually [Eliom_service.XNever]. This
 	  value is recorded inside each service just after
@@ -74,13 +69,13 @@ type ('options,'page,'result) param =
    point: we must wait for the page to be generated and then see if it
    is effectively application content. *)
 let check_before name service =
-  match Eliom_service.get_send_appl_content service
+  match S.get_send_appl_content service
   (* the appl name of the service *)
   with
-    | Eliom_service.XSame_appl (an, _)
+    | S.XSame_appl (an, _)
 	when (an = name)
 	  -> (* Same appl, it is ok *) false
-    | Eliom_service.XAlways -> (* It is an action *) false
+    | S.XAlways -> (* It is an action *) false
     | _ -> true
 
 (* This test check if there is a header set only by
@@ -118,7 +113,7 @@ let check_process_redir sp f param =
 	 by asking an HTTP redirection *)
       (Eliom_common.Eliom_do_half_xhr_redirection
 	 ("/"^
-             String.may_concat
+             Eliom_lib.String.may_concat
                   (Ocsigen_extensions.Ocsigen_request_info.original_full_path_string ri)
                   ~sep:"?"
                   (Eliom_parameter.construct_params_string
@@ -179,48 +174,51 @@ let register_aux pages
       ?headers
       table
       (type a)
-      ~(service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.service)
+      ~(service : (_, _, _, a, _, _, _, _, _, _, _) S.t)
       ?(error_handler = fun l -> raise (Eliom_common.Eliom_Typing_Error l))
       page_generator =
-    Eliom_service.set_send_appl_content service (pages.send_appl_content);
+    S.set_send_appl_content service (pages.send_appl_content);
     begin
-      match get_info service with
-	| Attached attser ->
-          let key_kind = get_or_post_ service in
-          let attserget = get_get_name_ attser in
-          let attserpost = get_post_name_ attser in
-          let suffix_with_redirect = get_redirect_suffix_ attser in
-          let priority = get_priority_ attser in
-          let sgpt = get_get_params_type_ service in
-          let sppt = get_post_params_type_ service in
+      match S.get_info service with
+	| S.Attached attser ->
+          let key_kind = S.get_or_post_ service in
+          let attserget = S.get_get_name_ attser in
+          let attserpost = S.get_post_name_ attser in
+          let suffix_with_redirect = S.get_redirect_suffix_ attser in
+          let priority = S.get_priority_ attser in
+          let sgpt = S.get_get_params_type_ service in
+          let sppt = S.get_post_params_type_ service in
           let f table ((attserget, attserpost) as attsernames) =
             Eliommod_services.add_service
               priority
               table
-              (get_sub_path_ attser)
+              (S.get_sub_path_ attser)
               {Eliom_common.key_state = attsernames;
                Eliom_common.key_kind = key_kind}
               ((if attserget = Eliom_common.SAtt_no
                 || attserpost = Eliom_common.SAtt_no
-                then (anonymise_params_type sgpt,
-                      anonymise_params_type sppt)
+                then
+                  Eliom_parameter.(
+                    anonymise_params_type sgpt,
+                    anonymise_params_type sppt
+                  )
                 else (0, 0)),
-               ((match get_max_use_ service with
-                 | None -> None
-                 | Some i -> Some (ref i)),
-                (match get_timeout_ service with
+               ((match S.get_max_use_ service with
                   | None -> None
-                  | Some t -> Some (t, ref (t +. Unix.time ()))),
+                  | Some i -> Some (ref i)),
+                (match S.get_timeout_ service with
+                 | None -> None
+                 | Some t -> Some (t, ref (t +. Unix.time ()))),
                 (fun nosuffixversion sp ->
                   Lwt.with_value Eliom_common.sp_key (Some sp)
                     (fun () ->
                       let ri = Eliom_request_info.get_ri_sp sp
                       and suff = Eliom_request_info.get_suffix_sp sp in
-                      (catch (fun () ->
-			reconstruct_params
+                      (Lwt.catch (fun () ->
+			 Eliom_parameter.reconstruct_params
 			  ~sp
 			  sgpt
-			  (Some (Lwt.return (force (Ocsigen_extensions.Ocsigen_request_info.get_params ri))))
+			  (Some (Lwt.return (Lazy.force (Ocsigen_extensions.Ocsigen_request_info.get_params ri))))
 			  (Some (Lwt.return []))
 			  nosuffixversion
 			  suff
@@ -231,7 +229,7 @@ let register_aux pages
 			let files =
 			  Eliom_request_info.get_files_sp sp
 			in
-			reconstruct_params
+			Eliom_parameter.reconstruct_params
 			  ~sp
 			  sppt
 			  post_params
@@ -257,12 +255,12 @@ let register_aux pages
 				  ~service:
 				  (service :
 				     ('a, 'b, _, _, _,
-                                      Eliom_service.non_ext, reg, _,
-                                      'c, 'd,'return)
-                                       Eliom_service.service :>
+                                      S.non_ext, S.reg, _,
+                                      'c, 'd, 'return)
+                                       S.t :>
 				     ('a, 'b, _, _, _, _, _, _,
 				      'c, 'd, 'return)
-				     Eliom_service.service)
+				     S.t)
 				  g
 			      in
 			      Lwt.fail
@@ -287,8 +285,8 @@ let register_aux pages
                          (function
                            | Eliom_common.Eliom_Typing_Error l ->
                              error_handler l
-                           | e -> fail e)
-                        >>= fun content ->
+                           | e -> Lwt.fail e)
+                       >>= fun content ->
 		       send_with_cookies sp pages
                          ?options
                          ?charset
@@ -306,20 +304,20 @@ let register_aux pages
                Eliom_common.SAtt_csrf_safe (id, scope, secure_session)) ->
               let tablereg, forsession =
                 match table with
-                  | Left globtbl -> globtbl, false
-                  | Right (sp, ct, sec) ->
+                  | Eliom_lib.Left globtbl -> globtbl, false
+                  | Eliom_lib.Right (sp, ct, sec) ->
                     if secure_session <> sec || scope <> ct
                     then raise
-                      Wrong_session_table_for_CSRF_safe_coservice;
+                      S.Wrong_session_table_for_CSRF_safe_coservice;
                     !(Eliom_state.get_session_service_table
                         ?secure:secure_session ~scope ~sp ()),
                       true
               in
-              Eliom_service.set_delayed_post_registration_function
+              S.set_delayed_post_registration_function
                 tablereg
                 id
                 (fun ~sp attserget ->
-                  let n = Eliom_service.new_state () in
+                  let n = S.new_state () in
                   let attserpost = Eliom_common.SAtt_anon n in
                   let table =
                     if forsession
@@ -343,15 +341,15 @@ let register_aux pages
                   | Right (sp, ct, sec) ->
                     if secure_session <> sec || ct <> scope
                     then raise
-                      Wrong_session_table_for_CSRF_safe_coservice;
+                      S.Wrong_session_table_for_CSRF_safe_coservice;
                     !(Eliom_state.get_session_service_table
                         ?secure:secure_session ~scope ~sp ()), true
               in
-              Eliom_service.set_delayed_get_or_na_registration_function
+              S.set_delayed_get_or_na_registration_function
                 tablereg
                 id
                 (fun ~sp ->
-                  let n = Eliom_service.new_state () in
+                  let n = S.new_state () in
                   let attserget = Eliom_common.SAtt_anon n in
                   let table =
                     if forsession
@@ -374,29 +372,29 @@ let register_aux pages
                         ?secure:secure_session ~scope ~sp ())
               in
               f tablereg (attserget, attserpost))
-	| Nonattached naser ->
-          let na_name = get_na_name_ naser in
+	| S.Nonattached naser ->
+          let na_name = S.get_na_name_ naser in
           let f table na_name =
             Eliommod_naservices.add_naservice
               table
               na_name
-              ((match get_max_use_ service with
+              ((match S.get_max_use_ service with
                 | None -> None
                 | Some i -> Some (ref i)),
-               (match get_timeout_ service with
+               (match S.get_timeout_ service with
                  | None -> None
                  | Some t -> Some (t, ref (t +. Unix.time ()))),
                (fun sp ->
                  Lwt.with_value Eliom_common.sp_key (Some sp)
                    (fun () ->
                      let ri = Eliom_request_info.get_ri_sp sp in
-                     catch
+                     Lwt.catch
                        (fun () ->
-                         reconstruct_params
+                         Eliom_parameter.reconstruct_params
                            ~sp
-                           (get_get_params_type_ service)
+                           (S.get_get_params_type_ service)
                            (Some (Lwt.return
-                              (force (Ocsigen_extensions
+                              (Lazy.force (Ocsigen_extensions
                                       .Ocsigen_request_info.get_params ri))))
                            (Some (Lwt.return []))
                            false
@@ -406,9 +404,9 @@ let register_aux pages
 			   Eliom_request_info.get_post_params_sp sp
                          in
                          let files = Eliom_request_info.get_files_sp sp in
-                         reconstruct_params
+                         Eliom_parameter.reconstruct_params
 			   ~sp
-			   (get_post_params_type_ service)
+			   (S.get_post_params_type_ service)
 			   post_params
 			   files
 			   false
@@ -419,7 +417,7 @@ let register_aux pages
                        (function
                          | Eliom_common.Eliom_Typing_Error l ->
                            error_handler l
-                         | e -> fail e) >>= fun content ->
+                         | e -> Lwt.fail e) >>= fun content ->
 		     send_with_cookies sp pages
                        ?options
                        ?charset
@@ -438,15 +436,15 @@ let register_aux pages
                   | Right (sp, ct, sec) ->
                     if secure_session <> sec || ct <> scope
                     then raise
-                      Wrong_session_table_for_CSRF_safe_coservice;
+                      S.Wrong_session_table_for_CSRF_safe_coservice;
                     !(Eliom_state.get_session_service_table
                         ?secure:secure_session ~scope ~sp ()), true
               in
-              set_delayed_get_or_na_registration_function
+              S.set_delayed_get_or_na_registration_function
                 tablereg
                 id
                 (fun ~sp ->
-                  let n = Eliom_service.new_state () in
+                  let n = S.new_state () in
                   let na_name = Eliom_common.SNa_get' n in
                   let table =
                     if forsession
@@ -468,15 +466,15 @@ let register_aux pages
                   | Right (sp, ct, sec) ->
                     if secure_session <> sec || ct <> scope
                     then raise
-                      Wrong_session_table_for_CSRF_safe_coservice;
+                      S.Wrong_session_table_for_CSRF_safe_coservice;
                     !(Eliom_state.get_session_service_table
                         ?secure:secure_session ~scope ~sp ()), true
               in
-              set_delayed_get_or_na_registration_function
+              S.set_delayed_get_or_na_registration_function
                 tablereg
                 id
                 (fun ~sp ->
-                  let n = Eliom_service.new_state () in
+                  let n = S.new_state () in
                   let na_name = Eliom_common.SNa_post' n in
                   let table =
                     if forsession
@@ -529,8 +527,7 @@ let register pages
     ?secure_session
     (type a)
     ~(service :
-        (_, _, _, a, _, _, Eliom_service.reg,
-         _, _, _, _) Eliom_service.service)
+        (_, _, _, a, _, _, S.reg, _, _, _, _) S.t)
     ?error_handler
     page_gen =
   let sp = Eliom_common.get_sp_option () in
@@ -540,13 +537,13 @@ let register pages
       (match Eliom_common.global_register_allowed () with
         | Some get_current_sitedata ->
           let sitedata = get_current_sitedata () in
-          (match get_info service with
-            | Attached attser ->
+          (match S.get_info service with
+            | S.Attached attser ->
               Eliom_common.remove_unregistered
-                sitedata (get_sub_path_ attser)
-            | Nonattached naser ->
+                sitedata (S.get_sub_path_ attser)
+            | S.Nonattached naser ->
               Eliom_common.remove_unregistered_na
-                sitedata (get_na_name_ naser));
+                sitedata (S.get_na_name_ naser));
           register_aux pages
             ?options
             ?charset
@@ -567,7 +564,7 @@ let register pages
         ?content_type
         ?headers
         ?error_handler
-        (Left (get_global_table ()))
+        (Eliom_lib.Left (Eliom_state.get_global_table ()))
         ~service
         page_gen
     | _, None ->
@@ -590,7 +587,7 @@ let register pages
      like "let rec" for service...
   *)
 
-let register_service pages
+let create pages
     ?scope
     ?options
     ?charset
@@ -607,16 +604,16 @@ let register_service pages
     ?timeout
     ~meth
     ~id
-    ~rt
+    ~ret
     ?error_handler
     page =
   let service =
-    service
+    S.create
       ?name
       ?csrf_safe
-      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
+      ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
       ?csrf_secure
-      ?max_use ?timeout ?https ~meth ~id ~rt ()
+      ?max_use ?timeout ?https ~meth ~id ~ret ()
   in
   register pages
     ?scope
@@ -636,7 +633,7 @@ module MakeRegister (Pages: Eliom_reg_sigs.PARAM) = struct
   type return = Pages.return
   type result = Pages.result
 
-  let rt = Pages.rt
+  let ret = Pages.ret
 
   let pages =
     { send = Pages.send;
@@ -647,8 +644,7 @@ module MakeRegister (Pages: Eliom_reg_sigs.PARAM) = struct
 
   let register ?scope = register pages ?scope
 
-  let register_service ?scope =
-    register_service pages ?scope ~rt
+  let create ?scope = create pages ?scope ~ret
 
 end
 
@@ -666,13 +662,12 @@ struct
       send_appl_content = Pages.send_appl_content;
       result_of_http_result = Pages.result_of_http_result; }
 
-  let rt = Eliom_service.Unsafe
+  let ret = S.Ret.Unsafe
 
   let send ?options = send pages ?options
 
   let register ?scope = register pages ?scope
 
-  let register_service ?scope =
-    register_service pages ?scope ~rt
+  let create ?scope = create pages ?scope ~ret
 
 end

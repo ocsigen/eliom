@@ -60,7 +60,7 @@ let internal_wrap (bus: ('a, 'b) t)
         register_sender bus.scope
           (srv :>
              (_, _ list, _, _, _, Eliom_service.non_ext, _, _, _, _, _)
-               Eliom_service.service)
+               Eliom_service.t)
           bus.write;
         Eliom_state.set_volatile_data ~table true
   end;
@@ -108,11 +108,11 @@ let create_filtered ?scope ?name ?size ~filter typ =
        : ('a, 'aa, 'aaa) Eliom_parameter.params_type)
   in
   let distant_write =
-    Eliom_service.service
+    Eliom_service.create
       ?name
-      ~rt:Eliom_service.Http
+      ~ret:Eliom_service.Ret.Http
       ~meth:(Eliom_service.Meth.Post (Eliom_parameter.unit, post_params))
-      ~id:Eliom_service.Global
+      ~id:Eliom_service.Id.Global
       ()
   in
   let service_registered =
@@ -128,7 +128,7 @@ let create_filtered ?scope ?name ?size ~filter typ =
       channel;
       scope;
       name;
-      write   = push;
+      write = push;
       service = Eliom_comet_base.Bus_send_service distant_write;
       service_registered;
       bus_mark = bus_mark ();

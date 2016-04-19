@@ -210,9 +210,10 @@ let init () =
 
 (* == Low-level: call service. *)
 
-let create_request__ (type m)
+let create_request__
     ?absolute ?absolute_path ?https
-    ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.service)
+    (type m)
+    ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.t)
     ?hostname ?port ?fragment
     ?keep_nl_params ?nl_params ?keep_get_na_params
     get_params post_params =
@@ -230,15 +231,16 @@ let create_request__ (type m)
 
 let create_request_ (type m)
     ?absolute ?absolute_path ?https
-    ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.service)
+    ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.t)
     ?hostname ?port ?fragment
     ?keep_nl_params ?nl_params ?keep_get_na_params
     get_params post_params =
 
   (* TODO: allow get_get_or_post service to return also the service
      with the correct subtype. Then do use Eliom_uri.make_string_uri
-     and Eliom_uri.make_post_uri_components instead of Eliom_uri.make_string_uri_
-     and Eliom_uri.make_post_uri_components__ *)
+     and Eliom_uri.make_post_uri_components instead of
+     Eliom_uri.make_string_uri_ and
+     Eliom_uri.make_post_uri_components__ *)
 
   match Eliom_service.which_meth service with
   | Eliom_service.Meth.Get' ->
@@ -650,7 +652,7 @@ let set_content ?uri ?offset ?fragment content =
 
 let change_page (type m)
     ?absolute ?absolute_path ?https
-    ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.service)
+    ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.t)
     ?hostname ?port ?fragment
     ?keep_nl_params ?(nl_params = Eliom_parameter.empty_nl_params_set)
     ?keep_get_na_params
@@ -936,15 +938,15 @@ let server_function
     ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https ?error_handler
     argument_type () =
   let service =
-    Eliom_service.service
+    Eliom_service.create
       ~name
       ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
-      ~id:Eliom_service.Global
+      ~id:Eliom_service.Id.Global
       ~meth:
         (Eliom_service.Meth.Post
            (Eliom_parameter.unit,
             Eliom_parameter.(ocaml "argument" argument_type)))
-      ~rt:Eliom_service.Ocaml
+      ~ret:Eliom_service.Ret.Ocaml
       ()
   in
   fun a -> call_ocaml_service ~absolute:true ~service () a

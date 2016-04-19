@@ -22,15 +22,12 @@
     page content: Eliom application, valid {!Html5},
     actions, redirections, static files, … *)
 
-(** {b Please read the Eliom manual before this page to learn how to use
-    {% <<a_manual chapter="server-services" | services
-    >>%} and {% <<a_manual chapter="server-outputs" | predefined outputs
-    >>%}. }
- *)
+(** {b Please read the Eliom manual before this page to learn how to
+    use {% <<a_manual chapter="server-services" | services >>%} and {%
+    <<a_manual chapter="server-outputs" | predefined outputs >>%}.
+    } *)
 
 (** {% <<outline| <<header| **Table of contents** >> >> %}*)
-
-open Eliom_lib
 
 (** {2 Type definitions} *)
 
@@ -130,7 +127,7 @@ module type ELIOM_APPL = sig
       of calling the server to generate the page. *)
   val set_client_fun :
     ?app:string ->
-    service:('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.service ->
+    service:('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
     ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
     unit
 
@@ -262,8 +259,7 @@ module Unit : Eliom_reg_sigs.S
 type (_, _) redirected_service =
     Service :
       (unit, unit, Eliom_service.get , _, _, _, _,
-       [ `WithoutSuffix ], unit, unit, 'b)
-        Eliom_service.service ->
+       [ `WithoutSuffix ], unit, unit, 'b) Eliom_service.t ->
     (_, 'b) redirected_service
 
 (** Eliom service registration for services that returns a
@@ -312,7 +308,7 @@ end
     optional parameter [~options] to change this value, see
     {!Redirections} for a detailled description. *)
 module String_redirection : Eliom_reg_sigs.S
-  with type page = Url.uri
+  with type page = Eliom_lib.Url.uri
    and type options =
          [ `MovedPermanently
          | `Found

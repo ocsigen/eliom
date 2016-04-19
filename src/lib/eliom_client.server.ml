@@ -31,7 +31,7 @@ let server_function
     ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https ?error_handler
     argument_type f =
   mk_serv_fun
-    (Eliom_registration.Ocaml.register_service
+    (Eliom_registration.Ocaml.create
        ?scope ?options ?charset ?code ?content_type ?headers ?secure_session
        ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
        ?error_handler
@@ -39,7 +39,7 @@ let server_function
          (Eliom_service.Meth.Post
             (Eliom_parameter.unit,
              Eliom_parameter.(ocaml "argument" argument_type)))
-       ~id:Eliom_service.Global
+       ~id:Eliom_service.Id.Global
        (fun () argument -> f argument))
     (Eliom_wrap.create_unwrapper
        (Eliom_wrap.id_of_int Eliom_common_base.server_function_unwrap_id_int))

@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-module type S_types = sig
+module type S = sig
 
   include module type of Eliom_service_types
 
@@ -47,25 +47,29 @@ module type S_types = sig
       - [ 'ret] is an information on what the service returns.  See
         {!Eliom_registration.kind}. *)
   type ('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg,
-        +'tipo, 'gn, 'pn, +'ret) service
+        +'tipo, 'gn, 'pn, +'ret) t
     constraint 'tipo = [< `WithSuffix | `WithoutSuffix ]
 
-  type (_, _, _, _, _) id =
-    | Path :
-        Eliom_lib.Url.path
-      -> (att, non_co, _, _, _) id
-    | Fallback :
-        (unit, unit, 'mf, att, non_co, non_ext, reg,
-         [ `WithoutSuffix ], unit, unit, 'rt) service
-      -> (att, co, 'mf, 'rt, unit) id
-    | Global :
-        (non_att, co, _, _, unit) id
+  module Id : sig
 
-end
+    type ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k) service =
+      ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k) t
 
-module type S = sig
+    type (_, _, _, _, _) t =
+      | Path :
+          Eliom_lib.Url.path
+        -> (att, non_co, _, _, _) t
+      | Fallback :
+          (unit, unit, 'mf, att, non_co, non_ext, reg,
+           [ `WithoutSuffix ], unit, unit, 'ret) service
+        -> (att, co, 'mf, 'ret, unit) t
+      | Global :
+          (non_att, co, _, _, unit) t
 
-  include S_types
+    val untype :
+      ('a, 'c, 'm, 'r, 'g) t -> ('a, 'c, 'm, 'rr, 'g) t
+
+  end
 
   (** {2 Definitions of services}
 
@@ -79,9 +83,9 @@ module type S = sig
       {!Eliom_service.register_eliom_module}. Otherwise you will also
       get this exception.}  *)
 
-  (** The function [service ~id ~meth ~rt ()] creates a {!service}
+  (** The function [service ~id ~meth ~ret ()] creates a {!service}
       identified as per [id] and accepting parameters as per [m]. The
-      parameter [~rt] is used to constrain the type parameter ['rt] of
+      parameter [~ret] is used to constrain the type parameter ['ret] of
       the service.
 
       If the optional parameter [~https:true] is given, all links
@@ -101,7 +105,7 @@ module type S = sig
       the eliom manual for more information about {% <<a_manual
       chapter="params" fragment="nonlocalizedparameters"|non localized
       parameters>>%}.  *)
-  val service :
+  val create :
     ?name:string ->
     ?csrf_safe: bool ->
     ?csrf_scope: [< Eliom_common.user_scope] ->
@@ -111,11 +115,11 @@ module type S = sig
     ?https:bool ->
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     ?priority:int ->
-    rt:('rt, _) rt ->
+    ret:('ret, _) Ret.t ->
     meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, 'gp_) Meth.t ->
-    id:('att, 'co, 'mf, 'rt, 'gp_) id ->
+    id:('att, 'co, 'mf, 'ret, 'gp_) Id.t ->
     unit ->
-    ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'rt) service
+    ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'ret) t
 
   (** {2 External services} *)
 
@@ -129,7 +133,7 @@ module type S = sig
       the list will be URL-encoded.
 
       The parameter labelled [~prefix] contains all what you want to
-      put before the path. It usually starts with "http://" plus the
+      put before the path. It usually starets with "http://" plus the
       name of the server. The prefix is not URL encoded.
 
       The whole URL is constructed from the prefix, the path and GET
@@ -137,16 +141,16 @@ module type S = sig
       another site of the same server.
 
       See {!val:service} for a description of the optional
-      [~keep_nl_params] and [~rt] parameters.  *)
-  val external_service :
+      [~keep_nl_params] and [~ret] parameters.  *)
+  val create_external :
     prefix: string ->
     path:Eliom_lib.Url.path ->
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    rt:('rt, ext) rt ->
+    ret:('ret, ext) Ret.t ->
     meth:('m, 'gp, 'gn, 'pp, 'pn, [ `WithoutSuffix ], 'mf, _) Meth.t ->
     unit ->
     ('gp, 'pp, 'm, att, non_co, ext, non_reg,
-     [ `WithoutSuffix ], 'gn, 'pn, 'rt) service
+     [ `WithoutSuffix ], 'gn, 'pn, 'ret) t
 
   (** {2 Predefined services} *)
 
@@ -163,26 +167,23 @@ module type S = sig
   val reload_action :
     (unit, unit, get, non_att, co, non_ext, non_reg,
      [ `WithoutSuffix ], unit, unit, _ non_ocaml)
-      service
+      t
 
   (** Same as {!reload_action} but forcing HTTPS. *)
   val reload_action_https :
     (unit, unit, get, non_att, co, non_ext, non_reg,
-     [ `WithoutSuffix ], unit, unit, _ non_ocaml)
-      service
+     [ `WithoutSuffix ], unit, unit, _ non_ocaml) t
 
   (** Same as {!reload_action} but keeps non-attached GET
       parameters. *)
   val reload_action_hidden :
     (unit, unit, get, non_att, co, non_ext, non_reg,
-     [ `WithoutSuffix ], unit, unit, _ non_ocaml)
-      service
+     [ `WithoutSuffix ], unit, unit, _ non_ocaml) t
 
   (** Same as {!reload_action_hidden} but forcing HTTPS. *)
   val reload_action_https_hidden :
     (unit, unit, get, non_att, co, non_ext, non_reg,
-     [ `WithoutSuffix ], unit, unit, _ non_ocaml)
-      service
+     [ `WithoutSuffix ], unit, unit, _ non_ocaml) t
 
   (** {3 Static files} *)
 
@@ -196,16 +197,14 @@ module type S = sig
     unit ->
     (string list, unit, get, att, non_co, non_ext, non_reg,
      [ `WithSuffix ], [ `One of string list ] Eliom_parameter.param_name,
-     unit, http non_ocaml)
-      service
+     unit, http non_ocaml) t
 
   (** Same as {!static_dir} but forcing https link. *)
   val https_static_dir :
     unit ->
     (string list, unit, get, att, non_co, non_ext, non_reg,
      [ `WithSuffix ], [ `One of string list ] Eliom_parameter.param_name,
-     unit, http non_ocaml)
-      service
+     unit, http non_ocaml) t
 
   (** Like [static_dir], but allows one to put GET parameters *)
   val static_dir_with_params :
@@ -215,8 +214,7 @@ module type S = sig
     ((string list * 'a), unit, get, att, non_co, non_ext, non_reg,
      [ `WithSuffix ],
      [ `One of string list ] Eliom_parameter.param_name *'an,
-     unit, http non_ocaml)
-      service
+     unit, http non_ocaml) t
 
   (** Same as {!static_dir_with_params} but forcing https link. *)
   val https_static_dir_with_params :
@@ -226,8 +224,7 @@ module type S = sig
     ((string list * 'a), unit, get, att, non_co, non_ext, non_reg,
      [ `WithSuffix ],
      [ `One of string list ] Eliom_parameter.param_name *'an,
-     unit, http non_ocaml)
-      service
+     unit, http non_ocaml) t
 
   (** {2 Miscellaneous} *)
 
@@ -237,11 +234,10 @@ module type S = sig
       preapplied services may be used in links or as fallbacks. *)
   val preapply :
     service:
-      ('a, 'b, 'meth, att, 'co, 'ext, 'reg, _, 'e, 'f, 'return)
-      service ->
+      ('a, 'b, 'meth, att, 'co, 'ext, 'reg, _, 'e, 'f, 'return) t ->
     'a ->
     (unit, 'b, 'meth, att, 'co, 'ext, non_reg,
-     [ `WithoutSuffix ], unit, 'f, 'return) service
+     [ `WithoutSuffix ], unit, 'f, 'return) t
 
   (** [attach_global_to_fallback ~fallback ~service] attaches the
       global service [service] on the URL of [fallback]. This allows
@@ -251,12 +247,12 @@ module type S = sig
   val attach_global_to_fallback :
     fallback:
       (unit, unit, get, att, _, non_ext, _,
-       _, unit, unit, 'return1) service ->
+       _, unit, unit, 'return1) t ->
     service:
       ('get, 'post, 'meth, non_att, co, non_ext, _,
-       [< `WithoutSuffix] as 'sf, 'gn, 'pn, 'return) service ->
+       [< `WithoutSuffix] as 'sf, 'gn, 'pn, 'return) t ->
     ('get, 'post, 'meth, att, co, non_ext, non_reg,
-     'sf, 'gn, 'pn, 'return) service
+     'sf, 'gn, 'pn, 'return) t
 
   (** The function [add_non_localized_get_parameters ~params ~service]
       Adds non localized GET parameters [params] to [service]. See the
@@ -269,10 +265,9 @@ module type S = sig
       Eliom_parameter.non_localized_params ->
     service:
       ('a, 'b, 'meth, 'attach, 'co, 'ext, 'reg,
-       'd, 'e, 'f, 'return)
-      service ->
+       'd, 'e, 'f, 'return) t ->
     ('a * 'p, 'b, 'meth, 'attach, 'co, 'ext, 'reg,
-     'd, 'e * 'pn, 'f, 'return) service
+     'd, 'e * 'pn, 'f, 'return) t
 
   (** Same as {!add_non_localized_get_parameters} but with POST
       parameters.*)
@@ -282,27 +277,26 @@ module type S = sig
       Eliom_parameter.non_localized_params ->
     service:
       ('a, 'b, 'meth, 'attach, 'co, 'ext, 'g,
-       'd, 'e, 'f, 'return) service ->
+       'd, 'e, 'f, 'return) t ->
     ('a, 'b * 'p, 'meth, 'attach, 'co, 'ext, 'g,
-     'd, 'e, 'f * 'pn, 'return) service
+     'd, 'e, 'f * 'pn, 'return) t
 
   (**/**)
 
   val which_meth :
-    (_, _, 'm, _, _, _, _, _, _, _, _) service -> 'm Meth.which
+    (_, _, 'm, _, _, _, _, _, _, _, _) t -> 'm Meth.which
 
   val get_info :
-    (_, _, _, 'att, _, _, _, _, _, _, _) service ->
-    'att attached_info
+    (_, _, _, 'att, _, _, _, _, _, _, _) t -> 'att attached_info
 
-  val is_external : (_, _, _, _, _, _, _, _, _, _, _) service -> bool
+  val is_external : (_, _, _, _, _, _, _, _, _, _, _) t -> bool
 
   val get_get_params_type_ :
-    ('a, _, _, _, _, _, _, 'b, 'c,  _, _) service ->
+    ('a, _, _, _, _, _, _, 'b, 'c,  _, _) t ->
     ('a, 'b, 'c) Eliom_parameter.params_type
 
   val get_post_params_type_ :
-    (_, 'a, _, _, _, _, _, _, _, 'b, _) service ->
+    (_, 'a, _, _, _, _, _, _, _, 'b, _) t ->
     ('a, [ `WithoutSuffix ], 'b) Eliom_parameter.params_type
 
   val get_sub_path_ : att -> Eliom_lib.Url.path
@@ -322,37 +316,35 @@ module type S = sig
   val get_na_keep_get_na_params_: non_att -> bool
 
   val get_max_use_ :
-    (_, _, _, _, _, _, _, _, _, _, _) service -> int option
+    (_, _, _, _, _, _, _, _, _, _, _) t -> int option
 
   val get_timeout_ :
-    (_, _, _, _, _, _, _, _, _, _, _) service -> float option
+    (_, _, _, _, _, _, _, _, _, _, _) t -> float option
 
   val get_https :
-    (_, _, _, _, _, _, _, _, _, _, _) service -> bool
+    (_, _, _, _, _, _, _, _, _, _, _) t -> bool
 
   val get_priority_ : att -> int
 
   val get_client_fun_ :
-    ('a, 'b, _, _, _, _, _, _, _, _, _) service ->
-    (unit -> ('a -> 'b -> unit Lwt.t) option)
-      Eliom_client_value.t
+    ('a, 'b, _, _, _, _, _, _, _, _, _) t ->
+    (unit -> ('a -> 'b -> unit Lwt.t) option) Eliom_client_value.t
 
   val has_client_fun_ :
-    (_, _, _, _, _, _, _, _, _, _, _) service -> bool
+    (_, _, _, _, _, _, _, _, _, _, _) t -> bool
 
   val has_client_fun_lazy :
-    (_, _, _, _, _, _, _, _, _, _, _) service ->
+    (_, _, _, _, _, _, _, _, _, _, _) t ->
     (unit -> bool) Eliom_client_value.t
 
   val keep_nl_params :
-    (_, _, _, _, _, _, _, _, _, _, _) service ->
-    [ `All | `Persistent | `None ]
+    (_, _, _, _, _, _, _, _, _, _, _) t -> [ `All | `Persistent | `None ]
 
   val change_get_num :
-    ('a, 'b, 'meth, att, 'co, 'ext, _, 'd, 'e, 'f, 'return) service ->
+    ('a, 'b, 'meth, att, 'co, 'ext, _, 'd, 'e, 'f, 'return) t ->
     att ->
     Eliom_common.att_key_serv ->
-    ('a, 'b, 'meth, att, 'co, 'ext, _, 'd, 'e, 'f, 'return) service
+    ('a, 'b, 'meth, att, 'co, 'ext, _, 'd, 'e, 'f, 'return) t
 
   (* Not implemented on client side: TODO should not be called in
      Eliom_uri *)
@@ -387,20 +379,19 @@ module type S = sig
   (** Returns the name of the application to which belongs the
       service, if any. *)
   val get_send_appl_content :
-    (_, _, _, _, _, _, _, _, _, _, _) service -> send_appl_content
+    (_, _, _, _, _, _, _, _, _, _, _) t -> send_appl_content
 
   val xhr_with_cookies :
-    (_, _, _, _, _, _, _, _, _, _, _) service -> string option option
+    (_, _, _, _, _, _, _, _, _, _, _) t -> string option option
 
   val set_client_fun_ :
     ?app:string ->
-    service:('a, 'b, _, _, _, _, _, _, _, _, _) service ->
+    service:('a, 'b, _, _, _, _, _, _, _, _, _) t ->
     ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
     unit
 
   val internal_set_client_fun_ :
-    service :
-      ('a, 'b, _, _, _, _, _, _, _, _, _) service ->
+    service :('a, 'b, _, _, _, _, _, _, _, _, _) t ->
     (unit -> ('a -> 'b -> unit Lwt.t) option) Eliom_client_value.t ->
     unit
 

@@ -64,7 +64,7 @@ module Reg_base = struct
   type return = Eliom_service.http Eliom_service.non_ocaml
   type result = Eliom_registration.browser_content Eliom_registration.kind
   type maybe_ext = Eliom_service.ext
-  let rt = Eliom_service.Http
+  let ret = Eliom_service.Ret.Http
   let result_of_http_result = Eliom_registration.cast_http_result
   let send_appl_content = Eliom_service.XNever
   let pre_service ?options () = Lwt.return ()
@@ -128,10 +128,10 @@ let notify_feed_updates address hubs s =
 
 let register_feed ~path ~hubs address f =
   let s =
-    Eliom_service.service
-      ~rt:Eliom_service.Http
+    Eliom_service.create
+      ~ret:Eliom_service.Ret.Http
       ~meth:(Eliom_service.Meth.Get Eliom_parameter.unit)
-      ~id:(Eliom_service.Path path)
+      ~id:(Eliom_service.Id.Path path)
       ()
   in
    Reg.register ~service:s

@@ -62,30 +62,27 @@ val register_eliom_module : string -> (unit -> unit) -> unit
 val unregister :
   ?scope:[< Eliom_common.scope ] ->
   ?secure:bool ->
-  (_, _, _, _, _, non_ext, _, _, _, _, _) service -> unit
+  (_, _, _, _, _, non_ext, _, _, _, _, _) t -> unit
 
 (** Returns whether it is an external service or not. *)
 val is_external :
-  (_, _, _, _, _, _, _, _, _, _, _) service -> bool
+  (_, _, _, _, _, _, _, _, _, _, _) t -> bool
 (**/**)
 
 val get_or_post_ :
-  (_, _, _, _, _, _, _, _, _, _, _) service ->
+  (_, _, _, _, _, _, _, _, _, _, _) t ->
   Ocsigen_http_frame.Http_header.http_method
 
 val get_pre_applied_parameters_ :
-  (_, _, _, _, _, _, _, _, _, _, _) service ->
+  (_, _, _, _, _, _, _, _, _, _, _) t ->
   (string * string) list String.Table.t *
   (string * string) list
 
 val new_state : unit -> string
 
-val untype_service_ :
-  ('a, 'b, 'meth, 'attached, 'co, 'ext, 'd, 'e, 'f, 'g, 'rr) service ->
-  ('a, 'b, 'meth, 'attached, 'co, 'ext, 'd, 'e, 'f, 'g, 'return) service
-
-val untype_id_ :
-  ('a, 'c, 'm, _, 'g) id -> ('a, 'c, 'm, _, 'g) id
+val untype :
+  ('a, 'b, 'meth, 'attached, 'co, 'ext, 'd, 'e, 'f, 'g, 'rr) t ->
+  ('a, 'b, 'meth, 'attached, 'co, 'ext, 'd, 'e, 'f, 'g, 'return) t
 
 val set_delayed_get_or_na_registration_function :
   Eliom_common.tables ->
@@ -100,8 +97,7 @@ val set_delayed_post_registration_function :
   unit
 
 val set_send_appl_content :
-  (_, _, _, _, _, _, _, _, _, _, _) service ->
-  send_appl_content -> unit
+  (_, _, _, _, _, _, _, _, _, _, _) t -> send_appl_content -> unit
 
 exception Wrong_session_table_for_CSRF_safe_coservice
 

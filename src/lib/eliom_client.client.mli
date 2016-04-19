@@ -62,7 +62,7 @@ val change_page :
   ?https:bool ->
   service:
     ('a, 'b, _, _, _, _, _, _, _, _, _ Eliom_service.non_ocaml)
-      Eliom_service.service ->
+      Eliom_service.t ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -89,7 +89,7 @@ val call_ocaml_service :
   ?https:bool ->
   service:
     ('a, 'b, _, _, _, _, _, _, _, _, 'return Eliom_service.ocaml)
-      Eliom_service.service ->
+      Eliom_service.t ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -111,7 +111,7 @@ val exit_to :
   ?https:bool ->
   service:
     ('a, 'b, _, _, _, _, _, _, _, _, _ Eliom_service.non_ocaml)
-      Eliom_service.service ->
+      Eliom_service.t ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -129,7 +129,7 @@ val window_open :
   ?https:bool ->
   service:
     ('a, unit, Eliom_service.get, _, _, _, _, _, _, unit, _)
-      Eliom_service.service ->
+      Eliom_service.t ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -147,7 +147,7 @@ val change_url :
   ?https:bool ->
   service:
     ('get, unit, Eliom_service.get,
-     _, _, _, _, _, _, unit, _) Eliom_service.service ->
+     _, _, _, _, _, _, unit, _) Eliom_service.t ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -161,8 +161,7 @@ val call_service :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:
-    ('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.service ->
+  service:('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->

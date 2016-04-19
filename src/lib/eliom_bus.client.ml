@@ -65,8 +65,7 @@ type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
    [ `WithoutSuffix ], unit,
    [ `One of 'a list Eliom_parameter.ocaml ]
      Eliom_parameter.param_name,
-   Eliom_registration.Action.return)
-    Eliom_service.service
+   Eliom_registration.Action.return) Eliom_service.t
 
 let create service channel waiter =
   let write x =

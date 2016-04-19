@@ -24,12 +24,11 @@
     chapter="misc" fragment="hier_menu"| hierarchical site>>%}. *)
 
 open Eliom_content
-open Eliom_service
 
 type srv =
     Srv :
-      (unit, unit, get, _, _, _, _, [ `WithoutSuffix ],
-       unit, unit, _ Eliom_service.non_ocaml) service
+      (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
+       unit, unit, _ Eliom_service.non_ocaml) Eliom_service.t
     -> srv
 
 (** Hierarchical sites description. This is is a pair [(main page,
@@ -83,13 +82,13 @@ module type HTML5_TOOLS = sig
   val menu :
     ?classe:Html5_types.nmtoken list ->
     ?id:string ->
-    ((unit, unit, get, _, _, _, _, [ `WithoutSuffix ],
-      unit, unit, _ Eliom_service.non_ocaml) service *
+    ((unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
+      unit, unit, _ Eliom_service.non_ocaml) Eliom_service.t *
      [< Html5_types.flow5_without_interactive] Html5.elt list)
       list ->
     ?service:
-      (unit, unit, get, _, _, _, _, [ `WithoutSuffix ],
-       unit, unit, _ Eliom_service.non_ocaml) service ->
+      (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
+       unit, unit, _ Eliom_service.non_ocaml) Eliom_service.t ->
     unit ->
     [> `Ul ] Html5.elt
 
@@ -115,8 +114,8 @@ module type HTML5_TOOLS = sig
     ?whole_tree:bool ->
     [< Html5_types.a_content ] Html5.elt list hierarchical_site ->
     ?service:
-      (unit, unit, get, _, _, _, _, [ `WithoutSuffix ],
-       unit, unit, _ Eliom_service.non_ocaml) service ->
+      (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
+       unit, unit, _ Eliom_service.non_ocaml) Eliom_service.t ->
     unit ->
     [> `Ul ] Html5.elt list
 
@@ -137,8 +136,8 @@ module type HTML5_TOOLS = sig
     ?id:string ->
     [< Html5_types.a_content ] Html5.elt list hierarchical_site ->
     ?service:
-      (unit, unit, get, _, _, _, _, [ `WithoutSuffix ],
-       unit, unit, _ Eliom_service.non_ocaml) service ->
+      (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
+       unit, unit, _ Eliom_service.non_ocaml) Eliom_service.t ->
     unit ->
     [> `Ul ] Html5.elt list
 
@@ -152,8 +151,8 @@ module type HTML5_TOOLS = sig
   val structure_links :
     [< Html5_types.a_content ] Html5.elt list hierarchical_site ->
     ?service:
-      (unit, unit, get, _, _, _, _, [ `WithoutSuffix ],
-       unit, unit, _ Eliom_service.non_ocaml) service ->
+      (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
+       unit, unit, _ Eliom_service.non_ocaml) Eliom_service.t ->
     unit ->
     [> `Link ] Html5.elt list
 

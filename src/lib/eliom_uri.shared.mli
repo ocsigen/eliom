@@ -22,7 +22,6 @@
 
 open Eliom_lib
 open Eliom_parameter
-open Eliom_service
 
 (** {2 Compute service's URL}
 
@@ -62,8 +61,9 @@ val make_string_uri :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, unit, Eliom_service.get, _, _, _, _,
-           _, _, unit, 'return) service ->
+  service:
+    ('get, unit, Eliom_service.get, _, _, _, _,
+     _, _, unit, 'return) Eliom_service.t ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -84,7 +84,7 @@ val make_uri_components :
   ?https:bool ->
   service:
     ('get, unit, Eliom_service.get, _, _, _, _, _, _, unit, _)
-      service ->
+      Eliom_service.t ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -101,7 +101,8 @@ val make_post_uri_components :
   ?absolute_path:bool ->
   ?https:bool ->
   service:
-    ('get, 'post, Eliom_service.post, _, _, _, _, _, _, _, _) service ->
+    ('get, 'post, Eliom_service.post, _, _, _, _, _, _, _, _)
+      Eliom_service.t ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -144,7 +145,7 @@ val make_string_uri_ :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, _, _, _, _, _, _, _, _, _, _) Eliom_service.service ->
+  service:('get, _, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -155,7 +156,7 @@ val make_post_uri_components__ :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, 'post, _, _, _, _, _, _, _, _, _) Eliom_service.service ->
+  service:('get, 'post, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -172,7 +173,7 @@ val make_uri_components_ :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:(_, _, _, _, _, _, _, _, _, _, _) service ->
+  service:(_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -184,7 +185,7 @@ val make_post_uri_components_ :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('get, 'post, _, _, _, _, _, _, _, _, _) service ->
+  service:('get, 'post, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -210,5 +211,5 @@ val make_proto_prefix :
 
 val make_cookies_info :
   bool option *
-  (_, _, _, _, _, _, _, _, _, _, _) Eliom_service.service ->
+  (_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
   (bool * Url.path) option

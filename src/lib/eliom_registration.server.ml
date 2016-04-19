@@ -68,7 +68,7 @@ module Html5_make_reg_base
   type result = browser_content kind
   type maybe_ext = Eliom_service.ext
 
-  let rt = Eliom_service.Http
+  let ret = Eliom_service.Ret.Http
 
   let result_of_http_result = Result_types.cast_result
 
@@ -141,7 +141,7 @@ module Make_typed_xml_registration
       type result = block_content kind
       type maybe_ext = Eliom_service.ext
 
-      let rt = Eliom_service.Http
+      let ret = Eliom_service.Ret.Http
 
       let result_of_http_result = Result_types.cast_result
 
@@ -202,7 +202,7 @@ module Text_reg_base = struct
   type result = unknown_content kind
   type maybe_ext = Eliom_service.ext
 
-  let rt = Eliom_service.Http
+  let ret = Eliom_service.Ret.Http
 
   let result_of_http_result = Result_types.cast_result
 
@@ -238,7 +238,7 @@ module CssText_reg_base = struct
   type result = browser_content kind
   type maybe_ext = Eliom_service.ext
 
-  let rt = Eliom_service.Http
+  let ret = Eliom_service.Ret.Http
 
   let result_of_http_result = Result_types.cast_result
 
@@ -275,7 +275,7 @@ module HtmlText_reg_base = struct
   type result = browser_content kind
   type maybe_ext = Eliom_service.ext
 
-  let rt = Eliom_service.Http
+  let ret = Eliom_service.Ret.Http
 
   let result_of_http_result = Result_types.cast_result
 
@@ -319,7 +319,7 @@ module Action_reg_base = struct
   type result = browser_content kind
   type maybe_ext = Eliom_service.ext
 
-  let rt = Eliom_service.Http
+  let ret = Eliom_service.Ret.Http
 
   let result_of_http_result = Result_types.cast_result
 
@@ -538,7 +538,7 @@ module Unit_reg_base = struct
   type result = browser_content kind
   type maybe_ext = Eliom_service.ext
 
-  let rt = Eliom_service.Http
+  let ret = Eliom_service.Ret.Http
 
   let result_of_http_result = Result_types.cast_result
 
@@ -632,7 +632,7 @@ module File_reg_base = struct
   type result = browser_content kind
   type maybe_ext = Eliom_service.ext
 
-  let rt = Eliom_service.Http
+  let ret = Eliom_service.Ret.Http
 
   let result_of_http_result = Result_types.cast_result
 
@@ -699,7 +699,7 @@ module File_ct_reg_base = struct
   type result = browser_content kind
   type maybe_ext = Eliom_service.ext
 
-  let rt = Eliom_service.Http
+  let ret = Eliom_service.Ret.Http
 
   let result_of_http_result = Result_types.cast_result
 
@@ -766,7 +766,7 @@ module Streamlist_reg_base = struct
   type result = unknown_content kind
   type maybe_ext = Eliom_service.ext
 
-  let rt = Eliom_service.Http
+  let ret = Eliom_service.Ret.Http
 
   let result_of_http_result = Result_types.cast_result
 
@@ -839,7 +839,7 @@ module Customize
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
-  let register_service
+  let create
       ?scope
       ?options
       ?charset
@@ -858,7 +858,7 @@ module Customize
       ~id
       ?error_handler
       f =
-    R.register_service
+    R.create
       ?scope
       ?options
       ?charset
@@ -888,7 +888,7 @@ module Ocaml_reg_base = struct
   type result = Ocsigen_http_frame.result
   type maybe_ext = Eliom_service.ext
 
-  let rt = Eliom_service.Http
+  let ret = Eliom_service.Ret.Http
 
   let result_of_http_result x = x
 
@@ -955,8 +955,7 @@ module Ocaml = struct
       ?secure_session
       ~(service :
           ('get, 'post, _, _, _, Eliom_service.non_ext, Eliom_service.reg,
-           _, _, _, 'return Eliom_service.ocaml)
-            Eliom_service.service)
+           _, _, _, 'return Eliom_service.ocaml) Eliom_service.t)
       ?(error_handler : ((string * exn) list -> 'return Lwt.t) option)
       (f : ('get -> 'post -> 'return Lwt.t)) =
     M.register
@@ -967,11 +966,11 @@ module Ocaml = struct
       ?content_type
       ?headers
       ?secure_session
-      ~service:(Eliom_service.untype_service_ service)
+      ~service:(Eliom_service.untype service)
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
-  let register_service
+  let create
       ?scope
       ?options
       ?charset
@@ -990,8 +989,8 @@ module Ocaml = struct
       ~id
       ?error_handler
       f =
-    Eliom_service.untype_service_ @@
-    M.register_service
+    Eliom_service.untype @@
+    M.create
       ?scope
       ?options
       ?charset
@@ -1007,7 +1006,7 @@ module Ocaml = struct
       ?max_use
       ?timeout
       ~meth
-      ~id:(Eliom_service.untype_id_ id)
+      ~id:(Eliom_service.Id.untype id)
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
@@ -1050,7 +1049,7 @@ module Eliom_appl_reg_make_param
   type result = app_id application_content kind
   type maybe_ext = Eliom_service.non_ext
 
-  let rt = Eliom_service.Appl
+  let ret = Eliom_service.Ret.Appl
 
   let result_of_http_result = Result_types.cast_result
 
@@ -1338,7 +1337,7 @@ module type ELIOM_APPL = sig
   val set_client_fun :
     ?app:string ->
     service:
-      ('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.service ->
+      ('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
     ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
     unit
   val application_script :
@@ -1390,8 +1389,8 @@ module App (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
     Lwt.return (Eliom_syntax.get_global_data (), global_data_unwrapper)
 
   let _ =
-    Ocaml.register_service
-      ~id:(Eliom_service.Path ["__global_data__"])
+    Ocaml.create
+      ~id:(Eliom_service.Id.Path ["__global_data__"])
       ~meth:(Get Eliom_parameter.unit)
       ~https:true
       data_service_handler
@@ -1415,7 +1414,7 @@ module Eliom_tmpl_reg_make_param
   type result = Appl.app_id application_content kind
   type maybe_ext = Eliom_service.non_ext
 
-  let rt = Eliom_service.Appl
+  let ret = Eliom_service.Ret.Appl
 
   let result_of_http_result = Result_types.cast_result
 
@@ -1471,7 +1470,7 @@ module String_redir_reg_base = struct
   type result = browser_content kind
   type maybe_ext = Eliom_service.ext
 
-  let rt = Eliom_service.Http
+  let ret = Eliom_service.Ret.Http
 
   let result_of_http_result = Result_types.cast_result
 
@@ -1537,8 +1536,7 @@ module String_redirection = Eliom_mkreg.MakeRegister(String_redir_reg_base)
 type (_, _) redirected_service =
     Service :
       (unit, unit, Eliom_service.get , _, _, _, _,
-       [ `WithoutSuffix ], unit, unit, 'b)
-        Eliom_service.service ->
+       [ `WithoutSuffix ], unit, unit, 'b) Eliom_service.t ->
     (_, 'b) redirected_service
 
 module Redir_reg_base = struct

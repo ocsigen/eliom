@@ -84,7 +84,7 @@ type service_kind =
 
 (* 'return is the value returned by the service *)
 type ('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg,
-      +'tipo, 'getnames, 'postnames, +'rt) service = {
+      +'tipo, 'getnames, 'postnames, +'rt) t = {
   pre_applied_parameters :
     (string * Eliommod_parameters.param) list Eliom_lib.String.Table.t
     (* non localized parameters *) *
@@ -119,16 +119,9 @@ type ('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg,
     (unit, unit, 'meth,
      'attached, 'co, 'ext, 'reg,
      suff, unit, unit, unit)
-      service Eliom_common.wrapper;
+      t Eliom_common.wrapper;
 }
   constraint 'tipo = [< suff ]
-
-type (_, _, _, _, _) id =
-  | Path : Eliom_lib.Url.path -> (att, non_co, _, _, _) id
-  | Fallback : (unit, unit, 'mf, att, non_co, non_ext, reg,
-                [ `WithoutSuffix ], unit, unit, 'rt) service ->
-    (att, co, 'mf, 'rt, unit) id
-  | Global : (non_att, co, _, _, unit) id
 
 let pre_wrap s = {
   s with
@@ -411,22 +404,37 @@ let register_delayed_get_or_na_coservice ~sp s =
 let register_delayed_post_coservice  ~sp s getname =
   failwith "CSRF coservice not implemented client side for now"
 
-let untype_service_ s =
+let untype s =
   (s
    :  ('get, 'post, 'meth, 'attached, 'co, 'ext,
-       'tipo, 'getnames, 'postnames, 'register, _) service
+       'tipo, 'getnames, 'postnames, 'register, _) t
    :> ('get, 'post, 'meth, 'attached, 'co, 'ext,
-       'tipo, 'getnames, 'postnames,'register, _) service)
+       'tipo, 'getnames, 'postnames,'register, _) t)
 
-let untype_id_ :
-  type a c m r g . (a, c, m, r, g) id -> (a, c, m, _, g) id =
-  function
-  | Path path ->
-    Path path
-  | Fallback fallback ->
-    Fallback (untype_service_ fallback)
-  | Global ->
-    Global
+module Id = struct
+
+  type ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k) service =
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k) t
+
+  type (_, _, _, _, _) t =
+    | Path : Eliom_lib.Url.path -> (att, non_co, _, _, _) t
+    | Fallback :
+        (unit, unit, 'mf, att, non_co, non_ext, reg,
+         [ `WithoutSuffix ], unit, unit, 'rt) service ->
+      (att, co, 'mf, 'rt, unit) t
+    | Global : (non_att, co, _, _, unit) t
+
+  let untype :
+    type a c m r g . (a, c, m, r, g) t -> (a, c, m, _, g) t =
+    function
+    | Path path ->
+      Path path
+    | Fallback fallback ->
+      Fallback (untype fallback)
+    | Global ->
+      Global
+
+end
 
 let eliom_appl_answer_content_type = "application/x-eliom"
 
@@ -465,12 +473,12 @@ let get_non_attached_info = function
 let attach_global_to_fallback :
   fallback:
   (unit, unit, get, att, _, non_ext, 'rg1,
-   [< suff ], unit, unit, 'return1) service ->
+   [< suff ], unit, unit, 'return1) t ->
   service:
   ('get, 'post, 'gp, non_att, co, non_ext, 'rg2,
-   [< `WithoutSuffix] as 'sf, 'gn, 'pn, 'return) service ->
+   [< `WithoutSuffix] as 'sf, 'gn, 'pn, 'return) t ->
   ('get, 'post, 'gp, att, co, non_ext, non_reg,
-   'sf, 'gn, 'pn, 'return) service =
+   'sf, 'gn, 'pn, 'return) t =
   fun ~fallback ~service ->
     let {na_name} = get_non_attached_info service in
     let fallbackkind = get_attached_info fallback in
@@ -546,12 +554,12 @@ let main_service
   reload_fun;
 }
 
-let external_service
+let create_external
     (type m) (type gp) (type gn) (type pp) (type pn) (type mf) (type gp')
     ~prefix
     ~path
     ?keep_nl_params
-    ~rt:_
+    ~ret:_
     ~(meth : (m, gp, gn, pp, pn, _, mf, gp') Meth.t)
     () =
   let get_params, post_params = Meth.params meth in
@@ -582,7 +590,7 @@ let plain_service
     ~path
     ?keep_nl_params
     ?priority
-    ~rt:_
+    ~ret:_
     ~(meth : (m, gp, gn, pp, pn, _, mf, gp') Meth.t)
     () =
   let get_params, post_params = Meth.params meth in
@@ -634,9 +642,9 @@ let coservice
     ?timeout
     ?(https = false)
     ?keep_nl_params
-    ~rt:_
+    ~ret:_
     ~(meth : (m, gp, gn, pp, pn, _, mf, unit) Meth.t)
-    ~(fallback : (unit, unit, mf, _, _, _, _, _, unit, unit, _) service)
+    ~(fallback : (unit, unit, mf, _, _, _, _, _, unit, unit, _) t)
     () =
   let get_params, post_params = Meth.params meth in
   let meth = Meth.which meth in
@@ -686,7 +694,7 @@ let coservice'
     ?timeout
     ?(https = false)
     ?(keep_nl_params = `Persistent)
-    ~rt:_
+    ~ret:_
     ~(meth : (m, gp, gn, pp, pn, _, mf, unit) Meth.t)
     () =
   let get_params, post_params = Meth.params meth in
@@ -732,7 +740,7 @@ let coservice'
     reload_fun = Rf_some client_fun
   }
 
-let service
+let create
     ?name
     ?(csrf_safe = false)
     ?csrf_scope
@@ -744,21 +752,21 @@ let service
     ?priority
     (type m) (type gp) (type gn) (type pp) (type pn) (type mf) (type gp')
     (type rr) (type att_) (type co_)
-    ~(rt : (rr, _) rt)
+    ~(ret : (rr, _) Ret.t)
     ~(meth : (m, gp, gn, pp, pn, _, mf, gp') Meth.t)
-    ~(id : (att_, co_, mf, rr, gp') id)
+    ~(id : (att_, co_, mf, rr, gp') Id.t)
     ()
-  : (gp, pp, m, att_, co_, non_ext, reg, _, gn, pn, rr) service =
+  : (gp, pp, m, att_, co_, non_ext, reg, _, gn, pn, rr) t =
   match id with
-  | Path path ->
-    plain_service ~https ~keep_nl_params ?priority ~path ~rt ~meth ()
-  | Fallback fallback ->
+  | Id.Path path ->
+    plain_service ~https ~keep_nl_params ?priority ~path ~ret ~meth ()
+  | Id.Fallback fallback ->
     coservice
       ?name ~csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ~https
-      ~keep_nl_params ~rt ~meth ~fallback ()
-  | Global ->
+      ~keep_nl_params ~ret ~meth ~fallback ()
+  | Id.Global ->
     coservice'
       ?name ~csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ~https
-      ~keep_nl_params ~rt ~meth ()
+      ~keep_nl_params ~ret ~meth ()
 
 }}

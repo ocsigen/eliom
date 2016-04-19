@@ -17,14 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 *)
 
-open Eliom_lib
-
-open Eliom_state
-open Eliom_parameter
-
-(* Manipulation of services - this code can be use only on server
-   side. *)
-
 include Eliom_service_base
 
 exception Wrong_session_table_for_CSRF_safe_coservice
@@ -49,7 +41,7 @@ let xhr_with_cookies s =
    not send the onload_form_creator_info. *)
 
 let get_or_post_
-    (type m) (s : (_, _, m, _, _, _, _, _, _, _, _) service) =
+    (type m) (s : (_, _, m, _, _, _, _, _, _, _, _) t) =
   match which_meth s with
   | Meth.Get' -> Ocsigen_http_frame.Http_header.GET
   | Meth.Post' -> Ocsigen_http_frame.Http_header.POST
@@ -61,18 +53,18 @@ let register_eliom_module name f =
 
 let set_delayed_get_or_na_registration_function tables k f =
   tables.Eliom_common.csrf_get_or_na_registration_functions <-
-    Int.Table.add k f
+    Eliom_lib.Int.Table.add k f
       tables.Eliom_common.csrf_get_or_na_registration_functions
 
 let set_delayed_post_registration_function tables k f =
   tables.Eliom_common.csrf_post_registration_functions <-
-    Int.Table.add k f
+    Eliom_lib.Int.Table.add k f
       tables.Eliom_common.csrf_post_registration_functions
 
 let remove_service
     table
     (type m) (type a)
-    (service : (_, _, m, a, _, _, _, _, _, _, _) service) =
+    (service : (_, _, m, a, _, _, _, _, _, _, _) t) =
   match get_info service with
   | Attached attser ->
     let key_kind = get_or_post_ service in
@@ -87,15 +79,17 @@ let remove_service
        Eliom_common.key_kind = key_kind}
       (if attserget = Eliom_common.SAtt_no
        || attserpost = Eliom_common.SAtt_no
-       then (anonymise_params_type sgpt,
-             anonymise_params_type sppt)
+       then
+         Eliom_parameter.(
+           anonymise_params_type sgpt,
+           anonymise_params_type sppt)
        else (0, 0))
   | Nonattached naser ->
     let na_name = get_na_name_ naser in
     Eliommod_naservices.remove_naservice table na_name
 
 let unregister ?scope ?secure
-    (type m) (service : (_, _, m, _, _, _, _, _, _, _, _) service) =
+    (type m) (service : (_, _, m, _, _, _, _, _, _, _, _) t) =
   let sp = Eliom_common.get_sp_option () in
   match scope with
   | None
@@ -107,10 +101,12 @@ let unregister ?scope ?secure
          | Some get_current_sitedata ->
            let sitedata = get_current_sitedata () in
            sitedata.Eliom_common.global_services
-         | _ -> raise
-                  (Eliom_common.Eliom_site_information_not_available
-                     "unregister"))
-      | Some sp -> get_global_table ()
+         | _ ->
+           raise
+             (Eliom_common.Eliom_site_information_not_available
+                "unregister"))
+      | Some sp ->
+        Eliom_state.get_global_table ()
     in
     remove_service table service
   | Some (#Eliom_common.user_scope as scope) ->

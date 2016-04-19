@@ -40,13 +40,17 @@ type 'a non_ocaml = Non_ocaml_ret of 'a
 type reg = Reg
 type non_reg = Non_reg
 
-type ('r, 'e) rt =
-  | Ocaml  : ('r ocaml, ext) rt
-  | Http   : (http non_ocaml, ext) rt
-  | Appl   : (appl non_ocaml, non_ext) rt
-  (* FIXME! temporary to get current registration modules
-     working. REMOVE! *)
-  | Unsafe : ('a, ext) rt
+module Ret = struct
+
+  type ('r, 'e) t =
+    | Ocaml  : ('r ocaml, ext) t
+    | Http   : (http non_ocaml, ext) t
+    | Appl   : (appl non_ocaml, non_ext) t
+    (* FIXME! temporary to get current registration modules
+       working. REMOVE! *)
+    | Unsafe : ('a, ext) t
+
+end
 
 type ('get, 'tipo, 'gn) params =
   ('get, 'tipo, 'gn) Eliom_parameter.params_type

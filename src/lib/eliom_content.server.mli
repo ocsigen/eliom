@@ -111,13 +111,12 @@ module Xml : sig
   (** Values of type ['a caml_event_handler] represents event handler
       build with the [{{ ... }}] syntax (see the Eliom manual for more
       information on {% <<a_manual chapter="clientserver-html"
-      fragment="syntax"|syntax extension>>%}). Such values are expected
-      by functions like {!Eliom_service.onload} or
-      {!Eliom_content.Html5.a_onclick}. The type parameter is the
-      type of the javascript event expected by the handler, for
-      example {% <<a_api project="js_of_ocaml" | type
-      Dom_html.mouseEvent>>%} or {% <<a_api project="js_of_ocaml" | type
-      Dom_html.keyboardEvent >>%}. *)
+      fragment="syntax"|syntax extension>>%}). Such values are
+      expected by functions like {!Eliom_content.Html5.a_onclick}. The
+      type parameter is the type of the javascript event expected by
+      the handler, for example {% <<a_api project="js_of_ocaml" | type
+      Dom_html.mouseEvent>>%} or {% <<a_api project="js_of_ocaml" |
+      type Dom_html.keyboardEvent >>%}. *)
   type -'a caml_event_handler constraint 'a = #Dom_html.event
 
   (**/**)
@@ -466,6 +465,6 @@ end
 
 val set_client_fun :
   ?app:string ->
-  service:('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.service ->
+  service:('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
   ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
   unit
