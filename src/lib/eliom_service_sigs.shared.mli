@@ -83,7 +83,7 @@ module type S = sig
       {!Eliom_service.register_eliom_module}. Otherwise you will also
       get this exception.}  *)
 
-  (** The function [service ~id ~meth ~ret ()] creates a {!service}
+  (** The function [create ~id ~meth ~ret ()] creates a {!service}
       identified as per [id] and accepting parameters as per [m]. The
       parameter [~ret] is used to constrain the type parameter ['ret] of
       the service.
@@ -123,7 +123,7 @@ module type S = sig
 
   (** {2 External services} *)
 
-  (** The function [external_service ~prefix ~path ~get_params ()]
+  (** The function [create_external ~prefix ~path ~get_params ()]
       creates a service for an external web site, that will use GET
       method and requires [get_params] as parameters. This allows one
       to creates links or forms towards other Web sites using Eliom's
@@ -147,10 +147,10 @@ module type S = sig
     path:Eliom_lib.Url.path ->
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     ret:('ret, ext) Ret.t ->
-    meth:('m, 'gp, 'gn, 'pp, 'pn, [ `WithoutSuffix ], 'mf, _) Meth.t ->
+    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, _) Meth.t ->
     unit ->
     ('gp, 'pp, 'm, att, non_co, ext, non_reg,
-     [ `WithoutSuffix ], 'gn, 'pn, 'ret) t
+     'tipo, 'gn, 'pn, 'ret) t
 
   (** {2 Predefined services} *)
 
