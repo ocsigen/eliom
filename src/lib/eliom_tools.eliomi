@@ -28,7 +28,7 @@ open Eliom_content
 type srv =
     Srv :
       (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
-       unit, unit, _ Eliom_service.non_ocaml) Eliom_service.t
+       unit, unit, Eliom_service.non_ocaml) Eliom_service.t
     -> srv
 
 (** Hierarchical sites description. This is is a pair [(main page,
@@ -83,12 +83,12 @@ module type HTML5_TOOLS = sig
     ?classe:Html5_types.nmtoken list ->
     ?id:string ->
     ((unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
-      unit, unit, _ Eliom_service.non_ocaml) Eliom_service.t *
+      unit, unit, Eliom_service.non_ocaml) Eliom_service.t *
      [< Html5_types.flow5_without_interactive] Html5.elt list)
       list ->
     ?service:
       (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
-       unit, unit, _ Eliom_service.non_ocaml) Eliom_service.t ->
+       unit, unit, Eliom_service.non_ocaml) Eliom_service.t ->
     unit ->
     [> `Ul ] Html5.elt
 
@@ -115,7 +115,7 @@ module type HTML5_TOOLS = sig
     [< Html5_types.a_content ] Html5.elt list hierarchical_site ->
     ?service:
       (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
-       unit, unit, _ Eliom_service.non_ocaml) Eliom_service.t ->
+       unit, unit, Eliom_service.non_ocaml) Eliom_service.t ->
     unit ->
     [> `Ul ] Html5.elt list
 
@@ -137,7 +137,7 @@ module type HTML5_TOOLS = sig
     [< Html5_types.a_content ] Html5.elt list hierarchical_site ->
     ?service:
       (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
-       unit, unit, _ Eliom_service.non_ocaml) Eliom_service.t ->
+       unit, unit, Eliom_service.non_ocaml) Eliom_service.t ->
     unit ->
     [> `Ul ] Html5.elt list
 
@@ -152,7 +152,7 @@ module type HTML5_TOOLS = sig
     [< Html5_types.a_content ] Html5.elt list hierarchical_site ->
     ?service:
       (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
-       unit, unit, _ Eliom_service.non_ocaml) Eliom_service.t ->
+       unit, unit, Eliom_service.non_ocaml) Eliom_service.t ->
     unit ->
     [> `Link ] Html5.elt list
 

@@ -61,7 +61,7 @@ val change_page :
   ?absolute_path:bool ->
   ?https:bool ->
   service:
-    ('a, 'b, _, _, _, _, _, _, _, _, _ Eliom_service.non_ocaml)
+    ('a, 'b, _, _, _, _, _, _, _, _, Eliom_service.non_ocaml)
       Eliom_service.t ->
   ?hostname:string ->
   ?port:int ->
@@ -110,7 +110,7 @@ val exit_to :
   ?absolute_path:bool ->
   ?https:bool ->
   service:
-    ('a, 'b, _, _, _, _, _, _, _, _, _ Eliom_service.non_ocaml)
+    ('a, 'b, _, _, _, _, _, _, _, _, Eliom_service.non_ocaml)
       Eliom_service.t ->
   ?hostname:string ->
   ?port:int ->

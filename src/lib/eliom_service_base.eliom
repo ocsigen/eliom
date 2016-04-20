@@ -752,7 +752,7 @@ let create
     ?priority
     (type m) (type gp) (type gn) (type pp) (type pn) (type mf) (type gp')
     (type rr) (type att_) (type co_)
-    ~(ret : (rr, _) Ret.t)
+    ~(ret : rr Ret.t)
     ~(meth : (m, gp, gn, pp, pn, _, mf, gp') Meth.t)
     ~(id : (att_, co_, mf, rr, gp') Id.t)
     ()

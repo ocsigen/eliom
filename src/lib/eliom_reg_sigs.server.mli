@@ -23,9 +23,8 @@ module type PARAM = sig
   type options
   type result
   type return
-  type maybe_ext
 
-  val ret : (return, maybe_ext) Eliom_service.Ret.t
+  val ret : return Eliom_service.Ret.t
 
   val send :
     ?options:options ->

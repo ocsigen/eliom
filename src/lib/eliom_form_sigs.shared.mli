@@ -188,7 +188,7 @@ module type LINKS = sig
     ?a:[< Html5_types.a_attrib] attrib list ->
     service:
       ('get, unit, Eliom_service.get, _, _, _, _,
-       _, _, unit, _ Eliom_service.non_ocaml) Eliom_service.t ->
+       _, _, unit, Eliom_service.non_ocaml) Eliom_service.t ->
     ?hostname:string ->
     ?port:int ->
     ?fragment:string ->
@@ -278,7 +278,7 @@ module type S = sig
     ?a:[< Html5_types.form_attrib] attrib list ->
     service:
       (_, unit, Eliom_service.get, _, _, _, _, _,
-       'gn, _, _ Eliom_service.non_ocaml) Eliom_service.t ->
+       'gn, _, Eliom_service.non_ocaml) Eliom_service.t ->
     ?hostname:string ->
     ?port:int ->
     ?fragment:string ->
@@ -297,7 +297,7 @@ module type S = sig
     ?a:[< Html5_types.form_attrib] attrib list ->
     service:
       (_, unit, Eliom_service.get, _, _, _, _, _,
-       'gn, _, _ Eliom_service.non_ocaml) Eliom_service.t ->
+       'gn, _, Eliom_service.non_ocaml) Eliom_service.t ->
     ?hostname:string ->
     ?port:int ->
     ?fragment:string ->
@@ -327,7 +327,7 @@ module type S = sig
     ?a:[< Html5_types.form_attrib] attrib list ->
     service:
       ('get, _, Eliom_service.post, _, _, _, _, _,
-       _, 'pn, _ Eliom_service.non_ocaml) Eliom_service.t ->
+       _, 'pn, Eliom_service.non_ocaml) Eliom_service.t ->
     ?hostname:string ->
     ?port:int ->
     ?fragment:string ->
@@ -348,7 +348,7 @@ module type S = sig
     ?a:[< Html5_types.form_attrib] attrib list ->
     service:
       ('get, _, Eliom_service.post, _, _, _, _, _,
-       _, 'pn, _ Eliom_service.non_ocaml) Eliom_service.t ->
+       _, 'pn, Eliom_service.non_ocaml) Eliom_service.t ->
     ?hostname:string ->
     ?port:int ->
     ?fragment:string ->

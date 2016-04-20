@@ -589,7 +589,7 @@ end = struct
               (* CCC ajouter possibilité d'https *)
               (Eliom_service.create
                  (*VVV Why is it attached? --Vincent *)
-                 ~ret:Eliom_service.Ret.Http
+                 ~ret:Eliom_service.Ret.Non_ocaml
                  ~meth:
                    (Eliom_service.Meth.Post
                       (Eliom_parameter.unit,
@@ -817,7 +817,7 @@ end = struct
   let external_channel ?(history=1) ?(newest=false) ~prefix ~name () =
     let service =
       Eliom_service.create_external
-        ~ret:Eliom_service.Ret.Http
+        ~ret:Eliom_service.Ret.Non_ocaml
         ~prefix
         ~path:comet_global_path
         ~meth:

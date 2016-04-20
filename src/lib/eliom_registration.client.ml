@@ -1,11 +1,11 @@
 module type Base =
 sig
-  type return = Eliom_service.http Eliom_service.non_ocaml
+  type return = Eliom_service.non_ocaml
 end
 
 module Base =
 struct
-  type return = Eliom_service.http Eliom_service.non_ocaml
+  type return = Eliom_service.non_ocaml
 end
 
 module Html5 = Base

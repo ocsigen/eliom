@@ -90,7 +90,7 @@ type 'a ocaml_content
 module Html5 : Eliom_reg_sigs.S
   with type page = Html5_types.html Eliom_content.Html5.elt
    and type options = unit
-   and type return = Eliom_service.http Eliom_service.non_ocaml
+   and type return = Eliom_service.non_ocaml
    and type result = browser_content kind
 
 (** {2 Eliom client/server applications} *)
@@ -160,7 +160,7 @@ module type ELIOM_APPL = sig
   include Eliom_reg_sigs.S
     with type page = Html5_types.html Eliom_content.Html5.elt
      and type options = appl_service_options
-     and type return = Eliom_service.appl Eliom_service.non_ocaml
+     and type return = Eliom_service.non_ocaml
      and type result = app_id application_content kind
 
   (**/**)
@@ -182,7 +182,7 @@ module Eliom_tmpl (Appl : ELIOM_APPL) (Tmpl_param : TMPL_PARAMS):
   Eliom_reg_sigs.S
   with type page = Tmpl_param.t
    and type options = appl_service_options
-   and type return = Eliom_service.appl Eliom_service.non_ocaml
+   and type return = Eliom_service.non_ocaml
    and type result = Appl.app_id application_content kind
 
 (** {3 Services returning only fragments of HTML (or other TyXML
@@ -196,7 +196,7 @@ module Eliom_tmpl (Appl : ELIOM_APPL) (Tmpl_param : TMPL_PARAMS):
 module Flow5 : Eliom_reg_sigs.S
   with type page = Html5_types.flow5 Eliom_content.Html5.elt list
    and type options = unit
-   and type return = Eliom_service.http Eliom_service.non_ocaml
+   and type return = Eliom_service.non_ocaml
    and type result = block_content kind
 
 (** Eliom service registration for services that returns fragment of
@@ -208,7 +208,7 @@ module Make_typed_xml_registration
   Eliom_reg_sigs.S
   with type page = E.content Typed_xml.elt list
    and type options = unit
-   and type return = Eliom_service.http Eliom_service.non_ocaml
+   and type return = Eliom_service.non_ocaml
    and type result = block_content kind
 
 (** {2 Untyped pages} *)
@@ -219,7 +219,7 @@ module Make_typed_xml_registration
 module Html_text : Eliom_reg_sigs.S
   with type page = string
    and type options = unit
-   and type return = Eliom_service.http Eliom_service.non_ocaml
+   and type return = Eliom_service.non_ocaml
    and type result = browser_content kind
 
 (** Eliom service registration for services that returns CSS. The page
@@ -229,7 +229,7 @@ module Html_text : Eliom_reg_sigs.S
 module CssText : Eliom_reg_sigs.S
   with type page = string
    and type options = int
-   and type return = Eliom_service.http Eliom_service.non_ocaml
+   and type return = Eliom_service.non_ocaml
    and type result = browser_content kind
 
 (** {2 Other kinds of services} *)
@@ -243,7 +243,7 @@ module CssText : Eliom_reg_sigs.S
     registration function, the action will executed and a [204 No
     Content] will be sent to the server. *)
 module Action : Eliom_reg_sigs.S
-  with type return = Eliom_service.http Eliom_service.non_ocaml
+  with type return = Eliom_service.non_ocaml
    and type page = unit
    and type options = [ `Reload | `NoReload ]
    and type result = browser_content kind
@@ -252,7 +252,7 @@ module Action : Eliom_reg_sigs.S
 module Unit : Eliom_reg_sigs.S
   with type page = unit
    and type options = unit
-   and type return = Eliom_service.http Eliom_service.non_ocaml
+   and type return = Eliom_service.non_ocaml
    and type result = browser_content kind
 
 (** Auxiliarry type to hide non-interesting type parameters *)
@@ -316,7 +316,7 @@ module String_redirection : Eliom_reg_sigs.S
          | `NotNodifed
          | `UseProxy
          | `TemporaryRedirect ]
-   and type return = Eliom_service.http Eliom_service.non_ocaml
+   and type return = Eliom_service.non_ocaml
    and type result = browser_content kind
 
 (** Eliom service registration for services that returns file
@@ -335,7 +335,7 @@ module File : sig
   include Eliom_reg_sigs.S
     with type page = string
      and type options = int
-     and type return = Eliom_service.http Eliom_service.non_ocaml
+     and type return = Eliom_service.non_ocaml
      and type result = browser_content kind
 
 end
@@ -353,7 +353,7 @@ module File_ct : sig
   include Eliom_reg_sigs.S
     with type page = string * string
      and type options = int
-     and type return = Eliom_service.http Eliom_service.non_ocaml
+     and type return = Eliom_service.non_ocaml
      and type result = browser_content kind
 
 end
@@ -403,7 +403,7 @@ val appl_self_redirect :
 module String : Eliom_reg_sigs.S
   with type page = string * string
    and type options = int
-   and type return = Eliom_service.http Eliom_service.non_ocaml
+   and type return = Eliom_service.non_ocaml
    and type result = unknown_content kind
 
 (** Eliom service registration for services that returns "byte"
@@ -421,7 +421,7 @@ module Streamlist : Eliom_reg_sigs.S
   with type page =
          (unit -> string Ocsigen_stream.t Lwt.t) list * string
    and type options = unit
-   and type return = Eliom_service.http Eliom_service.non_ocaml
+   and type return = Eliom_service.non_ocaml
    and type result = unknown_content kind
 
 (** {2 Customizing registration} *)

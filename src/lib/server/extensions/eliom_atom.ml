@@ -61,10 +61,9 @@ let result_of_content feed headers =
 module Reg_base = struct
   type page = Atom_feed.feed
   type options = unit
-  type return = Eliom_service.http Eliom_service.non_ocaml
+  type return = Eliom_service.non_ocaml
   type result = Eliom_registration.browser_content Eliom_registration.kind
-  type maybe_ext = Eliom_service.ext
-  let ret = Eliom_service.Ret.Http
+  let ret = Eliom_service.Ret.Non_ocaml
   let result_of_http_result = Eliom_registration.cast_http_result
   let send_appl_content = Eliom_service.XNever
   let pre_service ?options () = Lwt.return ()
@@ -129,7 +128,7 @@ let notify_feed_updates address hubs s =
 let register_feed ~path ~hubs address f =
   let s =
     Eliom_service.create
-      ~ret:Eliom_service.Ret.Http
+      ~ret:Eliom_service.Ret.Non_ocaml
       ~meth:(Eliom_service.Meth.Get Eliom_parameter.unit)
       ~id:(Eliom_service.Id.Path path)
       ()

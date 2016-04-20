@@ -115,7 +115,7 @@ module type S = sig
     ?https:bool ->
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     ?priority:int ->
-    ret:('ret, _) Ret.t ->
+    ret:'ret Ret.t ->
     meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, 'gp_) Meth.t ->
     id:('att, 'co, 'mf, 'ret, 'gp_) Id.t ->
     unit ->
@@ -146,7 +146,7 @@ module type S = sig
     prefix: string ->
     path:Eliom_lib.Url.path ->
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    ret:('ret, ext) Ret.t ->
+    ret:'ret Ret.t ->
     meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, _) Meth.t ->
     unit ->
     ('gp, 'pp, 'm, att, non_co, ext, non_reg,
@@ -166,23 +166,23 @@ module type S = sig
       keep non attached GET parameters.  *)
   val reload_action :
     (unit, unit, get, non_att, co, non_ext, non_reg,
-     [ `WithoutSuffix ], unit, unit, _ non_ocaml) t
+     [ `WithoutSuffix ], unit, unit, non_ocaml) t
 
   (** Same as {!reload_action} but forcing HTTPS. *)
   val reload_action_https :
     (unit, unit, get, non_att, co, non_ext, non_reg,
-     [ `WithoutSuffix ], unit, unit, _ non_ocaml) t
+     [ `WithoutSuffix ], unit, unit, non_ocaml) t
 
   (** Same as {!reload_action} but keeps non-attached GET
       parameters. *)
   val reload_action_hidden :
     (unit, unit, get, non_att, co, non_ext, non_reg,
-     [ `WithoutSuffix ], unit, unit, _ non_ocaml) t
+     [ `WithoutSuffix ], unit, unit, non_ocaml) t
 
   (** Same as {!reload_action_hidden} but forcing HTTPS. *)
   val reload_action_https_hidden :
     (unit, unit, get, non_att, co, non_ext, non_reg,
-     [ `WithoutSuffix ], unit, unit, _ non_ocaml) t
+     [ `WithoutSuffix ], unit, unit, non_ocaml) t
 
   (** {3 Static files} *)
 
@@ -196,14 +196,14 @@ module type S = sig
     unit ->
     (string list, unit, get, att, non_co, non_ext, non_reg,
      [ `WithSuffix ], [ `One of string list ] Eliom_parameter.param_name,
-     unit, http non_ocaml) t
+     unit, non_ocaml) t
 
   (** Same as {!static_dir} but forcing https link. *)
   val https_static_dir :
     unit ->
     (string list, unit, get, att, non_co, non_ext, non_reg,
      [ `WithSuffix ], [ `One of string list ] Eliom_parameter.param_name,
-     unit, http non_ocaml) t
+     unit, non_ocaml) t
 
   (** Like [static_dir], but allows one to put GET parameters *)
   val static_dir_with_params :
@@ -213,7 +213,7 @@ module type S = sig
     ((string list * 'a), unit, get, att, non_co, non_ext, non_reg,
      [ `WithSuffix ],
      [ `One of string list ] Eliom_parameter.param_name *'an,
-     unit, http non_ocaml) t
+     unit, non_ocaml) t
 
   (** Same as {!static_dir_with_params} but forcing https link. *)
   val https_static_dir_with_params :
@@ -223,7 +223,7 @@ module type S = sig
     ((string list * 'a), unit, get, att, non_co, non_ext, non_reg,
      [ `WithSuffix ],
      [ `One of string list ] Eliom_parameter.param_name *'an,
-     unit, http non_ocaml) t
+     unit, non_ocaml) t
 
   (** {2 Miscellaneous} *)
 

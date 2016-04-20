@@ -34,21 +34,20 @@ type non_ext = Non_ext
 type http = Http_ret
 type appl = Appl_ret
 
-type 'a ocaml = Ocaml_ret of 'a
-type 'a non_ocaml = Non_ocaml_ret of 'a
+type 'a ocaml  = Ocaml of 'a
+type non_ocaml = Non_ocaml
 
 type reg = Reg
 type non_reg = Non_reg
 
 module Ret = struct
 
-  type ('r, 'e) t =
-    | Ocaml  : ('r ocaml, ext) t
-    | Http   : (http non_ocaml, ext) t
-    | Appl   : (appl non_ocaml, non_ext) t
+  type _ t =
+    | Ocaml     : 'r ocaml  t
+    | Non_ocaml : non_ocaml t
     (* FIXME! temporary to get current registration modules
        working. REMOVE! *)
-    | Unsafe : ('a, ext) t
+    | Unsafe    : _ t
 
 end
 
