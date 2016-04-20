@@ -625,7 +625,7 @@ let create pages
     ~service ?error_handler page;
   service
 
-module MakeRegister (Pages: Eliom_reg_sigs.PARAM) = struct
+module Make (Pages: Eliom_reg_sigs.PARAM) = struct
 
   type page = Pages.page
   type options = Pages.options
@@ -645,19 +645,18 @@ module MakeRegister (Pages: Eliom_reg_sigs.PARAM) = struct
 
 end
 
-module MakeRegister_AlphaReturn
-    (Pages : Eliom_reg_sigs.PARAM_ALPHA_RETURN) =
-struct
+module Make_poly (Pages : Eliom_reg_sigs.PARAM_POLY) = struct
 
-  type ('a, 'b) page = ('a, 'b) Pages.page
+  type 'a page = 'a Pages.page
   type options = Pages.options
-  type 'b return = 'b
+  type 'a return = 'a Pages.return
   type 'a result = 'a Pages.result
 
-  let pages =
-    { send = Pages.send;
-      send_appl_content = Pages.send_appl_content;
-      result_of_http_result = Pages.result_of_http_result; }
+  let pages = {
+    send                  = Pages.send;
+    send_appl_content     = Pages.send_appl_content;
+    result_of_http_result = Pages.result_of_http_result
+  }
 
   let send ?options = send pages ?options
 

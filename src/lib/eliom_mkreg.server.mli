@@ -20,12 +20,11 @@
 
 
 (** This module defines the functor to use to creates modules
-   generating functions to register services for your own types of pages.
-   It is used for example in {!Eliom_registration}.
- *)
+    generating functions to register services for your own types of
+    pages.  It is used for example in {!Eliom_registration}.  *)
 
 (** {2 Creates modules to register services for one type of pages} *)
-module MakeRegister (Pages: Eliom_reg_sigs.PARAM) :
+module Make (Pages: Eliom_reg_sigs.PARAM) :
   Eliom_reg_sigs.S
   with type page = Pages.page
    and type options = Pages.options
@@ -33,15 +32,12 @@ module MakeRegister (Pages: Eliom_reg_sigs.PARAM) :
 
 (** {2 Creating modules to register services for one type of
     parametrised pages} *)
-module MakeRegister_AlphaReturn
-    (Pages : Eliom_reg_sigs.PARAM_ALPHA_RETURN) :
-sig
-  include "sigs/eliom_reg_alpha_return.mli"
-     subst type page := ('a, 'b) Pages.page
-       and type options := Pages.options
-       and type return := 'b
-       and type result := 'a Pages.result
-end
+module Make_poly (Pages : Eliom_reg_sigs.PARAM_POLY) :
+  Eliom_reg_sigs.S_poly
+  with type 'a page   = 'a Pages.page
+   and type options   = Pages.options
+   and type 'a return = 'a Pages.return
+   and type 'a result = 'a Pages.result
 
 (**/**)
 val suffix_redir_uri_key : string Polytables.key

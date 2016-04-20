@@ -18,9 +18,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** Eliom services registration for various kinds of
-    page content: Eliom application, valid {!Html5},
-    actions, redirections, static files, … *)
+(** Eliom services registration for various kinds of page content:
+    Eliom application, valid {!Html5}, actions, redirections, static
+    files, … *)
 
 (** {b Please read the Eliom manual before this page to learn how to
     use {% <<a_manual chapter="server-services" | services >>%} and {%
@@ -256,11 +256,11 @@ module Unit : Eliom_reg_sigs.S
    and type result = browser_content kind
 
 (** Auxiliarry type to hide non-interesting type parameters *)
-type (_, _) redirected_service =
+type 'a redirected_service =
     Service :
       (unit, unit, Eliom_service.get , _, _, _, _,
-       [ `WithoutSuffix ], unit, unit, 'b) Eliom_service.t ->
-    (_, 'b) redirected_service
+       [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
+    'a redirected_service
 
 (** Eliom service registration for services that returns a
     redirections towards another service. See the Eliom manual for
@@ -276,27 +276,17 @@ type (_, _) redirected_service =
     - [`NotNodifed] to return [304 Not Modified].
     - [`UseProxy] to return [305 Use Proxy].
     - [`TemporaryRedirect] to return [307 Temporary Redirect]. *)
-module Redirection : sig
-
-  type ('a, 'b) page = ('a, 'b) redirected_service
-
-  type options =
-    [ `MovedPermanently
-    | `Found
-    | `SeeOther
-    | `NotNodifed
-    | `UseProxy
-    | `TemporaryRedirect ]
-
-  type 'b return = 'b
-  type 'a result = 'a kind
-
-  include "sigs/eliom_reg_simpl.mli"
-    subst type return := 'b return
-      and type result := 'a result
-      and type page := ('a, 'b) page
-
-end
+module Redirection : Eliom_reg_sigs.S_poly
+  with type 'a page = 'a redirected_service
+   and type options =
+         [ `MovedPermanently
+         | `Found
+         | `SeeOther
+         | `NotNodifed
+         | `UseProxy
+         | `TemporaryRedirect ]
+   and type 'a return = 'a
+   and type 'a result = unknown_content kind
 
 (** Eliom service registration for services that returns a
     redirections towards a string-URL. See the Eliom manual for more
@@ -360,11 +350,11 @@ end
 
 (** Eliom service registration for services that send marshalled OCaml
     values. *)
-module Ocaml : "sigs/eliom_reg_simpl.mli"
-  subst type page    := 'return
-    and type options := unit
-    and type return  := 'return Eliom_service.ocaml
-    and type result  := 'return ocaml_content kind
+module Ocaml : Eliom_reg_sigs.S_poly
+  with type 'a page = 'a
+   and type options = unit
+   and type 'a return = 'a Eliom_service.ocaml
+   and type 'a result = 'a ocaml_content kind
 
 (** Eliom service registration for services that choose dynamically
     what they want to send. The content is created using for example
@@ -372,11 +362,11 @@ module Ocaml : "sigs/eliom_reg_simpl.mli"
     for more information about {% <<a_manual chapter="server-outputs"
     fragment="any"|services that choose dynamically what they want to
     send>>%} *)
-module Any : "sigs/eliom_reg_alpha_return.mli"
-  subst type page  := 'a kind
-  and type options := unit
-  and type return  := 'b
-  and type result  := 'a kind
+module Any :  Eliom_reg_sigs.S_poly
+  with type 'a page = 'a kind
+   and type options = unit
+   and type 'a return = Eliom_service.non_ocaml
+   and type 'a result = 'a kind
 
 (** The function [appl_self_redirect send page] is an helper function
     required for defining {!Any} service usable inside an Eliom

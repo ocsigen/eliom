@@ -69,7 +69,7 @@ module Reg_base = struct
     Lwt.return (result_of_content feed headers )
 end
 
-module Reg =  Eliom_mkreg.MakeRegister(Reg_base)
+module Reg =  Eliom_mkreg.Make(Reg_base)
 
 let (>>=) = Lwt.bind
 
