@@ -11,7 +11,11 @@ module %%%MODULE_NAME%%%_app =
     end)
 
 let main_service =
-  Eliom_service.App.service ~path:[] ~get_params:Eliom_parameter.unit ()
+  Eliom_service.create
+    ~id:(Eliom_service.Id.Path [])
+    ~meth:(Eliom_service.Meth.Get Eliom_parameter.unit)
+    ~ret:Eliom_service.Ret.Non_ocaml
+    ()
 
 let () =
   %%%MODULE_NAME%%%_app.register
