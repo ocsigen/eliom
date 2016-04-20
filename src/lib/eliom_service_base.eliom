@@ -593,13 +593,19 @@ let plain_service
     ~ret:_
     ~(meth : (m, gp, gn, pp, pn, _, mf, gp') Meth.t)
     () =
-  let get_params, post_params = Meth.params meth in
-  let meth = Meth.which meth in
-  let path = Url.(
-    remove_slash_at_beginning path
-    |> change_empty_list
-    |> remove_internal_slash
-  ) in
+  let get_params, post_params = Meth.params meth
+  and meth = Meth.which meth in
+  let redirect_suffix = Eliom_parameter.contains_suffix get_params in
+  let path =
+    (match redirect_suffix with
+     | None ->
+       path
+     | Some _  ->
+       path @ [Eliom_common.eliom_suffix_internal_name])
+    |> Url.remove_slash_at_beginning
+    |> Url.change_empty_list
+    |> Url.remove_internal_slash
+  in
   let site_dir =
     match Eliom_common.get_sp_option () with
     | Some sp ->
@@ -613,7 +619,7 @@ let plain_service
        | None ->
          raise
            (Eliom_common.Eliom_site_information_not_available "service"))
-  and redirect_suffix = Eliom_parameter.contains_suffix get_params in
+  in
   let client_fun = Obj.magic (ref {_ -> _{ fun () -> None }}) in
   let reload_fun = Rf_some client_fun in
   main_service
