@@ -55,19 +55,22 @@ module type S = sig
     type ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k) service =
       ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k) t
 
-    type (_, _, _, _, _) t =
+    type (_, _, _, _, _, _, _) t =
       | Path :
           Eliom_lib.Url.path
-        -> (att, non_co, _, _, _) t
+        -> (att, non_co, non_ext, reg, _, _, _) t
       | Fallback :
           (unit, unit, 'mf, att, non_co, non_ext, reg,
            [ `WithoutSuffix ], unit, unit, 'ret) service
-        -> (att, co, 'mf, 'ret, unit) t
+        -> (att, co, non_ext, reg, 'mf, 'ret, unit) t
       | Global :
-          (non_att, co, _, _, unit) t
+          (non_att, co, non_ext, reg, _, _, unit) t
+      | External :
+          string * Eliom_lib.Url.path
+        -> (att, non_co, ext, non_reg, _, _, _) t
 
     val untype :
-      ('a, 'c, 'm, 'r, 'g) t -> ('a, 'c, 'm, 'rr, 'g) t
+      ('a, 'c, 'm, 'e, 'r, _, 'g) t -> ('a, 'c, 'm, 'e, 'r, _, 'g) t
 
   end
 
@@ -115,42 +118,10 @@ module type S = sig
     ?https:bool ->
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     ?priority:int ->
-    ret:'ret Ret.t ->
     meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, 'gp_) Meth.t ->
-    id:('att, 'co, 'mf, 'ret, 'gp_) Id.t ->
+    id:('att, 'co, 'ext, 'reg, 'mf, non_ocaml, 'gp_) Id.t ->
     unit ->
-    ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'ret) t
-
-  (** {2 External services} *)
-
-  (** The function [create_external ~prefix ~path ~get_params ()]
-      creates a service for an external web site, that will use GET
-      method and requires [get_params] as parameters. This allows one
-      to creates links or forms towards other Web sites using Eliom's
-      syntax.
-
-      The parameter labelled [~path] is the URL path. Each element of
-      the list will be URL-encoded.
-
-      The parameter labelled [~prefix] contains all what you want to
-      put before the path. It usually starets with "http://" plus the
-      name of the server. The prefix is not URL encoded.
-
-      The whole URL is constructed from the prefix, the path and GET
-      parameters. Hence, an empty prefix can be used to make a link to
-      another site of the same server.
-
-      See {!val:service} for a description of the optional
-      [~keep_nl_params] and [~ret] parameters.  *)
-  val create_external :
-    prefix: string ->
-    path:Eliom_lib.Url.path ->
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    ret:'ret Ret.t ->
-    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, _) Meth.t ->
-    unit ->
-    ('gp, 'pp, 'm, att, non_co, ext, non_reg,
-     'tipo, 'gn, 'pn, 'ret) t
+    ('gp, 'pp, 'm, 'att, 'co, 'ext, 'reg, 'tipo, 'gn, 'pn, non_ocaml) t
 
   (** {2 Predefined services} *)
 
@@ -281,6 +252,36 @@ module type S = sig
      'd, 'e, 'f * 'pn, 'return) t
 
   (**/**)
+
+  val create_unsafe :
+    ?name:string ->
+    ?csrf_safe: bool ->
+    ?csrf_scope: [< Eliom_common.user_scope] ->
+    ?csrf_secure: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    ?priority:int ->
+    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, 'gp_) Meth.t ->
+    id:('att, 'co, non_ext, reg, 'mf, 'ret, 'gp_) Id.t ->
+    unit ->
+    ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'ret) t
+
+  val create_ocaml :
+    ?name:string ->
+    ?csrf_safe: bool ->
+    ?csrf_scope: [< Eliom_common.user_scope] ->
+    ?csrf_secure: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    ?priority:int ->
+    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, 'gp_) Meth.t ->
+    id:('att, 'co, 'ext, 'reg, 'mf, 'ret ocaml, 'gp_) Id.t ->
+    unit ->
+    ('gp, 'pp, 'm, 'att, 'co, 'ext, 'reg, 'tipo, 'gn, 'pn, 'ret ocaml) t
 
   val which_meth :
     (_, _, 'm, _, _, _, _, _, _, _, _) t -> 'm Meth.which

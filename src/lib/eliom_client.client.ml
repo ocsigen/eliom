@@ -936,7 +936,7 @@ let server_function
     ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https ?error_handler
     argument_type () =
   let service =
-    Eliom_service.create
+    Eliom_service.create_ocaml
       ~name
       ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
       ~id:Eliom_service.Id.Global
@@ -944,7 +944,6 @@ let server_function
         (Eliom_service.Meth.Post
            (Eliom_parameter.unit,
             Eliom_parameter.(ocaml "argument" argument_type)))
-      ~ret:Eliom_service.Ret.Ocaml
       ()
   in
   fun a -> call_ocaml_service ~absolute:true ~service () a

@@ -604,16 +604,15 @@ let create pages
     ?timeout
     ~meth
     ~id
-    ~ret
     ?error_handler
     page =
   let service =
-    S.create
+    S.create_unsafe
       ?name
       ?csrf_safe
       ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
       ?csrf_secure
-      ?max_use ?timeout ?https ~meth ~id ~ret ()
+      ?max_use ?timeout ?https ~meth ~id ()
   in
   register pages
     ?scope
@@ -630,10 +629,8 @@ module MakeRegister (Pages: Eliom_reg_sigs.PARAM) = struct
 
   type page = Pages.page
   type options = Pages.options
-  type return = Pages.return
+  type return = Eliom_service.non_ocaml
   type result = Pages.result
-
-  let ret = Pages.ret
 
   let pages =
     { send = Pages.send;
@@ -644,7 +641,7 @@ module MakeRegister (Pages: Eliom_reg_sigs.PARAM) = struct
 
   let register ?scope = register pages ?scope
 
-  let create ?scope = create pages ?scope ~ret
+  let create ?scope = create pages ?scope
 
 end
 
@@ -662,12 +659,10 @@ struct
       send_appl_content = Pages.send_appl_content;
       result_of_http_result = Pages.result_of_http_result; }
 
-  let ret = S.Ret.Unsafe
-
   let send ?options = send pages ?options
 
   let register ?scope = register pages ?scope
 
-  let create ?scope = create pages ?scope ~ret
+  let create ?scope = create pages ?scope
 
 end

@@ -67,7 +67,9 @@ val create :
   ?timeout:float ->
   meth:
     ('m , 'gp , 'gn , 'pp, 'pn, 'tipo, 'mf, 'gp_) Eliom_service.Meth.t ->
-  id:('att, 'co, 'mf, return, 'gp_) Eliom_service.Id.t ->
+  id:
+    ('att, 'co, Eliom_service.non_ext, Eliom_service.reg,
+     'mf, return, 'gp_) Eliom_service.Id.t ->
   ?error_handler:((string * exn) list -> page Lwt.t) ->
   ('gp -> 'pp -> page Lwt.t) ->
   ('gp, 'pp, 'm, 'att, 'co, Eliom_service.non_ext, Eliom_service.reg, 'tipo,

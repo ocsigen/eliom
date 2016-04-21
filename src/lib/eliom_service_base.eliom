@@ -416,16 +416,23 @@ module Id = struct
   type ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k) service =
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k) t
 
-  type (_, _, _, _, _) t =
-    | Path : Eliom_lib.Url.path -> (att, non_co, _, _, _) t
+  type (_, _, _, _, _, _, _) t =
+    | Path :
+        Eliom_lib.Url.path
+      -> (att, non_co, non_ext, reg, _, _, _) t
     | Fallback :
         (unit, unit, 'mf, att, non_co, non_ext, reg,
-         [ `WithoutSuffix ], unit, unit, 'rt) service ->
-      (att, co, 'mf, 'rt, unit) t
-    | Global : (non_att, co, _, _, unit) t
+         [ `WithoutSuffix ], unit, unit, 'ret) service
+      -> (att, co, non_ext, reg, 'mf, 'ret, unit) t
+    | Global :
+        (non_att, co, non_ext, reg, _, _, unit) t
+    | External :
+        string * Eliom_lib.Url.path
+      -> (att, non_co, ext, non_reg, _, _, _) t
 
   let untype :
-    type a c m r g . (a, c, m, r, g) t -> (a, c, m, _, g) t =
+    type a c m e r x g .
+    (a, c, m, e, r, x, g) t -> (a, c, m, e, r, _, g) t =
     function
     | Path path ->
       Path path
@@ -433,6 +440,8 @@ module Id = struct
       Fallback (untype fallback)
     | Global ->
       Global
+    | External (_, _) as e ->
+      e
 
 end
 
@@ -562,7 +571,6 @@ let create_external
     ~prefix
     ~path
     ?keep_nl_params
-    ~ret:_
     ~(meth : (m, gp, gn, pp, pn, _, mf, gp') Meth.t)
     () =
   let get_params, post_params = Meth.params meth in
@@ -593,7 +601,6 @@ let plain_service
     ~path
     ?keep_nl_params
     ?priority
-    ~ret:_
     ~(meth : (m, gp, gn, pp, pn, _, mf, gp') Meth.t)
     () =
   let get_params, post_params = Meth.params meth
@@ -651,7 +658,6 @@ let coservice
     ?timeout
     ?(https = false)
     ?keep_nl_params
-    ~ret:_
     ~(meth : (m, gp, gn, pp, pn, _, mf, unit) Meth.t)
     ~(fallback : (unit, unit, mf, _, _, _, _, _, unit, unit, _) t)
     () =
@@ -708,7 +714,6 @@ let coservice'
     ?timeout
     ?(https = false)
     ?(keep_nl_params = `Persistent)
-    ~ret:_
     ~(meth : (m, gp, gn, pp, pn, _, mf, unit) Meth.t)
     () =
   let get_params, post_params = Meth.params meth in
@@ -765,22 +770,27 @@ let create
     ?(keep_nl_params = `Persistent)
     ?priority
     (type m) (type gp) (type gn) (type pp) (type pn) (type mf) (type gp')
-    (type rr) (type att_) (type co_)
-    ~(ret : rr Ret.t)
+    (type att_) (type co_) (type ext_) (type reg_) (type rr)
     ~(meth : (m, gp, gn, pp, pn, _, mf, gp') Meth.t)
-    ~(id : (att_, co_, mf, rr, gp') Id.t)
+    ~(id : (att_, co_, ext_, reg_, mf, rr, gp') Id.t)
     ()
-  : (gp, pp, m, att_, co_, non_ext, reg, _, gn, pn, rr) t =
+  : (gp, pp, m, att_, co_, ext_, reg_, _, gn, pn, rr) t =
   match id with
   | Id.Path path ->
-    plain_service ~https ~keep_nl_params ?priority ~path ~ret ~meth ()
+    plain_service ~https ~keep_nl_params ?priority ~path ~meth ()
   | Id.Fallback fallback ->
     coservice
       ?name ~csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ~https
-      ~keep_nl_params ~ret ~meth ~fallback ()
+      ~keep_nl_params ~meth ~fallback ()
   | Id.Global ->
     coservice'
       ?name ~csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ~https
-      ~keep_nl_params ~ret ~meth ()
+      ~keep_nl_params ~meth ()
+  | Id.External (prefix, path) ->
+    create_external ~prefix ~path ~keep_nl_params ~meth ()
+
+let create_unsafe = create
+
+let create_ocaml  = create
 
 }}

@@ -40,17 +40,6 @@ type non_ocaml = Non_ocaml
 type reg = Reg
 type non_reg = Non_reg
 
-module Ret = struct
-
-  type _ t =
-    | Ocaml     : 'r ocaml  t
-    | Non_ocaml : non_ocaml t
-    (* FIXME! temporary to get current registration modules
-       working. REMOVE! *)
-    | Unsafe    : _ t
-
-end
-
 type ('get, 'tipo, 'gn) params =
   ('get, 'tipo, 'gn) Eliom_parameter.params_type
   constraint 'tipo = [< `WithSuffix | `WithoutSuffix ]

@@ -22,9 +22,6 @@ module type PARAM = sig
   type page
   type options
   type result
-  type return
-
-  val ret : return Eliom_service.Ret.t
 
   val send :
     ?options:options ->
@@ -71,7 +68,7 @@ module type S = sig
 
   type page
   type options
-  type return
+  type return = Eliom_service.non_ocaml
   type result
 
   include "sigs/eliom_reg_simpl.mli"

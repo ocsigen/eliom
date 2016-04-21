@@ -64,10 +64,7 @@ module Html5_make_reg_base
 
   type page = Html5_types.html Eliom_content.Html5.elt
   type options = unit
-  type return = Eliom_service.non_ocaml
   type result = browser_content kind
-
-  let ret = Eliom_service.Ret.Non_ocaml
 
   let result_of_http_result = Result_types.cast_result
 
@@ -136,10 +133,7 @@ module Make_typed_xml_registration
 
       type page = E.content Typed_xml.elt list
       type options = unit
-      type return = Eliom_service.non_ocaml
       type result = block_content kind
-
-      let ret = Eliom_service.Ret.Non_ocaml
 
       let result_of_http_result = Result_types.cast_result
 
@@ -199,8 +193,6 @@ module Text_reg_base = struct
   type return = Eliom_service.non_ocaml
   type result = unknown_content kind
 
-  let ret = Eliom_service.Ret.Non_ocaml
-
   let result_of_http_result = Result_types.cast_result
 
   let send_appl_content = Eliom_service.XNever
@@ -231,10 +223,7 @@ module CssText_reg_base = struct
 
   type page = string
   type options = int
-  type return = Eliom_service.non_ocaml
   type result = browser_content kind
-
-  let ret = Eliom_service.Ret.Non_ocaml
 
   let result_of_http_result = Result_types.cast_result
 
@@ -267,10 +256,7 @@ module HtmlText_reg_base = struct
 
   type page = string
   type options = unit
-  type return = Eliom_service.non_ocaml
   type result = browser_content kind
-
-  let ret = Eliom_service.Ret.Non_ocaml
 
   let result_of_http_result = Result_types.cast_result
 
@@ -310,10 +296,7 @@ module Action_reg_base = struct
 
   type page = unit
   type options = [ `Reload | `NoReload ]
-  type return = Eliom_service.non_ocaml
   type result = browser_content kind
-
-  let ret = Eliom_service.Ret.Non_ocaml
 
   let result_of_http_result = Result_types.cast_result
 
@@ -528,10 +511,7 @@ module Unit_reg_base = struct
 
   type page = unit
   type options = unit
-  type return = Eliom_service.non_ocaml
   type result = browser_content kind
-
-  let ret = Eliom_service.Ret.Non_ocaml
 
   let result_of_http_result = Result_types.cast_result
 
@@ -621,10 +601,7 @@ module File_reg_base = struct
 
   type page = string
   type options = int
-  type return = Eliom_service.non_ocaml
   type result = browser_content kind
-
-  let ret = Eliom_service.Ret.Non_ocaml
 
   let result_of_http_result = Result_types.cast_result
 
@@ -687,10 +664,7 @@ module File_ct_reg_base = struct
 
   type page = string * string
   type options = int
-  type return = Eliom_service.non_ocaml
   type result = browser_content kind
-
-  let ret = Eliom_service.Ret.Non_ocaml
 
   let result_of_http_result = Result_types.cast_result
 
@@ -753,10 +727,7 @@ module Streamlist_reg_base = struct
 
   type page = (((unit -> (string Ocsigen_stream.t) Lwt.t) list) * string)
   type options = unit
-  type return = Eliom_service.non_ocaml
   type result = unknown_content kind
-
-  let ret = Eliom_service.Ret.Non_ocaml
 
   let result_of_http_result = Result_types.cast_result
 
@@ -874,10 +845,7 @@ module Ocaml_reg_base = struct
 
   type page = string
   type options = unit
-  type return = Eliom_service.non_ocaml
   type result = Ocsigen_http_frame.result
-
-  let ret = Eliom_service.Ret.Non_ocaml
 
   let result_of_http_result x = x
 
@@ -1034,10 +1002,7 @@ module Eliom_appl_reg_make_param
 
   type page = Html5_types.html Eliom_content.Html5.elt
   type options = appl_service_options
-  type return = Eliom_service.non_ocaml
   type result = app_id application_content kind
-
-  let ret = Eliom_service.Ret.Non_ocaml
 
   let result_of_http_result = Result_types.cast_result
 
@@ -1398,10 +1363,7 @@ module Eliom_tmpl_reg_make_param
 
   type page = Tmpl_param.t
   type options = appl_service_options
-  type return = Eliom_service.non_ocaml
   type result = Appl.app_id application_content kind
-
-  let ret = Eliom_service.Ret.Non_ocaml
 
   let result_of_http_result = Result_types.cast_result
 
@@ -1453,10 +1415,7 @@ module String_redir_reg_base = struct
     | `NotNodifed
     | `UseProxy
     | `TemporaryRedirect ]
-  type return = Eliom_service.non_ocaml
   type result = browser_content kind
-
-  let ret = Eliom_service.Ret.Non_ocaml
 
   let result_of_http_result = Result_types.cast_result
 

@@ -29,7 +29,6 @@ module MakeRegister (Pages: Eliom_reg_sigs.PARAM) :
   Eliom_reg_sigs.S
   with type page = Pages.page
    and type options = Pages.options
-   and type return = Pages.return
    and type result = Pages.result
 
 (** {2 Creating modules to register services for one type of
