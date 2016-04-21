@@ -577,7 +577,18 @@ module Any_reg_base = struct
 
 end
 
-module Any = Eliom_mkreg.Make_poly(Any_reg_base)
+module Any = struct
+
+  include Eliom_mkreg.Make_poly(Any_reg_base)
+
+  type 'a result = 'a kind
+
+  let send ?options ?charset ?code ?content_type ?headers content =
+    Result_types.cast_result_lwt
+      (Any_reg_base.send
+         ?options ?charset ?code ?content_type ?headers content)
+
+end
 
 type 'a application_name = string
 
@@ -1603,10 +1614,18 @@ module Redir_reg_base = struct
                       (Http_headers.name Eliom_common.half_xhr_redir_header)
                       uri headers) ())
 
-
 end
 
-module Redirection = Eliom_mkreg.Make_poly(Redir_reg_base)
+module Redirection = struct
+
+  include Eliom_mkreg.Make_poly(Redir_reg_base)
+
+  let send ?options ?charset ?code ?content_type ?headers content =
+    Result_types.cast_result_lwt
+      (Redir_reg_base.send
+         ?options ?charset ?code ?content_type ?headers content)
+
+end
 
 let set_exn_handler h =
   let sitedata = Eliom_request_info.find_sitedata "set_exn_handler" in

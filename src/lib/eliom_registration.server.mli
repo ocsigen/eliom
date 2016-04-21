@@ -276,17 +276,30 @@ type 'a redirected_service =
     - [`NotNodifed] to return [304 Not Modified].
     - [`UseProxy] to return [305 Use Proxy].
     - [`TemporaryRedirect] to return [307 Temporary Redirect]. *)
-module Redirection : Eliom_reg_sigs.S_poly
-  with type 'a page = 'a redirected_service
-   and type options =
-         [ `MovedPermanently
-         | `Found
-         | `SeeOther
-         | `NotNodifed
-         | `UseProxy
-         | `TemporaryRedirect ]
-   and type 'a return = 'a
-   and type 'a result = unknown_content kind
+module Redirection : sig
+
+  include Eliom_reg_sigs.S_poly
+    with type 'a page = 'a redirected_service
+     and type options =
+           [ `MovedPermanently
+           | `Found
+           | `SeeOther
+           | `NotNodifed
+           | `UseProxy
+           | `TemporaryRedirect ]
+     and type 'a return = 'a
+
+  (** More polymorphic version of {!Eliom_reg_sigs.send} *)
+  val send :
+    ?options      : options ->
+    ?charset      : string ->
+    ?code         : int ->
+    ?content_type : string ->
+    ?headers      : Http_headers.t ->
+    _ page ->
+    _ kind Lwt.t
+
+end
 
 (** Eliom service registration for services that returns a
     redirections towards a string-URL. See the Eliom manual for more
@@ -350,7 +363,7 @@ end
 
 (** Eliom service registration for services that send marshalled OCaml
     values. *)
-module Ocaml : Eliom_reg_sigs.S_poly
+module Ocaml : Eliom_reg_sigs.S_poly_with_send
   with type 'a page = 'a
    and type options = unit
    and type 'a return = 'a Eliom_service.ocaml
@@ -362,7 +375,7 @@ module Ocaml : Eliom_reg_sigs.S_poly
     for more information about {% <<a_manual chapter="server-outputs"
     fragment="any"|services that choose dynamically what they want to
     send>>%} *)
-module Any :  Eliom_reg_sigs.S_poly
+module Any :  Eliom_reg_sigs.S_poly_with_send
   with type 'a page = 'a kind
    and type options = unit
    and type 'a return = Eliom_service.non_ocaml

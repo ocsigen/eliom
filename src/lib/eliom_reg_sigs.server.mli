@@ -47,7 +47,6 @@ module type PARAM_POLY = sig
   type _ page
   type options
   type _ return
-  type _ result
 
   val send :
     ?options:options ->
@@ -60,8 +59,6 @@ module type PARAM_POLY = sig
 
   (** See {!Eliom_reg_sigs.PARAM.send_appl_content}. *)
   val send_appl_content : Eliom_service.send_appl_content
-
-  val result_of_http_result : Ocsigen_http_frame.result -> _ result
 
 end
 
@@ -169,10 +166,9 @@ end
 
 module type S_poly = sig
 
-  type 'a page
+  type _ page
   type options
-  type 'a return
-  type 'a result
+  type _ return
 
   val register :
     ?scope:[<Eliom_common.scope] ->
@@ -190,7 +186,6 @@ module type S_poly = sig
     ('get -> 'post -> 'a page Lwt.t) ->
     unit
 
-  (** Same as {!Eliom_service.create} followed by {!register}. *)
   val create :
     ?scope:[<Eliom_common.scope] ->
     ?options:options ->
@@ -218,18 +213,20 @@ module type S_poly = sig
      'gn, 'pn, 'a return)
       Eliom_service.t
 
-  (** {2 Low-level function } *)
+end
 
-  (** The function [send page] build the HTTP frame corresponding to
-      [page]. This may be used for example in an service handler
-      registered with {!Eliom_registration.Any.register} or when
-      building a custom output module.  *)
+module type S_poly_with_send = sig
+
+  include S_poly
+
+  type 'a result
+
   val send :
-    ?options:options ->
-    ?charset:string ->
-    ?code: int ->
-    ?content_type:string ->
-    ?headers: Http_headers.t ->
+    ?options      : options ->
+    ?charset      : string ->
+    ?code         : int ->
+    ?content_type : string ->
+    ?headers      : Http_headers.t ->
     'a page ->
     'a result Lwt.t
 

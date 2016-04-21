@@ -37,7 +37,6 @@ module Make_poly (Pages : Eliom_reg_sigs.PARAM_POLY) :
   with type 'a page   = 'a Pages.page
    and type options   = Pages.options
    and type 'a return = 'a Pages.return
-   and type 'a result = 'a Pages.result
 
 (**/**)
 val suffix_redir_uri_key : string Polytables.key

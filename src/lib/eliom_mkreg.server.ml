@@ -650,15 +650,12 @@ module Make_poly (Pages : Eliom_reg_sigs.PARAM_POLY) = struct
   type 'a page = 'a Pages.page
   type options = Pages.options
   type 'a return = 'a Pages.return
-  type 'a result = 'a Pages.result
 
   let pages = {
     send                  = Pages.send;
     send_appl_content     = Pages.send_appl_content;
-    result_of_http_result = Pages.result_of_http_result
+    result_of_http_result = (fun x -> x)
   }
-
-  let send ?options = send pages ?options
 
   let register ?scope = register pages ?scope
 
