@@ -13,7 +13,7 @@ true:keep_locs
 <lib/server/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml.functor)
 <lib/server/*.ml{,i}>:package(react,js_of_ocaml)
 
-<lib/server/*.ml{,i}>:syntax(camlp4o),package(deriving.syntax.std, js_of_ocaml.deriving.syntax),pkg_pa_include,sig_inc(../src/lib)
+<lib/server/*.ml{,i}>:syntax(camlp4o),package(deriving.syntax.std, js_of_ocaml.deriving.syntax)
 
 
 
@@ -25,13 +25,13 @@ true:keep_locs
 <lib/client/*.ml{,i}>:package(lwt.react,tyxml.functor,js_of_ocaml.tyxml)
 <lib/client/*.ml{,i}>:package(react,js_of_ocaml,reactiveData)
 
-<lib/client/*.ml{,i}>:syntax(camlp4o),package(deriving.syntax.std, js_of_ocaml.deriving.syntax),pkg_pa_include,sig_inc(../src/lib)
+<lib/client/*.ml{,i}>:syntax(camlp4o),package(deriving.syntax.std, js_of_ocaml.deriving.syntax)
 
 <lib/server/extensions/*.ml>:syntax(camlp4o), package(deriving.syntax.std, js_of_ocaml.deriving.syntax,lwt.syntax)
 
 <lib/server/extensions/*.ml{,i}>:thread
 <lib/server/extensions/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml,calendar)
-<lib/server/extensions/*.ml{,i}>:syntax(camlp4o),package(deriving.syntax.std, js_of_ocaml.deriving.syntax),pkg_pa_include,sig_inc(../src/lib)
+<lib/server/extensions/*.ml{,i}>:syntax(camlp4o),package(deriving.syntax.std, js_of_ocaml.deriving.syntax)
 <lib/server/extensions/*.ml{,i}>:I(src/lib/server)
 
 <lib/server/monitor/*.ml>:syntax(camlp4o), package(lwt.syntax)

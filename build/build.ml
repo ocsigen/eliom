@@ -58,7 +58,6 @@ let _ = dispatch (fun x ->
                                             A "-ppopt" ; A"-parser"; A"-ppopt";A "o";
                                             A "-ppopt" ;P (path ^ name -.- "cmo") ]) in
 
-    add_syntax "pa_include" "src/syntax/";
     pflag ["compile"] "sig_inc" (fun d -> S[A"-ppopt";A"-sig-inc";A"-ppopt";A d]);
     pflag ["ocamldep"] "sig_inc" (fun d -> S[A"-ppopt";A"-sig-inc";A"-ppopt";A d]);
     pflag ["infer_interface"] "sig_inc" (fun d -> S[A"-ppopt";A"-sig-inc";A"-ppopt";A d]);
