@@ -338,7 +338,7 @@ let reload_action_aux https =
       na_name = Eliom_common.SNa_void_dontkeep;
       keep_get_na_params= true;
     };
-    https = false;
+    https;
     keep_nl_params = `All;
     service_mark = service_mark ();
     send_appl_content = XAlways;
@@ -351,7 +351,7 @@ let reload_action = reload_action_aux false
 let reload_action_https = reload_action_aux true
 
 let reload_action_hidden_aux https = {
-  reload_action with
+  reload_action_aux https with
   kind = `NonattachedCoservice;
   meth = Meth.Get';
   info = Nonattached {
