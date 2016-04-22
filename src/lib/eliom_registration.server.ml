@@ -998,6 +998,7 @@ let default_appl_service_options = {do_not_launch = false; }
 
 module type APPL_PARAMS = sig
   val application_name : string
+  val global_data_path : string list option
 end
 
 let comet_service_key : unit Polytables.key = Polytables.make_key ()
@@ -1360,11 +1361,16 @@ module App (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
     Lwt.return (Eliom_syntax.get_global_data (), global_data_unwrapper)
 
   let _ =
-    Ocaml.create
-      ~id:(Eliom_service.Path ["__global_data__"])
-      ~meth:(Get Eliom_parameter.unit)
-      ~https:true
-      data_service_handler
+    match Appl_params.global_data_path with
+    | Some global_data_path ->
+      ignore @@
+      Ocaml.create
+        ~id:(Eliom_service.Path global_data_path)
+        ~meth:(Get Eliom_parameter.unit)
+        ~https:true
+        data_service_handler
+    | None ->
+      ()
 
 end
 
