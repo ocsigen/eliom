@@ -91,7 +91,22 @@ let _ =
     (* Testing if variable __eliom_appl_process_info exists: *)
     Js.Unsafe.global##___eliom_appl_process_info_foo = Js.undefined
 
-let _ =
+let onunload_fun _ =
+  update_state ();
+  (* running remaining callbacks, if onbeforeunload left some *)
+  let _ = run_onunload ~final:true () in
+  Js._true
+
+and onbeforeunload_fun e =
+  match run_onunload ~final:false () with
+  | None ->
+    update_state (); None
+  | r ->
+    r
+
+(* Function called (in Eliom_client_main), once when starting the app.
+   Either when sent by a server or initiated on client side. *)
+let init () =
   (* Initialize client app if the __eliom_server variable is defined *)
   if is_client_app ()
   && Js.Unsafe.global##___eliom_server_ <> Js.undefined
@@ -110,25 +125,8 @@ let _ =
         ~app_name
         ~ssl:true ~hostname:hu_host ~port:hu_port ~full_path:hu_path ()
     | _ -> ()
-  end
+  end;
 
-
-let onunload_fun _ =
-  update_state ();
-  (* running remaining callbacks, if onbeforeunload left some *)
-  let _ = run_onunload ~final:true () in
-  Js._true
-
-and onbeforeunload_fun e =
-  match run_onunload ~final:false () with
-  | None ->
-    update_state (); None
-  | r ->
-    r
-
-(* Function called (in Eliom_client_main), once when starting the app.
-   Either when sent by a server or initiated on client side. *)
-let init () =
   let js_data = Eliom_request_info.get_request_data () in
 
   (* <base> *)
