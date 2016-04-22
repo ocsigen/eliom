@@ -111,4 +111,8 @@ module Meth = struct
       | Put _ -> Put'
       | Delete _ -> Delete'
 
+  let is_post :
+    type m gp gn pp pn mf x . (m, gp, gn, pp, pn, _, mf, x) t -> bool =
+    function Post (_, _) -> true | _ -> false
+
 end

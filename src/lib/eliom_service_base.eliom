@@ -653,7 +653,8 @@ let coservice
     ~(fallback : (unit, unit, mf, _, _, _, _, _, unit, unit, _) t)
     () =
   let get_params, post_params = Meth.params meth in
-  let meth = Meth.which meth in
+  let meth = Meth.which meth
+  and is_post = Meth.is_post meth in
   let csrf_scope = default_csrf_scope csrf_scope in
   let k = attached_info fallback
   and client_fun = Obj.magic (ref {_ -> _{ fun () -> None }}) in {
@@ -668,19 +669,23 @@ let coservice
         Eliom_common.co_param_prefix get_params;
     meth;
     kind = `AttachedCoservice;
-    info = Attached {
-      k with
-      get_name =
-        if csrf_safe then
-          Eliom_common.SAtt_csrf_safe
-            (uniqueid (),
-             (csrf_scope :> Eliom_common.user_scope),
-             csrf_secure)
-        else
-          match name with
-          | None -> Eliom_common.SAtt_anon (new_state ())
-          | Some name -> Eliom_common.SAtt_named name
-    };
+    info =
+      (let att_name =
+         if csrf_safe then
+           Eliom_common.SAtt_csrf_safe
+             (uniqueid (),
+              (csrf_scope :> Eliom_common.user_scope),
+              csrf_secure)
+         else
+           match name with
+           | None -> Eliom_common.SAtt_anon (new_state ())
+           | Some name -> Eliom_common.SAtt_named name
+       in
+       Attached {
+         k with
+         get_name = if is_post then k.get_name else att_name;
+         post_name = if not is_post then k.post_name else att_name
+       });
     https = https || fallback.https;
     keep_nl_params =
       (match keep_nl_params with
@@ -704,9 +709,9 @@ let coservice'
     ~(meth : (m, gp, gn, pp, pn, _, mf, unit) Meth.t)
     () =
   let get_params, post_params = Meth.params meth in
-  let meth = Meth.which meth in
+  let meth = Meth.which meth
+  and is_post = Meth.is_post meth in
   let csrf_scope = default_csrf_scope csrf_scope
-  and is_post = match meth with Meth.Post' -> true | _ -> false
   and client_fun = Obj.magic (ref {_ -> _{ fun () -> None}}) in {
     max_use;
     timeout;
