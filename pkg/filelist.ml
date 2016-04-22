@@ -34,7 +34,6 @@ let server = {
     "eliom_registration";
     "eliom_request_info";
     "eliom_service";
-    "eliom_service_types";
     "eliom_state";
     "eliom_tools";
     "eliom_types";
@@ -99,7 +98,6 @@ let client = {
     "eliom_cscache";
     "eliom_registration";
     "eliom_service";
-    "eliom_service_types";
     "eliom_tools";
     "eliom_types";
     "eliom_unwrap";

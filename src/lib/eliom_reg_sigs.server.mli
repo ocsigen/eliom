@@ -136,10 +136,10 @@ module type S = sig
     ?max_use:int ->
     ?timeout:float ->
     meth:
-      ('m , 'gp , 'gn , 'pp, 'pn, 'tipo, 'mf, 'gp_) Eliom_service.Meth.t ->
+      ('m , 'gp , 'gn , 'pp, 'pn, 'tipo, 'mf, 'gp_) Eliom_service.meth ->
     id:
       ('att, 'co, Eliom_service.non_ext, Eliom_service.reg,
-       'mf, return, 'gp_) Eliom_service.Id.t ->
+       'mf, return, 'gp_) Eliom_service.id ->
     ?error_handler:((string * exn) list -> page Lwt.t) ->
     ('gp -> 'pp -> page Lwt.t) ->
     ('gp, 'pp, 'm, 'att, 'co, Eliom_service.non_ext, Eliom_service.reg,
@@ -202,10 +202,10 @@ module type S_poly = sig
     ?max_use:int ->
     ?timeout:float ->
     meth:
-      ('m , 'gp , 'gn , 'pp, 'pn, 'tipo, 'mf, 'gp_) Eliom_service.Meth.t ->
+      ('m , 'gp , 'gn , 'pp, 'pn, 'tipo, 'mf, 'gp_) Eliom_service.meth ->
     id:
       ('att, 'co, Eliom_service.non_ext, Eliom_service.reg,
-       'mf, 'a return, 'gp_) Eliom_service.Id.t ->
+       'mf, 'a return, 'gp_) Eliom_service.id ->
     ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
     ('gp -> 'pp -> 'a page Lwt.t) ->
     ('gp, 'pp, 'm, 'att, 'co, Eliom_service.non_ext, Eliom_service.reg,

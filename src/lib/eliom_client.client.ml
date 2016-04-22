@@ -241,26 +241,26 @@ let create_request_ (type m)
      Eliom_uri.make_post_uri_components__ *)
 
   match Eliom_service.which_meth service with
-  | Eliom_service.Meth.Get' ->
+  | Eliom_service.Get' ->
     let uri =
       Eliom_uri.make_string_uri_
         ?absolute ?absolute_path ?https ~service
         ?hostname ?port ?fragment ?keep_nl_params ?nl_params get_params
     in
     `Get uri
-  | Eliom_service.Meth.Post' ->
+  | Eliom_service.Post' ->
     `Post
       (create_request__
          ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
          ?keep_nl_params ?nl_params ?keep_get_na_params
          get_params post_params)
-  | Eliom_service.Meth.Put' ->
+  | Eliom_service.Put' ->
     `Put
       (create_request__
          ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
          ?keep_nl_params ?nl_params ?keep_get_na_params
          get_params post_params)
-  | Eliom_service.Meth.Delete' ->
+  | Eliom_service.Delete' ->
     `Delete
       (create_request__
          ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -939,9 +939,9 @@ let server_function
     Eliom_service.create_ocaml
       ~name
       ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
-      ~id:Eliom_service.Id.Global
+      ~id:Eliom_service.Global
       ~meth:
-        (Eliom_service.Meth.Post
+        (Eliom_service.Post
            (Eliom_parameter.unit,
             Eliom_parameter.(ocaml "argument" argument_type)))
       ()

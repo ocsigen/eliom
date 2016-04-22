@@ -15,11 +15,74 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
+
+module type TYPES = sig
+
+  type get = Get_method
+  type put = Put_method
+  type post = Post_method
+  type delete = Delete_method
+
+  type co = Co
+  type non_co = Non_co
+
+  type ext = Ext
+  type non_ext = Non_ext
+
+  type http = Http_ret
+  type appl = Appl_ret
+
+  type 'a ocaml  = Ocaml of 'a
+  type non_ocaml = Non_ocaml
+
+  type reg = Reg
+  type non_reg = Non_reg
+
+  type ('get, 'tipo, 'gn) params =
+    ('get, 'tipo, 'gn) Eliom_parameter.params_type
+    constraint 'tipo = [< `WithSuffix | `WithoutSuffix ]
+
+  (**
+     - 0-th param : method
+     - params 1-4 : GET and POST param types
+     - param 5    : with/without suffix
+     - param 6    : method for fallback service
+     - param 7    : non-unit only for the Post (g, p) case when g != unit ;
+                    used to force unit GET parameters when needed
+  *)
+  type (_, _, _, _, _, _, _, _) meth =
+
+    | Get : ('gp, 'tipo, 'gn) params ->
+
+      (get, 'gp, 'gn, unit, unit, 'tipo, get, unit) meth
+
+    | Post : ('gp, 'tipo, 'gn) params *
+             ('pp, [`WithoutSuffix], 'pn) params ->
+
+      (post, 'gp, 'gn, 'pp, 'pn, 'tipo, get, 'gp) meth
+
+    | Put : ('gp, 'tipo, 'gn) params ->
+
+      (put, 'gp, 'gn, unit, unit, 'tipo, put, unit) meth
+
+    | Delete : ('gp, 'tipo, 'gn) params ->
+
+      (delete, 'gp, 'gn, unit, unit, 'tipo, delete, unit) meth
+
+  (** Like [meth] but without the auxilliary parameters; used to query
+      about the service method from outside. *)
+  type _ which_meth =
+    | Get'    : get which_meth
+    | Post'   : post which_meth
+    | Put'    : put which_meth
+    | Delete' : delete which_meth
+
+end
 
 module type S = sig
 
-  include module type of Eliom_service_types
+  include TYPES
 
   type att
   type non_att
@@ -50,29 +113,19 @@ module type S = sig
         +'tipo, 'gn, 'pn, +'ret) t
     constraint 'tipo = [< `WithSuffix | `WithoutSuffix ]
 
-  module Id : sig
-
-    type ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k) service =
-      ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k) t
-
-    type (_, _, _, _, _, _, _) t =
-      | Path :
-          Eliom_lib.Url.path
-        -> (att, non_co, non_ext, reg, _, _, _) t
-      | Fallback :
-          (unit, unit, 'mf, att, non_co, non_ext, reg,
-           [ `WithoutSuffix ], unit, unit, 'ret) service
-        -> (att, co, non_ext, reg, 'mf, 'ret, unit) t
-      | Global :
-          (non_att, co, non_ext, reg, _, _, unit) t
-      | External :
-          string * Eliom_lib.Url.path
-        -> (att, non_co, ext, non_reg, _, _, _) t
-
-    val untype :
-      ('a, 'c, 'm, 'e, 'r, _, 'g) t -> ('a, 'c, 'm, 'e, 'r, _, 'g) t
-
-  end
+  type (_, _, _, _, _, _, _) id =
+    | Path :
+        Eliom_lib.Url.path
+      -> (att, non_co, non_ext, reg, _, _, _) id
+    | Fallback :
+        (unit, unit, 'mf, att, non_co, non_ext, reg,
+         [ `WithoutSuffix ], unit, unit, 'ret) t
+      -> (att, co, non_ext, reg, 'mf, 'ret, unit) id
+    | Global :
+        (non_att, co, non_ext, reg, _, _, unit) id
+    | External :
+        string * Eliom_lib.Url.path
+      -> (att, non_co, ext, non_reg, _, _, _) id
 
   (** {2 Definitions of services}
 
@@ -118,8 +171,8 @@ module type S = sig
     ?https:bool ->
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     ?priority:int ->
-    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, 'gp_) Meth.t ->
-    id:('att, 'co, 'ext, 'reg, 'mf, non_ocaml, 'gp_) Id.t ->
+    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, 'gp_) meth ->
+    id:('att, 'co, 'ext, 'reg, 'mf, non_ocaml, 'gp_) id ->
     unit ->
     ('gp, 'pp, 'm, 'att, 'co, 'ext, 'reg, 'tipo, 'gn, 'pn, non_ocaml) t
 
@@ -263,8 +316,8 @@ module type S = sig
     ?https:bool ->
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     ?priority:int ->
-    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, 'gp_) Meth.t ->
-    id:('att, 'co, non_ext, reg, 'mf, 'ret, 'gp_) Id.t ->
+    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, 'gp_) meth ->
+    id:('att, 'co, non_ext, reg, 'mf, 'ret, 'gp_) id ->
     unit ->
     ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'ret) t
 
@@ -278,13 +331,13 @@ module type S = sig
     ?https:bool ->
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     ?priority:int ->
-    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, 'gp_) Meth.t ->
-    id:('att, 'co, 'ext, 'reg, 'mf, 'ret ocaml, 'gp_) Id.t ->
+    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, 'gp_) meth ->
+    id:('att, 'co, 'ext, 'reg, 'mf, 'ret ocaml, 'gp_) id ->
     unit ->
     ('gp, 'pp, 'm, 'att, 'co, 'ext, 'reg, 'tipo, 'gn, 'pn, 'ret ocaml) t
 
   val which_meth :
-    (_, _, 'm, _, _, _, _, _, _, _, _) t -> 'm Meth.which
+    (_, _, 'm, _, _, _, _, _, _, _, _) t -> 'm which_meth
 
   val info :
     (_, _, _, 'att, _, _, _, _, _, _, _) t -> 'att attached_info
@@ -389,7 +442,6 @@ module type S = sig
     service:('a, 'b, _, _, _, _, _, _, _, _, _) t ->
     ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
     unit
-
   val internal_set_client_fun :
     service :('a, 'b, _, _, _, _, _, _, _, _, _) t ->
     (unit -> ('a -> 'b -> unit Lwt.t) option) Eliom_client_value.t ->

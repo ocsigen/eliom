@@ -126,8 +126,8 @@ let notify_feed_updates address hubs s =
 let register_feed ~path ~hubs address f =
   let s =
     Eliom_service.create
-      ~meth:(Eliom_service.Meth.Get Eliom_parameter.unit)
-      ~id:(Eliom_service.Id.Path path)
+      ~meth:(Eliom_service.Get Eliom_parameter.unit)
+      ~id:(Eliom_service.Path path)
       ()
   in
    Reg.register ~service:s

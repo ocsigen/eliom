@@ -66,7 +66,7 @@ val create :
   ?max_use:int ->
   ?timeout:float ->
   meth:
-    ('m , 'gp , 'gn , 'pp, 'pn, 'tipo, 'mf, 'gp_) Eliom_service.Meth.t ->
+    ('m , 'gp , 'gn , 'pp, 'pn, 'tipo, 'mf, 'gp_) Eliom_service.meth ->
   id:
     ('att, 'co, Eliom_service.non_ext, Eliom_service.reg,
      'mf, return, 'gp_) Eliom_service.Id.t ->

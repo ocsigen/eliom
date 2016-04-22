@@ -981,7 +981,7 @@ module Ocaml = struct
       ?max_use
       ?timeout
       ~meth
-      ~id:(Eliom_service.Id.untype id)
+      ~id:(Eliom_service.untype_id id)
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
@@ -1361,7 +1361,7 @@ module App (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
 
   let _ =
     Ocaml.create
-      ~id:(Eliom_service.Id.Path ["__global_data__"])
+      ~id:(Eliom_service.Path ["__global_data__"])
       ~meth:(Get Eliom_parameter.unit)
       ~https:true
       data_service_handler

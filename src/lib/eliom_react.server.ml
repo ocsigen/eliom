@@ -130,8 +130,8 @@ struct
     let e_writer =
       Eliom_service.create
         ?name
-        ~meth:(Eliom_service.Meth.Post (Eliom_parameter.unit, post_params))
-        ~id:Eliom_service.Id.Global
+        ~meth:(Eliom_service.Post (Eliom_parameter.unit, post_params))
+        ~id:Eliom_service.Global
         ()
     in
     Eliom_registration.Action.register

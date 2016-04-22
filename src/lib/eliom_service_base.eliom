@@ -21,11 +21,36 @@
 
 {shared{
 
+module rec Types : Eliom_service_sigs.TYPES = Types
+
+include Types
+
 module Url = Eliom_lib.Url
 
 type suff = [ `WithSuffix | `WithoutSuffix ]
 
-include Eliom_service_types
+let params_of_meth :
+  type m gp gn pp pn mf x .
+  (m, gp, gn, pp, pn, 'tipo, mf, x) meth ->
+  (gp, 'tipo, gn) params * (pp, [`WithoutSuffix], pn) params
+  = function
+    | Get gp -> (gp, Eliom_parameter.unit)
+    | Post (gp, pp) -> (gp, pp)
+    | Put gp -> (gp, Eliom_parameter.unit)
+    | Delete gp -> (gp, Eliom_parameter.unit)
+
+let which_meth
+  : type m gp gn pp pn tipo mf x .
+    (m, gp, gn, pp, pn, tipo, mf, x) meth -> m which_meth
+  = function
+    | Get _ -> Get'
+    | Post _ -> Post'
+    | Put _ -> Put'
+    | Delete _ -> Delete'
+
+let is_post :
+  type m gp gn pp pn mf x . (m, gp, gn, pp, pn, _, mf, x) meth -> bool =
+  function Post (_, _) -> true | _ -> false
 
 type 'a reload_fun =
   | Rf_keep
@@ -97,7 +122,7 @@ type ('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg,
   timeout : float option; (* Timeout for this service (the service
                              will disappear if it has not been used
                              during this amount of seconds) *)
-  meth : 'meth Meth.which;
+  meth : 'meth which_meth;
   kind : service_kind;
   info : 'attached attached_info;
 
@@ -174,7 +199,7 @@ let is_external = function {kind = `External} -> true | _ -> false
 
 let default_priority = 0
 
-let which_meth {meth} = meth
+let meth {meth} = meth
 
 let change_get_num service attser n = {
   service with
@@ -193,7 +218,7 @@ let static_dir_ ?(https = false) () =
     max_use = None;
     timeout = None;
     kind = `Service;
-    meth = Meth.Get';
+    meth = Get';
     info = Attached {
       prefix = "";
       subpath = [""];
@@ -228,7 +253,7 @@ let get_static_dir_ ?(https = false)
     max_use = None;
     timeout = None;
     kind = `Service;
-    meth = Meth.Get';
+    meth = Get';
     info = Attached {
       prefix = "";
       subpath = [""];
@@ -333,7 +358,7 @@ let reload_action_aux https =
     get_params_type = Eliom_parameter.unit;
     post_params_type = Eliom_parameter.unit;
     kind = `NonattachedCoservice;
-    meth = Meth.Get';
+    meth = Get';
     info = Nonattached {
       na_name = Eliom_common.SNa_void_dontkeep;
       keep_get_na_params= true;
@@ -353,7 +378,7 @@ let reload_action_https = reload_action_aux true
 let reload_action_hidden_aux https = {
   reload_action_aux https with
   kind = `NonattachedCoservice;
-  meth = Meth.Get';
+  meth = Get';
   info = Nonattached {
     na_name = Eliom_common.SNa_void_keep;
     keep_get_na_params=true;
@@ -411,39 +436,32 @@ let untype s =
    :> ('get, 'post, 'meth, 'attached, 'co, 'ext,
        'tipo, 'getnames, 'postnames,'register, _) t)
 
-module Id = struct
+type (_, _, _, _, _, _, _) id =
+  | Path :
+      Eliom_lib.Url.path
+    -> (att, non_co, non_ext, reg, _, _, _) id
+  | Fallback :
+      (unit, unit, 'mf, att, non_co, non_ext, reg,
+       [ `WithoutSuffix ], unit, unit, 'ret) t
+    -> (att, co, non_ext, reg, 'mf, 'ret, unit) id
+  | Global :
+      (non_att, co, non_ext, reg, _, _, unit) id
+  | External :
+      string * Eliom_lib.Url.path
+    -> (att, non_co, ext, non_reg, _, _, _) id
 
-  type ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k) service =
-    ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k) t
-
-  type (_, _, _, _, _, _, _) t =
-    | Path :
-        Eliom_lib.Url.path
-      -> (att, non_co, non_ext, reg, _, _, _) t
-    | Fallback :
-        (unit, unit, 'mf, att, non_co, non_ext, reg,
-         [ `WithoutSuffix ], unit, unit, 'ret) service
-      -> (att, co, non_ext, reg, 'mf, 'ret, unit) t
-    | Global :
-        (non_att, co, non_ext, reg, _, _, unit) t
-    | External :
-        string * Eliom_lib.Url.path
-      -> (att, non_co, ext, non_reg, _, _, _) t
-
-  let untype :
-    type a c m e r x g .
-    (a, c, m, e, r, x, g) t -> (a, c, m, e, r, _, g) t =
-    function
-    | Path path ->
-      Path path
-    | Fallback fallback ->
-      Fallback (untype fallback)
-    | Global ->
-      Global
-    | External (_, _) as e ->
-      e
-
-end
+let untype_id :
+  type a c m e r x g .
+  (a, c, m, e, r, x, g) id -> (a, c, m, e, r, _, g) id =
+  function
+  | Path path ->
+    Path path
+  | Fallback fallback ->
+    Fallback (untype fallback)
+  | Global ->
+    Global
+  | External (_, _) as e ->
+    e
 
 let eliom_appl_answer_content_type = "application/x-eliom"
 
@@ -571,11 +589,11 @@ let create_external
     ~prefix
     ~path
     ?keep_nl_params
-    ~(meth : (m, gp, gn, pp, pn, _, mf, gp') Meth.t)
+    ~(meth : (m, gp, gn, pp, pn, _, mf, gp') meth)
     () =
-  let get_params, post_params = Meth.params meth in
+  let get_params, post_params = params_of_meth meth in
   let suffix = Eliom_parameter.contains_suffix get_params in
-  let meth = Meth.which meth in
+  let meth = which_meth meth in
   main_service
     ~https:false (* not used for external links *)
     ~prefix
@@ -601,10 +619,10 @@ let plain_service
     ~path
     ?keep_nl_params
     ?priority
-    ~(meth : (m, gp, gn, pp, pn, _, mf, gp') Meth.t)
+    ~(meth : (m, gp, gn, pp, pn, _, mf, gp') meth)
     () =
-  let get_params, post_params = Meth.params meth
-  and meth = Meth.which meth in
+  let get_params, post_params = params_of_meth meth
+  and meth = which_meth meth in
   let redirect_suffix = Eliom_parameter.contains_suffix get_params in
   let path =
     (match redirect_suffix with
@@ -658,12 +676,12 @@ let coservice
     ?timeout
     ?(https = false)
     ?keep_nl_params
-    ~(meth : (m, gp, gn, pp, pn, _, mf, unit) Meth.t)
+    ~(meth : (m, gp, gn, pp, pn, _, mf, unit) meth)
     ~(fallback : (unit, unit, mf, _, _, _, _, _, unit, unit, _) t)
     () =
-  let get_params, post_params = Meth.params meth in
-  let meth = Meth.which meth
-  and is_post = Meth.is_post meth in
+  let get_params, post_params = params_of_meth meth in
+  let meth = which_meth meth
+  and is_post = is_post meth in
   let csrf_scope = default_csrf_scope csrf_scope in
   let k = attached_info fallback
   and client_fun = Obj.magic (ref default_client_fun) in {
@@ -714,11 +732,11 @@ let coservice'
     ?timeout
     ?(https = false)
     ?(keep_nl_params = `Persistent)
-    ~(meth : (m, gp, gn, pp, pn, _, mf, unit) Meth.t)
+    ~(meth : (m, gp, gn, pp, pn, _, mf, unit) meth)
     () =
-  let get_params, post_params = Meth.params meth in
-  let meth = Meth.which meth
-  and is_post = Meth.is_post meth in
+  let get_params, post_params = params_of_meth meth in
+  let meth = which_meth meth
+  and is_post = is_post meth in
   let csrf_scope = default_csrf_scope csrf_scope
   and client_fun = Obj.magic (ref default_client_fun) in {
     max_use;
@@ -771,26 +789,28 @@ let create
     ?priority
     (type m) (type gp) (type gn) (type pp) (type pn) (type mf) (type gp')
     (type att_) (type co_) (type ext_) (type reg_) (type rr)
-    ~(meth : (m, gp, gn, pp, pn, _, mf, gp') Meth.t)
-    ~(id : (att_, co_, ext_, reg_, mf, rr, gp') Id.t)
+    ~(meth : (m, gp, gn, pp, pn, _, mf, gp') meth)
+    ~(id : (att_, co_, ext_, reg_, mf, rr, gp') id)
     ()
   : (gp, pp, m, att_, co_, ext_, reg_, _, gn, pn, rr) t =
   match id with
-  | Id.Path path ->
+  | Path path ->
     plain_service ~https ~keep_nl_params ?priority ~path ~meth ()
-  | Id.Fallback fallback ->
+  | Fallback fallback ->
     coservice
       ?name ~csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ~https
       ~keep_nl_params ~meth ~fallback ()
-  | Id.Global ->
+  | Global ->
     coservice'
       ?name ~csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ~https
       ~keep_nl_params ~meth ()
-  | Id.External (prefix, path) ->
+  | External (prefix, path) ->
     create_external ~prefix ~path ~keep_nl_params ~meth ()
 
 let create_unsafe = create
 
 let create_ocaml  = create
+
+let which_meth {meth} = meth
 
 }}

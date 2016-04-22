@@ -110,8 +110,8 @@ let create_filtered ?scope ?name ?size ~filter typ =
   let distant_write =
     Eliom_service.create
       ?name
-      ~meth:(Eliom_service.Meth.Post (Eliom_parameter.unit, post_params))
-      ~id:Eliom_service.Id.Global
+      ~meth:(Eliom_service.Post (Eliom_parameter.unit, post_params))
+      ~id:Eliom_service.Global
       ()
   in
   let service_registered =
