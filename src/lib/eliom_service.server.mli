@@ -54,7 +54,7 @@ val register_eliom_module : string -> (unit -> unit) -> unit
 
 (** The function [unregister service] unregister the service handler
     previously associated to [service] with
-    {!Eliom_registration.Html5.register},
+    {!Eliom_registration.Html.register},
     {!Eliom_registration.App.register} or any other
     {!Eliom_registration}[.*.register] functions. See the
     documentation of those functions for a description of the [~scope]

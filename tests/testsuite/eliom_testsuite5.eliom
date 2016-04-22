@@ -8,15 +8,15 @@
 let simple_dom_react = Eliom_testsuite_base.test
     ~title: "Client dom react"
     ~path:["React";"client";"simple"]
-    ~description:Html5.F.([pcdata "a simple example of dom react"])
+    ~description:Html.F.([pcdata "a simple example of dom react"])
     (fun () ->
        let signal = {(string React.S.t * (string -> unit)){
            let s,set =  React.S.create "" in
            s, (fun s -> set s)}} in
        let input =
-         Html5.D.Form.input
-           Html5.D.Form.string
-           ~input_type:`Text ~a:[Html5.D.a_onkeyup {{ fun e ->
+         Html.D.Form.input
+           Html.D.Form.string
+           ~input_type:`Text ~a:[Html.D.a_onkeyup {{ fun e ->
              let i = Dom.eventTarget e in
              let i = Js.Unsafe.coerce i in
              (snd %signal)(Js.to_string (i##value))
@@ -30,15 +30,15 @@ let simple_dom_react = Eliom_testsuite_base.test
          let v_succ = React.S.map succ i in
          let v_double = React.S.map (( * ) 2) i in
          let v_minus = React.S.map (fun x -> - x) i in
-         let r_int s = Html5.R.pcdata (React.S.map string_of_int s) in
+         let r_int s = Html.R.pcdata (React.S.map string_of_int s) in
          let style = React.S.map (fun x -> if x then "color:green;" else "color:red;") valid in
          let rlist, rhandle = ReactiveData.RList.create [0] in
          let _ = React.E.map (fun x ->
              if x > 0
              then ReactiveData.RList.snoc x rhandle
              else ReactiveData.RList.cons x rhandle) (React.S.changes i) in
-         Html5.(F.div ~a:[R.a_style style] [
-             F.div [ F.pcdata "textarea : " ; R.textarea ~a:[F.a_maxlength 10; F.a_readonly `ReadOnly ; F.a_style "vertical-align: top"] (React.S.map F.pcdata s)];
+         Html.(F.div ~a:[R.a_style style] [
+             F.div [ F.pcdata "textarea : " ; R.textarea ~a:[F.a_maxlength 10; F.a_readonly () ; F.a_style "vertical-align: top"] (React.S.map F.pcdata s)];
              F.div [ F.pcdata "original : "; r_int i];
              F.div [ F.pcdata "succ : "; r_int v_succ];
              F.div [ F.pcdata "double : "; r_int v_double];
@@ -57,7 +57,7 @@ let simple_dom_react = Eliom_testsuite_base.test
              R.div (ReactiveData.RList.map (fun i -> F.div [F.pcdata (string_of_int i)]) rlist)
            ])
        }} in
-       Lwt.return [ Html5.F.div [input;Html5.C.node dom] ]
+       Lwt.return [ Html.F.div [input;Html.C.node dom] ]
     )
 
 let tests = [

@@ -58,13 +58,13 @@ let cast_unknown_content_kind (x:unknown_content kind) : 'a kind =
   Result_types.cast_result (Result_types.cast_kind x)
 let cast_http_result = Result_types.cast_result
 
-module Html5_make_reg_base
-  (Html5_content : Ocsigen_http_frame.HTTP_CONTENT
-   with type t = Html5_types.html Eliom_content.Html5.elt
+module Html_make_reg_base
+  (Html_content : Ocsigen_http_frame.HTTP_CONTENT
+   with type t = Html_types.html Eliom_content.Html.elt
     and type options = Http_headers.accept Lazy.t)
   = struct
 
-  type page = Html5_types.html Eliom_content.Html5.elt
+  type page = Html_types.html Eliom_content.Html.elt
   type options = unit
   type result = browser_content kind
 
@@ -77,7 +77,7 @@ module Html5_make_reg_base
       ?content_type ?headers content =
     let accept =
       (Ocsigen_extensions.Ocsigen_request_info.accept (Eliom_request_info.get_ri ())) in
-    lwt r = Html5_content.result_of_content ~options:accept content in
+    lwt r = Html_content.result_of_content ~options:accept content in
     Lwt.return
       (Ocsigen_http_frame.Result.update r
          ~code:(code_of_code_option code)
@@ -95,12 +95,12 @@ module Html5_make_reg_base
 
 end
 
-module Html5 =
+module Html =
   Eliom_mkreg.Make
-    (Html5_make_reg_base
+    (Html_make_reg_base
        (Ocsigen_senders.Make_XML_Content
           (Eliom_content.Xml)
-          (Eliom_content.Html5.D)))
+          (Eliom_content.Html.D)))
 
 module Make_typed_xml_registration
   (Xml: Xml_sigs.Iterable)
@@ -168,9 +168,9 @@ module Make_typed_xml_registration
 module Flow5 =
   Make_typed_xml_registration
     (Eliom_content.Xml)
-    (Eliom_content.Html5.D)
+    (Eliom_content.Html.D)
     (struct
-      type content = Html5_types.flow5
+      type content = Html_types.flow5
     end)
 
 let (<-<) h (n, v) = Http_headers.replace n v h
@@ -1011,15 +1011,15 @@ let global_data_unwrapper =
     (Eliom_wrap.id_of_int Eliom_runtime.global_data_unwrap_id_int)
 
 module Eliom_appl_reg_make_param
-  (Html5_content
+  (Html_content
      : Ocsigen_http_frame.HTTP_CONTENT
-       with type t = [ `Html ] Eliom_content.Html5.elt
+       with type t = [ `Html ] Eliom_content.Html.elt
        and type options = Http_headers.accept Lazy.t)
   (Appl_params : APPL_PARAMS) = struct
 
   type app_id
 
-  type page = Html5_types.html Eliom_content.Html5.elt
+  type page = Html_types.html Eliom_content.Html.elt
   type options = appl_service_options
   type result = app_id application_content kind
 
@@ -1029,30 +1029,30 @@ module Eliom_appl_reg_make_param
     let sp = Eliom_common.get_sp () in
     sp.Eliom_common.sp_client_appl_name <> Some Appl_params.application_name
 
-  let eliom_appl_script_id : [ `Script ] Eliom_content.Html5.Id.id =
-    Eliom_content.Html5.Id.new_elt_id ~global:true ()
+  let eliom_appl_script_id : [ `Script ] Eliom_content.Html.Id.id =
+    Eliom_content.Html.Id.new_elt_id ~global:true ()
   let application_script ?(defer = false) ?(async = false) () =
     let a =
-      (if defer then [Eliom_content.Html5.D.a_defer `Defer] else [])
+      (if defer then [Eliom_content.Html.D.a_defer ()] else [])
         @
-      (if async then [Eliom_content.Html5.D.a_async `Async] else [])
+      (if async then [Eliom_content.Html.D.a_async ()] else [])
     in
-    Eliom_content.Html5.Id.create_named_elt
+    Eliom_content.Html.Id.create_named_elt
       ~id:eliom_appl_script_id
-      (Eliom_content.Html5.D.js_script ~a
-         ~uri:(Eliom_content.Html5.D.make_uri
+      (Eliom_content.Html.D.js_script ~a
+         ~uri:(Eliom_content.Html.D.make_uri
                  ~service:(Eliom_service.static_dir ())
                  [Appl_params.application_name ^ ".js"])
          ())
   let application_script =
     (application_script
-     : ?defer:_ -> ?async:_ -> _ -> [ `Script ] Eliom_content.Html5.elt
-     :> ?defer:_ -> ?async:_ -> _ -> [> `Script ] Eliom_content.Html5.elt)
+     : ?defer:_ -> ?async:_ -> _ -> [ `Script ] Eliom_content.Html.elt
+     :> ?defer:_ -> ?async:_ -> _ -> [> `Script ] Eliom_content.Html.elt)
   let is_eliom_appl_script elt =
-    Eliom_content.Html5.Id.have_id eliom_appl_script_id elt
+    Eliom_content.Html.Id.have_id eliom_appl_script_id elt
 
   let eliom_appl_data_script_id =
-    Eliom_content.Html5.Id.new_elt_id ~global:true ()
+    Eliom_content.Html.Id.new_elt_id ~global:true ()
 
   let make_eliom_appl_data_script ~sp =
 
@@ -1068,7 +1068,7 @@ module Eliom_appl_reg_make_param
     in
 
     Lwt.return
-      Eliom_content.Html5.(
+      Eliom_content.Html.(
         Id.create_named_elt ~id:eliom_appl_data_script_id
           (F.script (F.cdata_script script)))
 
@@ -1123,11 +1123,11 @@ module Eliom_appl_reg_make_param
        create cookies that needs to be sent along the page. Hence,
        cookies should be calculated after wrapping. *)
     let eliom_data =
-      Eliom_content.Xml.wrap (Eliom_content.Html5.D.toelt page) { Eliom_common.
+      Eliom_content.Xml.wrap (Eliom_content.Html.D.toelt page) { Eliom_common.
         ejs_global_data;
         ejs_request_data;
-        ejs_event_handler_table = Eliom_content.Xml.make_event_handler_table (Eliom_content.Html5.D.toelt page);
-        ejs_client_attrib_table = Eliom_content.Xml.make_client_attrib_table (Eliom_content.Html5.D.toelt page);
+        ejs_event_handler_table = Eliom_content.Xml.make_event_handler_table (Eliom_content.Html.D.toelt page);
+        ejs_client_attrib_table = Eliom_content.Xml.make_client_attrib_table (Eliom_content.Html.D.toelt page);
         ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;
       } in
 
@@ -1149,23 +1149,23 @@ module Eliom_appl_reg_make_param
         (Eliom_lib.jsmarshal tab_cookies)
         (Eliom_lib.jsmarshal (template: string option))
     in
-    Lwt.return Eliom_content.Html5.(F.script (F.cdata_script script))
+    Lwt.return Eliom_content.Html.(F.script (F.cdata_script script))
 
   let split_page page :
-      (Html5_types.html_attrib Eliom_content.Html5.attrib list
-        * (Html5_types.head_attrib Eliom_content.Html5.attrib list
-            * [ Html5_types.title ] Eliom_content.Html5.elt
-            * Html5_types.head_content_fun Eliom_content.Html5.elt list)
-        * Html5_types.body Eliom_content.Html5.elt ) =
+      (Html_types.html_attrib Eliom_content.Html.attrib list
+        * (Html_types.head_attrib Eliom_content.Html.attrib list
+            * [ Html_types.title ] Eliom_content.Html.elt
+            * Html_types.head_content_fun Eliom_content.Html.elt list)
+        * Html_types.body Eliom_content.Html.elt ) =
     match Eliom_content.Xml.content page with
       | Eliom_content.Xml.Node (_, html_attribs, [head; body]) ->
         begin match Eliom_content.Xml.content head with
           | Eliom_content.Xml.Node (_, head_attribs, head_elts) ->
-            ( List.map Eliom_content.Html5.D.to_attrib html_attribs,
-              ( List.map Eliom_content.Html5.D.to_attrib head_attribs,
-                Eliom_content.Html5.D.tot (List.hd head_elts),
-                Eliom_content.Html5.D.totl (List.tl head_elts) ),
-              Eliom_content.Html5.D.tot body )
+            ( List.map Eliom_content.Html.D.to_attrib html_attribs,
+              ( List.map Eliom_content.Html.D.to_attrib head_attribs,
+                Eliom_content.Html.D.tot (List.hd head_elts),
+                Eliom_content.Html.D.totl (List.tl head_elts) ),
+              Eliom_content.Html.D.tot body )
           | _ -> assert false
         end
       | _ -> assert false
@@ -1176,7 +1176,7 @@ module Eliom_appl_reg_make_param
 
     (* First we build a fake page to build the ref_tree... *)
     let (html_attribs, (head_attribs, title, head_elts), body) =
-      split_page (Eliom_content.Html5.D.toelt page) in
+      split_page (Eliom_content.Html.D.toelt page) in
     let encode_slashs = List.map (Eliom_lib.Url.encode ~plus:false) in
     let base_url =
       Eliom_uri.make_proto_prefix
@@ -1202,7 +1202,7 @@ module Eliom_appl_reg_make_param
       *)
       :: if Eliom_request_info.expecting_process_page ()
       then
-        Eliom_content.Html5.(
+        Eliom_content.Html.(
           F.base
             ~a:[F.a_id Eliom_common_base.base_elt_id;
                 F.a_href (Eliom_content.Xml.uri_of_string base_url)]
@@ -1211,8 +1211,8 @@ module Eliom_appl_reg_make_param
       else head_elts
     in
     let fake_page =
-      Eliom_content.Html5.F.html ~a:html_attribs
-        (Eliom_content.Html5.F.head ~a:head_attribs title head_elts)
+      Eliom_content.Html.F.html ~a:html_attribs
+        (Eliom_content.Html.F.head ~a:head_attribs title head_elts)
         body
     in
     lwt data_script = make_eliom_data_script
@@ -1224,17 +1224,17 @@ module Eliom_appl_reg_make_param
     let head_elts =
       List.hd head_elts :: data_script :: (List.tl head_elts) in
     Lwt.return
-      (Eliom_content.Html5.F.html ~a:html_attribs
-         (Eliom_content.Html5.F.head ~a:head_attribs title head_elts)
+      (Eliom_content.Html.F.html ~a:html_attribs
+         (Eliom_content.Html.F.head ~a:head_attribs title head_elts)
          body )
 
   let remove_eliom_scripts page =
     let (html_attribs, (head_attribs, title, head_elts), body) =
-      split_page (Eliom_content.Html5.D.toelt page) in
+      split_page (Eliom_content.Html.D.toelt page) in
     let head_elts = List.filter (fun x -> not (is_eliom_appl_script x)) head_elts in
     Lwt.return
-      (Eliom_content.Html5.F.html ~a:html_attribs
-         (Eliom_content.Html5.F.head ~a:head_attribs title head_elts)
+      (Eliom_content.Html.F.html ~a:html_attribs
+         (Eliom_content.Html.F.head ~a:head_attribs title head_elts)
          body )
 
   let send_appl_content = Eliom_service.XSame_appl (Appl_params.application_name, None)
@@ -1261,7 +1261,7 @@ module Eliom_appl_reg_make_param
 
     let ri = Eliom_request_info.get_ri () in
     let accept = Ocsigen_extensions.Ocsigen_request_info.accept ri in
-    lwt r = Html5_content.result_of_content ~options:accept page in
+    lwt r = Html_content.result_of_content ~options:accept page in
 
     let headers =
       match headers with
@@ -1313,11 +1313,11 @@ module type ELIOM_APPL = sig
     ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
     unit
   val application_script :
-    ?defer:bool -> ?async:bool -> unit -> [> `Script ] Eliom_content.Html5.elt
+    ?defer:bool -> ?async:bool -> unit -> [> `Script ] Eliom_content.Html.elt
   val application_name : string
   val is_initial_request : unit -> bool
   type app_id
-  type page = Html5_types.html Eliom_content.Html5.elt
+  type page = Html_types.html Eliom_content.Html.elt
   type options = appl_service_options
   type return = Eliom_service.non_ocaml
   type result = app_id application_content kind
@@ -1335,7 +1335,7 @@ module App (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
     Eliom_appl_reg_make_param
       (Ocsigen_senders.Make_XML_Content
          (Eliom_content.Xml)
-         (Eliom_content.Html5.D))
+         (Eliom_content.Html.D))
       (Appl_params)
 
   type app_id = P.app_id
@@ -1377,7 +1377,7 @@ end
 module type TMPL_PARAMS = sig
   type t
   val name: string
-  val make_page: t -> Html5_types.html Eliom_content.Html5.elt Lwt.t
+  val make_page: t -> Html_types.html Eliom_content.Html.elt Lwt.t
   val update: t -> unit Eliom_client_value.t
 end
 

@@ -24,17 +24,17 @@
     XML tree manipulation within Eliom is based on the TyXML library
     but Eliom is using a custom representation for XML values (see
     {!Xml}). Then, [Eliom_content] redefines the two high level
-    interfaces ({!Svg}, {!Html5}) that are provided by
+    interfaces ({!Svg}, {!Html}) that are provided by
     TyXML for valid XML tree creation and printing.
 
-    - If you want to generate typed HTML, use {!Eliom_content.Html5},
+    - If you want to generate typed HTML, use {!Eliom_content.Html},
     - If you want to write untyped html, use {!Eliom_content.Html_text},
     - If you want to generate typed svg, use {!Eliom_content.Svg}.
 
-    Modules {!Eliom_content.Html5}, {!Eliom_content.Svg} contain two
-    sub-modules: {!Eliom_content.Html5.F}, {!Eliom_content.Html5.D}
+    Modules {!Eliom_content.Html}, {!Eliom_content.Svg} contain two
+    sub-modules: {!Eliom_content.Html.F}, {!Eliom_content.Html.D}
     corresponding to tow different semantics.
-    They also contain a module {!Eliom_content.Html5.C} that allows to
+    They also contain a module {!Eliom_content.Html.C} that allows to
     inject client-side content into server-side content.
 
     {5 Functional semantics}
@@ -64,8 +64,8 @@
     Secondly, those values have an identifier,
     which means they can be referred to
     on client side (by [%variable]) or used with the functions in
-    {% <<a_api subproject="client"|module Eliom_content.Html5.To_dom>> %} and
-    {% <<a_api subproject="client"|module Eliom_content.Html5.Manip>> %}.
+    {% <<a_api subproject="client"|module Eliom_content.Html.To_dom>> %} and
+    {% <<a_api subproject="client"|module Eliom_content.Html.Manip>> %}.
 
     In case of doubt, always use [D]-nodes when you are writing a
     client-server Eliom app. You can also mix F-nodes and D-nodes.
@@ -112,7 +112,7 @@ module Xml : sig
       build with the [{{ ... }}] syntax (see the Eliom manual for more
       information on {% <<a_manual chapter="clientserver-html"
       fragment="syntax"|syntax extension>>%}). Such values are
-      expected by functions like {!Eliom_content.Html5.a_onclick}. The
+      expected by functions like {!Eliom_content.Html.a_onclick}. The
       type parameter is the type of the javascript event expected by
       the handler, for example {% <<a_api project="js_of_ocaml" | type
       Dom_html.mouseEvent>>%} or {% <<a_api project="js_of_ocaml" |
@@ -192,7 +192,7 @@ module Svg : sig
       Svg_sigs.T >> %}. *)
   module F : sig
 
-    (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
+    (** See {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
     module Raw : Svg_sigs.Make(Xml).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
@@ -205,7 +205,7 @@ module Svg : sig
       {% <<a_api project="tyxml" | module Svg_sigs.T >> %}. *)
   module D : sig
 
-    (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
+    (** See {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
     module Raw : Svg_sigs.Make(Xml).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
@@ -284,9 +284,9 @@ end
 
 
 (** Building and printing valid HTML5 tree.
-    Information about Html5 api can be found at
-    {% <<a_api project="tyxml" | module Html5_sigs.T >> %} .*)
-module Html5 : sig
+    Information about Html api can be found at
+    {% <<a_api project="tyxml" | module Html_sigs.T >> %} .*)
+module Html : sig
 
   (** See {% <<a_manual
       chapter="clientserver-html" fragment="unique"|
@@ -305,14 +305,14 @@ module Html5 : sig
 
     (** {2 Content creation}
 
-        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}.
+        See {% <<a_api project="tyxml" | module Html_sigs.T >> %}.
         If you want to create an untyped form, you will have to use {%
-        <<a_api|module Eliom_content.Html5.F.Raw>> %} otherwise, use
+        <<a_api|module Eliom_content.Html.F.Raw>> %} otherwise, use
         Eliom form widgets.  For more information, see
         {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
 
-    (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
-    module Raw : Html5_sigs.Make(Xml)(Svg.F.Raw).T
+    (** See {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
+    module Raw : Html_sigs.Make(Xml)(Svg.F.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
@@ -327,20 +327,20 @@ module Html5 : sig
 
   end
 
-  (** Creation of HTML5 content with {b D}OM semantics (referable, see
+  (** Creation of HTML content with {b D}OM semantics (referable, see
       also {% <<a_api|module Eliom_content>> %}). *)
   module D : sig
 
     (** {2 Content creation}
 
-        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}.
+        See {% <<a_api project="tyxml" | module Html_sigs.T >> %}.
         If you want to create an untyped form, you will have to use {%
-        <<a_api|module Eliom_content.Html5.F.Raw>> %} otherwise, use
+        <<a_api|module Eliom_content.Html.F.Raw>> %} otherwise, use
         Eliom form widgets.  For more information, see
         {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
 
-    (** See {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
-    module Raw : Html5_sigs.Make(Xml)(Svg.D.Raw).T
+    (** See {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
+    module Raw : Html_sigs.Make(Xml)(Svg.D.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
@@ -355,7 +355,7 @@ module Html5 : sig
 
   end
 
-  (** Creation of HTML5 content from client-side values.  This makes
+  (** Creation of HTML content from client-side values.  This makes
       possible to insert in server side generated pages some nodes
       that will be computed on client side (for example reactive
       nodes).  *)
@@ -374,10 +374,10 @@ module Html5 : sig
   (** Node identifiers *)
   module Id : sig
 
-    (** The type of global HTML5 element identifier. *)
+    (** The type of global HTML element identifier. *)
     type +'a id
 
-    (** The function [new_elt_id ()] creates a new global HTML5 element
+    (** The function [new_elt_id ()] creates a new global HTML element
         identifier (see the Eliom manual for more information on {%
         <<a_manual project="eliom" chapter="clientserver-html"
         fragment="global"|global element>>%}).*)
@@ -403,21 +403,21 @@ module Html5 : sig
 
   end
 
-  (** Creation of HTML5 content from shared reactive signals and data
+  (** Creation of HTML content from shared reactive signals and data
       ({% <<a_api project="eliom" subproject="server"|module Eliom_shared>> %}).
       For the operations provided, see
-      {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
+      {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
   module R : sig
 
-    include Html5_sigs.Make(Xml_shared)(Svg.R.Raw).T
+    include Html_sigs.Make(Xml_shared)(Svg.R.Raw).T
       with type 'a elt = 'a elt
        and type 'a attrib = 'a attrib
 
     (** [pcdata s] produces a node of type
-        [\[> Html5_types.span\] elt]
+        [\[> Html_types.span\] elt]
         out of the string signal [s]. *)
     val pcdata :
-      string Eliom_shared.React.S.t -> [> Html5_types.span] elt
+      string Eliom_shared.React.S.t -> [> Html_types.span] elt
 
     (** [node s] produces an ['a elt] out of the shared reactive
         signal [s]. *)
@@ -430,7 +430,7 @@ module Html5 : sig
 
   end
 
-  (** Type-safe custom data for HTML5.
+  (** Type-safe custom data for HTML.
       See the {% <<a_manual chapter="clientserver-html"
       fragment="custom_data"|examples in the manual>> %}. *)
   module Custom_data : sig
@@ -440,21 +440,21 @@ module Html5 : sig
 
     (** Create a custom data field by providing string conversion functions.
         If the [default] is provided, calls to {% <<a_api project="eliom" subproject="client" |
-        val Eliom_content.Html5.Custom_data.get_dom>> %} return that instead of throwing an
+        val Eliom_content.Html.Custom_data.get_dom>> %} return that instead of throwing an
         exception [Not_found].  *)
     val create : name:string -> ?default:'a -> to_string:('a -> string) -> of_string:(string -> 'a) -> unit -> 'a t
 
     (** Create a custom data from a Json-deriving type.  *)
     val create_json : name:string -> ?default:'a -> 'a Deriving_Json.t -> 'a t
 
-    (** [attrib my_data value ] creates a HTML5 attribute for the custom-data
-        type [my_data] with value [value] for injecting it into an a HTML5 tree
-        ({% <<a_api | type Eliom_content.Html5.elt >> %}). *)
+    (** [attrib my_data value ] creates a HTML attribute for the custom-data
+        type [my_data] with value [value] for injecting it into an a HTML tree
+        ({% <<a_api | type Eliom_content.Html.elt >> %}). *)
     val attrib : 'a t -> 'a -> [> | `User_data ] attrib
 
   end
 
-  (** {{:http://dev.w3.org/html5/html-xhtml-author-guide/}"Polyglot"} HTML5 printer.
+  (** {{:http://dev.w3.org/html5/html-xhtml-author-guide/}"Polyglot"} HTML printer.
      See {% <<a_api project="tyxml" | module Xml_sigs.Typed_simple_printer >> %}. *)
   module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a elt
                                                   and type doc := F.doc

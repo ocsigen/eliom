@@ -1,7 +1,7 @@
 [%%shared
     open Eliom_lib
     open Eliom_content
-    open Html5.D
+    open Html.D
 ]
 
 module %%%MODULE_NAME%%%_app =
@@ -25,6 +25,6 @@ let () =
         (Eliom_tools.F.html
            ~title:"%%%PROJECT_NAME%%%"
            ~css:[["css";"%%%PROJECT_NAME%%%.css"]]
-           Html5.F.(body [
+           Html.F.(body [
              h1 [pcdata "Welcome from Eliom's distillery!"];
            ])))

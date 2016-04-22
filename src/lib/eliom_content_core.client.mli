@@ -22,7 +22,10 @@
 
 module Xml : sig
 
-  module W : Xml_wrap.T with type 'a t = 'a and type 'a tlist = 'a list
+  module W : Xml_wrap.T
+    with type 'a t = 'a
+     and type 'a tlist = 'a list
+     and type (-'a, 'b) ft = 'a -> 'b
 
   type uri = string
   val uri_of_string : uri -> string
@@ -160,7 +163,7 @@ end
 
 module Xml_wed : sig
 
-  include Xml_sigs.T with module W = Tyxml_js.Xml_wrap
+  include Xml_sigs.T with module W = Tyxml_js.Wrap
                       and type elt = Xml.elt
                       and type aname = Xml.aname
                       and type attrib = Xml.attrib
@@ -251,13 +254,13 @@ module Svg : sig
     (** The type of global SVG element identifier. *)
     type +'a id
 
-    (** See {!Eliom_content.Html5.Id.new_elt_id} *)
+    (** See {!Eliom_content.Html.Id.new_elt_id} *)
     val new_elt_id: ?global:bool -> unit -> 'a id
-    (** See {!Eliom_content.Html5.Id.create_named_elt} *)
+    (** See {!Eliom_content.Html.Id.create_named_elt} *)
     val create_named_elt: id:'a id -> 'a elt -> 'a elt
-    (** See {!Eliom_content.Html5.Id.create_global_elt} *)
+    (** See {!Eliom_content.Html.Id.create_global_elt} *)
     val create_global_elt: 'a elt -> 'a elt
-    (** See {!Eliom_content.Html5.Id.create_request_elt} *)
+    (** See {!Eliom_content.Html.Id.create_request_elt} *)
     val create_request_elt: ?reset:bool -> 'a elt -> 'a elt
 
     (**/**)
@@ -270,8 +273,8 @@ module Svg : sig
 
 end
 
-(** Building Html5 tree. *)
-module Html5 : sig
+(** Building Html tree. *)
+module Html : sig
 
   (** See the Eliom manual for more information on {% <<a_manual
       chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
@@ -285,14 +288,14 @@ module Html5 : sig
   type uri = Xml.uri
 
   (** Typed interface for building valid HTML5 tree (functional semantics).
-      See {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+      See {% <<a_api project="tyxml" | module type Html_sigs.T >> %}. *)
   module F : sig
 
-    module Raw : Html5_sigs.Make(Xml)(Svg.F.Raw).T
+    module Raw : Html_sigs.Make(Xml)(Svg.F.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
-    (** See {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+    (** See {% <<a_api project="tyxml" | module type Html_sigs.T >> %}. *)
     include module type of Raw (*BB TODO Hide untyped [input]. *)
 
     (**/**)
@@ -300,16 +303,16 @@ module Html5 : sig
       ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     val lazy_form:
-      ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_star
+      ([< Html_types.form_attrib ], [< Html_types.form_content_fun ], [> Html_types.form ]) lazy_star
 
   end
 
 
   (** Typed interface for building valid HTML5 tree (DOM semantics). See
-      {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+      {% <<a_api project="tyxml" | module type Html_sigs.T >> %}. *)
   module D: sig
 
-    module Raw : Html5_sigs.Make(Xml)(Svg.D.Raw).T
+    module Raw : Html_sigs.Make(Xml)(Svg.D.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
@@ -320,7 +323,7 @@ module Html5 : sig
       ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     val lazy_form:
-      ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_star
+      ([< Html_types.form_attrib ], [< Html_types.form_content_fun ], [> Html_types.form ]) lazy_star
 
   end
 
@@ -329,7 +332,7 @@ module Html5 : sig
       HTML5's trees are automatically updated whenever
       corresponding signals change.
 
-      {% <<a_api project="tyxml" | module type Html5_sigs.T >> %}. *)
+      {% <<a_api project="tyxml" | module type Html_sigs.T >> %}. *)
 
   module R: sig
 
@@ -339,7 +342,7 @@ module Html5 : sig
 
     val filter_attrib : 'a attrib -> bool React.signal -> 'a attrib
 
-    module Raw : Html5_sigs.Make(Xml_wed)(Svg.R.Raw).T
+    module Raw : Html_sigs.Make(Xml_wed)(Svg.R.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
@@ -384,7 +387,7 @@ module Html5 : sig
 
     (** Create a custom data field by providing string conversion functions.
         If the [default] is provided, calls to {% <<a_api project="eliom" subproject="client" |
-        val Eliom_content.Html5.Custom_data.get_dom>> %} return that instead of throwing an
+        val Eliom_content.Html.Custom_data.get_dom>> %} return that instead of throwing an
         exception [Not_found].  *)
     val create : name:string -> ?default:'a -> to_string:('a -> string) -> of_string:(string -> 'a) -> unit -> 'a t
 
@@ -393,7 +396,7 @@ module Html5 : sig
 
     (** [attrib my_data value ] creates a HTML5 attribute for the custom-data
         type [my_data] with value [value] for injecting it into an a HTML5 tree
-        ({% <<a_api | type Eliom_content.Html5.elt >> %}). *)
+        ({% <<a_api | type Eliom_content.Html.elt >> %}). *)
     val attrib : 'a t -> 'a -> [> | `User_data ] attrib
 
     (** [get_dom element custom_data] gets the [custom_data] from a JavaScript [element]

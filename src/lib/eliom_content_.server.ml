@@ -47,17 +47,17 @@ module Svg = struct
 
 end
 
-module Html5 = struct
+module Html = struct
 
   module F = struct
-    include Html5.F
+    include Html.F
     module Arg = struct
-      include Html5.F
+      include Html.F
       module Svg = Eliom_content_core.Svg.F
       let uri_of_fun = Eliom_content_core.Xml.uri_of_fun
       let attrib_of_service s info =
         Eliom_content_core.
-          (Html5.F.to_attrib
+          (Html.F.to_attrib
              (Xml.internal_event_handler_attrib
                 s (Xml.internal_event_handler_of_service info)))
       let to_elt = toelt
@@ -67,14 +67,14 @@ module Html5 = struct
   end
 
   module D = struct
-    include Html5.D
+    include Html.D
     module Arg = struct
-      include Html5.D
+      include Html.D
       module Svg = Eliom_content_core.Svg.D
       let uri_of_fun = Eliom_content_core.Xml.uri_of_fun
       let attrib_of_service s info =
         Eliom_content_core.
-          (Html5.D.to_attrib
+          (Html.D.to_attrib
              (Xml.internal_event_handler_attrib
                 s (Xml.internal_event_handler_of_service info)))
       let to_elt = toelt
@@ -83,13 +83,13 @@ module Html5 = struct
     module Form = Eliom_form.Make(Arg)
   end
 
-  module R = Eliom_shared_content.Html5.R
+  module R = Eliom_shared_content.Html.R
 
-  module Custom_data = Eliom_content_core.Html5.Custom_data
+  module Custom_data = Eliom_content_core.Html.Custom_data
 
-  module Id = Html5.Id
+  module Id = Html.Id
 
-  module Printer = Html5.Printer
+  module Printer = Html.Printer
 
   type +'a elt = 'a F.elt
   type 'a wrap = 'a F.wrap

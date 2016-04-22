@@ -19,7 +19,7 @@
  *)
 
 (** Eliom services registration for various kinds of page content:
-    Eliom application, valid {!Html5}, actions, redirections, static
+    Eliom application, valid {!Html}, actions, redirections, static
     files, … *)
 
 (** {b Please read the Eliom manual before this page to learn how to
@@ -49,7 +49,7 @@ type 'a kind
     parameter for {!Eliom_registration.kind}. It means the returned
     content must be interpreted in the browser as stated by the
     content-type header. This is most common return type for an eliom
-    service, see for example {!Html5}, {!CssText}, {!File},
+    service, see for example {!Html}, {!CssText}, {!File},
     {!Redirection}. *)
 type browser_content = [ `Browser ]
 
@@ -87,8 +87,8 @@ type 'a ocaml_content
 
 (** Eliom service registration for services that return HTML5
     pages. *)
-module Html5 : Eliom_reg_sigs.S
-  with type page = Html5_types.html Eliom_content.Html5.elt
+module Html : Eliom_reg_sigs.S
+  with type page = Html_types.html Eliom_content.Html.elt
    and type options = unit
    and type return = Eliom_service.non_ocaml
    and type result = browser_content kind
@@ -141,7 +141,7 @@ module type ELIOM_APPL = sig
       will be automatically added at the end of the [<head>] node. *)
   val application_script :
     ?defer:bool -> ?async:bool -> unit ->
-    [> `Script ] Eliom_content.Html5.elt
+    [> `Script ] Eliom_content.Html.elt
 
   (** Unique identifier for this application. Currently, it is just
       the application name as defined by
@@ -162,7 +162,7 @@ module type ELIOM_APPL = sig
   type app_id
 
   include Eliom_reg_sigs.S
-    with type page = Html5_types.html Eliom_content.Html5.elt
+    with type page = Html_types.html Eliom_content.Html.elt
      and type options = appl_service_options
      and type return = Eliom_service.non_ocaml
      and type result = app_id application_content kind
@@ -178,7 +178,7 @@ module App (Appl_params : APPL_PARAMS) : ELIOM_APPL
 module type TMPL_PARAMS = sig
   type t
   val name: string
-  val make_page: t -> Html5_types.html Eliom_content.Html5.elt Lwt.t
+  val make_page: t -> Html_types.html Eliom_content.Html.elt Lwt.t
   val update: t -> unit Eliom_client_value.t
 end
 
@@ -198,7 +198,7 @@ module Eliom_tmpl (Appl : ELIOM_APPL) (Tmpl_param : TMPL_PARAMS):
     For Eliom application, prefers {!Ocaml} services to send page
     fragments. *)
 module Flow5 : Eliom_reg_sigs.S
-  with type page = Html5_types.flow5 Eliom_content.Html5.elt list
+  with type page = Html_types.flow5 Eliom_content.Html.elt list
    and type options = unit
    and type return = Eliom_service.non_ocaml
    and type result = block_content kind
@@ -375,7 +375,7 @@ module Ocaml : Eliom_reg_sigs.S_poly_with_send
 
 (** Eliom service registration for services that choose dynamically
     what they want to send. The content is created using for example
-    {!Html5.send} or {!String.send} functions. See the Eliom manual
+    {!Html.send} or {!String.send} functions. See the Eliom manual
     for more information about {% <<a_manual chapter="server-outputs"
     fragment="any"|services that choose dynamically what they want to
     send>>%} *)

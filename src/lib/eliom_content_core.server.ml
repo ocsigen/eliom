@@ -290,8 +290,7 @@ module Svg = struct
   module Make
       (Xml : Xml_sigs.T with type elt = Xml.elt
                          and type attrib = Xml.attrib)
-      (C : Svg_sigs.Wrapped_functions
-       with type ('a, 'b) ft = ('a, 'b) Xml.W.ft) =
+      (C : Svg_sigs.Wrapped_functions with module Xml = Xml) =
     Svg_f.Make_with_wrapped_functions(Xml)(C)
 
   type +'a elt = 'a F.elt
@@ -316,7 +315,7 @@ module Svg = struct
 
 end
 
-module Html5 = struct
+module Html = struct
 
   module D = struct
 
@@ -342,7 +341,7 @@ module Html5 = struct
 
     end
 
-    module Raw = Html5_f.Make(Xml')(Svg.D.Raw)
+    module Raw = Html_f.Make(Xml')(Svg.D.Raw)
     let client_attrib ?init (x : 'a Raw.attrib Eliom_client_value.t) =
       Xml.client_attrib ?init x
 
@@ -360,7 +359,7 @@ module Html5 = struct
   module F = struct
 
     module Xml' = Xml
-    module Raw = Html5_f.Make(Xml')(Svg.F.Raw)
+    module Raw = Html_f.Make(Xml')(Svg.F.Raw)
     include Raw
 
     type ('a, 'b, 'c) lazy_star =
@@ -377,10 +376,9 @@ module Html5 = struct
       (Xml : Xml_sigs.T
        with type elt = Xml.elt
         and type attrib = Xml.attrib)
-      (C : Html5_sigs.Wrapped_functions
-       with type ('a, 'b) ft = ('a, 'b) Xml.W.ft)
+      (C : Html_sigs.Wrapped_functions with module Xml = Xml)
       (Svg : Svg_sigs.T with module Xml := Xml) =
-    Html5_f.Make_with_wrapped_functions(Xml)(C)(Svg)
+    Html_f.Make_with_wrapped_functions(Xml)(C)(Svg)
 
   type +'a elt = 'a F.elt
   type 'a wrap = 'a

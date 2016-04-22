@@ -1,8 +1,8 @@
 (* Copyright Vincent Balat *)
 {shared{
 open Eliom_lib
-open Eliom_content.Html5
-open Eliom_content.Html5.F
+open Eliom_content.Html
+open Eliom_content.Html.F
 }}
 
 
@@ -55,7 +55,7 @@ let mainservice = Eliom_testsuite_base.My_appl.register_service
     in f 5
 
 let test, testh = ReactiveData.RList.create
-    ([pcdata "a"; pcdata "b"; ] : Html5_types.div_content_fun elt list)
+    ([pcdata "a"; pcdata "b"; ] : Html_types.div_content_fun elt list)
  }}
 {shared{
   let test0 _ = Lwt.return (D.div [D.h1 [pcdata "ze"]])

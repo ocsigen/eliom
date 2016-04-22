@@ -17,14 +17,14 @@ let reference_scope_site =
          lwt () = Eliom_reference.set Eliom_testsuite_global.eref (Some v) in
          Eliom_reference.set Eliom_testsuite_global.eref' (Some v))
   in
-  Eliom_registration.Html5.create
+  Eliom_registration.Html.create
     ~id:(Eliom_service.Path ["reference_scope_site"])
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () ->
-       let show = function None -> Html5.D.entity "#x2012" | Some str -> Html5.D.pcdata str in
+       let show = function None -> Html.D.entity "#x2012" | Some str -> Html.D.pcdata str in
        lwt v = Lwt.map show (Eliom_reference.get Eliom_testsuite_global.eref) in
        lwt v' = Lwt.map show (Eliom_reference.get Eliom_testsuite_global.eref') in
-       Lwt.return Html5.D.(
+       Lwt.return Html.D.(
          html
            (head (title (pcdata "")) [])
            (body [
@@ -38,11 +38,11 @@ let reference_scope_site =
                pcdata ", persistent "; i [v'];
              ];
              pcdata "Enter a new string for both references";
-             Html5.D.Form.post_form
+             Html.D.Form.post_form
                ~service:action
                (fun name ->
-                  [Html5.D.Form.input ~input_type:`Text ~name
-                     Html5.D.Form.string ])
+                  [Html.D.Form.input ~input_type:`Text ~name
+                     Html.D.Form.string ])
                ()
            ])
        ))

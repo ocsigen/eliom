@@ -37,7 +37,7 @@ let test_client_value_on_caml_service =
   Eliom_testsuite_base.test
     ~title:"Client values in Ocaml-services"
     ~path:["holes"; "caml_service"]
-    ~description:Html5.F.([
+    ~description:Html.F.([
       pcdata "On loading: \"From main service\"";
       br ();
       pcdata "On clicking button";
@@ -68,7 +68,7 @@ let test_client_value_on_caml_service =
                 Eliom_testsuite_base.log "Exception on server: %s" msg;
                 Lwt.return ())
        }} in
-       Lwt.return Html5.F.([
+       Lwt.return Html.F.([
          Form.button_no_value ~a:[a_onclick onclick ] ~button_type:`Submit [
            pcdata "Click to get ocaml service";
          ]
@@ -78,13 +78,13 @@ let test_client_value_on_caml_service =
 (*                          Binding of escaped nodes                          *)
 
 let free_global =
-  Html5.(Id.create_global_elt (D.div F.([b [pcdata "Global (free)"]])))
+  Html.(Id.create_global_elt (D.div F.([b [pcdata "Global (free)"]])))
 let bound_global =
-  Html5.(Id.create_global_elt (D.div F.([b [pcdata "Global (bound)"]])))
+  Html.(Id.create_global_elt (D.div F.([b [pcdata "Global (bound)"]])))
 let free_request =
-  Html5.(D.div F.([b [pcdata "Request (free)"]]))
+  Html.(D.div F.([b [pcdata "Request (free)"]]))
 let bound_request =
-  Html5.(D.div F.([b [pcdata "Request (bound)"]]))
+  Html.(D.div F.([b [pcdata "Request (bound)"]]))
 
 let other_service =
   Eliom_registration.Ocaml.register_coservice'
@@ -92,18 +92,18 @@ let other_service =
     (fun () () ->
        ignore {unit{
            Lwt_log.ign_debug "on other service";
-         Html5.Manip.appendChild
+         Html.Manip.appendChild
            %free_request
-           Html5.F.(div [pcdata "from ocaml service"]);
-         Html5.Manip.appendChild
+           Html.F.(div [pcdata "from ocaml service"]);
+         Html.Manip.appendChild
            %free_global
-           Html5.F.(div [pcdata "from ocaml service"]);
-         Html5.Manip.appendChild
+           Html.F.(div [pcdata "from ocaml service"]);
+         Html.Manip.appendChild
            %bound_request
-           Html5.F.(div [pcdata "from ocaml service"]);
-         Html5.Manip.appendChild
+           Html.F.(div [pcdata "from ocaml service"]);
+         Html.Manip.appendChild
            %bound_global
-           Html5.F.(div [pcdata "from ocaml service"]);
+           Html.F.(div [pcdata "from ocaml service"]);
          ()
        }};
        Lwt.return ())
@@ -113,31 +113,31 @@ let other_service =
   Eliom_client.onload
     (fun () ->
        Lwt_log.ign_debug "onload";
-       Html5.Manip.appendChild
+       Html.Manip.appendChild
          %free_request
-         Html5.F.(div [pcdata "from client init"]);
-       Html5.Manip.appendChild
+         Html.F.(div [pcdata "from client init"]);
+       Html.Manip.appendChild
          %free_global
-         Html5.F.(div [pcdata "from client init"]);
-       Html5.Manip.appendChild
+         Html.F.(div [pcdata "from client init"]);
+       Html.Manip.appendChild
          %bound_request
-         Html5.F.(div [pcdata "from client init"]);
-       Html5.Manip.appendChild
+         Html.F.(div [pcdata "from client init"]);
+       Html.Manip.appendChild
          %bound_global
-         Html5.F.(div [pcdata "from client init"]);
+         Html.F.(div [pcdata "from client init"]);
        ())
 }}
 
-let addenda = Html5.D.div []
+let addenda = Html.D.div []
 
-let node_bindings_local_global_id = Html5.Id.new_elt_id ~global:true ()
-let node_bindings_local_request_id = Html5.Id.new_elt_id ~global:false ()
+let node_bindings_local_global_id = Html.Id.new_elt_id ~global:true ()
+let node_bindings_local_request_id = Html.Id.new_elt_id ~global:false ()
 
 let node_bindings =
   Eliom_testsuite_base.test
     ~title:"Binding of nodes"
     ~path:["holes"; "node_binding"]
-    ~description:Html5.F.([
+    ~description:Html.F.([
       p [pcdata "Observe when HTML5 elements with DOM semantics are reused."];
       p [pcdata "Bound nodes are sent in the page; free nodes are added by client value side effect after loading the page."];
       ul [
@@ -149,17 +149,17 @@ let node_bindings =
     ])
     (fun () ->
       let local_bound_global =
-        Html5.Id.create_named_elt ~id:node_bindings_local_global_id
-          Html5.(D.div [F.(b [pcdata "Global (bound, local)"])])
+        Html.Id.create_named_elt ~id:node_bindings_local_global_id
+          Html.(D.div [F.(b [pcdata "Global (bound, local)"])])
       in
       let local_bound_request =
-        Html5.Id.create_named_elt ~id:node_bindings_local_request_id
-          Html5.(D.div [F.(b [pcdata "Request (bound, local)"])])
+        Html.Id.create_named_elt ~id:node_bindings_local_request_id
+          Html.(D.div [F.(b [pcdata "Request (bound, local)"])])
       in
       ignore {unit{
           Lwt_log.ign_debug "Adding free";
-         Html5.Manip.appendChild %addenda %free_request;
-         Html5.Manip.appendChild %addenda %free_global;
+         Html.Manip.appendChild %addenda %free_request;
+         Html.Manip.appendChild %addenda %free_global;
          ignore %bound_global;
          ignore %bound_request;
          ignore %local_bound_global;
@@ -171,8 +171,8 @@ let node_bindings =
            Lwt_log.ign_debug "onclick";
            List.iter
              (fun node ->
-               Html5.Manip.appendChild node
-                 Html5.F.(div [pcdata "onclick"]))
+               Html.Manip.appendChild node
+                 Html.F.(div [pcdata "onclick"]))
              [%free_request; %free_global; %bound_request; %bound_global; %local_bound_global; %local_bound_request];
        }} in
        let run_ocaml_service = {{
@@ -181,7 +181,7 @@ let node_bindings =
            Lwt.ignore_result
              (Eliom_client.call_ocaml_service ~service: %other_service () ())
        }} in
-       Lwt.return Html5.F.([
+       Lwt.return Html.F.([
          Eliom_testsuite_base.thebutton ~msg:"Add onclick lines" add_onclick;
          Eliom_testsuite_base.thebutton ~msg:"Run ocaml service" run_ocaml_service;
          local_bound_global;
@@ -194,16 +194,16 @@ let node_bindings =
 (******************************************************************************)
 (*                                Data sharing                                *)
 
-let data_sharing_elt1 = Html5.D.(div ~a:[a_class ["monospace"]] [pcdata "VVVVVVVVVVV"])
-let data_sharing_elt2 = Html5.D.(div ~a:[a_class ["monospace"]] [pcdata "WWWWWWWWWWW"])
-let data_sharing_elt3 = Html5.D.(div ~a:[a_class ["monospace"]] [pcdata "XXXXXXXXXXX"])
-let data_sharing_addenda = Html5.D.div []
+let data_sharing_elt1 = Html.D.(div ~a:[a_class ["monospace"]] [pcdata "VVVVVVVVVVV"])
+let data_sharing_elt2 = Html.D.(div ~a:[a_class ["monospace"]] [pcdata "WWWWWWWWWWW"])
+let data_sharing_elt3 = Html.D.(div ~a:[a_class ["monospace"]] [pcdata "XXXXXXXXXXX"])
+let data_sharing_addenda = Html.D.div []
 
 let data_sharing =
   Eliom_testsuite_base.test
     ~title:"Data sharing"
     ~path:["holes"; "data_sharing"]
-    ~description:Html5.F.([
+    ~description:Html.F.([
       p [pcdata "Checks wheather data in the eliom request data is shared"];
       p [pcdata "The string of request data is given below."];
       p [pcdata "There are three elements on the server, which contain the strings
@@ -215,19 +215,19 @@ let data_sharing =
                  exactly once."]
     ])
     (fun () ->
-       let data_sharing_data = Html5.D.div [] in
+       let data_sharing_data = Html.D.div [] in
        ignore {unit{
-         Html5.Manip.appendChild %data_sharing_addenda
+         Html.Manip.appendChild %data_sharing_addenda
            %data_sharing_elt1;
-         Html5.Manip.appendChild %data_sharing_addenda
+         Html.Manip.appendChild %data_sharing_addenda
            %data_sharing_elt2;
        }};
        ignore {unit{
-         Html5.Manip.appendChild %data_sharing_data
-           (Html5.F.pcdata
+         Html.Manip.appendChild %data_sharing_data
+           (Html.F.pcdata
               (Js.to_string (Js.Unsafe.get Js.Unsafe.global (Js.string "__eliom_request_data"))))
        }};
-       Lwt.return Html5.F.([
+       Lwt.return Html.F.([
          data_sharing_elt1;
          section [ h4 [ pcdata "Added from client" ]; data_sharing_addenda ];
          section [ h4 [ pcdata "Request data" ]; data_sharing_data ];
@@ -238,7 +238,7 @@ let data_sharing =
     ignore (%data_sharing_elt1, %data_sharing_elt2);
     Eliom_client.onload
       (fun () ->
-        Html5.Manip.appendChild %data_sharing_addenda
+        Html.Manip.appendChild %data_sharing_addenda
           %data_sharing_elt3)
 }}
 
@@ -250,7 +250,7 @@ let data_sharing =
   type my_data = { x : int; y : int } deriving (Json)
 
   let my_data =
-    Eliom_content.Html5.Custom_data.create_json ~name:"my_int" ~default:{x=0;y=0;} Json.t<my_data>
+    Eliom_content.Html.Custom_data.create_json ~name:"my_int" ~default:{x=0;y=0;} Json.t<my_data>
 
 }}
 
@@ -258,14 +258,14 @@ let data_sharing =
 
   let show_my_data (ev : Dom_html.mouseEvent Js.t) =
     let elt = Js.Opt.get (ev##target) (fun () -> failwith "show_my_data") in
-    let i = Html5.Custom_data.get_dom elt my_data in
+    let i = Html.Custom_data.get_dom elt my_data in
     Dom_html.window##alert (Js.string (Printf.sprintf "custom_data : {x=%d;y=%d}" i.x i.y))
 
   let change_data container =
-    let element = Html5.To_dom.of_element container in
-    let i = Html5.Custom_data.get_dom element my_data in
+    let element = Html.To_dom.of_element container in
+    let i = Html.Custom_data.get_dom element my_data in
     let i' = { x = succ i.x; y = pred i.y } in
-    Html5.Custom_data.set_dom element my_data i'
+    Html.Custom_data.set_dom element my_data i'
 }}
 
 let test_custom_data =
@@ -276,9 +276,9 @@ let test_custom_data =
     ~path
     ~get_params:Eliom_parameter.unit
     (fun () () ->
-       let open Html5.F in
+       let open Html.F in
        let container =
-         Html5.D.div ~a:[Html5.Custom_data.attrib my_data { x = 100; y = 100 }]
+         Html.D.div ~a:[Html.Custom_data.attrib my_data { x = 100; y = 100 }]
            [pcdata "A: click me (my_data is originally {x=100;y=100})"]
        in
        let change_button =
@@ -334,7 +334,7 @@ let client_values_injection =
     ~get_params:Eliom_parameter.unit
     (fun () () ->
        let cstr = {string{ "cstr" }} in
-       Lwt.return Html5.F.(
+       Lwt.return Html.F.(
          html
            (Eliom_tools.F.head
               ~title:(String.concat "/" path)
@@ -385,7 +385,7 @@ let client_values_mutability =
     ~path
     ~get_params:Eliom_parameter.unit
     (fun () () ->
-       Lwt.return Html5.F.(
+       Lwt.return Html.F.(
          html
            (Eliom_tools.F.head
               ~title:(String.concat "/" path)
@@ -424,7 +424,7 @@ let client_values_changing_context =
     (fun () () ->
        incr ix;
        debug "ix: %d" !ix;
-       Lwt.return Html5.F.(
+       Lwt.return Html.F.(
          html
            (Eliom_tools.F.head
               ~title:(String.concat "/" path)
@@ -481,7 +481,7 @@ let client_values_initialization =
     (let ix = ref 0 in
      fun () () ->
        incr ix;
-       Lwt.return Html5.F.(
+       Lwt.return Html.F.(
          html
            (Eliom_tools.F.head
               ~title:(String.concat "/" path)
@@ -503,13 +503,13 @@ let client_values_initialization =
 (*                          Client value custom data                          *
 
 {shared{
-  let my_unit_unit = Html5.Custom_data.create_client_value ~name:"my_unit_unit" ()
+  let my_unit_unit = Html.Custom_data.create_client_value ~name:"my_unit_unit" ()
 }}
 
 {client{
 
-  let run_element : _ Eliom_content.Html5.elt -> unit -> unit =
-    let f = Html5.Custom_data.get_dom (To_dom.of_element trg) my_unit_unit in
+  let run_element : _ Eliom_content.Html.elt -> unit -> unit =
+    let f = Html.Custom_data.get_dom (To_dom.of_element trg) my_unit_unit in
     f ()
 
   let f () =
@@ -527,11 +527,11 @@ let client_values_initialization =
   let b = {string->string{ fun x -> "(b" ^ " " ^ %a ^ " " ^ x ^ ")" }}
 
   let my_div label cv =
-    Html5.F.(
+    Html.F.(
       let onclick = {{
         fun ev -> run_element ev##target ()
       }} in
-      div ~a:[a_onclick onclick; Html5.Custom_data.attrib my_unit_unit cv] [
+      div ~a:[a_onclick onclick; Html.Custom_data.attrib my_unit_unit cv] [
         pcdata label
       ]
     )
@@ -543,7 +543,7 @@ let client_values_initialization =
       (fun () () ->
          (* let w = 1 in *)
          Eliom_service.onload' {{ fun () -> debug "hic %s" ( %b "x") }};
-         Lwt.return Html5.F.(
+         Lwt.return Html.F.(
            html
              (Eliom_tools.F.head
                 ~title:"client_values"
@@ -560,7 +560,7 @@ let client_values_initialization =
 
   let elt src =
     ignore {unit{ debug "creating elt from %s" %src }};
-    Html5.F.(div ~a:[a_onclick {{ fun _ -> debug "click!"}}] [pcdata ("click ("^src^")")])
+    Html.F.(div ~a:[a_onclick {{ fun _ -> debug "click!"}}] [pcdata ("click ("^src^")")])
 
 }}
 
@@ -581,9 +581,9 @@ let test_simple =
          fun _ ->
            Dom.appendChild
              (Dom_html.document##body)
-             (Eliom_content.Html5.To_dom.of_div (elt "client"))
+             (Eliom_content.Html.To_dom.of_div (elt "client"))
        }} in
-       Lwt.return Html5.F.(
+       Lwt.return Html.F.(
          html
            (Eliom_tools.F.head
               ~title:(String.concat "/" path)
@@ -645,12 +645,12 @@ let test_simple =
           in
           Dom_html.window##alert(Js.string str)
       }} in
-      Html5.F.(
+      Html.F.(
         li ~a:[a_onclick client_onclick]
           [ pcdata "client_onclick: %shared_value=\"shared_value\" %client_value=\"client_value\""]
       )
     );
-    Html5.F.(
+    Html.F.(
       li ~a:[a_onclick (shared_onclick "client")]
         [pcdata "shared_onclick from client: %shared_onclick=\"shared_value\""]
     );
@@ -682,12 +682,12 @@ let test_simple =
           in
           Dom_html.window##alert(Js.string str)
       }} in
-      Html5.F.(
+      Html.F.(
         li ~a:[a_onclick server_onclick]
           [pcdata "server_onclick: %shared_value=\"shared_value\" %server_value=\"server_value\""]
       )
     );
-    Html5.F.(
+    Html.F.(
       li ~a:[a_onclick (shared_onclick "server")]
         [pcdata "shared_onclick from server: %shared_value=\"shared_value\""]
     );
@@ -701,7 +701,7 @@ let test_simple =
 {shared{
 
   let shared_tests context = [
-    Html5.F.(
+    Html.F.(
       li ~a:[a_onclick (shared_onclick (context^" via shared"))] [
         pcdata
           ("shared_onclick from " ^ context ^ " via shared: " ^ "%shared_value=\"shared_value\"")
@@ -718,15 +718,15 @@ let client_handler_syntax =
     ~path
     ~get_params:Eliom_parameter.unit
     (fun () () ->
-       let open Html5.F in
-       let tests_id = Html5.Id.new_elt_id ~global:false () in
+       let open Html.F in
+       let tests_id = Html.Id.new_elt_id ~global:false () in
        Eliom_service.onload {{
          fun _ ->
-           List.iter (Html5.Manip.Named.appendChild %tests_id) Html5.F.([
+           List.iter (Html.Manip.Named.appendChild %tests_id) Html.F.([
              div [pcdata "Client elements"];
              ul (client_tests);
            ]);
-           List.iter (Html5.Manip.Named.appendChild %tests_id) Html5.F.([
+           List.iter (Html.Manip.Named.appendChild %tests_id) Html.F.([
              div [pcdata "Shared elements used from client"];
              ul (shared_tests "client");
            ])
@@ -736,7 +736,7 @@ let client_handler_syntax =
            (Eliom_tools.F.head ~title:(String.concat "/" path) ())
            (body [
              h1 [pcdata description];
-             Html5.Id.create_named_elt ~id:tests_id
+             Html.Id.create_named_elt ~id:tests_id
                (div [
                  div [pcdata "Server elements"];
                  ul server_tests;
@@ -753,12 +753,12 @@ let client_handler_syntax =
 {shared{
 
   type hidden_widget = {
-    content : Html5_types.div_content Html5.elt list;
-    widget_id : Html5_types.flow5 Html5.Id.id;
-    overlay_id : Html5_types.div Html5.Id.id;
-    container_id : Html5_types.div Html5.Id.id;
+    content : Html_types.div_content Html.elt list;
+    widget_id : Html_types.flow5 Html.Id.id;
+    overlay_id : Html_types.div Html.Id.id;
+    container_id : Html_types.div Html.Id.id;
     mutable show_callback : (unit -> unit) option;
-    mutable content_getter : (unit -> Html5_types.div_content Html5.elt list Lwt.t) option;
+    mutable content_getter : (unit -> Html_types.div_content Html.elt list Lwt.t) option;
     mutable set_content_thread : unit Lwt.t option;
   }
 
@@ -767,25 +767,25 @@ let client_handler_syntax =
 {shared{
 
   let hidden_widget content = {
-    content = (content :> Html5_types.div_content Html5.elt list);
-    widget_id = Html5.Id.new_elt_id ();
-    overlay_id = Html5.Id.new_elt_id ();
-    container_id = Html5.Id.new_elt_id ();
+    content = (content :> Html_types.div_content Html.elt list);
+    widget_id = Html.Id.new_elt_id ();
+    overlay_id = Html.Id.new_elt_id ();
+    container_id = Html.Id.new_elt_id ();
     show_callback = None;
     content_getter = None;
     set_content_thread = None;
   }
 
   let hidden_widget_html w =
-    let open Html5.F in
+    let open Html.F in
     let container =
-      Html5.Id.create_named_elt ~id:w.container_id
+      Html.Id.create_named_elt ~id:w.container_id
         (div ~a:[a_class ["container"]; a_style "display: none"] w.content)
     in
     let onclick_overlay = {{
       fun _ ->
-        Html5.(Manip.SetCss.display (Id.get_element %w.overlay_id) "none");
-        Html5.(Manip.SetCss.display (Id.get_element %w.container_id) "block");
+        Html.(Manip.SetCss.display (Id.get_element %w.overlay_id) "none");
+        Html.(Manip.SetCss.display (Id.get_element %w.container_id) "block");
         Option.iter (fun f -> f ()) %w.show_callback;
         Option.iter
           (fun f ->
@@ -793,7 +793,7 @@ let client_handler_syntax =
              let t =
                lwt () = waiter in
                lwt content = f () in
-               Html5.Manip.Named.replaceAllChild %w.container_id content;
+               Html.Manip.Named.replaceAllChild %w.container_id content;
                Lwt.return ()
              in
              Lwt.wakeup wakener ();
@@ -802,13 +802,13 @@ let client_handler_syntax =
       ()
     }} in
     let overlay =
-      Html5.Id.create_named_elt ~id:w.overlay_id
+      Html.Id.create_named_elt ~id:w.overlay_id
         (div ~a:[
           a_class ["overlay"];
           a_onclick onclick_overlay;
         ] [ pcdata "click to show"; ])
     in
-    Html5.Id.create_named_elt ~id:w.widget_id
+    Html.Id.create_named_elt ~id:w.widget_id
       (div ~a:[a_class ["hidden_widget"]] [ overlay; container; ])
 
 }}
@@ -816,9 +816,9 @@ let client_handler_syntax =
 {client{
 
   let hidden_widget_hide w _ =
-    Html5.Manip.Named.replaceAllChild w.container_id w.content;
-    Html5.(Manip.SetCss.display (Id.get_element w.overlay_id) "block");
-    Html5.(Manip.SetCss.display (Id.get_element w.container_id) "none");
+    Html.Manip.Named.replaceAllChild w.container_id w.content;
+    Html.(Manip.SetCss.display (Id.get_element w.overlay_id) "block");
+    Html.(Manip.SetCss.display (Id.get_element w.container_id) "none");
     Option.iter (fun t -> Lwt.cancel t; w.set_content_thread <- None) w.set_content_thread;
     ()
 
@@ -837,8 +837,8 @@ let get_slow_content =
        let sleep_time = 1.0 +. Random.float 4.0 in
        debug "Sleep %f" sleep_time;
        lwt () = Lwt_unix.sleep sleep_time in
-       Lwt.return Html5.F.([
-         (h2 [pcdata "Slow content"] :> Html5_types.div_content Html5.elt);
+       Lwt.return Html.F.([
+         (h2 [pcdata "Slow content"] :> Html_types.div_content Html.elt);
          p [pcdata (Printf.sprintf "Had to sleep %f seconds for this" sleep_time)];
        ]))
 
@@ -847,9 +847,9 @@ let client_handler_syntax_2 =
     ~path:["client_handler_syntax_2"]
     ~get_params:Eliom_parameter.unit
     (fun () () ->
-       let w = hidden_widget [Html5.F.pcdata "waiting ..."] in
+       let w = hidden_widget [Html.F.pcdata "waiting ..."] in
        let hide_button =
-         Html5.D.(
+         Html.D.(
            button ~a:[a_onclick {{ hidden_widget_hide %w }} ] ~button_type:`Submit [
              pcdata "Hide again";
            ])
@@ -857,11 +857,11 @@ let client_handler_syntax_2 =
        let add_another_waiter_button =
          let onclick = {{
            fun _ ->
-             let w = hidden_widget [Html5.F.pcdata "Incredible content!"] in
+             let w = hidden_widget [Html.F.pcdata "Incredible content!"] in
              ignore (Dom.appendChild (Dom_html.document##body)
-                       (Html5.To_dom.of_element (hidden_widget_html w)))
+                       (Html.To_dom.of_element (hidden_widget_html w)))
          }} in
-         Html5.D.(
+         Html.D.(
            button ~a:[a_onclick onclick ] ~button_type:`Submit [
              pcdata "Add another waiter widget";
            ])
@@ -873,13 +873,13 @@ let client_handler_syntax_2 =
                 ignore
                   (Dom.insertBefore
                      (Dom_html.document##body)
-                     (Html5.To_dom.of_element %hide_button)
+                     (Html.To_dom.of_element %hide_button)
                      Js.null));
            hidden_widget_set_content_getter %w
              (fun () ->
                 Eliom_client.call_caml_service ~service: %get_slow_content () ())
        }};
-       Lwt.return Html5.F.(
+       Lwt.return Html.F.(
          html
            (Eliom_tools.F.head
               ~title:"client_handler_syntax_2"
@@ -911,7 +911,7 @@ let client_values_shared =
   Eliom_testsuite_base.My_appl.register_service
     ~path ~get_params:Eliom_parameter.unit
     (fun () () ->
-       Lwt.return Html5.F.(
+       Lwt.return Html.F.(
          html
            (Eliom_tools.F.head
               ~title:(String.concat "/" path)
@@ -937,7 +937,7 @@ let client_values_shared =
          debug "shared onload from %s" %src;
          Lwt.return ())
     }};
-    Html5.F.(div [pcdata ("shared elt from "^src)])
+    Html.F.(div [pcdata ("shared elt from "^src)])
 }}
 
 {client{
@@ -949,7 +949,7 @@ let client_values_shared =
          debug "client onload";
          Lwt.return ())
     }};
-    Html5.F.(div [pcdata "client elt"])
+    Html.F.(div [pcdata "client elt"])
 }}
 
 {server{
@@ -961,7 +961,7 @@ let client_values_shared =
          debug "server onload";
          Lwt.return ())
     }};
-    Html5.F.(div [pcdata "server elt"])
+    Html.F.(div [pcdata "server elt"])
 }}
 
 
@@ -977,13 +977,13 @@ let client_values_onload =
            (lwt () = Eliom_client.wait_load_end () in
             Dom.appendChild
               (Dom_html.document##body)
-              (Html5.To_dom.of_div (shared_elt "client"));
+              (Html.To_dom.of_div (shared_elt "client"));
             Dom.appendChild
               (Dom_html.document##body)
-              (Html5.To_dom.of_div client_elt);
+              (Html.To_dom.of_div client_elt);
             Lwt.return ())
        }};
-       Lwt.return Html5.F.(
+       Lwt.return Html.F.(
          html
            (Eliom_tools.F.head
               ~title:(String.concat "/" path)
@@ -1044,7 +1044,7 @@ let s = Eliom_registration.Action.register_coservice'
   let () = debug "global_value: %Ld" %global_value
 
   let link () =
-     Html5.F.(div [(*a ~service: %s [pcdata "Action! (on server)"] ()*)])
+     Html.F.(div [(*a ~service: %s [pcdata "Action! (on server)"] ()*)])
 
 }}
 
@@ -1070,10 +1070,10 @@ let escaped_in_client =
             show_server_injections ();
             Dom.appendChild
               (Dom_html.document##body)
-              (Html5.To_dom.of_element (link ()));
+              (Html.To_dom.of_element (link ()));
             Lwt.return ())
        }};
-       Lwt.return Html5.F.(
+       Lwt.return Html.F.(
          html
            (Eliom_tools.F.head
               ~title:(String.concat "/" path)
@@ -1103,7 +1103,7 @@ let request_reference =
 
 let deep_client_value = Some {string{ "client value" }}
 
-let an_elt = Html5.D.div []
+let an_elt = Html.D.div []
 
 {client{
 
@@ -1111,9 +1111,9 @@ let an_elt = Html5.D.div []
     Lwt.ignore_result
       (lwt () = Eliom_client.wait_load_end () in
        debug "---> !!! 2";
-       Html5.Manip.appendChild
+       Html.Manip.appendChild
          %an_elt
-         Html5.F.(pcdata "!!! 2");
+         Html.F.(pcdata "!!! 2");
        Lwt.return ());
     log "client TOP"
 
@@ -1134,7 +1134,7 @@ let deep_client_values =
   Eliom_testsuite_base.test
     ~title:"Client value injections"
     ~path:["client"; "injections"]
-    ~description:Html5.F.([
+    ~description:Html.F.([
       pcdata
         ""
     ])
@@ -1157,11 +1157,11 @@ let deep_client_values =
        Eliom_service.onload {{
          fun _ ->
            debug "---> !!! 1";
-           Html5.Manip.appendChild
+           Html.Manip.appendChild
              %an_elt
-             Html5.F.(pcdata "!!! 1")
+             Html.F.(pcdata "!!! 1")
        }};
-       Lwt.return Html5.F.([
+       Lwt.return Html.F.([
          div [a ~service:Eliom_service.reload_action [pcdata "reload in app"] ()];
          div [
            button ~a:[a_onclick onclick ] ~button_type:`Submit [
@@ -1213,7 +1213,7 @@ let test_injection_scoping =
   Eliom_testsuite_base.test
     ~title
     ~path:["holes"; "injection_scoping"]
-    ~description:Html5.F.([
+    ~description:Html.F.([
       p [pcdata "Test, which value is referenced by ";
          Eliom_testsuite_base.monospace "v";
          pcdata " and an injection ";
@@ -1238,7 +1238,7 @@ let test_injection_scoping =
          injection_scoping_client ();
          Eliom_testsuite_base.report_flush_assertions %title;
        }};
-       Lwt.return Html5.F.([]))
+       Lwt.return Html.F.([]))
 
 (******************************************************************************)
 
@@ -1296,7 +1296,7 @@ let test_escaping_scoping =
   let title = "Scoping of escaped variables in server/shared-section" in
   Eliom_testsuite_base.test ~title
     ~path:["holes"; "escaping_scoping"]
-    ~description:Html5.F.([
+    ~description:Html.F.([
       p [pcdata "Test, which value is referenced by ";
          Eliom_testsuite_base.monospace "v";
          pcdata " and an escaped variable ";
@@ -1324,7 +1324,7 @@ let test_escaping_scoping =
          escaping_scoping_shared ();
          Eliom_testsuite_base.report_flush_assertions %title;
        }};
-       Lwt.return Html5.F.([]))
+       Lwt.return Html.F.([]))
 
 (******************************************************************************)
 
@@ -1341,7 +1341,7 @@ let test_server_function =
   Eliom_testsuite_base.test
     ~title:"RPC / server functions"
     ~path:["mixed"; "server_function"]
-    ~description:Html5.F.([
+    ~description:Html.F.([
       pcdata
         "Server functions make functions from the server available on the client.";
       br ();
@@ -1352,10 +1352,10 @@ let test_server_function =
         "If you send the empty string, however, an exception is raised on the server.";
     ])
     (fun () ->
-       let field = Html5.D.input ~a:[Html5.D.a_input_type `Text] () in
+       let field = Html.D.input ~a:[Html.D.a_input_type `Text] () in
        let onclick = {{
          fun _ ->
-           let field_dom = Html5.To_dom.of_input %field in
+           let field_dom = Html.To_dom.of_input %field in
            let str = Js.to_string field_dom##value in
            field_dom##value <- Js.string "";
            Lwt.async
@@ -1368,7 +1368,7 @@ let test_server_function =
                  Eliom_testsuite_base.log "Exception on server: %s" str;
                  Lwt.return ())
        }} in
-       Lwt.return Html5.F.([
+       Lwt.return Html.F.([
          Eliom_testsuite_base.thebutton ~msg:"send" onclick;
          br ();
          field;
@@ -1412,7 +1412,7 @@ let client_value_initialization =
   Eliom_testsuite_base.test
     ~title:"Order of initializations of client values"
     ~path:["holes"; "client_value_initialization"]
-    ~description:Html5.F.([
+    ~description:Html.F.([
       p [pcdata "The client logger should show the STEPs 0-6"];
       p [pcdata "The server output should show STEPs 0-1"];
     ])
@@ -1430,10 +1430,10 @@ let wrap_handler =
       (Eliom_tools.wrap_handler
          (fun () -> Eliom_reference.get state)
          (fun () () -> Lwt.return
-           Html5.F.(html (head (title (pcdata "not set")) [])
+           Html.F.(html (head (title (pcdata "not set")) [])
                       (body [pcdata "not set"])))
          (fun value () () -> Lwt.return
-           Html5.F.(html (head (title (pcdata "set")) [])
+           Html.F.(html (head (title (pcdata "set")) [])
                       (body [Printf.ksprintf pcdata "set to %d." value]))))
   in
   let set_state =
@@ -1456,11 +1456,11 @@ let wrap_handler =
   Eliom_testsuite_base.test
     ~title:"Wrap handler"
     ~path:["mixed"; "wrap_handler"]
-    ~description:Html5.F.([
+    ~description:Html.F.([
       pcdata "The links 'set state' and 'unset state' allow to modify a state.";
       pcdata "The link 'test state' show whether the state is set or not.";
     ])
-    (fun () -> Lwt.return Html5.F.([
+    (fun () -> Lwt.return Html.F.([
       ul [
         li [a ~service [pcdata "test state"] ()];
         li [a ~service:set_state [pcdata "set state"] ()];
@@ -1474,7 +1474,7 @@ let cross_change_page_client_values =
   Eliom_testsuite_base.test
     ~title:"Cross change page client values"
     ~path:["holes";"cross_change_page"]
-    ~description:Html5.F.([
+    ~description:Html.F.([
       ul [
         li [pcdata "The server keeps a global client value with a client reference. \
                     It is logged on each change_page (reload within application). \
@@ -1486,7 +1486,7 @@ let cross_change_page_client_values =
         Eliom_testsuite_base.log "Global client reference is %S" ! %global_client_ref;
         %global_client_ref := ! %global_client_ref ^ "'"
       }};
-      Lwt.return Html5.F.([
+      Lwt.return Html.F.([
       ]))
 
 (******************************************************************************)
@@ -1499,7 +1499,7 @@ let test_ocaml_service_timeout =
   Eliom_testsuite_base.test
     ~title:"Timeout for ocaml services"
     ~path:["timeout_ocaml_service"]
-    ~description:Html5.F.([
+    ~description:Html.F.([
       pcdata "Demo on how to put a timeout on an Ocaml service call.";
     ])
     (fun () ->
@@ -1517,7 +1517,7 @@ let test_ocaml_service_timeout =
              Eliom_testsuite_base.log "Timeout reached";
              Lwt.return ())
        }};
-       Lwt.return Html5.F.([]))
+       Lwt.return Html.F.([]))
 (*****************************************************************************)
 
 let tests = [

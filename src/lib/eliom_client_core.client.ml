@@ -1188,15 +1188,15 @@ let rebuild_node_svg context elt =
 (** The first argument describes the calling function (if any) in case
     of an error. *)
 let rebuild_node context elt =
-  let elt' = Eliom_content_core.Html5.F.toelt elt in
+  let elt' = Eliom_content_core.Html.F.toelt elt in
   rebuild_node_ns `HTML5 context elt'
 
 (******************************************************************************)
 (*                            Register unwrappers                             *)
 
-(* == Html5 elements
+(* == Html elements
 
-   Html5 elements are unwrapped lazily (cf. use of Xml.make_lazy in
+   Html elements are unwrapped lazily (cf. use of Xml.make_lazy in
    unwrap_tyxml), because the unwrapping of process and request
    elements needs access to the DOM.
 

@@ -66,9 +66,9 @@ module Svg = struct
 
 end
 
-module Html5 = struct
+module Html = struct
 
-  include Eliom_content_.Html5
+  include Eliom_content_.Html
 
   module C = struct
     let node ?(init=D.Unsafe.node "span" []) x =
@@ -76,9 +76,9 @@ module Html5 = struct
       (* We need to box / unbox the client_value to convince eliom it's not polymorphic *)
       let client_boxed : boxed Eliom_client_value.t = boxed x in
       let _ = {unit{
-          let dummy_dom = Html5.To_dom.of_element (Html5.D.tot %((dummy_elt : Xml.elt))) in
+          let dummy_dom = Html.To_dom.of_element (Html.D.tot %((dummy_elt : Xml.elt))) in
           let client_boxed = %client_boxed in
-          let real = Html5.To_dom.of_element (unboxed client_boxed) in
+          let real = Html.To_dom.of_element (unboxed client_boxed) in
           Js.Opt.iter
             (dummy_dom##parentNode)
             (fun parent -> Dom.replaceChild parent real dummy_dom)
@@ -100,7 +100,7 @@ end
 {client{
 let wrap_client_fun f get_params post_params =
   lwt content = f get_params post_params in
-  let content = Html5.To_dom.of_element content in
+  let content = Html.To_dom.of_element content in
   Eliom_client.set_content_local content
 
 let set_form_error_handler = Eliom_form.set_error_handler

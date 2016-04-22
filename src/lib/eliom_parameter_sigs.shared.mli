@@ -44,9 +44,9 @@ module type S = sig
       - [ 'c] is the type of the parameter name, usually an instance
         of {!Eliom_parameter.param_name}, as used by forms
         construction functions (e.g., the last parameter of
-        {!Eliom_content.Html5.D.get_form}), and specialized form
+        {!Eliom_content.Html.D.get_form}), and specialized form
         widget (see for example the section
-        {{!section:Eliom_content.Html5.D.form_widgets}Form widget} of
+        {{!section:Eliom_content.Html.D.form_widgets}Form widget} of
         {!Eliom_content.HTML5.D}). ) *)
   type ('a, +'b, 'c) params_type constraint 'b = [< suff]
 

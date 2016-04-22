@@ -42,17 +42,17 @@ module Svg : sig
 
 end
 
-module Html5 : sig
+module Html : sig
 
   module R : sig
 
-    include Html5_sigs.Make(Xml)(Svg.R).T
-      with type 'a elt = 'a Eliom_content_core.Html5.elt
-       and type 'a attrib = 'a Eliom_content_core.Html5.attrib
+    include Html_sigs.Make(Xml)(Svg.R).T
+      with type 'a elt = 'a Eliom_content_core.Html.elt
+       and type 'a attrib = 'a Eliom_content_core.Html.attrib
 
     val pcdata :
       string Eliom_shared.React.S.t ->
-      [> | Html5_types.span] elt
+      [> | Html_types.span] elt
 
     val node : 'a elt Eliom_shared.React.S.t -> 'a elt
 

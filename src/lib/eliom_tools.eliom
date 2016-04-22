@@ -69,17 +69,17 @@ module type HTML5_TOOLS = sig
       corresponding attributes in the generated [<ul>] node. The
       default class for the [<ul>] node is [eliomtools_menu]. *)
   val menu :
-    ?classe:Html5_types.nmtoken list ->
+    ?classe:Html_types.nmtoken list ->
     ?id:string ->
     ((unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
       unit, unit, Eliom_service.non_ocaml) Eliom_service.t *
-     [< Html5_types.flow5_without_interactive] Html5.elt list)
+     [< Html_types.flow5_without_interactive] Html.elt list)
       list ->
     ?service:
       (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
        unit, unit, Eliom_service.non_ocaml) Eliom_service.t ->
     unit ->
-    [> `Ul ] Html5.elt
+    [> `Ul ] Html.elt
 
   (** {2 Hierchical sites } *)
 
@@ -98,15 +98,15 @@ module type HTML5_TOOLS = sig
       See {!menu} for a description of the optional parameters [id]
       and [classe]. *)
   val hierarchical_menu_depth_first :
-    ?classe:Html5_types.nmtoken list ->
+    ?classe:Html_types.nmtoken list ->
     ?id:string ->
     ?whole_tree:bool ->
-    [< Html5_types.a_content ] Html5.elt list hierarchical_site ->
+    [< Html_types.a_content ] Html.elt list hierarchical_site ->
     ?service:
       (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
        unit, unit, Eliom_service.non_ocaml) Eliom_service.t ->
     unit ->
-    [> `Ul ] Html5.elt list
+    [> `Ul ] Html.elt list
 
   (** The function [hierarchical_menu_breadth_first site ()]
       constructs a hierarchical menu by exploring the hierarchical
@@ -121,14 +121,14 @@ module type HTML5_TOOLS = sig
       See {!menu} for a description of the optional parameters [id]
       and [classe].  *)
   val hierarchical_menu_breadth_first :
-    ?classe:Html5_types.nmtoken list ->
+    ?classe:Html_types.nmtoken list ->
     ?id:string ->
-    [< Html5_types.a_content ] Html5.elt list hierarchical_site ->
+    [< Html_types.a_content ] Html.elt list hierarchical_site ->
     ?service:
       (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
        unit, unit, Eliom_service.non_ocaml) Eliom_service.t ->
     unit ->
-    [> `Ul ] Html5.elt list
+    [> `Ul ] Html.elt list
 
   (** The function [structure_links site ()] returns the tags [<link
       rel="subsection" ...>] and [<link rev="subsection" ...>] for the
@@ -138,12 +138,12 @@ module type HTML5_TOOLS = sig
       url. The optional parameter [service] allow to override the
       current service. *)
   val structure_links :
-    [< Html5_types.a_content ] Html5.elt list hierarchical_site ->
+    [< Html_types.a_content ] Html.elt list hierarchical_site ->
     ?service:
       (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
        unit, unit, Eliom_service.non_ocaml) Eliom_service.t ->
     unit ->
-    [> `Link ] Html5.elt list
+    [> `Link ] Html.elt list
 
   (** An auxiliary function for creating an HTML head
       elements. Resources (JS, CSS) are taken from the static
@@ -152,18 +152,18 @@ module type HTML5_TOOLS = sig
     title:string ->
     ?css:string list list ->
     ?js:string list list ->
-    ?other:[< Html5_types.head_content_fun ] Html5.elt list ->
+    ?other:[< Html_types.head_content_fun ] Html.elt list ->
     unit ->
-    [`Head] Html5.elt
+    [`Head] Html.elt
 
   val html :
     title:string ->
-    ?a:[< Html5_types.html_attrib ] Html5.attrib list ->
+    ?a:[< Html_types.html_attrib ] Html.attrib list ->
     ?css:string list list ->
     ?js:string list list ->
-    ?other_head:[< Html5_types.head_content_fun ] Html5.elt list ->
-    Html5_types.body Html5.elt ->
-    Html5_types.html Html5.elt
+    ?other_head:[< Html_types.head_content_fun ] Html.elt list ->
+    Html_types.body Html.elt ->
+    Html_types.html Html.elt
 
 end
 
@@ -187,9 +187,9 @@ let get_css_files () = let f = !css_files in css_files := []; f
 let get_js_files () = let f = !js_files in js_files := []; f
 }}
 {shared{
-module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
-  open Html5_types
-  open Html5.F
+module Make(DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
+  open Html_types
+  open Html.F
 
   let make_string_uri = Eliom_uri.make_string_uri
 
@@ -477,7 +477,7 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
       css_link ~uri () in
     let mk_js_script path =
       let uri = make_uri  (Eliom_service.static_dir ()) path in
-      js_script ~a:[a_defer `Defer] ~uri () in
+      js_script ~a:[a_defer ()] ~uri () in
     DorF.head
       (title (pcdata ttl))
       List.(map mk_css_link css @ map mk_js_script js @
@@ -492,8 +492,8 @@ module Make(DorF : module type of Eliom_content.Html5.F) : HTML5_TOOLS = struct
 end
 
 
-module F = Make(Html5.F)
-module D = Make(Html5.D)
+module F = Make(Html.F)
+module D = Make(Html.D)
 
 let wrap_handler information none some =
   fun get post ->
@@ -507,26 +507,26 @@ let wrap_handler information none some =
 {client{
 let add_js_file path =
   let uri =
-    Html5.F.make_uri
+    Html.F.make_uri
       (Eliom_service.static_dir () )
       path
   in
   let script =
-    Html5.F.js_script ~a:[Html5.F.a_defer `Defer] ~uri ()
+    Html.F.js_script ~a:[Html.F.a_defer ()] ~uri ()
   in
   ignore
-    Dom_html.document##head##appendChild (Html5.To_dom.of_node script)
+    Dom_html.document##head##appendChild (Html.To_dom.of_node script)
 
 let add_css_file path =
   let uri =
-    Html5.F.make_uri
+    Html.F.make_uri
       (Eliom_service.static_dir () )
       path
   in
   let link =
-    Html5.F.css_link ~uri ()
+    Html.F.css_link ~uri ()
   in
   ignore
     Dom_html.document##head##appendChild
-      (Html5.To_dom.of_node link)
+      (Html.To_dom.of_node link)
 }}

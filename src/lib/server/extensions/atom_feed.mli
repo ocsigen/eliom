@@ -23,7 +23,7 @@
 (*
  * types {{{
  *)
-type uri = Xml.uri
+type uri = Tyxml_xml.uri
 type lang = string
 type base = uri
 type ncname = string
@@ -31,7 +31,7 @@ type dateConstruct = string
 type emailAddress = string
 type mediaType = string
 type length = int
-type href = Xml.uri
+type href = Tyxml_xml.uri
 type hrefLang = string
 type rel = string
 type ltitle = string
@@ -113,22 +113,22 @@ type feedOAttr = [ metaAttr
  * Constructors {{{
  *)
 
-val xml_of_feed : feed -> Xml.elt
+val xml_of_feed : feed -> Tyxml_xml.elt
 
 (*
  * attr converters {{{
-val a_base : base -> Xml.attrib
-val a_lang : lang -> Xml.attrib
-val a_scheme : scheme -> Xml.attrib
-val a_label : label -> Xml.attrib
-val a_href : href -> Xml.attrib
-val a_rel : rel -> Xml.attrib
-val a_hreflang : hrefLang -> Xml.attrib
-val a_medtype : mediaType -> Xml.attrib
-val a_title : ltitle -> Xml.attrib
-val a_length : length -> Xml.attrib
-val a_term : term -> Xml.attrib
-val a_type : string -> Xml.attrib
+val a_base : base -> Tyxml_xml.attrib
+val a_lang : lang -> Tyxml_xml.attrib
+val a_scheme : scheme -> Tyxml_xml.attrib
+val a_label : label -> Tyxml_xml.attrib
+val a_href : href -> Tyxml_xml.attrib
+val a_rel : rel -> Tyxml_xml.attrib
+val a_hreflang : hrefLang -> Tyxml_xml.attrib
+val a_medtype : mediaType -> Tyxml_xml.attrib
+val a_title : ltitle -> Tyxml_xml.attrib
+val a_length : length -> Tyxml_xml.attrib
+val a_term : term -> Tyxml_xml.attrib
+val a_type : string -> Tyxml_xml.attrib
  * }}}
  *)
 
@@ -140,12 +140,12 @@ val inlineC : ?meta:[> metaAttr ] list
 
 (** An html5 content, embedded in a div *)
 val html5C : ?meta:[> metaAttr ] list
-   -> ([ `PCDATA | Html5_types.flow5 ] Eliom_content.Html5.elt list)
+   -> ([ `PCDATA | Html_types.flow5 ] Eliom_content.Html.elt list)
    -> [> `Content of content ]
 
 (** Inline content from another kind *)
 val inlineOtherC : ?meta:[> metaAttr ] list
-   -> string * Xml.elt list
+   -> string * Tyxml_xml.elt list
    -> [> `Content of content ]
 
 (** Every other content *)
@@ -161,7 +161,7 @@ val plain : ?meta:[> metaAttr ] list
 
 (** HTML5 text construct *)
 val html5 : ?meta:[> metaAttr ] list
-   -> [ `PCDATA | Html5_types.flow5 ] Eliom_content.Html5.elt list
+   -> [ `PCDATA | Html_types.flow5 ] Eliom_content.Html.elt list
    -> textConstruct
 
 (** Rights tag *)
@@ -240,7 +240,7 @@ val logo : uri -> [> `Logo of logo ]
 val category :
   ?meta:[> metaAttr ] list ->
   ?scheme:scheme -> ?label:label ->
-  term -> Xml.elt list -> category
+  term -> Tyxml_xml.elt list -> category
 
 (** We need a list of categories, this is only a converter from category list
  to `Categories *)

@@ -129,9 +129,9 @@ module Registration = struct
          [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
       'a redirection
 
-  module Html5 = struct
+  module Html = struct
 
-    include Eliom_registration.Html5
+    include Eliom_registration.Html
 
     let register_service
         ?code ?charset ?headers ?priority ?error_handler ~path
@@ -193,7 +193,7 @@ module Registration = struct
       and get_params = Eliom_service.get_params_type fallback in
       let id = Eliom_service.Path path
       and meth = Eliom_service.Post (get_params, post_params) in
-      Eliom_registration.Html5.create ~id ~meth f
+      Eliom_registration.Html.create ~id ~meth f
 
   end
 
@@ -254,7 +254,7 @@ let main =
 let main_service = main
 
 let tests description services =
-  Html5.F.(
+  Html.F.(
     div [
       h4 [pcdata description];
       ul
@@ -266,15 +266,15 @@ let tests description services =
   )
 
 let testsuite ~name testsuite_tests =
-  Html5.F.(
+  Html.F.(
     div
       (h3 [pcdata name] ::
        List.map (uncurry tests) testsuite_tests)
   )
 
 let test_logger =
-  Html5.Id.create_global_elt
-    (Html5.D.(div ~a:[a_class ["test_logger"]]
+  Html.Id.create_global_elt
+    (Html.D.(div ~a:[a_class ["test_logger"]]
                 [h4 [pcdata "Client logger"]]))
 
 let test ~path ~title:ttl ~description f =
@@ -293,7 +293,7 @@ let test ~path ~title:ttl ~description f =
               }}
               in
               Lwt.return
-                Html5.F.(html
+                Html.F.(html
                            (Eliom_tools.F.head
                               ~title:(String.concat "/" path)
                               ~css:[["style.css"]] ())
@@ -313,8 +313,8 @@ let test ~path ~title:ttl ~description f =
                                content @
                                [ test_logger ]))))
 
-let thebutton ?(msg="THE BUTTON") onclick : [> Html5_types.button ] Html5.elt =
-  Html5.F.(
+let thebutton ?(msg="THE BUTTON") onclick : [> Html_types.button ] Html.elt =
+  Html.F.(
     Form.button_no_value ~button_type:`Submit
       ~a:[a_class ["thebutton"]; a_onclick onclick]
       [ pcdata msg ])
@@ -322,16 +322,16 @@ let thebutton ?(msg="THE BUTTON") onclick : [> Html5_types.button ] Html5.elt =
 let monospace fmt =
   Printf.ksprintf
     (fun str ->
-       Html5.F.(span ~a:[a_class ["monospace"]] [pcdata str]))
+       Html.F.(span ~a:[a_class ["monospace"]] [pcdata str]))
     fmt
 
 {client{
 
   let buffer = ref []
   let append_log_message msg =
-    Html5.Manip.appendChild
+    Html.Manip.appendChild
       %test_logger
-      Html5.D.(div ~a:[a_class ["logging_line"]] [pcdata msg])
+      Html.D.(div ~a:[a_class ["logging_line"]] [pcdata msg])
 
   let () =
     let rec flush () =

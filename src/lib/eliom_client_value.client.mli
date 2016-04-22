@@ -36,7 +36,7 @@ type 'a t = 'a
     {!Printexc.to_string}. *)
 exception Exception_on_server of string
 
-(** Event handlers like {% <<a_api | Eliom_content.Html5.F.a_onclick
+(** Event handlers like {% <<a_api | Eliom_content.Html.F.a_onclick
     >> %} may raise [False] to cancel the event (as if the JavaScript
     function returned [false]). *)
 

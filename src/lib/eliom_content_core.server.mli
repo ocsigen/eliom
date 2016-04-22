@@ -123,8 +123,7 @@ module Svg : sig
       (Xml : Xml_sigs.T
        with type elt = Xml.elt
         and type attrib = Xml.attrib)
-      (C : Svg_sigs.Wrapped_functions
-       with type ('a, 'b) ft = ('a, 'b) Xml.W.ft) :
+      (C : Svg_sigs.Wrapped_functions with module Xml = Xml) :
     Svg_sigs.Make(Xml).T
     with type +'a elt = 'a elt
      and type +'a attrib = 'a attrib
@@ -148,7 +147,7 @@ module Svg : sig
 
 end
 
-module Html5 : sig
+module Html : sig
 
   (** See the Eliom manual for more information on {% <<a_manual
       chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
@@ -163,7 +162,7 @@ module Html5 : sig
 
   module F : sig
 
-    module Raw : Html5_sigs.Make(Xml)(Svg.F.Raw).T
+    module Raw : Html_sigs.Make(Xml)(Svg.F.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
@@ -174,12 +173,12 @@ module Html5 : sig
       ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     val lazy_form:
-      ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_star
+      ([< Html_types.form_attrib ], [< Html_types.form_content_fun ], [> Html_types.form ]) lazy_star
   end
 
   module D : sig
 
-    module Raw : Html5_sigs.Make(Xml)(Svg.D.Raw).T
+    module Raw : Html_sigs.Make(Xml)(Svg.D.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
@@ -193,7 +192,7 @@ module Html5 : sig
       ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     val lazy_form:
-      ([< Html5_types.form_attrib ], [< Html5_types.form_content_fun ], [> Html5_types.form ]) lazy_star
+      ([< Html_types.form_attrib ], [< Html_types.form_content_fun ], [> Html_types.form ]) lazy_star
 
   end
 
@@ -201,10 +200,9 @@ module Html5 : sig
       (Xml : Xml_sigs.T
        with type elt = Xml.elt
         and type attrib = Xml.attrib)
-      (C : Html5_sigs.Wrapped_functions
-       with type ('a, 'b) ft = ('a, 'b) Xml.W.ft)
+      (C : Html_sigs.Wrapped_functions with module Xml = Xml)
       (Svg : Svg_sigs.T with module Xml := Xml) :
-    Html5_sigs.Make(Xml)(Svg).T
+    Html_sigs.Make(Xml)(Svg).T
     with type +'a elt = 'a elt
      and type +'a attrib = 'a attrib
 

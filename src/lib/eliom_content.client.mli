@@ -51,7 +51,7 @@ module Svg : sig
 
        See {% <<a_api project="tyxml" | module Svg_sigs.T >> %} *)
   module F : sig
-    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
+    (** Cf. {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
     module Raw : Svg_sigs.Make(Xml).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
@@ -64,7 +64,7 @@ module Svg : sig
 
        See {% <<a_api project="tyxml" | module Svg_sigs.T >> %} *)
   module D : sig
-    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
+    (** Cf. {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
     module Raw : Svg_sigs.Make(Xml).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
@@ -266,7 +266,7 @@ module Svg : sig
   end
 
   (** Conversion functions from DOM nodes ({% <<a_api project="js_of_ocaml"| type Dom_html.element>> %} {% <<a_api
-      project="js_of_ocaml"| type Js.t>> %}) to Eliom nodes ({% <<a_api | type Eliom_content.Html5.elt>> %}). *)
+      project="js_of_ocaml"| type Js.t>> %}) to Eliom nodes ({% <<a_api | type Eliom_content.Html.elt>> %}). *)
   module Of_dom : sig
     val of_element: Dom_html.element Js.t -> 'a elt
   end
@@ -274,7 +274,7 @@ module Svg : sig
 end
 
 (** Building valid (X)HTML5. *)
-module Html5 : sig
+module Html : sig
 
   (** See the Eliom manual for more information on {% <<a_manual
       chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
@@ -289,10 +289,10 @@ module Html5 : sig
   (** Creation of {e f}unctional HTML5 content (copy-able but not referable). *)
   module F : sig
     (** {2 Content creation}
-        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
+        See {% <<a_api project="tyxml" | module Html_sigs.T >> %} *)
 
-    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
-    module Raw : Html5_sigs.Make(Xml)(Svg.F.Raw).T
+    (** Cf. {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
+    module Raw : Html_sigs.Make(Xml)(Svg.F.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
@@ -310,10 +310,10 @@ module Html5 : sig
   (** Creation of HTML5 content with {e D}OM semantics (referable) *)
   module D : sig
     (** {2 Content creation}
-        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %} *)
+        See {% <<a_api project="tyxml" | module Html_sigs.T >> %} *)
 
-    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
-    module Raw : Html5_sigs.Make(Xml)(Svg.D.Raw).T
+    (** Cf. {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
+    module Raw : Html_sigs.Make(Xml)(Svg.D.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
@@ -335,9 +335,9 @@ module Html5 : sig
       corresponding signals change.  *)
   module R : sig
     (** {2 Content creation}
-        See {% <<a_api project="tyxml" | module Html5_sigs.T >> %},
+        See {% <<a_api project="tyxml" | module Html_sigs.T >> %},
         If you want to create an untyped form,
-        you will have to use {% <<a_api|module Eliom_content.Html5.D.Raw>> %}
+        you will have to use {% <<a_api|module Eliom_content.Html.D.Raw>> %}
         otherwise, use the form module.
         For more information,
         see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
@@ -351,8 +351,8 @@ module Html5 : sig
         and behave like if there was no attribute when [on] is [false] *)
     val filter_attrib : 'a attrib -> bool React.signal -> 'a attrib
 
-    (** Cf. {% <<a_api project="tyxml" | module Html5_sigs.T >> %}. *)
-    module Raw : Html5_sigs.Make(Eliom_content_core.Xml_wed)(Svg.R.Raw).T
+    (** Cf. {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
+    module Raw : Html_sigs.Make(Eliom_content_core.Xml_wed)(Svg.R.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
@@ -412,7 +412,7 @@ module Html5 : sig
 
     (** Create a custom data field by providing string conversion functions.
         If the [default] is provided, calls to {% <<a_api project="eliom" subproject="client" |
-        val Eliom_content.Html5.Custom_data.get_dom>> %} return that instead of throwing an
+        val Eliom_content.Html.Custom_data.get_dom>> %} return that instead of throwing an
         exception [Not_found].  *)
     val create : name:string -> ?default:'a -> to_string:('a -> string) -> of_string:(string -> 'a) -> unit -> 'a t
 
@@ -421,7 +421,7 @@ module Html5 : sig
 
     (** [attrib my_data value ] creates a HTML5 attribute for the custom-data
         type [my_data] with value [value] for injecting it into an a HTML5 tree
-        ({% <<a_api | type Eliom_content.Html5.elt >> %}). *)
+        ({% <<a_api | type Eliom_content.Html.elt >> %}). *)
     val attrib : 'a t -> 'a -> [> | `User_data ] attrib
 
     val get_dom : Dom_html.element Js.t -> 'a t -> 'a
@@ -860,7 +860,7 @@ module Html5 : sig
   end
 
   (** Conversion functions from DOM nodes ({% <<a_api project="js_of_ocaml"| type Dom_html.element>> %} {% <<a_api
-      project="js_of_ocaml"| type Js.t>> %}) to Eliom nodes ({% <<a_api | type Eliom_content.Html5.elt>> %}). *)
+      project="js_of_ocaml"| type Js.t>> %}) to Eliom nodes ({% <<a_api | type Eliom_content.Html.elt>> %}). *)
   module Of_dom : Tyxml_cast_sigs.OF with type 'a elt = 'a elt
 
 end
@@ -876,7 +876,7 @@ val set_client_fun :
   unit
 
 val wrap_client_fun :
-  ('g -> 'p -> Html5_types.html Html5.elt Lwt.t)
+  ('g -> 'p -> Html_types.html Html.elt Lwt.t)
   -> ('g -> 'p -> unit Lwt.t)
 
 (** With [set_form_error_handler f], [f] becomes the action to be

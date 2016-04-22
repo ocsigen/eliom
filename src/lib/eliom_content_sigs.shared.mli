@@ -31,9 +31,9 @@ module type LINKS_AND_FORMS = sig
     'c elt
 
   val lazy_form:
-    ([< Html5_types.form_attrib ],
-     [< Html5_types.form_content_fun ],
-     [> Html5_types.form ]) lazy_star
+    ([< Html_types.form_attrib ],
+     [< Html_types.form_content_fun ],
+     [> Html_types.form ]) lazy_star
 
   include Eliom_form_sigs.LINKS
     with type +'a elt := 'a elt

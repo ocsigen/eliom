@@ -11,12 +11,12 @@ module Eliom_registration = Eliom_testsuite_base.Registration
 
 open Eliom_content
 open Lwt
-open Html5.F
+open Html.F
 open Ocsigen_cookies
 open Eliom_service
 open Eliom_parameter
 open Eliom_state
-open Eliom_registration.Html5
+open Eliom_registration.Html
 
 let coucou =
   register_service
@@ -33,7 +33,7 @@ let coucou1 =
     ~path:["coucou1"]
     ~get_params:Eliom_parameter.unit
     (fun () () ->
-      let module Html5 = Eliom_content.Html5.F in
+      let module Html = Eliom_content.Html.F in
       return
         << <html>
              <head><title></title></head>
@@ -55,11 +55,11 @@ let coucou_xhtml =
 
 (*
 let coucou1_xthml =
-  Eliom_output.Html5.register_service
+  Eliom_output.Html.register_service
     ~path:["coucou1_xhtml"]
     ~get_params:Eliom_parameter.unit
     (fun () () ->
-      let module Html5 = Eliom_content.Html5.F in
+      let module Html = Eliom_content.Html.F in
       return
         <:xhtml< <html>
              <head><title></title></head>
@@ -204,7 +204,7 @@ let string_of_mysum = function
   | B -> "B"
 
 let mytype =
-  Eliom_registration.Html5.register_service
+  Eliom_registration.Html.register_service
     ~path:["mytype"]
     ~get_params:
       (Eliom_parameter.user_type mysum_of_string string_of_mysum "valeur")
@@ -223,13 +223,13 @@ let raw_serv =
     ~path:["any"]
     ~get_params:Eliom_parameter.any
   (fun l () ->
-    let module Html5 = Eliom_content.Html5.F in
+    let module Html = Eliom_content.Html.F in
     let ll =
       List.map
-        (fun (a,s) -> <:html5< <strong>($str:a$, $str:s$)</strong> >>) l
+        (fun (a,s) -> <:html< <strong>($str:a$, $str:s$)</strong> >>) l
     in
     return
-     <:html5< <html>
+     <:html< <html>
           <head><title></title></head>
           <body>
           <p>
@@ -267,17 +267,17 @@ let links = register_service ["rep";"links"] unit
      (head (title (pcdata "Links")) [])
      (body
        [p
-        [Html5.D.a coucou [pcdata "coucou"] (); br ();
-         Html5.D.a hello [pcdata "hello"] (); br ();
-         Html5.D.a default
+        [Html.D.a coucou [pcdata "coucou"] (); br ();
+         Html.D.a hello [pcdata "hello"] (); br ();
+         Html.D.a default
            [pcdata "default page of the dir"] (); br ();
-         Html5.D.a uasuffix
+         Html.D.a uasuffix
            [pcdata "uasuffix"] (2007,06); br ();
-         Html5.D.a coucou_params
+         Html.D.a coucou_params
            [pcdata "coucou_params"] (42,(22,"ciao")); br ();
-         Html5.D.a raw_serv
+         Html.D.a raw_serv
            [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
-         Html5.D.a
+         Html.D.a
            (Eliom_service.create
               ~id:
                 (Eliom_service.External
@@ -286,7 +286,7 @@ let links = register_service ["rep";"links"] unit
               ())
            [pcdata "OCaml on wikipedia"]
            ["OCaml"]; br ();
-         Html5.F.Raw.a
+         Html.F.Raw.a
            ~a:[a_href (Xml.uri_of_string "http://en.wikipedia.org/wiki/OCaml")]
            [pcdata "OCaml on wikipedia"]
        ]])))
@@ -301,7 +301,7 @@ let links = register_service ["rep";"links"] unit
 *wiki*)
 let linkrec = Eliom_service.Http.service ["linkrec"] unit ()
 
-let _ = Eliom_registration.Html5.register linkrec
+let _ = Eliom_registration.Html.register linkrec
     (fun () () ->
       return
        (html
@@ -323,21 +323,21 @@ let essai =
 let create_form =
   (fun (number_name, (number2_name, string_name)) ->
     [p [pcdata "Write an int: ";
-        Html5.D.Form.input ~input_type:`Text ~name:number_name
-          Html5.D.Form.int;
+        Html.D.Form.input ~input_type:`Text ~name:number_name
+          Html.D.Form.int;
         pcdata "Write another int: ";
-        Html5.D.Form.input ~input_type:`Text ~name:number2_name
-          Html5.D.Form.int;
+        Html.D.Form.input ~input_type:`Text ~name:number2_name
+          Html.D.Form.int;
         pcdata "Write a string: ";
-        Html5.D.Form.input ~input_type:`Text ~name:string_name
-          Html5.D.Form.string;
-        Html5.D.Form.input ~input_type:`Submit ~value:"Click"
-          Html5.D.Form.string;
+        Html.D.Form.input ~input_type:`Text ~name:string_name
+          Html.D.Form.string;
+        Html.D.Form.input ~input_type:`Submit ~value:"Click"
+          Html.D.Form.string;
        ]])
 
 let form = register_service ["form"] unit
   (fun () () ->
-    let f = Html5.D.Form.get_form coucou_params create_form in
+    let f = Html.D.Form.get_form coucou_params create_form in
      return
        (html
          (head (title (pcdata "")) [])
@@ -354,18 +354,18 @@ let raw_form = register_service
            (head (title (pcdata "")) [])
            (body
               [h1 [pcdata "Any Form"];
-               Html5.D.Form.get_form raw_serv
+               Html.D.Form.get_form raw_serv
                  (fun () ->
                    [p [pcdata "Form to raw_serv: ";
-                       Html5.D.(
+                       Html.D.(
                          input ~a:[a_input_type `Text; a_name "plop"] ());
-                       Html5.D.(
+                       Html.D.(
                          input ~a:[a_input_type `Text; a_name "plip"] ());
-                       Html5.D.(
+                       Html.D.(
                          input ~a:[a_input_type `Text; a_name "plap"] ());
-                       Html5.D.Form.input
+                       Html.D.Form.input
                          ~input_type:`Submit ~value:"Click"
-                         Html5.D.Form.string]])
+                         Html.D.Form.string]])
                 ])))
 (*wiki*
 
@@ -431,7 +431,7 @@ POST forms
 let form2 = register_service ["form2"] unit
   (fun () () ->
      let f =
-       (Html5.D.Form.post_form my_service_with_post_params
+       (Html.D.Form.post_form my_service_with_post_params
           (fun chaine ->
             [p [pcdata "Write a string: ";
                 Form.input ~input_type:`Text ~name:chaine Form.string]]) ()) in
@@ -442,23 +442,23 @@ let form2 = register_service ["form2"] unit
 
 let form3 = register_service ["form3"] unit
   (fun () () ->
-     let module Html5 = Eliom_content.Html5.F in
+     let module Html = Eliom_content.Html.F in
      let f  =
-       (Eliom_content.Html5.D.Form.post_form my_service_with_get_and_post
+       (Eliom_content.Html.D.Form.post_form my_service_with_get_and_post
           (fun chaine ->
-            <:html5list< <p> Write a string:
+            <:htmllist< <p> Write a string:
                     $Form.input ~input_type:`Text ~name:chaine Form.string$ </p> >>)
           222) in
      return
-       <:html5< <html>
+       <:html< <html>
             <head><title></title></head>
             <body>$f$</body></html> >>)
 
 let form4 = register_service ["form4"] unit
   (fun () () ->
-      let module Html5 = Eliom_content.Html5.F in
+      let module Html = Eliom_content.Html.F in
      let f  =
-       (Eliom_content.Html5.D.Form.post_form
+       (Eliom_content.Html.D.Form.post_form
           (Eliom_service.create
              ~id:(Eliom_service.External
                     ("http://www.petizomverts.com",
@@ -466,7 +466,7 @@ let form4 = register_service ["form4"] unit
              ~meth:(Eliom_service.Post (int "i", string "chaine"))
              ())
           (fun chaine ->
-            <:html5list< <p> Write a string:
+            <:htmllist< <p> Write a string:
                      $Form.input ~input_type:`Text ~name:chaine Form.string$ </p> >>)
           222) in
      return
@@ -574,18 +574,18 @@ let session_data_example_handler _ _  =
            | Eliom_state.Data name ->
                p [pcdata ("Hello "^name);
                   br ();
-                  Html5.D.a
+                  Html.D.a
                     session_data_example_close
                     [pcdata "close session"] ()]
            | Eliom_state.Data_session_expired
            | Eliom_state.No_data ->
-               Html5.D.Form.post_form
+               Html.D.Form.post_form
                  session_data_example_with_post_params
                  (fun login ->
                    [p [pcdata "login: ";
-                       Html5.D.Form.input
+                       Html.D.Form.input
                          ~input_type:`Text ~name:login
-                         Html5.D.Form.string]]) ()
+                         Html.D.Form.string]]) ()
          ]))
 
 (* -------------------------------------------------------- *)
@@ -601,7 +601,7 @@ let session_data_example_with_post_params_handler _ login =
        (body
           [p [pcdata ("Welcome " ^ login ^ ". You are now connected.");
               br ();
-              Html5.D.a session_data_example
+              Html.D.a session_data_example
                 [pcdata "Try again"] ()
             ]]))
 
@@ -621,18 +621,18 @@ let session_data_example_close_handler () () =
         | Eliom_state.Data_session_expired -> p [pcdata "Your session has expired."]
         | Eliom_state.No_data -> p [pcdata "You were not connected."]
         | Eliom_state.Data _ -> p [pcdata "You have been disconnected."]);
-        p [Html5.D.a session_data_example [pcdata "Retry"] () ]]))
+        p [Html.D.a session_data_example [pcdata "Retry"] () ]]))
 
 
 (* -------------------------------------------------------- *)
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_registration.Html5.register
+  Eliom_registration.Html.register
     session_data_example_close session_data_example_close_handler;
-  Eliom_registration.Html5.register
+  Eliom_registration.Html.register
     session_data_example session_data_example_handler;
-  Eliom_registration.Html5.register
+  Eliom_registration.Html.register
     session_data_example_with_post_params
     session_data_example_with_post_params_handler
 
@@ -683,7 +683,7 @@ let session_services_example_close =
 
 let session_services_example_handler () () =
   let f =
-    Html5.D.Form.post_form
+    Html.D.Form.post_form
       session_services_example_with_post_params
       (fun login ->
         [p [pcdata "login: ";
@@ -744,13 +744,13 @@ let launch_session () login =
 
   (* Now we register new versions of main services in the
      session service table: *)
-  Eliom_registration.Html5.register ~scope:session
+  Eliom_registration.Html.register ~scope:session
     ~service:session_services_example
     (* service is any public service already registered,
        here the main page of our site *)
     new_main_page;
 
-  Eliom_registration.Html5.register ~scope:session
+  Eliom_registration.Html.register ~scope:session
     ~service:coucou
     (fun () () ->
       return
@@ -760,7 +760,7 @@ let launch_session () login =
                    pcdata login;
                    pcdata "!"]])));
 
-  Eliom_registration.Html5.register ~scope:session
+  Eliom_registration.Html.register ~scope:session
     ~service:hello
     (fun () () ->
       return
@@ -776,13 +776,13 @@ let launch_session () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_registration.Html5.register
+  Eliom_registration.Html.register
     ~service:session_services_example
     session_services_example_handler;
-  Eliom_registration.Html5.register
+  Eliom_registration.Html.register
     ~service:session_services_example_close
     session_services_example_close_handler;
-  Eliom_registration.Html5.register
+  Eliom_registration.Html.register
     ~service:session_services_example_with_post_params
     launch_session
 (*zap* Registering for session during initialisation is forbidden:
@@ -829,17 +829,17 @@ let coservices_example_get =
 let _ =
   let c = ref 0 in
   let page () () =
-    let l3 = Html5.D.Form.post_form coservices_example_post
-        (fun _ -> [p [Html5.D.Form.input
+    let l3 = Html.D.Form.post_form coservices_example_post
+        (fun _ -> [p [Html.D.Form.input
                         ~input_type:`Submit
                         ~value:"incr i (post)"
-                        Html5.D.Form.string]]) ()
+                        Html.D.Form.string]]) ()
     in
-    let l4 = Html5.D.Form.get_form coservices_example_get
-        (fun _ -> [p [Html5.D.Form.input
+    let l4 = Html.D.Form.get_form coservices_example_get
+        (fun _ -> [p [Html.D.Form.input
                         ~input_type:`Submit
                         ~value:"incr i (get)"
-                        Html5.D.Form.string]])
+                        Html.D.Form.string]])
     in
     return
       (html
@@ -851,10 +851,10 @@ let _ =
               l3;
               l4]))
   in
-  Eliom_registration.Html5.register coservices_example page;
+  Eliom_registration.Html.register coservices_example page;
   let f () () = c := !c + 1; page () () in
-  Eliom_registration.Html5.register coservices_example_post f;
-  Eliom_registration.Html5.register coservices_example_get f
+  Eliom_registration.Html.register coservices_example_post f;
+  Eliom_registration.Html.register coservices_example_get f
 (*wiki*
 
 
@@ -949,13 +949,13 @@ let calc_i =
 let calc_handler () () =
   let create_form intname =
     [p [pcdata "Write a number: ";
-        Html5.D.Form.input ~input_type:`Text ~name:intname
-          Html5.D.Form.int;
+        Html.D.Form.input ~input_type:`Text ~name:intname
+          Html.D.Form.int;
         br ();
-        Html5.D.Form.input ~input_type:`Submit ~value:"Send"
-          Html5.D.Form.string]]
+        Html.D.Form.input ~input_type:`Submit ~value:"Send"
+          Html.D.Form.string]]
   in
-  let f = Html5.D.Form.get_form calc_i create_form in
+  let f = Html.D.Form.get_form calc_i create_form in
   return
     (html
        (head (title (pcdata "")) [])
@@ -1002,8 +1002,8 @@ let calc_i_handler i () =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_registration.Html5.register calc   calc_handler;
-  Eliom_registration.Html5.register calc_i calc_i_handler
+  Eliom_registration.Html.register calc   calc_handler;
+  Eliom_registration.Html.register calc_i calc_i_handler
 (*wiki*
 
 
@@ -1048,19 +1048,19 @@ let disconnect_action =
 (* login ang logout boxes:                                  *)
 
 let disconnect_box s =
-  Html5.D.Form.post_form disconnect_action
-    (fun _ -> [p [Html5.D.Form.input
+  Html.D.Form.post_form disconnect_action
+    (fun _ -> [p [Html.D.Form.input
                     ~input_type:`Submit ~value:s
-                    Html5.D.Form.string]]) ()
+                    Html.D.Form.string]]) ()
 
 let login_box () =
-  Html5.D.Form.post_form connect_action
+  Html.D.Form.post_form connect_action
     (fun loginname ->
       [p
          (let l = [pcdata "login: ";
-                   Html5.D.Form.input
+                   Html.D.Form.input
                      ~input_type:`Text ~name:loginname
-                     Html5.D.Form.string]
+                     Html.D.Form.string]
          in l)
      ])
     ()
@@ -1097,7 +1097,7 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_registration.Html5.register ~service:connect_example3 connect_example3_handler;
+  Eliom_registration.Html.register ~service:connect_example3 connect_example3_handler;
   Eliom_registration.Action.register ~service:connect_action connect_action_handler
 (*wiki*
 
@@ -1142,7 +1142,7 @@ let send_any =
     (fun s () ->
        if s = "valid"
        then
-         Eliom_registration.Html5.send
+         Eliom_registration.Html.send
            (html
               (head (title (pcdata "")) [])
               (body [p [pcdata
@@ -1161,7 +1161,7 @@ let cookiename = "mycookie"
 
 let cookies = Http.service ["cookies"] unit ()
 
-let _ = Eliom_registration.Html5.register cookies
+let _ = Eliom_registration.Html.register cookies
   (fun () () ->
     Eliom_state.set_cookie
       ~name:cookiename ~value:(string_of_int (Random.int 100)) ();
@@ -1260,10 +1260,10 @@ let disconnect_action =
       Eliom_state.discard ~scope:session ())
 
 let disconnect_box s =
-  Html5.D.Form.post_form disconnect_action
-    (fun _ -> [p [Html5.D.Form.input
+  Html.D.Form.post_form disconnect_action
+    (fun _ -> [p [Html.D.Form.input
                     ~input_type:`Submit ~value:s
-                    Html5.D.Form.string]]) ()
+                    Html.D.Form.string]]) ()
 
 let bad_user_key = Polytables.make_key ()
 let get_bad_user table =
@@ -1273,7 +1273,7 @@ let get_bad_user table =
 (* new login box:                                           *)
 
 let login_box session_expired action =
-  Html5.D.Form.post_form action
+  Html.D.Form.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
@@ -1328,7 +1328,7 @@ let persist_session_connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_registration.Html5.register
+  Eliom_registration.Html.register
     ~service:persist_session_example
     persist_session_example_handler;
   Eliom_registration.Action.register
@@ -1373,8 +1373,8 @@ let disconnect_action =
       Eliom_state.discard (*zap* *) ~scope:session (* *zap*) ())
 
 let disconnect_box s =
-  Html5.D.Form.post_form disconnect_action
-    (fun _ -> [p [Html5.D.Form.input
+  Html.D.Form.post_form disconnect_action
+    (fun _ -> [p [Html.D.Form.input
                     ~input_type:`Submit ~value:s Form.string]]) ()
 
 
@@ -1386,7 +1386,7 @@ let get_bad_user table =
 (* new login box:                                           *)
 
 let login_box session_expired action =
-  Html5.D.Form.post_form action
+  Html.D.Form.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
@@ -1447,7 +1447,7 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_registration.Html5.register ~service:connect_example6 connect_example6_handler;
+  Eliom_registration.Html.register ~service:connect_example6 connect_example6_handler;
   Eliom_registration.Action.register ~service:connect_action connect_action_handler
 
 (*wiki*
@@ -1546,13 +1546,13 @@ let _ =
 let _ = Eliom_registration.set_exn_handler
    (fun e -> match e with
     | Eliom_common.Eliom_404 ->
-        Eliom_registration.Html5.send ~code:404
+        Eliom_registration.Html.send ~code:404
           (html
              (head (title (pcdata "")) [])
              (body [h1 [pcdata "Eliom tutorial"];
                     p [pcdata "Page not found"]]))
 (*    | Eliom_common.Eliom_Wrong_parameter ->
-        Eliom_registration.Html5.send
+        Eliom_registration.Html.send
           (html
              (head (title (pcdata "")) [])
              (body [h1 [pcdata "Eliom tutorial"];
@@ -1588,10 +1588,10 @@ let make_body () =
      )
      (fun iname ->
        [p [pcdata "form with hidden nl params";
-           Html5.D.Form.input
-             ~input_type:`Text ~name:iname Html5.D.Form.int;
-           Html5.D.Form.input
-             ~input_type:`Submit ~value:"Send" Html5.D.Form.string]]);
+           Html.D.Form.input
+             ~input_type:`Text ~name:iname Html.D.Form.int;
+           Html.D.Form.input
+             ~input_type:`Submit ~value:"Send" Html.D.Form.string]]);
    Form.get_form
      ~service:nlparams
      (fun iname ->
@@ -1599,14 +1599,14 @@ let make_body () =
          Eliom_parameter.get_nl_params_names my_nl_params
        in
        [p [pcdata "form with nl params fiels";
-           Html5.D.Form.input
-             ~input_type:`Text ~name:iname Html5.D.Form.int;
-           Html5.D.Form.input
-             ~input_type:`Text ~name:aname Html5.D.Form.int;
-           Html5.D.Form.input
-             ~input_type:`Text ~name:sname Html5.D.Form.string;
-           Html5.D.Form.input
-             ~input_type:`Submit ~value:"Send" Html5.D.Form.string]]);
+           Html.D.Form.input
+             ~input_type:`Text ~name:iname Html.D.Form.int;
+           Html.D.Form.input
+             ~input_type:`Text ~name:aname Html.D.Form.int;
+           Html.D.Form.input
+             ~input_type:`Text ~name:sname Html.D.Form.string;
+           Html.D.Form.input
+             ~input_type:`Submit ~value:"Send" Html.D.Form.string]]);
   ]
 
 let _ = register
@@ -1691,19 +1691,19 @@ let disconnect_action =
 (* login ang logout boxes:                                  *)
 
 let disconnect_box s =
-  Html5.D.Form.post_form disconnect_action
-    (fun _ -> [p [Html5.D.Form.input
+  Html.D.Form.post_form disconnect_action
+    (fun _ -> [p [Html.D.Form.input
                     ~input_type:`Submit ~value:s
-                    Html5.D.Form.string]]) ()
+                    Html.D.Form.string]]) ()
 
 let login_box () =
-  Html5.D.Form.post_form connect_action
+  Html.D.Form.post_form connect_action
     (fun loginname ->
       [p
          (let l = [pcdata "login: ";
-                   Html5.D.Form.input
+                   Html.D.Form.input
                      ~input_type:`Text ~name:loginname
-                     Html5.D.Form.string]
+                     Html.D.Form.string]
          in l)
      ])
     ()
@@ -1739,7 +1739,7 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_registration.Html5.register ~service:connect_example5 connect_example5_handler;
+  Eliom_registration.Html.register ~service:connect_example5 connect_example5_handler;
   Eliom_registration.Action.register ~service:connect_action connect_action_handler
 (*wiki*
 
@@ -1794,24 +1794,24 @@ let disconnect_g_action =
 
 let disconnect_box () =
   div [
-    Html5.D.Form.post_form disconnect_action
-      (fun _ -> [p [Html5.D.Form.input
+    Html.D.Form.post_form disconnect_action
+      (fun _ -> [p [Html.D.Form.input
                       ~input_type:`Submit ~value:"Close session"
-                      Html5.D.Form.string]]) ();
-    Html5.D.Form.post_form disconnect_g_action
-      (fun _ -> [p [Html5.D.Form.input
+                      Html.D.Form.string]]) ();
+    Html.D.Form.post_form disconnect_g_action
+      (fun _ -> [p [Html.D.Form.input
                       ~input_type:`Submit ~value:"Close group"
-                      Html5.D.Form.string]]) ()
+                      Html.D.Form.string]]) ()
   ]
 
 let login_box () =
-  Html5.D.Form.post_form connect_action
+  Html.D.Form.post_form connect_action
     (fun loginname ->
       [p
          (let l = [pcdata "login: ";
-                   Html5.D.Form.input
+                   Html.D.Form.input
                      ~input_type:`Text ~name:loginname
-                     Html5.D.Form.string]
+                     Html.D.Form.string]
          in l)
      ])
     ()
@@ -1869,7 +1869,7 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_registration.Html5.register ~service:group_tables_example group_tables_example_handler;
+  Eliom_registration.Html.register ~service:group_tables_example group_tables_example_handler;
   Eliom_registration.Action.register ~service:connect_action connect_action_handler
 
 
@@ -1928,24 +1928,24 @@ let disconnect_g_action =
 
 let disconnect_box () =
   div [
-    Html5.D.Form.post_form disconnect_action
-      (fun _ -> [p [Html5.D.Form.input
+    Html.D.Form.post_form disconnect_action
+      (fun _ -> [p [Html.D.Form.input
                       ~input_type:`Submit ~value:"Close session"
-                      Html5.D.Form.string]]) ();
-    Html5.D.Form.post_form disconnect_g_action
-      (fun _ -> [p [Html5.D.Form.input
+                      Html.D.Form.string]]) ();
+    Html.D.Form.post_form disconnect_g_action
+      (fun _ -> [p [Html.D.Form.input
                       ~input_type:`Submit ~value:"Close group"
-                      Html5.D.Form.string]]) ()
+                      Html.D.Form.string]]) ()
   ]
 
 let login_box () =
-  Html5.D.Form.post_form connect_action
+  Html.D.Form.post_form connect_action
     (fun loginname ->
       [p
          (let l = [pcdata "login: ";
-                   Html5.D.Form.input
+                   Html.D.Form.input
                      ~input_type:`Text ~name:loginname
-                     Html5.D.Form.string]
+                     Html.D.Form.string]
          in l)
      ])
     ()
@@ -2004,7 +2004,7 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_registration.Html5.register ~service:pgroup_tables_example group_tables_example_handler;
+  Eliom_registration.Html.register ~service:pgroup_tables_example group_tables_example_handler;
   Eliom_registration.Action.register ~service:connect_action connect_action_handler
 
 (* *zap*)
@@ -2035,10 +2035,10 @@ let csrfsafe_example_post =
 
 let _ =
   let page () () =
-    let l3 = Html5.D.Form.post_form csrfsafe_example_post
-        (fun _ -> [p [Html5.D.Form.input
+    let l3 = Html.D.Form.post_form csrfsafe_example_post
+        (fun _ -> [p [Html.D.Form.input
                         ~input_type:`Submit
-                        ~value:"Click" Html5.D.Form.string]]) ()
+                        ~value:"Click" Html.D.Form.string]]) ()
     in
     return
       (html
@@ -2046,8 +2046,8 @@ let _ =
        (body [p [pcdata "A new coservice will be created each time this form is displayed"];
               l3]))
   in
-  Eliom_registration.Html5.register csrfsafe_example page;
-  Eliom_registration.Html5.register csrfsafe_example_post
+  Eliom_registration.Html.register csrfsafe_example page;
+  Eliom_registration.Html.register csrfsafe_example_post
     (fun () () ->
        Lwt.return
          (html
@@ -2062,7 +2062,7 @@ let _ =
 let r = Netstring_pcre.regexp "\\\\[(.*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@)\\\\]"
 
 let regexp =
-  Eliom_registration.Html5.register_service
+  Eliom_registration.Html.register_service
     ~path:["regexp"]
     ~get_params:(regexp r "$1" "myparam")
     (fun g () ->
@@ -2095,9 +2095,9 @@ let bool_params = register_service
     ~path:["bool"]
     ~get_params:(bool "case")
   (fun case () ->
-    let module Html5 = Eliom_content.Html5.F in
+    let module Html = Eliom_content.Html.F in
     return
-    <:html5< <html>
+    <:html< <html>
          <head><title></title></head>
          <body>
          <p>
@@ -2107,16 +2107,16 @@ let bool_params = register_service
        </html> >>)
 
 let create_form_bool casename =
-    let module Html5 = Eliom_content.Html5.F in
-    <:html5list< <p>check? $Form.bool_checkbox_one ~name:casename ()$ <br/>
+    let module Html = Eliom_content.Html.F in
+    <:htmllist< <p>check? $Form.bool_checkbox_one ~name:casename ()$ <br/>
       $Form.input ~input_type:`Submit ~value:"Click" Form.string$</p> >>
 
 let form_bool = register_service ["formbool"] unit
   (fun () () ->
-    let module Html5 = Eliom_content.Html5.F in
+    let module Html = Eliom_content.Html.F in
      let f = Form.get_form bool_params create_form_bool in
      return
-     <:html5< <html>
+     <:html< <html>
           <head><title></title></head>
           <body> $f$ </body>
         </html> >>)
@@ -2131,14 +2131,14 @@ let set = register_service
     ~path:["set"]
     ~get_params:(set string "s")
   (fun l () ->
-    let module Html5 = Eliom_content.Html5.F in
+    let module Html = Eliom_content.Html.F in
     let ll =
       List.map
-        (fun s -> <:html5< <strong>$str:s$ </strong> >>) l
+        (fun s -> <:html< <strong>$str:s$ </strong> >>) l
     in
-    let module Html5 = Eliom_content.Html5.F in
+    let module Html = Eliom_content.Html.F in
     return
-    <:html5< <html>
+    <:html< <html>
          <head><title></title></head>
          <body>
          <p>
@@ -2189,29 +2189,29 @@ let select_example_result = register_service
 let create_select_form =
   (fun select_name ->
     [p [pcdata "Select something: ";
-        Html5.D.Form.select ~name:select_name
-          Html5.D.Form.string
-          (Html5.D.Form.Option ([] (* attributes *),
+        Html.D.Form.select ~name:select_name
+          Html.D.Form.string
+          (Html.D.Form.Option ([] (* attributes *),
                                         "Bob" (* value *),
                                         None (* Content, if different from value *),
                                         false (* not selected *))) (* first line *)
-          [Html5.D.Form.Option ([], "Marc", None, false);
-          (Html5.D.Form.Optgroup
+          [Html.D.Form.Option ([], "Marc", None, false);
+          (Html.D.Form.Optgroup
           ([],
            "Girls",
            ([], "Karin", None, false),
-           [([a_disabled `Disabled], "Juliette", None, false);
+           [([a_disabled ()], "Juliette", None, false);
             ([], "Alice", None, true);
             ([], "Germaine", Some (pcdata "Bob's mother"), false)]))]
           ;
-          Html5.D.Form.input
+          Html.D.Form.input
             ~input_type:`Submit ~value:"Send"
-            Html5.D.Form.string]])
+            Html.D.Form.string]])
 
 let select_example = register_service ["select"] unit
   (fun () () ->
      let f =
-       Html5.D.Form.get_form
+       Html.D.Form.get_form
          select_example_result create_select_form
      in
      return
@@ -2226,9 +2226,9 @@ let coord = register_service
     ~path:["coord"]
     ~get_params:(coordinates "coord")
   (fun c () ->
-    let module Html5 = Eliom_content.Html5.F in
+    let module Html = Eliom_content.Html.F in
     return
-  <:html5< <html>
+  <:html< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -2262,9 +2262,9 @@ let coord2 = register_service
     ~path:["coord2"]
     ~get_params:(coordinates "coord")
   (fun c () ->
-    let module Html5 = Eliom_content.Html5.F in
+    let module Html = Eliom_content.Html.F in
     return
-  <:html5< <html>
+  <:html< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -2283,11 +2283,11 @@ let coucou_list = register_service
     ~path:["coucou"]
     ~get_params:(list "a" (string "str"))
   (fun l () ->
-    let module Html5 = Eliom_content.Html5.F in
+    let module Html = Eliom_content.Html.F in
     let ll =
-      List.map (fun s -> <:html5< <strong>$str:s$</strong> >>) l in
+      List.map (fun s -> <:html< <strong>$str:s$</strong> >>) l in
       return
-        <:html5< <html>
+        <:html< <html>
              <head><title></title></head>
              <body>
              <p>
@@ -2315,19 +2315,19 @@ let create_listform f =
      The last parameter of f.it is the code that must be appended at the
      end of the list created
    *)
-  let module Html5 = Eliom_content.Html5.F in
+  let module Html = Eliom_content.Html.F in
   f.it (fun stringname v init ->
-    <:html5list< <p>Write the value for $str:v$:
+    <:htmllist< <p>Write the value for $str:v$:
       $Form.input ~input_type:`Text ~name:stringname Form.string$ </p> >>@init)
     ["one";"two";"three";"four"]
-    <:html5list< <p>$Form.input ~input_type:`Submit ~value:"Click" Form.string$</p> >>
+    <:htmllist< <p>$Form.input ~input_type:`Submit ~value:"Click" Form.string$</p> >>
 
 let listform = register_service ["listform"] unit
   (fun () () ->
-     let module Html5 = Eliom_content.Html5.F in
+     let module Html = Eliom_content.Html.F in
      let f = Form.get_form coucou_list create_listform in
      return
-      <:html5< <html>
+      <:html< <html>
            <head><title></title></head>
            <body> $f$ </body>
          </html> >>)
@@ -2338,8 +2338,8 @@ let listform = register_service ["listform"] unit
 *wiki*)
 (* Form for service with suffix: *)
 (* let create_suffixform ((suff, endsuff),i) = *)
-(*   let module Html5 = Eliom_content.Html5.F in *)
-(*   <:html5list< *)
+(*   let module Html = Eliom_content.Html.F in *)
+(*   <:htmllist< *)
 (*     <p> *)
 (*       Write the suffix (integer): *)
 (*       $Form.input ~input_type:`Text ~name:suff Form.int$ *)
@@ -2356,9 +2356,9 @@ let listform = register_service ["listform"] unit
 (* let suffixform = register_service ["suffixform"] unit *)
 (*   (fun () () -> *)
 (*      let f = Form.get_form isuffix create_suffixform in *)
-(*      let module Html5 = Eliom_content.Html5.F in *)
+(*      let module Html = Eliom_content.Html.F in *)
 (*      return *)
-(*       <:html5< <html> *)
+(*       <:html< <html> *)
 (*            <head><title></title></head> *)
 (*            <body> $f$ </body> *)
 (*          </html> >>) *)

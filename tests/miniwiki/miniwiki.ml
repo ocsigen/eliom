@@ -20,7 +20,7 @@
 
 open Eliom_lib
 open Eliom_content
-open Eliom_content.Html5.F
+open Eliom_content.Html.F
 open Eliom_service
 open Eliom_parameter
 open Eliom_state
@@ -190,7 +190,7 @@ let parse_lines lines =
     else (* External link *)
       let url = scheme^":"^page in
       let t = if text = "" then url else text in
-      Html5.F.Raw.a ~a:[a_href (Html5.F.uri_of_string (fun () -> url))]
+      Html.F.Raw.a ~a:[a_href (Html.F.uri_of_string (fun () -> url))]
         [pcdata t]
   in
 
@@ -343,7 +343,7 @@ let view_page page =
 
 (* Save page as a result of /edit?p=Page *)
 let service_save_page_post =
-  Eliom_registration.Html5.create
+  Eliom_registration.Html.create
     ~id:(Eliom_service.Path [""])
     ~meth:
       (Eliom_service.Post
@@ -356,7 +356,7 @@ let service_save_page_post =
 
 (* /edit?p=Page *)
 let _ =
-  Eliom_registration.Html5.register wiki_edit_page
+  Eliom_registration.Html.register wiki_edit_page
     (fun page () ->
       (if wiki_page_exists page then
         load_wiki_page page >>= fun s -> return (String.concat "\n" s)
@@ -376,7 +376,7 @@ let _ =
 
 (* /view?p=Page *)
 let _ =
-  Eliom_registration.Html5.register wiki_view_page
+  Eliom_registration.Html.register wiki_view_page
     (fun page () ->
        if not (wiki_page_exists page) then
          let f =

@@ -31,7 +31,7 @@ let fd ~pid =
     `Ok a
   with e -> `Error (Printexc.to_string e)
 
-let ppf fmt = Printf.ksprintf Eliom_content.Html5.D.pcdata fmt
+let ppf fmt = Printf.ksprintf Eliom_content.Html.D.pcdata fmt
 
 let format_duration t =
   let open Unix in
@@ -46,7 +46,7 @@ let format_duration t =
   let sec = (string_of_int (tm.tm_sec))^" seconds" in
   year^days^hour^min^sec
 
-open Eliom_content.Html5.F
+open Eliom_content.Html.F
 
 let general_stats () =
   let pid = pid () in

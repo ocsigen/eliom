@@ -56,9 +56,11 @@ module Xml = struct
 
   type uri = Eliom_content_core.Xml.uri
 
-  let string_of_uri = Eliom_content_core.Xml.string_of_uri
+  let string_of_uri () =
+    {shared#{ Eliom_content_core.Xml.string_of_uri }}
 
-  let uri_of_string = Eliom_content_core.Xml.uri_of_string
+  let uri_of_string () =
+    {shared#{ Eliom_content_core.Xml.uri_of_string }}
 
   type aname = Eliom_content_core.Xml.aname
 
@@ -201,77 +203,83 @@ module Xml = struct
 
 end
 
+{shared{
+module Raw_wrapped_functions_svg =
+  Svg_f.Wrapped_functions(Eliom_content_core.Xml)
+}}
+
 module Svg = struct
 
   module Wrapped_functions :
 
-    Svg_sigs.Wrapped_functions
-    with type (-'a, 'b) ft = ('a, 'b) Xml.W.ft =
+    Svg_sigs.Wrapped_functions with module Xml = Xml =
 
   struct
+
+    module Xml = Xml
 
     type (-'a, 'b) ft = ('a, 'b) Xml.W.ft
 
     let string_of_alignment_baseline () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_alignment_baseline }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_alignment_baseline }}
 
     let string_of_big_variant () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_big_variant }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_big_variant }}
 
     let string_of_bool () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_bool }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_bool }}
 
     let string_of_coords () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_coords }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_coords }}
 
     let string_of_dominant_baseline () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_dominant_baseline }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_dominant_baseline }}
 
     let string_of_fourfloats () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_fourfloats }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_fourfloats }}
 
     let string_of_in_value () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_in_value }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_in_value }}
 
     let string_of_int () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_int }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_int }}
 
     let string_of_length () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_length }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_length }}
 
     let string_of_lengths () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_lengths }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_lengths }}
 
     let string_of_number () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_number }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_number }}
 
     let string_of_number_optional_number () =
       {shared#{
-         Svg_f.Wrapped_functions.string_of_number_optional_number }}
+         Raw_wrapped_functions_svg.string_of_number_optional_number }}
 
     let string_of_numbers () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_numbers }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_numbers }}
 
     let string_of_numbers_semicolon () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_numbers_semicolon }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_numbers_semicolon }}
 
     let string_of_offset () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_offset }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_offset }}
 
     let string_of_orient () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_orient }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_orient }}
 
     let string_of_paint () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_paint }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_paint }}
 
     let string_of_strokedasharray () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_strokedasharray }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_strokedasharray }}
 
     let string_of_transform () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_transform }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_transform }}
 
     let string_of_transforms () =
-      {shared#{ Svg_f.Wrapped_functions.string_of_transforms }}
+      {shared#{ Raw_wrapped_functions_svg.string_of_transforms }}
 
   end
 
@@ -282,7 +290,7 @@ module Svg = struct
 
   module R = struct
 
-    (* Same as the HTML version, with Html5 -> SVG and `HTML5 ->
+    (* Same as the HTML version, with Html -> SVG and `HTML5 ->
        `SVG. Hard to functorize. Make sure they stay synced! *)
     let node s =
       let e =
@@ -317,74 +325,88 @@ module Svg = struct
 
   end
 
-end
+end ;;
 
-module Html5 = struct
+{shared{
+module Raw_wrapped_functions =
+  Html_f.Wrapped_functions(Eliom_content_core.Xml)
+}}
+
+module Html = struct
 
   module Wrapped_functions :
 
-    Html5_sigs.Wrapped_functions
-    with type (-'a, 'b) ft = ('a, 'b) Xml.W.ft =
+    Html_sigs.Wrapped_functions with module Xml = Xml =
 
   struct
 
+    module Xml = Xml
+
     type (-'a, 'b) ft = ('a, 'b) Xml.W.ft
 
+    type image_candidate =
+      [ `Url of Xml.uri
+      | `Url_width of Xml.uri * Html_types.number
+      | `Url_pixel of Xml.uri * Html_types.float_number ]
+
+    let onoff_of_bool () =
+      {shared#{ Raw_wrapped_functions.onoff_of_bool }}
+
     let string_of_big_variant () =
-      {shared#{ Html5_f.Wrapped_functions.string_of_big_variant }}
+      {shared#{ Raw_wrapped_functions.string_of_big_variant }}
 
     let string_of_bool () =
-      {shared#{ Html5_f.Wrapped_functions.string_of_bool }}
+      {shared#{ Raw_wrapped_functions.string_of_bool }}
 
     let string_of_character () =
-      {shared#{ Html5_f.Wrapped_functions.string_of_character }}
+      {shared#{ Raw_wrapped_functions.string_of_character }}
 
     let string_of_input_type () =
-      {shared#{ Html5_f.Wrapped_functions.string_of_input_type }}
+      {shared#{ Raw_wrapped_functions.string_of_input_type }}
 
     let string_of_linktypes () =
-      {shared#{ Html5_f.Wrapped_functions.string_of_linktypes }}
+      {shared#{ Raw_wrapped_functions.string_of_linktypes }}
 
     let string_of_mediadesc () =
-      {shared#{ Html5_f.Wrapped_functions.string_of_mediadesc }}
+      {shared#{ Raw_wrapped_functions.string_of_mediadesc }}
 
-    let string_of_multilength () =
-      {shared#{ Html5_f.Wrapped_functions.string_of_multilength }}
-
-    let string_of_multilengths () =
-      {shared#{ Html5_f.Wrapped_functions.string_of_multilengths }}
+    let string_of_number_or_datetime () =
+      {shared#{ Raw_wrapped_functions.string_of_number_or_datetime }}
 
     let string_of_numbers () =
-      {shared#{ Html5_f.Wrapped_functions.string_of_numbers }}
+      {shared#{ Raw_wrapped_functions.string_of_numbers }}
 
     let string_of_sandbox () =
-      {shared#{ Html5_f.Wrapped_functions.string_of_sandbox }}
+      {shared#{ Raw_wrapped_functions.string_of_sandbox }}
 
     let string_of_sizes () =
-      {shared#{ Html5_f.Wrapped_functions.string_of_sizes }}
+      {shared#{ Raw_wrapped_functions.string_of_sizes }}
+
+    let string_of_srcset () =
+      {shared#{ Raw_wrapped_functions.string_of_srcset }}
 
     let string_of_step () =
-      {shared#{ Html5_f.Wrapped_functions.string_of_step }}
+      {shared#{ Raw_wrapped_functions.string_of_step }}
 
     let unoption_string () =
-      {shared#{ Html5_f.Wrapped_functions.unoption_string }}
+      {shared#{ Raw_wrapped_functions.unoption_string }}
 
   end
 
   module R = struct
 
-    (* Same as the SVG version, with Svg -> Html5 and `SVG ->
+    (* Same as the SVG version, with Svg -> Html and `SVG ->
        `HTML5. Hard to functorize. Make sure they stay synced! *)
     let node s =
       let e =
         local_value s |>
-        Eliom_content_core.Html5.D.toelt |>
+        Eliom_content_core.Html.D.toelt |>
         Eliom_content_core.Xml.make_request_node ~reset:false
       and synced = React.S.synced s in
       let _ = {unit{
         let s =
           %s >|= (fun s ->
-            Eliom_content_core.Html5.
+            Eliom_content_core.Html.
               (Id.create_request_elt s ~reset:false |> D.toelt) |>
             Eliom_client_core.rebuild_node' `HTML5)
         in
@@ -402,15 +424,15 @@ module Html5 = struct
         else
           f (React.S.value s) |> ignore
       }} in
-      e |> Eliom_content_core.Html5.D.tot
+      e |> Eliom_content_core.Html.D.tot
 
     let filter_attrib a s =
       let init = if local_value s then Some a else None
-      and c = {{ Eliom_content_core.Html5.R.filter_attrib %a %s }} in
-      Eliom_content_core.Html5.D.client_attrib ?init c
+      and c = {{ Eliom_content_core.Html.R.filter_attrib %a %s }} in
+      Eliom_content_core.Html.D.client_attrib ?init c
 
     include
-      Eliom_content_core.Html5.Make(Xml)(Wrapped_functions)(Svg.R)
+      Eliom_content_core.Html.Make(Xml)(Wrapped_functions)(Svg.R)
 
     let pcdata x = pcdata x |> Unsafe.coerce_elt
 

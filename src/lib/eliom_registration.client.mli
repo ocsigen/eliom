@@ -4,7 +4,7 @@ module type Base = sig
   type return = Eliom_service.non_ocaml
 end
 
-module Html5 : Base
+module Html : Base
 module Block5 : Base
 module Html_text : Base
 module CssText : Base
