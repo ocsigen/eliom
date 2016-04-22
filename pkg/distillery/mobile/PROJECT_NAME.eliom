@@ -8,13 +8,13 @@ module %%%MODULE_NAME%%%_app =
   Eliom_registration.App (
     struct
       let application_name = "%%%PROJECT_NAME%%%"
+      let global_data_path = None
     end)
 
 let main_service =
   Eliom_service.create
-    ~id:(Eliom_service.Id.Path [])
-    ~meth:(Eliom_service.Meth.Get Eliom_parameter.unit)
-    ~ret:Eliom_service.Ret.Non_ocaml
+    ~id:(Eliom_service.Path [])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
     ()
 
 let () =
