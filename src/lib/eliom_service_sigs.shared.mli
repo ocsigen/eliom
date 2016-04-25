@@ -118,7 +118,7 @@ module type S = sig
         Eliom_lib.Url.path
       -> (att, non_co, non_ext, reg, _, _, _) id
     | Fallback :
-        (unit, unit, 'mf, att, non_co, non_ext, reg,
+        (unit, unit, 'mf, att, non_co, non_ext, _,
          [ `WithoutSuffix ], unit, unit, 'ret) t
       -> (att, co, non_ext, reg, 'mf, 'ret, unit) id
     | Global :
