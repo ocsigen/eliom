@@ -12,6 +12,8 @@
 
 (******************************************************************************)
 
+module Eliom_registration = Eliom_testsuite_base.Registration
+
 let the_number = 100
 
 let ocaml_service =
@@ -393,7 +395,7 @@ let client_values_mutability =
              h1 [pcdata description];
              div ~a:[a_class ["thebutton"]; a_onclick onclick]
                [ pcdata "Click me" ];
-             a ~service:Eliom_service.void_coservice' [pcdata "self"] ();
+             a ~service:Eliom_service.reload_action [pcdata "self"] ();
            ])
        ))
 (******************************************************************************)
@@ -432,7 +434,7 @@ let client_values_changing_context =
              h2 [pcdata description];
              div ~a:[a_class ["thebutton"]; a_onclick (handler !ix)]
                [ pcdata "Click me" ];
-             a ~service:Eliom_service.void_coservice'
+             a ~service:Eliom_service.reload_action
                [ pcdata "Reload, keep application running" ] ();
            ])
        ))
@@ -490,7 +492,7 @@ let client_values_initialization =
              div ~a:[a_class ["description"]] [pcdata description];
              div ~a:[a_class ["thebutton"]; a_onclick (onclick !ix)]
                [ pcdata (Printf.sprintf "Click me (ix:%d)" !ix) ];
-             a ~service:Eliom_service.void_coservice' ~xhr:true
+             a ~service:Eliom_service.reload_action ~xhr:true
                [ pcdata "Reload, keep application running" ] ();
            ])
        ))
@@ -591,7 +593,7 @@ let test_simple =
              h2 [pcdata description];
              div ~a:[a_class ["thebutton"]; a_onclick {{ debug "init handler"; fun _ -> debug "%s" ( %v6 ()) }}]
                [ pcdata "Click me" ];
-             a ~service:Eliom_service.void_coservice' [pcdata "self"] ();
+             a ~service:Eliom_service.reload_action [pcdata "self"] ();
              elt "server";
            ])
        ))
@@ -919,7 +921,7 @@ let client_values_shared =
              h2 [pcdata description];
              div ~a:[a_class ["thebutton"]; a_onclick (shared_onclick "server")]
                [ pcdata "Click me" ];
-             a ~service:Eliom_service.void_coservice' [pcdata "self"] ();
+             a ~service:Eliom_service.reload_action [pcdata "self"] ();
            ])
        ))
 
@@ -991,7 +993,7 @@ let client_values_onload =
              h2 [pcdata description];
              div ~a:[a_class ["thebutton"]; a_onclick (shared_onclick "server")]
                [ pcdata "Click me" ];
-             a ~service:Eliom_service.void_coservice' [pcdata "self"] ();
+             a ~service:Eliom_service.reload_action [pcdata "self"] ();
              server_elt;
              shared_elt "server";
            ])
@@ -1081,7 +1083,7 @@ let escaped_in_client =
              h2 [pcdata description];
              div ~a:[a_class ["thebutton"]; a_onclick {{ show_server_injections }}]
                [ pcdata "Click me" ];
-             div [ a ~service:Eliom_service.void_coservice' [pcdata "reload in app"] () ];
+             div [ a ~service:Eliom_service.reload_action [pcdata "reload in app"] () ];
            ])
        ))
 (******************************************************************************)
@@ -1160,7 +1162,7 @@ let deep_client_values =
              Html5.F.(pcdata "!!! 1")
        }};
        Lwt.return Html5.F.([
-         div [a ~service:Eliom_service.void_coservice' [pcdata "reload in app"] ()];
+         div [a ~service:Eliom_service.reload_action [pcdata "reload in app"] ()];
          div [
            button ~a:[a_onclick onclick ] ~button_type:`Submit [
              pcdata "Click";
@@ -1436,15 +1438,17 @@ let wrap_handler =
   in
   let set_state =
     let counter = ref 0 in
-    Eliom_registration.Unit.register_coservice'
-      ~get_params:Eliom_parameter.unit
+    Eliom_registration.Unit.create
+      ~id:Eliom_service.Global
+      ~meth:(Eliom_service.Get Eliom_parameter.unit)
       (fun () () ->
         lwt () = Eliom_reference.set state (incr counter; Some !counter) in
         Lwt.return ())
   in
   let unset_state =
-    Eliom_registration.Unit.register_coservice'
-      ~get_params:Eliom_parameter.unit
+    Eliom_registration.Unit.create
+      ~id:Eliom_service.Global
+      ~meth:(Eliom_service.Get Eliom_parameter.unit)
       (fun () () ->
         lwt () = Eliom_reference.set state None in
         Lwt.return ())

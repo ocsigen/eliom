@@ -384,7 +384,7 @@ let _ = Eliom_registration.Html5.register Eliom_testsuite_base.main
          a optsuf2 [pcdata "optional suffix 2"] (None, None); br ();
 
          a csrfsafe_get_example [pcdata "GET CSRF safe service"] (); br ();
-         a csrfsafe_postget_example [pcdata "POST CSRF safe service on GET CSRF safe service"] (); br ();
+         (* a csrfsafe_postget_example [pcdata "POST CSRF safe service on GET CSRF safe service"] (); br (); *)
          a csrfsafe_session_example [pcdata "POST non attached CSRF safe service in session table"] (); br ();
          a unregister_example [pcdata "Unregistering services"] (); br ();
          a raw_post_example [pcdata "Raw POST data"] (); br ();

@@ -3,6 +3,12 @@
    Take the code in the manual, not here! (and remove duplicates here) *)
 (* TODO: include some missing parts in the manual *)
 
+module Eliom_service = Eliom_testsuite_base.Service
+module Eliom_registration = Eliom_testsuite_base.Registration
+
+{client{ module Eliom_registration = Eliom_registration }}
+{client{ module Eliom_service = Eliom_service }}
+
 open Eliom_content
 open Lwt
 open Html5.F
@@ -272,10 +278,11 @@ let links = register_service ["rep";"links"] unit
          Html5.D.a raw_serv
            [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
          Html5.D.a
-           (Http.external_service
-              ~prefix:"http://fr.wikipedia.org"
-              ~path:["wiki";""]
-              ~get_params:(suffix (all_suffix "suff"))
+           (Eliom_service.create
+              ~id:
+                (Eliom_service.External
+                   ("http://fr.wikipedia.org", ["wiki"; ""]))
+              ~meth:(Eliom_service.Get (suffix (all_suffix "suff")))
               ())
            [pcdata "OCaml on wikipedia"]
            ["OCaml"]; br ();
@@ -452,11 +459,12 @@ let form4 = register_service ["form4"] unit
       let module Html5 = Eliom_content.Html5.F in
      let f  =
        (Eliom_content.Html5.D.Form.post_form
-          (Http.external_post_service
-             ~prefix:"http://www.petizomverts.com"
-             ~path:["zebulon"]
-             ~get_params:(int "i")
-             ~post_params:(string "chaine") ())
+          (Eliom_service.create
+             ~id:(Eliom_service.External
+                    ("http://www.petizomverts.com",
+                     ["zebulon"]))
+             ~meth:(Eliom_service.Post (int "i", string "chaine"))
+             ())
           (fun chaine ->
             <:html5list< <p> Write a string:
                      $Form.input ~input_type:`Text ~name:chaine Form.string$ </p> >>)
@@ -814,7 +822,6 @@ let coservices_example_get =
     ~get_params:Eliom_parameter.unit
     ()
 
-
 (* -------------------------------------------------------- *)
 (* The three of them display the same page,                 *)
 (* but the coservices change the counter.                   *)
@@ -1029,9 +1036,10 @@ let connect_action =
 
 (* As the handler is very simple, we register it now: *)
 let disconnect_action =
-  Eliom_registration.Action.register_post_coservice'
+  Eliom_registration.Action.create
     ~name:"disconnect3"
-    ~post_params:Eliom_parameter.unit
+    ~id:Eliom_service.Global
+    ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard (*zap* *) ~scope:session (* *zap*) ())
 
@@ -1096,9 +1104,9 @@ let () =
 
 *wiki*)
 let divpage =
-  Eliom_registration.Flow5.register_service
-    ~path:["div"]
-    ~get_params:unit
+  Eliom_registration.Flow5.create
+    ~id:(Eliom_service.Path ["div"])
+    ~meth:(Eliom_service.Get unit)
     (fun () () ->
       return
         [div [h2 [pcdata "Hallo"];
@@ -1107,40 +1115,43 @@ let divpage =
 
 
 *wiki*)
-let redir1 = Eliom_registration.Redirection.register_service
-    ~path:["redir"]
-    ~get_params:Eliom_parameter.unit
-   (fun () () -> Lwt.return coucou)
+let redir1 =
+  Eliom_registration.Redirection.create
+    ~id:(Eliom_service.Path ["redir"])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    (fun () () -> Lwt.return (Eliom_registration.Service coucou))
 (*wiki*
 
  *wiki*)
-let redir = Eliom_registration.Redirection.register_service
-    ~path:["redir"]
-    ~get_params:(int "o")
-   (fun o () ->
-      Lwt.return
-        (Eliom_service.preapply coucou_params (o,(22,"ee"))))
+let redir =
+  Eliom_registration.Redirection.create
+    ~id:(Eliom_service.Path ["redir"])
+    ~meth:(Eliom_service.Get (int "o"))
+    (fun o () ->
+       Lwt.return
+         (Eliom_registration.Service
+            (Eliom_service.preapply coucou_params (o,(22,"ee")))))
 (*wiki*
 
 
 *wiki*)
 let send_any =
-  Eliom_registration.Any.register_service
-    ~path:["sendany"]
-    ~get_params:(string "type")
-   (fun s () ->
-     if s = "valid"
-     then
-       Eliom_registration.Html5.send
-         (html
-            (head (title (pcdata "")) [])
-            (body [p [pcdata
-                        "This page has been statically typechecked.
+  Eliom_registration.Any.create
+    ~id:(Eliom_service.Path ["sendany"])
+    ~meth:(Eliom_service.Get (string "type"))
+    (fun s () ->
+       if s = "valid"
+       then
+         Eliom_registration.Html5.send
+           (html
+              (head (title (pcdata "")) [])
+              (body [p [pcdata
+                          "This page has been statically typechecked.
                          If you change the parameter in the URL you will get an unchecked text page"]]))
-     else
-       Eliom_registration.Html_text.send
-         "<html><body><p>It is not a valid page. Put type=\"valid\" in the URL to get a typechecked page.</p></body></html>"
-   )
+       else
+         Eliom_registration.Html_text.send
+           "<html><body><p>It is not a valid page. Put type=\"valid\" in the URL to get a typechecked page.</p></body></html>"
+    )
 (*wiki*
 
 Cookies
@@ -1241,9 +1252,10 @@ let persist_session_connect_action =
 (* new disconnect action and box:                           *)
 
 let disconnect_action =
-  Eliom_registration.Action.register_post_coservice'
+  Eliom_registration.Action.create
     ~name:"disconnect4"
-    ~post_params:Eliom_parameter.unit
+    ~id:Eliom_service.Global
+    ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard ~scope:session ())
 
@@ -1353,9 +1365,10 @@ let connect_action =
 (* new disconnect action and box:                           *)
 
 let disconnect_action =
-  Eliom_registration.Action.register_post_coservice'
+  Eliom_registration.Action.create
     ~name:"disconnect6"
-    ~post_params:Eliom_parameter.unit
+    ~id:Eliom_service.Global
+    ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard (*zap* *) ~scope:session (* *zap*) ())
 
@@ -1500,7 +1513,8 @@ let _ =
 
 
 *wiki*)
-let publiccoduringsess = Http.service ["publiccoduringsess"] unit ()
+let publiccoduringsess =
+  Http.service ~path:["publiccoduringsess"] ~get_params:unit ()
 
 let _ =
   let page () () =
@@ -1665,9 +1679,10 @@ let connect_action =
 
 (* As the handler is very simple, we register it now: *)
 let disconnect_action =
-  Eliom_registration.Action.register_post_coservice'
+  Eliom_registration.Action.create
     ~name:"disconnect5"
-    ~post_params:Eliom_parameter.unit
+    ~id:Eliom_service.Global
+    ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard (*zap* *) ~scope:session (* *zap*) ())
 
@@ -1758,16 +1773,18 @@ let connect_action =
     ()
 
 let disconnect_action =
-  Eliom_registration.Action.register_post_coservice'
+  Eliom_registration.Action.create
     ~name:"disconnectgt"
-    ~post_params:Eliom_parameter.unit
+    ~id:Eliom_service.Global
+    ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard ~scope:session ())
 
 let disconnect_g_action =
-  Eliom_registration.Action.register_post_coservice'
+  Eliom_registration.Action.create
     ~name:"disconnectgtg"
-    ~post_params:Eliom_parameter.unit
+    ~id:Eliom_service.Global
+    ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard ~scope:session_group ())
 
@@ -1891,15 +1908,16 @@ let connect_action =
     ()
 
 let disconnect_action =
-  Eliom_registration.Action.register_post_coservice'
-    ~name:"pdisconnectgt"
-    ~post_params:Eliom_parameter.unit
+  Eliom_registration.Action.create
+    ~id:Eliom_service.Global
+    ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () -> Eliom_state.discard ~scope:session ())
 
 let disconnect_g_action =
-  Eliom_registration.Action.register_post_coservice'
+  Eliom_registration.Action.create
     ~name:"pdisconnectgtg"
-    ~post_params:Eliom_parameter.unit
+    ~id:Eliom_service.Global
+    ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard ~scope:session_group ())
 
@@ -2060,7 +2078,7 @@ let regexp =
 let myregexp = Netstring_pcre.regexp "\\[(.*)\\]"
 
 let regexpserv =
-  Eliom_registration.Html5.register_service
+  register_service
     ~path:["regexp"]
     ~get_params:(regexp myregexp "\\1" (fun s -> s) "myparam")
     (fun g () ->
@@ -2242,8 +2260,8 @@ let imageform = register_service
 *wiki*)
 let coord2 = register_service
     ~path:["coord2"]
-    ~get_params:(int_coordinates "coord")
-  (fun (i, c) () ->
+    ~get_params:(coordinates "coord")
+  (fun c () ->
     let module Html5 = Eliom_content.Html5.F in
     return
   <:html5< <html>
@@ -2409,40 +2427,40 @@ let hier8 = Http.service ~path:["hier8"] ~get_params:unit ()
 let hier9 = Http.service ~path:["hier9"] ~get_params:unit ()
 let hier10 = Http.service ~path:["hier10"] ~get_params:unit ()
 
-let mymenu : (_, Eliom_service.registrable, _) hierarchical_site =
+let mymenu : _ hierarchical_site =
   (
-   (Main_page hier1),
+   (Main_page (Eliom_tools.Srv hier1)),
 
-   [([pcdata "page 1"], Site_tree (Main_page hier1, []));
+   [([pcdata "page 1"], Site_tree (Main_page (Eliom_tools.Srv hier1), []));
 
-    ([pcdata "page 2"], Site_tree (Main_page hier2, []));
+    ([pcdata "page 2"], Site_tree (Main_page (Eliom_tools.Srv hier2), []));
 
     ([pcdata "submenu 4"],
      Site_tree
-       (Default_page hier4,
+       (Default_page (Eliom_tools.Srv hier4),
          [([pcdata "submenu 3"],
           Site_tree
              (Not_clickable,
-              [([pcdata "page 3"], Site_tree (Main_page hier3, []));
-               ([pcdata "page 4"], Site_tree (Main_page hier4, []));
-               ([pcdata "page 5"], Site_tree (Main_page hier5, []))]
+              [([pcdata "page 3"], Site_tree (Main_page (Eliom_tools.Srv hier3), []));
+               ([pcdata "page 4"], Site_tree (Main_page (Eliom_tools.Srv hier4), []));
+               ([pcdata "page 5"], Site_tree (Main_page (Eliom_tools.Srv hier5), []))]
              )
           );
 
-          ([pcdata "page 6"], Site_tree (Main_page hier6, []))]
+          ([pcdata "page 6"], Site_tree (Main_page (Eliom_tools.Srv hier6), []))]
        )
     );
 
     ([pcdata "page 7"],
-     Site_tree (Main_page hier7, []));
+     Site_tree (Main_page (Eliom_tools.Srv hier7), []));
 
     ([pcdata "disabled"], Disabled);
 
     ([pcdata "submenu 8"],
      Site_tree
-       (Main_page hier8,
-        [([pcdata "page 9"], Site_tree (Main_page hier9, []));
-         ([pcdata "page 10"], Site_tree (Main_page hier10, []))]
+       (Main_page (Eliom_tools.Srv hier8),
+        [([pcdata "page 9"], Site_tree (Main_page (Eliom_tools.Srv hier9), []));
+         ([pcdata "page 10"], Site_tree (Main_page (Eliom_tools.Srv hier10), []))]
        )
     )
   ]

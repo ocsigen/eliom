@@ -20,6 +20,9 @@
 
 (* Other examples for Eliom, and various tests *)
 
+module Eliom_service = Eliom_testsuite_base.Service
+module Eliom_registration = Eliom_testsuite_base.Registration
+
 open Eliom_lib
 open Eliom_content
 open Html5.F
@@ -101,9 +104,10 @@ let connect_action =
 (* disconnect action and box:                               *)
 
 let disconnect_action =
-  Eliom_registration.Action.register_post_coservice'
+  Eliom_registration.Action.create
     ~name:"disconnection"
-    ~post_params:Eliom_parameter.unit
+    ~id:Eliom_service.Global
+    ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard ~scope:session ())
 
@@ -209,9 +213,10 @@ let connect_action =
 (* disconnect action and box:                               *)
 
 let disconnect_action =
-  Eliom_registration.Action.register_post_coservice'
+  Eliom_registration.Action.create
     ~name:"disconnection2"
-    ~post_params:Eliom_parameter.unit
+    ~id:Eliom_service.Global
+    ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard ~scope:session ())
 
@@ -281,7 +286,8 @@ let connect_action_handler () login =
   if login = "toto" (* Check user and password :-) *)
   then begin
     Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~scope:session (* *zap*) login;
-    Eliom_registration.Redirection.send Eliom_service.void_hidden_coservice'
+    Eliom_registration.Redirection.send
+      (Eliom_registration.Service Eliom_service.reload_action_hidden)
   end
   else
     Eliom_reference.set bad_user true >>= fun () ->
@@ -684,12 +690,15 @@ let _ =
 (******)
 (* CSRF POST on CSRF GET coservice *)
 
-let csrfsafe_postget_example =
-  Eliom_service.Http.service
-    ~path:["csrfpostget"]
-    ~get_params:Eliom_parameter.unit
-    ()
+(* let csrfsafe_postget_example = *)
+(*   Eliom_service.Http.service *)
+(*     ~path:["csrfpostget"] *)
+(*     ~get_params:Eliom_parameter.unit *)
+(*     () *)
 
+(* Disabling this test because fallbacks can no longer be
+   coservices *)
+(*
 let csrfsafe_example_post =
   Eliom_service.Http.post_coservice
     ~csrf_safe:true
@@ -718,7 +727,7 @@ let _ =
          (html
             (head (title (pcdata "CSRF safe service")) [])
             (body [p [pcdata "This is a POST CSRF safe service, combined with a GET CSRF safe service"]])))
-
+*)
 
 (******)
 (* CSRF for_session *)
@@ -811,11 +820,11 @@ let my_nl_params =
 
 let void_with_nlp =
   Eliom_service.add_non_localized_get_parameters
-    my_nl_params Eliom_service.void_coservice'
+    my_nl_params Eliom_service.reload_action
 
 let hidden_void_with_nlp =
   Eliom_service.add_non_localized_get_parameters
-    my_nl_params Eliom_service.void_hidden_coservice'
+    my_nl_params Eliom_service.reload_action_hidden
 
 let nlparams2 = Http.service
     ~path:["voidnl"]
@@ -1182,14 +1191,6 @@ let url_encoding =
 let preappl = preapply coucou_params (3,(4,"cinq"))
 let preappl2 = preapply uasuffix (1999,01)
 
-let mymenu current =
-  let module Html5 = Eliom_content.Html5.F in
-  Eliom_tools.F.menu ~classe:["menuprincipal"]
-    [(coucou, <:html5list< coucou >>);
-     (preappl, <:html5list< params >>);
-     (preappl2, <:html5list< params and suffix >>);
-    ] ~service:current ()
-
 let preappmenu =
   register_service
     ~path:["menu"]
@@ -1199,7 +1200,10 @@ let preappmenu =
         (html
           (head (title (pcdata "")) [])
           (body [h1 [pcdata "Hallo"];
-                 mymenu coucou ])))
+                 a ~service:coucou [pcdata "coucou"] ();
+                 a ~service:preappl [pcdata "preappl"] ();
+                 a ~service:preappl2 [pcdata "preappl2"] ()
+                ])))
 
 
 
@@ -1315,18 +1319,22 @@ let getact =
     ~get_params:(int "p")
     ()
 
-let act = Eliom_registration.Action.register_coservice
-    ~fallback:(preapply getact 22)
-    ~get_params:(int "bip")
+let act = Eliom_registration.Action.create
+    ~id:(Eliom_service.Fallback (preapply getact 22))
+    ~meth:(Eliom_service.Get (int "bip"))
     (fun g p -> v := g; return ())
 
 (* action on GET non-attached coservice on GET coservice page *)
-let naact = Eliom_registration.Action.register_coservice'
-    ~get_params:(int "bop")
+let naact =
+  Eliom_registration.Action.create
+    ~id:Eliom_service.Global
+    ~meth:(Eliom_service.Get (int "bop"))
     (fun g p -> v := g; return ())
 
-let naunit = Eliom_registration.Unit.register_coservice'
-    ~get_params:(int "bap")
+let naunit =
+  Eliom_registration.Unit.create
+    ~id:Eliom_service.Global
+    ~meth:(Eliom_service.Get (int "bap"))
     (fun g p -> v := g; return ())
 
 let _ =
@@ -1383,11 +1391,11 @@ let attnonatt_service =
     ~path: ["attnonatt"]
     ~get_params:unit
     (fun () () ->
-      let service = Eliom_service.attach_coservice'
+       let service = Eliom_service.attach_global_to_fallback
         ~fallback:Eliom_testsuite1.coucou
         ~service:get_coserv'
       in
-      let service2 = Eliom_service.attach_coservice'
+      let service2 = Eliom_service.attach_global_to_fallback
         ~fallback:Eliom_testsuite1.coucou
         ~service:post_coserv'
       in
@@ -1483,9 +1491,9 @@ let sendfileex =
           (body [h1 [pcdata "With a suffix, that page will send a file"]])))
 
 let sendfile2 =
-  Eliom_registration.File.register_service
-    ~path:["files";""]
-    ~get_params:(suffix (all_suffix "filename"))
+  Eliom_registration.File.create
+    ~id:(Eliom_service.Path ["files";""])
+    ~meth:(Eliom_service.Get (suffix (all_suffix "filename")))
     (fun s () ->
       return ("/var/www/ocsigen/"^(Url.string_of_url_path ~encode:false s)))
 
@@ -1617,12 +1625,13 @@ let sendfileregexp =
 let r = Netstring_pcre.regexp "~([^/]*)(.*)"
 
 let sendfile2 =
-  Eliom_registration.File.register_service
-    ~path:["files2";""]
+  Eliom_registration.File.create
+    ~id:(Eliom_service.Path ["files2";""])
 (*    ~get_params:(regexp r "/home/$1/public_html$2" "filename") *)
-    ~get_params:(suffix ~redirect_if_not_suffix:false
-                   (all_suffix_regexp r "$u($1)/public_html$2"
-                      ~to_string:(fun s -> s) "filename"))
+    ~meth:(Eliom_service.Get
+             (suffix ~redirect_if_not_suffix:false
+                (all_suffix_regexp r "$u($1)/public_html$2"
+                   ~to_string:(fun s -> s) "filename")))
     (fun s () -> return s)
 
 (* Here I am using redirect_if_not_suffix:false because
@@ -2067,8 +2076,9 @@ let uploadgetform = register_service ["uploadget"] unit
 
 (*******)
 (* Actions that raises an exception *)
-let exn_act = Eliom_registration.Action.register_coservice'
-    ~get_params:unit
+let exn_act = Eliom_registration.Action.create
+    ~id:Eliom_service.Global
+    ~meth:(Eliom_service.Get unit)
     (fun g p -> fail Not_found)
 
 let exn_act_main =
@@ -2202,9 +2212,10 @@ let connect_action =
 (* disconnect action and box:                               *)
 
 let disconnect_action =
-  Eliom_registration.Action.register_post_coservice'
+  Eliom_registration.Action.create
     ~name:"disconnectiongd"
-    ~post_params:Eliom_parameter.unit
+    ~id:Eliom_service.Global
+    ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () -> Eliom_state.discard ~scope:session ())
 
 let disconnect_box s =
@@ -2218,9 +2229,10 @@ let bad_user = Eliom_reference.eref ~scope:Eliom_common.request_scope false
 let my_group_data = Eliom_reference.eref ~scope:group None
 
 let change_gd =
-  Eliom_registration.Action.register_post_coservice'
+  Eliom_registration.Action.create
     ~name:"changegd"
-    ~post_params:Eliom_parameter.unit
+    ~id:Eliom_service.Global
+    ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () -> Eliom_reference.set my_group_data (Some (1000 + Random.int 1000)))
 
 (* -------------------------------------------------------- *)
@@ -2293,7 +2305,8 @@ let connect_action_handler () login =
     (if mgd = None
      then Eliom_reference.set my_group_data (Some (Random.int 1000))
      else Lwt.return ()) >>= fun () ->
-    Eliom_registration.Redirection.send Eliom_service.void_hidden_coservice'
+    Eliom_registration.Redirection.send
+      (Eliom_registration.Service Eliom_service.reload_action_hidden)
   end
   else
     Eliom_reference.set bad_user true >>= fun () ->
@@ -2339,9 +2352,10 @@ let connect_action =
 (* disconnect action and box:                               *)
 
 let disconnect_action =
-  Eliom_registration.Action.register_post_coservice'
+  Eliom_registration.Action.create
     ~name:"disconnectionpgd"
-    ~post_params:Eliom_parameter.unit
+    ~id:Eliom_service.Global
+    ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () -> Eliom_state.discard ~scope:session ())
 
 let disconnect_box s =
@@ -2356,9 +2370,10 @@ let bad_user = Eliom_reference.eref ~scope:Eliom_common.request_scope false
 let my_group_data = Eliom_reference.eref ~persistent:"pgd" ~scope:group None
 
 let change_gd =
-  Eliom_registration.Action.register_post_coservice'
+  Eliom_registration.Action.create
     ~name:"changepgd"
-    ~post_params:Eliom_parameter.unit
+    ~id:Eliom_service.Global
+    ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () -> Eliom_reference.set my_group_data (Some (1000 + Random.int 1000)))
 
 
@@ -2434,7 +2449,8 @@ let connect_action_handler () login =
     (if mgd = None
      then Eliom_reference.set my_group_data (Some (Random.int 1000))
      else Lwt.return ()) >>= fun () ->
-    Eliom_registration.Redirection.send Eliom_service.void_hidden_coservice'
+    Eliom_registration.Redirection.send
+      (Eliom_registration.Service Eliom_service.reload_action_hidden)
   end
   else
     Eliom_reference.set bad_user true >>= fun () ->
@@ -2454,9 +2470,10 @@ let () =
 let noreload_ref = ref 0
 
 let noreload_action =
-  Eliom_registration.Action.register_coservice'
+  Eliom_registration.Action.create
     ~options:`NoReload
-    ~get_params:unit
+    ~id:Eliom_service.Global
+    ~meth:(Eliom_service.Get unit)
     (fun () () -> noreload_ref := !noreload_ref + 1; Lwt.return ())
 
 let noreload =

@@ -33,11 +33,26 @@ module P = Printf
 
 let (>>) f g = g f
 
-let wiki_view_page = Http.service [] (suffix (string "p")) ()
-let wiki_edit_page = Http.service ["edit"] (string "p") ()
-let wiki_start = Eliom_registration.Redirection.register_service [] unit
+let wiki_view_page =
+  Eliom_service.create
+    ~id:(Eliom_service.Path [])
+    ~meth:(Eliom_service.Get (suffix (string "p")))
+    ()
+
+let wiki_edit_page =
+  Eliom_service.create
+    ~id:(Eliom_service.Path ["edit"])
+    ~meth:(Eliom_service.Get (string "p"))
+    ()
+
+let wiki_start =
+  Eliom_registration.Redirection.create
+    ~id:(Eliom_service.Path [])
+    ~meth:(Eliom_service.Get unit)
     (fun _ _ ->
-       Lwt.return (Eliom_service.preapply wiki_view_page "WikiStart"))
+       Lwt.return
+         (Eliom_registration.Service
+            (Eliom_service.preapply wiki_view_page "WikiStart")))
 
 let finally_ handler f x =
   catch
@@ -328,9 +343,12 @@ let view_page page =
 
 (* Save page as a result of /edit?p=Page *)
 let service_save_page_post =
-  Eliom_registration.Html5.register_post_service
-    ~fallback:wiki_view_page
-    ~post_params:(string "value")
+  Eliom_registration.Html5.create
+    ~id:(Eliom_service.Path [""])
+    ~meth:
+      (Eliom_service.Post
+         (suffix (string "p"),
+          string "value"))
     (fun page value ->
        (* Save wiki page from POST value: *)
        save_wiki_page page value >>= fun () ->

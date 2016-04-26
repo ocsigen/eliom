@@ -7,15 +7,19 @@ open Eliom_lib
 
 let reference_scope_site =
   let action =
-    Eliom_registration.Action.register_post_coservice'
-      ~post_params:(Eliom_parameter.string "v")
+    Eliom_registration.Action.create
+      ~id:Eliom_service.Global
+      ~meth:
+        (Eliom_service.Post
+           (Eliom_parameter.unit,
+            Eliom_parameter.string "v"))
       (fun () v ->
          lwt () = Eliom_reference.set Eliom_testsuite_global.eref (Some v) in
          Eliom_reference.set Eliom_testsuite_global.eref' (Some v))
   in
-  Eliom_registration.Html5.register_service
-    ~path:["reference_scope_site"]
-    ~get_params:Eliom_parameter.unit
+  Eliom_registration.Html5.create
+    ~id:(Eliom_service.Path ["reference_scope_site"])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () ->
        let show = function None -> Html5.D.entity "#x2012" | Some str -> Html5.D.pcdata str in
        lwt v = Lwt.map show (Eliom_reference.get Eliom_testsuite_global.eref) in
