@@ -554,6 +554,9 @@ let main_service
   reload_fun;
 }
 
+let default_client_fun =
+  {unit -> _ option{ fun () -> None }}
+
 let create_external
     (type m) (type gp) (type gn) (type pp) (type pn) (type mf) (type gp')
     ~prefix
@@ -580,7 +583,7 @@ let create_external
     ~redirect_suffix:false
     ~get_params
     ~post_params
-    ~client_fun:(Obj.magic (ref {_ -> _{ fun () -> None }}))
+    ~client_fun:(Obj.magic (ref default_client_fun))
     ~reload_fun:Rf_keep
     ()
 
@@ -620,7 +623,7 @@ let plain_service
          raise
            (Eliom_common.Eliom_site_information_not_available "service"))
   in
-  let client_fun = Obj.magic (ref {_ -> _{ fun () -> None }}) in
+  let client_fun = Obj.magic (ref default_client_fun) in
   let reload_fun = Rf_some client_fun in
   main_service
     ~https
@@ -657,7 +660,7 @@ let coservice
   and is_post = Meth.is_post meth in
   let csrf_scope = default_csrf_scope csrf_scope in
   let k = attached_info fallback
-  and client_fun = Obj.magic (ref {_ -> _{ fun () -> None }}) in {
+  and client_fun = Obj.magic (ref default_client_fun) in {
     pre_applied_parameters = fallback.pre_applied_parameters;
     post_params_type = post_params;
     send_appl_content = fallback.send_appl_content;
@@ -712,7 +715,7 @@ let coservice'
   let meth = Meth.which meth
   and is_post = Meth.is_post meth in
   let csrf_scope = default_csrf_scope csrf_scope
-  and client_fun = Obj.magic (ref {_ -> _{ fun () -> None}}) in {
+  and client_fun = Obj.magic (ref default_client_fun) in {
     max_use;
     timeout;
     pre_applied_parameters = Eliom_lib.String.Table.empty, [];
