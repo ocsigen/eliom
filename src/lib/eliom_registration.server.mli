@@ -260,11 +260,11 @@ module Unit : Eliom_reg_sigs.S
    and type result = browser_content kind
 
 (** Auxiliarry type to hide non-interesting type parameters *)
-type 'a redirected_service =
-    Service :
+type _ redirection =
+    Redirection :
       (unit, unit, Eliom_service.get , _, _, _, _,
        [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
-    'a redirected_service
+    'a redirection
 
 (** Eliom service registration for services that returns a
     redirections towards another service. See the Eliom manual for
@@ -283,7 +283,7 @@ type 'a redirected_service =
 module Redirection : sig
 
   include Eliom_reg_sigs.S_poly
-    with type 'a page = 'a redirected_service
+    with type 'a page = 'a redirection
      and type options =
            [ `MovedPermanently
            | `Found

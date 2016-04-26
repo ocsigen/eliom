@@ -287,7 +287,7 @@ let connect_action_handler () login =
   then begin
     Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~scope:session (* *zap*) login;
     Eliom_registration.Redirection.send
-      (Eliom_registration.Service Eliom_service.reload_action_hidden)
+      (Eliom_registration.Redirection Eliom_service.reload_action_hidden)
   end
   else
     Eliom_reference.set bad_user true >>= fun () ->
@@ -2306,7 +2306,7 @@ let connect_action_handler () login =
      then Eliom_reference.set my_group_data (Some (Random.int 1000))
      else Lwt.return ()) >>= fun () ->
     Eliom_registration.Redirection.send
-      (Eliom_registration.Service Eliom_service.reload_action_hidden)
+      (Eliom_registration.Redirection Eliom_service.reload_action_hidden)
   end
   else
     Eliom_reference.set bad_user true >>= fun () ->
@@ -2450,7 +2450,7 @@ let connect_action_handler () login =
      then Eliom_reference.set my_group_data (Some (Random.int 1000))
      else Lwt.return ()) >>= fun () ->
     Eliom_registration.Redirection.send
-      (Eliom_registration.Service Eliom_service.reload_action_hidden)
+      (Eliom_registration.Redirection Eliom_service.reload_action_hidden)
   end
   else
     Eliom_reference.set bad_user true >>= fun () ->

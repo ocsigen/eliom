@@ -1502,15 +1502,15 @@ end
 
 module String_redirection = Eliom_mkreg.Make(String_redir_reg_base)
 
-type _ redirected_service =
-    Service :
+type _ redirection =
+    Redirection :
       (unit, unit, Eliom_service.get , _, _, _, _,
        [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
-    'a redirected_service
+    'a redirection
 
 module Redir_reg_base = struct
 
-  type 'a page = 'a redirected_service
+  type 'a page = 'a redirection
 
   type options =
     [ `MovedPermanently
@@ -1530,7 +1530,7 @@ module Redir_reg_base = struct
   (* actually, the service will decide itself *)
 
   let send ?(options = `Found) ?charset ?code
-      ?content_type ?headers (Service service) =
+      ?content_type ?headers (Redirection service) =
     let uri = Eliom_uri.make_string_uri ~service () in
     let empty_result = Ocsigen_http_frame.Result.empty () in
     let content_type = match content_type with

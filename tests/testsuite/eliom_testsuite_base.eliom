@@ -123,11 +123,11 @@ end
 
 module Registration = struct
 
-  type 'a redirected_service = 'a Eliom_registration.redirected_service =
-      Service :
+  type 'a redirection = 'a Eliom_registration.redirection =
+      Redirection :
         (unit, unit, Eliom_service.get , _, _, _, _,
          [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
-      'a redirected_service
+      'a redirection
 
   module Html5 = struct
 

@@ -51,7 +51,7 @@ let wiki_start =
     ~meth:(Eliom_service.Get unit)
     (fun _ _ ->
        Lwt.return
-         (Eliom_registration.Service
+         (Eliom_registration.Redirection
             (Eliom_service.preapply wiki_view_page "WikiStart")))
 
 let finally_ handler f x =

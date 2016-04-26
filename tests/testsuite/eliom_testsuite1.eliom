@@ -1119,7 +1119,7 @@ let redir1 =
   Eliom_registration.Redirection.create
     ~id:(Eliom_service.Path ["redir"])
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
-    (fun () () -> Lwt.return (Eliom_registration.Service coucou))
+    (fun () () -> Lwt.return (Eliom_registration.Redirection coucou))
 (*wiki*
 
  *wiki*)
@@ -1129,7 +1129,7 @@ let redir =
     ~meth:(Eliom_service.Get (int "o"))
     (fun o () ->
        Lwt.return
-         (Eliom_registration.Service
+         (Eliom_registration.Redirection
             (Eliom_service.preapply coucou_params (o,(22,"ee")))))
 (*wiki*
 

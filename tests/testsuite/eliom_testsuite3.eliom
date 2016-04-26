@@ -765,7 +765,7 @@ let gc_service =
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () ->
        Gc.full_major ();
-       Lwt.return (Eliom_registration.Service wrapping1))
+       Lwt.return (Eliom_registration.Redirection wrapping1))
 
 let () =
   My_appl.register wrapping1
@@ -2665,7 +2665,7 @@ let appl_redir1 =
   Eliom_registration.Redirection.create
     ~id:(Eliom_service.Path ["internalredir"])
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
-    (fun () () -> Lwt.return (Eliom_registration.Service eliomclient2))
+    (fun () () -> Lwt.return (Eliom_registration.Redirection eliomclient2))
 
 let appl_redir2 =
   Eliom_registration.Redirection.create
@@ -2673,7 +2673,7 @@ let appl_redir2 =
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () ->
        Lwt.return
-         (Eliom_registration.Service Eliom_testsuite1.coucou))
+         (Eliom_registration.Redirection Eliom_testsuite1.coucou))
 
 let appl_redir =
   My_appl.register_service
@@ -2706,7 +2706,7 @@ let applvoid_redir =
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
        Lwt.return
-         (Eliom_registration.Service Eliom_service.reload_action_hidden))
+         (Eliom_registration.Redirection Eliom_service.reload_action_hidden))
 
 (*****************************************************************************)
 (* Form examples: *)
