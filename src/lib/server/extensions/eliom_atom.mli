@@ -19,7 +19,7 @@
  *)
 
 (** Register an atom feed *)
-module Reg : Eliom_reg_sigs.S
+module Reg : Eliom_registration_sigs.S
   with type page = Atom_feed.feed
    and type options = unit
    and type return = Eliom_service.non_ocaml

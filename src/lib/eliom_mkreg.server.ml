@@ -625,7 +625,7 @@ let create pages
     ~service ?error_handler page;
   service
 
-module Make (Pages: Eliom_reg_sigs.PARAM) = struct
+module Make (Pages: Eliom_registration_sigs.PARAM) = struct
 
   type page = Pages.page
   type options = Pages.options
@@ -645,7 +645,7 @@ module Make (Pages: Eliom_reg_sigs.PARAM) = struct
 
 end
 
-module Make_poly (Pages : Eliom_reg_sigs.PARAM_POLY) = struct
+module Make_poly (Pages : Eliom_registration_sigs.PARAM_POLY) = struct
 
   type 'a page = 'a Pages.page
   type options = Pages.options

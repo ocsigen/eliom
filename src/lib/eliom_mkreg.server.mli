@@ -24,16 +24,16 @@
     pages.  It is used for example in {!Eliom_registration}.  *)
 
 (** {2 Creates modules to register services for one type of pages} *)
-module Make (Pages: Eliom_reg_sigs.PARAM) :
-  Eliom_reg_sigs.S
+module Make (Pages: Eliom_registration_sigs.PARAM) :
+  Eliom_registration_sigs.S
   with type page = Pages.page
    and type options = Pages.options
    and type result = Pages.result
 
 (** {2 Creating modules to register services for one type of
     parametrised pages} *)
-module Make_poly (Pages : Eliom_reg_sigs.PARAM_POLY) :
-  Eliom_reg_sigs.S_poly
+module Make_poly (Pages : Eliom_registration_sigs.PARAM_POLY) :
+  Eliom_registration_sigs.S_poly
   with type 'a page   = 'a Pages.page
    and type options   = Pages.options
    and type 'a return = 'a Pages.return
