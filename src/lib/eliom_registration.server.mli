@@ -87,7 +87,7 @@ type 'a ocaml_content
 
 (** Eliom service registration for services that return HTML5
     pages. *)
-module Html : Eliom_registration_sigs.S
+module Html : Eliom_registration_sigs.S_with_send
   with type page = Html_types.html Eliom_content.Html.elt
    and type options = unit
    and type return = Eliom_service.non_ocaml
@@ -161,7 +161,7 @@ module type ELIOM_APPL = sig
       {!application_content}. *)
   type app_id
 
-  include Eliom_registration_sigs.S
+  include Eliom_registration_sigs.S_with_send
     with type page = Html_types.html Eliom_content.Html.elt
      and type options = appl_service_options
      and type return = Eliom_service.non_ocaml
@@ -183,7 +183,7 @@ module type TMPL_PARAMS = sig
 end
 
 module Eliom_tmpl (Appl : ELIOM_APPL) (Tmpl_param : TMPL_PARAMS):
-  Eliom_registration_sigs.S
+  Eliom_registration_sigs.S_with_send
   with type page = Tmpl_param.t
    and type options = appl_service_options
    and type return = Eliom_service.non_ocaml
@@ -197,7 +197,7 @@ module Eliom_tmpl (Appl : ELIOM_APPL) (Tmpl_param : TMPL_PARAMS):
 
     For Eliom application, prefers {!Ocaml} services to send page
     fragments. *)
-module Flow5 : Eliom_registration_sigs.S
+module Flow5 : Eliom_registration_sigs.S_with_send
   with type page = Html_types.flow5 Eliom_content.Html.elt list
    and type options = unit
    and type return = Eliom_service.non_ocaml
@@ -209,7 +209,7 @@ module Make_typed_xml_registration
   (Xml: Xml_sigs.Iterable)
   (Typed_xml: Xml_sigs.Typed_xml with module Xml := Xml)
   (E : sig type content end) :
-  Eliom_registration_sigs.S
+  Eliom_registration_sigs.S_with_send
   with type page = E.content Typed_xml.elt list
    and type options = unit
    and type return = Eliom_service.non_ocaml
@@ -220,7 +220,7 @@ module Make_typed_xml_registration
 (** Eliom service registration and forms creation for untyped HTML
     page. The page content is a [string] that must contains valid HTML
     and the content type is always [text/html]. *)
-module Html_text : Eliom_registration_sigs.S
+module Html_text : Eliom_registration_sigs.S_with_send
   with type page = string
    and type options = unit
    and type return = Eliom_service.non_ocaml
@@ -230,7 +230,7 @@ module Html_text : Eliom_registration_sigs.S
     content is a [string] that must contains valid CSS and the content
     type is always [text/css]. The option is the optional
     "Cache-policy: max-age" header value to be sent. *)
-module CssText : Eliom_registration_sigs.S
+module CssText : Eliom_registration_sigs.S_with_send
   with type page = string
    and type options = int
    and type return = Eliom_service.non_ocaml
@@ -246,14 +246,14 @@ module CssText : Eliom_registration_sigs.S
     If you give the optional parameter [~options:`NoReload] to the
     registration function, the action will executed and a [204 No
     Content] will be sent to the server. *)
-module Action : Eliom_registration_sigs.S
+module Action : Eliom_registration_sigs.S_with_send
   with type return = Eliom_service.non_ocaml
    and type page = unit
    and type options = [ `Reload | `NoReload ]
    and type result = browser_content kind
 
 (** Similar to {!Actions} with [`NoReload] option. *)
-module Unit : Eliom_registration_sigs.S
+module Unit : Eliom_registration_sigs.S_with_send
   with type page = unit
    and type options = unit
    and type return = Eliom_service.non_ocaml
@@ -314,7 +314,7 @@ end
     The default returned HTTP code is [302 Found]. You could use the
     optional parameter [~options] to change this value, see
     {!Redirections} for a detailled description. *)
-module String_redirection : Eliom_registration_sigs.S
+module String_redirection : Eliom_registration_sigs.S_with_send
   with type page = Eliom_lib.Url.uri
    and type options =
          [ `MovedPermanently
@@ -339,7 +339,7 @@ module File : sig
       readable) *)
   val check_file : string -> bool
 
-  include Eliom_registration_sigs.S
+  include Eliom_registration_sigs.S_with_send
     with type page = string
      and type options = int
      and type return = Eliom_service.non_ocaml
@@ -357,7 +357,7 @@ module File_ct : sig
       readable) *)
   val check_file : string -> bool
 
-  include Eliom_registration_sigs.S
+  include Eliom_registration_sigs.S_with_send
     with type page = string * string
      and type options = int
      and type return = Eliom_service.non_ocaml
@@ -407,7 +407,7 @@ val appl_self_redirect :
     content_type)]. See also {!Streamlist} for another kind of service
     that returns "byte" contents. The option is the optional
     "Cache-policy: max-age" header value to be sent. *)
-module String : Eliom_registration_sigs.S
+module String : Eliom_registration_sigs.S_with_send
   with type page = string * string
    and type options = int
    and type return = Eliom_service.non_ocaml
@@ -424,7 +424,7 @@ module String : Eliom_registration_sigs.S
     is called at the end of the stream. If something goes wrong while
     processing a stream, the current stream is closed and the
     following streams are not created. *)
-module Streamlist : Eliom_registration_sigs.S
+module Streamlist : Eliom_registration_sigs.S_with_send
   with type page =
          (unit -> string Ocsigen_stream.t Lwt.t) list * string
    and type options = unit
@@ -438,9 +438,9 @@ module Streamlist : Eliom_registration_sigs.S
     <<a_manual project="tutorial" chapter="interaction"| Eliom
     tutorial>>%} for example. *)
 module Customize
-    (R : Eliom_registration_sigs.S)
+    (R : Eliom_registration_sigs.S_with_send)
     (T : sig type page val translate : page -> R.page Lwt.t end) :
-  Eliom_registration_sigs.S
+  Eliom_registration_sigs.S_with_send
   with type options = R.options
    and type return = R.return
    and type page = T.page

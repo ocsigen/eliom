@@ -22,6 +22,7 @@ module type PARAM = sig
   type page
   type options
   type result
+  type frame
 
   val send :
     ?options:options ->
@@ -30,7 +31,7 @@ module type PARAM = sig
     ?content_type:string ->
     ?headers: Http_headers.t ->
     page ->
-    Ocsigen_http_frame.result Lwt.t
+    frame Lwt.t
 
   val send_appl_content : Eliom_service.send_appl_content
   (** Whether the service is capable to send application content when
@@ -38,7 +39,16 @@ module type PARAM = sig
       value is recorded inside each service just after
       registration.  *)
 
-  val result_of_http_result : Ocsigen_http_frame.result -> result
+  val result_of_http_result : frame -> result
+
+end
+
+module type PARAM_CLIENT = sig
+
+  type page
+  type options
+
+  val send : page -> unit Lwt.t
 
 end
 
@@ -47,6 +57,7 @@ module type PARAM_POLY = sig
   type _ page
   type options
   type _ return
+  type frame
 
   val send :
     ?options:options ->
@@ -55,7 +66,7 @@ module type PARAM_POLY = sig
     ?content_type:string ->
     ?headers: Http_headers.t ->
     _ page ->
-    Ocsigen_http_frame.result Lwt.t
+    frame Lwt.t
 
   (** See {!Eliom_reg_sigs.PARAM.send_appl_content}. *)
   val send_appl_content : Eliom_service.send_appl_content
@@ -67,7 +78,6 @@ module type S = sig
   type page
   type options
   type return = Eliom_service.non_ocaml
-  type result
 
   (** {2 Service registration } *)
 
@@ -104,6 +114,7 @@ module type S = sig
       expected type. The default error handler is [ fun l -> raise
       (]{!Eliom_common.Eliom_Typing_Error}[ l) ]. *)
   val register :
+    ?app:string ->
     ?scope:[<Eliom_common.scope] ->
     ?options:options ->
     ?charset:string ->
@@ -121,6 +132,7 @@ module type S = sig
 
   (** Same as {!Eliom_service.create} followed by {!register}. *)
   val create :
+    ?app:string ->
     ?scope:[<Eliom_common.scope] ->
     ?options:options ->
     ?charset:string ->
@@ -147,7 +159,13 @@ module type S = sig
      'gn, 'pn, return)
       Eliom_service.t
 
-  (** {2 Low-level function } *)
+end
+
+module type S_with_send = sig
+
+  include S
+
+  type result
 
   (** The function [send page] build the HTTP frame corresponding to
       [page]. This may be used for example in an service handler
@@ -171,6 +189,7 @@ module type S_poly = sig
   type _ return
 
   val register :
+    ?app:string ->
     ?scope:[<Eliom_common.scope] ->
     ?options:options ->
     ?charset:string ->
@@ -187,6 +206,7 @@ module type S_poly = sig
     unit
 
   val create :
+    ?app:string ->
     ?scope:[<Eliom_common.scope] ->
     ?options:options ->
     ?charset:string ->

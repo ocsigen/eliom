@@ -772,7 +772,7 @@ end
 module Streamlist = Eliom_mkreg.Make(Streamlist_reg_base)
 
 module Customize
-  (R : Eliom_registration_sigs.S)
+  (R : Eliom_registration_sigs.S_with_send)
   (T : sig type page val translate : page -> R.page Lwt.t end) = struct
 
     type page = T.page
@@ -791,6 +791,7 @@ module Customize
     R.send ?options ?charset ?code ?content_type ?headers c
 
   let register
+      ?app
       ?scope
       ?options
       ?charset
@@ -802,6 +803,7 @@ module Customize
       ?error_handler
       (f : ('get -> 'post -> 'return Lwt.t)) =
     R.register
+      ?app
       ?scope
       ?options
       ?charset
@@ -814,6 +816,7 @@ module Customize
       (make_service_handler f)
 
   let create
+      ?app
       ?scope
       ?options
       ?charset
@@ -833,6 +836,7 @@ module Customize
       ?error_handler
       f =
     R.create
+      ?app
       ?scope
       ?options
       ?charset
@@ -921,6 +925,7 @@ module Ocaml = struct
          ?content_type ?headers content)
 
   let register
+      ?app
       ?scope
       ?options
       ?charset
@@ -934,6 +939,7 @@ module Ocaml = struct
       ?(error_handler : ((string * exn) list -> 'return Lwt.t) option)
       (f : ('get -> 'post -> 'return Lwt.t)) =
     M.register
+      ?app
       ?scope
       ?options
       ?charset
@@ -946,6 +952,7 @@ module Ocaml = struct
       (make_service_handler f)
 
   let create
+      ?app
       ?scope
       ?options
       ?charset
@@ -966,6 +973,7 @@ module Ocaml = struct
       f =
     Eliom_service.untype @@
     M.create
+      ?app
       ?scope
       ?options
       ?charset
@@ -1321,7 +1329,7 @@ module type ELIOM_APPL = sig
   type options = appl_service_options
   type return = Eliom_service.non_ocaml
   type result = app_id application_content kind
-  include Eliom_registration_sigs.S
+  include Eliom_registration_sigs.S_with_send
     with type page    := page
      and type options := options
      and type return  := return

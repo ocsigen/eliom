@@ -113,6 +113,7 @@ let client = {
     "eliom_cookies_base";
     "eliom_form";
     "eliom_lib_base";
+    "eliom_mkreg";
     "eliom_parameter_base";
     "eliom_process";
     "eliom_request";

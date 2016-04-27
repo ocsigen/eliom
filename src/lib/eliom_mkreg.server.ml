@@ -518,6 +518,7 @@ let send pages
   Lwt.return (pages.result_of_http_result result)
 
 let register pages
+    ?app
     ?scope
     ?options
     ?charset
@@ -589,6 +590,7 @@ let register pages
 
 let create pages
     ?scope
+    ?app
     ?options
     ?charset
     ?code
@@ -616,6 +618,7 @@ let create pages
   in
   register pages
     ?scope
+    ?app
     ?options
     ?charset
     ?code
@@ -625,7 +628,10 @@ let create pages
     ~service ?error_handler page;
   service
 
-module Make (Pages: Eliom_registration_sigs.PARAM) = struct
+module Make
+    (Pages : Eliom_registration_sigs.PARAM
+     with type frame := Ocsigen_http_frame.result) =
+struct
 
   type page = Pages.page
   type options = Pages.options
@@ -639,13 +645,16 @@ module Make (Pages: Eliom_registration_sigs.PARAM) = struct
 
   let send ?options = send pages ?options
 
-  let register ?scope = register pages ?scope
+  let register ?app = register pages ?app
 
-  let create ?scope = create pages ?scope
+  let create ?app = create pages ?app
 
 end
 
-module Make_poly (Pages : Eliom_registration_sigs.PARAM_POLY) = struct
+module Make_poly
+    (Pages : Eliom_registration_sigs.PARAM_POLY
+     with type frame := Ocsigen_http_frame.result) =
+struct
 
   type 'a page = 'a Pages.page
   type options = Pages.options
@@ -657,8 +666,8 @@ module Make_poly (Pages : Eliom_registration_sigs.PARAM_POLY) = struct
     result_of_http_result = (fun x -> x)
   }
 
-  let register ?scope = register pages ?scope
+  let register ?app = register pages ?app
 
-  let create ?scope = create pages ?scope
+  let create ?app = create pages ?app
 
 end

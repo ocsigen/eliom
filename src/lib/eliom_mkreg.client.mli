@@ -1,7 +1,7 @@
 (* Ocsigen
- * Copyright (C) 2010 Archibald Pontier
- *
- * This source file is part of Ocsigen < http://ocsigen.org/ >
+ * http://www.ocsigen.org
+ * Module Eliom_mkreg
+ * Copyright (C) 2016 Vasilis Papavasileiou
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,19 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** Register an atom feed *)
-module Reg : Eliom_registration_sigs.S_with_send
-  with type page = Atom_feed.feed
-   and type options = unit
-   and type return = Eliom_service.non_ocaml
-   and type result =
-     Eliom_registration.browser_content Eliom_registration.kind
-
-(** Needed when used with Pubsubhubbub *)
-type feed = { notify_updates : unit -> unit }
-
-(** Add the needed <link rel="hub" ...> for each hub in the feed, and
- communicate with the hub *)
-val register_feed :
-  path:string list -> hubs:Atom_feed.uri list -> string ->
-  (unit -> Atom_feed.feed Lwt.t) -> feed
+module Make (Pages : Eliom_registration_sigs.PARAM_CLIENT) :
+  Eliom_registration_sigs.S
+  with type page = Pages.page
+   and type options = Pages.options
