@@ -133,11 +133,10 @@ type ('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg,
   mutable client_fun :
     ('get -> 'post -> unit Lwt.t) Eliom_client_value.t option;
 
-  reload_fun : reload_fun;
+  mutable reload_fun : reload_fun;
 
   service_mark :
-    (unit, unit, 'meth,
-     'attached, 'co, 'ext, 'reg,
+    (unit, unit, 'meth, 'attached, 'co, 'ext, 'reg,
      suff, unit, unit, unit)
       t Eliom_common.wrapper;
 }
