@@ -127,7 +127,7 @@ let init () =
     | _ -> ()
   end;
 
-  let js_data = Eliom_request_info.get_request_data () in
+  let js_data = Eliom_client_core.request_data in
 
   (* <base> *)
   (* The first time we load the page, we record the initial URL in a client
