@@ -376,7 +376,9 @@ let reload_action = reload_action_aux false
 let reload_action_https = reload_action_aux true
 
 let reload_action_hidden_aux https = {
-  reload_action_aux https with
+  reload_action_aux https (* We must create a reference for each one
+                             of the for reload actions *)
+  with
   kind = `NonattachedCoservice;
   meth = Get';
   info = Nonattached {
