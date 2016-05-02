@@ -1292,9 +1292,6 @@ let _ =
     unwrap_global_data;
   ()
 
-let request_data =
-  Eliom_request_info.get_request_data ()
-
 let add_string_event_listener o e f capt : unit =
   let e = Js.string e
   and capt = Js.bool capt
