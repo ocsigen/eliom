@@ -12,7 +12,6 @@ module CssText = Base
 module Text = Base
 module String = Base
 
-module Action = Base
 module Unit = Base
 
 module String_redirection = Base
@@ -33,10 +32,26 @@ module Html_reg_base = struct
   type page = Html_types.html Eliom_content.Html.elt
   type options = unit
 
-  let send page =
+  let send ?options:_ page =
     Eliom_client.set_content_local
       (Eliom_content.Html.To_dom.of_element page)
 
 end
 
 module Html = Eliom_mkreg.Make(Html_reg_base)
+
+module Action_reg_base = struct
+
+  type page = unit
+  type options = [ `Reload | `NoReload ]
+
+  let send ?(options : [ `Reload | `NoReload ] option) _ =
+    match !Eliom_client.reload_function, options with
+    | Some f, Some `Reload ->
+      f () ()
+    | _, _ ->
+      Lwt.return ()
+
+end
+
+module Action = Eliom_mkreg.Make(Action_reg_base)

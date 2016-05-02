@@ -48,7 +48,7 @@ module type PARAM_CLIENT = sig
   type page
   type options
 
-  val send : page -> unit Lwt.t
+  val send : ?options:options -> page -> unit Lwt.t
 
 end
 

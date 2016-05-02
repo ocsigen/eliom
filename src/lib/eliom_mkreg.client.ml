@@ -29,14 +29,13 @@ struct
   type return = Eliom_service.non_ocaml
 
   let register
-      ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
+      ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
       ?headers:_ ?secure_session:_ ~service ?error_handler:_
       f =
-    let f g p =
-      lwt page = f g p in
-      Pages.send page
-    in
-    Eliom_service.set_client_fun ?app ~service f
+    Eliom_service.set_client_fun ?app ~service
+      (fun g p ->
+         lwt page = f g p in
+         Pages.send ?options page)
 
   let create
       ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
