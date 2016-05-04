@@ -508,9 +508,9 @@ let change_url
      | Some (Some _ as t) when t = Eliom_request_info.get_request_template () ->
          None
      | _ ->
-         match Eliom_service.get_reload_fun service with
-         | Some rf -> Some (fun () () -> rf params ())
-         | None    -> None);
+       match Eliom_service.reload_fun service with
+       | Some rf -> Some (fun () () -> rf params ())
+       | None    -> None);
   change_url_string ?replace
     (Eliom_uri.make_string_uri
        ?absolute
@@ -751,7 +751,7 @@ let change_page (type m)
              get_params post_params in
          set_template_content ?replace ~uri ?fragment (Some content)
        | _ ->
-         match Eliom_service.client_fun service () with
+         match Eliom_service.client_fun service with
          | Some f ->
            (* The service has a client side implementation.
               We do not make the request *)
@@ -759,7 +759,7 @@ let change_page (type m)
            Eliom_lib.Option.iter
              (fun rf ->
                 reload_function := Some (fun () () -> rf get_params ()))
-             (Eliom_service.get_reload_fun service);
+             (Eliom_service.reload_fun service);
            lwt () = f get_params post_params in
            let uri =
              match

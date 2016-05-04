@@ -553,3 +553,12 @@ let rec wrap_param_type : type a c. (a,'b,c) params_type -> (a,'b,c) params_type
   (* the filter is only on server side (at least for now) *)
   | TTypeFilter (t, _) -> TTypeFilter (t, None)
   | t -> t
+
+type _ is_unit =
+  | U_not : _    is_unit
+  | U_yes : unit is_unit
+
+let is_unit : type a c . (a, _, c) params_type -> a is_unit =
+  function
+  | TUnit -> U_yes
+  | _     -> U_not

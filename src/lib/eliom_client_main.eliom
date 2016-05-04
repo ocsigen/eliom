@@ -32,7 +32,7 @@ let _force_link =
 
 {client{
 
-let reload_with_warning () =
+let reload_with_warning () () =
   let f = !Eliom_client.reload_function in
   (*VVV When calling server side (non hidden) void coservice, GET
       non-attached parameters are removed.  But not when implemented
@@ -40,10 +40,14 @@ let reload_with_warning () =
       should probably remember in service reload_function with
       na_param and reload_function without ...  It is probably very
       rarely used anyway ...  *)
-  if f <> None
-  then print_endline
-      "Warning: (non hidden) calling void coservice' on client side does not remone GET non-attached parameters (FIX in Eliom)";
-  f
+  match f with
+  | Some f ->
+    print_endline
+      "Warning: (non hidden) calling void coservice' on client side does\
+       not remone GET non-attached parameters (FIX in Eliom)";
+    f () ()
+  | None ->
+    Lwt.return ()
 
 let switch_to_https () =
   let info = Eliom_process.get_info () in
@@ -60,11 +64,22 @@ let _ =
     {{ reload_with_warning }};
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_https
-    {{ fun () -> switch_to_https (); reload_with_warning () }};
+    {{ fun () () -> switch_to_https (); reload_with_warning () () }};
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_hidden
-    {{ fun () -> !Eliom_client.reload_function }};
+    {{ fun () () ->
+       match !Eliom_client.reload_function with
+       | Some f ->
+         f () ()
+       | None ->
+         Lwt.return () }};
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_https_hidden
-    {{ fun () -> switch_to_https (); !Eliom_client.reload_function }}
+    {{ fun () () ->
+       switch_to_https ();
+       match !Eliom_client.reload_function with
+       | Some f ->
+         f () ()
+       | None ->
+         Lwt.return () }}
 }}

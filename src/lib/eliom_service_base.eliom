@@ -52,11 +52,7 @@ let is_post :
   type m gp gn pp pn mf x . (m, gp, gn, pp, pn, _, mf, x) meth -> bool =
   function Post (_, _) -> true | _ -> false
 
-type 'a reload_fun =
-  | Rf_keep
-  | Rf_some of
-      (unit -> ('a -> unit -> unit Lwt.t) option)
-        Eliom_client_value.t ref
+type reload_fun = Rf_keep | Rf_client_fun
 
 type att = {
   prefix          : string;   (* name of the server and protocol for
@@ -134,11 +130,10 @@ type ('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg,
 
   (* If the service has a client-side implementation, we put the
      generating function here: *)
-  client_fun :
-    (unit -> ('get -> 'post -> unit Lwt.t) option)
-      Eliom_client_value.t ref;
+  mutable client_fun :
+    ('get -> 'post -> unit Lwt.t) Eliom_client_value.t option;
 
-  reload_fun : 'get reload_fun;
+  reload_fun : reload_fun;
 
   service_mark :
     (unit, unit, 'meth,
@@ -174,26 +169,28 @@ let max_use s = s.max_use
 let timeout s = s.timeout
 let https s = s.https
 let priority s = s.priority
-let client_fun s = !(s.client_fun)
+let client_fun {client_fun} = client_fun
 
+}}
+
+{shared{
 let has_client_fun_lazy s =
-  let f = client_fun s in
   {unit -> bool{
      fun () ->
-       match %f () with
-       | Some _ ->
+       match %s.client_fun with
+       | Some s ->
          true
-       | None ->
+       | _ ->
          false
    }}
 
-let internal_set_client_fun ~service:{client_fun} f = client_fun := f
+let internal_set_client_fun ~service f = service.client_fun <- Some f
 
 let set_client_fun ?app ~service f =
   Eliom_lib.Option.iter
     (fun name -> service.send_appl_content <- XSame_appl (name, None))
     app;
-  service.client_fun := {{ fun () -> Some %f }}
+  service.client_fun <- Some f
 
 let is_external = function {kind = `External} -> true | _ -> false
 
@@ -208,69 +205,67 @@ let change_get_num service attser n = {
 }
 
 (** Static directories **)
-let static_dir_ ?(https = false) () =
-  let client_fun = ref {_ -> _{ fun () -> None}} in {
-    pre_applied_parameters = Eliom_lib.String.Table.empty, [];
-    get_params_type =
-      Eliom_parameter.suffix
-        (Eliom_parameter.all_suffix Eliom_common.eliom_suffix_name);
-    post_params_type = Eliom_parameter.unit;
-    max_use = None;
-    timeout = None;
-    kind = `Service;
-    meth = Get';
-    info = Attached {
-      prefix = "";
-      subpath = [""];
-      fullpath = (Eliom_request_info.get_site_dir ()) @
-                 [Eliom_common.eliom_suffix_internal_name];
-      get_name = Eliom_common.SAtt_no;
-      post_name = Eliom_common.SAtt_no;
-      redirect_suffix = true;
-      priority = default_priority;
-    };
-    https;
-    keep_nl_params = `None;
-    service_mark = service_mark ();
-    send_appl_content = XNever;
-    client_fun;
-    reload_fun = Rf_some client_fun;
-  }
+let static_dir_ ?(https = false) () = {
+  pre_applied_parameters = Eliom_lib.String.Table.empty, [];
+  get_params_type =
+    Eliom_parameter.suffix
+      (Eliom_parameter.all_suffix Eliom_common.eliom_suffix_name);
+  post_params_type = Eliom_parameter.unit;
+  max_use = None;
+  timeout = None;
+  kind = `Service;
+  meth = Get';
+  info = Attached {
+    prefix = "";
+    subpath = [""];
+    fullpath = (Eliom_request_info.get_site_dir ()) @
+               [Eliom_common.eliom_suffix_internal_name];
+    get_name = Eliom_common.SAtt_no;
+    post_name = Eliom_common.SAtt_no;
+    redirect_suffix = true;
+    priority = default_priority;
+  };
+  https;
+  keep_nl_params = `None;
+  service_mark = service_mark ();
+  send_appl_content = XNever;
+  client_fun = None;
+  reload_fun = Rf_client_fun
+}
 
 let static_dir () = static_dir_ ()
 
 let https_static_dir () = static_dir_ ~https:true ()
 
 let get_static_dir_ ?(https = false)
-    ?(keep_nl_params = `None) ~get_params () =
-  let client_fun = ref {_ -> _{ fun () -> None}} in {
-    pre_applied_parameters = Eliom_lib.String.Table.empty, [];
-    get_params_type =
-      Eliom_parameter.suffix_prod
-        (Eliom_parameter.all_suffix Eliom_common.eliom_suffix_name)
-        get_params;
-    post_params_type = Eliom_parameter.unit;
-    max_use = None;
-    timeout = None;
-    kind = `Service;
-    meth = Get';
-    info = Attached {
-      prefix = "";
-      subpath = [""];
-      fullpath = (Eliom_request_info.get_site_dir ()) @
-                 [Eliom_common.eliom_suffix_internal_name];
-      get_name = Eliom_common.SAtt_no;
-      post_name = Eliom_common.SAtt_no;
-      redirect_suffix = true;
-      priority = default_priority;
-    };
-    https;
-    keep_nl_params;
-    service_mark = service_mark ();
-    send_appl_content = XNever;
-    client_fun;
-    reload_fun = Rf_some client_fun;
-  }
+    ?(keep_nl_params = `None) ~get_params () = {
+  pre_applied_parameters = Eliom_lib.String.Table.empty, [];
+  get_params_type =
+    Eliom_parameter.suffix_prod
+      (Eliom_parameter.all_suffix Eliom_common.eliom_suffix_name)
+      get_params;
+  post_params_type = Eliom_parameter.unit;
+  max_use = None;
+  timeout = None;
+  kind = `Service;
+  meth = Get';
+  info = Attached {
+    prefix = "";
+    subpath = [""];
+    fullpath = (Eliom_request_info.get_site_dir ()) @
+               [Eliom_common.eliom_suffix_internal_name];
+    get_name = Eliom_common.SAtt_no;
+    post_name = Eliom_common.SAtt_no;
+    redirect_suffix = true;
+    priority = default_priority;
+  };
+  https;
+  keep_nl_params;
+  service_mark = service_mark ();
+  send_appl_content = XNever;
+  client_fun = None;
+  reload_fun = Rf_client_fun
+}
 
 let static_dir_with_params ?keep_nl_params ~get_params () =
   get_static_dir_ ?keep_nl_params ~get_params ()
@@ -334,42 +329,33 @@ let preapply ~service getparams =
            };
        | k -> k);
     client_fun =
-      ref {{ fun () ->
-        match (! %(service.client_fun)) () with
-        | None -> None
-        | Some f -> Some (fun _ pp -> f %getparams pp)
-      }};
-    reload_fun =
-      match service.reload_fun with
-      | Rf_keep -> Rf_keep
-      | Rf_some fr ->
-        Rf_some (ref {{ fun () ->
-          match ! %fr () with
-          | None -> None
-          | Some f -> Some (fun _ pp -> f %getparams pp) }})
+      match service.client_fun with
+      | Some f ->
+        Some {{ fun () pp -> %f %getparams pp }}
+      | None ->
+        None
   }
 
 
-let reload_action_aux https =
-  let client_fun = ref {_ -> _{ fun () -> None }} in {
-    max_use = None;
-    timeout = None;
-    pre_applied_parameters = Eliom_lib.String.Table.empty, [];
-    get_params_type = Eliom_parameter.unit;
-    post_params_type = Eliom_parameter.unit;
-    kind = `NonattachedCoservice;
-    meth = Get';
-    info = Nonattached {
-      na_name = Eliom_common.SNa_void_dontkeep;
-      keep_get_na_params= true;
-    };
-    https;
-    keep_nl_params = `All;
-    service_mark = service_mark ();
-    send_appl_content = XAlways;
-    client_fun;
-    reload_fun = Rf_some client_fun;
-  }
+let reload_action_aux https = {
+  max_use = None;
+  timeout = None;
+  pre_applied_parameters = Eliom_lib.String.Table.empty, [];
+  get_params_type = Eliom_parameter.unit;
+  post_params_type = Eliom_parameter.unit;
+  kind = `NonattachedCoservice;
+  meth = Get';
+  info = Nonattached {
+    na_name = Eliom_common.SNa_void_dontkeep;
+    keep_get_na_params= true;
+  };
+  https;
+  keep_nl_params = `All;
+  service_mark = service_mark ();
+  send_appl_content = XAlways;
+  client_fun = None;
+  reload_fun = Rf_keep
+}
 
 let reload_action = reload_action_aux false
 
@@ -398,29 +384,19 @@ let add_non_localized_get_parameters ~params ~service = {
   get_params_type =
     Eliom_parameter.nl_prod service.get_params_type params;
   client_fun =
-    (let r = service.client_fun in
-     ref {{ fun () ->
-       match (! %r) () with
-       | None -> None
-       | Some f -> Some (fun (g, _) p -> f g p) }});
-  reload_fun =
-    match service.reload_fun with
-    | Rf_keep -> Rf_keep
-    | Rf_some fr ->
-      Rf_some (ref {{ fun () ->
-        match (! %fr) () with
-        | None -> None
-        | Some f -> Some (fun (g, _) p -> f g p) }})
+    match service.client_fun with
+    | None -> None
+    | Some f -> Some {{ fun (g, _) p -> %f g p }};
 }
 
 let add_non_localized_post_parameters ~params ~service = {
   service with
   post_params_type =
     Eliom_parameter.nl_prod service.post_params_type params;
-  client_fun = ref {{ fun () ->
-    match (! %(service.client_fun)) () with
+  client_fun =
+    match service.client_fun with
     | None -> None
-    | Some f -> Some (fun g (p, _) -> f g p) }}
+    | Some f -> Some {{ fun g (p, _) -> %f g p }}
 }
 
 let keep_nl_params s = s.keep_nl_params
@@ -548,9 +524,7 @@ let main_service
     ?(priority = default_priority)
     ~get_params
     (type pp) ~(post_params : (pp, _, _) Eliom_parameter.params_type)
-    ~(client_fun :
-        (unit -> (_ -> pp -> unit Lwt.t) option)
-          Eliom_client_value.t ref)
+    ?(client_fun : (_ -> pp -> unit Lwt.t) Eliom_client_value.t option)
     ~reload_fun
     () = {
   pre_applied_parameters = Eliom_lib.String.Table.empty, [];
@@ -577,9 +551,6 @@ let main_service
   reload_fun;
 }
 
-let default_client_fun =
-  {unit -> _ option{ fun () -> None }}
-
 let create_external
     (type m) (type gp) (type gn) (type pp) (type pn) (type mf) (type gp')
     ~prefix
@@ -605,7 +576,6 @@ let create_external
     ~redirect_suffix:false
     ~get_params
     ~post_params
-    ~client_fun:(Obj.magic (ref default_client_fun))
     ~reload_fun:Rf_keep
     ()
 
@@ -644,8 +614,7 @@ let plain_service
          raise
            (Eliom_common.Eliom_site_information_not_available "service"))
   in
-  let client_fun = Obj.magic (ref default_client_fun) in
-  let reload_fun = Rf_some client_fun in
+  let reload_fun = Rf_client_fun in
   main_service
     ~https
     ~prefix:""
@@ -658,7 +627,6 @@ let plain_service
     ?priority
     ~get_params
     ~post_params
-    ~client_fun
     ~reload_fun
     ()
 
@@ -679,8 +647,7 @@ let coservice
   let meth = which_meth meth
   and is_post = is_post meth in
   let csrf_scope = default_csrf_scope csrf_scope in
-  let k = attached_info fallback
-  and client_fun = Obj.magic (ref default_client_fun) in {
+  let k = attached_info fallback in {
     pre_applied_parameters = fallback.pre_applied_parameters;
     post_params_type = post_params;
     send_appl_content = fallback.send_appl_content;
@@ -714,8 +681,8 @@ let coservice
       (match keep_nl_params with
        | None -> fallback.keep_nl_params
        | Some k -> k);
-    client_fun;
-    reload_fun = Rf_some client_fun
+    client_fun = None;
+    reload_fun = Rf_client_fun
   }
 
 let coservice'
@@ -733,8 +700,7 @@ let coservice'
   let get_params, post_params = params_of_meth meth in
   let meth = which_meth meth
   and is_post = is_post meth in
-  let csrf_scope = default_csrf_scope csrf_scope
-  and client_fun = Obj.magic (ref default_client_fun) in {
+  let csrf_scope = default_csrf_scope csrf_scope in {
     max_use;
     timeout;
     pre_applied_parameters = Eliom_lib.String.Table.empty, [];
@@ -769,8 +735,8 @@ let coservice'
     keep_nl_params;
     send_appl_content = XNever;
     service_mark = service_mark ();
-    client_fun;
-    reload_fun = Rf_some client_fun
+    client_fun = None;
+    reload_fun = Rf_client_fun
   }
 
 let create

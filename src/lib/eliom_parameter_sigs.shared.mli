@@ -428,4 +428,10 @@ module type S = sig
   val wrap_param_type :
     ('a, 'b, 'c) params_type -> ('a, 'b, 'c) params_type
 
+  type _ is_unit =
+    | U_not : _    is_unit
+    | U_yes : unit is_unit
+
+  val is_unit : ('a, _, _) params_type -> 'a is_unit
+
 end

@@ -30,12 +30,22 @@ let xhr_with_cookies s =
       None
     | XSame_appl (_, tmpl) -> Some tmpl
 
-let has_client_fun service = client_fun service () <> None
+let has_client_fun service = client_fun service <> None
 
-let get_reload_fun s =
-  match s.reload_fun with
-  | Rf_keep -> None
-  | Rf_some f -> !f ()
+let reload_fun :
+  type gp pp .
+  (gp, pp, _, _, _, _, _, _, _, _, _) t ->
+  (gp -> unit -> unit Lwt.t) option =
+  fun service ->
+    match Eliom_parameter.is_unit (post_params_type service) with
+    | Eliom_parameter.U_yes ->
+      (match service with
+       | { client_fun = Some f ; reload_fun = Rf_client_fun } ->
+         Some f
+       | _ ->
+         None)
+    | _ ->
+      None
 
 let register_delayed_get_or_na_coservice ~sp s =
   failwith "CSRF coservice not implemented client side for now"

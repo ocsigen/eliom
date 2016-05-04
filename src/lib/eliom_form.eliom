@@ -257,7 +257,7 @@ module Make (Html : Html) = struct
     let elt = Js.Unsafe.coerce elt in
     Lwt_js_events.async @@ fun () ->
     Lwt_js_events.submits elt @@ fun ev _ ->
-    match Eliom_service.client_fun service () with
+    match Eliom_service.client_fun service with
     | Some f ->
       (match read_params elt y with
        | Some v ->
@@ -276,7 +276,7 @@ module Make (Html : Html) = struct
     let elt = Js.Unsafe.coerce elt in
     Lwt_js_events.async @@ fun () ->
     Lwt_js_events.submits elt @@ fun ev _ ->
-    match Eliom_service.client_fun service () with
+    match Eliom_service.client_fun service with
     | Some f ->
       (match read_params elt y with
        | Some v ->
