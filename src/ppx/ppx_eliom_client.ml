@@ -89,21 +89,25 @@ module Pass = struct
     ]
 
   let define_client_functions ~loc client_value_datas =
-    let bindings =
-      List.map
-        (fun (_num, id, expr, args) ->
-           let patt = Pat.var id in
-           let typ = find_fragment id in
-           let args = List.map Pat.var args in
-           let expr =
-             [%expr
-               fun [%p pat_args args] -> ([%e expr] : [%t typ])
-             ] [@metaloc loc]
-           in
-           Vb.mk ~loc patt expr)
-        client_value_datas
-    in
-    Str.value ~loc Nonrecursive bindings
+    match client_value_datas with
+    | [] ->
+      []
+    | _ ->
+      let bindings =
+        List.map
+          (fun (_num, id, expr, args) ->
+             let patt = Pat.var id in
+             let typ = find_fragment id in
+             let args = List.map Pat.var args in
+             let expr =
+               [%expr
+                 fun [%p pat_args args] -> ([%e expr] : [%t typ])
+               ] [@metaloc loc]
+             in
+             Vb.mk ~loc patt expr)
+          client_value_datas
+      in
+      [Str.value ~loc Nonrecursive bindings]
 
   (* For injections *)
 
@@ -139,8 +143,8 @@ module Pass = struct
     let client_expr_data = flush_client_value_datas () in
     open_client_section loc ::
     register_client_closures client_expr_data @
-    [ define_client_functions loc client_expr_data ;
-      item ;
+    define_client_functions loc client_expr_data @
+    [ item ;
       close_server_section loc ;
     ]
 
@@ -155,11 +159,13 @@ module Pass = struct
     push_client_value_data num id expr
       (List.map fst escaped_bindings);
 
-    match context with
-    | `Server ->
+    match context, escaped_bindings with
+    | `Server, _ ->
       (* We are in a server fragment, this code should always be discarded. *)
       Exp.extension @@ AM.extension_of_error @@ Location.errorf "Eliom: ICE"
-    | `Shared ->
+    | `Shared, [] ->
+      [%expr [%e frag_eid] ()][@metaloc loc]
+    | `Shared, _ ->
       let bindings =
         List.map
           (fun (gen_id, expr) ->

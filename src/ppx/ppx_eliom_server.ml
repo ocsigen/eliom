@@ -85,6 +85,7 @@ module Pass = struct
      let $gen_id$ = $orig_expr$ and ...
      (Necessary for injections in shared section) *)
   let bind_injected_idents injections =
+    assert (injections <> []);
     let bindings =
       List.map
         (fun (txt, expr,_) ->
@@ -134,10 +135,15 @@ module Pass = struct
 
   let client_str item =
     let all_injections = flush_injections () in
-    let loc = item.pstr_loc in
-    [ bind_injected_idents all_injections;
+    let ccs =
+      let loc = item.pstr_loc in
       close_client_section loc all_injections
-    ]
+    in
+    match all_injections with
+    | [] ->
+      [ ccs ]
+    | l ->
+      [ bind_injected_idents l ; ccs ]
 
   let server_str item = [
     item ;
@@ -146,12 +152,19 @@ module Pass = struct
 
   let shared_str item =
     let all_injections = flush_injections () in
-    let loc = item.pstr_loc in
-    [ bind_injected_idents all_injections ;
-      item ;
-      close_server_section loc ;
-      close_client_section loc all_injections ;
-    ]
+    let cl =
+      let loc = item.pstr_loc in
+      [
+        item;
+        close_server_section loc ;
+        close_client_section loc all_injections ;
+      ]
+    in
+    match all_injections with
+    | [] ->
+      cl
+    | l ->
+      bind_injected_idents l :: cl
 
   let fragment ?typ ~context:_ ~num ~id expr =
     let typ =
