@@ -32,8 +32,6 @@ include module type of Eliom_lib_base
   with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
   with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
 
-exception Eliom_Internal_Error of string
-
 type file_info = Ocsigen_extensions.file_info
 
 val string_escape : string -> string
