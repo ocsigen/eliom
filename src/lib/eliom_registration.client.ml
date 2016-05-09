@@ -60,7 +60,12 @@ module Action = struct
          match !Eliom_client.reload_function, options with
          | Some rf, (Some `Reload | None) ->
            rf () ()
-         | _, _ ->
+         | None, (Some `Reload | None) ->
+           (* last page was probably generated on the server, so
+              default a standard reload *)
+           Dom_html.window##location##reload();
+           Lwt.return ()
+         | _, Some `NoReload ->
            Lwt.return ());
     Eliom_service.reset_reload_fun service
 
