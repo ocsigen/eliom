@@ -36,3 +36,9 @@ let get_reload_fun s =
   match s.reload_fun with
   | Rf_keep -> None
   | Rf_some f -> !f ()
+
+let register_delayed_get_or_na_coservice ~sp s =
+  failwith "CSRF coservice not implemented client side for now"
+
+let register_delayed_post_coservice  ~sp s getname =
+  failwith "CSRF coservice not implemented client side for now"

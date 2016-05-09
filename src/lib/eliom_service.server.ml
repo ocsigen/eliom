@@ -51,6 +51,47 @@ let get_or_post
 let register_eliom_module name f =
   Ocsigen_loader.set_module_init_function name f
 
+
+exception Unregistered_CSRF_safe_coservice
+
+let register_delayed_get_or_na_coservice ~sp (k, scope, secure) =
+  let f =
+    try
+      let table =
+        !(Eliom_state.get_session_service_table_if_exists ~sp
+            ~scope:(scope:>Eliom_common.user_scope) ?secure ())
+      in
+      Eliom_lib.Int.Table.find
+        k table.Eliom_common.csrf_get_or_na_registration_functions
+    with Not_found ->
+      let table = Eliom_state.get_global_table () in
+      try
+        Eliom_lib.Int.Table.find
+          k table.Eliom_common.csrf_get_or_na_registration_functions
+      with Not_found ->
+        raise Unregistered_CSRF_safe_coservice
+  in
+  f ~sp
+
+let register_delayed_post_coservice ~sp (k, scope, secure) getname =
+  let f =
+    try
+      let table =
+        !(Eliom_state.get_session_service_table_if_exists ~sp
+            ~scope:(scope:>Eliom_common.user_scope) ?secure ())
+      in
+      Eliom_lib.Int.Table.find
+        k table.Eliom_common.csrf_post_registration_functions
+    with Not_found ->
+      let table = Eliom_state.get_global_table () in
+      try
+        Eliom_lib.Int.Table.find
+          k table.Eliom_common.csrf_post_registration_functions
+      with
+        Not_found -> raise Unregistered_CSRF_safe_coservice
+  in
+  f ~sp getname
+
 let set_delayed_get_or_na_registration_function tables k f =
   tables.Eliom_common.csrf_get_or_na_registration_functions <-
     Eliom_lib.Int.Table.add k f

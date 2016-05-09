@@ -423,12 +423,6 @@ let add_non_localized_post_parameters ~params ~service = {
 
 let keep_nl_params s = s.keep_nl_params
 
-let register_delayed_get_or_na_coservice ~sp s =
-  failwith "CSRF coservice not implemented client side for now"
-
-let register_delayed_post_coservice  ~sp s getname =
-  failwith "CSRF coservice not implemented client side for now"
-
 let untype s =
   (s
    :  ('get, 'post, 'meth, 'attached, 'co, 'ext,
