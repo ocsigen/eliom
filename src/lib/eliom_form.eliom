@@ -258,11 +258,13 @@ module Make (Html : Html) = struct
     Lwt_js_events.async @@ fun () ->
     Lwt_js_events.submits elt @@ fun ev _ ->
     match Eliom_service.client_fun service with
-    | Some f ->
+    | Some _ ->
       (match read_params elt y with
        | Some v ->
          Dom.preventDefault ev;
-         f v ()
+         (* change_page will call the client function and take care of
+            URIs, etc. *)
+         Eliom_client.change_page ~service v ()
        | None ->
          !error_handler ())
     | None ->
@@ -277,11 +279,11 @@ module Make (Html : Html) = struct
     Lwt_js_events.async @@ fun () ->
     Lwt_js_events.submits elt @@ fun ev _ ->
     match Eliom_service.client_fun service with
-    | Some f ->
+    | Some _ ->
       (match read_params elt y with
        | Some v ->
          Dom.preventDefault ev;
-         f %get_params v
+         Eliom_client.change_page ~service %get_params v
        | None ->
          !error_handler ())
     | None ->

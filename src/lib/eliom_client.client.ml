@@ -737,11 +737,12 @@ let update_session_info l =
     ~all_get_but_na_nl
     ()
 
+let we_are_an_action = ref false
+
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
    function used to change page when clicking a link and
    [change_page_{get,post}_form] when submiting a form. *)
-
 let change_page (type m)
     ?replace
     ?absolute ?absolute_path ?https
@@ -802,7 +803,16 @@ let change_page (type m)
              | `Delete (uri, get_params, _) -> uri, get_params
            in
            let uri, fragment = Url.split_fragment uri in
-           set_uri ?replace uri;
+           (* After an action, the URI must be the one we started
+              from, not that of the action service. we_are_an_action
+              is set fro m Eliom_registration.
+
+              Not very pretty. We can have client functions that
+              return a string (option?) for the URI. *)
+           if not !we_are_an_action then
+             set_uri ?replace uri
+           else
+             we_are_an_action := false;
            update_session_info all_get_params;
            Lwt.return ()
          | None ->

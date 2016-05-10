@@ -313,3 +313,5 @@ val middleClick : Dom_html.mouseEvent Js.t -> bool
 val set_content_local :
   ?offset:Eliommod_dom.position ->
   ?fragment:string -> Dom_html.element Js.t -> unit Lwt.t
+
+val we_are_an_action : bool ref

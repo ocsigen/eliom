@@ -93,6 +93,8 @@ module Action = struct
        the previously-called service. *)
     Eliom_service.set_client_fun ?app ~service
       (fun g p ->
+         (* See explanation in Eliom_client *)
+         Eliom_client.we_are_an_action := true;
          lwt () = f g p in
          match !Eliom_client.reload_function, options with
          | Some rf, (Some `Reload | None) ->
