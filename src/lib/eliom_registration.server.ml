@@ -1004,11 +1004,6 @@ type appl_service_options =
 
 let default_appl_service_options = {do_not_launch = false; }
 
-module type APPL_PARAMS = sig
-  val application_name : string
-  val global_data_path : string list option
-end
-
 let comet_service_key : unit Polytables.key = Polytables.make_key ()
 
 let request_template =
@@ -1023,7 +1018,7 @@ module Eliom_appl_reg_make_param
      : Ocsigen_http_frame.HTTP_CONTENT
        with type t = [ `Html ] Eliom_content.Html.elt
        and type options = Http_headers.accept Lazy.t)
-  (Appl_params : APPL_PARAMS) = struct
+  (App_param : Eliom_registration_sigs.APP_PARAM) = struct
 
   type app_id
 
@@ -1035,7 +1030,7 @@ module Eliom_appl_reg_make_param
 
   let is_initial_request () =
     let sp = Eliom_common.get_sp () in
-    sp.Eliom_common.sp_client_appl_name <> Some Appl_params.application_name
+    sp.Eliom_common.sp_client_appl_name <> Some App_param.application_name
 
   let eliom_appl_script_id : [ `Script ] Eliom_content.Html.Id.id =
     Eliom_content.Html.Id.new_elt_id ~global:true ()
@@ -1050,7 +1045,7 @@ module Eliom_appl_reg_make_param
       (Eliom_content.Html.D.js_script ~a
          ~uri:(Eliom_content.Html.D.make_uri
                  ~service:(Eliom_service.static_dir ())
-                 [Appl_params.application_name ^ ".js"])
+                 [App_param.application_name ^ ".js"])
          ())
   let application_script =
     (application_script
@@ -1245,7 +1240,7 @@ module Eliom_appl_reg_make_param
          (Eliom_content.Html.F.head ~a:head_attribs title head_elts)
          body )
 
-  let send_appl_content = Eliom_service.XSame_appl (Appl_params.application_name, None)
+  let send_appl_content = Eliom_service.XSame_appl (App_param.application_name, None)
 
   let send ?(options = default_appl_service_options) ?charset ?code
       ?content_type ?headers content =
@@ -1255,12 +1250,12 @@ module Eliom_appl_reg_make_param
 
     (* GRGR FIXME et si le nom de l'application diffère ?? Il faut
        renvoyer un full_redirect... TODO *)
-    if sp.Eliom_common.sp_client_appl_name <> Some Appl_params.application_name then
+    if sp.Eliom_common.sp_client_appl_name <> Some App_param.application_name then
 
       Eliom_state.set_cookie
         ~cookie_level:`Client_process
         ~name:Eliom_common.appl_name_cookie_name
-        ~value:Appl_params.application_name ();
+        ~value:App_param.application_name ();
 
     lwt page =
       match sp.Eliom_common.sp_client_appl_name, options.do_not_launch with
@@ -1279,7 +1274,7 @@ module Eliom_appl_reg_make_param
     in
     let headers = Http_headers.replace
       (Http_headers.name Eliom_common_base.appl_name_header_name)
-      Appl_params.application_name
+      App_param.application_name
       headers
     in
 
@@ -1313,13 +1308,7 @@ module Eliom_appl_reg_make_param
 
   end
 
-module type ELIOM_APPL = sig
-  val set_client_fun :
-    ?app:string ->
-    service:
-      ('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
-    ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
-    unit
+module type APP = sig
   val application_script :
     ?defer:bool -> ?async:bool -> unit -> [> `Script ] Eliom_content.Html.elt
   val application_name : string
@@ -1337,14 +1326,18 @@ module type ELIOM_APPL = sig
   val typed_name : app_id application_name
 end
 
-module App (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
+module App
+
+    (App_param : Eliom_registration_sigs.APP_PARAM) : APP =
+
+struct
 
   module P =
     Eliom_appl_reg_make_param
       (Ocsigen_senders.Make_XML_Content
          (Eliom_content.Xml)
          (Eliom_content.Html.D))
-      (Appl_params)
+      (App_param)
 
   type app_id = P.app_id
 
@@ -1357,19 +1350,17 @@ module App (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
       Warning: do not mix up with the "application instance id",
       that is unique for each instance of the application.
   *)
-  let application_name = Appl_params.application_name
-  let typed_name = Appl_params.application_name
+  let application_name = App_param.application_name
+  let typed_name = App_param.application_name
   let is_initial_request = P.is_initial_request
 
   let application_script = P.application_script
-
-  let set_client_fun = Eliom_content.set_client_fun
 
   let data_service_handler () () =
     Lwt.return (Eliom_syntax.get_global_data (), global_data_unwrapper)
 
   let _ =
-    match Appl_params.global_data_path with
+    match App_param.global_data_path with
     | Some global_data_path ->
       ignore @@
       Ocaml.create
@@ -1390,8 +1381,8 @@ module type TMPL_PARAMS = sig
 end
 
 module Eliom_tmpl_reg_make_param
-  (Appl : ELIOM_APPL)
-  (Tmpl_param : TMPL_PARAMS) = struct
+    (Appl : APP)
+    (Tmpl_param : TMPL_PARAMS) = struct
 
   type page = Tmpl_param.t
   type options = appl_service_options
@@ -1423,8 +1414,8 @@ module Eliom_tmpl_reg_make_param
 
 end
 
-module Eliom_tmpl(Appl : ELIOM_APPL)(Tmpl_param : TMPL_PARAMS) =
-  Eliom_mkreg.Make(Eliom_tmpl_reg_make_param(Appl)(Tmpl_param))
+module Eliom_tmpl(App : APP)(Tmpl_param : TMPL_PARAMS) =
+  Eliom_mkreg.Make(Eliom_tmpl_reg_make_param(App)(Tmpl_param))
 
 (** Redirection services are like services, but send a redirection
     instead of a page.

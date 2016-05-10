@@ -123,3 +123,8 @@ module Action = struct
     service
 
 end
+
+module App (P : Eliom_registration_sigs.APP_PARAM) = struct
+  let application_name = P.application_name
+  include Html
+end

@@ -95,17 +95,6 @@ module Html : Eliom_registration_sigs.S_with_send
 
 (** {2 Eliom client/server applications} *)
 
-(** Signature for application creation. *)
-module type APPL_PARAMS = sig
-  (** Name of the application. Applications must have distinct
-      names. *)
-  val application_name : string
-  (** If a path is provided, we export through it a service for
-      accessing the global data. Reading this data makes global
-      injections work in client apps. *)
-  val global_data_path : string list option
-end
-
 (** Type for the options of an Eliom application service.
 
     If you set [do_not_launch] to [true] when creating an application
@@ -125,15 +114,7 @@ type appl_service_options =
     {!appl_service_options}. *)
 val default_appl_service_options : appl_service_options
 
-module type ELIOM_APPL = sig
-
-  (** Attach a client function to a service, that will be used instead
-      of calling the server to generate the page. *)
-  val set_client_fun :
-    ?app:string ->
-    service:('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
-    ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
-    unit
+module type APP = sig
 
   (** The function [application_name ()] returns a [<script>] node
       that represents the javascript part of the application. If you
@@ -173,7 +154,7 @@ module type ELIOM_APPL = sig
 end
 
 (** Functor for application creation. *)
-module App (Appl_params : APPL_PARAMS) : ELIOM_APPL
+module App (App_params : Eliom_registration_sigs.APP_PARAM) : APP
 
 module type TMPL_PARAMS = sig
   type t
@@ -182,12 +163,12 @@ module type TMPL_PARAMS = sig
   val update: t -> unit Eliom_client_value.t
 end
 
-module Eliom_tmpl (Appl : ELIOM_APPL) (Tmpl_param : TMPL_PARAMS):
+module Eliom_tmpl (App : APP) (Tmpl_param : TMPL_PARAMS):
   Eliom_registration_sigs.S_with_send
   with type page = Tmpl_param.t
    and type options = appl_service_options
    and type return = Eliom_service.non_ocaml
-   and type result = Appl.app_id application_content kind
+   and type result = App.app_id application_content kind
 
 (** {3 Services returning only fragments of HTML (or other TyXML
     trees)} *)

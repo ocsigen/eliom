@@ -25,6 +25,11 @@ module Action : Eliom_registration_sigs.S
   with type page = unit
    and type options = [ `Reload | `NoReload ]
 
+module App (P : Eliom_registration_sigs.APP_PARAM) : sig
+  val application_name : string
+  include module type of Html
+end
+
 (**/**)
 
 module type Base = sig
