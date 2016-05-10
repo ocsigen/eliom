@@ -1,3 +1,22 @@
+(* Ocsigen
+ * http://www.ocsigen.org
+ * Copyright (C) 2016 Vasilis Papavasileiou
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, with linking exception;
+ * either version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *)
+
 module type Base = sig
   type return = Eliom_service.non_ocaml
 end
@@ -27,18 +46,36 @@ module Redirection = struct
   type 'a return = 'a
 end
 
-module Html_reg_base = struct
+module Html = struct
 
   type page = Html_types.html Eliom_content.Html.elt
   type options = unit
+  type return = Eliom_service.non_ocaml
 
-  let send ?options:_ page =
+  let register
+      ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
+      ?headers:_ ?secure_session:_ ~service ?error_handler:_
+      f =
+    Eliom_service.set_client_fun ?app ~service @@ fun g p ->
+    lwt page = f g p in
     Eliom_client.set_content_local
       (Eliom_content.Html.To_dom.of_element page)
 
-end
+  let create
+      ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
+      ?headers:_ ?secure_session:_ ?https ?name ?csrf_safe ?csrf_scope
+      ?csrf_secure ?max_use ?timeout ~meth ~id ?error_handler
+      f =
+    let service =
+      Eliom_service.create_unsafe
+        ?name ?csrf_safe
+        ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
+        ?csrf_secure ?max_use ?timeout ?https ~meth ~id ()
+    in
+    register ?app ~service f;
+    service
 
-module Html = Eliom_mkreg.Make(Html_reg_base)
+end
 
 module Action = struct
 
@@ -56,7 +93,7 @@ module Action = struct
        the previously-called service. *)
     Eliom_service.set_client_fun ?app ~service
       (fun g p ->
-         lwt _ = f g p in
+         lwt () = f g p in
          match !Eliom_client.reload_function, options with
          | Some rf, (Some `Reload | None) ->
            rf () ()
