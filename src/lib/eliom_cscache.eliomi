@@ -35,7 +35,7 @@ val find : ('a, 'b) t -> ('a -> 'b Lwt.t) -> 'a -> 'b Lwt.t
 {shared{
 
    (** [do_cache cache key value] adds the association from [key]
-       to [value] in [cache], if not already present.
+       to [value] in [cache], or replaces it if not already present.
        Called from client side, it affects only client side cache.
        Called from server side, it will have effect both on the
        server cache (scope: request) and the client side cache.
