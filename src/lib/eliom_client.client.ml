@@ -133,7 +133,13 @@ let init () =
   (* The first time we load the page, we record the initial URL in a client
      side ref, in order to set <base> (on client-side) in header for each
      pages. *)
-  Eliom_process.set_base_url (Js.to_string (Dom_html.window##location##href));
+  Eliom_process.set_base_url
+    (String.concat
+       ""
+       [ Js.to_string (Dom_html.window##location##protocol)
+       ; "//"
+       ; Js.to_string (Dom_html.window##location##host)
+       ; Js.to_string (Dom_html.window##location##pathname) ]);
   insert_base Dom_html.document;
   (* </base> *)
 
@@ -422,8 +428,8 @@ let change_url_string uri =
       List.filter (fun (id, _) -> id <= snd !current_state_id)
         !reload_functions;
     begin match !reload_function with
-      Some f -> reload_functions := (snd state_id, f) :: !reload_functions
-    | None   -> ()
+      | Some f -> reload_functions := (snd state_id, f) :: !reload_functions
+      | None   -> ()
     end;
     current_state_id := state_id;
     Dom_html.window##history##pushState(Js.Opt.return (!current_state_id),
