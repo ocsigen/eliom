@@ -737,7 +737,7 @@ let update_session_info l =
     ~all_get_but_na_nl
     ()
 
-let we_are_an_action = ref false
+let do_not_set_uri = ref false
 
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
@@ -803,16 +803,21 @@ let change_page (type m)
              | `Delete (uri, get_params, _) -> uri, get_params
            in
            let uri, fragment = Url.split_fragment uri in
-           (* After an action, the URI must be the one we started
-              from, not that of the action service. we_are_an_action
-              is set fro m Eliom_registration.
+           (* do_not_set_uri is set in Eliom_registration.Redirection
+              and Eliom_registration.Action .
+
+              After an action, the URI must be the one we started
+              from, not that of the action service.
+
+              For redirections, the subsequent change_page will set
+              the URI.
 
               Not very pretty. We can have client functions that
               return a string (option?) for the URI. *)
-           if not !we_are_an_action then
-             set_uri ?replace uri
+           if not !do_not_set_uri then
+             set_uri uri
            else
-             we_are_an_action := false;
+             do_not_set_uri := false;
            update_session_info all_get_params;
            Lwt.return ()
          | None ->

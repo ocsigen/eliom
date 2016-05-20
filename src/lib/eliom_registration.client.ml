@@ -42,10 +42,6 @@ module Ocaml = struct
   type 'a return = 'a Eliom_service.ocaml
 end
 
-module Redirection = struct
-  type 'a return = 'a
-end
-
 module Html = struct
 
   type page = Html_types.html Eliom_content.Html.elt
@@ -94,7 +90,7 @@ module Action = struct
     Eliom_service.set_client_fun ?app ~service
       (fun g p ->
          (* See explanation in Eliom_client *)
-         Eliom_client.we_are_an_action := true;
+         Eliom_client.do_not_set_uri := true;
          lwt () = f g p in
          match !Eliom_client.reload_function, options with
          | Some rf, (Some `Reload | None) ->
@@ -127,4 +123,50 @@ end
 module App (P : Eliom_registration_sigs.APP_PARAM) = struct
   let application_name = P.application_name
   include Html
+end
+
+type _ redirection =
+    Redirection :
+      (unit, unit, Eliom_service.get , _, _, _, _,
+       [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
+    'a redirection
+
+module Redirection = struct
+
+  type page = Eliom_service.non_ocaml redirection
+
+  type options =
+    [ `MovedPermanently
+    | `Found
+    | `SeeOther
+    | `NotNodifed
+    | `UseProxy
+    | `TemporaryRedirect ]
+
+  type return = Eliom_service.non_ocaml
+
+  let register
+      ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
+      ?headers:_ ?secure_session:_ ~service ?error_handler:_
+      f =
+    Eliom_service.set_client_fun ?app ~service @@ fun g p ->
+    lwt Redirection service = f g p in
+    lwt () = Eliom_client.change_page service () () in
+    Eliom_client.do_not_set_uri := true;
+    Lwt.return ()
+
+  let create
+      ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
+      ?headers:_ ?secure_session:_ ?https ?name ?csrf_safe ?csrf_scope
+      ?csrf_secure ?max_use ?timeout ~meth ~id ?error_handler
+      f =
+    let service =
+      Eliom_service.create_unsafe
+        ?name ?csrf_safe
+        ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
+        ?csrf_secure ?max_use ?timeout ?https ~meth ~id ()
+    in
+    register ?app ~service f;
+    service
+
 end

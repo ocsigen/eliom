@@ -30,6 +30,24 @@ module App (P : Eliom_registration_sigs.APP_PARAM) : sig
   include module type of Html
 end
 
+type _ redirection =
+    Redirection :
+      (unit, unit, Eliom_service.get , _, _, _, _,
+       [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
+    'a redirection
+
+(* less polymorphic than server version, we do not know what to do
+   with OCaml services *)
+module Redirection : Eliom_registration_sigs.S
+  with type page = Eliom_service.non_ocaml redirection
+   and type options =
+         [ `MovedPermanently
+         | `Found
+         | `SeeOther
+         | `NotNodifed
+         | `UseProxy
+         | `TemporaryRedirect ]
+
 (**/**)
 
 module type Base = sig
@@ -48,8 +66,4 @@ module Streamlist : Base
 
 module Ocaml : sig
   type 'a return = 'a Eliom_service.ocaml
-end
-
-module Redirection : sig
-  type 'a return = 'a
 end

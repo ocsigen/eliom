@@ -314,4 +314,4 @@ val set_content_local :
   ?offset:Eliommod_dom.position ->
   ?fragment:string -> Dom_html.element Js.t -> unit Lwt.t
 
-val we_are_an_action : bool ref
+val do_not_set_uri : bool ref
