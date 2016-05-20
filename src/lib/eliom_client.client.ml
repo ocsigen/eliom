@@ -405,6 +405,17 @@ let call_ocaml_service
   | `Success result -> Lwt.return result
   | `Failure msg -> Lwt.fail (Eliom_client_value.Exception_on_server msg)
 
+(* == Current uri.
+
+   This reference is used in [change_page_uri] and popstate event
+   handler to mimic browser's behaviour with fragment: we do not make
+   any request to the server, if only the fragment part of url
+   changes.
+
+*)
+let current_uri =
+  ref (fst (Url.split_fragment (Js.to_string Dom_html.window##location##href)))
+
 (* == Function [change_url_string] changes the URL, without doing a request.
 
    It uses the History API if present, otherwise we write the new URL

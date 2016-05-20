@@ -356,17 +356,6 @@ let register_request_node, find_request_node, reset_request_nodes =
     request_nodes := Jstable.create () in
   (register, find, reset)
 
-(* == Current uri.
-
-   This reference is used in [change_page_uri] and popstate event
-   handler to mimic browser's behaviour with fragment: we do not make
-   any request to the server, if only the fragment part of url
-   changes.
-
-*)
-
-let current_uri =
-  ref (fst (Url.split_fragment (Js.to_string Dom_html.window##location##href)))
 
 
 (* == Organize the phase of loading or change_page
