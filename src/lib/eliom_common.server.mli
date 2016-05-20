@@ -140,7 +140,6 @@ val eliom_service_session_expired :
 
 (**/**)
 
-
 (*VVV Warning: raising these exceptions will NOT send cookies!
   Do not use them inside services! *)
 exception Eliom_do_redirection of string

@@ -241,7 +241,7 @@ let create_request__
   let uri =
     Eliom_uri.make_string_uri_from_components (path, get_params, fragment)
   in
-  uri, post_params
+  uri, get_params, post_params
 
 let create_request_ (type m)
     ?absolute ?absolute_path ?https
@@ -258,12 +258,13 @@ let create_request_ (type m)
 
   match Eliom_service.which_meth service with
   | Eliom_service.Get' ->
-    let uri =
-      Eliom_uri.make_string_uri_
+    let ((_, get_params, _) as components) =
+      Eliom_uri.make_uri_components
         ?absolute ?absolute_path ?https ~service
         ?hostname ?port ?fragment ?keep_nl_params ?nl_params get_params
     in
-    `Get uri
+    let uri = Eliom_uri.make_string_uri_from_components components in
+    `Get (uri, get_params)
   | Eliom_service.Post' ->
     `Post
       (create_request__
@@ -301,25 +302,25 @@ let raw_call_service
             ?keep_nl_params ?nl_params ?keep_get_na_params
             get_params post_params
     with
-    | `Get uri ->
+    | `Get (uri, _) ->
       Eliom_request.http_get
         ~with_credentials
         ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
         ?progress ?upload_progress ?override_mime_type
         Eliom_request.string_result
-    | `Post (uri, post_params) ->
+    | `Post (uri, _, post_params) ->
       Eliom_request.http_post
         ~with_credentials
         ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
         ?progress ?upload_progress ?override_mime_type
         uri post_params Eliom_request.string_result
-    | `Put (uri, post_params) ->
+    | `Put (uri, _, post_params) ->
       Eliom_request.http_put
         ~with_credentials
         ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
         ?progress ?upload_progress ?override_mime_type
         uri post_params Eliom_request.string_result
-    | `Delete (uri, post_params) ->
+    | `Delete (uri, _, post_params) ->
       Eliom_request.http_delete
         ~with_credentials
         ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
@@ -354,10 +355,10 @@ let exit_to
            ?keep_nl_params ?nl_params ?keep_get_na_params
            get_params post_params
    with
-   | `Get uri -> Eliom_request.redirect_get uri
-   | `Post (uri, post_params) -> Eliom_request.redirect_post uri post_params
-   | `Put (uri, post_params) -> Eliom_request.redirect_put uri post_params
-   | `Delete (uri, post_params) ->
+   | `Get (uri, _) -> Eliom_request.redirect_get uri
+   | `Post (uri, _, post_params) -> Eliom_request.redirect_post uri post_params
+   | `Put (uri, _, post_params) -> Eliom_request.redirect_put uri post_params
+   | `Delete (uri, _, post_params) ->
      Eliom_request.redirect_delete uri post_params)
 
 let window_open ~window_name ?window_features
@@ -369,12 +370,12 @@ let window_open ~window_name ?window_features
           ?keep_nl_params ?nl_params ?keep_get_na_params
           get_params ()
   with
-  | `Get uri ->
+  | `Get (uri, _) ->
     Dom_html.window##open_(Js.string uri, window_name,
                            Js.Opt.option window_features)
-  | `Post (uri, post_params) -> assert false
-  | `Put (uri, post_params) -> assert false
-  | `Delete (uri, post_params) -> assert false
+  | `Post (_, _, _) -> assert false
+  | `Put (_, _, _) -> assert false
+  | `Delete (_, _, _) -> assert false
 
 
 (* == Call caml service.
@@ -640,6 +641,7 @@ let set_content ?replace ?uri ?offset ?fragment content =
         Eliommod_dom.preload_css fake_page in
       (* Unique nodes of scope request must be bound before the
          unmarshalling/unwrapping of page data. *)
+
       relink_request_nodes fake_page;
       (* Put the loaded data script in action *)
       load_data_script fake_page;
@@ -664,7 +666,8 @@ let set_content ?replace ?uri ?offset ?fragment content =
       let closure_nodeList, attrib_nodeList =
         relink_page_but_client_values fake_page
       in
-      Eliom_request_info.set_session_info js_data.Eliom_common.ejs_sess_info;
+      Eliom_request_info.set_session_info
+        js_data.Eliom_common.ejs_sess_info;
       (* Really change page contents *)
       replace_page fake_page;
       (* Initialize and provide client values. May need to access to
@@ -710,7 +713,29 @@ let set_content ?replace ?uri ?offset ?fragment content =
       Lwt_log.ign_debug ~section ~exn "set_content";
       raise_lwt exn
 
-
+let update_session_info l =
+  let all_get_params =
+    List.map
+      (function
+        | v, `String s -> v, Js.to_string s
+        | _, _ -> assert false)
+      l
+  in
+  let nl_get_params, all_get_but_nl =
+    Eliom_common.split_nl_prefix_param all_get_params
+  in
+  let all_get_but_na_nl =
+    lazy (Eliom_common.remove_na_prefix_params all_get_but_nl)
+  and na_get_params =
+    lazy (Eliom_common.filter_na_get_params all_get_but_nl)
+  in
+  Eliom_request_info.update_session_info
+    ~all_get_params
+    ~na_get_params
+    ~nl_get_params
+    ~all_get_but_nl
+    ~all_get_but_na_nl
+    ()
 
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
@@ -764,20 +789,21 @@ let change_page (type m)
                 reload_function := Some (fun () () -> rf get_params ()))
              (Eliom_service.reload_fun service);
            lwt () = f get_params post_params in
-           let uri =
+           let uri, all_get_params =
              match
                create_request_
                  ?absolute ?absolute_path ?https ~service ?hostname ?port
                  ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
                  get_params post_params
              with
-             | `Get uri
-             | `Post (uri, _)
-             | `Put (uri, _)
-             | `Delete (uri, _) -> uri
+             | `Get (uri, get_params)
+             | `Post (uri, get_params, _)
+             | `Put (uri, get_params, _)
+             | `Delete (uri, get_params, _) -> uri, get_params
            in
            let uri, fragment = Url.split_fragment uri in
            set_uri ?replace uri;
+           update_session_info all_get_params;
            Lwt.return ()
          | None ->
            (* No client-side implementation *)
@@ -790,19 +816,19 @@ let change_page (type m)
                  ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
                  get_params post_params
              with
-             | `Get uri ->
+             | `Get (uri, _) ->
                Eliom_request.http_get
                  ~expecting_process_page:true ?cookies_info uri []
                  Eliom_request.xml_result
-             | `Post (uri, p) ->
+             | `Post (uri, _, p) ->
                Eliom_request.http_post
                  ~expecting_process_page:true ?cookies_info uri p
                  Eliom_request.xml_result
-             | `Put (uri, p) ->
+             | `Put (uri, _, p) ->
                Eliom_request.http_put
                  ~expecting_process_page:true ?cookies_info uri p
                  Eliom_request.xml_result
-             | `Delete (uri, p) ->
+             | `Delete (uri, _, p) ->
                Eliom_request.http_delete
                  ~expecting_process_page:true ?cookies_info uri p
                  Eliom_request.xml_result

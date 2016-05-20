@@ -313,3 +313,55 @@ let make_actual_path path =
   | _ -> List.rev (aux [] path)
 
 let is_client_app = ref false
+
+(* Special version for non localized parameters *)
+let prefixlength = String.length nl_param_prefix
+let prefixlengthminusone = prefixlength - 1
+
+let split_nl_prefix_param l =
+    let rec aux other map = function
+      | [] -> (map, other)
+      | ((n, v) as a)::l ->
+          if String.first_diff
+            n nl_param_prefix 0 prefixlengthminusone = prefixlength
+          then
+            try
+              let last = String.index_from n prefixlength '.' in
+              let nl_param_name =
+                String.sub n prefixlength (last - prefixlength)
+              in
+              let previous =
+                try String.Table.find nl_param_name map
+                with Not_found -> []
+              in
+              aux
+                other
+                (String.Table.add nl_param_name (a::previous) map)
+                l
+            with Invalid_argument _ | Not_found -> aux (a::other) map l
+          else aux (a::other) map l
+    in
+    aux [] String.Table.empty l
+
+(* Remove all parameters whose name starts with pref *)
+let remove_prefixed_param pref l =
+  let len = String.length pref in
+  let rec aux = function
+    | [] -> []
+    | ((n,v) as a)::l ->
+        try
+          if (String.sub n 0 len) = pref then
+            aux l
+          else a::(aux l)
+        with Invalid_argument _ -> a::(aux l)
+  in aux l
+
+let remove_na_prefix_params l =
+  remove_prefixed_param na_co_param_prefix l
+  |> List.remove_assoc naservice_name
+  |> List.remove_assoc naservice_num
+
+let filter_na_get_params = List.filter @@ fun (s, (_ : string)) ->
+  s = naservice_name
+  || s = naservice_num
+  || String.sub s 0 (String.length na_co_param_prefix) = na_co_param_prefix

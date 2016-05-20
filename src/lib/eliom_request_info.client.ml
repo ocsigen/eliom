@@ -39,6 +39,37 @@ let get_sess_info = ref (fun () ->
 
 let set_session_info si = get_sess_info := fun () -> si
 
+let update_session_info
+    ?other_get_params
+    ?all_get_params
+    ?na_get_params
+    ?nl_get_params
+    ?all_post_params
+    ?all_get_but_nl
+    ?all_get_but_na_nl
+    () =
+  let f ~default = function Some x -> x | None -> default in
+  let si = !get_sess_info () in
+  let si = {
+    si with
+    Eliom_common.
+    si_other_get_params =
+      f ~default:si.Eliom_common.si_other_get_params other_get_params;
+    si_all_get_params =
+      f ~default:si.Eliom_common.si_all_get_params all_get_params;
+    si_na_get_params =
+      f ~default:si.Eliom_common.si_na_get_params na_get_params;
+    si_nl_get_params =
+      f ~default:si.Eliom_common.si_nl_get_params nl_get_params;
+    si_all_post_params =
+      f ~default:si.Eliom_common.si_all_post_params all_post_params;
+    si_all_get_but_nl =
+      f ~default:si.Eliom_common.si_all_get_but_nl all_get_but_nl;
+    si_all_get_but_na_nl =
+      f ~default:si.Eliom_common.si_all_get_but_na_nl all_get_but_na_nl;
+  } in
+  get_sess_info := fun () -> si
+
 let remove_first_slash path =
   match path with
   | ""::l -> l
