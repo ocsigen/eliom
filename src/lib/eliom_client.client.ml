@@ -29,6 +29,16 @@ open Eliom_lib
 
 type ('a, +'b) server_function = 'a -> 'b Lwt.t
 
+let only_replace_body = ref false
+let persist_document_head () = only_replace_body := true
+(*
+Cordova does not allow to read from a file when using the WkWebview.
+So, CSS preloading does not work. This provide a work-around.
+Also, with Chrome, the corresponding XHRs will block if other requests
+have been scheduled before, even when the CSS is cached. This can slow
+down page changes.
+*)
+
 (* Logs *)
 let section = Lwt_log.Section.make "eliom:client"
 let log_section = section
@@ -513,6 +523,27 @@ let set_uri ?fragment uri =
   | None -> change_url_string uri
   | Some fragment -> change_url_string (uri ^ "#" ^ fragment)
 
+let replace_page new_page =
+  if !Eliom_config.debug_timings
+  then Firebug.console##time(Js.string "replace_page");
+  if !only_replace_body then begin
+    let new_body = new_page##childNodes##item(1) in
+    Js.Opt.iter new_body (fun new_body ->
+    Dom.replaceChild Dom_html.document##documentElement
+      new_body
+      Dom_html.document##body)
+  end else begin
+    (* We insert <base> in the page.
+       The URLs of all other pages will be computed w.r.t.
+       the base URL. *)
+    insert_base new_page;
+    Dom.replaceChild Dom_html.document
+      new_page
+      Dom_html.document##documentElement
+  end;
+  if !Eliom_config.debug_timings
+  then Firebug.console##timeEnd(Js.string "replace_page")
+
 (* Function to be called for client side services: *)
 let set_content_local ?offset ?fragment new_page =
   let locked = ref true in
@@ -524,21 +555,13 @@ let set_content_local ?offset ?fragment new_page =
     (* Inline CSS in the header to avoid the "flashing effect".
        Otherwise, the browser start to display the page before
        loading the CSS. *)
-    let preloaded_css = Eliommod_dom.preload_css new_page in
+    let preloaded_css =
+      if !only_replace_body then Lwt.return () else
+      Eliommod_dom.preload_css new_page in
     (* Wait for CSS to be inlined before substituting global nodes: *)
     lwt () = preloaded_css in
     (* Really change page contents *)
-    if !Eliom_config.debug_timings
-    then Firebug.console##time(Js.string "replace_page");
-    (* We insert <base> in the page.
-       The URLs of all other pages will be computed w.r.t.
-       the base URL. *)
-    insert_base new_page;
-    Dom.replaceChild Dom_html.document
-      new_page
-      Dom_html.document##documentElement;
-    if !Eliom_config.debug_timings
-    then Firebug.console##timeEnd(Js.string "replace_page");
+    replace_page new_page;
     Eliommod_dom.add_formdata_hack_onclick_handler ();
     locked := false;
     let load_callbacks = flush_onload () @ [broadcast_load_end] in
@@ -578,7 +601,9 @@ let set_content ?uri ?offset ?fragment content =
       (* Inline CSS in the header to avoid the "flashing effect".
          Otherwise, the browser start to display the page before
          loading the CSS. *)
-      let preloaded_css = Eliommod_dom.preload_css fake_page in
+      let preloaded_css =
+        if !only_replace_body then Lwt.return () else
+        Eliommod_dom.preload_css fake_page in
       (* Unique nodes of scope request must be bound before the
          unmarshalling/unwrapping of page data. *)
       relink_request_nodes fake_page;
@@ -607,14 +632,7 @@ let set_content ?uri ?offset ?fragment content =
       in
       Eliom_request_info.set_session_info js_data.Eliom_common.ejs_sess_info;
       (* Really change page contents *)
-      if !Eliom_config.debug_timings
-      then Firebug.console##time(Js.string "replace_page");
-      Lwt_log.ign_debug ~section "Replace page";
-      Dom.replaceChild Dom_html.document
-        fake_page
-        Dom_html.document##documentElement;
-      if !Eliom_config.debug_timings
-      then Firebug.console##timeEnd(Js.string "replace_page");
+      replace_page fake_page;
       (* Initialize and provide client values. May need to access to
          new DOM. Necessary for relinking closure nodes *)
       do_request_data js_data.Eliom_common.ejs_request_data;

@@ -230,6 +230,10 @@ val wait_load_end : unit -> unit Lwt.t
     defined while applying [Eliom_registration.App] functor. *)
 val get_application_name : unit -> string
 
+(** After this function is called, the document head is no
+    longer changed on page change. *)
+val persist_document_head : unit -> unit
+
 (** {2 RPC / Server functions}
 
     See the {% <<a_manual chapter="clientserver-communication" fragment="rpc"|manual>> %}.*)
@@ -279,8 +283,6 @@ val server_function :
   ?https:bool ->
   ?error_handler:((string * exn) list -> 'b Lwt.t) ->
   'a Deriving_Json.t -> unit -> ('a, 'b) server_function
-
-
 
 (**/**)
 (* Documentation rather in eliom_client.ml *)
