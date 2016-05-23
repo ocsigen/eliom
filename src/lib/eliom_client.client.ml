@@ -481,6 +481,18 @@ let change_url
     ?keep_nl_params
     ?nl_params
     params =
+  reload_function :=
+    (match Eliom_service.xhr_with_cookies service with
+     | None when
+           (https = Some true && not Eliom_request_info.ssl_)
+           || (https = Some false && Eliom_request_info.ssl_) ->
+         None
+     | Some (Some _ as t) when t = Eliom_request_info.get_request_template () ->
+         None
+     | _ ->
+         match Eliom_service.get_reload_fun service with
+         | Some rf -> Some (fun () () -> rf params ())
+         | None    -> None);
   change_url_string
     (Eliom_uri.make_string_uri
        ?absolute
@@ -493,10 +505,54 @@ let change_url
        ?keep_nl_params
        ?nl_params params)
 
+let replace_url
+    ?absolute ?absolute_path ?https
+    ~service
+    ?hostname ?port ?fragment
+    ?keep_nl_params ?nl_params
+    params =
+  reload_function :=
+    (match Eliom_service.xhr_with_cookies service with
+     | None when
+           (https = Some true && not Eliom_request_info.ssl_)
+           || (https = Some false && Eliom_request_info.ssl_) ->
+         None
+     | Some (Some _ as t) when t = Eliom_request_info.get_request_template () ->
+         None
+     | _ ->
+         match Eliom_service.get_reload_fun service with
+         | Some rf -> Some (fun () () -> rf params ())
+         | None    -> None);
+  let uri =
+    Eliom_uri.make_string_uri
+      ?absolute
+      ?absolute_path
+      ?https
+      ~service
+      ?hostname
+      ?port
+      ?fragment
+      ?keep_nl_params
+      ?nl_params params
+  in
+  current_uri := fst (Url.split_fragment uri);
+  let state_id = !current_state_id in
+  begin match !reload_function with
+  | Some f ->
+      let id = snd state_id in
+      reload_functions :=
+        (id, f) :: (List.filter (fun (id', _) -> id <> id') !reload_functions)
+  | None ->
+      ()
+  end;
+  Dom_html.window##history##replaceState(Js.Opt.return (!current_state_id),
+                                         Js.string "",
+                                         Js.Opt.return (Js.string uri))
 
 (***)
 let set_template_content ?uri ?fragment =
   let really_set content () =
+    reload_function := None;
     (match uri, fragment with
      | Some uri, None -> change_url_string uri
      | Some uri, Some fragment ->
@@ -518,6 +574,7 @@ let set_template_content ?uri ?fragment =
     run_onunload_wrapper (really_set content) cancel
 
 let set_uri ?fragment uri =
+  reload_function := None;
   (* Changing url: *)
   match fragment with
   | None -> change_url_string uri
@@ -881,6 +938,7 @@ let () =
             then begin
               current_uri := uri;
               try
+                if fst state_id <> session_id then raise Not_found;
                 List.assq (snd state_id) !reload_functions () () >>
                 (scroll_to_fragment ~offset:state.position fragment;
                  Lwt.return ())

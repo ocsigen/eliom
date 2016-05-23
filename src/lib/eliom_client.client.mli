@@ -155,6 +155,24 @@ val change_url :
   ?nl_params:Eliom_parameter.nl_params_set ->
   'get -> unit
 
+(** Replaces the URL, without doing a request and without
+    pushing the previous URL in the history.
+    It takes a GET (co-)service as parameter and its parameters.
+ *)
+val replace_url :
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:
+    ('get, unit, Eliom_service.get,
+     _, _, _, _, _, _, unit, _) Eliom_service.t ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:Eliom_parameter.nl_params_set ->
+  'get -> unit
+
 (** (low level) Call a server side service and return the content
     of the resulting HTTP frame as a string. *)
 val call_service :
