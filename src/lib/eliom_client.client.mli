@@ -52,11 +52,16 @@ val is_client_app : unit -> bool
 
 
 (** {2 Calling services} *)
-(** Call a server side service and change the current page.
+(** Call a service and change the current page.
     If the service belongs to the same application,
     the client side program is not stopped, and only
-    the content (not the container) is reloaded. *)
+    the content (not the container) is reloaded.
+    If the [replace] flag is set, the new page will replace the
+    current page in the browser history if the service belongs to
+    the same application.
+*)
 val change_page :
+  ?replace:bool ->
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
@@ -140,26 +145,11 @@ val window_open :
 
 (** Changes the URL, without doing a request.
     It takes a GET (co-)service as parameter and its parameters.
+    If the [replace] flag is set, the current page is not saved
+    in the history.
  *)
 val change_url :
-  ?absolute:bool ->
-  ?absolute_path:bool ->
-  ?https:bool ->
-  service:
-    ('get, unit, Eliom_service.get,
-     _, _, _, _, _, _, unit, _) Eliom_service.t ->
-  ?hostname:string ->
-  ?port:int ->
-  ?fragment:string ->
-  ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:Eliom_parameter.nl_params_set ->
-  'get -> unit
-
-(** Replaces the URL, without doing a request and without
-    pushing the previous URL in the history.
-    It takes a GET (co-)service as parameter and its parameters.
- *)
-val replace_url :
+  ?replace:bool ->
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->

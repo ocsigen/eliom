@@ -439,23 +439,42 @@ let url_fragment_prefix_with_sharp = "#!"
 let reload_function = ref None
 let reload_functions = ref []
 
-let change_url_string uri =
+let change_url_string ?(replace = false) uri =
   current_uri := fst (Url.split_fragment uri);
-  if Eliom_process.history_api
-  then begin
-    update_state();
-    let state_id = next_state_id () in
-    reload_functions :=
-      List.filter (fun (id, _) -> id <= snd !current_state_id)
-        !reload_functions;
-    begin match !reload_function with
-      | Some f -> reload_functions := (snd state_id, f) :: !reload_functions
-      | None   -> ()
+  if Eliom_process.history_api then begin
+    if replace then
+      let state_id = !current_state_id in
+      begin match !reload_function with
+        | Some f ->
+          let id = snd state_id in
+          reload_functions :=
+            (id, f) ::
+            (List.filter (fun (id', _) -> id <> id') !reload_functions)
+        | None ->
+          ()
+      end;
+      Dom_html.window##history##replaceState
+        (Js.Opt.return (!current_state_id, Js.string (Url.resolve uri)),
+         Js.string "",
+         if !Eliom_common.is_client_app then Js.null else
+         Js.Opt.return (Js.string uri))
+    else begin
+      update_state();
+      let state_id = next_state_id () in
+      reload_functions :=
+        List.filter (fun (id, _) -> id <= snd !current_state_id)
+          !reload_functions;
+      begin match !reload_function with
+        | Some f -> reload_functions := (snd state_id, f) :: !reload_functions
+        | None   -> ()
+      end;
+      current_state_id := state_id;
+      Dom_html.window##history##pushState
+        (Js.Opt.return (!current_state_id, Js.string (Url.resolve uri)),
+         Js.string "",
+         if !Eliom_common.is_client_app then Js.null else
+         Js.Opt.return (Js.string uri))
     end;
-    current_state_id := state_id;
-    Dom_html.window##history##pushState(Js.Opt.return (!current_state_id),
-                                        Js.string "",
-                                        Js.Opt.return (Js.string uri));
     Eliommod_dom.touch_base ();
   end else begin
     current_pseudo_fragment := url_fragment_prefix_with_sharp^uri;
@@ -464,13 +483,12 @@ let change_url_string uri =
     then Dom_html.window##location##hash <- Js.string (url_fragment_prefix^uri)
   end
 
-
-
 (* == Function [change_url] changes the URL, without doing a request.
    It takes a GET (co-)service as parameter and its parameters.
  *)
 
 let change_url
+    ?replace
     ?absolute
     ?absolute_path
     ?https
@@ -493,7 +511,7 @@ let change_url
          match Eliom_service.get_reload_fun service with
          | Some rf -> Some (fun () () -> rf params ())
          | None    -> None);
-  change_url_string
+  change_url_string ?replace
     (Eliom_uri.make_string_uri
        ?absolute
        ?absolute_path
@@ -505,58 +523,14 @@ let change_url
        ?keep_nl_params
        ?nl_params params)
 
-let replace_url
-    ?absolute ?absolute_path ?https
-    ~service
-    ?hostname ?port ?fragment
-    ?keep_nl_params ?nl_params
-    params =
-  reload_function :=
-    (match Eliom_service.xhr_with_cookies service with
-     | None when
-           (https = Some true && not Eliom_request_info.ssl_)
-           || (https = Some false && Eliom_request_info.ssl_) ->
-         None
-     | Some (Some _ as t) when t = Eliom_request_info.get_request_template () ->
-         None
-     | _ ->
-         match Eliom_service.get_reload_fun service with
-         | Some rf -> Some (fun () () -> rf params ())
-         | None    -> None);
-  let uri =
-    Eliom_uri.make_string_uri
-      ?absolute
-      ?absolute_path
-      ?https
-      ~service
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params params
-  in
-  current_uri := fst (Url.split_fragment uri);
-  let state_id = !current_state_id in
-  begin match !reload_function with
-  | Some f ->
-      let id = snd state_id in
-      reload_functions :=
-        (id, f) :: (List.filter (fun (id', _) -> id <> id') !reload_functions)
-  | None ->
-      ()
-  end;
-  Dom_html.window##history##replaceState(Js.Opt.return (!current_state_id),
-                                         Js.string "",
-                                         Js.Opt.return (Js.string uri))
-
 (***)
-let set_template_content ?uri ?fragment =
+let set_template_content ?replace ?uri ?fragment =
   let really_set content () =
     reload_function := None;
     (match uri, fragment with
-     | Some uri, None -> change_url_string uri
+     | Some uri, None -> change_url_string ?replace uri
      | Some uri, Some fragment ->
-       change_url_string (uri ^ "#" ^ fragment)
+       change_url_string ?replace (uri ^ "#" ^ fragment)
      | _ -> ());
     lwt () = Lwt_mutex.lock load_mutex in
     lwt (), request_data = unwrap_caml_content content in
@@ -573,12 +547,11 @@ let set_template_content ?uri ?fragment =
   | Some content ->
     run_onunload_wrapper (really_set content) cancel
 
-let set_uri ?fragment uri =
-  reload_function := None;
+let set_uri ?replace ?fragment uri =
   (* Changing url: *)
   match fragment with
-  | None -> change_url_string uri
-  | Some fragment -> change_url_string (uri ^ "#" ^ fragment)
+  | None -> change_url_string ?replace uri
+  | Some fragment -> change_url_string ?replace (uri ^ "#" ^ fragment)
 
 let replace_page new_page =
   if !Eliom_config.debug_timings
@@ -642,14 +615,15 @@ let set_content_local ?offset ?fragment new_page =
     raise_lwt exn
 
 (* Function to be called for server side services: *)
-let set_content ?uri ?offset ?fragment content =
+let set_content ?replace ?uri ?offset ?fragment content =
   Lwt_log.ign_debug ~section "Set content";
   match content with
   | None -> Lwt.return ()
   | Some content ->
     let locked = ref true in
     let really_set () =
-      Eliom_lib.Option.iter (set_uri ?fragment) uri;
+      reload_function := None;
+      Eliom_lib.Option.iter (set_uri ?replace ?fragment) uri;
       (* Convert the DOM nodes from XML elements to HTML elements. *)
       let fake_page =
         Eliommod_dom.html_document content registered_process_node
@@ -741,6 +715,7 @@ let set_content ?uri ?offset ?fragment content =
    [change_page_{get,post}_form] when submiting a form. *)
 
 let change_page (type m)
+    ?replace
     ?absolute ?absolute_path ?https
     ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.t)
     ?hostname ?port ?fragment
@@ -774,7 +749,7 @@ let change_page (type m)
              ?keep_nl_params ~nl_params ?keep_get_na_params
              ?progress ?upload_progress ?override_mime_type
              get_params post_params in
-         set_template_content ~uri ?fragment (Some content)
+         set_template_content ?replace ~uri ?fragment (Some content)
        | _ ->
          match Eliom_service.client_fun service () with
          | Some f ->
@@ -799,7 +774,7 @@ let change_page (type m)
              | `Delete (uri, _) -> uri
            in
            let uri, fragment = Url.split_fragment uri in
-           set_uri uri;
+           set_uri ?replace uri;
            Lwt.return ()
          | None ->
            (* No client-side implementation *)
@@ -830,7 +805,7 @@ let change_page (type m)
                  Eliom_request.xml_result
            in
            let uri, fragment = Url.split_fragment uri in
-           set_content ~uri ?fragment content)
+           set_content ?replace ~uri ?fragment content)
 
 (* Function used in "onclick" event handler of <a>.  *)
 
@@ -975,18 +950,18 @@ let () =
     Lwt.ignore_result
       (lwt () = wait_load_end () in
        Dom_html.window##history##replaceState(
-         Js.Opt.return !current_state_id,
+         Js.Opt.return (!current_state_id, Dom_html.window##location##href),
          Js.string "",
-         Js.some Dom_html.window##location##href );
+         Js.null );
        Lwt.return ());
 
     Dom_html.window##onpopstate <-
       Dom_html.handler (fun event ->
-        let full_uri = Js.to_string Dom_html.window##location##href in
         Eliommod_dom.touch_base ();
-        Js.Opt.case ((Js.Unsafe.coerce event)##state : (int * int) Js.opt)
+        Js.Opt.case ((Js.Unsafe.coerce event)##state :
+                       ((int * int) * Js.js_string Js.t) Js.opt)
           (fun () -> () (* Ignore dummy popstate event fired by chromium. *))
-          (goto_uri full_uri);
+          (fun (state, full_uri) -> goto_uri (Js.to_string full_uri) state);
         Js._false)
 
   else (* Without history API *)
