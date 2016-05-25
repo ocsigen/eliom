@@ -186,7 +186,7 @@ module Any = struct
   type 'a result = 'a kind
   type options = unit
 
-  let send ?options ?charset ?code ?content_type ?headers page =
+  let send ?options:_ ?charset:_ ?code:_ ?content_type:_ ?headers:_ page =
     Lwt.return page
 
   let register
@@ -202,7 +202,7 @@ module Any = struct
       ?csrf_secure ?max_use ?timeout ~meth ~id ?error_handler
       f =
     let service =
-      Eliom_service.create_unsafe
+      Eliom_service.create
         ?name ?csrf_safe
         ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
         ?csrf_secure ?max_use ?timeout ?https ~meth ~id ()

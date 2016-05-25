@@ -89,6 +89,7 @@ module type S = sig
   type page
   type options
   type return = Eliom_service.non_ocaml
+  type result
 
   (** {2 Service registration } *)
 
@@ -170,14 +171,6 @@ module type S = sig
      'gn, 'pn, return)
       Eliom_service.t
 
-end
-
-module type S_with_send = sig
-
-  include S
-
-  type result
-
   (** The function [send page] build the HTTP frame corresponding to
       [page]. This may be used for example in an service handler
       registered with {!Eliom_registration.Any.register} or when
@@ -193,7 +186,7 @@ module type S_with_send = sig
 
 end
 
-module type S_poly = sig
+module type S_poly_without_send = sig
 
   type _ page
   type options
@@ -246,9 +239,9 @@ module type S_poly = sig
 
 end
 
-module type S_poly_with_send = sig
+module type S_poly = sig
 
-  include S_poly
+  include S_poly_without_send
 
   type 'a result
 

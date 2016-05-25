@@ -27,7 +27,7 @@
 module Make
     (Pages: Eliom_registration_sigs.PARAM
      with type frame := Ocsigen_http_frame.result) :
-  Eliom_registration_sigs.S_with_send
+  Eliom_registration_sigs.S
   with type page = Pages.page
    and type options = Pages.options
    and type result = Pages.result
@@ -37,7 +37,7 @@ module Make
 module Make_poly
     (Pages : Eliom_registration_sigs.PARAM_POLY
      with type frame := Ocsigen_http_frame.result) :
-  Eliom_registration_sigs.S_poly
+  Eliom_registration_sigs.S_poly_without_send
   with type 'a page   = 'a Pages.page
    and type options   = Pages.options
    and type 'a return = 'a Pages.return

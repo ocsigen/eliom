@@ -21,13 +21,13 @@ type 'a kind
 
 type browser_content
 
-module Html : Eliom_registration_sigs.S_with_send
+module Html : Eliom_registration_sigs.S
   with type page = Html_types.html Eliom_content.Html.elt
    and type options = unit
    and type return = Eliom_service.non_ocaml
    and type result = browser_content kind
 
-module Action : Eliom_registration_sigs.S_with_send
+module Action : Eliom_registration_sigs.S
   with type page = unit
    and type options = [ `Reload | `NoReload ]
    and type return = Eliom_service.non_ocaml
@@ -46,7 +46,7 @@ type _ redirection =
 
 (* less polymorphic than server version, we do not know what to do
    with OCaml services *)
-module Redirection : Eliom_registration_sigs.S_with_send
+module Redirection : Eliom_registration_sigs.S
   with type page = Eliom_service.non_ocaml redirection
    and type options =
          [ `MovedPermanently
@@ -58,7 +58,7 @@ module Redirection : Eliom_registration_sigs.S_with_send
    and type return = Eliom_service.non_ocaml
    and type result = browser_content kind
 
-module Any : Eliom_registration_sigs.S_poly_with_send
+module Any : Eliom_registration_sigs.S_poly
   with type 'a page = 'a kind
    and type options = unit
    and type 'a return = Eliom_service.non_ocaml
