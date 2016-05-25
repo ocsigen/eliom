@@ -914,7 +914,9 @@ let () =
               current_uri := uri;
               try
                 if fst state_id <> session_id then raise Not_found;
-                List.assq (snd state_id) !reload_functions () () >>
+                let rf = List.assq (snd state_id) !reload_functions in
+                reload_function := Some rf;
+                rf () () >>
                 (scroll_to_fragment ~offset:state.position fragment;
                  Lwt.return ())
               with Not_found ->
