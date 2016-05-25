@@ -35,27 +35,42 @@ module Unit = Base
 
 module String_redirection = Base
 
-module Any = Base
 module Streamlist = Base
 
 module Ocaml = struct
   type 'a return = 'a Eliom_service.ocaml
 end
 
-module Html = struct
+type 'a kind = unit
+type browser_content = [`Browser]
 
-  type page = Html_types.html Eliom_content.Html.elt
-  type options = unit
-  type return = Eliom_service.non_ocaml
+module type PARAM = sig
+
+  type page
+  type options
+  type return
+  type result
+
+  val send : ?options:options -> page -> unit Lwt.t
+
+end
+
+module Make (P : PARAM) = struct
+
+  type page = P.page
+  type options = P.options
+  type return = P.return
+  type result = P.result
+
+  let send ?options ?charset ?code ?content_type ?headers page =
+    P.send ?options page
 
   let register
       ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
       ?headers:_ ?secure_session:_ ~service ?error_handler:_
       f =
-    Eliom_service.set_client_fun ?app ~service @@ fun g p ->
-    lwt page = f g p in
-    Eliom_client.set_content_local
-      (Eliom_content.Html.To_dom.of_element page)
+    Eliom_service.set_client_fun ?app ~service
+      (fun g p -> lwt page = f g p in P.send ?options page)
 
   let create
       ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
@@ -63,7 +78,7 @@ module Html = struct
       ?csrf_secure ?max_use ?timeout ~meth ~id ?error_handler
       f =
     let service =
-      Eliom_service.create_unsafe
+      Eliom_service.create
         ?name ?csrf_safe
         ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
         ?csrf_secure ?max_use ?timeout ?https ~meth ~id ()
@@ -73,35 +88,45 @@ module Html = struct
 
 end
 
+module Html = Make (struct
+
+    type page = Html_types.html Eliom_content.Html.elt
+    type options = unit
+    type return = Eliom_service.non_ocaml
+    type result = browser_content kind
+
+    let send ?options:_ page =
+      Eliom_client.set_content_local
+        (Eliom_content.Html.To_dom.of_element page)
+
+  end)
+
 module Action = struct
 
-  type page    = unit
+  type page = unit
   type options = [`Reload | `NoReload]
-  type return  = Eliom_service.non_ocaml
+  type return = Eliom_service.non_ocaml
+  type result = browser_content kind
+
+  let send ?options ?charset:_ ?code:_ ?content_type:_ ?headers:_ page =
+    Eliom_client.do_not_set_uri := true;
+    match !Eliom_client.reload_function, options with
+    | Some rf, (Some `Reload | None) ->
+      rf () ()
+    | None, (Some `Reload | None) ->
+      (* last page was probably generated on the server, so
+         default a standard reload *)
+      Dom_html.window##location##reload();
+      Lwt.return ()
+    | _, Some `NoReload ->
+      Lwt.return ()
 
   let register
       ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
       ?headers:_ ?secure_session:_ ~service ?error_handler:_
       f =
-    (* The action has no reload function of its own
-       (reset_reload_fun). If it did, Eliom_client.change_page would
-       get us into an infinite loop. We rely on the reload_function of
-       the previously-called service. *)
     Eliom_service.set_client_fun ?app ~service
-      (fun g p ->
-         (* See explanation in Eliom_client *)
-         Eliom_client.do_not_set_uri := true;
-         lwt () = f g p in
-         match !Eliom_client.reload_function, options with
-         | Some rf, (Some `Reload | None) ->
-           rf () ()
-         | None, (Some `Reload | None) ->
-           (* last page was probably generated on the server, so
-              default a standard reload *)
-           Dom_html.window##location##reload();
-           Lwt.return ()
-         | _, Some `NoReload ->
-           Lwt.return ());
+      (fun g p -> lwt page = f g p in send ?options page);
     Eliom_service.reset_reload_fun service
 
   let create
@@ -131,29 +156,45 @@ type _ redirection =
        [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
     'a redirection
 
-module Redirection = struct
+module Redirection = Make (struct
 
-  type page = Eliom_service.non_ocaml redirection
+    type page = Eliom_service.non_ocaml redirection
 
-  type options =
-    [ `MovedPermanently
-    | `Found
-    | `SeeOther
-    | `NotNodifed
-    | `UseProxy
-    | `TemporaryRedirect ]
+    type options =
+      [ `MovedPermanently
+      | `Found
+      | `SeeOther
+      | `NotNodifed
+      | `UseProxy
+      | `TemporaryRedirect ]
 
-  type return = Eliom_service.non_ocaml
+    type return = Eliom_service.non_ocaml
+
+    type result = browser_content kind
+
+    let send ?options:_ (Redirection service) =
+      lwt () = Eliom_client.change_page service () () in
+      Eliom_client.do_not_set_uri := true;
+      Lwt.return ()
+
+  end)
+
+module Any = struct
+
+  type 'a page = 'a kind
+  type 'a return = Eliom_service.non_ocaml
+  type 'a result = 'a kind
+  type options = unit
+
+  let send ?options ?charset ?code ?content_type ?headers page =
+    Lwt.return page
 
   let register
       ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
       ?headers:_ ?secure_session:_ ~service ?error_handler:_
       f =
-    Eliom_service.set_client_fun ?app ~service @@ fun g p ->
-    lwt Redirection service = f g p in
-    lwt () = Eliom_client.change_page service () () in
-    Eliom_client.do_not_set_uri := true;
-    Lwt.return ()
+    Eliom_service.set_client_fun ?app ~service
+      (fun g p -> lwt page = f g p in send page)
 
   let create
       ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_

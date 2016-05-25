@@ -17,13 +17,21 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-module Html : Eliom_registration_sigs.S
+type 'a kind
+
+type browser_content
+
+module Html : Eliom_registration_sigs.S_with_send
   with type page = Html_types.html Eliom_content.Html.elt
    and type options = unit
+   and type return = Eliom_service.non_ocaml
+   and type result = browser_content kind
 
-module Action : Eliom_registration_sigs.S
+module Action : Eliom_registration_sigs.S_with_send
   with type page = unit
    and type options = [ `Reload | `NoReload ]
+   and type return = Eliom_service.non_ocaml
+   and type result = browser_content kind
 
 module App (P : Eliom_registration_sigs.APP_PARAM) : sig
   val application_name : string
@@ -38,7 +46,7 @@ type _ redirection =
 
 (* less polymorphic than server version, we do not know what to do
    with OCaml services *)
-module Redirection : Eliom_registration_sigs.S
+module Redirection : Eliom_registration_sigs.S_with_send
   with type page = Eliom_service.non_ocaml redirection
    and type options =
          [ `MovedPermanently
@@ -47,6 +55,14 @@ module Redirection : Eliom_registration_sigs.S
          | `NotNodifed
          | `UseProxy
          | `TemporaryRedirect ]
+   and type return = Eliom_service.non_ocaml
+   and type result = browser_content kind
+
+module Any : Eliom_registration_sigs.S_poly_with_send
+  with type 'a page = 'a kind
+   and type options = unit
+   and type 'a return = Eliom_service.non_ocaml
+   and type 'a result = 'a kind
 
 (**/**)
 
@@ -61,7 +77,6 @@ module Text : Base
 module String : Base
 module Unit : Base
 module String_redirection : Base
-module Any : Base
 module Streamlist : Base
 
 module Ocaml : sig
