@@ -32,6 +32,17 @@ let _force_link =
 
 {client{
 
+let default_reload () =
+  Dom_html.window##location##reload();
+  Lwt.return ()
+
+let reload () =
+  match !Eliom_client.reload_function with
+  | Some f ->
+    f () ()
+  | None ->
+    default_reload ()
+
 let reload_with_warning () () =
   let f = !Eliom_client.reload_function in
   (*VVV When calling server side (non hidden) void coservice, GET
@@ -47,7 +58,7 @@ let reload_with_warning () () =
        not remone GET non-attached parameters (FIX in Eliom)";
     f () ()
   | None ->
-    Lwt.return ()
+    default_reload ()
 
 let switch_to_https () =
   let info = Eliom_process.get_info () in
@@ -67,19 +78,8 @@ let _ =
     {{ fun () () -> switch_to_https (); reload_with_warning () () }};
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_hidden
-    {{ fun () () ->
-       match !Eliom_client.reload_function with
-       | Some f ->
-         f () ()
-       | None ->
-         Lwt.return () }};
+    {{ fun () () -> reload () }};
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_https_hidden
-    {{ fun () () ->
-       switch_to_https ();
-       match !Eliom_client.reload_function with
-       | Some f ->
-         f () ()
-       | None ->
-         Lwt.return () }}
+    {{ fun () () -> switch_to_https (); reload () }}
 }}
