@@ -240,6 +240,8 @@ module Svg : sig
       that will be computed on client side (for example reactive
       nodes). *)
   module C : sig
+
+    val node : ?init:'a elt -> 'a elt Eliom_client_value.t -> 'a elt
     (** [node e] is a server-side node corresponding to the
         client-side node [e] . [node e] can be used like any other
         server-side node.
@@ -250,8 +252,9 @@ module Svg : sig
         custom placeholder node (e.g., one with the same tag as the
         client node). This can be useful in contexts where [span] is
         not allowed. *)
-    val node : ?init:'a elt -> 'a elt Eliom_client_value.t -> 'a elt
+
     val attr : ?init:'a attrib -> 'a attrib Eliom_client_value.t -> 'a attrib
+
   end
 
   (** Node identifiers. *)
