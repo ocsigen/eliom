@@ -478,8 +478,7 @@ struct
                 update_stateful_state hd l;
                 Lwt.return (add_no_index l)
           with
-            | Eliom_request.Failed_request 504
-            | Eliom_request.Failed_request 0 ->
+            | Eliom_request.Failed_request (0 | 502 | 504) ->
               if retries > max_retries
               then
                 (Eliom_lib.Lwt_log.ign_notice ~section "connection failure";
