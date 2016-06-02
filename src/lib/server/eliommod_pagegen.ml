@@ -280,7 +280,7 @@ let gen is_eliom_extension sitedata = function
             match si.Eliom_common.si_nonatt_info with
               | Eliom_common.RNa_no ->
                   (* page generation *)
-                  Eliommod_services.get_page
+                  Eliom_route.get_page
               | _ ->
                   (* anonymous service *)
                   Eliommod_naservices.make_naservice

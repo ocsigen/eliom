@@ -406,6 +406,9 @@ type node_info = {
 
 module Hier_set : Set.S
 
+type 'a dircontent = Vide | Table of 'a direlt ref String.Table.t
+and 'a direlt = Dir of 'a dircontent ref | File of 'a ref
+
 type server_params = {
   sp_request : Ocsigen_extensions.request;
   sp_si : sess_info;
@@ -431,22 +434,22 @@ type server_params = {
 and page_table = page_table_content Serv_Table.t
 
 and page_table_content =
-    Ptc of
-      (page_table ref * page_table_key, na_key_serv) leftright
-        Ocsigen_cache.Dlist.node option
-        (* for limitation of number of dynamic anonymous coservices *) *
+  [`Ptc of
+     (page_table ref * page_table_key, na_key_serv) leftright
+       Ocsigen_cache.Dlist.node option
+     (* for limitation of number of dynamic anonymous coservices *) *
 
-        ((anon_params_type * anon_params_type)
-           (* unique_id, computed from parameters type.
-              must be the same even if the actual service reference
-              is different (after reloading the site)
-              so that it replaces the former one
-           *) *
-            (int ref option (* max_use *) *
-               (float * float ref) option
-                 (* timeout and expiration date for the service *) *
-            (bool -> server_params -> Ocsigen_http_frame.result Lwt.t)
-            )) list
+     ((anon_params_type * anon_params_type)
+      (* unique_id, computed from parameters type.
+         must be the same even if the actual service reference
+         is different (after reloading the site)
+         so that it replaces the former one
+      *) *
+      (int ref option (* max_use *) *
+       (float * float ref) option
+       (* timeout and expiration date for the service *) *
+       (bool -> server_params -> Ocsigen_http_frame.result Lwt.t)
+      )) list]
 
 and naservice_table_content =
     (int (* generation (= number of reloads of sites
@@ -463,12 +466,10 @@ and naservice_table =
   | AVide
   | ATable of naservice_table_content NAserv_Table.t
 
-and dircontent = Vide | Table of direlt ref String.Table.t
-and direlt = Dir of dircontent ref | File of page_table ref
 and tables =
     {mutable table_services : (int (* generation *) *
-                         int (* priority *) *
-                         dircontent ref) list;
+                               int (* priority *) *
+                               page_table dircontent ref) list;
      table_naservices : naservice_table ref;
     (* Information for the GC: *)
      mutable table_contains_services_with_timeout : bool;
@@ -580,7 +581,7 @@ val make_server_params :
   Url.path option ->
   full_state_name option -> server_params
 val empty_page_table : unit -> page_table
-val empty_dircontent : unit -> dircontent
+val empty_dircontent : unit -> 'a dircontent
 val empty_naservice_table : unit -> naservice_table
 val service_tables_are_empty : tables -> bool
 val empty_tables : int -> bool -> tables

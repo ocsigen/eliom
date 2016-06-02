@@ -55,6 +55,7 @@ module Url : sig
   val get_ssl : string -> bool option
   val resolve : string -> string
   val add_get_args : string -> (string * string) list -> string
+  val string_of_url_path: encode:bool -> string list -> string
 
 end
 

@@ -113,7 +113,7 @@ let remove_service
     let attserpost = post_name attser in
     let sgpt = get_params_type service in
     let sppt = post_params_type service in
-    Eliommod_services.remove_service
+    Eliom_route.remove_service
       table
       (sub_path attser)
       {Eliom_common.key_state = (attserget, attserpost);

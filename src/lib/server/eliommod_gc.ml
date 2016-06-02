@@ -62,7 +62,7 @@ let gc_timeouted_services now tables =
       | Eliom_common.File ptr ->
           Eliom_common.Serv_Table.fold
 (*VVV not tail recursive: may be a problem if lots of coservices *)
-            (fun ptk (Eliom_common.Ptc (nodeopt, l)) thr ->
+            (fun ptk (`Ptc (nodeopt, l)) thr ->
                thr >>= fun thr -> (* we wait for the previous one
                                      to be completed *)
                (match nodeopt, l with
@@ -79,7 +79,7 @@ let gc_timeouted_services now tables =
                          (without cooperation)
                          (it's ok because the list is probably not large) *)
                       try
-                        let (Eliom_common.Ptc (nodeopt, l)), ll =
+                        let (`Ptc (nodeopt, l)), ll =
                           (Eliom_common.Serv_Table.find ptk !ptr,
                            Eliom_common.Serv_Table.remove ptk !ptr)
                         in
@@ -95,13 +95,12 @@ let gc_timeouted_services now tables =
                               l
                               []
                           with
-                            | [] -> ptr := ll
-                            | newl ->
-                                ptr :=
-                                  Eliom_common.Serv_Table.add
-                                    ptk
-                                    (Eliom_common.Ptc (nodeopt, newl))
-                                    ll
+                          | [] ->
+                            ptr := ll
+                          | newl ->
+                            ptr :=
+                              Eliom_common.Serv_Table.add
+                                ptk (`Ptc (nodeopt, newl)) ll
                       with Not_found -> ());
                  Lwt_unix.yield ())
             !ptr

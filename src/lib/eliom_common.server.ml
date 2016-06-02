@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open Eliom_lib
 
@@ -23,17 +23,13 @@ open Ocsigen_cookies
 
 include Eliom_common_base
 
-exception Eliom_Wrong_parameter (** Service called with wrong parameter names *)
 exception Eliom_Session_expired
 exception Eliom_Typing_Error of (string * exn) list
 
-exception Eliom_duplicate_registration of string
 exception Eliom_there_are_unregistered_services of
-  (string list * string list list * na_key_serv list)
-exception Eliom_page_erasing of string
+    (string list * string list list * na_key_serv list)
 exception Eliom_error_while_loading_site of string
 
-exception Eliom_404
 exception Eliom_do_redirection of string
 exception Eliom_do_half_xhr_redirection of string
 
@@ -73,7 +69,7 @@ let eliom_link_too_old : bool Polytables.key = Polytables.make_key ()
 (** The coservice does not exist any more *)
 
 let eliom_service_session_expired :
-    (full_state_name list * full_state_name list) Polytables.key =
+  (full_state_name list * full_state_name list) Polytables.key =
   Polytables.make_key ()
 (** If present in request data,  means that
     the service session cookies does not exist any more.
@@ -99,7 +95,7 @@ type cookie_exp =
    and many people do not understand why their session is closed, even if
    the session duration on server side is long.
    If you want this, you now have to set this manually.
- *)
+*)
 let default_client_cookie_exp () =
   CESome (Unix.time () +. 315532800.)
 
@@ -114,19 +110,19 @@ type timeout =
 (* The table of tables for each session. Keys are cookies *)
 module SessionCookies =
   Hashtbl.Make(struct
-                 type t = string
-                 let equal = (=)
-                 let hash = Hashtbl.hash
-               end)
+    type t = string
+    let equal = (=)
+    let hash = Hashtbl.hash
+  end)
 
 (* session groups *)
 type 'a sessgrp =
-    (string * cookie_level * (string, Ipaddr.t) leftright)
-    (* The full session group is the triple
-       (site_dir_string, scope, session group name).
-       The scope is the scope of group members (`Session by default).
-       If there is no session group,
-       we limit the number of sessions by IP address. *)
+  (string * cookie_level * (string, Ipaddr.t) leftright)
+(* The full session group is the triple
+   (site_dir_string, scope, session group name).
+   The scope is the scope of group members (`Session by default).
+   If there is no session group,
+   we limit the number of sessions by IP address. *)
 type perssessgrp = string (* same triple, marshaled *)
 
 let make_persistent_full_group_name ~cookie_level site_dir_string = function
@@ -142,120 +138,120 @@ let string_of_perssessgrp = id
 (* cookies information during page generation: *)
 
 type 'a one_service_cookie_info =
-    (* service sessions: *)
-    {sc_value:string             (* current value *);
-     sc_table:'a ref             (* service session table
-                                    ref towards cookie table
-                                  *);
-     sc_timeout:timeout ref      (* user timeout -
-                                    ref towards cookie table
-                                  *);
-     sc_exp:float option ref     (* expiration date ref
-                                    (server side) -
-                                    None = never
-                                    ref towards cookie table
-                                  *);
-     sc_cookie_exp:cookie_exp ref (* cookie expiration date to set *);
-     sc_session_group: cookie_level sessgrp ref
-       (* session group *);
-     mutable sc_session_group_node:string Ocsigen_cache.Dlist.node;
-   }
+  (* service sessions: *)
+  {sc_value:string             (* current value *);
+   sc_table:'a ref             (* service session table
+                                  ref towards cookie table
+                               *);
+   sc_timeout:timeout ref      (* user timeout -
+                                  ref towards cookie table
+                               *);
+   sc_exp:float option ref     (* expiration date ref
+                                  (server side) -
+                                  None = never
+                                  ref towards cookie table
+                               *);
+   sc_cookie_exp:cookie_exp ref (* cookie expiration date to set *);
+   sc_session_group: cookie_level sessgrp ref
+  (* session group *);
+   mutable sc_session_group_node:string Ocsigen_cache.Dlist.node;
+  }
 
 
 type one_data_cookie_info =
-    (* in memory data sessions: *)
-    {dc_value:string                    (* current value *);
-     dc_timeout:timeout ref             (* user timeout -
-                                           ref towards cookie table
-                                         *);
-     dc_exp:float option ref            (* expiration date ref (server side) -
-                                           None = never
-                                           ref towards cookie table
-                                         *);
-     dc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
-     dc_session_group: cookie_level sessgrp ref (* session group *);
-     mutable dc_session_group_node:string Ocsigen_cache.Dlist.node;
-   }
+  (* in memory data sessions: *)
+  {dc_value:string                    (* current value *);
+   dc_timeout:timeout ref             (* user timeout -
+                                         ref towards cookie table
+                                      *);
+   dc_exp:float option ref            (* expiration date ref (server side) -
+                                         None = never
+                                         ref towards cookie table
+                                      *);
+   dc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
+   dc_session_group: cookie_level sessgrp ref (* session group *);
+   mutable dc_session_group_node:string Ocsigen_cache.Dlist.node;
+  }
 
 type one_persistent_cookie_info =
-     {pc_value:string                    (* current value *);
-      pc_timeout:timeout ref             (* user timeout *);
-      pc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
-      pc_session_group:perssessgrp option ref (* session group *)
-    }
+  {pc_value:string                    (* current value *);
+   pc_timeout:timeout ref             (* user timeout *);
+   pc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
+   pc_session_group:perssessgrp option ref (* session group *)
+  }
 
 
 (*VVV heavy *)
 type 'a cookie_info1 =
-    (* service sessions: *)
-    (string option            (* value sent by the browser *)
-                              (* None = new cookie
-                                 (not sent by the browser) *)
-       *
+  (* service sessions: *)
+  (string option            (* value sent by the browser *)
+   (* None = new cookie
+      (not sent by the browser) *)
+   *
 
-       'a one_service_cookie_info session_cookie ref
-       (* SCNo_data = the session has been closed
-          SCData_session_expired = the cookie has not been found in the table.
-          For both of them, ask the browser to remove the cookie.
-        *)
-    )
-      (* This one is not lazy because we must check all service sessions
-         at each request to find the services *)
-      Full_state_name_table.t ref (* The key is the full session name *) *
+   'a one_service_cookie_info session_cookie ref
+   (* SCNo_data = the session has been closed
+      SCData_session_expired = the cookie has not been found in the table.
+      For both of them, ask the browser to remove the cookie.
+   *)
+  )
+    (* This one is not lazy because we must check all service sessions
+       at each request to find the services *)
+    Full_state_name_table.t ref (* The key is the full session name *) *
 
-    (* in memory data sessions: *)
-      (string option            (* value sent by the browser *)
-                                (* None = new cookie
-                                   (not sent by the browser) *)
-         *
+  (* in memory data sessions: *)
+  (string option            (* value sent by the browser *)
+   (* None = new cookie
+      (not sent by the browser) *)
+   *
 
-         one_data_cookie_info session_cookie ref
-         (* SCNo_data = the session has been closed
-            SCData_session_expired = the cookie has not been found in the table.
-            For both of them, ask the browser to remove the cookie.
-          *)
-      ) Lazy.t
-      (* Lazy because we do not want to ask the browser to unset the cookie
-         if the cookie has not been used, otherwise it is impossible to
-         write a message "Your session has expired" *)
-      Full_state_name_table.t ref (* The key is the full session name *) *
+   one_data_cookie_info session_cookie ref
+   (* SCNo_data = the session has been closed
+      SCData_session_expired = the cookie has not been found in the table.
+      For both of them, ask the browser to remove the cookie.
+   *)
+  ) Lazy.t
+    (* Lazy because we do not want to ask the browser to unset the cookie
+       if the cookie has not been used, otherwise it is impossible to
+       write a message "Your session has expired" *)
+    Full_state_name_table.t ref (* The key is the full session name *) *
 
-      (* persistent sessions: *)
-      ((string                  (* value sent by the browser *) *
-        timeout                 (* timeout at the beginning of the request *) *
-        float option            (* (server side) expdate
-                                   at the beginning of the request
-                                   None = no exp *) *
-        perssessgrp option      (* session group at beginning of request *))
-         option
-                                (* None = new cookie
-                                   (not sent by the browser) *)
-         *
+  (* persistent sessions: *)
+  ((string                  (* value sent by the browser *) *
+    timeout                 (* timeout at the beginning of the request *) *
+    float option            (* (server side) expdate
+                               at the beginning of the request
+                               None = no exp *) *
+    perssessgrp option      (* session group at beginning of request *))
+     option
+   (* None = new cookie
+      (not sent by the browser) *)
+   *
 
-         one_persistent_cookie_info session_cookie ref
-         (* SCNo_data = the session has been closed
-            SCData_session_expired = the cookie has not been found in the table.
-            For both of them, ask the browser to remove the cookie.
-          *)
-      ) Lwt.t Lazy.t
-      Full_state_name_table.t ref
+   one_persistent_cookie_info session_cookie ref
+   (* SCNo_data = the session has been closed
+      SCData_session_expired = the cookie has not been found in the table.
+      For both of them, ask the browser to remove the cookie.
+   *)
+  ) Lwt.t Lazy.t
+    Full_state_name_table.t ref
 
 
 type 'a cookie_info =
-    'a cookie_info1 (* unsecure *) *
-      'a cookie_info1 option (* secure, if https *)
+  'a cookie_info1 (* unsecure *) *
+  'a cookie_info1 option (* secure, if https *)
 
 
 
 (* non persistent cookies for services *)
 type 'a servicecookiestablecontent =
-    (full_state_name *
-     'a                  (* session table *) *
-     float option ref    (* expiration date by timeout
-                            (server side) *) *
-     timeout ref         (* user timeout *) *
-     cookie_level sessgrp ref   (* session group *) *
-     string Ocsigen_cache.Dlist.node (* session group node *))
+  (full_state_name *
+   'a                  (* session table *) *
+   float option ref    (* expiration date by timeout
+                          (server side) *) *
+   timeout ref         (* user timeout *) *
+   cookie_level sessgrp ref   (* session group *) *
+   string Ocsigen_cache.Dlist.node (* session group node *))
 
 type 'a servicecookiestable = 'a servicecookiestablecontent SessionCookies.t
 (* the table contains:
@@ -265,16 +261,16 @@ type 'a servicecookiestable = 'a servicecookiestablecontent SessionCookies.t
    - the timeout for the user (float option option) None -> see global config
      Some None -> no timeout
    - the group to which belongs the session
- *)
+*)
 
 (* non persistent cookies for in memory data *)
 type datacookiestablecontent =
-    (full_state_name *
-     float option ref        (* expiration date by timeout
-                                (server side) *) *
-     timeout ref             (* user timeout *) *
-     cookie_level sessgrp ref   (* session group *) *
-     string Ocsigen_cache.Dlist.node (* session group node *))
+  (full_state_name *
+   float option ref        (* expiration date by timeout
+                              (server side) *) *
+   timeout ref             (* user timeout *) *
+   cookie_level sessgrp ref   (* session group *) *
+   string Ocsigen_cache.Dlist.node (* session group node *))
 
 type datacookiestable = datacookiestablecontent SessionCookies.t
 
@@ -287,13 +283,13 @@ let ipv6mask = ref 56
 
 let get_mask4 m =
   match fst m with
-    | Some m -> m
-    | None -> !ipv4mask
+  | Some m -> m
+  | None -> !ipv4mask
 
 let get_mask6 m =
   match fst m with
-    | Some m -> m
-    | None -> !ipv6mask
+  | Some m -> m
+  | None -> !ipv6mask
 
 let network_of_ip k mask4 mask6 = match k with
   | Ipaddr.V4 ip -> Ipaddr.(V4 (V4.Prefix.(network (make mask4 ip))))
@@ -302,31 +298,31 @@ let network_of_ip k mask4 mask6 = match k with
 module Net_addr_Hashtbl =
   (* keys are IP address modulo "network equivalence" *)
   (struct
-     include Hashtbl.Make(struct
+    include Hashtbl.Make(struct
         type t = Ipaddr.t
         let equal a b = Ipaddr.compare a b = 0
-                            let hash = Hashtbl.hash
-                          end)
+        let hash = Hashtbl.hash
+      end)
 
-     let add m4 m6 t k v =
-       add t (network_of_ip k (get_mask4 m4) (get_mask6 m6)) v
+    let add m4 m6 t k v =
+      add t (network_of_ip k (get_mask4 m4) (get_mask6 m6)) v
 
-     let remove m4 m6 t k =
-       remove t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
+    let remove m4 m6 t k =
+      remove t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
 
-     let find m4 m6 t k =
-       find t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
+    let find m4 m6 t k =
+      find t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
 
-     let find_all m4 m6 t k =
-       find_all t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
+    let find_all m4 m6 t k =
+      find_all t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
 
-     let replace m4 m6 t k v =
-       replace t (network_of_ip k (get_mask4 m4) (get_mask6 m6)) v
+    let replace m4 m6 t k v =
+      replace t (network_of_ip k (get_mask4 m4) (get_mask6 m6)) v
 
-     let mem m4 m6 t k =
-       mem t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
+    let mem m4 m6 t k =
+      mem t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
 
-   end : sig
+  end : sig
 
      type key = Ipaddr.t
      type 'a t
@@ -345,21 +341,15 @@ module Net_addr_Hashtbl =
 
    end)
 
-type page_table_key =
-    {key_state : att_key_serv * att_key_serv;
-     key_kind: Ocsigen_http_frame.Http_header.http_method}
-
 module Serv_Table = Map.Make(struct
-  type t = page_table_key
-  let compare = compare
-end)
+    type t = page_table_key
+    let compare = compare
+  end)
 
 module NAserv_Table = Map.Make(struct
-  type t = na_key_serv
-  let compare = compare
-end)
-
-type anon_params_type = int
+    type t = na_key_serv
+    let compare = compare
+  end)
 
 type node_info = {
   ni_id : node_ref;
@@ -369,43 +359,41 @@ type node_info = {
 module Hier_set = String.Set
 
 type server_params =
-    {sp_request: Ocsigen_extensions.request;
-     sp_si: sess_info;
-     sp_sitedata: sitedata (* data for the whole site *);
-     sp_cookie_info: tables cookie_info;
-     sp_tab_cookie_info: tables cookie_info;
-     mutable sp_user_cookies: Ocsigen_cookies.cookieset;
-     (* cookies (un)set by the user during service *)
-     mutable sp_user_tab_cookies: Ocsigen_cookies.cookieset;
-     mutable sp_client_appl_name: string option; (* The application name,
-                                                    as sent by the browser *)
-     sp_suffix: Url.path option (* suffix *);
-     sp_full_state_name: full_state_name option
-                             (* the name of the session
-                                to which belong the service that answered
-                                (if it is a session service) *);
-     sp_client_process_info: client_process_info;
-    }
+  {sp_request: Ocsigen_extensions.request;
+   sp_si: sess_info;
+   sp_sitedata: sitedata (* data for the whole site *);
+   sp_cookie_info: tables cookie_info;
+   sp_tab_cookie_info: tables cookie_info;
+   mutable sp_user_cookies: Ocsigen_cookies.cookieset;
+   (* cookies (un)set by the user during service *)
+   mutable sp_user_tab_cookies: Ocsigen_cookies.cookieset;
+   mutable sp_client_appl_name: string option; (* The application name,
+                                                  as sent by the browser *)
+   sp_suffix: Url.path option (* suffix *);
+   sp_full_state_name: full_state_name option
+  (* the name of the session
+     to which belong the service that answered
+     (if it is a session service) *);
+   sp_client_process_info: client_process_info;
+  }
 
 and page_table = page_table_content Serv_Table.t
 
-and page_table_content =
-    Ptc of
+and page_table_content = [
+    `Ptc of
       (page_table ref * page_table_key, na_key_serv) leftright
         Ocsigen_cache.Dlist.node option
-        (* for limitation of number of dynamic anonymous coservices *) *
-
-        ((anon_params_type * anon_params_type)
-           (* unique_id, computed from parameters type.
-              must be the same even if the actual service reference
-              is different (after reloading the site)
-              so that it replaces the former one
-           *) *
-            (int ref option (* max_use *) *
-               (float * float ref) option
-                 (* timeout and expiration date for the service *) *
-            (bool -> server_params -> Ocsigen_http_frame.result Lwt.t)
-            )) list
+  (* for limitation of number of dynamic anonymous coservices *) *
+      ((anon_params_type * anon_params_type)
+       (* unique_id, computed from parameters type.  must be the same
+          even if the actual service reference is different (after
+          reloading the site) so that it replaces the former one *) *
+       (int ref option (* max_use *) *
+        (float * float ref) option
+        (* timeout and expiration date for the service *) *
+        (bool -> server_params -> Ocsigen_http_frame.result Lwt.t)
+       )) list
+]
 
 and naservice_table_content =
     (int (* generation (= number of reloads of sites
@@ -422,18 +410,10 @@ and naservice_table =
   | AVide
   | ATable of naservice_table_content NAserv_Table.t
 
-and dircontent =
-  | Vide
-  | Table of direlt ref String.Table.t
-
-and direlt =
-  | Dir of dircontent ref
-  | File of page_table ref
-
 and tables =
-    {mutable table_services : (int (* generation *) *
-                                 int (* priority *) *
-                                 dircontent ref) list;
+  {mutable table_services : (int (* generation *) *
+                             int (* priority *) *
+                             page_table dircontent ref) list;
      table_naservices : naservice_table ref;
      (* ref, and not mutable field because it simpler to use
         recursively with Dir of dircontent ref *)
@@ -790,7 +770,6 @@ let lazy_site_value_from_fun f =
 
 
 let empty_page_table () = Serv_Table.empty
-let empty_dircontent () = Vide
 let empty_naservice_table () = AVide
 
 let service_tables_are_empty t =
@@ -1299,14 +1278,6 @@ let get_session_info req previous_extension_err =
     ({ req_whole with Ocsigen_extensions.request_info = ri' }, sess,
      previous_tab_cookies_info)
 
-
-
-
-type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
-
-
-
-(*****************************************************************************)
 type info =
     (Ocsigen_extensions.request *
        sess_info *

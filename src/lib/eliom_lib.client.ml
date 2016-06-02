@@ -58,7 +58,14 @@ module Url = struct
     else
       url ^ (if has_get_args url then "&" else "?") ^
       encode_arguments get_args
+
+  let string_of_url_path ~encode l =
+    if encode then
+      print_endline "Warning: Eliom_lib.string_of_url_path ignores ~encode";
+    String.concat "/" l
+
 end
+
 module Lwt_log = struct
   include Lwt_log_js
   let raise_error ?inspect ?exn ?section ?location ?logger msg =

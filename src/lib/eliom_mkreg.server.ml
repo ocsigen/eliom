@@ -189,7 +189,7 @@ let register_aux pages
           let sgpt = S.get_params_type service in
           let sppt = S.post_params_type service in
           let f table ((attserget, attserpost) as attsernames) =
-            Eliommod_services.add_service
+            Eliom_route.add_service
               priority
               table
               (S.sub_path attser)
