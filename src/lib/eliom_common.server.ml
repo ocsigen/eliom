@@ -942,7 +942,7 @@ let getcookies secure cookie_level cookienamepref cookies =
    but these ones: *)
 let eliom_params_after_action = Polytables.make_key ()
 
-(* After an ction, we get tab_cookies info from rc: *)
+(* After an action, we get tab_cookies info from rc: *)
 let tab_cookie_action_info_key = Polytables.make_key ()
 
 type cpi = client_process_info =  {
@@ -1077,7 +1077,15 @@ let get_session_info req previous_extension_err =
        all_get_but_nl (*204FORMS*, internal_form *))
   in
 
-  let browser_cookies = Lazy.force (Ocsigen_extensions.Ocsigen_request_info.cookies ri) in
+  let browser_cookies =
+    try (* Cookie substitutes for iOS WKWebView *)
+      let tc = Ocsigen_headers.find cookie_substitutes_header_name
+          (Ocsigen_extensions.Ocsigen_request_info.http_frame ri) in
+      let tc = Json.from_string<(string * string) list> tc in
+        List.fold_left (fun t (k,v) -> CookiesTable.add k v t)
+          CookiesTable.empty tc
+    with Not_found ->
+      Lazy.force (Ocsigen_extensions.Ocsigen_request_info.cookies ri) in
 
   let data_cookies = getcookies false `Session datacookiename browser_cookies in
   let service_cookies = getcookies false `Session servicecookiename browser_cookies in

@@ -25,41 +25,61 @@ include Eliom_cookies_base
 (* CCC The tables are indexed by the hostname, not the port appear.
    there are no particular reason. If needed it is possible to add it *)
 let cookie_tables = Jstable.create ()
-let get_table = function
+
+(** [in_local_storage] implements cookie substitutes for iOS WKWebView *)
+let get_table ?(in_local_storage=false) = function
   | None -> Cookies.empty
   | Some host ->
-    Js.Optdef.get (Jstable.find cookie_tables (Js.string host))
-      (fun () -> Cookies.empty)
-let set_table host t =
+    let host = Js.string host in
+    if in_local_storage then
+      Js.Optdef.case (Dom_html.window##localStorage) (fun () -> Cookies.empty)
+        (fun st ->
+           Js.Opt.case (st##getItem(host))
+             (fun () -> Cookies.empty)
+             (fun v -> Json.unsafe_input v))
+    else
+      Js.Optdef.get (Jstable.find cookie_tables host) (fun () -> Cookies.empty)
+
+(** [in_local_storage] implements cookie substitutes for iOS WKWebView *)
+let set_table ?(in_local_storage=false) host t =
   match host with
     | None -> ()
     | Some host ->
-      Jstable.add cookie_tables (Js.string host) t
+      let host = Js.string host in
+      if in_local_storage then
+        Js.Optdef.case (Dom_html.window##localStorage)
+          (fun () -> ())
+          (fun st -> st##setItem(host, (Json.output t)))
+      else
+        Jstable.add cookie_tables host t
 
 let now () =
   let date = jsnew Js.date_now () in
   Js.to_float (date##getTime ()) /. 1000.
 
-let update_cookie_table host cookieset =
+(** [in_local_storage] implements cookie substitutes for iOS WKWebView *)
+let update_cookie_table ?(in_local_storage=false) host cookieset =
   let now = now () in
   Cookies.iter
     (fun path table ->
       CookiesTable.iter
         (fun name -> function
           | OSet (Some exp, _, _) when exp <= now ->
-            set_table host (remove_cookie path name (get_table host))
+            set_table ~in_local_storage
+              host (remove_cookie path name (get_table ~in_local_storage host))
           | OUnset ->
-            set_table host (remove_cookie path name (get_table host))
+            set_table ~in_local_storage
+              host (remove_cookie path name (get_table ~in_local_storage host))
           | OSet (exp, value, secure) ->
-            set_table host
-              (add_cookie
-                 path name (exp, value, secure)
-                 (get_table host)))
+            set_table ~in_local_storage
+              host (add_cookie path name (exp, value, secure)
+                      (get_table ~in_local_storage host)))
         table
     )
     cookieset
 
-let get_cookies_to_send host https path =
+(** [in_local_storage] implements cookie substitutes for iOS WKWebView *)
+let get_cookies_to_send ?(in_local_storage=false) host https path =
   let now = now () in
   Cookies.fold
     (fun cpath t cookies_to_send ->
@@ -70,7 +90,7 @@ let get_cookies_to_send host https path =
         (fun name (exp, value, secure) cookies_to_send ->
           match exp with
             | Some exp when exp <= now ->
-              set_table host
+              set_table ~in_local_storage host
                 (remove_cookie cpath name (get_table host));
               cookies_to_send
             | _ ->
@@ -82,7 +102,7 @@ let get_cookies_to_send host https path =
         cookies_to_send
       else cookies_to_send
     )
-    (get_table host)
+    (get_table ~in_local_storage host)
     []
 
 

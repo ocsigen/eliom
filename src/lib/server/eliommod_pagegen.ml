@@ -299,6 +299,13 @@ let gen is_eliom_extension sitedata = function
                >>= fun all_new_cookies ->
                let res =
                  Ocsigen_http_frame.Result.update res
+                   ~headers:(
+                     Http_headers.add
+                       (Http_headers.name
+                          Eliom_common_base.set_cookie_substitutes_header_name)
+                       (Eliommod_cookies.cookieset_to_json all_new_cookies)
+                       (Ocsigen_http_frame.Result.headers res)
+                   )
                    ~cookies:all_new_cookies ()
                in
 
