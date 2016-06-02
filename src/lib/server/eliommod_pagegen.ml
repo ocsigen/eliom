@@ -297,11 +297,25 @@ let gen is_eliom_extension sitedata = function
                  all_cookie_info
                  all_user_cookies
                >>= fun all_new_cookies ->
-               let res =
-                 Ocsigen_http_frame.Result.update res
-                   ~cookies:all_new_cookies ()
+               let headers =
+                 try
+                   ignore @@
+                   Ocsigen_headers.find
+                     Eliom_common_base.cookie_substitutes_header_name
+                     (Ocsigen_extensions.Ocsigen_request_info.http_frame
+                        ri.Ocsigen_extensions.request_info);
+                   Some (Http_headers.add
+                           (Http_headers.name
+                              Eliom_common_base.
+                                set_cookie_substitutes_header_name)
+                           (Eliommod_cookies.cookieset_to_json all_new_cookies)
+                           (Ocsigen_http_frame.Result.headers res))
+                 with Not_found ->
+                   None
                in
-
+               let res =
+                 Ocsigen_http_frame.Result.update res ?headers
+                   ~cookies:all_new_cookies () in
                try
                  Polytables.get
                    ~table:
