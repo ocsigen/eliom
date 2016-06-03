@@ -56,11 +56,24 @@ let set_info, is_set_info,
   =
   get_set_js_serverside_value (ref None) "__eliom_appl_process_info"
 
-let set_request_cookies, is_set_request_cookies,
+let (set_request_cookies :
+       Eliommod_cookies.cookie Ocsigen_cookies.CookiesTable.t
+         Ocsigen_cookies.Cookies.t -> unit),
+    is_set_request_cookies,
     (get_request_cookies : unit -> Eliommod_cookies.cookie
        Ocsigen_cookies.CookiesTable.t Ocsigen_cookies.Cookies.t),
   reset_request_cookies =
   get_set_js_serverside_value (ref None) "__eliom_request_cookies"
+
+(* Cookie substitutes for iOS WKWebView *)
+let (set_cookie_substitutes :
+       Eliommod_cookies.cookie Ocsigen_cookies.CookiesTable.t
+         Ocsigen_cookies.Cookies.t -> unit),
+    is_set_cookie_substitutes,
+    (get_cookie_substitutes : unit -> Eliommod_cookies.cookie
+       Ocsigen_cookies.CookiesTable.t Ocsigen_cookies.Cookies.t),
+  reset_cookie_substitutes =
+  get_set_js_serverside_value (ref None) "__eliom_use_cookie_substitutes"
 
 let set_request_template, is_set_request_template,
     (get_request_template : unit -> string option),

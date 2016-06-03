@@ -161,6 +161,13 @@ let init () =
     (Some (Eliom_process.get_info ()).cpi_hostname)
     (Eliom_request_info.get_request_cookies ());
 
+  let use_substitutes = (* for iOS WKWebView, on which cookies are broken *)
+    Js.Unsafe.global##___eliom_use_cookie_substitutes_ <> Js.undefined in
+  if use_substitutes then
+    Eliommod_cookies.update_cookie_table ~in_local_storage:true
+      (Some (Eliom_process.get_info ()).cpi_hostname)
+      (Eliom_process.get_cookie_substitutes ());
+
   let onload_handler = ref None in
 
   let onload ev =

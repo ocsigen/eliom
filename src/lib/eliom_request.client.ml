@@ -115,6 +115,17 @@ let nl_template =
 (* Warning: it must correspond to [nl_template]. *)
 let nl_template_string = "__nl_n_eliom-template.name"
 
+
+
+(** Same as XmlHttpRequest.perform_raw_url, but:
+    - sends tab cookies in an HTTP header
+    - does half and full XHR redirections according to headers
+
+    The optional parameter [~cookies_info] is a pair
+    containing the information (secure, path)
+    that is taken into account for finding tab cookies to send.
+    If not present, the path and protocol are taken from the URL.
+*)
 let send
     ?with_credentials
     ?(expecting_process_page = false) ?cookies_info
@@ -140,6 +151,17 @@ let send
       | [] -> []
       | _ -> [ Eliom_common.tab_cookies_header_name,
                encode_header_value cookies ] in
+    let headers =
+      (* Cookie substitutes are for iOS WKWebView *)
+      let host = match host with
+        | None -> "/substitutes" | Some h -> (h  ^ "/substitutes") in
+      let cookies =
+        Eliommod_cookies.get_cookies_to_send
+          ~in_local_storage:true (Some host) https path in
+      ( Eliom_common.cookie_substitutes_header_name,
+        encode_header_value cookies )
+      :: headers
+    in
     (* CCC *
        For now we assume that an eliom application is not distributed
        among different server with different hostnames:
@@ -207,6 +229,17 @@ let send
           ?post_args ~get_args ?form_arg:form_contents ~check_headers
           ?progress ?upload_progress ?override_mime_type url
       in
+      (match (* Cookie substitutes are for iOS WKWebView *)
+         r.XmlHttpRequest.headers
+           Eliom_common.set_cookie_substitutes_header_name
+       with
+       | None | Some "" -> ()
+       | Some cookie_substitutes ->
+         let host = match host with
+           | None ->    "/substitutes"
+           | Some h ->  h ^ "/substitutes" in
+         Eliommod_cookies.update_cookie_table ~in_local_storage:true (Some host)
+           (Eliommod_cookies.cookieset_of_json cookie_substitutes); );
       (match r.XmlHttpRequest.headers Eliom_common.set_tab_cookies_header_name
        with
          | None | Some "" -> () (* Empty tab_cookies for IE compat *)
@@ -284,17 +317,6 @@ let send
       | _ -> url),
     content)
 
-
-
-(** Same as XmlHttpRequest.perform_raw_url, but:
-    - sends tab cookies in an HTTP header
-    - does half and full XHR redirections according to headers
-
-    The optional parameter [~cookies_info] is a pair
-    containing the information (secure, path)
-    that is taken into account for finding tab cookies to send.
-    If not present, the path and protocol and taken from the URL.
-*)
 
 (* BEGIN FORMDATA HACK *)
 let add_button_arg inj args form =
