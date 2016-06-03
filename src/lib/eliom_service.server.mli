@@ -71,7 +71,7 @@ val is_external :
 
 val get_or_post :
   (_, _, _, _, _, _, _, _, _, _, _) t ->
-  Ocsigen_http_frame.Http_header.http_method
+  [`Get | `Post | `Put | `Delete]
 
 val pre_applied_parameters :
   (_, _, _, _, _, _, _, _, _, _, _) t ->

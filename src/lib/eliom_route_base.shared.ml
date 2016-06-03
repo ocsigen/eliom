@@ -28,7 +28,6 @@
 open Eliom_lib
 
 open Lwt
-open Ocsigen_extensions
 
 (*****************************************************************************)
 
@@ -42,7 +41,9 @@ module type PARAM = sig
 
   val sess_info_of_info : info -> Eliom_common.sess_info
 
-  val request_of_info : info -> Ocsigen_extensions.request
+  val meth_of_info : info -> Eliom_common.meth
+
+  val subpath_of_info : info -> string list
 
   val make_server_params :
     site_data ->
@@ -53,28 +54,31 @@ module type PARAM = sig
 
   type result
 
+  val handle_directory : info -> result Lwt.t
+
+  module Node : sig
+    type t
+    val up : t -> unit
+    val remove : t -> unit
+  end
+
   module Table : sig
 
     type t
-
-    type node =
-      (t ref * Eliom_common.page_table_key,
-       Eliom_common.na_key_serv)
-        Eliom_lib.leftright
 
     val empty : unit -> t
 
     val find :
       Eliom_common.page_table_key ->
       t ->
-      node Ocsigen_cache.Dlist.node option *
+      Node.t option *
       ((Eliom_common.anon_params_type * Eliom_common.anon_params_type) *
        (int ref option * (float * float ref) option *
         (bool -> Eliom_common.server_params -> result Lwt.t))) list
 
     val add  :
       Eliom_common.page_table_key ->
-      node Ocsigen_cache.Dlist.node option *
+      Node.t option *
       ((Eliom_common.anon_params_type * Eliom_common.anon_params_type) *
        (int ref option * (float * float ref) option *
         (bool -> Eliom_common.server_params -> result Lwt.t))) list ->
@@ -94,9 +98,7 @@ module type PARAM = sig
     tables ->
     (Table.t ref * Eliom_common.page_table_key,
      Eliom_common.na_key_serv) Eliom_lib.leftright ->
-    (Table.t ref * Eliom_common.page_table_key,
-     Eliom_common.na_key_serv) Eliom_lib.leftright
-      Ocsigen_cache.Dlist.node
+    Node.t
 
   val tables_services :
     tables ->
@@ -106,6 +108,8 @@ module type PARAM = sig
     tables ->
     (int * int * Table.t Eliom_common.dircontent ref) list ->
     unit
+
+  val get_number_of_reloads : unit -> int
 
 end
 
@@ -150,7 +154,7 @@ module Make (P : PARAM) = struct
                   (limitation of number of coservices) *)
                (match node with
                 | None -> ()
-                | Some node -> Ocsigen_cache.Dlist.up node);
+                | Some node -> P.Node.up node);
 
                (* We update the expiration date *)
                (match expdate with
@@ -182,7 +186,7 @@ module Make (P : PARAM) = struct
                           Note that in that case, toremove has length 1
                           (like the initial list l).
                        *)
-       Ocsigen_cache.Dlist.remove node;
+       P.Node.remove node;
      | None, _ -> (* removing manually *)
        try
          let _, l   = P.Table.find k !pagetableref
@@ -219,13 +223,7 @@ module Make (P : PARAM) = struct
     let v = (id, va) in
     match key with
     | { Eliom_common.key_state = Eliom_common.SAtt_anon _, _;
-        key_kind =
-          ( Ocsigen_http_frame.Http_header.GET
-          | Ocsigen_http_frame.Http_header.POST
-          | Ocsigen_http_frame.Http_header.PUT
-          | Ocsigen_http_frame.Http_header.DELETE
-          )
-      } ->
+        key_meth = (`Get | `Post | `Put | `Delete) } ->
       (* Anonymous coservice:
          - only one for each key
          - we add a node in the dlist to limit their number *)
@@ -235,7 +233,7 @@ module Make (P : PARAM) = struct
          in
          (match nodeopt with
           | None -> () (* should not occure *)
-          | Some node -> Ocsigen_cache.Dlist.up node);
+          | Some node -> P.Node.up node);
          tref := P.Table.add key (nodeopt, [v]) newt
        with Not_found ->
          let node = P.service_dlist_add ?sp tables (Left (tref, key)) in
@@ -284,7 +282,7 @@ module Make (P : PARAM) = struct
       (* In that case, l has size 1, and the id is correct,
          because it is an anonymous coservice *)
       (*VVV the key is searched twice *)
-      Ocsigen_cache.Dlist.remove node
+      P.Node.remove node
     | None ->
       let newt = P.Table.remove key !tref in
       match List.remove_all_assoc id l with
@@ -359,7 +357,7 @@ module Make (P : PARAM) = struct
     f tables url_act page_table_ref page_table_key va
 
   let add_service priority tables url_act page_table_key va =
-    let generation = Ocsigen_extensions.get_numberofreloads () in
+    let generation = P.get_number_of_reloads () in
     let rec find_table = function
       | [] -> let t = ref (Eliom_common.empty_dircontent ()) in
         t, [(generation, priority, t)]
@@ -396,7 +394,6 @@ module Make (P : PARAM) = struct
       sitedata
       info : P.result Lwt.t =
 
-    let ri = P.request_of_info info in
     let rec search_page_table dircontent : _ -> P.result Lwt.t =
       let find nosuffixversion page_table_ref suffix =
         let si = P.sess_info_of_info info in
@@ -413,7 +410,7 @@ module Make (P : PARAM) = struct
                 (fst si.Eliom_common.si_state_info),
               Eliom_common.att_key_serv_of_req
                 (snd si.Eliom_common.si_state_info));
-           Eliom_common.key_kind = Ocsigen_request_info.meth ri.request_info}
+           Eliom_common.key_meth = P.meth_of_info info}
       in
       let aux a l =
         let aa = match a with
@@ -452,8 +449,7 @@ module Make (P : PARAM) = struct
       in function
         | [] ->
           (* It is a directory, without / at the end. We do a redirection. *)
-          Lwt.fail (Ocsigen_extensions.Ocsigen_Is_a_directory
-                      (new_url_of_directory_request ri))
+          P.handle_directory info
         | [""] -> aux None []
         | [a] when a = Eliom_common.eliom_nosuffix_page ->
           (* version without suffix of suffix service *)
@@ -494,7 +490,7 @@ module Make (P : PARAM) = struct
          search_by_priority_generation
            (P.tables_services tables)
            (Url.change_empty_list
-              (Ocsigen_request_info.sub_path ri.request_info)))
+              (P.subpath_of_info info)))
       (function Exn1 -> Lwt.fail Eliom_common.Eliom_404 | e -> Lwt.fail e)
 
 end

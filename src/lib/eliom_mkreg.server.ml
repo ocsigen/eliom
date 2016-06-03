@@ -181,7 +181,7 @@ let register_aux pages
     begin
       match S.info service with
 	| S.Attached attser ->
-          let key_kind = S.get_or_post service in
+          let key_meth = S.get_or_post service in
           let attserget = S.get_name attser in
           let attserpost = S.post_name attser in
           let suffix_with_redirect = S.redirect_suffix attser in
@@ -194,7 +194,7 @@ let register_aux pages
               table
               (S.sub_path attser)
               {Eliom_common.key_state = attsernames;
-               Eliom_common.key_kind = key_kind}
+               Eliom_common.key_meth = (key_meth :> Eliom_common.meth)}
               ((if attserget = Eliom_common.SAtt_no
                 || attserpost = Eliom_common.SAtt_no
                 then
@@ -295,13 +295,9 @@ let register_aux pages
                          ?headers
                          content)))))
           in
-          (match (key_kind, attserget, attserpost) with
-            | (Ocsigen_http_frame.Http_header.POST, _,
-               Eliom_common.SAtt_csrf_safe (id, scope, secure_session))
-            | (Ocsigen_http_frame.Http_header.PUT, _,
-               Eliom_common.SAtt_csrf_safe (id, scope, secure_session))
-            | (Ocsigen_http_frame.Http_header.DELETE, _,
-               Eliom_common.SAtt_csrf_safe (id, scope, secure_session)) ->
+          (match (key_meth, attserget, attserpost) with
+            | (`Post | `Put | `Delete), _,
+               Eliom_common.SAtt_csrf_safe (id, scope, secure_session) ->
               let tablereg, forsession =
                 match table with
                   | Eliom_lib.Left globtbl -> globtbl, false
@@ -332,9 +328,9 @@ let register_aux pages
                   in
                   f table (attserget, attserpost);
                   n)
-            | (Ocsigen_http_frame.Http_header.GET,
-               Eliom_common.SAtt_csrf_safe (id, scope, secure_session),
-               _) ->
+            | `Get,
+              Eliom_common.SAtt_csrf_safe (id, scope, secure_session),
+              _ ->
               let tablereg, forsession =
                 match table with
                   | Left globtbl -> globtbl, false

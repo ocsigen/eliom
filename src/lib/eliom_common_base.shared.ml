@@ -393,9 +393,11 @@ and 'a direlt =
 
 let empty_dircontent () = Vide
 
+type meth = [`Get | `Post | `Put | `Delete | `Other]
+
 type page_table_key = {
   key_state : att_key_serv * att_key_serv;
-  key_kind: Ocsigen_http_frame.Http_header.http_method
+  key_meth  : meth
 }
 
 type anon_params_type = int

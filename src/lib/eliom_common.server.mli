@@ -385,9 +385,12 @@ type datacookiestablecontent =
       string Ocsigen_cache.Dlist.node
 type datacookiestable =
     datacookiestablecontent SessionCookies.t
+
+type meth = [`Get | `Post | `Put | `Delete | `Other]
+
 type page_table_key = {
   key_state : att_key_serv * att_key_serv;
-  key_kind : Ocsigen_http_frame.Http_header.http_method;
+  key_meth  : meth
 }
 
 module NAserv_Table : Map.S with type key = na_key_serv

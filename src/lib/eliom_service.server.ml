@@ -43,14 +43,13 @@ let xhr_with_cookies s =
 let get_or_post
     (type m) (s : (_, _, m, _, _, _, _, _, _, _, _) t) =
   match which_meth s with
-  | Get'    -> Ocsigen_http_frame.Http_header.GET
-  | Post'   -> Ocsigen_http_frame.Http_header.POST
-  | Put'    -> Ocsigen_http_frame.Http_header.PUT
-  | Delete' -> Ocsigen_http_frame.Http_header.DELETE
+  | Get'    -> `Get
+  | Post'   -> `Post
+  | Put'    -> `Put
+  | Delete' -> `Delete
 
 let register_eliom_module name f =
   Ocsigen_loader.set_module_init_function name f
-
 
 exception Unregistered_CSRF_safe_coservice
 
@@ -117,7 +116,7 @@ let remove_service
       table
       (sub_path attser)
       {Eliom_common.key_state = (attserget, attserpost);
-       Eliom_common.key_kind = key_kind}
+       Eliom_common.key_meth = key_kind}
       (if attserget = Eliom_common.SAtt_no
        || attserpost = Eliom_common.SAtt_no
        then

@@ -10,9 +10,25 @@ include Eliom_route_base.Make (struct
 
     type info = Eliom_common.info
 
+    type request = Ocsigen_extensions.request
+
     let sess_info_of_info (_, i, _, _, _) = i
 
-    let request_of_info (i, _, _, _, _) = i
+    let meth_of_info ({request_info}, _, _, _, _) =
+      match Ocsigen_request_info.meth request_info with
+      | Ocsigen_http_frame.Http_header.GET ->
+        `Get
+      | POST ->
+        `Post
+      | PUT ->
+        `Put
+      | DELETE ->
+        `Delete
+      | _ ->
+        `Other
+
+    let subpath_of_info ({request_info}, _, _, _, _) =
+      Ocsigen_request_info.sub_path request_info
 
     type tables = Eliom_common.tables
 
@@ -28,13 +44,21 @@ include Eliom_route_base.Make (struct
 
     type result = Ocsigen_http_frame.result
 
+    module Node = struct
+
+      type t =
+        (Eliom_common.page_table ref * Eliom_common.page_table_key,
+         Eliom_common.na_key_serv) leftright Ocsigen_cache.Dlist.node
+
+      let up = Ocsigen_cache.Dlist.up
+
+      let remove = Ocsigen_cache.Dlist.remove
+
+    end
+
     module Table = struct
 
       type t = Eliom_common.page_table
-
-      type node =
-        (t ref * Eliom_common.page_table_key,
-         Eliom_common.na_key_serv) leftright
 
       let remove = Eliom_common.Serv_Table.remove
 
@@ -48,6 +72,14 @@ include Eliom_route_base.Make (struct
     end
 
     let make_server_params = Eliom_common.make_server_params
+
+    let handle_directory (r, _, _, _, _) =
+      Lwt.fail @@
+      Ocsigen_extensions.Ocsigen_Is_a_directory
+        (Ocsigen_extensions.new_url_of_directory_request r)
+
+    let get_number_of_reloads () =
+      Ocsigen_extensions.get_numberofreloads ()
 
   end)
 
