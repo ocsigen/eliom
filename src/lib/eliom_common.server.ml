@@ -440,15 +440,12 @@ and tables =
        (page_table ref * page_table_key, na_key_serv) leftright ->
        (page_table ref * page_table_key, na_key_serv) leftright
          Ocsigen_cache.Dlist.node
-       (* Add in a dlist
-          for limiting the number of dynamic anonymous coservices in each table
-          (and avoid DoS).
-          There is one dlist for each session, and one for each IP
-          in global tables.
-          The dlist parameter is the table and coservice number
-          for attached coservices,
-          and the coservice number for non-attached ones.
-       *)
+         (* We use a dlist for limiting the number of dynamic
+            anonymous coservices in each table (and avoid DoS).  There
+            is one dlist for each session, and one for each IP in
+            global tables.  The dlist parameter is the table and
+            coservice number for attached coservices, and the
+            coservice number for non-attached ones. *)
     }
 
 and sitedata =

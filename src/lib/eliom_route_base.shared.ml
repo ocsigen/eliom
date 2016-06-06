@@ -68,14 +68,6 @@ module type PARAM = sig
 
     val empty : unit -> t
 
-    val find :
-      Eliom_common.page_table_key ->
-      t ->
-      Node.t option *
-      ((Eliom_common.anon_params_type * Eliom_common.anon_params_type) *
-       (int ref option * (float * float ref) option *
-        (bool -> Eliom_common.server_params -> result Lwt.t))) list
-
     val add  :
       Eliom_common.page_table_key ->
       Node.t option *
@@ -84,6 +76,14 @@ module type PARAM = sig
         (bool -> Eliom_common.server_params -> result Lwt.t))) list ->
       t ->
       t
+
+    val find :
+      Eliom_common.page_table_key ->
+      t ->
+      Node.t option *
+      ((Eliom_common.anon_params_type * Eliom_common.anon_params_type) *
+       (int ref option * (float * float ref) option *
+        (bool -> Eliom_common.server_params -> result Lwt.t))) list
 
     val remove : Eliom_common.page_table_key -> t -> t
 
