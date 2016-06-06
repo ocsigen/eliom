@@ -154,11 +154,9 @@ let send
     let headers =
       if Js.Unsafe.global##___eliom_use_cookie_substitutes_ <> Js.undefined then
         (* Cookie substitutes are for iOS WKWebView *)
-        let host = match host with
-          | None -> "/substitutes" | Some h -> (h  ^ "/substitutes") in
         let cookies =
           Eliommod_cookies.get_cookies_to_send
-            ~in_local_storage:true (Some host) https path in
+            ~in_local_storage:true host https path in
         ( Eliom_common.cookie_substitutes_header_name,
           encode_header_value cookies )
         :: headers
@@ -240,11 +238,8 @@ let send
          with
          | None | Some "" -> ()
          | Some cookie_substitutes ->
-           let host = match host with
-             | None ->    "/substitutes"
-             | Some h ->  h ^ "/substitutes" in
            Eliommod_cookies.update_cookie_table ~in_local_storage:true
-             (Some host)
+             host
              (Eliommod_cookies.cookieset_of_json cookie_substitutes));
       (match r.XmlHttpRequest.headers Eliom_common.set_tab_cookies_header_name
        with
