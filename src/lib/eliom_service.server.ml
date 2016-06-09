@@ -40,14 +40,6 @@ let xhr_with_cookies s =
    only after calling send.  In case it is not the same name, we will
    not send the onload_form_creator_info. *)
 
-let get_or_post
-    (type m) (s : (_, _, m, _, _, _, _, _, _, _, _) t) =
-  match which_meth s with
-  | Get'    -> `Get
-  | Post'   -> `Post
-  | Put'    -> `Put
-  | Delete' -> `Delete
-
 let register_eliom_module name f =
   Ocsigen_loader.set_module_init_function name f
 
@@ -107,7 +99,7 @@ let remove_service
     (service : (_, _, m, a, _, _, _, _, _, _, _) t) =
   match info service with
   | Attached attser ->
-    let key_kind = get_or_post service in
+    let key_kind = which_meth_untyped service in
     let attserget = get_name attser in
     let attserpost = post_name attser in
     let sgpt = get_params_type service in

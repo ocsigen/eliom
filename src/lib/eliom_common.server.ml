@@ -24,7 +24,6 @@ open Ocsigen_cookies
 include Eliom_common_base
 
 exception Eliom_Session_expired
-exception Eliom_Typing_Error of (string * exn) list
 
 exception Eliom_there_are_unregistered_services of
     (string list * string list list * na_key_serv list)

@@ -401,3 +401,5 @@ type page_table_key = {
 }
 
 type anon_params_type = int
+
+exception Eliom_Typing_Error of (string * exn) list

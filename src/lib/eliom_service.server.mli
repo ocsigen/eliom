@@ -67,11 +67,8 @@ val unregister :
 (** Returns whether it is an external service or not. *)
 val is_external :
   (_, _, _, _, _, _, _, _, _, _, _) t -> bool
-(**/**)
 
-val get_or_post :
-  (_, _, _, _, _, _, _, _, _, _, _) t ->
-  [`Get | `Post | `Put | `Delete]
+(**/**)
 
 val pre_applied_parameters :
   (_, _, _, _, _, _, _, _, _, _, _) t ->

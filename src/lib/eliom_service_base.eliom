@@ -774,4 +774,12 @@ let create_ocaml  = create
 
 let which_meth {meth} = meth
 
+let which_meth_untyped
+    (type m) (s : (_, _, m, _, _, _, _, _, _, _, _) t) =
+  match which_meth s with
+  | Get'    -> `Get
+  | Post'   -> `Post
+  | Put'    -> `Put
+  | Delete' -> `Delete
+
 }}

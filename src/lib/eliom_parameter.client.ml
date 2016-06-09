@@ -76,13 +76,13 @@ let rec reconstruct_set :
   (a, _, c) params_type ->
   a list * Form.form_elt M.t =
   fun ((acc, m) as p) y ->
-    match reconstruct_params m y with
+    match reconstruct_params_form m y with
     | Some (v, m) ->
       reconstruct_set (v :: acc, m) y
     | None ->
       p
 
-and reconstruct_params :
+and reconstruct_params_form :
   type a c .
   Form.form_elt M.t ->
   (a, [`WithoutSuffix], c) params_type ->
@@ -101,13 +101,13 @@ and reconstruct_params :
     | TProd (TSet _, _) ->
       failwith "Lists or sets in suffixes must be last"
     | TProd (y1, y2) ->
-      reconstruct_params m y1 >>= fun (x1, m) ->
-      reconstruct_params m y2 >>= fun (x2, m) ->
+      reconstruct_params_form m y1 >>= fun (x1, m) ->
+      reconstruct_params_form m y2 >>= fun (x2, m) ->
       Some ((x1, x2), m)
     | TUnit ->
       Some ((), m)
     | TOption (TAtom (_, TString) as y, b) ->
-      (match reconstruct_params m y with
+      (match reconstruct_params_form m y with
        | Some ("", m) ->
          Some (None, m)
        | Some (s, m) ->
@@ -115,22 +115,22 @@ and reconstruct_params :
        | None ->
          Some (None, m))
     | TOption (y, b) ->
-      (match reconstruct_params m y with
+      (match reconstruct_params_form m y with
        | Some (x, m) ->
          Some (Some x, m)
        | None ->
          Some (None, m))
     | TSet (TAtom (_, TBool) as y) ->
-      reconstruct_params m y >>= fun (x, m) ->
+      reconstruct_params_form m y >>= fun (x, m) ->
       Some ([x], m)
     | TSet y ->
       Some (reconstruct_set ([], m) y)
     | TSum (y1, y2) ->
-      (match reconstruct_params m y1 with
+      (match reconstruct_params_form m y1 with
        | Some (x, m) ->
          Some (Inj1 x, m)
        | None ->
-         reconstruct_params m y2 >>= fun (x, m) ->
+         reconstruct_params_form m y2 >>= fun (x, m) ->
          Some (Inj2 x, m))
     | TCoord name ->
       let f = int_of_string in
@@ -142,6 +142,6 @@ and reconstruct_params :
     | _ ->
       None
 
-let reconstruct_params l y =
-  reconstruct_params (M.of_assoc_list l) y >>= fun (v, _) ->
+let reconstruct_params_form l y =
+  reconstruct_params_form (M.of_assoc_list l) y >>= fun (v, _) ->
   Some v

@@ -25,12 +25,6 @@ open Ocsigen_extensions
 
 let section = Lwt_log.Section.make "eliom:parameter"
 
-type anon_params_type = int
-
-let anonymise_params_type (t : ('a, 'b, 'c) params_type) : anon_params_type =
-  Hashtbl.hash_param 1000 1000 t
-
-
 (*****************************************************************************)
 (* types available only on server side (no pcre on browser) *)
 
@@ -67,339 +61,7 @@ let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string) :
     to_string
     n
 
-
-(******************************************************************)
-(* The following function reconstructs the value of parameters
-   from expected type and GET or POST parameters *)
-
-type files = (string * file_info) list
-type +'a res_reconstr_param =
-  | Res_ of 'a * params * files
-  | Errors_ of ((string * string * exn) list * params * files)
-
-let end_of_list lp pref =
-  let f (a, _) =
-    try
-      String.(sub a 0 (length pref)) = pref
-    with Invalid_argument _ ->
-      false
-  in
-  not (List.exists f lp)
-
-let reconstruct_params_
-    req
-    typ
-    params files nosuffixversion urlsuffix : 'a =
-  let rec parse_suffix : type a c. (a,'b,c) params_type -> string list -> (a * string list) = fun typ suff ->
-    match (typ, suff) with
-      | TESuffix _, l -> l, []
-          (*VVV encode=false? *)
-      | TESuffixs _, l -> Url.string_of_url_path ~encode:false l, []
-      | TESuffixu (_, ofto), l ->
-          (try
-             (*VVV encode=false? *)
-             ofto.of_string (Url.string_of_url_path ~encode:false l), []
-           with e ->
-             raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
-      | TOption (t,_), [] -> None, []
-      | TOption (t,_), ""::l -> None, l
-      | TOption (t,_), l ->
-        let r, ll = parse_suffix t l in
-        Some r, ll
-      | TList _, [] -> [],[]
-      | TList (_, t), l ->
-        let b, l = parse_suffix t l in
-        (match l with
-          | [] -> raise Eliom_common.Eliom_Wrong_parameter
-          | [""] -> [b], []
-          | _ ->
-            let c, l = parse_suffix typ l in
-            (b::c), l)
-      | TSet (TAtom (_, TBool) as y), l ->
-        let b, l = parse_suffix y l in [b], l
-      | TSet t, l ->
-          let b, l = parse_suffix t l in
-          (match l with
-            | [] -> raise Eliom_common.Eliom_Wrong_parameter
-            | [""] -> [b], []
-            | _ ->
-              let c, l = parse_suffix typ l in
-              (b::c), l)
-
-      | TProd (TList _, _), _ ->
-        failwith "Lists or sets in suffixes must be last parameters"
-      | TProd (TSet _, _), _ ->
-        failwith "Lists or sets in suffixes must be last parameters"
-      | TProd (t1, t2), l ->
-        (match parse_suffix t1 l with
-          | _, [] -> raise Eliom_common.Eliom_Wrong_parameter
-          | r, l ->
-            let rr, ll = parse_suffix t2 l in
-            (r, rr), ll)
-      | TAtom (name, t), v::l ->
-        (try atom_of_string t v, l
-         with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
-      | TUserType (name, ofto), v::l ->
-        (try ofto.of_string v, l
-         with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
-      | TTypeFilter (t, None), _ -> failwith "Type filter without filter"
-      | TTypeFilter (t, Some check), l ->
-        let (v, _) as a = parse_suffix t l in
-        check v;
-        a
-      | TConst value, v::l ->
-          if v = value
-          then (), l
-          else raise Eliom_common.Eliom_Wrong_parameter
-      | TSum (t1, t2), l ->
-        (try let x, l = parse_suffix t1 l in Inj1 x,l
-         with Eliom_common.Eliom_Wrong_parameter ->
-           let x,l = parse_suffix t2 l in Inj2 x,l)
-      | TCoord _, l ->
-        (match parse_suffix (TAtom ("",TInt)) l with
-         | _, [] -> raise Eliom_common.Eliom_Wrong_parameter
-         | r, l ->
-           let rr, ll = parse_suffix (TAtom ("",TInt)) l in
-           {abscissa = r; ordinate=rr}, ll)
-      | TNLParams _, _ ->
-          failwith "It is not possible to have non localized parameters in suffix"
-      | TJson (_, Some typ), v::l -> Deriving_Json.from_string typ v, l
-      | TJson (_, None), v::l -> assert false (* client side only *)
-      | TAny, _ -> failwith "It is not possible to use any in suffix. May be try with all_suffix ?"
-      | TFile _, _ -> assert false
-      | TRaw_post_data, _ -> assert false
-      | TUnit, _ -> failwith "It is not possible to use TUnit in suffix."
-      | TSuffix _, _ -> failwith "It is not possible to use TSuffix in suffix."
-      | _,[]-> raise Eliom_common.Eliom_Wrong_parameter
-  in
-  let rec aux_list : type a c. (a,'b,c) params_type -> params -> files -> string -> string -> string -> a list res_reconstr_param =
-    fun t params files name pref suff ->
-      let rec loop_list i lp fl pref =
-        if
-          match t with
-          | TFile _ ->
-            end_of_list fl pref
-          | _ ->
-            end_of_list lp pref
-        then
-          Res_ ([], lp, fl)
-        else
-          match aux t lp fl pref (make_list_suffix i) with
-            | Res_ (v, lp2, f) ->
-              (match loop_list (i+1) lp2 f pref with
-                | Res_ (v2,lp3,f2) -> Res_ ((v::v2),lp3,f2)
-                | err -> err)
-            | Errors_ errs -> Errors_ errs
-      in
-      loop_list 0 params files (pref^name^suff^".")
-  and aux : type a c. (a, 'b, c) params_type -> params -> files -> string -> string -> a res_reconstr_param =
-    fun typ params files pref suff ->
-      match typ with
-        | TNLParams {param=t} -> aux t params files pref suff
-        | TProd (t1, t2) ->
-          (match aux t1 params files pref suff with
-            | Res_ (v1, l1, f) ->
-              (match aux t2 l1 f pref suff with
-                | Res_ (v2, l2, f2) -> Res_ ((v1, v2), l2, f2)
-                | Errors_ (err,params,files) -> Errors_ (err,params,files))
-            | Errors_ (errs, l, f) ->
-              (match aux t2 l f pref suff with
-                | Res_ (_, ll, ff) -> Errors_ (errs, ll, ff)
-                | Errors_ (errs2, ll, ff) -> Errors_ ((errs2@errs), ll, ff)))
-        | TOption (TAtom (_,TString) as t,b) ->
-          (try
-             (match aux t params files pref suff with
-               | Res_ (v, l, f) ->
-                 if b && String.length v = 0  (* Is the value an empty string? *)
-                 then Res_ (None, l, f)
-                 else Res_ (Some v, l, f)
-               | Errors_ (errs, ll, ff) when List.for_all (fun (_,s,_) -> s="") errs -> Res_ (None, ll, ff)
-               | Errors_ err   -> Errors_ err)
-           with Not_found -> Res_ (None, params, files))
-        | TOption (t,b) ->
-          (try
-             (match aux t params files pref suff with
-               | Res_ (v, l, f) -> Res_ (Some v, l, f)
-               | Errors_ (errs, ll, ff) when List.for_all (fun (_,s,_) -> s="") errs -> Res_ (None, ll, ff)
-               | Errors_ err   -> Errors_ err)
-           with Not_found -> Res_ (None, params, files))
-        | TList (n, t) -> aux_list t params files n pref suff
-        | TSet (TAtom (_, TBool) as y) ->
-          (match aux y params files pref suff with
-           | Res_ (vv, ll, ff) ->
-             Res_ ([vv], ll, ff)
-           | Errors_ (err, ll, ff) ->
-             Errors_ (err, ll, ff))
-        | TSet t ->
-          let rec aux_set params files =
-            try
-              match aux t params files pref suff with
-                | Res_ (vv, ll, ff) ->
-                  (match aux_set ll ff with
-                    | Res_ (vv2, ll2, ff2) ->
-                      Res_ (vv::vv2, ll2, ff2)
-                    | err -> err)
-                | Errors_ (errs, ll, ff) when ll = params && ff = files ->
-                  Res_ ([], params, files)
-                | Errors_ (errs, ll, ff) ->
-                  (match aux_set ll ff with
-                   | Res_ (_, ll2, ff2) -> Errors_ (errs, ll2, ff2)
-                   | Errors_ (errs2, ll2, ff2) -> Errors_ (errs@errs2, ll2, ff2))
-            with Not_found -> Res_ ([], params, files)
-          in aux_set params files
-        | TSum (t1, t2) ->
-          begin
-            (* We try to decode both cases, if both succeed,
-               we choose the one that consumes parameters
-               (or the 1st one if none consumes) *)
-            (try
-               match aux t1 params files pref suff with
-               | Res_ (v1,l1,files1) ->
-                 if l1 = params
-                 then try
-                     (match aux t2 params files pref suff with
-                      | Res_ (v2,l2,files2) when l2 <> params ->
-                        Res_ (Inj2 v2,l2,files2)
-                      | _ -> Res_ (Inj1 v1,l1,files1))
-                   with Not_found -> Res_ (Inj1 v1,l1,files1)
-                 else Res_ (Inj1 v1,l1,files1)
-               | Errors_ err -> Errors_ err
-             with Not_found ->
-               (match aux t2 params files pref suff with
-                | Res_ (v,l,files) -> Res_ (Inj2 v,l,files)
-                | Errors_ err -> Errors_ err))
-          end
-        | TAtom (name,TBool) ->
-          (try
-             let v,l = (List.assoc_remove (pref^name^suff) params) in
-             Res_ (true,l,files)
-           with Not_found -> Res_ (false, params, files))
-
-        | TAtom (name,a) ->
-          let v,l = (List.assoc_remove (pref^name^suff) params) in
-          (try (Res_ (atom_of_string a v, l, files))
-           with e -> Errors_ ([(pref^name^suff),v,e], l, files))
-        | TFile name ->
-          (try
-             let v,f = List.assoc_remove (pref^name^suff) files in
-             Res_ (v, params, f)
-           with e ->
-             Errors_ ([pref^name^suff,"",e], [], files))
-        | TCoord name ->
-          let r1 =
-            let v, l = (List.assoc_remove (pref^name^suff^".x") params) in
-            (try (Res_ ((int_of_string v), l, files))
-             with e -> Errors_ ([(pref^name^suff^".x"), v, e], l, files))
-          in
-          (match r1 with
-           | Res_ (x1, l1, f) ->
-             let v, l = (List.assoc_remove (pref^name^suff^".y") l1) in
-             (try (Res_ (
-                  {abscissa= x1;
-                   ordinate= int_of_string v}, l, f))
-              with e -> Errors_ ([(pref^name^suff^".y"), v, e], l, f))
-           | Errors_ (errs, l1, f) ->
-             let v, l = (List.assoc_remove (pref^name^suff^".y") l1) in
-             (try
-                ignore (int_of_string v);
-                Errors_ (errs, l, f)
-              with e -> Errors_ (((pref^name^suff^".y"), v, e)::errs, l, f)))
-        | TUserType (name, ofto) ->
-          let v,l = (List.assoc_remove (pref^name^suff) params) in
-          (try Res_ (ofto.of_string v,l,files)
-           with e -> Errors_ ([(pref^name^suff),v,e], l, files))
-        | TTypeFilter (t, None) -> failwith "Type filter without filter"
-        | TTypeFilter (t, Some check) ->
-          (match aux t params files pref suff with
-            | Res_ (v, l, files) as a ->
-              (try check v; a
-               with e -> Errors_ (["<type_check>","<>",e], l, files))
-            | a -> a)
-        | TUnit -> Res_ ((), params, files)
-        | TAny -> Res_  (params, [], files)
-        | TConst _ -> Res_ ((), params, files)
-        | TESuffix n ->
-          let v,l = List.assoc_remove n params in
-          (* cannot have prefix or suffix *)
-          Res_ (Neturl.split_path v, l, files)
-        | TESuffixs n ->
-          let v,l = List.assoc_remove n params in
-          (* cannot have prefix or suffix *)
-          Res_ (v, l, files)
-        | TESuffixu (n, ofto) ->
-          let v,l = List.assoc_remove n params in
-          (* cannot have prefix or suffix *)
-          (try Res_ (ofto.of_string v, l, files)
-           with e -> Errors_ ([(pref^n^suff), v, e], l, files))
-        | TSuffix (_, s) ->
-          (match urlsuffix with
-            | None ->
-              if nosuffixversion
-              (* the special page name "nosuffix" is present *)
-              then aux s params files pref suff
-              else raise Eliom_common.Eliom_Wrong_parameter
-            | Some urlsuffix ->
-              (match parse_suffix s urlsuffix with
-                | p, [] -> Res_ (p, params, files)
-                | _ -> raise Eliom_common.Eliom_Wrong_parameter))
-        | TJson (name, Some typ) ->
-          let v,l = List.assoc_remove (pref^name^suff) params in
-          Res_ ((of_json ~typ v),l,files)
-        | TJson (name, None) -> assert false
-        (* Never unmarshal server side without type! *)
-        | TRaw_post_data -> raise Eliom_common.Eliom_Wrong_parameter
-  in
-  try
-    match aux typ params files "" "" with
-      | Res_ (v, l, files) ->
-        if (l, files) = ([], [])
-        then v
-        else begin
-          if l <> []
-          then Lwt_log.ign_debug_f ~section
-              "Eliom_Wrong_parameter: params non-empty (ERROR): %a" (fun () l -> String.concat ", " (List.map (fun (x,k) -> x^"="^k) l)) l;
-          if files <> []
-          then Lwt_log.ign_debug_f ~section
-              "Eliom_Wrong_parameter: files non-empty (ERROR): %a" (fun () files -> String.concat ", " (List.map (fun (x,k) -> x) files)) files;
-          raise Eliom_common.Eliom_Wrong_parameter
-        end
-      | Errors_ (errs, l, files) ->
-        if (l, files) = ([], [])
-        then raise (Eliom_common.Eliom_Typing_Error (List.map (fun (v,l,e) -> (v,e)) errs))
-        else raise Eliom_common.Eliom_Wrong_parameter
-  with | Not_found -> raise Eliom_common.Eliom_Wrong_parameter
-
-
-let reconstruct_params ~sp (type a) (type c) (typ : (a,'b,c) params_type) params files nosuffixversion urlsuffix : a Lwt.t =
-  match typ, params, files with
-    | TRaw_post_data, None, None ->
-      let ri = Eliom_request_info.get_ri_sp sp in
-      Lwt.return
-        (
-           (Ocsigen_request_info.content_type ri,
-            (Ocsigen_request_info.http_frame ri).Ocsigen_http_frame.frame_content))
-    | typ, None, None ->
-      (try
-         Lwt.return
-           (reconstruct_params_
-              sp.Eliom_common.sp_request
-              typ [] [] nosuffixversion urlsuffix)
-       with e -> Lwt.fail e)
-    | typ, Some params, Some files ->
-      params >>= fun params ->
-      files >>= fun files ->
-      (try
-         Lwt.return
-           (reconstruct_params_
-              sp.Eliom_common.sp_request
-              typ params files nosuffixversion urlsuffix)
-       with e -> Lwt.fail e)
-    | _ -> Lwt.fail Eliom_common.Eliom_Wrong_parameter
-
-(*****************************************************************************)
 (* Non localized parameters *)
-
-type kind = | Get_ | Post_
 
 let get_non_localized_parameters params files ~getorpost ~sp
     {name;
@@ -408,9 +70,7 @@ let get_non_localized_parameters params files ~getorpost ~sp
      param = paramtype} =
   (* non localized parameters are parsed only once,
      and cached in request_cache *)
-  let key = match getorpost with
-    | Get_ -> get
-    | Post_ -> post in
+  let key = match getorpost with `Get  -> get | `Post -> post in
   (try
      (* first, look in cache: *)
      Polytables.get
@@ -422,8 +82,7 @@ let get_non_localized_parameters params files ~getorpost ~sp
          Some
            (let params = try String.Table.find name params with Not_found -> [] in
             let files = try String.Table.find name files with Not_found -> [] in
-            reconstruct_params_
-              sp.Eliom_common.sp_request paramtype params files false None)
+            reconstruct_params_ paramtype params files false None)
        with Eliom_common.Eliom_Wrong_parameter | Not_found ->
          None
      in
@@ -439,11 +98,11 @@ let get_non_localized_get_parameters p =
   get_non_localized_parameters
     sp.Eliom_common.sp_si.Eliom_common.si_nl_get_params
     sp.Eliom_common.sp_si.Eliom_common.si_nl_file_params
-    ~getorpost:Get_ ~sp p
+    ~getorpost:`Get ~sp p
 
 let get_non_localized_post_parameters p =
   let sp = Eliom_common.get_sp () in
   get_non_localized_parameters
     sp.Eliom_common.sp_si.Eliom_common.si_nl_post_params
     sp.Eliom_common.sp_si.Eliom_common.si_nl_file_params
-    ~getorpost:Post_ ~sp p
+    ~getorpost:`Post ~sp p

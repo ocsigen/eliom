@@ -65,12 +65,61 @@ module Make (P : PARAM) = struct
   let send ?options ?charset ?code ?content_type ?headers page =
     P.send ?options page
 
+  let wrap service f _ _ =
+    let gp = Eliom_service.get_params_type service in
+    lwt g =
+      Eliom_parameter.reconstruct_params
+        ~sp:() gp None None true None
+    in
+    f g ()
+
+  let register_service_attached ~service ~att f =
+    let key_meth = Eliom_service.which_meth_untyped service in
+    let gn = Eliom_service.get_name att in
+    let pn = Eliom_service.post_name att in
+    let suffix_with_redirect = Eliom_service.redirect_suffix att in
+    let priority = Eliom_service.priority att in
+    let sgpt = Eliom_service. get_params_type service in
+    let sppt = Eliom_service.post_params_type service in
+    Eliom_route.add_service
+      priority
+      Eliom_route.global_tables
+      (Eliom_service.sub_path att)
+      {Eliom_common.key_state = (gn, pn);
+       Eliom_common.key_meth = (key_meth :> Eliom_common.meth)}
+      ((if gn = Eliom_common.SAtt_no || pn = Eliom_common.SAtt_no then
+          Eliom_parameter.(
+            anonymise_params_type sgpt,
+            anonymise_params_type sppt
+          )
+        else
+          (0, 0)
+       ),
+       ((match Eliom_service.max_use service with
+          | None -> None
+          | Some i -> Some (ref i)),
+        (match Eliom_service.timeout service with
+         | None -> None
+         | Some t -> Some (t, ref (t +. Unix.time ()))),
+        wrap service f))
+
   let register
       ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
-      ?headers:_ ?secure_session:_ ~service ?error_handler:_
-      f =
-    Eliom_service.set_client_fun ?app ~service
-      (fun g p -> lwt page = f g p in P.send ?options page)
+      ?headers:_ ?secure_session:_
+      (type g) (type p) (type att)
+      ~(service : (g, p, _, att, _, _, _, _, _, _, _) Eliom_service.t)
+      ?error_handler:_
+      (f : g -> p -> _) =
+    let f g p = lwt page = f g p in P.send ?options page in
+    (match
+       Eliom_service.info service,
+       Eliom_parameter.is_unit (Eliom_service.post_params_type service)
+     with
+     | Eliom_service.Attached att, Eliom_parameter.U_yes ->
+       register_service_attached ~service ~att f
+     | _ ->
+       ());
+    Eliom_service.set_client_fun ?app ~service f
 
   let create
       ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_

@@ -68,12 +68,4 @@ val get_non_localized_post_parameters :
 
 (**/**)
 
-val reconstruct_params :
-  sp:Eliom_common.server_params ->
-  ('a, [< `WithSuffix | `WithoutSuffix ], 'c) params_type ->
-  params Lwt.t option ->
-  (string * Eliom_lib.file_info) list Lwt.t option ->
-  bool ->
-  Eliom_lib.Url.path option -> 'a Lwt.t
-
 val anonymise_params_type : ('a, 'b, 'c) params_type -> int

@@ -1,4 +1,4 @@
-module A : Eliom_route_base.PARAM = struct
+module A= struct
 
   type site_data = unit
 
@@ -98,3 +98,9 @@ module A : Eliom_route_base.PARAM = struct
 end
 
 include Eliom_route_base.Make(A)
+
+let global_tables = {
+  A.t_services         = [];
+  A.t_na_services      = [];
+  A.t_contains_timeout = false
+}

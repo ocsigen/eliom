@@ -21,7 +21,7 @@
 {client{
 
 let read_params form y =
-  Eliom_parameter.reconstruct_params
+  Eliom_parameter.reconstruct_params_form
     (Form.form_elements form)
     y
 

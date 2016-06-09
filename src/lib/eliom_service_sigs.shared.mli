@@ -339,6 +339,9 @@ module type S = sig
   val which_meth :
     (_, _, 'm, _, _, _, _, _, _, _, _) t -> 'm which_meth
 
+  val which_meth_untyped :
+    (_, _, _, _, _, _, _, _, _, _, _) t -> [`Get | `Post | `Put | `Delete]
+
   val info :
     (_, _, _, 'att, _, _, _, _, _, _, _) t -> 'att attached_info
 

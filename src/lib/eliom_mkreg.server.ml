@@ -181,7 +181,7 @@ let register_aux pages
     begin
       match S.info service with
 	| S.Attached attser ->
-          let key_meth = S.get_or_post service in
+          let key_meth = S.which_meth_untyped service in
           let attserget = S.get_name attser in
           let attserpost = S.post_name attser in
           let suffix_with_redirect = S.redirect_suffix attser in

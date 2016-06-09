@@ -33,3 +33,7 @@ let inject_param_table t : (string * param) list Eliom_lib.String.Table.t  =
   Eliom_lib.String.Table.map
     (fun v -> inject_param_list v)
     t
+
+let string_of_param = function
+  | `String s -> Js.to_string s
+  | `File   _ -> failwith "is a file"

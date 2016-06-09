@@ -403,6 +403,14 @@ module type S = sig
     'a ->
     string list option * params
 
+  val reconstruct_params :
+    sp:Eliom_common.server_params ->
+    ('a, [< `WithSuffix | `WithoutSuffix ], 'c) params_type ->
+    (string * string) list Lwt.t option ->
+    (string * Eliom_lib.file_info) list Lwt.t option ->
+    bool ->
+    Eliom_lib.Url.path option -> 'a Lwt.t
+
   val make_params_names :
     ('a, 'b, 'c) params_type -> bool * 'c (* bool = contains a suffix *)
 
@@ -433,5 +441,7 @@ module type S = sig
     | U_yes : unit is_unit
 
   val is_unit : ('a, _, _) params_type -> 'a is_unit
+
+  val anonymise_params_type : ('a, 'b, 'c) params_type -> int
 
 end

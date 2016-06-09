@@ -33,3 +33,5 @@ let inject_param_list = Ocsigen_lib.id
 let get_param_list = Ocsigen_lib.id
 
 let inject_param_table = Ocsigen_lib.id
+
+let string_of_param s = s
