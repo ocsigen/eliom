@@ -111,11 +111,12 @@ module Make_typed_xml_registration
 
     let out =
       let encode x = fst (Xml_print.Utf8.normalize_html x) in
-      Format.asprintf "%a" (Fmt.pp_elt ~encode ())
+      Fmt.pp_elt ~encode ()
 
     let out_list l =
-      List.map out l
-      |> String.concat ""
+      Format.asprintf "%a"
+        (Format.pp_print_list ~pp_sep:(fun _ () -> ()) out)
+        l
       |> Ocsigen_stream.StringStream.put
       |> Ocsigen_stream.StringStream.make
 
