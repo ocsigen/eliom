@@ -815,7 +815,7 @@ let change_page (type m)
               Not very pretty. We can have client functions that
               return a string (option?) for the URI. *)
            if not !do_not_set_uri then
-             set_uri uri
+             set_uri ?replace uri
            else
              do_not_set_uri := false;
            update_session_info all_get_params;
