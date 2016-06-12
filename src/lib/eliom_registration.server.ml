@@ -107,29 +107,26 @@ module Make_typed_xml_registration
   (Typed_xml: Xml_sigs.Typed_xml with module Xml := Xml)
   (E : sig type content end) = struct
 
-    module Format = Xml_print.Make_typed(Xml)(Typed_xml)(Ocsigen_stream.StringStream)
+    module Fmt = Xml_print.Make_typed_fmt(Xml)(Typed_xml)
 
-    let result_of_content_subxhtml get_etag c =
+    let out =
       let encode x = fst (Xml_print.Utf8.normalize_html x) in
-      let x = Format.print_list ~encode c in
+      Format.asprintf "%a" (Fmt.pp_elt ~encode ())
+
+    let out_list l =
+      List.map out l
+      |> String.concat ""
+      |> Ocsigen_stream.StringStream.put
+      |> Ocsigen_stream.StringStream.make
+
+    let result_of_content c =
       let default_result = Ocsigen_http_frame.Result.default () in
       Lwt.return
         (Ocsigen_http_frame.Result.update default_result
           ~content_length:None
           ~content_type:(Some "text/html")
-          ~etag:(get_etag c)
           ~headers:(Http_headers.dyn_headers)
-          ~stream:(x, None) ())
-
-    module Cont_content =
-      (* Pasted from ocsigen_senders.ml and modified *)
-      struct
-
-        let get_etag ?options c = None
-
-        let result_of_content c = result_of_content_subxhtml get_etag c
-
-      end
+          ~stream:(out_list c, None) ())
 
     module Cont_reg_base = struct
 
@@ -142,7 +139,7 @@ module Make_typed_xml_registration
       let send_appl_content = Eliom_service.XNever
 
       let send ?options ?charset ?code ?content_type ?headers content =
-        let%lwt r = Cont_content.result_of_content content in
+        let%lwt r = result_of_content content in
         Lwt.return
           (Ocsigen_http_frame.Result.update r
             ~code:(code_of_code_option code)
