@@ -67,9 +67,14 @@ module Make (P : PARAM) = struct
 
   let wrap service f _ _ =
     let gp = Eliom_service.get_params_type service in
+    let p =
+      let {Eliom_common.si_all_get_params} =
+        !Eliom_request_info.get_sess_info () in
+      Some (Lwt.return si_all_get_params)
+    in
     lwt g =
       Eliom_parameter.reconstruct_params
-        ~sp:() gp None None true None
+        ~sp:() gp p None true None
     in
     f g ()
 
@@ -77,7 +82,6 @@ module Make (P : PARAM) = struct
     let key_meth = Eliom_service.which_meth_untyped service in
     let gn = Eliom_service.get_name att in
     let pn = Eliom_service.post_name att in
-    let suffix_with_redirect = Eliom_service.redirect_suffix att in
     let priority = Eliom_service.priority att in
     let sgpt = Eliom_service. get_params_type service in
     let sppt = Eliom_service.post_params_type service in

@@ -319,3 +319,6 @@ val set_content_local :
   ?fragment:string -> Dom_html.element Js.t -> unit Lwt.t
 
 val do_not_set_uri : bool ref
+
+val call_client_service :
+  string list -> (string * string) list -> unit Lwt.t

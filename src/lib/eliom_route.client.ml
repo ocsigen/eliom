@@ -1,12 +1,16 @@
-module A= struct
+type info = {
+  i_sess_info : Eliom_common.sess_info;
+  i_subpath   : string list;
+  i_meth      : Eliom_common.meth
+}
+
+module A = struct
 
   type site_data = unit
 
-  type info = {
-    i_sess_info : Eliom_common.sess_info;
-    i_subpath   : string list;
-    i_meth      : Eliom_common.meth
-  }
+  type info' = info
+
+  type info = info'
 
   type result = unit
 

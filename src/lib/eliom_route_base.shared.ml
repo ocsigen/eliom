@@ -133,7 +133,7 @@ module Make (P : PARAM) = struct
     let rec aux toremove = function
       | [] -> Lwt.return ((Eliom_common.Notfound
                              Eliom_common.Eliom_Wrong_parameter), [])
-      | (((_anontyp, (max_use, expdate, funct)) as a)::l) ->
+      | (((_, (max_use, expdate, funct)) as a)::l) ->
         match expdate with
         | Some (_, e) when !e < now ->
           (* Service expired. Removing it. *)

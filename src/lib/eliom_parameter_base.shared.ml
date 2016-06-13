@@ -886,12 +886,22 @@ let reconstruct_params ~sp (type a) (type c) (typ : (a,'b,c) params_type) params
          (reconstruct_params_
             typ [] [] nosuffixversion urlsuffix)
      with e -> Lwt.fail e)
-  | typ, Some params, Some files ->
-    params >>= fun params ->
-    files >>= fun files ->
-    (try
+  | typ, _, _ ->
+    lwt params =
+      match params with
+      | Some params ->
+        params
+      | None ->
+        Lwt.return []
+    in
+    lwt files =
+      match files with
+      | Some files ->
+        files
+      | None ->
+        Lwt.return []
+    in
+    try
        Lwt.return
-         (reconstruct_params_
-            typ params files nosuffixversion urlsuffix)
-     with e -> Lwt.fail e)
-  | _ -> Lwt.fail Eliom_common.Eliom_Wrong_parameter
+         (reconstruct_params_ typ params files nosuffixversion urlsuffix)
+     with e -> Lwt.fail e
