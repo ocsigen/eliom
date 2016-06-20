@@ -819,7 +819,7 @@ module Html : sig
       val minHeightPx : 'a elt -> int -> unit
       val minWidth: 'a elt -> string -> unit
       val minWidthPx : 'a elt -> int -> unit
-      val opacity: 'a elt -> string option -> unit
+      val opacity: 'a elt -> string -> unit
       val outline: 'a elt -> string -> unit
       val outlineColor: 'a elt -> string -> unit
       val outlineOffset: 'a elt -> string -> unit

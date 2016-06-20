@@ -1175,7 +1175,7 @@ module Html = struct
       let minWidthPx elt v = minWidth elt (Printf.sprintf "%dpx" v)
       let opacity elt v =
         let elt = get_unique_elt "SetCss.opacity" elt in
-        elt##style##opacity <- match v with None -> Js.undefined | Some v -> Js.def (Js.bytestring v)
+        elt##style##opacity <- Js.def (Js.bytestring v)
       let outline elt v =
         let elt = get_unique_elt "SetCss.outline" elt in
         elt##style##outline <- Js.bytestring v
