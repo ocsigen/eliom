@@ -131,7 +131,8 @@ module Make (P : PARAM) = struct
         | Not_found -> fail Eliom_common.Eliom_404
         | e -> fail e) >>= fun (node, l) ->
     let rec aux toremove = function
-      | [] -> Lwt.return ((Eliom_common.Notfound
+      | [] ->
+        Lwt.return ((Eliom_common.Notfound
                              Eliom_common.Eliom_Wrong_parameter), [])
       | (((_, (max_use, expdate, funct)) as a)::l) ->
         match expdate with
@@ -361,7 +362,8 @@ module Make (P : PARAM) = struct
     let rec find_table = function
       | [] -> let t = ref (Eliom_common.empty_dircontent ()) in
         t, [(generation, priority, t)]
-      | ((g, p, t)::_) as l when g = generation && p = priority -> t, l
+      | ((g, p, t)::_) as l when g = generation && p = priority ->
+        t, l
       | ((g, p, _)::_) as l when g < generation || p < priority ->
         let t = ref (Eliom_common.empty_dircontent ()) in
         t, (generation, priority, t)::l

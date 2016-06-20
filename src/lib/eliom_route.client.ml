@@ -24,10 +24,12 @@ module A = struct
 
   let make_server_params _ _ _ _ = ()
 
-  let get_number_of_reloads () = 0
+  let get_number_of_reloads =
+    let count = ref 0 in
+    fun () -> count := !count + 1; !count
 
   module Raw_table = Map.Make(struct
-      type t = Eliom_common.page_table_key
+      type t = Eliom_common.meth
       let compare = compare
     end)
 
@@ -55,14 +57,14 @@ module A = struct
 
     let empty () = Raw_table.empty
 
-    let add k v m = Raw_table.add k (`Ptc v) m
+    let add {Eliom_common.key_meth} v m = Raw_table.add key_meth (`Ptc v) m
 
-    let find k m =
-      let `Ptc v = Raw_table.find k m in v
+    let find {Eliom_common.key_meth} m =
+      let `Ptc v = Raw_table.find key_meth m in v
 
     let empty () = Raw_table.empty
 
-    let remove = Raw_table.remove
+    let remove {Eliom_common.key_meth} = Raw_table.remove key_meth
 
   end
 

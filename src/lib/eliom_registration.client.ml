@@ -29,7 +29,6 @@ module Block5 = Base
 module Html_text = Base
 module CssText = Base
 module Text = Base
-module String = Base
 
 module Unit = Base
 
@@ -65,26 +64,46 @@ module Make (P : PARAM) = struct
   let send ?options ?charset ?code ?content_type ?headers page =
     P.send ?options page
 
-  let wrap service f _ _ =
-    let gp = Eliom_service.get_params_type service in
-    let p =
-      let {Eliom_common.si_all_get_params} =
-        !Eliom_request_info.get_sess_info () in
-      Some (Lwt.return si_all_get_params)
+  let wrap service att f _ _ =
+    let gp = Eliom_service.get_params_type service
+    and l =
+      let si = !Eliom_request_info.get_sess_info () in
+      si.si_all_get_params
     in
-    lwt g =
-      Eliom_parameter.reconstruct_params
-        ~sp:() gp p None true None
+    let ret l =
+      try_lwt
+        let l = Some (Lwt.return l) in
+        lwt g =
+          Eliom_parameter.reconstruct_params
+            ~sp:() gp l None true None
+        in
+        f g ()
+      with
+      | Eliom_common.Eliom_Wrong_parameter ->
+        Lwt.fail Eliom_common.Eliom_Wrong_parameter
     in
-    f g ()
+    match Eliom_service.get_name att with
+    | Eliom_common.SAtt_named s
+    | Eliom_common.SAtt_anon s ->
+      (try
+         let eliom_name = List.assoc "__eliom__" l
+         and l = List.remove_assoc "__eliom__" l in
+         if eliom_name = s then
+           ret l
+         else
+           Lwt.fail Eliom_common.Eliom_Wrong_parameter
+       with Not_found ->
+         Lwt.fail Eliom_common.Eliom_Wrong_parameter)
+    | _ ->
+      ret l
 
   let register_service_attached ~service ~att f =
-    let key_meth = Eliom_service.which_meth_untyped service in
-    let gn = Eliom_service.get_name att in
-    let pn = Eliom_service.post_name att in
-    let priority = Eliom_service.priority att in
-    let sgpt = Eliom_service. get_params_type service in
-    let sppt = Eliom_service.post_params_type service in
+    let key_meth = Eliom_service.which_meth_untyped service
+    and gn = Eliom_service. get_name att
+    and pn = Eliom_service.post_name att
+    and priority = Eliom_service.priority att in
+    let sgpt = Eliom_service. get_params_type service
+    and sppt = Eliom_service.post_params_type service in
     Eliom_route.add_service
       priority
       Eliom_route.global_tables
@@ -105,7 +124,7 @@ module Make (P : PARAM) = struct
         (match Eliom_service.timeout service with
          | None -> None
          | Some t -> Some (t, ref (t +. Unix.time ()))),
-        wrap service f))
+        wrap service att f))
 
   let register
       ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
@@ -264,3 +283,5 @@ module Any = struct
     service
 
 end
+
+module String = Base
