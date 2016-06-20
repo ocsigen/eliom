@@ -20,6 +20,7 @@
 (** A few common functions used by Eliom. Extension of OCaml stdlib.
     See also {% <<a_api project="ocsigenserver" | module Ocsigen_lib>> %} *)
 
+(** See <a_api project="ocsigenserver"| module Ocsigen_lib>. *)
 include module type of Ocsigen_lib
   with type poly = Ocsigen_lib.poly
   and type yesnomaybe = Ocsigen_lib.yesnomaybe
@@ -45,6 +46,7 @@ val debug: ('a, unit, string, unit) format4 -> 'a
 (** Marshal an OCaml value into a string. All characters are escaped *)
 val jsmarshal : 'a -> string
 
+(** Extension of <a_api project="lwt"| module Lwt_log>. *)
 module Lwt_log : sig
   include module type of Lwt_log
   with type level = Lwt_log.level
