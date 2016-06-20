@@ -15,7 +15,13 @@ let usage () =
   Printf.eprintf "  -type-conv\t\tUse type_conv syntax extensions instead of deriving one\n";
   Printf.eprintf "\t\t\tIt has no effect if used in conjunction with -no-autoload\n";
 
-  Printf.eprintf "  -ppopt <p>\t\tAppend option <opt> to preprocessor invocation\n";
+  Printf.eprintf "  -ppopt <opt>\t\tAppend option <opt> to preprocessor invocation\n";
+  Printf.eprintf "  -ppx";
+  Printf.eprintf "\t\t\tUse the PPX Eliom syntax extension (default: Camlp4)\n";
+  Printf.eprintf "\t\t\tThe above description only applies to the first\n";
+  Printf.eprintf "\t\t\tappearance of -ppx in the list of flags. Subsequent\n";
+  Printf.eprintf "\t\t\tappearances require an argument and specify a\n";
+  Printf.eprintf "\t\t\tPPX preprocessor to use (see STANDARD OPTIONS).\n";
   Printf.eprintf "  -predicates <p>\tAdd predicate <p> when resolving package properties\n";
   Printf.eprintf "  -verbose\t\tPrint calls to external commands\n";
   create_filter !compiler ["-help"] (help_filter 2 "STANDARD OPTIONS:");
