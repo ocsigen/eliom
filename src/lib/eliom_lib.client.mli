@@ -19,7 +19,7 @@
 
 (** Eliom standard library *)
 
-(** See {% << a_api project="ocsigenserver"| module Ocsigen_lib_base >> %}. *)
+(** See {% <<a_api project="ocsigenserver"| module Ocsigen_lib_base >> %}. *)
 include module type of Ocsigen_lib_base
   with type poly = Ocsigen_lib.poly
   and type yesnomaybe = Ocsigen_lib_base.yesnomaybe
@@ -59,13 +59,13 @@ module Url : sig
 end
 
 (** Extension of {% <<a_api project="ocsigenserver"| module
-    Ocsigen_lib.String_base >> %}. *)
+    Ocsigen_lib_base.String_base >> %}. *)
 module String : sig
   include module type of String_base
   val remove_eols : string -> string
 end
 
-(** Extension of {% <<a_api project="lwt"| module Lwt_log_js >> %}. *)
+(** Extension of {% <<a_api project="js_of_ocaml"| module Lwt_log_js >> %}. *)
 module Lwt_log : sig
   include module type of Lwt_log_js
   with type level = Lwt_log_core.level
