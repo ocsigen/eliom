@@ -27,7 +27,12 @@ let usage () =
     Printf.eprintf "  -jsopt <opt>\t\tAppend option <opt> to js_of_ocaml invocation\n";
   Printf.eprintf "  -ppopt <p>\t\tAppend option <opt> to preprocessor invocation\n";
   Printf.eprintf "  -predicates <p>\tAdd predicate <p> when resolving package properties\n";
-  Printf.eprintf "  -ppx\t\t\tUse the ppx syntax extension (Beta)\n";
+  Printf.eprintf "  -ppx";
+  Printf.eprintf "\t\t\tUse the PPX Eliom syntax extension (default: Camlp4)\n";
+  Printf.eprintf "\t\t\tThe above description only applies to the first\n";
+  Printf.eprintf "\t\t\tappearance of -ppx in the list of flags. Subsequent\n";
+  Printf.eprintf "\t\t\tappearances require an argument and specify a\n";
+  Printf.eprintf "\t\t\tPPX preprocessor to use (see STANDARD OPTIONS).\n";
   if !kind = `Client then
     Printf.eprintf "  -dont-force-linkall\t\tDo not add linkall option by default\n";
   create_filter !compiler ["-help"] (help_filter 2 "STANDARD OPTIONS:");

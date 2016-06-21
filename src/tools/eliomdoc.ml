@@ -13,6 +13,12 @@ let usage () =
   Printf.eprintf "  -ppopt <p>\t\tAppend option <opt> to preprocessor invocation\n";
   Printf.eprintf "  -predicates <p>\tAdd predicate <p> when resolving package properties\n";
   Printf.eprintf "  -verbose\t\tPrint calls to external commands\n";
+  Printf.eprintf "  -ppx";
+  Printf.eprintf "\t\t\tUse the PPX Eliom syntax extension (default: Camlp4)\n";
+  Printf.eprintf "\t\t\tThe above description only applies to the first\n";
+  Printf.eprintf "\t\t\tappearance of -ppx in the list of flags. Subsequent\n";
+  Printf.eprintf "\t\t\tappearances require an argument and specify a\n";
+  Printf.eprintf "\t\t\tPPX preprocessor to use (see STANDARD OPTIONS).\n";
   create_filter !compiler ["-help"] (help_filter 2 "STANDARD OPTIONS:");
   exit 1
 
