@@ -98,7 +98,7 @@ module Eliom_content.Html5.F >> or the syntax extension (useful for <<span class
 
 <<paragraph| Runtime choice of content >>
 
-;<<a_api| module Eliom_registration.Any >>
+;<<a_api subproject="server"| module Eliom_registration.Any >>
 : Registration of services that can choose what they send, for example an HTML page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See <<a_manual chapter="server-services" fragment="any"|here>> for an example of use.
 
 === Specific output modules
@@ -244,7 +244,8 @@ is usually much more complicated.
 
 You may want to register a service that will send, for instance,
 sometimes an HTML page, sometimes a file, sometimes something else.
-To do that, use the <<a_api| module Eliom_registration.Any >> module,
+To do that, use the
+<<a_api subproject="server"| module Eliom_registration.Any >> module,
 together with the <<span class="code"|send>> function of the module
 you want to use. Example:
 
@@ -272,10 +273,11 @@ let send_any =
 
 ===== Dynamically modifying register options using Any
 
-You may also use <<a_api| module Eliom_registration.Any >> to dynamically
-modify the parameters usually set on the register function. You can set
-the HTTP code, the charset, the content_type, the HTTP headers and the
-specific option of the output module.
+You may also use
+<<a_api subproject="server"| module Eliom_registration.Any >>
+to dynamically modify the parameters usually set on the register
+function. You can set the HTTP code, the charset, the content_type,
+the HTTP headers and the specific option of the output module.
 
 <<code language="ocaml"|
 let change_option =
@@ -301,14 +303,15 @@ according to the result. When going to content outside the
 application (an other site, a static file, etc.) the client leaves the
 application by changing the browser url.
 
-When using <<a_api| module Eliom_registration.Any >>, there is no way to
-know before the request wether the content is from the same
-application or not. To that end there are phantom type annotations to
-the type of the {{{send}}} functions: <<a_api| type
-Eliom_registration.kind>>. The <<a_api| val Eliom_registration.Any.register>>
-takes a service handler that can server only one kind of content: that
-way it is not possible to inadvertantly mix kinds. The different kinds
-of content are:
+When using <<a_api subproject="server"| module Eliom_registration.Any
+>>, there is no way to know before the request whether the content is
+from the same application or not. To that end there are phantom type
+annotations to the type of the {{{send}}} functions: <<a_api
+subproject="server"| type Eliom_registration.kind>>. The <<a_api
+subproject="server"| val Eliom_registration.Any.register>> takes a
+service handler that can server only one kind of content: that way it
+is not possible to inadvertently mix kinds. The different kinds of
+content are:
 
 * Browser content: everything that can't be handled by application
   directly: ex Html pages, files
@@ -362,7 +365,7 @@ registration function to avoid code duplication. You can for instance
 for each service add parameters before calling the service handler, or
 modify the answer.
 
-A classical use is to check wether a user is logged in before serving
+A classical use is to check whether a user is logged in before serving
 the content of a page. That way, we don't need to do the check in
 every service handler and we can get directly the user informations.
 
@@ -551,7 +554,7 @@ let _ = Eliom_registration.set_exn_handler
 
 ===@@id="infofallbacks"@@ Fallback services
 
-You can check wether a service was directly called or if it was used
+You can check whether a service was directly called or if it was used
 as a fallback using the <<a_api| val
 Eliom_request_info.get_link_too_old >> function. In case of coservices
 registered with a restricted scope, you can check which state was
