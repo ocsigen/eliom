@@ -118,7 +118,7 @@ let remove_service
        else (0, 0))
   | Nonattached naser ->
     let na_name = na_name naser in
-    Eliommod_naservices.remove_naservice table na_name
+    Eliom_route.remove_naservice table na_name
 
 let unregister ?scope ?secure
     (type m) (service : (_, _, m, _, _, _, _, _, _, _, _) t) =

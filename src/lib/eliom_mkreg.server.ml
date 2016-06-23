@@ -371,7 +371,7 @@ let register_aux pages
 	| S.Nonattached naser ->
           let na_name = S.na_name naser in
           let f table na_name =
-            Eliommod_naservices.add_naservice
+            Eliom_route.add_naservice
               table
               na_name
               ((match S.max_use service with

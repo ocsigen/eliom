@@ -63,7 +63,6 @@ let server = {
     "eliommod_cookies";
     "eliommod_datasess";
     "eliommod_gc";
-    "eliommod_naservices";
     "eliommod_pagegen";
     "eliommod_parameters";
     "eliommod_persess";
