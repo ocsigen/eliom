@@ -215,7 +215,13 @@ let run_sed file =
   run_command
     (Printf.sprintf
        "sed -i -e \"s/'\\(_[a-z0-9_]*\\)/'%s\\1/g\" %s"
-       inferred_type_prefix file)
+       inferred_type_prefix file);
+  (* For some sed implementations, [-e] is interpreted as an argument
+     to [-i], resulting in copy of the original file named [file ^
+     "-e"]. If we find such a file, remove it. Slightly less messy
+     than doing OS detection beforehand. *)
+  let file_e = file ^ "-e" in
+  if Sys.file_exists file_e then Sys.remove file_e
 
 let compile_server_type_eliom file =
   let obj = output_prefix ~ty:true file ^ !server_types_file_ext
