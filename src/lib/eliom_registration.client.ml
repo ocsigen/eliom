@@ -64,23 +64,22 @@ module Make (P : PARAM) = struct
   let send ?options ?charset ?code ?content_type ?headers page =
     P.send ?options page
 
+  let typed_apply f gp l =
+    try_lwt
+      let l = Some (Lwt.return l) in
+      lwt g =
+        Eliom_parameter.reconstruct_params
+          ~sp:() gp l None true None
+      in
+      f g ()
+    with Eliom_common.Eliom_Wrong_parameter ->
+      Lwt.fail Eliom_common.Eliom_Wrong_parameter
+
   let wrap service att f _ _ =
     let gp = Eliom_service.get_params_type service
     and l =
       let si = !Eliom_request_info.get_sess_info () in
       si.si_all_get_params
-    in
-    let ret l =
-      try_lwt
-        let l = Some (Lwt.return l) in
-        lwt g =
-          Eliom_parameter.reconstruct_params
-            ~sp:() gp l None true None
-        in
-        f g ()
-      with
-      | Eliom_common.Eliom_Wrong_parameter ->
-        Lwt.fail Eliom_common.Eliom_Wrong_parameter
     in
     match Eliom_service.get_name att with
     | Eliom_common.SAtt_named s
@@ -89,15 +88,28 @@ module Make (P : PARAM) = struct
          let eliom_name = List.assoc "__eliom__" l
          and l = List.remove_assoc "__eliom__" l in
          if eliom_name = s then
-           ret l
+           typed_apply f gp l
          else
            Lwt.fail Eliom_common.Eliom_Wrong_parameter
        with Not_found ->
          Lwt.fail Eliom_common.Eliom_Wrong_parameter)
     | _ ->
-      ret l
+      typed_apply f gp l
 
-  let register_service_attached ~service ~att f =
+  let wrap_na
+      (service : (_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t)
+      non_att f _ _ =
+    let gp = Eliom_service.get_params_type service
+    and l =
+      let si = !Eliom_request_info.get_sess_info () in
+      List.filter
+        (fun (s, _) -> s <> Eliom_common.naservice_name &&
+                       s <> Eliom_common.naservice_num)
+        si.si_all_get_params
+    in
+    typed_apply f gp l
+
+  let register_att ~service ~att f =
     let key_meth = Eliom_service.which_meth_untyped service
     and gn = Eliom_service. get_name att
     and pn = Eliom_service.post_name att
@@ -126,6 +138,15 @@ module Make (P : PARAM) = struct
          | Some t -> Some (t, ref (t +. Unix.time ()))),
         wrap service att f))
 
+  let register_na
+      ~service
+      ~na
+      f =
+    Eliom_route.add_naservice
+      Eliom_route.global_tables
+      Eliom_service.(na_name na)
+      (wrap_na service na f)
+
   let register
       ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
       ?headers:_ ?secure_session:_
@@ -139,7 +160,9 @@ module Make (P : PARAM) = struct
        Eliom_parameter.is_unit (Eliom_service.post_params_type service)
      with
      | Eliom_service.Attached att, Eliom_parameter.U_yes ->
-       register_service_attached ~service ~att f
+       register_att ~service ~att f
+     | Eliom_service.Nonattached na, Eliom_parameter.U_yes ->
+       register_na ~service ~na f
      | _ ->
        ());
     Eliom_service.set_client_fun ?app ~service f

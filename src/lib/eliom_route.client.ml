@@ -1,7 +1,8 @@
 type info = {
   i_sess_info : Eliom_common.sess_info;
   i_subpath   : string list;
-  i_meth      : Eliom_common.meth
+  i_meth      : Eliom_common.meth;
+  i_params    : (string * string) list
 }
 
 module A = struct
@@ -82,8 +83,14 @@ module A = struct
   type tables = {
     mutable t_services         :
       (int * int * Table.t Eliom_common.dircontent ref) list;
-    mutable t_na_services      : Node.t;
-    mutable t_contains_timeout : bool
+    mutable t_dlist            :
+      Node.t;
+    mutable t_contains_timeout :
+      bool;
+    mutable t_na_services      :
+      (Eliom_common.na_key_serv,
+       bool -> Eliom_common.server_params -> result Lwt.t
+      ) Hashtbl.t
   }
 
   let tables_services {t_services} = t_services
@@ -95,8 +102,8 @@ module A = struct
     tables.t_services <- l
 
   let service_dlist_add ?sp:_ tables srv =
-    let l = srv :: tables.t_na_services in
-    tables.t_na_services <- l;
+    let l = srv :: tables.t_dlist in
+    tables.t_dlist <- l;
     l
 
   let handle_directory _ = Lwt.return ()
@@ -107,6 +114,33 @@ include Eliom_route_base.Make(A)
 
 let global_tables = {
   A.t_services         = [];
-  A.t_na_services      = [];
-  A.t_contains_timeout = false
+  A.t_dlist            = [];
+  A.t_contains_timeout = false;
+  A.t_na_services      = Hashtbl.create 256
 }
+
+let add_naservice {A.t_na_services} k f =
+  Hashtbl.add t_na_services k f
+
+let call_naservice {A.t_na_services} k =
+  try
+    (Hashtbl.find t_na_services k) true ()
+  with Not_found ->
+    Lwt.fail Eliom_common.Eliom_404
+
+let rec na_key_of_params = function
+  | (k, v) :: l when k = Eliom_common.naservice_name ->
+    Some (Eliom_common.SNa_get_ v)
+  | (k, v) :: l when k = Eliom_common.naservice_num ->
+    Some (Eliom_common.SNa_get' v)
+  | _ :: l ->
+    na_key_of_params l
+  | [] ->
+    None
+
+let call_service ({i_params} as info) =
+  match na_key_of_params i_params with
+  | Some k ->
+    call_naservice global_tables k
+  | None ->
+    find_service 0. global_tables None () info
