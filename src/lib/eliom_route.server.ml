@@ -103,20 +103,14 @@ let find_aux now sitedata info e sci : Ocsigen_http_frame.Result.result Lwt.t =
     sci
     (fail Eliom_common.Eliom_404)
 
-let get_page
-    now
-    ((ri,
-      si,
-      (((service_cookies_info, _, _), secure_ci) as all_cookie_info),
-      (((service_cookies_info_tab, _, _), secure_ci_tab)
-       as all_tab_cookie_info),
-      user_tab_cookies) as info)
-    sitedata :
-  Ocsigen_http_frame.result Lwt.t
-  =
+let session_tables
+    (_,
+     _,
+     ((service_cookies_info    , _, _), secure_ci    ),
+     ((service_cookies_info_tab, _, _), secure_ci_tab),
+     _) =
 
-  let tables = [] in
-  let tables = (!service_cookies_info, "session table") :: tables in
+  let tables = [!service_cookies_info, "session table"] in
   let tables =
     match secure_ci with
     | Some (service_cookies_info, _, _) ->
@@ -125,13 +119,19 @@ let get_page
       tables
   in
   let tables = (!service_cookies_info_tab, "tab session table") :: tables in
-  let tables =
-    match secure_ci_tab with
-    | Some (service_cookies_info, _, _) ->
-      (!service_cookies_info, "secure tab session table") :: tables
-    | _ ->
-      tables
-  in
+  match secure_ci_tab with
+  | Some (service_cookies_info, _, _) ->
+    (!service_cookies_info, "secure tab session table") :: tables
+  | _ ->
+    tables
+
+let get_page
+    now
+    ((ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
+     as info)
+    sitedata :
+  Ocsigen_http_frame.result Lwt.t =
+  let tables = session_tables info in
   (catch
      (fun () ->
         List.fold_left
@@ -341,15 +341,9 @@ let remove_naservice tables name =
 
 let make_naservice
     now
-    ((ri,
-      si,
-      (((service_cookies_info, _, _), secure_ci) as all_cookie_info),
-      (((service_tab_cookies_info, _, _), secure_ci_tab)
-       as all_tab_cookie_info),
-      user_tab_cookies
-     ) as info)
-    sitedata
-  =
+    ((ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
+     as info)
+    sitedata =
 
   let find_aux sci =
     match
@@ -379,22 +373,7 @@ let make_naservice
     | Eliom_common.Notfound _ -> raise Not_found
   in
 
-
-  let tables = [] in
-  let tables = (!service_cookies_info, "session table")::tables in
-  let tables =
-    match secure_ci with
-    | Some (service_cookies_info, _, _) ->
-      (!service_cookies_info, "secure session table")::tables
-    | _ -> tables
-  in
-  let tables = (!service_tab_cookies_info, "tab session table")::tables in
-  let tables =
-    match secure_ci_tab with
-    | Some (service_cookies_info, _, _) ->
-      (!service_cookies_info, "secure tab session table")::tables
-    | _ -> tables
-  in
+  let tables = session_tables info in
 
   (try
      try
