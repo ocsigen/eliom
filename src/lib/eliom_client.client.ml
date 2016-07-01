@@ -852,13 +852,23 @@ let change_page (type m)
            set_content ?replace ~uri ?fragment content)
 
 
-let call_client_service i_subpath i_params : unit Lwt.t =
+let call_client_service ?replace i_subpath i_params : unit Lwt.t =
   let i_sess_info = !Eliom_request_info.get_sess_info ()
   (* with si_all_get_params *)
   and i_meth = `Get in
-  let info = { Eliom_route.i_sess_info ; i_subpath ; i_meth ; i_params } in
-  update_session_info
-    (List.map (fun (s, s') -> s, `String (Js.string s')) i_params);
+  let info = { Eliom_route.i_sess_info ; i_subpath ; i_meth ; i_params }
+  and i_params =
+    List.map
+      (fun (s, s') -> s, `String (Js.string s'))
+      i_params
+  in
+  update_session_info i_params;
+  (let uri =
+     Eliom_uri.make_string_uri_from_components
+       (String.concat "/" i_subpath, i_params, None)
+   in
+   (* TODO: find out why set_uri doesn't work with an empty string *)
+   set_uri ?replace (if uri = "" then "/" else uri));
   Eliom_route.call_service info
 
 (* Function used in "onclick" event handler of <a>.  *)
