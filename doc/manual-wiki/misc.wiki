@@ -12,7 +12,8 @@
 
 
 <<code language="ocaml"|img ~alt:"Ocsigen"
-    ~src:(Eliom_content.Html5.F.make_uri ~service:(Eliom_service.static_dir ()) ["images"; "ocsigen1024.jpg"])
+    ~src:(Eliom_content.Html5.F.make_uri
+    ~service:(Eliom_service.static_dir ()) ["images"; "ocsigen1024.jpg"])
     ()
 >>
 
