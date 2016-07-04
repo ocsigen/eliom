@@ -42,6 +42,8 @@ include Eliom_route_base.Make (struct
     let set_contains_timeout tables b =
       tables.Eliom_common.table_contains_services_with_timeout <- b
 
+    type params = Eliom_common.server_params
+
     type result = Ocsigen_http_frame.result
 
     module Node = struct

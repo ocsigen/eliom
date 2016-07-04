@@ -116,27 +116,26 @@ module Make (P : PARAM) = struct
     and priority = Eliom_service.priority att in
     let sgpt = Eliom_service. get_params_type service
     and sppt = Eliom_service.post_params_type service in
+    let s_id =
+      if gn = Eliom_common.SAtt_no || pn = Eliom_common.SAtt_no then
+        Eliom_parameter.(
+          anonymise_params_type sgpt,
+          anonymise_params_type sppt)
+      else
+        0, 0
+    and s_max_use = Eliom_service.max_use service
+    and s_expire =
+      match Eliom_service.timeout service with
+      | None -> None
+      | Some t -> Some (t, ref (t +. Unix.time ()))
+    and s_f = wrap service att f in
     Eliom_route.add_service
       priority
       Eliom_route.global_tables
       (Eliom_service.sub_path att)
       {Eliom_common.key_state = (gn, pn);
        Eliom_common.key_meth = (key_meth :> Eliom_common.meth)}
-      ((if gn = Eliom_common.SAtt_no || pn = Eliom_common.SAtt_no then
-          Eliom_parameter.(
-            anonymise_params_type sgpt,
-            anonymise_params_type sppt
-          )
-        else
-          (0, 0)
-       ),
-       ((match Eliom_service.max_use service with
-          | None -> None
-          | Some i -> Some (ref i)),
-        (match Eliom_service.timeout service with
-         | None -> None
-         | Some t -> Some (t, ref (t +. Unix.time ()))),
-        wrap service att f))
+      { s_id ; s_max_use ; s_expire ; s_f }
 
   let register_na
       ~service

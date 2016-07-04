@@ -412,6 +412,13 @@ module Hier_set : Set.S
 type 'a dircontent = Vide | Table of 'a direlt ref String.Table.t
 and 'a direlt = Dir of 'a dircontent ref | File of 'a ref
 
+type ('params, 'result) service = {
+  s_id              : anon_params_type * anon_params_type;
+  mutable s_max_use : int option;
+  s_expire          : (float * float ref) option;
+  s_f               : bool -> 'params -> 'result Lwt.t
+}
+
 type server_params = {
   sp_request : Ocsigen_extensions.request;
   sp_si : sess_info;
@@ -436,23 +443,11 @@ type server_params = {
 }
 and page_table = page_table_content Serv_Table.t
 
-and page_table_content =
-  [`Ptc of
-     (page_table ref * page_table_key, na_key_serv) leftright
-       Ocsigen_cache.Dlist.node option
-     (* for limitation of number of dynamic anonymous coservices *) *
-
-     ((anon_params_type * anon_params_type)
-      (* unique_id, computed from parameters type.
-         must be the same even if the actual service reference
-         is different (after reloading the site)
-         so that it replaces the former one
-      *) *
-      (int ref option (* max_use *) *
-       (float * float ref) option
-       (* timeout and expiration date for the service *) *
-       (bool -> server_params -> Ocsigen_http_frame.result Lwt.t)
-      )) list]
+and page_table_content = [
+    `Ptc of
+      (page_table ref * page_table_key, na_key_serv) leftright
+        Ocsigen_cache.Dlist.node option *
+      (server_params, Ocsigen_http_frame.result) service list ]
 
 and naservice_table_content =
     (int (* generation (= number of reloads of sites

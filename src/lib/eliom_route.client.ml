@@ -13,6 +13,8 @@ module A = struct
 
   type info = info'
 
+  type params = Eliom_common.server_params
+
   type result = unit
 
   let site_data _ = ()
@@ -35,15 +37,9 @@ module A = struct
     end)
 
   type table_content =
-    [`Ptc of
-       node option *
-       ((Eliom_common.anon_params_type * Eliom_common.anon_params_type) *
-        (int ref option * (float * float ref) option *
-         (bool -> Eliom_common.server_params -> result Lwt.t)))
-         list
-    ]
+    [`Ptc of (unit option * (params, result) Eliom_common.service list)]
 
-  and service = (
+  type service = (
     table ref * Eliom_common.page_table_key,
     Eliom_common.na_key_serv
   ) Eliom_lib.leftright
@@ -58,7 +54,8 @@ module A = struct
 
     let empty () = Raw_table.empty
 
-    let add {Eliom_common.key_meth} v m = Raw_table.add key_meth (`Ptc v) m
+    let add {Eliom_common.key_meth} p m =
+      Raw_table.add key_meth (`Ptc p) m
 
     let find {Eliom_common.key_meth} m =
       let `Ptc v = Raw_table.find key_meth m in v
@@ -72,7 +69,7 @@ module A = struct
   (* FIXME: dummy *)
   module Node = struct
 
-    type t = node
+    type t = unit
 
     let up n = ()
 
@@ -83,8 +80,6 @@ module A = struct
   type tables = {
     mutable t_services         :
       (int * int * Table.t Eliom_common.dircontent ref) list;
-    mutable t_dlist            :
-      Node.t;
     mutable t_contains_timeout :
       bool;
     mutable t_na_services      :
@@ -101,10 +96,7 @@ module A = struct
   let set_tables_services tables l =
     tables.t_services <- l
 
-  let service_dlist_add ?sp:_ tables srv =
-    let l = srv :: tables.t_dlist in
-    tables.t_dlist <- l;
-    l
+  let service_dlist_add ?sp:_ tables srv = ()
 
   let handle_directory _ = Lwt.return ()
 
@@ -114,7 +106,6 @@ include Eliom_route_base.Make(A)
 
 let global_tables = {
   A.t_services         = [];
-  A.t_dlist            = [];
   A.t_contains_timeout = false;
   A.t_na_services      = Hashtbl.create 256
 }

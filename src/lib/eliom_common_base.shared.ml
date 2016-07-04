@@ -403,3 +403,13 @@ type page_table_key = {
 type anon_params_type = int
 
 exception Eliom_Typing_Error of (string * exn) list
+
+type ('params, 'result) service = {
+  (* unique_id, computed from parameters type.  must be the same even
+     if the actual service reference is different (after reloading the
+     site) so that it replaces the former one *)
+  s_id              : anon_params_type * anon_params_type;
+  mutable s_max_use : int option;
+  s_expire          : (float * float ref) option;
+  s_f               : bool -> 'params -> 'result Lwt.t
+}

@@ -17,19 +17,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 *)
-(*****************************************************************************)
-(*****************************************************************************)
-(** Internal functions used by Eliom:                                        *)
-(** Tables of services                                                       *)
-(** Store and load services                                                  *)
-(*****************************************************************************)
-(*****************************************************************************)
 
 open Eliom_lib
 
 open Lwt
-
-(*****************************************************************************)
 
 let section = Lwt_log.Section.make "eliom:service"
 
@@ -38,6 +29,10 @@ module type PARAM = sig
   type site_data
 
   type info
+
+  type params
+
+  type result
 
   val sess_info_of_info : info -> Eliom_common.sess_info
 
@@ -50,9 +45,7 @@ module type PARAM = sig
     info ->
     string list option ->
     Eliom_common.full_state_name option ->
-    Eliom_common.server_params
-
-  type result
+    params
 
   val handle_directory : info -> result Lwt.t
 
@@ -70,20 +63,13 @@ module type PARAM = sig
 
     val add  :
       Eliom_common.page_table_key ->
-      Node.t option *
-      ((Eliom_common.anon_params_type * Eliom_common.anon_params_type) *
-       (int ref option * (float * float ref) option *
-        (bool -> Eliom_common.server_params -> result Lwt.t))) list ->
-      t ->
-      t
+      Node.t option * (params, result) Eliom_common.service list ->
+      t -> t
 
     val find :
       Eliom_common.page_table_key ->
       t ->
-      Node.t option *
-      ((Eliom_common.anon_params_type * Eliom_common.anon_params_type) *
-       (int ref option * (float * float ref) option *
-        (bool -> Eliom_common.server_params -> result Lwt.t))) list
+      Node.t option * (params, result) Eliom_common.service list
 
     val remove : Eliom_common.page_table_key -> t -> t
 
@@ -133,9 +119,9 @@ module Make (P : PARAM) = struct
     let rec aux toremove = function
       | [] ->
         Lwt.return ((Eliom_common.Notfound
-                             Eliom_common.Eliom_Wrong_parameter), [])
-      | (((_, (max_use, expdate, funct)) as a)::l) ->
-        match expdate with
+                       Eliom_common.Eliom_Wrong_parameter), [])
+      | ({ Eliom_common.s_max_use ; s_expire ; s_f } as a) :: l ->
+        match s_expire with
         | Some (_, e) when !e < now ->
           (* Service expired. Removing it. *)
           Lwt_log.ign_info ~section "Service expired. Removing it";
@@ -145,7 +131,7 @@ module Make (P : PARAM) = struct
           catch
             (fun () ->
                Lwt_log.ign_info ~section "Trying a service";
-               funct nosuffixversion sp >>= fun p ->
+               s_f nosuffixversion sp >>= fun p ->
                (* warning: the list ll may change during funct
                   if funct register something on the same URL!! *)
                Lwt_log.ign_info ~section "Page found and generated successfully";
@@ -158,15 +144,16 @@ module Make (P : PARAM) = struct
                 | Some node -> P.Node.up node);
 
                (* We update the expiration date *)
-               (match expdate with
+               (match s_expire with
                 | Some (timeout, e) -> e := timeout +. now
                 | None -> ());
                let newtoremove =
-                 (match max_use with
-                  | Some r ->
-                    if !r = 1
-                    then a::toremove
-                    else (r := !r - 1; toremove)
+                 (match s_max_use with
+                  | Some s_max_use ->
+                    if s_max_use = 1 then
+                      a :: toremove
+                    else
+                      (a.s_max_use <- Some (s_max_use - 1); toremove)
                   | _ -> toremove)
                in
                Lwt.return (Eliom_common.Found p, newtoremove))
@@ -213,15 +200,20 @@ module Make (P : PARAM) = struct
     | Eliom_common.Found r -> Lwt.return (r : P.result)
     | Eliom_common.Notfound e -> fail e
 
-  let add_page_table tables url_act tref
-      key (id, ((max_use, exp, action) as va)) =
+  let remove_id services id =
+    List.filter (fun {Eliom_common.s_id} -> s_id <> id) services
+
+
+  let add_page_table tables url_act tref key
+      ({Eliom_common.s_id ; s_expire} as service) =
 
     let sp = Eliom_common.get_sp_option () in
 
-    (match exp with Some _ -> P.set_contains_timeout tables true | _ -> ());
+    (match s_expire with
+     | Some _ -> P.set_contains_timeout tables true
+     | _ -> ());
 
     (* Duplicate registration forbidden in global table with same generation *)
-    let v = (id, va) in
     match key with
     | { Eliom_common.key_state = Eliom_common.SAtt_anon _, _;
         key_meth = (`Get | `Post | `Put | `Delete) } ->
@@ -235,10 +227,10 @@ module Make (P : PARAM) = struct
          (match nodeopt with
           | None -> () (* should not occure *)
           | Some node -> P.Node.up node);
-         tref := P.Table.add key (nodeopt, [v]) newt
+         tref := P.Table.add key (nodeopt, [service]) newt
        with Not_found ->
          let node = P.service_dlist_add ?sp tables (Left (tref, key)) in
-         tref := P.Table.add key (Some node, [v]) !tref)
+         tref := P.Table.add key (Some node, [service]) !tref)
     | { Eliom_common.key_state =
           Eliom_common.SAtt_no, Eliom_common.SAtt_no } ->
       (try
@@ -246,32 +238,32 @@ module Make (P : PARAM) = struct
          and newt = P.Table.remove key !tref in
          (* nodeopt should be None *)
          try
-           (******** Vérifier ici qu'il n'y a pas qqchose similaire déjà enregistré ?! *)
-           let _, oldl = List.assoc_remove id l in
-           (* if there was an old version with the same id, we remove it? *)
-           if sp = None
-           then
-             (* but if there was already one with same generation, we fail
-                (if during intialisation) *)
+           (* verify that we haven't registered something similar *)
+           let oldl = remove_id l s_id in
+           (* if there was an old version with the same id, we remove
+              it? *)
+           if sp = None then
+             (* but if there was already one with same generation, we
+                fail (if during intialisation) *)
              raise (Eliom_common.Eliom_duplicate_registration
                       (Url.string_of_url_path ~encode:false url_act))
            else
-             (* We insert as last element so that services are tried in
-                registration order *)
-             tref := P.Table.add key (None, oldl @ [v]) newt
+             (* We insert as last element so that services are tried
+                in registration order *)
+             tref := P.Table.add key (None, oldl @ [service]) newt
          with Not_found ->
-           tref := P.Table.add key (None, l @ [v]) newt
+           tref := P.Table.add key (None, l @ [service]) newt
        with Not_found ->
-         tref := P.Table.add key (None, [v]) !tref)
+         tref := P.Table.add key (None, [service]) !tref)
     | _ ->
       try
         let nodeopt, l = P.Table.find key !tref
         and newt = P.Table.remove key !tref in
-        let oldl = List.remove_assoc id l in
+        let oldl = remove_id l s_id in
         (* if there was an old version with the same id, we remove it *)
-        tref := P.Table.add key (None, oldl @ [v]) newt
+        tref := P.Table.add key (None, oldl @ [service]) newt
       with Not_found ->
-        tref := P.Table.add key (None, [v]) !tref
+        tref := P.Table.add key (None, [service]) !tref
 
   let remove_page_table _ _ tref key id =
     (* Actually this does not remove empty directories.
@@ -286,7 +278,7 @@ module Make (P : PARAM) = struct
       P.Node.remove node
     | None ->
       let newt = P.Table.remove key !tref in
-      match List.remove_all_assoc id l with
+      match remove_id l id with
       | [] -> tref := newt
       (* In that case, we must remove it, otherwise we get
          "Wrong parameters" instead of "404 Not found" *)

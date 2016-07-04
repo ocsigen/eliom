@@ -186,8 +186,25 @@ let register_aux pages
           let attserpost = S.post_name attser in
           let suffix_with_redirect = S.redirect_suffix attser in
           let priority = S.priority attser in
-          let sgpt = S.get_params_type service in
-          let sppt = S.post_params_type service in
+          let sgpt = S.get_params_type service
+          and sppt = S.post_params_type service in
+          let s_id =
+            if
+              attserget = Eliom_common.SAtt_no
+              || attserpost = Eliom_common.SAtt_no
+            then
+              Eliom_parameter.(
+                anonymise_params_type sgpt,
+                anonymise_params_type sppt
+              )
+            else
+              (0, 0)
+          and s_max_use = S.max_use service
+          and s_expire =
+            match S.timeout service with
+            | None -> None
+            | Some t -> Some (t, ref (t +. Unix.time ()))
+          in
           let f table ((attserget, attserpost) as attsernames) =
             Eliom_route.add_service
               priority
@@ -195,21 +212,8 @@ let register_aux pages
               (S.sub_path attser)
               {Eliom_common.key_state = attsernames;
                Eliom_common.key_meth = (key_meth :> Eliom_common.meth)}
-              ((if attserget = Eliom_common.SAtt_no
-                || attserpost = Eliom_common.SAtt_no
-                then
-                  Eliom_parameter.(
-                    anonymise_params_type sgpt,
-                    anonymise_params_type sppt
-                  )
-                else (0, 0)),
-               ((match S.max_use service with
-                  | None -> None
-                  | Some i -> Some (ref i)),
-                (match S.timeout service with
-                 | None -> None
-                 | Some t -> Some (t, ref (t +. Unix.time ()))),
-                (fun nosuffixversion sp ->
+              { s_id ; s_max_use ; s_expire ;
+                s_f = (fun nosuffixversion sp ->
                   Lwt.with_value Eliom_common.sp_key (Some sp)
                     (fun () ->
                       let ri = Eliom_request_info.get_ri_sp sp
@@ -293,7 +297,7 @@ let register_aux pages
                          ?code
                          ?content_type
                          ?headers
-                         content)))))
+                         content)))}
           in
           (match (key_meth, attserget, attserpost) with
             | (`Post | `Put | `Delete), _,

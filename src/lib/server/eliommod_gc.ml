@@ -66,9 +66,9 @@ let gc_timeouted_services now tables =
                thr >>= fun thr -> (* we wait for the previous one
                                      to be completed *)
                (match nodeopt, l with
-                  | Some node, (i, (_, Some (_, e), _))::_
-                      (* it is an anonymous coservice.
-                         The list should have length 1 here *)
+                  | Some node, {Eliom_common.s_expire = Some (_, e)} :: _
+                    (* it is an anonymous coservice.  The list should
+                       have length 1 here *)
                       when !e < now ->
                       Ocsigen_cache.Dlist.remove node
                   | Some node, [] (* should not occure *) ->
@@ -87,10 +87,11 @@ let gc_timeouted_services now tables =
                         then
                           match
                             List.fold_right
-                              (fun ((i, (_, expdate, _)) as a) foll ->
-                                 match expdate with
-                                   | Some (_, e) when !e < now -> foll
-                                   | _ -> a::foll
+                              (fun ({Eliom_common.s_expire} as a)
+                                foll ->
+                                match s_expire with
+                                | Some (_, e) when !e < now -> foll
+                                | _ -> a::foll
                               )
                               l
                               []
@@ -135,7 +136,7 @@ let gc_timeouted_services now tables =
         end
   in
   Lwt_list.iter_s
-    (fun (_gen, _prio, t) -> empty_one t) tables.Eliom_common.table_services
+    (fun (_, _prio, t) -> empty_one t) tables.Eliom_common.table_services
   >>= fun () ->
   tables.Eliom_common.table_services <-
     List.filter
