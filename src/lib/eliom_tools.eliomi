@@ -31,7 +31,7 @@ type srv =
        unit, unit, Eliom_service.non_ocaml) Eliom_service.t
     -> srv
 
-(** Hierarchical sites description. This is is a pair [(main page,
+(** Hierarchical sites description. This is a pair [(main page,
     subpages list)]. Each subpage is defined by the text to be
     displayed in menus and a {!hierarchical_site_item}. *)
 type 'a hierarchical_site =
