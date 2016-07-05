@@ -321,4 +321,7 @@ val set_content_local :
 val do_not_set_uri : bool ref
 
 val call_client_service :
-  ?replace:bool -> string list -> (string * string) list -> unit Lwt.t
+  ?hostname:string ->
+  ?replace:bool ->
+  string list ->
+  (string * string) list -> unit Lwt.t

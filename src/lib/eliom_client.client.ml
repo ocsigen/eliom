@@ -737,7 +737,23 @@ let update_session_info l =
     ~all_get_but_na_nl
     ()
 
+(* do_not_set_uri is set in Eliom_registration.Redirection and
+   Eliom_registration.Action .
+
+   After an action, the URI must be the one we started from, not that
+   of the action service.
+
+   For redirections, the subsequent change_page will set the URI.
+
+   Not very pretty. We can have client functions that return a string
+   (option?) for the URI. *)
 let do_not_set_uri = ref false
+
+let set_uri_protected ?replace f =
+  if not !do_not_set_uri then
+    set_uri ?replace (f ())
+  else
+    do_not_set_uri := false
 
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
@@ -802,22 +818,8 @@ let change_page (type m)
              | `Put (uri, get_params, _)
              | `Delete (uri, get_params, _) -> uri, get_params
            in
-           let uri, fragment = Url.split_fragment uri in
-           (* do_not_set_uri is set in Eliom_registration.Redirection
-              and Eliom_registration.Action .
-
-              After an action, the URI must be the one we started
-              from, not that of the action service.
-
-              For redirections, the subsequent change_page will set
-              the URI.
-
-              Not very pretty. We can have client functions that
-              return a string (option?) for the URI. *)
-           if not !do_not_set_uri then
-             set_uri ?replace uri
-           else
-             do_not_set_uri := false;
+           set_uri_protected ?replace
+             (fun () -> fst (Url.split_fragment uri));
            update_session_info all_get_params;
            Lwt.return ()
          | None ->
@@ -852,7 +854,7 @@ let change_page (type m)
            set_content ?replace ~uri ?fragment content)
 
 
-let call_client_service ?replace i_subpath i_params : unit Lwt.t =
+let call_client_service ?hostname ?replace i_subpath i_params : unit Lwt.t =
   let i_sess_info = !Eliom_request_info.get_sess_info ()
   (* with si_all_get_params *)
   and i_meth = `Get in
@@ -863,13 +865,18 @@ let call_client_service ?replace i_subpath i_params : unit Lwt.t =
       i_params
   in
   update_session_info i_params;
-  (let uri =
-     Eliom_uri.make_string_uri_from_components
-       (String.concat "/" i_subpath, i_params, None)
-   in
-   (* TODO: find out why set_uri doesn't work with an empty string *)
-   set_uri ?replace (if uri = "" then "/" else uri));
-  Eliom_route.call_service info
+  lwt () = Eliom_route.call_service info in
+  set_uri_protected ?replace
+    (fun () ->
+       let base =
+         match i_subpath with
+         | _ :: _ ->
+           String.concat "/" i_subpath
+         | [] ->
+           "/"
+       in
+       Eliom_uri.make_string_uri_from_components (base, i_params, None));
+  Lwt.return ()
 
 (* Function used in "onclick" event handler of <a>.  *)
 

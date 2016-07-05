@@ -67,10 +67,7 @@ let typed_apply f gp l =
 
 let wrap service att f _ _ =
   let gp = Eliom_service.get_params_type service
-  and l =
-    let si = !Eliom_request_info.get_sess_info () in
-    si.si_all_get_params
-  in
+  and l = (!Eliom_request_info.get_sess_info ()).si_all_get_params in
   match Eliom_service.get_name att with
   | Eliom_common.SAtt_named s
   | Eliom_common.SAtt_anon s ->
@@ -222,9 +219,9 @@ module Action = struct
       ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
       ?headers:_ ?secure_session:_ ~service ?error_handler:_
       f =
+    let f g p = lwt page = f g p in send ?options page in
     register ~service f;
-    Eliom_service.set_client_fun ?app ~service
-      (fun g p -> lwt page = f g p in send ?options page);
+    Eliom_service.set_client_fun ?app ~service f;
     Eliom_service.reset_reload_fun service
 
   let create
