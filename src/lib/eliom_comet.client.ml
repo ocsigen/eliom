@@ -460,8 +460,7 @@ struct
         begin
           try_lwt
             lwt s = Lwt.pick [call_service hd;
-                              lwt _ = hd.hd_activity.restart_waiter in
-                              assert false] in
+                              hd.hd_activity.restart_waiter] in
             match s with
               | Ecb.Timeout ->
                 update_activity ~timeout:true hd;
