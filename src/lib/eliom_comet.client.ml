@@ -234,8 +234,8 @@ struct
         mutable active_waiter : unit Lwt.t;
         (** [active_waiter] terminates when the page get focused *)
         mutable active_wakener : unit Lwt.u;
-        mutable restart_waiter : unit list Lwt.t;
-        mutable restart_wakener : unit list Lwt.u;
+        mutable restart_waiter : Ecb.Json_answer.a Lwt.t;
+        mutable restart_wakener : Ecb.Json_answer.a Lwt.u;
         mutable active_channels : Eliom_lib.String.Set.t;
       }
 
