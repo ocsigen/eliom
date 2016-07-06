@@ -457,10 +457,11 @@ struct
         lwt () = hd.hd_activity.active_waiter in
         aux 0
       else
-        begin
-          try_lwt
-            lwt s = Lwt.pick [call_service hd;
-                              hd.hd_activity.restart_waiter] in
+        Lwt.try_bind
+          (fun () ->
+             Lwt.pick [call_service hd;
+                       hd.hd_activity.restart_waiter])
+          (fun s ->
             match s with
               | Ecb.Timeout ->
                 update_activity ~timeout:true hd;
@@ -475,8 +476,9 @@ struct
               | Ecb.Stateful_messages l ->
                 let l = Array.to_list l in
                 update_stateful_state hd l;
-                Lwt.return (add_no_index l)
-          with
+                Lwt.return (add_no_index l))
+          (fun e ->
+            match e with
             | Eliom_request.Failed_request (0 | 502 | 504) ->
               if retries > max_retries
               then
@@ -491,8 +493,7 @@ struct
             | exn ->
               Eliom_lib.Lwt_log.ign_notice ~exn ~section "connection failure";
               lwt () = handle_exn ~exn () in
-              Lwt.fail exn
-        end
+              Lwt.fail exn)
     in
     update_activity hd;
     aux 0
