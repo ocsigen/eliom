@@ -403,14 +403,12 @@ struct
         raise (Comet_error ("update_stateless_state on stateful one"))
 
   let call_service
-      ({ hd_activity = {focused; active; active_waiter};
-         hd_service = Ecb.Comet_service srv
-       } as hd) =
+      ({ hd_activity; hd_service = Ecb.Comet_service srv } as hd) =
     lwt () =
       Configuration.sleep_before_next_request
-        (fun () -> focused)
-        (fun () -> active = `Idle)
-        (fun () -> active_waiter)
+        (fun () -> hd_activity.focused)
+        (fun () -> hd_activity.active = `Idle)
+        (fun () -> hd_activity.active_waiter)
     in
     let request = make_request hd in
     lwt s = call_service_after_load_end srv () request in
