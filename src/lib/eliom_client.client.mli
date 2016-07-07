@@ -296,6 +296,16 @@ val server_function :
   ?error_handler:((string * exn) list -> 'b Lwt.t) ->
   'a Deriving_Json.t -> unit -> ('a, 'b) server_function
 
+(** Like [change_page], but when we don't know the service. We try to
+    identify it based on the URL and the parameters. *)
+val change_page_unknown :
+  ?hostname:string ->
+  ?replace:bool ->
+  string list ->
+  (string * string) list ->
+  (string * string) list ->
+  unit Lwt.t
+
 (**/**)
 (* Documentation rather in eliom_client.ml *)
 
@@ -310,7 +320,6 @@ val reload_function : (unit -> unit -> unit Lwt.t) option ref
 *)
 val log_section : Lwt_log.section
 
-
 (** Is it a middle-click event? *)
 val middleClick : Dom_html.mouseEvent Js.t -> bool
 
@@ -320,15 +329,4 @@ val set_content_local :
 
 val do_not_set_uri : bool ref
 
-val path_for_action : unit -> string list
-
-(** Like [change_page], but when we don't know the service. We try to
-    identify it based on the URL and the parameters. *)
-val change_page_unknown :
-  ?hostname:string ->
-  ?replace:bool ->
-  ?aux:bool ->
-  string list ->
-  (string * string) list ->
-  (string * string) list ->
-  unit Lwt.t
+val change_page_after_action : unit -> unit Lwt.t

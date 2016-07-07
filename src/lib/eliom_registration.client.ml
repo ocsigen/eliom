@@ -205,20 +205,7 @@ module Action = struct
   let send ?options ?charset:_ ?code:_ ?content_type:_ ?headers:_ page =
     match options with
     | Some `Reload | None ->
-      let path = Eliom_client.path_for_action () in
-      let
-        { Eliom_common.si_all_get_params ; si_all_post_params } =
-        !Eliom_request_info.get_sess_info ()
-      in
-      let g = Eliom_common.remove_na_prefix_params si_all_get_params
-      and p =
-        match si_all_post_params with
-        | Some p ->
-          Eliom_common.remove_na_prefix_params p
-        | None ->
-          []
-      in
-      Eliom_client.change_page_unknown ~aux:true path g p
+      Eliom_client.change_page_after_action ()
     | _ ->
       Lwt.return ()
 

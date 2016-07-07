@@ -757,19 +757,12 @@ let set_uri_protected ?replace f =
 
 (* hackish : store the path corresponding to an action service so that
    we can reload the corresponding page afterwards *)
-let path_for_action_ref = ref None
-
-let path_for_action () =
-  match !path_for_action_ref with
-  | Some path ->
-    path
-  | None ->
-    Url.Current.path
+let path_for_action = ref None
 
 let update_path_for_action
     (type att)
     (service : (_, _, _, att, _, _, _, _, _, _, _) Eliom_service.t) =
-  path_for_action_ref :=
+  path_for_action :=
     Some
       (match Eliom_service.info service with
        | Eliom_service.Attached att ->
@@ -876,8 +869,75 @@ let change_page (type m)
            let uri, fragment = Url.split_fragment uri in
            set_content ?replace ~uri ?fragment content)
 
+let jsify_params = List.map @@ fun (s, s') -> s, `String (Js.string s')
+
+let try_call_service ({Eliom_route.i_get_params} as info) =
+  try_lwt
+    lwt () = Eliom_route.call_service info in
+    update_session_info (jsify_params i_get_params);
+    Lwt.return true
+  with
+  | _ ->
+    Lwt.return false
+
+let make_uri subpath params =
+  let base =
+    match subpath with
+    | _ :: _ ->
+      String.concat "/" subpath
+    | [] ->
+      "/"
+  and params = jsify_params params in
+  Eliom_uri.make_string_uri_from_components (base, params, None)
+
+let change_page_after_action () =
+  let
+    ({ Eliom_common.si_all_get_params ; si_all_post_params }
+     as i_sess_info) =
+    !Eliom_request_info.get_sess_info ()
+  and i_subpath =
+    match !path_for_action with
+    | Some i_subpath ->
+      i_subpath
+    | None ->
+      Url.Current.path
+  in
+  let info = {
+    Eliom_route.i_sess_info ;
+    i_subpath;
+    i_meth = `Get;
+    i_get_params = si_all_get_params;
+    i_post_params = []
+  }
+  and ret { Eliom_route.i_subpath ; i_get_params } =
+    set_uri_protected (fun () -> make_uri i_subpath i_get_params);
+    Lwt.return ()
+  in
+  (* same sequence of attempts as server; see server-side
+     [Eliom_registration.Action.send] *)
+  lwt b = try_call_service info in
+  if b then
+    ret info
+  else
+    let info = {
+      info with
+      Eliom_route.i_get_params =
+        Eliom_common.remove_na_prefix_params
+          info.Eliom_route.i_get_params
+    } in
+    lwt b = try_call_service info in
+    if b then
+      ret info
+    else
+      let info = {info with Eliom_route.i_get_params = []} in
+      lwt b = try_call_service info in
+      if b then
+        ret info
+      else
+        Lwt.fail Eliom_common.Eliom_404
+
 let change_page_unknown
-    ?hostname ?replace ?(aux = false) i_subpath i_get_params i_post_params =
+    ?hostname ?replace i_subpath i_get_params i_post_params =
   let i_sess_info = !Eliom_request_info.get_sess_info ()
   and i_meth = `Get in
   let info = {
@@ -886,32 +946,11 @@ let change_page_unknown
     i_meth ;
     i_get_params ;
     i_post_params
-  }
-  and i_get_params =
-    List.map
-      (fun (s, s') -> s, `String (Js.string s'))
-      i_get_params
-  in
-  update_session_info i_get_params;
-  if not aux then path_for_action_ref := Some i_subpath;
+  } in
+  path_for_action := Some i_subpath;
   lwt () = Eliom_route.call_service info in
-  let f () =
-    let base =
-      match i_subpath with
-      | _ :: _ ->
-        String.concat "/" i_subpath
-      | [] ->
-        "/"
-    and params =
-      if aux then
-        Eliom_common.remove_na_prefix_params i_get_params
-      else
-        i_get_params
-    in
-    Eliom_uri.make_string_uri_from_components (base, params, None)
-  in
-  set_uri_protected ?replace f;
-  if aux then do_not_set_uri := true;
+  set_uri_protected ?replace (fun () -> make_uri i_subpath i_get_params);
+  update_session_info (jsify_params i_get_params);
   Lwt.return ()
 
 (* Function used in "onclick" event handler of <a>.  *)
