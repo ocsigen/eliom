@@ -152,8 +152,8 @@ let get_cookie_info
         lazy
           (catch
              (fun () ->
-               Ocsipersist.find
-                 (Lazy.force Eliom_common.persistent_cookies_table) value >>=
+               Lazy.force Eliom_common.persistent_cookies_table >>= fun table ->
+               Ocsipersist.find table value >>=
                fun (full_state_name, persexp, perstimeout, sessgrp) ->
 
                  Eliommod_sessiongroups.Pers.up value sessgrp >>= fun () ->

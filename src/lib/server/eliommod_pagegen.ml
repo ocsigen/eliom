@@ -135,8 +135,9 @@ let update_cookie_table ?now sitedata (ci, sci) =
                       oldv = newc.Eliom_common.pc_value ->
                     catch
                       (fun () ->
+                        Lazy.force Eliommod_persess.persistent_cookies_table >>= fun table ->
                         Ocsipersist.replace_if_exists
-                          (Lazy.force Eliommod_persess.persistent_cookies_table)
+                          table
                           newc.Eliom_common.pc_value
                           (name,
                            newexp,
@@ -147,8 +148,9 @@ let update_cookie_table ?now sitedata (ci, sci) =
                         (* someone else closed the session *)
                         | e -> fail e)
                   | _ ->
+                    Lazy.force Eliommod_persess.persistent_cookies_table >>= fun table ->
                     Ocsipersist.add
-                      (Lazy.force Eliommod_persess.persistent_cookies_table)
+                      table
                       newc.Eliom_common.pc_value
                       (name,
                        newexp,

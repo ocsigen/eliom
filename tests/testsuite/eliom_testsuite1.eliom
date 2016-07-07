@@ -1185,7 +1185,9 @@ let mystore = Ocsipersist.open_store "eliomexamplestore2"
 
 let count2 =
   let next =
-    let cthr = Ocsipersist.make_persistent mystore "countpage" 0 in
+    let cthr =
+      mystore >>= fun store ->
+      Ocsipersist.make_persistent store "countpage" 0 in
     let mutex = Lwt_mutex.create () in
     (fun () ->
       cthr >>= fun c ->

@@ -413,7 +413,7 @@ module Pers = struct
 (*VVV Verify this carefully! *)
 (*VVV VEOcsigen_request_infoFY concurrent access *)
 
-  let grouptable : (nbmax * string list) Ocsipersist.table Lazy.t =
+  let grouptable : (nbmax * string list) Ocsipersist.table Lwt.t Lazy.t =
     lazy (Ocsipersist.open_table "__eliom_session_group_table")
       (* It is lazy because if the module is linked statically,
          the creation of the table must happen after initialisation
@@ -426,7 +426,8 @@ module Pers = struct
     | Some g ->
         Lwt.catch
           (fun () ->
-            Ocsipersist.find !!grouptable
+            !!grouptable >>= fun grouptable ->
+            Ocsipersist.find grouptable
               (Eliom_common.string_of_perssessgrp g) >>= fun (_, a) ->
             Lwt.return a)
           (function
@@ -439,7 +440,8 @@ module Pers = struct
       let sg = Eliom_common.string_of_perssessgrp sg in
       Lwt.catch
         (fun () ->
-          Ocsipersist.find !!grouptable sg >>= fun (max2, cl) ->
+          !!grouptable >>= fun grouptable ->
+          Ocsipersist.find grouptable sg >>= fun (max2, cl) ->
           let max, newmax = match set_max with
             | None -> ((match max2 with
                 | Default -> defaultmax
@@ -449,7 +451,7 @@ module Pers = struct
             | Some (Some v) -> Some v, Val v
           in
           let cl, toclose = cut max cl in
-          Ocsipersist.replace_if_exists !!grouptable sg (newmax, (sess_id::cl))
+          Ocsipersist.replace_if_exists grouptable sg (newmax, (sess_id::cl))
           >>= fun () ->
           Lwt.return toclose)
         (function
@@ -459,7 +461,8 @@ module Pers = struct
               | Some None -> Nolimit
               | Some (Some v) -> Val v
             in
-            Ocsipersist.add !!grouptable sg (max, [sess_id]) >>= fun () ->
+            !!grouptable >>= fun grouptable ->
+            Ocsipersist.add grouptable sg (max, [sess_id]) >>= fun () ->
             Lwt.return []
           | e -> Lwt.fail e)
     | None -> Lwt.return []
@@ -502,8 +505,8 @@ module Pers = struct
                                       belonging to the group grp *)
             (* group_name is the cookie value *)
             remove sitedata group_name grp >>= fun () ->
-            Ocsipersist.remove
-              (!!Eliom_common.persistent_cookies_table) group_name
+            !!Eliom_common.persistent_cookies_table >>= fun table ->
+            Ocsipersist.remove table group_name
           | _ -> Lwt.return ())
         >>= fun () ->
 
@@ -511,7 +514,8 @@ module Pers = struct
         match sess_grp with
           | Some sg ->
             let sg = Eliom_common.string_of_perssessgrp sg in
-            Ocsipersist.remove !!grouptable sg
+            !!grouptable >>= fun grouptable ->
+            Ocsipersist.remove grouptable sg
           | None -> Lwt.return ()
       )
       (function Not_found -> Lwt.return () | e -> Lwt.fail e)
@@ -526,7 +530,8 @@ module Pers = struct
         match cookie_level with
           | `Client_process -> begin
             (* We remove cookie info from the table *)
-            Ocsipersist.remove (!!Eliom_common.persistent_cookies_table) cookie
+            !!Eliom_common.persistent_cookies_table >>= fun table ->
+            Ocsipersist.remove table cookie
             >>= fun () ->
 
             (* We remove the session from its group: *)
@@ -555,7 +560,8 @@ module Pers = struct
       let sg = Eliom_common.string_of_perssessgrp sg0 in
       Lwt.catch
         (fun () ->
-          Ocsipersist.find !!grouptable sg >>= fun (max, cl) ->
+          !!grouptable >>= fun grouptable ->
+          Ocsipersist.find grouptable sg >>= fun (max, cl) ->
           let newcl = List.remove_first_if_any sess_id cl in
           (match newcl with
             | [] ->
@@ -570,8 +576,9 @@ module Pers = struct
                   remove_group ~cookie_level:`Session sitedata sess_grp
                 | _ -> Lwt.return ()
               ) >>= fun () ->
-              Ocsipersist.remove !!grouptable sg
-            | _ -> Ocsipersist.replace_if_exists !!grouptable sg (max, newcl)
+              Ocsipersist.remove grouptable sg
+            | _ ->
+              Ocsipersist.replace_if_exists grouptable sg (max, newcl)
           )
         )
         (function
@@ -586,9 +593,10 @@ module Pers = struct
         let sg = Eliom_common.string_of_perssessgrp sg in
         Lwt.catch
           (fun () ->
-            Ocsipersist.find !!grouptable sg >>= fun (max, cl) ->
+            !!grouptable >>= fun grouptable ->
+            Ocsipersist.find grouptable sg >>= fun (max, cl) ->
             let newcl = List.remove_first_if_any sess_id cl in
-            Ocsipersist.replace_if_exists !!grouptable sg (max, sess_id::newcl)
+            Ocsipersist.replace_if_exists grouptable sg (max, sess_id::newcl)
           )
           (function
             | Not_found -> Lwt.return ()
@@ -601,6 +609,6 @@ module Pers = struct
     end
     else Lwt.return []
 
-  let nb_of_groups () = Ocsipersist.length !!grouptable
+  let nb_of_groups () = !!grouptable >>= Ocsipersist.length
 
 end

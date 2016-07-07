@@ -50,7 +50,8 @@ let number_of_persistent_table_elements () =
   List.fold_left
     (fun thr t ->
       thr >>= fun l ->
-      Ocsipersist.length (Ocsipersist.open_table t) >>= fun e ->
+      Ocsipersist.open_table t >>= fun table ->
+      Ocsipersist.length table >>= fun e ->
       return ((t, e)::l)) (return []) !perstables
 
 let close_persistent_state2
@@ -141,8 +142,8 @@ let rec find_or_create_persistent_cookie_
   (* We do not need to verify if it already exists.
      make_new_session_id does never generate twice the same cookie. *)
     let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
-    Ocsipersist.add
-      (Lazy.force persistent_cookies_table) c
+    Lazy.force persistent_cookies_table >>= fun table ->
+    Ocsipersist.add table c
       (full_st_name,
        None (* Some 0. *) (* exp on server - We'll change it later *),
        Eliom_common.TGlobal (* timeout - see global config *),
