@@ -203,16 +203,15 @@ module Action = struct
   type result = browser_content kind
 
   let send ?options ?charset:_ ?code:_ ?content_type:_ ?headers:_ page =
-    Eliom_client.do_not_set_uri := true;
-    match !Eliom_client.reload_function, options with
-    | Some rf, (Some `Reload | None) ->
-      rf () ()
-    | None, (Some `Reload | None) ->
-      (* last page was probably generated on the server, so
-         default a standard reload *)
-      Dom_html.window##location##reload();
-      Lwt.return ()
-    | _, Some `NoReload ->
+    match options with
+    | Some `Reload | None ->
+      let path = Eliom_client.path_for_action ()
+      and params =
+        Eliom_common.remove_na_prefix_params
+          (!Eliom_request_info.get_sess_info ()).si_all_get_params
+      in
+      Eliom_client.call_client_service ~aux:true path params
+    | _ ->
       Lwt.return ()
 
   let register

@@ -751,9 +751,31 @@ let do_not_set_uri = ref false
 
 let set_uri_protected ?replace f =
   if not !do_not_set_uri then
-    set_uri ?replace (f ())
+    set_uri ?replace (match f () with "" -> "/" | uri -> uri)
   else
     do_not_set_uri := false
+
+(* hackish : store the path corresponding to an action service so that
+   we can reload the corresponding page afterwards *)
+let path_for_action_ref = ref None
+
+let path_for_action () =
+  match !path_for_action_ref with
+  | Some path ->
+    path
+  | None ->
+    Url.Current.path
+
+let update_path_for_action
+    (type att)
+    (service : (_, _, _, att, _, _, _, _, _, _, _) Eliom_service.t) =
+  path_for_action_ref :=
+    Some
+      (match Eliom_service.info service with
+       | Eliom_service.Attached att ->
+         Eliom_service.full_path att
+       | Eliom_service.Nonattached _ ->
+         Url.Current.path)
 
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
@@ -805,7 +827,6 @@ let change_page (type m)
              (fun rf ->
                 reload_function := Some (fun () () -> rf get_params ()))
              (Eliom_service.reload_fun service);
-           lwt () = f get_params post_params in
            let uri, all_get_params =
              match
                create_request_
@@ -818,9 +839,11 @@ let change_page (type m)
              | `Put (uri, get_params, _)
              | `Delete (uri, get_params, _) -> uri, get_params
            in
+           update_session_info all_get_params;
+           lwt () = f get_params post_params in
            set_uri_protected ?replace
              (fun () -> fst (Url.split_fragment uri));
-           update_session_info all_get_params;
+           update_path_for_action service;
            Lwt.return ()
          | None ->
            (* No client-side implementation *)
@@ -853,10 +876,10 @@ let change_page (type m)
            let uri, fragment = Url.split_fragment uri in
            set_content ?replace ~uri ?fragment content)
 
-
-let call_client_service ?hostname ?replace i_subpath i_params : unit Lwt.t =
+let call_client_service
+    ?hostname ?replace ?(aux = false) i_subpath i_params
+  : unit Lwt.t =
   let i_sess_info = !Eliom_request_info.get_sess_info ()
-  (* with si_all_get_params *)
   and i_meth = `Get in
   let info = { Eliom_route.i_sess_info ; i_subpath ; i_meth ; i_params }
   and i_params =
@@ -865,17 +888,25 @@ let call_client_service ?hostname ?replace i_subpath i_params : unit Lwt.t =
       i_params
   in
   update_session_info i_params;
+  if not aux then path_for_action_ref := Some i_subpath;
   lwt () = Eliom_route.call_service info in
-  set_uri_protected ?replace
-    (fun () ->
-       let base =
-         match i_subpath with
-         | _ :: _ ->
-           String.concat "/" i_subpath
-         | [] ->
-           "/"
-       in
-       Eliom_uri.make_string_uri_from_components (base, i_params, None));
+  let f () =
+    let base =
+      match i_subpath with
+      | _ :: _ ->
+        String.concat "/" i_subpath
+      | [] ->
+        "/"
+    and params =
+      if aux then
+        Eliom_common.remove_na_prefix_params i_params
+      else
+        i_params
+    in
+    Eliom_uri.make_string_uri_from_components (base, params, None)
+  in
+  set_uri_protected ?replace f;
+  if aux then do_not_set_uri := true;
   Lwt.return ()
 
 (* Function used in "onclick" event handler of <a>.  *)

@@ -320,8 +320,11 @@ val set_content_local :
 
 val do_not_set_uri : bool ref
 
+val path_for_action : unit -> string list
+
 val call_client_service :
   ?hostname:string ->
   ?replace:bool ->
+  ?aux:bool ->
   string list ->
   (string * string) list -> unit Lwt.t
