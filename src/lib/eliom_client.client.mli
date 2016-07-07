@@ -322,7 +322,9 @@ val do_not_set_uri : bool ref
 
 val path_for_action : unit -> string list
 
-val call_client_service :
+(** Like [change_page], but when we don't know the service. We try to
+    identify it based on the URL and the parameters. *)
+val change_page_unknown :
   ?hostname:string ->
   ?replace:bool ->
   ?aux:bool ->

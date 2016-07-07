@@ -876,9 +876,8 @@ let change_page (type m)
            let uri, fragment = Url.split_fragment uri in
            set_content ?replace ~uri ?fragment content)
 
-let call_client_service
-    ?hostname ?replace ?(aux = false) i_subpath i_get_params i_post_params
-  : unit Lwt.t =
+let change_page_unknown
+    ?hostname ?replace ?(aux = false) i_subpath i_get_params i_post_params =
   let i_sess_info = !Eliom_request_info.get_sess_info ()
   and i_meth = `Get in
   let info = {

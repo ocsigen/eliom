@@ -218,7 +218,7 @@ module Action = struct
         | None ->
           []
       in
-      Eliom_client.call_client_service ~aux:true path g p
+      Eliom_client.change_page_unknown ~aux:true path g p
     | _ ->
       Lwt.return ()
 
