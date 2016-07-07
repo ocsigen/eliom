@@ -1,8 +1,9 @@
 type info = {
-  i_sess_info : Eliom_common.sess_info;
-  i_subpath   : string list;
-  i_meth      : Eliom_common.meth;
-  i_params    : (string * string) list
+  i_sess_info      : Eliom_common.sess_info;
+  i_subpath        : string list;
+  i_meth           : Eliom_common.meth;
+  i_get_params     : (string * string) list;
+  i_post_params    : (string * string) list
 }
 
 module A = struct
@@ -119,19 +120,27 @@ let call_naservice {A.t_na_services} k =
   with Not_found ->
     Lwt.fail Eliom_common.Eliom_404
 
-let rec na_key_of_params = function
+let rec na_key_of_params ~get = function
   | (k, v) :: l when k = Eliom_common.naservice_name ->
-    Some (Eliom_common.SNa_get_ v)
+    Some (if get then Eliom_common.SNa_get_ v else Eliom_common.SNa_post_ v)
   | (k, v) :: l when k = Eliom_common.naservice_num ->
-    Some (Eliom_common.SNa_get' v)
+    Some (if get then Eliom_common.SNa_get' v else Eliom_common.SNa_post' v)
   | _ :: l ->
-    na_key_of_params l
+    na_key_of_params ~get l
   | [] ->
     None
 
-let call_service ({i_params} as info) =
-  match na_key_of_params i_params with
+let call_service ({i_get_params ; i_post_params} as info) =
+  match
+    na_key_of_params ~get:true i_get_params
+  with
   | Some k ->
     call_naservice global_tables k
   | None ->
-    find_service 0. global_tables None () info
+    match
+      na_key_of_params ~get:false i_post_params
+    with
+    | Some k ->
+      call_naservice global_tables k
+    | None ->
+      find_service 0. global_tables None () info

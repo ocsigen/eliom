@@ -54,19 +54,23 @@ module type PARAM = sig
 
 end
 
-let typed_apply f gp l =
+let typed_apply f gp pp l =
   try_lwt
     let l = Some (Lwt.return l) in
     lwt g =
       Eliom_parameter.reconstruct_params
         ~sp:() gp l None true None
+    and p =
+      Eliom_parameter.reconstruct_params
+        ~sp:() pp l None true None
     in
-    f g ()
+    f g p
   with Eliom_common.Eliom_Wrong_parameter ->
     Lwt.fail Eliom_common.Eliom_Wrong_parameter
 
 let wrap service att f _ _ =
-  let gp = Eliom_service.get_params_type service
+  let gp = Eliom_service. get_params_type service
+  and pp = Eliom_service.post_params_type service
   and l = (!Eliom_request_info.get_sess_info ()).si_all_get_params in
   match Eliom_service.get_name att with
   | Eliom_common.SAtt_named s
@@ -75,18 +79,19 @@ let wrap service att f _ _ =
        let eliom_name = List.assoc "__eliom__" l
        and l = List.remove_assoc "__eliom__" l in
        if eliom_name = s then
-         typed_apply f gp l
+         typed_apply f gp pp l
        else
          Lwt.fail Eliom_common.Eliom_Wrong_parameter
      with Not_found ->
        Lwt.fail Eliom_common.Eliom_Wrong_parameter)
   | _ ->
-    typed_apply f gp l
+    typed_apply f gp pp l
 
 let wrap_na
     (service : (_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t)
     non_att f _ _ =
   let gp = Eliom_service.get_params_type service
+  and pp = Eliom_service.post_params_type service
   and l =
     let si = !Eliom_request_info.get_sess_info () in
     List.filter
@@ -94,7 +99,7 @@ let wrap_na
                      s <> Eliom_common.naservice_num)
       si.si_all_get_params
   in
-  typed_apply f gp l
+  typed_apply f gp pp l
 
 let register_att ~service ~att f =
   let key_meth = Eliom_service.which_meth_untyped service
@@ -134,16 +139,11 @@ let register
     (type g) (type p) (type att)
     ~(service : (g, p, _, att, _, _, _, _, _, _, _) Eliom_service.t)
     (f : g -> p -> _) =
-  match
-    Eliom_service.info service,
-    Eliom_parameter.is_unit (Eliom_service.post_params_type service)
-  with
-  | Eliom_service.Attached att, Eliom_parameter.U_yes ->
+  match Eliom_service.info service with
+  | Eliom_service.Attached att ->
     register_att ~service ~att f
-  | Eliom_service.Nonattached na, Eliom_parameter.U_yes ->
+  | Eliom_service.Nonattached na ->
     register_na ~service ~na f
-  | _ ->
-    ()
 
 module Make (P : PARAM) = struct
 
@@ -205,12 +205,20 @@ module Action = struct
   let send ?options ?charset:_ ?code:_ ?content_type:_ ?headers:_ page =
     match options with
     | Some `Reload | None ->
-      let path = Eliom_client.path_for_action ()
-      and params =
-        Eliom_common.remove_na_prefix_params
-          (!Eliom_request_info.get_sess_info ()).si_all_get_params
+      let path = Eliom_client.path_for_action () in
+      let
+        { Eliom_common.si_all_get_params ; si_all_post_params } =
+        !Eliom_request_info.get_sess_info ()
       in
-      Eliom_client.call_client_service ~aux:true path params
+      let g = Eliom_common.remove_na_prefix_params si_all_get_params
+      and p =
+        match si_all_post_params with
+        | Some p ->
+          Eliom_common.remove_na_prefix_params p
+        | None ->
+          []
+      in
+      Eliom_client.call_client_service ~aux:true path g p
     | _ ->
       Lwt.return ()
 

@@ -877,17 +877,23 @@ let change_page (type m)
            set_content ?replace ~uri ?fragment content)
 
 let call_client_service
-    ?hostname ?replace ?(aux = false) i_subpath i_params
+    ?hostname ?replace ?(aux = false) i_subpath i_get_params i_post_params
   : unit Lwt.t =
   let i_sess_info = !Eliom_request_info.get_sess_info ()
   and i_meth = `Get in
-  let info = { Eliom_route.i_sess_info ; i_subpath ; i_meth ; i_params }
-  and i_params =
+  let info = {
+    Eliom_route.i_sess_info ;
+    i_subpath ;
+    i_meth ;
+    i_get_params ;
+    i_post_params
+  }
+  and i_get_params =
     List.map
       (fun (s, s') -> s, `String (Js.string s'))
-      i_params
+      i_get_params
   in
-  update_session_info i_params;
+  update_session_info i_get_params;
   if not aux then path_for_action_ref := Some i_subpath;
   lwt () = Eliom_route.call_service info in
   let f () =
@@ -899,9 +905,9 @@ let call_client_service
         "/"
     and params =
       if aux then
-        Eliom_common.remove_na_prefix_params i_params
+        Eliom_common.remove_na_prefix_params i_get_params
       else
-        i_params
+        i_get_params
     in
     Eliom_uri.make_string_uri_from_components (base, params, None)
   in

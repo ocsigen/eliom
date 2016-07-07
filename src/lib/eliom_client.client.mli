@@ -327,4 +327,6 @@ val call_client_service :
   ?replace:bool ->
   ?aux:bool ->
   string list ->
-  (string * string) list -> unit Lwt.t
+  (string * string) list ->
+  (string * string) list ->
+  unit Lwt.t
