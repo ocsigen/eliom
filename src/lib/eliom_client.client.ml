@@ -873,8 +873,8 @@ let jsify_params = List.map @@ fun (s, s') -> s, `String (Js.string s')
 
 let try_call_service ({Eliom_route.i_get_params} as info) =
   try_lwt
-    lwt () = Eliom_route.call_service info in
     update_session_info (jsify_params i_get_params);
+    lwt () = Eliom_route.call_service info in
     Lwt.return true
   with
   | _ ->
@@ -948,9 +948,9 @@ let change_page_unknown
     i_post_params
   } in
   path_for_action := Some i_subpath;
+  update_session_info (jsify_params i_get_params);
   lwt () = Eliom_route.call_service info in
   set_uri_protected ?replace (fun () -> make_uri i_subpath i_get_params);
-  update_session_info (jsify_params i_get_params);
   Lwt.return ()
 
 (* Function used in "onclick" event handler of <a>.  *)
