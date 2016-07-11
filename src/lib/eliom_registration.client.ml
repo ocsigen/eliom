@@ -54,21 +54,21 @@ module type PARAM = sig
 
 end
 
-let typed_apply f gp pp l =
+let typed_apply f gp pp l suffix =
   try_lwt
     let l = Some (Lwt.return l) in
     lwt g =
       Eliom_parameter.reconstruct_params
-        ~sp:() gp l None true None
+        ~sp:() gp l None true suffix
     and p =
       Eliom_parameter.reconstruct_params
-        ~sp:() pp l None true None
+        ~sp:() pp l None true suffix
     in
     f g p
   with Eliom_common.Eliom_Wrong_parameter ->
     Lwt.fail Eliom_common.Eliom_Wrong_parameter
 
-let wrap service att f _ _ =
+let wrap service att f _ suffix =
   let gp = Eliom_service. get_params_type service
   and pp = Eliom_service.post_params_type service
   and l = (!Eliom_request_info.get_sess_info ()).si_all_get_params in
@@ -79,17 +79,17 @@ let wrap service att f _ _ =
        let eliom_name = List.assoc "__eliom__" l
        and l = List.remove_assoc "__eliom__" l in
        if eliom_name = s then
-         typed_apply f gp pp l
+         typed_apply f gp pp l suffix
        else
          Lwt.fail Eliom_common.Eliom_Wrong_parameter
      with Not_found ->
        Lwt.fail Eliom_common.Eliom_Wrong_parameter)
   | _ ->
-    typed_apply f gp pp l
+    typed_apply f gp pp l suffix
 
 let wrap_na
     (service : (_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t)
-    non_att f _ _ =
+    non_att f _ suffix =
   let gp = Eliom_service.get_params_type service
   and pp = Eliom_service.post_params_type service
   and l =
@@ -99,7 +99,7 @@ let wrap_na
                      s <> Eliom_common.naservice_num)
       si.si_all_get_params
   in
-  typed_apply f gp pp l
+  typed_apply f gp pp l suffix
 
 let register_att ~service ~att f =
   let key_meth = Eliom_service.which_meth_untyped service

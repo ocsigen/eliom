@@ -14,7 +14,8 @@ module A = struct
 
   type info = info'
 
-  type params = Eliom_common.server_params
+  (* the suffix is the only thing we seem to need *)
+  type params = string list option
 
   type result = unit
 
@@ -26,7 +27,7 @@ module A = struct
 
   let meth_of_info {i_meth} = i_meth
 
-  let make_server_params _ _ _ _ = ()
+  let make_server_params _ _ suffix _ = suffix
 
   let get_number_of_reloads =
     let count = ref 0 in
@@ -85,7 +86,7 @@ module A = struct
       bool;
     mutable t_na_services      :
       (Eliom_common.na_key_serv,
-       bool -> Eliom_common.server_params -> result Lwt.t
+       bool -> params -> result Lwt.t
       ) Hashtbl.t
   }
 
@@ -116,7 +117,7 @@ let add_naservice {A.t_na_services} k f =
 
 let call_naservice {A.t_na_services} k =
   try
-    (Hashtbl.find t_na_services k) true ()
+    (Hashtbl.find t_na_services k) true None
   with Not_found ->
     Lwt.fail Eliom_common.Eliom_404
 
