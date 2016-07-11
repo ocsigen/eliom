@@ -955,7 +955,7 @@ let change_page_unknown
 
 (* Function used in "onclick" event handler of <a>.  *)
 
-let change_page_uri ?cookies_info ?tmpl ?(get_params = []) full_uri =
+let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
   Lwt_log.ign_debug ~section "Change page uri";
   with_progress_cursor
     (let uri, fragment = Url.split_fragment full_uri in
@@ -980,6 +980,21 @@ let change_page_uri ?cookies_info ?tmpl ?(get_params = []) full_uri =
        scroll_to_fragment fragment;
        Lwt.return ()
      end)
+
+let change_page_uri ?(client = false) full_uri =
+  Lwt_log.ign_debug ~section "Change page uri";
+  if client then
+    try_lwt
+      match Url.url_of_string full_uri with
+      | Some (Url.Http url | Url.Https url) ->
+        change_page_unknown url.Url.hu_path url.Url.hu_arguments []
+      | _ ->
+        failwith "invalid url"
+    with _ ->
+      (Lwt_log.ign_debug ~section "Change page uri: resort to server";
+       change_page_uri_a full_uri)
+  else
+    change_page_uri_a full_uri
 
 (* Functions used in "onsubmit" event handler of <form>.  *)
 
@@ -1024,7 +1039,7 @@ let change_page_post_form ?cookies_info ?tmpl form full_uri =
 let _ =
   change_page_uri_ :=
     (fun ?cookies_info ?tmpl href ->
-       Lwt.ignore_result (change_page_uri ?cookies_info ?tmpl href));
+       Lwt.ignore_result (change_page_uri_a ?cookies_info ?tmpl href));
   change_page_get_form_ :=
     (fun ?cookies_info ?tmpl form href ->
        Lwt.ignore_result (change_page_get_form ?cookies_info ?tmpl form href));
