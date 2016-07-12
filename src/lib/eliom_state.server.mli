@@ -1019,7 +1019,7 @@ val remove_volatile_data :
 val create_persistent_table :
   scope:Eliom_common.user_scope ->
   ?secure:bool ->
-  string -> 'a persistent_table
+  string -> 'a persistent_table Lwt.t
 
 (** gets persistent session data for the current persistent session (if any).
     (low level) *)

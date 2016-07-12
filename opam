@@ -7,7 +7,8 @@ homepage: "http://ocsigen.org/eliom/"
 bug-reports: "https://github.com/ocsigen/eliom/issues/"
 dev-repo: "https://github.com/ocsigen/eliom.git"
 license: "LGPL-2.1 with OCaml linking exception"
-build: [make "PPX=false" {base-no-ppx:installed}]
+build: [make "-j%{jobs}%" "PPX=false" {base-no-ppx:installed}]
+
 depends: [
   "ocamlfind"
   "deriving" {>= "0.6"}

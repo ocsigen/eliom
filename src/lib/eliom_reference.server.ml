@@ -32,8 +32,8 @@ type 'a eref_kind =
   | Ref of 'a lazy_t ref (* Ocaml reference *)
   | Vol of 'a volatile_table Lazy.t (* Vol. table (group, session, process) *)
   | Ocsiper of 'a option Ocsipersist.t Lwt.t (* Global persist. table *)
-  | Ocsiper_sit of 'a Ocsipersist.table (* Persist. table for site *)
-  | Per of 'a persistent_table (* Persist. table for group session or process *)
+  | Ocsiper_sit of 'a Ocsipersist.table Lwt.t (* Persist. table for site *)
+  | Per of 'a persistent_table Lwt.t (* Persist. table for group session or process *)
 
 type volatile = [ `Volatile ]
 type persistent = [ `Persistent ]
@@ -174,9 +174,9 @@ let eref_from_fun_ ~ext ~scope ?secure ?persistent f : 'a eref =
           | None -> (Volatile.eref_from_fun_ ~ext ~scope ?secure f :> _ eref)
           | Some name ->
             (f, ext,
-             Ocsiper (Ocsipersist.make_persistent
-                        ~store:pers_ref_store
-                        ~name ~default:None))
+             Ocsiper (
+               pers_ref_store >>= fun store ->
+               Ocsipersist.make_persistent ~store ~name ~default:None))
       end
     | `Site ->
       begin
@@ -207,6 +207,7 @@ let get_site_id () =
 let get (f, _, table as eref) =
   match table with
     | Per t ->
+      t >>= fun t ->
       (get_persistent_data ~table:t () >>= function
         | Data d -> Lwt.return d
         | _ ->
@@ -221,6 +222,7 @@ let get (f, _, table as eref) =
              Ocsipersist.set r (Some value) >>= fun () ->
              Lwt.return value)
     | Ocsiper_sit t ->
+      t >>= fun t ->
       (let site_id = get_site_id () in
        try_lwt Ocsipersist.find t site_id
        with Not_found ->
@@ -231,9 +233,12 @@ let get (f, _, table as eref) =
 
 let set (_, _, table as eref) value =
   match table with
-    | Per t -> set_persistent_data ~table:t value
+    | Per t ->
+      t >>= fun t ->
+      set_persistent_data ~table:t value
     | Ocsiper r -> r >>= fun r -> Ocsipersist.set r (Some value)
     | Ocsiper_sit t ->
+      t >>= fun t ->
       Ocsipersist.add t (get_site_id ()) value
     | _ -> Lwt.return (Volatile.set eref value)
 
@@ -242,9 +247,12 @@ let modify eref f =
 
 let unset (f, _, table as eref) =
   match table with
-    | Per t -> remove_persistent_data ~table:t ()
+    | Per t ->
+      t >>= fun t ->
+      remove_persistent_data ~table:t ()
     | Ocsiper r -> r >>= fun r -> Ocsipersist.set r None
     | Ocsiper_sit t ->
+      t >>= fun t ->
       Ocsipersist.remove t (get_site_id ())
     | _ -> Lwt.return (Volatile.unset eref)
 
@@ -258,6 +266,7 @@ module Ext = struct
     match table with
       | Vol _ -> Lwt.return (Volatile.Ext.get state r)
       | Per t ->
+        t >>= fun t ->
         (Lwt.catch
            (fun () -> Eliom_state.Ext.Low_level.get_persistent_data
              ~state ~table:t)
@@ -279,6 +288,7 @@ module Ext = struct
     match table with
       | Vol _ -> Lwt.return (Volatile.Ext.set state r value)
       | Per t ->
+        t >>= fun t ->
         Eliom_state.Ext.Low_level.set_persistent_data
           ~state ~table:t value
       | _ -> Lwt.fail (Failure "wrong eref for this function")
@@ -291,8 +301,9 @@ module Ext = struct
     let state = Eliom_state.Ext.untype_state state in
     match table with
       | Vol _ -> Lwt.return (Volatile.Ext.unset state r)
-      | Per t -> Eliom_state.Ext.Low_level.remove_persistent_data
-        ~state ~table:t
+      | Per t ->
+        t >>= fun t ->
+        Eliom_state.Ext.Low_level.remove_persistent_data ~state ~table:t
       | _ -> failwith "wrong eref for this function"
 
 end

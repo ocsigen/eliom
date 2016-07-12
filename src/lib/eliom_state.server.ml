@@ -918,11 +918,11 @@ type 'a persistent_table =
        bool *
        (int64 * 'a) Ocsipersist.table)
 
-let create_persistent_table ~scope ?secure name : 'a persistent_table =
+let create_persistent_table ~scope ?secure name : 'a persistent_table Lwt.t =
   let sitedata = Eliom_request_info.find_sitedata "create_persistent_table" in
   let secure = Eliom_common.get_secure secure sitedata in
-  let t = Eliom_common.create_persistent_table name in
-  (scope, secure, t)
+  Eliom_common.create_persistent_table name >>= fun t ->
+  Lwt.return (scope, secure, t)
 
 let get_p_table_key_
     ~table:(scope, secure, table)
@@ -1272,10 +1272,8 @@ module Ext = struct
 
   let get_persistent_cookie_info
       ((_, _, cookie) : ([< Eliom_common.cookie_level ], [ `Pers ]) state) =
-    Ocsipersist.find
-      (Lazy.force Eliommod_persess.persistent_cookies_table)
-      cookie
-    >>= fun v ->
+    Lazy.force Eliommod_persess.persistent_cookies_table >>= fun table ->
+    Ocsipersist.find table cookie >>= fun v ->
     Lwt.return (cookie, v)
 
   let discard_state ~state =
@@ -1488,10 +1486,8 @@ module Ext = struct
     | None -> TNone
     | Some t -> TSome t
     in
-    Ocsipersist.add
-      (Lazy.force Eliom_common.persistent_cookies_table)
-      cookie
-      (fullstname, exp, ti, sessgrp)
+    Lazy.force Eliom_common.persistent_cookies_table >>= fun table ->
+    Ocsipersist.add table cookie (fullstname, exp, ti, sessgrp)
 
   let get_service_cookie_timeout ~cookie:(_, (_, _, _, r, _, _)) =
     !r
@@ -1511,10 +1507,8 @@ module Ext = struct
 
   let unset_persistent_data_cookie_timeout
       ~cookie:(cookie, (fullstname, exp, _, sessgrp)) =
-    Ocsipersist.add
-      (Lazy.force Eliom_common.persistent_cookies_table)
-      cookie
-      (fullstname, exp, TGlobal, sessgrp)
+    Lazy.force Eliom_common.persistent_cookies_table >>= fun table ->
+    Ocsipersist.add table cookie (fullstname, exp, TGlobal, sessgrp)
 
 
   let get_session_group_list () =

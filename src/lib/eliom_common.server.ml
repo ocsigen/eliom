@@ -1335,7 +1335,7 @@ let create_persistent_table name =
 
 let persistent_cookies_table :
     (full_state_name * float option * timeout * perssessgrp option)
-    Ocsipersist.table Lazy.t =
+    Ocsipersist.table Lwt.t Lazy.t =
   lazy (create_persistent_table eliom_persistent_cookie_table)
 (* Another tables, containing the session info for each cookie *)
 (* the table contains:
@@ -1353,7 +1353,8 @@ let persistent_cookies_table :
 let remove_from_all_persistent_tables key =
   Perstables.fold (* could be replaced by a parallel map *)
     (fun thr t -> thr >>= fun () ->
-      Ocsipersist.remove (Ocsipersist.open_table t) key >>= Lwt_unix.yield)
+      Ocsipersist.open_table t >>= fun table ->
+      Ocsipersist.remove table key >>= Lwt_unix.yield)
     (return ())
     !perstables
 

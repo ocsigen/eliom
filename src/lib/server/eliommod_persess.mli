@@ -22,7 +22,7 @@ val perstables : string list ref
 val persistent_cookies_table :
   (Eliom_common.full_state_name * float option * Eliom_common.timeout *
    Eliom_common.perssessgrp option)
-  Ocsipersist.table Lazy.t
+  Ocsipersist.table Lwt.t Lazy.t
 val number_of_persistent_tables : unit -> int
 val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
 val close_persistent_state2 :

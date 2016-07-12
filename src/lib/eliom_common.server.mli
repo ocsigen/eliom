@@ -608,10 +608,10 @@ module Perstables :
     val fold : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
   end
 val perstables : string list ref
-val create_persistent_table : string -> 'a Ocsipersist.table
+val create_persistent_table : string -> 'a Ocsipersist.table Lwt.t
 val persistent_cookies_table :
   (full_state_name * float option * timeout * perssessgrp option)
-  Ocsipersist.table Lazy.t
+  Ocsipersist.table Lwt.t Lazy.t
 val remove_from_all_persistent_tables : string -> unit Lwt.t
 val absolute_change_sitedata : sitedata -> unit
 val get_current_sitedata : unit -> sitedata

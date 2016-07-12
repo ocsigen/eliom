@@ -309,7 +309,8 @@ let persistent_session_gc sitedata =
         (fun () ->
           let now = Unix.time () in
           Lwt_log.ign_info ~section "GC of persistent sessions";
-          (Ocsipersist.iter_table
+          Lazy.force Eliommod_persess.persistent_cookies_table >>=
+          Ocsipersist.iter_table
              (fun k ((scope, _, _), exp, _, session_group) ->
                (match exp with
                | Some exp when exp < now ->
@@ -320,8 +321,7 @@ let persistent_session_gc sitedata =
                    session_group k
                (*WAS: remove_from_all_persistent_tables k *)
                | _ -> return ())
-             )
-             (Lazy.force Eliommod_persess.persistent_cookies_table)))
+             ))
           >>=
         f
       in ignore (f ())
