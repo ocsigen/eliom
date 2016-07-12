@@ -737,16 +737,8 @@ let update_session_info l =
     ~all_get_but_na_nl
     ()
 
-(* do_not_set_uri is set in Eliom_registration.Redirection and
-   Eliom_registration.Action .
-
-   After an action, the URI must be the one we started from, not that
-   of the action service.
-
-   For redirections, the subsequent change_page will set the URI.
-
-   Not very pretty. We can have client functions that return a string
-   (option?) for the URI. *)
+(* do_not_set_uri is set in Eliom_registration.Redirection .  The
+   subsequent change_page will set the URI. *)
 let do_not_set_uri = ref false
 
 let set_uri_protected ?replace f =
@@ -754,21 +746,6 @@ let set_uri_protected ?replace f =
     set_uri ?replace (match f () with "" -> "/" | uri -> uri)
   else
     do_not_set_uri := false
-
-(* hackish : store the path corresponding to an action service so that
-   we can reload the corresponding page afterwards *)
-let path_for_action = ref None
-
-let update_path_for_action
-    (type att)
-    (service : (_, _, _, att, _, _, _, _, _, _, _) Eliom_service.t) =
-  path_for_action :=
-    Some
-      (match Eliom_service.info service with
-       | Eliom_service.Attached att ->
-         Eliom_service.full_path att
-       | Eliom_service.Nonattached _ ->
-         Url.Current.path)
 
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
@@ -833,10 +810,9 @@ let change_page (type m)
              | `Delete (uri, get_params, _) -> uri, get_params
            in
            update_session_info all_get_params;
-           lwt () = f get_params post_params in
            set_uri_protected ?replace
              (fun () -> fst (Url.split_fragment uri));
-           update_path_for_action service;
+           lwt () = f get_params post_params in
            Lwt.return ()
          | None ->
            (* No client-side implementation *)
@@ -890,18 +866,20 @@ let make_uri subpath params =
   and params = jsify_params params in
   Eliom_uri.make_string_uri_from_components (base, params, None)
 
+let current_path () =
+  match Url.Current.get () with
+  | Some ( Url.Http  { Url.hu_path }
+         | Url.Https { Url.hu_path } ) ->
+    hu_path
+  | _ ->
+    []
+
 let change_page_after_action () =
   let
     ({ Eliom_common.si_all_get_params ; si_all_post_params }
      as i_sess_info) =
     !Eliom_request_info.get_sess_info ()
-  and i_subpath =
-    match !path_for_action with
-    | Some i_subpath ->
-      i_subpath
-    | None ->
-      Url.Current.path
-  in
+  and i_subpath = current_path () in
   let info = {
     Eliom_route.i_sess_info ;
     i_subpath;
@@ -910,7 +888,8 @@ let change_page_after_action () =
     i_post_params = []
   }
   and ret { Eliom_route.i_subpath ; i_get_params } =
-    set_uri_protected (fun () -> make_uri i_subpath i_get_params);
+    set_uri_protected ~replace:true
+      (fun () -> make_uri i_subpath i_get_params);
     Lwt.return ()
   in
   (* same sequence of attempts as server; see server-side
@@ -947,10 +926,9 @@ let change_page_unknown
     i_get_params ;
     i_post_params
   } in
-  path_for_action := Some i_subpath;
   update_session_info (jsify_params i_get_params);
-  lwt () = Eliom_route.call_service info in
   set_uri_protected ?replace (fun () -> make_uri i_subpath i_get_params);
+  lwt () = Eliom_route.call_service info in
   Lwt.return ()
 
 (* Function used in "onclick" event handler of <a>.  *)
