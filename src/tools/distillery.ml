@@ -204,6 +204,11 @@ let compilation_unit_name_regexp =
 
 let main () =
   let dir = ref false in
+  let shown = ref false in
+  let show_templates () =
+    List.iter (Printf.printf "%s\n") (get_templates ());
+    shown := true
+  in
   let bad fmt = Printf.ksprintf (fun s -> raise (Arg.Bad s)) fmt in
   let name = ref None in
   let template = ref distillery_basic in
@@ -225,11 +230,14 @@ let main () =
       "<name> Name of the project (a valid compilation unit name)";
       "-template", String select_template,
       "<template> The template for the project";
+      "-list-templates", Unit show_templates,
+      " List all available templates";
       "-target-directory", String (fun s -> destination_dir := Some s),
       "<dir> Generate the project in directory <dir> (the project's name by default)";
   ]) in
   Arg.(parse spec (bad "Don't know what to do with %S") usage_msg);
   if !dir then printf "%s\n" (get_templatedir ())
+  else if !shown then ()
   else begin
     let template, name, destination_dir =
       match !template, !name with
