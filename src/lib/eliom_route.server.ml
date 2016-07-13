@@ -30,17 +30,21 @@ include Eliom_route_base.Make (struct
     let subpath_of_info ({request_info}, _, _, _, _) =
       Ocsigen_request_info.sub_path request_info
 
-    type tables = Eliom_common.tables
+    module Container = struct
 
-    let set_tables_services t v = t.Eliom_common.table_services <- v
+      type t = Eliom_common.tables
 
-    let tables_services {Eliom_common.table_services} = table_services
+      let set t v = t.Eliom_common.table_services <- v
 
-    let service_dlist_add ?sp tables lr =
-      tables.Eliom_common.service_dlist_add ?sp lr
+      let get {Eliom_common.table_services} = table_services
 
-    let set_contains_timeout tables b =
-      tables.Eliom_common.table_contains_services_with_timeout <- b
+      let dlist_add ?sp tables lr =
+        tables.Eliom_common.service_dlist_add ?sp lr
+
+      let set_contains_timeout tables b =
+        tables.Eliom_common.table_contains_services_with_timeout <- b
+
+    end
 
     type params = Eliom_common.server_params
 
@@ -73,7 +77,7 @@ include Eliom_route_base.Make (struct
 
     end
 
-    let make_server_params = Eliom_common.make_server_params
+    let make_params = Eliom_common.make_server_params
 
     let handle_directory (r, _, _, _, _) =
       Lwt.fail @@

@@ -27,7 +27,7 @@ module A = struct
 
   let meth_of_info {i_meth} = i_meth
 
-  let make_server_params _ _ suffix _ = suffix
+  let make_params _ _ suffix _ = suffix
 
   let get_number_of_reloads =
     let count = ref 0 in
@@ -79,26 +79,30 @@ module A = struct
 
   end
 
-  type tables = {
-    mutable t_services         :
-      (int * int * Table.t Eliom_common.dircontent ref) list;
-    mutable t_contains_timeout :
-      bool;
-    mutable t_na_services      :
-      (Eliom_common.na_key_serv,
-       bool -> params -> result Lwt.t
-      ) Hashtbl.t
-  }
+  module Container = struct
 
-  let tables_services {t_services} = t_services
+    type t = {
+      mutable t_services         :
+        (int * int * Table.t Eliom_common.dircontent ref) list;
+      mutable t_contains_timeout :
+        bool;
+      mutable t_na_services      :
+        (Eliom_common.na_key_serv,
+         bool -> params -> result Lwt.t
+        ) Hashtbl.t
+    }
 
-  let set_contains_timeout a b =
-    a.t_contains_timeout <- b
+    let get {t_services} = t_services
 
-  let set_tables_services tables l =
-    tables.t_services <- l
+    let set_contains_timeout a b =
+      a.t_contains_timeout <- b
 
-  let service_dlist_add ?sp:_ tables srv = ()
+    let set tables l =
+      tables.t_services <- l
+
+    let dlist_add ?sp:_ tables srv = ()
+
+  end
 
   let handle_directory _ = Lwt.return ()
 
@@ -106,16 +110,16 @@ end
 
 include Eliom_route_base.Make(A)
 
-let global_tables = {
-  A.t_services         = [];
-  A.t_contains_timeout = false;
-  A.t_na_services      = Hashtbl.create 256
+let global_tables = A.Container.{
+  t_services         = [];
+  t_contains_timeout = false;
+  t_na_services      = Hashtbl.create 256
 }
 
-let add_naservice {A.t_na_services} k f =
+let add_naservice {A.Container.t_na_services} k f =
   Hashtbl.add t_na_services k f
 
-let call_naservice {A.t_na_services} k =
+let call_naservice {A.Container.t_na_services} k =
   try
     (Hashtbl.find t_na_services k) true None
   with Not_found ->

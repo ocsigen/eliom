@@ -40,7 +40,7 @@ module type PARAM = sig
 
   val subpath_of_info : info -> string list
 
-  val make_server_params :
+  val make_params :
     site_data ->
     info ->
     string list option ->
@@ -48,6 +48,8 @@ module type PARAM = sig
     params
 
   val handle_directory : info -> result Lwt.t
+
+  val get_number_of_reloads : unit -> int
 
   module Node : sig
     type t
@@ -75,27 +77,26 @@ module type PARAM = sig
 
   end
 
-  type tables
+  module Container : sig
 
-  val set_contains_timeout : tables -> bool -> unit
+    type t
 
-  val service_dlist_add :
-    ?sp:Eliom_common.server_params ->
-    tables ->
-    (Table.t ref * Eliom_common.page_table_key,
-     Eliom_common.na_key_serv) Eliom_lib.leftright ->
-    Node.t
+    val set_contains_timeout : t -> bool -> unit
 
-  val tables_services :
-    tables ->
-    (int * int * Table.t Eliom_common.dircontent ref) list
+    val dlist_add :
+      ?sp:Eliom_common.server_params ->
+      t ->
+      (Table.t ref * Eliom_common.page_table_key,
+       Eliom_common.na_key_serv) Eliom_lib.leftright ->
+      Node.t
 
-  val set_tables_services :
-    tables ->
-    (int * int * Table.t Eliom_common.dircontent ref) list ->
-    unit
+    val get :
+      t -> (int * int * Table.t Eliom_common.dircontent ref) list
 
-  val get_number_of_reloads : unit -> int
+    val set :
+      t -> (int * int * Table.t Eliom_common.dircontent ref) list -> unit
+
+  end
 
 end
 
@@ -110,7 +111,7 @@ module Make (P : PARAM) = struct
       (info : P.info)
       (urlsuffix : _ option)
       k : P.result Lwt.t  =
-    let sp = P.make_server_params site_data info urlsuffix fullsessname in
+    let sp = P.make_params site_data info urlsuffix fullsessname in
     Lwt.catch
       (fun () -> Lwt.return (P.Table.find k !pagetableref))
       (function
@@ -210,7 +211,7 @@ module Make (P : PARAM) = struct
     let sp = Eliom_common.get_sp_option () in
 
     (match s_expire with
-     | Some _ -> P.set_contains_timeout tables true
+     | Some _ -> P.Container.set_contains_timeout tables true
      | _ -> ());
 
     (* Duplicate registration forbidden in global table with same generation *)
@@ -229,7 +230,7 @@ module Make (P : PARAM) = struct
           | Some node -> P.Node.up node);
          tref := P.Table.add key (nodeopt, [service]) newt
        with Not_found ->
-         let node = P.service_dlist_add ?sp tables (Left (tref, key)) in
+         let node = P.Container.dlist_add ?sp tables (Left (tref, key)) in
          tref := P.Table.add key (Some node, [service]) !tref)
     | { Eliom_common.key_state =
           Eliom_common.SAtt_no, Eliom_common.SAtt_no } ->
@@ -297,9 +298,6 @@ module Make (P : PARAM) = struct
     | Eliom_common.Vide -> raise Not_found
     | Eliom_common.Table t -> String.Table.find k t
 
-
-  (*****************************************************************************)
-
   let add_or_remove_service
       f
       tables
@@ -364,8 +362,8 @@ module Make (P : PARAM) = struct
         t, a::ll
       | _ -> assert false
     in
-    let table, new_table_services = find_table (P.tables_services tables) in
-    P.set_tables_services tables new_table_services;
+    let table, new_table_services = find_table (P.Container.get tables) in
+    P.Container.set tables new_table_services;
     add_or_remove_service add_page_table tables table url_act page_table_key va
 
   let remove_service tables path k unique_id =
@@ -376,7 +374,7 @@ module Make (P : PARAM) = struct
           add_or_remove_service remove_page_table tables table path k unique_id
         with Not_found -> aux l
     in
-    aux (P.tables_services tables)
+    aux (P.Container.get tables)
 
 
   exception Exn1
@@ -482,7 +480,7 @@ module Make (P : PARAM) = struct
     Lwt.catch
       (fun () ->
          search_by_priority_generation
-           (P.tables_services tables)
+           (P.Container.get tables)
            (Url.change_empty_list
               (P.subpath_of_info info)))
       (function Exn1 -> Lwt.fail Eliom_common.Eliom_404 | e -> Lwt.fail e)
