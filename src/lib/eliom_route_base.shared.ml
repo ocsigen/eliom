@@ -204,6 +204,21 @@ module Make (P : PARAM) = struct
   let remove_id services id =
     List.filter (fun {Eliom_common.s_id} -> s_id <> id) services
 
+  let find_and_remove_id services id =
+    let found, l =
+      let f (found, l) ({Eliom_common.s_id} as x) =
+        if id = s_id then
+          Some x, l
+        else
+          found, x :: l
+      in
+      List.fold_left f (None, []) services
+    in
+    match found with
+    | Some found ->
+      found, List.rev l
+    | None ->
+      raise Not_found
 
   let add_page_table tables url_act tref key
       ({Eliom_common.s_id ; s_expire} as service) =
@@ -217,7 +232,9 @@ module Make (P : PARAM) = struct
     (* Duplicate registration forbidden in global table with same generation *)
     match key with
     | { Eliom_common.key_state = Eliom_common.SAtt_anon _, _;
-        key_meth = (`Get | `Post | `Put | `Delete) } ->
+        key_meth = `Get }
+    | { Eliom_common.key_state = _, Eliom_common.SAtt_anon _;
+        key_meth = (`Post | `Put | `Delete) } ->
       (* Anonymous coservice:
          - only one for each key
          - we add a node in the dlist to limit their number *)
@@ -240,7 +257,7 @@ module Make (P : PARAM) = struct
          (* nodeopt should be None *)
          try
            (* verify that we haven't registered something similar *)
-           let oldl = remove_id l s_id in
+           let _, oldl = find_and_remove_id l s_id in
            (* if there was an old version with the same id, we remove
               it? *)
            if sp = None then
@@ -260,7 +277,7 @@ module Make (P : PARAM) = struct
       try
         let nodeopt, l = P.Table.find key !tref
         and newt = P.Table.remove key !tref in
-        let oldl = remove_id l s_id in
+        let _, oldl = find_and_remove_id l s_id in
         (* if there was an old version with the same id, we remove it *)
         tref := P.Table.add key (None, oldl @ [service]) newt
       with Not_found ->
