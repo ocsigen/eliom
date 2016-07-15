@@ -248,3 +248,9 @@ let get_request_data () =
   Js.Optdef.case eliom_request_data
     (fun () -> default_request_data)
     (fun var -> Eliom_unwrap.unwrap_js var)
+
+exception Eliom_no_raw_post_data_on_client
+
+let raw_post_data _ = Lwt.fail Eliom_no_raw_post_data_on_client
+
+type raw_post_data = unit

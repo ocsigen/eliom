@@ -19,6 +19,8 @@
 
 include Eliom_parameter_base
 
+type raw_post_data = unit
+
 module M : sig
   type 'a t
   val remove : 'a t -> string -> ('a * 'a t) option

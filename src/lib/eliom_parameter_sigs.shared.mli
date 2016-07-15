@@ -313,9 +313,7 @@ module type S = sig
       The first element of the pair is the content-type.  This kind of
       parameter cannot be combined with others. It is not possible to
       create a form towards a service taking such a parameter. *)
-  type raw_post_data =
-    ((string * string) * (string * string) list) option *
-    string Ocsigen_stream.t option
+  type raw_post_data
 
   val raw_post_data :
     (raw_post_data, [ `WithoutSuffix ], no_param_name) params_type

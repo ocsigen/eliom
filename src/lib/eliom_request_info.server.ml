@@ -293,9 +293,19 @@ let get_sitedata () =
 
 let get_sitedata_sp ~sp = sp.Eliom_common.sp_sitedata
 
-
 (***)
 
 (*VVV ici ? pour des raisons de typage... *)
 let set_site_handler sitedata handler =
   sitedata.Eliom_common.exn_handler <- handler
+
+type raw_post_data =
+  ((string * string) * (string * string) list) option *
+  string Ocsigen_stream.t option
+
+let raw_post_data sp =
+  let ri = get_ri_sp sp in
+  Lwt.return
+    ((Ocsigen_request_info.content_type ri,
+      (Ocsigen_request_info.http_frame ri).
+        Ocsigen_http_frame.frame_content))

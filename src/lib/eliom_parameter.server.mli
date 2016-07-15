@@ -18,6 +18,9 @@
  *)
 
 include Eliom_parameter_sigs.S
+  with type raw_post_data =
+    ((string * string) * (string * string) list) option *
+    string Ocsigen_stream.t option
 
 (** Specifying parameter as [type_checker check t] is equivalent as
     [t] but the check function is called after decoding the

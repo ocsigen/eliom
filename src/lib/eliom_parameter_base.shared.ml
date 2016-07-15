@@ -82,7 +82,7 @@ let to_from_of_atom x =
 
 type 'a filter = ('a -> unit) option
 
-type raw = (((string * string) * (string * string) list) option * string Ocsigen_stream.t option)
+type raw = Eliom_request_info.raw_post_data
 type 'a ocaml = string (* marshaled values of type 'a *)
 
 type suff = [ `WithoutSuffix | `WithSuffix | `Endsuffix ]
@@ -187,10 +187,6 @@ let suffix_prod ?(redirect_if_not_suffix = true)
   TProd (TSuffix (redirect_if_not_suffix, s), t)
 
 let ocaml (n : string) typ = TJson (n, Some typ)
-
-type raw_post_data =
-  ((string * string) * (string * string) list) option *
-      string Ocsigen_stream.t option
 
 let raw_post_data = TRaw_post_data
 
@@ -874,12 +870,8 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
 let reconstruct_params ~sp (type a) (type c) (typ : (a,'b,c) params_type) params files nosuffixversion urlsuffix : a Lwt.t =
   match typ, params, files with
   (* FIXME *)
-  (* | TRaw_post_data, None, None -> *)
-  (*   let ri = Eliom_request_info.get_ri_sp sp in *)
-  (*     Lwt.return *)
-  (*       ( *)
-  (*          (Ocsigen_request_info.content_type ri, *)
-  (*           (Ocsigen_request_info.http_frame ri).Ocsigen_http_frame.frame_content)) *)
+  | TRaw_post_data, None, None ->
+    Eliom_request_info.raw_post_data sp
   | typ, None, None ->
     (try
        Lwt.return

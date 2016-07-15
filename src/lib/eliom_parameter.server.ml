@@ -21,6 +21,10 @@ open Eliom_lib
 
 include Eliom_parameter_base
 
+type raw_post_data =
+  ((string * string) * (string * string) list) option *
+  string Ocsigen_stream.t option
+
 open Ocsigen_extensions
 
 let section = Lwt_log.Section.make "eliom:parameter"

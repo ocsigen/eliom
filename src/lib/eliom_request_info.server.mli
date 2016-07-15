@@ -383,3 +383,9 @@ val get_files_sp : Eliom_common.server_params -> (string * file_info) list Lwt.t
 val get_suffix_sp : Eliom_common.server_params -> Url.path option
 val get_request_cache_sp : Eliom_common.server_params -> Polytables.t
 val get_request_id_sp : Eliom_common.server_params -> int64
+
+type raw_post_data =
+  ((string * string) * (string * string) list) option *
+  string Ocsigen_stream.t option
+
+val raw_post_data : Eliom_common.server_params -> raw_post_data Lwt.t
