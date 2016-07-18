@@ -884,7 +884,8 @@ let change_page_after_action () =
     Eliom_route.i_sess_info ;
     i_subpath;
     i_meth = `Get;
-    i_get_params = si_all_get_params;
+    i_get_params =
+      Eliom_common.remove_na_prefix_params si_all_get_params;
     i_post_params = []
   }
   and ret { Eliom_route.i_subpath ; i_get_params } =
@@ -892,28 +893,18 @@ let change_page_after_action () =
       (fun () -> make_uri i_subpath i_get_params);
     Lwt.return ()
   in
-  (* same sequence of attempts as server; see server-side
-     [Eliom_registration.Action.send] *)
+  (* similar (but simpler) sequence of attempts as server; see
+     server-side [Eliom_registration.Action.send] *)
   lwt b = try_call_service info in
   if b then
     ret info
   else
-    let info = {
-      info with
-      Eliom_route.i_get_params =
-        Eliom_common.remove_na_prefix_params
-          info.Eliom_route.i_get_params
-    } in
+    let info = {info with Eliom_route.i_get_params = []} in
     lwt b = try_call_service info in
     if b then
       ret info
     else
-      let info = {info with Eliom_route.i_get_params = []} in
-      lwt b = try_call_service info in
-      if b then
-        ret info
-      else
-        Lwt.fail Eliom_common.Eliom_404
+      Lwt.return ()
 
 let change_page_unknown
     ?hostname ?replace i_subpath i_get_params i_post_params =
