@@ -17,6 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+let section = Lwt_log_js.Section.make "eliom:registration"
+
 module type Base = sig
   type return = Eliom_service.non_ocaml
 end
@@ -67,9 +69,9 @@ let typed_apply ~service f gp pp l l' suffix =
     in
     (match Eliom_service.reload_fun service with
      | Some _ ->
-       ()
+       Eliom_client.reload_function := Some (fun () () -> f g p)
      | None ->
-       Eliom_client.reload_function := Some (fun () () -> f g p));
+       ());
     f g p
   with Eliom_common.Eliom_Wrong_parameter ->
     Lwt.fail Eliom_common.Eliom_Wrong_parameter
@@ -131,6 +133,11 @@ let register_att ~service ~att f =
   and priority = Eliom_service.priority att in
   let sgpt = Eliom_service. get_params_type service
   and sppt = Eliom_service.post_params_type service in
+  (match Eliom_service.timeout service with
+   | None ->
+     ()
+   | Some _ ->
+     Lwt_log_js.ign_info ~section "Service timeout ignored on the client");
   let s_id =
     if gn = Eliom_common.SAtt_no || pn = Eliom_common.SAtt_no then
       Eliom_parameter.(
@@ -139,10 +146,7 @@ let register_att ~service ~att f =
     else
       0, 0
   and s_max_use = Eliom_service.max_use service
-  and s_expire =
-    match Eliom_service.timeout service with
-    | None -> None
-    | Some t -> Some (t, ref (t +. Unix.time ()))
+  and s_expire = None
   and s_f = wrap service att f in
   Eliom_route.add_service
     priority
