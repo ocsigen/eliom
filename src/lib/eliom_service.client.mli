@@ -29,5 +29,3 @@ val pre_applied_parameters :
 val reload_fun :
   ('a, _, _, _, _, _, _, _, _, _, _) t ->
   ('a -> unit -> unit Lwt.t) Eliom_client_value.t option
-
-val reset_reload_fun : (_, _, _, _, _, _, _, _, _, _, _) t -> unit

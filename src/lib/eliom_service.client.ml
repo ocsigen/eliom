@@ -47,8 +47,6 @@ let reload_fun :
     | _ ->
       None
 
-let reset_reload_fun service = service.reload_fun <- Rf_keep
-
 let register_delayed_get_or_na_coservice ~sp s =
   failwith "CSRF coservice not implemented client side for now"
 

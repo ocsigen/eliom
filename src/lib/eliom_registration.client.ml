@@ -213,44 +213,21 @@ module Html = Make (struct
 
   end)
 
-module Action = struct
+module Action = Make (struct
 
   type page = unit
   type options = [`Reload | `NoReload]
   type return = Eliom_service.non_ocaml
   type result = browser_content kind
 
-  let send ?options ?charset:_ ?code:_ ?content_type:_ ?headers:_ page =
+  let send ?options page =
     match options with
     | Some `Reload | None ->
       Eliom_client.change_page_after_action ()
     | _ ->
       Lwt.return ()
 
-  let register
-      ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
-      ?headers:_ ?secure_session:_ ~service ?error_handler:_
-      f =
-    let f g p = lwt page = f g p in send ?options page in
-    register ~service f;
-    Eliom_service.set_client_fun ?app ~service f;
-    Eliom_service.reset_reload_fun service
-
-  let create
-      ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
-      ?headers:_ ?secure_session:_ ?https ?name ?csrf_safe ?csrf_scope
-      ?csrf_secure ?max_use ?timeout ~meth ~id ?error_handler
-      f =
-    let service =
-      Eliom_service.create
-        ?name ?csrf_safe
-        ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
-        ?csrf_secure ?max_use ?timeout ?https ~meth ~id ()
-    in
-    register ?app ~service f;
-    service
-
-end
+end)
 
 module App (P : Eliom_registration_sigs.APP_PARAM) = struct
   let application_name = P.application_name
