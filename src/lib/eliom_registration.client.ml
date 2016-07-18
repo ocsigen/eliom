@@ -54,15 +54,16 @@ module type PARAM = sig
 
 end
 
-let typed_apply f gp pp l suffix =
+let typed_apply f gp pp l l' suffix =
   try_lwt
-    let l = Some (Lwt.return l) in
     lwt g =
+      let l = Some (Lwt.return l) in
       Eliom_parameter.reconstruct_params
         ~sp:() gp l None true suffix
     and p =
+      let l' = Some (Lwt.return l') in
       Eliom_parameter.reconstruct_params
-        ~sp:() pp l None true suffix
+        ~sp:() pp l' None true suffix
     in
     f g p
   with Eliom_common.Eliom_Wrong_parameter ->
@@ -71,35 +72,52 @@ let typed_apply f gp pp l suffix =
 let wrap service att f _ suffix =
   let gp = Eliom_service. get_params_type service
   and pp = Eliom_service.post_params_type service
-  and l = (!Eliom_request_info.get_sess_info ()).si_all_get_params in
+  and l = (!Eliom_request_info.get_sess_info ()).si_all_get_params
+  and l' =
+    match
+      (!Eliom_request_info.get_sess_info ()).si_all_post_params
+    with
+    | Some l ->
+      l
+    | None ->
+      []
+  in
   match Eliom_service.get_name att with
   | Eliom_common.SAtt_named s
   | Eliom_common.SAtt_anon s ->
     (try
        let eliom_name = List.assoc "__eliom__" l
-       and l = List.remove_assoc "__eliom__" l in
+       and l = List.remove_assoc "__eliom__" l
+       and l' = List.remove_assoc "__eliom__" l' in
        if eliom_name = s then
-         typed_apply f gp pp l suffix
+         typed_apply f gp pp l l' suffix
        else
          Lwt.fail Eliom_common.Eliom_Wrong_parameter
      with Not_found ->
        Lwt.fail Eliom_common.Eliom_Wrong_parameter)
   | _ ->
-    typed_apply f gp pp l suffix
+    typed_apply f gp pp l l' suffix
 
 let wrap_na
     (service : (_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t)
     non_att f _ suffix =
   let gp = Eliom_service.get_params_type service
   and pp = Eliom_service.post_params_type service
-  and l =
-    let si = !Eliom_request_info.get_sess_info () in
-    List.filter
-      (fun (s, _) -> s <> Eliom_common.naservice_name &&
-                     s <> Eliom_common.naservice_num)
-      si.si_all_get_params
+  and si = !Eliom_request_info.get_sess_info ()
+  and filter =
+    List.filter @@ fun (s, _) ->
+    s <> Eliom_common.naservice_name &&
+    s <> Eliom_common.naservice_num
   in
-  typed_apply f gp pp l suffix
+  let l = filter si.si_all_get_params
+  and l' =
+    match si.si_all_post_params with
+    | Some l ->
+      filter l
+    | None ->
+      []
+  in
+  typed_apply f gp pp l l' suffix
 
 let register_att ~service ~att f =
   let key_meth = Eliom_service.which_meth_untyped service
