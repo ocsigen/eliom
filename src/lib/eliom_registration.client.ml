@@ -54,7 +54,7 @@ module type PARAM = sig
 
 end
 
-let typed_apply f gp pp l l' suffix =
+let typed_apply ~service f gp pp l l' suffix =
   try_lwt
     lwt g =
       let l = Some (Lwt.return l) in
@@ -65,6 +65,11 @@ let typed_apply f gp pp l l' suffix =
       Eliom_parameter.reconstruct_params
         ~sp:() pp l' None true suffix
     in
+    (match Eliom_service.reload_fun service with
+     | Some _ ->
+       ()
+     | None ->
+       Eliom_client.reload_function := Some (fun () () -> f g p));
     f g p
   with Eliom_common.Eliom_Wrong_parameter ->
     Lwt.fail Eliom_common.Eliom_Wrong_parameter
@@ -90,13 +95,13 @@ let wrap service att f _ suffix =
        and l = List.remove_assoc "__eliom__" l
        and l' = List.remove_assoc "__eliom__" l' in
        if eliom_name = s then
-         typed_apply f gp pp l l' suffix
+         typed_apply ~service f gp pp l l' suffix
        else
          Lwt.fail Eliom_common.Eliom_Wrong_parameter
      with Not_found ->
        Lwt.fail Eliom_common.Eliom_Wrong_parameter)
   | _ ->
-    typed_apply f gp pp l l' suffix
+    typed_apply ~service f gp pp l l' suffix
 
 let wrap_na
     (service : (_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t)
@@ -117,7 +122,7 @@ let wrap_na
     | None ->
       []
   in
-  typed_apply f gp pp l l' suffix
+  typed_apply ~service f gp pp l l' suffix
 
 let register_att ~service ~att f =
   let key_meth = Eliom_service.which_meth_untyped service
