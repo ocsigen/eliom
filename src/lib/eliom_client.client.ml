@@ -713,14 +713,13 @@ let set_content ?replace ?uri ?offset ?fragment content =
       Lwt_log.ign_debug ~section ~exn "set_content";
       raise_lwt exn
 
-let update_session_info l =
-  let all_get_params =
-    List.map
-      (function
-        | v, `String s -> v, Js.to_string s
-        | _, _ -> assert false)
-      l
-  in
+let ocamlify_params =
+  List.map
+    (function
+      | v, `String s -> v, Js.to_string s
+      | _, _ -> assert false)
+
+let update_session_info all_get_params all_post_params =
   let nl_get_params, all_get_but_nl =
     Eliom_common.split_nl_prefix_param all_get_params
   in
@@ -731,6 +730,7 @@ let update_session_info l =
   in
   Eliom_request_info.update_session_info
     ~all_get_params
+    ~all_post_params
     ~na_get_params
     ~nl_get_params
     ~all_get_but_nl
@@ -797,19 +797,21 @@ let change_page (type m)
              (fun rf ->
                 reload_function := Some (fun () () -> rf get_params ()))
              (Eliom_service.reload_fun service);
-           let uri, all_get_params =
+           let uri, l, l' =
              match
                create_request_
                  ?absolute ?absolute_path ?https ~service ?hostname ?port
                  ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
                  get_params post_params
              with
-             | `Get (uri, get_params)
-             | `Post (uri, get_params, _)
-             | `Put (uri, get_params, _)
-             | `Delete (uri, get_params, _) -> uri, get_params
+             | `Get (uri, l) ->
+               uri, l, None
+             | `Post (uri, l, l')
+             | `Put (uri, l, l')
+             | `Delete (uri, l, l') ->
+               uri, l, Some (ocamlify_params l')
            in
-           update_session_info all_get_params;
+           update_session_info (ocamlify_params l) l';
            set_uri_protected ?replace
              (fun () -> fst (Url.split_fragment uri));
            lwt () = f get_params post_params in
@@ -847,9 +849,10 @@ let change_page (type m)
 
 let jsify_params = List.map @@ fun (s, s') -> s, `String (Js.string s')
 
-let try_call_service ({Eliom_route.i_get_params} as info) =
+let try_call_service
+    ({ Eliom_route.i_get_params ; i_post_params } as info) =
   try_lwt
-    update_session_info (jsify_params i_get_params);
+    update_session_info i_get_params (Some i_post_params);
     lwt () = Eliom_route.call_service info in
     Lwt.return true
   with
@@ -907,9 +910,17 @@ let change_page_after_action () =
       Lwt.return ()
 
 let change_page_unknown
-    ?hostname ?replace i_subpath i_get_params i_post_params =
+    ?meth ?hostname ?replace i_subpath i_get_params i_post_params =
   let i_sess_info = !Eliom_request_info.get_sess_info ()
-  and i_meth = `Get in
+  and i_meth =
+    match meth, i_post_params with
+    | Some meth, _ ->
+      (meth : [`Get | `Post | `Put | `Delete] :> Eliom_common.meth)
+    | None, [] ->
+      `Get
+    | _, _ ->
+      `Post
+  in
   let info = {
     Eliom_route.i_sess_info ;
     i_subpath ;
@@ -917,7 +928,7 @@ let change_page_unknown
     i_get_params ;
     i_post_params
   } in
-  update_session_info (jsify_params i_get_params);
+  update_session_info i_get_params (Some i_post_params);
   set_uri_protected ?replace (fun () -> make_uri i_subpath i_get_params);
   lwt () = Eliom_route.call_service info in
   Lwt.return ()

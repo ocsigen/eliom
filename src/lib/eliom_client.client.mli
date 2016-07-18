@@ -299,6 +299,7 @@ val server_function :
 (** Like [change_page], but when we don't know the service. We try to
     identify it based on the URL and the parameters. *)
 val change_page_unknown :
+  ?meth:[`Get | `Post | `Put | `Delete] ->
   ?hostname:string ->
   ?replace:bool ->
   string list ->
