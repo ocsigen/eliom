@@ -950,13 +950,13 @@ let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
        Lwt.return ()
      end)
 
-let change_page_uri ?(client = false) full_uri =
+let change_page_uri ?(client = false) ?replace full_uri =
   Lwt_log.ign_debug ~section "Change page uri";
   if client then
     try_lwt
       match Url.url_of_string full_uri with
       | Some (Url.Http url | Url.Https url) ->
-        change_page_unknown url.Url.hu_path url.Url.hu_arguments []
+        change_page_unknown ?replace url.Url.hu_path url.Url.hu_arguments []
       | _ ->
         failwith "invalid url"
     with _ ->

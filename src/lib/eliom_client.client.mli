@@ -306,7 +306,7 @@ val change_page_unknown :
   (string * string) list ->
   unit Lwt.t
 
-val change_page_uri : ?client:bool -> string -> unit Lwt.t
+val change_page_uri : ?client:bool -> ?replace:bool -> string -> unit Lwt.t
 
 (**/**)
 (* Documentation rather in eliom_client.ml *)
