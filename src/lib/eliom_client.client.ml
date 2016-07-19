@@ -343,7 +343,6 @@ let call_service
       get_params post_params in
   Lwt.return content
 
-
 (* == Leave an application. *)
 
 let exit_to
@@ -527,7 +526,6 @@ let change_url
        ?keep_nl_params
        ?nl_params params)
 
-(***)
 let set_template_content ?replace ?uri ?fragment =
   let really_set content () =
     reload_function := None;
@@ -737,15 +735,47 @@ let update_session_info all_get_params all_post_params =
     ~all_get_but_na_nl
     ()
 
+let make_uri subpath params =
+  let base =
+    match subpath with
+    | _ :: _ ->
+      String.concat "/" subpath
+    | [] ->
+      "/"
+  and params = List.map (fun (s, s') -> s, `String (Js.string s')) params in
+  Eliom_uri.make_string_uri_from_components (base, params, None)
+
+let target_url, set_target_url, reset_target_url =
+  let r = ref (Some !current_uri) in
+  (fun ()  -> !r),
+  (fun uri -> r := Some uri),
+  (fun () -> r := None)
+
+let commit_target_url ~nested () =
+  match nested, target_url () with
+  | false, Some url ->
+    change_url_string url
+  | _, _ ->
+    ()
+
+let route
+    ?(nested = false)
+    ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
+  let r = !Eliom_request_info.get_sess_info in
+  try_lwt
+    update_session_info i_get_params (Some i_post_params);
+    let uri = make_uri i_subpath i_get_params in
+    set_target_url uri;
+    lwt () = Eliom_route.call_service info in
+    commit_target_url ~nested ();
+    Lwt.return ()
+  with e ->
+    Eliom_request_info.get_sess_info := r;
+    Lwt.fail e
+
 (* do_not_set_uri is set in Eliom_registration.Redirection .  The
    subsequent change_page will set the URI. *)
 let do_not_set_uri = ref false
-
-let set_uri_protected ?replace f =
-  if not !do_not_set_uri then
-    set_uri ?replace (match f () with "" -> "/" | uri -> uri)
-  else
-    do_not_set_uri := false
 
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
@@ -812,9 +842,9 @@ let change_page (type m)
                uri, l, Some (ocamlify_params l')
            in
            update_session_info (ocamlify_params l) l';
-           set_uri_protected ?replace
-             (fun () -> fst (Url.split_fragment uri));
+           set_target_url (fst (Url.split_fragment uri));
            lwt () = f get_params post_params in
+           commit_target_url ~nested:false ();
            Lwt.return ()
          | None ->
            (* No client-side implementation *)
@@ -847,28 +877,6 @@ let change_page (type m)
            let uri, fragment = Url.split_fragment uri in
            set_content ?replace ~uri ?fragment content)
 
-let jsify_params = List.map @@ fun (s, s') -> s, `String (Js.string s')
-
-let try_call_service
-    ({ Eliom_route.i_get_params ; i_post_params } as info) =
-  try_lwt
-    update_session_info i_get_params (Some i_post_params);
-    lwt () = Eliom_route.call_service info in
-    Lwt.return true
-  with
-  | _ ->
-    Lwt.return false
-
-let make_uri subpath params =
-  let base =
-    match subpath with
-    | _ :: _ ->
-      String.concat "/" subpath
-    | [] ->
-      "/"
-  and params = jsify_params params in
-  Eliom_uri.make_string_uri_from_components (base, params, None)
-
 let current_path () =
   match Url.Current.get () with
   | Some ( Url.Http  { Url.hu_path }
@@ -890,23 +898,24 @@ let change_page_after_action () =
     i_get_params =
       Eliom_common.remove_na_prefix_params si_all_get_params;
     i_post_params = []
-  }
-  and ret { Eliom_route.i_subpath ; i_get_params } =
-    set_uri_protected ~replace:true
-      (fun () -> make_uri i_subpath i_get_params);
-    Lwt.return ()
-  in
+  } in
   (* similar (but simpler) sequence of attempts as server; see
      server-side [Eliom_registration.Action.send] *)
-  lwt b = try_call_service info in
-  if b then
-    ret info
-  else
+  try_lwt
+    (* [~nested:true] indicates that we do not want to update the URL
+       (but we do call [set_target_url]). We were called by an action,
+       and the action will set the URL (based on [target_url ()]) once
+       we are done. *)
+    route ~nested:true info
+  with _ ->
     let info = {info with Eliom_route.i_get_params = []} in
-    lwt b = try_call_service info in
-    if b then
-      ret info
-    else
+    try_lwt
+      route ~nested:true info
+    with _ ->
+      (* after the action, we are stuck in no man's land (a URL that
+         doesn't correspond to a page. We [reset_target_url ()], so
+         that we will stay on the URL before the action. *)
+      reset_target_url ();
       Lwt.return ()
 
 let change_page_unknown
@@ -921,17 +930,13 @@ let change_page_unknown
     | _, _ ->
       `Post
   in
-  let info = {
+  route {
     Eliom_route.i_sess_info ;
     i_subpath ;
     i_meth ;
     i_get_params ;
     i_post_params
-  } in
-  update_session_info i_get_params (Some i_post_params);
-  set_uri_protected ?replace (fun () -> make_uri i_subpath i_get_params);
-  lwt () = Eliom_route.call_service info in
-  Lwt.return ()
+  }
 
 (* Function used in "onclick" event handler of <a>.  *)
 
