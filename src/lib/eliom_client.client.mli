@@ -296,8 +296,10 @@ val server_function :
   ?error_handler:((string * exn) list -> 'b Lwt.t) ->
   'a Deriving_Json.t -> unit -> ('a, 'b) server_function
 
-(** Like [change_page], but when we don't know the service. We try to
-    identify it based on the URL and the parameters. *)
+(** [change_page path get_params post_params] calls the service
+    corresponding to [(path, get_params, post_params)]. It may throw
+    [Eliom_common.Eliom_404] or [Eliom_common.Eliom_Wrong_parameter]
+    if there is no appropriate service available. *)
 val change_page_unknown :
   ?meth:[`Get | `Post | `Put | `Delete] ->
   ?hostname:string ->
@@ -307,9 +309,13 @@ val change_page_unknown :
   (string * string) list ->
   unit Lwt.t
 
+(** [change_page_uri uri] loads [uri]. If [~client:true] is provided,
+    we try to identify and call the service corresponding to [uri]
+    (see [change_page_unknown]). *)
 val change_page_uri : ?client:bool -> ?replace:bool -> string -> unit Lwt.t
 
 (**/**)
+
 (* Documentation rather in eliom_client.ml *)
 
 val init : unit -> unit
