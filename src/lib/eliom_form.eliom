@@ -250,45 +250,65 @@ module Make (Html : Html) = struct
 
   let make_post_uri_components = Eliom_uri.make_post_uri_components
 
-  let submit_get_form_client ~service elt = {unit{
-    let service = %service in
-    let y = Eliom_service.get_params_type service
-    and elt = Eliom_client_core.rebuild_node' `HTML5 %(Html.to_elt elt) in
-    let elt = Js.Unsafe.coerce elt in
-    Lwt_js_events.async @@ fun () ->
-    Lwt_js_events.submits elt @@ fun ev _ ->
-    match Eliom_service.client_fun service with
-    | Some _ ->
-      (match read_params elt y with
-       | Some v ->
-         Dom.preventDefault ev;
-         (* change_page will call the client function and take care of
-            URIs, etc. *)
-         Eliom_client.change_page ~service v ()
-       | None ->
-         !error_handler ())
-    | None ->
-      Lwt.return ()
-  }}
+  let submit_get_form_client ~service elt =
+    (* We need to do this check outside the client value. Performing
+       the check on [%service] can give a different result, possibly
+       incompatible with [Eliom_client_core.raw_form_handler], thus
+       leading to both a server-side and a client-side call. *)
+    let client =
+      match Eliom_service.client_fun service with
+      | Some _ -> true
+      | None   -> false
+    in
+    {unit{
+       let service = %service in
+       let y = Eliom_service.get_params_type service in
+       let elt =
+         %(Html.to_elt elt)
+         |> Eliom_client_core.rebuild_node' `HTML5
+         |> Js.Unsafe.coerce
+       in
+       Lwt_js_events.async @@ fun () ->
+       Lwt_js_events.submits elt @@ fun ev _ ->
+       if %client then
+         match read_params elt y with
+         | Some v ->
+           Dom.preventDefault ev;
+           (* change_page will call the client function and take care of
+              URIs, etc. *)
+           Eliom_client.change_page ~service v ()
+         | None ->
+           !error_handler ()
+       else
+         Lwt.return ()
+     }}
 
-  let submit_post_form_client ~service ~get_params elt = {unit{
-    let service = %service in
-    let y  = Eliom_service.post_params_type service
-    and elt = Eliom_client_core.rebuild_node' `HTML5 %(Html.to_elt elt) in
-    let elt = Js.Unsafe.coerce elt in
-    Lwt_js_events.async @@ fun () ->
-    Lwt_js_events.submits elt @@ fun ev _ ->
-    match Eliom_service.client_fun service with
-    | Some _ ->
-      (match read_params elt y with
-       | Some v ->
-         Dom.preventDefault ev;
-         Eliom_client.change_page ~service %get_params v
-       | None ->
-         !error_handler ())
-    | None ->
-      Lwt.return ()
-  }}
+  let submit_post_form_client ~service ~get_params elt =
+    let client =
+      match Eliom_service.client_fun service with
+      | Some _ -> true
+      | None   -> false
+    in
+    {unit{
+       let service = %service in
+       let y  = Eliom_service.post_params_type service
+       and elt =
+         %(Html.to_elt elt)
+         |> Eliom_client_core.rebuild_node' `HTML5
+         |> Js.Unsafe.coerce
+       in
+       Lwt_js_events.async @@ fun () ->
+       Lwt_js_events.submits elt @@ fun ev _ ->
+       if %client then
+         match read_params elt y with
+         | Some v ->
+           Dom.preventDefault ev;
+           Eliom_client.change_page ~service %get_params v
+         | None ->
+           !error_handler ()
+       else
+         Lwt.return ()
+     }}
 
   let get_form_
       bind return
