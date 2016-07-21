@@ -966,20 +966,17 @@ let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
        Lwt.return ()
      end)
 
-let change_page_uri ?(client = false) ?replace full_uri =
+let change_page_uri ?replace full_uri =
   Lwt_log.ign_debug ~section "Change page uri";
-  if client then
-    try_lwt
-      match Url.url_of_string full_uri with
-      | Some (Url.Http url | Url.Https url) ->
-        change_page_unknown ?replace url.Url.hu_path url.Url.hu_arguments []
-      | _ ->
-        failwith "invalid url"
-    with _ ->
-      (Lwt_log.ign_debug ~section "Change page uri: resort to server";
-       change_page_uri_a full_uri)
-  else
-    change_page_uri_a full_uri
+  try_lwt
+    match Url.url_of_string full_uri with
+    | Some (Url.Http url | Url.Https url) ->
+      change_page_unknown ?replace url.Url.hu_path url.Url.hu_arguments []
+    | _ ->
+      failwith "invalid url"
+  with _ ->
+    (Lwt_log.ign_debug ~section "Change page uri: resort to server";
+     change_page_uri_a full_uri)
 
 (* Functions used in "onsubmit" event handler of <form>.  *)
 

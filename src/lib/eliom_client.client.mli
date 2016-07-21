@@ -296,10 +296,24 @@ val server_function :
   ?error_handler:((string * exn) list -> 'b Lwt.t) ->
   'a Deriving_Json.t -> unit -> ('a, 'b) server_function
 
-(** [change_page path get_params post_params] calls the service
-    corresponding to [(path, get_params, post_params)]. It may throw
-    [Eliom_common.Eliom_404] or [Eliom_common.Eliom_Wrong_parameter]
-    if there is no appropriate service available. *)
+
+(** [change_page_uri ?replace uri] identifies and calls the
+    client-side service that implements [uri].
+
+    We fallback to a server service call if the service is not
+    registered on the client.
+
+    If the [replace] flag is set to [true], the current page is not
+    saved in the history. *)
+val change_page_uri : ?replace:bool -> string -> unit Lwt.t
+
+(**/**)
+
+(** [change_page_unknown path get_params post_params] calls the
+    service corresponding to [(path, get_params, post_params)]. It may
+    throw [Eliom_common.Eliom_404] or
+    [Eliom_common.Eliom_Wrong_parameter] if there is no appropriate
+    service available. *)
 val change_page_unknown :
   ?meth:[`Get | `Post | `Put | `Delete] ->
   ?hostname:string ->
@@ -308,13 +322,6 @@ val change_page_unknown :
   (string * string) list ->
   (string * string) list ->
   unit Lwt.t
-
-(** [change_page_uri uri] loads [uri]. If [~client:true] is provided,
-    we try to identify and call the service corresponding to [uri]
-    (see [change_page_unknown]). *)
-val change_page_uri : ?client:bool -> ?replace:bool -> string -> unit Lwt.t
-
-(**/**)
 
 (* Documentation rather in eliom_client.ml *)
 
