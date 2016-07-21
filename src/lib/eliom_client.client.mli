@@ -58,7 +58,8 @@ val is_client_app : unit -> bool
     the content (not the container) is reloaded.
     If the [replace] flag is set, the new page will replace the
     current page in the browser history if the service belongs to
-    the same application.
+    the same application. The last two parameters are respectively the GET and
+    POST parameters to send to the service.
 *)
 val change_page :
   ?replace:bool ->
