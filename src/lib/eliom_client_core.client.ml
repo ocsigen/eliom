@@ -90,6 +90,12 @@ let run_onunload_wrapper f g =
   | None ->
     f ()
 
+let lwt_onload () =
+  let t, u = Lwt.wait () in
+  onload (Lwt.wakeup u);
+  t
+
+
 (* == Closure *)
 
 module Client_closure : sig

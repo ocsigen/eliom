@@ -216,6 +216,9 @@ val call_service :
 *)
 val onload : (unit -> unit) -> unit
 
+(** Returns a Lwt thread that waits until the next page is loaded. *)
+val lwt_onload : unit -> unit Lwt.t
+
 (** [onunload f] registers [f] as a handler to be called before
     changing the page the next time. If [f] returns [Some s], then we
     ask the user to confirm quitting. We try to use [s] in the
