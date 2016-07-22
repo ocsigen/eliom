@@ -308,7 +308,8 @@ module FakeReactiveData = struct
     val concat : 'a t -> 'a t -> 'a t
     val value : 'a t -> 'a list
     val synced : 'a t -> bool
-    val signal : 'a t -> 'a list FakeReact.S.t
+    val signal :
+      ?eq:('a -> 'a -> bool) -> 'a t -> 'a list FakeReact.S.t
     val singleton_s : 'a FakeReact.S.t -> 'a t
     val map : ('a -> 'b) -> 'a t -> 'b t
     val from_signal :
@@ -324,7 +325,7 @@ module FakeReactiveData = struct
     let singleton_s s = [FakeReact.S.value s], FakeReact.S.synced s
     let value (l, _) = l
     let synced (_, b) = b
-    let signal (l, synced) = fst (FakeReact.S.create ~synced l)
+    let signal ?eq (l, synced) = fst (FakeReact.S.create ~synced l)
     let map f (l, b) = List.map f l, b
     let from_signal ?eq s = FakeReact.S.(value s, synced s)
     module Lwt = struct
@@ -664,11 +665,15 @@ module ReactiveData = struct
         (FakeReactiveData.RList.value (Value.local s))
         {'a list{ FakeReactiveData.RList.value (Value.local %s) }}
 
-    let signal (s : 'a t) =
-      Value.create
-        (FakeReactiveData.RList.signal (Value.local s))
+    let signal ?eq (s : 'a t) =
+      let sv =
+        let eq = Ocsigen_lib.Option.map Value.local eq in
+        FakeReactiveData.RList.signal ?eq (Value.local s)
+      and cv =
         {'a list FakeReact.S.t{
-           FakeReactiveData.RList.signal (Value.local %s) }}
+          FakeReactiveData.RList.signal ?eq:%eq (Value.local %s) }}
+      in
+      Value.create sv cv
 
     let map f s =
       Value.create

@@ -154,7 +154,9 @@ module type RLIST = sig
 
   val concat : 'a t -> 'a t -> 'a t
   val value : 'a t -> 'a list sv
-  val signal : 'a t -> 'a list signal
+  val signal :
+    ?eq:(('a -> 'a -> bool) sv) ->
+    'a t -> 'a list signal
   val singleton_s : 'a signal -> 'a t
   val map : ('a -> 'b) sv -> 'a t -> 'b t
   val from_signal :
