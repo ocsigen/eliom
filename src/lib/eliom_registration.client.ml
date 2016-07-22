@@ -32,8 +32,6 @@ module Html_text = Base
 module CssText = Base
 module Text = Base
 
-module Unit = Base
-
 module String_redirection = Base
 
 module Streamlist = Base
@@ -237,6 +235,19 @@ module Action = Make (struct
       Lwt.return ()
 
 end)
+
+module Unit = Make (struct
+
+    type page = unit
+    type options = unit
+    type return = Eliom_service.non_ocaml
+    type result = browser_content kind
+
+    let send ?options:_ page =
+      Eliom_client.do_not_set_uri := true;
+      Lwt.return ()
+
+  end)
 
 module App (P : Eliom_registration_sigs.APP_PARAM) = struct
   let application_name = P.application_name

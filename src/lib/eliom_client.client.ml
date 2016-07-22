@@ -751,12 +751,17 @@ let target_url, set_target_url, reset_target_url =
   (fun uri -> r := Some uri),
   (fun () -> r := None)
 
+(* Some services do not need to set the URL (e.g.,
+   Eliom_registration.Unit).  The subsequent change_page will set the
+   URI. *)
+let do_not_set_uri = ref false
+
 let commit_target_url ~nested () =
-  match nested, target_url () with
-  | false, Some url ->
-    change_url_string url
-  | _, _ ->
-    ()
+  match nested, target_url (), !do_not_set_uri with
+   | false, Some url, false ->
+     change_url_string url
+   | _, _, _ ->
+     do_not_set_uri := false
 
 let route
     ?(nested = false)
@@ -772,10 +777,6 @@ let route
   with e ->
     Eliom_request_info.get_sess_info := r;
     Lwt.fail e
-
-(* do_not_set_uri is set in Eliom_registration.Redirection .  The
-   subsequent change_page will set the URI. *)
-let do_not_set_uri = ref false
 
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the

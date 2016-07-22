@@ -33,6 +33,12 @@ module Action : Eliom_registration_sigs.S
    and type return = Eliom_service.non_ocaml
    and type result = browser_content kind
 
+module Unit : Eliom_registration_sigs.S
+  with type page = unit
+   and type options = unit
+   and type return = Eliom_service.non_ocaml
+   and type result = browser_content kind
+
 module App (P : Eliom_registration_sigs.APP_PARAM) : sig
   val application_name : string
   include module type of Html
@@ -75,7 +81,6 @@ module Html_text : Base
 module CssText : Base
 module Text : Base
 module String : Base
-module Unit : Base
 module String_redirection : Base
 module Streamlist : Base
 
