@@ -517,7 +517,7 @@ module Unit_reg_base = struct
 
   let result_of_http_result = Result_types.cast_result
 
-  let send_appl_content = Eliom_service.XNever
+  let send_appl_content = Eliom_service.XAlways
 
   let send ?options ?charset ?(code = 204)
       ?content_type ?headers content =
