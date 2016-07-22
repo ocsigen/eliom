@@ -18,7 +18,7 @@ depends: [
   "calendar"
   "ocsigenserver" {> "2.7"}
   "ipaddr" {>= "2.1"}
-  "reactiveData" {>= "0.2"}
+  "reactiveData" {>= "dev"}
   "base-bytes"
 ]
 available: [ ocaml-version >= "4.01" ]
