@@ -21,6 +21,8 @@ include Eliom_service_sigs.S
 
 (**/**)
 
+val reset_reload_fun : (_, _, _, _, _, _, _, _, _, _, _) t -> unit
+
 val pre_applied_parameters :
   (_, _, _, _, _, _, _, _, _, _, _) t ->
   (string * Eliommod_parameters.param) list Eliom_lib.String.Table.t *

@@ -50,6 +50,8 @@ module type PARAM = sig
   type return
   type result
 
+  val reset_reload_fun : bool
+
   val send : ?options:options -> page -> unit Lwt.t
 
 end
@@ -189,7 +191,8 @@ module Make (P : PARAM) = struct
       (f : g -> p -> _) =
     let f g p = lwt page = f g p in P.send ?options page in
     register ~service f;
-    Eliom_service.set_client_fun ?app ~service f
+    Eliom_service.set_client_fun ?app ~service f;
+    if P.reset_reload_fun then Eliom_service.reset_reload_fun service
 
   let create
       ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
@@ -214,6 +217,8 @@ module Html = Make (struct
     type return = Eliom_service.non_ocaml
     type result = browser_content kind
 
+    let reset_reload_fun = false
+
     let send ?options:_ page =
       Eliom_client.set_content_local
         (Eliom_content.Html.To_dom.of_element page)
@@ -227,11 +232,14 @@ module Action = Make (struct
   type return = Eliom_service.non_ocaml
   type result = browser_content kind
 
+  let reset_reload_fun = true
+
   let send ?options page =
     match options with
     | Some `Reload | None ->
       Eliom_client.change_page_after_action ()
     | _ ->
+      Eliom_client.do_not_set_uri := true;
       Lwt.return ()
 
 end)
@@ -242,6 +250,8 @@ module Unit = Make (struct
     type options = unit
     type return = Eliom_service.non_ocaml
     type result = browser_content kind
+
+    let reset_reload_fun = true
 
     let send ?options:_ page =
       Eliom_client.do_not_set_uri := true;
@@ -275,6 +285,8 @@ module Redirection = Make (struct
     type return = Eliom_service.non_ocaml
 
     type result = browser_content kind
+
+    let reset_reload_fun = true
 
     let send ?options:_ (Redirection service) =
       lwt () = Eliom_client.change_page service () () in
