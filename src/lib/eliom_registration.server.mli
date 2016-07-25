@@ -103,12 +103,7 @@ module Html : Eliom_registration_sigs.S
     side process won't be stopped. Use this if some of your pages are
     not using the client side program and you want to make them load
     faster. *)
-type appl_service_options =
-    {
-      do_not_launch : bool;
-      (** Do not launch the client side program if it is not already
-          launched.  Default: [false]. *)
-    }
+type appl_service_options = { do_not_launch : bool }
 
 (** The default options record for an eliom service. See
     {!appl_service_options}. *)
