@@ -126,7 +126,7 @@ true: package(yourlibdeps)
 }}}
 
 See
-[[https://github.com/gasche/manual-ocamlbuild/blob/master/manual.md#tags-and-the-_tags-file]]
+[[https://github.com/ocaml/ocamlbuild/blob/master/manual/manual.adoc#tags-and-the-code-_tags-code-file]]
 for more details.  In some cases, {{{syntax(camlp4o}}} is needed, and in newer
 versions of Eliom, {{{package(eliom.server)}}} and {{{package(eliom.client)}}}
 may be omitted.  Dependencies are added with {{{package(yourdep)}}} on the
