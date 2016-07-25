@@ -65,6 +65,7 @@ let get_config () =
 
 let parse_config ?pcdata ?other_elements elements =
   Ocsigen_extensions.Configuration.process_elements
-    ~in_tag:"eliom" ?pcdata ?other_elements ~elements (get_config ())
+    ~in_tag:!Eliommod.config_in_tag ?pcdata
+    ?other_elements ~elements (get_config ())
 
 let get_debugmode = Ocsigen_config.get_debugmode

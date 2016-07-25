@@ -631,12 +631,14 @@ let site_init_ref = ref []
 let register_site_init e = site_init_ref := e:: !site_init_ref
 
 let config = ref []
+let config_in_tag = ref "" (* the parent tag of the currently handled tag *)
 
 type module_to_load = Files of string list | Name of string
 
-let load_eliom_module sitedata cmo_or_name content =
+let load_eliom_module sitedata cmo_or_name parent_tag content =
   let preload () =
     config := content;
+    config_in_tag := parent_tag;
     Eliom_common.begin_load_eliom_module ();
     (* I want to be able to define global client values during that phase: *)
     Eliom_syntax.set_global true;
@@ -732,7 +734,7 @@ let parse_config hostpattern conf_info site_dir =
       (match parse_module_attrs None atts with
         | Some file_or_name ->
           exception_during_eliommodule_loading := true;
-          load_eliom_module sitedata file_or_name content;
+          load_eliom_module sitedata file_or_name "eliommodule" content;
           exception_during_eliommodule_loading := false
         | _ -> ());
       if Eliom_extension.get_eliom_extension () != default_module_action
@@ -854,7 +856,7 @@ let parse_config hostpattern conf_info site_dir =
         (match parse_module_attrs None atts with
           | Some file_or_name ->
             exception_during_eliommodule_loading := true;
-            load_eliom_module sitedata file_or_name content;
+            load_eliom_module sitedata file_or_name "eliom" content;
             exception_during_eliommodule_loading := false
           | _ -> ());
 
