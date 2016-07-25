@@ -995,12 +995,9 @@ module Ocaml = struct
 
 end
 
-type appl_service_options =
-    {
-      do_not_launch : bool; (** Do not launch the client side program
-                                       if it is not already launched.
-                                       Default: [false]. *)
-    }
+(** [{do_not_launch = true}]: do not launch the client side program if
+    it is not already launched.  Default: [false]. *)
+type appl_service_options = { do_not_launch : bool }
 
 let default_appl_service_options = {do_not_launch = false; }
 
