@@ -39,7 +39,7 @@ let iter_contents y ev f =
   | Some v ->
     lwt () = f v in Lwt.return true
   | None ->
-    Lwt.return false
+    !error_handler ()
 
 type client_form_handler = Eliom_client.client_form_handler
 

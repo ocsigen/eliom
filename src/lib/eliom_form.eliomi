@@ -19,7 +19,7 @@
 *)
 
 {client{
-val set_error_handler : (unit -> unit Lwt.t) -> unit
+val set_error_handler : (unit -> bool Lwt.t) -> unit
 }}
 
 {shared{

@@ -881,5 +881,12 @@ val wrap_client_fun :
 
 (** With [set_form_error_handler f], [f] becomes the action to be
     called when we are unable to call a client-side service due to
-    invalid form data. *)
-val set_form_error_handler : (unit -> unit Lwt.t) -> unit
+    invalid form data.
+
+    If the handler returns [true], nothing happens.
+
+    If the handler returns [false], we proceed to call the server-side
+    service.
+
+    The default handler throws an exception (via [Lwt.fail_with]). *)
+val set_form_error_handler : (unit -> bool Lwt.t) -> unit
