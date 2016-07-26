@@ -173,15 +173,6 @@ let client_fun {client_fun} = client_fun
 }}
 
 {shared{
-let has_client_fun_lazy s =
-  {unit -> bool{
-     fun () ->
-       match %s.client_fun with
-       | Some s ->
-         true
-       | _ ->
-         false
-   }}
 
 let internal_set_client_fun ~service f = service.client_fun <- Some f
 

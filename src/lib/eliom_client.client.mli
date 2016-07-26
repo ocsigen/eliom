@@ -346,3 +346,6 @@ val set_content_local :
 val do_not_set_uri : bool ref
 
 val change_page_after_action : unit -> unit Lwt.t
+
+type client_form_handler =
+  Eliom_content_core.Xml.biggest_event Js.t -> bool Lwt.t

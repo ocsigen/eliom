@@ -389,10 +389,6 @@ module type S = sig
   val has_client_fun :
     (_, _, _, _, _, _, _, _, _, _, _) t -> bool
 
-  val has_client_fun_lazy :
-    (_, _, _, _, _, _, _, _, _, _, _) t ->
-    (unit -> bool) Eliom_client_value.t
-
   val keep_nl_params :
     (_, _, _, _, _, _, _, _, _, _, _) t -> [ `All | `Persistent | `None ]
 

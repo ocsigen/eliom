@@ -406,6 +406,8 @@ let change_page_get_form_
 let change_page_post_form_ =
   ref (fun ?cookies_info ?tmpl form href -> assert false)
 
+type client_form_handler = Xml.biggest_event Js.t -> bool Lwt.t
+
 let raw_a_handler node cookies_info tmpl ev =
   let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in
   let https = Url.get_ssl (Js.to_string href) in
@@ -420,17 +422,17 @@ let raw_a_handler node cookies_info tmpl ev =
     !change_page_uri_ ?cookies_info ?tmpl (Js.to_string href);
     false)
 
-let raw_form_handler form kind cookies_info tmpl ev has_client_fun =
+let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
   let action = Js.to_string form##action in
   let https = Url.get_ssl action in
   let change_page_form = match kind with
     | `Form_get -> !change_page_get_form_
     | `Form_post -> !change_page_post_form_ in
   let f () =
-    if has_client_fun () then
-      ()
-    else
-      change_page_form ?cookies_info ?tmpl form action
+    Lwt.async @@ fun () ->
+    lwt b = client_form_handler ev in
+    if not b then change_page_form ?cookies_info ?tmpl form action;
+    Lwt.return ()
   in
   (   https = Some true  && not Eliom_request_info.ssl_)
   || (https = Some false &&     Eliom_request_info.ssl_)
@@ -454,12 +456,12 @@ let reify_caml_event name node ce : string * (#Dom_html.event Js.t -> bool) =
       raw_a_handler node cookies_info tmpl ev)
   | Xml.CE_call_service
       (Some ((`Form_get | `Form_post) as kind, cookies_info, tmpl,
-             has_client_fun)) ->
+             client_hdlr)) ->
     name, (fun ev ->
       let form = Js.Opt.get (Dom_html.CoerceTo.form node)
           (fun () -> Lwt_log.raise_error ~section "not a form element") in
       raw_form_handler form kind cookies_info tmpl ev
-        (Eliom_lib.from_poly has_client_fun))
+        (Eliom_lib.from_poly client_hdlr : client_form_handler))
   | Xml.CE_client_closure f ->
     name, (fun ev -> try f ev; true with Eliom_client_value.False -> false)
   | Xml.CE_registered_closure (_, cv) ->
@@ -741,7 +743,7 @@ let form_handler
          if String.lowercase(Js.to_string form##_method) = "get"
          then `Form_get
          else `Form_post
-       and f () = false in
+       and f _ = Lwt.return false in
        Js.bool (raw_form_handler form kind (get_element_cookies_info form)
                   (get_element_template node) ev f))
 
