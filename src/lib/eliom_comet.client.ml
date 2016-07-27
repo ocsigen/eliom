@@ -234,8 +234,8 @@ struct
         mutable active_waiter : unit Lwt.t;
         (** [active_waiter] terminates when the page get focused *)
         mutable active_wakener : unit Lwt.u;
-        mutable restart_waiter : Ecb.Json_answer.a Lwt.t;
-        mutable restart_wakener : Ecb.Json_answer.a Lwt.u;
+        mutable restart_waiter : Ecb.answer Lwt.t;
+        mutable restart_wakener : Ecb.answer Lwt.u;
         mutable active_channels : Eliom_lib.String.Set.t;
       }
 
@@ -412,7 +412,7 @@ struct
     in
     let request = make_request hd in
     let%lwt s = call_service_after_load_end srv () request in
-    Lwt.return (Ecb.Json_answer.from_string s)
+    Lwt.return (Deriving_Json.from_string Ecb.answer_json s)
 
   let drop_message_index =
     let aux = function

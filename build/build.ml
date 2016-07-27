@@ -6,11 +6,12 @@ module Conf = struct
   let client_dir = "client"
   let type_dir = "type_dir"
 end
+
 module Intern = struct
   let with_package = function
-    | "eliom.syntax.type" -> "pkg_pa_eliom_type_filter"
-    | "eliom.syntax.client" -> "pkg_pa_eliom_client_client"
-    | "eliom.syntax.server" -> "pkg_pa_eliom_client_server"
+    | "eliom.ppx.type" -> "pkg_ppx_eliom_types"
+    | "eliom.ppx.client" -> "pkg_ppx_eliom_client"
+    | "eliom.ppx.server" -> "pkg_ppx_eliom_server"
     | "eliom.syntax.predef"
     | "eliom.client"
     | "eliom.server" -> (* do noting in this case *) "pkg_dummy"
@@ -34,40 +35,20 @@ let _ = dispatch (fun x ->
     pflag [ "ocaml"; "infer_interface"] "I" (fun x -> S[A"-I"; A x]);
     pflag [ "ocaml"; "doc"] "I" (fun x -> S[A"-I"; A x]);
 
-    let ppopt = A "-ppopt" in
-    let rec for_camlp4 = function
-      | [] -> []
-      | S l::t -> S (for_camlp4 l) :: for_camlp4 t
-      | (T _ as h) :: t -> h :: for_camlp4 t
-      | P s :: t -> ppopt :: Quote (A s) :: for_camlp4 t
-      | h::t -> ppopt :: h :: for_camlp4 t
-    in
-
     (* add syntax extension *)
-    let add_syntax ?needs name path =
+    let add_syntax name path =
       let bytes_dep = Findlib.(link_flags_byte [query "bytes"]) in
-      let _S l = match needs with
-        | None -> S (for_camlp4 [bytes_dep] @ l)
-        | Some p -> S (for_camlp4 [bytes_dep] @ ppopt :: P p ::l) in
       (* hack : not dep when "compile" to avoid the extension syntax to be link with binaries *)
       (* the dep with ocamldep make sure the extension syntax is compiled before *)
-      flag ["ocaml";"compile";"pkg_"^name]  (_S [A "-ppopt" ;P (path ^ name -.- "cmo") ]);
-      flag_and_dep ["ocaml";"ocamldep";"pkg_"^name] (_S [A "-ppopt" ;P (path ^ name -.- "cmo") ]);
-      flag_and_dep ["ocaml";"infer_interface";"pkg_"^name] (_S [A "-ppopt" ;P (path ^ name -.- "cmo") ]);
-      flag_and_dep ["doc";"pkg_"^name] (_S [A "-ppopt" ; A"-printer"; A"-ppopt";A "o";
-                                            A "-ppopt" ; A"-parser"; A"-ppopt";A "o";
-                                            A "-ppopt" ;P (path ^ name -.- "cmo") ]) in
+      flag ["ocaml";"compile";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex.native") ]);
+      flag_and_dep ["ocaml";"ocamldep";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex.native") ]);
+      flag_and_dep ["ocaml";"infer_interface";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex.native") ]);
+      flag_and_dep ["doc";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex.native") ]) in
 
-    pflag ["compile"] "sig_inc" (fun d -> S[A"-ppopt";A"-sig-inc";A"-ppopt";A d]);
-    pflag ["ocamldep"] "sig_inc" (fun d -> S[A"-ppopt";A"-sig-inc";A"-ppopt";A d]);
-    pflag ["infer_interface"] "sig_inc" (fun d -> S[A"-ppopt";A"-sig-inc";A"-ppopt";A d]);
-    pflag ["ocaml";"doc"] "sig_inc" (fun d -> S[A"-ppopt";A"-sig-inc";A"-ppopt";A d;]);
-
-    add_syntax "pa_eliom_seed" "src/syntax/";
-    let needs = "src/syntax/pa_eliom_seed.cmo" in
-    add_syntax ~needs "pa_eliom_client_client" "src/syntax/";
-    add_syntax ~needs "pa_eliom_client_server" "src/syntax/";
-    add_syntax ~needs "pa_eliom_type_filter" "src/syntax/";
+    add_syntax "ppx_eliom_utils" "src/ppx/";
+    add_syntax "ppx_eliom_client" "src/ppx/";
+    add_syntax "ppx_eliom_server" "src/ppx/";
+    add_syntax "ppx_eliom_types" "src/ppx/";
 
     (* link executable aliases *)
     let link_exec f t =
