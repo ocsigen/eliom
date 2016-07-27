@@ -30,12 +30,6 @@ val client_value :
   ?pos:Eliom_lib.pos -> string -> 'args ->
   'a Eliom_client_value.t
 
-(** All client values created between [set_global true] and
-    [set_global false] are considered global client values
-    (cf. <<a_manual chapter="clientserver-language"
-    chapter="clientvalues"|the manual>>).  *)
-val set_global : bool -> unit
-
 (** Called at the end of each server or shared section. The argument
     identifies the compilation unit.
 
