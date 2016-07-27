@@ -19,6 +19,8 @@
 
 module type TYPES = sig
 
+  (** {2 Auxilliary types} *)
+
   type get = Get_method
   type put = Put_method
   type post = Post_method
@@ -43,14 +45,34 @@ module type TYPES = sig
     ('get, 'tipo, 'gn) Eliom_parameter.params_type
     constraint 'tipo = [< `WithSuffix | `WithoutSuffix ]
 
-  (**
-     - 0-th param : method
-     - params 1-4 : GET and POST param types
-     - param 5    : with/without suffix
-     - param 6    : method for fallback service
-     - param 7    : non-unit only for the Post (g, p) case when g != unit ;
-                    used to force unit GET parameters when needed
-  *)
+  (** {2 Method specification} *)
+
+  (** {b Method specification datatype}
+
+      An Eliom service (see {!Eliom_service_sigs.S.t}) can respond to
+      one of the following HTTP methods:
+
+      - GET ([Get g])
+      - POST ([Post (g, p)])
+      - PUT ([Put g])
+      - DELETE ([Delete g])
+
+      In all cases, the service parameters need to be provided (see
+      {!Eliom_parameter_sigs.S}). POST ([Post (g, p)]) services accept
+      both GET ([g]) and POST ([p]) parameters. For the other methods,
+      only GET ([g]) parameters apply.
+
+      The type parameters are used to impose various type constraints,
+      and are not necessarily of interest to the programmer. Their
+      technical meaning is as follows.
+
+      - 0-th param : method
+      - params 1-4 : GET and POST parameter types
+      - param 5    : suffix parameters permitted or not
+      - param 6    : method for fallback service
+      - param 7    : non-unit only for the [Post (g, p)] case when [g] is
+                     not unit ; used to force unit GET parameters when
+                     needed *)
   type (_, _, _, _, _, _, _, _) meth =
 
     | Get : ('gp, 'tipo, 'gn) params ->
@@ -70,8 +92,8 @@ module type TYPES = sig
 
       (delete, 'gp, 'gn, unit, unit, 'tipo, delete, unit) meth
 
-  (** Like [meth] but without the auxilliary parameters; used to query
-      about the service method from outside. *)
+  (** Like {!meth} but without the auxilliary parameters; used to
+      query about the service method from outside. *)
   type _ which_meth =
     | Get'    : get which_meth
     | Post'   : post which_meth
@@ -82,9 +104,13 @@ end
 
 module type S = sig
 
+  (** {2 Service creation} *)
+
+  (** See {!create} for the main service creation function. *)
+
   include TYPES
 
-  (** {2 Definitions of services} *)
+  (** {3 Auxilliary types} *)
 
   type att
   type non_att
@@ -93,7 +119,8 @@ module type S = sig
     | Attached : att -> att attached_info
     | Nonattached : non_att -> non_att attached_info
 
-  (** Type of services.
+  (** {b Type of services}
+
       - ['get] is the type of GET parameters expected by the service.
       - ['post] is the type of POST parameters expected by the service.
       - ['meth] the HTTP method
@@ -115,7 +142,7 @@ module type S = sig
         +'tipo, 'gn, 'pn, +'ret) t
     constraint 'tipo = [< `WithSuffix | `WithoutSuffix ]
 
-  (** Service identifier.
+  (** {b Service identifier}
 
       In the simplest case, a service can be identified via its path
       ([Path path]).
@@ -145,9 +172,9 @@ module type S = sig
         string * Eliom_lib.Url.path
       -> (att, non_co, ext, non_reg, _, _, _) id
 
-  (** Service definition.
+  (** {b Service definition}
 
-      The function [create ~id ~meth ()] creates a {!service}
+      The function [create ~id ~meth ()] creates a service ({!t})
       identified as per [id] (see {!id} ) and accepting parameters as
       per [meth] (see {!Eliom_service_sigs.TYPES.meth} ).
 
@@ -225,9 +252,9 @@ module type S = sig
     unit ->
     ('gp, 'pp, 'm, 'att, 'co, 'ext, 'reg, 'tipo, 'gn, 'pn, non_ocaml) t
 
-  (** {2 Predefined services} *)
+  (** {3 Predefined services} *)
 
-  (** {3 Reload actions} *)
+  (** {4 Reload actions} *)
 
   (** The service [reload_action] is a predefined non-attached action
       with special behaviour: it has no parameter at all, even
@@ -298,7 +325,7 @@ module type S = sig
      [ `One of string list ] Eliom_parameter.param_name *'an,
      unit, non_ocaml) t
 
-  (** {2 Miscellaneous} *)
+  (** {3 Miscellaneous} *)
 
   (** The function [preapply ~service paramaters] creates a new
       service by preapplying [service] to the GET [parameters]. It is

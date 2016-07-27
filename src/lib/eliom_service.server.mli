@@ -24,8 +24,8 @@
 (** See the Eliom manual for a detailed introduction to the concept of
     {% <<a_manual chapter="server-services"|Eliom services>>%}. *)
 
-(** The main functions to create services are in {% <<a_api
-    subproject="server"|module Eliom_service>>%}. *)
+(** The main functions to create services are documented in
+    {% <<a_api | module Eliom_service_sigs.S >>%}. *)
 
 open Eliom_lib
 open Eliom_parameter

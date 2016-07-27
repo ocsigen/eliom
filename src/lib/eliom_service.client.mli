@@ -17,6 +17,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(** Creation and manipulation of Eliom services. *)
+
+(** See the Eliom manual for a detailed introduction to the concept of
+    {% <<a_manual chapter="server-services"|Eliom services>>%}. *)
+
+(** The main functions to create services are documented in
+    {% <<a_api | module Eliom_service_sigs.S >>%}. *)
+
 include Eliom_service_sigs.S
 
 (**/**)
