@@ -53,9 +53,13 @@ let create_buffer () =
 
 let run_callbacks handlers = List.iter (fun f -> f ()) handlers
 
-let onload, _, flush_onload, push_onload :
-  ((unit -> unit) -> unit) * (unit -> (unit -> unit) list) * (unit -> (unit -> unit) list) * (unit -> unit)
-  = create_buffer ()
+let (onload, _, flush_onload, push_onload) :
+  ((unit -> unit) -> unit) *
+  (unit -> (unit -> unit) list) *
+  (unit -> (unit -> unit) list) *
+  (unit -> unit)
+  =
+  create_buffer ()
 
 let onunload, run_onunload =
   let add, get, flush, _ = create_buffer () in

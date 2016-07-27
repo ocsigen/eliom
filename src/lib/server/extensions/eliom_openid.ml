@@ -82,7 +82,6 @@ let ( ^? ) a b = match a with
   | None -> b
 
 let ( ^^? ) (b, x) l = if b then x :: l else l
-let ( % ) a b = (a,  b)
 let openid_url = "http://specs.openid.net/auth/2.0"
 let direct_request ~mode ~params ~endpoint =
   let params = push_ns ~namespace_param:("ns", openid_url) "openid" (("mode", mode) :: params) in
@@ -375,8 +374,8 @@ type 'b extension = {
 let format_demands ~required ~required_name ~optional ~optional_name =
   let get y = List.assoc y field_names in
   let fmt l = String.concat "," (List.map get l) in
-  ((required <> []) ~% (required_name, fmt required)) ^^?
-    ((optional <> []) ~% (optional_name, fmt optional)) ^^? []
+  ((required <> []), (required_name, fmt required)) ^^?
+    ((optional <> []), (optional_name, fmt optional)) ^^? []
 
 let sreg ?policy_url ~required ~optional () =
   let li = format_demands ~required ~optional
@@ -487,7 +486,7 @@ let end_login_handler ext ret_to endpoint assoc f args =
 
 module type HiddenServiceInfo = sig
   val path : string list
-(** The path of the hidden service *)
+  (** The path of the hidden service *)
   val f :
     (string * string) list ->
     unit -> Eliom_registration.browser_content Eliom_registration.kind Lwt.t

@@ -27,20 +27,20 @@ module Ecb = Eliom_comet_base
 let section = Lwt_log.Section.make "eliom:comet"
 type chan_id = string
 
+let answer_to_string =
+  Deriving_Json.to_string Eliom_comet_base.answer_json
+
 let encode_downgoing s =
-  Eliom_comet_base.Json_answer.to_string
+  answer_to_string
     (Eliom_comet_base.Stateful_messages (Array.of_list s))
 
 let encode_global_downgoing s =
-  Eliom_comet_base.Json_answer.to_string
+  answer_to_string
     (Eliom_comet_base.Stateless_messages (Array.of_list s))
 
-let timeout_msg =
- Eliom_comet_base.Json_answer.to_string Eliom_comet_base.Timeout
-let state_closed_msg =
-  Eliom_comet_base.Json_answer.to_string Eliom_comet_base.State_closed
-let error_msg s =
-  Eliom_comet_base.Json_answer.to_string (Eliom_comet_base.Comet_error s)
+let timeout_msg = answer_to_string Eliom_comet_base.Timeout
+let state_closed_msg = answer_to_string Eliom_comet_base.State_closed
+let error_msg s = answer_to_string (Eliom_comet_base.Comet_error s)
 
 let json_content_type = "application/json"
 

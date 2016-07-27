@@ -351,17 +351,19 @@ let reload_action = reload_action_aux false
 
 let reload_action_https = reload_action_aux true
 
-let reload_action_hidden_aux https = {
-  reload_action_aux https (* We must create a reference for each one
-                             of the for reload actions *)
-  with
-  kind = `NonattachedCoservice;
-  meth = Get';
-  info = Nonattached {
-    na_name = Eliom_common.SNa_void_keep;
-    keep_get_na_params=true;
-  };
-}
+let reload_action_hidden_aux https =
+  let raa = reload_action_aux https in
+  {
+    raa (* We must create a reference for each one of the for reload
+           actions *)
+    with
+      kind = `NonattachedCoservice;
+      meth = Get';
+      info = Nonattached {
+        na_name = Eliom_common.SNa_void_keep;
+        keep_get_na_params=true;
+      };
+  }
 
 let reload_action_hidden = reload_action_hidden_aux false
 
@@ -443,7 +445,7 @@ let default_csrf_scope = function
      the type for csrf_scope was: [< Eliom_common.user_scope >
      `Session] *)
   | None -> `Session Eliom_common_base.Default_ref_hier
-  | Some c -> (c :> [Eliom_common.user_scope])
+  | Some c -> (c :> Eliom_common.user_scope)
 
 exception Unreachable_exn
 

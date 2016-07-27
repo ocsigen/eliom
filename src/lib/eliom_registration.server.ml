@@ -1154,7 +1154,7 @@ module Eliom_appl_reg_make_param
   let split_page page :
       (Html_types.html_attrib Eliom_content.Html.attrib list
         * (Html_types.head_attrib Eliom_content.Html.attrib list
-            * [ Html_types.title ] Eliom_content.Html.elt
+           * Html_types.title Eliom_content.Html.elt
             * Html_types.head_content_fun Eliom_content.Html.elt list)
         * Html_types.body Eliom_content.Html.elt ) =
     match Eliom_content.Xml.content page with
