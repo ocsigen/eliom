@@ -113,18 +113,12 @@ let get_request_data () =
 
 (* Register data *)
 
-let is_global = ref false
-
 let register_client_value_data ~closure_id ~args ~value =
   let client_value_datum = { Eliom_runtime.closure_id; args; value }
   in
-  if !is_global then
-    if Eliom_common.get_sp_option () = None then
-      current_server_section_data :=
-        client_value_datum :: !current_server_section_data
-    else
-      raise (Eliom_client_value.Client_value_creation_invalid_context
-               closure_id)
+  if Eliom_common.get_sp_option () = None then
+    current_server_section_data :=
+      client_value_datum :: !current_server_section_data
   else
     Eliom_reference.Volatile.modify request_data
       (fun sofar -> client_value_datum :: sofar)
@@ -139,7 +133,7 @@ let last_id = ref 0
 
 let client_value ?pos closure_id args =
   let instance_id =
-    if !is_global then begin
+    if Eliom_common.get_sp_option () = None then begin
       incr last_id;
       !last_id
     end else
@@ -149,5 +143,3 @@ let client_value ?pos closure_id args =
   register_client_value_data
     ~closure_id ~args:(Eliom_lib.to_poly args) ~value;
   Eliom_client_value.client_value_from_server_repr value
-
-let set_global b = is_global := b

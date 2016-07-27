@@ -640,10 +640,7 @@ let load_eliom_module sitedata cmo_or_name parent_tag content =
     config := content;
     config_in_tag := parent_tag;
     Eliom_common.begin_load_eliom_module ();
-    (* I want to be able to define global client values during that phase: *)
-    Eliom_syntax.set_global true;
     List.iter (fun f -> f ()) !site_init_ref;
-    Eliom_syntax.set_global false
   in
   let postload () =
     Eliom_common.end_load_eliom_module ();
