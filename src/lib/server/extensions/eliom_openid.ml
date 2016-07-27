@@ -375,8 +375,8 @@ type 'b extension = {
 let format_demands ~required ~required_name ~optional ~optional_name =
   let get y = List.assoc y field_names in
   let fmt l = String.concat "," (List.map get l) in
-  ((required <> []) % (required_name, fmt required)) ^^?
-    ((optional <> []) % (optional_name, fmt optional)) ^^? []
+  ((required <> []) ~% (required_name, fmt required)) ^^?
+    ((optional <> []) ~% (optional_name, fmt optional)) ^^? []
 
 let sreg ?policy_url ~required ~optional () =
   let li = format_demands ~required ~optional

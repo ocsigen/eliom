@@ -77,7 +77,7 @@ module Html_make_reg_base
       ?content_type ?headers content =
     let accept =
       (Ocsigen_extensions.Ocsigen_request_info.accept (Eliom_request_info.get_ri ())) in
-    lwt r = Html_content.result_of_content ~options:accept content in
+    let%lwt r = Html_content.result_of_content ~options:accept content in
     Lwt.return
       (Ocsigen_http_frame.Result.update r
          ~code:(code_of_code_option code)
@@ -142,7 +142,7 @@ module Make_typed_xml_registration
       let send_appl_content = Eliom_service.XNever
 
       let send ?options ?charset ?code ?content_type ?headers content =
-        lwt r = Cont_content.result_of_content content in
+        let%lwt r = Cont_content.result_of_content content in
         Lwt.return
           (Ocsigen_http_frame.Result.update r
             ~code:(code_of_code_option code)
@@ -200,7 +200,7 @@ module Text_reg_base = struct
   let send_appl_content = Eliom_service.XNever
 
   let send ?options ?charset ?code ?content_type ?headers content =
-    lwt r = Ocsigen_senders.Text_content.result_of_content content in
+    let%lwt r = Ocsigen_senders.Text_content.result_of_content content in
     let headers = match headers with
       | None -> Ocsigen_http_frame.Result.headers r
       | Some headers ->
@@ -232,7 +232,7 @@ module CssText_reg_base = struct
   let send_appl_content = Eliom_service.XNever
 
   let send ?options ?charset ?code ?content_type ?headers content =
-    lwt r =
+    let%lwt r =
       Ocsigen_senders.Text_content.result_of_content (content, "text/css") in
     let headers = match headers with
       | None -> Ocsigen_http_frame.Result.headers r
@@ -265,7 +265,7 @@ module HtmlText_reg_base = struct
   let send_appl_content = Eliom_service.XNever
 
   let send ?options ?charset ?code ?content_type ?headers content =
-    lwt r =
+    let%lwt r =
       Ocsigen_senders.Text_content.result_of_content (content, "text/html") in
     Lwt.return
       (Ocsigen_http_frame.Result.update r
@@ -369,14 +369,14 @@ module Action_reg_base = struct
           Lwt.return empty_result
         | _ ->
           let all_cookie_info = sp.Eliom_common.sp_cookie_info in
-          lwt ric = Eliommod_cookies.compute_new_ri_cookies
+          let%lwt ric = Eliommod_cookies.compute_new_ri_cookies
             (Unix.time ())
             (Ocsigen_request_info.sub_path ri.request_info)
             (Lazy.force (Ocsigen_request_info.cookies ri.request_info))
             all_cookie_info
             user_cookies
           in
-          lwt all_new_cookies =
+          let%lwt all_new_cookies =
             Eliommod_cookies.compute_cookies_to_send
               sitedata
               all_cookie_info
@@ -434,7 +434,7 @@ module Action_reg_base = struct
                      thus the request can be taken by other extensions,
                      with its new parameters *)
                 in
-                lwt () = Eliommod_pagegen.update_cookie_table sitedata all_cookie_info in
+                let%lwt () = Eliommod_pagegen.update_cookie_table sitedata all_cookie_info in
                 send_directly ri (Ocsigen_extensions.compute_result
                                     ~previous_cookies:all_new_cookies ri)
 
@@ -463,7 +463,7 @@ module Action_reg_base = struct
                   ~files:(Some (fun _ -> Lwt.return []))
                   ()
               in
-              lwt () = Eliommod_pagegen.update_cookie_table sitedata all_cookie_info in
+              let%lwt () = Eliommod_pagegen.update_cookie_table sitedata all_cookie_info in
               send_directly ri (Ocsigen_extensions.compute_result
                                   ~previous_cookies:all_new_cookies ri)
 
@@ -495,7 +495,7 @@ module Action_reg_base = struct
                   ~files:(Some (fun _ -> Lwt.return []))
                   ()
               in
-              lwt () =
+              let%lwt () =
                 Eliommod_pagegen.update_cookie_table sitedata all_cookie_info in
               send_directly ri (Ocsigen_extensions.compute_result
                                   ~previous_cookies:all_new_cookies ri)
@@ -604,7 +604,7 @@ let appl_self_redirect send page =
                 (Http_headers.name Eliom_common.half_xhr_redir_header) url
                 (Ocsigen_http_frame.Result.headers empty_result)) ()))
       else
-        lwt r = (Result_types.cast_function_http send) page in
+        let%lwt r = (Result_types.cast_function_http send) page in
         Lwt.return (Result_types.cast_result r)
 
 let http_redirect = appl_self_redirect
@@ -632,7 +632,7 @@ module File_reg_base = struct
         | Ocsigen_local_files.NotReadableDirectory ->
             raise Eliom_common.Eliom_404
     in
-    lwt r = Ocsigen_local_files.content ~request ~file in
+    let%lwt r = Ocsigen_local_files.content ~request ~file in
     let open Ocsigen_extensions in
     let headers = match headers with
       | None -> (Ocsigen_http_frame.Result.headers r)
@@ -695,7 +695,7 @@ module File_ct_reg_base = struct
         | Ocsigen_local_files.NotReadableDirectory ->
             raise Eliom_common.Eliom_404
     in
-    lwt r = Ocsigen_local_files.content ~request ~file in
+    let%lwt r = Ocsigen_local_files.content ~request ~file in
     let open Ocsigen_extensions in
     let headers = match headers with
       | None -> Ocsigen_http_frame.Result.headers r
@@ -909,9 +909,9 @@ module Ocaml = struct
 
   let make_service_handler f =
     fun g p ->
-      lwt data =
-        try_lwt
-          lwt res = f g p in
+      let%lwt data =
+        try%lwt
+          let%lwt res = f g p in
           Lwt.return (`Success res)
         with exc ->
           Lwt.return (`Failure (Printexc.to_string exc))
@@ -919,7 +919,7 @@ module Ocaml = struct
       prepare_data data
 
   let send ?options ?charset ?code ?content_type ?headers content =
-    lwt content = prepare_data content in
+    let%lwt content = prepare_data content in
     Result_types.cast_result_lwt
       (M.send ?options ?charset ?code
          ?content_type ?headers content)
@@ -1131,14 +1131,14 @@ module Eliom_appl_reg_make_param
         ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;
       } in
 
-    lwt tab_cookies =
+    let%lwt tab_cookies =
       Eliommod_cookies.compute_cookies_to_send
         sp.Eliom_common.sp_sitedata
         sp.Eliom_common.sp_tab_cookie_info
         sp.Eliom_common.sp_user_tab_cookies
     in
 
-    lwt template = Eliom_reference.get request_template in
+    let%lwt template = Eliom_reference.get request_template in
 
     let script =
       Printf.sprintf
@@ -1172,7 +1172,7 @@ module Eliom_appl_reg_make_param
 
   let add_eliom_scripts ~sp page =
 
-    lwt appl_data_script = make_eliom_appl_data_script ~sp in
+    let%lwt appl_data_script = make_eliom_appl_data_script ~sp in
 
     (* First we build a fake page to build the ref_tree... *)
     let (html_attribs, (head_attribs, title, head_elts), body) =
@@ -1215,7 +1215,7 @@ module Eliom_appl_reg_make_param
         (Eliom_content.Html.F.head ~a:head_attribs title head_elts)
         body
     in
-    lwt data_script = make_eliom_data_script
+    let%lwt data_script = make_eliom_data_script
         ~keep_debug:(Ocsigen_config.get_debugmode ())
         ~sp fake_page
     in
@@ -1254,14 +1254,14 @@ module Eliom_appl_reg_make_param
         ~name:Eliom_common.appl_name_cookie_name
         ~value:App_param.application_name ();
 
-    lwt page =
+    let%lwt page =
       match sp.Eliom_common.sp_client_appl_name, options.do_not_launch with
         | None, true -> remove_eliom_scripts content
         | _ -> add_eliom_scripts ~sp content in
 
     let ri = Eliom_request_info.get_ri () in
     let accept = Ocsigen_extensions.Ocsigen_request_info.accept ri in
-    lwt r = Html_content.result_of_content ~options:accept page in
+    let%lwt r = Html_content.result_of_content ~options:accept page in
 
     let headers =
       match headers with
@@ -1400,8 +1400,8 @@ module Eliom_tmpl_reg_make_param
       Eliom_parameter.get_non_localized_get_parameters nl_template
     with
     | None ->
-      lwt () = Eliom_reference.set request_template (Some Tmpl_param.name) in
-      lwt content = Tmpl_param.make_page content in
+      let%lwt () = Eliom_reference.set request_template (Some Tmpl_param.name) in
+      let%lwt content = Tmpl_param.make_page content in
       Result_types.cast_kind_lwt
         (Appl.send ~options ?charset ?code ?content_type ?headers content)
     | Some _ ->

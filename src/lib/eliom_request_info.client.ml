@@ -79,12 +79,12 @@ let remove_first_slash path =
   | l -> l
 
 let path_re =
-  jsnew Js.regExp (Js.bytestring "^/?([^\\?]*)(\\?.*)?$")
+  new%js Js.regExp (Js.bytestring "^/?([^\\?]*)(\\?.*)?$")
 
 let current_path_ = ref (remove_first_slash Url.Current.path)
 let set_current_path path =
   let path =
-    Js.Opt.case (path_re##exec (Js.string path))
+    Js.Opt.case (path_re##(exec (Js.string path)))
       (fun () -> [])
       (fun handle ->
 	let res = Js.match_result handle in
@@ -247,7 +247,7 @@ let default_request_data =
   }
 
 let get_request_data () =
-  let eliom_request_data = Js.Unsafe.global##___eliom_request_data_ in
+  let eliom_request_data = Js.Unsafe.global##.___eliom_request_data_ in
   Js.Optdef.case eliom_request_data
     (fun () -> default_request_data)
     (fun var -> Eliom_unwrap.unwrap_js var)

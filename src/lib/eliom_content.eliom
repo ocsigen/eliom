@@ -18,14 +18,14 @@
  *)
 
 
-{client{
+[%%client
 
   include Eliom_content_
   let force_link = ()
 
-}}
+]
 
-{shared{
+[%%shared
 type boxed
 external boxed : 'a Eliom_client_value.t
   -> boxed Eliom_client_value.t
@@ -33,10 +33,10 @@ external boxed : 'a Eliom_client_value.t
 external unboxed : boxed Eliom_client_value.t
   -> 'a Eliom_client_value.t
   = "%identity"
-}}
+]
 
 
-{server{
+[%%server
 
 module Xml = Eliom_content_.Xml
 
@@ -50,14 +50,14 @@ module Svg = struct
       let dummy_elt = D.toelt init in
       (* We need to box / unbox the client_value to convince eliom it's not polymorphic *)
       let client_boxed = boxed x in
-      let _ = {unit{
-          let dummy_dom = Svg.To_dom.of_element (Svg.D.tot %((dummy_elt : Xml.elt))) in
-          let client_boxed = %client_boxed in
+      let _ = [%client (
+          let dummy_dom = Svg.To_dom.of_element (Svg.D.tot ~%((dummy_elt : Xml.elt))) in
+          let client_boxed = ~%client_boxed in
           let real = Svg.To_dom.of_element (unboxed client_boxed) in
           Js.Opt.iter
-            (dummy_dom##parentNode)
-            (fun parent -> parent##replaceChild(real, dummy_dom));
-        }} in
+            (dummy_dom##.parentNode)
+            (fun parent -> parent##(replaceChild real dummy_dom));
+        : unit)] in
       init
 
     let attr ?init x : 'a attrib = D.client_attrib ?init x
@@ -75,14 +75,14 @@ module Html = struct
       let dummy_elt = D.toelt init in
       (* We need to box / unbox the client_value to convince eliom it's not polymorphic *)
       let client_boxed : boxed Eliom_client_value.t = boxed x in
-      let _ = {unit{
-          let dummy_dom = Html.To_dom.of_element (Html.D.tot %((dummy_elt : Xml.elt))) in
-          let client_boxed = %client_boxed in
+      let _ = [%client (
+          let dummy_dom = Html.To_dom.of_element (Html.D.tot ~%((dummy_elt : Xml.elt))) in
+          let client_boxed = ~%client_boxed in
           let real = Html.To_dom.of_element (unboxed client_boxed) in
           Js.Opt.iter
-            (dummy_dom##parentNode)
+            (dummy_dom##.parentNode)
             (fun parent -> Dom.replaceChild parent real dummy_dom)
-        }} in
+        : unit)] in
       init
 
     let attr ?init x : 'a attrib = D.client_attrib ?init x
@@ -91,17 +91,17 @@ module Html = struct
 end
 
 
-}}
+]
 
-{shared{
+[%%shared
    let set_client_fun = Eliom_service.set_client_fun
- }}
+ ]
 
-{client{
+[%%client
 let wrap_client_fun f get_params post_params =
-  lwt content = f get_params post_params in
+  let%lwt content = f get_params post_params in
   let content = Html.To_dom.of_element content in
   Eliom_client.set_content_local content
 
 let set_form_error_handler = Eliom_form.set_error_handler
- }}
+ ]

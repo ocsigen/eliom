@@ -119,13 +119,13 @@ let rec find_or_create_persistent_cookie_
 
   let new_persistent_cookie sitedata full_st_name =
 
-    lwt set_session_group =
+    let%lwt set_session_group =
       match cookie_scope with
 	| `Client_process n ->
 	  begin (* We create a group whose name is the
                    browser session cookie
                    and put the tab session into it. *)
-	    lwt r = find_or_create_persistent_cookie_
+	    let%lwt r = find_or_create_persistent_cookie_
               ~set_max_in_group:
               (fst sitedata.Eliom_common.max_persistent_data_tab_sessions_per_group)
               ~cookie_scope:(`Session n)

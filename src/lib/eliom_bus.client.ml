@@ -40,24 +40,24 @@ type ('a, 'b) t =
 (* clone streams such that each clone of the original stream raise the same exceptions *)
 let consume (t,u) s =
   let t' =
-    try_lwt Lwt_stream.iter (fun _ -> ()) s
+    try%lwt Lwt_stream.iter (fun _ -> ()) s
     with e ->
       (match Lwt.state t with
         | Lwt.Sleep -> Lwt.wakeup_exn u e;
         | _ -> ());
-      raise_lwt e
+      [%lwt raise ( e)]
   in
   Lwt.choose [Lwt.bind t (fun _ -> Lwt.return ());t']
 
 let clone_exn (t,u) s =
   let s' = Lwt_stream.clone s in
   Lwt_stream.from (fun () ->
-    try_lwt Lwt.choose [Lwt_stream.get s';t]
+    try%lwt Lwt.choose [Lwt_stream.get s';t]
     with e ->
       (match Lwt.state t with
         | Lwt.Sleep -> Lwt.wakeup_exn u e;
         | _ -> ());
-      raise_lwt e)
+      [%lwt raise ( e)])
 
 type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
   (unit, 'a list, Eliom_service.post,
@@ -69,8 +69,8 @@ type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
 
 let create service channel waiter =
   let write x =
-    try_lwt
-      lwt _ = Eliom_client.call_service
+    try%lwt
+      let%lwt _ = Eliom_client.call_service
           ~service:(service:> ('a, _, _, _, _) callable_bus_service) () x in
       Lwt.return ()
     with
@@ -78,7 +78,7 @@ let create service channel waiter =
   in
   let error_h =
     let t,u = Lwt.wait () in
-    (try_lwt lwt _ = t in assert false with e -> raise_lwt e), u in
+    (try%lwt let%lwt _ = t in assert false with e -> [%lwt raise ( e)]), u in
   let stream =
     lazy (let stream = Eliom_comet.register channel in
 	  (* iterate on the stream to consume messages: avoid memory leak *)
@@ -99,7 +99,7 @@ let create service channel waiter =
      original channel (i.e. without message lost) is only available in
      the first loading phase. *)
   let _ =
-    lwt () = Eliom_client.wait_load_end () in
+    let%lwt () = Eliom_client.wait_load_end () in
     t.original_stream_available <- false;
     Lwt.return ()
   in

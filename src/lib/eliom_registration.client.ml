@@ -57,8 +57,8 @@ module type PARAM = sig
 end
 
 let typed_apply ~service f gp pp l l' suffix =
-  try_lwt
-    lwt g =
+  try%lwt
+    let%lwt g =
       let l = Some (Lwt.return l) in
       Eliom_parameter.reconstruct_params
         ~sp:() gp l None true suffix
@@ -189,7 +189,7 @@ module Make (P : PARAM) = struct
       ~(service : (g, p, _, att, _, _, _, _, _, _, _) Eliom_service.t)
       ?error_handler:_
       (f : g -> p -> _) =
-    let f g p = lwt page = f g p in P.send ?options page in
+    let f g p = let%lwt page = f g p in P.send ?options page in
     register ~service f;
     Eliom_service.set_client_fun ?app ~service f;
     if P.reset_reload_fun then Eliom_service.reset_reload_fun service
@@ -289,7 +289,7 @@ module Redirection = Make (struct
     let reset_reload_fun = true
 
     let send ?options:_ (Redirection service) =
-      lwt () = Eliom_client.change_page service () () in
+      let%lwt () = Eliom_client.change_page service () () in
       Eliom_client.do_not_set_uri := true;
       Lwt.return ()
 
@@ -309,7 +309,7 @@ module Any = struct
       ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
       ?headers:_ ?secure_session:_ ~service ?error_handler:_
       f =
-    let f g p = lwt page = f g p in send page in
+    let f g p = let%lwt page = f g p in send page in
     register ~service f;
     Eliom_service.set_client_fun ?app ~service f
 

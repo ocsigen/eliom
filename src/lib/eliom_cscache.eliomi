@@ -8,19 +8,19 @@
     example, handling delays correctly both on client and server sides.
 *)
 
-{shared{
+[%%shared.start]
 (** The type of association tables (implemented using Hashtbl) *)
 type ('a, 'b) t
-}}
+[%%server.start]
 
-{server{
+[%%server.start]
 
    (** Create a new table. Must be called from server side. *)
 val create : unit -> ('a, 'b) t
 
-}}
 
-{shared{
+
+[%%shared.start]
 
   (** [find cache get_from_db key]
       returns the value associated to [key] in cache.
@@ -32,9 +32,9 @@ val create : unit -> ('a, 'b) t
   *)
 val find : ('a, 'b) t -> ('a -> 'b Lwt.t) -> 'a -> 'b Lwt.t
 
-}}
+[%%server.start]
 
-{shared{
+[%%shared.start]
 
    (** [do_cache cache key value] adds the association from [key]
        to [value] in [cache], or replaces it if not already present.
@@ -44,9 +44,9 @@ val find : ('a, 'b) t -> ('a -> 'b Lwt.t) -> 'a -> 'b Lwt.t
    *)
 val do_cache : ('a, 'b) t -> 'a -> 'b -> unit
 
-}}
+[%%server.start]
 
-{shared{
+[%%shared.start]
 
   (** Find a piece of data in local cache,
       without trying to fetch it from server. Raises [Not_found] instead.
@@ -63,11 +63,11 @@ val do_cache : ('a, 'b) t -> 'a -> 'b -> unit
       If the value is currently beeing retrieved, it raises [Not_ready].
   *)
   val find_if_ready : ('a, 'b) t -> 'a -> 'b
-}}
+[%%server.start]
 
-{client{
+[%%client.start]
 
   (** Load (or reload) in cache the piece of data from server  *)
   val load : ('a, 'b) t -> ('a -> 'b Lwt.t) -> 'a -> 'b Lwt.t
 
-}}
+[%%server.start]

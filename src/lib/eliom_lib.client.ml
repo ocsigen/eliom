@@ -46,8 +46,8 @@ module Url = struct
 
   let resolve s =
     let a = Dom_html.createA Dom_html.document in
-    a##href <- Js.string s;
-    Js.to_string a##href
+    a##.href := Js.string s;
+    Js.to_string a##.href
 
   let has_get_args url =
     try ignore (String.index url '?'); true with Not_found -> false
@@ -102,13 +102,13 @@ let lwt_ignore ?(message="") t =
   Lwt.on_failure t (fun exn -> Lwt_log.ign_info_f ~exn "%s" message)
 
 (* Debbuging *)
-let jsalert a = Dom_html.window##alert (a)
+let jsalert a = Dom_html.window##(alert a)
 let alert fmt = Printf.ksprintf (fun s -> jsalert (Js.string s)) fmt
 
 let confirm =
   let f s =
     let s = Js.string s in
-    Dom_html.window##confirm(s) |> Js.to_bool
+    Dom_html.window##(confirm s) |> Js.to_bool
   in
   fun fmt -> Printf.ksprintf f fmt
 

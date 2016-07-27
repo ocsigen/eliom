@@ -108,7 +108,7 @@ let check_process_redir sp f param =
   if redir
   then
     let ri = Eliom_request_info.get_ri_sp sp in
-    raise_lwt
+    [%lwt raise (
       (* we answer to the xhr
 	 by asking an HTTP redirection *)
       (Eliom_common.Eliom_do_half_xhr_redirection
@@ -119,7 +119,7 @@ let check_process_redir sp f param =
                   (Eliom_parameter.construct_params_string
                      (Lazy.force
                         (Ocsigen_extensions.Ocsigen_request_info.get_params ri))
-                  )))
+                  ))))]
   (* We do not put hostname and port.
      It is ok with half or full xhr redirections. *)
   (* If an action occured before,
@@ -135,7 +135,7 @@ let send_with_cookies
     ?content_type
     ?headers
     content =
-  lwt result =
+  let%lwt result =
     pages.send
       ?options
       ?charset
@@ -144,8 +144,8 @@ let send_with_cookies
       ?headers
       content
   in
-  lwt () = check_process_redir sp check_after result in
-  lwt tab_cookies =
+  let%lwt () = check_process_redir sp check_after result in
+  let%lwt tab_cookies =
     Eliommod_cookies.compute_cookies_to_send
       sp.Eliom_common.sp_sitedata
       sp.Eliom_common.sp_tab_cookie_info
@@ -506,7 +506,7 @@ let send pages
     ?content_type
     ?headers
     content =
-  lwt result =
+  let%lwt result =
     pages.send
       ?options
       ?charset

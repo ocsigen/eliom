@@ -46,7 +46,7 @@ module RawXML = struct
     | Space -> " "
     | Comma -> ", "
 
-  type cookie_info = (bool * string list) deriving (Json)
+  type cookie_info = (bool * string list) [@@deriving json]
 
   type -'a caml_event_handler =
     | CE_registered_closure of
@@ -187,7 +187,7 @@ module RawXML = struct
               match cookie_info with
               | None -> acc_attr
               | Some v ->
-                (ce_call_service_attrib, RA (AStr (Json.to_string<cookie_info> v)))
+                (ce_call_service_attrib, RA (AStr ([%derive.to_json: cookie_info] v)))
                 :: acc_attr
             in
             let acc_attr =

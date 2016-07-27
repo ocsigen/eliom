@@ -92,7 +92,7 @@ include Eliom_route_base.Make (struct
 let find_aux now sitedata info e sci : Ocsigen_http_frame.Result.result Lwt.t =
   Eliom_common.Full_state_name_table.fold
     (fun fullsessname (_, r) beg ->
-       try_lwt
+       try%lwt
          beg
        with
        | Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter ->

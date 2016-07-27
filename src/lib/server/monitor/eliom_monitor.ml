@@ -129,8 +129,8 @@ let http_stats () =
   ]
 
 let eliom_stats () =
-  lwt persist_nb_of_groups = Eliommod_sessiongroups.Pers.nb_of_groups () in
-  lwt number_of_persistent_data_cookies =
+  let%lwt persist_nb_of_groups = Eliommod_sessiongroups.Pers.nb_of_groups () in
+  let%lwt number_of_persistent_data_cookies =
     Eliom_state.number_of_persistent_data_cookies () in
   Lwt.return (
   div [
@@ -161,7 +161,7 @@ let eliom_stats () =
 
 
 let content_div () =
-  lwt eliom_stats = eliom_stats () in
+  let%lwt eliom_stats = eliom_stats () in
   Lwt.return (
     div [
       h1 [ppf "Ocsigen server monitoring"]; general_stats ();
@@ -173,7 +173,7 @@ let content_div () =
     ])
 
 let content_html () =
-  lwt content_div = content_div () in
+  let%lwt content_div = content_div () in
   Lwt.return (
     html
       (head (title (pcdata "Server monitoring")) [

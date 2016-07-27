@@ -68,10 +68,11 @@ module Xml = struct
         else elt)
   let wrap page value =
     let node_ids = ref [] in
-    let rec collect_node_ids ({ elt = { node_id }} as elt) =
+    let rec collect_node_ids ({elt} as elt') =
+      let {node_id} = elt in
       if node_id <> NoId then
         node_ids := node_id :: !node_ids;
-      match content elt with
+      match content elt' with
         | Empty | Comment _ | EncodedPCDATA _
         | PCDATA _ | Entity _ | Leaf _ -> ()
         | Node (_, _, children) -> List.iter collect_node_ids children

@@ -146,7 +146,7 @@ struct
     let f msg =
       match Weak.get channel 0 with
         | None ->
-          raise_lwt Not_found
+          [%lwt raise ( Not_found)]
           (* terminates the loop: remove reference on the stream, etc ... *)
         | Some channel ->
           channel.ch_index <- succ channel.ch_index;
@@ -253,9 +253,9 @@ struct
     | Eliom_comet_base.Stateful _ -> failwith "attempting to request data on stateless service with a stateful request"
     | Eliom_comet_base.Stateless requests ->
       let requests = List.map get_channel (Array.to_list requests) in
-      lwt res =
-        try_lwt
-          lwt () = wait_data requests in
+      let%lwt res =
+        try%lwt
+          let%lwt () = wait_data requests in
           Lwt.return (List.flatten (List.map get_available_data requests))
         with
           | Lwt_unix.Timeout -> Lwt.return []
@@ -380,8 +380,8 @@ end = struct
         | Active l ->
           let waiter,waker = Lwt.task () in
           let t =
-            lwt () = waiter in
-            lwt () = Lwt_unix.sleep t in
+            let%lwt () = waiter in
+            let%lwt () = Lwt_unix.sleep t in
             run ()
           in
           handler.hd_activity <- Active (waker::l);
@@ -391,7 +391,7 @@ end = struct
           if now -. inactive_time > t
           then Lwt.return ()
           else
-            lwt () = Lwt_unix.sleep (t -. (now -. inactive_time)) in
+            let%lwt () = Lwt_unix.sleep (t -. (now -. inactive_time)) in
             run ()
     in
     run ()
@@ -486,8 +486,8 @@ end = struct
 
   let wait_closed_connection () =
     let ri = Eliom_request_info.get_ri () in
-    lwt () = Ocsigen_extensions.Ocsigen_request_info.connection_closed ri in
-    raise_lwt Connection_closed
+    let%lwt () = Ocsigen_extensions.Ocsigen_request_info.connection_closed ri in
+    [%lwt raise ( Connection_closed)]
 
   (* register the service handler.hd_service *)
   let run_handler handler =
@@ -507,7 +507,7 @@ end = struct
           Lwt.catch
             (fun () -> Lwt_unix.with_timeout timeout
               (fun () ->
-                lwt () = wait_data (wait_closed_connection ()) handler in
+                let%lwt () = wait_data (wait_closed_connection ()) handler in
                 let messages = read_streams 100 handler in
                 let message = encode_downgoing messages in
                 handler.hd_last <- (message,number);
@@ -667,8 +667,8 @@ end = struct
   let get_id {ch_id} =
     ch_id
 
-  let get_service
-      {ch_handler = {hd_service = Ecb.Internal_comet_service srv}} =
+  let get_service {ch_handler} =
+    let {hd_service = Ecb.Internal_comet_service srv} = ch_handler in
     Ecb.Comet_service srv
 
 end
@@ -737,7 +737,7 @@ end = struct
   let limit_stream ~size s =
     let (res, pusher) = Lwt_stream.create_bounded size in
     let rec loop full =
-      match_lwt Lwt_stream.get s with
+      match%lwt Lwt_stream.get s with
         None ->
           Lwt.return ()
       | Some x ->
@@ -745,12 +745,12 @@ end = struct
             loop true
           else if pusher#count = size then begin
             ignore (Lwt_stream.get_available res);
-            lwt () = pusher#push (Eliom_comet_base.Full) in
+            let%lwt () = pusher#push (Eliom_comet_base.Full) in
             pusher#close;
             pusher#set_reference ();
             loop true
           end else begin
-            lwt () = pusher#push (Eliom_comet_base.Data x) in
+            let%lwt () = pusher#push (Eliom_comet_base.Data x) in
             loop false
           end
     in

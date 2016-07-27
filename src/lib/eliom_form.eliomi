@@ -18,11 +18,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 *)
 
-{client{
+[%%client.start]
 val set_error_handler : (unit -> bool Lwt.t) -> unit
-}}
+[%%server.start]
 
-{shared{
+[%%shared.start]
 
 module type Html = sig
 
@@ -72,4 +72,4 @@ module Make (H : Html) :
    and type uri := H.uri
    and type 'a param = 'a param
 
-}}
+[%%server.start]

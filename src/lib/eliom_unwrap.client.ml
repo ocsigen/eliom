@@ -46,11 +46,11 @@ end
 
 let get_obj_copy o =
   let v : obj_with_copy Js.t = Obj.obj o in
-  Js.Optdef.to_option ( v##camlObjCopy )
+  Js.Optdef.to_option ( v##.camlObjCopy )
 
 let set_obj_copy o c =
   let v : obj_with_copy Js.t = Obj.obj o in
-  v##camlObjCopy <- Js.def c;
+  v##.camlObjCopy := Js.def c;
 
 module Mark : sig
   type t
@@ -69,7 +69,7 @@ type unwrapper =
     { id : unwrap_id;
       mutable umark : Mark.t; }
 
-let unwrap_table : (Obj.t -> Obj.t option) Js.js_array Js.t = jsnew Js.array_empty ()
+let unwrap_table : (Obj.t -> Obj.t option) Js.js_array Js.t = new%js Js.array_empty
 (* table containing all the unwrapping functions referenced by their id *)
 
 type occurrence = {
@@ -105,12 +105,12 @@ let raw_unmarshal_and_unwrap
 
 let unwrap s i =
   if !Eliom_config.debug_timings then
-    Firebug.console##time
-      (Js.string "unwrap");
+    Firebug.console##(time
+      (Js.string "unwrap"));
   let res = raw_unmarshal_and_unwrap apply_unwrapper s i in
   if !Eliom_config.debug_timings then
-    Firebug.console##timeEnd
-      (Js.string "unwrap");
+    Firebug.console##(timeEnd
+      (Js.string "unwrap"));
   res
 
 
