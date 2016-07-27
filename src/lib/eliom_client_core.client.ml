@@ -112,7 +112,7 @@ module Client_value : sig
   val initialize : Eliom_runtime.client_value_datum -> unit
 end = struct
 
-  let table = jsnew Js.array_empty ()
+  let table = new%js Js.array_empty
 
   let find ~instance_id =
     if instance_id = 0 then (* local client value *) None else
@@ -146,10 +146,10 @@ let middleClick ev =
   match Dom_html.taggedEvent ev with
   | Dom_html.MouseEvent ev ->
     Dom_html.buttonPressed ev = Dom_html.Middle_button
-    || Js.to_bool ev##ctrlKey
-    || Js.to_bool ev##shiftKey
-    || Js.to_bool ev##altKey
-    || Js.to_bool ev##metaKey
+    || Js.to_bool ev##.ctrlKey
+    || Js.to_bool ev##.shiftKey
+    || Js.to_bool ev##.altKey
+    || Js.to_bool ev##.metaKey
   | _ -> false
 
 module Injection : sig
@@ -250,7 +250,7 @@ let check_global_data global_data =
   (match !missing_client_values with
    | [] -> ()
    | l ->
-     Printf.ksprintf (fun s -> Firebug.console##error(Js.string s))
+     Printf.ksprintf (fun s -> Firebug.console##(error (Js.string s)))
        "Code generating the following client values is not linked on the client:\n%s"
        (String.concat "\n"
           (List.rev_map
@@ -270,7 +270,7 @@ let check_global_data global_data =
   (match !missing_injections with
    | [] -> ()
    | l ->
-     Printf.ksprintf (fun s -> Firebug.console##error(Js.string s))
+     Printf.ksprintf (fun s -> Firebug.console##(error (Js.string s)))
        "Code containing the following injections is not linked on the client:\n%s"
        (String.concat "\n"
           (List.rev_map (fun d ->
@@ -320,9 +320,9 @@ let (register_process_node, find_process_node) =
     Lwt_log.ign_debug_f ~section "Register process node %a"
       (fun () -> Js.to_string) id;
     let node =
-      if node##nodeName##toLowerCase() == Js.string "script" then
+      if node##.nodeName##toLowerCase == Js.string "script" then
         (* We don't wan't to reexecute global scripts. *)
-        (Dom_html.document##createTextNode (Js.string "") :> Dom.node Js.t)
+        (Dom_html.document##(createTextNode (Js.string "")) :> Dom.node Js.t)
       else
         node
     in
@@ -401,7 +401,7 @@ let change_page_post_form_ =
 type client_form_handler = Xml.biggest_event Js.t -> bool Lwt.t
 
 let raw_a_handler node cookies_info tmpl ev =
-  let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in
+  let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##.href in
   let https = Url.get_ssl (Js.to_string href) in
   (* Returns true when the default link behaviour is to be kept: *)
   (middleClick ev)
@@ -415,14 +415,14 @@ let raw_a_handler node cookies_info tmpl ev =
     false)
 
 let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
-  let action = Js.to_string form##action in
+  let action = Js.to_string form##.action in
   let https = Url.get_ssl action in
   let change_page_form = match kind with
     | `Form_get -> !change_page_get_form_
     | `Form_post -> !change_page_post_form_ in
   let f () =
     Lwt.async @@ fun () ->
-    lwt b = client_form_handler ev in
+    let%lwt b = client_form_handler ev in
     if not b then change_page_form ?cookies_info ?tmpl form action;
     Lwt.return ()
   in
@@ -483,8 +483,8 @@ let register_event_handler, flush_load_script =
 
 
 let rebuild_attrib_val = function
-  | Xml.AFloat f -> (Js.number_of_float f)##toString()
-  | Xml.AInt i ->   (Js.number_of_float (float_of_int i))##toString()
+  | Xml.AFloat f -> ((Js.number_of_float f))##toString
+  | Xml.AInt i ->   ((Js.number_of_float (float_of_int i)))##toString
   | Xml.AStr s ->   Js.string s
   | Xml.AStrL (Xml.Space, sl) -> Js.string (String.concat " " sl)
   | Xml.AStrL (Xml.Comma, sl) -> Js.string (String.concat "," sl)
@@ -552,7 +552,7 @@ let iter_prop_protected node name f =
 
 let current_classes node =
   let name = Js.string "class" in
-  Js.Opt.case (node##getAttribute(name))
+  Js.Opt.case (node##(getAttribute name))
     (fun () -> [])
     (fun s -> Js.to_string s |> Regexp.(split (regexp " ")))
 
@@ -564,7 +564,7 @@ let rebuild_reactive_class_rattrib node s =
     and l2 = class_list_of_racontent_o v
     and l3 = class_list_of_racontent_o v' in
     let s = rebuild_class_string l1 l2 l3 in
-    node##setAttribute (name, s);
+    node##(setAttribute name s);
     iter_prop node name (fun name -> Js.Unsafe.set node name s)
   in
   f (None, React.S.value s);
@@ -576,35 +576,35 @@ let rec rebuild_rattrib node ra = match Xml.racontent ra with
     and l2 = class_list_of_racontent a in
     let name = Js.string "class"
     and s = rebuild_class_string l1 l2 l2 in
-    node##setAttribute (name, s)
+    node##(setAttribute name s)
   | Xml.RA a ->
     let name = Js.string (Xml.aname ra) in
     let v = rebuild_attrib_val a in
-    node##setAttribute (name,v);
+    node##(setAttribute name v);
   | Xml.RAReact s when Xml.aname ra = "class" ->
     rebuild_reactive_class_rattrib node s
   | Xml.RAReact s ->
     let name = Js.string (Xml.aname ra) in
     let _ = React.S.map (function
       | None ->
-        node##removeAttribute (name);
+        node##(removeAttribute name);
         iter_prop_protected node name
           (fun name -> Js.Unsafe.set node name Js.null)
       | Some v ->
         let v = rebuild_attrib_val v in
-        node##setAttribute (name,v);
+        node##(setAttribute name v);
         iter_prop_protected node name
           (fun name -> Js.Unsafe.set node name v)
     ) s in ()
   | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
   | Xml.RALazyStr s ->
-    node##setAttribute(Js.string (Xml.aname ra), Js.string s)
+    node##(setAttribute (Js.string (Xml.aname ra)) (Js.string s))
   | Xml.RALazyStrL (Xml.Space, l) ->
-    node##setAttribute(Js.string (Xml.aname ra),
-                       Js.string (String.concat " " l))
+    node##(setAttribute (Js.string (Xml.aname ra))
+                       (Js.string (String.concat " " l)))
   | Xml.RALazyStrL (Xml.Comma, l) ->
-    node##setAttribute(Js.string (Xml.aname ra),
-                       Js.string (String.concat "," l))
+    node##(setAttribute (Js.string (Xml.aname ra))
+                       (Js.string (String.concat "," l)))
   | Xml.RAClient (_,_,value) ->
     rebuild_rattrib node
       (Eliom_lib.from_poly (Eliom_lib.to_poly value) : Xml.attrib)
@@ -631,16 +631,16 @@ type state =
   }
 
 let random_int =
-  if Js.Optdef.test Js.Unsafe.global##crypto &&
-     Js.Optdef.test Js.Unsafe.global##crypto##getRandomValues
+  if Js.Optdef.test Js.Unsafe.global##.crypto &&
+     Js.Optdef.test Js.Unsafe.global##.crypto##.getRandomValues
   then
     fun () ->
       Typed_array.unsafe_get
-        (Js.Unsafe.global##crypto##getRandomValues
-           (jsnew Typed_array.int32Array (1)))
+        (Js.Unsafe.global##.crypto##(getRandomValues
+           (new%js Typed_array.int32Array (1))))
         0
   else
-     fun () -> truncate (4294967296. *. Js.math##random())
+     fun () -> truncate (4294967296. *. (Js.math)##random)
 let session_id = random_int ()
 let next_state_id =
   let last = ref 0 in fun () -> incr last; (session_id, !last)
@@ -651,19 +651,19 @@ let state_key (session_id, i) =
 
 let get_state i : state =
   Js.Opt.case
-    (Js.Optdef.case ( Dom_html.window##sessionStorage )
+    (Js.Optdef.case ( Dom_html.window##.sessionStorage )
        (fun () ->
           (* We use this only when the history API is
              available. Sessionstorage seems to be available
              everywhere the history API exists. *)
           Lwt_log.raise_error_f ~section "sessionStorage not available")
-       (fun s -> s##getItem(state_key i)))
+       (fun s -> s##(getItem (state_key i))))
     (fun () -> Lwt_log.raise_error_f ~section "State id not found %x/%x in sessionStorage" (fst i) (snd i))
     (fun s -> Json.unsafe_input s)
 let set_state i (v:state) =
-  Js.Optdef.case ( Dom_html.window##sessionStorage )
+  Js.Optdef.case ( Dom_html.window##.sessionStorage )
     (fun () -> () )
-    (fun s -> s##setItem(state_key i, Json.output v))
+    (fun s -> s##(setItem (state_key i) (Json.output v)))
 let update_state () =
   set_state !current_state_id
     { template =
@@ -701,14 +701,14 @@ let register_event_handlers node attribs =
 let get_element_cookies_info elt =
   Js.Opt.to_option
     (Js.Opt.map
-       (elt##getAttribute(Js.string
-                            Eliom_runtime.RawXML.ce_call_service_attrib))
+       (elt##(getAttribute (Js.string
+                            Eliom_runtime.RawXML.ce_call_service_attrib)))
        (fun s -> of_json (Js.to_string s)))
 
 let get_element_template elt =
   Js.Opt.to_option
-    (Js.Opt.map (elt##getAttribute(Js.string
-                                     Eliom_runtime.RawXML.ce_template_attrib))
+    (Js.Opt.map (elt##(getAttribute (Js.string
+                                     Eliom_runtime.RawXML.ce_template_attrib)))
        (fun s -> Js.to_string s))
 
 let a_handler =
@@ -732,7 +732,7 @@ let form_handler
            (fun () -> Lwt_log.raise_error_f ~section "not a form element")
        in
        let kind =
-         if String.lowercase(Js.to_string form##_method) = "get"
+         if String.lowercase(Js.to_string form##._method) = "get"
          then `Form_get
          else `Form_post
        and f _ = Lwt.return false in
@@ -741,7 +741,7 @@ let form_handler
 
 let relink_process_node (node:Dom_html.element Js.t) =
   let id = Js.Opt.get
-      (node##getAttribute(Js.string Eliom_runtime.RawXML.node_id_attrib))
+      (node##(getAttribute (Js.string Eliom_runtime.RawXML.node_id_attrib)))
       (fun () -> Lwt_log.raise_error_f ~section
           "unique node without id attribute")
   in
@@ -754,18 +754,18 @@ let relink_process_node (node:Dom_html.element Js.t) =
     (fun pnode ->
        Lwt_log.ign_debug_f ~section "Relink process node: found %a"
          (fun () -> Js.to_string) id;
-      Js.Opt.iter (node##parentNode)
+      Js.Opt.iter (node##.parentNode)
         (fun parent -> Dom.replaceChild parent pnode node);
       if String.sub (Js.to_bytestring id) 0 7 <> "global_" then begin
-        let childrens = Dom.list_of_nodeList (pnode##childNodes) in
-        List.iter (fun c -> ignore(pnode##removeChild(c))) childrens;
-        let childrens = Dom.list_of_nodeList (node##childNodes) in
-        List.iter (fun c -> ignore(pnode##appendChild(c))) childrens
+        let childrens = Dom.list_of_nodeList (pnode##.childNodes) in
+        List.iter (fun c -> ignore(pnode##(removeChild c))) childrens;
+        let childrens = Dom.list_of_nodeList (node##.childNodes) in
+        List.iter (fun c -> ignore(pnode##(appendChild c))) childrens
       end)
 
 let relink_request_node (node:Dom_html.element Js.t) =
   let id = Js.Opt.get
-    (node##getAttribute(Js.string Eliom_runtime.RawXML.node_id_attrib))
+    (node##(getAttribute (Js.string Eliom_runtime.RawXML.node_id_attrib)))
     (fun () -> Lwt_log.raise_error_f ~section
         "unique node without id attribute")
   in
@@ -778,18 +778,18 @@ let relink_request_node (node:Dom_html.element Js.t) =
     (fun pnode ->
        Lwt_log.ign_debug_f ~section "Relink request node: found %a"
          (fun () -> Js.to_string) id;
-       Js.Opt.iter (node##parentNode)
+       Js.Opt.iter (node##.parentNode)
          (fun parent -> Dom.replaceChild parent pnode node))
 
 let relink_request_nodes root =
   Lwt_log.ign_debug ~section "Relink request nodes";
   if !Eliom_config.debug_timings
-  then Firebug.console##time (Js.string "relink_request_nodes");
+  then Firebug.console##(time (Js.string "relink_request_nodes"));
   Eliommod_dom.iter_nodeList
     (Eliommod_dom.select_request_nodes root)
     relink_request_node;
   if !Eliom_config.debug_timings
-  then Firebug.console##timeEnd(Js.string "relink_request_nodes")
+  then Firebug.console##(timeEnd (Js.string "relink_request_nodes"))
 
 (* Relinks a-elements, form-elements, and process nodes. The list of
    closure nodes is returned for application on [relink_closure_node]
@@ -802,9 +802,9 @@ let relink_page_but_client_values (root:Dom_html.element Js.t) =
     Eliommod_dom.select_nodes root
   in
   Eliommod_dom.iter_nodeList a_nodeList
-    (fun node -> node##onclick <- a_handler);
+    (fun node -> node##.onclick := a_handler);
   Eliommod_dom.iter_nodeList form_nodeList
-    (fun node -> node##onsubmit <- form_handler);
+    (fun node -> node##.onsubmit := form_handler);
   Eliommod_dom.iter_nodeList process_nodeList relink_process_node;
   closure_nodeList, attrib_nodeList
 
@@ -829,10 +829,10 @@ let is_closure_attrib, get_closure_name, get_closure_id =
   let n_prefix_js = Js.string n_prefix in
 
   (fun attr ->
-     attr##value##substring(0,v_len) = v_prefix_js &&
-     attr##name##substring(0,n_len) = n_prefix_js),
-  (fun attr -> attr##name##substring_toEnd(n_len)),
-  (fun attr -> attr##value##substring_toEnd(v_len))
+     attr##.value##(substring (0) v_len) = v_prefix_js &&
+     attr##.name##(substring (0) n_len) = n_prefix_js),
+  (fun attr -> attr##.name##(substring_toEnd n_len)),
+  (fun attr -> attr##.value##(substring_toEnd v_len))
 
 let relink_closure_node root onload table (node:Dom_html.element Js.t) =
   Lwt_log.ign_debug ~section "Relink closure node";
@@ -852,12 +852,12 @@ let relink_closure_node root onload table (node:Dom_html.element Js.t) =
       with Not_found ->
         Lwt_log.ign_error_f ~section "relink_closure_node: client value %s not found" cid
   in
-  Eliommod_dom.iter_attrList (node##attributes) aux
+  Eliommod_dom.iter_attrList (node##.attributes) aux
 
 let relink_closure_nodes (root : Dom_html.element Js.t)
     event_handlers closure_nodeList =
   Lwt_log.ign_debug_f ~section "Relink %i closure nodes"
-    (closure_nodeList##length);
+    (closure_nodeList##.length);
   let onload = ref [] in
   Eliommod_dom.iter_nodeList closure_nodeList
     (fun node -> relink_closure_node root onload event_handlers node);
@@ -875,9 +875,9 @@ let is_attrib_attrib,get_attrib_id =
   let n_prefix_js = Js.string n_prefix in
 
   (fun attr ->
-     attr##value##substring(0,v_len) = v_prefix_js &&
-     attr##name##substring(0,n_len) = n_prefix_js),
-  (fun attr -> attr##value##substring_toEnd(v_len))
+     attr##.value##(substring (0) v_len) = v_prefix_js &&
+     attr##.name##(substring (0) n_len) = n_prefix_js),
+  (fun attr -> attr##.value##(substring_toEnd v_len))
 
 let relink_attrib root table (node:Dom_html.element Js.t) =
   Lwt_log.ign_debug ~section "Relink attribute";
@@ -894,11 +894,11 @@ let relink_attrib root table (node:Dom_html.element Js.t) =
         Lwt_log.raise_error_f ~section
           "relink_attrib: client value %s not found" cid
   in
-  Eliommod_dom.iter_attrList (node##attributes) aux
+  Eliommod_dom.iter_attrList (node##.attributes) aux
 
 
 let relink_attribs (root : Dom_html.element Js.t) attribs attrib_nodeList =
-  Lwt_log.ign_debug_f ~section "Relink %i attributes" (attrib_nodeList##length);
+  Lwt_log.ign_debug_f ~section "Relink %i attributes" (attrib_nodeList##.length);
   Eliommod_dom.iter_nodeList attrib_nodeList
     (fun node -> relink_attrib root attribs node)
 
@@ -912,10 +912,10 @@ let load_data_script page =
   Lwt_log.ign_debug ~section "Load Eliom application data";
   let head = Eliommod_dom.get_head page in
   let data_script : Dom_html.scriptElement Js.t =
-    match Dom.list_of_nodeList head##childNodes with
+    match Dom.list_of_nodeList head##.childNodes with
     | _ :: _ :: data_script :: _ ->
       let data_script : Dom.element Js.t = Js.Unsafe.coerce data_script in
-      (match Js.to_bytestring (data_script##tagName##toLowerCase ()) with
+      (match Js.to_bytestring (data_script##.tagName##toLowerCase) with
        | "script" -> (Js.Unsafe.coerce data_script)
        | t ->
          Lwt_log.raise_error_f ~section
@@ -923,14 +923,14 @@ let load_data_script page =
     | _ -> Lwt_log.raise_error_f ~section
              "Unable to find Eliom application data."
   in
-  let script = data_script##text in
+  let script = data_script##.text in
   if !Eliom_config.debug_timings
-  then Firebug.console##time(Js.string "load_data_script");
+  then Firebug.console##(time (Js.string "load_data_script"));
   ignore (Js.Unsafe.eval_string (Js.to_string script));
   Eliom_process.reset_request_template ();
   Eliom_process.reset_request_cookies ();
   if !Eliom_config.debug_timings
-  then Firebug.console##timeEnd(Js.string "load_data_script")
+  then Firebug.console##(timeEnd (Js.string "load_data_script"))
 
 (* == Scroll the current page such that the top of element with the id
    [fragment] is aligned with the window's top. If the optional
@@ -945,19 +945,19 @@ let scroll_to_fragment ?offset fragment =
     | None | Some "" ->
       Eliommod_dom.setDocumentScroll Eliommod_dom.top_position
     | Some fragment ->
-      let scroll_to_element e = e##scrollIntoView(Js._true) in
-      let elem = Dom_html.document##getElementById(Js.string fragment) in
+      let scroll_to_element e = e##(scrollIntoView (Js._true)) in
+      let elem = Dom_html.document##(getElementById (Js.string fragment)) in
       Js.Opt.iter elem scroll_to_element
 
 let with_progress_cursor : 'a Lwt.t -> 'a Lwt.t =
   fun t ->
-    try_lwt
-      Dom_html.document##body##style##cursor <- Js.string "progress";
-      lwt res = t in
-      Dom_html.document##body##style##cursor <- Js.string "auto";
+    try%lwt
+      Dom_html.document##.body##.style##.cursor := Js.string "progress";
+      let%lwt res = t in
+      Dom_html.document##.body##.style##.cursor := Js.string "auto";
       Lwt.return res
     with exn ->
-      Dom_html.document##body##style##cursor <- Js.string "auto";
+      Dom_html.document##.body##.style##.cursor := Js.string "auto";
       Lwt.fail exn
 
 
@@ -1036,13 +1036,13 @@ end = struct
             Js.array_set state.global_version pos nv;
             (* Js.array_set state.version_copy pos nv; *)
 
-            Js.Opt.case ((get_node state)##parentNode)
+            Js.Opt.case ((get_node state)##.parentNode)
               (fun () -> (* no parent -> no replace needed *) ())
               (fun parent ->
                  Js.Opt.iter (Dom.CoerceTo.element parent) (fun parent ->
                    (* really update the dom *)
                    ignore ((Dom_html.element
-                              parent)##replaceChild(dom, get_node state))));
+                              parent)##(replaceChild dom (get_node state)))));
             Xml.set_dom_node state.elt dom;
           end;
         false
@@ -1054,14 +1054,14 @@ end = struct
         true
       end
 
-  let clone_array a = a##slice_end(0)
+  let clone_array a = a##(slice_end (0))
 
   let init_or_update ?state elt = match state with
     | None -> (* top dom react, create a state *)
-      let global_version = jsnew Js.array_empty () in
+      let global_version = new%js Js.array_empty in
       let pos = 0 in
       ignore(Js.array_set global_version pos 0);
-      let node = (Dom_html.document##createElement (Js.string "span")
+      let node = (Dom_html.document##(createElement (Js.string "span"))
                   :> Dom.node Js.t)
       in
       Xml.set_dom_node elt node;
@@ -1130,25 +1130,25 @@ and raw_rebuild_node ns = function
   | Xml.Empty
   | Xml.Comment _ ->
     (* FIXME *)
-    (Dom_html.document##createTextNode (Js.string "") :> Dom.node Js.t)
+    (Dom_html.document##(createTextNode (Js.string "")) :> Dom.node Js.t)
   | Xml.EncodedPCDATA s
   | Xml.PCDATA s ->
-    (Dom_html.document##createTextNode (Js.string s) :> Dom.node Js.t)
+    (Dom_html.document##(createTextNode (Js.string s)) :> Dom.node Js.t)
   | Xml.Entity s ->
     let entity = Dom_html.decode_html_entities (Js.string ("&" ^ s ^ ";")) in
-    (Dom_html.document##createTextNode(entity) :> Dom.node Js.t)
+    (Dom_html.document##(createTextNode entity) :> Dom.node Js.t)
   | Xml.Leaf (name,attribs) ->
-    let node = Dom_html.document##createElement (Js.string name) in
+    let node = Dom_html.document##(createElement (Js.string name)) in
     List.iter (rebuild_rattrib node) attribs;
     (node :> Dom.node Js.t)
   | Xml.Node (name,attribs,childrens) ->
     let ns = if name = "svg" then `SVG else ns in
     let node =
       match ns with
-      | `HTML5 -> Dom_html.document##createElement (Js.string name)
+      | `HTML5 -> Dom_html.document##(createElement (Js.string name))
       | `SVG ->
         let svg_ns = "http://www.w3.org/2000/svg" in
-        Dom_html.document##createElementNS (Js.string svg_ns, Js.string name)
+        Dom_html.document##(createElementNS (Js.string svg_ns) (Js.string name))
     in
     List.iter (rebuild_rattrib node) attribs;
     List.iter (fun c -> Dom.appendChild node (rebuild_node' ns c)) childrens;
@@ -1288,19 +1288,19 @@ let add_string_event_listener o e f capt : unit =
     match f e with
     | Some s ->
       let s = Js.string s in
-      (Js.Unsafe.coerce e)##returnValue <- s;
+      (Js.Unsafe.coerce e)##.returnValue := s;
       Js.def s
     | None ->
       Js.undefined
   in
   let f = Js.Unsafe.callback f in
   ignore @@
-  if (Js.Unsafe.coerce o)##addEventListener == Js.undefined then
-    let e = (Js.string "on")##concat(e)
+  if (Js.Unsafe.coerce o)##.addEventListener == Js.undefined then
+    let e = (Js.string "on")##(concat e)
     and cb e = Js.Unsafe.call (f, e, [||]) in
-    (Js.Unsafe.coerce o)##attachEvent(e, cb)
+    (Js.Unsafe.coerce o)##(attachEvent e cb)
   else
-    (Js.Unsafe.coerce o)##addEventListener(e, f, capt)
+    (Js.Unsafe.coerce o)##(addEventListener e f capt)
 
 
 (******************************************************************************)

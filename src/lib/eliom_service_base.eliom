@@ -19,7 +19,7 @@
 
 (* Manipulation of services - this code can be use on server or client side. *)
 
-{shared{
+[%%shared
 
 module rec Types : Eliom_service_sigs.TYPES = Types
 
@@ -170,9 +170,9 @@ let https s = s.https
 let priority s = s.priority
 let client_fun {client_fun} = client_fun
 
-}}
+]
 
-{shared{
+[%%shared
 
 let internal_set_client_fun ~service f = service.client_fun <- Some f
 
@@ -321,7 +321,7 @@ let preapply ~service getparams =
     client_fun =
       match service.client_fun with
       | Some f ->
-        Some {{ fun () pp -> %f %getparams pp }}
+        Some  [%client  fun () pp -> ~%f ~%getparams pp ]
       | None ->
         None
   }
@@ -376,7 +376,7 @@ let add_non_localized_get_parameters ~params ~service = {
   client_fun =
     match service.client_fun with
     | None -> None
-    | Some f -> Some {{ fun (g, _) p -> %f g p }};
+    | Some f -> Some  [%client  fun (g, _) p -> ~%f g p ];
 }
 
 let add_non_localized_post_parameters ~params ~service = {
@@ -386,7 +386,7 @@ let add_non_localized_post_parameters ~params ~service = {
   client_fun =
     match service.client_fun with
     | None -> None
-    | Some f -> Some {{ fun g (p, _) -> %f g p }}
+    | Some f -> Some  [%client  fun g (p, _) -> ~%f g p ]
 }
 
 let keep_nl_params s = s.keep_nl_params
@@ -773,4 +773,4 @@ let which_meth_untyped
   | Put'    -> `Put
   | Delete' -> `Delete
 
-}}
+]

@@ -18,18 +18,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-{shared{ open Eliom_shared.React.S.Infix }}
+[%%shared open Eliom_shared.React.S.Infix ]
 
-{client{
+[%%client
 module Xml = struct
   type elt =  Eliom_content_core.Xml.elt
 end
-}}
+]
 
-{server{
+[%%server
 open Eliom_shared
 let local_value s = React.S.value s |> Value.local
-}}
+]
 
 module Xml = struct
 
@@ -57,10 +57,10 @@ module Xml = struct
   type uri = Eliom_content_core.Xml.uri
 
   let string_of_uri () =
-    {shared#{ Eliom_content_core.Xml.string_of_uri }}
+    [%shared  Eliom_content_core.Xml.string_of_uri ]
 
   let uri_of_string () =
-    {shared#{ Eliom_content_core.Xml.uri_of_string }}
+    [%shared  Eliom_content_core.Xml.uri_of_string ]
 
   type aname = Eliom_content_core.Xml.aname
 
@@ -83,49 +83,49 @@ module Xml = struct
     let init =
       local_value s |> Eliom_content_core.Xml.float_attrib name
     in
-    {{ Eliom_content_core.Xml_wed.float_attrib %name %s }} |>
+     [%client  Eliom_content_core.Xml_wed.float_attrib ~%name ~%s ] |>
     Eliom_content_core.Xml.client_attrib ~init
 
   let int_attrib name s =
     let init =
       local_value s |> Eliom_content_core.Xml.int_attrib name
     in
-    {{ Eliom_content_core.Xml_wed.int_attrib %name %s }} |>
+     [%client  Eliom_content_core.Xml_wed.int_attrib ~%name ~%s ] |>
     Eliom_content_core.Xml.client_attrib ~init
 
   let string_attrib name s =
     let init =
       local_value s |> Eliom_content_core.Xml.string_attrib name
     in
-    {{ Eliom_content_core.Xml_wed.string_attrib %name %s }} |>
+     [%client  Eliom_content_core.Xml_wed.string_attrib ~%name ~%s ] |>
     Eliom_content_core.Xml.client_attrib ~init
 
   let space_sep_attrib name s =
     let init =
       local_value s |> Eliom_content_core.Xml.space_sep_attrib name
     in
-    {{ Eliom_content_core.Xml_wed.space_sep_attrib %name %s }} |>
+     [%client  Eliom_content_core.Xml_wed.space_sep_attrib ~%name ~%s ] |>
     Eliom_content_core.Xml.client_attrib ~init
 
   let comma_sep_attrib name s =
     let init =
       local_value s |> Eliom_content_core.Xml.comma_sep_attrib name
     in
-    {{ Eliom_content_core.Xml_wed.comma_sep_attrib %name %s }} |>
+     [%client  Eliom_content_core.Xml_wed.comma_sep_attrib ~%name ~%s ] |>
     Eliom_content_core.Xml.client_attrib ~init
 
   let uri_attrib name s =
     let init =
       local_value s |> Eliom_content_core.Xml.uri_attrib name
     in
-    {{ Eliom_content_core.Xml_wed.uri_attrib %name %s }} |>
+     [%client  Eliom_content_core.Xml_wed.uri_attrib ~%name ~%s ] |>
     Eliom_content_core.Xml.client_attrib ~init
 
   let uris_attrib name s =
     let init =
       local_value s |> Eliom_content_core.Xml.uris_attrib name
     in
-    {{ Eliom_content_core.Xml_wed.uris_attrib %name %s }} |>
+     [%client  Eliom_content_core.Xml_wed.uris_attrib ~%name ~%s ] |>
     Eliom_content_core.Xml.client_attrib ~init
 
   let event_handler_attrib =
@@ -156,22 +156,22 @@ module Xml = struct
       let s = local_value s in
       Eliom_content_core.Xml.(node "span" [pcdata s]) |> name_node
     and synced = React.S.synced s in
-    let _ = {unit{
+    let _ = [%client (
       let (>>!) = Js.Opt.iter in
       let update =
-        let e = Eliom_client_core.rebuild_node' `HTML5 %e in
+        let e = Eliom_client_core.rebuild_node' `HTML5 ~%e in
         fun x ->
-          Js.Opt.case (e##firstChild)
+          Js.Opt.case (e##.firstChild)
             (fun () ->
                Dom.appendChild e
-                 (Dom_html.document##createTextNode(Js.string x)))
+                 (Dom_html.document##(createTextNode (Js.string x))))
             (fun e ->
                Dom.CoerceTo.text e >>! fun e ->
-               e##data <- Js.string x)
+               e##.data := Js.string x)
       in
-      if not %synced then update (React.S.value %s);
-      React.S.changes %s |> React.E.map update |> ignore;
-    }} in
+      if not ~%synced then update (React.S.value ~%s);
+      React.S.changes ~%s |> React.E.map update |> ignore;
+    : unit)] in
     e
 
   let encodedpcdata = pcdata
@@ -191,22 +191,22 @@ module Xml = struct
       Eliom_content_core.Xml.node ?a name |>
       name_node
     in
-    let _ = {unit{
-      let f = Eliom_client_core.rebuild_node' %ns in
-      let e = f %e
-      and l = ReactiveData.RList.map f %l in
+    let _ = [%client (
+      let f = Eliom_client_core.rebuild_node' ~%ns in
+      let e = f ~%e
+      and l = ReactiveData.RList.map f ~%l in
       Tyxml_js.Util.update_children e l
-    }} in
+    : unit)] in
     e
 
   let node = node_aux `HTML5
 
 end
 
-{shared{
+[%%shared
 module Raw_wrapped_functions_svg =
   Svg_f.Wrapped_functions(Eliom_content_core.Xml)
-}}
+]
 
 module Svg = struct
 
@@ -221,65 +221,65 @@ module Svg = struct
     type (-'a, 'b) ft = ('a, 'b) Xml.W.ft
 
     let string_of_alignment_baseline () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_alignment_baseline }}
+      [%shared  Raw_wrapped_functions_svg.string_of_alignment_baseline ]
 
     let string_of_big_variant () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_big_variant }}
+      [%shared  Raw_wrapped_functions_svg.string_of_big_variant ]
 
     let string_of_bool () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_bool }}
+      [%shared  Raw_wrapped_functions_svg.string_of_bool ]
 
     let string_of_coords () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_coords }}
+      [%shared  Raw_wrapped_functions_svg.string_of_coords ]
 
     let string_of_dominant_baseline () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_dominant_baseline }}
+      [%shared  Raw_wrapped_functions_svg.string_of_dominant_baseline ]
 
     let string_of_fourfloats () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_fourfloats }}
+      [%shared  Raw_wrapped_functions_svg.string_of_fourfloats ]
 
     let string_of_in_value () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_in_value }}
+      [%shared  Raw_wrapped_functions_svg.string_of_in_value ]
 
     let string_of_int () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_int }}
+      [%shared  Raw_wrapped_functions_svg.string_of_int ]
 
     let string_of_length () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_length }}
+      [%shared  Raw_wrapped_functions_svg.string_of_length ]
 
     let string_of_lengths () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_lengths }}
+      [%shared  Raw_wrapped_functions_svg.string_of_lengths ]
 
     let string_of_number () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_number }}
+      [%shared  Raw_wrapped_functions_svg.string_of_number ]
 
     let string_of_number_optional_number () =
-      {shared#{
-         Raw_wrapped_functions_svg.string_of_number_optional_number }}
+      [%shared 
+         Raw_wrapped_functions_svg.string_of_number_optional_number ]
 
     let string_of_numbers () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_numbers }}
+      [%shared  Raw_wrapped_functions_svg.string_of_numbers ]
 
     let string_of_numbers_semicolon () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_numbers_semicolon }}
+      [%shared  Raw_wrapped_functions_svg.string_of_numbers_semicolon ]
 
     let string_of_offset () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_offset }}
+      [%shared  Raw_wrapped_functions_svg.string_of_offset ]
 
     let string_of_orient () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_orient }}
+      [%shared  Raw_wrapped_functions_svg.string_of_orient ]
 
     let string_of_paint () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_paint }}
+      [%shared  Raw_wrapped_functions_svg.string_of_paint ]
 
     let string_of_strokedasharray () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_strokedasharray }}
+      [%shared  Raw_wrapped_functions_svg.string_of_strokedasharray ]
 
     let string_of_transform () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_transform }}
+      [%shared  Raw_wrapped_functions_svg.string_of_transform ]
 
     let string_of_transforms () =
-      {shared#{ Raw_wrapped_functions_svg.string_of_transforms }}
+      [%shared  Raw_wrapped_functions_svg.string_of_transforms ]
 
   end
 
@@ -298,9 +298,9 @@ module Svg = struct
         Eliom_content_core.Svg.D.toelt |>
         Eliom_content_core.Xml.make_request_node ~reset:false
       and synced = React.S.synced s in
-      let _ = {unit{
+      let _ = [%client (
         let s =
-          %s >|= (fun s ->
+          ~%s >|= (fun s ->
             Eliom_content_core.Svg.
               (Id.create_request_elt s ~reset:false |> D.toelt) |>
             Eliom_client_core.rebuild_node' `SVG)
@@ -308,17 +308,17 @@ module Svg = struct
         let f =
           let replace e' e =
             let f p = Dom.replaceChild p e' e in
-            Js.Opt.iter (e##parentNode) f |> ignore
-          and e = Eliom_client_core.rebuild_node' `SVG %e in
+            Js.Opt.iter (e##.parentNode) f |> ignore
+          and e = Eliom_client_core.rebuild_node' `SVG ~%e in
           fun e' ->
             replace e' e;
             React.S.diff replace s |> ignore
         in
-        if %synced then
+        if ~%synced then
           React.(S.changes s |> E.once |> E.map f) |> ignore
         else
           f (React.S.value s) |> ignore
-      }} in
+      : unit)] in
       e |> Eliom_content_core.Svg.D.tot
 
     include Eliom_content_core.Svg.Make(Xml)(Wrapped_functions)
@@ -327,10 +327,10 @@ module Svg = struct
 
 end ;;
 
-{shared{
+[%%shared
 module Raw_wrapped_functions =
   Html_f.Wrapped_functions(Eliom_content_core.Xml)
-}}
+]
 
 module Html = struct
 
@@ -350,46 +350,46 @@ module Html = struct
       | `Url_pixel of Xml.uri * Html_types.float_number ]
 
     let onoff_of_bool () =
-      {shared#{ Raw_wrapped_functions.onoff_of_bool }}
+      [%shared  Raw_wrapped_functions.onoff_of_bool ]
 
     let string_of_big_variant () =
-      {shared#{ Raw_wrapped_functions.string_of_big_variant }}
+      [%shared  Raw_wrapped_functions.string_of_big_variant ]
 
     let string_of_bool () =
-      {shared#{ Raw_wrapped_functions.string_of_bool }}
+      [%shared  Raw_wrapped_functions.string_of_bool ]
 
     let string_of_character () =
-      {shared#{ Raw_wrapped_functions.string_of_character }}
+      [%shared  Raw_wrapped_functions.string_of_character ]
 
     let string_of_input_type () =
-      {shared#{ Raw_wrapped_functions.string_of_input_type }}
+      [%shared  Raw_wrapped_functions.string_of_input_type ]
 
     let string_of_linktypes () =
-      {shared#{ Raw_wrapped_functions.string_of_linktypes }}
+      [%shared  Raw_wrapped_functions.string_of_linktypes ]
 
     let string_of_mediadesc () =
-      {shared#{ Raw_wrapped_functions.string_of_mediadesc }}
+      [%shared  Raw_wrapped_functions.string_of_mediadesc ]
 
     let string_of_number_or_datetime () =
-      {shared#{ Raw_wrapped_functions.string_of_number_or_datetime }}
+      [%shared  Raw_wrapped_functions.string_of_number_or_datetime ]
 
     let string_of_numbers () =
-      {shared#{ Raw_wrapped_functions.string_of_numbers }}
+      [%shared  Raw_wrapped_functions.string_of_numbers ]
 
     let string_of_sandbox () =
-      {shared#{ Raw_wrapped_functions.string_of_sandbox }}
+      [%shared  Raw_wrapped_functions.string_of_sandbox ]
 
     let string_of_sizes () =
-      {shared#{ Raw_wrapped_functions.string_of_sizes }}
+      [%shared  Raw_wrapped_functions.string_of_sizes ]
 
     let string_of_srcset () =
-      {shared#{ Raw_wrapped_functions.string_of_srcset }}
+      [%shared  Raw_wrapped_functions.string_of_srcset ]
 
     let string_of_step () =
-      {shared#{ Raw_wrapped_functions.string_of_step }}
+      [%shared  Raw_wrapped_functions.string_of_step ]
 
     let unoption_string () =
-      {shared#{ Raw_wrapped_functions.unoption_string }}
+      [%shared  Raw_wrapped_functions.unoption_string ]
 
   end
 
@@ -403,9 +403,9 @@ module Html = struct
         Eliom_content_core.Html.D.toelt |>
         Eliom_content_core.Xml.make_request_node ~reset:false
       and synced = React.S.synced s in
-      let _ = {unit{
+      let _ = [%client (
         let s =
-          %s >|= (fun s ->
+          ~%s >|= (fun s ->
             Eliom_content_core.Html.
               (Id.create_request_elt s ~reset:false |> D.toelt) |>
             Eliom_client_core.rebuild_node' `HTML5)
@@ -413,22 +413,22 @@ module Html = struct
         let f =
           let replace e' e =
             let f p = Dom.replaceChild p e' e in
-            Js.Opt.iter (e##parentNode) f |> ignore
-          and e = Eliom_client_core.rebuild_node' `HTML5 %e in
+            Js.Opt.iter (e##.parentNode) f |> ignore
+          and e = Eliom_client_core.rebuild_node' `HTML5 ~%e in
           fun e' ->
             replace e' e;
             React.S.diff replace s |> ignore
         in
-        if %synced then
+        if ~%synced then
           React.(S.changes s |> E.once |> E.map f) |> ignore
         else
           f (React.S.value s) |> ignore
-      }} in
+      : unit)] in
       e |> Eliom_content_core.Html.D.tot
 
     let filter_attrib a s =
       let init = if local_value s then Some a else None
-      and c = {{ Eliom_content_core.Html.R.filter_attrib %a %s }} in
+      and c =  [%client  Eliom_content_core.Html.R.filter_attrib ~%a ~%s ] in
       Eliom_content_core.Html.D.client_attrib ?init c
 
     include

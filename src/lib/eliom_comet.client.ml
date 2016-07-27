@@ -132,7 +132,7 @@ struct
     let sleep_duration () = if is_idle ()
       then (match (get ()).time_between_request_unfocused, focused () with
         | Some ((a, b)::l), Some start ->
-          let now = Js.to_float (jsnew Js.date_now ())##getTime() in
+          let now = Js.to_float ((new%js Js.date_now))##getTime in
           let t = (now -. start) *. 0.001 in (* time from idle start *)
           let v = a *. t +. b in
           let v = List.fold_left (fun v (a, b) -> min v (a *. t +. b)) v l in
@@ -142,7 +142,7 @@ struct
       else (get ()).time_between_request
     in
     let rec aux t =
-      lwt () = Lwt.pick [Lwt_js.sleep t;
+      let%lwt () = Lwt.pick [Lwt_js.sleep t;
                          !update_configuration_waiter;
                          (active_waiter ())] in
       let remaining_time = sleep_duration () -. (Sys.time () -. time) in
@@ -274,12 +274,12 @@ struct
   let add_focus_listener f : unit =
     let listener = Dom_html.handler (fun _ ->
       f (); Js.bool false) in
-    (Js.Unsafe.coerce (Dom_html.window))##addEventListener(Js.string "focus",listener,Js.bool false)
+    (Js.Unsafe.coerce (Dom_html.window))##(addEventListener (Js.string "focus") listener (Js.bool false))
 
   let add_blur_listener f : unit =
     let listener = Dom_html.handler (fun _ ->
       f (); Js.bool false) in
-    (Js.Unsafe.coerce (Dom_html.window))##addEventListener(Js.string "blur",listener,Js.bool false)
+    (Js.Unsafe.coerce (Dom_html.window))##(addEventListener (Js.string "blur") listener (Js.bool false))
 
   let set_activity hd v =
     if Eliom_lib.String.Set.is_empty hd.hd_activity.active_channels
@@ -307,7 +307,7 @@ struct
     in
     let blur_callback () =
       handler.hd_activity.focused <-
-        Some (Js.to_float (jsnew Js.date_now ())##getTime())
+        Some (Js.to_float ((new%js Js.date_now))##getTime)
     in
     add_focus_listener focus_callback;
     add_blur_listener blur_callback
@@ -327,7 +327,7 @@ struct
   let max_retries = 3
 
   let call_service_after_load_end service p1 p2 =
-    lwt () = Eliom_client.wait_load_end () in
+    let%lwt () = Eliom_client.wait_load_end () in
     Eliom_client.call_service service p1 p2
 
   let make_request hd =
@@ -404,14 +404,14 @@ struct
 
   let call_service
       ({ hd_activity; hd_service = Ecb.Comet_service srv } as hd) =
-    lwt () =
+    let%lwt () =
       Configuration.sleep_before_next_request
         (fun () -> hd_activity.focused)
         (fun () -> hd_activity.active = `Idle)
         (fun () -> hd_activity.active_waiter)
     in
     let request = make_request hd in
-    lwt s = call_service_after_load_end srv () request in
+    let%lwt s = call_service_after_load_end srv () request in
     Lwt.return (Ecb.Json_answer.from_string s)
 
   let drop_message_index =
@@ -439,7 +439,7 @@ struct
         in
         if not (tbru = Some [0., 0.]) (* if not always active *)
         then begin
-          let now = Js.to_float (jsnew Js.date_now ())##getTime() in
+          let now = Js.to_float ((new%js Js.date_now))##getTime in
           if now -. t >
             (Configuration.get ()).Configuration.time_after_unfocus *. 1000.
           then
@@ -452,7 +452,7 @@ struct
     let rec aux retries =
       if hd.hd_activity.active = `Inactive
       then
-        lwt () = hd.hd_activity.active_waiter in
+        let%lwt () = hd.hd_activity.active_waiter in
         aux 0
       else
         Lwt.try_bind
@@ -484,13 +484,13 @@ struct
                  set_activity hd `Inactive;
                  aux 0)
               else
-                (lwt () = Lwt_js.sleep (2. ** float (retries - 1)) in
+                (let%lwt () = Lwt_js.sleep (2. ** float (retries - 1)) in
                  aux (retries + 1))
             | Restart -> Eliom_lib.Lwt_log.ign_info ~section "restart";
               aux 0
             | exn ->
               Eliom_lib.Lwt_log.ign_notice ~exn ~section "connection failure";
-              lwt () = handle_exn ~exn () in
+              let%lwt () = handle_exn ~exn () in
               Lwt.fail exn)
     in
     update_activity hd;
@@ -498,7 +498,7 @@ struct
 
   let call_commands {hd_service = Ecb.Comet_service srv} command =
     ignore
-      (try_lwt
+      (try%lwt
          call_service_after_load_end srv ()
            (Ecb.Stateful (Ecb.Commands command))
        with

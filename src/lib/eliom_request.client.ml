@@ -30,15 +30,15 @@ let section = Lwt_log.Section.make "eliom:request"
 let max_redirection_level = 12
 
 let short_url_re =
-  jsnew Js.regExp (Js.bytestring "^([^\\?]*)(\\?(.*))?$")
+  new%js Js.regExp (Js.bytestring "^([^\\?]*)(\\?(.*))?$")
 
 let url_re =
-  jsnew Js.regExp (Js.bytestring "^([Hh][Tt][Tt][Pp][Ss]?)://([0-9a-zA-Z.-]+|\\[[0-9A-Fa-f:.]+\\])(:([0-9]+))?/([^\\?]*)(\\?(.*))?$")
+  new%js Js.regExp (Js.bytestring "^([Hh][Tt][Tt][Pp][Ss]?)://([0-9a-zA-Z.-]+|\\[[0-9A-Fa-f:.]+\\])(:([0-9]+))?/([^\\?]*)(\\?(.*))?$")
 
 let get_cookie_info_for_uri_js uri_js =
   match Url.url_of_string (Js.to_string uri_js) with
     | None -> (* Decoding failed *)
-      (Js.Opt.case (short_url_re##exec (uri_js))
+      (Js.Opt.case (short_url_re##(exec uri_js))
          (fun () -> assert false)
          (fun res ->
             let match_result = Js.match_result res in
@@ -75,27 +75,27 @@ let xml_result x =
 let string_result x = x.XmlHttpRequest.content
 
 (*TODO: use Url.Current.set *)
-let redirect_get url = Dom_html.window##location##href <- Js.string url
+let redirect_get url = Dom_html.window##.location##.href := Js.string url
 
 let redirect_post url params =
   let f = Dom_html.createForm Dom_html.document in
-  f##action <- Js.string url;
-  f##_method <- Js.string "post";
+  f##.action := Js.string url;
+  f##._method := Js.string "post";
   List.iter
     (fun (n, v) ->
       match v with
         | `String v ->
           let i = Dom_html.createTextarea ~name:(Js.string n) Dom_html.document
           in
-          i##value <- v;
+          i##.value := v;
           Dom.appendChild f i
         | `File i ->
           Lwt_log.raise_error ~section "redirect_post not implemented for files")
     params;
-  f##style##display <- (Js.string "none");
-  Dom.appendChild (Dom_html.document##body) f;
+  f##.style##.display := (Js.string "none");
+  Dom.appendChild (Dom_html.document##.body) f;
   (* firefox accepts submit only on forms in the document *)
-  f##submit ()
+  f##submit
 
 let redirect_post_form_elt ?(post_args=[]) ?(form_arg=[]) url =
   redirect_post url (form_arg@post_args)
@@ -152,7 +152,7 @@ let send
       | _ -> [ Eliom_common.tab_cookies_header_name,
                encode_header_value cookies ] in
     let headers =
-      if Js.Unsafe.global##___eliom_use_cookie_substitutes_ <> Js.undefined then
+      if Js.Unsafe.global##.___eliom_use_cookie_substitutes_ <> Js.undefined then
         (* Cookie substitutes are for iOS WKWebView *)
         let cookies =
           Eliommod_cookies.get_cookies_to_send
@@ -182,7 +182,7 @@ let send
       then
         let content_type =
           if Dom_html.onIE &&
-            not (Js.Optdef.test ((Js.Unsafe.coerce Dom_html.document)##adoptNode))
+            not (Js.Optdef.test ((Js.Unsafe.coerce Dom_html.document)##.adoptNode))
           then
             (* ie < 9 does not know xhtml+xml content type, but ie 9
                can use it and need it to use adoptNode *)
@@ -223,14 +223,14 @@ let send
           = Some (Eliom_process.get_application_name ())
       else true
     in
-    try_lwt
-      lwt r = XmlHttpRequest.perform_raw_url
+    try%lwt
+      let%lwt r = XmlHttpRequest.perform_raw_url
           ?with_credentials
           ?headers:(Some headers) ?content_type:None
           ?post_args ~get_args ?form_arg:form_contents ~check_headers
           ?progress ?upload_progress ?override_mime_type url
       in
-      (if Js.Unsafe.global##___eliom_use_cookie_substitutes_ <> Js.undefined
+      (if Js.Unsafe.global##.___eliom_use_cookie_substitutes_ <> Js.undefined
        then
          match (* Cookie substitutes are for iOS WKWebView *)
            r.XmlHttpRequest.headers
@@ -305,7 +305,7 @@ let send
                 Lwt.fail (Failed_request code)
               end
   in
-  lwt (url, content) = aux 0 ?cookies_info ?get_args ?post_args ?form_arg url in
+  let%lwt (url, content) = aux 0 ?cookies_info ?get_args ?post_args ?form_arg url in
   let filter_url url =
     { url with Url.hu_arguments =
         List.filter (fun (e,_) -> e <> nl_template_string) url.Url.hu_arguments } in
@@ -321,15 +321,15 @@ let send
 
 (* BEGIN FORMDATA HACK *)
 let add_button_arg inj args form =
-  let button = Js.Unsafe.global##eliomLastButton in
-  Js.Unsafe.global##eliomLastButton <- None;
+  let button = Js.Unsafe.global##.eliomLastButton in
+  Js.Unsafe.global##.eliomLastButton := None;
   match button with
     | None -> args
     | Some b ->
         let name, value, b_form =
           match Dom_html.tagged b with
-            | Dom_html.Button b -> b##name, b##value, b##form
-            | Dom_html.Input b -> b##name, b##value, b##form
+            | Dom_html.Button b -> b##.name, b##.value, b##.form
+            | Dom_html.Input b -> b##.name, b##.value, b##.form
             | _ -> assert false
         in
         let name = Js.to_string name in

@@ -879,14 +879,14 @@ let reconstruct_params ~sp (type a) (type c) (typ : (a,'b,c) params_type) params
             typ [] [] nosuffixversion urlsuffix)
      with e -> Lwt.fail e)
   | typ, _, _ ->
-    lwt params =
+    let%lwt params =
       match params with
       | Some params ->
         params
       | None ->
         Lwt.return []
     in
-    lwt files =
+    let%lwt files =
       match files with
       | Some files ->
         files

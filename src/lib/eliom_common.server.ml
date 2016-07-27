@@ -915,7 +915,7 @@ type cpi = client_process_info =  {
   cpi_hostname : string;
   cpi_server_port : int;
   cpi_original_full_path : string list;
-} deriving (Json)
+} [@@deriving json]
 
 let get_session_info req previous_extension_err =
   let req_whole = req
@@ -935,7 +935,7 @@ let get_session_info req previous_extension_err =
       | Some f -> false, f (ci.Ocsigen_extensions.uploaddir, ci.Ocsigen_extensions.maxuploadfilesize)
   in
 
-  lwt post_params = p in
+  let%lwt post_params = p in
 
   let (previous_tab_cookies_info, tab_cookies, post_params) =
     try
@@ -955,7 +955,7 @@ let get_session_info req previous_extension_err =
           let (tc, pp) =
             List.assoc_remove tab_cookies_param_name post_params
           in
-	  let tc = Json.from_string<(string * string) list> tc in
+	  let tc = [%derive.of_json: (string * string) list] tc in
           (List.fold_left (fun t (k,v) -> CookiesTable.add k v t) CookiesTable.empty tc, pp)
           (*Marshal.from_string (Ocsigen_lib.decode tc) 0, pp*)
         with Not_found ->
@@ -963,7 +963,7 @@ let get_session_info req previous_extension_err =
             let tc = Ocsigen_headers.find tab_cookies_header_name
               (Ocsigen_extensions.Ocsigen_request_info.http_frame ri)
             in
-	    let tc = Json.from_string<(string * string) list> tc in
+	    let tc = [%derive.of_json: (string * string) list] tc in
             (List.fold_left (fun t (k,v) -> CookiesTable.add k v t) CookiesTable.empty tc,
              post_params)
           with Not_found -> CookiesTable.empty, post_params
@@ -978,7 +978,7 @@ let get_session_info req previous_extension_err =
 	Ocsigen_headers.find
 	  tab_cpi_header_name
 	  (Ocsigen_extensions.Ocsigen_request_info.http_frame ri) in
-      Some (Json.from_string<cpi> cpi)
+      Some ([%derive.of_json: cpi] cpi)
     with Not_found -> None
   in
 
@@ -988,7 +988,7 @@ let get_session_info req previous_extension_err =
 	      expecting_process_page_name
 	      (Ocsigen_extensions.Ocsigen_request_info.http_frame ri)
             in
-            Json.from_string<bool> epd
+            [%derive.of_json: bool] epd
       with Not_found -> false)
   in
 
@@ -1017,7 +1017,7 @@ let get_session_info req previous_extension_err =
 
   let get_params0 = get_params in
   let post_params0 = post_params in
-  lwt file_params0 = file_params in
+  let%lwt file_params0 = file_params in
   let get_params, post_params, file_params,
       (all_get_params, all_post_params, all_file_params,
        nl_get_params, nl_post_params, nl_file_params,
@@ -1046,7 +1046,7 @@ let get_session_info req previous_extension_err =
     try (* Cookie substitutes for iOS WKWebView *)
       let tc = Ocsigen_headers.find cookie_substitutes_header_name
           (Ocsigen_extensions.Ocsigen_request_info.http_frame ri) in
-      let tc = Json.from_string<(string * string) list> tc in
+      let tc = [%derive.of_json: (string * string) list] tc in
         List.fold_left (fun t (k,v) -> CookiesTable.add k v t)
           CookiesTable.empty tc
     with Not_found ->

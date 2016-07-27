@@ -196,7 +196,7 @@ struct
         if store.read
         then
           begin
-            lwt () = Lwt_condition.wait store.condition in
+            let%lwt () = Lwt_condition.wait store.condition in
             aux ()
           end
         else

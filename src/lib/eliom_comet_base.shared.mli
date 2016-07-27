@@ -28,25 +28,25 @@ type position =
   | Newest of int
   | After of int
   | Last of int option (** None means 'newest channel' *)
-deriving (Json)
+[@@deriving json]
 
 type comet_stateless_request = (string*position) array
-deriving (Json)
+[@@deriving json]
 
 type command =
   | Register of string
   | Close of string
-deriving (Json)
+[@@deriving json]
 
 type comet_stateful_request =
   | Request_data of int
   | Commands of command array
-deriving (Json)
+[@@deriving json]
 
 type comet_request =
   | Stateless of comet_stateless_request
   | Stateful of comet_stateful_request
-deriving (Json)
+[@@deriving json]
 
 val comet_request_param :
   (comet_request, [ `WithoutSuffix ],
@@ -57,7 +57,7 @@ type 'a channel_data =
   | Data of 'a
   | Full
   | Closed
-deriving (Json)
+[@@deriving json]
 
 type answer =
   | Stateless_messages of ( string * (string * int) channel_data ) array
@@ -65,7 +65,7 @@ type answer =
   | Timeout
   | State_closed
   | Comet_error of string
-deriving (Json)
+[@@deriving json]
 
 type comet_service =
     Comet_service :

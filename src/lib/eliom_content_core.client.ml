@@ -422,7 +422,7 @@ module Html = struct
 
     let get_dom (element : Dom_html.element Js.t) custom_data =
       Js.Opt.case
-        (element##getAttribute(Js.string (attribute_name custom_data.name)))
+        (element##(getAttribute (Js.string (attribute_name custom_data.name))))
         (fun () ->
            match custom_data.default with
              | Some value -> value
@@ -430,8 +430,8 @@ module Html = struct
         (fun str -> custom_data.of_string (Js.to_string str))
 
     let set_dom element custom_data value =
-      element##setAttribute(Js.string (attribute_name custom_data.name),
-                            Js.string (custom_data.to_string value))
+      element##(setAttribute (Js.string (attribute_name custom_data.name))
+                            (Js.string (custom_data.to_string value)))
 
   end
 

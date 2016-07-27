@@ -83,7 +83,7 @@ let deriving_to_list : 'a Deriving_Json.t -> 'a list Deriving_Json.t = fun (type
 let create_filtered ?scope ?name ?size ~filter typ =
   (*The stream*)
   let (stream, push) = Lwt_stream.create () in
-  let push x = lwt y = filter x in push (Some y); Lwt.return () in
+  let push x = let%lwt y = filter x in push (Some y); Lwt.return () in
 
   let scope =
     match scope with

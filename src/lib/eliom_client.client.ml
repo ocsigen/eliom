@@ -47,18 +47,18 @@ let _ = Lwt_log.Section.set_level log_section Lwt_log.Info
 
 let insert_base page =
   let b = Dom_html.createBase Dom_html.document in
-  b##href <- Js.string (Eliom_process.get_base_url ());
-  b##id <- Js.string Eliom_common_base.base_elt_id;
+  b##.href := Js.string (Eliom_process.get_base_url ());
+  b##.id := Js.string Eliom_common_base.base_elt_id;
   Js.Opt.case
-    page##querySelector(Js.string "head")
+    page##(querySelector (Js.string "head"))
     (fun () -> Lwt_log.ign_debug_f "No <head> found in document")
     (fun head -> Dom.appendChild head b)
 
 let get_global_data () =
   let def () = None
   and id = Js.string "__global_data" in
-  Js.Optdef.case (Dom_html.window##localStorage) def @@ fun storage ->
-  Js.Opt.case (storage##getItem(id)) def @@ fun v ->
+  Js.Optdef.case (Dom_html.window##.localStorage) def @@ fun storage ->
+  Js.Opt.case (storage##(getItem id)) def @@ fun v ->
   Lwt_log.ign_debug_f "Unwrap __global_data";
   match
     Eliom_unwrap.unwrap (Url.decode (Js.to_string v)) 0
@@ -99,7 +99,7 @@ let is_client_app () = !Eliom_common.is_client_app
 let _ =
   Eliom_common.is_client_app :=
     (* Testing if variable __eliom_appl_process_info exists: *)
-    Js.Unsafe.global##___eliom_appl_process_info_foo = Js.undefined
+    Js.Unsafe.global##.___eliom_appl_process_info_foo = Js.undefined
 
 let onunload_fun _ =
   update_state ();
@@ -113,12 +113,12 @@ let onbeforeunload_fun _ = run_onbeforeunload ()
 let init () =
   (* Initialize client app if the __eliom_server variable is defined *)
   if is_client_app ()
-  && Js.Unsafe.global##___eliom_server_ <> Js.undefined
-  && Js.Unsafe.global##___eliom_app_name_ <> Js.undefined
+  && Js.Unsafe.global##.___eliom_server_ <> Js.undefined
+  && Js.Unsafe.global##.___eliom_app_name_ <> Js.undefined
   then begin
-    let app_name = Js.to_string (Js.Unsafe.global##___eliom_app_name_) in
+    let app_name = Js.to_string (Js.Unsafe.global##.___eliom_app_name_) in
     match
-      Url.url_of_string (Js.to_string (Js.Unsafe.global##___eliom_server_))
+      Url.url_of_string (Js.to_string (Js.Unsafe.global##.___eliom_server_))
     with
     | Some (Http { hu_host; hu_port; hu_path; _ }) ->
       init_client_app
@@ -140,10 +140,10 @@ let init () =
   Eliom_process.set_base_url
     (String.concat
        ""
-       [ Js.to_string (Dom_html.window##location##protocol)
+       [ Js.to_string (Dom_html.window##.location##.protocol)
        ; "//"
-       ; Js.to_string (Dom_html.window##location##host)
-       ; Js.to_string (Dom_html.window##location##pathname) ]);
+       ; Js.to_string (Dom_html.window##.location##.host)
+       ; Js.to_string (Dom_html.window##.location##.pathname) ]);
   insert_base Dom_html.document;
   (* </base> *)
 
@@ -167,13 +167,13 @@ let init () =
     Lwt.async
       (fun () ->
          if !Eliom_config.debug_timings
-         then Firebug.console##time(Js.string "onload");
+         then Firebug.console##(time (Js.string "onload"));
          Eliom_request_info.set_session_info js_data.Eliom_common.ejs_sess_info;
          (* Give the browser the chance to actually display the page NOW *)
-         lwt () = Lwt_js.sleep 0.001 in
+         let%lwt () = Lwt_js.sleep 0.001 in
          (* Ordering matters. See [Eliom_client.set_content] for explanations *)
-         relink_request_nodes (Dom_html.document##documentElement);
-         let root = Dom_html.document##documentElement in
+         relink_request_nodes (Dom_html.document##.documentElement);
+         let root = Dom_html.document##.documentElement in
          let closure_nodeList,attrib_nodeList =
            relink_page_but_client_values root
          in
@@ -197,7 +197,7 @@ let init () =
          Lwt_mutex.unlock load_mutex;
          run_callbacks load_callbacks;
          if !Eliom_config.debug_timings
-         then Firebug.console##timeEnd(Js.string "onload");
+         then Firebug.console##(timeEnd (Js.string "onload"));
          Lwt.return ());
     Js._false
   in
@@ -290,7 +290,7 @@ let raw_call_service
      Also set with_credentials to true in CORS configuration.
   *)
   let with_credentials = not (Eliom_service.is_external service) in
-  lwt uri, content =
+  let%lwt uri, content =
     match create_request_
             ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
             ?keep_nl_params ?nl_params ?keep_get_na_params
@@ -321,7 +321,7 @@ let raw_call_service
         ?progress ?upload_progress ?override_mime_type
         uri post_params Eliom_request.string_result in
   match content with
-  | None -> raise_lwt (Eliom_request.Failed_request 204)
+  | None -> [%lwt raise ( (Eliom_request.Failed_request 204))]
   | Some content -> Lwt.return (uri, content)
 
 let call_service
@@ -329,7 +329,7 @@ let call_service
     ?keep_nl_params ?nl_params ?keep_get_na_params
     ?progress ?upload_progress ?override_mime_type
     get_params post_params =
-  lwt _, content =
+  let%lwt _, content =
     raw_call_service
       ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
       ?keep_nl_params ?nl_params ?keep_get_na_params
@@ -364,8 +364,8 @@ let window_open ~window_name ?window_features
           get_params ()
   with
   | `Get (uri, _) ->
-    Dom_html.window##open_(Js.string uri, window_name,
-                           Js.Opt.option window_features)
+    Dom_html.window##(open_ (Js.string uri) window_name
+                           (Js.Opt.option window_features))
   | `Post (_, _, _) -> assert false
   | `Put (_, _, _) -> assert false
   | `Delete (_, _, _) -> assert false
@@ -390,16 +390,16 @@ let call_ocaml_service
     ?progress ?upload_progress ?override_mime_type
     get_params post_params =
   Lwt_log.ign_debug ~section "Call OCaml service";
-  lwt _, content =
+  let%lwt _, content =
     raw_call_service
       ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
       ?keep_nl_params ?nl_params ?keep_get_na_params
       ?progress ?upload_progress ?override_mime_type
       get_params post_params in
-  lwt () = Lwt_mutex.lock load_mutex in
+  let%lwt () = Lwt_mutex.lock load_mutex in
   set_loading_phase ();
   push_onload ();
-  lwt content, request_data = unwrap_caml_content content in
+  let%lwt content, request_data = unwrap_caml_content content in
   do_request_data request_data;
   reset_request_nodes ();
   let load_callbacks = flush_onload () @ [broadcast_load_end] in
@@ -418,7 +418,7 @@ let call_ocaml_service
 
 *)
 let current_uri =
-  ref (fst (Url.split_fragment (Js.to_string Dom_html.window##location##href)))
+  ref (fst (Url.split_fragment (Js.to_string Dom_html.window##.location##.href)))
 
 (* == Function [change_url_string] changes the URL, without doing a request.
 
@@ -431,7 +431,7 @@ let url_fragment_prefix = "!"
 let url_fragment_prefix_with_sharp = "#!"
 
 let default_reload_function () () =
-  Dom_html.window##location##reload()
+  Dom_html.window##.location##reload
 
 let reload_function = ref None
 let reload_functions = ref []
@@ -450,11 +450,13 @@ let change_url_string ?(replace = false) uri =
         | None ->
           ()
       end;
-      Dom_html.window##history##replaceState
-        (Js.Opt.return (!current_state_id, Js.string (Url.resolve uri)),
-         Js.string "",
-         if !Eliom_common.is_client_app then Js.null else
-         Js.Opt.return (Js.string uri))
+      Dom_html.window##.history##(replaceState
+        (Js.Opt.return (!current_state_id, Js.string (Url.resolve uri)))
+         (Js.string "")
+         ((if !Eliom_common.is_client_app then
+            Js.null
+          else
+            Js.Opt.return (Js.string uri))))
     else begin
       update_state();
       let state_id = next_state_id () in
@@ -466,18 +468,20 @@ let change_url_string ?(replace = false) uri =
         | None   -> ()
       end;
       current_state_id := state_id;
-      Dom_html.window##history##pushState
-        (Js.Opt.return (!current_state_id, Js.string (Url.resolve uri)),
-         Js.string "",
-         if !Eliom_common.is_client_app then Js.null else
-         Js.Opt.return (Js.string uri))
+      Dom_html.window##.history##(pushState
+        (Js.Opt.return (!current_state_id, Js.string (Url.resolve uri)))
+         (Js.string "")
+         ((if !Eliom_common.is_client_app then
+            Js.null
+          else
+            Js.Opt.return (Js.string uri))))
     end;
     Eliommod_dom.touch_base ();
   end else begin
     current_pseudo_fragment := url_fragment_prefix_with_sharp^uri;
     Eliom_request_info.set_current_path uri;
     if uri <> fst (Url.split_fragment Url.Current.as_string)
-    then Dom_html.window##location##hash <- Js.string (url_fragment_prefix^uri)
+    then Dom_html.window##.location##.hash := Js.string (url_fragment_prefix^uri)
   end
 
 (* == Function [change_url] changes the URL, without doing a request.
@@ -528,8 +532,8 @@ let set_template_content ?replace ?uri ?fragment =
      | Some uri, Some fragment ->
        change_url_string ?replace (uri ^ "#" ^ fragment)
      | _ -> ());
-    lwt () = Lwt_mutex.lock load_mutex in
-    lwt (), request_data = unwrap_caml_content content in
+    let%lwt () = Lwt_mutex.lock load_mutex in
+    let%lwt (), request_data = unwrap_caml_content content in
     do_request_data request_data;
     reset_request_nodes ();
     let load_callbacks = flush_onload () in
@@ -551,13 +555,13 @@ let set_uri ?replace ?fragment uri =
 
 let replace_page new_page =
   if !Eliom_config.debug_timings
-  then Firebug.console##time(Js.string "replace_page");
+  then Firebug.console##(time (Js.string "replace_page"));
   if !only_replace_body then begin
-    let new_body = new_page##childNodes##item(1) in
+    let new_body = new_page##.childNodes##(item (1)) in
     Js.Opt.iter new_body (fun new_body ->
-    Dom.replaceChild Dom_html.document##documentElement
+    Dom.replaceChild Dom_html.document##.documentElement
       new_body
-      Dom_html.document##body)
+      Dom_html.document##.body)
   end else begin
     (* We insert <base> in the page.
        The URLs of all other pages will be computed w.r.t.
@@ -565,10 +569,10 @@ let replace_page new_page =
     insert_base new_page;
     Dom.replaceChild Dom_html.document
       new_page
-      Dom_html.document##documentElement
+      Dom_html.document##.documentElement
   end;
   if !Eliom_config.debug_timings
-  then Firebug.console##timeEnd(Js.string "replace_page")
+  then Firebug.console##(timeEnd (Js.string "replace_page"))
 
 (* Function to be called for client side services: *)
 let set_content_local ?offset ?fragment new_page =
@@ -576,7 +580,7 @@ let set_content_local ?offset ?fragment new_page =
   let recover () =
     if !locked then Lwt_mutex.unlock load_mutex;
     if !Eliom_config.debug_timings then
-      Firebug.console##timeEnd(Js.string "set_content_local")
+      Firebug.console##(timeEnd (Js.string "set_content_local"))
   and really_set () =
     (* Inline CSS in the header to avoid the "flashing effect".
        Otherwise, the browser start to display the page before
@@ -585,7 +589,7 @@ let set_content_local ?offset ?fragment new_page =
       if !only_replace_body then Lwt.return () else
       Eliommod_dom.preload_css new_page in
     (* Wait for CSS to be inlined before substituting global nodes: *)
-    lwt () = preloaded_css in
+    let%lwt () = preloaded_css in
     (* Really change page contents *)
     replace_page new_page;
     Eliommod_dom.add_formdata_hack_onclick_handler ();
@@ -595,20 +599,20 @@ let set_content_local ?offset ?fragment new_page =
     run_callbacks load_callbacks;
     scroll_to_fragment ?offset fragment;
     if !Eliom_config.debug_timings
-    then Firebug.console##timeEnd(Js.string "set_content_local");
+    then Firebug.console##(timeEnd (Js.string "set_content_local"));
     Lwt.return ()
   in
   let cancel () = recover (); Lwt.return () in
-  try_lwt
-    lwt () = Lwt_mutex.lock load_mutex in
+  try%lwt
+    let%lwt () = Lwt_mutex.lock load_mutex in
     set_loading_phase ();
     if !Eliom_config.debug_timings
-    then Firebug.console##time(Js.string "set_content_local");
+    then Firebug.console##(time (Js.string "set_content_local"));
     run_onunload_wrapper really_set cancel
   with exn ->
     recover ();
     Lwt_log.ign_debug ~section ~exn "set_content_local";
-    raise_lwt exn
+    [%lwt raise ( exn)]
 
 (* Function to be called for server side services: *)
 let set_content ?replace ?uri ?offset ?fragment content =
@@ -651,7 +655,7 @@ let set_content ?replace ?uri ?offset ?fragment content =
           | _ -> None in
       Eliommod_cookies.update_cookie_table host cookies;
       (* Wait for CSS to be inlined before substituting global nodes: *)
-      lwt () = preloaded_css in
+      let%lwt () = preloaded_css in
       (* Bind unique node (request and global) and register event
          handler.  Relinking closure nodes must take place after
          initializing the client values *)
@@ -668,11 +672,11 @@ let set_content ?replace ?uri ?offset ?fragment content =
       (* Replace closure ids in document with event handlers
          (from client values) *)
       let () = relink_attribs
-          Dom_html.document##documentElement
+          Dom_html.document##.documentElement
           js_data.Eliom_common.ejs_client_attrib_table attrib_nodeList in
       let onload_closure_nodes =
         relink_closure_nodes
-          Dom_html.document##documentElement
+          Dom_html.document##.documentElement
           js_data.Eliom_common.ejs_event_handler_table closure_nodeList
       in
       (* The request node table must be empty when nodes received via
@@ -686,24 +690,24 @@ let set_content ?replace ?uri ?offset ?fragment content =
       run_callbacks load_callbacks;
       scroll_to_fragment ?offset fragment;
       if !Eliom_config.debug_timings then
-        Firebug.console##timeEnd(Js.string "set_content");
+        Firebug.console##(timeEnd (Js.string "set_content"));
       Lwt.return ()
     and recover () =
       if !locked then Lwt_mutex.unlock load_mutex;
       if !Eliom_config.debug_timings
-      then Firebug.console##timeEnd(Js.string "set_content")
+      then Firebug.console##(timeEnd (Js.string "set_content"))
     in
-    try_lwt
-      lwt () = Lwt_mutex.lock load_mutex in
+    try%lwt
+      let%lwt () = Lwt_mutex.lock load_mutex in
       set_loading_phase ();
       if !Eliom_config.debug_timings
-      then Firebug.console##time(Js.string "set_content");
+      then Firebug.console##(time (Js.string "set_content"));
       let g () = recover (); Lwt.return () in
       run_onunload_wrapper really_set g
     with exn ->
       recover ();
       Lwt_log.ign_debug ~section ~exn "set_content";
-      raise_lwt exn
+      [%lwt raise ( exn)]
 
 let ocamlify_params =
   List.map
@@ -761,11 +765,11 @@ let route
     ?(nested = false)
     ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
   let r = !Eliom_request_info.get_sess_info in
-  try_lwt
+  try%lwt
     update_session_info i_get_params (Some i_post_params);
     let uri = make_uri i_subpath i_get_params in
     set_target_url uri;
-    lwt () = Eliom_route.call_service info in
+    let%lwt () = Eliom_route.call_service info in
     commit_target_url ~nested ();
     Lwt.return ()
   with e ->
@@ -805,7 +809,7 @@ let change_page (type m)
            Eliom_parameter.add_nl_parameter
              nl_params Eliom_request.nl_template tmpl
          in
-         lwt uri, content =
+         let%lwt uri, content =
            raw_call_service
              ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
              ?keep_nl_params ~nl_params ?keep_get_na_params
@@ -838,14 +842,14 @@ let change_page (type m)
            in
            update_session_info (ocamlify_params l) l';
            set_target_url (fst (Url.split_fragment uri));
-           lwt () = f get_params post_params in
+           let%lwt () = f get_params post_params in
            commit_target_url ~nested:false ();
            Lwt.return ()
          | None ->
            (* No client-side implementation *)
            reload_function := None;
            let cookies_info = Eliom_uri.make_cookies_info (https, service) in
-           lwt (uri, content) =
+           let%lwt (uri, content) =
              match
                create_request_
                  ?absolute ?absolute_path ?https ~service ?hostname ?port
@@ -896,7 +900,7 @@ let change_page_after_action () =
   } in
   (* similar (but simpler) sequence of attempts as server; see
      server-side [Eliom_registration.Action.send] *)
-  try_lwt
+  try%lwt
     (* [~nested:true] indicates that we do not want to update the URL
        (but we do call [set_target_url]). We were called by an action,
        and the action will set the URL (based on [target_url ()]) once
@@ -904,7 +908,7 @@ let change_page_after_action () =
     route ~nested:true info
   with _ ->
     let info = {info with Eliom_route.i_get_params = []} in
-    try_lwt
+    try%lwt
       route ~nested:true info
     with _ ->
       (* after the action, we are stuck in no man's land (a URL that
@@ -943,14 +947,14 @@ let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
      then begin
        match tmpl with
        | Some t when tmpl = Eliom_request_info.get_request_template () ->
-         lwt (uri, content) = Eliom_request.http_get
+         let%lwt (uri, content) = Eliom_request.http_get
              ?cookies_info uri
              ((Eliom_request.nl_template_string, t) :: get_params)
              Eliom_request.string_result
          in
          set_template_content ~uri ?fragment content
        | _ ->
-         lwt (uri, content) = Eliom_request.http_get
+         let%lwt (uri, content) = Eliom_request.http_get
              ~expecting_process_page:true ?cookies_info uri get_params
              Eliom_request.xml_result
          in
@@ -963,7 +967,7 @@ let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
 
 let change_page_uri ?replace full_uri =
   Lwt_log.ign_debug ~section "Change page uri";
-  try_lwt
+  try%lwt
     match Url.url_of_string full_uri with
     | Some (Url.Http url | Url.Https url) ->
       change_page_unknown ?replace url.Url.hu_path url.Url.hu_arguments []
@@ -981,14 +985,14 @@ let change_page_get_form ?cookies_info ?tmpl form full_uri =
      let uri, fragment = Url.split_fragment full_uri in
      match tmpl with
      | Some t when tmpl = Eliom_request_info.get_request_template () ->
-       lwt uri, content = Eliom_request.send_get_form
+       let%lwt uri, content = Eliom_request.send_get_form
            ~get_args:[Eliom_request.nl_template_string, t]
            ?cookies_info form uri
            Eliom_request.string_result
        in
        set_template_content ~uri ?fragment content
      | _ ->
-       lwt uri, content = Eliom_request.send_get_form
+       let%lwt uri, content = Eliom_request.send_get_form
            ~expecting_process_page:true ?cookies_info form uri
            Eliom_request.xml_result
        in
@@ -1000,14 +1004,14 @@ let change_page_post_form ?cookies_info ?tmpl form full_uri =
      let uri, fragment = Url.split_fragment full_uri in
      match tmpl with
      | Some t when tmpl = Eliom_request_info.get_request_template () ->
-       lwt uri, content = Eliom_request.send_post_form
+       let%lwt uri, content = Eliom_request.send_post_form
            ~get_args:[Eliom_request.nl_template_string, t]
            ?cookies_info form uri
            Eliom_request.string_result
        in
        set_template_content ~uri ?fragment content
      | _ ->
-       lwt uri, content = Eliom_request.send_post_form
+       let%lwt uri, content = Eliom_request.send_post_form
            ~expecting_process_page:true ?cookies_info form uri
            Eliom_request.xml_result
        in
@@ -1061,7 +1065,7 @@ let () =
               match tmpl with
               | Some t
                 when tmpl = Eliom_request_info.get_request_template () ->
-                lwt (uri, content) = Eliom_request.http_get
+                let%lwt (uri, content) = Eliom_request.http_get
                     uri [(Eliom_request.nl_template_string, t)]
                     Eliom_request.string_result
                 in
@@ -1069,7 +1073,7 @@ let () =
                 (scroll_to_fragment ~offset:state.position fragment;
                  Lwt.return ())
               | _ ->
-                lwt uri, content =
+                let%lwt uri, content =
                   Eliom_request.http_get ~expecting_process_page:true uri []
                     Eliom_request.xml_result in
                 set_content ~offset:state.position ?fragment content
@@ -1088,17 +1092,17 @@ let () =
     in
 
     Lwt.ignore_result
-      (lwt () = wait_load_end () in
-       Dom_html.window##history##replaceState(
-         Js.Opt.return (!current_state_id, Dom_html.window##location##href),
-         Js.string "",
-         Js.null );
+      (let%lwt () = wait_load_end () in
+       Dom_html.window##.history##(replaceState
+         (Js.Opt.return (!current_state_id, Dom_html.window##.location##.href))
+         (Js.string "")
+         (Js.null) );
        Lwt.return ());
 
-    Dom_html.window##onpopstate <-
+    Dom_html.window##.onpopstate :=
       Dom_html.handler (fun event ->
         Eliommod_dom.touch_base ();
-        Js.Opt.case ((Js.Unsafe.coerce event)##state :
+        Js.Opt.case ((Js.Unsafe.coerce event)##.state :
                        ((int * int) * Js.js_string Js.t) Js.opt)
           (fun () -> () (* Ignore dummy popstate event fired by chromium. *))
           (fun (state, full_uri) -> goto_uri (Js.to_string full_uri) state);
@@ -1110,7 +1114,7 @@ let () =
        Solution: add the "state_id" in the fragment ??
     *)
 
-    let read_fragment () = Js.to_string Dom_html.window##location##hash in
+    let read_fragment () = Js.to_string Dom_html.window##.location##.hash in
     let auto_change_page fragment =
       Lwt.ignore_result
         (let l = String.length fragment in
@@ -1134,7 +1138,7 @@ let () =
     if first_fragment <> !current_pseudo_fragment
     then
       Lwt.ignore_result (
-        lwt () = wait_load_end () in
+        let%lwt () = wait_load_end () in
         auto_change_page first_fragment;
         Lwt.return ())
 

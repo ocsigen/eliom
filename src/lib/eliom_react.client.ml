@@ -51,7 +51,7 @@ struct
     Lwt.async (fun () -> Lwt_stream.iter_s
                   (function
                     | Lwt_stream.Error exn ->
-                      lwt () = handle_react_exn ~exn () in
+                      let%lwt () = handle_react_exn ~exn () in
                       Lwt.fail exn
                     | Lwt_stream.Value _ -> Lwt.return ())
                   stream);

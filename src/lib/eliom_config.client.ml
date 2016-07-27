@@ -40,5 +40,5 @@ let get_tracing () =
 (*     debug_timings := true *)
 
 let get_debugmode () =
-  try Js.to_bool (Js.Unsafe.global##___eliom_debug_mode_)
+  try Js.to_bool (Js.Unsafe.global##.___eliom_debug_mode_)
   with _ -> false

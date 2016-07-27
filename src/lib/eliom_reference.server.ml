@@ -224,7 +224,7 @@ let get (f, _, table as eref) =
     | Ocsiper_sit t ->
       t >>= fun t ->
       (let site_id = get_site_id () in
-       try_lwt Ocsipersist.find t site_id
+       try%lwt Ocsipersist.find t site_id
        with Not_found ->
          let value = f () in
          Ocsipersist.add t site_id value >>= fun () ->

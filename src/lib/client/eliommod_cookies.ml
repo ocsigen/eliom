@@ -32,9 +32,9 @@ let get_table ?(in_local_storage=false) = function
   | Some host ->
     if in_local_storage then
       let host = Js.string (host ^ "/substitutes") in
-      Js.Optdef.case (Dom_html.window##localStorage) (fun () -> Cookies.empty)
+      Js.Optdef.case (Dom_html.window##.localStorage) (fun () -> Cookies.empty)
         (fun st ->
-           Js.Opt.case (st##getItem(host))
+           Js.Opt.case (st##(getItem host))
              (fun () -> Cookies.empty)
              (fun v -> Json.unsafe_input v))
     else
@@ -48,15 +48,15 @@ let set_table ?(in_local_storage=false) host t =
     | Some host ->
       if in_local_storage then
         let host = Js.string (host ^ "/substitutes") in
-        Js.Optdef.case (Dom_html.window##localStorage)
+        Js.Optdef.case (Dom_html.window##.localStorage)
           (fun () -> ())
-          (fun st -> st##setItem(host, (Json.output t)))
+          (fun st -> st##(setItem host ((Json.output t))))
       else
         Jstable.add cookie_tables (Js.string host) t
 
 let now () =
-  let date = jsnew Js.date_now () in
-  Js.to_float (date##getTime ()) /. 1000.
+  let date = new%js Js.date_now in
+  Js.to_float (date##getTime) /. 1000.
 
 (** [in_local_storage] implements cookie substitutes for iOS WKWebView *)
 let update_cookie_table ?(in_local_storage=false) host cookieset =

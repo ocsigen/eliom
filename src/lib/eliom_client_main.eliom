@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-{client{
+[%%client
 
 let _ = Eliom_client.init ()
 
@@ -28,12 +28,12 @@ let _force_link =
   Eliom_react.force_link,
   Eliom_comet.force_link,
   Eliom_bus.force_link
-}}
+]
 
-{client{
+[%%client
 
 let default_reload () =
-  Dom_html.window##location##reload();
+  Dom_html.window##.location##reload;
   Lwt.return ()
 
 let reload () =
@@ -64,22 +64,22 @@ let switch_to_https () =
   let info = Eliom_process.get_info () in
   Eliom_process.set_info {info with Eliom_common.cpi_ssl = true }
 
-}}
+]
 
-{shared{
+[%%shared
 
 (* Client side implementation of void_coservices *)
 let _ =
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action
-    {{ reload_with_warning }};
+     [%client  reload_with_warning ];
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_https
-    {{ fun () () -> switch_to_https (); reload_with_warning () () }};
+     [%client  fun () () -> switch_to_https (); reload_with_warning () () ];
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_hidden
-    {{ fun () () -> reload () }};
+     [%client  fun () () -> reload () ];
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_https_hidden
-    {{ fun () () -> switch_to_https (); reload () }}
-}}
+     [%client  fun () () -> switch_to_https (); reload () ]
+]

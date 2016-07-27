@@ -49,7 +49,7 @@ module RawXML : sig
 
   val separator_to_string : separator -> string
 
-  type cookie_info = (bool * string list) deriving (Json)
+  type cookie_info = (bool * string list) [@@deriving json]
 
   type -'a caml_event_handler =
     | CE_registered_closure of
