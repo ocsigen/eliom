@@ -58,16 +58,7 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
 
   let tag_file_inside_rule file tags =
     tag_file file tags;
-    (* Workaround. See: http://caml.inria.fr/mantis/view.php?id=6186 *)
-#if ocaml_version < (4, 01)
-    Pack.Param_tags.init ()
-#else
-#if ocaml_version < (4, 02)
-    Pack.Param_tags.partial_init (Tags.of_list tags)
-#else
     Pack.Param_tags.partial_init "Eliom plugin" (Tags.of_list tags)
-#endif
-#endif
 
   let use_all_syntaxes src =
     if Filename.check_suffix src ".eliomi" then
@@ -154,10 +145,8 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
 
   let init = function
     | After_rules ->
-#if ocaml_version >= (4, 02)
         mark_tag_used no_extra_syntaxes;
         mark_tag_used eliom_ppx;
-#endif
 
         (* eliom files *)
         copy_rule_server "*.eliom -> **/_server/*.ml"
