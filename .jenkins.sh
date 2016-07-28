@@ -1,6 +1,6 @@
 opam pin add --no-action eliom .
 opam pin add --no-action ocsigenserver 'https://github.com/ocsigen/ocsigenserver.git'
-opam pin add --no-action js_of_ocaml 'https://github.com/ocsigen/js_of_ocaml.git'
+opam pin add --no-action js_of_ocaml 'https://github.com/ocsigen/js_of_ocaml.git#ce80667f0dd02076d431522b27aed1c4dd073d65'
 opam pin add --no-action reactiveData 'https://github.com/ocsigen/reactiveData.git'
 
 opam install --deps-only eliom
