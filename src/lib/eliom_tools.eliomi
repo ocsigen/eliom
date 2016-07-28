@@ -223,10 +223,10 @@ val wrap_handler :
   ('a -> 'get -> 'post -> 'res Lwt.t) ->
   ('get -> 'post -> 'res Lwt.t)
 
-[%%server.start]
 [%%client.start]
 
-(** Record an (external) JavaScript file to be included in {!Eliom_tools.F.html}. *)
+(** Record an (external) JavaScript file to be included in
+    {!Eliom_tools.F.html}. *)
 val with_js_file : string list -> unit
 
 (** Record an CSS file to be included in {!Eliom_tools.F.html}. *)

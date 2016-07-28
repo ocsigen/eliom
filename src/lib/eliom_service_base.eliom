@@ -19,7 +19,7 @@
 
 (* Manipulation of services - this code can be use on server or client side. *)
 
-[%%shared
+[%%shared.start]
 
 module rec Types : Eliom_service_sigs.TYPES = Types
 
@@ -169,10 +169,6 @@ let timeout s = s.timeout
 let https s = s.https
 let priority s = s.priority
 let client_fun {client_fun} = client_fun
-
-]
-
-[%%shared
 
 let internal_set_client_fun ~service f = service.client_fun <- Some f
 
@@ -774,5 +770,3 @@ let which_meth_untyped
   | Post'   -> `Post
   | Put'    -> `Put
   | Delete' -> `Delete
-
-]
