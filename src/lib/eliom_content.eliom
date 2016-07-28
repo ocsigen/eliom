@@ -19,10 +19,8 @@
 
 
 [%%client
-
-  include Eliom_content_
-  let force_link = ()
-
+include Eliom_content_
+let force_link = ()
 ]
 
 [%%shared
@@ -90,18 +88,13 @@ module Html = struct
 
 end
 
-
 ]
 
-[%%shared
-   let set_client_fun = Eliom_service.set_client_fun
- ]
+let%shared set_client_fun = Eliom_service.set_client_fun
 
-[%%client
-let wrap_client_fun f get_params post_params =
+let%client wrap_client_fun f get_params post_params =
   let%lwt content = f get_params post_params in
   let content = Html.To_dom.of_element content in
   Eliom_client.set_content_local content
 
-let set_form_error_handler = Eliom_form.set_error_handler
- ]
+let%client set_form_error_handler = Eliom_form.set_error_handler

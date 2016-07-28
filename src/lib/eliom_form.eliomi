@@ -19,8 +19,8 @@
 *)
 
 [%%client.start]
+
 val set_error_handler : (unit -> bool Lwt.t) -> unit
-[%%server.start]
 
 [%%shared.start]
 
@@ -71,5 +71,3 @@ module Make (H : Html) :
    and type +'a attrib := 'a H.attrib
    and type uri := H.uri
    and type 'a param = 'a param
-
-[%%server.start]

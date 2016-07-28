@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-[%%client
+[%%client.start]
 
 let _ = Eliom_client.init ()
 
@@ -28,9 +28,6 @@ let _force_link =
   Eliom_react.force_link,
   Eliom_comet.force_link,
   Eliom_bus.force_link
-]
-
-[%%client
 
 let default_reload () =
   Dom_html.window##.location##reload;
@@ -64,12 +61,8 @@ let switch_to_https () =
   let info = Eliom_process.get_info () in
   Eliom_process.set_info {info with Eliom_common.cpi_ssl = true }
 
-]
-
-[%%shared
-
 (* Client side implementation of void_coservices *)
-let _ =
+let%shared _ =
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action
      [%client  reload_with_warning ];
@@ -82,4 +75,3 @@ let _ =
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_https_hidden
      [%client  fun () () -> switch_to_https (); reload () ]
-]

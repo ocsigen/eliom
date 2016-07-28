@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-[%%shared
+[%%shared.start]
 
 open Eliom_lib
 open Eliom_content
@@ -167,26 +167,28 @@ module type HTML5_TOOLS = sig
 
 end
 
-]
-[%%server
-let css_files = Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
-let js_files = Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
-let with_css_file file =
+let%server css_files =
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
+let%client css_files = ref []
+
+let%server js_files =
+  Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
+let%client js_files = ref []
+
+let%server with_css_file file =
   Eliom_reference.Volatile.modify css_files (fun files -> file :: files)
-let with_js_file file =
+let%client with_css_file file = css_files := file :: !css_files
+
+let%server with_js_file file =
   Eliom_reference.Volatile.modify js_files (fun files -> file :: files)
-let get_css_files () = Eliom_reference.Volatile.get css_files
-let get_js_files () = Eliom_reference.Volatile.get js_files
-]
-[%%client
-let css_files = ref []
-let js_files = ref []
-let with_css_file file = css_files := file :: !css_files
-let with_js_file file = js_files := file :: !js_files
-let get_css_files () = let f = !css_files in css_files := []; f
-let get_js_files () = let f = !js_files in js_files := []; f
-]
-[%%shared
+let%client with_js_file file = js_files := file :: !js_files
+
+let%server get_css_files () = Eliom_reference.Volatile.get css_files
+let%client get_css_files () = let f = !css_files in css_files := []; f
+
+let%server get_js_files () = Eliom_reference.Volatile.get js_files
+let%client get_js_files () = let f = !js_files in js_files := []; f
+
 module Make(DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
   open Html_types
   open Html.F
@@ -501,11 +503,10 @@ let wrap_handler information none some =
       | None -> none get post
       | Some value -> some value get post
 
-]
+(* Alternative semantics for with_js_file and with_css_file on client
+   side: *)
 
-(* Alternative semantics for with_js_file and with_css_file on client side: *)
-[%%client
-let add_js_file path =
+let%client add_js_file path =
   let uri =
     Html.F.make_uri
       (Eliom_service.static_dir () )
@@ -517,7 +518,7 @@ let add_js_file path =
   ignore
     Dom_html.document##.head##(appendChild (Html.To_dom.of_node script))
 
-let add_css_file path =
+let%client add_css_file path =
   let uri =
     Html.F.make_uri
       (Eliom_service.static_dir () )
@@ -527,6 +528,4 @@ let add_css_file path =
     Html.F.css_link ~uri ()
   in
   ignore
-    Dom_html.document##.head##(appendChild
-      (Html.To_dom.of_node link))
-]
+    Dom_html.document##.head##(appendChild (Html.To_dom.of_node link))
