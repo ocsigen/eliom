@@ -48,8 +48,6 @@ let builder = `Other ("_build/build/build.native","_build")
 
 let with_man3 = Env.bool "manpage"
 
-let with_ppx = Env.bool "ppx"
-
 let () =
   Pkg.describe "eliom" ~builder ([
     (* META *)
@@ -87,6 +85,16 @@ let () =
 
     Pkg.lib ~exts:exts_modlib ~dst:"ocamlbuild/ocamlbuild_eliom" "src/ocamlbuild/ocamlbuild_eliom";
 
+    (* PPX *)
+    Pkg.lib ~exts:Exts.module_library ~dst:"ppx/ppx_eliom" "src/ppx/ppx_eliom";
+    Pkg.lib ~exts:Exts.module_library ~dst:"ppx/ppx_eliom_client" "src/ppx/ppx_eliom_client";
+    Pkg.lib ~exts:Exts.module_library ~dst:"ppx/ppx_eliom_type" "src/ppx/ppx_eliom_type";
+    Pkg.lib ~exts:Exts.module_library ~dst:"ppx/ppx_eliom_server" "src/ppx/ppx_eliom_server";
+
+    Pkg.bin ~auto:true ~dst:"ppx_eliom_client" "src/ppx/ppx_eliom_client_ex" ;
+    Pkg.bin ~auto:true ~dst:"ppx_eliom_server" "src/ppx/ppx_eliom_server_ex" ;
+    Pkg.bin ~auto:true ~dst:"ppx_eliom_types" "src/ppx/ppx_eliom_types_ex"
+
   ] @ (
     (* CLIENT LIBS *)
     Pkg.lib ~dst:"client/client" ~exts:[".cma"] "src/lib/client/client" ::
@@ -115,13 +123,4 @@ let () =
           List.map (fun file ->
               Pkg.lib ~dst:(spf "templates/%s/%s" name file) (spf "%s/%s/%s" templates_dir name file)
             ) files) templates_files )
-  ) @ if with_ppx then [
-    Pkg.lib ~exts:Exts.module_library ~dst:"ppx/ppx_eliom" "src/ppx/ppx_eliom";
-    Pkg.lib ~exts:Exts.module_library ~dst:"ppx/ppx_eliom_client" "src/ppx/ppx_eliom_client";
-    Pkg.lib ~exts:Exts.module_library ~dst:"ppx/ppx_eliom_type" "src/ppx/ppx_eliom_type";
-    Pkg.lib ~exts:Exts.module_library ~dst:"ppx/ppx_eliom_server" "src/ppx/ppx_eliom_server";
-
-    Pkg.bin ~auto:true ~dst:"ppx_eliom_client" "src/ppx/ppx_eliom_client_ex" ;
-    Pkg.bin ~auto:true ~dst:"ppx_eliom_server" "src/ppx/ppx_eliom_server_ex" ;
-    Pkg.bin ~auto:true ~dst:"ppx_eliom_types" "src/ppx/ppx_eliom_types_ex" ;
-  ] else [])
+  ))
