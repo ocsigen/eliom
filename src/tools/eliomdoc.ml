@@ -85,13 +85,7 @@ let client_pp_opt impl_intf =
     !ppopt
 
 let generate_temp_file file =
-  let tmp_dir =
-#if ocaml_version < (4, 00)
-    Filename.temp_dir_name
-#else
-    (Filename.get_temp_dir_name ())
-#endif
-  in
+  let tmp_dir = Filename.get_temp_dir_name () in
   let temp_file =
     tmp_dir
     ^ (Filename.dir_sep)

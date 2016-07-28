@@ -46,14 +46,10 @@ true:keep_locs
 <ppx/**/*>: package(ppx_tools, compiler-libs.common, ppx_tools.metaquot)
 
 <ocamlbuild/ocamlbuild_eliom.ml{,i}>: package(ocamlbuild,js_of_ocaml.ocamlbuild)
-<ocamlbuild/ocamlbuild_eliom.ml>: syntax(camlp4o), package(optcomp)
 <ocamlbuild/eliombuild.{ml,mli,byte,native}>:package(ocamlbuild,js_of_ocaml.ocamlbuild)
 
-<tools/*.ml>:syntax(camlp4o),package(optcomp)
 <tools/*.ml{,i}>:package(unix,findlib)
 <tools/*.{byte,native}>:package(unix,str,findlib)
-
-
 
 <lib/client/api.*/index.*>: with_intro(doc/client.indexdoc),subproject(client)
 <lib/server/api.*/index.*>: with_intro(doc/server.indexdoc),subproject(server)
