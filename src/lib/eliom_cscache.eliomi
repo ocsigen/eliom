@@ -25,8 +25,10 @@ val create : unit -> ('a, 'b) t
   (** [find cache get_from_db key]
       returns the value associated to [key] in cache.
       If not present, it calls [get_from_db] to fetch the data from
-      the database. [get_from_db] must be implemented both on server
+      the database. [get_from_db] must be implemented both server
       and client sides.
+      Several simultaneous call to [find] will result in a single call to
+      [get_from_db]. Exceptions are not cached.
   *)
 val find : ('a, 'b) t -> ('a -> 'b Lwt.t) -> 'a -> 'b Lwt.t
 
