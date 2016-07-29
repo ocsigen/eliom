@@ -49,7 +49,7 @@ let create_buffer () =
   in
   add, get, flush, push
 
-(* == Callbacks for onload and onunload *)
+(* == Callbacks for onload, onbeforeunload, and onunload *)
 
 let run_callbacks handlers = List.iter (fun f -> f ()) handlers
 
@@ -57,38 +57,32 @@ let onload, _, flush_onload, push_onload :
   ((unit -> unit) -> unit) * (unit -> (unit -> unit) list) * (unit -> (unit -> unit) list) * (unit -> unit)
   = create_buffer ()
 
-let onunload, run_onunload =
+let onunload, _, flush_onunload, _ = create_buffer ()
+
+let onunload f = onunload (fun () -> ignore (f()))
+
+let onbeforeunload, run_onbeforeunload, flush_onbeforeunload =
   let add, get, flush, _ = create_buffer () in
-  let r = ref (get ()) in
-  let rec run acc ~final =
-    match acc with
-    | f :: acc ->
-      (match f () with
-       | None ->
-         run acc ~final
-       | Some s when not final ->
-         (* we will run the rest of the callbacks later, in case the
-            user decides not to quit *)
-         r := acc; Some s
-       | Some _ ->
-         run acc ~final)
+  let rec run lst =
+    match lst with
     | [] ->
-      ignore (flush ()); None
+        None
+    | f :: rem ->
+        match f () with
+        | None   -> run rem
+        | Some s -> Some s
+
   in
-  let run ?(final = false) () =
-    (if final then !r else get ()) |> run ~final
-  in
-  add, run
+  add, (fun () -> run (get ())), flush
 
 let run_onunload_wrapper f g =
-  match run_onunload ~final:false () with
-  | Some s ->
-    if confirm "%s" s then
-      let _ = run_onunload ~final:true () in f ()
-    else
+  match run_onbeforeunload () with
+  | Some s when not (confirm "%s" s) ->
       g ()
-  | None ->
-    f ()
+  | _ ->
+      ignore (flush_onbeforeunload ());
+      run_callbacks (flush_onunload ());
+      f ()
 
 let lwt_onload () =
   let t, u = Lwt.wait () in

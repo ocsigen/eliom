@@ -219,7 +219,7 @@ val onload : (unit -> unit) -> unit
 (** Returns a Lwt thread that waits until the next page is loaded. *)
 val lwt_onload : unit -> unit Lwt.t
 
-(** [onunload f] registers [f] as a handler to be called before
+(** [onbeforeunload f] registers [f] as a handler to be called before
     changing the page the next time. If [f] returns [Some s], then we
     ask the user to confirm quitting. We try to use [s] in the
     confirmation pop-up. [None] means no confirmation needed.
@@ -230,10 +230,14 @@ val lwt_onload : unit -> unit Lwt.t
     browser. For Firefox, the string [s] returned by [f] is ignored:
     https://bugzilla.mozilla.org/show_bug.cgi?id=641509
 
-    [onunload] can be used to register multiple callbacks. If the user
-    decides to stay, we call any remaining callbacks, but these cannot
-    ask for further confirmation. *)
-val onunload : (unit -> string option) -> unit
+    [onbeforeunload] can be used to register multiple callbacks. *)
+val onbeforeunload : (unit -> string option) -> unit
+
+(** [onunload f] registers [f] as a handler to be called before page
+    change. The callback [f] is sometimes trigerred by internal
+    service calls, and sometimes by the browser [onunload] event.
+    [onunload] can be used to register multiple callbacks. *)
+val onunload : (unit -> _) -> unit
 
 (** Wait for the initialization phase to terminate *)
 val wait_load_end : unit -> unit Lwt.t
