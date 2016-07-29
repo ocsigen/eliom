@@ -1297,9 +1297,9 @@ let add_string_event_listener o e f capt : unit =
     | Some s ->
       let s = Js.string s in
       (Js.Unsafe.coerce e)##returnValue <- s;
-      Js.some s
+      Js.def s
     | None ->
-      Js.null
+      Js.undefined
   in
   let f = Js.Unsafe.callback f in
   ignore @@
