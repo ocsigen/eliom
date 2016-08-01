@@ -237,7 +237,7 @@ val onbeforeunload : (unit -> string option) -> unit
     change. The callback [f] is sometimes trigerred by internal
     service calls, and sometimes by the browser [onunload] event.
     [onunload] can be used to register multiple callbacks. *)
-val onunload : (unit -> _) -> unit
+val onunload : (unit -> unit) -> unit
 
 (** Wait for the initialization phase to terminate *)
 val wait_load_end : unit -> unit Lwt.t

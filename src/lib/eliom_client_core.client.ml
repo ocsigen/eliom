@@ -59,8 +59,6 @@ let onload, _, flush_onload, push_onload :
 
 let onunload, _, flush_onunload, _ = create_buffer ()
 
-let onunload f = onunload (fun () -> ignore (f()))
-
 let onbeforeunload, run_onbeforeunload, flush_onbeforeunload =
   let add, get, flush, _ = create_buffer () in
   let rec run lst =
