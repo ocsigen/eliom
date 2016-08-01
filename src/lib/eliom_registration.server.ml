@@ -970,15 +970,15 @@ module Ocaml = struct
 
   let prepare_data data =
     let ecs_request_data =
-      let data = Eliom_syntax.get_request_data () in
+      let data = Eliom_runtime.get_request_data () in
       if not (Ocsigen_config.get_debugmode()) then
         Array.iter (fun d ->
-          Eliom_runtime.Client_value_server_repr.clear_loc
-            d.Eliom_runtime.value) data;
+          Eliom_serial.Client_value_server_repr.clear_loc
+            d.Eliom_serial.value) data;
       data
     in
     (*     debug_client_value_data (debug "%s") client_value_data; *)
-    let r = { Eliom_runtime.ecs_request_data;
+    let r = { Eliom_serial.ecs_request_data;
               ecs_data = data } in
     Lwt.return (Eliom_types.encode_eliom_data r)
 
@@ -1172,7 +1172,7 @@ let request_template =
 
 let global_data_unwrapper =
   Eliom_wrap.create_unwrapper
-    (Eliom_wrap.id_of_int Eliom_runtime.global_data_unwrap_id_int)
+    (Eliom_wrap.id_of_int Eliom_serial.global_data_unwrap_id_int)
 
 module Eliom_appl_reg_make_param
   (Html_content
@@ -1248,25 +1248,25 @@ module Eliom_appl_reg_make_param
 
     let ejs_global_data =
       if is_initial_request () then
-        let data = Eliom_syntax.get_global_data () in
+        let data = Eliom_runtime.get_global_data () in
         let data =
           if keep_debug
           then data
           else
             Eliom_lib.String_map.map
-              (fun {Eliom_runtime.server_sections_data;
+              (fun {Eliom_serial.server_sections_data;
                     client_sections_data} ->
                  Array.iter
                    (Array.iter (fun d ->
-                      Eliom_runtime.Client_value_server_repr.clear_loc
-                        d.Eliom_runtime.value))
+                      Eliom_serial.Client_value_server_repr.clear_loc
+                        d.Eliom_serial.value))
                    server_sections_data;
-              { Eliom_runtime.server_sections_data;
+              { Eliom_serial.server_sections_data;
                 client_sections_data = Array.map
                     (
                       Array.map (fun x ->
                         {x with
-                         Eliom_runtime.injection_dbg = None})
+                         Eliom_serial.injection_dbg = None})
                     )
                     client_sections_data
               }) data
@@ -1275,11 +1275,11 @@ module Eliom_appl_reg_make_param
       else None
     in
     let ejs_request_data =
-      let data = Eliom_syntax.get_request_data () in
+      let data = Eliom_runtime.get_request_data () in
       if not keep_debug then
         Array.iter (fun d ->
-          Eliom_runtime.Client_value_server_repr.clear_loc
-            d.Eliom_runtime.value) data;
+          Eliom_serial.Client_value_server_repr.clear_loc
+            d.Eliom_serial.value) data;
       data
     in
 
@@ -1518,7 +1518,7 @@ struct
   let application_script = P.application_script
 
   let data_service_handler () () =
-    Lwt.return (Eliom_syntax.get_global_data (), global_data_unwrapper)
+    Lwt.return (Eliom_runtime.get_global_data (), global_data_unwrapper)
 
   let _ =
     match App_param.global_data_path with

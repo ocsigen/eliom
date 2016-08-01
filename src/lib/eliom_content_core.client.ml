@@ -26,7 +26,7 @@
 open Eliom_lib
 
 module Xml = struct
-  include Eliom_runtime.RawXML
+  include Eliom_serial.RawXML
   module W = Xml_wrap.NoWrap
   type 'a wrap = 'a
   type 'a list_wrap = 'a list
@@ -125,7 +125,7 @@ module Xml = struct
       f ()
     else
       match elt.node_id with
-      | Eliom_runtime.RawXML.NoId ->
+      | Eliom_serial.RawXML.NoId ->
         f ()
       | _ ->
         elt

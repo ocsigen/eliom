@@ -43,8 +43,8 @@ module Xml : sig
   (* Building ref tree. *)
   type node_id
   val get_node_id : elt -> node_id
-  val make_event_handler_table : elt -> Eliom_runtime.RawXML.event_handler_table
-  val make_client_attrib_table : elt -> Eliom_runtime.RawXML.client_attrib_table
+  val make_event_handler_table : elt -> Eliom_serial.RawXML.event_handler_table
+  val make_client_attrib_table : elt -> Eliom_serial.RawXML.client_attrib_table
 
   type internal_event_handler =
     | Raw of string

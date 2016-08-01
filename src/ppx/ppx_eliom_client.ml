@@ -19,7 +19,7 @@ module Pass = struct
        expr = (fun mapper e ->
          match e.pexp_desc with
          | Pexp_ident {txt} when Mli.is_escaped_ident @@ Longident.last txt ->
-           [%expr Eliom_client_core.Syntax_helpers.get_escaped_value [%e e] ]
+           [%expr Eliom_runtime.get_escaped_value [%e e] ]
            [@metaloc e.pexp_loc]
          | _ -> AM.default_mapper.expr mapper e
        );
@@ -84,7 +84,7 @@ module Pass = struct
            let typ = find_fragment id in
            let args = List.map Pat.var args in
            [%expr
-             Eliom_client_core.Syntax_helpers.register_client_closure
+             Eliom_runtime.register_client_closure
                [%e AC.str num]
                (fun [%p pat_args args] ->
                   ([%e map_get_escaped_values expr] : [%t typ]))
@@ -125,7 +125,7 @@ module Pass = struct
   let close_server_section loc =
     [%stri
       let () =
-        Eliom_client_core.Syntax_helpers.close_server_section
+        Eliom_runtime.close_server_section
           [%e eid @@ id_file_hash loc]
     ][@metaloc loc]
 
@@ -138,7 +138,7 @@ module Pass = struct
   let open_client_section loc =
     [%stri
       let () =
-        Eliom_client_core.Syntax_helpers.open_client_section
+        Eliom_runtime.open_client_section
           [%e eid @@ id_file_hash loc]
     ][@metaloc loc]
 

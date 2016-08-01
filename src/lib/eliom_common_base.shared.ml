@@ -270,28 +270,28 @@ type sess_info =
 
 type eliom_js_page_data = {
   ejs_global_data:
-    (Eliom_runtime.global_data * Eliom_wrap.unwrapper) option;
-  ejs_request_data: Eliom_runtime.request_data;
+    (Eliom_serial.global_data * Eliom_wrap.unwrapper) option;
+  ejs_request_data: Eliom_serial.request_data;
   (* Event handlers *)
-  ejs_event_handler_table: Eliom_runtime.RawXML.event_handler_table;
+  ejs_event_handler_table: Eliom_serial.RawXML.event_handler_table;
   (* Client Attributes *)
-  ejs_client_attrib_table: Eliom_runtime.RawXML.client_attrib_table;
+  ejs_client_attrib_table: Eliom_serial.RawXML.client_attrib_table;
   (* Session info *)
   ejs_sess_info: sess_info;
 }
 
 (************ unwrapping identifiers *********************)
 
-let tyxml_unwrap_id_int = Eliom_runtime.tyxml_unwrap_id_int
+let tyxml_unwrap_id_int = Eliom_serial.tyxml_unwrap_id_int
 let () = assert (tyxml_unwrap_id_int = 1)
 let comet_channel_unwrap_id_int = 2
 let react_up_unwrap_id_int = 3
 let react_down_unwrap_id_int = 4
 let signal_down_unwrap_id_int = 5
 let bus_unwrap_id_int = 6
-let client_value_unwrap_id_int = Eliom_runtime.client_value_unwrap_id_int
+let client_value_unwrap_id_int = Eliom_serial.client_value_unwrap_id_int
 let () = assert (client_value_unwrap_id_int = 7)
-let global_data_unwrap_id_int = Eliom_runtime.global_data_unwrap_id_int
+let global_data_unwrap_id_int = Eliom_serial.global_data_unwrap_id_int
 let () = assert (global_data_unwrap_id_int = 8)
 let server_function_unwrap_id_int = 9
 
