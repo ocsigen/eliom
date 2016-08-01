@@ -80,7 +80,6 @@ module type Pass = sig
     expression -> expression
 
   val prelude : Location.t -> structure
-  val postlude : Location.t -> structure
 
 end
 

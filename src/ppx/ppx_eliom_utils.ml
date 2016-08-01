@@ -322,7 +322,6 @@ module type Pass = sig
     expression -> expression
 
   val prelude : loc -> structure
-  val postlude : loc -> structure
 
 end
 
@@ -647,8 +646,7 @@ module Make (Pass : Pass) = struct
     let loc = {(file_position structs) with loc_ghost = true} in
     module_hash_declaration loc ::
     Pass.prelude loc @
-    flatmap f structs @
-    Pass.postlude loc
+    flatmap f structs
 
   let toplevel_signature context mapper sigs =
     let f psig =

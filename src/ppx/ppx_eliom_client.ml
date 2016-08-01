@@ -254,7 +254,6 @@ module Pass = struct
   let client_sig item = [item]
 
   let prelude _ = []
-  let postlude _ = []
 
 end
 
