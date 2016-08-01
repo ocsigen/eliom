@@ -200,14 +200,7 @@ module Pass = struct
       push_injection ?ident id.txt expr;
       eid id
 
-  let set_global ~loc b =
-    let b = Exp.construct ~loc
-        {loc ; txt = Longident.Lident (if b then "true" else "false")} None
-    in
-    [%stri let () = Eliom_syntax.set_global [%e b ] ]
-
-  let prelude loc = [ set_global ~loc true ]
-  let postlude loc = [ set_global ~loc false ]
+  let prelude _loc = []
 
   let shared_sig item = [item]
   let server_sig item = [item]

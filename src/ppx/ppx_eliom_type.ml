@@ -136,8 +136,6 @@ module Pass = struct
     let id = Pat.var ~loc { loc ; txt } in
     [%str let [%p id] = () ]
 
-  let postlude _ = []
-
   let shared_sig _ = []
   let server_sig _ = []
   let client_sig _ = []
