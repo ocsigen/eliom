@@ -103,16 +103,10 @@ let _ =
 
 let onunload_fun _ =
   update_state ();
-  (* running remaining callbacks, if onbeforeunload left some *)
-  let _ = run_onunload ~final:true () in
+  run_callbacks (flush_onunload ());
   Js._true
 
-and onbeforeunload_fun e =
-  match run_onunload ~final:false () with
-  | None ->
-    update_state (); None
-  | r ->
-    r
+let onbeforeunload_fun _ = run_onbeforeunload ()
 
 (* Function called (in Eliom_client_main), once when starting the app.
    Either when sent by a server or initiated on client side. *)
