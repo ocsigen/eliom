@@ -27,7 +27,7 @@ open Eliom_lib
 (*****************************************************************************)
 
 module Xml = struct
-  include Eliom_runtime.RawXML
+  include Eliom_serial.RawXML
   module W = Xml_wrap.NoWrap
   type 'a wrap = 'a
   type 'a list_wrap = 'a list
@@ -88,7 +88,7 @@ module Xml = struct
   let get_node_id { elt } = elt.node_id
 
   let tyxml_unwrap_id =
-    Eliom_wrap.id_of_int Eliom_runtime.tyxml_unwrap_id_int
+    Eliom_wrap.id_of_int Eliom_serial.tyxml_unwrap_id_int
 
   let make elt =
     { elt =
@@ -193,7 +193,7 @@ module Xml = struct
       f ()
     else
       match elt'.elt.node_id with
-      | Eliom_runtime.RawXML.NoId ->
+      | Eliom_serial.RawXML.NoId ->
         f ()
       | _ ->
         elt'

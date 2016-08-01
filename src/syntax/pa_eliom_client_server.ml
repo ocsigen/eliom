@@ -48,7 +48,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
       arg_collection := [];
       let aux (_, arg) =
         let _loc = Ast.loc_of_expr arg in
-        <:expr< Eliom_syntax.escaped_value $arg$ >>
+        <:expr< Eliom_runtime.escaped_value $arg$ >>
       in
       List.map aux res
     in
@@ -67,7 +67,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
       let res = List.rev !arg_collection
       and aux (_, arg) =
         let _loc = Ast.loc_of_expr arg in
-        <:expr< Eliom_syntax.escaped_value $arg$ >>
+        <:expr< Eliom_runtime.escaped_value $arg$ >>
       in
       arg_ids := [];
       arg_collection := [];
@@ -125,7 +125,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     let _loc = Loc.ghost in
     <:str_item<
         let () =
-          Eliom_syntax.close_server_section
+          Eliom_runtime.close_server_section
             $str:Helpers.file_hash loc$
     >>
 
@@ -147,7 +147,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     in
     <:str_item<
         let () =
-          Eliom_syntax.close_client_section
+          Eliom_runtime.close_client_section
             $str:Helpers.file_hash loc$
             $injection_list$
     >>
@@ -198,7 +198,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
         flush_escaped_bindings ()
     in
     <:expr@loc<
-      (Eliom_syntax.client_value
+      (Eliom_runtime.fragment
          ~pos:($Helpers.position _loc$)
          $str:gen_id$ $Helpers.expr_tuple l$
        : $typ$ Eliom_client_value.t) >> ;;
@@ -222,7 +222,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     <:expr@loc<
     Eliom_shared.Value.create
       $orig_expr$
-      (Eliom_syntax.client_value
+      (Eliom_runtime.fragment
         ~pos:($Helpers.position _loc$)
         $str:gen_id$
         $Helpers.expr_tuple (flush_escaped_bindings ())$
@@ -251,7 +251,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let implem loc sil =
     let _loc = Loc.ghost in
     let set_global b =
-      <:str_item< let () = Eliom_syntax.set_global $`bool:b$ >>
+      <:str_item< let () = Eliom_runtime.set_global $`bool:b$ >>
     in
     set_global true :: sil @ [ set_global false ]
 

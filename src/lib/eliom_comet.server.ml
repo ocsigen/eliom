@@ -759,7 +759,7 @@ end = struct
 
   let marshal (v:'a) =
     let wrapped = Eliom_wrap.wrap v in
-    let value : 'a Eliom_runtime.eliom_comet_data_type = wrapped in
+    let value : 'a Eliom_serial.eliom_comet_data_type = wrapped in
     (Eliom_lib.Url.encode ~plus:false (Marshal.to_string value []))
 
   let create_stateful_channel ?scope ?name stream =

@@ -41,7 +41,7 @@ module Pass = struct
       let res = List.rev !args in
       args := [];
       let aux (_, arg) =
-        [%expr Eliom_syntax.escaped_value [%e arg ] ]
+        [%expr Eliom_runtime.escaped_value [%e arg ] ]
         [@metaloc arg.pexp_loc]
       in
       List.map aux res
@@ -99,7 +99,7 @@ module Pass = struct
     let s = file_hash loc in
     [%stri
       let () =
-        Eliom_syntax.close_server_section
+        Eliom_runtime.close_server_section
           [%e AC.str s]
     ] [@metaloc loc]
 
@@ -125,7 +125,7 @@ module Pass = struct
     let s = file_hash loc in
     [%stri
       let () =
-        Eliom_syntax.close_client_section
+        Eliom_runtime.close_client_section
           [%e AC.str s ]
           [%e injection_list ]
     ][@metaloc loc]
@@ -184,7 +184,7 @@ module Pass = struct
     let loc = expr.pexp_loc in
     let e = format_args @@ flush_escaped_bindings () in
     [%expr
-      (Eliom_syntax.client_value
+      (Eliom_runtime.fragment
          ~pos:([%e position loc ])
          [%e AC.str num ]
          [%e e ]

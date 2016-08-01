@@ -168,7 +168,7 @@ type client_value_datum = {
 
 (** Data for initializing one injection *)
 type injection_datum = {
-  injection_dbg : (Eliom_lib_base.pos * string option) option;
+  injection_dbg : (Eliom_lib.pos * string option) option;
   injection_id : int;
   injection_value : Ocsigen_lib.poly;
 }

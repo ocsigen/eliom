@@ -98,7 +98,7 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     let _loc = loc in
     <:expr< begin
       $flush_typing_expr ()$;
-      $lid:gen_tid$ := Some (Eliom_syntax.client_value "" 0 : $typ$ Eliom_client_value.t);
+      $lid:gen_tid$ := Some (Eliom_runtime.fragment "" 0 : $typ$ Eliom_client_value.t);
             match ! $lid:gen_tid $ with
             | Some x -> (x : _ Eliom_client_value.t)
             | None -> assert false
@@ -116,7 +116,7 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
         begin
           $flush_typing_expr ()$;
           $lid:gen_tid$ :=
-            Some (Eliom_syntax.client_value "" 0 :
+            Some (Eliom_runtime.fragment "" 0 :
                    $typ$ Eliom_client_value.t);
           match ! $lid:gen_tid $ with
           | Some x -> x

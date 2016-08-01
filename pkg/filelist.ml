@@ -16,7 +16,7 @@ let server = {
   interface = [
     "eliom_bus";
     "eliom_client_value";
-    "eliom_syntax";
+    "eliom_runtime";
     "eliom_client";
     "eliom_comet";
     "eliom_common";
@@ -43,7 +43,7 @@ let server = {
   internal = [
     "eliom_comet_base";
     "eliom_common_base";
-    "eliom_runtime";
+    "eliom_serial";
     "eliom_content_";
     "eliom_content_core";
     "eliom_cookies_base";
