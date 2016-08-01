@@ -218,9 +218,7 @@ module MakeManip
 
     let replaceSelf elt1 elt2 =
       Eliom_lib.Option.iter
-        (fun parent ->
-           appendChild ~before:elt1 parent elt2;
-           removeChild parent elt1)
+        (fun parent -> replaceChild parent elt2 elt1)
         (parentNode elt1)
 
     module RawNamed = struct
