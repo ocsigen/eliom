@@ -248,12 +248,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
           let _loc = Ast.loc_of_expr orig_expr in
           <:expr< $lid:gen_id$ >>
 
-  let implem loc sil =
-    let _loc = Loc.ghost in
-    let set_global b =
-      <:str_item< let () = Eliom_runtime.set_global $`bool:b$ >>
-    in
-    set_global true :: sil @ [ set_global false ]
+  let implem _ sil = sil
 
   let shared_sig_items _ items = Ast.sgSem_of_list items
   let server_sig_items _ items = Ast.sgSem_of_list items
