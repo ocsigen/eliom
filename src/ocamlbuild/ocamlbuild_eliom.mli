@@ -1,7 +1,6 @@
 (** The paths to each eliom directories *)
 module type ELIOM = sig
   val server_dir : Ocamlbuild_plugin.Pathname.t
-  val type_dir : Ocamlbuild_plugin.Pathname.t
   val client_dir : Ocamlbuild_plugin.Pathname.t
 end
 
