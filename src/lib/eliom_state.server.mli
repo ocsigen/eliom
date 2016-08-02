@@ -670,6 +670,7 @@ val get_persistent_data_state_timeout :
 
 (** The type of (volatile) state data tables. *)
 type 'a volatile_table
+
 (** The type of persistent state data tables. *)
 type 'a persistent_table
 
@@ -1011,11 +1012,12 @@ val remove_volatile_data :
   unit
 (**/**)
 
-
 (**/**)
+
 (** {4 Persistent state data} *)
-(** creates a table on hard disk where you can store the session data for
-    all users. It uses {!Ocsipersist}.  (low level) *)
+
+(** creates a table on hard disk where you can store the session data
+    for all users. It uses {!Ocsipersist}.  (low level) *)
 val create_persistent_table :
   scope:Eliom_common.user_scope ->
   ?secure:bool ->

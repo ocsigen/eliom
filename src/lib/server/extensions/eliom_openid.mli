@@ -121,6 +121,7 @@ type openid_error =
       (** The answer code was not correct *)
   | Invalid_html_doc of string
       (** An error occured during the parsing of an user url in html format *)
+
 (** Prettyprint an OpenID Error *)
 val string_of_openid_error : openid_error -> string
 
@@ -191,18 +192,21 @@ val perform_discovery : string -> (string * string option) Lwt.t
 
 (** Information about the hidden service *)
 module type HiddenServiceInfo = sig
+
+  (** The path of the hidden service *)
   val path : string list
-(** The path of the hidden service *)
+
+  (** The function called when an user connects to the hidden service
+      (not that hidden) without being in an identication process.
+      Typically you should redirect the user to the login page. *)
   val f :
     (string * string) list ->
     unit -> Eliom_registration.browser_content Eliom_registration.kind Lwt.t
-(** The function called when an user connects to the hidden service
-    (not that hidden) without being in an identication process.
-    Typically you should redirect the user to the login page. *)
+
 end
-(** This functor build a hidden service that will be used
-    to receive the remote server's data. In return
-    you get a check function *)
+
+(** This functor build a hidden service that will be used to receive
+    the remote server's data. In return you get a check function *)
 module Make :
   functor
     (S : HiddenServiceInfo) ->

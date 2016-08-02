@@ -27,16 +27,19 @@
 *)
 module Client_value_server_repr : sig
   type +'a t
+
   (** instance_id is zero for local client values, unique for global
       client values *)
   val create:
     ?loc:Eliom_lib_base.pos ->
     instance_id:int ->
     unwrapper:Eliom_wrap.unwrapper -> _ t
+
   val instance_id: _ t -> int
   val loc : _ t -> Eliom_lib_base.pos option
   val clear_loc : _ t -> unit
   val to_poly : _ t -> Ocsigen_lib.poly t
+
 end
 
 (** The representation of escaped values (values injected into client

@@ -81,12 +81,16 @@ end
 
 (** Deprecated. Use Lwt_log.ign_raise_error_f instead *)
 val error : ('a, unit, string, 'b) format4 -> 'a
+
 (** Deprecated. Use Lwt_log.ign_raise_error_f (with ~inspect argument) instead *)
 val error_any : _ -> ('a, unit, string, 'b) format4 -> 'a
+
 (** Deprecated. Use Lwt_log.ign_info_f instead *)
 val debug : ('a, unit, string, unit) format4 -> 'a
+
 (** Deprecated. Use Lwt_log.ign_info_f instead *)
 val debug_exn : ('a, unit, string, unit) format4 -> exn -> 'a
+
 (** Deprecated. Use Lwt_log.ign_info (with ~inspect argument) instead *)
 val jsdebug : 'a -> unit
 

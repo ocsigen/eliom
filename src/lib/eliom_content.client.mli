@@ -214,14 +214,19 @@ module Svg : sig
 
       (** see [appendChild] *)
       val appendChild: ?before:'a elt -> 'b Id.id -> 'c elt -> unit
+
       (** see [appendChildren] *)
       val appendChildren: ?before:'a elt -> 'b Id.id ->  'c elt list -> unit
+
       (** see [removeChild] *)
       val removeChild: 'a Id.id -> 'b elt -> unit
+
       (** see [replaceChild] *)
       val replaceChild: 'a Id.id -> 'b elt -> 'c elt -> unit
+
       (** see [removeChildren] *)
       val removeChildren: 'a Id.id -> unit
+
       (** see [replaceChildren] *)
       val replaceChildren: 'a Id.id -> 'b elt list -> unit
 
@@ -531,14 +536,19 @@ module Html : sig
 
       (** see [appendChild] *)
       val appendChild: ?before:'a elt -> 'b Id.id -> 'c elt -> unit
+
       (** see [appendChildren] *)
       val appendChildren: ?before:'a elt -> 'b Id.id ->  'c elt list -> unit
+
       (** see [removeChild] *)
       val removeChild: 'a Id.id -> 'b elt -> unit
+
       (** see [replaceChild] *)
       val replaceChild: 'a Id.id -> 'b elt -> 'c elt -> unit
+
       (** see [removeChildren] *)
       val removeChildren: 'a Id.id -> unit
+
       (** see [replaceChildren] *)
       val replaceChildren: 'a Id.id -> 'b elt list -> unit
 

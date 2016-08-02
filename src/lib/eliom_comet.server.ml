@@ -295,9 +295,8 @@ let () =
     ignore (Eliom_common.force_lazy_site_value fallback_service);
     ignore (Stateless.get_service ()))
 
-module Stateful :
 (** String channels on wich is build the module Channel *)
-sig
+module Stateful : sig
 
   type t
 

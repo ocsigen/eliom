@@ -44,18 +44,19 @@ and 'a hierarchical_site_item =
 
 (** Main page description for a section of a hierarchical site. *)
 and main_page =
+
+  | Main_page of srv
   (** Main page for your subsite: all the subpages are subsections of
       that page. *)
-  | Main_page of srv
+  | Default_page of srv
   (** Like [Main_page] but is not taken into account for computing
       which is the current page in the menu. Use it for example when
       there is no main page, but you want one of the subpages to be
       the default page for your subsite.  The service you use as
       default page must appear another time in the subtree! *)
-  | Default_page of srv
+  | Not_clickable
   (** When you do not want the menu entry to be a link but you want
       subpages. *)
-  | Not_clickable
 
 (** {2 Tools for generating certain HTML elements} *)
 

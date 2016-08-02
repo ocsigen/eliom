@@ -23,16 +23,16 @@
 open Eliom_lib
 
 (** {2 Mobile applications} *)
-(** Call this function if you want to be able to run your client side app
-    before doing the first request, that is, when the client side app
-    is not sent by the server. This may be the case for example if you are
-    developing a mobile app. The parameters correspond to the base URL of the
-    server side of your application.
 
-    Alternatively, and to make sure it is done early enough, define
-    a JS variable called [__eliom_server] at the beginning of your
-    html file, containing the full URL of your server.
-*)
+(** Call this function if you want to be able to run your client side
+    app before doing the first request, that is, when the client side
+    app is not sent by the server. This may be the case for example if
+    you are developing a mobile app. The parameters correspond to the
+    base URL of the server side of your application.
+
+    Alternatively, and to make sure it is done early enough, define a
+    JS variable called [__eliom_server] at the beginning of your html
+    file, containing the full URL of your server. *)
 val init_client_app :
   app_name:string ->
   ?ssl:bool ->
@@ -52,15 +52,14 @@ val is_client_app : unit -> bool
 
 
 (** {2 Calling services} *)
-(** Call a service and change the current page.
-    If the service belongs to the same application,
-    the client side program is not stopped, and only
-    the content (not the container) is reloaded.
-    If the [replace] flag is set, the new page will replace the
-    current page in the browser history if the service belongs to
-    the same application. The last two parameters are respectively the GET and
-    POST parameters to send to the service.
-*)
+
+(** Call a service and change the current page.  If the service
+    belongs to the same application, the client side program is not
+    stopped, and only the content (not the container) is reloaded.  If
+    the [replace] flag is set, the new page will replace the current
+    page in the browser history if the service belongs to the same
+    application. The last two parameters are respectively the GET and
+    POST parameters to send to the service. *)
 val change_page :
   ?replace:bool ->
   ?absolute:bool ->

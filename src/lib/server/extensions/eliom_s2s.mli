@@ -22,6 +22,7 @@
 
 (** Format a url with a base and GET parameters *)
 val format_url : string -> (string * string) list -> string
+
 (** Do a get request towards a given url *)
 val do_get_request : ?params : (string * string) list -> string -> Ocsigen_http_frame.t Lwt.t
 
@@ -42,12 +43,11 @@ val find_in_ns :
 (** Retrieves parameters beginning with the specified namespace and
     strips it. *)
 val strip_ns : string -> (string * string) list -> (string * string) list
+
 (** Parse an answer in the Key-Value form :
-{v foo:bar
-foobar:value v} *)
+    {v foo:bar foobar:value v} *)
 val parse_key_pairs : string -> (string * string) list
 
 (** Perform a direct (POST) request towards a server,
     and parse the result as key-value data *)
 val direct_request : (string * string) list -> string -> (string * string) list Lwt.t
-

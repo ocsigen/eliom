@@ -251,20 +251,25 @@ module Svg : sig
   (** {2 Global node} *)
 
   module Id : sig
+
     (** The type of global SVG element identifier. *)
     type +'a id
 
     (** See {!Eliom_content.Html.Id.new_elt_id} *)
     val new_elt_id: ?global:bool -> unit -> 'a id
+
     (** See {!Eliom_content.Html.Id.create_named_elt} *)
     val create_named_elt: id:'a id -> 'a elt -> 'a elt
+
     (** See {!Eliom_content.Html.Id.create_global_elt} *)
     val create_global_elt: 'a elt -> 'a elt
+
     (** See {!Eliom_content.Html.Id.create_request_elt} *)
     val create_request_elt: ?reset:bool -> 'a elt -> 'a elt
 
     (**/**)
     val string_of_id : 'a id -> string
+
   end
 
   module Of_dom : sig

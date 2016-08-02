@@ -75,13 +75,16 @@ end
 
 (** Signature for application creation. *)
 module type APP_PARAM = sig
+
   (** Name of the application. Applications must have distinct
       names. *)
   val application_name : string
+
   (** If a path is provided, we export through it a service for
       accessing the global data. Reading this data makes global
       injections work in client apps. *)
   val global_data_path : string list option
+
 end
 
 module type S = sig

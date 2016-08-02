@@ -317,7 +317,7 @@ let preapply ~service getparams =
     client_fun =
       match service.client_fun with
       | Some f ->
-        Some  [%client  fun () pp -> ~%f ~%getparams pp ]
+        Some  [%client fun () pp -> (~%f : _ -> _ -> _) ~%getparams pp ]
       | None ->
         None
   }
@@ -374,7 +374,7 @@ let add_non_localized_get_parameters ~params ~service = {
   client_fun =
     match service.client_fun with
     | None -> None
-    | Some f -> Some  [%client  fun (g, _) p -> ~%f g p ];
+    | Some f -> Some [%client fun (g, _) p -> (~%f : _ -> _ -> _) g p ]
 }
 
 let add_non_localized_post_parameters ~params ~service = {
@@ -384,7 +384,7 @@ let add_non_localized_post_parameters ~params ~service = {
   client_fun =
     match service.client_fun with
     | None -> None
-    | Some f -> Some  [%client  fun g (p, _) -> ~%f g p ]
+    | Some f -> Some [%client fun g (p, _) -> (~%f : _ -> _ -> _) g p ]
 }
 
 let keep_nl_params s = s.keep_nl_params

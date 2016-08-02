@@ -20,12 +20,17 @@
 
 (** Accessing shared values *)
 module type VALUE = sig
+
   type +'a t
+
   val create : 'a -> 'a Eliom_client_value.t -> 'a t
+
   (** [client x] is the client-side portion of [x]. *)
   val client : 'a t -> 'a Eliom_client_value.t
+
   (** [local x] is the local portion of [x]. *)
   val local : 'a t -> 'a
+
 end
 
 module type S = sig
@@ -80,10 +85,13 @@ module type S = sig
 
   (** Infix operators *)
   module Infix : sig
+
     (** [s >|= f] is [map f s]. *)
     val (>|=) : 'a t -> ('a -> 'b) sv -> 'b t
+
     (** [f =|< s] is [map f s]. *)
     val (=|<) : ('a -> 'b) sv -> 'a t -> 'b t
+
   end
 
   (** Cooperative versions of the React operators *)
@@ -126,8 +134,10 @@ module type RLIST = sig
 
   (** The type of (shared) reactive lists *)
   type 'a t
+
   (** Handles are used to manipulate reactive lists *)
   type 'a handle
+
   type 'a signal
 
   (** The type of shared values *)
@@ -135,6 +145,7 @@ module type RLIST = sig
 
   (** Client-side version of 'a t *)
   type 'a ct
+
   (** Client-side version of 'a handle *)
   type 'a chandle
 

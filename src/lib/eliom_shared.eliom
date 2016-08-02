@@ -357,7 +357,7 @@ module React = struct
            [%client  FakeReact.S.create ~%x ], true
         | Some v ->
           [%client (
-             match ~%v with
+            match (~%v : (_ * (?step:_ -> _ -> _)) option) with
              | Some ((_, set) as s) ->
                (* The reactive data is already on client side.  But
                   the value sent by server is more recent.  I update

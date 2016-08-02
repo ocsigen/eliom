@@ -485,14 +485,13 @@ let end_login_handler ext ret_to endpoint assoc f args =
     lwt_fail (Invalid_answer mode)
 
 module type HiddenServiceInfo = sig
+
   val path : string list
-  (** The path of the hidden service *)
+
   val f :
     (string * string) list ->
     unit -> Eliom_registration.browser_content Eliom_registration.kind Lwt.t
-(** The function called when an user connects to the hidden service
-    (not that hidden) without being in an identification process.
-    Typically you should redirect the user to the login page. *)
+
 end
 
 module Make (S : HiddenServiceInfo) = struct
