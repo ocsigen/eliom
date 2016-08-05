@@ -60,15 +60,15 @@ let comet_global_path = ["__eliom_comet_global__"]
 let fallback_service =
   Eliom_common.lazy_site_value_from_fun @@ fun () ->
   Comet.create
-    ~id:(Eliom_service.Path comet_path)
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    ~path:(Eliom_service.Path comet_path)
     (fun () () -> Lwt.return state_closed_msg)
 
 let fallback_global_service =
   Eliom_common.lazy_site_value_from_fun @@ fun () ->
   Comet.create
-    ~id:(Eliom_service.Path comet_global_path)
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    ~path:(Eliom_service.Path comet_global_path)
     (fun () () ->
        Lwt.return (error_msg "request with no post parameters, or there isn't any registered site comet channel"))
 
@@ -266,13 +266,10 @@ struct
     Eliom_common.lazy_site_value_from_fun @@ fun () ->
     (*VVV Why isn't this a POST non-attached coservice? --Vincent *)
 
-    Comet.create
-      ~meth:
-        (Eliom_service.Post (Eliom_parameter.unit, Ecb.comet_request_param))
-      ~id:
-        (Eliom_service.Fallback
-           (Eliom_common.force_lazy_site_value
-              fallback_global_service))
+    Comet.attach_post
+      ~post_params:Ecb.comet_request_param
+      ~fallback:
+        (Eliom_common.force_lazy_site_value fallback_global_service)
       handle_request
 
   let get_service () =
@@ -586,16 +583,12 @@ end = struct
           let hd_service =
             Eliom_comet_base.Internal_comet_service
               (* CCC ajouter possibilité d'https *)
-              (Eliom_service.create
+              (Eliom_service.attach_post
                  (*VVV Why is it attached? --Vincent *)
-                 ~meth:
-                   (Eliom_service.Post
-                      (Eliom_parameter.unit,
-                       Eliom_comet_base.comet_request_param))
-                 ~id:
-                   (Eliom_service.Fallback
-                      (Eliom_common.force_lazy_site_value
-                         fallback_service))
+                 ~post_params:Eliom_comet_base.comet_request_param
+                 ~fallback:
+                   (Eliom_common.force_lazy_site_value
+                      fallback_service)
                  (*~name:"comet" (* CCC faut il mettre un nom ? *)*)
                  ())
           in
@@ -814,8 +807,9 @@ end = struct
 
   let external_channel ?(history=1) ?(newest=false) ~prefix ~name () =
     let service =
-      Eliom_service.create
-        ~id:(Eliom_service.External (prefix, comet_global_path))
+      Eliom_service.create_external
+        ~prefix
+        ~path:comet_global_path
         ~meth:
           (Eliom_service.Post
              (Eliom_parameter.unit,

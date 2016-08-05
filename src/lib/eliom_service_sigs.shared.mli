@@ -26,6 +26,8 @@ module type TYPES = sig
   type post = Post_method
   type delete = Delete_method
 
+  type non_post = Non_post
+
   type co = Co
   type non_co = Non_co
 
@@ -69,35 +71,39 @@ module type TYPES = sig
       - 0-th param : method
       - params 1-4 : GET and POST parameter types
       - param 5    : suffix parameters permitted or not
-      - param 6    : method for fallback service
-      - param 7    : non-unit only for the [Post (g, p)] case when [g] is
+      - param 6    : non-unit only for the [Post (g, p)] case when [g] is
                      not unit ; used to force unit GET parameters when
                      needed *)
-  type (_, _, _, _, _, _, _, _) meth =
+  type ('m, _, _, _, _, _, _) meth =
 
     | Get : ('gp, 'tipo, 'gn) params ->
 
-      (get, 'gp, 'gn, unit, unit, 'tipo, get, unit) meth
+      (get, 'gp, 'gn, unit, unit, 'tipo, unit) meth
 
     | Post : ('gp, 'tipo, 'gn) params *
              ('pp, [`WithoutSuffix], 'pn) params ->
 
-      (post, 'gp, 'gn, 'pp, 'pn, 'tipo, get, 'gp) meth
+      (post, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp) meth
 
     | Put : ('gp, 'tipo, 'gn) params ->
 
-      (put, 'gp, 'gn, unit, unit, 'tipo, put, unit) meth
+      (put,
+       'gp, 'gn,
+       Eliom_parameter.raw_post_data, Eliom_parameter.no_param_name,
+       'tipo, unit) meth
 
     | Delete : ('gp, 'tipo, 'gn) params ->
 
-      (delete, 'gp, 'gn, unit, unit, 'tipo, delete, unit) meth
+      (delete,
+       'gp, 'gn,
+       Eliom_parameter.raw_post_data, Eliom_parameter.no_param_name,
+       'tipo, unit) meth
 
-  (** Like {!meth} but without the auxilliary parameters; used to
-      query about the service method from outside. *)
-  type _ which_meth =
-    | Get'    : get which_meth
-    | Post'   : post which_meth
-    | Put'    : put which_meth
+  (** Like {!meth} but without the parameters *)
+  type 'm which_meth =
+    | Get'    : get    which_meth
+    | Post'   : post   which_meth
+    | Put'    : put    which_meth
     | Delete' : delete which_meth
 
 end
@@ -158,19 +164,9 @@ module type S = sig
       [External server path] allows defining services handled by
       external servers. These servers do not have to run
       Ocsigen/Eliom. *)
-  type (_, _, _, _, _, _, _) id =
-    | Path :
-        Eliom_lib.Url.path
-      -> (att, non_co, non_ext, reg, _, _, _) id
-    | Fallback :
-        (unit, unit, 'mf, att, non_co, non_ext, _,
-         [ `WithoutSuffix ], unit, unit, 'ret) t
-      -> (att, co, non_ext, reg, 'mf, 'ret, unit) id
-    | Global :
-        (non_att, co, non_ext, reg, _, _, unit) id
-    | External :
-        string * Eliom_lib.Url.path
-      -> (att, non_co, ext, non_reg, _, _, _) id
+  type (_, _, _) path_option =
+    | Path    : Eliom_lib.Url.path -> (att, non_co, _) path_option
+    | No_path : (non_att, co, unit) path_option
 
   (** {b Service definition}
 
@@ -193,7 +189,7 @@ module type S = sig
 
       The remaining arguments are ignored for services identified by a
       path (constructor [Path]). We describe their meaning in
-      conjunction with [Fallback] and [Global].
+      conjunction with [Global].
 
       The optional [~timeout] argument specifies a timeout (in
       seconds) after which the coservice will disappear. This amount
@@ -247,10 +243,51 @@ module type S = sig
     ?https:bool ->
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     ?priority:int ->
-    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, 'gp_) meth ->
-    id:('att, 'co, 'ext, 'reg, 'mf, non_ocaml, 'gp_) id ->
+    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) meth ->
+    path:('att, 'co, 'gp_) path_option ->
     unit ->
-    ('gp, 'pp, 'm, 'att, 'co, 'ext, 'reg, 'tipo, 'gn, 'pn, non_ocaml) t
+    ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, non_ocaml) t
+
+  val create_external :
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    prefix:string ->
+    path:Eliom_lib.Url.path ->
+    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, _) meth ->
+    unit ->
+    ('gp, 'pp, 'm, att, non_co, ext, non_reg, 'tipo, 'gn, 'pn, non_ocaml) t
+
+  val attach_get :
+    ?name:string ->
+    ?csrf_safe: bool ->
+    ?csrf_scope: [< Eliom_common.user_scope] ->
+    ?csrf_secure: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    fallback:
+      (unit, unit, get, att, non_co, non_ext, reg,
+       _, unit, unit, non_ocaml) t ->
+    get_params:('gp, 'tipo, 'gn) Eliom_parameter.params_type ->
+    unit ->
+    ('gp, unit, get, att, co, non_ext, reg, 'tipo, 'gn, unit, non_ocaml) t
+
+  val attach_post :
+    ?name:string ->
+    ?csrf_safe: bool ->
+    ?csrf_scope: [< Eliom_common.user_scope] ->
+    ?csrf_secure: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    fallback:
+      ('gp, unit, get, att, non_co, non_ext, reg,
+       'tipo, 'gn, unit, non_ocaml) t ->
+    post_params:
+      ('pp, [ `WithoutSuffix ], 'pn) Eliom_parameter.params_type ->
+    unit ->
+    ('gp, 'pp, post, att, co, non_ext, reg, 'tipo, 'gn, 'pn, non_ocaml) t
 
   (** {3 Predefined services} *)
 
@@ -382,21 +419,6 @@ module type S = sig
 
   (**/**)
 
-  val create_unsafe :
-    ?name:string ->
-    ?csrf_safe: bool ->
-    ?csrf_scope: [< Eliom_common.user_scope] ->
-    ?csrf_secure: bool ->
-    ?max_use:int ->
-    ?timeout:float ->
-    ?https:bool ->
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    ?priority:int ->
-    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, 'gp_) meth ->
-    id:('att, 'co, non_ext, reg, 'mf, 'ret, 'gp_) id ->
-    unit ->
-    ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'ret) t
-
   val create_ocaml :
     ?name:string ->
     ?csrf_safe: bool ->
@@ -407,10 +429,58 @@ module type S = sig
     ?https:bool ->
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     ?priority:int ->
-    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'mf, 'gp_) meth ->
-    id:('att, 'co, 'ext, 'reg, 'mf, 'ret ocaml, 'gp_) id ->
+    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) meth ->
+    path:('att, 'co, 'gp_) path_option ->
     unit ->
-    ('gp, 'pp, 'm, 'att, 'co, 'ext, 'reg, 'tipo, 'gn, 'pn, 'ret ocaml) t
+    ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'ret ocaml) t
+
+  val create_unsafe :
+    ?name:string ->
+    ?csrf_safe: bool ->
+    ?csrf_scope: [< Eliom_common.user_scope] ->
+    ?csrf_secure: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    ?priority:int ->
+    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) meth ->
+    path:('att, 'co, 'gp_) path_option ->
+    unit ->
+    ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'ret) t
+
+  val attach_get_unsafe :
+    ?name:string ->
+    ?csrf_safe: bool ->
+    ?csrf_scope: [< Eliom_common.user_scope] ->
+    ?csrf_secure: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    fallback:
+      (unit, unit, get, att, non_co, non_ext, reg,
+       _, unit, unit, _) t ->
+    get_params:('gp, 'tipo, 'gn) Eliom_parameter.params_type ->
+    unit ->
+    ('gp, unit, get, att, co, non_ext, reg, 'tipo, 'gn, unit, _) t
+
+  val attach_post_unsafe :
+    ?name:string ->
+    ?csrf_safe: bool ->
+    ?csrf_scope: [< Eliom_common.user_scope] ->
+    ?csrf_secure: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    fallback:
+      ('gp, unit, get, att, non_co, non_ext, reg,
+       'tipo, 'gn, unit, _) t ->
+    post_params:
+      ('pp, [ `WithoutSuffix ], 'pn) Eliom_parameter.params_type ->
+    unit ->
+    ('gp, 'pp, post, att, co, non_ext, reg, 'tipo, 'gn, 'pn, _) t
 
   val which_meth :
     (_, _, 'm, _, _, _, _, _, _, _, _) t -> 'm which_meth

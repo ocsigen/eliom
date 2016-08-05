@@ -131,7 +131,7 @@ struct
       Eliom_service.create
         ?name
         ~meth:(Eliom_service.Post (Eliom_parameter.unit, post_params))
-        ~id:Eliom_service.Global
+        ~path:Eliom_service.No_path
         ()
     in
     Eliom_registration.Action.register
