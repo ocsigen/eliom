@@ -1547,7 +1547,9 @@ module Redir_reg_base = struct
        In that case, we send:
        - a full xhr redirection if the application to which belongs
        the destination service is the same (thus it will send back tab cookies)
-       - a half xhr redirection otherwise
+       (simulate a redirection without stopping the client process)
+       - a half xhr redirection otherwise (i.e. ask the browser to do an
+       actual redirection).
     *)
     match Eliom_request_info.expecting_process_page (),
       Eliom_request_info.get_sp_client_appl_name () with

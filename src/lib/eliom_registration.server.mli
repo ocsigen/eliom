@@ -371,7 +371,7 @@ module Any :  Eliom_registration_sigs.S_poly
     When the service is called from an Eliom application, this is
     implemented with half-redirection (a redirection that leaves the
     application). Hence, the service may be called two times in a row
-    and you should not use this function for service that use POST
+    and you should not use this function for services that use POST
     parameters. *)
 val appl_self_redirect :
   ('page -> [< 'a application_content | browser_content ] kind Lwt.t) ->
