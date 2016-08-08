@@ -82,6 +82,9 @@ val change_page :
 
 (** Call a server side service that return an OCaml value.
 
+    The last two parameters are respectively the GET and
+    POST parameters to send to the service.
+
     If the service raises an exception, the call to the
     [call_ocaml_service] raises an exception {% <<a_api|exception
     Exception_on_server>> %} whose argument describes the server-side
@@ -110,7 +113,10 @@ val call_ocaml_service :
 
 (** Stop current program and load a new page.  Note that for string arguments,
     sole line feed or sole carriage return characters are substituted by the
-    string ["\r\n"]. *)
+    string ["\r\n"].
+    The last two parameters are respectively the GET and
+    POST parameters to send to the service.
+    *)
 val exit_to :
   ?absolute:bool ->
   ?absolute_path:bool ->
@@ -126,7 +132,9 @@ val exit_to :
   ?keep_get_na_params:bool ->
   'a -> 'b -> unit
 
-(** Loads an Eliom service in a window (cf. Javascript's [window.open]). *)
+(** Loads an Eliom service in a window (cf. Javascript's [window.open]).
+ *  The last parameter is the GET parameters to send to the new window.
+ *)
 val window_open :
   window_name:Js.js_string Js.t ->
   ?window_features:Js.js_string Js.t ->
@@ -147,7 +155,7 @@ val window_open :
 (** Changes the URL, without doing a request.
     It takes a GET (co-)service as parameter and its parameters.
     If the [replace] flag is set, the current page is not saved
-    in the history.
+    in the history. The last parameter is the GET parameters.
  *)
 val change_url :
   ?replace:bool ->
@@ -165,7 +173,10 @@ val change_url :
   'get -> unit
 
 (** (low level) Call a server side service and return the content
-    of the resulting HTTP frame as a string. *)
+    of the resulting HTTP frame as a string.
+    The last two parameters are respectively the GET and
+    POST parameters to send to the service.
+    *)
 val call_service :
   ?absolute:bool ->
   ?absolute_path:bool ->
