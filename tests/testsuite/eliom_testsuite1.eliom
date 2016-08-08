@@ -1296,6 +1296,7 @@ let login_box session_expired action =
 (* Handler for "persist_session_example" service (main page):  *)
 
 let persist_session_example_handler () () =
+  my_persistent_table >>= fun my_persistent_table ->
   Eliom_state.get_persistent_data
     ~table:my_persistent_table () >>= fun sessdat ->
   return
@@ -1322,6 +1323,7 @@ let persist_session_connect_action_handler () login =
   lwt () = Eliom_state.discard (*zap* *) ~scope:session (* *zap*) () in
   if login = "toto" (* Check user and password :-) *)
   then
+    my_persistent_table >>= fun my_persistent_table ->
     Eliom_state.set_persistent_data ~table:my_persistent_table login
   else ((*zap* *)Polytables.set (Eliom_request_info.get_request_cache ()) bad_user_key true;(* *zap*)return ())
 
@@ -1888,9 +1890,7 @@ let () =
 let scope_hierarchy = Eliom_common.create_scope_hierarchy "pgroup_tables"
 let session = `Session scope_hierarchy
 let session_group = `Session_group scope_hierarchy
-let my_table =
-  Eliom_state.create_persistent_table
-    ~scope:session_group "pgroup_table"
+
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
@@ -1956,7 +1956,12 @@ let login_box () =
 (* -------------------------------------------------------- *)
 (* Handler for the "group_tables_example" service (main page): *)
 
+let my_table =
+  Eliom_state.create_persistent_table
+    ~scope:session_group "pgroup_table"
+
 let group_tables_example_handler () () =
+  my_table >>= fun my_table ->
   Eliom_state.get_persistent_data_session_group ~scope:session ()
   >>= fun sessdat ->
   Eliom_state.get_persistent_data ~table:my_table ()

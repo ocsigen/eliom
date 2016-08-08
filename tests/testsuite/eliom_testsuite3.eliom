@@ -2176,6 +2176,7 @@ let tpersist_session_example_handler () () =
             ])
 *)
     in
+  tmy_persistent_table >>= fun tmy_persistent_table ->
   Eliom_state.get_persistent_data ~table:tmy_persistent_table () >>= fun sessdat ->
   Lwt.return
     (make_page (match sessdat with
@@ -2199,6 +2200,7 @@ let tpersist_session_connect_action_handler () login =
   lwt () = Eliom_state.discard ~scope () in
   if login = "toto" (* Check user and password :-) *)
   then
+    tmy_persistent_table >>= fun tmy_persistent_table ->
     Eliom_state.set_persistent_data ~table:tmy_persistent_table login
   else ((*zap* *)Polytables.set (Eliom_request_info.get_request_cache ()) bad_user_key true;(* *zap*)return ())
 
@@ -2839,8 +2841,7 @@ let () = My_appl.register ~service:live1 (fun () () ->
     ignore {unit{ Eliom_client.onunload
                     (fun _ ->
                        Lwt_log.ign_debug "Page 1 unloading";
-                       Option.iter Lwt.cancel !pinger;
-                       None)
+                       Option.iter Lwt.cancel !pinger)
                 }};
     Lwt.return
       (make_page [h1 [pcdata "Page one"]; live_description; live_links; dead_links]))
@@ -2849,7 +2850,7 @@ let () = My_appl.register ~service:live2 (fun () () ->
     ignore {unit{
       Eliom_client.onload (fun _ -> Lwt_log.ign_debug "Page 2 loading");
       Eliom_client.onunload
-        (fun _ -> Lwt_log.ign_debug "Page 2 unloading"; None)
+        (fun _ -> Lwt_log.ign_debug "Page 2 unloading")
     }};
     Lwt.return
       (make_page [h1 [pcdata "Page two"];live_description; live_links; dead_links]))
@@ -2858,9 +2859,7 @@ let () = My_appl.register ~service:live3 (fun () () ->
     ignore {unit{
       Eliom_client.onload (fun _ -> Lwt_log.ign_debug "Page 3 loading");
       Eliom_client.onunload
-        (fun _ ->
-           Lwt_log.ign_debug "Page 3 unloading";
-           None)
+        (fun _ -> Lwt_log.ign_debug "Page 3 unloading")
   }};
     Lwt.return
       (make_page [h1 [pcdata "Page threee"]; live_description; live_links; dead_links]))
