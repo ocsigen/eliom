@@ -50,10 +50,11 @@ type _ redirection =
        [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
     'a redirection
 
-(* less polymorphic than server version, we do not know what to do
-   with OCaml services *)
-module Redirection : Eliom_registration_sigs.S
-  with type page = Eliom_service.non_ocaml redirection
+(** [page] et al. are not really polymorphic. The type variables are
+    necessary for maintaining type-level compatibility with server
+    (for injections) *)
+module Redirection : Eliom_registration_sigs.S_poly
+  with type 'a page = Eliom_service.non_ocaml redirection
    and type options =
          [ `MovedPermanently
          | `Found
@@ -61,8 +62,8 @@ module Redirection : Eliom_registration_sigs.S
          | `NotNodifed
          | `UseProxy
          | `TemporaryRedirect ]
-   and type return = Eliom_service.non_ocaml
-   and type result = browser_content kind
+   and type 'a return = Eliom_service.non_ocaml
+   and type 'a result = browser_content kind
 
 module Any : Eliom_registration_sigs.S_poly
   with type 'a page = 'a kind

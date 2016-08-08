@@ -270,30 +270,59 @@ type _ redirection =
        [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
     'a redirection
 
-module Redirection = Make (struct
+module Redirection = struct
 
-    type page = Eliom_service.non_ocaml redirection
+  (* not really polymorphic; just adding a type variable to maintain
+     type-level compatibility with server (for injections) *)
+  type _ page = Eliom_service.non_ocaml redirection
 
-    type options =
-      [ `MovedPermanently
-      | `Found
-      | `SeeOther
-      | `NotNodifed
-      | `UseProxy
-      | `TemporaryRedirect ]
+  type options =
+    [ `MovedPermanently
+    | `Found
+    | `SeeOther
+    | `NotNodifed
+    | `UseProxy
+    | `TemporaryRedirect ]
 
-    type return = Eliom_service.non_ocaml
+  type _ return = Eliom_service.non_ocaml
 
-    type result = browser_content kind
+  type _ result = browser_content kind
 
-    let reset_reload_fun = true
+  let reset_reload_fun = true
 
-    let send ?options:_ (Redirection service) =
-      lwt () = Eliom_client.change_page service () () in
-      Eliom_client.do_not_set_uri := true;
-      Lwt.return ()
+  let send
+      ?options:_ ?charset:_ ?code:_ ?content_type:_ ?headers:_
+      (Redirection service) =
+    lwt () = Eliom_client.change_page service () () in
+    Eliom_client.do_not_set_uri := true;
+    Lwt.return ()
 
-  end)
+  let register
+      ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
+      ?headers:_ ?secure_session:_
+      (type g) (type p) (type att)
+      ~(service : (g, p, _, att, _, _, _, _, _, _, _) Eliom_service.t)
+      ?error_handler:_
+      (f : g -> p -> _) =
+    let f g p = lwt page = f g p in send ?options page in
+    register ~service f;
+    Eliom_service.set_client_fun ?app ~service f
+
+  let create
+      ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
+      ?headers:_ ?secure_session:_ ?https ?name ?csrf_safe ?csrf_scope
+      ?csrf_secure ?max_use ?timeout ~meth ~id ?error_handler
+      f =
+    let service =
+      Eliom_service.create
+        ?name ?csrf_safe
+        ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
+        ?csrf_secure ?max_use ?timeout ?https ~meth ~id ()
+    in
+    register ?app ~service f;
+    service
+
+end
 
 module Any = struct
 
