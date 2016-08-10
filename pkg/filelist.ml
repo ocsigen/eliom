@@ -26,6 +26,7 @@ let server = {
     "eliom_extension";
     "eliom_lib";
     "eliom_mkreg";
+    "eliom_notif";
     "eliom_parameter";
     "eliom_react";
     "eliom_shared";
