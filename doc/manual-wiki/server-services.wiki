@@ -35,8 +35,8 @@ The service creation could be split in two steps:
   <<a_api | val Eliom_service.App.service >>, or
   <<a_api | val Eliom_service.OCaml.service >>
   (depending on the type of service you want to create); and
-* register a service handler, e.g., using <<a_api | val
-  Eliom_registration.HTML5.register >>.
+* register a service handler, e.g. by using <<a_api | val
+  Eliom_registration.Html5.register >> for services created with Eliom_service.Html5.service.
 
 This chapter focuses on values of type {{{service}}}. See chapter
 <<a_manual chapter="server-outputs"| Writing service handlers>> for
