@@ -519,7 +519,7 @@ let main_service
   reload_fun;
 }
 
-let create_external
+let extern
     (type m) (type gp) (type gn) (type pp) (type pn) (type gp')
     ?keep_nl_params
     ~prefix

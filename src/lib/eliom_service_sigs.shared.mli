@@ -248,7 +248,7 @@ module type S = sig
     unit ->
     ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, non_ocaml) t
 
-  val create_external :
+  val extern :
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     prefix:string ->
     path:Eliom_lib.Url.path ->

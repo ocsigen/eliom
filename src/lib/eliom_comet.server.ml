@@ -807,7 +807,7 @@ end = struct
 
   let external_channel ?(history=1) ?(newest=false) ~prefix ~name () =
     let service =
-      Eliom_service.create_external
+      Eliom_service.extern
         ~prefix
         ~path:comet_global_path
         ~meth:
