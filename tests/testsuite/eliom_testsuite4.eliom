@@ -1439,7 +1439,7 @@ let wrap_handler =
   let set_state =
     let counter = ref 0 in
     Eliom_registration.Unit.create
-      ~id:Eliom_service.Global
+      ~path:Eliom_service.No_path
       ~meth:(Eliom_service.Get Eliom_parameter.unit)
       (fun () () ->
         lwt () = Eliom_reference.set state (incr counter; Some !counter) in
@@ -1447,7 +1447,7 @@ let wrap_handler =
   in
   let unset_state =
     Eliom_registration.Unit.create
-      ~id:Eliom_service.Global
+      ~path:Eliom_service.No_path
       ~meth:(Eliom_service.Get Eliom_parameter.unit)
       (fun () () ->
         lwt () = Eliom_reference.set state None in

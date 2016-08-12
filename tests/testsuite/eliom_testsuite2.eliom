@@ -106,7 +106,7 @@ let connect_action =
 let disconnect_action =
   Eliom_registration.Action.create
     ~name:"disconnection"
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard ~scope:session ())
@@ -215,7 +215,7 @@ let connect_action =
 let disconnect_action =
   Eliom_registration.Action.create
     ~name:"disconnection2"
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard ~scope:session ())
@@ -1319,21 +1319,22 @@ let getact =
     ~get_params:(int "p")
     ()
 
-let act = Eliom_registration.Action.create
-    ~id:(Eliom_service.Fallback (preapply getact 22))
-    ~meth:(Eliom_service.Get (int "bip"))
+let act =
+  Eliom_registration.Action.attach_get
+    ~fallback:(preapply getact 22)
+    ~get_params:(int "bip")
     (fun g p -> v := g; return ())
 
 (* action on GET non-attached coservice on GET coservice page *)
 let naact =
   Eliom_registration.Action.create
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Get (int "bop"))
     (fun g p -> v := g; return ())
 
 let naunit =
   Eliom_registration.Unit.create
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Get (int "bap"))
     (fun g p -> v := g; return ())
 
@@ -1492,7 +1493,7 @@ let sendfileex =
 
 let sendfile2 =
   Eliom_registration.File.create
-    ~id:(Eliom_service.Path ["files";""])
+    ~path:(Eliom_service.Path ["files";""])
     ~meth:(Eliom_service.Get (suffix (all_suffix "filename")))
     (fun s () ->
       return ("/var/www/ocsigen/"^(Url.string_of_url_path ~encode:false s)))
@@ -1626,7 +1627,7 @@ let r = Netstring_pcre.regexp "~([^/]*)(.*)"
 
 let sendfile2 =
   Eliom_registration.File.create
-    ~id:(Eliom_service.Path ["files2";""])
+    ~path:(Eliom_service.Path ["files2";""])
 (*    ~get_params:(regexp r "/home/$1/public_html$2" "filename") *)
     ~meth:(Eliom_service.Get
              (suffix ~redirect_if_not_suffix:false
@@ -2077,7 +2078,7 @@ let uploadgetform = register_service ["uploadget"] unit
 (*******)
 (* Actions that raises an exception *)
 let exn_act = Eliom_registration.Action.create
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Get unit)
     (fun g p -> fail Not_found)
 
@@ -2214,7 +2215,7 @@ let connect_action =
 let disconnect_action =
   Eliom_registration.Action.create
     ~name:"disconnectiongd"
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () -> Eliom_state.discard ~scope:session ())
 
@@ -2231,7 +2232,7 @@ let my_group_data = Eliom_reference.eref ~scope:group None
 let change_gd =
   Eliom_registration.Action.create
     ~name:"changegd"
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () -> Eliom_reference.set my_group_data (Some (1000 + Random.int 1000)))
 
@@ -2354,7 +2355,7 @@ let connect_action =
 let disconnect_action =
   Eliom_registration.Action.create
     ~name:"disconnectionpgd"
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () -> Eliom_state.discard ~scope:session ())
 
@@ -2372,7 +2373,7 @@ let my_group_data = Eliom_reference.eref ~persistent:"pgd" ~scope:group None
 let change_gd =
   Eliom_registration.Action.create
     ~name:"changepgd"
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () -> Eliom_reference.set my_group_data (Some (1000 + Random.int 1000)))
 
@@ -2472,7 +2473,7 @@ let noreload_ref = ref 0
 let noreload_action =
   Eliom_registration.Action.create
     ~options:`NoReload
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Get unit)
     (fun () () -> noreload_ref := !noreload_ref + 1; Lwt.return ())
 

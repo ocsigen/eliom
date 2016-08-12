@@ -35,19 +35,19 @@ let (>>) f g = g f
 
 let wiki_view_page =
   Eliom_service.create
-    ~id:(Eliom_service.Path [])
+    ~path:(Eliom_service.Path [])
     ~meth:(Eliom_service.Get (suffix (string "p")))
     ()
 
 let wiki_edit_page =
   Eliom_service.create
-    ~id:(Eliom_service.Path ["edit"])
+    ~path:(Eliom_service.Path ["edit"])
     ~meth:(Eliom_service.Get (string "p"))
     ()
 
 let wiki_start =
   Eliom_registration.Redirection.create
-    ~id:(Eliom_service.Path [])
+    ~path:(Eliom_service.Path [])
     ~meth:(Eliom_service.Get unit)
     (fun _ _ ->
        Lwt.return
@@ -344,7 +344,7 @@ let view_page page =
 (* Save page as a result of /edit?p=Page *)
 let service_save_page_post =
   Eliom_registration.Html.create
-    ~id:(Eliom_service.Path [""])
+    ~path:(Eliom_service.Path [""])
     ~meth:
       (Eliom_service.Post
          (suffix (string "p"),

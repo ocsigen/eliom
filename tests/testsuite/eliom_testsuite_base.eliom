@@ -27,24 +27,24 @@ module My_appl = struct
 
   let register_service ~path ~get_params f =
     create
-      ~id:(Eliom_service.Path path)
+      ~path:(Eliom_service.Path path)
       ~meth:(Eliom_service.Get get_params) f
 
   let register_coservice ?scope ~fallback ~get_params f =
-    create
+    attach_get
       ?scope
-      ~id:(Eliom_service.Fallback fallback)
-      ~meth:(Eliom_service.Get get_params) f
+      ~fallback
+      ~get_params f
 
   let register_coservice' ?scope ~get_params f =
     create
       ?scope
-      ~id:Eliom_service.Global
+      ~path:Eliom_service.No_path
       ~meth:(Eliom_service.Get get_params) f
 
   let register_post_coservice' ~post_params f =
     create
-      ~id:Eliom_service.Global
+      ~path:Eliom_service.No_path
       ~meth:(Eliom_service.Post (Eliom_parameter.unit, post_params)) f
 
 end
@@ -59,17 +59,17 @@ module Service = struct
 
     let service ~path ~get_params () =
       create
-        ~id:(Path path)
+        ~path:(Path path)
         ~meth:(Get get_params)
         ()
 
     let post_coservice
         ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
         ~fallback ~post_params () =
-      create
+      attach_post
         ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
-        ~id:(Fallback fallback)
-        ~meth:(Post (Eliom_parameter.unit, post_params))
+        ~fallback
+        ~post_params
         ()
 
     let post_coservice'
@@ -77,17 +77,17 @@ module Service = struct
         ?max_use ?timeout ?name ~post_params () =
       create
         ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?name
-        ~id:Global
+        ~path:No_path
         ~meth:(Post (Eliom_parameter.unit, post_params))
         ()
 
     let coservice
         ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout
         ~fallback ~get_params () =
-      create
+      attach_get
         ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout
-        ~id:(Fallback fallback)
-        ~meth:(Get get_params)
+        ~fallback
+        ~get_params
         ()
 
     let coservice'
@@ -95,7 +95,7 @@ module Service = struct
         ~get_params () =
       create
         ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout
-        ~id:Global
+        ~path:No_path
         ~meth:(Get get_params)
         ()
 
@@ -111,9 +111,9 @@ module Service = struct
         in
         sub_path info
       and get_params = get_params_type fallback in
-      let id = Path path
+      let path = Path path
       and meth = Post (get_params, post_params) in
-      create ~id ~meth ()
+      create ~path ~meth ()
 
   end
 
@@ -138,18 +138,18 @@ module Registration = struct
         ~get_params f =
       create
         ?code ?charset ?headers
-        ~id:(Eliom_service.Path path)
+        ~path:(Eliom_service.Path path)
         ~meth:(Eliom_service.Get get_params)
         ?error_handler
         f
 
     let register_coservice
         ?scope ?timeout ?error_handler ~fallback ~get_params f =
-      create
+      attach_get
         ?scope ?timeout
         ?error_handler
-        ~id:(Eliom_service.Fallback fallback)
-        ~meth:(Eliom_service.Get get_params)
+        ~fallback
+        ~get_params
         f
 
     let register_coservice'
@@ -157,17 +157,17 @@ module Registration = struct
       create
         ?scope ?timeout
         ?error_handler
-        ~id:Eliom_service.Global
+        ~path:Eliom_service.No_path
         ~meth:(Eliom_service.Get get_params)
         f
 
     let register_post_coservice
         ?scope ?timeout ?error_handler ~fallback ~post_params f =
-      create
+      attach_post
         ?scope ?timeout
         ?error_handler
-        ~id:(Eliom_service.Fallback fallback)
-        ~meth:(Eliom_service.Post (Eliom_parameter.unit, post_params))
+        ~fallback
+        ~post_params
         f
 
     let register_post_coservice'
@@ -175,7 +175,7 @@ module Registration = struct
       create
         ?scope ?timeout
         ?error_handler
-        ~id:Eliom_service.Global
+        ~path:Eliom_service.No_path
         ~meth:(Eliom_service.Post (Eliom_parameter.unit, post_params))
         f
 
@@ -191,9 +191,9 @@ module Registration = struct
         in
         Eliom_service.sub_path info
       and get_params = Eliom_service.get_params_type fallback in
-      let id = Eliom_service.Path path
+      let path = Eliom_service.Path path
       and meth = Eliom_service.Post (get_params, post_params) in
-      Eliom_registration.Html.create ~id ~meth f
+      Eliom_registration.Html.create ~path ~meth f
 
   end
 
@@ -203,19 +203,19 @@ module Registration = struct
 
     let register_service ~path ~get_params f =
       create
-        ~id:(Eliom_service.Path path)
+        ~path:(Eliom_service.Path path)
         ~meth:(Eliom_service.Get get_params)
         f
 
     let register_coservice' ?scope ~get_params f =
       create ?scope
-        ~id:Eliom_service.Global
+        ~path:Eliom_service.No_path
         ~meth:(Eliom_service.Get get_params)
         f
 
     let register_post_coservice' ?scope ~post_params f =
       create ?scope
-        ~id:Eliom_service.Global
+        ~path:Eliom_service.No_path
         ~meth:(Eliom_service.Post (Eliom_parameter.unit, post_params))
         f
 
@@ -245,7 +245,7 @@ end
 let main =
   let open Eliom_service in
   create
-    ~id:(Path [])
+    ~path:(Path [])
     ~meth:(Get Eliom_parameter.unit)
     ()
 
@@ -279,7 +279,7 @@ let test_logger =
 
 let test ~path ~title:ttl ~description f =
   ttl, My_appl.create
-           ~id:(Eliom_service.Path path)
+           ~path:(Eliom_service.Path path)
            ~meth:(Eliom_service.Get Eliom_parameter.unit)
            (fun () () ->
               lwt content = f () in
