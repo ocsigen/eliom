@@ -266,7 +266,7 @@ module type S = sig
     ?https:bool ->
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     fallback:
-      (unit, unit, get, att, non_co, non_ext, reg,
+      (unit, unit, get, att, non_co, non_ext, _,
        _, unit, unit, non_ocaml) t ->
     get_params:('gp, 'tipo, 'gn) Eliom_parameter.params_type ->
     unit ->
@@ -282,7 +282,7 @@ module type S = sig
     ?https:bool ->
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     fallback:
-      ('gp, unit, get, att, non_co, non_ext, reg,
+      ('gp, unit, get, att, non_co, non_ext, _,
        'tipo, 'gn, unit, non_ocaml) t ->
     post_params:
       ('pp, [ `WithoutSuffix ], 'pn) Eliom_parameter.params_type ->
@@ -459,7 +459,7 @@ module type S = sig
     ?https:bool ->
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     fallback:
-      (unit, unit, get, att, non_co, non_ext, reg,
+      (unit, unit, get, att, non_co, non_ext, _,
        _, unit, unit, _) t ->
     get_params:('gp, 'tipo, 'gn) Eliom_parameter.params_type ->
     unit ->
@@ -475,7 +475,7 @@ module type S = sig
     ?https:bool ->
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     fallback:
-      ('gp, unit, get, att, non_co, non_ext, reg,
+      ('gp, unit, get, att, non_co, non_ext, _,
        'tipo, 'gn, unit, _) t ->
     post_params:
       ('pp, [ `WithoutSuffix ], 'pn) Eliom_parameter.params_type ->

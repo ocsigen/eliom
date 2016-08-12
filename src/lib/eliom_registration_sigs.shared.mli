@@ -192,7 +192,7 @@ module type S = sig
     fallback:
       (unit, unit,
        Eliom_service.get, Eliom_service.att,
-       Eliom_service.non_co, Eliom_service.non_ext, Eliom_service.reg,
+       Eliom_service.non_co, Eliom_service.non_ext, _,
        _, unit, unit, return)
         Eliom_service.t ->
     get_params:('gp, 'tipo, 'gn) Eliom_parameter.params_type ->
@@ -224,7 +224,7 @@ module type S = sig
     fallback:
       ('gp, unit,
        Eliom_service.get, Eliom_service.att,
-       Eliom_service.non_co, Eliom_service.non_ext, Eliom_service.reg,
+       Eliom_service.non_co, Eliom_service.non_ext, _,
        'tipo, 'gn, unit, return)
         Eliom_service.t ->
     post_params:('pp, [`WithoutSuffix], 'pn) Eliom_parameter.params_type ->
@@ -321,7 +321,7 @@ module type S_poly_without_send = sig
     fallback:
       (unit, unit,
        Eliom_service.get, Eliom_service.att,
-       Eliom_service.non_co, Eliom_service.non_ext, Eliom_service.reg,
+       Eliom_service.non_co, Eliom_service.non_ext, _,
        _, unit, unit, 'a return)
         Eliom_service.t ->
     get_params:('gp, 'tipo, 'gn) Eliom_parameter.params_type ->
@@ -353,7 +353,7 @@ module type S_poly_without_send = sig
     fallback:
       ('gp, unit,
        Eliom_service.get, Eliom_service.att,
-       Eliom_service.non_co, Eliom_service.non_ext, Eliom_service.reg,
+       Eliom_service.non_co, Eliom_service.non_ext, _,
        'tipo, 'gn, unit, 'a return)
         Eliom_service.t ->
     post_params:('pp, [`WithoutSuffix], 'pn) Eliom_parameter.params_type ->
