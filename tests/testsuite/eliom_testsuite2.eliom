@@ -1392,11 +1392,11 @@ let attnonatt_service =
     ~path: ["attnonatt"]
     ~get_params:unit
     (fun () () ->
-       let service = Eliom_service.attach_global_to_fallback
+       let service = Eliom_service.attach_existing
         ~fallback:Eliom_testsuite1.coucou
         ~service:get_coserv'
       in
-      let service2 = Eliom_service.attach_global_to_fallback
+      let service2 = Eliom_service.attach_existing
         ~fallback:Eliom_testsuite1.coucou
         ~service:post_coserv'
       in

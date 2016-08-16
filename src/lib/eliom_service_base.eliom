@@ -437,16 +437,17 @@ let non_attached_info = function
   | _ ->
     failwith "non_attached_info"
 
-let attach_global_to_fallback :
+let attach_existing :
   fallback:
   (unit, unit, get, att, _, non_ext, 'rg1,
    [< suff ], unit, unit, 'return1) t ->
   service:
   ('get, 'post, 'gp, non_att, co, non_ext, 'rg2,
    [< `WithoutSuffix] as 'sf, 'gn, 'pn, 'return) t ->
+  unit ->
   ('get, 'post, 'gp, att, co, non_ext, non_reg,
    'sf, 'gn, 'pn, 'return) t =
-  fun ~fallback ~service ->
+  fun ~fallback ~service () ->
     let {na_name} = non_attached_info service in
     let fallbackkind = attached_info fallback in
     let open Eliom_common in

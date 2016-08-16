@@ -382,18 +382,19 @@ module type S = sig
     (unit, 'b, 'meth, att, 'co, 'ext, non_reg,
      [ `WithoutSuffix ], unit, 'f, 'return) t
 
-  (** [attach_global_to_fallback ~fallback ~service] attaches the
-      global service [service] on the URL of [fallback]. This allows
-      creating a link to a global service but with another URL than
-      the current one. It is not possible to register something on the
-      service returned by this function. *)
-  val attach_global_to_fallback :
+  (** [attach_existing ~fallback ~service ()] attaches the preexisting
+      path-less service [service] on the URL of [fallback]. This
+      allows creating a link to a pah-less service but with another
+      URL than the current one. It is not possible to register
+      something on the service returned by this function. *)
+  val attach_existing :
     fallback:
       (unit, unit, get, att, _, non_ext, _,
        _, unit, unit, 'return1) t ->
     service:
       ('get, 'post, 'meth, non_att, co, non_ext, _,
        [< `WithoutSuffix] as 'sf, 'gn, 'pn, 'return) t ->
+    unit ->
     ('get, 'post, 'meth, att, co, non_ext, non_reg,
      'sf, 'gn, 'pn, 'return) t
 
