@@ -96,7 +96,7 @@ module type S = sig
 
   (** {2 Service registration } *)
 
-  (** The function [register service handler] will associate the
+  (** The function [register ~service handler] associates the
       [service] to the function [handler]. The [handler] function take
       two parameters, the GET and POST parameters of the current HTTP
       request, and should returns the corresponding page.
@@ -257,6 +257,7 @@ module type S_poly_without_send = sig
   type options
   type _ return
 
+  (** See {!S.register}. *)
   val register :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->
@@ -274,6 +275,7 @@ module type S_poly_without_send = sig
     ('get -> 'post -> 'a page Lwt.t) ->
     unit
 
+  (** See {!S.create}. *)
   val create :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->
@@ -301,7 +303,7 @@ module type S_poly_without_send = sig
      'gn, 'pn, 'a return)
       Eliom_service.t
 
-  (** Same as {!Eliom_service.attach_get} followed by {!register}. *)
+  (** See {!S.attach_get}. *)
   val attach_get :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->
@@ -333,7 +335,7 @@ module type S_poly_without_send = sig
      'tipo, 'gn, unit, 'a return)
       Eliom_service.t
 
-  (** Same as {!Eliom_service.attach_post} followed by {!register}. *)
+  (** See {!S.attach_post}. *)
   val attach_post :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->

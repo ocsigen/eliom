@@ -26,8 +26,6 @@ module type TYPES = sig
   type post = Post_method
   type delete = Delete_method
 
-  type non_post = Non_post
-
   type co = Co
   type non_co = Non_co
 
@@ -35,7 +33,6 @@ module type TYPES = sig
   type non_ext = Non_ext
 
   type http = Http_ret
-  type appl = Appl_ret
 
   type 'a ocaml  = Ocaml of 'a
   type non_ocaml = Non_ocaml
@@ -69,7 +66,7 @@ module type TYPES = sig
       technical meaning is as follows.
 
       - 0-th param : method
-      - params 1-4 : GET and POST parameter types
+      - params 1-4 : GET and POST parameter types and names
       - param 5    : suffix parameters permitted or not
       - param 6    : non-unit only for the [Post (g, p)] case when [g] is
                      not unit ; used to force unit GET parameters when
@@ -127,6 +124,10 @@ module type S = sig
 
   (** {b Type of services}
 
+      For a service
+      [('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg,
+        'tipo, 'gn, 'pn, 'ret) t]:
+
       - ['get] is the type of GET parameters expected by the service.
       - ['post] is the type of POST parameters expected by the service.
       - ['meth] the HTTP method
@@ -148,33 +149,23 @@ module type S = sig
         +'tipo, 'gn, 'pn, +'ret) t
     constraint 'tipo = [< `WithSuffix | `WithoutSuffix ]
 
-  (** {b Service identifier}
-
-      In the simplest case, a service can be identified via its path
-      ([Path path]).
-
-      For the constructors [Fallback] and [Global], the service
-      doesn't have its own URL. It either shares the URL of another
-      [service] ([Fallback service]), or it can be called on any URL
-      ([Global]). Both for [Fallback service] and for [Global], we
-      internally use an automatically-generated parameter for
-      distinguishing the service from the other services sharing the
-      URL.
-
-      [External server path] allows defining services handled by
-      external servers. These servers do not have to run
-      Ocsigen/Eliom. *)
+  (** {b Optional service path} *)
   type (_, _, _) path_option =
     | Path    : Eliom_lib.Url.path -> (att, non_co, _) path_option
     | No_path : (non_att, co, unit) path_option
 
   (** {b Service definition}
 
-      The function [create ~id ~meth ()] creates a service ({!t})
-      identified as per [id] (see {!id} ) and accepting parameters as
-      per [meth] (see {!Eliom_service_sigs.TYPES.meth} ).
+      The function [create ~id ~path ()] creates a service ({!t})
+      identified as per [path] and accepting parameters as per [meth]
+      (see {!Eliom_service_sigs.TYPES.meth} ).
 
-      In addition to [~id] and [~meth], [create] accepts a series of
+      If [path = Path p], the service appears on path [p]. Otherwise
+      ([No_path]), the service doesn't have its own path. Rather, the
+      service responds on any path as long as an internal
+      automatically-generated parameter is provided.
+
+      In addition to [~path] and [~meth], [create] accepts a series of
       optional arguments described below.
 
       If [~https:true] is provided, all links towards that service
@@ -188,8 +179,7 @@ module type S = sig
       priority.
 
       The remaining arguments are ignored for services identified by a
-      path (constructor [Path]). We describe their meaning in
-      conjunction with [Global].
+      path (constructor [Path]).
 
       The optional [~timeout] argument specifies a timeout (in
       seconds) after which the coservice will disappear. This amount
@@ -210,8 +200,8 @@ module type S = sig
       otherwise, it will be anonymous (with an auto-generated internal
       name).
 
-      If the optional [~csrf_safe] argument is [true], it will create
-      a {% <<a_manual chapter="security" fragment="csrf"|"CSRF-safe"
+      If the optional [~csrf_safe] argument is [true], we create a
+      {% <<a_manual chapter="security" fragment="csrf"|"CSRF-safe"
       service>>%}. In that case the [~name] argument is ignored. The
       default is [false].
 
@@ -248,6 +238,9 @@ module type S = sig
     unit ->
     ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, non_ocaml) t
 
+  (** [extern ~prefix ~path ~meth ()] creates an external service,
+      i.e., a service implemented by a remote server (not necessarily
+      running Ocsigen/Eliom). *)
   val extern :
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     prefix:string ->
@@ -256,6 +249,13 @@ module type S = sig
     unit ->
     ('gp, 'pp, 'm, att, non_co, ext, non_reg, 'tipo, 'gn, 'pn, non_ocaml) t
 
+  (** [attach_get ~fallback ~get_params ()] attaches a new service on
+      the path of [fallback]. The new service implements the GET
+      method and accepts [get_params], in addition to an
+      automatically-generated parameter that is used to identify the
+      service and does not need to be provided by the
+      programmer. [fallback] remains available. For a description of
+      the optional parameters see {!create}. *)
   val attach_get :
     ?name:string ->
     ?csrf_safe: bool ->
@@ -272,6 +272,13 @@ module type S = sig
     unit ->
     ('gp, unit, get, att, co, non_ext, reg, 'tipo, 'gn, unit, non_ocaml) t
 
+  (** [attach_post ~fallback ~post_params ()] attaches a new service
+      on the path of [fallback]. The new service implements the POST
+      method and accepts the GET parameters of [fallback], in addition
+      to the POST parameters [post_params]. An automatically-generated
+      parameter is used to identify the service and does not need to
+      be provided by the programmer. [fallback] remains available. For
+      a description of the optional parameters see {!create}. *)
   val attach_post :
     ?name:string ->
     ?csrf_safe: bool ->
