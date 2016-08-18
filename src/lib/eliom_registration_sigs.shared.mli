@@ -193,15 +193,15 @@ module type S = sig
       (unit, unit,
        Eliom_service.get, Eliom_service.att,
        Eliom_service.non_co, Eliom_service.non_ext, _,
-       _, unit, unit, return)
+       [`WithoutSuffix], unit, unit, return)
         Eliom_service.t ->
-    get_params:('gp, 'tipo, 'gn) Eliom_parameter.params_type ->
+    get_params:('gp, [`WithoutSuffix], 'gn) Eliom_parameter.params_type ->
     ?error_handler:((string * exn) list -> page Lwt.t) ->
     ('gp -> unit -> page Lwt.t) ->
     ('gp, unit,
      Eliom_service.get, Eliom_service.att, Eliom_service.co,
      Eliom_service.non_ext, Eliom_service.reg,
-     'tipo, 'gn, unit, return)
+     [`WithoutSuffix], 'gn, unit, return)
       Eliom_service.t
 
   (** Same as {!Eliom_service.attach_post} followed by {!register}. *)
@@ -225,7 +225,7 @@ module type S = sig
       ('gp, unit,
        Eliom_service.get, Eliom_service.att,
        Eliom_service.non_co, Eliom_service.non_ext, _,
-       'tipo, 'gn, unit, return)
+       [`WithoutSuffix], 'gn, unit, return)
         Eliom_service.t ->
     post_params:('pp, [`WithoutSuffix], 'pn) Eliom_parameter.params_type ->
     ?error_handler:((string * exn) list -> page Lwt.t) ->
@@ -233,7 +233,7 @@ module type S = sig
     ('gp, 'pp,
      Eliom_service.post, Eliom_service.att, Eliom_service.co,
      Eliom_service.non_ext, Eliom_service.reg,
-     'tipo, 'gn, 'pn, return)
+     [`WithoutSuffix], 'gn, 'pn, return)
       Eliom_service.t
 
   (** The function [send page] build the HTTP frame corresponding to
@@ -324,15 +324,16 @@ module type S_poly_without_send = sig
       (unit, unit,
        Eliom_service.get, Eliom_service.att,
        Eliom_service.non_co, Eliom_service.non_ext, _,
-       _, unit, unit, 'a return)
+       [`WithoutSuffix], unit, unit, 'a return)
         Eliom_service.t ->
-    get_params:('gp, 'tipo, 'gn) Eliom_parameter.params_type ->
+    get_params:
+      ('gp, [`WithoutSuffix], 'gn) Eliom_parameter.params_type ->
     ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
     ('gp -> unit -> 'a page Lwt.t) ->
     ('gp, unit,
      Eliom_service.get, Eliom_service.att, Eliom_service.co,
      Eliom_service.non_ext, Eliom_service.reg,
-     'tipo, 'gn, unit, 'a return)
+     [`WithoutSuffix], 'gn, unit, 'a return)
       Eliom_service.t
 
   (** See {!S.attach_post}. *)
@@ -356,7 +357,7 @@ module type S_poly_without_send = sig
       ('gp, unit,
        Eliom_service.get, Eliom_service.att,
        Eliom_service.non_co, Eliom_service.non_ext, _,
-       'tipo, 'gn, unit, 'a return)
+       [`WithoutSuffix], 'gn, unit, 'a return)
         Eliom_service.t ->
     post_params:('pp, [`WithoutSuffix], 'pn) Eliom_parameter.params_type ->
     ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
@@ -364,7 +365,7 @@ module type S_poly_without_send = sig
     ('gp, 'pp,
      Eliom_service.post, Eliom_service.att, Eliom_service.co,
      Eliom_service.non_ext, Eliom_service.reg,
-     'tipo, 'gn, 'pn, 'a return)
+     [`WithoutSuffix], 'gn, 'pn, 'a return)
       Eliom_service.t
 
 end

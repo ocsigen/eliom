@@ -266,11 +266,12 @@ module type S = sig
     ?https:bool ->
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     fallback:
-      (unit, unit, get, att, non_co, non_ext, _,
-       _, unit, unit, non_ocaml) t ->
-    get_params:('gp, 'tipo, 'gn) Eliom_parameter.params_type ->
+      (unit, unit, get, att, non_co, non_ext, _, [`WithoutSuffix],
+       unit, unit, non_ocaml) t ->
+    get_params:('gp, [`WithoutSuffix], 'gn) Eliom_parameter.params_type ->
     unit ->
-    ('gp, unit, get, att, co, non_ext, reg, 'tipo, 'gn, unit, non_ocaml) t
+    ('gp, unit, get, att, co, non_ext, reg, [`WithoutSuffix],
+     'gn, unit, non_ocaml) t
 
   (** [attach_post ~fallback ~post_params ()] attaches a new service
       on the path of [fallback]. The new service implements the POST
@@ -290,11 +291,12 @@ module type S = sig
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     fallback:
       ('gp, unit, get, att, non_co, non_ext, _,
-       'tipo, 'gn, unit, non_ocaml) t ->
+       [`WithoutSuffix], 'gn, unit, non_ocaml) t ->
     post_params:
-      ('pp, [ `WithoutSuffix ], 'pn) Eliom_parameter.params_type ->
+      ('pp, [`WithoutSuffix], 'pn) Eliom_parameter.params_type ->
     unit ->
-    ('gp, 'pp, post, att, co, non_ext, reg, 'tipo, 'gn, 'pn, non_ocaml) t
+    ('gp, 'pp, post, att, co, non_ext, reg, [`WithoutSuffix],
+     'gn, 'pn, non_ocaml) t
 
   (** {3 Predefined services} *)
 
