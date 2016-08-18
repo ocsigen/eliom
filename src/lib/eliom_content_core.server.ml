@@ -115,7 +115,6 @@ module Xml = struct
   let lazy_node ?(a = []) name children =
     make_lazy (Eliom_lazy.from_fun (fun () -> (Node (name, a, Eliom_lazy.force children))))
 
-  type biggest_event_handler = (biggest_event Js.t -> unit) Eliom_client_value.t
   type event_handler = (Dom_html.event Js.t -> unit) Eliom_client_value.t
   type mouse_event_handler = (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
   type keyboard_event_handler = (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
@@ -134,11 +133,11 @@ module Xml = struct
   let biggest_event_handler_attrib name cf =
     internal_event_handler_attrib name (event_handler cf)
   let event_handler_attrib name (cf : event_handler) =
-    biggest_event_handler_attrib name (cf :> biggest_event_handler)
+    biggest_event_handler_attrib name cf
   let mouse_event_handler_attrib name (cf : mouse_event_handler) =
-    biggest_event_handler_attrib name (cf :> biggest_event_handler)
+    biggest_event_handler_attrib name cf
   let keyboard_event_handler_attrib name (cf : keyboard_event_handler) =
-    biggest_event_handler_attrib name (cf :> biggest_event_handler)
+    biggest_event_handler_attrib name cf
 
   let client_attrib ?init (x : attrib Eliom_client_value.t) =
     let crypto = make_cryptographic_safe_string () in

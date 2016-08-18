@@ -35,10 +35,15 @@ module Xml : sig
   type aname = string
   type attrib
 
-  type -'a caml_event_handler =
+  type caml_event_handler =
     | CE_registered_closure of string * Eliom_lib.poly
                                     (* 'a Js.t -> unit) client_value_server *)
-    | CE_client_closure of ((#Dom_html.event as 'a) Js.t -> unit)
+    | CE_client_closure of
+        (Dom_html.event Js.t -> unit) (* Client side-only *)
+    | CE_client_closure_mouse of
+        (Dom_html.mouseEvent Js.t -> unit) (* Client side-only *)
+    | CE_client_closure_keyboard of
+        (Dom_html.keyboardEvent Js.t -> unit) (* Client side-only *)
     | CE_call_service of
         ( [ `A | `Form_get | `Form_post] *
           ((bool * string list) option) *
@@ -46,17 +51,7 @@ module Xml : sig
           Ocsigen_lib.poly (* (unit -> bool) client_value *)
         ) option Eliom_lazy.request
 
-  (* Inherit from all events.
-     Necessary for subtyping since caml_event_handler is contravariant. *)
-  class type biggest_event = object
-    inherit Dom_html.event
-    inherit Dom_html.mouseEvent
-    inherit Dom_html.keyboardEvent
-  end
-
-  type internal_event_handler =
-    | Raw of string
-    | Caml of biggest_event caml_event_handler
+  type internal_event_handler = Raw of string | Caml of caml_event_handler
   type event_handler = Dom_html.event Js.t -> unit
   type mouse_event_handler = Dom_html.mouseEvent Js.t -> unit
   type keyboard_event_handler = Dom_html.keyboardEvent Js.t -> unit
@@ -96,7 +91,7 @@ module Xml : sig
   type racontent =
     | RA of acontent
     | RAReact of acontent option React.signal
-    | RACamlEventHandler of biggest_event caml_event_handler
+    | RACamlEventHandler of caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
     | RAClient of string * attrib option * Eliom_lib.poly

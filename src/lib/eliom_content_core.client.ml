@@ -87,21 +87,19 @@ module Xml = struct
   let node ?(a = []) name children = make (Node (name, a, children))
   let lazy_node ?a name children = node ?a name (Eliom_lazy.force children)
 
-  type biggest_event_handler = biggest_event Js.t -> unit
-
   type event_handler = Dom_html.event Js.t -> unit
   type mouse_event_handler = Dom_html.mouseEvent Js.t -> unit
   type keyboard_event_handler = Dom_html.keyboardEvent Js.t -> unit
 
   let event_handler_attrib name (value : event_handler) =
     internal_event_handler_attrib name
-      (Caml (CE_client_closure (value :> biggest_event_handler)))
+      (Caml (CE_client_closure value))
   let mouse_event_handler_attrib name (value : mouse_event_handler) =
     internal_event_handler_attrib name
-      (Caml (CE_client_closure (value :> biggest_event_handler)))
+      (Caml (CE_client_closure_mouse value))
   let keyboard_event_handler_attrib name (value : keyboard_event_handler) =
     internal_event_handler_attrib name
-      (Caml (CE_client_closure (value :> biggest_event_handler)))
+      (Caml (CE_client_closure_keyboard value))
 
   let node_react_children ?(a = []) name children =
     {elt = Lazy.from_val (ReactChildren (Node (name,a,[]),children)); node_id=NoId}

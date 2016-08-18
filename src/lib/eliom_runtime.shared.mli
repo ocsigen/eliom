@@ -51,10 +51,15 @@ module RawXML : sig
 
   type cookie_info = (bool * string list) deriving (Json)
 
-  type -'a caml_event_handler =
+  type caml_event_handler =
     | CE_registered_closure of
         string * Ocsigen_lib.poly (* 'a Js.t -> unit) client_value *)
-    | CE_client_closure of ((#Dom_html.event as 'a) Js.t -> unit)
+    | CE_client_closure of
+        (Dom_html.event Js.t -> unit) (* Client side-only *)
+    | CE_client_closure_mouse of
+        (Dom_html.mouseEvent Js.t -> unit) (* Client side-only *)
+    | CE_client_closure_keyboard of
+        (Dom_html.keyboardEvent Js.t -> unit) (* Client side-only *)
     | CE_call_service of
         ( [ `A | `Form_get | `Form_post] *
           (cookie_info option) *
@@ -62,17 +67,9 @@ module RawXML : sig
           Ocsigen_lib.poly (* (unit -> bool) client_value *)
         ) option Eliom_lazy.request
 
-  (* Inherit from all events.
-     Necessary for subtyping since caml_event_handler is contravariant. *)
-  class type biggest_event = object
-    inherit Dom_html.event
-    inherit Dom_html.mouseEvent
-    inherit Dom_html.keyboardEvent
-  end
-
   type internal_event_handler =
     | Raw of string
-    | Caml of biggest_event caml_event_handler
+    | Caml of caml_event_handler
 
   type uri = string Eliom_lazy.request
   val string_of_uri : uri -> string
@@ -113,7 +110,7 @@ module RawXML : sig
   type racontent =
     | RA of acontent
     | RAReact of acontent option React.signal
-    | RACamlEventHandler of biggest_event caml_event_handler
+    | RACamlEventHandler of caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
     | RAClient of string * attrib option * Ocsigen_lib.poly

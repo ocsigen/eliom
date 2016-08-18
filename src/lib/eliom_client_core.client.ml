@@ -398,7 +398,7 @@ let change_page_get_form_
 let change_page_post_form_ =
   ref (fun ?cookies_info ?tmpl form href -> assert false)
 
-type client_form_handler = Xml.biggest_event Js.t -> bool Lwt.t
+type client_form_handler = Dom_html.event Js.t -> bool Lwt.t
 
 let raw_a_handler node cookies_info tmpl ev =
   let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in
@@ -439,11 +439,11 @@ let raw_event_handler value =
 
 let closure_name_prefix = Eliom_runtime.RawXML.closure_name_prefix
 let closure_name_prefix_len = String.length closure_name_prefix
-let reify_caml_event name node ce : string * (#Dom_html.event Js.t -> bool) =
+let reify_caml_event name node ce =
   match ce with
-  | Xml.CE_call_service None -> name,(fun _ -> true)
+  | Xml.CE_call_service None -> name, `Other (fun _ -> true)
   | Xml.CE_call_service (Some (`A, cookies_info, tmpl, _)) ->
-    name, (fun ev ->
+    name, `Other (fun ev ->
       let node = Js.Opt.get (Dom_html.CoerceTo.a node)
           (fun () -> Lwt_log.raise_error ~section "not an anchor element")
       in
@@ -451,29 +451,51 @@ let reify_caml_event name node ce : string * (#Dom_html.event Js.t -> bool) =
   | Xml.CE_call_service
       (Some ((`Form_get | `Form_post) as kind, cookies_info, tmpl,
              client_hdlr)) ->
-    name, (fun ev ->
+    name, `Other (fun ev ->
       let form = Js.Opt.get (Dom_html.CoerceTo.form node)
           (fun () -> Lwt_log.raise_error ~section "not a form element") in
       raw_form_handler form kind cookies_info tmpl ev
         (Eliom_lib.from_poly client_hdlr : client_form_handler))
   | Xml.CE_client_closure f ->
-    name, (fun ev -> try f ev; true with Eliom_client_value.False -> false)
+    name,
+    `Other (fun ev -> try f ev; true with Eliom_client_value.False -> false)
+  | Xml.CE_client_closure_keyboard f ->
+    name,
+    `Keyboard
+      (fun ev -> try f ev; true with Eliom_client_value.False -> false)
+  | Xml.CE_client_closure_mouse f ->
+    name,
+    `Mouse
+      (fun ev -> try f ev; true with Eliom_client_value.False -> false)
   | Xml.CE_registered_closure (_, cv) ->
     let name =
       let len = String.length name in
-      if len > closure_name_prefix_len && String.sub name 0 closure_name_prefix_len = closure_name_prefix
+      if
+        len > closure_name_prefix_len &&
+        String.sub name 0 closure_name_prefix_len = closure_name_prefix
       then String.sub name closure_name_prefix_len
           (len - closure_name_prefix_len)
       else name in
-    name, raw_event_handler cv
+    name, `Other (raw_event_handler cv)
 
 let register_event_handler, flush_load_script =
   let add, _, flush, _ = create_buffer () in
   let register node (name, ev) =
-    let name,f = reify_caml_event name node ev in
-    if name = "onload"
-    then add f
-    else Js.Unsafe.set node (Js.bytestring name)
+    match reify_caml_event name node ev with
+    | "onload", `Other f ->
+      add f
+    | "onload", `Keyboard _ ->
+      failwith "keyboard event handler for onload"
+    | "onload", `Mouse _ ->
+      failwith "keyboard event handler for onload"
+    | name, `Other f ->
+      Js.Unsafe.set node (Js.bytestring name)
+        (Dom_html.handler (fun ev -> Js.bool (f ev)))
+    | name, `Keyboard f ->
+      Js.Unsafe.set node (Js.bytestring name)
+        (Dom_html.handler (fun ev -> Js.bool (f ev)))
+    | name, `Mouse f ->
+      Js.Unsafe.set node (Js.bytestring name)
         (Dom_html.handler (fun ev -> Js.bool (f ev)))
   in
   let flush () =

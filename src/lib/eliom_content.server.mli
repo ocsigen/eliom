@@ -108,16 +108,12 @@ module Xml : sig
 
   (** {2 Event handlers } *)
 
-  (** Values of type ['a caml_event_handler] represents event handler
+  (** Values of type [caml_event_handler] represents event handler
       build with the [{{ ... }}] syntax (see the Eliom manual for more
       information on {% <<a_manual chapter="clientserver-html"
       fragment="syntax"|syntax extension>>%}). Such values are
-      expected by functions like {!Eliom_content.Html.a_onclick}. The
-      type parameter is the type of the javascript event expected by
-      the handler, for example {% <<a_api project="js_of_ocaml" | type
-      Dom_html.mouseEvent>>%} or {% <<a_api project="js_of_ocaml" |
-      type Dom_html.keyboardEvent >>%}. *)
-  type -'a caml_event_handler constraint 'a = #Dom_html.event
+      expected by functions like {!Eliom_content.Html.a_onclick}. *)
+  type caml_event_handler
 
   (**/**)
 
@@ -132,18 +128,14 @@ module Xml : sig
   val make_event_handler_table : elt -> Eliom_runtime.RawXML.event_handler_table
   val make_client_attrib_table : elt -> Eliom_runtime.RawXML.client_attrib_table
 
-  val caml_event_handler : ((#Dom_html.event as 'a) Js.t -> unit) Eliom_client_value.t -> 'a caml_event_handler
-
-  class type biggest_event = object
-    inherit Dom_html.event
-    inherit Dom_html.mouseEvent
-    inherit Dom_html.keyboardEvent
-  end
+  val caml_event_handler :
+    (Dom_html.event Js.t -> unit) Eliom_client_value.t ->
+    caml_event_handler
 
   type racontent =
     | RA of acontent
     | RAReact of acontent option React.signal
-    | RACamlEventHandler of biggest_event caml_event_handler
+    | RACamlEventHandler of caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
     | RAClient of string * attrib option * Eliom_lib.poly
