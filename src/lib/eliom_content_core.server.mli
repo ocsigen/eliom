@@ -31,7 +31,7 @@ module Xml : sig
      and type keyboard_event_handler =
            (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
 
-  type -'a caml_event_handler constraint 'a = #Dom_html.event
+  type caml_event_handler
 
   (**/**)
 
@@ -46,15 +46,9 @@ module Xml : sig
   val make_event_handler_table : elt -> Eliom_runtime.RawXML.event_handler_table
   val make_client_attrib_table : elt -> Eliom_runtime.RawXML.client_attrib_table
 
-  class type biggest_event = object
-    inherit Dom_html.event
-    inherit Dom_html.mouseEvent
-    inherit Dom_html.keyboardEvent
-  end
-
   type internal_event_handler =
     | Raw of string
-    | Caml of biggest_event caml_event_handler
+    | Caml of caml_event_handler
 
   val internal_event_handler_attrib : aname -> internal_event_handler -> attrib
   val internal_event_handler_of_service :
@@ -64,13 +58,13 @@ module Xml : sig
       * Eliom_lib.poly) option Eliom_lazy.request -> internal_event_handler
 
   val caml_event_handler :
-    ((#Dom_html.event as 'a) Js.t -> unit) Eliom_client_value.t ->
-    'a caml_event_handler
+    (Dom_html.event Js.t -> unit) Eliom_client_value.t ->
+    caml_event_handler
 
   type racontent =
     | RA of acontent
     | RAReact of acontent option React.signal
-    | RACamlEventHandler of biggest_event caml_event_handler
+    | RACamlEventHandler of caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
     | RAClient of string * attrib option * Eliom_lib.poly
