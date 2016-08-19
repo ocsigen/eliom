@@ -51,7 +51,7 @@ let reload_with_warning () () =
   match f with
   | Some f ->
     print_endline
-      "Warning: (non hidden) calling void coservice' on client side does\
+      "Warning: (non hidden) calling void coservice' on client side does \
        not remone GET non-attached parameters (FIX in Eliom)";
     f () ()
   | None ->
