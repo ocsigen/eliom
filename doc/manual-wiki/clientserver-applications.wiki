@@ -55,7 +55,7 @@ Services belonging to the application are registered using the module
 <<a_api subproject="server"|module Eliom_registration.App>>. More precisely,
 this is a functor that needs to be applied for each application you create.
 These services just return HTML5 pages as usual (using
-<<a_api subproject="server"|module Eliom_content.Html5>>)
+<<a_api subproject="server"|module Eliom_content.Html>>)
 The client side program (compiled in JavaScript) is added automatically by Eliom,
 with all its data, and run automatically when the page is loaded.
 

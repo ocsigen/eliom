@@ -22,9 +22,9 @@ A service is composed of:
 Manipulation of Eliom services can be done throught the values of type
 <<a_api | type Eliom_service.service >>. The most common service
 creation function is <<a_api | val
-Eliom_registration.Html5.register_service >>. It allows creating a
+Eliom_registration.Html.register_service >>. It allows creating a
 service attached to a given path, which may expect some GET
-parameters, and which returns HTML5 content using the TyXML library.
+parameters, and which returns HTML content using the TyXML library.
 
 <<paragraph| Registrable service >>
 
@@ -36,7 +36,7 @@ The service creation could be split in two steps:
   <<a_api | val Eliom_service.OCaml.service >>
   (depending on the type of service you want to create); and
 * register a service handler, e.g., using <<a_api | val
-  Eliom_registration.HTML5.register >>.
+  Eliom_registration.Html.register >>.
 
 This chapter focuses on values of type {{{service}}}. See chapter
 <<a_manual chapter="server-outputs"| Writing service handlers>> for
@@ -60,7 +60,7 @@ to designate a value of type {{{service}}}.
 
 Value of type {{{service}}} may be used to create links and forms
 towards a service, using for example the function <<a_api | val
-Eliom_content.Html5.D.a >>. See chapter <<a_manual
+Eliom_content.Html.D.a >>. See chapter <<a_manual
 chapter="server-links"|Creating links and forms>> for more information.
 
 <<paragraph| Unregistrable services >>
@@ -174,7 +174,7 @@ service, making it available only to a session, a client side process,
 or a group of sessions.
 
 To limit the scope of a service, just add the argument {{{~scope}}} to
-the <<a_api | val Eliom_registration.Html5.register>> function (same
+the <<a_api | val Eliom_registration.Html.register>> function (same
 for the other {{{register}}} variants). The default scope is <<a_api |
 val Eliom_common.site_scope>>.
 
@@ -370,7 +370,7 @@ Then wherever you want to add a button to do that action (on data
 
 <<code language="ocaml"|
 
-Html5.D.(Form.post_form remove_action
+Html.D.(Form.post_form remove_action
           (fun id_name -> [
              Form.input
                ~input_type:`Hidden ~name:id_name ~value:id
@@ -441,7 +441,7 @@ page:
 
 <<code language="ocaml"|
 
-Eliom_content.Html5.D.a
+Eliom_content.Html.D.a
   (Eliom_service.Http.external_service
      ~prefix:"http://en.wikipedia.org/wiki/OCaml"
      ~path:["wiki";""]
@@ -464,7 +464,7 @@ the path of the file.
 For example, the following code will create this link: [[site:ocsigen10.png|download image]].
 
 <<code language="ocaml"|
-let open Eliom_content.Html5.F in
+let open Eliom_content.Html.F in
 a (static_dir ()) [pcdata "download image"] ["ocsigen10.png"]
 >>
 

@@ -96,7 +96,7 @@ In the client program, top-level expressions are evaluated early in
 the initialization phase of the client process, particulary //before
 the DOM is in place//. This means, that you cannot do any DOM
 manipulation or access HTML-elements with <<a_api text="DOM semantics"
-| module Eliom_content.Html5.D>>. However, you can postpone that by
+| module Eliom_content.Html.D>>. However, you can postpone that by
 <<a_api subproject="client" | val Eliom_client.onload>>.
 
 ==@@id="injections"@@ Injections (in the client-section)
@@ -215,12 +215,12 @@ ommitted if it is derivible from its //usage// in the server code:
 {server{
   ...
   let onclick = {{ fun ev -> Eliom_lib.alert "ohyeah!" }} in
-  Eliom.content.Html5.F.(div ~a:[a_onclick onclick] [pcdata "click me!"])
+  Eliom.content.Html.F.(div ~a:[a_onclick onclick] [pcdata "click me!"])
   ...
 >>
 
 Here, the function ##a_onclick## has type ##(#Dom_html.mouseEvent Js.t
--> unit) -> [> `OnClick ] Eliom_content_core.Html5.attrib##; this
+-> unit) -> [> `OnClick ] Eliom_content.Html.attrib##; this
 determines the type of the client value ##onclick## sufficiently.
 
 ===@@id="clientvaluesemantic"@@ Semantics

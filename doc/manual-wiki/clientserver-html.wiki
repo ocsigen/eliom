@@ -1,11 +1,11 @@
 =@@id="server_generating_html"@@Generating HTML pages=
 
-Ocsigen provides several ways to generate and type HTML5 pages.
+Ocsigen provides several ways to generate and type HTML pages.
 
-* The default technique to produce HTML5 pages using Eliom are the
-   <<a_api | module Eliom_content.Html5.F >>,
-   <<a_api | module Eliom_content.Html5.D >> and
-   <<a_api | module Eliom_content.Html5.R >>
+* The default technique to produce HTML pages using Eliom are the
+   <<a_api | module Eliom_content.Html.F >>,
+   <<a_api | module Eliom_content.Html.D >> and
+   <<a_api | module Eliom_content.Html.R >>
    modules. It is the only one supported for client-server Eliom programs.
    This module provides a typing based on OCaml's polymorphic variants,
    which ensures at compile time, that the pages you will generate will
@@ -16,9 +16,9 @@ Ocsigen provides several ways to generate and type HTML5 pages.
 * You can also choose to generate untyped html as text.
 
 The types in OCaml closest to XML types are //polymorphic variants//.
-Ocsigen uses them to provide a module with very good HTML5 typing.
+Ocsigen uses them to provide a module with very good HTML typing.
 The full documentation is available
-<<a_api text="in the TyXML documentation" project="tyxml" | module Html5.M >>.
+<<a_api text="in the TyXML documentation" project="tyxml" | module Html.M >>.
 
 <<outline depth="2"| <<header| **Table of contents** >> >>
 
@@ -53,15 +53,15 @@ are not used for the same thing.
 
 For example, here is a {{{div}}} element built with TyXML and then
 converted to the DOM representation using the module << a_api
-subproject="client" | module Eliom_content.Html5 >>:
+subproject="client" | module Eliom_content.Html >>:
 
 <<code language="ocaml"|
-open Eliom_content.Html5.D
+open Eliom_content.Html.D
 let n = div ~a:[a_id "some div id"]
   [ pcdata "some text";
     br ();
     pcdata "some other text"; ]
-let b = Eliom_content.Html5.To_dom.of_div n
+let b = Eliom_content.Html.To_dom.of_div n
 >>
 
 And here the same built using the DOM API:
@@ -84,22 +84,22 @@ let d =
 
 To ease the DOM manipulation on the client, the usual DOM manipulation
 function are also available on TyXML elements. See section the next
-section for HTML5 element manipulation, by value and by reference.
+section for HTML element manipulation, by value and by reference.
 
-===@@id="unique"@@ HTML5 element manipulation, by value and by reference
+===@@id="unique"@@ HTML element manipulation, by value and by reference
 
 There are four modules to create typed HTML:
-   <<a_api | module Eliom_content.Html5.F >>,
-   <<a_api | module Eliom_content.Html5.D >>,
-   <<a_api | module Eliom_content.Html5.C >> and
-   <<a_api | module Eliom_content.Html5.R >>.
+   <<a_api | module Eliom_content.Html.F >>,
+   <<a_api | module Eliom_content.Html.D >>,
+   <<a_api | module Eliom_content.Html.C >> and
+   <<a_api | module Eliom_content.Html.R >>.
 The last one is for reactive elements and is addressed in
 <<a_manual chapter="clientserver-html"| another section >>.
 
 It is possible to mix the four kinds of nodes in the same page.
 
-Elements built with {{{Html5.F}}} are sent by value, while
-elements built with {{{Html5.D}}} are sent to the client by
+Elements built with {{{Html.F}}} are sent by value, while
+elements built with {{{Html.D}}} are sent to the client by
 reference. Eliom adds an identifier as attribute of {{{D}}} elements
 to make it possible to find them back in the page from client side.
 
@@ -125,12 +125,12 @@ included in the initial html document from event handlers, as the
 let main_service =
   My_appl.register_service ~path:[""] ~get_params:Eliom_parameter.unit
     (fun () () ->
-       let open Eliom_content.Html5.D in
+       let open Eliom_content.Html.D in
        let input = input ~a:[a_input_type `Text] () in
        let onclick_handler = [%client (fun _ ->
             let v =
               Js.to_string
-                (Eliom_content.Html5.To_dom.of_input ~%input)##.value
+                (Eliom_content.Html.To_dom.of_input ~%input)##.value
             in
             Dom_html.window##alert(Js.string ("Input value :" ^ v)))
        ] in
@@ -168,27 +168,27 @@ elements sent by value in the same document.
 
 By default, a reference on an element is only valid in the current
 HTTP request: hence, sending an element built with
-{{{Html5.D}}} in
+{{{Html.D}}} in
 two different pages will produce two distinct nodes. If you want to
 define a element reference that is preserved accross the different
 page of an application, you must explicitely name this element with
 the function <<a_api subproject="server" | val
-Eliom_content.Html5.Id.create_named_elt >>, that takes as parameters an
+Eliom_content.Html.Id.create_named_elt >>, that takes as parameters an
 element identifier and a non named element.  Element identifiers are
 created with the function <<a_api subproject="server" | val
-Eliom_content.Html5.Id.new_elt_id >>. See also section <<a_manual
+Eliom_content.Html.Id.new_elt_id >>. See also section <<a_manual
 chapter="clientserver-applications" fragment="global" |Global elements of an
 application>>.
 
-The module <<a_api subproject="client"| module Eliom_content.Html5.Manip >>
+The module <<a_api subproject="client"| module Eliom_content.Html.Manip >>
 allows using the classical DOM manipulation functions
 (e.g. appendChild, addEventlistener, ...) directly on the identifier
-of an HTML5 elements.
+of an HTML elements.
 
 
 ===@@id="reactive"@@Reactive DOM
 
-{{{Eliom_content.Html5.R}}} allows one to insert time-varying values
+{{{Eliom_content.Html.R}}} allows one to insert time-varying values
 into the DOM tree.
 It relies on React's signal {{{'a React.signal}}}. More information about react
 can be found on the [[http://erratique.ch/software/react| homepage]].
@@ -197,17 +197,17 @@ which allows to manipulate lists of nodes in a reactive way.
 
 When dealing with dynamic content, one usally ends up with a lot
 of imperative DOM manipulations: replacing, appending, removing DOM
-elements, updating attributes, etc. {{{Html5.R}}} hides most
+elements, updating attributes, etc. {{{Html.R}}} hides most
 of those imperative DOM operations. Every time a signal
 changes, the corresponding DOM tree updates itself.
 
 ==== Usage on client side
 
-To insert reactive DOM elements, just use module {{{Html5.R}}} instead of
-{{{Html5.D}}} or {{{Html5.F}}} for these elements.
-{{{Html5.R}}} makes also possible to define reactive attributes.
+To insert reactive DOM elements, just use module {{{Html.R}}} instead of
+{{{Html.D}}} or {{{Html.F}}} for these elements.
+{{{Html.R}}} makes also possible to define reactive attributes.
 
-Use function {{{Html5.R.node : 'a elt React.signal -> 'a elt}}}
+Use function {{{Html.R.node : 'a elt React.signal -> 'a elt}}}
 to insert a reactive node in a page.
 
 ===== Example
@@ -216,7 +216,7 @@ to insert a reactive node in a page.
 [%%shared
     open Eliom_lib
     open Eliom_content
-    open Html5
+    open Html
     open F
 ]
 
@@ -228,7 +228,7 @@ module Reactivenodes_app =
 
 [%%client
 
-    open Eliom_content.Html5
+    open Eliom_content.Html
 
     let split s =
       let len = String.length s in
@@ -241,7 +241,7 @@ module Reactivenodes_app =
 
     let value_len = React.S.map String.length value_signal
 
-    let content_signal : Html5_types.div_content_fun elt React.signal =
+    let content_signal : Html_types.div_content_fun elt React.signal =
       React.S.map
         (fun value ->
            let l = split value in
@@ -299,8 +299,8 @@ let () =
 >>
 
 ===@@id="inject"@@Dom & Client-values
-{{{Eliom_content.Html5.C}}} allows one to insert client-side content
-into server-side HTML5-trees. This makes possible, for example, to insert
+{{{Eliom_content.Html.C}}} allows one to insert client-side content
+into server-side HTML-trees. This makes possible, for example, to insert
 reactive nodes in a server-side generated page.
 
 ==== Example
@@ -309,7 +309,7 @@ reactive nodes in a server-side generated page.
 [%%shared
     open Eliom_lib
     open Eliom_content
-    open Html5
+    open Html
     open F
 ]
 
@@ -323,7 +323,7 @@ let main_service =
   Eliom_service.App.service ~path:[] ~get_params:Eliom_parameter.unit ()
 
 [%%client
-    open Eliom_content.Html5
+    open Eliom_content.Html
     let
       (value_signal : string React.signal),
       set_value = React.S.create "initial"
@@ -367,8 +367,8 @@ elements are instantied only once for an application and that unique
 instance is used in every page that references the element.
 
 To create a global element, use function <<a_api
-subproject="client" text="Eliom_content.Html5.Id.create_global_elt"| val
-Eliom_content.Html5.Id.create_global_elt >>.
+subproject="client" text="Eliom_content.Html.Id.create_global_elt"| val
+Eliom_content.Html.Id.create_global_elt >>.
 
 <<code language="ocaml"|
 val create_global_elt: 'a elt -> 'a elt
@@ -378,7 +378,7 @@ In the following example, the content of {{{global_list}}} will be
 preserved when you click on the "reload page" link.
 
 <<code language="ocaml"|
-[%%shared open Eliom_content.Html5.D ]
+[%%shared open Eliom_content.Html.D ]
 
 module My_appl =
   Eliom_registration.App (
@@ -387,7 +387,7 @@ module My_appl =
   end)
 
 
-let global_list = Eliom_content.Html5.Id.create_global_elt (ul [])
+let global_list = Eliom_content.Html.Id.create_global_elt (ul [])
 let cpt = ref 0
 
 let main_service =
@@ -404,8 +404,8 @@ let _ =
        let page_number = incr cpt; string_of_int !cpt in
        let append_item = [%client
 	 let item_text = "item inserted in page #" ^ ~%page_number in
-         let item = Eliom_client.Html5.of_li (li [pcdata item_text]) in
-         Dom.appendChild (Eliom_client.Html5.of_ul ~%global_list) item
+         let item = Eliom_client.Html.of_li (li [pcdata item_text]) in
+         Dom.appendChild (Eliom_client.Html.of_ul ~%global_list) item
        ]
        in
        let append_link =
@@ -427,10 +427,10 @@ is displayed only once, while the alert "non global script" is display
 every time you click on the "reload page" link.
 
 <<code language="ocaml"|
-open Eliom_content.Html5.D
+open Eliom_content.Html.D
 
 let global_script =
-  Eliom_content.Html5.Id.create_global_elt
+  Eliom_content.Html.Id.create_global_elt
     (script (cdata_script "alert(\"global script\")"))
 let simple_script =
   script (cdata_script "alert(\"non global script\")")
@@ -458,27 +458,27 @@ let _ =
 //Warning:// The HTML syntax extension is only provided for Camlp4,
 not for PPX. Its use is very limited. We recommend that you use the
 modules
-<<a_api subproject="server" | module Eliom_content.Html5.D >> and
-<<a_api subproject="server" text="F"| module Eliom_content.Html5.F >>
+<<a_api subproject="server" | module Eliom_content.Html.D >> and
+<<a_api subproject="server" text="F"| module Eliom_content.Html.F >>
 to produce HTML content.
 
 Ocsigen also has a syntax extension for OCaml that allows you to write
 pages using HTML syntax (but you are free not to use it).  This is
 convenient for example if you want to include (parts of) HTML pages
 that have been created by third party.  To choose actual
-XML-implementation you have to provide a module named ##Html5##
+XML-implementation you have to provide a module named ##Html##
 (or ##Svg## respectively):
 
 For example, the following code:
 <<code language="ocaml"|
-module Html5 = Eliom_content.Html5.F
+module Html = Eliom_content.Html.F
 
 << <html>
      <head><title></title></head>
      <body><h1>plop</h1></body>
    </html> ~>>
 >>
-is a caml value of type {{{Html5_types.html Eliom_content.Html5.F.elt}}}.
+is a caml value of type {{{Html_types.html Eliom_content.Html.F.elt}}}.
 
 To compile a module containing this syntax, you need the camlp4 preprocessor and the {{{tyxml.syntax}}} package:
 {{{
@@ -488,7 +488,7 @@ ocamlfind ocamlc
  -c your_module.ml
 }}}
 
-You can insert OCaml expressions of type {{{'a Html5.elt}}} inside
+You can insert OCaml expressions of type {{{'a Html.elt}}} inside
 html using {{{$...$}}}, like this:
 
 <<code language="ocaml"|
@@ -508,7 +508,7 @@ let i = 4 in
 
 If you want to use a dollar in your page, just write it twice.
 
-You can write a list of HTML5 expressions using the syntax {{{<:xmllist<...>>}}}, for example:
+You can write a list of HTML expressions using the syntax {{{<:xmllist<...>>}}}, for example:
 <<code language="ocaml"|
 <:html5list< <p>hello</p> <div></div> ~>>
 >>
@@ -534,7 +534,7 @@ The syntax extension is not allowed in patterns for now.
 
 //Warning:// The two syntaxes are not equivalent for typing.  Using
 the syntax extension will do less checking.  For example the following
-code is accepted but not valid regarding HTML5 standard (because
+code is accepted but not valid regarding HTML standard (because
 <<span class="code"|<head>>> must contain a title):
 
 <<code language="ocaml"|
@@ -545,8 +545,8 @@ code is accepted but not valid regarding HTML5 standard (because
 >>
 
 We recommend you use the functions from <<a_api project="tyxml" |
-module Eliom_content.Html5.D>>, as you will (almost) always get valid
-HTML5. Use the syntax extension for example to enclose already created
+module Eliom_content.Html.D>>, as you will (almost) always get valid
+HTML. Use the syntax extension for example to enclose already created
 pieces of HTML, and check your pages validity with the
 [[http://validator.w3.org/| W3C validator]].
 
@@ -568,40 +568,40 @@ Writing HTML as text makes applications much more difficult to maintain.
 We do not recommend this.
 
 
-===@@id="custom_data"@@Custom data for HTML5===
+===@@id="custom_data"@@Custom data for HTML===
 
-Eliom provides a type-safe interface for create new attributes of the form {{{data-*}}}, using  <<a_api | module Eliom_content.Html5.Custom_data>>.
+Eliom provides a type-safe interface for create new attributes of the form {{{data-*}}}, using  <<a_api | module Eliom_content.Html.Custom_data>>.
 
 ==== Creation ====
 Custom data may be created either from string-conversation functions by <<a_api | val
-Eliom_content.Html5.Custom_data.create>>
+Eliom_content.Html.Custom_data.create>>
 
 <<code language="ocaml"|
 open Eliom_content
 let my_int_data =
-  Html5.Custom_data.create ~name:"my_int"
+  Html.Custom_data.create ~name:"my_int"
     ~of_string:int_of_string
     ~to_string:string_of_int ()
 >>
 
-or by a Json-deriving type <<a_api | val Eliom_content.Html5.Custom_data.create_json>>
+or by a Json-deriving type <<a_api | val Eliom_content.Html.Custom_data.create_json>>
 
 <<code language="ocaml"|
 [%%shared
     type coord = { x : int; y : int; } [@@deriving json]
     let coord_data =
-      Html5.Custom_data.create_json ~name:"coord" [%derive.json: coord]
+      Html.Custom_data.create_json ~name:"coord" [%derive.json: coord]
 ]
 >>
 
 ==== Injecting ====
 
-Custom data can be injected into HTML5-trees of type <<a_api
-project="eliom"|type Eliom_content.Html5.elt>> by the function <<a_api
-project="eliom"|val Eliom_content.Html5.Custom_data.attrib>>:
+Custom data can be injected into HTML-trees of type <<a_api
+project="eliom"|type Eliom_content.Html.elt>> by the function <<a_api
+project="eliom"|val Eliom_content.Html.Custom_data.attrib>>:
 
 <<code language="ocaml"|
-  div ~a:[Html5.Custom_data.attrib coord_data {x = 100; y = 200}] []
+  div ~a:[Html.Custom_data.attrib coord_data {x = 100; y = 200}] []
 >>
 
 ==== Reading/writing the DOM ====
@@ -610,31 +610,31 @@ On the client side, custom data can be read from and written to JavaScript DOM
 elements of type <<a_api project="js_of_ocaml"|class type Dom_html.element>>.
 
 Custom data can be read from a DOM-element with the function
-<<a_api subproject="client"|val Eliom_content.Html5.Custom_data.get_dom>>.
+<<a_api subproject="client"|val Eliom_content.Html.Custom_data.get_dom>>.
 If no respective custom data attribute can be found in the element
  * the ##default## value from creating the custom data is returned, if any, or
  * an exception ##Not_found## is raised, otherwise.
 
 The custom data of a DOM-element can be set with the function
-<<a_api subproject="client"|val Eliom_content.Html5.Custom_data.set_dom>>.
+<<a_api subproject="client"|val Eliom_content.Html.Custom_data.set_dom>>.
 
 <<code language="ocaml"|
   [%client
     fun (div : Dom_html.element Js.t) ->
-      let i = Html5.Custom_data.get_dom div coord_data in
+      let i = Html.Custom_data.get_dom div coord_data in
       debug "{x=%d; y=%d}" i.x i.y;
-      Html5.Custom_data.set_dom div coord_data { x = i.x + 1; y = i.y - 1 }
+      Html.Custom_data.set_dom div coord_data { x = i.x + 1; y = i.y - 1 }
   ]
 >>
 
 ==== Default value ====
 If a custom data is created with the optional argument ##default##, calls to
 <<a_api subproject="client" | val
-Eliom_content.Html5.Custom_data.get_dom>> return that instead of throwing an
+Eliom_content.Html.Custom_data.get_dom>> return that instead of throwing an
 exception [Not_found].
 
 <<code language="ocaml"|
   let coord_data' =
-    Html5.Custom_data.create_json
+    Html.Custom_data.create_json
        ~name:"coord" default:{x=0;y=0;} [%derive.json: my_data]
 >>

@@ -150,7 +150,7 @@ Here is the handler used by the tutorial:
 <<code language="ocaml"|let _ = Eliom_service.set_exn_handler
    (fun e -> match e with
     | Eliom_common.Eliom_404 ->
-        Eliom_registration.Html5.send ~code:404
+        Eliom_registration.Html.send ~code:404
           (html
              (head (title (pcdata "")) [])
              (body [h1 [pcdata "Eliom tutorial"];

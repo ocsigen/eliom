@@ -27,7 +27,7 @@ open Eliom_parameter
 
 let writeparams (i1, (i2, s1)) () =
   Lwt.return
-   Html5.D.(html
+   Html.D.(html
               (head (title (pcdata "")) [])
               (body [p [pcdata "You sent: ";
                         strong [pcdata (string_of_int i1)];
@@ -37,7 +37,7 @@ let writeparams (i1, (i2, s1)) () =
                         strong [pcdata s1]]]))
 >>
 
-<<code language="ocaml"|let service_with_params = Eliom_registration.Html5.register_service
+<<code language="ocaml"|let service_with_params = Eliom_registration.Html.register_service
     ~path:["thepath"]
     ~get_params:(int "i" ** (int "ii" ** string "s"))
     writeparams
@@ -68,12 +68,12 @@ often do), and how to get server information:
 <<code language="ocaml"|
 open Eliom_parameter
 let uasuffix =
-  Eliom_registration.Html5.register_service
+  Eliom_registration.Html.register_service
     ~path:["uasuffix"]
     ~get_params:(suffix (int "year" ** int "month"))
     (fun (year, month) () ->
       Lwt.return
-       Html5.D.(html
+       Html.D.(html
                   (head (title (pcdata "")) [])
                   (body
                      [p [pcdata "The suffix of the url is ";
@@ -97,11 +97,11 @@ allows the end of the suffix to be taken as a {{{string list}}}.\\
 
 <<code language="ocaml"|
 let isuffix =
-  Eliom_registration.Html5.register_service
+  Eliom_registration.Html.register_service
     ~path:["isuffix"]
     ~get_params:(suffix_prod (int "suff" ** all_suffix "endsuff") (int "i"))
     (fun ((suff, endsuff), i_param) () ->
-      return Eliom_content.Html5.D.(
+      return Eliom_content.Html.D.(
        html
         (head (title (pcdata "")) [])
         (body
@@ -123,12 +123,12 @@ Example:
 open Eliom_parameter
 
 let constfix =
-  Eliom_registration.Html5.register_service
+  Eliom_registration.Html.register_service
     ~path:["constfix"]
     ~get_params:(suffix (string "s1" ** (suffix_const "toto" ** string "s2")))
     (fun (s1, ((), s2))  () ->
        Lwt.return
-         Html5.D.(html
+         Html.D.(html
                     (head (title (pcdata "")) [])
                     (body [
                         h1 [pcdata "Suffix with constants"];
@@ -152,7 +152,7 @@ let string_of_mysum = function
   | B -> "B"
 
 let mytype =
-  Eliom_registration.Html5.register_service
+  Eliom_registration.Html.register_service
     ~path:["mytype"]
     ~get_params:
       (Eliom_parameter.user_type mysum_of_string string_of_mysum "valeur")
@@ -177,11 +177,11 @@ association list of strings. For example:
 
 <<code language="ocaml"|
 let raw_serv =
-  Eliom_registration.Html5.register_service
+  Eliom_registration.Html.register_service
     ~path:["any"]
     ~get_params:Eliom_parameter.any
   (fun l () ->
-    let module Html5 = Eliom_content.Html5.D in
+    let module Html = Eliom_content.Html.D in
     let ll =
       List.map
         (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> ~>>) l
@@ -217,7 +217,7 @@ let my_nl_params =
     ~name:"mynlparams"
     (Eliom_parameter.int "a" ** Eliom_parameter.string "s")
 
-let nlparams = Eliom_registration.Html5.register_service
+let nlparams = Eliom_registration.Html.register_service
     ~path:["nlparams"]
     ~get_params:(int "i")
     (fun i () ->
@@ -243,15 +243,15 @@ let nlparams = Eliom_registration.Html5.register_service
 
 To create a link or a form with non-localized parameters, use the
 optional parameter <<span class="code"|nl_params>> of functions
-<<a_api| val Eliom_content.Html5.D.a >>, <<a_api| val
-Eliom_content.Html5.D.Form.get_form >>, or <<a_api| val
-Eliom_content.Html5.D.Form.post_form >>. Example:
+<<a_api| val Eliom_content.Html.D.a >>, <<a_api| val
+Eliom_content.Html.D.Form.get_form >>, or <<a_api| val
+Eliom_content.Html.D.Form.post_form >>. Example:
 
-<<code language="ocaml"|let tonlparams = Eliom_registration.Html5.register_service
+<<code language="ocaml"|let tonlparams = Eliom_registration.Html.register_service
     ~path:["nlparams"]
     ~get_params:unit
     (fun i () ->
-       Lwt.return Html5.D.(
+       Lwt.return Html.D.(
          html
            (head (title (pcdata "")) [])
            (body

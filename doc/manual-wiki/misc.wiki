@@ -6,19 +6,19 @@
 ===Images, CSS, Javascript
 
 
- To include an image, simply use function  <<a_api| val Eliom_content.Html5.D.img >>:
+ To include an image, simply use function  <<a_api| val Eliom_content.Html.D.img >>:
 
 
 
 
 <<code language="ocaml"|img ~alt:"Ocsigen"
-    ~src:(Eliom_content.Html5.F.make_uri ~service:(Eliom_service.static_dir ()) ["images"; "ocsigen1024.jpg"])
+    ~src:(Eliom_content.Html.F.make_uri ~service:(Eliom_service.static_dir ()) ["images"; "ocsigen1024.jpg"])
     ()
 >>
 
 
 
-The function <<a_api | value Eliom_content.Html5.D.make_uri>>
+The function <<a_api | value Eliom_content.Html.D.make_uri>>
         creates a relative URL string from current URL
         (see above) to the URL of the image (here in the static directory
         configured in the configuration file).
@@ -32,14 +32,14 @@ To simplify the creation of <<span class="code"|<link>>> tags
 
 
 
-<<code language="ocaml"|Eliom_content.Html5.F.css_link
-  ~uri:(Eliom_content.Html5.F.make_uri
+<<code language="ocaml"|Eliom_content.Html.F.css_link
+  ~uri:(Eliom_content.Html.F.make_uri
          ~service:(Eliom_service.static_dir ()) ["style.css"]) ()
 >>
 
 
-<<code language="ocaml"|Eliom_content.Html5.F.js_script
-  ~uri:(Eliom_content.Html5.F.make_uri
+<<code language="ocaml"|Eliom_content.Html.F.js_script
+  ~uri:(Eliom_content.Html.F.make_uri
          ~service:(Eliom_service.static_dir ()) ["funs.js"]) ()
 >>
 
@@ -165,18 +165,18 @@ let f i s () () =
     border-right: solid 1px black;}\n
   .breadthmenu li.eliomtools_last {border: none;}\n
                 "])::
-                Html5_tools.F.structure_links mymenu ~service:s ())
+                Html_tools.F.structure_links mymenu ~service:s ())
              )
        (body [h1 [pcdata ("Page "^string_of_int i)];
               h2 [pcdata "Depth first, whole tree:"];
               div
-                (Html5_tools.F.hierarchical_menu_depth_first
+                (Html_tools.F.hierarchical_menu_depth_first
                    ~whole_tree:true mymenu ~service:s ());
               h2 [pcdata "Depth first, only current submenu:"];
-              div (Html5_tools.F.hierarchical_menu_depth_first mymenu ~service:s ());
+              div (Html_tools.F.hierarchical_menu_depth_first mymenu ~service:s ());
               h2 [pcdata "Breadth first:"];
               div
-                (Html5_tools.F.hierarchical_menu_breadth_first
+                (Html_tools.F.hierarchical_menu_breadth_first
                    ~classe:["breadthmenu"] mymenu ~service:s ())]))
 
 

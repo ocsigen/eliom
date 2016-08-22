@@ -12,7 +12,7 @@ for a given URL it executes its service handler. The service handler
 is a function taking the GET and POST parameters as argument and
 returning the content to be sent to the client. The return type of the
 service handler depends on the function used to register it. On the
-most common case its HTML5 contents build with the TyXML library, but
+most common case its HTML contents build with the TyXML library, but
 Eliom provides a lot of outputs modules to ease the implementation of
 common web interaction. See section <<a_manual chapter="server-outputs"
 fragment="predefined_outputs" | Predefined output modules >> for a
@@ -50,13 +50,13 @@ The main predefined output modules are:
 
 <<paragraph| Generating content for the browser >>
 
-;<<a_api| module Eliom_registration.Html5 >>
-: Registration of functions that generate html5 pages statically checked
+;<<a_api| module Eliom_registration.Html >>
+: Registration of functions that generate HTML pages statically checked
 using polymorphic variant types. You may use constructor functions from <<a_api
-| module Eliom_content.Html5.D >> or a syntax extension close to the standard html syntax.
+| module Eliom_content.Html.D >> or a syntax extension close to the standard html syntax.
 ;<<a_api| module Eliom_registration.Flow5 >>
 : Registration of functions that generate a portion of page using <<a_api |
-module Eliom_content.Html5.F >> or the syntax extension (useful for <<span class="code"|XMLHttpRequest>> requests for example). Do not use with Eliom applications: use <<a_api| module Eliom_registration.Ocaml >> instead.
+module Eliom_content.Html.F >> or the syntax extension (useful for <<span class="code"|XMLHttpRequest>> requests for example). Do not use with Eliom applications: use <<a_api| module Eliom_registration.Ocaml >> instead.
 ;<<a_api| module Eliom_registration.HtmlText >>
 : Registration of functions that generate text html pages, without any typechecking of the content. The content type sent by the server is "text/html".
 ;<<a_api| module Eliom_registration.CssText >>
@@ -136,7 +136,7 @@ handle static files.
 ====Sending portions of pages
 
 
- The <<a_api| module Eliom_registration.Flow5 >> modules allow you to register services that send portions of pages, of any "block" type for ##Html5.F##.
+ The <<a_api| module Eliom_registration.Flow5 >> modules allow you to register services that send portions of pages, of any "block" type for ##Html.F##.
  It is sometimes useful to create AJAX pages
  (i.e. pages using the <<span class="code"|XMLHttpRequest>> Javascript object).
  Note that the service returns a list of blocks. For sending HTML
@@ -160,8 +160,8 @@ handle static files.
  other types.  For example, <<a_api| module Eliom_registration.Flow5 >> is
  defined by:
 
-<<code language="ocaml"|module Flow5 = Make_typed_xml_registration(Xml)(Html5.F)(struct
-  type content = Html5_types.body_content
+<<code language="ocaml"|module Flow5 = Make_typed_xml_registration(Xml)(Html.F)(struct
+  type content = Html_types.body_content
 end)
 >>
 
@@ -257,7 +257,7 @@ let send_any =
    (fun s () ->
      if s = "valid"
      then
-       Eliom_registration.Html5.send
+       Eliom_registration.Html.send
          (html
             (head (title (pcdata "")) [])
             (body [p [pcdata
@@ -285,7 +285,7 @@ let change_option =
     ~path:["change_option"]
     ~get_params:Eliom_parameter.(unit)
    (fun () () ->
-     Eliom_registration.Html5.send
+     Eliom_registration.Html.send
        ~code:403
        (html
           (head (title (pcdata "forbidden")) [])
@@ -379,7 +379,7 @@ duplication.
 <<code language="ocaml"|
 module Connected_param =
 struct
-  type page = user_informations -> Eliom_registration.Html5.page Lwt.t
+  type page = user_informations -> Eliom_registration.Html.page Lwt.t
   let translate page =
     match Eliom_state.get_volatile_data_session_group
       ~scope:Eliom_common.default_session_scope () with
@@ -393,7 +393,7 @@ struct
 end
 
 module Connected =
-  Eliom_registration.Customize ( Eliom_registration.Html5 ) ( Connected_param )
+  Eliom_registration.Customize ( Eliom_registration.Html ) ( Connected_param )
 >>
 
 ==== By building the HTTP frame
@@ -466,15 +466,15 @@ Below is an example of a page written in a non-cooperative way, that
 has the effect of stopping the entire server for 5 seconds. No one
 will be able to query the server during this period:
 
-<<code class="donotrun" language="ocaml" |open Eliom_content.Html5.D
+<<code class="donotrun" language="ocaml" |open Eliom_content.Html.D
 let looong =
-  Eliom_registration.Html5.register_service
+  Eliom_registration.Html.register_service
     ~path:["looong"]
     ~get_params:Eliom_parameter.unit
     (fun () () ->
        Unix.sleep 5;
        Lwt.return
-         Html5.D.(html
+         Html.D.(html
                     (head (title (pcdata "")) [])
                     (body [h1 [pcdata "Ok now, you can read the page."]])))
 >>
@@ -483,15 +483,15 @@ let looong =
 To solve this problem, use a cooperative version of {{{Unix.sleep}}}:
 <<a_api project="lwt" | val Lwt_unix.sleep>>:
 
-<<code language="ocaml"|open Eliom_content.Html5.D
+<<code language="ocaml"|open Eliom_content.Html.D
 let looong =
-  Eliom_registration.Html5.register_service
+  Eliom_registration.Html.register_service
     ~path:["looong"]
     ~get_params:Eliom_parameter.unit
     (fun () () ->
        let%lwt () = Lwt_unix.sleep 5.0 in
        Lwt.return
-         Html5.D.(html
+         Html.D.(html
                    (head (title (pcdata "")) [])
                    (body [h1 [pcdata "Ok now, you can read the page."]])))
 >>
@@ -537,13 +537,13 @@ Eliom_common.Eliom_404 >> and generate a custom 404 page.
 let _ = Eliom_registration.set_exn_handler
    (fun e -> match e with
     | Eliom_common.Eliom_404 ->
-        Eliom_registration.Html5.send ~code:404
+        Eliom_registration.Html.send ~code:404
           (html
              (head (title (pcdata "")) [])
              (body [h1 [pcdata "Eliom tutorial"];
                     p [pcdata "Page not found"]]))
     | Eliom_common.Eliom_Wrong_parameter ->
-        Eliom_registration.Html5.send
+        Eliom_registration.Html.send
           (html
              (head (title (pcdata "")) [])
              (body [h1 [pcdata "Eliom tutorial"];

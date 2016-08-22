@@ -13,7 +13,7 @@
 
 ==Client-server programming
 ===[[clientserver-applications|Eliom applications]]
-===[[clientserver-html|Generating HTML5]]
+===[[clientserver-html|Generating HTML]]
 ===[[clientserver-communication|Communication]]
 ===[[clientserver-react|Shared reactive programming]]
 ===[[clientserver-wrapping|Custom wrapping]]

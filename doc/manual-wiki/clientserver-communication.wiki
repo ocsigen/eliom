@@ -91,7 +91,7 @@ let _ =
           : unit)
        ];
        Lwt.return
-         Html5.D.(
+         Html.D.(
            html
              (head (title (pcdata "pi")) [])
              (body [])))
@@ -139,7 +139,7 @@ let s =
     ~path:["s1"]
     ~get_params:(Eliom_parameter.ocaml "param" [%derive.json: another_type])
     (fun v () ->
-       Lwt.return Html5.D.(
+       Lwt.return Html.D.(
          html
            (head (title (pcdata "title")) [])
            (body [
@@ -153,7 +153,7 @@ let _ =
     ~path:["s2"]
     ~get_params:Eliom_parameter.unit
     (fun () () ->
-       Lwt.return Html5.D.(
+       Lwt.return Html.D.(
          html
            (head (title (pcdata "title")) [])
            (body

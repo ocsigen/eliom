@@ -147,7 +147,7 @@ program, i.e. //before// setting up the document. This is necessary
 in order to safely inject them into the next client-section.
 
 Thus, if you want to refer the DOM in global client values (e.g. by
-injecting variables holding Html5-elements) you must be sure to delay
+injecting variables holding HTML-elements) you must be sure to delay
 this by using <<a_api subproject="client"|Eliom_client.onload>>.
 
 Request client values, however, are sent with the next response to the
@@ -181,7 +181,7 @@ it has been created. A very neat way to do client side programming
 inside the service handler!
 
 Secondly, client values of type {{{(Dom_html.event Js.t -> unit) client_value}}}
-can be used as event handler in the construction of Eliom Html5
+can be used as event handler in the construction of Eliom HTML
 elements:
 
 <<code language="ocaml"|

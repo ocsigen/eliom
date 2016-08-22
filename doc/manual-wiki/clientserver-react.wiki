@@ -82,8 +82,8 @@ plain {{{React}}}.
 
 The server-side
 module
-<<a_api project="eliom" subproject="server"| module Eliom_content.Html5.R >>
-enables constructing HTML5 elements that get updated automatically
+<<a_api project="eliom" subproject="server"| module Eliom_content.Html.R >>
+enables constructing HTML elements that get updated automatically
 based on
 <<a_api subproject="server" | module Eliom_shared.React >> signals.
 Continuing our example, we can use the signal {{{s_as_string ()}}}
@@ -91,12 +91,12 @@ as follows:
 
 <<code language="ocaml"|
 let%server node () =
-  Eliom_content.Html5.R.pcdata (s_as_string ())
+  Eliom_content.Html.R.pcdata (s_as_string ())
 >>
 
 {{{node ()}}} can be used similarly to any node produced by <<a_api
-subproject="server" | module Eliom_content.Html5.D >> or <<a_api
-subproject="server" text="F"| module Eliom_content.Html5.F >>:
+subproject="server" | module Eliom_content.Html.D >> or <<a_api
+subproject="server" text="F"| module Eliom_content.Html.F >>:
 
 <<code language="ocaml"|
 (* ... *)
@@ -106,7 +106,7 @@ let () =
   Lwt.return @@ Eliom_tools.F.html
     ~title:"shared_reactive"
     ~css:[["css";"shared_reactive.css"]]
-    Eliom_content.Html5.(F.body [
+    Eliom_content.Html.(F.body [
       F.h2 [F.pcdata "Welcome from Eliom's distillery!"];
       node ();
       F.p ~a:[F.a_onclick [%client fun _ -> incr_s ()]]
@@ -153,17 +153,17 @@ let l_nodes () =
   Eliom_shared.ReactiveData.RList.map
     [%shared
       fun i ->
-        Eliom_content.Html5.D.pcdata (Printf.sprintf "[%d]" i)
+        Eliom_content.Html.D.pcdata (Printf.sprintf "[%d]" i)
     ]
     l
 >>
 
 Shared reactive lists can (and need to) be used wherever
-<<a_api project="eliom" subproject="server"| module Eliom_content.Html5.R >>
+<<a_api project="eliom" subproject="server"| module Eliom_content.Html.R >>
 expects lists, e.g., we can build a {{{<div>}}} as follows:
 
 <<code language="ocaml"|
-let l_div () = Eliom_content.Html5.R.div (l_nodes ())
+let l_div () = Eliom_content.Html.R.div (l_nodes ())
 >>
 
 Adding a new element via {{{cons_to_l}}} does not rebuild the whole

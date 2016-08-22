@@ -224,7 +224,7 @@ Then, the value {{{custom_session}}} can replace the usual <<a_api |
 val Eliom_common.default_session_scope>> for the {{{~scope}}} parameter of
 the functions
 <<a_api | val Eliom_reference.eref>>, <<a_api| val
-Eliom_registration.Html5.register >>,
+Eliom_registration.Html.register >>,
 <<a_api| val Eliom_state.discard >>,~ ...
 
 (Same for {{{`Client_process}}} or  {{{`Session_group}}} scope levels).
@@ -325,7 +325,7 @@ a //secure session// that is visible only to a client accessing with
 the HTTPS protocol, you may provide the optional parameter
 {{{~secure:true}}} when calling functions like <<a_api | val
 Eliom_reference.eref >>, <<a_api | val
-Eliom_registration.Html5.register >>, etc.
+Eliom_registration.Html.register >>, etc.
 
 Secure sessions are using secure cookies, i.e., Ocsigen Server will
 ask the browsers to send the cookie only if the protocol is
