@@ -109,7 +109,7 @@ type service_kind =
 
 (* 'return is the value returned by the service *)
 type ('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg,
-      +'tipo, 'getnames, 'postnames, +'rt) t = {
+      +'tipo, 'getnames, 'postnames, 'rt) t = {
   pre_applied_parameters :
     (string * Eliommod_parameters.param) list Eliom_lib.String.Table.t
     (* non localized parameters *) *

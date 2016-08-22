@@ -146,7 +146,7 @@ module type S = sig
       - [ 'ret] is an information on what the service returns.  See
         {!Eliom_registration.kind}. *)
   type ('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg,
-        +'tipo, 'gn, 'pn, +'ret) t
+        +'tipo, 'gn, 'pn, 'ret) t
     constraint 'tipo = [< `WithSuffix | `WithoutSuffix ]
 
   (** {b Optional service path} *)
