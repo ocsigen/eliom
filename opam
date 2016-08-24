@@ -13,10 +13,10 @@ depends: [
   "deriving" {>= "0.6"}
   "ppx_deriving"
   "ppx_tools" {>= "0.99.3"}
-  "js_of_ocaml" {>= "2.8"}
+  "js_of_ocaml" {>= "dev"}
   "tyxml" {>= "4.0.0"}
   "calendar"
-  "ocsigenserver" {> "2.7"}
+  "ocsigenserver" {>= "dev"}
   "ipaddr" {>= "2.1"}
   "reactiveData" {>= "dev"}
   "base-bytes"
