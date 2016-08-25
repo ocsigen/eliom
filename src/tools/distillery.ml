@@ -1,5 +1,6 @@
-
 open Printf
+
+let forbidden_project_name_filename = "forbidden_project_name"
 
 let distillery_basic = "basic.ppx"
 
@@ -194,6 +195,32 @@ let get_templates () =
       | End_of_file -> Unix.closedir dir; rl
   in aux []
 
+(* Check if the project name is valid for the given template. For example,
+ * options is not a valid project name for basic.ppx. It is supposed each
+ * template has a file {!forbidden_project_name_filename} file containing the
+ * list of forbidden project name (one name a line).
+ *)
+let check_forbidden_project_name project_name template_name =
+  let file = Filename.concat
+    (Filename.concat (get_templatedir ()) template_name)
+    forbidden_project_name_filename
+  in
+  if Sys.file_exists file
+  then
+  (
+    let in_file = open_in file in
+    try
+      let rec locale () =
+        if project_name = (input_line in_file) then false else locale ()
+      in
+      locale ()
+    with
+    | End_of_file -> close_in in_file; true
+    | e           -> raise e
+  )
+  else
+    true
+
 let init_project template name =
   env name,
   preds (),
@@ -246,8 +273,14 @@ let main () =
           template, name, dir
       | _ -> Arg.usage spec usage_msg; exit 1
     in
-    let env, preds, source_dir = init_project template name in
-    create_project ~name ~env ~preds ~source_dir ~destination_dir:destination_dir
+    if not (check_forbidden_project_name name template) then
+      printf
+        "'%s' is not a valid project name for the template '%s'.\n"
+        name
+        template
+    else
+      let env, preds, source_dir = init_project template name in
+      create_project ~name ~env ~preds ~source_dir ~destination_dir:destination_dir
   end
 
 let () = main ()
