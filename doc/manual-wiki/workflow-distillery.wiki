@@ -16,7 +16,7 @@ with it.
 
 The {{{eliom-distillery}}} creates projects from templates.
 Template "basic" create a very simple project (makefiles and configuration file
-and main service). There is also a template "mobile" for mobile apps.
+and main service).
 
 To create your project, do:
 
