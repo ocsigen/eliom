@@ -3,7 +3,7 @@
 .PHONY: byte opt clean
 
 DISTILLERY := eliom-distillery
-ALL = basic.camlp4 mobile
+ALL = basic.camlp4
 
 byte:
 	for i in $(ALL); do $(MAKE) byte-$$i; done
