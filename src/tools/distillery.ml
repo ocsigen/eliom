@@ -1,5 +1,9 @@
-
 open Printf
+
+(* Constant use for the filename containing the reserve project name for
+ * templates
+ *)
+let reserve_project_name_filename = ".reserve"
 
 let distillery_basic = "basic.ppx"
 
@@ -150,13 +154,16 @@ let create_project ~name ~env ~preds ~source_dir ~destination_dir =
       exit 1 );
   Array.iter
     (fun src_file ->
-      let src_path = Filename.concat source_dir src_file in
-      let dst_path =
-        let dst_file = Str.(global_replace (regexp (quote "PROJECT_NAME")) name src_file) in
-        let dst_file_path = Str.(split (regexp "!") dst_file) in
-        Filename.concat destination_dir (join_path dst_file_path)
-      in
-      copy_file ~env ~preds src_path dst_path)
+      if src_file = reserve_project_name_filename then ()
+      else
+        let src_path = Filename.concat source_dir src_file in
+        let dst_path =
+          let dst_file = Str.(global_replace (regexp (quote "PROJECT_NAME")) name src_file) in
+          let dst_file_path = Str.(split (regexp "!") dst_file) in
+          Filename.concat destination_dir (join_path dst_file_path)
+        in
+        copy_file ~env ~preds src_path dst_path
+    )
     (Sys.readdir source_dir)
 
 let env name =
@@ -193,6 +200,38 @@ let get_templates () =
     with
       | End_of_file -> Unix.closedir dir; rl
   in aux []
+
+(* ------------------------------------------ *)
+(* ---------- Reserve project name ---------- *)
+
+(* Check if the project name is valid for the given template. For example,
+ * options is not a valid project name for basic.ppx. It is supposed each
+ * template has a file {!reserve_project_name_filename} file containing the
+ * list of reserve project name (one name a line).
+ *)
+
+let check_reserve_project_name project_name template_name =
+  let file = Filename.concat
+    (Filename.concat (get_templatedir ()) template_name)
+    reserve_project_name_filename
+  in
+  if Sys.file_exists file
+  then
+  (
+    let in_file = open_in file in
+    try
+      let rec aux () =
+        if project_name = (input_line in_file) then true else aux ()
+      in
+      aux ()
+    with
+    | End_of_file -> close_in in_file; false
+  )
+  else
+    false
+
+(* ---------- Reserve project name ---------- *)
+(* ------------------------------------------ *)
 
 let init_project template name =
   env name,
@@ -246,8 +285,14 @@ let main () =
           template, name, dir
       | _ -> Arg.usage spec usage_msg; exit 1
     in
-    let env, preds, source_dir = init_project template name in
-    create_project ~name ~env ~preds ~source_dir ~destination_dir:destination_dir
+    if (check_reserve_project_name name template) then
+      printf
+        "'%s' is not a valid project name for the template '%s'.\n"
+        name
+        template
+    else
+      let env, preds, source_dir = init_project template name in
+      create_project ~name ~env ~preds ~source_dir ~destination_dir:destination_dir
   end
 
 let () = main ()
