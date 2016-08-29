@@ -49,6 +49,7 @@ module My_appl = struct
 
 end
 
+{shared{
 module Service = struct
 
   (* partial compatibility layer for old Eliom_service *)
@@ -120,6 +121,7 @@ module Service = struct
   module App = Http
 
 end
+}}
 
 module Registration = struct
 

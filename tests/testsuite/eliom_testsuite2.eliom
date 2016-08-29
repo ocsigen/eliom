@@ -1395,10 +1395,12 @@ let attnonatt_service =
        let service = Eliom_service.attach_existing
         ~fallback:Eliom_testsuite1.coucou
         ~service:get_coserv'
+        ()
       in
       let service2 = Eliom_service.attach_existing
         ~fallback:Eliom_testsuite1.coucou
         ~service:post_coserv'
+        ()
       in
       Lwt.return
         (html
