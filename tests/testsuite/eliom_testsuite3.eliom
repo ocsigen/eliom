@@ -3585,13 +3585,13 @@ let update_tree service w h =
   Html.F.Form.get_form ~service (fun (wn,hn) ->
     [ Html.F.fieldset
         [ Html.F.label
-            ~a:[Html.D.a_for "i_width"]
+            ~a:[Html.D.a_label_for "i_width"]
             [pcdata "Tree width: "];
           Html.F.Form.input Html.F.Form.int
             ~a:[Html.F.a_id "i_width"]
             ~name:wn ~input_type:`Text ~value:w;
           Html.F.label
-            ~a:[Html.D.a_for "i_height"]
+            ~a:[Html.D.a_label_for "i_height"]
             [pcdata "and height: "];
           Html.F.Form.input Html.F.Form.int
             ~a:[Html.F.a_id "i_height"]
