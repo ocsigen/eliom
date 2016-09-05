@@ -112,18 +112,18 @@ use the <<a_api| module Eliom_registration.File >> module. Example:
 
 <<code language="ocaml"|
 let sendfile =
-  Eliom_registration.File.register_service
-    ~path:["sendfile"]
-    ~get_params:Eliom_parameter.unit
+  Eliom_registration.File.create
+    ~path:(Eliom_service.Path ["sendfile"])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () -> return "filename")
 >>
 
 Other example, with "suffix" services (see <<a_manual chapter="server-params" fragment="suffix"|here>>):
 <<code language="ocaml"|
 let sendfile2 =
-  Eliom_registration.File.register_service
-    ~path:["files"]
-    ~get_params:Eliom_parameter.(suffix (all_suffix "filename"))
+  Eliom_registration.File.create
+    ~path:(Eliom_service.Path ["files"])
+    ~meth:(Eliom_service.Get Eliom_parameter.(suffix (all_suffix "filename")))
     (fun s () ->
       return ("//path//"^(Ocsigen_lib.Url.string_of_url_path ~encode:false s)))
 >>
@@ -145,9 +145,9 @@ handle static files.
 
 
 <<code language="ocaml"|let divpage =
-  Eliom_registration.Flow5.register_service
-    ~path:["div"]
-    ~get_params:Eliom_parameter.unit
+  Eliom_registration.Flow5.create
+    ~path:(Eliom_service.Path ["div"])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () ->
       Lwt.return
         [div [h2 [pcdata "Hallo"];
@@ -177,10 +177,10 @@ to retry with another URL.
 Such services return a GET service without parameter at all.
 Example:
 <<code language="ocaml"|
-let redir1 = Eliom_registration.Redirection.register_service
+let redir1 = Eliom_registration.Redirection.create
     ~options:`TemporaryRedirect
-    ~path:["redir"]
-    ~get_params:Eliom_parameter.unit
+    ~path:(Eliom_service.Path ["redir"])
+    ~meth:(Eliom_service.Get Eliom_parameter.uni)
    (fun () () -> Lwt.return someservice)
 >>
 
@@ -190,10 +190,10 @@ If you want to give parameters to such services, use
 Example:
 
 <<code language="ocaml"|
-let redir = Eliom_registration.Redirection.register_service
+let redir = Eliom_registration.Redirection.create
    ~options:`TemporaryRedirect
-   ~path:["redir"]
-   ~get_params:Eliom_parameter.(int "o")
+   ~path:(Eliom_service.Path ["redir"])
+   ~meth:(Eliom_service.Get Eliom_parameter.(int "o"))
    (fun o () ->
       Lwt.return
         (Eliom_service.preapply service_with_params (o,(22,"ee"))))
@@ -210,7 +210,7 @@ one more response.
 The <<a_api| module Eliom_registration.String_redirection>> allows you to
 register HTTP redirections to generated URLs. Usually, prefer <<a_api|
 module Eliom_registration.String_redirection>>, even for external
-redirections (using <<a_api | val Eliom_service.Http.external_service>>).
+redirections (using <<a_api | val Eliom_service.extern>>).
 Use <<a_api| module Eliom_registration.String_redirection>> only when it is
 not possible to have a service corresponding to an URL.
 
@@ -251,9 +251,9 @@ you want to use. Example:
 
 <<code language="ocaml"|
 let send_any =
-  Eliom_registration.Any.register_service
-    ~path:["sendany"]
-    ~get_params:Eliom_parameter.(string "type")
+  Eliom_registration.Any.create
+    ~path:(Eliom_service.Path ["sendany"])
+    ~meth:(Eliom_service.Get Eliom_parameter.(string "type"))
    (fun s () ->
      if s = "valid"
      then
@@ -281,9 +281,9 @@ the HTTP headers and the specific option of the output module.
 
 <<code language="ocaml"|
 let change_option =
-  Eliom_registration.Any.register_service
-    ~path:["change_option"]
-    ~get_params:Eliom_parameter.(unit)
+  Eliom_registration.Any.create
+    ~path:(Eliom_service.Path ["change_option"])
+    ~meth:(Eliom_service.Get Eliom_parameter.(unit))
    (fun () () ->
      Eliom_registration.Html.send
        ~code:403
@@ -335,9 +335,9 @@ something like that.
 
 <<code language="ocaml"|
 let file_or_application =
-  Eliom_registration.Any.register_service
-    ~path:["file_or_application"]
-    ~get_params:Eliom_parameter.(string "filename")
+  Eliom_registration.Any.create
+    ~path:(Eliom_service.Path ["file_or_application"])
+    ~meth:(Eliom_service.Get Eliom_parameter.(string "filename"))
    (fun filename () ->
      if Eliom_registration.File.check_file filename
      then
@@ -468,9 +468,9 @@ will be able to query the server during this period:
 
 <<code class="donotrun" language="ocaml" |open Eliom_content.Html.D
 let looong =
-  Eliom_registration.Html.register_service
-    ~path:["looong"]
-    ~get_params:Eliom_parameter.unit
+  Eliom_registration.Html.create
+    ~path:(Eliom_service.Path ["looong"])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () ->
        Unix.sleep 5;
        Lwt.return
@@ -485,9 +485,9 @@ To solve this problem, use a cooperative version of {{{Unix.sleep}}}:
 
 <<code language="ocaml"|open Eliom_content.Html.D
 let looong =
-  Eliom_registration.Html.register_service
-    ~path:["looong"]
-    ~get_params:Eliom_parameter.unit
+  Eliom_registration.Html.create
+    ~path:(Eliom_service.Path ["looong"])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () ->
        let%lwt () = Lwt_unix.sleep 5.0 in
        Lwt.return
@@ -503,9 +503,9 @@ If you want to use, say, a database library that is not written
  we simulate the request by making a call to <<span class="code"|Unix.sleep>>:
 
 <<code language="ocaml"|let looong2 =
-  register_service
-    ~path:["looong2"]
-    ~get_params:unit
+  create
+    ~path:(Eliom_service.Path ["looong2"])
+    ~meth:(Eliom_service.Get unit)
     (fun () () ->
        let%lwt () = Lwt_preemptive.detach Unix.sleep 5 in
        Lwt.return

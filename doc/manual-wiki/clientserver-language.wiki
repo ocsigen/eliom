@@ -109,7 +109,9 @@ inject a parameter into a request client value:
 
 <<code language="ocaml"|
 {server{
-  let () = My_app.register_service ~path ~get_params:Eliom_parameter.(string "name")
+  let () = My_app.create
+    ~path:(Eliom_service.Path path)
+    ~meth:(Eliom_service.Get (Eliom_parameter.string "name"))
     (fun name () ->
        ignore {unit{ Eliom_lib.alert "Hello %s!" %name }};
        Lwt.return html)
@@ -126,10 +128,13 @@ Server side client values may occur in a //request// position,
 i.e. they are created during the processing of a request:
 
 <<code language="ocaml"|
-  let _ = My_app.register_service ~path ~get_params
-    (fun _ _ ->
-       let v = {Js.string{ Js.string "another client side string" }} in
-       Lwt.return html)
+  let _ =
+    My_app.create
+      ~path:(Eliom_service.Path path)
+      ~meth:(Eliom_service.Get get_params)
+      (fun _ _ ->
+         let v = {Js.string{ Js.string "another client side string" }} in
+         Lwt.return html)
 >>
 
 Or they occur either in a //global position//, i.e. they are created
@@ -161,13 +166,16 @@ one is by just injecting it to another client value:
 
 <<code language="ocaml"|
 {server{
-  let _ = My_app.register_service ~path ~get_params
-    (fun _ _ ->
-       let v = {int{ 42 }} in (* v is abstract *)
-       ignore {unit{
-         Eliom_lib.alert "It's %i!" %v (* %v is 42 here ! *)
-       }};
-       Lwt.return html
+  let _ =
+    My_app.create
+      ~path:(Eliom_service.Path path)
+      ~meth:(Eliom_service.Get get_params)
+      (fun _ _ ->
+         let v = {int{ 42 }} in (* v is abstract *)
+         ignore {unit{
+           Eliom_lib.alert "It's %i!" %v (* %v is 42 here ! *)
+         }};
+         Lwt.return html
 >>
 
 In the above example, first a client value {{{v}}} (with the abstract

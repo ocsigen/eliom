@@ -137,7 +137,7 @@ those below 1024 to be reserved to Eliom internals.
 
 The Eliom types that are marked are:
 
-* <<a_api | type Eliom_service.service>> transformed to <<a_api | type Eliom_service.service>> (but the client side representation)
+* <<a_api | type Eliom_service.t>> transformed to <<a_api | type Eliom_service.t>> (but the client side representation)
 * <<a_api | type Eliom_comet.Channel.t>> transformed to <<a_api project="lwt" | type Lwt_stream.t>>
 * <<a_api | type Eliom_react.Up.t>> transformed to {{{ 'a -> unit }}}
 * <<a_api | type Eliom_react.Down.t>> transformed to {{{ 'a React.E.t }}}

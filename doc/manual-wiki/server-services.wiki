@@ -312,9 +312,8 @@ fragment="unregistrable_services"| Unregistrable services >>.
 
 It is possible to define external services, that is, services that
 belong to an external web site (on the same server or not).  To do
-this, use the functions <<a_api| val Eliom_service.Http.external_service
->> (for using the GET method), or <<a_api| val
-Eliom_service.Http.external_post_service>> (for using the POST method).
+this, use the function <<a_api| val Eliom_service.extern
+>>.
 
 For example, the following code defines a link to the OCaml Wikipedia
 page:
@@ -322,7 +321,7 @@ page:
 <<code language="ocaml"|
 
 Eliom_content.Html.D.a
-  (Eliom_service.Http.external_service
+  (Eliom_service.extern
      ~prefix:"http://en.wikipedia.org/wiki/OCaml"
      ~path:["wiki";""]
      ~get_params:Eliom_parameter.(suffix (all_suffix "suff"))
@@ -360,7 +359,7 @@ service without parameters, or only the POST ones. It is done using
 
 <<code language="ocaml"|
 let s =
-  Eliom_service.service
+  Eliom_service.create
     ~path:(Eliom_service.Path ["serv"])
     ~meth:(Eliom_service.Get Eliom_parameter.int)
     ()
