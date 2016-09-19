@@ -1,11 +1,27 @@
 open Printf
 
-(* Constant use for the filename containing the reserve project name for
- * templates
- *)
-let reserve_project_name_filename = ".reserve"
+(* File containing the reserve project names for templates *)
+let reserve_project_name_filename = ".eliomreserve"
 
-let distillery_basic = "basic.ppx"
+(* File containing files which must be ignored while copying a template. *)
+let eliomignore_filename          = ".eliomignore"
+
+let distillery_basic              = "basic.ppx"
+
+(* Returns all lines of [file] as a string list. Returns an empty list if [file]
+ * doesn't exist.
+ *)
+let lines_of_file file =
+  if not (Sys.file_exists file) then []
+  else
+  (
+    let lines       = ref [] in
+    let in_file     = open_in file in
+    let rec aux ()  =
+      try lines := (input_line in_file) :: !lines; aux ()
+      with End_of_file -> close_in in_file
+    in aux (); !lines
+  )
 
 let pp_list () l =
   let f s =
@@ -144,6 +160,9 @@ let copy_file ?(env=[]) ?(preds=[]) src_name dst_name =
       eprintf "%s.\n%!" msg
 
 let create_project ~name ~env ~preds ~source_dir ~destination_dir =
+  let eliom_ignore_files =
+    lines_of_file (Filename.concat source_dir eliomignore_filename)
+  in
   if not (Sys.file_exists destination_dir) then
     ( if ksprintf (yes_no ~default:true) "Destination directory %S doesn't exist. Create it?" destination_dir then
         mkdir_p destination_dir
@@ -154,7 +173,8 @@ let create_project ~name ~env ~preds ~source_dir ~destination_dir =
       exit 1 );
   Array.iter
     (fun src_file ->
-      if src_file = reserve_project_name_filename then ()
+      (* First, we check if the file is in .eliomignore *)
+      if List.exists (fun x -> x = src_file) eliom_ignore_files then ()
       else
         let src_path = Filename.concat source_dir src_file in
         let dst_path =
@@ -215,20 +235,7 @@ let check_reserve_project_name project_name template_name =
     (Filename.concat (get_templatedir ()) template_name)
     reserve_project_name_filename
   in
-  if Sys.file_exists file
-  then
-  (
-    let in_file = open_in file in
-    try
-      let rec aux () =
-        if project_name = (input_line in_file) then true else aux ()
-      in
-      aux ()
-    with
-    | End_of_file -> close_in in_file; false
-  )
-  else
-    false
+  List.exists (fun x -> x = project_name) (lines_of_file file)
 
 (* ---------- Reserve project name ---------- *)
 (* ------------------------------------------ *)
@@ -292,7 +299,7 @@ let main () =
         template
     else
       let env, preds, source_dir = init_project template name in
-      create_project ~name ~env ~preds ~source_dir ~destination_dir:destination_dir
+      create_project ~name ~env ~preds ~source_dir ~destination_dir
   end
 
 let () = main ()
