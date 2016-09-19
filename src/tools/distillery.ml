@@ -1,12 +1,12 @@
 open Printf
 
 (* File containing the reserve project names for templates *)
-let reserve_project_name_filename = ".reserve"
+let reserve_project_name_filename = ".eliomreserve"
 
 (* File containing files which must be ignored while copying a template. *)
 let eliomignore_filename          = ".eliomignore"
 
-let distillery_basic = "basic.ppx"
+let distillery_basic              = "basic.ppx"
 
 (* Returns all lines of [file] as a string list. Returns an empty list if [file]
  * doesn't exist.
