@@ -39,7 +39,7 @@ let server_function
          (Eliom_service.Post
             (Eliom_parameter.unit,
              Eliom_parameter.(ocaml "argument" argument_type)))
-       ~id:Eliom_service.Global
+       ~path:Eliom_service.No_path
        (fun () argument -> f argument))
     (Eliom_wrap.create_unwrapper
        (Eliom_wrap.id_of_int Eliom_common_base.server_function_unwrap_id_int))

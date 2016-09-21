@@ -65,7 +65,7 @@ To simplify the creation of <<span class="code"|<link>>> tags
 
 Here, <<span class="code"|home>>,  <<span class="code"|infos>>,
         and <<span class="code"|tutorial>> are your three pages (generated for example
-        by  <<a_api| val Eliom_service.App.service >>).
+        by  <<a_api| val Eliom_service.App.create >>).
 
 
 

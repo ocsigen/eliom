@@ -1151,7 +1151,7 @@ let server_function
     Eliom_service.create_ocaml
       ~name
       ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
-      ~id:Eliom_service.Global
+      ~path:Eliom_service.No_path
       ~meth:
         (Eliom_service.Post
            (Eliom_parameter.unit,

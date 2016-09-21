@@ -8,7 +8,7 @@ open Eliom_lib
 let reference_scope_site =
   let action =
     Eliom_registration.Action.create
-      ~id:Eliom_service.Global
+      ~path:Eliom_service.No_path
       ~meth:
         (Eliom_service.Post
            (Eliom_parameter.unit,
@@ -18,7 +18,7 @@ let reference_scope_site =
          Eliom_reference.set Eliom_testsuite_global.eref' (Some v))
   in
   Eliom_registration.Html.create
-    ~id:(Eliom_service.Path ["reference_scope_site"])
+    ~path:(Eliom_service.Path ["reference_scope_site"])
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () ->
        let show = function None -> Html.D.entity "#x2012" | Some str -> Html.D.pcdata str in

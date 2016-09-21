@@ -74,31 +74,28 @@ module My_appl = struct
 
   let register_service ~path ~get_params f =
     create
-      ~id:(Eliom_service.Path path)
+      ~path:(Eliom_service.Path path)
       ~meth:(Eliom_service.Get get_params) f
 
   let register_coservice ?scope ~fallback ~get_params f =
-    create
-      ?scope
-      ~id:(Eliom_service.Fallback fallback)
-      ~meth:(Eliom_service.Get get_params) f
+    attach_get ?scope ~fallback ~get_params f
 
   let register_post_coservice' ~post_params f =
     create
-      ~id:Eliom_service.Global
+      ~path:Eliom_service.No_path
       ~meth:(Eliom_service.Post (Eliom_parameter.unit, post_params)) f
 
 end
 
 let register_ocaml_service ~path ~get_params f =
   Eliom_registration.Ocaml.create
-    ~id:(Eliom_service.Path path)
+    ~path:(Eliom_service.Path path)
     ~meth:(Eliom_service.Get get_params)
     f
 
 let register_ocaml_post_coservice' ?scope ~post_params f =
   Eliom_registration.Ocaml.create ?scope
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, post_params))
     f
 
@@ -168,9 +165,9 @@ is somewhat more complicated. Here are some examples of what you can do:
 let eliomclient2 = App.service ~path:["plip"; "eliomclient2"] ~get_params:unit ()
 
 let myblockservice =
-  Eliom_registration.Flow5.create
-    ~id:(Eliom_service.Fallback eliomclient2)
-    ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
+  Eliom_registration.Flow5.attach_post
+    ~fallback:eliomclient2
+    ~post_params:Eliom_parameter.unit
     (fun () () ->
        Lwt.return
          [p [pcdata ("I come from a distant service! Here is a random value: "^
@@ -494,7 +491,7 @@ let caml_incr_service =
 
 let text_incr_service =
   Eliom_registration.String.create
-    ~id:(Eliom_service.Path ["text_service_cookies_request"])
+    ~path:(Eliom_service.Path ["text_service_cookies_request"])
     ~meth:(Eliom_service.Get unit)
     (fun () () ->
       lwt i =
@@ -570,7 +567,7 @@ let default_no_appl =
   let post_service = Eliom_service.App.post_service ~fallback:get_service ~post_params:Eliom_parameter.unit () in
   let toggle_default_no_appl =
     Eliom_registration.Action.create
-      ~id:Eliom_service.Global
+      ~path:Eliom_service.No_path
       ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
       (fun () () ->
          Eliom_config.(set_default_links_xhr (not (get_default_links_xhr ())));
@@ -761,7 +758,7 @@ let wrapping1 = Eliom_service.App.service
 
 let gc_service =
   Eliom_registration.Redirection.create
-    ~id:(Eliom_service.Path ["gc_wrapping1"])
+    ~path:(Eliom_service.Path ["gc_wrapping1"])
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () ->
        Gc.full_major ();
@@ -2007,7 +2004,7 @@ let tconnect_action =
 let tdisconnect_action =
   Eliom_registration.Action.create
     ~name:"tdisconnect3"
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard ~scope ())
@@ -2112,7 +2109,7 @@ let tpersist_session_connect_action =
 let tdisconnect_action =
   Eliom_registration.Action.create
     ~name:"tdisconnect4"
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () -> Eliom_state.discard ~scope  ())
 
@@ -2416,14 +2413,14 @@ let _ = My_appl.register tcookies
        will ask the client program to do a redirection *****)
 
 let coucouaction =
-  Eliom_registration.Action.create
-    ~id:(Eliom_service.Fallback Eliom_testsuite1.coucou)
-    ~meth:(Eliom_service.Get unit)
+  Eliom_registration.Action.attach_get
+    ~fallback:Eliom_testsuite1.coucou
+    ~get_params:Eliom_parameter.unit
     (fun () () -> Lwt.return ())
 
 let coucouaction2 =
   Eliom_registration.Action.create
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Get unit)
     (fun () () -> Lwt.return ())
 
@@ -2575,7 +2572,7 @@ let connect_action789 =
 let disconnect_action789 =
   Eliom_registration.Action.create
     ~name:"disconnection789"
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () -> Eliom_state.discard ~scope:session ())
 
@@ -2665,13 +2662,13 @@ let create_suffixformc ((suff, endsuff),i) =
 (* Redirections and Eliom applications: *)
 let appl_redir1 =
   Eliom_registration.Redirection.create
-    ~id:(Eliom_service.Path ["internalredir"])
+    ~path:(Eliom_service.Path ["internalredir"])
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () -> Lwt.return (Eliom_registration.Redirection eliomclient2))
 
 let appl_redir2 =
   Eliom_registration.Redirection.create
-    ~id:(Eliom_service.Path ["externalredir"])
+    ~path:(Eliom_service.Path ["externalredir"])
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () ->
        Lwt.return
@@ -2704,7 +2701,7 @@ let appl_redir =
 let applvoid_redir =
   Eliom_registration.Redirection.create
     ~name:"applvoidcoserv"
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
        Lwt.return
@@ -2734,18 +2731,15 @@ module Another_appl = struct
 
   let register_service ~path ~get_params f =
     create
-      ~id:(Eliom_service.Path path)
+      ~path:(Eliom_service.Path path)
       ~meth:(Eliom_service.Get get_params) f
 
   let register_coservice ?scope ~fallback ~get_params f =
-    create
-      ?scope
-      ~id:(Eliom_service.Fallback fallback)
-      ~meth:(Eliom_service.Get get_params) f
+    attach_get ?scope ~fallback ~get_params f
 
   let register_post_coservice' ~post_params f =
     create
-      ~id:Eliom_service.Global
+      ~path:Eliom_service.No_path
       ~meth:(Eliom_service.Post (Eliom_parameter.unit, post_params)) f
 
 end
@@ -3182,7 +3176,7 @@ let noreload_ref = ref 0
 let noreload_action =
   Eliom_registration.Action.create
     ~options:`NoReload
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () -> noreload_ref := !noreload_ref + 1; Lwt.return ())
 
@@ -3591,13 +3585,13 @@ let update_tree service w h =
   Html.F.Form.get_form ~service (fun (wn,hn) ->
     [ Html.F.fieldset
         [ Html.F.label
-            ~a:[Html.D.a_for "i_width"]
+            ~a:[Html.D.a_label_for "i_width"]
             [pcdata "Tree width: "];
           Html.F.Form.input Html.F.Form.int
             ~a:[Html.F.a_id "i_width"]
             ~name:wn ~input_type:`Text ~value:w;
           Html.F.label
-            ~a:[Html.D.a_for "i_height"]
+            ~a:[Html.D.a_label_for "i_height"]
             [pcdata "and height: "];
           Html.F.Form.input Html.F.Form.int
             ~a:[Html.F.a_id "i_height"]
@@ -3914,10 +3908,9 @@ let () = My_appl.register nlpost_entry
 (* test external xhr ( and see if cookies are sent ) *)
 
 let some_external_service =
-  Eliom_service.create
-    ~id:(Eliom_service.External
-           ("http://remysharp.com",
-            ["demo";"cors.php"]))
+  Eliom_service.extern
+    ~prefix:"http://remysharp.com"
+    ~path:["demo";"cors.php"]
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
     ()
 

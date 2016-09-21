@@ -605,7 +605,7 @@ let create pages
     ?max_use
     ?timeout
     ~meth
-    ~id
+    ~path
     ?error_handler
     page =
   let service =
@@ -614,7 +614,87 @@ let create pages
       ?csrf_safe
       ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
       ?csrf_secure
-      ?max_use ?timeout ?https ~meth ~id ()
+      ?max_use ?timeout ?https ~meth ~path ()
+  in
+  register pages
+    ?scope
+    ?app
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ~service ?error_handler page;
+  service
+
+let attach_get pages
+    ?scope
+    ?app
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ?https
+    ?name
+    ?csrf_safe
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ~fallback
+    ~get_params
+    ?error_handler
+    page =
+  let service =
+    S.attach_get_unsafe
+      ?name
+      ?csrf_safe
+      ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
+      ?csrf_secure
+      ?max_use ?timeout ?https ~fallback ~get_params ()
+  in
+  register pages
+    ?scope
+    ?app
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ~service ?error_handler page;
+  service
+
+let attach_post pages
+    ?scope
+    ?app
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?secure_session
+    ?https
+    ?name
+    ?csrf_safe
+    ?csrf_scope
+    ?csrf_secure
+    ?max_use
+    ?timeout
+    ~fallback
+    ~post_params
+    ?error_handler
+    page =
+  let service =
+    S.attach_post_unsafe
+      ?name
+      ?csrf_safe
+      ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
+      ?csrf_secure
+      ?max_use ?timeout ?https ~fallback ~post_params ()
   in
   register pages
     ?scope
@@ -649,6 +729,10 @@ struct
 
   let create ?app = create pages ?app
 
+  let attach_get ?app = attach_get pages ?app
+
+  let attach_post ?app = attach_post pages ?app
+
 end
 
 module Make_poly
@@ -669,5 +753,9 @@ struct
   let register ?app = register pages ?app
 
   let create ?app = create pages ?app
+
+  let attach_get ?app = attach_get pages ?app
+
+  let attach_post ?app = attach_post pages ?app
 
 end
