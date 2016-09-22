@@ -1,33 +1,26 @@
 <{lib,tools,ocamlbuild,syntax}/**/*>:warn(+A-4-6-7-9-27-32-33-34-37-40-42-44-48)
 true:keep_locs
 
-<lib/type_dir/*.ml{,i}>:eliom_ppx,thread
-<lib/type_dir/*.ml>:package(js_of_ocaml.deriving.ppx,lwt.ppx)
-<lib/type_dir/*.ml>:package(js_of_ocaml.ppx)
+<lib/*/*.{ml,mli,eliom,eliomi}>: \
+  thread, \
+  package(lwt,lwt.ppx,react,tyxml.functor), \
+  server-package(lwt,ocsigenserver,ocsigenserver.ext), \
+  client-package(js_of_ocaml.ppx,js_of_ocaml.deriving.ppx), \
+  client-package(js_of_ocaml.log), \
+  client-package(ocsigenserver.cookies,ocsigenserver.polytables,ocsigenserver.baselib.base), \
+  client-package(deriving.runtime,js_of_ocaml.deriving), \
+  client-package(lwt.react,js_of_ocaml.tyxml), \
+  client-package(js_of_ocaml,reactiveData)
 
-<lib/server/*.ml{,i}>:eliom_ppx
-<lib/server/*.ml>:package(js_of_ocaml.deriving.ppx,lwt.ppx)
-<lib/server/*.ml>:package(js_of_ocaml.ppx)
+<lib/eliom_shared.eliom{,i}>:package(reactiveData)
 
-<lib/server/*.ml{,i}>:thread
-<lib/server/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml.functor)
-<lib/server/*.ml{,i}>:package(react,js_of_ocaml)
+<lib/client/*.ml{,i}>:client,I(src/lib)
+<lib/*.client.ml{,i}>:client,client-I(src/lib/client)
 
-<lib/server/*.ml{,i}>:package(js_of_ocaml.deriving.ppx)
+<lib/server/*.ml{,i}>:server,I(src/lib)
+<lib/*.server.ml{,i}>:server,server-I(src/lib/server)
 
-<lib/*.eliom{,i}>:eliom_ppx
-
-<lib/*.ml{,i}>:eliom_ppx
-<lib/client/*.ml>:package(js_of_ocaml.deriving.ppx,lwt.ppx,js_of_ocaml.log)
-<lib/client/*.ml>:package(js_of_ocaml.ppx)
-
-<lib/client/*.ml{,i}>: eliom_ppx
-<lib/client/*.ml{,i}>:package(ocsigenserver.cookies,ocsigenserver.polytables,ocsigenserver.baselib.base)
-<lib/client/*.ml{,i}>:package(deriving.runtime,js_of_ocaml.deriving)
-<lib/client/*.ml{,i}>:package(lwt.react,tyxml.functor,js_of_ocaml.tyxml)
-<lib/client/*.ml{,i}>:package(react,js_of_ocaml,reactiveData)
-
-<lib/client/*.ml{,i}>:package(js_of_ocaml.deriving.ppx)
+<lib/*.eliom{,i}>:eliom, package(eliomlang.ppx)
 
 <lib/server/monitor/*.ml>:package(lwt.ppx)
 <lib/server/monitor/*.ml{,i}>:thread
@@ -56,5 +49,3 @@ true:keep_locs
 <ppx/api.*/man.*>: manpage,man_ext(3o),apiref
 
 <**/api.wikidocdir/index.wiki>: apiref, wikidoc
-
-<lib/eliom_shared.eliom{,i}>:package(reactiveData)
