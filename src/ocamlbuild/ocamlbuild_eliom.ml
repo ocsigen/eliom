@@ -117,16 +117,43 @@ rule "eliom: eliom & eliom.depends & *cmi -> .inferred.eliomi"
           declarations in foo.eliom, as obtained by direct invocation of `ocamlc -i`."
     (Ocaml_tools.infer_interface "%.eliom" "%.inferred.eliomi");;
 
-flag ["ocaml"; "client"] (A "-client");;
-flag ["ocaml"; "server"] (A "-server");;
+let compile_tags = [
+  ["ocaml"; "byte"; "compile"];
+  ["ocaml"; "native"; "compile"];
+  ["ocaml"; "infer_interface"];
+] in
+let link_tags = [
+  ["ocaml"; "byte"; "link"];
+  ["ocaml"; "native"; "link"];
+] in
+let other_tags = [
+  ["ocaml"; "ocamldep"];
+  ["ocaml"; "doc"];
+] in
 
-pflag [ "ocaml"; "compile"] "server-I" (fun x -> S[A"-server-I"; A x]);;
-pflag [ "ocaml"; "infer_interface"] "server-I" (fun x -> S[A"-server-I"; A x]);;
-pflag [ "ocaml"; "doc"] "server-I" (fun x -> S[A"-server-I"; A x]);;
+List.iter (fun tags ->
+  pflag tags "server-package" (fun pkg -> S [A "-server-package"; A pkg]);
+  pflag tags "client-package" (fun pkg -> S [A "-client-package"; A pkg]);
+) (compile_tags @ link_tags) ;
+List.iter (fun tags ->
+  pflag tags "server-I" (fun x -> S[A"-server-I"; A x]);
+  pflag tags "server-I" (fun x -> S[A"-server-I"; A x]);
+  pflag tags "server-I" (fun x -> S[A"-server-I"; A x]);
+) (compile_tags @ link_tags);
+List.iter (fun tags ->
+  flag ("client"::tags) (S [A "-passopt" ; A "-mode"; A "-passopt" ; A "client"]);
+  flag ("server"::tags) (S [A "-passopt" ; A "-mode"; A "-passopt" ; A "server"]);
+  flag ("eliom"::tags) (S [A "-passopt" ; A "-mode"; A "-passopt" ; A "eliom"]);
+) (compile_tags @ link_tags @ other_tags) ;;
 
-pflag [ "ocaml"; "compile"] "client-I" (fun x -> S[A"-client-I"; A x]);;
-pflag [ "ocaml"; "infer_interface"] "client-I" (fun x -> S[A"-client-I"; A x]);;
-pflag [ "ocaml"; "doc"] "client-I" (fun x -> S[A"-client-I"; A x]);;
+(* pflag [ "ocaml"; "compile"] "server-I" (fun x -> S[A"-server-I"; A x]);; *)
+(* pflag [ "ocaml"; "infer_interface"] "server-I" (fun x -> S[A"-server-I"; A x]);; *)
+(* pflag [ "ocaml"; "doc"] "server-I" (fun x -> S[A"-server-I"; A x]);; *)
+
+(* pflag [ "ocaml"; "compile"] "client-I" (fun x -> S[A"-client-I"; A x]);; *)
+(* pflag [ "ocaml"; "infer_interface"] "client-I" (fun x -> S[A"-client-I"; A x]);; *)
+(* pflag [ "ocaml"; "doc"] "client-I" (fun x -> S[A"-client-I"; A x]);; *)
+
 
   end in ()
 
@@ -198,22 +225,25 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
         init () ;
 
         (* copy {shared,client,server}.ml rules *)
-        copy_rule_client "client.ml -> .ml"
-          "%(path)/%(file).client.ml" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).ml");
-        copy_rule_client "client.mli -> .mli"
-          "%(path)/%(file).client.mli" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).mli");
-        copy_rule_client "shared.ml -> client.ml"
-          "%(path)/%(file).shared.ml" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).ml");
-        copy_rule_client "shared -> client.mli"
-          "%(path)/%(file).shared.mli" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).mli");
-        copy_rule_server "server.ml -> .ml"
-          "%(path)/%(file).server.ml" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).ml");
-        copy_rule_server "server.mli -> .mli"
-          "%(path)/%(file).server.mli" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).mli");
-        copy_rule_server "shared.ml -> server.ml"
-          "%(path)/%(file).shared.ml" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).ml");
-        copy_rule_server "shared.ml -> server.mli"
-          "%(path)/%(file).shared.mli" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).mli");
+        (* copy_rule_client "client.ml -> .ml" *)
+        (*   "%(path)/%(file).client.ml" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).ml"); *)
+        (* copy_rule_client "client.mli -> .mli" *)
+        (*   "%(path)/%(file).client.mli" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).mli"); *)
+
+        (* copy_rule_client "shared.ml -> client.ml" *)
+        (*   "%(path)/%(file).shared.ml" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).ml"); *)
+        (* copy_rule_client "shared -> client.mli" *)
+        (*   "%(path)/%(file).shared.mli" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).mli"); *)
+
+        (* copy_rule_server "server.ml -> .ml" *)
+        (*   "%(path)/%(file).server.ml" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).ml"); *)
+        (* copy_rule_server "server.mli -> .mli" *)
+        (*   "%(path)/%(file).server.mli" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).mli"); *)
+
+        (* copy_rule_server "shared.ml -> server.ml" *)
+        (*   "%(path)/%(file).shared.ml" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).ml"); *)
+        (* copy_rule_server "shared.ml -> server.mli" *)
+        (*   "%(path)/%(file).shared.mli" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).mli"); *)
 
     | _ -> ()
 
