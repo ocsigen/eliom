@@ -71,6 +71,12 @@ module Any : Eliom_registration_sigs.S_poly
    and type 'a return = Eliom_service.non_ocaml
    and type 'a result = 'a kind
 
+(** For compatibility with server-side [appl_self_redirect] *)
+val appl_self_redirect :
+  ('page -> browser_content kind Lwt.t) ->
+  'page ->
+  browser_content kind Lwt.t
+
 (**/**)
 
 module type Base = sig
