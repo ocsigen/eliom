@@ -358,4 +358,6 @@ module Any = struct
 
 end
 
+let appl_self_redirect f x = f x
+
 module String = Base
