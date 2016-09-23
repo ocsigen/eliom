@@ -1,10 +1,26 @@
 <{lib,tools,ocamlbuild,syntax}/**/*>:warn(+A-4-6-7-9-27-32-33-34-37-40-42-44-48)
 true:keep_locs
 
-<lib/*/*.{ml,mli,eliom,eliomi}>: \
+"lib/client":include
+<lib/client/*.ml{,i}>: \
+  package(js_of_ocaml.ppx,js_of_ocaml.deriving.ppx), \
+  package(js_of_ocaml.log), \
+  package(ocsigenserver.cookies,ocsigenserver.polytables,ocsigenserver.baselib.base), \
+  package(deriving.runtime,js_of_ocaml.deriving), \
+  package(lwt.react,js_of_ocaml.tyxml), \
+  package(js_of_ocaml,reactiveData)
+
+"lib/server":include
+<lib/server/*.ml{,i}>: \
+  package(lwt,ocsigenserver,ocsigenserver.ext)
+
+"lib":include
+<lib/*.{ml,mli,eliom,eliomi}>: \
   thread, \
   package(lwt,lwt.ppx,react,tyxml.functor), \
+  server-package(eliomlang.runtime.server), \
   server-package(lwt,ocsigenserver,ocsigenserver.ext), \
+  client-package(eliomlang.runtime.client), \
   client-package(js_of_ocaml.ppx,js_of_ocaml.deriving.ppx), \
   client-package(js_of_ocaml.log), \
   client-package(ocsigenserver.cookies,ocsigenserver.polytables,ocsigenserver.baselib.base), \

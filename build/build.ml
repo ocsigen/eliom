@@ -67,5 +67,7 @@ let _ =
   Options.make_links:=false;
   Options.plugin := false;
   Options.use_ocamlfind := true;
+  Pack.Log.classic_display := true;
+  Pack.Log.level := 4;
   Ocamlbuild_unix_plugin.setup ();
   Ocamlbuild_pack.Main.main ()

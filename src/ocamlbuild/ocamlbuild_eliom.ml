@@ -117,6 +117,16 @@ rule "eliom: eliom & eliom.depends & *cmi -> .inferred.eliomi"
           declarations in foo.eliom, as obtained by direct invocation of `ocamlc -i`."
     (Ocaml_tools.infer_interface "%.eliom" "%.inferred.eliomi");;
 
+rule "eliom: splitted files"
+    ~prod:"%(name:<*> and not <*.client> and not <*.server>).cmi"
+    ~deps:["%(name).client.cmi";"%(name).server.cmi"]
+    (fun _ _ -> Nop);;
+
+rule "eliom: splitted files, rules 2"
+    ~prod:"%(name:<**/*> and not <**/*.client> and not <**/*.server>).cmi"
+    ~deps:["%(name).client.cmi";"%(name).server.cmi"]
+    (fun _ _ -> Nop);;
+
 let compile_tags = [
   ["ocaml"; "byte"; "compile"];
   ["ocaml"; "native"; "compile"];
