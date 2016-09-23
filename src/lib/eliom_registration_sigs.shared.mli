@@ -21,7 +21,6 @@ module type PARAM = sig
 
   type page
   type options
-  type result
   type frame
 
   val send :
@@ -38,8 +37,6 @@ module type PARAM = sig
       required. This field is usually [Eliom_service.XNever]. This
       value is recorded inside each service just after
       registration.  *)
-
-  val result_of_http_result : frame -> result
 
 end
 
@@ -92,7 +89,7 @@ module type S = sig
   type page
   type options
   type return = Eliom_service.non_ocaml
-  type result
+  type frame
 
   (** {2 Service registration } *)
 
@@ -247,7 +244,7 @@ module type S = sig
     ?content_type:string ->
     ?headers: Http_headers.t ->
     page ->
-    result Lwt.t
+    frame Lwt.t
 
 end
 
@@ -374,7 +371,7 @@ module type S_poly = sig
 
   include S_poly_without_send
 
-  type 'a result
+  type frame
 
   val send :
     ?options      : options ->
@@ -383,6 +380,6 @@ module type S_poly = sig
     ?content_type : string ->
     ?headers      : Http_headers.t ->
     'a page ->
-    'a result Lwt.t
+    frame Lwt.t
 
 end

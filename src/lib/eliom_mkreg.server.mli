@@ -30,7 +30,7 @@ module Make
   Eliom_registration_sigs.S
   with type page = Pages.page
    and type options = Pages.options
-   and type result = Pages.result
+   and type frame = Ocsigen_http_frame.result
 
 (** {2 Creating modules to register services for one type of
     parametrised pages} *)

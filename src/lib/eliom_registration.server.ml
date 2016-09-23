@@ -20,43 +20,11 @@
 
 let (>>=) = Lwt.(>>=)
 
+type frame = Ocsigen_http_frame.result
+
 let code_of_code_option = function
   | None -> 200
   | Some c -> c
-
-module Result_types :
-sig
-  type 'a kind
-  val cast_result : Ocsigen_http_frame.result -> 'a kind
-  val cast_kind : 'a kind -> Ocsigen_http_frame.result
-  val cast_kind_lwt : 'a kind Lwt.t -> Ocsigen_http_frame.result Lwt.t
-  val cast_result_lwt : Ocsigen_http_frame.result Lwt.t -> 'a kind Lwt.t
-  val cast_function_kind : ('c -> 'a kind Lwt.t) -> ('c -> 'd kind Lwt.t)
-  val cast_function_http : ('c -> 'a kind Lwt.t) -> ('c -> Ocsigen_http_frame.result Lwt.t)
-end
-=
-struct
-  type 'a kind = Ocsigen_http_frame.result
-  let cast_result x = x
-  let cast_kind x = x
-  let cast_kind_lwt x = x
-  let cast_result_lwt x = x
-  let cast_function_kind x = x
-  let cast_function_http x = x
-end
-
-type 'a kind = 'a Result_types.kind
-type 'a application_content = [`Appl of 'a]
-type block_content
-type browser_content = [`Browser]
-type 'a ocaml_content
-type unknown_content
-
-type redirection_content
-
-let cast_unknown_content_kind (x:unknown_content kind) : 'a kind =
-  Result_types.cast_result (Result_types.cast_kind x)
-let cast_http_result = Result_types.cast_result
 
 module Html_make_reg_base
   (Html_content : Ocsigen_http_frame.HTTP_CONTENT
@@ -66,9 +34,6 @@ module Html_make_reg_base
 
   type page = Html_types.html Eliom_content.Html.elt
   type options = unit
-  type result = browser_content kind
-
-  let result_of_http_result = Result_types.cast_result
 
   let send_appl_content = Eliom_service.XNever
 
@@ -135,9 +100,6 @@ module Make_typed_xml_registration
 
       type page = E.content Typed_xml.elt list
       type options = unit
-      type result = block_content kind
-
-      let result_of_http_result = Result_types.cast_result
 
       let send_appl_content = Eliom_service.XNever
 
@@ -193,9 +155,6 @@ module Text_reg_base = struct
   type page = (string * string)
   type options = int
   type return = Eliom_service.non_ocaml
-  type result = unknown_content kind
-
-  let result_of_http_result = Result_types.cast_result
 
   let send_appl_content = Eliom_service.XNever
 
@@ -225,9 +184,6 @@ module CssText_reg_base = struct
 
   type page = string
   type options = int
-  type result = browser_content kind
-
-  let result_of_http_result = Result_types.cast_result
 
   let send_appl_content = Eliom_service.XNever
 
@@ -258,9 +214,6 @@ module HtmlText_reg_base = struct
 
   type page = string
   type options = unit
-  type result = browser_content kind
-
-  let result_of_http_result = Result_types.cast_result
 
   let send_appl_content = Eliom_service.XNever
 
@@ -298,9 +251,6 @@ module Action_reg_base = struct
 
   type page = unit
   type options = [ `Reload | `NoReload ]
-  type result = browser_content kind
-
-  let result_of_http_result = Result_types.cast_result
 
   let send_appl_content = Eliom_service.XAlways
   (* The post action service will decide later *)
@@ -513,9 +463,6 @@ module Unit_reg_base = struct
 
   type page = unit
   type options = unit
-  type result = browser_content kind
-
-  let result_of_http_result = Result_types.cast_result
 
   let send_appl_content = Eliom_service.XAlways
 
@@ -545,19 +492,14 @@ module Unit = Eliom_mkreg.Make(Unit_reg_base)
    themselves what they want to send.  *)
 module Any_reg_base = struct
 
-  type 'a page   = 'a kind
+  type 'a page   = Ocsigen_http_frame.result
   type options   = unit
   type 'a return = Eliom_service.non_ocaml
-  type 'a result = 'a kind
-
-  let result_of_http_result = Result_types.cast_result
 
   (* let send_appl_content = Eliom_service.XNever *)
   let send_appl_content = Eliom_service.XAlways
 
-  let send ?options ?charset ?code
-      ?content_type ?headers (res:'a kind) =
-    let res = Result_types.cast_kind res in
+  let send ?options ?charset ?code ?content_type ?headers res =
     Lwt.return
       (Ocsigen_http_frame.Result.update res
          ~charset:(match charset with
@@ -581,12 +523,9 @@ module Any = struct
 
   include Eliom_mkreg.Make_poly(Any_reg_base)
 
-  type 'a result = 'a kind
-
   let send ?options ?charset ?code ?content_type ?headers content =
-    Result_types.cast_result_lwt
-      (Any_reg_base.send
-         ?options ?charset ?code ?content_type ?headers content)
+    Any_reg_base.send
+      ?options ?charset ?code ?content_type ?headers content
 
 end
 
@@ -598,14 +537,13 @@ let appl_self_redirect send page =
         let url = Eliom_request_info.get_full_url () in
         let empty_result = Ocsigen_http_frame.Result.empty () in
         Lwt.return
-          (Result_types.cast_result (Ocsigen_http_frame.Result.update empty_result
-            ~headers:
-              (Http_headers.add
-                (Http_headers.name Eliom_common.half_xhr_redir_header) url
-                (Ocsigen_http_frame.Result.headers empty_result)) ()))
+          (Ocsigen_http_frame.Result.update empty_result
+             ~headers:
+               (Http_headers.add
+                  (Http_headers.name Eliom_common.half_xhr_redir_header) url
+                  (Ocsigen_http_frame.Result.headers empty_result)) ())
       else
-        let%lwt r = (Result_types.cast_function_http send) page in
-        Lwt.return (Result_types.cast_result r)
+        send page
 
 let http_redirect = appl_self_redirect
 
@@ -614,9 +552,6 @@ module File_reg_base = struct
 
   type page = string
   type options = int
-  type result = browser_content kind
-
-  let result_of_http_result = Result_types.cast_result
 
   let send_appl_content = Eliom_service.XNever
 
@@ -677,9 +612,6 @@ module File_ct_reg_base = struct
 
   type page = string * string
   type options = int
-  type result = browser_content kind
-
-  let result_of_http_result = Result_types.cast_result
 
   let send_appl_content = Eliom_service.XNever
 
@@ -740,9 +672,6 @@ module Streamlist_reg_base = struct
 
   type page = (((unit -> (string Ocsigen_stream.t) Lwt.t) list) * string)
   type options = unit
-  type result = unknown_content kind
-
-  let result_of_http_result = Result_types.cast_result
 
   let send_appl_content = Eliom_service.XNever
 
@@ -772,13 +701,13 @@ end
 module Streamlist = Eliom_mkreg.Make(Streamlist_reg_base)
 
 module Customize
-  (R : Eliom_registration_sigs.S)
-  (T : sig type page val translate : page -> R.page Lwt.t end) = struct
+    (R : Eliom_registration_sigs.S
+     with type frame := Ocsigen_http_frame.result)
+    (T : sig type page val translate : page -> R.page Lwt.t end) = struct
 
-    type page = T.page
-    type return = R.return
-    type options = R.options
-    type result = R.result
+  type page = T.page
+  type return = R.return
+  type options = R.options
 
   let make_eh = function
     | None -> None
@@ -944,19 +873,15 @@ module Ocaml_reg_base = struct
 
   type page = string
   type options = unit
-  type result = Ocsigen_http_frame.result
-
-  let result_of_http_result x = x
 
   let send_appl_content = Eliom_service.XNever
 
   let send ?options ?charset ?code
       ?content_type ?headers content =
-    Result_types.cast_kind_lwt
-      (Text.send ?charset ?code
-         ?content_type ?headers
-         (content,
-          Eliom_service.eliom_appl_answer_content_type))
+    Text.send ?charset ?code
+      ?content_type ?headers
+      (content,
+       Eliom_service.eliom_appl_answer_content_type)
 
 end
 
@@ -966,7 +891,6 @@ module Ocaml = struct
   type 'a page = 'a
   type options = unit
   type 'a return = 'a Eliom_service.ocaml
-  type 'a result = 'a ocaml_content kind
 
   module M = Eliom_mkreg.Make(Ocaml_reg_base)
 
@@ -1002,9 +926,8 @@ module Ocaml = struct
 
   let send ?options ?charset ?code ?content_type ?headers content =
     let%lwt content = prepare_data content in
-    Result_types.cast_result_lwt
-      (M.send ?options ?charset ?code
-         ?content_type ?headers content)
+    M.send ?options ?charset ?code
+      ?content_type ?headers content
 
   let register
       ?app
@@ -1187,9 +1110,6 @@ module Eliom_appl_reg_make_param
 
   type page = Html_types.html Eliom_content.Html.elt
   type options = appl_service_options
-  type result = app_id application_content kind
-
-  let result_of_http_result = Result_types.cast_result
 
   let is_initial_request () =
     let sp = Eliom_common.get_sp () in
@@ -1480,13 +1400,11 @@ module type APP = sig
   type page = Html_types.html Eliom_content.Html.elt
   type options = appl_service_options
   type return = Eliom_service.non_ocaml
-  type result = app_id application_content kind
   include Eliom_registration_sigs.S
     with type page    := page
      and type options := options
      and type return  := return
-     and type result  := result
-  val typed_name : app_id application_name
+     and type frame   :=  Ocsigen_http_frame.result
 end
 
 module App
@@ -1549,9 +1467,6 @@ module Eliom_tmpl_reg_make_param
 
   type page = Tmpl_param.t
   type options = appl_service_options
-  type result = Appl.app_id application_content kind
-
-  let result_of_http_result = Result_types.cast_result
 
   let send_appl_content = Eliom_service.XSame_appl (Appl.application_name, Some Tmpl_param.name)
 
@@ -1568,12 +1483,10 @@ module Eliom_tmpl_reg_make_param
     | None ->
       let%lwt () = Eliom_reference.set request_template (Some Tmpl_param.name) in
       let%lwt content = Tmpl_param.make_page content in
-      Result_types.cast_kind_lwt
-        (Appl.send ~options ?charset ?code ?content_type ?headers content)
+      Appl.send ~options ?charset ?code ?content_type ?headers content
     | Some _ ->
       ignore (Tmpl_param.update content);
-      Result_types.cast_kind_lwt
-        (Ocaml.send ?charset ?code ?content_type ?headers ())
+      Ocaml.send ?charset ?code ?content_type ?headers ()
 
 end
 
@@ -1601,9 +1514,6 @@ module String_redir_reg_base = struct
     | `NotNodifed
     | `UseProxy
     | `TemporaryRedirect ]
-  type result = browser_content kind
-
-  let result_of_http_result = Result_types.cast_result
 
   let send_appl_content = Eliom_service.XAlways
   (* actually, the service will decide itself *)
@@ -1683,10 +1593,6 @@ module Redir_reg_base = struct
     | `TemporaryRedirect ]
 
   type 'a return = 'a
-
-  type 'a result = unknown_content kind
-
-  let result_of_http_result = Result_types.cast_result
 
   let send_appl_content = Eliom_service.XAlways
   (* actually, the service will decide itself *)
@@ -1791,14 +1697,13 @@ module Redirection = struct
   include Eliom_mkreg.Make_poly(Redir_reg_base)
 
   let send ?options ?charset ?code ?content_type ?headers content =
-    Result_types.cast_result_lwt
-      (Redir_reg_base.send
-         ?options ?charset ?code ?content_type ?headers content)
+    Redir_reg_base.send
+      ?options ?charset ?code ?content_type ?headers content
 
 end
 
 let set_exn_handler h =
   let sitedata = Eliom_request_info.find_sitedata "set_exn_handler" in
-  Eliom_request_info.set_site_handler sitedata (Result_types.cast_function_http h)
+  Eliom_request_info.set_site_handler sitedata h
 
 module String = Text

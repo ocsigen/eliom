@@ -23,8 +23,7 @@ module Reg : Eliom_registration_sigs.S
   with type page = Atom_feed.feed
    and type options = unit
    and type return = Eliom_service.non_ocaml
-   and type result =
-     Eliom_registration.browser_content Eliom_registration.kind
+   and type frame := Eliom_registration.frame
 
 (** Needed when used with Pubsubhubbub *)
 type feed = { notify_updates : unit -> unit }

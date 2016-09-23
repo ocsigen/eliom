@@ -17,28 +17,25 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-type 'a kind
-
-type browser_content = [ `Browser ]
-type 'a application_content = [ `Appl of 'a ]
+type frame
 
 module Html : Eliom_registration_sigs.S
   with type page = Html_types.html Eliom_content.Html.elt
    and type options = unit
    and type return = Eliom_service.non_ocaml
-   and type result = browser_content kind
+   and type frame := frame
 
 module Action : Eliom_registration_sigs.S
   with type page = unit
    and type options = [ `Reload | `NoReload ]
    and type return = Eliom_service.non_ocaml
-   and type result = browser_content kind
+   and type frame := frame
 
 module Unit : Eliom_registration_sigs.S
   with type page = unit
    and type options = unit
    and type return = Eliom_service.non_ocaml
-   and type result = browser_content kind
+   and type frame := frame
 
 (** Has no effect on client ; for compatibility with server *)
 type appl_service_options = { do_not_launch : bool }
@@ -56,7 +53,7 @@ module App (P : Eliom_registration_sigs.APP_PARAM) : sig
     with type page = Html_types.html Eliom_content.Html.elt
      and type options = appl_service_options
      and type return = Eliom_service.non_ocaml
-     and type result = app_id application_content kind
+     and type frame := frame
 
 end
 
@@ -79,19 +76,17 @@ module Redirection : Eliom_registration_sigs.S_poly
          | `UseProxy
          | `TemporaryRedirect ]
    and type 'a return = Eliom_service.non_ocaml
-   and type 'a result = browser_content kind
+   and type frame := frame
 
 module Any : Eliom_registration_sigs.S_poly
-  with type 'a page = 'a kind
+  with type 'a page = unit
    and type options = unit
    and type 'a return = Eliom_service.non_ocaml
-   and type 'a result = 'a kind
+   and type frame := frame
 
 (** For compatibility with server-side [appl_self_redirect] *)
 val appl_self_redirect :
-  ('page -> [< 'a application_content | browser_content ] kind Lwt.t) ->
-  'page ->
-  'appl application_content kind Lwt.t
+  ('page -> frame Lwt.t) -> 'page -> frame Lwt.t
 
 (**/**)
 

@@ -19,6 +19,8 @@
 
 let section = Lwt_log_js.Section.make "eliom:registration"
 
+type frame = unit
+
 module type Base = sig
   type return = Eliom_service.non_ocaml
 end
@@ -49,7 +51,6 @@ module type PARAM = sig
   type page
   type options
   type return
-  type result
 
   val reset_reload_fun : bool
 
@@ -178,7 +179,6 @@ module Make (P : PARAM) = struct
   type page = P.page
   type options = P.options
   type return = P.return
-  type result = P.result
 
   let send ?options ?charset ?code ?content_type ?headers page =
     P.send ?options page

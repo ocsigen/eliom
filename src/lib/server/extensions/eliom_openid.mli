@@ -201,7 +201,7 @@ module type HiddenServiceInfo = sig
       Typically you should redirect the user to the login page. *)
   val f :
     (string * string) list ->
-    unit -> Eliom_registration.browser_content Eliom_registration.kind Lwt.t
+    unit -> Eliom_registration.frame Lwt.t
 
 end
 
@@ -214,8 +214,7 @@ module Make :
       val authenticate :
         mode:string ->
         ext:'a extension ->
-        handler:('a authentication_result ->
-                 Eliom_registration.browser_content Eliom_registration.kind Lwt.t) ->
+        handler:('a authentication_result -> Eliom_registration.frame Lwt.t) ->
         discovery:string * string option -> Url.t Lwt.t
         (** Authenticate an user.
             - mode: can be [checkid_setup] or [checkid_immediate]
@@ -260,8 +259,7 @@ type check_fun =
     ?required:field list ->
     ?optional:field list ->
     string ->
-    (result authentication_result ->
-      Eliom_registration.browser_content Eliom_registration.kind Lwt.t) ->
+    (result authentication_result -> Eliom_registration.frame Lwt.t) ->
     Url.t Lwt.t
 
 (** Init the OpenID for your site.
@@ -269,5 +267,5 @@ type check_fun =
 val init :
   path:string list ->
   f:((string * string) list -> unit ->
-     Eliom_registration.browser_content Eliom_registration.kind Lwt.t) ->
+     Eliom_registration.frame Lwt.t) ->
   check_fun

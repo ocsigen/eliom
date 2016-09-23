@@ -489,8 +489,7 @@ module type HiddenServiceInfo = sig
   val path : string list
 
   val f :
-    (string * string) list ->
-    unit -> Eliom_registration.browser_content Eliom_registration.kind Lwt.t
+    (string * string) list -> unit -> Eliom_registration.frame Lwt.t
 
 end
 
@@ -563,8 +562,7 @@ type check_fun =
     ?required:field list ->
     ?optional:field list ->
     string ->
-    (result authentication_result ->
-     Eliom_registration.browser_content Eliom_registration.kind Lwt.t) ->
+    (result authentication_result -> Eliom_registration.frame Lwt.t) ->
     Url.t Lwt.t
 
 let check check ?(immediate = true) ?policy_url ?max_auth_age ?auth_policies

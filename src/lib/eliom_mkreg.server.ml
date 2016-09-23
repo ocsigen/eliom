@@ -39,7 +39,7 @@ type ('options,'page,'result) param =
 	  value is recorded inside each service just after
 	  registration.  *)
 
-      result_of_http_result : Ocsigen_http_frame.result -> 'result; }
+    }
 
 
 (* If it is an xmlHTTPrequest who asked for an internal application
@@ -506,16 +506,13 @@ let send pages
     ?content_type
     ?headers
     content =
-  let%lwt result =
-    pages.send
-      ?options
-      ?charset
-      ?code
-      ?content_type
-      ?headers
-      content
-  in
-  Lwt.return (pages.result_of_http_result result)
+  pages.send
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    content
 
 let register pages
     ?app
@@ -716,12 +713,12 @@ struct
   type page = Pages.page
   type options = Pages.options
   type return = Eliom_service.non_ocaml
-  type result = Pages.result
+  type frame = Ocsigen_http_frame.result
 
-  let pages =
-    { send = Pages.send;
-      send_appl_content = Pages.send_appl_content;
-      result_of_http_result = Pages.result_of_http_result; }
+  let pages = {
+    send = Pages.send;
+    send_appl_content = Pages.send_appl_content
+  }
 
   let send ?options = send pages ?options
 
@@ -743,11 +740,11 @@ struct
   type 'a page = 'a Pages.page
   type options = Pages.options
   type 'a return = 'a Pages.return
+  type frame = Ocsigen_http_frame.result
 
   let pages = {
     send                  = Pages.send;
     send_appl_content     = Pages.send_appl_content;
-    result_of_http_result = (fun x -> x)
   }
 
   let register ?app = register pages ?app

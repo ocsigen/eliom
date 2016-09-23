@@ -29,59 +29,9 @@
 
 (** {% <<outline| <<header| **Table of contents** >> >> %}*)
 
-(** {2 Type definitions} *)
+(** {2 Basic types } *)
 
-(** The type [kind] is an abstract type for the HTTP frame returned by
-    a service. The type parameter indicates the content type, and is
-    one of the following types:
-    {ul {- {!application_content}}
-        {- {!browser_content}}
-        {- {!block_content}}
-        {- {!unknown_content}}
-        {- {!ocaml_content}}} *)
-type 'a kind
-
-(** {3 Return types for {!type:Eliom_service.service} } *)
-
-(** {4 Classical content} *)
-
-(** The type [browser_content] is to be used as a phantom type
-    parameter for {!Eliom_registration.kind}. It means the returned
-    content must be interpreted in the browser as stated by the
-    content-type header. This is most common return type for an eliom
-    service, see for example {!Html}, {!CssText}, {!File},
-    {!Redirection}. *)
-type browser_content = [ `Browser ]
-
-(** The type [block_content] is to be used as a phantom type parameter
-    for {!Eliom_registration.kind}. It means the returned content is a
-    subtree of an XML value. See for example {!Block5} or
-    {!Make_typed_xml_registration}. *)
-type block_content
-
-(** The type [unknown_content] is to be used as a phantom type
-    parameter for {!Eliom_registration.kind} when the content-type
-    can't be determined statically. See {!Text} or {!Any}. *)
-type unknown_content
-
-(** {4 Application content} *)
-
-(** The type [application_content] is a refinement of {!appl_service}
-    to be used as a phantom type parameters for
-    {!Eliom_registration.kind}. The parameter ['a] is phantom type
-    that is unique for a given application. *)
-type 'a application_content = [ `Appl of 'a ]
-
-(**/**)
-type 'a application_name
-(**/**)
-
-(** {4 OCaml content} *)
-
-(** The type [ocaml_content] is an synomyn for
-    {!Eliom_service.ocaml_service} to be used as a phantom type
-    parameters for {!Eliom_registration.kind}. See {!Ocaml}. *)
-type 'a ocaml_content
+type frame = Ocsigen_http_frame.result
 
 (** {2 Using HTML5 with services } *)
 
@@ -91,7 +41,7 @@ module Html : Eliom_registration_sigs.S
   with type page = Html_types.html Eliom_content.Html.elt
    and type options = unit
    and type return = Eliom_service.non_ocaml
-   and type result = browser_content kind
+   and type frame := frame
 
 (** {2 Eliom client/server applications} *)
 
@@ -141,10 +91,7 @@ module type APP = sig
     with type page = Html_types.html Eliom_content.Html.elt
      and type options = appl_service_options
      and type return = Eliom_service.non_ocaml
-     and type result = app_id application_content kind
-
-  (**/**)
-  val typed_name : app_id application_name
+     and type frame := frame
 
 end
 
@@ -163,7 +110,7 @@ module Eliom_tmpl (App : APP) (Tmpl_param : TMPL_PARAMS):
   with type page = Tmpl_param.t
    and type options = appl_service_options
    and type return = Eliom_service.non_ocaml
-   and type result = App.app_id application_content kind
+   and type frame := frame
 
 (** {3 Services returning only fragments of HTML (or other TyXML
     trees)} *)
@@ -177,7 +124,7 @@ module Flow5 : Eliom_registration_sigs.S
   with type page = Html_types.flow5 Eliom_content.Html.elt list
    and type options = unit
    and type return = Eliom_service.non_ocaml
-   and type result = block_content kind
+   and type frame := frame
 
 (** Eliom service registration for services that returns fragment of
     TyXML's tree. *)
@@ -189,7 +136,7 @@ module Make_typed_xml_registration
   with type page = E.content Typed_xml.elt list
    and type options = unit
    and type return = Eliom_service.non_ocaml
-   and type result = block_content kind
+   and type frame := frame
 
 (** {2 Untyped pages} *)
 
@@ -200,7 +147,7 @@ module Html_text : Eliom_registration_sigs.S
   with type page = string
    and type options = unit
    and type return = Eliom_service.non_ocaml
-   and type result = browser_content kind
+   and type frame := frame
 
 (** Eliom service registration for services that returns CSS. The page
     content is a [string] that must contains valid CSS and the content
@@ -210,7 +157,7 @@ module CssText : Eliom_registration_sigs.S
   with type page = string
    and type options = int
    and type return = Eliom_service.non_ocaml
-   and type result = browser_content kind
+   and type frame := frame
 
 (** {2 Other kinds of services} *)
 
@@ -226,14 +173,14 @@ module Action : Eliom_registration_sigs.S
   with type return = Eliom_service.non_ocaml
    and type page = unit
    and type options = [ `Reload | `NoReload ]
-   and type result = browser_content kind
+   and type frame := frame
 
 (** Similar to {!Actions} with [`NoReload] option. *)
 module Unit : Eliom_registration_sigs.S
   with type page = unit
    and type options = unit
    and type return = Eliom_service.non_ocaml
-   and type result = browser_content kind
+   and type frame := frame
 
 (** Auxiliarry type to hide non-interesting type parameters *)
 type _ redirection =
@@ -277,7 +224,7 @@ module Redirection : sig
     ?content_type : string ->
     ?headers      : Http_headers.t ->
     _ page ->
-    _ kind Lwt.t
+    frame Lwt.t
 
 end
 
@@ -300,7 +247,7 @@ module String_redirection : Eliom_registration_sigs.S
          | `UseProxy
          | `TemporaryRedirect ]
    and type return = Eliom_service.non_ocaml
-   and type result = browser_content kind
+   and type frame := frame
 
 (** Eliom service registration for services that returns file
     contents. The value returned by service handlers is the name of
@@ -319,7 +266,7 @@ module File : sig
     with type page = string
      and type options = int
      and type return = Eliom_service.non_ocaml
-     and type result = browser_content kind
+     and type frame := frame
 
 end
 
@@ -337,7 +284,7 @@ module File_ct : sig
     with type page = string * string
      and type options = int
      and type return = Eliom_service.non_ocaml
-     and type result = browser_content kind
+     and type frame := frame
 
 end
 
@@ -347,7 +294,7 @@ module Ocaml : Eliom_registration_sigs.S_poly
   with type 'a page = 'a
    and type options = unit
    and type 'a return = 'a Eliom_service.ocaml
-   and type 'a result = 'a ocaml_content kind
+   and type frame := frame
 
 (** Eliom service registration for services that choose dynamically
     what they want to send. The content is created using for example
@@ -356,10 +303,10 @@ module Ocaml : Eliom_registration_sigs.S_poly
     fragment="any"|services that choose dynamically what they want to
     send>>%} *)
 module Any :  Eliom_registration_sigs.S_poly
-  with type 'a page = 'a kind
+  with type 'a page = frame
    and type options = unit
    and type 'a return = Eliom_service.non_ocaml
-   and type 'a result = 'a kind
+   and type frame := frame
 
 (** The function [appl_self_redirect send page] is an helper function
     required for defining {!Any} service usable inside an Eliom
@@ -374,9 +321,9 @@ module Any :  Eliom_registration_sigs.S_poly
     and you should not use this function for services that use POST
     parameters. *)
 val appl_self_redirect :
-  ('page -> [< 'a application_content | browser_content ] kind Lwt.t) ->
+  ('page -> frame Lwt.t) ->
   'page ->
-  'appl application_content kind Lwt.t
+  frame Lwt.t
 
 (** Eliom service registration for services that returns "byte"-string
     contents. The page content is a pair [(raw_content,
@@ -387,7 +334,7 @@ module String : Eliom_registration_sigs.S
   with type page = string * string
    and type options = int
    and type return = Eliom_service.non_ocaml
-   and type result = unknown_content kind
+   and type frame := frame
 
 (** Eliom service registration for services that returns "byte"
     contents with {% <<a_api project="ocsigenserver" text="Ocsigen's
@@ -405,7 +352,7 @@ module Streamlist : Eliom_registration_sigs.S
          (unit -> string Ocsigen_stream.t Lwt.t) list * string
    and type options = unit
    and type return = Eliom_service.non_ocaml
-   and type result = unknown_content kind
+   and type frame := frame
 
 (** {2 Customizing registration} *)
 
@@ -414,13 +361,13 @@ module Streamlist : Eliom_registration_sigs.S
     <<a_manual project="tutorial" chapter="interaction"| Eliom
     tutorial>>%} for example. *)
 module Customize
-    (R : Eliom_registration_sigs.S)
+    (R : Eliom_registration_sigs.S with type frame := frame)
     (T : sig type page val translate : page -> R.page Lwt.t end) :
   Eliom_registration_sigs.S
   with type options = R.options
    and type return = R.return
    and type page = T.page
-   and type result = R.result
+   and type frame := frame
 
 (** {2 Using your own error pages} *)
 
@@ -443,16 +390,4 @@ module Customize
     {!Eliom_service.register_eliom_module}. Otherwise you will also
     get this exception.}
 *)
-val set_exn_handler : (exn -> browser_content kind Lwt.t) -> unit
-
-(** {2 Unsafe cast of contents} *)
-
-(** If you know that the content you generated using [Text.send] or
-    [Streamlist.send] is the same as some other kind, you can cast it
-    with [cast_unknown_content_kind] for use with [Any] module.*)
-val cast_unknown_content_kind :
-  unknown_content kind -> 'a kind
-
-(** [cast_http_result] should only be used to register new output
-    modules *)
-val cast_http_result : Ocsigen_http_frame.result -> 'a kind
+val set_exn_handler : (exn -> frame Lwt.t) -> unit
