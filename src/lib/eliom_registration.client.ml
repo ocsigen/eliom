@@ -42,6 +42,7 @@ end
 
 type 'a kind = unit
 type browser_content = [`Browser]
+type 'a application_content = [`Appl of 'a]
 
 module type PARAM = sig
 
@@ -287,9 +288,29 @@ module Unit = Make (struct
 
   end)
 
+type appl_service_options = { do_not_launch : bool }
+
 module App (P : Eliom_registration_sigs.APP_PARAM) = struct
+
+  type app_id
+
   let application_name = P.application_name
-  include Html
+
+  include Make (struct
+
+      type page = Html_types.html Eliom_content.Html.elt
+      type options = appl_service_options
+      type return = Eliom_service.non_ocaml
+      type result = browser_content kind
+
+      let reset_reload_fun = false
+
+      let send ?options:_ page =
+        Eliom_client.set_content_local
+          (Eliom_content.Html.To_dom.of_element page)
+
+    end)
+
 end
 
 type _ redirection =

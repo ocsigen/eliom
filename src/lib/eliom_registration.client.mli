@@ -20,6 +20,7 @@
 type 'a kind
 
 type browser_content
+type _ application_content
 
 module Html : Eliom_registration_sigs.S
   with type page = Html_types.html Eliom_content.Html.elt
@@ -39,9 +40,24 @@ module Unit : Eliom_registration_sigs.S
    and type return = Eliom_service.non_ocaml
    and type result = browser_content kind
 
+(** Has no effect on client ; for compatibility with server *)
+type appl_service_options = { do_not_launch : bool }
+
 module App (P : Eliom_registration_sigs.APP_PARAM) : sig
+
   val application_name : string
-  include module type of Html
+
+  (** The type [appl] is an abstract type for identifying an
+      application. It usually used a phantom parameter for
+      {!application_content}. *)
+  type app_id
+
+  include Eliom_registration_sigs.S
+    with type page = Html_types.html Eliom_content.Html.elt
+     and type options = appl_service_options
+     and type return = Eliom_service.non_ocaml
+     and type result = app_id application_content kind
+
 end
 
 type _ redirection =
