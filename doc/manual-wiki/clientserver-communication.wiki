@@ -71,14 +71,15 @@ Example of use:
 open Eliom_content
 
 let pi_service =
-  Eliom_registration.Ocaml.register_post_coservice'
-    ~post_params:Eliom_parameter.unit
+  Eliom_registration.Ocaml.create
+    ~path:Eliom_service.No_path
+    ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () -> Lwt.return 3.1415926535)
 
 let _ =
-  My_appl.register_service
-    ~path:["pi"]
-    ~get_params:Eliom_parameter.unit
+  My_appl.create
+    ~path:(Eliom_service.Path ["pi"])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () ->
        ignore [%client
          (Lwt.ignore_result (
@@ -135,9 +136,11 @@ This type can now be used as a parameter for a service:
 open Eliom_content
 
 let s =
-  My_appl.register_service
-    ~path:["s1"]
-    ~get_params:(Eliom_parameter.ocaml "param" [%derive.json: another_type])
+  My_appl.create
+    ~path:(Eliom_service.Path ["s1"])
+    ~meth:
+      (Eliom_service.Get
+         (Eliom_parameter.ocaml "param" [%derive.json: another_type]))
     (fun v () ->
        Lwt.return Html.D.(
          html
@@ -149,9 +152,9 @@ let s =
             ])))
 
 let _ =
-  My_appl.register_service
-    ~path:["s2"]
-    ~get_params:Eliom_parameter.unit
+  My_appl.create
+    ~path:(Eliom_service.Path ["s2"])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () ->
        Lwt.return Html.D.(
          html

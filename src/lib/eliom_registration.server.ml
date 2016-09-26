@@ -832,7 +832,7 @@ module Customize
       ?max_use
       ?timeout
       ~meth
-      ~id
+      ~path
       ?error_handler
       f =
     R.create
@@ -852,7 +852,89 @@ module Customize
       ?max_use
       ?timeout
       ~meth
-      ~id
+      ~path
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let attach_get
+      ?app
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ~fallback
+      ~get_params
+      ?error_handler
+      f =
+    R.attach_get
+      ?app
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ~fallback
+      ~get_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let attach_post
+      ?app
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ~fallback
+      ~post_params
+      ?error_handler
+      f =
+    R.attach_post
+      ?app
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ~fallback
+      ~post_params
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
@@ -968,7 +1050,7 @@ module Ocaml = struct
       ?max_use
       ?timeout
       ~meth
-      ~id
+      ~path
       ?error_handler
       f =
     Eliom_service.untype @@
@@ -989,7 +1071,91 @@ module Ocaml = struct
       ?max_use
       ?timeout
       ~meth
-      ~id:(Eliom_service.untype_id id)
+      ~path
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let attach_get
+      ?app
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ~fallback
+      ~get_params
+      ?error_handler
+      f =
+    Eliom_service.untype @@
+    M.attach_get
+      ?app
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ~fallback:(Eliom_service.untype fallback)
+      ~get_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let attach_post
+      ?app
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ~fallback
+      ~post_params
+      ?error_handler
+      f =
+    Eliom_service.untype @@
+    M.attach_post
+      ?app
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ~fallback:(Eliom_service.untype fallback)
+      ~post_params
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
@@ -1361,7 +1527,7 @@ struct
     | Some global_data_path ->
       ignore @@
       Ocaml.create
-        ~id:(Eliom_service.Path global_data_path)
+        ~path:(Eliom_service.Path global_data_path)
         ~meth:(Get Eliom_parameter.unit)
         ~https:true
         data_service_handler

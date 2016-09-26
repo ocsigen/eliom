@@ -28,6 +28,9 @@ CLIENT_PACKAGES := lwt.ppx js_of_ocaml.ppx js_of_ocaml.deriving.ppx
 LOCAL_STATIC = static
 
 # The backend for persistent data. Can be dbm or sqlite.
+# Make sure you have the following packages installed
+# - *dbm* if you use dbm --> opam install dbm.
+# - *sqlite3* if you use sqlite --> opam install sqlite3.
 PERSISTENT_DATA_BACKEND = %%%PROJECT_DB%%%
 
 # Debug application (yes/no): Debugging info in compilation,

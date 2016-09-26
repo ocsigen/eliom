@@ -96,7 +96,7 @@ module type S = sig
 
   (** {2 Service registration } *)
 
-  (** The function [register service handler] will associate the
+  (** The function [register ~service handler] associates the
       [service] to the function [handler]. The [handler] function take
       two parameters, the GET and POST parameters of the current HTTP
       request, and should returns the corresponding page.
@@ -163,15 +163,77 @@ module type S = sig
     ?max_use:int ->
     ?timeout:float ->
     meth:
-      ('m , 'gp , 'gn , 'pp, 'pn, 'tipo, 'mf, 'gp_) Eliom_service.meth ->
-    id:
-      ('att, 'co, Eliom_service.non_ext, Eliom_service.reg,
-       'mf, return, 'gp_) Eliom_service.id ->
+      ('m , 'gp , 'gn , 'pp, 'pn, 'tipo, 'gp_) Eliom_service.meth ->
+    path:('att, 'co, 'gp_) Eliom_service.path_option ->
     ?error_handler:((string * exn) list -> page Lwt.t) ->
     ('gp -> 'pp -> page Lwt.t) ->
     ('gp, 'pp, 'm, 'att, 'co, Eliom_service.non_ext, Eliom_service.reg,
      'tipo,
      'gn, 'pn, return)
+      Eliom_service.t
+
+  (** Same as {!Eliom_service.attach_get} followed by {!register}. *)
+  val attach_get :
+    ?app:string ->
+    ?scope:[<Eliom_common.scope] ->
+    ?options:options ->
+    ?charset:string ->
+    ?code: int ->
+    ?content_type:string ->
+    ?headers: Http_headers.t ->
+    ?secure_session:bool ->
+    ?https:bool ->
+    ?name: string ->
+    ?csrf_safe: bool ->
+    ?csrf_scope: [<Eliom_common.user_scope] ->
+    ?csrf_secure: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    fallback:
+      (unit, unit,
+       Eliom_service.get, Eliom_service.att,
+       Eliom_service.non_co, Eliom_service.non_ext, _,
+       [`WithoutSuffix], unit, unit, return)
+        Eliom_service.t ->
+    get_params:('gp, [`WithoutSuffix], 'gn) Eliom_parameter.params_type ->
+    ?error_handler:((string * exn) list -> page Lwt.t) ->
+    ('gp -> unit -> page Lwt.t) ->
+    ('gp, unit,
+     Eliom_service.get, Eliom_service.att, Eliom_service.co,
+     Eliom_service.non_ext, Eliom_service.reg,
+     [`WithoutSuffix], 'gn, unit, return)
+      Eliom_service.t
+
+  (** Same as {!Eliom_service.attach_post} followed by {!register}. *)
+  val attach_post :
+    ?app:string ->
+    ?scope:[<Eliom_common.scope] ->
+    ?options:options ->
+    ?charset:string ->
+    ?code: int ->
+    ?content_type:string ->
+    ?headers: Http_headers.t ->
+    ?secure_session:bool ->
+    ?https:bool ->
+    ?name: string ->
+    ?csrf_safe: bool ->
+    ?csrf_scope: [<Eliom_common.user_scope] ->
+    ?csrf_secure: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    fallback:
+      ('gp, unit,
+       Eliom_service.get, Eliom_service.att,
+       Eliom_service.non_co, Eliom_service.non_ext, _,
+       [`WithoutSuffix], 'gn, unit, return)
+        Eliom_service.t ->
+    post_params:('pp, [`WithoutSuffix], 'pn) Eliom_parameter.params_type ->
+    ?error_handler:((string * exn) list -> page Lwt.t) ->
+    ('gp -> 'pp -> page Lwt.t) ->
+    ('gp, 'pp,
+     Eliom_service.post, Eliom_service.att, Eliom_service.co,
+     Eliom_service.non_ext, Eliom_service.reg,
+     [`WithoutSuffix], 'gn, 'pn, return)
       Eliom_service.t
 
   (** The function [send page] build the HTTP frame corresponding to
@@ -195,6 +257,7 @@ module type S_poly_without_send = sig
   type options
   type _ return
 
+  (** See {!S.register}. *)
   val register :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->
@@ -212,6 +275,7 @@ module type S_poly_without_send = sig
     ('get -> 'post -> 'a page Lwt.t) ->
     unit
 
+  (** See {!S.create}. *)
   val create :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->
@@ -229,15 +293,79 @@ module type S_poly_without_send = sig
     ?max_use:int ->
     ?timeout:float ->
     meth:
-      ('m , 'gp , 'gn , 'pp, 'pn, 'tipo, 'mf, 'gp_) Eliom_service.meth ->
-    id:
-      ('att, 'co, Eliom_service.non_ext, Eliom_service.reg,
-       'mf, 'a return, 'gp_) Eliom_service.id ->
+      ('m , 'gp , 'gn , 'pp, 'pn, 'tipo, 'gp_) Eliom_service.meth ->
+    path:
+      ('att, 'co, 'gp_) Eliom_service.path_option ->
     ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
     ('gp -> 'pp -> 'a page Lwt.t) ->
     ('gp, 'pp, 'm, 'att, 'co, Eliom_service.non_ext, Eliom_service.reg,
      'tipo,
      'gn, 'pn, 'a return)
+      Eliom_service.t
+
+  (** See {!S.attach_get}. *)
+  val attach_get :
+    ?app:string ->
+    ?scope:[<Eliom_common.scope] ->
+    ?options:options ->
+    ?charset:string ->
+    ?code: int ->
+    ?content_type:string ->
+    ?headers: Http_headers.t ->
+    ?secure_session:bool ->
+    ?https:bool ->
+    ?name: string ->
+    ?csrf_safe: bool ->
+    ?csrf_scope: [<Eliom_common.user_scope] ->
+    ?csrf_secure: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    fallback:
+      (unit, unit,
+       Eliom_service.get, Eliom_service.att,
+       Eliom_service.non_co, Eliom_service.non_ext, _,
+       [`WithoutSuffix], unit, unit, 'a return)
+        Eliom_service.t ->
+    get_params:
+      ('gp, [`WithoutSuffix], 'gn) Eliom_parameter.params_type ->
+    ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
+    ('gp -> unit -> 'a page Lwt.t) ->
+    ('gp, unit,
+     Eliom_service.get, Eliom_service.att, Eliom_service.co,
+     Eliom_service.non_ext, Eliom_service.reg,
+     [`WithoutSuffix], 'gn, unit, 'a return)
+      Eliom_service.t
+
+  (** See {!S.attach_post}. *)
+  val attach_post :
+    ?app:string ->
+    ?scope:[<Eliom_common.scope] ->
+    ?options:options ->
+    ?charset:string ->
+    ?code: int ->
+    ?content_type:string ->
+    ?headers: Http_headers.t ->
+    ?secure_session:bool ->
+    ?https:bool ->
+    ?name: string ->
+    ?csrf_safe: bool ->
+    ?csrf_scope: [<Eliom_common.user_scope] ->
+    ?csrf_secure: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    fallback:
+      ('gp, unit,
+       Eliom_service.get, Eliom_service.att,
+       Eliom_service.non_co, Eliom_service.non_ext, _,
+       [`WithoutSuffix], 'gn, unit, 'a return)
+        Eliom_service.t ->
+    post_params:('pp, [`WithoutSuffix], 'pn) Eliom_parameter.params_type ->
+    ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
+    ('gp -> 'pp -> 'a page Lwt.t) ->
+    ('gp, 'pp,
+     Eliom_service.post, Eliom_service.att, Eliom_service.co,
+     Eliom_service.non_ext, Eliom_service.reg,
+     [`WithoutSuffix], 'gn, 'pn, 'a return)
       Eliom_service.t
 
 end

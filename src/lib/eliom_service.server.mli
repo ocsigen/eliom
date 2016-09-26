@@ -81,9 +81,6 @@ val untype :
   ('a, 'b, 'meth, 'attached, 'co, 'ext, 'd, 'e, 'f, 'g, 'rr) t ->
   ('a, 'b, 'meth, 'attached, 'co, 'ext, 'd, 'e, 'f, 'g, 'return) t
 
-val untype_id :
-  ('a, 'c, 'm, 'e, 'r, _, 'g) id -> ('a, 'c, 'm, 'e, 'r, _, 'g) id
-
 val set_delayed_get_or_na_registration_function :
   Eliom_common.tables ->
   int ->

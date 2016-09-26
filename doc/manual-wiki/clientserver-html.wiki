@@ -123,7 +123,9 @@ included in the initial html document from event handlers, as the
 
 <<code language="ocaml"|
 let main_service =
-  My_appl.register_service ~path:[""] ~get_params:Eliom_parameter.unit
+  My_appl.register_service
+    ~path:(Eliom_service.Path [""])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () ->
        let open Eliom_content.Html.D in
        let input = input ~a:[a_input_type `Text] () in
@@ -278,7 +280,10 @@ let make_input () =
   inp
 
 let main_service =
-  Eliom_service.App.service ~path:[] ~get_params:Eliom_parameter.unit ()
+  Eliom_service.create
+    ~path:(Eliom_service.Path [])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    ()
 
 let () =
   Reactivenodes_app.register
@@ -320,7 +325,10 @@ module Testnodes_app =
   end)
 
 let main_service =
-  Eliom_service.App.service ~path:[] ~get_params:Eliom_parameter.unit ()
+  Eliom_service.create
+    ~path:(Eliom_service.Path [])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    ()
 
 [%%client
     open Eliom_content.Html
@@ -391,8 +399,9 @@ let global_list = Eliom_content.Html.Id.create_global_elt (ul [])
 let cpt = ref 0
 
 let main_service =
-  Eliom_service.App.service
-    ~path:[""] ~get_params:Eliom_parameter.unit
+  Eliom_service.create
+    ~path:(Eliom_service.Path [""])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
     ()
 
 let reload_link =
@@ -436,8 +445,10 @@ let simple_script =
   script (cdata_script "alert(\"non global script\")")
 
 let main_service =
-  Eliom_service.App.service
-    ~path:[] ~get_params:Eliom_parameter.unit ()
+  Eliom_service.create
+    ~path:(Eliom_service.Path [])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    ()
 
 let reload_link =
   a ~service:main_service [pcdata "reload page"] ()
@@ -558,9 +569,9 @@ containing your pages. Here is an example:
 
 <<code language="ocaml"|
 let hello =
-  Eliom_registration.Html_text.register_service
-    ~path:["hello"]
-    ~get_params:Eliom_parameter.unit
+  Eliom_registration.Html_text.create
+    ~path:(Eliom_service.Path ["hello"])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () -> Lwt.return "<html>Hello</html>")
 >>
 

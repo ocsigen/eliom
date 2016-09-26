@@ -37,9 +37,9 @@ let writeparams (i1, (i2, s1)) () =
                         strong [pcdata s1]]]))
 >>
 
-<<code language="ocaml"|let service_with_params = Eliom_registration.Html.register_service
-    ~path:["thepath"]
-    ~get_params:(int "i" ** (int "ii" ** string "s"))
+<<code language="ocaml"|let service_with_params = Eliom_registration.Html.create
+    ~path:(Eliom_service.Path ["thepath"])
+    ~meth:(Eliom_service.Get (int "i" ** (int "ii" ** string "s")))
     writeparams
 >>
 
@@ -68,9 +68,9 @@ often do), and how to get server information:
 <<code language="ocaml"|
 open Eliom_parameter
 let uasuffix =
-  Eliom_registration.Html.register_service
-    ~path:["uasuffix"]
-    ~get_params:(suffix (int "year" ** int "month"))
+  Eliom_registration.Html.create
+    ~path:(Eliom_service.Path ["uasuffix"])
+    ~meth:(Eliom_service.Get (suffix (int "year" ** int "month")))
     (fun (year, month) () ->
       Lwt.return
        Html.D.(html
@@ -97,9 +97,9 @@ allows the end of the suffix to be taken as a {{{string list}}}.\\
 
 <<code language="ocaml"|
 let isuffix =
-  Eliom_registration.Html.register_service
-    ~path:["isuffix"]
-    ~get_params:(suffix_prod (int "suff" ** all_suffix "endsuff") (int "i"))
+  Eliom_registration.Html.create
+    ~path:(Eliom_service.Path ["isuffix"])
+    ~meth:(Eliom_service.Get (suffix_prod (int "suff" ** all_suffix "endsuff") (int "i")))
     (fun ((suff, endsuff), i_param) () ->
       return Eliom_content.Html.D.(
        html
@@ -123,9 +123,9 @@ Example:
 open Eliom_parameter
 
 let constfix =
-  Eliom_registration.Html.register_service
-    ~path:["constfix"]
-    ~get_params:(suffix (string "s1" ** (suffix_const "toto" ** string "s2")))
+  Eliom_registration.Html.create
+    ~path:(Eliom_service.Path ["constfix"])
+    ~meth:(Eliom_service.Get (suffix (string "s1" ** (suffix_const "toto" ** string "s2"))))
     (fun (s1, ((), s2))  () ->
        Lwt.return
          Html.D.(html
@@ -152,10 +152,10 @@ let string_of_mysum = function
   | B -> "B"
 
 let mytype =
-  Eliom_registration.Html.register_service
-    ~path:["mytype"]
-    ~get_params:
-      (Eliom_parameter.user_type mysum_of_string string_of_mysum "valeur")
+  Eliom_registration.Html.create
+    ~path:(Eliom_service.Path ["mytype"])
+    ~meth:(Eliom_service.Get
+      (Eliom_parameter.user_type mysum_of_string string_of_mysum "valeur"))
     (fun x () ->
       let v = string_of_mysum x in
       Lwt.return
@@ -177,9 +177,9 @@ association list of strings. For example:
 
 <<code language="ocaml"|
 let raw_serv =
-  Eliom_registration.Html.register_service
-    ~path:["any"]
-    ~get_params:Eliom_parameter.any
+  Eliom_registration.Html.create
+    ~path:(Eliom_service.Path ["any"])
+    ~meth:(Eliom_service.Get Eliom_parameter.any)
   (fun l () ->
     let module Html = Eliom_content.Html.D in
     let ll =
@@ -217,9 +217,9 @@ let my_nl_params =
     ~name:"mynlparams"
     (Eliom_parameter.int "a" ** Eliom_parameter.string "s")
 
-let nlparams = Eliom_registration.Html.register_service
-    ~path:["nlparams"]
-    ~get_params:(int "i")
+let nlparams = Eliom_registration.Html.create
+    ~path:(Eliom_service.Path ["nlparams"])
+    ~meth:(Eliom_service.Get (int "i"))
     (fun i () ->
        Lwt.return
          (html
@@ -247,9 +247,9 @@ optional parameter <<span class="code"|nl_params>> of functions
 Eliom_content.Html.D.Form.get_form >>, or <<a_api| val
 Eliom_content.Html.D.Form.post_form >>. Example:
 
-<<code language="ocaml"|let tonlparams = Eliom_registration.Html.register_service
-    ~path:["nlparams"]
-    ~get_params:unit
+<<code language="ocaml"|let tonlparams = Eliom_registration.Html.create
+    ~path:(Eliom_service.Path ["nlparams"])
+    ~meth:(Eliom_service.Get unit)
     (fun i () ->
        Lwt.return Html.D.(
          html

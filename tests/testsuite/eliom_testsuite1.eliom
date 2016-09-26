@@ -278,10 +278,9 @@ let links = register_service ["rep";"links"] unit
          Html.D.a raw_serv
            [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
          Html.D.a
-           (Eliom_service.create
-              ~id:
-                (Eliom_service.External
-                   ("http://fr.wikipedia.org", ["wiki"; ""]))
+           (Eliom_service.extern
+              ~prefix:"http://fr.wikipedia.org"
+              ~path:["wiki"; ""]
               ~meth:(Eliom_service.Get (suffix (all_suffix "suff")))
               ())
            [pcdata "OCaml on wikipedia"]
@@ -459,10 +458,9 @@ let form4 = register_service ["form4"] unit
       let module Html = Eliom_content.Html.F in
      let f  =
        (Eliom_content.Html.D.Form.post_form
-          (Eliom_service.create
-             ~id:(Eliom_service.External
-                    ("http://www.petizomverts.com",
-                     ["zebulon"]))
+          (Eliom_service.extern
+             ~prefix:"http://www.petizomverts.com"
+             ~path:["zebulon"]
              ~meth:(Eliom_service.Post (int "i", string "chaine"))
              ())
           (fun chaine ->
@@ -1038,7 +1036,7 @@ let connect_action =
 let disconnect_action =
   Eliom_registration.Action.create
     ~name:"disconnect3"
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard (*zap* *) ~scope:session (* *zap*) ())
@@ -1105,7 +1103,7 @@ let () =
 *wiki*)
 let divpage =
   Eliom_registration.Flow5.create
-    ~id:(Eliom_service.Path ["div"])
+    ~path:(Eliom_service.Path ["div"])
     ~meth:(Eliom_service.Get unit)
     (fun () () ->
       return
@@ -1117,7 +1115,7 @@ let divpage =
 *wiki*)
 let redir1 =
   Eliom_registration.Redirection.create
-    ~id:(Eliom_service.Path ["redir"])
+    ~path:(Eliom_service.Path ["redir"])
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () -> Lwt.return (Eliom_registration.Redirection coucou))
 (*wiki*
@@ -1125,7 +1123,7 @@ let redir1 =
  *wiki*)
 let redir =
   Eliom_registration.Redirection.create
-    ~id:(Eliom_service.Path ["redir"])
+    ~path:(Eliom_service.Path ["redir"])
     ~meth:(Eliom_service.Get (int "o"))
     (fun o () ->
        Lwt.return
@@ -1137,7 +1135,7 @@ let redir =
 *wiki*)
 let send_any =
   Eliom_registration.Any.create
-    ~id:(Eliom_service.Path ["sendany"])
+    ~path:(Eliom_service.Path ["sendany"])
     ~meth:(Eliom_service.Get (string "type"))
     (fun s () ->
        if s = "valid"
@@ -1256,7 +1254,7 @@ let persist_session_connect_action =
 let disconnect_action =
   Eliom_registration.Action.create
     ~name:"disconnect4"
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard ~scope:session ())
@@ -1371,7 +1369,7 @@ let connect_action =
 let disconnect_action =
   Eliom_registration.Action.create
     ~name:"disconnect6"
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard (*zap* *) ~scope:session (* *zap*) ())
@@ -1685,7 +1683,7 @@ let connect_action =
 let disconnect_action =
   Eliom_registration.Action.create
     ~name:"disconnect5"
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard (*zap* *) ~scope:session (* *zap*) ())
@@ -1779,7 +1777,7 @@ let connect_action =
 let disconnect_action =
   Eliom_registration.Action.create
     ~name:"disconnectgt"
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard ~scope:session ())
@@ -1787,7 +1785,7 @@ let disconnect_action =
 let disconnect_g_action =
   Eliom_registration.Action.create
     ~name:"disconnectgtg"
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard ~scope:session_group ())
@@ -1911,14 +1909,14 @@ let connect_action =
 
 let disconnect_action =
   Eliom_registration.Action.create
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () -> Eliom_state.discard ~scope:session ())
 
 let disconnect_g_action =
   Eliom_registration.Action.create
     ~name:"pdisconnectgtg"
-    ~id:Eliom_service.Global
+    ~path:Eliom_service.No_path
     ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
     (fun () () ->
       Eliom_state.discard ~scope:session_group ())

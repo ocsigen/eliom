@@ -111,7 +111,7 @@ let create_filtered ?scope ?name ?size ~filter typ =
     Eliom_service.create
       ?name
       ~meth:(Eliom_service.Post (Eliom_parameter.unit, post_params))
-      ~id:Eliom_service.Global
+      ~path:Eliom_service.No_path
       ()
   in
   let service_registered =
