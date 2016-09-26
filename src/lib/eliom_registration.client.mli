@@ -79,7 +79,7 @@ module Redirection : Eliom_registration_sigs.S_poly
    and type frame := frame
 
 module Any : Eliom_registration_sigs.S_poly
-  with type 'a page = unit
+  with type 'a page = frame
    and type options = unit
    and type 'a return = Eliom_service.non_ocaml
    and type frame := frame
