@@ -768,7 +768,7 @@ let route
   try%lwt
     update_session_info i_get_params (Some i_post_params);
     let uri = make_uri i_subpath i_get_params in
-    set_target_url uri;
+    if not nested then set_target_url uri;
     let%lwt () = Eliom_route.call_service info in
     commit_target_url ~nested ();
     Lwt.return ()
