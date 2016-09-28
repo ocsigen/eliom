@@ -40,38 +40,51 @@ let reload () =
   | None ->
     default_reload ()
 
-let reload_with_warning () () =
-  let f = !Eliom_client.reload_function in
-  (*VVV When calling server side (non hidden) void coservice, GET
-      non-attached parameters are removed.  But not when implemented
-      on client side ...  I display a warning to remember that.  We
-      should probably remember in service reload_function with
-      na_param and reload_function without ...  It is probably very
-      rarely used anyway ...  *)
-  match f with
-  | Some f ->
-    print_endline
-      "Warning: (non hidden) calling void coservice' on client side does \
-       not remone GET non-attached parameters (FIX in Eliom)";
-    f () ()
-  | None ->
-    default_reload ()
+let reload_without_na_params () () =
+  let uri = !Eliom_client.current_uri in
+  try%lwt
+    let path, args =
+      match Url.url_of_string uri with
+      | Some (Url.Http url | Url.Https url) ->
+        url.Url.hu_path, url.Url.hu_arguments
+      | _ ->
+        match
+          try
+            Some (String.index uri '?')
+          with Not_found ->
+            None
+        with
+        | Some n ->
+          Eliom_lib.Url.split_path String.(sub uri 0 n),
+          Url.decode_arguments String.(sub uri (n + 1) (length uri - n - 1))
+        | None ->
+          Eliom_lib.Url.split_path uri, []
+    in
+    Eliom_client.change_page_unknown path
+      (Eliom_common.remove_na_prefix_params args)
+      []
+  with _ ->
+    reload ()
 
 let switch_to_https () =
   let info = Eliom_process.get_info () in
   Eliom_process.set_info {info with Eliom_common.cpi_ssl = true }
 
-(* Client side implementation of void_coservices *)
+(* Client side implementation of reload actions *)
 let%shared _ =
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action
-     [%client  reload_with_warning ];
+    [%client reload_without_na_params ];
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_https
-     [%client  fun () () -> switch_to_https (); reload_with_warning () () ];
+    [%client
+      fun () () ->
+        switch_to_https ();
+        reload_without_na_params () ()
+    ];
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_hidden
-     [%client  fun () () -> reload () ];
+    [%client  fun () () -> reload () ];
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_https_hidden
-     [%client  fun () () -> switch_to_https (); reload () ]
+    [%client  fun () () -> switch_to_https (); reload () ]
