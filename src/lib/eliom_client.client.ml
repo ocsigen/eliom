@@ -744,7 +744,7 @@ let make_uri subpath params =
   Eliom_uri.make_string_uri_from_components (base, params, None)
 
 let target_url, set_target_url, reset_target_url =
-  let r = ref (Some !current_uri) in
+  let r = ref (Some (`String !current_uri)) in
   (fun ()  -> !r),
   (fun uri -> r := Some uri),
   (fun () -> r := None)
@@ -756,10 +756,12 @@ let do_not_set_uri = ref false
 
 let commit_target_url ~nested () =
   match nested, target_url (), !do_not_set_uri with
-   | false, Some url, false ->
-     change_url_string url
-   | _, _, _ ->
-     do_not_set_uri := false
+  | false, Some (`String url), false ->
+    change_url_string url
+  | false, Some (`Split (path, params)), false ->
+    change_url_string (make_uri path params)
+  | _, _, _ ->
+    do_not_set_uri := false
 
 let route
     ?(nested = false)
@@ -767,8 +769,7 @@ let route
   let r = !Eliom_request_info.get_sess_info in
   try%lwt
     update_session_info i_get_params (Some i_post_params);
-    let uri = make_uri i_subpath i_get_params in
-    if not nested then set_target_url uri;
+    if not nested then set_target_url (`Split (i_subpath, i_get_params));
     let%lwt () = Eliom_route.call_service info in
     commit_target_url ~nested ();
     Lwt.return ()
@@ -841,7 +842,7 @@ let change_page (type m)
                uri, l, Some (ocamlify_params l')
            in
            update_session_info (ocamlify_params l) l';
-           set_target_url (fst (Url.split_fragment uri));
+           set_target_url (`String (fst (Url.split_fragment uri)));
            let%lwt () = f get_params post_params in
            commit_target_url ~nested:false ();
            Lwt.return ()
@@ -876,20 +877,38 @@ let change_page (type m)
            let uri, fragment = Url.split_fragment uri in
            set_content ?replace ~uri ?fragment content)
 
-let current_path () =
-  match Url.Current.get () with
+let path_of_url = function
   | Some ( Url.Http  { Url.hu_path }
          | Url.Https { Url.hu_path } ) ->
-    hu_path
+    Some hu_path
   | _ ->
-    []
+    None
+
+let current_path () =
+  path_of_url (Url.Current.get ())
 
 let change_page_after_action () =
   let
     ({ Eliom_common.si_all_get_params ; si_all_post_params }
      as i_sess_info) =
     !Eliom_request_info.get_sess_info ()
-  and i_subpath = current_path () in
+  and i_subpath =
+    match target_url () with
+    | Some (`Split (path, _)) ->
+      path
+    | Some (`String s) ->
+      (match path_of_url (Url.url_of_string s) with
+       | Some path ->
+         path
+       | None ->
+         failwith "change_page_after_action: extract URL of target path")
+    | _ ->
+      (match current_path () with
+       | Some path ->
+         path
+       | None ->
+         failwith "change_page_after_action: extract URL of current path")
+  in
   let info = {
     Eliom_route.i_sess_info ;
     i_subpath;
