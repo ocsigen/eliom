@@ -741,7 +741,13 @@ let make_uri subpath params =
     | [] ->
       "/"
   and params = List.map (fun (s, s') -> s, `String (Js.string s')) params in
-  Eliom_uri.make_string_uri_from_components (base, params, None)
+  match
+    Eliom_uri.make_string_uri_from_components (base, params, None)
+  with
+  | "" ->
+    "/"
+  | s ->
+    s
 
 let target, set_target, reset_target =
   let r = ref None in
