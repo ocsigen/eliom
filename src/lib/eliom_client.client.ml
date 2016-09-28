@@ -743,10 +743,10 @@ let make_uri subpath params =
   and params = List.map (fun (s, s') -> s, `String (Js.string s')) params in
   Eliom_uri.make_string_uri_from_components (base, params, None)
 
-let target_url, set_target_url, reset_target_url =
-  let r = ref (Some (`String !current_uri)) in
+let target, set_target, reset_target =
+  let r = ref None in
   (fun ()  -> !r),
-  (fun uri -> r := Some uri),
+  (fun path params -> r := Some (path, params)),
   (fun () -> r := None)
 
 (* Some services do not need to set the URL (e.g.,
@@ -754,11 +754,9 @@ let target_url, set_target_url, reset_target_url =
    URI. *)
 let do_not_set_uri = ref false
 
-let commit_target_url ~nested () =
-  match nested, target_url (), !do_not_set_uri with
-  | false, Some (`String url), false ->
-    change_url_string url
-  | false, Some (`Split (path, params)), false ->
+let commit_target ~nested () =
+  match nested, target (), !do_not_set_uri with
+  | false, Some (path, params), false ->
     change_url_string (make_uri path params)
   | _, _, _ ->
     do_not_set_uri := false
@@ -769,9 +767,9 @@ let route
   let r = !Eliom_request_info.get_sess_info in
   try%lwt
     update_session_info i_get_params (Some i_post_params);
-    if not nested then set_target_url (`Split (i_subpath, i_get_params));
+    if not nested then set_target i_subpath i_get_params;
     let%lwt () = Eliom_route.call_service info in
-    commit_target_url ~nested ();
+    commit_target ~nested ();
     Lwt.return ()
   with e ->
     Eliom_request_info.get_sess_info := r;
@@ -841,10 +839,11 @@ let change_page (type m)
              | `Delete (uri, l, l') ->
                uri, l, Some (ocamlify_params l')
            in
-           update_session_info (ocamlify_params l) l';
-           set_target_url (`String (fst (Url.split_fragment uri)));
+           let l = ocamlify_params l in
+           update_session_info l l';
+           set_target [] l;
            let%lwt () = f get_params post_params in
-           commit_target_url ~nested:false ();
+           commit_target ~nested:false ();
            Lwt.return ()
          | None ->
            (* No client-side implementation *)
@@ -878,14 +877,27 @@ let change_page (type m)
            set_content ?replace ~uri ?fragment content)
 
 let path_of_url = function
-  | Some ( Url.Http  { Url.hu_path }
-         | Url.Https { Url.hu_path } ) ->
+  | Url.Http  { Url.hu_path }
+  | Url.Https { Url.hu_path } ->
     Some hu_path
   | _ ->
     None
 
+let path_of_url_string s =
+  match Url.url_of_string s with
+  | Some s ->
+    path_of_url s
+  | None ->
+    (* assuming relative URL and improvising because Url doesn't deal
+       with these *)
+    Some (Url.split_path String.(sub s 0 (index s '?')))
+
 let current_path () =
-  path_of_url (Url.Current.get ())
+  match Url.Current.get () with
+  | Some path ->
+    path_of_url path
+  | None ->
+    None
 
 let change_page_after_action () =
   let
@@ -893,16 +905,10 @@ let change_page_after_action () =
      as i_sess_info) =
     !Eliom_request_info.get_sess_info ()
   and i_subpath =
-    match target_url () with
-    | Some (`Split (path, _)) ->
+    match target () with
+    | Some (path, _) ->
       path
-    | Some (`String s) ->
-      (match path_of_url (Url.url_of_string s) with
-       | Some path ->
-         path
-       | None ->
-         failwith "change_page_after_action: extract URL of target path")
-    | _ ->
+    | None ->
       (match current_path () with
        | Some path ->
          path
@@ -921,8 +927,8 @@ let change_page_after_action () =
      server-side [Eliom_registration.Action.send] *)
   try%lwt
     (* [~nested:true] indicates that we do not want to update the URL
-       (but we do call [set_target_url]). We were called by an action,
-       and the action will set the URL (based on [target_url ()]) once
+       (but we do call [set_target]). We were called by an action,
+       and the action will set the URL (based on [target ()]) once
        we are done. *)
     route ~nested:true info
   with _ ->
@@ -931,9 +937,9 @@ let change_page_after_action () =
       route ~nested:true info
     with _ ->
       (* after the action, we are stuck in no man's land (a URL that
-         doesn't correspond to a page. We [reset_target_url ()], so
+         doesn't correspond to a page. We [reset_target ()], so
          that we will stay on the URL before the action. *)
-      reset_target_url ();
+      reset_target ();
       Lwt.return ()
 
 let change_page_unknown
