@@ -1,6 +1,16 @@
 open Ocamlbuild_plugin
 module Pack = Ocamlbuild_pack
 
+let copy_rule name src prod =
+  rule name ~dep:src ~prod
+      (fun env _ ->
+         let prod = env prod in
+         let src = env src in
+         (* f env (Pathname.dirname prod) (Pathname.basename prod) src prod; *)
+         Pack.Shell.mkdir_p (Filename.dirname prod);
+         cp src prod
+      )
+
 let init () =
   let module Eliom_rules = struct
 open Pack ;;
@@ -117,12 +127,12 @@ rule "eliom: eliom & eliom.depends & *cmi -> .inferred.eliomi"
           declarations in foo.eliom, as obtained by direct invocation of `ocamlc -i`."
     (Ocaml_tools.infer_interface "%.eliom" "%.inferred.eliomi");;
 
-rule "eliom: splitted files"
+rule "eliom: {server,client}.cmi -> cmi"
     ~prod:"%(name:<*> and not <*.client> and not <*.server>).cmi"
     ~deps:["%(name).client.cmi";"%(name).server.cmi"]
     (fun _ _ -> Nop);;
 
-rule "eliom: splitted files, rules 2"
+rule "eliom: {server,client}.cmi -> cmi | in subdir"
     ~prod:"%(name:<**/*> and not <**/*.client> and not <**/*.server>).cmi"
     ~deps:["%(name).client.cmi";"%(name).server.cmi"]
     (fun _ _ -> Nop);;
@@ -165,6 +175,16 @@ List.iter (fun tags ->
 (* pflag [ "ocaml"; "doc"] "client-I" (fun x -> S[A"-client-I"; A x]);; *)
 
 
+copy_rule "shared.ml -> client.ml"
+  "%(path)/%(file).shared.ml" "%(path)/%(file).client.ml";;
+copy_rule "shared.mli -> client.mli"
+  "%(path)/%(file).shared.mli" "%(path)/%(file).client.mli";;
+
+copy_rule "shared.mli -> server.ml"
+  "%(path)/%(file).shared.ml" "%(path)/%(file).server.ml";;
+copy_rule "shared.mli -> server.mli"
+  "%(path)/%(file).shared.mli" "%(path)/%(file).server.mli";;
+
   end in ()
 
 module type ELIOM = sig
@@ -178,91 +198,8 @@ module type INTERNALS = sig
 end
 module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
 
-
-  let copy_rule f name ?(deps=[]) src prod =
-    rule name ~deps:(src :: deps) ~prod
-      (fun env _ ->
-         let prod = env prod in
-         let src = env src in
-         f env (Pathname.dirname prod) (Pathname.basename prod) src prod;
-         Pack.Shell.mkdir_p (Filename.dirname prod);
-         cp src prod
-      )
-
-  let syntaxes_p4 = [I.with_package "eliom.syntax.predef"]
-
-  let no_extra_syntaxes = "no_extra_syntaxes"
-
-  let tag_file_inside_rule file tags =
-    tag_file file tags;
-    Pack.Param_tags.partial_init "Eliom plugin" (Tags.of_list tags)
-
-  let use_all_syntaxes src =
-    if Filename.check_suffix src ".eliomi" then
-      false
-    else
-      not (Tags.mem no_extra_syntaxes (tags_of_pathname src))
-
-  let copy_rule_server =
-    copy_rule
-      (fun env dir name src file ->
-         let path = env "%(path)" in
-         tag_file_inside_rule file [
-           I.with_package "eliom.server" ;
-           Printf.sprintf "server-I(%s)" Eliom.server_dir ;
-         ];
-         Pathname.define_context dir [path];
-         Pathname.define_context path [dir];
-      )
-
-  let copy_rule_client =
-    copy_rule
-      (fun env dir name src file ->
-         let path = env "%(path)" in
-         tag_file_inside_rule file [
-           I.with_package "eliom.client" ;
-           Printf.sprintf "client-I(%s)" Eliom.client_dir ;
-         ];
-         Pathname.define_context dir [path];
-      )
-
-
-
-
   let init = function
-    | After_rules ->
-        mark_tag_used no_extra_syntaxes;
-
-        sed_rule ".inferred.mli -> .inferred_gen.mli"
-          ~dep:"%(path)/%(file).inferred.mli"
-          ~prod:"%(path)/%(file).inferred_gen.mli"
-          ["s/_\\[\\([<>]\\)/[\\1/g";
-           Printf.sprintf "s/'\\(_[a-z0-9_]*\\)/'%s\\1/g" inferred_type_prefix];
-
-        (* eliom files *)
-        init () ;
-
-        (* copy {shared,client,server}.ml rules *)
-        (* copy_rule_client "client.ml -> .ml" *)
-        (*   "%(path)/%(file).client.ml" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).ml"); *)
-        (* copy_rule_client "client.mli -> .mli" *)
-        (*   "%(path)/%(file).client.mli" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).mli"); *)
-
-        (* copy_rule_client "shared.ml -> client.ml" *)
-        (*   "%(path)/%(file).shared.ml" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).ml"); *)
-        (* copy_rule_client "shared -> client.mli" *)
-        (*   "%(path)/%(file).shared.mli" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).mli"); *)
-
-        (* copy_rule_server "server.ml -> .ml" *)
-        (*   "%(path)/%(file).server.ml" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).ml"); *)
-        (* copy_rule_server "server.mli -> .mli" *)
-        (*   "%(path)/%(file).server.mli" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).mli"); *)
-
-        (* copy_rule_server "shared.ml -> server.ml" *)
-        (*   "%(path)/%(file).shared.ml" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).ml"); *)
-        (* copy_rule_server "shared.ml -> server.mli" *)
-        (*   "%(path)/%(file).shared.mli" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).mli"); *)
-
+    | After_rules -> init () ;
     | _ -> ()
 
   let dispatcher ?oasis_executables hook =
