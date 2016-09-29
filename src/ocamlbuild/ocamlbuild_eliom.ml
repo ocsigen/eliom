@@ -155,11 +155,13 @@ List.iter (fun tags ->
   pflag tags "server-package" (fun pkg -> S [A "-server-package"; A pkg]);
   pflag tags "client-package" (fun pkg -> S [A "-client-package"; A pkg]);
 ) (compile_tags @ link_tags) ;
+
 List.iter (fun tags ->
-  pflag tags "server-I" (fun x -> S[A"-server-I"; A x]);
-  pflag tags "server-I" (fun x -> S[A"-server-I"; A x]);
-  pflag tags "server-I" (fun x -> S[A"-server-I"; A x]);
+  pflag tags "server-I" (fun x -> S[A"-server-I"; P x]);
+  pflag tags "client-I" (fun x -> S[A"-client-I"; P x]);
+  pflag tags "I" (fun x -> S[A"-I"; P x]);
 ) (compile_tags @ link_tags);
+
 List.iter (fun tags ->
   flag ("client"::tags) (S [A "-passopt" ; A "-mode"; A "-passopt" ; A "client"]);
   flag ("server"::tags) (S [A "-passopt" ; A "-mode"; A "-passopt" ; A "server"]);
