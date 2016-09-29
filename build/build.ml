@@ -36,11 +36,6 @@ let _ = dispatch (fun x ->
       rule (Printf.sprintf "%s -> %s" source dest) ~dep:source ~prod:dest
         (fun env _ -> Cmd (S [A"ln"; A"-f";P (env source); P (env dest)])) in
 
-    (* add I pflag *)
-    pflag [ "ocaml"; "compile"] "I" (fun x -> S[A"-I"; A x]);
-    pflag [ "ocaml"; "infer_interface"] "I" (fun x -> S[A"-I"; A x]);
-    pflag [ "ocaml"; "doc"] "I" (fun x -> S[A"-I"; A x]);
-
     (* add syntax extension *)
     let add_syntax name path =
       let bytes_dep = Findlib.(link_flags_byte [query "bytes"]) in
@@ -68,6 +63,6 @@ let _ =
   Options.plugin := false;
   Options.use_ocamlfind := true;
   Pack.Log.classic_display := true;
-  Pack.Log.level := 4;
+  Pack.Log.level := 3;
   Ocamlbuild_unix_plugin.setup ();
   Ocamlbuild_pack.Main.main ()
