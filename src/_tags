@@ -1,27 +1,29 @@
 <{lib,tools,ocamlbuild,syntax}/**/*>:warn(+A-4-6-7-9-27-32-33-34-37-40-42-44-48)
 true:keep_locs
 
-"lib/client":include
-<lib/client/*.ml{,i}>: \
-  package(js_of_ocaml.ppx,js_of_ocaml.deriving.ppx), \
-  package(js_of_ocaml.log), \
-  package(ocsigenserver.cookies,ocsigenserver.polytables,ocsigenserver.baselib.base), \
-  package(deriving.runtime,js_of_ocaml.deriving), \
-  package(lwt.react,js_of_ocaml.tyxml), \
-  package(js_of_ocaml,reactiveData)
+# <lib/client/*.ml{,i}>: \
+#   package(js_of_ocaml.ppx,js_of_ocaml.deriving.ppx), \
+#   package(js_of_ocaml.log), \
+#   package(ocsigenserver.cookies,ocsigenserver.polytables,ocsigenserver.baselib.base), \
+#   package(deriving.runtime,js_of_ocaml.deriving), \
+#   package(lwt.react,js_of_ocaml.tyxml), \
+#   package(js_of_ocaml,reactiveData)
 
-"lib/server":include
-<lib/server/*.ml{,i}>: \
-  package(lwt,ocsigenserver,ocsigenserver.ext)
+# <lib/server/*.ml{,i}>: \
+#   package(lwt,ocsigenserver,ocsigenserver.ext)
+
+"lib/server": include
+"lib/client": include
 
 "lib":include
-<lib/*.{ml,mli,eliom,eliomi}>: \
+<lib/**/*.{ml,mli,eliom,eliomi}>: \
+  client-I(src/lib/client), server-I(src/lib/server), \
   thread, \
-  package(lwt,lwt.ppx,react,tyxml.functor), \
+  package(lwt,lwt.ppx,react,tyxml.functor,js_of_ocaml.deriving.ppx), \
   server-package(eliomlang.runtime.server), \
   server-package(lwt,ocsigenserver,ocsigenserver.ext), \
   client-package(eliomlang.runtime.client), \
-  client-package(js_of_ocaml.ppx,js_of_ocaml.deriving.ppx), \
+  package(js_of_ocaml.ppx), \
   client-package(js_of_ocaml.log), \
   client-package(ocsigenserver.cookies,ocsigenserver.polytables,ocsigenserver.baselib.base), \
   client-package(deriving.runtime,js_of_ocaml.deriving), \
@@ -30,13 +32,22 @@ true:keep_locs
 
 <lib/eliom_shared.eliom{,i}>:package(reactiveData)
 
-<lib/client/*.ml{,i}>:client,I(src/lib)
-<lib/*.client.ml{,i}>:client,client-I(src/lib/client)
+<lib/client/*.ml{,i}>:client
+<lib/*.client.ml{,i}>:client
 
-<lib/server/*.ml{,i}>:server,I(src/lib)
-<lib/*.server.ml{,i}>:server,server-I(src/lib/server)
+<lib/server/*.ml{,i}>:server
+<lib/*.server.ml{,i}>:server
 
 <lib/*.eliom{,i}>:eliom, package(eliomlang.ppx)
+
+
+
+<lib/server/extensions/*.ml>:package(js_of_ocaml.deriving.ppx,lwt.ppx)
+
+<lib/server/extensions/*.ml{,i}>:thread
+<lib/server/extensions/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml,calendar)
+<lib/server/extensions/*.ml{,i}>:package(js_of_ocaml.deriving.ppx)
+<lib/server/extensions/*.ml{,i}>:I(src/lib/server)
 
 <lib/server/monitor/*.ml>:package(lwt.ppx)
 <lib/server/monitor/*.ml{,i}>:thread
