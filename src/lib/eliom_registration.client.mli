@@ -19,8 +19,8 @@
 
 type 'a kind
 
-type browser_content
-type _ application_content
+type browser_content = [ `Browser ]
+type 'a application_content = [ `Appl of 'a ]
 
 module Html : Eliom_registration_sigs.S
   with type page = Html_types.html Eliom_content.Html.elt
@@ -89,9 +89,9 @@ module Any : Eliom_registration_sigs.S_poly
 
 (** For compatibility with server-side [appl_self_redirect] *)
 val appl_self_redirect :
-  ('page -> browser_content kind Lwt.t) ->
+  ('page -> [< 'a application_content | browser_content ] kind Lwt.t) ->
   'page ->
-  browser_content kind Lwt.t
+  'appl application_content kind Lwt.t
 
 (**/**)
 
