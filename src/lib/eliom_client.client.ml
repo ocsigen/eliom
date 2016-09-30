@@ -781,6 +781,35 @@ let route
     Eliom_request_info.get_sess_info := r;
     Lwt.fail e
 
+let path_of_url = function
+  | Url.Http  { Url.hu_path }
+  | Url.Https { Url.hu_path } ->
+    Some hu_path
+  | _ ->
+    None
+
+let path_of_url_string s =
+  match Url.url_of_string s with
+  | Some s ->
+    path_of_url s
+  | None ->
+    (* assuming relative URL and improvising because Url doesn't deal
+       with these *)
+    let s =
+      try
+        String.(sub s 0 (index s '?'))
+      with Not_found ->
+        s
+    in
+    Some (Url.split_path s)
+
+let current_path () =
+  match Url.Current.get () with
+  | Some path ->
+    path_of_url path
+  | None ->
+    None
+
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
    function used to change page when clicking a link and
@@ -847,7 +876,11 @@ let change_page (type m)
            in
            let l = ocamlify_params l in
            update_session_info l l';
-           set_target [] l;
+           (match path_of_url_string uri with
+            | Some path ->
+              set_target path l;
+            | None ->
+              failwith "change_page: cannot find service path");
            let%lwt () = f get_params post_params in
            commit_target ~nested:false ();
            Lwt.return ()
@@ -881,29 +914,6 @@ let change_page (type m)
            in
            let uri, fragment = Url.split_fragment uri in
            set_content ?replace ~uri ?fragment content)
-
-let path_of_url = function
-  | Url.Http  { Url.hu_path }
-  | Url.Https { Url.hu_path } ->
-    Some hu_path
-  | _ ->
-    None
-
-let path_of_url_string s =
-  match Url.url_of_string s with
-  | Some s ->
-    path_of_url s
-  | None ->
-    (* assuming relative URL and improvising because Url doesn't deal
-       with these *)
-    Some (Url.split_path String.(sub s 0 (index s '?')))
-
-let current_path () =
-  match Url.Current.get () with
-  | Some path ->
-    path_of_url path
-  | None ->
-    None
 
 let change_page_after_action () =
   let
