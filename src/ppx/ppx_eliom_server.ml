@@ -143,7 +143,7 @@ module Pass = struct
       in
       match all_injections with
       | [] ->
-        [ ccs ]
+        [ ]
       | l ->
         [ bind_injected_idents l ; ccs ]
     end
@@ -159,19 +159,18 @@ module Pass = struct
     if not @@ must_have_section item then [item]
     else begin
       let all_injections = flush_injections () in
-      let cl =
-        let loc = item.pstr_loc in
-        [
-          item;
-          close_server_section loc ;
-          close_client_section loc all_injections ;
-        ]
+      let loc = item.pstr_loc in
+      let cl = [
+        item;
+        close_server_section loc ;
+      ]
       in
       match all_injections with
       | [] ->
         cl
       | l ->
-        bind_injected_idents l :: cl
+        bind_injected_idents l :: cl @
+        [ close_client_section loc all_injections ]
     end
 
   let fragment ?typ ~context:_ ~num ~id expr =

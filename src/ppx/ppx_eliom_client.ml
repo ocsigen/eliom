@@ -45,6 +45,16 @@ module Pass = struct
     in
     push, flush
 
+  let mark_injection, flush_injection =
+    let has_injection = ref false in
+    let mark () = has_injection := true in
+    let flush () =
+      let x = !has_injection in
+      has_injection := false ;
+      x
+    in
+    mark, flush
+
   let push_client_value_data, flush_client_value_datas =
     let client_value_datas = ref [] in
     let push gen_num gen_id expr (args : string Location.loc list) =
@@ -128,7 +138,8 @@ module Pass = struct
   (** Syntax extension *)
 
   let client_str item =
-    if not @@ must_have_section item then [item]
+    if not (must_have_section item && flush_injection ())
+    then [item]
     else begin
       let loc = item.pstr_loc in
       [ open_client_section loc ;
@@ -149,7 +160,7 @@ module Pass = struct
     else begin
       let loc = item.pstr_loc in
       let client_expr_data = flush_client_value_datas () in
-      open_client_section loc ::
+      (if flush_injection () then [open_client_section loc] else []) @
       register_client_closures client_expr_data @
       define_client_functions loc client_expr_data @
       [ item ;
@@ -223,6 +234,7 @@ module Pass = struct
 
     (* [%%server ... %x ... ] *)
     | `Injection _section ->
+      mark_injection () ;
       let typ = find_injected_ident id in
       let typ = assert_no_variables typ in
       let ident = match ident with
