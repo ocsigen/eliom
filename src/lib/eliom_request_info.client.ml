@@ -78,67 +78,42 @@ let remove_first_slash path =
   | ""::l -> l
   | l -> l
 
-let path_re =
-  new%js Js.regExp (Js.bytestring "^/?([^\\?]*)(\\?.*)?$")
-
 let current_path_ = ref (remove_first_slash Url.Current.path)
-let set_current_path path =
+
+let set_current_path uri =
+  let uri = if uri = "./" then "" else uri in
   let path =
-    Js.Opt.case (path_re##(exec (Js.string path)))
-      (fun () -> [])
-      (fun handle ->
-	let res = Js.match_result handle in
-	let path =
-	  Js.to_bytestring
-            (Js.Optdef.get
-               (Js.array_get res 1)
-               (fun () -> Js.bytestring ""))
-	in
-	Url.split_path path)
+    match Url.url_of_string uri with
+    | Some (Url.Http url | Url.Https url) ->
+      url.Url.hu_path
+    | _ ->
+      match
+        try
+          Some (String.index uri '?')
+        with Not_found ->
+          None
+      with
+      | Some n -> Eliom_lib.Url.split_path String.(sub uri 0 n)
+      | None   -> Eliom_lib.Url.split_path uri
   in
   current_path_ := path
 
-
-let get_original_full_path_string () =
-  (* returns current path, not the one when application started *)
-  if !client_app_initialised
-  then
-    (* in that case it is a mobile app.
-       It probably does not have multiple URLs.
-       I return the path that has been set manually
-       by Eliom_client.init_client_app.
-       If we want to make possible to have several URL,
-       we must replace the prefix of the URL (file:///.../)
-       by the prefix set in init_client_app.
-
-       (same everywhere below)
-    *)
-    String.concat "/"
-      (Eliom_process.get_info ()).Eliom_common.cpi_original_full_path
-  else
-    if Eliom_process.history_api
-    then String.concat "/" (match Url.Current.get () with
-    | Some (Url.Http url) | Some (Url.Https url) -> url.Url.hu_path
-    | Some (Url.File url) -> (match url.Url.fu_path with
-      | ""::l -> l
-      | l -> l)
-    | _ -> assert false)
-    else String.concat "/" !current_path_
-
-let get_original_full_path_string_sp = get_original_full_path_string
-
 let get_original_full_path_sp sp =
-  if !client_app_initialised
-  then (Eliom_process.get_info ()).Eliom_common.cpi_original_full_path
-  else
-    if Eliom_process.history_api
-    then match Url.Current.get () with
+  (* returns current path, not the one when application started *)
+  if Eliom_process.history_api && not !client_app_initialised then
+    match Url.Current.get () with
     | Some (Url.Http url) | Some (Url.Https url) -> url.Url.hu_path
     | Some (Url.File url) -> (match url.Url.fu_path with
       | ""::l -> l
       | l -> l)
     | None -> assert false
-    else !current_path_
+  else
+    !current_path_
+
+let get_original_full_path_string () =
+  String.concat "/" (get_original_full_path_sp sp)
+
+let get_original_full_path_string_sp = get_original_full_path_string
 
 let get_other_get_params () =
   (!get_sess_info ()).Eliom_common.si_other_get_params
