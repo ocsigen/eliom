@@ -307,6 +307,33 @@ module type Pass = sig
 
 end
 
+(** Determine if a structure item must be wrapped into client/server sections.
+
+    This is the case if some evaluation is possible, which would lead to
+    client fragment and/or injections evaluation.
+*)
+let must_have_section x = match x.pstr_desc with
+  (* This is very conservative and could be revisited. *)
+  | Pstr_open _
+  | Pstr_class _
+  | Pstr_class_type _
+  | Pstr_include _ -> true
+
+  (* Inner declarations can be eventful *)
+  | Pstr_module _
+  | Pstr_recmodule _ -> true
+
+  | Pstr_eval _
+  | Pstr_value _
+  | Pstr_primitive _ -> true
+  | Pstr_type _
+  | Pstr_typext _
+  | Pstr_exception _
+  | Pstr_modtype _ -> false
+  | Pstr_attribute _ -> false
+  (* Just in case. *)
+  | Pstr_extension _ -> true
+
 (**
    Replace shared expression by the equivalent pair.
 

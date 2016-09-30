@@ -12,6 +12,8 @@ val format_args : expression list -> expression
 
 val pat_args : pattern list -> pattern
 
+val must_have_section : structure_item -> bool
+
 (** Context convenience module. *)
 module Context : sig
 

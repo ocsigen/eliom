@@ -128,26 +128,34 @@ module Pass = struct
   (** Syntax extension *)
 
   let client_str item =
-    let loc = item.pstr_loc in
-    [ open_client_section loc ;
-      item ;
-    ]
+    if not @@ must_have_section item then [item]
+    else begin
+      let loc = item.pstr_loc in
+      [ open_client_section loc ;
+        item ;
+      ]
+    end
 
   let server_str item =
-    let loc = item.pstr_loc in
-    register_client_closures (flush_client_value_datas ()) @
-    [ close_server_section loc ]
+    if not @@ must_have_section item then []
+    else begin
+      let loc = item.pstr_loc in
+      register_client_closures (flush_client_value_datas ()) @
+      [ close_server_section loc ]
+    end
 
   let shared_str item =
-    let loc = item.pstr_loc in
-    let client_expr_data = flush_client_value_datas () in
-    open_client_section loc ::
-    register_client_closures client_expr_data @
-    define_client_functions loc client_expr_data @
-    [ item ;
-      close_server_section loc ;
-    ]
-
+    if not @@ must_have_section item then [item]
+    else begin
+      let loc = item.pstr_loc in
+      let client_expr_data = flush_client_value_datas () in
+      open_client_section loc ::
+      register_client_closures client_expr_data @
+      define_client_functions loc client_expr_data @
+      [ item ;
+        close_server_section loc ;
+      ]
+    end
 
 
   let fragment ?typ:_ ~context ~num ~id expr =

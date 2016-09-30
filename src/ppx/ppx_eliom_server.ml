@@ -134,37 +134,45 @@ module Pass = struct
   (** Syntax extension *)
 
   let client_str item =
-    let all_injections = flush_injections () in
-    let ccs =
-      let loc = item.pstr_loc in
-      close_client_section loc all_injections
-    in
-    match all_injections with
-    | [] ->
-      [ ccs ]
-    | l ->
-      [ bind_injected_idents l ; ccs ]
+    if not @@ must_have_section item then []
+    else begin
+      let all_injections = flush_injections () in
+      let ccs =
+        let loc = item.pstr_loc in
+        close_client_section loc all_injections
+      in
+      match all_injections with
+      | [] ->
+        [ ccs ]
+      | l ->
+        [ bind_injected_idents l ; ccs ]
+    end
 
-  let server_str item = [
-    item ;
-    close_server_section item.pstr_loc
-  ]
+  let server_str item =
+    if not @@ must_have_section item then [item]
+    else [
+      item ;
+      close_server_section item.pstr_loc
+    ]
 
   let shared_str item =
-    let all_injections = flush_injections () in
-    let cl =
-      let loc = item.pstr_loc in
-      [
-        item;
-        close_server_section loc ;
-        close_client_section loc all_injections ;
-      ]
-    in
-    match all_injections with
-    | [] ->
-      cl
-    | l ->
-      bind_injected_idents l :: cl
+    if not @@ must_have_section item then [item]
+    else begin
+      let all_injections = flush_injections () in
+      let cl =
+        let loc = item.pstr_loc in
+        [
+          item;
+          close_server_section loc ;
+          close_client_section loc all_injections ;
+        ]
+      in
+      match all_injections with
+      | [] ->
+        cl
+      | l ->
+        bind_injected_idents l :: cl
+    end
 
   let fragment ?typ ~context:_ ~num ~id expr =
     let typ =
