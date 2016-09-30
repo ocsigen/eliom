@@ -884,6 +884,11 @@ let change_page (type m)
            let%lwt () = f get_params post_params in
            commit_target ~nested:false ();
            Lwt.return ()
+         | None when is_client_app () ->
+           Lwt.return @@ exit_to
+             ?absolute ?absolute_path ?https ~service ?hostname ?port
+             ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
+             get_params post_params
          | None ->
            (* No client-side implementation *)
            reload_function := None;
