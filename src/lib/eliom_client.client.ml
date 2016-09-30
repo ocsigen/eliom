@@ -438,6 +438,7 @@ let reload_functions = ref []
 
 let change_url_string ~replace uri =
   current_uri := fst (Url.split_fragment uri);
+  Eliom_request_info.set_current_path !current_uri;
   if Eliom_process.history_api then begin
     if replace then
       let state_id = !current_state_id in
@@ -450,13 +451,13 @@ let change_url_string ~replace uri =
         | None ->
           ()
       end;
-      Dom_html.window##.history##(replaceState
-        (Js.Opt.return (!current_state_id, Js.string (Url.resolve uri)))
-         (Js.string "")
-         ((if !Eliom_common.is_client_app then
-            Js.null
-          else
-            Js.Opt.return (Js.string uri))))
+      Dom_html.window##.history##replaceState
+        (Js.Opt.return (!current_state_id,
+                        Js.string (if !Eliom_common.is_client_app then uri
+                                   else Url.resolve uri)))
+        (Js.string "")
+        (if !Eliom_common.is_client_app then Js.null else
+         Js.Opt.return (Js.string uri))
     else begin
       update_state();
       let state_id = next_state_id () in
@@ -468,18 +469,17 @@ let change_url_string ~replace uri =
         | None   -> ()
       end;
       current_state_id := state_id;
-      Dom_html.window##.history##(pushState
-        (Js.Opt.return (!current_state_id, Js.string (Url.resolve uri)))
-         (Js.string "")
-         ((if !Eliom_common.is_client_app then
-            Js.null
-          else
-            Js.Opt.return (Js.string uri))))
+      Dom_html.window##.history##pushState
+        (Js.Opt.return (!current_state_id,
+                        Js.string (if !Eliom_common.is_client_app then uri
+                                   else Url.resolve uri)))
+        (Js.string "")
+        (if !Eliom_common.is_client_app then Js.null else
+         Js.Opt.return (Js.string uri))
     end;
     Eliommod_dom.touch_base ();
   end else begin
     current_pseudo_fragment := url_fragment_prefix_with_sharp^uri;
-    Eliom_request_info.set_current_path uri;
     if uri <> fst (Url.split_fragment Url.Current.as_string)
     then Dom_html.window##.location##.hash := Js.string (url_fragment_prefix^uri)
   end
@@ -1101,6 +1101,7 @@ let () =
             if uri <> !current_uri
             then begin
               current_uri := uri;
+              Eliom_request_info.set_current_path uri;
               try
                 if fst state_id <> session_id then raise Not_found;
                 let rf = List.assq (snd state_id) !reload_functions in
