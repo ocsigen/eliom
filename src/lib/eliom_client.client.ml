@@ -436,7 +436,7 @@ let default_reload_function () () =
 let reload_function = ref None
 let reload_functions = ref []
 
-let change_url_string ?(replace = false) uri =
+let change_url_string ~replace uri =
   current_uri := fst (Url.split_fragment uri);
   if Eliom_process.history_api then begin
     if replace then
@@ -489,7 +489,7 @@ let change_url_string ?(replace = false) uri =
  *)
 
 let change_url
-    ?replace
+    ?(replace = false)
     ?absolute
     ?absolute_path
     ?https
@@ -512,7 +512,7 @@ let change_url
        match Eliom_service.reload_fun service with
        | Some rf -> Some (fun () () -> rf params ())
        | None    -> None);
-  change_url_string ?replace
+  change_url_string ~replace
     (Eliom_uri.make_string_uri
        ?absolute
        ?absolute_path
@@ -524,13 +524,13 @@ let change_url
        ?keep_nl_params
        ?nl_params params)
 
-let set_template_content ?replace ?uri ?fragment =
+let set_template_content ~replace ?uri ?fragment =
   let really_set content () =
     reload_function := None;
     (match uri, fragment with
-     | Some uri, None -> change_url_string ?replace uri
+     | Some uri, None -> change_url_string ~replace uri
      | Some uri, Some fragment ->
-       change_url_string ?replace (uri ^ "#" ^ fragment)
+       change_url_string ~replace (uri ^ "#" ^ fragment)
      | _ -> ());
     let%lwt () = Lwt_mutex.lock load_mutex in
     let%lwt (), request_data = unwrap_caml_content content in
@@ -547,11 +547,11 @@ let set_template_content ?replace ?uri ?fragment =
   | Some content ->
     run_onunload_wrapper (really_set content) cancel
 
-let set_uri ?replace ?fragment uri =
+let set_uri ~replace ?fragment uri =
   (* Changing url: *)
   match fragment with
-  | None -> change_url_string ?replace uri
-  | Some fragment -> change_url_string ?replace (uri ^ "#" ^ fragment)
+  | None -> change_url_string ~replace uri
+  | Some fragment -> change_url_string ~replace (uri ^ "#" ^ fragment)
 
 let replace_page new_page =
   if !Eliom_config.debug_timings
@@ -615,7 +615,7 @@ let set_content_local ?offset ?fragment new_page =
     [%lwt raise ( exn)]
 
 (* Function to be called for server side services: *)
-let set_content ?replace ?uri ?offset ?fragment content =
+let set_content ~replace ?uri ?offset ?fragment content =
   Lwt_log.ign_debug ~section "Set content";
   match content with
   | None -> Lwt.return ()
@@ -623,7 +623,7 @@ let set_content ?replace ?uri ?offset ?fragment content =
     let locked = ref true in
     let really_set () =
       reload_function := None;
-      Eliom_lib.Option.iter (set_uri ?replace ?fragment) uri;
+      Eliom_lib.Option.iter (set_uri ~replace ?fragment) uri;
       (* Convert the DOM nodes from XML elements to HTML elements. *)
       let fake_page =
         Eliommod_dom.html_document content registered_process_node
@@ -760,14 +760,15 @@ let target, set_target, reset_target =
    URI. *)
 let do_not_set_uri = ref false
 
-let commit_target ~nested () =
+let commit_target ~replace ~nested () =
   match nested, target (), !do_not_set_uri with
   | false, Some (path, params), false ->
-    change_url_string (make_uri path params)
+    change_url_string ~replace (make_uri path params)
   | _, _, _ ->
     do_not_set_uri := false
 
 let route
+    ~replace
     ?(nested = false)
     ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
   let r = !Eliom_request_info.get_sess_info in
@@ -775,7 +776,7 @@ let route
     update_session_info i_get_params (Some i_post_params);
     if not nested then set_target i_subpath i_get_params;
     let%lwt () = Eliom_route.call_service info in
-    commit_target ~nested ();
+    commit_target ~replace ~nested ();
     Lwt.return ()
   with e ->
     Eliom_request_info.get_sess_info := r;
@@ -815,7 +816,7 @@ let current_path () =
    function used to change page when clicking a link and
    [change_page_{get,post}_form] when submiting a form. *)
 let change_page (type m)
-    ?replace
+    ?(replace = false)
     ?absolute ?absolute_path ?https
     ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.t)
     ?hostname ?port ?fragment
@@ -849,7 +850,7 @@ let change_page (type m)
              ?keep_nl_params ~nl_params ?keep_get_na_params
              ?progress ?upload_progress ?override_mime_type
              get_params post_params in
-         set_template_content ?replace ~uri ?fragment (Some content)
+         set_template_content ~replace ~uri ?fragment (Some content)
        | _ ->
          match Eliom_service.client_fun service with
          | Some f ->
@@ -882,7 +883,7 @@ let change_page (type m)
             | None ->
               failwith "change_page: cannot find service path");
            let%lwt () = f get_params post_params in
-           commit_target ~nested:false ();
+           commit_target ~replace ~nested:false ();
            Lwt.return ()
          | None ->
            (* No client-side implementation *)
@@ -913,7 +914,7 @@ let change_page (type m)
                  Eliom_request.xml_result
            in
            let uri, fragment = Url.split_fragment uri in
-           set_content ?replace ~uri ?fragment content)
+           set_content ~replace ~uri ?fragment content)
 
 let change_page_after_action () =
   let
@@ -946,11 +947,11 @@ let change_page_after_action () =
        (but we do call [set_target]). We were called by an action,
        and the action will set the URL (based on [target ()]) once
        we are done. *)
-    route ~nested:true info
+    route ~replace:false ~nested:true info
   with _ ->
     let info = {info with Eliom_route.i_get_params = []} in
     try%lwt
-      route ~nested:true info
+      route ~replace:false ~nested:true info
     with _ ->
       (* after the action, we are stuck in no man's land (a URL that
          doesn't correspond to a page. We [reset_target ()], so
@@ -959,7 +960,7 @@ let change_page_after_action () =
       Lwt.return ()
 
 let change_page_unknown
-    ?meth ?hostname ?replace i_subpath i_get_params i_post_params =
+    ?meth ?hostname ?(replace = false) i_subpath i_get_params i_post_params =
   let i_sess_info = !Eliom_request_info.get_sess_info ()
   and i_meth =
     match meth, i_post_params with
@@ -970,7 +971,7 @@ let change_page_unknown
     | _, _ ->
       `Post
   in
-  route {
+  route ~replace {
     Eliom_route.i_sess_info ;
     i_subpath ;
     i_meth ;
@@ -993,15 +994,15 @@ let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
              ((Eliom_request.nl_template_string, t) :: get_params)
              Eliom_request.string_result
          in
-         set_template_content ~uri ?fragment content
+         set_template_content ~replace:false ~uri ?fragment content
        | _ ->
          let%lwt (uri, content) = Eliom_request.http_get
              ~expecting_process_page:true ?cookies_info uri get_params
              Eliom_request.xml_result
          in
-         set_content ~uri ?fragment content
+         set_content ~replace:false ~uri ?fragment content
      end else begin
-       change_url_string full_uri;
+       change_url_string ~replace:true full_uri;
        scroll_to_fragment fragment;
        Lwt.return ()
      end)
@@ -1031,13 +1032,13 @@ let change_page_get_form ?cookies_info ?tmpl form full_uri =
            ?cookies_info form uri
            Eliom_request.string_result
        in
-       set_template_content ~uri ?fragment content
+       set_template_content ~replace:false ~uri ?fragment content
      | _ ->
        let%lwt uri, content = Eliom_request.send_get_form
            ~expecting_process_page:true ?cookies_info form uri
            Eliom_request.xml_result
        in
-       set_content ~uri ?fragment content )
+       set_content ~replace:false ~uri ?fragment content )
 
 let change_page_post_form ?cookies_info ?tmpl form full_uri =
   with_progress_cursor
@@ -1050,13 +1051,13 @@ let change_page_post_form ?cookies_info ?tmpl form full_uri =
            ?cookies_info form uri
            Eliom_request.string_result
        in
-       set_template_content ~uri ?fragment content
+       set_template_content ~replace:false ~uri ?fragment content
      | _ ->
        let%lwt uri, content = Eliom_request.send_post_form
            ~expecting_process_page:true ?cookies_info form uri
            Eliom_request.xml_result
        in
-       set_content ~uri ?fragment content )
+       set_content ~replace:false ~uri ?fragment content )
 
 let _ =
   change_page_uri_ :=
@@ -1110,14 +1111,15 @@ let () =
                     uri [(Eliom_request.nl_template_string, t)]
                     Eliom_request.string_result
                 in
-                set_template_content content >>
+                set_template_content ~replace:false content >>
                 (scroll_to_fragment ~offset:state.position fragment;
                  Lwt.return ())
               | _ ->
                 let%lwt uri, content =
                   Eliom_request.http_get ~expecting_process_page:true uri []
                     Eliom_request.xml_result in
-                set_content ~offset:state.position ?fragment content
+                set_content
+                  ~replace:false ~offset:state.position ?fragment content
             end else
               (scroll_to_fragment ~offset:state.position fragment;
                Lwt.return ())))
