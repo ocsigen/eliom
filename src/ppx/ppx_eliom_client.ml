@@ -92,11 +92,9 @@ module Pass = struct
         )
         client_value_datas
     in
-    [%str
-      let () =
-        [%e AC.sequence registrations] ;
-        ()
-    ]
+    match registrations with
+    | [] -> []
+    | _ -> [Str.eval (AC.sequence registrations)]
 
   let define_client_functions ~loc client_value_datas =
     match client_value_datas with
