@@ -69,7 +69,7 @@ type _ redirection =
 (** [page] et al. are not really polymorphic. The type variables are
     necessary for maintaining type-level compatibility with server
     (for injections) *)
-module Redirection : Eliom_registration_sigs.S_poly
+module Redirection : Eliom_registration_sigs.S_poly_with_send
   with type 'a page = Eliom_service.non_ocaml redirection
    and type options =
          [ `MovedPermanently
@@ -81,7 +81,7 @@ module Redirection : Eliom_registration_sigs.S_poly
    and type 'a return = Eliom_service.non_ocaml
    and type 'a result = browser_content kind
 
-module Any : Eliom_registration_sigs.S_poly
+module Any : Eliom_registration_sigs.S_poly_with_send
   with type 'a page = 'a kind
    and type options = unit
    and type 'a return = Eliom_service.non_ocaml

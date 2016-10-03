@@ -195,48 +195,6 @@ module Make (P : PARAM) = struct
     Eliom_service.set_client_fun ?app ~service f;
     if P.reset_reload_fun then Eliom_service.reset_reload_fun service
 
-  let create
-      ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
-      ?headers:_ ?secure_session:_ ?https ?name ?csrf_safe ?csrf_scope
-      ?csrf_secure ?max_use ?timeout ~meth ~path ?error_handler
-      f =
-    let service =
-      Eliom_service.create
-        ?name ?csrf_safe
-        ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
-        ?csrf_secure ?max_use ?timeout ?https ~meth ~path ()
-    in
-    register ?app ~service f;
-    service
-
-  let attach_get
-      ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
-      ?headers:_ ?secure_session:_ ?https ?name ?csrf_safe ?csrf_scope
-      ?csrf_secure ?max_use ?timeout ~fallback ~get_params ?error_handler
-      f =
-    let service =
-      Eliom_service.attach_get_unsafe
-        ?name ?csrf_safe
-        ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
-        ?csrf_secure ?max_use ?timeout ?https ~fallback ~get_params ()
-    in
-    register ?app ~service f;
-    service
-
-  let attach_post
-      ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
-      ?headers:_ ?secure_session:_ ?https ?name ?csrf_safe ?csrf_scope
-      ?csrf_secure ?max_use ?timeout ~fallback ~post_params ?error_handler
-      f =
-    let service =
-      Eliom_service.attach_post_unsafe
-        ?name ?csrf_safe
-        ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
-        ?csrf_secure ?max_use ?timeout ?https ~fallback ~post_params ()
-    in
-    register ?app ~service f;
-    service
-
 end
 
 module Html = Make (struct
@@ -354,48 +312,6 @@ module Redirection = struct
     register ~service f;
     Eliom_service.set_client_fun ?app ~service f
 
-  let create
-      ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
-      ?headers:_ ?secure_session:_ ?https ?name ?csrf_safe ?csrf_scope
-      ?csrf_secure ?max_use ?timeout ~meth ~path ?error_handler
-      f =
-    let service =
-      Eliom_service.create
-        ?name ?csrf_safe
-        ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
-        ?csrf_secure ?max_use ?timeout ?https ~meth ~path ()
-    in
-    register ?app ~service f;
-    service
-
-  let attach_get
-      ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
-      ?headers:_ ?secure_session:_ ?https ?name ?csrf_safe ?csrf_scope
-      ?csrf_secure ?max_use ?timeout ~fallback ~get_params ?error_handler
-      f =
-    let service =
-      Eliom_service.attach_get_unsafe
-        ?name ?csrf_safe
-        ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
-        ?csrf_secure ?max_use ?timeout ?https ~fallback ~get_params ()
-    in
-    register ?app ~service f;
-    service
-
-  let attach_post
-      ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
-      ?headers:_ ?secure_session:_ ?https ?name ?csrf_safe ?csrf_scope
-      ?csrf_secure ?max_use ?timeout ~fallback ~post_params ?error_handler
-      f =
-    let service =
-      Eliom_service.attach_post_unsafe
-        ?name ?csrf_safe
-        ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
-        ?csrf_secure ?max_use ?timeout ?https ~fallback ~post_params ()
-    in
-    register ?app ~service f;
-    service
-
 end
 
 module Any = struct
@@ -415,48 +331,6 @@ module Any = struct
     let f g p = let%lwt page = f g p in send page in
     register ~service f;
     Eliom_service.set_client_fun ?app ~service f
-
-  let create
-      ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
-      ?headers:_ ?secure_session:_ ?https ?name ?csrf_safe ?csrf_scope
-      ?csrf_secure ?max_use ?timeout ~meth ~path ?error_handler
-      f =
-    let service =
-      Eliom_service.create
-        ?name ?csrf_safe
-        ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
-        ?csrf_secure ?max_use ?timeout ?https ~meth ~path ()
-    in
-    register ?app ~service f;
-    service
-
-  let attach_get
-      ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
-      ?headers:_ ?secure_session:_ ?https ?name ?csrf_safe ?csrf_scope
-      ?csrf_secure ?max_use ?timeout ~fallback ~get_params ?error_handler
-      f =
-    let service =
-      Eliom_service.attach_get_unsafe
-        ?name ?csrf_safe
-        ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
-        ?csrf_secure ?max_use ?timeout ?https ~fallback ~get_params ()
-    in
-    register ?app ~service f;
-    service
-
-  let attach_post
-      ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
-      ?headers:_ ?secure_session:_ ?https ?name ?csrf_safe ?csrf_scope
-      ?csrf_secure ?max_use ?timeout ~fallback ~post_params ?error_handler
-      f =
-    let service =
-      Eliom_service.attach_post_unsafe
-        ?name ?csrf_safe
-        ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
-        ?csrf_secure ?max_use ?timeout ?https ~fallback ~post_params ()
-    in
-    register ?app ~service f;
-    service
 
 end
 

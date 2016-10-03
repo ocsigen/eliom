@@ -265,41 +265,6 @@ val persist_document_head : unit -> unit
 *)
 type ('a, +'b) server_function = 'a -> 'b Lwt.t
 
-(** [server_function argument_type f] creates a value of type {%
-    <<a_api | type Eliom_client.server_function>> %}. This allows
-    to call [f] from the client. The first argument [argument_type] is
-    an instance of [Deriving_Json] for the type of the argument. It is
-    used to safely encode and decode the argument sent to the server.
-
-    The optional parameters correspond directly to the optional
-    parameters of {% <<a_api|val
-    Eliom_registration.Ocaml.register_service >> %}.
-
-    See also the {% <<a_manual chapter="clientserver-communication"
-    fragment="rpc"|manual>> %}.
-
-    Defining server functions in shared or client sections is possible only
-    if you give them a name.
-*)
-val server_function :
-  ?scope:[< Eliom_common.scope ] ->
-  ?options:unit ->
-  ?charset:string ->
-  ?code:int ->
-  ?content_type:string ->
-  ?headers:Http_headers.t ->
-  ?secure_session:bool ->
-  name:string ->
-  ?csrf_safe:bool ->
-  ?csrf_scope:[< Eliom_common.user_scope ] ->
-  ?csrf_secure:bool ->
-  ?max_use:int ->
-  ?timeout:float ->
-  ?https:bool ->
-  ?error_handler:((string * exn) list -> 'b Lwt.t) ->
-  'a Deriving_Json.t -> unit -> ('a, 'b) server_function
-
-
 (** [change_page_uri ?replace uri] identifies and calls the
     client-side service that implements [uri].
 

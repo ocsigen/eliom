@@ -30,7 +30,7 @@
 open Eliom_lib
 open Eliom_parameter
 
-include Eliom_service_sigs.S
+include Eliom_service_sigs.S_WITH_CREATE
 
 (** {2 Static loading of Eliom modules} *)
 

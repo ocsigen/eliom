@@ -1196,24 +1196,6 @@ let () =
         auto_change_page first_fragment;
         Lwt.return ())
 
-
-let server_function
-    ?scope ?options ?charset ?code ?content_type ?headers ?secure_session ~name
-    ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https ?error_handler
-    argument_type () =
-  let service =
-    Eliom_service.create_ocaml
-      ~name
-      ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
-      ~path:Eliom_service.No_path
-      ~meth:
-        (Eliom_service.Post
-           (Eliom_parameter.unit,
-            Eliom_parameter.(ocaml "argument" argument_type)))
-      ()
-  in
-  fun a -> call_ocaml_service ~absolute:true ~service () a
-
 let () =
   Eliom_unwrap.register_unwrapper
     (Eliom_unwrap.id_of_int Eliom_common_base.server_function_unwrap_id_int)

@@ -145,6 +145,25 @@ module type S = sig
     ('get -> 'post -> page Lwt.t) ->
     unit
 
+  (** The function [send page] build the HTTP frame corresponding to
+      [page]. This may be used for example in an service handler
+      registered with {!Eliom_registration.Any.register} or when
+      building a custom output module.  *)
+  val send :
+    ?options:options ->
+    ?charset:string ->
+    ?code: int ->
+    ?content_type:string ->
+    ?headers: Http_headers.t ->
+    page ->
+    result Lwt.t
+
+end
+
+module type S_with_create = sig
+
+  include S
+
   (** Same as {!Eliom_service.create} followed by {!register}. *)
   val create :
     ?app:string ->
@@ -236,22 +255,9 @@ module type S = sig
      [`WithoutSuffix], 'gn, 'pn, return)
       Eliom_service.t
 
-  (** The function [send page] build the HTTP frame corresponding to
-      [page]. This may be used for example in an service handler
-      registered with {!Eliom_registration.Any.register} or when
-      building a custom output module.  *)
-  val send :
-    ?options:options ->
-    ?charset:string ->
-    ?code: int ->
-    ?content_type:string ->
-    ?headers: Http_headers.t ->
-    page ->
-    result Lwt.t
-
 end
 
-module type S_poly_without_send = sig
+module type S_poly = sig
 
   type _ page
   type options
@@ -274,6 +280,12 @@ module type S_poly_without_send = sig
     ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
     ('get -> 'post -> 'a page Lwt.t) ->
     unit
+
+end
+
+module type S_poly_with_create = sig
+
+  include S_poly
 
   (** See {!S.create}. *)
   val create :
@@ -370,9 +382,26 @@ module type S_poly_without_send = sig
 
 end
 
-module type S_poly = sig
+module type S_poly_with_send = sig
 
-  include S_poly_without_send
+  include S_poly
+
+  type 'a result
+
+  val send :
+    ?options      : options ->
+    ?charset      : string ->
+    ?code         : int ->
+    ?content_type : string ->
+    ?headers      : Http_headers.t ->
+    'a page ->
+    'a result Lwt.t
+
+end
+
+module type S_poly_with_create_with_send = sig
+
+  include S_poly_with_create
 
   type 'a result
 

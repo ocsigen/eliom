@@ -154,150 +154,6 @@ module type S = sig
     | Path    : Eliom_lib.Url.path -> (att, non_co, _) path_option
     | No_path : (non_att, co, unit) path_option
 
-  (** {b Service definition}
-
-      The function [create ~id ~path ()] creates a service ({!t})
-      identified as per [path] and accepting parameters as per [meth]
-      (see {!Eliom_service_sigs.TYPES.meth} ).
-
-      If [path = Path p], the service appears on path [p]. Otherwise
-      ([No_path]), the service doesn't have its own path. Rather, the
-      service responds on any path as long as an internal
-      automatically-generated parameter is provided.
-
-      In addition to [~path] and [~meth], [create] accepts a series of
-      optional arguments described below.
-
-      If [~https:true] is provided, all links towards that service
-      will use HTTPS. By default, links will keep the current
-      protocol.
-
-      The optional argument [~priority] allows one to change the
-      priority order between services that share the same path. The
-      default priority is 0. If you want the service to be tried
-      before (resp. after) other services, put a higher (resp. lower)
-      priority.
-
-      The remaining arguments are ignored for services identified by a
-      path (constructor [Path]).
-
-      The optional [~timeout] argument specifies a timeout (in
-      seconds) after which the coservice will disappear. This amount
-      of time is computed from the creation or from the last call to
-      the service. The default is "no timeout". The optional
-      [~max_use] argument specifies that the service can be used only
-      a fixed number of times. The default is "no limitation".
-
-      If the optional argument [~keep_nl_params:`Persistent]
-      (resp. [~keep_nl_params:`All]) is given, all links towards that
-      service will keep persistent (resp. all) non localized GET
-      arguments of the current service. The default is [`None]. See
-      the eliom manual for more information about {% <<a_manual
-      chapter="params" fragment="nonlocalizedparameters"|non localized
-      ptimarameters>>%}.
-
-      The optional [~name] argument provides a name for the service;
-      otherwise, it will be anonymous (with an auto-generated internal
-      name).
-
-      If the optional [~csrf_safe] argument is [true], we create a
-      {% <<a_manual chapter="security" fragment="csrf"|"CSRF-safe"
-      service>>%}. In that case the [~name] argument is ignored. The
-      default is [false].
-
-      The [~csrf_scope] and [~csrf_secure], if present, should
-      respectively correspond to the [~scope] and [~secure] arguments
-      that will be given to the associated [register]
-      function. Otherwise the registration will fail with
-      {Eliom_service.Wrong_session_table_for_CSRF_safe_coservice}. See
-      {!Eliom_registration.Html.register},
-      {!Eliom_registration.App.register} or any other
-      {!Eliom_registration}[.*.register] functions for a description
-      of these arguments.
-
-      {e Warning: [create] must be called when the site information is
-      available, that is, either during a request or during the
-      initialisation phase of the site.  Otherwise, it will raise the
-      exception {!Eliom_common.Eliom_site_information_not_available}.
-      If you are using static linking, you must delay the call to this
-      function until the configuration file is read, using
-      {!Eliom_service.register_eliom_module}. Otherwise you will also
-      get this exception.}  *)
-  val create :
-    ?name:string ->
-    ?csrf_safe: bool ->
-    ?csrf_scope: [< Eliom_common.user_scope] ->
-    ?csrf_secure: bool ->
-    ?max_use:int ->
-    ?timeout:float ->
-    ?https:bool ->
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    ?priority:int ->
-    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) meth ->
-    path:('att, 'co, 'gp_) path_option ->
-    unit ->
-    ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, non_ocaml) t
-
-  (** [extern ~prefix ~path ~meth ()] creates an external service,
-      i.e., a service implemented by a remote server (not necessarily
-      running Ocsigen/Eliom). *)
-  val extern :
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    prefix:string ->
-    path:Eliom_lib.Url.path ->
-    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, _) meth ->
-    unit ->
-    ('gp, 'pp, 'm, att, non_co, ext, non_reg, 'tipo, 'gn, 'pn, non_ocaml) t
-
-  (** [attach_get ~fallback ~get_params ()] attaches a new service on
-      the path of [fallback]. The new service implements the GET
-      method and accepts [get_params], in addition to an
-      automatically-generated parameter that is used to identify the
-      service and does not need to be provided by the
-      programmer. [fallback] remains available. For a description of
-      the optional parameters see {!create}. *)
-  val attach_get :
-    ?name:string ->
-    ?csrf_safe: bool ->
-    ?csrf_scope: [< Eliom_common.user_scope] ->
-    ?csrf_secure: bool ->
-    ?max_use:int ->
-    ?timeout:float ->
-    ?https:bool ->
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    fallback:
-      (unit, unit, get, att, non_co, non_ext, _, [`WithoutSuffix],
-       unit, unit, non_ocaml) t ->
-    get_params:('gp, [`WithoutSuffix], 'gn) Eliom_parameter.params_type ->
-    unit ->
-    ('gp, unit, get, att, co, non_ext, reg, [`WithoutSuffix],
-     'gn, unit, non_ocaml) t
-
-  (** [attach_post ~fallback ~post_params ()] attaches a new service
-      on the path of [fallback]. The new service implements the POST
-      method and accepts the GET parameters of [fallback], in addition
-      to the POST parameters [post_params]. An automatically-generated
-      parameter is used to identify the service and does not need to
-      be provided by the programmer. [fallback] remains available. For
-      a description of the optional parameters see {!create}. *)
-  val attach_post :
-    ?name:string ->
-    ?csrf_safe: bool ->
-    ?csrf_scope: [< Eliom_common.user_scope] ->
-    ?csrf_secure: bool ->
-    ?max_use:int ->
-    ?timeout:float ->
-    ?https:bool ->
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    fallback:
-      ('gp, unit, get, att, non_co, non_ext, _,
-       [`WithoutSuffix], 'gn, unit, non_ocaml) t ->
-    post_params:
-      ('pp, [`WithoutSuffix], 'pn) Eliom_parameter.params_type ->
-    unit ->
-    ('gp, 'pp, post, att, co, non_ext, reg, [`WithoutSuffix],
-     'gn, 'pn, non_ocaml) t
-
   (** {3 Predefined services} *)
 
   (** {4 Reload actions} *)
@@ -427,70 +283,18 @@ module type S = sig
     ('a, 'b * 'p, 'meth, 'attach, 'co, 'ext, 'g,
      'd, 'e, 'f * 'pn, 'return) t
 
+  (** [extern ~prefix ~path ~meth ()] creates an external service,
+      i.e., a service implemented by a remote server (not necessarily
+      running Ocsigen/Eliom). *)
+  val extern :
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    prefix:string ->
+    path:Eliom_lib.Url.path ->
+    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, _) meth ->
+    unit ->
+    ('gp, 'pp, 'm, att, non_co, ext, non_reg, 'tipo, 'gn, 'pn, non_ocaml) t
+
   (**/**)
-
-  val create_ocaml :
-    ?name:string ->
-    ?csrf_safe: bool ->
-    ?csrf_scope: [< Eliom_common.user_scope] ->
-    ?csrf_secure: bool ->
-    ?max_use:int ->
-    ?timeout:float ->
-    ?https:bool ->
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    ?priority:int ->
-    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) meth ->
-    path:('att, 'co, 'gp_) path_option ->
-    unit ->
-    ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'ret ocaml) t
-
-  val create_unsafe :
-    ?name:string ->
-    ?csrf_safe: bool ->
-    ?csrf_scope: [< Eliom_common.user_scope] ->
-    ?csrf_secure: bool ->
-    ?max_use:int ->
-    ?timeout:float ->
-    ?https:bool ->
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    ?priority:int ->
-    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) meth ->
-    path:('att, 'co, 'gp_) path_option ->
-    unit ->
-    ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'ret) t
-
-  val attach_get_unsafe :
-    ?name:string ->
-    ?csrf_safe: bool ->
-    ?csrf_scope: [< Eliom_common.user_scope] ->
-    ?csrf_secure: bool ->
-    ?max_use:int ->
-    ?timeout:float ->
-    ?https:bool ->
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    fallback:
-      (unit, unit, get, att, non_co, non_ext, _,
-       _, unit, unit, _) t ->
-    get_params:('gp, 'tipo, 'gn) Eliom_parameter.params_type ->
-    unit ->
-    ('gp, unit, get, att, co, non_ext, reg, 'tipo, 'gn, unit, _) t
-
-  val attach_post_unsafe :
-    ?name:string ->
-    ?csrf_safe: bool ->
-    ?csrf_scope: [< Eliom_common.user_scope] ->
-    ?csrf_secure: bool ->
-    ?max_use:int ->
-    ?timeout:float ->
-    ?https:bool ->
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    fallback:
-      ('gp, unit, get, att, non_co, non_ext, _,
-       'tipo, 'gn, unit, _) t ->
-    post_params:
-      ('pp, [ `WithoutSuffix ], 'pn) Eliom_parameter.params_type ->
-    unit ->
-    ('gp, 'pp, post, att, co, non_ext, reg, 'tipo, 'gn, 'pn, _) t
 
   val which_meth :
     (_, _, 'm, _, _, _, _, _, _, _, _) t -> 'm which_meth
@@ -602,5 +406,209 @@ module type S = sig
     service : ('a, 'b, _, _, _, _, _, _, _, _, _) t ->
     ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
     unit
+
+end
+
+module type S_WITH_CREATE = sig
+
+  include S
+
+  (** {b Service definition}
+
+      The function [create ~id ~path ()] creates a service ({!t})
+      identified as per [path] and accepting parameters as per [meth]
+      (see {!Eliom_service_sigs.TYPES.meth} ).
+
+      If [path = Path p], the service appears on path [p]. Otherwise
+      ([No_path]), the service doesn't have its own path. Rather, the
+      service responds on any path as long as an internal
+      automatically-generated parameter is provided.
+
+      In addition to [~path] and [~meth], [create] accepts a series of
+      optional arguments described below.
+
+      If [~https:true] is provided, all links towards that service
+      will use HTTPS. By default, links will keep the current
+      protocol.
+
+      The optional argument [~priority] allows one to change the
+      priority order between services that share the same path. The
+      default priority is 0. If you want the service to be tried
+      before (resp. after) other services, put a higher (resp. lower)
+      priority.
+
+      The remaining arguments are ignored for services identified by a
+      path (constructor [Path]).
+
+      The optional [~timeout] argument specifies a timeout (in
+      seconds) after which the coservice will disappear. This amount
+      of time is computed from the creation or from the last call to
+      the service. The default is "no timeout". The optional
+      [~max_use] argument specifies that the service can be used only
+      a fixed number of times. The default is "no limitation".
+
+      If the optional argument [~keep_nl_params:`Persistent]
+      (resp. [~keep_nl_params:`All]) is given, all links towards that
+      service will keep persistent (resp. all) non localized GET
+      arguments of the current service. The default is [`None]. See
+      the eliom manual for more information about {% <<a_manual
+      chapter="params" fragment="nonlocalizedparameters"|non localized
+      ptimarameters>>%}.
+
+      The optional [~name] argument provides a name for the service;
+      otherwise, it will be anonymous (with an auto-generated internal
+      name).
+
+      If the optional [~csrf_safe] argument is [true], we create a
+      {% <<a_manual chapter="security" fragment="csrf"|"CSRF-safe"
+      service>>%}. In that case the [~name] argument is ignored. The
+      default is [false].
+
+      The [~csrf_scope] and [~csrf_secure], if present, should
+      respectively correspond to the [~scope] and [~secure] arguments
+      that will be given to the associated [register]
+      function. Otherwise the registration will fail with
+      {Eliom_service.Wrong_session_table_for_CSRF_safe_coservice}. See
+      {!Eliom_registration.Html.register},
+      {!Eliom_registration.App.register} or any other
+      {!Eliom_registration}[.*.register] functions for a description
+      of these arguments.
+
+      {e Warning: [create] must be called when the site information is
+      available, that is, either during a request or during the
+      initialisation phase of the site.  Otherwise, it will raise the
+      exception {!Eliom_common.Eliom_site_information_not_available}.
+      If you are using static linking, you must delay the call to this
+      function until the configuration file is read, using
+      {!Eliom_service.register_eliom_module}. Otherwise you will also
+      get this exception.}  *)
+  val create :
+    ?name:string ->
+    ?csrf_safe: bool ->
+    ?csrf_scope: [< Eliom_common.user_scope] ->
+    ?csrf_secure: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    ?priority:int ->
+    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) meth ->
+    path:('att, 'co, 'gp_) path_option ->
+    unit ->
+    ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, non_ocaml) t
+
+  (** [attach_get ~fallback ~get_params ()] attaches a new service on
+      the path of [fallback]. The new service implements the GET
+      method and accepts [get_params], in addition to an
+      automatically-generated parameter that is used to identify the
+      service and does not need to be provided by the
+      programmer. [fallback] remains available. For a description of
+      the optional parameters see {!create}. *)
+  val attach_get :
+    ?name:string ->
+    ?csrf_safe: bool ->
+    ?csrf_scope: [< Eliom_common.user_scope] ->
+    ?csrf_secure: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    fallback:
+      (unit, unit, get, att, non_co, non_ext, _, [`WithoutSuffix],
+       unit, unit, non_ocaml) t ->
+    get_params:('gp, [`WithoutSuffix], 'gn) Eliom_parameter.params_type ->
+    unit ->
+    ('gp, unit, get, att, co, non_ext, reg, [`WithoutSuffix],
+     'gn, unit, non_ocaml) t
+
+  (** [attach_post ~fallback ~post_params ()] attaches a new service
+      on the path of [fallback]. The new service implements the POST
+      method and accepts the GET parameters of [fallback], in addition
+      to the POST parameters [post_params]. An automatically-generated
+      parameter is used to identify the service and does not need to
+      be provided by the programmer. [fallback] remains available. For
+      a description of the optional parameters see {!create}. *)
+  val attach_post :
+    ?name:string ->
+    ?csrf_safe: bool ->
+    ?csrf_scope: [< Eliom_common.user_scope] ->
+    ?csrf_secure: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    fallback:
+      ('gp, unit, get, att, non_co, non_ext, _,
+       [`WithoutSuffix], 'gn, unit, non_ocaml) t ->
+    post_params:
+      ('pp, [`WithoutSuffix], 'pn) Eliom_parameter.params_type ->
+    unit ->
+    ('gp, 'pp, post, att, co, non_ext, reg, [`WithoutSuffix],
+     'gn, 'pn, non_ocaml) t
+
+  (**/**)
+
+  val create_ocaml :
+    ?name:string ->
+    ?csrf_safe: bool ->
+    ?csrf_scope: [< Eliom_common.user_scope] ->
+    ?csrf_secure: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    ?priority:int ->
+    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) meth ->
+    path:('att, 'co, 'gp_) path_option ->
+    unit ->
+    ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'ret ocaml) t
+
+  val create_unsafe :
+    ?name:string ->
+    ?csrf_safe: bool ->
+    ?csrf_scope: [< Eliom_common.user_scope] ->
+    ?csrf_secure: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    ?priority:int ->
+    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) meth ->
+    path:('att, 'co, 'gp_) path_option ->
+    unit ->
+    ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'ret) t
+
+  val attach_get_unsafe :
+    ?name:string ->
+    ?csrf_safe: bool ->
+    ?csrf_scope: [< Eliom_common.user_scope] ->
+    ?csrf_secure: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    fallback:
+      (unit, unit, get, att, non_co, non_ext, _,
+       _, unit, unit, _) t ->
+    get_params:('gp, 'tipo, 'gn) Eliom_parameter.params_type ->
+    unit ->
+    ('gp, unit, get, att, co, non_ext, reg, 'tipo, 'gn, unit, _) t
+
+  val attach_post_unsafe :
+    ?name:string ->
+    ?csrf_safe: bool ->
+    ?csrf_scope: [< Eliom_common.user_scope] ->
+    ?csrf_secure: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    fallback:
+      ('gp, unit, get, att, non_co, non_ext, _,
+       'tipo, 'gn, unit, _) t ->
+    post_params:
+      ('pp, [ `WithoutSuffix ], 'pn) Eliom_parameter.params_type ->
+    unit ->
+    ('gp, 'pp, post, att, co, non_ext, reg, 'tipo, 'gn, 'pn, _) t
 
 end

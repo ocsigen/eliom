@@ -772,7 +772,7 @@ end
 module Streamlist = Eliom_mkreg.Make(Streamlist_reg_base)
 
 module Customize
-  (R : Eliom_registration_sigs.S)
+  (R : Eliom_registration_sigs.S_with_create)
   (T : sig type page val translate : page -> R.page Lwt.t end) = struct
 
     type page = T.page
@@ -1481,7 +1481,7 @@ module type APP = sig
   type options = appl_service_options
   type return = Eliom_service.non_ocaml
   type result = app_id application_content kind
-  include Eliom_registration_sigs.S
+  include Eliom_registration_sigs.S_with_create
     with type page    := page
      and type options := options
      and type return  := return
