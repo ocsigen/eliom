@@ -268,7 +268,7 @@ module Action = Make (struct
     | Some `Reload | None ->
       Eliom_client.register_reload ()
     | _ ->
-      Eliom_client.do_not_set_uri := true
+      ()
 
 end)
 
@@ -282,7 +282,6 @@ module Unit = Make (struct
     let reset_reload_fun = true
 
     let send ?options:_ page =
-      Eliom_client.do_not_set_uri := true;
       Lwt.return ()
 
   end)

@@ -755,17 +755,12 @@ let target, set_target, reset_target =
   (fun path params -> r := Some (path, params)),
   (fun () -> r := None)
 
-(* Some services do not need to set the URL (e.g.,
-   Eliom_registration.Unit).  The subsequent change_page will set the
-   URI. *)
-let do_not_set_uri = ref false
-
 let commit_target ~replace ~nested () =
-  match nested, target (), !do_not_set_uri with
-  | false, Some (path, params), false ->
+  match nested, target () with
+  | false, Some (path, params) ->
     change_url_string ~replace (make_uri path params)
-  | _, _, _ ->
-    do_not_set_uri := false
+  | _, _ ->
+    ()
 
 let route
     ~replace
