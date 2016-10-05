@@ -116,8 +116,8 @@ let debug_var s v = Js.Unsafe.set Dom_html.window (Js.string s) v
 
 module String = struct
   include String_base
+  let eol_re = Regexp.regexp "[\r\n]"
   let remove_eols s =
-    let eol_re = Regexp.regexp "[\r\n]" in
     Regexp.global_replace eol_re s ""
 end
 
