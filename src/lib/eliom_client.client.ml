@@ -749,13 +749,20 @@ let make_uri subpath params =
   | s ->
     s
 
+let follow_up = ref None
+
+let redirect_active () =
+  match !follow_up with
+  | Some (`Redirect _) -> true
+  | _ -> false
+
 let route ~replace ?(keep_url = false)
     ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
   let r = !Eliom_request_info.get_sess_info in
   try%lwt
     update_session_info i_get_params (Some i_post_params);
     let%lwt () = Eliom_route.call_service info in
-    if not keep_url then
+    if not (keep_url || redirect_active ()) then
       change_url_string ~replace (make_uri i_subpath i_get_params);
     Lwt.return ()
   with e ->
@@ -791,13 +798,45 @@ let current_path () =
   | None ->
     None
 
-let follow_up = ref None
+let after_action () =
+  let
+    ({ Eliom_common.si_all_get_params ; si_all_post_params }
+     as i_sess_info) =
+    !Eliom_request_info.get_sess_info ()
+  and i_subpath =
+    match current_path () with
+    | Some path ->
+      path
+    | None ->
+      failwith "after_action: cannot obtain path"
+  in
+  let info = {
+    Eliom_route.i_sess_info ;
+    i_subpath;
+    i_meth = `Get;
+    i_get_params =
+      Eliom_common.remove_na_prefix_params si_all_get_params;
+    i_post_params = []
+  } in
+  (* similar (but simpler) sequence of attempts as server; see
+     server-side [Eliom_registration.Action.send] *)
+  try%lwt
+    route ~replace:false ~keep_url:true info
+  with _ ->
+    let info = {info with Eliom_route.i_get_params = []} in
+    try%lwt
+      route ~replace:false ~keep_url:true info
+    with _ ->
+      Lwt.return ()
 
 let do_follow_up () =
   match !follow_up with
-  | Some f ->
+  | Some (`Redirect f) ->
     follow_up := None;
     f ()
+  | Some `Reload ->
+    follow_up := None;
+    after_action ()
   | None ->
     Lwt.return ()
 
@@ -869,8 +908,10 @@ let change_page (type m)
            update_session_info l l';
            let%lwt () = f get_params post_params in
            (match path_of_url_string uri with
-            | Some path ->
+            | Some path when not (redirect_active ()) ->
               change_url_string ~replace (make_uri path l);
+            | Some _ ->
+              ()
             | None ->
               failwith "change_page: cannot find service path");
            do_follow_up ()
@@ -910,37 +951,6 @@ let change_page (type m)
            let uri, fragment = Url.split_fragment uri in
            set_content ~replace ~uri ?fragment content)
 
-let after_action () =
-  let
-    ({ Eliom_common.si_all_get_params ; si_all_post_params }
-     as i_sess_info) =
-    !Eliom_request_info.get_sess_info ()
-  and i_subpath =
-    match current_path () with
-    | Some path ->
-      path
-    | None ->
-      failwith "after_action: cannot obtain path"
-  in
-  let info = {
-    Eliom_route.i_sess_info ;
-    i_subpath;
-    i_meth = `Get;
-    i_get_params =
-      Eliom_common.remove_na_prefix_params si_all_get_params;
-    i_post_params = []
-  } in
-  (* similar (but simpler) sequence of attempts as server; see
-     server-side [Eliom_registration.Action.send] *)
-  try%lwt
-    route ~replace:false ~keep_url:true info
-  with _ ->
-    let info = {info with Eliom_route.i_get_params = []} in
-    try%lwt
-      route ~replace:false ~keep_url:true info
-    with _ ->
-      Lwt.return ()
-
 type _ redirection =
     Redirection :
       (unit, unit, Eliom_service.get , _, _, _, _,
@@ -948,10 +958,11 @@ type _ redirection =
     'a redirection
 
 let register_reload () =
-  follow_up := Some (fun () -> after_action ())
+  follow_up := Some `Reload
 
 let register_redirect (Redirection service) =
-  follow_up := Some (fun () -> change_page ~replace:true ~service () ())
+  follow_up :=
+    Some (`Redirect (fun () -> change_page ~replace:true ~service () ()))
 
 let change_page_unknown
     ?meth ?hostname ?(replace = false) i_subpath i_get_params i_post_params =
