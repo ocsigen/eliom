@@ -123,7 +123,7 @@ module Pass = struct
     [%stri
       let () =
         Eliom_client_core.Syntax_helpers.close_server_section
-          [%e AC.str @@ file_hash loc]
+          [%e eid @@ id_file_hash loc]
     ][@metaloc loc]
 
   let may_close_server_section item =
@@ -136,7 +136,7 @@ module Pass = struct
     [%stri
       let () =
         Eliom_client_core.Syntax_helpers.open_client_section
-          [%e AC.str @@ file_hash loc]
+          [%e eid @@ id_file_hash loc]
     ][@metaloc loc]
 
   let may_open_client_section loc =

@@ -2,7 +2,8 @@ open Parsetree
 
 (** {2 Various helping functions} *)
 
-val file_hash : Location.t -> string
+(** Name of the variable which holds the hash of the file. *)
+val id_file_hash : Location.t -> string Location.loc
 
 val eid : string Location.loc -> expression
 

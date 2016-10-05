@@ -55,6 +55,25 @@ let file_hash loc =
   done;
   Bytes.to_string o
 
+let id_file_hash loc =
+  let prefix = "__eliom__compilation_unit_id__" in
+  {Location. loc ; txt = prefix ^ file_hash loc}
+
+(** [let __eliom__compilation_unit_id__HASH = "HASH"]
+    We hoist the file hash at the beginning of each eliom file.
+    This makes the generated javascript code smaller.
+*)
+let module_hash_declaration loc =
+  let id = Pat.var ~loc @@ id_file_hash loc in
+  Str.value ~loc Nonrecursive [Vb.mk ~loc id @@ AC.str @@ file_hash loc]
+
+(** The first position in a file, if it exists.
+    We avoid {!Location.input_name}, as it's unreliable when reading multiple files.
+*)
+let file_position str = match str with
+  | { pstr_loc } :: _ -> Location.in_file @@ pstr_loc.loc_start.pos_fname
+  | [] -> Location.none
+
 let lexing_position ~loc l =
   [%expr
     { Lexing.pos_fname = [%e AC.str l.Lexing.pos_fname];
@@ -600,8 +619,11 @@ module Make (Pass : Pass) = struct
       | _ ->
         dispatch_str !context mapper pstr
     in
-    let loc = {(Location.in_file !Location.input_name) with loc_ghost = true} in
-    Pass.prelude loc @ flatmap f structs @ Pass.postlude loc
+    let loc = {(file_position structs) with loc_ghost = true} in
+    module_hash_declaration loc ::
+    Pass.prelude loc @
+    flatmap f structs @
+    Pass.postlude loc
 
   let toplevel_signature context mapper sigs =
     let f psig =
