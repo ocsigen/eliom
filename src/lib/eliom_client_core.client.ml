@@ -578,11 +578,12 @@ let iter_prop_protected node name f =
   | Some n -> begin try f n with _ -> () end
   | None -> ()
 
+let space_re = Regexp.regexp " "
 let current_classes node =
   let name = Js.string "class" in
   Js.Opt.case (node##(getAttribute name))
     (fun () -> [])
-    (fun s -> Js.to_string s |> Regexp.(split (regexp " ")))
+    (fun s -> Js.to_string s |> Regexp.(split space_re))
 
 let rebuild_reactive_class_rattrib node s =
   let name = Js.string "class" in
