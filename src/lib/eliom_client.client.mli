@@ -346,8 +346,6 @@ val set_content_local :
   ?offset:Eliommod_dom.position ->
   ?fragment:string -> Dom_html.element Js.t -> unit Lwt.t
 
-val change_page_after_action : unit -> unit Lwt.t
-
 type client_form_handler = Dom_html.event Js.t -> bool Lwt.t
 
 val current_uri : string ref

@@ -749,29 +749,14 @@ let make_uri subpath params =
   | s ->
     s
 
-let target, set_target, reset_target =
-  let r = ref None in
-  (fun ()  -> !r),
-  (fun path params -> r := Some (path, params)),
-  (fun () -> r := None)
-
-let commit_target ~replace ~nested () =
-  match nested, target () with
-  | false, Some (path, params) ->
-    change_url_string ~replace (make_uri path params)
-  | _, _ ->
-    ()
-
-let route
-    ~replace
-    ?(nested = false)
+let route ~replace ?(keep_url = false)
     ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
   let r = !Eliom_request_info.get_sess_info in
   try%lwt
     update_session_info i_get_params (Some i_post_params);
-    if not nested then set_target i_subpath i_get_params;
     let%lwt () = Eliom_route.call_service info in
-    commit_target ~replace ~nested ();
+    if not keep_url then
+      change_url_string ~replace (make_uri i_subpath i_get_params);
     Lwt.return ()
   with e ->
     Eliom_request_info.get_sess_info := r;
@@ -882,13 +867,12 @@ let change_page (type m)
            in
            let l = ocamlify_params l in
            update_session_info l l';
+           let%lwt () = f get_params post_params in
            (match path_of_url_string uri with
             | Some path ->
-              set_target path l;
+              change_url_string ~replace (make_uri path l);
             | None ->
               failwith "change_page: cannot find service path");
-           let%lwt () = f get_params post_params in
-           commit_target ~replace ~nested:false ();
            do_follow_up ()
          | None when is_client_app () ->
            Lwt.return @@ exit_to
@@ -926,21 +910,17 @@ let change_page (type m)
            let uri, fragment = Url.split_fragment uri in
            set_content ~replace ~uri ?fragment content)
 
-let change_page_after_action () =
+let after_action () =
   let
     ({ Eliom_common.si_all_get_params ; si_all_post_params }
      as i_sess_info) =
     !Eliom_request_info.get_sess_info ()
   and i_subpath =
-    match target () with
-    | Some (path, _) ->
+    match current_path () with
+    | Some path ->
       path
     | None ->
-      (match current_path () with
-       | Some path ->
-         path
-       | None ->
-         failwith "change_page_after_action: extract URL of current path")
+      failwith "after_action: cannot obtain path"
   in
   let info = {
     Eliom_route.i_sess_info ;
@@ -953,20 +933,12 @@ let change_page_after_action () =
   (* similar (but simpler) sequence of attempts as server; see
      server-side [Eliom_registration.Action.send] *)
   try%lwt
-    (* [~nested:true] indicates that we do not want to update the URL
-       (but we do call [set_target]). We were called by an action,
-       and the action will set the URL (based on [target ()]) once
-       we are done. *)
-    route ~replace:false ~nested:true info
+    route ~replace:false ~keep_url:true info
   with _ ->
     let info = {info with Eliom_route.i_get_params = []} in
     try%lwt
-      route ~replace:false ~nested:true info
+      route ~replace:false ~keep_url:true info
     with _ ->
-      (* after the action, we are stuck in no man's land (a URL that
-         doesn't correspond to a page. We [reset_target ()], so
-         that we will stay on the URL before the action. *)
-      reset_target ();
       Lwt.return ()
 
 type _ redirection =
@@ -976,7 +948,7 @@ type _ redirection =
     'a redirection
 
 let register_reload () =
-  follow_up := Some (fun () -> change_page_after_action ())
+  follow_up := Some (fun () -> after_action ())
 
 let register_redirect (Redirection service) =
   follow_up := Some (fun () -> change_page ~replace:true ~service () ())
