@@ -336,6 +336,11 @@ module Cannot_have_fragment = struct
     let p x = p x.pvb_expr in
     List.for_all p l
 
+  let rec longident = function
+    | Longident.Lident _ -> true
+    | Longident.Ldot (x,_) -> longident x
+    | Longident.Lapply (_,_) -> false
+
   let rec expression e = match e.pexp_desc with
     | Pexp_ident _
     | Pexp_constant _
@@ -365,13 +370,13 @@ module Cannot_have_fragment = struct
     | Pexp_construct (_,e)
     | Pexp_variant (_,e) -> opt_forall expression e
     | Pexp_let (_,l,e) -> vb_forall expression l && expression e
+    | Pexp_open (_,x,e) -> longident x.txt && expression e
+    | Pexp_letmodule (_,me,e) -> module_expr me && expression e
 
     (* We could be more precise on those constructs *)
-    | Pexp_open _
     | Pexp_object _
     | Pexp_while _
     | Pexp_for _
-    | Pexp_letmodule _
     | Pexp_match _
     | Pexp_pack _
       -> false
@@ -386,26 +391,35 @@ module Cannot_have_fragment = struct
     | _
       -> false
 
-  let structure_item x = match x.pstr_desc with
+  and module_expr x = match x.pmod_desc with
+    | Pmod_ident l -> longident l.txt
+    | Pmod_functor _ -> true
+    | Pmod_unpack e -> expression e
+    | Pmod_constraint (e,_) -> module_expr e
+    | Pmod_structure l -> List.for_all structure_item l
+
+    | Pmod_apply _
+    | _
+      -> false
+
+  and module_binding m = module_expr m.pmb_expr
+
+  and structure_item x = match x.pstr_desc with
     | Pstr_type _
     | Pstr_typext _
     | Pstr_exception _
-    | Pstr_modtype _ -> true
+    | Pstr_modtype _
+    | Pstr_class _
+    | Pstr_class_type _
+      -> true
 
     | Pstr_eval (e,_) -> expression e
     | Pstr_value (_,vb) -> vb_forall expression vb
     | Pstr_primitive _ -> true
-
-    (* Inner declarations can be effectful *)
-    | Pstr_module _
-    | Pstr_recmodule _ -> false
-
-    (* This is very conservative and could be revisited. *)
-    | Pstr_open _
-    | Pstr_class _
-    | Pstr_class_type _
-    | Pstr_include _
-      -> false
+    | Pstr_module mb -> module_binding mb
+    | Pstr_recmodule mbl -> List.for_all module_binding mbl
+    | Pstr_open x -> longident x.popen_lid.txt
+    | Pstr_include x -> module_expr x.pincl_mod
 
     | _ -> false
 
