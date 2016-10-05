@@ -126,6 +126,12 @@ module Pass = struct
           [%e AC.str @@ file_hash loc]
     ][@metaloc loc]
 
+  let may_close_server_section item =
+    if Cannot_have_fragment.structure_item item
+    then []
+    else [close_server_section item.pstr_loc]
+
+
   let open_client_section loc =
     [%stri
       let () =
@@ -133,39 +139,30 @@ module Pass = struct
           [%e AC.str @@ file_hash loc]
     ][@metaloc loc]
 
+  let may_open_client_section loc =
+    if flush_injection ()
+    then [ open_client_section loc ]
+    else []
+
   (** Syntax extension *)
 
   let client_str item =
-    if not (must_have_section item && flush_injection ())
-    then [item]
-    else begin
-      let loc = item.pstr_loc in
-      [ open_client_section loc ;
-        item ;
-      ]
-    end
+    let loc = item.pstr_loc in
+    may_open_client_section loc @
+    [ item ]
 
   let server_str item =
-    if not @@ must_have_section item then []
-    else begin
-      let loc = item.pstr_loc in
-      register_client_closures (flush_client_value_datas ()) @
-      [ close_server_section loc ]
-    end
+    register_client_closures (flush_client_value_datas ()) @
+    may_close_server_section item
 
   let shared_str item =
-    if not @@ must_have_section item then [item]
-    else begin
-      let loc = item.pstr_loc in
-      let client_expr_data = flush_client_value_datas () in
-      (if flush_injection () then [open_client_section loc] else []) @
-      register_client_closures client_expr_data @
-      define_client_functions loc client_expr_data @
-      [ item ;
-        close_server_section loc ;
-      ]
-    end
-
+    let loc = item.pstr_loc in
+    let client_expr_data = flush_client_value_datas () in
+    may_open_client_section loc @
+    register_client_closures client_expr_data @
+    define_client_functions loc client_expr_data @
+    [ item ] @
+    may_close_server_section item
 
   let fragment ?typ:_ ~context ~num ~id expr =
 

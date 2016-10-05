@@ -103,7 +103,14 @@ module Pass = struct
           [%e AC.str s]
     ] [@metaloc loc]
 
+  let may_close_server_section item =
+    if Cannot_have_fragment.structure_item item
+    then []
+    else [close_server_section item.pstr_loc]
+
+
   let close_client_section loc injections =
+    assert (injections <> []) ;
     let injection_list =
       List.fold_right
         (fun (txt, expr, ident) sofar ->
@@ -134,44 +141,31 @@ module Pass = struct
   (** Syntax extension *)
 
   let client_str item =
-    if not @@ must_have_section item then []
-    else begin
-      let all_injections = flush_injections () in
-      let ccs =
-        let loc = item.pstr_loc in
-        close_client_section loc all_injections
-      in
-      match all_injections with
-      | [] ->
-        [ ]
-      | l ->
-        [ bind_injected_idents l ; ccs ]
-    end
+    let all_injections = flush_injections () in
+    let loc = item.pstr_loc in
+    match all_injections with
+    | [] -> []
+    | l  ->
+      bind_injected_idents l ::
+      [ close_client_section loc all_injections ]
 
   let server_str item =
-    if not @@ must_have_section item then [item]
-    else [
-      item ;
-      close_server_section item.pstr_loc
-    ]
+    item ::
+    may_close_server_section item
 
   let shared_str item =
-    if not @@ must_have_section item then [item]
-    else begin
-      let all_injections = flush_injections () in
-      let loc = item.pstr_loc in
-      let cl = [
-        item;
-        close_server_section loc ;
-      ]
-      in
-      match all_injections with
-      | [] ->
-        cl
-      | l ->
-        bind_injected_idents l :: cl @
-        [ close_client_section loc all_injections ]
-    end
+    let all_injections = flush_injections () in
+    let loc = item.pstr_loc in
+    let cl =
+      item ::
+      may_close_server_section item
+    in
+    match all_injections with
+    | [] -> cl
+    | l ->
+      bind_injected_idents l ::
+      cl @
+      [ close_client_section loc all_injections ]
 
   let fragment ?typ ~context:_ ~num ~id expr =
     let typ =

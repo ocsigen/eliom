@@ -307,32 +307,90 @@ module type Pass = sig
 
 end
 
-(** Determine if a structure item must be wrapped into client/server sections.
+module Cannot_have_fragment = struct
 
-    This is the case if some evaluation is possible, which would lead to
-    client fragment and/or injections evaluation.
-*)
-let must_have_section x = match x.pstr_desc with
-  (* This is very conservative and could be revisited. *)
-  | Pstr_open _
-  | Pstr_class _
-  | Pstr_class_type _
-  | Pstr_include _ -> true
+  let opt_forall p = function
+    | None -> true
+    | Some x -> p x
 
-  (* Inner declarations can be eventful *)
-  | Pstr_module _
-  | Pstr_recmodule _ -> true
+  let vb_forall p l =
+    let p x = p x.pvb_expr in
+    List.for_all p l
 
-  | Pstr_eval _
-  | Pstr_value _
-  | Pstr_primitive _ -> true
-  | Pstr_type _
-  | Pstr_typext _
-  | Pstr_exception _
-  | Pstr_modtype _ -> false
-  | Pstr_attribute _ -> false
-  (* Just in case. *)
-  | Pstr_extension _ -> true
+  let rec expression e = match e.pexp_desc with
+    | Pexp_ident _
+    | Pexp_constant _
+    | Pexp_function _
+    | Pexp_lazy _
+    | Pexp_fun _
+      -> true
+
+    | Pexp_newtype (_,e)
+    | Pexp_assert e
+    | Pexp_field (e,_)
+    | Pexp_constraint (e,_)
+    | Pexp_coerce (e,_,_)
+    | Pexp_poly (e,_)
+    | Pexp_try (e,_) -> expression e
+
+    | Pexp_ifthenelse (b,e1,e2) ->
+      expression b && expression e1 && opt_forall expression e2
+    | Pexp_sequence (e1,e2)
+    | Pexp_setfield (e1,_,e2) -> expression e1 && expression e2
+    | Pexp_array l
+    | Pexp_tuple l -> List.for_all expression l
+    | Pexp_record (l,e) ->
+      let p x = expression @@ snd x in
+      opt_forall expression e && List.for_all p l
+
+    | Pexp_construct (_,e)
+    | Pexp_variant (_,e) -> opt_forall expression e
+    | Pexp_let (_,l,e) -> vb_forall expression l && expression e
+
+    (* We could be more precise on those constructs *)
+    | Pexp_open _
+    | Pexp_object _
+    | Pexp_while _
+    | Pexp_for _
+    | Pexp_letmodule _
+    | Pexp_match _
+    | Pexp_pack _
+      -> false
+
+    (* We can't say more using syntactic information. *)
+    | Pexp_extension _
+    | Pexp_send _
+    | Pexp_new _
+    | Pexp_setinstvar _
+    | Pexp_override _
+    | Pexp_apply _
+    | _
+      -> false
+
+  let structure_item x = match x.pstr_desc with
+    | Pstr_type _
+    | Pstr_typext _
+    | Pstr_exception _
+    | Pstr_modtype _ -> true
+
+    | Pstr_eval (e,_) -> expression e
+    | Pstr_value (_,vb) -> vb_forall expression vb
+    | Pstr_primitive _ -> true
+
+    (* Inner declarations can be effectful *)
+    | Pstr_module _
+    | Pstr_recmodule _ -> false
+
+    (* This is very conservative and could be revisited. *)
+    | Pstr_open _
+    | Pstr_class _
+    | Pstr_class_type _
+    | Pstr_include _
+      -> false
+
+    | _ -> false
+
+end
 
 (**
    Replace shared expression by the equivalent pair.
