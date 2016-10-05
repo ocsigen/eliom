@@ -40,31 +40,36 @@ let reload () =
   | None ->
     default_reload ()
 
+
 let reload_without_na_params () () =
+  let path_of_string s =
+    match Url.path_of_path_string s with
+    | "." :: path ->
+      path
+    | path ->
+      path
+  in
   let uri = !Eliom_client.current_uri in
-  try%lwt
-    let path, args =
-      match Url.url_of_string uri with
-      | Some (Url.Http url | Url.Https url) ->
-        url.Url.hu_path, url.Url.hu_arguments
-      | _ ->
-        match
-          try
-            Some (String.index uri '?')
-          with Not_found ->
-            None
-        with
-        | Some n ->
-          Eliom_lib.Url.split_path String.(sub uri 0 n),
-          Url.decode_arguments String.(sub uri (n + 1) (length uri - n - 1))
-        | None ->
-          Eliom_lib.Url.split_path uri, []
-    in
-    Eliom_client.change_page_unknown path
-      (Eliom_common.remove_na_prefix_params args)
-      []
-  with _ ->
-    reload ()
+  let path, args =
+    match Url.url_of_string uri with
+    | Some (Url.Http url | Url.Https url) ->
+      url.Url.hu_path, url.Url.hu_arguments
+    | _ ->
+      match
+        try
+          Some (String.index uri '?')
+        with Not_found ->
+          None
+      with
+      | Some n ->
+        path_of_string String.(sub uri 0 n),
+        Url.decode_arguments String.(sub uri (n + 1) (length uri - n - 1))
+      | None ->
+        path_of_string uri, []
+  in
+  Eliom_client.change_page_unknown path
+    (Eliom_common.remove_na_prefix_params args)
+    []
 
 let switch_to_https () =
   let info = Eliom_process.get_info () in

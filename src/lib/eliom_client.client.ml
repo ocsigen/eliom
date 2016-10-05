@@ -811,6 +811,16 @@ let current_path () =
   | None ->
     None
 
+let follow_up = ref None
+
+let do_follow_up () =
+  match !follow_up with
+  | Some f ->
+    follow_up := None;
+    f ()
+  | None ->
+    Lwt.return ()
+
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
    function used to change page when clicking a link and
@@ -884,7 +894,7 @@ let change_page (type m)
               failwith "change_page: cannot find service path");
            let%lwt () = f get_params post_params in
            commit_target ~replace ~nested:false ();
-           Lwt.return ()
+           do_follow_up ()
          | None when is_client_app () ->
            Lwt.return @@ exit_to
              ?absolute ?absolute_path ?https ~service ?hostname ?port
@@ -964,6 +974,18 @@ let change_page_after_action () =
       reset_target ();
       Lwt.return ()
 
+type _ redirection =
+    Redirection :
+      (unit, unit, Eliom_service.get , _, _, _, _,
+       [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
+    'a redirection
+
+let register_reload () =
+  follow_up := Some (fun () -> change_page_after_action ())
+
+let register_redirect (Redirection service) =
+  follow_up := Some (fun () -> change_page ~replace:true ~service () ())
+
 let change_page_unknown
     ?meth ?hostname ?(replace = false) i_subpath i_get_params i_post_params =
   let i_sess_info = !Eliom_request_info.get_sess_info ()
@@ -976,13 +998,16 @@ let change_page_unknown
     | _, _ ->
       `Post
   in
-  route ~replace {
-    Eliom_route.i_sess_info ;
-    i_subpath ;
-    i_meth ;
-    i_get_params ;
-    i_post_params
-  }
+  let%lwt () =
+    route ~replace {
+      Eliom_route.i_sess_info ;
+      i_subpath ;
+      i_meth ;
+      i_get_params ;
+      i_post_params
+    }
+  in
+  do_follow_up ()
 
 (* Function used in "onclick" event handler of <a>.  *)
 

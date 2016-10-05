@@ -353,3 +353,13 @@ val change_page_after_action : unit -> unit Lwt.t
 type client_form_handler = Dom_html.event Js.t -> bool Lwt.t
 
 val current_uri : string ref
+
+type _ redirection =
+    Redirection :
+      (unit, unit, Eliom_service.get , _, _, _, _,
+       [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
+    'a redirection
+
+val register_redirect : Eliom_service.non_ocaml redirection -> unit
+
+val register_reload : unit -> unit

@@ -263,13 +263,12 @@ module Action = Make (struct
 
   let reset_reload_fun = true
 
-  let send ?options page =
+  let send ?options page = Lwt.return @@
     match options with
     | Some `Reload | None ->
-      Eliom_client.change_page_after_action ()
+      Eliom_client.register_reload ()
     | _ ->
-      Eliom_client.do_not_set_uri := true;
-      Lwt.return ()
+      Eliom_client.do_not_set_uri := true
 
 end)
 
@@ -313,7 +312,7 @@ module App (P : Eliom_registration_sigs.APP_PARAM) = struct
 
 end
 
-type _ redirection =
+type 'a redirection = 'a Eliom_client.redirection =
     Redirection :
       (unit, unit, Eliom_service.get , _, _, _, _,
        [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
@@ -341,9 +340,8 @@ module Redirection = struct
 
   let send
       ?options:_ ?charset:_ ?code:_ ?content_type:_ ?headers:_
-      (Redirection service) =
-    let%lwt () = Eliom_client.change_page service () () in
-    Eliom_client.do_not_set_uri := true;
+      rdr =
+    Eliom_client.register_redirect rdr;
     Lwt.return ()
 
   let register
