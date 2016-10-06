@@ -1365,3 +1365,38 @@ let get_secure secure sitedata =
   match secure with
   | None -> sitedata.secure_cookies
   | Some s -> s
+
+module To_and_of_shared = struct
+
+  (* FIXME : work-around for weak polymorphism in create :( *)
+  type wrapper
+
+  type 'a t = {
+    server  : 'a to_and_of ;
+    client  : 'a to_and_of Eliom_client_value.t option;
+    wrapper : wrapper
+  }
+
+  let wrapper : wrapper = Obj.magic @@
+    Eliom_wrap.create_wrapper @@ function
+    | {client = Some tao} ->
+      tao
+    | {client = None} ->
+      failwith
+        "Cannot wrap user type parameter.\n\
+         Use the ?client_to_and_of parameter of Eliom_parameter.user_type\n\
+         or (Eliom_parameter.all_suffix_user)"
+
+  let to_string {server = {to_string}} = to_string
+
+  let of_string {server = {of_string}} = of_string
+
+  let to_and_of {server} = server
+
+  let create ?client_to_and_of server = {
+    server ;
+    client = client_to_and_of ;
+    wrapper
+  }
+
+end

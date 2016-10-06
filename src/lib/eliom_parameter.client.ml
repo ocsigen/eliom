@@ -144,6 +144,12 @@ and reconstruct_params_form :
     | _ ->
       None
 
+let user_type ~of_string ~to_string n =
+  TUserType (n, {of_string ; to_string})
+
+let all_suffix_user ~of_string ~to_string n =
+  TESuffixu (n, {of_string ; to_string})
+
 let reconstruct_params_form l y =
   reconstruct_params_form (M.of_assoc_list l) y >>= fun (v, _) ->
   Some v

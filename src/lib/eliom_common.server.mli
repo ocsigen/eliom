@@ -716,3 +716,25 @@ val get_secure : bool option -> sitedata -> bool
 val is_client_app : bool ref
 
 val make_actual_path : string list -> string list
+
+type 'a to_and_of = {
+  of_string : string -> 'a;
+  to_string : 'a -> string
+}
+
+module To_and_of_shared : sig
+
+  type 'a t
+
+  val create :
+    ?client_to_and_of : 'a to_and_of Eliom_client_value.t ->
+    'a to_and_of ->
+    'a t
+
+  val to_string : 'a t -> 'a -> string
+
+  val of_string : 'a t -> string -> 'a
+
+  val to_and_of : 'a t -> 'a to_and_of
+
+end

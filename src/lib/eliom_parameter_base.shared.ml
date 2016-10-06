@@ -44,7 +44,7 @@ type 'a setoneradio = [ `Set of 'a | `One of 'a | `Radio of 'a ]
 type 'a oneradio = [ `One of 'a | `Radio of 'a ]
 type 'a setone = [ `Set of 'a | `One of 'a ]
 
-type 'a to_and_from = {
+type 'a to_and_of = 'a Eliom_common.to_and_of = {
   of_string : string -> 'a;
   to_string : 'a -> string
 }
@@ -98,13 +98,17 @@ type (_,_) params_type_ =
   | TCoord : string -> (coordinates,[`One of coordinates] param_name) params_type_
   | TFile : string -> (file_info , [ `One of file_info ] param_name) params_type_
 
-  | TUserType : (string * 'a to_and_from) -> ('a, [ `One of 'a ] param_name) params_type_
+  | TUserType :
+      (string * 'a Eliom_common.To_and_of_shared.t) ->
+    ('a, [ `One of 'a ] param_name) params_type_
   | TTypeFilter : (('a,'an) params_type_ * 'a filter) -> ('a,'an) params_type_
   (* remove TCoord *)
 
   | TESuffix :  string -> (string list , [ `One of string list ] param_name) params_type_
   | TESuffixs : string -> (string, [ `One of string ] param_name) params_type_
-  | TESuffixu : (string * 'a to_and_from) -> ('a, [ `One of 'a ] param_name) params_type_
+  | TESuffixu :
+      (string * 'a Eliom_common.To_and_of_shared.t) ->
+    ('a, [ `One of 'a ] param_name) params_type_
   | TSuffix : (bool * ('s, 'sn) params_type_) -> ('s , 'sn) params_type_
   (* bool = redirect the version without suffix to the suffix version *)
 
@@ -148,9 +152,6 @@ let coordinates n = TCoord n
 
 let type_checker check t = TTypeFilter (t, Some check)
 
-let user_type ~(of_string : string -> 'a) ~(to_string : 'a -> string) (n : string) =
-  TUserType (n,{of_string;to_string})
-
 let sum t1 t2 = TSum (t1, t2)
 
 let prod t1 t2 = TProd (t1,t2)
@@ -174,9 +175,6 @@ let suffix_const (v : string) = TConst v
 let all_suffix (n : string) = TESuffix n
 
 let all_suffix_string (n : string) = TESuffixs n
-
-let all_suffix_user ~(of_string : string -> 'a) ~(to_string : 'a -> string) (n : string) =
-  TESuffixu (n, {of_string; to_string})
 
 let suffix ?(redirect_if_not_suffix = true) s = TSuffix (redirect_if_not_suffix, s)
 
@@ -220,7 +218,8 @@ let rec make_suffix : type a c. (a,'b,c) params_type -> a -> string list = fun t
       | a::l ->
         (make_suffix t a)@
         (make_suffix typ l))
-  | TUserType (_, to_and_from) -> [to_and_from.to_string params]
+  | TUserType (_, tao) ->
+    [ Eliom_common.To_and_of_shared.to_string tao params ]
   | TTypeFilter (t, check) -> make_suffix t params
   | TSum (t1, t2) ->
     (match params with
@@ -229,7 +228,8 @@ let rec make_suffix : type a c. (a,'b,c) params_type -> a -> string list = fun t
   | TESuffixs _ -> [params]
   (* | TAny ->       (match params with [] -> [""] | p -> p) *)
   | TESuffix _ -> (match params with [] -> [""] | p -> p)
-  | TESuffixu (_, to_and_from) -> [to_and_from.to_string params]
+  | TESuffixu (_, tao) ->
+    [ Eliom_common.To_and_of_shared.to_string tao params ]
   | TJson (_, typ) -> (* server or client side *)
     [ to_json ?typ params ]
   | _ -> raise (Eliom_Internal_Error "Bad parameter type in suffix")
@@ -279,10 +279,10 @@ let rec aux : type a c. (a,'b,c) params_type -> string list option -> 'y -> a ->
         | Inj1 v -> aux t1 psuff nlp v pref suff l
         | Inj2 v -> aux t2 psuff nlp v pref suff l)
     | TFile name -> psuff, nlp, ((pref^name^suff),insert_file params)::l
-    | TUserType (name, {of_string=of_string; to_string=to_string}) ->
+    | TUserType (name, tao) ->
       psuff, nlp,
-      ((pref^name^suff),
-       insert_string (to_string params))::l
+      ((pref ^ name ^ suff),
+       insert_string (Eliom_common.To_and_of_shared.to_string tao params)) :: l
     | TTypeFilter (t, check) -> aux t psuff nlp params pref suff l
     | TUnit -> psuff, nlp, l
     | TAny -> psuff, nlp, l@(List.map (fun (x,v) -> x,insert_string v) params)
@@ -317,15 +317,17 @@ let construct_params_list_raw nlp typ params = aux typ None nlp params "" "" []
     - string
     - bool
  *)
-let rec get_to_and_from : type a c. (a,'b,c) params_type -> a to_and_from = function
+let rec get_to_and_of : type a c. (a,'b,c) params_type -> a to_and_of = function
   | TOption (o,_) ->
-    let {to_string;of_string} = get_to_and_from o in
+    let {to_string;of_string} = get_to_and_of o in
     {of_string=(fun s -> try Some (of_string s) with _ -> None);
      to_string=(function
          | Some alpha -> to_string alpha
          | None -> "")}
-  | TUserType (_, x) -> x
-  | TESuffixu (_, x) -> x
+  | TUserType (_, tao) ->
+    Eliom_common.To_and_of_shared.to_and_of tao
+  | TESuffixu (_, tao) ->
+    Eliom_common.To_and_of_shared.to_and_of tao
   | TAtom(_,a) -> to_from_of_atom a
   | TJson (_, typ) -> (* server or client side *)
     {of_string=(fun s -> of_json ?typ s);
@@ -333,20 +335,13 @@ let rec get_to_and_from : type a c. (a,'b,c) params_type -> a to_and_from = func
   | TUnit -> {of_string=(fun _ -> ());
               to_string=(fun () -> "")}
   | _ ->
-    failwith "get_to_and_from: not implemented"
-
-
-let guard construct name guard =
-  let {of_string; to_string} = get_to_and_from (construct name) in
-  TUserType (name, {
-      of_string= (fun s -> let alpha = of_string s in assert (guard alpha); alpha);
-      to_string})
+    failwith "get_to_and_of: not implemented"
 
 (** Walk the parameter tree to search for a parameter, given its name *)
-let rec walk_parameter_tree : type a c. string -> (a,'b,c) params_type -> a to_and_from option = fun name x ->
+let rec walk_parameter_tree : type a c. string -> (a,'b,c) params_type -> a to_and_of option = fun name x ->
   let get name' =
     if name = name' then
-      Some (get_to_and_from x)
+      Some (get_to_and_of x)
     else
       None in
   match x with
@@ -543,11 +538,12 @@ let rec wrap_param_type : type a c. (a,'b,c) params_type -> (a,'b,c) params_type
   | TSet t -> TSet (wrap_param_type t)
   | TSum (t1, t2) -> TSum ((wrap_param_type t1),
                            (wrap_param_type t2))
-  | TUserType (name, _) ->
-    (*VVV *)
-    failwith ("User service parameters '"^name^"' type not supported client side.")
-  (* We remove the type information here: not possible to send a closure.
-     marshaling is just basic json marshaling on client side. *)
+  | TUserType (name, tao) ->
+    (* Eliom_common.To_and_of_shared.wrapper will take care of tao *)
+    TUserType (name, tao)
+  (* We remove the type information here: not possible to send a
+     closure.  marshaling is just basic json marshaling on client
+     side. *)
   | TJson (name, _) -> TJson (name, None)
   (* the filter is only on server side (at least for now) *)
   | TTypeFilter (t, _) -> TTypeFilter (t, None)
@@ -590,10 +586,12 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
       | TESuffix _, l -> l, []
           (*VVV encode=false? *)
       | TESuffixs _, l -> Url.string_of_url_path ~encode:false l, []
-      | TESuffixu (_, ofto), l ->
+      | TESuffixu (_, tao), l ->
           (try
              (*VVV encode=false? *)
-             ofto.of_string (Url.string_of_url_path ~encode:false l), []
+             Eliom_common.To_and_of_shared.of_string tao
+               (Url.string_of_url_path ~encode:false l),
+             []
            with e ->
              raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
       | TOption (t,_), [] -> None, []
@@ -634,8 +632,9 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
       | TAtom (name, t), v::l ->
         (try atom_of_string t v, l
          with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
-      | TUserType (name, ofto), v::l ->
-        (try ofto.of_string v, l
+      | TUserType (name, tao), v::l ->
+        (try
+           Eliom_common.To_and_of_shared.of_string tao v, l
          with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
       | TTypeFilter (t, None), _ -> failwith "Type filter without filter"
       | TTypeFilter (t, Some check), l ->
@@ -801,9 +800,9 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
                 ignore (int_of_string v);
                 Errors_ (errs, l, f)
               with e -> Errors_ (((pref^name^suff^".y"), v, e)::errs, l, f)))
-        | TUserType (name, ofto) ->
+        | TUserType (name, tao) ->
           let v,l = (List.assoc_remove (pref^name^suff) params) in
-          (try Res_ (ofto.of_string v,l,files)
+          (try Res_ (Eliom_common.To_and_of_shared.of_string tao v,l,files)
            with e -> Errors_ ([(pref^name^suff),v,e], l, files))
         | TTypeFilter (t, None) -> failwith "Type filter without filter"
         | TTypeFilter (t, Some check) ->
@@ -823,10 +822,10 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
           let v,l = List.assoc_remove n params in
           (* cannot have prefix or suffix *)
           Res_ (v, l, files)
-        | TESuffixu (n, ofto) ->
+        | TESuffixu (n, tao) ->
           let v,l = List.assoc_remove n params in
           (* cannot have prefix or suffix *)
-          (try Res_ (ofto.of_string v, l, files)
+          (try Res_ (Eliom_common.To_and_of_shared.of_string tao v, l, files)
            with e -> Errors_ ([(pref^n^suff), v, e], l, files))
         | TSuffix (_, s) ->
           (match urlsuffix with

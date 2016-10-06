@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Copyright (C) 2007 Vincent Balat
+ * Copyright (C) 2007-2016 Vincent Balat
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +21,31 @@ include Eliom_parameter_sigs.S
   with type raw_post_data =
     ((string * string) * (string * string) list) option *
     string Ocsigen_stream.t option
+
+(** [user_type ~of_string ~to_string s] construct a parameter, labeled
+    [s], such that the server will have to use [of_string] and
+    [to_string] to make the conversion between the OCaml
+    representation of the parameter and it's representation as a
+    string. It allows one to use any type for a parameter. Providing
+    converters via the optional [?client_to_and_from] parameter allows
+    injecting the parameter (or a service that uses it) for use in
+    client code. *)
+val user_type :
+  ?client_to_and_of : 'a to_and_of Eliom_client_value.t ->
+  of_string : (string -> 'a) ->
+  to_string : ('a -> string) ->
+  string ->
+  ('a, [ `WithoutSuffix ], [ `One of 'a ] param_name) params_type
+
+(** Takes the whole suffix, as long as possible, with a type specified
+    by the user. See [user_type] for the description of the
+    arguments. *)
+val all_suffix_user :
+  ?client_to_and_of : 'a to_and_of Eliom_client_value.t ->
+  of_string : (string -> 'a) ->
+  to_string : ('a -> string) ->
+  string ->
+  ('a, [ `Endsuffix ], [` One of 'a ] param_name) params_type
 
 (** Specifying parameter as [type_checker check t] is equivalent as
     [t] but the check function is called after decoding the

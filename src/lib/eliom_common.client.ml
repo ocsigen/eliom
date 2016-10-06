@@ -49,3 +49,15 @@ let get_site_dir sitedata = sitedata.Eliom_types.site_dir
 let get_site_dir_string sitedata = sitedata.Eliom_types.site_dir_string
 
 let add_unregistered _ _ = ()
+
+module To_and_of_shared = struct
+
+  type 'a t = 'a to_and_of
+
+  let of_string {of_string} = of_string
+
+  let to_string {to_string} = to_string
+
+  let to_and_of tao = tao
+
+end
