@@ -413,3 +413,8 @@ type ('params, 'result) service = {
   s_expire          : (float * float ref) option;
   s_f               : bool -> 'params -> 'result Lwt.t
 }
+
+type 'a to_and_of = {
+  of_string : string -> 'a;
+  to_string : 'a -> string
+}

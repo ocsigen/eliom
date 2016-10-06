@@ -29,7 +29,32 @@ open Ocsigen_extensions
 
 let section = Lwt_log.Section.make "eliom:parameter"
 
-(*****************************************************************************)
+(* server-specific constructors *)
+
+let user_type
+    ?client_to_and_of
+    ~(of_string : string -> 'a)
+    ~(to_string : 'a -> string)
+    (n : string) =
+  TUserType (
+    n,
+    Eliom_common.To_and_of_shared.create
+      ?client_to_and_of
+      {of_string ; to_string}
+  )
+
+let all_suffix_user
+    ?client_to_and_of
+    ~(of_string : string -> 'a)
+    ~(to_string : 'a -> string)
+    (n : string) =
+  TESuffixu (
+    n,
+    Eliom_common.To_and_of_shared.create
+      ?client_to_and_of
+      {of_string ; to_string}
+  )
+
 (* types available only on server side (no pcre on browser) *)
 
 let regexp reg dest ~to_string n =
