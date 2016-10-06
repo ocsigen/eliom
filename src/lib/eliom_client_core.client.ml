@@ -136,9 +136,7 @@ end = struct
          "Client closure %s not found %s (is the module linked on the client?)"
           closure_id pos
     in
-    let value = try closure args
-      with e -> Js.debugger (); raise e
-    in
+    let value = closure args in
     Eliom_unwrap.late_unwrap_value server_value value;
     (* Only register global client values *)
     let instance_id =
