@@ -65,10 +65,14 @@ end
 (** Signature of specific code of a preprocessor. *)
 module type Pass = sig
 
-  (** How to handle "client", "shared" and "server" sections for top level structure items. *)
+  (** How to handle "client", "shared" and "server" sections for top level structure items.
 
-  val shared_str: structure_item -> structure_item list
-  val server_str: structure_item -> structure_item list
+      For shared and server, the boolean argument indicate if this
+      declaration can lead to evaluation of a fragment.
+  *)
+
+  val shared_str: bool -> structure_item -> structure_item list
+  val server_str: bool -> structure_item -> structure_item list
   val client_str: structure_item -> structure_item list
 
   (** How to handle "client", "shared" and "server" sections for top level signature items. *)

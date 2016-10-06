@@ -96,6 +96,9 @@ module Pass = struct
     | [] -> []
     | _ -> [Str.eval (AC.sequence registrations)]
 
+  (* We hoist the body of client fragments to enforce the correct scoping:
+     Identifiers declared earlier in the client section should not be
+     visible inside the client fragment (unless via escaped value). *)
   let define_client_functions ~loc client_value_datas =
     match client_value_datas with
     | [] ->
@@ -126,8 +129,8 @@ module Pass = struct
           [%e eid @@ id_file_hash loc]
     ][@metaloc loc]
 
-  let may_close_server_section item =
-    if Cannot_have_fragment.structure_item item
+  let may_close_server_section ~no_fragment item =
+    if no_fragment
     then []
     else [close_server_section item.pstr_loc]
 
@@ -151,18 +154,18 @@ module Pass = struct
     may_open_client_section loc @
     [ item ]
 
-  let server_str item =
+  let server_str no_fragment item =
     register_client_closures (flush_client_value_datas ()) @
-    may_close_server_section item
+    may_close_server_section ~no_fragment item
 
-  let shared_str item =
+  let shared_str no_fragment item =
     let loc = item.pstr_loc in
     let client_expr_data = flush_client_value_datas () in
     may_open_client_section loc @
     register_client_closures client_expr_data @
     define_client_functions loc client_expr_data @
     [ item ] @
-    may_close_server_section item
+    may_close_server_section ~no_fragment item
 
   let fragment ?typ:_ ~context ~num ~id expr =
 

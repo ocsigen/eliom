@@ -102,10 +102,10 @@ module Pass = struct
           [%e eid @@ id_file_hash loc]
     ] [@metaloc loc]
 
-  let may_close_server_section item =
-    if Cannot_have_fragment.structure_item item
+  let may_close_server_section ~no_fragment loc =
+    if no_fragment
     then []
-    else [close_server_section item.pstr_loc]
+    else [close_server_section loc]
 
 
   let close_client_section loc injections =
@@ -147,16 +147,17 @@ module Pass = struct
       bind_injected_idents l ::
       [ close_client_section loc all_injections ]
 
-  let server_str item =
+  let server_str no_fragment item =
+    let loc = item.pstr_loc in
     item ::
-    may_close_server_section item
+    may_close_server_section ~no_fragment loc
 
-  let shared_str item =
+  let shared_str no_fragment item =
     let all_injections = flush_injections () in
     let loc = item.pstr_loc in
     let cl =
       item ::
-      may_close_server_section item
+      may_close_server_section ~no_fragment loc
     in
     match all_injections with
     | [] -> cl
