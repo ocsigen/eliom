@@ -326,6 +326,12 @@ module type Pass = sig
 
 end
 
+(** These functions try to guess if a given expression will lead to a fragment evaluation
+    This is not possible in general, this criteria is only syntactic
+
+    If the expression cannot have fragments, we don't need to use sections.
+    Consequently, this function should *never* return false positive.
+*)
 module Cannot_have_fragment = struct
 
   let opt_forall p = function
