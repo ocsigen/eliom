@@ -45,6 +45,16 @@ module Pass = struct
     in
     push, flush
 
+  let mark_injection, flush_injection =
+    let has_injection = ref false in
+    let mark () = has_injection := true in
+    let flush () =
+      let x = !has_injection in
+      has_injection := false ;
+      x
+    in
+    mark, flush
+
   let push_client_value_data, flush_client_value_datas =
     let client_value_datas = ref [] in
     let push gen_num gen_id expr (args : string Location.loc list) =
@@ -82,11 +92,9 @@ module Pass = struct
         )
         client_value_datas
     in
-    [%str
-      let () =
-        [%e AC.sequence registrations] ;
-        ()
-    ]
+    match registrations with
+    | [] -> []
+    | _ -> [Str.eval (AC.sequence registrations)]
 
   let define_client_functions ~loc client_value_datas =
     match client_value_datas with
@@ -115,40 +123,46 @@ module Pass = struct
     [%stri
       let () =
         Eliom_client_core.Syntax_helpers.close_server_section
-          [%e AC.str @@ file_hash loc]
+          [%e eid @@ id_file_hash loc]
     ][@metaloc loc]
+
+  let may_close_server_section item =
+    if Cannot_have_fragment.structure_item item
+    then []
+    else [close_server_section item.pstr_loc]
+
 
   let open_client_section loc =
     [%stri
       let () =
         Eliom_client_core.Syntax_helpers.open_client_section
-          [%e AC.str @@ file_hash loc]
+          [%e eid @@ id_file_hash loc]
     ][@metaloc loc]
+
+  let may_open_client_section loc =
+    if flush_injection ()
+    then [ open_client_section loc ]
+    else []
 
   (** Syntax extension *)
 
   let client_str item =
     let loc = item.pstr_loc in
-    [ open_client_section loc ;
-      item ;
-    ]
+    may_open_client_section loc @
+    [ item ]
 
   let server_str item =
-    let loc = item.pstr_loc in
     register_client_closures (flush_client_value_datas ()) @
-    [ close_server_section loc ]
+    may_close_server_section item
 
   let shared_str item =
     let loc = item.pstr_loc in
     let client_expr_data = flush_client_value_datas () in
-    open_client_section loc ::
+    may_open_client_section loc @
     register_client_closures client_expr_data @
     define_client_functions loc client_expr_data @
-    [ item ;
-      close_server_section loc ;
-    ]
-
-
+    [ item ] @
+    may_close_server_section item
 
   let fragment ?typ:_ ~context ~num ~id expr =
 
@@ -215,6 +229,7 @@ module Pass = struct
 
     (* [%%server ... %x ... ] *)
     | `Injection _section ->
+      mark_injection () ;
       let typ = find_injected_ident id in
       let typ = assert_no_variables typ in
       let ident = match ident with

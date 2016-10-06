@@ -96,14 +96,20 @@ module Pass = struct
     Str.value Nonrecursive bindings
 
   let close_server_section loc =
-    let s = file_hash loc in
     [%stri
       let () =
         Eliom_syntax.close_server_section
-          [%e AC.str s]
+          [%e eid @@ id_file_hash loc]
     ] [@metaloc loc]
 
+  let may_close_server_section item =
+    if Cannot_have_fragment.structure_item item
+    then []
+    else [close_server_section item.pstr_loc]
+
+
   let close_client_section loc injections =
+    assert (injections <> []) ;
     let injection_list =
       List.fold_right
         (fun (txt, expr, ident) sofar ->
@@ -122,11 +128,10 @@ module Pass = struct
         injections
         [%expr []]
     in
-    let s = file_hash loc in
     [%stri
       let () =
         Eliom_syntax.close_client_section
-          [%e AC.str s ]
+          [%e eid @@ id_file_hash loc ]
           [%e injection_list ]
     ][@metaloc loc]
 
@@ -135,36 +140,30 @@ module Pass = struct
 
   let client_str item =
     let all_injections = flush_injections () in
-    let ccs =
-      let loc = item.pstr_loc in
-      close_client_section loc all_injections
-    in
+    let loc = item.pstr_loc in
     match all_injections with
-    | [] ->
-      [ ccs ]
-    | l ->
-      [ bind_injected_idents l ; ccs ]
+    | [] -> []
+    | l  ->
+      bind_injected_idents l ::
+      [ close_client_section loc all_injections ]
 
-  let server_str item = [
-    item ;
-    close_server_section item.pstr_loc
-  ]
+  let server_str item =
+    item ::
+    may_close_server_section item
 
   let shared_str item =
     let all_injections = flush_injections () in
+    let loc = item.pstr_loc in
     let cl =
-      let loc = item.pstr_loc in
-      [
-        item;
-        close_server_section loc ;
-        close_client_section loc all_injections ;
-      ]
+      item ::
+      may_close_server_section item
     in
     match all_injections with
-    | [] ->
-      cl
+    | [] -> cl
     | l ->
-      bind_injected_idents l :: cl
+      bind_injected_idents l ::
+      cl @
+      [ close_client_section loc all_injections ]
 
   let fragment ?typ ~context:_ ~num ~id expr =
     let typ =

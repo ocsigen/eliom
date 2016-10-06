@@ -55,6 +55,25 @@ let file_hash loc =
   done;
   Bytes.to_string o
 
+let id_file_hash loc =
+  let prefix = "__eliom__compilation_unit_id__" in
+  {Location. loc ; txt = prefix ^ file_hash loc}
+
+(** [let __eliom__compilation_unit_id__HASH = "HASH"]
+    We hoist the file hash at the beginning of each eliom file.
+    This makes the generated javascript code smaller.
+*)
+let module_hash_declaration loc =
+  let id = Pat.var ~loc @@ id_file_hash loc in
+  Str.value ~loc Nonrecursive [Vb.mk ~loc id @@ AC.str @@ file_hash loc]
+
+(** The first position in a file, if it exists.
+    We avoid {!Location.input_name}, as it's unreliable when reading multiple files.
+*)
+let file_position str = match str with
+  | { pstr_loc } :: _ -> Location.in_file @@ pstr_loc.loc_start.pos_fname
+  | [] -> Location.none
+
 let lexing_position ~loc l =
   [%expr
     { Lexing.pos_fname = [%e AC.str l.Lexing.pos_fname];
@@ -307,6 +326,105 @@ module type Pass = sig
 
 end
 
+module Cannot_have_fragment = struct
+
+  let opt_forall p = function
+    | None -> true
+    | Some x -> p x
+
+  let vb_forall p l =
+    let p x = p x.pvb_expr in
+    List.for_all p l
+
+  let rec longident = function
+    | Longident.Lident _ -> true
+    | Longident.Ldot (x,_) -> longident x
+    | Longident.Lapply (_,_) -> false
+
+  let rec expression e = match e.pexp_desc with
+    | Pexp_ident _
+    | Pexp_constant _
+    | Pexp_function _
+    | Pexp_lazy _
+    | Pexp_fun _
+      -> true
+
+    | Pexp_newtype (_,e)
+    | Pexp_assert e
+    | Pexp_field (e,_)
+    | Pexp_constraint (e,_)
+    | Pexp_coerce (e,_,_)
+    | Pexp_poly (e,_)
+    | Pexp_try (e,_) -> expression e
+
+    | Pexp_ifthenelse (b,e1,e2) ->
+      expression b && expression e1 && opt_forall expression e2
+    | Pexp_sequence (e1,e2)
+    | Pexp_setfield (e1,_,e2) -> expression e1 && expression e2
+    | Pexp_array l
+    | Pexp_tuple l -> List.for_all expression l
+    | Pexp_record (l,e) ->
+      let p x = expression @@ snd x in
+      opt_forall expression e && List.for_all p l
+
+    | Pexp_construct (_,e)
+    | Pexp_variant (_,e) -> opt_forall expression e
+    | Pexp_let (_,l,e) -> vb_forall expression l && expression e
+    | Pexp_open (_,x,e) -> longident x.txt && expression e
+    | Pexp_letmodule (_,me,e) -> module_expr me && expression e
+
+    (* We could be more precise on those constructs *)
+    | Pexp_object _
+    | Pexp_while _
+    | Pexp_for _
+    | Pexp_match _
+    | Pexp_pack _
+      -> false
+
+    (* We can't say more using syntactic information. *)
+    | Pexp_extension _
+    | Pexp_send _
+    | Pexp_new _
+    | Pexp_setinstvar _
+    | Pexp_override _
+    | Pexp_apply _
+    | _
+      -> false
+
+  and module_expr x = match x.pmod_desc with
+    | Pmod_ident l -> longident l.txt
+    | Pmod_functor _ -> true
+    | Pmod_unpack e -> expression e
+    | Pmod_constraint (e,_) -> module_expr e
+    | Pmod_structure l -> List.for_all structure_item l
+
+    | Pmod_apply _
+    | _
+      -> false
+
+  and module_binding m = module_expr m.pmb_expr
+
+  and structure_item x = match x.pstr_desc with
+    | Pstr_type _
+    | Pstr_typext _
+    | Pstr_exception _
+    | Pstr_modtype _
+    | Pstr_class _
+    | Pstr_class_type _
+      -> true
+
+    | Pstr_eval (e,_) -> expression e
+    | Pstr_value (_,vb) -> vb_forall expression vb
+    | Pstr_primitive _ -> true
+    | Pstr_module mb -> module_binding mb
+    | Pstr_recmodule mbl -> List.for_all module_binding mbl
+    | Pstr_open x -> longident x.popen_lid.txt
+    | Pstr_include x -> module_expr x.pincl_mod
+
+    | _ -> false
+
+end
+
 (**
    Replace shared expression by the equivalent pair.
 
@@ -515,8 +633,11 @@ module Make (Pass : Pass) = struct
       | _ ->
         dispatch_str !context mapper pstr
     in
-    let loc = {(Location.in_file !Location.input_name) with loc_ghost = true} in
-    Pass.prelude loc @ flatmap f structs @ Pass.postlude loc
+    let loc = {(file_position structs) with loc_ghost = true} in
+    module_hash_declaration loc ::
+    Pass.prelude loc @
+    flatmap f structs @
+    Pass.postlude loc
 
   let toplevel_signature context mapper sigs =
     let f psig =

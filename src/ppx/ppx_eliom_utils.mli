@@ -2,7 +2,8 @@ open Parsetree
 
 (** {2 Various helping functions} *)
 
-val file_hash : Location.t -> string
+(** Name of the variable which holds the hash of the file. *)
+val id_file_hash : Location.t -> string Location.loc
 
 val eid : string Location.loc -> expression
 
@@ -11,6 +12,20 @@ val position : Location.t -> expression
 val format_args : expression list -> expression
 
 val pat_args : pattern list -> pattern
+
+(** These functions try to guess if a given expression will lead to a fragment evaluation
+    This is not possible in general, this criteria is only syntactic
+
+    If the expression cannot have fragments, we don't need to use sections.
+    Consequently, this function should *never* return false positive.
+*)
+module Cannot_have_fragment : sig
+
+  val expression : expression -> bool
+  val structure_item : structure_item -> bool
+
+end
+
 
 (** Context convenience module. *)
 module Context : sig

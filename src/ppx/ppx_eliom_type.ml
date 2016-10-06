@@ -130,12 +130,7 @@ module Pass = struct
     | `Injection `Shared -> expr
     | `Injection `Client -> [%expr assert false]
 
-  let prelude loc =
-    let txt =
-      Printf.sprintf "__eliom__compilation_unit_id__%s" (file_hash loc) in
-    let id = Pat.var ~loc { loc ; txt } in
-    [%str let [%p id] = () ]
-
+  let prelude _ = []
   let postlude _ = []
 
   let shared_sig _ = []
