@@ -756,14 +756,18 @@ let redirect_active () =
   | Some (`Redirect _) -> true
   | _ -> false
 
+let change_url_string_protected ~replace url =
+  if not (redirect_active ()) then
+    change_url_string ~replace url
+
 let route ~replace ?(keep_url = false)
     ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
   let r = !Eliom_request_info.get_sess_info in
   try%lwt
     update_session_info i_get_params (Some i_post_params);
     let%lwt () = Eliom_route.call_service info in
-    if not (keep_url || redirect_active ()) then
-      change_url_string ~replace (make_uri i_subpath i_get_params);
+    if not keep_url then
+      change_url_string_protected ~replace (make_uri i_subpath i_get_params);
     Lwt.return ()
   with e ->
     Eliom_request_info.get_sess_info := r;
@@ -798,13 +802,13 @@ let current_path () =
   | None ->
     None
 
-let after_action () =
+let after_action uri =
   let
     ({ Eliom_common.si_all_get_params ; si_all_post_params }
      as i_sess_info) =
     !Eliom_request_info.get_sess_info ()
   and i_subpath =
-    match current_path () with
+    match path_of_url_string uri with
     | Some path ->
       path
     | None ->
@@ -829,14 +833,14 @@ let after_action () =
     with _ ->
       Lwt.return ()
 
-let do_follow_up () =
+let do_follow_up uri =
   match !follow_up with
   | Some (`Redirect f) ->
     follow_up := None;
-    f ()
+    f uri
   | Some `Reload ->
     follow_up := None;
-    after_action ()
+    after_action uri
   | None ->
     Lwt.return ()
 
@@ -907,14 +911,8 @@ let change_page (type m)
            let l = ocamlify_params l in
            update_session_info l l';
            let%lwt () = f get_params post_params in
-           (match path_of_url_string uri with
-            | Some path when not (redirect_active ()) ->
-              change_url_string ~replace (make_uri path l);
-            | Some _ ->
-              ()
-            | None ->
-              failwith "change_page: cannot find service path");
-           do_follow_up ()
+           change_url_string_protected ~replace uri;
+           do_follow_up uri
          | None when is_client_app () ->
            Lwt.return @@ exit_to
              ?absolute ?absolute_path ?https ~service ?hostname ?port
@@ -961,8 +959,14 @@ let register_reload () =
   follow_up := Some `Reload
 
 let register_redirect (Redirection service) =
-  follow_up :=
-    Some (`Redirect (fun () -> change_page ~replace:true ~service () ()))
+  let f uri =
+    (* locally modifying URI with that of the redirection service
+       (without touching the history) for reload actions to work
+       correctly; the change_page will take care of the history *)
+    current_uri := uri;
+    change_page ~replace:false ~service () ()
+  in
+  follow_up := Some (`Redirect f)
 
 let change_page_unknown
     ?meth ?hostname ?(replace = false) i_subpath i_get_params i_post_params =
@@ -985,10 +989,9 @@ let change_page_unknown
       i_post_params
     }
   in
-  do_follow_up ()
+  do_follow_up (make_uri i_subpath i_get_params)
 
 (* Function used in "onclick" event handler of <a>.  *)
-
 let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
   Lwt_log.ign_debug ~section "Change page uri";
   with_progress_cursor
