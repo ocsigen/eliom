@@ -299,8 +299,8 @@ module type Pass = sig
 
   (** How to handle "client", "shared" and "server" sections for top level structure items. *)
 
-  val shared_str: structure_item -> structure_item list
-  val server_str: structure_item -> structure_item list
+  val shared_str: bool -> structure_item -> structure_item list
+  val server_str: bool -> structure_item -> structure_item list
   val client_str: structure_item -> structure_item list
 
   (** How to handle "client", "shared" and "server" sections for top level signature items. *)
@@ -326,6 +326,12 @@ module type Pass = sig
 
 end
 
+(** These functions try to guess if a given expression will lead to a fragment evaluation
+    This is not possible in general, this criteria is only syntactic
+
+    If the expression cannot have fragments, we don't need to use sections.
+    Consequently, this function should *never* return false positive.
+*)
 module Cannot_have_fragment = struct
 
   let opt_forall p = function
@@ -588,20 +594,25 @@ module Make (Pass : Pass) = struct
       structure item.
   *)
 
-  let dispatch (server, shared, client) field context str =
+  let dispatch_str context _mapper stri =
+    (* We must do this before any transformation on the structure. *)
+    let no_fragment = Cannot_have_fragment.structure_item stri in
     let f = match context with
-      | `Server -> server | `Shared -> shared | `Client -> client
+      | `Server -> Pass.server_str no_fragment
+      | `Shared -> Pass.shared_str no_fragment
+      | `Client -> Pass.client_str
     in
     let m = eliom_mapper context in
-    f @@ (field m) m str
+    f @@ m.AM.structure_item m stri
 
-  let dispatch_str c _mapper =
-    dispatch Pass.(server_str, shared_str, client_str)
-      (fun x -> x.AM.structure_item) c
-
-  let dispatch_sig c _mapper =
-    dispatch Pass.(server_sig, shared_sig, client_sig)
-      (fun x -> x.AM.signature_item) c
+  let dispatch_sig context _mapper sigi =
+    let f = match context with
+      | `Server -> Pass.server_sig
+      | `Shared -> Pass.shared_sig
+      | `Client -> Pass.client_sig
+    in
+    let m = eliom_mapper context in
+    f @@ m.AM.signature_item m sigi
 
   let toplevel_structure context mapper structs =
     let f pstr =

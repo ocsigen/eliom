@@ -13,20 +13,6 @@ val format_args : expression list -> expression
 
 val pat_args : pattern list -> pattern
 
-(** These functions try to guess if a given expression will lead to a fragment evaluation
-    This is not possible in general, this criteria is only syntactic
-
-    If the expression cannot have fragments, we don't need to use sections.
-    Consequently, this function should *never* return false positive.
-*)
-module Cannot_have_fragment : sig
-
-  val expression : expression -> bool
-  val structure_item : structure_item -> bool
-
-end
-
-
 (** Context convenience module. *)
 module Context : sig
 
@@ -65,10 +51,14 @@ end
 (** Signature of specific code of a preprocessor. *)
 module type Pass = sig
 
-  (** How to handle "client", "shared" and "server" sections for top level structure items. *)
+  (** How to handle "client", "shared" and "server" sections for top level structure items.
 
-  val shared_str: structure_item -> structure_item list
-  val server_str: structure_item -> structure_item list
+      For shared and server, the boolean argument indicate if this
+      declaration can lead to evaluation of a fragment.
+  *)
+
+  val shared_str: bool -> structure_item -> structure_item list
+  val server_str: bool -> structure_item -> structure_item list
   val client_str: structure_item -> structure_item list
 
   (** How to handle "client", "shared" and "server" sections for top level signature items. *)
