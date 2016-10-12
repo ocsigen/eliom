@@ -15,6 +15,7 @@
 ===[[clientserver-applications|Eliom applications]]
 ===[[clientserver-html|Generating HTML]]
 ===[[clientserver-communication|Communication]]
+===[[clientserver-services|Client-side services]]
 ===[[clientserver-react|Shared reactive programming]]
 ===[[clientserver-wrapping|Custom wrapping]]
 
