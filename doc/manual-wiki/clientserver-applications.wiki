@@ -79,20 +79,25 @@ For each Eliom application, you must create a service registration module
 by applying the {{{App}}} functor:
 
 <<code language="ocaml"|
-module My_appl =
+module My_app =
   Eliom_registration.App (
     struct
       let application_name = "the name of your application"
+      let global_data_path = None
     end)
 >>
 
 the {{{application_name}}} parameter is the name of the javascript file
 containing the application.
 
+The {{{global_data_path}}} specifies the path of an auxilliary service
+needed for mobile apps, and you can provide {{{None}}} for standard
+web applications.
+
 Then you can do for example:
 <<code language="ocaml"|
 let my_service =
-  My_appl.create
+  My_app.create
     ~path:(Eliom_service.Path [""])
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () -> Lwt.return (html
@@ -127,7 +132,7 @@ an application page by setting the {{{do_not_launch}}} to {{{true}}}
 at the service registration:
 <<code language="ocaml"|
 let no_launch_service =
-  My_appl.register
+  My_app.register
     ~option:{ Eliom_registration.default_appl_service_options with
               do_not_launch = true }
     ~path:(Eliom_service.Path [""])

@@ -123,7 +123,7 @@ included in the initial html document from event handlers, as the
 
 <<code language="ocaml"|
 let main_service =
-  My_appl.register_service
+  My_app.register_service
     ~path:(Eliom_service.Path [""])
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () ->
@@ -226,6 +226,7 @@ module Reactivenodes_app =
   Eliom_registration.App (
   struct
     let application_name = "reactivenodes"
+    let global_data_path = None
   end)
 
 [%%client
@@ -322,6 +323,7 @@ module Testnodes_app =
   Eliom_registration.App (
   struct
     let application_name = "testnodes"
+    let global_data_path = None
   end)
 
 let main_service =
@@ -388,10 +390,11 @@ preserved when you click on the "reload page" link.
 <<code language="ocaml"|
 [%%shared open Eliom_content.Html.D ]
 
-module My_appl =
+module My_app =
   Eliom_registration.App (
   struct
     let application_name = "myo"
+    let global_data_path = None
   end)
 
 
@@ -408,7 +411,7 @@ let reload_link =
   a ~service:main_service [pcdata "reload page"] ()
 
 let _ =
-  Eliom_registration.App.register ~service:main_service
+  My_app.register ~service:main_service
     (fun () () ->
        let page_number = incr cpt; string_of_int !cpt in
        let append_item = [%client
@@ -454,7 +457,7 @@ let reload_link =
   a ~service:main_service [pcdata "reload page"] ()
 
 let _ =
-  My_appl.register ~service:main_service
+  My_app.register ~service:main_service
     (fun () () ->
        Lwt.return
          (html
