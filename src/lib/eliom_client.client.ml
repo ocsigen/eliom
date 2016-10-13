@@ -553,7 +553,7 @@ let set_uri ~replace ?fragment uri =
   | None -> change_url_string ~replace uri
   | Some fragment -> change_url_string ~replace (uri ^ "#" ^ fragment)
 
-let replace_page new_page =
+let replace_page ~do_insert_base new_page =
   if !Eliom_config.debug_timings
   then Firebug.console##(time (Js.string "replace_page"));
   if !only_replace_body then begin
@@ -566,7 +566,7 @@ let replace_page new_page =
     (* We insert <base> in the page.
        The URLs of all other pages will be computed w.r.t.
        the base URL. *)
-    insert_base new_page;
+    if do_insert_base then insert_base new_page;
     Dom.replaceChild Dom_html.document
       new_page
       Dom_html.document##.documentElement
@@ -591,7 +591,7 @@ let set_content_local ?offset ?fragment new_page =
     (* Wait for CSS to be inlined before substituting global nodes: *)
     let%lwt () = preloaded_css in
     (* Really change page contents *)
-    replace_page new_page;
+    replace_page ~do_insert_base:true new_page;
     Eliommod_dom.add_formdata_hack_onclick_handler ();
     locked := false;
     let load_callbacks = flush_onload () @ [broadcast_load_end] in
@@ -665,7 +665,7 @@ let set_content ~replace ?uri ?offset ?fragment content =
       Eliom_request_info.set_session_info
         js_data.Eliom_common.ejs_sess_info;
       (* Really change page contents *)
-      replace_page fake_page;
+      replace_page ~do_insert_base:false fake_page;
       (* Initialize and provide client values. May need to access to
          new DOM. Necessary for relinking closure nodes *)
       do_request_data js_data.Eliom_common.ejs_request_data;
