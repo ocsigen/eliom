@@ -50,7 +50,7 @@ let%shared () =
          (Eliom_tools.F.html
             ~title:"hybrid"
             Html.F.(body [
-              h1 [pcdata "Salut !"];
+              h1 [pcdata "Hello!"];
             ])))
 >>
 
