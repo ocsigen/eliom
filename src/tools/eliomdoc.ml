@@ -57,7 +57,7 @@ let compile_intf file =
       @ (get_default_args ())
       @ (get_common_include ())
       @ (map_include !eliom_inc_dirs)
-		  @ ["-intf"; file] ))
+      @ ["-intf"; file] ))
 
 let compile_impl file =
   wait (
@@ -68,7 +68,7 @@ let compile_impl file =
       @ (get_default_args ())
       @ (get_common_include ())
       @ (map_include !eliom_inc_dirs)
-		  @ ["-impl"; file] ))
+      @ ["-impl"; file] ))
 
 let server_pp_opt impl_intf =
   match !pp_mode with

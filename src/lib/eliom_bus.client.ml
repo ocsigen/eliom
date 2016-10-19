@@ -80,10 +80,13 @@ let create service channel waiter =
     let t,u = Lwt.wait () in
     (try%lwt let%lwt _ = t in assert false with e -> [%lwt raise ( e)]), u in
   let stream =
-    lazy (let stream = Eliom_comet.register channel in
-	  (* iterate on the stream to consume messages: avoid memory leak *)
-	  let _ = consume error_h stream in
-	  stream) in
+    lazy (
+      let stream = Eliom_comet.register channel in
+      (* iterate on the stream to consume messages: avoid memory leak *)
+      let _ = consume error_h stream in
+      stream
+    )
+  in
   let t = {
     channel;
     stream;

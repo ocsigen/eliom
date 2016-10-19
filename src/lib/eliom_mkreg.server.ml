@@ -25,19 +25,19 @@ let suffix_redir_uri_key = Polytables.make_key ()
 
 type ('options,'page,'result) param =
     { send :
-	?options:'options ->
-	?charset:string ->
-	?code: int ->
-	?content_type:string ->
-	?headers: Http_headers.t ->
-	'page ->
-	Ocsigen_http_frame.result Lwt.t;
+        ?options:'options ->
+        ?charset:string ->
+        ?code: int ->
+        ?content_type:string ->
+        ?headers: Http_headers.t ->
+        'page ->
+        Ocsigen_http_frame.result Lwt.t;
 
       send_appl_content : S.send_appl_content;
       (** Whether the service is capable to send application content when
-	  required. This field is usually [Eliom_service.XNever]. This
-	  value is recorded inside each service just after
-	  registration.  *)
+          required. This field is usually [Eliom_service.XNever]. This
+          value is recorded inside each service just after
+          registration.  *)
 
       result_of_http_result : Ocsigen_http_frame.result -> 'result; }
 
@@ -73,8 +73,8 @@ let check_before name service =
   (* the appl name of the service *)
   with
     | S.XSame_appl (an, _)
-	when (an = name)
-	  -> (* Same appl, it is ok *) false
+        when (an = name)
+          -> (* Same appl, it is ok *) false
     | S.XAlways -> (* It is an action *) false
     | _ -> true
 
@@ -98,11 +98,11 @@ let check_process_redir sp f param =
     if Eliom_request_info.expecting_process_page ()
     then
       match sp.Eliom_common.sp_client_appl_name with
-	(* the appl name as sent by browser *)
-	| None -> false (* should not happen *)
-	| Some anr -> f anr param
-	  (* the browser asked application eliom data
-	     (content only) for application anr *)
+        (* the appl name as sent by browser *)
+        | None -> false (* should not happen *)
+        | Some anr -> f anr param
+          (* the browser asked application eliom data
+             (content only) for application anr *)
     else false
   in
   if redir
@@ -110,9 +110,9 @@ let check_process_redir sp f param =
     let ri = Eliom_request_info.get_ri_sp sp in
     [%lwt raise (
       (* we answer to the xhr
-	 by asking an HTTP redirection *)
+         by asking an HTTP redirection *)
       (Eliom_common.Eliom_do_half_xhr_redirection
-	 ("/"^
+         ("/"^
              Eliom_lib.String.may_concat
                   (Ocsigen_extensions.Ocsigen_request_info.original_full_path_string ri)
                   ~sep:"?"
@@ -180,7 +180,7 @@ let register_aux pages
     S.set_send_appl_content service (pages.send_appl_content);
     begin
       match S.info service with
-	| S.Attached attser ->
+        | S.Attached attser ->
           let key_meth = S.which_meth_untyped service in
           let attserget = S.get_name attser in
           let attserpost = S.post_name attser in
@@ -219,71 +219,71 @@ let register_aux pages
                       let ri = Eliom_request_info.get_ri_sp sp
                       and suff = Eliom_request_info.get_suffix_sp sp in
                       (Lwt.catch (fun () ->
-			 Eliom_parameter.reconstruct_params
-			  ~sp
-			  sgpt
-			  (Some (Lwt.return (Lazy.force (Ocsigen_extensions.Ocsigen_request_info.get_params ri))))
-			  (Some (Lwt.return []))
-			  nosuffixversion
-			  suff
-			>>= fun g ->
-			let post_params =
-			  Eliom_request_info.get_post_params_sp sp
-			in
-			let files =
-			  Eliom_request_info.get_files_sp sp
-			in
-			Eliom_parameter.reconstruct_params
-			  ~sp
-			  sppt
-			  post_params
-			  files
-			  false
-			  None
-			>>= fun p ->
-			(* GRGR TODO: avoid
-			   Eliom_uri.make_string_uri_. But we need to
-			   "downcast" the type of service to the
-			   correct "get service". *)
-			(if Eliom_request_info.get_http_method () =
+                         Eliom_parameter.reconstruct_params
+                          ~sp
+                          sgpt
+                          (Some (Lwt.return (Lazy.force (Ocsigen_extensions.Ocsigen_request_info.get_params ri))))
+                          (Some (Lwt.return []))
+                          nosuffixversion
+                          suff
+                        >>= fun g ->
+                        let post_params =
+                          Eliom_request_info.get_post_params_sp sp
+                        in
+                        let files =
+                          Eliom_request_info.get_files_sp sp
+                        in
+                        Eliom_parameter.reconstruct_params
+                          ~sp
+                          sppt
+                          post_params
+                          files
+                          false
+                          None
+                        >>= fun p ->
+                        (* GRGR TODO: avoid
+                           Eliom_uri.make_string_uri_. But we need to
+                           "downcast" the type of service to the
+                           correct "get service". *)
+                        (if Eliom_request_info.get_http_method () =
                            Ocsigen_http_frame.Http_header.GET
                          && nosuffixversion && suffix_with_redirect
-			 then
-			    (* it is a suffix service in version
-			       without suffix. We redirect. *)
-			    if not (Eliom_request_info.expecting_process_page ())
-			    then
-			      let redir_uri =
-			        Eliom_uri.make_string_uri_
-				  ~absolute:true
-				  ~service:
-				  (service :
-				     ('a, 'b, _, _, _,
+                         then
+                            (* it is a suffix service in version
+                               without suffix. We redirect. *)
+                            if not (Eliom_request_info.expecting_process_page ())
+                            then
+                              let redir_uri =
+                                Eliom_uri.make_string_uri_
+                                  ~absolute:true
+                                  ~service:
+                                  (service :
+                                     ('a, 'b, _, _, _,
                                       S.non_ext, S.reg, _,
                                       'c, 'd, 'return)
                                        S.t :>
-				     ('a, 'b, _, _, _, _, _, _,
-				      'c, 'd, 'return)
-				     S.t)
-				  g
-			      in
-			      Lwt.fail
+                                     ('a, 'b, _, _, _, _, _, _,
+                                      'c, 'd, 'return)
+                                     S.t)
+                                  g
+                              in
+                              Lwt.fail
                                 (Eliom_common.Eliom_do_redirection redir_uri)
-			    else begin
-			    (* It is an internal application form.
-			       We don't redirect but we set this
-			       special information for url to be displayed
-			       by the browser
-			       (see Eliom_request_info.rebuild_uri_without_iternal_form_info_)
-			    *)
-			      let redir_uri =
-			        Eliom_uri.make_string_uri_ ~service g in
-			      let rc = Eliom_request_info.get_request_cache_sp sp in
-			      Polytables.set ~table:rc ~key:suffix_redir_uri_key ~value:redir_uri;
-			      Lwt.return ()
-			    end
-			 else Lwt.return ())
-			>>= fun () ->
+                            else begin
+                            (* It is an internal application form.
+                               We don't redirect but we set this
+                               special information for url to be displayed
+                               by the browser
+                               (see Eliom_request_info.rebuild_uri_without_iternal_form_info_)
+                            *)
+                              let redir_uri =
+                                Eliom_uri.make_string_uri_ ~service g in
+                              let rc = Eliom_request_info.get_request_cache_sp sp in
+                              Polytables.set ~table:rc ~key:suffix_redir_uri_key ~value:redir_uri;
+                              Lwt.return ()
+                            end
+                         else Lwt.return ())
+                        >>= fun () ->
                         check_process_redir sp check_before service >>= fun () ->
                         page_generator g p)
                          (function
@@ -291,7 +291,7 @@ let register_aux pages
                              error_handler l
                            | e -> Lwt.fail e)
                        >>= fun content ->
-		       send_with_cookies sp pages
+                       send_with_cookies sp pages
                          ?options
                          ?charset
                          ?code
@@ -372,7 +372,7 @@ let register_aux pages
                         ?secure:secure_session ~scope ~sp ())
               in
               f tablereg (attserget, attserpost))
-	| S.Nonattached naser ->
+        | S.Nonattached naser ->
           let na_name = S.na_name naser in
           let f table na_name =
             Eliom_route.add_naservice
@@ -401,24 +401,24 @@ let register_aux pages
                            None
                          >>= fun g ->
                          let post_params =
-			   Eliom_request_info.get_post_params_sp sp
+                           Eliom_request_info.get_post_params_sp sp
                          in
                          let files = Eliom_request_info.get_files_sp sp in
                          Eliom_parameter.reconstruct_params
-			   ~sp
-			   (S.post_params_type service)
-			   post_params
-			   files
-			   false
-			   None
+                           ~sp
+                           (S.post_params_type service)
+                           post_params
+                           files
+                           false
+                           None
                          >>= fun p ->
                          check_process_redir sp check_before service >>= fun () ->
-			 page_generator g p)
+                         page_generator g p)
                        (function
                          | Eliom_common.Eliom_Typing_Error l ->
                            error_handler l
                          | e -> Lwt.fail e) >>= fun content ->
-		     send_with_cookies sp pages
+                     send_with_cookies sp pages
                        ?options
                        ?charset
                        ?code

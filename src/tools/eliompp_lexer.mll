@@ -96,37 +96,39 @@ rule token = parse
   }
   | [^ '"' '{' '(' '\n']+
     as raw                      { RAW raw }
-  | '\n'			   		    { incr line; CHAR '\n' }
-  | '{'			   		        { CHAR '{' }
-  | '('			   		        { CHAR '(' }
-  | '*'			   		        { CHAR '*' }
-  | eof		                    { raise End_of_file }
+  | '\n'                        { incr line; CHAR '\n' }
+  | '{'                         { CHAR '{' }
+  | '('                         { CHAR '(' }
+  | '*'                         { CHAR '*' }
+  | eof                         { raise End_of_file }
 and cstring = parse
-  | '"'			                { add_char '"' }
-  | '\\' '"'		            { add_string "\\\""; cstring lexbuf }
-  | '\\' '\n' 		            { add_string "\\\n"; incr line; cstring lexbuf }
-  | ('\\' _) as s 		        { add_string s; cstring lexbuf }
-  | '\n' 		                { add_char '\n'; incr line; cstring lexbuf }
-  | [^ '"' '\\' '\n']+ as s	    { add_string s; cstring lexbuf }
-  | eof		                    { raise Unterminated_string }
+  | '"'                         { add_char '"' }
+  | '\\' '"'                    { add_string "\\\""; cstring lexbuf }
+  | '\\' '\n'                   { add_string "\\\n"; incr line; cstring lexbuf }
+  | ('\\' _) as s               { add_string s; cstring lexbuf }
+  | '\n'                        { add_char '\n'; incr line; cstring lexbuf }
+  | [^ '"' '\\' '\n']+ as s     { add_string s; cstring lexbuf }
+  | eof                         { raise Unterminated_string }
 and comment = parse
-  | "(*"		                { start_comment comment lexbuf; }
-  | "*)"		                {
-      add_string "*)"; decr comment_ref_count;
-      if not (in_comment ()) then () else comment lexbuf
-  }
+  | "(*"                        { start_comment comment lexbuf; }
+  | "*)"                        { add_string "*)";
+                                  decr comment_ref_count;
+                                  if not (in_comment ())
+                                  then ()
+                                  else comment lexbuf
+                                }
   | "(*)"                       { add_string "(*)"; comment lexbuf }
-  | '"'		                    {
+  | '"'                         {
       try
         start_cstring cstring lexbuf;
         comment lexbuf
       with Unterminated_string -> raise Unterminated_comment
   }
-  | '\n'						{ add_char '\n'; incr line; comment lexbuf }
-  | '*'						    { add_char '*'; comment lexbuf }
-  | '('						    { add_char '('; comment lexbuf }
-  | [^ '"' '*' '(' '\n']+ as s	{ add_string s; comment lexbuf }
-  | eof		                    { raise Unterminated_comment }
+  | '\n'                        { add_char '\n'; incr line; comment lexbuf }
+  | '*'                         { add_char '*'; comment lexbuf }
+  | '('                         { add_char '('; comment lexbuf }
+  | [^ '"' '*' '(' '\n']+ as s  { add_string s; comment lexbuf }
+  | eof                         { raise Unterminated_comment }
 and section = parse
   | '{' (ident as idt) '{'      { start_section ~idt section lexbuf }
   | "}}"                        {
@@ -149,10 +151,10 @@ and section = parse
         section lexbuf
       with Unterminated_string -> raise Unterminated_section
   }
-  | '\n'						{ add_char '\n'; incr line; section lexbuf }
-  | '('						    { add_char '('; section lexbuf }
-  | '}'						    { add_char '}'; section lexbuf }
-  | '{'						    { add_char '{'; section lexbuf }
+  | '\n'                        { add_char '\n'; incr line; section lexbuf }
+  | '('                         { add_char '('; section lexbuf }
+  | '}'                         { add_char '}'; section lexbuf }
+  | '{'                         { add_char '{'; section lexbuf }
   | [^ '"' '(' '\n' '}' '{']+
-    as s	                    { add_string s; section lexbuf }
-  | eof		                    { raise Unterminated_section }
+    as s                        { add_string s; section lexbuf }
+  | eof                         { raise Unterminated_section }

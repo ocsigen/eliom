@@ -327,8 +327,8 @@ module Html = struct
 
     let lazy_form ?(a = []) elts =
       tot (Xml'.lazy_node ~a:(to_xmlattribs a) "form"
-	     (Eliom_lazy.from_fun
-	        (fun () -> toeltl (Eliom_lazy.force elts))))
+             (Eliom_lazy.from_fun
+                (fun () -> toeltl (Eliom_lazy.force elts))))
 
   end
 
@@ -371,8 +371,8 @@ module Html = struct
 
     let lazy_form ?(a = []) elts =
       tot (Xml'.lazy_node ~a:(to_xmlattribs a) "form"
-	     (Eliom_lazy.from_fun
-	        (fun () -> toeltl (Eliom_lazy.force elts))))
+             (Eliom_lazy.from_fun
+                (fun () -> toeltl (Eliom_lazy.force elts))))
 
   end
 
