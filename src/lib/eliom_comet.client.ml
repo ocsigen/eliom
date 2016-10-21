@@ -324,7 +324,14 @@ struct
     Lwt.wakeup_exn wakener Restart;
     activate hd
 
-  let max_retries = 3
+  let max_retries = 10
+  let initial_delay = 0.5 (* seconds *)
+  let jitter = 0.25
+  let multiplier = sqrt 2.
+  let max_delay = 4.  (* seconds *)
+  let delay i =
+    (min max_delay (initial_delay *. (multiplier ** float i)))
+     *. (1. +. jitter *. (Random.float 2. -. 1.))
 
   let call_service_after_load_end service p1 p2 =
     let%lwt () = Eliom_client.wait_load_end () in
@@ -484,7 +491,7 @@ struct
                  set_activity hd `Inactive;
                  aux 0)
               else
-                (let%lwt () = Lwt_js.sleep (2. ** float (retries - 1)) in
+                (let%lwt () = Lwt_js.sleep (delay retries) in
                  aux (retries + 1))
             | Restart -> Eliom_lib.Lwt_log.ign_info ~section "restart";
               aux 0
