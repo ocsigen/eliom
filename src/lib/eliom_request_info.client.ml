@@ -192,12 +192,16 @@ let default_request_data =
        si_data_session_cookies = Eliom_common.Full_state_name_table.empty;
        si_persistent_session_cookies = Eliom_common.Full_state_name_table.empty;
 
-       si_secure_cookie_info = None;
+       si_secure_cookie_info = (Eliom_common.Full_state_name_table.empty,
+                                Eliom_common.Full_state_name_table.empty,
+                                Eliom_common.Full_state_name_table.empty);
 
        si_service_session_cookies_tab = Eliom_common.Full_state_name_table.empty;
        si_data_session_cookies_tab = Eliom_common.Full_state_name_table.empty;
        si_persistent_session_cookies_tab = Eliom_common.Full_state_name_table.empty;
-       si_secure_cookie_info_tab = None;
+       si_secure_cookie_info_tab = (Eliom_common.Full_state_name_table.empty,
+                                    Eliom_common.Full_state_name_table.empty,
+                                    Eliom_common.Full_state_name_table.empty);
 
        si_tab_cookies = Ocsigen_cookies.CookiesTable.empty;
 

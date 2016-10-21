@@ -238,7 +238,7 @@ type 'a cookie_info1 =
 
 type 'a cookie_info =
   'a cookie_info1 (* unsecure *) *
-  'a cookie_info1 option (* secure, if https *)
+  'a cookie_info1 (* secure *)
 
 
 
@@ -1057,15 +1057,15 @@ let get_session_info req previous_extension_err =
   let persistent_cookies = getcookies false `Session persistentcookiename browser_cookies in
 
   let secure_cookie_info =
-    if Ocsigen_extensions.Ocsigen_request_info.ssl ri
-    then
-      let sdata_cookies = getcookies true `Session datacookiename browser_cookies in
-      let sservice_cookies = getcookies true `Session servicecookiename browser_cookies in
-      let spersistent_cookies =
-        getcookies true `Session persistentcookiename browser_cookies
-      in
-      Some (sservice_cookies, sdata_cookies, spersistent_cookies)
-    else None
+    let sdata_cookies = getcookies true `Session datacookiename browser_cookies
+    in
+    let sservice_cookies =
+      getcookies true `Session servicecookiename browser_cookies
+    in
+    let spersistent_cookies =
+      getcookies true `Session persistentcookiename browser_cookies
+    in
+    (sservice_cookies, sdata_cookies, spersistent_cookies)
   in
 
   let naservice_info,
@@ -1185,13 +1185,16 @@ let get_session_info req previous_extension_err =
   let persistent_cookies_tab = getcookies false `Client_process persistentcookiename tab_cookies in
 
   let secure_cookie_info_tab =
-    if Ocsigen_extensions.Ocsigen_request_info.ssl ri
-    then
-      let sdata_cookies = getcookies true `Client_process datacookiename tab_cookies in
-      let sservice_cookies = getcookies true `Client_process servicecookiename tab_cookies in
-      let spersistent_cookies = getcookies true `Client_process persistentcookiename tab_cookies in
-      Some (sservice_cookies, sdata_cookies, spersistent_cookies)
-    else None
+    let sdata_cookies =
+      getcookies true `Client_process datacookiename tab_cookies
+    in
+    let sservice_cookies =
+      getcookies true `Client_process servicecookiename tab_cookies
+    in
+    let spersistent_cookies =
+      getcookies true `Client_process persistentcookiename tab_cookies
+    in
+    (sservice_cookies, sdata_cookies, spersistent_cookies)
   in
 
   let get_params_string, url_string =

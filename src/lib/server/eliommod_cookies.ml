@@ -228,14 +228,11 @@ let get_cookie_info
   let persoktable = f_pers persistent_cookies in
 
   let sec, sservfailedlist =
-    match secure_cookies with
-      | None (* not https *) -> None, []
-      | Some (sc, dc, pc) ->
-          let (servoktable, servfailedlist) = f_serv sc in
-          let dataoktable = f_data dc in
-          let persoktable = f_pers pc in
-          (Some (ref servoktable, ref dataoktable, ref persoktable),
-           servfailedlist)
+    let (sc, dc, pc) = secure_cookies in
+    let (servoktable, servfailedlist) = f_serv sc in
+    let dataoktable = f_data dc in
+    let persoktable = f_pers pc in
+    ((ref servoktable, ref dataoktable, ref persoktable), servfailedlist)
   in
 
   (((ref servoktable, ref dataoktable, ref persoktable), sec),
@@ -363,15 +360,16 @@ let compute_session_cookies_to_send
   aux getpersvexp Eliom_common.persistentcookiename false !pers_cookies_info
     (aux getdatavexp Eliom_common.datacookiename false !data_cookie_info
        (aux getservvexp Eliom_common.servicecookiename false !service_cookie_info
-          (match secure_ci with
-             | None -> return endlist
-             | Some (service_cookie_info,
-                     data_cookie_info,
-                     pers_cookies_info) ->
-                 aux getpersvexp Eliom_common.persistentcookiename true !pers_cookies_info
-                   (aux getdatavexp Eliom_common.datacookiename true !data_cookie_info
-                      (aux getservvexp Eliom_common.servicecookiename true !service_cookie_info
-                         (return endlist))))))
+          (let (service_cookie_info, data_cookie_info, pers_cookies_info) =
+             secure_ci
+           in
+           aux getpersvexp Eliom_common.persistentcookiename
+             true !pers_cookies_info
+             (aux getdatavexp Eliom_common.datacookiename
+                true !data_cookie_info
+                (aux getservvexp Eliom_common.servicecookiename
+                   true !service_cookie_info
+                   (return endlist))))))
 
 
 let compute_cookies_to_send = compute_session_cookies_to_send
@@ -501,8 +499,6 @@ let compute_new_ri_cookies
   in
   f false ci ric
   >>= fun ric ->
-  match secure_ci with
-    | None -> Lwt.return ric
-    | Some ci -> f true ci ric
+  f true secure_ci ric
 (*VVV We always keep secure cookies, even if the protocol is not secure,
   because this function is for actions only. Is that right? *)

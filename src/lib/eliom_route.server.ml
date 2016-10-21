@@ -112,24 +112,16 @@ let find_aux now sitedata info e sci : Ocsigen_http_frame.Result.result Lwt.t =
 let session_tables
     (_,
      _,
-     ((service_cookies_info    , _, _), secure_ci    ),
-     ((service_cookies_info_tab, _, _), secure_ci_tab),
+     ((service_cookies_info    , _, _),
+      (secure_service_cookies_info, _, _)),
+     ((service_cookies_info_tab, _, _),
+      (secure_service_cookies_info_tab, _, _)),
      _) =
 
-  let tables = [!service_cookies_info, "session table"] in
-  let tables =
-    match secure_ci with
-    | Some (service_cookies_info, _, _) ->
-      (!service_cookies_info, "secure session table") :: tables
-    | _ ->
-      tables
-  in
-  let tables = (!service_cookies_info_tab, "tab session table") :: tables in
-  match secure_ci_tab with
-  | Some (service_cookies_info, _, _) ->
-    (!service_cookies_info, "secure tab session table") :: tables
-  | _ ->
-    tables
+  [ !secure_service_cookies_info_tab, "secure tab session table" ;
+    !service_cookies_info_tab, "tab session table" ;
+    !secure_service_cookies_info, "secure session table" ;
+    !service_cookies_info, "session table"]
 
 let get_page
     now

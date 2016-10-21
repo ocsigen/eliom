@@ -270,16 +270,16 @@ type sess_info = {
   si_persistent_session_cookies : string Full_state_name_table.t;
   si_secure_cookie_info:
     (string Full_state_name_table.t *
-       string Full_state_name_table.t *
-       string Full_state_name_table.t) option;
+     string Full_state_name_table.t *
+     string Full_state_name_table.t);
 
   si_service_session_cookies_tab: string Full_state_name_table.t;
   si_data_session_cookies_tab: string Full_state_name_table.t;
   si_persistent_session_cookies_tab: string Full_state_name_table.t;
   si_secure_cookie_info_tab:
     (string Full_state_name_table.t *
-       string Full_state_name_table.t *
-       string Full_state_name_table.t) option;
+     string Full_state_name_table.t *
+     string Full_state_name_table.t);
 
   si_tab_cookies: string CookiesTable.t;
 
@@ -371,7 +371,7 @@ type 'a cookie_info1 =
 
 type 'a cookie_info =
     'a cookie_info1 (* unsecure *) *
-      'a cookie_info1 option (* secure, if https *)
+      'a cookie_info1  (* secure *)
 
 type 'a servicecookiestablecontent =
     full_state_name * 'a * float option ref * timeout ref *
