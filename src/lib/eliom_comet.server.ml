@@ -77,8 +77,11 @@ let new_id = Eliom_lib.make_cryptographic_safe_string
 (* ocsigenserver needs to be modified for this to be configurable:
    the connection is closed after a fixed amount of time
    if the server does not send anything.
-   By default it is 30 seconds *)
-let timeout = 20.
+   By default it is 20 seconds *)
+let timeout_base = 20.
+let timeout_jitter = 0.1
+let timeout () =
+  timeout_base *. (1. +. timeout_jitter *. (Random.float 2. -. 1.))
 
 module Stateless : sig
 
@@ -246,7 +249,7 @@ struct
     if List.exists has_data requests
     then Lwt.return ()
     else
-      Lwt_unix.with_timeout timeout
+      Lwt_unix.with_timeout (timeout ())
         (fun () -> really_wait_data requests)
 
   let handle_request () = function
@@ -501,7 +504,7 @@ end = struct
         then Lwt.return (fst handler.hd_last)
         else
           Lwt.catch
-            (fun () -> Lwt_unix.with_timeout timeout
+            (fun () -> Lwt_unix.with_timeout (timeout ())
               (fun () ->
                 let%lwt () = wait_data (wait_closed_connection ()) handler in
                 let messages = read_streams 100 handler in
