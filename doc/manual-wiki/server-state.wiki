@@ -327,13 +327,21 @@ the HTTPS protocol, you may provide the optional parameter
 Eliom_reference.eref >>, <<a_api | val
 Eliom_registration.Html.register >>, etc.
 
+The default can be set in the configuration file:
+<<code|
+<eliom>
+  <securecookies value="true" />
+</eliom>
+>>
+
 Secure sessions are using secure cookies, i.e., Ocsigen Server will
 ask the browsers to send the cookie only if the protocol is
 HTTPS. Thus it is not possible to access secure references and
 services if the user is using HTTP.
 
-
-
+The server does not check the protocol currently used,
+neither to send or receive the cookies, which means that
+it will work even if your server is using HTTP behind a local proxy.
 
 ===@@id="session_groups"@@ Session groups ===
 
