@@ -70,7 +70,7 @@ let typed_apply ~service f gp pp l l' suffix =
     in
     (match Eliom_service.reload_fun service with
      | Some _ ->
-       Eliom_client.reload_function := Some (fun () () -> f g p)
+       Eliom_client.set_reload_function (fun () () -> f g p)
      | None ->
        ());
     f g p

@@ -330,7 +330,7 @@ val change_page_unknown :
 
 val init : unit -> unit
 
-val reload_function : (unit -> unit -> unit Lwt.t) option ref
+val set_reload_function : (unit -> unit -> unit Lwt.t) -> unit
 
 (** Lwt_log section for this module.
     Default level is [Lwt_log.Info].

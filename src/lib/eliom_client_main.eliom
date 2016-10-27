@@ -29,19 +29,7 @@ let _force_link =
   Eliom_comet.force_link,
   Eliom_bus.force_link
 
-let default_reload () =
-  Dom_html.window##.location##reload;
-  Lwt.return ()
-
-let reload () =
-  match !Eliom_client.reload_function with
-  | Some f ->
-    f () ()
-  | None ->
-    default_reload ()
-
-
-let reload_without_na_params () () =
+let current_path_and_args () =
   let path_of_string s =
     match Url.path_of_path_string s with
     | "." :: path ->
@@ -50,23 +38,28 @@ let reload_without_na_params () () =
       path
   in
   let uri = !Eliom_client.current_uri in
-  let path, args =
-    match Url.url_of_string uri with
-    | Some (Url.Http url | Url.Https url) ->
-      url.Url.hu_path, url.Url.hu_arguments
-    | _ ->
-      match
-        try
-          Some (String.index uri '?')
-        with Not_found ->
-          None
-      with
-      | Some n ->
-        path_of_string String.(sub uri 0 n),
-        Url.decode_arguments String.(sub uri (n + 1) (length uri - n - 1))
-      | None ->
-        path_of_string uri, []
-  in
+  match Url.url_of_string uri with
+  | Some (Url.Http url | Url.Https url) ->
+    url.Url.hu_path, url.Url.hu_arguments
+  | _ ->
+    match
+      try
+        Some (String.index uri '?')
+      with Not_found ->
+        None
+    with
+    | Some n ->
+      path_of_string String.(sub uri 0 n),
+      Url.decode_arguments String.(sub uri (n + 1) (length uri - n - 1))
+    | None ->
+      path_of_string uri, []
+
+let reload () =
+  let path, args = current_path_and_args () in
+  Eliom_client.change_page_unknown path args []
+
+let reload_without_na_params () () =
+  let path, args = current_path_and_args () in
   Eliom_client.change_page_unknown path
     (Eliom_common.remove_na_prefix_params args)
     []

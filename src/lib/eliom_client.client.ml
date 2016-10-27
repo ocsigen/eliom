@@ -430,11 +430,10 @@ let current_pseudo_fragment = ref ""
 let url_fragment_prefix = "!"
 let url_fragment_prefix_with_sharp = "#!"
 
-let default_reload_function () () =
-  Dom_html.window##.location##reload
-
 let reload_function = ref None
 let reload_functions = ref []
+
+let set_reload_function f = reload_function := Some f
 
 let change_url_string ~replace uri =
   current_uri := fst (Url.split_fragment uri);
