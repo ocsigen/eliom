@@ -185,13 +185,7 @@ let server_extra =
   exts ["cmx"] (server.interface @ server.internal)
 
 let server_api =
-  let names =
-    server.interface_only @
-    server.interface @
-    List.map (fun e -> "extensions/" ^ e)
-      (server_ext.interface_only @ server_ext.interface)
-  in
-  names
+  server.interface_only @ server.interface
 
 let server_ext_mllib = server_ext.interface @ server_ext.internal
 let server_ext_extra =

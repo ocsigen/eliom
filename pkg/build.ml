@@ -21,8 +21,6 @@ let _ =
 
   list_to_file "src/lib/server/server.mllib" server_mllib;
   list_to_file "src/lib/server/server.mldylib" server_mllib;
-  list_to_file "src/lib/server/extensions/extensions.mllib" server_ext_mllib;
-  list_to_file "src/lib/server/extensions/extensions.mldylib" server_ext_mllib;
   list_to_file "src/lib/server/api.odocl" server_api;
 
   list_to_file "src/ocamlbuild/ocamlbuild.mllib" ocamlbuild_mllib;
@@ -107,10 +105,6 @@ let () =
     Pkg.lib ~dst:"server/monitor/eliom_monitor_main" ~exts:Exts.module_library "src/lib/server/monitor/eliom_monitor_main" ::
     Pkg.lib ~dst:"server/server" ~exts:exts_lib "src/lib/server/server" ::
     List.map (fun x -> Pkg.lib ~dst:(spf "server/%s" x) (spf "src/lib/server/%s" x)) server_extra
-  ) @ (
-    (* SERVER EXTENSIONS *)
-    Pkg.lib ~dst:"server/extensions/extensions" ~exts:exts_lib "src/lib/server/extensions/extensions" ::
-    List.map (fun x -> Pkg.lib ~dst:(spf "server/extensions/%s" x) (spf "src/lib/server/extensions/%s" x)) server_ext_extra
   ) @ [
     (* MISC *)
 
