@@ -107,9 +107,11 @@ end
 
 module type S = sig
 
-  (** {2 Service creation} *)
+  (** {2 Services}
 
-  (** See {!create} for the main service creation function. *)
+      See {% <<a_api| module Eliom_service_sigs.S_WITH_CREATE >>%}
+      (and particularly its {!create} function) for how to create
+      services (only available on the server). *)
 
   include TYPES
 
@@ -410,6 +412,13 @@ module type S = sig
 end
 
 module type S_WITH_CREATE = sig
+
+  (** {2 Services}
+
+      {% <<a_api| module Eliom_service_sigs.S >>%} extended with
+      creation functions.
+
+      See {!create} for the standard way to create Eliom services. *)
 
   include S
 

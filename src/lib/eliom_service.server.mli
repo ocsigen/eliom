@@ -19,22 +19,22 @@
  *)
 
 
-(** Creation and manipulation of Eliom services. *)
+(** Creation and manipulation of Eliom services.
 
-(** See the Eliom manual for a detailed introduction to the concept of
-    {% <<a_manual chapter="server-services"|Eliom services>>%}. *)
+    See the Eliom manual for a detailed introduction to the concept of
+    {% <<a_manual chapter="server-services"|Eliom services>>%}.
 
-(** The main functions to create services are documented in
-    {% <<a_api | module Eliom_service_sigs.S >>%}. *)
+    The main functions to create services are documented in
+    {% <<a_api | module Eliom_service_sigs.S_WITH_CREATE >>%}. *)
 
 open Eliom_lib
 open Eliom_parameter
 
 include Eliom_service_sigs.S_WITH_CREATE
 
-(** {2 Static loading of Eliom modules} *)
+(** {2 Static loading of Eliom modules}
 
-(** This functionality allows one to register initialization functions
+    This functionality allows one to register initialization functions
     for Eliom modules which will be executed when the corresponding
     module is loaded in [ocsigenserver.conf].  If the module is loaded
     dynamically, you probably don't need this.  But if the module is
