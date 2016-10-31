@@ -6,7 +6,11 @@ let reserve_project_name_filename = ".eliomreserve"
 (* File containing files which must be ignored while copying a template. *)
 let eliomignore_filename          = ".eliomignore"
 
-let distillery_basic              = "basic.ppx"
+let eliom_template_dir = Findlib.package_directory "eliom.templates"
+
+let distillery_basic = ("basic.ppx", eliom_template_dir)
+
+let template_path (tname, tpath) = tpath ^ "/" ^ tname
 
 (* Returns all lines of [file] as a string list. Returns an empty list if [file]
  * doesn't exist.
@@ -25,7 +29,7 @@ let lines_of_file file =
 
 let pp_list () l =
   let f s =
-    if s = distillery_basic
+    if s = fst distillery_basic
     then s ^ " (default)"
     else s
   in
@@ -207,19 +211,29 @@ let preds () = [
 ]
 
 
-let get_templatedir () = Findlib.package_directory "eliom.templates"
+let get_templatedirs () =
+  let distillery_path_dirs =
+    try
+      let paths = Sys.getenv "ELIOM_DISTILLERY_PATH" in
+      Str.split (Str.regexp ":") paths
+    with
+    | Not_found -> []
+  in
+  eliom_template_dir::distillery_path_dirs
 
 let get_templates () =
-  let dir = Unix.opendir (get_templatedir ()) in
-  let rec aux rl =
+  let dirs = List.map (fun d -> (d, Unix.opendir d)) (get_templatedirs ()) in
+  let rec aux rl (path, dir) =
     try
       let f = Unix.readdir dir in
       if f = ".." || f = "."
-      then aux rl
-      else aux (f::rl)
+      then aux rl (path, dir)
+      else
+        aux ((f, path)::rl) (path, dir)
     with
       | End_of_file -> Unix.closedir dir; rl
-  in aux []
+  in List.concat (List.map (aux []) dirs)
+
 
 (* ------------------------------------------ *)
 (* ---------- Reserve project name ---------- *)
@@ -230,10 +244,8 @@ let get_templates () =
  * list of reserve project name (one name a line).
  *)
 
-let check_reserve_project_name project_name template_name =
-  let file = Filename.concat
-    (Filename.concat (get_templatedir ()) template_name)
-    reserve_project_name_filename
+let check_reserve_project_name project_name template =
+  let file = Filename.concat (template_path template) reserve_project_name_filename
   in
   List.exists (fun x -> x = project_name) (lines_of_file file)
 
@@ -243,7 +255,7 @@ let check_reserve_project_name project_name template_name =
 let init_project template name =
   env name,
   preds (),
-  Filename.concat (get_templatedir ()) template
+  template_path template
 
 let compilation_unit_name_regexp =
   Str.regexp "^[A-Za-z][a-zA-Z0-9_']*$"
@@ -252,16 +264,16 @@ let main () =
   let dir = ref false in
   let shown = ref false in
   let show_templates () =
-    List.iter (Printf.printf "%s\n") (get_templates ());
+    List.iter (fun (name, path) -> Printf.printf "%s [%s]\n" name path) (get_templates ());
     shown := true
   in
   let bad fmt = Printf.ksprintf (fun s -> raise (Arg.Bad s)) fmt in
   let name = ref None in
   let template = ref distillery_basic in
   let templates = get_templates () in
-  let usage_msg = gen_usage_msg templates in
+  let usage_msg = gen_usage_msg (List.map fst templates) in
   let select_template s =
-    try template := (List.find ((=) s) templates)
+    try template := List.find (fun (name, _) -> name = s) templates
     with Not_found -> bad "Not a known template name: %S" s
   in
   let destination_dir = ref None in
@@ -271,7 +283,7 @@ let main () =
   in
   let spec = Arg.(align [
       "-dir", Set dir,
-      " Display the template directory";
+      " Display the template directories (set through $ELIOM_DISTILLERY_PATH)";
       "-name", String (fun s -> check_name s; name := Some s),
       "<name> Name of the project (a valid compilation unit name)";
       "-template", String select_template,
@@ -282,7 +294,7 @@ let main () =
       "<dir> Generate the project in directory <dir> (the project's name by default)";
   ]) in
   Arg.(parse spec (bad "Don't know what to do with %S") usage_msg);
-  if !dir then printf "%s\n" (get_templatedir ())
+  if !dir then List.iter (printf "%s\n") (get_templatedirs ())
   else if !shown then ()
   else begin
     let template, name, destination_dir =
@@ -296,7 +308,7 @@ let main () =
       printf
         "'%s' is not a valid project name for the template '%s'.\n"
         name
-        template
+        (fst template)
     else
       let env, preds, source_dir = init_project template name in
       create_project ~name ~env ~preds ~source_dir ~destination_dir
