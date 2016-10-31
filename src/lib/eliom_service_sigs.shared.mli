@@ -19,7 +19,7 @@
 
 module type TYPES = sig
 
-  (** {2 Auxilliary types} *)
+  (** {2 Auxilliary service-related types} *)
 
   type get = Get_method
   type put = Put_method
@@ -110,8 +110,10 @@ module type S = sig
   (** {2 Services}
 
       See {% <<a_api| module Eliom_service_sigs.S_WITH_CREATE >>%}
-      (and particularly its {!create} function) for how to create
-      services (only available on the server). *)
+      and particularly
+      {% <<a_api | val Eliom_service_sigs.S_WITH_CREATE.create}
+      (available as [Eliom_service.create] on the server) for how to
+      create services. *)
 
   include TYPES
 
@@ -156,9 +158,9 @@ module type S = sig
     | Path    : Eliom_lib.Url.path -> (att, non_co, _) path_option
     | No_path : (non_att, co, unit) path_option
 
-  (** {3 Predefined services} *)
+  (** {3 Predefined services}
 
-  (** {4 Reload actions} *)
+      {4 Reload actions} *)
 
   (** The service [reload_action] is a predefined non-attached action
       with special behaviour: it has no parameter at all, even
@@ -172,18 +174,18 @@ module type S = sig
     (unit, unit, get, non_att, co, non_ext, non_reg,
      [ `WithoutSuffix ], unit, unit, non_ocaml) t
 
-  (** Same as {!reload_action} but forcing HTTPS. *)
+  (** Like {!reload_action}, but forces HTTPS *)
   val reload_action_https :
     (unit, unit, get, non_att, co, non_ext, non_reg,
      [ `WithoutSuffix ], unit, unit, non_ocaml) t
 
-  (** Same as {!reload_action} but keeps non-attached GET
+  (** Like {!reload_action}, but keeps non-attached GET
       parameters. *)
   val reload_action_hidden :
     (unit, unit, get, non_att, co, non_ext, non_reg,
      [ `WithoutSuffix ], unit, unit, non_ocaml) t
 
-  (** Same as {!reload_action_hidden} but forcing HTTPS. *)
+  (** Like {!reload_action_hidden}, but forces HTTPS *)
   val reload_action_https_hidden :
     (unit, unit, get, non_att, co, non_ext, non_reg,
      [ `WithoutSuffix ], unit, unit, non_ocaml) t
@@ -202,14 +204,14 @@ module type S = sig
      [ `WithSuffix ], [ `One of string list ] Eliom_parameter.param_name,
      unit, non_ocaml) t
 
-  (** Same as {!static_dir} but forcing https link. *)
+  (** Like {!static_dir}, but forces HTTPS link *)
   val https_static_dir :
     unit ->
     (string list, unit, get, att, non_co, non_ext, non_reg,
      [ `WithSuffix ], [ `One of string list ] Eliom_parameter.param_name,
      unit, non_ocaml) t
 
-  (** Like [static_dir], but allows one to put GET parameters *)
+  (** Like {!static_dir}, but allows one to put GET parameters *)
   val static_dir_with_params :
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     get_params:('a, [`WithoutSuffix], 'an) Eliom_parameter.params_type ->
@@ -219,7 +221,7 @@ module type S = sig
      [ `One of string list ] Eliom_parameter.param_name *'an,
      unit, non_ocaml) t
 
-  (** Same as {!static_dir_with_params} but forcing https link. *)
+  (** Like {!static_dir_with_params}, but forces HTTPS link *)
   val https_static_dir_with_params :
     ?keep_nl_params:[ `All | `Persistent | `None ] ->
     get_params:('a, [`WithoutSuffix], 'an) Eliom_parameter.params_type ->
@@ -273,7 +275,7 @@ module type S = sig
     ('a * 'p, 'b, 'meth, 'attach, 'co, 'ext, 'reg,
      'd, 'e * 'pn, 'f, 'return) t
 
-  (** Same as {!add_non_localized_get_parameters} but with POST
+  (** Like {!add_non_localized_get_parameters} but with POST
       parameters.*)
   val add_non_localized_post_parameters :
     params:
@@ -425,8 +427,9 @@ module type S_WITH_CREATE = sig
   (** {b Service definition}
 
       The function [create ~id ~path ()] creates a service ({!t})
-      identified as per [path] and accepting parameters as per [meth]
-      (see {!Eliom_service_sigs.TYPES.meth} ).
+      identified as per [path] and accepting parameters as per [meth].
+      See {!Eliom_service_sigs.S.path_option}
+      and {!Eliom_service_sigs.TYPES.meth} for the respective arguments.
 
       If [path = Path p], the service appears on path [p]. Otherwise
       ([No_path]), the service doesn't have its own path. Rather, the
