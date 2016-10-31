@@ -111,7 +111,7 @@ module type S = sig
 
       See {% <<a_api| module Eliom_service_sigs.S_WITH_CREATE >>%}
       and particularly
-      {% <<a_api | val Eliom_service_sigs.S_WITH_CREATE.create}
+      {% <<a_api | val Eliom_service_sigs.S_WITH_CREATE.create >>%}
       (available as [Eliom_service.create] on the server) for how to
       create services. *)
 
