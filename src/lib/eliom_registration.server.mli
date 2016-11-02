@@ -82,9 +82,9 @@ type 'a application_name
     parameters for {!Eliom_registration.kind}. See {!Ocaml}. *)
 type 'a ocaml_content
 
-(** {2 Using HTML5 with services } *)
+(** {2 Using HTML with services } *)
 
-(** Eliom service registration for services that return HTML5
+(** Eliom service registration for services that return HTML
     pages. *)
 module Html : Eliom_registration_sigs.S_with_create
   with type page = Html_types.html Eliom_content.Html.elt
@@ -147,7 +147,9 @@ module type APP = sig
 
 end
 
-(** Functor for application creation. *)
+(** Functor for application creation.
+    See {% <<a_manual chapter="clientserver-applications" | the chapter on applications >> %}
+    in the Eliom manual for details. *)
 module App (App_params : Eliom_registration_sigs.APP_PARAM) : APP
 
 module type TMPL_PARAMS = sig
@@ -164,11 +166,10 @@ module Eliom_tmpl (App : APP) (Tmpl_param : TMPL_PARAMS):
    and type return = Eliom_service.non_ocaml
    and type result = App.app_id application_content kind
 
-(** {3 Services returning only fragments of HTML (or other TyXML
-    trees)} *)
+(** {3 Services returning HTML (or other TyXML) fragments} *)
 
-(** Eliom service registration and forms creation for fragment of
-    HTML5 page.
+(** Eliom service registration and forms creation for fragment of HTML
+    page.
 
     For Eliom application, prefers {!Ocaml} services to send page
     fragments. *)
@@ -178,7 +179,7 @@ module Flow5 : Eliom_registration_sigs.S_with_create
    and type return = Eliom_service.non_ocaml
    and type result = block_content kind
 
-(** Eliom service registration for services that returns fragment of
+(** Eliom service registration for services that return fragments of
     TyXML's tree. *)
 module Make_typed_xml_registration
   (Xml: Xml_sigs.Iterable)

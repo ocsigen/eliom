@@ -17,6 +17,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(** Client-side service registration.
+
+    The interface is meant to be compatible with server-side
+    <<a_api subproject="server" | module Eliom_registration >>.
+
+    See {% <<a_manual chapter="clientserver-services"|the manual chapter on client-side services>> %}
+    for details. *)
+
 type 'a kind
 
 type browser_content = [ `Browser ]
@@ -40,16 +48,13 @@ module Unit : Eliom_registration_sigs.S
    and type return = Eliom_service.non_ocaml
    and type result = browser_content kind
 
-(** Has no effect on client ; for compatibility with server *)
+(** Has no effect on client; for compatibility with server *)
 type appl_service_options = { do_not_launch : bool }
 
 module App (P : Eliom_registration_sigs.APP_PARAM) : sig
 
   val application_name : string
 
-  (** The type [appl] is an abstract type for identifying an
-      application. It usually used a phantom parameter for
-      {!application_content}. *)
   type app_id
 
   include Eliom_registration_sigs.S

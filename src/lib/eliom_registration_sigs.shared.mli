@@ -43,15 +43,6 @@ module type PARAM = sig
 
 end
 
-module type PARAM_CLIENT = sig
-
-  type page
-  type options
-
-  val send : ?options:options -> page -> unit Lwt.t
-
-end
-
 module type PARAM_POLY = sig
 
   type _ page
@@ -164,7 +155,9 @@ module type S_with_create = sig
 
   include S
 
-  (** Same as {!Eliom_service.create} followed by {!register}. *)
+  (** Same as {!Eliom_service.create} followed by {!register}.
+      For {!register} see
+      {% <<a_api| val Eliom_registration_sigs.S.register >> %}. *)
   val create :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->
@@ -191,7 +184,9 @@ module type S_with_create = sig
      'gn, 'pn, return)
       Eliom_service.t
 
-  (** Same as {!Eliom_service.attach_get} followed by {!register}. *)
+  (** Same as {!Eliom_service.attach_get} followed by {!register}.
+      For {!register} see
+      {% <<a_api| val Eliom_registration_sigs.S.register >> %}. *)
   val attach_get :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->
@@ -223,7 +218,9 @@ module type S_with_create = sig
      [`WithoutSuffix], 'gn, unit, return)
       Eliom_service.t
 
-  (** Same as {!Eliom_service.attach_post} followed by {!register}. *)
+  (** Same as {!Eliom_service.attach_post} followed by {!register}.
+      For {!register} see
+      {% <<a_api| val Eliom_registration_sigs.S.register >> %}. *)
   val attach_post :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->
