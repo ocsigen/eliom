@@ -73,6 +73,7 @@ type unknown_content
 type 'a application_content = [ `Appl of 'a ]
 
 (**/**)
+(** Typed application name *)
 type 'a application_name
 (**/**)
 
