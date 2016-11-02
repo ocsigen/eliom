@@ -51,7 +51,7 @@ let rec yes_no : default:bool -> string -> bool =
   printf "%s (%s/%s) " msg
     (if default then "YES" else "yes")
     (if default then "no" else "NO");
-  match String.(lowercase (read_line ())) with
+  match Bytes.(lowercase_ascii (read_line ())) with
     | "yes" | "y" -> true
     | "no" | "n" -> false
     | "" -> default
@@ -195,7 +195,7 @@ let env name =
     else "dbm" in
   [
     "PROJECT_NAME", name;
-    "MODULE_NAME", String.capitalize name;
+    "MODULE_NAME", Bytes.capitalize_ascii name;
     "PROJECT_DB", db
   ]
 
