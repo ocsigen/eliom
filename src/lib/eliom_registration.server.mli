@@ -72,10 +72,8 @@ type unknown_content
     that is unique for a given application. *)
 type 'a application_content = [ `Appl of 'a ]
 
-(**/**)
 (** Typed application name *)
 type 'a application_name
-(**/**)
 
 (** {4 OCaml content} *)
 
