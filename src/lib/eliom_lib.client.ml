@@ -64,6 +64,23 @@ module Url = struct
       print_endline "Warning: Eliom_lib.string_of_url_path ignores ~encode";
     String.concat "/" l
 
+  let path_of_url = function
+    | Url.Http  {Url.hu_path = path}
+    | Url.Https {Url.hu_path = path}
+    | Url.File  {Url.fu_path = path} ->
+      path
+
+  let path_of_url_string s =
+    match Url.url_of_string s with
+    | Some path ->
+      path_of_url path
+    | _ ->
+      (* assuming relative URL and improvising *)
+      split_path @@ try
+        String.(sub s 0 (index s '?'))
+      with Not_found ->
+        s
+
 end
 
 module Lwt_log = struct

@@ -772,47 +772,12 @@ let route ~replace ?(keep_url = false)
     Eliom_request_info.get_sess_info := r;
     Lwt.fail e
 
-let path_of_url = function
-  | Url.Http  { Url.hu_path }
-  | Url.Https { Url.hu_path } ->
-    Some hu_path
-  | _ ->
-    None
-
-let path_of_url_string s =
-  match Url.url_of_string s with
-  | Some s ->
-    path_of_url s
-  | None ->
-    (* assuming relative URL and improvising because Url doesn't deal
-       with these *)
-    let s =
-      try
-        String.(sub s 0 (index s '?'))
-      with Not_found ->
-        s
-    in
-    Some (Url.split_path s)
-
-let current_path () =
-  match Url.Current.get () with
-  | Some path ->
-    path_of_url path
-  | None ->
-    None
-
 let after_action uri =
   let
     ({ Eliom_common.si_all_get_params ; si_all_post_params }
      as i_sess_info) =
     !Eliom_request_info.get_sess_info ()
-  and i_subpath =
-    match path_of_url_string uri with
-    | Some path ->
-      path
-    | None ->
-      failwith "after_action: cannot obtain path"
-  in
+  and i_subpath = Url.path_of_url_string uri in
   let info = {
     Eliom_route.i_sess_info ;
     i_subpath;
