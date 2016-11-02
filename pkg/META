@@ -20,15 +20,6 @@ package "server" (
   archive(byte) = "server.cma"
   archive(native) = "server.cmxa"
 
-  package "ext" (
-    directory = "extensions"
-    description = "Eliom: server-side extensions"
-    version = "[distributed with Eliom]"
-    require = "eliom.server"
-    archive(byte) = "extensions.cma"
-    archive(native) = "extensions.cmxa"
-  )
-
   package "monitor" (
     directory = "monitor"
     description = "Eliom: monitoring"

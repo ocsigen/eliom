@@ -28,13 +28,6 @@ true:keep_locs
 
 <lib/client/*.ml{,i}>:package(js_of_ocaml.deriving.ppx)
 
-<lib/server/extensions/*.ml>:package(js_of_ocaml.deriving.ppx,lwt.ppx)
-
-<lib/server/extensions/*.ml{,i}>:thread
-<lib/server/extensions/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml,calendar)
-<lib/server/extensions/*.ml{,i}>:package(js_of_ocaml.deriving.ppx)
-<lib/server/extensions/*.ml{,i}>:I(src/lib/server)
-
 <lib/server/monitor/*.ml>:package(lwt.ppx)
 <lib/server/monitor/*.ml{,i}>:thread
 <lib/server/monitor/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml,calendar)
