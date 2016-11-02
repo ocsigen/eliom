@@ -1,3 +1,13 @@
+===== 6.0 (2016-11-xx) =====
+
+* Improve Eliom_service and Eliom_registration APIs using GADTs
+* Implement client-side services, useful for mobile apps. This includes
+** client-side service registration (Eliom_registration)
+** client-side service routing (Eliom_client.change_page_uri)
+* Transition to PPX internally
+* Compatibility with OCaml 4.03.0, Js_of_ocaml 2.8.2 and newer, TyXML 4.0
+* Various bugfixes and improvements
+
 ===== 5.0 (2016-01-28) =====
 
 * Add Eliom_shared and server-side Eliom_content.{Html5,Svg}.R modules
