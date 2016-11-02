@@ -20,16 +20,16 @@
 
 (** Eliom services registration for various kinds of page content:
     Eliom application, valid {!Html}, actions, redirections, static
-    files, … *)
+    files, ...
 
-(** {b Please read the Eliom manual before this page to learn how to
+    {b Please read the Eliom manual before this page to learn how to
     use {% <<a_manual chapter="server-services" | services >>%} and {%
     <<a_manual chapter="server-outputs" | predefined outputs >>%}.
-    } *)
+    }
 
-(** {% <<outline| <<header| **Table of contents** >> >> %}*)
+    {% <<outline| <<header| **Table of contents** >> >> %}
 
-(** {2 Type definitions} *)
+    {2 Type definitions} *)
 
 (** The type [kind] is an abstract type for the HTTP frame returned by
     a service. The type parameter indicates the content type, and is
@@ -41,9 +41,9 @@
         {- {!ocaml_content}}} *)
 type 'a kind
 
-(** {3 Return types for {!type:Eliom_service.service} } *)
+(** {3 Return types for {!type:Eliom_service.service} }
 
-(** {4 Classical content} *)
+    {4 Classical content} *)
 
 (** The type [browser_content] is to be used as a phantom type
     parameter for {!Eliom_registration.kind}. It means the returned

@@ -66,7 +66,7 @@ type _ redirection =
        [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
     'a redirection
 
-(** [page] et al. are not really polymorphic. The type variables are
+(* [page] et al. are not really polymorphic. The type variables are
     necessary for maintaining type-level compatibility with server
     (for injections) *)
 module Redirection : Eliom_registration_sigs.S_poly_with_send
