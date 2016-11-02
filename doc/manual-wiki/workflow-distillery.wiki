@@ -73,3 +73,13 @@ to compile your project and run ocsigenserver with it.
 
 Please refer to the generated README file for further hints
 on how to work with your project.
+
+=== Using other templates
+
+If you want to start from a more complete or more specific template,
+you can get other templates from the internet, such as
+"ocsigen-start". You can either install these templates into eliom's
+own directory (this is what their installer generally does), or, if
+doing so is not practical, you can use the {{{ELIOM_DISTILLERY_PATH}}}
+environment variable to point to your templates. This environment
+variable is a colon-separated list of absolute paths (that is, {{{export ELIOM_DISTILLERY_PATH=/usr/lib/template1:/usr/local/lib/template2}}}).
