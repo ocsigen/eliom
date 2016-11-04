@@ -34,9 +34,7 @@ open Lwt
 let compute_cookie_info sitedata secure secure_ci cookie_info =
   let secure_if_ssl = Eliom_common.get_secure secure sitedata in
   if secure_if_ssl
-  then match secure_ci with
-    | None (* not ssl *) -> cookie_info, false
-    | Some (_, _, c) -> c, true
+  then let (_, _, c) = secure_ci in c, true
   else cookie_info, false
 
 

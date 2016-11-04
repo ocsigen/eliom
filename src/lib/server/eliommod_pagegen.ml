@@ -173,9 +173,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
   update_exp ci >>= fun () ->
 
   (* the same, for secure cookies: *)
-  (match sci with
-    | Some info -> update_exp info
-    | None -> Lwt.return ())
+  update_exp sci
 
 
 (*****************************************************************************)
@@ -233,7 +231,7 @@ let handled_method = function
 
 let gen is_eliom_extension sitedata = function
 | Ocsigen_extensions.Req_found _ ->
-    Lwt.return Ocsigen_extensions.Ext_do_nothing
+  Lwt.return Ocsigen_extensions.Ext_do_nothing
 | Ocsigen_extensions.Req_not_found (404 as previous_extension_err, req)
   when handled_method (Ocsigen_extensions
                        .Ocsigen_request_info

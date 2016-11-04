@@ -233,9 +233,9 @@ type sess_info =
 
      si_secure_cookie_info:
        (string Full_state_name_table.t *
-          string Full_state_name_table.t *
-          string Full_state_name_table.t) option;
-     (* the same, but for secure cookies, if https *)
+        string Full_state_name_table.t *
+        string Full_state_name_table.t);
+     (* the same, but for secure cookies *)
 
      (* now for tab cookies: *)
      si_service_session_cookies_tab: string Full_state_name_table.t;
@@ -243,8 +243,8 @@ type sess_info =
      si_persistent_session_cookies_tab: string Full_state_name_table.t;
      si_secure_cookie_info_tab:
        (string Full_state_name_table.t *
-          string Full_state_name_table.t *
-          string Full_state_name_table.t) option;
+        string Full_state_name_table.t *
+        string Full_state_name_table.t);
 
      si_tab_cookies: string CookiesTable.t;
 

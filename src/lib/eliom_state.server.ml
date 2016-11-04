@@ -994,8 +994,9 @@ let create_volatile_table ~scope ?secure () =
   | None ->
       (match Eliom_common.global_register_allowed () with
       | Some get_current_sitedata ->
-        (* We are not during a request: default is secure:false *)
-        Eliommod_datasess.create_volatile_table ~scope ~secure:false
+        let sitedata = get_current_sitedata () in
+        let secure = Eliom_common.get_secure secure sitedata in
+        Eliommod_datasess.create_volatile_table ~scope ~secure
       | None -> raise
             (Eliom_common.Eliom_site_information_not_available
                "create_volatile_table"))
