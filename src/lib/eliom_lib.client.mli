@@ -55,7 +55,12 @@ module Url : sig
   val get_ssl : string -> bool option
   val resolve : string -> string
   val add_get_args : string -> (string * string) list -> string
-  val string_of_url_path: encode:bool -> string list -> string
+  val string_of_url_path : encode:bool -> string list -> string
+  val path_of_url : url -> string list
+
+  (** Extracts path from a URL string. Works on a best-effort basis
+      for relative URLs *)
+  val path_of_url_string : string -> string list
 
 end
 

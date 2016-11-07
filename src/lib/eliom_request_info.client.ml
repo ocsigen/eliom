@@ -81,22 +81,7 @@ let remove_first_slash path =
 let current_path_ = ref (remove_first_slash Url.Current.path)
 
 let set_current_path uri =
-  let uri = if uri = "./" then "" else uri in
-  let path =
-    match Url.url_of_string uri with
-    | Some (Url.Http url | Url.Https url) ->
-      url.Url.hu_path
-    | _ ->
-      match
-        try
-          Some (String.index uri '?')
-        with Not_found ->
-          None
-      with
-      | Some n -> Eliom_lib.Url.split_path String.(sub uri 0 n)
-      | None   -> Eliom_lib.Url.split_path uri
-  in
-  current_path_ := path
+  current_path_ := Url.path_of_url_string (if uri = "./" then "" else uri)
 
 let get_original_full_path_sp sp =
   (* returns current path, not the one when application started *)
