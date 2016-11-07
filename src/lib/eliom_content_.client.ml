@@ -302,13 +302,13 @@ module MakeManip
       done
 
       let toggle elt cl1 =
-	if contain elt cl1
-	then remove elt cl1
-	else add elt cl1
+        if contain elt cl1
+        then remove elt cl1
+        else add elt cl1
       let toggle2 elt cl1 cl2 =
-	  if contain elt cl1
-	  then replace elt cl1 cl2
-	  else replace elt cl2 cl1
+          if contain elt cl1
+          then replace elt cl1 cl2
+          else replace elt cl2 cl1
 
     end
 
@@ -524,44 +524,44 @@ module Html = struct
       type ('a,'b) ev_unit = 'a elt -> ('b Js.t -> unit) -> unit
       let bool_cb f = Dom_html.handler (fun e -> Js.bool (f e))
       let onkeyup elt f =
-	let elt = get_unique_elt "Ev.onkeyup" elt in
-	elt##.onkeyup := (bool_cb f)
+        let elt = get_unique_elt "Ev.onkeyup" elt in
+        elt##.onkeyup := (bool_cb f)
       let onkeydown elt f =
-	let elt = get_unique_elt "Ev.onkeydown" elt in
-	elt##.onkeydown := (bool_cb f)
+        let elt = get_unique_elt "Ev.onkeydown" elt in
+        elt##.onkeydown := (bool_cb f)
       let onmouseup elt f =
-	let elt = get_unique_elt "Ev.onmouseup" elt in
-	elt##.onmouseup := (bool_cb f)
+        let elt = get_unique_elt "Ev.onmouseup" elt in
+        elt##.onmouseup := (bool_cb f)
       let onmousedown elt f =
-	let elt = get_unique_elt "Ev.onmousedown" elt in
-	elt##.onmousedown := (bool_cb f)
+        let elt = get_unique_elt "Ev.onmousedown" elt in
+        elt##.onmousedown := (bool_cb f)
       let onmouseout elt f =
-	let elt = get_unique_elt "Ev.onmouseout" elt in
-	elt##.onmouseout := (bool_cb f)
+        let elt = get_unique_elt "Ev.onmouseout" elt in
+        elt##.onmouseout := (bool_cb f)
       let onmouseover elt f =
-	let elt = get_unique_elt "Ev.onmouseover" elt in
-	elt##.onmouseover := (bool_cb f)
+        let elt = get_unique_elt "Ev.onmouseover" elt in
+        elt##.onmouseover := (bool_cb f)
       let onclick elt f =
-	let elt = get_unique_elt "Ev.onclick" elt in
-	elt##.onclick := (bool_cb f)
+        let elt = get_unique_elt "Ev.onclick" elt in
+        elt##.onclick := (bool_cb f)
       let ondblclick elt f =
-	let elt = get_unique_elt "Ev.ondblclick" elt in
-	elt##.ondblclick := (bool_cb f)
+        let elt = get_unique_elt "Ev.ondblclick" elt in
+        elt##.ondblclick := (bool_cb f)
       let onload elt f =
-	let elt = get_unique_elt_img "Ev.onload" elt in
-	elt##.onload := (bool_cb f)
+        let elt = get_unique_elt_img "Ev.onload" elt in
+        elt##.onload := (bool_cb f)
       let onerror elt f =
-	let elt = get_unique_elt_img "Ev.onerror" elt in
-	elt##.onerror := (bool_cb f)
+        let elt = get_unique_elt_img "Ev.onerror" elt in
+        elt##.onerror := (bool_cb f)
       let onabort elt f =
-	let elt = get_unique_elt_img "Ev.onabort" elt in
-	elt##.onabort := (bool_cb f)
+        let elt = get_unique_elt_img "Ev.onabort" elt in
+        elt##.onabort := (bool_cb f)
       let onfocus elt f =
-	let elt = get_unique_elt_input "Ev.onfocus" elt in
-	elt##.onfocus := (bool_cb f)
+        let elt = get_unique_elt_input "Ev.onfocus" elt in
+        elt##.onfocus := (bool_cb f)
       let onblur elt f =
-	let elt = get_unique_elt_input "Ev.onblur" elt in
-	elt##.onblur := (bool_cb f)
+        let elt = get_unique_elt_input "Ev.onblur" elt in
+        elt##.onblur := (bool_cb f)
       let onfocus_textarea elt f =
         let elt = get_unique_elt_textarea "Ev.onfocus" elt in
         elt##.onfocus := (bool_cb f)
@@ -569,17 +569,17 @@ module Html = struct
         let elt = get_unique_elt_textarea "Ev.onblur" elt in
         elt##.onblur := (bool_cb f)
       let onscroll elt f =
-	let elt = get_unique_elt "Ev.onscroll" elt in
-	elt##.onscroll := (bool_cb f)
+        let elt = get_unique_elt "Ev.onscroll" elt in
+        elt##.onscroll := (bool_cb f)
       let onreturn elt f =
-	let f ev =
-	  let key = ev##.keyCode in
-	  if key = Keycode.return then f ev;
-	  true in
-	onkeydown elt f
+        let f ev =
+          let key = ev##.keyCode in
+          if key = Keycode.return then f ev;
+          true in
+        onkeydown elt f
       let onchange elt f =
-	let elt = get_unique_elt_input "Ev.onchange" elt in
-	elt##.onchange := (bool_cb f)
+        let elt = get_unique_elt_input "Ev.onchange" elt in
+        elt##.onchange := (bool_cb f)
       let onchange_select elt f =
         let elt = get_unique_elt_select "Ev.onchange_select" elt in
         elt##.onchange := (bool_cb f)
@@ -587,23 +587,23 @@ module Html = struct
 
     module Attr = struct
       let clientWidth elt =
-	let elt = get_unique_elt "Attr.clientWidth" elt in
-	elt##.clientWidth
+        let elt = get_unique_elt "Attr.clientWidth" elt in
+        elt##.clientWidth
       let clientHeight elt =
-	let elt = get_unique_elt "Attr.clientHeight" elt in
-	elt##.clientHeight
+        let elt = get_unique_elt "Attr.clientHeight" elt in
+        elt##.clientHeight
       let offsetWidth elt =
-	let elt = get_unique_elt "Attr.offsetWidth" elt in
-	elt##.offsetWidth
+        let elt = get_unique_elt "Attr.offsetWidth" elt in
+        elt##.offsetWidth
       let offsetHeight elt =
-	let elt = get_unique_elt "Attr.offsetHeight" elt in
-	elt##.offsetHeight
+        let elt = get_unique_elt "Attr.offsetHeight" elt in
+        elt##.offsetHeight
       let clientLeft elt =
-	let elt = get_unique_elt "Attr.clientLeft" elt in
-	elt##.clientLeft
+        let elt = get_unique_elt "Attr.clientLeft" elt in
+        elt##.clientLeft
       let clientTop elt =
-	let elt = get_unique_elt "Attr.clientTop" elt in
-	elt##.clientTop
+        let elt = get_unique_elt "Attr.clientTop" elt in
+        elt##.clientTop
     end
 
     module Css = struct
@@ -641,8 +641,8 @@ module Html = struct
         let elt = get_unique_elt "Css.borderBottomWidth" elt in
         Js.to_bytestring (elt##.style##.borderBottomWidth)
       let borderBottomWidthPx elt =
-	let elt = get_unique_elt "Css.borderBottomWidthPx" elt in
-	Js.parseInt (elt##.style##.borderBottomWidth)
+        let elt = get_unique_elt "Css.borderBottomWidthPx" elt in
+        Js.parseInt (elt##.style##.borderBottomWidth)
       let borderCollapse elt =
         let elt = get_unique_elt "Css.borderCollapse" elt in
         Js.to_bytestring (elt##.style##.borderCollapse)
@@ -662,8 +662,8 @@ module Html = struct
         let elt = get_unique_elt "Css.borderLeftWidth" elt in
         Js.to_bytestring (elt##.style##.borderLeftWidth)
       let borderLeftWidthPx elt =
-	let elt = get_unique_elt "Css.borderLeftWidthPx" elt in
-	Js.parseInt (elt##.style##.borderLeftWidth)
+        let elt = get_unique_elt "Css.borderLeftWidthPx" elt in
+        Js.parseInt (elt##.style##.borderLeftWidth)
       let borderRight elt =
         let elt = get_unique_elt "Css.borderRight" elt in
         Js.to_bytestring (elt##.style##.borderRight)
@@ -677,8 +677,8 @@ module Html = struct
         let elt = get_unique_elt "Css.borderRightWidth" elt in
         Js.to_bytestring (elt##.style##.borderRightWidth)
       let borderRightWidthPx elt =
-	let elt = get_unique_elt "Css.borderRightWidthPx" elt in
-	Js.parseInt (elt##.style##.borderRightWidth)
+        let elt = get_unique_elt "Css.borderRightWidthPx" elt in
+        Js.parseInt (elt##.style##.borderRightWidth)
       let borderSpacing elt =
         let elt = get_unique_elt "Css.borderSpacing" elt in
         Js.to_bytestring (elt##.style##.borderSpacing)
@@ -698,14 +698,14 @@ module Html = struct
         let elt = get_unique_elt "Css.borderTopWidth" elt in
         Js.to_bytestring (elt##.style##.borderTopWidth)
       let borderTopWidthPx elt =
-	let elt = get_unique_elt "Css.borderTopWidthPx" elt in
-	Js.parseInt (elt##.style##.borderTopWidth)
+        let elt = get_unique_elt "Css.borderTopWidthPx" elt in
+        Js.parseInt (elt##.style##.borderTopWidth)
       let borderWidth elt =
         let elt = get_unique_elt "Css.borderWidth" elt in
         Js.to_bytestring (elt##.style##.borderWidth)
       let borderWidthPx elt =
-	let elt = get_unique_elt "Css.borderWidthPx" elt in
-	Js.parseInt (elt##.style##.borderWidth)
+        let elt = get_unique_elt "Css.borderWidthPx" elt in
+        Js.parseInt (elt##.style##.borderWidth)
       let bottom elt =
         let elt = get_unique_elt "Css.bottom" elt in
         Js.to_bytestring (elt##.style##.bottom)
@@ -770,14 +770,14 @@ module Html = struct
         let elt = get_unique_elt "Css.height" elt in
         Js.to_bytestring (elt##.style##.height)
       let heightPx elt =
-	let elt = get_unique_elt "Css.heightPx" elt in
-	Js.parseInt (elt##.style##.height)
+        let elt = get_unique_elt "Css.heightPx" elt in
+        Js.parseInt (elt##.style##.height)
       let left elt =
         let elt = get_unique_elt "Css.left" elt in
         Js.to_bytestring (elt##.style##.left)
       let leftPx elt =
-	let elt = get_unique_elt "Css.leftPx" elt in
-	Js.parseInt (elt##.style##.left)
+        let elt = get_unique_elt "Css.leftPx" elt in
+        Js.parseInt (elt##.style##.left)
       let letterSpacing elt =
         let elt = get_unique_elt "Css.letterSpacing" elt in
         Js.to_bytestring (elt##.style##.letterSpacing)
@@ -803,50 +803,50 @@ module Html = struct
         let elt = get_unique_elt "Css.marginBottom" elt in
         Js.to_bytestring (elt##.style##.marginBottom)
       let marginBottomPx elt =
-	let elt = get_unique_elt "Css.marginBottomPx" elt in
-	Js.parseInt (elt##.style##.marginBottom)
+        let elt = get_unique_elt "Css.marginBottomPx" elt in
+        Js.parseInt (elt##.style##.marginBottom)
       let marginLeft elt =
         let elt = get_unique_elt "Css.marginLeft" elt in
         Js.to_bytestring (elt##.style##.marginLeft)
       let marginLeftPx elt =
-	let elt = get_unique_elt "Css.marginLeftPx" elt in
-	Js.parseInt (elt##.style##.marginLeft)
+        let elt = get_unique_elt "Css.marginLeftPx" elt in
+        Js.parseInt (elt##.style##.marginLeft)
       let marginRight elt =
         let elt = get_unique_elt "Css.marginRight" elt in
         Js.to_bytestring (elt##.style##.marginRight)
       let marginRightPx elt =
-	let elt = get_unique_elt "Css.marginRightPx" elt in
-	Js.parseInt (elt##.style##.marginRight)
+        let elt = get_unique_elt "Css.marginRightPx" elt in
+        Js.parseInt (elt##.style##.marginRight)
       let marginTop elt =
         let elt = get_unique_elt "Css.marginTop" elt in
         Js.to_bytestring (elt##.style##.marginTop)
       let marginTopPx elt =
-	let elt = get_unique_elt "Css.marginTopPx" elt in
-	Js.parseInt (elt##.style##.marginTop)
+        let elt = get_unique_elt "Css.marginTopPx" elt in
+        Js.parseInt (elt##.style##.marginTop)
       let maxHeight elt =
         let elt = get_unique_elt "Css.maxHeight" elt in
         Js.to_bytestring (elt##.style##.maxHeight)
       let maxHeightPx elt =
-	let elt = get_unique_elt "Css.maxHeightPx" elt in
-	Js.parseInt (elt##.style##.maxHeight)
+        let elt = get_unique_elt "Css.maxHeightPx" elt in
+        Js.parseInt (elt##.style##.maxHeight)
       let maxWidth elt =
         let elt = get_unique_elt "Css.maxWidth" elt in
         Js.to_bytestring (elt##.style##.maxWidth)
       let maxWidthPx elt =
-	let elt = get_unique_elt "Css.maxWidthPx" elt in
-	Js.parseInt (elt##.style##.maxWidth)
+        let elt = get_unique_elt "Css.maxWidthPx" elt in
+        Js.parseInt (elt##.style##.maxWidth)
       let minHeight elt =
         let elt = get_unique_elt "Css.minHeight" elt in
         Js.to_bytestring (elt##.style##.minHeight)
       let minHeightPx elt =
-	let elt = get_unique_elt "Css.minHeightPx" elt in
-	Js.parseInt (elt##.style##.minHeight)
+        let elt = get_unique_elt "Css.minHeightPx" elt in
+        Js.parseInt (elt##.style##.minHeight)
       let minWidth elt =
         let elt = get_unique_elt "Css.minWidth" elt in
         Js.to_bytestring (elt##.style##.minWidth)
       let minWidthPx elt =
-	let elt = get_unique_elt "Css.minWidthPx" elt in
-	Js.parseInt (elt##.style##.minWidth)
+        let elt = get_unique_elt "Css.minWidthPx" elt in
+        Js.parseInt (elt##.style##.minWidth)
       let opacity elt =
         let elt = get_unique_elt "Css.opacity" elt in
         Option.map Js.to_bytestring (Js.Optdef.to_option (elt##.style##.opacity))
@@ -881,26 +881,26 @@ module Html = struct
         let elt = get_unique_elt "Css.paddingBottom" elt in
         Js.to_bytestring (elt##.style##.paddingBottom)
       let paddingBottomPx elt =
-	let elt = get_unique_elt "Css.paddingBottomPx" elt in
-	Js.parseInt (elt##.style##.paddingBottom)
+        let elt = get_unique_elt "Css.paddingBottomPx" elt in
+        Js.parseInt (elt##.style##.paddingBottom)
       let paddingLeft elt =
         let elt = get_unique_elt "Css.paddingLeft" elt in
         Js.to_bytestring (elt##.style##.paddingLeft)
       let paddingLeftPx elt =
-	let elt = get_unique_elt "Css.paddingLeftPx" elt in
-	Js.parseInt (elt##.style##.paddingLeft)
+        let elt = get_unique_elt "Css.paddingLeftPx" elt in
+        Js.parseInt (elt##.style##.paddingLeft)
       let paddingRight elt =
         let elt = get_unique_elt "Css.paddingRight" elt in
         Js.to_bytestring (elt##.style##.paddingRight)
       let paddingRightPx elt =
-	let elt = get_unique_elt "Css.paddingRightPx" elt in
-	Js.parseInt (elt##.style##.paddingRight)
+        let elt = get_unique_elt "Css.paddingRightPx" elt in
+        Js.parseInt (elt##.style##.paddingRight)
       let paddingTop elt =
         let elt = get_unique_elt "Css.paddingTop" elt in
         Js.to_bytestring (elt##.style##.paddingTop)
       let paddingTopPx elt =
-	let elt = get_unique_elt "Css.paddingTopPx" elt in
-	Js.parseInt (elt##.style##.paddingTop)
+        let elt = get_unique_elt "Css.paddingTopPx" elt in
+        Js.parseInt (elt##.style##.paddingTop)
       let pageBreakAfter elt =
         let elt = get_unique_elt "Css.pageBreakAfter" elt in
         Js.to_bytestring (elt##.style##.pageBreakAfter)
@@ -914,8 +914,8 @@ module Html = struct
         let elt = get_unique_elt "Css.right" elt in
         Js.to_bytestring (elt##.style##.right)
       let rightPx elt =
-	let elt = get_unique_elt "Css.rightPx" elt in
-	Js.parseInt (elt##.style##.right)
+        let elt = get_unique_elt "Css.rightPx" elt in
+        Js.parseInt (elt##.style##.right)
       let tableLayout elt =
         let elt = get_unique_elt "Css.tableLayout" elt in
         Js.to_bytestring (elt##.style##.tableLayout)
@@ -935,8 +935,8 @@ module Html = struct
         let elt = get_unique_elt "Css.top" elt in
         Js.to_bytestring (elt##.style##.top)
       let topPx elt =
-	let elt = get_unique_elt "Css.topPx" elt in
-	Js.parseInt (elt##.style##.top)
+        let elt = get_unique_elt "Css.topPx" elt in
+        Js.parseInt (elt##.style##.top)
       let verticalAlign elt =
         let elt = get_unique_elt "Css.verticalAlign" elt in
         Js.to_bytestring (elt##.style##.verticalAlign)
@@ -950,8 +950,8 @@ module Html = struct
         let elt = get_unique_elt "Css.width" elt in
         Js.to_bytestring (elt##.style##.width)
       let widthPx elt =
-	let elt = get_unique_elt "Css.widthPx" elt in
-	Js.parseInt (elt##.style##.width)
+        let elt = get_unique_elt "Css.widthPx" elt in
+        Js.parseInt (elt##.style##.width)
       let wordSpacing elt =
         let elt = get_unique_elt "Css.wordSpacing" elt in
         Js.to_bytestring (elt##.style##.wordSpacing)

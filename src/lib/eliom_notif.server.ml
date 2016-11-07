@@ -29,9 +29,9 @@ module Make (A : S) = struct
     type t = (A.identity * notification_react) option
     let equal a b = match a, b with
       | None, None ->
-	true
+        true
       | Some (a, b), Some (c, d) ->
-	A.equal_identity a c && b == d
+        A.equal_identity a c && b == d
       | _ -> false
     let hash = Hashtbl.hash
   end)
@@ -39,7 +39,7 @@ module Make (A : S) = struct
   module I = struct
 
     let tbl = Notif_hashtbl.create A.max_resource
-      
+
     let lock = Lwt_mutex.create ()
 
     let async_locked f = Lwt.async (fun () ->
@@ -55,21 +55,21 @@ module Make (A : S) = struct
 
     let remove v key = async_locked (fun () ->
       let () =
-	try
-	  let wt = Notif_hashtbl.find tbl key in
+        try
+          let wt = Notif_hashtbl.find tbl key in
           Weak_tbl.remove wt v;
-	  remove_if_empty wt key
-	with Not_found -> ()
+          remove_if_empty wt key
+        with Not_found -> ()
       in
       Lwt.return ()
     )
 
     let add v key = async_locked (fun () ->
       let wt =
-	try
-	  Notif_hashtbl.find tbl key
+        try
+          Notif_hashtbl.find tbl key
         with Not_found ->
-	  let wt = Weak_tbl.create A.max_identity_per_resource in
+          let wt = Weak_tbl.create A.max_identity_per_resource in
           Notif_hashtbl.add tbl key wt;
           wt
       in
@@ -80,27 +80,27 @@ module Make (A : S) = struct
 
     let iter =
       let iter (f : Weak_tbl.data -> unit Lwt.t) wt : unit =
-	Weak_tbl.iter
-	  (fun data -> Lwt.async (fun () -> f data))
-	  wt
+        Weak_tbl.iter
+          (fun data -> Lwt.async (fun () -> f data))
+          wt
       in
       fun f key -> async_locked (fun () ->
-	let () =
-	  try
-	    let wt = Notif_hashtbl.find tbl key in
-	    let g data = match data with
+        let () =
+          try
+            let wt = Notif_hashtbl.find tbl key in
+            let g data = match data with
               | None ->
-		Weak_tbl.remove wt data;
-		remove_if_empty wt key;
-		Lwt.return ()
+                Weak_tbl.remove wt data;
+                remove_if_empty wt key;
+                Lwt.return ()
               | Some v ->
-		f v;
-		Lwt.return ()
-	    in
+                f v;
+                Lwt.return ()
+            in
             iter g wt;
-	  with Not_found -> ()
-	in
-	Lwt.return ()
+          with Not_found -> ()
+        in
+        Lwt.return ()
       )
   end
 
@@ -136,9 +136,9 @@ module Make (A : S) = struct
       let client_ev = Eliom_react.Down.of_react
       (*VVV If we add throttling, some events may be lost
             even if buffer size is not 1 :O *)
-	~size: 100 (*VVV ? *)
-	~scope:Eliom_common.default_process_scope
-	e
+        ~size: 100 (*VVV ? *)
+        ~scope:Eliom_common.default_process_scope
+        e
       in
       (client_ev, send_e)
     in
@@ -166,7 +166,7 @@ module Make (A : S) = struct
     let f = fun (identity, ((_, send_e) as notif)) ->
       Eliom_reference.get notif_e >>= fun notif_o ->
       if notforme && notif == (of_option notif_o) then
-	Lwt.return ()
+        Lwt.return ()
       else
         content_gen identity >>= fun content -> match content with
         | Some content -> send_e (key, content); Lwt.return ()
@@ -181,7 +181,7 @@ module Make (A : S) = struct
     Lwt.return ev
 
   let clean () =
-    let f key weak_tbl = I.async_locked (fun () -> 
+    let f key weak_tbl = I.async_locked (fun () ->
       if Weak_tbl.count weak_tbl = 0
       then Notif_hashtbl.remove I.tbl key
     ) in

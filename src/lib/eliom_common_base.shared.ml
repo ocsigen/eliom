@@ -31,15 +31,15 @@ type scope_hierarchy =
   | Default_comet_hier
 
 type user_scope = [ `Session_group of scope_hierarchy
-		  | `Session of scope_hierarchy
-		  | `Client_process of scope_hierarchy ]
+                  | `Session of scope_hierarchy
+                  | `Client_process of scope_hierarchy ]
 
 type scope = [ `Site
-	     | user_scope ]
+             | user_scope ]
 
 type all_scope = [ scope
                  | `Global
-		 | `Request ]
+                 | `Request ]
 
 type global_scope = [`Global]
 type site_scope = [`Site]

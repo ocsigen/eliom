@@ -72,7 +72,7 @@ var caml_unwrap_value_from_string = function (){
           var size = (code >> 4) & 0x7;
           var v = [tag];
           if (size == 0) return v;
-	  intern_obj_table[obj_counter] = v;
+          intern_obj_table[obj_counter] = v;
           stack.push(obj_counter++, size);
           return v;
         } else
@@ -109,7 +109,7 @@ var caml_unwrap_value_from_string = function (){
             var size = header >> 10;
             var v = [tag];
             if (size == 0) return v;
-	    intern_obj_table[obj_counter] = v;
+            intern_obj_table[obj_counter] = v;
             stack.push(obj_counter++, size);
             return v;
           case cst.CODE_BLOCK64:
@@ -230,7 +230,7 @@ var caml_unwrap_value_from_string = function (){
             v = unwrapped_v[1];
           }
           intern_obj_table[ofs] = v;
-	  ancestor[ancestor.length-1] = v;
+          ancestor[ancestor.length-1] = v;
         }
       } else {
         stack.push(ofs, size);

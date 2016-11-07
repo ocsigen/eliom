@@ -31,17 +31,17 @@ open Eliom_lib
 type scope_hierarchy = Eliom_common_base.scope_hierarchy
 
 type cookie_scope = [ `Session of scope_hierarchy
-		    | `Client_process of scope_hierarchy ]
+                    | `Client_process of scope_hierarchy ]
 
 type user_scope = [ `Session_group of scope_hierarchy
                   | cookie_scope ]
 
 type scope = [ `Site
-	     | user_scope ]
+             | user_scope ]
 
 type all_scope = [ scope
                  | `Global
-		 | `Request ]
+                 | `Request ]
 
 type cookie_level = [ `Session | `Client_process ]
 
@@ -528,7 +528,7 @@ and sitedata = {
      ((full_state_name * (float option * bool)) list);
 
   site_value_table : Polytables.t; (* table containing evaluated
-					   lazy site values *)
+                                      lazy site values *)
 
   mutable registered_scope_hierarchies: Hier_set.t;
 
@@ -559,9 +559,9 @@ and sitedata = {
 }
 
 type 'a lazy_site_value (** lazy site values, are lazy values with
-			   content available only in the context of a
-			   site: the closure one time for each site (
-			   requesting it ) *)
+                            content available only in the context of a
+                            site: the closure one time for each site (
+                            requesting it ) *)
 
 val force_lazy_site_value : 'a lazy_site_value -> 'a
 val lazy_site_value_from_fun : ( unit -> 'a ) -> 'a lazy_site_value

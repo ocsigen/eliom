@@ -96,7 +96,7 @@ let compile_intf file =
     preprocess_opt ~ocaml:true !ppopt
     @ eliom_synonyms @ !args
     @ (map_include !eliom_inc_dirs)
-		@ ["-intf"; file] )
+    @ ["-intf"; file] )
     (on_each_line add_build_dirs)
 
 let compile_impl file =
@@ -105,7 +105,7 @@ let compile_impl file =
     preprocess_opt ~ocaml:true !ppopt
     @ eliom_synonyms @ !args
     @ (map_include !eliom_inc_dirs)
-		@ ["-impl"; file] )
+    @ ["-impl"; file] )
     (on_each_line add_build_dirs)
 
 let server_pp_opt impl_intf =

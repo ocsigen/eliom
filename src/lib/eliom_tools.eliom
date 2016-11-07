@@ -245,22 +245,22 @@ module Make(DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
         ((* MAYBE : use get_original_full_path_string? *)
           ("/" ^ Eliom_request_info.get_original_full_path_string ()))
       | Some s' ->
-	let node_url = make_string_uri ~absolute_path:true ~service:s' () in
-	string_prefix service_url node_url
+        let node_url = make_string_uri ~absolute_path:true ~service:s' () in
+        string_prefix service_url node_url
 
   let find_longest_prefix_in_hierarchy service (main, pages) =
     let rec aux prefix (max_len, _ as max) i = function
       | [] -> max
       | (_, Site_tree (Main_page (Srv s), hsl)) :: pages when service_prefix s service ->
-	let len =
-	  String.length (make_string_uri ~absolute_path:true ~service:s ()) in
-	let max = if len >= max_len then (len, List.rev (i::prefix)) else max in
+        let len =
+          String.length (make_string_uri ~absolute_path:true ~service:s ()) in
+        let max = if len >= max_len then (len, List.rev (i::prefix)) else max in
         let max = aux (i::prefix) max 0 hsl in
-	aux prefix max (i+1) pages
+        aux prefix max (i+1) pages
       | (_, Disabled)::pages -> aux prefix max (i+1) pages
       | (_, Site_tree (_, hsl))::pages ->
         let max = aux (i::prefix) max 0 hsl in
-	aux prefix max (i+1) pages
+        aux prefix max (i+1) pages
     in
     let length, path = aux [] (0,[]) 0 pages in
     path

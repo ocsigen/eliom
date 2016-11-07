@@ -75,11 +75,11 @@ sig
          ignore
            [%client
               (ignore (React.E.map
-		        (handle_notification ~%some_stuff)
-		        ~%(Notif_module.client_ev ())
-	      ) : unit)
+                (handle_notification ~%some_stuff)
+                ~%(Notif_module.client_ev ())
+              ) : unit)
            ]
-  
+
   *)
   val client_ev : unit -> (A.key * A.notification) Eliom_react.Down.t Lwt.t
 

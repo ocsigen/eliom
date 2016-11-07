@@ -54,24 +54,24 @@ let close_service_state ~scope ~secure ?sp () =
              remove it from the session group table.
              It will remove the entry in the session table *)
         begin
-	  match scope with
-	    | `Session_group _ ->
+          match scope with
+            | `Session_group _ ->
               begin
-		(* If we want to close all the group of browser sessions,
-		   the node is found in the group table: *)
-		match
-		  Eliommod_sessiongroups.Serv.find_node_in_group_of_groups
-		    !(c.Eliom_common.sc_session_group)
-		with
-		  | None -> Lwt_log.ign_error ~section:Lwt_log.eliom "No group of groups. Please report this problem."
-		  | Some (service_table, g) ->
+                (* If we want to close all the group of browser sessions,
+                   the node is found in the group table: *)
+                match
+                  Eliommod_sessiongroups.Serv.find_node_in_group_of_groups
+                    !(c.Eliom_common.sc_session_group)
+                with
+                  | None -> Lwt_log.ign_error ~section:Lwt_log.eliom "No group of groups. Please report this problem."
+                  | Some (service_table, g) ->
                     Eliommod_sessiongroups.Serv.remove g
-	      end
-	    | `Session _
-	    | `Client_process _ ->
+              end
+            | `Session _
+            | `Client_process _ ->
               Eliommod_sessiongroups.Serv.remove
-		c.Eliom_common.sc_session_group_node
-	end;
+                c.Eliom_common.sc_session_group_node
+        end;
         ior := Eliom_common.SCNo_data
       | _ -> ()
 
@@ -100,19 +100,19 @@ let rec find_or_create_service_cookie_ ?set_session_group
 
     let set_session_group =
       match cookie_scope with
-	| `Client_process n ->
-	  begin (* We create a group whose name is the
+        | `Client_process n ->
+          begin (* We create a group whose name is the
                    browser session cookie
                    and put the tab session into it. *)
             let v = find_or_create_service_cookie_
-	      ~cookie_scope:(`Session n)
+              ~cookie_scope:(`Session n)
               ~secure
               ~sp
               ()
             in
             Some v.Eliom_common.sc_value
-	  end
-	|  _ -> set_session_group
+          end
+        |  _ -> set_session_group
     in
     let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
 

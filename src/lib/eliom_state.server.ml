@@ -462,7 +462,7 @@ let get_service_session_group
   try
     let c =
       Eliommod_sersess.find_service_cookie_only
-	~cookie_scope:(scope:>Eliom_common.cookie_scope) ~secure ()
+        ~cookie_scope:(scope:>Eliom_common.cookie_scope) ~secure ()
     in
     match !(c.Eliom_common.sc_session_group) with
       | _, _, Right _ -> None
@@ -476,12 +476,12 @@ let get_service_session_group_size
   try
     let c =
       Eliommod_sersess.find_service_cookie_only
-	~cookie_scope:(scope:>Eliom_common.cookie_scope) ~secure ()
+        ~cookie_scope:(scope:>Eliom_common.cookie_scope) ~secure ()
     in
     match !(c.Eliom_common.sc_session_group) with
       | _, _, Right _ -> None
       | _, _, Left v ->
-	Some (Eliommod_sessiongroups.Serv.group_size !(c.Eliom_common.sc_session_group))
+        Some (Eliommod_sessiongroups.Serv.group_size !(c.Eliom_common.sc_session_group))
   with
     | Not_found
     | Eliom_common.Eliom_Session_expired -> None
@@ -510,7 +510,7 @@ let unset_volatile_data_session_group ?set_max
     let c =
       Eliommod_datasess.find_data_cookie_only
         ~cookie_scope:(scope:>Eliom_common.cookie_scope)
-	~secure ~sp ()
+        ~secure ~sp ()
     in
     let n =
       Eliommod_sessiongroups.make_full_group_name
@@ -557,12 +557,12 @@ let get_volatile_data_session_group_size
   try
     let c =
       Eliommod_datasess.find_data_cookie_only
-	~cookie_scope:(scope:>Eliom_common.cookie_scope) ~secure ()
+        ~cookie_scope:(scope:>Eliom_common.cookie_scope) ~secure ()
     in
     match !(c.Eliom_common.dc_session_group) with
       | _, _, Right _ -> None
       | _, _, Left v ->
-	Some (Eliommod_sessiongroups.Data.group_size !(c.Eliom_common.dc_session_group))
+        Some (Eliommod_sessiongroups.Data.group_size !(c.Eliom_common.dc_session_group))
   with
     | Not_found
     | Eliom_common.Eliom_Session_expired -> None
@@ -878,11 +878,11 @@ let get_session_service_table ~sp ~scope ?secure () =
   match scope with
     | `Session_group _ ->
       begin
-	match
-	  Eliommod_sessiongroups.Serv.find_node_in_group_of_groups
+        match
+          Eliommod_sessiongroups.Serv.find_node_in_group_of_groups
             !(c.Eliom_common.sc_session_group)
-	with None -> raise Not_found
-	  | Some (t, _) -> t
+        with None -> raise Not_found
+          | Some (t, _) -> t
       end
     | _ -> c.Eliom_common.sc_table
 
@@ -896,13 +896,13 @@ let get_session_service_table_if_exists ~sp
     in
     match scope with
       | `Session_group _ ->
-	begin
-	  match
+        begin
+          match
             Eliommod_sessiongroups.Serv.find_node_in_group_of_groups
               !(c.Eliom_common.sc_session_group)
-	  with None -> raise Not_found
+          with None -> raise Not_found
             | Some (t, _) -> t
-	end
+        end
       | _ -> c.Eliom_common.sc_table
   with Eliom_common.Eliom_Session_expired -> raise Not_found
 

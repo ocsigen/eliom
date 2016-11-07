@@ -463,7 +463,7 @@ and sitedata =
      ((full_state_name * (float option * bool)) list);
 
    site_value_table : Polytables.t; (* table containing evaluated
-				       lazy site values *)
+                                       lazy site values *)
 
    mutable registered_scope_hierarchies: Hier_set.t;
 
@@ -624,7 +624,7 @@ let register_scope_hierarchy (name:string) =
         Hier_set.add name !registered_scope_hierarchies
     | Some sp ->
       if Hier_set.mem name !registered_scope_hierarchies ||
-	Hier_set.mem name sp.sp_sitedata.registered_scope_hierarchies
+         Hier_set.mem name sp.sp_sitedata.registered_scope_hierarchies
       then failwith (Printf.sprintf "the scope hierarchy %s has already been registered" name)
       else sp.sp_sitedata.registered_scope_hierarchies <-
         Hier_set.add name sp.sp_sitedata.registered_scope_hierarchies
@@ -732,15 +732,15 @@ let force_lazy_site_value v =
                          "force_lazy_site_value")
   in
   try Polytables.get
-	~table:sitedata.site_value_table
-	~key:v.lazy_sv_key
+    ~table:sitedata.site_value_table
+    ~key:v.lazy_sv_key
   with
     | Not_found ->
       let value = v.lazy_sv_fun () in
       Polytables.set
-	~table:sitedata.site_value_table
-	~key:v.lazy_sv_key
-	~value;
+        ~table:sitedata.site_value_table
+        ~key:v.lazy_sv_key
+        ~value;
       value
 
 let lazy_site_value_from_fun f =
@@ -955,7 +955,7 @@ let get_session_info req previous_extension_err =
           let (tc, pp) =
             List.assoc_remove tab_cookies_param_name post_params
           in
-	  let tc = [%derive.of_json: (string * string) list] tc in
+          let tc = [%derive.of_json: (string * string) list] tc in
           (List.fold_left (fun t (k,v) -> CookiesTable.add k v t) CookiesTable.empty tc, pp)
           (*Marshal.from_string (Ocsigen_lib.decode tc) 0, pp*)
         with Not_found ->
@@ -963,7 +963,7 @@ let get_session_info req previous_extension_err =
             let tc = Ocsigen_headers.find tab_cookies_header_name
               (Ocsigen_extensions.Ocsigen_request_info.http_frame ri)
             in
-	    let tc = [%derive.of_json: (string * string) list] tc in
+            let tc = [%derive.of_json: (string * string) list] tc in
             (List.fold_left (fun t (k,v) -> CookiesTable.add k v t) CookiesTable.empty tc,
              post_params)
           with Not_found -> CookiesTable.empty, post_params
@@ -975,9 +975,9 @@ let get_session_info req previous_extension_err =
   let cpi =
     try (* looking for client process info in headers *)
       let cpi =
-	Ocsigen_headers.find
-	  tab_cpi_header_name
-	  (Ocsigen_extensions.Ocsigen_request_info.http_frame ri) in
+        Ocsigen_headers.find
+          tab_cpi_header_name
+          (Ocsigen_extensions.Ocsigen_request_info.http_frame ri) in
       Some ([%derive.of_json: cpi] cpi)
     with Not_found -> None
   in
@@ -985,8 +985,8 @@ let get_session_info req previous_extension_err =
   let epd =
     lazy (try (* looking in headers *)
             let epd = Ocsigen_headers.find
-	      expecting_process_page_name
-	      (Ocsigen_extensions.Ocsigen_request_info.http_frame ri)
+              expecting_process_page_name
+              (Ocsigen_extensions.Ocsigen_request_info.http_frame ri)
             in
             [%derive.of_json: bool] epd
       with Not_found -> false)
