@@ -63,8 +63,6 @@ let make_hdlr_post service g : client_form_handler = fun ev ->
 
 [%%shared.start]
 
-let x = 0
-
 module type Html = sig
 
   include Html_sigs.T
