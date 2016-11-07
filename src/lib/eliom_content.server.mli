@@ -277,11 +277,11 @@ module Svg : sig
 
   end
 
-  (** SVG printer.
-      See {% <<a_api project="tyxml" | module Xml_sigs.Typed_simple_printer >> %}. *)
-  module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a elt
-                                                  and type doc := F.doc
-
+  (** SVG printer. See
+      {% <<a_api project="tyxml" | module Xml_sigs.Typed_pp >> %}. *)
+  module Printer : Xml_sigs.Typed_pp
+    with type +'a elt := 'a elt
+     and type doc := F.doc
 
 end
 
@@ -474,10 +474,12 @@ module Html : sig
 
   end
 
-  (** {{:http://dev.w3.org/html5/html-xhtml-author-guide/}"Polyglot"} HTML printer.
-     See {% <<a_api project="tyxml" | module Xml_sigs.Typed_simple_printer >> %}. *)
-  module Printer : Xml_sigs.Typed_simple_printer with type +'a elt := 'a elt
-                                                  and type doc := F.doc
+  (** {{:http://dev.w3.org/html5/html-xhtml-author-guide/}"Polyglot"}
+      HTML printer. See
+      {% <<a_api project="tyxml" | module Xml_sigs.Typed_pp >> %}. *)
+  module Printer : Xml_sigs.Typed_pp
+    with type +'a elt := 'a elt
+     and type doc := F.doc
 
 end
 
