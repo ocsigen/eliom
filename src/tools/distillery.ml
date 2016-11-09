@@ -91,7 +91,6 @@ let mkdir_p path_str =
   in
   aux [] (split_path path_str)
 
-
 let copy_file ?(env=[]) ?(preds=[]) src_name dst_name =
   let line_counter = ref 0 in
   let include_line =
@@ -163,7 +162,7 @@ let copy_file ?(env=[]) ?(preds=[]) src_name dst_name =
     | File_error msg ->
       eprintf "%s.\n%!" msg
 
-let create_project ~name ~env ~preds ~source_dir ~destination_dir =
+let create_project ?preds ~name ~env ~source_dir ~destination_dir () =
   let eliom_ignore_files =
     lines_of_file (Filename.concat source_dir eliomignore_filename)
   in
@@ -186,7 +185,7 @@ let create_project ~name ~env ~preds ~source_dir ~destination_dir =
           let dst_file_path = Str.(split (regexp "!") dst_file) in
           Filename.concat destination_dir (join_path dst_file_path)
         in
-        copy_file ~env ~preds src_path dst_path
+        copy_file ?preds ~env src_path dst_path
     )
     (Sys.readdir source_dir)
 
@@ -202,14 +201,6 @@ let env name =
     "MODULE_NAME", String.capitalize name;
     "PROJECT_DB", db
   ]
-
-let preds () = [
-  if Sys.ocaml_version >= "4" then
-    "OCAML4"
-  else
-    "OCAML3"
-]
-
 
 let get_templatedirs () =
   let distillery_path_dirs =
@@ -254,7 +245,6 @@ let check_reserve_project_name project_name template =
 
 let init_project template name =
   env name,
-  preds (),
   template_path template
 
 let compilation_unit_name_regexp =
@@ -310,8 +300,8 @@ let main () =
         name
         (fst template)
     else
-      let env, preds, source_dir = init_project template name in
-      create_project ~name ~env ~preds ~source_dir ~destination_dir
+      let env, source_dir = init_project template name in
+      create_project ~name ~env ~source_dir ~destination_dir ()
   end
 
 let () = main ()
