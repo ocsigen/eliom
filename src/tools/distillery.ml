@@ -6,26 +6,28 @@ let reserve_project_name_filename = ".eliomreserve"
 (* File containing files which must be ignored while copying a template. *)
 let eliomignore_filename          = ".eliomignore"
 
+(* File containing files which must be copied without modifications *)
+let eliomverbatim_filename        = ".eliomverbatim"
+
 let eliom_template_dir = Findlib.package_directory "eliom.templates"
 
 let distillery_basic = ("basic.ppx", eliom_template_dir)
 
 let template_path (tname, tpath) = tpath ^ "/" ^ tname
 
-(* Returns all lines of [file] as a string list. Returns an empty list if [file]
- * doesn't exist.
- *)
+(* Returns all lines of [file] as a string list. Returns an empty list
+   if [file] doesn't exist. *)
 let lines_of_file file =
   if not (Sys.file_exists file) then []
   else
-  (
-    let lines       = ref [] in
-    let in_file     = open_in file in
-    let rec aux ()  =
-      try lines := (input_line in_file) :: !lines; aux ()
-      with End_of_file -> close_in in_file
-    in aux (); !lines
-  )
+    (
+      let lines       = ref [] in
+      let in_file     = open_in file in
+      let rec aux ()  =
+        try lines := (input_line in_file) :: !lines; aux ()
+        with End_of_file -> close_in in_file
+      in aux (); !lines
+    )
 
 let pp_list () l =
   let f s =
@@ -36,26 +38,26 @@ let pp_list () l =
   String.concat ", " (List.map f l)
 
 let gen_usage_msg l = Printf.sprintf
-  "Welcome to the Eliom distillery!\n\
-   \n\
-   This program generates the scaffold for your Eliom application\n\
-   from a template.\n\
-   Available templates: %a.\n\
-   \n\
-   Call it like this\
-   \n\  $ %s -name <name> [-template <template>] [-target-directory <dest>]\
-   \n\  $ %s -dir \n\
-   where"
-  pp_list l
-  (Filename.basename Sys.argv.(0))
-  (Filename.basename Sys.argv.(0))
+    "Welcome to the Eliom distillery!\n\
+     \n\
+     This program generates the scaffold for your Eliom application\n\
+     from a template.\n\
+     Available templates: %a.\n\
+     \n\
+     Call it like this\
+     \n\  $ %s -name <name> [-template <template>] [-target-directory <dest>]\
+     \n\  $ %s -dir \n\
+     where"
+    pp_list l
+    (Filename.basename Sys.argv.(0))
+    (Filename.basename Sys.argv.(0))
 
 let rec yes_no : default:bool -> string -> bool =
   fun ~default msg ->
-  printf "%s (%s/%s) " msg
-    (if default then "YES" else "yes")
-    (if default then "no" else "NO");
-  match String.(lowercase (read_line ())) with
+    printf "%s (%s/%s) " msg
+      (if default then "YES" else "yes")
+      (if default then "no" else "NO");
+    match String.(lowercase (read_line ())) with
     | "yes" | "y" -> true
     | "no" | "n" -> false
     | "" -> default
@@ -122,24 +124,24 @@ let copy_file ?(env=[]) ?(preds=[]) src_name dst_name =
           else ifdef_pred rest
       in
       match ifdef_pred preds with
-        | Some _pred ->
-          ifdef_stack := true :: !ifdef_stack;
-          false
-        | None ->
-          if Str.string_match ifdef_regexp line 0 then
-            ( ifdef_stack := false :: !ifdef_stack;
-              false )
-          else if Str.string_match endif_regexp line 0 then
-            match !ifdef_stack with
-              | _ :: stack ->
-                ifdef_stack := stack;
-                false
-              | [] ->
-                raise (Preprocessing_error
-                         (Printf.sprintf "Cannot match %%%%endif%%%% in line %i in file %S"
-                            !line_counter src_name))
-          else
-            List.for_all (fun x -> x) !ifdef_stack
+      | Some _pred ->
+        ifdef_stack := true :: !ifdef_stack;
+        false
+      | None ->
+        if Str.string_match ifdef_regexp line 0 then
+          ( ifdef_stack := false :: !ifdef_stack;
+            false )
+        else if Str.string_match endif_regexp line 0 then
+          match !ifdef_stack with
+          | _ :: stack ->
+            ifdef_stack := stack;
+            false
+          | [] ->
+            raise (Preprocessing_error
+                     (Printf.sprintf "Cannot match %%%%endif%%%% in line %i in file %S"
+                        !line_counter src_name))
+        else
+          List.for_all (fun x -> x) !ifdef_stack
   in
   let replace_in_line =
     let replacers =
@@ -160,29 +162,24 @@ let copy_file ?(env=[]) ?(preds=[]) src_name dst_name =
       let src = open_in src_name in
       let dst = open_out dst_name in
       begin try while true do
-          let line = input_line src in
-          incr line_counter;
-          if include_line line then
-            ( output_string dst (replace_in_line line);
-              output_char dst '\n' )
-        done with End_of_file -> ()
+            let line = input_line src in
+            incr line_counter;
+            if include_line line then
+              ( output_string dst (replace_in_line line);
+                output_char dst '\n' )
+          done with End_of_file -> ()
       end;
       close_in src;
       close_out dst;
       printf "Generated %s\n%!" dst_name
   with
-    | Sys_error _ as exc ->
-      eprintf "Error generating %s: %s.\n%!" dst_name
-        (Printexc.to_string exc)
-    | Preprocessing_error msg ->
-      eprintf "%s.\n%!" msg
-    | File_error msg ->
-      eprintf "%s.\n%!" msg
-
-let ends_with s1 s2 = String.(
-  let len1 = length s1 and len2 = length s2 in
-  len1 >= len2 && sub s1 (len1 - len2) len2 = s2
-)
+  | Sys_error _ as exc ->
+    eprintf "Error generating %s: %s.\n%!" dst_name
+      (Printexc.to_string exc)
+  | Preprocessing_error msg ->
+    eprintf "%s.\n%!" msg
+  | File_error msg ->
+    eprintf "%s.\n%!" msg
 
 let expand_dest_path ~name ~dest_dir s =
   Str.(global_replace (regexp (quote "PROJECT_NAME")) name s)
@@ -193,6 +190,8 @@ let expand_dest_path ~name ~dest_dir s =
 let create_project ?preds ~name ~env ~source_dir ~dest_dir () =
   let eliom_ignore_files =
     lines_of_file (Filename.concat source_dir eliomignore_filename)
+  and eliom_verbatim_files =
+    lines_of_file (Filename.concat source_dir eliomverbatim_filename)
   in
   if not (Sys.file_exists dest_dir) then
     ( if ksprintf (yes_no ~default:true) "Destination directory %S doesn't exist. Create it?" dest_dir then
@@ -204,14 +203,11 @@ let create_project ?preds ~name ~env ~source_dir ~dest_dir () =
       exit 1 );
   Array.iter
     (fun src_file ->
-       if List.exists (fun x -> x = src_file) eliom_ignore_files then ()
-       else if ends_with src_file ".eliomverbatim" then
+       if List.mem src_file eliom_ignore_files then
+         ()
+       else if List.mem src_file eliom_verbatim_files then
          let src_path = Filename.concat source_dir src_file
-         and dst_path =
-           expand_dest_path ~name ~dest_dir
-             String.(
-               sub src_file 0 (length src_file - length ".eliomverbatim"))
-         in
+         and dst_path = expand_dest_path ~name ~dest_dir src_file in
          copy_file_plain src_path dst_path;
          printf "Generated %s\n%!" dst_path
        else
@@ -254,7 +250,7 @@ let get_templates () =
       else
         aux ((f, path)::rl) (path, dir)
     with
-      | End_of_file -> Unix.closedir dir; rl
+    | End_of_file -> Unix.closedir dir; rl
   in List.concat (List.map (aux []) dirs)
 
 
@@ -268,9 +264,9 @@ let get_templates () =
  *)
 
 let check_reserve_project_name project_name template =
-  let file = Filename.concat (template_path template) reserve_project_name_filename
-  in
-  List.exists (fun x -> x = project_name) (lines_of_file file)
+  Filename.concat (template_path template) reserve_project_name_filename
+  |> lines_of_file
+  |> List.mem project_name
 
 (* ---------- Reserve project name ---------- *)
 (* ------------------------------------------ *)
