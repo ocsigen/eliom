@@ -6,26 +6,28 @@ let reserve_project_name_filename = ".eliomreserve"
 (* File containing files which must be ignored while copying a template. *)
 let eliomignore_filename          = ".eliomignore"
 
+(* File containing files which must be copied without modifications *)
+let eliomverbatim_filename        = ".eliomverbatim"
+
 let eliom_template_dir = Findlib.package_directory "eliom.templates"
 
 let distillery_basic = ("basic.ppx", eliom_template_dir)
 
 let template_path (tname, tpath) = tpath ^ "/" ^ tname
 
-(* Returns all lines of [file] as a string list. Returns an empty list if [file]
- * doesn't exist.
- *)
+(* Returns all lines of [file] as a string list. Returns an empty list
+   if [file] doesn't exist. *)
 let lines_of_file file =
   if not (Sys.file_exists file) then []
   else
-  (
-    let lines       = ref [] in
-    let in_file     = open_in file in
-    let rec aux ()  =
-      try lines := (input_line in_file) :: !lines; aux ()
-      with End_of_file -> close_in in_file
-    in aux (); !lines
-  )
+    (
+      let lines       = ref [] in
+      let in_file     = open_in file in
+      let rec aux ()  =
+        try lines := (input_line in_file) :: !lines; aux ()
+        with End_of_file -> close_in in_file
+      in aux (); !lines
+    )
 
 let pp_list () l =
   let f s =
@@ -36,26 +38,26 @@ let pp_list () l =
   String.concat ", " (List.map f l)
 
 let gen_usage_msg l = Printf.sprintf
-  "Welcome to the Eliom distillery!\n\
-   \n\
-   This program generates the scaffold for your Eliom application\n\
-   from a template.\n\
-   Available templates: %a.\n\
-   \n\
-   Call it like this\
-   \n\  $ %s -name <name> [-template <template>] [-target-directory <dest>]\
-   \n\  $ %s -dir \n\
-   where"
-  pp_list l
-  (Filename.basename Sys.argv.(0))
-  (Filename.basename Sys.argv.(0))
+    "Welcome to the Eliom distillery!\n\
+     \n\
+     This program generates the scaffold for your Eliom application\n\
+     from a template.\n\
+     Available templates: %a.\n\
+     \n\
+     Call it like this\
+     \n\  $ %s -name <name> [-template <template>] [-target-directory <dest>]\
+     \n\  $ %s -dir \n\
+     where"
+    pp_list l
+    (Filename.basename Sys.argv.(0))
+    (Filename.basename Sys.argv.(0))
 
 let rec yes_no : default:bool -> string -> bool =
   fun ~default msg ->
-  printf "%s (%s/%s) " msg
-    (if default then "YES" else "yes")
-    (if default then "no" else "NO");
-  match String.(lowercase (read_line ())) with
+    printf "%s (%s/%s) " msg
+      (if default then "YES" else "yes")
+      (if default then "no" else "NO");
+    match String.(lowercase (read_line ())) with
     | "yes" | "y" -> true
     | "no" | "n" -> false
     | "" -> default
@@ -91,6 +93,22 @@ let mkdir_p path_str =
   in
   aux [] (split_path path_str)
 
+let copy_file_plain input_name output_name =
+  mkdir_p (Filename.dirname output_name);
+  let buffer_size = 8192 in
+  let fd_in = Unix.openfile input_name [O_RDONLY] 0
+  and fd_out =
+    let {Unix.st_perm} = Unix.stat input_name in
+    Unix.openfile output_name [O_WRONLY; O_CREAT; O_TRUNC] st_perm
+  and buffer = String.create buffer_size in
+  let rec copy_loop () =
+    match Unix.read fd_in buffer 0 buffer_size with
+    | 0 -> ()
+    | r -> ignore (Unix.write fd_out buffer 0 r); copy_loop ()
+  in
+  copy_loop ();
+  Unix.close fd_in;
+  Unix.close fd_out
 
 let copy_file ?(env=[]) ?(preds=[]) src_name dst_name =
   let line_counter = ref 0 in
@@ -106,24 +124,24 @@ let copy_file ?(env=[]) ?(preds=[]) src_name dst_name =
           else ifdef_pred rest
       in
       match ifdef_pred preds with
-        | Some _pred ->
-          ifdef_stack := true :: !ifdef_stack;
-          false
-        | None ->
-          if Str.string_match ifdef_regexp line 0 then
-            ( ifdef_stack := false :: !ifdef_stack;
-              false )
-          else if Str.string_match endif_regexp line 0 then
-            match !ifdef_stack with
-              | _ :: stack ->
-                ifdef_stack := stack;
-                false
-              | [] ->
-                raise (Preprocessing_error
-                         (Printf.sprintf "Cannot match %%%%endif%%%% in line %i in file %S"
-                            !line_counter src_name))
-          else
-            List.for_all (fun x -> x) !ifdef_stack
+      | Some _pred ->
+        ifdef_stack := true :: !ifdef_stack;
+        false
+      | None ->
+        if Str.string_match ifdef_regexp line 0 then
+          ( ifdef_stack := false :: !ifdef_stack;
+            false )
+        else if Str.string_match endif_regexp line 0 then
+          match !ifdef_stack with
+          | _ :: stack ->
+            ifdef_stack := stack;
+            false
+          | [] ->
+            raise (Preprocessing_error
+                     (Printf.sprintf "Cannot match %%%%endif%%%% in line %i in file %S"
+                        !line_counter src_name))
+        else
+          List.for_all (fun x -> x) !ifdef_stack
   in
   let replace_in_line =
     let replacers =
@@ -144,49 +162,58 @@ let copy_file ?(env=[]) ?(preds=[]) src_name dst_name =
       let src = open_in src_name in
       let dst = open_out dst_name in
       begin try while true do
-          let line = input_line src in
-          incr line_counter;
-          if include_line line then
-            ( output_string dst (replace_in_line line);
-              output_char dst '\n' )
-        done with End_of_file -> ()
+            let line = input_line src in
+            incr line_counter;
+            if include_line line then
+              ( output_string dst (replace_in_line line);
+                output_char dst '\n' )
+          done with End_of_file -> ()
       end;
       close_in src;
       close_out dst;
-      printf "Generated %s.\n%!" dst_name
+      printf "Generated %s\n%!" dst_name
   with
-    | Sys_error _ as exc ->
-      eprintf "Error generating %s: %s.\n%!" dst_name
-        (Printexc.to_string exc)
-    | Preprocessing_error msg ->
-      eprintf "%s.\n%!" msg
-    | File_error msg ->
-      eprintf "%s.\n%!" msg
+  | Sys_error _ as exc ->
+    eprintf "Error generating %s: %s.\n%!" dst_name
+      (Printexc.to_string exc)
+  | Preprocessing_error msg ->
+    eprintf "%s.\n%!" msg
+  | File_error msg ->
+    eprintf "%s.\n%!" msg
 
-let create_project ~name ~env ~preds ~source_dir ~destination_dir =
+let expand_dest_path ~name ~dest_dir s =
+  Str.(global_replace (regexp (quote "PROJECT_NAME")) name s)
+  |> Str.(split (regexp "!"))
+  |> join_path
+  |> Filename.concat dest_dir
+
+let create_project ?preds ~name ~env ~source_dir ~dest_dir () =
   let eliom_ignore_files =
     lines_of_file (Filename.concat source_dir eliomignore_filename)
+  and eliom_verbatim_files =
+    lines_of_file (Filename.concat source_dir eliomverbatim_filename)
   in
-  if not (Sys.file_exists destination_dir) then
-    ( if ksprintf (yes_no ~default:true) "Destination directory %S doesn't exist. Create it?" destination_dir then
-        mkdir_p destination_dir
+  if not (Sys.file_exists dest_dir) then
+    ( if ksprintf (yes_no ~default:true) "Destination directory %S doesn't exist. Create it?" dest_dir then
+        mkdir_p dest_dir
       else
         exit 1 );
-  if not (Sys.is_directory destination_dir) then
-    ( eprintf "Destination directory %S is a file!" destination_dir;
+  if not (Sys.is_directory dest_dir) then
+    ( eprintf "Destination directory %S is a file!" dest_dir;
       exit 1 );
   Array.iter
     (fun src_file ->
-      (* First, we check if the file is in .eliomignore *)
-      if List.exists (fun x -> x = src_file) eliom_ignore_files then ()
-      else
-        let src_path = Filename.concat source_dir src_file in
-        let dst_path =
-          let dst_file = Str.(global_replace (regexp (quote "PROJECT_NAME")) name src_file) in
-          let dst_file_path = Str.(split (regexp "!") dst_file) in
-          Filename.concat destination_dir (join_path dst_file_path)
-        in
-        copy_file ~env ~preds src_path dst_path
+       if List.mem src_file eliom_ignore_files then
+         ()
+       else if List.mem src_file eliom_verbatim_files then
+         let src_path = Filename.concat source_dir src_file
+         and dst_path = expand_dest_path ~name ~dest_dir src_file in
+         copy_file_plain src_path dst_path;
+         printf "Generated %s\n%!" dst_path
+       else
+         let src_path = Filename.concat source_dir src_file
+         and dst_path = expand_dest_path ~name ~dest_dir src_file in
+         copy_file ?preds ~env src_path dst_path
     )
     (Sys.readdir source_dir)
 
@@ -202,14 +229,6 @@ let env name =
     "MODULE_NAME", String.capitalize name;
     "PROJECT_DB", db
   ]
-
-let preds () = [
-  if Sys.ocaml_version >= "4" then
-    "OCAML4"
-  else
-    "OCAML3"
-]
-
 
 let get_templatedirs () =
   let distillery_path_dirs =
@@ -231,7 +250,7 @@ let get_templates () =
       else
         aux ((f, path)::rl) (path, dir)
     with
-      | End_of_file -> Unix.closedir dir; rl
+    | End_of_file -> Unix.closedir dir; rl
   in List.concat (List.map (aux []) dirs)
 
 
@@ -245,16 +264,15 @@ let get_templates () =
  *)
 
 let check_reserve_project_name project_name template =
-  let file = Filename.concat (template_path template) reserve_project_name_filename
-  in
-  List.exists (fun x -> x = project_name) (lines_of_file file)
+  Filename.concat (template_path template) reserve_project_name_filename
+  |> lines_of_file
+  |> List.mem project_name
 
 (* ---------- Reserve project name ---------- *)
 (* ------------------------------------------ *)
 
 let init_project template name =
   env name,
-  preds (),
   template_path template
 
 let compilation_unit_name_regexp =
@@ -276,7 +294,7 @@ let main () =
     try template := List.find (fun (name, _) -> name = s) templates
     with Not_found -> bad "Not a known template name: %S" s
   in
-  let destination_dir = ref None in
+  let dest_dir = ref None in
   let check_name name =
     if not (Str.string_match compilation_unit_name_regexp name 0) then
       bad "Not a valid compilation unit name: %s" name
@@ -290,17 +308,17 @@ let main () =
       "<template> The template for the project";
       "-list-templates", Unit show_templates,
       " List all available templates";
-      "-target-directory", String (fun s -> destination_dir := Some s),
+      "-target-directory", String (fun s -> dest_dir := Some s),
       "<dir> Generate the project in directory <dir> (the project's name by default)";
   ]) in
   Arg.(parse spec (bad "Don't know what to do with %S") usage_msg);
   if !dir then List.iter (printf "%s\n") (get_templatedirs ())
   else if !shown then ()
   else begin
-    let template, name, destination_dir =
+    let template, name, dest_dir =
       match !template, !name with
       | template, Some name ->
-          let dir = match !destination_dir with Some dir -> dir | None -> name in
+          let dir = match !dest_dir with Some dir -> dir | None -> name in
           template, name, dir
       | _ -> Arg.usage spec usage_msg; exit 1
     in
@@ -310,8 +328,8 @@ let main () =
         name
         (fst template)
     else
-      let env, preds, source_dir = init_project template name in
-      create_project ~name ~env ~preds ~source_dir ~destination_dir
+      let env, source_dir = init_project template name in
+      create_project ~name ~env ~source_dir ~dest_dir ()
   end
 
 let () = main ()
