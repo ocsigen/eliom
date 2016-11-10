@@ -141,7 +141,7 @@ val window_open :
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:Eliom_parameter.nl_params_set ->
   ?keep_get_na_params:bool ->
-  'a -> Dom_html.window Js.t
+  'a -> Dom_html.window Js.t Js.opt
 
 (** Changes the URL, without doing a request.
     It takes a GET (co-)service as parameter and its parameters.

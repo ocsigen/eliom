@@ -364,8 +364,14 @@ let window_open ~window_name ?window_features
           get_params ()
   with
   | `Get (uri, _) ->
-    Dom_html.window##(open_ (Js.string uri) window_name
-                           (Js.Opt.option window_features))
+    (* open_ signature changed in JSOO master (after 2.8.3). Obj.magic
+       will allow us to keep compatibility with both 2.8.x and future
+       versions *)
+    Obj.magic @@
+    Dom_html.window##(
+      open_ (Js.string uri) window_name
+        (Js.Opt.option window_features)
+    )
   | `Post (_, _, _) -> assert false
   | `Put (_, _, _) -> assert false
   | `Delete (_, _, _) -> assert false
