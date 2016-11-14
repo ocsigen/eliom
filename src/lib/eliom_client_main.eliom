@@ -54,31 +54,6 @@ let current_path_and_args () =
     | None ->
       path_of_string uri, []
 
-let url_without_na_params url =
-  let f url = {
-    url with
-    Url.hu_arguments =
-      Eliom_common.remove_na_prefix_params url.Url.hu_arguments
-  }
-  and f' url = {
-    url with
-    Url.fu_arguments =
-      Eliom_common.remove_na_prefix_params url.Url.fu_arguments
-  } in
-  match Url.url_of_string url with
-  | Some (Url.Http url) ->
-    Some (Url.Http (f url))
-  | Some (Url.Https url) ->
-    Some (Url.Https (f url))
-  | Some (Url.File url) ->
-    Some (Url.File (f' url))
-  | _ ->
-    None
-
-let default_reload () =
-  Dom_html.window##.location##reload;
-  Lwt.return ()
-
 let reload ~fallback () =
   let path, args = current_path_and_args () in
   try%lwt
