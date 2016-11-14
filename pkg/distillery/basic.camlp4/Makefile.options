@@ -5,19 +5,10 @@
 
 PROJECT_NAME := %%%PROJECT_NAME%%%
 
-%%%ifdef OCAML4%%%
 # Source files for the server
 SERVER_FILES := $(wildcard *.eliomi *.eliom)
 # Source files for the client
 CLIENT_FILES := $(wildcard *.eliomi *.eliom)
-%%%endif%%%
-%%%ifdef OCAML3%%%
-# In OCaml<4 source code files must be given in linking order :(
-# Source files for the server
-SERVER_FILES := %%%PROJECT_NAME%%%.eliom
-# Source files for the client
-CLIENT_FILES := %%%PROJECT_NAME%%%.eliom
-%%%endif%%%
 
 # OCamlfind packages for the server
 SERVER_PACKAGES :=
