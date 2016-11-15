@@ -19,16 +19,16 @@
 
 val close_service_state :
   scope:[< Eliom_common.user_scope ] ->
-  secure: bool option ->
+  secure_o: bool option ->
   ?sp:Eliom_common.server_params -> unit -> unit
 val find_or_create_service_cookie :
   ?set_session_group:string ->
   cookie_scope:[< Eliom_common.cookie_scope > `Session ] ->
-  secure: bool option ->
+  secure_o: bool option ->
   ?sp:Eliom_common.server_params ->
   unit -> Eliom_common.tables Eliom_common.one_service_cookie_info
 val find_service_cookie_only :
   cookie_scope:[<Eliom_common.cookie_scope] ->
-  secure: bool option ->
+  secure_o: bool option ->
   ?sp:Eliom_common.server_params ->
   unit -> Eliom_common.tables Eliom_common.one_service_cookie_info

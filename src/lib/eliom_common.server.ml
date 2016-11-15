@@ -1364,8 +1364,8 @@ let get_site_dir sitedata = sitedata.site_dir
 let get_site_dir_string sitedata = sitedata.site_dir_string
 
 (* Returns if we want secure cookie *)
-let get_secure secure sitedata =
-  match secure with
+let get_secure ~secure_o ~sitedata () =
+  match secure_o with
   | None -> sitedata.secure_cookies
   | Some s -> s
 

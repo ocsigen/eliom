@@ -25,14 +25,14 @@
 
 open Eliom_lib
 
-let compute_cookie_info sitedata secure secure_ci cookie_info =
-  let secure_if_ssl = Eliom_common.get_secure secure sitedata in
-  if secure_if_ssl
+let compute_cookie_info sitedata secure_o secure_ci cookie_info =
+  let secure = Eliom_common.get_secure ~secure_o ~sitedata () in
+  if secure
   then let (c, _, _) = secure_ci in c, true
   else cookie_info, false
 
 (*****************************************************************************)
-let close_service_state ~scope ~secure ?sp () =
+let close_service_state ~scope ~secure_o ?sp () =
   let sp = Eliom_common.sp_of_option sp in
   try
     let cookie_level = Eliom_common.cookie_level_of_user_scope scope in
@@ -41,7 +41,7 @@ let close_service_state ~scope ~secure ?sp () =
     in
     let sitedata = Eliom_request_info.get_sitedata_sp sp in
     let cookie_info, secure =
-      compute_cookie_info sitedata secure secure_ci cookie_info
+      compute_cookie_info sitedata secure_o secure_ci cookie_info
     in
     let full_st_name = Eliom_common.make_full_state_name ~sp ~secure ~scope in
     let (_, ior) =
@@ -90,7 +90,7 @@ let fullsessgrp ~cookie_level ~sp set_session_group =
     set_session_group
 
 let rec find_or_create_service_cookie_ ?set_session_group
-    ~(cookie_scope: Eliom_common.cookie_scope) ~secure ~sp () =
+    ~(cookie_scope: Eliom_common.cookie_scope) ~secure_o ~sp () =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
 
@@ -106,7 +106,7 @@ let rec find_or_create_service_cookie_ ?set_session_group
                    and put the tab session into it. *)
             let v = find_or_create_service_cookie_
               ~cookie_scope:(`Session n)
-              ~secure
+              ~secure_o
               ~sp
               ()
             in
@@ -157,7 +157,7 @@ let rec find_or_create_service_cookie_ ?set_session_group
   in
   let sitedata = Eliom_request_info.get_sitedata_sp sp in
   let cookie_info, secure =
-    compute_cookie_info sitedata secure secure_ci cookie_info
+    compute_cookie_info sitedata secure_o secure_ci cookie_info
   in
   let full_st_name =
     Eliom_common.make_full_state_name ~sp ~secure ~scope:cookie_scope in
@@ -210,25 +210,25 @@ let find_or_create_service_cookie_ =
   (find_or_create_service_cookie_ :
          ?set_session_group:string ->
          cookie_scope:Eliom_common.cookie_scope ->
-         secure:bool option ->
+         secure_o:bool option ->
          sp:Eliom_common.server_params ->
          unit -> Eliom_common.tables Eliom_common.one_service_cookie_info
 :>
          ?set_session_group:string ->
     cookie_scope:[< Eliom_common.cookie_scope] ->
-         secure:bool option ->
+         secure_o:bool option ->
          sp:Eliom_common.server_params ->
          unit -> Eliom_common.tables Eliom_common.one_service_cookie_info
   )
 
 let find_or_create_service_cookie ?set_session_group
-    ~cookie_scope ~secure ?sp () =
+    ~cookie_scope ~secure_o ?sp () =
   let sp = Eliom_common.sp_of_option sp in
   find_or_create_service_cookie_ ?set_session_group
-    ~cookie_scope ~secure ~sp ()
+    ~cookie_scope ~secure_o ~sp ()
 
 
-let find_service_cookie_only ~cookie_scope ~secure ?sp () =
+let find_service_cookie_only ~cookie_scope ~secure_o ?sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
   let sp = Eliom_common.sp_of_option sp in
@@ -238,7 +238,7 @@ let find_service_cookie_only ~cookie_scope ~secure ?sp () =
   in
   let sitedata = Eliom_request_info.get_sitedata_sp sp in
   let cookie_info, secure =
-    compute_cookie_info sitedata secure secure_ci cookie_info
+    compute_cookie_info sitedata secure_o secure_ci cookie_info
   in
   let full_st_name =
     Eliom_common.make_full_state_name ~sp ~secure ~scope:cookie_scope in
