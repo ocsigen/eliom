@@ -329,10 +329,15 @@ Eliom_registration.Html.register >>, etc.
 
 The default can be set in the configuration file:
 <<code|
-<eliom>
-  <securecookies value="true" />
-</eliom>
+<extension findlib-package="eliom.server">
+   <securecookies value="true" />
+</extension>
 >>
+This option can also be set inside a {{{<eliom>}}}
+tag, but be careful: in that case it will affect only the actions performed
+after setting this option, in the same site (and NOT the top-level instructions
+of the modules loaded before).
+
 
 Secure sessions are using secure cookies, i.e., Ocsigen Server will
 ask the browsers to send the cookie only if the protocol is

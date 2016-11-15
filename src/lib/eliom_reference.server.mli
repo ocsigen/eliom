@@ -57,6 +57,12 @@ exception Eref_not_initialized
     scopes {!Eliom_common.global_scope}, {!Eliom_common.site_scope}, and
     {!Eliom_common.request_scope}. The default is [false], but this default
     can be changed in configuration file ([<securecookies value="true"/>]).
+    This option can be placed as global Eliom option (inside the [<extension>]
+    tag which is loading Eliom), or in the local configuration of one site
+    (inside the [<eliom>] tag). But in the latter case,
+    it will only have effect on the actions performed after in the same [<site>]
+    (and NOT on the top-level instructions of the modules loaded before).
+
     {e Warning: Eliom references of scope {!Eliom_common.global_scope},
     {!Eliom_common.site_scope} or
     {!Eliom_common.request_scope} may be created at any time ; but for other
