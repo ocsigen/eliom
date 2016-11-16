@@ -37,9 +37,27 @@ let pretty_print_header filename =
   print 1 "<command-line>";
   print 1 filename
 
+let current_section () = !Eliompp_lexer.section_idt
+
+let we_are_ppx () = !Eliompp_lexer.we_are_ppx
+
+let for_server () =
+  match current_section () with
+  | `Server | `Shared -> true
+  | `Client -> false
+
+let for_client () =
+  match current_section () with
+  | `Client | `Shared -> true
+  | `Server -> false
+
 let pretty_print filename lexbuf =
   (if !kind = `Client
    then match Eliompp_lexer.token lexbuf with
+     | Eliompp_lexer.RAW s ->
+         if we_are_ppx () && for_client () then printf "%s" s
+     | Eliompp_lexer.CHAR c ->
+         if we_are_ppx () && for_client () then printf "%c" c
      | Eliompp_lexer.CLIENT_SECTION (loc, cnt) ->
          printf "# %d \"%s\"\n%s\n\n" loc filename cnt
      | Eliompp_lexer.SHARED_SECTION (loc, cnt) ->
@@ -47,9 +65,9 @@ let pretty_print filename lexbuf =
      | _ -> ()
    else match Eliompp_lexer.token lexbuf with
      | Eliompp_lexer.RAW s ->
-         printf "%s" s
+         if not (we_are_ppx ()) || for_server () then printf "%s" s
      | Eliompp_lexer.CHAR c ->
-         printf "%c" c
+         if not (we_are_ppx ()) || for_server () then printf "%c" c
      | Eliompp_lexer.SERVER_SECTION (loc, cnt) ->
          printf "# %d \"%s\"\n%s\n" loc filename cnt
      | Eliompp_lexer.SHARED_SECTION (loc, cnt) ->
