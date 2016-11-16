@@ -1,8 +1,5 @@
 (** This lexer attempts to tokenize sections of an eliom file *)
 {
-  open Printf
-  open Buffer
-
   type token =
     | RAW of string
     | CHAR of char
@@ -35,6 +32,7 @@
   exception Unterminated_comment
   exception Unterminated_section
   exception Forbidden_inner_section
+  exception Unknown_section_id
 
   let start_cstring ?(reset = false) cstring lexbuf =
     if reset then reset_buf ();
@@ -46,6 +44,24 @@
     add_string "(*";
     incr comment_ref_count;
     comment lexbuf
+
+  let we_are_ppx = ref false
+
+  let string_of_section = function
+    | `Server -> "server"
+    | `Client -> "client"
+    | `Shared -> "shared"
+
+  let start_section_ppx side =
+    let loc = !line in
+    reset_buf ();
+    we_are_ppx := true;
+    add_string ("[%%" ^ string_of_section side ^ ".start]");
+    section_idt := side;
+    match side with
+    | `Client -> CLIENT_SECTION (loc, get_buf ())
+    | `Server -> SERVER_SECTION (loc, get_buf ())
+    | `Shared -> SHARED_SECTION (loc, get_buf ())
 
   let start_section ?(reset = false) ~idt section lexbuf =
     if reset then reset_buf ();
@@ -94,6 +110,9 @@ rule token = parse
       section_idt := section_def;
       section_tk
   }
+  | "[%%server.start]" { start_section_ppx `Server }
+  | "[%%client.start]" { start_section_ppx `Client }
+  | "[%%shared.start]" { start_section_ppx `Shared }
   | [^ '"' '{' '(' '\n']+
     as raw                      { RAW raw }
   | '\n'                        { incr line; CHAR '\n' }
@@ -157,4 +176,6 @@ and section = parse
   | '{'                         { add_char '{'; section lexbuf }
   | [^ '"' '(' '\n' '}' '{']+
     as s                        { add_string s; section lexbuf }
-  | eof                         { raise Unterminated_section }
+  | eof                         {
+      if not !we_are_ppx then raise Unterminated_section
+    }
