@@ -194,7 +194,7 @@ request, if the POST method is used).
                       "Version of the page without POST parameters"]])))
 
 let my_service_with_post_params =
-  Eliom_registration.Html.attach_post
+  Eliom_registration.Html.create_attached_post
     ~fallback:no_post_param_service
     ~post_params:Eliom_parameter.(string "value")
     (fun () value ->

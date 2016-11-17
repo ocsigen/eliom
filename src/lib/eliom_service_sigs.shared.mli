@@ -241,12 +241,12 @@ module type S = sig
     (unit, 'b, 'meth, att, 'co, 'ext, non_reg,
      [ `WithoutSuffix ], unit, 'f, 'return) t
 
-  (** [attach_existing ~fallback ~service ()] attaches the preexisting
+  (** [attach ~fallback ~service ()] attaches the preexisting
       path-less service [service] on the URL of [fallback]. This
       allows creating a link to a pah-less service but with another
       URL than the current one. It is not possible to register
       something on the service returned by this function. *)
-  val attach_existing :
+  val attach :
     fallback:
       (unit, unit, get, att, _, non_ext, _,
        _, unit, unit, 'return1) t ->

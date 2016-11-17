@@ -437,7 +437,7 @@ let non_attached_info = function
   | _ ->
     failwith "non_attached_info"
 
-let attach_existing :
+let attach :
   fallback:
   (unit, unit, get, att, _, non_ext, 'rg1,
    [< suff ], unit, unit, 'return1) t ->
@@ -452,7 +452,7 @@ let attach_existing :
     let fallbackkind = attached_info fallback in
     let open Eliom_common in
     let error_msg =
-      "attach_global_to_fallback' is not implemented for this kind of\
+      "attach' is not implemented for this kind of\
        service. Please report a bug if you need this."
     in
     let get_name = match na_name with

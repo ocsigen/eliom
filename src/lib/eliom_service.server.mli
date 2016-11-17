@@ -113,14 +113,14 @@ val create :
   unit ->
   ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, non_ocaml) t
 
-(** [attach_get ~fallback ~get_params ()] attaches a new service on
+(** [create_attached_get ~fallback ~get_params ()] attaches a new service on
     the path of [fallback]. The new service implements the GET method
     and accepts [get_params], in addition to an
     automatically-generated parameter that is used to identify the
     service and does not need to be provided by the
     programmer. [fallback] remains available. For a description of the
     optional parameters see {!create}. *)
-val attach_get :
+val create_attached_get :
   ?name:string ->
   ?csrf_safe: bool ->
   ?csrf_scope: [< Eliom_common.user_scope] ->
@@ -137,14 +137,14 @@ val attach_get :
   ('gp, unit, get, att, co, non_ext, reg, [`WithoutSuffix],
    'gn, unit, non_ocaml) t
 
-(** [attach_post ~fallback ~post_params ()] attaches a new service on
+(** [create_attached_post ~fallback ~post_params ()] attaches a new service on
     the path of [fallback]. The new service implements the POST method
     and accepts the GET parameters of [fallback], in addition to the
     POST parameters [post_params]. An automatically-generated
     parameter is used to identify the service and does not need to be
     provided by the programmer. [fallback] remains available. For a
     description of the optional parameters see {!create}. *)
-val attach_post :
+val create_attached_post :
   ?name:string ->
   ?csrf_safe: bool ->
   ?csrf_scope: [< Eliom_common.user_scope] ->
@@ -260,7 +260,7 @@ val create_unsafe :
   unit ->
   ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'ret) t
 
-val attach_get_unsafe :
+val create_attached_get_unsafe :
   ?name:string ->
   ?csrf_safe: bool ->
   ?csrf_scope: [< Eliom_common.user_scope] ->
@@ -276,7 +276,7 @@ val attach_get_unsafe :
   unit ->
   ('gp, unit, get, att, co, non_ext, reg, 'tipo, 'gn, unit, _) t
 
-val attach_post_unsafe :
+val create_attached_post_unsafe :
   ?name:string ->
   ?csrf_safe: bool ->
   ?csrf_scope: [< Eliom_common.user_scope] ->
