@@ -396,7 +396,7 @@ after a POST request if you want to do a redirection towards the same
 page without POST parameters (and thus prevent from reposting data if
 the user reloads the page).
 
-== Service identification ==
+==@@id="identification"@@ Service identification ==
 
 Eliom has a sophisticated //service identification mechanism// to
 choose the service handler to be executed --given an incoming

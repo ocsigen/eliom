@@ -6,7 +6,7 @@
 ===Services
 ====[[server-services|The different types of services]]
 ====[[server-params|Typing service parameters]]
-====[[server-outputs|Writing service handlers]]
+====[[server-outputs|Implementing service handlers]]
 ====[[server-links|Creating links and forms]]
 ===[[server-state|Sessions and server side state]]
 ===[[server-security|Security]]

@@ -20,7 +20,7 @@ Eliom_content.Xml
 Eliom_tools
 }
 
-{2 Services creation}
+{2 Service creation}
 
 {!modules:
 Eliom_service
