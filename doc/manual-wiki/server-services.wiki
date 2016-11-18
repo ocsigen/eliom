@@ -219,13 +219,13 @@ Form.post_form
 By default, the URL of links or forms to pathless services is the
 current page. If you want to combine the service call with a URL
 change, it is possible to attach a non-attached service to another
-service using function <<a_api| val Eliom_service.attach_existing>>.
+service using function <<a_api| val Eliom_service.attach>>.
 
 Example:
 
 <<code language="ocaml"|
 let service =
-  Eliom_service.attach_existing
+  Eliom_service.attach
     ~fallback:myfirstservice
     ~service:myget_coserv'
     ()
@@ -261,8 +261,8 @@ services, <<a_api | val Eliom_service.create >> .
 ===@@id="attached_services"@@ Attached services ===
 
 Attached services are created using the functions
-<<a_api| val Eliom_service.attach_get >> (GET method) and
-<<a_api| val Eliom_service.attach_post >> (POST method).
+<<a_api| val Eliom_service.create_attached_get >> (GET method) and
+<<a_api| val Eliom_service.create_attached_post >> (POST method).
 
 Anonymous GET attached services are often created dynamically with
 respect to previous interaction with the user (e.g. filling forms in

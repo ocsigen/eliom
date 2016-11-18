@@ -628,7 +628,7 @@ let create pages
     ~service ?error_handler page;
   service
 
-let attach_get pages
+let create_attached_get pages
     ?scope
     ?app
     ?options
@@ -649,7 +649,7 @@ let attach_get pages
     ?error_handler
     page =
   let service =
-    S.attach_get_unsafe
+    S.create_attached_get_unsafe
       ?name
       ?csrf_safe
       ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
@@ -668,7 +668,7 @@ let attach_get pages
     ~service ?error_handler page;
   service
 
-let attach_post pages
+let create_attached_post pages
     ?scope
     ?app
     ?options
@@ -689,7 +689,7 @@ let attach_post pages
     ?error_handler
     page =
   let service =
-    S.attach_post_unsafe
+    S.create_attached_post_unsafe
       ?name
       ?csrf_safe
       ?csrf_scope:(csrf_scope :> Eliom_common.user_scope option)
@@ -729,9 +729,9 @@ struct
 
   let create ?app = create pages ?app
 
-  let attach_get ?app = attach_get pages ?app
+  let create_attached_get ?app = create_attached_get pages ?app
 
-  let attach_post ?app = attach_post pages ?app
+  let create_attached_post ?app = create_attached_post pages ?app
 
 end
 
@@ -754,8 +754,8 @@ struct
 
   let create ?app = create pages ?app
 
-  let attach_get ?app = attach_get pages ?app
+  let create_attached_get ?app = create_attached_get pages ?app
 
-  let attach_post ?app = attach_post pages ?app
+  let create_attached_post ?app = create_attached_post pages ?app
 
 end

@@ -184,10 +184,10 @@ module type S_with_create = sig
      'gn, 'pn, return)
       Eliom_service.t
 
-  (** Same as {!Eliom_service.attach_get} followed by {!register}.
+  (** Same as {!Eliom_service.create_attached_get} followed by {!register}.
       For {!register} see
       {% <<a_api| val Eliom_registration_sigs.S.register >> %}. *)
-  val attach_get :
+  val create_attached_get :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->
     ?options:options ->
@@ -218,10 +218,10 @@ module type S_with_create = sig
      [`WithoutSuffix], 'gn, unit, return)
       Eliom_service.t
 
-  (** Same as {!Eliom_service.attach_post} followed by {!register}.
+  (** Same as {!Eliom_service.create_attached_post} followed by {!register}.
       For {!register} see
       {% <<a_api| val Eliom_registration_sigs.S.register >> %}. *)
-  val attach_post :
+  val create_attached_post :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->
     ?options:options ->
@@ -312,8 +312,8 @@ module type S_poly_with_create = sig
      'gn, 'pn, 'a return)
       Eliom_service.t
 
-  (** See {!S.attach_get}. *)
-  val attach_get :
+  (** See {!S.create_attached_get}. *)
+  val create_attached_get :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->
     ?options:options ->
@@ -345,8 +345,8 @@ module type S_poly_with_create = sig
      [`WithoutSuffix], 'gn, unit, 'a return)
       Eliom_service.t
 
-  (** See {!S.attach_post}. *)
-  val attach_post :
+  (** See {!S.create_attached_post}. *)
+  val create_attached_post :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->
     ?options:options ->

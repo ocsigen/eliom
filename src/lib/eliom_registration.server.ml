@@ -854,7 +854,7 @@ module Customize
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
-  let attach_get
+  let create_attached_get
       ?app
       ?scope
       ?options
@@ -874,7 +874,7 @@ module Customize
       ~get_params
       ?error_handler
       f =
-    R.attach_get
+    R.create_attached_get
       ?app
       ?scope
       ?options
@@ -895,7 +895,7 @@ module Customize
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
-  let attach_post
+  let create_attached_post
       ?app
       ?scope
       ?options
@@ -915,7 +915,7 @@ module Customize
       ~post_params
       ?error_handler
       f =
-    R.attach_post
+    R.create_attached_post
       ?app
       ?scope
       ?options
@@ -1073,7 +1073,7 @@ module Ocaml = struct
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
-  let attach_get
+  let create_attached_get
       ?app
       ?scope
       ?options
@@ -1094,7 +1094,7 @@ module Ocaml = struct
       ?error_handler
       f =
     Eliom_service.untype @@
-    M.attach_get
+    M.create_attached_get
       ?app
       ?scope
       ?options
@@ -1115,7 +1115,7 @@ module Ocaml = struct
       ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
-  let attach_post
+  let create_attached_post
       ?app
       ?scope
       ?options
@@ -1136,7 +1136,7 @@ module Ocaml = struct
       ?error_handler
       f =
     Eliom_service.untype @@
-    M.attach_post
+    M.create_attached_post
       ?app
       ?scope
       ?options

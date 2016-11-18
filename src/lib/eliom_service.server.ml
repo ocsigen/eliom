@@ -70,7 +70,7 @@ let plain_service
     ~reload_fun
     ()
 
-let attach
+let create_attached
     ?name
     ?(csrf_safe = false)
     ?csrf_scope
@@ -131,23 +131,23 @@ let attach
     reload_fun = Rf_client_fun
   }
 
-let attach_get =
-  attach ~meth:Get' ~post_params:Eliom_parameter.unit
+let create_attached_get =
+  create_attached ~meth:Get' ~post_params:Eliom_parameter.unit
 
-let attach_post
+let create_attached_post
     ?name ?csrf_safe ?csrf_scope ?csrf_secure
     ?max_use ?timeout ?https ?keep_nl_params
     ~fallback ~post_params
     () =
   let get_params = get_params_type fallback in
-  attach ~meth:Post'
+  create_attached ~meth:Post'
     ?name ?csrf_safe ?csrf_scope ?csrf_secure
     ?max_use ?timeout ?https ?keep_nl_params
     ~fallback ~post_params ~get_params ()
 
-let attach_get_unsafe = attach_get
+let create_attached_get_unsafe = create_attached_get
 
-let attach_post_unsafe = attach_post
+let create_attached_post_unsafe = create_attached_post
 
 let coservice'
     (type m) (type gp) (type gn) (type pp) (type pn) (type gp')
