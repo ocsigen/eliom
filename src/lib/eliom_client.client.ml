@@ -819,6 +819,7 @@ let do_follow_up uri =
    function used to change page when clicking a link and
    [change_page_{get,post}_form] when submiting a form. *)
 let change_page (type m)
+    ?(ignore_client_fun = false)
     ?(replace = false)
     ?absolute ?absolute_path ?https
     ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.t)
@@ -856,7 +857,7 @@ let change_page (type m)
          set_template_content ~replace ~uri ?fragment (Some content)
        | _ ->
          match Eliom_service.client_fun service with
-         | Some f ->
+         | Some f when (not ignore_client_fun) ->
            (* The service has a client side implementation.
               We do not make the request *)
            (* I record the function to be used for void coservices: *)
@@ -888,7 +889,7 @@ let change_page (type m)
              ?absolute ?absolute_path ?https ~service ?hostname ?port
              ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
              get_params post_params
-         | None ->
+         | _ ->
            (* No client-side implementation *)
            reload_function := None;
            let cookies_info = Eliom_uri.make_cookies_info (https, service) in

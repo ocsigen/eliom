@@ -54,15 +54,26 @@ let current_path_and_args () =
     | None ->
       path_of_string uri, []
 
-let reload () =
+let reload ~fallback () =
   let path, args = current_path_and_args () in
-  Eliom_client.change_page_unknown path args []
+  try%lwt
+    Eliom_client.change_page_unknown path args []
+  with _ ->
+    Eliom_client.change_page
+      ~ignore_client_fun:true
+      ~service:fallback
+      () ()
 
-let reload_without_na_params () () =
+let reload_without_na_params ~fallback () () =
   let path, args = current_path_and_args () in
-  Eliom_client.change_page_unknown path
-    (Eliom_common.remove_na_prefix_params args)
-    []
+  let args = Eliom_common.remove_na_prefix_params args in
+  try%lwt
+    Eliom_client.change_page_unknown path args []
+  with _ ->
+    Eliom_client.change_page
+      ~ignore_client_fun:true
+      ~service:fallback
+      () ()
 
 let switch_to_https () =
   let info = Eliom_process.get_info () in
@@ -72,17 +83,29 @@ let switch_to_https () =
 let%shared _ =
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action
-    [%client reload_without_na_params ];
+    [%client
+      reload_without_na_params
+        ~fallback:Eliom_service.reload_action
+    ];
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_https
     [%client
       fun () () ->
         switch_to_https ();
-        reload_without_na_params () ()
+        reload_without_na_params
+          ~fallback:Eliom_service.reload_action_https
+          () ()
     ];
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_hidden
-    [%client  fun () () -> reload () ];
+    [%client
+      fun () () ->
+        reload ~fallback:Eliom_service.reload_action_hidden ()
+    ];
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_https_hidden
-    [%client  fun () () -> switch_to_https (); reload () ]
+    [%client
+      fun () () ->
+        switch_to_https ();
+        reload ~fallback:Eliom_service.reload_action_https_hidden ()
+    ]
