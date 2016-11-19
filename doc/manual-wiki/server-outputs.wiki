@@ -1,5 +1,5 @@
 
-= Writing service handlers
+= Implementing service handlers
 
 <<outline depth="2"| <<header| **Table of contents** >> >>
 
@@ -440,7 +440,7 @@ If your {{{page}}} type has parameters you should use <<a_api subproject="server
 
 ==Considerations for implementing services==
 
-===@@id="lwt"@@ Writing cooperative service handlers with Lwt ===
+===@@id="lwt"@@ Implementing cooperative service handlers with Lwt ===
 
 Remember that a Web site written with Eliom is an OCaml application.
 This application must be able to handle several requests at the same

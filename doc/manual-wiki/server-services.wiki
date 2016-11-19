@@ -23,21 +23,22 @@ Eliom_content.Html.D.a >>. See chapter <<a_manual
 chapter="server-links"|Creating links and forms>> for more
 information.
 
-Manipulation of Eliom services can be done throught the values of type
-<<a_api | type Eliom_service.t >>. The service creation can be split
-in two steps:
+Manipulation of Eliom services can be done through the values of type
+{{{type Eliom_service.t}}} (see <<a_api subproject="server" | val
+Eliom_service_sigs.S.t >>).  The service creation can be split in two
+steps:
 
 * create a value of type {{{Eliom_service.t}}},
   most commonly by using the function
-  <<a_api | val Eliom_service.create >>; and
-* register a service handler, e.g., using <<a_api | val
+  <<a_api subproject="server" | val Eliom_service.create >>; and
+* register a service handler, e.g., using <<a_api subproject="server" | val
   Eliom_registration.Html.register >>. The handler receives the server
   parameters (GET and POST) and is responsible for producing the
   content sent to the client.
 
 The rest of this chapter focuses on service creation. See chapter
-<<a_manual chapter="server-outputs"| Writing service handlers>> for
-more information on handler registration.
+<<a_manual chapter="server-outputs"| Implementing service handlers>> for
+more information on handler implementation and registration.
 
 == Service creation ==
 
@@ -52,11 +53,12 @@ monotype-- to designate a value of type {{{Eliom_service.t}}}.
 The standard way to create a service is a call of the form
 {{{Eliom_service.create ~meth ~path ()}}}, where
 
-* {{{~meth}}} which belongs in <<a_api | type Eliom_service.meth >>,
+* {{{~meth}}} (see
+   <<a_api subproject="server" | type Eliom_service_sigs.TYPES.meth >>)
    specifies the HTTP method and the HTTP parameters of the service; and
-* {{{~path}}} belongs in <<a_api | type Eliom_service.path_option >>;
-  the constructor {{{Path p}}} specifies a path, while the constructor
-  {{{No_path}}} defines a path-less service.
+* {{{~path:(Path p)}}} specifies a path, while
+  {{{~path:No_path}}} defines a pathless service
+  (see <<a_api subproject="server" | type Eliom_service_sigs.S.path_option >>).
 
 ===@@id="http-meth"@@ Service method ===
 
@@ -77,10 +79,12 @@ methods.
 * The PUT and DELETE methods are mostly used to implement RESTful
   applications.
 
-The corresponding <<a_api | type Eliom_service.meth >> constructors
+The corresponding
+<<a_api subproject="server" | type Eliom_service_sigs.TYPES.meth >>
+constructors
 are {{{Get g}}}, {{{Post (g, p)}}}, {{{Put g}}}, and {{{Delete g}}},
 where {{{g}}} and {{{p}}} belong in
-<<a_api | type Eliom_parameter.params_type >>
+<<a_api subproject="server" | type Eliom_parameter.params_type >>
 and correspond to the GET and POST parameters.
 
 <<concept
@@ -104,22 +108,24 @@ and correspond to the GET and POST parameters.
 
 ===@@id="http-params"@@ Service parameters ====
 
-GET, PUT, and DELETE services expect only GET parameters, i.e.,
-parameters that appear in the URL. POST services also take POST
+GET services expect only GET parameters, i.e., parameters that appear
+in the URL. POST, PUT, and DELETE services can also take POST
 parameters which are part of the body of the request.
 
-Values of the type <<a_api | type Eliom_parameter.params_type >>
+Values of the type
+<<a_api subproject="server" | type Eliom_parameter.params_type >>
 represent the set of expected arguments with their types. They are
-built using combinators from the <<a_api | module Eliom_parameter >>
+built using combinators from the
+<<a_api subproject="server' | module Eliom_parameter >>
 module. See chapter <<a_manual chapter="server-params"| Service
 parameters >> for a detailled description of this module.
 
 Type information associated to each argument allows Eliom to
 automatically convert the actual parameters into the corresponding
 OCaml types. If the parameter cannot be converted, the exception
-<<a_api | exception Eliom_common.Eliom_Typing_Error >> is raised.  The
-handling of such errors may be customized by providing the argument
-{{{~error_handler}}} when registering the service.
+<<a_api subproject="server" | exception Eliom_common.Eliom_Typing_Error >>
+is raised. The handling of such errors may be customized by providing
+the argument {{{~error_handler}}} when registering the service.
 
 ===@@id="path"@@ Services with path ("regular" services) ===
 
@@ -129,8 +135,9 @@ URL and by (GET or POST) parameters.  They correspond to classical
 URLs, and they last forever once registered.
 
 For creating a regular service, the {{{Path p}}} constructor of
-<<a_api| type Eliom_service.path_option >> is used.  The path {{{p}}}
-is represented in Eliom as a list of strings. For example:
+<<a_api subproject="server"| type Eliom_service_sigs.S.path_option >>
+is used.  The path {{{p}}} is represented in Eliom as a list of
+strings. For example:
 
 {{{["foo"; "bar"]}}} corresponds to the URL {{{foo/bar}}}. \\
 {{{["dir"; ""]}}} corresponds to the URL {{{dir/}}} (that is: the
@@ -138,11 +145,10 @@ default page of the directory {{{dir}}}). \\
 The empty list {{{[]}}} is equivalent to {{{[""]}}}.\\
 
 In many cases, the URL corresponding to a POST service must be
-accessible even when the request was done without the POST parameters
-for instance, when typing the URL in the browser, reloading, using
-bookmarks,~ ...). If that is the case, the programmer needs to
-implement a separate GET service needs to be registered on the same
-URL.
+accessible even when a request is done without the POST parameters;
+for instance, when typing the URL in the browser, when reloading, when
+using bookmarks, etc. If that is the case, the programmer needs to
+implement a separate GET service and register it on the same URL.
 
 //Warning://
 
@@ -159,11 +165,11 @@ URL.
 
 Pathless services are not attached to a URL path. Such services are
 created with the {{{No_path}}} constructor of
-<<a_api| type Eliom_service.path_option >>.
+<<a_api subproject="server"| type Eliom_service_sigs.S.path_option >>.
 
-Pathless services identified only by a special parameter, no matter
-what the path and the other parameters in the URL are. They are used
-to implement some behaviour that should not be attached to a
+Pathless services are only identified by a special parameter, no
+matter what the path and the other parameters in the URL are. They are
+used to implement some behavior that should not be attached to a
 particular URL. A link to such a service points to the current URL
 with just an additional special parameter. This is useful when you
 want the same link or form on several pages (for example, a login box)
@@ -171,18 +177,11 @@ but you don't want to go to another URL. Pathless services are often
 used with <<a_manual chapter="server-outputs" fragment="actions"
 |actions>>.
 
-Use POST pathless services for example if you want a link or form to
-be present on every page, but you don't want the URL to change when
-the link is followed. Typically, pathless POST services are used with
-<<a_manual chapter="server-outputs" fragment="actions"|actions>> or
-<<a_manual chapter="server-outputs"
-fragment="redirections"|redirections>>.
-
-Here is a simple example. Suppose you wrote a function <<code-inline
-language="ocaml"|remove>> to remove one piece of data from a database
-(taking an identifier of the data).  If you want to put a link on your
-page to call this function and redisplay the page, just create an
-action on a pathless service like this:
+Here is a simple example. Suppose that the function {{{remove}}}
+removes one piece of data from a database (based on the identifier of
+the data). If you want to put a link on your page to call this
+function and redisplay the page, just create an action on a pathless
+service like this:
 
 <<code language="ocaml"|
 
@@ -203,15 +202,11 @@ Then wherever you want to add a button to do that action (on data
 <<code language="ocaml"|
 let open Eliom_content.Html.D in
 Form.post_form
-  remove_action
+  ~service:remove_action
   (fun id_name -> [
-       Form.input
-         ~input_type:`Hidden ~name:id_name ~value:id
-         Form.int;
-       Form.input
-         ~input_type:`Submit ~value:("remove "^string_of_int id)
-         Form.string
-  ])
+       Form.input ~input_type:`Hidden ~name:id_name ~value:id Form.int;
+       Form.button_no_value ~button_type:`Submit [pcdata "submit"]
+     ])
 >>
 
 ====Changing URL when calling a pathless service====
@@ -219,7 +214,8 @@ Form.post_form
 By default, the URL of links or forms to pathless services is the
 current page. If you want to combine the service call with a URL
 change, it is possible to attach a non-attached service to another
-service using function <<a_api| val Eliom_service.attach>>.
+service using function
+<<a_api subproject="server"| val Eliom_service.attach>>.
 
 Example:
 
@@ -256,13 +252,15 @@ service. Just provide the maximum number of uses with the optional
 == Non-standard services ==
 
 Some kinds of services do not fit in our canonical way of defining
-services, <<a_api | val Eliom_service.create >> .
+services, <<a_api subproject="server" | val Eliom_service.create >> .
 
 ===@@id="attached_services"@@ Attached services ===
 
 Attached services are created using the functions
-<<a_api| val Eliom_service.create_attached_get >> (GET method) and
-<<a_api| val Eliom_service.create_attached_post >> (POST method).
+<<a_api subproject="server"| val Eliom_service.create_attached_get >>
+(GET method) and
+<<a_api subproject="server"| val Eliom_service.create_attached_post >>
+(POST method).
 
 Anonymous GET attached services are often created dynamically with
 respect to previous interaction with the user (e.g. filling forms in
@@ -272,8 +270,8 @@ service each time you want to record a precise point in the
 interaction with the user, to be able to come back there later.
 
 Often, they should be used with a restricted scope (see the section
-<<a_manual chapter="server-services" fragment="service_scope"| scope
-of services>>).
+<<a_manual chapter="server-services" fragment="service_scope"| service
+scopes>>).
 
 POST attached services can be used to customize the behaviour of a
 URL. Some of their uses are:
@@ -312,21 +310,22 @@ fragment="unregistrable_services"| Unregistrable services >>.
 
 It is possible to define external services, that is, services that
 belong to an external web site (on the same server or not).  To do
-this, use the function <<a_api| val Eliom_service.extern
->>.
+this, use the function {{{Eliom_service.extern}}}
+(see <<a_api subproject="server"| val Eliom_service_sigs.S.extern >>).
 
 For example, the following code defines a link to the OCaml Wikipedia
 page:
 
 <<code language="ocaml"|
-
 Eliom_content.Html.D.a
   (Eliom_service.extern
-     ~prefix:"http://en.wikipedia.org/wiki/OCaml"
+     ~prefix:"http://en.wikipedia.org"
      ~path:["wiki";""]
-     ~get_params:Eliom_parameter.(suffix (all_suffix "suff"))
+     ~meth:
+       (Eliom_service.Get
+          Eliom_parameter.(suffix (all_suffix "suff")))
      ())
-  [pcdata "OCaml on wikipedia"]
+  [pcdata "OCaml on Wikipedia"]
   ["OCaml"]
 >>
 
@@ -334,8 +333,9 @@ Eliom_content.Html.D.a
 
 <<a_manual project="ocsigenserver" chapter="staticmod" | Staticmod>>
 is an Ocsigen Server extension serving static (non-generated) files
-(for examples images and stylesheets). It can be used together with
-Eliom. The predefined service <<a_api| val Eliom_service.static_dir >>
+(for example, images and stylesheets). It can be used together with
+Eliom. The predefined service
+<<a_api subproject="server"| val Eliom_service.static_dir >>
 can be used to make links to static files. It takes as parameter the
 path of the file.
 
@@ -347,15 +347,19 @@ let open Eliom_content.Html.F in
 a (static_dir ()) [pcdata "download image"] ["ocsigen10.png"]
 >>
 
-It is also possible to send static files using Eliom, with <<a_api|
-module Eliom_registration.File>> (see <<a_manual chapter="server-outputs"
-fragment="eliomfiles" |Sending files>>).
+It is also possible to send static files using Eliom, with
+<<a_api subproject="server"| module Eliom_registration.File>>.
+See
+<<a_manual chapter="server-outputs" fragment="eliomfiles" |Sending files>>.
 
 ===@@id="preapplied"@@Pre-applied services
 
 It is possible to preapply the GET parameters of a service to obtain a
 service without parameters, or only the POST ones. It is done using
-<<a_api |val Eliom_service.preapply>>. Example:
+{{{Eliom_service.preapply}}}
+(see
+<<a_api subproject="server"| type Eliom_service_sigs.S.preapply >>).
+For example:
 
 <<code language="ocaml"|
 let s =
@@ -372,27 +376,27 @@ you can use them in links or as fallbacks for attached services.
 
 ===@@id="void"@@Reload actions
 
-<<a_api| val Eliom_service.reload_action>> is a special non-attached
-action, with special behaviour: it has no parameter at all, not even
-non-attached parameters.  Use it if you want to make a link to the
-current page without non-attached parameters.  It is almost equivalent
-to a POST pathless service without POST parameters, on which you
-register an action that does nothing, but instead it is using the GET
-method, so that you can use it with {{{<a>}}} links, not only with
-forms.  Example:
+{{{Eliom_service.reload_action}}}
+(see <<a_api subproject="server"| val Eliom_service_sigs.S.reload_action>>)
+is a special non-attached action, with special behavior: it has no
+parameter at all, not even non-attached parameters.  Use it if you
+want to make a link to the current page without non-attached
+parameters.  It is almost equivalent to a POST pathless service
+without POST parameters, on which you register an action that does
+nothing, but instead it is using the GET method, so that you can use
+it with {{{<a>}}} links, not only with forms.  Example:
 
 <<code language="ocaml"|
-a Eliom_service.reload_action [pcdata "cancel"] ()
+a ~service:Eliom_service.reload_action [pcdata "cancel"] ()
 >>
 
-There is also <<a_api| val Eliom_service.reload_action_https>> (same,
-but forces use of HTTPS), <<a_api| val
-Eliom_service.reload_action_hidden>>, and <<a_api| val
-Eliom_service.reload_action_https_hidden>>. "Hidden" means that they
-keep GET non-attached parameters.
+There is also {{{Eliom_service.reload_action_https}}}
+(same, but forces use of HTTPS), {{{Eliom_service.reload_action_hidden}}},
+and {{{Eliom_service.reload_action_https_hidden}}}.
+"Hidden" means that they keep GET non-attached parameters.
 
-Use <<a_api| val Eliom_service.reload_action_hidden>> for example
-after a POST request if you want to do a redirection towards the same
+Use {{{Eliom_service.reload_action_hidden}}} for example
+after a POST request, if you want to do a redirection towards the same
 page without POST parameters (and thus prevent from reposting data if
 the user reloads the page).
 
@@ -411,9 +415,9 @@ request-- with respect to many criteria:
 * ...
 
 But the user does not usually need to bother with this. Eliom
-abstracts this mechanism by its three main kinds of services (regular
-services, pathless services, and attached services), which we have
-described.
+abstracts this mechanism away through its three main kinds of services
+(regular services, pathless services, and attached services), which we
+have described.
 
 ==@@id="service_scope"@@ Service scopes ==
 
@@ -423,9 +427,10 @@ it available only to a session, a client side process, or a group of
 sessions.
 
 To limit the scope of a service, just add the argument {{{~scope}}} to
-the <<a_api | val Eliom_registration.Html.register>> function (same
-for the other {{{register}}} variants). The default scope is <<a_api |
-val Eliom_common.site_scope>>.
+the
+<<a_api subproject="server" | val Eliom_registration.Html.register>>
+function (same for the other {{{register}}} variants). The default scope
+is <<a_api subproject="server" | val Eliom_common.site_scope>>.
 
 The same service can be registered with several scopes.  This makes it
 possible, for example, to generate custom services for a specific
@@ -449,7 +454,7 @@ order):
   phase (while reading the site configuration) or while processing a
   request, because Eliom must know the information about the site. Be
   very careful about this if you want to use static linking (see the
-  section on <<a_manual chapter="clientserver-configuration"
+  section on <<a_manual chapter="workflow-configuration"
   fragment="static_linking"|static linking>> in the chapter about
   Compiling and configuring Eliom modules).
 * All regular services (but not pathless and attached services) need
@@ -478,7 +483,7 @@ order):
   thread with the intention that it will register a service later, as
   registering a service needs access to config file information (for
   example the directory of the site).  If you do this, the server will
-  raise <<a_api | exception
+  raise <<a_api subproject="server" | exception
   Eliom_common.Eliom_function_forbidden_outside_site_loading>> most of
   the time, but you may also get unexpected results (if the thread is
   executed while another site is loaded).  If you use threads in the
