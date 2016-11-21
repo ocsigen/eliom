@@ -24,7 +24,7 @@ chapter="server-links"|Creating links and forms>> for more
 information.
 
 Manipulation of Eliom services can be done through the values of type
-{{{type Eliom_service.t}}} (see <<a_api subproject="server" | val
+{{{type Eliom_service.t}}} (see <<a_api subproject="server" | type
 Eliom_service_sigs.S.t >>).  The service creation can be split in two
 steps:
 
@@ -84,7 +84,7 @@ The corresponding
 constructors
 are {{{Get g}}}, {{{Post (g, p)}}}, {{{Put g}}}, and {{{Delete g}}},
 where {{{g}}} and {{{p}}} belong in
-<<a_api subproject="server" | type Eliom_parameter.params_type >>
+{{{Eliom_parameter.params_type}}}
 and correspond to the GET and POST parameters.
 
 <<concept
@@ -112,8 +112,7 @@ GET services expect only GET parameters, i.e., parameters that appear
 in the URL. POST, PUT, and DELETE services can also take POST
 parameters which are part of the body of the request.
 
-Values of the type
-<<a_api subproject="server" | type Eliom_parameter.params_type >>
+Values of the type {{{Eliom_parameter.params_type}}}
 represent the set of expected arguments with their types. They are
 built using combinators from the
 <<a_api subproject="server' | module Eliom_parameter >>
@@ -358,7 +357,7 @@ It is possible to preapply the GET parameters of a service to obtain a
 service without parameters, or only the POST ones. It is done using
 {{{Eliom_service.preapply}}}
 (see
-<<a_api subproject="server"| type Eliom_service_sigs.S.preapply >>).
+<<a_api subproject="server"| val Eliom_service_sigs.S.preapply >>).
 For example:
 
 <<code language="ocaml"|
@@ -483,8 +482,7 @@ order):
   thread with the intention that it will register a service later, as
   registering a service needs access to config file information (for
   example the directory of the site).  If you do this, the server will
-  raise <<a_api subproject="server" | exception
-  Eliom_common.Eliom_function_forbidden_outside_site_loading>> most of
+  raise an exception most of
   the time, but you may also get unexpected results (if the thread is
   executed while another site is loaded).  If you use threads in the
   initialization phase of your module (for example if you need

@@ -67,7 +67,7 @@ the URL.\\
 
 
 If you want to create (mutually or not) recursive pages, create the
-service using <<a_api| val Eliom_service.create >> first, then
+service using <<a_api subproject="server"| val Eliom_service.create >> first, then
 register it in the table using (for example) <<a_api| val Eliom_registration.Html.register >>:
 
 <<code language="ocaml"|
@@ -86,19 +86,22 @@ let _ =
             (body [p [a linkrec [pcdata "click"] ()]])))
 >>
 
-(You can also refer to //the current service// as <<a_api
-project="eliom"|val Eliom_service.reload_action>>.)
+(You can also refer to //the current service// via {{{reload_action}}}
+(<<a_api project="eliom"|val Eliom_service_sigs.S.reload_action>>).
 
 ==@@id="forms"@@Forms
 
 ===Forms towards GET services
 
-The modules <<a_api| val Eliom_content.Html.D.Form >>
-and <<a_api| val Eliom_content.Html.F.Form >> provide functions
+The modules {{{Eliom_content.Html.D.Form}}}
+and {{{Eliom_content.Html.F.Form}}} provide functions
 for creating forms. Our examples use shorthands to these modules, e.g.,
-simply <<span class="code"|Form>>, assuming an appropriate context.
+simply {{{Form}}}, assuming an appropriate context.
+See
+<<a_api subproject="server" | module Eliom_content_sigs.LINKS_AND_FORMS.Form >>
+for the {{{Form}}} API documentation.
 
-The function <<a_api| val Eliom_content.Html.D.Form.get_form >>
+The function {{{Eliom_content.Html.D.Form.get_form}}}
 allows creation of forms that use the GET method (parameters in the
 URL). It works like <<a_api| val Eliom_content.Html.D.a >> but takes
 a //function// that creates the form from the parameters names as
@@ -133,8 +136,8 @@ Parameter names are typed to make sure that they are used
 properly. The form-creating functions in <<span
 class="code"|Eliom_content.Html.D.Form>> (respectively <<span
 class="code"|Eliom_content.Html.F.Form>>) accept an argument of type
-<<a_api| type Eliom_content.Html.D.Form.param >> (respectively
-<<a_api| type Eliom_content.Html.F.Form.param >>), which needs to
+{{{Eliom_content.Html.D.Form.param}}} (respectively
+{{{Eliom_content.Html.F.Form.param}}}), which needs to
 match the type of the parameter used. For example,
 <<span class="code"|number_name>> has type <<span
 class="code"|int param_name>>, so <<span class="code"|Form.int>>
@@ -145,13 +148,13 @@ must be used with <<span class="code"|Form.input>>
 and must be used in conjunction with the argument
 <<span class="code"|Form.string>>.
 Creating form widgets are described in detail in
-<<a_api | module Eliom_content.Html.D.Form >>
-(and <<a_api | module Eliom_content.Html.F.Form >>).
+{{{Eliom_content.Html.D.Form}}}
+(and {{{Eliom_content.Html.F.Form}}}).
 
 For untyped forms, you may use functions from the module <<a_api
 project="eliom" subproject="server"|module
 Eliom_content.Html.D.Raw>>.  Here is a form linking to our (untyped)
-service <<span class="code"|raw_serv>>.
+service {{{raw_serv}}}.
 
 <<code language="ocaml"|
 let raw_form =
@@ -240,8 +243,8 @@ let my_service_with_get_and_post =
 
 
 To create a POST form, use the
-<<a_api| val Eliom_content.Html.D.Form.post_form >> function.
-It is similar to <<a_api| val Eliom_content.Html.D.Form.get_form >>
+{{{Eliom_content.Html.D.Form.post_form}}} function.
+It is similar to {{{Eliom_content.Html.D.Form.get_form}}}
 with an additional parameter for the GET parameters you want to put in
 the URL (if any). Here, <<span class="code"|form2>> is a page containing
 a form to the service <<span class="code"|post>> (using Html.F's
@@ -419,17 +422,17 @@ they are tried in order of registration.
 The first matching service will answer.\\
 
 Other types similar to bool:
-* <<a_api| val Eliom_parameter.opt >> (page taking an optional parameter),
-* <<a_api| val Eliom_parameter.sum >> (either a parameter or another).
+* {{{Eliom_parameter.opt}}} (page taking an optional parameter),
+* {{{Eliom_parameter.sum}}} (either a parameter or another).
 
-See <<a_api | module Eliom_parameter>>.
+See <<a_api | module Eliom_parameter_sigs.S>>.
 
 ===Type <<span class="code"|set>>
 
 Page may take several parameters of the same name.
 It is useful when you want to create a form with a variable number
 of fields.
-To do that with Eliom, use the type  <<a_api| val Eliom_parameter.set >>.
+To do that with Eliom, use the type {{{Eliom_parameter.set}}}.
 For example, <<span class="code"|set int "val">> means that the page will take
 zero, one, or several parameters of name <<span class="code"|"val">>,
 all of type <<span class="code"|int>>.
@@ -550,9 +553,9 @@ let select_example =
 >>
 
 To do "multiple" select boxes, use functions like
- <<a_api| val Eliom_content.Html.D.Form.multiple_select >>.
+{{{Eliom_content.Html.D.Form.multiple_select}}}.
 As you can see in the type, the service must be declared with parameters
-of type  <<a_api| val Eliom_parameter.set >>.
+of type {{{Eliom_parameter.set}}}.
 
 ===Clickable images
 
@@ -597,8 +600,8 @@ let imageform = Eliom_registration.Html.create
 
 ===Type <<span class="code"|list>>
 
-Another way (than  <<a_api| val Eliom_parameter.set >>) to do variable length forms
-is to use indexed lists (using  <<a_api| val Eliom_parameter.list >>).
+Another way (than {{{Eliom_parameter.set}}}) to do variable length forms
+is to use indexed lists (using  {{{Eliom_parameter.list}}}).
 The use of that feature is a bit more complex than <<span class="code"|set>>.
 Here is an example of service taking an indexed list as parameter:
 
@@ -706,7 +709,7 @@ let suffixform = Eliom_registration.Html.create
 
 ===Uploading files
 
-The  <<a_api| val Eliom_parameter.file >> parameter type allows files to be sent in your
+The {{{Eliom_parameter.file}}} parameter type allows files to be sent in your
 request. The service gets something of type
  <<a_api project="ocsigenserver"| type Ocsigen_extensions.file_info >>. You can extract information
 using this using these functions (from  <<a_api| module Eliom_request_info >>):

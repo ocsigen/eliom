@@ -14,11 +14,13 @@ The parameters of a service are provided via the arguments of the
 <<a_api subproject="server" | type Eliom_service_sigs.TYPES.meth >>
 constructors. The specification of parameter types is done using
 combinators defined in the module
-<<a_api subproject="server" | module Eliom_parameter >>. For example,
-<<a_api subproject="server" | val Eliom_parameter.unit >> means that the
-service does not take any parameter, and <<a_api subproject="server"| val
-Eliom_parameter.int >> means that the service takes a parameter called
-{{{foo}}}, which is of type {{{int}}}.
+<<a_api subproject="server" | module Eliom_parameter >>.
+For example, {{{Eliom_parameter.unit}}} means that the service does
+not take any parameter, and {{{Eliom_parameter.int "foo"}}} means that
+the service takes a parameter called {{{foo}}}, which is of type
+{{{int}}}. See
+<<a_api subproject="server" | module Eliom_parameter_sigs.S >>
+for documentation on the combinators.
 
 Here is an example of a service with GET parameters:
 
@@ -94,10 +96,9 @@ This service will answer to URLs like {{{http://.../uasuffix/2000/11}}}.
 Suffix parameters have names, because we can create forms towards
 these services. {{{uasuffix/2000/11}}} is equivalent to
 {{{uasuffix/?year=2000&month=11}}}.\\
-<<a_api subproject="server" |val Eliom_parameter.suffix_prod>>
-allows both a suffix and other parameters.\\
-<<a_api subproject="server" |val Eliom_parameter.all_suffix>>
-allows the end of the suffix to be taken as a {{{string list}}}.\\
+{{{suffix_prod}}} allows both a suffix and other parameters.\\
+{{{all_suffix}}} allows the end of the suffix to be taken as a
+{{{string list}}}.\\
 
 <<code language="ocaml"|
 let isuffix =
@@ -124,8 +125,7 @@ let isuffix =
 >>
 
 If you want parameters in the path but not always at the end,
-use the  <<a_api subproject="server"| val Eliom_parameter.const >>
-parameter specification.
+use the {{{const}}} parameter specification.
 It will match for example URLs like {{{/param1/const/param2}}}.
 Example:
 <<code language="ocaml"|
@@ -181,14 +181,14 @@ let mytype =
 
 See also <<a_manual chapter="clientserver-communication"
 fragment="client_sending_data" |Client sending data>> in the chapter
-about client-server communication, which shows how to use a <<code
-language="ocaml"|user_type>> from the client-side.
+about client-server communication, which shows how to use a {{{user_type}}}
+from the client-side.
 
 ===@@id="any"@@Untyped parameters
 
 If you want a service that answers to requests with any parameters,
-use the  <<a_api subproject="server"| val Eliom_parameter.any >> value.
-The service will get an association list of strings. For example:
+use the {{{any}}} combinator. The service will get an association list
+of strings. For example:
 
 <<code language="ocaml"|
 let raw_serv =
@@ -256,10 +256,8 @@ let nlparams =
 
 To create a link or a form with non-localized parameters, use the
 optional parameter <<span class="code"|nl_params>> of functions
-<<a_api subproject="server"| val Eliom_content.Html.D.a >>,
-<<a_api subproject="server"| val Eliom_content.Html.D.Form.get_form >>, or
-<<a_api subproject="server"| val Eliom_content.Html.D.Form.post_form >>.
-Example:
+{{{Eliom_content.Html.D.a}}}, {{{Eliom_content.Html.D.Form.get_form}}}, or
+{{{Eliom_content.Html.D.Form.post_form}}}. Example:
 
 <<code language="ocaml"|
 let tonlparams =
