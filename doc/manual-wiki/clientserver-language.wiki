@@ -55,13 +55,13 @@ server and/or the client program.
 == Injecting server values into the client code
 
 Structuring the source code of your application into client and
-server sections wouldn't be of much use as it; we need a possibility
-to exchange data between those parts in a way which reflects the
+server sections wouldn't be of much use as-is; we need a way
+to exchange data between these parts in a way which reflects the
 asymmetries between the client and the server parts, i.e. that the
 client program is sent and initialized by the server program.
 
-Thus to ease the direct exchange of values between server and client,
-it is possible to access any server side, top level variable in a
+Thus, to ease the direct exchange of values between server and client,
+it is possible to access any server-side, top-level variable in a
 subsequent client section by just prefixing it with a %-sign. This is
 called //injecting// a server value into the client:
 
@@ -98,13 +98,13 @@ value has the type {{{typ client_value}}} which is //abstract on the
 server//. But once it is sent to the client, it evaluates to the value
 of {{{expr}}} having type {{{typ}}}.
 
-In some cases where inference is not sufficient, {{{eliomc}}} will emits
+In some cases where inference is not sufficient, {{{eliomc}}} will emit
 a warning indicating than this type annotation is needed.
 
 ==== Injections
 
 Again, variables from the context of the client value may be injected
-to it by prefixing them by a %-sign. This is for example reasonable to
+to it by prefixing them with a %-sign. It is for example possible to
 inject a parameter into a request client value:
 
 <<code language="ocaml"|
@@ -118,7 +118,7 @@ inject a parameter into a request client value:
 }}
 >>
 
-The pattern used in this example is very common to ask the client side
+The pattern used in this example is very common to ask the client-side
 program to execute a piece of code after receiving the page.
 
 
@@ -151,7 +151,7 @@ process.  They are evaluated during the initialization of the client
 program, i.e. //before// setting up the document. This is necessary
 in order to safely inject them into the next client-section.
 
-Thus, if you want to refer the DOM in global client values (e.g. by
+Thus, if you want to refer to the DOM in global client values (e.g. by
 injecting variables holding HTML-elements) you must be sure to delay
 this by using <<a_api subproject="client"|Eliom_client.onload>>.
 
@@ -211,17 +211,17 @@ section.
 == Restrictions to injections into the client values/sections
 
 It is not possible to send values containing closures that way.
-There are two executables: one on server side, and one one on client side,
-and closures just contains a pointer to the code.
-Extra code is never sent dynamically on the network.
+There are two executables: one server-side, and one client-side,
+and closures just contain a pointer to the code.
+Extra code is never sent dynamically over the network.
 This means that unforced lazy values, objects, or
-anything containing functions can't be send.
+anything containing functions can't be sent.
 Functions must be defined on the side(s) where they will run.
-Most of the time, you can do all that you want by using client-values or
-server-functions.
-Some eliom types use a
-specific mechanism to circumvent this limitation. This is the case of:
-services, comet channels and buses. To use this mechanism see chapter
+Most of the time, you can do all you want by using client values or
+server functions.
+Some Eliom types use a
+specific mechanism to circumvent this limitation. This is the case for
+services, comet channels, and buses. To use this mechanism see chapter
 <<a_manual chapter="clientserver-wrapping"|Wrapping values>>.
 
 Those values are typechecked "by name": the most general type of a variable is
@@ -254,13 +254,13 @@ circumvent this limitation by declaring a function at toplevel with all the
 
 ==@@id="implementation"@@ Technical Documentation: Implementation of the language extensions
 
-//Do not read this section if you do not feel the urgency to
-dive deeply into the implementation details of Eliom, or if you have a
+//Do not read this section if you do not feel the urge to
+dive into the implementation details of Eliom, or if you have a
 weak stomach!//
 
 This sections gives some details on the implementation of the <<a_manual
 chapter="eliomc"|language extensions in Eliom>>.  To investigate this
-in more details, it is advisable to dump the source code for the server
+in more detail, it is advisable to dump the source code for the server
 or client program with with ##eliomc -c -infer## or ##js_of_eliom -c -infer##
 respectively, and to refer to the API of the generated
 functions in ##Eliom_syntax## on the server
@@ -274,7 +274,7 @@ occurrence, at a location ##p##, the syntax extension registers
 with ##p## as the closure ID a function
 
 <<code language="ocaml"|
-       fun (v'_1, ..., v'_n) -> exp'
+fun (v'_1, ..., v'_n) -> exp'
 >>
 
 where ##exp'## is ##exp## with occurrences of ##%v_i## replaced
@@ -300,14 +300,14 @@ ID. When it reaches the client, it is unwrapped to the concrete
 value by looking it up in the client value table mentioned before.
 
 
-=== Injection
+=== Injections
 
 The usage of an injection registers the value under a specific
 identifier on the server side. All injections are sent to the client
 with the initial request as a table mapping those identifiers to
 (untyped) values.
 
-On the client side, at the beginning of each client/shared
+On the client-side, at the beginning of each client/shared
 section, all novel injections are registered in a global table of
 injections. This must be done post-hoc because client values are
 unwrapped late.

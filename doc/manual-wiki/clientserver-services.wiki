@@ -11,15 +11,19 @@ applications with Eliom. In this manual chapter, we focus on the
 client-side service mechanics and do not go into the details of
 setting up a complete mobile application. In fact, these details have
 been taken care of by the Ocsigen team in the form of
-{{{Ocsigen-start}}}, which provides a template application immediately
-usable (via Cordova) as an Android and iOS app.
+[[site:/ocsigen-start|Ocsigen Start]],
+which provides a template application immediately usable
+(via [[https://cordova.apache.org/|Cordova]]) as an Android and iOS app.
+See the
+<<a_manual project="tuto" chapter="mobile" | tutorial on mobile applications>>
+for more information.
 
 == Service creation and registering ==
 
 As described in the chapter <<a_manual chapter="server-services"|on
-server-side services>>, services are first created via <<a_api | val
-Eliom_service.create >> and similar functions, and subsequently
-registered.
+server-side services>>, services are first created via
+<<a_api subproject="server" | val Eliom_service.create >>
+and similar functions, and subsequently registered.
 
 The first step (creation) can only happen on the server; allowing the
 opposite would permit "creating" on the client services that are not
@@ -70,7 +74,7 @@ compatible between the two sides, and therefore the functor invocation
 can happen in a shared section.
 
 A service registered as above can be called via links (e.g.,
-{{{Eliom_content.Html.D.a}}} and forms just like a standard
+{{{Eliom_content.Html.D.a}}}) and forms just like a standard
 server-only service. Eliom detects the existence of a client-side
 implementation and calls that instead of performing a request to the
 server. If no client-side implementation exists, a standard server
