@@ -241,22 +241,6 @@ module type S = sig
     (unit, 'b, 'meth, att, 'co, 'ext, non_reg,
      [ `WithoutSuffix ], unit, 'f, 'return) t
 
-  (** [attach ~fallback ~service ()] attaches the preexisting
-      path-less service [service] on the URL of [fallback]. This
-      allows creating a link to a pah-less service but with another
-      URL than the current one. It is not possible to register
-      something on the service returned by this function. *)
-  val attach :
-    fallback:
-      (unit, unit, get, att, _, non_ext, _,
-       _, unit, unit, 'return1) t ->
-    service:
-      ('get, 'post, 'meth, non_att, co, non_ext, _,
-       [< `WithoutSuffix] as 'sf, 'gn, 'pn, 'return) t ->
-    unit ->
-    ('get, 'post, 'meth, att, co, non_ext, non_reg,
-     'sf, 'gn, 'pn, 'return) t
-
   (** The function [add_non_localized_get_parameters ~params ~service]
       Adds non localized GET parameters [params] to [service]. See the
       Eliom manual for more information about {% <<a_manual

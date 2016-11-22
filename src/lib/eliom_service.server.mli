@@ -162,6 +162,22 @@ val create_attached_post :
   ('gp, 'pp, post, att, co, non_ext, reg, [`WithoutSuffix],
    'gn, 'pn, non_ocaml) t
 
+(** [attach ~fallback ~service ()] attaches the preexisting pathless
+    service [service] on the URL of [fallback]. This allows creating a
+    link to a pathless service but with another URL than the current
+    one. It is not possible to register something on the service
+    returned by this function. *)
+val attach :
+  fallback:
+    (unit, unit, get, att, _, non_ext, _,
+     _, unit, unit, 'return1) t ->
+  service:
+    ('get, 'post, 'meth, non_att, co, non_ext, _,
+     [< `WithoutSuffix] as 'sf, 'gn, 'pn, 'return) t ->
+  unit ->
+  ('get, 'post, 'meth, att, co, non_ext, non_reg,
+   'sf, 'gn, 'pn, 'return) t
+
 (** {2 Static loading of Eliom modules}
 
     This functionality allows one to register initialization functions
