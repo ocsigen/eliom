@@ -21,8 +21,10 @@
 
 ==Workflows
 ===[[workflow-distillery|Distillery]]
+===[[mobile-apps|Mobile apps]]
 ===[[workflow-compilation|Compilation]]
 ===[[workflow-configuration|Configuration & running]]
+
 
 ==Syntax
 ===[[ppx-syntax|PPX-based syntax]]
