@@ -42,6 +42,7 @@ Eliom_bus
 Eliom_comet
 Eliom_react
 Eliom_shared
+Eliom_cscache
 }
 
 {2 Extensions}
