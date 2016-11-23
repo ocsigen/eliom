@@ -3,7 +3,21 @@ open Lwt
 module type S = sig
   type identity
   type key
-  type notification
+  type server_notif
+  type client_notif
+  val listen : key -> unit
+  val unlisten : key -> unit
+  val notify : ?notfor:[`Me | `Id of identity] -> key -> server_notif -> unit
+  val client_ev : unit -> (key * client_notif) Eliom_react.Down.t Lwt.t
+  val clean : unit -> unit Lwt.t
+end
+
+module type MAKE = sig
+  type identity
+  type key
+  type server_notif
+  type client_notif
+  val prepare : identity -> server_notif -> client_notif option Lwt.t
   val equal_key                  : key -> key -> bool
   val equal_identity             : identity -> identity -> bool
   val get_identity               : unit -> identity Lwt.t
@@ -11,9 +25,19 @@ module type S = sig
   val max_identity_per_resource  : int
 end
 
-module Make (A : S) = struct
+module Make (A : MAKE) : S
+  with type identity = A.identity
+   and type key = A.key
+   and type server_notif = A.server_notif
+   and type client_notif = A.client_notif
+= struct
 
-  type notification_data = A.key * A.notification
+  type key = A.key
+  type identity = A.identity
+  type server_notif = A.server_notif
+  type client_notif = A.client_notif
+
+  type notification_data = A.key * A.client_notif
 
   type notification_react =
     notification_data Eliom_react.Down.t
@@ -162,13 +186,18 @@ module Make (A : S) = struct
     Lwt.return ()
   )
 
-  let notify ?(notforme = false) key content_gen =
+  let notify ?notfor key content =
     let f = fun (identity, ((_, send_e) as notif)) ->
       Eliom_reference.get notif_e >>= fun notif_o ->
-      if notforme && notif == (of_option notif_o) then
-        Lwt.return ()
+      let blocked = match notfor with
+        | Some `Me -> notif == of_option notif_o
+        | Some (`Id id) -> identity = id
+        | None -> false
+      in
+      if blocked
+      then Lwt.return ()
       else
-        content_gen identity >>= fun content -> match content with
+        A.prepare identity content >>= fun content -> match content with
         | Some content -> send_e (key, content); Lwt.return ()
         | None -> Lwt.return ()
     in
@@ -188,3 +217,29 @@ module Make (A : S) = struct
     Lwt.return @@ Notif_hashtbl.iter f I.tbl
 
 end
+
+module type SIMPLE = sig
+  type identity
+  type key
+  type notification
+  val equal_key                  : key -> key -> bool
+  val equal_identity             : identity -> identity -> bool
+  val get_identity               : unit -> identity Lwt.t
+  val max_resource               : int
+  val max_identity_per_resource  : int
+end
+
+module Simple(A : SIMPLE) = Make
+  (struct
+    type identity      = A.identity
+    type key           = A.key
+    type server_notif  = A.notification
+    type client_notif  = A.notification
+    let prepare _ n    = Lwt.return (Some n)
+    let equal_key      = A.equal_key
+    let equal_identity = A.equal_identity
+    let get_identity   = A.get_identity
+    let max_resource   = A.max_resource
+    let max_identity_per_resource
+                       = A.max_identity_per_resource
+  end)

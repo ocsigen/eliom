@@ -1,6 +1,33 @@
+(** Server to client notifications.
 
-(** Input signature of the functor [Eliom_notif.Make]. *)
-module type S = sig
+    This module makes possible for client side applications to be
+    notified of changes on some indexed data on the server.
+
+    Apply functor [Make] or [Simple] for each type of data you want to be able
+    to listen on. Each client starts listening on one piece of data by calling
+    function [listen] with the index of that piece of data as parameter. Client
+    stops listening by calling function [unlisten], or when the client side
+    state is closed (by timeout or when the client disconnects for example).
+
+    When the data is modified on server side, call function [notify]
+    with the index of the data, and all clients listening to that piece
+    of data will receive a notification. 
+
+    The functor will also create a client side react signal that will
+    be updated every time the client is notified.
+*)
+
+(** Signature of the functors [Eliom_notif.Make] and [Eliom_notif.Simple].
+
+    [S] has two types of notifications ([server_notif] and [client_notif])
+    because we might need to serialise and deserialise the notification twice
+    (in case of a multi-server set-up). Once for broadcasting it to other
+    servers and once for transferring it to the client (after possibly
+    transforming the message using information which is only locally available (see
+    [prepare] below).
+*)
+module type S =
+sig
 
   (** [identity] is the type of values used to differentiate one client
       from another. *)
@@ -9,8 +36,70 @@ module type S = sig
   (** [key] is the type of values designating a given resource. *)
   type key
 
-  (** [notification] is the type of values to notifiy clients with. *)
-  type notification
+  (** server notification type; Can be different from [client_notif]. *)
+  type server_notif
+  
+  (** client notification type; Can be different from [server_notif]. *)
+  type client_notif
+
+  (** Make client process listen on data whose index is [key] *)
+  val listen : key -> unit
+
+  (** Stop listening on data [key] *)
+  val unlisten : key -> unit
+
+  (** Call [notify key n] to send a notification [n] to all clients currently
+      listening on data referenced by [key].
+
+      If [~notfor] is [`Me], notification will not be sent to the tab currently
+      doing the request (the one which caused the notification to happen). If it
+      is [`Id id] it won't be sent to the destination defined by [id].
+  *)
+  val notify : ?notfor:[`Me | `Id of identity] -> key -> server_notif -> unit
+
+  (** Returns the client react event. Map a function on this event to react
+      to notifications from the server.
+      For example:
+
+      let%client handle_notification some_stuff ev =
+         ...
+
+      let%server something some_stuff =
+         ignore
+           [%client
+              (ignore (React.E.map
+                (handle_notification ~%some_stuff)
+                ~%(Notif_module.client_ev ())
+              ) : unit)
+           ]
+
+  *)
+  val client_ev : unit -> (key * client_notif) Eliom_react.Down.t Lwt.t
+
+
+  (** Call [clean ()] to launch an asynchronous thread clearing the tables
+      from empty data. *)
+  val clean : unit -> unit Lwt.t
+
+end
+
+(** [MAKE] is for making [Make] *)
+module type MAKE = sig
+
+	(** see [S.identity] *)
+  type identity
+	(** see [S.key] *)
+  type key
+	(** see [S.server_notif] *)
+  type server_notif
+	(** see [S.client_notif] *)
+  type client_notif
+
+  (** [prepare f] transforms server notifications into client
+      notifications. It provides the [identity] as a parameter which identifies
+      the client. You can surpress notifications for a specific client (for
+      instance because of missing authorisation) by having [f] return [None]. *)
+  val prepare : identity -> server_notif -> client_notif option Lwt.t
 
   (** [equal_key] is a function testing the equality between two values
       of type [key].*)
@@ -38,54 +127,48 @@ module type S = sig
 
 end
 
-module Make(A : S) :
-sig
+(** Use this functor if you need to customise your notifications with
+    client-specific data (or block notifications for specific clients).
+    This is made to work specifically in a multi-server set-up as well, where
+    In a multi-server set-up notifications might need to be serialised twice,
+    once before broadcasting them to the other servers (without client
+    information present), and then once more to forward them to the clients
+    possibly augmenting it with client-specific data or block for specific
+    clients; see [MAKE.prepare].
 
-  (** Make client process listen on data whose index is [key] *)
-  val listen : A.key -> unit
+    Note: The communication between servers is not implemented in this module.
+    To `plug in' your method of transporting notifications between servers you
+    can override [S.notify]. See the manual for an example (coming soon).
+*)
+module Make(A : MAKE) : S
+  with type identity = A.identity
+   and type key = A.key
+   and type server_notif = A.server_notif
+   and type client_notif = A.client_notif
 
-  (** Stop listening on data [key] *)
-  val unlisten : A.key -> unit
-
-  (** Call [notify key f] to send a notification to all clients currently
-      listening on data referenced by [key].
-      The notification is build using function [f],
-      that takes the identity of the client as parameter,
-      if a client is identified for this client process.
-
-      If you do not want to send the notification for this identity,
-      for example because it is not allowed to see this data,
-      make function [f] return [None].
-
-      If [~notforme] is [true], notification will not be sent to the tab
-      currently doing the request (the one which caused the notification to
-      happen). Default is [false].
-  *)
-  val notify : ?notforme:bool -> A.key ->
-    (A.identity -> A.notification option Lwt.t) -> unit
-
-  (** Returns the client react event. Map a function on this event to react
-      to notifications from the server.
-      For example:
-
-      let%client handle_notification some_stuff ev =
-         ...
-
-      let%server something some_stuff =
-         ignore
-           [%client
-              (ignore (React.E.map
-                (handle_notification ~%some_stuff)
-                ~%(Notif_module.client_ev ())
-              ) : unit)
-           ]
-
-  *)
-  val client_ev : unit -> (A.key * A.notification) Eliom_react.Down.t Lwt.t
-
-
-  (** Call [clean ()] to launch an asynchronous thread clearing the tables
-      from empty data. *)
-  val clean : unit -> unit Lwt.t
-
+(** [SIMPLE] is for making [Simple] *)
+module type SIMPLE = sig
+	(** see [S.identity] *)
+  type identity
+	(** see [S.key] *)
+  type key
+  type notification
+  (** see [MAKE.equal_key] *)
+  val equal_key                  : key -> key -> bool
+  (** see [MAKE.equal_identity] *)
+  val equal_identity             : identity -> identity -> bool
+  (** see [MAKE.get_identity] *)
+  val get_identity               : unit -> identity Lwt.t
+  (** see [MAKE.max_resource] *)
+  val max_resource               : int
+  (** see [MAKE.max_identity_per_resource] *)
+  val max_identity_per_resource  : int
 end
+
+(** Use this functor if you have no need of customising your notifications with
+    client-specific data.
+*)
+module Simple (A : SIMPLE) : S
+  with type key = A.key
+   and type server_notif = A.notification
+   and type client_notif = A.notification
