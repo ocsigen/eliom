@@ -32,8 +32,8 @@ Example:
 <<code language="ocaml"|
 let%server log str = Lwt_io.write_line Lwt_io.stdout str
 
-let%server rpc_log =
-  Eliom_client.server_function [%derive.json: string] log
+let%client log =
+  ~%(Eliom_client.server_function [%derive.json: string] log)
 
 let%client () =
   Eliom_client.onload
@@ -41,7 +41,7 @@ let%client () =
        on the client before loading the page. *)
     (fun () ->
        Lwt.async
-         (fun () -> ~%rpc_log "hello from the client to the server!"))
+         (fun () -> log "Hello from the client to the server!"))
 >>
 
 Exceptions raised in the server-side function cannot be handled
