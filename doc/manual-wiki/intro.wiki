@@ -15,9 +15,9 @@ it is also possible to implement, with a single code base,
 a **mobile** device (iOS, Android~ ...).
 
 The goal of Eliom (and other projects of the Ocsigen framework)
-is to propose a new programming style, that
-matches better the needs of modern Web applications
-than the usual languages (often designed years ago,
+is to propose a new programming style that
+matches the needs of modern Web applications better
+than the usual languages (most of which were designed years ago,
 for a much more static Web).
 
 It simplifies the development of complex applications by:
@@ -36,7 +36,7 @@ It simplifies the development of complex applications by:
 
 
 Eliom does not restrict the possibilities offered by Web
-technology. For example, the programmer can choose exactly the URL
+technology. For example, the programmer can choose the exact URL
 and parameter names she wants. Eliom also produces clean HTML code
 that can be parsed by search engines, even for client/server
 applications.
