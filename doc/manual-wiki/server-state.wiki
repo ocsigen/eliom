@@ -139,7 +139,7 @@ chapter="workflow-configuration" fragment="reload"|command
 Eliom uses a notion of //scopes// to restrict the visibility of
 server-side data to a set of clients. Together with <<a_manual
 chapter="server-state" fragment="eref"|Eliom references>>, this is a
-very convenient way to implement a session mechanism for your website.
+very convenient way to implement a session mechanism for your Web site.
 
 There are two categories of scopes:
 

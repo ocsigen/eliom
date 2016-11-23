@@ -88,7 +88,7 @@ These services are registered using
 and can be called using
 <<a_api subproject="client" | val Eliom_client.call_ocaml_service >>.
 
-Such services cannot be visited by the browser as web pages. You
+Such services cannot be visited by the browser as Web pages. You
 usually want POST pathless services for this use case. This
 corresponds to remote function calls, that are typically handled by
 pathless POST services.

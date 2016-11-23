@@ -48,7 +48,7 @@ To simplify the creation of <<span class="code"|<link>>> tags
 ===@@id="basic_menu"@@Basic menus
 
 
-      To build a menu on your web page, you can use the function
+      To build a menu on your Web page, you can use the function
           <<a_api| val Eliom_tools.menu >>.
       First, define your menu like this:
 

@@ -2,10 +2,10 @@
 
 In Eliom it possible to define the functionality of the server and the
 client program at in a single source file.  The server program will
-constantly run on the web server.  The client program will run
-independently in each browser tab that visits the web site.  The
+constantly run on the Web server.  The client program will run
+independently in each browser tab that visits the Web site.  The
 latter is started with the initial request in a browser tab and keeps
-running while navigating within the web site, across the usage of
+running while navigating within the Web site, across the usage of
 links, forms, history, and <<a_api subproject="client"
 text="page changes" | val Eliom_client.change_page>>.
 

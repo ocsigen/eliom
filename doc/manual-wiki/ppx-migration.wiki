@@ -3,7 +3,7 @@
 Recent versions of OCaml (4.02 and newer) provide PPX, which is a new
 mechanism for extending the language. Eliom 5.0 utilizes PPX to
 provide a superset of OCaml, which is suitable for developing
-client-server web applications.
+client-server Web applications.
 
 This document provides a migration guide from our older Camlp4-based
 language to the new PPX-based language. While our Camlp4 language is

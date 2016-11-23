@@ -6,8 +6,8 @@
 
 <<outline depth="2" >>
 
-Services are entry points to your web site. A service is usually
-attached to a URL, and it generates a web page. There are other kinds
+Services are entry points to your Web site. A service is usually
+attached to a URL, and it generates a Web page. There are other kinds
 of services, e.g., services that are identified by special GET or POST
 parameters, and services representing redirections.
 
@@ -263,7 +263,7 @@ Attached services are created using the functions
 
 Anonymous GET attached services are often created dynamically with
 respect to previous interaction with the user (e.g. filling forms in
-multiple steps). They handle correctly the classical web interactions
+multiple steps). They handle correctly the classical Web interactions
 ("back" button, bookmark, tab,~ ...): you create a new attached
 service each time you want to record a precise point in the
 interaction with the user, to be able to come back there later.
@@ -308,7 +308,7 @@ fragment="unregistrable_services"| Unregistrable services >>.
 ===External services===
 
 It is possible to define external services, that is, services that
-belong to an external web site (on the same server or not).  To do
+belong to an external Web site (on the same server or not).  To do
 this, use the function {{{Eliom_service.extern}}}
 (see <<a_api subproject="server"| val Eliom_service_sigs.S.extern >>).
 

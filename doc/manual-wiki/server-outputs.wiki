@@ -13,7 +13,7 @@ POST parameters as arguments and returning the content to be sent to
 the client. The return type of the service handler depends on the
 function used to register it. The most common case is HTML content
 build with the TyXML library, but Eliom additionally provides a lot of
-output modules to ease the implementation of common web
+output modules to ease the implementation of common Web
 interaction. See section <<a_manual chapter="server-outputs"
 fragment="predefined_outputs" | Predefined output modules >> for a
 comprehensive list.
