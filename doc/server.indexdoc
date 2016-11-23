@@ -38,11 +38,12 @@ Eliom_registration.Redirection
 {2 Client/server communication}
 
 {!modules:
+Eliom_shared
+Eliom_notif
+Eliom_cscache
 Eliom_bus
 Eliom_comet
 Eliom_react
-Eliom_shared
-Eliom_cscache
 }
 
 {2 Extensions}
