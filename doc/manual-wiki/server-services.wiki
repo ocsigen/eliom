@@ -115,7 +115,7 @@ parameters which are part of the body of the request.
 Values of the type {{{Eliom_parameter.params_type}}}
 represent the set of expected arguments with their types. They are
 built using combinators from the
-<<a_api subproject="server' | module Eliom_parameter >>
+<<a_api subproject="server" | module Eliom_parameter >>
 module. See chapter <<a_manual chapter="server-params"| Service
 parameters >> for a detailled description of this module.
 
@@ -302,10 +302,14 @@ services// (as opposed to the standard case of //registrable
 services//), and represent, for example, links towards external sites,
 or registrable services pre-applied to some parameters. This allows
 use of the {{{Eliom_service}}} API consistently for creating
-links. See chapter <<a_manual chapter="server-services"
-fragment="unregistrable_services"| Unregistrable services >>.
+links.
 
-===External services===
+<<| ????
+See chapter <<a_manual chapter="server-services"
+fragment="unregistrable_services"| Unregistrable services > >.
+>>
+
+====External services====
 
 It is possible to define external services, that is, services that
 belong to an external Web site (on the same server or not).  To do
@@ -328,7 +332,7 @@ Eliom_content.Html.D.a
   ["OCaml"]
 >>
 
-===@@id="staticparts"@@ Static files service===
+====@@id="staticparts"@@ Static files service====
 
 <<a_manual project="ocsigenserver" chapter="staticmod" | Staticmod>>
 is an Ocsigen Server extension serving static (non-generated) files
@@ -351,7 +355,7 @@ It is also possible to send static files using Eliom, with
 See
 <<a_manual chapter="server-outputs" fragment="eliomfiles" |Sending files>>.
 
-===@@id="preapplied"@@Pre-applied services
+====@@id="preapplied"@@Pre-applied services
 
 It is possible to preapply the GET parameters of a service to obtain a
 service without parameters, or only the POST ones. It is done using
@@ -373,7 +377,7 @@ let preappl = Eliom_service.preapply s 3
 It is not possible to register a handler on a preapplied service, but
 you can use them in links or as fallbacks for attached services.
 
-===@@id="void"@@Reload actions
+====@@id="void"@@Reload actions
 
 {{{Eliom_service.reload_action}}}
 (see <<a_api subproject="server"| val Eliom_service_sigs.S.reload_action>>)
