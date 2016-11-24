@@ -16,9 +16,9 @@ depends: [
   "js_of_ocaml" {>= "2.8.2"}
   "tyxml" {>= "4.0.0"}
   "calendar"
-  "ocsigenserver" {>= "dev"}
+  "ocsigenserver" {>= "2.8"}
   "ipaddr" {>= "2.1"}
-  "reactiveData" {>= "dev"}
+  "reactiveData" {>= "0.2.1"}
   "base-bytes"
 ]
 available: [ ocaml-version >= "4.02" ]
