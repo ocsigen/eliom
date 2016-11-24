@@ -298,7 +298,7 @@ let tonlparams =
                 Eliom_parameter.get_nl_params_names my_nl_params
               in
               [p [
-                 pcdata "form with nl params fiels";
+                 pcdata "form with nl params fields";
                  Form.input ~input_type:`Text ~name:iname Form.int;
                  Form.input ~input_type:`Text ~name:aname Form.int;
                  Form.input ~input_type:`Text ~name:sname Form.string;
