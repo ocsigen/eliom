@@ -8,7 +8,7 @@ fragment="reactive"|Another manual section>> describes Eliom's
 client-side reactive infrastructure.
 
 Client-side reactive programming in itself does not adequately cover
-all the requirements of the modern web. Namely, with client-centric
+all the requirements of the modern Web. Namely, with client-centric
 programming, the initialization of the interface happens on the
 client, sometimes with a noticeable lag. Also, the HTML sent by the
 server contains little of the actual content, thus being unsuitable

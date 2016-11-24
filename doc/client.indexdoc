@@ -18,10 +18,11 @@ Eliom_content.Xml
 
 {!modules:
 Eliom_service
+Eliom_shared
+Eliom_cscache
 Eliom_bus
 Eliom_comet
 Eliom_react
-Eliom_shared
 }
 
 {2 Index}

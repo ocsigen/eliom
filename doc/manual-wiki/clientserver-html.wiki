@@ -507,7 +507,7 @@ html using {{{$...$}}}, like this:
 
 <<code language="ocaml"|
 let oc = << <em>Ocsigen</em> >> in
-<< <p>$oc$ will revolutionize web programming.</p> ~>>
+<< <p>$oc$ will revolutionize Web programming.</p> ~>>
 >>
 
 <<| remove \ before $, _ in code, everywhere in pdf version!!!!!!!!!! >>

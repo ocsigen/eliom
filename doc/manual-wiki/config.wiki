@@ -254,7 +254,7 @@ Timeouts can also be modified programmatically using functions like
 {{{Eliom_state.set_global_volatile_timeout}}}, but by default these
 functions will not override configuration files.
 (see module <<a_api| module Eliom_state >> for other functions).
-Thus, a website can set its own defaults and the user can still
+Thus, a Web site can set its own defaults and the user can still
 override them from the configuration file.  If you want to set a
 timeout programmatically even if it has been modified in a
 configuration file, use the optional parameter
@@ -380,7 +380,7 @@ By default, functions like
 {{{Eliom_state.set_default_max_volatile_sessions_per_group}}}
 will not override a value set in the configuration file
 (but if you use {{{~override_configfile:true}}}).
-Thus, a website can set its own defaults and the user can still
+Thus, a Web site can set its own defaults and the user can still
 override them from the configuration file.
 
 The configuration file options can be set either inside the tag

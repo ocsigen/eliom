@@ -30,8 +30,9 @@ open Eliom_lib
     you are developing a mobile app. The parameters correspond to the
     base URL of the server side of your application.
 
-    Alternatively, and to make sure it is done early enough, define a
-    JS variable called [__eliom_server] at the beginning of your html
+    Alternatively, and to make sure it is done early enough, define
+    JS variables called [__eliom_server] and [__eliom_app_name]
+    at the beginning of your html
     file, containing the full URL of your server. *)
 val init_client_app :
   app_name:string ->

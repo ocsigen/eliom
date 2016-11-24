@@ -91,7 +91,7 @@ containing the application.
 
 {{{global_data_path}}} specifies the path of an auxilliary service
 needed for mobile apps, and you can provide {{{None}}} for standard
-web applications.
+Web applications.
 
 Then you can do for example:
 <<code language="ocaml"|

@@ -131,10 +131,10 @@ chapter <<a_manual chapter="clientserver-wrapping"|Wrapping values>>.
 ==Note about evaluation
 
 Regardless of the construction used and their combination, there is
-only one communication from server to client, when the webpage is
+only one communication from server to client, when the Web page is
 sent. This is due to the fact that client fragments are not executed
 immediately when encountered inside server code.  The intuitive
 semantic is the following: client code is not executed when
 encountered, instead it is registered for later execution, once the
-webpage has been sent to the client. Then all the client code is
+Web page has been sent to the client. Then all the client code is
 executed in the order it was encountered on the server.

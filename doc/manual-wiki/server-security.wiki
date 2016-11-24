@@ -1,6 +1,6 @@
 ==How to write secure applications with Eliom==
 
-Eliom and Ocsigen server automatically take charge of a lot of security issues. This unburdens the programmer from having to think about most common security problems. This page details various possible design flaws of web applications, how Eliom and Ocsigen server (possibly) protects you against a possible exploitation of these flaws, and where you should be careful. //Please help us maintaining this page, by sending us any comments.// <<|For more details on the various flaws, see e.g. [[http://www.amazon.fr/Web-Application-Hackers-Handbook-Discovering/dp/0470170778/|this book]].>>
+Eliom and Ocsigen server automatically take charge of a lot of security issues. This unburdens the programmer from having to think about most common security problems. This page details various possible design flaws of Web applications, how Eliom and Ocsigen server (possibly) protects you against a possible exploitation of these flaws, and where you should be careful. //Please help us maintaining this page, by sending us any comments.// <<|For more details on the various flaws, see e.g. [[http://www.amazon.fr/Web-Application-Hackers-Handbook-Discovering/dp/0470170778/|this book]].>>
 
 
 === HTTPS

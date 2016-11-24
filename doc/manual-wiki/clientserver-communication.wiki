@@ -32,8 +32,8 @@ Example:
 <<code language="ocaml"|
 let%server log str = Lwt_io.write_line Lwt_io.stdout str
 
-let%server rpc_log =
-  Eliom_client.server_function [%derive.json: string] log
+let%client log =
+  ~%(Eliom_client.server_function [%derive.json: string] log)
 
 let%client () =
   Eliom_client.onload
@@ -41,7 +41,7 @@ let%client () =
        on the client before loading the page. *)
     (fun () ->
        Lwt.async
-         (fun () -> ~%rpc_log "hello from the client to the server!"))
+         (fun () -> log "Hello from the client to the server!"))
 >>
 
 Exceptions raised in the server-side function cannot be handled
@@ -52,18 +52,43 @@ with the exception <<a_api subproject="client"|exception
 Eliom_client_value.Exception_on_server>> whose argument describes the original
 exception (according to {{{Printexc.to_string}}}).
 
-== Client requesting data
+==@@id="notifs"@@ Notifications from server to clients
+
+Module <<a_api subproject="server" | module Eliom_notif >>
+makes it possible for a server to send values to clients with a very simple
+interface. See later in this chapter for lower level server push notifications.
+
+Create a module for each kind of notifications you want using module
+<<a_api subproject="server" | module Eliom_notif.Simple >>.
+For example the notifications of new messages in a chat.
+
+Each client process must register on each resource for which it wants
+to receive the the notifications
+(each chat currently opened, in our example), using function
+<<a_api subproject="server" | val Eliom_notif.Simple.listen >>.
+
+Then the server can send a notification to all the clients listening
+on a resource, using function
+<<a_api subproject="server" | val Eliom_notif.Simple.notify >>.
+
+More details in the API documentation of module
+<<a_api subproject="server" | module Eliom_notif >>.
+
+
+== Services returning OCaml values
 
 Server functions are implemented using special services that take and
 return OCaml values. In this section we will see how to define
-services returning OCaml data.
+services returning OCaml data. This is a lower level interface to
+do remote procedure calls, and you won't probably need this for
+basic use.
 
 These services are registered using
 <<a_api subproject="server" | module Eliom_registration.Ocaml >>
 and can be called using
 <<a_api subproject="client" | val Eliom_client.call_ocaml_service >>.
 
-Such services cannot be visited by the browser as web pages. You
+Such services cannot be visited by the browser as Web pages. You
 usually want POST pathless services for this use case. This
 corresponds to remote function calls, that are typically handled by
 pathless POST services.
@@ -106,13 +131,14 @@ sent. The restrictions are the same as for the {{{~%variable}}}
 mechanism. (See <<a_manual chapter="clientserver-wrapping"| chapter
 Wrapping>>.)
 
-==@@id="client_sending_data"@@Client sending data
+==@@id="client_sending_data"@@Send OCaml values to services
 
 The client can send OCaml values as parameters to services.
 To do that, declare the expected parameter type using
 {{{Eliom_parameter.ocaml}}} (see
 <<a_api subproject="server" | val Eliom_parameter_sigs.S.ocaml >>).
 
+This is used for example to implement server functions.
 
 Since the server cannot trust the client to send correctly-formed
 data, Eliom is not using the standard OCaml marshalling
@@ -177,10 +203,12 @@ look at deriving's
 [[href:http://code.google.com/p/deriving/wiki/Introduction|documentation]]
 and Js_of_ocaml's <<a_api project="js_of_ocaml"|module Deriving_Json>>.
 
-== Server sending data
+== Server sending data (lower level interfaces for notifications)
 
-Eliom provides mechanisms to allow the server to send data to a
-client. We call this mechanism //Comet//. The same idea is also known as
+Module <<a_api subproject="server" | module Eliom_notif >>
+described above is implemented on top of a mechanism to allow the
+server to send data to a client.
+We call this mechanism //Comet//. The same idea is also known as
 //HTTP push//.
 
 The simple low-level version above which all other following mechanisms are
