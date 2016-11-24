@@ -195,15 +195,15 @@ val call_service :
     once; but each at a time where the document is in place:
 
     {% <<code language="ocaml"|
-    {shared{ open Eliom_lib }}
-    {client{
+    [%%shared open Eliom_lib]
+    [%%client
       let () = alert "Once only during initialization of the client, \
                       i.e. before the document is available."
       let () =
         Eliom_client.onload
           (fun () -> alert "Once only when the document is put in place.")
-    }}
-    {server{
+    ]
+    [%%server
       let _ = My_app.register_service ~path ~get_params
         (fun () () ->
            ignore {unit{
@@ -211,7 +211,7 @@ val call_service :
                     is put in place."
            }};
            Lwt.return html
-    }}
+    ]
     >> %}
 
 *)
