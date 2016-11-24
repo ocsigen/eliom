@@ -3,7 +3,7 @@
     This module makes possible for client side applications to be
     notified of changes on some indexed data on the server.
 
-    Apply functor [Make] or [Simple] for each type of data you want to be able
+    Apply functor [Make] or [Make_Simple] for each type of data you want to be able
     to listen on. Each client starts listening on one piece of data by calling
     function [listen] with the index of that piece of data as parameter. Client
     stops listening by calling function [unlisten], or when the client side
@@ -17,7 +17,11 @@
     be updated every time the client is notified.
 *)
 
-(** Signature of the functors [Eliom_notif.Make] and [Eliom_notif.Simple].
+(* TODO: allow for specifying the scope instead of hard-wiring
+         ~scope:Eliom_common.default_process_scope *)
+(* TODO: terminology: identity/client/user/listener *)
+
+(** Signature of the functors [Eliom_notif.Make] and [Eliom_notif.Make_Simple].
 
     [S] has two types of notifications ([server_notif] and [client_notif])
     because we might need to serialise and deserialise the notification twice
@@ -29,8 +33,9 @@
 module type S =
 sig
 
-  (** [identity] is the type of values used to differentiate one client
-      from another. TODO: define client/user *)
+  (** [identity] is the type of values used to differentiate one listener
+      from another. Typically it will be a user, but it could also for
+      instance be a chat window. *)
   type identity
 
   (** [key] is the type of values designating a given resource. *)
@@ -49,9 +54,9 @@ sig
   val unlisten : key -> unit
 
   module Ext : sig
-  (** Make a TODO:user stop listening on data [key]
-      TODO: document state
-      TODO: document sitedata *)
+  (** Make a listener stop listening on data [key].
+      If this function is called during a request it will be able to determine
+      [sitedata] by itself, otherwise it needs to be supplied by the caller. *)
     val unlisten :
       ?sitedata:Eliom_common.sitedata ->
       ([< `Session | `Session_group ], [< `Data | `Pers ]) Eliom_state.Ext.state
@@ -93,16 +98,19 @@ sig
 
 end
 
-(** [MAKE] is for making [Make] *)
-module type MAKE = sig
+(** [ARG] is for making [Make] *)
+module type ARG = sig
 
-	(** see [S.identity] *)
+  (** see [S.identity] *)
   type identity
-	(** see [S.key] *)
+
+  (** see [S.key] *)
   type key
-	(** see [S.server_notif] *)
+
+  (** see [S.server_notif] *)
   type server_notif
-	(** see [S.client_notif] *)
+
+  (** see [S.client_notif] *)
   type client_notif
 
   (** [prepare f] transforms server notifications into client
@@ -124,13 +132,13 @@ module type MAKE = sig
   val get_identity               : unit -> identity Lwt.t
 
   (** [max_resource] is the initial size for the hash table storing the data of
-      clients listenning on resources, for best results it should be on the
+      clients listening on resources, for best results it should be on the
       order of the expected number of different resources one may want to be
       able to listen to. *)
   val max_resource               : int
 
   (** [max_identity_per_resource] is the initial size for the tables storing the
-      data of clients listenning on one given resource, fo best results it
+      data of clients listening on one given resource, fo best results it
       should be on the order of the expected number of clients that may listen
       on a given resource. *)
   val max_identity_per_resource  : int
@@ -144,41 +152,33 @@ end
     once before broadcasting them to the other servers (without client
     information present), and then once more to forward them to the clients
     possibly augmenting it with client-specific data or block for specific
-    clients; see [MAKE.prepare].
+    clients; see [ARG.prepare].
 
     Note: The communication between servers is not implemented in this module.
     To `plug in' your method of transporting notifications between servers you
     can override [S.notify]. See the manual for an example (coming soon).
 *)
-module Make(A : MAKE) : S
+module Make(A : ARG) : S
   with type identity = A.identity
    and type key = A.key
    and type server_notif = A.server_notif
    and type client_notif = A.client_notif
 
-(** [SIMPLE] is for making [Simple] *)
-module type SIMPLE = sig
-	(** see [S.identity] *)
+(** [ARG_SIMPLE] is for making [Make_Simple] *)
+module type ARG_SIMPLE = sig
+  (** see [S.identity] *)
   type identity
-	(** see [S.key] *)
+  (** see [S.key] *)
   type key
   type notification
-  (** see [MAKE.equal_key] *)
-  val equal_key                  : key -> key -> bool
-  (** see [MAKE.equal_identity] *)
-  val equal_identity             : identity -> identity -> bool
-  (** see [MAKE.get_identity] *)
+  (** see [ARG.equal_key] *)
   val get_identity               : unit -> identity Lwt.t
-  (** see [MAKE.max_resource] *)
-  val max_resource               : int
-  (** see [MAKE.max_identity_per_resource] *)
-  val max_identity_per_resource  : int
 end
 
 (** Use this functor if you have no need of customising your notifications with
     client-specific data.
 *)
-module Simple (A : SIMPLE) : S
+module Make_Simple (A : ARG_SIMPLE) : S
   with type key = A.key
    and type server_notif = A.notification
    and type client_notif = A.notification

@@ -18,7 +18,7 @@ module type S = sig
   val clean : unit -> unit Lwt.t
 end
 
-module type MAKE = sig
+module type ARG = sig
   type identity
   type key
   type server_notif
@@ -31,7 +31,7 @@ module type MAKE = sig
   val max_identity_per_resource  : int
 end
 
-module Make (A : MAKE) : S
+module Make (A : ARG) : S
   with type identity = A.identity
    and type key = A.key
    and type server_notif = A.server_notif
@@ -245,28 +245,23 @@ module Make (A : MAKE) : S
 
 end
 
-module type SIMPLE = sig
+module type ARG_SIMPLE = sig
   type identity
   type key
   type notification
-  val equal_key                  : key -> key -> bool
-  val equal_identity             : identity -> identity -> bool
   val get_identity               : unit -> identity Lwt.t
-  val max_resource               : int
-  val max_identity_per_resource  : int
 end
 
-module Simple(A : SIMPLE) = Make
+module Make_Simple(A : ARG_SIMPLE) = Make
   (struct
     type identity      = A.identity
     type key           = A.key
     type server_notif  = A.notification
     type client_notif  = A.notification
     let prepare _ n    = Lwt.return (Some n)
-    let equal_key      = A.equal_key
-    let equal_identity = A.equal_identity
+    let equal_key      = (=)
+    let equal_identity = (=)
     let get_identity   = A.get_identity
-    let max_resource   = A.max_resource
-    let max_identity_per_resource
-                       = A.max_identity_per_resource
+    let max_resource   = 1000
+    let max_identity_per_resource = 10
   end)
