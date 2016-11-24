@@ -7,6 +7,12 @@ module type S = sig
   type client_notif
   val listen : key -> unit
   val unlisten : key -> unit
+  module Ext : sig
+    val unlisten :
+      ?sitedata:Eliom_common.sitedata ->
+      ([< `Session | `Session_group ], [< `Data | `Pers ]) Eliom_state.Ext.state
+      -> key -> unit
+  end
   val notify : ?notfor:[`Me | `Id of identity] -> key -> server_notif -> unit
   val client_ev : unit -> (key * client_notif) Eliom_react.Down.t Lwt.t
   val clean : unit -> unit Lwt.t
@@ -185,6 +191,27 @@ module Make (A : MAKE) : S
     I.remove identity id;
     Lwt.return ()
   )
+
+  module type Ext = sig
+    val unlisten :
+      ?sitedata:Eliom_common.sitedata ->
+      ([< `Session | `Session_group ], [< `Data | `Pers ]) Eliom_state.Ext.state
+      -> key -> unit
+  end
+
+  module Ext = struct
+    let unlisten ?sitedata state (key : A.key) = Lwt.async @@ fun () ->
+      (* Iterating on all sessions in group: *)
+      Eliom_state.Ext.iter_sub_states ?sitedata
+        ~state
+        (fun state ->
+           (* Iterating on all client processes in session: *)
+           Eliom_state.Ext.iter_sub_states ?sitedata
+             ~state
+             (fun state ->
+                let%lwt uc = Eliom_reference.Ext.get state identity_r in
+                Lwt.return @@ I.remove uc key))
+  end
 
   let notify ?notfor key content =
     let f = fun (identity, ((_, send_e) as notif)) ->

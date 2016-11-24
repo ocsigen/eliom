@@ -23,14 +23,14 @@
     because we might need to serialise and deserialise the notification twice
     (in case of a multi-server set-up). Once for broadcasting it to other
     servers and once for transferring it to the client (after possibly
-    transforming the message using information which is only locally available (see
-    [prepare] below).
+    transforming the message using information which is only locally available
+    (see [prepare] below).
 *)
 module type S =
 sig
 
   (** [identity] is the type of values used to differentiate one client
-      from another. *)
+      from another. TODO: define client/user *)
   type identity
 
   (** [key] is the type of values designating a given resource. *)
@@ -47,6 +47,16 @@ sig
 
   (** Stop listening on data [key] *)
   val unlisten : key -> unit
+
+  module Ext : sig
+  (** Make a TODO:user stop listening on data [key]
+      TODO: document state
+      TODO: document sitedata *)
+    val unlisten :
+      ?sitedata:Eliom_common.sitedata ->
+      ([< `Session | `Session_group ], [< `Data | `Pers ]) Eliom_state.Ext.state
+      -> key -> unit
+  end
 
   (** Call [notify key n] to send a notification [n] to all clients currently
       listening on data referenced by [key].
