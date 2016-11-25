@@ -1,5 +1,5 @@
 
-= Implementing service handlers
+= Service handlers
 
 <<outline depth="2"| <<header| **Table of contents** >> >>
 
@@ -40,11 +40,11 @@ using polymorphic variant types. You may use constructor functions from <<a_api 
 | module Eliom_content.Html.D >> or a syntax extension close to the standard HTML syntax.
 ;<<a_api subproject="server"| module Eliom_registration.Flow5 >>
 : Registration of functions that generate a portion of page using <<a_api subproject="server" |
-module Eliom_content.Html.F >> or the syntax extension (useful for <<span class="code"|XMLHttpRequest>> requests for example). Do not use with Eliom applications: use <<a_api subproject="server"| module Eliom_registration.Ocaml >> instead.
+module Eliom_content.Html.F >> or the syntax extension (useful for {{{XMLHttpRequest}}} requests for example). Do not use with Eliom applications: you can instead use <<a_api subproject="server" | Eliom_client.server_function>> to call server functions that produce HTML nodes.
 ;<<a_api subproject="server"| module Eliom_registration.HtmlText >>
 : Registration of functions that generate text HTML pages, without any validation of the content. The content type sent by the server is "{{{text/html}}}".
 ;<<a_api subproject="server"| module Eliom_registration.CssText >>
-: Registration of functions that   generate CSS pages, without any typechecking of the content. The content type sent by the server is "{{{text/css}}}".
+: Registration of functions that   generate CSS pages, without any validation of the content. The content type sent by the server is "{{{text/css}}}".
 ;<<a_api subproject="server"| module Eliom_registration.String >>
 : Registration of functions that   generate text pages, without any validation of the content. The services return a pair of strings. The first string is the content   of the page, while the second string is the content type.
 ;<<a_api subproject="server"| module Eliom_registration.File >>
@@ -55,7 +55,7 @@ module Eliom_content.Html.F >> or the syntax extension (useful for <<span class=
 <<paragraph| Generating content for client-server applications >>
 
 ;<<a_api subproject="server"| module Eliom_registration.App >>
-: Functor that generates a module that allows creation of services belonging to a client-server Eliom application (see <<a_manual chapter="clientserver-applications"|chapter client-server applications>>).
+: Functor that allows creation of services belonging to a client-server Eliom application (see <<a_manual chapter="clientserver-applications"|chapter client-server applications>>).
 
 <<paragraph| Special browser interraction >>
 
@@ -107,9 +107,12 @@ Other example, with "suffix" services (see <<a_manual chapter="server-params" fr
 let sendfile2 =
   Eliom_registration.File.create
     ~path:(Eliom_service.Path ["files"])
-    ~meth:(Eliom_service.Get Eliom_parameter.(suffix (all_suffix "filename")))
-    (fun s () ->
-      return ("//path//"^(Ocsigen_lib.Url.string_of_url_path ~encode:false s)))
+    ~meth:
+      (Eliom_service.Get
+         Eliom_parameter.(suffix (all_suffix "filename")))
+    (fun s () -> Lwt.return @@
+      "//path//" ^
+      Ocsigen_lib.Url.string_of_url_path ~encode:false s)
 >>
 
 The extension <<a_manual chapter="server-services" fragment="staticparts"|Staticmod>> is another way to
@@ -122,12 +125,13 @@ handle static files.
 
 The <<a_api subproject="server"| module Eliom_registration.Flow5 >>
 module allows you to register services that send portions of pages, of
-any "block" type for ##Html.F##.  It is sometimes useful to create
-AJAX pages (i.e. pages using the <<span class="code"|XMLHttpRequest>>
-Javascript object).  Note that the service returns a list of
+any element type.  It is sometimes useful to create
+AJAX pages (i.e. pages using the {{{XMLHttpRequest}}}
+JavaScript object).  Note that the service returns a list of
 blocks. For sending HTML to the client-side portion of an Eliom application,
-<<a_api subproject="server"| module Eliom_registration.Ocaml >>
-is better-suited.
+server functions
+(<<a_api subproject="server" | Eliom_client.server_function>>) are
+better-suited.
 
 
 <<code language="ocaml"|let divpage =
@@ -201,7 +205,7 @@ module allows one to register HTTP redirections to custom URLs
 provided as strings. In most cases, it is a better idea to use <<a_api
 subproject="server"| module Eliom_registration.Redirection>>, even for
 external redirections (using
-<<a_api subproject="server" | val Eliom_service.extern>>.
+<<a_api subproject="server" | val Eliom_service.extern>>).
 Use
 <<a_api subproject="server"| module Eliom_registration.String_redirection>>
 only when it is not possible to have a service corresponding to a URL.
@@ -227,7 +231,7 @@ for the following reasons:
   all pages. An action implemented as a pathless service will respond
   no matter what page it is called from, so there is no need to create
   a version with POST parameters of each service.
-The implementation of the same behaviour with standard Web programming
+The implementation of the same behavior with standard Web programming
 techniques is usually much more complicated.
 
 ====@@id="any"@@ Registering services that decide what they want to send ===
@@ -251,13 +255,16 @@ let send_any =
          (html
             (head (title (pcdata "")) [])
             (body [p [pcdata
-                        "This page has been statically typechecked.
-                         If you change the parameter in the URL you will
+                        "This page has been statically typechecked. \
+                         If you change the parameter in the URL you will \
                          get an unchecked text page"]]))
      else
        Eliom_registration.Html_text.send
-         "<html><body><p>It is not a valid page. Put type=\"valid\" in the
-          URL to get a typechecked page.</p></body></html>"
+         "<html><body><p>
+            This is not a valid page. \
+            Put type=\"valid\" in the URL to get a \
+            typechecked page. \
+          </p></body></html>"
    )
 >>
 
@@ -288,14 +295,14 @@ In Eliom applications, changing the current page does not always do the
 same thing. When going to a page inside the same application by
 clicking on a link (or calling <<a_api
 subproject="client"| val Eliom_client.change_page>>) the client
-application performs an XmlHttpRequest and modifies the displayed page
+application performs an {{{XmlHttpRequest}}} and modifies the displayed page
 according to the result. When going to content outside the
 application (another site, a static file, etc.) the client leaves the
 application by changing the browser URL.
 
 When using <<a_api subproject="server" subproject="server"| module Eliom_registration.Any
 >>, there is no way to know before the request whether the content is
-from the same application or not. To that end there are phantom type
+from the same application or not. To this end, there are phantom type
 annotations to the type of the {{{send}}} functions: <<a_api subproject="server"
 subproject="server"| type Eliom_registration.kind>>. The <<a_api subproject="server"
 subproject="server"| val Eliom_registration.Any.register>> takes a
@@ -332,13 +339,14 @@ let file_or_application =
    (fun filename () ->
      if Eliom_registration.File.check_file filename
      then
-       Eliom_registration.appl_self_redirect Eliom_registration.File.send filename
+       Eliom_registration.appl_self_redirect
+         Eliom_registration.File.send
+         filename
      else
        My_application.send ~code:404
          (html
            (head (title (pcdata "no page")) [])
-           (body [p ~a:[a_onclick {{ do some client action }}]
-	     [pcdata "the file does not exist"]])))
+           (body [p [pcdata "the file does not exist"]])))
 >>
 
 Unknown content can be cast to browser content using <<a_api subproject="server"| val
@@ -366,34 +374,45 @@ the body. That way, it also always generate the same CSS without code
 duplication.
 
 <<code language="ocaml"|
-module Connected_param =
-struct
-  type page = user_informations -> Eliom_registration.Html.page Lwt.t
+module Connected_param = struct
+
+  type page = user_info -> Eliom_registration.Html.page Lwt.t
+
   let translate page =
-    match Eliom_state.get_volatile_data_session_group
-      ~scope:Eliom_common.default_session_scope () with
-	| None -> login_page ()
-	| Some group_name ->
-	  let%lwt user_info = get_user_info group_name in
-	  let%lwt page_title, content = page user_info in
-	  return (html (head (title (pcdata page_title))
-	                 [ Some css and things like that ])
-	               (body content))
+    match
+      Eliom_state.get_volatile_data_session_group
+        ~scope:Eliom_common.default_session_scope ()
+    with
+    | None ->
+      login_page ()
+    | Some group_name ->
+      let%lwt user_info = get_user_info group_name in
+      let%lwt page_title, content = page user_info in
+      Lwt.return
+        Eliom_content.Html.D.(
+          html (head (title (pcdata page_title)) [])
+            (body content)
+        )
+
 end
 
+
 module Connected =
-  Eliom_registration.Customize ( Eliom_registration.Html ) ( Connected_param )
+  Eliom_registration.Customize
+    (Eliom_registration.Html)
+    (Connected_param)
 >>
 
 ==== By building the HTTP frame
 
-When you need to declare some kind of specific service, you may need
-to create your own registration module: For instance here we define a
-module serving integers as text. Notice that in that case you can and
-should use <<a_api subproject="server" | module Eliom_registration.Customize>> instead.
-
-For that you need to use the
+For defining more sophisticated kinds of custom services, you may need
+to create your own registration module via the
 <<a_api subproject="server" | module Eliom_mkreg.Make>> functor.
+As an example, we define a module serving
+integers as text. Notice that for this particular example you can (and
+should) use
+<<a_api subproject="server" | module Eliom_registration.Customize>>
+instead.
 
 <<code language="ocaml" |
 module Int_reg_base = struct
@@ -402,9 +421,11 @@ module Int_reg_base = struct
 
   type options = unit
 
-  type return = http_service
+  type return =
+    Eliom_service.non_ocaml
 
-  type result = (browser_content, http_service) kind
+  type result =
+    Eliom_registration.browser_content Eliom_registration.kind
 
   let result_of_http_result = Eliom_registration.cast_http_result
 
@@ -412,31 +433,36 @@ module Int_reg_base = struct
 
   let send ?options ?charset ?code ?content_type ?headers content =
     let content = string_of_int content in
-    let%lwt r = Ocsigen_senders.Text_content.result_of_content content in
-    Lwt.return
-      { r with
-        Ocsigen_http_frame.
-        res_code    = code_of_code_option code;
-        res_charset = (match charset with
-          | None ->  Some (Eliom_config.get_config_default_charset ())
-          | _ -> charset);
-        res_content_type = (match content_type with
-          | None -> r.Ocsigen_http_frame.res_content_type
-          | _ -> content_type
-        );
-        res_headers = (match headers with
-          | None -> r.Ocsigen_http_frame.res_headers
-          | Some headers ->
-            Http_headers.with_defaults headers r.Ocsigen_http_frame.res_headers
-        );
-      }
+    let%lwt r =
+      Ocsigen_senders.Text_content.result_of_content
+        (content, "text/plain")
+    in
+    Lwt.return @@ Ocsigen_http_frame.Result.update r ()
+      ~code:(match code with Some c -> c | None -> 200)
+      ~charset:
+        (match charset with
+         | None ->  Some (Eliom_config.get_config_default_charset ())
+         | _ -> charset)
+      ~content_type:
+        (match content_type with
+         | None -> Ocsigen_http_frame.Result.content_type r
+         | _ -> content_type)
+      ~headers:
+        (match headers with
+         | None ->
+           Ocsigen_http_frame.Result.headers r
+         | Some headers ->
+           Http_headers.with_defaults
+             headers
+             (Ocsigen_http_frame.Result.headers r))
 
 end
 
-module Int = Eliom_mkreg.MakeRegister(Int_reg_base)
+module Int = Eliom_mkreg.Make(Int_reg_base)
 >>
 
-If your {{{page}}} type has parameters you should use <<a_api subproject="server" | module Eliom_mkreg.Make_poly>> instead.
+If your {{{page}}} type has parameters you should use
+<<a_api subproject="server" | module Eliom_mkreg.Make_poly>> instead.
 
 ==Considerations for implementing services==
 
@@ -453,7 +479,7 @@ Below is an example of a page written in a non-cooperative way, that
 has the effect of stopping the entire server for 5 seconds. No one
 will be able to query the server during this period:
 
-<<code class="donotrun" language="ocaml" |open Eliom_content.Html.D
+<<code class="donotrun" language="ocaml" |
 let looong =
   Eliom_registration.Html.create
     ~path:(Eliom_service.Path ["looong"])
@@ -461,12 +487,12 @@ let looong =
     (fun () () ->
        Unix.sleep 5;
        Lwt.return
-         Html.D.(
+         Eliom_content.Html.D.(
            html
              (head (title (pcdata "")) [])
-             (body [h1 [pcdata "Ok now, you can read the page."]])))
+             (body [h1 [pcdata "Ok now, you can read the page."]])
+         ))
 >>
-
 
 To solve this problem, use a cooperative version of {{{Unix.sleep}}}:
 <<a_api project="lwt" | val Lwt_unix.sleep>>:
@@ -479,34 +505,39 @@ let looong =
     (fun () () ->
        let%lwt () = Lwt_unix.sleep 5.0 in
        Lwt.return
-         Html.D.(html
-           (head (title (pcdata "")) [])
-           (body [h1 [pcdata "Ok now, you can read the page."]])))
+         Eliom_content.Html.D.(
+           html
+             (head (title (pcdata "")) [])
+             (body [h1 [pcdata "Ok now, you can read the page."]])
+         ))
 >>
 
-If you want to use, say, a database library that is not written
- in a cooperative way, but is thread-safe for preemptive threads,
- use the <<a_api project="lwt" |module Lwt_preemptive>> module to
- detach the computation. In the following example,
- we simulate the request by making a call to <<span class="code"|Unix.sleep>>:
+If you want to use, say, a database library that is not written in a
+cooperative way, but which is thread-safe for preemptive threads, use
+the <<a_api project="lwt" |module Lwt_preemptive>> module to detach
+the computation. In the following example, we simulate the request by
+making a call to <<span class="code"|Unix.sleep>>:
 
-<<code language="ocaml"|let looong2 =
-  create
+<<code language="ocaml"|
+let looong2 =
+  Eliom_registration.Html.create
     ~path:(Eliom_service.Path ["looong2"])
-    ~meth:(Eliom_service.Get unit)
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () ->
        let%lwt () = Lwt_preemptive.detach Unix.sleep 5 in
        Lwt.return
-         (html
-           (head (title (pcdata "")) [])
-           (body [h1 [pcdata "Ok now, you can read the page."]])))
+         Eliom_content.Html.D.(
+           html
+             (head (title (pcdata "")) [])
+             (body [h1 [pcdata "Ok now, you can read the page."]])
+         ))
 >>
 
 ===@@id="error_handling"@@ Error handling ====
 
 ==== Exception handling
 
-You can catch the exceptions raised during page generation in two places:
+You can catch exceptions raised during page generation in two places:
 
 * add an exception handler to services using the {{{?error_handler}}}
   parameter of the registration functions.
@@ -517,44 +548,47 @@ You can use it to catch exception <<a_api subproject="server" | exception
 Eliom_common.Eliom_404 >> and generate a custom 404 page.
 
 <<code language="ocaml"|
-
-let _ = Eliom_registration.set_exn_handler
-   (fun e -> match e with
-    | Eliom_common.Eliom_404 ->
-        Eliom_registration.Html.send ~code:404
-          (html
-             (head (title (pcdata "")) [])
-             (body [h1 [pcdata "Eliom tutorial"];
-                    p [pcdata "Page not found"]]))
-    | Eliom_common.Eliom_Wrong_parameter ->
-        Eliom_registration.Html.send
-          (html
-             (head (title (pcdata "")) [])
-             (body [h1 [pcdata "Eliom tutorial"];
-                    p [pcdata "Wrong parameters"]]))
-    | e -> fail e)
-
+let () =
+  Eliom_registration.set_exn_handler @@ function
+  | Eliom_common.Eliom_404 ->
+    Eliom_registration.Html.send ~code:404
+      Eliom_content.Html.D.(
+        html
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata "Eliom tutorial"];
+                 p [pcdata "Page not found"]])
+      )
+  | Eliom_common.Eliom_Wrong_parameter ->
+    Eliom_registration.Html.send
+      Eliom_content.Html.D.(
+        html
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata "Eliom tutorial"];
+                 p [pcdata "Wrong parameters"]])
+      )
+  | e ->
+    Lwt.fail e
 >>
 
 ==== Fallback services
 
 You can check whether a service was directly called or if it was used
 as a fallback using the <<a_api subproject="server"| val
-Eliom_request_info.get_link_too_old >> function. In case of coservices
-registered with a restricted scope, you can check which state was
+Eliom_request_info.get_link_too_old >> function. In case of services
+registered with a restricted scope, you can find out which state was
 closed using <<a_api subproject="server"| val
 Eliom_request_info.get_expired_service_sessions >>
 
 ==== Error in service handlers of actions
 
 If something wrong happens during an action, it is possible to inform
-the service generating the page. For instance, if you want to display a
+the service generating the page. For instance, you may want to display a
 "wrong password" message after an aborted connection.  To transmit
-that kind of information, use Eliom references (see module <<a_api subproject="server" |
+this kind of information, use Eliom references (see module <<a_api subproject="server" |
 module Eliom_reference>>) created using scope <<a_api subproject="server" |
-val Eliom_common.request_scope>>, the value will be available to the service
+val Eliom_common.request_scope>>. The value will be available to the service
 generating the page.
 
-Other examples: creating user accounts using actions. If the
-creation fails you may want to display some message to the user, like
+Other example: creating user accounts using actions. If the
+creation fails, you may want to display some message to the user, like
 "password too weak" or "name already used".
