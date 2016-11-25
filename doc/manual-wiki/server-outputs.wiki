@@ -20,8 +20,6 @@ comprehensive list.
 
 === List of predefined output modules
 
-<<wip|Add types and options for each module?>>
-
 Services can send several types of data, using a variety of predefined modules.
 It is also possible to <<a_manual chapter="server-outputs" fragment="creating"|create your own output modules>>.
 The main predefined output modules are:
@@ -248,24 +246,17 @@ let send_any =
   Eliom_registration.Any.create
     ~path:(Eliom_service.Path ["sendany"])
     ~meth:(Eliom_service.Get Eliom_parameter.(string "type"))
-   (fun s () ->
-     if s = "valid"
-     then
-       Eliom_registration.Html.send
-         (html
-            (head (title (pcdata "")) [])
-            (body [p [pcdata
-                        "This page has been statically typechecked. \
-                         If you change the parameter in the URL you will \
-                         get an unchecked text page"]]))
-     else
-       Eliom_registration.Html_text.send
-         "<html><body><p>
-            This is not a valid page. \
-            Put type=\"valid\" in the URL to get a \
-            typechecked page. \
-          </p></body></html>"
-   )
+    (fun s () ->
+       if s = "valid" then
+         Eliom_registration.Html.send
+           (html
+              (head (title (pcdata "")) [])
+              (body [p [pcdata "This page has been statically checked. ";
+                        pcdata "If you change the parameter in the URL ";
+                        pcdata "will get an unchecked text page"]]))
+       else
+         Eliom_registration.Html_text.send
+           "<p>Not a valid page. Try with type=\"valid\" in the URL.</p>")
 >>
 
 ===== Dynamically modifying register options using Any
