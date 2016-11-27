@@ -8,10 +8,16 @@ module Conf = struct
 end
 
 module Intern = struct
+
+  let with_eliom_ppx = Some begin function
+    | `Client -> "src/ppx/ppx_eliom_client_ex.native"
+    | `Server -> "src/ppx/ppx_eliom_server_ex.native"
+  end
+
   let with_package = function
     | "eliom.ppx.type" -> "pkg_ppx_eliom_types"
-    | "eliom.ppx.client" -> "pkg_ppx_eliom_client"
-    | "eliom.ppx.server" -> "pkg_ppx_eliom_server"
+    | "eliom.ppx.client"
+    | "eliom.ppx.server"
     | "eliom.syntax.predef"
     | "eliom.client"
     | "eliom.server" -> (* do noting in this case *) "pkg_dummy"
@@ -46,8 +52,6 @@ let _ = dispatch (fun x ->
       flag_and_dep ["doc";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex.native") ]) in
 
     add_syntax "ppx_eliom_utils" "src/ppx/";
-    add_syntax "ppx_eliom_client" "src/ppx/";
-    add_syntax "ppx_eliom_server" "src/ppx/";
     add_syntax "ppx_eliom_types" "src/ppx/";
 
     (* link executable aliases *)
