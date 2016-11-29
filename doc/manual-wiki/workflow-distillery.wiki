@@ -15,6 +15,11 @@ with it.
 === Project Initialization
 
 The {{{eliom-distillery}}} creates projects from templates.
+To see all available templates, you can use
+<<code language="shell"|
+$ eliom-distillery -list-templates
+>>
+
 Template "basic" create a very simple project (makefiles and configuration file
 and main service).
 
@@ -83,3 +88,30 @@ own directory (this is what their installer generally does), or, if
 doing so is not practical, you can use the {{{ELIOM_DISTILLERY_PATH}}}
 environment variable to point to your templates. This environment
 variable is a colon-separated list of absolute paths (that is, {{{export ELIOM_DISTILLERY_PATH=/usr/lib/template1:/usr/local/lib/template2}}}).
+
+The template name will be the directory basename (template1 and template2 for
+the given example). If you want to create a new project based on template1, you can use
+
+<<code language="shell"|
+$ eliom-distillery -name example -template template1
+>>
+
+=== Write other templates
+
+You can also write your own templates and add them by using the previous
+described method.
+
+By default, {{{eliom-distillery}}} will copy all files in the template
+directory. If you want to ignore some files, you can list them in a file
+{{{.eliomignore}}}.
+
+For some projects, like {{{Ocsigen Start}}}, some project names are reserved
+(like {{{os}}}). You can list all reserved project names in a file
+{{{.eliomreserve}}}.
+
+{{{eliom-distillery}}} will also replace all {{{%%%PROJECT_NAME%%%}}} (resp.
+{{{%%%MODULE_NAME%%%}}}) by the project name (resp. by the project name and the
+first letter is capitalized).
+
+For examples, see pre-defined templates like {{{basic.ppx}}} and
+{{{os.pgocaml}}}.
