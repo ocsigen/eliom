@@ -69,7 +69,7 @@ sig
       [sitedata] by itself, otherwise it needs to be supplied by the caller. *)
     val unlisten :
       ?sitedata:Eliom_common.sitedata ->
-      ([< `Session | `Session_group ], [< `Data | `Pers ]) Eliom_state.Ext.state
+      ([< `Client_process ], [< `Data | `Pers ]) Eliom_state.Ext.state
       -> key -> unit
   end
 
