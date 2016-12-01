@@ -5,6 +5,8 @@ module type S = sig
   type key
   type server_notif
   type client_notif
+  val init : unit -> unit Lwt.t
+  val deinit : unit -> unit Lwt.t
   val listen : key -> unit
   val unlisten : key -> unit
   module Ext : sig
@@ -178,9 +180,14 @@ module Make (A : ARG) : S
     A.get_identity () >>= fun identity ->
     set_identity identity
 
+  let init : unit -> unit Lwt.t = fun () ->
+    set_notif_e () >> set_current_identity ()
+
+  let deinit : unit -> unit Lwt.t = fun () ->
+    Eliom_reference.set identity_r None
+
+
   let listen (key : A.key) = Lwt.async (fun () ->
-    set_notif_e () >>= fun () ->
-    set_current_identity () >>= fun () ->
     Eliom_reference.get identity_r >>= fun identity ->
     I.add identity key;
     Lwt.return ()

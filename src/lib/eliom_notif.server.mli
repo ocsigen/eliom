@@ -3,15 +3,16 @@
     This module makes possible for client side applications to be
     notified of changes on some indexed data on the server.
 
-    Apply functor [Make] or [Make_Simple] for each type of data you want to be able
-    to listen on. Each client starts listening on one piece of data by calling
-    function [listen] with the index of that piece of data as parameter. Client
-    stops listening by calling function [unlisten], or when the client side
-    state is closed (by timeout or when the client disconnects for example).
+    Apply functor [Make] or [Make_Simple] for each type of data you want to be
+    able to listen on. Each client starts listening on one piece of data by
+    calling function [listen] with the index of that piece of data as parameter.
+    Client stops listening by calling function [unlisten], or when the client
+    side state is closed (by timeout or when the client disconnects for
+    example).
 
     When the data is modified on server side, call function [notify]
     with the index of the data, and all clients listening to that piece
-    of data will receive a notification. 
+    of data will receive a notification.
 
     The functor will also create a client side react signal that will
     be updated every time the client is notified.
@@ -43,9 +44,18 @@ sig
 
   (** server notification type; Can be different from [client_notif]. *)
   type server_notif
-  
+
   (** client notification type; Can be different from [server_notif]. *)
   type client_notif
+
+  (** Initialise the notification module for the current client. This function
+      needs to be called before using most other functions of this module. It
+      isn't called implicitely during module instantiation because it relies on
+      identity data which might not be available yet. *)
+  val init : unit -> unit Lwt.t
+
+  (** Deinitialise/deactivate the notification module for the current client. *)
+  val deinit : unit -> unit Lwt.t
 
   (** Make client process listen on data whose index is [key] *)
   val listen : key -> unit
