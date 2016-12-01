@@ -13,6 +13,17 @@ module type INTERNALS = sig
 end
 module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
 
+  (* WARNING: if you change this, also change inferred_type_prefix in
+     ppx/ppx_eliom_utils.ml and tools/eliomc.ml *)
+  let inferred_type_prefix = "eliom_inferred_type_"
+
+  let sed_rule name ~dep ~prod scripts =
+    rule name ~dep ~prod
+      (fun env build ->
+        let dep = env dep and prod = env prod in
+        let script_args = List.map (fun script -> S[A"-e"; A script]) scripts in
+        Cmd (S[A"sed"; S script_args; P dep; Sh">"; Px prod]))
+
   let copy_with_header src prod =
     let contents = Pathname.read src in
     (* we need an empty line to keep the comments : weird camlp4 *)
@@ -100,7 +111,7 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
     let type_inferred =
       Pathname.concat
         (Pathname.concat path Eliom.type_dir)
-        (Pathname.update_extension "inferred.mli" name)
+        (Pathname.update_extension "inferred_gen.mli" name)
     in
     let ppflags, ppflags_notype =
       if use_ppx file then
@@ -167,9 +178,15 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
         mark_tag_used no_extra_syntaxes;
         mark_tag_used eliom_ppx;
 
+        sed_rule ".inferred.mli -> .inferred_gen.mli"
+          ~dep:"%(path)/%(file).inferred.mli"
+          ~prod:"%(path)/%(file).inferred_gen.mli"
+          ["s/_\\[\\([<>]\\)/[\\1/g";
+           Printf.sprintf "s/'\\(_[a-z0-9_]*\\)/'%s\\1/g" inferred_type_prefix];
+
         (* eliom files *)
         copy_rule_server "*.eliom -> **/_server/*.ml"
-          ~deps:["%(path)/" ^ Eliom.type_dir ^ "/%(file).inferred.mli"]
+          ~deps:["%(path)/" ^ Eliom.type_dir ^ "/%(file).inferred_gen.mli"]
           "%(path)/%(file).eliom"
           ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).ml");
         copy_rule_server "*.eliomi -> **/_server/*.mli"
@@ -179,7 +196,7 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
           "%(path)/%(file).eliom"
           ("%(path)/" ^ Eliom.type_dir ^ "/%(file:<*>).ml");
         copy_rule_client "*.eliom -> **/_client/*.ml"
-          ~deps:["%(path)/" ^ Eliom.type_dir ^ "/%(file).inferred.mli"]
+          ~deps:["%(path)/" ^ Eliom.type_dir ^ "/%(file).inferred_gen.mli"]
           "%(path)/%(file).eliom"
           ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).ml");
         copy_rule_client "*.eliomi -> **/_client/*.mli"
@@ -187,14 +204,14 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
           ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).mli");
 
         copy_rule_server "*.eliom -> _server/*.ml"
-          ~deps:[Eliom.type_dir ^ "/%(file).inferred.mli"]
+          ~deps:[Eliom.type_dir ^ "/%(file).inferred_gen.mli"]
           "%(file).eliom" (Eliom.server_dir ^ "/%(file:<*>).ml");
         copy_rule_server "*.eliomi -> _server/*.mli"
           "%(file).eliomi" (Eliom.server_dir ^ "/%(file:<*>).mli");
         copy_rule_type "*.eliom -> _type/*.ml"
           "%(file).eliom" (Eliom.type_dir ^ "/%(file:<*>).ml");
         copy_rule_client "*.eliom -> _client/*.ml"
-          ~deps:[Eliom.type_dir ^ "/%(file).inferred.mli"]
+          ~deps:[Eliom.type_dir ^ "/%(file).inferred_gen.mli"]
           "%(file).eliom" (Eliom.client_dir ^ "/%(file:<*>).ml");
         copy_rule_client "*.eliomi -> _client/*.mli"
           "%(file).eliomi" (Eliom.client_dir ^ "/%(file:<*>).mli");
