@@ -8,11 +8,12 @@ non-local (e.g., retrieving database data).
 
 Client-side service implementation is required for building mobile
 applications with Eliom, but can also be used to change page faster
-in a Web application.
-In this manual chapter, we focus on the
+within a Web application. In this manual chapter, we focus on the
 client-side service mechanics and do not go into the details of
-setting up a complete mobile application, that is addressed in
-another chapter of this manual.
+setting up a complete mobile application. The complete setup needed is
+discussed in the
+<<a_manual chapter="mobile-apps" | mobile applications chapter >>
+of this manual.
 
 == Service creation and registering ==
 
