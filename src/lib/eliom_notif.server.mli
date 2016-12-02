@@ -77,8 +77,10 @@ sig
       listening on data referenced by [key].
 
       If [~notfor] is [`Me], notification will not be sent to the tab currently
-      doing the request (the one which caused the notification to happen). If it
-      is [`Id id] it won't be sent to the destination defined by [id].
+      doing the request (the one which caused the notification to happen).
+      Note that if [notify] is called with [~notfor:`Me] outside of a request it
+      will fail. If it is [`Id id] it won't be sent to the destination defined
+      by [id].
   *)
   val notify : ?notfor:[`Me | `Id of identity] -> key -> server_notif -> unit
 

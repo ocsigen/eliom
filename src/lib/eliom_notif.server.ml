@@ -214,11 +214,13 @@ module Make (A : ARG) : S
 
   let notify ?notfor key content =
     let f = fun (identity, ((_, send_e) as notif)) ->
-      Eliom_reference.get notif_e >>= fun notif_o ->
-      let blocked = match notfor with
-        | Some `Me -> notif == of_option notif_o
-        | Some (`Id id) -> identity = id
-        | None -> false
+      let%lwt blocked = match notfor with
+        | Some `Me ->
+            (*TODO: fails outside of a request*)
+            Eliom_reference.get notif_e >>= fun notif_o ->
+            Lwt.return (notif == of_option notif_o)
+        | Some (`Id id) -> Lwt.return (identity = id)
+        | None -> Lwt.return false
       in
       if blocked
       then Lwt.return ()
