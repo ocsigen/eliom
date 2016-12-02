@@ -34,10 +34,10 @@ module type PARAM = sig
     frame Lwt.t
 
   val send_appl_content : Eliom_service.send_appl_content
-  (** Whether the service is capable to send application content when
-      required. This field is usually [Eliom_service.XNever]. This
-      value is recorded inside each service just after
-      registration.  *)
+  (** Whether the service is capable of sending application content
+      when required. This field is usually
+      [Eliom_service.XNever]. This value is recorded inside each
+      service just after registration.  *)
 
   val result_of_http_result : frame -> result
 
@@ -88,17 +88,17 @@ module type S = sig
   (** {2 Service registration } *)
 
   (** The function [register ~service handler] associates the
-      [service] to the function [handler]. The [handler] function take
+      [service] to the function [handler]. The [handler] function takes
       two parameters, the GET and POST parameters of the current HTTP
-      request, and should returns the corresponding page.
+      request, and should return the corresponding page.
 
       The optional parameter [~scope] is {!Eliom_common.global_scope}
-      by default, see the Eliom manual for detailled description {%
+      by default. See the Eliom manual for detailled description {%
       <<a_manual chapter="server-services" fragment="scope"|of
-      different scope>>%}.
+      different scopes>>%}.
 
       The optional parameter [~options] is specific to each output
-      module, see the type description for more information.
+      module. See the type description for more information.
 
       The optional parameters [?charset], [?code], [?content_type] and
       [?headers] can be used to modify the HTTP answer sent by
@@ -108,10 +108,10 @@ module type S = sig
       {!Eliom_common.global_scope}. With other scopes, the parameter
       is used to force the session service table in which the
       [handler] will be registered. By default, the service is
-      registred in the unsecure session if the current request's
+      registered in the non-secure session if the current request's
       protocol is [http], or in the secure session if the protocol is
       [https]. If set to [false] (resp. [true]) the [handler] will be
-      stored in the unsecure (resp. secure) session. See the Eliom
+      stored in the non-secure (resp. secure) session. See the Eliom
       manual for an introduction to {% <<a_manual
       chapter="server-state"|secure state>>%}.
 
@@ -136,9 +136,9 @@ module type S = sig
     ('get -> 'post -> page Lwt.t) ->
     unit
 
-  (** The function [send page] build the HTTP frame corresponding to
-      [page]. This may be used for example in an service handler
-      registered with {!Eliom_registration.Any.register} or when
+  (** The function [send page] builds the HTTP frame corresponding to
+      [page]. This may be used for example in a service handler
+      registered with {!Eliom_registration.Any.register}, or when
       building a custom output module.  *)
   val send :
     ?options:options ->
@@ -155,9 +155,10 @@ module type S_with_create = sig
 
   include S
 
-  (** Same as {!Eliom_service.create} followed by {!register}.
-      For {!register} see
-      {% <<a_api| val Eliom_registration_sigs.S.register >> %}. *)
+  (** Create a service and register it at the same time.
+      It calls {!Eliom_service.create} and then performs
+      {!Eliom_registration_sigs.S.register}.
+      Returns the service. *)
   val create :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->
@@ -184,9 +185,10 @@ module type S_with_create = sig
      'gn, 'pn, return)
       Eliom_service.t
 
-  (** Same as {!Eliom_service.create_attached_get} followed by {!register}.
-      For {!register} see
-      {% <<a_api| val Eliom_registration_sigs.S.register >> %}. *)
+  (** Create an attached service and register it at the same time.
+      It calls {!Eliom_service.create_attached_get} and then performs
+      {!Eliom_registration_sigs.S.register}.
+      Returns the new service. *)
   val create_attached_get :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->
@@ -218,9 +220,10 @@ module type S_with_create = sig
      [`WithoutSuffix], 'gn, unit, return)
       Eliom_service.t
 
-  (** Same as {!Eliom_service.create_attached_post} followed by {!register}.
-      For {!register} see
-      {% <<a_api| val Eliom_registration_sigs.S.register >> %}. *)
+  (** Create an attached POST service and register it at the same time.
+      It calls {!Eliom_service.create_attached_post} and then performs
+      {!Eliom_registration_sigs.S.register}.
+      Returns the new service. *)
   val create_attached_post :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->
@@ -284,7 +287,7 @@ module type S_poly_with_create = sig
 
   include S_poly
 
-  (** See {!S.create}. *)
+  (** See {!S_with_create.create}. *)
   val create :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->
@@ -312,7 +315,7 @@ module type S_poly_with_create = sig
      'gn, 'pn, 'a return)
       Eliom_service.t
 
-  (** See {!S.create_attached_get}. *)
+  (** See {!S_with_create.create_attached_get}. *)
   val create_attached_get :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->
@@ -345,7 +348,7 @@ module type S_poly_with_create = sig
      [`WithoutSuffix], 'gn, unit, 'a return)
       Eliom_service.t
 
-  (** See {!S.create_attached_post}. *)
+  (** See {!S_with_create.create_attached_post}. *)
   val create_attached_post :
     ?app:string ->
     ?scope:[<Eliom_common.scope] ->
