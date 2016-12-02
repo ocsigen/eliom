@@ -1,8 +1,9 @@
 {1 Server API}
 
 {!modules:
-Eliom_client_common
 Eliom_lib
+Eliom_client
+Eliom_client_value
 Eliom_common
 Eliom_config
 Eliom_request_info

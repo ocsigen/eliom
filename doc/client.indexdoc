@@ -1,9 +1,9 @@
 {1 Client API}
 
 {!modules:
-Eliom_client_common
 Eliom_lib
 Eliom_client
+Eliom_client_value
 }
 
 {2 Content and form creation}
