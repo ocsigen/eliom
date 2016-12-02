@@ -154,7 +154,7 @@ module Name = struct
 end
 
 (* WARNING: if you change this, also change inferred_type_prefix in
-   tools/eliomc.ml *)
+   tools/eliomc.ml and ocamlbuild/ocamlbuild_eliom.ml *)
 let inferred_type_prefix = "eliom_inferred_type_"
 
 module Mli = struct

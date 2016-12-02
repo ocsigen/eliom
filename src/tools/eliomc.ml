@@ -196,7 +196,7 @@ let run_command s =
     failwith (Printf.sprintf "Warning: command [%s] returned %d" s v)
 
 (* WARNING: if you change this, also change inferred_type_prefix in
-   ppx/ppx_eliom_utils.ml *)
+   ppx/ppx_eliom_utils.ml and ocamlbuild/ocamlbuild_eliom.ml *)
 let inferred_type_prefix = "eliom_inferred_type_"
 
 (* FIXME!

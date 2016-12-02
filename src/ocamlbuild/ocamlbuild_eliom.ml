@@ -8,9 +8,21 @@ module type ELIOM = sig
 end
 
 module type INTERNALS = sig
+  val with_eliom_ppx : ([< `Client | `Server] -> string) option
   val with_package : string -> string
 end
 module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
+
+  (* WARNING: if you change this, also change inferred_type_prefix in
+     ppx/ppx_eliom_utils.ml and tools/eliomc.ml *)
+  let inferred_type_prefix = "eliom_inferred_type_"
+
+  let sed_rule name ~dep ~prod scripts =
+    rule name ~dep ~prod
+      (fun env build ->
+        let dep = env dep and prod = env prod in
+        let script_args = List.map (fun script -> S[A"-e"; A script]) scripts in
+        Cmd (S[A"sed"; S script_args; P dep; Sh">"; Px prod]))
 
   let copy_with_header src prod =
     let contents = Pathname.read src in
@@ -27,25 +39,6 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
          f env (Pathname.dirname prod) (Pathname.basename prod) src prod;
          copy_with_header src prod
       )
-
-  let flag_infer ~file ~name ~path =
-    let type_inferred =
-      Pathname.concat
-        (Pathname.concat path Eliom.type_dir)
-        (Pathname.update_extension "inferred.mli" name)
-    in
-    let file_tag = "file:" ^ file in
-    let tags =
-      [["ocaml"; "ocamldep"; file_tag];
-       ["ocaml"; "compile"; file_tag];
-       ["ocaml"; "infer_interface"; file_tag];
-      ]
-    in
-    let f tags =
-      flag tags (S [A "-ppopt"; A "-type"; A "-ppopt"; P type_inferred])
-    in
-    List.iter f tags;
-    flag ["ocaml"; "doc"; file_tag] (S [A "-ppopt"; A "-notype"])
 
   let syntaxes_p4 = [I.with_package "eliom.syntax.predef"]
 
@@ -104,6 +97,43 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
     (if use_ppx src then get_syntaxes_ppx else get_syntaxes_p4)
       with_eliom_syntax eliom_syntax src
 
+  (* A variant of flag_and_dep which recurse into Quote. *)
+  let dflag tags x =
+    let rec aux = function
+      | Quote x -> aux x
+      | S xs -> List.iter aux xs
+      | P path -> dep tags [path]
+      | N | A _ | Sh _ | V _ | T _ | Px _ -> ()
+    in
+    aux x; flag tags x
+
+  let flag_infer ~file ~name ~path eliom_syntax =
+    let type_inferred =
+      Pathname.concat
+        (Pathname.concat path Eliom.type_dir)
+        (Pathname.update_extension "inferred_gen.mli" name)
+    in
+    let ppflags, ppflags_notype =
+      if use_ppx file then
+        match I.with_eliom_ppx with
+        | None ->
+          let pkg = get_eliom_syntax_ppx eliom_syntax in
+          (S [A"-ppxopt"; A (pkg ^ ",-type," ^ type_inferred)],
+           S [A"-ppxopt"; A (pkg ^ ",-notype")])
+        | Some f ->
+          let ppx = f eliom_syntax in
+          (S [A"-ppx"; Quote (S [P ppx; A"-type"; P type_inferred])],
+           S [A"-ppx"; Quote (S [P ppx; A"-notype"])])
+      else
+        (S [A "-ppopt"; A "-type"; A "-ppopt"; P type_inferred],
+         S [A "-ppopt"; A "-notype"])
+    in
+    let file_tag = "file:" ^ file in
+    dflag ["ocaml"; "ocamldep";        file_tag] ppflags;
+    dflag ["ocaml"; "compile";         file_tag] ppflags;
+    dflag ["ocaml"; "infer_interface"; file_tag] ppflags;
+    dflag ["ocaml"; "doc";             file_tag] ppflags_notype
+
   let copy_rule_server ?(eliom=true) =
     copy_rule_with_header
       (fun env dir name src file ->
@@ -112,7 +142,7 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
            ( I.with_package "eliom.server"
              :: get_syntaxes eliom `Server src
            );
-         if eliom then flag_infer ~file ~name ~path;
+         if eliom then flag_infer ~file ~name ~path `Server;
          Pathname.define_context dir [path];
          Pathname.define_context path [dir];
       )
@@ -125,7 +155,7 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
            ( I.with_package "eliom.client"
              :: get_syntaxes eliom `Client src
            );
-         if eliom then flag_infer ~file ~name ~path;
+         if eliom then flag_infer ~file ~name ~path `Client;
          Pathname.define_context dir [path];
       )
 
@@ -148,9 +178,15 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
         mark_tag_used no_extra_syntaxes;
         mark_tag_used eliom_ppx;
 
+        sed_rule ".inferred.mli -> .inferred_gen.mli"
+          ~dep:"%(path)/%(file).inferred.mli"
+          ~prod:"%(path)/%(file).inferred_gen.mli"
+          ["s/_\\[\\([<>]\\)/[\\1/g";
+           Printf.sprintf "s/'\\(_[a-z0-9_]*\\)/'%s\\1/g" inferred_type_prefix];
+
         (* eliom files *)
         copy_rule_server "*.eliom -> **/_server/*.ml"
-          ~deps:["%(path)/" ^ Eliom.type_dir ^ "/%(file).inferred.mli"]
+          ~deps:["%(path)/" ^ Eliom.type_dir ^ "/%(file).inferred_gen.mli"]
           "%(path)/%(file).eliom"
           ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).ml");
         copy_rule_server "*.eliomi -> **/_server/*.mli"
@@ -160,7 +196,7 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
           "%(path)/%(file).eliom"
           ("%(path)/" ^ Eliom.type_dir ^ "/%(file:<*>).ml");
         copy_rule_client "*.eliom -> **/_client/*.ml"
-          ~deps:["%(path)/" ^ Eliom.type_dir ^ "/%(file).inferred.mli"]
+          ~deps:["%(path)/" ^ Eliom.type_dir ^ "/%(file).inferred_gen.mli"]
           "%(path)/%(file).eliom"
           ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).ml");
         copy_rule_client "*.eliomi -> **/_client/*.mli"
@@ -168,14 +204,14 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
           ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).mli");
 
         copy_rule_server "*.eliom -> _server/*.ml"
-          ~deps:[Eliom.type_dir ^ "/%(file).inferred.mli"]
+          ~deps:[Eliom.type_dir ^ "/%(file).inferred_gen.mli"]
           "%(file).eliom" (Eliom.server_dir ^ "/%(file:<*>).ml");
         copy_rule_server "*.eliomi -> _server/*.mli"
           "%(file).eliomi" (Eliom.server_dir ^ "/%(file:<*>).mli");
         copy_rule_type "*.eliom -> _type/*.ml"
           "%(file).eliom" (Eliom.type_dir ^ "/%(file:<*>).ml");
         copy_rule_client "*.eliom -> _client/*.ml"
-          ~deps:[Eliom.type_dir ^ "/%(file).inferred.mli"]
+          ~deps:[Eliom.type_dir ^ "/%(file).inferred_gen.mli"]
           "%(file).eliom" (Eliom.client_dir ^ "/%(file:<*>).ml");
         copy_rule_client "*.eliomi -> _client/*.mli"
           "%(file).eliomi" (Eliom.client_dir ^ "/%(file:<*>).mli");
@@ -205,4 +241,9 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
     init hook
 end
 
-module Make(Eliom : ELIOM) = MakeIntern(struct let with_package = Printf.sprintf "package(%s)" end)(Eliom)
+module Make(Eliom : ELIOM) = MakeIntern
+  (struct
+    let with_eliom_ppx = None
+    let with_package = Printf.sprintf "package(%s)"
+  end)
+  (Eliom)
