@@ -1,4 +1,3 @@
-~/ocsigen/eliom/opam: Passed.
 opam-version: "1.2"
 name: "eliom"
 version: "dev"
