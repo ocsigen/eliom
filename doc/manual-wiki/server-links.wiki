@@ -87,7 +87,7 @@ let _ =
 >>
 
 (You can also refer to //the current service// via {{{reload_action}}}
-(<<a_api project="eliom"|val Eliom_service_sigs.S.reload_action>>).
+(<<a_api |val Eliom_service_sigs.S.reload_action>>).
 
 ==@@id="forms"@@Forms
 
@@ -152,9 +152,8 @@ Creating form widgets are described in detail in
 (and {{{Eliom_content.Html.F.Form}}}).
 
 For untyped forms, you may use functions from the module <<a_api
-project="eliom" subproject="server"|module
-Eliom_content.Html.D.Raw>>.  Here is a form linking to our (untyped)
-service {{{raw_serv}}}.
+subproject="server"|module Eliom_content.Html.D.Raw>>.
+Here is a form linking to our (untyped) service {{{raw_serv}}}.
 
 <<code language="ocaml"|
 let raw_form =
