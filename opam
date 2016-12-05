@@ -1,12 +1,13 @@
+~/ocsigen/eliom/opam: Passed.
 opam-version: "1.2"
 name: "eliom"
 version: "dev"
-author: "dev@ocsigen.org"
 maintainer: "dev@ocsigen.org"
+authors: "dev@ocsigen.org"
 homepage: "http://ocsigen.org/eliom/"
 bug-reports: "https://github.com/ocsigen/eliom/issues/"
-dev-repo: "https://github.com/ocsigen/eliom.git"
 license: "LGPL-2.1 with OCaml linking exception"
+dev-repo: "https://github.com/ocsigen/eliom.git"
 build: [make]
 depends: [
   "ocamlfind"
@@ -19,6 +20,7 @@ depends: [
   "ocsigenserver" {>= "2.8"}
   "ipaddr" {>= "2.1"}
   "reactiveData" {>= "0.2.1"}
+  ("dbm" | "sqlite3")
   "base-bytes"
 ]
-available: [ ocaml-version >= "4.02" ]
+available: [ocaml-version >= "4.02"]
