@@ -258,7 +258,7 @@ type _ redirection =
     - [`TemporaryRedirect] to return [307 Temporary Redirect]. *)
 module Redirection : sig
 
-  include Eliom_registration_sigs.S_poly
+  include Eliom_registration_sigs.S_poly_with_create
     with type 'a page = 'a redirection
      and type options =
            [ `MovedPermanently

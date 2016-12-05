@@ -78,7 +78,7 @@ module My_appl = struct
       ~meth:(Eliom_service.Get get_params) f
 
   let register_coservice ?scope ~fallback ~get_params f =
-    attach_get ?scope ~fallback ~get_params f
+    create_attached_get ?scope ~fallback ~get_params f
 
   let register_post_coservice' ~post_params f =
     create
@@ -165,7 +165,7 @@ is somewhat more complicated. Here are some examples of what you can do:
 let eliomclient2 = App.service ~path:["plip"; "eliomclient2"] ~get_params:unit ()
 
 let myblockservice =
-  Eliom_registration.Flow5.attach_post
+  Eliom_registration.Flow5.create_attached_post
     ~fallback:eliomclient2
     ~post_params:Eliom_parameter.unit
     (fun () () ->
@@ -2413,7 +2413,7 @@ let _ = My_appl.register tcookies
        will ask the client program to do a redirection *****)
 
 let coucouaction =
-  Eliom_registration.Action.attach_get
+  Eliom_registration.Action.create_attached_get
     ~fallback:Eliom_testsuite1.coucou
     ~get_params:Eliom_parameter.unit
     (fun () () -> Lwt.return ())
@@ -2735,7 +2735,7 @@ module Another_appl = struct
       ~meth:(Eliom_service.Get get_params) f
 
   let register_coservice ?scope ~fallback ~get_params f =
-    attach_get ?scope ~fallback ~get_params f
+    create_attached_get ?scope ~fallback ~get_params f
 
   let register_post_coservice' ~post_params f =
     create

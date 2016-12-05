@@ -1320,7 +1320,7 @@ let getact =
     ()
 
 let act =
-  Eliom_registration.Action.attach_get
+  Eliom_registration.Action.create_attached_get
     ~fallback:(preapply getact 22)
     ~get_params:(int "bip")
     (fun g p -> v := g; return ())
@@ -1392,12 +1392,12 @@ let attnonatt_service =
     ~path: ["attnonatt"]
     ~get_params:unit
     (fun () () ->
-       let service = Eliom_service.attach_existing
+       let service = Eliom_service.attach
         ~fallback:Eliom_testsuite1.coucou
         ~service:get_coserv'
         ()
       in
-      let service2 = Eliom_service.attach_existing
+      let service2 = Eliom_service.attach
         ~fallback:Eliom_testsuite1.coucou
         ~service:post_coserv'
         ()

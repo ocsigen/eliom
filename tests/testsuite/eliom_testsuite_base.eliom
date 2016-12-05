@@ -31,7 +31,7 @@ module My_appl = struct
       ~meth:(Eliom_service.Get get_params) f
 
   let register_coservice ?scope ~fallback ~get_params f =
-    attach_get
+    create_attached_get
       ?scope
       ~fallback
       ~get_params f
@@ -49,7 +49,10 @@ module My_appl = struct
 
 end
 
-{shared{
+  {client{
+     module Service = Eliom_service
+   }}
+
 module Service = struct
 
   (* partial compatibility layer for old Eliom_service *)
@@ -67,7 +70,7 @@ module Service = struct
     let post_coservice
         ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
         ~fallback ~post_params () =
-      attach_post
+      create_attached_post
         ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout ?https
         ~fallback
         ~post_params
@@ -85,7 +88,7 @@ module Service = struct
     let coservice
         ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout
         ~fallback ~get_params () =
-      attach_get
+      create_attached_get
         ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout
         ~fallback
         ~get_params
@@ -121,7 +124,10 @@ module Service = struct
   module App = Http
 
 end
-}}
+
+  {client{
+     module Registration = Eliom_registration
+   }}
 
 module Registration = struct
 
@@ -147,7 +153,7 @@ module Registration = struct
 
     let register_coservice
         ?scope ?timeout ?error_handler ~fallback ~get_params f =
-      attach_get
+      create_attached_get
         ?scope ?timeout
         ?error_handler
         ~fallback
@@ -165,7 +171,7 @@ module Registration = struct
 
     let register_post_coservice
         ?scope ?timeout ?error_handler ~fallback ~post_params f =
-      attach_post
+      create_attached_post
         ?scope ?timeout
         ?error_handler
         ~fallback
