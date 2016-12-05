@@ -176,15 +176,20 @@ module Make(A : ARG) : S
    and type server_notif = A.server_notif
    and type client_notif = A.client_notif
 
-(** [ARG_SIMPLE] is for making [Make_Simple] *)
+(** [ARG_SIMPLE] is for making {!Make_Simple} *)
 module type ARG_SIMPLE = sig
-  (** see [S.identity] *)
+
+  (** see {!S.identity} *)
   type identity
-  (** see [S.key] *)
+
+  (** see {!S.key} *)
   type key
+
   type notification
-  (** see [ARG.equal_key] *)
+
+  (** see {!ARG.equal_key} *)
   val get_identity               : unit -> identity Lwt.t
+
 end
 
 (** Use this functor if you have no need of customising your notifications with
