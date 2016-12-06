@@ -144,25 +144,7 @@ module Make (A : ARG) : S
   (* notif_e consists in a server side react event,
      its client side counterpart,
      and the server side function to trigger it. *)
-  let notif_e : notification_react option Eliom_reference.eref =
-    Eliom_reference.eref
-      ~scope:Eliom_common.default_process_scope
-      None
-
-  let of_option = function
-    | Some x -> x
-    | None -> assert false
-
-  let set_identity identity =
-    (* For each tab connected to the app,
-       we keep a pointer to (identity, notif_ev) option in process state,
-       because the table resourceid -> (identity, notif_ev) option
-       is weak.
-    *)
-    Eliom_reference.get notif_e >>= fun notif_o ->
-    Eliom_reference.set identity_r (Some (identity, of_option notif_o))
-
-  let set_notif_e () =
+  let notif_e : notification_react Eliom_reference.eref =
     let notif =
       let e, send_e = React.E.create () in
       let client_ev = Eliom_react.Down.of_react
@@ -174,14 +156,29 @@ module Make (A : ARG) : S
       in
       (client_ev, send_e)
     in
-    Eliom_reference.set notif_e (Some notif)
+    Eliom_reference.eref
+      ~scope:Eliom_common.default_process_scope
+      notif
+
+  let of_option = function
+    | Some x -> x
+    | None -> assert false
+
+  let set_identity identity =
+    (* For each tab connected to the app,
+       we keep a pointer to (identity, notif_ev) option in process state,
+       because the table resourceid -> (identity, notif_ev) option
+       is weak.
+    *)
+    Eliom_reference.get notif_e >>= fun notif_e ->
+    Eliom_reference.set identity_r (Some (identity, notif_e))
 
   let set_current_identity () =
     A.get_identity () >>= fun identity ->
     set_identity identity
 
   let init : unit -> unit Lwt.t = fun () ->
-    set_notif_e () >> set_current_identity ()
+    set_current_identity ()
 
   let deinit : unit -> unit Lwt.t = fun () ->
     Eliom_reference.set identity_r None
@@ -217,8 +214,8 @@ module Make (A : ARG) : S
       let%lwt blocked = match notfor with
         | Some `Me ->
             (*TODO: fails outside of a request*)
-            Eliom_reference.get notif_e >>= fun notif_o ->
-            Lwt.return (notif == of_option notif_o)
+            Eliom_reference.get notif_e >>= fun notif_e ->
+            Lwt.return (notif == notif_e)
         | Some (`Id id) -> Lwt.return (identity = id)
         | None -> Lwt.return false
       in
@@ -233,8 +230,8 @@ module Make (A : ARG) : S
     I.iter f key
 
   let client_ev () =
-    Eliom_reference.get notif_e >>= fun notif_o ->
-    Lwt.return (of_option notif_o) >>= fun (ev, _) ->
+    Eliom_reference.get notif_e >>= fun notif_e ->
+    Lwt.return notif_e >>= fun (ev, _) ->
     Lwt.return ev
 
   let clean () =
