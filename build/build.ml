@@ -11,19 +11,6 @@ let _ = dispatch (fun x ->
       rule (Printf.sprintf "%s -> %s" source dest) ~dep:source ~prod:dest
         (fun env _ -> Cmd (S [A"ln"; A"-f";P (env source); P (env dest)])) in
 
-    (* add syntax extension *)
-    let add_syntax name path =
-      let bytes_dep = Findlib.(link_flags_byte [query "bytes"]) in
-      (* hack : not dep when "compile" to avoid the extension syntax to be link with binaries *)
-      (* the dep with ocamldep make sure the extension syntax is compiled before *)
-      flag ["ocaml";"compile";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex.native") ]);
-      flag_and_dep ["ocaml";"ocamldep";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex.native") ]);
-      flag_and_dep ["ocaml";"infer_interface";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex.native") ]);
-      flag_and_dep ["doc";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex.native") ]) in
-
-    add_syntax "ppx_eliom_utils" "src/ppx/";
-    add_syntax "ppx_eliom_types" "src/ppx/";
-
     (* link executable aliases *)
     let link_exec f t =
       link (Printf.sprintf "src/tools/%s.byte" f)   (Printf.sprintf "src/tools/%s.byte" t);

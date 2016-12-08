@@ -1,4 +1,4 @@
-<{lib,tools,ocamlbuild,syntax}/**/*>:warn(+A-4-6-7-9-27-32-33-34-37-40-42-44-48)
+<{lib,tools,ocamlbuild}/**/*>:warn(+A-4-6-7-9-27-32-33-34-37-40-42-44-48)
 true:keep_locs
 
 # <lib/client/*.ml{,i}>: \
@@ -54,10 +54,6 @@ true:keep_locs
 <lib/server/monitor/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml,calendar)
 <lib/server/monitor/*.ml{,i}>:I(src/lib/server)
 
-<syntax/pa_*.*>: syntax(camlp4o),package(camlp4.quotations.o,camlp4.extend,bytes)
-<syntax/pa_*.ml{,i}>: I(+camlp4/Camlp4Parsers)
-
-<ppx/**/*>: package(ppx_tools, compiler-libs.common, ppx_tools.metaquot)
 
 <ocamlbuild/ocamlbuild_eliom.ml{,i}>: package(ocamlbuild,js_of_ocaml.ocamlbuild)
 <ocamlbuild/eliombuild.{ml,mli,byte,native}>:package(ocamlbuild,js_of_ocaml.ocamlbuild)
@@ -68,11 +64,9 @@ true:keep_locs
 <lib/client/api.*/index.*>: with_intro(doc/client.indexdoc),subproject(client)
 <lib/server/api.*/index.*>: with_intro(doc/server.indexdoc),subproject(server)
 <ocamlbuild/api.*/index.*>: with_intro(doc/ocamlbuild.indexdoc),subproject(ocamlbuild)
-<ppx/api.*/index.*>: with_intro(doc/ppx.indexdoc),subproject(ppx)
 
 <lib/client/api.*/man.*>: manpage,man_ext(3oc),apiref
 <lib/server/api.*/man.*>: manpage,man_ext(3os),apiref
 <ocamlbuild/api.*/man.*>: manpage,man_ext(3o),apiref
-<ppx/api.*/man.*>: manpage,man_ext(3o),apiref
 
 <**/api.wikidocdir/index.wiki>: apiref, wikidoc
