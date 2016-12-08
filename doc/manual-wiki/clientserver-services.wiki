@@ -83,8 +83,7 @@ mobile applications.
 Service routing is the operation of choosing a service based on a URL
 and a collection of POST parameters. This is clearly a key operation
 on the server, allowing Eliom to respond on different paths. Routing
-has also become available on the client via the functions
-<<a_api subproject="client"| val Eliom_client.change_page_uri>> and
-<<a_api subproject="client"| val Eliom_client.change_page_unknown>> .
-These functions can be used for example in order to open a link inside
+has also become available on the client via the function
+<<a_api subproject="client"| val Eliom_client.change_page_uri>>.
+This function can be used for example in order to open a link inside
 a mobile application without launching the Web browser.

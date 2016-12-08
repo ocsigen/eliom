@@ -10,8 +10,7 @@ there are multiple ways for the client and the server to exchange values.
 ==@@id="rpc"@@ Remote Procedure Calls
 
 Eliom provides an easy way to call server functions from the client:
-<<a_api subproject="server" | type Eliom_client.server_function>>
-(and <<a_api subproject="client" | type Eliom_client.server_function>>).
+<<a_api subproject="server" | type Eliom_client.server_function>>.
 
 A function ##'a -> 'b Lwt.t## can be wrapped on the server by
 <<a_api subproject="server" | val Eliom_client.server_function>>.
@@ -25,7 +24,7 @@ the server.
 
 Every call to {{{server_function}}} creates a new pathless POST
 service. If you want to use a server function in multiple places, it
-is thus advisable to only apply ##server_function## once and bind it
+is thus advisable to only apply {{{server_function}}} once and bind it
 to an identifier.
 
 Example:

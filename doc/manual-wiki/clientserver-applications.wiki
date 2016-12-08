@@ -166,8 +166,6 @@ Eliom service in a new browser window (cf. JavaScript's {{{window.open}}}).
 <<a_api  subproject="client"| val Eliom_client.exit_to >>
 changes the current page and always leaves the application.
 
-== Misc ==
-
 === Leaving application and going back
 
 Usually, when going to an application page, a new client process is
