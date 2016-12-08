@@ -1,33 +1,8 @@
 open Ocamlbuild_plugin
 module Pack = Ocamlbuild_pack
 
-module Conf = struct
-  let server_dir = "server"
-  let client_dir = "client"
-  let type_dir = "type_dir"
-end
-
-module Intern = struct
-
-  let with_eliom_ppx = Some begin function
-    | `Client -> "src/ppx/ppx_eliom_client_ex.native"
-    | `Server -> "src/ppx/ppx_eliom_server_ex.native"
-  end
-
-  let with_package = function
-    | "eliom.ppx.type" -> "pkg_ppx_eliom_types"
-    | "eliom.ppx.client"
-    | "eliom.ppx.server"
-    | "eliom.syntax.predef"
-    | "eliom.client"
-    | "eliom.server" -> (* do noting in this case *) "pkg_dummy"
-    | _ -> assert false
-end
-
-module Eliom_plugin = Ocamlbuild_eliom.MakeIntern(Intern)(Conf)
-
 let _ = dispatch (fun x ->
-  Eliom_plugin.dispatcher x;
+  Ocamlbuild_eliom.dispatcher x;
   match x with
   | After_rules ->
     Doc.init ();

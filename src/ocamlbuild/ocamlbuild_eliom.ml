@@ -189,29 +189,10 @@ copy_rule "shared.mli -> server.mli"
 
   end in ()
 
-module type ELIOM = sig
-  val server_dir : Ocamlbuild_plugin.Pathname.t
-  val client_dir : Ocamlbuild_plugin.Pathname.t
-end
+let init = function
+  | After_rules -> init () ;
+  | _ -> ()
 
-module type INTERNALS = sig
-  val with_eliom_ppx : ([< `Client | `Server] -> string) option
-  val with_package : string -> string
-end
-module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
-
-  let init = function
-    | After_rules -> init () ;
-    | _ -> ()
-
-  let dispatcher ?oasis_executables hook =
-    Ocamlbuild_js_of_ocaml.dispatcher ?oasis_executables hook;
-    init hook
-end
-
-module Make(Eliom : ELIOM) = MakeIntern
-  (struct
-    let with_eliom_ppx = None
-    let with_package = Printf.sprintf "package(%s)"
-  end)
-  (Eliom)
+let dispatcher ?oasis_executables hook =
+  Ocamlbuild_js_of_ocaml.dispatcher ?oasis_executables hook;
+  init hook
