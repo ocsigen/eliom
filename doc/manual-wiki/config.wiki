@@ -67,7 +67,7 @@ You should see the page corresponding to service {{{"coucou"}}} in site
 {{{examples/}}} at url\\
 <<span class="code"|~http:~/~///your_server///examples/coucou>>.\\
 
-<<concept title="Debugging" |**Tip:** Add the option {{{<<debugmode/>}}} in
+<<concept title="Debugging" |**Tip:** Add the option {{{<debugmode />}}} in
 the configuration file during the development process of your application.
 Thus, Ocsigen server will display the exceptions raised during
 the generation of a page in error pages.
