@@ -1,4 +1,4 @@
-===== 6.0 (2016-12-xx) =====
+===== 6.0 (2016-12-08) =====
 
 * Improve Eliom_service and Eliom_registration APIs using GADTs
 * Implement client-side services, useful for mobile apps. This includes
