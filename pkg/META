@@ -1,5 +1,5 @@
 description = "Eliom: client-server Web and mobile applications"
-version = "5.0.0"
+version = "6.0.0"
 
 package "server" (
   description = "Eliom: server-side"
@@ -12,7 +12,6 @@ package "server" (
               js_of_ocaml.deriving,
               react,
               reactiveData,
-              calendar,
               tyxml,
               lwt.react,
               cryptokit,
