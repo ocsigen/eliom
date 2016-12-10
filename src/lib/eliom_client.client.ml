@@ -767,7 +767,14 @@ let change_url_string_protected ~replace url =
 
 let route ~replace ?(keep_url = false)
     ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
-  let r = !Eliom_request_info.get_sess_info in
+  let r = !Eliom_request_info.get_sess_info
+  and info, i_subpath =
+    match i_subpath with
+    | ["."; ""] ->
+      {info with i_subpath = []}, []
+    | i_subpath ->
+      info, i_subpath
+  in
   try%lwt
     update_session_info i_get_params (Some i_post_params);
     let%lwt () = Eliom_route.call_service info in
