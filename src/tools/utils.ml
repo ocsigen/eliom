@@ -71,6 +71,8 @@ let default_server_types_ext =
 let build_dir : string ref = ref ""
 let type_dir : string ref = ref default_type_dir
 
+let use_refmt = ref false
+
 let get_kind k =
   match k with
   | Some k -> k
@@ -362,6 +364,12 @@ let get_ppopts ~impl_intf file =
     type_opt impl_intf file @ !ppopt
 
 let preprocess_opt ?(ocaml = false) ?kind opts =
+  let refmt () =
+    if !use_refmt then
+      [ "-pp"    ; "refmt -parse re -print ml" ]
+    else
+      []
+  in
   match !pp_mode with
   | `Camlp4 ->
     let pkg = match ocaml, simplify_kind ?kind () with
@@ -372,14 +380,14 @@ let preprocess_opt ?(ocaml = false) ?kind opts =
     in
     [ "-pp"; get_pp pkg ^ " " ^ String.concat " " opts ]
   | `Ppx when ocaml ->
-    []
+    refmt ()
   | `Ppx ->
     let pkg = match simplify_kind ?kind () with
       | `Client -> "eliom.ppx.client"
       | `Server -> "eliom.ppx.server"
       | `Types  -> "eliom.ppx.type"
     in
-    [ "-ppx"; get_ppx pkg ^ " " ^ String.concat " " opts ]
+    refmt () @ [ "-ppx"; get_ppx pkg ^ " " ^ String.concat " " opts ]
 
 (** Process *)
 

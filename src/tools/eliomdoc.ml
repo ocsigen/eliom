@@ -179,6 +179,9 @@ let process_option () =
       let arg = Sys.argv.(!i+1) in
       compile_eliom ~impl_intf:`Impl arg;
       i := !i+2
+    | "-reason" ->
+      use_refmt := true;
+      incr i
     | arg when Filename.check_suffix arg ".mli" ->
       compile_intf arg;
       incr i

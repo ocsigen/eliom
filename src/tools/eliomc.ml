@@ -423,6 +423,9 @@ let process_option () =
       if !i+1 >= Array.length Sys.argv then usage ();
       process_eliom ~impl_intf:`Impl Sys.argv.(!i+1);
       i := !i+2
+    | "-reason" ->
+      use_refmt := true;
+      incr i
     | arg when Filename.check_suffix arg ".mli" ->
       process_ocaml ~impl_intf:`Intf arg;
       incr i
