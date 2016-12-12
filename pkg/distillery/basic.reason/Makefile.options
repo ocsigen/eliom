@@ -1,0 +1,64 @@
+
+#----------------------------------------------------------------------
+#           SETTINGS FOR THE ELIOM PROJECT %%%PROJECT_NAME%%%
+#----------------------------------------------------------------------
+
+PROJECT_NAME := %%%PROJECT_NAME%%%
+
+# Source files for the server
+SERVER_FILES := $(wildcard *.eliomi *.eliom)
+# Source files for the client
+CLIENT_FILES := $(wildcard *.eliomi *.eliom)
+
+# OCamlfind packages for the server
+SERVER_PACKAGES := lwt.ppx js_of_ocaml.deriving.ppx
+# OCamlfind packages for the client
+CLIENT_PACKAGES := lwt.ppx js_of_ocaml.ppx js_of_ocaml.deriving.ppx
+
+# Directory with files to be statically served
+LOCAL_STATIC = static
+
+# The backend for persistent data. Can be dbm or sqlite.
+# Make sure you have the following packages installed
+# - *dbm* if you use dbm --> opam install dbm.
+# - *sqlite3* if you use sqlite --> opam install sqlite3.
+PERSISTENT_DATA_BACKEND = %%%PROJECT_DB%%%
+
+# Debug application (yes/no): Debugging info in compilation,
+# JavaScript, ocsigenserver
+DEBUG := no
+
+# User to run server with (make run.*)
+WWWUSER := www-data
+WWWGROUP := www-data
+
+# Port for running the server (make run.*)
+PORT := 80
+
+# Port for testing (make test.*)
+TEST_PORT := 8080
+
+# Root of installation (must end with /)
+PREFIX := /usr/local/
+
+# Local folder for make test.* (must end with /)
+# Do not add files manually in this directory.
+# It is just here to test your installation before installing in /
+TEST_PREFIX := local/
+
+# The installation tree (relative to $(PREFIX) when
+# installing/running or $(TEST_PREFIX) when testing).
+# Configuration file $(PROJECT_NAME).conf
+ETCDIR := etc/${PROJECT_NAME}
+# Project's library $(PROJECT_NAME).cma (cmxs)
+LIBDIR := lib/${PROJECT_NAME}
+# Command pipe, eg. $ echo reload > $(INSTALL_PREFIX)$(CMDPIPE)
+CMDPIPE := var/run/${PROJECT_NAME}-cmd
+# Ocsigenserver's logging files
+LOGDIR := var/log/${PROJECT_NAME}
+# Ocsigenserver's persistent data files
+DATADIR := var/data/${PROJECT_NAME}
+# Copy of $(LOCAL_STATIC)
+STATICDIR := var/www/${PROJECT_NAME}/static
+# Project's JavaScript file
+ELIOMSTATICDIR := var/www/${PROJECT_NAME}/eliom
