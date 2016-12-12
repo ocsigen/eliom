@@ -187,14 +187,14 @@ let expand_dest_path ~name ~dest_dir s =
   |> join_path
   |> Filename.concat dest_dir
 
-let create_project ?preds ~name ~env ~source_dir ~dest_dir () =
+let create_project ?preds ~without_asking ~name ~env ~source_dir ~dest_dir () =
   let eliom_ignore_files =
     lines_of_file (Filename.concat source_dir eliomignore_filename)
   and eliom_verbatim_files =
     lines_of_file (Filename.concat source_dir eliomverbatim_filename)
   in
   if not (Sys.file_exists dest_dir) then
-    ( if ksprintf (yes_no ~default:true) "Destination directory %S doesn't exist. Create it?" dest_dir then
+    ( if without_asking || ksprintf (yes_no ~default:true) "Destination directory %S doesn't exist. Create it?" dest_dir then
         mkdir_p dest_dir
       else
         exit 1 );
@@ -280,6 +280,7 @@ let compilation_unit_name_regexp =
 
 let main () =
   let dir = ref false in
+  let without_asking = ref false in
   let shown = ref false in
   let show_templates () =
     List.iter (fun (name, path) -> Printf.printf "%s [%s]\n" name path) (get_templates ());
@@ -302,6 +303,8 @@ let main () =
   let spec = Arg.(align [
       "-dir", Set dir,
       " Display the template directories (set through $ELIOM_DISTILLERY_PATH)";
+      "-y", Set without_asking,
+      " Create the project directory without confirmation.";
       "-name", String (fun s -> check_name s; name := Some s),
       "<name> Name of the project (a valid compilation unit name)";
       "-template", String select_template,
@@ -329,7 +332,7 @@ let main () =
         (fst template)
     else
       let env, source_dir = init_project template name in
-      create_project ~name ~env ~source_dir ~dest_dir ()
+      create_project ~without_asking:(!without_asking) ~name ~env ~source_dir ~dest_dir ()
   end
 
 let () = main ()
