@@ -430,6 +430,13 @@ let create_filter name args f =
   let ch = Unix.in_channel_of_descr in_ in
   try f ch with _ -> close_in ch; wait pid
 
+let exit_no_refmt () =
+  if !use_refmt then (
+    Printf.eprintf
+      "Compiler failed. Have you installed reason and its refmt binary?\n%!";
+    exit 1
+  )
+
 let help_filter skip msg ch =
   for _i = 1 to skip do ignore (input_line ch) done;
   prerr_endline msg;

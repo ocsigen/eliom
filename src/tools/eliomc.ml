@@ -235,7 +235,8 @@ let compile_server_type_eliom file =
   let out = Unix.openfile obj [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC] 0o666 in
   let on_error _ =
     Unix.close out;
-    Sys.remove obj
+    Sys.remove obj;
+    Utils.exit_no_refmt ()
   in
   create_process ~out ~on_error !compiler (
     [ "-i" ]
@@ -303,14 +304,17 @@ let compile_eliom ~impl_intf file =
       | `Server | `ServerOpt -> obj_ext ()
     in
     output_prefix file ^ ext
+  and ppopts = get_ppopts ~impl_intf file in
+  let on_error _ =
+    Sys.remove obj;
+    Utils.exit_no_refmt ()
   in
-  let ppopts = get_ppopts ~impl_intf file in
   (* if !do_dump then begin *)
   (*   let camlp4, ppopt = get_pp_dump pkg ("-printer" :: "o" :: ppopts @ [file]) in *)
   (*   create_process camlp4 ppopt; *)
   (*   exit 0 *)
   (* end; *)
-  create_process !compiler (
+  create_process ~on_error !compiler (
     [ "-c" ; "-o"  ; obj ]
     @ preprocess_opt ppopts
     @ [ "-intf-suffix"; ".eliomi" ]
