@@ -73,6 +73,8 @@ let type_dir : string ref = ref default_type_dir
 
 let use_refmt = ref false
 
+let orig_file_name = ref None
+
 let get_kind k =
   match k with
   | Some k -> k
@@ -366,7 +368,7 @@ let get_ppopts ~impl_intf file =
 let preprocess_opt ?(ocaml = false) ?kind opts =
   let refmt () =
     if !use_refmt then
-      [ "-pp"    ; "refmt -parse re -print ml" ]
+      [ "-pp"; "refmt -parse re -print ml" ]
     else
       []
   in
@@ -386,6 +388,12 @@ let preprocess_opt ?(ocaml = false) ?kind opts =
       | `Client -> "eliom.ppx.client"
       | `Server -> "eliom.ppx.server"
       | `Types  -> "eliom.ppx.type"
+    and opts =
+      match !orig_file_name, !use_refmt with
+      | Some orig_file_name, true ->
+        "-orig-file-name" :: orig_file_name :: opts
+      | _, _ ->
+        opts
     in
     refmt () @ [ "-ppx"; get_ppx pkg ^ " " ^ String.concat " " opts ]
 

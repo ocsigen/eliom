@@ -322,6 +322,7 @@ let compile_eliom ~impl_intf file =
   args := !args @ [obj]
 
 let process_eliom ~impl_intf file =
+  if !Utils.use_refmt then Utils.orig_file_name := Some file;
   match !mode with
   | `Infer when impl_intf = `Impl ->
     compile_server_type_eliom file
