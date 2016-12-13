@@ -404,11 +404,10 @@ let call_ocaml_service
       get_params post_params in
   let%lwt () = Lwt_mutex.lock load_mutex in
   set_loading_phase ();
-  push_onload ();
   let%lwt content, request_data = unwrap_caml_content content in
   do_request_data request_data;
   reset_request_nodes ();
-  let load_callbacks = flush_onload () @ [broadcast_load_end] in
+  let load_callbacks = [broadcast_load_end] in
   Lwt_mutex.unlock load_mutex;
   run_callbacks load_callbacks;
   match content with
