@@ -19,7 +19,7 @@
 
 let escaped_value_escaped_value = fst
 
-type +'a t = 'a Eliom_serial.Client_value_server_repr.t
+type (+'a[@client]) t = 'a Eliom_serial.Client_value_server_repr.t
 
 type 'a fragment = 'a t
 

@@ -68,3 +68,5 @@ val close_client_section :
 (** Convert any value to a {! Eliom_serial.escaped_value} for usage
     in the [args] argument to {! Eliom_runtime.client_value}. *)
 val escaped_value : 'a -> Eliom_serial.escaped_value
+
+type ('a[@client]) fragment = 'a Eliom_client_value.t

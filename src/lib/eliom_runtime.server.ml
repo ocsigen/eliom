@@ -144,6 +144,7 @@ let fragment ?pos closure_id args =
     ~closure_id ~args:(Eliom_lib.to_poly args) ~value;
   Eliom_client_value.client_value_from_server_repr value
 
+type ('a[@client]) fragment = 'a Eliom_client_value.t
 let pos pos_fname (lnum1, bol1, cnum1) (lnum2, bol2, cnum2) =
   Lexing.(
     { pos_fname ;

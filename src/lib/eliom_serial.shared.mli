@@ -26,7 +26,7 @@
     {% <<a_api subproject="server" | type Eliom_client_value.t >> %}.
 *)
 module Client_value_server_repr : sig
-  type +'a t
+  type (+'a[@client]) t
 
   (** instance_id is zero for local client values, unique for global
       client values *)

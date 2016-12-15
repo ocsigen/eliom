@@ -29,7 +29,7 @@
     the client. See also {% <<a_api subproject="client" text="the
     concrete representation on the client" |type
     Eliom_client_value.t>> %}. *)
-type +'a t
+type (+'a[@client]) t
 
 (** Raised if a client value of the given closure ID is created at a
     point in time where it is neither global (i.e. during the

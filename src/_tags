@@ -20,9 +20,7 @@ true:keep_locs
   client-I(src/lib/client), server-I(src/lib/server), \
   thread, \
   package(lwt,lwt.ppx,react,tyxml.functor,js_of_ocaml.deriving.ppx), \
-  server-package(eliomlang.runtime.server), \
   server-package(lwt,ocsigenserver,ocsigenserver.ext), \
-  client-package(eliomlang.runtime.client), \
   package(js_of_ocaml.ppx), \
   client-package(js_of_ocaml.log), \
   client-package(ocsigenserver.cookies,ocsigenserver.polytables,ocsigenserver.baselib.base), \

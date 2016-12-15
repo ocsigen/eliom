@@ -25,7 +25,7 @@
 (** An ['a] client value on the client is just an ['a].  See also {%
     <<a_api subproject="server" text="the abstract representation on
     the server" | type Eliom_client_value.t >> %}. *)
-type 'a t = 'a
+type ('a[@client]) t = 'a
 
 (** This exception is raised (in Lwt) on the client if a call to a
     server function {% <<a_api subproject="server"|val

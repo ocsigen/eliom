@@ -20,7 +20,7 @@ exception False
 
 exception Exception_on_server of string
 
-type 'a t = 'a
+type ('a[@client]) t = 'a
 
 type injection_datum = Eliom_serial.injection_datum
 

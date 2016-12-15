@@ -27,7 +27,7 @@ module Client_value_server_repr = struct
     instance_id: int;
     unwrapper: Eliom_wrap.unwrapper
   }
-  type 'a t = u
+  type ('a[@client]) t = u
 
   let create ?loc ~instance_id ~unwrapper = { instance_id; loc; unwrapper }
   let instance_id cv = cv.instance_id
