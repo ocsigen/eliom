@@ -136,6 +136,7 @@ module RawXML = struct
 
   let react_poly_attrib name v s = name, RAReact (React.S.map (function false -> None | true -> Some (AStr v)) s)
 
+  let attrib name value = name, value
   let float_attrib name value = name, RA (AFloat value)
   let int_attrib name value = name, RA (AInt value)
   let string_attrib name value = name, RA (AStr value)

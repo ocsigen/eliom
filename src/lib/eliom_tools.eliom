@@ -189,7 +189,7 @@ let%client get_css_files () = let f = !css_files in css_files := []; f
 let%server get_js_files () = Eliom_reference.Volatile.get js_files
 let%client get_js_files () = let f = !js_files in js_files := []; f
 
-module Make(DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
+module Make(DorF : module type of Eliom_content_html_f) : HTML5_TOOLS = struct
   open Html_types
   open Html.F
 

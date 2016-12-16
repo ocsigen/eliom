@@ -99,7 +99,7 @@ module Html =
   Eliom_mkreg.Make
     (Html_make_reg_base
        (Ocsigen_senders.Make_XML_Content
-          (Eliom_content.Xml)
+          (Eliom_content_xml.Xml)
           (Eliom_content.Html.D)))
 
 module Make_typed_xml_registration
@@ -165,7 +165,7 @@ module Make_typed_xml_registration
 
 module Flow5 =
   Make_typed_xml_registration
-    (Eliom_content.Xml)
+    (Eliom_content_xml.Xml)
     (Eliom_content.Html.D)
     (struct
       type content = Html_types.flow5
@@ -1287,12 +1287,18 @@ module Eliom_appl_reg_make_param
        create cookies that needs to be sent along the page. Hence,
        cookies should be calculated after wrapping. *)
     let eliom_data =
-      Eliom_content.Xml.wrap (Eliom_content.Html.D.toelt page) { Eliom_common.
-        ejs_global_data;
-        ejs_request_data;
-        ejs_event_handler_table = Eliom_content.Xml.make_event_handler_table (Eliom_content.Html.D.toelt page);
-        ejs_client_attrib_table = Eliom_content.Xml.make_client_attrib_table (Eliom_content.Html.D.toelt page);
-        ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;
+      Eliom_content_xml.Xml.wrap (Eliom_content.Html.D.toelt page)
+        { Eliom_common.
+          ejs_global_data;
+          ejs_request_data;
+          ejs_event_handler_table =
+            Eliom_content_xml.Xml.make_event_handler_table
+              (Eliom_content.Html.D.toelt page);
+          ejs_client_attrib_table =
+            Eliom_content_xml.Xml.make_client_attrib_table
+              (Eliom_content.Html.D.toelt page);
+          ejs_sess_info =
+            Eliommod_cli.client_si sp.Eliom_common.sp_si;
       } in
 
     let%lwt tab_cookies =
@@ -1321,10 +1327,10 @@ module Eliom_appl_reg_make_param
            * Html_types.title Eliom_content.Html.elt
             * Html_types.head_content_fun Eliom_content.Html.elt list)
         * Html_types.body Eliom_content.Html.elt ) =
-    match Eliom_content.Xml.content page with
-      | Eliom_content.Xml.Node (_, html_attribs, [head; body]) ->
-        begin match Eliom_content.Xml.content head with
-          | Eliom_content.Xml.Node (_, head_attribs, head_elts) ->
+    match Eliom_content_xml.Xml.content page with
+      | Eliom_content_xml.Xml.Node (_, html_attribs, [head; body]) ->
+        begin match Eliom_content_xml.Xml.content head with
+          | Eliom_content_xml.Xml.Node (_, head_attribs, head_elts) ->
             ( List.map Eliom_content.Html.D.to_attrib html_attribs,
               ( List.map Eliom_content.Html.D.to_attrib head_attribs,
                 Eliom_content.Html.D.tot (List.hd head_elts),
@@ -1369,7 +1375,7 @@ module Eliom_appl_reg_make_param
         Eliom_content.Html.(
           F.base
             ~a:[F.a_id Eliom_common_base.base_elt_id;
-                F.a_href (Eliom_content.Xml.uri_of_string base_url)]
+                F.a_href (Eliom_content_xml.Xml.uri_of_string base_url)]
             ())
         :: head_elts
       else head_elts
@@ -1496,7 +1502,7 @@ struct
   module P =
     Eliom_appl_reg_make_param
       (Ocsigen_senders.Make_XML_Content
-         (Eliom_content.Xml)
+         (Eliom_content_xml.Xml)
          (Eliom_content.Html.D))
       (App_param)
 

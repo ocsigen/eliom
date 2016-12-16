@@ -21,10 +21,11 @@
 (** Page generation *)
 
 open Eliom_lib
-open Eliom_content_core
 open Lwt
 
-module Html_content = Ocsigen_senders.Make_XML_Content(Xml)(Html.F)
+module Html_content =
+  Ocsigen_senders.Make_XML_Content
+    (Eliom_content_xml.Xml)(Eliom_content_html_f_raw)
 
 (*****************************************************************************)
 (* Exception handler for the site                                            *)

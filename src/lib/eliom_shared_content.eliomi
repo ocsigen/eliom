@@ -21,20 +21,24 @@
 module Xml : Xml_sigs.T
   with type 'a W.t = 'a Eliom_shared.React.S.t
    and type 'a W.tlist = 'a Eliom_shared.ReactiveData.RList.t
+   and type ('a, 'b) W.ft = unit -> ('a -> 'b) Eliom_shared.Value.t
+   and type uri = Eliom_content_xml.Xml.uri
    and type event_handler =
          (Dom_html.event Js.t -> unit) Eliom_client_value.t
    and type mouse_event_handler =
          (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
    and type keyboard_event_handler =
          (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+   and type elt = Eliom_content_xml.Xml.elt
+   and type attrib = Eliom_content_xml.Xml.attrib
 
 module Svg : sig
 
   module R : sig
 
     include Svg_sigs.Make(Xml).T
-      with type 'a elt = 'a Eliom_content_core.Svg.elt
-       and type 'a attrib = 'a Eliom_content_core.Svg.attrib
+      with type 'a elt = 'a Eliom_content_svg_types.elt
+       and type 'a attrib = 'a Eliom_content_svg_types.attrib
 
     val node : 'a elt Eliom_shared.React.S.t -> 'a elt
 
@@ -47,8 +51,8 @@ module Html : sig
   module R : sig
 
     include Html_sigs.Make(Xml)(Svg.R).T
-      with type 'a elt = 'a Eliom_content_core.Html.elt
-       and type 'a attrib = 'a Eliom_content_core.Html.attrib
+      with type 'a elt = 'a Eliom_content_html_types.elt
+       and type 'a attrib = 'a Eliom_content_html_types.attrib
 
     val pcdata :
       string Eliom_shared.React.S.t ->
