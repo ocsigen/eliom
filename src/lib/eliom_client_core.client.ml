@@ -22,7 +22,7 @@
 open Js_of_ocaml
 open Eliom_lib
 
-module Xml = Eliom_content_core.Xml
+module Xml = Eliom_content_xml.Xml
 
 (* Logs *)
 let section = Lwt_log.Section.make "eliom:client"
@@ -1016,7 +1016,7 @@ let relink_attrib root table (node:Dom_html.element Js.t) =
       let cid = Js.to_bytestring (get_attrib_id attr) in
       try
         let value = Eliom_runtime.RawXML.ClosureMap.find cid table in
-        let rattrib: Eliom_content_core.Xml.attrib =
+        let rattrib: Eliom_content_xml.Xml.attrib =
           (Eliom_lib.from_poly (Eliom_lib.to_poly value)) in
         rebuild_rattrib node rattrib
       with Not_found ->
@@ -1109,7 +1109,7 @@ module ReactState : sig
   type t
   val get_node : t -> Dom.node Js.t
   val change_dom : t -> Dom.node Js.t -> bool
-  val init_or_update : ?state:t -> Eliom_content_core.Xml.elt -> t
+  val init_or_update : ?state:t -> Eliom_content_xml.Xml.elt -> t
 end = struct
 
   (*
@@ -1134,7 +1134,7 @@ end = struct
   *)
 
   type t = {
-    elt : Eliom_content_core.Xml.elt;  (* top element that will store the dom *)
+    elt : Eliom_content_xml.Xml.elt;  (* top element that will store the dom *)
     global_version : int Js.js_array Js.t; (* global versions array *)
     version_copy : int Js.js_array Js.t; (* versions when the signal started *)
     pos : int; (* equal the depth *)
@@ -1293,7 +1293,7 @@ let is_before_initial_load, set_initial_load =
 
 let rebuild_node_ns ns context elt' =
   Lwt_log.ign_debug_f ~section "Rebuild node %a (%s)"
-    (fun () e -> Eliom_content_core.Xml.string_of_node_id (Xml.get_node_id e))
+    (fun () e -> Eliom_content_xml.Xml.string_of_node_id (Xml.get_node_id e))
     elt' context;
   if is_before_initial_load ()
   then begin
@@ -1310,14 +1310,14 @@ let rebuild_node_ns ns context elt' =
   node
 
 let rebuild_node_svg context elt =
-  let elt' = Eliom_content_core.Svg.F.toelt elt in
+  let elt' = Eliom_content_svg_raw.F.toelt elt in
   rebuild_node_ns `SVG context elt'
 
 
 (** The first argument describes the calling function (if any) in case
     of an error. *)
 let rebuild_node context elt =
-  let elt' = Eliom_content_core.Html.F.toelt elt in
+  let elt' = Eliom_content_html_raw.F.toelt elt in
   rebuild_node_ns `HTML5 context elt'
 
 (******************************************************************************)
@@ -1356,7 +1356,7 @@ let unwrap_tyxml =
                   Lwt_log.ign_debug ~section "not found";
                   let xml_elt : Xml.elt = Xml.make ~id elt in
                   let xml_elt =
-                    Eliom_content_core.Xml.set_classes_of_elt xml_elt
+                    Eliom_content_xml.Xml.set_classes_of_elt xml_elt
                   in
                   register_process_node (Js.bytestring process_id)
                     (rebuild_node_ns `HTML5 context xml_elt);

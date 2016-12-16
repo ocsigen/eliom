@@ -281,10 +281,10 @@ let set_send_appl_content s n = s.send_appl_content <- n
 type clvpreapp = {
   mutable clvpreapp_f :
     'a 'b.
-         (('a -> 'b -> [ `Html ] Eliom_content_core.Html.elt Lwt.t)
+         (('a -> 'b -> [ `Html ] Eliom_content_html_f_raw.elt Lwt.t)
             Eliom_client_value.t ->
           'a ->
-          (unit -> 'b -> [ `Html ] Eliom_content_core.Html.elt Lwt.t)
+          (unit -> 'b -> [ `Html ] Eliom_content_html_f_raw.elt Lwt.t)
             Eliom_client_value.t)
 }
 

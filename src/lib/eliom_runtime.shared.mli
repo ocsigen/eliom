@@ -126,6 +126,7 @@ module RawXML : sig
   val aname : attrib -> aname
   val acontent : attrib -> acontent
   val racontent : attrib -> racontent
+  val attrib : aname -> racontent -> attrib
 
   val react_float_attrib : aname -> float React.signal-> attrib
   val react_int_attrib : aname -> int React.signal -> attrib

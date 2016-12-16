@@ -93,7 +93,7 @@ module type Html = sig
      Eliom_lib.poly) option Eliom_lazy.request ->
     Html_types.form_attrib attrib
 
-  val to_elt : 'a elt -> Eliom_content_core.Xml.elt
+  val to_elt : 'a elt -> Eliom_content_xml.Xml.elt
 
 end
 

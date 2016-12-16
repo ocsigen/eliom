@@ -17,15 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-
 open Js_of_ocaml
 open Eliom_lib
-
-(* This the core of [Eliom_content] without its dependencies to [Eliom_service] et al.
-   Its name is not [Eliom_content_base] because this would suggest the sharing
-   between server and client. *)
-
-(*****************************************************************************)
 
 module Xml = struct
   include Eliom_runtime.RawXML
@@ -123,7 +116,7 @@ module Xml = struct
 
   let make_cryptographic_safe_string () =
     (* FIX: we should directly produce a string of the right length *)
-    String.sub (make_cryptographic_safe_string ()) 0 12
+    String.sub (Eliom_lib.make_cryptographic_safe_string ()) 0 12
 
   let caml_event_handler cf =
     let crypto = make_cryptographic_safe_string () in
@@ -144,7 +137,7 @@ module Xml = struct
     biggest_event_handler_attrib name cf
 
   let client_attrib ?init (x : attrib Eliom_client_value.t) =
-    let crypto = make_cryptographic_safe_string () in
+    let crypto = Eliom_lib.make_cryptographic_safe_string () in
     let empty_name = "" in
     empty_name,RAClient (crypto,init,Eliom_lib.to_poly x)
 
@@ -182,7 +175,7 @@ module Xml = struct
     (* !!! The "global_" prefix is checked in eliom_client.client.ml !!! *)
     (if global then "global_" else "")
     (* FIX: put a prefix as a debugging option? *)
-       ^ (* "server_" ^ *) make_cryptographic_safe_string ()
+       ^ (* "server_" ^ *) Eliom_lib.make_cryptographic_safe_string ()
 
   let make_process_node ?(id = make_node_name ~global:true ()) elt' =
     { elt' with elt = { elt'.elt with node_id = ProcessId id } }
@@ -249,178 +242,5 @@ module Xml = struct
       | RELazy e -> Eliom_lazy.force e
     in
     set_classes elt.node_id c
-
-end
-
-module Svg = struct
-
-  module D = struct
-    module Xml' = struct
-
-      include Xml
-
-      let make elt = make_request_node (make elt)
-
-      let empty () = make Empty
-
-      let comment c = make (Comment c)
-      let pcdata d = make (PCDATA d)
-      let encodedpcdata d = make (EncodedPCDATA d)
-      let entity e = make (Entity e)
-
-      let leaf ?(a = []) name =  make (Leaf (name, a))
-      let node ?(a = []) name children = make (Node (name, a, children))
-
-    end
-    module Raw = Svg_f.Make(Xml')
-    let client_attrib ?init (x : 'a Raw.attrib Eliom_client_value.t) =
-      Xml.client_attrib ?init x
-
-    include Raw
-
-   end
-
-  module F = struct
-
-    module Raw = Svg_f.Make(Xml)
-
-      include Raw
-
-    end
-
-  module Make
-      (Xml : Xml_sigs.T with type elt = Xml.elt
-                         and type attrib = Xml.attrib)
-      (C : Svg_sigs.Wrapped_functions with module Xml = Xml) =
-    Svg_f.Make_with_wrapped_functions(Xml)(C)
-
-  type +'a elt = 'a F.elt
-  type 'a wrap = 'a
-  type 'a list_wrap = 'a list
-  type +'a attrib = 'a F.attrib
-  type uri = F.uri
-
-  module Id = struct
-    type 'a id = string (* FIXME invariant type parameter ? *)
-    let new_elt_id: ?global:bool -> unit -> 'a id =
-      fun ?(global=true) () -> Xml.make_node_name ~global ()
-    let create_named_elt ~(id : 'a id) elt =
-      D.tot (Xml.make_process_node ~id (D.toelt elt))
-    let create_global_elt elt =
-      D.tot (Xml.make_process_node (D.toelt elt))
-    let create_request_elt ?reset elt =
-      D.tot (Xml.make_request_node ?reset (D.toelt elt))
-  end
-
-  module Printer = Xml_print.Make_typed_fmt(Xml)(F)
-
-end
-
-module Html = struct
-
-  module D = struct
-
-    (* This is [Eliom_content.Xml] adapted such that request nodes are produced *)
-    module Xml' = struct
-      include Xml
-
-      let make elt = make_request_node (make elt)
-      let make_lazy elt = make_request_node (make_lazy elt)
-
-      let empty () = make Empty
-
-      let comment c = make (Comment c)
-      let pcdata d = make (PCDATA d)
-      let encodedpcdata d = make (EncodedPCDATA d)
-      let entity e = make (Entity e)
-
-      let leaf ?(a = []) name =  make (Leaf (name, a))
-      let node ?(a = []) name children = make (Node (name, a, children))
-      let lazy_node ?(a = []) name children =
-        make_lazy (Eliom_lazy.from_fun (fun () -> (Node (name, a, Eliom_lazy.force children))))
-
-
-    end
-
-    module Raw = Html_f.Make(Xml')(Svg.D.Raw)
-    let client_attrib ?init (x : 'a Raw.attrib Eliom_client_value.t) =
-      Xml.client_attrib ?init x
-
-    include Raw
-
-    type ('a, 'b, 'c) lazy_star =
-      ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
-
-    let lazy_form ?(a = []) elts =
-      tot (Xml'.lazy_node ~a:(to_xmlattribs a) "form"
-             (Eliom_lazy.from_fun
-                (fun () -> toeltl (Eliom_lazy.force elts))))
-  end
-
-  module F = struct
-
-    module Xml' = Xml
-    module Raw = Html_f.Make(Xml')(Svg.F.Raw)
-    include Raw
-
-    type ('a, 'b, 'c) lazy_star =
-      ?a: (('a attrib) list) -> ('b elt) list Eliom_lazy.request -> 'c elt
-
-    let lazy_form ?(a = []) elts =
-      tot (Xml'.lazy_node ~a:(to_xmlattribs a) "form"
-             (Eliom_lazy.from_fun
-                (fun () -> toeltl (Eliom_lazy.force elts))))
-
-  end
-
-  module Make
-      (Xml : Xml_sigs.T
-       with type elt = Xml.elt
-        and type attrib = Xml.attrib)
-      (C : Html_sigs.Wrapped_functions with module Xml = Xml)
-      (Svg : Svg_sigs.T with module Xml := Xml) =
-    Html_f.Make_with_wrapped_functions(Xml)(C)(Svg)
-
-  type +'a elt = 'a F.elt
-  type 'a wrap = 'a
-  type 'a list_wrap = 'a list
-  type +'a attrib = 'a F.attrib
-  type uri = F.uri
-
-  module Id = struct
-    type 'a id = string (* FIXME invariant type parameter ? *)
-    let new_elt_id: ?global:bool -> unit -> 'a id =
-      fun ?(global=true) () -> Xml.make_node_name ~global ()
-    let create_named_elt ~(id : 'a id) elt =
-      D.tot (Xml.make_process_node ~id (D.toelt elt))
-    let create_global_elt elt =
-      D.tot (Xml.make_process_node (D.toelt elt))
-    let create_request_elt ?reset elt =
-      D.tot (Xml.make_request_node ?reset (D.toelt elt))
-    let have_id name elt = Xml.get_node_id (D.toelt elt) = Xml.ProcessId name
-  end
-
-  module Custom_data = struct
-
-    type 'a t = {
-      name : string;
-      to_string : 'a -> string;
-      of_string : string -> 'a;
-      default : 'a option;
-    }
-
-    let create ~name ?default ~to_string ~of_string () =
-      { name ; of_string ; to_string; default }
-
-    let create_json ~name ?default typ =
-      { name ; of_string = of_json ~typ ; to_string = to_json ~typ; default }
-
-    let attrib custom_data value =
-      F.a_user_data
-        custom_data.name
-        (custom_data.to_string value)
-  end
-
-  module Printer = Xml_print.Make_typed_fmt(Xml)(F)
 
 end

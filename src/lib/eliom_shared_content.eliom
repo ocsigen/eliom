@@ -49,17 +49,17 @@ module Xml = struct
 
   type 'a list_wrap ='a W.tlist
 
-  type uri = Eliom_content_core.Xml.uri
+  type uri = Eliom_content_xml.Xml.uri
 
   let string_of_uri () =
-    [%shared  Eliom_content_core.Xml.string_of_uri ]
+    [%shared  Eliom_content_xml.Xml.string_of_uri ]
 
   let uri_of_string () =
-    [%shared  Eliom_content_core.Xml.uri_of_string ]
+    [%shared  Eliom_content_xml.Xml.uri_of_string ]
 
-  type aname = Eliom_content_core.Xml.aname
+  type aname = Eliom_content_xml.Xml.aname
 
-  type ename = Eliom_content_core.Xml.ename
+  type ename = Eliom_content_xml.Xml.ename
 
   type event_handler =
     (Dom_html.event Js.t -> unit) Eliom_client_value.t
@@ -75,87 +75,87 @@ module Xml = struct
 
   (* attributes *)
 
-  type attrib = Eliom_content_core.Xml.attrib
+  type attrib = Eliom_content_xml.Xml.attrib
 
   let float_attrib name s =
     let init =
-      local_value s |> Eliom_content_core.Xml.float_attrib name
+      local_value s |> Eliom_content_xml.Xml.float_attrib name
     in
-     [%client  Eliom_content_core.Xml_wed.float_attrib ~%name ~%s ] |>
-    Eliom_content_core.Xml.client_attrib ~init
+     [%client  Eliom_content_xml.Xml_wed.float_attrib ~%name ~%s ] |>
+    Eliom_content_xml.Xml.client_attrib ~init
 
   let int_attrib name s =
     let init =
-      local_value s |> Eliom_content_core.Xml.int_attrib name
+      local_value s |> Eliom_content_xml.Xml.int_attrib name
     in
-     [%client  Eliom_content_core.Xml_wed.int_attrib ~%name ~%s ] |>
-    Eliom_content_core.Xml.client_attrib ~init
+     [%client  Eliom_content_xml.Xml_wed.int_attrib ~%name ~%s ] |>
+    Eliom_content_xml.Xml.client_attrib ~init
 
   let string_attrib name s =
     let init =
-      local_value s |> Eliom_content_core.Xml.string_attrib name
+      local_value s |> Eliom_content_xml.Xml.string_attrib name
     in
-     [%client  Eliom_content_core.Xml_wed.string_attrib ~%name ~%s ] |>
-    Eliom_content_core.Xml.client_attrib ~init
+     [%client  Eliom_content_xml.Xml_wed.string_attrib ~%name ~%s ] |>
+    Eliom_content_xml.Xml.client_attrib ~init
 
   let space_sep_attrib name s =
     let init =
-      local_value s |> Eliom_content_core.Xml.space_sep_attrib name
+      local_value s |> Eliom_content_xml.Xml.space_sep_attrib name
     in
-     [%client  Eliom_content_core.Xml_wed.space_sep_attrib ~%name ~%s ] |>
-    Eliom_content_core.Xml.client_attrib ~init
+     [%client  Eliom_content_xml.Xml_wed.space_sep_attrib ~%name ~%s ] |>
+    Eliom_content_xml.Xml.client_attrib ~init
 
   let comma_sep_attrib name s =
     let init =
-      local_value s |> Eliom_content_core.Xml.comma_sep_attrib name
+      local_value s |> Eliom_content_xml.Xml.comma_sep_attrib name
     in
-     [%client  Eliom_content_core.Xml_wed.comma_sep_attrib ~%name ~%s ] |>
-    Eliom_content_core.Xml.client_attrib ~init
+     [%client  Eliom_content_xml.Xml_wed.comma_sep_attrib ~%name ~%s ] |>
+    Eliom_content_xml.Xml.client_attrib ~init
 
   let uri_attrib name s =
     let init =
-      local_value s |> Eliom_content_core.Xml.uri_attrib name
+      local_value s |> Eliom_content_xml.Xml.uri_attrib name
     in
-     [%client  Eliom_content_core.Xml_wed.uri_attrib ~%name ~%s ] |>
-    Eliom_content_core.Xml.client_attrib ~init
+     [%client  Eliom_content_xml.Xml_wed.uri_attrib ~%name ~%s ] |>
+    Eliom_content_xml.Xml.client_attrib ~init
 
   let uris_attrib name s =
     let init =
-      local_value s |> Eliom_content_core.Xml.uris_attrib name
+      local_value s |> Eliom_content_xml.Xml.uris_attrib name
     in
-     [%client  Eliom_content_core.Xml_wed.uris_attrib ~%name ~%s ] |>
-    Eliom_content_core.Xml.client_attrib ~init
+     [%client  Eliom_content_xml.Xml_wed.uris_attrib ~%name ~%s ] |>
+    Eliom_content_xml.Xml.client_attrib ~init
 
   let event_handler_attrib =
-    Eliom_content_core.Xml.event_handler_attrib
+    Eliom_content_xml.Xml.event_handler_attrib
 
   let keyboard_event_handler_attrib =
-    Eliom_content_core.Xml.keyboard_event_handler_attrib
+    Eliom_content_xml.Xml.keyboard_event_handler_attrib
 
   let touch_event_handler_attrib =
-    Eliom_content_core.Xml.touch_event_handler_attrib
+    Eliom_content_xml.Xml.touch_event_handler_attrib
 
   let mouse_event_handler_attrib =
-    Eliom_content_core.Xml.mouse_event_handler_attrib
+    Eliom_content_xml.Xml.mouse_event_handler_attrib
 
   (* elements *)
 
-  type elt = Eliom_content_core.Xml.elt
+  type elt = Eliom_content_xml.Xml.elt
 
-  let empty = Eliom_content_core.Xml.empty
+  let empty = Eliom_content_xml.Xml.empty
 
-  let comment = Eliom_content_core.Xml.comment
+  let comment = Eliom_content_xml.Xml.comment
 
   let name_node e =
-    Eliom_content_core.Xml.make_request_node e
+    Eliom_content_xml.Xml.make_request_node e
 
   let leaf ?(a : attrib list option) name =
-    Eliom_content_core.Xml.leaf ?a name |> name_node
+    Eliom_content_xml.Xml.leaf ?a name |> name_node
 
   let pcdata s =
     let e =
       let s = local_value s in
-      Eliom_content_core.Xml.(node "span" [pcdata s]) |> name_node
+      Eliom_content_xml.Xml.(node "span" [pcdata s]) |> name_node
     and synced = React.S.synced s in
     let _ = [%client (
       let (>>!) = Js.Opt.iter in
@@ -177,19 +177,19 @@ module Xml = struct
 
   let encodedpcdata = pcdata
 
-  let cdata = Eliom_content_core.Xml.cdata
+  let cdata = Eliom_content_xml.Xml.cdata
 
-  let cdata_script = Eliom_content_core.Xml.cdata_script
+  let cdata_script = Eliom_content_xml.Xml.cdata_script
 
-  let cdata_style = Eliom_content_core.Xml.cdata_style
+  let cdata_style = Eliom_content_xml.Xml.cdata_style
 
-  let entity = Eliom_content_core.Xml.entity
+  let entity = Eliom_content_xml.Xml.entity
 
   let node_aux ns ?a name l =
     let e =
       ReactiveData.RList.value l |>
       Value.local |>
-      Eliom_content_core.Xml.node ?a name |>
+      Eliom_content_xml.Xml.node ?a name |>
       name_node
     in
     let _ = [%client (
@@ -206,7 +206,7 @@ end
 
 [%%shared
 module Raw_wrapped_functions_svg =
-  Svg_f.Wrapped_functions(Eliom_content_core.Xml)
+  Svg_f.Wrapped_functions(Eliom_content_xml.Xml)
 ]
 
 module Svg = struct
@@ -294,16 +294,14 @@ module Svg = struct
     let node s =
       let e =
         local_value s |>
-        Eliom_content_core.Svg.D.toelt |>
-        Eliom_content_core.Xml.make_request_node ~reset:false
+        Eliom_content_xml.Xml.make_request_node ~reset:false
       and synced = React.S.synced s in
       let _ = [%client (
         let s =
           Eliom_shared.React.S.map
             (fun s ->
-               Eliom_content_core.Svg.
-                 (Id.create_request_elt s ~reset:false |> D.toelt) |>
-               Eliom_client_core.rebuild_node' `SVG)
+              Eliom_content_xml.Xml.make_request_node ~reset:false s |>
+                Eliom_client_core.rebuild_node' `SVG)
             ~%s
         in
         let f =
@@ -320,9 +318,9 @@ module Svg = struct
         else
           f (React.S.value s) |> ignore
       : unit)] in
-      e |> Eliom_content_core.Svg.D.tot
+      e
 
-    include Eliom_content_core.Svg.Make(Xml)(Wrapped_functions)
+    include Svg_f.Make_with_wrapped_functions(Xml)(Wrapped_functions)
 
   end
 
@@ -330,7 +328,7 @@ end ;;
 
 [%%shared
 module Raw_wrapped_functions =
-  Html_f.Wrapped_functions(Eliom_content_core.Xml)
+  Html_f.Wrapped_functions(Eliom_content_xml.Xml)
 ]
 
 module Html = struct
@@ -392,23 +390,36 @@ module Html = struct
 
   end
 
-  module R = struct
+  module R (Svg : Svg_sigs.T
+            with type 'a Xml.W.t = 'a Eliom_shared.React.S.t
+             and type 'a Xml.W.tlist = 'a Eliom_shared.ReactiveData.RList.t
+             and type ('a, 'b) Xml.W.ft =
+                   unit -> ('a -> 'b) Eliom_shared.Value.t
+             and type Xml.uri = Eliom_content_xml.Xml.uri
+             and type Xml.event_handler =
+                   (Dom_html.event Js.t -> unit) Eliom_client_value.t
+             and type Xml.mouse_event_handler =
+                   (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
+             and type Xml.keyboard_event_handler =
+                   (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+             and type Xml.touch_event_handler =
+                   (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
+             and type Xml.elt = Eliom_content_xml.Xml.elt
+             and type Xml.attrib = Eliom_content_xml.Xml.attrib) = struct
 
     (* Same as the SVG version, with Svg -> Html and `SVG ->
        `HTML5. Hard to functorize. Make sure they stay synced! *)
     let node s =
       let e =
         local_value s |>
-        Eliom_content_core.Html.D.toelt |>
-        Eliom_content_core.Xml.make_request_node ~reset:false
+        Eliom_content_xml.Xml.make_request_node ~reset:false
       and synced = React.S.synced s in
       let _ = [%client (
         let s =
           Eliom_shared.React.S.map
             (fun s ->
-               Eliom_content_core.Html.
-                 (Id.create_request_elt s ~reset:false |> D.toelt) |>
-               Eliom_client_core.rebuild_node' `HTML5)
+              Eliom_content_xml.Xml.make_request_node ~reset:false s |>
+                Eliom_client_core.rebuild_node' `HTML5)
             ~%s
         in
         let f =
@@ -425,15 +436,19 @@ module Html = struct
         else
           f (React.S.value s) |> ignore
       : unit)] in
-      e |> Eliom_content_core.Html.D.tot
+      e
 
     let filter_attrib a s =
-      let init = if local_value s then Some a else None
-      and c =  [%client  Eliom_content_core.Html.R.filter_attrib ~%a ~%s ] in
-      Eliom_content_core.Html.D.client_attrib ?init c
+      let init = (*ZZZZZZ if local_value s then Some (Eliom_content_html_raw.Unsafe.to_xmlattrib a) else *) None
+      and c =
+        [%client
+            Eliom_content_html_raw.Unsafe.to_xmlattrib
+            (Eliom_content_html_r.filter_attrib ~%a ~%s) ]
+      in
+      Eliom_content_xml.Xml.client_attrib ?init c
 
     include
-      Eliom_content_core.Html.Make(Xml)(Wrapped_functions)(Svg.R)
+      Html_f.Make_with_wrapped_functions(Xml)(Wrapped_functions)(Svg)
 
     let pcdata x = txt x |> Unsafe.coerce_elt
 
