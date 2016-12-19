@@ -154,12 +154,12 @@ val create_attached_post :
   ?https:bool ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   fallback:
-    ('gp, unit, get, att, non_co, non_ext, _,
-     [`WithoutSuffix], 'gn, unit, non_ocaml) t ->
+    ('gp, unit, get, att, non_co, non_ext, _, 'suff,
+     'gn, unit, non_ocaml) t ->
   post_params:
     ('pp, [`WithoutSuffix], 'pn) Eliom_parameter.params_type ->
   unit ->
-  ('gp, 'pp, post, att, co, non_ext, reg, [`WithoutSuffix],
+  ('gp, 'pp, post, att, co, non_ext, reg, 'suff,
    'gn, 'pn, non_ocaml) t
 
 (** [attach ~fallback ~service ()] attaches the preexisting pathless
