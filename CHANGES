@@ -1,3 +1,11 @@
+===== 6.1 (2016-12-20) =====
+
+* Remove redundant dependency on calendar
+* Allow client routing to "./" (fixes #342)
+* -y parameter for eliom-distillery (do not ask)
+* Eliom_client: do not execute onload after OCaml services
+* Permit suffix params in Eliom_service.create_attached_post
+
 ===== 6.0 (2016-12-08) =====
 
 * Improve Eliom_service and Eliom_registration APIs using GADTs
