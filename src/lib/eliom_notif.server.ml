@@ -145,20 +145,18 @@ module Make (A : ARG) : S
      its client side counterpart,
      and the server side function to trigger it. *)
   let notif_e : notification_react Eliom_reference.eref =
-    let notif =
-      let e, send_e = React.E.create () in
-      let client_ev = Eliom_react.Down.of_react
-      (*VVV If we add throttling, some events may be lost
-            even if buffer size is not 1 :O *)
-        ~size: 100 (*VVV ? *)
-        ~scope:Eliom_common.default_process_scope
-        e
-      in
-      (client_ev, send_e)
-    in
-    Eliom_reference.eref
+    Eliom_reference.eref_from_fun
       ~scope:Eliom_common.default_process_scope
-      notif
+      (fun () ->
+         let e, send_e = React.E.create () in
+         let client_ev = Eliom_react.Down.of_react
+             (*VVV If we add throttling, some events may be lost
+               even if buffer size is not 1 :O *)
+             ~size: 100 (*VVV ? *)
+             ~scope:Eliom_common.default_process_scope
+             e
+         in
+         (client_ev, send_e))
 
   let of_option = function
     | Some x -> x
