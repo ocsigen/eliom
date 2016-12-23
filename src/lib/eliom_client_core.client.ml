@@ -1208,14 +1208,14 @@ let rebuild_node_ns ns context elt' =
   node
 
 let rebuild_node_svg context elt =
-  let elt' = Eliom_content_svg_f_raw.toelt elt in
+  let elt' = Eliom_content_svg_raw.F.toelt elt in
   rebuild_node_ns `SVG context elt'
 
 
 (** The first argument describes the calling function (if any) in case
     of an error. *)
 let rebuild_node context elt =
-  let elt' = Eliom_content_html_f_raw.toelt elt in
+  let elt' = Eliom_content_html_raw.F.toelt elt in
   rebuild_node_ns `HTML5 context elt'
 
 (******************************************************************************)

@@ -5,8 +5,8 @@
     semantics>> %} for HTML5 tree manipulated by client/server
     application. *)
 
-type +'a elt = 'a Eliom_content_html_types.elt
-type +'a attrib = 'a Eliom_content_html_types.attrib
+type +'a elt = 'a Eliom_content_html_raw.elt
+type +'a attrib = 'a Eliom_content_html_raw.attrib
 type uri = string
 type 'a form_param = 'a Eliom_form.param
 

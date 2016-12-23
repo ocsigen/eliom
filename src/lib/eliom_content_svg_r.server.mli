@@ -1,4 +1,4 @@
-module Raw = Eliom_content_svg_r_raw
+module Raw = Eliom_content_svg_raw.R
 include module type of Raw
 
 (** [pcdata] is not implemented reactively for SVG. *)

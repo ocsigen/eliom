@@ -3,8 +3,8 @@
     semantics>> %} for SVG tree manipulated by client/server
     application. *)
 
-type +'a elt = 'a Eliom_content_svg_types.elt
-type +'a attrib = 'a Eliom_content_svg_types.attrib
+type +'a elt = 'a Eliom_content_svg_raw.elt
+type +'a attrib = 'a Eliom_content_svg_raw.attrib
 type uri = Eliom_content_xml.Xml.uri
 
 (** Typed interface for building valid SVG tree (functional
@@ -40,7 +40,9 @@ module C : sig
       client node). This can be useful in contexts where [span] is
       not allowed. *)
 
+(*XXXXXXXXXXXXXXXXXX
   val attr : ?init:'a attrib -> 'a attrib Eliom_client_value.t -> 'a attrib
+*)
 
 end
 

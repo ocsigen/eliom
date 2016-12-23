@@ -7,7 +7,7 @@
     {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
 
 (** See {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
-module Raw = Eliom_content_html_d_raw
+module Raw = Eliom_content_html_raw.D
 
 include module type of Raw
 

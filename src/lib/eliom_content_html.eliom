@@ -1,8 +1,8 @@
 [%%client.start]
 
 type uri = string
-type 'a elt = 'a Eliom_content_html_types.elt
-type 'a attrib = 'a Eliom_content_html_types.attrib
+type 'a elt = 'a Eliom_content_html_raw.elt
+type 'a attrib = 'a Eliom_content_html_raw.attrib
 type 'a form_param = 'a Eliom_form.param
 module Xml = Eliom_content_xml.Xml
 module F = Eliom_content_html_f
@@ -57,7 +57,7 @@ end
 
 module Of_dom = Tyxml_cast.MakeOf(struct
     type 'a elt = 'a F.elt
-    let elt (node: 'a Js.t) : 'a elt = Xml.make_dom (node :> Dom.node Js.t)
+    let elt node = Eliom_content_html_f.tot (Xml.make_dom node)
   end)
 
 module To_dom = Tyxml_cast.MakeTo(struct
@@ -923,8 +923,8 @@ external unboxed : boxed Eliom_client_value.t
 [%%server.start]
 
 type uri = Eliom_content_xml.Xml.uri
-type +'a elt = Eliom_content_xml.Xml.elt
-type +'a attrib = Eliom_content_xml.Xml.attrib
+type +'a elt = 'a Eliom_content_html_raw.elt
+type +'a attrib = 'a Eliom_content_html_raw.attrib
 type 'a form_param = 'a Eliom_form.param
 module F = Eliom_content_html_f
 module D = Eliom_content_html_d
@@ -988,5 +988,9 @@ module C = struct
       : unit)] in
     init
 
-  let attr ?init x : 'a attrib = Eliom_content_xml.Xml.client_attrib ?init x
+(*XXXXXXXXXXXXXX
+  let attr ?init x =
+    Eliom_content_html_raw.F.to_attrib
+      (Eliom_content_xml.Xml.client_attrib ?init x])
+*)
 end

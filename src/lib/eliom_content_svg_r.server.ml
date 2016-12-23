@@ -1,3 +1,3 @@
-module Raw = Eliom_content_svg_r_raw
-include Eliom_shared_content.Svg.R
+module Raw = Eliom_content_svg_raw.R
+include Raw
 let pcdata _ = `Unimplemented

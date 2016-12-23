@@ -1,8 +1,8 @@
 
-let node s = Eliom_content_xml.Xml.make_react s
-
-module Raw = Eliom_content_html_r_raw
+module Raw = Eliom_content_html_raw.R
 include Raw
+
+let node s = tot @@ Eliom_content_xml.Xml.make_react (React.S.map toelt s)
 
 let filter_attrib attrib on =
   let open Eliom_content_xml in

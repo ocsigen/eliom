@@ -1,5 +1,5 @@
 
-module Raw = Eliom_content_html_r_raw
+module Raw = Eliom_content_html_raw.R
 include module type of Raw
 
 (** the function [node s] create an HTML5 [elt] from a signal [s].

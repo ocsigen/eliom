@@ -295,14 +295,12 @@ module Svg = struct
     let node s =
       let e =
         local_value s |>
-        Eliom_content_svg_d.toelt |>
         Eliom_content_xml.Xml.make_request_node ~reset:false
       and synced = React.S.synced s in
       let _ = [%client (
         let s =
           ~%s >|= (fun s ->
-            Eliom_content_svg.
-              (Id.create_request_elt s ~reset:false |> D.toelt) |>
+            Eliom_content_xml.Xml.make_request_node ~reset:false s |>
             Eliom_client_core.rebuild_node' `SVG)
         in
         let f =
@@ -319,7 +317,7 @@ module Svg = struct
         else
           f (React.S.value s) |> ignore
       : unit)] in
-      e |> Eliom_content_svg_d.tot
+      e
 
     include Svg_f.Make_with_wrapped_functions(Xml)(Wrapped_functions)
 
@@ -393,21 +391,32 @@ module Html = struct
 
   end
 
-  module R = struct
+  module R (Svg : Svg_sigs.T
+            with type 'a Xml.W.t = 'a Eliom_shared.React.S.t
+             and type 'a Xml.W.tlist = 'a Eliom_shared.ReactiveData.RList.t
+             and type ('a, 'b) Xml.W.ft =
+                   unit -> ('a -> 'b) Eliom_shared.Value.t
+             and type Xml.uri = Eliom_content_xml.Xml.uri
+             and type Xml.event_handler =
+                   (Dom_html.event Js.t -> unit) Eliom_client_value.t
+             and type Xml.mouse_event_handler =
+                   (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
+             and type Xml.keyboard_event_handler =
+                   (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+             and type Xml.elt = Eliom_content_xml.Xml.elt
+             and type Xml.attrib = Eliom_content_xml.Xml.attrib) = struct
 
     (* Same as the SVG version, with Svg -> Html and `SVG ->
        `HTML5. Hard to functorize. Make sure they stay synced! *)
     let node s =
       let e =
         local_value s |>
-        Eliom_content_html_d.toelt |>
         Eliom_content_xml.Xml.make_request_node ~reset:false
       and synced = React.S.synced s in
       let _ = [%client (
         let s =
           ~%s >|= (fun s ->
-            Eliom_content_html.
-              (Id.create_request_elt s ~reset:false |> D.toelt) |>
+            Eliom_content_xml.Xml.make_request_node ~reset:false s |>
             Eliom_client_core.rebuild_node' `HTML5)
         in
         let f =
@@ -424,7 +433,7 @@ module Html = struct
         else
           f (React.S.value s) |> ignore
       : unit)] in
-      e |> Eliom_content_html_d.tot
+      e
 
     let filter_attrib a s =
       let init = if local_value s then Some a else None
@@ -432,7 +441,7 @@ module Html = struct
       Eliom_content_xml.Xml.client_attrib ?init c
 
     include
-      Html_f.Make_with_wrapped_functions(Xml)(Wrapped_functions)(Svg.R)
+      Html_f.Make_with_wrapped_functions(Xml)(Wrapped_functions)(Svg)
 
     let pcdata x = pcdata x |> Unsafe.coerce_elt
 

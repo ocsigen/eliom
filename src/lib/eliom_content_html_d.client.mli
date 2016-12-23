@@ -1,4 +1,4 @@
-module Raw = Eliom_content_html_d_raw
+module Raw = Eliom_content_html_raw.D
 
 include module type of Raw
 

@@ -1,5 +1,5 @@
 module F = struct
-  module Raw = Eliom_content_html_f_raw
+  module Raw = Eliom_content_html_raw.F
   include Raw
 
   type ('a, 'b, 'c) lazy_star =

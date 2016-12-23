@@ -5,8 +5,8 @@
       semantics>> %} for HTML5 tree manipulated by client/server
       application. *)
 
-type +'a elt = 'a Eliom_content_svg_types.elt
-type +'a attrib = 'a Eliom_content_svg_types.attrib
+type +'a elt = 'a Eliom_content_svg_raw.elt
+type +'a attrib = 'a Eliom_content_svg_raw.attrib
 type uri = string
 
 (** Creation of {e f}unctional content (copy-able but not referable). *)

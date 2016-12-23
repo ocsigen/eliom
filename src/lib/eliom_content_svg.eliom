@@ -1,8 +1,8 @@
 
 [%%shared.start]
 
-type 'a elt = 'a Eliom_content_svg_types.elt
-type 'a attrib = 'a Eliom_content_svg_types.attrib
+type 'a elt = 'a Eliom_content_svg_raw.elt
+type 'a attrib = 'a Eliom_content_svg_raw.attrib
 module F = Eliom_content_svg_f
 module D = Eliom_content_svg_d
 module R = Eliom_content_svg_r
@@ -13,7 +13,8 @@ type uri = string
 
 module Of_dom = struct
   let of_element elt =
-    Eliom_content_xml.Xml.make_dom (elt :> Dom.node Js.t)
+    Eliom_content_svg_raw.F.tot
+      (Eliom_content_xml.Xml.make_dom (elt :> Dom.node Js.t))
 end
 
 module To_dom = struct
@@ -101,7 +102,9 @@ module C = struct
       : unit)] in
     init
 
-  let attr ?init x : 'a attrib = Eliom_content_xml.Xml.client_attrib ?init x
+  let attr ?init x : 'a attrib =
+    Eliom_content_svg_raw.F.to_attrib
+      (Eliom_content_xml.Xml.client_attrib ?init x)
 end
 
 module Id = struct

@@ -1,5 +1,5 @@
-type +'a elt = 'a Eliom_content_html_types.elt
-type +'a attrib = 'a Eliom_content_html_types.attrib
+type +'a elt = 'a Eliom_content_html_raw.elt
+type +'a attrib = 'a Eliom_content_html_raw.attrib
 type uri = Eliom_content_xml.Xml.uri
 type 'a form_param
 
@@ -36,8 +36,10 @@ module C : sig
   val node :
     ?init:'a elt -> 'a elt Eliom_client_value.t -> 'a elt
 
+(*XXXXXXXXXXXXXXXX
   val attr :
     ?init:'a attrib -> 'a attrib Eliom_client_value.t -> 'a attrib
+*)
 
 end
 
