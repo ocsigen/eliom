@@ -2,7 +2,11 @@ open Ocamlbuild_plugin
 module Pack = Ocamlbuild_pack
 
 let _ = dispatch (fun x ->
-  Ocamlbuild_eliom.dispatcher x;
+  let runtime =
+    expand_module ["src/lib"] "Eliom_runtime"
+      ["server.cmo"; "server.cmi" ; "client.cmo"; "client.cmi"]
+  in
+  Ocamlbuild_eliom.dispatcher ~runtime x;
   match x with
   | After_rules ->
     Doc.init ();

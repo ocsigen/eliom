@@ -10,8 +10,7 @@ let copy_rule name src prod =
          Pack.Shell.mkdir_p (Filename.dirname prod);
          cp src prod
       )
-
-let init () =
+let init ?runtime () =
   let module Eliom_rules = struct
 open Pack ;;
 
@@ -176,6 +175,10 @@ List.iter (fun tags ->
 (* pflag [ "ocaml"; "infer_interface"] "client-I" (fun x -> S[A"-client-I"; A x]);; *)
 (* pflag [ "ocaml"; "doc"] "client-I" (fun x -> S[A"-client-I"; A x]);; *)
 
+begin match runtime with
+  | Some l -> dep ["extension:eliom"] l
+  | None -> ()
+end ;
 
 copy_rule "shared.ml -> client.ml"
   "%(path)/%(file).shared.ml" "%(path)/%(file).client.ml";;
@@ -189,10 +192,10 @@ copy_rule "shared.mli -> server.mli"
 
   end in ()
 
-let init = function
-  | After_rules -> init () ;
+let init ?runtime = function
+  | After_rules -> init ?runtime () ;
   | _ -> ()
 
-let dispatcher ?oasis_executables hook =
+let dispatcher ?runtime ?oasis_executables hook =
   Ocamlbuild_js_of_ocaml.dispatcher ?oasis_executables hook;
-  init hook
+  init ?runtime hook

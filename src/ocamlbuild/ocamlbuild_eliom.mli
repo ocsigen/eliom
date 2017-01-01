@@ -22,8 +22,14 @@
 
     Side note: {!Ocamlbuild_plugin.dispatch} should be used only once as
     it record only one function for an ocamlbuild module.
+
+    [?runtime] allows to use a custom version of the eliom runtime.
+    Typically used with
+    [expand_module ["src"] "Eliom_runtime"
+      ["server.cmo"; "server.cmi" ; "client.cmo"; "client.cmi"]]
 *)
 val dispatcher :
+  ?runtime:Ocamlbuild_plugin.Pathname.t list ->
   ?oasis_executables:Ocamlbuild_plugin.Pathname.t list ->
   Ocamlbuild_plugin.hook ->
   unit
