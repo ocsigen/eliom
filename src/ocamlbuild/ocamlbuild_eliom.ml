@@ -119,14 +119,47 @@ rule "eliom: eliom & eliom.depends & *cmi -> .inferred.eliomi"
           declarations in foo.eliom, as obtained by direct invocation of `ocamlc -i`."
     (Ocaml_tools.infer_interface "%.eliom" "%.inferred.eliomi");;
 
+
+(* TODO
+   This set of rule make incremental compilation of ocamlbuild very confused 
+*)
+
 rule "eliom: {server,client}.cmi -> cmi"
+    ~insert:`top
     ~prod:"%(name:<*> and not <*.client> and not <*.server>).cmi"
     ~deps:["%(name).client.cmi";"%(name).server.cmi"]
+    ~stamp:"%(name).cmi.stamp"
     (fun _ _ -> Nop);;
 
 rule "eliom: {server,client}.cmi -> cmi | in subdir"
+    ~insert:`top
     ~prod:"%(name:<**/*> and not <**/*.client> and not <**/*.server>).cmi"
     ~deps:["%(name).client.cmi";"%(name).server.cmi"]
+    ~stamp:"%(name).cmi.stamp"
+    (fun _ _ -> Nop);;
+
+rule "eliom: server.cmi -> cmi"
+    ~prod:"%(name:<*> and not <*.client> and not <*.server>).cmi"
+    ~deps:["%(name).server.cmi"]
+    ~stamp:"%(name).cmi.stamp"
+    (fun _ _ -> Nop);;
+
+rule "eliom: server.cmi -> cmi | in subdir"
+    ~prod:"%(name:<**/*> and not <**/*.client> and not <**/*.server>).cmi"
+    ~deps:["%(name).server.cmi"]
+    ~stamp:"%(name).cmi.stamp"
+    (fun _ _ -> Nop);;
+
+rule "eliom: client.cmi -> cmi"
+    ~prod:"%(name:<*> and not <*.client> and not <*.server>).cmi"
+    ~deps:["%(name).client.cmi"]
+    ~stamp:"%(name).cmi.stamp"
+    (fun _ _ -> Nop);;
+
+rule "eliom: client.cmi -> cmi | in subdir"
+    ~prod:"%(name:<**/*> and not <**/*.client> and not <**/*.server>).cmi"
+    ~deps:["%(name).client.cmi"]
+    ~stamp:"%(name).cmi.stamp"
     (fun _ _ -> Nop);;
 
 let compile_tags = [
