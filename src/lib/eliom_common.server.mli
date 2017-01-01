@@ -727,7 +727,7 @@ module To_and_of_shared : sig
   type 'a t
 
   val create :
-    ?client_to_and_of : 'a to_and_of Eliom_client_value.t ->
+    ?client_to_and_of : _ Eliom_client_value.t ->
     'a to_and_of ->
     'a t
 

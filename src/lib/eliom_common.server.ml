@@ -1398,7 +1398,7 @@ module To_and_of_shared = struct
 
   let create ?client_to_and_of server = {
     server ;
-    client = client_to_and_of ;
+    client = None (* client_to_and_of  *);
     wrapper
   }
 
