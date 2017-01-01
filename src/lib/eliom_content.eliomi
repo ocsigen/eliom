@@ -1037,15 +1037,15 @@ module Xml : sig
 
 end
 
-module Xml_shared : Xml_sigs.T
-  with type 'a W.t = 'a Eliom_shared.React.S.t
-   and type 'a W.tlist = 'a Eliom_shared.ReactiveData.RList.t
-   and type event_handler =
-         (Dom_html.event Js.t -> unit) Eliom_client_value.t
-   and type mouse_event_handler =
-         (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
-   and type keyboard_event_handler =
-         (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+(* module Xml_shared : Xml_sigs.T *)
+(*   with type 'a W.t = 'a Eliom_shared.React.S.t *)
+(*    and type 'a W.tlist = 'a Eliom_shared.ReactiveData.RList.t *)
+(*    and type event_handler = *)
+(*          (Dom_html.event Js.t -> unit) Eliom_client_value.t *)
+(*    and type mouse_event_handler = *)
+(*          (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t *)
+(*    and type keyboard_event_handler = *)
+(*          (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t *)
 
 (** Building and pretty-printing valid SVG tree.
 Information about Svg api can be found at {% <<a_api project="tyxml" | module Svg_sigs.T >> %}*)
@@ -1089,26 +1089,26 @@ module Svg : sig
 
   end
 
-  (** Creation of SVG content from shared reactive signals and data
-      ({% <<a_api project="eliom" subproject="server"|module Eliom_shared>> %}).
-      For the operations provided, see
-      {% <<a_api project="tyxml" | module Svg_sigs.T >> %}. *)
-  module R : sig
+  (* (\** Creation of SVG content from shared reactive signals and data *)
+  (*     ({% <<a_api project="eliom" subproject="server"|module Eliom_shared>> %}). *)
+  (*     For the operations provided, see *)
+  (*     {% <<a_api project="tyxml" | module Svg_sigs.T >> %}. *\) *)
+  (* module R : sig *)
 
-    module Raw : Svg_sigs.Make(Xml_shared).T
-      with type 'a elt = 'a elt
-       and type 'a attrib = 'a attrib
+  (*   module Raw : Svg_sigs.Make(Xml_shared).T *)
+  (*     with type 'a elt = 'a elt *)
+  (*      and type 'a attrib = 'a attrib *)
 
-    include module type of Raw
+  (*   include module type of Raw *)
 
-    (** [pcdata] is not implemented reactively for SVG. *)
-    val pcdata : string Xml.W.t -> [> `Unimplemented ]
+  (*   (\** [pcdata] is not implemented reactively for SVG. *\) *)
+  (*   val pcdata : string Xml.W.t -> [> `Unimplemented ] *)
 
-    (** [node s] produces an ['a elt] out of the shared reactive
-        signal [s]. *)
-    val node : 'a elt Eliom_shared.React.S.t -> 'a elt
+  (*   (\** [node s] produces an ['a elt] out of the shared reactive *)
+  (*       signal [s]. *\) *)
+  (*   val node : 'a elt Eliom_shared.React.S.t -> 'a elt *)
 
-  end
+  (* end *)
 
   (** Creation of content from client-side values.  This makes
       possible to insert in server side generated pages some nodes
@@ -1305,32 +1305,32 @@ module Html : sig
 
   end
 
-  (** Creation of HTML content from shared reactive signals and data
-      ({% <<a_api project="eliom" subproject="server"|module Eliom_shared>> %}).
-      For the operations provided, see
-      {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
-  module R : sig
+  (* (\** Creation of HTML content from shared reactive signals and data *)
+  (*     ({% <<a_api project="eliom" subproject="server"|module Eliom_shared>> %}). *)
+  (*     For the operations provided, see *)
+  (*     {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *\) *)
+  (* module R : sig *)
 
-    include Html_sigs.Make(Xml_shared)(Svg.R.Raw).T
-      with type 'a elt = 'a elt
-       and type 'a attrib = 'a attrib
+  (*   include Html_sigs.Make(Xml_shared)(Svg.R.Raw).T *)
+  (*     with type 'a elt = 'a elt *)
+  (*      and type 'a attrib = 'a attrib *)
 
-    (** [pcdata s] produces a node of type
-        [\[> Html_types.span\] elt]
-        out of the string signal [s]. *)
-    val pcdata :
-      string Eliom_shared.React.S.t -> [> Html_types.span] elt
+  (*   (\** [pcdata s] produces a node of type *)
+  (*       [\[> Html_types.span\] elt] *)
+  (*       out of the string signal [s]. *\) *)
+  (*   val pcdata : *)
+  (*     string Eliom_shared.React.S.t -> [> Html_types.span] elt *)
 
-    (** [node s] produces an ['a elt] out of the shared reactive
-        signal [s]. *)
-    val node : 'a elt Eliom_shared.React.S.t -> 'a elt
+  (*   (\** [node s] produces an ['a elt] out of the shared reactive *)
+  (*       signal [s]. *\) *)
+  (*   val node : 'a elt Eliom_shared.React.S.t -> 'a elt *)
 
-    (** [filter_attrib a b] amounts to the attribute [a] while [b] is
-        [true], and to no attribute while [b] is [false]. *)
-    val filter_attrib :
-      'a attrib -> bool Eliom_shared.React.S.t -> 'a attrib
+  (*   (\** [filter_attrib a b] amounts to the attribute [a] while [b] is *)
+  (*       [true], and to no attribute while [b] is [false]. *\) *)
+  (*   val filter_attrib : *)
+  (*     'a attrib -> bool Eliom_shared.React.S.t -> 'a attrib *)
 
-  end
+  (* end *)
 
   (** Type-safe custom data for HTML.
       See the {% <<a_manual chapter="clientserver-html"

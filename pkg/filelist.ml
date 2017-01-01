@@ -11,7 +11,7 @@ let server = {
     "eliom_parameter_sigs";
     "eliom_registration_sigs";
     "eliom_service_sigs";
-    "eliom_shared_sigs";
+    (* "eliom_shared_sigs"; *)
   ];
   interface = [
     "eliom_bus";
@@ -29,8 +29,8 @@ let server = {
     "eliom_notif";
     "eliom_parameter";
     "eliom_react";
-    "eliom_shared";
-    "eliom_cscache";
+    (* "eliom_shared"; *)
+    (* "eliom_cscache"; *)
     "eliom_reference";
     "eliom_registration";
     "eliom_request_info";
@@ -57,7 +57,7 @@ let server = {
     "eliom_service_base";
     "eliom_route";
     "eliom_route_base";
-    "eliom_shared_content";
+    (* "eliom_shared_content"; *)
     "eliom_types_base";
     "eliommod";
     "eliommod_cli";
@@ -81,7 +81,7 @@ let client = {
     "eliom_parameter_sigs";
     "eliom_registration_sigs";
     "eliom_service_sigs";
-    "eliom_shared_sigs";
+    (* "eliom_shared_sigs"; *)
   ];
   interface = [
     "eliom_bus";
@@ -96,8 +96,8 @@ let client = {
     "eliom_lib";
     "eliom_parameter";
     "eliom_react";
-    "eliom_shared";
-    "eliom_cscache";
+    (* "eliom_shared"; *)
+    (* "eliom_cscache"; *)
     "eliom_registration";
     "eliom_service";
     "eliom_tools";
@@ -121,7 +121,7 @@ let client = {
     "eliom_service_base";
     "eliom_route";
     "eliom_route_base";
-    "eliom_shared_content";
+    (* "eliom_shared_content"; *)
     "eliom_types_base";
     "eliommod_cookies";
     "eliommod_dom";
