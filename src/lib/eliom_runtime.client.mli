@@ -1,6 +1,6 @@
 
-type ('a[@client]) fragment = 'a Eliom_client_value.t
-    
+type 'a fragment = 'a Eliom_client_value.t
+
 (** Look-up of the value of an injection in the global injection table. *)
 val get_injection : ?ident:string -> ?pos:Eliom_lib.pos -> string -> 'a
 

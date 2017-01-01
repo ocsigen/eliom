@@ -19,7 +19,7 @@
 
 open Eliom_client_core
 
-type ('a[@client]) fragment = 'a Eliom_client_value.t
+type 'a fragment = 'a Eliom_client_value.t
 
 let register_client_closure ~closure_id closure =
   Client_closure.register ~closure_id ~closure
