@@ -17,7 +17,6 @@ true:keep_locs
 
 "lib":include
 <lib/**/*.{ml,mli,eliom,eliomi}>: \
-  client-I(src/lib/client), server-I(src/lib/server), \
   thread, \
   package(lwt,lwt.ppx,react,tyxml.functor,js_of_ocaml.deriving.ppx), \
   server-package(lwt,ocsigenserver,ocsigenserver.ext), \

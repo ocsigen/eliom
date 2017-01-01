@@ -1,15 +1,8 @@
+[@@@ocaml.warning "-29"]
+
 open Ocamlbuild_plugin
 module Pack = Ocamlbuild_pack
 
-let copy_rule name src prod =
-  rule name ~dep:src ~prod
-      (fun env _ ->
-         let prod = env prod in
-         let src = env src in
-         (* f env (Pathname.dirname prod) (Pathname.basename prod) src prod; *)
-         Pack.Shell.mkdir_p (Filename.dirname prod);
-         cp src prod
-      )
 let init ?runtime () =
   let module Eliom_rules = struct
 open Pack ;;
