@@ -57,7 +57,7 @@ sig
   val init : unit -> unit Lwt.t
 
   (** Deinitialise/deactivate the notification module for the current client. *)
-  val deinit : unit -> unit Lwt.t
+  val deinit : unit -> unit
 
   (** Make client process listen on data whose index is [key] *)
   val listen : key -> unit
@@ -71,7 +71,7 @@ sig
       [sitedata] by itself, otherwise it needs to be supplied by the caller. *)
     val unlisten :
       ?sitedata:Eliom_common.sitedata ->
-      ([< `Client_process ], [< `Data | `Pers ]) Eliom_state.Ext.state
+      ([< `Client_process ], [< `Data ]) Eliom_state.Ext.state
       -> key -> unit
   end
 
@@ -103,7 +103,7 @@ sig
            ]
 
   *)
-  val client_ev : unit -> (key * client_notif) Eliom_react.Down.t Lwt.t
+  val client_ev : unit -> (key * client_notif) Eliom_react.Down.t
 
 
   (** Call [clean ()] to clear the tables from empty data. *)

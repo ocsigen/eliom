@@ -12,17 +12,17 @@ module type S = sig
   type server_notif
   type client_notif
   val init : unit -> unit Lwt.t
-  val deinit : unit -> unit Lwt.t
+  val deinit : unit -> unit
   val listen : key -> unit
   val unlisten : key -> unit
   module Ext : sig
     val unlisten :
       ?sitedata:Eliom_common.sitedata ->
-      ([< `Client_process ], [< `Data | `Pers ]) Eliom_state.Ext.state
+      ([< `Client_process ], [< `Data ]) Eliom_state.Ext.state
       -> key -> unit
   end
   val notify : ?notfor:[`Me | `Id of identity] -> key -> server_notif -> unit
-  val client_ev : unit -> (key * client_notif) Eliom_react.Down.t Lwt.t
+  val client_ev : unit -> (key * client_notif) Eliom_react.Down.t
   val clean : unit -> unit
 end
 
@@ -123,16 +123,17 @@ module Make (A : ARG) : S
 
   end
 
-  let identity_r : (A.identity * notification_react) option Eliom_reference.eref =
-    Eliom_reference.eref
+  let identity_r
+    : (A.identity * notification_react) option Eliom_reference.Volatile.eref =
+    Eliom_reference.Volatile.eref
       ~scope:Eliom_common.default_process_scope
       None
 
   (* notif_e consists in a server side react event,
      its client side counterpart,
      and the server side function to trigger it. *)
-  let notif_e : notification_react Eliom_reference.eref =
-    Eliom_reference.eref_from_fun
+  let notif_e : notification_react Eliom_reference.Volatile.eref =
+    Eliom_reference.Volatile.eref_from_fun
       ~scope:Eliom_common.default_process_scope
       (fun () ->
          let e, send_e = React.E.create () in
@@ -155,54 +156,49 @@ module Make (A : ARG) : S
        because the table resourceid -> (identity, notif_ev) option
        is weak.
     *)
-    Eliom_reference.get notif_e >>= fun notif_e ->
-    Eliom_reference.set identity_r (Some (identity, notif_e))
+    let notif_e = Eliom_reference.Volatile.get notif_e in
+    Eliom_reference.Volatile.set identity_r (Some (identity, notif_e))
 
   let set_current_identity () =
     A.get_identity () >>= fun identity ->
-    set_identity identity
+    set_identity identity;
+    Lwt.return ()
 
   let init : unit -> unit Lwt.t = fun () ->
     set_current_identity ()
 
-  let deinit : unit -> unit Lwt.t = fun () ->
-    Eliom_reference.set identity_r None
+  let deinit () = Eliom_reference.Volatile.set identity_r None
 
+  let listen (key : A.key) =
+    let identity = Eliom_reference.Volatile.get identity_r in
+    I.add identity key
 
-  let listen (key : A.key) = Lwt.async (fun () ->
-    Eliom_reference.get identity_r >>= fun identity ->
-    I.add identity key;
-    Lwt.return ()
-  )
-
-  let unlisten (id : A.key) = Lwt.async (fun () ->
-    Eliom_reference.get identity_r >>= fun identity ->
-    I.remove identity id;
-    Lwt.return ()
-  )
+  let unlisten (id : A.key) =
+    let identity = Eliom_reference.Volatile.get identity_r in
+    I.remove identity id
 
   module type Ext = sig
     val unlisten :
       ?sitedata:Eliom_common.sitedata ->
-      ([< `Session | `Session_group ], [< `Data | `Pers ]) Eliom_state.Ext.state
+      ([< `Session | `Session_group ], [< `Data ]) Eliom_state.Ext.state
       -> key -> unit
   end
 
   module Ext = struct
-    let unlisten ?sitedata state (key : A.key) = Lwt.async @@ fun () ->
-      let%lwt uc = Eliom_reference.Ext.get state identity_r in
-      Lwt.return @@ I.remove uc key
+    let unlisten ?sitedata state (key : A.key) =
+      let uc = Eliom_reference.Volatile.Ext.get state identity_r in
+      I.remove uc key
   end
 
   let notify ?notfor key content =
     let f = fun (identity, ((_, send_e) as notif)) ->
-      let%lwt blocked = match notfor with
+      let blocked = match notfor with
         | Some `Me ->
             (*TODO: fails outside of a request*)
-            Eliom_reference.get notif_e >>= fun notif_e ->
-            Lwt.return (notif == notif_e)
-        | Some (`Id id) -> Lwt.return (identity = id)
-        | None -> Lwt.return false
+            let notif_e = Eliom_reference.Volatile.get notif_e in
+            notif == notif_e
+        | Some (`Id id) -> identity = id
+        | None -> false
       in
       if blocked
       then Lwt.return ()
@@ -215,9 +211,8 @@ module Make (A : ARG) : S
     I.iter f key
 
   let client_ev () =
-    Eliom_reference.get notif_e >>= fun notif_e ->
-    Lwt.return notif_e >>= fun (ev, _) ->
-    Lwt.return ev
+    let (ev, _) = Eliom_reference.Volatile.get notif_e in
+    ev
 
   let clean () =
     let f key weak_tbl =
