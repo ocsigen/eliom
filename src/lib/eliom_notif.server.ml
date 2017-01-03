@@ -1,5 +1,11 @@
 open Lwt
 
+(* We use a hashtable associating resourceid to a weak set of
+   (userid option, notif_ev) corresponding to each tab that want to
+   get updates of this box.
+   We keep a strong reference on these data in process state.
+*)
+
 module type S = sig
   type identity
   type key
@@ -224,7 +230,7 @@ module Make (A : ARG) : S
         | Some content -> send_e (key, content); Lwt.return ()
         | None -> Lwt.return ()
     in
-    (* on all tabs registered on this data *)
+    (* on all tabs listening on this resource *)
     I.iter f key
 
   let client_ev () =

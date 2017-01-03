@@ -1,7 +1,7 @@
 (** Server to client notifications.
 
-    This module makes possible for client side applications to be
-    notified of changes on some indexed data on the server.
+    This module makes it possible for client side applications to be
+    notified of changes on some indexed data (resources) on the server.
 
     Apply functor [Make] or [Make_Simple] for each type of data you want to be
     able to listen on. Each client starts listening on one piece of data by
@@ -16,6 +16,8 @@
 
     The functor will also create a client side react signal that will
     be updated every time the client is notified.
+
+    See module Os_notif in Ocsigen Start for an example of use.
 *)
 
 (* TODO: allow for specifying the scope instead of hard-wiring
