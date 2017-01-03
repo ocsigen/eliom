@@ -23,7 +23,7 @@ module type S = sig
   end
   val notify : ?notfor:[`Me | `Id of identity] -> key -> server_notif -> unit
   val client_ev : unit -> (key * client_notif) Eliom_react.Down.t Lwt.t
-  val clean : unit -> unit Lwt.t
+  val clean : unit -> unit
 end
 
 module type ARG = sig
@@ -78,31 +78,18 @@ module Make (A : ARG) : S
 
     let tbl = Notif_hashtbl.create A.max_resource
 
-    let lock = Lwt_mutex.create ()
-
-    let async_locked f = Lwt.async (fun () ->
-      Lwt_mutex.lock lock >>= fun () ->
-      f ();
-      Lwt.return (Lwt_mutex.unlock lock)
-    )
-
-    let remove_if_empty wt key = async_locked (fun () ->
+    let remove_if_empty wt key =
       if Weak_tbl.count wt = 0
       then Notif_hashtbl.remove tbl key
-    )
 
-    let remove v key = async_locked (fun () ->
-      let () =
-        try
-          let wt = Notif_hashtbl.find tbl key in
-          Weak_tbl.remove wt v;
-          remove_if_empty wt key
-        with Not_found -> ()
-      in
-      Lwt.return ()
-    )
+    let remove v key =
+      try
+        let wt = Notif_hashtbl.find tbl key in
+        Weak_tbl.remove wt v;
+        remove_if_empty wt key
+      with Not_found -> ()
 
-    let add v key = async_locked (fun () ->
+    let add v key =
       let wt =
         try
           Notif_hashtbl.find tbl key
@@ -112,9 +99,7 @@ module Make (A : ARG) : S
           wt
       in
       if not (Weak_tbl.mem wt v)
-      then Weak_tbl.add wt v;
-      Lwt.return ()
-    )
+      then Weak_tbl.add wt v
 
     let iter =
       let iter (f : Weak_tbl.data -> unit Lwt.t) wt : unit =
@@ -122,24 +107,20 @@ module Make (A : ARG) : S
           (fun data -> Lwt.async (fun () -> f data))
           wt
       in
-      fun f key -> async_locked (fun () ->
-        let () =
-          try
-            let wt = Notif_hashtbl.find tbl key in
-            let g data = match data with
-              | None ->
-                Weak_tbl.remove wt data;
-                remove_if_empty wt key;
-                Lwt.return ()
-              | Some v ->
-                f v;
-                Lwt.return ()
-            in
-            iter g wt;
-          with Not_found -> ()
-        in
-        Lwt.return ()
-      )
+      fun f key ->
+        try
+          let wt = Notif_hashtbl.find tbl key in
+          let g data = match data with
+            | None ->
+              Weak_tbl.remove wt data;
+              remove_if_empty wt key;
+              Lwt.return ()
+            | Some v ->
+              f v
+          in
+          iter g wt;
+        with Not_found -> ()
+
   end
 
   let identity_r : (A.identity * notification_react) option Eliom_reference.eref =
@@ -239,11 +220,11 @@ module Make (A : ARG) : S
     Lwt.return ev
 
   let clean () =
-    let f key weak_tbl = I.async_locked (fun () ->
+    let f key weak_tbl =
       if Weak_tbl.count weak_tbl = 0
       then Notif_hashtbl.remove I.tbl key
-    ) in
-    Lwt.return @@ Notif_hashtbl.iter f I.tbl
+    in
+    Notif_hashtbl.iter f I.tbl
 
 end
 

@@ -106,9 +106,8 @@ sig
   val client_ev : unit -> (key * client_notif) Eliom_react.Down.t Lwt.t
 
 
-  (** Call [clean ()] to launch an asynchronous thread clearing the tables
-      from empty data. *)
-  val clean : unit -> unit Lwt.t
+  (** Call [clean ()] to clear the tables from empty data. *)
+  val clean : unit -> unit
 
 end
 
