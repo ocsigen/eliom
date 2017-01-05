@@ -1,7 +1,7 @@
 (** Server to client notifications.
 
-    This module makes possible for client side applications to be
-    notified of changes on some indexed data on the server.
+    This module makes it possible for client side applications to be
+    notified of changes on some indexed data (resources) on the server.
 
     Apply functor [Make] or [Make_Simple] for each type of data you want to be
     able to listen on. Each client starts listening on one piece of data by
@@ -16,6 +16,8 @@
 
     The functor will also create a client side react signal that will
     be updated every time the client is notified.
+
+    See module Os_notif in Ocsigen Start for an example of use.
 *)
 
 (* TODO: allow for specifying the scope instead of hard-wiring
@@ -55,7 +57,7 @@ sig
   val init : unit -> unit Lwt.t
 
   (** Deinitialise/deactivate the notification module for the current client. *)
-  val deinit : unit -> unit Lwt.t
+  val deinit : unit -> unit
 
   (** Make client process listen on data whose index is [key] *)
   val listen : key -> unit
@@ -69,7 +71,7 @@ sig
       [sitedata] by itself, otherwise it needs to be supplied by the caller. *)
     val unlisten :
       ?sitedata:Eliom_common.sitedata ->
-      ([< `Client_process ], [< `Data | `Pers ]) Eliom_state.Ext.state
+      ([< `Client_process ], [< `Data ]) Eliom_state.Ext.state
       -> key -> unit
   end
 
@@ -101,12 +103,11 @@ sig
            ]
 
   *)
-  val client_ev : unit -> (key * client_notif) Eliom_react.Down.t Lwt.t
+  val client_ev : unit -> (key * client_notif) Eliom_react.Down.t
 
 
-  (** Call [clean ()] to launch an asynchronous thread clearing the tables
-      from empty data. *)
-  val clean : unit -> unit Lwt.t
+  (** Call [clean ()] to clear the tables from empty data. *)
+  val clean : unit -> unit
 
 end
 
