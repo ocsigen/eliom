@@ -1,10 +1,28 @@
-(* Copyright Vincent Balat *)
+œ(* Copyright Vincent Balat *)
 
 (** Client-server cache for Eliom applications, that is used both for
     keeping data on client side or keeping values in memory during a
-    request.  This module hides many subtelties that are useful for
+    request.
+
+    When you get a piece of data through Eliom_cscache from client-side,
+    the request to the server is done only if the data is not already in
+    the client-side cache.
+
+    On server side, Eliom_cscache is using a temporary cache
+    (with "request" scope) to avoid fetching the data several time from the
+    database during the same request. This server-side cache is
+    automatically sent to the client to fill the client-side
+    cache. If you want to avoid too many requests from the
+    client, prefill the server-side cache with the data the
+    client program will need.
+
+    This module hides many subtelties that are useful for
     client-server (possibly reactive) applications, like, for example,
     handling delays correctly both on client and server sides.
+
+    In the near future, Eliom_cscache will make it possible to save persistent
+    data, which is useful for implementing off-line applications.
+
 *)
 
 [%%shared.start]
