@@ -329,14 +329,12 @@ corresponding forms.
 
 
 Eliom_parameter.regexp allows parsing page parameters using (Perl-compatible)
-regular expressions. We use the module <<span class="code"|Netstring_pcre>>,
-from //OCamlnet//. See the documentation about OCamlnet
-for more information.
+regular expressions. We use the OCaml <<span class="code"|Pcre>> bindings.
 The following example shows a service that accepts only parameters
 values enclosed between <<span class="code"|[>> and <<span class="code"|]>>:
 
 <<code language="ocaml"|
-let r = Netstring_pcre.regexp "\\\\[(.*)\\\\]"
+let r = Pcre.regexp "\\\\[(.*)\\\\]"
 
 let regexp =
   Eliom_registration.Html.create
@@ -352,7 +350,7 @@ let regexp =
 
 >>
 
-<<code language="ocaml"|let myregexp = Netstring_pcre.regexp "\\[(.*)\\]"
+<<code language="ocaml"|let myregexp = Pcre.regexp "\\[(.*)\\]"
 
 let regexpserv =
   Eliom_registration.Html.create

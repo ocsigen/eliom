@@ -1625,7 +1625,7 @@ let sendfileregexp =
           (head (title (pcdata "")) [])
           (body [h1 [pcdata "With a suffix, that page will send a file"]])))
 
-let r = Netstring_pcre.regexp "~([^/]*)(.*)"
+let r = Pcre.regexp "~([^/]*)(.*)"
 
 let sendfile2 =
   Eliom_registration.File.create

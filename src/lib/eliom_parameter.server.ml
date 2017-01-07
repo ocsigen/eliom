@@ -60,8 +60,8 @@ let all_suffix_user
 let regexp reg dest ~to_string n =
   user_type
     (fun s ->
-       match Netstring_pcre.string_match reg s 0 with
-         | Some _ ->
+       try
+         ignore (Pcre.exec ~rex:reg ~flags:[`ANCHORED] ~pos:0 s);
            begin
              try
                Ocsigen_extensions.replace_user_dir reg
@@ -69,7 +69,8 @@ let regexp reg dest ~to_string n =
              with Ocsigen_extensions.NoSuchUser ->
                raise (Failure "User does not exist")
            end
-         | _ -> raise (Failure "Regexp not matching"))
+       with Not_found ->
+         raise (Failure "Regexp not matching"))
     to_string
     n
 
@@ -77,8 +78,8 @@ let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string) :
   (string, [`Endsuffix], [ `One of string ] param_name) params_type =
   all_suffix_user
     (fun s ->
-       match Netstring_pcre.string_match reg s 0 with
-         | Some _ ->
+       try
+         Pcre.exec ~rex:reg ~flags:[`ANCHORED] ~pos:0 s;
            begin
              try
                Ocsigen_extensions.replace_user_dir reg
@@ -86,7 +87,8 @@ let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string) :
              with Ocsigen_extensions.NoSuchUser ->
                raise (Failure "User does not exist")
            end
-         | _ -> raise (Failure "Regexp not matching"))
+       with Not_found ->
+         raise (Failure "Regexp not matching"))
     to_string
     n
 

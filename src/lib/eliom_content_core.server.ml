@@ -146,14 +146,14 @@ module Xml = struct
     let empty_name = "" in
     empty_name,RAClient (crypto,init,Eliom_lib.to_poly x)
 
-  let closing_cdata = Netstring_pcre.regexp_string "]]>"
+  let closing_cdata = Pcre.regexp (Pcre.quote "]]>")
 
   let cdata s = (* GK *)
     (* For security reasons, we do not allow "]]>" inside CDATA
        (as this string is to be considered as the end of the cdata)
      *)
     let s' = "\n<![CDATA[\n"^
-      (Netstring_pcre.global_replace closing_cdata "" s)
+      Pcre.replace ~rex:closing_cdata ~itempl:(Pcre.subst "") s
       ^"\n]]>\n" in
     encodedpcdata s'
 
@@ -162,7 +162,7 @@ module Xml = struct
        (as this string is to be considered as the end of the cdata)
      *)
     let s' = "\n//<![CDATA[\n"^
-      (Netstring_pcre.global_replace closing_cdata "" s)
+      Pcre.replace ~rex:closing_cdata ~itempl:(Pcre.subst "") s
       ^"\n//]]>\n" in
     encodedpcdata s'
 
@@ -171,7 +171,7 @@ module Xml = struct
        (as this string is to be considered as the end of the cdata)
      *)
     let s' = "\n/* <![CDATA[ */\n"^
-      (Netstring_pcre.global_replace closing_cdata "" s)
+      Pcre.replace ~rex:closing_cdata ~itempl:(Pcre.subst "") s
       ^"\n/* ]]> */\n" in
     encodedpcdata s'
 
