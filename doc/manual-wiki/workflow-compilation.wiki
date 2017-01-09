@@ -104,7 +104,6 @@ end)
 
 let () = Ocamlbuild_plugin.dispatch M.dispatcher
 >>
-(if you are using OASIS, see also the next section)
 
 The {{{client_dir}}}, {{{server_dir}}} and {{{type_dir}}} values are
 directories (relative the location of each eliom file) that are used for
@@ -155,68 +154,108 @@ ocamlbuild -use-ocamlfind -plugin-tags "package(eliom.ocamlbuild)" \
 This creates the {{{server/yoursite.cma}}} and {{{client/yoursite.js}}}
 files required by {{{ocsigenserver}}} inside {{{_build}}}.
 
-==Using {{{ocamlbuild and OASIS}}} (ocaml >= 4.01 and eliom >= 4 only)
+==Using {{{OASIS}}} (ocaml >= 4.01)
 
-After having created the _oasis with the corresponding Library and Executable
-sections, please read the above selection on ocamlbuild.
-You don't need to create the .mllib since it is auto-generated.
-Dependencies are also handled by OASIS.
+Here follows a simple way to set up an OASIS environment that supports Eliom.
 
 Your {{{_oasis}}} file should look like this:
 {{{
 OASISFormat: 0.4
-Name: your-application
-Version: 1.0
-Synopsis: a description
-Authors: You
-License: MIT
+Name: <fill>
+Version: <fill>
+Synopsis: <fill>
+Authors: <fill>
+License: <fill>
 AlphaFeatures: ocamlbuild_more_args, compiled_setup_ml
-Plugins: DevFiles (0.3), META (0.3)
+Plugins: DevFiles (0.4)
 BuildTools: ocamlbuild
 XOCamlbuildPluginTags: package(eliom.ocamlbuild)
 OCamlVersion: >= 4.01
+PostBuildCommand: cp _build/src/client/app.js static/
 
-Library "yourapp"
+Library "server"
   Path: src
-  Modules:
-    server/AnEliomFile, # the .eliom files are in fact located in src
-# but specifying server/ is necessary to indicate that the server
-# part is included here
-    Amodule # .ml modules are refered normally as simple modules
-  BuildDepends:
-    eliom.server,
-    andotherdep
-  DataFiles:
-    ../_build/src/client/yourprogram.js # If you want to install the .js
+  Modules: server/Main
+  BuildDepends: eliom.server
 
-Executable "yourprogram"
-  Install: false # We normally don't install the client bytecode file
-  Path: src/client
-  MainIs: yourprogram.ml # Main file. It should refer to all the modules
-# used for this program (including .eliom files)
-  BuildDepends:
-    eliom.client
-  CompiledObject: byte # since a js executable only needs the bytecode
+Executable "client"
+  Install: false
+  Path: src
+  MainIs: client/app.ml
+  BuildDepends: eliom.client, js_of_ocaml.ppx, lwt.ppx
+  CompiledObject: byte
 }}}
 
-If you want to use OASIS, the dispatch call should looks like this:
+* The *.eliom modules have to be prefixed by {{{server/}}}. All your source
+files must be placed in the {{{src}}} directory (NOT in {{{src/server}}});
+* The server parts of the {{{*.eliom}}} files in {{{src}}} will be added in
+{{{src/server}}} because of the dispatcher we will install just after;
+* The client parts will go to {{{src/client}}};
+* The {{{src/client/app.ml}}} file should just open every module required for
+the client part (including all {{{*.eliom}}} modules);
+* This setup uses the PPX extension points (not camlp4);
+* The client bytecode does not need to be installed, we are only interrested in
+the {{{app.js}}} file generated.
 
-<<code language="ocaml"|
+Replace the default dispatcher at the end of {{{myocamlbuild.ml}}} by the
+following (after OASIS_STOP):
+{{{code language="ocaml"|
+module M = Ocamlbuild_eliom.Make (struct
+  let client_dir = "client"
+  let server_dir = "server"
+  let type_dir = "type"
+end)
+
 let () =
   Ocamlbuild_plugin.dispatch
-    (fun hook ->
-       dispatch_default hook;
-       M.dispatcher
-         ~oasis_executables:["src/client/theprogram.byte"]
-         hook;
-    )
->>
+  (fun hook ->
+    dispatch_default hook;
+    M.dispatcher ~oasis_executables:["src/client/app.byte"] hook)
+}}}
 
-If you don't need a JavaScript executable (when building a library
-containing .eliom files, for instance), you can remove the line with
-{{{~oasis_executables}}}.
+The following configuration has to be added at the end of the {{{_tags}}} file:
+{{{
+<**/*.eliom{,i}>: eliom_ppx
+<src/{server,type}/*.ml{,i}>: thread
+"src/client/app.js": package(eliom.client)
+}}}
 
-Be careful to always add those parts after the OASIS END block.
+Finally, in order to run your server, you need a configuration file (here we
+name it {{{run.conf}}}) like:
+{{{
+<ocsigen>
+  <server>
+    <port>8080</port>
+    
+    <logdir>local/var/log/projectname</logdir>
+    <datadir>local/var/data/projectname</datadir>
+    <charset>utf-8</charset>
+    
+    <commandpipe>local/var/run/projectname-cmd</commandpipe>
+    <extension findlib-package="ocsigenserver.ext.staticmod"/>
+    <extension findlib-package="ocsigenserver.ext.ocsipersist-sqlite"/>
+    <extension findlib-package="eliom.server"/>
+    
+    <host hostfilter="*">
+      <static dir="static" />
+      <static dir="local/var/www/projectname/eliom" />
+      <eliommodule module="_build/src/server.cma" />
+      <eliom/>
+    </host>
+  </server>
+</ocsigen>
+}}}
+Don't forget to create any necessary directory.
+
+You should now be able to compile and run your website on {{{localhost:8080}}}
+using:
+
+{{{
+oasis setup
+ocaml setup.ml -configure
+ocaml setup.ml -build
+ocsigenserver -c run.conf
+}}}
 
 ==[EXPERIMENTAL] Using {{{eliomdoc}}} and {{{eliompp}}}
 You can use {{{eliomdoc}}} to generate the documentation of your project.
