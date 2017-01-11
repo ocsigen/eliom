@@ -18,8 +18,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 *)
 
-(*****************************************************************************)
 (* Building href *)
+
+let app_path = ref None
+
+let set_app_path p = app_path := Some p
+
 let rec string_of_url_path' = function
   | [] -> ""
   | [a] when a = Eliom_common.eliom_suffix_internal_name -> ""
@@ -536,7 +540,7 @@ let make_post_uri_components_
 
     let ssl = Eliom_request_info.get_csp_ssl_sp sp in
     let https = is_https https ssl service in
-    let absolute =
+    let absolute' =
       if absolute || https <> ssl
       then Some (make_proto_prefix ?hostname ?port https)
       else if absolute_path
@@ -547,10 +551,12 @@ let make_post_uri_components_
 
     (* absolute URL does not work behind a reverse proxy! *)
     let uri =
-      match absolute with
-      | Some proto_prefix ->
+      match absolute', !app_path with
+      | Some proto_prefix, Some app_path when absolute ->
+        proto_prefix ^ app_path
+      | Some proto_prefix, _ ->
         proto_prefix^Eliom_request_info.get_original_full_path_string_sp sp
-      | None ->
+      | None, _ ->
         reconstruct_relative_url_path_string
           (Eliom_request_info.get_csp_original_full_path_sp sp)
           (Eliom_request_info.get_original_full_path_sp sp)

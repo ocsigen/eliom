@@ -70,8 +70,12 @@ let get_global_data () =
     None
 
 let init_client_app
-    ~app_name ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
+    ?app_path ~app_name
+    ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
   Lwt_log.ign_debug_f "Eliom_client.init_client_app called.";
+  (match app_path with
+   | Some app_path -> Eliom_uri.set_app_path app_path;
+   | None -> ());
   Eliom_process.appl_name_r := Some app_name;
   Eliom_request_info.client_app_initialised := true;
   Eliom_process.set_sitedata
@@ -116,17 +120,24 @@ let init () =
   && Js.Unsafe.global##.___eliom_server_ <> Js.undefined
   && Js.Unsafe.global##.___eliom_app_name_ <> Js.undefined
   then begin
-    let app_name = Js.to_string (Js.Unsafe.global##.___eliom_app_name_) in
+    let app_name = Js.to_string (Js.Unsafe.global##.___eliom_app_name_)
+    and app_path =
+      Js.Optdef.case
+        Js.Unsafe.global##.___eliom_path_
+        (fun () -> None)
+        (fun p -> Some (Js.to_string p))
+    in
     match
       Url.url_of_string (Js.to_string (Js.Unsafe.global##.___eliom_server_))
     with
     | Some (Http { hu_host; hu_port; hu_path; _ }) ->
       init_client_app
-        ~app_name
-        ~ssl:false ~hostname:hu_host ~port:hu_port ~full_path:hu_path ()
+        ~app_name ?app_path
+        ~ssl:false ~hostname:hu_host ~port:hu_port ~full_path:hu_path
+        ()
     | Some (Https { hu_host; hu_port; hu_path; _ }) ->
       init_client_app
-        ~app_name
+        ~app_name ?app_path
         ~ssl:true ~hostname:hu_host ~port:hu_port ~full_path:hu_path ()
     | _ -> ()
   end;

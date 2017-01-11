@@ -35,6 +35,7 @@ open Eliom_lib
     at the beginning of your html
     file, containing the full URL of your server. *)
 val init_client_app :
+  ?app_path:string ->
   app_name:string ->
   ?ssl:bool ->
   hostname:string ->
