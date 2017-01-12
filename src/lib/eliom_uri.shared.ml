@@ -22,7 +22,23 @@
 
 let app_path = ref None
 
-let set_app_path p = app_path := Some p
+let set_app_path p =
+  (* remove "" from beginning and end of path *)
+  let p =
+    match p with
+    | "" :: p ->
+      p
+    | _ ->
+      p
+  in
+  let p =
+    match List.rev p with
+    | "" :: p ->
+      List.rev p
+    | _ ->
+      p
+  in
+  app_path := Some p
 
 let rec string_of_url_path' = function
   | [] -> ""
@@ -548,12 +564,11 @@ let make_post_uri_components_
       else None
     in
 
-
     (* absolute URL does not work behind a reverse proxy! *)
     let uri =
       match absolute', !app_path with
       | Some proto_prefix, Some app_path when absolute ->
-        proto_prefix ^ app_path
+        proto_prefix ^ (String.concat "/" app_path) ^ "/"
       | Some proto_prefix, _ ->
         proto_prefix^Eliom_request_info.get_original_full_path_string_sp sp
       | None, _ ->

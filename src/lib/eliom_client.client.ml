@@ -74,7 +74,8 @@ let init_client_app
     ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
   Lwt_log.ign_debug_f "Eliom_client.init_client_app called.";
   (match app_path with
-   | Some app_path -> Eliom_uri.set_app_path app_path;
+   | Some app_path ->
+     Eliom_uri.set_app_path (Eliom_lib.Url.split_path app_path);
    | None -> ());
   Eliom_process.appl_name_r := Some app_name;
   Eliom_request_info.client_app_initialised := true;

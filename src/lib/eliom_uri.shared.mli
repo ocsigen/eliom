@@ -216,4 +216,4 @@ val make_cookies_info :
 
 (**/**)
 
-val set_app_path : string -> unit
+val set_app_path : string list -> unit
