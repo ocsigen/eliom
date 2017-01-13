@@ -20,9 +20,26 @@
 
 (* Building href *)
 
+(* Only relevant on the client. Set by client apps.
+
+   This is a workaround for GitHub issue #465.
+
+   Given an app under a certain path and a pathless service, if
+   absolute paths were requested, we would perform requests on
+
+   http://${SERVER}/${LOCAL_PATH},
+
+   where ${LOCAL_PATH} refers to the file system on the mobile
+   device. This is both wrong (because it doesn't take care of the
+   application path) and a security issue. To fix the problem, we add
+   app_path to the URL.
+
+   TODO: see if we can find app_path elsewhere (site data?)
+*)
 let app_path = ref None
 
 let set_app_path p =
+  assert !Eliom_common.is_client_app;
   (* remove "" from beginning and end of path *)
   let p =
     match p with
