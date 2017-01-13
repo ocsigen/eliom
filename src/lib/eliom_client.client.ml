@@ -122,7 +122,16 @@ let onunload_fun _ =
 let onbeforeunload_fun _ = run_onbeforeunload ()
 
 (* Function called (in Eliom_client_main), once when starting the app.
-   Either when sent by a server or initiated on client side. *)
+   Either when sent by a server or initiated on client side.
+
+   For client apps, we read __eliom_server, __eliom_app_name,
+   __eliom_app_path JS variables set by the client app (via the HTML
+   file loading us).
+
+   - __eliom_server   : remote Eliom server to contact
+   - __eliom_app_name : application name
+   - __eliom_app_path : path app is under. We use this path for calls to
+                        server functions (see Eliom_uri). *)
 let init () =
   (* Initialize client app if the __eliom_server variable is defined *)
   if is_client_app ()
