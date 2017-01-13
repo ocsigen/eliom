@@ -257,6 +257,7 @@ type client_process_info =  {
   cpi_hostname : string;
   cpi_server_port : int;
   cpi_original_full_path : Url.path;
+  cpi_app_path : Eliom_lib.Url.path option
 }
 
 type sess_info = {

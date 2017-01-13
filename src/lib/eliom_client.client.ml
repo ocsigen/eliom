@@ -69,14 +69,16 @@ let get_global_data () =
   | _ ->
     None
 
+let normalize_app_path p =
+  (* remove "" from beginning and end of path *)
+  let p = Eliom_lib.Url.split_path p in
+  let p = match  p with "" :: p -> p          | _ -> p in
+  match List.rev p with "" :: p -> List.rev p | _ -> p
+
 let init_client_app
     ?app_path ~app_name
     ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
   Lwt_log.ign_debug_f "Eliom_client.init_client_app called.";
-  (match app_path with
-   | Some app_path ->
-     Eliom_uri.set_app_path (Eliom_lib.Url.split_path app_path);
-   | None -> ());
   Eliom_process.appl_name_r := Some app_name;
   Eliom_request_info.client_app_initialised := true;
   Eliom_process.set_sitedata
@@ -85,7 +87,13 @@ let init_client_app
   Eliom_process.set_info {Eliom_common.cpi_ssl = ssl ;
                           cpi_hostname = hostname;
                           cpi_server_port = port;
-                          cpi_original_full_path = full_path
+                          cpi_original_full_path = full_path;
+                          cpi_app_path =
+                            match app_path with
+                            | Some app_path ->
+                              Some (normalize_app_path app_path);
+                            | None ->
+                              None
                          };
   Eliom_process.set_request_template None;
   (* We set the tab cookie table, with the app name inside: *)

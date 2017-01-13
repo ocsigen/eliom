@@ -213,7 +213,3 @@ val make_cookies_info :
   bool option *
   (_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
   (bool * Url.path) option
-
-(**/**)
-
-val set_app_path : string list -> unit
