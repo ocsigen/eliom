@@ -976,6 +976,27 @@ let change_page_unknown
       `Get
     | _, _ ->
       `Post
+  and i_subpath =
+    let rec f p p' =
+      match p, p' with
+      | h :: t, h' :: t' when h = h' ->
+        f t t'
+      | [], t ->
+        Some t
+      | _ ->
+        None
+    in
+    match Eliom_request_info.get_app_path () with
+    | Some app_path ->
+      (* try to remove application path from path, client routing
+         expects paths without the former *)
+      (match f app_path i_subpath with
+       | Some i_subpath ->
+         i_subpath
+       | None ->
+         i_subpath)
+    | None ->
+      i_subpath
   in
   let%lwt () =
     route ~replace {
