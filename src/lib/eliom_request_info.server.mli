@@ -292,10 +292,6 @@ val expecting_process_page : unit -> bool
 *)
 val get_csp_original_full_path : unit -> Url.path
 
-(** Returns the path under which the application resides. Useful for
-    client apps. Dummy on server, always returns None *)
-val get_app_path : unit -> Url.path option
-
 (** returns the hostname used for absolute links, computed
     when launching the client side process for the first time.
     If there is no client side process,

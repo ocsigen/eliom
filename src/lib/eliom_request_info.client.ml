@@ -154,10 +154,6 @@ let get_csp_original_full_path () =
   then (Eliom_process.get_info ()).Eliom_common.cpi_original_full_path
   else remove_first_slash Url.Current.path
 
-(* Returns application path (used to rewrite URLs for server function
-   calls in client apps. See Eliom_uri. *)
-let get_app_path () = (Eliom_process.get_info ()).Eliom_common.cpi_app_path
-
 let get_csp_original_full_path_sp = get_csp_original_full_path
 
 let get_request_cookies = Eliom_process.get_request_cookies

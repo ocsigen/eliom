@@ -39,7 +39,6 @@ open Eliom_lib
     under. It should correspond to the <site> tag of your server
     configuration. Calls to server functions use this path. *)
 val init_client_app :
-  ?app_path:string ->
   app_name:string ->
   ?ssl:bool ->
   hostname:string ->

@@ -546,8 +546,9 @@ let make_post_uri_components_
 
     (* absolute URL does not work behind a reverse proxy! *)
     let uri =
-      match absolute', Eliom_request_info.get_app_path () with
-      | Some proto_prefix, Some app_path when absolute ->
+      match absolute' with
+      | Some proto_prefix
+        when (absolute && !Eliom_common.is_client_app) ->
         (* Workaround for GitHub issue #465.
 
            Given an app under a certain path and a server function, we
@@ -559,10 +560,11 @@ let make_post_uri_components_
            device. This is both wrong (because it doesn't take care of
            the application path) and a security issue. To fix the
            problem, we add app_path to the URL. *)
-        proto_prefix ^ (String.concat "/" app_path) ^ "/"
-      | Some proto_prefix, _ ->
+        let sd = Eliom_request_info.get_site_dir () in
+        proto_prefix ^ (String.concat "/" sd) ^ "/"
+      | Some proto_prefix ->
         proto_prefix^Eliom_request_info.get_original_full_path_string_sp sp
-      | None, _ ->
+      | None ->
         reconstruct_relative_url_path_string
           (Eliom_request_info.get_csp_original_full_path_sp sp)
           (Eliom_request_info.get_original_full_path_sp sp)

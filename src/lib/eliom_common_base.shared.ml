@@ -211,8 +211,6 @@ type client_process_info =  {
   cpi_hostname : string;
   cpi_server_port : int;
   cpi_original_full_path : Url.path;
-  (* FIXME: is this the same as cpi_original_full_path? *)
-  cpi_app_path : Url.path option
 }
 
 type sess_info =

@@ -570,7 +570,6 @@ let make_server_params
         cpi_server_port = Ocsigen_extensions.get_port ri;
         cpi_original_full_path =
           Ocsigen_extensions.Ocsigen_request_info.original_full_path request_info;
-        cpi_app_path = None
       }
   in
   { sp_request = ri;
@@ -916,7 +915,6 @@ type cpi = client_process_info =  {
   cpi_hostname : string;
   cpi_server_port : int;
   cpi_original_full_path : string list;
-  cpi_app_path : string list option
 } [@@deriving json]
 
 let get_session_info req previous_extension_err =

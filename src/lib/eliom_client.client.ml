@@ -76,8 +76,7 @@ let normalize_app_path p =
   match List.rev p with "" :: p -> List.rev p | _ -> p
 
 let init_client_app
-    ?app_path ~app_name
-    ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
+    ~app_name ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
   Lwt_log.ign_debug_f "Eliom_client.init_client_app called.";
   Eliom_process.appl_name_r := Some app_name;
   Eliom_request_info.client_app_initialised := true;
@@ -87,13 +86,7 @@ let init_client_app
   Eliom_process.set_info {Eliom_common.cpi_ssl = ssl ;
                           cpi_hostname = hostname;
                           cpi_server_port = port;
-                          cpi_original_full_path = full_path;
-                          cpi_app_path =
-                            match app_path with
-                            | Some app_path ->
-                              Some (normalize_app_path app_path);
-                            | None ->
-                              None
+                          cpi_original_full_path = full_path
                          };
   Eliom_process.set_request_template None;
   (* We set the tab cookie table, with the app name inside: *)
@@ -139,24 +132,24 @@ let init () =
   && Js.Unsafe.global##.___eliom_app_name_ <> Js.undefined
   then begin
     let app_name = Js.to_string (Js.Unsafe.global##.___eliom_app_name_)
-    and app_path =
+    and full_path =
       Js.Optdef.case
         Js.Unsafe.global##.___eliom_path_
-        (fun () -> None)
-        (fun p -> Some (Js.to_string p))
+        (fun () -> [])
+        (fun p -> normalize_app_path (Js.to_string p))
     in
     match
       Url.url_of_string (Js.to_string (Js.Unsafe.global##.___eliom_server_))
     with
     | Some (Http { hu_host; hu_port; hu_path; _ }) ->
       init_client_app
-        ~app_name ?app_path
-        ~ssl:false ~hostname:hu_host ~port:hu_port ~full_path:hu_path
+        ~app_name
+        ~ssl:false ~hostname:hu_host ~port:hu_port ~full_path
         ()
     | Some (Https { hu_host; hu_port; hu_path; _ }) ->
       init_client_app
-        ~app_name ?app_path
-        ~ssl:true ~hostname:hu_host ~port:hu_port ~full_path:hu_path ()
+        ~app_name
+        ~ssl:true ~hostname:hu_host ~port:hu_port ~full_path ()
     | _ -> ()
   end;
 
@@ -995,17 +988,13 @@ let change_page_unknown
       | _ ->
         None
     in
-    match Eliom_request_info.get_app_path () with
-    | Some app_path ->
-      (* try to remove application path from path, client routing
-         expects paths without the former *)
-      (match f app_path i_subpath with
-       | Some i_subpath ->
-         i_subpath
-       | None ->
-         i_subpath)
-    | None ->
-      i_subpath
+    (* try to remove application path from path, client routing
+       expects paths without the former *)
+    (match f (Eliom_request_info.get_site_dir ()) i_subpath with
+     | Some i_subpath ->
+       i_subpath
+     | None ->
+       i_subpath)
   in
   let%lwt () =
     route ~replace {
