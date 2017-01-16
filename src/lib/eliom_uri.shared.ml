@@ -18,8 +18,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 *)
 
-(*****************************************************************************)
 (* Building href *)
+
 let rec string_of_url_path' = function
   | [] -> ""
   | [a] when a = Eliom_common.eliom_suffix_internal_name -> ""
@@ -536,7 +536,7 @@ let make_post_uri_components_
 
     let ssl = Eliom_request_info.get_csp_ssl_sp sp in
     let https = is_https https ssl service in
-    let absolute =
+    let absolute' =
       if absolute || https <> ssl
       then Some (make_proto_prefix ?hostname ?port https)
       else if absolute_path
@@ -544,10 +544,24 @@ let make_post_uri_components_
       else None
     in
 
-
     (* absolute URL does not work behind a reverse proxy! *)
     let uri =
-      match absolute with
+      match absolute' with
+      | Some proto_prefix
+        when (absolute && !Eliom_common.is_client_app) ->
+        (* Workaround for GitHub issue #465.
+
+           Given an app under a certain path and a server function, we
+           would perform requests on
+
+           http://${SERVER}/${LOCAL_PATH},
+
+           where ${LOCAL_PATH} refers to the file system on the mobile
+           device. This is both wrong (because it doesn't take care of
+           the application path) and a security issue. To fix the
+           problem, we add app_path to the URL. *)
+        let sd = Eliom_request_info.get_site_dir () in
+        proto_prefix ^ (String.concat "/" sd) ^ "/"
       | Some proto_prefix ->
         proto_prefix^Eliom_request_info.get_original_full_path_string_sp sp
       | None ->

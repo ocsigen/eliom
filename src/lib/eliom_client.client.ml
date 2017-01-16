@@ -69,6 +69,12 @@ let get_global_data () =
   | _ ->
     None
 
+let normalize_app_path p =
+  (* remove "" from beginning and end of path *)
+  let p = Eliom_lib.Url.split_path p in
+  let p = match  p with "" :: p -> p          | _ -> p in
+  match List.rev p with "" :: p -> List.rev p | _ -> p
+
 let init_client_app
     ~app_name ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
   Lwt_log.ign_debug_f "Eliom_client.init_client_app called.";
@@ -109,25 +115,41 @@ let onunload_fun _ =
 let onbeforeunload_fun _ = run_onbeforeunload ()
 
 (* Function called (in Eliom_client_main), once when starting the app.
-   Either when sent by a server or initiated on client side. *)
+   Either when sent by a server or initiated on client side.
+
+   For client apps, we read __eliom_server, __eliom_app_name,
+   __eliom_app_path JS variables set by the client app (via the HTML
+   file loading us).
+
+   - __eliom_server   : remote Eliom server to contact
+   - __eliom_app_name : application name
+   - __eliom_app_path : path app is under. We use this path for calls to
+                        server functions (see Eliom_uri). *)
 let init () =
   (* Initialize client app if the __eliom_server variable is defined *)
   if is_client_app ()
   && Js.Unsafe.global##.___eliom_server_ <> Js.undefined
   && Js.Unsafe.global##.___eliom_app_name_ <> Js.undefined
   then begin
-    let app_name = Js.to_string (Js.Unsafe.global##.___eliom_app_name_) in
+    let app_name = Js.to_string (Js.Unsafe.global##.___eliom_app_name_)
+    and full_path =
+      Js.Optdef.case
+        Js.Unsafe.global##.___eliom_path_
+        (fun () -> [])
+        (fun p -> normalize_app_path (Js.to_string p))
+    in
     match
       Url.url_of_string (Js.to_string (Js.Unsafe.global##.___eliom_server_))
     with
     | Some (Http { hu_host; hu_port; hu_path; _ }) ->
       init_client_app
         ~app_name
-        ~ssl:false ~hostname:hu_host ~port:hu_port ~full_path:hu_path ()
+        ~ssl:false ~hostname:hu_host ~port:hu_port ~full_path
+        ()
     | Some (Https { hu_host; hu_port; hu_path; _ }) ->
       init_client_app
         ~app_name
-        ~ssl:true ~hostname:hu_host ~port:hu_port ~full_path:hu_path ()
+        ~ssl:true ~hostname:hu_host ~port:hu_port ~full_path ()
     | _ -> ()
   end;
 
@@ -956,6 +978,23 @@ let change_page_unknown
       `Get
     | _, _ ->
       `Post
+  and i_subpath =
+    let rec f p p' =
+      match p, p' with
+      | h :: t, h' :: t' when h = h' ->
+        f t t'
+      | [], t ->
+        Some t
+      | _ ->
+        None
+    in
+    (* try to remove application path from path, client routing
+       expects paths without the former *)
+    (match f (Eliom_request_info.get_site_dir ()) i_subpath with
+     | Some i_subpath ->
+       i_subpath
+     | None ->
+       i_subpath)
   in
   let%lwt () =
     route ~replace {

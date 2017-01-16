@@ -286,6 +286,8 @@ let get_csp_original_full_path () =
   let cpi = get_sp_client_process_info () in
   cpi.Eliom_common.cpi_original_full_path
 
+let get_app_path () = None
+
 let get_csp_hostname () =
   let cpi = get_sp_client_process_info () in
   cpi.Eliom_common.cpi_hostname
