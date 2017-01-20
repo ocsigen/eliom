@@ -1224,3 +1224,5 @@ let () =
        call_ocaml_service ~absolute:true ~service ())
 
 let get_application_name = Eliom_process.get_application_name
+
+let set_client_html_file = Eliom_common.set_client_html_file

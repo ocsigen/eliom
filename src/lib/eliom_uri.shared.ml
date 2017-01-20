@@ -536,7 +536,7 @@ let make_post_uri_components_
 
     let ssl = Eliom_request_info.get_csp_ssl_sp sp in
     let https = is_https https ssl service in
-    let absolute' =
+    let absolute =
       if absolute || https <> ssl
       then Some (make_proto_prefix ?hostname ?port https)
       else if absolute_path
@@ -546,24 +546,36 @@ let make_post_uri_components_
 
     (* absolute URL does not work behind a reverse proxy! *)
     let uri =
-      match absolute' with
-      | Some proto_prefix
-        when (absolute && !Eliom_common.is_client_app) ->
-        (* Workaround for GitHub issue #465.
-
-           Given an app under a certain path and a server function, we
-           would perform requests on
-
-           http://${SERVER}/${LOCAL_PATH},
-
-           where ${LOCAL_PATH} refers to the file system on the mobile
-           device. This is both wrong (because it doesn't take care of
-           the application path) and a security issue. To fix the
-           problem, we add app_path to the URL. *)
-        let sd = Eliom_request_info.get_site_dir () in
-        proto_prefix ^ (String.concat "/" sd) ^ "/"
+      match absolute with
       | Some proto_prefix ->
-        proto_prefix^Eliom_request_info.get_original_full_path_string_sp sp
+        if
+          !Eliom_common.is_client_app &&
+          (let s  = Eliom_request_info.get_original_full_path_string_sp sp
+           and s' = Eliom_common.client_html_file () in
+           let n  = String.length s
+           and n' = String.length s' in
+           n >= n' && String.(sub s (n - n') n') = s')
+        then
+          (* Workaround for GitHub issue #465.
+
+             Given an app under a certain path and a server function,
+             we would perform requests on
+
+             http://${SERVER}/${LOCAL_PATH},
+
+             where ${LOCAL_PATH} refers to the file system on the
+             mobile device. This is both wrong (because it doesn't
+             take care of the application path) and a security issue.
+
+             To fix the issue, if the URL contains
+             [Eliom_common.client_html_file ()] (default:
+             "eliom.html"), we disregard it and use the site dir as
+             the path. *)
+          let sd = Eliom_request_info.get_site_dir () in
+          proto_prefix ^ (String.concat "/" sd) ^ "/"
+        else
+          proto_prefix ^
+          Eliom_request_info.get_original_full_path_string_sp sp
       | None ->
         reconstruct_relative_url_path_string
           (Eliom_request_info.get_csp_original_full_path_sp sp)
