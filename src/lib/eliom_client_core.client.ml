@@ -53,13 +53,33 @@ let create_buffer () =
 
 let run_callbacks handlers = List.iter (fun f -> f ()) handlers
 
-let (onload, _, flush_onload, push_onload) :
-  ((unit -> unit) -> unit) *
-  (unit -> (unit -> unit) list) *
-  (unit -> (unit -> unit) list) *
-  (unit -> unit)
+type onload_handler = int option * (unit -> unit)
+
+let cmp_onload (p1, _) (p2, _) =
+  match p1, p2 with
+  | None, None ->
+    0
+  | Some p1, None ->
+    if p1 < 0 then -1 else  1
+  | None, Some p1 ->
+    if p1 < 0 then  1 else -1
+  | Some p1, Some p2 ->
+    if      p1 < p2 then -1
+    else if p1 = p2 then  0
+    else                  1
+
+let (onload, flush_onload) :
+  (?priority:int -> (unit -> unit) -> unit) *
+  (unit -> (unit -> unit) list)
   =
-  create_buffer ()
+  let onload, _, flush_onload, _ = create_buffer () in
+  let onload ?priority f = onload (priority, f)
+  and flush_onload () =
+    flush_onload ()
+    |> List.stable_sort cmp_onload
+    |> List.map snd
+  in
+  onload, flush_onload
 
 let onunload, _, flush_onunload, _ = create_buffer ()
 
@@ -86,9 +106,9 @@ let run_onunload_wrapper f g =
       run_callbacks (flush_onunload ());
       f ()
 
-let lwt_onload () =
+let lwt_onload ?priority () =
   let t, u = Lwt.wait () in
-  onload (Lwt.wakeup u);
+  onload ?priority (Lwt.wakeup u);
   t
 
 
