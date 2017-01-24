@@ -611,6 +611,7 @@ let set_content_local ?offset ?fragment new_page =
     (* Inline CSS in the header to avoid the "flashing effect".
        Otherwise, the browser start to display the page before
        loading the CSS. *)
+    let%lwt new_page = new_page () in
     let preloaded_css =
       if !only_replace_body then Lwt.return () else
       Eliommod_dom.preload_css new_page in

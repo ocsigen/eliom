@@ -53,7 +53,7 @@ module type PARAM = sig
 
   val reset_reload_fun : bool
 
-  val send : ?options:options -> page -> unit Lwt.t
+  val send : ?options:options -> (unit -> page Lwt.t) -> unit Lwt.t
 
 end
 
@@ -181,7 +181,7 @@ module Make (P : PARAM) = struct
   type result = P.result
 
   let send ?options ?charset ?code ?content_type ?headers page =
-    P.send ?options page
+    P.send ?options (fun () -> Lwt.return page)
 
   let register
       ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
@@ -190,7 +190,7 @@ module Make (P : PARAM) = struct
       ~(service : (g, p, _, att, _, _, _, _, _, _, _) Eliom_service.t)
       ?error_handler:_
       (f : g -> p -> _) =
-    let f g p = let%lwt page = f g p in P.send ?options page in
+    let f g p = let page () = f g p in P.send ?options page in
     register ~service f;
     Eliom_service.set_client_fun ?app ~service f;
     if P.reset_reload_fun then Eliom_service.reset_reload_fun service
@@ -206,9 +206,10 @@ module Html = Make (struct
 
     let reset_reload_fun = false
 
-    let send ?options:_ page =
-      Eliom_client.set_content_local
-        (Eliom_content.Html.To_dom.of_element page)
+    let send ?options:_ f =
+      Eliom_client.set_content_local @@ fun () ->
+      let%lwt page = f () in
+      Lwt.return (Eliom_content.Html.To_dom.of_element page)
 
   end)
 
@@ -221,7 +222,7 @@ module Action = Make (struct
 
   let reset_reload_fun = true
 
-  let send ?options page = Lwt.return @@
+  let send ?options _ = Lwt.return @@
     match options with
     | Some `Reload | None ->
       Eliom_client.register_reload ()
@@ -239,7 +240,7 @@ module Unit = Make (struct
 
     let reset_reload_fun = true
 
-    let send ?options:_ page =
+    let send ?options:_ _ =
       Lwt.return ()
 
   end)
@@ -261,9 +262,10 @@ module App (P : Eliom_registration_sigs.APP_PARAM) = struct
 
       let reset_reload_fun = false
 
-      let send ?options:_ page =
-        Eliom_client.set_content_local
-          (Eliom_content.Html.To_dom.of_element page)
+      let send ?options:_ f =
+        Eliom_client.set_content_local @@ fun () ->
+        let%lwt page = f () in
+        Lwt.return (Eliom_content.Html.To_dom.of_element page)
 
     end)
 
