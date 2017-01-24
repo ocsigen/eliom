@@ -53,8 +53,6 @@ let create_buffer () =
 
 let run_callbacks handlers = List.iter (fun f -> f ()) handlers
 
-type onload_handler = int option * (unit -> unit)
-
 let cmp_onload (p1, _) (p2, _) =
   match p1, p2 with
   | None, None ->
@@ -68,18 +66,22 @@ let cmp_onload (p1, _) (p2, _) =
     else if p1 = p2 then  0
     else                  1
 
-let (onload, flush_onload) :
+let prio_handler_buffer () :
   (?priority:int -> (unit -> unit) -> unit) *
   (unit -> (unit -> unit) list)
   =
-  let onload, _, flush_onload, _ = create_buffer () in
-  let onload ?priority f = onload (priority, f)
-  and flush_onload () =
-    flush_onload ()
+  let add, _, flush, _ = create_buffer () in
+  let add ?priority f = add (priority, f)
+  and flush () =
+    flush ()
     |> List.stable_sort cmp_onload
     |> List.map snd
   in
-  onload, flush_onload
+  add, flush
+
+let onload, flush_onload = prio_handler_buffer ()
+
+let onpreload, flush_onpreload = prio_handler_buffer ()
 
 let onunload, _, flush_onunload, _ = create_buffer ()
 
@@ -111,6 +113,10 @@ let lwt_onload ?priority () =
   onload ?priority (Lwt.wakeup u);
   t
 
+let lwt_onpreload ?priority () =
+  let t, u = Lwt.wait () in
+  onpreload ?priority (Lwt.wakeup u);
+  t
 
 (* == Closure *)
 

@@ -224,6 +224,11 @@ val onload : ?priority:int -> (unit -> unit) -> unit
 (** Returns a Lwt thread that waits until the next page is loaded. *)
 val lwt_onload : ?priority:int -> unit -> unit Lwt.t
 
+val onpreload : ?priority:int -> (unit -> unit) -> unit
+
+(** Returns a Lwt thread that waits until the next page is loaded. *)
+val lwt_onpreload : ?priority:int -> unit -> unit Lwt.t
+
 (** [onbeforeunload f] registers [f] as a handler to be called before
     changing the page the next time. If [f] returns [Some s], then we
     ask the user to confirm quitting. We try to use [s] in the

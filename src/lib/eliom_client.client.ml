@@ -918,6 +918,7 @@ let change_page (type m)
            in
            let l = ocamlify_params l in
            update_session_info l l';
+           run_callbacks (flush_onpreload ());
            let%lwt () = f get_params post_params in
            change_url_string_protected ~replace uri;
            do_follow_up uri
