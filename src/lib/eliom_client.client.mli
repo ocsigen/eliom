@@ -281,6 +281,11 @@ type ('a, +'b) server_function = 'a -> 'b Lwt.t
     saved in the history. *)
 val change_page_uri : ?replace:bool -> string -> unit Lwt.t
 
+(** Set the name of the HTML file loading our client app. The default
+    is "eliom.html". A wrong value will not allow the app to
+    initialize itself correctly. *)
+val set_client_html_file : string -> unit
+
 (**/**)
 
 (** [change_page_unknown path get_params post_params] calls the

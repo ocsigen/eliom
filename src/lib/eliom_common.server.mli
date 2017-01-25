@@ -738,3 +738,8 @@ module To_and_of_shared : sig
   val to_and_of : 'a t -> 'a to_and_of
 
 end
+
+(*/*)
+
+(** Raises exception on server, only relevant for client apps *)
+val client_html_file : unit -> string

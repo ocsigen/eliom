@@ -1403,3 +1403,6 @@ module To_and_of_shared = struct
   }
 
 end
+
+let client_html_file () =
+  failwith "client_html_file is only defined on client"

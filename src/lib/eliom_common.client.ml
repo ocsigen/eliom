@@ -61,3 +61,8 @@ module To_and_of_shared = struct
   let to_and_of tao = tao
 
 end
+
+let
+  client_html_file,    set_client_html_file =
+  let r = ref "eliom.html" in
+  (fun () -> !r  ),    (fun s  -> assert !is_client_app; r := s)
