@@ -61,6 +61,13 @@ let (onload, _, flush_onload, push_onload) :
   =
   create_buffer ()
 
+let
+  (onchangepage : (unit -> unit) -> unit),
+  _,
+  (flush_onchangepage : unit -> (unit -> unit) list),
+  _
+  = create_buffer ()
+
 let onunload, _, flush_onunload, _ = create_buffer ()
 
 let onbeforeunload, run_onbeforeunload, flush_onbeforeunload =

@@ -224,6 +224,13 @@ val onload : (unit -> unit) -> unit
 (** Returns a Lwt thread that waits until the next page is loaded. *)
 val lwt_onload : unit -> unit Lwt.t
 
+(** Run some code *before* the next page change, that is, before each
+    call to a page-producing service handler.
+
+    Just like onpreload, handlers registered with onchangepage only
+    apply to the next page change. *)
+val onchangepage : (unit -> unit) -> unit
+
 (** [onbeforeunload f] registers [f] as a handler to be called before
     changing the page the next time. If [f] returns [Some s], then we
     ask the user to confirm quitting. We try to use [s] in the

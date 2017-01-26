@@ -643,6 +643,8 @@ let set_content_local ?offset ?fragment new_page =
 (* Function to be called for server side services: *)
 let set_content ~replace ?uri ?offset ?fragment content =
   Lwt_log.ign_debug ~section "Set content";
+  (* TODO: too early? *)
+  run_callbacks (flush_onchangepage ());
   match content with
   | None -> Lwt.return ()
   | Some content ->
@@ -909,6 +911,7 @@ let change_page (type m)
            in
            let l = ocamlify_params l in
            update_session_info l l';
+           run_callbacks (flush_onchangepage ());
            let%lwt () = f get_params post_params in
            change_url_string_protected ~replace uri;
            do_follow_up uri
