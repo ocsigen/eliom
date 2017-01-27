@@ -1046,8 +1046,12 @@ let change_page_uri ?replace full_uri =
     | _ ->
       failwith "invalid url"
   with _ ->
-    (Lwt_log.ign_debug ~section "Change page uri: resort to server";
-     change_page_uri_a full_uri)
+    if is_client_app () then
+      (Lwt_log.ign_debug ~section "Change page uri: can't find service";
+       Lwt.return ())
+    else
+      (Lwt_log.ign_debug ~section "Change page uri: resort to server";
+       change_page_uri_a full_uri)
 
 (* Functions used in "onsubmit" event handler of <form>.  *)
 
