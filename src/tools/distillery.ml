@@ -297,15 +297,22 @@ let main () =
   in
   let dest_dir = ref None in
   let check_name name =
-    if not (Str.string_match compilation_unit_name_regexp name 0) then
-      bad "Not a valid compilation unit name: %s" name
+    let name' = String.lowercase name in
+    if name' <> name then
+      Printf.eprintf
+        "Warning: \"%s\" converted to \"%s\"\n%!"
+        name name';
+    if not (Str.string_match compilation_unit_name_regexp name' 0) then
+      bad "Not a valid compilation unit name: %s" name'
+    else
+      name'
   in
   let spec = Arg.(align [
       "-dir", Set dir,
       " Display the template directories (set through $ELIOM_DISTILLERY_PATH)";
       "-y", Set without_asking,
       " Create the project directory without confirmation.";
-      "-name", String (fun s -> check_name s; name := Some s),
+      "-name", String (fun s -> name := Some (check_name s)),
       "<name> Name of the project (a valid compilation unit name)";
       "-template", String select_template,
       "<template> The template for the project";
