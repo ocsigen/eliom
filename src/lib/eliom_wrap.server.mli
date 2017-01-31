@@ -40,7 +40,10 @@ val wrap : 'a -> 'a wrapped_value
 (** a wrapper that do not change the value *)
 val empty_wrapper : 'a wrapper
 
-(** unwrap **)
+(**/**)
+
+(* Since Eliom 5.0, unwrapping only works inside Eliom, so we are
+   hiding its API. *)
 
 type unwrap_id
 type unwrapper
@@ -48,4 +51,3 @@ type unwrapper
 val create_unwrapper : unwrap_id -> unwrapper
 val empty_unwrapper : unwrapper
 val id_of_int : int -> unwrap_id
-
