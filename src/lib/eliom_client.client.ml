@@ -898,7 +898,8 @@ let change_page (type m)
            let uri, l, l' =
              match
                create_request_
-                 ?absolute ?absolute_path ?https ~service ?hostname ?port
+                 ~absolute:true
+                 ?absolute_path ?https ~service ?hostname ?port
                  ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
                  get_params post_params
              with
