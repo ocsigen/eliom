@@ -1,5 +1,5 @@
 description = "Eliom: client-server Web and mobile applications"
-version = "6.1.0"
+version = "6.2.0"
 
 package "server" (
   description = "Eliom: server-side"

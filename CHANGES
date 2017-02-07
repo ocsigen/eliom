@@ -1,3 +1,8 @@
+===== 6.2 (2017-02-07) =====
+
+* Implement Eliom_client.onchangepage
+* Fix URL-related bugs arising in mobile apps
+
 ===== 6.1 (2016-12-20) =====
 
 * Remove redundant dependency on calendar
