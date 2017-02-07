@@ -17,30 +17,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-let escaped_value_escaped_value = fst
+open Eliom_client_core
 
-type (+'a[@client]) t = 'a Eliom_serial.Client_value_server_repr.t
+type 'a fragment = 'a Eliom_client_value.t
 
-type 'a fragment = 'a t
+let register_client_closure ~closure_id closure =
+  Client_closure.register ~closure_id ~closure
 
-let client_value_unwrapper =
-  Eliom_wrap.create_unwrapper
-    (Eliom_wrap.id_of_int Eliom_serial.client_value_unwrap_id_int)
+let open_client_section compilation_unit_id =
+  do_next_client_section_data ~compilation_unit_id
 
-let create_client_value ?loc ~instance_id =
-  Eliom_serial.Client_value_server_repr.create
-    ?loc ~instance_id ~unwrapper:client_value_unwrapper
+let close_server_section compilation_unit_id =
+  do_next_server_section_data ~compilation_unit_id
 
-let client_value_from_server_repr cv = cv
+let get_injection ?ident ?pos name = Injection.get ?ident ?pos ~name
 
-let client_value_datum ~closure_id ~args ~value = {
-  Eliom_serial.closure_id;
-  args;
-  value = Eliom_serial.Client_value_server_repr.to_poly value
-}
-
-exception Client_value_creation_invalid_context of string
-
-let escaped_value value :
-  Eliom_serial.escaped_value (* * Eliom_wrap.unwrapper *) =
-  Ocsigen_lib.to_poly value
+let get_escaped_value = Eliom_lib.from_poly

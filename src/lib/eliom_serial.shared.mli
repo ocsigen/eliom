@@ -26,7 +26,7 @@
     {% <<a_api subproject="server" | type Eliom_client_value.t >> %}.
 *)
 module Client_value_server_repr : sig
-  type +'a t
+  type (+'a[@client]) t
 
   (** instance_id is zero for local client values, unique for global
       client values *)
@@ -168,7 +168,7 @@ type client_value_datum = {
 
 (** Data for initializing one injection *)
 type injection_datum = {
-  injection_dbg : (Eliom_lib_base.pos * string option) option;
+  injection_dbg : (Eliom_lib.pos * string option) option;
   injection_id : int;
   injection_value : Ocsigen_lib.poly;
 }

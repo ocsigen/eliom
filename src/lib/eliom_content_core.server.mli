@@ -43,8 +43,8 @@ module Xml : sig
   (* Building ref tree. *)
   type node_id
   val get_node_id : elt -> node_id
-  val make_event_handler_table : elt -> Eliom_runtime.RawXML.event_handler_table
-  val make_client_attrib_table : elt -> Eliom_runtime.RawXML.client_attrib_table
+  val make_event_handler_table : elt -> Eliom_serial.RawXML.event_handler_table
+  val make_client_attrib_table : elt -> Eliom_serial.RawXML.client_attrib_table
 
   type internal_event_handler =
     | Raw of string
@@ -77,8 +77,8 @@ module Xml : sig
   (**/**)
   val wrap : elt -> 'a -> 'a Eliom_wrap.wrapped_value
 
-  val client_attrib :
-    ?init:attrib -> attrib Eliom_client_value.t -> attrib
+  (* val client_attrib : *)
+  (*   ?init:attrib -> attrib Eliom_client_value.t -> attrib *)
 
 end
 
@@ -108,8 +108,8 @@ module Svg : sig
 
     include module type of Raw
 
-    val client_attrib :
-      ?init:'a attrib -> 'a attrib Eliom_client_value.t -> 'a attrib
+    (* val client_attrib : *)
+    (*   ?init:'a attrib -> 'a attrib Eliom_client_value.t -> 'a attrib *)
 
   end
 
@@ -179,8 +179,8 @@ module Html : sig
 
     include module type of Raw
 
-    val client_attrib :
-      ?init:'a attrib -> 'a attrib Eliom_client_value.t -> 'a attrib
+    (* val client_attrib : *)
+    (*   ?init:'a attrib -> 'a attrib Eliom_client_value.t -> 'a attrib *)
 
     (**/**)
     type ('a, 'b, 'c) lazy_star =

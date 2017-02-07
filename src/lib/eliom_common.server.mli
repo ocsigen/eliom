@@ -699,12 +699,12 @@ val patch_request_info: Ocsigen_extensions.request -> Ocsigen_extensions.request
 
 type eliom_js_page_data = {
   ejs_global_data:
-    (Eliom_runtime.global_data * Eliom_wrap.unwrapper) option;
-  ejs_request_data: Eliom_runtime.request_data;
+    (Eliom_serial.global_data * Eliom_wrap.unwrapper) option;
+  ejs_request_data: Eliom_serial.request_data;
   (* Event handlers *)
-  ejs_event_handler_table: Eliom_runtime.RawXML.event_handler_table;
+  ejs_event_handler_table: Eliom_serial.RawXML.event_handler_table;
   (* Client attrib *)
-  ejs_client_attrib_table: Eliom_runtime.RawXML.client_attrib_table;
+  ejs_client_attrib_table: Eliom_serial.RawXML.client_attrib_table;
   (* Session info *)
   ejs_sess_info: sess_info;
 }
@@ -727,7 +727,7 @@ module To_and_of_shared : sig
   type 'a t
 
   val create :
-    ?client_to_and_of : 'a to_and_of Eliom_client_value.t ->
+    ?client_to_and_of : _ Eliom_client_value.t ->
     'a to_and_of ->
     'a t
 

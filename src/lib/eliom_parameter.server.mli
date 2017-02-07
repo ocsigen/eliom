@@ -31,7 +31,7 @@ include Eliom_parameter_sigs.S
     injecting the parameter (or a service that uses it) for use in
     client code. *)
 val user_type :
-  ?client_to_and_of : 'a to_and_of Eliom_client_value.t ->
+  ?client_to_and_of : _ (* 'a to_and_of *) Eliom_client_value.t ->
   of_string : (string -> 'a) ->
   to_string : ('a -> string) ->
   string ->
@@ -41,7 +41,7 @@ val user_type :
     by the user. See [user_type] for the description of the
     arguments. *)
 val all_suffix_user :
-  ?client_to_and_of : 'a to_and_of Eliom_client_value.t ->
+  ?client_to_and_of : _ (* 'a to_and_of *) Eliom_client_value.t ->
   of_string : (string -> 'a) ->
   to_string : ('a -> string) ->
   string ->

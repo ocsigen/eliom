@@ -63,7 +63,7 @@ let get_global_data () =
   match
     Eliom_unwrap.unwrap (Url.decode (Js.to_string v)) 0
   with
-  | {Eliom_runtime.ecs_data = `Success v} ->
+  | {Eliom_serial.ecs_data = `Success v} ->
     Lwt_log.ign_debug_f "Unwrap __global_data success";
     Some v
   | _ ->
@@ -413,11 +413,11 @@ let window_open ~window_name ?window_features
 *)
 
 let unwrap_caml_content content =
-  let r : 'a Eliom_runtime.eliom_caml_service_data =
+  let r : 'a Eliom_serial.eliom_caml_service_data =
     Eliom_unwrap.unwrap (Url.decode content) 0
   in
-  Lwt.return (r.Eliom_runtime.ecs_data,
-              r.Eliom_runtime.ecs_request_data)
+  Lwt.return (r.Eliom_serial.ecs_data,
+              r.Eliom_serial.ecs_request_data)
 
 let call_ocaml_service
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment

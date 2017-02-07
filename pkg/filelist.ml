@@ -11,12 +11,12 @@ let server = {
     "eliom_parameter_sigs";
     "eliom_registration_sigs";
     "eliom_service_sigs";
-    "eliom_shared_sigs";
+    (* "eliom_shared_sigs"; *)
   ];
   interface = [
     "eliom_bus";
     "eliom_client_value";
-    "eliom_syntax";
+    "eliom_runtime";
     "eliom_client";
     "eliom_comet";
     "eliom_common";
@@ -29,8 +29,8 @@ let server = {
     "eliom_notif";
     "eliom_parameter";
     "eliom_react";
-    "eliom_shared";
-    "eliom_cscache";
+    (* "eliom_shared"; *)
+    (* "eliom_cscache"; *)
     "eliom_reference";
     "eliom_registration";
     "eliom_request_info";
@@ -44,7 +44,7 @@ let server = {
   internal = [
     "eliom_comet_base";
     "eliom_common_base";
-    "eliom_runtime";
+    "eliom_serial";
     "eliom_content_";
     "eliom_content_core";
     "eliom_cookies_base";
@@ -57,7 +57,7 @@ let server = {
     "eliom_service_base";
     "eliom_route";
     "eliom_route_base";
-    "eliom_shared_content";
+    (* "eliom_shared_content"; *)
     "eliom_types_base";
     "eliommod";
     "eliommod_cli";
@@ -81,7 +81,7 @@ let client = {
     "eliom_parameter_sigs";
     "eliom_registration_sigs";
     "eliom_service_sigs";
-    "eliom_shared_sigs";
+    (* "eliom_shared_sigs"; *)
   ];
   interface = [
     "eliom_bus";
@@ -96,8 +96,8 @@ let client = {
     "eliom_lib";
     "eliom_parameter";
     "eliom_react";
-    "eliom_shared";
-    "eliom_cscache";
+    (* "eliom_shared"; *)
+    (* "eliom_cscache"; *)
     "eliom_registration";
     "eliom_service";
     "eliom_tools";
@@ -121,7 +121,7 @@ let client = {
     "eliom_service_base";
     "eliom_route";
     "eliom_route_base";
-    "eliom_shared_content";
+    (* "eliom_shared_content"; *)
     "eliom_types_base";
     "eliommod_cookies";
     "eliommod_dom";
@@ -144,12 +144,6 @@ let ocamlbuild = {
   interface = [ "ocamlbuild_eliom" ];
   internal = []
 
-}
-
-let ppx = {
-  interface_only = [];
-  interface = [ "ppx_eliom" ; "ppx_eliom_client" ; "ppx_eliom_type" ; "ppx_eliom_server" ];
-  internal = [ "ppx_eliom_utils" ];
 }
 
 
@@ -197,12 +191,6 @@ let ocamlbuild_extra =
   exts ["cmi"] (ocamlbuild.interface_only @ ocamlbuild.interface) @
   exts ["cmx"] (ocamlbuild.interface @ ocamlbuild.internal)
 let ocamlbuild_api = ocamlbuild.interface_only @ ocamlbuild.interface
-
-let ppx_mllib = ppx.interface @ ppx.internal
-let ppx_extra =
-  exts ["cmi"] ppx.interface @
-  exts ["cmx"] (ppx.interface @ ppx.internal)
-let ppx_api = ppx.interface
 
 
 let templates_dir = "pkg/distillery"

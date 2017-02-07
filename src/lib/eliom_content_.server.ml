@@ -23,17 +23,17 @@ open Eliom_content_core
 
 module Xml = Eliom_content_core.Xml
 
-module Xml_shared = Eliom_shared_content.Xml
+(* module Xml_shared = Eliom_shared_content.Xml *)
 
 module Svg = struct
 
   module F = Svg.F
   module D = Svg.D
-  module R = struct
-    module Raw = Eliom_shared_content.Svg.R
-    include Raw
-    let pcdata _ = `Unimplemented
-  end
+  (* module R = struct *)
+  (*   module Raw = Eliom_shared_content.Svg.R *)
+  (*   include Raw *)
+  (*   let pcdata _ = `Unimplemented *)
+  (* end *)
 
   module Id = Svg.Id
 
@@ -83,7 +83,7 @@ module Html = struct
     module Form = Eliom_form.Make(Arg)
   end
 
-  module R = Eliom_shared_content.Html.R
+  (* module R = Eliom_shared_content.Html.R *)
 
   module Custom_data = Eliom_content_core.Html.Custom_data
 

@@ -15,13 +15,12 @@ $(BUILDER): $(wildcard build/*.ml)
 builder: $(BUILDER)
 ### Doc
 .PHONY: doc wikidoc doc man alldoc
-DOCS_DIR=src/lib/client src/lib/server src/ocamlbuild src/ppx
+DOCS_DIR=src/lib/client src/lib/server src/ocamlbuild 
 DOCS_HTML=$(addsuffix /api.docdir/index.html,$(DOCS_DIR))
 DOCS_WIKI=$(addsuffix /api.wikidocdir/index.wiki,$(DOCS_DIR))
 DOCS_MAN= src/lib/client/api.mandocdir/man.3oc \
           src/lib/server/api.mandocdir/man.3os \
-          src/ocamlbuild/api.mandocdir/man.3o \
-          src/ppx/api.mandocdir/man.3o
+          src/ocamlbuild/api.mandocdir/man.3o 
 doc: $(BUILDER)
 	$(BUILDER) $(DOCS_HTML)
 wikidoc: $(BUILDER)

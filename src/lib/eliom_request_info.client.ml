@@ -164,8 +164,8 @@ let get_request_template = Eliom_process.get_request_template
 let default_request_data =
   {Eliom_common.ejs_global_data = None;
    ejs_request_data = [||];
-   ejs_event_handler_table = Eliom_runtime.RawXML.ClosureMap.empty;
-   ejs_client_attrib_table = Eliom_runtime.RawXML.ClosureMap.empty;
+   ejs_event_handler_table = Eliom_serial.RawXML.ClosureMap.empty;
+   ejs_client_attrib_table = Eliom_serial.RawXML.ClosureMap.empty;
 
    ejs_sess_info =
       {Eliom_common.si_other_get_params = [];

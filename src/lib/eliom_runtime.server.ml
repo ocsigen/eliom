@@ -23,9 +23,9 @@
 
 type compilation_unit_global_data2 =
   { mutable server_section :
-      Eliom_runtime.client_value_datum array list;
+      Eliom_serial.client_value_datum array list;
     mutable client_section :
-      Eliom_runtime.injection_datum array list }
+      Eliom_serial.injection_datum array list }
 
 let get_global_data, modify_global_data =
   (* We have to classify global data from ocsigen extensions (no site
@@ -85,9 +85,9 @@ let close_server_section compilation_unit_id =
 
 let close_client_section compilation_unit_id injection_data =
   let data = get_compilation_unit_global_data compilation_unit_id in
-  let injection_datum (injection_id, injection_value, loc, ident) =
-    { Eliom_runtime.injection_id;
-      injection_value ; injection_dbg = Some (loc, ident) }
+  let injection_datum (injection_id, injection_value, loc) =
+    { Eliom_serial.injection_id;
+      injection_value ; injection_dbg = Some loc }
   in
   let injection_data = Array.of_list injection_data in
   data.client_section <-
@@ -96,7 +96,7 @@ let close_client_section compilation_unit_id injection_data =
 let get_global_data () =
   Eliom_lib.String_map.map
     (fun {server_section; client_section}->
-       { Eliom_runtime.server_sections_data
+       { Eliom_serial.server_sections_data
          = Array.of_list (List.rev server_section);
          client_sections_data = Array.of_list (List.rev client_section) })
     (get_global_data ())
@@ -104,7 +104,7 @@ let get_global_data () =
 (* Request data *)
 
 let request_data
-  : Eliom_runtime.client_value_datum list
+  : Eliom_serial.client_value_datum list
       Eliom_reference.Volatile.eref =
   Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
 
@@ -113,18 +113,12 @@ let get_request_data () =
 
 (* Register data *)
 
-let is_global = ref false
-
 let register_client_value_data ~closure_id ~args ~value =
-  let client_value_datum = { Eliom_runtime.closure_id; args; value }
+  let client_value_datum = { Eliom_serial.closure_id; args; value }
   in
-  if !is_global then
-    if Eliom_common.get_sp_option () = None then
-      current_server_section_data :=
-        client_value_datum :: !current_server_section_data
-    else
-      raise (Eliom_client_value.Client_value_creation_invalid_context
-               closure_id)
+  if Eliom_common.get_sp_option () = None then
+    current_server_section_data :=
+      client_value_datum :: !current_server_section_data
   else
     Eliom_reference.Volatile.modify request_data
       (fun sofar -> client_value_datum :: sofar)
@@ -137,9 +131,9 @@ let escaped_value = Eliom_client_value.escaped_value
 
 let last_id = ref 0
 
-let client_value ?pos closure_id args =
+let fragment ?pos closure_id args =
   let instance_id =
-    if !is_global then begin
+    if Eliom_common.get_sp_option () = None then begin
       incr last_id;
       !last_id
     end else
@@ -150,4 +144,16 @@ let client_value ?pos closure_id args =
     ~closure_id ~args:(Eliom_lib.to_poly args) ~value;
   Eliom_client_value.client_value_from_server_repr value
 
-let set_global b = is_global := b
+type ('a[@client]) fragment = 'a Eliom_client_value.t
+let pos pos_fname (lnum1, bol1, cnum1) (lnum2, bol2, cnum2) =
+  Lexing.(
+    { pos_fname ;
+      pos_lnum = lnum1 ;
+      pos_bol = bol1 ;
+      pos_cnum = cnum1 ;
+    },
+    { pos_fname;
+      pos_lnum = lnum2 ;
+      pos_bol = bol2 ;
+      pos_cnum = cnum2 ;
+    })

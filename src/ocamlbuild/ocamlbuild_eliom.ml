@@ -1,249 +1,227 @@
+[@@@ocaml.warning "-29"]
+
 open Ocamlbuild_plugin
 module Pack = Ocamlbuild_pack
 
-module type ELIOM = sig
-  val server_dir : Ocamlbuild_plugin.Pathname.t
-  val type_dir : Ocamlbuild_plugin.Pathname.t
-  val client_dir : Ocamlbuild_plugin.Pathname.t
-end
+let init ?runtime () =
+  let module Eliom_rules = struct
+open Pack ;;
 
-module type INTERNALS = sig
-  val with_eliom_ppx : ([< `Client | `Server] -> string) option
-  val with_package : string -> string
-end
-module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
+(* Copy of the rules in ocamlbuild ocaml_specific.ml.
+   We only copy the one that involves .ml and .mli files.
+*)
 
-  (* WARNING: if you change this, also change inferred_type_prefix in
-     ppx/ppx_eliom_utils.ml and tools/eliomc.ml *)
-  let inferred_type_prefix = "eliom_inferred_type_"
+rule "eliom: eliomi -> cmi"
+    ~prod:"%.cmi"
+    ~deps:["%.eliomi"; "%.eliomi.depends"]
+    (Ocaml_compiler.compile_ocaml_interf "%.eliomi" "%.cmi") ;;
 
-  let sed_rule name ~dep ~prod scripts =
-    rule name ~dep ~prod
-      (fun env build ->
-        let dep = env dep and prod = env prod in
-        let script_args = List.map (fun script -> S[A"-e"; A script]) scripts in
-        Cmd (S[A"sed"; S script_args; P dep; Sh">"; Px prod]))
+rule "eliom: mlpack & cmo* & cmi -> cmo"
+    ~prod:"%.cmo"
+    ~deps:["%.eliomi"; "%.cmi"; "%.mlpack"]
+    ~doc:"If foo.mlpack contains a list of capitalized module names, \
+          the target foo.cmo will produce a packed module containing \
+          those modules as submodules. You can also have a foo.eliomi file \
+          to restrict the interface of the resulting module.
 
-  let copy_with_header src prod =
-    let contents = Pathname.read src in
-    (* we need an empty line to keep the comments : weird camlp4 *)
-    let header = "# 0 \"" ^ src ^ "\"\n\n" in
-    Pack.Shell.mkdir_p (Filename.dirname prod);
-    Echo ([header; contents], prod)
+\
+          Warning: to produce a native foo.cmx out of a foo.mlpack, you must \
+          manually tag the included compilation units with for-pack(foo). \
+          See the documentation of the corresponding rules for more details.
 
-  let copy_rule_with_header f name ?(deps=[]) src prod =
-    rule name ~deps:(src :: deps) ~prod
-      (fun env _ ->
-         let prod = env prod in
-         let src = env src in
-         f env (Pathname.dirname prod) (Pathname.basename prod) src prod;
-         copy_with_header src prod
-      )
+\
+          The modules named in the .mlpack \
+          will be dynamic dependencies of the compilation action. \
+          You cannot give the .mlpack the same name as one of the module \
+          it contains, as this would create a circular dependency."
+    (Ocaml_compiler.byte_pack_mlpack "%.mlpack" "%.cmo");;
 
-  let syntaxes_p4 = [I.with_package "eliom.syntax.predef"]
+rule "eliom: eliom & cmi -> d.cmo"
+    ~prod:"%.d.cmo"
+    ~deps:["%.eliomi"(* This one is inserted to force this rule to be skiped when
+                        a .eliom is provided without a .eliomi *); "%.eliom"; "%.eliom.depends"; "%.cmi"]
+    ~doc:"The foo.d.cmo target compiles foo.eliom with the 'debug' tag enabled (-g).\
+          See also foo.d.byte.
 
-  let no_extra_syntaxes = "no_extra_syntaxes"
+\
+          For technical reason, .d.cmx and .d.native are not yet supported, \
+          so you should explicitly add the 'debug' tag \
+          to native targets (both compilation and linking)."
+    (Ocaml_compiler.byte_compile_ocaml_implem ~tag:"debug" "%.eliom" "%.d.cmo");;
 
-  let eliom_ppx = "eliom_ppx"
+rule "eliom: eliom & cmi -> cmo"
+    ~prod:"%.cmo"
+    ~deps:["%.eliomi"(* This one is inserted to force this rule to be skiped when
+                        a .eliom is provided without a .eliomi *); "%.eliom"; "%.eliom.depends"; "%.cmi"]
+    (Ocaml_compiler.byte_compile_ocaml_implem "%.eliom" "%.cmo");;
 
-  let use_ppx src =
-    Tags.mem eliom_ppx (tags_of_pathname src)
+rule "eliom: eliom & cmi -> cmx & o"
+    ~prods:["%.cmx"; "%" -.- !Options.ext_obj]
+    ~deps:["%.eliom"; "%.eliom.depends"; "%.cmi"]
+    (Ocaml_compiler.native_compile_ocaml_implem "%.eliom");;
 
-  let tag_file_inside_rule file tags =
-    tag_file file tags;
-    Pack.Param_tags.partial_init "Eliom plugin" (Tags.of_list tags)
+rule "eliom: eliom -> d.cmo & cmi"
+    ~prods:["%.d.cmo"]
+    ~deps:["%.eliom"; "%.eliom.depends"; "%.cmi"]
+    (Ocaml_compiler.byte_compile_ocaml_implem ~tag:"debug" "%.eliom" "%.d.cmo");;
 
-  let use_all_syntaxes src =
-    if Filename.check_suffix src ".eliomi" then
-      false
-    else
-      not (Tags.mem no_extra_syntaxes (tags_of_pathname src))
+rule "eliom: eliom -> cmo & cmi"
+    ~prods:["%.cmo"; "%.cmi"]
+    ~deps:["%.eliom"; "%.eliom.depends"]
+    ~doc:"This rule allows to produce a .cmi from a .eliom file \
+          when the corresponding .eliomi is missing.
 
-  let get_eliom_syntax_p4 = function
-    | `Client ->
-      "eliom.syntax.client"
-    | `Server ->
-      "eliom.syntax.server"
-    | `Type ->
-      "eliom.syntax.type"
+\
+          Note: you are strongly encourage to have a .eliomi file \
+          for each of your .eliom module, as it is a good development \
+          practice which also simplifies the way build systems work, \
+          as it avoids producing .cmi files as a silent side-effect of \
+          another compilation action."
+    (Ocaml_compiler.byte_compile_ocaml_implem "%.eliom" "%.cmo");;
 
-  let get_eliom_syntax_ppx = function
-    | `Client ->
-      "eliom.ppx.client"
-    | `Server ->
-      "eliom.ppx.server"
-    | `Type ->
-      "eliom.ppx.type"
+rule "eliom dependencies"
+    ~prod:"%.eliom.depends"
+    ~dep:"%.eliom"
+    ~doc:"OCamlbuild will use ocamldep to approximate dependencies \
+          of a source file. The ocamldep tool being purely syntactic, \
+          it only computes an over-approximation of the dependencies.
 
-  let get_syntaxes_p4 with_eliom_syntax eliom_syntax src =
-    let eliom_syntax = get_eliom_syntax_p4 eliom_syntax in
-    let s = if use_all_syntaxes src then syntaxes_p4 else [] in
-    let s =
-      if with_eliom_syntax then
-        I.with_package eliom_syntax :: s
-      else
-        s
-    in
-    let s = if s = [] then [] else "thread" :: "syntax(camlp4o)" :: s in
-    s @ Tags.elements (tags_of_pathname src)
+\
+          If you manipulate a module Foo that is in fact a submodule Bar.Foo \
+          (after 'open Bar'), ocamldep may believe that your module depends \
+          on foo.eliom -- when such a file also exists in your project. This can \
+          lead to spurious circular dependencies. In that case, you can use \
+          OCamlbuild_plugin.non_dependency in your myocamlbuild.eliom \
+          to manually remove the spurious dependency. See the plugins API."
+    (Ocaml_tools.ocamldep_command "%.eliom" "%.eliom.depends");;
 
-  let get_syntaxes_ppx with_eliom_syntax eliom_syntax src =
-    if with_eliom_syntax then
-      [I.with_package (get_eliom_syntax_ppx eliom_syntax)]
-    else
-      []
+rule "eliom dependencies eliomi"
+    ~prod:"%.eliomi.depends"
+    ~dep:"%.eliomi"
+    (Ocaml_tools.ocamldep_command "%.eliomi" "%.eliomi.depends");;
 
-  let get_syntaxes with_eliom_syntax eliom_syntax src =
-    (if use_ppx src then get_syntaxes_ppx else get_syntaxes_p4)
-      with_eliom_syntax eliom_syntax src
+rule "eliom: eliomi -> odoc"
+    ~prod:"%.odoc"
+    ~deps:["%.eliomi"; "%.eliomi.depends"]
+    ~doc:".odoc are intermediate files storing the result of ocamldoc processing \
+          on a source file. See the various .docdir/... targets for ocamldoc."
+    (Ocaml_tools.document_ocaml_interf "%.eliomi" "%.odoc");;
 
-  (* A variant of flag_and_dep which recurse into Quote. *)
-  let dflag tags x =
-    let rec aux = function
-      | Quote x -> aux x
-      | S xs -> List.iter aux xs
-      | P path -> dep tags [path]
-      | N | A _ | Sh _ | V _ | T _ | Px _ -> ()
-    in
-    aux x; flag tags x
+rule "eliom: eliom -> odoc"
+    ~prod:"%.odoc"
+    ~deps:["%.eliom"; "%.eliom.depends"]
+    (Ocaml_tools.document_ocaml_implem "%.eliom" "%.odoc");;
 
-  let flag_infer ~file ~name ~path eliom_syntax =
-    let type_inferred =
-      Pathname.concat
-        (Pathname.concat path Eliom.type_dir)
-        (Pathname.update_extension "inferred_gen.mli" name)
-    in
-    let ppflags, ppflags_notype =
-      if use_ppx file then
-        match I.with_eliom_ppx with
-        | None ->
-          let pkg = get_eliom_syntax_ppx eliom_syntax in
-          (S [A"-ppxopt"; A (pkg ^ ",-type," ^ type_inferred)],
-           S [A"-ppxopt"; A (pkg ^ ",-notype")])
-        | Some f ->
-          let ppx = f eliom_syntax in
-          (S [A"-ppx"; Quote (S [P ppx; A"-type"; P type_inferred])],
-           S [A"-ppx"; Quote (S [P ppx; A"-notype"])])
-      else
-        (S [A "-ppopt"; A "-type"; A "-ppopt"; P type_inferred],
-         S [A "-ppopt"; A "-notype"])
-    in
-    let file_tag = "file:" ^ file in
-    dflag ["ocaml"; "ocamldep";        file_tag] ppflags;
-    dflag ["ocaml"; "compile";         file_tag] ppflags;
-    dflag ["ocaml"; "infer_interface"; file_tag] ppflags;
-    dflag ["ocaml"; "doc";             file_tag] ppflags_notype
+rule "eliom: eliom & eliom.depends & *cmi -> .inferred.eliomi"
+    ~prod:"%.inferred.eliomi"
+    ~deps:["%.eliom"; "%.eliom.depends"]
+    ~doc:"The target foo.inferred.eliomi will produce a .eliomi that exposes all the \
+          declarations in foo.eliom, as obtained by direct invocation of `ocamlc -i`."
+    (Ocaml_tools.infer_interface "%.eliom" "%.inferred.eliomi");;
 
-  let copy_rule_server ?(eliom=true) =
-    copy_rule_with_header
-      (fun env dir name src file ->
-         let path = env "%(path)" in
-         tag_file_inside_rule file
-           ( I.with_package "eliom.server"
-             :: get_syntaxes eliom `Server src
-           );
-         if eliom then flag_infer ~file ~name ~path `Server;
-         Pathname.define_context dir [path];
-         Pathname.define_context path [dir];
-      )
 
-  let copy_rule_client ?(eliom=true) =
-    copy_rule_with_header
-      (fun env dir name src file ->
-         let path = env "%(path)" in
-         tag_file_inside_rule file
-           ( I.with_package "eliom.client"
-             :: get_syntaxes eliom `Client src
-           );
-         if eliom then flag_infer ~file ~name ~path `Client;
-         Pathname.define_context dir [path];
-      )
+(* TODO
+   This set of rule make incremental compilation of ocamlbuild very confused 
+*)
 
-  let copy_rule_type =
-    copy_rule_with_header
-      (fun env dir name src file ->
-         let path = env "%(path)" in
-         let server_dir = Pathname.concat path Eliom.server_dir in
-         let server_file = Pathname.concat server_dir name in
-         tag_file_inside_rule file
-           ( I.with_package "eliom.server"
-             :: get_syntaxes true `Type src
-             @ Tags.elements (tags_of_pathname server_file)
-           );
-         Pathname.define_context dir [path; server_dir];
-      )
+rule "eliom: {server,client}.cmi -> cmi"
+    ~insert:`top
+    ~prod:"%(name:<*> and not <*.client> and not <*.server>).cmi"
+    ~deps:["%(name).client.cmi";"%(name).server.cmi"]
+    ~stamp:"%(name).cmi.stamp"
+    (fun _ _ -> Nop);;
 
-  let init = function
-    | After_rules ->
-        mark_tag_used no_extra_syntaxes;
-        mark_tag_used eliom_ppx;
+rule "eliom: {server,client}.cmi -> cmi | in subdir"
+    ~insert:`top
+    ~prod:"%(name:<**/*> and not <**/*.client> and not <**/*.server>).cmi"
+    ~deps:["%(name).client.cmi";"%(name).server.cmi"]
+    ~stamp:"%(name).cmi.stamp"
+    (fun _ _ -> Nop);;
 
-        sed_rule ".inferred.mli -> .inferred_gen.mli"
-          ~dep:"%(path)/%(file).inferred.mli"
-          ~prod:"%(path)/%(file).inferred_gen.mli"
-          ["s/_\\[\\([<>]\\)/[\\1/g";
-           Printf.sprintf "s/'\\(_[a-z0-9_]*\\)/'%s\\1/g" inferred_type_prefix];
+rule "eliom: server.cmi -> cmi"
+    ~prod:"%(name:<*> and not <*.client> and not <*.server>).cmi"
+    ~deps:["%(name).server.cmi"]
+    ~stamp:"%(name).cmi.stamp"
+    (fun _ _ -> Nop);;
 
-        (* eliom files *)
-        copy_rule_server "*.eliom -> **/_server/*.ml"
-          ~deps:["%(path)/" ^ Eliom.type_dir ^ "/%(file).inferred_gen.mli"]
-          "%(path)/%(file).eliom"
-          ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).ml");
-        copy_rule_server "*.eliomi -> **/_server/*.mli"
-          "%(path)/%(file).eliomi"
-          ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).mli");
-        copy_rule_type "*.eliom -> **/_type/*.ml"
-          "%(path)/%(file).eliom"
-          ("%(path)/" ^ Eliom.type_dir ^ "/%(file:<*>).ml");
-        copy_rule_client "*.eliom -> **/_client/*.ml"
-          ~deps:["%(path)/" ^ Eliom.type_dir ^ "/%(file).inferred_gen.mli"]
-          "%(path)/%(file).eliom"
-          ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).ml");
-        copy_rule_client "*.eliomi -> **/_client/*.mli"
-          "%(path)/%(file).eliomi"
-          ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).mli");
+rule "eliom: server.cmi -> cmi | in subdir"
+    ~prod:"%(name:<**/*> and not <**/*.client> and not <**/*.server>).cmi"
+    ~deps:["%(name).server.cmi"]
+    ~stamp:"%(name).cmi.stamp"
+    (fun _ _ -> Nop);;
 
-        copy_rule_server "*.eliom -> _server/*.ml"
-          ~deps:[Eliom.type_dir ^ "/%(file).inferred_gen.mli"]
-          "%(file).eliom" (Eliom.server_dir ^ "/%(file:<*>).ml");
-        copy_rule_server "*.eliomi -> _server/*.mli"
-          "%(file).eliomi" (Eliom.server_dir ^ "/%(file:<*>).mli");
-        copy_rule_type "*.eliom -> _type/*.ml"
-          "%(file).eliom" (Eliom.type_dir ^ "/%(file:<*>).ml");
-        copy_rule_client "*.eliom -> _client/*.ml"
-          ~deps:[Eliom.type_dir ^ "/%(file).inferred_gen.mli"]
-          "%(file).eliom" (Eliom.client_dir ^ "/%(file:<*>).ml");
-        copy_rule_client "*.eliomi -> _client/*.mli"
-          "%(file).eliomi" (Eliom.client_dir ^ "/%(file:<*>).mli");
+rule "eliom: client.cmi -> cmi"
+    ~prod:"%(name:<*> and not <*.client> and not <*.server>).cmi"
+    ~deps:["%(name).client.cmi"]
+    ~stamp:"%(name).cmi.stamp"
+    (fun _ _ -> Nop);;
 
-        (* copy {shared,client,server}.ml rules *)
-        copy_rule_client ~eliom:false "client.ml -> .ml"
-          "%(path)/%(file).client.ml" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).ml");
-        copy_rule_client ~eliom:false "client.mli -> .mli"
-          "%(path)/%(file).client.mli" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).mli");
-        copy_rule_client ~eliom:false "shared.ml -> client.ml"
-          "%(path)/%(file).shared.ml" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).ml");
-        copy_rule_client ~eliom:false "shared -> client.mli"
-          "%(path)/%(file).shared.mli" ("%(path)/" ^ Eliom.client_dir ^ "/%(file:<*>).mli");
-        copy_rule_server ~eliom:false "server.ml -> .ml"
-          "%(path)/%(file).server.ml" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).ml");
-        copy_rule_server ~eliom:false "server.mli -> .mli"
-          "%(path)/%(file).server.mli" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).mli");
-        copy_rule_server ~eliom:false "shared.ml -> server.ml"
-          "%(path)/%(file).shared.ml" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).ml");
-        copy_rule_server ~eliom:false "shared.ml -> server.mli"
-          "%(path)/%(file).shared.mli" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).mli");
+rule "eliom: client.cmi -> cmi | in subdir"
+    ~prod:"%(name:<**/*> and not <**/*.client> and not <**/*.server>).cmi"
+    ~deps:["%(name).client.cmi"]
+    ~stamp:"%(name).cmi.stamp"
+    (fun _ _ -> Nop);;
 
-    | _ -> ()
+let compile_tags = [
+  ["ocaml"; "byte"; "compile"];
+  ["ocaml"; "native"; "compile"];
+  ["ocaml"; "infer_interface"];
+] in
+let link_tags = [
+  ["ocaml"; "byte"; "link"];
+  ["ocaml"; "native"; "link"];
+] in
+let other_tags = [
+  ["ocaml"; "ocamldep"];
+  ["ocaml"; "doc"];
+] in
 
-  let dispatcher ?oasis_executables hook =
-    Ocamlbuild_js_of_ocaml.dispatcher ?oasis_executables hook;
-    init hook
-end
+List.iter (fun tags ->
+  pflag tags "server-package" (fun pkg -> S [A "-server-package"; A pkg]);
+  pflag tags "client-package" (fun pkg -> S [A "-client-package"; A pkg]);
+) (compile_tags @ link_tags) ;
 
-module Make(Eliom : ELIOM) = MakeIntern
-  (struct
-    let with_eliom_ppx = None
-    let with_package = Printf.sprintf "package(%s)"
-  end)
-  (Eliom)
+List.iter (fun tags ->
+  pflag tags "server-I" (fun x -> S[A"-server-I"; P x]);
+  pflag tags "client-I" (fun x -> S[A"-client-I"; P x]);
+  pflag tags "I" (fun x -> S[A"-I"; P x]);
+) (compile_tags @ link_tags);
+
+List.iter (fun tags ->
+  flag ("client"::tags) (S [A "-passopt" ; A "-mode"; A "-passopt" ; A "client"]);
+  flag ("server"::tags) (S [A "-passopt" ; A "-mode"; A "-passopt" ; A "server"]);
+  flag ("eliom"::tags) (S [A "-passopt" ; A "-mode"; A "-passopt" ; A "eliom"]);
+) (compile_tags @ link_tags @ other_tags) ;;
+
+(* pflag [ "ocaml"; "compile"] "server-I" (fun x -> S[A"-server-I"; A x]);; *)
+(* pflag [ "ocaml"; "infer_interface"] "server-I" (fun x -> S[A"-server-I"; A x]);; *)
+(* pflag [ "ocaml"; "doc"] "server-I" (fun x -> S[A"-server-I"; A x]);; *)
+
+(* pflag [ "ocaml"; "compile"] "client-I" (fun x -> S[A"-client-I"; A x]);; *)
+(* pflag [ "ocaml"; "infer_interface"] "client-I" (fun x -> S[A"-client-I"; A x]);; *)
+(* pflag [ "ocaml"; "doc"] "client-I" (fun x -> S[A"-client-I"; A x]);; *)
+
+begin match runtime with
+  | Some l -> dep ["extension:eliom"] l
+  | None -> ()
+end ;
+
+copy_rule "shared.ml -> client.ml"
+  "%(path)/%(file).shared.ml" "%(path)/%(file).client.ml";;
+copy_rule "shared.mli -> client.mli"
+  "%(path)/%(file).shared.mli" "%(path)/%(file).client.mli";;
+
+copy_rule "shared.mli -> server.ml"
+  "%(path)/%(file).shared.ml" "%(path)/%(file).server.ml";;
+copy_rule "shared.mli -> server.mli"
+  "%(path)/%(file).shared.mli" "%(path)/%(file).server.mli";;
+
+  end in ()
+
+let init ?runtime = function
+  | After_rules -> init ?runtime () ;
+  | _ -> ()
+
+let dispatcher ?runtime ?oasis_executables hook =
+  Ocamlbuild_js_of_ocaml.dispatcher ?oasis_executables hook;
+  init ?runtime hook

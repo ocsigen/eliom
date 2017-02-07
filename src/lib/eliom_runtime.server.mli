@@ -17,30 +17,32 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-val get_global_data : unit -> Eliom_runtime.global_data
+val get_global_data : unit -> Eliom_serial.global_data
 
-val get_request_data : unit -> Eliom_runtime.request_data
+val get_request_data : unit -> Eliom_serial.request_data
 
 (*****************************************************************************)
 
+(** Helper to make generated code easier to read.
+    Simply create a pos range with the given coordinate. *)
+val pos :
+  string ->
+  int * int * int ->
+  int * int * int ->
+  Eliom_lib.pos
+
 (** Registers a client value datum for the next server section when
-    executed in a global_data (cf. {!Eliom_syntax.set_global}) or in
+    executed in a global_data (cf. {!Eliom_runtime.set_global}) or in
     the request_data when executed in a request. *)
-val client_value :
+val fragment :
   ?pos:Eliom_lib.pos -> string -> 'args ->
   'a Eliom_client_value.t
-
-(** All client values created between [set_global true] and
-    [set_global false] are considered global client values
-    (cf. <<a_manual chapter="clientserver-language"
-    chapter="clientvalues"|the manual>>).  *)
-val set_global : bool -> unit
 
 (** Called at the end of each server or shared section. The argument
     identifies the compilation unit.
 
     Adds the list of recently registered
-    {!Eliom_runtime.client_value_datum}s into the queue of server
+    {!Eliom_serial.client_value_datum}s into the queue of server
     section data of the compilation unit
     ({!Eliom_lib_base.compilation_unit_global_data}).
 
@@ -60,9 +62,11 @@ val close_server_section : string -> unit
     subproject="client"|Eliom_client.Syntax_helpers.open_client_section>>.  *)
 val close_client_section :
   string ->
-  (int * Ocsigen_lib.poly * Eliom_lib.pos * string option) list ->
+  (int * Ocsigen_lib.poly * (Eliom_lib.pos * string option)) list ->
   unit
 
-(** Convert any value to a {! Eliom_runtime.escaped_value} for usage
-    in the [args] argument to {! Eliom_syntax.client_value}. *)
-val escaped_value : 'a -> Eliom_runtime.escaped_value
+(** Convert any value to a {! Eliom_serial.escaped_value} for usage
+    in the [args] argument to {! Eliom_runtime.client_value}. *)
+val escaped_value : 'a -> Eliom_serial.escaped_value
+
+type ('a[@client]) fragment = 'a Eliom_client_value.t
