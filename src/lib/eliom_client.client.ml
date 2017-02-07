@@ -76,17 +76,24 @@ let normalize_app_path p =
   match List.rev p with "" :: p -> List.rev p | _ -> p
 
 let init_client_app
-    ~app_name ?(ssl = false) ~hostname ?(port = 80) ~full_path () =
+    ~app_name ?(ssl = false) ~hostname ?(port = 80) ~site_dir () =
   Lwt_log.ign_debug_f "Eliom_client.init_client_app called.";
   Eliom_process.appl_name_r := Some app_name;
   Eliom_request_info.client_app_initialised := true;
+  (* For site_dir, we want no trailing slash. We tend to concatenate
+     it with relative paths, or treat it as a prefix to be removed
+     from other paths. The trailing slash would be burdensome.
+
+     In contrast, we do need the trailing slash in
+     cpi_original_full_path, because we do have the trailing slash in
+     page URLs., Hence the site_dir @ [""] below. *)
   Eliom_process.set_sitedata
-    {Eliom_types.site_dir = full_path;
-     site_dir_string = String.concat "/" full_path};
+    {Eliom_types.site_dir = site_dir;
+     site_dir_string = String.concat "/" site_dir};
   Eliom_process.set_info {Eliom_common.cpi_ssl = ssl ;
                           cpi_hostname = hostname;
                           cpi_server_port = port;
-                          cpi_original_full_path = full_path
+                          cpi_original_full_path = site_dir @ [""]
                          };
   Eliom_process.set_request_template None;
   (* We set the tab cookie table, with the app name inside: *)
@@ -132,7 +139,7 @@ let init () =
   && Js.Unsafe.global##.___eliom_app_name_ <> Js.undefined
   then begin
     let app_name = Js.to_string (Js.Unsafe.global##.___eliom_app_name_)
-    and full_path =
+    and site_dir =
       Js.Optdef.case
         Js.Unsafe.global##.___eliom_path_
         (fun () -> [])
@@ -144,12 +151,12 @@ let init () =
     | Some (Http { hu_host; hu_port; hu_path; _ }) ->
       init_client_app
         ~app_name
-        ~ssl:false ~hostname:hu_host ~port:hu_port ~full_path
+        ~ssl:false ~hostname:hu_host ~port:hu_port ~site_dir
         ()
     | Some (Https { hu_host; hu_port; hu_path; _ }) ->
       init_client_app
         ~app_name
-        ~ssl:true ~hostname:hu_host ~port:hu_port ~full_path ()
+        ~ssl:true ~hostname:hu_host ~port:hu_port ~site_dir ()
     | _ -> ()
   end;
 
@@ -898,7 +905,8 @@ let change_page (type m)
            let uri, l, l' =
              match
                create_request_
-                 ?absolute ?absolute_path ?https ~service ?hostname ?port
+                 ~absolute:true
+                 ?absolute_path ?https ~service ?hostname ?port
                  ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
                  get_params post_params
              with
@@ -981,23 +989,6 @@ let change_page_unknown
       `Get
     | _, _ ->
       `Post
-  and i_subpath =
-    let rec f p p' =
-      match p, p' with
-      | h :: t, h' :: t' when h = h' ->
-        f t t'
-      | [], t ->
-        Some t
-      | _ ->
-        None
-    in
-    (* try to remove application path from path, client routing
-       expects paths without the former *)
-    (match f (Eliom_request_info.get_site_dir ()) i_subpath with
-     | Some i_subpath ->
-       i_subpath
-     | None ->
-       i_subpath)
   in
   let%lwt () =
     route ~replace {

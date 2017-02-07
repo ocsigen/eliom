@@ -35,7 +35,7 @@ open Eliom_lib
     at the beginning of your html
     file, containing the full URL of your server.
 
-    [app_path] (if given) specifies the path that the application runs
+    [site_dir] (if given) specifies the path that the application runs
     under. It should correspond to the <site> tag of your server
     configuration. Calls to server functions use this path. *)
 val init_client_app :
@@ -43,7 +43,7 @@ val init_client_app :
   ?ssl:bool ->
   hostname:string ->
   ?port:int ->
-  full_path:Eliom_lib.Url.path -> unit -> unit
+  site_dir:Eliom_lib.Url.path -> unit -> unit
 
 (** Returns whether the application is sent by a server or started on
     client side. If called on server side, always returns [false].

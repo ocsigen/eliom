@@ -135,7 +135,27 @@ let rec na_key_of_params ~get = function
   | [] ->
     None
 
-let call_service ({i_get_params ; i_post_params} as info) =
+let rec remove_site_dir p p' =
+  match p, p' with
+  | h :: t, h' :: t' when h = h' ->
+    remove_site_dir t t'
+  | [], t ->
+    Some t
+  | _ ->
+    None
+
+let call_service ({i_get_params ; i_post_params ; i_subpath} as info) =
+  let info =
+    match
+      remove_site_dir
+        (Eliom_request_info.get_site_dir ())
+        i_subpath
+    with
+    | Some i_subpath ->
+      {info with i_subpath}
+    | None ->
+      info
+  in
   match
     na_key_of_params ~get:true i_get_params
   with
