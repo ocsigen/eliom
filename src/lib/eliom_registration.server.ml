@@ -1174,6 +1174,32 @@ let global_data_unwrapper =
   Eliom_wrap.create_unwrapper
     (Eliom_wrap.id_of_int Eliom_runtime.global_data_unwrap_id_int)
 
+let get_global_data ~keep_debug =
+  let data = Eliom_syntax.get_global_data () in
+  let data =
+    if keep_debug
+    then data
+    else
+      Eliom_lib.String_map.map
+        (fun {Eliom_runtime.server_sections_data;
+              client_sections_data} ->
+          Array.iter
+            (Array.iter (fun d ->
+               Eliom_runtime.Client_value_server_repr.clear_loc
+                 d.Eliom_runtime.value))
+            server_sections_data;
+          { Eliom_runtime.server_sections_data;
+            client_sections_data = Array.map
+                (
+                  Array.map (fun x ->
+                    {x with
+                     Eliom_runtime.injection_dbg = None})
+                )
+                client_sections_data
+          }) data
+  in
+  (data, global_data_unwrapper)
+
 module Eliom_appl_reg_make_param
   (Html_content
      : Ocsigen_http_frame.HTTP_CONTENT
@@ -1248,30 +1274,7 @@ module Eliom_appl_reg_make_param
 
     let ejs_global_data =
       if is_initial_request () then
-        let data = Eliom_syntax.get_global_data () in
-        let data =
-          if keep_debug
-          then data
-          else
-            Eliom_lib.String_map.map
-              (fun {Eliom_runtime.server_sections_data;
-                    client_sections_data} ->
-                 Array.iter
-                   (Array.iter (fun d ->
-                      Eliom_runtime.Client_value_server_repr.clear_loc
-                        d.Eliom_runtime.value))
-                   server_sections_data;
-              { Eliom_runtime.server_sections_data;
-                client_sections_data = Array.map
-                    (
-                      Array.map (fun x ->
-                        {x with
-                         Eliom_runtime.injection_dbg = None})
-                    )
-                    client_sections_data
-              }) data
-        in
-        Some (data, global_data_unwrapper)
+        Some (get_global_data ~keep_debug)
       else None
     in
     let ejs_request_data =
@@ -1518,7 +1521,7 @@ struct
   let application_script = P.application_script
 
   let data_service_handler () () =
-    Lwt.return (Eliom_syntax.get_global_data (), global_data_unwrapper)
+    Lwt.return (get_global_data ~keep_debug:(Ocsigen_config.get_debugmode ()))
 
   let _ =
     match App_param.global_data_path with
