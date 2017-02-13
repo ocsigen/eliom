@@ -21,9 +21,7 @@ open Eliom_lib
 
 include Eliom_parameter_base
 
-type raw_post_data =
-  ((string * string) * (string * string) list) option *
-  string Ocsigen_stream.t option
+type raw_post_data = Eliom_request_info.raw_post_data
 
 open Ocsigen_extensions
 
@@ -101,7 +99,7 @@ let get_non_localized_parameters params files ~getorpost ~sp
   (try
      (* first, look in cache: *)
      Polytables.get
-       ~table:(Ocsigen_request_info.request_cache sp.Eliom_common.sp_request.request_info)
+       ~table:(Ocsigen_request.request_cache sp.Eliom_common.sp_request.request_info)
        ~key
    with Not_found ->
      let p =
@@ -115,7 +113,7 @@ let get_non_localized_parameters params files ~getorpost ~sp
      in
      (* add in cache: *)
      Polytables.set
-       ~table:(Ocsigen_request_info.request_cache sp.Eliom_common.sp_request.request_info)
+       ~table:(Ocsigen_request.request_cache sp.Eliom_common.sp_request.request_info)
        ~key
        ~value:p;
      p)

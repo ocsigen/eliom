@@ -188,7 +188,7 @@ let default_request_data =
                                     Eliom_common.Full_state_name_table.empty,
                                     Eliom_common.Full_state_name_table.empty);
 
-       si_tab_cookies = Ocsigen_cookies.CookiesTable.empty;
+       si_tab_cookies = Ocsigen_cookie_map.Map_inner.empty;
 
        si_nonatt_info = Eliom_common.RNa_no;
        si_state_info = (Eliom_common.RAtt_no,

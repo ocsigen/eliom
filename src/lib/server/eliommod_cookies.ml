@@ -21,7 +21,6 @@
 (** Cookie management                                                       *)
 open Eliom_lib
 open Lwt
-open Ocsigen_cookies
 
 include Eliom_cookies_base
 
@@ -260,7 +259,7 @@ let compute_session_cookies_to_send
     sitedata
     ((service_cookie_info,
       data_cookie_info,
-      pers_cookies_info), secure_ci) (endlist: Ocsigen_cookies.cookieset) =
+      pers_cookies_info), secure_ci) (endlist: Ocsigen_cookie_map.t) =
   let getservvexp (old, newi) =
     return
       (let newinfo =
@@ -324,28 +323,31 @@ let compute_session_cookies_to_send
               (match old, newc with
                 | None, None -> beg
                 | Some _, None ->
-                  Ocsigen_cookies.add_cookie
+                  Ocsigen_cookie_map.add
                     sitedata.Eliom_common.site_dir
-                    (Eliom_common.make_full_cookie_name cookiekind full_st_name)
-                    Ocsigen_cookies.OUnset
+                    (Eliom_common.make_full_cookie_name
+                       cookiekind full_st_name)
+                    `Unset
                     beg
               (* the path is always site_dir because the cookie cannot
                  have been unset by a service outside
                  this site directory *)
                 | None, Some (v, exp) ->
-                  Ocsigen_cookies.add_cookie
+                  Ocsigen_cookie_map.add
                     sitedata.Eliom_common.site_dir
-                    (Eliom_common.make_full_cookie_name cookiekind full_st_name)
-                    (Ocsigen_cookies.OSet (ch_exp exp, v, secure))
+                    (Eliom_common.make_full_cookie_name
+                       cookiekind full_st_name)
+                    (`Set (ch_exp exp, v, secure))
                     beg
                 | Some oldv, Some (newv, exp) ->
                   if exp = Eliom_common.CENothing && oldv = newv
                   then beg
                   else
-                    Ocsigen_cookies.add_cookie
+                    Ocsigen_cookie_map.add
                       sitedata.Eliom_common.site_dir
-                      (Eliom_common.make_full_cookie_name cookiekind full_st_name)
-                      (Ocsigen_cookies.OSet (ch_exp exp, newv, secure))
+                      (Eliom_common.make_full_cookie_name
+                         cookiekind full_st_name)
+                      (`Set (ch_exp exp, newv, secure))
                       beg
               )
           )
@@ -380,27 +382,27 @@ let compute_new_ri_cookies'
     ricookies
     cookies_set_by_page =
 
-  Ocsigen_cookies.Cookies.fold
+  Ocsigen_cookie_map.Map_path.fold
     (fun cpath t cookies ->
       if Url.is_prefix_skip_end_slash
           (Url.remove_slash_at_beginning cpath)
           (Url.remove_slash_at_beginning ripath)
       then
-        CookiesTable.fold
+        Ocsigen_cookie_map.Map_inner.fold
           (fun name v cookies ->
 (*VVV We always keep secure cookies, event if the protocol is not secure,
   because this function is for actions only. Is that right? *)
             match v with
-              | Ocsigen_cookies.OSet (Some exp, value, secure)
+              | `Set (Some exp, value, secure)
                   when exp>now ->
-                CookiesTable.add name value cookies
-              | Ocsigen_cookies.OSet (None, value, secure) ->
-                CookiesTable.add name value cookies
-              | Ocsigen_cookies.OSet (Some exp, value, secure)
+                Ocsigen_cookie_map.Map_inner.add name value cookies
+              | `Set (None, value, secure) ->
+                Ocsigen_cookie_map.Map_inner.add name value cookies
+              | `Set (Some exp, value, secure)
                   when exp<=now ->
-                CookiesTable.remove name cookies
-              | Ocsigen_cookies.OUnset ->
-                CookiesTable.remove name cookies
+                Ocsigen_cookie_map.Map_inner.remove name cookies
+              | `Unset ->
+                Ocsigen_cookie_map.Map_inner.remove name cookies
               | _ -> cookies)
           t
           cookies
@@ -415,10 +417,10 @@ let compute_new_ri_cookies'
 let compute_new_ri_cookies
     (now : float)
     (ripath : string list)
-    (ricookies : string CookiesTable.t)
+    (ricookies : string Ocsigen_cookie_map.Map_inner.t)
     ((ci, secure_ci) : Eliom_common.tables Eliom_common.cookie_info)
-    (cookies_set_by_page : Ocsigen_cookies.cookieset)
-    : string CookiesTable.t Lwt.t =
+    (cookies_set_by_page : Ocsigen_cookie_map.t)
+    : string Ocsigen_cookie_map.Map_inner.t Lwt.t =
 
   (* first we add cookies set by page: *)
   let ric =
@@ -438,9 +440,9 @@ let compute_new_ri_cookies
             match !v with
               | Eliom_common.SCData_session_expired
               | Eliom_common.SCNo_data ->
-                CookiesTable.remove n beg
+                Ocsigen_cookie_map.Map_inner.remove n beg
               | Eliom_common.SC c ->
-                CookiesTable.add
+                Ocsigen_cookie_map.Map_inner.add
                   n c.Eliom_common.sc_value beg
         )
         !service_cookie_info
@@ -461,9 +463,9 @@ let compute_new_ri_cookies
               match !v with
                 | Eliom_common.SCData_session_expired
                 | Eliom_common.SCNo_data ->
-                  CookiesTable.remove n beg
+                  Ocsigen_cookie_map.Map_inner.remove n beg
                 | Eliom_common.SC c ->
-                  CookiesTable.add
+                  Ocsigen_cookie_map.Map_inner.add
                     n c.Eliom_common.dc_value beg
             else beg
         )
@@ -486,9 +488,9 @@ let compute_new_ri_cookies
                match !v with
                  | Eliom_common.SCData_session_expired
                  | Eliom_common.SCNo_data ->
-                   Lwt.return (CookiesTable.remove n beg)
+                   Lwt.return (Ocsigen_cookie_map.Map_inner.remove n beg)
                  | Eliom_common.SC c ->
-                   Lwt.return (CookiesTable.add
+                   Lwt.return (Ocsigen_cookie_map.Map_inner.add
                                  n c.Eliom_common.pc_value beg))
             else return beg
         )

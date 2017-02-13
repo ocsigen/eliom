@@ -179,6 +179,7 @@ module Flow5 : Eliom_registration_sigs.S_with_create
    and type return = Eliom_service.non_ocaml
    and type result = block_content kind
 
+(*
 (** Eliom service registration for services that return fragments of
     TyXML's tree. *)
 module Make_typed_xml_registration
@@ -190,6 +191,7 @@ module Make_typed_xml_registration
    and type options = unit
    and type return = Eliom_service.non_ocaml
    and type result = block_content kind
+*)
 
 (** {2 Untyped pages} *)
 
@@ -275,7 +277,7 @@ module Redirection : sig
     ?charset      : string ->
     ?code         : int ->
     ?content_type : string ->
-    ?headers      : Http_headers.t ->
+    ?headers      : Ocsigen_header.t ->
     _ page ->
     _ kind Lwt.t
 
@@ -389,6 +391,7 @@ module String : Eliom_registration_sigs.S_with_create
    and type return = Eliom_service.non_ocaml
    and type result = unknown_content kind
 
+(*
 (** Eliom service registration for services that returns "byte"
     contents with {% <<a_api project="ocsigenserver" text="Ocsigen's
     streams"| module Ocsigen_stream>>%}. The page content is a pair
@@ -406,6 +409,7 @@ module Streamlist : Eliom_registration_sigs.S_with_create
    and type options = unit
    and type return = Eliom_service.non_ocaml
    and type result = unknown_content kind
+*)
 
 (** {2 Customizing registration} *)
 
@@ -455,4 +459,8 @@ val cast_unknown_content_kind :
 
 (** [cast_http_result] should only be used to register new output
     modules *)
-val cast_http_result : Ocsigen_http_frame.result -> 'a kind
+val cast_http_result : Ocsigen_response.t -> 'a kind
+
+val extension : Ocsigen_server.Site.extension
+
+val end_init : unit -> unit

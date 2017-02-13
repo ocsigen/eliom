@@ -19,8 +19,6 @@
 
 open Eliom_lib
 
-open Ocsigen_cookies
-
 exception Eliom_site_information_not_available of string
 
 (******************************************************************)
@@ -234,7 +232,7 @@ type sess_info =
         string Full_state_name_table.t *
         string Full_state_name_table.t);
 
-     si_tab_cookies: string CookiesTable.t;
+     si_tab_cookies: string Ocsigen_cookie_map.Map_inner.t;
 
      si_nonatt_info: na_key_req;
      si_state_info: (att_key_req * att_key_req);

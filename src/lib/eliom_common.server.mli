@@ -272,7 +272,7 @@ type sess_info = {
      string Full_state_name_table.t *
      string Full_state_name_table.t);
 
-  si_tab_cookies: string Ocsigen_cookies.CookiesTable.t;
+  si_tab_cookies: string Ocsigen_cookie_map.Map_inner.t;
 
   si_nonatt_info : na_key_req;
   si_state_info: (att_key_req * att_key_req);
@@ -416,9 +416,9 @@ type server_params = {
   sp_sitedata : sitedata;
   sp_cookie_info : tables cookie_info;
   sp_tab_cookie_info : tables cookie_info;
-  mutable sp_user_cookies: Ocsigen_cookies.cookieset;
+  mutable sp_user_cookies: Ocsigen_cookie_map.t;
   (* cookies (un)set by the user during service *)
-  mutable sp_user_tab_cookies: Ocsigen_cookies.cookieset;
+  mutable sp_user_tab_cookies: Ocsigen_cookie_map.t;
   mutable sp_client_appl_name: string option; (* The application name,
                                                  as sent by the browser *)
   sp_suffix : Url.path option;
@@ -438,14 +438,14 @@ and page_table_content = [
     `Ptc of
       (page_table ref * page_table_key, na_key_serv) leftright
         Ocsigen_cache.Dlist.node option *
-      (server_params, Ocsigen_http_frame.result) service list ]
+      (server_params, Ocsigen_response.t) service list ]
 
 and naservice_table_content =
     (int (* generation (= number of reloads of sites
             after which that service has been created) *) *
        int ref option (* max_use *) *
        (float * float ref) option (* timeout and expiration date *) *
-       (server_params -> Ocsigen_http_frame.result Lwt.t) *
+       (server_params -> Ocsigen_response.t Lwt.t) *
        (page_table ref * page_table_key, na_key_serv) leftright
        Ocsigen_cache.Dlist.node option
        (* for limitation of number of dynamic coservices *)
@@ -530,7 +530,7 @@ and sitedata = {
   (* Limitation of the number of groups per site *)
   mutable remove_session_data : string -> unit;
   mutable not_bound_in_data_tables : string -> bool;
-  mutable exn_handler : exn -> Ocsigen_http_frame.result Lwt.t;
+  mutable exn_handler : exn -> Ocsigen_response.t Lwt.t;
   mutable unregistered_services : Url.path list;
   mutable unregistered_na_services : na_key_serv list;
   mutable max_volatile_data_sessions_per_group : int * bool;
@@ -561,7 +561,7 @@ val lazy_site_value_from_fun : ( unit -> 'a ) -> 'a lazy_site_value
 
 type info =
     (Ocsigen_extensions.request * sess_info *
-       tables cookie_info * tables cookie_info * Ocsigen_cookies.cookieset)
+     tables cookie_info * tables cookie_info * Ocsigen_cookie_map.t)
 
 exception Eliom_retry_with of info
 
@@ -581,7 +581,7 @@ val split_prefix_param :
 val get_session_info :
   Ocsigen_extensions.request ->
   int -> (Ocsigen_extensions.request * sess_info *
-            (tables cookie_info * Ocsigen_cookies.cookieset) option) Lwt.t
+          (tables cookie_info * Ocsigen_cookie_map.t) option) Lwt.t
 type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
 
 val make_full_cookie_name : string -> full_state_name -> string
@@ -656,8 +656,8 @@ val get_cookie_info : server_params -> [< cookie_level ] -> tables cookie_info
 
 val tab_cookie_action_info_key :
   (tables cookie_info *
-   Ocsigen_cookies.cookieset *
-   string Ocsigen_cookies.CookiesTable.t) Polytables.key
+   Ocsigen_cookie_map.t *
+   string Ocsigen_cookie_map.Map_inner.t) Polytables.key
 
 val sp_key : server_params Lwt.key
 val get_sp_option : unit -> server_params option

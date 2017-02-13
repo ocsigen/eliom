@@ -38,7 +38,7 @@ val server_function :
   ?charset:string ->
   ?code:int ->
   ?content_type:string ->
-  ?headers:Http_headers.t ->
+  ?headers:Ocsigen_header.t ->
   ?secure_session:bool ->
   ?name:string ->
   ?csrf_safe:bool ->

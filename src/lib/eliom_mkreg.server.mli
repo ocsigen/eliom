@@ -26,7 +26,7 @@
 (** {2 Creates modules to register services for one type of pages} *)
 module Make
     (Pages: Eliom_registration_sigs.PARAM
-     with type frame := Ocsigen_http_frame.result) :
+     with type frame := Ocsigen_response.t) :
   Eliom_registration_sigs.S_with_create
   with type page = Pages.page
    and type options = Pages.options
@@ -36,7 +36,7 @@ module Make
     parametrised pages} *)
 module Make_poly
     (Pages : Eliom_registration_sigs.PARAM_POLY
-     with type frame := Ocsigen_http_frame.result) :
+     with type frame := Ocsigen_response.t) :
   Eliom_registration_sigs.S_poly_with_create
   with type 'a page   = 'a Pages.page
    and type options   = Pages.options

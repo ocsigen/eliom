@@ -20,7 +20,7 @@
 include Eliom_parameter_sigs.S
   with type raw_post_data =
     ((string * string) * (string * string) list) option *
-    string Ocsigen_stream.t option
+    Cohttp_lwt.Body.t
 
 (** [user_type ~of_string ~to_string s] construct a parameter, labeled
     [s], such that the server will have to use [of_string] and
@@ -60,13 +60,13 @@ val type_checker :
 
 (** [regexp r d s] tells that the service takes a string that matches
     the regular expression [r] as parameter, labeled [s], and that will
-    be rewritten in d.  The syntax of regexp is PCRE's one (uses
-    [Netstring_pcre], from OCamlnet).  For example: [regexp
-    (Netstring_pcre.regexp "\\[(.* )\\]") "($1)" "myparam"] will match
+    be rewritten in d.  The syntax of regexp is PCRE's one (uses then
+    [Pcre] bindings).  For example: [regexp
+    (Pcre.regexp "\\[(.* )\\]") "($1)" "myparam"] will match
     the parameter [myparam=[hello]] and send the string ["(hello)"] to
     the service handler.  *)
 val regexp :
-  Netstring_pcre.regexp ->
+  Pcre.regexp ->
   string ->
   to_string:(string -> string) ->
   string ->
@@ -76,7 +76,7 @@ val regexp :
     possible, matching the regular expression [r], name [s], and
     rewrite it in [d].  *)
 val all_suffix_regexp :
-  Netstring_pcre.regexp ->
+  Pcre.regexp ->
   string ->
   to_string:(string -> string) ->
   string ->

@@ -1569,12 +1569,12 @@ let set_cookie
   let secure = Eliom_common.get_secure ~secure_o:secure ~sitedata () in
   match cookie_level with
     | `Session ->
-      sp.Eliom_common.sp_user_cookies <- Ocsigen_cookies.add_cookie
-        path name (Ocsigen_cookies.OSet (exp, value, secure))
+      sp.Eliom_common.sp_user_cookies <- Ocsigen_cookie_map.add
+        path name (`Set (exp, value, secure))
         sp.Eliom_common.sp_user_cookies
     | `Client_process ->
-      sp.Eliom_common.sp_user_tab_cookies <- Ocsigen_cookies.add_cookie
-        path name (Ocsigen_cookies.OSet (exp, value, secure))
+      sp.Eliom_common.sp_user_tab_cookies <- Ocsigen_cookie_map.add
+        path name (`Set (exp, value, secure))
         sp.Eliom_common.sp_user_tab_cookies
 
 let unset_cookie
@@ -1583,8 +1583,8 @@ let unset_cookie
   let path = change_pathopt_ sp path in
   match cookie_level with
     | `Session ->
-      sp.Eliom_common.sp_user_cookies <- Ocsigen_cookies.add_cookie
-        path name Ocsigen_cookies.OUnset sp.Eliom_common.sp_user_cookies
+      sp.Eliom_common.sp_user_cookies <- Ocsigen_cookie_map.add
+        path name `Unset sp.Eliom_common.sp_user_cookies
     | `Client_process ->
-      sp.Eliom_common.sp_user_tab_cookies <- Ocsigen_cookies.add_cookie
-        path name Ocsigen_cookies.OUnset sp.Eliom_common.sp_user_tab_cookies
+      sp.Eliom_common.sp_user_tab_cookies <- Ocsigen_cookie_map.add
+        path name `Unset sp.Eliom_common.sp_user_tab_cookies
