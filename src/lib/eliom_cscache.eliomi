@@ -40,6 +40,10 @@ type ('a, 'b) t
     cached.  *)
 val find : ('a, 'b) t -> ('a -> 'b Lwt.t) -> 'a -> 'b Lwt.t
 
+module L : sig
+  val find : ('a, 'b) t -> ('a list -> ('a * 'b) list Lwt.t) -> 'a list -> 'b list Lwt.t
+end
+
 (** [do_cache cache key value] adds the association from [key] to
     [value] in [cache], or replaces it if not already present.  Called
     from client side, it affects only client side cache.  Called from
