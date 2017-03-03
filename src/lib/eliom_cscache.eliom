@@ -47,39 +47,26 @@ let%server find cache get_data id =
     do_cache_raw cache id th;
     th
 
-let partition : ('c -> [`Left of 'a | `Right of 'b]) -> 'c list -> 'a list * 'b list
-  = fun p lst ->
-      let rec loop left right = function
-        | [] -> left, right
-        | h :: t -> match p h with
-            | `Left l -> loop (l::left) right t
-            | `Right r -> loop left (r::right) t
-      in
-      loop [] [] lst
-
-module L = struct
-  let find cache get_data ids =
-    let lookup id =
-      try `Left (id, Hashtbl.find (Eliom_shared.Value.local cache ()) id)
-      with Not_found -> `Right id
-    in
-    let cached, not_cached = partition lookup ids in
-    let tbl = Hashtbl.create 10 in
-    let main_thread =
-      let%lwt () = cached |> Lwt_list.iter_s @@ fun (id, v) -> (*iter_p?*)
-        let%lwt v = v in Lwt.return @@ Hashtbl.add tbl id v in
-      let%lwt vs = get_data not_cached in
-      List.iter (fun (id,v) -> Hashtbl.add tbl id v) vs;
-      ignore [%client (List.iter (fun (id,v) -> do_cache ~%cache id v) ~%vs : unit)];
-      Lwt.return tbl
-    in
-    let thread id =
-      let%lwt tbl = main_thread in
-      Lwt.return @@ Hashtbl.find tbl id
-    in
-    List.iter (fun id -> do_cache_raw cache id @@ thread id) ids;
-    Lwt.return @@ List.map (Hashtbl.find tbl) ids
-end
+let cache_list cache get_data ids =
+  let main_thread, wakeup = Lwt.task () in
+  let tbl = Hashtbl.create 10 in
+  let thread id =
+    let%lwt () = main_thread in
+    Lwt.return @@ Hashtbl.find tbl id
+  in
+  let enqueue id =
+    try let _ = Hashtbl.find (Eliom_shared.Value.local cache ()) id in false
+    with Not_found -> let () = do_cache_raw cache id (thread id) in true
+  in
+  try%lwt
+    (*TODO: enqueue is called twice with the same ID if there are duplicates *)
+    let not_cached = List.filter enqueue ids in
+    (*TODO: not_cached: remove duplicates? *)
+    let%lwt data = get_data not_cached in
+    List.iter (fun (id,v) -> Hashtbl.add tbl id v) data;
+    ignore [%client (List.iter (fun (id,v) -> do_cache ~%cache id v) ~%data : unit)];
+    Lwt.return @@ Lwt.wakeup wakeup ()
+  with e -> Lwt.return @@ Lwt.wakeup_exn wakeup e
 
 let%client load cache get_data id =
   let th = get_data id in

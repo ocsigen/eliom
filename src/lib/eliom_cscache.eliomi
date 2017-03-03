@@ -40,9 +40,9 @@ type ('a, 'b) t
     cached.  *)
 val find : ('a, 'b) t -> ('a -> 'b Lwt.t) -> 'a -> 'b Lwt.t
 
-module L : sig
-  val find : ('a, 'b) t -> ('a list -> ('a * 'b) list Lwt.t) -> 'a list -> 'b list Lwt.t
-end
+(*TODO: document*)
+val cache_list :
+  ('a, 'b) t -> ('a list -> ('a * 'b) list Lwt.t) -> 'a list -> unit Lwt.t
 
 (** [do_cache cache key value] adds the association from [key] to
     [value] in [cache], or replaces it if not already present.  Called
