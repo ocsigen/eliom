@@ -227,7 +227,7 @@ let init () =
          run_callbacks load_callbacks;
          if !Eliom_config.debug_timings
          then Firebug.console##(timeEnd (Js.string "onload"));
-         Lwt.return ());
+         Lwt.return_unit);
     Js._false
   in
 
@@ -572,11 +572,11 @@ let set_template_content ~replace ?uri ?fragment =
     let load_callbacks = flush_onload () in
     Lwt_mutex.unlock load_mutex;
     run_callbacks load_callbacks;
-    Lwt.return ()
-  and cancel () = Lwt.return () in
+    Lwt.return_unit
+  and cancel () = Lwt.return_unit in
   function
   | None ->
-    Lwt.return ()
+    Lwt.return_unit
   | Some content ->
     run_onunload_wrapper (really_set content) cancel
 
@@ -619,7 +619,7 @@ let set_content_local ?offset ?fragment new_page =
        Otherwise, the browser start to display the page before
        loading the CSS. *)
     let preloaded_css =
-      if !only_replace_body then Lwt.return () else
+      if !only_replace_body then Lwt.return_unit else
       Eliommod_dom.preload_css new_page in
     (* Wait for CSS to be inlined before substituting global nodes: *)
     let%lwt () = preloaded_css in
@@ -633,9 +633,9 @@ let set_content_local ?offset ?fragment new_page =
     scroll_to_fragment ?offset fragment;
     if !Eliom_config.debug_timings
     then Firebug.console##(timeEnd (Js.string "set_content_local"));
-    Lwt.return ()
+    Lwt.return_unit
   in
-  let cancel () = recover (); Lwt.return () in
+  let cancel () = recover (); Lwt.return_unit in
   try%lwt
     let%lwt () = Lwt_mutex.lock load_mutex in
     set_loading_phase ();
@@ -653,7 +653,7 @@ let set_content ~replace ?uri ?offset ?fragment content =
   (* TODO: too early? *)
   run_callbacks (flush_onchangepage ());
   match content with
-  | None -> Lwt.return ()
+  | None -> Lwt.return_unit
   | Some content ->
     let locked = ref true in
     let really_set () =
@@ -668,7 +668,7 @@ let set_content ~replace ?uri ?offset ?fragment content =
          Otherwise, the browser start to display the page before
          loading the CSS. *)
       let preloaded_css =
-        if !only_replace_body then Lwt.return () else
+        if !only_replace_body then Lwt.return_unit else
         Eliommod_dom.preload_css fake_page in
       (* Unique nodes of scope request must be bound before the
          unmarshalling/unwrapping of page data. *)
@@ -726,7 +726,7 @@ let set_content ~replace ?uri ?offset ?fragment content =
       scroll_to_fragment ?offset fragment;
       if !Eliom_config.debug_timings then
         Firebug.console##(timeEnd (Js.string "set_content"));
-      Lwt.return ()
+      Lwt.return_unit
     and recover () =
       if !locked then Lwt_mutex.unlock load_mutex;
       if !Eliom_config.debug_timings
@@ -737,7 +737,7 @@ let set_content ~replace ?uri ?offset ?fragment content =
       set_loading_phase ();
       if !Eliom_config.debug_timings
       then Firebug.console##(time (Js.string "set_content"));
-      let g () = recover (); Lwt.return () in
+      let g () = recover (); Lwt.return_unit in
       run_onunload_wrapper really_set g
     with exn ->
       recover ();
@@ -810,7 +810,7 @@ let route ~replace ?(keep_url = false)
     let%lwt () = Eliom_route.call_service info in
     if not keep_url then
       change_url_string_protected ~replace (make_uri i_subpath i_get_params);
-    Lwt.return ()
+    Lwt.return_unit
   with e ->
     Eliom_request_info.get_sess_info := r;
     Lwt.fail e
@@ -838,7 +838,7 @@ let after_action uri =
     try%lwt
       route ~replace:false ~keep_url:true info
     with _ ->
-      Lwt.return ()
+      Lwt.return_unit
 
 let do_follow_up uri =
   match !follow_up with
@@ -849,7 +849,7 @@ let do_follow_up uri =
     follow_up := None;
     after_action uri
   | None ->
-    Lwt.return ()
+    Lwt.return_unit
 
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
@@ -1025,7 +1025,7 @@ let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
      end else begin
        change_url_string ~replace:true full_uri;
        scroll_to_fragment fragment;
-       Lwt.return ()
+       Lwt.return_unit
      end)
 
 let change_page_uri ?replace full_uri =
@@ -1039,7 +1039,7 @@ let change_page_uri ?replace full_uri =
   with _ ->
     if is_client_app () then
       (Lwt_log.ign_debug ~section "Change page uri: can't find service";
-       Lwt.return ())
+       Lwt.return_unit)
     else
       (Lwt_log.ign_debug ~section "Change page uri: resort to server";
        change_page_uri_a full_uri)
@@ -1128,7 +1128,7 @@ let () =
                 reload_function := Some rf;
                 rf () () >>
                 (scroll_to_fragment ~offset:state.position fragment;
-                 Lwt.return ())
+                 Lwt.return_unit)
               with Not_found ->
               match tmpl with
               | Some t
@@ -1139,7 +1139,7 @@ let () =
                 in
                 set_template_content ~replace:false content >>
                 (scroll_to_fragment ~offset:state.position fragment;
-                 Lwt.return ())
+                 Lwt.return_unit)
               | _ ->
                 let%lwt uri, content =
                   Eliom_request.http_get ~expecting_process_page:true uri []
@@ -1148,7 +1148,7 @@ let () =
                   ~replace:false ~offset:state.position ?fragment content
             end else
               (scroll_to_fragment ~offset:state.position fragment;
-               Lwt.return ())))
+               Lwt.return_unit)))
     in
 
     let goto_uri full_uri state_id =
@@ -1166,7 +1166,7 @@ let () =
          (Js.Opt.return (!current_state_id, Dom_html.window##.location##.href))
          (Js.string "")
          (Js.null) );
-       Lwt.return ());
+       Lwt.return_unit);
 
     Dom_html.window##.onpopstate :=
       Dom_html.handler (fun event ->
@@ -1198,8 +1198,8 @@ let () =
               in
               (* CCC TODO handle templates *)
               change_page_uri uri)
-           else Lwt.return ()
-         else Lwt.return ())
+           else Lwt.return_unit
+         else Lwt.return_unit)
     in
 
     Eliommod_dom.onhashchange (fun s -> auto_change_page (Js.to_string s));
@@ -1209,7 +1209,7 @@ let () =
       Lwt.ignore_result (
         let%lwt () = wait_load_end () in
         auto_change_page first_fragment;
-        Lwt.return ())
+        Lwt.return_unit)
 
 let () =
   Eliom_unwrap.register_unwrapper

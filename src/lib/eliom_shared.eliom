@@ -28,7 +28,7 @@
        let%lwt ss = th in
        let effectful_signal = React.S.map (fun v -> set v) ss in
        ignore (React.S.retain s (fun () -> ignore effectful_signal));
-       Lwt.return ());
+       Lwt.return_unit);
      s
 
 ]
@@ -171,7 +171,7 @@ module ReactiveData = struct
                 | ReactiveData.RList.Patch p ->
                   ReactiveData.RList.patch rhandle p);
                Lwt.wakeup (snd new_waiter) ();
-               Lwt.return ()))
+               Lwt.return_unit))
           event
 
       (** Same as map_p but we do not compute the initial list.

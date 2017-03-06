@@ -883,14 +883,14 @@ let reconstruct_params ~sp (type a) (type c) (typ : (a,'b,c) params_type) params
       | Some params ->
         params
       | None ->
-        Lwt.return []
+        Lwt.return_nil
     in
     let%lwt files =
       match files with
       | Some files ->
         files
       | None ->
-        Lwt.return []
+        Lwt.return_nil
     in
     try
        Lwt.return

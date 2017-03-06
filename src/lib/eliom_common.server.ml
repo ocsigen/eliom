@@ -926,12 +926,12 @@ let get_session_info req previous_extension_err =
   let rc = Ocsigen_extensions.Ocsigen_request_info.request_cache ri in
   let no_post_param, p =
     match Ocsigen_extensions.Ocsigen_request_info.post_params ri with
-      | None -> true, Lwt.return []
+      | None -> true, Lwt.return_nil
       | Some f -> false, f (ci.Ocsigen_extensions.uploaddir, ci.Ocsigen_extensions.maxuploadfilesize)
   in
   let no_file_param, file_params =
     match Ocsigen_extensions.Ocsigen_request_info.files ri with
-      | None -> true, Lwt.return []
+      | None -> true, Lwt.return_nil
       | Some f -> false, f (ci.Ocsigen_extensions.uploaddir, ci.Ocsigen_extensions.maxuploadfilesize)
   in
 

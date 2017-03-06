@@ -53,7 +53,7 @@ struct
                     | Lwt_stream.Error exn ->
                       let%lwt () = handle_react_exn ~exn () in
                       Lwt.fail exn
-                    | Lwt_stream.Value _ -> Lwt.return ())
+                    | Lwt_stream.Value _ -> Lwt.return_unit)
                   stream);
     E.of_stream channel
 

@@ -138,7 +138,7 @@ struct
       ~scope
       ~options:`NoReload
       ~service:e_writer
-      (fun () value -> push value ; Lwt.return ());
+      (fun () value -> push value ; Lwt.return_unit);
     { event = e;
       service = e_writer;
       wrapper = up_event_wrapper () }
@@ -202,7 +202,7 @@ struct
         else
           begin
             store.read <- true;
-            Lwt.return (Some store.value)
+            Lwt.return_some store.value
           end
       in
       aux

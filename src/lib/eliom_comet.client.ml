@@ -148,11 +148,11 @@ struct
       let remaining_time = sleep_duration () -. (Sys.time () -. time) in
       if remaining_time > 0.
       then aux remaining_time
-      else Lwt.return ()
+      else Lwt.return_unit
     in
     let sleep_duration = sleep_duration () in
     if sleep_duration <= 0.
-    then Lwt.return ()
+    then Lwt.return_unit
     else aux sleep_duration
 
 end
@@ -179,7 +179,7 @@ let handle_exn, set_handle_exn_function =
        closed := true;
        !r ?exn ()
      end
-     else Lwt.return ()),
+     else Lwt.return_unit),
    (fun f -> r := f))
 
 
@@ -609,8 +609,8 @@ let handler_stream hd =
   Lwt_stream.map_list (fun x -> x)
     (Lwt_stream.from (fun () ->
        Lwt.try_bind (fun () -> Service_handler.wait_data hd)
-         (fun s -> Lwt.return (Some s))
-         (fun _ -> Lwt.return None)))
+         (fun s -> Lwt.return_some s)
+         (fun _ -> Lwt.return_none)))
 
 let stateful_handler_table : (Ecb.comet_service, Service_handler.stateful handler) Hashtbl.t
     = Hashtbl.create 1
@@ -708,8 +708,8 @@ let register' hd position (chan_service:Ecb.comet_service) (chan_id:'a Ecb.chan_
           | Ecb.Closed ->
             Lwt.fail Channel_closed
           | Ecb.Data x ->
-            Lwt.return (Some (unmarshal x:'a)))
-      | _ -> Lwt.return None)
+            Lwt.return_some (unmarshal x:'a))
+      | _ -> Lwt.return_none)
     (Lwt_stream.clone hd.hd_stream)
   in
   let protect_and_close t =

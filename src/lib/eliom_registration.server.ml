@@ -457,8 +457,8 @@ module Action_reg_base = struct
                   ~cookies:(lazy ric)
                   ~get_params:
                     (lazy si.Eliom_common.si_other_get_params)
-                  ~post_params:(Some (fun _ -> Lwt.return []))
-                  ~files:(Some (fun _ -> Lwt.return []))
+                  ~post_params:(Some (fun _ -> Lwt.return_nil))
+                  ~files:(Some (fun _ -> Lwt.return_nil))
                   ()
               in
               let%lwt () = Eliommod_pagegen.update_cookie_table sitedata all_cookie_info in
@@ -489,8 +489,8 @@ module Action_reg_base = struct
                   ~cookies:(lazy ric)
                   ~get_params:
                     (lazy si.Eliom_common.si_other_get_params)
-                  ~post_params:(Some (fun _ -> Lwt.return []))
-                  ~files:(Some (fun _ -> Lwt.return []))
+                  ~post_params:(Some (fun _ -> Lwt.return_nil))
+                  ~files:(Some (fun _ -> Lwt.return_nil))
                   ()
               in
               let%lwt () =
