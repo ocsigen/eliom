@@ -40,7 +40,12 @@ type ('a, 'b) t
     cached.  *)
 val find : ('a, 'b) t -> ('a -> 'b Lwt.t) -> 'a -> 'b Lwt.t
 
-(*TODO: document*)
+(** [cache_list cache get_from_db keys] ensures that for each key in [keys]
+    there is a cached value in the [cache]. The keys that are not yet cached are
+    fed to [get_from_db] to fetch the data from the database and then put into
+    the cache. Keys that occur more than once in [keys] are fed to [get_from_db]
+    only once. [cache_list] is intended as a means to reduce the number of DB
+    requests w.r.t. multiple invocations of [find]. *)
 val cache_list :
   ('a, 'b) t -> ('a list -> ('a * 'b) list Lwt.t) -> 'a list -> unit Lwt.t
 
