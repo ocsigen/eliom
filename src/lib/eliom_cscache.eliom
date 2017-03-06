@@ -64,7 +64,7 @@ let cache_list cache get_data ids =
     List.iter (fun (id,v) -> Hashtbl.add tbl id v) data;
     ignore [%client (List.iter (fun (id,v) -> do_cache ~%cache id v) ~%data : unit)];
     Lwt.return @@ Lwt.wakeup wakeup ()
-  with e -> Lwt.return @@ Lwt.wakeup_exn wakeup e
+  with e -> Lwt.wakeup_exn wakeup e; Lwt.fail e
 
 let%client load cache get_data id =
   let th = get_data id in
