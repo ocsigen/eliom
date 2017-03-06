@@ -223,7 +223,7 @@ let register_aux pages
                           ~sp
                           sgpt
                           (Some (Lwt.return (Lazy.force (Ocsigen_extensions.Ocsigen_request_info.get_params ri))))
-                          (Some (Lwt.return []))
+                          (Some (Lwt.return_nil))
                           nosuffixversion
                           suff
                         >>= fun g ->
@@ -396,7 +396,7 @@ let register_aux pages
                            (Some (Lwt.return
                               (Lazy.force (Ocsigen_extensions
                                       .Ocsigen_request_info.get_params ri))))
-                           (Some (Lwt.return []))
+                           (Some (Lwt.return_nil))
                            false
                            None
                          >>= fun g ->

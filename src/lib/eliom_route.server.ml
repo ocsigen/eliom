@@ -185,11 +185,11 @@ let get_page
                                         ~post_params:
                                           (match Ocsigen_request_info.post_params ri.request_info with
                                            | None -> None
-                                           | Some _ -> Some (fun _ -> Lwt.return []))
+                                           | Some _ -> Some (fun _ -> Lwt.return_nil))
                                         ~files:
                                           (match Ocsigen_request_info.files ri.request_info with
                                            | None -> None
-                                           | Some _ -> Some (fun _ -> Lwt.return []))
+                                           | Some _ -> Some (fun _ -> Lwt.return_nil))
                                         ~meth:Ocsigen_http_frame.Http_header.GET
                                         ()},
                            {si with
@@ -219,10 +219,10 @@ let get_page
                                         ~get_params:(lazy si.Eliom_common.si_other_get_params)
                                         ~post_params:(match Ocsigen_request_info.post_params ri.request_info with
                                           | None -> None
-                                          | Some _ -> Some (fun _ -> Lwt.return []))
+                                          | Some _ -> Some (fun _ -> Lwt.return_nil))
                                         ~files:(match Ocsigen_request_info.files ri.request_info with
                                           | None -> None
-                                          | Some _ -> Some (fun _ -> Lwt.return []))
+                                          | Some _ -> Some (fun _ -> Lwt.return_nil))
                                         ~meth:Ocsigen_http_frame.Http_header.GET
                                         ()
                            },
@@ -412,10 +412,10 @@ let make_naservice
                     ~get_params:(lazy si.Eliom_common.si_other_get_params)
                     ~post_params:(match Ocsigen_request_info.post_params ri.request_info with
                       | None -> None
-                      | Some _ -> Some (fun _ -> Lwt.return []))
+                      | Some _ -> Some (fun _ -> Lwt.return_nil))
                     ~files:(match Ocsigen_request_info.files ri.request_info with
                       | None -> None
-                      | Some _ -> Some (fun _ -> Lwt.return []))
+                      | Some _ -> Some (fun _ -> Lwt.return_nil))
                     ~meth:Ocsigen_http_frame.Http_header.GET
                     ()
        }
@@ -440,10 +440,10 @@ let make_naservice
                     ~get_params:(lazy si.Eliom_common.si_other_get_params)
                     ~post_params:(match Ocsigen_request_info.post_params ri.request_info with
                       | None -> None
-                      | Some _ -> Some (fun _ -> Lwt.return []))
+                      | Some _ -> Some (fun _ -> Lwt.return_nil))
                     ~files:(match Ocsigen_request_info.files ri.request_info with
                       | None -> None
-                      | Some _ -> Some (fun _ -> Lwt.return []))
+                      | Some _ -> Some (fun _ -> Lwt.return_nil))
                     ~meth:Ocsigen_http_frame.Http_header.GET
                     ()
        }

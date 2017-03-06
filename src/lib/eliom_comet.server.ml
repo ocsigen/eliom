@@ -261,7 +261,7 @@ struct
           let%lwt () = wait_data requests in
           Lwt.return (List.flatten (List.map get_available_data requests))
         with
-          | Lwt_unix.Timeout -> Lwt.return []
+          | Lwt_unix.Timeout -> Lwt.return_nil
       in
       Lwt.return (encode_global_downgoing res)
 
