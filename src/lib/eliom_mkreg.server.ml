@@ -124,7 +124,7 @@ let check_process_redir sp f param =
      It is ok with half or full xhr redirections. *)
   (* If an action occured before,
      it may have removed some get params form ri *)
-  else Lwt.return ()
+  else Lwt.return_unit
 
 let send_with_cookies
     sp
@@ -280,9 +280,9 @@ let register_aux pages
                                 Eliom_uri.make_string_uri_ ~service g in
                               let rc = Eliom_request_info.get_request_cache_sp sp in
                               Polytables.set ~table:rc ~key:suffix_redir_uri_key ~value:redir_uri;
-                              Lwt.return ()
+                              Lwt.return_unit
                             end
-                         else Lwt.return ())
+                         else Lwt.return_unit)
                         >>= fun () ->
                         check_process_redir sp check_before service >>= fun () ->
                         page_generator g p)

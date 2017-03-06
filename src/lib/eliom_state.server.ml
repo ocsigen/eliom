@@ -405,7 +405,7 @@ let rec close_volatile_state_if_empty ~scope ?secure () =
 
 
 let close_persistent_state_if_empty ~scope ?secure () =
-  Lwt.return ()
+  Lwt.return_unit
 (*VVV Can we implement this function? *)
 
 
@@ -602,7 +602,7 @@ let set_persistent_data_session_group ?set_max
     (Eliommod_persess.close_persistent_state2
        ~scope:(scope:>Eliom_common.user_scope) sitedata None) l in
   grp := n;
-  Lwt.return ()
+  Lwt.return_unit
 
 let unset_persistent_data_session_group
     ?(scope = Eliom_common.default_session_scope) ?secure () =
@@ -621,7 +621,7 @@ let unset_persistent_data_session_group
       ~scope:(scope:>Eliom_common.user_scope) ?secure ()
   with
     | Not_found
-    | Eliom_common.Eliom_Session_expired -> Lwt.return ()
+    | Eliom_common.Eliom_Session_expired -> Lwt.return_unit
 
 let get_persistent_data_session_group
     ?(scope = Eliom_common.default_session_scope) ?secure () =
@@ -1114,7 +1114,7 @@ let discard_volatile_data ~scope ?secure () =
 let discard_request_data () =
   let table = Eliom_request_info.get_request_cache () in
   Polytables.clear ~table;
-  Lwt.return ()
+  Lwt.return_unit
 
 let discard_data ?persistent ~scope ?secure () =
   match scope with
@@ -1128,7 +1128,7 @@ let discard_data ?persistent ~scope ?secure () =
       (match persistent with
         | None | Some true ->
           discard_persistent_data ~scope ?secure ()
-        | _ -> Lwt.return ())
+        | _ -> Lwt.return_unit)
 
 let discard ~scope ?secure () =
   match scope with
@@ -1166,11 +1166,11 @@ let discard_all_data ?persistent ~scope ?secure () =
   let%lwt () = match persistent with
     | None | Some false ->
       discard_all_volatile_data ~scope ?secure ()
-    | _ -> Lwt.return () in
+    | _ -> Lwt.return_unit in
   (match persistent with
     | None | Some true ->
       discard_all_persistent_data ~scope ?secure ()
-    | _ -> Lwt.return ())
+    | _ -> Lwt.return_unit)
 
 let discard_all_services ~scope ?secure () =
   let sitedata = Eliom_request_info.find_sitedata "close_all_service_sessions"
@@ -1307,13 +1307,13 @@ module Ext = struct
             (make_sessgrp group_name) with
               | Some node -> Eliommod_sessiongroups.Data.remove node
               | None -> ());
-        Lwt.return ()
+        Lwt.return_unit
       | (`Session_group _, `Service, group_name) ->
         (match Eliommod_sessiongroups.Serv.find_node_in_group_of_groups
             (make_sessgrp group_name) with
               | Some (_, node) -> Eliommod_sessiongroups.Serv.remove node
               | None -> ());
-        Lwt.return ()
+        Lwt.return_unit
       | (`Session_group _, `Pers, group_name) ->
         let sitedata = get_sitedata () in
         let sgr_o = Eliom_common.make_persistent_full_group_name
@@ -1325,12 +1325,12 @@ module Ext = struct
       | (_, `Service, (cookie : string)) ->
         let (_, (_, _, _, _, _sgr, sgrnode)) = get_service_cookie_info state in
         Eliommod_sessiongroups.Serv.remove sgrnode;
-        Lwt.return ()
+        Lwt.return_unit
       | (_, `Data, cookie) ->
         let (_, (_, _, _, _sgr, sgrnode)) =
           get_volatile_data_cookie_info state in
         Eliommod_sessiongroups.Data.remove sgrnode;
-        Lwt.return ()
+        Lwt.return_unit
       | (_, `Pers, cookie) ->
         get_persistent_cookie_info state
         >>= fun (cookie, ((scope, _, _), _, _, sgr_o)) ->
@@ -1424,7 +1424,7 @@ module Ext = struct
       then raise Wrong_scope
 
     let lwt_check_scopes a b =
-      try check_scopes a b; Lwt.return ()
+      try check_scopes a b; Lwt.return_unit
       with e -> Lwt.fail e
 
     let check_group_scope s =
@@ -1433,7 +1433,7 @@ module Ext = struct
         | _ -> raise Wrong_scope
 
     let lwt_check_group_scope a =
-      try check_group_scope a; Lwt.return ()
+      try check_group_scope a; Lwt.return_unit
       with e -> Lwt.fail e
 
 

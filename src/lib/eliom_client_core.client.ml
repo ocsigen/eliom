@@ -385,7 +385,7 @@ let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
   let wait_load_end () =
     if !loading_phase
     then Lwt_condition.wait load_end
-    else Lwt.return () in
+    else Lwt.return_unit in
   in_onload, broadcast_load_end, wait_load_end, set
 
 (* == Helper's functions for Eliom's event handler.
@@ -434,7 +434,7 @@ let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
     Lwt.async @@ fun () ->
     let%lwt b = client_form_handler ev in
     if not b then change_page_form ?cookies_info ?tmpl form action;
-    Lwt.return ()
+    Lwt.return_unit
   in
   (not !Eliom_common.is_client_app
    && (  (https = Some true && not Eliom_request_info.ssl_)

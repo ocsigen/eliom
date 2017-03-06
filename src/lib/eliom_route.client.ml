@@ -104,7 +104,7 @@ module A = struct
 
   end
 
-  let handle_directory _ = Lwt.return ()
+  let handle_directory _ = Lwt.return_unit
 
 end
 

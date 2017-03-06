@@ -47,7 +47,7 @@ let consume (t,u) s =
         | _ -> ());
       [%lwt raise ( e)]
   in
-  Lwt.choose [Lwt.bind t (fun _ -> Lwt.return ());t']
+  Lwt.choose [Lwt.bind t (fun _ -> Lwt.return_unit);t']
 
 let clone_exn (t,u) s =
   let s' = Lwt_stream.clone s in
@@ -72,9 +72,9 @@ let create service channel waiter =
     try%lwt
       let%lwt _ = Eliom_client.call_service
           ~service:(service:> ('a, _, _, _, _) callable_bus_service) () x in
-      Lwt.return ()
+      Lwt.return_unit
     with
-      | Eliom_request.Failed_request 204 -> Lwt.return ()
+      | Eliom_request.Failed_request 204 -> Lwt.return_unit
   in
   let error_h =
     let t,u = Lwt.wait () in
@@ -94,7 +94,7 @@ let create service channel waiter =
     max_size = 20;
     write;
     waiter;
-    last_wait = Lwt.return ();
+    last_wait = Lwt.return_unit;
     original_stream_available = true;
     error_h;
   } in
@@ -104,7 +104,7 @@ let create service channel waiter =
   let _ =
     let%lwt () = Eliom_client.wait_load_end () in
     t.original_stream_available <- false;
-    Lwt.return ()
+    Lwt.return_unit
   in
   t
 
@@ -135,7 +135,7 @@ let try_flush t =
     let th = Lwt.protected (t.waiter ()) in
     t.last_wait <- th;
     let _ = th >>= (fun () -> flush t) in
-    Lwt.return ()
+    Lwt.return_unit
 
 let write t v =
   Queue.add v t.queue;

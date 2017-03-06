@@ -240,7 +240,7 @@ module Unit = Make (struct
     let reset_reload_fun = true
 
     let send ?options:_ page =
-      Lwt.return ()
+      Lwt.return_unit
 
   end)
 
@@ -299,7 +299,7 @@ module Redirection = struct
       ?options:_ ?charset:_ ?code:_ ?content_type:_ ?headers:_
       rdr =
     Eliom_client.register_redirect rdr;
-    Lwt.return ()
+    Lwt.return_unit
 
   let register
       ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_

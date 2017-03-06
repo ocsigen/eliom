@@ -114,7 +114,7 @@ module Make (A : ARG) : S
             | None ->
               Weak_tbl.remove wt data;
               remove_if_empty wt key;
-              Lwt.return ()
+              Lwt.return_unit
             | Some v ->
               f v
           in
@@ -162,7 +162,7 @@ module Make (A : ARG) : S
   let set_current_identity () =
     A.get_identity () >>= fun identity ->
     set_identity identity;
-    Lwt.return ()
+    Lwt.return_unit
 
   let init : unit -> unit Lwt.t = fun () ->
     set_current_identity ()
@@ -201,11 +201,11 @@ module Make (A : ARG) : S
         | None -> false
       in
       if blocked
-      then Lwt.return ()
+      then Lwt.return_unit
       else
         A.prepare identity content >>= fun content -> match content with
-        | Some content -> send_e (key, content); Lwt.return ()
-        | None -> Lwt.return ()
+        | Some content -> send_e (key, content); Lwt.return_unit
+        | None -> Lwt.return_unit
     in
     (* on all tabs listening on this resource *)
     I.iter f key

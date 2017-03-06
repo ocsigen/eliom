@@ -148,11 +148,11 @@ struct
       let remaining_time = sleep_duration () -. (Sys.time () -. time) in
       if remaining_time > 0.
       then aux remaining_time
-      else Lwt.return ()
+      else Lwt.return_unit
     in
     let sleep_duration = sleep_duration () in
     if sleep_duration <= 0.
-    then Lwt.return ()
+    then Lwt.return_unit
     else aux sleep_duration
 
 end
@@ -179,7 +179,7 @@ let handle_exn, set_handle_exn_function =
        closed := true;
        !r ?exn ()
      end
-     else Lwt.return ()),
+     else Lwt.return_unit),
    (fun f -> r := f))
 
 

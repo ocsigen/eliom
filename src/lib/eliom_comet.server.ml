@@ -155,7 +155,7 @@ struct
           channel.ch_index <- succ channel.ch_index;
           ignore (Dlist.add (msg,channel.ch_index) channel.ch_content: 'a option);
           wakeup_waiters channel;
-          Lwt.return ()
+          Lwt.return_unit
     in
     ignore (Lwt_stream.iter_s f stream:unit Lwt.t)
 
@@ -247,7 +247,7 @@ struct
 
   let wait_data requests =
     if List.exists has_data requests
-    then Lwt.return ()
+    then Lwt.return_unit
     else
       Lwt_unix.with_timeout (timeout ())
         (fun () -> really_wait_data requests)
@@ -388,7 +388,7 @@ end = struct
         | Inactive inactive_time ->
           let now = Unix.gettimeofday () in
           if now -. inactive_time > t
-          then Lwt.return ()
+          then Lwt.return_unit
           else
             let%lwt () = Lwt_unix.sleep (t -. (now -. inactive_time)) in
             run ()
@@ -456,7 +456,7 @@ end = struct
        handler.hd_update_streams ::
        wait_streams handler.hd_active_streams)
     >>= ( function
-      | `Data -> Lwt.return ()
+      | `Data -> Lwt.return_unit
       | `Update -> wait_data wait_closed_connection handler )
 
   let launch_stream handler (chan_id,stream) =
@@ -734,7 +734,7 @@ end = struct
     let rec loop full =
       match%lwt Lwt_stream.get s with
         None ->
-          Lwt.return ()
+          Lwt.return_unit
       | Some x ->
           if full then
             loop true
