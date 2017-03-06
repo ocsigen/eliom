@@ -202,7 +202,7 @@ struct
         else
           begin
             store.read <- true;
-            Lwt.return (Some store.value)
+            Lwt.return_some store.value
           end
       in
       aux

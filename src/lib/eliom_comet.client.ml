@@ -609,7 +609,7 @@ let handler_stream hd =
   Lwt_stream.map_list (fun x -> x)
     (Lwt_stream.from (fun () ->
        Lwt.try_bind (fun () -> Service_handler.wait_data hd)
-         (fun s -> Lwt.return (Some s))
+         (fun s -> Lwt.return_some s)
          (fun _ -> Lwt.return_none)))
 
 let stateful_handler_table : (Ecb.comet_service, Service_handler.stateful handler) Hashtbl.t
@@ -708,7 +708,7 @@ let register' hd position (chan_service:Ecb.comet_service) (chan_id:'a Ecb.chan_
           | Ecb.Closed ->
             Lwt.fail Channel_closed
           | Ecb.Data x ->
-            Lwt.return (Some (unmarshal x:'a)))
+            Lwt.return_some (unmarshal x:'a))
       | _ -> Lwt.return_none)
     (Lwt_stream.clone hd.hd_stream)
   in

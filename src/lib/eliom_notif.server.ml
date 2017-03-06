@@ -236,7 +236,7 @@ module Make_Simple(A : ARG_SIMPLE) = Make
     type key           = A.key
     type server_notif  = A.notification
     type client_notif  = A.notification
-    let prepare _ n    = Lwt.return (Some n)
+    let prepare _ n    = Lwt.return_some n
     let equal_key      = (=)
     let equal_identity = (=)
     let get_identity   = A.get_identity
