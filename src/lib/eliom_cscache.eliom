@@ -59,9 +59,7 @@ let cache_list cache get_data ids =
     with Not_found -> let () = do_cache_raw cache id (thread id) in true
   in
   try%lwt
-    (*TODO: enqueue is called twice with the same ID if there are duplicates *)
     let not_cached = List.filter enqueue ids in
-    (*TODO: not_cached: remove duplicates? *)
     let%lwt data = get_data not_cached in
     List.iter (fun (id,v) -> Hashtbl.add tbl id v) data;
     ignore [%client (List.iter (fun (id,v) -> do_cache ~%cache id v) ~%data : unit)];
