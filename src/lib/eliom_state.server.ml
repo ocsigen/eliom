@@ -636,7 +636,7 @@ let get_persistent_data_session_group
           | _ -> None)
   with
     | Not_found
-    | Eliom_common.Eliom_Session_expired -> Lwt.return None
+    | Eliom_common.Eliom_Session_expired -> Lwt.return_none
 
 
 
