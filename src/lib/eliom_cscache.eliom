@@ -54,9 +54,9 @@ let cache_list cache get_data ids =
     let%lwt () = main_thread in
     Lwt.return @@ Hashtbl.find tbl id
   in
-  let enqueue id =
-    try let _ = Hashtbl.find (Eliom_shared.Value.local cache ()) id in false
-    with Not_found -> let () = do_cache_raw cache id (thread id) in true
+  let enqueue id = if Hashtbl.mem (Eliom_shared.Value.local cache ()) id
+    then false
+    else let () = do_cache_raw cache id (thread id) in true
   in
   try%lwt
     let not_cached = List.filter enqueue ids in
