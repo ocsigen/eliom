@@ -32,7 +32,7 @@ let error_handler =
 let set_error_handler f = error_handler := f
 
 let iter_contents y ev f =
-  let fls () = Lwt.return false in
+  let fls () = Lwt.return_false in
   Js.Opt.case (ev##.target) fls @@ fun target ->
   Js.Opt.case (Dom_html.CoerceTo.form target) fls @@ fun target ->
   match read_params target y with
@@ -46,7 +46,7 @@ type client_form_handler = Eliom_client.client_form_handler
 let make_hdlr_get service : client_form_handler = fun ev ->
   match Eliom_service.client_fun service with
   | None ->
-    Lwt.return false
+    Lwt.return_false
   | Some _ ->
     iter_contents (Eliom_service.get_params_type service) ev @@ fun g ->
     Eliom_client.change_page ~service g ()
@@ -54,7 +54,7 @@ let make_hdlr_get service : client_form_handler = fun ev ->
 let make_hdlr_post service g : client_form_handler = fun ev ->
   match Eliom_service.client_fun service with
   | None ->
-    Lwt.return false
+    Lwt.return_false
   | Some _ ->
     iter_contents (Eliom_service.post_params_type service) ev @@ fun p ->
     Eliom_client.change_page ~service g p

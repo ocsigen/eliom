@@ -769,7 +769,7 @@ let form_handler
          if String.lowercase(Js.to_string form##._method) = "get"
          then `Form_get
          else `Form_post
-       and f _ = Lwt.return false in
+       and f _ = Lwt.return_false in
        Js.bool (raw_form_handler form kind (get_element_cookies_info form)
                   (get_element_template node) ev f))
 
