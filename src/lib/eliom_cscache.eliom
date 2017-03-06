@@ -78,6 +78,10 @@ let%client find cache get_data id =
   try Hashtbl.find ((Eliom_shared.Value.local cache) ()) id
   with Not_found -> load cache get_data id
 
+let find_list cache get_data ids =
+  let%lwt () = cache_list cache get_data ids in
+  Lwt_list.map_s (find cache (fun _ -> raise Not_found)) ids
+
 exception Not_ready
 
 let local_find cache id =

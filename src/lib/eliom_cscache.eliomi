@@ -49,6 +49,11 @@ val find : ('a, 'b) t -> ('a -> 'b Lwt.t) -> 'a -> 'b Lwt.t
 val cache_list :
   ('a, 'b) t -> ('a list -> ('a * 'b) list Lwt.t) -> 'a list -> unit Lwt.t
 
+(** an invocation of [cache_list] followed by an invocation of [find] for each
+    of the given keys *)
+val find_list :
+  ('a, 'b) t -> ('a list -> ('a * 'b) list Lwt.t) -> 'a list -> 'b list Lwt.t
+
 (** [do_cache cache key value] adds the association from [key] to
     [value] in [cache], or replaces it if not already present.  Called
     from client side, it affects only client side cache.  Called from
