@@ -37,7 +37,7 @@ let iter_contents y ev f =
   Js.Opt.case (Dom_html.CoerceTo.form target) fls @@ fun target ->
   match read_params target y with
   | Some v ->
-    let%lwt () = f v in Lwt.return true
+    let%lwt () = f v in Lwt.return_true
   | None ->
     !error_handler ()
 
