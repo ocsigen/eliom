@@ -47,7 +47,7 @@ let%server find cache get_data id =
     do_cache_raw cache id th;
     th
 
-let cache_list cache get_data ids =
+let%server cache_list cache get_data ids =
   let main_thread, wakeup = Lwt.task () in
   let tbl = Hashtbl.create 10 in
   let thread id =
@@ -78,7 +78,7 @@ let%client find cache get_data id =
   try Hashtbl.find ((Eliom_shared.Value.local cache) ()) id
   with Not_found -> load cache get_data id
 
-let find_list cache get_data ids =
+let%server find_list cache get_data ids =
   let%lwt () = cache_list cache get_data ids in
   Lwt_list.map_s (find cache (fun _ -> raise Not_found)) ids
 

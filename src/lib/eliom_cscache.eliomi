@@ -40,20 +40,6 @@ type ('a, 'b) t
     cached.  *)
 val find : ('a, 'b) t -> ('a -> 'b Lwt.t) -> 'a -> 'b Lwt.t
 
-(** [cache_list cache get_from_db keys] ensures that for each key in [keys]
-    there is a cached value in the [cache]. The keys that are not yet cached are
-    fed to [get_from_db] to fetch the data from the database and then put into
-    the cache. Keys that occur more than once in [keys] are fed to [get_from_db]
-    only once. [cache_list] is intended as a means to reduce the number of DB
-    requests w.r.t. multiple invocations of [find]. *)
-val cache_list :
-  ('a, 'b) t -> ('a list -> ('a * 'b) list Lwt.t) -> 'a list -> unit Lwt.t
-
-(** an invocation of [cache_list] followed by an invocation of [find] for each
-    of the given keys *)
-val find_list :
-  ('a, 'b) t -> ('a list -> ('a * 'b) list Lwt.t) -> 'a list -> 'b list Lwt.t
-
 (** [do_cache cache key value] adds the association from [key] to
     [value] in [cache], or replaces it if not already present.  Called
     from client side, it affects only client side cache.  Called from
@@ -82,3 +68,25 @@ val load : ('a, 'b) t -> ('a -> 'b Lwt.t) -> 'a -> 'b Lwt.t
 
 (** Create a new table. Must be called from server side. *)
 val create : unit -> ('a, 'b) t
+
+(** The functions [cache_list] and [find_list] are variations of [find] that
+    work on a list of keys instead of a single key. The intention is to reduce
+    the number of DB requests in comparison to multiple invocations of [find]. 
+    The functions are only defined on server-side to enforce correct usage:
+    assuming that a list of keys usually stems from a DB request (and hence from
+    server-side) it should be possible to call [cache_list] or [find_list]
+    subsequently on the server side. If they were called on the client-side it
+    would mean unnecessary communication between server and client. *)
+
+(** [cache_list cache get_from_db keys] ensures that for each key in [keys]
+    there is a cached value in the [cache]. The keys that are not yet cached are
+    fed to [get_from_db] to fetch the data from the database and then put into
+    the cache. Keys that occur more than once in [keys] are fed to [get_from_db]
+    only once. *)
+val cache_list :
+  ('a, 'b) t -> ('a list -> ('a * 'b) list Lwt.t) -> 'a list -> unit Lwt.t
+
+(** an invocation of [cache_list] followed by an invocation of [find] for each
+    of the given keys *)
+val find_list :
+  ('a, 'b) t -> ('a list -> ('a * 'b) list Lwt.t) -> 'a list -> 'b list Lwt.t
