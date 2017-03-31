@@ -13,7 +13,11 @@ depends: [
   "deriving" {>= "0.6"}
   "ppx_deriving"
   "ppx_tools" {>= "0.99.3"}
-  "js_of_ocaml" {>= "2.8.2" & < "3.0"}
+  "js_of_ocaml" {>= "dev"}
+  "js_of_ocaml-lwt"
+  "js_of_ocaml-ocamlbuild" {build}
+  "js_of_ocaml-ppx"
+  "js_of_ocaml-tyxml"
   "tyxml" {>= "4.0.0"}
   "ocsigenserver" {>= "2.8"}
   "ipaddr" {>= "2.1"}
