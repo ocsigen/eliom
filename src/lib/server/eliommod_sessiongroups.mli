@@ -20,14 +20,14 @@
 
 open Eliom_lib
 
-val make_full_named_group_name_ : 
+val make_full_named_group_name_ :
   cookie_level:Eliom_common.cookie_level ->
   Eliom_common.sitedata ->
   string -> Eliom_common.scope Eliom_common.sessgrp
 
-val make_full_group_name : 
+val make_full_group_name :
   cookie_level:Eliom_common.cookie_level ->
-  Ocsigen_extensions.request_info -> string -> 
+  Ocsigen_request.t -> string ->
   int -> int ->
   string option -> Eliom_common.scope Eliom_common.sessgrp
 
@@ -36,22 +36,22 @@ val make_persistent_full_group_name :
   string -> string option ->
   Eliom_common.perssessgrp option
 
-val getsessgrp : 
-  Eliom_common.scope Eliom_common.sessgrp -> 
+val getsessgrp :
+  Eliom_common.scope Eliom_common.sessgrp ->
   string * Eliom_common.cookie_level *
     (string, Ipaddr.t) leftright
 
 val getperssessgrp : Eliom_common.perssessgrp ->
-  (string * Eliom_common.cookie_level * 
+  (string * Eliom_common.cookie_level *
      (string, Ipaddr.t) leftright)
 
 module type MEMTAB =
   sig
     type group_of_group_data
 
-    val add : ?set_max: int -> 
+    val add : ?set_max: int ->
       Eliom_common.sitedata ->
-      string -> [< Eliom_common.cookie_level ] Eliom_common.sessgrp -> 
+      string -> [< Eliom_common.cookie_level ] Eliom_common.sessgrp ->
       string Ocsigen_cache.Dlist.node
     val remove : 'a Ocsigen_cache.Dlist.node -> unit
     val remove_group : [< Eliom_common.cookie_level ] Eliom_common.sessgrp ->
@@ -64,8 +64,8 @@ module type MEMTAB =
     (** Groups of browser sessions belong to a group of groups.
         As these groups are not associated to a cookie,
         we put this information here. *)
-    val find_node_in_group_of_groups : 
-      [< `Session ] Eliom_common.sessgrp -> 
+    val find_node_in_group_of_groups :
+      [< `Session ] Eliom_common.sessgrp ->
       group_of_group_data option
 
     val move :
@@ -94,7 +94,7 @@ module Pers :
     val find : Eliom_common.perssessgrp option -> string list Lwt.t
     val add : ?set_max: int option ->
       int option -> string -> Eliom_common.perssessgrp option -> string list Lwt.t
-    val remove : Eliom_common.sitedata -> 
+    val remove : Eliom_common.sitedata ->
       string -> Eliom_common.perssessgrp option -> unit Lwt.t
     val remove_group :
       cookie_level:[ `Session | `Client_process of Eliom_common.perssessgrp option ] ->

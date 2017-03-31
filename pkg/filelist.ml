@@ -22,7 +22,6 @@ let server = {
     "eliom_common";
     "eliom_config";
     "eliom_content";
-    "eliom_cookie";
     "eliom_extension";
     "eliom_lib";
     "eliom_mkreg";

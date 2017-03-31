@@ -1,3 +1,11 @@
+opam pin add js_of_ocaml --dev-repo --no-action
+
+for pkg in camlp4 compiler lwt ocamlbuild ppx tyxml; do
+    opam pin add js_of_ocaml-$pkg \
+         https://github.com/ocsigen/js_of_ocaml.git \
+         --no-action
+done
+
 opam pin add --no-action eliom .
 opam install --deps-only eliom
 opam install --verbose eliom
