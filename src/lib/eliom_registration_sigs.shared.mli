@@ -29,7 +29,7 @@ module type PARAM = sig
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
-    ?headers: Http_headers.t ->
+    ?headers: Ocsigen_header.t ->
     page ->
     frame Lwt.t
 
@@ -55,7 +55,7 @@ module type PARAM_POLY = sig
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
-    ?headers: Http_headers.t ->
+    ?headers: Ocsigen_header.t ->
     _ page ->
     frame Lwt.t
 
@@ -126,7 +126,7 @@ module type S = sig
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
-    ?headers: Http_headers.t ->
+    ?headers: Ocsigen_header.t ->
     ?secure_session:bool ->
     service:
       ('get, 'post, _, _, _, Eliom_service.non_ext, Eliom_service.reg, _,
@@ -145,7 +145,7 @@ module type S = sig
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
-    ?headers: Http_headers.t ->
+    ?headers: Ocsigen_header.t ->
     page ->
     result Lwt.t
 
@@ -166,7 +166,7 @@ module type S_with_create = sig
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
-    ?headers: Http_headers.t ->
+    ?headers: Ocsigen_header.t ->
     ?secure_session:bool ->
     ?https:bool ->
     ?name: string ->
@@ -196,7 +196,7 @@ module type S_with_create = sig
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
-    ?headers: Http_headers.t ->
+    ?headers: Ocsigen_header.t ->
     ?secure_session:bool ->
     ?https:bool ->
     ?name: string ->
@@ -231,7 +231,7 @@ module type S_with_create = sig
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
-    ?headers: Http_headers.t ->
+    ?headers: Ocsigen_header.t ->
     ?secure_session:bool ->
     ?https:bool ->
     ?name: string ->
@@ -271,7 +271,7 @@ module type S_poly = sig
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
-    ?headers: Http_headers.t ->
+    ?headers: Ocsigen_header.t ->
     ?secure_session:bool ->
     service:
       ('get, 'post, _, _, _, Eliom_service.non_ext, Eliom_service.reg, _,
@@ -295,7 +295,7 @@ module type S_poly_with_create = sig
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
-    ?headers: Http_headers.t ->
+    ?headers: Ocsigen_header.t ->
     ?secure_session:bool ->
     ?https:bool ->
     ?name: string ->
@@ -323,7 +323,7 @@ module type S_poly_with_create = sig
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
-    ?headers: Http_headers.t ->
+    ?headers: Ocsigen_header.t ->
     ?secure_session:bool ->
     ?https:bool ->
     ?name: string ->
@@ -356,7 +356,7 @@ module type S_poly_with_create = sig
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
-    ?headers: Http_headers.t ->
+    ?headers: Ocsigen_header.t ->
     ?secure_session:bool ->
     ?https:bool ->
     ?name: string ->
@@ -393,7 +393,7 @@ module type S_poly_with_send = sig
     ?charset      : string ->
     ?code         : int ->
     ?content_type : string ->
-    ?headers      : Http_headers.t ->
+    ?headers      : Ocsigen_header.t ->
     'a page ->
     'a result Lwt.t
 
@@ -410,7 +410,7 @@ module type S_poly_with_create_with_send = sig
     ?charset      : string ->
     ?code         : int ->
     ?content_type : string ->
-    ?headers      : Http_headers.t ->
+    ?headers      : Ocsigen_header.t ->
     'a page ->
     'a result Lwt.t
 

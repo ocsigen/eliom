@@ -21,14 +21,14 @@ val def_handler : exn -> 'b Lwt.t
 val handle_site_exn :
   exn ->
   Eliom_common.info ->
-  Eliom_common.sitedata -> Ocsigen_http_frame.result Lwt.t
+  Eliom_common.sitedata -> Ocsigen_response.t Lwt.t
 val execute :
   float ->
   (float ->
   Eliom_common.info ->
-   Eliom_common.sitedata -> Ocsigen_http_frame.result Lwt.t) ->
+   Eliom_common.sitedata -> Ocsigen_response.t Lwt.t) ->
   Eliom_common.info ->
-  Eliom_common.sitedata -> Ocsigen_http_frame.result Lwt.t
+  Eliom_common.sitedata -> Ocsigen_response.t Lwt.t
 val gen :
   Eliom_extension.eliom_extension_sig option ->
   Eliom_common.sitedata ->

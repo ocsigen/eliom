@@ -97,13 +97,10 @@ let init_client_app
   Eliom_process.set_request_template None;
   (* We set the tab cookie table, with the app name inside: *)
   Eliom_process.set_request_cookies
-    (Ocsigen_cookies.Cookies.add
-       []
-       (Ocsigen_cookies.CookiesTable.add
-          Eliom_common.appl_name_cookie_name
-          (Eliommod_cookies.OSet (None, app_name, false))
-          Ocsigen_cookies.CookiesTable.empty)
-       Ocsigen_cookies.Cookies.empty);
+    (Ocsigen_cookie_map.add ~path:[]
+       Eliom_common.appl_name_cookie_name
+       (`Set (None, app_name, false))
+       Ocsigen_cookie_map.empty);
   ignore (get_global_data ())
 
 let is_client_app () = !Eliom_common.is_client_app

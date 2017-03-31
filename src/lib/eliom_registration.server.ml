@@ -18,24 +18,49 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-let (>>=) = Lwt.(>>=)
+open Lwt.Infix
 
-let code_of_code_option = function
-  | None -> 200
-  | Some c -> c
+let headers_with_content_type ?charset ?content_type headers =
+  match content_type with
+  | Some content_type ->
+    let charset =
+      match charset with
+      | None ->
+        Eliom_config.get_config_default_charset ()
+      | Some charset ->
+        charset
+    in
+    Cohttp.Header.replace
+      headers
+      Ocsigen_header.Name.(to_string content_type)
+      (Printf.sprintf "%s; charset=%s" content_type charset)
+  | None ->
+    headers
+
+let result_of_content ?charset ?content_type ?headers ?status body =
+  let headers =
+    match content_type with
+    | Some content_type ->
+      let headers = Ocsigen_header.of_option headers in
+      Some (headers_with_content_type ?charset ~content_type headers)
+    | None ->
+      headers
+  in
+  let response = Cohttp.Response.make ?status ?headers () in
+  Lwt.return (Ocsigen_response.make ~body response)
 
 module Result_types :
 sig
   type 'a kind
-  val cast_result : Ocsigen_http_frame.result -> 'a kind
-  val cast_kind : 'a kind -> Ocsigen_http_frame.result
-  val cast_kind_lwt : 'a kind Lwt.t -> Ocsigen_http_frame.result Lwt.t
-  val cast_result_lwt : Ocsigen_http_frame.result Lwt.t -> 'a kind Lwt.t
-  val cast_function_http : ('c -> 'a kind Lwt.t) -> ('c -> Ocsigen_http_frame.result Lwt.t)
+  val cast_result : Ocsigen_response.t -> 'a kind
+  val cast_kind : 'a kind -> Ocsigen_response.t
+  val cast_kind_lwt : 'a kind Lwt.t -> Ocsigen_response.t Lwt.t
+  val cast_result_lwt : Ocsigen_response.t Lwt.t -> 'a kind Lwt.t
+  val cast_function_http : ('c -> 'a kind Lwt.t) -> ('c -> Ocsigen_response.t Lwt.t)
 end
 =
 struct
-  type 'a kind = Ocsigen_http_frame.result
+  type 'a kind = Ocsigen_response.t
   let cast_result x = x
   let cast_kind x = x
   let cast_kind_lwt x = x
@@ -52,13 +77,30 @@ type unknown_content
 
 let cast_unknown_content_kind (x:unknown_content kind) : 'a kind =
   Result_types.cast_result (Result_types.cast_kind x)
+
 let cast_http_result = Result_types.cast_result
 
-module Html_make_reg_base
-  (Html_content : Ocsigen_http_frame.HTTP_CONTENT
-   with type t = Html_types.html Eliom_content.Html.elt
-    and type options = Http_headers.accept Lazy.t)
-  = struct
+let content_type_html content_type =
+  let sp = Eliom_common.get_sp () in
+  match
+    content_type, sp.Eliom_common.sp_sitedata.Eliom_common.html_content_type
+  with
+  | None, Some content_type -> content_type
+  | Some content_type, _ ->
+    content_type
+  | None, None ->
+    let accept =
+      Ocsigen_request.header_multi
+        (Eliom_request_info.get_ri ())
+        Ocsigen_header.Name.accept
+    in
+    let accept = Ocsigen_header.Accept.parse accept in
+    Ocsigen_header.Content_type.choose
+      accept
+      Eliom_content.Html.D.Info.content_type
+      Eliom_content.Html.D.Info.alternative_content_types
+
+module Html_base = struct
 
   type page = Html_types.html Eliom_content.Html.elt
   type options = unit
@@ -68,129 +110,72 @@ module Html_make_reg_base
 
   let send_appl_content = Eliom_service.XNever
 
-  let send
-      ?(options = ()) ?charset ?code
-      ?content_type ?headers content =
-    let sp = Eliom_common.get_sp () in
-    let accept =
-      (Ocsigen_extensions.Ocsigen_request_info.accept
-         (Eliom_request_info.get_ri_sp sp))
-    in
-    let%lwt r = Html_content.result_of_content ~options:accept content in
-    Lwt.return
-      (Ocsigen_http_frame.Result.update r
-         ~code:(code_of_code_option code)
-         ~charset:(match charset with
-                     | None -> Some (Eliom_config.get_config_default_charset ())
-                     | _ -> charset)
-         ~content_type:(
-           match content_type,
-                 sp.Eliom_common.sp_sitedata.Eliom_common.html_content_type with
-           | None, None -> Ocsigen_http_frame.Result.content_type r
-           | None, ct -> ct
-           | _ -> content_type)
-         ~headers:(match headers with
-                       | None -> Ocsigen_http_frame.Result.headers r
-                       | Some headers ->
-                           Http_headers.with_defaults headers (Ocsigen_http_frame.Result.headers r))
-         ())
+  let out =
+    let encode x = fst (Xml_print.Utf8.normalize_html x) in
+    Eliom_content.Html.Printer.pp ~encode ()
+
+  let send ?options ?charset ?code ?content_type ?headers c =
+    let status = Eliom_lib.Option.map Cohttp.Code.status_of_code code
+    and content_type = content_type_html content_type
+    and body = Cohttp_lwt.Body.of_string (Format.asprintf "%a" out c) in
+    result_of_content ?charset ?headers ?status ~content_type body
 
 end
 
-module Html =
-  Eliom_mkreg.Make
-    (Html_make_reg_base
-       (Ocsigen_senders.Make_XML_Content
-          (Eliom_content.Xml)
-          (Eliom_content.Html.D)))
+module Html = Eliom_mkreg.Make(Html_base)
 
-module Make_typed_xml_registration
-  (Xml: Xml_sigs.Iterable)
-  (Typed_xml: Xml_sigs.Typed_xml with module Xml := Xml)
-  (E : sig type content end) = struct
+module Flow5_base = struct
 
-    module Fmt = Xml_print.Make_typed_fmt(Xml)(Typed_xml)
+  type options = unit
+  type result = block_content kind
+  type page = Html_types.flow5 Eliom_content.Html.elt list
 
-    let out =
-      let encode x = fst (Xml_print.Utf8.normalize_html x) in
-      Fmt.pp_elt ~encode ()
+  let result_of_http_result = Result_types.cast_result
 
-    let out_list l =
-      Format.asprintf "%a"
-        (Format.pp_print_list ~pp_sep:(fun _ () -> ()) out)
-        l
-      |> Ocsigen_stream.StringStream.put
-      |> Ocsigen_stream.StringStream.make
+  let send_appl_content = Eliom_service.XNever
 
-    let result_of_content c =
-      let default_result = Ocsigen_http_frame.Result.default () in
-      Lwt.return
-        (Ocsigen_http_frame.Result.update default_result
-          ~content_length:None
-          ~content_type:(Some "text/html")
-          ~headers:(Http_headers.dyn_headers)
-          ~stream:(out_list c, None) ())
+  let out =
+    let encode x = fst (Xml_print.Utf8.normalize_html x) in
+    Eliom_content.Html.Printer.pp_elt ~encode ()
 
-    module Cont_reg_base = struct
+  let body l =
+    Lwt_stream.of_list l
+    |> Lwt_stream.map (Format.asprintf "%a" out)
+    |> Cohttp_lwt.Body.of_stream
 
-      type page = E.content Typed_xml.elt list
-      type options = unit
-      type result = block_content kind
+  let send ?options ?charset ?code ?content_type ?headers c =
+    let status = Eliom_lib.Option.map Cohttp.Code.status_of_code code
+    and content_type = content_type_html content_type
+    and body = body c in
+    result_of_content ?charset ?headers ?status ~content_type body
 
-      let result_of_http_result = Result_types.cast_result
+end
 
-      let send_appl_content = Eliom_service.XNever
+module Flow5 = Eliom_mkreg.Make(Flow5_base)
 
-      let send ?options ?charset ?code ?content_type ?headers content =
-        let%lwt r = result_of_content content in
-        Lwt.return
-          (Ocsigen_http_frame.Result.update r
-            ~code:(code_of_code_option code)
-            ~charset:(match charset with
-              | None -> Some (Eliom_config.get_config_default_charset ())
-              | _ -> charset)
-            ~content_type:(match content_type with
-              | None -> Ocsigen_http_frame.Result.content_type r
-              | _ -> content_type)
-            ~headers:(match headers with
-              | None -> Ocsigen_http_frame.Result.headers r
-              | Some headers ->
-                Http_headers.with_defaults
-                  headers (Ocsigen_http_frame.Result.headers r))
-            ())
-
-    end
-
-    include Eliom_mkreg.Make(Cont_reg_base)
-
-  end
-
-module Flow5 =
-  Make_typed_xml_registration
-    (Eliom_content.Xml)
-    (Eliom_content.Html.D)
-    (struct
-      type content = Html_types.flow5
-    end)
-
-let (<-<) h (n, v) = Http_headers.replace n v h
 let add_cache_header cache headers =
+  let (<-<) h (n, v) =
+    Cohttp.Header.replace h
+      (Ocsigen_header.Name.to_string n)
+      v
+  in
   match cache with
-    | None -> headers
-    | Some 0 ->
-      headers
-      <-< (Http_headers.cache_control, "no-cache")
-      <-< (Http_headers.expires, "0")
-    | Some duration ->
-      headers
-      <-< (Http_headers.cache_control, "max-age: "^ string_of_int duration)
-      <-< (Http_headers.expires,
-           Ocsigen_http_com.gmtdate (Unix.time () +. float_of_int duration))
+  | None -> headers
+  | Some 0 ->
+    headers
+    <-< (Ocsigen_header.Name.cache_control, "no-cache")
+    <-< (Ocsigen_header.Name.expires, "0")
+  | Some duration ->
+    headers
+    <-< (Ocsigen_header.Name.cache_control,
+         "max-age: " ^ string_of_int duration)
+    <-< (Ocsigen_header.Name.expires,
+         Ocsigen_lib.Date.to_string
+           (Unix.time () +. float_of_int duration))
 
+module String_base = struct
 
-module Text_reg_base = struct
-
-  type page = (string * string)
+  type page = string * string
   type options = int
   type result = unknown_content kind
 
@@ -198,29 +183,21 @@ module Text_reg_base = struct
 
   let send_appl_content = Eliom_service.XNever
 
-  let send ?options ?charset ?code ?content_type ?headers content =
-    let%lwt r = Ocsigen_senders.Text_content.result_of_content content in
-    let headers = match headers with
-      | None -> Ocsigen_http_frame.Result.headers r
-      | Some headers ->
-        Http_headers.with_defaults headers (Ocsigen_http_frame.Result.headers r) in
-    let headers = add_cache_header options headers in
-    Lwt.return
-      (Ocsigen_http_frame.Result.update r
-        ~code:(code_of_code_option code)
-        ~charset:(match charset with
-          | None ->  Some (Eliom_config.get_config_default_charset ())
-          | _ -> charset)
-        ~content_type:(match content_type with
-          | None -> Ocsigen_http_frame.Result.content_type r
-          | _ -> content_type)
-        ~headers ())
+  let send ?options ?charset ?code ?content_type ?headers
+      (c, content_type) =
+    let status = Eliom_lib.Option.map Cohttp.Code.status_of_code code
+    and body = Cohttp_lwt.Body.of_string c
+    and headers =
+      add_cache_header options
+        (Ocsigen_header.of_option headers)
+    in
+    result_of_content ?charset ?status ~content_type ~headers body
 
 end
 
-module Text = Eliom_mkreg.Make(Text_reg_base)
+module String = Eliom_mkreg.Make(String_base)
 
-module CssText_reg_base = struct
+module CssText_base = struct
 
   type page = string
   type options = int
@@ -231,29 +208,14 @@ module CssText_reg_base = struct
   let send_appl_content = Eliom_service.XNever
 
   let send ?options ?charset ?code ?content_type ?headers content =
-    let%lwt r =
-      Ocsigen_senders.Text_content.result_of_content (content, "text/css") in
-    let headers = match headers with
-      | None -> Ocsigen_http_frame.Result.headers r
-      | Some headers ->
-        Http_headers.with_defaults headers (Ocsigen_http_frame.Result.headers r) in
-    let headers = add_cache_header options headers in
-    Lwt.return
-      (Ocsigen_http_frame.Result.update r
-        ~code:(code_of_code_option code)
-        ~charset:(match charset with
-          | None ->  Some (Eliom_config.get_config_default_charset ())
-          | _ -> charset)
-        ~content_type:(match content_type with
-          | None -> Ocsigen_http_frame.Result.content_type r
-          | _ -> content_type)
-        ~headers ())
+    String_base.send ?options ?charset ?code ?content_type ?headers
+      (content, "text/css")
 
 end
 
-module CssText = Eliom_mkreg.Make(CssText_reg_base)
+module CssText = Eliom_mkreg.Make(CssText_base)
 
-module HtmlText_reg_base = struct
+module Html_text_base = struct
 
   type page = string
   type options = unit
@@ -264,36 +226,18 @@ module HtmlText_reg_base = struct
   let send_appl_content = Eliom_service.XNever
 
   let send ?options ?charset ?code ?content_type ?headers content =
-    let%lwt r =
-      Ocsigen_senders.Text_content.result_of_content (content, "text/html") in
-    Lwt.return
-      (Ocsigen_http_frame.Result.update r
-        ~code:(code_of_code_option code)
-        ~charset:(match charset with
-          | None -> Some (Eliom_config.get_config_default_charset ())
-          | _ -> charset)
-        ~content_type:(match content_type with
-          | None -> Ocsigen_http_frame.Result.content_type r
-          | _ -> content_type
-        )
-        ~headers:(match headers with
-          | None -> Ocsigen_http_frame.Result.headers r
-          | Some headers ->
-            Http_headers.with_defaults headers (Ocsigen_http_frame.Result.headers r))
-        ())
+    String_base.send ?charset ?code ?content_type ?headers
+      (content, "text/html")
 
 end
 
-
-module HtmlText_registration = Eliom_mkreg.Make(HtmlText_reg_base)
-
-module Html_text = HtmlText_registration
+module Html_text = Eliom_mkreg.Make(Html_text_base)
 
 (** Actions are like services, but do not generate any page. The current
    page is reloaded (but if you give the optional parameter
     [~options:`NoReload] to the registration function).
  *)
-module Action_reg_base = struct
+module Action_base = struct
 
   type page = unit
   type options = [ `Reload | `NoReload ]
@@ -304,211 +248,134 @@ module Action_reg_base = struct
   let send_appl_content = Eliom_service.XAlways
   (* The post action service will decide later *)
 
-  let send_directly =
-  (* send bypassing the following directives
-     in the configuration file (they have already been taken into account) *)
-    fun ri res ->
-      Polytables.set
-        (Ocsigen_extensions.Ocsigen_request_info.request_cache ri) Eliom_common.found_stop_key ();
-      res
+  let send_directly ri res =
+    (* send bypassing the following directives in the configuration
+       file (they have already been taken into account) *)
+    Polytables.set
+      (Ocsigen_request.request_cache ri)
+      Eliom_common.found_stop_key
+      ();
+    res
+
+  let update_request ri si cookies_override =
+    Ocsigen_request.update ri
+      ~post_data:None
+      ~meth:`GET
+      ~cookies_override
+      ~get_params_flat:si.Eliom_common.si_other_get_params
 
   let send
       ?(options = `Reload) ?charset ?(code = 204)
       ?content_type ?headers () =
     let user_cookies = Eliom_request_info.get_user_cookies () in
-    if options = `NoReload
-    then
-      let empty_result = Ocsigen_http_frame.Result.empty () in
-      let h = match headers with
-        | None -> Ocsigen_http_frame.Result.headers empty_result
-        | Some headers ->
-          Http_headers.with_defaults headers
-            (Ocsigen_http_frame.Result.headers empty_result)
-      in
-      let h =
+    match options with
+    | `NoReload ->
+      let headers = Ocsigen_header.of_option headers in
+      let headers =
         match Eliom_request_info.get_sp_client_appl_name () with
-          | Some anr ->
-            Http_headers.replace
-              (Http_headers.name Eliom_common_base.appl_name_header_name)
-              anr
-              h
-          | _ -> h
-      in
-      Lwt.return
-        (Ocsigen_http_frame.Result.update empty_result
-          ~code:code
-          ~content_type:(match content_type with
-            | None -> Ocsigen_http_frame.Result.content_type empty_result
-            | _ -> content_type
-          )
-          ~headers:h ())
-    else
-      (* It is an action, we reload the page.
-         To do that, we retry without POST params.
-         If no post param at all, we retry
-         without GET non_att info.
-         If no GET non_att info, we retry without
-         GET state.
-         If no GET state,
-         we do not reload, otherwise it will loop.
-      *)
-      (* be very careful while re-reading this *)
+        | Some anr ->
+          Cohttp.Header.replace
+            headers
+            Eliom_common_base.appl_name_header_name
+            anr
+        | _ ->
+          headers
+      and status = Cohttp.Code.status_of_code code in
+      result_of_content ?charset ?content_type ~headers ~status
+        Cohttp_lwt.Body.empty
+    | `Reload ->
+      (* It is an action, we reload the page. To do that, we retry
+         without POST params.
+
+         If no post param at all, we retry without GET non_att info.
+
+         If no GET non_att info, we retry without GET state.
+
+         If no GET state, we do not reload, otherwise it will
+         loop.
+
+         Be very careful while re-reading this. *)
       let sp = Eliom_common.get_sp () in
       let sitedata = Eliom_request_info.get_sitedata_sp sp in
       let si = Eliom_request_info.get_si sp in
       let ri = Eliom_request_info.get_request_sp sp in
       let open Ocsigen_extensions in
-      match (si.Eliom_common.si_nonatt_info,
-                       si.Eliom_common.si_state_info,
-                       (Ocsigen_extensions.Ocsigen_request_info.meth ri.request_info)) with
-        | (Eliom_common.RNa_no,
-           (Eliom_common.RAtt_no, Eliom_common.RAtt_no),
-           Ocsigen_http_frame.Http_header.GET) ->
-          let empty_result = Ocsigen_http_frame.Result.empty () in
-          Lwt.return empty_result
-        | _ ->
-          let all_cookie_info = sp.Eliom_common.sp_cookie_info in
-          let%lwt ric = Eliommod_cookies.compute_new_ri_cookies
+      match
+        si.Eliom_common.si_nonatt_info,
+        si.Eliom_common.si_state_info,
+        Ocsigen_request.meth ri.request_info
+      with
+      | Eliom_common.RNa_no,
+        (Eliom_common.RAtt_no, Eliom_common.RAtt_no),
+        `GET ->
+        Lwt.return (Ocsigen_response.make (Cohttp.Response.make ()))
+      | _ ->
+        let all_cookie_info = sp.Eliom_common.sp_cookie_info in
+        let%lwt ric =
+          Eliommod_cookies.compute_new_ri_cookies
             (Unix.time ())
-            (Ocsigen_request_info.sub_path ri.request_info)
-            (Lazy.force (Ocsigen_request_info.cookies ri.request_info))
+            (Ocsigen_request.sub_path ri.request_info)
+            (Ocsigen_request.cookies ri.request_info)
             all_cookie_info
             user_cookies
-          in
-          let%lwt all_new_cookies =
-            Eliommod_cookies.compute_cookies_to_send
-              sitedata
-              all_cookie_info
-              user_cookies in
+        in
+        let%lwt all_new_cookies =
+          Eliommod_cookies.compute_cookies_to_send
+            sitedata
+            all_cookie_info
+            user_cookies in
 
-          (* Now tab cookies:
-             As tab cookies are sent only by Eliom_app services,
-             we just need to keep them in rc.
-             If the fallback service is not Eliom_app, they will
-             be lost.
-          *)
-          let rc = Eliom_request_info.get_request_cache_sp sp in
-          Polytables.set
-            ~table:rc
-            ~key:Eliom_common.tab_cookie_action_info_key
-            ~value:(sp.Eliom_common.sp_tab_cookie_info,
-                    sp.Eliom_common.sp_user_tab_cookies,
-                    si.Eliom_common.si_tab_cookies
-            );
+        (* Now tab cookies:
 
-          (* Now removing some parameters to decide the following service: *)
-          match (si.Eliom_common.si_nonatt_info,
-                 si.Eliom_common.si_state_info,
-                 (Ocsigen_request_info.meth ri.request_info)) with
-            | (Eliom_common.RNa_get_ _,
-               (_, Eliom_common.RAtt_no),
-               Ocsigen_http_frame.Http_header.GET)
-            | (Eliom_common.RNa_get' _,
-               (_, Eliom_common.RAtt_no),
-               Ocsigen_http_frame.Http_header.GET)
-            (* no post params, GET na coservice *)
-            | (Eliom_common.RNa_no,
-               (_, Eliom_common.RAtt_no),
-               Ocsigen_http_frame.Http_header.GET)
-              (* no post params, GET attached coservice *)
-              ->
-              Polytables.set
-                (Ocsigen_extensions.Ocsigen_request_info.request_cache ri.Ocsigen_extensions.request_info)
-                Eliom_common.eliom_params_after_action
-                (si.Eliom_common.si_all_get_params,
-                 si.Eliom_common.si_all_post_params, (* is Some [] *)
-                 si.Eliom_common.si_all_file_params, (* is Some [] *)
-                 si.Eliom_common.si_nl_get_params,
-                 si.Eliom_common.si_nl_post_params,
-                 si.Eliom_common.si_nl_file_params,
-                 si.Eliom_common.si_all_get_but_nl);
-                (*VVV Also put all_cookie_info in this,
-                  to avoid update_cookie_table and get_cookie_info (?)
-                *)
-                let ri = Ocsigen_extensions.Ocsigen_request_info.update ri.request_info
-                    ~cookies:(lazy ric)
-                    ~get_params:
-                      (lazy si.Eliom_common.si_other_get_params) ()
-                  (* Here we modify ri,
-                     thus the request can be taken by other extensions,
-                     with its new parameters *)
-                in
-                let%lwt () = Eliommod_pagegen.update_cookie_table sitedata all_cookie_info in
-                send_directly ri (Ocsigen_extensions.compute_result
-                                    ~previous_cookies:all_new_cookies ri)
+           As tab cookies are sent only by Eliom_app services,
+           we just need to keep them in rc.
 
-            | (Eliom_common.RNa_post_ _, (_, _), _)
-            | (Eliom_common.RNa_post' _, (_, _), _) ->
-              (* POST na coservice *)
-              (* retry without POST params *)
+           If the fallback service is not Eliom_app, they will be
+           lost. *)
+        let rc = Eliom_request_info.get_request_cache_sp sp in
+        Polytables.set
+          ~table:rc
+          ~key:Eliom_common.tab_cookie_action_info_key
+          ~value:(
+            sp.Eliom_common.sp_tab_cookie_info,
+            sp.Eliom_common.sp_user_tab_cookies,
+            si.Eliom_common.si_tab_cookies
+          );
 
-              Polytables.set
-                (Ocsigen_extensions.Ocsigen_request_info.request_cache ri.Ocsigen_extensions.request_info)
-                Eliom_common.eliom_params_after_action
-                (si.Eliom_common.si_all_get_params,
-                 si.Eliom_common.si_all_post_params,
-                 si.Eliom_common.si_all_file_params,
-                 si.Eliom_common.si_nl_get_params,
-                 si.Eliom_common.si_nl_post_params,
-                 si.Eliom_common.si_nl_file_params,
-                 si.Eliom_common.si_all_get_but_nl);
-              let ri =
-                Ocsigen_extensions.Ocsigen_request_info.update ri.request_info
-                  ~meth:Ocsigen_http_frame.Http_header.GET
-                  ~cookies:(lazy ric)
-                  ~get_params:
-                    (lazy si.Eliom_common.si_other_get_params)
-                  ~post_params:(Some (fun _ -> Lwt.return_nil))
-                  ~files:(Some (fun _ -> Lwt.return_nil))
-                  ()
-              in
-              let%lwt () = Eliommod_pagegen.update_cookie_table sitedata all_cookie_info in
-              send_directly ri (Ocsigen_extensions.compute_result
-                                  ~previous_cookies:all_new_cookies ri)
-
-            | _ ->
-              (* retry without POST params *)
-              (*VVV
-                Warning: is it possible to have an Eliom service with POST method
-                but no POST parameter?
-                --> may loop...
-                (we impose GET to prevent that)
-              *)
-              Polytables.set
-                (Ocsigen_extensions.Ocsigen_request_info.request_cache ri.Ocsigen_extensions.request_info)
-                Eliom_common.eliom_params_after_action
-                (si.Eliom_common.si_all_get_params,
-                 si.Eliom_common.si_all_post_params,
-                 si.Eliom_common.si_all_file_params,
-                 si.Eliom_common.si_nl_get_params,
-                 si.Eliom_common.si_nl_post_params,
-                 si.Eliom_common.si_nl_file_params,
-                 si.Eliom_common.si_all_get_but_nl);
-              let ri =
-                Ocsigen_extensions.Ocsigen_request_info.update ri.request_info
-                  ~meth:Ocsigen_http_frame.Http_header.GET
-                  ~cookies:(lazy ric)
-                  ~get_params:
-                    (lazy si.Eliom_common.si_other_get_params)
-                  ~post_params:(Some (fun _ -> Lwt.return_nil))
-                  ~files:(Some (fun _ -> Lwt.return_nil))
-                  ()
-              in
-              let%lwt () =
-                Eliommod_pagegen.update_cookie_table sitedata all_cookie_info in
-              send_directly ri (Ocsigen_extensions.compute_result
-                                  ~previous_cookies:all_new_cookies ri)
+        (* Remove some parameters to choose the following service *)
+        Polytables.set
+          (Ocsigen_request.request_cache
+             ri.Ocsigen_extensions.request_info)
+          Eliom_common.eliom_params_after_action
+          (si.Eliom_common.si_all_get_params,
+           si.Eliom_common.si_all_post_params, (* is Some [] *)
+           si.Eliom_common.si_all_file_params, (* is Some [] *)
+           si.Eliom_common.si_nl_get_params,
+           si.Eliom_common.si_nl_post_params,
+           si.Eliom_common.si_nl_file_params,
+           si.Eliom_common.si_all_get_but_nl);
+        (*VVV Also put all_cookie_info in this, to avoid
+          update_cookie_table and get_cookie_info (?) *)
+        let ri = update_request ri.request_info si ric in
+        let%lwt () =
+          Eliommod_pagegen.update_cookie_table
+            sitedata
+            all_cookie_info
+        in
+        send_directly ri
+          (Ocsigen_extensions.compute_result
+             ~previous_cookies:all_new_cookies ri)
 
 end
 
-module Action = Eliom_mkreg.Make(Action_reg_base)
+module Action = Eliom_mkreg.Make(Action_base)
 
 (** Unit services are like services, do not generate any page, and do not
     reload the page. To be used carefully. Probably not useful at all.
     (Same as {!Action} with [`NoReload] option).
  *)
 
-module Unit_reg_base = struct
+module Unit_base = struct
 
   type page = unit
   type options = unit
@@ -520,29 +387,17 @@ module Unit_reg_base = struct
 
   let send ?options ?charset ?(code = 204)
       ?content_type ?headers content =
-    let empty_result = Ocsigen_http_frame.Result.empty () in
-    Lwt.return
-      (Ocsigen_http_frame.Result.update empty_result
-         ~code:code
-         ~content_type:(match content_type with
-                              | None -> Ocsigen_http_frame.Result.content_type empty_result
-                              | _ -> content_type
-                           )
-         ~headers:(match headers with
-                         | None -> Ocsigen_http_frame.Result.headers empty_result
-                         | Some headers ->
-                             Http_headers.with_defaults
-                               headers (Ocsigen_http_frame.Result.headers empty_result)
-                      )
-         ())
+    let status = Cohttp.Code.status_of_code code in
+    result_of_content ?charset ?content_type ?headers ~status
+      Cohttp_lwt.Body.empty
 
 end
 
-module Unit = Eliom_mkreg.Make(Unit_reg_base)
+module Unit = Eliom_mkreg.Make(Unit_base)
 
 (* Any is a module allowing to register services that decide
    themselves what they want to send.  *)
-module Any_reg_base = struct
+module Any_base = struct
 
   type 'a page   = 'a kind
   type options   = unit
@@ -552,36 +407,27 @@ module Any_reg_base = struct
   let send_appl_content = Eliom_service.XAlways
 
   let send ?options ?charset ?code
-      ?content_type ?headers (res:'a kind) =
-    let res = Result_types.cast_kind res in
-    Lwt.return
-      (Ocsigen_http_frame.Result.update res
-         ~charset:(match charset with
-                         | None -> Ocsigen_http_frame.Result.charset res
-                         | _ -> charset)
-         ~content_type:(match content_type with
-                              | None -> Ocsigen_http_frame.Result.content_type res
-                              | _ -> content_type
-                           )
-         ~headers:(match headers with
-                         | None -> Ocsigen_http_frame.Result.headers res
-                         | Some headers ->
-                             Http_headers.with_defaults
-                               headers (Ocsigen_http_frame.Result.headers res)
-                      )
-         ())
+      ?content_type ?headers (result : 'a kind) =
+    let result = Result_types.cast_kind result in
+    let cohttp_response = fst (Ocsigen_response.to_cohttp result) in
+    let headers =
+      headers_with_content_type ?charset ?content_type
+        (Cohttp.Response.headers cohttp_response)
+    in
+    let response = { cohttp_response with Cohttp.Response.headers } in
+    Lwt.return (Ocsigen_response.update ~response result)
 
 end
 
 module Any = struct
 
-  include Eliom_mkreg.Make_poly(Any_reg_base)
+  include Eliom_mkreg.Make_poly(Any_base)
 
   type 'a result = 'a kind
 
   let send ?options ?charset ?code ?content_type ?headers content =
     Result_types.cast_result_lwt
-      (Any_reg_base.send
+      (Any_base.send
          ?options ?charset ?code ?content_type ?headers content)
 
 end
@@ -589,22 +435,24 @@ end
 type 'a application_name = string
 
 let appl_self_redirect send page =
-      if Eliom_request_info.expecting_process_page ()
-      then
-        let url = Eliom_request_info.get_full_url () in
-        let empty_result = Ocsigen_http_frame.Result.empty () in
-        Lwt.return
-          (Result_types.cast_result (Ocsigen_http_frame.Result.update empty_result
-            ~headers:
-              (Http_headers.add
-                (Http_headers.name Eliom_common.half_xhr_redir_header) url
-                (Ocsigen_http_frame.Result.headers empty_result)) ()))
-      else
-        let%lwt r = (Result_types.cast_function_http send) page in
-        Lwt.return (Result_types.cast_result r)
+  if Eliom_request_info.expecting_process_page () then
+    let response =
+      let headers =
+        Cohttp.Header.(add (init ()))
+          Eliom_common.half_xhr_redir_header
+          (Eliom_request_info.get_full_url ())
+      in
+      Cohttp.Response.make ~headers ()
+    in
+    Ocsigen_response.make response
+    |> Result_types.cast_result
+    |> Lwt.return
+  else
+    let%lwt r = (Result_types.cast_function_http send) page in
+    Lwt.return (Result_types.cast_result r)
 
 (* File is a module allowing to register services that send files *)
-module File_reg_base = struct
+module File_base = struct
 
   type page = string
   type options = int
@@ -618,56 +466,51 @@ module File_reg_base = struct
       ?content_type ?headers filename =
     let sp = Eliom_common.get_sp () in
     let request = Eliom_request_info.get_request_sp sp in
-    let file =
-      try Ocsigen_local_files.resolve request filename ()
+    match
+      try
+        Ocsigen_local_files.resolve request filename ()
       with
-        | Ocsigen_local_files.Failed_403 (* XXXBY : maybe we should signal a true 403? *)
-        | Ocsigen_local_files.Failed_404
-        | Ocsigen_local_files.NotReadableDirectory ->
-            raise Eliom_common.Eliom_404
-    in
-    let%lwt r = Ocsigen_local_files.content ~request ~file in
-    let open Ocsigen_extensions in
-    let headers = match headers with
-      | None -> (Ocsigen_http_frame.Result.headers r)
-      | Some headers -> Http_headers.with_defaults headers (Ocsigen_http_frame.Result.headers r)
-    in
-    let headers = add_cache_header options headers in
-    Lwt.return
-      (Ocsigen_http_frame.Result.update r
-          ~code:(code_of_code_option code)
-          ~charset:(match charset with
-                       | None ->
-                           Some (Ocsigen_charset_mime.find_charset
-                                   filename
-                                   (Eliom_config.get_config_info_sp sp).charset_assoc)
-                       | _ -> charset)
-          ~content_type:(match content_type with
-                           | None -> Ocsigen_http_frame.Result.content_type r
-                           | _ -> content_type
-                        )
-          ~headers ())
+      | Ocsigen_local_files.Failed_403
+      (* XXXBY : maybe we should signal a true 403 ? *)
+      | Ocsigen_local_files.Failed_404
+      | Ocsigen_local_files.NotReadableDirectory ->
+        raise Eliom_common.Eliom_404
+    with
+    | Ocsigen_local_files.RFile fname ->
+      let%lwt response, body =
+        let headers =
+          Ocsigen_header.of_option headers
+          |> add_cache_header options
+          |> headers_with_content_type ?charset ?content_type
+        in
+        Cohttp_lwt_unix.Server.respond_file ~headers ~fname ()
+      in
+      Lwt.return (Ocsigen_response.make ~body response)
+    | Ocsigen_local_files.RDir _ ->
+      (* FIXME COHTTP TRANSITION: implement directories *)
+      raise Ocsigen_local_files.Failed_404
 
 end
 
-module File =
-struct
-  include Eliom_mkreg.Make(File_reg_base)
+module File = struct
+
+  include Eliom_mkreg.Make(File_base)
+
   let check_file filename =
     let sp = Eliom_common.get_sp () in
     let request = Eliom_request_info.get_request_sp sp in
     try
-      ignore (Ocsigen_local_files.resolve request filename ()
-                : Ocsigen_local_files.resolved);
+      ignore (Ocsigen_local_files.resolve request filename ());
       true
     with
-      | Ocsigen_local_files.Failed_403
-      | Ocsigen_local_files.Failed_404
-      | Ocsigen_local_files.NotReadableDirectory ->
-        false
+    | Ocsigen_local_files.Failed_403
+    | Ocsigen_local_files.Failed_404
+    | Ocsigen_local_files.NotReadableDirectory ->
+      false
+
 end
 
-module File_ct_reg_base = struct
+module File_ct_base = struct
 
   type page = string * string
   type options = int
@@ -678,92 +521,27 @@ module File_ct_reg_base = struct
   let send_appl_content = Eliom_service.XNever
 
   let send ?options ?charset ?code
-      ?content_type ?headers (filename, ct) =
-    let sp = Eliom_common.get_sp () in
-    let request = Eliom_request_info.get_request_sp sp in
-    let file =
-      try Ocsigen_local_files.resolve request filename ()
-      with
-        | Ocsigen_local_files.Failed_403 (* XXXBY : maybe we should signal a true 403? *)
-        | Ocsigen_local_files.Failed_404
-        | Ocsigen_local_files.NotReadableDirectory ->
-            raise Eliom_common.Eliom_404
+      ?content_type ?headers (filename, content_type') =
+    let content_type =
+      match content_type with
+      | Some content_type ->
+        content_type
+      | None ->
+        content_type'
     in
-    let%lwt r = Ocsigen_local_files.content ~request ~file in
-    let open Ocsigen_extensions in
-    let headers = match headers with
-      | None -> Ocsigen_http_frame.Result.headers r
-      | Some headers -> Http_headers.with_defaults headers (Ocsigen_http_frame.Result.headers r)
-    in
-    let headers = add_cache_header options headers in
-    Lwt.return
-      (Ocsigen_http_frame.Result.update r
-          ~code:(code_of_code_option code)
-          ~charset:(match charset with
-                       | None ->
-                         Some (Ocsigen_charset_mime.find_charset
-                                 filename
-                                 (Eliom_config.get_config_info_sp sp).charset_assoc)
-                       | _ -> charset)
-          ~content_type:(match content_type with
-              | None -> Some ct
-              | _ -> content_type
-            )
-          ~headers ())
+    File_base.send ?options ?charset ?code ?headers ~content_type filename
 
 end
 
-module File_ct =
-struct
-  include Eliom_mkreg.Make(File_ct_reg_base)
-  let check_file filename =
-    let sp = Eliom_common.get_sp () in
-    let request = Eliom_request_info.get_request_sp sp in
-    try
-      ignore (Ocsigen_local_files.resolve request filename ()
-                : Ocsigen_local_files.resolved);
-      true
-    with
-      | Ocsigen_local_files.Failed_403
-      | Ocsigen_local_files.Failed_404
-      | Ocsigen_local_files.NotReadableDirectory ->
-        false
-end
+module File_ct = struct
 
-module Streamlist_reg_base = struct
+  include Eliom_mkreg.Make(File_ct_base)
 
-  type page = (((unit -> (string Ocsigen_stream.t) Lwt.t) list) * string)
-  type options = unit
-  type result = unknown_content kind
-
-  let result_of_http_result = Result_types.cast_result
-
-  let send_appl_content = Eliom_service.XNever
-
-  let send ?options ?charset ?code
-      ?content_type ?headers content =
-    Ocsigen_senders.Streamlist_content.result_of_content content >>= fun r ->
-    Lwt.return
-      (Ocsigen_http_frame.Result.update r
-         ~code:(code_of_code_option code)
-         ~charset:(match charset with
-                     | None ->  Some (Eliom_config.get_config_default_charset ())
-                     | _ -> charset)
-         ~content_type:(match content_type with
-                          | None -> Ocsigen_http_frame.Result.content_type r
-                          | _ -> content_type
-                       )
-         ~headers:(match headers with
-                     | None -> Ocsigen_http_frame.Result.headers r
-                     | Some headers ->
-                         Http_headers.with_defaults
-                           headers (Ocsigen_http_frame.Result.headers r)
-                  )
-         ())
+  let check_file = File.check_file
 
 end
 
-module Streamlist = Eliom_mkreg.Make(Streamlist_reg_base)
+(* FIXME COHTTP TRANSITION: Streamlist (temporarily?) removed *)
 
 module Customize
   (R : Eliom_registration_sigs.S_with_create)
@@ -934,11 +712,11 @@ module Customize
 
 end
 
-module Ocaml_reg_base = struct
+module Ocaml_base = struct
 
   type page = string
   type options = unit
-  type result = Ocsigen_http_frame.result
+  type result = Ocsigen_response.t
 
   let result_of_http_result x = x
 
@@ -947,7 +725,7 @@ module Ocaml_reg_base = struct
   let send ?options ?charset ?code
       ?content_type ?headers content =
     Result_types.cast_kind_lwt
-      (Text.send ?charset ?code
+      (String.send ?charset ?code
          ?content_type ?headers
          (content,
           Eliom_service.eliom_appl_answer_content_type))
@@ -962,7 +740,7 @@ module Ocaml = struct
   type 'a return = 'a Eliom_service.ocaml
   type 'a result = 'a ocaml_content kind
 
-  module M = Eliom_mkreg.Make(Ocaml_reg_base)
+  module M = Eliom_mkreg.Make(Ocaml_base)
 
   let prepare_data data =
     let ecs_request_data =
@@ -1220,12 +998,25 @@ let get_global_data ~keep_debug =
   in
   (data, global_data_unwrapper)
 
-module Eliom_appl_reg_make_param
-  (Html_content
-     : Ocsigen_http_frame.HTTP_CONTENT
-       with type t = [ `Html ] Eliom_content.Html.elt
-       and type options = Http_headers.accept Lazy.t)
-  (App_param : Eliom_registration_sigs.APP_PARAM) = struct
+module type APP = sig
+  val application_script :
+    ?defer:bool -> ?async:bool -> unit -> [> `Script ] Eliom_content.Html.elt
+  val application_name : string
+  val is_initial_request : unit -> bool
+  type app_id
+  type page = Html_types.html Eliom_content.Html.elt
+  type options = appl_service_options
+  type return = Eliom_service.non_ocaml
+  type result = app_id application_content kind
+  include Eliom_registration_sigs.S_with_create
+    with type page    := page
+     and type options := options
+     and type return  := return
+     and type result  := result
+  val typed_name : app_id application_name
+end
+
+module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
 
   type app_id
 
@@ -1236,8 +1027,8 @@ module Eliom_appl_reg_make_param
   let result_of_http_result = Result_types.cast_result
 
   let is_initial_request () =
-    let sp = Eliom_common.get_sp () in
-    sp.Eliom_common.sp_client_appl_name <> Some App_param.application_name
+    Eliom_common.((get_sp ()).sp_client_appl_name)
+    <> Some App_param.application_name
 
   let global_data_cache_options () =
     (Eliom_request_info.get_sitedata ()).Eliom_common.cache_global_data
@@ -1351,7 +1142,7 @@ module Eliom_appl_reg_make_param
        let script =
          Printf.sprintf "__eliom_global_data = \'%s\';" global_data in
        let name = Digest.to_hex (Digest.string global_data) ^ ".js" in
-       Text.create
+       String.create
          ~options:max_age
          ~path:(Eliom_service.Path (path @ [name]))
          ~meth:(Get Eliom_parameter.unit)
@@ -1408,7 +1199,7 @@ module Eliom_appl_reg_make_param
         (Eliom_config.default_protocol_is_https () ||
          Eliom_request_info.get_csp_ssl_sp sp)
       ^
-      (String.concat "/"
+      (Eliom_lib.String.concat "/"
          (encode_slashs (Eliom_request_info.get_csp_original_full_path ()))
       )
     in
@@ -1460,130 +1251,87 @@ module Eliom_appl_reg_make_param
   let remove_eliom_scripts page =
     let (html_attribs, (head_attribs, title, head_elts), body) =
       split_page (Eliom_content.Html.D.toelt page) in
-    let head_elts = List.filter (fun x -> not (is_eliom_appl_script x)) head_elts in
+    let head_elts =
+      List.filter
+        (fun x -> not (is_eliom_appl_script x))
+        head_elts
+    in
     Lwt.return
       (Eliom_content.Html.F.html ~a:html_attribs
          (Eliom_content.Html.F.head ~a:head_attribs title head_elts)
-         body )
+         body)
 
-  let send_appl_content = Eliom_service.XSame_appl (App_param.application_name, None)
+  let send_appl_content =
+    Eliom_service.XSame_appl (App_param.application_name, None)
+
+  let out =
+    let encode x = fst (Xml_print.Utf8.normalize_html x) in
+    Eliom_content.Html.Printer.pp ~encode ()
 
   let send ?(options = default_appl_service_options) ?charset ?code
       ?content_type ?headers content =
-
 
     let sp = Eliom_common.get_sp () in
 
     (* GRGR FIXME et si le nom de l'application diffère ?? Il faut
        renvoyer un full_redirect... TODO *)
-    if sp.Eliom_common.sp_client_appl_name <> Some App_param.application_name then
-
+    if
+      sp.Eliom_common.sp_client_appl_name <>
+      Some App_param.application_name
+    then
       Eliom_state.set_cookie
         ~cookie_level:`Client_process
         ~name:Eliom_common.appl_name_cookie_name
         ~value:App_param.application_name ();
 
-    let%lwt page =
-      match sp.Eliom_common.sp_client_appl_name, options.do_not_launch with
-        | None, true -> remove_eliom_scripts content
-        | _ -> add_eliom_scripts ~sp content in
-
-    let ri = Eliom_request_info.get_ri () in
-    let accept = Ocsigen_extensions.Ocsigen_request_info.accept ri in
-    let%lwt r = Html_content.result_of_content ~options:accept page in
-
-    let headers =
-      match headers with
-        | None -> Ocsigen_http_frame.Result.headers r
-        | Some headers ->
-          Http_headers.with_defaults headers (Ocsigen_http_frame.Result.headers r)
-    in
-    let headers = Http_headers.replace
-      (Http_headers.name Eliom_common_base.appl_name_header_name)
-      App_param.application_name
-      headers
+    let%lwt body =
+      (match
+         sp.Eliom_common.sp_client_appl_name,
+         options.do_not_launch
+       with
+       | None, true ->
+         remove_eliom_scripts content
+       | _ ->
+         add_eliom_scripts ~sp content) >|= fun body ->
+      Cohttp_lwt.Body.of_string (Format.asprintf "%a" out body)
     in
 
-    let rc = Eliom_request_info.get_request_cache () in
     let headers =
+      let h = Ocsigen_header.of_option headers in
+      let h =
+        Cohttp.Header.replace h
+          Eliom_common_base.appl_name_header_name
+          App_param.application_name
+      in
       try
-        (* If it is a suffix service with redirection,
-           we may have to normalize the uri *)
-        Http_headers.replace
-          (Http_headers.name Eliom_common_base.response_url_header)
-          (Polytables.get ~table:rc ~key:Eliom_mkreg.suffix_redir_uri_key)
-        headers
+        (* If it is a suffix service with redirection, we may have to
+           normalize the uri *)
+        let table = Eliom_request_info.get_request_cache () in
+        Cohttp.Header.replace h
+          Eliom_common_base.response_url_header
+          (Polytables.get ~table ~key:Eliom_mkreg.suffix_redir_uri_key)
       with Not_found ->
-        headers
-    in
-    Lwt.return
-      (Ocsigen_http_frame.Result.update r
-        ~code:(code_of_code_option code)
-        ~charset:(match charset with
-          | None -> Some (Eliom_config.get_config_default_charset ())
-          | _ -> charset
-        )
-        ~content_type:
-          (if Eliom_request_info.expecting_process_page ()
-           then Ocsigen_http_frame.Result.content_type r
-           else
-             (match
-                content_type,
-                sp.Eliom_common.sp_sitedata.Eliom_common.html_content_type with
-             | None, None -> Ocsigen_http_frame.Result.content_type r
-             | None, ct -> ct
-             | _ -> content_type))
-        ~headers ())
-
-  end
-
-module type APP = sig
-  val application_script :
-    ?defer:bool -> ?async:bool -> unit -> [> `Script ] Eliom_content.Html.elt
-  val application_name : string
-  val is_initial_request : unit -> bool
-  type app_id
-  type page = Html_types.html Eliom_content.Html.elt
-  type options = appl_service_options
-  type return = Eliom_service.non_ocaml
-  type result = app_id application_content kind
-  include Eliom_registration_sigs.S_with_create
-    with type page    := page
-     and type options := options
-     and type return  := return
-     and type result  := result
-  val typed_name : app_id application_name
+        h
+    and status = Eliom_lib.Option.map Cohttp.Code.status_of_code code
+    and content_type = content_type_html content_type in
+    result_of_content ?charset ?status ~content_type ~headers body
 end
 
-module App
+module App (App_param : Eliom_registration_sigs.APP_PARAM) = struct
 
-    (App_param : Eliom_registration_sigs.APP_PARAM) : APP =
+  module Base = App_base(App_param)
 
-struct
+  type app_id = Base.app_id
 
-  module P =
-    Eliom_appl_reg_make_param
-      (Ocsigen_senders.Make_XML_Content
-         (Eliom_content.Xml)
-         (Eliom_content.Html.D))
-      (App_param)
+  let is_initial_request = Base.is_initial_request
 
-  type app_id = P.app_id
+  let application_script = Base.application_script
 
-  module Eliom_appl_registration = Eliom_mkreg.Make(P)
+  include Eliom_mkreg.Make(Base)
 
-  include Eliom_appl_registration
-
-  (** Unique identifier for this application.
-      It is the application name.
-      Warning: do not mix up with the "application instance id",
-      that is unique for each instance of the application.
-  *)
   let application_name = App_param.application_name
-  let typed_name = App_param.application_name
-  let is_initial_request = P.is_initial_request
 
-  let application_script = P.application_script
+  let typed_name = App_param.application_name
 
   let data_service_handler () () =
     Lwt.return (get_global_data ~keep_debug:(Ocsigen_config.get_debugmode ()))
@@ -1646,27 +1394,43 @@ end
 module Eliom_tmpl(App : APP)(Tmpl_param : TMPL_PARAMS) =
   Eliom_mkreg.Make(Eliom_tmpl_reg_make_param(App)(Tmpl_param))
 
-(** Redirection services are like services, but send a redirection
-    instead of a page.
+type redirection_options =
+  [ `MovedPermanently
+  | `Found
+  | `SeeOther
+  | `NotNodifed
+  | `UseProxy
+  | `TemporaryRedirect
+  ]
 
-    The HTTP/1.1 RFC says: If the 301 status code is received in
-    response to a request other than GET or HEAD, the user agent MUST
-    NOT automatically redirect the request unless it can be confirmed
-    by the user, since this might change the conditions under which
-    the request was issued.
+let status_of_redirection_options options code =
+  match code with
+  | Some code ->
+    Cohttp.Code.status_of_code code
+  | None ->
+    match (options : redirection_options) with
+    | `MovedPermanently -> `Moved_permanently
+    | `Found -> `Found
+    | `SeeOther -> `See_other
+    | `NotNodifed -> `Not_modified
+    | `UseProxy -> `Use_proxy
+    | `TemporaryRedirect -> `Temporary_redirect
 
-    Here redirections are done towards services without parameters.
-    (possibly preapplied). *)
-module String_redir_reg_base = struct
+(* Redirection services are like services, but send a redirection
+   instead of a page.
+
+   The HTTP/1.1 RFC says: If the 301 status code is received in
+   response to a request other than GET or HEAD, the user agent MUST
+   NOT automatically redirect the request unless it can be confirmed
+   by the user, since this might change the conditions under which the
+   request was issued.
+
+   Here redirections are done towards services without parameters.
+   (possibly preapplied). *)
+module String_redirection_base = struct
 
   type page = Eliom_lib.Url.uri
-  type options =
-    [ `MovedPermanently
-    | `Found
-    | `SeeOther
-    | `NotNodifed
-    | `UseProxy
-    | `TemporaryRedirect ]
+  type options = redirection_options
   type result = browser_content kind
 
   let result_of_http_result = Result_types.cast_result
@@ -1675,60 +1439,28 @@ module String_redir_reg_base = struct
   (* actually, the service will decide itself *)
 
   let send ?(options = `Found) ?charset ?code
-      ?content_type ?headers content =
-    let uri = content in
-    let empty_result = Ocsigen_http_frame.Result.empty () in
-    let content_type = match content_type with
-      | None -> Ocsigen_http_frame.Result.content_type empty_result
-      | _ -> content_type
+      ?content_type ?headers uri =
+    let headers = Ocsigen_header.of_option headers
+    and header_id, status =
+      (* We decide the kind of redirection we do. If the request is an
+         XHR done by a client side Eliom program expecting a process
+         page, we do not send an HTTP redirection. In that case, we
+         send a half XHR redirection.  *)
+      if not (Eliom_request_info.expecting_process_page ()) then
+        (* the browser did not ask application eliom data, we send a
+           regular redirection *)
+        Ocsigen_header.Name.(to_string location),
+        status_of_redirection_options options code
+      else
+        Eliom_common.half_xhr_redir_header, `OK
     in
-    let headers = match headers with
-      | None -> Ocsigen_http_frame.Result.headers empty_result
-      | Some headers ->
-        Http_headers.with_defaults
-          headers (Ocsigen_http_frame.Result.headers empty_result)
-    in
-
-    (* Now we decide the kind of redirection we do.
-       If the request is an xhr done by a client side Eliom program
-       expecting a process page,
-       we do not send an HTTP redirection.
-       In that case, we send a half xhr redirection.
-    *)
-    if not (Eliom_request_info.expecting_process_page ())
-    then (* the browser did not ask application eliom data,
-            we send a regular redirection *)
-      let code = match code with
-        | Some c -> c
-        | None ->
-          match options with
-          | `MovedPermanently -> 301
-          | `Found -> 302
-          | `SeeOther -> 303
-          | `NotNodifed -> 304
-          | `UseProxy -> 305
-          | `TemporaryRedirect -> 307
-      in
-      Lwt.return
-        (Ocsigen_http_frame.Result.update empty_result
-          ~code
-          ~location:(Some uri)
-          ~content_type
-          ~headers ())
-    else
-      Lwt.return
-        (Ocsigen_http_frame.Result.update empty_result
-          ~content_type
-          ~headers:
-            (Http_headers.add
-              (Http_headers.name Eliom_common.half_xhr_redir_header)
-              uri headers)
-          ())
-
+    let headers = Cohttp.Header.replace headers header_id uri in
+    result_of_content ?charset ?content_type ~status ~headers
+      (Cohttp.Body.empty :> Cohttp_lwt.Body.t)
 
 end
 
-module String_redirection = Eliom_mkreg.Make(String_redir_reg_base)
+module String_redirection = Eliom_mkreg.Make(String_redirection_base)
 
 type _ redirection =
     Redirection :
@@ -1736,17 +1468,11 @@ type _ redirection =
        [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
     'a redirection
 
-module Redir_reg_base = struct
+module Redirection_base = struct
 
   type 'a page = 'a redirection
 
-  type options =
-    [ `MovedPermanently
-    | `Found
-    | `SeeOther
-    | `NotNodifed
-    | `UseProxy
-    | `TemporaryRedirect ]
+  type options = redirection_options
 
   type 'a return = 'a
 
@@ -1755,112 +1481,89 @@ module Redir_reg_base = struct
 
   let send ?(options = `Found) ?charset ?code
       ?content_type ?headers (Redirection service) =
-    let uri = Eliom_uri.make_string_uri ~service () in
-    let empty_result = Ocsigen_http_frame.Result.empty () in
-    let content_type = match content_type with
-      | None -> Ocsigen_http_frame.Result.content_type empty_result
-      | _ -> content_type
-    in
-    let headers = match headers with
-      | None -> Ocsigen_http_frame.Result.headers empty_result
-      | Some headers ->
-        Http_headers.with_defaults
-          headers (Ocsigen_http_frame.Result.headers empty_result)
-    in
-
+    let uri = Eliom_uri.make_string_uri ~service ()
+    and headers = Ocsigen_header.of_option headers in
     (* Now we decide the kind of redirection we do.
+
        If the request is an xhr done by a client side Eliom program
-       expecting a process page,
-       we do not send an HTTP redirection.
+       expecting a process page, we do not send an HTTP redirection.
        In that case, we send:
+
        - a full xhr redirection if the application to which belongs
-       the destination service is the same (thus it will send back tab cookies)
-       (simulate a redirection without stopping the client process)
-       - a half xhr redirection otherwise (i.e. ask the browser to do an
-       actual redirection).
-    *)
-    match Eliom_request_info.expecting_process_page (),
-      Eliom_request_info.get_sp_client_appl_name () with
-      (* the appl name as sent by browser *)
-      | true, None (* should not happen *)
-      | false, _ -> (* the browser did not ask for process data,
-                       we send a regular redirection *)
-        let code = match code with
-          | Some c -> c
-          | None ->
-          match options with
-          | `MovedPermanently -> 301
-          | `Found -> 302
-          | `SeeOther -> 303
-          | `NotNodifed -> 304
-          | `UseProxy -> 305
-          | `TemporaryRedirect -> 307
-        in
-        Lwt.return
-          (Ocsigen_http_frame.Result.update empty_result
-            ~code
-            ~location:(Some uri)
-            ~content_type
-            ~headers ())
+         the destination service is the same (thus it will send back
+         tab cookies) (simulate a redirection without stopping the
+         client process)
 
-      | true, Some anr ->
-        (* the browser asked application eliom data
-           for the application called anr *)
-        (* If it comes from an xhr, we use answer with a special header field *)
-        let headers = Http_headers.replace
-          (Http_headers.name Eliom_common_base.appl_name_header_name)
+       - a half xhr redirection otherwise (i.e. ask the browser to do
+         an actual redirection).  *)
+    match
+      Eliom_request_info.expecting_process_page (),
+      Eliom_request_info.get_sp_client_appl_name ()
+    with
+    | true, None (* should not happen *)
+    | false, _ -> (* the browser did not ask for process data,we
+                     send a regular redirection *)
+      let status = status_of_redirection_options options code
+      and headers =
+        Cohttp.Header.replace headers
+          Ocsigen_header.Name.(to_string location)
+          uri
+      in
+      result_of_content ?charset ?content_type ~status ~headers
+        (Cohttp.Body.empty :> Cohttp_lwt.Body.t)
+    | true, Some anr ->
+      let headers =
+        Cohttp.Header.replace headers
+          Eliom_common_base.appl_name_header_name
           anr
-          headers
-        in
-        match Eliom_service.send_appl_content service with
-          (* the appl name of the destination service *)
-            | Eliom_service.XSame_appl (an,_) when (an = anr) ->
-            (* Same appl, we do a full xhr redirection
-               (not an http redirection, because we want to
-               send back tab cookies) *)
-              Lwt.return
-                (Ocsigen_http_frame.Result.update empty_result
-                  ~content_type
-                  ~headers:
-                    (Http_headers.add
-                      (Http_headers.name Eliom_common.full_xhr_redir_header)
-                      uri headers) ())
-
-            | Eliom_service.XAlways ->
-            (* It is probably an action, or a void coservice. Full xhr again *)
-              Lwt.return
-                (Ocsigen_http_frame.Result.update empty_result
-                  ~content_type
-                  ~headers:
-                    (Http_headers.add
-                      (Http_headers.name Eliom_common.full_xhr_redir_header)
-                      uri headers) ())
-
-            | _ -> (* No application, or another application.
-                      We ask the browser to do an HTTP redirection. *)
-              Lwt.return
-                (Ocsigen_http_frame.Result.update empty_result
-                  ~content_type
-                  ~headers:
-                    (Http_headers.add
-                      (Http_headers.name Eliom_common.half_xhr_redir_header)
-                      uri headers) ())
+      in
+      let headers =
+        Cohttp.Header.replace headers
+          (match Eliom_service.send_appl_content service with
+           (* the appl name of the destination service *)
+           | Eliom_service.XSame_appl (an, _) when an = anr ->
+             (* Same appl, we do a full XHR redirection (not an HTTP
+                redirection, because we want to send back tab cookies) *)
+             Eliom_common.full_xhr_redir_header
+           | Eliom_service.XAlways ->
+             (* It is probably an action, or a void coservice. Full XHR
+                again *)
+             Eliom_common.full_xhr_redir_header
+           | _ ->
+             (* No application, or another application. We ask the
+                browser to do an HTTP redirection. *)
+             Eliom_common.half_xhr_redir_header)
+          uri
+      in
+      result_of_content ?charset ?content_type ~status:`No_content ~headers
+        (Cohttp.Body.empty :> Cohttp_lwt.Body.t)
 
 end
 
 module Redirection = struct
 
-  include Eliom_mkreg.Make_poly(Redir_reg_base)
+  include Eliom_mkreg.Make_poly(Redirection_base)
 
   let send ?options ?charset ?code ?content_type ?headers content =
     Result_types.cast_result_lwt
-      (Redir_reg_base.send
+      (Redirection_base.send
          ?options ?charset ?code ?content_type ?headers content)
 
 end
 
 let set_exn_handler h =
   let sitedata = Eliom_request_info.find_sitedata "set_exn_handler" in
-  Eliom_request_info.set_site_handler sitedata (Result_types.cast_function_http h)
+  Eliom_request_info.set_site_handler sitedata
+    (Result_types.cast_function_http h)
 
-module String = Text
+let extension =
+  Ocsigen_server.Site.create_extension_intrusive
+    (fun vh conf_info site_dir ->
+       let sitedata = Eliommod.create_sitedata vh site_dir conf_info in
+       Eliom_common.absolute_change_sitedata sitedata;
+       (* CHECKME *)
+       Eliommod.preload ();
+       fun {Ocsigen_server.Site.Config.accessor} ->
+         Eliommod_pagegen.gen None sitedata)
+
+let end_init = Eliom_common.end_load_eliom_module

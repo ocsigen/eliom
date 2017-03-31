@@ -71,10 +71,7 @@ val raw_post_data : unit -> _ Lwt.t
 val client_app_initialised : bool ref
 
 val get_request_data : unit -> Eliom_common.eliom_js_page_data
-val get_request_cookies :
-  unit ->
-  Eliommod_cookies.cookie Ocsigen_cookies.CookiesTable.t
-    Ocsigen_cookies.Cookies.t
+val get_request_cookies : unit -> Ocsigen_cookie_map.t
 
 val get_si : Eliom_common.server_params -> Eliom_common.sess_info
 

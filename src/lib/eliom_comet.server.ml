@@ -516,8 +516,10 @@ end = struct
     handler.hd_registered_chan_id <- List.filter ((<>) chan_id) handler.hd_registered_chan_id
 
   let wait_closed_connection () =
-    let ri = Eliom_request_info.get_ri () in
-    let%lwt () = Ocsigen_extensions.Ocsigen_request_info.connection_closed ri in
+    let%lwt () =
+      Ocsigen_request.connection_closed
+        (Eliom_request_info.get_ri ())
+    in
     Lwt.fail Connection_closed
 
   (* register the service handler.hd_service *)

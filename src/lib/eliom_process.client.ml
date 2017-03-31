@@ -19,7 +19,6 @@
 
 open Js_of_ocaml
 open Eliom_lib
-open Ocsigen_cookies
 
 (* Logs *)
 let section = Lwt_log.Section.make "eliom:process"
@@ -57,10 +56,10 @@ let set_info, is_set_info,
   =
   get_set_js_serverside_value (ref None) "__eliom_appl_process_info"
 
-let set_request_cookies, is_set_request_cookies,
-    (get_request_cookies : unit -> Eliommod_cookies.cookie
-       Ocsigen_cookies.CookiesTable.t Ocsigen_cookies.Cookies.t),
-  reset_request_cookies =
+let set_request_cookies,
+    is_set_request_cookies,
+    (get_request_cookies : unit -> Ocsigen_cookie_map.t),
+    reset_request_cookies =
   get_set_js_serverside_value (ref None) "__eliom_request_cookies"
 
 let set_request_template, is_set_request_template,
@@ -75,9 +74,9 @@ let appl_name =
           and not a JS variable,
           because we want to send it back with each request.
           For mobile apps, we set the cookie from JS variable. *)
-       (CookiesTable.find
+       (Ocsigen_cookie_map.Map_inner.find
           Eliom_common.appl_name_cookie_name
-          (Cookies.find
+          (Ocsigen_cookie_map.Map_path.find
              (get_sitedata ()).Eliom_types.site_dir
              (Eliommod_cookies.get_table
                 (Some (get_info ()).cpi_hostname))))
