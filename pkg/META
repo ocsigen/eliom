@@ -57,7 +57,7 @@ package "client" (
   archive(byte) = "client.cma eliom_client_main.cmo"
 
   linkopts(javascript) = "+eliom.client/eliom_client.js"
-  linkopts(javascript) += "+js_of_ocaml/classlist.js"
+  linkopts(javascript) += "+js_of_ocaml-compiler/classlist.js"
 )
 
 package "syntax" (
