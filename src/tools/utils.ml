@@ -265,7 +265,9 @@ let get_common_include ?kind:k ?build_dir:dir ?package:p () =
   let dir = match dir with Some d -> d | None -> !build_dir in
   (match get_kind k with
    | `Server | `ServerOpt ->
-     map_include (List.map Findlib.package_directory (get_server_package ?kind:k ?package:p ()))
+     "js_of_ocaml" :: get_server_package ?kind:k ?package:p ()
+     |> List.map Findlib.package_directory
+     |> map_include
    | `Client ->
      map_include (List.map Findlib.package_directory (get_client_package ?kind:k ())))
   @ match dir with
