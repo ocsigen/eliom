@@ -1315,7 +1315,7 @@ let remove_from_all_persistent_tables key =
     (fun thr t -> thr >>= fun () ->
       Ocsipersist.open_table t >>= fun table ->
       Ocsipersist.remove table key >>= Lwt_unix.yield)
-    (return ())
+    return_unit
     !perstables
 
 

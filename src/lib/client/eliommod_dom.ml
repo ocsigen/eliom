@@ -564,7 +564,7 @@ let import_re = Regexp.regexp "@import\\s*"
 let rec rewrite_css ~max (media, href, css) =
   try%lwt
     css >>= function
-    | None -> Lwt.return []
+    | None -> Lwt.return_nil
     | Some css ->
       if !Eliom_config.debug_timings then
         Firebug.console##(time (Js.string ("rewrite_CSS: "^href)));
@@ -656,7 +656,7 @@ let preload_css (doc : Dom_html.element Js.t) =
       Lwt_log.ign_info ~section "Unique CSS skipped...") css;
   if !Eliom_config.debug_timings
   then Firebug.console##(timeEnd (Js.string "preload_css (fetch+rewrite)"));
-  Lwt.return ()
+  Lwt.return_unit
 
 (** Window scrolling *)
 

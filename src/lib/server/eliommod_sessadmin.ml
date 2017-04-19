@@ -47,7 +47,7 @@ let close_all_service_states2 full_st_name sitedata =
       Lwt_unix.yield ()
     )
     sitedata.Eliom_common.session_services
-    (return ())
+    return_unit
 
 (** Close all service states for one session name.
     If the optional parameter [?state_name] (session name) is not present,
@@ -74,7 +74,7 @@ let close_all_data_states2 full_st_name sitedata =
       Lwt_unix.yield ()
     )
     sitedata.Eliom_common.session_data
-    (return ())
+    return_unit
 
 (** Close all in memory data sessions for one session name.
     If the optional parameter [?state_name] (session name) is not present,
@@ -101,7 +101,7 @@ let close_all_persistent_states2 full_st_name sitedata =
       then Eliommod_persess.close_persistent_state2
         ~scope sitedata sessiongrp k >>=
         Lwt_unix.yield
-      else return ()
+      else return_unit
     )
 
 (** Close all persistent sessions for one session name.
@@ -153,7 +153,7 @@ let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
         Lwt_unix.yield ()
       )
       sitedata.Eliom_common.session_services
-      (return ())
+      return_unit
 
 (* Update the expiration date for all in memory data sessions                *)
 let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
@@ -183,7 +183,7 @@ let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
         Lwt_unix.yield ()
       )
       sitedata.Eliom_common.session_data
-      (return ())
+      return_unit
 
 
 (* Update the expiration date for all sessions                               *)
@@ -213,6 +213,6 @@ let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
                 ~scope sitedata sessgrp k
           | _ -> Ocsipersist.add table k (full_st_name2, newexp,
                    Eliom_common.TGlobal, sessgrp) >>= Lwt_unix.yield
-        else return ()
+        else return_unit
       )
       table

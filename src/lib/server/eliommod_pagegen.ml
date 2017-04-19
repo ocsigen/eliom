@@ -109,7 +109,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
             match !newr with
               | Eliom_common.SCData_session_expired
               | Eliom_common.SCNo_data -> (* The cookie has been removed *)
-                return ()
+                return_unit
               | Eliom_common.SC newc ->
                 let newexp =
                   match !(newc.Eliom_common.pc_timeout) with
@@ -129,7 +129,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
                       (oldexp = newexp &&
                           oldti = !(newc.Eliom_common.pc_timeout) &&
                           oldgrp = !(newc.Eliom_common.pc_session_group) &&
-                          oldv = newc.Eliom_common.pc_value) -> return ()
+                          oldv = newc.Eliom_common.pc_value) -> return_unit
                 (* nothing to do *)
                   | Some (oldv, oldti, oldexp, oldgrp) when
                       oldv = newc.Eliom_common.pc_value ->
@@ -144,7 +144,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
                            !(newc.Eliom_common.pc_timeout),
                            !(newc.Eliom_common.pc_session_group)))
                       (function
-                        | Not_found -> return ()
+                        | Not_found -> return_unit
                         (* someone else closed the session *)
                         | e -> fail e)
                   | _ ->
@@ -162,13 +162,13 @@ let update_cookie_table ?now sitedata (ci, sci) =
           otherwise the server will crash!!!
         *)
           end
-          else return ()
+          else return_unit
         in thr >>= fun () -> thr2
       )
 
       !pers_cookies_info
 
-      (return ())
+      return_unit
   in
   update_exp ci >>= fun () ->
 
@@ -350,7 +350,7 @@ let gen is_eliom_extension sitedata = function
                  let ripp = match
                    Ocsigen_extensions.Ocsigen_request_info.post_params
                    req.request_info with
-                   | None -> Lwt.return []
+                   | None -> Lwt.return_nil
                    | Some f ->
                      f (ri.request_config.Ocsigen_extensions.uploaddir,
                         ri.request_config.Ocsigen_extensions.maxuploadfilesize)

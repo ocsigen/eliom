@@ -58,7 +58,7 @@ let gc_timeouted_services now tables =
                          else t := Eliom_common.Table newr
                   )
               | _ -> ());
-             Lwt.return ())
+             Lwt.return_unit)
       | Eliom_common.File ptr ->
           Eliom_common.Serv_Table.fold
 (*VVV not tail recursive: may be a problem if lots of coservices *)
@@ -105,7 +105,7 @@ let gc_timeouted_services now tables =
                       with Not_found -> ());
                  Lwt_unix.yield ())
             !ptr
-            (return ()) >>= fun () ->
+            return_unit >>= fun () ->
           if Eliom_common.Serv_Table.is_empty !ptr
           then
             (match !t with
@@ -118,21 +118,21 @@ let gc_timeouted_services now tables =
                    then t := Eliom_common.Vide
                    else t := Eliom_common.Table newr
             );
-          Lwt.return ()
+          Lwt.return_unit
   and empty_one t =
     match !t with
-      | Eliom_common.Vide -> Lwt.return ()
+      | Eliom_common.Vide -> Lwt.return_unit
       | Eliom_common.Table r ->
         if String.Table.is_empty r
-        then begin t := Eliom_common.Vide; Lwt.return () end
+        then begin t := Eliom_common.Vide; Lwt.return_unit end
         else begin
-          String.Table.fold (aux t) r (Lwt.return ()) >>= fun () ->
+          String.Table.fold (aux t) r (Lwt.return_unit) >>= fun () ->
           match !t with (* !t has probably changed *)
-            | Eliom_common.Vide -> Lwt.return ()
+            | Eliom_common.Vide -> Lwt.return_unit
             | Eliom_common.Table r ->
               if String.Table.is_empty r
               then t := Eliom_common.Vide;
-              Lwt.return ()
+              Lwt.return_unit
         end
   in
   Lwt_list.iter_s
@@ -142,15 +142,15 @@ let gc_timeouted_services now tables =
     List.filter
     (fun r -> !(Tuple3.thd r) <> Eliom_common.Vide)
     tables.Eliom_common.table_services;
-  Lwt.return ()
+  Lwt.return_unit
 
 
 let gc_timeouted_naservices now tr =
   match !tr with
-    | Eliom_common.AVide -> return ()
+    | Eliom_common.AVide -> return_unit
     | Eliom_common.ATable t ->
         if Eliom_common.NAserv_Table.is_empty t
-        then begin tr := Eliom_common.AVide; Lwt.return () end
+        then begin tr := Eliom_common.AVide; Lwt.return_unit end
         else
           Eliom_common.NAserv_Table.fold
             (fun k (_, _, expdate, _, nodeopt) thr ->
@@ -168,7 +168,7 @@ let gc_timeouted_naservices now tr =
                Lwt_unix.yield ()
             )
             t
-            (return ())
+            return_unit
 
 
 
@@ -187,10 +187,10 @@ let service_session_gc sitedata =
         (* public continuation tables: *)
         (if tables.Eliom_common.table_contains_services_with_timeout
          then gc_timeouted_services now tables
-         else return ()) >>= fun () ->
+         else return_unit) >>= fun () ->
         (if tables.Eliom_common.table_contains_naservices_with_timeout
          then gc_timeouted_naservices now tables.Eliom_common.table_naservices
-         else return ()) >>= fun () ->
+         else return_unit) >>= fun () ->
 
         (* private continuation tables: *)
         Eliom_common.SessionCookies.fold
@@ -204,15 +204,15 @@ let service_session_gc sitedata =
             (match !exp with
             | Some exp when exp < now ->
               Eliommod_sessiongroups.Serv.remove session_group_node;
-              Lwt.return ()
+              Lwt.return_unit
             | _ ->
               (if tables.Eliom_common.table_contains_services_with_timeout
                then gc_timeouted_services now tables
-               else return ()) >>= fun () ->
+               else return_unit) >>= fun () ->
               (if tables.Eliom_common.table_contains_naservices_with_timeout
                then gc_timeouted_naservices now
                   tables.Eliom_common.table_naservices
-               else return ()) >>= fun () ->
+               else return_unit) >>= fun () ->
               (match !session_group_ref with
               | (_, scope, Right _) (* no group *)
 (*VVV check this *)
@@ -231,12 +231,12 @@ let service_session_gc sitedata =
                    We can remove it. *)
                 Eliommod_sessiongroups.Serv.remove session_group_node
               | _ -> () (*VVV enough? *));
-              return ()
+              return_unit
             )
             >>= Lwt_unix.yield
           )
           service_cookie_table
-          (return ())
+          return_unit
         >>= f
       in ignore (f ())
 
@@ -262,7 +262,7 @@ let data_session_gc sitedata =
             (match !exp with
                | Some exp when exp < now ->
                    Eliommod_sessiongroups.Data.remove session_group_node;
-                   return ()
+                   return_unit
                | _ ->
                    match !session_group_ref with
                      | (_, scope, Right _) (* no group *)
@@ -287,13 +287,13 @@ let data_session_gc sitedata =
                        Eliommod_sessiongroups.Data.remove session_group_node;
                        (* See also the finalisers in Eliommod_sessiongroups
                           and Eliommod.ml *)
-                               Lwt.return ()
-                     | _ -> Lwt.return ()
+                               Lwt.return_unit
+                     | _ -> Lwt.return_unit
             )
             >>= Lwt_unix.yield
           )
           data_cookie_table
-          (return ())
+          return_unit
           >>=
         f
       in ignore (f ())
@@ -320,7 +320,7 @@ let persistent_session_gc sitedata =
                    sitedata
                    session_group k
                (*WAS: remove_from_all_persistent_tables k *)
-               | _ -> return ())
+               | _ -> return_unit)
              ))
           >>=
         f
