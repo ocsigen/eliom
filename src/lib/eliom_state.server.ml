@@ -289,10 +289,10 @@ let unset_persistent_data_state_timeout ~cookie_scope ?secure () =
       ~cookie_scope ~secure_o:secure () in
     let tor = c.Eliom_common.pc_timeout in
     tor := Eliom_common.TGlobal;
-    return ()
+    return_unit
   with
     | Not_found
-    | Eliom_common.Eliom_Session_expired -> return ()
+    | Eliom_common.Eliom_Session_expired -> return_unit
 
 let get_persistent_data_state_timeout ~cookie_scope ?secure () =
   let sp = Eliom_common.get_sp () in
@@ -992,7 +992,7 @@ let remove_persistent_data ~table () =
     close_persistent_state_if_empty ~scope ~secure ()
   with
     | Not_found
-    | Eliom_common.Eliom_Session_expired -> return ()
+    | Eliom_common.Eliom_Session_expired -> return_unit
 
 
 (*****************************************************************************)
@@ -1604,10 +1604,10 @@ let get_persistent_data_cookie ~cookie_scope ?secure () =
   try%lwt
     let%lwt c = Eliommod_persess.find_persistent_cookie_only
       ~cookie_scope ~secure_o:secure () in
-    return (Some c.Eliom_common.pc_value)
+    return_some c.Eliom_common.pc_value
   with
     | Not_found
-    | Eliom_common.Eliom_Session_expired -> return None
+    | Eliom_common.Eliom_Session_expired -> return_none
 
 (*****************************************************************************)
 (** {2 User cookies} *)

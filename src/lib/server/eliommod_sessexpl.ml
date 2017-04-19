@@ -40,7 +40,7 @@ let iter_service_cookies f =
       Lwt_unix.yield
     )
     sitedata.Eliom_common.session_services
-    (return ())
+    return_unit
 
 
     (** Iterator on data cookies *)
@@ -53,7 +53,7 @@ let iter_data_cookies f =
       Lwt_unix.yield
     )
     sitedata.Eliom_common.session_data
-    (return ())
+    return_unit
 
     (** Iterator on persistent cookies *)
 let iter_persistent_cookies f =

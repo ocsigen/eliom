@@ -50,7 +50,7 @@ let number_of_persistent_table_elements () =
       thr >>= fun l ->
       Ocsipersist.open_table t >>= fun table ->
       Ocsipersist.length table >>= fun e ->
-      return ((t, e)::l)) (return []) !perstables
+      return ((t, e)::l)) (return_nil) !perstables
 
 let close_persistent_state2
     ~(scope : [< Eliom_common.user_scope ]) sitedata sg v =
@@ -95,11 +95,11 @@ let close_persistent_state ~scope ~secure_o ?sp () =
            c.Eliom_common.pc_value)
         >>= fun () ->
         ior := Eliom_common.SCNo_data;
-        return ()
-      | _ -> return ()
+        return_unit
+      | _ -> return_unit
     )
     (function
-      | Not_found -> return ()
+      | Not_found -> return_unit
       | e -> fail e)
 
 
@@ -130,7 +130,7 @@ let rec find_or_create_persistent_cookie_
               ~secure_o
               ~sp
               () in
-            Lwt.return (Some r.Eliom_common.pc_value)
+            Lwt.return_some r.Eliom_common.pc_value
           end
         | _  -> Lwt.return set_session_group in
 
