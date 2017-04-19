@@ -78,7 +78,8 @@ let appl_name =
           Eliom_common.appl_name_cookie_name
           (Cookies.find
              (get_sitedata ()).Eliom_types.site_dir
-             (Eliommod_cookies.get_table (Some Url.Current.host))))
+             (Eliommod_cookies.get_table
+                (Some (get_info ()).cpi_hostname))))
      in v)
 
 let set_base_url, get_base_url =

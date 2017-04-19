@@ -121,6 +121,23 @@ let onunload_fun _ =
 
 let onbeforeunload_fun _ = run_onbeforeunload ()
 
+let set_base_url () =
+  let {
+    Eliom_common.cpi_hostname ;
+    cpi_original_full_path ;
+    cpi_server_port ;
+    cpi_ssl ;
+  } = Eliom_process.get_info () in
+  let proto = if cpi_ssl then "https" else "http"
+  and host =
+    if cpi_server_port = 80 then
+      cpi_hostname
+    else
+      Printf.sprintf "%s:%d" cpi_hostname cpi_server_port
+  and path = String.concat "/" cpi_original_full_path in
+  Eliom_process.set_base_url
+    (Printf.sprintf "%s://%s/%s" proto host path)
+
 (* Function called (in Eliom_client_main), once when starting the app.
    Either when sent by a server or initiated on client side.
 
@@ -166,13 +183,7 @@ let init () =
   (* The first time we load the page, we record the initial URL in a client
      side ref, in order to set <base> (on client-side) in header for each
      pages. *)
-  Eliom_process.set_base_url
-    (String.concat
-       ""
-       [ Js.to_string (Dom_html.window##.location##.protocol)
-       ; "//"
-       ; Js.to_string (Dom_html.window##.location##.host)
-       ; Js.to_string (Dom_html.window##.location##.pathname) ]);
+  set_base_url ();
   insert_base Dom_html.document;
   (* </base> *)
 
