@@ -933,7 +933,7 @@ let change_page (type m)
            update_session_info l l';
            run_callbacks (flush_onchangepage ());
            let%lwt () = f get_params post_params in
-           change_url_string_protected ~replace uri;
+(*           change_url_string_protected ~replace uri; <---- shouldn't be done, perhaps???? *) 
            do_follow_up uri
          | None when is_client_app () ->
            Lwt.return @@ exit_to
