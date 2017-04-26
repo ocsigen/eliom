@@ -558,7 +558,8 @@ let change_url
        | None    -> None);
   change_url_string ~replace
     (Eliom_uri.make_string_uri
-       ?absolute
+       (* ?absolute *)
+       ~absolute:true
        ?absolute_path
        ?https
        ~service
