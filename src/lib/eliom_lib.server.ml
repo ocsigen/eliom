@@ -68,10 +68,6 @@ let string_escape s =
 
 let jsmarshal v = string_escape (Marshal.to_string v [])
 
-let wrap_and_marshall_poly : poly -> string =
-  fun poly ->
-    string_escape (Marshal.to_string (Eliom_wrap.wrap poly) [])
-
 let make_cryptographic_safe_string ?len () =
   match len with
   | None   -> Ocsigen_lib.make_cryptographic_safe_string ()

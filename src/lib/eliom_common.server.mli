@@ -20,10 +20,7 @@
 
 (** Low level functions for Eliom, exceptions and types. *)
 
-open Ocsigen_cookies
-
 open Eliom_lib
-
 
 (** {2 Scopes} *)
 (* those types are not available to the user, a scope must be created using
@@ -238,12 +235,6 @@ val datacookiename : string
 val servicecookiename : string
 val persistentcookiename : string
 
-val persistent_cookie_table_version : string
-val eliom_persistent_cookie_table : string
-
-val inline_class_name : string
-val nodisplay_class_name : string
-
 val appl_name_cookie_name : string
 val tab_cookies_param_name : string
 val to_be_considered_as_get_param_name : string
@@ -281,7 +272,7 @@ type sess_info = {
      string Full_state_name_table.t *
      string Full_state_name_table.t);
 
-  si_tab_cookies: string CookiesTable.t;
+  si_tab_cookies: string Ocsigen_cookies.CookiesTable.t;
 
   si_nonatt_info : na_key_req;
   si_state_info: (att_key_req * att_key_req);
@@ -320,7 +311,7 @@ val make_persistent_full_group_name :
 
 val getperssessgrp : perssessgrp ->
   (string * cookie_level *
-     (string, Ipaddr.t) leftright)
+   (string, Ipaddr.t) leftright)
 
 val string_of_perssessgrp : perssessgrp -> string
 
@@ -633,7 +624,7 @@ val get_site_data : unit -> sitedata
 val eliom_params_after_action :
   ((string * string) list *
    (string * string) list option *
-   (string * Eliom_lib.file_info) list option *
+   (string * file_info) list option *
      (string * string) list String.Table.t *
      (string * string) list String.Table.t *
    (string * file_info) list String.Table.t *
@@ -662,10 +653,10 @@ val find_dlist_ip_table :
 
 val get_cookie_info : server_params -> [< cookie_level ] -> tables cookie_info
 
-val tab_cookie_action_info_key : (tables cookie_info *
-                                    Ocsigen_cookies.cookieset *
-                                    string CookiesTable.t) Polytables.key
-
+val tab_cookie_action_info_key :
+  (tables cookie_info *
+   Ocsigen_cookies.cookieset *
+   string Ocsigen_cookies.CookiesTable.t) Polytables.key
 
 val sp_key : server_params Lwt.key
 val get_sp_option : unit -> server_params option

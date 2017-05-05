@@ -293,8 +293,6 @@ module Redirection = struct
 
   type _ result = browser_content kind
 
-  let reset_reload_fun = true
-
   let send
       ?options:_ ?charset:_ ?code:_ ?content_type:_ ?headers:_
       rdr =

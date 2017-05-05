@@ -17,24 +17,22 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+[%%shared type boxed]
 
 [%%client
 include Eliom_content_
 let force_link = ()
-]
 
-[%%shared
-type boxed
-external boxed : 'a Eliom_client_value.t
-  -> boxed Eliom_client_value.t
-  = "%identity"
 external unboxed : boxed Eliom_client_value.t
   -> 'a Eliom_client_value.t
   = "%identity"
 ]
 
-
 [%%server
+
+external boxed : 'a Eliom_client_value.t
+  -> boxed Eliom_client_value.t
+  = "%identity"
 
 module Xml = Eliom_content_.Xml
 

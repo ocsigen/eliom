@@ -146,10 +146,6 @@ module Make (A : ARG) : S
          in
          (client_ev, send_e))
 
-  let of_option = function
-    | Some x -> x
-    | None -> assert false
-
   let set_identity identity =
     (* For each tab connected to the app,
        we keep a pointer to (identity, notif_ev) option in process state,
@@ -176,13 +172,6 @@ module Make (A : ARG) : S
   let unlisten (id : A.key) =
     let identity = Eliom_reference.Volatile.get identity_r in
     I.remove identity id
-
-  module type Ext = sig
-    val unlisten :
-      ?sitedata:Eliom_common.sitedata ->
-      ([< `Session | `Session_group ], [< `Data ]) Eliom_state.Ext.state
-      -> key -> unit
-  end
 
   module Ext = struct
     let unlisten ?sitedata state (key : A.key) =

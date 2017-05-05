@@ -101,9 +101,7 @@ let get_xhr = function
 
 module Make_links (Html : Html) = struct
 
-  type +'a elt = 'a Html.elt
   type +'a attrib = 'a Html.attrib
-  type uri = Html.uri
 
   let make_uri
       ?absolute
@@ -187,10 +185,6 @@ module Make (Html : Html) = struct
     | User f ->
       f
 
-  type +'a elt = 'a Html.elt
-  type +'a attrib = 'a Html.attrib
-  type uri = Html.uri
-
   let float     = Atom Eliom_parameter_base.TFloat
   let int       = Atom Eliom_parameter_base.TInt
   let int32     = Atom Eliom_parameter_base.TInt32
@@ -201,8 +195,6 @@ module Make (Html : Html) = struct
   let user f    = User f
 
   open Html
-
-  let id = Eliom_lib.id
 
   let make_post_form ?(a = []) ~action ?id ?(inline = false) elts =
     let a =
@@ -584,8 +576,6 @@ module Make (Html : Html) = struct
         )
     in
     Eliom_lazy.from_fun f
-
-  let a_onclick_service info = Html.attrib_of_service "onclick" info
 
   let a_onsubmit_service info = Html.attrib_of_service "onsubmit" info
 

@@ -72,8 +72,6 @@ end
 [%%client
 module React = struct
 
-  type 'a event = 'a React.event
-  type 'a signal = 'a React.signal
   type step = React.step
 
   module S = struct
@@ -270,7 +268,6 @@ module FakeReact = struct
     val l6 : ?eq:('g -> 'g -> bool) ->
       ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g) ->
       'a t -> 'b t -> 'c t -> 'd t -> 'e t -> 'f t -> 'g t
-    val switch : ?eq:('a -> 'a -> bool) -> 'a t t -> 'a t
   end = struct
     type 'a t = 'a * bool
     let create ?synced:(synced = false) x =
@@ -296,7 +293,6 @@ module FakeReact = struct
       f x1 x2 x3 x4 x5, b1 && b2 && b3 && b4 && b5
     let l6 ?eq f (x1, b1) (x2, b2) (x3, b3) (x4, b4) (x5, b5) (x6, b6) =
       f x1 x2 x3 x4 x5 x6, b1 && b2 && b3 && b4 && b5 && b6
-    let switch ?eq (((x, b1), b2): 'a t t) : 'a t = x, b1 && b2
   end
 end
 
@@ -314,9 +310,6 @@ module FakeReactiveData = struct
     val map : ('a -> 'b) -> 'a t -> 'b t
     val from_signal :
       ?eq:('a -> 'a -> bool) -> 'a list FakeReact.S.t -> 'a t
-    module Lwt : sig
-      val map_p : ('a -> 'b Lwt.t) -> 'a t -> 'b t Lwt.t
-    end
   end = struct
     type 'a t = 'a list * bool
     type 'a handle = unit
@@ -328,19 +321,11 @@ module FakeReactiveData = struct
     let signal ?eq (l, synced) = fst (FakeReact.S.create ~synced l)
     let map f (l, b) = List.map f l, b
     let from_signal ?eq s = FakeReact.S.(value s, synced s)
-    module Lwt = struct
-      let map_p f (l, b) =
-        let%lwt l = Lwt_list.map_p f l in
-        Lwt.return (l, b)
-    end
   end
 end
 ]
 [%%server
 module React = struct
-  type 'a event = 'a React.event
-  type 'a signal = 'a React.signal
-  type step = React.step
   module S = struct
     type 'a t = 'a FakeReact.S.t Value.t
     let value (x : 'a t) =

@@ -84,8 +84,6 @@ module Xml = struct
     node_ids_in_content := Node_id_set.empty;
     res
 
-  let rcontent { elt } = elt.recontent
-
   let get_node_id { elt } = elt.node_id
 
   let tyxml_unwrap_id =
@@ -257,7 +255,6 @@ module Svg = struct
       include Xml
 
       let make elt = make_request_node (make elt)
-      let make_lazy elt = make_request_node (make_lazy elt)
 
       let empty () = make Empty
 
@@ -268,8 +265,6 @@ module Svg = struct
 
       let leaf ?(a = []) name =  make (Leaf (name, a))
       let node ?(a = []) name children = make (Node (name, a, children))
-      let lazy_node ?(a = []) name children =
-        make_lazy (Eliom_lazy.from_fun (fun () -> (Node (name, a, Eliom_lazy.force children))))
 
     end
     module Raw = Svg_f.Make(Xml')

@@ -216,7 +216,6 @@ module Service_handler : sig
 
   val add_channel_stateless : stateless t -> chan_id -> Ecb.stateless_kind -> unit
 
-  val stop_waiting : stateful t -> chan_id -> unit
   val close : 'a t -> chan_id -> unit
 
 end =
@@ -568,11 +567,6 @@ struct
         end;
         restart hd
 
-  let stop_waiting hd chan_id =
-    hd.hd_activity.active_channels <- Eliom_lib.String.Set.remove chan_id hd.hd_activity.active_channels;
-    if Eliom_lib.String.Set.is_empty hd.hd_activity.active_channels
-    then set_activity hd `Inactive
-
   let init_activity () =
     let active_waiter,active_wakener = Lwt.wait () in
     let restart_waiter, restart_wakener = Lwt.wait () in
@@ -646,10 +640,6 @@ let restart () =
   let f _ { hd_service_handler } = Service_handler.restart hd_service_handler in
   Hashtbl.iter f stateless_handler_table;
   Hashtbl.iter f stateful_handler_table
-
-let close_stateful chan_service chan_id =
-  let { hd_service_handler } = get_stateful_hd chan_service in
-  Service_handler.close hd_service_handler (Ecb.string_of_chan_id chan_id)
 
 let close = function
   | Ecb.Stateful_channel (chan_service,chan_id) ->

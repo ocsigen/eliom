@@ -166,8 +166,6 @@ let na_co_param_prefix = "__na_eliom_"
 let nl_param_prefix = "__nl_"
 let pnl_param_prefix = nl_param_prefix^"p_"
 let npnl_param_prefix = nl_param_prefix^"n_"
-let nodisplay_class_name = "eliom_nodisplay"
-let inline_class_name = "eliom_inline"
 
 let eliom_internal_nlp_prefix = "__eliom"
 let tab_cookies_param_name = "__eliom_P_tab_cookies"
@@ -179,16 +177,6 @@ let half_xhr_redir_header = "X-Eliom-Location-Half"
 let response_url_header = "X-Eliom-Url"
 
 let default_group_name = "__eliom$%@default_group"
-(*204FORMS* old implementation of forms with 204 and change_page_event
-let internal_form_name = "_internal_form"
-let internal_form_bool_name = "b"
-
-let internal_form_full_name =
-  npnl_param_prefix^
-    eliom_internal_nlp_prefix^"-"^
-    internal_form_name^"."^
-    internal_form_bool_name
-*)
 
 let set_tab_cookies_header_name = "X-Eliom-Set-Process-Cookies"
 let tab_cookies_header_name = "X-Eliom-Process-Cookies"

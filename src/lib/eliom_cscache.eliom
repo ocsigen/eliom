@@ -2,10 +2,6 @@
 
 [%%shared.start]
 
-open Eliom_lib
-open Eliom_content.Html
-open Eliom_content.Html.F
-
 type ('a, 'b) t =
   (unit -> ('a, 'b Lwt.t) Hashtbl.t) Eliom_shared.Value.t
 

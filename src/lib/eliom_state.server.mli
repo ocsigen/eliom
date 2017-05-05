@@ -511,13 +511,7 @@ val set_global_volatile_state_timeout :
   ?override_configfile:bool ->
   float option -> unit
 
-val set_default_global_service_state_timeout :
-  cookie_level:[< Eliom_common.cookie_level ] ->
-  ?override_configfile:bool ->
-  float option -> unit
-
-(** Sets the (server side) timeout for service states.
-*)
+(** Sets the (server side) timeout for service states. *)
 val set_global_service_state_timeout :
   cookie_scope:[< Eliom_common.cookie_scope ] ->
   ?secure: bool ->

@@ -309,8 +309,6 @@ module Stateful : sig
 
   val get_service : t -> comet_service
 
-  val close_channel : t -> unit
-
   val wait_timeout : ?scope:Eliom_common.client_process_scope ->
     float -> unit Lwt.t
 
@@ -623,9 +621,6 @@ end = struct
         ch_id : chan_id;
         ch_stream : string Eliom_comet_base.channel_data Lwt_stream.t;
       }
-
-  let close_channel chan =
-    close_channel' chan.ch_handler chan.ch_id
 
   let name_of_scope (scope:Eliom_common.user_scope) =
     let sp = Eliom_common.get_sp () in

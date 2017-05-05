@@ -10,8 +10,6 @@ include Eliom_route_base.Make (struct
 
     type info = Eliom_common.info
 
-    type request = Ocsigen_extensions.request
-
     let sess_info_of_info (_, i, _, _, _) = i
 
     let meth_of_info ({request_info}, _, _, _, _) =

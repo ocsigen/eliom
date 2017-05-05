@@ -27,8 +27,6 @@ type raw_post_data =
 
 open Ocsigen_extensions
 
-let section = Lwt_log.Section.make "eliom:parameter"
-
 (* server-specific constructors *)
 
 let user_type

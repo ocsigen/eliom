@@ -29,9 +29,6 @@ end
 let weakMap : ('a,'b) weakMap Js.t Js.constr = Js.Unsafe.global##_WeakMap
 
 let map : (Obj.t,Obj.t) weakMap Js.t = jsnew weakMap ()
-
-let get_obj_copy map o = Js.Optdef.to_option ( map##get(o) )
-let set_obj_copy map o c = map##set(o,c)
 *)
 
 open Eliom_lib
@@ -39,18 +36,6 @@ open Eliom_lib
 let section = Lwt_log.Section.make "eliom.unwrap"
 let log_section = section
 let _ = Lwt_log.Section.set_level section Lwt_log.Info
-
-class type obj_with_copy = object
-  method camlObjCopy : Obj.t Js.optdef Js.prop
-end
-
-let get_obj_copy o =
-  let v : obj_with_copy Js.t = Obj.obj o in
-  Js.Optdef.to_option ( v##.camlObjCopy )
-
-let set_obj_copy o c =
-  let v : obj_with_copy Js.t = Obj.obj o in
-  v##.camlObjCopy := Js.def c;
 
 module Mark : sig
   type t

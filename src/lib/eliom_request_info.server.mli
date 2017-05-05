@@ -144,19 +144,6 @@ val get_expired_service_sessions :
   unit -> (Eliom_common.full_state_name list *
                        Eliom_common.full_state_name list)
 
-(** returns the HTTP error code sent by the Ocsigen extension
-   that tried to answer to the request before Eliom.
-   It is 404 by default.
- *)
-val get_previous_extension_error_code : unit -> int
-
-
-
-
-
-
-
-(*****************************************************************************)
 (** {2 Getting information about files uploaded} *)
 
 (** Warning: The files uploaded are automatically erased by Ocsigen

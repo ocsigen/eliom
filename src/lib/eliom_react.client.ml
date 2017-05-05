@@ -21,7 +21,6 @@
 
 (* Module for event unwrapping *)
 let (>|=) = Lwt.(>|=)
-let (>>=) = Lwt.(>>=)
 
 open Lwt_react
 
