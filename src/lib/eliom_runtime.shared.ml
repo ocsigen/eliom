@@ -73,10 +73,6 @@ module RawXML = struct
   let uri_of_string = Eliom_lazy.from_val
   let uri_of_fun = Eliom_lazy.from_fun
 
-  let internal_event_handler_of_string s = Raw s
-  let string_of_internal_event_handler = function
-    | Raw s -> s
-    | Caml _ -> "/* Invalid Caml value */"
   let internal_event_handler_of_service info = Caml (CE_call_service info)
 
   let ce_registered_closure_class = "caml_c" (*"caml_closure"*)

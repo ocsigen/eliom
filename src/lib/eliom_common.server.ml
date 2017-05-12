@@ -312,32 +312,14 @@ module Net_addr_Hashtbl =
     let find m4 m6 t k =
       find t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
 
-    let find_all m4 m6 t k =
-      find_all t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
-
-    let replace m4 m6 t k v =
-      replace t (network_of_ip k (get_mask4 m4) (get_mask6 m6)) v
-
-    let mem m4 m6 t k =
-      mem t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
-
   end : sig
 
      type key = Ipaddr.t
      type 'a t
      val create : int -> 'a t
-     val clear : 'a t -> unit
-     val copy : 'a t -> 'a t
      val add      : int option * 'bb -> int option * 'bb -> 'a t -> key -> 'a -> unit
      val remove   : int option * 'bb -> int option * 'bb -> 'a t -> key -> unit
      val find     : int option * 'bb -> int option * 'bb -> 'a t -> key -> 'a
-     val find_all : int option * 'bb -> int option * 'bb -> 'a t -> key -> 'a list
-     val replace  : int option * 'bb -> int option * 'bb -> 'a t -> key -> 'a -> unit
-     val mem      : int option * 'bb -> int option * 'bb -> 'a t -> key -> bool
-     val iter : (key -> 'a -> unit) -> 'a t -> unit
-     val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-     val length : 'a t -> int
-
    end)
 
 module Serv_Table = Map.Make(struct

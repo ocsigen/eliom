@@ -54,8 +54,6 @@ module A = struct
 
     type t = table
 
-    let empty () = Raw_table.empty
-
     let add {Eliom_common.key_meth} p m =
       Raw_table.add key_meth (`Ptc p) m
 

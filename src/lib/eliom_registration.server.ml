@@ -31,7 +31,6 @@ sig
   val cast_kind : 'a kind -> Ocsigen_http_frame.result
   val cast_kind_lwt : 'a kind Lwt.t -> Ocsigen_http_frame.result Lwt.t
   val cast_result_lwt : Ocsigen_http_frame.result Lwt.t -> 'a kind Lwt.t
-  val cast_function_kind : ('c -> 'a kind Lwt.t) -> ('c -> 'd kind Lwt.t)
   val cast_function_http : ('c -> 'a kind Lwt.t) -> ('c -> Ocsigen_http_frame.result Lwt.t)
 end
 =
@@ -41,7 +40,6 @@ struct
   let cast_kind x = x
   let cast_kind_lwt x = x
   let cast_result_lwt x = x
-  let cast_function_kind x = x
   let cast_function_http x = x
 end
 
@@ -51,8 +49,6 @@ type block_content
 type browser_content = [`Browser]
 type 'a ocaml_content
 type unknown_content
-
-type redirection_content
 
 let cast_unknown_content_kind (x:unknown_content kind) : 'a kind =
   Result_types.cast_result (Result_types.cast_kind x)
@@ -190,7 +186,6 @@ module Text_reg_base = struct
 
   type page = (string * string)
   type options = int
-  type return = Eliom_service.non_ocaml
   type result = unknown_content kind
 
   let result_of_http_result = Result_types.cast_result
@@ -546,9 +541,6 @@ module Any_reg_base = struct
   type 'a page   = 'a kind
   type options   = unit
   type 'a return = Eliom_service.non_ocaml
-  type 'a result = 'a kind
-
-  let result_of_http_result = Result_types.cast_result
 
   (* let send_appl_content = Eliom_service.XNever *)
   let send_appl_content = Eliom_service.XAlways
@@ -604,8 +596,6 @@ let appl_self_redirect send page =
       else
         let%lwt r = (Result_types.cast_function_http send) page in
         Lwt.return (Result_types.cast_result r)
-
-let http_redirect = appl_self_redirect
 
 (* File is a module allowing to register services that send files *)
 module File_reg_base = struct
@@ -1165,8 +1155,6 @@ type appl_service_options = { do_not_launch : bool }
 
 let default_appl_service_options = {do_not_launch = false; }
 
-let comet_service_key : unit Polytables.key = Polytables.make_key ()
-
 let request_template =
   Eliom_reference.eref ~scope:Eliom_common.request_scope None
 
@@ -1261,14 +1249,6 @@ module Eliom_appl_reg_make_param
       Eliom_content.Html.(
         Id.create_named_elt ~id:eliom_appl_data_script_id
           (F.script (F.cdata_script script)))
-
-  let queue_map (q : 'a Queue.t) (f : 'a -> 'b) : 'b Queue.t =
-    let q2 = Queue.create () in
-    Queue.iter (fun x ->
-        let y = f x in
-        Queue.add y q2
-      ) q;
-    q2
 
   let make_eliom_data_script ?(keep_debug=false) ~sp page =
 
@@ -1684,10 +1664,6 @@ module Redir_reg_base = struct
     | `TemporaryRedirect ]
 
   type 'a return = 'a
-
-  type 'a result = unknown_content kind
-
-  let result_of_http_result = Result_types.cast_result
 
   let send_appl_content = Eliom_service.XAlways
   (* actually, the service will decide itself *)

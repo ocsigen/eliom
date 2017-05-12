@@ -41,9 +41,6 @@ let persistent_t = ref (Some 86400.) (* 1 day by default *)
 let tab_service_t = ref (Some 3600.) (* 1 hour by default *)
 let tab_data_t = ref (Some 3600.) (* 1 hour by default *)
 let tab_persistent_t = ref (Some 86400.) (* 1 day by default *)
-let group_service_t = ref (Some 3600.) (* 1 hour by default *)
-let group_data_t = ref (Some 3600.) (* 1 hour by default *)
-let group_persistent_t = ref (Some 86400.) (* 1 day by default *)
 
 let get_ref kind level =
   match kind, level with
@@ -53,12 +50,6 @@ let get_ref kind level =
   | `Service    , `Client_process -> tab_service_t
   | `Data       , `Client_process -> tab_data_t
   | `Persistent , `Client_process -> tab_persistent_t
-
-let set_default_service_timeout level timeout =
-  (match level with
-   | `Session        -> service_t
-   | `Client_process -> tab_service_t
-   | `Session_group  -> group_service_t) := timeout
 
 let set_default kind level timeout = (get_ref kind level) := timeout
 
@@ -146,14 +137,6 @@ let set_sitedata_timeout kind sitedata v =
     sitedata.Eliom_common.datatimeout <- v
   | `Persistent ->
     sitedata.Eliom_common.perstimeout <- v
-
-let update_exp = function
-  | `Service ->
-    Eliommod_sessadmin.update_serv_exp
-  | `Data ->
-    Eliommod_sessadmin.update_data_exp
-  | `Persistent ->
-    Eliommod_sessadmin.update_pers_exp
 
 let find_global kind full_st_name sitedata =
   let def_bro, def_tab, tl = sitedata_timeout kind sitedata in

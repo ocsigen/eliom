@@ -232,7 +232,6 @@ module Svg = struct
         include Xml
 
         let make elt = make_request_node (make elt)
-        let make_lazy elt = make_request_node (make (Lazy.force elt))
 
         let empty () = make Empty
 
@@ -243,8 +242,6 @@ module Svg = struct
 
         let leaf ?(a = []) name =  make (Leaf (name, a))
         let node ?(a = []) name children = make (Node (name, a, children))
-        let lazy_node ?(a = []) name children =
-          make (Node (name, a, Eliom_lazy.force children))
 
       end)
 
@@ -304,7 +301,6 @@ module Html = struct
       include Xml
 
       let make elt = make_request_node (make elt)
-      let make_lazy elt = make_request_node (make (Lazy.force elt))
 
       let empty () = make Empty
 
@@ -385,7 +381,6 @@ module Html = struct
   module Id = struct
     type 'a id = string (* FIXME invariant type parameter ? *)
     let new_elt_id: ?global:bool -> unit -> 'a id = Xml.make_node_name
-    let new_global_elt_id () = new_elt_id ()
     let create_named_elt ~(id : 'a id) elt =
       D.tot (Xml.make_process_node ~id (D.toelt elt))
     let create_global_elt elt =

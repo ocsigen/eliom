@@ -76,10 +76,6 @@ let get_initial_get_params () =
   let sp = Eliom_common.get_sp () in
   Lazy.force (Ocsigen_request_info.initial_get_params sp.Eliom_common.sp_request.request_info)
 
-let get_get_params_string () =
-  let sp = Eliom_common.get_sp () in
-  Ocsigen_request_info.get_params_string sp.Eliom_common.sp_request.request_info
-
 let get_post_params_sp sp =
   match Ocsigen_request_info.post_params sp.Eliom_common.sp_request.request_info with
     | None -> None
@@ -286,8 +282,6 @@ let get_csp_original_full_path () =
   let cpi = get_sp_client_process_info () in
   cpi.Eliom_common.cpi_original_full_path
 
-let get_app_path () = None
-
 let get_csp_hostname () =
   let cpi = get_sp_client_process_info () in
   cpi.Eliom_common.cpi_hostname
@@ -324,10 +318,6 @@ let get_site_dir () =
 
 let get_site_dir_sp sp =
   sp.Eliom_common.sp_sitedata.Eliom_common.site_dir
-
-let get_site_dir_string () =
-  let sitedata = find_sitedata "Eliom_request_info.get_site_dir_string" in
-  sitedata.Eliom_common.site_dir_string
 
 let get_request () =
   let sp = Eliom_common.get_sp () in

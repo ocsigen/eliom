@@ -17,11 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-let escaped_value_escaped_value = fst
-
 type +'a t = 'a Eliom_runtime.Client_value_server_repr.t
-
-type 'a fragment = 'a t
 
 let client_value_unwrapper =
   Eliom_wrap.create_unwrapper

@@ -185,7 +185,8 @@ module F : HTML5_TOOLS
 (** Menus with DOM semantics *)
 module D : HTML5_TOOLS
 
-(** Record an (external) JavaScript file to be included in {!Eliom_tools.F.html}. *)
+(** Record an (external) JavaScript file to be included in
+    {!Eliom_tools.F.html}. *)
 val with_js_file : string list -> unit
 
 (** Record an CSS file to be included in {!Eliom_tools.F.html}. *)
@@ -223,15 +224,6 @@ val wrap_handler :
   ('get -> 'post -> 'res Lwt.t) ->
   ('a -> 'get -> 'post -> 'res Lwt.t) ->
   ('get -> 'post -> 'res Lwt.t)
-
-[%%client.start]
-
-(** Record an (external) JavaScript file to be included in
-    {!Eliom_tools.F.html}. *)
-val with_js_file : string list -> unit
-
-(** Record an CSS file to be included in {!Eliom_tools.F.html}. *)
-val with_css_file : string list -> unit
 
 [%%server.start]
 

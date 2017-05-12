@@ -32,9 +32,6 @@ let max_redirection_level = 12
 let short_url_re =
   new%js Js.regExp (Js.bytestring "^([^\\?]*)(\\?(.*))?$")
 
-let url_re =
-  new%js Js.regExp (Js.bytestring "^([Hh][Tt][Tt][Pp][Ss]?)://([0-9a-zA-Z.-]+|\\[[0-9A-Fa-f:.]+\\])(:([0-9]+))?/([^\\?]*)(\\?(.*))?$")
-
 let get_cookie_info_for_uri_js uri_js =
   match Url.url_of_string (Js.to_string uri_js) with
     | None -> (* Decoding failed *)

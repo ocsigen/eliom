@@ -18,14 +18,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-[%%shared open Eliom_shared.React.S.Infix ]
-
-[%%client
-module Xml = struct
-  type elt =  Eliom_content_core.Xml.elt
-end
-]
-
 [%%server
 open Eliom_shared
 let local_value s = React.S.value s |> Value.local
@@ -38,6 +30,7 @@ module Xml = struct
     include React.S
 
     type (-'a, 'b) ft = unit -> ('a -> 'b) Eliom_shared.Value.t
+
     type 'a tlist = 'a ReactiveData.RList.t
 
     let return = const
@@ -218,8 +211,6 @@ module Svg = struct
 
     module Xml = Xml
 
-    type (-'a, 'b) ft = ('a, 'b) Xml.W.ft
-
     let string_of_alignment_baseline () =
       [%shared  Raw_wrapped_functions_svg.string_of_alignment_baseline ]
 
@@ -254,7 +245,7 @@ module Svg = struct
       [%shared  Raw_wrapped_functions_svg.string_of_number ]
 
     let string_of_number_optional_number () =
-      [%shared 
+      [%shared
          Raw_wrapped_functions_svg.string_of_number_optional_number ]
 
     let string_of_numbers () =
@@ -300,10 +291,12 @@ module Svg = struct
       and synced = React.S.synced s in
       let _ = [%client (
         let s =
-          ~%s >|= (fun s ->
-            Eliom_content_core.Svg.
-              (Id.create_request_elt s ~reset:false |> D.toelt) |>
-            Eliom_client_core.rebuild_node' `SVG)
+          Eliom_shared.React.S.map
+            (fun s ->
+               Eliom_content_core.Svg.
+                 (Id.create_request_elt s ~reset:false |> D.toelt) |>
+               Eliom_client_core.rebuild_node' `SVG)
+            ~%s
         in
         let f =
           let replace e' e =
@@ -341,8 +334,6 @@ module Html = struct
   struct
 
     module Xml = Xml
-
-    type (-'a, 'b) ft = ('a, 'b) Xml.W.ft
 
     type image_candidate =
       [ `Url of Xml.uri
@@ -405,10 +396,12 @@ module Html = struct
       and synced = React.S.synced s in
       let _ = [%client (
         let s =
-          ~%s >|= (fun s ->
-            Eliom_content_core.Html.
-              (Id.create_request_elt s ~reset:false |> D.toelt) |>
-            Eliom_client_core.rebuild_node' `HTML5)
+          Eliom_shared.React.S.map
+            (fun s ->
+               Eliom_content_core.Html.
+                 (Id.create_request_elt s ~reset:false |> D.toelt) |>
+               Eliom_client_core.rebuild_node' `HTML5)
+            ~%s
         in
         let f =
           let replace e' e =

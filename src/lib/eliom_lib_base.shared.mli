@@ -17,8 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Ocsigen_lib_base
-
 exception Eliom_Internal_Error of string
 
 (** Module with Lwt operators: Open to use them without polluting your scope. *)

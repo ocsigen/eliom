@@ -502,30 +502,3 @@ let wrap_handler information none some =
     match%lwt information () with
       | None -> none get post
       | Some value -> some value get post
-
-(* Alternative semantics for with_js_file and with_css_file on client
-   side: *)
-
-let%client add_js_file path =
-  let uri =
-    Html.F.make_uri
-      (Eliom_service.static_dir () )
-      path
-  in
-  let script =
-    Html.F.js_script ~a:[Html.F.a_defer ()] ~uri ()
-  in
-  ignore
-    Dom_html.document##.head##(appendChild (Html.To_dom.of_node script))
-
-let%client add_css_file path =
-  let uri =
-    Html.F.make_uri
-      (Eliom_service.static_dir () )
-      path
-  in
-  let link =
-    Html.F.css_link ~uri ()
-  in
-  ignore
-    Dom_html.document##.head##(appendChild (Html.To_dom.of_node link))

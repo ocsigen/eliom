@@ -150,7 +150,7 @@ let create_attached_get_unsafe = create_attached_get
 let create_attached_post_unsafe = create_attached_post
 
 let coservice'
-    (type m) (type gp) (type gn) (type pp) (type pn) (type gp')
+    (type m) (type gp) (type gn) (type pp) (type pn)
     ?name
     ?(csrf_safe = false)
     ?csrf_scope

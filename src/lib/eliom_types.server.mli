@@ -20,8 +20,6 @@
 
 (** Types shared by client and server. *)
 
-open Eliom_lib
-
 type sitedata = {
   site_dir: string list;
   site_dir_string: string;

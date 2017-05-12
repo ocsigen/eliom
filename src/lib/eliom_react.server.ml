@@ -209,22 +209,6 @@ struct
 
     let wrap_stateful
         {throttling=t;
-         scope;
-         signal=s;
-         name=name} =
-      let s : 'a S.t =
-        (match t with
-          | None -> s
-          | Some t -> S.limit (fun () -> Lwt_unix.sleep t) s)
-      in
-      let store = make_store s in
-      let stream = Lwt_stream.from (read_store store) in
-      let channel = Eliom_comet.Channel.create_unlimited ?scope ?name stream in
-      let value : 'a = S.value s in
-      (channel,value,Eliom_common.make_unwrapper Eliom_common.signal_down_unwrap_id)
-
-    let wrap_stateful
-        {throttling=t;
          signal=s;
          name=name} =
       let s : 'a S.t =

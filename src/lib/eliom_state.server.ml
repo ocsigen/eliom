@@ -121,16 +121,6 @@ let set_global_volatile_data_state_timeout
     ~kind:`Data ~cookie_scope ~secure ~recompute_expdates
     override_configfile sitedata timeout
 
-let set_default_global_volatile_state_timeout ~cookie_level
-    ?(override_configfile = false) timeout =
-  let sitedata =
-    Eliom_request_info.find_sitedata "set_global_volatile_timeouts"
-  in
-  Eliommod_timeouts.set_default_global
-    `Service cookie_level override_configfile false sitedata timeout;
-  Eliommod_timeouts.set_default_global
-    `Data cookie_level override_configfile false sitedata timeout
-
 let set_global_volatile_state_timeout
     ~cookie_scope
     ?secure
@@ -736,28 +726,6 @@ let set_default_max_volatile_tab_sessions_per_group ?override_configfile n =
   set_default_max_service_tab_sessions_per_group ?override_configfile n;
   set_default_max_volatile_data_tab_sessions_per_group ?override_configfile n
 
-
-let set_default_max_anonymous_services_per_session
-    ?(override_configfile = false) n =
-  let sitedata =
-    Eliom_request_info.find_sitedata "set_default_max_anonymous_services_per_session"
-  in
-  let b = snd sitedata.Eliom_common.max_anonymous_services_per_session in
-  if override_configfile || not b
-  then
-    sitedata.Eliom_common.max_anonymous_services_per_session <- (n, b)
-
-let set_default_max_anonymous_services_per_subnet
-    ?(override_configfile = false) n =
-  let sitedata =
-    Eliom_request_info.find_sitedata "set_default_max_anonymous_services_per_subnet"
-  in
-  let b = snd sitedata.Eliom_common.max_anonymous_services_per_subnet in
-  if override_configfile || not b
-  then
-    sitedata.Eliom_common.max_anonymous_services_per_subnet <- (n, b)
-
-
 let set_ipv4_subnet_mask ?(override_configfile = false) n =
   let sitedata =
     Eliom_request_info.find_sitedata "set_ipv4_subnet_mask"
@@ -862,20 +830,6 @@ let set_persistent_data_cookie_exp_date ~cookie_scope ?secure t =
       (match t with
       | None -> exp := Eliom_common.CEBrowser
       | Some t -> exp := Eliom_common.CESome t)
-
-let get_persistent_data_cookie_exp_date ~cookie_scope ?secure () =
-  try%lwt
-    let%lwt c = Eliommod_persess.find_persistent_cookie_only
-      ~cookie_scope ~secure_o:secure () in
-    return !(c.Eliom_common.pc_cookie_exp)
-  with
-    | Not_found
-    | Eliom_common.Eliom_Session_expired ->
-      return Eliom_common.CEBrowser
-
-
-
-
 
 (* *)
 let get_global_table () =
@@ -1427,17 +1381,7 @@ module Ext = struct
       try check_scopes a b; Lwt.return_unit
       with e -> Lwt.fail e
 
-    let check_group_scope s =
-      match s with
-        | `Session_group _ -> ()
-        | _ -> raise Wrong_scope
-
-    let lwt_check_group_scope a =
-      try check_group_scope a; Lwt.return_unit
-      with e -> Lwt.fail e
-
-
-  (*VVV Does not work with volatile group data *)
+    (*VVV Does not work with volatile group data *)
     let get_volatile_data
         ~state:((state_scope, _, cookie) : ('s, [ `Data ]) state)
         ~table:(table_scope, secure, t : 'a volatile_table) =
