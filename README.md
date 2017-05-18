@@ -1,11 +1,18 @@
 # Eliom
 
-Eliom is a framework for building web sites and client/server web
-applications in OCaml. Eliom employs sophisticated techniques from the
-field of functional programming, thus enabling the programmer to build
-complex web sites in very few lines of code. Both the server and the
-client parts of an application are implemented in OCaml, as a single
-program.
+Eliom is a framework for building client/server Web and mobile
+applications in OCaml.
+It transforms OCaml into a multi-tier language, making it possible to
+implement both the server and client parts of a Web and mobile app
+as a single program.
+This simplifies a lot the communication between server and client.
+Applications can run on any Web browser or mobile device (iOS,
+Android), saving from the need to develop one version for each
+platform.
+
+Eliom has support for reactive pages (generated on server or client),
+advanced session mechanism, server to client communication,
+continuation based Web programming, etc.
 
 Eliom is part of the [Ocsigen project][ocsigen].
 
