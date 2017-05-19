@@ -19,7 +19,7 @@ depends: [
   "js_of_ocaml-ppx"
   "js_of_ocaml-tyxml"
   "tyxml" {>= "4.0.0"}
-  "ocsigenserver" {>= "2.8"}
+  "ocsigenserver" {>= "dev"}
   "ipaddr" {>= "2.1"}
   "reactiveData" {>= "0.2.1"}
   ("dbm" | "sqlite3")

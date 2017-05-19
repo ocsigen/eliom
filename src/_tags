@@ -11,7 +11,7 @@ true:keep_locs
 
 <lib/server/*.ml{,i}>:thread
 <lib/server/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml.functor)
-<lib/server/*.ml{,i}>:package(react,js_of_ocaml)
+<lib/server/*.ml{,i}>:package(react,lwt_react,js_of_ocaml)
 
 <lib/server/*.ml{,i}>:package(js_of_ocaml-ppx.deriving)
 
@@ -24,7 +24,7 @@ true:keep_locs
 <lib/client/*.ml{,i}>: eliom_ppx
 <lib/client/*.ml{,i}>:package(ocsigenserver.cookies,ocsigenserver.polytables,ocsigenserver.baselib.base)
 <lib/client/*.ml{,i}>:package(deriving.runtime,js_of_ocaml.deriving)
-<lib/client/*.ml{,i}>:package(lwt.react,tyxml.functor,js_of_ocaml.tyxml,js_of_ocaml-lwt,js_of_ocaml-lwt.logger)
+<lib/client/*.ml{,i}>:package(lwt_react,tyxml.functor,js_of_ocaml.tyxml,js_of_ocaml-lwt,js_of_ocaml-lwt.logger)
 <lib/client/*.ml{,i}>:package(react,js_of_ocaml,reactiveData)
 
 <lib/client/*.ml{,i}>:package(js_of_ocaml-ppx.deriving)

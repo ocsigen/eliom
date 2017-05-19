@@ -13,7 +13,7 @@ package "server" (
               react,
               reactiveData,
               tyxml,
-              lwt.react,
+              lwt_react,
               cryptokit,
               reactiveData"
   archive(byte) = "server.cma"
@@ -50,7 +50,7 @@ package "client" (
               js_of_ocaml-lwt,
               js_of_ocaml-lwt.logger,
               js_of_ocaml.weak,
-              lwt.react,
+              lwt_react,
               react,
               reactiveData,
               tyxml.functor"
