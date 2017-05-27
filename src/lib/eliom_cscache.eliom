@@ -43,6 +43,25 @@ let%server find cache get_data id =
     do_cache_raw cache id th;
     th
 
+let%server cache_list cache get_data ids =
+  let main_thread, wakeup = Lwt.task () in
+  let tbl = Hashtbl.create 10 in
+  let thread id =
+    let%lwt () = main_thread in
+    Lwt.return @@ Hashtbl.find tbl id
+  in
+  let enqueue id = if Hashtbl.mem (Eliom_shared.Value.local cache ()) id
+    then false
+    else let () = do_cache_raw cache id (thread id) in true
+  in
+  try%lwt
+    let not_cached = List.filter enqueue ids in
+    let%lwt data = get_data not_cached in
+    List.iter (fun (id,v) -> Hashtbl.add tbl id v) data;
+    ignore [%client (List.iter (fun (id,v) -> do_cache ~%cache id v) ~%data : unit)];
+    Lwt.return @@ Lwt.wakeup wakeup ()
+  with e -> Lwt.wakeup_exn wakeup e; Lwt.fail e
+
 let%client load cache get_data id =
   let th = get_data id in
   (* On client side, we put immediately in table the thread that is
@@ -54,6 +73,10 @@ let%client load cache get_data id =
 let%client find cache get_data id =
   try Hashtbl.find ((Eliom_shared.Value.local cache) ()) id
   with Not_found -> load cache get_data id
+
+let%server find_list cache get_data ids =
+  let%lwt () = cache_list cache get_data ids in
+  Lwt_list.map_s (find cache (fun _ -> raise Not_found)) ids
 
 exception Not_ready
 
