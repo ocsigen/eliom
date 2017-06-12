@@ -143,6 +143,13 @@ let send
       | None -> (* decoding failed: it is a relative link *)
         Some Url.Current.host
     in
+    let host =
+      match host with
+      | Some host when host = Url.Current.host ->
+        Some (Eliom_process.get_info ()).Eliom_common.cpi_hostname
+      | _ ->
+        host
+    in
     let cookies = Eliommod_cookies.get_cookies_to_send host https path in
     let headers = match cookies with
       | [] -> []
