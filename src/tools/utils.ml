@@ -71,6 +71,10 @@ let default_server_types_ext =
 let build_dir : string ref = ref ""
 let type_dir : string ref = ref default_type_dir
 
+let use_refmt = ref false
+
+let orig_file_name = ref None
+
 let get_kind k =
   match k with
   | Some k -> k
@@ -362,6 +366,12 @@ let get_ppopts ~impl_intf file =
     type_opt impl_intf file @ !ppopt
 
 let preprocess_opt ?(ocaml = false) ?kind opts =
+  let refmt () =
+    if !use_refmt then
+      [ "-pp"; "refmt --parse=re --print=ml" ]
+    else
+      []
+  in
   match !pp_mode with
   | `Camlp4 ->
     let pkg = match ocaml, simplify_kind ?kind () with
@@ -372,14 +382,20 @@ let preprocess_opt ?(ocaml = false) ?kind opts =
     in
     [ "-pp"; get_pp pkg ^ " " ^ String.concat " " opts ]
   | `Ppx when ocaml ->
-    []
+    refmt ()
   | `Ppx ->
     let pkg = match simplify_kind ?kind () with
       | `Client -> "eliom.ppx.client"
       | `Server -> "eliom.ppx.server"
       | `Types  -> "eliom.ppx.type"
+    and opts =
+      match !orig_file_name, !use_refmt with
+      | Some orig_file_name, true ->
+        "-orig-file-name" :: orig_file_name :: opts
+      | _, _ ->
+        opts
     in
-    [ "-ppx"; get_ppx pkg ^ " " ^ String.concat " " opts ]
+    refmt () @ [ "-ppx"; get_ppx pkg ^ " " ^ String.concat " " opts ]
 
 (** Process *)
 
@@ -413,6 +429,13 @@ let create_filter name args f =
   Unix.close out;
   let ch = Unix.in_channel_of_descr in_ in
   try f ch with _ -> close_in ch; wait pid
+
+let exit_no_refmt () =
+  if !use_refmt then (
+    Printf.eprintf
+      "Compiler failed. Have you installed reason and its refmt binary?\n%!";
+    exit 1
+  )
 
 let help_filter skip msg ch =
   for _i = 1 to skip do ignore (input_line ch) done;

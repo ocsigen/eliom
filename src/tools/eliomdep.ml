@@ -275,6 +275,9 @@ let process_option () =
       else
         compile_eliom ~impl_intf:`Impl arg;
       i := !i+2
+    | "-reason" ->
+      use_refmt := true;
+      incr i
     | arg when Filename.check_suffix arg ".mli" ->
       if not (do_sort ()) then
         compile_intf arg;
