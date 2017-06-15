@@ -368,7 +368,7 @@ let get_ppopts ~impl_intf file =
 let preprocess_opt ?(ocaml = false) ?kind opts =
   let refmt () =
     if !use_refmt then
-      [ "-pp"; "refmt -parse re -print ml" ]
+      [ "-pp"; "refmt --parse=re --print=ml" ]
     else
       []
   in
