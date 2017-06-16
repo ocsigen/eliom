@@ -189,7 +189,7 @@ let expand_dest_path ~name ~dest_dir s =
 
 let convert_file_to_reason path =
   let extension = Filename.extension path in
-  if (extension = ".ml" || extension = ".eliom") then
+  if (extension = ".eliom" || extension = ".eliomi") then
     Utils.run_command
       ~on_error:(function
         | 127 -> Printf.eprintf "Error: refmt is not installed - please install with `opam install reason`\n"
@@ -292,7 +292,6 @@ let compilation_unit_name_regexp =
 let main () =
   let dir = ref false in
   let without_asking = ref false in
-  let use_refmt = ref false in
   let shown = ref false in
   let show_templates () =
     List.iter (fun (name, path) -> Printf.printf "%s [%s]\n" name path) (get_templates ());
