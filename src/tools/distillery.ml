@@ -187,7 +187,16 @@ let expand_dest_path ~name ~dest_dir s =
   |> join_path
   |> Filename.concat dest_dir
 
-let create_project ?preds ~without_asking ~name ~env ~source_dir ~dest_dir () =
+let convert_file_to_reason path =
+  let extension = Filename.extension path in
+  if (extension = ".ml" || extension = ".eliom") then
+    Utils.run_command
+      ~on_error:(function
+        | 127 -> Printf.eprintf "Error: refmt is not installed - please install with `opam install reason`\n"
+        | d -> Printf.eprintf "Unknown error code %d while running refmt\n" d)
+      ("refmt --parse=ml --print=re --in-place " ^ path)
+
+let create_project ?preds ~without_asking ~use_refmt ~name ~env ~source_dir ~dest_dir () =
   let eliom_ignore_files =
     lines_of_file (Filename.concat source_dir eliomignore_filename)
   and eliom_verbatim_files =
@@ -213,7 +222,8 @@ let create_project ?preds ~without_asking ~name ~env ~source_dir ~dest_dir () =
        else
          let src_path = Filename.concat source_dir src_file
          and dst_path = expand_dest_path ~name ~dest_dir src_file in
-         copy_file ?preds ~env src_path dst_path
+         copy_file ?preds ~env src_path dst_path ;
+         if use_refmt then convert_file_to_reason dst_path
     )
     (Sys.readdir source_dir)
 
@@ -227,7 +237,8 @@ let env name =
   [
     "PROJECT_NAME", name;
     "MODULE_NAME", String.capitalize name;
-    "PROJECT_DB", db
+    "PROJECT_DB", db;
+    "REASON_FLAG", if !Utils.use_refmt then "-reason" else ""
   ]
 
 let get_templatedirs () =
@@ -281,6 +292,7 @@ let compilation_unit_name_regexp =
 let main () =
   let dir = ref false in
   let without_asking = ref false in
+  let use_refmt = ref false in
   let shown = ref false in
   let show_templates () =
     List.iter (fun (name, path) -> Printf.printf "%s [%s]\n" name path) (get_templates ());
@@ -312,6 +324,8 @@ let main () =
       " Display the template directories (set through $ELIOM_DISTILLERY_PATH)";
       "-y", Set without_asking,
       " Create the project directory without confirmation.";
+      "-reason", Set Utils.use_refmt,
+      " Create the project with reason syntax (defaults to OCaml)";
       "-name", String (fun s -> name := Some (check_name s)),
       "<name> Name of the project (a valid compilation unit name)";
       "-template", String select_template,
@@ -339,7 +353,7 @@ let main () =
         (fst template)
     else
       let env, source_dir = init_project template name in
-      create_project ~without_asking:(!without_asking) ~name ~env ~source_dir ~dest_dir ()
+      create_project ~without_asking:(!without_asking) ~use_refmt:(!Utils.use_refmt) ~name ~env ~source_dir ~dest_dir ()
   end
 
 let () = main ()

@@ -12,9 +12,9 @@ include Makefile.options
 ##			      Internals
 
 ## Required binaries
-ELIOMC            := eliomc -ppx
-ELIOMOPT          := eliomopt -ppx
-JS_OF_ELIOM       := js_of_eliom -ppx
+ELIOMC            := eliomc %%%REASON_FLAG%%% -ppx
+ELIOMOPT          := eliomopt %%%REASON_FLAG%%% -ppx
+JS_OF_ELIOM       := js_of_eliom %%%REASON_FLAG%%% -ppx
 ELIOMDEP          := eliomdep
 OCSIGENSERVER     := ocsigenserver
 OCSIGENSERVER.OPT := ocsigenserver.opt
@@ -103,7 +103,7 @@ run.opt:
 
 # Use `eliomdep -sort' only in OCaml>4
 ifeq ($(shell ocamlc -version|cut -c1),4)
-eliomdep=$(shell $(ELIOMDEP) $(1) -ppx -sort $(2) $(filter %.eliom %.ml,$(3))))
+eliomdep=$(shell $(ELIOMDEP) $(1) %%%REASON_FLAG%%% -ppx -sort $(2) $(filter %.eliom %.ml,$(3))))
 else
 eliomdep=$(3)
 endif
@@ -219,10 +219,10 @@ include .depend
 	cat $^ > $@
 
 $(DEPSDIR)/%.server: % | $(DEPSDIR)
-	$(ELIOMDEP) -server -ppx $(SERVER_INC) $< > $@
+	$(ELIOMDEP) -server %%%REASON_FLAG%%% -ppx $(SERVER_INC) $< > $@
 
 $(DEPSDIR)/%.client: % | $(DEPSDIR)
-	$(ELIOMDEP) -client -ppx $(CLIENT_INC) $< > $@
+	$(ELIOMDEP) -client %%%REASON_FLAG%%% -ppx $(CLIENT_INC) $< > $@
 
 $(DEPSDIR):
 	mkdir $@

@@ -399,6 +399,14 @@ let preprocess_opt ?(ocaml = false) ?kind opts =
 
 (** Process *)
 
+let run_command ?on_error s =
+  let v = Sys.command s in
+  if v != 0 then
+    match on_error with
+      | Some f -> f v
+      | None -> Printf.eprintf "Error: command [%s] returned [%d]" s v;
+    exit 255
+
 let rec wait ?(on_error=fun _ -> ()) pid =
   let e = snd (Unix.waitpid [] pid) in
   match e with
