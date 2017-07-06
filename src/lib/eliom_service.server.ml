@@ -271,6 +271,7 @@ let attach :
       service with
       service_mark = service_mark ();
       kind = `AttachedCoservice;
+      pre_applied_parameters = fallback.pre_applied_parameters;
       info = Attached {fallbackkind with get_name ; post_name }
     }
 
