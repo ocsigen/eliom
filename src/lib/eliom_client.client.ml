@@ -490,7 +490,7 @@ let set_reload_function f = reload_function := Some f
 
 let history_doms = ref []
 
-let set_history_dom () = 
+let push_history_dom () = 
   let d = Dom_html.document##.documentElement in
   let id = snd !current_state_id in
   history_doms :=
