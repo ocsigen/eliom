@@ -488,6 +488,15 @@ let reload_functions = ref []
 
 let set_reload_function f = reload_function := Some f
 
+let history_doms = ref []
+
+let set_history_dom () = 
+  let d = Dom_html.document##.documentElement in
+  let id = snd !current_state_id in
+  history_doms :=
+    (id, d) ::
+    (List.filter (fun (id', _) -> id <> id') !history_doms)
+
 let change_url_string ~replace uri =
   current_uri := fst (Url.split_fragment uri);
   Eliom_request_info.set_current_path !current_uri;
@@ -1143,6 +1152,14 @@ let () =
               Eliom_request_info.set_current_path uri;
               try
                 if fst state_id <> session_id then raise Not_found;
+                let d = List.assq (snd state_id) !history_doms in
+                Dom.replaceChild 
+                  Dom_html.document d Dom_html.document##.documentElement;
+                let%lwt () = Lwt_js_events.request_animation_frame () in
+                scroll_to_fragment ~offset:state.position fragment;
+                Lwt.return_unit
+              with Not_found ->
+              try
                 let rf = List.assq (snd state_id) !reload_functions in
                 reload_function := Some rf;
                 rf () () >>
