@@ -316,9 +316,11 @@ val init : unit -> unit
 val set_reload_function : (unit -> unit -> unit Lwt.t) -> unit
 
 (** Stock the dom of the current page, which will be used when going 
-    back to this page through [window.history.back]
+    back to this page in history. 
+    A typical use case of this function is stocking the dom when leaving 
+    a page. i.e. [Eliom_client.onunload( Eliom_client.push_history_dom )]
 *)
-val set_history_dom : unit -> unit
+val push_history_dom : unit -> unit
 
 (** Lwt_log section for this module.
     Default level is [Lwt_log.Info].
