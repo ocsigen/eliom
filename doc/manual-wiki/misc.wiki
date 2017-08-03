@@ -194,8 +194,3 @@ let _ =
   register hier9 (f 9 hier9);
   register hier10 (f 10 hier10)
 >>
-
-
-==Atom==
-
-An extension is provided to build Atom fields (modules <<a_api| module Eliom_atom >> and <<a_api| module Atom_feed >>).
