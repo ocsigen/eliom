@@ -489,15 +489,38 @@ let reload_functions = ref []
 let set_reload_function f = reload_function := Some f
 
 let history_doms = ref []
+let history_changepage_handler = ref None
+let animation_function = ref None
 
+let set_history_changepage_handler f = history_changepage_handler := Some f
+let set_animation_function f = animation_function := Some f
 let push_history_dom () = 
-  let d = Dom_html.document##.documentElement in
   let id = snd !current_state_id in
+  (*If history_changepage_handler exists, it will be executed. So 
+   users don't need to call this function explictly in their code
+   when the page is changed for the first time. 
+   In fact, they are not able to call this function because they 
+   can't access to the current state id. *)
+  begin
+    match !history_changepage_handler with
+    | Some f -> f id ()
+    | None -> ()
+  end;
+  let d = 
+    if !only_replace_body 
+    then Dom_html.document##.body 
+    else Dom_html.document##.documentElement in
   history_doms :=
     (id, d) ::
     (List.filter (fun (id', _) -> id <> id') !history_doms)
 
-let change_url_string ~replace uri =
+(* When the optional argument update is false, the state will not be updated.
+   I add this argument because when a service has client side implementation, 
+   the content of the page will be changed before calling [change_url_string]. 
+   Therefore sometimes it makes no sense to update state here because we will 
+   associate the scroll position of the current page with the state_id of the 
+   old page. *)
+let change_url_string ~replace ?(update=true) uri =
   current_uri := fst (Url.split_fragment uri);
   Eliom_request_info.set_current_path !current_uri;
   if Eliom_process.history_api then begin
@@ -520,7 +543,7 @@ let change_url_string ~replace uri =
         (if !Eliom_common.is_client_app then Js.null else
          Js.Opt.return (Js.string uri))
     else begin
-      update_state();
+      if update then update_state();
       let state_id = next_state_id () in
       reload_functions :=
         List.filter (fun (id, _) -> id <= snd !current_state_id)
@@ -819,9 +842,12 @@ let redirect_active () =
   | Some (`Redirect _) -> true
   | _ -> false
 
-let change_url_string_protected ~replace url =
+
+(* When the optional argument update is false, the state will not be updated.
+   See [change_url_string]. *)
+let change_url_string_protected ~replace ?(update=true) url =
   if not (redirect_active ()) then
-    change_url_string ~replace url
+    change_url_string ~replace ~update:update url
 
 let route ~replace ?(keep_url = false)
     ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
@@ -948,8 +974,10 @@ let change_page (type m)
            let l = ocamlify_params l in
            update_session_info l l';
            run_callbacks (flush_onchangepage ());
+           update_state ();
+           (* update the state before changing the page *)
            let%lwt () = f get_params post_params in
-           change_url_string_protected ~replace uri;
+           change_url_string_protected ~replace ~update:false uri;
            do_follow_up uri
          | None when is_client_app () ->
            Lwt.return @@ exit_to
@@ -1127,9 +1155,32 @@ let _ =
       the javascript application. *)
 
 
-
+      
 
 (* == Navigating through the history... *)
+
+(* Given a state_id, [replace_page_in_hisotry] returns a replace function. 
+   The current page will be replaced by the page associated to the state_id
+   when the replace function is called *)
+let replace_page_in_history state_id state fragment =
+  let id = snd state_id in
+  let d = List.assq id !history_doms in
+  let replace_fun () =
+    if !only_replace_body 
+    then Dom.replaceChild
+      Dom_html.document##.documentElement d  Dom_html.document##.body
+    else Dom.replaceChild
+      Dom_html.document d Dom_html.document##.documentElement ;
+    let%lwt () = Lwt_js_events.request_animation_frame() in
+    (*If history_changepage_handler exists, register the handler
+      for the next changepage.*)
+    begin match !history_changepage_handler with
+      | Some f -> onchangepage (f id)
+      | None -> ()
+    end;
+    scroll_to_fragment ~offset:state.position fragment;
+    Lwt.return_unit in
+  replace_fun
 
 let () =
 
@@ -1152,12 +1203,11 @@ let () =
               Eliom_request_info.set_current_path uri;
               try
                 if fst state_id <> session_id then raise Not_found;
-                let d = List.assq (snd state_id) !history_doms in
-                Dom.replaceChild 
-                  Dom_html.document d Dom_html.document##.documentElement;
-                let%lwt () = Lwt_js_events.request_animation_frame () in
-                scroll_to_fragment ~offset:state.position fragment;
-                Lwt.return_unit
+                let replace_fun = 
+                  replace_page_in_history state_id state fragment in
+                match !animation_function with
+                | Some af -> af (snd state_id) replace_fun 
+                | _ -> replace_fun ()
               with Not_found ->
               try
                 let rf = List.assq (snd state_id) !reload_functions in

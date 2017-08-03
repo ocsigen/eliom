@@ -315,12 +315,47 @@ val init : unit -> unit
 
 val set_reload_function : (unit -> unit -> unit Lwt.t) -> unit
 
-(** Stock the dom of the current page, which will be used when going 
+(** Stock the document/body of the current page, which will be used when going 
     back to this page in history. 
     A typical use case of this function is stocking the dom when leaving 
     a page. i.e. [Eliom_client.onunload( Eliom_client.push_history_dom )]
 *)
-val push_history_dom : unit -> unit
+val push_history_dom :  unit -> unit 
+
+(** Why we need this function ?
+    Suppose that we want to have a page transition on coming back from details 
+    to list page, we need usually a parameter (e.g. a screenshot of the list 
+    page) to realize the animation of page transition and the parameter is 
+    generally created just before we leave the list page in order to stock the
+    latest information (such as the scroll position). In the normal case, to 
+    do this, we register an onchangepage handler in the beginning of the service 
+    that generates the list page. However, when we reload the list page by replacing 
+    the current document/body with the one stocked in cache, the handler will be lost.
+
+    Suppose also that we have a hashtable which maps a state_id into a parameter 
+    (e.g. a screenshot) corresponding to the page characterized by the state_id. 
+
+    [set_history_changepage_handler f] registers an onchangepage handler for 
+    the all pages reloaded from cache : [Eliom_client.onchangepage (f id)]. 
+    Here f should take a state_id as argument so that it can register a particular 
+    handler for the page associated with the state_id.
+
+    Notice that normally you need to call this function before pushing any page
+    into cache, in other words, before calling any [push_history_dom ()], so that
+    the function [push_history_dom] will execute the handler function before leaving
+    the page for the first time.
+*)
+val set_history_changepage_handler : (int -> unit -> unit) -> unit
+
+(** [set_animation_function f] sets the animation function which is used to
+    realize the page transition on coming back in history. With the same
+    suppositions in the comment of [set_history_changepage_handler], 
+    [f id replace_fun] extracts fisrt the necessary parameter (e.g. a screenshot) 
+    from the hashtable with the given id. Then it uses the parameter to realize the
+    animation of page transition. Finally it calls the given function [replace_fun] 
+    to replace the document/body. 
+*)
+val set_animation_function : (int -> (unit -> unit Lwt.t) -> unit Lwt.t) -> unit
 
 (** Lwt_log section for this module.
     Default level is [Lwt_log.Info].
