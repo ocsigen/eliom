@@ -318,7 +318,7 @@ val set_reload_function : (unit -> unit -> unit Lwt.t) -> unit
 (** Stock the document/body of the current page, which will be used when going 
     back to this page in history. 
     A typical use case of this function is stocking the dom when leaving 
-    a page. i.e. [Eliom_client.onunload( Eliom_client.push_history_dom )]
+    a page. i.e. [Eliom_client.onchangepage Eliom_client.push_history_dom ]
 *)
 val push_history_dom :  unit -> unit 
 
@@ -327,10 +327,12 @@ val push_history_dom :  unit -> unit
     to list page, we need usually a parameter (e.g. a screenshot of the list 
     page) to realize the animation of page transition and the parameter is 
     generally created just before we leave the list page in order to stock the
-    latest information (such as the scroll position). In the normal case, to 
-    do this, we register an onchangepage handler in the beginning of the service 
+    latest information (such as the scroll position). Normally, to do this, we 
+    register an onchangepage handler in the beginning of the handler of the service 
     that generates the list page. However, when we reload the list page by replacing 
     the current document/body with the one stocked in cache, the handler will be lost.
+    So we need a specific function to re-register the handler everytime the list
+    page is reloaded from cache.    
 
     Suppose also that we have a hashtable which maps a state_id into a parameter 
     (e.g. a screenshot) corresponding to the page characterized by the state_id. 

@@ -496,11 +496,6 @@ let set_history_changepage_handler f = history_changepage_handler := Some f
 let set_animation_function f = animation_function := Some f
 let push_history_dom () = 
   let id = snd !current_state_id in
-  (*If history_changepage_handler exists, it will be executed. So 
-   users don't need to call this function explictly in their code
-   when the page is changed for the first time. 
-   In fact, they are not able to call this function because they 
-   can't access to the current state id. *)
   begin
     match !history_changepage_handler with
     | Some f -> f id ()
@@ -545,6 +540,9 @@ let change_url_string ~replace ?(update=true) uri =
     else begin
       if update then update_state();
       let state_id = next_state_id () in
+      history_doms := 
+        List.filter (fun (id, _) -> id <= snd !current_state_id)
+          !history_doms;
       reload_functions :=
         List.filter (fun (id, _) -> id <= snd !current_state_id)
           !reload_functions;
@@ -1155,7 +1153,7 @@ let _ =
       the javascript application. *)
 
 
-      
+
 
 (* == Navigating through the history... *)
 
@@ -1188,7 +1186,6 @@ let () =
   then
 
     let goto_uri full_uri state_id =
-      current_state_id := state_id;
       let state = get_state state_id in
       let tmpl = (if state.template = Js.string ""
                   then None
@@ -1205,15 +1202,19 @@ let () =
                 if fst state_id <> session_id then raise Not_found;
                 let replace_fun = 
                   replace_page_in_history state_id state fragment in
-                match !animation_function with
-                | Some af -> af (snd state_id) replace_fun 
-                | _ -> replace_fun ()
+                let%lwt () = 
+                  match !animation_function with
+                  | Some af -> af (snd state_id) replace_fun 
+                  | _ -> replace_fun () in
+                current_state_id := state_id;
+                Lwt.return_unit
               with Not_found ->
               try
                 let rf = List.assq (snd state_id) !reload_functions in
                 reload_function := Some rf;
                 rf () () >>
                 (scroll_to_fragment ~offset:state.position fragment;
+                 current_state_id := state_id;
                  Lwt.return_unit)
               with Not_found ->
               match tmpl with
@@ -1225,15 +1226,20 @@ let () =
                 in
                 set_template_content ~replace:false content >>
                 (scroll_to_fragment ~offset:state.position fragment;
+                 current_state_id := state_id;
                  Lwt.return_unit)
               | _ ->
                 let%lwt uri, content =
                   Eliom_request.http_get ~expecting_process_page:true uri []
                     Eliom_request.xml_result in
-                set_content
-                  ~replace:false ~offset:state.position ?fragment content
+                let%lwt () =
+                  set_content
+                    ~replace:false ~offset:state.position ?fragment content in
+                current_state_id := state_id;
+                Lwt.return_unit
             end else
               (scroll_to_fragment ~offset:state.position fragment;
+               current_state_id := state_id;
                Lwt.return_unit)))
     in
 
