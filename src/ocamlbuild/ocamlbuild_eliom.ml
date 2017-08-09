@@ -134,6 +134,10 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
     dflag ["ocaml"; "infer_interface"; file_tag] ppflags;
     dflag ["ocaml"; "doc";             file_tag] ppflags_notype
 
+  let ocamlfind_query pkg =
+    let cmd = Printf.sprintf "ocamlfind query %s" (Filename.quote pkg) in
+    Ocamlbuild_pack.My_unix.run_and_open cmd input_line
+
   let copy_rule_server ?(eliom=true) =
     copy_rule_with_header
       (fun env dir name src file ->
@@ -143,6 +147,9 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
              :: get_syntaxes eliom `Server src
            );
          if eliom then flag_infer ~file ~name ~path `Server;
+         dflag ["ocaml"; "compile"; "file:" ^ file]
+           (S [A "-I";
+               A (ocamlfind_query "js_of_ocaml")]);
          Pathname.define_context dir [path];
          Pathname.define_context path [dir];
       )

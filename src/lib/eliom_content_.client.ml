@@ -573,8 +573,7 @@ module Html = struct
         elt##.onscroll := (bool_cb f)
       let onreturn elt f =
         let f ev =
-          let key = ev##.keyCode in
-          if key = Keycode.return then f ev;
+          if Dom_html.Keyboard_code.(of_event ev = Enter) then f ev;
           true in
         onkeydown elt f
       let onchange elt f =

@@ -38,7 +38,6 @@ val send :
   ?cookies_info:bool * string list ->
   ?get_args:(string * string) list ->
   ?post_args:(string * Eliommod_parameters.param) list ->
-  ?form_arg:((string * Form.form_elt) list) ->
   ?progress:(int -> int -> unit) ->
   ?upload_progress:(int -> int -> unit) ->
   ?override_mime_type:string ->
