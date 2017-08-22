@@ -53,6 +53,12 @@ let create_buffer () =
 
 let run_callbacks handlers = List.iter (fun f -> f ()) handlers
 
+type onchangepage_event = 
+  {back:bool; current_uri:string; target_uri:string}
+
+let run_onchangepage_callbacks onchangepage_event handlers =
+  List.iter (fun f -> f onchangepage_event) handlers
+
 let (onload, _, flush_onload, push_onload) :
   ((unit -> unit) -> unit) *
   (unit -> (unit -> unit) list) *
@@ -62,9 +68,9 @@ let (onload, _, flush_onload, push_onload) :
   create_buffer ()
 
 let
-  (onchangepage : (unit -> unit) -> unit),
+  (onchangepage : (onchangepage_event -> unit) -> unit),
   _,
-  (flush_onchangepage : unit -> (unit -> unit) list),
+  (flush_onchangepage : unit -> (onchangepage_event -> unit) list),
   _
   = create_buffer ()
 

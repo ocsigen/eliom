@@ -496,11 +496,6 @@ let set_history_changepage_handler f = history_changepage_handler := Some f
 let set_animation_function f = animation_function := Some f
 let push_history_dom () = 
   let id = snd !current_state_id in
-  begin
-    match !history_changepage_handler with
-    | Some f -> f id ()
-    | None -> ()
-  end;
   let d = 
     if !only_replace_body 
     then Dom_html.document##.body 
@@ -508,6 +503,14 @@ let push_history_dom () =
   history_doms :=
     (id, d) ::
     (List.filter (fun (id', _) -> id <> id') !history_doms)
+
+let install_history_changepage_handler () =
+  onchangepage (fun ev ->
+    push_history_dom ();
+    match !history_changepage_handler with
+    | Some f  -> f (snd !current_state_id) ev
+    | None -> ()
+  )
 
 (* When the optional argument update is false, the state will not be updated.
    I add this argument because when a service has client side implementation, 
@@ -697,10 +700,16 @@ let set_content_local ?offset ?fragment new_page =
     [%lwt raise ( exn)]
 
 (* Function to be called for server side services: *)
-let set_content ~replace ?uri ?offset ?fragment content =
+let set_content ~replace ?uri ?offset ?fragment ?(back=false) content =
   Lwt_log.ign_debug ~section "Set content";
   (* TODO: too early? *)
-  run_callbacks (flush_onchangepage ());
+  let target_uri = 
+    match uri with
+    | None -> !current_uri 
+    | Some uri -> uri in
+  run_onchangepage_callbacks 
+    {back; current_uri = !current_uri; target_uri} 
+    (flush_onchangepage ());
   match content with
   | None -> Lwt.return_unit
   | Some content ->
@@ -971,7 +980,11 @@ let change_page (type m)
            in
            let l = ocamlify_params l in
            update_session_info l l';
-           run_callbacks (flush_onchangepage ());
+           run_onchangepage_callbacks 
+              {back = false;
+               current_uri = !current_uri;
+               target_uri = uri}
+              (flush_onchangepage ());
            update_state ();
            (* update the state before changing the page *)
            let%lwt () = f get_params post_params in
@@ -1157,11 +1170,10 @@ let _ =
 
 (* == Navigating through the history... *)
 
-(* Given a state_id, [replace_page_in_hisotry] returns a replace function. 
+(* Given a state_id, [replace_page_in_history] returns a replace function. 
    The current page will be replaced by the page associated to the state_id
    when the replace function is called *)
-let replace_page_in_history state_id state fragment =
-  let id = snd state_id in
+let replace_page_in_history id =
   let d = List.assq id !history_doms in
   let replace_fun () =
     if !only_replace_body 
@@ -1176,7 +1188,6 @@ let replace_page_in_history state_id state fragment =
       | Some f -> onchangepage (f id)
       | None -> ()
     end;
-    scroll_to_fragment ~offset:state.position fragment;
     Lwt.return_unit in
   replace_fun
 
@@ -1187,6 +1198,9 @@ let () =
 
     let goto_uri full_uri state_id =
       let state = get_state state_id in
+      let back = snd state_id < snd !current_state_id in
+      let ev = 
+        {back; current_uri = !current_uri; target_uri = full_uri} in
       let tmpl = (if state.template = Js.string ""
                   then None
                   else Some (Js.to_string state.template))
@@ -1200,17 +1214,19 @@ let () =
               Eliom_request_info.set_current_path uri;
               try
                 if fst state_id <> session_id then raise Not_found;
-                let replace_fun = 
-                  replace_page_in_history state_id state fragment in
-                let%lwt () = 
+                run_onchangepage_callbacks ev (flush_onchangepage ());
+                let replace_fun = replace_page_in_history (snd state_id) in
+                let%lwt () =
                   match !animation_function with
-                  | Some af -> af (snd state_id) replace_fun 
-                  | _ -> replace_fun () in
+                  | Some af -> af (snd state_id) ev replace_fun
+                  | None -> replace_fun () in
+                scroll_to_fragment ~offset:state.position fragment;
                 current_state_id := state_id;
                 Lwt.return_unit
               with Not_found ->
               try
                 let rf = List.assq (snd state_id) !reload_functions in
+                run_onchangepage_callbacks ev (flush_onchangepage ());
                 reload_function := Some rf;
                 rf () () >>
                 (scroll_to_fragment ~offset:state.position fragment;
@@ -1234,7 +1250,7 @@ let () =
                     Eliom_request.xml_result in
                 let%lwt () =
                   set_content
-                    ~replace:false ~offset:state.position ?fragment content in
+                    ~replace:false ~offset:state.position ?fragment ~back content in
                 current_state_id := state_id;
                 Lwt.return_unit
             end else

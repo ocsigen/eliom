@@ -224,12 +224,24 @@ val onload : (unit -> unit) -> unit
 (** Returns a Lwt thread that waits until the next page is loaded. *)
 val lwt_onload : unit -> unit Lwt.t
 
+
+(** [Onchangepage_event] is a record of some parameters related to
+    page changes. [back] is true if the page change is caused by a
+    navigation back in history. [current_uri] is the uri of the
+    current page and [target_uri] is the uri of the next page.
+    Although users can access the current uri through [Url] module
+    in [js_of_ocaml], we still provide [current_uri] because
+    [Url.Current.path_string] doesn't return the correct path when it
+    is called in a cordova application. *)
+type onchangepage_event =
+  {back:bool; current_uri:string; target_uri:string}
+
 (** Run some code *before* the next page change, that is, before each
     call to a page-producing service handler.
 
     Just like onpreload, handlers registered with onchangepage only
     apply to the next page change. *)
-val onchangepage : (unit -> unit) -> unit
+val onchangepage : (onchangepage_event -> unit) -> unit
 
 (** [onbeforeunload f] registers [f] as a handler to be called before
     changing the page the next time. If [f] returns [Some s], then we
@@ -315,22 +327,28 @@ val init : unit -> unit
 
 val set_reload_function : (unit -> unit -> unit Lwt.t) -> unit
 
-(** Stock the document/body of the current page, which will be used when going 
+(** Store the document/body of the current page, which will be used when going 
     back to this page in history. 
-    A typical use case of this function is stocking the dom when leaving 
+    A typical use case of this function is storing the dom when leaving 
     a page. i.e. [Eliom_client.onchangepage Eliom_client.push_history_dom ]
 *)
-val push_history_dom :  unit -> unit 
+val push_history_dom : unit -> unit
 
-(** Why we need this function ?
+(** Install an onchangepage handler for the current page. When leaving this page,
+    the function [push_history_dom] will be called. If history_changepage_handler
+    is not null, it will be called with the current state id as the first parameter. 
+*)
+val install_history_changepage_handler : unit -> unit
+
+(** Why do we need this function ?
     Suppose that we want to have a page transition on coming back from details 
     to list page, we need usually a parameter (e.g. a screenshot of the list 
     page) to realize the animation of page transition and the parameter is 
-    generally created just before we leave the list page in order to stock the
-    latest information (such as the scroll position). Normally, to do this, we 
-    register an onchangepage handler in the beginning of the handler of the service 
+    generally created just before we leave the list page in order to store the
+    latest information (such as the scroll position). Normally, in order to do this, 
+    we register an onchangepage handler in the beginning of the handler of the service 
     that generates the list page. However, when we reload the list page by replacing 
-    the current document/body with the one stocked in cache, the handler will be lost.
+    the current document/body with the one stored in cache, the handler will be lost.
     So we need a specific function to re-register the handler everytime the list
     page is reloaded from cache.    
 
@@ -339,25 +357,28 @@ val push_history_dom :  unit -> unit
 
     [set_history_changepage_handler f] registers an onchangepage handler for 
     the all pages reloaded from cache : [Eliom_client.onchangepage (f id)]. 
-    Here f should take a state_id as argument so that it can register a particular 
+    Here f should take a state id as argument so that it can register a particular 
     handler for the page associated with the state_id.
 
-    Notice that normally you need to call this function before pushing any page
-    into cache, in other words, before calling any [push_history_dom ()], so that
-    the function [push_history_dom] will execute the handler function before leaving
-    the page for the first time.
+    Notice that normally you need to call this function before installing the 
+    changepage handler for any specific page, in other words, before calling 
+    any [install_history_changepage_handler ()], so that the function 
+    [install_history_changepage_handler] will execute the handler function 
+    before leaving the page for the first time.
 *)
-val set_history_changepage_handler : (int -> unit -> unit) -> unit
+val set_history_changepage_handler : (int -> onchangepage_event -> unit) -> unit
 
 (** [set_animation_function f] sets the animation function which is used to
     realize the page transition on coming back in history. With the same
-    suppositions in the comment of [set_history_changepage_handler], 
-    [f id replace_fun] extracts fisrt the necessary parameter (e.g. a screenshot) 
-    from the hashtable with the given id. Then it uses the parameter to realize the
-    animation of page transition. Finally it calls the given function [replace_fun] 
-    to replace the document/body. 
+    suppositions in the comment of [set_history_changepage_handler],
+    [f id ev replace_fun] first extracts the necessary parameter (e.g. a screenshot)
+    from the hashtable with the given id. Then it uses [ev : onchangepage_event] to
+    decide if there should be an animation of page transition. If so, it uses
+    the parameter to realize the animation. Finally it calls the given function
+    [replace_fun] to replace the document/body.
 *)
-val set_animation_function : (int -> (unit -> unit Lwt.t) -> unit Lwt.t) -> unit
+val set_animation_function :
+  (int -> onchangepage_event -> (unit -> unit Lwt.t) -> unit Lwt.t) -> unit
 
 (** Lwt_log section for this module.
     Default level is [Lwt_log.Info].
