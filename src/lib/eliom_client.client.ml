@@ -1171,7 +1171,7 @@ let _ =
 (* == Navigating through the history... *)
 
 (* Given a state_id, [replace_page_in_history] returns a replace function. 
-   The current page will be replaced by the page associated to the state_id
+   The current page will be replaced by the page associated with the state_id
    when the replace function is called *)
 let replace_page_in_history id =
   let d = List.assq id !history_doms in
@@ -1181,7 +1181,6 @@ let replace_page_in_history id =
       Dom_html.document##.documentElement d  Dom_html.document##.body
     else Dom.replaceChild
       Dom_html.document d Dom_html.document##.documentElement ;
-    let%lwt () = Lwt_js_events.request_animation_frame() in
     (*If history_changepage_handler exists, register the handler
       for the next changepage.*)
     begin match !history_changepage_handler with
@@ -1220,7 +1219,18 @@ let () =
                   match !animation_function with
                   | Some af -> af (snd state_id) ev replace_fun
                   | None -> replace_fun () in
+                let%lwt () = Lwt_js_events.request_animation_frame() in
                 scroll_to_fragment ~offset:state.position fragment;
+                (* Wait for the dom to be repainted before scrolling *)
+                let%lwt () = Lwt_js_events.request_animation_frame() in
+                scroll_to_fragment ~offset:state.position fragment;
+                (* When we use iPhone, we need to wait for one more
+                   [request_animation_frame] before scrolling.The
+                   function [scroll_to_fragment] is called twice. In 
+                   other words, we want to call [scroll_to_fragment] 
+                   as early as possible so that the scroll position 
+                   will not jump after the second [request_animation_frame] 
+                   if the dom has already be painted after the first one. *)
                 current_state_id := state_id;
                 Lwt.return_unit
               with Not_found ->
