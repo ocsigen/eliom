@@ -225,14 +225,14 @@ val onload : (unit -> unit) -> unit
 val lwt_onload : unit -> unit Lwt.t
 
 
-(** [Onchangepage_event] is a record of some parameters related to
+(** [changepage_event] is a record of some parameters related to
     page changes. [in_cache] is true if the dom of the page is cached.
     [current_uri] is the uri of the current page and [target_uri] 
     is the uri of the next page. [current_id] is the state_id of
     the current page and [target_id] is the state_id of the next page.
     [target_id] is not [None] if and only if the onchangepage event
     takes place during a navigation in history. *)
-type onchangepage_event = 
+type changepage_event = 
   {in_cache:bool; 
    current_uri:string; 
    target_uri:string; 
@@ -244,7 +244,7 @@ type onchangepage_event =
 
     Just like onpreload, handlers registered with onchangepage only
     apply to the next page change. *)
-val onchangepage : (onchangepage_event -> unit Lwt.t) -> unit
+val onchangepage : (changepage_event -> unit Lwt.t) -> unit
 
 (** [onbeforeunload f] registers [f] as a handler to be called before
     changing the page the next time. If [f] returns [Some s], then we

@@ -53,7 +53,7 @@ let create_buffer () =
 
 let run_callbacks handlers = List.iter (fun f -> f ()) handlers
 
-type onchangepage_event = 
+type changepage_event = 
   {in_cache:bool; 
    current_uri:string; 
    target_uri:string; 
@@ -61,12 +61,7 @@ type onchangepage_event =
    target_id:int option}
 
 let run_onchangepage_callbacks ev handlers =
-  let rec aux = function
-  | [] -> Lwt.return_unit
-  | h :: s ->
-    let%lwt () = h ev
-    in aux s
-  in aux handlers
+  Lwt_list.iter_s (fun h -> h ev) handlers
 
 let (onload, _, flush_onload, push_onload) :
   ((unit -> unit) -> unit) *
@@ -77,9 +72,9 @@ let (onload, _, flush_onload, push_onload) :
   create_buffer ()
 
 let
-  (onchangepage : (onchangepage_event -> unit Lwt.t) -> unit),
+  (onchangepage : (changepage_event -> unit Lwt.t) -> unit),
   _,
-  (flush_onchangepage : unit -> (onchangepage_event -> unit Lwt.t) list),
+  (flush_onchangepage : unit -> (changepage_event -> unit Lwt.t) list),
   _
   = create_buffer ()
 
