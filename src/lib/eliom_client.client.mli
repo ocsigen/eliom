@@ -224,12 +224,27 @@ val onload : (unit -> unit) -> unit
 (** Returns a Lwt thread that waits until the next page is loaded. *)
 val lwt_onload : unit -> unit Lwt.t
 
+
+(** [changepage_event] is a record of some parameters related to
+    page changes. [in_cache] is true if the dom of the page is cached.
+    [current_uri] is the uri of the current page and [target_uri] 
+    is the uri of the next page. [current_id] is the state_id of
+    the current page and [target_id] is the state_id of the next page.
+    [target_id] is not [None] if and only if the onchangepage event
+    takes place during a navigation in history. *)
+type changepage_event = 
+  {in_cache:bool; 
+   current_uri:string; 
+   target_uri:string; 
+   current_id:int; 
+   target_id:int option}
+
 (** Run some code *before* the next page change, that is, before each
     call to a page-producing service handler.
 
     Just like onpreload, handlers registered with onchangepage only
     apply to the next page change. *)
-val onchangepage : (unit -> unit) -> unit
+val onchangepage : (changepage_event -> unit Lwt.t) -> unit
 
 (** [onbeforeunload f] registers [f] as a handler to be called before
     changing the page the next time. If [f] returns [Some s], then we
@@ -314,6 +329,19 @@ val change_page_unknown :
 val init : unit -> unit
 
 val set_reload_function : (unit -> unit -> unit Lwt.t) -> unit
+
+(** [push_history_dom] stores the document/body of the current page so 
+    that the next time when we go back in history, the dom will be read
+    from cache to display exactly the same page. In other words, the 
+    page will not be charged again. 
+
+    A typical use case of this function is storing the dom when loading
+    a page. i.e. 
+    {% <<code language="ocaml"|
+    [Eliom_client.onload Eliom_client.push_history_dom]
+    >> %}
+*)
+val push_history_dom : unit -> unit
 
 (** Lwt_log section for this module.
     Default level is [Lwt_log.Info].

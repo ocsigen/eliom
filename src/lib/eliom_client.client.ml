@@ -472,6 +472,22 @@ let reload_functions = ref []
 
 let set_reload_function f = reload_function := Some f
 
+let history_doms = ref []
+
+let push_history_dom () = 
+  let id = snd !current_state_id in
+  let d = 
+    if !only_replace_body 
+    then Dom_html.document##.body 
+    else Dom_html.document##.documentElement in
+  history_doms :=
+    (id, d) ::
+    (List.filter (fun (id', _) -> id <> id') !history_doms)
+
+let is_in_cache state_id = 
+  fst state_id = session_id &&
+  List.mem_assoc (snd state_id) !history_doms
+
 let change_url_string ~replace uri =
   current_uri := fst (Url.split_fragment uri);
   Eliom_request_info.set_current_path !current_uri;
@@ -497,6 +513,9 @@ let change_url_string ~replace uri =
     else begin
       update_state();
       let state_id = next_state_id () in
+      history_doms := 
+        List.filter (fun (id, _) -> id <= snd !current_state_id)
+          !history_doms;
       reload_functions :=
         List.filter (fun (id, _) -> id <= snd !current_state_id)
           !reload_functions;
@@ -651,10 +670,22 @@ let set_content_local ?offset ?fragment new_page =
     [%lwt raise ( exn)]
 
 (* Function to be called for server side services: *)
-let set_content ~replace ?uri ?offset ?fragment content =
+let set_content ~replace ?uri ?offset ?fragment ?state_id content =
   Lwt_log.ign_debug ~section "Set content";
   (* TODO: too early? *)
-  run_callbacks (flush_onchangepage ());
+  let target_uri = 
+    match uri with
+    | None -> !current_uri 
+    | Some uri -> uri in
+  let%lwt () =
+    run_onchangepage_callbacks 
+      { in_cache = is_in_cache !current_state_id;
+        current_uri = !current_uri;
+        target_uri;
+        current_id = (snd !current_state_id);
+        target_id = None}
+      (flush_onchangepage ())
+  in
   match content with
   | None -> Lwt.return_unit
   | Some content ->
@@ -662,6 +693,12 @@ let set_content ~replace ?uri ?offset ?fragment content =
     let really_set () =
       reload_function := None;
       Eliom_lib.Option.iter (set_uri ~replace ?fragment) uri;
+      (* update current_state_id after calling onchangepage handlers
+         of the current page and before calling onload handlers of the
+         next page. state_id is not [None] when [set_content] is 
+         called from [goto_uri]. *)
+      Eliom_lib.Option.iter 
+        (fun state_id -> current_state_id := state_id) state_id;
       (* Convert the DOM nodes from XML elements to HTML elements. *)
       let fake_page =
         Eliommod_dom.html_document content registered_process_node
@@ -794,6 +831,7 @@ let redirect_active () =
   | Some (`Redirect _) -> true
   | _ -> false
 
+
 let change_url_string_protected ~replace url =
   if not (redirect_active ()) then
     change_url_string ~replace url
@@ -922,9 +960,17 @@ let change_page (type m)
            in
            let l = ocamlify_params l in
            update_session_info l l';
-           run_callbacks (flush_onchangepage ());
-           let%lwt () = f get_params post_params in
+           let%lwt () = 
+             run_onchangepage_callbacks 
+               {in_cache = is_in_cache !current_state_id;
+                current_uri = !current_uri;
+                target_uri = uri;
+                current_id = snd !current_state_id;
+                target_id = None}
+               (flush_onchangepage ())
+           in
            change_url_string_protected ~replace uri;
+           let%lwt () = f get_params post_params in
            do_follow_up uri
          | None when is_client_app () ->
            Lwt.return @@ exit_to
@@ -1106,14 +1152,32 @@ let _ =
 
 (* == Navigating through the history... *)
 
+(* Given a state_id, [replace_page_in_history] returns a replace function. 
+   The current page will be replaced by the page associated with the state_id
+   when the replace function is called *)
+let replace_page_from_cache id =
+  let d = List.assq id !history_doms in
+  if !only_replace_body 
+  then Dom.replaceChild
+    Dom_html.document##.documentElement d  Dom_html.document##.body
+  else Dom.replaceChild
+    Dom_html.document d Dom_html.document##.documentElement 
+
 let () =
 
   if Eliom_process.history_api
   then
 
     let goto_uri full_uri state_id =
-      current_state_id := state_id;
       let state = get_state state_id in
+      let current_id = snd !current_state_id in
+      let target_id = snd state_id in
+      let ev = 
+        {in_cache = is_in_cache !current_state_id; 
+         current_uri = !current_uri; 
+         target_uri = full_uri;
+         current_id;
+         target_id = Some target_id } in
       let tmpl = (if state.template = Js.string ""
                   then None
                   else Some (Js.to_string state.template))
@@ -1126,9 +1190,32 @@ let () =
               current_uri := uri;
               Eliom_request_info.set_current_path uri;
               try
+                if not (is_in_cache state_id) then raise Not_found;
+                let%lwt () = 
+                  run_onchangepage_callbacks ev (flush_onchangepage ()) in
+                current_state_id := state_id;
+                replace_page_from_cache target_id;
+                let%lwt () = Lwt_js_events.request_animation_frame () in
+                scroll_to_fragment ~offset:state.position fragment;
+                (* Wait for the dom to be repainted before scrolling *)
+                let%lwt () = Lwt_js_events.request_animation_frame () in
+                scroll_to_fragment ~offset:state.position fragment;
+                (* When we use iPhone, we need to wait for one more
+                   [request_animation_frame] before scrolling.The
+                   function [scroll_to_fragment] is called twice. In 
+                   other words, we want to call [scroll_to_fragment] 
+                   as early as possible so that the scroll position 
+                   will not jump after the second [request_animation_frame] 
+                   if the dom has already be painted after the first one. *)
+                Lwt.return_unit
+              with Not_found ->
+              try
                 if fst state_id <> session_id then raise Not_found;
                 let rf = List.assq (snd state_id) !reload_functions in
                 reload_function := Some rf;
+                let%lwt () = 
+                  run_onchangepage_callbacks ev (flush_onchangepage ()) in
+                current_state_id := state_id;
                 rf () () >>
                 (scroll_to_fragment ~offset:state.position fragment;
                  Lwt.return_unit)
@@ -1140,6 +1227,7 @@ let () =
                     uri [(Eliom_request.nl_template_string, t)]
                     Eliom_request.string_result
                 in
+                current_state_id := state_id;
                 set_template_content ~replace:false content >>
                 (scroll_to_fragment ~offset:state.position fragment;
                  Lwt.return_unit)
@@ -1147,10 +1235,15 @@ let () =
                 let%lwt uri, content =
                   Eliom_request.http_get ~expecting_process_page:true uri []
                     Eliom_request.xml_result in
-                set_content
-                  ~replace:false ~offset:state.position ?fragment content
+                let%lwt () =
+                  set_content
+                    ~replace:false 
+                    ~offset:state.position 
+                    ?fragment ~state_id content in
+                Lwt.return_unit
             end else
-              (scroll_to_fragment ~offset:state.position fragment;
+              (current_state_id := state_id;
+               scroll_to_fragment ~offset:state.position fragment;
                Lwt.return_unit)))
     in
 
