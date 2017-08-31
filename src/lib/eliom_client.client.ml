@@ -1212,6 +1212,7 @@ let () =
               try
                 if fst state_id <> session_id then raise Not_found;
                 let rf = List.assq (snd state_id) !reload_functions in
+                current_state_id := state_id;
                 reload_function := Some rf;
                 let%lwt () = 
                   run_onchangepage_callbacks ev (flush_onchangepage ()) in
