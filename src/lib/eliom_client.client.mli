@@ -330,15 +330,33 @@ val init : unit -> unit
 
 val set_reload_function : (unit -> unit -> unit Lwt.t) -> unit
 
-(** [push_history_dom] stores the document/body of the current page so 
+(** [push_history_dom] stores the document/body of the current page so
     that the next time when we go back in history, the dom will be read
-    from cache to display exactly the same page. In other words, the 
-    page will not be charged again. 
+    from cache to display exactly the same page. In other words, the
+    page will not be reloaded or refreshed.
 
     A typical use case of this function is storing the dom when loading
-    a page. i.e. 
+    a page. And you need to put the code at the beginning of the service
+    handler that generates the page you want to cache.
+     
     {% <<code language="ocaml"|
-    [Eliom_client.onload Eliom_client.push_history_dom]
+    let%shared service_handler =
+        fun () () ->
+            ignore [%client (Eliom_client.onload Eliom_client.push_history_dom : unit)];
+            Lwt.return
+                [div [h1 [pcdata "Hello"];
+                      p [pcdata "Blablablabla"] ]
+
+    (* In case you want to cache all pages, you can register a global
+       onload handler. *)
+    let%client () =
+        let rec register () =
+            Eliom_client.onload (
+                fun () ->
+                    Eliom_client.push_history_dom ();
+                    register ())
+        in
+        register ()
     >> %}
 *)
 val push_history_dom : unit -> unit
