@@ -331,9 +331,12 @@ val init : unit -> unit
 val set_reload_function : (unit -> unit -> unit Lwt.t) -> unit
 
 (** [push_history_dom] stores the document/body of the current page so 
-    that the next time when we go back in history, the dom will be read
-    from cache to display exactly the same page. In other words, the 
-    page will not be charged again. 
+    that the next time when we encounter the page while navigating through the
+    history, the DOM will be recovered from the cache instead of recharging or
+    regenerating the page. Also the original scroll position is restored.
+
+    You can define a limit on the number of stored DOMs using
+    [set_max_count_history_doms].
 
     A typical use case of this function is storing the dom when loading
     a page. i.e. 
@@ -342,6 +345,10 @@ val set_reload_function : (unit -> unit -> unit Lwt.t) -> unit
     >> %}
 *)
 val push_history_dom : unit -> unit
+
+(* [set_max_count_history_doms (Some n)] limits the number of cached DOMs by
+   [push_history_dom] to [n]. Keeps the [n] most recent DOMs. *)
+val set_max_count_history_doms : int option -> unit
 
 (** Lwt_log section for this module.
     Default level is [Lwt_log.Info].

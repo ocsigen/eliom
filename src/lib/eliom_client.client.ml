@@ -26,6 +26,7 @@ include Eliom_client_core
    client-server syntax in Eliom itself. *)
 
 open Eliom_lib
+module Opt = Eliom_lib.Option
 
 type ('a, +'b) server_function = 'a -> 'b Lwt.t
 
@@ -473,6 +474,17 @@ let reload_functions = ref []
 let set_reload_function f = reload_function := Some f
 
 let history_doms = ref []
+let max_count_history_doms = ref None
+
+let rec take n l = if n <= 0
+  then []
+  else match l with
+    | [] -> []
+    | x::xs -> x :: take (n-1) xs
+
+let set_max_count_history_doms limit =
+  max_count_history_doms := limit;
+  Opt.iter (fun n -> history_doms := take n !history_doms) limit
 
 let push_history_dom () = 
   let id = snd !current_state_id in
@@ -480,9 +492,8 @@ let push_history_dom () =
     if !only_replace_body 
     then Dom_html.document##.body 
     else Dom_html.document##.documentElement in
-  history_doms :=
-    (id, d) ::
-    (List.filter (fun (id', _) -> id <> id') !history_doms)
+  let doms = (id, d) :: List.filter (fun (id', _) -> id <> id') !history_doms in
+  Opt.iter (fun n -> history_doms := take n doms) !max_count_history_doms
 
 let is_in_cache state_id = 
   fst state_id = session_id &&
