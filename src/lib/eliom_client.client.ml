@@ -810,19 +810,31 @@ let update_session_info all_get_params all_post_params =
 
 let make_uri subpath params =
   let base =
-    match subpath with
-    | _ :: _ ->
-      String.concat "/" subpath
-    | [] ->
-      "/"
+    if is_client_app () then
+      match subpath with
+      | _ :: _ ->
+        String.concat "/" subpath
+      | [] ->
+        "/"
+    else
+      let path =
+        match subpath with
+        | _ :: _ ->
+          String.concat "/" subpath
+        | [] ->
+          ""
+      and port =
+        match Url.Current.port with
+        | Some port ->
+          Printf.sprintf ":%d" port
+        | None ->
+          ""
+      in
+      Printf.sprintf "%s//%s%s/%s"
+        Url.Current.protocol Url.Current.host
+        port path
   and params = List.map (fun (s, s') -> s, `String (Js.string s')) params in
-  match
-    Eliom_uri.make_string_uri_from_components (base, params, None)
-  with
-  | "" ->
-    "/"
-  | s ->
-    s
+  Eliom_uri.make_string_uri_from_components (base, params, None)
 
 let follow_up = ref None
 
