@@ -33,10 +33,11 @@ as in these examples:
            a raw_serv
              [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
            a
-             (Eliom_service.Http.extern
+             (Eliom_service.extern
                 ~prefix:"http://fr.wikipedia.org"
                 ~path:["wiki";""]
-                ~meth:(Eliom_service.Get (suffix (all_suffix "suff")))
+                ~meth:(Eliom_service.Get
+                         Eliom_parameter.(suffix (all_suffix "suff")))
                 ())
              [pcdata "OCaml on wikipedia"]
              ["OCaml"]; br ();
