@@ -26,7 +26,7 @@ It simplifies the development of complex applications by:
    Web developers. This allows programming complex behaviour in very
    few lines of code.
  * making it possible to write a client-server application as a single
-   program.
+   program, using a multi-tier extension of OCaml.
  * helping the programmer to write safe and bug-free applications. To
    improve security, it takes charge of many security issues itself.
    To reduce the number of bugs, it uses the very powerful type system
