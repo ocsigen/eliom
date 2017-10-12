@@ -227,21 +227,20 @@ val lwt_onload : unit -> unit Lwt.t
 
 (** [changepage_event] is a record of some parameters related to
     page changes. [in_cache] is true if the dom of the page is cached.
-    [current_uri] is the uri of the current page and [target_uri] 
-    is the uri of the next page. [current_id] is the state_id of
+    [origin_uri] is the uri of the current page and [target_uri]
+    is the uri of the next page. [origin_id] is the state_id of
     the current page and [target_id] is the state_id of the next page.
     [target_id] is not [None] if and only if the onchangepage event
     takes place during a navigation in history. *)
-type changepage_event = 
-  {in_cache:bool; 
-   current_uri:string; 
-   target_uri:string; 
-   current_id:int; 
+type changepage_event =
+  {in_cache:bool;
+   origin_uri:string;
+   target_uri:string;
+   origin_id:int;
    target_id:int option}
 
 (** Run some code *before* the next page change, that is, before each
     call to a page-producing service handler.
-
     Just like onpreload, handlers registered with onchangepage only
     apply to the next page change. *)
 val onchangepage : (changepage_event -> unit Lwt.t) -> unit
