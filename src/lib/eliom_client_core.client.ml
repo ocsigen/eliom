@@ -75,6 +75,10 @@ let (onchangepage : (changepage_event -> unit Lwt.t) -> unit), _,
     (flush_onchangepage : unit -> (changepage_event -> unit Lwt.t) list), _
   = create_buffer ()
 
+let (on_restore_history_dom : (unit -> unit) -> unit), _,
+    (flush_onarrive : unit -> (unit -> unit) list), _
+  = create_buffer ()
+
 let onunload, _, flush_onunload, _ = create_buffer ()
 
 let onbeforeunload, run_onbeforeunload, flush_onbeforeunload =

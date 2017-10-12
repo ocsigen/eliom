@@ -473,7 +473,11 @@ let reload_functions = ref []
 
 let set_reload_function f = reload_function := Some f
 
-let history_doms = ref []
+type history_dom = {
+  dom : Dom_html.bodyElement Js.t;
+  onarrive_handlers : (unit -> unit) list
+}
+let history_doms : (int * history_dom) list ref = ref []
 let max_count_history_doms = ref None
 
 let rec take n l = if n <= 0
@@ -488,12 +492,18 @@ let set_max_count_history_doms limit =
 
 let push_history_dom () =
   let id = snd !current_state_id in
-  let d =
+  let dom =
     if !only_replace_body
     then Dom_html.document##.body
     else Dom_html.document##.documentElement in
-  let doms = (id, d) :: List.filter (fun (id', _) -> id <> id') !history_doms in
+  let doms =
+    (id, {dom; onarrive_handlers = flush_onarrive ()})
+    :: List.filter (fun (id', _) -> id <> id') !history_doms in
   Opt.iter (fun n -> history_doms := take n doms) !max_count_history_doms
+
+let onarrive ?(now = true) action =
+  if now then action ();
+  on_restore_history_dom action
 
 let is_in_cache state_id =
   fst state_id = session_id &&
@@ -1179,12 +1189,14 @@ let _ =
    The current page will be replaced by the page associated with the state_id
    when the replace function is called *)
 let restore_history_dom id =
-  let d = List.assq id !history_doms in
-  if !only_replace_body
-  then Dom.replaceChild
-    Dom_html.document##.documentElement d Dom_html.document##.body
-  else Dom.replaceChild
-    Dom_html.document d Dom_html.document##.documentElement
+  let {dom; onarrive_handlers} = List.assq id !history_doms in
+  begin if !only_replace_body
+    then Dom.replaceChild
+      Dom_html.document##.documentElement dom Dom_html.document##.body
+    else Dom.replaceChild
+      Dom_html.document dom Dom_html.document##.documentElement
+  end;
+  List.iter (fun f -> f ()) onarrive_handlers
 
 let () =
 

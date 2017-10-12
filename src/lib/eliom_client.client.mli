@@ -245,6 +245,26 @@ type changepage_event =
     apply to the next page change. *)
 val onchangepage : (changepage_event -> unit Lwt.t) -> unit
 
+(** Install a handler to be executed when arriving at the current page.
+    More specifically, this is function is to be used to execute some code when
+    a page has been served from the DOM cache upon navigating to a page in the
+    browser history. If [now] is [true] (default) the code is also executed
+    right away. The handler needs to be installed for each page individually.
+
+    Typical use cases for this function are processes that need to run
+    continually while a page is being viewed. Such processes (including event
+    listeners of [Dom_html.window]) are killed on a page change and not
+    automatically restored with the DOM (contrary to event listeners attached to
+    DOM elements).
+
+    Be careful to call this function at the right point in time. For instance
+    when called asynchronously it could easily be executed BEFORE the actual
+    page change! So it would be registered with the previously viewed page.
+*)
+(* TODO: inform this function on which page change it belongs to, so
+   asynchronous calls are possible. *)
+val onarrive : ?now:bool -> (unit -> unit) -> unit
+
 (** [onbeforeunload f] registers [f] as a handler to be called before
     changing the page the next time. If [f] returns [Some s], then we
     ask the user to confirm quitting. We try to use [s] in the
