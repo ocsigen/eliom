@@ -686,15 +686,21 @@ let random_int =
         0
   else
      fun () -> truncate (4294967296. *. (Js.math)##random)
+
+type state_id = {
+  session_id : int;
+  state_index : int; (* point in history *)
+}
+
 let session_id = random_int ()
 let next_state_id =
-  let last = ref 0 in fun () -> incr last; (session_id, !last)
+  let last = ref 0 in fun () -> incr last; {session_id; state_index = !last}
 let current_state_id = ref (next_state_id ())
 
-let state_key (session_id, i) =
-  Js.string (Printf.sprintf "state_history_%x_%x" session_id i)
+let state_key {session_id; state_index} =
+  Js.string (Printf.sprintf "state_history_%x_%x" session_id state_index)
 
-let get_state i : state =
+let get_state ({session_id; state_index} as state_id) : state =
   Js.Opt.case
     (Js.Optdef.case ( Dom_html.window##.sessionStorage )
        (fun () ->
@@ -702,8 +708,9 @@ let get_state i : state =
              available. Sessionstorage seems to be available
              everywhere the history API exists. *)
           Lwt_log.raise_error_f ~section "sessionStorage not available")
-       (fun s -> s##(getItem (state_key i))))
-    (fun () -> Lwt_log.raise_error_f ~section "State id not found %x/%x in sessionStorage" (fst i) (snd i))
+       (fun s -> s##(getItem (state_key state_id))))
+    (fun () -> Lwt_log.raise_error_f ~section "State id not found %x/%x in
+sessionStorage" session_id state_index)
     (fun s -> Json.unsafe_input s)
 let set_state i (v:state) =
   Js.Optdef.case ( Dom_html.window##.sessionStorage )
