@@ -75,10 +75,6 @@ let (onchangepage : (changepage_event -> unit Lwt.t) -> unit), _,
     (flush_onchangepage : unit -> (changepage_event -> unit Lwt.t) list), _
   = create_buffer ()
 
-let (on_restore_history_dom : (unit -> unit) -> unit), _,
-    (flush_onarrive : unit -> (unit -> unit) list), _
-  = create_buffer ()
-
 let onunload, _, flush_onunload, _ = create_buffer ()
 
 let onbeforeunload, run_onbeforeunload, flush_onbeforeunload =
@@ -95,14 +91,14 @@ let onbeforeunload, run_onbeforeunload, flush_onbeforeunload =
   in
   add, (fun () -> run (get ())), flush
 
-let run_onunload_wrapper f g =
+let run_onunload_wrapper set_content cancel =
   match run_onbeforeunload () with
   | Some s when not (confirm "%s" s) ->
-      g ()
+      cancel ()
   | _ ->
       ignore (flush_onbeforeunload ());
       run_callbacks (flush_onunload ());
-      f ()
+      set_content ()
 
 let lwt_onload () =
   let t, u = Lwt.wait () in
@@ -692,10 +688,49 @@ type state_id = {
   state_index : int; (* point in history *)
 }
 
+module Page_status_t = struct
+  type t = Generating | Active | Cached | Dead
+end
+
+type page = {
+  page_id : state_id;
+  page_status : Page_status_t.t React.S.t;
+  page_is_cached : bool ref;
+  set_page_status : ?step:React.step -> Page_status_t.t -> unit
+}
+
+let retire_page p =
+  p.set_page_status @@ if !(p.page_is_cached) then Cached else Dead
+
 let session_id = random_int ()
 let next_state_id =
   let last = ref 0 in fun () -> incr last; {session_id; state_index = !last}
-let current_state_id = ref (next_state_id ())
+
+let mk_page ?(state_id = next_state_id ()) ~status () =
+  let page_status, set_page_status = React.S.create status in
+  {page_id = state_id;
+   page_status;
+   page_is_cached = ref false;
+   set_page_status}
+
+let active_page = ref @@ mk_page ~status:Active ()
+let next_page = ref @@ mk_page ~status:Generating ()
+
+let set_active_page p = active_page := p
+
+let advance_page () =
+  retire_page !active_page;
+  set_active_page !next_page;
+  !active_page.set_page_status Active;
+  next_page := mk_page ~status:Generating ()
+
+(* This key serves as a hook to access the page the currently running code is
+   generating. *)
+let this_page : page Lwt.key = Lwt.new_key ()
+
+let get_this_page () = match Lwt.get this_page with
+  | Some p -> p
+  | None -> !active_page
 
 let state_key {session_id; state_index} =
   Js.string (Printf.sprintf "state_history_%x_%x" session_id state_index)
@@ -709,15 +744,16 @@ let get_state ({session_id; state_index} as state_id) : state =
              everywhere the history API exists. *)
           Lwt_log.raise_error_f ~section "sessionStorage not available")
        (fun s -> s##(getItem (state_key state_id))))
-    (fun () -> Lwt_log.raise_error_f ~section "State id not found %x/%x in
-sessionStorage" session_id state_index)
+    (fun () -> Lwt_log.raise_error_f ~section
+                 "State id not found %x/%x in sessionStorage"
+                 session_id state_index)
     (fun s -> Json.unsafe_input s)
 let set_state i (v:state) =
   Js.Optdef.case ( Dom_html.window##.sessionStorage )
     (fun () -> () )
     (fun s -> s##(setItem (state_key i) (Json.output v)))
 let update_state () =
-  set_state !current_state_id
+  set_state !active_page.page_id
     { template =
         (match Eliom_request_info.get_request_template () with
          | Some tmpl -> Js.bytestring tmpl

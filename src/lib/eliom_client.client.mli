@@ -224,7 +224,6 @@ val onload : (unit -> unit) -> unit
 (** Returns a Lwt thread that waits until the next page is loaded. *)
 val lwt_onload : unit -> unit Lwt.t
 
-
 (** [changepage_event] is a record of some parameters related to
     page changes. [in_cache] is true if the dom of the page is cached.
     [origin_uri] is the uri of the current page and [target_uri]
@@ -245,25 +244,44 @@ type changepage_event =
     apply to the next page change. *)
 val onchangepage : (changepage_event -> unit Lwt.t) -> unit
 
-(** Install a handler to be executed when arriving at the current page.
-    More specifically, this is function is to be used to execute some code when
-    a page has been served from the DOM cache upon navigating to a page in the
-    browser history. If [now] is [true] (default) the code is also executed
-    right away. The handler needs to be installed for each page individually.
+module Page_status : sig
+  (** a page can be in one of the following states:
+      - [Generating]: page is currently being generated and not yet instated as
+                      the active page
+      - [Active]: page is currently being displayed
+      - [Cached]: page is in the browser history with its DOM stashed in the cache
+      - [Dead]: page is in the browser history without its DOM being cached *)
+  type t = Generating | Active | Cached | Dead
 
-    Typical use cases for this function are processes that need to run
-    continually while a page is being viewed. Such processes (including event
-    listeners of [Dom_html.window]) are killed on a page change and not
-    automatically restored with the DOM (contrary to event listeners attached to
-    DOM elements).
+  (** retrieves a react signal for the status of the current page; note that the
+      `current page' is not necessarily the page currently being displayed, but
+      rather the page in whose context the current code is executed. *)
+  val signal : unit -> t React.S.t
 
-    Be careful to call this function at the right point in time. For instance
-    when called asynchronously it could easily be executed BEFORE the actual
-    page change! So it would be registered with the previously viewed page.
-*)
-(* TODO: inform this function on which page change it belongs to, so
-   asynchronous calls are possible. *)
-val onarrive : ?now:bool -> (unit -> unit) -> unit
+  (** convenience functions for retrieving a react event for the current page
+      that is triggered whenever it reaches the respective status *)
+  module Events : sig
+    val active : unit -> unit React.E.t
+    val cached : unit -> unit React.E.t
+    val dead : unit -> unit React.E.t
+  end
+
+  (** convenience function that attaches a handler to [Events.active].
+      Behaves exactly like [fun f -> React.E.map f Events.active]. If [now] is
+      [true] (default) and the page is currenly active the function is also
+      invoked right away. This is useful to ensure that the function is invoked
+      also on server-generated pages which are active right from the start and
+      thus have no transition to the active state.
+
+      Typical use cases for this function are processes that need to run
+      continually while a page is being viewed. Such processes (including event
+      listeners of [Dom_html.window]) are killed on a page change and not
+      automatically restored with the DOM (contrary to event listeners attached
+      to DOM elements). *)
+  val onactive : ?now:bool -> (unit -> unit) -> unit
+  val oncached : (unit -> unit) -> unit
+  val ondead : (unit -> unit) -> unit
+end
 
 (** [onbeforeunload f] registers [f] as a handler to be called before
     changing the page the next time. If [f] returns [Some s], then we
