@@ -164,7 +164,18 @@ let init () =
     | _ -> ()
   end;
 
-  let js_data = Eliom_request_info.get_request_data () in
+  let js_data = lazy (Eliom_request_info.get_request_data ()) in
+  Js.Optdef.case
+    (Js.Unsafe.global##.___eliom_global_data_)
+    (fun () ->
+       (* Global data are in [js_data], so we unmarshal it right away. *)
+       ignore (Lazy.force js_data))
+    (fun global_data ->
+       (* Global data are in a separate file. We should not unmarshal
+          [js_data] right away but only once the client program has
+          been initialized. *)
+       ignore (Eliom_unwrap.unwrap_js global_data);
+       Js.Unsafe.delete (Js.Unsafe.global) "__eliom_global_data");
 
   (* <base> *)
   (* The first time we load the page, we record the initial URL in a client
@@ -185,6 +196,7 @@ let init () =
   let onload_handler = ref None in
 
   let onload ev =
+    let js_data = Lazy.force js_data in
     Lwt_log.ign_debug ~section "onload (client main)";
     begin match !onload_handler with
       Some h -> Dom.removeEventListener h; onload_handler := None

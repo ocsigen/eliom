@@ -42,6 +42,7 @@ let default_max_service_tab_sessions_per_group = ref 50
 let default_max_volatile_data_tab_sessions_per_group = ref 50
 let default_secure_cookies = ref false
 let default_application_script = ref (false, false)
+let default_cache_global_data = ref None
 
 (* Subnet defaults be large enough, because it must work behind a reverse proxy.
 
@@ -163,6 +164,7 @@ Some !default_max_persistent_data_tab_sessions_per_group, false;
            ipv4mask = None, false;
            ipv6mask = None, false;
            application_script = !default_application_script;
+           cache_global_data = !default_cache_global_data;
           }
         in
         Ocsigen_cache.Dlist.set_finaliser_after
@@ -240,7 +242,8 @@ let parse_eliom_option
      set_secure_cookies,
      set_ipv4mask,
      set_ipv6mask,
-     set_application_script
+     set_application_script,
+     set_global_data_caching
     )
     =
   let parse_timeout_attrs tn attrs =
@@ -315,7 +318,24 @@ let parse_eliom_option
     in
     aux false false attrs
   in
- function
+  let parse_global_data_caching_attrs attrs =
+    let rec aux path max_age attrs =
+      match attrs with
+      | [] -> Some (path, max_age)
+      | ("path", p) :: rem ->
+        aux (Eliom_lib.Url.split_path p) max_age rem
+      | ("cache", v) :: rem ->
+        aux path (convert_attr "cache" int_of_string v) rem
+      | (tag, _) :: _ ->
+        raise
+          (Error_in_config_file
+             (Printf.sprintf
+                "Eliom: attribute %s not allowed in element cacheglobaldata"
+                tag))
+    in
+    aux [] 0 attrs
+  in
+  function
   | (Element ("volatiletimeout", attrs, [])) ->
       let t, snoo, ct = parse_timeout_attrs "volatiletimeout" attrs in
       set_volatile_timeout ct snoo (t : float option)
@@ -465,6 +485,9 @@ let parse_eliom_option
   | (Element ("applicationscript", attrs, [])) ->
       set_application_script (parse_application_script_attrs attrs)
 
+  | (Element ("cacheglobaldata", attrs, [])) ->
+      set_global_data_caching (parse_global_data_caching_attrs attrs)
+
   | (Element (s, _, _)) ->
       raise (Error_in_config_file
                ("Unexpected content <"^s^"> inside eliom config"))
@@ -554,7 +577,8 @@ let rec parse_global_config = function
          (fun v -> default_secure_cookies := v),
          (fun v -> Eliom_common.ipv4mask := v),
          (fun v -> Eliom_common.ipv6mask := v),
-         (fun v -> default_application_script := v)
+         (fun v -> default_application_script := v),
+         (fun v -> default_cache_global_data := v)
         )
         e;
       parse_global_config ll
@@ -877,7 +901,8 @@ let parse_config hostpattern conf_info site_dir =
              (fun v -> sitedata.Eliom_common.secure_cookies <- v),
              (fun v -> sitedata.Eliom_common.ipv4mask <- Some v, true),
              (fun v -> sitedata.Eliom_common.ipv6mask <- Some v, true),
-             (fun v -> sitedata.Eliom_common.application_script <- v)
+             (fun v -> sitedata.Eliom_common.application_script <- v),
+             (fun v -> sitedata.Eliom_common.cache_global_data <- v)
             )
             content
         in

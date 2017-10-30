@@ -548,6 +548,7 @@ and sitedata = {
   mutable ipv4mask : int option * bool;
   mutable ipv6mask : int option * bool;
   mutable application_script : bool (* defer *) * bool; (* async *)
+  mutable cache_global_data : (string list * int) option;
 }
 
 type 'a lazy_site_value (** lazy site values, are lazy values with
