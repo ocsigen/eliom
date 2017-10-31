@@ -373,7 +373,7 @@ val set_reload_function : (unit -> unit -> unit Lwt.t) -> unit
     regenerating the page. Also the original scroll position is restored.
 
     You can define a limit on the number of stored DOMs using
-    [set_max_count_history_doms].
+    [set_max_dist_history_doms].
 
     A typical use case of this function is storing the dom when loading
     a page. i.e. 
@@ -383,9 +383,11 @@ val set_reload_function : (unit -> unit -> unit Lwt.t) -> unit
 *)
 val push_history_dom : unit -> unit
 
-(* [set_max_count_history_doms (Some n)] limits the number of cached DOMs by
-   [push_history_dom] to [n]. Keeps the [n] most recent DOMs. *)
-val set_max_count_history_doms : int option -> unit
+(* [set_max_dist_history_doms (Some n)] limits the number of cached DOMs
+   that are kept in memory. Thereby [n] is the maximum distance in history from
+   the active page. Thus if for instance [n = 1] then only the DOMs for the
+   previous and the next page are kept. *)
+val set_max_dist_history_doms : int option -> unit
 
 (** Lwt_log section for this module.
     Default level is [Lwt_log.Info].

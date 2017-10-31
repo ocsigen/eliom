@@ -471,25 +471,42 @@ let url_fragment_prefix_with_sharp = "#!"
 let reload_function = ref None
 let reload_functions = ref []
 let set_reload_function f = reload_function := Some f
+
 (* TODO: unify history_doms and reload_functions *)
+
 type history_dom = {
   dom : Dom_html.bodyElement Js.t;
   page : page
 }
-let history_doms : (int * history_dom) list ref = ref []
 
-let max_count_history_doms = ref None
+module HistCache = Map.Make (struct
+  type t = int
+  let compare = compare
+end)
 
+let history_doms : history_dom HistCache.t ref = ref HistCache.empty
+
+let max_dist_history_doms = ref None
+
+(* possibly rather collect n nearest DOMs *)
 let garbage_collect_cached_doms () =
-  !max_count_history_doms |> Opt.iter @@ fun n ->
-    (* TODO: discards oldest DOMs; possibly we should rather discard the DOMs
-             that are furthest away from the current position in history. *)
-    let current, garbage = Eliom_lib.List.split_at n !history_doms in
-    List.iter (fun (_,g) -> g.page.set_page_status Dead) garbage;
-    history_doms := current
+  !max_dist_history_doms |> Opt.iter @@ fun n ->
+    let cur_index = !active_page.page_id.state_index in
+    let l,cur,r = HistCache.split cur_index !history_doms in
+    let l', lgarbage =
+      Eliom_lib.List.split_at n @@ List.rev @@ HistCache.bindings l in
+    let r', rgarbage = Eliom_lib.List.split_at n @@ HistCache.bindings r in
+    let cur' = List.map (fun cur -> cur_index, cur) (Opt.to_list cur) in
+    let history_doms' =
+      List.fold_left (fun hc (idx, dom) -> HistCache.add idx dom hc)
+                     HistCache.empty
+                     (cur' @ l' @ r')
+    in
+    List.iter (fun (_,g) -> g.page.set_page_status Dead) (lgarbage @ rgarbage);
+    history_doms := history_doms'
 
-let set_max_count_history_doms limit =
-  max_count_history_doms := limit;
+let set_max_dist_history_doms limit =
+  max_dist_history_doms := limit;
   garbage_collect_cached_doms ()
 
 let push_history_dom () =
@@ -500,9 +517,7 @@ let push_history_dom () =
     then Dom_html.document##.body
     else Dom_html.document##.documentElement in
   page.page_is_cached := true;
-  history_doms :=
-    (id, {dom; page})
-    :: List.filter (fun (id', _) -> id <> id') !history_doms;
+  history_doms := HistCache.add id {dom; page} !history_doms;
   garbage_collect_cached_doms ()
 
 module Page_status = struct
@@ -529,7 +544,7 @@ end
 
 let is_in_cache state_id =
   state_id.session_id = session_id &&
-  List.mem_assoc state_id.state_index !history_doms
+  HistCache.mem state_id.state_index !history_doms
 
 let stash_reload_function f =
   let page = get_this_page () in
@@ -558,9 +573,9 @@ let change_url_string ~replace uri =
       let state_id = !active_page.page_id in
       let erase_future () =
         let current_doms, garbage =
-          List.partition (fun (id, _) -> id <= state_id.state_index) !history_doms
+          HistCache.partition (fun id _ -> id <= state_id.state_index) !history_doms
         in
-        List.iter (fun (_,g) -> g.page.set_page_status Dead) garbage;
+        HistCache.iter (fun _ g -> g.page.set_page_status Dead) garbage;
         history_doms := current_doms;
         reload_functions :=
           List.filter (fun (id, _) -> id <= state_id.state_index)
@@ -1210,7 +1225,7 @@ let _ =
 (* Given a state_id, [replace_page_in_history] replaces the current DOM with a
    DOM from the DOM cache. *)
 let restore_history_dom id =
-  let {dom; page} = List.assq id !history_doms in
+  let {dom; page} = HistCache.find id !history_doms in
   begin if !only_replace_body
     then Dom.replaceChild
       Dom_html.document##.documentElement dom Dom_html.document##.body
