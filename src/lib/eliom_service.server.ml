@@ -127,7 +127,7 @@ let create_attached
       (match keep_nl_params with
        | None -> fallback.keep_nl_params
        | Some k -> k);
-    client_fun = None;
+    client_fun = no_client_fun ();
     reload_fun = Rf_client_fun
   }
 
@@ -199,7 +199,7 @@ let coservice'
     keep_nl_params;
     send_appl_content = XNever;
     service_mark = service_mark ();
-    client_fun = None;
+    client_fun = no_client_fun ();
     reload_fun = Rf_client_fun
   }
 
@@ -409,5 +409,7 @@ let unregister ?scope ?secure
         !(Eliom_state.get_session_service_table ~sp ?secure ~scope ())
       in
       remove_service table service
+
+let client_fun _ = None
 
 let has_client_fun _ = false

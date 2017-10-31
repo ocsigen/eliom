@@ -30,7 +30,20 @@ let xhr_with_cookies s =
       None
     | XSame_appl (_, tmpl) -> Some tmpl
 
+let client_fun service =
+  match service.client_fun with
+  | Some f -> !f
+  | None   -> assert false
+
 let has_client_fun service = client_fun service <> None
+
+let set_client_fun ?app ~service f =
+  Eliom_lib.Option.iter
+    (fun name -> service.send_appl_content <- XSame_appl (name, None))
+    app;
+  match service.client_fun with
+  | Some r -> r := Some f
+  | None   -> assert false
 
 let reload_fun :
   type gp pp .
@@ -40,7 +53,8 @@ let reload_fun :
     match Eliom_parameter.is_unit (post_params_type service) with
     | Eliom_parameter.U_yes ->
       (match service with
-       | { client_fun = Some f ; reload_fun = Rf_client_fun } ->
+       | { client_fun = Some {contents = Some f} ;
+           reload_fun = Rf_client_fun } ->
          Some f
        | _ ->
          None)
