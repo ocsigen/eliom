@@ -152,7 +152,7 @@ site. For example:
     </eliommodule>
 >>
 
-Use <<a_api| val Eliom_state.get_config >> during the initialization
+Use <<a_api| val Eliom_config.get_config >> during the initialization
 of your module to get the data between <<span class="code"|<eliom>>>
 and <<span class="code"|</eliom>>>.
 
@@ -253,11 +253,12 @@ states for which no other default has been set. The
 {{{hierarchyname}}} attribute exists only inside an {{{<eliom/>}}} tag
 (and not inside {{{<extension findlib-package="eliom.server"/>}}}).
 
-The level attribute can take values {{{session}}} or {{{tab}}}.
+The level attribute can take values {{{session}}} (browser)
+or {{{clientprocess}}} (tab).
 
 * {{{<volatiletimeout value="30" [hierarchyname=""] [level="session"]/>}}}
   The default timeout for
-  volatile (in memory) states.
+  volatile (in memory) states (value in seconds).
   {{{value="infinity"}}} means that the state will
   never expire.
   Note that each eliom module can set its own
