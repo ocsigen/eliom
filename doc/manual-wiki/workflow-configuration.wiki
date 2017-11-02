@@ -396,6 +396,31 @@ The syntax is:
 
 Both attributes are optional and default to {{{false}}}.
 
+=== Serving global data through a distinct URL
+
+When an Eliom program is initiated client-side, it needs to receive
+some global data from the server (that are persistent from request to
+request). This data is normally included in the HTML page sent by the
+server. Alternatively, it can be served through a separate
+request. This is more efficient as it allows this state to be
+serialized by the server only once, and cached by the clients (or
+possibly a CDN if your server is running behind one), but the client
+will receive stale data if global data changes over time.
+
+The syntax to activate this option is the following:
+* {{{<cacheglobaldata path="path" cache="604800"/>}}}
+
+All attributes are optional. The {{{path}}} option can be use to
+indicate the path below which the JavaScript file providing the global
+data is served. The default path is the empty path. This script name
+is the MD5 checksum of its contents (with a {{{.js}}} suffix). Thus,
+it can be safely cached and is unlikely to conflict with any other
+service. The caching duration, in seconds, is set using the
+{{{cache}}} attribute. It defaults to zero (no caching).
+
+When the application script defer attribute is set (see just above),
+global data are also loaded in a deferred way.
+
 ==Per site configuration options
 
 === Disabling XHR-links
