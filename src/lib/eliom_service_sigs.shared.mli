@@ -381,12 +381,6 @@ module type S = sig
   val xhr_with_cookies :
     (_, _, _, _, _, _, _, _, _, _, _) t -> string option option
 
-  val set_client_fun :
-    ?app:string ->
-    service:('a, 'b, _, _, _, _, _, _, _, _, _) t ->
-    ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
-    unit
-
   val internal_set_client_fun :
     service : ('a, 'b, _, _, _, _, _, _, _, _, _) t ->
     ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->

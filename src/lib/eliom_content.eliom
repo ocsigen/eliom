@@ -88,7 +88,7 @@ end
 
 ]
 
-let%shared set_client_fun = Eliom_service.set_client_fun
+let%client set_client_fun = Eliom_service.set_client_fun
 
 let%client wrap_client_fun f get_params post_params =
   let%lwt content = f get_params post_params in

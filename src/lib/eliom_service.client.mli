@@ -28,6 +28,12 @@
 
 include Eliom_service_sigs.S
 
+val set_client_fun :
+  ?app:string ->
+  service:('a, 'b, _, _, _, _, _, _, _, _, _) t ->
+  ('a -> 'b -> unit Lwt.t) ->
+  unit
+
 (**/**)
 
 val reset_reload_fun : (_, _, _, _, _, _, _, _, _, _, _) t -> unit

@@ -482,11 +482,3 @@ module Html : sig
      and type doc := F.doc
 
 end
-
-(**/**)
-
-val set_client_fun :
-  ?app:string ->
-  service:('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
-  ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
-  unit
