@@ -481,6 +481,7 @@ and sitedata =
    dlist_ip_table : dlist_ip_table;
    mutable ipv4mask : int option * bool;
    mutable ipv6mask : int option * bool;
+   mutable application_script : bool (* defer *) * bool; (* async *)
  }
 
 and dlist_ip_table = (page_table ref * page_table_key, na_key_serv)

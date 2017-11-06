@@ -1209,7 +1209,11 @@ module Eliom_appl_reg_make_param
 
   let eliom_appl_script_id : [ `Script ] Eliom_content.Html.Id.id =
     Eliom_content.Html.Id.new_elt_id ~global:true ()
-  let application_script ?(defer = false) ?(async = false) () =
+  let application_script ?defer ?async () =
+    let (defer', async') =
+      (Eliom_request_info.get_sitedata ()).Eliom_common.application_script in
+    let defer = match defer with Some b -> b | None -> defer' in
+    let async = match async with Some b -> b | None -> async' in
     let a =
       (if defer then [Eliom_content.Html.D.a_defer ()] else [])
         @
