@@ -33,7 +33,7 @@ let xhr_with_cookies s =
 let client_fun service =
   match service.client_fun with
   | Some f -> !f
-  | None   -> assert false
+  | None   -> None
 
 let has_client_fun service = client_fun service <> None
 
@@ -43,7 +43,7 @@ let set_client_fun ?app ~service f =
     app;
   match service.client_fun with
   | Some r -> r := Some f
-  | None   -> assert false
+  | None   -> service.client_fun <- Some (ref (Some f))
 
 let reload_fun :
   type gp pp .

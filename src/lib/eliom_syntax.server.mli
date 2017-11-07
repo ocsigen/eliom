@@ -36,6 +36,10 @@ val client_value :
     chapter="clientvalues"|the manual>>).  *)
 val set_global : bool -> unit
 
+(** Returns whether client values created in the current context
+    should be considered global *)
+val global_context : unit -> bool
+
 (** Called at the end of each server or shared section. The argument
     identifies the compilation unit.
 
