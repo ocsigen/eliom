@@ -151,3 +151,5 @@ let client_value ?pos closure_id args =
   Eliom_client_value.client_value_from_server_repr value
 
 let set_global b = is_global := b
+
+let global_context () = !is_global

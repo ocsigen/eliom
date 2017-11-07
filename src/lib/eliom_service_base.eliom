@@ -19,6 +19,17 @@
 
 (* Manipulation of services - this code can be use on server or client side. *)
 
+let%server no_client_fun () : _ ref Eliom_client_value.t option =
+  (* It only makes sense to create a client value when in a global
+     context. *)
+  if Eliom_syntax.global_context () then
+    Some [%client ref None]
+  else
+    None
+
+let%client no_client_fun () : _ ref Eliom_client_value.t option =
+  Some (ref None)
+
 [%%shared.start]
 
 module rec Types : Eliom_service_sigs.TYPES = Types
@@ -180,9 +191,6 @@ let priority s = s.priority
 let internal_set_client_fun ~service f =
   service.client_fun <- Some [%client ref (Some ~%f)]
 
-let no_client_fun () : _ ref Eliom_client_value.t option =
-  Some [%client ref None]
-
 let is_external = function {kind = `External} -> true | _ -> false
 
 let default_priority = 0
@@ -220,7 +228,8 @@ let static_dir_ ?(https = false) () = {
   keep_nl_params = `None;
   service_mark = service_mark ();
   send_appl_content = XNever;
-  client_fun = Some [%client ref None];
+  client_fun = None; (* It does not make sense to have a client function
+                        for this service *)
   reload_fun = Rf_client_fun
 }
 
@@ -254,7 +263,8 @@ let get_static_dir_ ?(https = false)
   keep_nl_params;
   service_mark = service_mark ();
   send_appl_content = XNever;
-  client_fun = Some [%client ref None];
+  client_fun = None; (* It does not make sense to have a client function
+                        for this service *)
   reload_fun = Rf_client_fun
 }
 
@@ -480,7 +490,7 @@ let main_service
   keep_nl_params;
   service_mark = service_mark ();
   send_appl_content = XNever;
-  client_fun = Some [%client ref None];
+  client_fun = no_client_fun ();
   reload_fun;
 }
 
