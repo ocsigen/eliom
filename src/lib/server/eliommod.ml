@@ -41,6 +41,7 @@ let default_max_persistent_data_tab_sessions_per_group = ref 50
 let default_max_service_tab_sessions_per_group = ref 50
 let default_max_volatile_data_tab_sessions_per_group = ref 50
 let default_secure_cookies = ref false
+let default_application_script = ref (false, false)
 
 (* Subnet defaults be large enough, because it must work behind a reverse proxy.
 
@@ -161,6 +162,7 @@ Some !default_max_persistent_data_tab_sessions_per_group, false;
            dlist_ip_table = dlist_table;
            ipv4mask = None, false;
            ipv6mask = None, false;
+           application_script = !default_application_script;
           }
         in
         Ocsigen_cache.Dlist.set_finaliser_after
@@ -237,7 +239,8 @@ let parse_eliom_option
      set_max_volatile_groups_per_site,
      set_secure_cookies,
      set_ipv4mask,
-     set_ipv6mask
+     set_ipv6mask,
+     set_application_script
     )
     =
   let parse_timeout_attrs tn attrs =
@@ -285,7 +288,34 @@ let parse_eliom_option
         (Error_in_config_file
            ("Eliom: hierarchyname attribute not allowed for "^tn^" tag in global configuration"))
   in
-  function
+  let convert_attr tag f v =
+    try
+      f v
+    with Invalid_argument _ ->
+      raise (Error_in_config_file
+               (Printf.sprintf
+                  "Eliom: Wrong attribute value for tag %s \
+                   in element cacheglobaldata"
+                  tag))
+  in
+  let parse_application_script_attrs attrs =
+    let rec aux defer async attrs =
+      match attrs with
+      | [] -> (defer, async)
+      | ("defer", v) :: rem ->
+        aux (convert_attr "defer" bool_of_string v) async rem
+      | ("async", v) :: rem ->
+        aux defer (convert_attr "async" bool_of_string v) rem
+      | (tag, _) :: _ ->
+        raise
+          (Error_in_config_file
+             (Printf.sprintf
+                "Eliom: attribute %s not allowed in element applicationscript"
+                tag))
+    in
+    aux false false attrs
+  in
+ function
   | (Element ("volatiletimeout", attrs, [])) ->
       let t, snoo, ct = parse_timeout_attrs "volatiletimeout" attrs in
       set_volatile_timeout ct snoo (t : float option)
@@ -432,6 +462,9 @@ let parse_eliom_option
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for ipv6subnetmask tag")))
 
+  | (Element ("applicationscript", attrs, [])) ->
+      set_application_script (parse_application_script_attrs attrs)
+
   | (Element (s, _, _)) ->
       raise (Error_in_config_file
                ("Unexpected content <"^s^"> inside eliom config"))
@@ -520,7 +553,8 @@ let rec parse_global_config = function
          (fun v -> default_max_volatile_groups_per_site := v),
          (fun v -> default_secure_cookies := v),
          (fun v -> Eliom_common.ipv4mask := v),
-         (fun v -> Eliom_common.ipv6mask := v)
+         (fun v -> Eliom_common.ipv6mask := v),
+         (fun v -> default_application_script := v)
         )
         e;
       parse_global_config ll
@@ -842,7 +876,8 @@ let parse_config hostpattern conf_info site_dir =
                          sitedata.Eliom_common.group_of_groups v)),
              (fun v -> sitedata.Eliom_common.secure_cookies <- v),
              (fun v -> sitedata.Eliom_common.ipv4mask <- Some v, true),
-             (fun v -> sitedata.Eliom_common.ipv6mask <- Some v, true)
+             (fun v -> sitedata.Eliom_common.ipv6mask <- Some v, true),
+             (fun v -> sitedata.Eliom_common.application_script <- v)
             )
             content
         in

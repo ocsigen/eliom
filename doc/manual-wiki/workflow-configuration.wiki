@@ -385,6 +385,17 @@ The syntax is:
 * {{{<ipv4subnetmask value="255.255.128.0"/>}}}
 * {{{<ipv6subnetmask value="ff:ff:ff:ff:ff:ff::"/>}}}
 
+=== Application script attributes
+
+One can choose to set the {{{defer}}} or {{{async}}} attributes of the
+script element referencing the application code, so that HTML
+rendering is not blocked while the script is downloaded.
+
+The syntax is:
+* {{{<applicationscript defer="true" async="false"/>}}}
+
+Both attributes are optional and default to {{{false}}}.
+
 ==Per site configuration options
 
 === Disabling XHR-links
