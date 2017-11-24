@@ -536,7 +536,7 @@ module Page_status = struct
   end
 
   let onactive ?(now = true) action =
-    if React.S.value (signal ()) = Active then action ();
+    if now && React.S.value (signal ()) = Active then action ();
     ignore @@ React.E.map action (Events.active ())
   let oncached action = ignore @@ React.E.map action (Events.cached ())
   let ondead action = ignore @@ React.E.map action (Events.dead ())
