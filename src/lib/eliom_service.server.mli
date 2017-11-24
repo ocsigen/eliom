@@ -68,15 +68,15 @@ include Eliom_service_sigs.S
     service will keep persistent (resp. all) non localized GET
     arguments of the current service. The default is [`None]. See
     the eliom manual for more information about {% <<a_manual
-    chapter="params" fragment="nonlocalizedparameters"|non localized
-    ptimarameters>>%}.
+    chapter="server-params" fragment="nonlocalizedparameters"|non localized
+    parameters>>%}.
 
     The optional [~name] argument provides a name for the service;
     otherwise, it will be anonymous (with an auto-generated internal
     name).
 
     If the optional [~csrf_safe] argument is [true], we create a
-    {% <<a_manual chapter="security" fragment="csrf"|"CSRF-safe"
+    {% <<a_manual chapter="server-security" fragment="csrf"|"CSRF-safe"
     service>>%}. In that case the [~name] argument is ignored. The
     default is [false].
 

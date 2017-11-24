@@ -18,7 +18,7 @@ Ocsigen provides several ways to generate and type HTML pages.
 The types in OCaml closest to XML types are //polymorphic variants//.
 Ocsigen uses them to provide a module with very good HTML typing.
 The full documentation is available
-<<a_api text="in the TyXML documentation" project="tyxml" | module Html.M >>.
+<<a_api text="in the TyXML documentation" project="tyxml" | module Tyxml.Html >>.
 
 <<outline depth="2"| <<header| **Table of contents** >> >>
 

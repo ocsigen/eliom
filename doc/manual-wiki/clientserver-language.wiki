@@ -258,8 +258,8 @@ circumvent this limitation by declaring a function at toplevel with all the
 dive into the implementation details of Eliom, or if you have a
 weak stomach!//
 
-This sections gives some details on the implementation of the <<a_manual
-chapter="eliomc"|language extensions in Eliom>>.  To investigate this
+This sections gives some details on the implementation of the language
+extensions in Eliom.  To investigate this
 in more detail, it is advisable to dump the source code for the server
 or client program with with ##eliomc -c -infer## or ##js_of_eliom -c -infer##
 respectively, and to refer to the API of the generated
