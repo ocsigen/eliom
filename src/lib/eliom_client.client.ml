@@ -707,8 +707,8 @@ let set_content_local ?offset ?fragment new_page =
     (* Really change page contents *)
     replace_page ~do_insert_base:true new_page;
     Eliommod_dom.add_formdata_hack_onclick_handler ();
-    locked := false;
     let load_callbacks = flush_onload () @ [broadcast_load_end] in
+    locked := false;
     Lwt_mutex.unlock load_mutex;
     run_callbacks load_callbacks;
     scroll_to_fragment ?offset fragment;
