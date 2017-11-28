@@ -535,10 +535,19 @@ module Page_status = struct
       changes () |> React.E.fmap @@ function Dead -> Some () | _ -> None
   end
 
-  let onactive ?(now = true) action =
-    if now && React.S.value (signal ()) = Active then action ();
-    ignore @@ React.E.map action (Events.active ())
-  let oncached action = ignore @@ React.E.map action (Events.cached ())
+  let maybe_just_once ~once e = if once then React.E.once e else e
+
+  let onactive ?(now = true) ?(once = false) action =
+    let on_event () =
+      ignore @@ React.E.map action @@ maybe_just_once ~once @@ Events.active ()
+    in
+    if now && React.S.value (signal ()) = Active
+      then (action (); if not once then on_event ())
+      else on_event ()
+
+  let oncached ?(once = false) action =
+    ignore @@ React.E.map action @@ maybe_just_once ~once @@ Events.cached ()
+
   let ondead action = ignore @@ React.E.map action (Events.dead ())
 end
 
@@ -710,7 +719,8 @@ let set_content_local ?offset ?fragment new_page =
     let load_callbacks = flush_onload () @ [broadcast_load_end] in
     locked := false;
     Lwt_mutex.unlock load_mutex;
-    run_callbacks load_callbacks;
+    (* run callbacks upon page activation (or now), but just once *)
+    Page_status.onactive ~once:true (fun () -> run_callbacks load_callbacks);
     scroll_to_fragment ?offset fragment;
     if !Eliom_config.debug_timings
     then Firebug.console##(timeEnd (Js.string "set_content_local"));
