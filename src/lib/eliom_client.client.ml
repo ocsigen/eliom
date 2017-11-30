@@ -535,10 +535,19 @@ module Page_status = struct
       changes () |> React.E.fmap @@ function Dead -> Some () | _ -> None
   end
 
-  let onactive ?(now = true) action =
-    if React.S.value (signal ()) = Active then action ();
-    ignore @@ React.E.map action (Events.active ())
-  let oncached action = ignore @@ React.E.map action (Events.cached ())
+  let maybe_just_once ~once e = if once then React.E.once e else e
+
+  let onactive ?(now = true) ?(once = false) action =
+    let on_event () =
+      ignore @@ React.E.map action @@ maybe_just_once ~once @@ Events.active ()
+    in
+    if now && React.S.value (signal ()) = Active
+      then (action (); if not once then on_event ())
+      else on_event ()
+
+  let oncached ?(once = false) action =
+    ignore @@ React.E.map action @@ maybe_just_once ~once @@ Events.cached ()
+
   let ondead action = ignore @@ React.E.map action (Events.dead ())
 end
 
@@ -707,10 +716,11 @@ let set_content_local ?offset ?fragment new_page =
     (* Really change page contents *)
     replace_page ~do_insert_base:true new_page;
     Eliommod_dom.add_formdata_hack_onclick_handler ();
-    locked := false;
     let load_callbacks = flush_onload () @ [broadcast_load_end] in
+    locked := false;
     Lwt_mutex.unlock load_mutex;
-    run_callbacks load_callbacks;
+    (* run callbacks upon page activation (or now), but just once *)
+    Page_status.onactive ~once:true (fun () -> run_callbacks load_callbacks);
     scroll_to_fragment ?offset fragment;
     if !Eliom_config.debug_timings
     then Firebug.console##(timeEnd (Js.string "set_content_local"));
@@ -1038,11 +1048,8 @@ let change_page (type m)
                 target_id = None}
                (flush_onchangepage ())
            in
-           next_page :=
-             if replace then
-               mk_page ~state_id:(!active_page).page_id ~status:Generating ()
-             else
-               mk_page ~status:Generating ();
+           if replace then
+           next_page := mk_page ~state_id:(!active_page).page_id ~status:Generating ();
            Lwt.with_value this_page (Some !next_page) @@ fun () ->
              change_url_string_protected ~replace uri;
              let%lwt () = f get_params post_params in

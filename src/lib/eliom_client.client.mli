@@ -272,14 +272,15 @@ module Page_status : sig
       invoked right away. This is useful to ensure that the function is invoked
       also on server-generated pages which are active right from the start and
       thus have no transition to the active state.
+      If [once] is [true] ([false] by default) the action is executed only once.
 
       Typical use cases for this function are processes that need to run
       continually while a page is being viewed. Such processes (including event
       listeners of [Dom_html.window]) are killed on a page change and not
       automatically restored with the DOM (contrary to event listeners attached
       to DOM elements). *)
-  val onactive : ?now:bool -> (unit -> unit) -> unit
-  val oncached : (unit -> unit) -> unit
+  val onactive : ?now:bool -> ?once:bool -> (unit -> unit) -> unit
+  val oncached : ?once:bool -> (unit -> unit) -> unit
   val ondead : (unit -> unit) -> unit
 end
 
