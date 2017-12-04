@@ -172,7 +172,7 @@ server to send data to a client.
 We call this mechanism <em>Comet</em>. The same idea is also known as
 <em>HTTP push</em>.
 </p><p>The simple low-level version above which all other following mechanisms are
-implemented is provided in the <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/Eliom_comet.Channel.html">Eliom_comet.​Channel</a></span>
+implemented is provided in the <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_comet.Channel.html">Eliom_comet.​Channel</a></span>
 module.
 </p><p>Comet defines channels which can transfer data. A channel is created
 using an Lwt stream. It is a kind of cooperative lazy list.
@@ -192,7 +192,7 @@ returns a stream and a function to push new values to the stream.
 is just an Lwt stream <span><a class="ocsforge_doclink_lwt" href="/lwt/3.1.0/api/Lwt_stream.html#TYPEt">Lwt_stream.​t</a></span>.
 </p><p>There are 3 kinds of channels, depending on how you want to send data.
 </p><ul><li> Channels created with
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/Eliom_comet.Channel.html#VALcreate">Eliom_comet.​Channel.​create</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_comet.Channel.html#VALcreate">Eliom_comet.​Channel.​create</a></span>
 have a buffer with a limited size. Message are read from the stream as
 soon as they are available, i.e. for stream created with
 <span><a class="ocsforge_doclink_lwt" href="/lwt/3.1.0/api/Lwt_stream.html#VALfrom">Lwt_stream.​from</a></span>, that means that the
@@ -203,12 +203,12 @@ messages (more than the size of the buffer) it will receive an exception
 <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/Eliom_comet.html#EXCEPTIONChannel_full">Eliom_comet.​Channel_full</a></span>
 when reading data from the stream.
 </li></ul><ul><li> Channels created with
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/Eliom_comet.Channel.html#VALcreate_newest">Eliom_comet.​Channel.​create_newest</a></span> have no buffering
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_comet.Channel.html#VALcreate_newest">Eliom_comet.​Channel.​create_newest</a></span> have no buffering
 and can lose messages, but the client will always receive the last value:
 For instance, if many messages are sent in a short time,
 the client may receive only the last one. Those channels never raise
 <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/Eliom_comet.html#EXCEPTIONChannel_full">Eliom_comet.​Channel_full</a></span>.
-</li></ul><ul><li> Channels created with <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/Eliom_comet.Channel.html#VALcreate_unlimited">Eliom_comet.​Channel.​create_unlimited</a></span>
+</li></ul><ul><li> Channels created with <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_comet.Channel.html#VALcreate_unlimited">Eliom_comet.​Channel.​create_unlimited</a></span>
 consume data on the stream only when their is a request from the client.
 </li></ul><p>Channels can be closed on client side by cancelling a thread waiting
 for data on it.

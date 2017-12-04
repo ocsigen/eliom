@@ -210,7 +210,7 @@ fun (v'_1, ..., v'_n) -&gt; exp'
 &gt;&gt;
 </p><p>where <span class="monospace">exp'</span> is <span class="monospace">exp</span> with occurrences of <span class="monospace">%v_i</span> replaced
 by <span class="monospace">v'_i</span> where all <span class="monospace">v'_i</span> are free in <span class="monospace">exp</span>.
-</p><p>When a client value is then created dynamically, a <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/Eliom_common_base.html#TYPEclient_value_datum">Eliom_common_base.​client_value_datum</a></span> is registered to be sent to the
+</p><p>When a client value is then created dynamically, a <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_common_base.html#TYPEclient_value_datum">Eliom_common_base.​client_value_datum</a></span> is registered to be sent to the
 client with the <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_common_base.html#VALglobal_data">Eliom_common_base.​global_data</a></span> or <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_common_base.html#VALrequest_data">Eliom_common_base.​request_data</a></span> respectively. It
 contains the closure ID, an instance ID (unique per client value), and
 the tuple of injected values (sometimes known as <span class="monospace">args</span>).

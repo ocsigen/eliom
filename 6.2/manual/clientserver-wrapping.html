@@ -34,10 +34,10 @@ client. But certain types can't be transmitted this easily: for
 instance, services.
 </p><p>Those values must be transformed before marshalling: We need for this to use
 custom wrappers. This wrapping mechanism is defined in
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/Eliom_wrap.html">Eliom_wrap</a></span>.
-</p><p>Before sending, the values goes thought <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/Eliom_wrap.html#VALwrap">Eliom_wrap.​wrap</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_wrap.html">Eliom_wrap</a></span>.
+</p><p>Before sending, the values goes thought <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_wrap.html#VALwrap">Eliom_wrap.​wrap</a></span>
 which transform marked values. A value marked is a value which have as its last field
-a value of type <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/Eliom_wrap.html#TYPEwrapper">Eliom_wrap.​wrapper</a></span>. For instance
+a value of type <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_wrap.html#TYPEwrapper">Eliom_wrap.​wrapper</a></span>. For instance
 &lt;&lt;code language=&quot;ocaml&quot;|type marked_tupple =
   int * ... * marked_tupple Eliom_wrap.wrapper
 type marked_record =
@@ -54,10 +54,10 @@ type not_marked_record =
           ...
        fn : marked_record Eliom_wrap.wrapper;
        fk : float; }&gt;&gt;
-</p><p>A wrapper is created by the <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/Eliom_wrap.html#VALcreate_wrapper">Eliom_wrap.​create_wrapper</a></span>
+</p><p>A wrapper is created by the <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_wrap.html#VALcreate_wrapper">Eliom_wrap.​create_wrapper</a></span>
 function. It takes a function as parameter which will be called to
 transform the value during the wrapping. There is also a special
-wrapper <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/Eliom_wrap.html#VALempty_wrapper">Eliom_wrap.​empty_wrapper</a></span> which does nothing. It
+wrapper <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_wrap.html#VALempty_wrapper">Eliom_wrap.​empty_wrapper</a></span> which does nothing. It
 is useful to stop calling the wrapper on a value: If there is still a
 wrapper in a value after its transformation, it will be called another
 time, potentially leading to an infinite loop.
@@ -72,15 +72,15 @@ let wrapper =
 let v = ( Fun (fun () -&gt; 1), wrapper )
 let (v', empty_wrapper) = Eliom_wrap.wrap v&gt;&gt;
 </p><p>At that time <span class="teletype">v'</span> will be <span class="teletype">Value 1</span>. Notice that
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/Eliom_wrap.html#VALcreate_wrapper">Eliom_wrap.​create_wrapper</a></span> does not enforce the output
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_wrap.html#VALcreate_wrapper">Eliom_wrap.​create_wrapper</a></span> does not enforce the output
 type of the wrapping function to be the same as the input type:
 Eliom_wrap is to be use with much caution! Do not use it if you don't
 understand how it works, it may lead to unpredictable segmentation faults
 and corrupted memory.
 </p><h2> Eliom types with predefined custom wrappers </h2><p>The Eliom types that are marked are:
-</p><ul><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/Eliom_service.html#TYPEt">Eliom_service.​t</a></span> transformed to <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/Eliom_service.html#TYPEt">Eliom_service.​t</a></span> (but the client side representation)
-</li><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/Eliom_comet.Channel.html#TYPEt">Eliom_comet.​Channel.​t</a></span> transformed to <span><a class="ocsforge_doclink_lwt" href="/lwt/3.1.0/api/Lwt_stream.html#TYPEt">Lwt_stream.​t</a></span>
-</li><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/Eliom_react.Up.html#TYPEt">Eliom_react.​Up.​t</a></span> transformed to <span class="teletype"> 'a -&gt; unit </span>
-</li><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/Eliom_react.Down.html#TYPEt">Eliom_react.​Down.​t</a></span> transformed to <span class="teletype"> 'a React.E.t </span>
-</li><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/Eliom_bus.html#TYPEt">Eliom_bus.​t</a></span> transformed to <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/Eliom_bus.html#TYPEt">Eliom_bus.​t</a></span>
+</p><ul><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service.html#TYPEt">Eliom_service.​t</a></span> transformed to <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service.html#TYPEt">Eliom_service.​t</a></span> (but the client side representation)
+</li><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_comet.Channel.html#TYPEt">Eliom_comet.​Channel.​t</a></span> transformed to <span><a class="ocsforge_doclink_lwt" href="/lwt/3.1.0/api/Lwt_stream.html#TYPEt">Lwt_stream.​t</a></span>
+</li><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_react.Up.html#TYPEt">Eliom_react.​Up.​t</a></span> transformed to <span class="teletype"> 'a -&gt; unit </span>
+</li><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_react.Down.html#TYPEt">Eliom_react.​Down.​t</a></span> transformed to <span class="teletype"> 'a React.E.t </span>
+</li><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_bus.html#TYPEt">Eliom_bus.​t</a></span> transformed to <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_bus.html#TYPEt">Eliom_bus.​t</a></span>
 </li></ul></body></html>
