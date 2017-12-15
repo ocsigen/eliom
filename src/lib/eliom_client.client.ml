@@ -1048,8 +1048,11 @@ let change_page (type m)
                 target_id = None}
                (flush_onchangepage ())
            in
-           if replace then
-           next_page := mk_page ~state_id:(!active_page).page_id ~status:Generating ();
+           next_page :=
+             if replace then
+               mk_page ~state_id:(!active_page).page_id ~status:Generating ()
+             else
+               mk_page ~status:Generating ();
            Lwt.with_value this_page (Some !next_page) @@ fun () ->
              change_url_string_protected ~replace uri;
              let%lwt () = f get_params post_params in
