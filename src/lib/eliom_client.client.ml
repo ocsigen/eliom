@@ -569,6 +569,7 @@ let change_url_string ~replace uri =
   if Eliom_process.history_api then begin
     if replace then begin
       Opt.iter stash_reload_function !reload_function;
+      advance_page ();
       Dom_html.window##.history##replaceState
         (Js.Opt.return (!active_page.page_id,
                         Js.string (if !Eliom_common.is_client_app then uri
