@@ -402,7 +402,7 @@ module String : Eliom_registration_sigs.S_with_create
     following streams are not created. *)
 module Streamlist : Eliom_registration_sigs.S_with_create
   with type page =
-         (unit -> string Ocsigen_stream.t Lwt.t) list * string
+         (unit -> bytes Ocsigen_stream.t Lwt.t) list * string
    and type options = unit
    and type return = Eliom_service.non_ocaml
    and type result = unknown_content kind

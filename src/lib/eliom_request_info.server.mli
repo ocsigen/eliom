@@ -376,6 +376,6 @@ val get_request_id_sp : Eliom_common.server_params -> int64
 
 type raw_post_data =
   ((string * string) * (string * string) list) option *
-  string Ocsigen_stream.t option
+  bytes Ocsigen_stream.t option
 
 val raw_post_data : Eliom_common.server_params -> raw_post_data Lwt.t

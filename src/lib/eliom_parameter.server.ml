@@ -23,7 +23,7 @@ include Eliom_parameter_base
 
 type raw_post_data =
   ((string * string) * (string * string) list) option *
-  string Ocsigen_stream.t option
+  bytes Ocsigen_stream.t option
 
 open Ocsigen_extensions
 
