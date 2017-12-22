@@ -1,63 +1,43 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"><head><title> Sessions and server side state </title><meta charset="utf8"/></head><body><h1> Eliom's Reference manual</h1><h2><a href="/eliom/6.2/manual/intro.html" class="ocsimore_phrasing_link">Introduction</a></h2><h2>Server-side programming</h2><h3>Services</h3><h4><a href="/eliom/6.2/manual/server-services.html" class="ocsimore_phrasing_link">The different types of services</a></h4><h4><a href="/eliom/6.2/manual/server-params.html" class="ocsimore_phrasing_link">Typing service parameters</a></h4><h4><a href="/eliom/6.2/manual/server-outputs.html" class="ocsimore_phrasing_link">Service handlers</a></h4><h4><a href="/eliom/6.2/manual/server-links.html" class="ocsimore_phrasing_link">Creating links and forms</a></h4><h3><a href="/eliom/6.2/manual/server-state.html" class="ocsimore_phrasing_link">Sessions and server side state</a></h3><h3><a href="/eliom/6.2/manual/server-security.html" class="ocsimore_phrasing_link">Security</a></h3><h2>Client-server programming</h2><h3><a href="/eliom/6.2/manual/clientserver-applications.html" class="ocsimore_phrasing_link">Eliom applications</a></h3><h3><a href="/eliom/6.2/manual/clientserver-html.html" class="ocsimore_phrasing_link">Generating HTML</a></h3><h3><a href="/eliom/6.2/manual/clientserver-communication.html" class="ocsimore_phrasing_link">Communication</a></h3><h3><a href="/eliom/6.2/manual/clientserver-services.html" class="ocsimore_phrasing_link">Client-side services</a></h3><h3><a href="/eliom/6.2/manual/clientserver-react.html" class="ocsimore_phrasing_link">Shared reactive programming</a></h3><h3><a href="/eliom/6.2/manual/clientserver-cache.html" class="ocsimore_phrasing_link">Caching data and off-line applications</a></h3><h3><a href="/eliom/6.2/manual/clientserver-wrapping.html" class="ocsimore_phrasing_link">Custom wrapping</a></h3><h2>Workflows</h2><h3><a href="/eliom/6.2/manual/workflow-distillery.html" class="ocsimore_phrasing_link">Distillery</a></h3><h3><a href="/eliom/6.2/manual/mobile-apps.html" class="ocsimore_phrasing_link">Mobile apps</a></h3><h3><a href="/eliom/6.2/manual/workflow-compilation.html" class="ocsimore_phrasing_link">Compilation</a></h3><h3><a href="/eliom/6.2/manual/workflow-configuration.html" class="ocsimore_phrasing_link">Configuration &amp; running</a></h3><h3><a href="/eliom/6.2/manual/scalability.html" class="ocsimore_phrasing_link">Scalability</a></h3><h2>Syntax</h2><h3><a href="/eliom/6.2/manual/ppx-syntax.html" class="ocsimore_phrasing_link">PPX-based syntax</a></h3><h3><a href="/eliom/6.2/manual/clientserver-language.html" class="ocsimore_phrasing_link">Camlp4-based syntax</a></h3><h3><a href="/eliom/6.2/manual/ppx-migration.html" class="ocsimore_phrasing_link">Migration to PPX</a></h3><h1>Server API</h1><h2><a href="/eliom/6.2/api/server/Eliom_lib.html" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2><a href="/eliom/6.2/api/server/Eliom_client.html" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href="/eliom/6.2/api/server/Eliom_client_value.html" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2><a href="/eliom/6.2/api/server/Eliom_common.html" class="ocsimore_phrasing_link">Eliom_common</a></h2><h2><a href="/eliom/6.2/api/server/Eliom_config.html" class="ocsimore_phrasing_link">Eliom_config</a></h2><h2><a href="/eliom/6.2/api/server/Eliom_request_info.html" class="ocsimore_phrasing_link">Eliom_request_info</a></h2><h2><a href="/eliom/6.2/api/server/Eliom_reference.html" class="ocsimore_phrasing_link">Eliom_reference</a></h2><h2><a href="/eliom/6.2/api/server/Eliom_state.html" class="ocsimore_phrasing_link">Eliom_state</a></h2><h2>Content and form creation</h2><h3><a href="/eliom/6.2/api/server/Eliom_content.html" class="ocsimore_phrasing_link">Eliom_content</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_content.Html.html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_content.Svg.html" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_content.Xml.html" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_tools.html" class="ocsimore_phrasing_link">Eliom_tools</a></h3><h2>Service creation</h2><h3><a href="/eliom/6.2/api/server/Eliom_service.html" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_parameter.html" class="ocsimore_phrasing_link">Eliom_parameter</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_registration.html" class="ocsimore_phrasing_link">Eliom_registration</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_registration.Html.html" class="ocsimore_phrasing_link">Eliom_registration.Html</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_registration.Action.html" class="ocsimore_phrasing_link">Eliom_registration.Action</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_registration.Ocaml.html" class="ocsimore_phrasing_link">Eliom_registration.Ocaml</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_registration.App.html" class="ocsimore_phrasing_link">Eliom_registration.App</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_registration.File.html" class="ocsimore_phrasing_link">Eliom_registration.File</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_registration.Any.html" class="ocsimore_phrasing_link">Eliom_registration.Any</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_registration.Redirection.html" class="ocsimore_phrasing_link">Eliom_registration.Redirection</a></h3><h2>Client/server communication</h2><h3><a href="/eliom/6.2/api/server/Eliom_shared.html" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_notif.html" class="ocsimore_phrasing_link">Eliom_notif</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_cscache.html" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_bus.html" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_comet.html" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_react.html" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/index_types.html">Index of types</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/index_exceptions.html">Index of exceptions</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/index_values.html">Index of values</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/index_modules.html">Index of modules</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/index_module_types.html">Index of module types</a></span></h3><h1>Client API</h1><h2><a href="/eliom/6.2/api/client/Eliom_lib.html" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2><a href="/eliom/6.2/api/client/Eliom_client.html" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href="/eliom/6.2/api/client/Eliom_client_value.html" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2>Content and form creation</h2><h3><a href="/eliom/6.2/api/client/Eliom_content.Html.html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href="/eliom/6.2/api/client/Eliom_content.Svg.html" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href="/eliom/6.2/api/client/Eliom_content.Xml.html" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Client/server communication</h2><h3><a href="/eliom/6.2/api/client/Eliom_service.html" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href="/eliom/6.2/api/client/Eliom_shared.html" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href="/eliom/6.2/api/client/Eliom_cscache.html" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href="/eliom/6.2/api/client/Eliom_bus.html" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="/eliom/6.2/api/client/Eliom_comet.html" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="/eliom/6.2/api/client/Eliom_react.html" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/index_types.html">Index of types</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/index_exceptions.html">Index of exceptions</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/index_values.html">Index of values</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/index_modules.html">Index of modules</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/index_module_types.html">Index of module types</a></span></h3><h1>Ppx syntax</h1><h2><a href="/eliom/6.2/api/ppx/Ppx_eliom.html" class="ocsimore_phrasing_link">Ppx_eliom</a></h2><h1>Ocamlbuild plugin</h1><h2><a href="/eliom/6.2/api/ocamlbuild/Ocamlbuild_eliom.html" class="ocsimore_phrasing_link">Ocamlbuild_eliom</a></h2><h1> Sessions and server side state </h1><p>&lt;&lt;outline depth=&quot;2&quot;| &lt;&lt;header| **Table of contents** &gt;&gt; &gt;&gt;
-</p><p>&lt;&lt;concept title=&quot;Summary&quot;|
-
-//Eliom references// allow to store data on server for one user (session data).
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title> Sessions and server side state </title><meta charset="utf8"/><link rel="stylesheet" href="/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><h1> Eliom's Reference manual</h1><h2><a href="/eliom/6.2/manual/intro.html" class="ocsimore_phrasing_link">Introduction</a></h2><h2>Server-side programming</h2><h3>Services</h3><h4><a href="/eliom/6.2/manual/server-services.html" class="ocsimore_phrasing_link">The different types of services</a></h4><h4><a href="/eliom/6.2/manual/server-params.html" class="ocsimore_phrasing_link">Typing service parameters</a></h4><h4><a href="/eliom/6.2/manual/server-outputs.html" class="ocsimore_phrasing_link">Service handlers</a></h4><h4><a href="/eliom/6.2/manual/server-links.html" class="ocsimore_phrasing_link">Creating links and forms</a></h4><h3><a href="/eliom/6.2/manual/server-state.html" class="ocsimore_phrasing_link">Sessions and server side state</a></h3><h3><a href="/eliom/6.2/manual/server-security.html" class="ocsimore_phrasing_link">Security</a></h3><h2>Client-server programming</h2><h3><a href="/eliom/6.2/manual/clientserver-applications.html" class="ocsimore_phrasing_link">Eliom applications</a></h3><h3><a href="/eliom/6.2/manual/clientserver-html.html" class="ocsimore_phrasing_link">Generating HTML</a></h3><h3><a href="/eliom/6.2/manual/clientserver-communication.html" class="ocsimore_phrasing_link">Communication</a></h3><h3><a href="/eliom/6.2/manual/clientserver-services.html" class="ocsimore_phrasing_link">Client-side services</a></h3><h3><a href="/eliom/6.2/manual/clientserver-react.html" class="ocsimore_phrasing_link">Shared reactive programming</a></h3><h3><a href="/eliom/6.2/manual/clientserver-cache.html" class="ocsimore_phrasing_link">Caching data and off-line applications</a></h3><h3><a href="/eliom/6.2/manual/clientserver-wrapping.html" class="ocsimore_phrasing_link">Custom wrapping</a></h3><h2>Workflows</h2><h3><a href="/eliom/6.2/manual/workflow-distillery.html" class="ocsimore_phrasing_link">Distillery</a></h3><h3><a href="/eliom/6.2/manual/mobile-apps.html" class="ocsimore_phrasing_link">Mobile apps</a></h3><h3><a href="/eliom/6.2/manual/workflow-compilation.html" class="ocsimore_phrasing_link">Compilation</a></h3><h3><a href="/eliom/6.2/manual/workflow-configuration.html" class="ocsimore_phrasing_link">Configuration &amp; running</a></h3><h3><a href="/eliom/6.2/manual/scalability.html" class="ocsimore_phrasing_link">Scalability</a></h3><h2>Syntax</h2><h3><a href="/eliom/6.2/manual/ppx-syntax.html" class="ocsimore_phrasing_link">PPX-based syntax</a></h3><h3><a href="/eliom/6.2/manual/clientserver-language.html" class="ocsimore_phrasing_link">Camlp4-based syntax</a></h3><h3><a href="/eliom/6.2/manual/ppx-migration.html" class="ocsimore_phrasing_link">Migration to PPX</a></h3><h1>Server API</h1><h2><a href="/eliom/6.2/api/server/Eliom_lib.html" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2><a href="/eliom/6.2/api/server/Eliom_client.html" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href="/eliom/6.2/api/server/Eliom_client_value.html" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2><a href="/eliom/6.2/api/server/Eliom_common.html" class="ocsimore_phrasing_link">Eliom_common</a></h2><h2><a href="/eliom/6.2/api/server/Eliom_config.html" class="ocsimore_phrasing_link">Eliom_config</a></h2><h2><a href="/eliom/6.2/api/server/Eliom_request_info.html" class="ocsimore_phrasing_link">Eliom_request_info</a></h2><h2><a href="/eliom/6.2/api/server/Eliom_reference.html" class="ocsimore_phrasing_link">Eliom_reference</a></h2><h2><a href="/eliom/6.2/api/server/Eliom_state.html" class="ocsimore_phrasing_link">Eliom_state</a></h2><h2>Content and form creation</h2><h3><a href="/eliom/6.2/api/server/Eliom_content.html" class="ocsimore_phrasing_link">Eliom_content</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_content.Html.html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_content.Svg.html" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_content.Xml.html" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_tools.html" class="ocsimore_phrasing_link">Eliom_tools</a></h3><h2>Service creation</h2><h3><a href="/eliom/6.2/api/server/Eliom_service.html" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_parameter.html" class="ocsimore_phrasing_link">Eliom_parameter</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_registration.html" class="ocsimore_phrasing_link">Eliom_registration</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_registration.Html.html" class="ocsimore_phrasing_link">Eliom_registration.Html</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_registration.Action.html" class="ocsimore_phrasing_link">Eliom_registration.Action</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_registration.Ocaml.html" class="ocsimore_phrasing_link">Eliom_registration.Ocaml</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_registration.App.html" class="ocsimore_phrasing_link">Eliom_registration.App</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_registration.File.html" class="ocsimore_phrasing_link">Eliom_registration.File</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_registration.Any.html" class="ocsimore_phrasing_link">Eliom_registration.Any</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_registration.Redirection.html" class="ocsimore_phrasing_link">Eliom_registration.Redirection</a></h3><h2>Client/server communication</h2><h3><a href="/eliom/6.2/api/server/Eliom_shared.html" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_notif.html" class="ocsimore_phrasing_link">Eliom_notif</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_cscache.html" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_bus.html" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_comet.html" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="/eliom/6.2/api/server/Eliom_react.html" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/index_types.html">Index of types</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/index_exceptions.html">Index of exceptions</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/index_values.html">Index of values</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/index_modules.html">Index of modules</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/index_module_types.html">Index of module types</a></span></h3><h1>Ocamlbuild plugin</h1><h2><a href="/eliom/6.2/api/ocamlbuild/Ocamlbuild_eliom.html" class="ocsimore_phrasing_link">Ocamlbuild_eliom</a></h2><h1>Client API</h1><h2><a href="/eliom/6.2/api/client/Eliom_lib.html" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2><a href="/eliom/6.2/api/client/Eliom_client.html" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href="/eliom/6.2/api/client/Eliom_client_value.html" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2>Content and form creation</h2><h3><a href="/eliom/6.2/api/client/Eliom_content.Html.html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href="/eliom/6.2/api/client/Eliom_content.Svg.html" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href="/eliom/6.2/api/client/Eliom_content.Xml.html" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Client/server communication</h2><h3><a href="/eliom/6.2/api/client/Eliom_service.html" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href="/eliom/6.2/api/client/Eliom_shared.html" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href="/eliom/6.2/api/client/Eliom_cscache.html" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href="/eliom/6.2/api/client/Eliom_bus.html" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="/eliom/6.2/api/client/Eliom_comet.html" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="/eliom/6.2/api/client/Eliom_react.html" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/index_types.html">Index of types</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/index_exceptions.html">Index of exceptions</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/index_values.html">Index of values</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/index_modules.html">Index of modules</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/index_module_types.html">Index of module types</a></span></h3><h1>Ppx syntax</h1><h2><a href="/eliom/6.2/api/ppx/Ppx_eliom.html" class="ocsimore_phrasing_link">Ppx_eliom</a></h2><h1> Sessions and server side state </h1><nav id="overview" class="ocsimore_outline"><header><p><strong>Table of contents</strong></p></header></nav><script>
+//<![CDATA[
+outline([0,-515484383,0,[0,2],[0,"nav",[0,"aside",0]],"overview",0])
+//]]>
+</script><aside class="concept"><header><h5><span class="concept_prefix">Concept: </span>Summary</h5></header><p><em>Eliom references</em> allow to store data on server for one user (session data).
 The interface is very similar to regular OCaml references,
-with extra parameters {{{?scope}}} (session, client process, group of sessions)
-and {{{?persistent}}} (for keeping the values on hard disk).
-For example if you create an Eliom reference of //scope// session, its value
+with extra parameters <span class="teletype">?scope</span> (session, client process, group of sessions)
+and <span class="teletype">?persistent</span> (for keeping the values on hard disk).
+For example if you create an Eliom reference of <em>scope</em> session, its value
 will be different for each session (one session = one browser process).
-
-To create an Eliom reference containing initial value {{{None}}}:
-&lt;&lt;code language=&quot;ocaml&quot;|
-let myref = Eliom_reference.Volatile.eref ~scope None
-&gt;&gt;
-
-Where {{{~scope}}} may be (amongst others):
-* {{{Eliom_common.default_session_scope}}} if you want to store server side
+</p><p>To create an Eliom reference containing initial value <span class="teletype">None</span>:
+</p><pre class=""><code class="language-ocaml translatable">let myref = Eliom_reference.Volatile.eref ~scope None</code></pre><p>Where <span class="teletype">~scope</span> may be (amongst others):
+</p><ul><li> <span class="teletype">Eliom_common.default_session_scope</span> if you want to store server side
 data for one browser (one session),
-* {{{Eliom_common.default_process_scope}}} if you want to store server side
+</li><li> <span class="teletype">Eliom_common.default_process_scope</span> if you want to store server side
 data for one tab of a browser (one client process),
-* {{{Eliom_common.request_scope}}} if you want to store server side data
+</li><li> <span class="teletype">Eliom_common.request_scope</span> if you want to store server side data
 during one request,
-* {{{Eliom_common.default_group_scope}}} if you want to store server side
+</li><li> <span class="teletype">Eliom_common.default_group_scope</span> if you want to store server side
 data for a group of sessions (for example all browsers belonging to the same
-user -- see below).
-
-Setting this reference, during a request:
-&lt;&lt;code language=&quot;ocaml&quot;|
-...
-Eliom_reference.Volatile.Ext.set myref (Some &quot;user data&quot;)
-&gt;&gt;
-
-Getting the value of this reference (different for each user):
-&lt;&lt;code language=&quot;ocaml&quot;|
-  Eliom_reference.Volatile.Ext.get myref
-&gt;&gt;
-
-Most of the time, what we want is to store data for one user,
+user – see below).
+</li></ul><p>Setting this reference, during a request:
+</p><pre class=""><code class="language-ocaml translatable">...
+Eliom_reference.Volatile.Ext.set myref (Some &quot;user data&quot;)</code></pre><p>Getting the value of this reference (different for each user):
+</p><pre class=""><code class="language-ocaml translatable">Eliom_reference.Volatile.Ext.get myref</code></pre><p>Most of the time, what we want is to store data for one user,
 not for one browser instance. To do that, we use scope &quot;group of sessions&quot;.
 A session is attached to a group of session by calling function
-&lt;&lt;a_api project=&quot;eliom&quot; subproject=&quot;server&quot;| val Eliom_state.set_volatile_data_session_group &gt;&gt; (for non-persistent groups).
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_state.html#VALset_volatile_data_session_group">Eliom_state.​set_volatile_data_session_group</a></span> (for non-persistent groups).
 The name of the group may be for example the user id.
 This will automatically create a session (and set a cookie) if needed.
-
-Example:
-&lt;&lt;code language=&quot;ocaml&quot;|
-let open_session login password =
+</p><p>Example:
+</p><pre class=""><code class="language-ocaml translatable">let open_session login password =
   let%lwt b = check_password login password in
   if b then
     Eliom_state.set_volatile_data_session_group
       ~scope:Eliom_common.default_session_scope
       (Int64.to_string (get_userid login))
   else
-    ...
-&gt;&gt;
-
-&gt;&gt;
-</p><h2> Introduction </h2><p>&lt;&lt;paragraph | Different scopes for data and services &gt;&gt;
-</p><p>The server-side state of an application refers to server-side data
+    ...</code></pre></aside><h2> Introduction </h2><div class="paragraph"><p>Different scopes for data and services</p></div><p>The server-side state of an application refers to server-side data
 that can be shared by all clients, or that can be specific to a
 limited <em>scope</em>, such as:
 </p><ul><li> the site,
@@ -73,8 +53,7 @@ specific scope.
 references)
 </li></ul><p>States disappear either when the associated scope is explicitely
 discarded, or after a timeout.
-</p><p>&lt;&lt;paragraph | Scope and cookies &gt;&gt;
-</p><p>From a technical point of view, sessions and groups of sessions are
+</p><div class="paragraph"><p>Scope and cookies</p></div><p>From a technical point of view, sessions and groups of sessions are
 implemented automatically within Eliom by asking the browser to send a
 session identifier in a cookie. Client-side processes also send an
 identifier with each request, using a kind of &quot;client-side
@@ -83,13 +62,11 @@ process-cookie&quot;.
 want several states for the same application (advanced use). Each
 scope uses its own cookies, and you can discard data for a single
 scope.
-</p><p>&lt;&lt;paragraph | Secure cookies &gt;&gt;
-</p><p>States can be secure or not. Secure means that the state data or service
+</p><div class="paragraph"><p>Secure cookies</p></div><p>States can be secure or not. Secure means that the state data or service
 will be associated to a secure cookie, that is a cookie that is sent
 by the browser only if the protocol is HTTPS. Use secure states to access
 confidential data, that you do not want to send through HTTP.
-</p><p>&lt;&lt;paragraph | Three kind of states &gt;&gt;
-</p><p>In the current implementation, because of a limitation in OCaml's
+</p><div class="paragraph"><p>Three kind of states</p></div><p>In the current implementation, because of a limitation in OCaml's
 serialization mechanism, there are three kinds of states (for each
 scope):
 </p><ul><li> volatile data states,
@@ -105,8 +82,11 @@ In the meantime, be very careful where you store your data.  To avoid
 shutting down the server, note that it is possible to ask the server
 to dynamically load new versions of your site (see <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/workflow-configuration.html#reload">command
 <span class="teletype">reload</span> </a></span>).
-</p><h2 id="scopes"> Scopes, cookies and sessions  <a class="backref" href="#scopes">&#182;</a></h2><p>&lt;&lt;outline depth=&quot;2&quot;&gt;&gt;
-</p><h3> Basics </h3><p>Eliom uses a notion of <em>scopes</em> to restrict the visibility of
+</p><h2 id="scopes"> Scopes, cookies and sessions  <a class="backref" href="#scopes">&#182;</a></h2><nav id="overview" class="ocsimore_outline"></nav><script>
+//<![CDATA[
+outline([0,-515484383,0,[0,2],[0,"nav",[0,"aside",0]],"overview",0])
+//]]>
+</script><h3> Basics </h3><p>Eliom uses a notion of <em>scopes</em> to restrict the visibility of
 server-side data to a set of clients. Together with <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-state.html#eref">Eliom references</a></span>, this is a
 very convenient way to implement a session mechanism for your Web site.
 </p><p>There are two categories of scopes:
@@ -157,11 +137,8 @@ process cookies.
 </p><h4 id="new_scope"> Hierarchies of scopes and multiple sessions (advanced use)  <a class="backref" href="#new_scope">&#182;</a></h4><p>If you want to handle multiple sessions for the same site that can
 be created and discarded independently, you can create a new hierarchy of
 users scope that will use different cookies, with the function <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_common.html#VALcreate_scope_hierarchy">Eliom_common.​create_scope_hierarchy</a></span>.
-</p><p>&lt;&lt;code language=&quot;ocaml&quot;|
-let custom_session_hierarchy = Eliom_common.create_scope_hierarchy &quot;custom&quot;
-let custom_session = `Session custom_session_hierarchy
-&gt;&gt;
-</p><p>Then, the value <span class="teletype">custom_session</span> can replace the usual <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_common.html#VALdefault_session_scope">Eliom_common.​default_session_scope</a></span> for the <span class="teletype">~scope</span> parameter of
+</p><pre class=""><code class="language-ocaml translatable">let custom_session_hierarchy = Eliom_common.create_scope_hierarchy &quot;custom&quot;
+let custom_session = `Session custom_session_hierarchy</code></pre><p>Then, the value <span class="teletype">custom_session</span> can replace the usual <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_common.html#VALdefault_session_scope">Eliom_common.​default_session_scope</a></span> for the <span class="teletype">~scope</span> parameter of
 the functions
 <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_reference.html#VALeref">Eliom_reference.​eref</a></span>, <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_registration.Html.html#VALregister">Eliom_registration.​Html.​register</a></span>,
 <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_state.html#VALdiscard">Eliom_state.​discard</a></span>, ...
@@ -185,13 +162,8 @@ sessions in the group.
 data, or volatile data (see the <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_state.html">Eliom_state</a></span>
 module). But this may be periculous.  Be very careful when doing this,
 as you are desynchronizing the three kinds of sessions.
-</p><p>&lt;&lt;wip |
-
-  The behaviour of &lt;&lt;a_api subproject=&quot;server&quot; | val Eliom_state.discard &gt;&gt; on a session
-  group is subject to discussion and may evolve in future versions.
-
-&gt;&gt;
-</p><div style="font-style: italic"><p>Warnings:
+</p><aside class="wip"><header><h5>Work in progress</h5></header><p>The behaviour of <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_state.html#VALdiscard">Eliom_state.​discard</a></span> on a session
+group is subject to discussion and may evolve in future versions.</p></aside><div style="font-style: italic"><p>Warnings:
 </p><ul><li> It is a good idea to close the session when a user tries to connect,
 even if it is already connected.
 </li><li> You may also want to unset some request-scoped Eliom references when
@@ -203,12 +175,9 @@ automatically closed after this amount of time of inactivity from the
 user. You can change the timeout for your whole site using the <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_state.html#VALset_global_volatile_state_timeout">Eliom_state.​set_global_volatile_state_timeout</a></span>.
 </p><p>It is also possible to change the default value for Eliom through the
 configuration file, like this:
-</p><p>&lt;&lt;code language=&quot;ocaml&quot;|
-&lt;extension findlib-package=&quot;ocsigenserver.ext.eliom&quot;&gt;
+</p><pre class=""><code class="language-ocaml translatable">&lt;extension findlib-package=&quot;ocsigenserver.ext.eliom&quot;&gt;
   &lt;volatiletimeout value=&quot;7200&quot;/&gt;
-&lt;/extension&gt;
-&gt;&gt;
-</p><p>In the configuration files the value <span class="teletype">&quot;infinity&quot;</span> means no
+&lt;/extension&gt;</code></pre><p>In the configuration files the value <span class="teletype">&quot;infinity&quot;</span> means no
 timeout.
 </p><div style="font-style: italic"><p>This default may be overriden by each site using <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_state.html#VALset_global_volatile_state_timeout">Eliom_state.​set_global_volatile_state_timeout</a></span> or <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_state.html#VALset_default_volatile_state_timeout">Eliom_state.​set_default_volatile_state_timeout</a></span>.  If you want your user
 to be able to set the default in the configuration file for your
@@ -222,12 +191,9 @@ a <em>secure session</em> that is visible only to a client accessing with
 the HTTPS protocol, you may provide the optional parameter
 <span class="teletype">~secure:true</span> when calling functions like <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_reference.html#VALeref">Eliom_reference.​eref</a></span>, <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_registration.Html.html#VALregister">Eliom_registration.​Html.​register</a></span>, etc.
 </p><p>The default can be set in the configuration file:
-&lt;&lt;code |
-&lt;extension findlib-package=&quot;eliom.server&quot;&gt;
+</p><pre><code>&lt;extension findlib-package=&quot;eliom.server&quot;&gt;
    &lt;securecookies value=&quot;true&quot; /&gt;
-&lt;/extension&gt;
-&gt;&gt;
-This option can also be set inside a <span class="teletype">&lt;eliom&gt;</span>
+&lt;/extension&gt;</code></pre><p>This option can also be set inside a <span class="teletype">&lt;eliom&gt;</span>
 tag, but be careful: in that case it will affect only the actions performed
 after setting this option, in the same site (and NOT the top-level instructions
 of the modules loaded before).
@@ -263,8 +229,7 @@ by IP address, which can be a problem for example if the server is
 behind a reverse proxy or if many user are using the same NAT.
 That's why we always recommend to set the session group
 (usually it's the user name or id).
-</p><p>&lt;&lt;wip | Explain how to change the maximum number of sessions in a group. &gt;&gt;
-</p><h4> Close all session of a group </h4><p>Session groups allows the implementation of features like &quot;close all sessions&quot;
+</p><aside class="wip"><header><h5>Work in progress</h5></header><p>Explain how to change the maximum number of sessions in a group.</p></aside><h4> Close all session of a group </h4><p>Session groups allows the implementation of features like &quot;close all sessions&quot;
 for one user (even those opened on other browsers).  Consider the
 following scenario: a user logs in from home using a &quot;Remember me on
 this computer&quot; feature, which sets an (almost) no-expiration cookie on
@@ -309,20 +274,14 @@ the other one based on <span class="teletype">DBM</span>.
 parameter to the <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_reference.html#VALeref">Eliom_reference.​eref</a></span> function
 calls. The value of this parameter is the name of the reference in the
 database.
-</p><p>&lt;&lt;wip |
-
-Persistent data are serialized on hard drive using OCaml's unsafe
-&lt;&lt;span class=&quot;code&quot;|Marshal&gt;&gt; module, hence persistent references
+</p><aside class="wip"><header><h5>Work in progress</h5></header><p>Persistent data are serialized on hard drive using OCaml's unsafe
+<span class="code">Marshal</span> module, hence persistent references
 currently suffer some limitations:
-
-* It is not possible to serialize closures or services (as we are
-  using dynamic linking),
-* If you ever change the type of serialised data, don't forget to
-  change the persistent reference name, or the server will probably
-  crash while deserializing!
-
-&gt;&gt;
-</p><h4> Volatile references </h4><p>The module <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_reference.Volatile.html">Eliom_reference.​Volatile</a></span> allows the creation of
+</p><ul><li> It is not possible to serialize closures or services (as we are
+using dynamic linking),
+</li><li> If you ever change the type of serialised data, don't forget to
+change the persistent reference name, or the server will probably
+crash while deserializing!</li></ul></aside><h4> Volatile references </h4><p>The module <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_reference.Volatile.html">Eliom_reference.​Volatile</a></span> allows the creation of
 non-persistent Eliom references, which can then be used through a non-Lwt
 interface.
 </p><p>As <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_reference.Volatile.html#TYPEeref">Eliom_reference.​Volatile.​eref</a></span> is a subtype of <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_reference.html#TYPEeref">Eliom_reference.​eref</a></span>, a volatile reference <span class="monospace">eref</span> may be used
