@@ -57,18 +57,18 @@ Module <<a_api subproject="server" | module Eliom_notif >>
 makes it possible for a server to send values to clients with a very simple
 interface. See later in this chapter for lower level server push notifications.
 
-Create a module for each kind of notifications you want using module
-<<a_api subproject="server" | module Eliom_notif.Simple >>.
-For example the notifications of new messages in a chat.
+Create a module for each kind of notifications you want using the
+<<a_api subproject="server" | module Eliom_notif.Make_Simple >> functor.
+For example, there would be a module for new message notifications in a chat.
 
-Each client process must register on each resource for which it wants
-to receive the the notifications
+Each client process must subscribe to each resource for which it wants
+to receive the notifications
 (each chat currently opened, in our example), using function
-<<a_api subproject="server" | val Eliom_notif.Simple.listen >>.
+<<a_api subproject="server" | val Eliom_notif.Make_Simple.listen >>.
 
-Then the server can send a notification to all the clients listening
+Then, the server can send a notification to all the clients listening
 on a resource, using function
-<<a_api subproject="server" | val Eliom_notif.Simple.notify >>.
+<<a_api subproject="server" | val Eliom_notif.Make_Simple.notify >>.
 
 More details in the API documentation of module
 <<a_api subproject="server" | module Eliom_notif >>.

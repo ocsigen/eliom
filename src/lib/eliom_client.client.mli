@@ -321,7 +321,7 @@ val persist_document_head : unit -> unit
 
 (** A [('a, 'b) server_function] provides transparently access to a
     server side function which has been created by {% <<a_api
-    subproject="server"|Eliom_client.server_function>> %}.
+    subproject="server"| val Eliom_client.server_function>> %}.
 
     See also {% <<a_api subproject="server" text="the opaque server
     side representation"| type Eliom_client.server_function>> %}.
