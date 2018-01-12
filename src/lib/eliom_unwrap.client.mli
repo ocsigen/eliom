@@ -96,6 +96,3 @@ val register_unwrapper' : unwrap_id -> ('a -> 'b option) -> unit
 *)
 val late_unwrap_value :
   _ Eliom_runtime.Client_value_server_repr.t -> _ -> unit
-
-(** Lwt_log section for this module. *)
-val log_section : Lwt_log.section

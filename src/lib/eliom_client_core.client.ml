@@ -27,9 +27,7 @@ module Xml = Eliom_content_core.Xml
 let section = Lwt_log.Section.make "eliom:client"
 let log_section = section
 let _ = Lwt_log.Section.set_level log_section Lwt_log.Info
-(* *)
-
-
+let section_page = Lwt_log.Section.make "eliom:client:page"
 
 (* == Auxiliaries *)
 
@@ -690,6 +688,12 @@ type state_id = {
 
 module Page_status_t = struct
   type t = Generating | Active | Cached | Dead
+  let to_string st =
+    match st with
+    | Generating -> "Generating"
+    | Active     -> "Active"
+    | Cached     -> "Cached"
+    | Dead       -> "Dead"
 end
 
 type page = {
@@ -730,7 +734,9 @@ let this_page : page Lwt.key = Lwt.new_key ()
 
 let get_this_page () = match Lwt.get this_page with
   | Some p -> p
-  | None -> !active_page
+  | None ->
+    Lwt_log.ign_debug_f ~section:section_page "No page in context";
+    !active_page
 
 let state_key {session_id; state_index} =
   Js.string (Printf.sprintf "state_history_%x_%x" session_id state_index)

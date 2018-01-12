@@ -21,7 +21,7 @@ open Eliom_lib
 open Ocsigen_cookies
 
 (* Logs *)
-let section = Lwt_log.Section.make "eliom:client"
+let section = Lwt_log.Section.make "eliom:process"
 let log_section = section
 let _ = Lwt_log.Section.set_level log_section Lwt_log.Info
 (* *)

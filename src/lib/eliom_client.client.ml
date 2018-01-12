@@ -40,12 +40,6 @@ have been scheduled before, even when the CSS is cached. This can slow
 down page changes.
 *)
 
-(* Logs *)
-let section = Lwt_log.Section.make "eliom:client"
-let log_section = section
-let _ = Lwt_log.Section.set_level log_section Lwt_log.Info
-(* *)
-
 let insert_base page =
   let b = Dom_html.createBase Dom_html.document in
   b##.href := Js.string (Eliom_process.get_base_url ());
@@ -559,11 +553,14 @@ let stash_reload_function f =
   let page = get_this_page () in
   let state_id = page.page_id in
   let id = state_id.state_index in
+  Lwt_log.ign_debug_f ~section:section_page
+    "Update reload function for page %d" id;
   reload_functions :=
     (id, f) ::
     (List.filter (fun (id', _) -> id <> id') !reload_functions)
 
 let change_url_string ~replace uri =
+  Lwt_log.ign_debug_f ~section:section_page "Change url string: %s" uri;
   current_uri := fst (Url.split_fragment uri);
   Eliom_request_info.set_current_path !current_uri;
   if Eliom_process.history_api then begin
@@ -624,6 +621,7 @@ let change_url
     ?keep_nl_params
     ?nl_params
     params =
+  Lwt_log.ign_debug ~section:section_page "Change url";
   reload_function :=
     (match Eliom_service.xhr_with_cookies service with
      | None when
@@ -700,6 +698,7 @@ let replace_page ~do_insert_base new_page =
 
 (* Function to be called for client side services: *)
 let set_content_local ?offset ?fragment new_page =
+  Lwt_log.ign_debug ~section:section_page "Set content local";
   let locked = ref true in
   let recover () =
     if !locked then Lwt_mutex.unlock load_mutex;
@@ -741,7 +740,7 @@ let set_content_local ?offset ?fragment new_page =
 
 (* Function to be called for server side services: *)
 let set_content ~replace ?uri ?offset ?fragment ?state_id content =
-  Lwt_log.ign_debug ~section "Set content";
+  Lwt_log.ign_debug ~section:section_page "Set content";
   (* TODO: too early? *)
   let target_uri =
     match uri with
@@ -920,6 +919,7 @@ let change_url_string_protected ~replace url =
 
 let route ~replace ?(keep_url = false)
     ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
+  Lwt_log.ign_debug ~section:section_page "Route";
   let r = !Eliom_request_info.get_sess_info
   and info, i_subpath =
     match i_subpath with
@@ -939,6 +939,7 @@ let route ~replace ?(keep_url = false)
     Lwt.fail e
 
 let after_action uri =
+  Lwt_log.ign_debug ~section:section_page "After action";
   let
     ({ Eliom_common.si_all_get_params ; si_all_post_params }
      as i_sess_info) =
@@ -966,9 +967,11 @@ let after_action uri =
 let do_follow_up uri =
   match !follow_up with
   | Some (`Redirect f) ->
+Lwt_log.ign_debug ~section:section_page "Performing redirect";
     follow_up := None;
     f uri
   | Some `Reload ->
+Lwt_log.ign_debug ~section:section_page "Performing reload";
     follow_up := None;
     after_action uri
   | None ->
@@ -988,7 +991,7 @@ let change_page (type m)
     ?keep_get_na_params
     ?progress ?upload_progress ?override_mime_type
     get_params post_params =
-  Lwt_log.ign_debug ~section "Change page";
+  Lwt_log.ign_debug ~section:section_page "Change page";
   let xhr = Eliom_service.xhr_with_cookies service in
   if xhr = None
   || (https = Some true && not Eliom_request_info.ssl_)
@@ -1115,6 +1118,7 @@ let register_redirect (Redirection service) =
 
 let change_page_unknown
     ?meth ?hostname ?(replace = false) i_subpath i_get_params i_post_params =
+  Lwt_log.ign_debug ~section:section_page "Change page unknown";
   let i_sess_info = !Eliom_request_info.get_sess_info ()
   and i_meth =
     match meth, i_post_params with
@@ -1138,7 +1142,7 @@ let change_page_unknown
 
 (* Function used in "onclick" event handler of <a>.  *)
 let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
-  Lwt_log.ign_debug ~section "Change page uri";
+  Lwt_log.ign_debug ~section:section_page "Change page uri";
   with_progress_cursor
     (let uri, fragment = Url.split_fragment full_uri in
      if uri <> !current_uri || fragment = None
@@ -1164,7 +1168,7 @@ let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
      end)
 
 let change_page_uri ?replace full_uri =
-  Lwt_log.ign_debug ~section "Change page uri";
+  Lwt_log.ign_debug ~section:section_page "Change page uri";
   try%lwt
     match Url.url_of_string full_uri with
     | Some (Url.Http url | Url.Https url) ->

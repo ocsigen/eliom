@@ -98,7 +98,6 @@ end
 
 let _ =
   Lwt_log.default := Lwt_log.console;
-  Lwt_log.add_rule "*" Lwt_log.Debug;
   Lwt.async_exception_hook := (fun exn -> Lwt_log.ign_error ~section:Lwt_log.eliom ~exn "Async" )
 
 (* Deprecated ON *)

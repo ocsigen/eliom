@@ -33,9 +33,7 @@ let map : (Obj.t,Obj.t) weakMap Js.t = jsnew weakMap ()
 
 open Eliom_lib
 
-let section = Lwt_log.Section.make "eliom.unwrap"
-let log_section = section
-let _ = Lwt_log.Section.set_level section Lwt_log.Info
+let section = Lwt_log.Section.make "eliom:unwrap"
 
 module Mark : sig
   type t
