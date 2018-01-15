@@ -27,9 +27,7 @@ module Xml = Eliom_content_core.Xml
 let section = Lwt_log.Section.make "eliom:client"
 let log_section = section
 let _ = Lwt_log.Section.set_level log_section Lwt_log.Info
-(* *)
-
-
+let section_page = Lwt_log.Section.make "eliom:client:page"
 
 (* == Auxiliaries *)
 
@@ -690,39 +688,54 @@ type state_id = {
 
 module Page_status_t = struct
   type t = Generating | Active | Cached | Dead
+  let to_string st =
+    match st with
+    | Generating -> "Generating"
+    | Active     -> "Active"
+    | Cached     -> "Cached"
+    | Dead       -> "Dead"
 end
 
 type page = {
-  page_id : state_id;
+  page_unique_id : int;
+  mutable page_id : state_id;
   page_status : Page_status_t.t React.S.t;
   page_is_cached : bool ref;
   set_page_status : ?step:React.step -> Page_status_t.t -> unit
 }
 
+let set_page_status p st =
+  Lwt_log.ign_debug_f ~section:section_page "Set page status %d/%d: %s"
+    p.page_unique_id p.page_id.state_index (Page_status_t.to_string st);
+  p.set_page_status st
+
 let retire_page p =
-  p.set_page_status @@ if !(p.page_is_cached) then Cached else Dead
+  set_page_status p @@ if !(p.page_is_cached) then Cached else Dead
 
 let session_id = random_int ()
 let next_state_id =
   let last = ref 0 in fun () -> incr last; {session_id; state_index = !last}
 
+let last_page_id = ref (-1)
 let mk_page ?(state_id = next_state_id ()) ~status () =
+  incr last_page_id;
+  Lwt_log.ign_debug_f ~section:section_page "Create page %d/%d"
+    !last_page_id state_id.state_index;
   let page_status, set_page_status = React.S.create status in
-  {page_id = state_id;
+  {page_unique_id = !last_page_id;
+   page_id = state_id;
    page_status;
    page_is_cached = ref false;
    set_page_status}
 
 let active_page = ref @@ mk_page ~status:Active ()
-let next_page = ref @@ mk_page ~status:Generating ()
 
-let set_active_page p = active_page := p
-
-let advance_page () =
+let set_active_page p =
+  Lwt_log.ign_debug_f ~section:section_page "Set active page %d/%d"
+    p.page_unique_id p.page_id.state_index;
   retire_page !active_page;
-  set_active_page !next_page;
-  !active_page.set_page_status Active;
-  next_page := mk_page ~status:Generating ()
+  active_page := p;
+  set_page_status !active_page Active
 
 (* This key serves as a hook to access the page the currently running code is
    generating. *)
@@ -730,7 +743,21 @@ let this_page : page Lwt.key = Lwt.new_key ()
 
 let get_this_page () = match Lwt.get this_page with
   | Some p -> p
-  | None -> !active_page
+  | None ->
+    Lwt_log.ign_debug_f ~section:section_page "No page in context";
+    !active_page
+
+let with_new_page ?state_id ~replace () f =
+  let state_id = if replace then Some (!active_page).page_id else state_id in
+  let page = mk_page ?state_id ~status:Generating () in
+  let%lwt v = Lwt.with_value this_page (Some page) @@ f in
+  Lwt_log.ign_debug_f ~section:section_page "Done with page %d/%d"
+    page.page_unique_id page.page_id.state_index;
+  Lwt.return v
+
+let advance_page () =
+  let new_page = get_this_page () in
+  if new_page != !active_page then set_active_page new_page
 
 let state_key {session_id; state_index} =
   Js.string (Printf.sprintf "state_history_%x_%x" session_id state_index)
