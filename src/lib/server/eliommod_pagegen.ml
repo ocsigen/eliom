@@ -376,7 +376,7 @@ let gen is_eliom_extension sitedata = function
                    (Ocsigen_extensions.Ext_found
                       (fun () ->
                         Lwt.return
-                          (Ocsigen_http_frame.Result.update r ~code:500 ())))
+                          (Ocsigen_http_frame.Result.update r ~code:400 ())))
                | Eliom_common.Eliom_404 ->
                  Lwt.return
                    (Ocsigen_extensions.Ext_next previous_extension_err)
