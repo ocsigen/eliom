@@ -20,7 +20,7 @@
 include Eliom_parameter_sigs.S
   with type raw_post_data =
     ((string * string) * (string * string) list) option *
-    string Ocsigen_stream.t option
+    bytes Ocsigen_stream.t option
 
 (** [user_type ~of_string ~to_string s] construct a parameter, labeled
     [s], such that the server will have to use [of_string] and

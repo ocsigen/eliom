@@ -351,7 +351,7 @@ let set_site_handler sitedata handler =
 
 type raw_post_data =
   ((string * string) * (string * string) list) option *
-  string Ocsigen_stream.t option
+  bytes Ocsigen_stream.t option
 
 let raw_post_data sp =
   let ri = get_ri_sp sp in

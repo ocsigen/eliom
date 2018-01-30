@@ -113,8 +113,9 @@ module Make_typed_xml_registration
       Format.asprintf "%a"
         (Format.pp_print_list ~pp_sep:(fun _ () -> ()) out)
         l
-      |> Ocsigen_stream.StringStream.put
-      |> Ocsigen_stream.StringStream.make
+      |> Bytes.unsafe_of_string
+      |> Ocsigen_stream.BytesStream.put
+      |> Ocsigen_stream.BytesStream.make
 
     let result_of_content c =
       let default_result = Ocsigen_http_frame.Result.default () in
@@ -726,7 +727,7 @@ end
 
 module Streamlist_reg_base = struct
 
-  type page = (((unit -> (string Ocsigen_stream.t) Lwt.t) list) * string)
+  type page = (((unit -> (bytes Ocsigen_stream.t) Lwt.t) list) * string)
   type options = unit
   type result = unknown_content kind
 
