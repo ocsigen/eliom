@@ -1,3 +1,9 @@
+===== 6.3 (2018-02-01) =====
+
+* Compatibility with OCaml 4.06, js_of_ocaml 3.0 and Lwt 3.0
+* DOM caching (preview)
+* Various small fixes and improvements
+
 ===== 6.2 (2017-02-07) =====
 
 * Implement Eliom_client.onchangepage
