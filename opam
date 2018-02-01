@@ -26,4 +26,4 @@ depends: [
   ("dbm" | "sqlite3")
   "base-bytes"
 ]
-available: [ocaml-version >= "4.02.2"]
+available: [ocaml-version >= "4.03.0"]
