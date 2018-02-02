@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"><head><title> Services </title><meta charset="utf8"/><link rel="stylesheet" href="/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1> Services </h1><nav id="overview" class="ocsimore_outline"><header><p><strong>Table of contents</strong></p></header></nav><script>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title> Services </title><meta charset="utf8"/><link rel="stylesheet" href="file:///home/balat/ocsigen/ocsigen.github.io/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1> Services </h1><nav id="overview" class="ocsimore_outline"><header><p><strong>Table of contents</strong></p></header></nav><script>
 //<![CDATA[
 outline([0,-515484383,0,[0,2],[0,"nav",[0,"aside",0]],"overview",0])
 //]]>
@@ -16,19 +16,19 @@ parameters, and services representing redirections.
 should answer an incoming request; and
 </li><li> a service handler that will generate the answer.
 </li></ul><p>Services are most commonly used to create links and forms towards a
-service, using for example the function <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.D.html#VALa">Eliom_content.​Html.​D.​a</a></span>. See chapter <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-links.html">Creating links and forms</a></span> for more
+service, using for example the function <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.D#VALa">Eliom_content.​Html.​D.​a</a></span>. See chapter <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-links">Creating links and forms</a></span> for more
 information.
 </p><p>Manipulation of Eliom services can be done through the values of type
-<span class="teletype">type Eliom_service.t</span> (see <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service_sigs.S.html#TYPEt">Eliom_service_sigs.​S.​t</a></span>).  The service creation can be split in two
+<span class="teletype">type Eliom_service.t</span> (see <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service_sigs.S#TYPEt">Eliom_service_sigs.​S.​t</a></span>).  The service creation can be split in two
 steps:
 </p><ul><li> create a value of type <span class="teletype">Eliom_service.t</span>,
 most commonly by using the function
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service.html#VALcreate">Eliom_service.​create</a></span>; and
-</li><li> register a service handler, e.g., using <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_registration.Html.html#VALregister">Eliom_registration.​Html.​register</a></span>. The handler receives the server
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service#VALcreate">Eliom_service.​create</a></span>; and
+</li><li> register a service handler, e.g., using <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_registration.Html#VALregister">Eliom_registration.​Html.​register</a></span>. The handler receives the server
 parameters (GET and POST) and is responsible for producing the
 content sent to the client.
 </li></ul><p>The rest of this chapter focuses on service creation. See chapter
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-outputs.html">Implementing service handlers</a></span> for
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-outputs">Implementing service handlers</a></span> for
 more information on handler implementation and registration.
 </p><h2> Service creation </h2><div style="font-style: italic;"><p>Warning: in this manual, we use the
 term <em>service</em> both to denote a value of type <span class="teletype">Eliom_service.t</span>
@@ -38,11 +38,11 @@ handler. In case of ambiguities, we will use <span class="teletype">service</spa
 monotype– to designate a value of type <span class="teletype">Eliom_service.t</span>.</p></div><p>The standard way to create a service is a call of the form
 <span class="teletype">Eliom_service.create ~meth ~path ()</span>, where
 </p><ul><li> <span class="teletype">~meth</span> (see
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service_sigs.TYPES.html#TYPEmeth">Eliom_service_sigs.​TYPES.​meth</a></span>)
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service_sigs.TYPES#TYPEmeth">Eliom_service_sigs.​TYPES.​meth</a></span>)
 specifies the HTTP method and the HTTP parameters of the service; and
 </li><li> <span class="teletype">~path:(Path p)</span> specifies a path, while
 <span class="teletype">~path:No_path</span> defines a pathless service
-(see <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service_sigs.S.html#TYPEpath_option">Eliom_service_sigs.​S.​path_option</a></span>).
+(see <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service_sigs.S#TYPEpath_option">Eliom_service_sigs.​S.​path_option</a></span>).
 </li></ul><h3 id="http-meth"> Service method  <a class="backref" href="#http-meth">&#182;</a></h3><p>Services can respond to any of the GET, POST, PUT, and DELETE HTTP
 methods.
 </p><ul><li> The GET method is intended to be used to retrieve a document from
@@ -59,7 +59,7 @@ parameters in forms, but it is possible to use a POST form with
 </li><li> The PUT and DELETE methods are mostly used to implement RESTful
 applications.
 </li></ul><p>The corresponding
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service_sigs.TYPES.html#TYPEmeth">Eliom_service_sigs.​TYPES.​meth</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service_sigs.TYPES#TYPEmeth">Eliom_service_sigs.​TYPES.​meth</a></span>
 constructors
 are <span class="teletype">Get g</span>, <span class="teletype">Post (g, p)</span>, <span class="teletype">Put g</span>, and <span class="teletype">Delete g</span>,
 where <span class="teletype">g</span> and <span class="teletype">p</span> belong in
@@ -81,13 +81,13 @@ parameters which are part of the body of the request.
 </p><p>Values of the type <span class="teletype">Eliom_parameter.params_type</span>
 represent the set of expected arguments with their types. They are
 built using combinators from the
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_parameter.html">Eliom_parameter</a></span>
-module. See chapter <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-params.html">Service
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_parameter">Eliom_parameter</a></span>
+module. See chapter <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-params">Service
 parameters </a></span> for a detailled description of this module.
 </p><p>Type information associated to each argument allows Eliom to
 automatically convert the actual parameters into the corresponding
 OCaml types. If the parameter cannot be converted, the exception
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_common.html#EXCEPTIONEliom_Typing_Error">Eliom_common.​Eliom_Typing_Error</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_common#EXCEPTIONEliom_Typing_Error">Eliom_common.​Eliom_Typing_Error</a></span>
 is raised. The handling of such errors may be customized by providing
 the argument <span class="teletype">~error_handler</span> when registering the service.
 </p><h3 id="path"> Services with path (&quot;regular&quot; services)  <a class="backref" href="#path">&#182;</a></h3><p>Services attached to paths, or more simply <em>regular</em> services, are
@@ -95,7 +95,7 @@ the main entry points of sites. They are identified by the path of the
 URL and by (GET or POST) parameters.  They correspond to classical
 URLs, and they last forever once registered.
 </p><p>For creating a regular service, the <span class="teletype">Path p</span> constructor of
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service_sigs.S.html#TYPEpath_option">Eliom_service_sigs.​S.​path_option</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service_sigs.S#TYPEpath_option">Eliom_service_sigs.​S.​path_option</a></span>
 is used.  The path <span class="teletype">p</span> is represented in Eliom as a list of
 strings. For example:
 </p><p><span class="teletype">[&quot;foo&quot;; &quot;bar&quot;]</span> corresponds to the URL <span class="teletype">foo/bar</span>. <br/>
@@ -118,7 +118,7 @@ versa).
 latter, the <span class="teletype">&quot;/&quot;</span> will be encoded in the URL.<br/>
 </li></ul><h3 id="pathless">Pathless services  <a class="backref" href="#pathless">&#182;</a></h3><p>Pathless services are not attached to a URL path. Such services are
 created with the <span class="teletype">No_path</span> constructor of
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service_sigs.S.html#TYPEpath_option">Eliom_service_sigs.​S.​path_option</a></span>.
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service_sigs.S#TYPEpath_option">Eliom_service_sigs.​S.​path_option</a></span>.
 </p><p>Pathless services are only identified by a special parameter, no
 matter what the path and the other parameters in the URL are. They are
 used to implement some behavior that should not be attached to a
@@ -126,7 +126,7 @@ particular URL. A link to such a service points to the current URL
 with just an additional special parameter. This is useful when you
 want the same link or form on several pages (for example, a login box)
 but you don't want to go to another URL. Pathless services are often
-used with <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-outputs.html#actions">actions</a></span>.
+used with <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-outputs#actions">actions</a></span>.
 </p><p>Here is a simple example. Suppose that the function <span class="teletype">remove</span>
 removes one piece of data from a database (based on the identifier of
 the data). If you want to put a link on your page to call this
@@ -151,7 +151,7 @@ Form.post_form
 current page. If you want to combine the service call with a URL
 change, it is possible to attach a non-attached service to another
 service using function
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service.html#VALattach">Eliom_service.​attach</a></span>.
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service#VALattach">Eliom_service.​attach</a></span>.
 </p><p>Example:
 </p><pre class=""><code class="language-ocaml translatable">let service =
   Eliom_service.attach
@@ -170,11 +170,11 @@ you probably want it to be available only for a short time.
 service. Just provide the maximum number of uses with the optional
 <span class="teletype">?max_use</span> parameter while creating the service.
 </p><h2> Non-standard services </h2><p>Some kinds of services do not fit in our canonical way of defining
-services, <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service.html#VALcreate">Eliom_service.​create</a></span> .
+services, <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service#VALcreate">Eliom_service.​create</a></span> .
 </p><h3 id="attached_services"> Attached services  <a class="backref" href="#attached_services">&#182;</a></h3><p>Attached services are created using the functions
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service.html#VALcreate_attached_get">Eliom_service.​create_attached_get</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service#VALcreate_attached_get">Eliom_service.​create_attached_get</a></span>
 (GET method) and
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service.html#VALcreate_attached_post">Eliom_service.​create_attached_post</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service#VALcreate_attached_post">Eliom_service.​create_attached_post</a></span>
 (POST method).
 </p><p>Anonymous GET attached services are often created dynamically with
 respect to previous interaction with the user (e.g. filling forms in
@@ -183,7 +183,7 @@ multiple steps). They handle correctly the classical Web interactions
 service each time you want to record a precise point in the
 interaction with the user, to be able to come back there later.
 </p><p>Often, they should be used with a restricted scope (see the section
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-services.html#service_scope">service
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-services#service_scope">service
 scopes</a></span>).
 </p><p>POST attached services can be used to customize the behaviour of a
 URL. Some of their uses are:
@@ -197,7 +197,7 @@ use a (named) POST (attached) service.
 has expired, or if the session to which it belongs was closed), the
 fallback is called.
 </p><p>The fallback of a GET attached service cannot take parameters. But it
-is possible to use a <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-services.html#preapplied">pre-applied</a></span> service as fallback.
+is possible to use a <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-services#preapplied">pre-applied</a></span> service as fallback.
 </p><p>Attached services can have a timeout and can be disposable, just like
 pathless services.
 </p><h3 id="unregistrable_services"> Unregistrable services  <a class="backref" href="#unregistrable_services">&#182;</a></h3><p>Some values of type <span class="teletype">Eliom_service.t</span> cannot be meaningfully
@@ -210,7 +210,7 @@ links.
 </p><h4>External services</h4><p>It is possible to define external services, that is, services that
 belong to an external Web site (on the same server or not).  To do
 this, use the function <span class="teletype">Eliom_service.extern</span>
-(see <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service_sigs.S.html#VALextern">Eliom_service_sigs.​S.​extern</a></span>).
+(see <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service_sigs.S#VALextern">Eliom_service_sigs.​S.​extern</a></span>).
 </p><p>For example, the following code defines a link to the OCaml Wikipedia
 page:
 </p><pre class=""><code class="language-ocaml translatable">Eliom_content.Html.D.a
@@ -222,25 +222,25 @@ page:
           Eliom_parameter.(suffix (all_suffix &quot;suff&quot;)))
      ())
   [pcdata &quot;OCaml on Wikipedia&quot;]
-  [&quot;OCaml&quot;]</code></pre><h4 id="staticparts"> Static files service <a class="backref" href="#staticparts">&#182;</a></h4><p><span><a class="ocsforge_doclink_ocsigenserver" href="/ocsigenserver/2.8/manual/staticmod.html">Staticmod</a></span>
+  [&quot;OCaml&quot;]</code></pre><h4 id="staticparts"> Static files service <a class="backref" href="#staticparts">&#182;</a></h4><p><span><a class="ocsforge_doclink_ocsigenserver" href="/ocsigenserver/2.8/manual/staticmod">Staticmod</a></span>
 is an Ocsigen Server extension serving static (non-generated) files
 (for example, images and stylesheets). It can be used together with
 Eliom. The predefined service
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service.html#VALstatic_dir">Eliom_service.​static_dir</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service#VALstatic_dir">Eliom_service.​static_dir</a></span>
 can be used to make links to static files. It takes as parameter the
 path of the file.
 </p><p>For example, the following code will create this link:
-<a href="/ocsigen10.png.html" class="ocsimore_phrasing_link">download image</a>.
+<a href="/ocsigen10.png" class="ocsimore_phrasing_link">download image</a>.
 </p><pre class=""><code class="language-ocaml translatable">let open Eliom_content.Html.F in
 a (static_dir ()) [pcdata &quot;download image&quot;] [&quot;ocsigen10.png&quot;]</code></pre><p>It is also possible to send static files using Eliom, with
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_registration.File.html">Eliom_registration.​File</a></span>.
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_registration.File">Eliom_registration.​File</a></span>.
 See
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-outputs.html#eliomfiles">Sending files</a></span>.
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-outputs#eliomfiles">Sending files</a></span>.
 </p><h4 id="preapplied">Pre-applied services <a class="backref" href="#preapplied">&#182;</a></h4><p>It is possible to preapply the GET parameters of a service to obtain a
 service without parameters, or only the POST ones. It is done using
 <span class="teletype">Eliom_service.preapply</span>
 (see
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service_sigs.S.html#VALpreapply">Eliom_service_sigs.​S.​preapply</a></span>).
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service_sigs.S#VALpreapply">Eliom_service_sigs.​S.​preapply</a></span>).
 For example:
 </p><pre class=""><code class="language-ocaml translatable">let s =
   Eliom_service.create
@@ -251,7 +251,7 @@ For example:
 let preappl = Eliom_service.preapply s 3</code></pre><p>It is not possible to register a handler on a preapplied service, but
 you can use them in links or as fallbacks for attached services.
 </p><h4 id="void">Reload actions <a class="backref" href="#void">&#182;</a></h4><p><span class="teletype">Eliom_service.reload_action</span>
-(see <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service_sigs.S.html#VALreload_action">Eliom_service_sigs.​S.​reload_action</a></span>)
+(see <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service_sigs.S#VALreload_action">Eliom_service_sigs.​S.​reload_action</a></span>)
 is a special non-attached action, with special behavior: it has no
 parameter at all, not even non-attached parameters.  Use it if you
 want to make a link to the current page without non-attached
@@ -287,9 +287,9 @@ it available only to a session, a client side process, or a group of
 sessions.
 </p><p>To limit the scope of a service, just add the argument <span class="teletype">~scope</span> to
 the
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_registration.Html.html#VALregister">Eliom_registration.​Html.​register</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_registration.Html#VALregister">Eliom_registration.​Html.​register</a></span>
 function (same for the other <span class="teletype">register</span> variants). The default scope
-is <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_common.html#VALsite_scope">Eliom_common.​site_scope</a></span>.
+is <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_common#VALsite_scope">Eliom_common.​site_scope</a></span>.
 </p><p>The same service can be registered with several scopes.  This makes it
 possible, for example, to generate custom services for a specific
 user.  Eliom will try to find the service by trying the following (in
@@ -310,7 +310,7 @@ will appear in the logs. This prevents broken links.
 phase (while reading the site configuration) or while processing a
 request, because Eliom must know the information about the site. Be
 very careful about this if you want to use static linking (see the
-section on <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/workflow-configuration.html#static_linking">static linking</a></span> in the chapter about
+section on <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/workflow-configuration#static_linking">static linking</a></span> in the chapter about
 Compiling and configuring Eliom modules).
 </li><li> All regular services (but not pathless and attached services) need
 to be created in a module loaded inside a <span class="teletype">&lt;host&gt;</span> tag of the
@@ -331,7 +331,7 @@ this happens after server startup, it will be ignored (with a
 warning in the logs).
 </li><li> GET attached services (without POST parameters) can be registered
 only with a regular service without GET/POST parameters as fallback.
-But it may be <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-services.html#preapplied"><em>preapplied</em></a></span>.
+But it may be <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-services#preapplied"><em>preapplied</em></a></span>.
 </li><li> The registration of (main) services must be completed before the end
 of the loading of the module. It is not possible to launch an Lwt
 thread with the intention that it will register a service later, as
@@ -341,7 +341,7 @@ raise an exception most of
 the time, but you may also get unexpected results (if the thread is
 executed while another site is loaded).  If you use threads in the
 initialization phase of your module (for example if you need
-information from a database), use <span><a class="ocsforge_doclink_lwt" href="/lwt/3.1.0/api/Lwt_unix.html#VALrun">Lwt_unix.​run</a></span> to wait for the end of the thread.
+information from a database), use <span><a class="ocsforge_doclink_lwt" href="/lwt/3.1.0/api/Lwt_unix#VALrun">Lwt_unix.​run</a></span> to wait for the end of the thread.
 </li><li> Some services can be registered multiple times, with different
 options. This allows for example choosing between different handlers
 when the request is done in a particular session or protocol (HTTP

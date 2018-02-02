@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"><head><title> Client-side services </title><meta charset="utf8"/><link rel="stylesheet" href="/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1> Client-side services </h1><p>Starting with Eliom 6.0, services can have client-side
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title> Client-side services </title><meta charset="utf8"/><link rel="stylesheet" href="file:///home/balat/ocsigen/ocsigen.github.io/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1> Client-side services </h1><p>Starting with Eliom 6.0, services can have client-side
 handlers. Registering client-side handlers for services allows us to
 perform most of the operations (e.g., building the user interface)
 locally, and only call the server for operations that are by necessity
@@ -10,11 +10,11 @@ within a Web application. In this manual chapter, we focus on the
 client-side service mechanics and do not go into the details of
 setting up a complete mobile application. The complete setup needed is
 discussed in the
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/mobile-apps.html">mobile applications chapter </a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/mobile-apps">mobile applications chapter </a></span>
 of this manual.
-</p><h2> Service creation and registering </h2><p>As described in the chapter <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-services.html">on
+</p><h2> Service creation and registering </h2><p>As described in the chapter <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-services">on
 server-side services</a></span>, services are first created via
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service.html#VALcreate">Eliom_service.​create</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_service#VALcreate">Eliom_service.​create</a></span>
 and similar functions, and subsequently registered.
 </p><p>The first step (creation) can only happen on the server; allowing the
 opposite would permit &quot;creating&quot; on the client services that are not
@@ -30,7 +30,7 @@ following example:
 let%client s = ~%s</code></pre><p>The above style makes the service available under the same identifier
 (here <span class="teletype">s</span>) on both sides. Subsequently, the service
 can be registered on both sides with the same
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_registration.html">Eliom_registration</a></span> APIs. For example:
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_registration">Eliom_registration</a></span> APIs. For example:
 </p><pre class=""><code class="language-ocaml translatable">let%shared () =
   Eliom_registration.Html.register s
     (fun () () -&gt;
@@ -40,14 +40,14 @@ can be registered on both sides with the same
             Html.F.(body [
               h1 [pcdata &quot;Salut !&quot;];
             ])))</code></pre><p>The types of the handlers are compatible between the two sides. For
-instance, <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/Eliom_registration.Html.html">Eliom_registration.​Html</a></span>
+instance, <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/Eliom_registration.Html">Eliom_registration.​Html</a></span>
 expects a function that produces a
-<span class="teletype">Html_types.html Eliom_content.Html.D.elt Lwt.t</span>, for <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/Eliom_registration.Action.html">Eliom_registration.​Action</a></span> we must return
+<span class="teletype">Html_types.html Eliom_content.Html.D.elt Lwt.t</span>, for <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/Eliom_registration.Action">Eliom_registration.​Action</a></span> we must return
 <span class="teletype">unit Lwt.t</span>, and so on. The behavior of all services is
 compatible to the extent possible, e.g., actions perform a reload
 after performing their side effect.
 </p><p>For application services, the
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/Eliom_registration.App.html">Eliom_registration.​App</a></span> functor
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/Eliom_registration.App">Eliom_registration.​App</a></span> functor
 needs to be called just like on the server. The signatures are
 compatible between the two sides, and therefore the functor invocation
 can happen in a shared section.
@@ -62,7 +62,7 @@ mobile applications.
 and a collection of POST parameters. This is clearly a key operation
 on the server, allowing Eliom to respond on different paths. Routing
 has also become available on the client via the function
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/Eliom_client.html#VALchange_page_uri">Eliom_client.​change_page_uri</a></span>.
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/Eliom_client#VALchange_page_uri">Eliom_client.​change_page_uri</a></span>.
 This function can be used for example in order to open a link inside
 a mobile application without launching the Web browser.
 </p></body></html>

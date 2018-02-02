@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Generating HTML pages &amp;#182;</title><meta charset="utf8"/><link rel="stylesheet" href="/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1 id="server_generating_html">Generating HTML pages <a class="backref" href="#server_generating_html">&#182;</a></h1><p>Ocsigen provides several ways to generate and type HTML pages.
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Generating HTML pages &amp;#182;</title><meta charset="utf8"/><link rel="stylesheet" href="file:///home/balat/ocsigen/ocsigen.github.io/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1 id="server_generating_html">Generating HTML pages <a class="backref" href="#server_generating_html">&#182;</a></h1><p>Ocsigen provides several ways to generate and type HTML pages.
 </p><ul><li> The default technique to produce HTML pages using Eliom are the
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.F.html">Eliom_content.​Html.​F</a></span>,
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.D.html">Eliom_content.​Html.​D</a></span> and
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.R.html">Eliom_content.​Html.​R</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.F">Eliom_content.​Html.​F</a></span>,
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.D">Eliom_content.​Html.​D</a></span> and
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.R">Eliom_content.​Html.​R</a></span>
 modules. It is the only one supported for client-server Eliom programs.
 This module provides a typing based on OCaml's polymorphic variants,
 which ensures at compile time, that the pages you will generate will
@@ -15,15 +15,15 @@ and is compatible with the previous one.
 </li></ul><p>The types in OCaml closest to XML types are <em>polymorphic variants</em>.
 Ocsigen uses them to provide a module with very good HTML typing.
 The full documentation is available
-<span><a class="ocsforge_doclink_tyxml" href="/tyxml/4.1.0/api/Html.M.html">in the TyXML documentation</a></span>.
+<span><a class="ocsforge_doclink_tyxml" href="/tyxml/4.1.0/api/Html.M">in the TyXML documentation</a></span>.
 </p><nav id="overview" class="ocsimore_outline"><header><p><strong>Table of contents</strong></p></header></nav><script>
 //<![CDATA[
 outline([0,-515484383,0,[0,2],[0,"nav",[0,"aside",0]],"overview",0])
 //]]>
 </script><h2> Generating HTML for Eliom applications</h2><h3> The TyXML library vs. the DOM API</h3><p>On client side there are two kinds of HTML representations: one is
-based on the <span><a class="ocsforge_doclink_tyxml" href="/tyxml/4.1.0/manual/intro.html">TyXML library</a></span> and the other
+based on the <span><a class="ocsforge_doclink_tyxml" href="/tyxml/4.1.0/manual/intro">TyXML library</a></span> and the other
 one is the browser DOM tree accessible through Js_of_ocaml modules
-<span><a class="ocsforge_doclink_js_of_ocaml" href="/js_of_ocaml/2.8.4/api/Dom.html">Dom</a></span> and <span><a class="ocsforge_doclink_js_of_ocaml" href="/js_of_ocaml/2.8.4/api/Dom_html.html">Dom_html</a></span>. The TyXML representation is
+<span><a class="ocsforge_doclink_js_of_ocaml" href="/js_of_ocaml/2.8.4/api/Dom">Dom</a></span> and <span><a class="ocsforge_doclink_js_of_ocaml" href="/js_of_ocaml/2.8.4/api/Dom_html">Dom_html</a></span>. The TyXML representation is
 a OCaml immutable typed tree. The DOM tree is mutable structure
 manipulated using the browser API which permit the modification of the
 displayed page. In the DOM represention adding a node as a child to an
@@ -61,12 +61,12 @@ let d =
 function are also available on TyXML elements. See section the next
 section for HTML element manipulation, by value and by reference.
 </p><h3 id="unique"> HTML element manipulation, by value and by reference <a class="backref" href="#unique">&#182;</a></h3><p>There are four modules to create typed HTML:
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.F.html">Eliom_content.​Html.​F</a></span>,
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.D.html">Eliom_content.​Html.​D</a></span>,
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.C.html">Eliom_content.​Html.​C</a></span> and
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.R.html">Eliom_content.​Html.​R</a></span>.
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.F">Eliom_content.​Html.​F</a></span>,
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.D">Eliom_content.​Html.​D</a></span>,
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.C">Eliom_content.​Html.​C</a></span> and
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.R">Eliom_content.​Html.​R</a></span>.
 The last one is for reactive elements and is addressed in
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/clientserver-html.html">another section </a></span>.
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/clientserver-html">another section </a></span>.
 </p><p>It is possible to mix the four kinds of nodes in the same page.
 </p><p>Elements built with <span class="teletype">Html.F</span> are sent by value, while
 elements built with <span class="teletype">Html.D</span> are sent to the client by
@@ -125,11 +125,11 @@ HTTP request: hence, sending an element built with
 two different pages will produce two distinct nodes. If you want to
 define a element reference that is preserved accross the different
 page of an application, you must explicitely name this element with
-the function <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.Id.html#VALcreate_named_elt">Eliom_content.​Html.​Id.​create_named_elt</a></span>, that takes as parameters an
+the function <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.Id#VALcreate_named_elt">Eliom_content.​Html.​Id.​create_named_elt</a></span>, that takes as parameters an
 element identifier and a non named element.  Element identifiers are
-created with the function <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.Id.html#VALnew_elt_id">Eliom_content.​Html.​Id.​new_elt_id</a></span>. See also section <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/clientserver-applications.html#global">Global elements of an
+created with the function <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.Id#VALnew_elt_id">Eliom_content.​Html.​Id.​new_elt_id</a></span>. See also section <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/clientserver-applications#global">Global elements of an
 application</a></span>.
-</p><p>The module <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/Eliom_content.Html.Manip.html">Eliom_content.​Html.​Manip</a></span>
+</p><p>The module <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/Eliom_content.Html.Manip">Eliom_content.​Html.​Manip</a></span>
 allows using the classical DOM manipulation functions
 (e.g. appendChild, addEventlistener, ...) directly on the identifier
 of an HTML elements.
@@ -294,7 +294,7 @@ player should be preserved while browsing across the different pages of
 your site. For this purpose, Eliom provides a notion of global element. Such
 elements are instantied only once for an application and that unique
 instance is used in every page that references the element.
-</p><p>To create a global element, use function <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/Eliom_content.Html.Id.html#VALcreate_global_elt">Eliom_content.Html.Id.create_global_elt</a></span>.
+</p><p>To create a global element, use function <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/client/Eliom_content.Html.Id#VALcreate_global_elt">Eliom_content.Html.Id.create_global_elt</a></span>.
 </p><pre class=""><code class="language-ocaml translatable">val create_global_elt: 'a elt -&gt; 'a elt</code></pre><p>In the following example, the content of <span class="teletype">global_list</span> will be
 preserved when you click on the &quot;reload page&quot; link.
 </p><pre class=""><code class="language-ocaml translatable">[%%shared open Eliom_content.Html.D ]
@@ -371,8 +371,8 @@ let _ =
             (body [p [reload_link]])))</code></pre><h3> HTML syntax extension</h3><p><em>Warning:</em> The HTML syntax extension is only provided for Camlp4,
 not for PPX. Its use is very limited. We recommend that you use the
 modules
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.D.html">Eliom_content.​Html.​D</a></span> and
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.F.html">F</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.D">Eliom_content.​Html.​D</a></span> and
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_content.Html.F">F</a></span>
 to produce HTML content.
 </p><p>Ocsigen also has a syntax extension for OCaml that allows you to write
 pages using HTML syntax (but you are free not to use it).  This is

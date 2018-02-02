@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Compiling client-server Eliom applications</title><meta charset="utf8"/><link rel="stylesheet" href="/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1>Compiling client-server Eliom applications</h1><p>The build process for client-server Eliom applications is rather
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Compiling client-server Eliom applications</title><meta charset="utf8"/><link rel="stylesheet" href="file:///home/balat/ocsigen/ocsigen.github.io/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1>Compiling client-server Eliom applications</h1><p>The build process for client-server Eliom applications is rather
 involved. To ease development of such application, we recommend you to
-create your project with <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/workflow-distillery.html">Eliom's distillery</a></span>: this provides a
+create your project with <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/workflow-distillery">Eliom's distillery</a></span>: this provides a
 Makefile with rules for compiling, testing, installing, and running
 you project.
 </p><p>This chapter provides more details on the compilation
@@ -32,7 +32,7 @@ The program <span class="monospace">js_of_eliom -c</span> creates a bytecode obj
 in <span class="monospace">_client/program.cmo</span> by default) and <span class="monospace">js_of_eliom -o program.js</span>
 is used to actually compile and link the <em>JavaScript</em> program to be run on
 the client.
-</p><p><img src="/eliom/compilation.png.html" alt="The Compilation process" style="width:100%;"/>
+</p><p><img src="/eliom/compilation.png" alt="The Compilation process" style="width:100%;"/>
 </p><h2>Using <span class="teletype">eliomc</span> and <span class="teletype">js_of_eliom</span></h2><p>The easiest way to build a client-server Eliom application is to use
 <span class="teletype">eliomc</span> and <span class="teletype">js_of_eliom</span>. Those tools are
 wrappers around <span class="teletype">ocamlfind</span>, <span class="teletype">ocamlc</span> and
@@ -96,8 +96,8 @@ versions of Eliom, <span class="teletype">package(eliom.server)</span> and <span
 may be omitted.  Dependencies are added with <span class="teletype">package(yourdep)</span> on the
 same line.
 </p><p>By default, our <span class="teletype">ocamlbuild</span> plugin uses the
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/clientserver-language.html">Camlp4 syntax extension</a></span>.
-To use <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/ppx-syntax.html">PPX</a></span>, you can set the
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/clientserver-language">Camlp4 syntax extension</a></span>.
+To use <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/ppx-syntax">PPX</a></span>, you can set the
 <span class="teletype">eliom_ppx</span> flag in <span class="teletype">_tags</span>, as follows:
 </p><pre>&lt;*.eliom&gt;: eliom_ppx
 &lt;*.eliomi&gt;: eliom_ppx
