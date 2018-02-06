@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"><head><title> Sessions and server side state </title><meta charset="utf8"/><link rel="stylesheet" href="/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1> Sessions and server side state </h1><nav id="overview" class="ocsimore_outline"><header><p><strong>Table of contents</strong></p></header></nav><script>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title> Sessions and server side state </title><meta charset="utf8"/><link rel="stylesheet" href="/home/balat/ocsigen/ocsigen.github.io/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/js/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1> Sessions and server side state </h1><nav id="overview" class="ocsimore_outline"><header><p><strong>Table of contents</strong></p></header></nav><script>
 //<![CDATA[
 outline([0,-515484383,0,[0,2],[0,"nav",[0,"aside",0]],"overview",0])
 //]]>
@@ -121,10 +121,10 @@ and <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-state
 session duration</a></span> for more information.
 </p><p>If you want to handle multiple sessions for the same site —~
 e.g. several different data sessions that could be created and
-discarded independently — you can create new users scopes that will
+discarded independently — you can create new users scopes that will
 use different cookies. See section <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/server-state#new_scope">Hierarchies of scopes</a></span> for more information.
-</p><h3> Creating sessions and scopes </h3><h4> Automatic session creation </h4><p>Eliom automatically creates a session — and sets the corresponding
-cookie on the client — when you first modify an Eliom reference of
+</p><h3> Creating sessions and scopes </h3><h4> Automatic session creation </h4><p>Eliom automatically creates a session — and sets the corresponding
+cookie on the client — when you first modify an Eliom reference of
 scope <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_common#VALdefault_session_scope">session</a></span>,
 when you register a service with this scope or when you enter a session
 group.
@@ -141,7 +141,7 @@ users scope that will use different cookies, with the function <span><a class="o
 let custom_session = `Session custom_session_hierarchy</code></pre><p>Then, the value <span class="teletype">custom_session</span> can replace the usual <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_common#VALdefault_session_scope">Eliom_common.​default_session_scope</a></span> for the <span class="teletype">~scope</span> parameter of
 the functions
 <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_reference#VALeref">Eliom_reference.​eref</a></span>, <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_registration.Html#VALregister">Eliom_registration.​Html.​register</a></span>,
-<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_state#VALdiscard">Eliom_state.​discard</a></span>, ...
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_state#VALdiscard">Eliom_state.​discard</a></span>, ...
 </p><p>(Same for <span class="teletype">`Client_process</span> or  <span class="teletype">`Session_group</span> scope levels).
 </p><p>The function <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_common#VALcreate_scope_hierarchy">Eliom_common.​create_scope_hierarchy</a></span> will prevent you from creating
 two scope hierarchies with the same name.
@@ -212,7 +212,7 @@ a user without having to explicitly use an external database.
 closed).
 </p><p>A session group is identified by a name. The current session could be
 attached to a group of sessions using one of the following functions
-— depending on the nature of the data you want to share. They take the
+— depending on the nature of the data you want to share. They take the
 session group name as parameter:
 </p><ul><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_state#VALset_service_session_group">Eliom_state.​set_service_session_group</a></span>
 </li><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_state#VALset_volatile_data_session_group">Eliom_state.​set_volatile_data_session_group</a></span>
@@ -301,7 +301,7 @@ to access Eliom references belonging to another state.
 </p><h2> Low-level cookies manipulation</h2><p>Eliom references are used to store data on the server-side. It is also
 possible to ask the browser or the client-side process to record some
 piece of data and send it back to the server with each request.
-</p><p>This is implemented using the usual browser cookies for sessions — and
-a simulation of browser cookies by Eliom client side processes — with
+</p><p>This is implemented using the usual browser cookies for sessions — and
+a simulation of browser cookies by Eliom client side processes — with
 the functions <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_state#VALset_cookie">Eliom_state.​set_cookie</a></span> and <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_state#VALget_cookie">Eliom_state.​get_cookie</a></span>.
 </p></body></html>
