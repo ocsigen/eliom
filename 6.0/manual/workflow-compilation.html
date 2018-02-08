@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Compiling client-server Eliom applications</title><meta charset="utf8"/><link rel="stylesheet" href="/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/js/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><div class="project-page project-eliom"><div class="page-header"><p class="logo-ocsigen"><a href="/" class="ocsimore_phrasing_link"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><ul><li><a href="/" class="ocsimore_phrasing_link">Home</a>
+</li><li class="mainmenu-current"><a href="/eliom/6.2/manual/intro" class="ocsimore_phrasing_link">Eliom</a>
+</li><li><a href="/js_of_ocaml/2.8.4/manual/overview" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li><a href="/ocsigenserver/2.8/manual/quickstart" class="ocsimore_phrasing_link">Server</a>
+</li><li><a href="/lwt/3.1.0/manual/manual" class="ocsimore_phrasing_link">Lwt</a>
+</li><li><a href="/tyxml/4.1.0/manual/intro" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li><a href="/ocsigen-toolkit/1.0/manual/intro" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li><a href="/ocsigen-start/1.0/manual/intro" class="ocsimore_phrasing_link">Start</a>
+</li><li><a href="/projects" class="ocsimore_phrasing_link">Other projects</a></li></ul></div><div class="version-selector"><p>Version
+</p><div class="version-selector-versions"><p><span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/intro">6.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.1/manual/intro">6.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/manual/intro">6.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/5.0/manual/intro">5.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/manual/intro">4.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.1/manual/intro">4.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.0/manual/intro">4.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/intro">3.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.2.2/manual/intro">2.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/manual/intro">2.1.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.2/manual/intro">2.0.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.1/manual/intro">2.0.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0/manual/intro">2.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.3.4/manual/intro">1.3.4</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.2.2/manual/intro">1.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.1.0/manual/intro">1.1.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/manual/intro">dev</a></span></p></div></div><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1> Eliom's Reference manual</h1><h2><a href="/eliom/6.0/manual/intro" class="ocsimore_phrasing_link">Introduction</a></h2><h2>Server-side programming</h2><h3>Services</h3><h4><a href="/eliom/6.0/manual/server-services" class="ocsimore_phrasing_link">The different types of services</a></h4><h4><a href="/eliom/6.0/manual/server-params" class="ocsimore_phrasing_link">Typing service parameters</a></h4><h4><a href="/eliom/6.0/manual/server-outputs" class="ocsimore_phrasing_link">Service handlers</a></h4><h4><a href="/eliom/6.0/manual/server-links" class="ocsimore_phrasing_link">Creating links and forms</a></h4><h3><a href="/eliom/6.0/manual/server-state" class="ocsimore_phrasing_link">Sessions and server side state</a></h3><h3><a href="/eliom/6.0/manual/server-security" class="ocsimore_phrasing_link">Security</a></h3><h2>Client-server programming</h2><h3><a href="/eliom/6.0/manual/clientserver-applications" class="ocsimore_phrasing_link">Eliom applications</a></h3><h3><a href="/eliom/6.0/manual/clientserver-html" class="ocsimore_phrasing_link">Generating HTML</a></h3><h3><a href="/eliom/6.0/manual/clientserver-communication" class="ocsimore_phrasing_link">Communication</a></h3><h3><a href="/eliom/6.0/manual/clientserver-services" class="ocsimore_phrasing_link">Client-side services</a></h3><h3><a href="/eliom/6.0/manual/clientserver-react" class="ocsimore_phrasing_link">Shared reactive programming</a></h3><h3><a href="/eliom/6.0/manual/clientserver-wrapping" class="ocsimore_phrasing_link">Custom wrapping</a></h3><h2>Workflows</h2><h3><a href="/eliom/6.0/manual/workflow-distillery" class="ocsimore_phrasing_link">Distillery</a></h3><h3><a href="/eliom/6.0/manual/mobile-apps" class="ocsimore_phrasing_link">Mobile apps</a></h3><h3><a href="/eliom/6.0/manual/workflow-compilation" class="ocsimore_phrasing_link">Compilation</a></h3><h3><a href="/eliom/6.0/manual/workflow-configuration" class="ocsimore_phrasing_link">Configuration &amp; running</a></h3><h3><a href="/eliom/6.0/manual/scalability" class="ocsimore_phrasing_link">Scalability</a></h3><h2>Syntax</h2><h3><a href="/eliom/6.0/manual/ppx-syntax" class="ocsimore_phrasing_link">PPX-based syntax</a></h3><h3><a href="/eliom/6.0/manual/clientserver-language" class="ocsimore_phrasing_link">Camlp4-based syntax</a></h3><h3><a href="/eliom/6.0/manual/ppx-migration" class="ocsimore_phrasing_link">Migration to PPX</a></h3><h1>Server API</h1><h2><a href="/eliom/6.0/api/server/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2><a href="/eliom/6.0/api/server/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href="/eliom/6.0/api/server/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2><a href="/eliom/6.0/api/server/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h2><h2><a href="/eliom/6.0/api/server/Eliom_config" class="ocsimore_phrasing_link">Eliom_config</a></h2><h2><a href="/eliom/6.0/api/server/Eliom_request_info" class="ocsimore_phrasing_link">Eliom_request_info</a></h2><h2><a href="/eliom/6.0/api/server/Eliom_reference" class="ocsimore_phrasing_link">Eliom_reference</a></h2><h2><a href="/eliom/6.0/api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h2><h2>Content and form creation</h2><h3><a href="/eliom/6.0/api/server/Eliom_content" class="ocsimore_phrasing_link">Eliom_content</a></h3><h3><a href="/eliom/6.0/api/server/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href="/eliom/6.0/api/server/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href="/eliom/6.0/api/server/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h3><a href="/eliom/6.0/api/server/Eliom_tools" class="ocsimore_phrasing_link">Eliom_tools</a></h3><h2>Service creation</h2><h3><a href="/eliom/6.0/api/server/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href="/eliom/6.0/api/server/Eliom_parameter" class="ocsimore_phrasing_link">Eliom_parameter</a></h3><h3><a href="/eliom/6.0/api/server/Eliom_registration" class="ocsimore_phrasing_link">Eliom_registration</a></h3><h3><a href="/eliom/6.0/api/server/Eliom_registration.Html" class="ocsimore_phrasing_link">Eliom_registration.Html</a></h3><h3><a href="/eliom/6.0/api/server/Eliom_registration.Action" class="ocsimore_phrasing_link">Eliom_registration.Action</a></h3><h3><a href="/eliom/6.0/api/server/Eliom_registration.Ocaml" class="ocsimore_phrasing_link">Eliom_registration.Ocaml</a></h3><h3><a href="/eliom/6.0/api/server/Eliom_registration.App" class="ocsimore_phrasing_link">Eliom_registration.App</a></h3><h3><a href="/eliom/6.0/api/server/Eliom_registration.File" class="ocsimore_phrasing_link">Eliom_registration.File</a></h3><h3><a href="/eliom/6.0/api/server/Eliom_registration.Any" class="ocsimore_phrasing_link">Eliom_registration.Any</a></h3><h3><a href="/eliom/6.0/api/server/Eliom_registration.Redirection" class="ocsimore_phrasing_link">Eliom_registration.Redirection</a></h3><h2>Client/server communication</h2><h3><a href="/eliom/6.0/api/server/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href="/eliom/6.0/api/server/Eliom_notif" class="ocsimore_phrasing_link">Eliom_notif</a></h3><h3><a href="/eliom/6.0/api/server/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href="/eliom/6.0/api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="/eliom/6.0/api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="/eliom/6.0/api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/api/server/index_types">Index of types</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/api/server/index_values">Index of values</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/api/server/index_modules">Index of modules</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/api/server/index_module_types">Index of module types</a></span></h3><h1>Ocamlbuild plugin</h1><h2><a href="/eliom/6.0/api/ocamlbuild/Ocamlbuild_eliom" class="ocsimore_phrasing_link">Ocamlbuild_eliom</a></h2><h1>Client API</h1><h2><a href="/eliom/6.0/api/client/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2><a href="/eliom/6.0/api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href="/eliom/6.0/api/client/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2>Content and form creation</h2><h3><a href="/eliom/6.0/api/client/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href="/eliom/6.0/api/client/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href="/eliom/6.0/api/client/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Client/server communication</h2><h3><a href="/eliom/6.0/api/client/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href="/eliom/6.0/api/client/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href="/eliom/6.0/api/client/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href="/eliom/6.0/api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="/eliom/6.0/api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="/eliom/6.0/api/client/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/api/client/index_types">Index of types</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/api/client/index_values">Index of values</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/api/client/index_modules">Index of modules</a></span></h3><h3> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/api/client/index_module_types">Index of module types</a></span></h3><h1>Ppx syntax</h1><h2><a href="/eliom/6.0/api/ppx/Ppx_eliom" class="ocsimore_phrasing_link">Ppx_eliom</a></h2><h1>Compiling client-server Eliom applications</h1><p>The build process for client-server Eliom applications is rather
+involved. To ease development of such application, we recommend you to
+create your project with <span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/manual/workflow-distillery">Eliom's distillery</a></span>: this provides a
+Makefile with rules for compiling, testing, installing, and running
+you project.
+</p><p>This chapter provides more details on the compilation
+process.
+</p><nav id="overview" class="ocsimore_outline"><header><p><strong>Table of contents</strong></p></header></nav><script>
+//<![CDATA[
+outline([0,-515484383,0,[0,2],[0,"nav",[0,"aside",0]],"overview",0])
+//]]>
+</script><h2 id="compilation"> Compilation overview <a class="backref" href="#compilation">&#182;</a></h2><p>We first give a small overview of the compilation
+process of a (single file) Eliom program. The source code of an Eliom
+application should be stored in a file with extension <span class="monospace">.eliom</span>, so as to
+be recognized by the Eliom compilers, <span class="monospace">eliomc</span> and <span class="monospace">js_of_eliom</span>.
+The compilation of an eliom program is carried out in three steps.
+</p><p>First, type information is extracted from the server part of the program
+by <span class="monospace">eliomc -infer</span>. This information is
+necessary for the actual compilation of the client- and server-side
+code. For an Eliom module in a file <span class="monospace">program.eliom</span>,
+the information is typically stored in a file <span class="monospace">_server/program.type_mli</span>
+</p><p>Second, the server part of the program (or more precisely,
+the library dynamically
+loaded into the Ocsigen server) is compiled by <span class="monospace">eliomc -c</span>.
+The server source code is extracted and
+and compiled against the libraries available server-side. The resulting
+bytecode object file is stored by default in <span class="monospace">_server/program.cmo</span>.
+</p><p>Third, the client program is compiled by <span class="monospace">js_of_eliom</span>. The client
+source code is extracted and compiled against the client-side libraries.
+The program <span class="monospace">js_of_eliom -c</span> creates a bytecode object file (stored
+in <span class="monospace">_client/program.cmo</span> by default) and <span class="monospace">js_of_eliom -o program.js</span>
+is used to actually compile and link the <em>JavaScript</em> program to be run on
+the client.
+</p><p><img src="/eliom/compilation.png" alt="The Compilation process" style="width:100%;"/>
+</p><h2>Using <span class="teletype">eliomc</span> and <span class="teletype">js_of_eliom</span></h2><p>The easiest way to build a client-server Eliom application is to use
+<span class="teletype">eliomc</span> and <span class="teletype">js_of_eliom</span>. Those tools are
+wrappers around <span class="teletype">ocamlfind</span>, <span class="teletype">ocamlc</span> and
+<span class="teletype">js_of_ocaml</span>.
+</p><p>You can compile your application with the two following commands:
+</p><pre>eliomc -a -o appl.cma server_module.ml appl.eliom ...
+js_of_eliom -o appl.js client_module.ml appl.eliom ...
+</pre><p>The first command compiles the server-specific part of the
+application. The second one compiles the client-specific part. Each
+command accept multiple <span class="teletype">.ml</span> and <span class="teletype">.eliom</span> files.
+</p><p>Temporary files are written in the <span class="teletype">_server</span> and
+<span class="teletype">_client</span> directory. These directories may be changed through
+a command line option, or the environment variables <span class="teletype">ELIOM_SERVER_DIR</span> and
+<span class="teletype">ELIOM_CLIENT_DIR</span>.
+</p><p>These commands accept the same set of arguments as <span class="teletype">ocamlc</span>, plus
+the following specific options:
+</p><ul><li> <span class="teletype">-package</span> is the same as the corresponding <span class="teletype">ocamlfind</span> option.
+</li><li> <span class="teletype">-predicates &lt;p&gt;</span> is the same as the <span class="teletype">ocamlfind</span> option.
+</li><li> <span class="teletype">-no-autoload</span> Do not load commonly used syntax extensions
+(deriving, lwt, js_of_ocaml, tyxml).
+</li><li> <span class="teletype">-type-conv</span> Use the type_conv syntax extension instead of the deriving
+one. It has no effect when used in conjunction with <span class="teletype">-no-autoload</span>.
+</li><li> <span class="teletype">-dir &lt;dir&gt;</span> set the default directory for temporary files.
+</li><li> <span class="teletype">-jsopt &lt;opt&gt;</span> pass <span class="teletype">opt</span> to the <span class="teletype">js_of_ocaml</span> compiler <strong><span class="teletype">js_of_eliom</span> only</strong>
+</li></ul><p>If you want to use the native version of the ocsigen server, you should
+replace <span class="teletype">eliomc</span> by <span class="teletype">eliomopt</span>.
+</p><h2>Using <span class="teletype">ocamlbuild</span> (ocaml &gt;= 4.01 and eliom &gt;= 4 only)</h2><p><span class="teletype">ocamlbuild</span> is a standard tool for building ocaml programs and libraries.
+It contains a powerful plugin system which has been improved in ocaml 4.01 by
+the <span class="teletype">-plugin-tags</span> option. This option allows you to give tags to the plugin
+itself, for example to use some libraries. In fact, the best usage is to
+import libraries that are ocamlbuild plugins.
+</p><p>eliom has now an ocamlbuild plugin contained in the package <span class="teletype">eliom.ocamlbuild</span>.
+This plugin allows to compile .eliom files and to create javascript executables.
+</p><p>To compile an eliom project or library with ocamlbuild, you need to add this
+to your <span class="teletype">myocamlbuild.ml</span> (at the root of your project):
+</p><pre class=""><code class="language-ocaml translatable">module M = Ocamlbuild_eliom.Make(struct
+  let client_dir = &quot;client&quot;
+  let server_dir = &quot;server&quot;
+  let type_dir = &quot;type&quot;
+end)
+
+let () = Ocamlbuild_plugin.dispatch M.dispatcher</code></pre><p>(if you are using OASIS, see also the next section)
+</p><p>The <span class="teletype">client_dir</span>, <span class="teletype">server_dir</span> and <span class="teletype">type_dir</span> values are
+directories (relative the location of each eliom file) that are used for
+client, server and type parts.  The plugin will dispatch the <span class="teletype">.eliom</span> in
+three <span class="teletype">.ml</span> files in server, client and type
+dir, from which <span class="teletype">ocamlbuild</span> can eventually create <span class="teletype">.cma</span> or <span class="teletype">.js</span>
+files.  For example, if you have <span class="teletype">test.eliom</span> in <span class="teletype">./src/</span>, it will be
+dispatched to <span class="teletype">./_build/src/server/test.ml</span>,
+<span class="teletype">./_build/src/client/test.ml</span> and <span class="teletype">./_build/src/type/test.ml</span> (same for
+<span class="teletype">.eliomi</span> files).  Don't forget to mention the good one in your
+<span class="teletype">.mllib</span> file (for a server lib, it will be <span class="teletype">src/server/Test</span>).
+</p><p>Then in a file named <span class="teletype">_tags</span> (at the root of your project), add:
+</p><pre>&lt;server/*&gt;: package(eliom.server), package(yourserverdep), thread
+&lt;client/*&gt;: package(eliom.client), package(yourclientdep)
+true: package(yourlibdeps)
+</pre><p>See
+<a href="https://github.com/ocaml/ocamlbuild/blob/master/manual/manual.adoc" class="ocsimore_phrasing_link">https://github.com/ocaml/ocamlbuild/blob/master/manual/manual.adoc</a>
+for more details.  In some cases, <span class="teletype">syntax(camlp4o</span> is needed, and in newer
+versions of Eliom, <span class="teletype">package(eliom.server)</span> and <span class="teletype">package(eliom.client)</span>
+may be omitted.  Dependencies are added with <span class="teletype">package(yourdep)</span> on the
+same line.
+</p><p>By default, our <span class="teletype">ocamlbuild</span> plugin uses the
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/manual/clientserver-language">Camlp4 syntax extension</a></span>.
+To use <span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/manual/ppx-syntax">PPX</a></span>, you can set the
+<span class="teletype">eliom_ppx</span> flag in <span class="teletype">_tags</span>, as follows:
+</p><pre>&lt;*.eliom&gt;: eliom_ppx
+&lt;*.eliomi&gt;: eliom_ppx
+</pre><p>For libraries, don't forget to add the corresponding .mllib file.
+Then, you can compile your project with:
+</p><pre>ocamlbuild -use-ocamlfind -plugin-tags &quot;package(eliom.ocamlbuild)&quot; \
+    server/yoursite.cma server/yoursite.cmxa server/yoursite.cmxs \
+    yourlib.cma yourlib.cmxa yourlib.cmxs \
+    client/yoursite.js
+</pre><p>This creates the <span class="teletype">server/yoursite.cma</span> and <span class="teletype">client/yoursite.js</span>
+files required by <span class="teletype">ocsigenserver</span> inside <span class="teletype">_build</span>.
+</p><h2>Using <span class="teletype">ocamlbuild and OASIS</span> (ocaml &gt;= 4.01 and eliom &gt;= 4 only)</h2><p>After having created the _oasis with the corresponding Library and Executable
+sections, please read the above selection on ocamlbuild.
+You don't need to create the .mllib since it is auto-generated.
+Dependencies are also handled by OASIS.
+</p><p>Your <span class="teletype">_oasis</span> file should look like this:
+</p><pre>OASISFormat: 0.4
+Name: your-application
+Version: 1.0
+Synopsis: a description
+Authors: You
+License: MIT
+AlphaFeatures: ocamlbuild_more_args, compiled_setup_ml
+Plugins: DevFiles (0.3), META (0.3)
+BuildTools: ocamlbuild
+XOCamlbuildPluginTags: package(eliom.ocamlbuild)
+OCamlVersion: &gt;= 4.01
+
+Library &quot;yourapp&quot;
+  Path: src
+  Modules:
+    server/AnEliomFile, # the .eliom files are in fact located in src
+# but specifying server/ is necessary to indicate that the server
+# part is included here
+    Amodule # .ml modules are refered normally as simple modules
+  BuildDepends:
+    eliom.server,
+    andotherdep
+  DataFiles:
+    ../_build/src/client/yourprogram.js # If you want to install the .js
+
+Executable &quot;yourprogram&quot;
+  Install: false # We normally don't install the client bytecode file
+  Path: src/client
+  MainIs: yourprogram.ml # Main file. It should refer to all the modules
+# used for this program (including .eliom files)
+  BuildDepends:
+    eliom.client
+  CompiledObject: byte # since a js executable only needs the bytecode
+</pre><p>If you want to use OASIS, the dispatch call should looks like this:
+</p><pre class=""><code class="language-ocaml translatable">let () =
+  Ocamlbuild_plugin.dispatch
+    (fun hook -&gt;
+       dispatch_default hook;
+       M.dispatcher
+         ~oasis_executables:[&quot;src/client/theprogram.byte&quot;]
+         hook;
+    )</code></pre><p>If you don't need a JavaScript executable (when building a library
+containing .eliom files, for instance), you can remove the line with
+<span class="teletype">~oasis_executables</span>.
+</p><p>Be careful to always add those parts after the OASIS END block.
+</p><h2>[EXPERIMENTAL] Using <span class="teletype">eliomdoc</span> and <span class="teletype">eliompp</span></h2><p>You can use <span class="teletype">eliomdoc</span> to generate the documentation of your project.
+<span class="teletype">eliompp</span> is a preprocessor which deletes specific sections (<span class="teletype">{shared{</span>,
+<span class="teletype">{client{</span> and <span class="teletype">{server{</span>), depending on the first parameter
+(<span class="teletype">-client</span> or <span class="teletype">-server</span>).
+</p><p>We use a hand made preprocessor
+because <strong>camlp4</strong> doesn't handle comments during preprocessing,
+so it is not possible to extract comments of a specific section.
+</p><p><span class="teletype">eliomdoc</span> handle the same options as <span class="teletype">ocamldoc</span>.
+It is only a wrapper around it (as <span class="teletype">eliomc</span> for <span class="teletype">ocamlc</span>).
+</p><p><span class="teletype">eliompp</span> prints on the standard output the preprocessed file.
+So if you use it with <span class="teletype">-client</span>, it will prints <span class="teletype">{shared{</span> and <span class="teletype">{client{</span> sections.
+</p><p>You can use them as follows:
+</p><pre>eliompp -client foobar.eliom ...
+eliompp -server foobar.eliom ...
+
+eliomdoc -client -d doc/client -html foobar.eliom ...
+eliomdoc -server -d doc/server -html foobar.eliom ...
+</pre><p>Here are some known bugs with <span class="teletype">eliomdoc</span>:
+</p><ul><li> Your files should always <strong>begin with a value</strong> and <strong>not with a comment</strong>. Otherwise,
+camlp4 won't output the comments.
+</li><li> Sometimes, comment nodes <strong>are not attached where expected</strong>. That's because
+camlp4 (sometimes) remove extra newlines between value elements.
+</li></ul></div></body></html>
