@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title> Communication between the client and the server &amp;#182;</title><meta charset="utf8"/><link rel="stylesheet" href="/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/js/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><div class="project-page project-eliom"><div class="page-header"><p class="logo-ocsigen"><a href="/" class="ocsimore_phrasing_link"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><ul><li><a href="/" class="ocsimore_phrasing_link">Home</a>
+</li><li class="mainmenu-current"><a href="/eliom/6.2/manual/intro" class="ocsimore_phrasing_link">Eliom</a>
+</li><li><a href="/js_of_ocaml/2.8.4/manual/overview" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li><a href="/ocsigenserver/2.8/manual/quickstart" class="ocsimore_phrasing_link">Server</a>
+</li><li><a href="/lwt/3.1.0/manual/manual" class="ocsimore_phrasing_link">Lwt</a>
+</li><li><a href="/tyxml/4.1.0/manual/intro" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li><a href="/ocsigen-toolkit/1.0/manual/intro" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li><a href="/ocsigen-start/1.0/manual/intro" class="ocsimore_phrasing_link">Start</a>
+</li><li><a href="/projects" class="ocsimore_phrasing_link">Other projects</a></li></ul></div><div class="version-selector"><p>Version
+</p><div class="version-selector-versions"><p><span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/intro">6.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.1/manual/intro">6.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/manual/intro">6.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/5.0/manual/intro">5.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/manual/intro">4.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.1/manual/intro">4.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.0/manual/intro">4.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/intro">3.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.2.2/manual/intro">2.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/manual/intro">2.1.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.2/manual/intro">2.0.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.1/manual/intro">2.0.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0/manual/intro">2.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.3.4/manual/intro">1.3.4</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.2.2/manual/intro">1.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.1.0/manual/intro">1.1.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/manual/intro">dev</a></span></p></div></div><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1 id="communication"> Communication between the client and the server <a class="backref" href="#communication">&#182;</a></h1><nav id="overview" class="ocsimore_outline"></nav><script>
+//<![CDATA[
+outline([0,-515484383,0,[0,2],[0,"nav",[0,"aside",0]],"overview",0])
+//]]>
+</script><p>Outside of the values passed by the mean of the <span class="teletype">%variable</span>
+syntax, there are multiple ways for the client and server to echange
+values. Depending on what kind of transfer to do, there are different
+methods addapted.
+</p><h2> Client requesting data</h2><p>The client process can call special services to get some Ocaml
+values. Those services cannot be visited by the browser as web pages.
+They are registered using <span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/server/Eliom_registration.Ocaml">Eliom_registration.​Ocaml</a></span>
+and can be called using
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/client/Eliom_client#VALcall_caml_service">Eliom_client.​call_caml_service</a></span>.
+</p><p>First of all we give us easy construction of content (i.e. {{Html5.D}} here):
+</p><pre class=""><code class="language-ocaml translatable">open Eliom_content</code></pre><p>For instance:
+</p><pre class=""><code class="language-ocaml translatable">let pi_service =
+  Eliom_registration.Ocaml.register_service
+    ~path:[&quot;pi&quot;]
+    ~get_params:Eliom_parameter.unit
+    (fun () () -&gt; Lwt.return 3.1415926535)
+
+let _ =
+  My_appl.register_service
+    ~path:[&quot;pi service&quot;]
+    ~get_params:Eliom_parameter.unit
+    (fun () () -&gt;
+      Eliom_service.onload
+	{{
+          Lwt.ignore.result(
+            lwt pi =
+	      Eliom_client.call_caml_service ~service:%pi_service () ()
+            in
+	    Lwt.return (
+	      Dom_html.window##alert(Js.string
+				       (&quot;pi = &quot;^(string_of_float pi)))))
+	}};
+      Lwt.return
+        Html5.D.(html
+                  (head (title (pcdata &quot;pi&quot;)) [])
+                  (body [])))</code></pre><p>Since client and server side value representation are not the same, it
+is not possible to send any Ocaml value, the restrinction on what can
+be sent are the same as for the <span class="teletype">%variable</span> mechanism
+(see the <span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/manual/wrapping">wrapping chapter</a></span>).
+</p><h2> Client sending data</h2><p>The client can send values to the server using the service mechanism,
+by defining the parameter types. To send arbitrary Ocaml values, there
+is a special type declaration:
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/server/Eliom_parameter#VALcaml">Eliom_parameter.​caml</a></span>.
+</p><p>Since the server can't trust the client to send correcly formed data,
+those values can't be sent using the Ocaml marshall mechanism: the
+server needs to be able to check that the value is of the expected
+type. To do this we use <span class="teletype">Deriving</span>, a syntax extension for the
+type declarations.
+</p><pre class=""><code class="language-ocaml translatable">{shared{
+  type some_type = (int * string list) deriving (Json)
+  type another_type =
+    | A of some_type
+    | B of another_type
+    deriving (Json)
+}}</code></pre><p>this type can now be used as a parameter for a service
+</p><p>open Eliom_content
+</p><pre class=""><code class="language-ocaml translatable">let s =
+  My_appl.register_service
+    ~path:[&quot;s1&quot;]
+    ~get_params:(caml &quot;param&quot; Json.t&lt;another_type&gt;)
+    (fun () v -&gt;
+      Lwt.return
+        Html5.D.(html
+                  (head (title (pcdata &quot;title&quot;)))
+                  (body [
+                    match v with
+                      | A _ -&gt; pcdata &quot;A&quot;
+                      | B _ -&gt; pcdata &quot;B&quot;
+                  ])))
+
+let _ =
+  My_appl.register_service
+    ~path:[&quot;s2&quot;]
+    ~get_params:unit
+    (fun () () -&gt;
+      Lwt.return
+        Html5.D.(html
+                  (head (title (pcdata &quot;title&quot;)))
+                  (body [
+                    [p ~a:[a_onclick
+                      {{ ignore (Eliom_client.change_page ~service:%s (A (1,[&quot;s&quot;])) ()) }}]
+                      [pcdata &quot;Click to send Ocaml data&quot;]
+                  ]])))</code></pre><p>For more information see deriving documentation.
+</p><aside class="wip"><header><h5>Work in progress</h5></header><p>ajouter un lien vers la doc de deriving</p></aside><p>deriving
+</p><h2> Server sending data</h2><p>There are ways for the server to send data to the client, without the
+client to explicitely request it. We call that mechanism comet, it
+also sometimes called HTTP push.
+</p><p>The simple low level version on wich all other following mechanism is
+implemented is provided in the <span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/server/Eliom_comet.Channels">Eliom_comet.​Channels</a></span>
+module.
+</p><p>Comet defines channels which can convey data. A channel is created
+using an Lwt stream. It is a kind of cooperative lazy list.
+</p><p>The two main methods to create a stream is using
+<span><a class="ocsforge_doclink_lwt" href="/lwt/3.1.0/api/Lwt_stream#VALfrom">Lwt_stream.​from</a></span> or
+<span><a class="ocsforge_doclink_lwt" href="/lwt/3.1.0/api/Lwt_stream#VALcreate">Lwt_stream.​create</a></span> functions.
+</p><pre class=""><code class="language-ocaml translatable">val from : (unit -&gt; 'a option Lwt.t) -&gt; 'a t
+val create : unit -&gt; 'a t * ('a option -&gt; unit)</code></pre><p>With <span><a class="ocsforge_doclink_lwt" href="/lwt/3.1.0/api/Lwt_stream#VALfrom">Lwt_stream.​from</a></span> you can create a stream where a new
+value is added each time a function returns. <span><a class="ocsforge_doclink_lwt" href="/lwt/3.1.0/api/Lwt_stream#VALcreate">Lwt_stream.​create</a></span>
+returns a stream and function to push new values to it.
+</p><p>On client side the <span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/client/Eliom_comet.Channels#TYPEt">Eliom_comet.​Channels.​t</a></span>
+type is just an Lwt stream <span><a class="ocsforge_doclink_lwt" href="/lwt/3.1.0/api/Lwt_stream#TYPEt">Lwt_stream.​t</a></span>.
+</p><p>There are 3 kind of channels depending on how you want to send data.
+</p><ul><li> Channels created with
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/server/Eliom_comet.Channels#VALcreate">Eliom_comet.​Channels.​create</a></span>
+have a buffer with a limited size. Message are read from the stream as
+soon as they are available, i.e. for stream created with
+<span><a class="ocsforge_doclink_lwt" href="/lwt/3.1.0/api/Lwt_stream#VALfrom">Lwt_stream.​from</a></span>, that means that the
+function is called another time as soon as the previous one terminate.
+For stream created with <span><a class="ocsforge_doclink_lwt" href="/lwt/3.1.0/api/Lwt_stream#VALcreate">Lwt_stream.​create</a></span>,
+this is as soon as they are pushed. If the client has missed too much
+messages ( more than the size of the buffer ) it will receive an exception
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/client/Eliom_comet#EXCEPTIONChannel_full">Eliom_comet.​Channel_full</a></span>
+when reading data from the stream.
+</li></ul><ul><li> Channels created with
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/server/Eliom_comet.Channels#VALcreate_newest">Eliom_comet.​Channels.​create_newest</a></span> has no buffering
+and can loose messages, but the client will always receive the last value: For instance if many
+messages are sent in a short time, this could send only the last one. Those channels never raise
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/client/Eliom_comet#EXCEPTIONChannel_full">Eliom_comet.​Channel_full</a></span>
+</li></ul><ul><li> Channels created with <span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/server/Eliom_comet.Channels#VALcreate_unlimited">Eliom_comet.​Channels.​create_unlimited</a></span>
+Which consume data on the stream only when their is a request from the client.
+</li></ul><p>Channels can be closed on client side by canceling a thread waiting for data on it.
+</p><p>Depending on the scope used to create a channel, the channel does not
+have the same constraints.
+</p><ul><li> Channels created with scope <span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/server/Eliom_common#VALsite">Eliom_common.​site</a></span> or
+using <span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/server/Eliom_comet.Channels#VALcreate_newest">Eliom_comet.​Channels.​create_newest</a></span> are stateless channels: The memory consumption does not depend on
+the number of user requesting data on it. When the channels are not
+reachable from the server code, they are garbage collected and closed.
+Named stateless can be accessed from <span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/manual/client#cors_channels">another servers</a></span>.
+</li></ul><ul><li> The other channels must be created inside a service handler. They
+are assigned to a particular client process. Different channels
+created with the same stream does not share memory. They are closed
+when requested or when the client process is closed. It is possible
+to know when a client stop requesting data on those channels using
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/server/Eliom_comet.Channels#VALwait_timeout">Eliom_comet.​Channels.​wait_timeout</a></span>
+</li></ul><h3> Comet configuration</h3><p>The server can push data to a client only when the client has an open
+HTTP connection waiting for answer. As of now, a comet request can
+only last at most 10 seconds. After that, the client can either do a
+new request or stale for some time: this is the activity
+behaviour. This can be configured on client side, using the functions from
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/client/Eliom_comet.Configuration">Eliom_comet.​Configuration</a></span>
+</p><p>For instance for if you receive data that doesn't need frequent
+update, you could set the time between different request quite high
+and stop requesting data as soon as the browser loose the focus.
+</p><pre class=""><code class="language-ocaml translatable">open Eliom_comet.Configuration
+let slow_c = new_configuration () in
+set_active_until_timeout slow_c false;
+set_time_between_request slow_c 60.</code></pre><p>then if you want to have some reactivity for a few seconds.
+</p><pre class=""><code class="language-ocaml translatable">open Eliom_comet.Configuration
+let fast_c = new_configuration () in
+set_set_always_active fast_c true;
+set_set_time_between_request fast_c 0.;
+ignore (Lwt_js.sleep 10. &gt;|= (fun () -&gt; drop_configuration fast_c))</code></pre><p>The original setting will be reset after the drop.
+</p><h2> Reactive values</h2><p>A common usage of comet is for the server to update a value available on client side.
+To do this, there are functions available to share a React event or signal:
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/server/Eliom_react.Down#VALof_react">Eliom_react.​Down.​of_react</a></span> and
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/server/Eliom_react.S.Down#VALof_react">Eliom_react.​S.​Down.​of_react</a></span>
+</p><p>On client side the value returned by those function is directly a React event or signal.
+</p><p>The contrary is also available using <span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/server/Eliom_react.Up#VALcreate">Eliom_react.​Up.​create</a></span>.
+</p><p>Since this is implemented using comet, tunnig comet configuration will
+also affect the behaviour of shared react variables.
+</p><h2> Client-Server shared bus</h2><p>Sometimes it is usefull to have a bidirectionnal channel shared between multiple clients.
+This is the intent of buses. Those are created using
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/server/Eliom_bus#VALcreate">Eliom_bus.​create</a></span>. Since the server will also receive data on
+the bus, the description of the type ( using deriving ) is needed to create a bus.
+</p><p>Like comet channels, the behaviour of buses can be tuned using the module
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/client/Eliom_comet.Configuration">Eliom_comet.​Configuration</a></span>.
+There are additionnal configurations available on buses to tune the client side buffering.
+</p><p>+ events (à mettre dans js_of_ocaml)
+</p><h2 id="cors_channels"> Another Server sending data (Comet on another server) <a class="backref" href="#cors_channels">&#182;</a></h2><p>It is possible to access a named stateless channel created on another
+server. It has to be declared using <span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/api/server/Eliom_comet.Channels#VALexternal_channel">Eliom_comet.​Channels.​external_channel</a></span>. The declaration of the
+channel must match exactly the creation. The server generating the
+page and the server that created the channel must run exactly the same
+version of Eliom. By default a browser can't do requests to a
+different server, to allow that the server serving the channel must
+allow Cross-Origin Resource Sharing using the <span><a class="ocsforge_doclink_ocsigenserver" href="/ocsigenserver/2.8/manual/cors">CORS Ocsigenserver
+extension</a></span>.
+</p><aside class="wip"><header><h5>Work in progress</h5></header><p>A-t-on oublié qqchose ? (sûrement :/)</p></aside></div></body></html>

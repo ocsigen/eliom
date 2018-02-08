@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title> Writing multi-platform apps with Eliom (Web and mobile)</title><meta charset="utf8"/><link rel="stylesheet" href="/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/js/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><div class="project-page project-eliom"><div class="page-header"><p class="logo-ocsigen"><a href="/" class="ocsimore_phrasing_link"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><ul><li><a href="/" class="ocsimore_phrasing_link">Home</a>
+</li><li class="mainmenu-current"><a href="/eliom/6.2/manual/intro" class="ocsimore_phrasing_link">Eliom</a>
+</li><li><a href="/js_of_ocaml/2.8.4/manual/overview" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li><a href="/ocsigenserver/2.8/manual/quickstart" class="ocsimore_phrasing_link">Server</a>
+</li><li><a href="/lwt/3.1.0/manual/manual" class="ocsimore_phrasing_link">Lwt</a>
+</li><li><a href="/tyxml/4.1.0/manual/intro" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li><a href="/ocsigen-toolkit/1.0/manual/intro" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li><a href="/ocsigen-start/1.0/manual/intro" class="ocsimore_phrasing_link">Start</a>
+</li><li><a href="/projects" class="ocsimore_phrasing_link">Other projects</a></li></ul></div><div class="version-selector"><p>Version
+</p><div class="version-selector-versions"><p><span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/intro">6.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.1/manual/intro">6.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/manual/intro">6.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/5.0/manual/intro">5.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/manual/intro">4.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.1/manual/intro">4.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.0/manual/intro">4.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/intro">3.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.2.2/manual/intro">2.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/manual/intro">2.1.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.2/manual/intro">2.0.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.1/manual/intro">2.0.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0/manual/intro">2.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.3.4/manual/intro">1.3.4</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.2.2/manual/intro">1.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.1.0/manual/intro">1.1.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/manual/intro">dev</a></span></p></div></div><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1> Writing multi-platform apps with Eliom (Web and mobile)</h1><p>Starting with Eliom 6.0, you can write HTML5 mobile apps with Eliom.
+It is also possible to have one single code base for your Web and mobile
+apps (Android, iOS, Windows ...).
+</p><p>The best way to start with this feature is to install
+<span><a class="ocsforge_doclink_ocsigen-start" href="/ocsigen-start/1.0/manual/intro">Ocsigen Start</a></span>.
+It contains all the instructions and a template with code samples
+that you can adapt to your needs.
+</p><p>Here are the main principle for writing multi-platform apps with Eliom:
+</p><ul><li> Use responsive Web design to make your app work with any screen size.
+</li><li> Register all your services in shared sections. The mobile app will
+use the client-side implementation. The Web app will generate the pages
+server-side during the first request, and by default, subsequent pages will
+be generated client-side. For more info, see the
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.1/manual/clientserver-services">client-side services chapter </a></span>
+of this manual.
+</li><li> Be careful with the order of evaluation, which is different when pages
+are generated client-side. Client sections sent by the server will be executed
+when the page is ready and already diplayed. But if the page is generated
+client-side, client sections will be executed straight-away. You may sometimes
+want to delay their execution until the element is inserted in the page
+(try <span><a class="ocsforge_doclink_ocsigen-toolkit" href="/ocsigen-toolkit/1.0/api/client/Ot_nodeready#VALnodeready">Ot_nodeready.​nodeready</a></span>).
+</li><li> Use Apache Cordova or Phonegap to access the mobile device APIs.
+</li><li> The main difference between the Web and mobile version is that the mobile
+app starts client-side, whereas the Web app is sent by the server. This means
+that the server won't be able to send global injections (<span class="teletype">~%v</span> where
+<span class="teletype">v</span> is a global server-side value) to the client. To solve this problem,
+<span><a class="ocsforge_doclink_ocsigen-start" href="/ocsigen-start/1.0/manual/intro">Ocsigen Start</a></span> provides a module
+<span class="teletype">Eliom_loader</span> which will get the global data from the server when
+starting the app.
+</li><li> Define JavaScript variables <span class="teletype">__eliom_server</span> and
+<span class="teletype">__eliom_app_name</span> in the <span class="teletype">index.html</span>
+of your mobile app, to set the main server and the name of the app.
+See <span><a class="ocsforge_doclink_eliom" href="/eliom/6.1/api/client/Eliom_client#VALinit_client_app">Eliom_client.​init_client_app</a></span>
+and the default <span class="teletype">eliom.html</span> file generated by
+<span><a class="ocsforge_doclink_ocsigen-start" href="/ocsigen-start/1.0/manual/intro">Ocsigen Start</a></span>.
+</li><li> Use function <span><a class="ocsforge_doclink_eliom" href="/eliom/6.1/api/client/Eliom_client#VALis_client_app">Eliom_client.​is_client_app</a></span> to test whether
+you are running a mobile app (an app that was started client-side).
+<span><a class="ocsforge_doclink_ocsigen-start" href="/ocsigen-start/1.0/manual/intro">Ocsigen Start</a></span> also has a class
+<span class="teletype">os-client-app</span> on the <span class="teletype">html</span> tag.
+</li><li> The JavaScript file generated by Js_of_ocaml will be included in your
+mobile app. But it must match exactly the version of the app that is
+running on the server. To ensure that, we recommend:
+<ul><li> To do an automatic update of the client-side app when the server is
+updated (for example with Cordova Hot-code-push, as in
+<span><a class="ocsforge_doclink_ocsigen-start" href="/ocsigen-start/1.0/manual/intro">Ocsigen Start</a></span>)
+</li><li> And possibly to keep several versions of your server app, if you can,
+with a load balancer to reach the server that corresponds to the client-side
+version.
+</li></ul></li><li> By default, all URLs generated by the client app are absolute.
+Use absolute:false for the URLs of all the local assets (css, js...)
+</li></ul><p>Some caveats:
+</p><ul><li> iOS does not handle cookies properly with HTML5 apps. Eliom implements
+a workaround, that you can activate by setting the JavaScript variable
+<span class="teletype">__eliom_use_cookie_substitutes</span> to <span class="teletype">true</span> in the main HTML
+page of your iOS app (see the file eliom.html generated by Ocsigen Start).
+</li><li> iOS support of HTML5 Web technologies is lagging behind other platforms
+and Apple does ot allow the use of another Web view. This may cause some
+troubles on iOS (slowness, display problems ...)
+</li></ul><p>Suggestions:
+</p><ul><li> Crosswalk can help you to have a modern Web view on old Android platforms.
+On iOS, use WkWebview.
+</li><li> Use <span><a class="ocsforge_doclink_eliom" href="/eliom/6.1/api/server/Eliom_cscache">Eliom_cscache</a></span> to cache the values in your app.
+</li><li> Set JavaScript variable <span class="teletype">__eliom_debug_mode</span> to <span class="teletype">true</span> in your HTML
+file to set debug mode on client side. It corresponds to the option
+<span class="teletype">&lt;debugmode/&gt;</span> in Ocsigen Server's configuration file (server-side).
+</li></ul></div></body></html>

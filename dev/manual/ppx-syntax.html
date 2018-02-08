@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Eliom PPX syntax extension</title><meta charset="utf8"/><link rel="stylesheet" href="/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/js/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><div class="project-page project-eliom"><div class="page-header"><p class="logo-ocsigen"><a href="/" class="ocsimore_phrasing_link"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><ul><li><a href="/" class="ocsimore_phrasing_link">Home</a>
+</li><li class="mainmenu-current"><a href="/eliom/6.2/manual/intro" class="ocsimore_phrasing_link">Eliom</a>
+</li><li><a href="/js_of_ocaml/2.8.4/manual/overview" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li><a href="/ocsigenserver/2.8/manual/quickstart" class="ocsimore_phrasing_link">Server</a>
+</li><li><a href="/lwt/3.1.0/manual/manual" class="ocsimore_phrasing_link">Lwt</a>
+</li><li><a href="/tyxml/4.1.0/manual/intro" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li><a href="/ocsigen-toolkit/1.0/manual/intro" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li><a href="/ocsigen-start/1.0/manual/intro" class="ocsimore_phrasing_link">Start</a>
+</li><li><a href="/projects" class="ocsimore_phrasing_link">Other projects</a></li></ul></div><div class="version-selector"><p>Version
+</p><div class="version-selector-versions"><p><span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/intro">6.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.1/manual/intro">6.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/manual/intro">6.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/5.0/manual/intro">5.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/manual/intro">4.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.1/manual/intro">4.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.0/manual/intro">4.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/intro">3.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.2.2/manual/intro">2.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/manual/intro">2.1.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.2/manual/intro">2.0.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.1/manual/intro">2.0.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0/manual/intro">2.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.3.4/manual/intro">1.3.4</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.2.2/manual/intro">1.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.1.0/manual/intro">1.1.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/manual/intro">dev</a></span></p></div></div><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1>Eliom PPX syntax extension</h1><p>The eliom syntax extension allows to write, in one file, both the
+client and server part of your application. The extension is
+automatically enabled by the <span class="teletype">eliomc</span> and <span class="teletype">js_of_eliom</span>
+compilers on <span class="teletype">.eliom</span> and <span class="teletype">.eliomi</span> files.
+</p><p>For the Camlp4 syntax extension, see
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/manual/clientserver-language">here </a></span>.
+</p><p>The extensions presented here are also available with the <span class="teletype">eliom.</span>
+prefix.
+</p><h2>Sections</h2><p>The location of code execution is specified by section annotations. We
+can specify that a declaration is performed on the server, or on the
+client:
+</p><pre class=""><code class="language-ocaml translatable">[%%server
+  let s = ...
+]
+
+[%%client
+  let c = ...
+]</code></pre><p>Some constructions have a shortcut:
+</p><pre class=""><code class="language-ocaml translatable">let%client c = ...</code></pre><p>Finally, it's also possible to start a section for the rest of the file:
+</p><pre class=""><code class="language-ocaml translatable">[%%server.start]
+let s = ..</code></pre><p>In <span class="teletype">.eliomi</span> files, only the last version is available.
+</p><p>Sections are only available at top level and cannot be nested.
+</p><h3>Shared sections</h3><p>Shared sections are also available for code that should be on the
+client and on the server.
+</p><pre class=""><code class="language-ocaml translatable">let%shared sh = ...</code></pre><p>This is equivalent to duplicating the code in a client and a server
+section.
+</p><h2>Fragments</h2><p>A client-side expression can be included inside a server section, and
+the server can thereafter refer to it: an expression placed inside
+<span class="teletype">[%client ... ]</span> will be computed on the client when it receives the
+page; but the eventual client-side value of the expression can be
+manipulated as a black box on the server.
+</p><pre class=""><code class="language-ocaml translatable">let%server x = [%client 1 + 3 ]</code></pre><p>For example, here, the expression <span class="teletype">1 + 3</span> will be evaluated on the
+client, but it’s possible to refer server-side to the future value of
+this expression (for example, put it in a list). The value of a client
+fragment cannot be accessed on the server.
+</p><p>In this case, <span class="teletype">x</span> has type <span class="teletype">int fragment</span>.  Eliom can't always
+infer the type of fragments. In this case, you may annotate the type:
+<span class="teletype">[%client ( ... : &lt;type&gt; ) ]</span>.
+</p><p>Client fragments cannot be nested.
+</p><h3>Shared fragments</h3><p>It is also possible to use shared fragments.
+</p><pre class=""><code class="language-ocaml translatable">let%server x =  [%shared ...]</code></pre><p>It will produce values of type
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_shared.Value#TYPEt">Eliom_shared.​Value.​t</a></span>.
+</p><p>Shared fragments can be nested and can contain client fragments.
+</p><h2>Injections and escaped values</h2><p>Values that have been computed on the server can be used on the client
+by prefixing them with a percent symbol <span class="teletype">~%</span>. We call this an
+<em>injection</em>.
+</p><pre class=""><code class="language-ocaml translatable">let%server s = 1 + 2
+let%client c = ~%s + 1</code></pre><p>Here, the expression <span class="teletype">1 + 2</span> is evaluated and bound to variable
+<span class="teletype">s</span> on the server.  The resulting value <span class="teletype">3</span> is transferred to
+the client together with the Web page, then the expression
+<span class="teletype">~%s + 1</span> is computed client-side.  An injection makes it possible to
+access client-side a client fragment which has been specified on the
+server:
+</p><pre class=""><code class="language-ocaml translatable">let%server x = [%client 1 + 3 ]
+let%client c = 3 + ~%x</code></pre><p>The value inside the client fragment is extracted by <span class="teletype">~%x</span>, whose
+value is <span class="teletype">4</span> here.
+</p><h2>Restrictions</h2><p>It is not possible to use injections on values containing a
+closure. This includes lazy values, objects, or anything containing
+functions. You can use either
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_pervasive#TYPEserver_function">Eliom_pervasive.​server_function</a></span>
+and client or shared fragments to circumvent this limitation.
+</p><p>To extend and customize the serialization from client to server, see
+chapter <span><a class="ocsforge_doclink_eliom" href="/eliom/dev/manual/clientserver-wrapping">Wrapping values</a></span>.
+</p><h2>Note about evaluation</h2><p>Regardless of the construction used and their combination, there is
+only one communication from server to client, when the Web page is
+sent. This is due to the fact that client fragments are not executed
+immediately when encountered inside server code.  The intuitive
+semantic is the following: client code is not executed when
+encountered, instead it is registered for later execution, once the
+Web page has been sent to the client. Then all the client code is
+executed in the order it was encountered on the server.
+</p></div></body></html>

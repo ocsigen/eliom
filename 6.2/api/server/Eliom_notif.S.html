@@ -8,7 +8,24 @@
 </li><li><a href="/tyxml/4.1.0/manual/intro" class="ocsimore_phrasing_link">Tyxml</a>
 </li><li><a href="/ocsigen-toolkit/1.0/manual/intro" class="ocsimore_phrasing_link">Toolkit</a>
 </li><li><a href="/ocsigen-start/1.0/manual/intro" class="ocsimore_phrasing_link">Start</a>
-</li><li><a href="/projects" class="ocsimore_phrasing_link">Other projects</a></li></ul></div><div class="client-server-switch-wrapper"><div class="client-server-switch"><span class="server source">This is server API</span> API (go to <a class="client target" href="/eliom/6.2/api/client/Eliom_notif.S">client</a>)</div></div><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1>Module type <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_notif.S">Eliom_notif.​S</a></span> </h1><pre class="ocsforge_color odocwiki_code"><span class="ocsforge_color_keyword">module type</span> <span class="ocsforge_color_uid">S</span> <span class="ocsforge_color_delimiter">=</span> <span class="ocsforge_color_keyword">sig</span><span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_notif.S">..</a></span><span class="ocsforge_color_keyword">end</span></pre><p>Signature of the functors <span class="odocwiki_inlinecode">Eliom_notif.Make</span> and <span class="odocwiki_inlinecode">Eliom_notif.Make_Simple</span>.
+</li><li><a href="/projects" class="ocsimore_phrasing_link">Other projects</a></li></ul></div><div class="version-selector"><p>Version
+</p><div class="version-selector-versions"><p><span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/intro">6.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.1/manual/intro">6.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/manual/intro">6.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/5.0/manual/intro">5.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/manual/intro">4.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.1/manual/intro">4.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.0/manual/intro">4.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/intro">3.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.2.2/manual/intro">2.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/manual/intro">2.1.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.2/manual/intro">2.0.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.1/manual/intro">2.0.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0/manual/intro">2.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.3.4/manual/intro">1.3.4</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.2.2/manual/intro">1.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.1.0/manual/intro">1.1.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/manual/intro">dev</a></span></p></div></div><div class="client-server-switch-wrapper"><div class="client-server-switch"><span class="server source">This is server API</span> API (go to <a class="client target" href="/eliom/6.2/api/client/Eliom_notif.S">client</a>)</div></div><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1>Module type <span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_notif.S">Eliom_notif.​S</a></span> </h1><pre class="ocsforge_color odocwiki_code"><span class="ocsforge_color_keyword">module type</span> <span class="ocsforge_color_uid">S</span> <span class="ocsforge_color_delimiter">=</span> <span class="ocsforge_color_keyword">sig</span><span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/api/server/Eliom_notif.S">..</a></span><span class="ocsforge_color_keyword">end</span></pre><p>Signature of the functors <span class="odocwiki_inlinecode">Eliom_notif.Make</span> and <span class="odocwiki_inlinecode">Eliom_notif.Make_Simple</span>.
 </p><p><span class="odocwiki_inlinecode">S</span> has two types of notifications (<span class="odocwiki_inlinecode">server_notif</span> and <span class="odocwiki_inlinecode">client_notif</span>)
 because we might need to serialise and deserialise the notification twice
 (in case of a multi-server set-up). Once for broadcasting it to other

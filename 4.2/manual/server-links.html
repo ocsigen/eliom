@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Creating links and forms</title><meta charset="utf8"/><link rel="stylesheet" href="/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/js/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><div class="project-page project-eliom"><div class="page-header"><p class="logo-ocsigen"><a href="/" class="ocsimore_phrasing_link"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><ul><li><a href="/" class="ocsimore_phrasing_link">Home</a>
+</li><li class="mainmenu-current"><a href="/eliom/6.2/manual/intro" class="ocsimore_phrasing_link">Eliom</a>
+</li><li><a href="/js_of_ocaml/2.8.4/manual/overview" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li><a href="/ocsigenserver/2.8/manual/quickstart" class="ocsimore_phrasing_link">Server</a>
+</li><li><a href="/lwt/3.1.0/manual/manual" class="ocsimore_phrasing_link">Lwt</a>
+</li><li><a href="/tyxml/4.1.0/manual/intro" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li><a href="/ocsigen-toolkit/1.0/manual/intro" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li><a href="/ocsigen-start/1.0/manual/intro" class="ocsimore_phrasing_link">Start</a>
+</li><li><a href="/projects" class="ocsimore_phrasing_link">Other projects</a></li></ul></div><div class="version-selector"><p>Version
+</p><div class="version-selector-versions"><p><span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/intro">6.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.1/manual/intro">6.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/manual/intro">6.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/5.0/manual/intro">5.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/manual/intro">4.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.1/manual/intro">4.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.0/manual/intro">4.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/intro">3.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.2.2/manual/intro">2.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/manual/intro">2.1.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.2/manual/intro">2.0.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.1/manual/intro">2.0.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0/manual/intro">2.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.3.4/manual/intro">1.3.4</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.2.2/manual/intro">1.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.1.0/manual/intro">1.1.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/manual/intro">dev</a></span></p></div></div><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1>Creating links and forms</h1><nav id="overview" class="ocsimore_outline"><header><p><strong>Table of contents</strong></p></header></nav><script>
+//<![CDATA[
+outline([0,-515484383,0,[0,2],[0,"nav",[0,"aside",0]],"overview",0])
+//]]>
+</script><h2 id="links">Links <a class="backref" href="#links">&#182;</a></h2><p>To create a link (<span class="teletype">&lt;a&gt;</span>), use the
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/api/server/Eliom_content.Html5.D#VALa">Eliom_content.​Html5.​D.​a</a></span> function,
+as in these examples:
+</p><pre class=""><code class="language-ocaml translatable">open Eliom_content
+
+ let links = Eliom_registration.Html5.register_service [&quot;rep&quot;;&quot;links&quot;] Eliom_parameter.unit
+ (fun () () -&gt;
+   Lwt.return
+    Html5.D.(
+      html
+       (head (title (pcdata &quot;Links&quot;)) [])
+       (body
+         [p
+          [a coucou [pcdata &quot;coucou&quot;] (); br ();
+           a hello [pcdata &quot;hello&quot;] (); br ();
+           a default
+             [pcdata &quot;default page of the dir&quot;] (); br ();
+           a uasuffix
+             [pcdata &quot;uasuffix&quot;] (2007,06); br ();
+           a coucou_params
+             [pcdata &quot;coucou_params&quot;] (42,(22,&quot;ciao&quot;)); br ();
+           a raw_serv
+             [pcdata &quot;raw_serv&quot;] [(&quot;sun&quot;,&quot;yellow&quot;);(&quot;sea&quot;,&quot;blue and pink&quot;)]; br ();
+           a
+             (Eliom_service.Http.external_service
+                ~prefix:&quot;http://fr.wikipedia.org&quot;
+                ~path:[&quot;wiki&quot;;&quot;&quot;]
+                ~get_params:(suffix (all_suffix &quot;suff&quot;))
+                ())
+             [pcdata &quot;OCaml on wikipedia&quot;]
+             [&quot;OCaml&quot;]; br ();
+           Raw.a
+             ~a:[a_href (Raw.uri_of_string &quot;http://en.wikipedia.org/wiki/OCaml&quot;)]
+             [pcdata &quot;OCaml on wikipedia&quot;]
+         ]])))</code></pre><p>See <a href="http://tests.ocsigen.org/rep/links" class="ocsimore_phrasing_link">http://tests.ocsigen.org/rep/links</a>.
+</p><p><span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/api/server/Eliom_content.Html5.D#VALa">Eliom_content.​Html5.​D.​a</a></span> takes as first parameter
+the service you want to link to.
+The third parameter is the text of the link.
+The last parameter is for
+GET parameters you want to put in the link.
+The type of this parameter and the name of GET parameters depend
+on the service you link to.
+</p><p>The links to Wikipedia shows how to define an external service (here it
+uses a suffix URL).
+For an external service without parameters, you can use the low level
+function  <span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/api/server/Eliom_content.Html5.D.Raw#VALa">Eliom_content.​Html5.​D.​Raw.​a</a></span>, if you don't want to create an
+external service explicitly.
+Note that the path must be a list of strings:
+do not write <span class="teletype">[&quot;foo/bar&quot;]</span>,
+but <span class="teletype">[&quot;foo&quot;;&quot;bar&quot;]</span>, otherwise, the &quot;/&quot; will be encoded in
+the URL.<br/>
+</p><p>If you want to create (mutually or not) recursive pages, create the
+service using <span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/api/server/Eliom_service.App#VALservice">Eliom_service.​App.​service</a></span> or  <span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/api/server/Eliom_service.Http#VALservice">Eliom_service.​Http.​service</a></span> first, then
+register it in the table using (for example) <span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/api/server/Eliom_registration.Html5#VALregister">Eliom_registration.​Html5.​register</a></span>:
+</p><pre class=""><code class="language-ocaml translatable">let linkrec = Eliom_service.Http.service [&quot;linkrec&quot;] Eliom_parameter.unit ()
+
+let _ = Eliom_registration.Html5.register linkrec
+    (fun () () -&gt;
+      Lwt.return
+       (html
+        (head (title (pcdata &quot;&quot;)) [])
+        (body [p [a linkrec [pcdata &quot;click&quot;] ()]])))</code></pre><p>See<a href="http://tests.ocsigen.org./linkrec" class="ocsimore_phrasing_link">http://tests.ocsigen.org./linkrec</a>.
+</p><p>(But you can also refer to <em>the current service</em> as <span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/api/server/Eliom_service#VALvoid_coservice'">Eliom_service.​void_coservice'</a></span>.)
+</p><h2 id="forms">Forms <a class="backref" href="#forms">&#182;</a></h2><h3>Forms towards GET services</h3><p>The function  <span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/api/server/Eliom_content.Html5.D#VALget_form">Eliom_content.​Html5.​D.​get_form</a></span> allows creation of forms
+that use the GET method (parameters in the URL).
+It works like  <span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/api/server/Eliom_content.Html5.D#VALa">Eliom_content.​Html5.​D.​a</a></span> but takes a <em>function</em> that creates the form from the parameters names as parameter.
+</p><pre class=""><code class="language-ocaml translatable">let create_form =
+  (fun (number_name, (number2_name, string_name)) -&gt;
+    Html5.D.(
+      [p [pcdata &quot;Write an int: &quot;;
+        int_input ~input_type:`Text ~name:number_name ();
+        pcdata &quot;Write another int: &quot;;
+        int_input ~input_type:`Text ~name:number2_name ();
+        pcdata &quot;Write a string: &quot;;
+        string_input ~input_type:`Text ~name:string_name ();
+        string_input ~input_type:`Submit ~value:&quot;Click&quot; ()]]
+    ))
+
+let form = Eliom_registration.Html5.register_service [&quot;form&quot;] unit
+  (fun () () -&gt;
+     let f = Html5.D.get_form coucou_params create_form in
+     Lwt.return
+       (html
+         (head (title (pcdata &quot;&quot;)) [])
+         (body [f])))</code></pre><p>See <a href="http://tests.ocsigen.org/form" class="ocsimore_phrasing_link">http://tests.ocsigen.org/form</a> to see the function <span class="code">form&gt;&gt; in action]].<br/></span>
+</p><p>If you want to use typed parameters,
+you cannot use functions like  <span><a class="ocsforge_doclink_tyxml" href="/tyxml/4.1.0/api/Html5.M#VALinput">Html5.​M.​input</a></span> to
+create your forms (but you can use it if you want to use parameters defined with
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/api/server/Eliom_parameter#VALany">Eliom_parameter.​any</a></span>). Indeed, parameter names are typed to force them
+be used properly. In our example, <span class="code">number_name</span> has type
+<span class="code">int param_name</span> and must be used with
+<span class="code">int_input</span> (or other widgets), whereas
+<span class="code">string_name</span> has type
+<span class="code">string param_name</span> and must be used with
+<span class="code">string_input</span> (or other widgets).
+All functions for creating form widgets are detailed
+in <span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/api/server/Eliom_content.Html5.D">Eliom_content.​Html5.​D</a></span> (and <span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/api/server/Eliom_content.Html5.D">Eliom_content.​Html5.​D</a></span>).
+</p><p>For untyped forms, you may use functions from <span><a class="ocsforge_doclink_tyxml" href="/tyxml/4.1.0/api/Html5.M">Html5.​M</a></span> or functions from the module <span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/api/server/Eliom_content.Html5.D.Raw">Eliom_content.​Html5.​D.​Raw</a></span>.  Here is a form linking to our (untyped) service
+<span class="code">raw_serv</span>.
+</p><pre class=""><code class="language-ocaml translatable">let raw_form =
+  Eliom_registration.Html5.register_service
+    ~path:[&quot;anyform&quot;]
+    ~get_params:Eliom_parameter.unit
+    (fun () () -&gt;
+      Lwt.return
+        Html5.D.(html
+                   (head (title (pcdata &quot;&quot;)) [])
+                   (body
+                      [h1 [pcdata &quot;Any Form&quot;];
+                       get_form raw_serv
+                         (fun () -&gt;
+                           [p [pcdata &quot;Form to raw_serv: &quot;;
+                               raw_input ~input_type:`Text ~name:&quot;plop&quot; ();
+                               raw_input ~input_type:`Text ~name:&quot;plip&quot; ();
+                               raw_input ~input_type:`Text ~name:&quot;plap&quot; ();
+                               raw_input ~input_type:`Submit ~value:&quot;Click&quot; ()]])
+                        ])))</code></pre><p>Try this <a href="http://tests.ocsigen.org/anyform" class="ocsimore_phrasing_link">form</a>. &gt;&gt;
+</p><h3>POST parameters</h3><p>By default web page parameters are transferred in the URL (GET parameters).
+A web page may also expect POST parameters
+(that is, parameters that are not in the URL but in the body of the HTTP
+request, if the POST method is used).
+</p><pre class=""><code class="language-ocaml translatable">let no_post_param_service =
+  Eliom_registration.Html5.register_service
+    ~path:[&quot;post&quot;]
+    ~get_params:Eliom_parameter.unit
+    (fun () () -&gt;
+      Lwt.return
+        (html
+         (head (title (pcdata &quot;&quot;)) [])
+         (body [h1 [pcdata
+                      &quot;Version of the page without POST parameters&quot;]])))
+
+let my_service_with_post_params =
+  Eliom_registration.Html5.register_post_service
+    ~fallback:no_post_param_service
+    ~post_params:Eliom_parameter.(string &quot;value&quot;)
+    (fun () value -&gt;
+      Lwt.return
+        (html
+         (head (title (pcdata &quot;&quot;)) [])
+         (body [h1 [pcdata value]])))</code></pre><p>Services may take both GET and POST parameters:
+</p><pre class=""><code class="language-ocaml translatable">let get_no_post_param_service =
+  Eliom_registration.Html5.register_service
+    ~path:[&quot;post2&quot;]
+    ~get_params:Eliom_parameter.(int &quot;i&quot;)
+    (fun i () -&gt;
+      Lwt.return
+        (html
+         (head (title (pcdata &quot;&quot;)) [])
+         (body [p [pcdata &quot;No POST parameter, i:&quot;;
+                   em [pcdata (string_of_int i)]]])))
+
+let my_service_with_get_and_post = Eliom_registration.Html5.register_post_service
+  ~fallback:get_no_post_param_service
+  ~post_params:Eliom_parameter.(string &quot;value&quot;)
+  (fun i value -&gt;
+    Lwt.return
+      (html
+         (head (title (pcdata &quot;&quot;)) [])
+         (body [p [pcdata &quot;Value: &quot;;
+                   em [pcdata value];
+                   pcdata &quot;, i: &quot;;
+                   em [pcdata (string_of_int i)]]])))</code></pre><h3 id="postforms">POST forms <a class="backref" href="#postforms">&#182;</a></h3><p>To create a POST form, use the
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/api/server/Eliom_content.Html5.D#VALpost_form">Eliom_content.​Html5.​D.​post_form</a></span> function.
+It is similar to  <span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/api/server/Eliom_content.Html5.D#VALget_form">Eliom_content.​Html5.​D.​get_form</a></span>
+with an additional parameter
+for the GET parameters you want to put in the URL (if any).
+Here, <span class="code">form2</span> is a page containing a form
+to the service <span class="code">post</span> (using Html5.F's functions)
+and <span class="code">form3</span> (defined using the syntax extension)
+contains a form to <span class="code">post2</span>, with a GET parameter.
+<span class="code">form4</span> is a form to an external page.
+</p><pre class=""><code class="language-ocaml translatable">let form2 = Eliom_registration.Html5.register_service [&quot;form2&quot;] Eliom_parameter.unit
+  (fun () () -&gt;
+     let f =
+       (Eliom_content.Html5.D.post_form my_service_with_post_params
+          (fun chaine -&gt;
+            [p [pcdata &quot;Write a string: &quot;;
+                string_input ~input_type:`Text ~name:chaine ()]]) ()) in
+     Lwt.return
+       (html
+         (head (title (pcdata &quot;form&quot;)) [])
+         (body [f])))
+
+let form3 = Eliom_registration.Html5.register_service [&quot;form3&quot;] Eliom_parameter.unit
+  (fun () () -&gt;
+     let module Html5 = Html5.D in
+     let f  =
+       (Eliom_content.Html5.D.post_form my_service_with_get_and_post
+          (fun chaine -&gt;
+            &lt;:html5list&lt; &lt;p&gt; Write a string:
+                    $string_input ~input_type:`Text ~name:chaine ()$ &lt;/p&gt; ~&gt;&gt;)
+          222) in
+     Lwt.return
+       &lt;&lt; &lt;html&gt;
+            &lt;head&gt;&lt;title&gt;&lt;/title&gt;&lt;/head&gt;
+            &lt;body&gt;$f$&lt;/body&gt;&lt;/html&gt; ~&gt;&gt;)
+
+let form4 = Eliom_registration.Html5.register_service [&quot;form4&quot;] Eliom_parameter.unit
+  (fun () () -&gt;
+     let module Html5 = Eliom_content.Html5.D in
+     let f  =
+       (Eliom_content.Html5.D.post_form
+          (external_post_service
+             ~prefix:&quot;http://www.petizomverts.com&quot;
+             ~path:[&quot;zebulon&quot;]
+             ~get_params:(int &quot;i&quot;)
+             ~post_params:(string &quot;chaine&quot;) ())
+          (fun chaine -&gt;
+            &lt;:html5list&lt; &lt;p&gt; Write a string:
+                     $string_input ~input_type:`Text ~name:chaine ()$ &lt;/p&gt; ~&gt;&gt;)
+          222) in
+     Lwt.return
+       (html
+        (head (title (pcdata &quot;form&quot;)) [])
+        (body [f])))
+&gt;&gt;
+
+See the urls:
+[[http://tests.ocsigen.org/post|post without parameter]],
+[[http://tests.ocsigen.org/post2?i=123|post2 without POST parameter]],
+[[http://tests.ocsigen.org/form2|form2]],
+[[http://tests.ocsigen.org/form3|form3]],
+[[http://tests.ocsigen.org/form4|form4]].
+
+
+==@@id=&quot;advancedformsandparameters&quot;@@Advanced forms and parameters
+
+This section shows more advanced use of page parameters and
+corresponding forms.
+
+===Parsing parameters using regular expressions
+
+
+Eliom_parameter.regexp allows parsing page parameters using (Perl-compatible)
+regular expressions. We use the module &lt;&lt;span class=&quot;code&quot;|Netstring_pcre&gt;&gt;,
+from //OCamlnet//. See the documentation about OCamlnet
+for more information.
+The following example shows a service that accepts only parameters
+values enclosed between &lt;&lt;span class=&quot;code&quot;|[&gt;&gt; and &lt;&lt;span class=&quot;code&quot;|]&gt;&gt;:
+
+&lt;&lt;code language=&quot;ocaml&quot;|
+let r = Netstring_pcre.regexp &quot;\\\\[(.*)\\\\]&quot;
+
+let regexp =
+  Eliom_registration.Html5.register_service
+    ~path:[&quot;regexp&quot;]
+    ~get_params:Eliom_parameter.(regexp r &quot;$1&quot; (fun s -&gt; s) &quot;myparam&quot;)
+    (fun g () -&gt;
+      Lwt.return
+        Html5.D.(html
+                  (head (title (pcdata &quot;&quot;)) [])
+                  (body [p [pcdata g]])))
+
+&gt;&gt;
+
+&lt;&lt;code language=&quot;ocaml&quot;|let myregexp = Netstring_pcre.regexp &quot;\\[(.*)\\]&quot;
+
+let regexpserv =
+  Eliom_registration.Html5.register_service
+    ~path:[&quot;regexp&quot;]
+    ~get_params:Eliom_parameter.(regexp myregexp &quot;$1&quot; (fun s -&gt; s) &quot;myparam&quot;)
+    (fun g () -&gt;
+      Lwt.return
+        Html5.D.(html
+                  (head (title (pcdata &quot;&quot;)) [])
+                  (body [p [pcdata g]])))
+&gt;&gt;
+[[http://tests.ocsigen.org/regexp?myparam=%5Btoto%5D| Try it]].
+
+===Boolean checkboxes
+
+Page may take parameter of type &lt;&lt;span class=&quot;code&quot;|bool&gt;&gt;.
+A possible use of this type is in a form
+with //boolean checkboxes//, as in the example below:
+
+&lt;&lt;code language=&quot;ocaml&quot;|(* Form with bool checkbox: *)
+let bool_params = Eliom_registration.Html5.register_service
+    ~path:[&quot;bool&quot;]
+    ~get_params:Eliom_parameter.(bool &quot;case&quot;)
+  (fun case () -&gt;
+    let module Html5 = Html5.D in
+    Lwt.return
+      &lt;&lt; &lt;html&gt;
+           &lt;head&gt;&lt;title&gt;&lt;/title&gt;&lt;/head&gt;
+           &lt;body&gt;
+           &lt;p&gt;
+             $pcdata (if case then &quot;checked&quot; else &quot;not checked&quot;)$
+           &lt;/p&gt;
+           &lt;/body&gt;
+         &lt;/html&gt; ~&gt;&gt;)
+
+let create_form_bool casename =
+    let module Html5 = Html5.D in
+    &lt;:html5list&lt; &lt;p&gt;check? $bool_checkbox ~name:casename ()$ &lt;br/&gt;
+      $string_input ~input_type:`Submit ~value:&quot;Click&quot; ()$&lt;/p&gt; ~&gt;&gt;
+
+let form_bool = Eliom_registration.Html5.register_service [&quot;formbool&quot;] unit
+  (fun () () -&gt;
+     let module Html5 = Html5.D in
+     let f = get_form bool_params create_form_bool in
+     Lwt.return
+       &lt;&lt; &lt;html&gt;
+            &lt;head&gt;&lt;title&gt;&lt;/title&gt;&lt;/head&gt;
+            &lt;body&gt; $f$ &lt;/body&gt;
+          &lt;/html&gt; ~&gt;&gt;)
+
+
+&gt;&gt;
+
+[[http://tests.ocsigen.org/formbool| Try it]].\\
+
+//Important warning://
+As you can see, browsers do not send any value
+for unchecked boxes! An unchecked box is equivalent to no parameter
+at all! Thus it is not possible to distinguish between a service
+taking a boolean and a service taking no parameter at all
+(if they share the same URL).
+In Eliom services with higher priority are tried first, and then
+they are tried in order of registration.
+The first matching service will answer.\\
+
+Other types similar to bool:
+* &lt;&lt;a_api| val Eliom_parameter.opt &gt;&gt; (page taking an optional parameter),
+* &lt;&lt;a_api| val Eliom_parameter.sum &gt;&gt; (either a parameter or another).
+
+See &lt;&lt;a_api | module Eliom_parameter&gt;&gt;.
+
+===Type &lt;&lt;span class=&quot;code&quot;|set&gt;&gt;
+
+Page may take several parameters of the same name.
+It is useful when you want to create a form with a variable number
+of fields.
+To do that with Eliom, use the type  &lt;&lt;a_api| val Eliom_parameter.set &gt;&gt;.
+For example &lt;&lt;span class=&quot;code&quot;|set int &quot;val&quot;&gt;&gt; means that the page will take
+zero, one or several parameters of name &lt;&lt;span class=&quot;code&quot;|&quot;val&quot;&gt;&gt;,
+all of type &lt;&lt;span class=&quot;code&quot;|int&gt;&gt;.
+The function you register will receive the parameters in a list.
+Example:
+
+&lt;&lt;code language=&quot;ocaml&quot;|let set = Eliom_registration.Html5.register_service
+    ~path:[&quot;set&quot;]
+    ~get_params:Eliom_parameter.(set string &quot;s&quot;)
+  (fun l () -&gt;
+    let module Html5 = Html5.D in
+    let ll =
+      List.map
+        (fun s -&gt; &lt;&lt; &lt;strong&gt;$str:s$ &lt;/strong&gt; ~&gt;&gt;) l
+    in
+    Lwt.return
+    &lt;&lt; &lt;html&gt;
+         &lt;head&gt;&lt;title&gt;&lt;/title&gt;&lt;/head&gt;
+         &lt;body&gt;
+         &lt;p&gt;
+           You sent:
+           $list:ll$
+         &lt;/p&gt;
+         &lt;/body&gt;
+       &lt;/html&gt; ~&gt;&gt;)
+&gt;&gt;
+
+These parameters may come from several kinds of widgets in forms.
+   Here is an example of a form with several checkboxes, all sharing the same
+   name, but with different values:
+
+&lt;&lt;code language=&quot;ocaml&quot;|
+(* form to set *)
+let setform = Eliom_registration.Html5.register_service
+    ~path:[&quot;setform&quot;]
+    ~get_params:Eliom_parameter.unit
+    (fun () () -&gt;
+      Lwt.return
+        (html
+           (head (title (pcdata &quot;&quot;)) [])
+           (body [h1 [pcdata &quot;Set Form&quot;];
+                  get_form set
+                    (fun n -&gt;
+                      [p [pcdata &quot;Form to set: &quot;;
+                          string_checkbox ~name:n ~value:&quot;box1&quot; ();
+                          string_checkbox
+                            ~name:n ~value:&quot;box2&quot; ~checked:true ();
+                          string_checkbox ~name:n ~value:&quot;box3&quot; ();
+                          string_checkbox ~name:n ~value:&quot;box4&quot; ();
+                          string_input ~input_type:`Submit ~value:&quot;Click&quot; ()]])
+                ])))
+&gt;&gt;
+
+[[http://tests.ocsigen.org/setform|Try it]].\\
+
+Once again, note that there is no difference between an empty
+set or no parameter at all. If you register a service without parameters
+and a service with a set of parameters on the same URL, the service with
+higher priority, or the firstly registered service that matches,
+will answer.
+
+
+
+===Select
+
+
+Here is an example of a select box.
+
+&lt;&lt;code language=&quot;ocaml&quot;|let select_example_result = Eliom_registration.Html5.register_service
+    ~path:[&quot;select&quot;]
+    ~get_params:Eliom_parameter.(string &quot;s&quot;)
+    (fun g () -&gt;
+      Lwt.return
+        (html
+           (head (title (pcdata &quot;&quot;)) [])
+           (body [p [pcdata &quot;You selected: &quot;;
+                     strong [pcdata g]]])))
+
+let create_select_form =
+  (fun select_name -&gt;
+    Html5.D.(
+      [p [pcdata &quot;Select something: &quot;;
+        string_select ~name:select_name
+          (Option ([] (* attributes *),
+                   &quot;Bob&quot; (* value *),
+                   None (* Content, if different from value *),
+                   false (* not selected *))) (* first line *)
+          [Option ([], &quot;Marc&quot;, None, false);
+          (Optgroup
+          ([],
+           &quot;Girls&quot;,
+           ([], &quot;Karin&quot;, None, false),
+           [([a_disabled `Disabled], &quot;Juliette&quot;, None, false);
+            ([], &quot;Alice&quot;, None, true);
+            ([], &quot;Germaine&quot;, Some (pcdata &quot;Bob's mother&quot;), false)]))]
+          ;
+        string_input ~input_type:`Submit ~value:&quot;Send&quot; ()]]
+    ))
+
+let select_example = Eliom_registration.Html5.register_service [&quot;select&quot;] Eliom_parameter.unit
+  (fun () () -&gt;
+     let open Html5.D in
+     let f =
+       get_form
+         select_example_result create_select_form
+     in
+     Lwt.return
+       (html
+         (head (title (pcdata &quot;&quot;)) [])
+         (body [f])))
+&gt;&gt;
+
+[[http://tests.ocsigen.org/select| Try it]].\\
+
+To do &quot;multiple&quot; select boxes, use functions like
+ &lt;&lt;a_api| val Eliom_content.Html5.D.string_multiple_select &gt;&gt;.
+As you can see in the type, the service must be declared with parameters
+of type  &lt;&lt;a_api| val Eliom_parameter.set &gt;&gt;.
+
+===Clickable images
+
+
+Here is an example of clickable image.
+      You receive the coordinates the user clicked on.
+
+&lt;&lt;code language=&quot;ocaml&quot;|let coord = Eliom_registration.Html5.register_service
+    ~path:[&quot;coord&quot;]
+    ~get_params:Eliom_parameter.(coordinates &quot;coord&quot;)
+  (fun c () -&gt;
+    let module Html5 = Html5.D in
+    Lwt.return
+      &lt;&lt; &lt;html&gt;
+           &lt;head&gt;&lt;title&gt;&lt;/title&gt;&lt;/head&gt;
+           &lt;body&gt;
+           &lt;p&gt;
+             You clicked on coordinates:
+             ($str:(string_of_int c.abscissa)$, $str:(string_of_int c.ordinate)$)
+           &lt;/p&gt;
+           &lt;/body&gt;
+         &lt;/html&gt; ~&gt;&gt;)
+
+(* form to image *)
+let imageform = Eliom_registration.Html5.register_service
+    ~path:[&quot;imageform&quot;]
+    ~get_params:Eliom_parameter.unit
+    (fun () () -&gt;
+      Lwt.return
+        (html
+           (head (title (pcdata &quot;&quot;)) [])
+           (body [h1 [pcdata &quot;Image Form&quot;];
+                  get_form coord
+                    (fun n -&gt;
+                      [p [image_input
+                            ~src:(make_uri ~service:(Eliom_service.static_dir ()) [&quot;ocsigen5.png&quot;])
+                            ~name:n
+                            ()]])
+                ])))
+&gt;&gt;
+
+[[http://tests.ocsigen.org/imageform| Try it]].\\
+
+You may also send a value with the coordinates:
+
+&lt;&lt;code language=&quot;ocaml&quot;|let coord2 = Eliom_registration.Html5.register_service
+    ~path:[&quot;coord2&quot;]
+    ~get_params:Eliom_parameter.(int_coordinates &quot;coord&quot;)
+  (fun (i, c) () -&gt;
+    let module Html5 = Html5.D in
+    Lwt.return
+      &lt;&lt; &lt;html&gt;
+           &lt;head&gt;&lt;title&gt;&lt;/title&gt;&lt;/head&gt;
+           &lt;body&gt;
+           &lt;p&gt;
+             You clicked on coordinates:
+             ($str:(string_of_int c.abscissa)$, $str:(string_of_int c.ordinate)$)
+           &lt;/p&gt;
+           &lt;/body&gt;
+         &lt;/html&gt; ~&gt;&gt;)
+
+(* form to image *)
+let imageform2 = Eliom_registration.Html5.register_service
+    ~path:[&quot;imageform2&quot;]
+    ~get_params:Eliom_parameter.unit
+    (fun () () -&gt;
+      Lwt.return
+        (html
+           (head (title (pcdata &quot;&quot;)) [])
+           (body [h1 [pcdata &quot;Image Form&quot;];
+                  get_form coord2
+                    (fun n -&gt;
+                      [p [int_image_input
+                            ~src:(make_uri ~service:(Eliom_service.static_dir ()) [&quot;ocsigen5.png&quot;])
+                            ~name:n
+                            ~value:3
+                            ()]])
+                ])))
+
+&gt;&gt;
+
+[[http://tests.ocsigen.org/imageform2|Try it]].
+
+
+===Type &lt;&lt;span class=&quot;code&quot;|list&gt;&gt;
+
+Another way (than  &lt;&lt;a_api| val Eliom_parameter.set &gt;&gt;) to do variable length forms
+is to use indexed lists (using  &lt;&lt;a_api| val Eliom_parameter.list &gt;&gt;).
+The use of that feature is a bit more complex than &lt;&lt;span class=&quot;code&quot;|set&gt;&gt;.
+Here is an example of service taking an indexed list as parameter:
+
+&lt;&lt;code language=&quot;ocaml&quot;|
+(* lists *)
+let coucou_list = Eliom_registration.Html5.register_service
+    ~path:[&quot;coucou&quot;]
+    ~get_params:Eliom_parameter.(list &quot;a&quot; (string &quot;str&quot;))
+  (fun l () -&gt;
+    let module Html5 = Html5.D in
+    let ll =
+      List.map (fun s -&gt; &lt;&lt; &lt;strong&gt;$str:s$&lt;/strong&gt; ~&gt;&gt;) l in
+      Lwt.return
+        &lt;&lt; &lt;html&gt;
+             &lt;head&gt;&lt;title&gt;&lt;/title&gt;&lt;/head&gt;
+             &lt;body&gt;
+             &lt;p&gt;
+               You sent:
+               $list:ll$
+             &lt;/p&gt;
+             &lt;/body&gt;
+           &lt;/html&gt; ~&gt;&gt;)
+&gt;&gt;
+
+Here is an example of link towards this service:
+[[http://tests.ocsigen.org/coucou?a.str%5B1%5D=titi&amp;a.str%5B0%5D=toto|coucou?a.str[0]=toto&amp;a.str[1]=titi]].
+
+//Warning://
+As for sets or bools,
+if a request has no parameter, it will be considered as the empty list.
+Services with higher priority are tried first, otherwise
+they are tried in order of registration.
+
+As you see, the names of each list element is built from the name
+of the list, the name of the list element, and an index.
+To spare you creating yourself these names, Eliom provides you an iterator
+to create them.
+
+&lt;&lt;code language=&quot;ocaml&quot;|(* Form with list: *)
+let create_listform f =
+  (* Here, f.it is an iterator like List.map,
+     but it must be applied to a function taking 3 arguments
+     (unlike 1 in map), the first one being the name of the parameter,
+     and the second one the element of list.
+     The last parameter of f.it is the code that must be appended at the
+     end of the list created
+   *)
+  let module Html5 = Eliom_content.Html5.D in
+  f.it (fun stringname v init -&gt;
+    &lt;:html5list&lt; &lt;p&gt;Write the value for $str:v$:
+      $string_input ~input_type:`Text ~name:stringname ()$ &lt;/p&gt; ~&gt;&gt;@init)
+    [&quot;one&quot;;&quot;two&quot;;&quot;three&quot;;&quot;four&quot;]
+    &lt;:html5list&lt; &lt;p&gt;$string_input ~input_type:`Submit ~value:&quot;Click&quot; ()$&lt;/p&gt; ~&gt;&gt;
+
+let listform = Eliom_registration.Html5.register_service [&quot;listform&quot;] Eliom_parameter.unit
+  (fun () () -&gt;
+     let f = get_form coucou_list create_listform in
+     let module Html5 = Eliom_content.Html5.D in
+     Lwt.return
+       &lt;&lt; &lt;html&gt;
+            &lt;head&gt;&lt;title&gt;&lt;/title&gt;&lt;/head&gt;
+            &lt;body&gt; $f$ &lt;/body&gt;
+          &lt;/html&gt; ~&gt;&gt;)
+
+&gt;&gt;
+
+[[http://tests.ocsigen.org/listform| Try it]].\\
+
+//Important warning://
+As we have seen in the section about boolean (or optional)
+parameters, it is not possible to distinguish between a boolean
+with value &quot;false&quot;, and no parameter at all.
+This causes problems if you create a list of boolean or optional
+values, as it is not possible to know the length of the list.
+In that case, Eliom always takes the shortest possible list.
+
+===Forms and suffixes
+
+Service with &quot;suffix&quot; URLs have an equivalent version with
+usual parameters, allowing creation of forms towards such services.
+Example:
+
+&lt;&lt;code language=&quot;ocaml&quot;|(* Form for service with suffix: *)
+let create_suffixform ((suff, endsuff),i) =
+     let module Html5 = Eliom_content.Html5.D in
+    &lt;:html5list&lt; &lt;p&gt;Write the suffix:
+      $int_input ~input_type:`Text ~name:suff ()$ &lt;br/&gt;
+      Write a string: $user_type_input
+      (Ocsigen_lib.Url.string_of_url_path ~encode:false)
+         ~input_type:`Text ~name:endsuff ()
+         $ &lt;br/&gt;
+      Write an int: $int_input ~input_type:`Text ~name:i ()$ &lt;br/&gt;
+      $string_input ~input_type:`Submit ~value:&quot;Click&quot; ()$&lt;/p&gt; ~&gt;&gt;
+
+let suffixform = Eliom_registration.Html5.register_service [&quot;suffixform&quot;] Eliom_parameter.unit
+  (fun () () -&gt;
+     let f = get_form isuffix create_suffixform in
+     let module Html5 = Eliom_content.Html5.D in
+     Lwt.return
+      &lt;&lt; &lt;html&gt;
+           &lt;head&gt;&lt;title&gt;&lt;/title&gt;&lt;/head&gt;
+           &lt;body&gt; $f$ &lt;/body&gt;
+         &lt;/html&gt; ~&gt;&gt;)
+
+&gt;&gt;
+
+[[http://tests.ocsigen.org/suffixform| Try it]].
+
+===Uploading files
+
+The  &lt;&lt;a_api| val Eliom_parameter.file &gt;&gt; parameter type allows files to be sent in your
+request. The service gets something of type
+ &lt;&lt;a_api project=&quot;ocsigenserver&quot;| type Ocsigen_extensions.file_info &gt;&gt;. You can extract information
+using this using these functions (from  &lt;&lt;a_api| module Eliom_request_info &gt;&gt;):
+
+&lt;&lt;code language=&quot;ocaml&quot;|val get_tmp_filename : Ocsigen_extensions.file_info -&gt; string
+val get_filesize : Ocsigen_extensions.file_info -&gt; int64
+val get_original_filename : Ocsigen_extensions.file_info -&gt; string
+
+&gt;&gt;
+
+
+ &lt;&lt;a_api| val Eliom_request_info.get_tmp_filename &gt;&gt; returns the actual name
+of the uploaded file on the hard drive.
+ &lt;&lt;a_api| val Eliom_request_info.get_original_filename &gt;&gt; gives the original filename.
+
+To make possible the upload of files, you must configure a
+directory for uploaded files in Ocsigen's configuration file.
+For example:
+&lt;&lt;div class=&quot;pre&quot;|
+  &lt;uploaddir&gt;/tmp&lt;/uploaddir&gt; &gt;&gt;
+
+Files are kept in this directory only while processing the request.
+Then they are automatically cancelled.
+Thus your services must copy them
+somewhere else themselves if they want to keep them.
+In the following example, we create a new hard link to the file
+to keep it (the destination must be on the same partition of the disk).
+
+
+&lt;&lt;code language=&quot;ocaml&quot;|let upload = Eliom_service.Http.service
+    ~path:[&quot;upload&quot;]
+    ~get_params:unit
+    ()
+
+let upload2 = Eliom_registration.Html5.register_post_service
+   ~fallback:upload
+   ~post_params:Eliom_parameter.(file &quot;file&quot;)
+    (fun () file -&gt;
+      let to_display =
+        let newname = &quot;/tmp/thefile&quot; in
+        (try
+          Unix.unlink newname;
+        with _ -&gt; ());
+        Lwt_log.ign_debug (Eliom_request_info.get_tmp_filename file);
+        Unix.link (Eliom_request_info.get_tmp_filename file) newname;
+        let fd_in = open_in newname in
+        try
+          let line = input_line fd_in in close_in fd_in; line (*end*)
+        with End_of_file -&gt; close_in fd_in; &quot;vide&quot;
+      in
+      Lwt.return
+        (html
+           (head (title (pcdata &quot;Upload&quot;)) [])
+           (body [h1 [pcdata to_display]])))
+
+
+let uploadform = Eliom_registration.Html5.register upload
+    (fun () () -&gt;
+      let f =
+        (post_form upload2
+           (fun file -&gt;
+             [p [file_input ~name:file ();
+                 br ();
+                 string_input ~input_type:`Submit ~value:&quot;Send&quot; ()
+               ]]) ()) in
+      Lwt.return
+        (html
+           (head (title (pcdata &quot;form&quot;)) [])
+           (body [f])))
+
+
+&gt;&gt;
+
+[[http://tests.ocsigen.org/upload| Try it]]
+(warning: uploading on ocsigen.org is forbidden).
+
+
+===Raw POST data (advanced use)
+
+By specifying {{{~post_params:Eliom_parameter.raw_post_params}}},
+it is possible to create a service that takes as parameter any POST
+data, as a stream. The only restriction is that it does not work if
+the content-type corresponds to URL encoded form data or multipart data
+(because in these cases, there are POST parameters, which are decoded by Eliom
+to find the service).
+
+See the API reference for more information.
+ syntax error in wikisyntax</code></pre></div></body></html>

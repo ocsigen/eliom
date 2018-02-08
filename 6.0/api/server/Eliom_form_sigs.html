@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Module Eliom_form_sigs </title><meta charset="utf8"/><link rel="stylesheet" href="/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/js/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><div class="project-page project-eliom"><div class="page-header"><p class="logo-ocsigen"><a href="/" class="ocsimore_phrasing_link"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><ul><li><a href="/" class="ocsimore_phrasing_link">Home</a>
+</li><li class="mainmenu-current"><a href="/eliom/6.2/manual/intro" class="ocsimore_phrasing_link">Eliom</a>
+</li><li><a href="/js_of_ocaml/2.8.4/manual/overview" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li><a href="/ocsigenserver/2.8/manual/quickstart" class="ocsimore_phrasing_link">Server</a>
+</li><li><a href="/lwt/3.1.0/manual/manual" class="ocsimore_phrasing_link">Lwt</a>
+</li><li><a href="/tyxml/4.1.0/manual/intro" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li><a href="/ocsigen-toolkit/1.0/manual/intro" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li><a href="/ocsigen-start/1.0/manual/intro" class="ocsimore_phrasing_link">Start</a>
+</li><li><a href="/projects" class="ocsimore_phrasing_link">Other projects</a></li></ul></div><div class="version-selector"><p>Version
+</p><div class="version-selector-versions"><p><span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/intro">6.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.1/manual/intro">6.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/manual/intro">6.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/5.0/manual/intro">5.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/manual/intro">4.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.1/manual/intro">4.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.0/manual/intro">4.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/intro">3.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.2.2/manual/intro">2.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/manual/intro">2.1.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.2/manual/intro">2.0.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.1/manual/intro">2.0.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0/manual/intro">2.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.3.4/manual/intro">1.3.4</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.2.2/manual/intro">1.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.1.0/manual/intro">1.1.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/manual/intro">dev</a></span></p></div></div><div class="client-server-switch-wrapper"><div class="client-server-switch"><span class="server source">This is server API</span> API (go to <a class="client target" href="/eliom/6.0/api/client/Eliom_form_sigs">client</a>)</div></div><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1>Module <span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/api/server/Eliom_form_sigs">Eliom_form_sigs</a></span> </h1><pre class="ocsforge_color odocwiki_code"><span class="ocsforge_color_keyword">module</span> <span class="ocsforge_color_uid"><span class="ocsforge_color_uid">Eliom_form_sigs</span></span> <span class="ocsforge_color_delimiter">:</span> <span class="ocsforge_color_keyword">sig</span><span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/api/server/Eliom_form_sigs">..</a></span><span class="ocsforge_color_keyword">end</span></pre><p>The function <span class="odocwiki_inlinecode">make_uri service get_params</span> returns the URL of
+the service <span class="odocwiki_inlinecode">service</span> applied to the GET parameters
+<span class="odocwiki_inlinecode">get_params</span>. By default the returned URL is relative to the
+current request URL but it is absolute when one of the following
+conditions is met:
+</p><ul><li> the optional parameter <span class="odocwiki_inlinecode">~absolute_path</span> is <span class="odocwiki_inlinecode">true</span>.
+</li><li> the optional parameter <span class="odocwiki_inlinecode">~absolute</span> is <span class="odocwiki_inlinecode">true</span>.
+</li><li> the optional parameter <span class="odocwiki_inlinecode">~https</span> is <span class="odocwiki_inlinecode">true</span> (resp. <span class="odocwiki_inlinecode">false</span>) and
+the current request protocol is <span class="odocwiki_inlinecode">http</span> (resp. <span class="odocwiki_inlinecode">https</span>).
+</li><li> the optional parameter <span class="odocwiki_inlinecode">~https</span> is <span class="odocwiki_inlinecode">true</span> and the function is
+used outside of a service handler
+</li><li> the <span class="odocwiki_inlinecode">service</span> has been created with <span class="odocwiki_inlinecode">~https:true</span> and the
+current request protocol is <span class="odocwiki_inlinecode">http</span>.
+</li><li> the <span class="odocwiki_inlinecode">service</span> has been created with <span class="odocwiki_inlinecode">~https:true</span> and the
+function is used outside of a service handler.
+</li></ul><p>When only the first condition is met (<span class="odocwiki_inlinecode">~absolute_path</span> is
+<span class="odocwiki_inlinecode">true</span>) the returned URL is just the absolute path, but when any
+other condition is satisfied the returned URL is prefixed with
+<span class="odocwiki_inlinecode">protocol://hostname[:port]</span>, where:
+</p><ul><li> <span class="odocwiki_inlinecode">protocol</span> is:
+
+<ul><li> <span class="odocwiki_inlinecode">https</span> if the <span class="odocwiki_inlinecode">service</span> has been created with
+<span class="odocwiki_inlinecode">~https:true</span> or the optional parameter <span class="odocwiki_inlinecode">~https</span> is
+<span class="odocwiki_inlinecode">true</span>;
+</li><li> <span class="odocwiki_inlinecode">http</span> if the optional parameter <span class="odocwiki_inlinecode">~https</span> is <span class="odocwiki_inlinecode">false</span>;
+</li><li> the current request protocol if available;
+</li><li> <span class="odocwiki_inlinecode">http</span> in any other case.
+</li></ul></li></ul><ul><li> <span class="odocwiki_inlinecode">hostname</span> is:
+
+<ul><li> the optional parameter <span class="odocwiki_inlinecode">~hostname</span> if given;
+</li><li> the attribute <span class="odocwiki_inlinecode">defaulthostname</span> of <span class="odocwiki_inlinecode">&lt;host&gt;</span> tag in
+configuration file or the machine hostname if the
+option <span class="odocwiki_inlinecode">&lt;usedefaulthostname/&gt;</span> is set;
+</li><li> the <span class="odocwiki_inlinecode">Host</span> http header of the current request if
+available;
+</li><li> the attribute <span class="odocwiki_inlinecode">defaulthostname</span> of <span class="odocwiki_inlinecode">&lt;host&gt;</span> tag in
+configuration file or the machine hostname in any other
+case.
+</li></ul></li></ul><ul><li> <span class="odocwiki_inlinecode">port</span> is:
+
+<ul><li> the optional parameter <span class="odocwiki_inlinecode">~port</span> if given;
+</li><li> the attribute <span class="odocwiki_inlinecode">defaulthttpsport</span>
+(resp. <span class="odocwiki_inlinecode">defaulthttpport</span>) of <span class="odocwiki_inlinecode">&lt;host&gt;</span> tag in
+configuration file or <span class="odocwiki_inlinecode">443</span> (resp. 80) if <span class="odocwiki_inlinecode">protocol</span> is
+<span class="odocwiki_inlinecode">https</span> (resp. <span class="odocwiki_inlinecode">http</span>) and the current request protocol
+is <span class="odocwiki_inlinecode">http</span> (resp. <span class="odocwiki_inlinecode">https</span>);
+</li><li> the attribute <span class="odocwiki_inlinecode">defaulthttpsport</span>
+(resp. <span class="odocwiki_inlinecode">defaulthttpsport</span>) of <span class="odocwiki_inlinecode">&lt;host&gt;</span> tag in
+configuration file or <span class="odocwiki_inlinecode">443</span> (resp. 80) if the option
+<span class="odocwiki_inlinecode">&lt;usedefaulthostname/&gt;</span> is set and <span class="odocwiki_inlinecode">protocol</span> is
+<span class="odocwiki_inlinecode">https</span> (resp. <span class="odocwiki_inlinecode">http</span>);
+</li><li> the port associated to the <span class="odocwiki_inlinecode">Host</span> http header of the
+current request if available;
+</li><li> the incoming port of the current request if available;
+</li><li> the attribute <span class="odocwiki_inlinecode">defaulthttpport</span>
+(resp. <span class="odocwiki_inlinecode">defaulthttpsport</span>) of <span class="odocwiki_inlinecode">&lt;host&gt;</span> tag in
+configuration file or <span class="odocwiki_inlinecode">80</span> (resp. <span class="odocwiki_inlinecode">443</span>) in any other
+case.
+</li></ul></li></ul><p>If given the optional parameter <span class="odocwiki_inlinecode">~fragment</span> is prefixed by <span class="odocwiki_inlinecode">#</span>
+and appended to the URL.
+</p><p>The optional parameter <span class="odocwiki_inlinecode">keep_nl_params</span> allows one to override
+the <span class="odocwiki_inlinecode">keep_nl_params</span> parameter used when creating the <span class="odocwiki_inlinecode">service</span>,
+see <span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/api/server/Eliom_service#VALcreate">Eliom_service.​create</a></span> for a detailled description.
+</p><p>The optional parameter <span class="odocwiki_inlinecode">nl_params</span> allows one to add non
+localized GET parameter to the URL.  See the eliom manual for
+more information about <span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/manual/server-params#nonlocalizedparameters">non localized
+parameters</a></span>.
+</p><hr/><pre class="ocsforge_color odocwiki_code" id="TYPEbutton_type"><span class="ocsforge_color_keyword">type</span> <span class="odocwiki_name">button_type</span> <span class="ocsforge_color_delimiter">=</span> <span class="odocwiki_type">[ `Button | `Reset | `Submit ]</span></pre><pre class="ocsforge_color odocwiki_code"><span class="ocsforge_color_keyword">module type</span> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/api/server/Eliom_form_sigs.LINKS">LINKS</a></span> <span class="ocsforge_color_delimiter">=</span> <span class="ocsforge_color_keyword">sig</span><span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/api/server/Eliom_form_sigs.LINKS">..</a></span><span class="ocsforge_color_keyword">end</span></pre><pre class="ocsforge_color odocwiki_code"><span class="ocsforge_color_keyword">module type</span> <span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/api/server/Eliom_form_sigs.S">S</a></span> <span class="ocsforge_color_delimiter">=</span> <span class="ocsforge_color_keyword">sig</span><span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/api/server/Eliom_form_sigs.S">..</a></span><span class="ocsforge_color_keyword">end</span></pre></div></body></html>

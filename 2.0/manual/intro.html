@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Introduction</title><meta charset="utf8"/><link rel="stylesheet" href="/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/js/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><div class="project-page project-eliom"><div class="page-header"><p class="logo-ocsigen"><a href="/" class="ocsimore_phrasing_link"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><ul><li><a href="/" class="ocsimore_phrasing_link">Home</a>
+</li><li class="mainmenu-current"><a href="/eliom/6.2/manual/intro" class="ocsimore_phrasing_link">Eliom</a>
+</li><li><a href="/js_of_ocaml/2.8.4/manual/overview" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li><a href="/ocsigenserver/2.8/manual/quickstart" class="ocsimore_phrasing_link">Server</a>
+</li><li><a href="/lwt/3.1.0/manual/manual" class="ocsimore_phrasing_link">Lwt</a>
+</li><li><a href="/tyxml/4.1.0/manual/intro" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li><a href="/ocsigen-toolkit/1.0/manual/intro" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li><a href="/ocsigen-start/1.0/manual/intro" class="ocsimore_phrasing_link">Start</a>
+</li><li><a href="/projects" class="ocsimore_phrasing_link">Other projects</a></li></ul></div><div class="version-selector"><p>Version
+</p><div class="version-selector-versions"><p><span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/intro">6.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.1/manual/intro">6.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/manual/intro">6.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/5.0/manual/intro">5.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/manual/intro">4.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.1/manual/intro">4.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.0/manual/intro">4.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/intro">3.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.2.2/manual/intro">2.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/manual/intro">2.1.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.2/manual/intro">2.0.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.1/manual/intro">2.0.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0/manual/intro">2.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.3.4/manual/intro">1.3.4</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.2.2/manual/intro">1.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.1.0/manual/intro">1.1.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/manual/intro">dev</a></span></p></div></div><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1>Introduction</h1><p><em>This document is the Eliom manual, where you will find an explanation
+of each concepts provided by Eliom.
+If you are looking for a more didactic introduction,
+have a look at the <a href="wiki(36):" class="ocsimore_phrasing_link">tutorial of the Ocsigen project</a>
+which is a good starting point for beginners.</em>
+</p><p>In the past few years, the Web evolved from something quite static
+to a powerful platform, able to run very dynamic programs.
+Recent browsers make possible a very new kind of applications,
+but most Web developers still use the same old Web frameworks
+that are not adapted to this evolution.
+</p><p>We think these new possibilities deserve to rethink Web
+programming techniques.
+The goal of Eliom (and other projects of the Ocsigen framework)
+is to propose a new way to write
+traditional Web sites or sophisticated client/server Web applications.
+It simplifies the development of complex applications by:
+</p><dl><dt> providing high level expressive concepts
+</dt><dd> that fit very well the needs of Web developers. This allows to program complex behaviour in very few lines of code.
+</dd><dt> helping the programmer to write safe and bug free applications.
+</dt><dd> To improve security, it takes in charge itself many security issues. To reduce the number of bugs, it uses the very powerful typing system of the OCaml language to check many properties of the application at compile time: well formedness of HTML pages, types of page parameters, absence of broken links, etc.
+</dd></dl><p>Eliom does not restrict the possibilities offered by the technology.
+In particular, the programmer can choose exactly the URL and parameter
+names he wants. Eliom also produces clean HTML code that can be parsed
+by search engines (even for client/server applications).
+</p><p>Eliom is not a language but is using the OCaml language.
+This makes possible to use any existing library you want.
+</p><p>Eliom Web sites are written as OCaml modules (cma or cmxs),
+that will be loaded as a plugin into the Ocsigen server.
+</p><h2>Services</h2><p>Pages are generated by <em>services</em>, which are some kind of functions
+that are called when you click on a link or send data through a form in
+a Web page. Services can be associated to URLs. Eliom's
+<em>service identification mechanism</em> (that is: the way Eliom chooses the 
+service to be executed) is actually much more sophisticated.
+It is using many different criteria, like the URL, but also
+special parameters, the HTTP method used (GET or POST),
+parameters names, the session, etc.
+</p><p>Services usually return HTML pages, but you can also choose to return
+files, redirections, actions (that is: just perform a side effect on
+server side and redraw current page), applications, etc.
+</p><p>There are even several ways to generate HTML. You can send it as raw text
+(as in most Web programming frameworks). But we prefer to check at compile
+time that every page generated will respect the recommendation of the W3C.
+For this we are using the TyXML module (or, if you prefer, the OCamlDuce
+compiler, but this is not compatible with client/server Eliom applications).
+</p><p>When defining a service, you must specify the names and types of the
+parameters it expects (in the URL or in the body of the HTTP request).
+Eliom will automatically check parameters and translate them to the
+right OCaml type (even for complex types like list or sets).
+The OCaml compiler checks that the parameters you put in links have
+the right type (w.r.t the service). It also checks that your forms
+correspond to the service to which they are associated. For example
+if your form contains a radio button, the service must expect a
+boolean value.
+</p><p>Services can be created dynamically: for example you can create
+new services that depend on previous interaction with the user
+(form data for example). This is equivalent to what is usually called
+<em>continuation based Web programming</em>. This makes possible for example
+to implement several step forms very easily (like booking a plane ticket).
+</p><p><span><a class="ocsforge_doclink_eliom" href="/eliom/2.0/manual/services">More information... </a></span>
+</p><h2>Sessions and server side state</h2><p>Eliom also have a very sophisticated session mechanism.
+Sessions are a common pattern in Web programming allowing
+to store some data (a state) on server side for each browser.
+This is used for example to recognize connected users,
+or to store a shopping basket. This
+is usually implemented by recording a session identifier in a browser cookie.
+With Eliom, session data are stored in <em>Eliom references</em>, which are some
+kind of reference whose value depends on the session (the session identifier
+sent in the cookie).
+</p><p>But you can choose other <em>scope</em> than &quot;session&quot; for Eliom references: 
+</p><ul><li> it is also possible to define references with scope <em>&quot;client process&quot;</em>
+(which corresponds to a tab of your browser)
+(if you are using client side features). For example if you are implementing
+a game, you can have several instances of the game in several tabs. The score
+is stored on server side in an Eliom references with scope &quot;client process&quot;.
+</li><li> Eliom also provide a scope <em>&quot;session group&quot;</em>. This allows to group
+together for example all sessions belonging to the same user.
+Use this for example if you want to share the shopping basket
+between several devices (like my laptop and my smartphone...).
+</li><li> There is also a scope <em>&quot;request&quot;</em> to store data during the
+generation of a page.
+</li></ul><p><span><a class="ocsforge_doclink_eliom" href="/eliom/2.0/manual/state">More information... </a></span>
+</p><h2>Client/server applications</h2><p>Eliom applications are applications distributed between a server and a browser.
+An instance of the application is running in a tab of the browser and
+can communicate with the server.
+The full application is written in OCaml, as a single program,
+with a special syntax to
+distinguish between server side and client side code.
+Client side code is compiled to Javascript, using the Js_of_ocaml
+compiler, to be executed by the browser.
+</p><p>It is possible to use on client side values defined in server side code.
+Communication between the server and the client is taking in charge
+by Eliom automatically. The use of the same language on both sides
+makes very easy to exchange data.
+</p><p>It is possible to have a client side Eliom program and keep the traditional
+Web interaction (with URLs, links, forms, bookmarks, and back button).
+When you click on a link, the client side program <em>does not stop!</em>
+Thus:
+</p><ul><li> You can keep a state on client side during all the duration of
+the visit on the Website.
+</li><li> You can set bookmarks corresponding to some states of the client side
+program.
+</li><li> Part of the page can persist after loading a new page.
+</li><li> If you are listening music or watching a video, it does not stop
+when you change page!
+</li></ul><p><span><a class="ocsforge_doclink_eliom" href="/eliom/2.0/manual/client">More information... </a></span>
+</p></div></body></html>

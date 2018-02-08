@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title> Programming client-server applications with Eliom</title><meta charset="utf8"/><link rel="stylesheet" href="/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/js/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><div class="project-page project-eliom"><div class="page-header"><p class="logo-ocsigen"><a href="/" class="ocsimore_phrasing_link"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><ul><li><a href="/" class="ocsimore_phrasing_link">Home</a>
+</li><li class="mainmenu-current"><a href="/eliom/6.2/manual/intro" class="ocsimore_phrasing_link">Eliom</a>
+</li><li><a href="/js_of_ocaml/2.8.4/manual/overview" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li><a href="/ocsigenserver/2.8/manual/quickstart" class="ocsimore_phrasing_link">Server</a>
+</li><li><a href="/lwt/3.1.0/manual/manual" class="ocsimore_phrasing_link">Lwt</a>
+</li><li><a href="/tyxml/4.1.0/manual/intro" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li><a href="/ocsigen-toolkit/1.0/manual/intro" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li><a href="/ocsigen-start/1.0/manual/intro" class="ocsimore_phrasing_link">Start</a>
+</li><li><a href="/projects" class="ocsimore_phrasing_link">Other projects</a></li></ul></div><div class="version-selector"><p>Version
+</p><div class="version-selector-versions"><p><span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/intro">6.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.1/manual/intro">6.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/manual/intro">6.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/5.0/manual/intro">5.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/manual/intro">4.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.1/manual/intro">4.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.0/manual/intro">4.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/intro">3.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.2.2/manual/intro">2.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/manual/intro">2.1.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.2/manual/intro">2.0.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.1/manual/intro">2.0.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0/manual/intro">2.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.3.4/manual/intro">1.3.4</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.2.2/manual/intro">1.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.1.0/manual/intro">1.1.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/manual/intro">dev</a></span></p></div></div><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1> Programming client-server applications with Eliom</h1><nav id="overview" class="ocsimore_outline"><header><p><strong>Table of contents</strong></p></header></nav><script>
+//<![CDATA[
+outline([0,-515484383,0,[0,2],[0,"nav",[0,"aside",0]],"overview",0])
+//]]>
+</script><h2> General principles</h2><h3> What is a client/server Eliom application</h3><p>An Eliom application is a distributed application that runs partly on
+the server, partly on a browser. The program is written entirely in
+OCaml, with a syntax extension to distinguish between server and
+client code.  During the compilation process, the program is decoupled
+into server and client parts. The server part is compiled as is
+standard for OCaml code, while the client part is compiled to
+Javascript to be run in the browser.
+</p><p>For developing an Eliom application, we recommend that you use our
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/manual/ppx-syntax">PPX syntax extension</a></span>.
+</p><p>An interesting feature of Eliom applications is that the client-side process
+does not stop when you click on a link or send a form, and it is possible to
+keep the traditional Web interaction (with URLs, bookmarks, back button, etc).
+For example, if the page is playing music, the music won't stop when
+the user proceeds to other pages on the Web site.
+</p><p>Client-side parts are using <span><a class="ocsforge_doclink_lwt" href="/lwt/3.1.0/manual/manual">Lwt</a></span>, enabling
+concurrency in the browser very easily.
+</p><p>As both parts are implemented in OCaml, it is very easy to use client-side
+OCaml data on server side, and vice-versa. Eliom handles the communication
+between client and server automatically in both directions. For example,
+it is possible to use a server-side variable in the client program.
+</p><p>Eliom also implements an &quot;HTTP-push&quot; mechanism, allowing the server
+to send messages to a client.
+</p><p>Client-side parts of the program can use most Eliom features, just as
+usual, for example to create HTML, links, and forms from services.
+</p><p>On the server, it is possible to save data (some state) for each
+client process (that is, one tab in a browser), simply by using Eliom
+references with scope <span class="teletype">`Client_process</span>.  You can register
+services for one client process, or even set cookies for one tab.
+</p><h3> How it works</h3><p>The code of an Eliom application is written in OCaml, with <span><a class="ocsforge_doclink_eliom" href="/eliom/dev/manual/clientserver-language">a syntax extension</a></span> to distinguish
+between server and client code. The files using this syntax
+usually have the extension <span class="teletype">.eliom</span>. As the compling process is quite
+complex, we provide commands called <span class="teletype">eliomc</span>, <span class="teletype">eliomopt</span> and <span class="teletype">js_of_eliom</span> that
+do everything for you: separating client and server parts, calling
+<span class="teletype">ocamlc</span>, <span class="teletype">ocamlopt</span>, <span class="teletype">js_of_ocaml</span>, etc.
+</p><p>Services belonging to the application are registered using the module
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_registration.App">Eliom_registration.​App</a></span>. More precisely,
+this is a functor that needs to be applied for each application you create.
+These services just return HTML pages as usual (using
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_content.Html">Eliom_content.​Html</a></span>)
+The client-side program (compiled in JavaScript) is added automatically by Eliom,
+with all its data, and run automatically when the page is loaded.
+</p><p>Module <span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/client/Eliom_client">Eliom_client</a></span> provides
+useful functions for client side programming with Eliom: e.g.
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/client/Eliom_client#VALchange_page">Eliom_client.​change_page</a></span>
+permits switching to another page.
+</p><p>Module <span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_comet">Eliom_comet</a></span> allows the
+server to send notifications
+to the client (even if the client is not explicitely doing a request).
+Use module <span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_react">Eliom_react</a></span> to make client-server reactive
+programming (using the <a href="http://erratique.ch/software/react" class="ocsimore_phrasing_link"> React</a>
+external library).
+</p><h3> The App functor</h3><p>For each Eliom application, you must create a service registration module
+by applying the <span class="teletype">App</span> functor:
+</p><pre class=""><code class="language-ocaml translatable">module My_app =
+  Eliom_registration.App (
+    struct
+      let application_name = &quot;the name of your application&quot;
+      let global_data_path = None
+    end)</code></pre><p>the <span class="teletype">application_name</span> parameter is the name of the JavaScript file
+containing the application.
+</p><p><span class="teletype">global_data_path</span> specifies the path of an auxilliary service
+needed for mobile apps, and you can provide <span class="teletype">None</span> for standard
+Web applications.
+</p><p>Then you can do for example:
+</p><pre class=""><code class="language-ocaml translatable">let my_service =
+  My_app.create
+    ~path:(Eliom_service.Path [&quot;&quot;])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    (fun () () -&gt; Lwt.return (html
+                               (head (title (pcdata &quot;Hi!&quot;)) [])
+                               (body [p [pcdata &quot;Hey.&quot;]])))</code></pre><p>Eliom will add automatically the required headers to send the client side
+program and all its data.
+</p><h2> Application, life and death</h2><p>When an user enters the page of a service registered by an application
+module (created with the <span class="teletype">App</span> functor), the application
+is started. During the life of the application, a single OCaml program
+will run on the browser: Lwt threads will keep running, global
+variables will stay available, etc.  until the application is
+closed. The application will keep running when the user clicks on
+links to pages inside the same application.
+</p><p>This application will be closed when:
+</p><ul><li> the user closes the browser tab containing the application,
+</li><li> the user goes to a page outside of the application,
+</li><li> the user changes the current url by another mean than the
+application interaction (reload the page with <span class="teletype">F5</span>,
+manual typing of URL, ...),
+</li><li> the application call the
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/client/Eliom_client#VALexit_to">Eliom_client.​exit_to</a></span> function.
+</li></ul><p>It is possible to prevent the application from starting when visiting
+an application page by setting the <span class="teletype">do_not_launch</span> to <span class="teletype">true</span>
+at the service registration:
+</p><pre class=""><code class="language-ocaml translatable">let no_launch_service =
+  My_app.register
+    ~option:{ Eliom_registration.default_appl_service_options with
+              do_not_launch = true }
+    ~path:(Eliom_service.Path [&quot;&quot;])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    (fun () () -&gt; Lwt.return (html
+                               (head (title (pcdata &quot;Hi!&quot;)) [])
+                               (body [p [pcdata &quot;Hey.&quot;]])))</code></pre><p>That way, you can delay JavaScript loading until it is really needed.
+Visiting a service registered with <span class="teletype">do_not_launch=true</span> will not stop
+a running application.
+</p><p>By default, every link of form towards another service of the same
+application is reimplemented by Eliom so that it does not stop the application.
+Instead of asking the browser to load a new page, Eliom does an
+XML HTTP request (XHR).
+You can avoid this and insert regular links or forms by adding the optional
+parameter <span class="teletype">~xhr:false</span>.
+This will force reloading the application when the link is clicked.
+</p><h3> Navigating in and out of the application.</h3><p>Two functions are available client-side for changing the current page
+without interaction from the user. The function
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/client/Eliom_client#VALchange_page">Eliom_client.​change_page</a></span> goes to the service
+taken as parameter. If the service is in another application or not in
+an application, the current application will be stopped.
+The function <span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/client/Eliom_client#VALwindow_open">Eliom_client.​window_open</a></span>
+opens an
+Eliom service in a new browser window (cf. JavaScript's <span class="teletype">window.open</span>).
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/client/Eliom_client#VALexit_to">Eliom_client.​exit_to</a></span>
+changes the current page and always leaves the application.
+</p><h3> Leaving application and going back</h3><p>Usually, when going to an application page, a new client process is
+launched on the server, but there are situations where an old client
+process is used instead: Browsers tend to take the result from their
+cache when using the back button even if the page was marked (by HTTP
+headers) as non-cacheable.
+</p></div></body></html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Wrapping  &amp;#182;</title><meta charset="utf8"/><link rel="stylesheet" href="/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/js/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><div class="project-page project-eliom"><div class="page-header"><p class="logo-ocsigen"><a href="/" class="ocsimore_phrasing_link"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><ul><li><a href="/" class="ocsimore_phrasing_link">Home</a>
+</li><li class="mainmenu-current"><a href="/eliom/6.2/manual/intro" class="ocsimore_phrasing_link">Eliom</a>
+</li><li><a href="/js_of_ocaml/2.8.4/manual/overview" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li><a href="/ocsigenserver/2.8/manual/quickstart" class="ocsimore_phrasing_link">Server</a>
+</li><li><a href="/lwt/3.1.0/manual/manual" class="ocsimore_phrasing_link">Lwt</a>
+</li><li><a href="/tyxml/4.1.0/manual/intro" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li><a href="/ocsigen-toolkit/1.0/manual/intro" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li><a href="/ocsigen-start/1.0/manual/intro" class="ocsimore_phrasing_link">Start</a>
+</li><li><a href="/projects" class="ocsimore_phrasing_link">Other projects</a></li></ul></div><div class="version-selector"><p>Version
+</p><div class="version-selector-versions"><p><span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/intro">6.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.1/manual/intro">6.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/manual/intro">6.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/5.0/manual/intro">5.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/manual/intro">4.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.1/manual/intro">4.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.0/manual/intro">4.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/intro">3.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.2.2/manual/intro">2.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/manual/intro">2.1.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.2/manual/intro">2.0.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.1/manual/intro">2.0.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0/manual/intro">2.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.3.4/manual/intro">1.3.4</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.2.2/manual/intro">1.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.1.0/manual/intro">1.1.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/manual/intro">dev</a></span></p></div></div><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1 id="wrapping">Wrapping  <a class="backref" href="#wrapping">&#182;</a></h1><p>Reading this chapter is not mandatory for writing Eliom
+applications. However, it is worth reading if you are planning to hack
+on the Eliom codebase.
+</p><nav id="overview" class="ocsimore_outline"><header><p><strong>Table of contents</strong></p></header></nav><script>
+//<![CDATA[
+outline([0,-515484383,0,[0,2],[0,"nav",[0,"aside",0]],"overview",0])
+//]]>
+</script><h2> Basics </h2><p>The server side of Eliom can communicate to the client other kinds of
+data than the raw XML contents of the pages. The wrapper mechanism is
+used to allow the browser side to access to the contents of variables
+declared on server side. For instance when we write
+</p><pre class=""><code class="language-ocaml translatable">ignore [%client (Dom_html.window##alert(Js.string ~%text) : unit)]</code></pre><p>the contents of the <span class="teletype">text</span> variable is sent along the page for the client code to access it.
+</p><p>Server side, when
+</p><pre class=""><code class="language-ocaml translatable">[%client (Dom_html.window##alert(Js.string ~%text) : unit)]</code></pre><p>is executed, the variable <span class="teletype">text</span> is registered into a table and an id is associated to it.
+This table will contain all the data references by variables annotated with <span class="teletype">~%</span> in a page, and
+will be sent marshalled to the client. On client side the id will be used to retrieve <span class="teletype">text</span>.
+</p><p>Since all data are sent in one table, if a variable is referenced
+multiples times, it will be sent only once, and sharing will be preserved:
+</p><pre class=""><code class="language-ocaml translatable">let a = ref 0 in
+let b = (1,a) in
+ignore [%client
+  ((~%a := 42;
+    Dom_html.window##alert(snd ~%b |&gt; string_of_int |&gt; Js.string))
+   : unit)
+]</code></pre><p>This code will display 42. After being sent, the client and server
+side values are distinct: the server side version of <span class="teletype">a</span> won't be
+modified by the client side affectation and conversely the client side
+value won't change if <span class="teletype">a</span> is changed later on server side.
+</p><h2> Special types </h2><h3> Custom wrappers </h3><p>Usually, client and server side values are represented the same way,
+and it is sufficient to only copy their content ( marshalled ) to the
+client. But certain types can't be transmitted this easily: for
+instance, services.
+</p><p>Those values must be transformed before marshalling: We need for this to use
+custom wrappers. This wrapping mechanism is defined in
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_wrap">Eliom_wrap</a></span>.
+</p><p>Before sending, the values goes thought <span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_wrap#VALwrap">Eliom_wrap.​wrap</a></span>
+which transform marked values. A value marked is a value which have as its last field
+a value of type <span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_wrap#TYPEwrapper">Eliom_wrap.​wrapper</a></span>. For instance
+</p><pre class=""><code class="language-ocaml translatable">type marked_tupple =
+  int * ... * marked_tupple Eliom_wrap.wrapper
+type marked_record =
+  { f1 : int;
+    ...
+    fn : marked_record Eliom_wrap.wrapper }</code></pre><p>but not
+</p><pre class=""><code class="language-ocaml translatable">type not_marked_tupple = int * ... * marked_tupple Eliom_wrap.wrapper * float
+type not_marked_tupple = int * ... * (int * marked_tupple Eliom_wrap.wrapper)
+type not_marked_tupple = int * ... * marked_tupple Eliom_wrap.wrapper list
+type not_marked_record =
+     { f1 : int;
+          ...
+       fn : marked_record Eliom_wrap.wrapper;
+       fk : float; }</code></pre><p>A wrapper is created by the <span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_wrap#VALcreate_wrapper">Eliom_wrap.​create_wrapper</a></span>
+function. It takes a function as parameter which will be called to
+transform the value during the wrapping. There is also a special
+wrapper <span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_wrap#VALempty_wrapper">Eliom_wrap.​empty_wrapper</a></span> which does nothing. It
+is useful to stop calling the wrapper on a value: If there is still a
+wrapper in a value after its transformation, it will be called another
+time, potentially leading to an infinite loop.
+</p><p>For instance
+</p><pre class=""><code class="language-ocaml translatable">type v = Fun of unit -&gt; int | Value of int
+type wrapped_type = v * wrapped_type Eliom_wrap.wrapper
+let wrapper =
+  let wrap = function
+    | Value i,wrapper -&gt; Value i, Eliom_wrap.empty_wrapper
+    | Fun f,wrapper -&gt; Value (f ()), Eliom_wrap.empty_wrapper
+  in Eliom_wrap.create_wrapper f
+let v = ( Fun (fun () -&gt; 1), wrapper )
+let (v', empty_wrapper) = Eliom_wrap.wrap v</code></pre><p>At that time <span class="teletype">v'</span> will be <span class="teletype">Value 1</span>. Notice that
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_wrap#VALcreate_wrapper">Eliom_wrap.​create_wrapper</a></span> does not enforce the output
+type of the wrapping function to be the same as the input type:
+Eliom_wrap is to be use with much caution! Do not use it if you don't
+understand how it works, it may lead to unpredictable segmentation faults
+and corrupted memory.
+</p><h2> Eliom types with predefined custom wrappers </h2><p>The Eliom types that are marked are:
+</p><ul><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_service#TYPEt">Eliom_service.​t</a></span> transformed to <span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_service#TYPEt">Eliom_service.​t</a></span> (but the client side representation)
+</li><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_comet.Channel#TYPEt">Eliom_comet.​Channel.​t</a></span> transformed to <span><a class="ocsforge_doclink_lwt" href="/lwt/3.1.0/api/Lwt_stream#TYPEt">Lwt_stream.​t</a></span>
+</li><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_react.Up#TYPEt">Eliom_react.​Up.​t</a></span> transformed to <span class="teletype"> 'a -&gt; unit </span>
+</li><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_react.Down#TYPEt">Eliom_react.​Down.​t</a></span> transformed to <span class="teletype"> 'a React.E.t </span>
+</li><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_bus#TYPEt">Eliom_bus.​t</a></span> transformed to <span><a class="ocsforge_doclink_eliom" href="/eliom/dev/api/server/Eliom_bus#TYPEt">Eliom_bus.​t</a></span>
+</li></ul></div></body></html>

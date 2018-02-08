@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Module Eliom_content.​Xml </title><meta charset="utf8"/><link rel="stylesheet" href="/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/js/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><div class="project-page project-eliom"><div class="page-header"><p class="logo-ocsigen"><a href="/" class="ocsimore_phrasing_link"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><ul><li><a href="/" class="ocsimore_phrasing_link">Home</a>
+</li><li class="mainmenu-current"><a href="/eliom/6.2/manual/intro" class="ocsimore_phrasing_link">Eliom</a>
+</li><li><a href="/js_of_ocaml/2.8.4/manual/overview" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li><a href="/ocsigenserver/2.8/manual/quickstart" class="ocsimore_phrasing_link">Server</a>
+</li><li><a href="/lwt/3.1.0/manual/manual" class="ocsimore_phrasing_link">Lwt</a>
+</li><li><a href="/tyxml/4.1.0/manual/intro" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li><a href="/ocsigen-toolkit/1.0/manual/intro" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li><a href="/ocsigen-start/1.0/manual/intro" class="ocsimore_phrasing_link">Start</a>
+</li><li><a href="/projects" class="ocsimore_phrasing_link">Other projects</a></li></ul></div><div class="version-selector"><p>Version
+</p><div class="version-selector-versions"><p><span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/intro">6.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.1/manual/intro">6.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/manual/intro">6.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/5.0/manual/intro">5.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/manual/intro">4.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.1/manual/intro">4.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.0/manual/intro">4.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/intro">3.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.2.2/manual/intro">2.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/manual/intro">2.1.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.2/manual/intro">2.0.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.1/manual/intro">2.0.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0/manual/intro">2.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.3.4/manual/intro">1.3.4</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.2.2/manual/intro">1.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.1.0/manual/intro">1.1.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/manual/intro">dev</a></span></p></div></div><div class="client-server-switch-wrapper"><div class="client-server-switch"><span class="server source">This is server API</span> API (go to <a class="client target" href="/eliom/4.1/api/client/Eliom_content.Xml">client</a>)</div></div><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1>Module <span><a class="ocsforge_doclink_eliom" href="/eliom/4.1/api/server/Eliom_content.Xml">Eliom_content.​Xml</a></span> </h1><pre class="ocsforge_color odocwiki_code"><span class="ocsforge_color_keyword">module</span> <span class="ocsforge_color_uid"><span class="ocsforge_color_uid">Xml</span></span> <span class="ocsforge_color_delimiter">:</span> <span class="ocsforge_color_keyword">sig</span><span><a class="ocsforge_doclink_eliom" href="/eliom/4.1/api/server/Eliom_content.Xml">..</a></span><span class="ocsforge_color_keyword">end</span></pre><p>Low-level XML manipulation.
+</p><hr/><pre class="ocsforge_color odocwiki_code"><span class="ocsforge_color_keyword">include</span> Xml_sigs.Iterable</pre><h2 id="2_Uniquenodes">Unique nodes  <a class="backref" href="#2_Uniquenodes">&#182;</a></h2><p>Unique nodes are XML nodes that are manipulated 'by reference'
+when sent to the client part of an Eliom-application: the
+created element is allocated only one time in each instance of
+an application. See <span><a class="ocsforge_doclink_eliom" href="/eliom/4.1/manual/clientserver-html#unique">the eliom manual</a></span> for more
+details.
+</p><h2 id="2_Eventhandlers">Event handlers  <a class="backref" href="#2_Eventhandlers">&#182;</a></h2><pre class="ocsforge_color odocwiki_code" id="TYPEcaml_event_handler"><span class="ocsforge_color_keyword">type</span> <span class="odocwiki_type">-#<span class="ocsforge_color_uid">Dom_html</span><span class="ocsforge_color_delimiter">.</span><span class="ocsforge_color_lid">event</span></span> <span class="odocwiki_name">caml_event_handler</span></pre><div class="odocwiki_info"><p>Values of type <span class="odocwiki_inlinecode">'a caml_event_handler</span> represents event handler
+build with the <span class="odocwiki_inlinecode">{{ ... }}</span> syntax (see the Eliom manual for more
+information on <span><a class="ocsforge_doclink_eliom" href="/eliom/4.1/manual/clientserver-html#syntax">syntax extension</a></span>). Such values are expected
+by functions like <span class="odocwiki_inlinecode">Eliom_service.onload</span> or
+<span class="odocwiki_inlinecode">Eliom_content.Html5.a_onclick</span>. The type parameter is the
+type of the javascript event expected by the handler, for
+example <span><a class="ocsforge_doclink_js_of_ocaml" href="/js_of_ocaml/2.8.4/api/Dom_html#TYPEmouseEvent">Dom_html.​mouseEvent</a></span> or <span><a class="ocsforge_doclink_js_of_ocaml" href="/js_of_ocaml/2.8.4/api/Dom_html#TYPEkeyboardEvent">Dom_html.​keyboardEvent</a></span>.</p></div><pre class="ocsforge_color odocwiki_code" id="VALwrap"><span class="ocsforge_color_keyword">val</span> <span class="odocwiki_name">wrap</span> <span class="ocsforge_color_delimiter">:</span> <span class="odocwiki_type">elt <span class="ocsforge_color_delimiter">-&gt;</span> 'a <span class="ocsforge_color_delimiter">-&gt;</span> 'a <span><a class="ocsforge_doclink_eliom" href="/eliom/4.1/api/server/Eliom_wrap#TYPEwrapped_value">Eliom_wrap.wrapped_value</a></span></span></pre><div class="odocwiki_info"><p><span class="odocwiki_inlinecode">Eliom_content.Xml.wrap page v</span> is like <span class="odocwiki_inlinecode">Eliom_wrap.wrap v</span> but
+it makes sure that all <span class="odocwiki_inlinecode">elt</span>s in <span class="odocwiki_inlinecode">v</span> which are included in
+<span class="odocwiki_inlinecode">page</span> are sent with empty content. This is safe because such
+elements will be taken from the DOM on the client either
+ways.</p></div></div></body></html>

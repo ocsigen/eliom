@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title> Services </title><meta charset="utf8"/><link rel="stylesheet" href="/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script src="/js/client.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js"></script></head><body><div class="project-page project-eliom"><div class="page-header"><p class="logo-ocsigen"><a href="/" class="ocsimore_phrasing_link"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><ul><li><a href="/" class="ocsimore_phrasing_link">Home</a>
+</li><li class="mainmenu-current"><a href="/eliom/6.2/manual/intro" class="ocsimore_phrasing_link">Eliom</a>
+</li><li><a href="/js_of_ocaml/2.8.4/manual/overview" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li><a href="/ocsigenserver/2.8/manual/quickstart" class="ocsimore_phrasing_link">Server</a>
+</li><li><a href="/lwt/3.1.0/manual/manual" class="ocsimore_phrasing_link">Lwt</a>
+</li><li><a href="/tyxml/4.1.0/manual/intro" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li><a href="/ocsigen-toolkit/1.0/manual/intro" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li><a href="/ocsigen-start/1.0/manual/intro" class="ocsimore_phrasing_link">Start</a>
+</li><li><a href="/projects" class="ocsimore_phrasing_link">Other projects</a></li></ul></div><div class="version-selector"><p>Version
+</p><div class="version-selector-versions"><p><span><a class="ocsforge_doclink_eliom" href="/eliom/6.2/manual/intro">6.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.1/manual/intro">6.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/6.0/manual/intro">6.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/5.0/manual/intro">5.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.2/manual/intro">4.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.1/manual/intro">4.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/4.0/manual/intro">4.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/intro">3.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.2.2/manual/intro">2.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.1.1/manual/intro">2.1.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.2/manual/intro">2.0.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.1/manual/intro">2.0.1</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/2.0/manual/intro">2.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.3.4/manual/intro">1.3.4</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.2.2/manual/intro">1.2.2</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/1.1.0/manual/intro">1.1.0</a></span>
+<span><a class="ocsforge_doclink_eliom" href="/eliom/dev/manual/intro">dev</a></span></p></div></div><button id="reason">Switch to </button><form id="search"><input name="q" id="q" placeholder="search ..."/><button>Search</button></form><h1> Services </h1><nav id="overview" class="ocsimore_outline"><header><h1>Table of contents</h1></header></nav><script>
+//<![CDATA[
+outline([0,-515484383,0,[0,2],[0,"nav",[0,"aside",0]],"overview",0])
+//]]>
+</script><h2> Introduction </h2><nav id="overview" class="ocsimore_outline"></nav><script>
+//<![CDATA[
+outline([0,-515484383,0,[0,2],[0,"nav",[0,"aside",0]],"overview",0])
+//]]>
+</script><p>Services are entry points to your web site. In general, services are
+attached to an URL and generate a web page ; but there is also, for
+example, services identified by specific GET or POST parameters or
+services representing redirections.
+</p><p>A service is composed of:
+</p><ul><li> some identification data, allowing Eliom to choose which service
+should answer an incoming request;
+</li><li> a service handler that will generate the answer.
+</li></ul><div class="paragraph"><p>Service creation</p></div><p>Manipulation of Eliom services can be done throught the values of type
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_service#TYPEservice">Eliom_service.​service</a></span>. The most common service
+creation function is <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_registration.Html5#VALregister_service">Eliom_registration.​Html5.​register_service</a></span>. It allows creation of services attached to a given path that may
+expect some GET parameters and that return some HTML5 contents using
+the TyXML library.
+</p><div class="paragraph"><p>Registrable service</p></div><p>The service creation could be split in two steps:
+</p><ul><li> create a value of type service, e.g. using <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_service#VALservice">Eliom_service.​service</a></span>
+</li><li> register a service handler, e.g. using <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_registration.HTML5#VALregister">Eliom_registration.​HTML5.​register</a></span>
+</li></ul><p>This chapter focuses on value of type <span class="teletype">service</span>, see chapter
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/server-outputs">Writing service handlers</a></span> for more
+information on service registration.
+</p><p>Some services can be registered multiple times with different options.
+This allows for example choice between different handlers when the
+request is done in a particular session or protocol (HTTP or HTTPS).
+</p><div style="font-style: italic;"><p>Warning: in this manual, we use the
+term <em>service</em> both to denote a value of type <span class="teletype">service</span> –that
+only contains some location information about a service–, or a fully
+<em>registered</em> service, that is also composed of a service handler. In
+case of ambiguities, we will use <span class="teletype">service</span> –in green monotype–
+to designate a value of type <span class="teletype">service</span>.</p></div><div class="paragraph"><p>Creating link and forms</p></div><p>Value of type <span class="teletype">service</span> may be used to create links and forms
+towards a service, using for example the function <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_content.Html5.D#VALa">Eliom_content.​Html5.​D.​a</a></span>. See chapter <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/server-links">Creating links and forms</a></span> for more information.
+</p><div class="paragraph"><p>Unegistrable service</p></div><p>Some specific values of type <span class="teletype">service</span> aren't associated to any
+service handlers. Such value are called <em>unregistrable service</em>,
+and represents for example, links towards external site ot registrable
+service pre-applied to some parameters. This allows use of
+<span class="teletype">service</span> consistently for creating links. See chapter <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/server-services#unregistrable_services">Unregistrable
+services </a></span>.
+</p><h2> Registrable services </h2><nav id="overview" class="ocsimore_outline"></nav><script>
+//<![CDATA[
+outline([0,-515484383,0,[0,2],[0,"nav",[0,"aside",0]],"overview",0])
+//]]>
+</script><h3> Service identification </h3><p>Eliom has a sophisticated <em>service identification mechanism</em> to
+choose the service handler to be executed –given an incoming
+request– with respect to many criteria:
+</p><ul><li> the path of the requested URL,
+</li><li> the names of the (GET or POST) parameters,
+</li><li> some internal (GET or POST) parameter, added automatically,
+</li><li> the HTTP method,
+</li><li> the session the client belongs to (or client side process, or session group),
+</li><li> ...
+</li></ul><p>But the user does not usually need to bother with this. Eliom abstracts
+this mechanism by its three main kind of services. They differ by the
+subset of these criteria used to identified them:
+</p><ul><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/server-services#regular_services">Regular services</a></span>
+are the main entry points of sites.
+They are identified by the path of the URL and by (GET or POST) parameters.
+They correspond to classical URLs, and will last forever once registered.
+</li><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/server-services#attached_coservices">Attached coservices</a></span>
+are services that share their
+location (URL) with a regular service (called <em>fallback</em>).
+They are identified by the path of the URL and a special parameter
+(added automatically by Eliom). They can be created dynamically. When
+an attached coservice is not available anymore (timeout, session closed, ...)
+it fallbacks to the corresponding regular service.
+</li><li> <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/server-services#non-attached_coservices">Non-attached coservices</a></span>
+are coservices only identified by a special parameter
+whatever be the path and other parameters in the URL.
+They are used to implement some behaviour that should not be attached to
+a particular URL. A link to a non-attached coservice will go to the current
+URL with just an additional special parameter.
+It is useful when you want the same link or form on
+several pages (for example a connection box) but you don't want to
+go to another URL. Non-attached coservices are often used with
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/server-outputs#actions">actions</a></span>.
+</li></ul><h4> Path </h4><p>Paths are represented in Eliom by a list of string. For example:
+</p><p><span class="teletype">[&quot;foo&quot;; &quot;bar&quot;]</span> corresponds to the URL
+<span class="teletype">foo/bar</span>.  <br/>
+<span class="teletype">[&quot;dir&quot;; &quot;&quot;]</span> corresponds to the URL <span class="teletype">dir/</span>
+(that is: the default page of the directory <span class="teletype">dir</span>).   <br/>
+The empty list <span class="teletype">[]</span> is equivalent to <span class="teletype">[&quot;&quot;]</span>.<br/>
+</p><p><em>Warning:</em>
+</p><ul><li> You cannot create a service on path <span class="teletype">[&quot;foo&quot;]</span>
+(URL <span class="teletype">foo</span>, without slash at the end)
+and another on path <span class="teletype">[&quot;foo&quot;;&quot;bar&quot;]</span>
+(URL <span class="teletype">foo/bar</span>) because <span class="teletype">foo</span> can not be
+both a directory and a file.
+Be also careful not to use a path as a directory with
+Eliom, if it is a file for Staticmod (and vice versa).
+</li><li> <span class="teletype">[&quot;foo&quot;;&quot;bar&quot;]</span> is not equivalent to
+<span class="teletype">[&quot;foo/bar&quot;]</span>.
+In the latter, the <span class="teletype">&quot;/&quot;</span> will be encoded in the URL.<br/>
+</li></ul><h4> Service parameters </h4><p>A service is partially identified by the name of its GET and POST
+parameters.
+</p><p>The parameters of services are specified using the <span class="teletype">~get_params</span>
+and <span class="teletype">~post_params</span> options of service creation functions. These
+options expect values of type <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_parameter#TYPEparams_type">Eliom_parameter.​params_type</a></span> that represent the set of expected
+arguments with their types. They are build using combinator from the
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_parameter">Eliom_parameter</a></span> module. See chapter <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/server-params">Service parameters </a></span> for a detailled description of
+this module.
+</p><p>The type informations associated to each argument allows Eliom to
+automatically convert the actual parameters into the corresponding
+OCaml types. If the parameter can't be converted, the exception
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_common#EXCEPTIONEliom_Typing_Error">Eliom_common.​Eliom_Typing_Error</a></span> is raised.  The
+handling of those error may be customized by providing the argument
+{{{error_handler}} when registering the service.
+</p><h4 id="service_scope"> Service scopes  <a class="backref" href="#service_scope">&#182;</a></h4><p>By default, services and coservices are accessible to anybody (scope
+site).  It is possible to restrict the <em>scope</em> of a service, making
+it available only to a session, a client side process, or a group of
+sessions.
+</p><p>To limit the scope of a service, just add the argument <span class="teletype">~scope</span> to
+the <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_registration.Html5#VALregister">Eliom_registration.​Html5.​register</a></span> function (or other
+<span class="teletype">register</span> variants: <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_registration.Xhtml#VALregister">Eliom_registration.​Xhtml.​register</a></span>,
+...). The default scope is <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_common#VALsite_scope">Eliom_common.​site_scope</a></span>.
+</p><p>The same service can be registered with several scopes.  This makes it
+possible, for example, to generate custom services for a specific
+user.  Eliom will try to find the service by trying the following (in
+order):
+</p><ul><li> scope client-side process,
+</li><li> scope session,
+</li><li> scope group of session,
+</li><li> and finally site scope.
+</li></ul><h4 id="get_and_post"> GET services and POST services  <a class="backref" href="#get_and_post">&#182;</a></h4><p>Regular services, attached and non-attached coservices all come in two
+versions, GET service or POST service, corresponding to the HTTP
+method you want to be used to call them.
+</p><ul><li> The GET method is intended to be used to retrieve a document from
+the server. The page is generated mainly according to the
+information contained in the URL.  URLs may contain parameters
+(consisting of name-value pairs in the URL string), and these
+parameters may come from HTML forms (or not).
+</li><li> The POST method is used to send data to the server (files, for
+example), but also values coming from an HTML form. Data is sent in
+the body of the HTTP request. It is possible to use the POST method
+with an empty body.
+</li></ul><p>In HTML, it is not possible to mix GET and POST parameters in forms,
+but it is possible to use a POST form with (fixed) GET parameters in
+the URL.
+</p><aside class="concept"><header><h5><span class="concept_prefix">Concept: </span>POST or GET?</h5></header><p>POST and GET methods are not equivalent, and you must be very
+careful if you want to use one or the other. Remember that only GET
+services are bookmarkable. The HTTP method and POST parameters are
+not stored in bookmarks.
+</p><ul><li> Use the GET method if you want the user to be able to come back to
+the service later or to write the URL manually.
+</li><li> Use the POST method for <em>hidden service</em>, that is when you want
+a different behaviour between the first click and a reload of the
+page. Usually using POST method triggers an action on server side
+(like a payment, or adding something in a database), and you don't
+want it to succeed several times if the page is reloaded or
+bookmarked.</li></ul></aside><h3 id="regular_services"> Regular services  <a class="backref" href="#regular_services">&#182;</a></h3><p>Regular services with GET method are the main entry points of
+sites. They correspond to actual URLs and may be bookmarked. The other
+kinds of services (POST, coservices) are using the URL of existing
+regular GET services.
+</p><p>Regular services are created using the function <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_service#VALservice">Eliom_service.​service</a></span>.
+</p><p>POST services must be accessible even when the request was done
+without the POST parameters (for instance, when typing the URL in the
+browser, reloading, using bookmarks, ...). Hence every POST service
+has a <em>fallback</em> GET service.
+</p><p>POST services are created using <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_service#VALpost_service">Eliom_service.​post_service</a></span>.
+</p><aside class="concept"><header><h5><span class="concept_prefix">Concept: </span>URLs and ergonomics of your web site</h5></header><p>While designing a web site, one of the first things to think about
+are the URLs you want to use.  URLs are the entry points for your
+site. Assume that they will be bookmarked.
+</p><p>Eliom has a very precise management of URLs, and let you choose
+exactly the URLs and parameter names you want. Parts of the path may
+also be used as parameters.
+</p><p>Avoid dummy URLs that will always perform a redirection.  Be very
+careful about the HTTP method you are using.  Use clearly readable
+URLs.
+</p><p>And be very attentive to the ergonomics of your web site!  The
+different kinds of services offered by Eliom make possible all the
+precise behaviours you need!</p></aside><aside class="concept"><header><h5><span class="concept_prefix">Concept: </span>Priority of regular services</h5></header><p>When creating a regular service you can add the optional <span class="teletype">int</span>
+parameter <span class="teletype">~priority</span> to set the priority of the service.  The
+default priority is 0. Services with higher priority will be tried
+by Eliom before the ones with lower priority.  Use this when several
+services are configured to respond to the same request.  This can
+happen for instance when using <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/server-params#suffix">suffix parameters</a></span>.</p></aside><h3 id="attached_coservices"> Attached coservices  <a class="backref" href="#attached_coservices">&#182;</a></h3><p>GET attached coservices are created using function <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_service#VALcoservice">Eliom_service.​coservice</a></span>.
+</p><p>Anonymous GET attached coservices are often created dynamically with
+respect to previous interaction with the user (e.g. filling forms in
+multiple steps). They handle correctly the classical web interactions
+(&quot;back&quot; button, bookmark, tab, ...): you create a new coservice each
+time you want to record a precise point in the interaction with a
+user, to be able to come back there later.
+</p><p>Often, they should be used with a restricted scope (see the section
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/server-services#service_scope">scope of
+services</a></span>).
+</p><p>POST attached coservices are created using <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_service#VALpost_coservice">Eliom_service.​post_coservice</a></span>.
+</p><p>They can be used to customize the behaviour of an URL.  Some of their
+usages are:
+</p><ul><li> For the same purpose as GET coservices but when you don't want this
+service to be bookmarkable.
+</li><li> For performing side effects before serving a page.  For example say
+you want a disconnection button that leads to the main page of the
+site, but with the side effect of disconnecting the user.  You will
+use a (named) POST (attached) coservice.
+</li></ul><p>If a coservice does not exist anymore (e.g. if its timeout has expired
+or the session to which it belongs was closed ... ), the fallback is
+called.
+</p><p>The fallback of a GET coservice cannot take parameters. But
+it is possible to use a <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/server-services#preapplied">pre-applied</a></span> service as fallback.
+</p><h3 id="non-attached_coservices">Non-attached coservices  <a class="backref" href="#non-attached_coservices">&#182;</a></h3><p>Non-attached coservices are coservices that are not attached to an URL
+path.  Service identification is performed only according to the
+coservice identifier, whatever be the path.  When you point a link or
+a form towards such a service, the URL path and the main parameters do
+not change.  The parameters of the non-attached coservice are sent as
+special parameters.
+</p><p>To create a non-attached coservice, use <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_service#VALcoservice'">Eliom_service.​coservice'</a></span> or <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_service#VALpost_coservice'">Eliom_service.​post_coservice'</a></span> (note the &quot;prime&quot; at the end).
+</p><p>Use POST non-attached coservices for example if you want a link or
+form to be present on every page but you don't want the URL to change
+when the link is followed. Typically, non-attached POST coservices are
+used with <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/server-outputs#actions">actions</a></span> or
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/server-outputs#redirections">redirections</a></span>.
+</p><p>Here is one simple example. Suppose you wrote a function <code class="language-ocaml translatable">remove</code> to remove one piece of data from a database
+(taking an identifier of the data).  If you want to put a link on your
+page to call this function and redisplay the page, just create an
+action on a non-attached coservices like this:
+</p><pre class=""><code class="language-ocaml translatable">let remove_action =
+  Eliom_registration.Action.register_post_coservice'
+    ~post_params:(Eliom_parameter.int &quot;id&quot;)
+    (fun () id -&gt; remove id)</code></pre><p>Then wherever you want to add a button to do that action (on data
+<span class="teletype">id</span>), create a form like:
+</p><pre class=""><code class="language-ocaml translatable">Html5.D.(post_form remove_action
+          (fun id_name -&gt; [
+             int_input
+               ~input_type:`Hidden ~name:id_name ~value:id ();
+             string_input
+               ~input_type:`Submit ~value:(&quot;remove &quot;^string_of_int id) ();
+           ]))</code></pre><h3> Common options for coservices </h3><h4> Timeouts for coservices </h4><p>It is possible to use timeouts with coservices using the optional
+parameter <span class="teletype">?timeout</span> of creation functions.  For example if your
+coservice is here to show the results of a search, you probably want
+it to be available only for a short time. The following example shows
+a coservice with timeout.
+</p><p><em>Warning:</em> forgetting timeouts may cause memory leaks!
+</p><h4> Disposable coservices </h4><p>It is possible to set a limit to the number of uses of (attached or
+non-attached) coservices. Just give the maximum number of uses with
+the optional <span class="teletype">?max_use</span> parameter while creating your
+coservices.
+</p><h2 id="unregistrable_services"> Unregistrable services  <a class="backref" href="#unregistrable_services">&#182;</a></h2><nav id="overview" class="ocsimore_outline"></nav><script>
+//<![CDATA[
+outline([0,-515484383,0,[0,2],[0,"nav",[0,"aside",0]],"overview",0])
+//]]>
+</script><h3>External services</h3><p>It is possible to define external services, that is, services that
+belong to an external web site (on the same server or not).  To do
+that, use the functions <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_service#VALexternal_service">Eliom_service.​external_service</a></span> (for using the GET method), or <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_service#VALexternal_post_service">Eliom_service.​external_post_service</a></span> (for using the POST method).
+</p><p>For example, the following code defines a link to the OCaml Wikipedia
+page:
+</p><pre class=""><code class="language-ocaml translatable">Eliom_content.Html5.D.a
+  (Eliom_service.external_service
+     ~prefix:&quot;http://en.wikipedia.org/wiki/OCaml&quot;
+     ~path:[&quot;wiki&quot;;&quot;&quot;]
+     ~get_params:Eliom_parameter.(suffix (all_suffix &quot;suff&quot;))
+     ())
+  [pcdata &quot;OCaml on wikipedia&quot;]
+  [&quot;OCaml&quot;]</code></pre><h3 id="staticparts"> Static files service <a class="backref" href="#staticparts">&#182;</a></h3><p><span><a class="ocsforge_doclink_ocsigenserver" href="/ocsigenserver/2.8/manual/staticmod">Staticmod</a></span>
+is an Ocsigen Server extension serving static (non-generated) files
+(for examples images and stylesheets). It can be used together with
+Eliom. The predefined service <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_service#VALstatic_dir">Eliom_service.​static_dir</a></span> can be used to make links to static files. It takes as parameter
+the path of the file.
+</p><p>For example, the following code will create this link: <a href="/ocsigen10.png" class="ocsimore_phrasing_link">download image</a>.
+</p><pre class=""><code class="language-ocaml translatable">let open Eliom_content.Html5.F in
+a (static_dir ()) [pcdata &quot;download image&quot;] [&quot;ocsigen10.png&quot;]</code></pre><p>It is also possible to send static files using Eliom, with <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_registration.File">Eliom_registration.​File</a></span> (see <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/server-outputs#eliomfiles">Sending files</a></span>).
+</p><h3 id="preapplied">Pre-applied services <a class="backref" href="#preapplied">&#182;</a></h3><p>It is possible to preapply the GET parameters of a service to obtain a
+service without parameters, or only the POST ones. It is done using
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_service#VALpreapply">Eliom_service.​preapply</a></span>. Example:
+</p><pre class=""><code class="language-ocaml translatable">let some_service =
+  Eliom_service.service ~path:[&quot;serv&quot;]
+    ~get_params:Eliom_parameter.int ()
+
+let preappl = Eliom_service.preapply some_service 3</code></pre><p>It is not possible to register a handler on a preapplied service, but
+you can use them in links or as fallbacks for coservices.
+</p><h3 id="void">Void coservices <a class="backref" href="#void">&#182;</a></h3><p><span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_service#VALvoid_coservice'">Eliom_service.​void_coservice'</a></span> is a special
+non-attached action, with special behaviour: it has no parameter at
+all, even non-attached parameters.  Use it if you want to make a link
+to the current page without non-attached parameters.  It is almost
+equivalent to a POST non-attached coservice without POST parameters,
+on which you register an action that does nothing, but it is using GET
+method, so that you can use it with <span class="teletype">&lt;a&gt;</span> links,
+not only forms.  Example:
+</p><pre class=""><code class="language-ocaml translatable">a Eliom_service.void_coservice' [pcdata &quot;cancel&quot;] ()</code></pre><p>There is also <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_service#VALhttps_void_coservice'">Eliom_service.​https_void_coservice'</a></span>
+(same, but forces use of HTTPS), <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_service#VALvoid_hidden_coservice'">Eliom_service.​void_hidden_coservice'</a></span>, and <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_service#VALhttps_void_hidden_coservice'">Eliom_service.​https_void_hidden_coservice'</a></span>. &quot;Hidden&quot; means that
+they keep GET non attached parameters.
+</p><p>Use <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_service#VALvoid_hidden_coservice'">Eliom_service.​void_hidden_coservice'</a></span> for example
+after a POST request if you want to do a redirection towards the same
+page without POST parameters (and thus prevent from reposting data if
+the user reloads the page).
+</p><aside class="wip"><header><h5>Work in progress</h5></header><p>Example: link to fragment of the current page</p></aside><h2> Tips and advices</h2><ul><li> All services created during initialization must be registered (with
+site scope) during the initialization phase of your module.  If
+not, the server will not start (providing an appropriate error
+message in the logs).  This will prevent broken links.
+</li><li> Services may be registered only during the server's initialization
+phase (while reading the site configuration) or while processing a
+request, because Eliom must know the information about the site. Be
+very careful about this if you want to use static linking (see the
+section on <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/clientserver-configuration#static_linking">static linking</a></span> in the chapter about
+Compiling and configuring Eliom modules).
+</li><li> All main services (but not coservices) must be created in a module
+loaded inside a <span class="teletype">&lt;host&gt;</span> tag of the configuration file.  It is
+not possible to accomplish this using modules loaded inside
+<span class="teletype">&lt;extension&gt;</span> or <span class="teletype">&lt;library&gt;</span>.
+</li><li> If you create new main services dynamically, you will dynamically
+create new URLs!  This may be dangerous as they will disappear if
+you stop the server.  Be very careful to re-create these URLs when
+you relaunch the server, otherwise, some external links or bookmarks
+will be broken!<br/> The use of that feature is discouraged for
+coservices without timeout, as such coservices will be available
+only until the end of the server process (and it is not possible to
+re-create them with the same key).
+</li><li> Do not register the same service in the same scope twice, and do
+not replace a service by a directory (or vice versa). If this
+happens during the initialization phase, the server won't start.  If
+this happens after server startup, it will be ignored (with a
+warning in the logs).
+</li><li> GET coservices (without POST parameters) can be registered only with
+a main service without GET/POST parameters as fallback.  But it may
+be <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/manual/server-services#preapplied"><em>preapplied</em></a></span>.
+</li><li> Services with POST parameters (main service or coservice) can be
+registered with a (main or co-) service without POST parameters as
+fallback.
+</li><li> The registration of (main) services must be completed before the end
+of the loading of the module. It is not possible to launch a (Lwt)
+thread with the intention that it will register a service later, as
+registering a service needs access to config file information (for
+example the directory of the site).  If you do this, the server will
+raise <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_common#EXCEPTIONEliom_function_forbidden_outside_site_loading">Eliom_common.​Eliom_function_forbidden_outside_site_loading</a></span> most of
+the time, but you may also get unexpected results (if the thread is
+executed while another site is loaded).  If you use threads in the
+initialization phase of your module (for example if you need
+information from a database), use <span><a class="ocsforge_doclink_lwt" href="/lwt/3.1.0/api/Lwt_unix#VALrun">Lwt_unix.​run</a></span> to wait the end of the thread.
+</li></ul></div></body></html>
