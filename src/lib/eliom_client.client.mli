@@ -33,7 +33,7 @@ open Eliom_lib
     Alternatively, and to make sure it is done early enough, define
     JS variables called [__eliom_server] and [__eliom_app_name]
     at the beginning of your html
-    file, containing the full URL of your server.
+    file, containing the full URL of your server and Eliom app name.
 
     [site_dir] (if given) specifies the path that the application runs
     under. It should correspond to the <site> tag of your server
@@ -368,7 +368,7 @@ val init : unit -> unit
 
 val set_reload_function : (unit -> unit -> unit Lwt.t) -> unit
 
-(** [push_history_dom] stores the document/body of the current page so 
+(** [push_history_dom] stores the document/body of the current page so
     that the next time when we encounter the page while navigating through the
     history, the DOM will be recovered from the cache instead of recharging or
     regenerating the page. Also the original scroll position is restored.
@@ -377,7 +377,7 @@ val set_reload_function : (unit -> unit -> unit Lwt.t) -> unit
     [set_max_dist_history_doms].
 
     A typical use case of this function is storing the dom when loading
-    a page. i.e. 
+    a page. i.e.
     {% <<code language="ocaml"|
     [Eliom_client.onload Eliom_client.push_history_dom]
     >> %}
