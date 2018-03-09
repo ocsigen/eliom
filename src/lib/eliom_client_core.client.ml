@@ -665,7 +665,7 @@ let rec rebuild_rattrib node ra = match Xml.racontent ra with
 
 type state =
   (* TODO store cookies_info in state... *)
-  { template : Js.js_string Js.t;
+  { template : string option;
     position : Eliommod_dom.position;
   }
 
@@ -781,10 +781,7 @@ let set_state i (v:state) =
     (fun s -> s##(setItem (state_key i) (Json.output v)))
 let update_state () =
   set_state !active_page.page_id
-    { template =
-        (match Eliom_request_info.get_request_template () with
-         | Some tmpl -> Js.bytestring tmpl
-         | None -> Js.string  "");
+    { template = Eliom_request_info.get_request_template ();
       position = Eliommod_dom.getDocumentScroll () }
 
 (* TODO: Registering a global "onunload" event handler breaks the

@@ -1265,10 +1265,7 @@ let () =
          target_uri = full_uri;
          origin_id = !active_page.page_id.state_index;
          target_id = Some target_id } in
-      let tmpl = (if state.template = Js.string ""
-                  then None
-                  else Some (Js.to_string state.template))
-      in
+      let tmpl = state.template in
       Lwt.ignore_result @@
         with_progress_cursor @@
           let uri, fragment = Url.split_fragment full_uri in
