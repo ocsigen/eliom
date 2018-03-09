@@ -494,7 +494,7 @@ let history_doms : history_dom HistCache.t ref = ref HistCache.empty
 
 let max_dist_history_doms = ref None
 
-(* possibly rather collect n nearest DOMs *)
+(* TODO: history is linear, keep only DOMs on the history line *)
 let garbage_collect_cached_doms () =
   !max_dist_history_doms |> Opt.iter @@ fun n ->
     let cur_index = !active_page.page_id.state_index in
@@ -1249,7 +1249,7 @@ let restore_history_dom id =
     else Dom.replaceChild
       Dom_html.document dom Dom_html.document##.documentElement
   end;
-  set_page_status page Active
+  set_active_page page
 
 let () =
 
@@ -1340,7 +1340,6 @@ let () =
       let f () = update_state (); revisit full_uri state_id
       and cancel () = () in
       run_onunload_wrapper f cancel
-
     in
 
     Lwt.ignore_result
