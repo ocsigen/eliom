@@ -1415,8 +1415,10 @@ module Eliom_appl_reg_make_param
 
     (* Then we replace the faked data_script *)
     let head_elts =
-      List.hd head_elts :: add_eliom_global_data_script
-        (data_script :: List.tl head_elts)
+      (* Eliom_client_core.load_data_script expects data_script to be
+         second in this list *)
+      List.hd head_elts :: data_script ::
+      add_eliom_global_data_script (List.tl head_elts)
     in
     Lwt.return
       (Eliom_content.Html.F.html ~a:html_attribs
