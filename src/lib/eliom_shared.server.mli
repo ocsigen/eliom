@@ -31,7 +31,8 @@
 
 (** [to_signal ~init s] converts the Lwt-wrapped signal [s] into a
     regular signal with initial value [init]. *)
-val to_signal : init:'a -> 'a React.S.t Lwt.t -> 'a React.S.t
+val to_signal :
+  init:'a -> ?eq:('a -> 'a -> bool) -> 'a React.S.t Lwt.t -> 'a React.S.t
 
 (** Accessing shared values *)
 module Value : Eliom_shared_sigs.VALUE
