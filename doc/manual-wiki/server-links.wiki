@@ -252,12 +252,8 @@ functions) and <<span class="code"|form3>> (defined using the syntax
 contains a form to <<span class="code"|post2>>, with a GET parameter.
 <<span class="code"|form4>> is a form to an external page.
 
-//Warning:// Some examples in this section use a HTML syntax extension
-which is only provided for Camlp4, not for PPX. We recommend that you
-use the modules
-<<a_api subproject="server" | module Eliom_content.Html.D >> and
-<<a_api subproject="server" text="F"| module Eliom_content.Html.F >>
-to produce HTML content.
+//Warning:// Some examples in this section use the Tyxml syntax extension.
+(See <<a_manual project="tyxml" chapter="ppx"|Tyxml's manual>>).
 
 <<code language="ocaml"|
   let form2 =
@@ -287,15 +283,15 @@ let form3 =
        let f  =
          (Eliom_content.Html.D.Form.post_form my_service_with_get_and_post
             (fun chaine ->
-              <:html5list< <p> Write a string:
-                      $Form.input
-                      ~input_type:`Text ~name:chaine
-                       Form.string$ </p> ~>>)
+              [ [%html "<p> Write a string:
+                      "[Form.input
+                          ~input_type:`Text ~name:chaine
+                          Form.string)" </p>"])
             222) in
        Lwt.return
-         << <html>
-              <head><title></title></head>
-              <body>$f$</body></html> ~>>)
+         [%html "<html>
+              <head><title>Example</title></head>
+              <body>"[f]"</body></html>"])
 
 let form4 =
   Eliom_registration.Html.create
@@ -305,15 +301,15 @@ let form4 =
      let module Html = Eliom_content.Html.D in
      let f  =
        (Eliom_content.Html.D.Form.post_form
-          (extern
+          (Eliom_service.extern
              ~prefix:"http://www.petizomverts.com"
              ~path:["zebulon"]
              ~meth:(Eliom_service.Post (int "i", string "chaine"))
              ())
           (fun chaine ->
-            <:html5list< <p> Write a string:
-                     $Form.input ~input_type:`Text ~name:chaine
-                        Form.string$ </p> ~>>)
+            [ [%html "<p> Write a string:
+                     "[Form.input ~input_type:`Text ~name:chaine
+                         Form.string]" </p> "])
           222) in
      Lwt.return
        (html
@@ -381,32 +377,32 @@ let bool_params =
   (fun case () ->
     let module Html = Html.D in
     Lwt.return
-      << <html>
-           <head><title></title></head>
+      [%html "<html>
+           <head><title>Example</title></head>
            <body>
            <p>
-             $pcdata (if case then "checked" else "not checked")$
+             "[pcdata (if case then "checked" else "not checked")]"
            </p>
            </body>
-         </html> ~>>)
+         </html> "])
 
 let create_form_bool casename =
     let module Html = Html.D in
-    <:html5list< <p>check? $bool_checkbox ~name:casename ()$ <br/>
-      $Form.input ~input_type:`Submit ~value:"Click" Form.string$</p> ~>>
+    [ [%html "<p>check? "[Form.bool_checkbox_one ~name:casename ()]" <br/>
+        "[Form.input ~input_type:`Submit ~value:"Click" Form.string]"</p> "] ]
 
 let form_bool =
   Eliom_registration.Html.create
     ~path:(Eliom_service.Path ["formbool"])
-    ~meth:(Eliom_parameter.Get unit)
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
   (fun () () ->
      let module Html = Html.D in
      let f = Form.get_form bool_params create_form_bool in
      Lwt.return
-       << <html>
-            <head><title></title></head>
-            <body> $f$ </body>
-          </html> ~>>)
+       [%html "<html>
+            <head><title>Example</title></head>
+            <body> "[f]" </body>
+          </html> "])
 
 
 >>
@@ -446,18 +442,18 @@ Example:
     let module Html = Html.D in
     let ll =
       List.map
-        (fun s -> << <strong>$str:s$ </strong> ~>>) l
+        (fun s -> [%html "<strong>"[pcdata s]"</strong>"]) l
     in
     Lwt.return
-    << <html>
-         <head><title></title></head>
+    [%html "<html>
+         <head><title>Example</title></head>
          <body>
          <p>
            You sent:
-           $list:ll$
+           "ll"
          </p>
          </body>
-       </html> ~>>)
+       </html> "])
 >>
 
 These parameters may come from several kinds of widgets in forms.
@@ -508,7 +504,7 @@ will answer.
 
 Here is an example of a select box.
 
-<<code language="ocaml"|let select_example_result = Eliom_registration.Html.creeate
+<<code language="ocaml"|let select_example_result = Eliom_registration.Html.create
     ~path:(Eliom_service.Path ["select"])
     ~meth:(Eliom_service.Get Eliom_parameter.(string "s"))
     (fun g () ->
@@ -532,7 +528,7 @@ let create_select_form =
           ([],
            "Girls",
            ([], "Karin", None, false),
-           [([a_disabled `Disabled], "Juliette", None, false);
+           [([a_disabled ()], "Juliette", None, false);
             ([], "Alice", None, true);
             ([], "Germaine", Some (pcdata "Bob's mother"), false)]))]
           ;
@@ -570,15 +566,15 @@ Here is an example of clickable image.
   (fun c () ->
     let module Html = Html.D in
     Lwt.return
-      << <html>
-           <head><title></title></head>
+      [%html" <html>
+           <head><title>Example</title></head>
            <body>
            <p>
              You clicked on coordinates:
-             ($str:(string_of_int c.abscissa)$, $str:(string_of_int c.ordinate)$)
+             ("[pcdata (string_of_int c.abscissa)]", "[pcdata (string_of_int c.ordinate)]")
            </p>
            </body>
-         </html> ~>>)
+         </html> "])
 
 (* form to image *)
 let imageform = Eliom_registration.Html.create
@@ -613,17 +609,17 @@ let service_list = Eliom_registration.Html.create
   (fun l () ->
     let module Html = Html.D in
     let ll =
-      List.map (fun s -> << <strong>$str:s$</strong> ~>>) l in
+      List.map (fun s -> [%html "<strong>"[pcdata s]"</strong>"]) l in
       Lwt.return
-        << <html>
-             <head><title></title></head>
+        [%html "<html>
+             <head><title>Example</title></head>
              <body>
              <p>
                You sent:
-               $list:ll$
+               "ll"
              </p>
              </body>
-           </html> ~>>)
+           </html>"])
 >>
 
 //Warning://
@@ -647,11 +643,11 @@ let create_listform f =
      end of the list created
    *)
   let module Html = Eliom_content.Html.D in
-  f.it (fun stringname v init ->
-    <:html5list< <p>Write the value for $str:v$:
-      $Form.input ~input_type:`Text ~name:stringname Form.string$ </p> ~>>@init)
+  f.Eliom_parameter.it (fun stringname v init ->
+    [%html" <p>Write the value for "[pcdata v]":
+      "[Form.input ~input_type:`Text ~name:stringname Form.string]" </p> "]::init)
     ["one";"two";"three";"four"]
-    <:html5list< <p>$Form.input ~input_type:`Submit ~value:"Click" Form.string$</p> ~>>
+    [ [%html "<p>"[Form.input ~input_type:`Submit ~value:"Click" Form.string]"</p> "] ]
 
 let listform = Eliom_registration.Html.create
   ~path:(Eliom_service.Path ["listform"])
@@ -660,10 +656,10 @@ let listform = Eliom_registration.Html.create
      let f = Form.get_form service_list create_listform in
      let module Html = Eliom_content.Html.D in
      Lwt.return
-       << <html>
-            <head><title></title></head>
-            <body> $f$ </body>
-          </html> ~>>)
+       [%html "<html>
+            <head><title>Example</title></head>
+            <body> "[f]" </body>
+          </html> "])
 
 >>
 
@@ -684,14 +680,13 @@ Example:
 <<code language="ocaml"|(* Form for service with suffix: *)
 let create_suffixform ((suff, endsuff),i) =
      let module Html = Eliom_content.Html.D in
-    <:html5list< <p>Write the suffix:
-      $Form.input ~input_type:`Text ~name:suff Form.int$ <br/>
-      Write a string: $user_type_input
-      (Ocsigen_lib.Url.string_of_url_path ~encode:false)
-         ~input_type:`Text ~name:endsuff ()
-         $ <br/>
-      Write an int: $Form.input ~input_type:`Text ~name:i Form.int$ <br/>
-      $Form.input ~input_type:`Submit ~value:"Click" Form.string$</p> ~>>
+    [%html "<p>Write the suffix:
+      "[Form.input ~input_type:`Text ~name:suff Form.int]" <br/>
+      Write a string: "[Form.input
+         ~input_type:`Text ~name:endsuff Form.string]
+         " <br/>
+      Write an int: "[Form.input ~input_type:`Text ~name:i Form.int]" <br/>
+      "[Form.input ~input_type:`Submit ~value:"Click" Form.string]"</p> "]
 
 let suffixform = Eliom_registration.Html.create
   ~path:(Eliom_service.Path ["suffixform"])
@@ -700,12 +695,14 @@ let suffixform = Eliom_registration.Html.create
      let f = Form.get_form isuffix create_suffixform in
      let module Html = Eliom_content.Html.D in
      Lwt.return
-      << <html>
-           <head><title></title></head>
-           <body> $f$ </body>
-         </html> ~>>)
+      [%html "<html>
+           <head><title>Example</title></head>
+           <body> "[f]" </body>
+         </html> "])
 
 >>
+
+Decode the URL encoded string using {{{Ocsigen_lib.Url.string_of_url_path ~encode:false}}}
 
 ===Uploading files
 
@@ -742,7 +739,7 @@ it. (The destination must be on the same partition of the disk.)
     ~meth:(Eliom_service.Get unit)
     ()
 
-let upload2 = Eliom_registration.Html.register
+let upload2 = Eliom_registration.Html.create
    ~path:(Eliom_service.Path ["upload"])
    ~meth:(Eliom_service.Post (Eliom_parameter.unit,
                               Eliom_parameter.file "file"))

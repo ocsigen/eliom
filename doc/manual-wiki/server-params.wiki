@@ -199,18 +199,18 @@ let raw_serv =
     let module Html = Eliom_content.Html.D in
     let ll =
       List.map
-        (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> ~>>) l
+        (fun (a,s) -> [%html "<strong>("[pcdata a]", "[pcdata s]")</strong> "]) l
     in
     Lwt.return
-     << <html>
-          <head><title></title></head>
+      [%html "<html>
+          <head><title>Example</title></head>
           <body>
           <p>
-            You sent:
-            $list:ll$
-          </p>
+            You sent:"
+            ll
+          "</p>
           </body>
-        </html> ~>>)
+        </html>"])
 >>
 
 It is possible to use {{{Eliom_parameter.any}}} with other parameter
