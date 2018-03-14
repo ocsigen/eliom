@@ -93,51 +93,32 @@ must contain a title):
 </p><pre class=""><code class="language-ocaml translatable">&lt;&lt; &lt;html&gt;
      &lt;head&gt;&lt;/head&gt;
      &lt;body&gt;&lt;h1&gt;plop&lt;/h1&gt;&lt;/body&gt;
-   &lt;/html&gt; ~&gt;&gt;
-&gt;&gt;
-
-We recommend you use the functions from &lt;&lt;a_api project=&quot;tyxml&quot;
-| module Html5.F&gt;&gt;, as you will (almost) always get valid HTML5. Use
+   &lt;/html&gt; &gt;&gt;</code></pre><p>We recommend you use the functions from <span><a class="ocsforge_doclink_tyxml" href="/tyxml/4.1.0/api/Html5.F">Html5.​F</a></span>, as you will (almost) always get valid HTML5. Use
 the syntax extension for example to enclose already created pieces of
 HTML, and check your pages validity with the
-[[http://validator.w3.org/| W3C validator]].
-
-
-
-
-===OCamlduce===
-
-OCaml's type system is not powerful enough to type XML. The OCamlduce
-manual says: //&quot;The goal of the OCamlDuce project is to extend the
+<a href="http://validator.w3.org/" class="ocsimore_phrasing_link"> W3C validator</a>.
+</p><h3>OCamlduce</h3><p>OCaml's type system is not powerful enough to type XML. The OCamlduce
+manual says: <em>&quot;The goal of the OCamlDuce project is to extend the
 OCaml language with features to make it easier to write safe and
 efficient complex applications that need to deal with XML documents.
 In particular, it relies on a notion of types and patterns to
 guarantee statically that all the possible input documents are
 correctly processed, and that only valid output documents are
-produced.&quot;//
-
-Ocamlduce's full documentation is available from
-[[http://www.cduce.org/ocaml.html|here]].
-
-If OCamlDuce is installed on your system, it is now possible to use
+produced.&quot;</em>
+</p><p>Ocamlduce's full documentation is available from
+<a href="http://www.cduce.org/ocaml.html" class="ocsimore_phrasing_link">here</a>.
+</p><p>If OCamlDuce is installed on your system, it is now possible to use
 it instead of Xhtml.M
 to typecheck your pages. You will get a stronger type checking
 and more flexibility (easier to use other XML types, to parse
 incoming XML data, etc.).
-
-However, Ocamlduce is not compatible with Camlp4 syntax extensions
+</p><p>However, Ocamlduce is not compatible with Camlp4 syntax extensions
 and client server Eliom applications support only HTML5 (for now).
-
-
-To use it, make sure that you have Eliom compiled with OCamlDuce
-support. Then dynlink &lt;&lt;span class=&quot;code&quot;|ocamlduce.cma&gt;&gt; and &lt;&lt;span
-class=&quot;code&quot;|eliomduce.cma&gt;&gt; from the configuration file (after &lt;&lt;span
-class=&quot;code&quot;|eliom.cma&gt;&gt;).  Then use &lt;&lt;a_api | module Eliom_duce.Xhtml &gt;&gt;
-instead of &lt;&lt;a_api | module Eliom_registration.Xhtml&gt;&gt; to register your pages.
-
-Here is an example:
-&lt;&lt;code language=&quot;ocaml&quot;|
-let s =
+</p><p>To use it, make sure that you have Eliom compiled with OCamlDuce
+support. Then dynlink <span class="code">ocamlduce.cma</span> and <span class="code">eliomduce.cma</span> from the configuration file (after <span class="code">eliom.cma</span>).  Then use <span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.2/api/server/Eliom_duce.Xhtml">Eliom_duce.​Xhtml</a></span>
+instead of <span><a class="ocsforge_doclink_eliom" href="/eliom/2.0.2/api/server/Eliom_registration.Xhtml">Eliom_registration.​Xhtml</a></span> to register your pages.
+</p><p>Here is an example:
+</p><pre class=""><code class="language-ocaml translatable">let s =
   Eliom_duce.Xhtml.register_service
     ~path:[&quot;&quot;]
     ~get_params:unit
@@ -145,17 +126,9 @@ let s =
       Lwt.return
         {{ &lt;html&gt;
              [&lt;head&gt; [&lt;title&gt; &quot;&quot;]
-              &lt;body&gt; [&lt;h1&gt; &quot;Page type checked by OCamlDuce&quot;]] }})
-&gt;&gt;
-
-
-
-===Text XHTML===
-
-The last possibility is to use untyped xhtml. Just build strings
+              &lt;body&gt; [&lt;h1&gt; &quot;Page type checked by OCamlDuce&quot;]] }})</code></pre><h3>Text XHTML</h3><p>The last possibility is to use untyped xhtml. Just build strings
 containing your pages. Here is an example:
-
-&lt;&lt;code language=&quot;ocaml&quot;|let coucoutext =
+</p><pre class=""><code class="language-ocaml translatable">let coucoutext =
   Eliom_registration.HtmlText.register_service
     ~path:[&quot;coucoutext&quot;]
     ~get_params:Eliom_parameter.unit
@@ -163,7 +136,4 @@ containing your pages. Here is an example:
       Lwt.return
         (&quot;&lt;html&gt;n'importe quoi &quot;^
          (Eliom_registration.HtmlText.a coucou &quot;clic&quot; ())^
-         &quot;&lt;/html&gt;&quot;))
-&gt;&gt;
-
- syntax error in wikisyntax</code></pre></article></div></div></body></html>
+         &quot;&lt;/html&gt;&quot;))</code></pre></article></div></div></body></html>

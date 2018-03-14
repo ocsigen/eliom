@@ -83,9 +83,9 @@ let _ = Eliom_output.Xhtml.register
     (fun _ _ -&gt;
     (match Eliom_state.get_volatile_session_data ~table: messages () with
      | Eliom_state.Data s -&gt;
-       Eliom_state.discard () ~&gt;&gt;= fun () -&gt;
+       Eliom_state.discard () &gt;&gt;= fun () -&gt;
        Lwt.return [p [pcdata (&quot;Authentication result: &quot;^ s)]]
-     | _ -&gt; Lwt.return []) ~&gt;&gt;= fun message -&gt;
+     | _ -&gt; Lwt.return []) &gt;&gt;= fun message -&gt;
     let form =
     Eliom_output.Xhtml.post_form ~service:form_handler
       (fun url -&gt;

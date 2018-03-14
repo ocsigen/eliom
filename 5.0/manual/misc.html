@@ -39,10 +39,10 @@ use the following functions:
 First, define your menu like this:
 </p><pre class=""><code class="language-ocaml translatable">let mymenu current =
   Eliom_tools.menu ~classe:[&quot;menuprincipal&quot;]
-    (home, %:xmllist&lt; Home ~&gt;&gt;)
+    (home, %:xmllist&lt; Home &gt;&gt;)
     [
-     (infos, %:xmllist&lt; More info ~&gt;&gt;);
-     (tutorial, %:xmllist&lt; Documentation ~&gt;&gt;)
+     (infos, %:xmllist&lt; More info &gt;&gt;);
+     (tutorial, %:xmllist&lt; Documentation &gt;&gt;)
    ] current</code></pre><p>Here, <span class="code">home</span>,  <span class="code">infos</span>,
 and <span class="code">tutorial</span> are your three pages (generated for example
 by  <span><a class="ocsforge_doclink_eliom" href="/eliom/5.0/api/server/Eliom_service.App#VALservice">Eliom_service.​App.​service</a></span>).

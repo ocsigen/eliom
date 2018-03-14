@@ -222,87 +222,43 @@ XML-implementation you have to provide a module named <span class="monospace">Ht
 &lt;&lt; &lt;html&gt;
      &lt;head&gt;&lt;title&gt;&lt;/title&gt;&lt;/head&gt;
      &lt;body&gt;&lt;h1&gt;plop&lt;/h1&gt;&lt;/body&gt;
-   &lt;/html&gt; ~&gt;&gt;
-&gt;&gt;
-is a caml value of type {{{Html5_types.html Html5.M.elt}}}.
-
-To compile a module containing this syntax, you need the camlp4 preprocessor:
-{{{
-ocamlc -I /path_to/ocsigen/
+   &lt;/html&gt; &gt;&gt;</code></pre><p>is a caml value of type <span class="teletype">Html5_types.html Html5.M.elt</span>.
+</p><p>To compile a module containing this syntax, you need the camlp4 preprocessor:
+</p><pre>ocamlc -I /path_to/ocsigen/
  -pp &quot;camlp4o /path_to/ocsigen/xhtmlsyntax.cma -loc loc&quot;
  -c your_module.ml
-}}}
-
-You can insert OCaml expressions of type {{{'a Html5.M.elt}}} inside
-html using {{{$...$}}}, like this:
-
-&lt;&lt;code language=&quot;ocaml&quot;|
-let oc = &lt;&lt; &lt;em&gt;Ocsigen&lt;/em&gt; &gt;&gt; in
-&lt;&lt; &lt;p&gt;$oc$ will revolutionize web programming.&lt;/p&gt; ~&gt;&gt;
-&gt;&gt;
-
-&lt;&lt;wip| remove \ before $, _ in code, everywhere in pdf version!!!!!!!!!! &gt;&gt;
-
-You can insert OCaml expressions of type string inside html
-using ##$str:... $##, like this:
-
-&lt;&lt;code language=&quot;ocaml&quot;|
-let i = 4 in
-&lt;&lt; &lt;p&gt;i is equal to $str:string_of_int i$&lt;/p&gt; ~&gt;&gt;
-&gt;&gt;
-
-If you want to use a dollar in your page, just write it twice.
-
-You can write a list of HTML5 expressions using the syntax {{{&lt;:xmllist&lt;...&gt;&gt;}}}, for example:
-&lt;&lt;code language=&quot;ocaml&quot;|
-&lt;:html5list&lt; &lt;p&gt;hello&lt;/p&gt; &lt;div&gt;&lt;/div&gt; ~&gt;&gt;
-&gt;&gt;
-Here are some other examples showing what you can do:
-&lt;&lt;code language=&quot;ocaml&quot;|
-&lt;&lt; &lt;ul class=$ulclass$ $list:other_attrs$&gt;
+</pre><p>You can insert OCaml expressions of type <span class="teletype">'a Html5.M.elt</span> inside
+html using <span class="teletype">$...$</span>, like this:
+</p><pre class=""><code class="language-ocaml translatable">let oc = &lt;&lt; &lt;em&gt;Ocsigen&lt;/em&gt;</code></pre><p>in
+</p><aside class="wip"><header><h5>Work in progress</h5></header><p>remove \ before $, _ in code, everywhere in pdf version!!!!!!!!!!</p></aside><p>You can insert OCaml expressions of type string inside html
+using <span class="monospace">$str:... $</span>, like this:
+</p><pre class=""><code class="language-ocaml translatable">let i = 4 in
+&lt;&lt; &lt;p&gt;i is equal to $str:string_of_int i$&lt;/p&gt; &gt;&gt;</code></pre><p>If you want to use a dollar in your page, just write it twice.
+</p><p>You can write a list of HTML5 expressions using the syntax <span class="teletype">&lt;:xmllist&lt;...&gt;&gt;</span>, for example:
+</p><pre class=""><code class="language-ocaml translatable">&lt;:html5list&lt; &lt;p&gt;hello&lt;/p&gt; &lt;div&gt;&lt;/div&gt; &gt;&gt;</code></pre><p>Here are some other examples showing what you can do:
+</p><pre class=""><code class="language-ocaml translatable">&lt;&lt; &lt;ul class=$ulclass$ $list:other_attrs$&gt;
      $first_il$
      $list:items$
-   &lt;/ul&gt; ~&gt;&gt;
-&gt;&gt;
-
-Warning: lists antiquotations are allowed only at the end (before a
+   &lt;/ul&gt; &gt;&gt;</code></pre><p>Warning: lists antiquotations are allowed only at the end (before a
 closing tag). For example, the following is not valid:
-
-&lt;&lt;code language=&quot;ocaml&quot;|
-&lt;&lt; &lt;ul $list:other_attrs$ class=$ulclass$&gt;
+</p><pre class=""><code class="language-ocaml translatable">&lt;&lt; &lt;ul $list:other_attrs$ class=$ulclass$&gt;
      $list:items$
      $last_il$
-   &lt;/ul&gt; ~&gt;&gt;
-&gt;&gt;
-
-The syntax extension is not allowed in patterns for now.
-
-//Warning:// The two syntaxes are not equivalent for typing.  Using
+   &lt;/ul&gt; &gt;&gt;</code></pre><p>The syntax extension is not allowed in patterns for now.
+</p><p><em>Warning:</em> The two syntaxes are not equivalent for typing.  Using
 the syntax extension will do less checking.  For example the following
 code is accepted but not valid regarding HTML5 standard (because
-&lt;&lt;span class=&quot;code&quot;|&lt;head&gt;&gt;&gt; must contain a title):
-
-&lt;&lt;code language=&quot;ocaml&quot;|
-  &lt;&lt; &lt;html&gt;
+<span class="code">&lt;head</span>&gt; must contain a title):
+</p><pre class=""><code class="language-ocaml translatable">&lt;&lt; &lt;html&gt;
      &lt;head&gt;&lt;/head&gt;
      &lt;body&gt;&lt;h1&gt;plop&lt;/h1&gt;&lt;/body&gt;
-   &lt;/html&gt; ~&gt;&gt;
-&gt;&gt;
-
-We recommend you use the functions from &lt;&lt;a_api project=&quot;tyxml&quot; |
-module Eliom_content.Html5.D&gt;&gt;, as you will (almost) always get valid
+   &lt;/html&gt; &gt;&gt;</code></pre><p>We recommend you use the functions from <span><a class="ocsforge_doclink_tyxml" href="/tyxml/4.1.0/api/Eliom_content.Html5.D">Eliom_content.​Html5.​D</a></span>, as you will (almost) always get valid
 HTML5. Use the syntax extension for example to enclose already created
 pieces of HTML, and check your pages validity with the
-[[http://validator.w3.org/| W3C validator]].
-
-
-===Text HTML===
-
-The last possibility is to use untyped HTML. Just build strings
+<a href="http://validator.w3.org/" class="ocsimore_phrasing_link"> W3C validator</a>.
+</p><h3>Text HTML</h3><p>The last possibility is to use untyped HTML. Just build strings
 containing your pages. Here is an example:
-
-&lt;&lt;code language=&quot;ocaml&quot;|
-let coucoutext =
+</p><pre class=""><code class="language-ocaml translatable">let coucoutext =
   Eliom_registration.Html_text.register_service
     ~path:[&quot;coucoutext&quot;]
     ~get_params:Eliom_parameter.unit
@@ -310,77 +266,34 @@ let coucoutext =
       Lwt.return
         (&quot;&lt;html&gt;n'importe quoi &quot;^
          (Eliom_content.Html_text.a coucou &quot;clic&quot; ())^
-         &quot;&lt;/html&gt;&quot;))
-&gt;&gt;
-
-===@@id=&quot;custom_data&quot;@@Custom data for HTML5===
-
-Eliom provides a type-safe interface for using HTML5's custom data, &lt;&lt;a_api | module
-Eliom_content.Html5.Custom_data&gt;&gt;.
-
-==== Creation ====
-Custom data may be created either from string-conversation functions by &lt;&lt;a_api | val
-Eliom_content.Html5.Custom_data.create&gt;&gt;
-
-&lt;&lt;code language=&quot;ocaml&quot;|
-open Eliom_content
+         &quot;&lt;/html&gt;&quot;))</code></pre><h3 id="custom_data">Custom data for HTML5 <a class="backref" href="#custom_data">&#182;</a></h3><p>Eliom provides a type-safe interface for using HTML5's custom data, <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_content.Html5.Custom_data">Eliom_content.​Html5.​Custom_data</a></span>.
+</p><h4> Creation </h4><p>Custom data may be created either from string-conversation functions by <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_content.Html5.Custom_data#VALcreate">Eliom_content.​Html5.​Custom_data.​create</a></span>
+</p><pre class=""><code class="language-ocaml translatable">open Eliom_content
 type my_int_data =
-  Html5.Custom_data.create ~name:&quot;my_int&quot; ~of_string:int_of_string ~to_string:string_of_int ()
-&gt;&gt;
-
-or by a Json-deriving type &lt;&lt;a_api | val Eliom_content.Html5.Custom_data.create_json&gt;&gt;
-
-&lt;&lt;code language=&quot;ocaml&quot;|
-{shared{
+  Html5.Custom_data.create ~name:&quot;my_int&quot; ~of_string:int_of_string ~to_string:string_of_int ()</code></pre><p>or by a Json-deriving type <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_content.Html5.Custom_data#VALcreate_json">Eliom_content.​Html5.​Custom_data.​create_json</a></span>
+</p><pre class=""><code class="language-ocaml translatable">{shared{
   type coord = { x : int; y : int; } deriving (Json)
   let coord_data =
     Html5.Custom_data.create_json ~name:&quot;coord&quot; Json.t&lt;coord&gt;
-}} &gt;&gt;
-
-==== Injecting ====
-
-Custom data can be injected into HTML5-trees of type &lt;&lt;a_api
-project=&quot;eliom&quot;|type Eliom_content.Html5.elt&gt;&gt; by the function &lt;&lt;a_api
-project=&quot;eliom&quot;|val Eliom_content.Html5.Custom_data.attrib&gt;&gt;:
-
-&lt;&lt;code language=&quot;ocaml&quot;|
-  div ~a:[Html5.Custom_data.attrib coord_data {x = 100; y = 200}] []
-&gt;&gt;
-
-NB, HTML5 gives no restriction on the usage of custom data, any custom data can
-may be added to //any// HTML5 element.
-
-==== Reading/writing the DOM ====
-
-On the client side, custom data can be read from and written to JavaScript DOM
-elements of type &lt;&lt;a_api project=&quot;js_of_ocaml&quot;|class type Dom_html.element&gt;&gt;.
-
-Custom data can be read from a DOM-element with the function
-&lt;&lt;a_api subproject=&quot;client&quot;|val Eliom_content.Html5.Custom_data.get_dom&gt;&gt;.
+}}</code></pre><h4> Injecting </h4><p>Custom data can be injected into HTML5-trees of type <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_content.Html5#TYPEelt">Eliom_content.​Html5.​elt</a></span> by the function <span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/server/Eliom_content.Html5.Custom_data#VALattrib">Eliom_content.​Html5.​Custom_data.​attrib</a></span>:
+</p><pre class=""><code class="language-ocaml translatable">div ~a:[Html5.Custom_data.attrib coord_data {x = 100; y = 200}] []</code></pre><p>NB, HTML5 gives no restriction on the usage of custom data, any custom data can
+may be added to <em>any</em> HTML5 element.
+</p><h4> Reading/writing the DOM </h4><p>On the client side, custom data can be read from and written to JavaScript DOM
+elements of type <span><a class="ocsforge_doclink_js_of_ocaml" href="/js_of_ocaml/3.1.0/api/Dom_html.element-c">Dom_html.​element</a></span>.
+</p><p>Custom data can be read from a DOM-element with the function
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/client/Eliom_content.Html5.Custom_data#VALget_dom">Eliom_content.​Html5.​Custom_data.​get_dom</a></span>.
 If no respective custom data attribute can be found in the element
- * the ##default## value from creating the custom data is returned, if any, or
- * an exception ##Not_found## is raised, otherwise.
-
-The custom data of a DOM-element can be set with the function
-&lt;&lt;a_api subproject=&quot;client&quot;|val Eliom_content.Html5.Custom_data.set_dom&gt;&gt;.
-
-&lt;&lt;code language=&quot;ocaml&quot;|
-  {client{
+</p><ul><li> the <span class="monospace">default</span> value from creating the custom data is returned, if any, or
+</li><li> an exception <span class="monospace">Not_found</span> is raised, otherwise.
+</li></ul><p>The custom data of a DOM-element can be set with the function
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/client/Eliom_content.Html5.Custom_data#VALset_dom">Eliom_content.​Html5.​Custom_data.​set_dom</a></span>.
+</p><pre class=""><code class="language-ocaml translatable">{client{
     fun (div : Dom_html.element Js.t) -&gt;
       let i = Html5.Custom_data.get_dom div coord_data in
       debug &quot;{x=%d; y=%d}&quot; i.x i.y;
       Html5.Custom_data.set_dom div coord_data { x = i.x + 1; y = i.y - 1 }
-  }}
-&gt;&gt;
-
-==== Default value ====
-If a custom data is created with the optional argument ##default##, calls to
-&lt;&lt;a_api subproject=&quot;client&quot; | val
-Eliom_content.Html5.Custom_data.get_dom&gt;&gt; return that instead of throwing an
+  }}</code></pre><h4> Default value </h4><p>If a custom data is created with the optional argument <span class="monospace">default</span>, calls to
+<span><a class="ocsforge_doclink_eliom" href="/eliom/3.0/api/client/Eliom_content.Html5.Custom_data#VALget_dom">Eliom_content.​Html5.​Custom_data.​get_dom</a></span> return that instead of throwing an
 exception [Not_found].
-
-&lt;&lt;code language=&quot;ocaml&quot;|
-  let coord_data' =
-    Html5.Custom_data.create_json ~name:&quot;coord&quot; default:{x=0;y=0;} Json.t&lt;my_data&gt;
-&gt;&gt;
- syntax error in wikisyntax</code></pre></article></div></div></body></html>
+</p><pre class=""><code class="language-ocaml translatable">let coord_data' =
+    Html5.Custom_data.create_json ~name:&quot;coord&quot; default:{x=0;y=0;} Json.t&lt;my_data&gt;</code></pre></article></div></div></body></html>
