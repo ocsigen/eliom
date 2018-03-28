@@ -905,18 +905,6 @@ let make_uri subpath params =
   and params = List.map (fun (s, s') -> s, `String (Js.string s')) params in
   Eliom_uri.make_string_uri_from_components (base, params, None)
 
-let follow_up = ref None
-
-let redirect_active () =
-  match !follow_up with
-  | Some (`Redirect _) -> true
-  | _ -> false
-
-
-let change_url_string_protected ~replace url =
-  if not (redirect_active ()) then
-    change_url_string ~replace url
-
 let route ~replace ?(keep_url = false)
     ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
   Lwt_log.ign_debug ~section:section_page "Route";
@@ -929,17 +917,17 @@ let route ~replace ?(keep_url = false)
       info, i_subpath
   in
   try%lwt
-    update_session_info i_get_params (Some i_post_params);
-    let%lwt () = Eliom_route.call_service info in
     if not keep_url then
-      change_url_string_protected ~replace (make_uri i_subpath i_get_params);
-    Lwt.return_unit
+      change_url_string ~replace (make_uri i_subpath i_get_params);
+    update_session_info i_get_params (Some i_post_params);
+    Eliom_route.call_service info
   with e ->
     Eliom_request_info.get_sess_info := r;
     Lwt.fail e
 
-let after_action uri =
-  Lwt_log.ign_debug ~section:section_page "After action";
+let perform_reload () =
+  Lwt_log.ign_debug ~section:section_page "Perform reload";
+  let uri = !current_uri in
   let
     ({ Eliom_common.si_all_get_params ; si_all_post_params }
      as i_sess_info) =
@@ -963,19 +951,6 @@ let after_action uri =
       route ~replace:false ~keep_url:true info
     with _ ->
       Lwt.return_unit
-
-let do_follow_up uri =
-  match !follow_up with
-  | Some (`Redirect f) ->
-Lwt_log.ign_debug ~section:section_page "Performing redirect";
-    follow_up := None;
-    f uri
-  | Some `Reload ->
-Lwt_log.ign_debug ~section:section_page "Performing reload";
-    follow_up := None;
-    after_action uri
-  | None ->
-    Lwt.return_unit
 
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
@@ -1053,9 +1028,8 @@ let change_page (type m)
                (flush_onchangepage ())
            in
            with_new_page ~replace () @@ fun () ->
-           change_url_string_protected ~replace uri;
-           let%lwt () = f get_params post_params in
-           do_follow_up uri
+           change_url_string ~replace uri;
+           f get_params post_params
          | None when is_client_app () ->
            Lwt.return @@ exit_to
              ?absolute ?absolute_path ?https ~service ?hostname ?port
@@ -1099,19 +1073,6 @@ type _ redirection =
        [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
     'a redirection
 
-let register_reload () =
-  follow_up := Some `Reload
-
-let register_redirect (Redirection service) =
-  let f uri =
-    (* locally modifying URI with that of the redirection service
-       (without touching the history) for reload actions to work
-       correctly; the change_page will take care of the history *)
-    current_uri := uri;
-    change_page ~replace:false ~service () ()
-  in
-  follow_up := Some (`Redirect f)
-
 let change_page_unknown
     ?meth ?hostname ?(replace = false) i_subpath i_get_params i_post_params =
   Lwt_log.ign_debug ~section:section_page "Change page unknown";
@@ -1126,16 +1087,13 @@ let change_page_unknown
       `Post
   in
   with_new_page ~replace () @@ fun () ->
-  let%lwt () =
-    route ~replace {
-      Eliom_route.i_sess_info ;
-      i_subpath ;
-      i_meth ;
-      i_get_params ;
-      i_post_params
-    }
-  in
-  do_follow_up (make_uri i_subpath i_get_params)
+  route ~replace {
+    Eliom_route.i_sess_info ;
+    i_subpath ;
+    i_meth ;
+    i_get_params ;
+    i_post_params
+  }
 
 (* Function used in "onclick" event handler of <a>.  *)
 let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
