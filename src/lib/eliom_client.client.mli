@@ -414,6 +414,4 @@ type _ redirection =
        [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
     'a redirection
 
-val register_redirect : Eliom_service.non_ocaml redirection -> unit
-
-val register_reload : unit -> unit
+val perform_reload : unit -> unit Lwt.t

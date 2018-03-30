@@ -221,12 +221,12 @@ module Action = Make (struct
 
   let reset_reload_fun = true
 
-  let send ?options page = Lwt.return @@
+  let send ?options page =
     match options with
     | Some `Reload | None ->
-      Eliom_client.register_reload ()
+      Eliom_client.perform_reload ()
     | _ ->
-      ()
+      Lwt.return ()
 
 end)
 
@@ -295,9 +295,8 @@ module Redirection = struct
 
   let send
       ?options:_ ?charset:_ ?code:_ ?content_type:_ ?headers:_
-      rdr =
-    Eliom_client.register_redirect rdr;
-    Lwt.return_unit
+      (Redirection service) =
+    Eliom_client.change_page ~replace:true ~service () ()
 
   let register
       ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
