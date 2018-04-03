@@ -157,7 +157,8 @@ struct
           wakeup_waiters channel;
           Lwt.return_unit
     in
-    ignore (Lwt_stream.iter_s f stream:unit Lwt.t)
+    ignore (Lwt.with_value Eliom_common.sp_key None @@ fun () ->
+            Lwt_stream.iter_s f stream:unit Lwt.t)
 
   let make_name name = "stateless:"^name
   let chan_id_of_string name = Eliom_comet_base.chan_id_of_string (make_name name)
@@ -420,6 +421,7 @@ end = struct
     List.map (fun (_,(_, w)) -> w) streams
 
   let stream_waiter s =
+    Lwt.with_value Eliom_common.sp_key None @@ fun () ->
     Lwt.no_cancel (Lwt_stream.peek s >>= fun _ -> Lwt.return `Data)
 
   (** read up to [n] messages in the list of streams [streams] without blocking. *)
@@ -432,7 +434,10 @@ end = struct
         if n = 0 then
           (List.rev_append stream_acc streams, acc)
         else
-          let l = Lwt_stream.get_available_up_to n stream in
+          let l =
+            Lwt.with_value Eliom_common.sp_key None @@ fun () ->
+            Lwt_stream.get_available_up_to n stream
+          in
           let l' = List.map (fun v -> id,v) l in
           let rest = n - (List.length l) in
           let stream_acc =
@@ -638,9 +643,7 @@ end = struct
     let name = (name_of_scope (scope:>Eliom_common.user_scope)) ^ name in
     let handler = get_handler scope in
     Lwt_log.ign_info_f ~section "create channel %s" name;
-    let waiter =
-      Lwt.with_value Eliom_common.sp_key None (fun () -> stream_waiter stream)
-    in
+    let waiter = stream_waiter stream in
     if List.mem name handler.hd_registered_chan_id
     then
       begin
@@ -755,7 +758,8 @@ end = struct
   let create_stateful_channel ?scope ?name stream =
     Stateful
       (Stateful.create ?scope ?name
-         (Lwt_stream.map
+         (Lwt.with_value Eliom_common.sp_key None @@ fun () ->
+          Lwt_stream.map
             (function
               | Eliom_comet_base.Closed ->
         Lwt_log.ign_warning ~section "closed in stateful channels: this is an error: this should not be possible";
@@ -766,12 +770,14 @@ end = struct
   let create_stateless_channel ?name ~size stream =
     Stateless
       (Stateless.create ?name ~size
-         (Lwt_stream.map marshal stream))
+         (Lwt.with_value Eliom_common.sp_key None @@ fun () ->
+          Lwt_stream.map marshal stream))
 
   let create_stateless_newest_channel ?name stream =
     Stateless_newest
       (Stateless.create ?name ~size:1
-         (Lwt_stream.map marshal stream))
+         (Lwt.with_value Eliom_common.sp_key None @@ fun () ->
+          Lwt_stream.map marshal stream))
 
   let create_stateful ?scope ?name ?(size=1000) stream =
     let stream =
@@ -781,7 +787,9 @@ end = struct
       channel_mark = channel_mark () }
 
   let create_unlimited ?scope ?name stream =
-    let stream = Lwt_stream.map (fun x -> Eliom_comet_base.Data x) stream in
+    let stream =
+      Lwt.with_value Eliom_common.sp_key None @@ fun () ->
+      Lwt_stream.map (fun x -> Eliom_comet_base.Data x) stream in
     { channel = create_stateful_channel ?scope ?name stream;
       channel_mark = channel_mark () }
 

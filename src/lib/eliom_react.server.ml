@@ -45,11 +45,13 @@ struct
   let wrap_stateful
     {throttling=t; scope; react=e; name; size} =
     let ee =
+      Lwt.with_value Eliom_common.sp_key None @@ fun () ->
       (match t with
         | None -> e
         | Some t -> E.limit (fun () -> Lwt_unix.sleep t) e)
     in
-    let stream = E.to_stream ee in
+    let stream =
+      Lwt.with_value Eliom_common.sp_key None @@ fun () -> E.to_stream ee in
     let channel = Eliom_comet.Channel.create ?scope ?name ?size stream in
     (channel,Eliom_common.make_unwrapper Eliom_common.react_down_unwrap_id)
 
@@ -205,7 +207,7 @@ struct
             Lwt.return_some store.value
           end
       in
-      aux
+      fun () -> Lwt.with_value Eliom_common.sp_key None @@ aux
 
     let wrap_stateful
         {throttling=t;
