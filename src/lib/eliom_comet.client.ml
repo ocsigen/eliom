@@ -421,7 +421,9 @@ struct
         (fun () -> hd_activity.active_waiter)
     in
     let request = make_request hd in
-    let%lwt s = call_service_after_load_end srv () request in
+    let%lwt s =
+      call_service_after_load_end
+        srv () (hd_activity.active = `Idle, request) in
     Lwt.return (Deriving_Json.from_string Ecb.answer_json s)
 
   let drop_message_index =
@@ -510,7 +512,7 @@ struct
     ignore
       (try%lwt
          call_service_after_load_end srv ()
-           (Ecb.Stateful (Ecb.Commands command))
+           (false, Ecb.Stateful (Ecb.Commands command))
        with
        | exn ->
          Eliom_lib.Lwt_log.ign_notice_f ~section ~exn "request failed";
