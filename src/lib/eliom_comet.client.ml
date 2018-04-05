@@ -30,7 +30,7 @@ module Configuration =
 struct
   type configuration_data =
       { active_until_timeout : bool;
-        time_between_request_unfocused : (float * float) list option;
+        time_between_request_unfocused : (float * float * float) list option;
         (* (a, b) for a * t + b
            (0, 0) means always active
            None means: no request
@@ -42,7 +42,7 @@ struct
 
   let default_configuration =
     { active_until_timeout = false;
-      time_between_request_unfocused = (Some [(0.0078125, 0.)]);
+      time_between_request_unfocused = (Some [(0.5, 60., 600.)]);
       time_after_unfocus = 180.;
       time_between_request = 0.; }
 
@@ -113,7 +113,7 @@ struct
 
   let set_always_active conf v =
     set_fun conf (fun c -> { c with time_between_request_unfocused =
-        if v then Some [0., 0.] else None })
+        if v then Some [0., 0., 0.] else None })
 
   let set_timeout conf v =
     set_fun conf (fun c -> { c with time_after_unfocus = v })
@@ -131,11 +131,15 @@ struct
     let time = Sys.time () in
     let sleep_duration () = if is_idle ()
       then (match (get ()).time_between_request_unfocused, focused () with
-        | Some ((a, b)::l), Some start ->
+        | Some ((a, b, c)::l), Some start ->
           let now = Js.to_float ((new%js Js.date_now))##getTime in
-          let t = (now -. start) *. 0.001 in (* time from idle start *)
-          let v = a *. t +. b in
-          let v = List.fold_left (fun v (a, b) -> min v (a *. t +. b)) v l in
+          (* time from idle start *)
+          let t = max 0. ((now -. start) *. 0.001
+                          -. (get ()).time_after_unfocus) in
+          let v = min (a *. t +. b) c in
+          let v =
+            List.fold_left
+              (fun v (a, b, c) -> min v (min (a *. t +. b) c)) v l in
           v
         | _ -> 0. (* Configuration changed.
                      We do not sleep and we'll see later. (?) *))
@@ -443,7 +447,7 @@ struct
         let tbru =
           (Configuration.get ()).Configuration.time_between_request_unfocused
         in
-        if not (tbru = Some [0., 0.]) (* if not always active *)
+        if not (tbru = Some [0., 0., 0.]) (* if not always active *)
         then begin
           let now = Js.to_float ((new%js Js.date_now))##getTime in
           if now -. t >
