@@ -272,15 +272,16 @@ struct
         hd_activity : activity;
       }
 
-  let add_focus_listener f : unit =
-    let listener = Dom_html.handler (fun _ ->
-      f (); Js.bool false) in
-    (Js.Unsafe.coerce (Dom_html.window))##(addEventListener (Js.string "focus") listener (Js.bool false))
+  let add_listener target event f =
+    let listener = Dom_html.handler (fun _ -> f (); Js._true) in
+    ignore @@ Dom_html.(addEventListener target event listener Js._false)
 
-  let add_blur_listener f : unit =
-    let listener = Dom_html.handler (fun _ ->
-      f (); Js.bool false) in
-    (Js.Unsafe.coerce (Dom_html.window))##(addEventListener (Js.string "blur") listener (Js.bool false))
+  let add_focus_listener f = Dom_html.(add_listener window Event.focus f)
+
+  let add_blur_listener f = Dom_html.(add_listener window Event.blur f)
+
+  let add_visibility_change_listener f =
+    Dom_html.(add_listener document (Event.make "visibilitychange") f)
 
   let set_activity hd v =
     if Eliom_lib.String.Set.is_empty hd.hd_activity.active_channels
@@ -298,6 +299,10 @@ struct
 
   let is_active hd = hd.hd_activity.active
 
+  let document_hidden () =
+    Js.Optdef.case (Js.Unsafe.global##.document##.hidden)
+      (fun () -> false) Js.to_bool
+
   let has_focus () =
     not (Js.Optdef.test (Js.Unsafe.global##.document##.hasFocus))
       ||
@@ -307,16 +312,30 @@ struct
       window. That way, we can tell when the client is active or not and do
       calls to the server only if it is active *)
   let handle_focus handler =
-    let focus_callback () =
-      handler.hd_activity.focused <- None;
-      set_activity handler `Active
+    let resume_activity () =
+      if handler.hd_activity.focused <> None then begin
+        handler.hd_activity.focused <- None;
+        set_activity handler `Active
+      end
     in
-    let blur_callback () =
-      handler.hd_activity.focused <-
-        Some (Js.to_float ((new%js Js.date_now))##getTime)
+    let suspend_activity () =
+      if handler.hd_activity.focused = None then
+        handler.hd_activity.focused <-
+          Some (new%js Js.date_now)##getTime
+    in
+    let focus_callback () =
+      if not (document_hidden ()) then resume_activity ()
+    in
+    let blur_callback = suspend_activity in
+    let visibility_change_callback () =
+      if document_hidden () then
+        suspend_activity ()
+      else
+        if has_focus () then resume_activity ()
     in
     add_focus_listener focus_callback;
-    add_blur_listener blur_callback
+    add_blur_listener blur_callback;
+    add_visibility_change_listener visibility_change_callback
 
   let expected_activity hd =
     match hd.hd_activity.focused with
@@ -344,7 +363,7 @@ struct
       (* Set initial focus status *)
       if
         hd.hd_activity.focused = None &&
-        not (has_focus ())
+        (document_hidden () || not (has_focus ()))
       then
         hd.hd_activity.focused <-
           Some ((new%js Js.date_now)##getTime
