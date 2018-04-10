@@ -253,7 +253,8 @@ struct
       Lwt_unix.with_timeout (timeout ())
         (fun () -> really_wait_data requests)
 
-  let handle_request () = function
+  let handle_request () (_, req) =
+    match req with
     | Eliom_comet_base.Stateful _ -> failwith "attempting to request data on stateless service with a stateful request"
     | Eliom_comet_base.Stateless requests ->
       let requests = List.map get_channel (Array.to_list requests) in
@@ -271,7 +272,9 @@ struct
     (*VVV Why isn't this a POST non-attached coservice? --Vincent *)
 
     Comet.create_attached_post
-      ~post_params:Ecb.comet_request_param
+      ~post_params:
+        Eliom_parameter.(bool "idle" **
+                         Eliom_comet_base.comet_request_param)
       ~fallback:
         (Eliom_common.force_lazy_site_value fallback_global_service)
       handle_request
@@ -493,7 +496,7 @@ end = struct
 
   (* register the service handler.hd_service *)
   let run_handler handler =
-    let f () req =
+    let f () (idle, req) =
       match req with
       | Eliom_comet_base.Stateless _ ->
         failwith "attempting to request data on stateful service with a stateless request"
@@ -509,7 +512,12 @@ end = struct
           Lwt.catch
             (fun () -> Lwt_unix.with_timeout (timeout ())
               (fun () ->
-                let%lwt () = wait_data (wait_closed_connection ()) handler in
+                let%lwt () =
+                  if idle then
+                    Lwt.return_unit
+                  else
+                    wait_data (wait_closed_connection ()) handler
+                in
                 let messages = read_streams 100 handler in
                 let message = encode_downgoing messages in
                 handler.hd_last <- (message,number);
@@ -591,7 +599,9 @@ end = struct
               (* CCC ajouter possibilité d'https *)
               (Eliom_service.create_attached_post
                  (*VVV Why is it attached? --Vincent *)
-                 ~post_params:Eliom_comet_base.comet_request_param
+                 ~post_params:
+                   Eliom_parameter.(bool "idle" **
+                                    Eliom_comet_base.comet_request_param)
                  ~fallback:
                    (Eliom_common.force_lazy_site_value
                       fallback_service)
@@ -819,7 +829,8 @@ end = struct
         ~meth:
           (Eliom_service.Post
              (Eliom_parameter.unit,
-              Eliom_comet_base.comet_request_param))
+              Eliom_parameter.(bool "idle" **
+                               Eliom_comet_base.comet_request_param)))
         ()
     in
     let last = if newest then None else Some history in
