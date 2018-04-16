@@ -53,6 +53,12 @@ let file_hash loc =
     let d = 10 - (i * 6) mod 8 in
     Bytes.set o i e.[(g p lsl 8 + g (p + 1)) lsr d land 63]
   done;
+  for i = 0 to 4 do
+    (* Prevent problematic '_ pattern. This confuses our sed
+       invocation in eliomc. Simply replacing the pattern here is
+       easier than tightening the sed expression. *)
+    if Bytes.get o i = '\'' && Bytes.get o (i + 1) = '_' then Bytes.set o i 'Z'
+  done;
   Bytes.to_string o
 
 let id_file_hash loc =
