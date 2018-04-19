@@ -1,5 +1,6 @@
 <{lib,tools,ocamlbuild}/**/*>:warn(+A-4-6-7-9-27-37-39-40-42-44-48)
 true:keep_locs
+<lib/**/{client,server}*>:linkall
 
 <lib/type_dir/*.ml{,i}>:eliom_ppx,thread
 <lib/type_dir/*.ml>:package(js_of_ocaml-ppx.deriving,lwt_ppx)
