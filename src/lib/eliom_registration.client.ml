@@ -80,7 +80,7 @@ let typed_apply ~service f gp pp l l' suffix =
 let wrap service att f _ suffix =
   let gp = Eliom_service. get_params_type service
   and pp = Eliom_service.post_params_type service
-  and l = (!Eliom_request_info.get_sess_info ()).si_all_get_params
+  and l = (!Eliom_request_info.get_sess_info ()).si_all_get_but_nl
   and l' =
     match
       (!Eliom_request_info.get_sess_info ()).si_all_post_params
@@ -117,7 +117,7 @@ let wrap_na
     s <> Eliom_common.naservice_name &&
     s <> Eliom_common.naservice_num
   in
-  let l = filter si.si_all_get_params
+  let l = filter si.si_all_get_but_nl
   and l' =
     match si.si_all_post_params with
     | Some l ->

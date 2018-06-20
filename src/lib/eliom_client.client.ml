@@ -920,7 +920,11 @@ let route ~replace ?(keep_url = false)
     if not keep_url then
       change_url_string ~replace (make_uri i_subpath i_get_params);
     update_session_info i_get_params (Some i_post_params);
-    Eliom_route.call_service info
+    Eliom_route.call_service
+      { info with
+        Eliom_route.i_get_params =
+          Eliom_common.(remove_prefixed_param nl_param_prefix)
+            i_get_params }
   with e ->
     Eliom_request_info.get_sess_info := r;
     Lwt.fail e
