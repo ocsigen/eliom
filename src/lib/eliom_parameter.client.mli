@@ -40,3 +40,7 @@ val all_suffix_user :
 
 val reconstruct_params_form :
   (string * Form.form_elt) list -> ('a, _, _) params_type -> 'a option
+
+val get_non_localized_get_parameters :
+  ('a, [ `WithoutSuffix ], 'b) non_localized_params ->
+  'a option
