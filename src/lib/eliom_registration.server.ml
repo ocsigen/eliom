@@ -71,8 +71,11 @@ module Html_make_reg_base
   let send
       ?(options = ()) ?charset ?code
       ?content_type ?headers content =
+    let sp = Eliom_common.get_sp () in
     let accept =
-      (Ocsigen_extensions.Ocsigen_request_info.accept (Eliom_request_info.get_ri ())) in
+      (Ocsigen_extensions.Ocsigen_request_info.accept
+         (Eliom_request_info.get_ri_sp sp))
+    in
     let%lwt r = Html_content.result_of_content ~options:accept content in
     Lwt.return
       (Ocsigen_http_frame.Result.update r
@@ -80,9 +83,12 @@ module Html_make_reg_base
          ~charset:(match charset with
                      | None -> Some (Eliom_config.get_config_default_charset ())
                      | _ -> charset)
-         ~content_type:(match content_type with
-                         | None -> Ocsigen_http_frame.Result.content_type r
-                         | _ -> content_type)
+         ~content_type:(
+           match content_type,
+                 sp.Eliom_common.sp_sitedata.Eliom_common.html_content_type with
+           | None, None -> Ocsigen_http_frame.Result.content_type r
+           | None, ct -> ct
+           | _ -> content_type)
          ~headers:(match headers with
                        | None -> Ocsigen_http_frame.Result.headers r
                        | Some headers ->
@@ -1484,7 +1490,6 @@ module Eliom_appl_reg_make_param
       with Not_found ->
         headers
     in
-
     Lwt.return
       (Ocsigen_http_frame.Result.update r
         ~code:(code_of_code_option code)
@@ -1495,9 +1500,13 @@ module Eliom_appl_reg_make_param
         ~content_type:
           (if Eliom_request_info.expecting_process_page ()
            then Ocsigen_http_frame.Result.content_type r
-           else (match content_type with
-            | None -> Ocsigen_http_frame.Result.content_type r
-            | _ -> content_type))
+           else
+             (match
+                content_type,
+                sp.Eliom_common.sp_sitedata.Eliom_common.html_content_type with
+             | None, None -> Ocsigen_http_frame.Result.content_type r
+             | None, ct -> ct
+             | _ -> content_type))
         ~headers ())
 
   end

@@ -43,6 +43,7 @@ let default_max_volatile_data_tab_sessions_per_group = ref 50
 let default_secure_cookies = ref false
 let default_application_script = ref (false, false)
 let default_cache_global_data = ref None
+let default_html_content_type = ref None
 
 (* Subnet defaults be large enough, because it must work behind a reverse proxy.
 
@@ -165,6 +166,7 @@ Some !default_max_persistent_data_tab_sessions_per_group, false;
            ipv6mask = None, false;
            application_script = !default_application_script;
            cache_global_data = !default_cache_global_data;
+           html_content_type = !default_html_content_type;
           }
         in
         Ocsigen_cache.Dlist.set_finaliser_after
@@ -243,7 +245,8 @@ let parse_eliom_option
      set_ipv4mask,
      set_ipv6mask,
      set_application_script,
-     set_global_data_caching
+     set_global_data_caching,
+     set_html_content_type
     )
     =
   let parse_timeout_attrs tn attrs =
@@ -488,6 +491,9 @@ let parse_eliom_option
   | (Element ("cacheglobaldata", attrs, [])) ->
       set_global_data_caching (parse_global_data_caching_attrs attrs)
 
+  | (Element ("htmlcontenttype", [("value", v)], [])) ->
+    set_html_content_type v
+
   | (Element (s, _, _)) ->
       raise (Error_in_config_file
                ("Unexpected content <"^s^"> inside eliom config"))
@@ -578,7 +584,8 @@ let rec parse_global_config = function
          (fun v -> Eliom_common.ipv4mask := v),
          (fun v -> Eliom_common.ipv6mask := v),
          (fun v -> default_application_script := v),
-         (fun v -> default_cache_global_data := v)
+         (fun v -> default_cache_global_data := v),
+         (fun v -> default_html_content_type := Some v)
         )
         e;
       parse_global_config ll
@@ -902,7 +909,8 @@ let parse_config hostpattern conf_info site_dir =
              (fun v -> sitedata.Eliom_common.ipv4mask <- Some v, true),
              (fun v -> sitedata.Eliom_common.ipv6mask <- Some v, true),
              (fun v -> sitedata.Eliom_common.application_script <- v),
-             (fun v -> sitedata.Eliom_common.cache_global_data <- v)
+             (fun v -> sitedata.Eliom_common.cache_global_data <- v),
+             (fun v -> sitedata.Eliom_common.html_content_type <- Some v)
             )
             content
         in

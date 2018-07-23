@@ -402,6 +402,14 @@ The syntax is:
 * {{{<ipv4subnetmask value="255.255.128.0"/>}}}
 * {{{<ipv6subnetmask value="ff:ff:ff:ff:ff:ff::"/>}}}
 
+
+=== Setting HTML content type
+
+You can set the default content type for html pages,
+either globally or for each site independently.
+Example:
+{{{<htmlcontenttype value="application/xhtml+xml"/>}}}
+
 ==Per site configuration options
 
 === Disabling XHR-links
