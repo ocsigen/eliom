@@ -12,8 +12,8 @@ true:keep_locs
 <lib/server/*.ml{,i}>:thread
 <lib/server/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml.functor)
 <lib/server/*.ml{,i}>:package(react,lwt_react,js_of_ocaml)
-
 <lib/server/*.ml{,i}>:package(js_of_ocaml-ppx.deriving)
+<lib/server/*.ml{,i}>:package(xml-light)
 
 <lib/*.eliom{,i}>:eliom_ppx
 
