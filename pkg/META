@@ -98,8 +98,8 @@ package "syntax" (
     description = "Syntax extension: predefined commonly use syntaxes"
     version = "[distributed with Eliom]"
 
-    requires(syntax, preprocessor) = "js_of_ocaml.syntax,js_of_ocaml-camlp4.deriving,lwt.syntax,tyxml.syntax"
-    requires(syntax, toploop) = "js_of_ocaml.syntax,js_of_ocaml-camlp4.deriving,lwt.syntax,tyxml.syntax"
+    requires(syntax, preprocessor) = "js_of_ocaml.syntax,js_of_ocaml-camlp4.deriving,lwt.syntax"
+    requires(syntax, toploop) = "js_of_ocaml.syntax,js_of_ocaml-camlp4.deriving,lwt.syntax"
     archive(syntax, preprocessor) = "-ignore dummy"
   )
 
