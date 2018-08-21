@@ -182,7 +182,7 @@ Executable "client"
   Install: false
   Path: src
   MainIs: client/app.ml
-  BuildDepends: eliom.client, js_of_ocaml.ppx, lwt.ppx
+  BuildDepends: eliom.client, js_of_ocaml.ppx, lwt_ppx
   CompiledObject: byte
 }}}
 
@@ -226,16 +226,16 @@ name it {{{run.conf}}}) like:
 <ocsigen>
   <server>
     <port>8080</port>
-    
+
     <logdir>local/var/log/projectname</logdir>
     <datadir>local/var/data/projectname</datadir>
     <charset>utf-8</charset>
-    
+
     <commandpipe>local/var/run/projectname-cmd</commandpipe>
     <extension findlib-package="ocsigenserver.ext.staticmod"/>
     <extension findlib-package="ocsigenserver.ext.ocsipersist-sqlite"/>
     <extension findlib-package="eliom.server"/>
-    
+
     <host hostfilter="*">
       <static dir="static" />
       <static dir="local/var/www/projectname/eliom" />

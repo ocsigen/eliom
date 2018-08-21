@@ -42,7 +42,7 @@ needs to be adapted accordingly.
 
 Our tools do not automatically load PPX extensions for js_of_ocaml,
 Lwt, etc.; these need to be loaded explicitly, e.g., by loading
-Ocamlfind packages like {{{js_of_ocaml.ppx}}} and {{{lwt.ppx}}} (via
+Ocamlfind packages like {{{js_of_ocaml.ppx}}} and {{{lwt_ppx}}} (via
 the {{{-package}}} argument). Similarly, Ocamlfind packages need to be
 loaded for any {{{ppx_deriving}}} plugins that apply. Note that
 {{{ppx_deriving}}} needs to be installed manually, since it is only an

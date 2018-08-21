@@ -1276,9 +1276,12 @@ let () =
                     uri [(Eliom_request.nl_template_string, t)]
                     Eliom_request.string_result
                 in
-                set_template_content ~replace:true ~uri content >>
-                (scroll_to_fragment ~offset:state.position fragment;
-                 Lwt.return_unit)
+                let%lwt () =
+                  set_template_content content
+                    ~replace:true ~uri
+                in
+                scroll_to_fragment ~offset:state.position fragment;
+                Lwt.return_unit
               | _ ->
                 with_new_page
                   ?state_id:(if session_changed then None else Some state_id)
