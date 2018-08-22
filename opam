@@ -21,6 +21,7 @@ depends: [
   "js_of_ocaml-tyxml"
   "lwt_log"
   "lwt_ppx"
+  "lwt_camlp4"
   "tyxml" {>= "4.0.0"}
   "ocsigenserver" {>= "2.9"}
   "ipaddr" {>= "2.1"}
