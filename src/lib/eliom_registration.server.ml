@@ -990,6 +990,8 @@ module Ocaml = struct
           let%lwt res = f g p in
           Lwt.return (`Success res)
         with exc ->
+          (* prints exception and stack trace on the server console *)
+          Lwt.async (fun () -> Lwt.fail exc);
           Lwt.return (`Failure (Printexc.to_string exc))
       in
       prepare_data data
