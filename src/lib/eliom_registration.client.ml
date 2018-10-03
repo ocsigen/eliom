@@ -112,10 +112,7 @@ let wrap_na
   let gp = Eliom_service.get_params_type service
   and pp = Eliom_service.post_params_type service
   and si = !Eliom_request_info.get_sess_info ()
-  and filter =
-    List.filter @@ fun (s, _) ->
-    s <> Eliom_common.naservice_name &&
-    s <> Eliom_common.naservice_num
+  and filter l = fst Eliom_common.(split_prefix_param na_co_param_prefix l)
   in
   let l = filter si.si_all_get_but_nl
   and l' =
