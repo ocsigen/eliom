@@ -839,14 +839,6 @@ let get_mask6 sitedata = get_mask6 sitedata.ipv6mask
 (*****************************************************************************)
 open Lwt
 
-(* Split parameter list, removing those whose name starts with pref *)
-let split_prefix_param pref l =
-  let len = String.length pref in
-  List.partition (fun (n,_) ->
-    try
-      (String.sub n 0 len) = pref
-    with Invalid_argument _ -> false) l
-
 (* The cookie name is
 
 sessionkind|S?|sitedirstring|"ref" ou "comet" ou ""|hiername
