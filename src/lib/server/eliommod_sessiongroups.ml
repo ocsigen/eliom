@@ -476,7 +476,6 @@ module Pers = struct
     Lwt.catch
       (fun () ->
         (* First we close all sessions in the group *)
-
         find sess_grp >>= fun cl ->
         Lwt_list.iter_p
           (close_persistent_session2
@@ -563,23 +562,14 @@ module Pers = struct
           !!grouptable >>= fun grouptable ->
           Ocsipersist.find grouptable sg >>= fun (max, cl) ->
           let newcl = List.remove_first_if_any sess_id cl in
-          (match newcl with
-            | [] ->
-              (* The last session has been removed from the group.
-                 If it was a browser session, we close the group,
-                 by removing group data.
-                 For tab sessions, no (but see in volatile table clean_session
-                 function for a better behaviour).
-              *)
-              (match Eliom_common.getperssessgrp sg0 with
-                | (_, `Session, _) ->
-                  remove_group ~cookie_level:`Session sitedata sess_grp
-                | _ -> Lwt.return_unit
-              ) >>= fun () ->
-              Ocsipersist.remove grouptable sg
-            | _ ->
-              Ocsipersist.replace_if_exists grouptable sg (max, newcl)
-          )
+          (* Before 2018-10-18, we were closing the session group
+             when newcl was empty (no more session in the group).
+             But persistent session groups are usually used to store persistent
+             information about users. It makes no sense cleaning this
+             information when user closes all their sessions.
+             I remove this. -- Vincent
+          *)
+          Ocsipersist.replace_if_exists grouptable sg (max, newcl)
         )
         (function
           | Not_found -> Lwt.return_unit
