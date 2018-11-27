@@ -45,6 +45,9 @@ val get_full_url : unit -> string
 (** returns the internet address of the client as a string *)
 val get_remote_ip : unit -> string
 
+(** returns client's port *)
+val get_remote_port : unit -> int
+
 (** returns the internet address of the client,
    using the type [Unix.inet_addr] (defined in OCaml's standard library). *)
 val get_remote_inet_addr : unit -> Unix.inet_addr
