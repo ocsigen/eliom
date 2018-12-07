@@ -118,6 +118,7 @@ module Xml = struct
   type event_handler = (Dom_html.event Js.t -> unit) Eliom_client_value.t
   type mouse_event_handler = (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
   type keyboard_event_handler = (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+  type touch_event_handler = (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
 
   let make_cryptographic_safe_string () =
     (* FIX: we should directly produce a string of the right length *)
@@ -137,6 +138,8 @@ module Xml = struct
   let mouse_event_handler_attrib name (cf : mouse_event_handler) =
     biggest_event_handler_attrib name cf
   let keyboard_event_handler_attrib name (cf : keyboard_event_handler) =
+    biggest_event_handler_attrib name cf
+  let touch_event_handler_attrib name (cf : touch_event_handler) =
     biggest_event_handler_attrib name cf
 
   let client_attrib ?init (x : attrib Eliom_client_value.t) =
