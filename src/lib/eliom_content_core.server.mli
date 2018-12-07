@@ -20,6 +20,8 @@
 
 (** See {% <<a_api | module Eliom_content>> %} for complete module. *)
 
+open Js_of_ocaml
+
 module Xml : sig
   include Xml_sigs.Iterable
     with type 'a wrap = 'a

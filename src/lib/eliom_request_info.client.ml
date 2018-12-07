@@ -26,6 +26,7 @@
    - Antother part is sent with each request
 *)
 
+open Js_of_ocaml
 open Eliom_lib
 
 let (>>>) x f = f x

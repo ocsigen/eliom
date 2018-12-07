@@ -24,6 +24,8 @@ val set_error_handler : (unit -> bool Lwt.t) -> unit
 
 [%%shared.start]
 
+open Js_of_ocaml
+
 module type Html = sig
 
   include Html_sigs.T

@@ -18,6 +18,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open%shared Js_of_ocaml
+
 [%%server
 open Eliom_shared
 let local_value s = React.S.value s |> Value.local

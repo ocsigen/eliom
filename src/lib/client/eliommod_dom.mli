@@ -19,6 +19,8 @@
 
 (** Cross browser dom manipulation functions *)
 
+open Js_of_ocaml
+
 class type ['element] get_tag = object
   method getElementsByTagName : Js.js_string Js.t -> 'element Dom.nodeList Js.t Js.meth
 end

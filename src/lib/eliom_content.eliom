@@ -20,6 +20,9 @@
 [%%shared type boxed]
 
 [%%client
+
+open Js_of_ocaml
+
 include Eliom_content_
 let force_link = ()
 

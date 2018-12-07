@@ -17,6 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Js_of_ocaml
+
 (** Values of type [unwrap_id] are used to identify a specific unwrapper. *)
 type unwrap_id
 

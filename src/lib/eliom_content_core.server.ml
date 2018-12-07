@@ -18,6 +18,7 @@
  *)
 
 
+open Js_of_ocaml
 open Eliom_lib
 
 (* This the core of [Eliom_content] without its dependencies to [Eliom_service] et al.

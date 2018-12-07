@@ -81,6 +81,8 @@
 
   *)
 
+open Js_of_ocaml
+
 (** Low-level XML manipulation. *)
 module Xml : sig
 

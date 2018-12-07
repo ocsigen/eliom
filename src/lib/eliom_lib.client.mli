@@ -19,6 +19,8 @@
 
 (** Eliom standard library *)
 
+open Js_of_ocaml
+
 (** See {% <<a_api project="ocsigenserver"| module Ocsigen_lib_base >> %}. *)
 include module type of Ocsigen_lib_base
   with type poly = Ocsigen_lib.poly

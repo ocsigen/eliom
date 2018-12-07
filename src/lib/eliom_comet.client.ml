@@ -21,6 +21,7 @@
 
 (* This file is for client-side comet-programming. *)
 
+open Js_of_ocaml
 module Ecb = Eliom_comet_base
 
 let section = Eliom_lib.Lwt_log.Section.make "eliom:comet"

@@ -18,6 +18,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Js_of_ocaml
+
 module Xml : Xml_sigs.T
   with type 'a W.t = 'a Eliom_shared.React.S.t
    and type 'a W.tlist = 'a Eliom_shared.ReactiveData.RList.t
