@@ -23,6 +23,7 @@
    Its name is not [Eliom_content_base] because this would
    suggest the sharing between server and client. *)
 
+open Js_of_ocaml
 open Eliom_lib
 
 module Xml = struct

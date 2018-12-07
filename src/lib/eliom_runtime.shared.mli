@@ -20,6 +20,7 @@
 
 (**/**)
 
+open Js_of_ocaml
 
 (** Server representation of client values.
     Developer-visible functions should always operate on

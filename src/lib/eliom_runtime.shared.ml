@@ -20,6 +20,8 @@
 
 (**/**)
 
+open Js_of_ocaml
+
 module Client_value_server_repr = struct
 
   type u = {

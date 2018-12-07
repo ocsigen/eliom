@@ -20,6 +20,8 @@
 
 [%%client.start]
 
+open Js_of_ocaml
+
 let _ = Eliom_client.init ()
 
 (* The following lines are for Eliom_bus, Eliom_comet and Eliom_react

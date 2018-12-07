@@ -25,6 +25,7 @@ include Eliom_client_core
    before Eliom_service, in order to make possible to use the
    client-server syntax in Eliom itself. *)
 
+open Js_of_ocaml
 open Eliom_lib
 module Opt = Eliom_lib.Option
 
