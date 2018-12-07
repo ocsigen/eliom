@@ -13,16 +13,16 @@ depends: [
   "deriving" {>= "0.6"}
   "ppx_deriving"
   "ppx_tools" {>= "0.99.3"}
-  "js_of_ocaml" {>= "3.0"}
-  "js_of_ocaml-lwt"
+  "js_of_ocaml" {>= "3.3"}
+  "js_of_ocaml-lwt" {>= "3.3"}
   "js_of_ocaml-ocamlbuild" {build}
   "js_of_ocaml-ppx"
-  ("js_of_ocaml-ppx" {<= "3.0.2"} | "js_of_ocaml-ppx_deriving_json")
-  "js_of_ocaml-tyxml"
+  "js_of_ocaml-ppx_deriving_json" {>= "3.3"}
+  "js_of_ocaml-tyxml" {>= "3.3"}
   "lwt_log"
   "lwt_ppx"
   "lwt_camlp4"
-  "tyxml" {>= "4.0.0"}
+  "tyxml" {>= "4.3.0"}
   "ocsigenserver" {>= "2.9"}
   "ipaddr" {>= "2.1"}
   "reactiveData" {>= "0.2.1"}
