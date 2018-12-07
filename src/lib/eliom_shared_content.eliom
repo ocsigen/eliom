@@ -68,6 +68,9 @@ module Xml = struct
   type keyboard_event_handler =
     (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
 
+  type touch_event_handler =
+    (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
+
   (* attributes *)
 
   type attrib = Eliom_content_core.Xml.attrib
@@ -126,6 +129,9 @@ module Xml = struct
 
   let keyboard_event_handler_attrib =
     Eliom_content_core.Xml.keyboard_event_handler_attrib
+
+  let touch_event_handler_attrib =
+    Eliom_content_core.Xml.touch_event_handler_attrib
 
   let mouse_event_handler_attrib =
     Eliom_content_core.Xml.mouse_event_handler_attrib
