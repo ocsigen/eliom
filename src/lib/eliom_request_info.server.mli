@@ -29,6 +29,9 @@ open Ocsigen_cookies
 
 (** {2 Getting information about the request} *)
 
+(** returns [true] when currently handling a request. *)
+val in_request_handler : unit -> bool
+
 (** returns the HTTP method used for the request (usually GET or POST). *)
 val get_http_method : unit -> Ocsigen_http_frame.Http_header.http_method
 
