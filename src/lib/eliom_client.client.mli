@@ -265,6 +265,8 @@ module Page_status : sig
     val active : unit -> unit React.E.t
     val cached : unit -> unit React.E.t
     val dead : unit -> unit React.E.t
+    (** [inactive] occurs when the [Active] state is left ([Cached] or [Dead]) *)
+    val inactive : unit -> unit React.E.t
   end
 
   (** convenience function that attaches a handler to [Events.active].
@@ -283,6 +285,7 @@ module Page_status : sig
   val onactive : ?now:bool -> ?once:bool -> (unit -> unit) -> unit
   val oncached : ?once:bool -> (unit -> unit) -> unit
   val ondead : (unit -> unit) -> unit
+  val oninactive : ?once:bool -> (unit -> unit) -> unit
 end
 
 (** [onbeforeunload f] registers [f] as a handler to be called before
