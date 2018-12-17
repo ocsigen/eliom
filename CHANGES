@@ -1,3 +1,12 @@
+===== 6.4 (2018-12-17) =====
+
+* Compatibility with Lwt 4.x
+* New configuration option to set html content type
+* Comet: desactivate when window does not have the focus; desactivate polling when idle
+* eliom_request_info.in_request_handler
+* Client-side non-localized parameters
+* Provide a way to serve global data separately from the initial page
+
 ===== 6.3 (2018-02-08) =====
 
 * Compatibility with OCaml 4.06, js_of_ocaml 3.0 and Lwt 3.0
