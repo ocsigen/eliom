@@ -18,6 +18,7 @@
  *)
 
 
+open Js_of_ocaml
 open Eliom_lib
 open Eliom_content_core
 

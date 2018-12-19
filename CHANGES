@@ -1,3 +1,7 @@
+===== 6.5 (2018-12-18) =====
+
+* Compatibility with tyxml.4.3.x and js_of_caml.3.3.x
+
 ===== 6.4 (2018-12-17) =====
 
 * Compatibility with Lwt 4.x

@@ -20,6 +20,7 @@
 
 (** Call server side services and change the current page. *)
 
+open Js_of_ocaml
 open Eliom_lib
 
 (** {2 Mobile applications} *)

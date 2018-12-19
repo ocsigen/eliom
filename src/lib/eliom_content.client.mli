@@ -17,6 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Js_of_ocaml
+
 (** This module provides the creation of valid XML content, i.e. XML, SVG,
     and (X)HTML5.
 

@@ -17,6 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Js_of_ocaml
+
 include Eliom_parameter_sigs.S with type raw_post_data = unit
 
 (** Specifying parameter as [user_type ~of_string ~to_string s] tells

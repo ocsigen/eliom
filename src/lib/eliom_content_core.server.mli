@@ -20,6 +20,8 @@
 
 (** See {% <<a_api | module Eliom_content>> %} for complete module. *)
 
+open Js_of_ocaml
+
 module Xml : sig
   include Xml_sigs.Iterable
     with type 'a wrap = 'a
@@ -30,6 +32,8 @@ module Xml : sig
            (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
      and type keyboard_event_handler =
            (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+     and type touch_event_handler =
+           (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
 
   type caml_event_handler
 

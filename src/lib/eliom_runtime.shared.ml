@@ -20,6 +20,8 @@
 
 (**/**)
 
+open Js_of_ocaml
+
 module Client_value_server_repr = struct
 
   type u = {
@@ -57,6 +59,8 @@ module RawXML = struct
         (Dom_html.mouseEvent Js.t -> unit) (* Client side-only *)
     | CE_client_closure_keyboard of
         (Dom_html.keyboardEvent Js.t -> unit) (* Client side-only *)
+    | CE_client_closure_touch of
+        (Dom_html.touchEvent Js.t -> unit) (* Client side-only *)
     | CE_call_service of
         ( [ `A | `Form_get | `Form_post] *
           (cookie_info option) *

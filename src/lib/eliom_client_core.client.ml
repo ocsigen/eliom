@@ -19,6 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Js_of_ocaml
 open Eliom_lib
 
 module Xml = Eliom_content_core.Xml
@@ -477,6 +478,10 @@ let reify_caml_event name node ce =
     name,
     `Keyboard
       (fun ev -> try f ev; true with Eliom_client_value.False -> false)
+  | Xml.CE_client_closure_touch f ->
+    name,
+    `Touch
+      (fun ev -> try f ev; true with Eliom_client_value.False -> false)
   | Xml.CE_client_closure_mouse f ->
     name,
     `Mouse
@@ -500,12 +505,17 @@ let register_event_handler, flush_load_script =
       add f
     | "onload", `Keyboard _ ->
       failwith "keyboard event handler for onload"
+    | "onload", `Touch _ ->
+      failwith "touch event handler for onload"
     | "onload", `Mouse _ ->
-      failwith "keyboard event handler for onload"
+      failwith "mouse event handler for onload"
     | name, `Other f ->
       Js.Unsafe.set node (Js.bytestring name)
         (Dom_html.handler (fun ev -> Js.bool (f ev)))
     | name, `Keyboard f ->
+      Js.Unsafe.set node (Js.bytestring name)
+        (Dom_html.handler (fun ev -> Js.bool (f ev)))
+    | name, `Touch f ->
       Js.Unsafe.set node (Js.bytestring name)
         (Dom_html.handler (fun ev -> Js.bool (f ev)))
     | name, `Mouse f ->
