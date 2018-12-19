@@ -75,36 +75,49 @@ let update_cookie_table ?now sitedata (ci, sci) =
     Eliom_common.Full_state_name_table.iter
 
       (fun name v ->
-        if Lazy.is_val v (* Only sessions that have been used *)
-        then
-          let (oldvalue, newr) = Lazy.force v in
-          match !newr with
-            | Eliom_common.SCData_session_expired
-            | Eliom_common.SCNo_data -> () (* The cookie has been removed *)
-            | Eliom_common.SC newc ->
-              newc.Eliom_common.dc_exp :=
-                match !(newc.Eliom_common.dc_timeout) with
-                  | Eliom_common.TGlobal ->
-                    let globaltimeout =
-                      Eliommod_timeouts.find_global `Data name sitedata
-                    in
-                    (match globaltimeout with
-                      | None -> None
-                      | Some t -> Some (t +. now))
-                  | Eliom_common.TNone -> None
-                  | Eliom_common.TSome t -> Some (t +. now)
+        (* 2018-07-17 We do this for all volatile sessions,
+           even if it has not been used,
+           otherwise, sessions could have different duration.
+           (Before: we were doing this only if (Lazy.is_val v))
+           Keeping same duration is important for example for comet
+           (which is using both service and volatile data sessions).
+        *)
+         let (oldvalue, newr) = Lazy.force v in
+         match !newr with
+         | Eliom_common.SCData_session_expired
+         | Eliom_common.SCNo_data -> () (* The cookie has been removed *)
+         | Eliom_common.SC newc ->
+           newc.Eliom_common.dc_exp :=
+             match !(newc.Eliom_common.dc_timeout) with
+             | Eliom_common.TGlobal ->
+               let globaltimeout =
+                 Eliommod_timeouts.find_global `Data name sitedata
+               in
+               (match globaltimeout with
+                | None -> None
+                | Some t -> Some (t +. now))
+             | Eliom_common.TNone -> None
+             | Eliom_common.TSome t -> Some (t +. now)
       )
 
       !data_cookies_info;
 
 
     (* Update persistent expiration date, user timeout and value *)
-    Eliom_common.Full_state_name_table.fold
+    (* 2018-07-17 We do this for all persistent sessions
+       only if one persistent session has been used:
+       - all persistent sessions will have same duration
+       - will not do too many database requests
+    *)
+    if
+      Eliom_common.Full_state_name_table.exists
+        (fun _ v -> Lazy.is_val v)
+        !pers_cookies_info
+    then
+      Eliom_common.Full_state_name_table.fold
 
-      (fun name v thr ->
-        let thr2 =
-          if Lazy.is_val v
-          then begin
+        (fun name v thr ->
+           let thr2 =
             Lazy.force v >>= fun (oldvalue, newr) ->
             match !newr with
               | Eliom_common.SCData_session_expired
@@ -161,14 +174,13 @@ let update_cookie_table ?now sitedata (ci, sci) =
           if you change the type of persistent table data,
           otherwise the server will crash!!!
         *)
-          end
-          else return_unit
         in thr >>= fun () -> thr2
       )
 
       !pers_cookies_info
 
       return_unit
+    else Lwt.return_unit
   in
   update_exp ci >>= fun () ->
 
@@ -376,7 +388,7 @@ let gen is_eliom_extension sitedata = function
                    (Ocsigen_extensions.Ext_found
                       (fun () ->
                         Lwt.return
-                          (Ocsigen_http_frame.Result.update r ~code:500 ())))
+                          (Ocsigen_http_frame.Result.update r ~code:400 ())))
                | Eliom_common.Eliom_404 ->
                  Lwt.return
                    (Ocsigen_extensions.Ext_next previous_extension_err)

@@ -20,6 +20,7 @@
 
 (** Call server side services and change the current page. *)
 
+open Js_of_ocaml
 open Eliom_lib
 
 (** {2 Mobile applications} *)
@@ -33,7 +34,7 @@ open Eliom_lib
     Alternatively, and to make sure it is done early enough, define
     JS variables called [__eliom_server] and [__eliom_app_name]
     at the beginning of your html
-    file, containing the full URL of your server.
+    file, containing the full URL of your server and Eliom app name.
 
     [site_dir] (if given) specifies the path that the application runs
     under. It should correspond to the <site> tag of your server
@@ -224,27 +225,65 @@ val onload : (unit -> unit) -> unit
 (** Returns a Lwt thread that waits until the next page is loaded. *)
 val lwt_onload : unit -> unit Lwt.t
 
-
 (** [changepage_event] is a record of some parameters related to
     page changes. [in_cache] is true if the dom of the page is cached.
-    [current_uri] is the uri of the current page and [target_uri] 
-    is the uri of the next page. [current_id] is the state_id of
+    [origin_uri] is the uri of the current page and [target_uri]
+    is the uri of the next page. [origin_id] is the state_id of
     the current page and [target_id] is the state_id of the next page.
     [target_id] is not [None] if and only if the onchangepage event
     takes place during a navigation in history. *)
-type changepage_event = 
-  {in_cache:bool; 
-   current_uri:string; 
-   target_uri:string; 
-   current_id:int; 
+type changepage_event =
+  {in_cache:bool;
+   origin_uri:string;
+   target_uri:string;
+   origin_id:int;
    target_id:int option}
 
 (** Run some code *before* the next page change, that is, before each
     call to a page-producing service handler.
-
     Just like onpreload, handlers registered with onchangepage only
     apply to the next page change. *)
 val onchangepage : (changepage_event -> unit Lwt.t) -> unit
+
+module Page_status : sig
+  (** a page can be in one of the following states:
+      - [Generating]: page is currently being generated and not yet instated as
+                      the active page
+      - [Active]: page is currently being displayed
+      - [Cached]: page is in the browser history with its DOM stashed in the cache
+      - [Dead]: page is in the browser history without its DOM being cached *)
+  type t = Generating | Active | Cached | Dead
+
+  (** retrieves a react signal for the status of the current page; note that the
+      `current page' is not necessarily the page currently being displayed, but
+      rather the page in whose context the current code is executed. *)
+  val signal : unit -> t React.S.t
+
+  (** convenience functions for retrieving a react event for the current page
+      that is triggered whenever it reaches the respective status *)
+  module Events : sig
+    val active : unit -> unit React.E.t
+    val cached : unit -> unit React.E.t
+    val dead : unit -> unit React.E.t
+  end
+
+  (** convenience function that attaches a handler to [Events.active].
+      Behaves exactly like [fun f -> React.E.map f Events.active]. If [now] is
+      [true] (default) and the page is currenly active the function is also
+      invoked right away. This is useful to ensure that the function is invoked
+      also on server-generated pages which are active right from the start and
+      thus have no transition to the active state.
+      If [once] is [true] ([false] by default) the action is executed only once.
+
+      Typical use cases for this function are processes that need to run
+      continually while a page is being viewed. Such processes (including event
+      listeners of [Dom_html.window]) are killed on a page change and not
+      automatically restored with the DOM (contrary to event listeners attached
+      to DOM elements). *)
+  val onactive : ?now:bool -> ?once:bool -> (unit -> unit) -> unit
+  val oncached : ?once:bool -> (unit -> unit) -> unit
+  val ondead : (unit -> unit) -> unit
+end
 
 (** [onbeforeunload f] registers [f] as a handler to be called before
     changing the page the next time. If [f] returns [Some s], then we
@@ -283,7 +322,7 @@ val persist_document_head : unit -> unit
 
 (** A [('a, 'b) server_function] provides transparently access to a
     server side function which has been created by {% <<a_api
-    subproject="server"|Eliom_client.server_function>> %}.
+    subproject="server"| val Eliom_client.server_function>> %}.
 
     See also {% <<a_api subproject="server" text="the opaque server
     side representation"| type Eliom_client.server_function>> %}.
@@ -331,14 +370,15 @@ val init : unit -> unit
 val set_reload_function : (unit -> unit -> unit Lwt.t) -> unit
 
 (** [push_history_dom] stores the document/body of the current page so
-    that the next time when we go back in history, the dom will be read
-    from cache to display exactly the same page. In other words, the
-    page will not be reloaded or refreshed.
+    that the next time when we encounter the page while navigating through the
+    history, the DOM will be recovered from the cache instead of recharging or
+    regenerating the page. Also the original scroll position is restored.
+
+    You can define a limit on the number of stored DOMs using
+    [set_max_dist_history_doms].
 
     A typical use case of this function is storing the dom when loading
-    a page. And you need to put the code at the beginning of the service
-    handler that generates the page you want to cache.
-     
+    a page. i.e.
     {% <<code language="ocaml"|
     let%shared service_handler =
         fun () () ->
@@ -360,6 +400,12 @@ val set_reload_function : (unit -> unit -> unit Lwt.t) -> unit
     >> %}
 *)
 val push_history_dom : unit -> unit
+
+(* [set_max_dist_history_doms (Some n)] limits the number of cached DOMs
+   that are kept in memory. Thereby [n] is the maximum distance in history from
+   the active page. Thus if for instance [n = 1] then only the DOMs for the
+   previous and the next page are kept. *)
+val set_max_dist_history_doms : int option -> unit
 
 (** Lwt_log section for this module.
     Default level is [Lwt_log.Info].
@@ -385,6 +431,4 @@ type _ redirection =
        [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
     'a redirection
 
-val register_redirect : Eliom_service.non_ocaml redirection -> unit
-
-val register_reload : unit -> unit
+val perform_reload : unit -> unit Lwt.t

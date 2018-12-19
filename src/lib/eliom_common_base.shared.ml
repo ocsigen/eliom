@@ -336,6 +336,14 @@ let split_nl_prefix_param l =
     in
     aux [] String.Table.empty l
 
+(* Split parameter list, removing those whose name starts with pref *)
+let split_prefix_param pref l =
+  let len = String.length pref in
+  List.partition (fun (n,_) ->
+    try
+      (String.sub n 0 len) = pref
+    with Invalid_argument _ -> false) l
+
 (* Remove all parameters whose name starts with pref *)
 let remove_prefixed_param pref l =
   let len = String.length pref in

@@ -18,6 +18,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open%shared Js_of_ocaml
+
 [%%server
 open Eliom_shared
 let local_value s = React.S.value s |> Value.local
@@ -67,6 +69,9 @@ module Xml = struct
 
   type keyboard_event_handler =
     (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+
+  type touch_event_handler =
+    (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
 
   (* attributes *)
 
@@ -126,6 +131,9 @@ module Xml = struct
 
   let keyboard_event_handler_attrib =
     Eliom_content_core.Xml.keyboard_event_handler_attrib
+
+  let touch_event_handler_attrib =
+    Eliom_content_core.Xml.touch_event_handler_attrib
 
   let mouse_event_handler_attrib =
     Eliom_content_core.Xml.mouse_event_handler_attrib

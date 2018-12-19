@@ -80,7 +80,7 @@ let typed_apply ~service f gp pp l l' suffix =
 let wrap service att f _ suffix =
   let gp = Eliom_service. get_params_type service
   and pp = Eliom_service.post_params_type service
-  and l = (!Eliom_request_info.get_sess_info ()).si_all_get_params
+  and l = (!Eliom_request_info.get_sess_info ()).si_all_get_but_nl
   and l' =
     match
       (!Eliom_request_info.get_sess_info ()).si_all_post_params
@@ -112,12 +112,9 @@ let wrap_na
   let gp = Eliom_service.get_params_type service
   and pp = Eliom_service.post_params_type service
   and si = !Eliom_request_info.get_sess_info ()
-  and filter =
-    List.filter @@ fun (s, _) ->
-    s <> Eliom_common.naservice_name &&
-    s <> Eliom_common.naservice_num
+  and filter l = fst Eliom_common.(split_prefix_param na_co_param_prefix l)
   in
-  let l = filter si.si_all_get_params
+  let l = filter si.si_all_get_but_nl
   and l' =
     match si.si_all_post_params with
     | Some l ->
@@ -221,12 +218,12 @@ module Action = Make (struct
 
   let reset_reload_fun = true
 
-  let send ?options page = Lwt.return @@
+  let send ?options page =
     match options with
     | Some `Reload | None ->
-      Eliom_client.register_reload ()
+      Eliom_client.perform_reload ()
     | _ ->
-      ()
+      Lwt.return ()
 
 end)
 
@@ -295,9 +292,8 @@ module Redirection = struct
 
   let send
       ?options:_ ?charset:_ ?code:_ ?content_type:_ ?headers:_
-      rdr =
-    Eliom_client.register_redirect rdr;
-    Lwt.return_unit
+      (Redirection service) =
+    Eliom_client.change_page ~replace:true ~service () ()
 
   let register
       ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_

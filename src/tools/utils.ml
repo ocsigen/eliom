@@ -300,7 +300,6 @@ let get_client_lib ?kind:k () =
 let get_client_js () =
   [
     "+eliom.client/eliom_client.js" ;
-    "+js_of_ocaml-compiler/weak.js"
   ]
 
 (* Should be calld only with -dump... *)

@@ -71,8 +71,11 @@ module Html_make_reg_base
   let send
       ?(options = ()) ?charset ?code
       ?content_type ?headers content =
+    let sp = Eliom_common.get_sp () in
     let accept =
-      (Ocsigen_extensions.Ocsigen_request_info.accept (Eliom_request_info.get_ri ())) in
+      (Ocsigen_extensions.Ocsigen_request_info.accept
+         (Eliom_request_info.get_ri_sp sp))
+    in
     let%lwt r = Html_content.result_of_content ~options:accept content in
     Lwt.return
       (Ocsigen_http_frame.Result.update r
@@ -80,9 +83,12 @@ module Html_make_reg_base
          ~charset:(match charset with
                      | None -> Some (Eliom_config.get_config_default_charset ())
                      | _ -> charset)
-         ~content_type:(match content_type with
-                         | None -> Ocsigen_http_frame.Result.content_type r
-                         | _ -> content_type)
+         ~content_type:(
+           match content_type,
+                 sp.Eliom_common.sp_sitedata.Eliom_common.html_content_type with
+           | None, None -> Ocsigen_http_frame.Result.content_type r
+           | None, ct -> ct
+           | _ -> content_type)
          ~headers:(match headers with
                        | None -> Ocsigen_http_frame.Result.headers r
                        | Some headers ->
@@ -984,6 +990,8 @@ module Ocaml = struct
           let%lwt res = f g p in
           Lwt.return (`Success res)
         with exc ->
+          (* prints exception and stack trace on the server console *)
+          Lwt.async (fun () -> Lwt.fail exc);
           Lwt.return (`Failure (Printexc.to_string exc))
       in
       prepare_data data
@@ -1207,9 +1215,16 @@ module Eliom_appl_reg_make_param
     let sp = Eliom_common.get_sp () in
     sp.Eliom_common.sp_client_appl_name <> Some App_param.application_name
 
+  let global_data_cache_options () =
+    (Eliom_request_info.get_sitedata ()).Eliom_common.cache_global_data
+
   let eliom_appl_script_id : [ `Script ] Eliom_content.Html.Id.id =
     Eliom_content.Html.Id.new_elt_id ~global:true ()
-  let application_script ?(defer = false) ?(async = false) () =
+  let application_script ?defer ?async () =
+    let (defer', async') =
+      (Eliom_request_info.get_sitedata ()).Eliom_common.application_script in
+    let defer = match defer with Some b -> b | None -> defer' in
+    let async = match async with Some b -> b | None -> async' in
     let a =
       (if defer then [Eliom_content.Html.D.a_defer ()] else [])
         @
@@ -1253,7 +1268,7 @@ module Eliom_appl_reg_make_param
   let make_eliom_data_script ?(keep_debug=false) ~sp page =
 
     let ejs_global_data =
-      if is_initial_request () then
+      if is_initial_request () && global_data_cache_options () = None then
         Some (get_global_data ~keep_debug)
       else None
     in
@@ -1297,6 +1312,45 @@ module Eliom_appl_reg_make_param
         (Eliom_lib.jsmarshal (template: string option))
     in
     Lwt.return Eliom_content.Html.(F.script (F.cdata_script script))
+
+  let global_data_service =
+    lazy
+      (let (path, max_age) =
+         match global_data_cache_options () with
+           Some v -> v
+         | None   -> assert false
+       in
+       let global_data =
+         get_global_data ~keep_debug:(Ocsigen_config.get_debugmode ())
+         |> Eliom_wrap.wrap |> Eliom_lib.jsmarshal
+       in
+       let script =
+         Printf.sprintf "__eliom_global_data = \'%s\';" global_data in
+       let name = Digest.to_hex (Digest.string global_data) ^ ".js" in
+       Text.create
+         ~options:max_age
+         ~path:(Eliom_service.Path (path @ [name]))
+         ~meth:(Get Eliom_parameter.unit)
+         (fun _ _ ->
+            Lwt.return (script, "application/x-javascript")))
+
+  let add_eliom_global_data_script rem =
+    if global_data_cache_options () <> None then begin
+      (* Using the async flag does not make sense here as we need to
+         be sure that this is executed before the application script. *)
+      let (defer, _) =
+        (Eliom_request_info.get_sitedata ()).Eliom_common.application_script in
+      let uri =
+        Eliom_content.Html.F.make_uri
+          ~absolute:false ~service:(Lazy.force global_data_service) () in
+      let a =
+        (if defer then [Eliom_content.Html.F.a_defer ()] else [])
+        @
+        [Eliom_content.Html.F.a_src uri]
+      in
+      Eliom_content.Html.F.script ~a (Eliom_content.Html.F.pcdata "") :: rem
+    end else
+      rem
 
   let split_page page :
       (Html_types.html_attrib Eliom_content.Html.attrib list
@@ -1369,7 +1423,11 @@ module Eliom_appl_reg_make_param
 
     (* Then we replace the faked data_script *)
     let head_elts =
-      List.hd head_elts :: data_script :: (List.tl head_elts) in
+      (* Eliom_client_core.load_data_script expects data_script to be
+         second in this list *)
+      List.hd head_elts :: data_script ::
+      add_eliom_global_data_script (List.tl head_elts)
+    in
     Lwt.return
       (Eliom_content.Html.F.html ~a:html_attribs
          (Eliom_content.Html.F.head ~a:head_attribs title head_elts)
@@ -1434,7 +1492,6 @@ module Eliom_appl_reg_make_param
       with Not_found ->
         headers
     in
-
     Lwt.return
       (Ocsigen_http_frame.Result.update r
         ~code:(code_of_code_option code)
@@ -1445,9 +1502,13 @@ module Eliom_appl_reg_make_param
         ~content_type:
           (if Eliom_request_info.expecting_process_page ()
            then Ocsigen_http_frame.Result.content_type r
-           else (match content_type with
-            | None -> Ocsigen_http_frame.Result.content_type r
-            | _ -> content_type))
+           else
+             (match
+                content_type,
+                sp.Eliom_common.sp_sitedata.Eliom_common.html_content_type with
+             | None, None -> Ocsigen_http_frame.Result.content_type r
+             | None, ct -> ct
+             | _ -> content_type))
         ~headers ())
 
   end

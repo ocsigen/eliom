@@ -20,6 +20,8 @@
 
 [%%client.start]
 
+open Js_of_ocaml
+
 let _ = Eliom_client.init ()
 
 (* The following lines are for Eliom_bus, Eliom_comet and Eliom_react
@@ -57,9 +59,10 @@ let current_path_and_args () =
 let reload ~fallback () =
   let path, args = current_path_and_args () in
   try%lwt
-    Eliom_client.change_page_unknown path args []
+    Eliom_client.change_page_unknown ~replace:true path args []
   with _ ->
     Eliom_client.change_page
+      ~replace:true
       ~ignore_client_fun:true
       ~service:fallback
       () ()
@@ -68,9 +71,10 @@ let reload_without_na_params ~fallback () () =
   let path, args = current_path_and_args () in
   let args = Eliom_common.remove_na_prefix_params args in
   try%lwt
-    Eliom_client.change_page_unknown path args []
+    Eliom_client.change_page_unknown ~replace:true path args []
   with _ ->
     Eliom_client.change_page
+      ~replace:true
       ~ignore_client_fun:true
       ~service:fallback
       () ()

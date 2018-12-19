@@ -29,6 +29,9 @@ open Ocsigen_cookies
 
 (** {2 Getting information about the request} *)
 
+(** returns [true] when currently handling a request. *)
+val in_request_handler : unit -> bool
+
 (** returns the HTTP method used for the request (usually GET or POST). *)
 val get_http_method : unit -> Ocsigen_http_frame.Http_header.http_method
 
@@ -44,6 +47,9 @@ val get_full_url : unit -> string
 
 (** returns the internet address of the client as a string *)
 val get_remote_ip : unit -> string
+
+(** returns client's port *)
+val get_remote_port : unit -> int
 
 (** returns the internet address of the client,
    using the type [Unix.inet_addr] (defined in OCaml's standard library). *)

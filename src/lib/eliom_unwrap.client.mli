@@ -17,6 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Js_of_ocaml
+
 (** Values of type [unwrap_id] are used to identify a specific unwrapper. *)
 type unwrap_id
 
@@ -96,6 +98,3 @@ val register_unwrapper' : unwrap_id -> ('a -> 'b option) -> unit
 *)
 val late_unwrap_value :
   _ Eliom_runtime.Client_value_server_repr.t -> _ -> unit
-
-(** Lwt_log section for this module. *)
-val log_section : Lwt_log.section

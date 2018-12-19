@@ -21,6 +21,7 @@
 
 (* This file is for client-side comet-programming. *)
 
+open Js_of_ocaml
 module Ecb = Eliom_comet_base
 
 let section = Eliom_lib.Lwt_log.Section.make "eliom:comet"
@@ -30,7 +31,7 @@ module Configuration =
 struct
   type configuration_data =
       { active_until_timeout : bool;
-        time_between_request_unfocused : (float * float) list option;
+        time_between_request_unfocused : (float * float * float) list option;
         (* (a, b) for a * t + b
            (0, 0) means always active
            None means: no request
@@ -42,7 +43,7 @@ struct
 
   let default_configuration =
     { active_until_timeout = false;
-      time_between_request_unfocused = (Some [(0.0078125, 0.)]);
+      time_between_request_unfocused = (Some [(0.5, 60., 600.)]);
       time_after_unfocus = 180.;
       time_between_request = 0.; }
 
@@ -113,7 +114,7 @@ struct
 
   let set_always_active conf v =
     set_fun conf (fun c -> { c with time_between_request_unfocused =
-        if v then Some [0., 0.] else None })
+        if v then Some [0., 0., 0.] else None })
 
   let set_timeout conf v =
     set_fun conf (fun c -> { c with time_after_unfocus = v })
@@ -131,11 +132,15 @@ struct
     let time = Sys.time () in
     let sleep_duration () = if is_idle ()
       then (match (get ()).time_between_request_unfocused, focused () with
-        | Some ((a, b)::l), Some start ->
+        | Some ((a, b, c)::l), Some start ->
           let now = Js.to_float ((new%js Js.date_now))##getTime in
-          let t = (now -. start) *. 0.001 in (* time from idle start *)
-          let v = a *. t +. b in
-          let v = List.fold_left (fun v (a, b) -> min v (a *. t +. b)) v l in
+          (* time from idle start *)
+          let t = max 0. ((now -. start) *. 0.001
+                          -. (get ()).time_after_unfocus) in
+          let v = min (a *. t +. b) c in
+          let v =
+            List.fold_left
+              (fun v (a, b, c) -> min v (min (a *. t +. b) c)) v l in
           v
         | _ -> 0. (* Configuration changed.
                      We do not sleep and we'll see later. (?) *))
@@ -204,8 +209,6 @@ module Service_handler : sig
   (** Returns the messages received in the last request. If the
       channel is stateless, it also returns the message number in the [int option] *)
 
-  val set_activity : 'a t -> [ `Active | `Inactive | `Idle ] -> unit
-
   val activate : 'a t -> unit
 
   val is_active : 'a t -> [ `Active | `Inactive | `Idle ]
@@ -270,20 +273,21 @@ struct
         hd_activity : activity;
       }
 
-  let add_focus_listener f : unit =
-    let listener = Dom_html.handler (fun _ ->
-      f (); Js.bool false) in
-    (Js.Unsafe.coerce (Dom_html.window))##(addEventListener (Js.string "focus") listener (Js.bool false))
+  let add_listener target event f =
+    let listener = Dom_html.handler (fun _ -> f (); Js._true) in
+    ignore @@ Dom_html.(addEventListener target event listener Js._false)
 
-  let add_blur_listener f : unit =
-    let listener = Dom_html.handler (fun _ ->
-      f (); Js.bool false) in
-    (Js.Unsafe.coerce (Dom_html.window))##(addEventListener (Js.string "blur") listener (Js.bool false))
+  let add_focus_listener f = Dom_html.(add_listener window Event.focus f)
+
+  let add_blur_listener f = Dom_html.(add_listener window Event.blur f)
+
+  let add_visibility_change_listener f =
+    Dom_html.(add_listener document (Event.make "visibilitychange") f)
 
   let set_activity hd v =
     if Eliom_lib.String.Set.is_empty hd.hd_activity.active_channels
     then hd.hd_activity.active <- `Inactive
-    else
+    else if v <> hd.hd_activity.active then
       match v with
         | `Inactive -> hd.hd_activity.active <- `Inactive
         | _ ->
@@ -296,23 +300,78 @@ struct
 
   let is_active hd = hd.hd_activity.active
 
+  let document_hidden () =
+    Js.Optdef.case (Js.Unsafe.global##.document##.hidden)
+      (fun () -> false) Js.to_bool
+
+  let has_focus () =
+    not (Js.Optdef.test (Js.Unsafe.global##.document##.hasFocus))
+      ||
+    Js.to_bool (Js.Unsafe.global##.document##hasFocus)
+
   (** register callbacks to 'blur' and 'focus' events of the root
       window. That way, we can tell when the client is active or not and do
       calls to the server only if it is active *)
   let handle_focus handler =
-    let focus_callback () =
-      handler.hd_activity.focused <- None;
-      set_activity handler `Active
+    let resume_activity () =
+      if handler.hd_activity.focused <> None then begin
+        handler.hd_activity.focused <- None;
+        set_activity handler `Active
+      end
     in
-    let blur_callback () =
-      handler.hd_activity.focused <-
-        Some (Js.to_float ((new%js Js.date_now))##getTime)
+    let suspend_activity () =
+      if handler.hd_activity.focused = None then
+        handler.hd_activity.focused <-
+          Some (new%js Js.date_now)##getTime
+    in
+    let focus_callback () =
+      if not (document_hidden ()) then resume_activity ()
+    in
+    let blur_callback = suspend_activity in
+    let visibility_change_callback () =
+      if document_hidden () then
+        suspend_activity ()
+      else
+        if has_focus () then resume_activity ()
     in
     add_focus_listener focus_callback;
-    add_blur_listener blur_callback
+    add_blur_listener blur_callback;
+    add_visibility_change_listener visibility_change_callback
+
+  let expected_activity hd =
+    match hd.hd_activity.focused with
+    | None ->
+      `Active
+    | Some t ->
+      let tbru =
+        (Configuration.get ()).Configuration.time_between_request_unfocused
+      in
+      if tbru = Some [0., 0., 0.] (* Always active *) then
+        `Active
+      else
+        let now = (new%js Js.date_now)##getTime in
+        if now -. t <
+           (Configuration.get ()).Configuration.time_after_unfocus *. 1000.
+        then
+          `Active
+        else if tbru = None (* Always inactive when idle *) then
+          `Inactive
+        else
+          `Idle
 
   let activate hd =
-    set_activity hd `Active
+    if hd.hd_activity.active = `Inactive then begin
+      (* Set initial focus status *)
+      if
+        hd.hd_activity.focused = None &&
+        (document_hidden () || not (has_focus ()))
+      then
+        hd.hd_activity.focused <-
+          Some ((new%js Js.date_now)##getTime
+                -. (Configuration.get ()).Configuration.time_after_unfocus
+                   *. 1000.);
+      set_activity hd (expected_activity hd)
+    end
 
   let restart hd =
     let act = hd.hd_activity in
@@ -417,7 +476,9 @@ struct
         (fun () -> hd_activity.active_waiter)
     in
     let request = make_request hd in
-    let%lwt s = call_service_after_load_end srv () request in
+    let%lwt s =
+      call_service_after_load_end
+        srv () (hd_activity.active = `Idle, request) in
     Lwt.return (Deriving_Json.from_string Ecb.answer_json s)
 
   let drop_message_index =
@@ -437,22 +498,13 @@ struct
     List.map aux
 
   let update_activity ?(timeout=false) hd =
-    match hd.hd_activity.focused with
-      | None -> ()
-      | Some t ->
-        let tbru =
-          (Configuration.get ()).Configuration.time_between_request_unfocused
-        in
-        if not (tbru = Some [0., 0.]) (* if not always active *)
-        then begin
-          let now = Js.to_float ((new%js Js.date_now))##getTime in
-          if now -. t >
-            (Configuration.get ()).Configuration.time_after_unfocus *. 1000.
-          then
-            if timeout
-              || not (Configuration.get ()).Configuration.active_until_timeout
-            then set_activity hd (if tbru = None then `Inactive else `Idle)
-        end
+    if
+      hd.hd_activity.active <> `Inactive
+      &&
+      (timeout ||
+       not (Configuration.get ()).Configuration.active_until_timeout)
+    then
+      set_activity hd (expected_activity hd)
 
   let wait_data hd : (string * int option * string Ecb.channel_data) list Lwt.t =
     let rec aux retries =
@@ -506,7 +558,7 @@ struct
     ignore
       (try%lwt
          call_service_after_load_end srv ()
-           (Ecb.Stateful (Ecb.Commands command))
+           (false, Ecb.Stateful (Ecb.Commands command))
        with
        | exn ->
          Eliom_lib.Lwt_log.ign_notice_f ~section ~exn "request failed";
@@ -632,7 +684,8 @@ let get_stateless_hd (service:Ecb.comet_service) : Service_handler.stateless han
     | Not_found -> init service Service_handler.stateless stateless_handler_table
 
 let activate () =
-  let f _ { hd_service_handler } = Service_handler.set_activity hd_service_handler `Active in
+  let f _ { hd_service_handler } =
+    Service_handler.activate hd_service_handler in
   Hashtbl.iter f stateless_handler_table;
   Hashtbl.iter f stateful_handler_table
 

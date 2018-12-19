@@ -17,6 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Js_of_ocaml
+
 exception Looping_redirection
 exception Failed_request of int
 exception Program_terminated

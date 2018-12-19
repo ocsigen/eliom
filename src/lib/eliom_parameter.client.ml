@@ -17,6 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Js_of_ocaml
+
 include Eliom_parameter_base
 
 type raw_post_data = unit
@@ -153,3 +155,20 @@ let all_suffix_user ~of_string ~to_string n =
 let reconstruct_params_form l y =
   reconstruct_params_form (M.of_assoc_list l) y >>= fun (v, _) ->
   Some v
+
+let get_non_localized_get_parameters { name ; param } =
+  (* Simplified version of the server-side code that
+     - only deals with GET params
+     - doesn't cache the result
+     - doesn't deal with files *)
+  try
+    Some
+      (reconstruct_params_ param
+         (try
+            Eliom_lib.String.Table.find name
+              ((!Eliom_request_info.get_sess_info ()).si_nl_get_params)
+          with Not_found ->
+            [])
+         [] false None)
+  with Eliom_common.Eliom_Wrong_parameter | Not_found ->
+    None

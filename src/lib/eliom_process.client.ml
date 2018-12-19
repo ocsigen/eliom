@@ -17,11 +17,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Js_of_ocaml
 open Eliom_lib
 open Ocsigen_cookies
 
 (* Logs *)
-let section = Lwt_log.Section.make "eliom:client"
+let section = Lwt_log.Section.make "eliom:process"
 let log_section = section
 let _ = Lwt_log.Section.set_level log_section Lwt_log.Info
 (* *)

@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Js_of_ocaml
+
 include Ocsigen_lib_base
 include (Eliom_lib_base :
            module type of Eliom_lib_base
@@ -98,7 +100,6 @@ end
 
 let _ =
   Lwt_log.default := Lwt_log.console;
-  Lwt_log.add_rule "*" Lwt_log.Debug;
   Lwt.async_exception_hook := (fun exn -> Lwt_log.ign_error ~section:Lwt_log.eliom ~exn "Async" )
 
 (* Deprecated ON *)

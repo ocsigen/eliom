@@ -103,18 +103,18 @@ sig
       Default value is 0.*)
   val set_time_between_requests : t -> float -> unit
 
-  (** [set_time_between_requests_when_idle c (a, b)] sets the time
+  (** [set_time_between_requests_when_idle t (a, b, c)] sets the time
       between two requests when the the windows does not have the focus,
       after the timeout.
       This amount of time is computed using an affine function
-      (a * t + b), where t is the amount of time elapsed since the begining
-      of the idle phase.
+      (a * T + b), where T is the amount of time elapsed since the begining
+      of the idle phase, with a maximal time of c.
       If you want no request at all, do [set_always_active false].
-      Setting this to [(0., 0.)] is equivalent
+      Setting this to [(0., 0., 0.)] is equivalent
       to [set_always_active true].
-      Default value is [(0.0078125, 0.)].
+      Default value is [(0.5, 60., 600.)].
   *)
-  val set_time_between_requests_when_idle : t -> float * float -> unit
+  val set_time_between_requests_when_idle : t -> float * float * float -> unit
 
 end
 

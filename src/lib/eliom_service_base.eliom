@@ -19,6 +19,17 @@
 
 (* Manipulation of services - this code can be use on server or client side. *)
 
+let%server no_client_fun () : _ ref Eliom_client_value.t option =
+  (* It only makes sense to create a client value when in a global
+     context. *)
+  if Eliom_syntax.global_context () then
+    Some [%client ref None]
+  else
+    None
+
+let%client no_client_fun () : _ ref Eliom_client_value.t option =
+  Some (ref None)
+
 [%%shared.start]
 
 module rec Types : Eliom_service_sigs.TYPES = Types
@@ -135,7 +146,11 @@ type ('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg,
   (* If the service has a client-side implementation, we put the
      generating function here: *)
   mutable client_fun :
-    ('get -> 'post -> unit Lwt.t) Eliom_client_value.t option;
+    ('get -> 'post -> unit Lwt.t) option ref Eliom_client_value.t option;
+  (* The function is in a client-side reference, so that it is shared
+     by all occurrences of the service sent from the server.
+     For some service, we cannot create the client value immediately;
+     this is done later on using [internal_set_client_fun].  *)
 
   mutable reload_fun : reload_fun;
 
@@ -172,15 +187,9 @@ let max_use s = s.max_use
 let timeout s = s.timeout
 let https s = s.https
 let priority s = s.priority
-let client_fun {client_fun} = client_fun
 
-let internal_set_client_fun ~service f = service.client_fun <- Some f
-
-let set_client_fun ?app ~service f =
-  Eliom_lib.Option.iter
-    (fun name -> service.send_appl_content <- XSame_appl (name, None))
-    app;
-  service.client_fun <- Some f
+let internal_set_client_fun ~service f =
+  service.client_fun <- Some [%client ref (Some ~%f)]
 
 let is_external = function {kind = `External} -> true | _ -> false
 
@@ -219,7 +228,8 @@ let static_dir_ ?(https = false) () = {
   keep_nl_params = `None;
   service_mark = service_mark ();
   send_appl_content = XNever;
-  client_fun = None;
+  client_fun = None; (* It does not make sense to have a client function
+                        for this service *)
   reload_fun = Rf_client_fun
 }
 
@@ -253,7 +263,8 @@ let get_static_dir_ ?(https = false)
   keep_nl_params;
   service_mark = service_mark ();
   send_appl_content = XNever;
-  client_fun = None;
+  client_fun = None; (* It does not make sense to have a client function
+                        for this service *)
   reload_fun = Rf_client_fun
 }
 
@@ -319,11 +330,12 @@ let preapply ~service getparams =
            };
        | k -> k);
     client_fun =
-      match service.client_fun with
-      | Some f ->
-        Some  [%client fun () pp -> (~%f : _ -> _ -> _) ~%getparams pp ]
-      | None ->
-        None
+      Some
+        [%client ref
+            (match ~%service.client_fun with
+             | Some {contents = Some f} -> Some (fun () pp -> f ~%getparams pp)
+             | _ -> None)
+        ]
   }
 
 let reload_action_aux https = {
@@ -375,9 +387,12 @@ let add_non_localized_get_parameters ~params ~service = {
   get_params_type =
     Eliom_parameter.nl_prod service.get_params_type params;
   client_fun =
-    match service.client_fun with
-    | None -> None
-    | Some f -> Some [%client fun (g, _) p -> (~%f : _ -> _ -> _) g p ]
+    Some
+    [%client
+       ref
+         (match ~%service.client_fun with
+          | Some {contents = Some f} -> Some (fun (g, _) p -> f g p)
+          | _ -> None)]
 }
 
 let add_non_localized_post_parameters ~params ~service = {
@@ -385,9 +400,12 @@ let add_non_localized_post_parameters ~params ~service = {
   post_params_type =
     Eliom_parameter.nl_prod service.post_params_type params;
   client_fun =
-    match service.client_fun with
-    | None -> None
-    | Some f -> Some [%client fun g (p, _) -> (~%f : _ -> _ -> _) g p ]
+    Some
+    [%client
+      ref
+        (match ~%service.client_fun with
+         | Some {contents = Some f} -> Some (fun g (p, _) -> f g p)
+         | _ -> None)]
 }
 
 let keep_nl_params s = s.keep_nl_params
@@ -449,8 +467,7 @@ let main_service
     ?(keep_nl_params = `None)
     ?(priority = default_priority)
     ~get_params
-    (type pp) ~(post_params : (pp, _, _) Eliom_parameter.params_type)
-    ?(client_fun : (_ -> pp -> unit Lwt.t) Eliom_client_value.t option)
+    ~post_params
     ~reload_fun
     () = {
   pre_applied_parameters = Eliom_lib.String.Table.empty, [];
@@ -473,16 +490,15 @@ let main_service
   keep_nl_params;
   service_mark = service_mark ();
   send_appl_content = XNever;
-  client_fun;
+  client_fun = no_client_fun ();
   reload_fun;
 }
 
 let extern
-    (type m) (type gp) (type gn) (type pp) (type pn) (type gp')
     ?keep_nl_params
     ~prefix
     ~path
-    ~(meth : (m, gp, gn, pp, pn, _, gp') meth)
+    ~meth
     () =
   let get_params, post_params = params_of_meth meth in
   let suffix = Eliom_parameter.contains_suffix get_params in

@@ -81,6 +81,8 @@
 
   *)
 
+open Js_of_ocaml
+
 (** Low-level XML manipulation. *)
 module Xml : sig
 
@@ -96,6 +98,8 @@ module Xml : sig
            (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
      and type keyboard_event_handler =
            (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+     and type touch_event_handler =
+           (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
 
   (** {2 Unique nodes } *)
 
@@ -164,6 +168,8 @@ module Xml_shared : Xml_sigs.T
          (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
    and type keyboard_event_handler =
          (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+   and type touch_event_handler =
+         (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
 
 (** Building and pretty-printing valid SVG tree.
 Information about Svg api can be found at {% <<a_api project="tyxml" | module Svg_sigs.T >> %}*)
@@ -482,11 +488,3 @@ module Html : sig
      and type doc := F.doc
 
 end
-
-(**/**)
-
-val set_client_fun :
-  ?app:string ->
-  service:('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
-  ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
-  unit

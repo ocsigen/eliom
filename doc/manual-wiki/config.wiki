@@ -6,7 +6,7 @@
 This chapter explains how to compile Eliom module, how to set Eliom's
 options in the configuration file, and how to define options for your
 Eliom modules. See the Ocsigen server documentation for more information about the
-<<a_manual project="ocsigenserver" chapter="clientserver-configuration" |server's configuration>>.
+<<a_manual project="ocsigenserver" chapter="config" |server's configuration>>.
 
 
 ==@@id="misc"@@Using Eliom modules with Ocsigen server==
@@ -401,6 +401,14 @@ The syntax is:
 * {{{<maxanonymouscoservicespersubnet value="500000"/>}}}
 * {{{<ipv4subnetmask value="255.255.128.0"/>}}}
 * {{{<ipv6subnetmask value="ff:ff:ff:ff:ff:ff::"/>}}}
+
+
+=== Setting HTML content type
+
+You can set the default content type for html pages,
+either globally or for each site independently.
+Example:
+{{{<htmlcontenttype value="application/xhtml+xml"/>}}}
 
 ==Per site configuration options
 

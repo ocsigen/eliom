@@ -69,8 +69,9 @@ type answer =
 
 type comet_service =
     Comet_service :
-      (unit, comet_request, Eliom_service.post, Eliom_service.att,
+      (unit, bool * comet_request, Eliom_service.post, Eliom_service.att,
        _, _, _, [ `WithoutSuffix ], unit,
+       [ `One of bool ] Eliom_parameter.param_name *
        [ `One of comet_request Eliom_parameter.ocaml ]
          Eliom_parameter.param_name,
        Eliom_service.non_ocaml) Eliom_service.t ->
@@ -78,9 +79,10 @@ type comet_service =
 
 type internal_comet_service =
     Internal_comet_service :
-      (unit, comet_request, Eliom_service.post, Eliom_service.att,
+      (unit, bool * comet_request, Eliom_service.post, Eliom_service.att,
        _, Eliom_service.non_ext, Eliom_service.reg,
        [ `WithoutSuffix ], unit,
+       [ `One of bool ] Eliom_parameter.param_name *
        [ `One of comet_request Eliom_parameter.ocaml ]
          Eliom_parameter.param_name,
        Eliom_service.non_ocaml)

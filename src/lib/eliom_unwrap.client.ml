@@ -31,11 +31,10 @@ let weakMap : ('a,'b) weakMap Js.t Js.constr = Js.Unsafe.global##_WeakMap
 let map : (Obj.t,Obj.t) weakMap Js.t = jsnew weakMap ()
 *)
 
+open Js_of_ocaml
 open Eliom_lib
 
-let section = Lwt_log.Section.make "eliom.unwrap"
-let log_section = section
-let _ = Lwt_log.Section.set_level section Lwt_log.Info
+let section = Lwt_log.Section.make "eliom:unwrap"
 
 module Mark : sig
   type t

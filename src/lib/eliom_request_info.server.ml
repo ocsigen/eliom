@@ -57,6 +57,10 @@ let get_remote_ip () =
   let sp = Eliom_common.get_sp () in
   Ocsigen_request_info.remote_ip sp.Eliom_common.sp_request.request_info
 
+let get_remote_port () =
+  let sp = Eliom_common.get_sp () in
+  Ocsigen_request_info.remote_port sp.Eliom_common.sp_request.request_info
+
 let get_remote_inet_addr () =
   let sp = Eliom_common.get_sp () in
   Ocsigen_request_info.remote_inet_addr sp.Eliom_common.sp_request.request_info
@@ -318,6 +322,8 @@ let get_site_dir () =
 
 let get_site_dir_sp sp =
   sp.Eliom_common.sp_sitedata.Eliom_common.site_dir
+
+let in_request_handler () = Lwt.get Eliom_common.sp_key <> None
 
 let get_request () =
   let sp = Eliom_common.get_sp () in

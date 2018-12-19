@@ -19,6 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Js_of_ocaml
 open Eliom_lib
 
 module Xml = Eliom_content_core.Xml
@@ -27,9 +28,7 @@ module Xml = Eliom_content_core.Xml
 let section = Lwt_log.Section.make "eliom:client"
 let log_section = section
 let _ = Lwt_log.Section.set_level log_section Lwt_log.Info
-(* *)
-
-
+let section_page = Lwt_log.Section.make "eliom:client:page"
 
 (* == Auxiliaries *)
 
@@ -53,15 +52,15 @@ let create_buffer () =
 
 let run_callbacks handlers = List.iter (fun f -> f ()) handlers
 
-type changepage_event = 
-  {in_cache:bool; 
-   current_uri:string; 
-   target_uri:string; 
-   current_id:int; 
+type changepage_event =
+  {in_cache:bool;
+   origin_uri:string;
+   target_uri:string;
+   origin_id:int;
    target_id:int option}
 
-let run_onchangepage_callbacks ev handlers =
-  Lwt_list.iter_s (fun h -> h ev) handlers
+let run_lwt_callbacks : 'a -> ('a -> unit Lwt.t) list -> unit Lwt.t
+  = fun ev handlers -> Lwt_list.iter_s (fun h -> h ev) handlers
 
 let (onload, _, flush_onload, push_onload) :
   ((unit -> unit) -> unit) *
@@ -71,11 +70,8 @@ let (onload, _, flush_onload, push_onload) :
   =
   create_buffer ()
 
-let
-  (onchangepage : (changepage_event -> unit Lwt.t) -> unit),
-  _,
-  (flush_onchangepage : unit -> (changepage_event -> unit Lwt.t) list),
-  _
+let (onchangepage : (changepage_event -> unit Lwt.t) -> unit), _,
+    (flush_onchangepage : unit -> (changepage_event -> unit Lwt.t) list), _
   = create_buffer ()
 
 let onunload, _, flush_onunload, _ = create_buffer ()
@@ -94,14 +90,14 @@ let onbeforeunload, run_onbeforeunload, flush_onbeforeunload =
   in
   add, (fun () -> run (get ())), flush
 
-let run_onunload_wrapper f g =
+let run_onunload_wrapper set_content cancel =
   match run_onbeforeunload () with
   | Some s when not (confirm "%s" s) ->
-      g ()
+      cancel ()
   | _ ->
       ignore (flush_onbeforeunload ());
       run_callbacks (flush_onunload ());
-      f ()
+      set_content ()
 
 let lwt_onload () =
   let t, u = Lwt.wait () in
@@ -482,6 +478,10 @@ let reify_caml_event name node ce =
     name,
     `Keyboard
       (fun ev -> try f ev; true with Eliom_client_value.False -> false)
+  | Xml.CE_client_closure_touch f ->
+    name,
+    `Touch
+      (fun ev -> try f ev; true with Eliom_client_value.False -> false)
   | Xml.CE_client_closure_mouse f ->
     name,
     `Mouse
@@ -505,12 +505,17 @@ let register_event_handler, flush_load_script =
       add f
     | "onload", `Keyboard _ ->
       failwith "keyboard event handler for onload"
+    | "onload", `Touch _ ->
+      failwith "touch event handler for onload"
     | "onload", `Mouse _ ->
-      failwith "keyboard event handler for onload"
+      failwith "mouse event handler for onload"
     | name, `Other f ->
       Js.Unsafe.set node (Js.bytestring name)
         (Dom_html.handler (fun ev -> Js.bool (f ev)))
     | name, `Keyboard f ->
+      Js.Unsafe.set node (Js.bytestring name)
+        (Dom_html.handler (fun ev -> Js.bool (f ev)))
+    | name, `Touch f ->
       Js.Unsafe.set node (Js.bytestring name)
         (Dom_html.handler (fun ev -> Js.bool (f ev)))
     | name, `Mouse f ->
@@ -670,7 +675,7 @@ let rec rebuild_rattrib node ra = match Xml.racontent ra with
 
 type state =
   (* TODO store cookies_info in state... *)
-  { template : Js.js_string Js.t;
+  { template : string option;
     position : Eliommod_dom.position;
   }
 
@@ -685,15 +690,89 @@ let random_int =
         0
   else
      fun () -> truncate (4294967296. *. (Js.math)##random)
+
+type state_id = {
+  session_id : int;
+  state_index : int; (* point in history *)
+}
+
+module Page_status_t = struct
+  type t = Generating | Active | Cached | Dead
+  let to_string st =
+    match st with
+    | Generating -> "Generating"
+    | Active     -> "Active"
+    | Cached     -> "Cached"
+    | Dead       -> "Dead"
+end
+
+type page = {
+  page_unique_id : int;
+  mutable page_id : state_id;
+  page_status : Page_status_t.t React.S.t;
+  page_is_cached : bool ref;
+  set_page_status : ?step:React.step -> Page_status_t.t -> unit
+}
+
+let set_page_status p st =
+  Lwt_log.ign_debug_f ~section:section_page "Set page status %d/%d: %s"
+    p.page_unique_id p.page_id.state_index (Page_status_t.to_string st);
+  p.set_page_status st
+
+let retire_page p =
+  set_page_status p @@ if !(p.page_is_cached) then Cached else Dead
+
 let session_id = random_int ()
 let next_state_id =
-  let last = ref 0 in fun () -> incr last; (session_id, !last)
-let current_state_id = ref (next_state_id ())
+  let last = ref 0 in fun () -> incr last; {session_id; state_index = !last}
 
-let state_key (session_id, i) =
-  Js.string (Printf.sprintf "state_history_%x_%x" session_id i)
+let last_page_id = ref (-1)
+let mk_page ?(state_id = next_state_id ()) ~status () =
+  incr last_page_id;
+  Lwt_log.ign_debug_f ~section:section_page "Create page %d/%d"
+    !last_page_id state_id.state_index;
+  let page_status, set_page_status = React.S.create status in
+  {page_unique_id = !last_page_id;
+   page_id = state_id;
+   page_status;
+   page_is_cached = ref false;
+   set_page_status}
 
-let get_state i : state =
+let active_page = ref @@ mk_page ~status:Active ()
+
+let set_active_page p =
+  Lwt_log.ign_debug_f ~section:section_page "Set active page %d/%d"
+    p.page_unique_id p.page_id.state_index;
+  retire_page !active_page;
+  active_page := p;
+  set_page_status !active_page Active
+
+(* This key serves as a hook to access the page the currently running code is
+   generating. *)
+let this_page : page Lwt.key = Lwt.new_key ()
+
+let get_this_page () = match Lwt.get this_page with
+  | Some p -> p
+  | None ->
+    Lwt_log.ign_debug_f ~section:section_page "No page in context";
+    !active_page
+
+let with_new_page ?state_id ~replace () f =
+  let state_id = if replace then Some (!active_page).page_id else state_id in
+  let page = mk_page ?state_id ~status:Generating () in
+  let%lwt v = Lwt.with_value this_page (Some page) @@ f in
+  Lwt_log.ign_debug_f ~section:section_page "Done with page %d/%d"
+    page.page_unique_id page.page_id.state_index;
+  Lwt.return v
+
+let advance_page () =
+  let new_page = get_this_page () in
+  if new_page != !active_page then set_active_page new_page
+
+let state_key {session_id; state_index} =
+  Js.string (Printf.sprintf "state_history_%x_%x" session_id state_index)
+
+let get_state ({session_id; state_index} as state_id) : state =
   Js.Opt.case
     (Js.Optdef.case ( Dom_html.window##.sessionStorage )
        (fun () ->
@@ -701,19 +780,18 @@ let get_state i : state =
              available. Sessionstorage seems to be available
              everywhere the history API exists. *)
           Lwt_log.raise_error_f ~section "sessionStorage not available")
-       (fun s -> s##(getItem (state_key i))))
-    (fun () -> Lwt_log.raise_error_f ~section "State id not found %x/%x in sessionStorage" (fst i) (snd i))
+       (fun s -> s##(getItem (state_key state_id))))
+    (fun () -> Lwt_log.raise_error_f ~section
+                 "State id not found %x/%x in sessionStorage"
+                 session_id state_index)
     (fun s -> Json.unsafe_input s)
 let set_state i (v:state) =
   Js.Optdef.case ( Dom_html.window##.sessionStorage )
     (fun () -> () )
     (fun s -> s##(setItem (state_key i) (Json.output v)))
 let update_state () =
-  set_state !current_state_id
-    { template =
-        (match Eliom_request_info.get_request_template () with
-         | Some tmpl -> Js.bytestring tmpl
-         | None -> Js.string  "");
+  set_state !active_page.page_id
+    { template = Eliom_request_info.get_request_template ();
       position = Eliommod_dom.getDocumentScroll () }
 
 (* TODO: Registering a global "onunload" event handler breaks the

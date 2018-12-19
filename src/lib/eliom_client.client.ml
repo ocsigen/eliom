@@ -25,7 +25,9 @@ include Eliom_client_core
    before Eliom_service, in order to make possible to use the
    client-server syntax in Eliom itself. *)
 
+open Js_of_ocaml
 open Eliom_lib
+module Opt = Eliom_lib.Option
 
 type ('a, +'b) server_function = 'a -> 'b Lwt.t
 
@@ -38,12 +40,6 @@ Also, with Chrome, the corresponding XHRs will block if other requests
 have been scheduled before, even when the CSS is cached. This can slow
 down page changes.
 *)
-
-(* Logs *)
-let section = Lwt_log.Section.make "eliom:client"
-let log_section = section
-let _ = Lwt_log.Section.set_level log_section Lwt_log.Info
-(* *)
 
 let insert_base page =
   let b = Dom_html.createBase Dom_html.document in
@@ -169,7 +165,18 @@ let init () =
     | _ -> ()
   end;
 
-  let js_data = Eliom_request_info.get_request_data () in
+  let js_data = lazy (Eliom_request_info.get_request_data ()) in
+  Js.Optdef.case
+    (Js.Unsafe.global##.___eliom_global_data_)
+    (fun () ->
+       (* Global data are in [js_data], so we unmarshal it right away. *)
+       ignore (Lazy.force js_data))
+    (fun global_data ->
+       (* Global data are in a separate file. We should not unmarshal
+          [js_data] right away but only once the client program has
+          been initialized. *)
+       ignore (Eliom_unwrap.unwrap_js global_data);
+       Js.Unsafe.delete (Js.Unsafe.global) "__eliom_global_data");
 
   (* <base> *)
   (* The first time we load the page, we record the initial URL in a client
@@ -190,6 +197,7 @@ let init () =
   let onload_handler = ref None in
 
   let onload ev =
+    let js_data = Lazy.force js_data in
     Lwt_log.ign_debug ~section "onload (client main)";
     begin match !onload_handler with
       Some h -> Dom.removeEventListener h; onload_handler := None
@@ -469,63 +477,134 @@ let url_fragment_prefix_with_sharp = "#!"
 
 let reload_function = ref None
 let reload_functions = ref []
-
 let set_reload_function f = reload_function := Some f
 
-let history_doms = ref []
+(* TODO: unify history_doms and reload_functions *)
 
-let push_history_dom () = 
-  let id = snd !current_state_id in
-  let d = 
-    if !only_replace_body 
-    then Dom_html.document##.body 
+type history_dom = {
+  dom : Dom_html.bodyElement Js.t;
+  page : page
+}
+
+module HistCache = Map.Make (struct
+  type t = int
+  let compare = compare
+end)
+
+let history_doms : history_dom HistCache.t ref = ref HistCache.empty
+
+let max_dist_history_doms = ref None
+
+(* TODO: history is linear, keep only DOMs on the history line *)
+let garbage_collect_cached_doms () =
+  !max_dist_history_doms |> Opt.iter @@ fun n ->
+    let cur_index = !active_page.page_id.state_index in
+    let l,cur,r = HistCache.split cur_index !history_doms in
+    let l', lgarbage =
+      Eliom_lib.List.split_at n @@ List.rev @@ HistCache.bindings l in
+    let r', rgarbage = Eliom_lib.List.split_at n @@ HistCache.bindings r in
+    let cur' = List.map (fun cur -> cur_index, cur) (Opt.to_list cur) in
+    let history_doms' =
+      List.fold_left (fun hc (idx, dom) -> HistCache.add idx dom hc)
+                     HistCache.empty
+                     (cur' @ l' @ r')
+    in
+    List.iter (fun (_,g) -> set_page_status g.page Dead) (lgarbage @ rgarbage);
+    history_doms := history_doms'
+
+let set_max_dist_history_doms limit =
+  max_dist_history_doms := limit;
+  garbage_collect_cached_doms ()
+
+let push_history_dom () =
+  let page = !active_page in
+  let id = page.page_id.state_index in
+  let dom =
+    if !only_replace_body
+    then Dom_html.document##.body
     else Dom_html.document##.documentElement in
-  history_doms :=
-    (id, d) ::
-    (List.filter (fun (id', _) -> id <> id') !history_doms)
+  page.page_is_cached := true;
+  history_doms := HistCache.add id {dom; page} !history_doms;
+  garbage_collect_cached_doms ()
 
-let is_in_cache state_id = 
-  fst state_id = session_id &&
-  List.mem_assoc (snd state_id) !history_doms
+module Page_status = struct
+  include Page_status_t
+
+  let signal () = let p = get_this_page () in p.page_status
+
+  module Events = struct
+    let changes () = React.S.changes (signal ())
+    let active () =
+      changes () |> React.E.fmap @@ function Active -> Some () | _ -> None
+    let cached () =
+      changes () |> React.E.fmap @@ function Cached -> Some () | _ -> None
+    let dead () =
+      changes () |> React.E.fmap @@ function Dead -> Some () | _ -> None
+  end
+
+  let maybe_just_once ~once e = if once then React.E.once e else e
+
+  let onactive ?(now = true) ?(once = false) action =
+    let on_event () =
+      ignore @@ React.E.map action @@ maybe_just_once ~once @@ Events.active ()
+    in
+    if now && React.S.value (signal ()) = Active
+      then (action (); if not once then on_event ())
+      else on_event ()
+
+  let oncached ?(once = false) action =
+    ignore @@ React.E.map action @@ maybe_just_once ~once @@ Events.cached ()
+
+  let ondead action = ignore @@ React.E.map action (Events.dead ())
+end
+
+let is_in_cache state_id =
+  state_id.session_id = session_id &&
+  HistCache.mem state_id.state_index !history_doms
+
+let stash_reload_function f =
+  let page = get_this_page () in
+  let state_id = page.page_id in
+  let id = state_id.state_index in
+  Lwt_log.ign_debug_f ~section:section_page
+    "Update reload function for page %d" id;
+  reload_functions :=
+    (id, f) ::
+    (List.filter (fun (id', _) -> id <> id') !reload_functions)
 
 let change_url_string ~replace uri =
+  Lwt_log.ign_debug_f ~section:section_page "Change url string: %s" uri;
   current_uri := fst (Url.split_fragment uri);
   Eliom_request_info.set_current_path !current_uri;
   if Eliom_process.history_api then begin
-    if replace then
-      let state_id = !current_state_id in
-      begin match !reload_function with
-        | Some f ->
-          let id = snd state_id in
-          reload_functions :=
-            (id, f) ::
-            (List.filter (fun (id', _) -> id <> id') !reload_functions)
-        | None ->
-          ()
-      end;
+    if replace then begin
+      Opt.iter stash_reload_function !reload_function;
+      advance_page ();
       Dom_html.window##.history##replaceState
-        (Js.Opt.return (!current_state_id,
+        (Js.Opt.return (!active_page.page_id,
                         Js.string (if !Eliom_common.is_client_app then uri
                                    else Url.resolve uri)))
         (Js.string "")
         (if !Eliom_common.is_client_app then Js.null else
          Js.Opt.return (Js.string uri))
+    end
     else begin
       update_state();
-      let state_id = next_state_id () in
-      history_doms := 
-        List.filter (fun (id, _) -> id <= snd !current_state_id)
-          !history_doms;
-      reload_functions :=
-        List.filter (fun (id, _) -> id <= snd !current_state_id)
-          !reload_functions;
-      begin match !reload_function with
-        | Some f -> reload_functions := (snd state_id, f) :: !reload_functions
-        | None   -> ()
-      end;
-      current_state_id := state_id;
+      let state_id = !active_page.page_id in
+      let erase_future () =
+        let current_doms, garbage =
+          HistCache.partition (fun id _ -> id <= state_id.state_index) !history_doms
+        in
+        HistCache.iter (fun _ g -> set_page_status g.page Dead) garbage;
+        history_doms := current_doms;
+        reload_functions :=
+          List.filter (fun (id, _) -> id <= state_id.state_index)
+            !reload_functions;
+      in erase_future ();
+      Opt.iter stash_reload_function !reload_function;
+      advance_page ();
       Dom_html.window##.history##pushState
-        (Js.Opt.return (!current_state_id,
+        (Js.Opt.return (!active_page.page_id,
                         Js.string (if !Eliom_common.is_client_app then uri
                                    else Url.resolve uri)))
         (Js.string "")
@@ -555,6 +634,7 @@ let change_url
     ?keep_nl_params
     ?nl_params
     params =
+  Lwt_log.ign_debug ~section:section_page "Change url";
   reload_function :=
     (match Eliom_service.xhr_with_cookies service with
      | None when
@@ -579,12 +659,12 @@ let change_url
        ?keep_nl_params
        ?nl_params params)
 
-let set_template_content ~replace ?uri ?fragment =
+let set_template_content ~replace ~uri ?fragment =
   let really_set content () =
     reload_function := None;
-    (match uri, fragment with
-     | Some uri, None -> change_url_string ~replace uri
-     | Some uri, Some fragment ->
+    (match fragment with
+     | None -> change_url_string ~replace uri
+     | Some fragment ->
        change_url_string ~replace (uri ^ "#" ^ fragment)
      | _ -> ());
     let%lwt () = Lwt_mutex.lock load_mutex in
@@ -631,6 +711,7 @@ let replace_page ~do_insert_base new_page =
 
 (* Function to be called for client side services: *)
 let set_content_local ?offset ?fragment new_page =
+  Lwt_log.ign_debug ~section:section_page "Set content local";
   let locked = ref true in
   let recover () =
     if !locked then Lwt_mutex.unlock load_mutex;
@@ -648,10 +729,11 @@ let set_content_local ?offset ?fragment new_page =
     (* Really change page contents *)
     replace_page ~do_insert_base:true new_page;
     Eliommod_dom.add_formdata_hack_onclick_handler ();
-    locked := false;
     let load_callbacks = flush_onload () @ [broadcast_load_end] in
+    locked := false;
     Lwt_mutex.unlock load_mutex;
-    run_callbacks load_callbacks;
+    (* run callbacks upon page activation (or now), but just once *)
+    Page_status.onactive ~once:true (fun () -> run_callbacks load_callbacks);
     scroll_to_fragment ?offset fragment;
     if !Eliom_config.debug_timings
     then Firebug.console##(timeEnd (Js.string "set_content_local"));
@@ -670,19 +752,16 @@ let set_content_local ?offset ?fragment new_page =
     [%lwt raise ( exn)]
 
 (* Function to be called for server side services: *)
-let set_content ~replace ?uri ?offset ?fragment ?state_id content =
-  Lwt_log.ign_debug ~section "Set content";
+let set_content ~replace ~uri ?offset ?fragment content =
+  Lwt_log.ign_debug ~section:section_page "Set content";
   (* TODO: too early? *)
-  let target_uri = 
-    match uri with
-    | None -> !current_uri 
-    | Some uri -> uri in
+  let target_uri = uri in
   let%lwt () =
-    run_onchangepage_callbacks 
-      { in_cache = is_in_cache !current_state_id;
-        current_uri = !current_uri;
+    run_lwt_callbacks
+      { in_cache = is_in_cache !active_page.page_id;
+        origin_uri = !current_uri;
         target_uri;
-        current_id = (snd !current_state_id);
+        origin_id = !active_page.page_id.state_index;
         target_id = None}
       (flush_onchangepage ())
   in
@@ -692,13 +771,7 @@ let set_content ~replace ?uri ?offset ?fragment ?state_id content =
     let locked = ref true in
     let really_set () =
       reload_function := None;
-      Eliom_lib.Option.iter (set_uri ~replace ?fragment) uri;
-      (* update current_state_id after calling onchangepage handlers
-         of the current page and before calling onload handlers of the
-         next page. state_id is not [None] when [set_content] is 
-         called from [goto_uri]. *)
-      Eliom_lib.Option.iter 
-        (fun state_id -> current_state_id := state_id) state_id;
+      set_uri ~replace ?fragment uri;
       (* Convert the DOM nodes from XML elements to HTML elements. *)
       let fake_page =
         Eliommod_dom.html_document content registered_process_node
@@ -721,9 +794,6 @@ let set_content ~replace ?uri ?offset ?fragment ?state_id content =
       let js_data = Eliom_request_info.get_request_data () in
       (* Update tab-cookies: *)
       let host =
-        match uri with
-        | None -> None
-        | Some uri ->
           match Url.url_of_string uri with
           | Some (Url.Http url)
           | Some (Url.Https url) -> Some url.Url.hu_host
@@ -810,34 +880,35 @@ let update_session_info all_get_params all_post_params =
 
 let make_uri subpath params =
   let base =
-    match subpath with
-    | _ :: _ ->
-      String.concat "/" subpath
-    | [] ->
-      "/"
+    if is_client_app () then
+      match subpath with
+      | _ :: _ ->
+        String.concat "/" subpath
+      | [] ->
+        "/"
+    else
+      let path =
+        match subpath with
+        | _ :: _ ->
+          String.concat "/" subpath
+        | [] ->
+          ""
+      and port =
+        match Url.Current.port with
+        | Some port ->
+          Printf.sprintf ":%d" port
+        | None ->
+          ""
+      in
+      Printf.sprintf "%s//%s%s/%s"
+        Url.Current.protocol Url.Current.host
+        port path
   and params = List.map (fun (s, s') -> s, `String (Js.string s')) params in
-  match
-    Eliom_uri.make_string_uri_from_components (base, params, None)
-  with
-  | "" ->
-    "/"
-  | s ->
-    s
-
-let follow_up = ref None
-
-let redirect_active () =
-  match !follow_up with
-  | Some (`Redirect _) -> true
-  | _ -> false
-
-
-let change_url_string_protected ~replace url =
-  if not (redirect_active ()) then
-    change_url_string ~replace url
+  Eliom_uri.make_string_uri_from_components (base, params, None)
 
 let route ~replace ?(keep_url = false)
     ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
+  Lwt_log.ign_debug ~section:section_page "Route";
   let r = !Eliom_request_info.get_sess_info
   and info, i_subpath =
     match i_subpath with
@@ -847,16 +918,21 @@ let route ~replace ?(keep_url = false)
       info, i_subpath
   in
   try%lwt
-    update_session_info i_get_params (Some i_post_params);
-    let%lwt () = Eliom_route.call_service info in
     if not keep_url then
-      change_url_string_protected ~replace (make_uri i_subpath i_get_params);
-    Lwt.return_unit
+      change_url_string ~replace (make_uri i_subpath i_get_params);
+    update_session_info i_get_params (Some i_post_params);
+    Eliom_route.call_service
+      { info with
+        Eliom_route.i_get_params =
+          Eliom_common.(remove_prefixed_param nl_param_prefix)
+            i_get_params }
   with e ->
     Eliom_request_info.get_sess_info := r;
     Lwt.fail e
 
-let after_action uri =
+let perform_reload () =
+  Lwt_log.ign_debug ~section:section_page "Perform reload";
+  let uri = !current_uri in
   let
     ({ Eliom_common.si_all_get_params ; si_all_post_params }
      as i_sess_info) =
@@ -881,17 +957,6 @@ let after_action uri =
     with _ ->
       Lwt.return_unit
 
-let do_follow_up uri =
-  match !follow_up with
-  | Some (`Redirect f) ->
-    follow_up := None;
-    f uri
-  | Some `Reload ->
-    follow_up := None;
-    after_action uri
-  | None ->
-    Lwt.return_unit
-
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
    function used to change page when clicking a link and
@@ -906,7 +971,7 @@ let change_page (type m)
     ?keep_get_na_params
     ?progress ?upload_progress ?override_mime_type
     get_params post_params =
-  Lwt_log.ign_debug ~section "Change page";
+  Lwt_log.ign_debug ~section:section_page "Change page";
   let xhr = Eliom_service.xhr_with_cookies service in
   if xhr = None
   || (https = Some true && not Eliom_request_info.ssl_)
@@ -920,8 +985,7 @@ let change_page (type m)
   else
     with_progress_cursor
       (match xhr with
-       | Some (Some tmpl as t)
-         when t = Eliom_request_info.get_request_template () ->
+       | Some (Some tmpl as t) when t = Eliom_request_info.get_request_template () ->
          let nl_params =
            Eliom_parameter.add_nl_parameter
              nl_params Eliom_request.nl_template tmpl
@@ -940,8 +1004,7 @@ let change_page (type m)
               We do not make the request *)
            (* I record the function to be used for void coservices: *)
            Eliom_lib.Option.iter
-             (fun rf ->
-                reload_function := Some (fun () () -> rf get_params ()))
+             (fun rf -> reload_function := Some (fun () -> rf get_params))
              (Eliom_service.reload_fun service);
            let uri, l, l' =
              match
@@ -960,18 +1023,18 @@ let change_page (type m)
            in
            let l = ocamlify_params l in
            update_session_info l l';
-           let%lwt () = 
-             run_onchangepage_callbacks 
-               {in_cache = is_in_cache !current_state_id;
-                current_uri = !current_uri;
+           let%lwt () =
+             run_lwt_callbacks
+               {in_cache = is_in_cache !active_page.page_id;
+                origin_uri = !current_uri;
                 target_uri = uri;
-                current_id = snd !current_state_id;
+                origin_id = !active_page.page_id.state_index;
                 target_id = None}
                (flush_onchangepage ())
            in
-           change_url_string_protected ~replace uri;
-           let%lwt () = f get_params post_params in
-           do_follow_up uri
+           with_new_page ~replace () @@ fun () ->
+           change_url_string ~replace uri;
+           f get_params post_params
          | None when is_client_app () ->
            Lwt.return @@ exit_to
              ?absolute ?absolute_path ?https ~service ?hostname ?port
@@ -979,6 +1042,7 @@ let change_page (type m)
              get_params post_params
          | _ ->
            (* No client-side implementation *)
+           with_new_page ~replace () @@ fun () ->
            reload_function := None;
            let cookies_info = Eliom_uri.make_cookies_info (https, service) in
            let%lwt (uri, content) =
@@ -1014,21 +1078,9 @@ type _ redirection =
        [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
     'a redirection
 
-let register_reload () =
-  follow_up := Some `Reload
-
-let register_redirect (Redirection service) =
-  let f uri =
-    (* locally modifying URI with that of the redirection service
-       (without touching the history) for reload actions to work
-       correctly; the change_page will take care of the history *)
-    current_uri := uri;
-    change_page ~replace:false ~service () ()
-  in
-  follow_up := Some (`Redirect f)
-
 let change_page_unknown
     ?meth ?hostname ?(replace = false) i_subpath i_get_params i_post_params =
+  Lwt_log.ign_debug ~section:section_page "Change page unknown";
   let i_sess_info = !Eliom_request_info.get_sess_info ()
   and i_meth =
     match meth, i_post_params with
@@ -1039,20 +1091,18 @@ let change_page_unknown
     | _, _ ->
       `Post
   in
-  let%lwt () =
-    route ~replace {
-      Eliom_route.i_sess_info ;
-      i_subpath ;
-      i_meth ;
-      i_get_params ;
-      i_post_params
-    }
-  in
-  do_follow_up (make_uri i_subpath i_get_params)
+  with_new_page ~replace () @@ fun () ->
+  route ~replace {
+    Eliom_route.i_sess_info ;
+    i_subpath ;
+    i_meth ;
+    i_get_params ;
+    i_post_params
+  }
 
 (* Function used in "onclick" event handler of <a>.  *)
 let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
-  Lwt_log.ign_debug ~section "Change page uri";
+  Lwt_log.ign_debug ~section:section_page "Change page uri";
   with_progress_cursor
     (let uri, fragment = Url.split_fragment full_uri in
      if uri <> !current_uri || fragment = None
@@ -1078,7 +1128,7 @@ let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
      end)
 
 let change_page_uri ?replace full_uri =
-  Lwt_log.ign_debug ~section "Change page uri";
+  Lwt_log.ign_debug ~section:section_page "Change page uri";
   try%lwt
     match Url.url_of_string full_uri with
     | Some (Url.Http url | Url.Https url) ->
@@ -1152,49 +1202,49 @@ let _ =
 
 (* == Navigating through the history... *)
 
-(* Given a state_id, [replace_page_in_history] returns a replace function. 
-   The current page will be replaced by the page associated with the state_id
-   when the replace function is called *)
-let replace_page_from_cache id =
-  let d = List.assq id !history_doms in
-  if !only_replace_body 
-  then Dom.replaceChild
-    Dom_html.document##.documentElement d  Dom_html.document##.body
-  else Dom.replaceChild
-    Dom_html.document d Dom_html.document##.documentElement 
+(* Given a state_id, [replace_page_in_history] replaces the current DOM with a
+   DOM from the DOM cache. *)
+let restore_history_dom id =
+  let {dom; page} = HistCache.find id !history_doms in
+  begin if !only_replace_body
+    then Dom.replaceChild
+      Dom_html.document##.documentElement dom Dom_html.document##.body
+    else Dom.replaceChild
+      Dom_html.document dom Dom_html.document##.documentElement
+  end;
+  set_active_page page
 
 let () =
 
   if Eliom_process.history_api
   then
 
-    let goto_uri full_uri state_id =
+    let revisit full_uri state_id =
       let state = get_state state_id in
-      let current_id = snd !current_state_id in
-      let target_id = snd state_id in
-      let ev = 
-        {in_cache = is_in_cache !current_state_id; 
-         current_uri = !current_uri; 
+      let target_id = state_id.state_index in
+      let ev =
+        {in_cache = is_in_cache state_id;
+         origin_uri = !current_uri;
          target_uri = full_uri;
-         current_id;
+         origin_id = !active_page.page_id.state_index;
          target_id = Some target_id } in
-      let tmpl = (if state.template = Js.string ""
-                  then None
-                  else Some (Js.to_string state.template))
-      in
-      Lwt.ignore_result
-        (with_progress_cursor
-           (let uri, fragment = Url.split_fragment full_uri in
-            if uri <> !current_uri
-            then begin
+      let tmpl = state.template in
+      Lwt.ignore_result @@
+        with_progress_cursor @@
+          let uri, fragment = Url.split_fragment full_uri in
+          if uri = !current_uri
+          then begin
+              !active_page.page_id <- state_id;
+              scroll_to_fragment ~offset:state.position fragment;
+              Lwt.return_unit
+            end
+            else begin
               current_uri := uri;
               Eliom_request_info.set_current_path uri;
-              try
+              try (* serve cached page from the from history_doms *)
                 if not (is_in_cache state_id) then raise Not_found;
-                let%lwt () = 
-                  run_onchangepage_callbacks ev (flush_onchangepage ()) in
-                current_state_id := state_id;
-                replace_page_from_cache target_id;
+                let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
+                restore_history_dom target_id;
                 let%lwt () = Lwt_js_events.request_animation_frame () in
                 scroll_to_fragment ~offset:state.position fragment;
                 (* Wait for the dom to be repainted before scrolling *)
@@ -1202,64 +1252,66 @@ let () =
                 scroll_to_fragment ~offset:state.position fragment;
                 (* When we use iPhone, we need to wait for one more
                    [request_animation_frame] before scrolling.The
-                   function [scroll_to_fragment] is called twice. In 
-                   other words, we want to call [scroll_to_fragment] 
-                   as early as possible so that the scroll position 
-                   will not jump after the second [request_animation_frame] 
+                   function [scroll_to_fragment] is called twice. In
+                   other words, we want to call [scroll_to_fragment]
+                   as early as possible so that the scroll position
+                   will not jump after the second [request_animation_frame]
                    if the dom has already be painted after the first one. *)
                 Lwt.return_unit
               with Not_found ->
-              try
-                if fst state_id <> session_id then raise Not_found;
-                let rf = List.assq (snd state_id) !reload_functions in
+              let session_changed = state_id.session_id <> session_id in
+              try (* same session *)
+                if session_changed then raise Not_found;
+                let rf = List.assq state_id.state_index !reload_functions in
                 reload_function := Some rf;
-                let%lwt () = 
-                  run_onchangepage_callbacks ev (flush_onchangepage ()) in
-                current_state_id := state_id;
-                rf () () >>
-                (scroll_to_fragment ~offset:state.position fragment;
-                 Lwt.return_unit)
-              with Not_found ->
+                let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
+                with_new_page ~state_id ~replace:false () @@ fun () ->
+                advance_page ();
+                let%lwt () = rf () () in
+                scroll_to_fragment ~offset:state.position fragment;
+                Lwt.return_unit
+              with Not_found -> (* different session ID *)
               match tmpl with
-              | Some t
-                when tmpl = Eliom_request_info.get_request_template () ->
+              | Some t when tmpl = Eliom_request_info.get_request_template () ->
                 let%lwt (uri, content) = Eliom_request.http_get
                     uri [(Eliom_request.nl_template_string, t)]
                     Eliom_request.string_result
                 in
-                current_state_id := state_id;
-                set_template_content ~replace:false content >>
-                (scroll_to_fragment ~offset:state.position fragment;
-                 Lwt.return_unit)
+                let%lwt () =
+                  set_template_content content
+                    ~replace:true ~uri
+                in
+                scroll_to_fragment ~offset:state.position fragment;
+                Lwt.return_unit
               | _ ->
+                with_new_page
+                  ?state_id:(if session_changed then None else Some state_id)
+                  ~replace:false () @@ fun () ->
                 let%lwt uri, content =
                   Eliom_request.http_get ~expecting_process_page:true uri []
                     Eliom_request.xml_result in
                 let%lwt () =
                   set_content
-                    ~replace:false 
-                    ~offset:state.position 
-                    ?fragment ~state_id content in
+                    ~uri
+                    ~replace:true
+                    ~offset:state.position
+                    ?fragment content in
                 Lwt.return_unit
-            end else
-              (current_state_id := state_id;
-               scroll_to_fragment ~offset:state.position fragment;
-               Lwt.return_unit)))
+            end
     in
 
-    let goto_uri full_uri state_id =
+    let revisit full_uri state_id =
       (* CHECKME: is it OK that set_state happens after the unload
          callbacks are executed? *)
-      let f () = update_state (); goto_uri full_uri state_id
-      and g () = () in
-      run_onunload_wrapper f g
-
+      let f () = update_state (); revisit full_uri state_id
+      and cancel () = () in
+      run_onunload_wrapper f cancel
     in
 
     Lwt.ignore_result
       (let%lwt () = wait_load_end () in
        Dom_html.window##.history##(replaceState
-         (Js.Opt.return (!current_state_id, Dom_html.window##.location##.href))
+         (Js.Opt.return (!active_page.page_id, Dom_html.window##.location##.href))
          (Js.string "")
          (Js.null) );
        Lwt.return_unit);
@@ -1268,9 +1320,9 @@ let () =
       Dom_html.handler (fun event ->
         Eliommod_dom.touch_base ();
         Js.Opt.case ((Js.Unsafe.coerce event)##.state :
-                       ((int * int) * Js.js_string Js.t) Js.opt)
+                       (state_id * Js.js_string Js.t) Js.opt)
           (fun () -> () (* Ignore dummy popstate event fired by chromium. *))
-          (fun (state, full_uri) -> goto_uri (Js.to_string full_uri) state);
+          (fun (state, full_uri) -> revisit (Js.to_string full_uri) state);
         Js._false)
 
   else (* Without history API *)

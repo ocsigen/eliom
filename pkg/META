@@ -1,5 +1,5 @@
 description = "Eliom: client-server Web and mobile applications"
-version = "6.2.0"
+version = "6.3.0"
 
 package "server" (
   description = "Eliom: server-side"
@@ -57,7 +57,6 @@ package "client" (
   archive(byte) = "client.cma eliom_client_main.cmo"
 
   linkopts(javascript) = "+eliom.client/eliom_client.js"
-  linkopts(javascript) += "+js_of_ocaml-compiler/classlist.js"
 )
 
 package "syntax" (
@@ -99,8 +98,8 @@ package "syntax" (
     description = "Syntax extension: predefined commonly use syntaxes"
     version = "[distributed with Eliom]"
 
-    requires(syntax, preprocessor) = "js_of_ocaml.syntax,js_of_ocaml-camlp4.deriving,lwt.syntax,tyxml.syntax"
-    requires(syntax, toploop) = "js_of_ocaml.syntax,js_of_ocaml-camlp4.deriving,lwt.syntax,tyxml.syntax"
+    requires(syntax, preprocessor) = "js_of_ocaml-camlp4,js_of_ocaml-camlp4.deriving,lwt_camlp4"
+    requires(syntax, toploop) = "js_of_ocaml-camlp4,js_of_ocaml-camlp4.deriving,lwt_camlp4"
     archive(syntax, preprocessor) = "-ignore dummy"
   )
 

@@ -153,7 +153,7 @@ in order to safely inject them into the next client-section.
 
 Thus, if you want to refer to the DOM in global client values (e.g. by
 injecting variables holding HTML-elements) you must be sure to delay
-this by using <<a_api subproject="client"|Eliom_client.onload>>.
+this by using <<a_api subproject="client"|val Eliom_client.onload>>.
 
 Request client values, however, are sent with the next response to the
 client and evaluated //after// setting up the (possibly) sent document.
@@ -258,8 +258,8 @@ circumvent this limitation by declaring a function at toplevel with all the
 dive into the implementation details of Eliom, or if you have a
 weak stomach!//
 
-This sections gives some details on the implementation of the <<a_manual
-chapter="eliomc"|language extensions in Eliom>>.  To investigate this
+This sections gives some details on the implementation of the language
+extensions in Eliom.  To investigate this
 in more detail, it is advisable to dump the source code for the server
 or client program with with ##eliomc -c -infer## or ##js_of_eliom -c -infer##
 respectively, and to refer to the API of the generated
@@ -280,12 +280,9 @@ fun (v'_1, ..., v'_n) -> exp'
 where ##exp'## is ##exp## with occurrences of ##%v_i## replaced
 by ##v'_i## where all ##v'_i## are free in ##exp##.
 
-When a client value is then created dynamically, a <<a_api|type
-Eliom_common_base.client_value_datum>> is registered to be sent to the
-client with the <<a_api project="eliom" subproject="server"|val
-Eliom_common_base.global_data>> or <<a_api project="eliom"
-subproject="server"|val Eliom_common_base.request_data>> respectively. It
-contains the closure ID, an instance ID (unique per client value), and
+When a client value is then created dynamically, a client closure
+is registered to be sent to the client.
+It contains the closure ID, an instance ID (unique per client value), and
 the tuple of injected values (sometimes known as ##args##).
 
 On the client side, that client value datum will be used to register
