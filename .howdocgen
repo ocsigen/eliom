@@ -55,7 +55,8 @@ cat >$f <<EOF
     "menu": true,
     "csw": true,
     "templates": ["doc/template.wiki"],
-    "manual": "manual"
+    "manual": "manual",
+    "default_subproject": "server"
 }
 EOF
 quickdop -f doc _doc -t json -c $f -viu
