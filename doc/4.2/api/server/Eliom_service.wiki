@@ -1,0 +1,225 @@
+=Module <<a_api_type subproject="server" | module Eliom_service >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_service>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_service >><<span class="ocsforge_color_keyword"|end>>>>~Creation and manipulation of ~Eliom services~.
+
+----
+
+**~See the ~Eliom manual for a detailed introduction to the concept of
+    <<a_manual chapter="server-services"|Eliom services>>~.
+    **
+
+
+  <<outline| <<header| **Table of contents** >> >>
+
+~The main functions to create services are in modules
+   <<a_api subproject="server"|module Eliom_service.Http>> ~(default~)~,
+   <<a_api subproject="server"|module Eliom_service.Ocaml>>
+   ~(for services returning ~O~Caml values~) and
+   <<a_api subproject="server"|module Eliom_service.App>>
+   ~(for services belonging to an ~Eliom client~-server app~)~.
+
+
+==@@id="2_Typedefinitionsforservices"@@~Type definitions for services==
+
+
+
+===@@id="3_Serviceskind"@@~Services kind===
+
+
+~The type <<span class="odocwiki_inlinecode"|service~_kind>> describe all four kind of services~:
+* external ~(attached~) services
+* ~(internal~) attached services
+* ~(internal~) attached coservices
+* ~(internal~) non~-attached coservices
+
+<<pre class="ocsforge_color odocwiki_code" id="TYPEinternal_attached_service_kind"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|internal~_attached~_service~_kind>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `AttachedCoservice | `Service ]>> >><<div class="odocwiki_info"|~An internal attached service could either be a <<span class="odocwiki_inlinecode"|`~Service>> or a <<span class="odocwiki_inlinecode"|`~Attached~Coservice>>~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEinternal_service_kind"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|internal~_service~_kind>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `AttachedCoservice | `NonattachedCoservice | `Service ]>> >><<div class="odocwiki_info"|~An internal service could either be an internal attached service or a <<span class="odocwiki_inlinecode"|`~Nonattached~Coservice>>~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEservice_kind"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|service~_kind>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|\\  [ `AttachedCoservice | `External | `NonattachedCoservice | `Service ]>> >><<div class="odocwiki_info"|~An attached service could either be an internal ~Eliom service or an
+    abstraction for an <<span class="odocwiki_inlinecode"|`~External>> service~.
+>>
+
+
+===@@id="3_AttachedorNonattached"@@~Attached or ~Non~-attached===
+
+<<pre class="ocsforge_color odocwiki_code" id="TYPEa_s"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|a~_s>>>><<div class="odocwiki_info"|~The abstract type for attached service representation~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEna_s"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|na~_s>>>><<div class="odocwiki_info"|~The abstract type for non~-attached service representation~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEattached_kind"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|attached~_kind>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Attached of <<a_api subproject="server" text="a_s" | type Eliom_service.a_s >> ]>> >><<pre class="ocsforge_color odocwiki_code" id="TYPEnon_attached_kind"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|non~_attached~_kind>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Nonattached of <<a_api subproject="server" text="na_s" | type Eliom_service.na_s >> ]>> >><<pre class="ocsforge_color odocwiki_code" id="TYPEattached"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|attached>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Attached of <<a_api subproject="server" text="a_s" | type Eliom_service.a_s >> | `Nonattached of <<a_api subproject="server" text="na_s" | type Eliom_service.na_s >> ]>> >>
+
+===@@id="3_POSTorGETparameters"@@~P~O~S~T or ~G~E~T parameters===
+
+<<pre class="ocsforge_color odocwiki_code" id="TYPEservice_method"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|service~_method>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Delete | `Get | `Post | `Put ]>> >><<div class="odocwiki_info"|~The kind of a service is <<span class="odocwiki_inlinecode"|`~Post>> when there is at least one ~P~O~S~T
+    parameters~. ~It is <<span class="odocwiki_inlinecode"|`~Get>> otherwise~.
+>>
+
+
+===@@id="3_Commonsubtypesofservicemethod"@@~Common subtypes of <<span class="odocwiki_inlinecode"|service~_method>> ===
+
+<<pre class="ocsforge_color odocwiki_code" id="TYPEget_service_kind"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|get~_service~_kind>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Get ]>> >><<div class="odocwiki_info"|~Restriction of <<span class="odocwiki_inlinecode"|service~_method>> to ~G~E~T services~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEpost_service_kind"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|post~_service~_kind>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Post ]>> >><<div class="odocwiki_info"|~Restriction of <<span class="odocwiki_inlinecode"|service~_method>> to ~P~O~S~T services~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEput_service_kind"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|put~_service~_kind>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Put ]>> >><<div class="odocwiki_info"|~Restriction of <<span class="odocwiki_inlinecode"|service~_method>> to ~P~U~T services~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEdelete_service_kind"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|delete~_service~_kind>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Delete ]>> >><<div class="odocwiki_info"|~Restriction of <<span class="odocwiki_inlinecode"|service~_method>> to ~D~E~L~E~T~E services~.
+>>
+
+
+===@@id="3_Kindofparameters"@@~Kind of parameters===
+
+<<pre class="ocsforge_color odocwiki_code" id="TYPEsuff"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|suff>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `WithSuffix | `WithoutSuffix ]>> >><<div class="odocwiki_info"|~The kind of parameters for a service is <<span class="odocwiki_inlinecode"|`~With~Suffix>> when it have
+    a suffix parameter~, for examples <<a_api subproject="server" | val Eliom_parameter.suffix >> or
+    <<a_api subproject="server" | val Eliom_parameter.suffix_prod >>~. ~Otherwise it is
+    <<span class="odocwiki_inlinecode"|`~Without~Suffix>>~.
+>>
+
+
+===@@id="3_Registrableservice"@@~Registrable service===
+
+<<pre class="ocsforge_color odocwiki_code" id="TYPEregistrable"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|registrable>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Registrable | `Unregistrable ]>> >><<div class="odocwiki_info"|~A service is <<span class="odocwiki_inlinecode"|`~Registrable>> only if it isn~'t a pre~-applied
+    service~, see <<a_api subproject="server" | val Eliom_service.preapply >>~.
+>>
+
+
+===@@id="3_Abstracttypeofservices"@@~Abstract type of services===
+
+<<pre class="ocsforge_color odocwiki_code" id="TYPEservice"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >>'get, 'post, +[< <<a_api subproject="server" text="service_method" | type Eliom_service.service_method >> ]\\    , +[< <<a_api subproject="server" text="attached" | type Eliom_service.attached >> ], +[< <<a_api subproject="server" text="service_kind" | type Eliom_service.service_kind >> ]\\    , +[< <<a_api subproject="server" text="suff" | type Eliom_service.suff >> ], 'gn, 'pn\\    , +[< <<a_api subproject="server" text="registrable" | type Eliom_service.registrable >> ], +'ret<<span class="ocsforge_color_delimiter"| ) >>>> <<span class="odocwiki_name"|service>>>><<div class="odocwiki_info"|~Type of services~.
+* <<span class="odocwiki_inlinecode"| ~'get>> is the type of ~G~E~T parameters expected by the service~.
+* <<span class="odocwiki_inlinecode"| ~'post>> is the type of ~P~O~S~T parameters expected by the service~.
+* <<span class="odocwiki_inlinecode"| ~'meth>> the ~H~T~T~P method
+* <<span class="odocwiki_inlinecode"| ~'attached>> attached or non~-attached
+* <<span class="odocwiki_inlinecode"| ~'kind>> describes the services~'s kind ~: service~, coservice~, external~. ~It is a subtype of <<a_api subproject="server" | type Eliom_service.service_kind >>~.
+* <<span class="odocwiki_inlinecode"| ~'tipo>> the type paremeter of subtype <<a_api subproject="server" | type Eliom_service.suff >> states the kind
+      of parameters it uses~: suffix or not~.
+* <<span class="odocwiki_inlinecode"| ~'gn>> is the type of ~G~E~T parameters names~. ~See <<a_api subproject="server" | type Eliom_parameter.param_name >> and
+            form generation functions ~(e~. g~. <<a_api subproject="server" | val Eliom_content.Html5.D.get_form >>~)~.
+* <<span class="odocwiki_inlinecode"| ~'pn>> is the type of ~P~O~S~T parameters names~. ~See <<a_api subproject="server" | type Eliom_parameter.param_name >> and
+            form generation functions ~(e~. g~. <<a_api subproject="server" | val Eliom_content.Html5.D.post_form >>~)~.
+* <<span class="odocwiki_inlinecode"| ~'reg>> the type parameter of subtype <<a_api subproject="server" | type Eliom_service.registrable >> tells if it is possible to
+      register a handler on this service~.
+* <<span class="odocwiki_inlinecode"| ~'ret>> is an information on what the service returns~.
+            ~See <<a_api subproject="server" | type Eliom_registration.kind >>~.
+
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEhttp_service"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|http~_service>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Http ]>> >><<div class="odocwiki_info"|~Types of groups of services~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEappl_service"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|appl~_service>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Appl ]>> >><<pre class="ocsforge_color odocwiki_code" id="TYPEocaml_service"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|+'a>> <<span class="odocwiki_name"|ocaml~_service>>>><<pre class="ocsforge_color odocwiki_code" id="TYPEnon_ocaml_service"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|non~_ocaml~_service>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Appl | `Http ]>> >><<div class="odocwiki_info"|~The type <<span class="odocwiki_inlinecode"|non~_ocaml~_service>> is used as phantom type parameters for
+    the <<a_api subproject="server" | type Eliom_registration.kind >>~. ~It used to type functions that operates
+    over service that do not returns ~O~Caml values~, like
+    <<span class="odocwiki_inlinecode"|appl~_self~_redirect>>~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPErt"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'rt>> <<span class="odocwiki_name"|rt>>>><<div class="odocwiki_info"|~Helper for typing ~O~Caml services~.
+    ~In some cases~, you may need to write the return type of the
+    service manually~. ~Instead of writing the full type of the service~,
+    ~(which may be huge~)~, add a type constraint for parameter <<span class="odocwiki_inlinecode"|~?rt>> of service
+    creation functions
+    ~(like ~<~<a~_api subproject~="server"~|fun ~Eliom~_service~.~Http~.service~>~>~)~,
+    using the following value~.
+>>
+<<pre id="VALrt" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|rt>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'rt <<a_api subproject="server" text="rt" | type Eliom_service.rt >>>>>>
+
+==@@id="2_Registrationofservices"@@~Registration of services==
+
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Http" | module Eliom_service.Http >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_service.Http >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Default module for creating services
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="App" | module Eliom_service.App >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_service.App >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Module for creating services returning applications
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Ocaml" | module Eliom_service.Ocaml >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_service.Ocaml >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Module for creating services that return ~O~Caml values
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Unsafe" | module Eliom_service.Unsafe >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_service.Unsafe >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Module for creating services without specifying the return type
+>>
+
+
+==@@id="2_StaticloadingofEliommodules"@@~Static loading of ~Eliom modules==
+
+
+~This functionality allows one to register initialization functions for
+    ~Eliom modules which will be executed when the corresponding module
+    is loaded in <<span class="odocwiki_inlinecode"|ocsigenserver~.conf>>~.
+    ~If the module is loaded dynamically~, you probably don~'t need this~.
+   ~But if the module is linked statically~, some computations~,
+   like service registrations must be delayed~.
+<<pre id="VALregister_eliom_module" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|register~_eliom~_module>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|string <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>unit <<span class="ocsforge_color_delimiter"| -> >> unit<<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|register~_eliom~_module mod f>> is used to register the
+    initialization function <<span class="odocwiki_inlinecode"|f>> to be executed when then module <<span class="odocwiki_inlinecode"|mod>>
+    is loaded by ~Ocsigen server~. ~The module <<span class="odocwiki_inlinecode"|mod>> could either be a
+    dynamically loaded module or linked statically into the server~: in
+    each case~, the <<span class="odocwiki_inlinecode"|f>> function will be invoked when the module is
+    initialized in the configuration file using <<span class="odocwiki_inlinecode"|~<eliommodule ~.~.~.~>
+    ~.~.~. ~<~/eliommodule~>>>~. ~If <<span class="odocwiki_inlinecode"|register~_eliom~_module>> is called twice with the
+    same module name~, the second initialization function will replace
+    the previous one~.
+>>
+
+
+==@@id="2_Predefinedservices"@@~Predefined services==
+
+
+
+===@@id="3_Staticfiles"@@~Static files===
+
+<<pre id="VALstatic_dir" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|static~_dir>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  unit <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>string list, unit, [< <<a_api subproject="server" text="service_method" | type Eliom_service.service_method >> > `Get ],\\   [< <<a_api subproject="server" text="attached" | type Eliom_service.attached >> > `Attached ],\\   [< <<a_api subproject="server" text="service_kind" | type Eliom_service.service_kind >> > `Service ], [ `WithSuffix ],\\   [ `One of string list ] <<a_api subproject="server" text="Eliom_parameter.param_name" | type Eliom_parameter.param_name >>, \\   unit, [< <<a_api subproject="server" text="registrable" | type Eliom_service.registrable >> > `Unregistrable ],\\   [> <<a_api subproject="server" text="http_service" | type Eliom_service.http_service >> ]<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="service" | type Eliom_service.service >>>>>><<div class="odocwiki_info"|~The predefined service <<span class="odocwiki_inlinecode"|static~_dir>> allows one to create links to
+    static files~. ~This service takes the name of a static file as a
+    parameter ~(a string list~, slash separated~)~. ~The actual directory
+    in filesystem where static pages will be found must be set up in
+    the configuration file with the staticmod extension~.
+>>
+<<pre id="VALhttps_static_dir" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|https~_static~_dir>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  unit <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>string list, unit, [< <<a_api subproject="server" text="service_method" | type Eliom_service.service_method >> > `Get ],\\   [< <<a_api subproject="server" text="attached" | type Eliom_service.attached >> > `Attached ],\\   [< <<a_api subproject="server" text="service_kind" | type Eliom_service.service_kind >> > `Service ], [ `WithSuffix ],\\   [ `One of string list ] <<a_api subproject="server" text="Eliom_parameter.param_name" | type Eliom_parameter.param_name >>, \\   unit, [< <<a_api subproject="server" text="registrable" | type Eliom_service.registrable >> > `Unregistrable ],\\   [> <<a_api subproject="server" text="http_service" | type Eliom_service.http_service >> ]<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="service" | type Eliom_service.service >>>>>><<div class="odocwiki_info"|~Same as <<a_api subproject="server" | val Eliom_service.static_dir >> but forcing https link~.
+>>
+<<pre id="VALstatic_dir_with_params" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|static~_dir~_with~_params>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?keep_nl_params: >>[ `All | `None | `Persistent ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| get_params: >><<span class="ocsforge_color_delimiter"| ( >>'a, [ `WithoutSuffix ], 'an<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="Eliom_parameter.params_type" | type Eliom_parameter.params_type >> <<span class="ocsforge_color_delimiter"| -> >>\\  unit <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>string list * 'a, unit, [< <<a_api subproject="server" text="service_method" | type Eliom_service.service_method >> > `Get ],\\   [< <<a_api subproject="server" text="attached" | type Eliom_service.attached >> > `Attached ],\\   [< <<a_api subproject="server" text="service_kind" | type Eliom_service.service_kind >> > `Service ], [ `WithSuffix ],\\   [ `One of string list ] <<a_api subproject="server" text="Eliom_parameter.param_name" | type Eliom_parameter.param_name >> * 'an, \\   unit, [< <<a_api subproject="server" text="registrable" | type Eliom_service.registrable >> > `Unregistrable ],\\   [> <<a_api subproject="server" text="http_service" | type Eliom_service.http_service >> ]<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="service" | type Eliom_service.service >>>>>><<div class="odocwiki_info"|~Like <<span class="odocwiki_inlinecode"|static~_dir>>~, but allows one to put ~G~E~T parameters
+>>
+<<pre id="VALhttps_static_dir_with_params" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|https~_static~_dir~_with~_params>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?keep_nl_params: >>[ `All | `None | `Persistent ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| get_params: >><<span class="ocsforge_color_delimiter"| ( >>'a, [ `WithoutSuffix ], 'an<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="Eliom_parameter.params_type" | type Eliom_parameter.params_type >> <<span class="ocsforge_color_delimiter"| -> >>\\  unit <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>string list * 'a, unit, [< <<a_api subproject="server" text="service_method" | type Eliom_service.service_method >> > `Get ],\\   [< <<a_api subproject="server" text="attached" | type Eliom_service.attached >> > `Attached ],\\   [< <<a_api subproject="server" text="service_kind" | type Eliom_service.service_kind >> > `Service ], [ `WithSuffix ],\\   [ `One of string list ] <<a_api subproject="server" text="Eliom_parameter.param_name" | type Eliom_parameter.param_name >> * 'an, \\   unit, [< <<a_api subproject="server" text="registrable" | type Eliom_service.registrable >> > `Unregistrable ],\\   [> <<a_api subproject="server" text="http_service" | type Eliom_service.http_service >> ]<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="service" | type Eliom_service.service >>>>>><<div class="odocwiki_info"|~Same as <<a_api subproject="server" | val Eliom_service.static_dir_with_params >> but forcing https link~.
+>>
+
+
+===@@id="3_Voidnonattachedcoservices"@@~Void non~-attached coservices===
+
+<<pre id="VALvoid_coservice'" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|void~_coservice~'>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >>unit, unit, [< <<a_api subproject="server" text="service_method" | type Eliom_service.service_method >> > `Get ],\\   [< <<a_api subproject="server" text="attached" | type Eliom_service.attached >> > `Nonattached ],\\   [< <<a_api subproject="server" text="service_kind" | type Eliom_service.service_kind >> > `NonattachedCoservice ],\\   [ `WithoutSuffix ], unit, unit,\\   [< <<a_api subproject="server" text="registrable" | type Eliom_service.registrable >> > `Unregistrable ],\\   [> <<a_api subproject="server" text="non_ocaml_service" | type Eliom_service.non_ocaml_service >> ]<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="service" | type Eliom_service.service >>>>>><<div class="odocwiki_info"|~The service <<span class="odocwiki_inlinecode"|void~_coservice~'>> is a predefined non~-attached action
+    with special behaviour~: it has no parameter at all~, even
+    non~-attached parameters~.  ~Use it if you want to make a link to the
+    current page without non~-attached parameters~.  ~It is almost
+    equivalent to a ~P~O~S~T non~-attached service without ~P~O~S~T parameters~,
+    on which you register an action that does nothing~, but you can use
+    it with ~<a~> links~, not only forms~.  ~It does not keep non attached
+    ~G~E~T parameters~.
+>>
+<<pre id="VALhttps_void_coservice'" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|https~_void~_coservice~'>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >>unit, unit, [< <<a_api subproject="server" text="service_method" | type Eliom_service.service_method >> > `Get ],\\   [< <<a_api subproject="server" text="attached" | type Eliom_service.attached >> > `Nonattached ],\\   [< <<a_api subproject="server" text="service_kind" | type Eliom_service.service_kind >> > `NonattachedCoservice ],\\   [ `WithoutSuffix ], unit, unit,\\   [< <<a_api subproject="server" text="registrable" | type Eliom_service.registrable >> > `Unregistrable ],\\   [> <<a_api subproject="server" text="non_ocaml_service" | type Eliom_service.non_ocaml_service >> ]<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="service" | type Eliom_service.service >>>>>><<div class="odocwiki_info"|~Same as <<a_api subproject="server" | val Eliom_service.void_coservice' >> but forcing https~.
+>>
+<<pre id="VALvoid_hidden_coservice'" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|void~_hidden~_coservice~'>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >>unit, unit, [< <<a_api subproject="server" text="service_method" | type Eliom_service.service_method >> > `Get ],\\   [< <<a_api subproject="server" text="attached" | type Eliom_service.attached >> > `Nonattached ],\\   [< <<a_api subproject="server" text="service_kind" | type Eliom_service.service_kind >> > `NonattachedCoservice ],\\   [ `WithoutSuffix ], unit, unit,\\   [< <<a_api subproject="server" text="registrable" | type Eliom_service.registrable >> > `Unregistrable ],\\   [> <<a_api subproject="server" text="non_ocaml_service" | type Eliom_service.non_ocaml_service >> ]<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="service" | type Eliom_service.service >>>>>><<div class="odocwiki_info"|~Same as <<a_api subproject="server" | val Eliom_service.void_coservice' >> but keeps non attached ~G~E~T parameters~.
+>>
+<<pre id="VALhttps_void_hidden_coservice'" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|https~_void~_hidden~_coservice~'>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >>unit, unit, [< <<a_api subproject="server" text="service_method" | type Eliom_service.service_method >> > `Get ],\\   [< <<a_api subproject="server" text="attached" | type Eliom_service.attached >> > `Nonattached ],\\   [< <<a_api subproject="server" text="service_kind" | type Eliom_service.service_kind >> > `NonattachedCoservice ],\\   [ `WithoutSuffix ], unit, unit,\\   [< <<a_api subproject="server" text="registrable" | type Eliom_service.registrable >> > `Unregistrable ],\\   [> <<a_api subproject="server" text="non_ocaml_service" | type Eliom_service.non_ocaml_service >> ]<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="service" | type Eliom_service.service >>>>>><<div class="odocwiki_info"|~Same as <<a_api subproject="server" | val Eliom_service.void_hidden_coservice' >> but forcing https~.
+>>
+
+
+==@@id="2_Miscellaneous"@@~Miscellaneous==
+
+<<pre id="VALpreapply" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|preapply>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| service: >><<span class="ocsforge_color_delimiter"| ( >>'a, 'b, [< <<a_api subproject="server" text="service_method" | type Eliom_service.service_method >> ] as 'c,\\           [< <<a_api subproject="server" text="attached" | type Eliom_service.attached >> > `Attached ] as 'd,\\           [< <<a_api subproject="server" text="service_kind" | type Eliom_service.service_kind >> ] as 'g,\\           [< <<a_api subproject="server" text="suff" | type Eliom_service.suff >> ], 'e, 'f,\\           [< <<a_api subproject="server" text="registrable" | type Eliom_service.registrable >> ], 'return<<span class="ocsforge_color_delimiter"| ) >>\\          <<a_api subproject="server" text="service" | type Eliom_service.service >> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>unit, 'b, 'c, 'd, 'g, [ `WithoutSuffix ], unit, 'f,\\   [< <<a_api subproject="server" text="registrable" | type Eliom_service.registrable >> > `Unregistrable ], 'return<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="service" | type Eliom_service.service >>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|preapply ~~service paramaters>> creates a new service
+    by preapplying <<span class="odocwiki_inlinecode"|service>> to the ~G~E~T <<span class="odocwiki_inlinecode"|parameters>>~. ~It is not
+    possible to register a handler on an preapplied service ~;
+    preapplied services may be used in links or as fallbacks for
+    coservices
+>>
+<<pre id="VALattach_coservice'" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|attach~_coservice~'>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| fallback: >><<span class="ocsforge_color_delimiter"| ( >>unit, unit, [< `Get ], [< <<a_api subproject="server" text="attached_kind" | type Eliom_service.attached_kind >> ],\\            [< `AttachedCoservice | `Service ], [< <<a_api subproject="server" text="suff" | type Eliom_service.suff >> ],\\            unit, unit, [< <<a_api subproject="server" text="registrable" | type Eliom_service.registrable >> ], 'return1<<span class="ocsforge_color_delimiter"| ) >>\\           <<a_api subproject="server" text="service" | type Eliom_service.service >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| service: >><<span class="ocsforge_color_delimiter"| ( >>'get, 'post, [< <<a_api subproject="server" text="service_method" | type Eliom_service.service_method >> ] as 'a,\\           [< <<a_api subproject="server" text="non_attached_kind" | type Eliom_service.non_attached_kind >> ],\\           [< `NonattachedCoservice ], [< `WithoutSuffix ] as 'b, 'gn,\\           'pn, [< <<a_api subproject="server" text="registrable" | type Eliom_service.registrable >> ], 'return<<span class="ocsforge_color_delimiter"| ) >>\\          <<a_api subproject="server" text="service" | type Eliom_service.service >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'get, 'post, 'a, [< <<a_api subproject="server" text="attached" | type Eliom_service.attached >> > `Attached ],\\   [< <<a_api subproject="server" text="service_kind" | type Eliom_service.service_kind >> > `AttachedCoservice ], 'b, 'gn, 'pn,\\   [< <<a_api subproject="server" text="registrable" | type Eliom_service.registrable >> > `Unregistrable ], 'return<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="service" | type Eliom_service.service >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|attach~_coservice~' ~~fallback ~~service>> attaches the non~-attached
+    coservice <<span class="odocwiki_inlinecode"|service>> on the ~U~R~L of <<span class="odocwiki_inlinecode"|fallback>>~. ~This allows to
+    create a link to a non~-attached coservice but with another ~U~R~L
+    than the current one~. ~It is not possible to register something
+    on the service returned by this function~.
+>>
+<<pre id="VALadd_non_localized_get_parameters" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|add~_non~_localized~_get~_parameters>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| params: >><<span class="ocsforge_color_delimiter"| ( >>'p, [ `WithoutSuffix ], 'pn<<span class="ocsforge_color_delimiter"| ) >>\\         <<a_api subproject="server" text="Eliom_parameter.non_localized_params" | type Eliom_parameter.non_localized_params >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| service: >><<span class="ocsforge_color_delimiter"| ( >>'a, 'b, [< <<a_api subproject="server" text="service_method" | type Eliom_service.service_method >> ] as 'c,\\           [< <<a_api subproject="server" text="attached" | type Eliom_service.attached >> ] as 'd,\\           [< <<a_api subproject="server" text="service_kind" | type Eliom_service.service_kind >> ] as 'g,\\           [< <<a_api subproject="server" text="suff" | type Eliom_service.suff >> ] as 'h, 'e, 'f,\\           [< <<a_api subproject="server" text="registrable" | type Eliom_service.registrable >> ] as 'i, 'return<<span class="ocsforge_color_delimiter"| ) >>\\          <<a_api subproject="server" text="service" | type Eliom_service.service >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a * 'p, 'b, 'c, 'd, 'g, 'h, 'e * 'pn, 'f, 'i, 'return<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="service" | type Eliom_service.service >>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|add~_non~_localized~_get~_parameters ~~params ~~service>>
+    ~Adds non localized ~G~E~T parameters <<span class="odocwiki_inlinecode"|params>> to <<span class="odocwiki_inlinecode"|service>>~. ~See the
+    ~Eliom manual for more information about <<a_manual
+    chapter="server-params" fragment="nonlocalizedparameters"|non localized
+    parameters>>~.
+>>
+<<pre id="VALadd_non_localized_post_parameters" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|add~_non~_localized~_post~_parameters>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| params: >><<span class="ocsforge_color_delimiter"| ( >>'p, [ `WithoutSuffix ], 'pn<<span class="ocsforge_color_delimiter"| ) >>\\         <<a_api subproject="server" text="Eliom_parameter.non_localized_params" | type Eliom_parameter.non_localized_params >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| service: >><<span class="ocsforge_color_delimiter"| ( >>'a, 'b, [< <<a_api subproject="server" text="service_method" | type Eliom_service.service_method >> ] as 'c,\\           [< <<a_api subproject="server" text="attached" | type Eliom_service.attached >> ] as 'd,\\           [< <<a_api subproject="server" text="service_kind" | type Eliom_service.service_kind >> ] as 'g,\\           [< <<a_api subproject="server" text="suff" | type Eliom_service.suff >> ] as 'h, 'e, 'f,\\           [< <<a_api subproject="server" text="registrable" | type Eliom_service.registrable >> ] as 'i, 'return<<span class="ocsforge_color_delimiter"| ) >>\\          <<a_api subproject="server" text="service" | type Eliom_service.service >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a, 'b * 'p, 'c, 'd, 'g, 'h, 'e, 'f * 'pn, 'i, 'return<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="service" | type Eliom_service.service >>>>>><<div class="odocwiki_info"|~Same as <<a_api subproject="server" | val Eliom_service.add_non_localized_get_parameters >> but with ~P~O~S~T
+    parameters~.
+>>
+<<pre id="VALunregister" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|unregister>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?scope: >>[< <<a_api subproject="server" text="Eliom_common.scope" | type Eliom_common.scope >> ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?secure: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a, 'b, [< <<a_api subproject="server" text="service_method" | type Eliom_service.service_method >> ],\\   [< <<a_api subproject="server" text="attached" | type Eliom_service.attached >> ],\\   [< <<a_api subproject="server" text="service_kind" | type Eliom_service.service_kind >>\\    > `AttachedCoservice `NonattachedCoservice `Service ],\\   [< <<a_api subproject="server" text="suff" | type Eliom_service.suff >> ], 'f, 'g, [< <<a_api subproject="server" text="registrable" | type Eliom_service.registrable >> ],\\   'return<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="service" | type Eliom_service.service >> <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|unregister service>> unregister the service handler
+    previously associated to <<span class="odocwiki_inlinecode"|service>> with
+    <<a_api subproject="server" | val Eliom_registration.Html5.register >>~,
+    <<span class="odocwiki_inlinecode"|~Eliom~_registration~.~App~.register>> or any other
+    <<a_api subproject="server" | module Eliom_registration >><<span class="odocwiki_inlinecode"|~.~*~.register>> functions~. ~See the documentation of
+    those functions for a description of the <<span class="odocwiki_inlinecode"|~~scope>> and <<span class="odocwiki_inlinecode"|~~secure>>
+    optional parameters~.
+>>

@@ -1,0 +1,10 @@
+<<code language="ocaml" | sig
+  type t
+  val name : string
+  val make_page :
+    Eliom_output.TMPL_PARAMS.t ->
+    HTML5_types.html Eliom_pervasives.HTML5.elt Lwt.t
+  val update :
+    Eliom_output.TMPL_PARAMS.t ->
+    Dom_html.event Eliom_pervasives.XML.caml_event_handler
+end >>

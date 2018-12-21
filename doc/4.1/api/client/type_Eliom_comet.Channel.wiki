@@ -1,0 +1,1 @@
+<<code language="ocaml" | sig type 'a t = 'a Lwt_stream.t end >>

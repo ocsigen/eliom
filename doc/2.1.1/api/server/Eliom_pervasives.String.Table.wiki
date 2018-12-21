@@ -1,0 +1,3 @@
+=Module <<a_api_type subproject="server" | module Eliom_pervasives.String.Table >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Table>>>> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Map.S>>>><<span class="odocwiki_type"| with type key = string\\      and type 'a t = 'a <<span class="ocsforge_color_uid"|Ocsigen_pervasives.String.Table>>.t>>>>
+----

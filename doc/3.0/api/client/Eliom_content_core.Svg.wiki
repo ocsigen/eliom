@@ -1,0 +1,24 @@
+=Module <<a_api_type subproject="client" | module Eliom_content_core.Svg >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Svg>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content_core.Svg >><<span class="ocsforge_color_keyword"|end>>>>~Building ~S~V~G tree~.
+
+----
+<<pre class="ocsforge_color odocwiki_code" id="TYPEelt"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|+'a>> <<span class="odocwiki_name"|elt>>>><<div class="odocwiki_info"|~See the ~Eliom manual for more information on<<a_manual
+      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
+      semantics>>  for ~S~V~G tree manipulated by client~/server
+      application~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEattrib"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|attrib>>>><<pre class="ocsforge_color odocwiki_code" id="TYPEuri"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|uri>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|<<a_api subproject="client" text="Eliom_content_core.Xml.uri" | type Eliom_content_core.Xml.uri >>>> >>
+
+==@@id="2_Functionalsemantics"@@~Functional semantics==
+
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="F" | module Eliom_content_core.Svg.F >> <<span class="ocsforge_color_delimiter"|~:>> \\  \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Svg_sigs.T>>>><<span class="odocwiki_type"| with type Xml.uri = Xml.uri\\          and type Xml.event_handler = Xml.event_handler\\          and type Xml.attrib = Xml.attrib and type Xml.elt = Xml.elt>><<span class="odocwiki_type"| with\\        type 'a elt = 'a elt\\      and type 'a attrib = 'a attrib and type uri = uri>>>><<div class="odocwiki_info"|~Typed interface for building valid ~S~V~G tree ~(functional
+      semantics~)~.
+>>
+
+
+==@@id="2_DOMsemantics"@@~D~O~M semantics==
+
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="D" | module Eliom_content_core.Svg.D >> <<span class="ocsforge_color_delimiter"|~:>> \\  \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Svg_sigs.T>>>><<span class="odocwiki_type"| with type Xml.uri = Xml.uri\\          and type Xml.event_handler = Xml.event_handler\\          and type Xml.attrib = Xml.attrib and type Xml.elt = Xml.elt>><<span class="odocwiki_type"| with\\        type 'a elt = 'a elt\\      and type 'a attrib = 'a attrib and type uri = uri>>>><<div class="odocwiki_info"|~Typed interface for building valid ~S~V~G tree ~(~D~O~M semantics~)~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="Id" | module Eliom_content_core.Svg.Id >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content_core.Svg.Id >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Global node
+>>

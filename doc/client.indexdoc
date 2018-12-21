@@ -1,0 +1,30 @@
+{1 Client API}
+
+{!modules:
+Eliom_lib
+Eliom_client
+Eliom_client_value
+}
+
+{2 Content and form creation}
+
+{!modules:
+Eliom_content.Html
+Eliom_content.Svg
+Eliom_content.Xml
+}
+
+{2 Client/server communication}
+
+{!modules:
+Eliom_service
+Eliom_shared
+Eliom_cscache
+Eliom_bus
+Eliom_comet
+Eliom_react
+}
+
+{2 Index}
+
+{!indexlist}

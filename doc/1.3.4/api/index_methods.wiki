@@ -1,0 +1,20 @@
+=Index of class methods=
+
+|@@ @class="alignleft"@@\\A|
+|<<a_api text="add"| method Ocsigen_cache.Make.cache#add >> ~[<<a_api | module Ocsigen_cache.Make >>~]||
+|@@ @class="alignleft"@@\\C|
+|<<a_api text="clear"| method Ocsigen_cache.Make.cache#clear >> ~[<<a_api | module Ocsigen_cache.Make >>~]||
+|@@ @class="alignleft"@@\\F|
+|<<a_api text="find"| method Ocsigen_cache.Make.cache#find >> ~[<<a_api | module Ocsigen_cache.Make >>~]|<<div class="info"|~Find the cached value associated to the key~, or binds this
+         value in the cache using the function passed as argument
+         to <<span class='code'|create>>~, and returns this value
+>>
+|
+|<<a_api text="find_in_cache"| method Ocsigen_cache.Make.cache#find_in_cache >> ~[<<a_api | module Ocsigen_cache.Make >>~]|<<div class="info"|~Find the cached value associated to the key~.
+>>
+|
+|@@ @class="alignleft"@@\\R|
+|<<a_api text="remove"| method Ocsigen_cache.Make.cache#remove >> ~[<<a_api | module Ocsigen_cache.Make >>~]||
+|@@ @class="alignleft"@@\\S|
+|<<a_api text="size"| method Ocsigen_cache.Make.cache#size >> ~[<<a_api | module Ocsigen_cache.Make >>~]||
+\\

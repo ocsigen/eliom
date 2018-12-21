@@ -1,0 +1,119 @@
+<<code language="ocaml" | sig
+  val init_client_app :
+    ?ssl:bool ->
+    hostname:string ->
+    ?port:int -> full_path:Eliom_lib.Url.path -> unit -> unit
+  val change_page :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, [< Eliom_service.service_method ],
+             [< Eliom_service.attached ], [< Eliom_service.service_kind ],
+             [< Eliom_service.suff ], 'd, 'e, [< Eliom_service.registrable ],
+             [< Eliom_registration.non_ocaml_service ])
+            Eliom_service.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool -> 'a -> 'b -> unit Lwt.t
+  val call_ocaml_service :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, [< Eliom_service.service_method ],
+             [< Eliom_service.attached ], [< Eliom_service.service_kind ],
+             [< Eliom_service.suff ], 'd, 'e, [< Eliom_service.registrable ],
+             'return Eliom_service.ocaml_service)
+            Eliom_service.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool -> 'a -> 'b -> 'return Lwt.t
+  val exit_to :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, [< Eliom_service.service_method ],
+             [< Eliom_service.attached ], [< Eliom_service.service_kind ],
+             [< Eliom_service.suff ], 'd, 'e, [< Eliom_service.registrable ],
+             [< Eliom_registration.non_ocaml_service ])
+            Eliom_service.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool -> 'a -> 'b -> unit
+  val window_open :
+    window_name:Js.js_string Js.t ->
+    ?window_features:Js.js_string Js.t ->
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, unit, [< Eliom_service.get_service_kind ],
+             [< Eliom_service.attached ], [< Eliom_service.service_kind ],
+             [< Eliom_service.suff ], 'b, unit,
+             [< Eliom_service.registrable ], 'c)
+            Eliom_service.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool -> 'a -> Dom_html.window Js.t
+  val change_url :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('get, unit, [< Eliom_service.get_service_kind ],
+             [< Eliom_service.attached ], [< Eliom_service.service_kind ],
+             [< Eliom_service.suff ], 'gn, unit,
+             [< Eliom_service.registrable ], 'return)
+            Eliom_service.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set -> 'get -> unit
+  val call_service :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, [< Eliom_service.service_method ],
+             [< Eliom_service.attached ], [< Eliom_service.service_kind ],
+             [< Eliom_service.suff ], 'd, 'e, [< Eliom_service.registrable ],
+             'return)
+            Eliom_service.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool -> 'a -> 'b -> string Lwt.t
+  val onload : (unit -> unit) -> unit
+  val onunload : (unit -> unit) -> unit
+  val wait_load_end : unit -> unit Lwt.t
+  val in_onload : unit -> bool
+  val getElementById : string -> Dom.node Js.t
+  type content_ns = [ `HTML5 | `SVG ]
+  val rebuild_node' :
+    Eliom_client.content_ns -> Eliom_content_core.Xml.elt -> Dom.node Js.t
+  val rebuild_node : string -> 'a Eliom_content_core.Html5.elt -> < .. > Js.t
+  val rebuild_node_svg :
+    string -> 'a Eliom_content_core.Svg.elt -> < .. > Js.t
+  val init : unit -> unit
+  val form_handler :
+    (Dom_html.element Js.t, Dom_html.event Js.t) Dom_html.event_listener
+  module Syntax_helpers :
+    sig
+      val get_injection : ?ident:string -> ?pos:Eliom_lib.pos -> string -> 'a
+      val register_client_closure : int64 -> ('args -> 'res) -> unit
+      val close_server_section : string -> unit
+      val open_client_section : string -> unit
+      val get_escaped_value : Eliom_lib.escaped_value -> 'a
+    end
+end >>

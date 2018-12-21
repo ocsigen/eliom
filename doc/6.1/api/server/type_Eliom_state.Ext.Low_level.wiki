@@ -1,0 +1,26 @@
+<<code language="ocaml" | sig
+  val get_volatile_data :
+    state:([< `Client_process | `Session | `Session_group ], [< `Data ])
+          Eliom_state.Ext.state ->
+    table:'a Eliom_state.volatile_table -> 'a
+  val get_persistent_data :
+    state:([< `Client_process | `Session | `Session_group ], [< `Pers ])
+          Eliom_state.Ext.state ->
+    table:'a Eliom_state.persistent_table -> 'a Lwt.t
+  val set_volatile_data :
+    state:([< `Client_process | `Session | `Session_group ], [< `Data ])
+          Eliom_state.Ext.state ->
+    table:'a Eliom_state.volatile_table -> 'a -> unit
+  val set_persistent_data :
+    state:([< `Client_process | `Session | `Session_group ], [< `Pers ])
+          Eliom_state.Ext.state ->
+    table:'a Eliom_state.persistent_table -> 'a -> unit Lwt.t
+  val remove_volatile_data :
+    state:([< `Client_process | `Session | `Session_group ], [< `Data ])
+          Eliom_state.Ext.state ->
+    table:'a Eliom_state.volatile_table -> unit
+  val remove_persistent_data :
+    state:([< `Client_process | `Session | `Session_group ], [< `Pers ])
+          Eliom_state.Ext.state ->
+    table:'a Eliom_state.persistent_table -> unit Lwt.t
+end >>

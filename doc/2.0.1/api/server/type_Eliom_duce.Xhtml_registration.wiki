@@ -1,0 +1,1 @@
+<<code language="ocaml" | Eliom_duce_sigs.XHTML_REGISTRATION >>

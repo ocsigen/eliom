@@ -1,0 +1,45 @@
+<<code language="ocaml" | sig
+  module Make :
+    functor (A : sig type key type value end) ->
+      sig
+        class cache :
+          (A.key -> A.value Lwt.t) ->
+          int ->
+          object
+            method add : A.key -> A.value -> unit
+            method clear : unit -> unit
+            method find : A.key -> A.value Lwt.t
+            method find_in_cache : A.key -> A.value
+            method remove : A.key -> unit
+            method size : int
+          end
+      end
+  val clear_all_caches : unit -> unit
+  module Dlist :
+    sig
+      type 'a t
+      type 'a node
+      val create : int -> 'a Ocsigen_cache.Dlist.t
+      val add : 'a -> 'a Ocsigen_cache.Dlist.t -> 'a option
+      val remove : 'a Ocsigen_cache.Dlist.node -> unit
+      val up : 'a Ocsigen_cache.Dlist.node -> unit
+      val newest :
+        'a Ocsigen_cache.Dlist.t -> 'a Ocsigen_cache.Dlist.node option
+      val oldest :
+        'a Ocsigen_cache.Dlist.t -> 'a Ocsigen_cache.Dlist.node option
+      val size : 'a Ocsigen_cache.Dlist.t -> int
+      val maxsize : 'a Ocsigen_cache.Dlist.t -> int
+      val value : 'a Ocsigen_cache.Dlist.node -> 'a
+      val list_of :
+        'a Ocsigen_cache.Dlist.node -> 'a Ocsigen_cache.Dlist.t option
+      val remove_n_oldest : 'a Ocsigen_cache.Dlist.t -> int -> 'a list
+      val move :
+        'a Ocsigen_cache.Dlist.node -> 'a Ocsigen_cache.Dlist.t -> 'a option
+      val set_maxsize : 'a Ocsigen_cache.Dlist.t -> int -> 'a list
+      val set_finaliser :
+        ('a Ocsigen_cache.Dlist.node -> unit) ->
+        'a Ocsigen_cache.Dlist.t -> unit
+      val get_finaliser :
+        'a Ocsigen_cache.Dlist.t -> 'a Ocsigen_cache.Dlist.node -> unit
+    end
+end >>

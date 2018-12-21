@@ -1,0 +1,4 @@
+=Module <<a_api_type | module Eliom_obrowser >> =
+<<div class="code"|<<span class="keyword"|module>> Eliom_obrowser: <<span class='code'|sig>><<a_api text=".." | module Eliom_obrowser >><<span class='code'|end>>>>
+----
+<<div id="VALjsmarshal" class="code"|<<span class="keyword"|val>> jsmarshal : <<span class="code type"|'a -> string>>>><<div id="VALfresh_id" class="code"|<<span class="keyword"|val>> fresh~_id : <<span class="code type"|unit -> string>>>>

@@ -1,0 +1,5 @@
+=Index of classes=
+
+|@@ @class="alignleft"@@\\C|
+|<<a_api text="cache"| class Ocsigen_cache.Make.cache >> ~[<<a_api | module Ocsigen_cache.Make >>~]||
+\\

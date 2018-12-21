@@ -1,0 +1,106 @@
+<<code language="ocaml" | sig
+  type 'a wrap = 'a
+  type 'a list_wrap = 'a list
+  type uri
+  val string_of_uri : uri -> string
+  val uri_of_string : string -> uri
+  type aname = string
+  type event_handler = (Dom_html.event Js.t -> unit) Eliom_lib.client_value
+  type mouse_event_handler =
+      (Dom_html.mouseEvent Js.t -> unit) Eliom_lib.client_value
+  type keyboard_event_handler =
+      (Dom_html.keyboardEvent Js.t -> unit) Eliom_lib.client_value
+  type attrib
+  val float_attrib : aname -> float wrap -> attrib
+  val int_attrib : aname -> int wrap -> attrib
+  val string_attrib : aname -> string wrap -> attrib
+  val space_sep_attrib : aname -> string list wrap -> attrib
+  val comma_sep_attrib : aname -> string list wrap -> attrib
+  val event_handler_attrib : aname -> event_handler -> attrib
+  val mouse_event_handler_attrib : aname -> mouse_event_handler -> attrib
+  val keyboard_event_handler_attrib :
+    aname -> keyboard_event_handler -> attrib
+  val uri_attrib : aname -> uri wrap -> attrib
+  val uris_attrib : aname -> uri list wrap -> attrib
+  type elt
+  type ename = string
+  val empty : unit -> elt
+  val comment : string -> elt
+  val pcdata : string wrap -> elt
+  val encodedpcdata : string wrap -> elt
+  val entity : string -> elt
+  val leaf : ?a:attrib list -> ename -> elt
+  val node : ?a:attrib list -> ename -> elt list_wrap -> elt
+  val cdata : string -> elt
+  val cdata_script : string -> elt
+  val cdata_style : string -> elt
+  type separator = Space | Comma
+  val aname : attrib -> aname
+  type acontent = private
+      AFloat of float
+    | AInt of int
+    | AStr of string
+    | AStrL of separator * string list
+  val acontent : attrib -> acontent
+  type econtent = private
+      Empty
+    | Comment of string
+    | EncodedPCDATA of string
+    | PCDATA of string
+    | Entity of string
+    | Leaf of ename * attrib list
+    | Node of ename * attrib list * elt list
+  val content : elt -> econtent
+  type -'a caml_event_handler constraint 'a = #Dom_html.event
+  val make_process_node : ?id:string -> elt -> elt
+  val make_request_node : elt -> elt
+  val uri_of_fun : (unit -> string) -> uri
+  type node_id
+  val get_node_id : elt -> Eliom_content.Xml.node_id
+  val make_event_handler_table : elt -> Eliom_lib.RawXML.event_handler_table
+  val make_client_attrib_table : elt -> Eliom_lib.RawXML.client_attrib_table
+  val caml_event_handler :
+    ((#Dom_html.event as 'a) Js.t -> unit) Eliom_lib.client_value ->
+    'a Eliom_content.Xml.caml_event_handler
+  class type biggest_event =
+    object
+      method _type : Js.js_string Js.t Js.readonly_prop
+      method altKey : bool Js.t Js.readonly_prop
+      method button : int Js.readonly_prop
+      method charCode : int Js.optdef Js.readonly_prop
+      method clientX : int Js.readonly_prop
+      method clientY : int Js.readonly_prop
+      method ctrlKey : bool Js.t Js.readonly_prop
+      method currentTarget : Dom_html.element Js.t Js.opt Js.readonly_prop
+      method fromElement :
+        Dom_html.element Js.t Js.opt Js.optdef Js.readonly_prop
+      method keyCode : int Js.readonly_prop
+      method keyIdentifier : Js.js_string Js.t Js.optdef Js.readonly_prop
+      method metaKey : bool Js.t Js.readonly_prop
+      method pageX : int Js.optdef Js.readonly_prop
+      method pageY : int Js.optdef Js.readonly_prop
+      method relatedTarget :
+        Dom_html.element Js.t Js.opt Js.optdef Js.readonly_prop
+      method screenX : int Js.readonly_prop
+      method screenY : int Js.readonly_prop
+      method shiftKey : bool Js.t Js.readonly_prop
+      method srcElement : Dom_html.element Js.t Js.opt Js.readonly_prop
+      method target : Dom_html.element Js.t Js.opt Js.readonly_prop
+      method toElement :
+        Dom_html.element Js.t Js.opt Js.optdef Js.readonly_prop
+      method which : Dom_html.mouse_button Js.optdef Js.readonly_prop
+    end
+  type racontent =
+      RA of acontent
+    | RAReact of acontent option React.signal
+    | RACamlEventHandler of
+        Eliom_content.Xml.biggest_event Eliom_content.Xml.caml_event_handler
+    | RALazyStr of string Eliom_lazy.request
+    | RALazyStrL of separator * string Eliom_lazy.request list
+    | RAClient of string * attrib option *
+        attrib Eliom_lib.Client_value_server_repr.t
+  val racontent : attrib -> Eliom_content.Xml.racontent
+  val lazy_node :
+    ?a:attrib list -> ename -> elt list Eliom_lazy.request -> elt
+  val wrap : elt -> 'a -> 'a Eliom_wrap.wrapped_value
+end >>

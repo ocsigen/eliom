@@ -1,0 +1,11 @@
+=Class <<a_api_type | class Ocsigen_cache.Make.cache >> =
+<<div class="code"|<<span name="TYPEcache"|<<span class="keyword"|class>> cache>> : <<span class="code type"|(A.key -> A.value Lwt.t) -> int -> >><<span class='code'|object>><<a_api text=".." | class Ocsigen_cache.Make.cache >><<span class='code'|end>>>>
+----
+<<div class="code"|<<span id="METHODfind"|<<span class="keyword"|method>> find>> : <<span class="code type"|A.key -> A.value Lwt.t>>>><<div class="info"|~Find the cached value associated to the key~, or binds this
+         value in the cache using the function passed as argument
+         to <<span class='code'|create>>~, and returns this value\\
+>>
+<<div class="code"|<<span id="METHODfind_in_cache"|<<span class="keyword"|method>> find_in_cache>> : <<span class="code type"|A.key -> A.value>>>><<div class="info"|~Find the cached value associated to the key~. ~Raises <<span class='code'|~Not~_found>>
+         if the key is not present in the cache\\
+>>
+<<div class="code"|<<span id="METHODremove"|<<span class="keyword"|method>> remove>> : <<span class="code type"|A.key -> unit>>>><<div class="code"|<<span id="METHODadd"|<<span class="keyword"|method>> add>> : <<span class="code type"|A.key -> A.value -> unit>>>><<div class="code"|<<span id="METHODclear"|<<span class="keyword"|method>> clear>> : <<span class="code type"|unit -> unit>>>><<div class="code"|<<span id="METHODsize"|<<span class="keyword"|method>> size>> : <<span class="code type"|int>>>>

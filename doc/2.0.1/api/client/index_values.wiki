@@ -1,0 +1,1124 @@
+=Index of values=
+
+|@@ @style="tet-align: left;"@@\\|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="(!!)"| value Eliom_pervasives.(!!) >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="(>>=)"| value Eliom_pervasives.(>>=) >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="(>|=)"| value Eliom_pervasives.(>|=) >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@ @style="tet-align: left;"@@\\A|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="a"| value Eliom_output_base.Html5_forms.a >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|a service cont ~(~)>> creates a link to <<span class="odocwiki_inlinecode"|service>>~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="a"| value Eliom_output.Html5_forms.a >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|a service cont ~(~)>> creates a link to <<span class="odocwiki_inlinecode"|service>>~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="a"| value Eliom_output.Html5.a >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|a service cont ~(~)>> creates a link to <<span class="odocwiki_inlinecode"|service>>~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="a"| value Eliom_mkforms.MakeForms.a >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|a service cont ~(~)>> creates a link to <<span class="odocwiki_inlinecode"|service>>~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="activate"| value Eliom_comet.activate >> ~[<<a_api subproject="client" | module Eliom_comet >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|is~_active ~(~)>> returns the current activity state
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="add_non_localized_get_parameters"| value Eliom_services.add_non_localized_get_parameters >> ~[<<a_api subproject="client" | module Eliom_services >>~]|<<div class="odocwiki_info"|~Miscellaneous
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="add_non_localized_post_parameters"| value Eliom_services.add_non_localized_post_parameters >> ~[<<a_api subproject="client" | module Eliom_services >>~]|<<div class="odocwiki_info"|~Adds non localized ~G~E~T parameters to a service
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="alert"| value Eliom_pervasives.alert >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@ @style="tet-align: left;"@@\\B|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="bool_checkbox"| value Eliom_output_base.Html5_forms.bool_checkbox >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have a boolean value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="bool_checkbox"| value Eliom_output.Html5_forms.bool_checkbox >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have a boolean value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="bool_checkbox"| value Eliom_output.Html5.bool_checkbox >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have a boolean value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="bool_checkbox"| value Eliom_mkforms.MakeForms.bool_checkbox >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have a boolean value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="button"| value Eliom_output_base.Html5_forms.button >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with no value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="button"| value Eliom_output.Html5_forms.button >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with no value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="button"| value Eliom_output.Html5.button >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with no value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="button"| value Eliom_mkforms.MakeForms.button >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with no value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="buttonsubmit"| value Eliom_mkforms.FORMS_PARAM.buttonsubmit >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@ @style="tet-align: left;"@@\\C|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="call_caml_service"| value Eliom_client.call_caml_service >> ~[<<a_api subproject="client" | module Eliom_client >>~]|<<div class="odocwiki_info"|~Call a server side service that return a ~Caml value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="call_service"| value Eliom_client.call_service >> ~[<<a_api subproject="client" | module Eliom_client >>~]|<<div class="odocwiki_info"|~(low level~) ~Call a server side service and return the content
+    of the resulting ~H~T~T~P frame as a string~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="change_page"| value Eliom_client.change_page >> ~[<<a_api subproject="client" | module Eliom_client >>~]|<<div class="odocwiki_info"|~Call a server side service and change the current page~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="change_url"| value Eliom_client.change_url >> ~[<<a_api subproject="client" | module Eliom_client >>~]|<<div class="odocwiki_info"|~(low level~) ~Change the ~U~R~L~, without doing a request~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="checkbox"| value Eliom_mkforms.FORMS_PARAM.checkbox >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="chop"| value Eliom_pervasives.List.chop >> ~[<<a_api subproject="client" | module Eliom_pervasives.List >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="close"| value Eliom_bus.close >> ~[<<a_api subproject="client" | module Eliom_bus >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|write b v>> send <<span class="odocwiki_inlinecode"|v>> to the bus <<span class="odocwiki_inlinecode"|b>>~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="cons_form"| value Eliom_mkforms.FORMS_PARAM.cons_form >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="css_link"| value Eliom_output_base.Html5_forms.css_link >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<link~>>> tag for a ~Cascading ~Style~Sheet ~(~C~S~S~)~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="css_link"| value Eliom_output.Html5_forms.css_link >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<link~>>> tag for a ~Cascading ~Style~Sheet ~(~C~S~S~)~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="css_link"| value Eliom_output.Html5.css_link >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<link~>>> tag for a ~Cascading ~Style~Sheet ~(~C~S~S~)~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="css_link"| value Eliom_mkforms.MakeForms.css_link >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<link~>>> tag for a ~Cascading ~Style~Sheet ~(~C~S~S~)~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\D|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="debug"| value Eliom_pervasives.debug >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="debug_exn"| value Eliom_pervasives.debug_exn >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="debug_var"| value Eliom_pervasives.debug_var >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="decode"| value Eliom_pervasives.Url.decode >> ~[<<a_api subproject="client" | module Eliom_pervasives.Url >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="drop_configuration"| value Eliom_comet.Configuration.drop_configuration >> ~[<<a_api subproject="client" | module Eliom_comet.Configuration >>~]|<<div class="odocwiki_info"|~Creates a new configuration with default value~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\E|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="empty_seq"| value Eliom_mkforms.FORMS_PARAM.empty_seq >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="encode"| value Eliom_pervasives.Url.encode >> ~[<<a_api subproject="client" | module Eliom_pervasives.Url >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="encode_form_value"| value Eliom_pervasives.encode_form_value >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="encode_header_value"| value Eliom_pervasives.encode_header_value >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="error"| value Eliom_pervasives.error >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="exit_to"| value Eliom_client.exit_to >> ~[<<a_api subproject="client" | module Eliom_client >>~]|<<div class="odocwiki_info"|~Stop current program and load a new page~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\F|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="file"| value Eliom_mkforms.FORMS_PARAM.file >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="file_input"| value Eliom_output_base.Html5_forms.file_input >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for sending a file
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="file_input"| value Eliom_output.Html5_forms.file_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for sending a file
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="file_input"| value Eliom_output.Html5.file_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for sending a file
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="file_input"| value Eliom_mkforms.MakeForms.file_input >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for sending a file
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_button"| value Eliom_output_base.Html5_forms.float_button >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with float content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_button"| value Eliom_output.Html5_forms.float_button >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with float content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_button"| value Eliom_output.Html5.float_button >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with float content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_button"| value Eliom_mkforms.MakeForms.float_button >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with float content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_checkbox"| value Eliom_output_base.Html5_forms.float_checkbox >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have a float value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_checkbox"| value Eliom_output.Html5_forms.float_checkbox >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have a float value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_checkbox"| value Eliom_output.Html5.float_checkbox >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have a float value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_checkbox"| value Eliom_mkforms.MakeForms.float_checkbox >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have a float value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_image_input"| value Eliom_output_base.Html5_forms.float_image_input >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type float
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_image_input"| value Eliom_output.Html5_forms.float_image_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type float
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_image_input"| value Eliom_output.Html5.float_image_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type float
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_image_input"| value Eliom_mkforms.MakeForms.float_image_input >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type float
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_input"| value Eliom_output_base.Html5_forms.float_input >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for a float
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_input"| value Eliom_output.Html5_forms.float_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for a float
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_input"| value Eliom_output.Html5.float_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for a float
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_input"| value Eliom_mkforms.MakeForms.float_input >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for a float
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_multiple_select"| value Eliom_output_base.Html5_forms.float_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for float values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_multiple_select"| value Eliom_output.Html5_forms.float_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for float values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_multiple_select"| value Eliom_output.Html5.float_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for float values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_multiple_select"| value Eliom_mkforms.MakeForms.float_multiple_select >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for float values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_radio"| value Eliom_output_base.Html5_forms.float_radio >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with float content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_radio"| value Eliom_output.Html5_forms.float_radio >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with float content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_radio"| value Eliom_output.Html5.float_radio >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with float content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_radio"| value Eliom_mkforms.MakeForms.float_radio >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with float content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_select"| value Eliom_output_base.Html5_forms.float_select >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for float values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_select"| value Eliom_output.Html5_forms.float_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for float values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_select"| value Eliom_output.Html5.float_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for float values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_select"| value Eliom_mkforms.MakeForms.float_select >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for float values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="force"| value Eliom_lazy.force >> ~[<<a_api subproject="client" | module Eliom_lazy >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="from_fun"| value Eliom_lazy.from_fun >> ~[<<a_api subproject="client" | module Eliom_lazy >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="from_poly"| value Eliom_pervasives.from_poly >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="from_val"| value Eliom_lazy.from_val >> ~[<<a_api subproject="client" | module Eliom_lazy >>~]||
+|@@ @style="tet-align: left;"@@\\G|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_cookie_info_for_uri_js"| value Eliom_request.get_cookie_info_for_uri_js >> ~[<<a_api subproject="client" | module Eliom_request >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_form"| value Eliom_output_base.Html5_forms.get_form >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|get~_form service formgen>> creates a ~G~E~T form to <<span class="odocwiki_inlinecode"|service>>~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_form"| value Eliom_output.Html5_forms.get_form >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|get~_form service formgen>> creates a ~G~E~T form to <<span class="odocwiki_inlinecode"|service>>~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_form"| value Eliom_output.Html5.get_form >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|get~_form service formgen>> creates a ~G~E~T form to <<span class="odocwiki_inlinecode"|service>>~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_form"| value Eliom_mkforms.MakeForms.get_form >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|get~_form service formgen>> creates a ~G~E~T form to <<span class="odocwiki_inlinecode"|service>>~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_ssl"| value Eliom_pervasives.Url.get_ssl >> ~[<<a_api subproject="client" | module Eliom_pervasives.Url >>~]||
+|@@ @style="tet-align: left;"@@\\H|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="hidden"| value Eliom_mkforms.FORMS_PARAM.hidden >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="http_get"| value Eliom_request.http_get >> ~[<<a_api subproject="client" | module Eliom_request >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="http_post"| value Eliom_request.http_post >> ~[<<a_api subproject="client" | module Eliom_request >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="https_void_coservice'"| value Eliom_services.https_void_coservice' >> ~[<<a_api subproject="client" | module Eliom_services >>~]|<<div class="odocwiki_info"|~A predefined non~-attached action with special behaviour~:
+    it has no parameter at all~, even non~-attached parameters~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="https_void_hidden_coservice'"| value Eliom_services.https_void_hidden_coservice' >> ~[<<a_api subproject="client" | module Eliom_services >>~]|<<div class="odocwiki_info"|~Same as <<span class="odocwiki_inlinecode"|void~_coservice~'>> but keeps non attached ~G~E~T parameters~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\I|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="id"| value Eliom_pervasives.id >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="id_of_int"| value Eliom_unwrap.id_of_int >> ~[<<a_api subproject="client" | module Eliom_unwrap >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|unwrap ~(mark~,v~)>> transform the value <<span class="odocwiki_inlinecode"|v>> using registered
+    wrappers~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="image"| value Eliom_mkforms.FORMS_PARAM.image >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="image_input"| value Eliom_output_base.Html5_forms.image_input >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~."~>>> tag that sends the coordinates
+    the user clicked on
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="image_input"| value Eliom_output.Html5_forms.image_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~."~>>> tag that sends the coordinates
+    the user clicked on
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="image_input"| value Eliom_output.Html5.image_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~."~>>> tag that sends the coordinates
+    the user clicked on
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="image_input"| value Eliom_mkforms.MakeForms.image_input >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~."~>>> tag that sends the coordinates
+    the user clicked on
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_button"| value Eliom_output_base.Html5_forms.int32_button >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with int~3~2 content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_button"| value Eliom_output.Html5_forms.int32_button >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with int~3~2 content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_button"| value Eliom_output.Html5.int32_button >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with int~3~2 content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_button"| value Eliom_mkforms.MakeForms.int32_button >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with int~3~2 content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_checkbox"| value Eliom_output_base.Html5_forms.int32_checkbox >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have an int~3~2 value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_checkbox"| value Eliom_output.Html5_forms.int32_checkbox >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have an int~3~2 value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_checkbox"| value Eliom_output.Html5.int32_checkbox >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have an int~3~2 value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_checkbox"| value Eliom_mkforms.MakeForms.int32_checkbox >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have an int~3~2 value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_image_input"| value Eliom_output_base.Html5_forms.int32_image_input >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type int~3~2
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_image_input"| value Eliom_output.Html5_forms.int32_image_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type int~3~2
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_image_input"| value Eliom_output.Html5.int32_image_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type int~3~2
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_image_input"| value Eliom_mkforms.MakeForms.int32_image_input >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type int~3~2
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_input"| value Eliom_output_base.Html5_forms.int32_input >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for an integer
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_input"| value Eliom_output.Html5_forms.int32_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for an integer
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_input"| value Eliom_output.Html5.int32_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for an integer
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_input"| value Eliom_mkforms.MakeForms.int32_input >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for an integer
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_multiple_select"| value Eliom_output_base.Html5_forms.int32_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int~3~2 values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_multiple_select"| value Eliom_output.Html5_forms.int32_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int~3~2 values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_multiple_select"| value Eliom_output.Html5.int32_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int~3~2 values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_multiple_select"| value Eliom_mkforms.MakeForms.int32_multiple_select >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int~3~2 values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_radio"| value Eliom_output_base.Html5_forms.int32_radio >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with int~3~2 content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_radio"| value Eliom_output.Html5_forms.int32_radio >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with int~3~2 content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_radio"| value Eliom_output.Html5.int32_radio >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with int~3~2 content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_radio"| value Eliom_mkforms.MakeForms.int32_radio >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with int~3~2 content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_select"| value Eliom_output_base.Html5_forms.int32_select >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int~3~2 values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_select"| value Eliom_output.Html5_forms.int32_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int~3~2 values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_select"| value Eliom_output.Html5.int32_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int~3~2 values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int32_select"| value Eliom_mkforms.MakeForms.int32_select >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int~3~2 values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_button"| value Eliom_output_base.Html5_forms.int64_button >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with int~6~4 content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_button"| value Eliom_output.Html5_forms.int64_button >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with int~6~4 content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_button"| value Eliom_output.Html5.int64_button >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with int~6~4 content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_button"| value Eliom_mkforms.MakeForms.int64_button >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with int~6~4 content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_checkbox"| value Eliom_output_base.Html5_forms.int64_checkbox >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have an int~6~4 value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_checkbox"| value Eliom_output.Html5_forms.int64_checkbox >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have an int~6~4 value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_checkbox"| value Eliom_output.Html5.int64_checkbox >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have an int~6~4 value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_checkbox"| value Eliom_mkforms.MakeForms.int64_checkbox >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have an int~6~4 value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_image_input"| value Eliom_output_base.Html5_forms.int64_image_input >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type int~6~4
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_image_input"| value Eliom_output.Html5_forms.int64_image_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type int~6~4
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_image_input"| value Eliom_output.Html5.int64_image_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type int~6~4
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_image_input"| value Eliom_mkforms.MakeForms.int64_image_input >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type int~6~4
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_input"| value Eliom_output_base.Html5_forms.int64_input >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for an integer
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_input"| value Eliom_output.Html5_forms.int64_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for an integer
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_input"| value Eliom_output.Html5.int64_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for an integer
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_input"| value Eliom_mkforms.MakeForms.int64_input >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for an integer
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_multiple_select"| value Eliom_output_base.Html5_forms.int64_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int~6~4 values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_multiple_select"| value Eliom_output.Html5_forms.int64_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int~6~4 values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_multiple_select"| value Eliom_output.Html5.int64_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int~6~4 values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_multiple_select"| value Eliom_mkforms.MakeForms.int64_multiple_select >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int~6~4 values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_radio"| value Eliom_output_base.Html5_forms.int64_radio >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with int~6~4 content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_radio"| value Eliom_output.Html5_forms.int64_radio >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with int~6~4 content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_radio"| value Eliom_output.Html5.int64_radio >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with int~6~4 content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_radio"| value Eliom_mkforms.MakeForms.int64_radio >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with int~6~4 content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_select"| value Eliom_output_base.Html5_forms.int64_select >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int~6~4 values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_select"| value Eliom_output.Html5_forms.int64_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int~6~4 values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_select"| value Eliom_output.Html5.int64_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int~6~4 values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64_select"| value Eliom_mkforms.MakeForms.int64_select >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int~6~4 values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_button"| value Eliom_output_base.Html5_forms.int_button >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with int content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_button"| value Eliom_output.Html5_forms.int_button >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with int content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_button"| value Eliom_output.Html5.int_button >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with int content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_button"| value Eliom_mkforms.MakeForms.int_button >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with int content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_checkbox"| value Eliom_output_base.Html5_forms.int_checkbox >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have an int value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_checkbox"| value Eliom_output.Html5_forms.int_checkbox >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have an int value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_checkbox"| value Eliom_output.Html5.int_checkbox >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have an int value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_checkbox"| value Eliom_mkforms.MakeForms.int_checkbox >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have an int value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_image_input"| value Eliom_output_base.Html5_forms.int_image_input >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type int
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_image_input"| value Eliom_output.Html5_forms.int_image_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type int
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_image_input"| value Eliom_output.Html5.int_image_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type int
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_image_input"| value Eliom_mkforms.MakeForms.int_image_input >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type int
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_input"| value Eliom_output_base.Html5_forms.int_input >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for an integer
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_input"| value Eliom_output.Html5_forms.int_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for an integer
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_input"| value Eliom_output.Html5.int_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for an integer
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_input"| value Eliom_mkforms.MakeForms.int_input >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for an integer
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_multiple_select"| value Eliom_output_base.Html5_forms.int_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_multiple_select"| value Eliom_output.Html5_forms.int_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_multiple_select"| value Eliom_output.Html5.int_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_multiple_select"| value Eliom_mkforms.MakeForms.int_multiple_select >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_radio"| value Eliom_output_base.Html5_forms.int_radio >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with int content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_radio"| value Eliom_output.Html5_forms.int_radio >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with int content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_radio"| value Eliom_output.Html5.int_radio >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with int content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_radio"| value Eliom_mkforms.MakeForms.int_radio >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with int content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_select"| value Eliom_output_base.Html5_forms.int_select >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_select"| value Eliom_output.Html5_forms.int_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_select"| value Eliom_output.Html5.int_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_select"| value Eliom_mkforms.MakeForms.int_select >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for int values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="is_active"| value Eliom_comet.is_active >> ~[<<a_api subproject="client" | module Eliom_comet >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|~Process~_closed>> is raised when reading on a channel and the
+    server side of the application closed channel ~( the channel
+    was garbage collected ~)~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="is_prefix_skip_end_slash"| value Eliom_pervasives.List.is_prefix_skip_end_slash >> ~[<<a_api subproject="client" | module Eliom_pervasives.List >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="iter_option"| value Eliom_pervasives.iter_option >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@ @style="tet-align: left;"@@\\J|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="js_script"| value Eliom_output_base.Html5_forms.js_script >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<script~>>> tag to add a javascript file
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="js_script"| value Eliom_output.Html5_forms.js_script >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<script~>>> tag to add a javascript file
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="js_script"| value Eliom_output.Html5.js_script >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<script~>>> tag to add a javascript file
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="js_script"| value Eliom_mkforms.MakeForms.js_script >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<script~>>> tag to add a javascript file
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="jsalert"| value Eliom_pervasives.jsalert >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="jsdebug"| value Eliom_pervasives.jsdebug >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@ @style="tet-align: left;"@@\\L|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="lazy_a_action"| value Eliom_pervasives.HTML5.M.lazy_a_action >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="lazy_a_href"| value Eliom_pervasives.HTML5.M.lazy_a_href >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="lazy_form"| value Eliom_pervasives.HTML5.M.lazy_form >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="lwt_get_form"| value Eliom_output_base.Html5_forms.lwt_get_form >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~The same but taking a cooperative function~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="lwt_get_form"| value Eliom_output.Html5_forms.lwt_get_form >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~The same but taking a cooperative function~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="lwt_get_form"| value Eliom_output.Html5.lwt_get_form >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~The same but taking a cooperative function~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="lwt_get_form"| value Eliom_mkforms.MakeForms.lwt_get_form >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~The same but taking a cooperative function~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="lwt_ignore"| value Eliom_pervasives.lwt_ignore >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="lwt_post_form"| value Eliom_output_base.Html5_forms.lwt_post_form >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~The same but taking a cooperative function~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="lwt_post_form"| value Eliom_output.Html5_forms.lwt_post_form >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~The same but taking a cooperative function~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="lwt_post_form"| value Eliom_output.Html5.lwt_post_form >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~The same but taking a cooperative function~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="lwt_post_form"| value Eliom_mkforms.MakeForms.lwt_post_form >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~The same but taking a cooperative function~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\M|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_a"| value Eliom_mkforms.FORMS_PARAM.make_a >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_absolute_url"| value Eliom_pervasives.Url.make_absolute_url >> ~[<<a_api subproject="client" | module Eliom_pervasives.Url >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_button"| value Eliom_mkforms.FORMS_PARAM.make_button >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_css_link"| value Eliom_mkforms.FORMS_PARAM.make_css_link >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_encoded_parameters"| value Eliom_pervasives.Url.make_encoded_parameters >> ~[<<a_api subproject="client" | module Eliom_pervasives.Url >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_get_form"| value Eliom_mkforms.FORMS_PARAM.make_get_form >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_hidden_field"| value Eliom_mkforms.FORMS_PARAM.make_hidden_field >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_input"| value Eliom_mkforms.FORMS_PARAM.make_input >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_js_script"| value Eliom_mkforms.FORMS_PARAM.make_js_script >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_optgroup"| value Eliom_mkforms.FORMS_PARAM.make_optgroup >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_option"| value Eliom_mkforms.FORMS_PARAM.make_option >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_pcdata"| value Eliom_mkforms.FORMS_PARAM.make_pcdata >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_post_form"| value Eliom_mkforms.FORMS_PARAM.make_post_form >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_post_uri_components"| value Eliom_output_base.Html5_forms.make_post_uri_components >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Like <<span class="odocwiki_inlinecode"|make~_uri~_components>>~, but also creates a table of post parameters~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_post_uri_components"| value Eliom_output.Html5_forms.make_post_uri_components >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Like <<span class="odocwiki_inlinecode"|make~_uri~_components>>~, but also creates a table of post parameters~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_post_uri_components"| value Eliom_output.Html5.make_post_uri_components >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Like <<span class="odocwiki_inlinecode"|make~_uri~_components>>~, but also creates a table of post parameters~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_post_uri_components"| value Eliom_mkforms.MakeForms.make_post_uri_components >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Like <<span class="odocwiki_inlinecode"|make~_uri~_components>>~, but also creates a table of post parameters~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_post_uri_components"| value Eliom_uri.make_post_uri_components >> ~[<<a_api subproject="client" | module Eliom_uri >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_post_uri_components_"| value Eliom_uri.make_post_uri_components_ >> ~[<<a_api subproject="client" | module Eliom_uri >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_select"| value Eliom_mkforms.FORMS_PARAM.make_select >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_string_uri"| value Eliom_output_base.Html5_forms.make_string_uri >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates the string corresponding to the relative ~U~R~L of a service applied to
+    its ~G~E~T parameters~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_string_uri"| value Eliom_output.Html5_forms.make_string_uri >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates the string corresponding to the relative ~U~R~L of a service applied to
+    its ~G~E~T parameters~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_string_uri"| value Eliom_output.Html5.make_string_uri >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates the string corresponding to the relative ~U~R~L of a service applied to
+    its ~G~E~T parameters~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_string_uri"| value Eliom_mkforms.MakeForms.make_string_uri >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates the string corresponding to the relative ~U~R~L of a service applied to
+    its ~G~E~T parameters~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_string_uri"| value Eliom_uri.make_string_uri >> ~[<<a_api subproject="client" | module Eliom_uri >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_string_uri_from_components"| value Eliom_uri.make_string_uri_from_components >> ~[<<a_api subproject="client" | module Eliom_uri >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_textarea"| value Eliom_mkforms.FORMS_PARAM.make_textarea >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_uri"| value Eliom_output_base.Html5_forms.make_uri >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates the ~U~R~L for a service~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_uri"| value Eliom_output.Html5_forms.make_uri >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates the ~U~R~L for a service~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_uri"| value Eliom_output.Html5.make_uri >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates the ~U~R~L for a service~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_uri"| value Eliom_mkforms.MakeForms.make_uri >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates the ~U~R~L for a service~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_uri_components"| value Eliom_output_base.Html5_forms.make_uri_components >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates the ~U~R~L for a service~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_uri_components"| value Eliom_output.Html5_forms.make_uri_components >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates the ~U~R~L for a service~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_uri_components"| value Eliom_output.Html5.make_uri_components >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates the ~U~R~L for a service~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_uri_components"| value Eliom_mkforms.MakeForms.make_uri_components >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates the ~U~R~L for a service~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_uri_components"| value Eliom_uri.make_uri_components >> ~[<<a_api subproject="client" | module Eliom_uri >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="make_uri_components_"| value Eliom_uri.make_uri_components_ >> ~[<<a_api subproject="client" | module Eliom_uri >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="map_filter"| value Eliom_pervasives.List.map_filter >> ~[<<a_api subproject="client" | module Eliom_pervasives.List >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="map_optgroup"| value Eliom_mkforms.FORMS_PARAM.map_optgroup >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="map_option"| value Eliom_mkforms.FORMS_PARAM.map_option >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="map_option"| value Eliom_pervasives.map_option >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="max_redirection_level"| value Eliom_request.max_redirection_level >> ~[<<a_api subproject="client" | module Eliom_request >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="may_concat"| value Eliom_pervasives.String.may_concat >> ~[<<a_api subproject="client" | module Eliom_pervasives.String >>~]||
+|@@ @style="tet-align: left;"@@\\N|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="new_configuration"| value Eliom_comet.Configuration.new_configuration >> ~[<<a_api subproject="client" | module Eliom_comet.Configuration >>~]||
+|@@ @style="tet-align: left;"@@\\O|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_a"| value Eliom_client.Html5.of_a >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_anchor"| value Eliom_pervasives.HTML5.M.of_anchor >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_area"| value Eliom_client.Html5.of_area >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_area"| value Eliom_pervasives.HTML5.M.of_area >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_base"| value Eliom_client.Html5.of_base >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_base"| value Eliom_pervasives.HTML5.M.of_base >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_blockquote"| value Eliom_client.Html5.of_blockquote >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_body"| value Eliom_client.Html5.of_body >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_body"| value Eliom_pervasives.HTML5.M.of_body >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_br"| value Eliom_client.Html5.of_br >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_br"| value Eliom_pervasives.HTML5.M.of_br >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_button"| value Eliom_client.Html5.of_button >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_button"| value Eliom_pervasives.HTML5.M.of_button >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_canvas"| value Eliom_client.Html5.of_canvas >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_canvas"| value Eliom_pervasives.HTML5.M.of_canvas >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_caption"| value Eliom_client.Html5.of_caption >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_col"| value Eliom_client.Html5.of_col >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_dList"| value Eliom_pervasives.HTML5.M.of_dList >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_div"| value Eliom_client.Html5.of_div >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_div"| value Eliom_pervasives.HTML5.M.of_div >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_dl"| value Eliom_client.Html5.of_dl >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_element"| value Eliom_client.Html5.of_element >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_element"| value Eliom_pervasives.HTML5.M.of_element >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_fieldSet"| value Eliom_pervasives.HTML5.M.of_fieldSet >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_fieldset"| value Eliom_client.Html5.of_fieldset >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_form"| value Eliom_client.Html5.of_form >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_form"| value Eliom_pervasives.HTML5.M.of_form >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_head"| value Eliom_client.Html5.of_head >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_head"| value Eliom_pervasives.HTML5.M.of_head >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_heading"| value Eliom_client.Html5.of_heading >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_heading"| value Eliom_pervasives.HTML5.M.of_heading >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_hr"| value Eliom_client.Html5.of_hr >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_hr"| value Eliom_pervasives.HTML5.M.of_hr >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_html"| value Eliom_client.Html5.of_html >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_html"| value Eliom_pervasives.HTML5.M.of_html >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_iFrame"| value Eliom_pervasives.HTML5.M.of_iFrame >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_iframe"| value Eliom_client.Html5.of_iframe >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_image"| value Eliom_pervasives.HTML5.M.of_image >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_img"| value Eliom_client.Html5.of_img >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_input"| value Eliom_client.Html5.of_input >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_input"| value Eliom_pervasives.HTML5.M.of_input >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_json"| value Eliom_pervasives.of_json >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_label"| value Eliom_client.Html5.of_label >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_label"| value Eliom_pervasives.HTML5.M.of_label >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_legend"| value Eliom_client.Html5.of_legend >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_legend"| value Eliom_pervasives.HTML5.M.of_legend >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_li"| value Eliom_client.Html5.of_li >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_li"| value Eliom_pervasives.HTML5.M.of_li >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_link"| value Eliom_client.Html5.of_link >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_link"| value Eliom_pervasives.HTML5.M.of_link >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_map"| value Eliom_client.Html5.of_map >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_map"| value Eliom_pervasives.HTML5.M.of_map >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_meta"| value Eliom_client.Html5.of_meta >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_meta"| value Eliom_pervasives.HTML5.M.of_meta >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_oList"| value Eliom_pervasives.HTML5.M.of_oList >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_object"| value Eliom_client.Html5.of_object >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_object"| value Eliom_pervasives.HTML5.M.of_object >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_ol"| value Eliom_client.Html5.of_ol >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_optGroup"| value Eliom_pervasives.HTML5.M.of_optGroup >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_optgroup"| value Eliom_client.Html5.of_optgroup >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_option"| value Eliom_client.Html5.of_option >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_option"| value Eliom_pervasives.HTML5.M.of_option >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_p"| value Eliom_client.Html5.of_p >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_paragraph"| value Eliom_pervasives.HTML5.M.of_paragraph >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_param"| value Eliom_client.Html5.of_param >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_param"| value Eliom_pervasives.HTML5.M.of_param >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_pre"| value Eliom_client.Html5.of_pre >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_pre"| value Eliom_pervasives.HTML5.M.of_pre >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_quote"| value Eliom_pervasives.HTML5.M.of_quote >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_script"| value Eliom_client.Html5.of_script >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_script"| value Eliom_pervasives.HTML5.M.of_script >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_select"| value Eliom_client.Html5.of_select >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_select"| value Eliom_pervasives.HTML5.M.of_select >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_style"| value Eliom_client.Html5.of_style >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_style"| value Eliom_pervasives.HTML5.M.of_style >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_table"| value Eliom_client.Html5.of_table >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_table"| value Eliom_pervasives.HTML5.M.of_table >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_tableCaption"| value Eliom_pervasives.HTML5.M.of_tableCaption >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_tableCell"| value Eliom_pervasives.HTML5.M.of_tableCell >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_tableCol"| value Eliom_pervasives.HTML5.M.of_tableCol >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_tableRow"| value Eliom_pervasives.HTML5.M.of_tableRow >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_tableSection"| value Eliom_pervasives.HTML5.M.of_tableSection >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_tbody"| value Eliom_client.Html5.of_tbody >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_td"| value Eliom_client.Html5.of_td >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_textArea"| value Eliom_pervasives.HTML5.M.of_textArea >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_textarea"| value Eliom_client.Html5.of_textarea >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_tfoot"| value Eliom_client.Html5.of_tfoot >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_thead"| value Eliom_client.Html5.of_thead >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_title"| value Eliom_client.Html5.of_title >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_title"| value Eliom_pervasives.HTML5.M.of_title >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_tr"| value Eliom_client.Html5.of_tr >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_uList"| value Eliom_pervasives.HTML5.M.of_uList >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_ul"| value Eliom_client.Html5.of_ul >> ~[<<a_api subproject="client" | module Eliom_client.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="on_unload"| value Eliom_client.on_unload >> ~[<<a_api subproject="client" | module Eliom_client >>~]|<<div class="odocwiki_info"|register a function to be called on page change
+>>
+|
+|@@ @style="tet-align: left;"@@\\P|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="post_form"| value Eliom_output_base.Html5_forms.post_form >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|post~_form service formgen>> creates a ~P~O~S~T form to <<span class="odocwiki_inlinecode"|service>>~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="post_form"| value Eliom_output.Html5_forms.post_form >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|post~_form service formgen>> creates a ~P~O~S~T form to <<span class="odocwiki_inlinecode"|service>>~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="post_form"| value Eliom_output.Html5.post_form >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|post~_form service formgen>> creates a ~P~O~S~T form to <<span class="odocwiki_inlinecode"|service>>~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="post_form"| value Eliom_mkforms.MakeForms.post_form >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|post~_form service formgen>> creates a ~P~O~S~T form to <<span class="odocwiki_inlinecode"|service>>~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\R|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="radio"| value Eliom_mkforms.FORMS_PARAM.radio >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_button"| value Eliom_output_base.Html5_forms.raw_button >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with untyped string content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_button"| value Eliom_output.Html5_forms.raw_button >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with untyped string content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_button"| value Eliom_output.Html5.raw_button >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with untyped string content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_button"| value Eliom_mkforms.MakeForms.raw_button >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with untyped string content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_checkbox"| value Eliom_output_base.Html5_forms.raw_checkbox >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag with untyped content~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_checkbox"| value Eliom_output.Html5_forms.raw_checkbox >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag with untyped content~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_checkbox"| value Eliom_output.Html5.raw_checkbox >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag with untyped content~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_checkbox"| value Eliom_mkforms.MakeForms.raw_checkbox >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag with untyped content~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_image_input"| value Eliom_output_base.Html5_forms.raw_image_input >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and an untyped value
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_image_input"| value Eliom_output.Html5_forms.raw_image_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and an untyped value
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_image_input"| value Eliom_output.Html5.raw_image_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and an untyped value
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_image_input"| value Eliom_mkforms.MakeForms.raw_image_input >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and an untyped value
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_input"| value Eliom_output_base.Html5_forms.raw_input >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an untyped <<span class="odocwiki_inlinecode"|~<input~>>> tag~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_input"| value Eliom_output.Html5_forms.raw_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an untyped <<span class="odocwiki_inlinecode"|~<input~>>> tag~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_input"| value Eliom_output.Html5.raw_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates an untyped <<span class="odocwiki_inlinecode"|~<input~>>> tag~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_input"| value Eliom_mkforms.MakeForms.raw_input >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates an untyped <<span class="odocwiki_inlinecode"|~<input~>>> tag~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_multiple_select"| value Eliom_output_base.Html5_forms.raw_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for any ~(untyped~) value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_multiple_select"| value Eliom_output.Html5_forms.raw_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for any ~(untyped~) value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_multiple_select"| value Eliom_output.Html5.raw_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for any ~(untyped~) value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_multiple_select"| value Eliom_mkforms.MakeForms.raw_multiple_select >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for any ~(untyped~) value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_radio"| value Eliom_output_base.Html5_forms.raw_radio >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with untyped string content ~(low level~)
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_radio"| value Eliom_output.Html5_forms.raw_radio >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with untyped string content ~(low level~)
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_radio"| value Eliom_output.Html5.raw_radio >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with untyped string content ~(low level~)
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_radio"| value Eliom_mkforms.MakeForms.raw_radio >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with untyped string content ~(low level~)
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_select"| value Eliom_output_base.Html5_forms.raw_select >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for any ~(untyped~) value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_select"| value Eliom_output.Html5_forms.raw_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for any ~(untyped~) value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_select"| value Eliom_output.Html5.raw_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for any ~(untyped~) value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_select"| value Eliom_mkforms.MakeForms.raw_select >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for any ~(untyped~) value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_textarea"| value Eliom_output_base.Html5_forms.raw_textarea >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<textarea~>>> tag for untyped form
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_textarea"| value Eliom_output.Html5_forms.raw_textarea >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<textarea~>>> tag for untyped form
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_textarea"| value Eliom_output.Html5.raw_textarea >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<textarea~>>> tag for untyped form
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="raw_textarea"| value Eliom_mkforms.MakeForms.raw_textarea >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<textarea~>>> tag for untyped form
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="reconstruct_relative_url_path"| value Eliom_uri.reconstruct_relative_url_path >> ~[<<a_api subproject="client" | module Eliom_uri >>~]|<<div class="odocwiki_info"|~Constructs a relative link ~(low level~)~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="redirect_get"| value Eliom_request.redirect_get >> ~[<<a_api subproject="client" | module Eliom_request >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="redirect_post"| value Eliom_request.redirect_post >> ~[<<a_api subproject="client" | module Eliom_request >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="register_exn_printer"| value Eliom_pervasives.Printexc.register_exn_printer >> ~[<<a_api subproject="client" | module Eliom_pervasives.Printexc >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="register_unwrapper"| value Eliom_unwrap.register_unwrapper >> ~[<<a_api subproject="client" | module Eliom_unwrap >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="remove_internal_slash"| value Eliom_pervasives.Url.remove_internal_slash >> ~[<<a_api subproject="client" | module Eliom_pervasives.Url >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="remove_slash_at_beginning"| value Eliom_pervasives.Url.remove_slash_at_beginning >> ~[<<a_api subproject="client" | module Eliom_pervasives.Url >>~]||
+|@@ @style="tet-align: left;"@@\\S|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="select_content_of_option"| value Eliom_mkforms.FORMS_PARAM.select_content_of_option >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="send"| value Eliom_request.send >> ~[<<a_api subproject="client" | module Eliom_request >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="send_get_form"| value Eliom_request.send_get_form >> ~[<<a_api subproject="client" | module Eliom_request >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="send_post_form"| value Eliom_request.send_post_form >> ~[<<a_api subproject="client" | module Eliom_request >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="set_active_until_timeout"| value Eliom_comet.Configuration.set_active_until_timeout >> ~[<<a_api subproject="client" | module Eliom_comet.Configuration >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|set~_always~_active c true>> tells the client to always stay active~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="set_always_active"| value Eliom_comet.Configuration.set_always_active >> ~[<<a_api subproject="client" | module Eliom_comet.Configuration >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|drop~_configuration t>> restores the behaviour to the minimum of
+      configuration without <<span class="odocwiki_inlinecode"|t>>~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="set_queue_size"| value Eliom_bus.set_queue_size >> ~[<<a_api subproject="client" | module Eliom_bus >>~]|<<div class="odocwiki_info"|after <<span class="odocwiki_inlinecode"|close b>>~, <<span class="odocwiki_inlinecode"|stream b>> stops receiving new messages from the
+    bus~, but it is still possible to write to the bus~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="set_time_before_flush"| value Eliom_bus.set_time_before_flush >> ~[<<a_api subproject="client" | module Eliom_bus >>~]|<<div class="odocwiki_info"|~To reduce traffic from the client busses try to send messages by
+    group~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="set_time_between_request"| value Eliom_comet.Configuration.set_time_between_request >> ~[<<a_api subproject="client" | module Eliom_comet.Configuration >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|set~_active~_until~_timeout c v>> sets the activity changing
+      behaviour~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="sp"| value Eliom_types_base.sp >> ~[<<a_api subproject="client" | module Eliom_types_base >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="split"| value Eliom_pervasives.String.split >> ~[<<a_api subproject="client" | module Eliom_pervasives.String >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="split_fragment"| value Eliom_pervasives.Url.split_fragment >> ~[<<a_api subproject="client" | module Eliom_pervasives.Url >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="split_path"| value Eliom_pervasives.Url.split_path >> ~[<<a_api subproject="client" | module Eliom_pervasives.Url >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="stream"| value Eliom_bus.stream >> ~[<<a_api subproject="client" | module Eliom_bus >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_button"| value Eliom_output_base.Html5_forms.string_button >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with string content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_button"| value Eliom_output.Html5_forms.string_button >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with string content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_button"| value Eliom_output.Html5.string_button >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with string content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_button"| value Eliom_mkforms.MakeForms.string_button >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with string content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_checkbox"| value Eliom_output_base.Html5_forms.string_checkbox >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have a string value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_checkbox"| value Eliom_output.Html5_forms.string_checkbox >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have a string value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_checkbox"| value Eliom_output.Html5.string_checkbox >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have a string value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_checkbox"| value Eliom_mkforms.MakeForms.string_checkbox >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have a string value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_image_input"| value Eliom_output_base.Html5_forms.string_image_input >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type string
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_image_input"| value Eliom_output.Html5_forms.string_image_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type string
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_image_input"| value Eliom_output.Html5.string_image_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type string
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_image_input"| value Eliom_mkforms.MakeForms.string_image_input >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of type string
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_input"| value Eliom_output_base.Html5_forms.string_input >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for a string
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_input"| value Eliom_output.Html5_forms.string_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for a string
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_input"| value Eliom_output.Html5.string_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for a string
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_input"| value Eliom_mkforms.MakeForms.string_input >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for a string
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_multiple_select"| value Eliom_output_base.Html5_forms.string_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for string values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_multiple_select"| value Eliom_output.Html5_forms.string_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for string values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_multiple_select"| value Eliom_output.Html5.string_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for string values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_multiple_select"| value Eliom_mkforms.MakeForms.string_multiple_select >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for string values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_radio"| value Eliom_output_base.Html5_forms.string_radio >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with string content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_radio"| value Eliom_output.Html5_forms.string_radio >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with string content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_radio"| value Eliom_output.Html5.string_radio >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with string content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_radio"| value Eliom_mkforms.MakeForms.string_radio >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with string content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_result"| value Eliom_request.string_result >> ~[<<a_api subproject="client" | module Eliom_request >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_select"| value Eliom_output_base.Html5_forms.string_select >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for string values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_select"| value Eliom_output.Html5_forms.string_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for string values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_select"| value Eliom_output.Html5.string_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for string values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_select"| value Eliom_mkforms.MakeForms.string_select >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for string values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="submit"| value Eliom_mkforms.FORMS_PARAM.submit >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@ @style="tet-align: left;"@@\\T|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="textarea"| value Eliom_output_base.Html5_forms.textarea >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<textarea~>>> tag
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="textarea"| value Eliom_output.Html5_forms.textarea >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<textarea~>>> tag
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="textarea"| value Eliom_output.Html5.textarea >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<textarea~>>> tag
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="textarea"| value Eliom_mkforms.MakeForms.textarea >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<textarea~>>> tag
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="to_json"| value Eliom_pervasives.to_json >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@ @style="tet-align: left;"@@\\U|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="unique"| value Eliom_pervasives.HTML5.M.unique >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="unique"| value Eliom_pervasives.SVG.M.unique >> ~[<<a_api subproject="client" | module Eliom_pervasives.SVG.M >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="unmarshal_js_var"| value Eliom_pervasives.unmarshal_js_var >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="unwrap"| value Eliom_unwrap.unwrap >> ~[<<a_api subproject="client" | module Eliom_unwrap >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|register~_unwrapper id f>> register an unwrapping function <<span class="odocwiki_inlinecode"|f>> to
+    be called when a value is marked with the id <<span class="odocwiki_inlinecode"|id>>
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri_of_string"| value Eliom_mkforms.FORMS_PARAM.uri_of_string >> ~[<<a_api subproject="client" | module Eliom_mkforms.FORMS_PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_button"| value Eliom_output_base.Html5_forms.user_type_button >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with user~_type content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_button"| value Eliom_output.Html5_forms.user_type_button >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with user~_type content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_button"| value Eliom_output.Html5.user_type_button >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with user~_type content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_button"| value Eliom_mkforms.MakeForms.user_type_button >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<button~>>> tag with user~_type content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_checkbox"| value Eliom_output_base.Html5_forms.user_type_checkbox >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have a "user type" value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_checkbox"| value Eliom_output.Html5_forms.user_type_checkbox >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have a "user type" value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_checkbox"| value Eliom_output.Html5.user_type_checkbox >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have a "user type" value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_checkbox"| value Eliom_mkforms.MakeForms.user_type_checkbox >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a checkbox <<span class="odocwiki_inlinecode"|~<input~>>> tag that will have a "user type" value~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_image_input"| value Eliom_output_base.Html5_forms.user_type_image_input >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of user defined type
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_image_input"| value Eliom_output.Html5_forms.user_type_image_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of user defined type
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_image_input"| value Eliom_output.Html5.user_type_image_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of user defined type
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_image_input"| value Eliom_mkforms.MakeForms.user_type_image_input >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~." value~="~.~.~."~>>> tag that sends
+    the coordinates the user clicked on and a value of user defined type
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_input"| value Eliom_output_base.Html5_forms.user_type_input >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for a user type
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_input"| value Eliom_output.Html5_forms.user_type_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for a user type
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_input"| value Eliom_output.Html5.user_type_input >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for a user type
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_input"| value Eliom_mkforms.MakeForms.user_type_input >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for a user type
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_multiple_select"| value Eliom_output_base.Html5_forms.user_type_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for user type values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_multiple_select"| value Eliom_output.Html5_forms.user_type_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for user type values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_multiple_select"| value Eliom_output.Html5.user_type_multiple_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for user type values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_multiple_select"| value Eliom_mkforms.MakeForms.user_type_multiple_select >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for user type values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_radio"| value Eliom_output_base.Html5_forms.user_type_radio >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with user~_type content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_radio"| value Eliom_output.Html5_forms.user_type_radio >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with user~_type content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_radio"| value Eliom_output.Html5.user_type_radio >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with user~_type content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_radio"| value Eliom_mkforms.MakeForms.user_type_radio >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a radio <<span class="odocwiki_inlinecode"|~<input~>>> tag with user~_type content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_select"| value Eliom_output_base.Html5_forms.user_type_select >> ~[<<a_api subproject="client" | module Eliom_output_base.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for user type values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_select"| value Eliom_output.Html5_forms.user_type_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5_forms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for user type values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_select"| value Eliom_output.Html5.user_type_select >> ~[<<a_api subproject="client" | module Eliom_output.Html5 >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for user type values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type_select"| value Eliom_mkforms.MakeForms.user_type_select >> ~[<<a_api subproject="client" | module Eliom_mkforms.MakeForms >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag for user type values~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\V|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="void_coservice'"| value Eliom_services.void_coservice' >> ~[<<a_api subproject="client" | module Eliom_services >>~]|<<div class="odocwiki_info"|~Void non~-attached coservices
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="void_hidden_coservice'"| value Eliom_services.void_hidden_coservice' >> ~[<<a_api subproject="client" | module Eliom_services >>~]|<<div class="odocwiki_info"|~The same~, but forcing https~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\W|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="wait_load_end"| value Eliom_client.wait_load_end >> ~[<<a_api subproject="client" | module Eliom_client >>~]|<<div class="odocwiki_info"|wait for the loading phase to terminate
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="write"| value Eliom_bus.write >> ~[<<a_api subproject="client" | module Eliom_bus >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|stream b>> returns the stream of datas sent to bus <<span class="odocwiki_inlinecode"|b>>~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\X|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="xml_result"| value Eliom_request.xml_result >> ~[<<a_api subproject="client" | module Eliom_request >>~]||
+\\

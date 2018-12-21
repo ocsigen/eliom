@@ -1,0 +1,6 @@
+=Module <<a_api_type subproject="server" | module Eliom_duce.Blocks >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Blocks>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_duce.Blocks >><<span class="ocsforge_color_keyword"|end>>>>~Register and create form for list of <<span class="odocwiki_inlinecode"|blocks>> ~(subtype of xhtml~)\\
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> BLOCKS_REGISTRATION>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> XHTML_FORMS>>

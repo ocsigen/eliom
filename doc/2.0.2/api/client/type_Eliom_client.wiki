@@ -1,0 +1,230 @@
+<<code language="ocaml" | sig
+  val change_page :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, [< Eliom_services.service_kind ],
+             [< Eliom_services.suff ], 'c, 'd,
+             [< Eliom_services.registrable ], Eliom_output.appl_service)
+            Eliom_services.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameters.nl_params_set ->
+    ?keep_get_na_params:bool -> 'a -> 'b -> unit Lwt.t
+  val call_caml_service :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, [< Eliom_services.service_kind ],
+             [< Eliom_services.suff ], 'c, 'd,
+             [< Eliom_services.registrable ], 'e Eliom_parameters.caml)
+            Eliom_services.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameters.nl_params_set ->
+    ?keep_get_na_params:bool -> 'a -> 'b -> 'e Lwt.t
+  val exit_to :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, [< Eliom_services.service_kind ],
+             [< Eliom_services.suff ], 'c, 'd,
+             [< Eliom_services.registrable ],
+             [< Eliom_output.non_caml_service ])
+            Eliom_services.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameters.nl_params_set ->
+    ?keep_get_na_params:bool -> 'a -> 'b -> unit
+  val call_service :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, [< Eliom_services.service_kind ],
+             [< Eliom_services.suff ], 'c, 'd,
+             [< Eliom_services.registrable ], 'e)
+            Eliom_services.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameters.nl_params_set ->
+    ?keep_get_na_params:bool -> 'a -> 'b -> string Lwt.t
+  val change_url :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, [< Eliom_services.service_kind ],
+             [< Eliom_services.suff ], 'c, 'd,
+             [< Eliom_services.registrable ], 'e)
+            Eliom_services.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameters.nl_params_set ->
+    ?keep_get_na_params:bool -> 'a -> 'b -> unit
+  val wait_load_end : unit -> unit Lwt.t
+  val in_onload : unit -> bool
+  val on_unload : (unit -> unit) -> unit
+  module Html5 :
+    sig
+      val of_element :
+        'a Eliom_pervasives.HTML5.M.elt -> Dom_html.element Js.t
+      val of_html :
+        HTML5_types.html Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.htmlElement Js.t
+      val of_head :
+        HTML5_types.head Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.headElement Js.t
+      val of_link :
+        HTML5_types.link Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.linkElement Js.t
+      val of_title :
+        HTML5_types.title Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.titleElement Js.t
+      val of_meta :
+        HTML5_types.meta Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.metaElement Js.t
+      val of_base :
+        HTML5_types.base Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.baseElement Js.t
+      val of_style :
+        HTML5_types.style Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.styleElement Js.t
+      val of_body :
+        HTML5_types.body Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.bodyElement Js.t
+      val of_form :
+        HTML5_types.form Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.formElement Js.t
+      val of_optgroup :
+        HTML5_types.optgroup Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.optGroupElement Js.t
+      val of_option :
+        HTML5_types.selectoption Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.optionElement Js.t
+      val of_select :
+        HTML5_types.select Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.selectElement Js.t
+      val of_input :
+        HTML5_types.input Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.inputElement Js.t
+      val of_textarea :
+        HTML5_types.textarea Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.textAreaElement Js.t
+      val of_button :
+        HTML5_types.button Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.buttonElement Js.t
+      val of_label :
+        HTML5_types.label Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.labelElement Js.t
+      val of_fieldset :
+        HTML5_types.fieldset Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.fieldSetElement Js.t
+      val of_legend :
+        HTML5_types.legend Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.legendElement Js.t
+      val of_ul :
+        HTML5_types.ul Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.uListElement Js.t
+      val of_ol :
+        HTML5_types.ol Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.oListElement Js.t
+      val of_dl :
+        [ `Dl ] Eliom_pervasives.HTML5.M.elt -> Dom_html.dListElement Js.t
+      val of_li :
+        HTML5_types.li Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.liElement Js.t
+      val of_div :
+        HTML5_types.div Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.divElement Js.t
+      val of_p :
+        HTML5_types.p Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.paragraphElement Js.t
+      val of_heading :
+        HTML5_types.heading Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.headingElement Js.t
+      val of_blockquote :
+        HTML5_types.blockquote Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.quoteElement Js.t
+      val of_pre :
+        HTML5_types.pre Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.preElement Js.t
+      val of_br :
+        HTML5_types.br Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.brElement Js.t
+      val of_hr :
+        HTML5_types.hr Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.hrElement Js.t
+      val of_a :
+        'a HTML5_types.a Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.anchorElement Js.t
+      val of_img :
+        [ `Img ] Eliom_pervasives.HTML5.M.elt -> Dom_html.imageElement Js.t
+      val of_object :
+        'a HTML5_types.object_ Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.objectElement Js.t
+      val of_param :
+        HTML5_types.param Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.paramElement Js.t
+      val of_area :
+        HTML5_types.area Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.areaElement Js.t
+      val of_map :
+        'a HTML5_types.map Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.mapElement Js.t
+      val of_script :
+        HTML5_types.script Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.scriptElement Js.t
+      val of_td :
+        [ `Td ] Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.tableCellElement Js.t
+      val of_tr :
+        HTML5_types.tr Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.tableRowElement Js.t
+      val of_col :
+        HTML5_types.col Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.tableColElement Js.t
+      val of_tfoot :
+        HTML5_types.tfoot Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.tableSectionElement Js.t
+      val of_thead :
+        HTML5_types.thead Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.tableSectionElement Js.t
+      val of_tbody :
+        HTML5_types.tbody Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.tableSectionElement Js.t
+      val of_caption :
+        HTML5_types.caption Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.tableCaptionElement Js.t
+      val of_table :
+        HTML5_types.table Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.tableElement Js.t
+      val of_canvas :
+        'a HTML5_types.canvas Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.canvasElement Js.t
+      val of_iframe :
+        HTML5_types.iframe Eliom_pervasives.HTML5.M.elt ->
+        Dom_html.iFrameElement Js.t
+    end
+  val change_page_uri :
+    ?cookies_info:bool * string list ->
+    ?get_params:(string * string) list -> string -> unit Lwt.t
+  val change_page_get_form :
+    ?cookies_info:bool * string list ->
+    Dom_html.formElement Js.t -> string -> unit Lwt.t
+  val change_page_post_form :
+    ?cookies_info:bool * string list ->
+    Dom_html.formElement Js.t -> string -> unit Lwt.t
+  val load_eliom_data :
+    Eliom_types.eliom_js_page_data ->
+    Dom_html.htmlElement Js.t -> (#Dom_html.event Js.t -> bool) list
+  val register_closure : int64 -> ('a -> unit) -> unit
+end >>

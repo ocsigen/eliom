@@ -1,0 +1,8 @@
+<<code language="ocaml" | sig
+  type 'a t
+  val create :
+    ?scope:[< Eliom_comet.Channels.comet_scope ] ->
+    ?name:string -> ?size:int -> 'a Deriving_Json.t -> 'a Eliom_bus.t
+  val stream : 'a Eliom_bus.t -> 'a Lwt_stream.t
+  val write : 'a Eliom_bus.t -> 'a -> unit
+end >>

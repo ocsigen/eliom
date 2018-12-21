@@ -1,0 +1,98 @@
+==
+
+=@@id="1_ServerAPI"@@~Server ~A~P~I=
+
+
+
+
+|<<a_api subproject="server" | module Eliom_pervasives >>|<<div class="odocwiki_info"|~Pervasives module for ~Eliom ~: it extends the ~O~Caml stdlib and should always be opened~.
+>>
+|
+|<<a_api subproject="server" | module Eliom_pervasives.XHTML.M >>|<<div class="odocwiki_info"|~Typed interface for building valid ~X~H~T~M~L ~(~Strict~) tree~.
+>>
+|
+|<<a_api subproject="server" | module Eliom_pervasives.HTML5.M >>|<<div class="odocwiki_info"|~Typed interface for building valid ~(~X~)~H~T~M~L~5 tree~.
+>>
+|
+
+
+
+
+
+==@@id="2_Servicescreationandservicehandler"@@~Services creation and service handler==
+
+
+
+
+|<<a_api subproject="server" | module Eliom_services >>|<<div class="odocwiki_info"|~Creation and manipulation of ~Eliom services~.
+>>
+|
+|<<a_api subproject="server" | module Eliom_parameters >>|<<div class="odocwiki_info"|~Ad~-hoc runtime~-type representation for service parameters~.
+>>
+|
+|<<a_api subproject="server" | module Eliom_output >>|<<div class="odocwiki_info"|~Eliom services registration and forms creation for various kind of
+    page content~: ~Eliom application~, valid <<span class="odocwiki_inlinecode"|~H~T~M~L~5>> or <<span class="odocwiki_inlinecode"|~X~H~T~M~L>>~,
+    actions~, redirections~, static files~, …~.
+>>
+|
+|<<a_api subproject="server" | module Eliom_output.Html5 >>|<<div class="odocwiki_info"|~Eliom service registration and forms creation for ~H~T~M~L~5 page~.
+>>
+|
+|<<a_api subproject="server" | module Eliom_references >>|<<div class="odocwiki_info"|~Server side state data~, a~.k~.a ~Eliom references
+>>
+|
+|<<a_api subproject="server" | module Eliom_state >>|<<div class="odocwiki_info"|~Manage server~-side state~.
+>>
+|
+
+
+
+
+
+==@@id="2_Clientservercommunication"@@~Client~/server communication==
+
+
+
+
+|<<a_api subproject="server" | module Eliom_bus >>|<<div class="odocwiki_info"|~Broadcasting facilities between clients and server
+>>
+|
+|<<a_api subproject="server" | module Eliom_comet >>|<<div class="odocwiki_info"|~Primitives to push data to the client~, without explicit request~.
+>>
+|
+|<<a_api subproject="server" | module Eliom_react >>|<<div class="odocwiki_info"|~Propagate events
+    occurrences from the server to the client and the other way
+    around~.
+>>
+|
+
+
+
+
+
+==@@id="2_Extensions"@@~Extensions==
+
+
+
+
+|<<a_api subproject="server" | module Eliom_atom >>|<<div class="odocwiki_info"|~Register an atom feed
+>>
+|
+|<<a_api subproject="server" | module Eliom_openid >>|<<div class="odocwiki_info"|~Open~I~D identification
+>>
+|
+
+
+
+
+
+==@@id="2_Index"@@~Index==
+
+
+
+* <<a_api subproject="server" text="Index of types" | index types >>
+* <<a_api subproject="server" text="Index of exceptions" | index exceptions >>
+* <<a_api subproject="server" text="Index of values" | index values >>
+* <<a_api subproject="server" text="Index of modules" | index modules >>
+* <<a_api subproject="server" text="Index of module types" | index module types >>
+

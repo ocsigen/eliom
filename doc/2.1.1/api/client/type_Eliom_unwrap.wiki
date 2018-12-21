@@ -1,0 +1,7 @@
+<<code language="ocaml" | sig
+  type unwrap_id
+  val register_unwrapper : Eliom_unwrap.unwrap_id -> ('a -> 'b) -> unit
+  val unwrap : string -> int -> 'a
+  val unwrap_js_var : string -> 'a
+  val id_of_int : int -> Eliom_unwrap.unwrap_id
+end >>

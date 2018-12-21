@@ -1,0 +1,55 @@
+<<code language="ocaml" | sig
+  type extension = string
+  type file = string
+  type filename = string
+  type charset = string
+  val no_charset : Ocsigen_charset_mime.charset
+  type charset_assoc
+  val empty_charset_assoc :
+    ?default:Ocsigen_charset_mime.charset ->
+    unit -> Ocsigen_charset_mime.charset_assoc
+  val find_charset :
+    string ->
+    Ocsigen_charset_mime.charset_assoc -> Ocsigen_charset_mime.charset
+  val default_charset :
+    Ocsigen_charset_mime.charset_assoc -> Ocsigen_charset_mime.charset
+  val set_default_charset :
+    Ocsigen_charset_mime.charset_assoc ->
+    Ocsigen_charset_mime.charset -> Ocsigen_charset_mime.charset_assoc
+  val update_charset_ext :
+    Ocsigen_charset_mime.charset_assoc ->
+    Ocsigen_charset_mime.extension ->
+    Ocsigen_charset_mime.charset -> Ocsigen_charset_mime.charset_assoc
+  val update_charset_file :
+    Ocsigen_charset_mime.charset_assoc ->
+    Ocsigen_charset_mime.filename ->
+    Ocsigen_charset_mime.charset -> Ocsigen_charset_mime.charset_assoc
+  val update_charset_regexp :
+    Ocsigen_charset_mime.charset_assoc ->
+    Netstring_pcre.regexp ->
+    Ocsigen_charset_mime.charset -> Ocsigen_charset_mime.charset_assoc
+  type mime_type = string
+  val default_mime_type : Ocsigen_charset_mime.mime_type
+  type mime_assoc
+  val default_mime_assoc : unit -> Ocsigen_charset_mime.mime_assoc
+  val parse_mime_types : filename:string -> Ocsigen_charset_mime.mime_assoc
+  val find_mime :
+    Ocsigen_charset_mime.file -> Ocsigen_charset_mime.mime_assoc -> string
+  val default_mime :
+    Ocsigen_charset_mime.mime_assoc -> Ocsigen_charset_mime.mime_type
+  val set_default_mime :
+    Ocsigen_charset_mime.mime_assoc ->
+    Ocsigen_charset_mime.mime_type -> Ocsigen_charset_mime.mime_assoc
+  val update_mime_ext :
+    Ocsigen_charset_mime.mime_assoc ->
+    Ocsigen_charset_mime.extension ->
+    Ocsigen_charset_mime.mime_type -> Ocsigen_charset_mime.mime_assoc
+  val update_mime_file :
+    Ocsigen_charset_mime.mime_assoc ->
+    Ocsigen_charset_mime.filename ->
+    Ocsigen_charset_mime.mime_type -> Ocsigen_charset_mime.mime_assoc
+  val update_mime_regexp :
+    Ocsigen_charset_mime.mime_assoc ->
+    Netstring_pcre.regexp ->
+    Ocsigen_charset_mime.mime_type -> Ocsigen_charset_mime.mime_assoc
+end >>

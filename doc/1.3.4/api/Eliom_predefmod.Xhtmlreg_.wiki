@@ -1,0 +1,12 @@
+=Functor <<a_api_type | module Eliom_predefmod.Xhtmlreg_ >> =
+<<div class="code"|<<span class="keyword"|module>> Xhtmlreg_: <<div class="sig_block"|<<span class='code'|functor ~(>><<span class='code'|~Xhtml~_content>><<span class='code'| ~: >>\\{{{   }}}<<span class="code type"|<<a_api text="Ocsigen_http_frame.HTTP_CONTENT" | module Ocsigen_http_frame.HTTP_CONTENT >>>><<span class="code type"|{{{  }}} with type t = [ `Html ] <<a_api text="XHTML.M" | module XHTML.M >>.elt\\{{{   }}}                                            and type options = <<a_api text="XHTML.M" | module XHTML.M >>.doctypes>><<span class='code'|~) ~-~> >>\\{{{   }}}<<span class="code type"|<<a_api text="Eliom_mkreg.REGCREATE" | module Eliom_mkreg.REGCREATE >>>><<span class="code type"|{{{  }}} with type page =  Xhtml_content.t\\{{{   }}}                                    and type options = <<a_api text="XHTML.M" | module XHTML.M >>.doctypes>>>>>><<div class="module_param_list" | <<span class="param_title" |Parameters :>><<div|
+|@@class="paramstable"@ @class="centertop fifteen code"@@{{{Xhtml_content}}}|@@class="centertop"@@:|<<span class="code type"|<<a_api text="Ocsigen_http_frame.HTTP_CONTENT" | module Ocsigen_http_frame.HTTP_CONTENT >> with type t = [ `Html ] <<a_api text="XHTML.M" | module XHTML.M >>.elt
+                                            and type options = <<a_api text="XHTML.M" | module XHTML.M >>.doctypes>>|
+>>
+
+----
+<<div class="code" id="TYPEpage"|<<span class="keyword"|type>> page>>
+
+<<div class="code" id="TYPEoptions"|<<span class="keyword"|type>> options>>
+
+<<div id="VALsend" class="code"|<<span class="keyword"|val>> send : <<span class="code type"|\\{{{   }}}?options:<<a_api text="options" | type Eliom_mkreg.REGCREATE.options >> ->\\{{{   }}}  ?cookies:<<a_api text="Eliom_services.cookie" | type Eliom_services.cookie >> list ->\\{{{   }}}  ?charset:string ->\\{{{   }}}  ?code:int ->\\{{{   }}}  ?content_type:string ->\\{{{   }}}  ?headers:Http_headers.t ->\\{{{   }}}  sp:<<a_api text="Eliom_sessions.server_params" | type Eliom_sessions.server_params >> ->\\{{{   }}}  <<a_api text="page" | type Eliom_mkreg.REGCREATE.page >> -> <<a_api text="Ocsigen_http_frame.result" | type Ocsigen_http_frame.result >> Lwt.t>>>>

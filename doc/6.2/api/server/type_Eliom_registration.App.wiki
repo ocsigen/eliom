@@ -1,0 +1,1 @@
+<<code language="ocaml" | functor (App_params : Eliom_registration_sigs.APP_PARAM) -> APP >>

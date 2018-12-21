@@ -1,0 +1,12 @@
+=Module <<a_api_type subproject="server" | module Eliom_tools >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_tools>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_tools >><<span class="ocsforge_color_keyword"|end>>>>~Predefined boxes for ~Eliom\\
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Xhtml" | module Eliom_tools.Xhtml >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_tools.Xhtml >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~X~H~T~M~L tools
+>>
+\\
+
+==@@id="2_HTML5"@@~H~T~M~L~5==
+\\
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Html5" | module Eliom_tools.Html5 >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_tools.Html5 >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Same functions as above~, but with ~H~T~M~L~5 elements
+>>

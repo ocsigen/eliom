@@ -1,0 +1,11 @@
+=Module <<a_api_type subproject="server" | module Eliom_pervasives.SVG.M >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|M>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives.SVG.M >><<span class="ocsforge_color_keyword"|end>>>>~Typed interface for building valid ~S~V~G tree~.
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> SVG_sigs.T>>
+<<div class="odocwiki_info"|~See <<a_api project="tyxml" | module type SVG_sigs.T >> ~.
+>>
+<<pre id="VALunique" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|unique>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_label"| ?copy: >>'a elt <<span class="ocsforge_color_delimiter"| -> >> 'a elt <<span class="ocsforge_color_delimiter"| -> >> 'a elt>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|unique elt>> create a copy of the ~S~V~G node
+	<<span class="odocwiki_inlinecode"|elt>> that will be manipulated ~'by reference~'~. ~See <<a_api
+	| val Eliom_pervasives.XML.make_unique >> ~.
+>>

@@ -1,0 +1,24 @@
+<<code language="ocaml" | sig
+  val appendChild :
+    ?before:'a Eliom_pervasives.HTML5.elt ->
+    'b Eliom_pervasives.HTML5.id -> 'c Eliom_pervasives.HTML5.elt -> unit
+  val appendChilds :
+    ?before:'a Eliom_pervasives.HTML5.elt ->
+    'b Eliom_pervasives.HTML5.id ->
+    'c Eliom_pervasives.HTML5.elt list -> unit
+  val removeChild :
+    'a Eliom_pervasives.HTML5.id -> 'b Eliom_pervasives.HTML5.elt -> unit
+  val replaceChild :
+    'a Eliom_pervasives.HTML5.id ->
+    'b Eliom_pervasives.HTML5.elt -> 'c Eliom_pervasives.HTML5.elt -> unit
+  val removeAllChild : 'a Eliom_pervasives.HTML5.id -> unit
+  val replaceAllChild :
+    'a Eliom_pervasives.HTML5.id ->
+    'b Eliom_pervasives.HTML5.elt list -> unit
+  val addEventListener :
+    ?capture:bool ->
+    'a Eliom_pervasives.HTML5.id ->
+    (#Dom_html.event as 'b) Js.t Dom_html.Event.typ ->
+    ('a Eliom_pervasives.HTML5.elt -> 'b Js.t -> bool) ->
+    Dom_html.event_listener_id
+end >>

@@ -1,0 +1,20 @@
+=Module <<a_api_type subproject="server" | module Eliom_content.Svg.C >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|C>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Svg.C >><<span class="ocsforge_color_keyword"|end>>>>~Creation of content from client~-side values~.  ~This makes
+      possible to insert in server side generated pages some nodes
+      that will be computed on client side ~(for example reactive
+      nodes~)~.
+
+----
+<<pre id="VALnode" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|node>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?init: >>'a <<a_api subproject="server" text="Eliom_content.Svg.elt" | type Eliom_content.Svg.elt >> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<a_api subproject="server" text="Eliom_content.Svg.elt" | type Eliom_content.Svg.elt >> <<a_api subproject="server" text="Eliom_client_value.t" | type Eliom_client_value.t >> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<a_api subproject="server" text="Eliom_content.Svg.elt" | type Eliom_content.Svg.elt >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|node e>> is a server~-side node corresponding to the
+        client~-side node <<span class="odocwiki_inlinecode"|e>> ~. <<span class="odocwiki_inlinecode"|node e>> can be used like any other
+        server~-side node~.
+
+
+        ~The implementation uses an initial placeholder node that is
+        later replaced by the client node~. ~By default~, the placeholder
+        node is <<span class="odocwiki_inlinecode"|span>>~. ~The <<span class="odocwiki_inlinecode"|~~init>> argument can be used to provide a
+        custom placeholder node ~(e~.g~.~, one with the same tag as the
+        client node~)~. ~This can be useful in contexts where <<span class="odocwiki_inlinecode"|span>> is
+        not allowed~.
+>>
+<<pre id="VALattr" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|attr>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?init: >>'a <<a_api subproject="server" text="Eliom_content.Svg.attrib" | type Eliom_content.Svg.attrib >> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<a_api subproject="server" text="Eliom_content.Svg.attrib" | type Eliom_content.Svg.attrib >> <<a_api subproject="server" text="Eliom_client_value.t" | type Eliom_client_value.t >> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<a_api subproject="server" text="Eliom_content.Svg.attrib" | type Eliom_content.Svg.attrib >>>>>>

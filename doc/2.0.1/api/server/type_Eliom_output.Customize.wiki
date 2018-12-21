@@ -1,0 +1,377 @@
+<<code language="ocaml" | functor (B : sig type options type return type page type result end) ->
+  functor
+    (R : sig
+           type page = B.page
+           type options = B.options
+           type return = B.return
+           type result = B.result
+           val send :
+             ?options:B.options ->
+             ?charset:string ->
+             ?code:int ->
+             ?content_type:string ->
+             ?headers:Http_headers.t -> B.page -> B.result Lwt.t
+           val register :
+             ?scope:[< Eliom_common.scope ] ->
+             ?options:B.options ->
+             ?charset:string ->
+             ?code:int ->
+             ?content_type:string ->
+             ?headers:Http_headers.t ->
+             ?secure_session:bool ->
+             service:('a, 'b, [< Eliom_services.internal_service_kind ],
+                      [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
+                      B.return)
+                     Eliom_services.service ->
+             ?error_handler:((string * exn) list -> B.page Lwt.t) ->
+             ('a -> 'b -> B.page Lwt.t) -> unit
+           val register_service :
+             ?scope:[< Eliom_common.scope ] ->
+             ?options:B.options ->
+             ?charset:string ->
+             ?code:int ->
+             ?content_type:string ->
+             ?headers:Http_headers.t ->
+             ?secure_session:bool ->
+             ?https:bool ->
+             ?priority:int ->
+             path:Eliom_pervasives.Url.path ->
+             get_params:('a, [< Eliom_services.suff ] as 'b, 'c)
+                        Eliom_parameters.params_type ->
+             ?error_handler:((string * exn) list -> B.page Lwt.t) ->
+             ('a -> unit -> B.page Lwt.t) ->
+             ('a, unit,
+              [> `Attached of
+                   ([> `Internal of [> `Service ] ], [> `Get ])
+                   Eliom_services.a_s ],
+              'b, 'c, unit, [> `Registrable ], B.return)
+             Eliom_services.service
+           val register_coservice :
+             ?scope:[< Eliom_common.scope ] ->
+             ?options:B.options ->
+             ?charset:string ->
+             ?code:int ->
+             ?content_type:string ->
+             ?headers:Http_headers.t ->
+             ?secure_session:bool ->
+             ?name:string ->
+             ?csrf_safe:bool ->
+             ?csrf_scope:[< Eliom_common.user_scope ] ->
+             ?csrf_secure:bool ->
+             ?max_use:int ->
+             ?timeout:float ->
+             ?https:bool ->
+             fallback:(unit, unit,
+                       [ `Attached of
+                           ([ `Internal of [ `Service ] ], [ `Get ])
+                           Eliom_services.a_s ],
+                       [ `WithoutSuffix ], unit, unit,
+                       [< Eliom_services.registrable ], B.return)
+                      Eliom_services.service ->
+             get_params:('a, [ `WithoutSuffix ], 'b)
+                        Eliom_parameters.params_type ->
+             ?error_handler:((string * exn) list -> B.page Lwt.t) ->
+             ('a -> unit -> B.page Lwt.t) ->
+             ('a, unit,
+              [> `Attached of
+                   ([> `Internal of [> `Coservice ] ], [> `Get ])
+                   Eliom_services.a_s ],
+              [ `WithoutSuffix ], 'b, unit, [> `Registrable ], B.return)
+             Eliom_services.service
+           val register_coservice' :
+             ?scope:[< Eliom_common.scope ] ->
+             ?options:B.options ->
+             ?charset:string ->
+             ?code:int ->
+             ?content_type:string ->
+             ?headers:Http_headers.t ->
+             ?secure_session:bool ->
+             ?name:string ->
+             ?csrf_safe:bool ->
+             ?csrf_scope:[< Eliom_common.user_scope ] ->
+             ?csrf_secure:bool ->
+             ?max_use:int ->
+             ?timeout:float ->
+             ?https:bool ->
+             get_params:('a, [ `WithoutSuffix ], 'b)
+                        Eliom_parameters.params_type ->
+             ?error_handler:((string * exn) list -> B.page Lwt.t) ->
+             ('a -> unit -> B.page Lwt.t) ->
+             ('a, unit, [> `Nonattached of [> `Get ] Eliom_services.na_s ],
+              [ `WithoutSuffix ], 'b, unit, [> `Registrable ], B.return)
+             Eliom_services.service
+           val register_post_service :
+             ?scope:[< Eliom_common.scope ] ->
+             ?options:B.options ->
+             ?charset:string ->
+             ?code:int ->
+             ?content_type:string ->
+             ?headers:Http_headers.t ->
+             ?secure_session:bool ->
+             ?https:bool ->
+             ?priority:int ->
+             fallback:('a, unit,
+                       [ `Attached of
+                           ([ `Internal of [ `Coservice | `Service ] ],
+                            [ `Get ])
+                           Eliom_services.a_s ],
+                       [< Eliom_services.suff ] as 'b, 'c, unit,
+                       [< `Registrable ], 'd)
+                      Eliom_services.service ->
+             post_params:('e, [ `WithoutSuffix ], 'f)
+                         Eliom_parameters.params_type ->
+             ?error_handler:((string * exn) list -> B.page Lwt.t) ->
+             ('a -> 'e -> B.page Lwt.t) ->
+             ('a, 'e,
+              [> `Attached of
+                   ([> `Internal of [ `Coservice | `Service ] ], [> `Post ])
+                   Eliom_services.a_s ],
+              'b, 'c, 'f, [> `Registrable ], B.return)
+             Eliom_services.service
+           val register_post_coservice :
+             ?scope:[< Eliom_common.scope ] ->
+             ?options:B.options ->
+             ?charset:string ->
+             ?code:int ->
+             ?content_type:string ->
+             ?headers:Http_headers.t ->
+             ?secure_session:bool ->
+             ?name:string ->
+             ?csrf_safe:bool ->
+             ?csrf_scope:[< Eliom_common.user_scope ] ->
+             ?csrf_secure:bool ->
+             ?max_use:int ->
+             ?timeout:float ->
+             ?https:bool ->
+             fallback:('a, unit,
+                       [ `Attached of
+                           ([ `Internal of [< `Coservice | `Service ] ],
+                            [ `Get ])
+                           Eliom_services.a_s ],
+                       [< Eliom_services.suff ] as 'b, 'c, unit,
+                       [< `Registrable ], B.return)
+                      Eliom_services.service ->
+             post_params:('d, [ `WithoutSuffix ], 'e)
+                         Eliom_parameters.params_type ->
+             ?error_handler:((string * exn) list -> B.page Lwt.t) ->
+             ('a -> 'd -> B.page Lwt.t) ->
+             ('a, 'd,
+              [> `Attached of
+                   ([> `Internal of [> `Coservice ] ], [> `Post ])
+                   Eliom_services.a_s ],
+              'b, 'c, 'e, [> `Registrable ], B.return)
+             Eliom_services.service
+           val register_post_coservice' :
+             ?scope:[< Eliom_common.scope ] ->
+             ?options:B.options ->
+             ?charset:string ->
+             ?code:int ->
+             ?content_type:string ->
+             ?headers:Http_headers.t ->
+             ?secure_session:bool ->
+             ?name:string ->
+             ?csrf_safe:bool ->
+             ?csrf_scope:[< Eliom_common.user_scope ] ->
+             ?csrf_secure:bool ->
+             ?max_use:int ->
+             ?timeout:float ->
+             ?keep_get_na_params:bool ->
+             ?https:bool ->
+             post_params:('a, [ `WithoutSuffix ], 'b)
+                         Eliom_parameters.params_type ->
+             ?error_handler:((string * exn) list -> B.page Lwt.t) ->
+             (unit -> 'a -> B.page Lwt.t) ->
+             (unit, 'a, [> `Nonattached of [> `Post ] Eliom_services.na_s ],
+              [ `WithoutSuffix ], unit, 'b, [> `Registrable ], B.return)
+             Eliom_services.service
+         end) ->
+    functor
+      (T : sig
+             type page
+             val translate : Eliom_output.Customize.page -> B.page Lwt.t
+           end) ->
+      sig
+        type page = T.page
+        type options = B.options
+        type return = B.return
+        type result = B.result
+        val send :
+          ?options:B.options ->
+          ?charset:string ->
+          ?code:int ->
+          ?content_type:string ->
+          ?headers:Http_headers.t -> T.page -> B.result Lwt.t
+        val register :
+          ?scope:[< Eliom_common.scope ] ->
+          ?options:B.options ->
+          ?charset:string ->
+          ?code:int ->
+          ?content_type:string ->
+          ?headers:Http_headers.t ->
+          ?secure_session:bool ->
+          service:('a, 'b, [< Eliom_services.internal_service_kind ],
+                   [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
+                   B.return)
+                  Eliom_services.service ->
+          ?error_handler:((string * exn) list -> T.page Lwt.t) ->
+          ('a -> 'b -> T.page Lwt.t) -> unit
+        val register_service :
+          ?scope:[< Eliom_common.scope ] ->
+          ?options:B.options ->
+          ?charset:string ->
+          ?code:int ->
+          ?content_type:string ->
+          ?headers:Http_headers.t ->
+          ?secure_session:bool ->
+          ?https:bool ->
+          ?priority:int ->
+          path:Eliom_pervasives.Url.path ->
+          get_params:('a, [< Eliom_services.suff ] as 'b, 'c)
+                     Eliom_parameters.params_type ->
+          ?error_handler:((string * exn) list -> T.page Lwt.t) ->
+          ('a -> unit -> T.page Lwt.t) ->
+          ('a, unit,
+           [> `Attached of
+                ([> `Internal of [> `Service ] ], [> `Get ])
+                Eliom_services.a_s ],
+           'b, 'c, unit, [> `Registrable ], B.return)
+          Eliom_services.service
+        val register_coservice :
+          ?scope:[< Eliom_common.scope ] ->
+          ?options:B.options ->
+          ?charset:string ->
+          ?code:int ->
+          ?content_type:string ->
+          ?headers:Http_headers.t ->
+          ?secure_session:bool ->
+          ?name:string ->
+          ?csrf_safe:bool ->
+          ?csrf_scope:[< Eliom_common.user_scope ] ->
+          ?csrf_secure:bool ->
+          ?max_use:int ->
+          ?timeout:float ->
+          ?https:bool ->
+          fallback:(unit, unit,
+                    [ `Attached of
+                        ([ `Internal of [ `Service ] ], [ `Get ])
+                        Eliom_services.a_s ],
+                    [ `WithoutSuffix ], unit, unit,
+                    [< Eliom_services.registrable ], B.return)
+                   Eliom_services.service ->
+          get_params:('a, [ `WithoutSuffix ], 'b)
+                     Eliom_parameters.params_type ->
+          ?error_handler:((string * exn) list -> T.page Lwt.t) ->
+          ('a -> unit -> T.page Lwt.t) ->
+          ('a, unit,
+           [> `Attached of
+                ([> `Internal of [> `Coservice ] ], [> `Get ])
+                Eliom_services.a_s ],
+           [ `WithoutSuffix ], 'b, unit, [> `Registrable ], B.return)
+          Eliom_services.service
+        val register_coservice' :
+          ?scope:[< Eliom_common.scope ] ->
+          ?options:B.options ->
+          ?charset:string ->
+          ?code:int ->
+          ?content_type:string ->
+          ?headers:Http_headers.t ->
+          ?secure_session:bool ->
+          ?name:string ->
+          ?csrf_safe:bool ->
+          ?csrf_scope:[< Eliom_common.user_scope ] ->
+          ?csrf_secure:bool ->
+          ?max_use:int ->
+          ?timeout:float ->
+          ?https:bool ->
+          get_params:('a, [ `WithoutSuffix ], 'b)
+                     Eliom_parameters.params_type ->
+          ?error_handler:((string * exn) list -> T.page Lwt.t) ->
+          ('a -> unit -> T.page Lwt.t) ->
+          ('a, unit, [> `Nonattached of [> `Get ] Eliom_services.na_s ],
+           [ `WithoutSuffix ], 'b, unit, [> `Registrable ], B.return)
+          Eliom_services.service
+        val register_post_service :
+          ?scope:[< Eliom_common.scope ] ->
+          ?options:B.options ->
+          ?charset:string ->
+          ?code:int ->
+          ?content_type:string ->
+          ?headers:Http_headers.t ->
+          ?secure_session:bool ->
+          ?https:bool ->
+          ?priority:int ->
+          fallback:('a, unit,
+                    [ `Attached of
+                        ([ `Internal of [ `Coservice | `Service ] ],
+                         [ `Get ])
+                        Eliom_services.a_s ],
+                    [< Eliom_services.suff ] as 'b, 'c, unit,
+                    [< `Registrable ], 'd)
+                   Eliom_services.service ->
+          post_params:('e, [ `WithoutSuffix ], 'f)
+                      Eliom_parameters.params_type ->
+          ?error_handler:((string * exn) list -> T.page Lwt.t) ->
+          ('a -> 'e -> T.page Lwt.t) ->
+          ('a, 'e,
+           [> `Attached of
+                ([> `Internal of [ `Coservice | `Service ] ], [> `Post ])
+                Eliom_services.a_s ],
+           'b, 'c, 'f, [> `Registrable ], B.return)
+          Eliom_services.service
+        val register_post_coservice :
+          ?scope:[< Eliom_common.scope ] ->
+          ?options:B.options ->
+          ?charset:string ->
+          ?code:int ->
+          ?content_type:string ->
+          ?headers:Http_headers.t ->
+          ?secure_session:bool ->
+          ?name:string ->
+          ?csrf_safe:bool ->
+          ?csrf_scope:[< Eliom_common.user_scope ] ->
+          ?csrf_secure:bool ->
+          ?max_use:int ->
+          ?timeout:float ->
+          ?https:bool ->
+          fallback:('a, unit,
+                    [ `Attached of
+                        ([ `Internal of [< `Coservice | `Service ] ],
+                         [ `Get ])
+                        Eliom_services.a_s ],
+                    [< Eliom_services.suff ] as 'b, 'c, unit,
+                    [< `Registrable ], B.return)
+                   Eliom_services.service ->
+          post_params:('d, [ `WithoutSuffix ], 'e)
+                      Eliom_parameters.params_type ->
+          ?error_handler:((string * exn) list -> T.page Lwt.t) ->
+          ('a -> 'd -> T.page Lwt.t) ->
+          ('a, 'd,
+           [> `Attached of
+                ([> `Internal of [> `Coservice ] ], [> `Post ])
+                Eliom_services.a_s ],
+           'b, 'c, 'e, [> `Registrable ], B.return)
+          Eliom_services.service
+        val register_post_coservice' :
+          ?scope:[< Eliom_common.scope ] ->
+          ?options:B.options ->
+          ?charset:string ->
+          ?code:int ->
+          ?content_type:string ->
+          ?headers:Http_headers.t ->
+          ?secure_session:bool ->
+          ?name:string ->
+          ?csrf_safe:bool ->
+          ?csrf_scope:[< Eliom_common.user_scope ] ->
+          ?csrf_secure:bool ->
+          ?max_use:int ->
+          ?timeout:float ->
+          ?keep_get_na_params:bool ->
+          ?https:bool ->
+          post_params:('a, [ `WithoutSuffix ], 'b)
+                      Eliom_parameters.params_type ->
+          ?error_handler:((string * exn) list -> T.page Lwt.t) ->
+          (unit -> 'a -> T.page Lwt.t) ->
+          (unit, 'a, [> `Nonattached of [> `Post ] Eliom_services.na_s ],
+           [ `WithoutSuffix ], unit, 'b, [> `Registrable ], B.return)
+          Eliom_services.service
+      end >>

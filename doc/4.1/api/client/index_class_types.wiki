@@ -1,0 +1,5 @@
+=Index of class types=
+
+|@@ @style="tet-align: left;"@@\\B|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="biggest_event"| class type Eliom_content_core.Xml.biggest_event >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
+\\

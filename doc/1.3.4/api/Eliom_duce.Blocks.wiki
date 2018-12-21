@@ -1,0 +1,6 @@
+=Module <<a_api_type | module Eliom_duce.Blocks >> =
+<<div class="code"|<<span class="keyword"|module>> Blocks: <<span class="code type"|<<a_api text="XhtmlSig" | module Eliom_duce.XhtmlSig >>>><<span class="code type"|{{{  }}} with type page = blocks>>>>~Register and create form for list of <<span class='code'|blocks>> ~(subtype of xhtml~)\\
+
+----
+<<div class="code"|<<span class="keyword"|include>> <<a_api | module type Eliom_mkreg.ELIOMREGSIG >>>>
+<<div class="code"|<<span class="keyword"|include>> <<a_api | module type Eliom_duce.XhtmlFormsSig >>>>

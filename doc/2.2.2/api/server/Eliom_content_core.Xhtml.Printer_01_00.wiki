@@ -1,0 +1,10 @@
+=Module <<a_api_type subproject="server" | module Eliom_content_core.Xhtml.Printer_01_00 >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Printer_01_00>>>> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Xml_sigs.Typed_simple_printer>>>><<span class="odocwiki_type"| with type 'a elt := 'a F_01_00.elt\\      and type doc := F_01_00.doc>>>>~X~H~T~M~L ~(~1~.~0 ~Strict~) printer~. ~See <<a_api project="tyxml" |
+      module type Xml_sigs.Typed_simple_printer >> ~. ~This printer try
+      to follow the [[http://www.w3.org/TR/xhtml1/#guidelines|~W~3~C
+      guidelines]] for ~H~T~M~L compatibility~. ~Hence the resulting string
+      could be serve as well as <<span class="odocwiki_inlinecode"|application~/xhtml~+xml>> or
+      <<span class="odocwiki_inlinecode"|text~/html>>~. ~This however has some
+      [[http://hixie.ch/advocacy/xhtml|limitations]]~.
+
+----

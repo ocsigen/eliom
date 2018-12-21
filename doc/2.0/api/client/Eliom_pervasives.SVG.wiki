@@ -1,0 +1,5 @@
+=Module <<a_api_type subproject="client" | module Eliom_pervasives.SVG >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|SVG>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_pervasives.SVG >><<span class="ocsforge_color_keyword"|end>>>>
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="M" | module Eliom_pervasives.SVG.M >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_pervasives.SVG.M >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|type safe ~S~V~G creation~.
+>>

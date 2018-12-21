@@ -1,0 +1,526 @@
+= Programming client-server applications with Eliom
+
+<<outline depth="2">>
+
+<<wip|
+The documentation is now mostly complete, but we are still working on it
+(some parts need to be reworked, some small parts are missing).
+We will release it as a PDF book in a few week.
+Any help appreciated.>>
+
+
+
+== General principles
+=== What is a client/server Eliom application
+
+An Eliom application is a distributed application that runs partly on the
+server, partly on a browser. The program is fully written in OCaml, with
+a syntax extension to distinguish between server and client code.
+Both parts are extracted during the compilation process, the server part
+is compiled as usual for an Eliom website, and the client part is compiled
+to Javascript to be run in the browser.
+
+An intersting feature of Eliom applications is that the client side process
+does not stop when you click on a link or send a form, and it is possible to
+keep the traditional Web interaction (with URLs, bookmarks, back button, etc).
+For example if the page is playing music, it won't stop when the user continue
+his visit on the Web site.
+
+Client side parts are using {{{Lwt}}} for concurrency, making possible
+to have concurrent programs in the browser very easily.
+
+As both part are implemented in OCaml, it is very easy to use client side
+OCaml data on server side, and vice-versa. Eliom handle the communication
+between client and server automatically in both direction. For example
+it possible to use a server-side variable in the client program.
+
+Eliom also implements an "HTTP-push" mechanism, allowing the server
+to send messages to a client.
+
+Client-side parts of the program can use most Eliom features, exactly
+as usual, for example to create HTML, or links, forms from services.
+
+On server side, it is possible to save data (some state) for each client
+process (that is, one tab in a browser),
+simply by using Eliom references with scope {{{`Client_process}}}.
+You can register services for one client process, or even set cookies
+for one tab.
+
+=== How it works
+
+The code of an Eliom application is written in OCaml, with a syntax extension
+to distinguish between server and client code. The files using this syntax
+usually have the extension {{{.eliom}}}. As the compling process is quite
+complex, we provide commands called {{{eliomc}}} and {{{js_of_eliom}}} that
+does everything for you (separating client and server parts, calling
+{{{ocamlc}}}, {{{js_of_ocaml}}}, etc).
+
+Services belonging to the application are registered using the module
+{{{Eliom_registration.App}}}. More precisely, this is a functor that
+needs to be applied for each application you create.
+These services just return HTML5 pages as usual (using {{{Tyxml.Html5}}} --
+not possible with OcamlDuce or any other HTML module).
+The client side program (compiled in JS) is added automatically by Eliom,
+with all its data, and run automatically when the page is loaded.
+
+The module {{{Eliom_client}}} provides some useful functions for client
+side programming with Eliom: mainly switch to another page or call a service
+returning some OCaml value.
+
+The module {{{Eliom_comet}}} allows for the server to send notifications
+to the client (even if the client is not explicitely doing a request).
+The module {{{Eliom_react}}} use this to make client-server reactive
+programming (using the React external library).
+
+
+== Structure of a program
+
+===@@id="syntax"@@ Syntax
+
+Eliom application are written in files with extension {{{.eliom}}}.
+Some special brackets make possible to distinuish between client and server
+code:
+
+<<code language="ocaml"|
+{server{
+  ...
+}}
+>>
+
+or no brackets for server side code,
+
+<<code language="ocaml"|
+{client{
+  ...
+}}
+>>
+
+for client side code, and
+
+<<code language="ocaml"|
+{shared{
+  ...
+}}
+>>
+
+for some code that is common to client and server parts.
+
+Inside server-side code block, Eliom also provides a custom syntax
+{{{ {{ ... }} }}} for defining client-side event handler. For example:
+
+<<code language="ocaml"|
+p ~a:[a_onclick {{ Dom_html.window##alert(Js.string "clicked!") }}]
+  [pcdata "I am a clickable paragraph"]
+>>
+
+Those client-side code block are classical OCaml values ; their type
+is <<a_api project="eliom" | type
+Eliom_content.Xml.caml_event_handler >>. Inside those code-block,
+an implicit {{{_ev}}} variable represent the javascript <<a_api
+project="js_of_ocaml" text="event object" | type Dom_html.event >>.
+On client side, this specific syntax is not required: function like
+<<a_api subproject="client" text="a_onclick"|
+val Eliom_content.Html5.a_onclick >> expect a function of type
+{{{#Dom_html.event -> unit}}} as parameter.
+
+====@@id="syntax%"@@ Using server side values on client side
+
+Client code inside {{{ {{ ... }} }}} quotation can use server side
+value using the {{{%variable}}} syntax or the {{{%(expr)}}} syntax:
+variables prefixed by {{{%}}}, and the evaluation of expressions
+prefixed by {{{%}}}, are sent to the client along the content of the
+page. For example:
+
+<<code language="ocaml"|
+let value = 3 in
+p ~a:[a_onclick {{
+        Dom_html.window##alert(Js.string
+           ("value = " ^ (string_of_int %value)) )
+      }}]
+  [pcdata "I am a clickable paragraph"]
+>>
+
+Or the same example using the {{{%(expr)}}} syntax:
+
+<<code language="ocaml"|
+let value = ref 3 in
+p ~a:[a_onclick {{
+        Dom_html.window##alert(Js.string
+           ("value = " ^ (string_of_int %(!value))) )
+      }}]
+  [pcdata "I am a clickable paragraph"]
+>>
+
+Notice that not all values are possible to send that way: since client
+and server side representation are not the same, it is impossible to
+send functions. This means that unforced lazy values, objects, or
+anything containing functions can't be send. Some eliom types use a
+specific machanism to circumvent this limitation. This is the case of:
+services, comet channels and busses. To use this mechanism see chpater
+<<a_manual chapter="wrapping"|Wrapping values>>.
+
+Those values are typechecked "by name": the most general type of a variable is
+inferred for server side then use as a type constraint on client side.
+For instance
+<<code language="ocaml"|
+let value = [] in
+let v = {{ %value }}
+>>
+can be read as
+<<code language="ocaml"|
+let value = [] in
+let v = {{ (%value: _ list) }}
+>>
+
+As client an server code are compiled separately, this means that a code like
+the following would be incorrect but would typecheck.
+<<code language="ocaml"|
+type a = A of int
+{client{ type a = A of string }}
+let value = A 1 in
+let v = {{ match %value with A s -> Dom_html.window##alert(Js.string s) }}
+>>
+
+Note that for some reason, it is impossible to use the {{{ {...{ }} }}} and
+{{{ {{ }} }}} syntax inside a module. For {{{ {{ }} }}} you can usually
+circumvent this limitation by declaring a function at toplevel with all the
+{{{%variable}}} as parameters.
+
+=== The App functor
+
+For each Eliom application, you must create a service registration module
+by applying the {{{App}}} functor:
+
+<<code language="ocaml"|
+module My_appl =
+  Eliom_registration.App (
+    struct
+      let application_name = "the name of your application"
+    end)
+>>
+
+the {{{application_name}}} parameter is the name of the javascript file
+containing the application.
+
+Then you can do for example:
+<<code language="ocaml"|
+let my_service =
+  My_appl.register_service
+    ~path:[""]
+    ~get_params:unit
+    (fun () () -> Lwt.return (html
+                               (head (title (pcdata "Hi!")) [])
+                               (body [p [pcdata "Hey."]])))
+>>
+
+Eliom will add automatically the required headers to send the client side
+program and all its data.
+
+== Application, life and death
+
+When an user enter the page of a service registered by an application
+module ( created with the {{{App}}} functor ), the application
+is started. During the life of the application, a single ocaml program
+will run on the browser: Lwt thread will keep running, global
+variables will stay available, etc...  until the application is
+closed. The application will keep running when the user clicks on
+links to pages inside the same application.
+
+This application will be closed when:
+* the user closes the browser tab containing the application
+* the user goes to a page outside of the application
+* the user change the current url by another mean than the
+  application interraction ( reload the page with {{{F5}}},
+  type an url, ... )
+* the application call the {{{Eliom_client.exit_to}}} function
+
+It is possible to prevent the application from launching when visiting
+an application page by setting the {{{do_not_launch}}} to {{{true}}}
+at the service registration:
+<<code language="ocaml"|
+let no_launch_service =
+  My_appl.register_service
+    ~option:{ Eliom_registration.default_appl_service_options with
+              do_not_launch = true }
+    ~path:[""]
+    ~get_params:unit
+    (fun () () -> Lwt.return (html
+                               (head (title (pcdata "Hi!")) [])
+                               (body [p [pcdata "Hey."]])))
+>>
+That way, you can delay the javascript loading until it is really needed.
+Visiting a service registered with {{{do_not_launch=true}}} will not stop
+a running application.
+
+It is possible to force reloading an application when clicking a link
+by creating the link with the {{{xhr}}} option set to false.
+
+=== Navigating in and out of the application.
+
+Two function are available on client side to change the current page
+without interraction of the user. The function
+<<a_api project="eliom" | val Eliom_client.change_page >> goes to the service
+taken as parameter. If the service is in another application or not in
+an application it will stop the current one.
+The function <<a_api project="eliom" | val Eliom_client.window_open >> opens an
+Eliom service in a new browser window (cf. Javascript's ##window.open##).
+<<a_api project="eliom" | val Eliom_client.exit_to >> changes the current page
+and always leave the application.
+
+== Generating HTML for Eliom applications
+
+=== The TyXML library vs. the DOM API
+
+On client side there are two kinds of HTML representations: one is
+based on the <<a_manual project="tyxml"|TyXML library>> and the other
+one is the browser DOM tree accessible through Js_of_ocaml modules
+<<a_api project="js_of_ocaml"| module Dom>> and <<a_api
+project="js_of_ocaml"| module Dom_html>>. The TyXML representation is
+a OCaml immutable typed tree. The DOM tree is mutable structure
+manipulated using the browser API which permit the modification of the
+displayed page. In the DOM represention adding a node as a child to an
+other node removes it from its previous ancessor.
+
+Since those representation does not behave at all the same way, they
+are not used for the same thing.
+
+* It is far easier and safer to describe content using TyXML, but it
+   is not possible to add a TyXML element to the page without explicit
+   conversion to the DOM representation.
+
+* The TyXML representation has the same interface on client and server
+  side. This allows share code between server and client.
+
+* Dom manipulation is heavy: to build some part of a tree, one needs
+  to create each node separately then append them to their parents.
+
+For example, here is a {{{div}}} element build with TyXML and then
+converted to the DOM representation using the module << a_api
+subproject="client" | module Eliom_client.Html5 >>:
+
+<<code language="ocaml"|
+open Eliom_content.Html5.D
+let n = div ~a:[a_id "some div id"]
+  [ pcdata "some text";
+    br ();
+    pcdata "some other text"; ]
+let b = Eliom_client.Html5.of_div n
+>>
+
+And here the same build using the DOM API:
+
+<<code language="ocaml"|
+open Dom
+open Dom_html
+
+let d = createDiv document in
+let t1 = document##createTextNode( Js.string "some text" ) in
+let t2 = document##createTextNode( Js.string "some other text" ) in
+let b = createB document in
+  appendChild d t1;
+  appendChild d b;
+  appendChild d t2;
+  d##id <- (Js.string "some div id");
+  d
+>>
+
+To ease the DOM manipulation on the client, the usual DOM manipulation
+function are also available on TyXML elements. See section <<a_manual
+chapter="client" fragment="unique"|HTML5 element manipulation, by
+value and by reference>>.
+
+===@@id="unique"@@ HTML5 element manipulation, by value and by reference
+
+<<wip| This section describes features available since version 2.1 of
+       Eliom. >>
+
+When defining a service that returns an HTML5 page with Eliom we
+usually use the module {{{Eliom_content.Html5.F}}}. When programming client/server
+application with Eliom, we usualy prefer to use the module
+{{{Eliom_content.Html5.D}}}. This is because
+elements build with {{{Eliom_content.Html5.D}}} are sent to the client by
+reference while elements build with {{{Eliom_content.Html5.F}}} are sent by value.
+
+Sending elements by reference allows to easily manipulate elements
+included in the initial html document from event handlers, as the
+{{{input}}} element in the following example.
+
+<<code language="ocaml"|
+let main_service =
+  My_appl.register_service ~path:[""] ~get_params:Eliom_parameter.unit
+    (fun () () ->
+       let open Eliom_content.Html5.D in
+       let input = input ~a:[a_input_type `Text] () in
+       let onclick_handler =
+	 {{ let v =
+	      Js.to_string (Eliom_client.Html5.of_input %input)##value
+	    in
+	    Dom_html.window##alert(Js.string ("Input value :" ^ v)) }}
+       in
+       let button =
+         button ~a:[a_onclick onclick_handler] [pcdata "Read value"]
+       in
+       Lwt.return
+         (html
+	    (head (title (pcdata "Test")) [])
+            (body [input; button]) ) )
+>>
+
+In this example, if the input button would have been incorrectly sent
+by value, two different input fields would have been created: one
+displayed in the document and one referenced from the event
+handler. The latter will always contains an empty value.
+
+There is still two situations where sending elements by value is still
+required:
+
+* one want to have multiple occurences of the same elements in the
+  document. Indeed, elements sent by reference follow the DOM
+  semantics where an element have only one instance in current
+  document. For example, the following list will contains a single
+  element:\\ \\ {{{let li = li [pcdata "Shared item"] in ul [li; li; li;] }}}.
+
+* one have a large page with a lot elements. Handling elements by
+  references add a small overhead while loading the page, around 50ms
+  per 1000 elements on a not so fast computer.
+
+In every case, it is possible to mix elements sent by references and
+elements sent by value in the same document.
+
+The module <<a_api subproject="client"| module Eliom_dom >> allows to
+use the classical DOM manipulation functions (e.g. appendChild,
+addEventlistener, ...) directly on HTML5 elements that follow the DOM
+semantics.
+
+By default, a reference on an element is only valid in the current
+HTTP request: hence, sending an element build with {{{Eliom_content.Html5.D}}} in
+two different page will produce two distinct nodes. If you want to
+define a element reference that is preserved accross the different
+page of an application, you must explicitely name this element with
+the function <<a_api subproject="server" | val
+Eliom_content.Html5.Id.create_named_elt >>, that take as parameters an
+element identifier and a non named element.  Element identifiers are
+created with the function <<a_api subproject="server" | val
+Eliom_content.Html5.Id.new_elt_id >>. See also section <<a_manual
+chapter="client" fragment="global" |Global elements of an
+application>>.
+
+The module <<a_api subproject="client"| module Eliom_dom.Named >>
+allows to use the classical DOM manipulation functions
+(e.g. appendChild, addEventlistener, ...) directly on the identifier
+of an HTML5 elements.
+
+===@@id="global"@@Global elements of an application
+
+Sometimes you may want to modify the content of an HTML element and to
+keep the element and its modified content when changing page. For
+examplem a {{{div}}} element which contains a chat box or a music
+player should be preserved while browsing across the different page of
+your site. For purpose Eliom provides a notion of global element. Such
+elements are instantied only once for an application and that unique
+instance is used in every page that references the element.
+
+You could create a global element with the function <<a_api
+subproject="client" text="Eliom_content.Html5.Id.create_global_elt"| val
+Eliom_content.Html5.Id.create_global_elt >>.
+
+<<code language="ocaml"|
+val create_global_elt: 'a elt -> 'a elt
+>>
+
+In the following example, the content of {{{global_list}}} will be
+preserved when you click on the "reload page" link.
+
+<<code language="ocaml"|
+{shared{
+open Eliom_content.Html5.D
+}}
+
+let global_list = create_global_elt (ul [])
+let cpt = ref 0
+
+let main_service =
+  Eliom_service.service
+    ~path:[""] ~get_params:Eliom_parameter.unit
+    ()
+
+let reload_link =
+  a ~service:main_service [pcdata "reload page"] ()
+
+let _ =
+  My_appl.register ~service:main_service
+    (fun () () ->
+       let page_number = incr cpt; string_of_int !cpt in
+       let append_item =
+	 {{ let item_text = "item inserted in page #" ^ %page_number in
+	    let item = Eliom_client.Html5.of_li (li [pcdata item_text]) in
+	    Dom.appendChild (Eliom_client.Html5.of_ul %global_list) item }}
+       in
+       let append_link =
+         a ~a:[a_onclick append_item] [pcdata "append item"]
+       in
+       Lwt.return
+         (html
+	    (head (title (pcdata "Test")) [])
+            (body [h1 [pcdata ("Page #" ^ page_number)];
+	           p [append_link];
+		   p [reload_link];
+		   global_list]) ) )
+>>
+
+Another use of global element is for external javascript that should
+be included in every page but must be executed only once in an
+application. In the following code snippet, the alert "global script"
+is displayed only once, while the alert "non global script" is display
+every time you click on the "reload page" link.
+
+<<code language="ocaml"|
+open Eliom_content.Html5.D
+
+let global_script =
+  create_global_elt
+    (script (cdata_script "alert(\"global script\")"))
+let simple_script =
+     script (cdata_script "alert(\"non global script\")")
+
+let main_service =
+  Eliom_service.service
+     ~path:[] ~get_params:Eliom_parameter.unit ()
+
+let reload_link =
+  a ~service:main_service [pcdata "reload page"] ()
+
+let _ = My_appl.register ~service:main_service
+  (fun () () ->
+    Lwt.return
+      (html
+         (head
+	   (title (pcdata "Global script example"))
+	   [ global_script;
+	     simple_script ])
+         (body
+	   [ p [reload_link] ])))
+>>
+
+
+== Using Eliom on client side
+
+<<wip|
+
+Liens, formulaires, utilisation des services côté client
+Le module Eliom_client
+Modules Eliom disponibles des deux côtés (et différences)
+
+parler de Eliom_service.void_coservice ?
+
+>>
+
+== Misc ==
+
+=== Leaving application and going back
+
+Usualy, when going to an application page, a new client process is
+launched on the server, but there are situations where an old client
+process is used instead: Browsers tend to take the result from their
+cache when using the back button even if the page was marked ( by HTTP
+headers ) as non-cacheable.

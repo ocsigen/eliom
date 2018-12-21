@@ -1,0 +1,75 @@
+
+= Eliom's Distillery==
+
+The easiest way to initialize, compile, and run a project in
+Ocsigen/Eliom is to use the Eliom distillery {{{eliom-distillery}}}.
+
+It is self-documenting (refer to {{{eliom-distillery -help}}} and the
+generated {{{README}}}), but here is a bit information on how to work
+with it.
+
+<<outline depth="2"| <<header| **Table of contents** >> >>
+
+
+
+=== Project Initialization
+
+The {{{eliom-distillery}}} creates projects from templates.
+Template "basic" create a very simple project (makefiles and configuration file
+and main service). There is also a template "mobile" for mobile apps.
+
+To create your project, do:
+
+<<code language="shell"|
+$ eliom-distillery -name <name> -template basic [-target-directory <dir>]
+>>
+
+This creates a project named {{{<name>}}} from the {{{"basic"}}}
+template in the directory {{{<dir>}}} or {{{<name>}}} by default.
+The project name should be a valid name for an OCaml compilation unit.
+The project directory contains the following files
+
+ * {{{<name>.eliom}}} \\
+   This is your initial source file.
+   All Eliom files (*.eliom, *.eliomi) in this directory are
+   automatically considered.  To add a .ml/.mli file to your project,
+   add it to the variable SERVER_FILES or CLIENT_FILES in
+   {{{Makefile.options}}}.
+
+ * {{{static/}}} \\
+   The content of this folder is statically served. It contains
+   initially a basic CSS file for your project.
+
+ * {{{Makefile.options}}} \\
+   Configure your project here!
+
+ * {{{name.conf.in}}} \\
+   This file is a template for the configuration file for
+   ocsigenserver. You will rarely need to edit it: it can be
+   personalized through variables in {{{Makefile.options}}}.
+   In particular, this way, the installation rules and the
+   configuration files remains coherent.
+
+ * {{{Makefile}}} \\
+   This contains all rules necessary to build, test, and run your
+   Eliom application. You should avoid modifying it. See below for the
+   relevant targets.
+
+ * {{{README}}} \\
+   An explanation of how to compile, test, install, and run your
+   application
+
+=== Compilation & Running: Read the README
+
+You can just run
+<<code language="shell"|
+$ make test.byte
+>>
+or
+<<code language="shell"|
+$ make test.opt
+>>
+to compile your project and run ocsigenserver with it.
+
+Please refer to the generated README file for further hints
+on how to work with your project.

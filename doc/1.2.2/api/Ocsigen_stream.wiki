@@ -1,0 +1,71 @@
+=Module <<a_api_type | module Ocsigen_stream >> =
+<<div class="code"|<<span class="keyword"|module>> Ocsigen_stream: <<span class='code'|sig>><<a_api text=".." | module Ocsigen_stream >><<span class='code'|end>>>>~Streams are a means to read data block by block\\
+
+----
+<<div  id="EXCEPTIONInterrupted" class="code"|<<span class="keyword"|exception>> Interrupted <<span class="keyword"|of>> <<span class="code type"|exn>>>>
+<<div  id="EXCEPTIONCancelled" class="code"|<<span class="keyword"|exception>> Cancelled>>
+<<div  id="EXCEPTIONAlready_read" class="code"|<<span class="keyword"|exception>> Already_read>>
+<<div  id="EXCEPTIONFinalized" class="code"|<<span class="keyword"|exception>> Finalized>>
+\\
+~Streams are a means to read data block by block\\
+<<div class="code" id="TYPEstream"|<<span class="keyword"|type>> <<span class="code type"|'a>> stream>>
+
+<<div class="code" id="TYPEstep"|<<span class="keyword"|type>> <<span class="code type"|'a>> step = private 
+|@@class="typetable"@ @class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|Finished>> <<span class="keyword"|of>> <<span class="code type"|'a <<a_api text="stream" | type Ocsigen_stream.stream >> option>>|
+|@@class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|Cont>> <<span class="keyword"|of>> <<span class="code type"|'a * 'a <<a_api text="stream" | type Ocsigen_stream.stream >>>>|>>
+<<div class="info"|~A stream may be composed by several substreams~.
+   ~Thus a stream is either something that contains the current buffer and
+   a function to retrieve the following data~,
+   or a finished stream with possibly another stream following~.\\
+>>
+
+<<div class="code" id="TYPEt"|<<span class="keyword"|type>> <<span class="code type"|'a>> t>>
+
+<<div id="VALmake" class="code"|<<span class="keyword"|val>> make : <<span class="code type"|\\{{{   }}}?finalize:(unit -> unit Lwt.t) ->\\{{{   }}}  (unit -> 'a <<a_api text="step" | type Ocsigen_stream.step >> Lwt.t) -> 'a <<a_api text="t" | type Ocsigen_stream.t >>>>>><<div class="info"|creates a new stream\\
+>>
+<<div id="VALget" class="code"|<<span class="keyword"|val>> get : <<span class="code type"|'a <<a_api text="t" | type Ocsigen_stream.t >> -> 'a <<a_api text="stream" | type Ocsigen_stream.stream >>>>>><<div class="info"|call this function if you decide to start reading a stream~.\\
+**Raises** {{{Already_read}}} if the stream has already been read~.\\
+>>
+<<div id="VALnext" class="code"|<<span class="keyword"|val>> next : <<span class="code type"|'a <<a_api text="stream" | type Ocsigen_stream.stream >> -> 'a <<a_api text="step" | type Ocsigen_stream.step >> Lwt.t>>>><<div class="info"|get the next step of a stream~.
+    ~Fails with <<span class='code'|~Interrupted e>> if reading the thread failed with exception <<span class='code'|e>>~,
+    and with <<span class='code'|~Cancelled>> if the thread has been cancelled~.\\
+>>
+<<div id="VALempty" class="code"|<<span class="keyword"|val>> empty : <<span class="code type"|(unit -> 'a <<a_api text="step" | type Ocsigen_stream.step >> Lwt.t) option -> 'a <<a_api text="step" | type Ocsigen_stream.step >> Lwt.t>>>><<div class="info"|creates an empty step~. ~The parameter is the following substream~, if any~.\\
+>>
+<<div id="VALcont" class="code"|<<span class="keyword"|val>> cont : <<span class="code type"|'a -> (unit -> 'a <<a_api text="step" | type Ocsigen_stream.step >> Lwt.t) -> 'a <<a_api text="step" | type Ocsigen_stream.step >> Lwt.t>>>><<div class="info"|creates a non empty step~.\\
+>>
+<<div id="VALadd_finalizer" class="code"|<<span class="keyword"|val>> add~_finalizer : <<span class="code type"|'a <<a_api text="t" | type Ocsigen_stream.t >> -> (unit -> unit Lwt.t) -> unit>>>><<div class="info"|~Add a finalizer function\\
+>>
+<<div id="VALfinalize" class="code"|<<span class="keyword"|val>> finalize : <<span class="code type"|'a <<a_api text="t" | type Ocsigen_stream.t >> -> unit Lwt.t>>>><<div class="info"|~Finalize the stream\\
+>>
+<<div id="VALcancel" class="code"|<<span class="keyword"|val>> cancel : <<span class="code type"|'a <<a_api text="t" | type Ocsigen_stream.t >> -> unit Lwt.t>>>><<div class="info"|~Cancel the stream~, i~.e~. read the stream until the end~, without decoding~.
+    ~Further tries to read on the stream will fail with exception
+    <<a_api | exception Ocsigen_stream.Cancelled >>\\
+>>
+<<div id="VALconsume" class="code"|<<span class="keyword"|val>> consume : <<span class="code type"|'a <<a_api text="t" | type Ocsigen_stream.t >> -> unit Lwt.t>>>><<div class="info"|~Consume without cancelling~.
+    ~Read the stream until the end~, without decoding~.\\
+>>
+<<div  id="EXCEPTIONStream_too_small" class="code"|<<span class="keyword"|exception>> Stream_too_small>>
+<<div class="info"|possibly with the size of the stream\\
+>>
+<<div  id="EXCEPTIONStream_error" class="code"|<<span class="keyword"|exception>> Stream_error <<span class="keyword"|of>> <<span class="code type"|string>>>>
+<<div  id="EXCEPTIONString_too_large" class="code"|<<span class="keyword"|exception>> String_too_large>>
+<<div id="VALstring_of_stream" class="code"|<<span class="keyword"|val>> string~_of~_stream : <<span class="code type"|string <<a_api text="stream" | type Ocsigen_stream.stream >> -> string Lwt.t>>>><<div class="info"|~Creates a string from a stream\\
+>>
+<<div id="VALenlarge_stream" class="code"|<<span class="keyword"|val>> enlarge~_stream : <<span class="code type"|string <<a_api text="step" | type Ocsigen_stream.step >> -> string <<a_api text="step" | type Ocsigen_stream.step >> Lwt.t>>>><<div class="info"|~Read more data in the buffer\\
+>>
+<<div id="VALstream_want" class="code"|<<span class="keyword"|val>> stream~_want : <<span class="code type"|string <<a_api text="step" | type Ocsigen_stream.step >> -> int -> string <<a_api text="step" | type Ocsigen_stream.step >> Lwt.t>>>><<div class="info"|<<span class='code'|stream~_want s len>> ~Returns a stream with at least len
+    bytes in the buffer if possible\\
+>>
+<<div id="VALcurrent_buffer" class="code"|<<span class="keyword"|val>> current~_buffer : <<span class="code type"|string <<a_api text="step" | type Ocsigen_stream.step >> -> string>>>><<div class="info"|~Returns the value of the current buffer\\
+>>
+<<div id="VALskip" class="code"|<<span class="keyword"|val>> skip : <<span class="code type"|string <<a_api text="step" | type Ocsigen_stream.step >> -> int64 -> string <<a_api text="step" | type Ocsigen_stream.step >> Lwt.t>>>><<div class="info"|~Skips data~. ~Raises <<span class='code'|~Stream~_too~_small ~(~Some size~)>> 
+    if the stream is too small~, where <<span class='code'|size>> is the size of the stream~.\\
+>>
+<<div id="VALsubstream" class="code"|<<span class="keyword"|val>> substream : <<span class="code type"|string -> string <<a_api text="step" | type Ocsigen_stream.step >> -> string <<a_api text="step" | type Ocsigen_stream.step >> Lwt.t>>>><<div class="info"|~Cut the stream at the position given by a string delimiter\\
+>>
+<<div id="VALof_file" class="code"|<<span class="keyword"|val>> of~_file : <<span class="code type"|string -> string <<a_api text="t" | type Ocsigen_stream.t >>>>>><<div class="info"|returns a stream reading from a file~.
+   ~Do not forget to finalize the stream to close the file~.\\
+>>
+<<div id="VALof_string" class="code"|<<span class="keyword"|val>> of~_string : <<span class="code type"|string -> string <<a_api text="t" | type Ocsigen_stream.t >>>>>><<div class="info"|returns a stream containing a string~.\\
+>>

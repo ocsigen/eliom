@@ -1,0 +1,703 @@
+= Programming client-server applications with Eliom
+
+<<wip|
+The documentation is now mostly complete, but we are still working on it
+(some parts need to be reworked, some small parts are missing).
+We will release it as a PDF book in a few week.
+Any help appreciated.>>
+
+
+
+== General principles
+=== What is a client/server Eliom application
+
+An Eliom application is a distributed application that runs partly on the
+server, partly on a browser. The program is fully written in OCaml, with
+a syntax extension to distinguish between server and client code.
+Both parts are extracted during the compilation process, the server part
+is compiled as usual for an Eliom website, and the client part is compiled
+to Javascript to be run in the browser.
+
+An intersting feature of Eliom applications is that the client side process
+does not stop when you click on a link or send a form, and it is possible to
+keep the traditional Web interaction (with URLs, bookmarks, back button, etc).
+For example if the page is playing music, it won't stop when the user continue
+his visit on the Web site.
+
+Client side parts are using {{{Lwt}}} for concurrency, making possible
+to have concurrent programs in the browser very easily.
+
+As both part are implemented in OCaml, it is very easy to use client side
+OCaml data on server side, and vice-versa. Eliom handle the communication
+between client and server automatically in both direction. For example
+it possible to use a server-side variable in the client program.
+
+Eliom also implements an "HTTP-push" mechanism, allowing the server
+to send messages to a client.
+
+Client-side parts of the program can use most Eliom features, exactly
+as usual, for example to create HTML, or links, forms from services.
+
+On server side, it is possible to save data (some state) for each client
+process (that is, one tab in a browser),
+simply by using Eliom references with scope {{{`Client_process}}}.
+You can register services for one client process, or even set cookies
+for one tab.
+
+=== How it works
+
+The code of an Eliom application is written in OCaml, with a syntax extension
+to distinguish between server and client code. The files using this syntax
+usually have the extension {{{.eliom}}}. As the compling process is quite
+complex, we provide commands called {{{eliomc}}} and {{{js_of_eliom}}} that
+does everything for you (separating client and server parts, calling
+{{{ocamlc}}}, {{{js_of_ocaml}}}, etc).
+
+Services belonging to the application are registered using the module
+{{{Eliom_output.Eliom_appl}}}. More precisely, this is a functor that
+needs to be applyed for each application you create.
+These services just return HTML5 pages as usual (using {{{Tyxml.Html5}}} --
+not possible with OcamlDuce or any other HTML module).
+The client side program (compiled in JS) is added automatically by Eliom,
+with all its data, and run automatically when the page is loaded.
+
+The module {{{Eliom_client}}} provides some useful functions for client
+side programming with Eliom: mainly switch to another page or call a service
+returning some OCaml value.
+
+The module {{{Eliom_comet}}} allows for the server to send notifications
+to the client (even if the client is not explicitely doing a request).
+The module {{{Eliom_react}}} use this to make client-server reactive
+programming (using the React external library).
+
+
+== Structure of a program
+=== Syntax
+
+Eliom application are written in files with extension {{{.eliom}}}.
+Some special brackets make possible to distinuish between client and server
+code:
+<<code language="ocaml"|
+{server{
+  ...
+}}
+>>
+or no brackets for server side code,
+<<code language="ocaml"|
+{client{
+  ...
+}}
+>>
+for client side code,
+and
+<<code language="ocaml"|
+{shared{
+  ...
+}}
+>>
+for some code that is common to client and server parts.
+
+Expressions of type <<a_api project="eliom" | type Eliom_pervasives.XML.event >>
+(used for instance in HTML attributes like "onclick") are written using the quotation
+{{{ {{ ... }} }}}, for example:
+<<code language="ocaml"|
+p ~a:[a_onclick {{ Dom_html.window##alert(Js.string "clicked!") }}]
+  [pcdata "I am a clickable paragraph"]
+>>
+
+(The {{{##}}} syntax is js_of_ocaml's syntax for calling a Javascript method).
+
+on client side a the type
+<<a_api project="eliom" subproject="client" | type Eliom_pervasives.XML.event >>
+is equal to {{{unit -> unit}}}, i.e. code inside quotations is expected to return
+a value of type {{{unit}}} ( the {{{fun () ->}}} part of the function declaration
+is added by the syntax extension ).
+
+<<a_api project="eliom" | type Eliom_pervasives.XML.event >> can also be used to
+execute some function when the page is loaded. This is achied using
+<<a_api project="eliom" | val Eliom_services.onload >>.
+
+Do not add onload attribute to elements, this won't behave as expected ( the event
+won't be triggered, or not at the right time ).
+
+====@@id="syntax%"@@ Using server side values on client side
+
+Client code inside {{{ {{ ... }} }}} quotation can use server side value
+using the {{{%variable}}} syntax: variables prefixed by {{{%}}} are sent to
+the client along the content of the page.
+
+for instance:
+<<code language="ocaml"|
+let value = 3 in
+p ~a:[a_onclick {{ Dom_html.window##alert(Js.string ("value = " ^ (string_of_int %value))) }}]
+  [pcdata "I am a clickable paragraph"]
+>>
+
+Notice that not all values are possible to send that way: since client and
+server side representation are not the same, it is impossible to send
+functions. This means that unforced lazy values, objects, or anything
+containing functions can't be send. Some eliom types use a specific machanism
+to circumvent this limitation. This is the case of: services, comet channels
+and busses. To use this mechanism see <<wip| reference a la doc du wrapping >>.
+
+Those values are typechecked "by name": the most general type of a variable is
+inferred for server side then use as a type constraint on client side.
+For instance
+<<code language="ocaml"|
+let value = [] in
+let v = {{ %value }}
+>>
+can be read as
+<<code language="ocaml"|
+let value = [] in
+let v = {{ (%value: _ list) }}
+>>
+
+As client an server code are compiled separately, this means that a code like
+the following would be incorrect but would typecheck.
+<<code language="ocaml"|
+type a = A of int
+{client{ type a = A of string }}
+let value = A 1 in
+let v = {{ match %value with A s -> Dom_html.window##alert(Js.string s) }}
+>>
+
+Note that for some reason, it is impossible to use the {{{ {...{ }} }}} and
+{{{ {{ }} }}} syntax inside a module. For {{{ {{ }} }}} you can usually
+circumvent this limitation by declaring a function at toplevel with all the
+{{{%variable}}} as parameters.
+
+=== The Eliom_appl functor
+
+For each Eliom application, you must create a service registration module
+by applying the {{{Eliom_appl}}} functor:
+
+<<code language="ocaml"|
+module My_appl =
+  Eliom_output.Eliom_appl (
+    struct
+      let application_name = "the name of your application"
+    end)
+>>
+
+the {{{application_name}}} parameter is the name of the javascript file
+containing the application.
+
+Then you can do for example:
+<<code language="ocaml"|
+let my_service =
+  My_appl.register_service
+    ~path:[""]
+    ~get_params:unit
+    (fun () () -> Lwt.return (html
+                               (head (title (pcdata "Hi!")) [])
+                               (body [p [pcdata "Hey."]])))
+>>
+
+Eliom will add automatically the required headers to send the client side
+program and all its data.
+
+=== Compiling
+
+The compiling process for Eliom applications is explained on chapter ???????.
+
+<<wip|à faire !>>
+
+== Application, life and death
+
+When an user enter the page of a service registered by an application
+module ( created with the {{{Eliom_appl}}} functor ), the application
+is started. During the life of the application, a single ocaml program
+will run on the browser: Lwt thread will keep running, global
+variables will stay available, etc...  until the application is
+closed. The application will keep running when the user clicks on
+links to pages inside the same application.
+
+This application will be closed when:
+* the user closes the browser tab containing the application
+* the user goes to a page outside of the application
+* the user change the current url by another mean than the
+  application interraction ( reload the page with {{{F5}}},
+  type an url, ... )
+* the application call the {{{Eliom_client.exit_to}}} function
+
+It is possible to prevent the application from launching when visiting
+an application page by setting the {{{do_not_launch}}} to {{{true}}}
+at the service registration:
+<<code language="ocaml"|
+let no_launch_service =
+  My_appl.register_service
+    ~option:{ Eliom_output.default_appl_service_options with
+              do_not_launch = true }
+    ~path:[""]
+    ~get_params:unit
+    (fun () () -> Lwt.return (html
+                               (head (title (pcdata "Hi!")) [])
+                               (body [p [pcdata "Hey."]])))
+>>
+That way, you can delay the javascript loading until it is really needed.
+Visiting a service registered with {{{do_not_launch=true}}} will not stop
+a running application.
+
+It is possible to force reloading an application when clicking a link
+by creating the link with the {{{no_appl}}} option set to true.
+
+=== Navigating in and out of the application.
+
+Two function are available on client side to change the current page
+without interraction of the user. The function
+<<a_api project="eliom" | val Eliom_client.change_page >> goes to the service
+taken as parameter. If the service is in another application or not in
+an application it will stop the current one.
+<<a_api project="eliom" | val Eliom_client.exit_to >> change the current page
+and always leave the application.
+
+== Generating HTML for Eliom applications
+
+On client side there are two kinds of HTML representations: Tyxml HTML tree and
+the browser DOM. Tyxml representation is a Ocaml immutable typed tree. The DOM
+tree is mutable structure manipulated using the browser API which permit the
+modification of the displayed page. It is not a tree (node reference their
+ancessor), adding a node as a child to an other node removes it from its
+previous ancessor.
+
+Since those representation does not behave at all the same way, they are not
+used for the same thing.
+
+ * it is far easier and safer ( typed ) to describe content using tyxml, but it
+is not possible to add a tyxml node to the page directly. It has the same
+interface on client and <<a_manual fragment="server_generating_html"| server side>>
+
+ * Dom manipulation is heavy: to build some part of a tree, one needs to
+create each node separately then append them to their parents.
+
+Using HTML5:
+
+<<code language="ocaml"|
+open HTML5.M
+let n = div ~a:[a_id "some div id"]
+  [ pcdata "some text";
+    br ();
+    pcdata "some other text"; ]
+>>
+
+Using DOM:
+
+<<code language="ocaml"|
+open Dom
+open Dom_html
+
+let d = createDiv document in
+let t1 = document##createTextNode( Js.string "some text" ) in
+let t2 = document##createTextNode( Js.string "some other text" ) in
+let b = createB document in
+  appendChild d t1;
+  appendChild d b;
+  appendChild d t2;
+  d##id <- (Js.string "some div id");
+  d
+>>
+
+but converting from HTML5 to dom is possible:
+
+<<code language="ocaml"|
+open HTML5.M
+let n = div ~a:[a_id "some div id"]
+  [ pcdata "some text";
+    br ();
+    pcdata "some other text"; ]
+let b = Eliom_client.Html5.of_div n
+>>
+
+will build exactly the same thing as the node build using dom functions.
+
+===@@id="unique"@@ HTML5 manipulation, by value and by reference
+
+Notice that, since {{{ Eliom_client.Html5.of_div n }}} is building a new dom
+node from a Tyxml tree, using
+<<code language="ocaml"|
+let b1 = Eliom_client.Html5.of_div n
+let b2 = Eliom_client.Html5.of_div n
+>>
+{{{ b1 }}} and {{{ b2 }}} will be different nodes ( {{{ b1 == b2 }}} will be
+{{{ false }}} ).
+
+Which means that
+<<code language="ocaml"|
+let _ = My_appl.register_service ~path:[] ~get_params:unit
+  (fun () () ->
+    let div = HTML5.M.div [] in
+    Eliom_services.onload {{
+      Dom.appendChild
+        (Eliom_client.Html5.of_div %div)
+        (Dom_html.document##createTextNode(Js.string "some text"))
+    }};
+    Lwt.return
+      (HTML5.M.html
+         (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "title")) [])
+         (HTML5.M.body [div])))
+>>
+won't work as expected: the page will remain blank. The node
+{{{(Eliom_client.Html5.of_div %div)}}} is completely unrelated to {{{ div }}},
+it is just a div node without parent.
+
+To be able to do something similar, one needs to manipulate node 'by reference'
+as opposed to 'by value' as we have seen until now.
+
+To do that we use the <<a_api project="eliom" | val Eliom_pervasives.HTML5.M.unique >> function:
+<<code language="ocaml"|
+val unique: ?copy:'a elt -> 'a elt -> 'a elt
+>>
+It create a new element that is manipulated 'by reference'. It is called
+{{{unique}}} because the the created element can only appear one time in the page:
+If it is added multiple times in a page, it will move from a place to another.
+
+<<code language="ocaml"|
+let _ = My_appl.register_service ~path:[] ~get_params:unit
+  (fun () () ->
+    let div = HTML5.M.unique HTML5.M.div [] in
+    Eliom_services.onload {{
+      Dom.appendChild
+        (Eliom_client.Html5.of_div %div)
+        (Dom_html.document##createTextNode(Js.string "some text"))
+    }};
+    Lwt.return
+      (HTML5.M.html
+         (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "title")) [])
+         (HTML5.M.body [div])))
+>>
+
+Is the correct way to do this: the div in the page body will finally contain
+{{{[div [pcdata "some text"]}}}.
+
+References to unique elements are still valid after page change
+( when not stopping the application ), and side effects on them are kept.
+
+For example:
+<<code language="ocaml"|
+let div = HTML5.M.unique HTML5.M.div []
+
+let s1 = My_appl.register_service ~path:["s1"] ~get_params:unit
+  (fun () () ->
+    Lwt.return
+      (HTML5.M.html
+         (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "s1")) [])
+         (HTML5.M.body [div])))
+
+let s2 = My_appl.register_service ~path:["s2"] ~get_params:unit
+  (fun () () ->
+    Eliom_services.onload {{
+      Dom.appendChild
+        (Eliom_client.Html5.of_div %div)
+        (Dom_html.document##createTextNode(Js.string "some text"))
+    }};
+    Lwt.return
+      (HTML5.M.html
+         (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "s2")) [])
+         (HTML5.M.body [
+            Eliom_output.Html5.a ~service:s1 [HTML5.M.pcdata "change page to s1"] ();
+            div])))
+>>
+
+When going direcly to the service s1, the page contains only a div element. But
+if one goes to s2 then clicks on the link to go to s1, the unique {{{div}}}
+element will still contains the text added to it in s2: its dom node is the
+same on both pages.
+
+Note that when you are defining some form input on server side for use with
+client side script interraction, you almost always want to define it as unique.
+For instance here
+<<code language="ocaml"|
+let input = HTML5.M.unique (HTML5.M.input ()) in
+
+let read = HTML5.M.button
+  ~a:[HTML5.M.a_onclick
+         {{
+           let input = Eliom_client.Html5.of_input %input in
+           Dom_html.window##alert (input##value)
+         }}
+     ]
+  [HTML5.M.pcdata "display input value"] in
+>>
+without unique a new input element would be created each time the button is clicked.
+
+==== Unique Scripts
+
+When a page is loaded all the script elements in the header are run. When
+changing page without leaving the application, they are run another time if
+they are still present. But is is not always the wanted behaviour. For
+instance, if you use some javascript library, you don't want its code to be
+executed multiple times. To achieve this, you have to declare those scripts
+elements as unique.
+
+<<code language="ocaml"|
+let unique_script = HTML5.M.unique
+  (HTML5.M.script (HTML5.M.cdata_script "alert(\"unique script\")"))
+let non_unique_script = HTML5.M.script (HTML5.M.cdata_script "alert(\"non unique script\")")
+
+let s =
+  Eliom_services.service
+    ~path:[]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+let _ = My_appl.register
+  (fun () () ->
+    Lwt.return
+      (HTML5.M.html
+         (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "s2"))
+	   [unique_script;non_unique_script])
+         (HTML5.M.body [
+	   Eliom_output.Html5.a ~service:s [HTML5.M.pcdata "reload page"] ()])))
+>>
+
+On the first load of the page both messages {{{unique script}}} and
+{{{non unique script}}} will be displayed and when clicking on the
+"reload page" link, only {{{non unique script}}} will be displayed.
+
+==== Unique with generated content
+
+Sometimes you want to mark unique some nodes wich content is
+generated, for instance you could have a div containing with the user
+name which could be changed.
+
+To achieve that you can use the ability for multiple unique node to be
+defined as the same reference:
+<<code language="ocaml"|
+let base = HTML5.M.unique (HTML5.M.div [])
+
+...
+
+let userdiv = HTML5.M.unique ~copy:base (HTML5.M.div [pcdata user_name]) in
+...
+>>
+
+When {{{userdiv}}} is included in the page, its content will be the
+{{{[pcdata user_name]}}}, but after that, modifying its node can be
+done using either {{{userdiv}}} or {{{base}}}.
+
+== Using Eliom on client side
+
+Liens, formulaires, utilisation des services côté client
+Le module Eliom_client
+Modules Eliom disponibles des deux côtés (et différences)
+
+parler de Eliom_services.void_coservice ?
+
+== Communication between the client and the server
+
+Outside of the values passed by the mean of the {{{%variable}}}
+syntax, there are multiple ways for the client and server to echange
+values. Depending on what kind of transfer to do, there are different
+methods addapted.
+
+=== Client requesting data
+
+The client process can call special services to get some Ocaml
+values. Those services cannot be visited by the browser as web pages.
+They are registered using <<a_api project="eliom" | module Eliom_output.Caml >>
+and can be called using
+<<a_api project="eliom" subproject="client" | val Eliom_client.call_caml_service >>.
+
+For instance:
+<<code language="ocaml"|
+let pi_service =
+  Eliom_output.Caml.register_service
+    ~path:["pi service"]
+    ~get_params:unit
+    (fun () () -> Lwt.return 3.1415926535)
+
+let _ =
+  My_appl.register_service
+    ~path:["pi service"]
+    ~get_params:unit
+    (fun () () ->
+      Eliom_services.onload
+      {{
+        lwt pi = Eliom_client.call_caml_service ~service:%pi_service () () in
+	Dom_html.window##alert(Js.string ("pi = "^(float_of_string pi)))
+      }};
+      Lwt.return
+        (HTML5.M.html
+           (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "pi")))
+           (HTML5.M.body [])))
+>>
+
+Since client and server side value representation are not the same, it
+is not possible to send any Ocaml value, the restrinction on what can
+be sent are the same as for the {{{%variable}}} mechanism
+(see the <<a_manual fragment="wrapping"| wrapping chapter>>).
+
+=== Client sending data
+
+The client can send values to the server using the service mechanism,
+by defining the parameter types. To send arbitrary Ocaml values, there
+is a special type declaration:
+<<a_api project="eliom" | val Eliom_parameters.caml >>.
+
+Since the server can't trust the client to send correcly formed data,
+those values can't be sent using the Ocaml marshall mechanism: the
+server needs to be able to check that the value is of the expected
+type. To do this we use {{{Deriving}}}, a syntax extension for the
+type declarations.
+
+<<code language="ocaml"|
+{shared{
+  type some_type = (int * string list) deriving (Json)
+  type another_type =
+    | A of some_type
+    | B of another_type
+    deriving (Json)
+}}
+>>
+
+this type can now be used as a parameter for a service
+
+<<code language="ocaml"|
+let s =
+  My_appl.register_service
+    ~path:["s1"]
+    ~get_params:(caml "param" Json.t<another_type>)
+    (fun () v ->
+      Lwt.return
+        (HTML5.M.html
+           (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "title")))
+           (HTML5.M.body [
+	     match v with
+	       | A _ -> pcdata "A"
+	       | B _ -> pcdata "B"
+	   ])))
+
+let _ =
+  My_appl.register_service
+    ~path:["s2"]
+    ~get_params:unit
+    (fun () () ->
+      Lwt.return
+        (HTML5.M.html
+           (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "title")))
+           (HTML5.M.body [
+	     [p ~a:[a_onclick
+               {{ ignore (Eliom_client.change_page ~service:%s (A (1,["s"])) ()) }}]
+               [pcdata "Click to send Ocaml data"]
+           ]])))
+>>
+
+For more information see deriving documentation.
+<<wip| ajouter un lien vers la doc de deriving>>
+
+deriving
+
+=== Server sending data
+
+There are ways for the server to send data to the client, without the
+client to explicitely request it. We call that mechanism comet, it
+also sometimes called HTTP push.
+
+The simple low level version on wich all other following mechanism is
+implemented is provided in the <<a_api project="eliom" | module Eliom_comet.Channels >>
+module.
+
+Comet defines channels which can convey data. A channel is created
+using an Lwt stream. It is a kind of cooperative lazy list.
+
+The two main methods to create a stream is using
+<<a_api project="lwt" | val Lwt_stream.from >> or
+<<a_api project="lwt" | val Lwt_stream.create >> functions.
+
+<<code language="ocaml"|
+val from : (unit -> 'a option Lwt.t) -> 'a t
+val create : unit -> 'a t * ('a option -> unit)
+>>
+
+With <<a_api project="lwt" | val Lwt_stream.from >> you can create a stream where a new
+value is added each time a function returns. <<a_api project="lwt" | val Lwt_stream.create >>
+returns a stream and function to push new values to it.
+
+On client side the <<a_api project="eliom" subproject="client" | type Eliom_comet.Channels.t >>
+type is just an Lwt stream <<a_api project="lwt" | type Lwt_stream.t >>.
+
+There are 3 kind of channels depending on how you want to send data.
+
+* Channels created with
+  <<a_api project="eliom" | val Eliom_comet.Channels.create >>
+  have a buffer with a limited size. Message are read from the stream as
+  soon as they are available, i.e. for stream created with
+  <<a_api project="lwt" | val Lwt_stream.from >>, that means that the
+  function is called another time as soon as the previous one terminate.
+  For stream created with <<a_api project="lwt" | val Lwt_stream.create >>,
+  this is as soon as they are pushed. If the client has missed too much
+  messages ( more than the size of the buffer ) it will receive an exception
+  << a_api project="eliom" subproject="client" | exception Eliom_comet.Channel_full >>
+  when reading data from the stream.
+
+* Channels created with
+  <<a_api project="eliom" | val Eliom_comet.Channels.create_newest >> has no buffering
+  and can loose messages, but the client will always receive the last value: For instance if many
+  messages are sent in a short time, this could send only the last one. Those channels never raise
+  << a_api project="eliom" subproject="client" | exception Eliom_comet.Channel_full >>
+
+* Channels created with <<a_api project="eliom" | val Eliom_comet.Channels.create_unlimited >>
+  Which consume data on the stream only when their is a request from the client.
+
+Channels can be closed on client side by canceling a thread waiting for data on it.
+
+==== Comet configuration
+
+The server can push data to a client only when the client has an open
+HTTP connection waiting for answer. As of now, a comet request can
+only last at most 10 seconds. After that, the client can either do a
+new request or stale for some time: this is the activity
+behaviour. This can be configured on client side, using the functions from
+<<a_api project="eliom" subproject="client" | module Eliom_comet.Configuration >>
+
+For instance for if you receive data that doesn't need frequent
+update, you could set the time between different request quite high
+and stop requesting data as soon as the browser loose the focus.
+
+<<code language="ocaml"|
+open Eliom_comet.Configuration
+let slow_c = new_configuration () in
+set_active_until_timeout slow_c false;
+set_time_between_request slow_c 60.
+>>
+
+then if you want to have some reactivity for a few seconds.
+<<code language="ocaml"|
+open Eliom_comet.Configuration
+let fast_c = new_configuration () in
+set_set_always_active fast_c true;
+set_set_time_between_request fast_c 0.;
+ignore (Lwt_js.sleep 10. >|= (fun () -> drop_configuration fast_c))
+>>
+
+The original setting will be reset after the drop.
+
+=== Reactive values
+
+A common usage of comet is for the server to update a value available on client side.
+To do this, there are functions available to share a React event or signal:
+<< a_api project="eliom" | val Eliom_react.Down.of_react >> and
+<< a_api project="eliom" | val Eliom_react.S.Down.of_react >>
+
+On client side the value returned by those function is directly a React event or signal.
+
+The contrary is also available using << a_api project="eliom" | val Eliom_react.Up.create >>.
+
+Since this is implemented using comet, tunig comet configuration will
+also affect the behaviour of shared react variables.
+
+=== Client-Server shared bus
+
+Sometimes it is usefull to have a bidirectionnal channel shared between multiple clients.
+This is the intent of buses. Those are created using
+<< a_api project="eliom" | val Eliom_bus.create >>. Since the server will also receive data on
+the bus, the description of the type ( using deriving ) is needed to create a bus.
+
+Like comet channels, the behaviour of buses can be tuned using the module
+<<a_api project="eliom" subproject="client" | module Eliom_comet.Configuration >>.
+There are additionnal configurations available on buses to tune the client side buffering.
+
++ events (à mettre dans js_of_ocaml)
+
+<<wip|A-t-on oublié qqchose ? (sûrement :/) >>

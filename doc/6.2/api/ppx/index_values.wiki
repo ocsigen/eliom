@@ -1,0 +1,7 @@
+=Index of values=
+
+|@@ @style="tet-align: left;"@@\\M|
+|@@class="odocwiki_index"@ @@<<a_api subproject="ppx" text="mapper"| value Ppx_eliom_server.mapper >> ~[<<a_api subproject="ppx" | module Ppx_eliom_server >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="ppx" text="mapper"| value Ppx_eliom_type.mapper >> ~[<<a_api subproject="ppx" | module Ppx_eliom_type >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="ppx" text="mapper"| value Ppx_eliom_client.mapper >> ~[<<a_api subproject="ppx" | module Ppx_eliom_client >>~]||
+\\

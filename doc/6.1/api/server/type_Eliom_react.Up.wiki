@@ -1,0 +1,10 @@
+<<code language="ocaml" | sig
+  type 'a t
+  val to_react : 'a Eliom_react.Up.t -> 'a React.E.t
+  val create :
+    ?scope:Eliom_common.scope ->
+    ?name:string ->
+    ('a, [ `WithoutSuffix ],
+     [ `One of 'a Eliom_parameter.ocaml ] Eliom_parameter.param_name)
+    Eliom_parameter.params_type -> 'a Eliom_react.Up.t
+end >>

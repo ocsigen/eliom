@@ -1,0 +1,258 @@
+=Module <<a_api_type subproject="server" | module Eliom_registration >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_registration>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration >><<span class="ocsforge_color_keyword"|end>>>>~Eliom services registration for various kinds of
+    page content~: ~Eliom application~, valid <<a_api subproject="server" | module Eliom_registration.Html5 >> or <<a_api subproject="server" | module Eliom_registration.Xhtml >>~,
+    actions~, redirections~, static files~, …
+
+----
+
+~See the ~Eliom manual for
+    more information on <<a_manual chapter="services" | services
+    >> and <<a_manual chapter="outputs" | predefined outputs
+    >>~.
+
+<<outline>> 
+
+
+==@@id="2_Typedefinitions"@@~Type definitions==
+
+<<pre class="ocsforge_color odocwiki_code" id="TYPEkind"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >>>> <<span class="odocwiki_name"|kind>>>><<div class="odocwiki_info"|~The type <<span class="odocwiki_inlinecode"|kind>> is an abstract type for the ~H~T~T~P frame returned by
+    a service~. ~The type parameters are phantom types describing the
+    content of the frame~:
+
+
+* ~The second parameter is the same as the last type parameters of
+    the corresponding <<a_api subproject="server" | val Eliom_service.service >>~. ~Currently~, one of the
+    following types~:
+    
+** <<a_api subproject="server" | type Eliom_registration.appl_service >>
+** <<a_api subproject="server" | type Eliom_registration.http_service >>
+** <<a_api subproject="server" | val Eliom_parameter.caml >>
+
+* ~The first parameter is a refinement of the second
+    parameter~. ~Currently~, one of the following types~:
+    
+** <<a_api subproject="server" | type Eliom_registration.application_content >>
+** <<a_api subproject="server" | type Eliom_registration.browser_content >>
+** <<a_api subproject="server" | type Eliom_registration.block_content >>
+** <<a_api subproject="server" | type Eliom_registration.unknown_content >>
+** <<a_api subproject="server" | type Eliom_registration.caml_content >>
+
+
+>>
+
+
+===@@id="3_ReturntypesforEliomserviceservice"@@~Return types for <<a_api subproject="server" | val Eliom_service.service >> ===
+
+
+
+====@@id="4_Classicalcontent"@@~Classical content====
+
+<<pre class="ocsforge_color odocwiki_code" id="TYPEhttp_service"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|http~_service>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Http ]>> >><<div class="odocwiki_info"|~The type <<span class="odocwiki_inlinecode"|http~_service>> is used as a phantom type parameters for
+    <<a_api subproject="server" | val Eliom_service.service >> and <<a_api subproject="server" | type Eliom_registration.kind >>~. ~It means the
+    returned content is classical ~H~T~T~P content described by the
+    content type header~. ~See <<a_api subproject="server" | type Eliom_registration.kind >> for a list of others
+    return types~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEbrowser_content"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|browser~_content>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Browser ]>> >><<div class="odocwiki_info"|~The type <<span class="odocwiki_inlinecode"|browser~_content>> is a refinement of <<a_api subproject="server" | type Eliom_registration.http_service >> to
+    be used as a phantom type parameters for <<a_api subproject="server" | type Eliom_registration.kind >>~. ~It
+    means the returned content must be interpreted in the browser as
+    stated by the content~-type header~. ~This is most common return type
+    for an eliom service~, see for example <<a_api subproject="server" | module Eliom_registration.Html5 >>~,
+    <<a_api subproject="server" | module Eliom_registration.Xhtml >>~, <<a_api subproject="server" | module Eliom_registration.CssText >>~, <<a_api subproject="server" | module Eliom_registration.File >>~,
+    <<a_api subproject="server" | module Eliom_registration.Redirection >>~, …~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEblock_content"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|block~_content>>>><<div class="odocwiki_info"|~The type <<span class="odocwiki_inlinecode"|block~_content>> is a refinement of <<a_api subproject="server" | type Eliom_registration.http_service >> to be
+    used as a phantom type parameters for <<a_api subproject="server" | type Eliom_registration.kind >>~. ~It
+    means the returned content is a subtree of an ~X~M~L value~. ~See for
+    example <<a_api subproject="server" | module Eliom_registration.Block5 >> or <<a_api subproject="server" | module Eliom_registration.Make_typed_xml_registration >>~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEunknown_content"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|unknown~_content>>>><<div class="odocwiki_info"|~The type <<span class="odocwiki_inlinecode"|unknown~_content>> is a refinement of <<a_api subproject="server" | type Eliom_registration.http_service >> to
+    be used as a phantom type parameters for <<a_api subproject="server" | type Eliom_registration.kind >> when
+    the content~-type can~'t be determined staticaly~. ~See <<a_api subproject="server" | module Eliom_registration.Text >> or
+    <<a_api subproject="server" | module Eliom_registration.Any >>~.
+>>
+
+
+====@@id="4_Applicationcontent"@@~Application content====
+
+<<pre class="ocsforge_color odocwiki_code" id="TYPEappl_service"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|appl~_service>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Appl ]>> >><<div class="odocwiki_info"|~The type <<span class="odocwiki_inlinecode"|appl~_service>> is used as a phantom type parameters for
+    <<a_api subproject="server" | val Eliom_service.service >> and <<a_api subproject="server" | type Eliom_registration.kind >>~. ~It means the
+    service is part of an ~Eliom application~. ~See <<a_api subproject="server" | type Eliom_registration.kind >>
+    for a list of others return types~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEapplication_content"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|application~_content>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Appl of 'a ]>> >><<div class="odocwiki_info"|~The type <<span class="odocwiki_inlinecode"|application~_content>> is a refinement of <<a_api subproject="server" | type Eliom_registration.appl_service >>
+    to be used as a phantom type parameters for <<a_api subproject="server" | type Eliom_registration.kind >>~. ~The
+    parameter <<span class="odocwiki_inlinecode"|~'a>> is phantom type that is unique for a given
+    application~.
+>>
+
+
+====@@id="4_OCamlcontent"@@~O~Caml content====
+
+<<pre class="ocsforge_color odocwiki_code" id="TYPEcaml_content"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|caml~_content>>>><<div class="odocwiki_info"|~The type <<span class="odocwiki_inlinecode"|caml~_content>> is an synomyn for <<a_api subproject="server" | val Eliom_parameter.caml >>
+    to be used as a phantom type parameters for <<a_api subproject="server" | type Eliom_registration.kind >>~. ~See
+    <<a_api subproject="server" | module Eliom_registration.Ocaml >>~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEnon_caml_service"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|non~_caml~_service>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Appl | `Http ]>> >><<div class="odocwiki_info"|~The type <<span class="odocwiki_inlinecode"|non~_caml~_service>> is used as phantom type parameters for
+    the <<a_api subproject="server" | type Eliom_registration.kind >>~. ~It used to type functions that operates
+    over service that do not returns ~O~Caml values~, like
+    <<a_api subproject="server" | val Eliom_registration.appl_self_redirect >>~.
+>>
+
+
+===@@id="3_Modulesignature"@@~Module signature===
+
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module type>> <<a_api subproject="server" text="Registration" | module type Eliom_registration.Registration >> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module type Eliom_registration.Registration >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Abstract signature for service registration functions~.
+>>
+
+
+==@@id="2_UsingHTML5withservices"@@~Using ~H~T~M~L~5 with services ==
+
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Html5_registration" | module Eliom_registration.Html5_registration >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.Html5_registration >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Eliom service registration for services that returns ~H~T~M~L~5
+    page~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Html5" | module Eliom_registration.Html5 >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.Html5 >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Eliom service registration for ~H~T~M~L~5 page~.
+>>
+
+
+==@@id="2_UsingXHTMLwithservices"@@~Using ~X~H~T~M~L with services ==
+
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Xhtml" | module Eliom_registration.Xhtml >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.Xhtml >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Eliom service registration for ~X~H~T~M~L page~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Xhtml_registration" | module Eliom_registration.Xhtml_registration >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.Xhtml_registration >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Eliom service registration for services that returns ~X~H~T~M~L
+    page~.
+>>
+
+
+==@@id="2_Eliomclientserverapplications"@@~Eliom client~/server applications==
+
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module type>> <<a_api subproject="server" text="APPL_PARAMS" | module type Eliom_registration.APPL_PARAMS >> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module type Eliom_registration.APPL_PARAMS >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Signature for application creation~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEappl_service_options"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|appl~_service~_options>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_delimiter"|~{>>
+<<span class="odocwiki_record"|<<span class="odocwiki_field"|<<span class="odocwiki_field_descr"|  <<span class="ocsforge_color_label"|do_not_launch:>> <<span class="odocwiki_type"|bool>><<span class="ocsforge_color_delimiter"|~;>> >>>>>><<span class="ocsforge_color_delimiter"|~}>>>><<div class="odocwiki_info"|~Type for the options of an ~Eliom application service~.
+
+
+    ~If you set <<span class="odocwiki_inlinecode"|do~_not~_launch>> to <<span class="odocwiki_inlinecode"|true>> when creating an application
+    service~, it will send the page without launching the client side
+    program~. ~However~, if the program is already lanched~, the client
+    side process won~'t be stopped~. ~Use this if some of your pages are
+    not using the client side program and you want to make them load
+    faster~.
+>>
+
+~Do not launch the client side program if it is not already
+        launched~.  ~Default~: <<span class="odocwiki_inlinecode"|false>>~.
+<<pre id="VALdefault_appl_service_options" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|default~_appl~_service~_options>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="server" text="appl_service_options" | type Eliom_registration.appl_service_options >>>>>><<div class="odocwiki_info"|~The default options record for an eliom service~. ~See
+    <<a_api subproject="server" | type Eliom_registration.appl_service_options >>~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module type>> <<a_api subproject="server" text="ELIOM_APPL" | module type Eliom_registration.ELIOM_APPL >> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module type Eliom_registration.ELIOM_APPL >><<span class="ocsforge_color_keyword"|end>>>><<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="App" | module Eliom_registration.App >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_sig_block"|<<span class="ocsforge_color_keyword"|functor>> <<span class="ocsforge_color_delimiter"|(>>Appl_params <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="server" text="APPL_PARAMS" | module Eliom_registration.APPL_PARAMS >>>><<span class="ocsforge_color_delimiter"|)>> <<span class="ocsforge_color_delimiter"|-~>>> \\  <<span class="odocwiki_type"|<<a_api subproject="server" text="ELIOM_APPL" | module Eliom_registration.ELIOM_APPL >>>><<span class="odocwiki_type"|>>>>>><<div class="odocwiki_info"|~Functor for application creation~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module type>> <<a_api subproject="server" text="TMPL_PARAMS" | module type Eliom_registration.TMPL_PARAMS >> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module type Eliom_registration.TMPL_PARAMS >><<span class="ocsforge_color_keyword"|end>>>><<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Eliom_tmpl" | module Eliom_registration.Eliom_tmpl >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_sig_block"|<<span class="ocsforge_color_keyword"|functor>> <<span class="ocsforge_color_delimiter"|(>>Appl <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="server" text="ELIOM_APPL" | module Eliom_registration.ELIOM_APPL >>>><<span class="ocsforge_color_delimiter"|)>> <<span class="ocsforge_color_delimiter"|-~>>> \\  <<span class="odocwiki_sig_block"|<<span class="ocsforge_color_keyword"|functor>> <<span class="ocsforge_color_delimiter"|(>>Tmpl_param <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="server" text="TMPL_PARAMS" | module Eliom_registration.TMPL_PARAMS >>>><<span class="ocsforge_color_delimiter"|)>> <<span class="ocsforge_color_delimiter"|-~>>> \\  <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.Eliom_tmpl >><<span class="ocsforge_color_keyword"|end>>>>>>>>
+
+===@@id="3_ServicesreturningonlyfragmentofHTMLorothersTyXMLtree"@@~Services returning only fragment of ~H~T~M~L ~(or others ~Ty~X~M~L tree~)===
+
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Flow5" | module Eliom_registration.Flow5 >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.Flow5 >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Eliom service registration and forms creation for fragment of
+    ~H~T~M~L~5 page~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Block5" | module Eliom_registration.Block5 >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.Block5 >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Deprecated alias for <<a_api subproject="server" | module Eliom_registration.Flow5 >>~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Block" | module Eliom_registration.Block >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.Block >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Eliom service registration and forms creation for fragment of
+    ~X~H~T~M~L page~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Make_typed_xml_registration" | module Eliom_registration.Make_typed_xml_registration >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_sig_block"|<<span class="ocsforge_color_keyword"|functor>> <<span class="ocsforge_color_delimiter"|(>>Xml <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Xml_sigs.Iterable>>>><<span class="ocsforge_color_delimiter"|)>> <<span class="ocsforge_color_delimiter"|-~>>> \\  <<span class="odocwiki_sig_block"|<<span class="ocsforge_color_keyword"|functor>> <<span class="ocsforge_color_delimiter"|(>>Typed_xml <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Xml_sigs.Typed_xml>>>><<span class="odocwiki_type"|     with module Xml := Xml>><<span class="ocsforge_color_delimiter"|)>> <<span class="ocsforge_color_delimiter"|-~>>> \\  <<span class="odocwiki_sig_block"|<<span class="ocsforge_color_keyword"|functor>> <<span class="ocsforge_color_delimiter"|(>>E <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<span class="odocwiki_sig_block"|<<span class="ocsforge_color odocwiki_code" id="TYPEcontent"|      <<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|content>>>>>><<span class="ocsforge_color_keyword"|end>><<span class="ocsforge_color_delimiter"|)>> <<span class="ocsforge_color_delimiter"|-~>>> \\  <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.Make_typed_xml_registration >><<span class="ocsforge_color_keyword"|end>>>>>>>>>><<div class="odocwiki_info"|~Eliom service registration for services that returns fragment of
+    ~Ty~X~M~L~'s tree~.
+>>
+
+
+==@@id="2_Untypedpages"@@~Untyped pages==
+
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Html_text" | module Eliom_registration.Html_text >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.Html_text >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Eliom service registration and forms creation for untyped ~H~T~M~L
+    page~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="CssText" | module Eliom_registration.CssText >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.CssText >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Eliom service registration for services that returns ~C~S~S~.
+>>
+
+
+==@@id="2_Otherkindsofservices"@@~Other kinds of services==
+
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Action" | module Eliom_registration.Action >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.Action >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Eliom service registration for services that only execute
+    actions~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Unit" | module Eliom_registration.Unit >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.Unit >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Similar to <<span class="odocwiki_inlinecode"|~Actions>> with <<span class="odocwiki_inlinecode"|`~No~Reload>> option~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Redirection" | module Eliom_registration.Redirection >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.Redirection >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Eliom service registration for services that returns a redirections
+    towards another service~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="String_redirection" | module Eliom_registration.String_redirection >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.String_redirection >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Eliom service registration for services that returns a redirections
+    towards a string~-~U~R~L~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="File" | module Eliom_registration.File >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.File >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Eliom service registration for services that returns file
+    contents~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Ocaml" | module Eliom_registration.Ocaml >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.Ocaml >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Eliom service registration for services that send marshalled caml values~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Any" | module Eliom_registration.Any >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.Any >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Eliom service registration for services that choose dynamically
+    what they want to send~.
+>>
+<<pre id="VALappl_self_redirect" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|appl~_self~_redirect>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >>'a <<span class="ocsforge_color_delimiter"| -> >>\\   <<span class="ocsforge_color_delimiter"| ( >>[< `Appl of 'b | `Browser ],\\    [< <<a_api subproject="server" text="non_caml_service" | type Eliom_registration.non_caml_service >> ]<<span class="ocsforge_color_delimiter"| ) >>\\   <<a_api subproject="server" text="kind" | type Eliom_registration.kind >> <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>><<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'c <<a_api subproject="server" text="application_content" | type Eliom_registration.application_content >>,\\   <<a_api subproject="server" text="appl_service" | type Eliom_registration.appl_service >><<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="kind" | type Eliom_registration.kind >> <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|appl~_self~_redirect send page>> is an helper function
+    required for defining <<a_api subproject="server" | module Eliom_registration.Any >> service usable inside an ~Eliom
+    application ~(<<a_api subproject="server" | module Eliom_registration.App >>~)~. ~It allows to cast an ~Eliom senders
+    that do not returns <<a_api subproject="server" | type Eliom_registration.application_content >> ~(like <<a_api subproject="server" | val Eliom_registration.File.send >>~,
+    <<a_api subproject="server" | val Eliom_registration.String.send >>~, ~.~.~.~) into a senders returns
+    <<a_api subproject="server" | type Eliom_registration.application_content >>~.
+
+
+    ~When the service is called from an ~Eliom application~, this is
+    implemented with half~-redirection ~(a redirection that leaves
+    the application~)~. ~Hence~, the service may be called two times in a
+    row and you should not use this function for service that use ~P~O~S~T
+    parameters~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="String" | module Eliom_registration.String >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.String >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Eliom service registration for services that returns "byte"~-string
+    contents~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Text" | module Eliom_registration.Text >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.Text >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Deprecated alias for <<a_api subproject="server" | module Eliom_registration.String >>~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Streamlist" | module Eliom_registration.Streamlist >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.Streamlist >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Eliom service registration for services that returns "byte"
+    contents with <<a_api project="ocsigenserver" text="Ocsigen's
+    streams"| module Ocsigen_stream>>~.
+>>
+
+
+==@@id="2_Customizingregistration"@@~Customizing registration==
+
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Customize" | module Eliom_registration.Customize >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_sig_block"|<<span class="ocsforge_color_keyword"|functor>> <<span class="ocsforge_color_delimiter"|(>>R <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="server" text="Registration" | module Eliom_registration.Registration >>>><<span class="ocsforge_color_delimiter"|)>> <<span class="ocsforge_color_delimiter"|-~>>> \\  <<span class="odocwiki_sig_block"|<<span class="ocsforge_color_keyword"|functor>> <<span class="ocsforge_color_delimiter"|(>>T <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<span class="odocwiki_sig_block"|<<span class="ocsforge_color odocwiki_code" id="TYPEpage"|      <<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|page>>>><<span id="VALtranslate" class="ocsforge_color odocwiki_code"|      <<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|translate>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_lid"|page>> <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|R>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|page>> <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>>>><<span class="ocsforge_color_keyword"|end>><<span class="ocsforge_color_delimiter"|)>> <<span class="ocsforge_color_delimiter"|-~>>> \\  \\  <<span class="odocwiki_type"|<<a_api subproject="server" text="Registration" | module Eliom_registration.Registration >>>><<span class="odocwiki_type"| with type options := R.options and type return := R.return\\  and type page := T.page and type result := R.result>>>>>>>><<div class="odocwiki_info"|~The <<span class="odocwiki_inlinecode"|~Customize>> functor allows to specialize service registration
+    functions by customizing the page type~.
+>>
+
+
+==@@id="2_Usingyourownerrorpages"@@~Using your own error pages==
+
+<<pre id="VALset_exn_handler" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|set~_exn~_handler>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >>exn <<span class="ocsforge_color_delimiter"| -> >>\\   <<span class="ocsforge_color_delimiter"| ( >><<a_api subproject="server" text="browser_content" | type Eliom_registration.browser_content >>, <<a_api subproject="server" text="http_service" | type Eliom_registration.http_service >><<span class="ocsforge_color_delimiter"| ) >>\\   <<a_api subproject="server" text="kind" | type Eliom_registration.kind >> <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>><<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >>\\  unit>>>><<div class="odocwiki_info"|~The <<span class="odocwiki_inlinecode"|set~_exn~_handler handler>> allows to redefines error pages~:
+    <<span class="odocwiki_inlinecode"|~4~0~4>> or any exception during page generation~.
+
+
+    ~Note that you should not catch every exception here since some ~Eliom
+    mechanisms are done using exceptions~, like redirections~.
+    ~Do not catch exception defined in ~Eliom except <<a_api subproject="server" | exception Eliom_common.Eliom_404 >>~,
+    <<a_api subproject="server" | exception Eliom_common.Eliom_Wrong_parameter >> <<a_api subproject="server" | exception Eliom_common.Eliom_Typing_Error >>~.
+
+
+    //~Warning~: ~This functions must be called when the site
+    information is available~, that is~, either during a request or
+    during the initialisation phase of the site~.  ~Otherwise~, it will
+    raise the exception
+    <<a_api subproject="server" | exception Eliom_common.Eliom_site_information_not_available >>~.  ~If you are
+    using static linking~, you must delay the call to this function
+    until the configuration file is read~, using
+    <<a_api subproject="server" | val Eliom_service.register_eliom_module >>~. ~Otherwise you will also
+    get this exception~.//
+>>
+<<pre id="VALcast_unknown_content_kind" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|cast~_unknown~_content~_kind>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >><<a_api subproject="server" text="unknown_content" | type Eliom_registration.unknown_content >>, <<a_api subproject="server" text="http_service" | type Eliom_registration.http_service >><<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="kind" | type Eliom_registration.kind >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a, <<a_api subproject="server" text="http_service" | type Eliom_registration.http_service >><<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="kind" | type Eliom_registration.kind >>>>>><<div class="odocwiki_info"|
+==@@id="2_Unsafecastofcontents"@@~Unsafe cast of contents==
+
+>>
+<<pre id="VALcast_http_result" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|cast~_http~_result>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Ocsigen_http_frame>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|result>> <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="kind" | type Eliom_registration.kind >>>>>><<div class="odocwiki_info"|~If you know that the content you generated using <<span class="odocwiki_inlinecode"|~Text~.send>> or
+    <<span class="odocwiki_inlinecode"|~Streamlist~.send>> is the same as some other kind~, you can cast
+    it with <<span class="odocwiki_inlinecode"|cast~_unknown~_content~_kind>> for use with <<span class="odocwiki_inlinecode"|~Any>> module~.
+>>

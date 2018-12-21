@@ -1,0 +1,3 @@
+=Module <<a_api_type subproject="server" | module Eliom_comet_base.Json_comet_stateful_request >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Json_comet_stateful_request>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Deriving_Json.Json>>>><<span class="odocwiki_type"| with type a = comet_stateful_request>>>>
+----

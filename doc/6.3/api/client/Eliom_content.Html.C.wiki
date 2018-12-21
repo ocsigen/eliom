@@ -1,0 +1,16 @@
+=Module <<a_api_type subproject="client" | module Eliom_content.Html.C >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|C>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content.Html.C >><<span class="ocsforge_color_keyword"|end>>>>~Creation of ~H~T~M~L~5 content from client~-side values~.
+      ~This module is available on client side only to make possible
+      to use ~C~-nodes in shared sections~.
+
+----
+
+
+==@@id="2_Contentinjection"@@~Content injection==
+
+<<pre id="VALnode" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|node>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?init: >>'a <<span class="ocsforge_color_uid"|Eliom_content>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Html>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|D>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|elt>> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<a_api subproject="client" text="Eliom_content.Html.elt" | type Eliom_content.Html.elt >> <<a_api subproject="client" text="Eliom_client_value.t" | type Eliom_client_value.t >> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<span class="ocsforge_color_uid"|Eliom_content>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Html>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|D>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|elt>>>>>><<div class="odocwiki_info"|~Those two functions are the identity on client~-side
+        ~(the <<span class="odocwiki_inlinecode"|init>> argument is ignored~)~.
+        ~See ~Eliom manual for more detail on
+        <<a_manual chapter="clientserver-html" fragment="inject" | Dom & Client-values >>~.
+>>
+<<pre id="VALattr" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|attr>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?init: >>'a <<a_api subproject="client" text="Eliom_content.Html.attrib" | type Eliom_content.Html.attrib >> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<a_api subproject="client" text="Eliom_content.Html.attrib" | type Eliom_content.Html.attrib >> <<a_api subproject="client" text="Eliom_client_value.t" | type Eliom_client_value.t >> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<a_api subproject="client" text="Eliom_content.Html.attrib" | type Eliom_content.Html.attrib >>>>>>

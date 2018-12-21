@@ -1,0 +1,64 @@
+==
+
+=@@id="1_EliomclientAPI"@@~Eliom client ~A~P~I=
+\\
+
+
+
+|<<a_api subproject="client" | module Eliom_pervasives >>|<<div class="odocwiki_info"|~Pervasives module for ~Eliom extending stdlib~, should always be opened~.
+>>
+|
+|<<a_api subproject="client" | module Eliom_pervasives.HTML5.M >>|<<div class="odocwiki_info"|type safe ~H~T~M~L~5 creation~.
+>>
+|
+
+\\
+
+
+
+==@@id="2_Servicescreationandmanipulation"@@~Services creation and manipulation==
+\\
+
+
+
+|<<a_api subproject="client" | module Eliom_output.Html5 >>|<<div class="odocwiki_info"|~Eliom service registration and forms creation for ~H~T~M~L~5 page
+>>
+|
+|<<a_api subproject="client" | module Eliom_services >>|<<div class="odocwiki_info"|~Functions to add non localised parameters to services and
+    client side declaration of void coservices~.
+>>
+|
+|<<a_api subproject="client" | module Eliom_client >>|<<div class="odocwiki_info"|~Call server side services and change the current page~.
+>>
+|
+
+\\
+
+
+
+==@@id="2_Clientservercommunication"@@~Client~/server communication==
+\\
+
+
+
+|<<a_api subproject="client" | module Eliom_bus >>|<<div class="odocwiki_info"|~Broadcasting facilities between clients and server
+>>
+|
+|<<a_api subproject="client" | module Eliom_comet >>|<<div class="odocwiki_info"|~Handle unsolicited server to client communications~.
+>>
+|
+
+\\
+
+
+
+==@@id="2_Index"@@~Index==
+\\
+
+
+* <<a_api subproject="client" text="Index of types" | index types >>
+* <<a_api subproject="client" text="Index of exceptions" | index exceptions >>
+* <<a_api subproject="client" text="Index of values" | index values >>
+* <<a_api subproject="client" text="Index of modules" | index modules >>
+* <<a_api subproject="client" text="Index of module types" | index module types >>
+\\

@@ -1,0 +1,10 @@
+<<code language="ocaml" | sig
+  val print_list :
+    output:(string -> unit) ->
+    ?encode:(string -> string) ->
+    'a Eliom_content_core.Html5.F.elt list -> unit
+  val print :
+    output:(string -> unit) ->
+    ?encode:(string -> string) ->
+    ?advert:string -> Eliom_content_core.Html5.F.doc -> unit
+end >>

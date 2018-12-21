@@ -1,0 +1,22 @@
+<<code language="ocaml" | functor
+  (Xhtml_content : sig
+                     type t = [ `Html ] XHTML.M.elt
+                     type options = XHTML.M.doctypes
+                     val result_of_content :
+                       ?options:options ->
+                       t -> Ocsigen_http_frame.result Lwt.t
+                     val get_etag : t -> Ocsigen_http_frame.etag option
+                   end) ->
+  sig
+    type page = Xhtml_content.t
+    type options = XHTML.M.doctypes
+    val send :
+      ?options:options ->
+      ?cookies:Eliom_services.cookie list ->
+      ?charset:string ->
+      ?code:int ->
+      ?content_type:string ->
+      ?headers:Http_headers.t ->
+      sp:Eliom_sessions.server_params ->
+      page -> Ocsigen_http_frame.result Lwt.t
+  end >>

@@ -1,0 +1,6 @@
+<<code language="ocaml" | sig
+  type 'a request = 'a
+  val from_fun : (unit -> 'a) -> 'a Eliom_lazy.request
+  val from_val : 'a -> 'a Eliom_lazy.request
+  val force : 'a Eliom_lazy.request -> 'a
+end >>

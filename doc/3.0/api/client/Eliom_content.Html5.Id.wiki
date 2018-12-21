@@ -1,0 +1,7 @@
+=Module <<a_api_type subproject="client" | module Eliom_content.Html5.Id >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Id>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content.Html5.Id >><<span class="ocsforge_color_keyword"|end>>>>~Node identifiers
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> <<a_api subproject="client" | module Eliom_content_core.Html5.Id >>>>
+<<pre id="VALget_element" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_element>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a id <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="client" text="Eliom_content.Html5.elt" | type Eliom_content.Html5.elt >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|get~_element id>> returns the ~H~T~M~L element in the ~D~O~M with the given <<span class="odocwiki_inlinecode"|id>>~.
+>>

@@ -1,0 +1,25 @@
+<<code language="ocaml" | sig
+  exception Channel_full
+  exception Process_closed
+  exception Channel_closed
+  val is_active : unit -> bool
+  val activate : unit -> unit
+  module Configuration :
+    sig
+      type t
+      val new_configuration : unit -> Eliom_comet.Configuration.t
+      val drop_configuration : Eliom_comet.Configuration.t -> unit
+      val set_always_active : Eliom_comet.Configuration.t -> bool -> unit
+      val set_timeout : Eliom_comet.Configuration.t -> float -> unit
+      val set_active_until_timeout :
+        Eliom_comet.Configuration.t -> bool -> unit
+      val set_time_between_request :
+        Eliom_comet.Configuration.t -> float -> unit
+    end
+  module Channel : sig type 'a t = 'a Lwt_stream.t end
+  val register :
+    ?wake:bool -> 'a Eliom_comet_base.wrapped_channel -> 'a Lwt_stream.t
+  val restart : unit -> unit
+  val close : 'a Eliom_comet_base.wrapped_channel -> unit
+  val force_link : unit
+end >>

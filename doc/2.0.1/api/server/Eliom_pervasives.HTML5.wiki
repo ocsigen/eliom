@@ -1,0 +1,6 @@
+=Module <<a_api_type subproject="server" | module Eliom_pervasives.HTML5 >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|HTML5>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives.HTML5 >><<span class="ocsforge_color_keyword"|end>>>>
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="M" | module Eliom_pervasives.HTML5.M >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives.HTML5.M >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Type safe ~H~T~M~L~5 creation~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="P" | module Eliom_pervasives.HTML5.P >> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|XML_sigs.TypedSimplePrinter>>>><<span class="odocwiki_type"| with type 'a elt := 'a M.elt\\					  and type doc := M.doc>>>>

@@ -1,0 +1,34 @@
+<<code language="ocaml" | sig
+  type ('a, 'b, 'c) one_page =
+      (unit, unit, 'a, [ `WithoutSuffix ], unit, unit, 'b, 'c)
+      Eliom_service.service
+    constraint 'b = [< Eliom_service.registrable ]
+    constraint 'c = [< Eliom_registration.non_ocaml_service ]
+  type get_page =
+      (Eliom_service.get_service_kind, Eliom_service.registrable,
+       Eliom_registration.non_ocaml_service)
+      Eliom_tools_common.one_page
+  type ('a, 'b, 'c) hierarchical_site_item =
+      Disabled
+    | Site_tree of ('a, 'b, 'c) Eliom_tools_common.hierarchical_site
+    constraint 'b = [< Eliom_service.registrable ]
+  and ('a, 'b) main_page =
+      Main_page of
+        ('a, 'b, Eliom_registration.non_ocaml_service)
+        Eliom_tools_common.one_page
+    | Default_page of
+        ('a, 'b, Eliom_registration.non_ocaml_service)
+        Eliom_tools_common.one_page
+    | Not_clickable constraint 'b = [< Eliom_service.registrable ]
+  and ('a, 'b, 'c) hierarchical_site =
+      ('a, 'b) Eliom_tools_common.main_page *
+      ('c * ('a, 'b, 'c) Eliom_tools_common.hierarchical_site_item) list
+    constraint 'b = [< Eliom_service.registrable ]
+  val menu_class : string
+  val last_class : string
+  val current_class : string
+  val current_path_class : string
+  val disabled_class : string
+  val first_class : string
+  val level_class : string
+end >>

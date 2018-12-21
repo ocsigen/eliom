@@ -1,0 +1,13 @@
+<<code language="ocaml" | sig
+  type 'a eref = ('a, [ `Volatile ]) Eliom_references.eref'
+  val eref :
+    scope:[< Eliom_common.all_scope ] ->
+    ?secure:bool -> 'a -> 'a Eliom_references.Volatile.eref
+  val eref_from_fun :
+    scope:[< Eliom_common.all_scope ] ->
+    ?secure:bool -> (unit -> 'a) -> 'a Eliom_references.Volatile.eref
+  val get : 'a Eliom_references.Volatile.eref -> 'a
+  val set : 'a Eliom_references.Volatile.eref -> 'a -> unit
+  val modify : 'a Eliom_references.Volatile.eref -> ('a -> 'a) -> unit
+  val unset : 'a Eliom_references.Volatile.eref -> unit
+end >>

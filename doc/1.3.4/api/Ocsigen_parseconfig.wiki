@@ -1,0 +1,23 @@
+=Module <<a_api_type | module Ocsigen_parseconfig >> =
+<<div class="code"|<<span class="keyword"|module>> Ocsigen_parseconfig: <<span class='code'|sig>><<a_api text=".." | module Ocsigen_parseconfig >><<span class='code'|end>>>>~Config file parsing\\
+
+----
+<<div id="VALparse_size" class="code"|<<span class="keyword"|val>> parse~_size : <<span class="code type"|string -> int64 option>>>><<div class="info"|~Parse a size ~("infinity" or using ~S~I or binary units~,
+    e~.g~. ~1~0 ~1~0~B ~1~0o ~1~0ko ~1~0k~B ~1~0ki~B ~1~0~Mi~B ~1~0~T~B ~.~.~.~)~.
+    ~Raises <<span class='code'|~Failure "~Ocsigen~_parseconfig~.parse~_size">> in case of error~.\\
+>>
+<<div id="VALparse_size_tag" class="code"|<<span class="keyword"|val>> parse~_size~_tag : <<span class="code type"|string -> string -> int64 option>>>><<div class="info"|<<span class='code'|parse~_size~_tag tag s>> parses a size ~(same syntax as <<span class='code'|parse~_size>>~)~.
+    ~In case of error~, raises <<span class='code'|~Ocsigen~_config~.~Config~_file~_error m>> where <<span class='code'|m>>
+    is an error message explaining that a size was expected in tag <<span class='code'|~<tag~>>>~.\\
+>>
+<<div id="VALparse_string" class="code"|<<span class="keyword"|val>> parse~_string : <<span class="code type"|<<a_api text="Simplexmlparser.xml" | type Simplexmlparser.xml >> list -> string>>>><<div class="info"|~Parse a string ~(~P~C~D~A~T~A~) as ~X~M~L content~.
+    ~Raises <<span class='code'|~Failure "~Ocsigen~_parseconfig~.parse~_string">> in case of error~.\\
+>>
+<<div id="VALparse_string_tag" class="code"|<<span class="keyword"|val>> parse~_string~_tag : <<span class="code type"|string -> <<a_api text="Simplexmlparser.xml" | type Simplexmlparser.xml >> list -> string>>>><<div class="info"|<<span class='code'|parse~_string~_tag tag s>> parses a string ~(same syntax as <<span class='code'|parse~_string>>~)~.
+    ~In case of error~, raises <<span class='code'|~Ocsigen~_config~.~Config~_file~_error m>> where <<span class='code'|m>>
+    is an error message explaining that a string was expected in tag <<span class='code'|~<tag~>>>~.\\
+>>
+<<div id="VALparse_host_field" class="code"|<<span class="keyword"|val>> parse~_host~_field : <<span class="code type"|string option -> <<a_api text="Ocsigen_extensions.virtual_hosts" | type Ocsigen_extensions.virtual_hosts >>>>>><<div class="info"|~Parses the <<span class='code'|hostfilter>> field of the configuration file~, which
+    is a disjunction of possible hostnames ~(that can themselves contain
+    wildcards~)\\
+>>

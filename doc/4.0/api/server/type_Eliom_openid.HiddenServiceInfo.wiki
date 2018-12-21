@@ -1,0 +1,6 @@
+<<code language="ocaml" | sig
+  val path : string list
+  val f :
+    (string * string) list ->
+    unit -> Eliom_registration.browser_content Eliom_registration.kind Lwt.t
+end >>

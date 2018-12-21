@@ -1,0 +1,35 @@
+=Index of module types=
+
+|@@ @style="tet-align: left;"@@\\A|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="APPL_PARAMS"| module type Eliom_registration.APPL_PARAMS >> ~[<<a_api subproject="server" | module Eliom_registration >>~]|<<div class="odocwiki_info"|~Signature for application creation~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\E|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="ELIOM_APPL"| module type Eliom_registration.ELIOM_APPL >> ~[<<a_api subproject="server" | module Eliom_registration >>~]||
+|@@ @style="tet-align: left;"@@\\H|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="HTML5_TOOLS"| module type Eliom_tools.HTML5_TOOLS >> ~[<<a_api subproject="server" | module Eliom_tools >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="HiddenServiceInfo"| module type Eliom_openid.HiddenServiceInfo >> ~[<<a_api subproject="server" | module Eliom_openid >>~]|<<div class="odocwiki_info"|~Information about the hidden service
+>>
+|
+|@@ @style="tet-align: left;"@@\\L|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="LINKS"| module type Eliom_form_sigs.LINKS >> ~[<<a_api subproject="server" | module Eliom_form_sigs >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="LINKS_AND_FORMS"| module type Eliom_content_sigs.LINKS_AND_FORMS >> ~[<<a_api subproject="server" | module Eliom_content_sigs >>~]||
+|@@ @style="tet-align: left;"@@\\R|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="REG_PARAM"| module type Eliom_mkreg.REG_PARAM >> ~[<<a_api subproject="server" | module Eliom_mkreg >>~]|<<div class="odocwiki_info"|~Creating modules to register services for one type of pages
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="REG_PARAM_ALPHA_RETURN"| module type Eliom_mkreg.REG_PARAM_ALPHA_RETURN >> ~[<<a_api subproject="server" | module Eliom_mkreg >>~]|<<div class="odocwiki_info"|~Creating modules to register services for one type of parametrised pages
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="RLIST"| module type Eliom_shared_sigs.RLIST >> ~[<<a_api subproject="server" | module Eliom_shared_sigs >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Registration"| module type Eliom_registration.Registration >> ~[<<a_api subproject="server" | module Eliom_registration >>~]|<<div class="odocwiki_info"|~Abstract signature for service registration functions~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\S|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="S"| module type Eliom_shared_sigs.S >> ~[<<a_api subproject="server" | module Eliom_shared_sigs >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="S"| module type Eliom_form_sigs.S >> ~[<<a_api subproject="server" | module Eliom_form_sigs >>~]||
+|@@ @style="tet-align: left;"@@\\T|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="TMPL_PARAMS"| module type Eliom_registration.TMPL_PARAMS >> ~[<<a_api subproject="server" | module Eliom_registration >>~]||
+|@@ @style="tet-align: left;"@@\\V|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="VALUE"| module type Eliom_shared_sigs.VALUE >> ~[<<a_api subproject="server" | module Eliom_shared_sigs >>~]||
+\\

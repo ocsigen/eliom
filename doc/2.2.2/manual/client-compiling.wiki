@@ -1,0 +1,73 @@
+=Compiling client-server Eliom applications
+
+The build process for client-server Eliom applications is rather
+tricky. To ease development of such application, the eliom's
+distribution contains some helpers scripts and Makefiles.
+
+<<outline depth="2">>
+
+==Using {{{eliomc}}} and {{{js_of_eliom}}}
+
+The easiest way to build a client-server Eliom application is to used
+the scripts {{{eliomc}}} and {{{js_of_eliom}}}. Those scripts are
+basic wrappers around {{{ocamlfind}}}, {{{ocamlc}}} and
+{{{js_of_ocaml}}}.
+
+You can compile your application with the following two commands:
+
+{{{
+eliomc -a -o appl.cma server_module.ml appl.eliom ...
+js_of_eliom -o appl.js client_module.ml appl.eliom ...
+}}}
+
+The first command compile the server-specific part of the
+application. The second one compile the client-specific part. Each
+command accept multiple {{{.ml}}} and {{{.eliom}}} files.
+
+Temporary files will be written in the {{{_server}}} and
+{{{_client}}} directory. Those directory may be changed with command
+line option of the environment variable {{{ELIOM_SERVER_DIR}}} and
+{{{ELIOM_CLIENT_DIR}}}.
+
+Those commands accepts the same set of arguments as {{{ocamlc}}}, plus
+the following specific options:
+
+* {{{-package}}} is the same to the {{{ocamlfind}}} option.
+* {{{-predicates <p>}}} is the same to the {{{ocamlfind}}} option.
+* {{{-dir <dir>}}} set default directory for temporary files.
+* {{{-jsopt <opt>}}} pass {{{opt}}} to the {{{js_of_ocaml}}} compiler **{{{js_of_eliom}}} only**
+
+If you want to use the native version of ocsigen server, you may
+replace {{{eliomc}}} by {{{eliomopt}}}.
+
+==Using a Makefile based on {{{eliomc}}} and {{{js_of_eliom}}}
+
+The eliom distribution also contains a sample Makefile based on
+{{{eliomc}}} and {{{js_of_eliom}}} with proper dependencies
+handling. You will find it the {{{eliom/src/files/}}} directory.
+
+Just adjust the variables found at the top of the Makefile, then run:
+
+{{{
+make depend
+make
+}}}
+
+The sample Makefile use an experimental wrapper around {{{ocamldep}}}
+to generate the dependencies, called {{{eliomdep}}}. Please note that
+{{{eliomdep}}} is still incomplete: it does not handle dependency
+towards {{{.eliom}}} file. It generate however correct dependy toward
+{{{.ml}}} files from an {{{.eliom}}} file.
+
+==Using {{{ocamlbuild}}}
+
+<<wip|TODO>>
+
+==Detailled build process
+
+<<wip|TODO, see the introductive comments in the source
+file {{{eliom/src/syntax/pa_eliom_seed.ml}}}>>
+
+==Configuring and running client-server Eliom applications
+
+<<wip|TODO>>

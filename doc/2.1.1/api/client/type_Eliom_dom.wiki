@@ -1,0 +1,251 @@
+<<code language="ocaml" | sig
+  val appendChild :
+    ?before:'a Eliom_pervasives.HTML5.elt ->
+    'b Eliom_pervasives.HTML5.elt -> 'c Eliom_pervasives.HTML5.elt -> unit
+  val appendChilds :
+    ?before:'a Eliom_pervasives.HTML5.elt ->
+    'b Eliom_pervasives.HTML5.elt ->
+    'c Eliom_pervasives.HTML5.elt list -> unit
+  val removeChild :
+    'a Eliom_pervasives.HTML5.elt -> 'b Eliom_pervasives.HTML5.elt -> unit
+  val replaceChild :
+    'a Eliom_pervasives.HTML5.elt ->
+    'b Eliom_pervasives.HTML5.elt -> 'c Eliom_pervasives.HTML5.elt -> unit
+  val removeAllChild : 'a Eliom_pervasives.HTML5.elt -> unit
+  val replaceAllChild :
+    'a Eliom_pervasives.HTML5.elt ->
+    'b Eliom_pervasives.HTML5.elt list -> unit
+  val addEventListener :
+    ?capture:bool ->
+    'a Eliom_pervasives.HTML5.elt ->
+    (#Dom_html.event as 'b) Js.t Dom_html.Event.typ ->
+    ('a Eliom_pervasives.HTML5.elt -> 'b Js.t -> bool) ->
+    Dom_html.event_listener_id
+  module Named :
+    sig
+      val appendChild :
+        ?before:'a Eliom_pervasives.HTML5.elt ->
+        'b Eliom_pervasives.HTML5.id -> 'c Eliom_pervasives.HTML5.elt -> unit
+      val appendChilds :
+        ?before:'a Eliom_pervasives.HTML5.elt ->
+        'b Eliom_pervasives.HTML5.id ->
+        'c Eliom_pervasives.HTML5.elt list -> unit
+      val removeChild :
+        'a Eliom_pervasives.HTML5.id -> 'b Eliom_pervasives.HTML5.elt -> unit
+      val replaceChild :
+        'a Eliom_pervasives.HTML5.id ->
+        'b Eliom_pervasives.HTML5.elt ->
+        'c Eliom_pervasives.HTML5.elt -> unit
+      val removeAllChild : 'a Eliom_pervasives.HTML5.id -> unit
+      val replaceAllChild :
+        'a Eliom_pervasives.HTML5.id ->
+        'b Eliom_pervasives.HTML5.elt list -> unit
+      val addEventListener :
+        ?capture:bool ->
+        'a Eliom_pervasives.HTML5.id ->
+        (#Dom_html.event as 'b) Js.t Dom_html.Event.typ ->
+        ('a Eliom_pervasives.HTML5.elt -> 'b Js.t -> bool) ->
+        Dom_html.event_listener_id
+    end
+  val scrollIntoView : ?bottom:bool -> 'a Eliom_pervasives.HTML5.elt -> unit
+  val childNodes : 'a Eliom_pervasives.HTML5.elt -> Dom.node Js.t list
+  val childElements : 'a Eliom_pervasives.HTML5.elt -> Dom.element Js.t list
+  module Css :
+    sig
+      val background : 'a Eliom_pervasives.HTML5.elt -> string
+      val backgroundAttachment : 'a Eliom_pervasives.HTML5.elt -> string
+      val backgroundColor : 'a Eliom_pervasives.HTML5.elt -> string
+      val backgroundImage : 'a Eliom_pervasives.HTML5.elt -> string
+      val backgroundPosition : 'a Eliom_pervasives.HTML5.elt -> string
+      val backgroundRepeat : 'a Eliom_pervasives.HTML5.elt -> string
+      val border : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderBottom : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderBottomColor : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderBottomStyle : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderBottomWidth : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderCollapse : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderColor : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderLeft : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderLeftColor : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderLeftStyle : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderLeftWidth : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderRight : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderRightColor : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderRightStyle : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderRightWidth : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderSpacing : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderStyle : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderTop : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderTopColor : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderTopStyle : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderTopWidth : 'a Eliom_pervasives.HTML5.elt -> string
+      val borderWidth : 'a Eliom_pervasives.HTML5.elt -> string
+      val bottom : 'a Eliom_pervasives.HTML5.elt -> string
+      val captionSide : 'a Eliom_pervasives.HTML5.elt -> string
+      val clear : 'a Eliom_pervasives.HTML5.elt -> string
+      val clip : 'a Eliom_pervasives.HTML5.elt -> string
+      val color : 'a Eliom_pervasives.HTML5.elt -> string
+      val content : 'a Eliom_pervasives.HTML5.elt -> string
+      val counterIncrement : 'a Eliom_pervasives.HTML5.elt -> string
+      val counterReset : 'a Eliom_pervasives.HTML5.elt -> string
+      val cssFloat : 'a Eliom_pervasives.HTML5.elt -> string
+      val cssText : 'a Eliom_pervasives.HTML5.elt -> string
+      val cursor : 'a Eliom_pervasives.HTML5.elt -> string
+      val direction : 'a Eliom_pervasives.HTML5.elt -> string
+      val display : 'a Eliom_pervasives.HTML5.elt -> string
+      val emptyCells : 'a Eliom_pervasives.HTML5.elt -> string
+      val font : 'a Eliom_pervasives.HTML5.elt -> string
+      val fontFamily : 'a Eliom_pervasives.HTML5.elt -> string
+      val fontSize : 'a Eliom_pervasives.HTML5.elt -> string
+      val fontStyle : 'a Eliom_pervasives.HTML5.elt -> string
+      val fontVariant : 'a Eliom_pervasives.HTML5.elt -> string
+      val fontWeight : 'a Eliom_pervasives.HTML5.elt -> string
+      val height : 'a Eliom_pervasives.HTML5.elt -> string
+      val left : 'a Eliom_pervasives.HTML5.elt -> string
+      val letterSpacing : 'a Eliom_pervasives.HTML5.elt -> string
+      val lineHeight : 'a Eliom_pervasives.HTML5.elt -> string
+      val listStyle : 'a Eliom_pervasives.HTML5.elt -> string
+      val listStyleImage : 'a Eliom_pervasives.HTML5.elt -> string
+      val listStylePosition : 'a Eliom_pervasives.HTML5.elt -> string
+      val listStyleType : 'a Eliom_pervasives.HTML5.elt -> string
+      val margin : 'a Eliom_pervasives.HTML5.elt -> string
+      val marginBottom : 'a Eliom_pervasives.HTML5.elt -> string
+      val marginLeft : 'a Eliom_pervasives.HTML5.elt -> string
+      val marginRight : 'a Eliom_pervasives.HTML5.elt -> string
+      val marginTop : 'a Eliom_pervasives.HTML5.elt -> string
+      val maxHeight : 'a Eliom_pervasives.HTML5.elt -> string
+      val maxWidth : 'a Eliom_pervasives.HTML5.elt -> string
+      val minHeight : 'a Eliom_pervasives.HTML5.elt -> string
+      val minWidth : 'a Eliom_pervasives.HTML5.elt -> string
+      val opacity : 'a Eliom_pervasives.HTML5.elt -> string option
+      val outline : 'a Eliom_pervasives.HTML5.elt -> string
+      val outlineColor : 'a Eliom_pervasives.HTML5.elt -> string
+      val outlineOffset : 'a Eliom_pervasives.HTML5.elt -> string
+      val outlineStyle : 'a Eliom_pervasives.HTML5.elt -> string
+      val outlineWidth : 'a Eliom_pervasives.HTML5.elt -> string
+      val overflow : 'a Eliom_pervasives.HTML5.elt -> string
+      val overflowX : 'a Eliom_pervasives.HTML5.elt -> string
+      val overflowY : 'a Eliom_pervasives.HTML5.elt -> string
+      val padding : 'a Eliom_pervasives.HTML5.elt -> string
+      val paddingBottom : 'a Eliom_pervasives.HTML5.elt -> string
+      val paddingLeft : 'a Eliom_pervasives.HTML5.elt -> string
+      val paddingRight : 'a Eliom_pervasives.HTML5.elt -> string
+      val paddingTop : 'a Eliom_pervasives.HTML5.elt -> string
+      val pageBreakAfter : 'a Eliom_pervasives.HTML5.elt -> string
+      val pageBreakBefore : 'a Eliom_pervasives.HTML5.elt -> string
+      val position : 'a Eliom_pervasives.HTML5.elt -> string
+      val right : 'a Eliom_pervasives.HTML5.elt -> string
+      val tableLayout : 'a Eliom_pervasives.HTML5.elt -> string
+      val textAlign : 'a Eliom_pervasives.HTML5.elt -> string
+      val textDecoration : 'a Eliom_pervasives.HTML5.elt -> string
+      val textIndent : 'a Eliom_pervasives.HTML5.elt -> string
+      val textTransform : 'a Eliom_pervasives.HTML5.elt -> string
+      val top : 'a Eliom_pervasives.HTML5.elt -> string
+      val verticalAlign : 'a Eliom_pervasives.HTML5.elt -> string
+      val visibility : 'a Eliom_pervasives.HTML5.elt -> string
+      val whiteSpace : 'a Eliom_pervasives.HTML5.elt -> string
+      val width : 'a Eliom_pervasives.HTML5.elt -> string
+      val wordSpacing : 'a Eliom_pervasives.HTML5.elt -> string
+      val zIndex : 'a Eliom_pervasives.HTML5.elt -> string
+    end
+  module SetCss :
+    sig
+      val background : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val backgroundAttachment :
+        'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val backgroundColor : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val backgroundImage : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val backgroundPosition :
+        'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val backgroundRepeat : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val border : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderBottom : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderBottomColor : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderBottomStyle : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderBottomWidth : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderCollapse : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderColor : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderLeft : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderLeftColor : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderLeftStyle : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderLeftWidth : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderRight : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderRightColor : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderRightStyle : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderRightWidth : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderSpacing : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderStyle : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderTop : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderTopColor : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderTopStyle : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderTopWidth : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val borderWidth : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val bottom : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val captionSide : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val clear : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val clip : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val color : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val content : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val counterIncrement : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val counterReset : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val cssFloat : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val cssText : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val cursor : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val direction : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val display : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val emptyCells : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val font : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val fontFamily : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val fontSize : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val fontStyle : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val fontVariant : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val fontWeight : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val height : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val left : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val letterSpacing : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val lineHeight : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val listStyle : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val listStyleImage : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val listStylePosition : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val listStyleType : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val margin : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val marginBottom : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val marginLeft : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val marginRight : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val marginTop : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val maxHeight : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val maxWidth : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val minHeight : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val minWidth : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val opacity : 'a Eliom_pervasives.HTML5.elt -> string option -> unit
+      val outline : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val outlineColor : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val outlineOffset : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val outlineStyle : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val outlineWidth : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val overflow : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val overflowX : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val overflowY : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val padding : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val paddingBottom : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val paddingLeft : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val paddingRight : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val paddingTop : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val pageBreakAfter : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val pageBreakBefore : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val position : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val right : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val tableLayout : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val textAlign : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val textDecoration : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val textIndent : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val textTransform : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val top : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val verticalAlign : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val visibility : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val whiteSpace : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val width : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val wordSpacing : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+      val zIndex : 'a Eliom_pervasives.HTML5.elt -> string -> unit
+    end
+end >>

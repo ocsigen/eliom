@@ -1,0 +1,7 @@
+<<code language="ocaml" | sig
+  val pp_elt :
+    ?encode:(string -> string) -> unit -> Format.formatter -> 'a elt -> unit
+  val pp :
+    ?encode:(string -> string) ->
+    ?advert:string -> unit -> Format.formatter -> F.doc -> unit
+end >>

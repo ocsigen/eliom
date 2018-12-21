@@ -1,0 +1,715 @@
+<<code language="ocaml" | sig
+  type page = XHTML_types.xhtml Eliom_pervasives.XHTML.M.elt
+  type options = unit
+  type return = Eliom_output.http_service
+  type result =
+      (Eliom_output.browser_content, Eliom_output.http_service)
+      Eliom_output.kind
+  val register :
+    ?scope:[< Eliom_common.scope ] ->
+    ?options:unit ->
+    ?charset:string ->
+    ?code:int ->
+    ?content_type:string ->
+    ?headers:Http_headers.t ->
+    ?secure_session:bool ->
+    service:('a, 'b, [< Eliom_services.internal_service_kind ],
+             [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
+             Eliom_output.http_service)
+            Eliom_services.service ->
+    ?error_handler:((string * exn) list ->
+                    XHTML_types.xhtml Eliom_pervasives.XHTML.M.elt Lwt.t) ->
+    ('a -> 'b -> XHTML_types.xhtml Eliom_pervasives.XHTML.M.elt Lwt.t) ->
+    unit
+  val register_service :
+    ?scope:[< Eliom_common.scope ] ->
+    ?options:unit ->
+    ?charset:string ->
+    ?code:int ->
+    ?content_type:string ->
+    ?headers:Http_headers.t ->
+    ?secure_session:bool ->
+    ?https:bool ->
+    ?priority:int ->
+    path:Eliom_pervasives.Url.path ->
+    get_params:('a, [< Eliom_services.suff ] as 'b, 'c)
+               Eliom_parameters.params_type ->
+    ?error_handler:((string * exn) list ->
+                    XHTML_types.xhtml Eliom_pervasives.XHTML.M.elt Lwt.t) ->
+    ('a -> unit -> XHTML_types.xhtml Eliom_pervasives.XHTML.M.elt Lwt.t) ->
+    ('a, unit,
+     [> `Attached of
+          ([> `Internal of [> `Service ] ], [> `Get ]) Eliom_services.a_s ],
+     'b, 'c, unit, [< Eliom_services.registrable > `Registrable ],
+     Eliom_output.http_service)
+    Eliom_services.service
+  val register_coservice :
+    ?scope:[< Eliom_common.scope ] ->
+    ?options:unit ->
+    ?charset:string ->
+    ?code:int ->
+    ?content_type:string ->
+    ?headers:Http_headers.t ->
+    ?secure_session:bool ->
+    ?name:string ->
+    ?csrf_safe:bool ->
+    ?csrf_scope:[< Eliom_common.user_scope ] ->
+    ?csrf_secure:bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    fallback:(unit, unit,
+              [ `Attached of
+                  ([ `Internal of [ `Service ] ], [ `Get ])
+                  Eliom_services.a_s ],
+              [ `WithoutSuffix ], unit, unit,
+              [< Eliom_services.registrable ], Eliom_output.http_service)
+             Eliom_services.service ->
+    get_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+    ?error_handler:((string * exn) list ->
+                    XHTML_types.xhtml Eliom_pervasives.XHTML.M.elt Lwt.t) ->
+    ('a -> unit -> XHTML_types.xhtml Eliom_pervasives.XHTML.M.elt Lwt.t) ->
+    ('a, unit,
+     [> `Attached of
+          ([> `Internal of [> `Coservice ] ], [> `Get ]) Eliom_services.a_s ],
+     [ `WithoutSuffix ], 'b, unit,
+     [< Eliom_services.registrable > `Registrable ],
+     Eliom_output.http_service)
+    Eliom_services.service
+  val register_coservice' :
+    ?scope:[< Eliom_common.scope ] ->
+    ?options:unit ->
+    ?charset:string ->
+    ?code:int ->
+    ?content_type:string ->
+    ?headers:Http_headers.t ->
+    ?secure_session:bool ->
+    ?name:string ->
+    ?csrf_safe:bool ->
+    ?csrf_scope:[< Eliom_common.user_scope ] ->
+    ?csrf_secure:bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    get_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+    ?error_handler:((string * exn) list ->
+                    XHTML_types.xhtml Eliom_pervasives.XHTML.M.elt Lwt.t) ->
+    ('a -> unit -> XHTML_types.xhtml Eliom_pervasives.XHTML.M.elt Lwt.t) ->
+    ('a, unit, [> `Nonattached of [> `Get ] Eliom_services.na_s ],
+     [ `WithoutSuffix ], 'b, unit,
+     [< Eliom_services.registrable > `Registrable ],
+     Eliom_output.http_service)
+    Eliom_services.service
+  val register_post_service :
+    ?scope:[< Eliom_common.scope ] ->
+    ?options:unit ->
+    ?charset:string ->
+    ?code:int ->
+    ?content_type:string ->
+    ?headers:Http_headers.t ->
+    ?secure_session:bool ->
+    ?https:bool ->
+    ?priority:int ->
+    fallback:('a, unit,
+              [ `Attached of
+                  ([ `Internal of [ `Coservice | `Service ] ], [ `Get ])
+                  Eliom_services.a_s ],
+              [< Eliom_services.suff ] as 'b, 'c, unit, [< `Registrable ],
+              'd)
+             Eliom_services.service ->
+    post_params:('e, [ `WithoutSuffix ], 'f) Eliom_parameters.params_type ->
+    ?error_handler:((string * exn) list ->
+                    XHTML_types.xhtml Eliom_pervasives.XHTML.M.elt Lwt.t) ->
+    ('a -> 'e -> XHTML_types.xhtml Eliom_pervasives.XHTML.M.elt Lwt.t) ->
+    ('a, 'e,
+     [> `Attached of
+          ([> `Internal of [ `Coservice | `Service ] ], [> `Post ])
+          Eliom_services.a_s ],
+     'b, 'c, 'f, [< Eliom_services.registrable > `Registrable ],
+     Eliom_output.http_service)
+    Eliom_services.service
+  val register_post_coservice :
+    ?scope:[< Eliom_common.scope ] ->
+    ?options:unit ->
+    ?charset:string ->
+    ?code:int ->
+    ?content_type:string ->
+    ?headers:Http_headers.t ->
+    ?secure_session:bool ->
+    ?name:string ->
+    ?csrf_safe:bool ->
+    ?csrf_scope:[< Eliom_common.user_scope ] ->
+    ?csrf_secure:bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    fallback:('a, unit,
+              [ `Attached of
+                  ([ `Internal of [< `Coservice | `Service ] ], [ `Get ])
+                  Eliom_services.a_s ],
+              [< Eliom_services.suff ] as 'b, 'c, unit, [< `Registrable ],
+              Eliom_output.http_service)
+             Eliom_services.service ->
+    post_params:('d, [ `WithoutSuffix ], 'e) Eliom_parameters.params_type ->
+    ?error_handler:((string * exn) list ->
+                    XHTML_types.xhtml Eliom_pervasives.XHTML.M.elt Lwt.t) ->
+    ('a -> 'd -> XHTML_types.xhtml Eliom_pervasives.XHTML.M.elt Lwt.t) ->
+    ('a, 'd,
+     [> `Attached of
+          ([> `Internal of [> `Coservice ] ], [> `Post ]) Eliom_services.a_s ],
+     'b, 'c, 'e, [< Eliom_services.registrable > `Registrable ],
+     Eliom_output.http_service)
+    Eliom_services.service
+  val register_post_coservice' :
+    ?scope:[< Eliom_common.scope ] ->
+    ?options:unit ->
+    ?charset:string ->
+    ?code:int ->
+    ?content_type:string ->
+    ?headers:Http_headers.t ->
+    ?secure_session:bool ->
+    ?name:string ->
+    ?csrf_safe:bool ->
+    ?csrf_scope:[< Eliom_common.user_scope ] ->
+    ?csrf_secure:bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?keep_get_na_params:bool ->
+    ?https:bool ->
+    post_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+    ?error_handler:((string * exn) list ->
+                    XHTML_types.xhtml Eliom_pervasives.XHTML.M.elt Lwt.t) ->
+    (unit -> 'a -> XHTML_types.xhtml Eliom_pervasives.XHTML.M.elt Lwt.t) ->
+    (unit, 'a, [> `Nonattached of [> `Post ] Eliom_services.na_s ],
+     [ `WithoutSuffix ], unit, 'b,
+     [< Eliom_services.registrable > `Registrable ],
+     Eliom_output.http_service)
+    Eliom_services.service
+  val send :
+    ?options:unit ->
+    ?charset:string ->
+    ?code:int ->
+    ?content_type:string ->
+    ?headers:Http_headers.t ->
+    XHTML_types.xhtml Eliom_pervasives.XHTML.M.elt ->
+    (Eliom_output.browser_content, Eliom_output.http_service)
+    Eliom_output.kind Lwt.t
+  val make_uri :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, unit, [< Eliom_services.get_service_kind ],
+             [< Eliom_services.suff ], 'b, unit,
+             [< Eliom_services.registrable ], 'c)
+            Eliom_services.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameters.nl_params_set ->
+    'a -> Eliom_pervasives.XML.uri
+  val make_string_uri :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, unit, [< Eliom_services.get_service_kind ],
+             [< Eliom_services.suff ], 'b, unit,
+             [< Eliom_services.registrable ], 'c)
+            Eliom_services.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameters.nl_params_set -> 'a -> string
+  val uri_of_string : (unit -> string) -> Eliom_pervasives.XML.uri
+  val make_uri_components :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, unit, [< Eliom_services.get_service_kind ],
+             [< Eliom_services.suff ], 'b, unit,
+             [< Eliom_services.registrable ], 'c)
+            Eliom_services.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameters.nl_params_set ->
+    'a -> string * (string * string) list * string option
+  val make_post_uri_components :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, [< Eliom_services.post_service_kind ],
+             [< Eliom_services.suff ], 'c, 'd,
+             [< Eliom_services.registrable ], 'e)
+            Eliom_services.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameters.nl_params_set ->
+    ?keep_get_na_params:bool ->
+    'a ->
+    'b ->
+    string * (string * string) list * string option * (string * string) list
+  val make_proto_prefix : ?hostname:string -> ?port:int -> bool -> string
+  val a :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    ?a:XHTML_types.a_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    service:('a, unit, [< Eliom_services.get_service_kind ],
+             [< Eliom_services.suff ], 'b, unit,
+             [< Eliom_services.registrable ], 'c)
+            Eliom_services.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameters.nl_params_set ->
+    ?no_appl:bool ->
+    XHTML_types.a_content Eliom_pervasives.XHTML.M.elt list ->
+    'a -> [> XHTML_types.a ] Eliom_pervasives.XHTML.M.elt
+  val css_link :
+    ?a:XHTML_types.link_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    uri:Eliom_pervasives.XML.uri ->
+    unit -> [> XHTML_types.link ] Eliom_pervasives.XHTML.M.elt
+  val js_script :
+    ?a:XHTML_types.script_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    uri:Eliom_pervasives.XML.uri ->
+    unit -> [> XHTML_types.script ] Eliom_pervasives.XHTML.M.elt
+  val get_form :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    ?a:XHTML_types.form_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    service:('a, unit, [< Eliom_services.get_service_kind ],
+             [< Eliom_services.suff ], 'b, 'c,
+             [< Eliom_services.registrable ], 'd)
+            Eliom_services.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameters.nl_params_set ->
+    ?no_appl:bool ->
+    ('b -> XHTML_types.form_content Eliom_pervasives.XHTML.M.elt list) ->
+    [> XHTML_types.form ] Eliom_pervasives.XHTML.M.elt
+  val lwt_get_form :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    ?a:XHTML_types.form_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    service:('a, unit, [< Eliom_services.get_service_kind ],
+             [< Eliom_services.suff ], 'b, 'c,
+             [< Eliom_services.registrable ], 'd)
+            Eliom_services.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameters.nl_params_set ->
+    ?no_appl:bool ->
+    ('b -> XHTML_types.form_content Eliom_pervasives.XHTML.M.elt list Lwt.t) ->
+    [> XHTML_types.form ] Eliom_pervasives.XHTML.M.elt Lwt.t
+  val post_form :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    ?a:XHTML_types.form_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    service:('a, 'b, [< Eliom_services.post_service_kind ],
+             [< Eliom_services.suff ], 'c, 'd,
+             [< Eliom_services.registrable ], 'e)
+            Eliom_services.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?keep_get_na_params:bool ->
+    ?nl_params:Eliom_parameters.nl_params_set ->
+    ?no_appl:bool ->
+    ('d -> XHTML_types.form_content Eliom_pervasives.XHTML.M.elt list) ->
+    'a -> [> XHTML_types.form ] Eliom_pervasives.XHTML.M.elt
+  val lwt_post_form :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    ?a:XHTML_types.form_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    service:('a, 'b, [< Eliom_services.post_service_kind ],
+             [< Eliom_services.suff ], 'c, 'd,
+             [< Eliom_services.registrable ], 'e)
+            Eliom_services.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?keep_get_na_params:bool ->
+    ?nl_params:Eliom_parameters.nl_params_set ->
+    ?no_appl:bool ->
+    ('d -> XHTML_types.form_content Eliom_pervasives.XHTML.M.elt list Lwt.t) ->
+    'a -> [> XHTML_types.form ] Eliom_pervasives.XHTML.M.elt Lwt.t
+  val int_input :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    input_type:[< `Hidden | `Password | `Submit | `Text ] ->
+    ?name:[< int Eliom_parameters.setoneradio ] Eliom_parameters.param_name ->
+    ?value:int -> unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val int32_input :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    input_type:[< `Hidden | `Password | `Submit | `Text ] ->
+    ?name:[< int32 Eliom_parameters.setoneradio ] Eliom_parameters.param_name ->
+    ?value:int32 ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val int64_input :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    input_type:[< `Hidden | `Password | `Submit | `Text ] ->
+    ?name:[< int64 Eliom_parameters.setoneradio ] Eliom_parameters.param_name ->
+    ?value:int64 ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val float_input :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    input_type:[< `Hidden | `Password | `Submit | `Text ] ->
+    ?name:[< float Eliom_parameters.setoneradio ] Eliom_parameters.param_name ->
+    ?value:float ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val string_input :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    input_type:[< `Hidden | `Password | `Submit | `Text ] ->
+    ?name:[< string Eliom_parameters.setoneradio ]
+          Eliom_parameters.param_name ->
+    ?value:string ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val user_type_input :
+    ('a -> string) ->
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    input_type:[< `Hidden | `Password | `Submit | `Text ] ->
+    ?name:[< 'a Eliom_parameters.setoneradio ] Eliom_parameters.param_name ->
+    ?value:'a -> unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val raw_input :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    input_type:[< `Button | `Hidden | `Password | `Reset | `Submit | `Text ] ->
+    ?name:string ->
+    ?value:string ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val file_input :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< Eliom_pervasives.file_info Eliom_parameters.setoneradio ]
+         Eliom_parameters.param_name ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val image_input :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< Eliom_parameters.coordinates Eliom_parameters.oneradio ]
+         Eliom_parameters.param_name ->
+    ?src:Eliom_pervasives.XML.uri ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val int_image_input :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< (int * Eliom_parameters.coordinates) Eliom_parameters.oneradio ]
+         Eliom_parameters.param_name ->
+    value:int ->
+    ?src:Eliom_pervasives.XML.uri ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val int32_image_input :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< (int32 * Eliom_parameters.coordinates) Eliom_parameters.oneradio ]
+         Eliom_parameters.param_name ->
+    value:int32 ->
+    ?src:Eliom_pervasives.XML.uri ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val int64_image_input :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< (int64 * Eliom_parameters.coordinates) Eliom_parameters.oneradio ]
+         Eliom_parameters.param_name ->
+    value:int64 ->
+    ?src:Eliom_pervasives.XML.uri ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val float_image_input :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< (float * Eliom_parameters.coordinates) Eliom_parameters.oneradio ]
+         Eliom_parameters.param_name ->
+    value:float ->
+    ?src:Eliom_pervasives.XML.uri ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val string_image_input :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< (string * Eliom_parameters.coordinates) Eliom_parameters.oneradio ]
+         Eliom_parameters.param_name ->
+    value:string ->
+    ?src:Eliom_pervasives.XML.uri ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val user_type_image_input :
+    ('a -> string) ->
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< ('a * Eliom_parameters.coordinates) Eliom_parameters.oneradio ]
+         Eliom_parameters.param_name ->
+    value:'a ->
+    ?src:Eliom_pervasives.XML.uri ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val raw_image_input :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:string ->
+    value:string ->
+    ?src:Eliom_pervasives.XML.uri ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val bool_checkbox :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    ?checked:bool ->
+    name:[ `One of bool ] Eliom_parameters.param_name ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val int_checkbox :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    ?checked:bool ->
+    name:[ `Set of int ] Eliom_parameters.param_name ->
+    value:int -> unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val int32_checkbox :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    ?checked:bool ->
+    name:[ `Set of int32 ] Eliom_parameters.param_name ->
+    value:int32 ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val int64_checkbox :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    ?checked:bool ->
+    name:[ `Set of int64 ] Eliom_parameters.param_name ->
+    value:int64 ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val float_checkbox :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    ?checked:bool ->
+    name:[ `Set of float ] Eliom_parameters.param_name ->
+    value:float ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val string_checkbox :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    ?checked:bool ->
+    name:[ `Set of string ] Eliom_parameters.param_name ->
+    value:string ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val user_type_checkbox :
+    ('a -> string) ->
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    ?checked:bool ->
+    name:[ `Set of 'a ] Eliom_parameters.param_name ->
+    value:'a -> unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val raw_checkbox :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    ?checked:bool ->
+    name:string ->
+    value:string ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val string_radio :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    ?checked:bool ->
+    name:[ `Radio of string ] Eliom_parameters.param_name ->
+    value:string ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val int_radio :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    ?checked:bool ->
+    name:[ `Radio of int ] Eliom_parameters.param_name ->
+    value:int -> unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val int32_radio :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    ?checked:bool ->
+    name:[ `Radio of int32 ] Eliom_parameters.param_name ->
+    value:int32 ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val int64_radio :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    ?checked:bool ->
+    name:[ `Radio of int64 ] Eliom_parameters.param_name ->
+    value:int64 ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val float_radio :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    ?checked:bool ->
+    name:[ `Radio of float ] Eliom_parameters.param_name ->
+    value:float ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val user_type_radio :
+    ('a -> string) ->
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    ?checked:bool ->
+    name:[ `Radio of 'a ] Eliom_parameters.param_name ->
+    value:'a -> unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val raw_radio :
+    ?a:XHTML_types.input_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    ?checked:bool ->
+    name:string ->
+    value:string ->
+    unit -> [> XHTML_types.input ] Eliom_pervasives.XHTML.M.elt
+  val string_button :
+    ?a:XHTML_types.button_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< string Eliom_parameters.setone ] Eliom_parameters.param_name ->
+    value:string ->
+    XHTML_types.button_content Eliom_pervasives.XHTML.M.elt list ->
+    [> XHTML_types.button ] Eliom_pervasives.XHTML.M.elt
+  val int_button :
+    ?a:XHTML_types.button_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< int Eliom_parameters.setone ] Eliom_parameters.param_name ->
+    value:int ->
+    XHTML_types.button_content Eliom_pervasives.XHTML.M.elt list ->
+    [> XHTML_types.button ] Eliom_pervasives.XHTML.M.elt
+  val int32_button :
+    ?a:XHTML_types.button_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< int32 Eliom_parameters.setone ] Eliom_parameters.param_name ->
+    value:int32 ->
+    XHTML_types.button_content Eliom_pervasives.XHTML.M.elt list ->
+    [> XHTML_types.button ] Eliom_pervasives.XHTML.M.elt
+  val int64_button :
+    ?a:XHTML_types.button_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< int64 Eliom_parameters.setone ] Eliom_parameters.param_name ->
+    value:int64 ->
+    XHTML_types.button_content Eliom_pervasives.XHTML.M.elt list ->
+    [> XHTML_types.button ] Eliom_pervasives.XHTML.M.elt
+  val float_button :
+    ?a:XHTML_types.button_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< float Eliom_parameters.setone ] Eliom_parameters.param_name ->
+    value:float ->
+    XHTML_types.button_content Eliom_pervasives.XHTML.M.elt list ->
+    [> XHTML_types.button ] Eliom_pervasives.XHTML.M.elt
+  val user_type_button :
+    ('a -> string) ->
+    ?a:XHTML_types.button_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< 'a Eliom_parameters.setone ] Eliom_parameters.param_name ->
+    value:'a ->
+    XHTML_types.button_content Eliom_pervasives.XHTML.M.elt list ->
+    [> XHTML_types.button ] Eliom_pervasives.XHTML.M.elt
+  val raw_button :
+    ?a:XHTML_types.button_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    button_type:[< `Button | `Reset | `Submit ] ->
+    name:string ->
+    value:string ->
+    XHTML_types.button_content Eliom_pervasives.XHTML.M.elt list ->
+    [> XHTML_types.button ] Eliom_pervasives.XHTML.M.elt
+  val button :
+    ?a:XHTML_types.button_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    button_type:[< `Button | `Reset | `Submit ] ->
+    XHTML_types.button_content Eliom_pervasives.XHTML.M.elt list ->
+    [> XHTML_types.button ] Eliom_pervasives.XHTML.M.elt
+  val textarea :
+    ?a:XHTML_types.textarea_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< string Eliom_parameters.setoneradio ] Eliom_parameters.param_name ->
+    ?value:string ->
+    rows:int ->
+    cols:int ->
+    unit -> [> XHTML_types.textarea ] Eliom_pervasives.XHTML.M.elt
+  val raw_textarea :
+    ?a:XHTML_types.textarea_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:string ->
+    ?value:string ->
+    rows:int ->
+    cols:int ->
+    unit -> [> XHTML_types.textarea ] Eliom_pervasives.XHTML.M.elt
+  type 'a soption =
+      XHTML_types.option_attrib Eliom_pervasives.XHTML.M.attrib list * 'a *
+      XHTML_types.pcdata Eliom_pervasives.XHTML.M.elt option * bool
+  type 'a select_opt =
+      Optgroup of
+        [ `Class
+        | `Dir
+        | `Disabled
+        | `Id
+        | `OnClick
+        | `OnDblClick
+        | `OnKeyDown
+        | `OnKeyPress
+        | `OnKeyUp
+        | `OnMouseDown
+        | `OnMouseMove
+        | `OnMouseOut
+        | `OnMouseOver
+        | `OnMouseUp
+        | `Style_Attr
+        | `Title
+        | `XML_lang
+        | `XML_space ] Eliom_pervasives.XHTML.M.attrib list * string *
+        'a Eliom_output.Xhtml.soption * 'a Eliom_output.Xhtml.soption list
+    | Option of 'a Eliom_output.Xhtml.soption
+  val int_select :
+    ?a:XHTML_types.select_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< `One of int ] Eliom_parameters.param_name ->
+    int Eliom_output.Xhtml.select_opt ->
+    int Eliom_output.Xhtml.select_opt list ->
+    [> XHTML_types.select ] Eliom_pervasives.XHTML.M.elt
+  val int32_select :
+    ?a:XHTML_types.select_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< `One of int32 ] Eliom_parameters.param_name ->
+    int32 Eliom_output.Xhtml.select_opt ->
+    int32 Eliom_output.Xhtml.select_opt list ->
+    [> XHTML_types.select ] Eliom_pervasives.XHTML.M.elt
+  val int64_select :
+    ?a:XHTML_types.select_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< `One of int64 ] Eliom_parameters.param_name ->
+    int64 Eliom_output.Xhtml.select_opt ->
+    int64 Eliom_output.Xhtml.select_opt list ->
+    [> XHTML_types.select ] Eliom_pervasives.XHTML.M.elt
+  val float_select :
+    ?a:XHTML_types.select_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< `One of float ] Eliom_parameters.param_name ->
+    float Eliom_output.Xhtml.select_opt ->
+    float Eliom_output.Xhtml.select_opt list ->
+    [> XHTML_types.select ] Eliom_pervasives.XHTML.M.elt
+  val string_select :
+    ?a:XHTML_types.select_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< `One of string ] Eliom_parameters.param_name ->
+    string Eliom_output.Xhtml.select_opt ->
+    string Eliom_output.Xhtml.select_opt list ->
+    [> XHTML_types.select ] Eliom_pervasives.XHTML.M.elt
+  val user_type_select :
+    ('a -> string) ->
+    ?a:XHTML_types.select_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< `One of 'a ] Eliom_parameters.param_name ->
+    'a Eliom_output.Xhtml.select_opt ->
+    'a Eliom_output.Xhtml.select_opt list ->
+    [> XHTML_types.select ] Eliom_pervasives.XHTML.M.elt
+  val raw_select :
+    ?a:XHTML_types.select_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:string ->
+    string Eliom_output.Xhtml.select_opt ->
+    string Eliom_output.Xhtml.select_opt list ->
+    [> XHTML_types.select ] Eliom_pervasives.XHTML.M.elt
+  val int_multiple_select :
+    ?a:XHTML_types.select_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< `Set of int ] Eliom_parameters.param_name ->
+    int Eliom_output.Xhtml.select_opt ->
+    int Eliom_output.Xhtml.select_opt list ->
+    [> XHTML_types.select ] Eliom_pervasives.XHTML.M.elt
+  val int32_multiple_select :
+    ?a:XHTML_types.select_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< `Set of int32 ] Eliom_parameters.param_name ->
+    int32 Eliom_output.Xhtml.select_opt ->
+    int32 Eliom_output.Xhtml.select_opt list ->
+    [> XHTML_types.select ] Eliom_pervasives.XHTML.M.elt
+  val int64_multiple_select :
+    ?a:XHTML_types.select_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< `Set of int64 ] Eliom_parameters.param_name ->
+    int64 Eliom_output.Xhtml.select_opt ->
+    int64 Eliom_output.Xhtml.select_opt list ->
+    [> XHTML_types.select ] Eliom_pervasives.XHTML.M.elt
+  val float_multiple_select :
+    ?a:XHTML_types.select_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< `Set of float ] Eliom_parameters.param_name ->
+    float Eliom_output.Xhtml.select_opt ->
+    float Eliom_output.Xhtml.select_opt list ->
+    [> XHTML_types.select ] Eliom_pervasives.XHTML.M.elt
+  val string_multiple_select :
+    ?a:XHTML_types.select_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< `Set of string ] Eliom_parameters.param_name ->
+    string Eliom_output.Xhtml.select_opt ->
+    string Eliom_output.Xhtml.select_opt list ->
+    [> XHTML_types.select ] Eliom_pervasives.XHTML.M.elt
+  val user_type_multiple_select :
+    ('a -> string) ->
+    ?a:XHTML_types.select_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:[< `Set of 'a ] Eliom_parameters.param_name ->
+    'a Eliom_output.Xhtml.select_opt ->
+    'a Eliom_output.Xhtml.select_opt list ->
+    [> XHTML_types.select ] Eliom_pervasives.XHTML.M.elt
+  val raw_multiple_select :
+    ?a:XHTML_types.select_attrib Eliom_pervasives.XHTML.M.attrib list ->
+    name:string ->
+    string Eliom_output.Xhtml.select_opt ->
+    string Eliom_output.Xhtml.select_opt list ->
+    [> XHTML_types.select ] Eliom_pervasives.XHTML.M.elt
+end >>

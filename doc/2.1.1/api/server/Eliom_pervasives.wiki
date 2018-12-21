@@ -1,0 +1,45 @@
+=Module <<a_api_type subproject="server" | module Eliom_pervasives >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_pervasives>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives >><<span class="ocsforge_color_keyword"|end>>>>~Pervasives module for ~Eliom ~: it extends the ~O~Caml stdlib and should always be opened~.
+
+----
+<<pre id="EXCEPTIONEliom_Internal_Error" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|exception>> <<span class="odocwiki_name"|Eliom_Internal_Error>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|string>>>><<div class="odocwiki_info"|
+==@@id="2_Pervasives"@@~Pervasives==
+
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEleftright"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >>>> <<span class="odocwiki_name"|leftright>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_variants"|<<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Left>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|'a>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Right>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|'b>>>>>>>>>><<pre id="VALmap_option" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|map~_option>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a <<span class="ocsforge_color_delimiter"| -> >> 'b<<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >> 'a option <<span class="ocsforge_color_delimiter"| -> >> 'b option>>>><<pre id="VALiter_option" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|iter~_option>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a <<span class="ocsforge_color_delimiter"| -> >> unit<<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >> 'a option <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<pre id="VALfst3" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|fst~3>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a * 'b * 'c <<span class="ocsforge_color_delimiter"| -> >> 'a>>>><<pre id="VALsnd3" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|snd~3>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a * 'b * 'c <<span class="ocsforge_color_delimiter"| -> >> 'b>>>><<pre id="VALthd3" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|thd~3>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a * 'b * 'c <<span class="ocsforge_color_delimiter"| -> >> 'c>>>><<pre class="ocsforge_color odocwiki_code" id="TYPEfile_info"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|file~_info>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Ocsigen_extensions>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|file_info>>>> >>
+
+==@@id="2_Standardlibrariesextensions"@@~Standard libraries extensions ==
+
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="List" | module Eliom_pervasives.List >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives.List >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Extension of the <<span class="odocwiki_inlinecode"|~List>> module from the ~O~Caml standard library~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="String" | module Eliom_pervasives.String >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives.String >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Extension of the <<span class="odocwiki_inlinecode"|~String>> module from the ~O~Caml standard library~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Int" | module Eliom_pervasives.Int >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives.Int >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Standard operations on integer~.
+>>
+
+
+==@@id="2_TyXML"@@~Ty~X~M~L==
+
+
+
+    ~X~M~L tree manipulation within ~Eliom is based on the ~Ty~X~M~L library
+    but use a custom representation for ~X~M~L values ~(see
+    <<a_api subproject="server" | module Eliom_pervasives.XML >>~)~. ~Then~, <<span class="odocwiki_inlinecode"|~Eliom~_pervasives>> redefines the three high level
+    interfaces ~(<<a_api subproject="server" | module Eliom_pervasives.SVG >>~, <<a_api subproject="server" | module Eliom_pervasives.HTML5 >> and <<a_api subproject="server" | module Eliom_pervasives.XHTML >>~) that are provided by
+    ~Ty~X~M~L for valid ~X~M~L tree creation and printing~.
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="XML" | module Eliom_pervasives.XML >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives.XML >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Low~-level ~X~M~L manipulation~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="SVG" | module Eliom_pervasives.SVG >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives.SVG >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Building and pretty~-printing valid ~S~V~G tree~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="HTML5" | module Eliom_pervasives.HTML5 >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives.HTML5 >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Building and printing valid ~(~X~)~H~T~M~L~5 tree~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="XHTML" | module Eliom_pervasives.XHTML >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives.XHTML >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Building and printing valid ~X~H~T~M~L tree~.
+>>
+
+
+==@@id="2_Otherlibraries"@@~Other libraries==
+
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Url" | module Eliom_pervasives.Url >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives.Url >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Helpers for ~Url manipulations
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Ip_address" | module Eliom_pervasives.Ip_address >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives.Ip_address >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Helpers for ~I~P addresses manipulations
+>>

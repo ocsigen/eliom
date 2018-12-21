@@ -1,0 +1,205 @@
+=Miscellaneous=
+
+
+==@@id="predefinedconstructs"@@HTML widgets
+        
+===Images, CSS, Javascript
+          
+          
+ To include an image, simply use the function  <<a_api| val Eliom_content.Html5.D.img >>:
+      
+          
+
+          
+<<code language="ocaml"|img ~alt:"Ocsigen"
+    ~src:(Eliom_registration.Html5.make_uri ~service:senddoc ["ocsigen1024.jpg"])
+    ()
+>>
+
+          
+The function <<a_api | value Eliom_content.Html5.D.make_uri>>
+        creates the relative URL string from current URL
+        (see above) to the URL of the image in the static directory
+        configured in the configuration file.
+      
+          
+
+          
+To simplify the creation of <<span class="code"|<link>>> tags
+      for CSS or <<span class="code"|<script>>> tags for Javascript,
+        use the following functions:
+          
+
+          
+<<code language="ocaml"|css_link ~uri:(make_uri ~service:(static_dir ()) ["style.css"]) ()
+>>
+
+          
+<<code language="ocaml"|js_script ~uri:(make_uri ~service:(static_dir ()) ["funs.js"]) ()
+>>
+
+===@@id="basic_menu"@@Basic menus
+          
+          
+      To make a menu on your web page, you can use the function
+          <<a_api| val Eliom_tools.menu >>.
+      First, define your menu like this:
+      
+          
+
+          
+<<code language="ocaml"|let mymenu current =
+  Eliom_tools.menu ~classe:["menuprincipal"]
+    (home, %:xmllist< Home ~>>)
+    [
+     (infos, %:xmllist< More info ~>>);
+     (tutorial, %:xmllist< Documentation ~>>)
+   ] current
+>>
+
+          
+Here, <<span class="code"|home>>,  <<span class="code"|infos>>,
+        and <<span class="code"|tutorial>> are your three pages (generated for example
+        by  <<a_api| val Eliom_service.service >>).
+          
+
+
+
+
+          
+Then <<span class="code"|mymenu ~service:home>> will generate the following
+        code:
+          
+
+          <<div class="pre"|<ul class="menu menuprincipal">
+  <li class="current first">Home
+  </li>
+  <li><a href="infos">More info</a>
+  </li>
+  <li class="last"><a href="tutorial">Documentation</a>
+  </li>
+</ul>
+>>
+          
+Personalise it in your CSS style-sheet.
+          
+
+          
+ <<a_api| val Eliom_tools.menu >> takes a list of services without
+    GET parameters.
+    If you want one of the link to contains GET parameters, pre-apply
+    the service.
+          
+
+          <<concept title="How to make a menu entry with GET parameters?"
+            
+            
+          Preapply your service.
+          
+            
+      
+          >>
+===@@id="hier_menu"@@Hierarchical menus
+          
+<<code language="ocaml"|(* Hierarchical menu *)
+open Eliom_tools_common
+
+let hier1 = service ~path:["hier1"] ~get_params:unit ()
+let hier2 = service ~path:["hier2"] ~get_params:unit ()
+let hier3 = service ~path:["hier3"] ~get_params:unit ()
+let hier4 = service ~path:["hier4"] ~get_params:unit ()
+let hier5 = service ~path:["hier5"] ~get_params:unit ()
+let hier6 = service ~path:["hier6"] ~get_params:unit ()
+let hier7 = service ~path:["hier7"] ~get_params:unit ()
+let hier8 = service ~path:["hier8"] ~get_params:unit ()
+let hier9 = service ~path:["hier9"] ~get_params:unit ()
+let hier10 = service ~path:["hier10"] ~get_params:unit ()
+
+let mymenu =
+  (
+   (Main_page hier1),
+
+   [([pcdata "page 1"], Site_tree (Main_page hier1, []));
+
+    ([pcdata "page 2"], Site_tree (Main_page hier2, []));
+
+    ([pcdata "submenu 4"],
+     Site_tree
+       (Default_page hier4,
+         [([pcdata "submenu 3"],
+          Site_tree
+             (Not_clickable,
+              [([pcdata "page 3"], Site_tree (Main_page hier3, []));
+               ([pcdata "page 4"], Site_tree (Main_page hier4, []));
+               ([pcdata "page 5"], Site_tree (Main_page hier5, []))]
+             )
+          );
+
+          ([pcdata "page 6"], Site_tree (Main_page hier6, []))]
+       )
+    );
+
+    ([pcdata "page 7"],
+     Site_tree (Main_page hier7, []));
+
+    ([pcdata "disabled"], Disabled);
+
+    ([pcdata "submenu 8"],
+     Site_tree
+       (Main_page hier8,
+        [([pcdata "page 9"], Site_tree (Main_page hier9, []));
+         ([pcdata "page 10"], Site_tree (Main_page hier10, []))]
+       )
+    )
+  ]
+  )
+
+let f i s () () =
+  return
+    (html
+       (head (title (pcdata ""))
+          ((style ~contenttype:"text/css"
+             [cdata_style
+ "a {color: red;}\n
+  li.eliomtools_current > a {color: blue;}\n
+  .breadthmenu li {\n
+    display: inline;\n
+    padding: 0px 1em;\n
+    margin: 0px;\n
+    border-right: solid 1px black;}\n
+  .breadthmenu li.eliomtools_last {border: none;}\n
+                "])::
+                Html5_tools.F.structure_links mymenu ~service:s ())
+             )
+       (body [h1 [pcdata ("Page "^string_of_int i)];
+              h2 [pcdata "Depth first, whole tree:"];
+              div
+                (Html5_tools.F.hierarchical_menu_depth_first
+                   ~whole_tree:true mymenu ~service:s ());
+              h2 [pcdata "Depth first, only current submenu:"];
+              div (Html5_tools.F.hierarchical_menu_depth_first mymenu ~service:s ());
+              h2 [pcdata "Breadth first:"];
+              div
+                (Html5_tools.F.hierarchical_menu_breadth_first
+                   ~classe:["breadthmenu"] mymenu ~service:s ())]))
+
+
+let _ =
+  register hier1 (f 1 hier1);
+  register hier2 (f 2 hier2);
+  register hier3 (f 3 hier3);
+  register hier4 (f 4 hier4);
+  register hier5 (f 5 hier5);
+  register hier6 (f 6 hier6);
+  register hier7 (f 7 hier7);
+  register hier8 (f 8 hier8);
+  register hier9 (f 9 hier9);
+  register hier10 (f 10 hier10)
+>>
+
+
+==Open ID==
+
+==Atom==
+
+

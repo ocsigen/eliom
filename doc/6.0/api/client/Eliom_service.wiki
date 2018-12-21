@@ -1,0 +1,14 @@
+=Module <<a_api_type subproject="client" | module Eliom_service >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_service>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_service >><<span class="ocsforge_color_keyword"|end>>>>~Creation and manipulation of ~Eliom services~.
+
+
+    ~See the ~Eliom manual for a detailed introduction to the concept of
+    <<a_manual chapter="server-services"|Eliom services>> and to
+    <<a_manual chapter="clientserver-services"|client-side service implementation>>~.
+
+
+    ~The main functions about services are documented in
+    <<a_api | module Eliom_service_sigs.S >>~.
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> <<a_api subproject="client" | module type Eliom_service_sigs.S >>>>

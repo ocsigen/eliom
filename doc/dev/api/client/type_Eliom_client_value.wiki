@@ -1,0 +1,7 @@
+<<code language="ocaml" | sig
+  type 'a t = 'a
+  exception Exception_on_server of string
+  exception False
+  type injection_datum = Eliom_runtime.injection_datum
+  type global_data2
+end >>

@@ -1,0 +1,78 @@
+<<code language="ocaml" | sig
+  type uri = Eliom_content_core.Xml.uri
+  val string_of_uri : uri -> string
+  val uri_of_string : string -> uri
+  type aname = string
+  type event_handler = Eliom_content_core.Xml.event_handler
+  type attrib = Eliom_content_core.Xml.attrib
+  val float_attrib : aname -> float -> attrib
+  val int_attrib : aname -> int -> attrib
+  val string_attrib : aname -> string -> attrib
+  val space_sep_attrib : aname -> string list -> attrib
+  val comma_sep_attrib : aname -> string list -> attrib
+  val event_handler_attrib : aname -> event_handler -> attrib
+  val uri_attrib : aname -> uri -> attrib
+  val uris_attrib : aname -> uri list -> attrib
+  type elt = Eliom_content_core.Xml.elt
+  type ename = string
+  val empty : unit -> elt
+  val comment : string -> elt
+  val pcdata : string -> elt
+  val encodedpcdata : string -> elt
+  val entity : string -> elt
+  val leaf : ?a:attrib list -> ename -> elt
+  val node : ?a:attrib list -> ename -> elt list -> elt
+  val cdata : string -> elt
+  val cdata_script : string -> elt
+  val cdata_style : string -> elt
+  type separator = Space | Comma
+  val aname : attrib -> aname
+  type acontent = private
+      AFloat of float
+    | AInt of int
+    | AStr of string
+    | AStrL of separator * string list
+  val acontent : attrib -> acontent
+  type econtent = private
+      Empty
+    | Comment of string
+    | EncodedPCDATA of string
+    | PCDATA of string
+    | Entity of string
+    | Leaf of ename * attrib list
+    | Node of ename * attrib list * elt list
+  val content : elt -> econtent
+  type -'a caml_event_handler = 'a Eliom_content_core.Xml.caml_event_handler
+    constraint 'a = #Dom_html.event
+  val make_process_node : ?id:string -> elt -> elt
+  val make_request_node : elt -> elt
+  val uri_of_fun : (unit -> string) -> uri
+  type event_handler_table = Eliom_content_core.Xml.event_handler_table
+  type node_id
+  val get_node_id : elt -> node_id
+  val make_event_handler_table : elt -> event_handler_table
+  val event_handler_of_string : string -> event_handler
+  val string_of_event_handler : event_handler -> string
+  val event_handler_of_js :
+    int64 -> Ocsigen_lib_base.poly -> #Dom_html.event caml_event_handler
+  val event_handler_of_service :
+    ([ `A | `Form_get | `Form_post ] * (bool * string list) option *
+     string option)
+    option Eliom_lazy.request -> event_handler
+  val event_of_string : string -> event_handler
+  val string_of_handler : event_handler -> string
+  val event_of_js :
+    int64 -> Ocsigen_lib_base.poly -> #Dom_html.event caml_event_handler
+  val event_of_service :
+    ([ `A | `Form_get | `Form_post ] * (bool * string list) option *
+     string option)
+    option Eliom_lazy.request -> event_handler
+  type racontent =
+      RA of acontent
+    | RACamlEventHandler of Dom_html.event caml_event_handler
+    | RALazyStr of string Eliom_lazy.request
+    | RALazyStrL of separator * string Eliom_lazy.request list
+  val racontent : attrib -> racontent
+  val lazy_node :
+    ?a:attrib list -> ename -> elt list Eliom_lazy.request -> elt
+end >>

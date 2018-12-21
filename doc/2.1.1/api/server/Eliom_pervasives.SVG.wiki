@@ -1,0 +1,41 @@
+=Module <<a_api_type subproject="server" | module Eliom_pervasives.SVG >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|SVG>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives.SVG >><<span class="ocsforge_color_keyword"|end>>>>~Building and pretty~-printing valid ~S~V~G tree~.
+
+----
+
+~See the ~Eliom manual for more information on<<a_manual
+      chapter="client" fragment="unique"| dom semantics vs. functional
+      semantics>>  for ~S~V~G tree manipulated by client~/server
+      application~.
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> SVG_sigs.T>>
+<<div class="odocwiki_info"|
+==@@id="2_Domsemantics"@@~Dom semantics==
+
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="DOM" | module Eliom_pervasives.SVG.DOM >> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|SVG_sigs.T>>>><<span class="odocwiki_type"| with module XML := XML and type 'a elt = 'a elt\\      and type 'a attrib = 'a attrib and type uri = uri>>>><<div class="odocwiki_info"|~Typed interface for building valid ~S~V~G tree ~(~D~O~M semantics~)~.
+>>
+
+
+==@@id="2_Functionalsemantics"@@~Functional semantics==
+
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="M" | module Eliom_pervasives.SVG.M >> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|SVG_sigs.T>>>><<span class="odocwiki_type"| with module XML := XML and type 'a elt = 'a elt\\      and type 'a attrib = 'a attrib and type uri = uri>>>><<div class="odocwiki_info"|~Typed interface for building valid ~S~V~G tree ~(functional
+      semantics~)~.
+>>
+
+
+==@@id="2_Globalnode"@@~Global node==
+
+<<pre class="ocsforge_color odocwiki_code" id="TYPEid"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|+'a>> <<span class="odocwiki_name"|id>>>><<div class="odocwiki_info"|~The type of global ~S~V~G element identifier~.
+>>
+<<pre id="VALnew_elt_id" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|new~_elt~_id>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_label"| ?global: >>bool <<span class="ocsforge_color_delimiter"| -> >> unit <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="id" | type Eliom_pervasives.SVG.id >>>>>><<div class="odocwiki_info"|~See <<a_api subproject="server" | val Eliom_pervasives.HTML5.new_elt_id >>
+>>
+<<pre id="VALcreate_named_elt" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|create~_named~_elt>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_label"| id: >>'a <<a_api subproject="server" text="id" | type Eliom_pervasives.SVG.id >> <<span class="ocsforge_color_delimiter"| -> >> 'a elt <<span class="ocsforge_color_delimiter"| -> >> 'a elt>>>><<div class="odocwiki_info"|~See <<a_api subproject="server" | val Eliom_pervasives.HTML5.create_named_elt >>
+>>
+<<pre id="VALcreate_global_elt" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|create~_global~_elt>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a elt <<span class="ocsforge_color_delimiter"| -> >> 'a elt>>>><<div class="odocwiki_info"|~See <<a_api subproject="server" | val Eliom_pervasives.HTML5.create_global_elt >>
+>>
+
+
+==@@id="2_Printer"@@~Printer==
+
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="P" | module Eliom_pervasives.SVG.P >> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|XML_sigs.TypedSimplePrinter>>>><<span class="odocwiki_type"| with type 'a elt := 'a M.elt\\      and type doc := M.doc>>>><<div class="odocwiki_info"|~S~V~G printer~.
+>>
